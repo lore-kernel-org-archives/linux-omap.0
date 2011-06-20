@@ -1,815 +1,702 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/10] omap: Use separate init_irq functions to avoid
-	cpu_is_omap tests early
-Date: Mon, 20 Jun 2011 02:23:28 -0700
-Message-ID: <20110620092327.357.92354.stgit@kaulin>
+Subject: [PATCH 02/10] omap: Set separate timer init functions to avoid
+	cpu_is_omap tests
+Date: Mon, 20 Jun 2011 02:23:31 -0700
+Message-ID: <20110620092331.357.51300.stgit@kaulin>
 References: <20110620091754.357.56441.stgit@kaulin>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:49982 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751633Ab1FTJXb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 05:23:31 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54470 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751633Ab1FTJXd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 05:23:33 -0400
 In-Reply-To: <20110620091754.357.56441.stgit@kaulin>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-This allows us to remove cpu_is_omap calls from init_irq functions.
-There should not be any need for cpu_is_omap calls as at this point.
-During the timer init we only care about SoC generation, and not about
-subrevisions.
+This is needed for the following patches so we can initialize the
+rest of the hardware timers later on.
 
-The main reason for the patch is that we want to initialize only
-minimal omap specific code from the init_early call.
+As with the init_irq calls, there's no need to do cpu_is_omap calls
+during the timer init as we only care about the major omap generation.
+This means that we can initialize the sys_timer with the .timer
+entries alone.
+
+Note that for now we just set stubs for the various sys_timer entries
+that will get populated in a later patch. The following patches will
+also remove the omap_dm_timer_init calls and change the init for the
+rest of the hardware timers to happen with an arch_initcall.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap1/board-ams-delta.c      |    2 +-
- arch/arm/mach-omap1/board-fsample.c        |    2 +-
- arch/arm/mach-omap1/board-generic.c        |    2 +-
- arch/arm/mach-omap1/board-h2.c             |    2 +-
- arch/arm/mach-omap1/board-h3.c             |    2 +-
- arch/arm/mach-omap1/board-htcherald.c      |    2 +-
- arch/arm/mach-omap1/board-innovator.c      |    2 +-
- arch/arm/mach-omap1/board-nokia770.c       |    2 +-
- arch/arm/mach-omap1/board-osk.c            |    2 +-
- arch/arm/mach-omap1/board-palmte.c         |    2 +-
- arch/arm/mach-omap1/board-palmtt.c         |    2 +-
- arch/arm/mach-omap1/board-palmz71.c        |    2 +-
- arch/arm/mach-omap1/board-perseus2.c       |    2 +-
- arch/arm/mach-omap1/board-sx1.c            |    2 +-
- arch/arm/mach-omap1/board-voiceblue.c      |    2 +-
- arch/arm/mach-omap1/irq.c                  |    2 +-
- arch/arm/mach-omap2/board-2430sdp.c        |    2 +-
- arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
- arch/arm/mach-omap2/board-3630sdp.c        |    2 +-
- arch/arm/mach-omap2/board-am3517crane.c    |    2 +-
- arch/arm/mach-omap2/board-am3517evm.c      |    2 +-
- arch/arm/mach-omap2/board-apollon.c        |    2 +-
- arch/arm/mach-omap2/board-cm-t35.c         |    2 +-
- arch/arm/mach-omap2/board-cm-t3517.c       |    2 +-
- arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
- arch/arm/mach-omap2/board-generic.c        |    2 +-
- arch/arm/mach-omap2/board-h4.c             |    2 +-
- arch/arm/mach-omap2/board-igep0020.c       |    4 ++--
- arch/arm/mach-omap2/board-ldp.c            |    2 +-
- arch/arm/mach-omap2/board-n8x0.c           |    6 +++--
- arch/arm/mach-omap2/board-omap3beagle.c    |    2 +-
- arch/arm/mach-omap2/board-omap3evm.c       |    2 +-
- arch/arm/mach-omap2/board-omap3logic.c     |    4 ++--
- arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
- arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
- arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
- arch/arm/mach-omap2/board-overo.c          |    2 +-
- arch/arm/mach-omap2/board-rm680.c          |    2 +-
- arch/arm/mach-omap2/board-rx51.c           |    2 +-
- arch/arm/mach-omap2/board-ti8168evm.c      |    7 +-----
- arch/arm/mach-omap2/board-zoom.c           |    4 ++--
- arch/arm/mach-omap2/io.c                   |   17 +--------------
- arch/arm/mach-omap2/irq.c                  |   32 ++++++++++++++++++----------
- arch/arm/mach-omap2/omap4-common.c         |   10 ++++-----
- arch/arm/plat-omap/include/plat/irqs.h     |    6 ++++-
- 45 files changed, 78 insertions(+), 84 deletions(-)
+ arch/arm/mach-omap1/board-ams-delta.c      |    2 +
+ arch/arm/mach-omap1/board-fsample.c        |    2 +
+ arch/arm/mach-omap1/board-generic.c        |    2 +
+ arch/arm/mach-omap1/board-h2.c             |    2 +
+ arch/arm/mach-omap1/board-h3.c             |    2 +
+ arch/arm/mach-omap1/board-htcherald.c      |    2 +
+ arch/arm/mach-omap1/board-innovator.c      |    2 +
+ arch/arm/mach-omap1/board-nokia770.c       |    2 +
+ arch/arm/mach-omap1/board-osk.c            |    2 +
+ arch/arm/mach-omap1/board-palmte.c         |    2 +
+ arch/arm/mach-omap1/board-palmtt.c         |    2 +
+ arch/arm/mach-omap1/board-palmz71.c        |    2 +
+ arch/arm/mach-omap1/board-perseus2.c       |    2 +
+ arch/arm/mach-omap1/board-sx1.c            |    2 +
+ arch/arm/mach-omap1/board-voiceblue.c      |    2 +
+ arch/arm/mach-omap1/time.c                 |    6 ++--
+ arch/arm/mach-omap2/board-2430sdp.c        |    2 +
+ arch/arm/mach-omap2/board-3430sdp.c        |    2 +
+ arch/arm/mach-omap2/board-3630sdp.c        |    2 +
+ arch/arm/mach-omap2/board-4430sdp.c        |    2 +
+ arch/arm/mach-omap2/board-am3517crane.c    |    2 +
+ arch/arm/mach-omap2/board-am3517evm.c      |    2 +
+ arch/arm/mach-omap2/board-apollon.c        |    2 +
+ arch/arm/mach-omap2/board-cm-t35.c         |    2 +
+ arch/arm/mach-omap2/board-cm-t3517.c       |    2 +
+ arch/arm/mach-omap2/board-devkit8000.c     |    2 +
+ arch/arm/mach-omap2/board-generic.c        |    2 +
+ arch/arm/mach-omap2/board-h4.c             |    2 +
+ arch/arm/mach-omap2/board-igep0020.c       |    4 +--
+ arch/arm/mach-omap2/board-ldp.c            |    2 +
+ arch/arm/mach-omap2/board-n8x0.c           |    6 ++--
+ arch/arm/mach-omap2/board-omap3beagle.c    |    2 +
+ arch/arm/mach-omap2/board-omap3evm.c       |    2 +
+ arch/arm/mach-omap2/board-omap3logic.c     |    4 +--
+ arch/arm/mach-omap2/board-omap3pandora.c   |    2 +
+ arch/arm/mach-omap2/board-omap3stalker.c   |    2 +
+ arch/arm/mach-omap2/board-omap3touchbook.c |    2 +
+ arch/arm/mach-omap2/board-omap4panda.c     |    2 +
+ arch/arm/mach-omap2/board-overo.c          |    2 +
+ arch/arm/mach-omap2/board-rm680.c          |    2 +
+ arch/arm/mach-omap2/board-rx51.c           |    2 +
+ arch/arm/mach-omap2/board-ti8168evm.c      |    2 +
+ arch/arm/mach-omap2/board-zoom.c           |    4 +--
+ arch/arm/mach-omap2/timer-gp.c             |   41 +++++++++++++++++++++-------
+ arch/arm/plat-omap/include/plat/common.h   |    6 +++-
+ arch/arm/plat-omap/include/plat/dmtimer.h  |    1 -
+ 46 files changed, 86 insertions(+), 62 deletions(-)
 
 diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index de88c92..17ed757 100644
+index 17ed757..f1ac7fb 100644
 --- a/arch/arm/mach-omap1/board-ams-delta.c
 +++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -138,7 +138,7 @@ void ams_delta_latch2_write(u16 mask, u16 value)
- static void __init ams_delta_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
+@@ -391,7 +391,7 @@ MACHINE_START(AMS_DELTA, "Amstrad E3 (Delta)")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= ams_delta_init_irq,
+ 	.init_machine	= ams_delta_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
  
- static struct map_desc ams_delta_io_desc[] __initdata = {
+ EXPORT_SYMBOL(ams_delta_latch1_write);
 diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
-index 87f173d..eaff305 100644
+index eaff305..a6b1bea 100644
 --- a/arch/arm/mach-omap1/board-fsample.c
 +++ b/arch/arm/mach-omap1/board-fsample.c
-@@ -329,7 +329,7 @@ static void __init omap_fsample_init(void)
- static void __init omap_fsample_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- 
- /* Only FPGA needs to be mapped here. All others are done with ioremap */
+@@ -394,5 +394,5 @@ MACHINE_START(OMAP_FSAMPLE, "OMAP730 F-Sample")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= omap_fsample_init_irq,
+ 	.init_machine	= omap_fsample_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-generic.c b/arch/arm/mach-omap1/board-generic.c
-index 23f4ab9..3fd6b40 100644
+index 3fd6b40..04fc356 100644
 --- a/arch/arm/mach-omap1/board-generic.c
 +++ b/arch/arm/mach-omap1/board-generic.c
-@@ -31,7 +31,7 @@
- static void __init omap_generic_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- 
- /* assume no Mini-AB port */
+@@ -99,5 +99,5 @@ MACHINE_START(OMAP_GENERIC, "Generic OMAP1510/1610/1710")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= omap_generic_init_irq,
+ 	.init_machine	= omap_generic_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index ba3bd09..8147b04 100644
+index 8147b04..cb7fb1a 100644
 --- a/arch/arm/mach-omap1/board-h2.c
 +++ b/arch/arm/mach-omap1/board-h2.c
-@@ -376,7 +376,7 @@ static struct i2c_board_info __initdata h2_i2c_board_info[] = {
- static void __init h2_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- 
- static struct omap_usb_config h2_usb_config __initdata = {
+@@ -466,5 +466,5 @@ MACHINE_START(OMAP_H2, "TI-H2")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= h2_init_irq,
+ 	.init_machine	= h2_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index ac48677..1b448f6 100644
+index 1b448f6..31f3487 100644
 --- a/arch/arm/mach-omap1/board-h3.c
 +++ b/arch/arm/mach-omap1/board-h3.c
-@@ -439,7 +439,7 @@ static void __init h3_init(void)
- static void __init h3_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- 
- static void __init h3_map_io(void)
+@@ -454,5 +454,5 @@ MACHINE_START(OMAP_H3, "TI OMAP1710 H3 board")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= h3_init_irq,
+ 	.init_machine	= h3_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
-index ba05a51..1bd4d8e 100644
+index 1bd4d8e..36e06ea 100644
 --- a/arch/arm/mach-omap1/board-htcherald.c
 +++ b/arch/arm/mach-omap1/board-htcherald.c
-@@ -605,7 +605,7 @@ static void __init htcherald_init_irq(void)
- {
- 	printk(KERN_INFO "htcherald_init_irq.\n");
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- 
- MACHINE_START(HERALD, "HTC Herald")
+@@ -616,5 +616,5 @@ MACHINE_START(HERALD, "HTC Herald")
+ 	.reserve	= omap_reserve,
+ 	.init_irq       = htcherald_init_irq,
+ 	.init_machine   = htcherald_init,
+-	.timer          = &omap_timer,
++	.timer          = &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index 2d9b8cb..5926b0c 100644
+index 5926b0c..0b1ba46 100644
 --- a/arch/arm/mach-omap1/board-innovator.c
 +++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -292,7 +292,7 @@ static void __init innovator_init_smc91x(void)
- static void __init innovator_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- 
- #ifdef CONFIG_ARCH_OMAP15XX
+@@ -464,5 +464,5 @@ MACHINE_START(OMAP_INNOVATOR, "TI-Innovator")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= innovator_init_irq,
+ 	.init_machine	= innovator_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index cfd0849..e3cf21d 100644
+index e3cf21d..5469ce2 100644
 --- a/arch/arm/mach-omap1/board-nokia770.c
 +++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -51,7 +51,7 @@ static void __init omap_nokia770_init_irq(void)
- 	omap_writew((omap_readw(0xfffb5004) & ~2), 0xfffb5004);
- 
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- 
- static const unsigned int nokia770_keymap[] = {
+@@ -269,5 +269,5 @@ MACHINE_START(NOKIA770, "Nokia 770")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= omap_nokia770_init_irq,
+ 	.init_machine	= omap_nokia770_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index e68dfde..1e7823d 100644
+index 1e7823d..b08a213 100644
 --- a/arch/arm/mach-omap1/board-osk.c
 +++ b/arch/arm/mach-omap1/board-osk.c
-@@ -282,7 +282,7 @@ static void __init osk_init_cf(void)
- static void __init osk_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- 
- static struct omap_usb_config osk_usb_config __initdata = {
+@@ -588,5 +588,5 @@ MACHINE_START(OMAP_OSK, "TI-OSK")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= osk_init_irq,
+ 	.init_machine	= osk_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
-index c9d38f4..8b6a881 100644
+index 8b6a881..459cb6b 100644
 --- a/arch/arm/mach-omap1/board-palmte.c
 +++ b/arch/arm/mach-omap1/board-palmte.c
-@@ -62,7 +62,7 @@
- static void __init omap_palmte_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- 
- static const unsigned int palmte_keymap[] = {
+@@ -280,5 +280,5 @@ MACHINE_START(OMAP_PALMTE, "OMAP310 based Palm Tungsten E")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= omap_palmte_init_irq,
+ 	.init_machine	= omap_palmte_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-palmtt.c b/arch/arm/mach-omap1/board-palmtt.c
-index f04f2d3..f2de43d 100644
+index f2de43d..b214f45 100644
 --- a/arch/arm/mach-omap1/board-palmtt.c
 +++ b/arch/arm/mach-omap1/board-palmtt.c
-@@ -266,7 +266,7 @@ static struct spi_board_info __initdata palmtt_boardinfo[] = {
- static void __init omap_palmtt_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- 
- static struct omap_usb_config palmtt_usb_config __initdata = {
+@@ -326,5 +326,5 @@ MACHINE_START(OMAP_PALMTT, "OMAP1510 based Palm Tungsten|T")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= omap_palmtt_init_irq,
+ 	.init_machine	= omap_palmtt_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
-index 45f01d2..6665d2d 100644
+index 6665d2d..9b0ea48 100644
 --- a/arch/arm/mach-omap1/board-palmz71.c
 +++ b/arch/arm/mach-omap1/board-palmz71.c
-@@ -61,7 +61,7 @@ static void __init
- omap_palmz71_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- 
- static const unsigned int palmz71_keymap[] = {
+@@ -346,5 +346,5 @@ MACHINE_START(OMAP_PALMZ71, "OMAP310 based Palm Zire71")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= omap_palmz71_init_irq,
+ 	.init_machine	= omap_palmz71_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
-index 3c8ee84..7f019e5 100644
+index 7f019e5..67acd41 100644
 --- a/arch/arm/mach-omap1/board-perseus2.c
 +++ b/arch/arm/mach-omap1/board-perseus2.c
-@@ -297,7 +297,7 @@ static void __init omap_perseus2_init(void)
- static void __init omap_perseus2_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- /* Only FPGA needs to be mapped here. All others are done with ioremap */
- static struct map_desc omap_perseus2_io_desc[] __initdata = {
+@@ -355,5 +355,5 @@ MACHINE_START(OMAP_PERSEUS2, "OMAP730 Perseus2")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= omap_perseus2_init_irq,
+ 	.init_machine	= omap_perseus2_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
-index 0ad781d..24f0f7b 100644
+index 24f0f7b..9c3b7c5 100644
 --- a/arch/arm/mach-omap1/board-sx1.c
 +++ b/arch/arm/mach-omap1/board-sx1.c
-@@ -411,7 +411,7 @@ static void __init omap_sx1_init(void)
- static void __init omap_sx1_init_irq(void)
- {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
- }
- /*----------------------------------------*/
- 
+@@ -426,5 +426,5 @@ MACHINE_START(SX1, "OMAP310 based Siemens SX1")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= omap_sx1_init_irq,
+ 	.init_machine	= omap_sx1_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index 65d2420..98826e2 100644
+index 98826e2..036edc0 100644
 --- a/arch/arm/mach-omap1/board-voiceblue.c
 +++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -162,7 +162,7 @@ static struct omap_board_config_kernel voiceblue_config[] = {
- static void __init voiceblue_init_irq(void)
+@@ -306,5 +306,5 @@ MACHINE_START(VOICEBLUE, "VoiceBlue OMAP5910")
+ 	.reserve	= omap_reserve,
+ 	.init_irq	= voiceblue_init_irq,
+ 	.init_machine	= voiceblue_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap1_timer,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
+index 03e1e10..a183777 100644
+--- a/arch/arm/mach-omap1/time.c
++++ b/arch/arm/mach-omap1/time.c
+@@ -297,7 +297,7 @@ static inline int omap_32k_timer_usable(void)
+  * Timer initialization
+  * ---------------------------------------------------------------------------
+  */
+-static void __init omap_timer_init(void)
++static void __init omap1_timer_init(void)
  {
- 	omap1_init_common_hw();
--	omap_init_irq();
-+	omap1_init_irq();
+ 	if (omap_32k_timer_usable()) {
+ 		preferred_sched_clock_init(1);
+@@ -307,6 +307,6 @@ static void __init omap_timer_init(void)
+ 	}
  }
  
- static void __init voiceblue_map_io(void)
-diff --git a/arch/arm/mach-omap1/irq.c b/arch/arm/mach-omap1/irq.c
-index 5d3da7a..e2b9c90 100644
---- a/arch/arm/mach-omap1/irq.c
-+++ b/arch/arm/mach-omap1/irq.c
-@@ -175,7 +175,7 @@ static struct irq_chip omap_irq_chip = {
- 	.irq_set_wake	= omap_wake_irq,
+-struct sys_timer omap_timer = {
+-	.init		= omap_timer_init,
++struct sys_timer omap1_timer = {
++	.init		= omap1_timer_init,
  };
- 
--void __init omap_init_irq(void)
-+void __init omap1_init_irq(void)
- {
- 	int i, j;
- 
 diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 5de6eac..45cabc5 100644
+index 45cabc5..2028464 100644
 --- a/arch/arm/mach-omap2/board-2430sdp.c
 +++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -260,7 +260,7 @@ MACHINE_START(OMAP_2430SDP, "OMAP2430 sdp2430 board")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap_2430sdp_map_io,
+@@ -262,5 +262,5 @@ MACHINE_START(OMAP_2430SDP, "OMAP2430 sdp2430 board")
  	.init_early	= omap_2430sdp_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap2_init_irq,
+ 	.init_irq	= omap2_init_irq,
  	.init_machine	= omap_2430sdp_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap2_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 5dac974..85b207f 100644
+index 85b207f..12fae21 100644
 --- a/arch/arm/mach-omap2/board-3430sdp.c
 +++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -804,7 +804,7 @@ MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -806,5 +806,5 @@ MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
  	.init_early	= omap_3430sdp_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= omap_3430sdp_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index a5933cc..2ec2d76 100644
+index 2ec2d76..e4f37b5 100644
 --- a/arch/arm/mach-omap2/board-3630sdp.c
 +++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -219,7 +219,7 @@ MACHINE_START(OMAP_3630SDP, "OMAP 3630SDP board")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -221,5 +221,5 @@ MACHINE_START(OMAP_3630SDP, "OMAP 3630SDP board")
  	.init_early	= omap_sdp_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= omap_sdp_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 63de2d3..128efb5 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -773,5 +773,5 @@ MACHINE_START(OMAP_4430SDP, "OMAP4430 4430SDP board")
+ 	.init_early	= omap_4430sdp_init_early,
+ 	.init_irq	= gic_init_irq,
+ 	.init_machine	= omap_4430sdp_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap4_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-index 5e438a7..0bed0a4 100644
+index 0bed0a4..5f2b55f 100644
 --- a/arch/arm/mach-omap2/board-am3517crane.c
 +++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -104,7 +104,7 @@ MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -106,5 +106,5 @@ MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
  	.init_early	= am3517_crane_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= am3517_crane_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 63af417..0db0fb8 100644
+index 0db0fb8..f3006c3 100644
 --- a/arch/arm/mach-omap2/board-am3517evm.c
 +++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -494,7 +494,7 @@ MACHINE_START(OMAP3517EVM, "OMAP3517/AM3517 EVM")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -496,5 +496,5 @@ MACHINE_START(OMAP3517EVM, "OMAP3517/AM3517 EVM")
  	.init_early	= am3517_evm_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= am3517_evm_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index b124bdf..93576c8 100644
+index 93576c8..7021170 100644
 --- a/arch/arm/mach-omap2/board-apollon.c
 +++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -354,7 +354,7 @@ MACHINE_START(OMAP_APOLLON, "OMAP24xx Apollon")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap_apollon_map_io,
+@@ -356,5 +356,5 @@ MACHINE_START(OMAP_APOLLON, "OMAP24xx Apollon")
  	.init_early	= omap_apollon_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap2_init_irq,
+ 	.init_irq	= omap2_init_irq,
  	.init_machine	= omap_apollon_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap2_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 77456de..2940d64 100644
+index 2940d64..8b49dc2 100644
 --- a/arch/arm/mach-omap2/board-cm-t35.c
 +++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -646,7 +646,7 @@ MACHINE_START(CM_T35, "Compulab CM-T35")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -648,5 +648,5 @@ MACHINE_START(CM_T35, "Compulab CM-T35")
  	.init_early	= cm_t35_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= cm_t35_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index c3a9fd3..8f15222 100644
+index 8f15222..aa67240 100644
 --- a/arch/arm/mach-omap2/board-cm-t3517.c
 +++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -304,7 +304,7 @@ MACHINE_START(CM_T3517, "Compulab CM-T3517")
- 	.reserve        = omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -306,5 +306,5 @@ MACHINE_START(CM_T3517, "Compulab CM-T3517")
  	.init_early	= cm_t3517_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= cm_t3517_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 34956ec..00f6cb6 100644
+index 00f6cb6..671aaea 100644
 --- a/arch/arm/mach-omap2/board-devkit8000.c
 +++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -438,7 +438,7 @@ static void __init devkit8000_init_early(void)
- 
- static void __init devkit8000_init_irq(void)
- {
--	omap_init_irq();
-+	omap3_init_irq();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
- #endif
+@@ -707,5 +707,5 @@ MACHINE_START(DEVKIT8000, "OMAP3 Devkit8000")
+ 	.init_early	= devkit8000_init_early,
+ 	.init_irq	= devkit8000_init_irq,
+ 	.init_machine	= devkit8000_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_secure_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 73e3c31..ccd503a 100644
+index ccd503a..c6ecf60 100644
 --- a/arch/arm/mach-omap2/board-generic.c
 +++ b/arch/arm/mach-omap2/board-generic.c
-@@ -70,7 +70,7 @@ MACHINE_START(OMAP_GENERIC, "Generic OMAP24xx")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap_generic_map_io,
+@@ -72,5 +72,5 @@ MACHINE_START(OMAP_GENERIC, "Generic OMAP24xx")
  	.init_early	= omap_generic_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap2_init_irq,
+ 	.init_irq	= omap2_init_irq,
  	.init_machine	= omap_generic_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index bac7933..2e16d6c 100644
+index 2e16d6c..45de2b3 100644
 --- a/arch/arm/mach-omap2/board-h4.c
 +++ b/arch/arm/mach-omap2/board-h4.c
-@@ -298,7 +298,7 @@ static void __init omap_h4_init_early(void)
- 
- static void __init omap_h4_init_irq(void)
- {
--	omap_init_irq();
-+	omap2_init_irq();
- }
- 
- static struct at24_platform_data m24c01 = {
+@@ -388,5 +388,5 @@ MACHINE_START(OMAP_H4, "OMAP2420 H4 board")
+ 	.init_early	= omap_h4_init_early,
+ 	.init_irq	= omap_h4_init_irq,
+ 	.init_machine	= omap_h4_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap2_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 0c1bfca..359b765 100644
+index 359b765..381a27c 100644
 --- a/arch/arm/mach-omap2/board-igep0020.c
 +++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -703,7 +703,7 @@ MACHINE_START(IGEP0020, "IGEP v2 board")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -705,7 +705,7 @@ MACHINE_START(IGEP0020, "IGEP v2 board")
  	.init_early	= igep_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= igep_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
-@@ -713,7 +713,7 @@ MACHINE_START(IGEP0030, "IGEP OMAP3 module")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+ 
+ MACHINE_START(IGEP0030, "IGEP OMAP3 module")
+@@ -715,5 +715,5 @@ MACHINE_START(IGEP0030, "IGEP OMAP3 module")
  	.init_early	= igep_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= igep_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index f7d6038..a054f54 100644
+index a054f54..75ebc99 100644
 --- a/arch/arm/mach-omap2/board-ldp.c
 +++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -350,7 +350,7 @@ MACHINE_START(OMAP_LDP, "OMAP LDP board")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -352,5 +352,5 @@ MACHINE_START(OMAP_LDP, "OMAP LDP board")
  	.init_early	= omap_ldp_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= omap_ldp_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 8d74318..9c791a2 100644
+index 9c791a2..e11f0c5 100644
 --- a/arch/arm/mach-omap2/board-n8x0.c
 +++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -699,7 +699,7 @@ MACHINE_START(NOKIA_N800, "Nokia N800")
- 	.reserve	= omap_reserve,
- 	.map_io		= n8x0_map_io,
+@@ -701,7 +701,7 @@ MACHINE_START(NOKIA_N800, "Nokia N800")
  	.init_early	= n8x0_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap2_init_irq,
+ 	.init_irq	= omap2_init_irq,
  	.init_machine	= n8x0_init_machine,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap2_timer,
  MACHINE_END
-@@ -709,7 +709,7 @@ MACHINE_START(NOKIA_N810, "Nokia N810")
- 	.reserve	= omap_reserve,
- 	.map_io		= n8x0_map_io,
+ 
+ MACHINE_START(NOKIA_N810, "Nokia N810")
+@@ -711,7 +711,7 @@ MACHINE_START(NOKIA_N810, "Nokia N810")
  	.init_early	= n8x0_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap2_init_irq,
+ 	.init_irq	= omap2_init_irq,
  	.init_machine	= n8x0_init_machine,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap2_timer,
  MACHINE_END
-@@ -719,7 +719,7 @@ MACHINE_START(NOKIA_N810_WIMAX, "Nokia N810 WiMAX")
- 	.reserve	= omap_reserve,
- 	.map_io		= n8x0_map_io,
+ 
+ MACHINE_START(NOKIA_N810_WIMAX, "Nokia N810 WiMAX")
+@@ -721,5 +721,5 @@ MACHINE_START(NOKIA_N810_WIMAX, "Nokia N810 WiMAX")
  	.init_early	= n8x0_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap2_init_irq,
+ 	.init_irq	= omap2_init_irq,
  	.init_machine	= n8x0_init_machine,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap2_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 7f21d24..4560055 100644
+index 4560055..3d41654 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -486,7 +486,7 @@ static void __init omap3_beagle_init_early(void)
- 
- static void __init omap3_beagle_init_irq(void)
- {
--	omap_init_irq();
-+	omap3_init_irq();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
- #endif
+@@ -599,5 +599,5 @@ MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
+ 	.init_early	= omap3_beagle_init_early,
+ 	.init_irq	= omap3_beagle_init_irq,
+ 	.init_machine	= omap3_beagle_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_secure_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index b4d4346..79d5362 100644
+index 79d5362..7cbcf60 100644
 --- a/arch/arm/mach-omap2/board-omap3evm.c
 +++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -740,7 +740,7 @@ MACHINE_START(OMAP3EVM, "OMAP3 EVM")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -742,5 +742,5 @@ MACHINE_START(OMAP3EVM, "OMAP3 EVM")
  	.init_early	= omap3_evm_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= omap3_evm_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-index 60d9be4..739fdfc 100644
+index 739fdfc..693eba1 100644
 --- a/arch/arm/mach-omap2/board-omap3logic.c
 +++ b/arch/arm/mach-omap2/board-omap3logic.c
-@@ -215,7 +215,7 @@ MACHINE_START(OMAP3_TORPEDO, "Logic OMAP3 Torpedo board")
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap3_map_io,
+@@ -217,7 +217,7 @@ MACHINE_START(OMAP3_TORPEDO, "Logic OMAP3 Torpedo board")
  	.init_early	= omap3logic_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= omap3logic_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
-@@ -224,7 +224,7 @@ MACHINE_START(OMAP3530_LV_SOM, "OMAP Logic 3530 LV SOM board")
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap3_map_io,
+ 
+ MACHINE_START(OMAP3530_LV_SOM, "OMAP Logic 3530 LV SOM board")
+@@ -226,5 +226,5 @@ MACHINE_START(OMAP3530_LV_SOM, "OMAP Logic 3530 LV SOM board")
  	.init_early	= omap3logic_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= omap3logic_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 2a0bb48..7b4e139 100644
+index 7b4e139..ff0be83 100644
 --- a/arch/arm/mach-omap2/board-omap3pandora.c
 +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -642,7 +642,7 @@ MACHINE_START(OMAP3_PANDORA, "Pandora Handheld Console")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -644,5 +644,5 @@ MACHINE_START(OMAP3_PANDORA, "Pandora Handheld Console")
  	.init_early	= omap3pandora_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= omap3pandora_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index 0c108a2..0161626 100644
+index 0161626..96fec1f 100644
 --- a/arch/arm/mach-omap2/board-omap3stalker.c
 +++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -494,7 +494,7 @@ static void __init omap3_stalker_init_early(void)
- 
- static void __init omap3_stalker_init_irq(void)
- {
--	omap_init_irq();
-+	omap3_init_irq();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
- #endif
+@@ -560,5 +560,5 @@ MACHINE_START(SBC3530, "OMAP3 STALKER")
+ 	.init_early		= omap3_stalker_init_early,
+ 	.init_irq		= omap3_stalker_init_irq,
+ 	.init_machine		= omap3_stalker_init,
+-	.timer			= &omap_timer,
++	.timer			= &omap3_secure_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 5f649fa..3cc5531 100644
+index 3cc5531..9447bc0 100644
 --- a/arch/arm/mach-omap2/board-omap3touchbook.c
 +++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -371,7 +371,7 @@ static void __init omap3_touchbook_init_early(void)
- 
- static void __init omap3_touchbook_init_irq(void)
- {
--	omap_init_irq();
-+	omap3_init_irq();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
- #endif
+@@ -449,5 +449,5 @@ MACHINE_START(TOUCHBOOK, "OMAP3 touchbook Board")
+ 	.init_early	= omap3_touchbook_init_early,
+ 	.init_irq	= omap3_touchbook_init_irq,
+ 	.init_machine	= omap3_touchbook_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_secure_timer,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 0cfe200..e76fe98 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -716,5 +716,5 @@ MACHINE_START(OMAP4_PANDA, "OMAP4 Panda board")
+ 	.init_early	= omap4_panda_init_early,
+ 	.init_irq	= gic_init_irq,
+ 	.init_machine	= omap4_panda_init,
+-	.timer		= &omap_timer,
++	.timer		= &omap4_timer,
+ MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 175e1ab..9c9f20c 100644
+index 9c9f20c..d06248f 100644
 --- a/arch/arm/mach-omap2/board-overo.c
 +++ b/arch/arm/mach-omap2/board-overo.c
-@@ -615,7 +615,7 @@ MACHINE_START(OVERO, "Gumstix Overo")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -617,5 +617,5 @@ MACHINE_START(OVERO, "Gumstix Overo")
  	.init_early	= overo_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= overo_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
-index 42d10b1..9c3d115 100644
+index 9c3d115..54dceb1 100644
 --- a/arch/arm/mach-omap2/board-rm680.c
 +++ b/arch/arm/mach-omap2/board-rm680.c
-@@ -163,7 +163,7 @@ MACHINE_START(NOKIA_RM680, "Nokia RM-680 board")
- 	.reserve	= omap_reserve,
- 	.map_io		= rm680_map_io,
+@@ -165,5 +165,5 @@ MACHINE_START(NOKIA_RM680, "Nokia RM-680 board")
  	.init_early	= rm680_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= rm680_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index fec4cac..ee35e4e 100644
+index ee35e4e..5ea142f 100644
 --- a/arch/arm/mach-omap2/board-rx51.c
 +++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -160,7 +160,7 @@ MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
- 	.reserve	= rx51_reserve,
- 	.map_io		= rx51_map_io,
+@@ -162,5 +162,5 @@ MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
  	.init_early	= rx51_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= rx51_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
-index 09fa7bf..713c20f 100644
+index 713c20f..a85d5b0 100644
 --- a/arch/arm/mach-omap2/board-ti8168evm.c
 +++ b/arch/arm/mach-omap2/board-ti8168evm.c
-@@ -33,11 +33,6 @@ static void __init ti8168_init_early(void)
- 	omap2_init_common_devices(NULL, NULL);
- }
- 
--static void __init ti8168_evm_init_irq(void)
--{
--	omap_init_irq();
--}
--
- static void __init ti8168_evm_init(void)
- {
- 	omap_serial_init();
-@@ -56,7 +51,7 @@ MACHINE_START(TI8168EVM, "ti8168evm")
- 	.boot_params	= 0x80000100,
+@@ -52,6 +52,6 @@ MACHINE_START(TI8168EVM, "ti8168evm")
  	.map_io		= ti8168_evm_map_io,
  	.init_early	= ti8168_init_early,
--	.init_irq	= ti8168_evm_init_irq,
-+	.init_irq	= ti816x_init_irq,
- 	.timer		= &omap_timer,
+ 	.init_irq	= ti816x_init_irq,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  	.init_machine	= ti8168_evm_init,
  MACHINE_END
 diff --git a/arch/arm/mach-omap2/board-zoom.c b/arch/arm/mach-omap2/board-zoom.c
-index 4b133d7..97a3f0b 100644
+index 97a3f0b..8a98c3c 100644
 --- a/arch/arm/mach-omap2/board-zoom.c
 +++ b/arch/arm/mach-omap2/board-zoom.c
-@@ -137,7 +137,7 @@ MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+@@ -139,7 +139,7 @@ MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
  	.init_early	= omap_zoom_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= omap_zoom_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
-@@ -147,7 +147,7 @@ MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
+ 
+ MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
+@@ -149,5 +149,5 @@ MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
  	.init_early	= omap_zoom_init_early,
--	.init_irq	= omap_init_irq,
-+	.init_irq	= omap3_init_irq,
+ 	.init_irq	= omap3_init_irq,
  	.init_machine	= omap_zoom_init,
- 	.timer		= &omap_timer,
+-	.timer		= &omap_timer,
++	.timer		= &omap3_timer,
  MACHINE_END
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 441e79d..2ce1ce6 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -333,23 +333,9 @@ static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
- 	return omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index 3b9cf85..a0d8e83 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -247,20 +247,41 @@ static void __init omap2_gp_clocksource_init(void)
  }
+ #endif
  
-+/* See irq.c, omap4-common.c and entry-macro.S */
- void __iomem *omap_irq_base;
- 
--/*
-- * Initialize asm_irq_base for entry-macro.S
-- */
--static inline void omap_irq_base_init(void)
--{
--	if (cpu_is_omap24xx())
--		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP24XX_IC_BASE);
--	else if (cpu_is_omap34xx())
--		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP34XX_IC_BASE);
--	else if (cpu_is_omap44xx())
--		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE);
--	else
--		pr_err("Could not initialize omap_irq_base\n");
--}
--
- void __init omap2_init_common_infrastructure(void)
- {
- 	u8 postsetup_state;
-@@ -422,7 +408,6 @@ void __init omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs0,
- 		_omap2_init_reprogram_sdrc();
- 	}
- 
--	omap_irq_base_init();
- }
- 
- /*
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 3af2b7a..3a12f75 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -141,25 +141,20 @@ omap_alloc_gc(void __iomem *base, unsigned int irq_start, unsigned int num)
- 				IRQ_NOREQUEST | IRQ_NOPROBE, 0);
- }
- 
--void __init omap_init_irq(void)
-+static void __init omap_init_irq(u32 base, int nr_irqs)
- {
- 	unsigned long nr_of_irqs = 0;
- 	unsigned int nr_banks = 0;
- 	int i, j;
- 
-+	omap_irq_base = ioremap(base, SZ_4K);
-+	if (WARN_ON(!omap_irq_base))
-+		return;
-+
- 	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
--		unsigned long base = 0;
- 		struct omap_irq_bank *bank = irq_banks + i;
- 
--		if (cpu_is_omap24xx())
--			base = OMAP24XX_IC_BASE;
--		else if (cpu_is_omap34xx())
--			base = OMAP34XX_IC_BASE;
--
--		BUG_ON(!base);
--
--		if (cpu_is_ti816x())
--			bank->nr_irqs = 128;
-+		bank->nr_irqs = nr_irqs;
- 
- 		/* Static mapping, never released */
- 		bank->base_reg = ioremap(base, SZ_4K);
-@@ -181,6 +176,21 @@ void __init omap_init_irq(void)
- 	       nr_of_irqs, nr_banks, nr_banks > 1 ? "s" : "");
- }
- 
-+void __init omap2_init_irq(void)
-+{
-+	omap_init_irq(OMAP24XX_IC_BASE, 96);
+-static void __init omap2_gp_timer_init(void)
++#define OMAP_SYS_TIMER_INIT(name)					\
++static void __init omap##name##_timer_init(void)			\
++{									\
++	omap_dm_timer_init();						\
++	omap2_gp_clockevent_init();					\
++	omap2_gp_clocksource_init();					\
 +}
 +
-+void __init omap3_init_irq(void)
-+{
-+	omap_init_irq(OMAP34XX_IC_BASE, 96);
-+}
++#define OMAP_SYS_TIMER(name)						\
++struct sys_timer omap##name##_timer = {					\
++	.init	= omap##name##_timer_init,				\
++};
 +
-+void __init ti816x_init_irq(void)
-+{
-+	omap_init_irq(OMAP34XX_IC_BASE, 128);
-+}
++#ifdef CONFIG_ARCH_OMAP2
++OMAP_SYS_TIMER_INIT(2)
++OMAP_SYS_TIMER(2)
++#endif
 +
- #ifdef CONFIG_ARCH_OMAP3
- static struct omap3_intc_regs intc_context[ARRAY_SIZE(irq_banks)];
- 
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 9ef8c29..35ac3e5 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -19,6 +19,8 @@
- #include <asm/hardware/gic.h>
- #include <asm/hardware/cache-l2x0.h>
- 
-+#include <plat/irqs.h>
++#ifdef CONFIG_ARCH_OMAP3
++OMAP_SYS_TIMER_INIT(3)
++OMAP_SYS_TIMER(3)
++OMAP_SYS_TIMER_INIT(3_secure)
++OMAP_SYS_TIMER(3_secure)
++#endif
 +
- #include <mach/hardware.h>
- #include <mach/omap4-common.h>
- 
-@@ -31,17 +33,15 @@ void __iomem *gic_dist_base_addr;
- 
- void __init gic_init_irq(void)
++#ifdef CONFIG_ARCH_OMAP4
++static void __init omap4_timer_init(void)
  {
--	void __iomem *gic_cpu_base;
+ #ifdef CONFIG_LOCAL_TIMERS
+-	if (cpu_is_omap44xx()) {
+-		twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
+-		BUG_ON(!twd_base);
+-	}
++	twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
++	BUG_ON(!twd_base);
+ #endif
+ 	omap_dm_timer_init();
 -
- 	/* Static mapping, never released */
- 	gic_dist_base_addr = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
- 	BUG_ON(!gic_dist_base_addr);
- 
- 	/* Static mapping, never released */
--	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
--	BUG_ON(!gic_cpu_base);
-+	omap_irq_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
-+	BUG_ON(!omap_irq_base);
- 
--	gic_init(0, 29, gic_dist_base_addr, gic_cpu_base);
-+	gic_init(0, 29, gic_dist_base_addr, omap_irq_base);
+ 	omap2_gp_clockevent_init();
+ 	omap2_gp_clocksource_init();
  }
+-
+-struct sys_timer omap_timer = {
+-	.init	= omap2_gp_timer_init,
+-};
++OMAP_SYS_TIMER(4)
++#endif
+diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+index 5288130..4564cc6 100644
+--- a/arch/arm/plat-omap/include/plat/common.h
++++ b/arch/arm/plat-omap/include/plat/common.h
+@@ -34,7 +34,11 @@
+ struct sys_timer;
  
- #ifdef CONFIG_CACHE_L2X0
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index 5a25098..c884320 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -428,7 +428,11 @@
- #define INTCPS_NR_IRQS		96
+ extern void omap_map_common_io(void);
+-extern struct sys_timer omap_timer;
++extern struct sys_timer omap1_timer;
++extern struct sys_timer omap2_timer;
++extern struct sys_timer omap3_timer;
++extern struct sys_timer omap3_secure_timer;
++extern struct sys_timer omap4_timer;
+ extern bool omap_32k_timer_init(void);
+ extern int __init omap_init_clocksource_32k(void);
+ extern unsigned long long notrace omap_32k_sched_clock(void);
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index d6c70d2..330bd17 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -57,7 +57,6 @@
+ #define OMAP_TIMER_IP_VERSION_1                        0x1
+ struct omap_dm_timer;
+ extern struct omap_dm_timer *gptimer_wakeup;
+-extern struct sys_timer omap_timer;
+ struct clk;
  
- #ifndef __ASSEMBLY__
--extern void omap_init_irq(void);
-+extern void __iomem *omap_irq_base;
-+void omap1_init_irq(void);
-+void omap2_init_irq(void);
-+void omap3_init_irq(void);
-+void ti816x_init_irq(void);
- extern int omap_irq_pending(void);
- void omap_intc_save_context(void);
- void omap_intc_restore_context(void);
+ int omap_dm_timer_init(void);
 
