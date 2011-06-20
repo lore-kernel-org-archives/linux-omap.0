@@ -1,61 +1,46 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH] ARM: smp: Fix the CPU hotplug race with scheduler.
-Date: Mon, 20 Jun 2011 11:14:38 +0100
-Message-ID: <20110620101438.GD2082@n2100.arm.linux.org.uk>
-References: <1308561839-18407-1-git-send-email-santosh.shilimkar@ti.com> <20110620095053.GA2082@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 03/10] omap: Move dmtimer defines to dmtimer.h
+Date: Mon, 20 Jun 2011 03:17:19 -0700
+Message-ID: <20110620101718.GI23145@atomide.com>
+References: <20110620091754.357.56441.stgit@kaulin>
+	<20110620092334.357.3701.stgit@kaulin>
+	<20110620095603.GC2082@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20110620095053.GA2082@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20110620095603.GC2082@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 20, 2011 at 10:50:53AM +0100, Russell King - ARM Linux wrote:
-> On Mon, Jun 20, 2011 at 02:53:59PM +0530, Santosh Shilimkar wrote:
-> > The current ARM CPU hotplug code suffers from couple of race conditions
-> > in CPU online path with scheduler.
-> > The ARM CPU hotplug code doesn't wait for hot-plugged CPU to be marked
-> > active as part of cpu_notify() by the CPU which brought it up before
-> > enabling interrupts.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110620 02:51]:
+> On Mon, Jun 20, 2011 at 02:23:34AM -0700, Tony Lindgren wrote:
+> > These will be needed when dmtimer platform init code gets split
+> > for omap1 and omap2+. These will also be needed for separate
+> > sys_timer init and driver init for the rest of the hardware timers
+> > in the following patches. No functional changes.
 > 
-> Hmm, why not just move the set_cpu_online() call before notify_cpu_starting()
-> and add the wait after the set_cpu_online() ?
+> If dmtimer.c is the only user of these definitions, then its quite correct
+> for them to be in there.  If not, they should be in dmtimer.h in the local
+> directory - they're private definitions to the .c file and so should not
+> be exported outside of that .c file.
 
-Actually, the race is caused by the CPU being marked online (and therefore
-available for the scheduler) but not yet active (the CPU asking this one
-to boot hasn't run the online notifiers yet.)
+There will be more patches coming to make the rest of the dmtimer
+code be just a regular device driver. These inline functions will
+be used by sys_timer related code, and dmtimer device driver.
 
-This, I feel, is a fault of generic code.  If the CPU is not ready to have
-processes scheduled on it (because migration is not initialized) then we
-shouldn't be scheduling processes on the new CPU yet.
+This way we can make the dmtimer a loadable module and don't need
+to initialize any of that early.
 
-In any case, this should close the window by ensuring that we don't receive
-an interrupt in the online-but-not-active case.  Can you please test?
-
- arch/arm/kernel/smp.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index 344e52b..e34d750 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -318,9 +318,15 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
- 	smp_store_cpu_info(cpu);
- 
- 	/*
--	 * OK, now it's safe to let the boot CPU continue
-+	 * OK, now it's safe to let the boot CPU continue.  Wait for
-+	 * the CPU migration code to notice that the CPU is online
-+	 * before we continue.
- 	 */
-+	local_irq_disable();
- 	set_cpu_online(cpu, true);
-+	while (!cpumask_test_cpu(cpu, cpu_active_mask))
-+		cpu_relax();
-+	local_irq_enable();
- 
- 	/*
- 	 * OK, it's off to the idle thread for us
+Tony
