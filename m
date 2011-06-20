@@ -1,53 +1,63 @@
-From: Leigh Brown <leigh@solinno.co.uk>
-Subject: Re: [PATCH] input: keypad: lm8323: convert to threaded IRQ
-Date: Sun, 19 Jun 2011 23:01:43 +0100
-Message-ID: <694a51cff83de55276b804b23668447e@doppler.thel33t.co.uk>
-References: <1307999812-3802-1-git-send-email-balbi@ti.com>
- <a07cbd61db83c3308dd76f7c0f481477@doppler.thel33t.co.uk>
- <20110619195604.GC14262@legolas.emea.dhcp.ti.com>
+From: Chris Rodley <carlighting@yahoo.co.nz>
+Subject: Power Management Omap3530
+Date: Sun, 19 Jun 2011 20:22:38 -0700 (PDT)
+Message-ID: <100862.94587.qm@web112004.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from doppler.thel33t.co.uk ([193.110.88.198]:52010 "EHLO
-	doppler.thel33t.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366Ab1FSWBp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Jun 2011 18:01:45 -0400
-In-Reply-To: <20110619195604.GC14262@legolas.emea.dhcp.ti.com>
+Received: from nm6-vm1.bullet.mail.ne1.yahoo.com ([98.138.91.71]:37516 "HELO
+	nm6-vm1.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752458Ab1FTDWk convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 19 Jun 2011 23:22:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Sun, 19 Jun 2011 22:56:06 +0300, Felipe Balbi wrote:
-> Hi,
->
-> On Sun, Jun 19, 2011 at 07:00:13PM +0000, Leigh Brown wrote:
->> Many thanks for trying to assist me with my problem. To recap,
->
-> yeah, no problem ;-)
->
->> I'm seeing the keypad lock-up on my N810 using this driver,
->> when I type quickly.
->>
->> I tried your patch, and it doesn't fix the issue.  However, I've
->> read the datasheet for the lm8323 and it looks to me like the
->> interrupt should be level rather than edge triggered.
->>
->> The following additional patch makes things work for me.  I
->> couldn't tell you if it's the correct thing to do but I can no
->> longer cause the keypad to lock-up by typing too fast.
->
-> good good. Looks like IRQF_ONESHOT is what did the trick.
->
-> Did you check if IRQF_ONESHOT alone was enough ?
+Hi, 
+I am attempting to reduce overall power consumption on a Board like the Beagle Board. 
+I am using the 2.6.39-pm kernel from Steve Sakoman.
+ 
+Here is my system as it stands now: 
+# cat /debug/pm_debug/count 
+usbhost_pwrdm (ON),OFF:0,RET:3,INA:1,ON:5,RET-LOGIC-OFF:0,RET-MEMBANK1- 
+OFF:0 
+sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1- 
+OFF:0 
+per_pwrdm (ON),OFF:0,RET:3,INA:0,ON:4,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF: 
+0 
+dss_pwrdm (ON),OFF:0,RET:3,INA:0,ON:4,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF: 
+0 
+cam_pwrdm (RET),OFF:0,RET:2,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1- 
+OFF:0 
+core_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1- 
+OFF:0,RET-MEMBANK2-OFF:0 
+neon_pwrdm (ON),OFF:0,RET:3,INA:0,ON:4,RET-LOGIC-OFF:0 
+mpu_pwrdm (ON),OFF:0,RET:3,INA:0,ON:4,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF: 
+0 
+iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1- 
+OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0 
+per_clkdm->per_pwrdm (20) 
+usbhost_clkdm->usbhost_pwrdm (3) 
+cam_clkdm->cam_pwrdm (0) 
+dss_clkdm->dss_pwrdm (1) 
+core_l4_clkdm->core_pwrdm (23) 
+core_l3_clkdm->core_pwrdm (4) 
+d2d_clkdm->core_pwrdm (0) 
+sgx_clkdm->sgx_pwrdm (0) 
+iva2_clkdm->iva2_pwrdm (0) 
+neon_clkdm->neon_pwrdm (0) 
+mpu_clkdm->mpu_pwrdm (0) 
+prm_clkdm->wkup_pwrdm (0) 
+cm_clkdm->core_pwrdm (0)
+ 
+I was wondering if it is possible or even beneficial to turn off various subsystems (like DSS) or anything else that can be switched off to save on power usage.
 
-I tried that first, but it didn't fix it, although it makes it a
-little bit harder to trigger.  I've just tried again to be sure,
-but I got a lock-up quite easily.
+I'm not sure how to go about turning these things off.
+My goal is to knock off another 100mA. 
+Any other tips or additional things I can look at to further reduce 
+power? 
 
-Regards,
-
-Leigh.
-
+Regards, 
+CJ 
