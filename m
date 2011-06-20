@@ -1,175 +1,291 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/10] omap2+: Use dmtimer macros for clocksource
-Date: Mon, 20 Jun 2011 02:23:45 -0700
-Message-ID: <20110620092345.357.11154.stgit@kaulin>
+Subject: [PATCH 05/10] omap2+: Use dmtimer macros for clockevent
+Date: Mon, 20 Jun 2011 02:23:39 -0700
+Message-ID: <20110620092339.357.10396.stgit@kaulin>
 References: <20110620091754.357.56441.stgit@kaulin>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54560 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753057Ab1FTJXr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 05:23:47 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:50104 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753057Ab1FTJXk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 05:23:40 -0400
 In-Reply-To: <20110620091754.357.56441.stgit@kaulin>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-Use dmtimer macros for clocksource. As with the clockevent,
-this allows us to initialize the rest of dmtimer code later on.
+This patch makes timer-gp.c to use only a subset of dmtimer
+functions without the need to initialize dmtimer code early.
 
-Note that eventually we will be initializing the timesource
-from init_early so sched_clock will work properly for
-CONFIG_PRINTK_TIME.
+Also note that now with the inline functions, timer_set_next_event
+becomes more efficient in the lines of assembly code.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/timer-gp.c   |   64 +++++++++++++++++++++-----------------
- arch/arm/plat-omap/counter_32k.c |    2 +
- 2 files changed, 37 insertions(+), 29 deletions(-)
+ arch/arm/mach-omap2/timer-gp.c            |  147 ++++++++++++++++++++++-------
+ arch/arm/plat-omap/include/plat/dmtimer.h |    1 
+ 2 files changed, 113 insertions(+), 35 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index cf2ec85..52e295e 100644
+index a0d8e83..62c0d5c 100644
 --- a/arch/arm/mach-omap2/timer-gp.c
 +++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -262,20 +262,22 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
-  * sync counter.  See clocksource setup in plat-omap/counter_32k.c
-  */
+@@ -45,10 +45,33 @@
  
--static void __init omap2_gp_clocksource_init(void)
-+static void __init omap2_gp_clocksource_init(int unused, const char *dummy)
- {
- 	omap_init_clocksource_32k();
- }
+ #include "timer-gp.h"
  
- #else
++/* Parent clocks, eventually these will come from the clock framework */
 +
-+static struct omap_dm_timer clksrc;
++#define OMAP2_MPU_SOURCE	"sys_ck"
++#define OMAP3_MPU_SOURCE	OMAP2_MPU_SOURCE
++#define OMAP4_MPU_SOURCE	"sys_clkin_ck"
++#define OMAP2_32K_SOURCE	"func_32k_ck"
++#define OMAP3_32K_SOURCE	"omap_32k_fck"
++#define OMAP4_32K_SOURCE	"sys_32k_ck"
 +
- /*
-  * clocksource
-  */
- static DEFINE_CLOCK_DATA(cd);
--static struct omap_dm_timer *gpt_clocksource;
- static cycle_t clocksource_read_cycles(struct clocksource *cs)
++#ifdef CONFIG_OMAP_32K_TIMER
++#define OMAP2_CLKEV_SOURCE	OMAP2_32K_SOURCE
++#define OMAP3_CLKEV_SOURCE	OMAP3_32K_SOURCE
++#define OMAP4_CLKEV_SOURCE	OMAP4_32K_SOURCE
++#define OMAP3_SECURE_TIMER	12
++#else
++#define OMAP2_CLKEV_SOURCE	OMAP2_MPU_SOURCE
++#define OMAP3_CLKEV_SOURCE	OMAP3_MPU_SOURCE
++#define OMAP4_CLKEV_SOURCE	OMAP4_MPU_SOURCE
++#define OMAP3_SECURE_TIMER	1
++#endif
+ 
+ /* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
+ #define MAX_GPTIMER_ID		12
+ 
++/* Clockevent code */
++
++static struct omap_dm_timer clkev;
+ static struct omap_dm_timer *gptimer;
+ static struct clock_event_device clockevent_gpt;
+ static u8 __initdata gptimer_id = 1;
+@@ -57,10 +80,9 @@ struct omap_dm_timer *gptimer_wakeup;
+ 
+ static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
  {
--	return (cycle_t)omap_dm_timer_read_counter(gpt_clocksource);
-+	return (cycle_t)__omap_dm_timer_read_counter(clksrc.io_base, 1);
+-	struct omap_dm_timer *gpt = (struct omap_dm_timer *)dev_id;
+ 	struct clock_event_device *evt = &clockevent_gpt;
+ 
+-	omap_dm_timer_write_status(gpt, OMAP_TIMER_INT_OVERFLOW);
++	__omap_dm_timer_write_status(clkev.io_base, OMAP_TIMER_INT_OVERFLOW);
+ 
+ 	evt->event_handler(evt);
+ 	return IRQ_HANDLED;
+@@ -75,7 +97,8 @@ static struct irqaction omap2_gp_timer_irq = {
+ static int omap2_gp_timer_set_next_event(unsigned long cycles,
+ 					 struct clock_event_device *evt)
+ {
+-	omap_dm_timer_set_load_start(gptimer, 0, 0xffffffff - cycles);
++	__omap_dm_timer_load_start(clkev.io_base, OMAP_TIMER_CTRL_ST,
++						0xffffffff - cycles, 1);
+ 
+ 	return 0;
+ }
+@@ -85,13 +108,18 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+ {
+ 	u32 period;
+ 
+-	omap_dm_timer_stop(gptimer);
++	__omap_dm_timer_stop(clkev.io_base, 1, clkev.rate);
+ 
+ 	switch (mode) {
+ 	case CLOCK_EVT_MODE_PERIODIC:
+-		period = clk_get_rate(omap_dm_timer_get_fclk(gptimer)) / HZ;
++		period = clkev.rate / HZ;
+ 		period -= 1;
+-		omap_dm_timer_set_load_start(gptimer, 1, 0xffffffff - period);
++		/* Looks like we need to first set the load value separately */
++		__omap_dm_timer_write(clkev.io_base, OMAP_TIMER_LOAD_REG,
++					0xffffffff - period, 1);
++		__omap_dm_timer_load_start(clkev.io_base,
++					OMAP_TIMER_CTRL_AR | OMAP_TIMER_CTRL_ST,
++						0xffffffff - period, 1);
+ 		break;
+ 	case CLOCK_EVT_MODE_ONESHOT:
+ 		break;
+@@ -130,43 +158,89 @@ int __init omap2_gp_clockevent_set_gptimer(u8 id)
+ 	return 0;
  }
  
- static struct clocksource clocksource_gpt = {
-@@ -290,43 +292,48 @@ static void notrace dmtimer_update_sched_clock(void)
+-static void __init omap2_gp_clockevent_init(void)
++static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
++						int gptimer_id,
++						const char *fck_source)
  {
- 	u32 cyc;
- 
--	cyc = omap_dm_timer_read_counter(gpt_clocksource);
-+	cyc = __omap_dm_timer_read_counter(clksrc.io_base, 1);
- 
- 	update_sched_clock(&cd, cyc, (u32)~0);
- }
- 
--/* Setup free-running counter for clocksource */
--static void __init omap2_gp_clocksource_init(void)
-+unsigned long long notrace sched_clock(void)
- {
--	static struct omap_dm_timer *gpt;
 -	u32 tick_rate;
--	static char err1[] __initdata = KERN_ERR
--		"%s: failed to request dm-timer\n";
--	static char err2[] __initdata = KERN_ERR
--		"%s: can't register clocksource!\n";
-+	u32 cyc = 0;
- 
--	gpt = omap_dm_timer_request();
--	if (!gpt)
--		printk(err1, clocksource_gpt.name);
--	gpt_clocksource = gpt;
-+	if (clksrc.reserved)
-+		cyc = __omap_dm_timer_read_counter(clksrc.io_base, 1);
- 
--	omap_dm_timer_set_source(gpt, OMAP_TIMER_SRC_SYS_CLK);
--	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gpt));
-+	return cyc_to_sched_clock(&cd, cyc, (u32)~0);
-+}
+-	int src;
+-	char clockevent_hwmod_name[8]; /* 8 = sizeof("timerXX0") */
++	char name[10]; /* 10 = sizeof("gptXX_Xck0") */
++	struct omap_hwmod *oh;
++	size_t size;
++	int res = 0;
 +
-+/* Setup free-running counter for clocksource */
-+static void __init omap2_gp_clocksource_init(int gptimer_id,
++	sprintf(name, "timer%d", gptimer_id);
++	omap_hwmod_setup_one(name);
++	oh = omap_hwmod_lookup(name);
++	if (!oh)
++		return -ENODEV;
++
++	timer->irq = oh->mpu_irqs[0].irq;
++	timer->phys_base = oh->slaves[0]->addr->pa_start;
++	size = oh->slaves[0]->addr->pa_end - timer->phys_base;
++
++	/* Static mapping, never released */
++	timer->io_base = ioremap(timer->phys_base, size);
++	if (!timer->io_base)
++		return -ENXIO;
++
++	/* After the dmtimer is using hwmod these clocks won't be needed */
++	sprintf(name, "gpt%d_fck", gptimer_id);
++	timer->fclk = clk_get(NULL, name);
++	if (IS_ERR(timer->fclk))
++		return -ENODEV;
++
++	sprintf(name, "gpt%d_ick", gptimer_id);
++	timer->iclk = clk_get(NULL, name);
++	if (IS_ERR(timer->iclk)) {
++		clk_put(timer->fclk);
++		return -ENODEV;
++	}
+ 
+-	inited = 1;
++	omap_hwmod_enable(oh);
++
++	if (gptimer_id != 12) {
++		struct clk *src;
++
++		src = clk_get(NULL, fck_source);
++		if (IS_ERR(src)) {
++			res = -EINVAL;
++		} else {
++			res = __omap_dm_timer_set_source(timer->fclk, src);
++			if (IS_ERR_VALUE(res))
++				pr_warning("%s: timer%i cannot set source\n",
++						__func__, gptimer_id);
++			clk_put(src);
++		}
++	}
++	__omap_dm_timer_reset(timer->io_base, 1, 1);
++	timer->posted = 1;
++
++	timer->rate = clk_get_rate(timer->fclk);
+ 
+-	sprintf(clockevent_hwmod_name, "timer%d", gptimer_id);
+-	omap_hwmod_setup_one(clockevent_hwmod_name);
++	timer->reserved = 1;
+ 
+ 	gptimer = omap_dm_timer_request_specific(gptimer_id);
+ 	BUG_ON(gptimer == NULL);
+ 	gptimer_wakeup = gptimer;
+ 
+-#if defined(CONFIG_OMAP_32K_TIMER)
+-	src = OMAP_TIMER_SRC_32_KHZ;
+-#else
+-	src = OMAP_TIMER_SRC_SYS_CLK;
+-	WARN(gptimer_id == 12, "WARNING: GPTIMER12 can only use the "
+-	     "secure 32KiHz clock source\n");
+-#endif
++	return res;
++}
+ 
+-	if (gptimer_id != 12)
+-		WARN(IS_ERR_VALUE(omap_dm_timer_set_source(gptimer, src)),
+-		     "timer-gp: omap_dm_timer_set_source() failed\n");
++static void __init omap2_gp_clockevent_init(int gptimer_id,
 +						const char *fck_source)
 +{
 +	int res;
-+
-+	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
+ 
+-	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer));
++	inited = 1;
+ 
+-	pr_info("OMAP clockevent source: GPTIMER%d at %u Hz\n",
+-		gptimer_id, tick_rate);
++	res = omap_dm_timer_init_one(&clkev, gptimer_id, fck_source);
 +	BUG_ON(res);
  
--	omap_dm_timer_set_load_start(gpt, 1, 0);
-+	pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
-+		gptimer_id, clksrc.rate);
+ 	omap2_gp_timer_irq.dev_id = (void *)gptimer;
+-	setup_irq(omap_dm_timer_get_irq(gptimer), &omap2_gp_timer_irq);
+-	omap_dm_timer_set_int_enable(gptimer, OMAP_TIMER_INT_OVERFLOW);
++	setup_irq(clkev.irq, &omap2_gp_timer_irq);
  
--	init_sched_clock(&cd, dmtimer_update_sched_clock, 32, tick_rate);
-+	omap_dm_timer_set_load_start(&clksrc, 1, 0);
-+	init_sched_clock(&cd, dmtimer_update_sched_clock, 32, clksrc.rate);
+-	clockevent_gpt.mult = div_sc(tick_rate, NSEC_PER_SEC,
++	__omap_dm_timer_int_enable(clkev.io_base, OMAP_TIMER_INT_OVERFLOW);
++
++	clockevent_gpt.mult = div_sc(clkev.rate, NSEC_PER_SEC,
+ 				     clockevent_gpt.shift);
+ 	clockevent_gpt.max_delta_ns =
+ 		clockevent_delta2ns(0xffffffff, &clockevent_gpt);
+@@ -176,6 +250,9 @@ static void __init omap2_gp_clockevent_init(void)
  
--	if (clocksource_register_hz(&clocksource_gpt, tick_rate))
--		printk(err2, clocksource_gpt.name);
-+	if (clocksource_register_hz(&clocksource_gpt, clksrc.rate))
-+		pr_err("Could not register clocksource %s\n",
-+			clocksource_gpt.name);
+ 	clockevent_gpt.cpumask = cpumask_of(0);
+ 	clockevents_register_device(&clockevent_gpt);
++
++	pr_info("OMAP clockevent source: GPTIMER%d at %lu Hz\n",
++		gptimer_id, clkev.rate);
+ }
+ 
+ /* Clocksource code */
+@@ -247,11 +324,11 @@ static void __init omap2_gp_clocksource_init(void)
  }
  #endif
  
--#define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src)			\
-+#define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
-+				clksrc_nr, clksrc_src)			\
+-#define OMAP_SYS_TIMER_INIT(name)					\
++#define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src)			\
  static void __init omap##name##_timer_init(void)			\
  {									\
- 	omap2_gp_clockevent_init((clkev_nr), clkev_src);		\
--	omap2_gp_clocksource_init();					\
-+	omap2_gp_clocksource_init((clksrc_nr), clksrc_src);		\
+ 	omap_dm_timer_init();						\
+-	omap2_gp_clockevent_init();					\
++	omap2_gp_clockevent_init((clkev_nr), clkev_src);		\
+ 	omap2_gp_clocksource_init();					\
  }
  
- #define OMAP_SYS_TIMER(name)						\
-@@ -335,14 +342,15 @@ struct sys_timer omap##name##_timer = {					\
+@@ -261,14 +338,14 @@ struct sys_timer omap##name##_timer = {					\
  };
  
  #ifdef CONFIG_ARCH_OMAP2
--OMAP_SYS_TIMER_INIT(2, 1, OMAP2_CLKEV_SOURCE)
-+OMAP_SYS_TIMER_INIT(2, 1, OMAP2_CLKEV_SOURCE, 2, OMAP2_MPU_SOURCE)
+-OMAP_SYS_TIMER_INIT(2)
++OMAP_SYS_TIMER_INIT(2, 1, OMAP2_CLKEV_SOURCE)
  OMAP_SYS_TIMER(2)
  #endif
  
  #ifdef CONFIG_ARCH_OMAP3
--OMAP_SYS_TIMER_INIT(3, 1, OMAP3_CLKEV_SOURCE)
-+OMAP_SYS_TIMER_INIT(3, 1, OMAP3_CLKEV_SOURCE, 2, OMAP3_MPU_SOURCE)
+-OMAP_SYS_TIMER_INIT(3)
++OMAP_SYS_TIMER_INIT(3, 1, OMAP3_CLKEV_SOURCE)
  OMAP_SYS_TIMER(3)
--OMAP_SYS_TIMER_INIT(3_secure, OMAP3_SECURE_TIMER, OMAP3_CLKEV_SOURCE)
-+OMAP_SYS_TIMER_INIT(3_secure, OMAP3_SECURE_TIMER, OMAP3_CLKEV_SOURCE,
-+			2, OMAP3_MPU_SOURCE)
+-OMAP_SYS_TIMER_INIT(3_secure)
++OMAP_SYS_TIMER_INIT(3_secure, OMAP3_SECURE_TIMER, OMAP3_CLKEV_SOURCE)
  OMAP_SYS_TIMER(3_secure)
  #endif
  
-@@ -354,7 +362,7 @@ static void __init omap4_timer_init(void)
+@@ -280,7 +357,7 @@ static void __init omap4_timer_init(void)
  	BUG_ON(!twd_base);
  #endif
- 	omap2_gp_clockevent_init(1, OMAP4_CLKEV_SOURCE);
--	omap2_gp_clocksource_init();
-+	omap2_gp_clocksource_init(2, OMAP4_MPU_SOURCE);
+ 	omap_dm_timer_init();
+-	omap2_gp_clockevent_init();
++	omap2_gp_clockevent_init(1, OMAP4_CLKEV_SOURCE);
+ 	omap2_gp_clocksource_init();
  }
  OMAP_SYS_TIMER(4)
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index 54664a7..dd8b3ff 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -216,6 +216,7 @@ struct omap_dm_timer {
+ 	struct clk *iclk, *fclk;
  #endif
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-index f7fed60..c13bc3d 100644
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -126,7 +126,7 @@ static inline unsigned long long notrace _omap_32k_sched_clock(void)
- 	return cyc_to_fixed_sched_clock(&cd, cyc, (u32)~0, SC_MULT, SC_SHIFT);
- }
- 
--#ifndef CONFIG_OMAP_MPU_TIMER
-+#if defined(CONFIG_OMAP_32K_TIMER) && !defined(CONFIG_OMAP_MPU_TIMER)
- unsigned long long notrace sched_clock(void)
- {
- 	return _omap_32k_sched_clock();
+ 	void __iomem *io_base;
++	unsigned long rate;
+ 	unsigned reserved:1;
+ 	unsigned enabled:1;
+ 	unsigned posted:1;
 
