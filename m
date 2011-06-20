@@ -1,291 +1,252 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/10] omap2+: Use dmtimer macros for clockevent
-Date: Mon, 20 Jun 2011 02:23:39 -0700
-Message-ID: <20110620092339.357.10396.stgit@kaulin>
+Subject: [PATCH 09/10] omap2+: Remove omap2_gp_clockevent_set_gptimer
+Date: Mon, 20 Jun 2011 02:23:48 -0700
+Message-ID: <20110620092348.357.56332.stgit@kaulin>
 References: <20110620091754.357.56441.stgit@kaulin>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:50104 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753057Ab1FTJXk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 05:23:40 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54577 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753057Ab1FTJXt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 05:23:49 -0400
 In-Reply-To: <20110620091754.357.56441.stgit@kaulin>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-This patch makes timer-gp.c to use only a subset of dmtimer
-functions without the need to initialize dmtimer code early.
-
-Also note that now with the inline functions, timer_set_next_event
-becomes more efficient in the lines of assembly code.
+This is no longer needed as we now just set the desired
+.timer in MACHINE_START. We can now also remove timer-gp.h.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/timer-gp.c            |  147 ++++++++++++++++++++++-------
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 
- 2 files changed, 113 insertions(+), 35 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c        |    4 ----
+ arch/arm/mach-omap2/board-devkit8000.c     |    4 ----
+ arch/arm/mach-omap2/board-omap3beagle.c    |    4 ----
+ arch/arm/mach-omap2/board-omap3logic.c     |    1 -
+ arch/arm/mach-omap2/board-omap3stalker.c   |    4 ----
+ arch/arm/mach-omap2/board-omap3touchbook.c |    4 ----
+ arch/arm/mach-omap2/board-omap4panda.c     |    1 -
+ arch/arm/mach-omap2/timer-gp.c             |   26 --------------------------
+ arch/arm/mach-omap2/timer-gp.h             |   16 ----------------
+ 9 files changed, 0 insertions(+), 64 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/timer-gp.h
 
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 128efb5..f88505a 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -40,7 +40,6 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+-#include "timer-gp.h"
+ #include "control.h"
+ #include "common-board-devices.h"
+ 
+@@ -295,9 +294,6 @@ static void __init omap_4430sdp_init_early(void)
+ {
+ 	omap2_init_common_infrastructure();
+ 	omap2_init_common_devices(NULL, NULL);
+-#ifdef CONFIG_OMAP_32K_TIMER
+-	omap2_gp_clockevent_set_gptimer(1);
+-#endif
+ }
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 671aaea..360ba7b 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -58,7 +58,6 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+-#include "timer-gp.h"
+ #include "common-board-devices.h"
+ 
+ #define OMAP_DM9000_GPIO_IRQ	25
+@@ -439,9 +438,6 @@ static void __init devkit8000_init_early(void)
+ static void __init devkit8000_init_irq(void)
+ {
+ 	omap3_init_irq();
+-#ifdef CONFIG_OMAP_32K_TIMER
+-	omap2_gp_clockevent_set_gptimer(12);
+-#endif
+ }
+ 
+ #define OMAP_DM9000_BASE	0x2c000000
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 3d41654..5a830df 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -50,7 +50,6 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+-#include "timer-gp.h"
+ #include "pm.h"
+ #include "common-board-devices.h"
+ 
+@@ -487,9 +486,6 @@ static void __init omap3_beagle_init_early(void)
+ static void __init omap3_beagle_init_irq(void)
+ {
+ 	omap3_init_irq();
+-#ifdef CONFIG_OMAP_32K_TIMER
+-	omap2_gp_clockevent_set_gptimer(12);
+-#endif
+ }
+ 
+ static struct platform_device *omap3_beagle_devices[] __initdata = {
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index 693eba1..8e67567 100644
+--- a/arch/arm/mach-omap2/board-omap3logic.c
++++ b/arch/arm/mach-omap2/board-omap3logic.c
+@@ -35,7 +35,6 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+-#include "timer-gp.h"
+ #include "control.h"
+ #include "common-board-devices.h"
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 96fec1f..c8e53d0 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -52,7 +52,6 @@
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "mux.h"
+ #include "hsmmc.h"
+-#include "timer-gp.h"
+ #include "common-board-devices.h"
+ 
+ #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+@@ -495,9 +494,6 @@ static void __init omap3_stalker_init_early(void)
+ static void __init omap3_stalker_init_irq(void)
+ {
+ 	omap3_init_irq();
+-#ifdef CONFIG_OMAP_32K_TIMER
+-	omap2_gp_clockevent_set_gptimer(12);
+-#endif
+ }
+ 
+ static struct platform_device *omap3_stalker_devices[] __initdata = {
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 9447bc0..729565c 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -51,7 +51,6 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+-#include "timer-gp.h"
+ #include "common-board-devices.h"
+ 
+ #include <asm/setup.h>
+@@ -372,9 +371,6 @@ static void __init omap3_touchbook_init_early(void)
+ static void __init omap3_touchbook_init_irq(void)
+ {
+ 	omap3_init_irq();
+-#ifdef CONFIG_OMAP_32K_TIMER
+-	omap2_gp_clockevent_set_gptimer(12);
+-#endif
+ }
+ 
+ static struct platform_device *omap3_touchbook_devices[] __initdata = {
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index e76fe98..f106489 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -41,7 +41,6 @@
+ #include <plat/usb.h>
+ #include <plat/mmc.h>
+ #include <video/omap-panel-generic-dpi.h>
+-#include "timer-gp.h"
+ 
+ #include "hsmmc.h"
+ #include "control.h"
 diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index a0d8e83..62c0d5c 100644
+index 52e295e..08cbb34 100644
 --- a/arch/arm/mach-omap2/timer-gp.c
 +++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -45,10 +45,33 @@
+@@ -43,8 +43,6 @@
+ #include <plat/common.h>
+ #include <plat/omap_hwmod.h>
  
- #include "timer-gp.h"
+-#include "timer-gp.h"
+-
+ /* Parent clocks, eventually these will come from the clock framework */
  
-+/* Parent clocks, eventually these will come from the clock framework */
-+
-+#define OMAP2_MPU_SOURCE	"sys_ck"
-+#define OMAP3_MPU_SOURCE	OMAP2_MPU_SOURCE
-+#define OMAP4_MPU_SOURCE	"sys_clkin_ck"
-+#define OMAP2_32K_SOURCE	"func_32k_ck"
-+#define OMAP3_32K_SOURCE	"omap_32k_fck"
-+#define OMAP4_32K_SOURCE	"sys_32k_ck"
-+
-+#ifdef CONFIG_OMAP_32K_TIMER
-+#define OMAP2_CLKEV_SOURCE	OMAP2_32K_SOURCE
-+#define OMAP3_CLKEV_SOURCE	OMAP3_32K_SOURCE
-+#define OMAP4_CLKEV_SOURCE	OMAP4_32K_SOURCE
-+#define OMAP3_SECURE_TIMER	12
-+#else
-+#define OMAP2_CLKEV_SOURCE	OMAP2_MPU_SOURCE
-+#define OMAP3_CLKEV_SOURCE	OMAP3_MPU_SOURCE
-+#define OMAP4_CLKEV_SOURCE	OMAP4_MPU_SOURCE
-+#define OMAP3_SECURE_TIMER	1
-+#endif
+ #define OMAP2_MPU_SOURCE	"sys_ck"
+@@ -75,8 +73,6 @@ u32 sys_timer_reserved;
  
- /* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
- #define MAX_GPTIMER_ID		12
- 
-+/* Clockevent code */
-+
-+static struct omap_dm_timer clkev;
- static struct omap_dm_timer *gptimer;
+ static struct omap_dm_timer clkev;
  static struct clock_event_device clockevent_gpt;
- static u8 __initdata gptimer_id = 1;
-@@ -57,10 +80,9 @@ struct omap_dm_timer *gptimer_wakeup;
+-static u8 __initdata gptimer_id = 1;
+-static u8 __initdata inited;
  
  static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
  {
--	struct omap_dm_timer *gpt = (struct omap_dm_timer *)dev_id;
- 	struct clock_event_device *evt = &clockevent_gpt;
- 
--	omap_dm_timer_write_status(gpt, OMAP_TIMER_INT_OVERFLOW);
-+	__omap_dm_timer_write_status(clkev.io_base, OMAP_TIMER_INT_OVERFLOW);
- 
- 	evt->event_handler(evt);
- 	return IRQ_HANDLED;
-@@ -75,7 +97,8 @@ static struct irqaction omap2_gp_timer_irq = {
- static int omap2_gp_timer_set_next_event(unsigned long cycles,
- 					 struct clock_event_device *evt)
- {
--	omap_dm_timer_set_load_start(gptimer, 0, 0xffffffff - cycles);
-+	__omap_dm_timer_load_start(clkev.io_base, OMAP_TIMER_CTRL_ST,
-+						0xffffffff - cycles, 1);
- 
- 	return 0;
- }
-@@ -85,13 +108,18 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
- {
- 	u32 period;
- 
--	omap_dm_timer_stop(gptimer);
-+	__omap_dm_timer_stop(clkev.io_base, 1, clkev.rate);
- 
- 	switch (mode) {
- 	case CLOCK_EVT_MODE_PERIODIC:
--		period = clk_get_rate(omap_dm_timer_get_fclk(gptimer)) / HZ;
-+		period = clkev.rate / HZ;
- 		period -= 1;
--		omap_dm_timer_set_load_start(gptimer, 1, 0xffffffff - period);
-+		/* Looks like we need to first set the load value separately */
-+		__omap_dm_timer_write(clkev.io_base, OMAP_TIMER_LOAD_REG,
-+					0xffffffff - period, 1);
-+		__omap_dm_timer_load_start(clkev.io_base,
-+					OMAP_TIMER_CTRL_AR | OMAP_TIMER_CTRL_ST,
-+						0xffffffff - period, 1);
- 		break;
- 	case CLOCK_EVT_MODE_ONESHOT:
- 		break;
-@@ -130,43 +158,89 @@ int __init omap2_gp_clockevent_set_gptimer(u8 id)
- 	return 0;
- }
- 
--static void __init omap2_gp_clockevent_init(void)
-+static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
-+						int gptimer_id,
-+						const char *fck_source)
- {
--	u32 tick_rate;
--	int src;
--	char clockevent_hwmod_name[8]; /* 8 = sizeof("timerXX0") */
-+	char name[10]; /* 10 = sizeof("gptXX_Xck0") */
-+	struct omap_hwmod *oh;
-+	size_t size;
-+	int res = 0;
-+
-+	sprintf(name, "timer%d", gptimer_id);
-+	omap_hwmod_setup_one(name);
-+	oh = omap_hwmod_lookup(name);
-+	if (!oh)
-+		return -ENODEV;
-+
-+	timer->irq = oh->mpu_irqs[0].irq;
-+	timer->phys_base = oh->slaves[0]->addr->pa_start;
-+	size = oh->slaves[0]->addr->pa_end - timer->phys_base;
-+
-+	/* Static mapping, never released */
-+	timer->io_base = ioremap(timer->phys_base, size);
-+	if (!timer->io_base)
-+		return -ENXIO;
-+
-+	/* After the dmtimer is using hwmod these clocks won't be needed */
-+	sprintf(name, "gpt%d_fck", gptimer_id);
-+	timer->fclk = clk_get(NULL, name);
-+	if (IS_ERR(timer->fclk))
-+		return -ENODEV;
-+
-+	sprintf(name, "gpt%d_ick", gptimer_id);
-+	timer->iclk = clk_get(NULL, name);
-+	if (IS_ERR(timer->iclk)) {
-+		clk_put(timer->fclk);
-+		return -ENODEV;
-+	}
- 
--	inited = 1;
-+	omap_hwmod_enable(oh);
-+
-+	if (gptimer_id != 12) {
-+		struct clk *src;
-+
-+		src = clk_get(NULL, fck_source);
-+		if (IS_ERR(src)) {
-+			res = -EINVAL;
-+		} else {
-+			res = __omap_dm_timer_set_source(timer->fclk, src);
-+			if (IS_ERR_VALUE(res))
-+				pr_warning("%s: timer%i cannot set source\n",
-+						__func__, gptimer_id);
-+			clk_put(src);
-+		}
-+	}
-+	__omap_dm_timer_reset(timer->io_base, 1, 1);
-+	timer->posted = 1;
-+
-+	timer->rate = clk_get_rate(timer->fclk);
- 
--	sprintf(clockevent_hwmod_name, "timer%d", gptimer_id);
--	omap_hwmod_setup_one(clockevent_hwmod_name);
-+	timer->reserved = 1;
- 
- 	gptimer = omap_dm_timer_request_specific(gptimer_id);
- 	BUG_ON(gptimer == NULL);
- 	gptimer_wakeup = gptimer;
- 
--#if defined(CONFIG_OMAP_32K_TIMER)
--	src = OMAP_TIMER_SRC_32_KHZ;
--#else
--	src = OMAP_TIMER_SRC_SYS_CLK;
--	WARN(gptimer_id == 12, "WARNING: GPTIMER12 can only use the "
--	     "secure 32KiHz clock source\n");
--#endif
-+	return res;
-+}
- 
--	if (gptimer_id != 12)
--		WARN(IS_ERR_VALUE(omap_dm_timer_set_source(gptimer, src)),
--		     "timer-gp: omap_dm_timer_set_source() failed\n");
-+static void __init omap2_gp_clockevent_init(int gptimer_id,
-+						const char *fck_source)
-+{
-+	int res;
- 
--	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer));
-+	inited = 1;
- 
--	pr_info("OMAP clockevent source: GPTIMER%d at %u Hz\n",
--		gptimer_id, tick_rate);
-+	res = omap_dm_timer_init_one(&clkev, gptimer_id, fck_source);
-+	BUG_ON(res);
- 
- 	omap2_gp_timer_irq.dev_id = (void *)gptimer;
--	setup_irq(omap_dm_timer_get_irq(gptimer), &omap2_gp_timer_irq);
--	omap_dm_timer_set_int_enable(gptimer, OMAP_TIMER_INT_OVERFLOW);
-+	setup_irq(clkev.irq, &omap2_gp_timer_irq);
- 
--	clockevent_gpt.mult = div_sc(tick_rate, NSEC_PER_SEC,
-+	__omap_dm_timer_int_enable(clkev.io_base, OMAP_TIMER_INT_OVERFLOW);
-+
-+	clockevent_gpt.mult = div_sc(clkev.rate, NSEC_PER_SEC,
- 				     clockevent_gpt.shift);
- 	clockevent_gpt.max_delta_ns =
- 		clockevent_delta2ns(0xffffffff, &clockevent_gpt);
-@@ -176,6 +250,9 @@ static void __init omap2_gp_clockevent_init(void)
- 
- 	clockevent_gpt.cpumask = cpumask_of(0);
- 	clockevents_register_device(&clockevent_gpt);
-+
-+	pr_info("OMAP clockevent source: GPTIMER%d at %lu Hz\n",
-+		gptimer_id, clkev.rate);
- }
- 
- /* Clocksource code */
-@@ -247,11 +324,11 @@ static void __init omap2_gp_clocksource_init(void)
- }
- #endif
- 
--#define OMAP_SYS_TIMER_INIT(name)					\
-+#define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src)			\
- static void __init omap##name##_timer_init(void)			\
- {									\
- 	omap_dm_timer_init();						\
--	omap2_gp_clockevent_init();					\
-+	omap2_gp_clockevent_init((clkev_nr), clkev_src);		\
- 	omap2_gp_clocksource_init();					\
- }
- 
-@@ -261,14 +338,14 @@ struct sys_timer omap##name##_timer = {					\
+@@ -138,26 +134,6 @@ static struct clock_event_device clockevent_gpt = {
+ 	.set_mode	= omap2_gp_timer_set_mode,
  };
  
- #ifdef CONFIG_ARCH_OMAP2
--OMAP_SYS_TIMER_INIT(2)
-+OMAP_SYS_TIMER_INIT(2, 1, OMAP2_CLKEV_SOURCE)
- OMAP_SYS_TIMER(2)
- #endif
+-/**
+- * omap2_gp_clockevent_set_gptimer - set which GPTIMER is used for clockevents
+- * @id: GPTIMER to use (1..MAX_GPTIMER_ID)
+- *
+- * Define the GPTIMER that the system should use for the tick timer.
+- * Meant to be called from board-*.c files in the event that GPTIMER1, the
+- * default, is unsuitable.  Returns -EINVAL on error or 0 on success.
+- */
+-int __init omap2_gp_clockevent_set_gptimer(u8 id)
+-{
+-	if (id < 1 || id > MAX_GPTIMER_ID)
+-		return -EINVAL;
+-
+-	BUG_ON(inited);
+-
+-	gptimer_id = id;
+-
+-	return 0;
+-}
+-
+ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 						int gptimer_id,
+ 						const char *fck_source)
+@@ -228,8 +204,6 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
+ {
+ 	int res;
  
- #ifdef CONFIG_ARCH_OMAP3
--OMAP_SYS_TIMER_INIT(3)
-+OMAP_SYS_TIMER_INIT(3, 1, OMAP3_CLKEV_SOURCE)
- OMAP_SYS_TIMER(3)
--OMAP_SYS_TIMER_INIT(3_secure)
-+OMAP_SYS_TIMER_INIT(3_secure, OMAP3_SECURE_TIMER, OMAP3_CLKEV_SOURCE)
- OMAP_SYS_TIMER(3_secure)
- #endif
+-	inited = 1;
+-
+ 	res = omap_dm_timer_init_one(&clkev, gptimer_id, fck_source);
+ 	BUG_ON(res);
  
-@@ -280,7 +357,7 @@ static void __init omap4_timer_init(void)
- 	BUG_ON(!twd_base);
- #endif
- 	omap_dm_timer_init();
--	omap2_gp_clockevent_init();
-+	omap2_gp_clockevent_init(1, OMAP4_CLKEV_SOURCE);
- 	omap2_gp_clocksource_init();
- }
- OMAP_SYS_TIMER(4)
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 54664a7..dd8b3ff 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -216,6 +216,7 @@ struct omap_dm_timer {
- 	struct clk *iclk, *fclk;
- #endif
- 	void __iomem *io_base;
-+	unsigned long rate;
- 	unsigned reserved:1;
- 	unsigned enabled:1;
- 	unsigned posted:1;
+diff --git a/arch/arm/mach-omap2/timer-gp.h b/arch/arm/mach-omap2/timer-gp.h
+deleted file mode 100644
+index 5c1072c..0000000
+--- a/arch/arm/mach-omap2/timer-gp.h
++++ /dev/null
+@@ -1,16 +0,0 @@
+-/*
+- * OMAP2/3 GPTIMER support.headers
+- *
+- * Copyright (C) 2009 Nokia Corporation
+- *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License. See the file "COPYING" in the main directory of this archive
+- * for more details.
+- */
+-
+-#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_TIMER_GP_H
+-#define __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_TIMER_GP_H
+-
+-extern int __init omap2_gp_clockevent_set_gptimer(u8 id);
+-
+-#endif
 
