@@ -1,33 +1,57 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Bug in _und_usr on dual-core ARM?
-Date: Tue, 21 Jun 2011 10:58:18 +0100
-Message-ID: <20110621095818.GA23802@n2100.arm.linux.org.uk>
-References: <BANLkTinY+_+tHatRWuRFUJewUibpmvkUqA@mail.gmail.com> <20110621091529.GA22868@n2100.arm.linux.org.uk> <BANLkTinUYZm+Q3WBGLTQRXz1V2ca1AwE=g@mail.gmail.com>
+Subject: Re: [RFC PATCH] ARM: smp: Fix the CPU hotplug race with scheduler.
+Date: Tue, 21 Jun 2011 11:00:57 +0100
+Message-ID: <20110621100057.GB23802@n2100.arm.linux.org.uk>
+References: <20110620101438.GD2082@n2100.arm.linux.org.uk> <4DFF20B3.7010209@ti.com> <20110620104415.GF2082@n2100.arm.linux.org.uk> <4DFF255E.5030308@ti.com> <20110620111336.GG2082@n2100.arm.linux.org.uk> <4DFF2E37.8030602@ti.com> <20110620114019.GH2082@n2100.arm.linux.org.uk> <20110620142338.GL2082@n2100.arm.linux.org.uk> <4DFF5F29.2000904@ti.com> <4E005F92.8030208@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37189 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37196 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755440Ab1FUJ6d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2011 05:58:33 -0400
+	with ESMTP id S932111Ab1FUKBU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2011 06:01:20 -0400
 Content-Disposition: inline
-In-Reply-To: <BANLkTinUYZm+Q3WBGLTQRXz1V2ca1AwE=g@mail.gmail.com>
+In-Reply-To: <4E005F92.8030208@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: TAO HU <tghk48@motorola.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>, Zhou Ming-a17711 <a17711@motorola.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jun 21, 2011 at 05:37:31PM +0800, TAO HU wrote:
-> Hi, Russell
-> 
-> Wouldn't it lead to oops with your patch?
+On Tue, Jun 21, 2011 at 02:38:34PM +0530, Santosh Shilimkar wrote:
+> Russell,
+>
+> On 6/20/2011 8:24 PM, Santosh Shilimkar wrote:
+>> On 6/20/2011 7:53 PM, Russell King - ARM Linux wrote:
+>>> So, as loops_per_jiffy is not local to this function, the compiler has
+>>> to write out that zero value, before calling calibrate_delay_converge(),
+>>> and loops_per_jiffy only becomes non-zero _after_
+>>> calibrate_delay_converge()
+>>> has returned. This opens the window and allows the spinlock debugging
+>>> code to explode.
+>>>
+>>> This patch closes the window completely, by only writing to
+>>> loops_per_jiffy
+>>> only when we have a real value for it.
+>>>
+>>> This allows me to boot 3.0.0-rc3 on Versatile Express (4 CPU) whereas
+>>> without this it fails with spinlock lockup and rcu problems.
+>>>
+>>> init/calibrate.c | 14 ++++++++------
+>>> 1 files changed, 8 insertions(+), 6 deletions(-)
+>>>
+>> I am away from my board now. Will test this change.
+> Have tested your change and it seems to fix the crash I
+> was observing. Are you planning to send this fix for rc5?
 
-The might_sleep() occurs because its trying to process the page fault.
-We shouldn't be trying to do that with IRQs disabled - instead, we
-should try to fix up the fault from kernel space by invoking the fixup
-for the ldrt instructions in __und_usr.
+Yes.  I think sending CPUs into infinite loops in the spinlock code is
+definitely sufficiently serious that it needs to go to Linus ASAP.
+It'd be nice to have a tested-by line though.
 
-This may throw the system into a loop against your process (which you
-should still be able to kill) which will suggest that there's dirty
-I-cache lines - we seem to be executing code in a non-present page
-(at 0xafd0ce5c).
+>> btw, the online-active race is still open even with this patch close
+>> and should be fixed.
+>>
+> The only problem remains is waiting for active mask before
+> marking CPU online. Shall I refresh my patch with only
+> this change then ?
+
+I already have that as a separate change.
