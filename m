@@ -1,111 +1,107 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [RFC 5/8] remoteproc: add davinci implementation
-Date: Tue, 21 Jun 2011 10:18:31 +0300
-Message-ID: <1308640714-17961-6-git-send-email-ohad@wizery.com>
+Subject: [RFC 8/8] rpmsg: add omap host backend
+Date: Tue, 21 Jun 2011 10:18:34 +0300
+Message-ID: <1308640714-17961-9-git-send-email-ohad@wizery.com>
 References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1308640714-17961-1-git-send-email-ohad@wizery.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>, Mark Grosen <mgrosen@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
+Cc: akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Mark Grosen <mgrosen@ti.com>
+Add rpmsg devices that wires virtio to the OMAP mailbox and
+enabled A9<->M3 communications on OMAP4.
 
-Add remoteproc implementation for da850, so we can boot its DSP.
+Each M3 core gets its own virtio device, since it is running its own
+independent instance of RTOS, and is therefore treated as a completely
+separate processor by rpmsg.
 
-Signed-off-by: Mark Grosen <mgrosen@ti.com>
+Both M3 cores use the same mailbox device to communicate with the A9,
+and the mailbox payload is used to indicate which of the virtqueues is
+triggered (each M3 core gets 2 virtqueues, for rx and tx).
+
+Map the two vrings and the IPC buffers as noncacheable; use
+dynamically carved-out physical memory for that.
+
+Put this omap implementation in a dedicated drivers/rpmsg/host folder,
+with the intention of stacking different rpmsg host implementations
+in one place.
+
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
- arch/arm/mach-davinci/include/mach/remoteproc.h |   28 +++++
- drivers/remoteproc/Kconfig                      |   16 +++
- drivers/remoteproc/Makefile                     |    1 +
- drivers/remoteproc/davinci_remoteproc.c         |  147 +++++++++++++++++++++++
- 4 files changed, 192 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-davinci/include/mach/remoteproc.h
- create mode 100644 drivers/remoteproc/davinci_remoteproc.c
+ drivers/rpmsg/Kconfig           |    2 +
+ drivers/rpmsg/Makefile          |    2 +
+ drivers/rpmsg/host/Kconfig      |   11 +
+ drivers/rpmsg/host/Makefile     |    1 +
+ drivers/rpmsg/host/omap_rpmsg.c |  540 +++++++++++++++++++++++++++++++++++++++
+ drivers/rpmsg/host/omap_rpmsg.h |   69 +++++
+ 6 files changed, 625 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/rpmsg/host/Kconfig
+ create mode 100644 drivers/rpmsg/host/Makefile
+ create mode 100644 drivers/rpmsg/host/omap_rpmsg.c
+ create mode 100644 drivers/rpmsg/host/omap_rpmsg.h
 
-diff --git a/arch/arm/mach-davinci/include/mach/remoteproc.h b/arch/arm/mach-davinci/include/mach/remoteproc.h
-new file mode 100644
-index 0000000..af6e88c
---- /dev/null
-+++ b/arch/arm/mach-davinci/include/mach/remoteproc.h
-@@ -0,0 +1,28 @@
-+/*
-+ * Remote Processor
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _DAVINCI_REMOTEPROC_H
-+#define _DAVINCI_REMOTEPROC_H
-+
-+#include <linux/remoteproc.h>
-+
-+struct davinci_rproc_pdata {
-+	struct rproc_ops *ops;
-+	char *name;
-+	char *clk_name;
-+	char *firmware;
-+};
-+
-+#endif /* _DAVINCI_REMOTEPROC_H */
-diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
-index 88421bd..1e594b5 100644
---- a/drivers/remoteproc/Kconfig
-+++ b/drivers/remoteproc/Kconfig
-@@ -26,3 +26,19 @@ config OMAP_REMOTE_PROC
+diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
+index 41303f5..9544d62 100644
+--- a/drivers/rpmsg/Kconfig
++++ b/drivers/rpmsg/Kconfig
+@@ -12,3 +12,5 @@ if RPMSG
+ source "drivers/virtio/Kconfig"
  
- 	  It's safe to say n here if you're not interested in multimedia
- 	  offloading or just want a bare minimum kernel.
+ endif # RPMSG
 +
-+config DAVINCI_REMOTE_PROC
-+	tristate "Davinci remoteproc support"
-+	depends on ARCH_DAVINCI_DA850
-+	select REMOTE_PROC
-+	default y
++source "drivers/rpmsg/host/Kconfig"
+diff --git a/drivers/rpmsg/Makefile b/drivers/rpmsg/Makefile
+index 7617fcb..368a526 100644
+--- a/drivers/rpmsg/Makefile
++++ b/drivers/rpmsg/Makefile
+@@ -1 +1,3 @@
+ obj-$(CONFIG_RPMSG)	+= virtio_rpmsg_bus.o
++
++obj-$(CONFIG_RPMSG)		+= host/
+diff --git a/drivers/rpmsg/host/Kconfig b/drivers/rpmsg/host/Kconfig
+new file mode 100644
+index 0000000..fd2140c
+--- /dev/null
++++ b/drivers/rpmsg/host/Kconfig
+@@ -0,0 +1,11 @@
++config OMAP_RPMSG
++	tristate "OMAP virtio-based remote processor messaging support"
++	depends on ARCH_OMAP4 && OMAP_REMOTE_PROC
++	select CONFIG_OMAP_MBOX_FWK
++	select RPMSG
 +	help
-+	  Say y here to support Davinci's DSP remote processor via the remote
-+	  processor framework (currently only da850 is supported).
-+
-+	  Usually you want to say y here, in order to enable multimedia
-+	  use-cases to run on your platform (multimedia codecs are
-+	  offloaded to remote DSP processors using this framework).
-+
-+	  It's safe to say n here if you're not interested in multimedia
-+	  offloading or just want a bare minimum kernel.
-diff --git a/drivers/remoteproc/Makefile b/drivers/remoteproc/Makefile
-index 0198b1d..e83dac9 100644
---- a/drivers/remoteproc/Makefile
-+++ b/drivers/remoteproc/Makefile
-@@ -4,3 +4,4 @@
- 
- obj-$(CONFIG_REMOTE_PROC)		+= remoteproc.o
- obj-$(CONFIG_OMAP_REMOTE_PROC)		+= omap_remoteproc.o
-+obj-$(CONFIG_DAVINCI_REMOTE_PROC)	+= davinci_remoteproc.o
-diff --git a/drivers/remoteproc/davinci_remoteproc.c b/drivers/remoteproc/davinci_remoteproc.c
++	  Say Y if you want to enable OMAP's virtio-based remote-processor
++	  messaging, currently only available on OMAP4. This is required
++	  for offloading cpu-intensive and/or latency-sensitive tasks to
++	  the remote on-chip M3s or C64x+ dsp, usually used by multimedia
++	  frameworks.
+diff --git a/drivers/rpmsg/host/Makefile b/drivers/rpmsg/host/Makefile
 new file mode 100644
-index 0000000..0e26fe9
+index 0000000..9823745
 --- /dev/null
-+++ b/drivers/remoteproc/davinci_remoteproc.c
-@@ -0,0 +1,147 @@
++++ b/drivers/rpmsg/host/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_OMAP_RPMSG) += omap_rpmsg.o
+diff --git a/drivers/rpmsg/host/omap_rpmsg.c b/drivers/rpmsg/host/omap_rpmsg.c
+new file mode 100644
+index 0000000..b8c2305
+--- /dev/null
++++ b/drivers/rpmsg/host/omap_rpmsg.c
+@@ -0,0 +1,540 @@
 +/*
-+ * Remote processor machine-specific module for Davinci
++ * Remote processor messaging transport (OMAP platform-specific bits)
 + *
 + * Copyright (C) 2011 Texas Instruments, Inc.
++ * Copyright (C) 2011 Google, Inc.
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
++ * Ohad Ben-Cohen <ohad@wizery.com>
++ * Brian Swetland <swetland@google.com>
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
 + *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -113,137 +109,601 @@ index 0000000..0e26fe9
 + * GNU General Public License for more details.
 + */
 +
-+#define pr_fmt(fmt)    "%s: " fmt, __func__
++#define pr_fmt(fmt) "%s: " fmt, __func__
 +
-+#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/virtio.h>
++#include <linux/virtio_config.h>
++#include <linux/virtio_ids.h>
++#include <linux/virtio_ring.h>
++#include <linux/rpmsg.h>
 +#include <linux/err.h>
-+#include <linux/printk.h>
-+#include <linux/bitops.h>
-+#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/notifier.h>
 +#include <linux/remoteproc.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
 +
-+#include <mach/da8xx.h>
-+#include <mach/cputype.h>
-+#include <mach/psc.h>
-+#include <mach/remoteproc.h>
++#include <plat/mailbox.h>
++#include <plat/dsp.h>
 +
-+/*
-+ * Technical Reference:
-+ * OMAP-L138 Applications Processor System Reference Guide
-+ * http://www.ti.com/litv/pdf/sprugm7d
++#include "omap_rpmsg.h"
++
++/**
++ * struct omap_rpmsg_vproc - omap's virtio remote processor state
++ * @vdev: virtio device
++ * @vring: phys address of two vrings; first one used for rx, 2nd one for tx
++ * @buf_paddr: physical address of the IPC buffer region
++ * @buf_size: size of IPC buffer region
++ * @buf_mapped: kernel (ioremap'ed) address of IPC buffer region
++ * @mbox_name: name of omap mailbox device to use with this vproc
++ * @rproc_name: name of remote proc device to use with this vproc
++ * @mbox: omap mailbox handle
++ * @rproc: remoteproc handle
++ * @nb: notifier block that will be invoked on inbound mailbox messages
++ * @vq: virtio's virtqueues
++ * @base_vq_id: index of first virtqueue that belongs to this vproc
++ * @num_of_vqs: number of virtqueues this vproc owns
++ * @static_chnls: table of static channels for this vproc
 + */
-+
-+/* local reset bit (0 is asserted) in MDCTL15 register (section 9.6.18) */
-+#define LRST		BIT(8)
-+
-+/* next state bits in MDCTL15 register (section 9.6.18) */
-+#define NEXT_ENABLED	0x3
-+
-+/* register for DSP boot address in SYSCFG0 module (section 11.5.6) */
-+#define HOST1CFG	0x44
-+
-+static inline int davinci_rproc_start(struct rproc *rproc, u64 bootaddr)
-+{
-+	struct device *dev = rproc->dev;
-+	struct davinci_rproc_pdata *pdata = dev->platform_data;
-+	struct davinci_soc_info *soc_info = &davinci_soc_info;
-+	void __iomem *psc_base;
-+	struct clk *dsp_clk;
-+
-+	/* hw requires the start (boot) address be on 1KB boundary */
-+	if (bootaddr & 0x3ff) {
-+		dev_err(dev, "invalid boot address: must be aligned to 1KB\n");
-+		return -EINVAL;
-+	}
-+
-+	dsp_clk = clk_get(dev, pdata->clk_name);
-+	if (IS_ERR_OR_NULL(dsp_clk)) {
-+		dev_err(dev, "clk_get error: %ld\n", PTR_ERR(dsp_clk));
-+		return PTR_ERR(dsp_clk);
-+	}
-+
-+	clk_enable(dsp_clk);
-+	rproc->priv = dsp_clk;
-+
-+	psc_base = ioremap(soc_info->psc_bases[0], SZ_4K);
-+
-+	/* insure local reset is asserted before writing start address */
-+	__raw_writel(NEXT_ENABLED, psc_base + MDCTL + 4 * DA8XX_LPSC0_GEM);
-+
-+	__raw_writel(bootaddr, DA8XX_SYSCFG0_VIRT(HOST1CFG));
-+
-+	/* de-assert local reset to start the dsp running */
-+	__raw_writel(LRST | NEXT_ENABLED, psc_base + MDCTL +
-+		4 * DA8XX_LPSC0_GEM);
-+
-+	iounmap(psc_base);
-+
-+	return 0;
-+}
-+
-+static inline int davinci_rproc_stop(struct rproc *rproc)
-+{
-+	struct davinci_soc_info *soc_info = &davinci_soc_info;
-+	void __iomem *psc_base;
-+	struct clk *dsp_clk = rproc->priv;
-+
-+	psc_base = ioremap(soc_info->psc_bases[0], SZ_4K);
-+
-+	/* halt the dsp by asserting local reset */
-+	__raw_writel(NEXT_ENABLED, psc_base + MDCTL + 4 * DA8XX_LPSC0_GEM);
-+
-+	clk_disable(dsp_clk);
-+	clk_put(dsp_clk);
-+
-+	iounmap(psc_base);
-+
-+	return 0;
-+}
-+
-+static struct rproc_ops davinci_rproc_ops = {
-+	.start = davinci_rproc_start,
-+	.stop = davinci_rproc_stop,
++struct omap_rpmsg_vproc {
++	struct virtio_device vdev;
++	unsigned int vring[2]; /* mpu owns first vring, ipu owns the 2nd */
++	unsigned int buf_paddr;
++	unsigned int buf_size; /* size must be page-aligned */
++	void *buf_mapped;
++	char *mbox_name;
++	char *rproc_name;
++	struct omap_mbox *mbox;
++	struct rproc *rproc;
++	struct notifier_block nb;
++	struct virtqueue *vq[2];
++	int base_vq_id;
++	int num_of_vqs;
++	struct rpmsg_channel_info *static_chnls;
 +};
 +
-+static int davinci_rproc_probe(struct platform_device *pdev)
-+{
-+	struct davinci_rproc_pdata *pdata = pdev->dev.platform_data;
++#define to_omap_vproc(vd) container_of(vd, struct omap_rpmsg_vproc, vdev)
 +
-+	return rproc_register(&pdev->dev, pdata->name, &davinci_rproc_ops,
-+				pdata->firmware, NULL, THIS_MODULE);
++/**
++ * struct omap_rpmsg_vq_info - virtqueue state
++ * @num: number of buffers supported by the vring
++ * @vq_id: a unique index of this virtqueue
++ * @addr: address where the vring is mapped onto
++ * @vproc: the virtual remote processor state
++ *
++ * Such a struct will be maintained for every virtqueue we're
++ * using to communicate with the remote processor
++ */
++struct omap_rpmsg_vq_info {
++	__u16 num;
++	__u16 vq_id;
++	void *addr;
++	struct omap_rpmsg_vproc *vproc;
++};
++
++/*
++ * For now, allocate 256 buffers of 512 bytes for each side. each buffer
++ * will then have 16B for the msg header and 496B for the payload.
++ * This will require a total space of 256KB for the buffers themselves, and
++ * 3 pages for every vring (the size of the vring depends on the number of
++ * buffers it supports).
++ */
++#define RPMSG_NUM_BUFS		(512)
++#define RPMSG_BUF_SIZE		(512)
++#define RPMSG_BUFS_SPACE	(RPMSG_NUM_BUFS * RPMSG_BUF_SIZE)
++
++/*
++ * The alignment between the consumer and producer parts of the vring.
++ * Note: this is part of the "wire" protocol. If you change this, you need
++ * to update your BIOS image as well
++ */
++#define RPMSG_VRING_ALIGN	(4096)
++
++/* With 256 buffers, our vring will occupy 3 pages */
++#define RPMSG_RING_SIZE	((DIV_ROUND_UP(vring_size(RPMSG_NUM_BUFS / 2, \
++				RPMSG_VRING_ALIGN), PAGE_SIZE)) * PAGE_SIZE)
++
++/* The total IPC space needed to communicate with a remote processor */
++#define RPMSG_IPC_MEM	(RPMSG_BUFS_SPACE + 2 * RPMSG_RING_SIZE)
++
++/*
++ * Provide rpmsg core with platform-specific configuration.
++ * Since user data is at stake here, bugs can't be tolerated. hence
++ * the BUG_ON approach on invalid lengths.
++ *
++ * For more info on these configuration requests, see enum
++ * rpmsg_platform_requests.
++ */
++static void omap_rpmsg_get(struct virtio_device *vdev, unsigned int request,
++		   void *buf, unsigned len)
++{
++	struct omap_rpmsg_vproc *vproc = to_omap_vproc(vdev);
++	int tmp;
++
++	switch (request) {
++	case VPROC_BUF_ADDR:
++		BUG_ON(len != sizeof(vproc->buf_mapped));
++		memcpy(buf, &vproc->buf_mapped, len);
++		break;
++	case VPROC_BUF_PADDR:
++		BUG_ON(len != sizeof(vproc->buf_paddr));
++		memcpy(buf, &vproc->buf_paddr, len);
++		break;
++	case VPROC_BUF_NUM:
++		BUG_ON(len != sizeof(tmp));
++		tmp = RPMSG_NUM_BUFS;
++		memcpy(buf, &tmp, len);
++		break;
++	case VPROC_BUF_SZ:
++		BUG_ON(len != sizeof(tmp));
++		tmp = RPMSG_BUF_SIZE;
++		memcpy(buf, &tmp, len);
++		break;
++	case VPROC_STATIC_CHANNELS:
++		BUG_ON(len != sizeof(vproc->static_chnls));
++		memcpy(buf, &vproc->static_chnls, len);
++		break;
++	default:
++		dev_err(&vdev->dev, "invalid request: %d\n", request);
++	}
 +}
 +
-+static int __devexit davinci_rproc_remove(struct platform_device *pdev)
++/* kick the remote processor, and let it know which virtqueue to poke at */
++static void omap_rpmsg_notify(struct virtqueue *vq)
 +{
-+	struct davinci_rproc_pdata *pdata = pdev->dev.platform_data;
++	struct omap_rpmsg_vq_info *rpvq = vq->priv;
++	int ret;
 +
-+	return rproc_unregister(pdata->name);
++	pr_debug("sending mailbox msg: %d\n", rpvq->vq_id);
++	/* send the index of the triggered virtqueue in the mailbox payload */
++	ret = omap_mbox_msg_send(rpvq->vproc->mbox, rpvq->vq_id);
++	if (ret)
++		pr_err("ugh, omap_mbox_msg_send() failed: %d\n", ret);
 +}
 +
-+static struct platform_driver davinci_rproc_driver = {
-+	.probe = davinci_rproc_probe,
-+	.remove = __devexit_p(davinci_rproc_remove),
-+	.driver = {
-+		.name = "davinci-rproc",
-+		.owner = THIS_MODULE,
++/**
++ * omap_rpmsg_mbox_callback() - inbound mailbox message handler
++ * @this: notifier block
++ * @index: unused
++ * @data: mailbox payload
++ *
++ * This handler is invoked by omap's mailbox driver whenever a mailbox
++ * message is received. Usually, the mailbox payload simply contains
++ * the index of the virtqueue that is kicked by the remote processor,
++ * and we let virtio handle it.
++ *
++ * In addition to virtqueue indices, we also have some out-of-band values
++ * that indicates different events. Those values are deliberately very
++ * big so they don't coincide with virtqueue indices. Moreover,
++ * they are rarely used, if used at all, and their necessity should
++ * be revisited.
++ */
++static int omap_rpmsg_mbox_callback(struct notifier_block *this,
++					unsigned long index, void *data)
++{
++	mbox_msg_t msg = (mbox_msg_t) data;
++	struct omap_rpmsg_vproc *vproc;
++
++	vproc = container_of(this, struct omap_rpmsg_vproc, nb);
++
++	pr_debug("mbox msg: 0x%x\n", msg);
++
++	switch (msg) {
++	case RP_MBOX_CRASH:
++		pr_err("%s has just crashed !\n", vproc->rproc_name);
++		/* todo: smarter error handling here */
++		break;
++	case RP_MBOX_ECHO_REPLY:
++		pr_info("received echo reply from %s !\n", vproc->rproc_name);
++		break;
++	case RP_MBOX_PENDING_MSG:
++		/*
++		 * a new inbound message is waiting in our rx vring (1st vring).
++		 * Let's pretend the message explicitly contained the rx vring
++		 * index number and handle it generically.
++		 */
++		msg = vproc->base_vq_id;
++		/* intentional fall-through */
++	default:
++		/* ignore vq indices which are clearly not for us */
++		if (msg < vproc->base_vq_id)
++			break;
++
++		msg -= vproc->base_vq_id;
++
++		/*
++		 * Currently both PENDING_MSG and explicit-virtqueue-index
++		 * messaging are supported.
++		 * Whatever approach is taken, at this point 'msg' contains
++		 * the index of the vring which was just triggered.
++		 */
++		if (msg < vproc->num_of_vqs)
++			vring_interrupt(msg, vproc->vq[msg]);
++	}
++
++	return NOTIFY_DONE;
++}
++
++/* prepare a virtqueue */
++static struct virtqueue *rp_find_vq(struct virtio_device *vdev,
++				    unsigned index,
++				    void (*callback)(struct virtqueue *vq),
++				    const char *name)
++{
++	struct omap_rpmsg_vproc *vproc = to_omap_vproc(vdev);
++	struct omap_rpmsg_vq_info *rpvq;
++	struct virtqueue *vq;
++	int err;
++
++	rpvq = kmalloc(sizeof(*rpvq), GFP_KERNEL);
++	if (!rpvq)
++		return ERR_PTR(-ENOMEM);
++
++	/* ioremap'ing normal memory, so we cast away sparse's complaints */
++	rpvq->addr = (__force void *) ioremap_nocache(vproc->vring[index],
++							RPMSG_RING_SIZE);
++	if (!rpvq->addr) {
++		err = -ENOMEM;
++		goto free_rpvq;
++	}
++
++	memset(rpvq->addr, 0, RPMSG_RING_SIZE);
++
++	pr_debug("vring%d: phys 0x%x, virt 0x%x\n", index, vproc->vring[index],
++					(unsigned int) rpvq->addr);
++
++	vq = vring_new_virtqueue(RPMSG_NUM_BUFS / 2, RPMSG_VRING_ALIGN, vdev,
++				rpvq->addr, omap_rpmsg_notify, callback, name);
++	if (!vq) {
++		pr_err("vring_new_virtqueue failed\n");
++		err = -ENOMEM;
++		goto unmap_vring;
++	}
++
++	vproc->vq[index] = vq;
++	vq->priv = rpvq;
++	/* unique id for this virtqueue */
++	rpvq->vq_id = vproc->base_vq_id + index;
++	rpvq->vproc = vproc;
++
++	return vq;
++
++unmap_vring:
++	/* iounmap normal memory, so make sparse happy */
++	iounmap((__force void __iomem *) rpvq->addr);
++free_rpvq:
++	kfree(rpvq);
++	return ERR_PTR(err);
++}
++
++static void omap_rpmsg_del_vqs(struct virtio_device *vdev)
++{
++	struct virtqueue *vq, *n;
++	struct omap_rpmsg_vproc *vproc = to_omap_vproc(vdev);
++
++	if (vproc->rproc)
++		rproc_put(vproc->rproc);
++
++	if (vproc->mbox)
++		omap_mbox_put(vproc->mbox, &vproc->nb);
++
++	if (vproc->buf_mapped)
++		/* iounmap normal memory, so make sparse happy */
++		iounmap((__force void __iomem *)vproc->buf_mapped);
++
++	list_for_each_entry_safe(vq, n, &vdev->vqs, list) {
++		struct omap_rpmsg_vq_info *rpvq = vq->priv;
++		vring_del_virtqueue(vq);
++		/* iounmap normal memory, so make sparse happy */
++		iounmap((__force void __iomem *) rpvq->addr);
++		kfree(rpvq);
++	}
++}
++
++static int omap_rpmsg_find_vqs(struct virtio_device *vdev, unsigned nvqs,
++		       struct virtqueue *vqs[],
++		       vq_callback_t *callbacks[],
++		       const char *names[])
++{
++	struct omap_rpmsg_vproc *vproc = to_omap_vproc(vdev);
++	int i, err;
++
++	/* we maintain two virtqueues per remote processor (for RX and TX) */
++	if (nvqs != 2)
++		return -EINVAL;
++
++	for (i = 0; i < nvqs; ++i) {
++		vqs[i] = rp_find_vq(vdev, i, callbacks[i], names[i]);
++		if (IS_ERR(vqs[i])) {
++			err = PTR_ERR(vqs[i]);
++			goto error;
++		}
++	}
++
++	vproc->num_of_vqs = nvqs;
++
++	/* ioremap'ing normal memory, so we cast away sparse's complaints */
++	vproc->buf_mapped = (__force void *) ioremap_nocache(vproc->buf_paddr,
++							vproc->buf_size);
++	if (!vproc->buf_mapped) {
++		pr_err("ioremap failed\n");
++		err = -ENOMEM;
++		goto error;
++	}
++
++	/* for now, use mailbox's notifiers. later that can be optimized */
++	vproc->nb.notifier_call = omap_rpmsg_mbox_callback;
++	vproc->mbox = omap_mbox_get(vproc->mbox_name, &vproc->nb);
++	if (IS_ERR(vproc->mbox)) {
++		pr_err("failed to get mailbox %s\n", vproc->mbox_name);
++		err = -EINVAL;
++		goto error;
++	}
++
++	pr_debug("buf: phys 0x%x, virt 0x%x\n", vproc->buf_paddr,
++					(unsigned int) vproc->buf_mapped);
++
++	/* tell the M3 we're ready (so M3 will know we're sane) */
++	err = omap_mbox_msg_send(vproc->mbox, RP_MBOX_READY);
++	if (err) {
++		pr_err("ugh, omap_mbox_msg_send() failed: %d\n", err);
++		goto error;
++	}
++
++	/* send it the physical address of the vrings + IPC buffer */
++	err = omap_mbox_msg_send(vproc->mbox, (mbox_msg_t) vproc->buf_paddr);
++	if (err) {
++		pr_err("ugh, omap_mbox_msg_send() failed: %d\n", err);
++		goto error;
++	}
++
++	/* ping the remote processor. this is only for sanity-sake;
++	 * there is no functional effect whatsoever */
++	err = omap_mbox_msg_send(vproc->mbox, RP_MBOX_ECHO_REQUEST);
++	if (err) {
++		pr_err("ugh, omap_mbox_msg_send() failed: %d\n", err);
++		goto error;
++	}
++
++	/* now load the firmware, and boot the M3 */
++	vproc->rproc = rproc_get(vproc->rproc_name);
++	if (!vproc->rproc) {
++		pr_err("failed to get rproc %s\n", vproc->rproc_name);
++		err = -EINVAL;
++		goto error;
++	}
++
++	return 0;
++
++error:
++	omap_rpmsg_del_vqs(vdev);
++	return err;
++}
++
++/*
++ * should be nice to add firmware support for these handlers.
++ * for now provide them so virtio doesn't crash
++ */
++static u8 omap_rpmsg_get_status(struct virtio_device *vdev)
++{
++	return 0;
++}
++
++static void omap_rpmsg_set_status(struct virtio_device *vdev, u8 status)
++{
++	dev_dbg(&vdev->dev, "new status: %d\n", status);
++}
++
++static void omap_rpmsg_reset(struct virtio_device *vdev)
++{
++	dev_dbg(&vdev->dev, "reset !\n");
++}
++
++static u32 omap_rpmsg_get_features(struct virtio_device *vdev)
++{
++	/* for now, use hardcoded bitmap. later this should be provided
++	 * by the firmware itself */
++	return 1 << VIRTIO_RPMSG_F_NS;
++}
++
++static void omap_rpmsg_finalize_features(struct virtio_device *vdev)
++{
++	/* Give virtio_ring a chance to accept features */
++	vring_transport_features(vdev);
++}
++
++static void omap_rpmsg_vproc_release(struct device *dev)
++{
++	/* this handler is provided so driver core doesn't yell at us */
++}
++
++static struct virtio_config_ops omap_rpmsg_config_ops = {
++	.get_features	= omap_rpmsg_get_features,
++	.finalize_features = omap_rpmsg_finalize_features,
++	.get		= omap_rpmsg_get,
++	.find_vqs	= omap_rpmsg_find_vqs,
++	.del_vqs	= omap_rpmsg_del_vqs,
++	.reset		= omap_rpmsg_reset,
++	.set_status	= omap_rpmsg_set_status,
++	.get_status	= omap_rpmsg_get_status,
++};
++
++/*
++ * Populating the static channels table.
++ *
++ * This is not always required, and the example below just demonstrates
++ * how to populate it with a static server channel.
++ *
++ * This example should be moved to Documentation/rpmsh.h before merging.
++ *
++ * For more info, see 'struct rpmsg_channel_info'.
++ */
++static struct rpmsg_channel_info omap_ipuc0_static_chnls[] = {
++	RMSG_SERVER_CHNL("rpmsg-server-sample", 137),
++	{ },
++};
++
++static struct rpmsg_channel_info omap_ipuc1_static_chnls[] = {
++	{ },
++};
++
++static struct omap_rpmsg_vproc omap_rpmsg_vprocs[] = {
++	/* ipu_c0's rpmsg backend */
++	{
++		.vdev.id.device	= VIRTIO_ID_RPMSG,
++		.vdev.config	= &omap_rpmsg_config_ops,
++		.mbox_name	= "mailbox-1",
++		.rproc_name	= "ipu",
++		/* core 0 is using indices 0 + 1 for its vqs */
++		.base_vq_id	= 0,
++		.static_chnls = omap_ipuc0_static_chnls,
++	},
++	/* ipu_c1's rpmsg backend */
++	{
++		.vdev.id.device	= VIRTIO_ID_RPMSG,
++		.vdev.config	= &omap_rpmsg_config_ops,
++		.mbox_name	= "mailbox-1",
++		.rproc_name	= "ipu",
++		/* core 1 is using indices 2 + 3 for its vqs */
++		.base_vq_id	= 2,
++		.static_chnls = omap_ipuc1_static_chnls,
 +	},
 +};
 +
-+static int __init davinci_rproc_init(void)
++static int __init omap_rpmsg_ini(void)
 +{
-+	return platform_driver_register(&davinci_rproc_driver);
-+}
-+module_init(davinci_rproc_init);
++	int i, ret = 0;
++	/*
++	 * This whole area generally needs some rework.
++	 * E.g, consider using dma_alloc_coherent for the IPC buffers and
++	 * vrings, use CMA, etc...
++	 */
++	phys_addr_t paddr = omap_dsp_get_mempool_base();
++	phys_addr_t psize = omap_dsp_get_mempool_size();
 +
-+static void __exit davinci_rproc_exit(void)
-+{
-+	platform_driver_unregister(&davinci_rproc_driver);
++	/*
++	 * allocate carverout memory for the buffers and vring, and
++	 * then register the vproc virtio device
++	 */
++	for (i = 0; i < ARRAY_SIZE(omap_rpmsg_vprocs); i++) {
++		struct omap_rpmsg_vproc *vproc = &omap_rpmsg_vprocs[i];
++
++		if (psize < RPMSG_IPC_MEM) {
++			pr_err("out of carveout memory: %d (%d)\n", psize, i);
++			return -ENOMEM;
++		}
++
++		vproc->buf_paddr = paddr;
++		vproc->buf_size = RPMSG_BUFS_SPACE;
++		vproc->vring[0] = paddr + RPMSG_BUFS_SPACE;
++		vproc->vring[1] = paddr + RPMSG_BUFS_SPACE + RPMSG_RING_SIZE;
++
++		paddr += RPMSG_IPC_MEM;
++		psize -= RPMSG_IPC_MEM;
++
++		pr_debug("vproc%d: buf 0x%x, vring0 0x%x, vring1 0x%x\n", i,
++			vproc->buf_paddr, vproc->vring[0], vproc->vring[1]);
++
++		vproc->vdev.dev.release = omap_rpmsg_vproc_release;
++
++		ret = register_virtio_device(&vproc->vdev);
++		if (ret) {
++			pr_err("failed to register vproc: %d\n", ret);
++			break;
++		}
++	}
++
++	return ret;
 +}
-+module_exit(davinci_rproc_exit);
++module_init(omap_rpmsg_ini);
++
++static void __exit omap_rpmsg_fini(void)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(omap_rpmsg_vprocs); i++) {
++		struct omap_rpmsg_vproc *vproc = &omap_rpmsg_vprocs[i];
++
++		unregister_virtio_device(&vproc->vdev);
++	}
++}
++module_exit(omap_rpmsg_fini);
 +
 +MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("Davinci Remote Processor control driver");
++MODULE_DESCRIPTION("OMAP Remote processor messaging virtio device");
+diff --git a/drivers/rpmsg/host/omap_rpmsg.h b/drivers/rpmsg/host/omap_rpmsg.h
+new file mode 100644
+index 0000000..f6d2036
+--- /dev/null
++++ b/drivers/rpmsg/host/omap_rpmsg.h
+@@ -0,0 +1,69 @@
++/*
++ * Remote processor messaging
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ * Copyright (C) 2011 Google, Inc.
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * * Redistributions of source code must retain the above copyright
++ *   notice, this list of conditions and the following disclaimer.
++ * * Redistributions in binary form must reproduce the above copyright
++ *   notice, this list of conditions and the following disclaimer in
++ *   the documentation and/or other materials provided with the
++ *   distribution.
++ * * Neither the name Texas Instruments nor the names of its
++ *   contributors may be used to endorse or promote products derived
++ *   from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#ifndef _OMAP_RPMSG_H
++#define _OMAP_RPMSG_H
++
++/*
++ * enum - Predefined Mailbox Messages
++ *
++ * @RP_MBOX_READY: informs the M3's that we're up and running. this is
++ * part of the init sequence sent that the M3 expects to see immediately
++ * after it is booted.
++ *
++ * @RP_MBOX_PENDING_MSG: informs the receiver that there is an inbound
++ * message waiting in its own receive-side vring. please note that currently
++ * this message is optional: alternatively, one can explicitly send the index
++ * of the triggered virtqueue itself. the preferred approach will be decided
++ * as we progress and experiment with those two different approaches.
++ *
++ * @RP_MBOX_CRASH: this message is sent if BIOS crashes
++ *
++ * @RP_MBOX_ECHO_REQUEST: a mailbox-level "ping" message.
++ *
++ * @RP_MBOX_ECHO_REPLY: a mailbox-level reply to a "ping"
++ *
++ * @RP_MBOX_ABORT_REQUEST: a "please crash" request, used for testing the
++ * recovery mechanism (to some extent).
++ */
++enum omap_rp_mbox_messages {
++	RP_MBOX_READY		= 0xFFFFFF00,
++	RP_MBOX_PENDING_MSG	= 0xFFFFFF01,
++	RP_MBOX_CRASH		= 0xFFFFFF02,
++	RP_MBOX_ECHO_REQUEST	= 0xFFFFFF03,
++	RP_MBOX_ECHO_REPLY	= 0xFFFFFF04,
++	RP_MBOX_ABORT_REQUEST	= 0xFFFFFF05,
++};
++
++#endif /* _OMAP_RPMSG_H */
 -- 
 1.7.1
