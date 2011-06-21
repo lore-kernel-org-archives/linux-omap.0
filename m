@@ -1,52 +1,46 @@
 From: Daniel Mack <zonque@gmail.com>
 Subject: Re: Trouble with newer kernels on Gumstix Overo boards
-Date: Tue, 21 Jun 2011 10:20:06 +0200
-Message-ID: <BANLkTim5H3340RChbaVUOpSYb4tQr9X9YA@mail.gmail.com>
+Date: Tue, 21 Jun 2011 10:21:42 +0200
+Message-ID: <BANLkTim8Sh7kZp=92jhoU3NxgzAu0YgoWw@mail.gmail.com>
 References: <BANLkTimJTBpj30EKf_EucvOf2yCHHbRrkQ@mail.gmail.com>
 	<ADF30F4D7BDE934D9B632CE7D5C7ACA4047B99E7E7AD@dbde03.ent.ti.com>
 	<BANLkTimfeS1Xin779eg=8cdjqmqcQeB6HA@mail.gmail.com>
-	<20110621072220.GA21159@atomide.com>
+	<4DFF4BCB.1000206@visionsystems.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f51.google.com ([209.85.210.51]:55552 "EHLO
-	mail-pz0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344Ab1FUIUH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2011 04:20:07 -0400
-Received: by pzk26 with SMTP id 26so4361203pzk.10
-        for <linux-omap@vger.kernel.org>; Tue, 21 Jun 2011 01:20:06 -0700 (PDT)
-In-Reply-To: <20110621072220.GA21159@atomide.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:61429 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751344Ab1FUIVn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2011 04:21:43 -0400
+Received: by pwj7 with SMTP id 7so856097pwj.19
+        for <linux-omap@vger.kernel.org>; Tue, 21 Jun 2011 01:21:42 -0700 (PDT)
+In-Reply-To: <4DFF4BCB.1000206@visionsystems.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: yegor_sub1@visionsystems.de
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Jun 21, 2011 at 9:22 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Daniel Mack <zonque@gmail.com> [110617 18:06]:
+On Mon, Jun 20, 2011 at 3:31 PM, Yegor Yefremov
+<yegor_sub1@visionsystems.de> wrote:
+> Am 17.06.2011 17:11, schrieb Daniel Mack:
 >> On Fri, Jun 17, 2011 at 4:03 PM, Gadiyar, Anand <gadiyar@ti.com> wrote:
->> >> console=ttyS2,115200 root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait
->> >
->> > Here is your problem. We now use the OMAP-serial driver for the UARTs.
+>>>> console=ttyS2,115200 root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait
+>>>
+>>> Here is your problem. We now use the OMAP-serial driver for the UARTs.
 >>
 >> Which breaks backward-compatibility with bootloaders set up for older
 >> kernels. Now I have to deploy kernels with CONFIG_CMDLINE_FORCE=y. Was
 >> that really necessary?
+>>
+>>> Change the ttyS2 to ttyO2 and you should be fine.
+>>
+>> You're right, that did the trick. Thanks a lot!
 >
-> In most cases you can just setenv cmdline then saveenv in u-boot.
+> Are you using some extra patches? I have a custom board based on am3517 SoC and I have much more errors during booting as I can see from your boot log. I have no problems booting 2.6.32/37 though. Any idea?
 
-Well, it doesn't really affect me as I just use this as a development
-platform for now. But please consider that there is hardware out there
-which gets software updates through automated download and install
-procedures. In such cases, you want as little dependencies between the
-bootloader and the kernel, so you can boot both older and newer
-kernels (and full software distribution images) with no pain. Or maybe
-quickly switch from one version to the other for testing. Depending on
-the complexity of the system, the bootloader might also add extra
-parameters to the cmdline dynamically.
-
-The serial console change breaks this approach, at it forces the
-kernel to ship its own CMDLINE and override the one the bootloader
-provides. I'm sure this is a problem that affects people out there.
-
+I don't use any extra patches. Just a plain 3.0.0-rc3 from Linus'
+master branch plus the patch I've sent some days ago to this list.
+With that setup, and console=ttyO2, my systems runs just fine.
 
 Daniel
