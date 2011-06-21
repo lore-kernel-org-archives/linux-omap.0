@@ -1,46 +1,306 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: Trouble with newer kernels on Gumstix Overo boards
-Date: Tue, 21 Jun 2011 10:21:42 +0200
-Message-ID: <BANLkTim8Sh7kZp=92jhoU3NxgzAu0YgoWw@mail.gmail.com>
-References: <BANLkTimJTBpj30EKf_EucvOf2yCHHbRrkQ@mail.gmail.com>
-	<ADF30F4D7BDE934D9B632CE7D5C7ACA4047B99E7E7AD@dbde03.ent.ti.com>
-	<BANLkTimfeS1Xin779eg=8cdjqmqcQeB6HA@mail.gmail.com>
-	<4DFF4BCB.1000206@visionsystems.de>
+From: TAO HU <tghk48@motorola.com>
+Subject: Bug in _und_usr on dual-core ARM?
+Date: Tue, 21 Jun 2011 16:31:19 +0800
+Message-ID: <BANLkTinY+_+tHatRWuRFUJewUibpmvkUqA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:61429 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344Ab1FUIVn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2011 04:21:43 -0400
-Received: by pwj7 with SMTP id 7so856097pwj.19
-        for <linux-omap@vger.kernel.org>; Tue, 21 Jun 2011 01:21:42 -0700 (PDT)
-In-Reply-To: <4DFF4BCB.1000206@visionsystems.de>
+Received: from exprod5og104.obsmtp.com ([64.18.0.178]:51676 "EHLO
+	exprod5og104.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753402Ab1FUIbV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2011 04:31:21 -0400
+Received: from il93mgrg01.am.mot-mobility.com ([10.176.130.20])
+	by il93mgrg01.am.mot-mobility.com (8.14.3/8.14.3) with ESMTP id p5L8SVZD019425
+	for <linux-omap@vger.kernel.org>; Tue, 21 Jun 2011 04:28:31 -0400 (EDT)
+Received: from mail-pv0-f170.google.com (mail-pv0-f170.google.com [74.125.83.170])
+	by il93mgrg01.am.mot-mobility.com (8.14.3/8.14.3) with ESMTP id p5L8QDLL018691
+	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=OK)
+	for <linux-omap@vger.kernel.org>; Tue, 21 Jun 2011 04:28:31 -0400 (EDT)
+Received: by mail-pv0-f170.google.com with SMTP id 10so4566134pvh.15
+        for <linux-omap@vger.kernel.org>; Tue, 21 Jun 2011 01:31:19 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: yegor_sub1@visionsystems.de
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap <linux-omap@vger.kernel.org>, Zhou Ming-a17711 <a17711@motorola.com>
 
-On Mon, Jun 20, 2011 at 3:31 PM, Yegor Yefremov
-<yegor_sub1@visionsystems.de> wrote:
-> Am 17.06.2011 17:11, schrieb Daniel Mack:
->> On Fri, Jun 17, 2011 at 4:03 PM, Gadiyar, Anand <gadiyar@ti.com> wrote:
->>>> console=ttyS2,115200 root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait
->>>
->>> Here is your problem. We now use the OMAP-serial driver for the UARTs.
->>
->> Which breaks backward-compatibility with bootloaders set up for older
->> kernels. Now I have to deploy kernels with CONFIG_CMDLINE_FORCE=y. Was
->> that really necessary?
->>
->>> Change the ttyS2 to ttyO2 and you should be fine.
->>
->> You're right, that did the trick. Thanks a lot!
->
-> Are you using some extra patches? I have a custom board based on am3517 SoC and I have much more errors during booting as I can see from your boot log. I have no problems booting 2.6.32/37 though. Any idea?
+Hi, All
 
-I don't use any extra patches. Just a plain 3.0.0-rc3 from Linus'
-master branch plus the patch I've sent some days ago to this list.
-With that setup, and console=ttyO2, my systems runs just fine.
+We got an issue on our OMAP4 SMP system.
+Looks like __und_user(), which was triggered by a user space
+exception, got a page fault hence lead to might_sleep() failure.
 
-Daniel
+Is it an race condition for dual-core system?
+E.g. CPU0 exception->CPU0 __und_user()->CPU1 change MMU->CPU0 data abort
+
+Any suggestions?
+
+<3>[ 5655.430236] BUG: sleeping function called from invalid context
+at arch/arm/mm/fault.c:295
+<3>[ 5655.449554] in_atomic(): 0, irqs_disabled(): 128, pid: 189, name: aplogd
+<4>[ 5655.456573] [<c005c65c>] (unwind_backtrace+0x0/0x164) from
+[<c00a1a48>] (__might_sleep+0x11c/0x148)
+<4>[ 5655.466033] [<c00a1a48>] (__might_sleep+0x11c/0x148) from
+[<c065a654>] (do_page_fault+0x130/0x378)
+<4>[ 5655.475372] [<c065a654>] (do_page_fault+0x130/0x378) from
+[<c0056488>] (do_DataAbort+0x34/0xb4)
+<4>[ 5655.484466] [<c0056488>] (do_DataAbort+0x34/0xb4) from
+[<c065876c>] (__dabt_svc+0x4c/0x60)
+<4>[ 5655.493103] Exception stack(0xdbad7f68 to 0xdbad7fb0)
+<4>[ 5655.498382] 7f60:                   10c53c7d afd4b2f0 afd0ce60
+00000010 afd0ce5c 0f000000
+<4>[ 5655.506927] 7f80: 0000000f 00000000 40005b04 c0658c60 40005b00
+0000c8e4 00000065 dbad7fb0
+<4>[ 5655.515472] 7fa0: c0658c04 c0658ae0 40000093 ffffffff
+<4>[ 5655.520751] [<c065876c>] (__dabt_svc+0x4c/0x60) from
+[<c0658ae0>] (__und_usr+0x40/0x6c)
+<1>[ 5655.529113] Unable to handle kernel NULL pointer dereference at
+virtual address 00000000
+<1>[ 5655.537567] pgd = db304000
+<1>[ 5655.540374] [00000000] *pgd=9b318031, *pte=00000000, *ppte=00000000
+<0>[ 5655.546936] Internal error: Oops: 817 [#1] PREEMPT SMP
+<0>[ 5655.552307] last sysfs file:
+/sys/devices/virtual/net/ppp0/statistics/rx_packets
+... ...
+<4>[ 5655.575286] CPU: 0    Tainted: G        WC   (2.6.35.7-eng-gfa3c8e3 #1)
+<4>[ 5655.582183] PC is at __might_sleep+0x120/0x148
+<4>[ 5655.586822] LR is at unwind_frame+0xe0/0x5e0
+<4>[ 5655.591278] pc : [<c00a1a4c>]    lr : [<c005c15c>]    psr: a0000193
+<4>[ 5655.591278] sp : dbad7e30  ip : 00000008  fp : dbad7e3c
+<4>[ 5655.603271] r10: dad0d58c  r9 : 00000017  r8 : dad0d558
+<4>[ 5655.608734] r7 : db3df4c0  r6 : afd0ce5c  r5 : 00000000  r4 : dbad7f68
+<4>[ 5655.615539] r3 : 00000000  r2 : dbad7fb0  r1 : 00000001  r0 : c0658ae0
+<4>[ 5655.622344] Flags: NzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM
+ Segment user
+<4>[ 5655.629913] Control: 10c53c7d  Table: 9b30404a  DAC: 00000015
+<4>[ 5655.635894]
+<4>[ 5655.635894] PC: 0xc00a19cc:
+<4>[ 5655.640350] 19cc  e3520000 1a00001f e59f308c e1a0200c e1a01000
+e59f0084 e593c000 e59f3074
+<4>[ 5655.648956] 19ec  e583c030 eb16cc06 e1a0200d e3c23d7f e3c3303f
+e593200c e5931004 e5922014
+<4>[ 5655.657531] 1a0c  e3c11101 e1e02002 e1a02fa2 e0511002 13a01001
+e10f2000 e593300c e2022080
+<4>[ 5655.666137] 1a2c  e59f003c e283cfbd e58dc000 e59331f4 eb16cbf3
+e10f3000 eb16cb92 e3a03000
+<4>[ 5655.674743] 1a4c  e5833000 eafffffd e24bd004 e8bd8800 c09900e4
+c098d368 c098f360 c08d0080
+<4>[ 5655.683319] 1a6c  c07bbbfc c07bbc3c e92d4830 e1a04001 e28db00c
+e1a05000 e10f3000 e2133080
+<4>[ 5655.691925] 1a8c  1a000001 e5833000 eafffffd e1500001 0a000006
+2a000002 eb16d9fb e1a00004
+<4>[ 5655.700500] 1aac  ea000002 e1a00001 eb16d9f7 e1a00005 e8bd4830
+ea16d9f4 e92d4bf0 e59f7060
+<4>[ 5655.709106]
+<4>[ 5655.709106] LR: 0xc005c0dc:
+<4>[ 5655.713562] c0dc  e5d3305f e3530000 1a000124 e594000c eb01c075
+e3500000 0a00011d e59f3508
+<4>[ 5655.722137] c0fc  e3a01502 e594500c e1c360d0 e0073001 e3530000
+0a000009 e59f34f0 e3a01002
+<4>[ 5655.730743] c11c  e1c360d0 e0073001 e3530000 0a000003 e59f34dc
+e5d33077 e3530000 1a000116
+<4>[ 5655.739318] c13c  e1a00005 eb01c02c e3500000 0a000005 e1a00005
+e59f14bc e59f24bc ebfffee2
+<4>[ 5655.747924] c15c  e1a05000 ea00001c e59f04b0 eb17f024 e59f34ac
+e1a01003 e5933000 e1a06000
+<4>[ 5655.756500] c17c  ea00000d e5930010 e1550000 3a000009 e5930014
+e1550000 2a000006 e593200c
+<4>[ 5655.765106] c19c  e1a00005 e5931008 e2422008 ebfffece e1a05000
+ea000005 e1a03002 e5932000
+<4>[ 5655.773681] c1bc  f5d2f000 e1530001 1affffed e3a05000 e1a01006
+e59f0444 eb17eefd e59f3428
+<4>[ 5655.782287]
+<4>[ 5655.782287] SP: 0xdbad7db0:
+<4>[ 5655.786743] 7db0  c0658c60 40005b00 0000c8e4 00000065 dbad7fb0
+c0658c04 00000000 c08c937c
+<4>[ 5655.795318] 7dd0  ffffffff dbad7e1c afd0ce5c db3df4c0 dad0d558
+c065876c c0658ae0 00000001
+<4>[ 5655.803924] 7df0  dbad7fb0 00000000 dbad7f68 00000000 afd0ce5c
+db3df4c0 dad0d558 00000017
+<4>[ 5655.812500] 7e10  dad0d58c dbad7e3c 00000008 dbad7e30 c005c15c
+c00a1a4c a0000193 ffffffff
+<4>[ 5655.821105] 7e30  db3df7b4 00000000 0000c8e4 c065a654 00000073
+00000000 00000000 00000000
+<4>[ 5655.829681] 7e50  c098d6e0 c0056488 00080000 c0062c74 00000073
+00000073 00080000 c0062fe0
+<4>[ 5655.838256] 7e70  c08d3a80 00000073 c08d3abc c00f6b80 00000073
+00000000 dbad7f14 c00ba5f4
+<4>[ 5655.846862] 7e90  00000073 c0056088 ffffffff fa240100 00000073
+00000017 dbad7f9c dbad7f68
+<4>[ 5655.855438]
+<4>[ 5655.855438] FP: 0xdbad7dbc:
+<4>[ 5655.859893] 7dbc  00000065 dbad7fb0 c0658c04 00000000 c08c937c
+ffffffff dbad7e1c afd0ce5c
+<4>[ 5655.868499] 7ddc  db3df4c0 dad0d558 c065876c c0658ae0 00000001
+dbad7fb0 00000000 dbad7f68
+<4>[ 5655.877075] 7dfc  00000000 afd0ce5c db3df4c0 dad0d558 00000017
+dad0d58c dbad7e3c 00000008
+<4>[ 5655.885681] 7e1c  dbad7e30 c005c15c c00a1a4c a0000193 ffffffff
+db3df7b4 00000000 0000c8e4
+<4>[ 5655.894256] 7e3c  c065a654 00000073 00000000 00000000 00000000
+c098d6e0 c0056488 00080000
+<4>[ 5655.902862] 7e5c  c0062c74 00000073 00000073 00080000 c0062fe0
+c08d3a80 00000073 c08d3abc
+<4>[ 5655.911437] 7e7c  c00f6b80 00000073 00000000 dbad7f14 c00ba5f4
+00000073 c0056088 ffffffff
+<4>[ 5655.920043] 7e9c  fa240100 00000073 00000017 dbad7f9c dbad7f68
+c08ddb28 afd0ce5c 00000193
+<4>[ 5655.928619]
+<4>[ 5655.928619] R0: 0xc0658a60:
+<4>[ 5655.933074] 8a60  11a0000d 124fe068 1ae7f634 e5990004 e5898004
+e1300007 17000000 e3a08000
+<4>[ 5655.941680] 8a80  eae7f83e fa240100 000003fd e320f000 e320f000
+e320f000 e320f000 e320f000
+<4>[ 5655.950256] 8aa0  e24dd048 e98d1ffe e890000e e28d003c e3e04000
+e58d1000 e880001c e9406000
+<4>[ 5655.958862] 8ac0  e51f0168 e5900000 ee010f10 e28f9f63 e28fef4b
+e3130020 02424004 12424002
+<4>[ 5655.967437] 8ae0  04b40000 0a000008 e0f450b2 e2050b3e e3500b3a
+3a000042 e0f400b0 e2822002
+<4>[ 5655.976013] 8b00  e1800805 e28f60cc ea000000 e28f60ac e4967004
+e3570000 0a000009 e0008007
+<4>[ 5655.984619] 8b20  e4967004 e1580007 1afffff8 e1a0a6ad e1a0a68a
+e3a07001 e5ca705a e5ca705b
+<4>[ 5655.993194] 8b40  eae8ff95 e3100302 13100301 01a0f00e e1a0a6ad
+e1a0a68a e2008c0f e3a07001
+<4>[ 5656.001800]
+<4>[ 5656.001800] R2: 0xdbad7f30:
+<4>[ 5656.006256] 7f30  00000000 00000001 dc2c5aa8 dba42598 dbad6000
+0000000b 0000c25c c014e3f8
+<4>[ 5656.014831] 7f50  ffffffff dbad7f9c 0000000f 00000000 40005b04
+c065876c 10c53c7d afd4b2f0
+<4>[ 5656.023437] 7f70  afd0ce60 00000010 afd0ce5c 0f000000 0000000f
+00000000 40005b04 c0658c60
+<4>[ 5656.032012] 7f90  40005b00 0000c8e4 00000065 dbad7fb0 c0658c04
+c0658ae0 40000093 ffffffff
+<4>[ 5656.040618] 7fb0  afd4b2f0 40005b04 00000010 00000000 40005ae0
+0f000000 0000000f 00000000
+<4>[ 5656.049194] 7fd0  40005b04 afd4b2f0 40005b00 0000c8e4 00000065
+be92f8f8 afd293d5 afd0ce60
+<4>[ 5656.057800] 7ff0  00000010 ffffffff 80fdc021 80fdc421 9accb031
+9accb431 00000000 00000000
+<4>[ 5656.066375] 8010  00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000
+<4>[ 5656.074951]
+<4>[ 5656.074981] R4: 0xdbad7ee8:
+<4>[ 5656.079437] 7ee8  c0965c3c c0655f80 c0965bfc 00000043 dada7a00
+c04a0e50 000480e5 00048128
+<4>[ 5656.088012] 7f08  c0965c24 00001000 be931af0 00000000 db3df4c0
+c00ce8a8 00000000 dba42598
+<4>[ 5656.096588] 7f28  dc2c5aa8 00000043 00000000 00000001 dc2c5aa8
+dba42598 dbad6000 0000000b
+<4>[ 5656.105194] 7f48  0000c25c c014e3f8 ffffffff dbad7f9c 0000000f
+00000000 40005b04 c065876c
+<4>[ 5656.113769] 7f68  10c53c7d afd4b2f0 afd0ce60 00000010 afd0ce5c
+0f000000 0000000f 00000000
+<4>[ 5656.122375] 7f88  40005b04 c0658c60 40005b00 0000c8e4 00000065
+dbad7fb0 c0658c04 c0658ae0
+<4>[ 5656.130950] 7fa8  40000093 ffffffff afd4b2f0 40005b04 00000010
+00000000 40005ae0 0f000000
+<4>[ 5656.139556] 7fc8  0000000f 00000000 40005b04 afd4b2f0 40005b00
+0000c8e4 00000065 be92f8f8
+<4>[ 5656.148132]
+<4>[ 5656.148132] R7: 0xdb3df440:
+<4>[ 5656.152587] f440  00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000
+<4>[ 5656.161193] f460  00000000 0000c350 0000c350 00000000 00000000
+00000000 91e1140e 91f1140e
+<4>[ 5656.169769] f480  9201140e 9211140e 9221140e 9231140e 635688c0
+d84156c5 9261140e c00b1d60
+<4>[ 5656.178375] f4a0  9281140e 9291140e 92a1140e 92b1140e 92c1140e
+92d1140e 635688c0 d84156c5
+<4>[ 5656.186950] f4c0  00000000 dbad6000 00000002 00400100 00000000
+ffffffff 00000001 00000078
+<4>[ 5656.195556] f4e0  00000078 00000078 00000000 c0662fa0 00000400
+00400000 c8a7a159 00000000
+<4>[ 5656.204132] f500  00000000 c13e9db0 c13e9db0 00000001 c290ade8
+00000524 63221a18 00000004
+<4>[ 5656.212707] f520  b9d7fe54 0000032d 627899ea 00000004 000009fa
+00000000 00000000 00000000
+<4>[ 5656.221313]
+<4>[ 5656.221313] R8: 0xdad0d4d8:
+<4>[ 5656.225769] d4d8  beed6d34 00000000 00000000 00000000 00000000
+00000000 00000000 00000030
+<4>[ 5656.234375] d4f8  00000010 00000000 c08feee8 00000001 000001b6
+00000000 00000000 00000000
+<4>[ 5656.242950] d518  00000000 00000000 00000000 000001fd 00000000
+00000000 00000000 00000000
+<4>[ 5656.251525] d538  dba1f128 00000002 635688c0 d84156c5 00000000
+c00b12a8 635688c0 d84156c5
+<4>[ 5656.260131] d558  dad38350 daceb91c dbaf63c0 c0060ab0 c0137190
+40000000 bf000000 ffffffff
+<4>[ 5656.268707] d578  40015000 db304000 00000001 00000001 00000021
+00000002 00000000 00000000
+<4>[ 5656.277313] d598  dad0d598 dad0d598 00000000 00000000 dad0d5a8
+dad0d5a8 0000167c 00001855
+<4>[ 5656.285888] d5b8  0000033f 00000000 000002d7 000002a9 00000022
+00000000 00000000 0000000c
+<4>[ 5656.294494]
+<4>[ 5656.294494] R10: 0xdad0d50c:
+<4>[ 5656.299041] d50c  00000000 00000000 00000000 00000000 00000000
+00000000 000001fd 00000000
+<4>[ 5656.307617] d52c  00000000 00000000 00000000 dba1f128 00000002
+635688c0 d84156c5 00000000
+<4>[ 5656.316223] d54c  c00b12a8 635688c0 d84156c5 dad38350 daceb91c
+dbaf63c0 c0060ab0 c0137190
+<4>[ 5656.324798] d56c  40000000 bf000000 ffffffff 40015000 db304000
+00000001 00000001 00000021
+<4>[ 5656.333404] d58c  00000002 00000000 00000000 dad0d598 dad0d598
+00000000 00000000 dad0d5a8
+<4>[ 5656.341979] d5ac  dad0d5a8 0000167c 00001855 0000033f 00000000
+000002d7 000002a9 00000022
+<4>[ 5656.350555] d5cc  00000000 00000000 0000000c 00008000 0000b470
+0000c000 0000c7ac 0000d000
+<4>[ 5656.359161] d5ec  0002a000 be931c20 be931d13 be931d26 be931d26
+be931fe9 00000010 000038d7
+<0>[ 5656.367736] Process aplogd (pid: 189, stack limit = 0xdbad62f8)
+<0>[ 5656.373931] Stack: (0xdbad7e30 to 0xdbad8000)
+<0>[ 5656.378479] 7e20:                                     db3df7b4
+00000000 0000c8e4 c065a654
+<0>[ 5656.387023] 7e40: 00000073 00000000 00000000 00000000 c098d6e0
+c0056488 00080000 c0062c74
+<0>[ 5656.395538] 7e60: 00000073 00000073 00080000 c0062fe0 c08d3a80
+00000073 c08d3abc c00f6b80
+<0>[ 5656.404083] 7e80: 00000073 00000000 dbad7f14 c00ba5f4 00000073
+c0056088 ffffffff fa240100
+<0>[ 5656.412628] 7ea0: 00000073 00000017 dbad7f9c dbad7f68 c08ddb28
+afd0ce5c 00000193 40005b00
+<0>[ 5656.421173] 7ec0: 0000c8e4 c0056488 00000043 be92fb30 dace2880
+dbad7f14 00000000 dbad7ef0
+<0>[ 5656.429687] 7ee0: c04a0e50 c0655f08 c0965c3c c0655f80 c0965bfc
+00000043 dada7a00 c04a0e50
+<0>[ 5656.438232] 7f00: 000480e5 00048128 c0965c24 00001000 be931af0
+00000000 db3df4c0 c00ce8a8
+<0>[ 5656.446777] 7f20: 00000000 dba42598 dc2c5aa8 00000043 00000000
+00000001 dc2c5aa8 dba42598
+<0>[ 5656.455322] 7f40: dbad6000 0000000b 0000c25c c014e3f8 ffffffff
+dbad7f9c 0000000f 00000000
+<0>[ 5656.463867] 7f60: 40005b04 c065876c 10c53c7d afd4b2f0 afd0ce60
+00000010 afd0ce5c 0f000000
+<0>[ 5656.472381] 7f80: 0000000f 00000000 40005b04 c0658c60 40005b00
+0000c8e4 00000065 dbad7fb0
+<0>[ 5656.480926] 7fa0: c0658c04 c0658ae0 40000093 ffffffff afd4b2f0
+40005b04 00000010 00000000
+<0>[ 5656.489471] 7fc0: 40005ae0 0f000000 0000000f 00000000 40005b04
+afd4b2f0 40005b00 0000c8e4
+<0>[ 5656.498016] 7fe0: 00000065 be92f8f8 afd293d5 afd0ce60 00000010
+ffffffff 80fdc021 80fdc421
+<4>[ 5656.506561] [<c00a1a4c>] (__might_sleep+0x120/0x148) from
+[<c065a654>] (do_page_fault+0x130/0x378)
+<4>[ 5656.515930] [<c065a654>] (do_page_fault+0x130/0x378) from
+[<c0056488>] (do_DataAbort+0x34/0xb4)
+<4>[ 5656.524993] [<c0056488>] (do_DataAbort+0x34/0xb4) from
+[<c065876c>] (__dabt_svc+0x4c/0x60)
+<4>[ 5656.533630] Exception stack(0xdbad7f68 to 0xdbad7fb0)
+<4>[ 5656.538909] 7f60:                   10c53c7d afd4b2f0 afd0ce60
+00000010 afd0ce5c 0f000000
+<4>[ 5656.547454] 7f80: 0000000f 00000000 40005b04 c0658c60 40005b00
+0000c8e4 00000065 dbad7fb0
+<4>[ 5656.555999] 7fa0: c0658c04 c0658ae0 40000093 ffffffff
+<4>[ 5656.561248] [<c065876c>] (__dabt_svc+0x4c/0x60) from
+[<c0658ae0>] (__und_usr+0x40/0x6c)
+<0>[ 5656.569610] Code: eb16cbf3 e10f3000 eb16cb92 e3a03000 (e5833000)
+<4>[ 5656.576202] ---[ end trace 1b75b31a2719ed25 ]---
+
+-- 
+Best Regards
+Hu Tao
