@@ -1,47 +1,33 @@
-From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Subject: [OMAP3] [PM] [QUERY] voltage not reducing with enable_off_mode
-Date: Wed, 22 Jun 2011 03:48:23 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870370A4D8D2@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC PATCH] ARM: smp: Fix the CPU hotplug race with scheduler.
+Date: Wed, 22 Jun 2011 00:10:35 +0100
+Message-ID: <20110621231035.GE23802@n2100.arm.linux.org.uk>
+References: <20110620114019.GH2082@n2100.arm.linux.org.uk> <20110620142338.GL2082@n2100.arm.linux.org.uk> <4DFF5F29.2000904@ti.com> <4E005F92.8030208@ti.com> <20110621100057.GB23802@n2100.arm.linux.org.uk> <4E006FA0.7050508@ti.com> <20110621101900.GC23802@n2100.arm.linux.org.uk> <4E00708C.6050108@ti.com> <20110621102600.GD23802@n2100.arm.linux.org.uk> <4E00FC2F.1010400@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51101 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753187Ab1FUWS1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2011 18:18:27 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5LMIONr019045
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 21 Jun 2011 17:18:26 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5LMIN70003184
-	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 03:48:23 +0530 (IST)
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37245 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757012Ab1FUXLA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2011 19:11:00 -0400
+Content-Disposition: inline
+In-Reply-To: <4E00FC2F.1010400@codeaurora.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-hi all
+On Tue, Jun 21, 2011 at 01:16:47PM -0700, Stephen Boyd wrote:
+> On 06/21/2011 03:26 AM, Russell King - ARM Linux wrote:
+> > On Tue, Jun 21, 2011 at 03:51:00PM +0530, Santosh Shilimkar wrote:
+> >> On 6/21/2011 3:49 PM, Russell King - ARM Linux wrote:
+> >>> I won't be committing the init/calibrate.c change to a git tree - it
+> >>> isn't ARM stuff so it goes in patch form.
+> >> Patches with change log would be fine as well.
+> > The answer is not at the moment, but maybe soon.
+> 
+> Should we send those two patches to the stable trees as well? They seem
+> to fix issues with cpu onlining that have existed for a long time.
 
-On the 2.6.37 , I've seen that when I set enable_off_mode mode through
-debug-fs, VDD1 ( as measured across pin 2 of J6 and GND on OMAP3 
-EVM) increases from a nominal value of 1.225 V to 1.247 V.
-
-When the uart finally times-out and the mpu_pwrdm enters OFF mode, 
-it finally goes down to 1.237 V, which is still more than the nominal value.
-
-This unexpected behaviour is in contrast to a 2.6.32 kernel that I tried with.
-On probing further, I found that the VDD1 increase is happening when forced 
-wakeup is called  on the iva2_clkdm clockdomain in omap_set_pwrdm_state()
-as a response to setting the enable_off_mode flag.
-
-It seems that after boot-up the iva2_pwrdm is in RET state from where its 
-clock-domain needs to be force waken up before having its automatic 
-Hardware supervised  transition bit-field set (reg field 
-CM_CLKSTCTRL_IVA2.CLKTRCTRL_IVA2).
-
-Why is this so ? Any inputs would be appreciated.
-
-regards
-Abhilash
+Looks to me like the problem was introduced for 2.6.39-rc1, so we
+should probably get the fix into the 2.6.39-stable tree too.
