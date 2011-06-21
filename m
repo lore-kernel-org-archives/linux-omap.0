@@ -1,39 +1,68 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [RFC PATCH] ARM: smp: Fix the CPU hotplug race with scheduler.
-Date: Tue, 21 Jun 2011 13:16:47 -0700
-Message-ID: <4E00FC2F.1010400@codeaurora.org>
-References: <20110620111336.GG2082@n2100.arm.linux.org.uk>	<4DFF2E37.8030602@ti.com>	<20110620114019.GH2082@n2100.arm.linux.org.uk>	<20110620142338.GL2082@n2100.arm.linux.org.uk>	<4DFF5F29.2000904@ti.com>
-	<4E005F92.8030208@ti.com>	<20110621100057.GB23802@n2100.arm.linux.org.uk>	<4E006FA0.7050508@ti.com>	<20110621101900.GC23802@n2100.arm.linux.org.uk>	<4E00708C.6050108@ti.com>
-	<20110621102600.GD23802@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] mfd: omap: fix the crash during omap ehci or ohci driver initialization
+Date: Tue, 21 Jun 2011 13:27:20 -0700
+Message-ID: <87y60vrkuv.fsf@ti.com>
+References: <1307367739-20110-1-git-send-email-keshava_mgowda@ti.com>
+	<20110620132626.GJ22420@sortiz-mobl>
+	<20110620132851.GJ14262@legolas.emea.dhcp.ti.com>
+	<20110620145941.GQ22420@sortiz-mobl> <87liww6tva.fsf@ti.com>
+	<20110621175359.GA22420@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110621102600.GD23802@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110621175359.GA22420@sortiz-mobl> (Samuel Ortiz's message of
+	"Tue, 21 Jun 2011 19:53:59 +0200")
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/21/2011 03:26 AM, Russell King - ARM Linux wrote:
-> On Tue, Jun 21, 2011 at 03:51:00PM +0530, Santosh Shilimkar wrote:
->> On 6/21/2011 3:49 PM, Russell King - ARM Linux wrote:
->>> I won't be committing the init/calibrate.c change to a git tree - it
->>> isn't ARM stuff so it goes in patch form.
->> Patches with change log would be fine as well.
-> The answer is not at the moment, but maybe soon.
+Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> writes:
 
-Should we send those two patches to the stable trees as well? They seem
-to fix issues with cpu onlining that have existed for a long time.
+> Hi Kevin,
+>
+> On Mon, Jun 20, 2011 at 03:06:01PM -0700, Kevin Hilman wrote:
+>> Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> writes:
+>> 
+>> > Hi Felipe,
+>> >
+>> > On Mon, Jun 20, 2011 at 04:28:52PM +0300, Felipe Balbi wrote:
+>> >> Hi,
+>> >> 
+>> >> On Mon, Jun 20, 2011 at 03:26:26PM +0200, Samuel Ortiz wrote:
+>> >> > On Mon, Jun 06, 2011 at 07:12:19PM +0530, Keshava Munegowda wrote:
+>> >> > > From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>> >> > > 
+>> >> > > Oops are produced during initialization of ehci and ohci
+>> >> > > drivers. This is because the run time pm apis are used by
+>> >> > > the driver but the corresponding hwmod structures and
+>> >> > > initialization is not merged. 
+>> >> > You mean they're currently checked in a different tree ? Is that a
+>> >> > public one?
+>> >> 
+>> >> it was supposed to go via linux-omap tree but the patches got lost in
+>> >> the limbo :-(
+>> > Then shouldn't those patches be the ones to be sent to Linus as a fix for 3.0 ?
+>> 
+>> If they were ready, maybe.  But those patches still need important work
+>> (and review) and are not "fix" material but need to wait until the next
+>> merge window.
+> Fair enough.
+>
+>  
+>> Basically, the original patch should not have been submitted to mainline
+>> until the runtime PM support was ready, so the correct short term fix is
+>> to simply revert.
+>>
+>> Also, to echo the question from Dima Zavin:
+>> 
+>> Why isn't this just a simple revert of the original patch?
+> I did a revert in my tree.
 
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+Great, that's the cleanest solution IMO.  Thanks!
+
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
