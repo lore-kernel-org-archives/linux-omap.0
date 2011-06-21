@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v6 07/18] MFD: twl4030-audio: Rename platform data
-Date: Tue, 21 Jun 2011 16:39:05 +0300
-Message-ID: <1308663556-29120-8-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v6 17/18] ASoC: twl6040: Configure ramp step based on platform
+Date: Tue, 21 Jun 2011 16:39:15 +0300
+Message-ID: <1308663556-29120-18-git-send-email-peter.ujfalusi@ti.com>
 References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,263 +9,243 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Axel Castaneda Gonzalez <x0055901@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Allign the platform data names for twl4030 audio submodule:
-twl4030_audio_data: for the core MFD driver
-twl4030_codec_data: for ASoC codec driver
-twl4030_vibra_data: for the input/ForceFeedback driver
+From: Axel Castaneda Gonzalez <x0055901@ti.com>
 
-To avoid breakage, change all depending drivers, files
-to use the new types.
+Enable ramp down/up step to be configured based on
+platform.
 
+Signed-off-by: Axel Castaneda Gonzalez <x0055901@ti.com>
+Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c |    6 +++---
- arch/arm/mach-omap2/board-zoom-peripherals.c |   10 +++++-----
- arch/arm/mach-omap2/twl-common.c             |   10 +++++-----
- drivers/input/misc/twl4030-vibra.c           |    2 +-
- drivers/mfd/twl-core.c                       |    8 ++++----
- drivers/mfd/twl4030-audio.c                  |    8 ++++----
- include/linux/i2c/twl.h                      |   12 ++++++------
- sound/soc/codecs/twl4030.c                   |    6 +++---
- sound/soc/codecs/twl6040.c                   |    2 +-
- 9 files changed, 32 insertions(+), 32 deletions(-)
+ include/linux/i2c/twl.h    |    4 ++
+ sound/soc/codecs/twl6040.c |   91 ++++++++++++++++++++++++++++++++++----------
+ 2 files changed, 75 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index dfaf874..a2d3e19 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -738,11 +738,11 @@ static struct twl4030_power_data rx51_t2scripts_data __initdata = {
- 	.resource_config = twl4030_rconfig,
- };
- 
--struct twl4030_codec_vibra_data rx51_vibra_data __initdata = {
-+struct twl4030_vibra_data rx51_vibra_data __initdata = {
- 	.coexist	= 0,
- };
- 
--struct twl4030_codec_data rx51_codec_data __initdata = {
-+struct twl4030_audio_data rx51_audio_data __initdata = {
- 	.audio_mclk	= 26000000,
- 	.vibra		= &rx51_vibra_data,
- };
-@@ -752,7 +752,7 @@ static struct twl4030_platform_data rx51_twldata __initdata = {
- 	.gpio			= &rx51_gpio_data,
- 	.keypad			= &rx51_kp_data,
- 	.power			= &rx51_t2scripts_data,
--	.codec			= &rx51_codec_data,
-+	.audio			= &rx51_audio_data,
- 
- 	.vaux1			= &rx51_vaux1,
- 	.vaux2			= &rx51_vaux2,
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 8853dc4..6d44409 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -282,12 +282,12 @@ static int __init omap_i2c_init(void)
- 			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
- 
- 	if (machine_is_omap_zoom2()) {
--		struct twl4030_codec_audio_data *audio_data;
--		audio_data = zoom_twldata.codec->audio;
-+		struct twl4030_codec_data *codec_data;
-+		codec_data = zoom_twldata.audio->codec;
- 
--		audio_data->ramp_delay_value = 3;	/* 161 ms */
--		audio_data->hs_extmute = 1;
--		audio_data->set_hs_extmute = zoom2_set_hs_extmute;
-+		codec_data->ramp_delay_value = 3;	/* 161 ms */
-+		codec_data->hs_extmute = 1;
-+		codec_data->set_hs_extmute = zoom2_set_hs_extmute;
- 	}
- 	omap_pmic_init(1, 2400, "twl5030", INT_34XX_SYS_NIRQ, &zoom_twldata);
- 	omap_register_i2c_bus(2, 400, NULL, 0);
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index f15f880..ca219ea 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -80,11 +80,11 @@ static struct twl4030_madc_platform_data omap3_madc_pdata = {
- 	.irq_line	= 1,
- };
- 
--static struct twl4030_codec_audio_data omap3_audio;
-+static struct twl4030_codec_data omap3_codec;
- 
--static struct twl4030_codec_data omap3_codec_pdata = {
-+static struct twl4030_audio_data omap3_audio_pdata = {
- 	.audio_mclk = 26000000,
--	.audio = &omap3_audio,
-+	.codec = &omap3_codec,
- };
- 
- static struct regulator_consumer_supply omap3_vdda_dac_supplies[] = {
-@@ -292,8 +292,8 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 	if (pdata_flags & TWL_COMMON_PDATA_MADC && !pmic_data->madc)
- 		pmic_data->madc = &omap3_madc_pdata;
- 
--	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->codec)
--		pmic_data->codec = &omap3_codec_pdata;
-+	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->audio)
-+		pmic_data->audio = &omap3_audio_pdata;
- 
- 	/* Common regulator configurations */
- 	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
-diff --git a/drivers/input/misc/twl4030-vibra.c b/drivers/input/misc/twl4030-vibra.c
-index 7abca85..3c1a432 100644
---- a/drivers/input/misc/twl4030-vibra.c
-+++ b/drivers/input/misc/twl4030-vibra.c
-@@ -196,7 +196,7 @@ static SIMPLE_DEV_PM_OPS(twl4030_vibra_pm_ops,
- 
- static int __devinit twl4030_vibra_probe(struct platform_device *pdev)
- {
--	struct twl4030_codec_vibra_data *pdata = pdev->dev.platform_data;
-+	struct twl4030_vibra_data *pdata = pdev->dev.platform_data;
- 	struct vibra_info *info;
- 	int ret;
- 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index b8f2a4e..f9d7880 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -815,20 +815,20 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
--	if (twl_has_codec() && pdata->codec && twl_class_is_4030()) {
-+	if (twl_has_codec() && pdata->audio && twl_class_is_4030()) {
- 		sub_chip_id = twl_map[TWL_MODULE_AUDIO_VOICE].sid;
- 		child = add_child(sub_chip_id, "twl4030-audio",
--				pdata->codec, sizeof(*pdata->codec),
-+				pdata->audio, sizeof(*pdata->audio),
- 				false, 0, 0);
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
- 	}
- 
- 	/* Phoenix codec driver is probed directly atm */
--	if (twl_has_codec() && pdata->codec && twl_class_is_6030()) {
-+	if (twl_has_codec() && pdata->audio && twl_class_is_6030()) {
- 		sub_chip_id = twl_map[TWL_MODULE_AUDIO_VOICE].sid;
- 		child = add_child(sub_chip_id, "twl6040-codec",
--				pdata->codec, sizeof(*pdata->codec),
-+				pdata->audio, sizeof(*pdata->audio),
- 				false, 0, 0);
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
-diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
-index 5cdf841..ae51ab5 100644
---- a/drivers/mfd/twl4030-audio.c
-+++ b/drivers/mfd/twl4030-audio.c
-@@ -159,7 +159,7 @@ EXPORT_SYMBOL_GPL(twl4030_audio_get_mclk);
- static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- {
- 	struct twl4030_audio *audio;
--	struct twl4030_codec_data *pdata = pdev->dev.platform_data;
-+	struct twl4030_audio_data *pdata = pdev->dev.platform_data;
- 	struct mfd_cell *cell = NULL;
- 	int ret, childs = 0;
- 	u8 val;
-@@ -206,11 +206,11 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- 	audio->resource[TWL4030_AUDIO_RES_APLL].reg = TWL4030_REG_APLL_CTL;
- 	audio->resource[TWL4030_AUDIO_RES_APLL].mask = TWL4030_APLL_EN;
- 
--	if (pdata->audio) {
-+	if (pdata->codec) {
- 		cell = &audio->cells[childs];
- 		cell->name = "twl4030-codec";
--		cell->platform_data = pdata->audio;
--		cell->pdata_size = sizeof(*pdata->audio);
-+		cell->platform_data = pdata->codec;
-+		cell->pdata_size = sizeof(*pdata->codec);
- 		childs++;
- 	}
- 	if (pdata->vibra) {
 diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index ba4f886..e0aba2b 100644
+index 685fd76..114c0f6 100644
 --- a/include/linux/i2c/twl.h
 +++ b/include/linux/i2c/twl.h
-@@ -657,7 +657,7 @@ struct twl4030_power_data {
- extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
- extern int twl4030_remove_script(u8 flags);
- 
--struct twl4030_codec_audio_data {
-+struct twl4030_codec_data {
- 	unsigned int digimic_delay; /* in ms */
- 	unsigned int ramp_delay_value;
- 	unsigned int offset_cncl_path;
-@@ -667,14 +667,14 @@ struct twl4030_codec_audio_data {
+@@ -664,6 +664,10 @@ struct twl4030_codec_data {
+ 	unsigned int check_defaults:1;
+ 	unsigned int reset_registers:1;
+ 	unsigned int hs_extmute:1;
++	u16 hs_left_step;
++	u16 hs_right_step;
++	u16 hf_left_step;
++	u16 hf_right_step;
  	void (*set_hs_extmute)(int mute);
  };
  
--struct twl4030_codec_vibra_data {
-+struct twl4030_vibra_data {
- 	unsigned int	coexist;
- };
- 
--struct twl4030_codec_data {
-+struct twl4030_audio_data {
- 	unsigned int	audio_mclk;
--	struct twl4030_codec_audio_data		*audio;
--	struct twl4030_codec_vibra_data		*vibra;
-+	struct twl4030_codec_data *codec;
-+	struct twl4030_vibra_data *vibra;
- 
- 	/* twl6040 */
- 	int audpwron_gpio;	/* audio power-on gpio */
-@@ -690,7 +690,7 @@ struct twl4030_platform_data {
- 	struct twl4030_keypad_data		*keypad;
- 	struct twl4030_usb_data			*usb;
- 	struct twl4030_power_data		*power;
--	struct twl4030_codec_data		*codec;
-+	struct twl4030_audio_data		*audio;
- 
- 	/* Common LDO regulators for TWL4030/TWL6030 */
- 	struct regulator_init_data		*vdac;
-diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
-index 5e648d3..71674be 100644
---- a/sound/soc/codecs/twl4030.c
-+++ b/sound/soc/codecs/twl4030.c
-@@ -297,7 +297,7 @@ static inline void twl4030_reset_registers(struct snd_soc_codec *codec)
- 
- static void twl4030_init_chip(struct snd_soc_codec *codec)
- {
--	struct twl4030_codec_audio_data *pdata = dev_get_platdata(codec->dev);
-+	struct twl4030_codec_data *pdata = dev_get_platdata(codec->dev);
- 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
- 	u8 reg, byte;
- 	int i = 0;
-@@ -732,7 +732,7 @@ static int aif_event(struct snd_soc_dapm_widget *w,
- 
- static void headset_ramp(struct snd_soc_codec *codec, int ramp)
- {
--	struct twl4030_codec_audio_data *pdata = codec->dev->platform_data;
-+	struct twl4030_codec_data *pdata = codec->dev->platform_data;
- 	unsigned char hs_gain, hs_pop;
- 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
- 	/* Base values for ramp delay calculation: 2^19 - 2^26 */
-@@ -2297,7 +2297,7 @@ static struct snd_soc_codec_driver soc_codec_dev_twl4030 = {
- 
- static int __devinit twl4030_codec_probe(struct platform_device *pdev)
- {
--	struct twl4030_codec_audio_data *pdata = pdev->dev.platform_data;
-+	struct twl4030_codec_data *pdata = pdev->dev.platform_data;
- 
- 	if (!pdata) {
- 		dev_err(&pdev->dev, "platform_data is missing\n");
 diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
-index 4c33663..ade6616 100644
+index 39ecf2f..0145041 100644
 --- a/sound/soc/codecs/twl6040.c
 +++ b/sound/soc/codecs/twl6040.c
-@@ -1600,7 +1600,7 @@ static int twl6040_resume(struct snd_soc_codec *codec)
+@@ -83,6 +83,10 @@ struct twl6040_data {
+ 	int hs_power_mode_locked;
+ 	unsigned int clk_in;
+ 	unsigned int sysclk;
++	u16 hs_left_step;
++	u16 hs_right_step;
++	u16 hf_left_step;
++	u16 hf_right_step;
+ 	struct snd_pcm_hw_constraint_list *sysclk_constraints;
+ 	struct twl6040_jack_data hs_jack;
+ 	struct snd_soc_codec *codec;
+@@ -339,7 +343,11 @@ static inline int twl6040_hs_ramp_step(struct snd_soc_codec *codec,
+ 	if (headset->ramp == TWL6040_RAMP_UP) {
+ 		/* ramp step up */
+ 		if (val < headset->left_vol) {
+-			val += left_step;
++			if (val + left_step > headset->left_vol)
++				val = headset->left_vol;
++			else
++				val += left_step;
++
+ 			reg &= ~TWL6040_HSL_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HSGAIN,
+ 					(reg | (~val & TWL6040_HSL_VOL_MASK)));
+@@ -349,7 +357,11 @@ static inline int twl6040_hs_ramp_step(struct snd_soc_codec *codec,
+ 	} else if (headset->ramp == TWL6040_RAMP_DOWN) {
+ 		/* ramp step down */
+ 		if (val > 0x0) {
+-			val -= left_step;
++			if ((int)val - (int)left_step < 0)
++				val = 0;
++			else
++				val -= left_step;
++
+ 			reg &= ~TWL6040_HSL_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HSGAIN, reg |
+ 						(~val & TWL6040_HSL_VOL_MASK));
+@@ -366,7 +378,11 @@ static inline int twl6040_hs_ramp_step(struct snd_soc_codec *codec,
+ 	if (headset->ramp == TWL6040_RAMP_UP) {
+ 		/* ramp step up */
+ 		if (val < headset->right_vol) {
+-			val += right_step;
++			if (val + right_step > headset->right_vol)
++				val = headset->right_vol;
++			else
++				val += right_step;
++
+ 			reg &= ~TWL6040_HSR_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HSGAIN,
+ 				(reg | (~val << TWL6040_HSR_VOL_SHIFT)));
+@@ -376,7 +392,11 @@ static inline int twl6040_hs_ramp_step(struct snd_soc_codec *codec,
+ 	} else if (headset->ramp == TWL6040_RAMP_DOWN) {
+ 		/* ramp step down */
+ 		if (val > 0x0) {
+-			val -= right_step;
++			if ((int)val - (int)right_step < 0)
++				val = 0;
++			else
++				val -= right_step;
++
+ 			reg &= ~TWL6040_HSR_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HSGAIN,
+ 					 reg | (~val << TWL6040_HSR_VOL_SHIFT));
+@@ -407,7 +427,11 @@ static inline int twl6040_hf_ramp_step(struct snd_soc_codec *codec,
+ 	if (handsfree->ramp == TWL6040_RAMP_UP) {
+ 		/* ramp step up */
+ 		if (val < handsfree->left_vol) {
+-			val += left_step;
++			if (val + left_step > handsfree->left_vol)
++				val = handsfree->left_vol;
++			else
++				val += left_step;
++
+ 			reg &= ~TWL6040_HF_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HFLGAIN,
+ 						reg | (0x1D - val));
+@@ -417,7 +441,11 @@ static inline int twl6040_hf_ramp_step(struct snd_soc_codec *codec,
+ 	} else if (handsfree->ramp == TWL6040_RAMP_DOWN) {
+ 		/* ramp step down */
+ 		if (val > 0) {
+-			val -= left_step;
++			if ((int)val - (int)left_step < 0)
++				val = 0;
++			else
++				val -= left_step;
++
+ 			reg &= ~TWL6040_HF_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HFLGAIN,
+ 						reg | (0x1D - val));
+@@ -434,7 +462,11 @@ static inline int twl6040_hf_ramp_step(struct snd_soc_codec *codec,
+ 	if (handsfree->ramp == TWL6040_RAMP_UP) {
+ 		/* ramp step up */
+ 		if (val < handsfree->right_vol) {
+-			val += right_step;
++			if (val + right_step > handsfree->right_vol)
++				val = handsfree->right_vol;
++			else
++				val += right_step;
++
+ 			reg &= ~TWL6040_HF_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HFRGAIN,
+ 						reg | (0x1D - val));
+@@ -444,7 +476,11 @@ static inline int twl6040_hf_ramp_step(struct snd_soc_codec *codec,
+ 	} else if (handsfree->ramp == TWL6040_RAMP_DOWN) {
+ 		/* ramp step down */
+ 		if (val > 0) {
+-			val -= right_step;
++			if ((int)val - (int)right_step < 0)
++				val = 0;
++			else
++				val -= right_step;
++
+ 			reg &= ~TWL6040_HF_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HFRGAIN,
+ 						reg | (0x1D - val));
+@@ -473,11 +509,9 @@ static void twl6040_pga_hs_work(struct work_struct *work)
  
+ 	/* HS PGA volumes have 4 bits of resolution to ramp */
+ 	for (i = 0; i <= 16; i++) {
+-		headset_complete = 1;
+-		if (headset->ramp != TWL6040_RAMP_NONE)
+-			headset_complete = twl6040_hs_ramp_step(codec,
+-							headset->left_step,
+-							headset->right_step);
++		headset_complete = twl6040_hs_ramp_step(codec,
++						headset->left_step,
++						headset->right_step);
+ 
+ 		/* ramp finished ? */
+ 		if (headset_complete)
+@@ -518,11 +552,9 @@ static void twl6040_pga_hf_work(struct work_struct *work)
+ 
+ 	/* HF PGA volumes have 5 bits of resolution to ramp */
+ 	for (i = 0; i <= 32; i++) {
+-		handsfree_complete = 1;
+-		if (handsfree->ramp != TWL6040_RAMP_NONE)
+-			handsfree_complete = twl6040_hf_ramp_step(codec,
+-							handsfree->left_step,
+-							handsfree->right_step);
++		handsfree_complete = twl6040_hf_ramp_step(codec,
++						handsfree->left_step,
++						handsfree->right_step);
+ 
+ 		/* ramp finished ? */
+ 		if (handsfree_complete)
+@@ -563,12 +595,16 @@ static int pga_event(struct snd_soc_dapm_widget *w,
+ 		out = &priv->headset;
+ 		work = &priv->hs_delayed_work;
+ 		queue = priv->hs_workqueue;
++		out->left_step = priv->hs_left_step;
++		out->right_step = priv->hs_right_step;
+ 		out->step_delay = 5;	/* 5 ms between volume ramp steps */
+ 		break;
+ 	case 4:
+ 		out = &priv->handsfree;
+ 		work = &priv->hf_delayed_work;
+ 		queue = priv->hf_workqueue;
++		out->left_step = priv->hf_left_step;
++		out->right_step = priv->hf_right_step;
+ 		out->step_delay = 5;	/* 5 ms between volume ramp steps */
+ 		if (SND_SOC_DAPM_EVENT_ON(event))
+ 			priv->non_lp++;
+@@ -601,8 +637,6 @@ static int pga_event(struct snd_soc_dapm_widget *w,
+ 
+ 		if (!delayed_work_pending(work)) {
+ 			/* use volume ramp for power-down */
+-			out->left_step = 1;
+-			out->right_step = 1;
+ 			out->ramp = TWL6040_RAMP_DOWN;
+ 			INIT_COMPLETION(out->ramp_done);
+ 
+@@ -1492,6 +1526,7 @@ static int twl6040_resume(struct snd_soc_codec *codec)
  static int twl6040_probe(struct snd_soc_codec *codec)
  {
--	struct twl4030_codec_data *twl_codec = codec->dev->platform_data;
-+	struct twl4030_audio_data *twl_codec = codec->dev->platform_data;
  	struct twl6040_data *priv;
- 	int audpwron, naudint;
++	struct twl4030_codec_data *pdata = dev_get_platdata(codec->dev);
  	int ret = 0;
+ 
+ 	priv = kzalloc(sizeof(struct twl6040_data), GFP_KERNEL);
+@@ -1502,6 +1537,22 @@ static int twl6040_probe(struct snd_soc_codec *codec)
+ 	priv->codec = codec;
+ 	codec->control_data = dev_get_drvdata(codec->dev->parent);
+ 
++	if (pdata && pdata->hs_left_step && pdata->hs_right_step) {
++		priv->hs_left_step = pdata->hs_left_step;
++		priv->hs_right_step = pdata->hs_right_step;
++	} else {
++		priv->hs_left_step = 1;
++		priv->hs_right_step = 1;
++	}
++
++	if (pdata && pdata->hf_left_step && pdata->hf_right_step) {
++		priv->hf_left_step = pdata->hf_left_step;
++		priv->hf_right_step = pdata->hf_right_step;
++	} else {
++		priv->hf_left_step = 1;
++		priv->hf_right_step = 1;
++	}
++
+ 	priv->sysclk_constraints = &hp_constraints;
+ 	priv->workqueue = create_singlethread_workqueue("twl6040-codec");
+ 	if (!priv->workqueue) {
 -- 
 1.7.5.3
