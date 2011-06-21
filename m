@@ -1,104 +1,50 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v6 12/18] OMAP4: SDP4430: Add twl6040 vibrator platform support
-Date: Tue, 21 Jun 2011 16:39:10 +0300
-Message-ID: <1308663556-29120-13-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v6 10/18] MFD: twl6040: Change platform data
+	for soc codec driver
+Date: Tue, 21 Jun 2011 16:39:08 +0300
+Message-ID: <1308663556-29120-11-git-send-email-peter.ujfalusi@ti.com>
 References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-input-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add twl4030_vibra platform data, and the needed regulators
-for twl6040 vibrator.
+Pass twl4030_codec_data instead of the twl4030_audio_data
+for the ASoC codec driver.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   48 +++++++++++++++++++++++++++++++++++
- 1 files changed, 48 insertions(+), 0 deletions(-)
+ drivers/mfd/twl6040-core.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 968029a..266d146 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -22,6 +22,7 @@
- #include <linux/i2c/twl.h>
- #include <linux/gpio_keys.h>
- #include <linux/regulator/machine.h>
-+#include <linux/regulator/fixed.h>
- #include <linux/leds.h>
- #include <linux/leds_pwm.h>
+diff --git a/drivers/mfd/twl6040-core.c b/drivers/mfd/twl6040-core.c
+index 195613c..b6e5338 100644
+--- a/drivers/mfd/twl6040-core.c
++++ b/drivers/mfd/twl6040-core.c
+@@ -507,9 +507,8 @@ static int __devinit twl6040_probe(struct platform_device *pdev)
+ 	if (pdata->codec) {
+ 		cell = &twl6040->cells[children];
+ 		cell->name = "twl6040-codec";
+-		/* The codec expects the twl4030_audio_data as platform data */
+-		cell->platform_data = pdata;
+-		cell->pdata_size = sizeof(*pdata);
++		cell->platform_data = pdata->codec;
++		cell->pdata_size = sizeof(*pdata->codec);
+ 		children++;
+ 	}
  
-@@ -276,11 +277,40 @@ static struct platform_device sdp4430_lcd_device = {
- 	.id		= -1,
- };
- 
-+static struct regulator_consumer_supply sdp4430_vbat_supply[] = {
-+	REGULATOR_SUPPLY("vddvibl", "twl6040-vibra"),
-+	REGULATOR_SUPPLY("vddvibr", "twl6040-vibra"),
-+};
-+
-+static struct regulator_init_data sdp4430_vbat_data = {
-+	.constraints = {
-+		.always_on	= 1,
-+	},
-+	.num_consumer_supplies	= ARRAY_SIZE(sdp4430_vbat_supply),
-+	.consumer_supplies	= sdp4430_vbat_supply,
-+};
-+
-+static struct fixed_voltage_config sdp4430_vbat_pdata = {
-+	.supply_name	= "VBAT",
-+	.microvolts	= 3750000,
-+	.init_data	= &sdp4430_vbat_data,
-+	.gpio		= -EINVAL,
-+};
-+
-+static struct platform_device sdp4430_vbat = {
-+	.name		= "reg-fixed-voltage",
-+	.id		= -1,
-+	.dev = {
-+		.platform_data = &sdp4430_vbat_pdata,
-+	},
-+};
-+
- static struct platform_device *sdp4430_devices[] __initdata = {
- 	&sdp4430_lcd_device,
- 	&sdp4430_gpio_keys_device,
- 	&sdp4430_leds_gpio,
- 	&sdp4430_leds_pwm,
-+	&sdp4430_vbat,
- };
- 
- static struct omap_lcd_config sdp4430_lcd_config __initdata = {
-@@ -402,7 +432,25 @@ static struct regulator_init_data sdp4430_vusim = {
- 	},
- };
- 
-+static struct twl4030_vibra_data twl6040_vibra = {
-+	.vibldrv_res = 8,
-+	.vibrdrv_res = 3,
-+	.viblmotor_res = 10,
-+	.vibrmotor_res = 10,
-+	.vddvibl_uV = 0,	/* fixed volt supply - VBAT */
-+	.vddvibr_uV = 0,	/* fixed volt supply - VBAT */
-+};
-+
-+static struct twl4030_audio_data twl6040_audio = {
-+	.codec		= NULL,
-+	.vibra		= &twl6040_vibra,
-+	.audpwron_gpio	= 127,
-+	.naudint_irq	= OMAP44XX_IRQ_SYS_2N,
-+	.irq_base	= TWL6040_CODEC_IRQ_BASE,
-+};
-+
- static struct twl4030_platform_data sdp4430_twldata = {
-+	.audio		= &twl6040_audio,
- 	/* Regulators */
- 	.vusim		= &sdp4430_vusim,
- 	.vaux1		= &sdp4430_vaux1,
 -- 
 1.7.5.3
-
