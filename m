@@ -1,60 +1,64 @@
-From: Tushar Behera <tushar.behera@linaro.org>
-Subject: Re: [PATCH 1/2] config: omap2+: force fb and dss support as built-in
-Date: Tue, 21 Jun 2011 10:30:16 +0530
-Message-ID: <4E002560.90301@linaro.org>
-References: <1308566761-2850-1-git-send-email-tushar.behera@linaro.org>	 <1308566761-2850-2-git-send-email-tushar.behera@linaro.org> <1308575086.2076.55.camel@deskari>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] video: omap2: Compile omap2 support only when needed
+Date: Tue, 21 Jun 2011 08:24:53 +0300
+Message-ID: <1308633893.1850.11.camel@deskari>
+References: <1308566761-2850-1-git-send-email-tushar.behera@linaro.org>
+	<1308566761-2850-3-git-send-email-tushar.behera@linaro.org>
+	<1308575201.2076.57.camel@deskari>  <4E0022B5.9000500@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1308575086.2076.55.camel@deskari>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, tony@atomide.com, lethal@linux-sh.org, linaro-dev@lists.linaro.org, patches@linaro.org, Samreen <samreen@ti.com>
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <4E0022B5.9000500-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Tushar Behera <tushar.behera-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lethal-M7jkjyW5wf5g9hUCZPvPmw@public.gmane.org, Tomi Valkeinen <tomi.valkeinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 20 June 2011 06:34 PM, Tomi Valkeinen wrote:
-> On Mon, 2011-06-20 at 16:16 +0530, Tushar Behera wrote:
->> In certain board files, there are references to vram related functions
->> which are defined in drivers/video/omap2/vram.c. Because of this direct
->> dependency, CONFIG_FB_OMAP2 should be a built-in feature.
->
-> arch/arm/plat-omap/include/plat/vram.h defines dummy inline function in
-> case vram.c is not compiled in, so the board files should compile fine.
->
->> As per the current architecture, CONFIG_FB_OMAP2 is dependent on
->> CONFIG_OMAP2_DSS. Hence CONFIG_OMAP2_DSS support should also be selected
->> by default.
->
-> The configuration is fine as it is. And anyway, if things do not compile
-> when something is configured as a module, the correct fix is hardly just
-> changing the feature to be compiled built-in =).
-Agreed. :)
-I am not an expert in DSS. I just wanted to raise my concern.
->
->> Cc: Tony Lindgren<tony@atomide.com>
->> Cc: Samreen<samreen@ti.com>
->> Signed-off-by: Tushar Behera<tushar.behera@linaro.org>
->> ---
->> arch/arm/mach-omap2/built-in.o: In function `rx51_video_mem_init':
->> linux-linaro-2.6.39/arch/arm/mach-omap2/board-rx51-video.c:97: undefined reference to `omap_vram_set_sdram_vram'
->> arch/arm/plat-omap/built-in.o: In function `omap_reserve':
->> linux-linaro-2.6.39/arch/arm/plat-omap/common.c:66: undefined reference to `omap_vram_reserve_sdram_memblock'
->> arch/arm/plat-omap/built-in.o: In function `omap_detect_sram':
->> linux-linaro-2.6.39/arch/arm/plat-omap/sram.c:179: undefined reference to `omap_vram_reserve_sram'
->> make[1]: *** [.tmp_vmlinux1] Error 1
->> make: *** [sub-make] Error 2
->
-> Compiles fine for me. Perhaps you are using some old kernel?
-As mentioned in the cover letter, we get this error only if 2/2 is 
-applied and 1/2 is not applied.
+On Tue, 2011-06-21 at 10:18 +0530, Tushar Behera wrote:
+> Hi,
+> 
+> On Monday 20 June 2011 06:36 PM, Tomi Valkeinen wrote:
+> > On Mon, 2011-06-20 at 16:16 +0530, Tushar Behera wrote:
+> >> Currently display support for omap2 is selected by default and
+> >> it gets built for all the configurations.
+> >>
+> >> Instead of it being a built-in feature, it's compilation should
+> >> depend on the config option CONFIG_FB_OMAP2.
+> >
+> > No, I don't think so. omap2 directory contains vram, vrfb and omapdss,
+> > all of which can be used without omapfb driver. vram and vrfb can be
+> > even used without omapdss driver.
+> Even if I build the kernel with i386_defconfig, I get some compiled 
+> files within drivers/video/omap2.
+> 
+> $ make ARCH=x86 i386_defconfig O=out_dir
+> $ make ARCH=x86 O=out_dir
+> 
+> $ ls out_dir/drivers/video/omap2
+> built-in.o  displays  modules.builtin  modules.order
+> 
+> IMHO, drivers/video/omap2/ should not be compiled if the kernel is not 
+> built for omap2.
 
-I tested this by applying 2/2 on v3.0-rc4 and using omap2plus_defconfig.
->
->   Tomi
->
->
+Ok. Yes, that's a known "problem". We could have a OMAPx check there,
+but then again, the driver is a driver for the DSS HW, which could, at
+least in theory, used in other SoCs.
 
+I don't think any driver should normally depend on ARCH_something or
+MACH_something.
 
--- 
-Tushar Behera
+I think this is more of a "problem" with the build system. The same
+thing can be seen with, for example, drivers/video/backlight/ and
+drivers/video/display/ directories. In practice the created files do not
+affect the kernel in any way, as far as I see.
+
+ Tomi
