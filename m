@@ -1,918 +1,513 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v6 04/18] OMAP3: Move common regulator
-	configuration to twl-common
-Date: Tue, 21 Jun 2011 16:39:02 +0300
-Message-ID: <1308663556-29120-5-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v6 11/18] input: Add initial support for TWL6040 vibrator
+Date: Tue, 21 Jun 2011 16:39:09 +0300
+Message-ID: <1308663556-29120-12-git-send-email-peter.ujfalusi@ti.com>
 References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37412 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752323Ab1FUOkJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Jun 2011 10:40:09 -0400
 In-Reply-To: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Misael Lopez Cruz <misael.lopez@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tejun Heo <tj@kernel.org>
 
-Some regulator config can be moved out from board files,
-since they are close to identical.
+From: Misael Lopez Cruz <misael.lopez@ti.com>
 
+Add twl6040_vibra as a child of MFD device twl6040_codec. This
+implementation covers the PCM-to-PWM mode of TWL6040 vibrator
+module.
+
+Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Tejun Heo <tj@kernel.org>
 ---
- arch/arm/mach-omap2/board-3430sdp.c          |   51 ++++----------------------
- arch/arm/mach-omap2/board-cm-t35.c           |   41 +++------------------
- arch/arm/mach-omap2/board-devkit8000.c       |   21 +----------
- arch/arm/mach-omap2/board-igep0020.c         |   28 +++------------
- arch/arm/mach-omap2/board-omap3beagle.c      |   44 ++--------------------
- arch/arm/mach-omap2/board-omap3evm.c         |   47 +++---------------------
- arch/arm/mach-omap2/board-omap3pandora.c     |   44 ++++------------------
- arch/arm/mach-omap2/board-omap3stalker.c     |   48 +++---------------------
- arch/arm/mach-omap2/board-omap3touchbook.c   |   40 ++++----------------
- arch/arm/mach-omap2/board-overo.c            |   44 ++--------------------
- arch/arm/mach-omap2/board-rx51-peripherals.c |   25 ++-----------
- arch/arm/mach-omap2/board-zoom-peripherals.c |   41 ++-------------------
- arch/arm/mach-omap2/twl-common.c             |   42 +++++++++++++++++++++
- arch/arm/mach-omap2/twl-common.h             |    5 +++
- 14 files changed, 109 insertions(+), 412 deletions(-)
+ drivers/input/misc/Kconfig         |   11 +
+ drivers/input/misc/Makefile        |    1 +
+ drivers/input/misc/twl6040-vibra.c |  416 ++++++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl.h            |    8 +
+ 4 files changed, 436 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/misc/twl6040-vibra.c
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 4810dcc..d944a56 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -283,16 +283,6 @@ static struct regulator_consumer_supply sdp3430_vaux3_supplies[] = {
- 	REGULATOR_SUPPLY("vcc", "spi1.0"),
- };
+diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+index 077309a..d1bf872 100644
+--- a/drivers/input/misc/Kconfig
++++ b/drivers/input/misc/Kconfig
+@@ -275,6 +275,17 @@ config INPUT_TWL4030_VIBRA
+ 	  To compile this driver as a module, choose M here. The module will
+ 	  be called twl4030_vibra.
  
--static struct regulator_consumer_supply sdp3430_vdda_dac_supplies[] = {
--	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
--};
--
--/* VPLL2 for digital video outputs */
--static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
--};
--
- static struct regulator_consumer_supply sdp3430_vmmc1_supplies[] = {
- 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
- };
-@@ -409,36 +399,6 @@ static struct regulator_init_data sdp3430_vsim = {
- 	.consumer_supplies	= sdp3430_vsim_supplies,
- };
- 
--/* VDAC for DSS driving S-Video */
--static struct regulator_init_data sdp3430_vdac = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vdda_dac_supplies),
--	.consumer_supplies	= sdp3430_vdda_dac_supplies,
--};
--
--static struct regulator_init_data sdp3430_vpll2 = {
--	.constraints = {
--		.name			= "VDVI",
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vpll2_supplies),
--	.consumer_supplies	= sdp3430_vpll2_supplies,
--};
--
- static struct twl4030_platform_data sdp3430_twldata = {
- 	/* platform_data for children goes here */
- 	.gpio		= &sdp3430_gpio_data,
-@@ -451,16 +411,19 @@ static struct twl4030_platform_data sdp3430_twldata = {
- 	.vmmc1		= &sdp3430_vmmc1,
- 	.vmmc2		= &sdp3430_vmmc2,
- 	.vsim		= &sdp3430_vsim,
--	.vdac		= &sdp3430_vdac,
--	.vpll2		= &sdp3430_vpll2,
- };
- 
- static int __init omap3430_i2c_init(void)
- {
- 	/* i2c1 for PMIC only */
- 	omap3_pmic_get_config(&sdp3430_twldata,
--			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
--			  TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO, 0);
-+			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
-+			TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO,
-+			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
-+	sdp3430_twldata.vdac->constraints.apply_uV = true;
-+	sdp3430_twldata.vpll2->constraints.apply_uV = true;
-+	sdp3430_twldata.vpll2->constraints.name = "VDVI";
++config INPUT_TWL6040_VIBRA
++	tristate "Support for TWL6040 Vibrator"
++	depends on TWL4030_CORE
++	select TWL6040_CORE
++	select INPUT_FF_MEMLESS
++	help
++	  This option enables support for TWL6040 Vibrator Driver.
 +
- 	omap3_pmic_init("twl4030", &sdp3430_twldata);
- 
- 	/* i2c2 on camera connector (for sensor control) and optional isp1301 */
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index e867474..2ae6afe 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -345,9 +345,6 @@ static struct regulator_consumer_supply cm_t35_vsim_supply = {
- 	.supply			= "vmmc_aux",
- };
- 
--static struct regulator_consumer_supply cm_t35_vdac_supply =
--	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
--
- static struct regulator_consumer_supply cm_t35_vdvi_supply =
- 	REGULATOR_SUPPLY("vdvi", "omapdss");
- 
-@@ -381,35 +378,6 @@ static struct regulator_init_data cm_t35_vsim = {
- 	.consumer_supplies	= &cm_t35_vsim_supply,
- };
- 
--/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
--static struct regulator_init_data cm_t35_vdac = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &cm_t35_vdac_supply,
--};
--
--/* VPLL2 for digital video outputs */
--static struct regulator_init_data cm_t35_vpll2 = {
--	.constraints = {
--		.name			= "VDVI",
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &cm_t35_vdvi_supply,
--};
--
- static uint32_t cm_t35_keymap[] = {
- 	KEY(0, 0, KEY_A),	KEY(0, 1, KEY_B),	KEY(0, 2, KEY_LEFT),
- 	KEY(1, 0, KEY_UP),	KEY(1, 1, KEY_ENTER),	KEY(1, 2, KEY_DOWN),
-@@ -497,13 +465,16 @@ static struct twl4030_platform_data cm_t35_twldata = {
- 	.gpio		= &cm_t35_gpio_data,
- 	.vmmc1		= &cm_t35_vmmc1,
- 	.vsim		= &cm_t35_vsim,
--	.vdac		= &cm_t35_vdac,
--	.vpll2		= &cm_t35_vpll2,
- };
- 
- static void __init cm_t35_init_i2c(void)
- {
--	omap3_pmic_get_config(&cm_t35_twldata, TWL_COMMON_PDATA_USB, 0);
-+	omap3_pmic_get_config(&cm_t35_twldata, TWL_COMMON_PDATA_USB,
-+			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
-+	cm_t35_twldata.vpll2->constraints.name = "VDVI";
-+	cm_t35_twldata.vpll2->num_consumer_supplies = 1;
-+	cm_t35_twldata.vpll2->consumer_supplies = &cm_t35_vdvi_supply;
++	  To compile this driver as a module, choose M here. The module will
++	  be called twl6040_vibra.
 +
- 	omap3_pmic_init("tps65930", &cm_t35_twldata);
- }
- 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index aa6a173..f7bc171 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -186,9 +186,6 @@ static struct omap_dss_board_info devkit8000_dss_data = {
- 	.default_device = &devkit8000_lcd_device,
- };
- 
--static struct regulator_consumer_supply devkit8000_vdda_dac_supply =
--	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
--
- static uint32_t board_keymap[] = {
- 	KEY(0, 0, KEY_1),
- 	KEY(1, 0, KEY_2),
-@@ -288,20 +285,6 @@ static struct regulator_init_data devkit8000_vmmc1 = {
- 	.consumer_supplies	= &devkit8000_vmmc1_supply,
- };
- 
--/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
--static struct regulator_init_data devkit8000_vdac = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &devkit8000_vdda_dac_supply,
--};
--
- /* VPLL1 for digital video outputs */
- static struct regulator_init_data devkit8000_vpll1 = {
- 	.constraints = {
-@@ -335,7 +318,6 @@ static struct twl4030_platform_data devkit8000_twldata = {
- 	/* platform_data for children goes here */
- 	.gpio		= &devkit8000_gpio_data,
- 	.vmmc1		= &devkit8000_vmmc1,
--	.vdac		= &devkit8000_vdac,
- 	.vpll1		= &devkit8000_vpll1,
- 	.vio		= &devkit8000_vio,
- 	.keypad		= &devkit8000_kp_data,
-@@ -344,7 +326,8 @@ static struct twl4030_platform_data devkit8000_twldata = {
- static int __init devkit8000_i2c_init(void)
- {
- 	omap3_pmic_get_config(&devkit8000_twldata,
--			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
-+			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
-+			  TWL_COMMON_REGULATOR_VDAC);
- 	omap3_pmic_init("tps65930", &devkit8000_twldata);
- 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
- 	 * projector don't work reliably with 400kHz */
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index bb3723a..48f86e1 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -476,26 +476,6 @@ static struct omap_dss_board_info igep2_dss_data = {
- 	.default_device	= &igep2_dvi_device,
- };
- 
--static struct regulator_consumer_supply igep2_vpll2_supplies[] = {
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
--};
--
--static struct regulator_init_data igep2_vpll2 = {
--	.constraints = {
--		.name			= "VDVI",
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(igep2_vpll2_supplies),
--	.consumer_supplies	= igep2_vpll2_supplies,
--};
--
- static void __init igep2_display_init(void)
- {
- 	int err = gpio_request_one(IGEP2_GPIO_DVI_PUP, GPIOF_OUT_INIT_HIGH,
-@@ -576,9 +556,11 @@ static void __init igep_i2c_init(void)
- 			pr_warning("IGEP2: Could not register I2C3 bus (%d)\n", ret);
- 
- 		igep_twldata.keypad	= &igep2_keypad_pdata;
--		igep_twldata.vpll2	= &igep2_vpll2;
--		/* Use common codec data */
--		omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_AUDIO, 0);
-+		/* Get common pmic data */
-+		omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_AUDIO,
-+				      TWL_COMMON_REGULATOR_VPLL2);
-+		igep_twldata.vpll2->constraints.apply_uV = true;
-+		igep_twldata.vpll2->constraints.name = "VDVI";
- 	}
- 
- 	omap3_pmic_init("twl4030", &igep_twldata);
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 63104e8..ff991ca 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -210,14 +210,6 @@ static struct omap_dss_board_info beagle_dss_data = {
- 	.default_device = &beagle_dvi_device,
- };
- 
--static struct regulator_consumer_supply beagle_vdac_supply =
--	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
--
--static struct regulator_consumer_supply beagle_vdvi_supplies[] = {
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
--};
--
- static void __init beagle_display_init(void)
- {
- 	int r;
-@@ -355,42 +347,11 @@ static struct regulator_init_data beagle_vsim = {
- 	.consumer_supplies	= &beagle_vsim_supply,
- };
- 
--/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
--static struct regulator_init_data beagle_vdac = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &beagle_vdac_supply,
--};
--
--/* VPLL2 for digital video outputs */
--static struct regulator_init_data beagle_vpll2 = {
--	.constraints = {
--		.name			= "VDVI",
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(beagle_vdvi_supplies),
--	.consumer_supplies	= beagle_vdvi_supplies,
--};
--
- static struct twl4030_platform_data beagle_twldata = {
- 	/* platform_data for children goes here */
- 	.gpio		= &beagle_gpio_data,
- 	.vmmc1		= &beagle_vmmc1,
- 	.vsim		= &beagle_vsim,
--	.vdac		= &beagle_vdac,
--	.vpll2		= &beagle_vpll2,
- };
- 
- static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
-@@ -402,7 +363,10 @@ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
- static int __init omap3_beagle_i2c_init(void)
- {
- 	omap3_pmic_get_config(&beagle_twldata,
--			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
-+			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
-+			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
-+	beagle_twldata.vpll2->constraints.name = "VDVI";
+ config INPUT_UINPUT
+ 	tristate "User level driver support"
+ 	help
+diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+index 38efb2c..4da7c3a 100644
+--- a/drivers/input/misc/Makefile
++++ b/drivers/input/misc/Makefile
+@@ -40,6 +40,7 @@ obj-$(CONFIG_INPUT_SGI_BTNS)		+= sgi_btns.o
+ obj-$(CONFIG_INPUT_SPARCSPKR)		+= sparcspkr.o
+ obj-$(CONFIG_INPUT_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
+ obj-$(CONFIG_INPUT_TWL4030_VIBRA)	+= twl4030-vibra.o
++obj-$(CONFIG_INPUT_TWL6040_VIBRA)	+= twl6040-vibra.o
+ obj-$(CONFIG_INPUT_UINPUT)		+= uinput.o
+ obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
+ obj-$(CONFIG_INPUT_WM831X_ON)		+= wm831x-on.o
+diff --git a/drivers/input/misc/twl6040-vibra.c b/drivers/input/misc/twl6040-vibra.c
+new file mode 100644
+index 0000000..9652ebf
+--- /dev/null
++++ b/drivers/input/misc/twl6040-vibra.c
+@@ -0,0 +1,416 @@
++/*
++ * twl6040-vibra.c - TWL6040 Vibrator driver
++ *
++ * Author:      Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
++ * Author:      Misael Lopez Cruz <misael.lopez@ti.com>
++ *
++ * Copyright:   (C) 2011 Texas Instruments, Inc.
++ *
++ * Based on twl4030-vibra.c by Henrik Saari <henrik.saari@nokia.com>
++ *				Felipe Balbi <felipe.balbi@nokia.com>
++ *				Jari Vanhala <ext-javi.vanhala@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/workqueue.h>
++#include <linux/i2c/twl.h>
++#include <linux/mfd/twl6040.h>
++#include <linux/slab.h>
++#include <linux/delay.h>
++#include <linux/regulator/consumer.h>
 +
- 	omap3_pmic_init("twl4030", &beagle_twldata);
- 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
- 	 * projector don't work reliably with 400kHz */
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 3e7e902..e6fa723 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -434,44 +434,6 @@ static struct twl4030_keypad_data omap3evm_kp_data = {
- 	.rep		= 1,
- };
- 
--static struct regulator_consumer_supply omap3_evm_vdda_dac_supply =
--	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
--
--/* VDAC for DSS driving S-Video */
--static struct regulator_init_data omap3_evm_vdac = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &omap3_evm_vdda_dac_supply,
--};
--
--/* VPLL2 for digital video outputs */
--static struct regulator_consumer_supply omap3_evm_vpll2_supplies[] = {
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
--};
--
--static struct regulator_init_data omap3_evm_vpll2 = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(omap3_evm_vpll2_supplies),
--	.consumer_supplies	= omap3_evm_vpll2_supplies,
--};
--
- /* ads7846 on SPI */
- static struct regulator_consumer_supply omap3evm_vio_supply =
- 	REGULATOR_SUPPLY("vcc", "spi1.0");
-@@ -536,8 +498,6 @@ static struct twl4030_platform_data omap3evm_twldata = {
- 	/* platform_data for children goes here */
- 	.keypad		= &omap3evm_kp_data,
- 	.gpio		= &omap3evm_gpio_data,
--	.vdac		= &omap3_evm_vdac,
--	.vpll2		= &omap3_evm_vpll2,
- 	.vio		= &omap3evm_vio,
- 	.vmmc1		= &omap3evm_vmmc1,
- 	.vsim		= &omap3evm_vsim,
-@@ -546,8 +506,11 @@ static struct twl4030_platform_data omap3evm_twldata = {
- static int __init omap3_evm_i2c_init(void)
- {
- 	omap3_pmic_get_config(&omap3evm_twldata,
--			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
--			  TWL_COMMON_PDATA_AUDIO, 0);
-+			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
-+			TWL_COMMON_PDATA_AUDIO,
-+			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
-+	omap3evm_twldata.vdac->constraints.apply_uV = true;
-+	omap3evm_twldata.vpll2->constraints.apply_uV = true;
- 	omap3_pmic_init("twl4030", &omap3evm_twldata);
- 	omap_register_i2c_bus(2, 400, NULL, 0);
- 	omap_register_i2c_bus(3, 400, NULL, 0);
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 7bfe109..db8b206 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -329,9 +329,6 @@ static struct regulator_consumer_supply pandora_vmmc2_supply =
- static struct regulator_consumer_supply pandora_vmmc3_supply =
- 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.2");
- 
--static struct regulator_consumer_supply pandora_vdda_dac_supply =
--	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
--
- static struct regulator_consumer_supply pandora_vdds_supplies[] = {
- 	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
- 	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
-@@ -384,36 +381,6 @@ static struct regulator_init_data pandora_vmmc2 = {
- 	.consumer_supplies	= &pandora_vmmc2_supply,
- };
- 
--/* VDAC for DSS driving S-Video */
--static struct regulator_init_data pandora_vdac = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &pandora_vdda_dac_supply,
--};
--
--/* VPLL2 for digital video outputs */
--static struct regulator_init_data pandora_vpll2 = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(pandora_vdds_supplies),
--	.consumer_supplies	= pandora_vdds_supplies,
--};
--
- /* VAUX1 for LCD */
- static struct regulator_init_data pandora_vaux1 = {
- 	.constraints = {
-@@ -507,8 +474,6 @@ static struct twl4030_platform_data omap3pandora_twldata = {
- 	.gpio		= &omap3pandora_gpio_data,
- 	.vmmc1		= &pandora_vmmc1,
- 	.vmmc2		= &pandora_vmmc2,
--	.vdac		= &pandora_vdac,
--	.vpll2		= &pandora_vpll2,
- 	.vaux1		= &pandora_vaux1,
- 	.vaux2		= &pandora_vaux2,
- 	.vaux4		= &pandora_vaux4,
-@@ -527,7 +492,14 @@ static struct i2c_board_info __initdata omap3pandora_i2c3_boardinfo[] = {
- static int __init omap3pandora_i2c_init(void)
- {
- 	omap3_pmic_get_config(&omap3pandora_twldata,
--			      TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
-+			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
-+			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
-+	omap3pandora_twldata.vdac->constraints.apply_uV = true;
-+	omap3pandora_twldata.vpll2->constraints.apply_uV = true;
-+	omap3pandora_twldata.vpll2->num_consumer_supplies =
-+					ARRAY_SIZE(pandora_vdds_supplies);
-+	omap3pandora_twldata.vpll2->consumer_supplies = pandora_vdds_supplies;
++#define EFFECT_DIR_180_DEG	0x8000
 +
- 	omap3_pmic_init("tps65950", &omap3pandora_twldata);
- 	/* i2c2 pins are not connected */
- 	omap_register_i2c_bus(3, 100, omap3pandora_i2c3_boardinfo,
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index 2b52281..e40e08c 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -388,51 +388,10 @@ static struct twl4030_keypad_data omap3stalker_kp_data = {
- 	.rep		= 1,
- };
- 
--static struct regulator_consumer_supply omap3_stalker_vdda_dac_supply =
--	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
--
--/* VDAC for DSS driving S-Video */
--static struct regulator_init_data omap3_stalker_vdac = {
--	.constraints		= {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--		| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--		| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &omap3_stalker_vdda_dac_supply,
--};
--
--/* VPLL2 for digital video outputs */
--static struct regulator_consumer_supply omap3_stalker_vpll2_supplies[] = {
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
--};
--
--static struct regulator_init_data omap3_stalker_vpll2 = {
--	.constraints		= {
--		.name			= "VDVI",
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.apply_uV = true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--		| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--		| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(omap3_stalker_vpll2_supplies),
--	.consumer_supplies	= omap3_stalker_vpll2_supplies,
--};
--
- static struct twl4030_platform_data omap3stalker_twldata = {
- 	/* platform_data for children goes here */
- 	.keypad		= &omap3stalker_kp_data,
- 	.gpio		= &omap3stalker_gpio_data,
--	.vdac		= &omap3_stalker_vdac,
--	.vpll2		= &omap3_stalker_vpll2,
- 	.vmmc1		= &omap3stalker_vmmc1,
- 	.vsim		= &omap3stalker_vsim,
- };
-@@ -455,7 +414,12 @@ static int __init omap3_stalker_i2c_init(void)
- {
- 	omap3_pmic_get_config(&omap3stalker_twldata,
- 			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
--			TWL_COMMON_PDATA_AUDIO, 0);
-+			TWL_COMMON_PDATA_AUDIO,
-+			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
-+	omap3stalker_twldata.vdac->constraints.apply_uV = true;
-+	omap3stalker_twldata.vpll2->constraints.apply_uV = true;
-+	omap3stalker_twldata.vpll2->constraints.name = "VDVI";
++/* Recommended modulation index 85% */
++#define TWL6040_VIBRA_MOD	85
 +
- 	omap3_pmic_init("twl4030", &omap3stalker_twldata);
- 	omap_register_i2c_bus(2, 400, NULL, 0);
- 	omap_register_i2c_bus(3, 400, omap3stalker_i2c_boardinfo3,
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 094ea80..a0a3cf0 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -207,42 +207,11 @@ static struct regulator_init_data touchbook_vsim = {
- 	.consumer_supplies	= &touchbook_vsim_supply,
- };
- 
--/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
--static struct regulator_init_data touchbook_vdac = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &touchbook_vdac_supply,
--};
--
--/* VPLL2 for digital video outputs */
--static struct regulator_init_data touchbook_vpll2 = {
--	.constraints = {
--		.name			= "VDVI",
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &touchbook_vdvi_supply,
--};
--
- static struct twl4030_platform_data touchbook_twldata = {
- 	/* platform_data for children goes here */
- 	.gpio		= &touchbook_gpio_data,
- 	.vmmc1		= &touchbook_vmmc1,
- 	.vsim		= &touchbook_vsim,
--	.vdac		= &touchbook_vdac,
--	.vpll2		= &touchbook_vpll2,
- };
- 
- static struct i2c_board_info __initdata touchBook_i2c_boardinfo[] = {
-@@ -255,7 +224,14 @@ static int __init omap3_touchbook_i2c_init(void)
- {
- 	/* Standard TouchBook bus */
- 	omap3_pmic_get_config(&touchbook_twldata,
--			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
-+			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
-+			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
-+	touchbook_twldata.vdac->num_consumer_supplies = 1;
-+	touchbook_twldata.vdac->consumer_supplies = &touchbook_vdac_supply;
-+	touchbook_twldata.vpll2->constraints.name = "VDVI";
-+	touchbook_twldata.vpll2->num_consumer_supplies = 1;
-+	touchbook_twldata.vpll2->consumer_supplies = &touchbook_vdvi_supply;
++#define TWL6040_NUM_SUPPLIES 2
 +
- 	omap3_pmic_init("twl4030", &touchbook_twldata);
- 	/* Additional TouchBook bus */
- 	omap_register_i2c_bus(3, 100, touchBook_i2c_boardinfo,
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index f334829..e3fa177 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -264,14 +264,6 @@ static struct omap_dss_board_info overo_dss_data = {
- 	.default_device	= &overo_dvi_device,
- };
- 
--static struct regulator_consumer_supply overo_vdda_dac_supply =
--	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
--
--static struct regulator_consumer_supply overo_vdds_dsi_supply[] = {
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
--};
--
- static struct mtd_partition overo_nand_partitions[] = {
- 	{
- 		.name           = "xloader",
-@@ -447,46 +439,18 @@ static struct regulator_init_data overo_vmmc1 = {
- 	.consumer_supplies	= &overo_vmmc1_supply,
- };
- 
--/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
--static struct regulator_init_data overo_vdac = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &overo_vdda_dac_supply,
--};
--
--/* VPLL2 for digital video outputs */
--static struct regulator_init_data overo_vpll2 = {
--	.constraints = {
--		.name			= "VDVI",
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(overo_vdds_dsi_supply),
--	.consumer_supplies	= overo_vdds_dsi_supply,
--};
--
- static struct twl4030_platform_data overo_twldata = {
- 	.gpio		= &overo_gpio_data,
- 	.vmmc1		= &overo_vmmc1,
--	.vdac		= &overo_vdac,
--	.vpll2		= &overo_vpll2,
- };
- 
- static int __init overo_i2c_init(void)
- {
- 	omap3_pmic_get_config(&overo_twldata,
--			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
-+			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
-+			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
-+	overo_twldata.vpll2->constraints.name = "VDVI";
++struct vibra_info {
++	struct device *dev;
++	struct input_dev *input_dev;
++	struct workqueue_struct *workqueue;
++	struct work_struct play_work;
++	struct mutex mutex;
 +
- 	omap3_pmic_init("tps65950", &overo_twldata);
- 	/* i2c2 pins are used for gpio */
- 	omap_register_i2c_bus(3, 400, NULL, 0);
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index dc69a7f..dfaf874 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -391,10 +391,6 @@ static struct regulator_consumer_supply rx51_vaux1_consumers[] = {
- 	REGULATOR_SUPPLY("vdd", "2-0063"),
- };
- 
--static struct regulator_consumer_supply rx51_vdac_supply[] = {
--	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
--};
--
- static struct regulator_init_data rx51_vaux1 = {
- 	.constraints = {
- 		.name			= "V28",
-@@ -511,21 +507,6 @@ static struct regulator_init_data rx51_vsim = {
- 	.consumer_supplies	= &rx51_vsim_supply,
- };
- 
--static struct regulator_init_data rx51_vdac = {
--	.constraints = {
--		.name			= "VDAC",
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= rx51_vdac_supply,
--};
--
- static struct regulator_init_data rx51_vio = {
- 	.constraints = {
- 		.min_uV			= 1800000,
-@@ -778,7 +759,6 @@ static struct twl4030_platform_data rx51_twldata __initdata = {
- 	.vaux4			= &rx51_vaux4,
- 	.vmmc1			= &rx51_vmmc1,
- 	.vsim			= &rx51_vsim,
--	.vdac			= &rx51_vdac,
- 	.vio			= &rx51_vio,
- };
- 
-@@ -835,7 +815,10 @@ static int __init rx51_i2c_init(void)
- 	}
- 	rx51_twldata.vmmc2 = &rx51_vmmc2;
- 	omap3_pmic_get_config(&rx51_twldata,
--			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC, 0);
-+			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC,
-+			TWL_COMMON_REGULATOR_VDAC);
-+	rx51_twldata.vdac->constraints.apply_uV = true;
-+	rx51_twldata.vdac->constraints.name = "VDAC";
- 	omap_pmic_init(1, 2200, "twl5030", INT_34XX_SYS_NIRQ, &rx51_twldata);
- 	omap_register_i2c_bus(2, 100, rx51_peripherals_i2c_board_info_2,
- 			      ARRAY_SIZE(rx51_peripherals_i2c_board_info_2));
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 58c0c6e..8853dc4 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -227,40 +227,6 @@ static struct omap2_hsmmc_info mmc[] = {
- 	{}      /* Terminator */
- };
- 
--static struct regulator_consumer_supply zoom_vpll2_supplies[] = {
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
--};
--
--static struct regulator_consumer_supply zoom_vdda_dac_supply =
--	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
--
--static struct regulator_init_data zoom_vpll2 = {
--	.constraints = {
--		.min_uV                 = 1800000,
--		.max_uV                 = 1800000,
--		.valid_modes_mask       = REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask         = REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies		= ARRAY_SIZE(zoom_vpll2_supplies),
--	.consumer_supplies		= zoom_vpll2_supplies,
--};
--
--static struct regulator_init_data zoom_vdac = {
--	.constraints = {
--		.min_uV                 = 1800000,
--		.max_uV                 = 1800000,
--		.valid_modes_mask       = REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask         = REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies		= 1,
--	.consumer_supplies		= &zoom_vdda_dac_supply,
--};
--
- static int zoom_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
-@@ -306,15 +272,14 @@ static struct twl4030_platform_data zoom_twldata = {
- 	.vmmc1          = &zoom_vmmc1,
- 	.vmmc2          = &zoom_vmmc2,
- 	.vsim           = &zoom_vsim,
--	.vpll2		= &zoom_vpll2,
--	.vdac		= &zoom_vdac,
- };
- 
- static int __init omap_i2c_init(void)
- {
- 	omap3_pmic_get_config(&zoom_twldata,
--			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
--			  TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO, 0);
-+			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
-+			TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO,
-+			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
- 
- 	if (machine_is_omap_zoom2()) {
- 		struct twl4030_codec_audio_data *audio_data;
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 2487e3c..f15f880 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -87,6 +87,41 @@ static struct twl4030_codec_data omap3_codec_pdata = {
- 	.audio = &omap3_audio,
- };
- 
-+static struct regulator_consumer_supply omap3_vdda_dac_supplies[] = {
-+	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
++	bool enabled;
++	int weak_speed;
++	int strong_speed;
++	int direction;
++
++	unsigned int vibldrv_res;
++	unsigned int vibrdrv_res;
++	unsigned int viblmotor_res;
++	unsigned int vibrmotor_res;
++
++	struct regulator_bulk_data supplies[TWL6040_NUM_SUPPLIES];
++
++	struct twl6040 *twl6040;
 +};
 +
-+static struct regulator_init_data omap3_vdac_idata = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
++static irqreturn_t twl6040_vib_irq_handler(int irq, void *data)
++{
++	struct vibra_info *info = data;
++	struct twl6040 *twl6040 = info->twl6040;
++	u8 status;
++
++	status = twl6040_reg_read(twl6040, TWL6040_REG_STATUS);
++	if (status & TWL6040_VIBLOCDET) {
++		dev_warn(info->dev, "Left Vibrator overcurrent detected\n");
++		twl6040_clear_bits(twl6040, TWL6040_REG_VIBCTLL,
++				   TWL6040_VIBENAL);
++	}
++	if (status & TWL6040_VIBROCDET) {
++		dev_warn(info->dev, "Right Vibrator overcurrent detected\n");
++		twl6040_clear_bits(twl6040, TWL6040_REG_VIBCTLR,
++				   TWL6040_VIBENAR);
++	}
++
++	return IRQ_HANDLED;
++}
++
++static void twl6040_vibra_enable(struct vibra_info *info)
++{
++	struct twl6040 *twl6040 = info->twl6040;
++	int ret;
++
++	ret = regulator_bulk_enable(ARRAY_SIZE(info->supplies), info->supplies);
++	if (ret) {
++		dev_err(info->dev, "failed to enable regulators %d\n", ret);
++		return;
++	}
++
++	twl6040_power(info->twl6040, 1);
++	if (twl6040_get_rev(twl6040) <= TWL6040_REV_ES1_1) {
++		/*
++		 * ERRATA: Disable overcurrent protection for at least
++		 * 3ms when enabling vibrator drivers to avoid false
++		 * overcurrent detection
++		 */
++		twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLL,
++				  TWL6040_VIBENAL | TWL6040_VIBCTRLL);
++		twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLR,
++				  TWL6040_VIBENAR | TWL6040_VIBCTRLR);
++		usleep_range(3000, 3500);
++	}
++
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLL,
++			  TWL6040_VIBENAL);
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLR,
++			  TWL6040_VIBENAR);
++
++	info->enabled = true;
++}
++
++static void twl6040_vibra_disable(struct vibra_info *info)
++{
++	struct twl6040 *twl6040 = info->twl6040;
++
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLL, 0x00);
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLR, 0x00);
++	twl6040_power(info->twl6040, 0);
++
++	regulator_bulk_disable(ARRAY_SIZE(info->supplies), info->supplies);
++
++	info->enabled = false;
++}
++
++static u8 twl6040_vibra_code(int vddvib, int vibdrv_res, int motor_res,
++			     int speed, int direction)
++{
++	int vpk, max_code;
++	u8 vibdat;
++
++	/* output swing */
++	vpk = (vddvib * motor_res * TWL6040_VIBRA_MOD) /
++		(100 * (vibdrv_res + motor_res));
++
++	/* 50mV per VIBDAT code step */
++	max_code = vpk / 50;
++	if (max_code > TWL6040_VIBDAT_MAX)
++		max_code = TWL6040_VIBDAT_MAX;
++
++	/* scale speed to max allowed code */
++	vibdat = (u8)((speed * max_code) / USHRT_MAX);
++
++	/* 2's complement for direction > 180 degrees */
++	vibdat *= direction;
++
++	return vibdat;
++}
++
++static void twl6040_vibra_set_effect(struct vibra_info *info)
++{
++	struct twl6040 *twl6040 = info->twl6040;
++	u8 vibdatl, vibdatr;
++	int volt;
++
++	/* weak motor */
++	volt = regulator_get_voltage(info->supplies[0].consumer) / 1000;
++	vibdatl = twl6040_vibra_code(volt, info->vibldrv_res,
++				     info->viblmotor_res,
++				     info->weak_speed, info->direction);
++
++	/* strong motor */
++	volt = regulator_get_voltage(info->supplies[1].consumer) / 1000;
++	vibdatr = twl6040_vibra_code(volt, info->vibrdrv_res,
++				     info->vibrmotor_res,
++				     info->strong_speed, info->direction);
++
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBDATL, vibdatl);
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBDATR, vibdatr);
++}
++
++static void vibra_play_work(struct work_struct *work)
++{
++	struct vibra_info *info = container_of(work,
++				struct vibra_info, play_work);
++
++	mutex_lock(&info->mutex);
++
++	if (info->weak_speed || info->strong_speed) {
++		if (!info->enabled)
++			twl6040_vibra_enable(info);
++
++		twl6040_vibra_set_effect(info);
++	} else if (info->enabled)
++		twl6040_vibra_disable(info);
++
++	mutex_unlock(&info->mutex);
++}
++
++static int vibra_play(struct input_dev *input, void *data,
++		      struct ff_effect *effect)
++{
++	struct vibra_info *info = input_get_drvdata(input);
++	int ret;
++
++	info->weak_speed = effect->u.rumble.weak_magnitude;
++	info->strong_speed = effect->u.rumble.strong_magnitude;
++	info->direction = effect->direction < EFFECT_DIR_180_DEG ? 1 : -1;
++
++	ret = queue_work(info->workqueue, &info->play_work);
++	if (!ret) {
++		dev_info(&input->dev, "work is already on queue\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static void twl6040_vibra_close(struct input_dev *input)
++{
++	struct vibra_info *info = input_get_drvdata(input);
++
++	cancel_work_sync(&info->play_work);
++
++	mutex_lock(&info->mutex);
++
++	if (info->enabled)
++		twl6040_vibra_disable(info);
++
++	mutex_unlock(&info->mutex);
++}
++
++#if CONFIG_PM_SLEEP
++static int twl6040_vibra_suspend(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct vibra_info *info = platform_get_drvdata(pdev);
++
++	mutex_lock(&info->mutex);
++
++	if (info->enabled)
++		twl6040_vibra_disable(info);
++
++	mutex_unlock(&info->mutex);
++
++	return 0;
++}
++
++#endif
++
++static SIMPLE_DEV_PM_OPS(twl6040_vibra_pm_ops, twl6040_vibra_suspend, NULL);
++
++static int __devinit twl6040_vibra_probe(struct platform_device *pdev)
++{
++	struct twl4030_vibra_data *pdata = pdev->dev.platform_data;
++	struct vibra_info *info;
++	int ret;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "platform_data not available\n");
++		return -EINVAL;
++	}
++
++	info = kzalloc(sizeof(*info), GFP_KERNEL);
++	if (!info) {
++		dev_err(&pdev->dev, "couldn't allocate memory\n");
++		return -ENOMEM;
++	}
++
++	info->dev = &pdev->dev;
++	info->twl6040 = dev_get_drvdata(pdev->dev.parent);
++	info->vibldrv_res = pdata->vibldrv_res;
++	info->vibrdrv_res = pdata->vibrdrv_res;
++	info->viblmotor_res = pdata->viblmotor_res;
++	info->vibrmotor_res = pdata->vibrmotor_res;
++	if ((!info->vibldrv_res && !info->viblmotor_res) ||
++	    (!info->vibrdrv_res && !info->vibrmotor_res)) {
++		dev_err(info->dev, "invalid vibra driver/motor resistance\n");
++		ret = -EINVAL;
++		goto err_kzalloc;
++	}
++
++	mutex_init(&info->mutex);
++
++	info->input_dev = input_allocate_device();
++	if (info->input_dev == NULL) {
++		dev_err(info->dev, "couldn't allocate input device\n");
++		ret = -ENOMEM;
++		goto err_kzalloc;
++	}
++
++	input_set_drvdata(info->input_dev, info);
++
++	info->input_dev->name = "twl6040:vibrator";
++	info->input_dev->id.version = 1;
++	info->input_dev->dev.parent = pdev->dev.parent;
++	info->input_dev->close = twl6040_vibra_close;
++	__set_bit(FF_RUMBLE, info->input_dev->ffbit);
++
++	ret = input_ff_create_memless(info->input_dev, NULL, vibra_play);
++	if (ret < 0) {
++		dev_err(info->dev, "couldn't register vibrator to FF\n");
++		goto err_ialloc;
++	}
++
++	ret = input_register_device(info->input_dev);
++	if (ret < 0) {
++		dev_err(info->dev, "couldn't register input device\n");
++		goto err_iff;
++	}
++
++	platform_set_drvdata(pdev, info);
++
++	ret = twl6040_request_irq(info->twl6040, TWL6040_IRQ_VIB,
++				  twl6040_vib_irq_handler, 0,
++				  "twl6040_irq_vib", info);
++	if (ret) {
++		dev_err(info->dev, "VIB IRQ request failed: %d\n", ret);
++		goto err_irq;
++	}
++
++	info->supplies[0].supply = "vddvibl";
++	info->supplies[1].supply = "vddvibr";
++	ret = regulator_bulk_get(info->dev, ARRAY_SIZE(info->supplies),
++				 info->supplies);
++	if (ret) {
++		dev_err(info->dev, "couldn't get regulators %d\n", ret);
++		goto err_regulator;
++	}
++
++	if (pdata->vddvibl_uV) {
++		ret = regulator_set_voltage(info->supplies[0].consumer,
++					    pdata->vddvibl_uV,
++					    pdata->vddvibl_uV);
++		if (ret) {
++			dev_err(info->dev, "failed to set VDDVIBL volt %d\n",
++				ret);
++			goto err_voltage;
++		}
++	}
++
++	if (pdata->vddvibr_uV) {
++		ret = regulator_set_voltage(info->supplies[1].consumer,
++					    pdata->vddvibr_uV,
++					    pdata->vddvibr_uV);
++		if (ret) {
++			dev_err(info->dev, "failed to set VDDVIBR volt %d\n",
++				ret);
++			goto err_voltage;
++		}
++	}
++
++	info->workqueue = alloc_workqueue("twl6040-vibra", 0, 0);
++	if (info->workqueue == NULL) {
++		dev_err(info->dev, "couldn't create workqueue\n");
++		ret = -ENOMEM;
++		goto err_voltage;
++	}
++	INIT_WORK(&info->play_work, vibra_play_work);
++
++	return 0;
++
++err_voltage:
++	regulator_bulk_free(ARRAY_SIZE(info->supplies), info->supplies);
++err_regulator:
++	twl6040_free_irq(info->twl6040, TWL6040_IRQ_VIB, info);
++err_irq:
++	input_unregister_device(info->input_dev);
++	info->input_dev = NULL;
++err_iff:
++	if (info->input_dev)
++		input_ff_destroy(info->input_dev);
++err_ialloc:
++	input_free_device(info->input_dev);
++err_kzalloc:
++	kfree(info);
++	return ret;
++}
++
++static int __devexit twl6040_vibra_remove(struct platform_device *pdev)
++{
++	struct vibra_info *info = platform_get_drvdata(pdev);
++
++	input_unregister_device(info->input_dev);
++	twl6040_free_irq(info->twl6040, TWL6040_IRQ_VIB, info);
++	regulator_bulk_free(ARRAY_SIZE(info->supplies), info->supplies);
++	destroy_workqueue(info->workqueue);
++	kfree(info);
++
++	return 0;
++}
++
++static struct platform_driver twl6040_vibra_driver = {
++	.probe		= twl6040_vibra_probe,
++	.remove		= __devexit_p(twl6040_vibra_remove),
++	.driver		= {
++		.name	= "twl6040-vibra",
++		.owner	= THIS_MODULE,
++		.pm	= &twl6040_vibra_pm_ops,
 +	},
-+	.num_consumer_supplies	= ARRAY_SIZE(omap3_vdda_dac_supplies),
-+	.consumer_supplies	= omap3_vdda_dac_supplies,
 +};
 +
-+static struct regulator_consumer_supply omap3_vpll2_supplies[] = {
-+	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
-+	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
-+};
++static int __init twl6040_vibra_init(void)
++{
++	return platform_driver_register(&twl6040_vibra_driver);
++}
++module_init(twl6040_vibra_init);
 +
-+static struct regulator_init_data omap3_vpll2_idata = {
-+	.constraints = {
-+		.min_uV                 = 1800000,
-+		.max_uV                 = 1800000,
-+		.valid_modes_mask       = REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask         = REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies		= ARRAY_SIZE(omap3_vpll2_supplies),
-+	.consumer_supplies		= omap3_vpll2_supplies,
-+};
++static void __exit twl6040_vibra_exit(void)
++{
++	platform_driver_unregister(&twl6040_vibra_driver);
++}
++module_exit(twl6040_vibra_exit);
 +
- static struct regulator_init_data omap4_vdac_idata = {
- 	.constraints = {
- 		.min_uV			= 1800000,
-@@ -259,4 +294,11 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
++MODULE_ALIAS("platform:twl6040-vibra");
++MODULE_DESCRIPTION("TWL6040 Vibra driver");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Jorge Eduardo Candelaria <jorge.candelaria@ti.com>");
++MODULE_AUTHOR("Misael Lopez Cruz <misael.lopez@ti.com>");
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index ea5baa2..685fd76 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -669,6 +669,14 @@ struct twl4030_codec_data {
  
- 	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->codec)
- 		pmic_data->codec = &omap3_codec_pdata;
+ struct twl4030_vibra_data {
+ 	unsigned int	coexist;
 +
-+	/* Common regulator configurations */
-+	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
-+		pmic_data->vdac = &omap3_vdac_idata;
-+
-+	if (regulators_flags & TWL_COMMON_REGULATOR_VPLL2 && !pmic_data->vpll2)
-+		pmic_data->vpll2 = &omap3_vpll2_idata;
- }
-diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-index 3b4b05d..5e83a5b 100644
---- a/arch/arm/mach-omap2/twl-common.h
-+++ b/arch/arm/mach-omap2/twl-common.h
-@@ -21,6 +21,11 @@
- #define TWL_COMMON_REGULATOR_VUSB	(1 << 9)
- #define TWL_COMMON_REGULATOR_CLK32KG	(1 << 10)
++	/* twl6040 */
++	unsigned int vibldrv_res;	/* left driver resistance */
++	unsigned int vibrdrv_res;	/* right driver resistance */
++	unsigned int viblmotor_res;	/* left motor resistance */
++	unsigned int vibrmotor_res;	/* right motor resistance */
++	int vddvibl_uV;			/* VDDVIBL volt, set 0 for fixed reg */
++	int vddvibr_uV;			/* VDDVIBR volt, set 0 for fixed reg */
+ };
  
-+/* TWL4030 LDO regulators */
-+#define TWL_COMMON_REGULATOR_VPLL1	(1 << 4)
-+#define TWL_COMMON_REGULATOR_VPLL2	(1 << 5)
-+
-+
- struct twl4030_platform_data;
- 
- void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
+ struct twl4030_audio_data {
 -- 
 1.7.5.3
+
