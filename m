@@ -1,48 +1,143 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [RFC 4/8] omap: add remoteproc devices
-Date: Tue, 21 Jun 2011 10:18:30 +0300
-Message-ID: <1308640714-17961-5-git-send-email-ohad@wizery.com>
+Subject: [RFC 2/8] remoteproc: add omap implementation
+Date: Tue, 21 Jun 2011 10:18:28 +0300
+Message-ID: <1308640714-17961-3-git-send-email-ohad@wizery.com>
 References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:59375 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755749Ab1FUHWJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2011 03:22:09 -0400
 In-Reply-To: <1308640714-17961-1-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
-List-Id: linux-omap@vger.kernel.org
 
 From: Guzman Lugo, Fernando <fernando.lugo@ti.com>
 
-Add omap remoteproc devices for the ipu and dsp remote processors.
+Add remoteproc implementation for OMAP4, so we can load the M3 and DSP
+remote processors.
 
-TODO:
-- rework to use CMA instead of reserving memory at boot
+Based on code by Hari Kanigeri <h-kanigeri2@ti.com>
 
-[ohad@wizery.com: commit log, refactored and simplified, still wip]
+While this code is functional, and works on OMAP4 & its M3's,
+it is still preliminary and going to substantially change:
+
+1. Splitting physically contiguous regions to pages should happen
+   inside the IOMMU API framework, and not here (so omap_rproc_map_unmap
+   should go away).
+2. IOMMU programming in general should go away too; it should be handled by
+   generic code (preferably using the DMA mapping API), and not by an OMAP
+   specific component.
+
+This patch depends on OMAP's IOMMU API migration, as posted here:
+https://lkml.org/lkml/2011/6/2/369
+
+[ohad@wizery.com: commit log, generic iommu api migration, refactoring, cleanups]
 
 Signed-off-by: Guzman Lugo, Fernando <fernando.lugo@ti.com>
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
- arch/arm/mach-omap2/Makefile     |    2 +
- arch/arm/mach-omap2/remoteproc.c |  159 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 161 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/remoteproc.c
+ arch/arm/plat-omap/include/plat/remoteproc.h |   41 +++++
+ drivers/remoteproc/Kconfig                   |   21 +++
+ drivers/remoteproc/Makefile                  |    1 +
+ drivers/remoteproc/omap_remoteproc.c         |  243 ++++++++++++++++++++++++++
+ 4 files changed, 306 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/plat/remoteproc.h
+ create mode 100644 drivers/remoteproc/omap_remoteproc.c
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index b148077..2b04fe6 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -270,3 +270,5 @@ disp-$(CONFIG_OMAP2_DSS)		:= display.o
- obj-y					+= $(disp-m) $(disp-y)
- 
- obj-y					+= common-board-devices.o
-+
-+obj-$(CONFIG_OMAP_REMOTE_PROC)		+= remoteproc.o
-diff --git a/arch/arm/mach-omap2/remoteproc.c b/arch/arm/mach-omap2/remoteproc.c
+diff --git a/arch/arm/plat-omap/include/plat/remoteproc.h b/arch/arm/plat-omap/include/plat/remoteproc.h
 new file mode 100644
-index 0000000..4f846cb
+index 0000000..6494570
 --- /dev/null
-+++ b/arch/arm/mach-omap2/remoteproc.c
-@@ -0,0 +1,159 @@
++++ b/arch/arm/plat-omap/include/plat/remoteproc.h
+@@ -0,0 +1,41 @@
++/*
++ * Remote Processor - omap-specific bits
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef _PLAT_REMOTEPROC_H
++#define _PLAT_REMOTEPROC_H
++
++#include <linux/remoteproc.h>
++
++/*
++ * struct omap_rproc_pdata - omap remoteproc's platform data
++ * @name: the remoteproc's name, cannot exceed RPROC_MAX_NAME bytes
++ * @iommu_name: iommu device we're behind of
++ * @oh_name: omap hwmod device
++ * @oh_name_opt: optional, secondary omap hwmod device
++ * @firmware: name of firmware file to load
++ * @ops: start/stop rproc handlers
++ * @memory_maps: table of da-to-pa iommu memory maps
++ */
++struct omap_rproc_pdata {
++	const char *name;
++	const char *iommu_name;
++	const char *oh_name;
++	const char *oh_name_opt;
++	const char *firmware;
++	const struct rproc_ops *ops;
++	const struct rproc_mem_entry *memory_maps;
++};
++
++#endif /* _PLAT_REMOTEPROC_H */
+diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+index a60bb12..88421bd 100644
+--- a/drivers/remoteproc/Kconfig
++++ b/drivers/remoteproc/Kconfig
+@@ -5,3 +5,24 @@
+ # REMOTE_PROC gets selected by whoever wants it
+ config REMOTE_PROC
+ 	tristate
++
++# for tristate, either expose omap_device_* or pass it via pdata
++config OMAP_REMOTE_PROC
++	bool "OMAP remoteproc support"
++	depends on ARCH_OMAP4
++	select OMAP_IOMMU
++	select REMOTE_PROC
++	select OMAP_MBOX_FWK
++	default y
++	help
++	  Say y here to support OMAP's remote processors (dual M3
++	  and DSP on OMAP4) via the remote processor framework.
++
++	  Currently only supported on OMAP4.
++
++	  Usually you want to say y here, in order to enable multimedia
++	  use-cases to run on your platform (multimedia codecs are
++	  offloaded to remote DSP processors using this framework).
++
++	  It's safe to say n here if you're not interested in multimedia
++	  offloading or just want a bare minimum kernel.
+diff --git a/drivers/remoteproc/Makefile b/drivers/remoteproc/Makefile
+index d0f60c7..0198b1d 100644
+--- a/drivers/remoteproc/Makefile
++++ b/drivers/remoteproc/Makefile
+@@ -3,3 +3,4 @@
+ #
+ 
+ obj-$(CONFIG_REMOTE_PROC)		+= remoteproc.o
++obj-$(CONFIG_OMAP_REMOTE_PROC)		+= omap_remoteproc.o
+diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
+new file mode 100644
+index 0000000..91f7f11
+--- /dev/null
++++ b/drivers/remoteproc/omap_remoteproc.c
+@@ -0,0 +1,243 @@
 +/*
 + * Remote processor machine-specific module for OMAP4
 + *
@@ -62,145 +157,230 @@ index 0000000..4f846cb
 +
 +#include <linux/kernel.h>
 +#include <linux/err.h>
++#include <linux/platform_device.h>
++#include <linux/iommu.h>
++#include <linux/slab.h>
 +#include <linux/remoteproc.h>
-+#include <linux/memblock.h>
 +
++#include <plat/iommu.h>
 +#include <plat/omap_device.h>
-+#include <plat/omap_hwmod.h>
 +#include <plat/remoteproc.h>
-+#include <plat/dsp.h>
-+#include <plat/io.h>
 +
-+#define L4_PERIPHERAL_L4CFG	(L4_44XX_BASE)
-+#define IPU_PERIPHERAL_L4CFG	0xAA000000
-+
-+#define IPU_MEM_TEXT		0x0
-+#define IPU_MEM_DATA		0x80000000
-+#define IPU_MEM_IPC		0xA0000000
++struct omap_rproc_priv {
++	struct iommu_domain *domain;
++	struct device *iommu;
++};
 +
 +/*
-+ * Memory mappings for the remote M3 subsystem
-+ *
-+ * Don't change the device addresses (first parameter), otherwise you'd have
-+ * to update the firmware (BIOS image) accordingly.
-+ *
-+ * A 0 physical address (second parameter) means this physical region should
-+ * be dynamically carved out at boot time.
-+ *
-+ * Sizes should be in the form of 2 ^ n * PAGE_SIZE (where n = 0, 1, 2, ...)
-+ *
-+ * Alignment requirement: at least page-based
++ * Map a physically contiguous memory region using biggest pages possible.
++ * TODO: this code should go away; it belongs in the generic IOMMU layer
 + */
-+static struct rproc_mem_entry ipu_memory_maps[] = {
-+	{IPU_MEM_IPC, 0, SZ_1M}, /* keep this IPC region first */
-+	{IPU_MEM_TEXT, 0, SZ_4M},
-+	{IPU_MEM_DATA, 0, SZ_32M},
-+	{IPU_PERIPHERAL_L4CFG, L4_PERIPHERAL_L4CFG, SZ_16M},
-+	{ }
++static int omap_rproc_map_unmap(struct iommu_domain *domain,
++				const struct rproc_mem_entry *me, bool map)
++{
++	u32 all_bits;
++	/* these are the page sizes supported by OMAP's IOMMU */
++	u32 pg_size[] = {SZ_16M, SZ_1M, SZ_64K, SZ_4K};
++	int i, ret, size = me->size;
++	u32 da = me->da;
++	u32 pa = me->pa;
++	int order;
++	int flags;
++
++	/* must be aligned at least with the smallest supported iommu page */
++	if (!IS_ALIGNED(size, SZ_4K) || !IS_ALIGNED(da | pa, SZ_4K)) {
++		pr_err("misaligned: size %x da 0x%x pa 0x%x\n", size, da, pa);
++		return -EINVAL;
++	}
++
++	while (size) {
++		/* find the max page size with which both pa, da are aligned */
++		all_bits = pa | da;
++		for (i = 0; i < ARRAY_SIZE(pg_size); i++) {
++			if ((size >= pg_size[i]) &&
++				((all_bits & (pg_size[i] - 1)) == 0)) {
++				break;
++			}
++		}
++
++		order = get_order(pg_size[i]);
++
++		/* OMAP4's M3 is little endian, so no need for conversions */
++		flags = MMU_RAM_ENDIAN_LITTLE | MMU_RAM_ELSZ_NONE;
++
++		if (map)
++			ret = iommu_map(domain, da, pa, order, flags);
++		else
++			ret = iommu_unmap(domain, da, order);
++
++		if (ret)
++			return ret;
++
++		size -= pg_size[i];
++		da += pg_size[i];
++		pa += pg_size[i];
++	}
++
++	return 0;
++}
++
++/* bootaddr isn't needed for the dual M3's */
++static inline int omap_rproc_start(struct rproc *rproc, u64 bootaddr)
++{
++	struct device *dev = rproc->dev;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_rproc_pdata *pdata = dev->platform_data;
++	struct iommu_domain *domain;
++	struct device *iommu;
++	struct omap_rproc_priv *priv;
++	int ret, i;
++
++	if (!iommu_found()) {
++		dev_err(&pdev->dev, "iommu not found\n");
++		return -ENODEV;
++	}
++
++	priv = kmalloc(sizeof(*priv), GFP_KERNEL);
++	if (!priv) {
++		dev_err(&pdev->dev, "kzalloc failed\n");
++		return -ENOMEM;
++	}
++
++	/*
++	 * Use the specified iommu name to find our iommu device.
++	 * TODO: solve this generically so other platforms can use it, too
++	 */
++	iommu = omap_find_iommu_device(pdata->iommu_name);
++	if (!iommu) {
++		dev_err(dev, "omap_find_iommu_device failed\n");
++		ret = -ENODEV;
++		goto free_mem;
++	}
++
++	domain = iommu_domain_alloc();
++	if (!domain) {
++		dev_err(&pdev->dev, "can't alloc iommu domain\n");
++		ret = -ENODEV;
++		goto free_mem;
++	}
++
++	priv->iommu = iommu;
++	priv->domain = domain;
++	rproc->priv = priv;
++
++	ret = iommu_attach_device(domain, iommu);
++	if (ret) {
++		dev_err(&pdev->dev, "can't attach iommu device: %d\n", ret);
++		goto free_domain;
++	}
++
++	for (i = 0; rproc->memory_maps[i].size; i++) {
++		const struct rproc_mem_entry *me = &rproc->memory_maps[i];
++
++		ret = omap_rproc_map_unmap(domain, me, true);
++		if (ret) {
++			dev_err(&pdev->dev, "iommu_map failed: %d\n", ret);
++			goto unmap_regions;
++		}
++	}
++
++	/* power on the remote processor itself */
++	ret = omap_device_enable(pdev);
++	if (ret)
++		goto unmap_regions;
++
++	return 0;
++
++unmap_regions:
++	for (--i; i >= 0 && rproc->memory_maps[i].size; i--) {
++		const struct rproc_mem_entry *me = &rproc->memory_maps[i];
++		omap_rproc_map_unmap(domain, me, false);
++	}
++free_domain:
++	iommu_domain_free(domain);
++free_mem:
++	kfree(priv);
++	return ret;
++}
++
++static inline int omap_rproc_stop(struct rproc *rproc)
++{
++	struct device *dev = rproc->dev;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_rproc_priv *priv = rproc->priv;
++	struct iommu_domain *domain = priv->domain;
++	struct device *iommu = priv->iommu;
++	int ret, i;
++
++	/* power off the remote processor itself */
++	ret = omap_device_shutdown(pdev);
++	if (ret) {
++		dev_err(dev, "failed to shutdown: %d\n", ret);
++		goto out;
++	}
++
++	for (i = 0; rproc->memory_maps[i].size; i++) {
++		const struct rproc_mem_entry *me = &rproc->memory_maps[i];
++
++		ret = omap_rproc_map_unmap(domain, me, false);
++		if (ret) {
++			dev_err(&pdev->dev, "iommu_unmap failed: %d\n", ret);
++			goto out;
++		}
++	}
++
++	iommu_detach_device(domain, iommu);
++	iommu_domain_free(domain);
++
++out:
++	return ret;
++}
++
++static struct rproc_ops omap_rproc_ops = {
++	.start = omap_rproc_start,
++	.stop = omap_rproc_stop,
 +};
 +
-+static struct omap_rproc_pdata omap4_rproc_data[] = {
-+	{
-+		.name		= "dsp",
-+		.iommu_name	= "tesla",
-+		.firmware	= "tesla-dsp.bin",
-+		.oh_name	= "dsp_c0",
-+	},
-+	{
-+		.name		= "ipu",
-+		.iommu_name	= "ducati",
-+		.firmware	= "ducati-m3.bin",
-+		.oh_name	= "ipu_c0",
-+		.oh_name_opt	= "ipu_c1",
-+		.memory_maps	= ipu_memory_maps,
-+	},
-+};
++static int omap_rproc_probe(struct platform_device *pdev)
++{
++	struct omap_rproc_pdata *pdata = pdev->dev.platform_data;
 +
-+static struct omap_device_pm_latency omap_rproc_latency[] = {
-+	{
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	return rproc_register(&pdev->dev, pdata->name, &omap_rproc_ops,
++				pdata->firmware, pdata->memory_maps,
++				THIS_MODULE);
++}
++
++static int __devexit omap_rproc_remove(struct platform_device *pdev)
++{
++	struct omap_rproc_pdata *pdata = pdev->dev.platform_data;
++
++	return rproc_unregister(pdata->name);
++}
++
++static struct platform_driver omap_rproc_driver = {
++	.probe = omap_rproc_probe,
++	.remove = __devexit_p(omap_rproc_remove),
++	.driver = {
++		.name = "omap-rproc",
++		.owner = THIS_MODULE,
 +	},
 +};
 +
 +static int __init omap_rproc_init(void)
 +{
-+	const char *pdev_name = "omap-rproc";
-+	struct omap_hwmod *oh[2];
-+	struct omap_device *od;
-+	int i, ret = 0, oh_count;
-+	phys_addr_t paddr, size;
-+
-+	/* names like ipu_cx/dsp_cx might show up on other OMAPs, too */
-+	if (!cpu_is_omap44xx())
-+		return 0;
-+
-+	paddr = omap_dsp_get_mempool_base();
-+	size = omap_dsp_get_mempool_size();
-+	if (!paddr || !size) {
-+		pr_warn("carveout memory is unavailable: 0x%x, 0x%x\n",
-+								paddr, size);
-+		return -ENOMEM;
-+	}
-+
-+	/* dynamically allocate carveout memory as required by the ipu */
-+	for (i = 0; i < ARRAY_SIZE(ipu_memory_maps); i++) {
-+		struct rproc_mem_entry *me = &ipu_memory_maps[i];
-+
-+		if (!me->pa && me->size) {
-+			if (me->size > size) {
-+				pr_warn("out of carveout memory\n");
-+				return -ENOMEM;
-+			}
-+
-+			me->pa = paddr;
-+			paddr += me->size;
-+			size -= me->size;
-+
-+			pr_info("0x%x bytes at 0x%x %d\n", me->size, me->pa, i);
-+		}
-+	}
-+
-+	/* build the remote proc devices */
-+	for (i = 0; i < ARRAY_SIZE(omap4_rproc_data); i++) {
-+		const char *oh_name = omap4_rproc_data[i].oh_name;
-+		const char *oh_name_opt = omap4_rproc_data[i].oh_name_opt;
-+		oh_count = 0;
-+
-+		oh[0] = omap_hwmod_lookup(oh_name);
-+		if (!oh[0]) {
-+			pr_err("could not look up %s\n", oh_name);
-+			continue;
-+		}
-+		oh_count++;
-+
-+		/* ipu has a secondary hwmod entry */
-+		if (oh_name_opt) {
-+			oh[1] = omap_hwmod_lookup(oh_name_opt);
-+			if (!oh[1]) {
-+				pr_err("could not look up %s\n", oh_name_opt);
-+				continue;
-+			}
-+			oh_count++;
-+		}
-+
-+		od = omap_device_build_ss(pdev_name, i, oh, oh_count,
-+					&omap4_rproc_data[i],
-+					sizeof(struct omap_rproc_pdata),
-+					omap_rproc_latency,
-+					ARRAY_SIZE(omap_rproc_latency),
-+					false);
-+		if (IS_ERR(od)) {
-+			pr_err("Could not build omap_device for %s:%s\n",
-+							pdev_name, oh_name);
-+			ret = PTR_ERR(od);
-+		}
-+	}
-+
-+	return ret;
++	return platform_driver_register(&omap_rproc_driver);
 +}
 +/* must be ready in time for device_initcall users */
 +subsys_initcall(omap_rproc_init);
++
++static void __exit omap_rproc_exit(void)
++{
++	platform_driver_unregister(&omap_rproc_driver);
++}
++module_exit(omap_rproc_exit);
++
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("OMAP Remote Processor control driver");
 -- 
 1.7.1
+
