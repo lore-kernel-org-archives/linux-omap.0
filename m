@@ -1,70 +1,71 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] mfd: omap: fix the crash during omap ehci or ohci driver
- initialization
-Date: Tue, 21 Jun 2011 19:53:59 +0200
-Message-ID: <20110621175359.GA22420@sortiz-mobl>
-References: <1307367739-20110-1-git-send-email-keshava_mgowda@ti.com>
- <20110620132626.GJ22420@sortiz-mobl>
- <20110620132851.GJ14262@legolas.emea.dhcp.ti.com>
- <20110620145941.GQ22420@sortiz-mobl>
- <87liww6tva.fsf@ti.com>
+From: Paul Bowen Chamber <paulbowen@msnzone.cn>
+Subject: Message
+Date: Tue, 21 Jun 2011 18:16:34 +0000
+Message-ID: <5f7c47e54e95b5b69d58ef21886e427f@kapulan.hu>
+Reply-To: <paulbowen-qc@hotmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:42283 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757082Ab1FURxx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Jun 2011 13:53:53 -0400
-Content-Disposition: inline
-In-Reply-To: <87liww6tva.fsf@ti.com>
+Received: from mail.kapulan.hu ([213.16.89.155]:33875 "EHLO kapulan.hu"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751929Ab1FUSoB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Jun 2011 14:44:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, parthab@india.ti.com
 
-Hi Kevin,
+ WILL EXECUTION!
 
-On Mon, Jun 20, 2011 at 03:06:01PM -0700, Kevin Hilman wrote:
-> Samuel Ortiz <sameo@linux.intel.com> writes:
-> 
-> > Hi Felipe,
-> >
-> > On Mon, Jun 20, 2011 at 04:28:52PM +0300, Felipe Balbi wrote:
-> >> Hi,
-> >> 
-> >> On Mon, Jun 20, 2011 at 03:26:26PM +0200, Samuel Ortiz wrote:
-> >> > On Mon, Jun 06, 2011 at 07:12:19PM +0530, Keshava Munegowda wrote:
-> >> > > From: Keshava Munegowda <Keshava_mgowda@ti.com>
-> >> > > 
-> >> > > Oops are produced during initialization of ehci and ohci
-> >> > > drivers. This is because the run time pm apis are used by
-> >> > > the driver but the corresponding hwmod structures and
-> >> > > initialization is not merged. 
-> >> > You mean they're currently checked in a different tree ? Is that a
-> >> > public one?
-> >> 
-> >> it was supposed to go via linux-omap tree but the patches got lost in
-> >> the limbo :-(
-> > Then shouldn't those patches be the ones to be sent to Linus as a fix for 3.0 ?
-> 
-> If they were ready, maybe.  But those patches still need important work
-> (and review) and are not "fix" material but need to wait until the next
-> merge window.
-Fair enough.
+ I wish to intimate you with a request that would be of immense benefit=
+=20
+ to both of us. Being an executor of WILL, it is possible that we may b=
+e=20
+ tempted to make fortune out of my client situation, when we cannot hel=
+p=20
+ it, or left with no better option.
 
- 
-> Basically, the original patch should not have been submitted to mainline
-> until the runtime PM support was ready, so the correct short term fix is
-> to simply revert.
->
-> Also, to echo the question from Dima Zavin:
-> 
-> Why isn't this just a simple revert of the original patch?
-I did a revert in my tree.
+ The issue I am presenting to you is about my client who WILLED a=20
+ fortune to his next-of-kin. It was most unfortunate that he and his=20
+ next-of-kin died on the same day in the sharja plane crash of Tuesday =
+10=20
+ February 2004. I am now faced with confusion of who to pass the fortun=
+e=20
+ to. According to the English law, the fortune is supposed to be=20
+ bequeathed to the government. However, I don=E2=80=99t belong to that =
+school of=20
+ thought which proposes that the fortune of unlucky people be given to=20
+ the government. I seek your assistance to act as the beneficiary of th=
+e=20
+ inheritance, and lay claim to the legacy(12.4million pounds=20
+ sterling),which this my unfortunate client bequeathed to his=20
+ next-of-kin. For now, it is only known to me, as my client has great=20
+ confidence in me. Everything will be left between you and I. The share=
+=20
+ would be 40% for you and 60% for me. All I have to do is to amend the=20
+ WILL stating you as the beneficiary to the 12.4million pounds sterling=
+=2E
 
-Cheers,
-Samuel.
+ I prefer not to divulge my full identity so as not to risk being=20
+ disbarred. The English Bar considers it a breach of the oath of the=20
+ English Bar Council. I need not emphasize to you that the sensitivity =
+of=20
+ this issue need not be toyed with by neglecting its confidentiality. A=
+t=20
+ this point I want to assure you that your true consent, full cooperati=
+on=20
+ and confidentiality are all that are required for us to take full=20
+ advantage of this great opportunity.
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+ This is an opportunity that people rarely have.
+
+ I look forward to hearing from you soon.
+
+ Yours truly,
+ Barr. Paul Bowen
+ Email: paulbowen_qc@hotmail.co.uk
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
