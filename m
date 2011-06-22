@@ -1,7 +1,7 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 12/25] ARM: pm: mach-exynos4: cleanup s3c_cpu_save
-Date: Wed, 22 Jun 2011 16:12:34 +0100
-Message-ID: <E1QZP6Y-0002WX-DW@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 13/25] ARM: pm: mach-s3c64xx: cleanup s3c_cpu_save
+Date: Wed, 22 Jun 2011 16:12:54 +0100
+Message-ID: <E1QZP6s-0002Wb-Ta@rmk-PC.arm.linux.org.uk>
 References: <20110622150816.GT23234@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -15,27 +15,27 @@ List-Id: linux-omap@vger.kernel.org
 s3c_cpu_save does not need to save any registers with the new
 cpu_suspend calling convention.  Remove these redundant instructions.
 
+Acked-by: Frank Hofmann <frank.hofmann@tomtom.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-exynos4/sleep.S |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+ arch/arm/mach-s3c64xx/sleep.S |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-exynos4/sleep.S b/arch/arm/mach-exynos4/sleep.S
-index d9a2287..b56a491 100644
---- a/arch/arm/mach-exynos4/sleep.S
-+++ b/arch/arm/mach-exynos4/sleep.S
-@@ -40,11 +40,8 @@
- 	 */
+diff --git a/arch/arm/mach-s3c64xx/sleep.S b/arch/arm/mach-s3c64xx/sleep.S
+index dc4f582..2fd3433 100644
+--- a/arch/arm/mach-s3c64xx/sleep.S
++++ b/arch/arm/mach-s3c64xx/sleep.S
+@@ -35,10 +35,8 @@
+ 	*/
  
  ENTRY(s3c_cpu_save)
--
--	stmfd	sp!, { r3 - r12, lr }
- 	adr	r3, BSYM(exynos4_finish_suspend)
+-	stmfd	sp!, { r4 - r12, lr }
+ 	adr	r3, BSYM(s3c64xx_finish_suspend)
 -	bl	cpu_suspend
--	ldmfd	sp!, { r3 - r12, pc }
+-	ldmfd	sp!, { r4 - r12, pc }
 +	b	cpu_suspend
  
- exynos4_finish_suspend:
- 	ldr	r0, =pm_cpu_sleep
+ s3c64xx_finish_suspend:
+ 	@@ call final suspend code
 -- 
 1.7.4.4
