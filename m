@@ -1,33 +1,53 @@
-From: Sasha Levin <levinsasha928@gmail.com>
-Subject: Re: [RFC 7/8] drivers: introduce rpmsg, a remote-processor
- messaging bus
-Date: Tue, 21 Jun 2011 23:11:27 -0400
-Message-ID: <1308712287.11435.4.camel@lappy>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
-	 <1308640714-17961-8-git-send-email-ohad@wizery.com>
-	 <87liwu8u3q.fsf@rustcorp.com.au>
+From: Vladimir Pantelic <vladoman@gmail.com>
+Subject: Re: Trouble with newer kernels on Gumstix Overo boards
+Date: Wed, 22 Jun 2011 08:57:06 +0200
+Message-ID: <4E019242.1050503@gmail.com>
+References: <BANLkTimJTBpj30EKf_EucvOf2yCHHbRrkQ@mail.gmail.com> <ADF30F4D7BDE934D9B632CE7D5C7ACA4047B99E7E7AD@dbde03.ent.ti.com> <BANLkTimfeS1Xin779eg=8cdjqmqcQeB6HA@mail.gmail.com> <20110621072220.GA21159@atomide.com> <BANLkTim5H3340RChbaVUOpSYb4tQr9X9YA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87liwu8u3q.fsf@rustcorp.com.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:46329 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154Ab1FVG5J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jun 2011 02:57:09 -0400
+Received: by fxm17 with SMTP id 17so427142fxm.19
+        for <linux-omap@vger.kernel.org>; Tue, 21 Jun 2011 23:57:08 -0700 (PDT)
+In-Reply-To: <BANLkTim5H3340RChbaVUOpSYb4tQr9X9YA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Gadiyar, Anand" <gadiyar@ti.com>
 
-On Wed, 2011-06-22 at 12:12 +0930, Rusty Russell wrote:
-> > +#define VIRTIO_ID_RPMSG		10 /* virtio remote processor messaging */
-> 
-> I think you want 6.  Plan 9 jumped ahead to grab 9 :)
+Daniel Mack wrote:
 
-Maybe it's worth adding an appendix to the virtio spec as part of this
-(and really any) patch series which takes a virtio ID.
+> Well, it doesn't really affect me as I just use this as a development
+> platform for now. But please consider that there is hardware out there
+> which gets software updates through automated download and install
+> procedures. In such cases, you want as little dependencies between the
+> bootloader and the kernel, so you can boot both older and newer
 
-Also, I understand that virtio itself as an idea isn't Linux specific,
-but maybe it's worth including the spec (or at least a variation of it)
-as part of the kernel documentation.
+If you want *minimal* dependency, then a compiled-in command line is
+the way to go and the bootloader only providing a few board identifying
+tags
 
--- 
+> kernels (and full software distribution images) with no pain. Or maybe
+> quickly switch from one version to the other for testing. Depending on
+> the complexity of the system, the bootloader might also add extra
+> parameters to the cmdline dynamically.
 
-Sasha.
+AFAIK there is way to have the bootloader provided cmdline appended
+to the compiled-in one
+
+> The serial console change breaks this approach, at it forces the
+> kernel to ship its own CMDLINE and override the one the bootloader
+> provides. I'm sure this is a problem that affects people out there.
+
+FWIW, for our firmware update deployment it's not a problem at all,
+since we do *not* want to rely on a kernel commandline provided by
+the bootloader for the exact same reason. Kernels change and thus
+the kernel command line belongs to the kernel. What does not change
+is e.g. the board id or revision or mem size, that (and only that)
+is provided by the bootloader to the kernel.
+
+
