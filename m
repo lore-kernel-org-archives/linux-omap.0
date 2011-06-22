@@ -1,22 +1,15 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [RFC PATCH] ARM: smp: Fix the CPU hotplug race with scheduler.
-Date: Tue, 21 Jun 2011 17:06:58 -0700
-Message-ID: <4E013222.6080208@codeaurora.org>
-References: <20110620114019.GH2082@n2100.arm.linux.org.uk>
-	<20110620142338.GL2082@n2100.arm.linux.org.uk>
-	<4DFF5F29.2000904@ti.com> <4E005F92.8030208@ti.com>
-	<20110621100057.GB23802@n2100.arm.linux.org.uk>
-	<4E006FA0.7050508@ti.com>
-	<20110621101900.GC23802@n2100.arm.linux.org.uk>
-	<4E00708C.6050108@ti.com>
-	<20110621102600.GD23802@n2100.arm.linux.org.uk>
-	<4E00FC2F.1010400@codeaurora.org>
-	<20110621231035.GE23802@n2100.arm.linux.org.uk>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [RFC 7/8] drivers: introduce rpmsg,
+	a remote-processor messaging bus
+Date: Wed, 22 Jun 2011 12:12:33 +0930
+Message-ID: <87liwu8u3q.fsf@rustcorp.com.au>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
+	<1308640714-17961-8-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110621231035.GE23802@n2100.arm.linux.org.uk>
+In-Reply-To: <1308640714-17961-8-git-send-email-ohad@wizery.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -26,32 +19,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Brian Swetland <swetland@google.com>, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/21/2011 04:10 PM, Russell King - ARM Linux wrote:
-> On Tue, Jun 21, 2011 at 01:16:47PM -0700, Stephen Boyd wrote:
->> On 06/21/2011 03:26 AM, Russell King - ARM Linux wrote:
->>> On Tue, Jun 21, 2011 at 03:51:00PM +0530, Santosh Shilimkar wrote:
->>>> On 6/21/2011 3:49 PM, Russell King - ARM Linux wrote:
->>>>> I won't be committing the init/calibrate.c change to a git tree - it
->>>>> isn't ARM stuff so it goes in patch form.
->>>> Patches with change log would be fine as well.
->>> The answer is not at the moment, but maybe soon.
->> Should we send those two patches to the stable trees as well? They seem
->> to fix issues with cpu onlining that have existed for a long time.
-> Looks to me like the problem was introduced for 2.6.39-rc1, so we
-> should probably get the fix into the 2.6.39-stable tree too.
+On Tue, 21 Jun 2011 10:18:33 +0300, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> Add a virtio-based IPC bus, which enables kernel users to communicate
+> with remote processors over shared memory using a simple messaging
+> protocol.
 
-Are we talking about the loops_per_jiffy problem or the cpu_active
-problem? I would think the cpu_active problem has been there since SMP
-support was added to ARM and the loops_per_jiffy problem has been there
-(depending on the compiler) since 8a9e1b0 ([PATCH] Platform SMIs and
-their interferance with tsc based delay calibration, 2005-06-23).
+Wow, sometimes one writes a standard and people use it.  Thanks!
 
-So pretty much every stable tree would want both of these patches.
+I'm still digesting exactly what you're doing, but this is a bit
+unconventional:
 
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+> +	/* Platform must supply pre-allocated uncached buffers for now */
+> +	vdev->config->get(vdev, VPROC_BUF_ADDR, &addr, sizeof(addr));
+> +	vdev->config->get(vdev, VPROC_BUF_NUM, &num_bufs, sizeof(num_bufs));
+> +	vdev->config->get(vdev, VPROC_BUF_SZ, &buf_size, sizeof(buf_size));
+> +	vdev->config->get(vdev, VPROC_BUF_PADDR, &vrp->phys_base,
+> +						sizeof(vrp->phys_base));
+
+The normal way is to think of the config space as a structure, and use
+offsets rather than using an enum value to distinguish the fields.
+
+> +#define RPMSG_NAME_SIZE			32
+> +#define RPMSG_DEVICE_MODALIAS_FMT	"rpmsg:%s"
+> +
+> +struct rpmsg_device_id {
+> +	char name[RPMSG_NAME_SIZE];
+> +	kernel_ulong_t driver_data	/* Data private to the driver */
+> +			__attribute__((aligned(sizeof(kernel_ulong_t))));
+> +};
+
+This alignment directive seems overkill...
+
+> +#define VIRTIO_ID_RPMSG		10 /* virtio remote processor messaging */
+
+I think you want 6.  Plan 9 jumped ahead to grab 9 :)
+
+Cheers,
+Rusty.
