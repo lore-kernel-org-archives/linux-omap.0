@@ -1,76 +1,69 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 0/8] Introducing a generic AMP/IPC framework
-Date: Wed, 22 Jun 2011 14:41:38 +0300
-Message-ID: <BANLkTim1kN2f41Cfz70=g4a_+gPPrWDacA@mail.gmail.com>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com> <201106211620.02065.arnd@arndb.de>
+From: "Avinash.H.M" <avinashhm@ti.com>
+Subject: [PATCH 1/2] omap4: hwmod: Reset i2c modules as a part of omap_hwmod init
+Date: Wed, 22 Jun 2011 17:16:13 +0530
+Message-ID: <1308743174-12265-1-git-send-email-avinashhm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201106211620.02065.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42705 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754337Ab1FVLqd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jun 2011 07:46:33 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: "Avinash.H.M" <avinashhm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
 
-Hi Arnd,
+The i2c module should be reset as part of the hwmod setup for i2c modules.
+This is happening for omap2 and omap3 i2c modules. But for omap4, the i2c is
+not reset because of the HWMOD_INIT_NO_RESET reset flags. Remove these flags
+to ensure i2c is reset as a part of setup.
 
-On Tue, Jun 21, 2011 at 5:20 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> This looks really nice overall, but I don't currently have time for a
-> more in-depth review. My feeling is that you are definitely on the ri=
-ght
-> track here, and the plans you list as TODO to continue are all good.
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Avinash.H.M <avinashhm@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-Thanks !
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index e1c69ff..2eaf40a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2164,7 +2164,6 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c1_slaves[] = {
+ static struct omap_hwmod omap44xx_i2c1_hwmod = {
+ 	.name		= "i2c1",
+ 	.class		= &omap44xx_i2c_hwmod_class,
+-	.flags		= HWMOD_INIT_NO_RESET,
+ 	.mpu_irqs	= omap44xx_i2c1_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c1_irqs),
+ 	.sdma_reqs	= omap44xx_i2c1_sdma_reqs,
+@@ -2217,7 +2216,6 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c2_slaves[] = {
+ static struct omap_hwmod omap44xx_i2c2_hwmod = {
+ 	.name		= "i2c2",
+ 	.class		= &omap44xx_i2c_hwmod_class,
+-	.flags		= HWMOD_INIT_NO_RESET,
+ 	.mpu_irqs	= omap44xx_i2c2_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c2_irqs),
+ 	.sdma_reqs	= omap44xx_i2c2_sdma_reqs,
+@@ -2270,7 +2268,6 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c3_slaves[] = {
+ static struct omap_hwmod omap44xx_i2c3_hwmod = {
+ 	.name		= "i2c3",
+ 	.class		= &omap44xx_i2c_hwmod_class,
+-	.flags		= HWMOD_INIT_NO_RESET,
+ 	.mpu_irqs	= omap44xx_i2c3_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c3_irqs),
+ 	.sdma_reqs	= omap44xx_i2c3_sdma_reqs,
+@@ -2323,7 +2320,6 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c4_slaves[] = {
+ static struct omap_hwmod omap44xx_i2c4_hwmod = {
+ 	.name		= "i2c4",
+ 	.class		= &omap44xx_i2c_hwmod_class,
+-	.flags		= HWMOD_INIT_NO_RESET,
+ 	.mpu_irqs	= omap44xx_i2c4_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c4_irqs),
+ 	.sdma_reqs	= omap44xx_i2c4_sdma_reqs,
+-- 
+1.7.1
 
-> One point I noticed is the use of debugfs, which you should probably
-> replace at some point with a stable API, e.g. your own debugfs-like
-> file system, but there is no hurry to do that now.
-
-debugfs is only being used to expose debugging info (namely the power
-state of the remote processor and its trace log messages), which is
-mostly useful for developers trying to understand what went wrong.
-
-It seems like debugfs fits quite nicely here (e.g. it's perfectly fine
-if this is completely compiled out on production systems), but sure,
-we can always revisit this later too.
-
-> Regarding the firmware, I think it would be nice to have the option
-> to stick the firmware blob into the flattened device tree as a bininc=
-lude,
-> so you can build systems using the external processors without specia=
-l
-> user space support.
-
-That's interesting. we'll definitely explore this - thanks !
-
-I was also hoping that DT will simplify remote resource allocations as
-well (just like any other device, remote processors usually needs some
-hw resources) and planned to try it out soon to see how it all works
-out together. It might completely eliminate the preliminary "resource
-section" thingy we have in the firmware structure currently.
-
-> The binary format looks reasonable, but if you need anything more com=
-plex,
-> you should probably go straight for ELF files ;-)
-
-Hopefully we won't need to :)
-
-> +struct fw_section {
-> + =A0 =A0 =A0 u32 type;
-> + =A0 =A0 =A0 u64 da;
-> + =A0 =A0 =A0 u32 len;
-> + =A0 =A0 =A0 char content[0];
-> +} __packed;
->
-> Unfortunately require __packed. It would be better to sort the member=
-s
-> differently so that each member is naturally aligned in order to
-> avoid the need for padding or __packed attributes
-
-Definitely. __packed is being used just to be on the safe side; we
-didn't intend to introduce unnatural alignment intentionally. will be
-fixed.
-
-Thanks!
-Ohad.
