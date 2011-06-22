@@ -1,84 +1,79 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 3/6] OMAP: PRCM: Added an api to get id for a PRCM event
-Date: Wed, 22 Jun 2011 19:42:11 +0300
-Message-ID: <1308760934-9757-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 6/6] OMAP3: Serial tty: Added resume_idle calls to critical points
+Date: Wed, 22 Jun 2011 19:42:14 +0300
+Message-ID: <1308760934-9757-7-git-send-email-t-kristo@ti.com>
 References: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34849 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756602Ab1FVQmj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jun 2011 12:42:39 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5MGgdSi022994
+Received: from devils.ext.ti.com ([198.47.26.153]:60483 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753722Ab1FVQmm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jun 2011 12:42:42 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5MGgfrb010217
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:39 -0500
+	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:41 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id p5MGgd2m009421
-	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:39 -0500 (CDT)
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p5MGgfaJ000759
+	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:41 -0500 (CDT)
 Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5MGgbbo012063
-	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:38 -0500 (CDT)
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5MGgd7c012136
+	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:41 -0500 (CDT)
 Content-Class: urn:content-classes:message
 In-Reply-To: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This is required by OMAP3 as it needs to dynamically unmask events during
-idle cycle.
+Any tty access should enable UART port first if it is idle.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/prcm.c             |   17 ++++++++++++++---
- arch/arm/plat-omap/include/plat/prcm.h |    1 +
- 2 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/tty/serial/omap-serial.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index cc92064..f6cde6f 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -174,12 +174,23 @@ static void prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
-  */
- int omap_prcm_event_to_irq(const char *name)
- {
--	int i;
-+	int id;
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 47cadf4..bd6ae02 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -261,6 +261,8 @@ static void serial_omap_start_tx(struct uart_port *port)
+ 	unsigned int start;
+ 	int ret = 0;
+ 
++	omap_uart_resume_idle(up->pdev->id);
 +
-+	id = omap_prcm_event_to_id(name);
-+	if (id < 0)
-+		return id;
-+	return OMAP_PRCM_IRQ_BASE + id;
-+}
+ 	if (!up->use_dma) {
+ 		serial_omap_enable_ier_thri(up);
+ 		return;
+@@ -354,6 +356,8 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
+ 	unsigned int iir, lsr;
+ 	unsigned long flags;
  
-+/*
-+ * Given a PRCM event name, returns the corresponding event id.
-+ */
-+int omap_prcm_event_to_id(const char *name)
-+{
-+	int i;
- 	for (i = 0; i < omap_prcm_irqs_nr; i++)
- 		if (!strcmp(omap_prcm_irqs[i].name, name))
--			return OMAP_PRCM_IRQ_BASE + omap_prcm_irqs[i].offset;
--
-+			return omap_prcm_irqs[i].offset;
- 	return -ENOENT;
- }
++	omap_uart_resume_idle(up->pdev->id);
++
+ 	iir = serial_in(up, UART_IIR);
+ 	if (iir & UART_IIR_NO_INT)
+ 		return IRQ_NONE;
+@@ -641,6 +645,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	unsigned long flags = 0;
+ 	unsigned int baud, quot;
  
-diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
-index 789eb17..b5413ea 100644
---- a/arch/arm/plat-omap/include/plat/prcm.h
-+++ b/arch/arm/plat-omap/include/plat/prcm.h
-@@ -70,6 +70,7 @@ void omap4_prcm_ack_event(unsigned event);
- void omap4_prcm_pending_events(unsigned long *pending);
++	omap_uart_resume_idle(up->pdev->id);
++
+ 	switch (termios->c_cflag & CSIZE) {
+ 	case CS5:
+ 		cval = UART_LCR_WLEN5;
+@@ -947,6 +953,8 @@ serial_omap_console_write(struct console *co, const char *s,
+ 	unsigned int ier;
+ 	int locked = 1;
  
- int omap_prcm_event_to_irq(const char *name);
-+int omap_prcm_event_to_id(const char *name);
- int omap_prcm_irq_init(void);
- void omap_prcm_irq_cleanup(void);
- int omap_prcm_register_pad_irq(u32 pad, unsigned int irq);
++	omap_uart_resume_idle(up->pdev->id);
++
+ 	local_irq_save(flags);
+ 	if (up->port.sysrq)
+ 		locked = 0;
 -- 
 1.7.4.1
 
