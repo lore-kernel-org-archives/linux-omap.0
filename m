@@ -1,79 +1,120 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 6/6] OMAP3: Serial tty: Added resume_idle calls to critical points
-Date: Wed, 22 Jun 2011 19:42:14 +0300
-Message-ID: <1308760934-9757-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 4/6] OMAP3: PM: Use PRCM chain handler
+Date: Wed, 22 Jun 2011 19:42:12 +0300
+Message-ID: <1308760934-9757-5-git-send-email-t-kristo@ti.com>
 References: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60483 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753722Ab1FVQmm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jun 2011 12:42:42 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5MGgfrb010217
+Received: from comal.ext.ti.com ([198.47.26.152]:34851 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757493Ab1FVQmk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jun 2011 12:42:40 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5MGgeFN023002
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:41 -0500
+	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:40 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p5MGgfaJ000759
-	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:41 -0500 (CDT)
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5MGgeKn005638
+	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:40 -0500 (CDT)
 Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5MGgd7c012136
-	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:41 -0500 (CDT)
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5MGgd7Z012136
+	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:39 -0500 (CDT)
 Content-Class: urn:content-classes:message
 In-Reply-To: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Any tty access should enable UART port first if it is idle.
+PRCM interrupts are now handled with the chained handler mechanism. This patch
+also changes the PRCM interrupts to be of one-shot type, and the interrupt
+does not clear the wakeup statuses anymore. Clearing of the wakeup interrupts
+is done just before entering idle, as we probably have more time to do this
+during this time. Changing the wakeup handling logic also fixes an issue
+with the chained PRCM serial interrupts, that prevents clearing of the
+UART wakeup status and hangs the device.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/tty/serial/omap-serial.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |   31 ++++++++++++++++++-------------
+ 1 files changed, 18 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 47cadf4..bd6ae02 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -261,6 +261,8 @@ static void serial_omap_start_tx(struct uart_port *port)
- 	unsigned int start;
- 	int ret = 0;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index adab4d5..ff0811a 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -90,6 +90,7 @@ static int (*_omap_save_secure_sram)(u32 *addr);
+ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+ static struct powerdomain *core_pwrdm, *per_pwrdm;
+ static struct powerdomain *cam_pwrdm;
++static int wkup_event, io_event;
  
-+	omap_uart_resume_idle(up->pdev->id);
-+
- 	if (!up->use_dma) {
- 		serial_omap_enable_ier_thri(up);
+ static inline void omap3_per_save_context(void)
+ {
+@@ -242,20 +243,18 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
+ 
+ static irqreturn_t _prcm_int_handle_wakeup(int irq, void *unused)
+ {
+-	int c;
++	return IRQ_HANDLED;
++}
+ 
+-	c = prcm_clear_mod_irqs(WKUP_MOD, 1);
+-	c += prcm_clear_mod_irqs(CORE_MOD, 1);
+-	c += prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
++static void prcm_clear_wakeups(void)
++{
++	prcm_clear_mod_irqs(WKUP_MOD, 1);
++	prcm_clear_mod_irqs(CORE_MOD, 1);
++	prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
+ 	if (omap_rev() > OMAP3430_REV_ES1_0) {
+-		c += prcm_clear_mod_irqs(CORE_MOD, 3);
+-		c += prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
++		prcm_clear_mod_irqs(CORE_MOD, 3);
++		prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
+ 	}
+-
+-	if (c)
+-		return IRQ_HANDLED;
+-	else
+-		return IRQ_NONE;
+ }
+ 
+ /* Function to restore the table entry that was modified for enabling MMU */
+@@ -301,6 +300,10 @@ void omap_sram_idle(void)
+ 	if (!_omap_sram_idle)
  		return;
-@@ -354,6 +356,8 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
- 	unsigned int iir, lsr;
- 	unsigned long flags;
  
-+	omap_uart_resume_idle(up->pdev->id);
++	prcm_clear_wakeups();
++	omap3_prcm_unmask_event(wkup_event);
++	omap3_prcm_unmask_event(io_event);
 +
- 	iir = serial_in(up, UART_IIR);
- 	if (iir & UART_IIR_NO_INT)
- 		return IRQ_NONE;
-@@ -641,6 +645,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	unsigned long flags = 0;
- 	unsigned int baud, quot;
+ 	pwrdm_clear_all_prev_pwrst(mpu_pwrdm);
+ 	pwrdm_clear_all_prev_pwrst(neon_pwrdm);
+ 	pwrdm_clear_all_prev_pwrst(core_pwrdm);
+@@ -832,17 +835,19 @@ static int __init omap3_pm_init(void)
+ 		goto err_prcm_irq_init;
+ 	}
  
-+	omap_uart_resume_idle(up->pdev->id);
-+
- 	switch (termios->c_cflag & CSIZE) {
- 	case CS5:
- 		cval = UART_LCR_WLEN5;
-@@ -947,6 +953,8 @@ serial_omap_console_write(struct console *co, const char *s,
- 	unsigned int ier;
- 	int locked = 1;
++	wkup_event = omap_prcm_event_to_id("wkup");
+ 	ret = request_irq(omap_prcm_event_to_irq("wkup"),
+ 			  _prcm_int_handle_wakeup,
+-			  IRQF_NO_SUSPEND, "prcm_wkup", NULL);
++			  IRQF_NO_SUSPEND | IRQF_ONESHOT, "prcm_wkup", NULL);
+ 	if (ret) {
+ 		pr_err("request_irq failed to register for PRCM wakeup\n");
+ 		goto err_prcm_irq_wkup;
+ 	}
  
-+	omap_uart_resume_idle(up->pdev->id);
-+
- 	local_irq_save(flags);
- 	if (up->port.sysrq)
- 		locked = 0;
++	io_event = omap_prcm_event_to_id("io");
+ 	ret = request_irq(omap_prcm_event_to_irq("io"),
+ 			  _prcm_int_handle_wakeup,
+-			  IRQF_NO_SUSPEND, "prcm_io", NULL);
++			  IRQF_NO_SUSPEND | IRQF_ONESHOT, "prcm_io", NULL);
+ 	if (ret) {
+ 		pr_err("request_irq failed to register for PRCM io\n");
+ 		goto err_prcm_irq_io;
 -- 
 1.7.4.1
 
