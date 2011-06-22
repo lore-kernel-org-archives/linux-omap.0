@@ -1,88 +1,65 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 15/25] ARM: pm: sa1100: move cpu_suspend into C code
-Date: Wed, 22 Jun 2011 16:13:35 +0100
-Message-ID: <E1QZP7X-0002Wj-Pl@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 05/25] ARM: pm: reallocate registers to avoid r2, r3
+Date: Wed, 22 Jun 2011 16:10:11 +0100
+Message-ID: <E1QZP4F-0002W2-BC@rmk-PC.arm.linux.org.uk>
 References: <20110622150816.GT23234@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-Reply-To: <20110622150816.GT23234@n2100.arm.linux.org.uk>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-samsung-soc-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We don't need a veneer for cpu_suspend, it can be called directly from
-C code now.  Move it into sa11x0_pm_enter() along with the re-enabling
-of clock switching.
+Avoid using r2 and r3 in the suspend code, allowing these to be
+passed further into the function as arguments.
 
+Acked-by: Frank Hofmann <frank.hofmann@tomtom.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-sa1100/pm.c    |    7 +++++--
- arch/arm/mach-sa1100/sleep.S |   12 ++----------
- 2 files changed, 7 insertions(+), 12 deletions(-)
+ arch/arm/kernel/sleep.S |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-sa1100/pm.c b/arch/arm/mach-sa1100/pm.c
-index c4661aa..7d8f80e 100644
---- a/arch/arm/mach-sa1100/pm.c
-+++ b/arch/arm/mach-sa1100/pm.c
-@@ -32,7 +32,7 @@
- #include <asm/system.h>
- #include <asm/mach/time.h>
- 
--extern void sa1100_cpu_suspend(long);
-+extern void sa1100_finish_suspend(unsigned long);
- 
- #define SAVE(x)		sleep_save[SLEEP_SAVE_##x] = x
- #define RESTORE(x)	x = sleep_save[SLEEP_SAVE_##x]
-@@ -75,7 +75,10 @@ static int sa11x0_pm_enter(suspend_state_t state)
- 	PSPR = virt_to_phys(cpu_resume);
- 
- 	/* go zzz */
--	sa1100_cpu_suspend(PLAT_PHYS_OFFSET - PAGE_OFFSET);
-+	cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, 0, sa1100_finish_suspend);
-+
-+	/* Re-enable clock switching */
-+	asm volatile("mcr p15, 0, %0, c15, c1, 2" : : "r" (0));
- 
- 	cpu_init();
- 
-diff --git a/arch/arm/mach-sa1100/sleep.S b/arch/arm/mach-sa1100/sleep.S
-index e814b60..e822331 100644
---- a/arch/arm/mach-sa1100/sleep.S
-+++ b/arch/arm/mach-sa1100/sleep.S
-@@ -22,21 +22,13 @@
- 
- 		.text
- /*
-- * sa1100_cpu_suspend()
-+ * sa1100_finish_suspend()
-  *
-  * Causes sa11x0 to enter sleep state
-  *
-  */
- 
--ENTRY(sa1100_cpu_suspend)
--	mov	r9, lr
--	mov	r1, r0
--	adr	r3, BSYM(sa1100_finish_suspend)
--	bl	cpu_suspend
--	mcr	p15, 0, r1, c15, c1, 2		@ enable clock switching
--	mov	pc, r9				@ return to caller
--
--sa1100_finish_suspend:
-+ENTRY(sa1100_finish_suspend)
- 	@ disable clock switching
- 	mcr	p15, 0, r1, c15, c2, 2
- 
+diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
+index 8dbca93..358be13 100644
+--- a/arch/arm/kernel/sleep.S
++++ b/arch/arm/kernel/sleep.S
+@@ -20,26 +20,26 @@ ENTRY(cpu_suspend)
+ 	mov	r9, lr
+ #ifdef MULTI_CPU
+ 	ldr	r10, =processor
+-	ldr	r0, [r10, #CPU_SLEEP_SIZE] @ size of CPU sleep state
++	ldr	r5, [r10, #CPU_SLEEP_SIZE] @ size of CPU sleep state
+ 	ldr	ip, [r10, #CPU_DO_RESUME] @ virtual resume function
+ #else
+-	ldr	r0, =cpu_suspend_size
++	ldr	r5, =cpu_suspend_size
+ 	ldr	ip, =cpu_do_resume
+ #endif
+-	mov	r2, sp			@ current virtual SP
+-	sub	sp, sp, r0		@ allocate CPU state on stack
++	mov	r6, sp			@ current virtual SP
++	sub	sp, sp, r5		@ allocate CPU state on stack
+ 	mov	r0, sp			@ save pointer
+ 	add	ip, ip, r1		@ convert resume fn to phys
+-	stmfd	sp!, {r1, r2, ip}	@ save v:p, virt SP, phys resume fn
+-	ldr	r3, =sleep_save_sp
+-	add	r2, sp, r1		@ convert SP to phys
++	stmfd	sp!, {r1, r6, ip}	@ save v:p, virt SP, phys resume fn
++	ldr	r5, =sleep_save_sp
++	add	r6, sp, r1		@ convert SP to phys
+ #ifdef CONFIG_SMP
+ 	ALT_SMP(mrc p15, 0, lr, c0, c0, 5)
+ 	ALT_UP(mov lr, #0)
+ 	and	lr, lr, #15
+-	str	r2, [r3, lr, lsl #2]	@ save phys SP
++	str	r6, [r5, lr, lsl #2]	@ save phys SP
+ #else
+-	str	r2, [r3]		@ save phys SP
++	str	r6, [r5]		@ save phys SP
+ #endif
+ #ifdef MULTI_CPU
+ 	mov	lr, pc
 -- 
 1.7.4.4
