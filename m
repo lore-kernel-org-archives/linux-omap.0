@@ -1,75 +1,139 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH] ARM: smp: Fix the CPU hotplug race with scheduler.
-Date: Wed, 22 Jun 2011 11:06:35 +0100
-Message-ID: <20110622100635.GA9449@n2100.arm.linux.org.uk>
-References: <4DFF5F29.2000904@ti.com> <4E005F92.8030208@ti.com> <20110621100057.GB23802@n2100.arm.linux.org.uk> <4E006FA0.7050508@ti.com> <20110621101900.GC23802@n2100.arm.linux.org.uk> <4E00708C.6050108@ti.com> <20110621102600.GD23802@n2100.arm.linux.org.uk> <4E00FC2F.1010400@codeaurora.org> <20110621231035.GE23802@n2100.arm.linux.org.uk> <4E013222.6080208@codeaurora.org>
+From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: [PATCH 2/2] iommu/amd: Move missing parts to drivers/iommu
+Date: Wed, 22 Jun 2011 12:16:46 +0200
+Message-ID: <1308737806-2658-3-git-send-email-joerg.roedel@amd.com>
+References: <1307742947-32118-1-git-send-email-ohad@wizery.com>
+ <1308737806-2658-1-git-send-email-joerg.roedel@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35036 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752837Ab1FVKHH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jun 2011 06:07:07 -0400
-Content-Disposition: inline
-In-Reply-To: <4E013222.6080208@codeaurora.org>
+Received: from tx2ehsobe004.messaging.microsoft.com ([65.55.88.14]:5082 "EHLO
+	TX2EHSOBE009.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754197Ab1FVKQN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Jun 2011 06:16:13 -0400
+In-Reply-To: <1308737806-2658-1-git-send-email-joerg.roedel@amd.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arnd@arndb.de, davidb@codeaurora.org, dwmw2@infradead.org, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org, Joerg Roedel <joerg.roedel@amd.com>
 
-On Tue, Jun 21, 2011 at 05:06:58PM -0700, Stephen Boyd wrote:
-> On 06/21/2011 04:10 PM, Russell King - ARM Linux wrote:
-> > On Tue, Jun 21, 2011 at 01:16:47PM -0700, Stephen Boyd wrote:
-> >> On 06/21/2011 03:26 AM, Russell King - ARM Linux wrote:
-> >>> On Tue, Jun 21, 2011 at 03:51:00PM +0530, Santosh Shilimkar wrote:
-> >>>> On 6/21/2011 3:49 PM, Russell King - ARM Linux wrote:
-> >>>>> I won't be committing the init/calibrate.c change to a git tree - it
-> >>>>> isn't ARM stuff so it goes in patch form.
-> >>>> Patches with change log would be fine as well.
-> >>> The answer is not at the moment, but maybe soon.
-> >> Should we send those two patches to the stable trees as well? They seem
-> >> to fix issues with cpu onlining that have existed for a long time.
-> > Looks to me like the problem was introduced for 2.6.39-rc1, so we
-> > should probably get the fix into the 2.6.39-stable tree too.
-> 
-> Are we talking about the loops_per_jiffy problem or the cpu_active
-> problem? I would think the cpu_active problem has been there since SMP
-> support was added to ARM and the loops_per_jiffy problem has been there
-> (depending on the compiler) since 8a9e1b0 ([PATCH] Platform SMIs and
-> their interferance with tsc based delay calibration, 2005-06-23).
+A few parts of the driver were missing in drivers/iommu.
+Move them there to have the complete driver in that
+directory.
 
-The cpu_active problem hasn't actually caused any symptoms on ARM, so
-it's low priority.  It's only a problem which should be sorted in
--stable _if_ someone reports that it has caused a problem.  Up until
-Santosh's patch, no one has done so, and I've not seen any problems
-on any of my ARM SMP platforms coming from it.
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+---
+ arch/x86/kernel/Makefile                           |    1 -
+ drivers/iommu/Makefile                             |    2 +-
+ drivers/iommu/amd_iommu.c                          |    7 ++++---
+ .../x86/kernel => drivers/iommu}/amd_iommu_init.c  |    8 +++++---
+ .../asm => drivers/iommu}/amd_iommu_proto.h        |    2 +-
+ .../asm => drivers/iommu}/amd_iommu_types.h        |    0
+ .../asm/amd_iommu.h => include/linux/amd-iommu.h   |    0
+ 7 files changed, 11 insertions(+), 9 deletions(-)
+ rename {arch/x86/kernel => drivers/iommu}/amd_iommu_init.c (99%)
+ rename {arch/x86/include/asm => drivers/iommu}/amd_iommu_proto.h (98%)
+ rename {arch/x86/include/asm => drivers/iommu}/amd_iommu_types.h (100%)
+ rename arch/x86/include/asm/amd_iommu.h => include/linux/amd-iommu.h (100%)
 
-As for the loops_per_jiffy, it isn't a problem before the commit ID
-I pointed out - I've checked the assembly, and the compiler optimizes
-away the initialization of loops_per_jiffy to zero - the first write
-is when its set to (1<<12).  Take a moment to think about this:
+diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
+index aef0298..11817ff 100644
+--- a/arch/x86/kernel/Makefile
++++ b/arch/x86/kernel/Makefile
+@@ -123,7 +123,6 @@ ifeq ($(CONFIG_X86_64),y)
+ 
+ 	obj-$(CONFIG_GART_IOMMU)	+= amd_gart_64.o aperture_64.o
+ 	obj-$(CONFIG_CALGARY_IOMMU)	+= pci-calgary_64.o tce_64.o
+-	obj-$(CONFIG_AMD_IOMMU)		+= amd_iommu_init.o
+ 
+ 	obj-$(CONFIG_PCI_MMCONFIG)	+= mmconf-fam10h_64.o
+ 	obj-y				+= vsmp_64.o
+diff --git a/drivers/iommu/Makefile b/drivers/iommu/Makefile
+index 49e9c0f..4d4d77d 100644
+--- a/drivers/iommu/Makefile
++++ b/drivers/iommu/Makefile
+@@ -1,5 +1,5 @@
+ obj-$(CONFIG_IOMMU_API) += iommu.o
+ obj-$(CONFIG_MSM_IOMMU) += msm_iommu.o msm_iommu_dev.o
+-obj-$(CONFIG_AMD_IOMMU) += amd_iommu.o
++obj-$(CONFIG_AMD_IOMMU) += amd_iommu.o amd_iommu_init.o
+ obj-$(CONFIG_DMAR) += dmar.o iova.o intel-iommu.o
+ obj-$(CONFIG_INTR_REMAP) += dmar.o intr_remapping.o
+diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+index 7c3a95e..5aa12ea 100644
+--- a/drivers/iommu/amd_iommu.c
++++ b/drivers/iommu/amd_iommu.c
+@@ -27,13 +27,14 @@
+ #include <linux/iommu-helper.h>
+ #include <linux/iommu.h>
+ #include <linux/delay.h>
++#include <linux/amd-iommu.h>
+ #include <asm/proto.h>
+ #include <asm/iommu.h>
+ #include <asm/gart.h>
+ #include <asm/dma.h>
+-#include <asm/amd_iommu_proto.h>
+-#include <asm/amd_iommu_types.h>
+-#include <asm/amd_iommu.h>
++
++#include "amd_iommu_proto.h"
++#include "amd_iommu_types.h"
+ 
+ #define CMD_SET_TYPE(cmd, t) ((cmd)->data[1] |= ((t) << 28))
+ 
+diff --git a/arch/x86/kernel/amd_iommu_init.c b/drivers/iommu/amd_iommu_init.c
+similarity index 99%
+rename from arch/x86/kernel/amd_iommu_init.c
+rename to drivers/iommu/amd_iommu_init.c
+index bfc8453..82d2410 100644
+--- a/arch/x86/kernel/amd_iommu_init.c
++++ b/drivers/iommu/amd_iommu_init.c
+@@ -24,14 +24,16 @@
+ #include <linux/syscore_ops.h>
+ #include <linux/interrupt.h>
+ #include <linux/msi.h>
++#include <linux/amd-iommu.h>
+ #include <asm/pci-direct.h>
+-#include <asm/amd_iommu_proto.h>
+-#include <asm/amd_iommu_types.h>
+-#include <asm/amd_iommu.h>
+ #include <asm/iommu.h>
+ #include <asm/gart.h>
+ #include <asm/x86_init.h>
+ #include <asm/iommu_table.h>
++
++#include "amd_iommu_proto.h"
++#include "amd_iommu_types.h"
++
+ /*
+  * definitions for the ACPI scanning code
+  */
+diff --git a/arch/x86/include/asm/amd_iommu_proto.h b/drivers/iommu/amd_iommu_proto.h
+similarity index 98%
+rename from arch/x86/include/asm/amd_iommu_proto.h
+rename to drivers/iommu/amd_iommu_proto.h
+index 55d95eb..7ffaa64 100644
+--- a/arch/x86/include/asm/amd_iommu_proto.h
++++ b/drivers/iommu/amd_iommu_proto.h
+@@ -19,7 +19,7 @@
+ #ifndef _ASM_X86_AMD_IOMMU_PROTO_H
+ #define _ASM_X86_AMD_IOMMU_PROTO_H
+ 
+-#include <asm/amd_iommu_types.h>
++#include "amd_iommu_types.h"
+ 
+ extern int amd_iommu_init_dma_ops(void);
+ extern int amd_iommu_init_passthrough(void);
+diff --git a/arch/x86/include/asm/amd_iommu_types.h b/drivers/iommu/amd_iommu_types.h
+similarity index 100%
+rename from arch/x86/include/asm/amd_iommu_types.h
+rename to drivers/iommu/amd_iommu_types.h
+diff --git a/arch/x86/include/asm/amd_iommu.h b/include/linux/amd-iommu.h
+similarity index 100%
+rename from arch/x86/include/asm/amd_iommu.h
+rename to include/linux/amd-iommu.h
+-- 
+1.7.4.1
 
-	if ((loops_per_jiffy = 0) == 0) {
-	} else {
-		loops_per_jiffy = 1<<12;
-		...
-	}
 
-Any compiler worth talking about is going to optimize away the initial
-constant write to loops_per_jiffy there provided loops_per_jiffy is not
-volatile.
-
-So, although its not desirable for older kernels to have their lpj
-overwritten in this way, it doesn't cause the spinlock debugging code
-to explode.
-
-This can be shown to be correct because there hasn't been any problem
-with ARM secondary CPU bringup until recently.
-
-Plus, the previous version of the code requires significant changes to
-sort the problem out.
-
-So, the lpj patch will only sensibly apply to 2.6.39-rc1 and later,
-and so it's only going to be submitted for 2.6.39-stable.  Previous
-kernels, the risks of changing it outweighs by several orders of
-magnitude any benefit coming from the change.
