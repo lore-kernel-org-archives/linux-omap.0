@@ -1,231 +1,220 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCH 1/2] OMAP4 :TWL6030: Regulator set the default behavior of LDO's
-Date: Wed, 22 Jun 2011 20:00:18 +0530
-Message-ID: <BANLkTi=e=weaR070Di_V=7wG7bdUF2pZMQ@mail.gmail.com>
-References: <1308702281-12665-1-git-send-email-girishsg@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH v3 3/3] arm: omap3: cm-t35: add support for cm-t3730
+Date: Wed, 22 Jun 2011 17:56:18 +0300
+Message-ID: <4E020292.4090002@compulab.co.il>
+References: <20110614073648.GI3352@atomide.com> <1308086174-3080-3-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:46715 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758033Ab1FVOaT convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Jun 2011 10:30:19 -0400
-Received: by mail-yi0-f47.google.com with SMTP id 18so370351yib.6
-        for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 07:30:19 -0700 (PDT)
-In-Reply-To: <1308702281-12665-1-git-send-email-girishsg@ti.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:37996
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757949Ab1FVO4V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Jun 2011 10:56:21 -0400
+In-Reply-To: <1308086174-3080-3-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Girish S G <girishsg@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Rapoport <mike@compulab.co.il>
 
-On Wed, Jun 22, 2011 at 5:54 AM, Girish S G <girishsg@ti.com> wrote:
-> TWL6030 below table shows the default state each LDO's can
-> be put into.
->
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| LDO =A0 | =A0 =A0 =A0 Usage =A0 =A0 =A0 =A0 =A0 | =A0=
- =A0 =A0 state =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| VANA =A0| sources internal =A0 =A0 =A0| Always ON =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |
-> =A0 =A0 =A0 =A0| =A0 =A0 =A0 | analog voltage =A0 =A0 =A0 =A0| =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| VAUX1 | eMMC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| MM=
-C Driver needs to handle =A0 =A0|
-> =A0 =A0 =A0 =A0| =A0 =A0 =A0 | =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| VAUX2 | A/V switch =A0 =A0 =A0 =A0 =A0 =A0| Driver n=
-eeds to handle =A0 =A0 =A0 =A0|
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| VAUX3 | 5MP CAMp =A0 =A0 =A0 =A0 =A0 =A0 =A0| Driver=
- needs to handle =A0 =A0 =A0 =A0|
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| VCXIO | supplies DPLL's =A0 =A0 =A0 | Can be put OFF=
- when OMAP hits |
-> =A0 =A0 =A0 =A0| =A0 =A0 =A0 | =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | OFF mode. =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| VDAC =A0| HDMI, CDC chip =A0 =A0 =A0 =A0| Always ON =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| VMMC =A0| MMC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =
-Driver needs to handle =A0 =A0 =A0 =A0|
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| VPP =A0 | VPP pins of OMAP =A0 =A0 =A0| Used while b=
-urning fuses in =A0 |
-> =A0 =A0 =A0 =A0| =A0 =A0 =A0 | =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | OMAP. This can be turned OFF =A0|
-> =A0 =A0 =A0 =A0| =A0 =A0 =A0 | =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | by default when kernel comes =A0|
-> =A0 =A0 =A0 =A0| =A0 =A0 =A0 | =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | up. =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| VRTC =A0| VBRTC/RTC =A0 =A0 =A0 =A0 =A0 =A0 | Always=
- ON =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| VUSB =A0| USB OTG pins =A0 =A0 =A0 =A0 =A0| Driver n=
-eeds to handle =A0 =A0 =A0 =A0|
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| VUSIM | VDDS_SIM, SIM cage =A0 =A0| Driver needs to =
-handle. =A0 =A0 =A0 |
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
-> =A0 =A0 =A0 =A0| CLK32K| 32KHz o/p clk =A0 =A0 =A0 =A0 | WIFI/BT/FM/G=
-PS driver needs =A0 |
-> =A0 =A0 =A0 =A0| =A0 =A0 =A0 | =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | to handle =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |
-> =A0 =A0 =A0 =A0+-----------------------------------------------------=
-----------+
->
-> =A0- VDAC, VANA, VCXIO and VRTC should be kept always ON. As per the =
-table above.
->
-> Need REVISIT on below LDO's:
-> =A0- VAUX1 kept ON now. MMC driver needs to take care of enabling/dis=
-abling
-> =A0 as needed. Issue seen with eMMC bootup with VAUX1 disabled by def=
-ault.
->
-> =A0- VAUX3 is kept ON now. CAM/syslink should handle this regulator. =
-This
-> =A0 is only for 5MP camera on Blaze.
->
-> =A0- CLK32KG is pseudo regulator, on Blaze/panda it supplies GPS/WIFI=
-/BT/FM/GPS
-> =A0 Drivers should handle it. Keeping it always ON as of now.
+Tony,
 
-description and code changes are not in sync.
-vmmc, vana, vdac, vusb is kept as always_on.
-Can you try boot_on if it fits you requirement.
+Does this one look better?
 
---=20
-Thanks and Regards,
-Balaji T K
 
+
+On 06/15/11 00:16, Igor Grinberg wrote:
+
+> cm-t3730 is basically the same board as cm-t35,
+> but has AM/DM3730 SoC assembled and therefore some changes are required.
 >
-> Signed-off-by: Girish S G <girishsg@ti.com>
+> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> Acked-by: Mike Rapoport <mike@compulab.co.il>
 > ---
-> =A0arch/arm/mach-omap2/board-4430sdp.c =A0 =A0| =A0 =A04 ++++
-> =A0arch/arm/mach-omap2/board-omap4panda.c | =A0 =A03 +++
-> =A02 files changed, 7 insertions(+), 0 deletions(-)
+> v3:	fix MACH_* selection
+> 	remove completely the use of cpu_is_*
+> v2:	Add debug uart entry
 >
-> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap=
-2/board-4430sdp.c
-> index 63de2d3..04b7770 100644
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -440,6 +440,7 @@ static struct regulator_init_data sdp4430_vmmc =3D=
- {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D REGULATOR_CHANG=
-E_VOLTAGE
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_CHANGE_MODE
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_CHANGE_STATUS,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .always_on =A0 =A0 =A0=3D true,
-> =A0 =A0 =A0 =A0},
-> =A0 =A0 =A0 =A0.num_consumer_supplies =A0=3D 1,
-> =A0 =A0 =A0 =A0.consumer_supplies =A0 =A0 =A0=3D sdp4430_vmmc_supply,
-> @@ -479,6 +480,7 @@ static struct regulator_init_data sdp4430_vana =3D=
- {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_MODE_STANDBY,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D REGULATOR_CHANG=
-E_MODE
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_CHANGE_STATUS,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .always_on =A0 =A0 =A0=3D true,
-> =A0 =A0 =A0 =A0},
-> =A0};
 >
-> @@ -501,6 +503,7 @@ static struct regulator_init_data sdp4430_vdac =3D=
- {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_MODE_STANDBY,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D REGULATOR_CHANG=
-E_MODE
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_CHANGE_STATUS,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .always_on =A0 =A0 =A0=3D true,
-> =A0 =A0 =A0 =A0},
-> =A0};
+>  arch/arm/mach-omap2/Kconfig                  |    6 ++-
+>  arch/arm/mach-omap2/board-cm-t35.c           |   77 ++++++++++++++++++++-----
+>  arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+>  3 files changed, 67 insertions(+), 17 deletions(-)
 >
-> @@ -519,6 +522,7 @@ static struct regulator_init_data sdp4430_vusb =3D=
- {
-> =A0static struct regulator_init_data sdp4430_clk32kg =3D {
-> =A0 =A0 =A0 =A0.constraints =3D {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0 =A0 =A0 =A0 =3D RE=
-GULATOR_CHANGE_STATUS,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .always_on =A0 =A0 =A0=3D true,
-> =A0 =A0 =A0 =A0},
-> =A0};
->
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-o=
-map2/board-omap4panda.c
-> index 0cfe200..3415a5e 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -337,6 +337,7 @@ static struct regulator_init_data omap4_panda_van=
-a =3D {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_MODE_STANDBY,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D REGULATOR_CHANG=
-E_MODE
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_CHANGE_STATUS,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .always_on =A0 =A0 =A0=3D true,
-> =A0 =A0 =A0 =A0},
-> =A0};
->
-> @@ -359,6 +360,7 @@ static struct regulator_init_data omap4_panda_vda=
-c =3D {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_MODE_STANDBY,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D REGULATOR_CHANG=
-E_MODE
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_CHANGE_STATUS,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .always_on =A0 =A0 =A0=3D true,
-> =A0 =A0 =A0 =A0},
-> =A0};
->
-> @@ -377,6 +379,7 @@ static struct regulator_init_data omap4_panda_vus=
-b =3D {
-> =A0static struct regulator_init_data omap4_panda_clk32kg =3D {
-> =A0 =A0 =A0 =A0.constraints =3D {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0 =A0 =A0 =A0 =3D RE=
-GULATOR_CHANGE_STATUS,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .always_on =A0 =A0 =A0=3D true,
-> =A0 =A0 =A0 =A0},
-> =A0};
->
-> --
-> 1.6.0.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 19d5891..4ae6257 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -266,9 +266,10 @@ config MACH_OMAP_ZOOM3
+>  	select REGULATOR_FIXED_VOLTAGE
+>  
+>  config MACH_CM_T35
+> -	bool "CompuLab CM-T35 module"
+> +	bool "CompuLab CM-T35/CM-T3730 modules"
+>  	depends on ARCH_OMAP3
+>  	default y
+> +	select MACH_CM_T3730
+>  	select OMAP_PACKAGE_CUS
+>  
+>  config MACH_CM_T3517
+> @@ -277,6 +278,9 @@ config MACH_CM_T3517
+>  	default y
+>  	select OMAP_PACKAGE_CBB
+>  
+> +config MACH_CM_T3730
+> +       bool
+> +
+>  config MACH_IGEP0020
+>  	bool "IGEP v2 board"
+>  	depends on ARCH_OMAP3
+> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+> index 256b81c..ea31281 100644
+> --- a/arch/arm/mach-omap2/board-cm-t35.c
+> +++ b/arch/arm/mach-omap2/board-cm-t35.c
+> @@ -1,5 +1,5 @@
+>  /*
+> - * board-cm-t35.c (CompuLab CM-T35 module)
+> + * CompuLab CM-T35/CM-T3730 modules support
+>   *
+>   * Copyright (C) 2009-2011 CompuLab, Ltd.
+>   * Authors: Mike Rapoport <mike@compulab.co.il>
+> @@ -574,17 +574,11 @@ static struct omap_board_mux board_mux[] __initdata = {
+>  	OMAP3_MUX(UART1_TX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+>  	OMAP3_MUX(UART1_RX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+>  
+> -	/* DSS */
+> +	/* common DSS */
+>  	OMAP3_MUX(DSS_PCLK, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+>  	OMAP3_MUX(DSS_HSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+>  	OMAP3_MUX(DSS_VSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+>  	OMAP3_MUX(DSS_ACBIAS, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+>  	OMAP3_MUX(DSS_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+>  	OMAP3_MUX(DSS_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+>  	OMAP3_MUX(DSS_DATA8, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> @@ -597,12 +591,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+>  	OMAP3_MUX(DSS_DATA15, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+>  	OMAP3_MUX(DSS_DATA16, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+>  	OMAP3_MUX(DSS_DATA17, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA20, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA21, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> -	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+>  
+>  	/* display controls */
+>  	OMAP3_MUX(MCBSP1_FSR, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
+> @@ -615,19 +603,53 @@ static struct omap_board_mux board_mux[] __initdata = {
+>  
+>  	{ .reg_offset = OMAP_MUX_TERMINATOR },
+>  };
+> +
+> +static void __init cm_t3x_common_dss_mux_init(int mux_mode)
+> +{
+> +	omap_mux_init_signal("dss_data18", mux_mode);
+> +	omap_mux_init_signal("dss_data19", mux_mode);
+> +	omap_mux_init_signal("dss_data20", mux_mode);
+> +	omap_mux_init_signal("dss_data21", mux_mode);
+> +	omap_mux_init_signal("dss_data22", mux_mode);
+> +	omap_mux_init_signal("dss_data23", mux_mode);
+> +}
+> +
+> +static void __init cm_t35_init_mux(void)
+> +{
+> +	omap_mux_init_signal("gpio_70", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
+> +	omap_mux_init_signal("gpio_71", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
+> +	omap_mux_init_signal("gpio_72", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
+> +	omap_mux_init_signal("gpio_73", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
+> +	omap_mux_init_signal("gpio_74", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
+> +	omap_mux_init_signal("gpio_75", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
+> +	cm_t3x_common_dss_mux_init(OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
+> +}
+> +
+> +static void __init cm_t3730_init_mux(void)
+> +{
+> +	omap_mux_init_signal("sys_boot0", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
+> +	omap_mux_init_signal("sys_boot1", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
+> +	omap_mux_init_signal("sys_boot3", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
+> +	omap_mux_init_signal("sys_boot4", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
+> +	omap_mux_init_signal("sys_boot5", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
+> +	omap_mux_init_signal("sys_boot6", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
+> +	cm_t3x_common_dss_mux_init(OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
+> +}
+> +#else
+> +static inline void cm_t35_init_mux(void) {}
+> +static inline void cm_t3730_init_mux(void) {}
+>  #endif
+>  
+>  static struct omap_board_config_kernel cm_t35_config[] __initdata = {
+>  };
+>  
+> -static void __init cm_t35_init(void)
+> +static void __init cm_t3x_common_init(void)
+>  {
+>  	omap_board_config = cm_t35_config;
+>  	omap_board_config_size = ARRAY_SIZE(cm_t35_config);
+>  	omap3_mux_init(board_mux, OMAP_PACKAGE_CUS);
+>  	omap_serial_init();
+>  	cm_t35_init_i2c();
+> -	cm_t35_init_nand();
+>  	omap_ads7846_init(1, CM_T35_GPIO_PENDOWN, 0, NULL);
+>  	cm_t35_init_ethernet();
+>  	cm_t35_init_led();
+> @@ -637,6 +659,19 @@ static void __init cm_t35_init(void)
+>  	usbhs_init(&usbhs_bdata);
+>  }
+>  
+> +static void __init cm_t35_init(void)
+> +{
+> +	cm_t3x_common_init();
+> +	cm_t35_init_mux();
+> +	cm_t35_init_nand();
+> +}
+> +
+> +static void __init cm_t3730_init(void)
+> +{
+> +	cm_t3x_common_init();
+> +	cm_t3730_init_mux();
+> +}
+> +
+>  MACHINE_START(CM_T35, "Compulab CM-T35")
+>  	.boot_params	= 0x80000100,
+>  	.reserve	= omap_reserve,
+> @@ -646,3 +681,13 @@ MACHINE_START(CM_T35, "Compulab CM-T35")
+>  	.init_machine	= cm_t35_init,
+>  	.timer		= &omap_timer,
+>  MACHINE_END
+> +
+> +MACHINE_START(CM_T3730, "Compulab CM-T3730")
+> +	.boot_params    = 0x80000100,
+> +	.reserve        = omap_reserve,
+> +	.map_io         = omap3_map_io,
+> +	.init_early     = cm_t35_init_early,
+> +	.init_irq       = omap_init_irq,
+> +	.init_machine   = cm_t3730_init,
+> +	.timer          = &omap_timer,
+> +MACHINE_END
+> diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+> index ac4b60d..a067484 100644
+> --- a/arch/arm/plat-omap/include/plat/uncompress.h
+> +++ b/arch/arm/plat-omap/include/plat/uncompress.h
+> @@ -148,6 +148,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
+>  		/* omap3 based boards using UART3 */
+>  		DEBUG_LL_OMAP3(3, cm_t35);
+>  		DEBUG_LL_OMAP3(3, cm_t3517);
+> +		DEBUG_LL_OMAP3(3, cm_t3730);
+>  		DEBUG_LL_OMAP3(3, craneboard);
+>  		DEBUG_LL_OMAP3(3, devkit8000);
+>  		DEBUG_LL_OMAP3(3, igep0020);
+
+-- 
+Regards,
+Igor.
+
