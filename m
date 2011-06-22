@@ -1,36 +1,44 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 0/3] OMAP: HSMMC: cleanup and runtime pm
-Date: Wed, 22 Jun 2011 18:05:06 +0200
-Message-ID: <4E0212B2.3070203@ti.com>
-References: <1308752314-32079-1-git-send-email-balajitk@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 25/25] ARM: pm: omap34xx: convert to generic
+	suspend/resume support
+Date: Wed, 22 Jun 2011 17:10:21 +0100
+Message-ID: <20110622161021.GB9449@n2100.arm.linux.org.uk>
+References: <20110622150816.GT23234@n2100.arm.linux.org.uk> <E1QZPAo-0002XO-9G@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45559 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757993Ab1FVQFW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Jun 2011 12:05:22 -0400
-In-Reply-To: <1308752314-32079-1-git-send-email-balajitk@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52884 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758027Ab1FVQKd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jun 2011 12:10:33 -0400
+Content-Disposition: inline
+In-Reply-To: <E1QZPAo-0002XO-9G@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "tony@atomide.com" <tony@atomide.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Balaji,
+A couple of things to point out here:
 
-On 6/22/2011 4:18 PM, Krishnamoorthy, Balaji T wrote:
-> Removing the custom state machine - lazy disable framework in omap_hsmmc
-> to make way for runtime pm to handle host controller
-> power states.
-> This allows mmc_host_enable/mmc_host_disable to be replaced by
-> runtime get_sync and put_sync at host controller driver.
->
-> Enable runtime PM in omap_hsmmc
+On Wed, Jun 22, 2011 at 04:16:58PM +0100, Russell King - ARM Linux wrote:
+> -	mrc	p15, 0, r4, c13, c0, 1	@ Context ID
+> -	mrc	p15, 0, r5, c13, c0, 2	@ User r/w thread and process ID
+> -	mrc	p15, 0, r6, c12, c0, 0	@ Secure or NS vector base address
+> -	mrs	r7, cpsr		@ Store current cpsr
+> -	stmia	r8!, {r4-r7}
 
-That's a good news, I was struggling with some hwmod cleanup due to the 
-lack of pm_runtime support for the MMC driver.
-I'll try that series without the hacks I had to do on top of my cleanup.
+1. The User r/w thread and process ID is not saved/restored by Linux over
+context switches, so it doesn't serve any useful purpose to save and
+restore over resume.
 
-Thanks,
-Benoit
+2. Compare the instruction saving and restoring the vector base address
+(see below for the restore code.)
+
+> -	ldmia	r3!,{r4-r7}
+> -	mcr	p15, 0, r4, c13, c0, 1	@ Context ID
+> -	mcr	p15, 0, r5, c13, c0, 2	@ User r/w thread and process ID
+> -	mrc	p15, 0, r6, c12, c0, 0	@ Secure or NS vector base address
+> -	msr	cpsr, r7		@ store cpsr
+
+Which means it's pointless saving and restoring that register, because
+we already aren't restoring it (plus there's the possibility that if we
+were to write to it, we'd get an abort.)
