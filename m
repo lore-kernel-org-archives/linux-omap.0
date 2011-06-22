@@ -1,80 +1,45 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 3/3] MMC: OMAP: HSMMC: Remove unused iclk
-Date: Wed, 22 Jun 2011 18:27:37 +0200
-Message-ID: <4E0217F9.9070105@ti.com>
-References: <1308752314-32079-1-git-send-email-balajitk@ti.com> <1308752314-32079-4-git-send-email-balajitk@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv3 0/6] PRCM chain handler
+Date: Wed, 22 Jun 2011 19:42:08 +0300
+Message-ID: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39206 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47906 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751742Ab1FVQ1n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Jun 2011 12:27:43 -0400
-In-Reply-To: <1308752314-32079-4-git-send-email-balajitk@ti.com>
+	id S1753722Ab1FVQmg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jun 2011 12:42:36 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5MGgaOU014095
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:36 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p5MGgaoD000732
+	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:36 -0500 (CDT)
+Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5MGgK31011801
+	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 11:42:35 -0500 (CDT)
+Content-Class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "tony@atomide.com" <tony@atomide.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+To: linux-omap@vger.kernel.org
 
-On 6/22/2011 4:18 PM, Krishnamoorthy, Balaji T wrote:
-> After runtime conversion to handle clk,
-> iclk node is not used
-> However fclk node is still used to get clock rate.
->
-> Signed-off-by: Balaji T K<balajitk@ti.com>
-> ---
->   drivers/mmc/host/omap_hsmmc.c |   10 ----------
->   1 files changed, 0 insertions(+), 10 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 5b81d8b..afcca36 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -145,7 +145,6 @@ struct omap_hsmmc_host {
->   	struct	mmc_command	*cmd;
->   	struct	mmc_data	*data;
->   	struct	clk		*fclk;
-> -	struct	clk		*iclk;
->   	struct	clk		*dbclk;
->   	/*
->   	 * vcc == configured supply
-> @@ -1855,17 +1854,10 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
->
->   	spin_lock_init(&host->irq_lock);
->
-> -	host->iclk = clk_get(&pdev->dev, "ick");
-> -	if (IS_ERR(host->iclk)) {
-> -		ret = PTR_ERR(host->iclk);
-> -		host->iclk = NULL;
-> -		goto err1;
-> -	}
->   	host->fclk = clk_get(&pdev->dev, "fck");
->   	if (IS_ERR(host->fclk)) {
->   		ret = PTR_ERR(host->fclk);
->   		host->fclk = NULL;
-> -		clk_put(host->iclk);
->   		goto err1;
->   	}
->
-> @@ -2025,7 +2017,6 @@ err_irq:
->   	pm_runtime_mark_last_busy(host->dev);
->   	pm_runtime_put_autosuspend(host->dev);
->   	clk_put(host->fclk);
+I was able to test this on OMAP3 beagleboard and got it working properly
+after some sweating.
 
-Since you just have to use the clk_get_rate, you can remove as well all 
-the clock related functions for the fck node: clk_put / clk_enable...
+Version 3 changes:
+- Changed omap3 PRCM wakeup interrupt handler to be a dummy, wakeup irq
+  clearing is now done when we are entering idle. This prevents PRCM
+  interrupt hanging in case UART is disabled, and gives probably slightly
+  better latencies during wakeup.
+- Added console lock protection during uart clock enable / disable
+  * prevents nastiness to happen when omap_device wants to print out something
+- A few new resume_idle calls added to tty omap-serial
 
-> -	clk_put(host->iclk);
->   	if (host->got_dbclk) {
->   		clk_disable(host->dbclk);
->   		clk_put(host->dbclk);
-> @@ -2062,7 +2053,6 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
->   		pm_runtime_forbid(host->dev);
->   		pm_runtime_disable(host->dev);
->   		clk_put(host->fclk);
+-Tero
 
-Here as well.
 
-Regards,
-Benoit
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
+
