@@ -1,33 +1,45 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH] ARM: smp: Fix the CPU hotplug race with scheduler.
-Date: Wed, 22 Jun 2011 00:10:35 +0100
-Message-ID: <20110621231035.GE23802@n2100.arm.linux.org.uk>
-References: <20110620114019.GH2082@n2100.arm.linux.org.uk> <20110620142338.GL2082@n2100.arm.linux.org.uk> <4DFF5F29.2000904@ti.com> <4E005F92.8030208@ti.com> <20110621100057.GB23802@n2100.arm.linux.org.uk> <4E006FA0.7050508@ti.com> <20110621101900.GC23802@n2100.arm.linux.org.uk> <4E00708C.6050108@ti.com> <20110621102600.GD23802@n2100.arm.linux.org.uk> <4E00FC2F.1010400@codeaurora.org>
+From: Girish S G <girishsg@ti.com>
+Subject: [PATCH 0/2] OMAP4: PM: Regulator state update
+Date: Tue, 21 Jun 2011 19:24:36 -0500
+Message-ID: <1308702276-12539-1-git-send-email-girishsg@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37245 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757012Ab1FUXLA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2011 19:11:00 -0400
-Content-Disposition: inline
-In-Reply-To: <4E00FC2F.1010400@codeaurora.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39981 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756939Ab1FUX3o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Jun 2011 19:29:44 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5LNThvf002092
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 21 Jun 2011 18:29:44 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p5LNTh7g010563
+	for <linux-omap@vger.kernel.org>; Tue, 21 Jun 2011 18:29:43 -0500 (CDT)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5LNTh5A003047
+	for <linux-omap@vger.kernel.org>; Tue, 21 Jun 2011 18:29:43 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Girish S G <girishsg@ti.com>
 
-On Tue, Jun 21, 2011 at 01:16:47PM -0700, Stephen Boyd wrote:
-> On 06/21/2011 03:26 AM, Russell King - ARM Linux wrote:
-> > On Tue, Jun 21, 2011 at 03:51:00PM +0530, Santosh Shilimkar wrote:
-> >> On 6/21/2011 3:49 PM, Russell King - ARM Linux wrote:
-> >>> I won't be committing the init/calibrate.c change to a git tree - it
-> >>> isn't ARM stuff so it goes in patch form.
-> >> Patches with change log would be fine as well.
-> > The answer is not at the moment, but maybe soon.
-> 
-> Should we send those two patches to the stable trees as well? They seem
-> to fix issues with cpu onlining that have existed for a long time.
+ - There are few regulators (LDO's) which needs to be kept always ON in the
+system and few others can be handled by driver as per need basis. This series
+summarizes all the LDO's state and updates the default behavior.
 
-Looks to me like the problem was introduced for 2.6.39-rc1, so we
-should probably get the fix into the 2.6.39-stable tree too.
+ - As of today un-used regulators are not getting turned OFF. Need to specify
+explicitly that system has regulator constraints so that regulator core can
+disable unused resources after late init call (The one's which are not getting
+handled by any drivers).
+
+Changes done for 4430sdp and omap4panda.
+
+Girish S G (2):
+  OMAP4:TWL6030: Regulator set the default behavior of LDO's
+  OMAP: Regulator: Specify system has fully specified constraints
+
+ arch/arm/mach-omap2/board-4430sdp.c    |    7 +++++++
+ arch/arm/mach-omap2/board-omap4panda.c |    6 ++++++
+ 2 files changed, 13 insertions(+), 0 deletions(-)
+
