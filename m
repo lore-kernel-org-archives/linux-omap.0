@@ -1,108 +1,114 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH] Fix CPU spinlock lockups on secondary CPU bringup
-Date: Wed, 22 Jun 2011 11:55:50 +0100
-Message-ID: <20110622105550.GQ23234@n2100.arm.linux.org.uk>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 1/2] OMAP4 :TWL6030: Regulator set the default behavior
+ of LDO's
+Date: Wed, 22 Jun 2011 16:48:06 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D626714@dbde02.ent.ti.com>
+References: <1308702281-12665-1-git-send-email-girishsg@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41472 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753450Ab1FVLSO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jun 2011 07:18:14 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5MBIADK030111
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 06:18:13 -0500
+In-Reply-To: <1308702281-12665-1-git-send-email-girishsg@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ghongdemath, Girish" <girishsg@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-From: Russell King <rmk+kernel@arm.linux.org.uk>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Ghongdemath, Girish
+> Sent: Wednesday, June 22, 2011 5:55 AM
+> To: linux-omap
+> Cc: Ghongdemath, Girish
+> Subject: [PATCH 1/2] OMAP4 :TWL6030: Regulator set the 
+> default behavior of LDO's
+> 
+> TWL6030 below table shows the default state each LDO's can
+> be put into.
+> 
 
-Secondary CPU bringup typically calls calibrate_delay() during its
-initialization.  However, calibrate_delay() modifies a global variable
-(loops_per_jiffy) used for udelay() and __delay().
+[sp] Can you point to the relevant document instead of drawing
+     the full table here?
 
-A side effect of 71c696b1 (calibrate: extract fall-back calculation
-into own helper) introduced in the 2.6.39 merge window means that we
-end up with a substantial period where loops_per_jiffy is zero.  This
-causes the spinlock debugging code to malfunction:
+> 	
+> +---------------------------------------------------------------+
+> 	| LDO 	|	Usage		|	state		
+> 	|
+> 	
+> +---------------------------------------------------------------+
+> 	| VANA 	| sources internal	| Always ON		
+> 	|
+> 	|	| analog voltage	|			
+> 	|
+> 	
+> +---------------------------------------------------------------+
+> 	| VAUX1	| eMMC			| MMC Driver needs to 
+> handle	|
+> 	|	|			|  			
+> 	|
+> 	
+> +---------------------------------------------------------------+
+> 	| VAUX2	| A/V switch		| Driver needs to 
+> handle	|
+> 	
+> +---------------------------------------------------------------+
+> 	| VAUX3 | 5MP CAMp		| Driver needs to 
+> handle	|
+> 	
+> +---------------------------------------------------------------+
+> 	| VCXIO	| supplies DPLL's	| Can be put OFF when 
+> OMAP hits	|
+> 	|	|			| OFF mode.		
+> 	|
+> 	
+> +---------------------------------------------------------------+
+> 	| VDAC	| HDMI, CDC chip	| Always ON		
+> 	|
+> 	
+> +---------------------------------------------------------------+
+> 	| VMMC	| MMC			| Driver needs to 
+> handle	|
+> 	
+> +---------------------------------------------------------------+
+> 	| VPP	| VPP pins of OMAP	| Used while burning 
+> fuses in 	|
+> 	|	|			| OMAP. This can be 
+> turned OFF 	|
+> 	|	|			| by default when 
+> kernel comes 	|
+> 	|	|			| up.			
+> 	|
+> 	
+> +---------------------------------------------------------------+
+> 	| VRTC	| VBRTC/RTC		| Always ON		
+> 	|
+> 	
+> +---------------------------------------------------------------+
+> 	| VUSB	| USB OTG pins		| Driver needs to 
+> handle	|
+> 	
+> +---------------------------------------------------------------+
+> 	| VUSIM	| VDDS_SIM, SIM cage	| Driver needs to 
+> handle.	|
+> 	
+> +---------------------------------------------------------------+
+> 	| CLK32K| 32KHz o/p clk		| WIFI/BT/FM/GPS driver 
+> needs	|
+> 	|	|			| to handle		
+> 	|
+> 	
+> +---------------------------------------------------------------+
+> 
 
-	u64 loops = loops_per_jiffy * HZ;
-	for (;;) {
-		for (i = 0; i < loops; i++) {
-			if (arch_spin_trylock(&lock->raw_lock))
-				return;
-			__delay(1);
-		}
-		...
-	}
+[snip]...[snip]
 
-by never calling arch_spin_trylock() - resulting in the CPU locking
-up in an infinite loop inside __spin_lock_debug().
-
-Work around this by only writing to loops_per_jiffy only once we have
-completed all the calibration decisions.
-
-Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: <stable@kernel.org> (2.6.39-stable)
-
---
-Better solutions (such as omitting the calibration for secondary CPUs,
-or arranging for calibrate_delay() to return the LPJ value and leave
-it to the caller to decide where to store it) are a possibility, but
-would be much more invasive into each architecture.
-
-I think this is the best solution for -rc and stable, but it should be
-revisited for the next merge window.
-
- init/calibrate.c |   14 ++++++++------
- 1 files changed, 8 insertions(+), 6 deletions(-)
-
-diff --git a/init/calibrate.c b/init/calibrate.c
-index 2568d22..aae2f40 100644
---- a/init/calibrate.c
-+++ b/init/calibrate.c
-@@ -245,30 +245,32 @@ static unsigned long __cpuinit calibrate_delay_converge(void)
- 
- void __cpuinit calibrate_delay(void)
- {
-+	unsigned long lpj;
- 	static bool printed;
- 
- 	if (preset_lpj) {
--		loops_per_jiffy = preset_lpj;
-+		lpj = preset_lpj;
- 		if (!printed)
- 			pr_info("Calibrating delay loop (skipped) "
- 				"preset value.. ");
- 	} else if ((!printed) && lpj_fine) {
--		loops_per_jiffy = lpj_fine;
-+		lpj = lpj_fine;
- 		pr_info("Calibrating delay loop (skipped), "
- 			"value calculated using timer frequency.. ");
--	} else if ((loops_per_jiffy = calibrate_delay_direct()) != 0) {
-+	} else if ((lpj = calibrate_delay_direct()) != 0) {
- 		if (!printed)
- 			pr_info("Calibrating delay using timer "
- 				"specific routine.. ");
- 	} else {
- 		if (!printed)
- 			pr_info("Calibrating delay loop... ");
--		loops_per_jiffy = calibrate_delay_converge();
-+		lpj = calibrate_delay_converge();
- 	}
- 	if (!printed)
- 		pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n",
--			loops_per_jiffy/(500000/HZ),
--			(loops_per_jiffy/(5000/HZ)) % 100, loops_per_jiffy);
-+			lpj/(500000/HZ),
-+			(lpj/(5000/HZ)) % 100, lpj);
- 
-+	loops_per_jiffy = lpj;
- 	printed = true;
- }
+~sanjeev
