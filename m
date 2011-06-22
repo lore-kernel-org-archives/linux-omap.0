@@ -1,62 +1,57 @@
 From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Re: [PATCH v6 11/18] input: Add initial support for TWL6040 vibrator
-Date: Wed, 22 Jun 2011 14:37:05 +0300
-Message-ID: <9447778.OLKFu0QH6G@barack>
-References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com> <1308663556-29120-12-git-send-email-peter.ujfalusi@ti.com> <20110621203200.GA3731@core.coreip.homeip.net>
+Subject: Re: [PATCH v6 15/18] ASoC: twl6040: Remove pll and
+	headset mode dependency
+Date: Wed, 22 Jun 2011 14:39:46 +0300
+Message-ID: <9947082.diNasC8ni8@barack>
+References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
+	<1308663556-29120-16-git-send-email-peter.ujfalusi@ti.com>
+	<20110621173505.GC26592@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20110621203200.GA3731@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "Girdwood, Liam" <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, Tejun Heo <tj@kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20110621173505.GC26592@opensource.wolfsonmicro.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Dmitry,
+Hello Mark,
 
-On Tuesday 21 June 2011 22:32:01 Dmitry Torokhov wrote:
-> On Tue, Jun 21, 2011 at 04:39:09PM +0300, Peter Ujfalusi wrote:
+On Tuesday 21 June 2011 19:35:05 Mark Brown wrote:
+> On Tue, Jun 21, 2011 at 04:39:13PM +0300, Peter Ujfalusi wrote:
 > > From: Misael Lopez Cruz <misael.lopez@ti.com>
-> >=20
-> > Add twl6040_vibra as a child of MFD device twl6040_codec. This
-> > implementation covers the PCM-to-PWM mode of TWL6040 vibrator
-> > module.
-> >=20
-> > Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
-> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > CC: Tejun Heo <tj@kernel.org>
->=20
-> Peter,
->=20
-> As Tejun mentioned, there is no difference between having a "private"
-> workqueue created with alloc_workqueue() with default parameters and
-> using system-wide workqueue. Therefore please use system-wide one. If
-> your use shows that you indeed need high-priority workqueue it can be
-> added later.
+> > =
 
-I have replaced the singlethreaded wq with the call suggested by Tejun:
-https://lkml.org/lkml/2011/6/17/99
+> > Remove dependency between pll (hppll, lppll) and headset power
+> > mode (low-power, high-performance), as headset power mode can
+> > be used with any pll.
+> =
 
-If this is a problem, I can rework this, and remove the code, which is =
-not=20
-going to be needed, when the system_wq is in use, but I would like to k=
-eep the=20
-alloc_workqueue way, since it is going to be easier for us to experimen=
-t with=20
-parameters, if we face with issues.
-=20
-> Otherwise:
->=20
->         Acked-by: Dmitry Torokhov <dtor@mail.ru>
->=20
-> Please feel free to merge this code with the rest of TWL6040 patches
-> (presumably throgh Samuel's MFD tree).
+> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> =
 
-Thank you,
+> but you should note that the code has been modified since Misael's
+> original version.
+
+Oh.
+I did intended to put comments related to the changes has been done to this =
+
+patch. Obviously I forgot to do that.
+I did not added your ack to this patch, since I knew that I have changed a =
+bit =
+
+more.
+Sorry.
+
+-- =
+
 P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
