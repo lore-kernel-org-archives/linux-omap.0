@@ -1,8 +1,7 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 22/25] ARM: pm: omap: no need to save all registers in
- sleep34xx.S
-Date: Wed, 22 Jun 2011 16:15:57 +0100
-Message-ID: <E1QZP9p-0002XC-JS@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 21/25] ARM: pm: samsung: no need to call flush_cache_all()
+Date: Wed, 22 Jun 2011 16:15:37 +0100
+Message-ID: <E1QZP9V-0002X8-Fa@rmk-PC.arm.linux.org.uk>
 References: <20110622150816.GT23234@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,64 +12,41 @@ Sender: linux-samsung-soc-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The ABI allows called functions to corrupt r0-r3 and ip (r12).  So
-its pointless saving these registers in the suspend code - the
-calling function will expect them to be corrupted and so won't rely
-on their contents after resume.
+The core suspend code calls flush_cache_all() immediately prior to
+calling the suspend finisher function, so remove these needless calls
+from the finisher functions.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/sleep34xx.S |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-s3c2412/pm.c |    2 --
+ arch/arm/mach-s3c2416/pm.c |    2 --
+ 2 files changed, 0 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 63f1066..9551c7d 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -133,7 +133,7 @@ ENDPROC(enable_omap3630_toggle_l2_on_restore)
- /* Function to call rom code to save secure ram context */
- 	.align	3
- ENTRY(save_secure_ram_context)
--	stmfd	sp!, {r1-r12, lr}	@ save registers on stack
-+	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
- 	adr	r3, api_params		@ r3 points to parameters
- 	str	r0, [r3,#0x4]		@ r0 has sdram address
- 	ldr	r12, high_mask
-@@ -152,7 +152,7 @@ ENTRY(save_secure_ram_context)
- 	nop
- 	nop
- 	nop
--	ldmfd	sp!, {r1-r12, pc}
-+	ldmfd	sp!, {r4 - r11, pc}
- 	.align
- sram_phy_addr_mask:
- 	.word	SRAM_BASE_P
-@@ -187,7 +187,7 @@ ENTRY(save_secure_ram_context_sz)
-  */
- 	.align	3
- ENTRY(omap34xx_cpu_suspend)
--	stmfd	sp!, {r0-r12, lr}	@ save registers on stack
-+	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
+diff --git a/arch/arm/mach-s3c2412/pm.c b/arch/arm/mach-s3c2412/pm.c
+index fecd854..9a1fb89 100644
+--- a/arch/arm/mach-s3c2412/pm.c
++++ b/arch/arm/mach-s3c2412/pm.c
+@@ -41,8 +41,6 @@ static void s3c2412_cpu_suspend(unsigned long arg)
+ {
+ 	unsigned long tmp;
  
- 	/*
- 	 * r0 contains CPU context save/restore pointer in sdram
-@@ -329,7 +329,7 @@ omap3_do_wfi:
-  * == Exit point from non-OFF modes ==
-  * ===================================
-  */
--	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
-+	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
+-	flush_cache_all();
+-
+ 	/* set our standby method to sleep */
  
+ 	tmp = __raw_readl(S3C2412_PWRCFG);
+diff --git a/arch/arm/mach-s3c2416/pm.c b/arch/arm/mach-s3c2416/pm.c
+index 268fda7..9e67a2a 100644
+--- a/arch/arm/mach-s3c2416/pm.c
++++ b/arch/arm/mach-s3c2416/pm.c
+@@ -26,8 +26,6 @@ extern void s3c2412_sleep_enter(void);
  
- /*
-@@ -572,7 +572,7 @@ usettbr0:
-  * ==============================
-  */
- restoremmu_on:
--	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
-+	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
+ static void s3c2416_cpu_suspend(unsigned long arg)
+ {
+-	flush_cache_all();
+-
+ 	/* enable wakeup sources regardless of battery state */
+ 	__raw_writel(S3C2443_PWRCFG_SLEEP, S3C2443_PWRCFG);
  
- 
- /*
 -- 
 1.7.4.4
