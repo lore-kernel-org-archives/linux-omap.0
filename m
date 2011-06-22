@@ -1,114 +1,76 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 1/2] OMAP4 :TWL6030: Regulator set the default behavior
- of LDO's
-Date: Wed, 22 Jun 2011 16:48:06 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D626714@dbde02.ent.ti.com>
-References: <1308702281-12665-1-git-send-email-girishsg@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 0/8] Introducing a generic AMP/IPC framework
+Date: Wed, 22 Jun 2011 14:41:38 +0300
+Message-ID: <BANLkTim1kN2f41Cfz70=g4a_+gPPrWDacA@mail.gmail.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com> <201106211620.02065.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41472 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753450Ab1FVLSO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jun 2011 07:18:14 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5MBIADK030111
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 22 Jun 2011 06:18:13 -0500
-In-Reply-To: <1308702281-12665-1-git-send-email-girishsg@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201106211620.02065.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>
 List-Id: linux-omap@vger.kernel.org
-To: "Ghongdemath, Girish" <girishsg@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Ghongdemath, Girish
-> Sent: Wednesday, June 22, 2011 5:55 AM
-> To: linux-omap
-> Cc: Ghongdemath, Girish
-> Subject: [PATCH 1/2] OMAP4 :TWL6030: Regulator set the 
-> default behavior of LDO's
-> 
-> TWL6030 below table shows the default state each LDO's can
-> be put into.
-> 
+Hi Arnd,
 
-[sp] Can you point to the relevant document instead of drawing
-     the full table here?
+On Tue, Jun 21, 2011 at 5:20 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> This looks really nice overall, but I don't currently have time for a
+> more in-depth review. My feeling is that you are definitely on the ri=
+ght
+> track here, and the plans you list as TODO to continue are all good.
 
-> 	
-> +---------------------------------------------------------------+
-> 	| LDO 	|	Usage		|	state		
-> 	|
-> 	
-> +---------------------------------------------------------------+
-> 	| VANA 	| sources internal	| Always ON		
-> 	|
-> 	|	| analog voltage	|			
-> 	|
-> 	
-> +---------------------------------------------------------------+
-> 	| VAUX1	| eMMC			| MMC Driver needs to 
-> handle	|
-> 	|	|			|  			
-> 	|
-> 	
-> +---------------------------------------------------------------+
-> 	| VAUX2	| A/V switch		| Driver needs to 
-> handle	|
-> 	
-> +---------------------------------------------------------------+
-> 	| VAUX3 | 5MP CAMp		| Driver needs to 
-> handle	|
-> 	
-> +---------------------------------------------------------------+
-> 	| VCXIO	| supplies DPLL's	| Can be put OFF when 
-> OMAP hits	|
-> 	|	|			| OFF mode.		
-> 	|
-> 	
-> +---------------------------------------------------------------+
-> 	| VDAC	| HDMI, CDC chip	| Always ON		
-> 	|
-> 	
-> +---------------------------------------------------------------+
-> 	| VMMC	| MMC			| Driver needs to 
-> handle	|
-> 	
-> +---------------------------------------------------------------+
-> 	| VPP	| VPP pins of OMAP	| Used while burning 
-> fuses in 	|
-> 	|	|			| OMAP. This can be 
-> turned OFF 	|
-> 	|	|			| by default when 
-> kernel comes 	|
-> 	|	|			| up.			
-> 	|
-> 	
-> +---------------------------------------------------------------+
-> 	| VRTC	| VBRTC/RTC		| Always ON		
-> 	|
-> 	
-> +---------------------------------------------------------------+
-> 	| VUSB	| USB OTG pins		| Driver needs to 
-> handle	|
-> 	
-> +---------------------------------------------------------------+
-> 	| VUSIM	| VDDS_SIM, SIM cage	| Driver needs to 
-> handle.	|
-> 	
-> +---------------------------------------------------------------+
-> 	| CLK32K| 32KHz o/p clk		| WIFI/BT/FM/GPS driver 
-> needs	|
-> 	|	|			| to handle		
-> 	|
-> 	
-> +---------------------------------------------------------------+
-> 
+Thanks !
 
-[snip]...[snip]
+> One point I noticed is the use of debugfs, which you should probably
+> replace at some point with a stable API, e.g. your own debugfs-like
+> file system, but there is no hurry to do that now.
 
-~sanjeev
+debugfs is only being used to expose debugging info (namely the power
+state of the remote processor and its trace log messages), which is
+mostly useful for developers trying to understand what went wrong.
+
+It seems like debugfs fits quite nicely here (e.g. it's perfectly fine
+if this is completely compiled out on production systems), but sure,
+we can always revisit this later too.
+
+> Regarding the firmware, I think it would be nice to have the option
+> to stick the firmware blob into the flattened device tree as a bininc=
+lude,
+> so you can build systems using the external processors without specia=
+l
+> user space support.
+
+That's interesting. we'll definitely explore this - thanks !
+
+I was also hoping that DT will simplify remote resource allocations as
+well (just like any other device, remote processors usually needs some
+hw resources) and planned to try it out soon to see how it all works
+out together. It might completely eliminate the preliminary "resource
+section" thingy we have in the firmware structure currently.
+
+> The binary format looks reasonable, but if you need anything more com=
+plex,
+> you should probably go straight for ELF files ;-)
+
+Hopefully we won't need to :)
+
+> +struct fw_section {
+> + =A0 =A0 =A0 u32 type;
+> + =A0 =A0 =A0 u64 da;
+> + =A0 =A0 =A0 u32 len;
+> + =A0 =A0 =A0 char content[0];
+> +} __packed;
+>
+> Unfortunately require __packed. It would be better to sort the member=
+s
+> differently so that each member is naturally aligned in order to
+> avoid the need for padding or __packed attributes
+
+Definitely. __packed is being used just to be on the safe side; we
+didn't intend to introduce unnatural alignment intentionally. will be
+fixed.
+
+Thanks!
+Ohad.
