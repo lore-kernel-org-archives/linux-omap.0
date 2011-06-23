@@ -1,243 +1,520 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 15/16] OMAP4: hwmod data: Fix typo and alignement
-Date: Thu, 23 Jun 2011 19:43:44 +0200
-Message-ID: <1308851025-26313-16-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 09/16] OMAP4: clock data: Remove McASP2, McASP3 and MMC6 clocks
+Date: Thu, 23 Jun 2011 19:43:38 +0200
+Message-ID: <1308851025-26313-10-git-send-email-b-cousson@ti.com>
 References: <1308851025-26313-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60165 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60156 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934021Ab1FWRoe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jun 2011 13:44:34 -0400
+	id S934008Ab1FWRo3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 13:44:29 -0400
 In-Reply-To: <1308851025-26313-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, rnayak@ti.com
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-Fix a typo in the mailbox description comment.
+From: Jon Hunter <jon-hunter@ti.com>
 
-Fix .prcm alignement and usb_otg_hs class and hwmod structures.
+McASP2, 3 and MMC6 modules are not present in the OMAP4 family.
+Remove the fclk and the clksel related to these nodes.
+Rename the references that were potentially re-used in order nodes.
 
-Add a couple of more potential hwmods in the comment.
-Remove hsi, since it is already included in the data.
+Remove related macros in prcm header files.
 
-Remove one blank line.
+Update TI copyright date.
 
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+[b-cousson@ti.com: Update the patch according to autogen output]
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   49 ++++++++++++++-------------
- 1 files changed, 25 insertions(+), 24 deletions(-)
+ arch/arm/mach-omap2/clock44xx_data.c   |   86 ++++++++++-----------------
+ arch/arm/mach-omap2/cm-regbits-44xx.h  |   49 ++++++----------
+ arch/arm/mach-omap2/cm2_44xx.h         |    6 --
+ arch/arm/mach-omap2/prm-regbits-44xx.h |  100 ++++++++-----------------------
+ arch/arm/mach-omap2/prm44xx.h          |   12 ----
+ 5 files changed, 74 insertions(+), 179 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 199e689..1ba676b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -632,7 +632,9 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
-  *  gpmc
-  *  gpu
-  *  hdq1w
-- *  hsi
-+ *  mcasp
-+ *  mpu_c0
-+ *  mpu_c1
-  *  ocmc_ram
-  *  ocp2scp_usb_phy
-  *  ocp_wp_noc
-@@ -739,7 +741,7 @@ static struct omap_hwmod omap44xx_aess_hwmod = {
- 	.sdma_reqs	= omap44xx_aess_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_aess_sdma_reqs),
- 	.main_clk	= "aess_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM1_ABE_AESS_CLKCTRL,
- 		},
-@@ -768,7 +770,7 @@ static struct omap_hwmod_opt_clk bandgap_opt_clks[] = {
- static struct omap_hwmod omap44xx_bandgap_hwmod = {
- 	.name		= "bandgap",
- 	.class		= &omap44xx_bandgap_hwmod_class,
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_WKUP_BANDGAP_CLKCTRL,
- 		},
-@@ -827,7 +829,7 @@ static struct omap_hwmod omap44xx_counter_32k_hwmod = {
- 	.class		= &omap44xx_counter_hwmod_class,
- 	.flags		= HWMOD_SWSUP_SIDLE,
- 	.main_clk	= "sys_32k_ck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_WKUP_SYNCTIMER_CLKCTRL,
- 		},
-@@ -1003,7 +1005,7 @@ static struct omap_hwmod omap44xx_dmic_hwmod = {
- 	.sdma_reqs	= omap44xx_dmic_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_dmic_sdma_reqs),
- 	.main_clk	= "dmic_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM1_ABE_DMIC_CLKCTRL,
- 		},
-@@ -2093,7 +2095,7 @@ static struct omap_hwmod omap44xx_hsi_hwmod = {
- 	.mpu_irqs	= omap44xx_hsi_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_hsi_irqs),
- 	.main_clk	= "hsi_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L3INIT_HSI_CLKCTRL,
- 		},
-@@ -2389,7 +2391,7 @@ static struct omap_hwmod omap44xx_ipu_c0_hwmod = {
- 	.flags		= HWMOD_INIT_NO_RESET,
- 	.rst_lines	= omap44xx_ipu_c0_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_c0_resets),
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.rstctrl_reg = OMAP4430_RM_DUCATI_RSTCTRL,
- 		},
-@@ -2404,7 +2406,7 @@ static struct omap_hwmod omap44xx_ipu_c1_hwmod = {
- 	.flags		= HWMOD_INIT_NO_RESET,
- 	.rst_lines	= omap44xx_ipu_c1_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_c1_resets),
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.rstctrl_reg = OMAP4430_RM_DUCATI_RSTCTRL,
- 		},
-@@ -2420,7 +2422,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
- 	.rst_lines	= omap44xx_ipu_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_resets),
- 	.main_clk	= "ipu_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_DUCATI_DUCATI_CLKCTRL,
- 			.rstctrl_reg = OMAP4430_RM_DUCATI_RSTCTRL,
-@@ -2506,7 +2508,7 @@ static struct omap_hwmod omap44xx_iss_hwmod = {
- 	.sdma_reqs	= omap44xx_iss_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_iss_sdma_reqs),
- 	.main_clk	= "iss_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_CAM_ISS_CLKCTRL,
- 		},
-@@ -2686,7 +2688,7 @@ static struct omap_hwmod omap44xx_kbd_hwmod = {
- 	.mpu_irqs	= omap44xx_kbd_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_kbd_irqs),
- 	.main_clk	= "kbd_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_WKUP_KEYBOARD_CLKCTRL,
- 		},
-@@ -2698,8 +2700,8 @@ static struct omap_hwmod omap44xx_kbd_hwmod = {
- 
- /*
-  * 'mailbox' class
-- * mailbox module allowing communication between the on-chip processors using a
-- * queued mailbox-interrupt mechanism.
-+ * mailbox module allowing communication between the on-chip processors
-+ * useusing a queued mailbox-interrupt mechanism.
-  */
- 
- static struct omap_hwmod_class_sysconfig omap44xx_mailbox_sysc = {
-@@ -2750,7 +2752,7 @@ static struct omap_hwmod omap44xx_mailbox_hwmod = {
- 	.class		= &omap44xx_mailbox_hwmod_class,
- 	.mpu_irqs	= omap44xx_mailbox_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mailbox_irqs),
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L4CFG_MAILBOX_CLKCTRL,
- 		},
-@@ -3132,7 +3134,7 @@ static struct omap_hwmod omap44xx_mcpdm_hwmod = {
- 	.sdma_reqs	= omap44xx_mcpdm_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcpdm_sdma_reqs),
- 	.main_clk	= "mcpdm_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM1_ABE_PDM_CLKCTRL,
- 		},
-@@ -3429,7 +3431,6 @@ static struct omap_hwmod_class omap44xx_mmc_hwmod_class = {
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 0854160..ad3e1cf 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -1170,19 +1170,6 @@ static struct clk func_96m_fclk = {
+ 	.set_rate	= &omap2_clksel_set_rate,
  };
  
- /* mmc1 */
+-static const struct clksel hsmmc6_fclk_sel[] = {
+-	{ .parent = &func_64m_fclk, .rates = div_1_0_rates },
+-	{ .parent = &func_96m_fclk, .rates = div_1_1_rates },
+-	{ .parent = NULL },
+-};
 -
- static struct omap_hwmod_irq_info omap44xx_mmc1_irqs[] = {
- 	{ .irq = 83 + OMAP44XX_IRQ_GIC_START },
- };
-@@ -3480,7 +3481,7 @@ static struct omap_hwmod omap44xx_mmc1_hwmod = {
- 	.sdma_reqs	= omap44xx_mmc1_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc1_sdma_reqs),
- 	.main_clk	= "mmc1_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L3INIT_MMC1_CLKCTRL,
- 		},
-@@ -3539,7 +3540,7 @@ static struct omap_hwmod omap44xx_mmc2_hwmod = {
- 	.sdma_reqs	= omap44xx_mmc2_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc2_sdma_reqs),
- 	.main_clk	= "mmc2_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L3INIT_MMC2_CLKCTRL,
- 		},
-@@ -3593,7 +3594,7 @@ static struct omap_hwmod omap44xx_mmc3_hwmod = {
- 	.sdma_reqs	= omap44xx_mmc3_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc3_sdma_reqs),
- 	.main_clk	= "mmc3_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_MMCSD3_CLKCTRL,
- 		},
-@@ -3645,7 +3646,7 @@ static struct omap_hwmod omap44xx_mmc4_hwmod = {
- 	.sdma_reqs	= omap44xx_mmc4_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc4_sdma_reqs),
- 	.main_clk	= "mmc4_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_MMCSD4_CLKCTRL,
- 		},
-@@ -3697,7 +3698,7 @@ static struct omap_hwmod omap44xx_mmc5_hwmod = {
- 	.sdma_reqs	= omap44xx_mmc5_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc5_sdma_reqs),
- 	.main_clk	= "mmc5_fck",
--	.prcm		= {
-+	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_MMCSD5_CLKCTRL,
- 		},
-@@ -4831,8 +4832,8 @@ static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
+-static struct clk hsmmc6_fclk = {
+-	.name		= "hsmmc6_fclk",
+-	.parent		= &func_64m_fclk,
+-	.ops		= &clkops_null,
+-	.recalc		= &followparent_recalc,
+-};
+-
+ static const struct clksel_rate div2_1to8_rates[] = {
+ 	{ .div = 1, .val = 0, .flags = RATE_IN_44XX },
+ 	{ .div = 8, .val = 1, .flags = RATE_IN_44XX },
+@@ -1265,6 +1252,21 @@ static struct clk l4_wkup_clk_mux_ck = {
+ 	.recalc		= &omap2_clksel_recalc,
  };
  
- static struct omap_hwmod_class omap44xx_usb_otg_hs_hwmod_class = {
--	.name = "usb_otg_hs",
--	.sysc = &omap44xx_usb_otg_hs_sysc,
-+	.name	= "usb_otg_hs",
-+	.sysc	= &omap44xx_usb_otg_hs_sysc,
++static struct clk ocp_abe_iclk = {
++	.name		= "ocp_abe_iclk",
++	.parent		= &aess_fclk,
++	.ops		= &clkops_null,
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk per_abe_24m_fclk = {
++	.name		= "per_abe_24m_fclk",
++	.parent		= &dpll_abe_m2_ck,
++	.ops		= &clkops_null,
++	.fixed_div	= 4,
++	.recalc		= &omap_fixed_divisor_recalc,
++};
++
+ static const struct clksel per_abe_nc_fclk_div[] = {
+ 	{ .parent = &dpll_abe_m2_ck, .rates = div2_1to2_rates },
+ 	{ .parent = NULL },
+@@ -1282,41 +1284,6 @@ static struct clk per_abe_nc_fclk = {
+ 	.set_rate	= &omap2_clksel_set_rate,
  };
  
- /* usb_otg_hs */
-@@ -4886,7 +4887,7 @@ static struct omap_hwmod omap44xx_usb_otg_hs_hwmod = {
- 		},
- 	},
- 	.opt_clks	= usb_otg_hs_opt_clks,
--	.opt_clks_cnt = ARRAY_SIZE(usb_otg_hs_opt_clks),
-+	.opt_clks_cnt	= ARRAY_SIZE(usb_otg_hs_opt_clks),
- 	.slaves		= omap44xx_usb_otg_hs_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_slaves),
- 	.masters	= omap44xx_usb_otg_hs_masters,
+-static const struct clksel mcasp2_fclk_sel[] = {
+-	{ .parent = &func_96m_fclk, .rates = div_1_0_rates },
+-	{ .parent = &per_abe_nc_fclk, .rates = div_1_1_rates },
+-	{ .parent = NULL },
+-};
+-
+-static struct clk mcasp2_fclk = {
+-	.name		= "mcasp2_fclk",
+-	.parent		= &func_96m_fclk,
+-	.ops		= &clkops_null,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk mcasp3_fclk = {
+-	.name		= "mcasp3_fclk",
+-	.parent		= &func_96m_fclk,
+-	.ops		= &clkops_null,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk ocp_abe_iclk = {
+-	.name		= "ocp_abe_iclk",
+-	.parent		= &aess_fclk,
+-	.ops		= &clkops_null,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk per_abe_24m_fclk = {
+-	.name		= "per_abe_24m_fclk",
+-	.parent		= &dpll_abe_m2_ck,
+-	.ops		= &clkops_null,
+-	.fixed_div	= 4,
+-	.recalc		= &omap_fixed_divisor_recalc,
+-};
+-
+ static const struct clksel pmd_stm_clock_mux_sel[] = {
+ 	{ .parent = &sys_clkin_ck, .rates = div_1_0_rates },
+ 	{ .parent = &dpll_core_m6x2_ck, .rates = div_1_1_rates },
+@@ -1996,10 +1963,16 @@ static struct clk mcbsp3_fck = {
+ 	.clkdm_name	= "abe_clkdm",
+ };
+ 
++static const struct clksel mcbsp4_sync_mux_sel[] = {
++	{ .parent = &func_96m_fclk, .rates = div_1_0_rates },
++	{ .parent = &per_abe_nc_fclk, .rates = div_1_1_rates },
++	{ .parent = NULL },
++};
++
+ static struct clk mcbsp4_sync_mux_ck = {
+ 	.name		= "mcbsp4_sync_mux_ck",
+ 	.parent		= &func_96m_fclk,
+-	.clksel		= mcasp2_fclk_sel,
++	.clksel		= mcbsp4_sync_mux_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM_L4PER_MCBSP4_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_INTERNAL_SOURCE_MASK,
+@@ -2078,11 +2051,17 @@ static struct clk mcspi4_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
++static const struct clksel hsmmc1_fclk_sel[] = {
++	{ .parent = &func_64m_fclk, .rates = div_1_0_rates },
++	{ .parent = &func_96m_fclk, .rates = div_1_1_rates },
++	{ .parent = NULL },
++};
++
+ /* Merged hsmmc1_fclk into mmc1 */
+ static struct clk mmc1_fck = {
+ 	.name		= "mmc1_fck",
+ 	.parent		= &func_64m_fclk,
+-	.clksel		= hsmmc6_fclk_sel,
++	.clksel		= hsmmc1_fclk_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM_L3INIT_MMC1_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+@@ -2097,7 +2076,7 @@ static struct clk mmc1_fck = {
+ static struct clk mmc2_fck = {
+ 	.name		= "mmc2_fck",
+ 	.parent		= &func_64m_fclk,
+-	.clksel		= hsmmc6_fclk_sel,
++	.clksel		= hsmmc1_fclk_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM_L3INIT_MMC2_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+@@ -3093,17 +3072,14 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"func_48mc_fclk",		&func_48mc_fclk,	CK_44XX),
+ 	CLK(NULL,	"func_64m_fclk",		&func_64m_fclk,	CK_44XX),
+ 	CLK(NULL,	"func_96m_fclk",		&func_96m_fclk,	CK_44XX),
+-	CLK(NULL,	"hsmmc6_fclk",			&hsmmc6_fclk,	CK_44XX),
+ 	CLK(NULL,	"init_60m_fclk",		&init_60m_fclk,	CK_44XX),
+ 	CLK(NULL,	"l3_div_ck",			&l3_div_ck,	CK_44XX),
+ 	CLK(NULL,	"l4_div_ck",			&l4_div_ck,	CK_44XX),
+ 	CLK(NULL,	"lp_clk_div_ck",		&lp_clk_div_ck,	CK_44XX),
+ 	CLK(NULL,	"l4_wkup_clk_mux_ck",		&l4_wkup_clk_mux_ck,	CK_44XX),
+-	CLK(NULL,	"per_abe_nc_fclk",		&per_abe_nc_fclk,	CK_44XX),
+-	CLK(NULL,	"mcasp2_fclk",			&mcasp2_fclk,	CK_44XX),
+-	CLK(NULL,	"mcasp3_fclk",			&mcasp3_fclk,	CK_44XX),
+ 	CLK(NULL,	"ocp_abe_iclk",			&ocp_abe_iclk,	CK_44XX),
+ 	CLK(NULL,	"per_abe_24m_fclk",		&per_abe_24m_fclk,	CK_44XX),
++	CLK(NULL,	"per_abe_nc_fclk",		&per_abe_nc_fclk,	CK_44XX),
+ 	CLK(NULL,	"pmd_stm_clock_mux_ck",		&pmd_stm_clock_mux_ck,	CK_44XX),
+ 	CLK(NULL,	"pmd_trace_clk_mux_ck",		&pmd_trace_clk_mux_ck,	CK_44XX),
+ 	CLK(NULL,	"syc_clk_div_ck",		&syc_clk_div_ck,	CK_44XX),
+diff --git a/arch/arm/mach-omap2/cm-regbits-44xx.h b/arch/arm/mach-omap2/cm-regbits-44xx.h
+index 0e77945..094758d 100644
+--- a/arch/arm/mach-omap2/cm-regbits-44xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-44xx.h
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP44xx Clock Management register bits
+  *
+- * Copyright (C) 2009-2010 Texas Instruments, Inc.
++ * Copyright (C) 2009-2011 Texas Instruments, Inc.
+  * Copyright (C) 2009-2010 Nokia Corporation
+  *
+  * Paul Walmsley (paul@pwsan.com)
+@@ -213,10 +213,6 @@
+ #define OMAP4430_CLKACTIVITY_INIT_HSMMC2_GFCLK_SHIFT		18
+ #define OMAP4430_CLKACTIVITY_INIT_HSMMC2_GFCLK_MASK		(1 << 18)
+ 
+-/* Used by CM_L3INIT_CLKSTCTRL */
+-#define OMAP4430_CLKACTIVITY_INIT_HSMMC6_GFCLK_SHIFT		19
+-#define OMAP4430_CLKACTIVITY_INIT_HSMMC6_GFCLK_MASK		(1 << 19)
+-
+ /* Used by CM_CAM_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_ISS_GCLK_SHIFT			8
+ #define OMAP4430_CLKACTIVITY_ISS_GCLK_MASK			(1 << 8)
+@@ -330,14 +326,6 @@
+ #define OMAP4430_CLKACTIVITY_PER_ABE_24M_GFCLK_MASK		(1 << 25)
+ 
+ /* Used by CM_L4PER_CLKSTCTRL */
+-#define OMAP4430_CLKACTIVITY_PER_MCASP2_GFCLK_SHIFT		20
+-#define OMAP4430_CLKACTIVITY_PER_MCASP2_GFCLK_MASK		(1 << 20)
+-
+-/* Used by CM_L4PER_CLKSTCTRL */
+-#define OMAP4430_CLKACTIVITY_PER_MCASP3_GFCLK_SHIFT		21
+-#define OMAP4430_CLKACTIVITY_PER_MCASP3_GFCLK_MASK		(1 << 21)
+-
+-/* Used by CM_L4PER_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_PER_MCBSP4_GFCLK_SHIFT		22
+ #define OMAP4430_CLKACTIVITY_PER_MCBSP4_GFCLK_MASK		(1 << 22)
+ 
+@@ -416,11 +404,10 @@
+ /*
+  * Used by CM1_ABE_TIMER5_CLKCTRL, CM1_ABE_TIMER6_CLKCTRL,
+  * CM1_ABE_TIMER7_CLKCTRL, CM1_ABE_TIMER8_CLKCTRL, CM_L3INIT_MMC1_CLKCTRL,
+- * CM_L3INIT_MMC2_CLKCTRL, CM_L3INIT_MMC6_CLKCTRL, CM_L4PER_DMTIMER10_CLKCTRL,
++ * CM_L3INIT_MMC2_CLKCTRL, CM_L4PER_DMTIMER10_CLKCTRL,
+  * CM_L4PER_DMTIMER11_CLKCTRL, CM_L4PER_DMTIMER2_CLKCTRL,
+  * CM_L4PER_DMTIMER3_CLKCTRL, CM_L4PER_DMTIMER4_CLKCTRL,
+- * CM_L4PER_DMTIMER9_CLKCTRL, CM_L4PER_MCASP2_CLKCTRL, CM_L4PER_MCASP3_CLKCTRL,
+- * CM_WKUP_TIMER1_CLKCTRL
++ * CM_L4PER_DMTIMER9_CLKCTRL, CM_WKUP_TIMER1_CLKCTRL
+  */
+ #define OMAP4430_CLKSEL_SHIFT					24
+ #define OMAP4430_CLKSEL_MASK					(1 << 24)
+@@ -874,8 +861,8 @@
+  * CM_EMU_DEBUGSS_CLKCTRL, CM_GFX_GFX_CLKCTRL, CM_IVAHD_IVAHD_CLKCTRL,
+  * CM_IVAHD_SL2_CLKCTRL, CM_L3INIT_CCPTX_CLKCTRL, CM_L3INIT_EMAC_CLKCTRL,
+  * CM_L3INIT_HSI_CLKCTRL, CM_L3INIT_MMC1_CLKCTRL, CM_L3INIT_MMC2_CLKCTRL,
+- * CM_L3INIT_MMC6_CLKCTRL, CM_L3INIT_P1500_CLKCTRL, CM_L3INIT_PCIESS_CLKCTRL,
+- * CM_L3INIT_SATA_CLKCTRL, CM_L3INIT_TPPSS_CLKCTRL, CM_L3INIT_UNIPRO1_CLKCTRL,
++ * CM_L3INIT_P1500_CLKCTRL, CM_L3INIT_PCIESS_CLKCTRL, CM_L3INIT_SATA_CLKCTRL,
++ * CM_L3INIT_TPPSS_CLKCTRL, CM_L3INIT_UNIPRO1_CLKCTRL,
+  * CM_L3INIT_USBPHYOCP2SCP_CLKCTRL, CM_L3INIT_USB_HOST_CLKCTRL,
+  * CM_L3INIT_USB_HOST_FS_CLKCTRL, CM_L3INIT_USB_OTG_CLKCTRL,
+  * CM_L3INIT_USB_TLL_CLKCTRL, CM_L3INIT_XHPI_CLKCTRL, CM_L3INSTR_L3_3_CLKCTRL,
+@@ -890,11 +877,10 @@
+  * CM_L4PER_GPIO5_CLKCTRL, CM_L4PER_GPIO6_CLKCTRL, CM_L4PER_HDQ1W_CLKCTRL,
+  * CM_L4PER_HECC1_CLKCTRL, CM_L4PER_HECC2_CLKCTRL, CM_L4PER_I2C1_CLKCTRL,
+  * CM_L4PER_I2C2_CLKCTRL, CM_L4PER_I2C3_CLKCTRL, CM_L4PER_I2C4_CLKCTRL,
+- * CM_L4PER_I2C5_CLKCTRL, CM_L4PER_L4PER_CLKCTRL, CM_L4PER_MCASP2_CLKCTRL,
+- * CM_L4PER_MCASP3_CLKCTRL, CM_L4PER_MCBSP4_CLKCTRL, CM_L4PER_MCSPI1_CLKCTRL,
+- * CM_L4PER_MCSPI2_CLKCTRL, CM_L4PER_MCSPI3_CLKCTRL, CM_L4PER_MCSPI4_CLKCTRL,
+- * CM_L4PER_MGATE_CLKCTRL, CM_L4PER_MMCSD3_CLKCTRL, CM_L4PER_MMCSD4_CLKCTRL,
+- * CM_L4PER_MMCSD5_CLKCTRL, CM_L4PER_MSPROHG_CLKCTRL,
++ * CM_L4PER_I2C5_CLKCTRL, CM_L4PER_L4PER_CLKCTRL, CM_L4PER_MCBSP4_CLKCTRL,
++ * CM_L4PER_MCSPI1_CLKCTRL, CM_L4PER_MCSPI2_CLKCTRL, CM_L4PER_MCSPI3_CLKCTRL,
++ * CM_L4PER_MCSPI4_CLKCTRL, CM_L4PER_MGATE_CLKCTRL, CM_L4PER_MMCSD3_CLKCTRL,
++ * CM_L4PER_MMCSD4_CLKCTRL, CM_L4PER_MMCSD5_CLKCTRL, CM_L4PER_MSPROHG_CLKCTRL,
+  * CM_L4PER_SLIMBUS2_CLKCTRL, CM_L4PER_UART1_CLKCTRL, CM_L4PER_UART2_CLKCTRL,
+  * CM_L4PER_UART3_CLKCTRL, CM_L4PER_UART4_CLKCTRL, CM_L4SEC_AES1_CLKCTRL,
+  * CM_L4SEC_AES2_CLKCTRL, CM_L4SEC_CRYPTODMA_CLKCTRL, CM_L4SEC_DES3DES_CLKCTRL,
+@@ -1070,8 +1056,8 @@
+  * CM_EMU_DEBUGSS_CLKCTRL, CM_GFX_GFX_CLKCTRL, CM_IVAHD_IVAHD_CLKCTRL,
+  * CM_IVAHD_SL2_CLKCTRL, CM_L3INIT_CCPTX_CLKCTRL, CM_L3INIT_EMAC_CLKCTRL,
+  * CM_L3INIT_HSI_CLKCTRL, CM_L3INIT_MMC1_CLKCTRL, CM_L3INIT_MMC2_CLKCTRL,
+- * CM_L3INIT_MMC6_CLKCTRL, CM_L3INIT_P1500_CLKCTRL, CM_L3INIT_PCIESS_CLKCTRL,
+- * CM_L3INIT_SATA_CLKCTRL, CM_L3INIT_TPPSS_CLKCTRL, CM_L3INIT_UNIPRO1_CLKCTRL,
++ * CM_L3INIT_P1500_CLKCTRL, CM_L3INIT_PCIESS_CLKCTRL, CM_L3INIT_SATA_CLKCTRL,
++ * CM_L3INIT_TPPSS_CLKCTRL, CM_L3INIT_UNIPRO1_CLKCTRL,
+  * CM_L3INIT_USBPHYOCP2SCP_CLKCTRL, CM_L3INIT_USB_HOST_CLKCTRL,
+  * CM_L3INIT_USB_HOST_FS_CLKCTRL, CM_L3INIT_USB_OTG_CLKCTRL,
+  * CM_L3INIT_USB_TLL_CLKCTRL, CM_L3INIT_XHPI_CLKCTRL, CM_L3INSTR_L3_3_CLKCTRL,
+@@ -1086,11 +1072,10 @@
+  * CM_L4PER_GPIO5_CLKCTRL, CM_L4PER_GPIO6_CLKCTRL, CM_L4PER_HDQ1W_CLKCTRL,
+  * CM_L4PER_HECC1_CLKCTRL, CM_L4PER_HECC2_CLKCTRL, CM_L4PER_I2C1_CLKCTRL,
+  * CM_L4PER_I2C2_CLKCTRL, CM_L4PER_I2C3_CLKCTRL, CM_L4PER_I2C4_CLKCTRL,
+- * CM_L4PER_I2C5_CLKCTRL, CM_L4PER_L4PER_CLKCTRL, CM_L4PER_MCASP2_CLKCTRL,
+- * CM_L4PER_MCASP3_CLKCTRL, CM_L4PER_MCBSP4_CLKCTRL, CM_L4PER_MCSPI1_CLKCTRL,
+- * CM_L4PER_MCSPI2_CLKCTRL, CM_L4PER_MCSPI3_CLKCTRL, CM_L4PER_MCSPI4_CLKCTRL,
+- * CM_L4PER_MGATE_CLKCTRL, CM_L4PER_MMCSD3_CLKCTRL, CM_L4PER_MMCSD4_CLKCTRL,
+- * CM_L4PER_MMCSD5_CLKCTRL, CM_L4PER_MSPROHG_CLKCTRL,
++ * CM_L4PER_I2C5_CLKCTRL, CM_L4PER_L4PER_CLKCTRL, CM_L4PER_MCBSP4_CLKCTRL,
++ * CM_L4PER_MCSPI1_CLKCTRL, CM_L4PER_MCSPI2_CLKCTRL, CM_L4PER_MCSPI3_CLKCTRL,
++ * CM_L4PER_MCSPI4_CLKCTRL, CM_L4PER_MGATE_CLKCTRL, CM_L4PER_MMCSD3_CLKCTRL,
++ * CM_L4PER_MMCSD4_CLKCTRL, CM_L4PER_MMCSD5_CLKCTRL, CM_L4PER_MSPROHG_CLKCTRL,
+  * CM_L4PER_SLIMBUS2_CLKCTRL, CM_L4PER_UART1_CLKCTRL, CM_L4PER_UART2_CLKCTRL,
+  * CM_L4PER_UART3_CLKCTRL, CM_L4PER_UART4_CLKCTRL, CM_L4SEC_AES1_CLKCTRL,
+  * CM_L4SEC_AES2_CLKCTRL, CM_L4SEC_CRYPTODMA_CLKCTRL, CM_L4SEC_DES3DES_CLKCTRL,
+@@ -1312,8 +1297,8 @@
+  * CM_DUCATI_DUCATI_CLKCTRL, CM_EMU_DEBUGSS_CLKCTRL, CM_GFX_GFX_CLKCTRL,
+  * CM_IVAHD_IVAHD_CLKCTRL, CM_L3INIT_CCPTX_CLKCTRL, CM_L3INIT_EMAC_CLKCTRL,
+  * CM_L3INIT_HSI_CLKCTRL, CM_L3INIT_MMC1_CLKCTRL, CM_L3INIT_MMC2_CLKCTRL,
+- * CM_L3INIT_MMC6_CLKCTRL, CM_L3INIT_P1500_CLKCTRL, CM_L3INIT_PCIESS_CLKCTRL,
+- * CM_L3INIT_SATA_CLKCTRL, CM_L3INIT_TPPSS_CLKCTRL, CM_L3INIT_UNIPRO1_CLKCTRL,
++ * CM_L3INIT_P1500_CLKCTRL, CM_L3INIT_PCIESS_CLKCTRL, CM_L3INIT_SATA_CLKCTRL,
++ * CM_L3INIT_TPPSS_CLKCTRL, CM_L3INIT_UNIPRO1_CLKCTRL,
+  * CM_L3INIT_USB_HOST_CLKCTRL, CM_L3INIT_USB_HOST_FS_CLKCTRL,
+  * CM_L3INIT_USB_OTG_CLKCTRL, CM_L3INIT_XHPI_CLKCTRL,
+  * CM_L4SEC_CRYPTODMA_CLKCTRL, CM_MPU_MPU_CLKCTRL, CM_SDMA_SDMA_CLKCTRL,
+diff --git a/arch/arm/mach-omap2/cm2_44xx.h b/arch/arm/mach-omap2/cm2_44xx.h
+index b9de72d..d3db16b 100644
+--- a/arch/arm/mach-omap2/cm2_44xx.h
++++ b/arch/arm/mach-omap2/cm2_44xx.h
+@@ -332,8 +332,6 @@
+ #define OMAP4430_CM_L3INIT_CCPTX_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x00a8)
+ #define OMAP4_CM_L3INIT_XHPI_CLKCTRL_OFFSET		0x00c0
+ #define OMAP4430_CM_L3INIT_XHPI_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x00c0)
+-#define OMAP4_CM_L3INIT_MMC6_CLKCTRL_OFFSET		0x00c8
+-#define OMAP4430_CM_L3INIT_MMC6_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x00c8)
+ #define OMAP4_CM_L3INIT_USB_HOST_FS_CLKCTRL_OFFSET	0x00d0
+ #define OMAP4430_CM_L3INIT_USB_HOST_FS_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x00d0)
+ #define OMAP4_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL_OFFSET	0x00e0
+@@ -386,10 +384,6 @@
+ #define OMAP4430_CM_L4PER_I2C4_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x00b8)
+ #define OMAP4_CM_L4PER_L4PER_CLKCTRL_OFFSET		0x00c0
+ #define OMAP4430_CM_L4PER_L4PER_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x00c0)
+-#define OMAP4_CM_L4PER_MCASP2_CLKCTRL_OFFSET		0x00d0
+-#define OMAP4430_CM_L4PER_MCASP2_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x00d0)
+-#define OMAP4_CM_L4PER_MCASP3_CLKCTRL_OFFSET		0x00d8
+-#define OMAP4430_CM_L4PER_MCASP3_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x00d8)
+ #define OMAP4_CM_L4PER_MCBSP4_CLKCTRL_OFFSET		0x00e0
+ #define OMAP4430_CM_L4PER_MCBSP4_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x00e0)
+ #define OMAP4_CM_L4PER_MGATE_CLKCTRL_OFFSET		0x00e8
+diff --git a/arch/arm/mach-omap2/prm-regbits-44xx.h b/arch/arm/mach-omap2/prm-regbits-44xx.h
+index 6d2776f..60fbab9 100644
+--- a/arch/arm/mach-omap2/prm-regbits-44xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-44xx.h
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP44xx Power Management register bits
+  *
+- * Copyright (C) 2009-2010 Texas Instruments, Inc.
++ * Copyright (C) 2009-2011 Texas Instruments, Inc.
+  * Copyright (C) 2009-2010 Nokia Corporation
+  *
+  * Paul Walmsley (paul@pwsan.com)
+@@ -22,7 +22,6 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_44XX_H
+ #define __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_44XX_H
+ 
+-
+ /*
+  * Used by PRM_LDO_SRAM_CORE_SETUP, PRM_LDO_SRAM_IVA_SETUP,
+  * PRM_LDO_SRAM_MPU_SETUP
+@@ -545,18 +544,17 @@
+  * RM_L4PER_DMTIMER9_CONTEXT, RM_L4PER_ELM_CONTEXT, RM_L4PER_HDQ1W_CONTEXT,
+  * RM_L4PER_HECC1_CONTEXT, RM_L4PER_HECC2_CONTEXT, RM_L4PER_I2C2_CONTEXT,
+  * RM_L4PER_I2C3_CONTEXT, RM_L4PER_I2C4_CONTEXT, RM_L4PER_I2C5_CONTEXT,
+- * RM_L4PER_L4_PER_CONTEXT, RM_L4PER_MCASP2_CONTEXT, RM_L4PER_MCASP3_CONTEXT,
+- * RM_L4PER_MCBSP4_CONTEXT, RM_L4PER_MCSPI1_CONTEXT, RM_L4PER_MCSPI2_CONTEXT,
+- * RM_L4PER_MCSPI3_CONTEXT, RM_L4PER_MCSPI4_CONTEXT, RM_L4PER_MGATE_CONTEXT,
+- * RM_L4PER_MMCSD3_CONTEXT, RM_L4PER_MMCSD4_CONTEXT, RM_L4PER_MMCSD5_CONTEXT,
+- * RM_L4PER_MSPROHG_CONTEXT, RM_L4PER_SLIMBUS2_CONTEXT,
+- * RM_L4SEC_PKAEIP29_CONTEXT, RM_MEMIF_DLL_CONTEXT, RM_MEMIF_DLL_H_CONTEXT,
+- * RM_MEMIF_DMM_CONTEXT, RM_MEMIF_EMIF_1_CONTEXT, RM_MEMIF_EMIF_2_CONTEXT,
+- * RM_MEMIF_EMIF_FW_CONTEXT, RM_MPU_MPU_CONTEXT, RM_TESLA_TESLA_CONTEXT,
+- * RM_WKUP_GPIO1_CONTEXT, RM_WKUP_KEYBOARD_CONTEXT, RM_WKUP_L4WKUP_CONTEXT,
+- * RM_WKUP_RTC_CONTEXT, RM_WKUP_SARRAM_CONTEXT, RM_WKUP_SYNCTIMER_CONTEXT,
+- * RM_WKUP_TIMER12_CONTEXT, RM_WKUP_TIMER1_CONTEXT, RM_WKUP_USIM_CONTEXT,
+- * RM_WKUP_WDT1_CONTEXT, RM_WKUP_WDT2_CONTEXT
++ * RM_L4PER_L4_PER_CONTEXT, RM_L4PER_MCBSP4_CONTEXT, RM_L4PER_MCSPI1_CONTEXT,
++ * RM_L4PER_MCSPI2_CONTEXT, RM_L4PER_MCSPI3_CONTEXT, RM_L4PER_MCSPI4_CONTEXT,
++ * RM_L4PER_MGATE_CONTEXT, RM_L4PER_MMCSD3_CONTEXT, RM_L4PER_MMCSD4_CONTEXT,
++ * RM_L4PER_MMCSD5_CONTEXT, RM_L4PER_MSPROHG_CONTEXT,
++ * RM_L4PER_SLIMBUS2_CONTEXT, RM_L4SEC_PKAEIP29_CONTEXT, RM_MEMIF_DLL_CONTEXT,
++ * RM_MEMIF_DLL_H_CONTEXT, RM_MEMIF_DMM_CONTEXT, RM_MEMIF_EMIF_1_CONTEXT,
++ * RM_MEMIF_EMIF_2_CONTEXT, RM_MEMIF_EMIF_FW_CONTEXT, RM_MPU_MPU_CONTEXT,
++ * RM_TESLA_TESLA_CONTEXT, RM_WKUP_GPIO1_CONTEXT, RM_WKUP_KEYBOARD_CONTEXT,
++ * RM_WKUP_L4WKUP_CONTEXT, RM_WKUP_RTC_CONTEXT, RM_WKUP_SARRAM_CONTEXT,
++ * RM_WKUP_SYNCTIMER_CONTEXT, RM_WKUP_TIMER12_CONTEXT, RM_WKUP_TIMER1_CONTEXT,
++ * RM_WKUP_USIM_CONTEXT, RM_WKUP_WDT1_CONTEXT, RM_WKUP_WDT2_CONTEXT
+  */
+ #define OMAP4430_LOSTCONTEXT_DFF_SHIFT					0
+ #define OMAP4430_LOSTCONTEXT_DFF_MASK					(1 << 0)
+@@ -565,19 +563,18 @@
+  * Used by RM_D2D_MODEM_ICR_CONTEXT, RM_D2D_SAD2D_CONTEXT,
+  * RM_D2D_SAD2D_FW_CONTEXT, RM_DSS_DSS_CONTEXT, RM_DUCATI_DUCATI_CONTEXT,
+  * RM_L3INIT_HSI_CONTEXT, RM_L3INIT_MMC1_CONTEXT, RM_L3INIT_MMC2_CONTEXT,
+- * RM_L3INIT_MMC6_CONTEXT, RM_L3INIT_USB_HOST_CONTEXT,
+- * RM_L3INIT_USB_HOST_FS_CONTEXT, RM_L3INIT_USB_OTG_CONTEXT,
+- * RM_L3INIT_USB_TLL_CONTEXT, RM_L3INSTR_L3_3_CONTEXT,
+- * RM_L3INSTR_OCP_WP1_CONTEXT, RM_L3_1_L3_1_CONTEXT, RM_L3_2_GPMC_CONTEXT,
+- * RM_L3_2_L3_2_CONTEXT, RM_L4CFG_HW_SEM_CONTEXT, RM_L4CFG_L4_CFG_CONTEXT,
+- * RM_L4CFG_MAILBOX_CONTEXT, RM_L4PER_GPIO2_CONTEXT, RM_L4PER_GPIO3_CONTEXT,
+- * RM_L4PER_GPIO4_CONTEXT, RM_L4PER_GPIO5_CONTEXT, RM_L4PER_GPIO6_CONTEXT,
+- * RM_L4PER_I2C1_CONTEXT, RM_L4PER_L4_PER_CONTEXT, RM_L4PER_UART1_CONTEXT,
+- * RM_L4PER_UART2_CONTEXT, RM_L4PER_UART3_CONTEXT, RM_L4PER_UART4_CONTEXT,
+- * RM_L4SEC_AES1_CONTEXT, RM_L4SEC_AES2_CONTEXT, RM_L4SEC_CRYPTODMA_CONTEXT,
+- * RM_L4SEC_DES3DES_CONTEXT, RM_L4SEC_RNG_CONTEXT, RM_L4SEC_SHA2MD51_CONTEXT,
+- * RM_MEMIF_DMM_CONTEXT, RM_MEMIF_EMIF_1_CONTEXT, RM_MEMIF_EMIF_2_CONTEXT,
+- * RM_MEMIF_EMIF_FW_CONTEXT, RM_MEMIF_EMIF_H1_CONTEXT,
++ * RM_L3INIT_USB_HOST_CONTEXT, RM_L3INIT_USB_HOST_FS_CONTEXT,
++ * RM_L3INIT_USB_OTG_CONTEXT, RM_L3INIT_USB_TLL_CONTEXT,
++ * RM_L3INSTR_L3_3_CONTEXT, RM_L3INSTR_OCP_WP1_CONTEXT, RM_L3_1_L3_1_CONTEXT,
++ * RM_L3_2_GPMC_CONTEXT, RM_L3_2_L3_2_CONTEXT, RM_L4CFG_HW_SEM_CONTEXT,
++ * RM_L4CFG_L4_CFG_CONTEXT, RM_L4CFG_MAILBOX_CONTEXT, RM_L4PER_GPIO2_CONTEXT,
++ * RM_L4PER_GPIO3_CONTEXT, RM_L4PER_GPIO4_CONTEXT, RM_L4PER_GPIO5_CONTEXT,
++ * RM_L4PER_GPIO6_CONTEXT, RM_L4PER_I2C1_CONTEXT, RM_L4PER_L4_PER_CONTEXT,
++ * RM_L4PER_UART1_CONTEXT, RM_L4PER_UART2_CONTEXT, RM_L4PER_UART3_CONTEXT,
++ * RM_L4PER_UART4_CONTEXT, RM_L4SEC_AES1_CONTEXT, RM_L4SEC_AES2_CONTEXT,
++ * RM_L4SEC_CRYPTODMA_CONTEXT, RM_L4SEC_DES3DES_CONTEXT, RM_L4SEC_RNG_CONTEXT,
++ * RM_L4SEC_SHA2MD51_CONTEXT, RM_MEMIF_DMM_CONTEXT, RM_MEMIF_EMIF_1_CONTEXT,
++ * RM_MEMIF_EMIF_2_CONTEXT, RM_MEMIF_EMIF_FW_CONTEXT, RM_MEMIF_EMIF_H1_CONTEXT,
+  * RM_MEMIF_EMIF_H2_CONTEXT, RM_SDMA_SDMA_CONTEXT, RM_TESLA_TESLA_CONTEXT
+  */
+ #define OMAP4430_LOSTCONTEXT_RFF_SHIFT					1
+@@ -637,9 +634,8 @@
+ /*
+  * Used by RM_L3INIT_CCPTX_CONTEXT, RM_L3INIT_EMAC_CONTEXT,
+  * RM_L3INIT_HSI_CONTEXT, RM_L3INIT_MMC1_CONTEXT, RM_L3INIT_MMC2_CONTEXT,
+- * RM_L3INIT_MMC6_CONTEXT, RM_L3INIT_PCIESS_CONTEXT, RM_L3INIT_SATA_CONTEXT,
+- * RM_L3INIT_TPPSS_CONTEXT, RM_L3INIT_UNIPRO1_CONTEXT,
+- * RM_L3INIT_USB_OTG_CONTEXT, RM_L3INIT_XHPI_CONTEXT
++ * RM_L3INIT_PCIESS_CONTEXT, RM_L3INIT_SATA_CONTEXT, RM_L3INIT_TPPSS_CONTEXT,
++ * RM_L3INIT_UNIPRO1_CONTEXT, RM_L3INIT_USB_OTG_CONTEXT, RM_L3INIT_XHPI_CONTEXT
+  */
+ #define OMAP4430_LOSTMEM_L3INIT_BANK1_SHIFT				8
+ #define OMAP4430_LOSTMEM_L3INIT_BANK1_MASK				(1 << 8)
+@@ -1861,38 +1857,6 @@
+ #define OMAP4430_WKUPDEP_MCASP1_IRQ_TESLA_SHIFT				2
+ #define OMAP4430_WKUPDEP_MCASP1_IRQ_TESLA_MASK				(1 << 2)
+ 
+-/* Used by PM_L4PER_MCASP2_WKDEP */
+-#define OMAP4430_WKUPDEP_MCASP2_DMA_SDMA_SHIFT				7
+-#define OMAP4430_WKUPDEP_MCASP2_DMA_SDMA_MASK				(1 << 7)
+-
+-/* Used by PM_L4PER_MCASP2_WKDEP */
+-#define OMAP4430_WKUPDEP_MCASP2_DMA_TESLA_SHIFT				6
+-#define OMAP4430_WKUPDEP_MCASP2_DMA_TESLA_MASK				(1 << 6)
+-
+-/* Used by PM_L4PER_MCASP2_WKDEP */
+-#define OMAP4430_WKUPDEP_MCASP2_IRQ_MPU_SHIFT				0
+-#define OMAP4430_WKUPDEP_MCASP2_IRQ_MPU_MASK				(1 << 0)
+-
+-/* Used by PM_L4PER_MCASP2_WKDEP */
+-#define OMAP4430_WKUPDEP_MCASP2_IRQ_TESLA_SHIFT				2
+-#define OMAP4430_WKUPDEP_MCASP2_IRQ_TESLA_MASK				(1 << 2)
+-
+-/* Used by PM_L4PER_MCASP3_WKDEP */
+-#define OMAP4430_WKUPDEP_MCASP3_DMA_SDMA_SHIFT				7
+-#define OMAP4430_WKUPDEP_MCASP3_DMA_SDMA_MASK				(1 << 7)
+-
+-/* Used by PM_L4PER_MCASP3_WKDEP */
+-#define OMAP4430_WKUPDEP_MCASP3_DMA_TESLA_SHIFT				6
+-#define OMAP4430_WKUPDEP_MCASP3_DMA_TESLA_MASK				(1 << 6)
+-
+-/* Used by PM_L4PER_MCASP3_WKDEP */
+-#define OMAP4430_WKUPDEP_MCASP3_IRQ_MPU_SHIFT				0
+-#define OMAP4430_WKUPDEP_MCASP3_IRQ_MPU_MASK				(1 << 0)
+-
+-/* Used by PM_L4PER_MCASP3_WKDEP */
+-#define OMAP4430_WKUPDEP_MCASP3_IRQ_TESLA_SHIFT				2
+-#define OMAP4430_WKUPDEP_MCASP3_IRQ_TESLA_MASK				(1 << 2)
+-
+ /* Used by PM_ABE_MCBSP1_WKDEP */
+ #define OMAP4430_WKUPDEP_MCBSP1_MPU_SHIFT				0
+ #define OMAP4430_WKUPDEP_MCBSP1_MPU_MASK				(1 << 0)
+@@ -2017,18 +1981,6 @@
+ #define OMAP4430_WKUPDEP_MMC2_TESLA_SHIFT				2
+ #define OMAP4430_WKUPDEP_MMC2_TESLA_MASK				(1 << 2)
+ 
+-/* Used by PM_L3INIT_MMC6_WKDEP */
+-#define OMAP4430_WKUPDEP_MMC6_DUCATI_SHIFT				1
+-#define OMAP4430_WKUPDEP_MMC6_DUCATI_MASK				(1 << 1)
+-
+-/* Used by PM_L3INIT_MMC6_WKDEP */
+-#define OMAP4430_WKUPDEP_MMC6_MPU_SHIFT					0
+-#define OMAP4430_WKUPDEP_MMC6_MPU_MASK					(1 << 0)
+-
+-/* Used by PM_L3INIT_MMC6_WKDEP */
+-#define OMAP4430_WKUPDEP_MMC6_TESLA_SHIFT				2
+-#define OMAP4430_WKUPDEP_MMC6_TESLA_MASK				(1 << 2)
+-
+ /* Used by PM_L4PER_MMCSD3_WKDEP */
+ #define OMAP4430_WKUPDEP_MMCSD3_DUCATI_SHIFT				1
+ #define OMAP4430_WKUPDEP_MMCSD3_DUCATI_MASK				(1 << 1)
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index 6e53120..93abfb9 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -351,10 +351,6 @@
+ #define OMAP4430_PM_L3INIT_XHPI_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x00c0)
+ #define OMAP4_RM_L3INIT_XHPI_CONTEXT_OFFSET		0x00c4
+ #define OMAP4430_RM_L3INIT_XHPI_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x00c4)
+-#define OMAP4_PM_L3INIT_MMC6_WKDEP_OFFSET		0x00c8
+-#define OMAP4430_PM_L3INIT_MMC6_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x00c8)
+-#define OMAP4_RM_L3INIT_MMC6_CONTEXT_OFFSET		0x00cc
+-#define OMAP4430_RM_L3INIT_MMC6_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x00cc)
+ #define OMAP4_PM_L3INIT_USB_HOST_FS_WKDEP_OFFSET	0x00d0
+ #define OMAP4430_PM_L3INIT_USB_HOST_FS_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x00d0)
+ #define OMAP4_RM_L3INIT_USB_HOST_FS_CONTEXT_OFFSET	0x00d4
+@@ -443,14 +439,6 @@
+ #define OMAP4430_RM_L4PER_I2C4_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00bc)
+ #define OMAP4_RM_L4PER_L4_PER_CONTEXT_OFFSET		0x00c0
+ #define OMAP4430_RM_L4PER_L4_PER_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00c0)
+-#define OMAP4_PM_L4PER_MCASP2_WKDEP_OFFSET		0x00d0
+-#define OMAP4430_PM_L4PER_MCASP2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00d0)
+-#define OMAP4_RM_L4PER_MCASP2_CONTEXT_OFFSET		0x00d4
+-#define OMAP4430_RM_L4PER_MCASP2_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00d4)
+-#define OMAP4_PM_L4PER_MCASP3_WKDEP_OFFSET		0x00d8
+-#define OMAP4430_PM_L4PER_MCASP3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00d8)
+-#define OMAP4_RM_L4PER_MCASP3_CONTEXT_OFFSET		0x00dc
+-#define OMAP4430_RM_L4PER_MCASP3_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00dc)
+ #define OMAP4_PM_L4PER_MCBSP4_WKDEP_OFFSET		0x00e0
+ #define OMAP4430_PM_L4PER_MCBSP4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00e0)
+ #define OMAP4_RM_L4PER_MCBSP4_CONTEXT_OFFSET		0x00e4
 -- 
 1.7.0.4
 
