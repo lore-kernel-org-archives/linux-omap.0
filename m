@@ -1,83 +1,109 @@
-From: Jassi Brar <jassisinghbrar@gmail.com>
-Subject: [PATCH] mfd: omap: Restore TLL initialization
-Date: Fri, 24 Jun 2011 02:31:34 +0530
-Message-ID: <1308862894-13802-1-git-send-email-jaswinder.singh@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: ti@lists.linaro.org, Keshava_mgowda@ti.com, parthab@india.ti.com, sameo@linux.intel.com, gadiyar@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Jassi Brar <jaswinder.singh@linaro.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 24/25] ARM: pm: hide 1st and 2nd arguments to cpu_suspend from platform code
+Date: Thu, 23 Jun 2011 14:27:10 -0700
+Message-ID: <87mxh88ci9.fsf@ti.com>
+References: <20110623190900.GH9449@n2100.arm.linux.org.uk>
+	<E1QZpOm-0005nx-T1@rmk-PC.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from [74.125.149.146] ([74.125.149.146]:39022 "EHLO psmtp.com"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752784Ab1FWV1O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 17:27:14 -0400
+In-Reply-To: <E1QZpOm-0005nx-T1@rmk-PC.arm.linux.org.uk> (Russell King's
+	message of "Thu, 23 Jun 2011 20:17:08 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 
-The commit
-  7e6502d577106fb5b202bbaac64c5f1b065 'mfd: Add omap-usbhs runtime PM support'
-besides moving to RPM, removes necessary TLL initialization as well.
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-Restore the TLL initialization, without which device detection fails.
+> The first and second arguments shouldn't concern platform code, so
+> hide them from each platforms caller.
+>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  arch/arm/include/asm/suspend.h |   19 +++++++++++++++++++
+>  arch/arm/include/asm/system.h  |    2 --
+>  arch/arm/kernel/sleep.S        |    2 +-
+>  arch/arm/mach-omap2/pm34xx.c   |    5 +++--
+>  arch/arm/mach-pxa/palmz72.c    |    1 +
+>  arch/arm/mach-pxa/pxa25x.c     |    4 ++--
+>  arch/arm/mach-pxa/pxa27x.c     |    4 ++--
+>  arch/arm/mach-pxa/pxa3xx.c     |    3 ++-
+>  arch/arm/mach-pxa/zeus.c       |    4 ++--
+>  arch/arm/mach-sa1100/pm.c      |    3 ++-
+>  arch/arm/plat-samsung/pm.c     |    3 ++-
+>  11 files changed, 36 insertions(+), 14 deletions(-)
+>  create mode 100644 arch/arm/include/asm/suspend.h
+>
+> diff --git a/arch/arm/include/asm/suspend.h b/arch/arm/include/asm/suspend.h
+> new file mode 100644
+> index 0000000..8d5b446
+> --- /dev/null
+> +++ b/arch/arm/include/asm/suspend.h
+> @@ -0,0 +1,19 @@
+> +#ifndef __ASM_ARM_SUSPEND_H
+> +#define __ASM_ARM_SUSPEND_H
+> +
+> +#include <asm/memory.h>
+> +
+> +extern void cpu_resume(void);
+> +
+> +/*
+> + * Hide the first two arguments to __cpu_suspend - these are an implementation
+> + * detail which platform code shouldn't have to know about.
+> + */
+> +static inline void cpu_suspend(unsigned long arg, void (*fn)(unsigned long))
+> +{
+> +	extern void __cpu_suspend(int, long, unsigned long,
+> +				  void (*)(unsigned long));
+> +	__cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, arg, fn);
+> +}
+> +
+> +#endif
+> diff --git a/arch/arm/include/asm/system.h b/arch/arm/include/asm/system.h
+> index 50be605..832888d 100644
+> --- a/arch/arm/include/asm/system.h
+> +++ b/arch/arm/include/asm/system.h
+> @@ -106,8 +106,6 @@ extern void __show_regs(struct pt_regs *);
+>  
+>  extern int cpu_architecture(void);
+>  extern void cpu_init(void);
+> -extern void cpu_suspend(int, long, unsigned long, void (*)(unsigned long));
+> -extern void cpu_resume(void);
+>  
+>  void arm_machine_restart(char mode, const char *cmd);
+>  extern void (*arm_pm_restart)(char str, const char *cmd);
+> diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
+> index 5392274..0bdcc72 100644
+> --- a/arch/arm/kernel/sleep.S
+> +++ b/arch/arm/kernel/sleep.S
+> @@ -14,7 +14,7 @@
+>   *  r3 = suspend function
+>   * Note: does not return until system resumes
+>   */
+> -ENTRY(cpu_suspend)
+> +ENTRY(__cpu_suspend)
 
-Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
----
- drivers/mfd/omap-usb-host.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 42 insertions(+), 0 deletions(-)
+You missed also changing the ENDPROC here, so it doesn't compile
+without:
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 8552195..12ca77b 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -640,6 +640,7 @@ static int usbhs_enable(struct device *dev)
- 	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
- 	unsigned long			flags = 0;
- 	int				ret = 0;
-+	unsigned long			timeout;
- 	unsigned			reg;
+diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
+index 0bdcc72..c156d0e 100644
+--- a/arch/arm/kernel/sleep.S
++++ b/arch/arm/kernel/sleep.S
+@@ -56,7 +56,7 @@ ENTRY(__cpu_suspend)
+        bl      __cpuc_flush_kern_all
+ #endif
+        ldmfd   sp!, {r0, pc}           @ call suspend fn
+-ENDPROC(cpu_suspend)
++ENDPROC(__cpu_suspend)
+        .ltorg
  
- 	dev_dbg(dev, "starting TI HSUSB Controller\n");
-@@ -676,6 +677,47 @@ static int usbhs_enable(struct device *dev)
- 	omap->usbhs_rev = usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
- 	dev_dbg(dev, "OMAP UHH_REVISION 0x%x\n", omap->usbhs_rev);
- 
-+	/* perform TLL soft reset, and wait until reset is complete */
-+	usbhs_write(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
-+			OMAP_USBTLL_SYSCONFIG_SOFTRESET);
-+
-+	/* Wait for TLL reset to complete */
-+	timeout = jiffies + msecs_to_jiffies(1000);
-+	while (!(usbhs_read(omap->tll_base, OMAP_USBTLL_SYSSTATUS)
-+			& OMAP_USBTLL_SYSSTATUS_RESETDONE)) {
-+		cpu_relax();
-+
-+		if (time_after(jiffies, timeout)) {
-+			dev_dbg(dev, "operation timed out\n");
-+			ret = -EINVAL;
-+			goto err_tll;
-+		}
-+	}
-+	dev_dbg(dev, "TLL RESET DONE\n");
-+
-+	/* (1<<3) = no idle mode only for initial debugging */
-+	usbhs_write(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
-+			OMAP_USBTLL_SYSCONFIG_ENAWAKEUP |
-+			OMAP_USBTLL_SYSCONFIG_SIDLEMODE |
-+			OMAP_USBTLL_SYSCONFIG_AUTOIDLE);
-+
-+	/* Put UHH in NoIdle/NoStandby mode */
-+	reg = usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG);
-+	if (is_omap_usbhs_rev1(omap)) {
-+		reg |= (OMAP_UHH_SYSCONFIG_ENAWAKEUP
-+				| OMAP_UHH_SYSCONFIG_SIDLEMODE
-+				| OMAP_UHH_SYSCONFIG_CACTIVITY
-+				| OMAP_UHH_SYSCONFIG_MIDLEMODE);
-+		reg &= ~OMAP_UHH_SYSCONFIG_AUTOIDLE;
-+	} else if (is_omap_usbhs_rev2(omap)) {
-+		reg &= ~OMAP4_UHH_SYSCONFIG_IDLEMODE_CLEAR;
-+		reg |= OMAP4_UHH_SYSCONFIG_NOIDLE;
-+		reg &= ~OMAP4_UHH_SYSCONFIG_STDBYMODE_CLEAR;
-+		reg |= OMAP4_UHH_SYSCONFIG_NOSTDBY;
-+	}
-+
-+	usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
-+
- 	reg = usbhs_read(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
- 	/* setup ULPI bypass and burst configurations */
- 	reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
--- 
-1.7.4.1
+ /*
+
+
+Kevin
