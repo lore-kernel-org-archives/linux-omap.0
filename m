@@ -1,79 +1,116 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 25/25] ARM: pm: omap34xx: convert to generic
-	suspend/resume support
-Date: Thu, 23 Jun 2011 11:47:11 +0100
-Message-ID: <20110623104711.GF9449@n2100.arm.linux.org.uk>
-References: <20110622150816.GT23234@n2100.arm.linux.org.uk>
-	<E1QZPAo-0002XO-9G@rmk-PC.arm.linux.org.uk>
-	<20110622161021.GB9449@n2100.arm.linux.org.uk>
-	<4E027BD3.6030500@ti.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH 1/8] OMAP4: DSS: HDMI: HDMI clean up to pass base_address
+Date: Thu, 23 Jun 2011 16:30:22 +0530
+Message-ID: <BANLkTinia6hMs7UjjoT=qjqgZVM9XL3ggQ@mail.gmail.com>
+References: <1308298637-29753-1-git-send-email-mythripk@ti.com>
+ <1308298637-29753-2-git-send-email-mythripk@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024D625B05@dbde02.ent.ti.com>
+ <BANLkTin6ZShO-fmcA-FOm5f+XdhnR3iLDA@mail.gmail.com> <B85A65D85D7EB246BE421B3FB0FBB593024D6C27CB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <4E027BD3.6030500@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:54961 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759157Ab1FWLAn convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 07:00:43 -0400
+Received: by mail-fx0-f52.google.com with SMTP id 6so2091045fxm.39
+        for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 04:00:42 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D6C27CB@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 
-On Thu, Jun 23, 2011 at 05:03:39AM +0530, Santosh Shilimkar wrote:
-> On 6/22/2011 9:40 PM, Russell King - ARM Linux wrote:
->> A couple of things to point out here:
->>
->> On Wed, Jun 22, 2011 at 04:16:58PM +0100, Russell King - ARM Linux wrote:
->>> -	mrc	p15, 0, r4, c13, c0, 1	@ Context ID
->>> -	mrc	p15, 0, r5, c13, c0, 2	@ User r/w thread and process ID
->>> -	mrc	p15, 0, r6, c12, c0, 0	@ Secure or NS vector base address
->>> -	mrs	r7, cpsr		@ Store current cpsr
->>> -	stmia	r8!, {r4-r7}
->>
->> 1. The User r/w thread and process ID is not saved/restored by Linux over
->> context switches, so it doesn't serve any useful purpose to save and
->> restore over resume.
->>
-> It will be needed for CPUIDLE I guess.
+Hi Sanjeev,
 
-No it isn't.  It is not used by Linux at all - the only thread register
-which is used is the User r/o thread register, and I've patched the
-proc-v7 code to preserve that register.
+<snip>
+>> >
+>> > =A0 =A0 The changes in the patch aren't limited to DSS alone.
+>> > =A0 =A0 See updated to hdmi_core_audio_config(),
+>> hdmi_wp_audio_config_format(),
+>> > =A0 =A0 hdmi_wp_audio_config_dma(), etc.
+>> >
+>> The changes are related to the HDMI driver which as of this patch is
+>> in DSS. You see any concerns ? It is only later that those functions
+>> are moved out .
+>
+> [sp] The subject of mail indicates that changes are meant for DSS.
+> =A0 =A0 How are the functions I quoted related to DSS? Unless DSS on =
+OMAP4
+> =A0 =A0 supports audio...
+>
+Some of the Audio configuration for HDMI is part of DSS (as of 2.6.40)
+, This patch series is precisely to separate the DSS portion from
+non-DSS portion of HDMI.
+It would be great if you have a look at the 2.6.40 kernel and this
+gitorious tree with my patch set to get a fair idea.
 
->> 2. Compare the instruction saving and restoring the vector base address
->> (see below for the restore code.)
->>
-> That's typo. It should have been mcr. Actually VBAR isn't used on GP
-> devices but might be used on secure devices. I know that common suspend
-> code doesn't consider this register. It's fine to keep it that way
-> and if OMAP needs it, it can save/restored outside common code.
+>> >>
+>> >> - =A0 =A0 r =3D hdmi_read_reg(PLLCTRL_CFG1);
+>> >> + =A0 =A0 r =3D hdmi_read_reg(hdmi_pll_base(ip_data), PLLCTRL_CFG=
+1);
+>> >> =A0 =A0 =A0 r =3D FLD_MOD(r, fmt->regm, 20, 9); /* CFG1_PLL_REGM =
+*/
+>> >> =A0 =A0 =A0 r =3D FLD_MOD(r, fmt->regn, 8, 1); =A0/* CFG1_PLL_REG=
+N */
+>> >>
+>> >> - =A0 =A0 hdmi_write_reg(PLLCTRL_CFG1, r);
+>> >> + =A0 =A0 hdmi_write_reg(hdmi_pll_base(ip_data), PLLCTRL_CFG1, r)=
+;
+>> >
+>> > [sp] hdmi_pll_base(ip_data) is used at many places withing this
+>> > =A0 =A0 function. Have you checked if saving the result in a local
+>> > =A0 =A0 variable generates any better code than repetitive ADD ope=
+ration
+>> > =A0 =A0 in the function.
+>> >
+>> > =A0 =A0 Same comment applies to similar use in other functions
+>> > =A0 =A0 modified in this patch.
+>> >
+>> I had this comment from Tomi as well , Yes in some places it makes
+>> sense to have a local variable to save , but then in certain functio=
+ns
+>> where there are four writes with 3 different base address it doesn't
+>> make sense to add 3 variables.
+>
+> [sp] I don't see base address for the IP changing within the function=
+=2E
+> =A0 =A0 so a local variable still makes sense - instead of using CPU =
+cycles
+> =A0 =A0 to do reduntant calculations each time.
 
-The kernel doesn't use or initialize the register, so its not something
-which the kernel should be concerned about.  Presumably secure devices
-need to restore the secure-mode version of that register.
+I shall make those changes where applicable.
+>
+>> > [snip]...[snip]
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 ,
+>> >> HDMI_CORE_DDC_CMD, 0x9, 3, 0);
+>> >
+>> > [sp] Misplaced "," at beginning of the line.
+>> >
+>> Not a part of the patch i suppose?
+>
+> [sp] Actually the + indicates it is very much part of the patch.
+> =A0 =A0 Ideally it should be at end of prev line.
+> =A0 =A0 [quote]
+> =A0 =A0 =A0 =A0/* Clear FIFO */
+> =A0 =A0 - =A0REG_FLD_MOD(HDMI_CORE_DDC_CMD, 0x9, 3, 0);
+> =A0 =A0 + =A0REG_FLD_MOD(hdmi_core_sys_base(ip_data)
+> =A0 =A0 + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0, HDMI_C=
+ORE_DDC_CMD, 0x9, 3, 0);
+> =A0 =A0 [/quote]
+>
+> ~sanjeev
+>
 
-However, there's an extra twist here:
-| On an implementation that does not include the Security Extensions all
-| CP15 c12 encodings are UNDEFINED.
 
-And a further twist is this:
-| B3.12.40 c12, Vector Base Address Register (VBAR)
-| When the Security Extensions are implemented and high exception vectors are
-| not selected, the Vector Base Address Register, VBAR, provides the exception
-| base address for exceptions that are not handled in Monitor mode, see
-| Exception vectors and the exception base address on page B1-30. The high
-| exception vectors always have the base address 0xFFFF0000 and are not
-| affected by the value of VBAR.
 
-Since we always select high exception vectors, VBAR is not used, so we have
-no requirement to save and restore this register on any ARMv7 MMU platform.
-Given that it would be dangerous to do so (due to not knowing whether
-security stuff is implemented or not) ignoring the presence of this register
-is for the best.
+--=20
+Thanks and regards,
+Mythri.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
