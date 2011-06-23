@@ -1,74 +1,78 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 2/6] OMAP4: hwmod data: Add MSTANDBY_SMART_WKUP flag
-Date: Thu, 23 Jun 2011 23:00:38 +0200
-Message-ID: <1308862842-3933-3-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 4/6] OMAP2+: hwmod: Do not write the enawakeup bit if SYSC_HAS_ENAWAKEUP is not set
+Date: Thu, 23 Jun 2011 23:00:40 +0200
+Message-ID: <1308862842-3933-5-git-send-email-b-cousson@ti.com>
 References: <1308862842-3933-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55035 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43085 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752913Ab1FWVBK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jun 2011 17:01:10 -0400
+	id S1752948Ab1FWVBN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 17:01:13 -0400
 In-Reply-To: <1308862842-3933-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: rnayak@ti.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-Add the flag to every IPs that support it to allow the
-framework to enable it instead of the SMART_STANDBY default
-mode.
-Without that, an IP with busmaster capability will not
-be able to wakeup the interconnect at all.
+The Type 2 type of IPs will not have any enawakeup bit in their sysconfig.
+Writing to that bit will instead trigger a softreset.
+Check the flag to write this bit only if the module supports it.
 
+Reported-by: Miguel Vadillo <vadillo@ti.com>
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   14 ++++----------
+ 1 files changed, 4 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index f7f4840..c531611 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -661,7 +661,8 @@ static struct omap_hwmod_class_sysconfig omap44xx_aess_sysc = {
- 	.sysc_offs	= 0x0010,
- 	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-+			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART |
-+			   MSTANDBY_SMART_WKUP),
- 	.sysc_fields	= &omap_hwmod_sysc_type2,
- };
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index cbc2a8a..3800084 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -387,8 +387,6 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
+  */
+ static int _enable_wakeup(struct omap_hwmod *oh, u32 *v)
+ {
+-	u32 wakeup_mask;
+-
+ 	if (!oh->class->sysc ||
+ 	    !((oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP) ||
+ 	      (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP) ||
+@@ -400,9 +398,8 @@ static int _enable_wakeup(struct omap_hwmod *oh, u32 *v)
+ 		return -EINVAL;
+ 	}
  
-@@ -2045,7 +2046,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_hsi_sysc = {
- 			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
--			   MSTANDBY_SMART),
-+			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
+-	wakeup_mask = (0x1 << oh->class->sysc->sysc_fields->enwkup_shift);
+-
+-	*v |= wakeup_mask;
++	if (oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP)
++		*v |= 0x1 << oh->class->sysc->sysc_fields->enwkup_shift;
  
-@@ -2447,7 +2448,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_iss_sysc = {
- 			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
--			   MSTANDBY_SMART),
-+			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
- 	.sysc_fields	= &omap_hwmod_sysc_type2,
- };
+ 	if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
+ 		_set_slave_idlemode(oh, HWMOD_IDLEMODE_SMART_WKUP, v);
+@@ -425,8 +422,6 @@ static int _enable_wakeup(struct omap_hwmod *oh, u32 *v)
+  */
+ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
+ {
+-	u32 wakeup_mask;
+-
+ 	if (!oh->class->sysc ||
+ 	    !((oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP) ||
+ 	      (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP) ||
+@@ -438,9 +433,8 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
+ 		return -EINVAL;
+ 	}
  
-@@ -3421,7 +3422,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_mmc_sysc = {
- 			   SYSC_HAS_SOFTRESET),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
--			   MSTANDBY_SMART),
-+			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
- 	.sysc_fields	= &omap_hwmod_sysc_type2,
- };
+-	wakeup_mask = (0x1 << oh->class->sysc->sysc_fields->enwkup_shift);
+-
+-	*v &= ~wakeup_mask;
++	if (oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP)
++		*v &= ~(0x1 << oh->class->sysc->sysc_fields->enwkup_shift);
  
+ 	if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
+ 		_set_slave_idlemode(oh, HWMOD_IDLEMODE_SMART, v);
 -- 
 1.7.0.4
 
