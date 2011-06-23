@@ -1,109 +1,163 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH 3/8] OMAP4: DSS: HDMI: Use specific HDMI timings structure
-Date: Thu, 23 Jun 2011 14:16:12 +0530
-Message-ID: <BANLkTikmUfo=sJ6-wrhbYeDCJOySc7NnMg@mail.gmail.com>
-References: <1308298637-29753-1-git-send-email-mythripk@ti.com>
- <1308298637-29753-2-git-send-email-mythripk@ti.com> <1308298637-29753-3-git-send-email-mythripk@ti.com>
- <1308298637-29753-4-git-send-email-mythripk@ti.com> <1308817843.1834.40.camel@deskari>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 1/6] omap: prcm: switch to a chained IRQ handler mechanism
+Date: Thu, 23 Jun 2011 12:08:49 +0300
+Message-ID: <1308820129.5972.15.camel@sokoban>
+References: <1308760934-9757-1-git-send-email-t-kristo@ti.com> <1308760934-9757-2-git-send-email-t-kristo@ti.com> <20110623081940.GW23145@atomide.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:51609 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758942Ab1FWIqu convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jun 2011 04:46:50 -0400
-Received: by fxm1 with SMTP id 1so1353561fxm.15
-        for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 01:46:47 -0700 (PDT)
-In-Reply-To: <1308817843.1834.40.camel@deskari>
+Received: from comal.ext.ti.com ([198.47.26.152]:59667 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758931Ab1FWJI5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 05:08:57 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <20110623081940.GW23145@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Mahadeva, Avinash" <avinashhm@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi Tomi,
+On Thu, 2011-06-23 at 10:19 +0200, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [110622 09:38]:
+> > Introduce a chained interrupt handler mechanism for the PRCM
+> > interrupt, so that individual PRCM event can cleanly be handled by
+> > handlers in separate drivers. We do this by introducing PRCM event
+> > names, which are then matched to the particular PRCM interrupt bit
+> > depending on the specific OMAP SoC being used.
+> > 
+> > arch/arm/mach-omap2/prcm.c implements the chained interrupt mechanism
+> > itself, with individual PRCM events for OMAP3 and OMAP4 being
+> > described in arch/arm/mach-omap2/prcm3xxx.c and
+> > arch/arm/mach-omap2/prcm4xxx.c respectively. At initialization time,
+> > the set of PRCM events is filtered against the SoC on which we are
+> > running, keeping only the ones that are actually useful. All the logic
+> > is written to be generic with regard to OMAP3/OMAP4, even though OMAP3
+> > has single PRCM event registers and OMAP4 has two PRCM event
+> > registers.
+> 
+> Nice, this makes things more generic. Some comments below.
+>  
+> > +int omap_prcm_irq_init(void)
+> > +{
+> > +	int i, j;
+> > +	struct omap_prcm_irq *unfiltered_irqs;
+> > +	unsigned unfiltered_irqs_nr;
+> > +
+> > +	if (cpu_is_omap34xx() || cpu_is_omap3630()) {
+> > +		unfiltered_irqs          = omap_prcm_3xxx_irqs;
+> > +		unfiltered_irqs_nr       = omap_prcm_3xxx_irqs_nr;
+> > +		omap_prcm_mask_event     = omap3_prcm_mask_event;
+> > +		omap_prcm_unmask_event   = omap3_prcm_unmask_event;
+> > +		omap_prcm_ack_event      = omap3_prcm_ack_event;
+> > +		omap_prcm_pending_events = omap3_prcm_pending_events;
+> > +		irq_set_chained_handler(INT_34XX_PRCM_MPU_IRQ,
+> > +					prcm_irq_handler);
+> > +	} else if (cpu_is_omap44xx()) {
+> > +		unfiltered_irqs          = omap_prcm_4xxx_irqs;
+> > +		unfiltered_irqs_nr       = omap_prcm_4xxx_irqs_nr;
+> > +		omap_prcm_mask_event     = omap4_prcm_mask_event;
+> > +		omap_prcm_unmask_event   = omap4_prcm_unmask_event;
+> > +		omap_prcm_ack_event      = omap4_prcm_ack_event;
+> > +		omap_prcm_pending_events = omap4_prcm_pending_events;
+> > +		irq_set_chained_handler(OMAP44XX_IRQ_PRCM, prcm_irq_handler);
+> > +	} else {
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	for (i = 0; i < unfiltered_irqs_nr; i++)
+> > +		if (omap_chip_is(unfiltered_irqs[i].omap_chip))
+> > +			omap_prcm_irqs_nr++;
+> > +
+> > +	omap_prcm_irqs = kmalloc(omap_prcm_irqs_nr *
+> > +				 sizeof(struct omap_prcm_irq),
+> > +				 GFP_KERNEL);
+> > +	if (!omap_prcm_irqs)
+> > +		return -ENOMEM;
+> > +
+> > +	for (i = 0, j = 0; i < unfiltered_irqs_nr; i++)
+> > +		if (omap_chip_is(unfiltered_irqs[i].omap_chip)) {
+> > +			memcpy(&omap_prcm_irqs[j], &unfiltered_irqs[i],
+> > +			       sizeof(struct omap_prcm_irq));
+> > +			j++;
+> > +		}
+> > +
+> > +	for (i = OMAP_PRCM_IRQ_BASE; i < OMAP_PRCM_IRQ_END; i++) {
+> > +		irq_set_chip(i, &prcm_irq_chip);
+> > +		irq_set_handler(i, handle_level_irq);
+> > +		set_irq_flags(i, IRQF_VALID);
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> 
+> Please make omap_prcm_irq_init generic so you pass it the configuration.
+> Otherwise you have to add more else if cpu_is_omap code for each new omap.
+> Then you can add just an arch_initcall for each new omap to call
+> omap_prcm_irq_init. This will also make it easier to add support for
+> initializing things from device tree for omap_prcm_irq_init.
 
-On Thu, Jun 23, 2011 at 2:00 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> On Fri, 2011-06-17 at 13:47 +0530, Mythri P K wrote:
->> Define new HDMI timings structure to replace the OMAP DSS timing str=
-ucutre in hdmi.c
->> to have the HDMI include defintion out of DSS.
->>
->> Signed-off-by: Mythri P K <mythripk@ti.com>
->> ---
->> =A0drivers/video/omap2/dss/hdmi.c | =A0 23 ++++++++++++++++++++---
->> =A0drivers/video/omap2/dss/hdmi.h | =A0 15 ++++++++++++++-
->> =A02 files changed, 34 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/ds=
-s/hdmi.c
->> index 4ee879a..c24d573 100644
->> --- a/drivers/video/omap2/dss/hdmi.c
->> +++ b/drivers/video/omap2/dss/hdmi.c
->> @@ -593,6 +593,20 @@ static int read_edid(struct hdmi_ip_data *ip_da=
-ta, u8 *pedid, u16 max_length)
->> =A0 =A0 =A0 return 0;
->> =A0}
->>
->> +static void copy_hdmi_to_dss_timings(struct hdmi_video_timings hdmi=
-_timings,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct omap_video_timings =
-*timings)
->
-> There's no reason to pass hdmi_timings as a value, so it should be a
-> pointer.
-As the hdmi_timings is not changed in the function , i passed it by
-value, Not a problem to change.
->
->> +{
->> + =A0 =A0 timings->x_res =3D hdmi_timings.x_res;
->> + =A0 =A0 timings->y_res =3D hdmi_timings.y_res;
->> + =A0 =A0 timings->pixel_clock =3D hdmi_timings.pixel_clock;
->> + =A0 =A0 timings->hbp =3D hdmi_timings.hbp;
->> + =A0 =A0 timings->hfp =3D hdmi_timings.hfp;
->> + =A0 =A0 timings->hsw =3D hdmi_timings.hsw;
->> + =A0 =A0 timings->vbp =3D hdmi_timings.vbp;
->> + =A0 =A0 timings->vfp =3D hdmi_timings.vfp;
->> + =A0 =A0 timings->vsw =3D hdmi_timings.vsw;
->> +}
->> +
->> =A0static int get_timings_index(void)
->> =A0{
->> =A0 =A0 =A0 int code;
->> @@ -617,7 +631,7 @@ static struct hdmi_cm hdmi_get_code(struct omap_=
-video_timings *timing)
->> =A0{
->> =A0 =A0 =A0 int i =3D 0, code =3D -1, temp_vsync =3D 0, temp_hsync =3D=
- 0;
->> =A0 =A0 =A0 int timing_vsync =3D 0, timing_hsync =3D 0;
->> - =A0 =A0 struct omap_video_timings temp;
->> + =A0 =A0 struct hdmi_video_timings temp;
->> =A0 =A0 =A0 struct hdmi_cm cm =3D {-1};
->> =A0 =A0 =A0 DSSDBG("hdmi_get_code\n");
->>
->> @@ -775,7 +789,8 @@ static void hdmi_read_edid(struct omap_video_tim=
-ings *dp)
->
-> "dp" feels a rather odd name for video timings variable. What does it
-> stand for?
+Yea, can do this.
 
-*display pointer, but then it is not a part of this patch.
+> 
+> > +/*
+> > + * Reverses memory allocated and other setups done by
+> > + * omap_prcm_irq_init().
+> > + */
+> > +void omap_prcm_irq_cleanup(void)
+> > +{
+> > +	int i;
+> > +
+> > +	for (i = OMAP_PRCM_IRQ_BASE; i < OMAP_PRCM_IRQ_END; i++) {
+> > +		irq_set_chip(i, NULL);
+> > +		irq_set_handler(i, NULL);
+> > +		set_irq_flags(i, 0);
+> > +	}
+> > +
+> > +	kfree(omap_prcm_irqs);
+> > +
+> > +	if (cpu_is_omap34xx() || cpu_is_omap3630()) {
+> > +		irq_set_chained_handler(INT_34XX_PRCM_MPU_IRQ, NULL);
+> > +	} else {
+> > +		irq_set_chained_handler(OMAP44XX_IRQ_PRCM, NULL);
+> > +	}
+> > +}
+> 
+> Please get rid of the cpu_is_omap tests here too so prcm.c is
+> generic for the new code added.
 
->
-> =A0Tomi
->
->
->
+Same.
+
+> 
+> > +struct omap_prcm_irq  __initdata omap_prcm_3xxx_irqs[] = {
+> > +	OMAP_PRCM_IRQ("wkup",                  0,
+> > +		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
+> > +	OMAP_PRCM_IRQ("evgenon",               2,
+> > +		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
+> > +	OMAP_PRCM_IRQ("evgenoff",              3,
+> > +		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
+> ...
+> 
+> Please note consider that this data will be coming from device
+> tree and will disappear from here. We won't be merging any new
+> data after v3.1 unless it comes from device tree. So this too
+> will need to be converted because we won't be able to add support
+> for new omaps otherwise.
+
+This part I am not too sure what you mean with this. Do you have some
+info / examples about the device tree somewhere and how this data should
+be converted?
+
+> 
+> Also, please Cc linux-arm-kernel too.
+> 
+> Regards,
+> 
+> Tony
 
 
 
---=20
-Thanks and regards,
-Mythri.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
+
