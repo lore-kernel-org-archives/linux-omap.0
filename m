@@ -1,7 +1,7 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 11/25] ARM: pm: convert cpu_suspend() to a normal function
-Date: Thu, 23 Jun 2011 20:12:45 +0100
-Message-ID: <E1QZpKX-0005mT-4t@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 12/25] ARM: pm: move cpu_init() call into core code
+Date: Thu, 23 Jun 2011 20:13:05 +0100
+Message-ID: <E1QZpKr-0005mY-Ti@rmk-PC.arm.linux.org.uk>
 References: <20110623190900.GH9449@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,247 +12,70 @@ Sender: linux-samsung-soc-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-cpu_suspend() has a weird calling method which makes it only possible to
-call from assembly code: it returns with a modified stack pointer to
-finish the suspend, but on resume, it 'returns' via a provided pointer.
+As we have core code dealing with CPU suspend/resume, we can
+re-initialize the CPUs exception banked registers via that code rather
+than having platforms deal with that level of detail.  So, move the
+call to cpu_init() out of platform code into core code.
 
-We can make cpu_suspend() appear to be a normal function merely by
-swapping the resume pointer argument and the link register.
-
-Do so, and update all callers to take account of this more traditional
-behaviour.
-
-Acked-by: Frank Hofmann <frank.hofmann@tomtom.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/include/asm/system.h |    2 ++
- arch/arm/kernel/sleep.S       |   10 ++++------
- arch/arm/mach-exynos4/sleep.S |    7 +++----
- arch/arm/mach-pxa/sleep.S     |   13 ++++++++++---
- arch/arm/mach-s3c64xx/sleep.S |    9 +++------
- arch/arm/mach-s5pv210/sleep.S |    7 +++----
- arch/arm/mach-sa1100/sleep.S  |   13 +++----------
- arch/arm/plat-s3c24xx/sleep.S |   10 +++-------
- 8 files changed, 31 insertions(+), 40 deletions(-)
+ arch/arm/kernel/sleep.S    |    1 +
+ arch/arm/mach-pxa/pm.c     |    1 -
+ arch/arm/mach-sa1100/pm.c  |    2 --
+ arch/arm/plat-samsung/pm.c |    4 ----
+ 4 files changed, 1 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/include/asm/system.h b/arch/arm/include/asm/system.h
-index 832888d..50be605 100644
---- a/arch/arm/include/asm/system.h
-+++ b/arch/arm/include/asm/system.h
-@@ -106,6 +106,8 @@ extern void __show_regs(struct pt_regs *);
- 
- extern int cpu_architecture(void);
- extern void cpu_init(void);
-+extern void cpu_suspend(int, long, unsigned long, void (*)(unsigned long));
-+extern void cpu_resume(void);
- 
- void arm_machine_restart(char mode, const char *cmd);
- extern void (*arm_pm_restart)(char str, const char *cmd);
 diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
-index b924bcc..e062677 100644
+index e062677..5392274 100644
 --- a/arch/arm/kernel/sleep.S
 +++ b/arch/arm/kernel/sleep.S
-@@ -11,13 +11,11 @@
-  * Save CPU state for a suspend
-  *  r1 = v:p offset
-  *  r2 = suspend function arg0
-- *  r3 = virtual return function
-- * Note: sp is decremented to allocate space for CPU state on stack
-- * r0-r3,ip,lr corrupted
-+ *  r3 = suspend function
-+ * Note: does not return until system resumes
-  */
- ENTRY(cpu_suspend)
--	stmfd	sp!, {r3}
--	stmfd	sp!, {r4 - r11}
-+	stmfd	sp!, {r4 - r11, lr}
- #ifdef MULTI_CPU
- 	ldr	r10, =processor
- 	ldr	r5, [r10, #CPU_SLEEP_SIZE] @ size of CPU sleep state
-@@ -33,7 +31,7 @@ ENTRY(cpu_suspend)
- 	stmfd	sp!, {r1, r6, ip}	@ save v:p, virt SP, phys resume fn
- 	ldr	r5, =sleep_save_sp
- 	add	r6, sp, r1		@ convert SP to phys
--	stmfd	sp!, {r2, lr}		@ save suspend func arg and pointer
-+	stmfd	sp!, {r2, r3}		@ save suspend func arg and pointer
- #ifdef CONFIG_SMP
- 	ALT_SMP(mrc p15, 0, lr, c0, c0, 5)
- 	ALT_UP(mov lr, #0)
-diff --git a/arch/arm/mach-exynos4/sleep.S b/arch/arm/mach-exynos4/sleep.S
-index 6b62425..d9a2287 100644
---- a/arch/arm/mach-exynos4/sleep.S
-+++ b/arch/arm/mach-exynos4/sleep.S
-@@ -42,16 +42,15 @@
- ENTRY(s3c_cpu_save)
+@@ -88,6 +88,7 @@ ENDPROC(cpu_resume_turn_mmu_on)
+ cpu_resume_after_mmu:
+ 	str	r5, [r2, r4, lsl #2]	@ restore old mapping
+ 	mcr	p15, 0, r0, c1, c0, 0	@ turn on D-cache
++	bl	cpu_init		@ restore the und/abt/irq banked regs
+ 	ldmfd	sp!, {r4 - r11, pc}
+ ENDPROC(cpu_resume_after_mmu)
  
- 	stmfd	sp!, { r3 - r12, lr }
--	ldr	r3, =resume_with_mmu
-+	adr	r3, BSYM(exynos4_finish_suspend)
- 	bl	cpu_suspend
-+	ldmfd	sp!, { r3 - r12, pc }
+diff --git a/arch/arm/mach-pxa/pm.c b/arch/arm/mach-pxa/pm.c
+index 51e1583..37178a8 100644
+--- a/arch/arm/mach-pxa/pm.c
++++ b/arch/arm/mach-pxa/pm.c
+@@ -42,7 +42,6 @@ int pxa_pm_enter(suspend_state_t state)
  
-+exynos4_finish_suspend:
- 	ldr	r0, =pm_cpu_sleep
- 	ldr	r0, [ r0 ]
- 	mov	pc, r0
+ 	/* *** go zzz *** */
+ 	pxa_cpu_pm_fns->enter(state);
+-	cpu_init();
  
--resume_with_mmu:
--	ldmfd	sp!, { r3 - r12, pc }
+ 	if (state != PM_SUSPEND_STANDBY && pxa_cpu_pm_fns->restore) {
+ 		/* after sleeping, validate the checksum */
+diff --git a/arch/arm/mach-sa1100/pm.c b/arch/arm/mach-sa1100/pm.c
+index c4661aa..d35885c 100644
+--- a/arch/arm/mach-sa1100/pm.c
++++ b/arch/arm/mach-sa1100/pm.c
+@@ -77,8 +77,6 @@ static int sa11x0_pm_enter(suspend_state_t state)
+ 	/* go zzz */
+ 	sa1100_cpu_suspend(PLAT_PHYS_OFFSET - PAGE_OFFSET);
+ 
+-	cpu_init();
 -
- 	.ltorg
- 
  	/*
-diff --git a/arch/arm/mach-pxa/sleep.S b/arch/arm/mach-pxa/sleep.S
-index 613ddfa..3a67887 100644
---- a/arch/arm/mach-pxa/sleep.S
-+++ b/arch/arm/mach-pxa/sleep.S
-@@ -35,9 +35,11 @@ ENTRY(pxa3xx_cpu_suspend)
- #endif
- 	stmfd	sp!, {r2 - r12, lr}	@ save registers on stack
- 	mov	r1, r0
--	ldr	r3, =pxa_cpu_resume	@ resume function
-+	adr	r3, BSYM(pxa3xx_finish_suspend)
- 	bl	cpu_suspend
-+	b	pxa_cpu_resume
+ 	 * Ensure not to come back here if it wasn't intended
+ 	 */
+diff --git a/arch/arm/plat-samsung/pm.c b/arch/arm/plat-samsung/pm.c
+index 5c0a440..3828191 100644
+--- a/arch/arm/plat-samsung/pm.c
++++ b/arch/arm/plat-samsung/pm.c
+@@ -300,10 +300,6 @@ static int s3c_pm_enter(suspend_state_t state)
  
-+pxa3xx_finish_suspend:
- 	mov	r0, #0x06		@ S2D3C4 mode
- 	mcr	p14, 0, r0, c7, c0, 0	@ enter sleep
+ 	s3c_cpu_save(0, PLAT_PHYS_OFFSET - PAGE_OFFSET);
  
-@@ -60,9 +62,11 @@ ENTRY(pxa27x_cpu_suspend)
- #endif
- 	stmfd	sp!, {r2 - r12, lr}		@ save registers on stack
- 	mov	r2, r0				@ save sleep mode
--	ldr	r3, =pxa_cpu_resume		@ resume function
-+	adr	r3, BSYM(pxa27x_finish_suspend)
- 	bl	cpu_suspend
-+	b	pxa_cpu_resume
- 
-+pxa27x_finish_suspend:
- 	@ Put the processor to sleep
- 	@ (also workaround for sighting 28071)
- 
-@@ -110,8 +114,11 @@ ENTRY(pxa27x_cpu_suspend)
- ENTRY(pxa25x_cpu_suspend)
- 	stmfd	sp!, {r2 - r12, lr}		@ save registers on stack
- 	mov	r2, r0				@ save sleep mode
--	ldr	r3, =pxa_cpu_resume		@ resume function
-+	adr	r3, BSYM(pxa25x_finish_suspend)
- 	bl	cpu_suspend
-+	b	pxa_cpu_resume
-+
-+pxa25x_finish_suspend:
- 	@ prepare value for sleep mode
- 	mov	r1, r0				@ sleep mode
- 
-diff --git a/arch/arm/mach-s3c64xx/sleep.S b/arch/arm/mach-s3c64xx/sleep.S
-index 1f87732..dc4f582 100644
---- a/arch/arm/mach-s3c64xx/sleep.S
-+++ b/arch/arm/mach-s3c64xx/sleep.S
-@@ -36,18 +36,15 @@
- 
- ENTRY(s3c_cpu_save)
- 	stmfd	sp!, { r4 - r12, lr }
--	ldr	r3, =resume_with_mmu
-+	adr	r3, BSYM(s3c64xx_finish_suspend)
- 	bl	cpu_suspend
-+	ldmfd	sp!, { r4 - r12, pc }
- 
-+s3c64xx_finish_suspend:
- 	@@ call final suspend code
- 	ldr	r0, =pm_cpu_sleep
- 	ldr	pc, [r0]
- 	
--	@@ return to the caller, after the MMU is turned on.
--	@@ restore the last bits of the stack and return.
--resume_with_mmu:
--	ldmfd	sp!, { r4 - r12, pc }	@ return, from sp from s3c_cpu_save
+-	/* restore the cpu state using the kernel's cpu init code. */
 -
- 	/* Sleep magic, the word before the resume entry point so that the
- 	 * bootloader can check for a resumeable image. */
- 
-diff --git a/arch/arm/mach-s5pv210/sleep.S b/arch/arm/mach-s5pv210/sleep.S
-index a3d6494..1182fc8 100644
---- a/arch/arm/mach-s5pv210/sleep.S
-+++ b/arch/arm/mach-s5pv210/sleep.S
-@@ -41,16 +41,15 @@
- ENTRY(s3c_cpu_save)
- 
- 	stmfd	sp!, { r3 - r12, lr }
--	ldr	r3, =resume_with_mmu
-+	adr	r3, BSYM(s5pv210_finish_suspend)
- 	bl	cpu_suspend
-+	ldmfd	sp!, { r3 - r12, pc }
- 
-+s5pv210_finish_suspend:
- 	ldr	r0, =pm_cpu_sleep
- 	ldr	r0, [ r0 ]
- 	mov	pc, r0
- 
--resume_with_mmu:
--	ldmfd	sp!, { r3 - r12, pc }
+-	cpu_init();
 -
- 	.ltorg
+ 	/* restore the system state */
  
- 	/* sleep magic, to allow the bootloader to check for an valid
-diff --git a/arch/arm/mach-sa1100/sleep.S b/arch/arm/mach-sa1100/sleep.S
-index 122ab3c..f3fe397 100644
---- a/arch/arm/mach-sa1100/sleep.S
-+++ b/arch/arm/mach-sa1100/sleep.S
-@@ -31,9 +31,11 @@
- ENTRY(sa1100_cpu_suspend)
- 	stmfd	sp!, {r4 - r12, lr}		@ save registers on stack
- 	mov	r1, r0
--	ldr	r3, =sa1100_cpu_resume		@ return function
-+	adr	r3, BSYM(sa1100_finish_suspend)
- 	bl	cpu_suspend
-+	ldmfd	sp!, {r4 - r12, pc}		@ return to caller
- 
-+sa1100_finish_suspend:
- 	@ disable clock switching
- 	mcr	p15, 0, r1, c15, c2, 2
- 
-@@ -139,12 +141,3 @@ sa1110_sdram_controller_fix:
- 	str	r13, [r12]
- 
- 20:	b	20b			@ loop waiting for sleep
--
--/*
-- * cpu_sa1100_resume()
-- *
-- * entry point from bootloader into kernel during resume
-- */
--	.align 5
--sa1100_cpu_resume:
--	ldmfd	sp!, {r4 - r12, pc}		@ return to caller
-diff --git a/arch/arm/plat-s3c24xx/sleep.S b/arch/arm/plat-s3c24xx/sleep.S
-index fd7032f..f822e62 100644
---- a/arch/arm/plat-s3c24xx/sleep.S
-+++ b/arch/arm/plat-s3c24xx/sleep.S
-@@ -49,21 +49,17 @@
- 
- ENTRY(s3c_cpu_save)
- 	stmfd	sp!, { r4 - r12, lr }
--	ldr	r3, =resume_with_mmu
-+	adr	r3, BSYM(s3c24xx_finish_suspend)
- 	bl	cpu_suspend
-+	ldmfd	sp!, { r4 - r12, pc }
- 
-+s3c24xx_finish_suspend:
- 	@@ jump to final code to send system to sleep
- 	ldr	r0, =pm_cpu_sleep
- 	@@ldr	pc, [ r0 ]
- 	ldr	r0, [ r0 ]
- 	mov	pc, r0
- 	
--	@@ return to the caller, after having the MMU
--	@@ turned on, this restores the last bits from the
--	@@ stack
--resume_with_mmu:
--	ldmfd	sp!, { r4 - r12, pc }
--
- 	.ltorg
- 
- 	/* sleep magic, to allow the bootloader to check for an valid
+ 	s3c_pm_restore_core();
 -- 
 1.7.4.4
