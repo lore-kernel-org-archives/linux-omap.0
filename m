@@ -1,162 +1,74 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
-Date: Thu, 23 Jun 2011 07:50:02 -0700
-Message-ID: <87boxod2lh.fsf@ti.com>
-References: <1308752314-32079-1-git-send-email-balajitk@ti.com>
-	<1308752314-32079-3-git-send-email-balajitk@ti.com>
-	<874o3hr9tc.fsf@ti.com>
-	<BANLkTi=WnsoETEooK6gsL7jgxf8vuRN97Q@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 5/8] OMAP4: PM: TEMP: Prevent l3init from idling/force
+ sleep
+Date: Thu, 23 Jun 2011 09:04:20 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1106230819540.12954@utopia.booyaka.com>
+References: <1307616853-28395-1-git-send-email-rnayak@ti.com> <1307616853-28395-2-git-send-email-rnayak@ti.com> <1307616853-28395-3-git-send-email-rnayak@ti.com> <1307616853-28395-4-git-send-email-rnayak@ti.com> <1307616853-28395-5-git-send-email-rnayak@ti.com>
+ <1307616853-28395-6-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <BANLkTi=WnsoETEooK6gsL7jgxf8vuRN97Q@mail.gmail.com>
-	(T. Krishnamoorthy's message of "Thu, 23 Jun 2011 18:01:40 +0530")
-Sender: linux-mmc-owner@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:43419 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758007Ab1FWPEV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 11:04:21 -0400
+In-Reply-To: <1307616853-28395-6-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
-"T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
+Hi Rajendra,
 
-> On Thu, Jun 23, 2011 at 12:08 AM, Kevin Hilman <khilman@ti.com> wrote=
-:
->> Balaji T K <balajitk@ti.com> writes:
->>
->
->>> @@ -1880,18 +1873,12 @@ static int __init omap_hsmmc_probe(struct p=
-latform_device *pdev)
->>>
->>> =C2=A0 =C2=A0 =C2=A0 mmc->caps |=3D MMC_CAP_DISABLE;
->>>
->>> - =C2=A0 =C2=A0 if (clk_enable(host->iclk) !=3D 0) {
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 clk_put(host->iclk);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 clk_put(host->fclk);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto err1;
->>> - =C2=A0 =C2=A0 }
->>> -
->>> - =C2=A0 =C2=A0 if (mmc_host_enable(host->mmc) !=3D 0) {
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 clk_disable(host->iclk)=
-;
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 clk_put(host->iclk);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 clk_put(host->fclk);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto err1;
->>> - =C2=A0 =C2=A0 }
->>> + =C2=A0 =C2=A0 pm_runtime_enable(host->dev);
->>> + =C2=A0 =C2=A0 pm_runtime_allow(host->dev);
->>> + =C2=A0 =C2=A0 pm_runtime_get_sync(host->dev);
->>> + =C2=A0 =C2=A0 pm_runtime_set_autosuspend_delay(host->dev, MMC_AUT=
-OSUSPEND_DELAY);
->>> + =C2=A0 =C2=A0 pm_runtime_use_autosuspend(host->dev);
->>> + =C2=A0 =C2=A0 pm_suspend_ignore_children(host->dev, 1);
->>
->> Why is ignore_children needed for this device? =C2=A0 Is this device=
- the
->> parent of other devices? =C2=A0 If it is, why should it ignore it's
->> children?
->>
->
-> No, I will remove. Added it for testing only.
->
->>> =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap2430()) {
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 host->dbclk =3D cl=
-k_get(&pdev->dev, "mmchsdb_fck");
->>> @@ -2018,6 +2005,8 @@ static int __init omap_hsmmc_probe(struct pla=
-tform_device *pdev)
->>> =C2=A0 =C2=A0 =C2=A0 }
->>>
->>> =C2=A0 =C2=A0 =C2=A0 omap_hsmmc_debugfs(mmc);
->>> + =C2=A0 =C2=A0 pm_runtime_mark_last_busy(host->dev);
->>> + =C2=A0 =C2=A0 pm_runtime_put_autosuspend(host->dev);
->>>
->>> =C2=A0 =C2=A0 =C2=A0 return 0;
->>>
->>> @@ -2033,8 +2022,8 @@ err_reg:
->>> =C2=A0err_irq_cd_init:
->>> =C2=A0 =C2=A0 =C2=A0 free_irq(host->irq, host);
->>> =C2=A0err_irq:
->>> - =C2=A0 =C2=A0 mmc_host_disable(host->mmc);
->>> - =C2=A0 =C2=A0 clk_disable(host->iclk);
->>> + =C2=A0 =C2=A0 pm_runtime_mark_last_busy(host->dev);
->>> + =C2=A0 =C2=A0 pm_runtime_put_autosuspend(host->dev);
->>> =C2=A0 =C2=A0 =C2=A0 clk_put(host->fclk);
->>> =C2=A0 =C2=A0 =C2=A0 clk_put(host->iclk);
->>> =C2=A0 =C2=A0 =C2=A0 if (host->got_dbclk) {
->>> @@ -2058,7 +2047,7 @@ static int omap_hsmmc_remove(struct platform_=
-device *pdev)
->>> =C2=A0 =C2=A0 =C2=A0 struct resource *res;
->>>
->>> =C2=A0 =C2=A0 =C2=A0 if (host) {
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mmc_host_enable(host->m=
-mc);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pm_runtime_get_sync(hos=
-t->dev);
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mmc_remove_host(ho=
-st->mmc);
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (host->use_reg)
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 omap_hsmmc_reg_put(host);
->>> @@ -2069,8 +2058,9 @@ static int omap_hsmmc_remove(struct platform_=
-device *pdev)
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 free_irq(mmc_slot(host).card_detect_irq, host);
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 flush_work_sync(&h=
-ost->mmc_carddetect_work);
->>>
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mmc_host_disable(host->=
-mmc);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 clk_disable(host->iclk)=
-;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pm_runtime_put_sync(hos=
-t->dev);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pm_runtime_forbid(host-=
->dev);
->>
->> Why?
->>
->
-> Added for balancing pm_runtime_allow added in  _probe.
-> But forbid also resume the device on remove.
-> Should this be removed, keeping _allow in _probe ?
+On Thu, 9 Jun 2011, Rajendra Nayak wrote:
 
-Neither the _allow or _forbid are needed,   _enable and _disable are en=
-ough.
+> Since MMC driver is yet to be adapted to
+> runtime PM and still uses direct clock
+> calls to enable/disable module, its needed
+> that the clockdomain (for MMC) is always kept force
+> enabled since the next few patches move
+> the clockdomain handling from clock framework
+> to hwmod framework and break MMC.
+> 
+> This will certainlly gate any CORE low power
+> transitions.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/clockdomains44xx_data.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-omap2/clockdomains44xx_data.c
+> index a607ec1..ff38764 100644
+> --- a/arch/arm/mach-omap2/clockdomains44xx_data.c
+> +++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+> @@ -493,7 +493,7 @@ static struct clockdomain l3_init_44xx_clkdm = {
+>  	.dep_bit	  = OMAP4430_L3INIT_STATDEP_SHIFT,
+>  	.wkdep_srcs	  = l3_init_wkup_sleep_deps,
+>  	.sleepdep_srcs	  = l3_init_wkup_sleep_deps,
+> -	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+> +	.flags		  = CLKDM_CAN_FORCE_WAKEUP,
+>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>  };
 
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pm_runtime_disable(host=
-->dev);
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 clk_put(host->fclk=
-);
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 clk_put(host->iclk=
-);
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (host->got_dbcl=
-k) {
->>> @@ -2102,6 +2092,8 @@ static int omap_hsmmc_suspend(struct device *=
-dev)
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
->>>
->>> =C2=A0 =C2=A0 =C2=A0 if (host) {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* FIXME: TODO move get=
-_sync to proper dev_pm_ops function */
->>
->> what does this mean?
->
-> get_sync is needed to enable clock before accessing the registers but
-> the discusssion @
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg50819.html
-> suggested to move runtime get_sync calls to .prepare
-> Haven't tried it yet.
+Since this is basically a hack to work around limitations of the current 
+MMC driver, if we accept something like this, I think it should come with 
+a big warning message and comment.  Something like this in 
+omap44xx_clockdomains_init():
 
-The _get is fine here, it's the _put that may be the problem.
+	/*
+	 * XXX The OMAP L3 interconnect hardware is able to enter
+	 * hardware-supervised idle.  But because the OMAP HSMMC
+	 * driver still hasn't been converted to use runtime PM, if
+	 * the L3 is allowed to enter hwsup idle, the kernel will
+	 * crash.  Once the MMC driver is fixed (which patches have
+	 * been posted to do, with subject line "OMAP: HSMMC: cleanup
+	 * and runtime pm") the change to the l3_init_44xx_clkdm
+	 * flags should be dropped.  It limits the low-power state that
+	 * the chip can enter.
+	 */
+	pr_warn("WARNING: OMAP4 low power states artificially limited, due 
+to unconverted HSMMC driver\n");
 
-Based on that thread you mentioned, it is the using of _put and
-_put_sync in the suspend path that is the problem.  Basically, use of
-runtime PM calls in the suspend/resume path is not recommended and not
-guaranteed to work.   It currently works on OMAP, but I may have to
-change this.
 
-=46or now, what is certain is that runtime PM calls in the suspend
-callbacks must be the _sync versions.  I'm still working on how to
-properly implement the PM domain part for OMAP to correctly implement
-the restrictions that the linux-pm maintainers want to enforce.
-
-Kevin
+- Paul
