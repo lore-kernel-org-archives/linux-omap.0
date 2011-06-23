@@ -1,171 +1,263 @@
 From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCHv3 2/6] PRCM: Add support for PAD wakeup interrupts
-Date: Thu, 23 Jun 2011 15:53:29 +0530
-Message-ID: <BANLkTingCPNkpcyfNwy2=M75n6cmVUR6Yg@mail.gmail.com>
-References: <1308760934-9757-1-git-send-email-t-kristo@ti.com> <1308760934-9757-3-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCHv3 5/6] OMAP3: Serial: Made serial to work properly with
+ PRCM chain handler
+Date: Thu, 23 Jun 2011 16:00:31 +0530
+Message-ID: <BANLkTinfYXxQp5Y+-LOh4qqf+=CAGXUbSQ@mail.gmail.com>
+References: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
+ <1308760934-9757-6-git-send-email-t-kristo@ti.com> <1308762595.2388.16.camel@sokoban>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:57219 "EHLO
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:60145 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758245Ab1FWKXu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 06:23:50 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 15so1402607bwz.19
-        for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 03:23:49 -0700 (PDT)
-In-Reply-To: <1308760934-9757-3-git-send-email-t-kristo@ti.com>
+	with ESMTP id S1758872Ab1FWKaw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 06:30:52 -0400
+Received: by bwz15 with SMTP id 15so1406078bwz.19
+        for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 03:30:51 -0700 (PDT)
+In-Reply-To: <1308762595.2388.16.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
+To: t-kristo@ti.com
 Cc: linux-omap@vger.kernel.org
 
-On Wed, Jun 22, 2011 at 10:12 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> PRCM interrupt handler will now parse registered pads to see whether =
-there
-> is an active wakeup event. If this is the case, the corresponding int=
-errupt
-> will be triggered. This can be used for example with UART driver to r=
-egister
-> PAD wakeup event for the UART RX pin, and when this happens, UART int=
-errupt
-> will be triggered.
+On Wed, Jun 22, 2011 at 10:39 PM, Tero Kristo <t-kristo@ti.com> wrote:
+> Hi,
 >
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/prcm.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 50 ++++++=
-++++++++++++++++++++++++++
-> =A0arch/arm/plat-omap/include/plat/prcm.h | =A0 =A01 +
-> =A02 files changed, 51 insertions(+), 0 deletions(-)
+> There seems to be still one issue with this patch. It fails to protec=
+t
+> against pr_warning from omap_device.c in some cases, console_trylock(=
+)
+> console_unlock() hacks inside UART clock enable / disable are not eno=
+ugh
+> to protect against this. This bug can be prevented by removing the
+> pr_warning() calls from omap_device.c.
 >
-> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> index 362c59c..cc92064 100644
-> --- a/arch/arm/mach-omap2/prcm.c
-> +++ b/arch/arm/mach-omap2/prcm.c
-> @@ -53,6 +53,15 @@ static struct omap_prcm_irq *omap_prcm_irqs;
-> =A0/* Number of entries in omap_prcm_irqs */
-> =A0static int omap_prcm_irqs_nr;
->
-> +/* PAD handlers list */
-> +struct pad_def {
-> + =A0 =A0 =A0 u32 pad;
-> + =A0 =A0 =A0 unsigned int irq;
-> + =A0 =A0 =A0 struct list_head node;
-> +};
-> +
-> +static LIST_HEAD(pad_handler_list);
-> +
-> =A0/* Pointers to either OMAP3 or OMAP4 specific functions */
-> =A0static void (*omap_prcm_mask_event)(unsigned event);
-> =A0static void (*omap_prcm_unmask_event)(unsigned event);
-> @@ -84,6 +93,25 @@ static struct irq_chip prcm_irq_chip =3D {
-> =A0 =A0 =A0 =A0.irq_unmask =A0 =A0 =3D prcm_irq_unmask,
-> =A0};
->
-> +
-> +/*
-> + * Handler for PAD irqs, called from PRCM interrupt handler
-> + */
-> +static void omap_prcm_handle_pad_irqs(void)
-> +{
-> + =A0 =A0 =A0 struct pad_def *def;
-> + =A0 =A0 =A0 u16 val =3D 0;
-> + =A0 =A0 =A0 list_for_each_entry(def, &pad_handler_list, node) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Read padconf value based on cpu type=
- */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap34xx())
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D omap_ctrl_readw=
-(def->pad);
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* if pad wakeupevent is active, fire r=
-egistered IRQ */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (val & OMAP3_PADCONF_WAKEUPEVENT0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 generic_handle_irq(def-=
->irq);
-> + =A0 =A0 =A0 }
-> +}
-> +
-> =A0/*
-> =A0* PRCM Interrupt Handler
-> =A0*
-> @@ -106,6 +134,9 @@ static void prcm_irq_handler(unsigned int irq, st=
-ruct irq_desc *desc)
-> =A0 =A0 =A0 =A0unsigned long pending[OMAP_PRCM_MAX_NR_PENDING_REG];
-> =A0 =A0 =A0 =A0struct irq_chip *chip =3D irq_desc_get_chip(desc);
->
-> + =A0 =A0 =A0 /* Handle PAD events first, we don't want to ack them b=
-efore parse */
-> + =A0 =A0 =A0 omap_prcm_handle_pad_irqs();
-> +
-> =A0 =A0 =A0 =A0/*
-> =A0 =A0 =A0 =A0 * Loop until all pending irqs are handled, since
-> =A0 =A0 =A0 =A0 * generic_handle_irq(), called by prcm_irq_handle_vir=
-tirqs()
-> @@ -153,6 +184,25 @@ int omap_prcm_event_to_irq(const char *name)
-> =A0}
->
-> =A0/*
-> + * Register interrupt handler for a given pad. When the PRCM interru=
-pt
-> + * handler detects wakeupevent on the corresponding pad, the IRQ wil=
-l
-> + * be triggered.
-> + */
-> +int omap_prcm_register_pad_irq(u32 pad, unsigned int irq)
 
-I tested this v3 series seems to work fine.
-
-Minor comments.
-
-Can we make the prcm_register interface params with mux_name
-or
-even omap_hmwod and with hwmod api's check
-wake-up event through a mux api as here [1]
-rather than passing pad offset.
-
-since I planning to test uart-runtime changes with irq_chaining,
-pad offsets are no more available with uart-runtime
-and uses hmwod_mux api's.
+This is handled with uart time patches in serial_omap_console_write
+with console_lock which is the right place.
 
 --
 Thanks,
 Govindraj.R
 
-[1] https://patchwork.kernel.org/patch/773932/
-
-> +{
-> + =A0 =A0 =A0 struct pad_def *def;
-> +
-> + =A0 =A0 =A0 def =3D kmalloc(sizeof(struct pad_def), GFP_ATOMIC);
-> + =A0 =A0 =A0 if (!def)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
-> +
-> + =A0 =A0 =A0 def->pad =3D pad;
-> + =A0 =A0 =A0 def->irq =3D irq;
-> + =A0 =A0 =A0 list_add(&def->node, &pad_handler_list);
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +/*
-> =A0* Prepare the array of PRCM events corresponding to the current So=
-C,
-> =A0* and set-up the chained interrupt handler mechanism.
-> =A0*/
-> diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-o=
-map/include/plat/prcm.h
-> index 5785555..789eb17 100644
-> --- a/arch/arm/plat-omap/include/plat/prcm.h
-> +++ b/arch/arm/plat-omap/include/plat/prcm.h
-> @@ -72,6 +72,7 @@ void omap4_prcm_pending_events(unsigned long *pendi=
-ng);
-> =A0int omap_prcm_event_to_irq(const char *name);
-> =A0int omap_prcm_irq_init(void);
-> =A0void omap_prcm_irq_cleanup(void);
-> +int omap_prcm_register_pad_irq(u32 pad, unsigned int irq);
-> =A0u32 omap_prcm_get_reset_sources(void);
-> =A0int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, u8 idlest,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 const char *name);
-> --
-> 1.7.4.1
+> -Tero
+>
+> On Wed, 2011-06-22 at 18:42 +0200, Kristo, Tero wrote:
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/pm34xx.c | =A0 19 -------------------
+>> =A0arch/arm/mach-omap2/serial.c | =A0 40 +++++++++++++++++++++------=
+-------------
+>> =A02 files changed, 21 insertions(+), 38 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34=
+xx.c
+>> index ff0811a..6fff894 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -340,18 +340,9 @@ void omap_sram_idle(void)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_enable_io_chain();
+>> =A0 =A0 =A0 }
+>>
+>> - =A0 =A0 /* Block console output in case it is on one of the OMAP U=
+ARTs */
+>> - =A0 =A0 if (!is_suspending())
+>> - =A0 =A0 =A0 =A0 =A0 =A0 if (per_next_state < PWRDM_POWER_ON ||
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 core_next_state < PWRDM_POWER_ON)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!console_trylock())
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto conso=
+le_still_active;
+>> -
+>> =A0 =A0 =A0 /* PER */
+>> =A0 =A0 =A0 if (per_next_state < PWRDM_POWER_ON) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 per_going_off =3D (per_next_state =3D=3D=
+ PWRDM_POWER_OFF) ? 1 : 0;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_prepare_idle(2);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_prepare_idle(3);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap2_gpio_prepare_for_idle(per_going_of=
+f);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (per_next_state =3D=3D PWRDM_POWER_OF=
+=46)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_pe=
+r_save_context();
+>> @@ -359,8 +350,6 @@ void omap_sram_idle(void)
+>>
+>> =A0 =A0 =A0 /* CORE */
+>> =A0 =A0 =A0 if (core_next_state < PWRDM_POWER_ON) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_prepare_idle(0);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_prepare_idle(1);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (core_next_state =3D=3D PWRDM_POWER_O=
+=46F) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_core_save_context(=
+);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_cm_save_context();
+>> @@ -407,8 +396,6 @@ void omap_sram_idle(void)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_sram_restore_conte=
+xt();
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap2_sms_restore_contex=
+t();
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_resume_idle(0);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_resume_idle(1);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (core_next_state =3D=3D PWRDM_POWER_O=
+=46F)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap2_prm_clear_mod_reg_=
+bits(OMAP3430_AUTO_OFF_MASK,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0OMAP3430_GR_MOD,
+>> @@ -422,14 +409,8 @@ void omap_sram_idle(void)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap2_gpio_resume_after_idle();
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (per_prev_state =3D=3D PWRDM_POWER_OF=
+=46)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_per_restore_contex=
+t();
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_resume_idle(2);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_resume_idle(3);
+>> =A0 =A0 =A0 }
+>>
+>> - =A0 =A0 if (!is_suspending())
+>> - =A0 =A0 =A0 =A0 =A0 =A0 console_unlock();
+>> -
+>> -console_still_active:
+>> =A0 =A0 =A0 /* Disable IO-PAD and IO-CHAIN wakeup */
+>> =A0 =A0 =A0 if (omap3_has_io_wakeup() &&
+>> =A0 =A0 =A0 =A0 =A0 (per_next_state < PWRDM_POWER_ON ||
+>> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/seri=
+al.c
+>> index 1ac361b..e4a5a8c 100644
+>> --- a/arch/arm/mach-omap2/serial.c
+>> +++ b/arch/arm/mach-omap2/serial.c
+>> @@ -39,6 +39,7 @@
+>> =A0#include <plat/dma.h>
+>> =A0#include <plat/omap_hwmod.h>
+>> =A0#include <plat/omap_device.h>
+>> +#include <plat/prcm.h>
+>>
+>> =A0#include "prm2xxx_3xxx.h"
+>> =A0#include "pm.h"
+>> @@ -280,24 +281,34 @@ static inline void omap_uart_restore_context(s=
+truct omap_uart_state *uart) {}
+>>
+>> =A0static inline void omap_uart_enable_clocks(struct omap_uart_state=
+ *uart)
+>> =A0{
+>> + =A0 =A0 int locked;
+>> +
+>> =A0 =A0 =A0 if (uart->clocked)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>>
+>> + =A0 =A0 locked =3D console_trylock();
+>> =A0 =A0 =A0 omap_device_enable(uart->pdev);
+>> =A0 =A0 =A0 uart->clocked =3D 1;
+>> =A0 =A0 =A0 omap_uart_restore_context(uart);
+>> + =A0 =A0 if (locked)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 console_unlock();
+>> =A0}
+>>
+>> =A0#ifdef CONFIG_PM
+>>
+>> =A0static inline void omap_uart_disable_clocks(struct omap_uart_stat=
+e *uart)
+>> =A0{
+>> + =A0 =A0 int locked;
+>> +
+>> =A0 =A0 =A0 if (!uart->clocked)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>>
+>> + =A0 =A0 locked =3D console_trylock();
+>> =A0 =A0 =A0 omap_uart_save_context(uart);
+>> =A0 =A0 =A0 uart->clocked =3D 0;
+>> =A0 =A0 =A0 omap_device_idle(uart->pdev);
+>> + =A0 =A0 if (locked)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 console_unlock();
+>> =A0}
+>>
+>> =A0static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
+>> @@ -380,6 +391,7 @@ static void omap_uart_allow_sleep(struct omap_ua=
+rt_state *uart)
+>> =A0 =A0 =A0 omap_uart_smart_idle_enable(uart, 1);
+>> =A0 =A0 =A0 uart->can_sleep =3D 1;
+>> =A0 =A0 =A0 del_timer(&uart->timer);
+>> + =A0 =A0 omap_uart_disable_clocks(uart);
+>> =A0}
+>>
+>> =A0static void omap_uart_idle_timer(unsigned long data)
+>> @@ -391,35 +403,23 @@ static void omap_uart_idle_timer(unsigned long=
+ data)
+>>
+>> =A0void omap_uart_prepare_idle(int num)
+>> =A0{
+>> - =A0 =A0 struct omap_uart_state *uart;
+>> -
+>> - =A0 =A0 list_for_each_entry(uart, &uart_list, node) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 if (num =3D=3D uart->num && uart->can_slee=
+p) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_disable_clocks(u=
+art);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 }
+>> - =A0 =A0 }
+>> =A0}
+>>
+>> =A0void omap_uart_resume_idle(int num)
+>> =A0{
+>> =A0 =A0 =A0 struct omap_uart_state *uart;
+>> + =A0 =A0 u32 wkst;
+>>
+>> =A0 =A0 =A0 list_for_each_entry(uart, &uart_list, node) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (num =3D=3D uart->num && uart->can_sl=
+eep) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_enable_clocks(ua=
+rt);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_block_sleep(uart=
+);
+>>
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Check for IO pad wakeup=
+ */
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap34xx() && u=
+art->padconf) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u16 p =3D =
+omap_ctrl_readw(uart->padconf);
+>> -
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (p & OM=
+AP3_PADCONF_WAKEUPEVENT0)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 omap_uart_block_sleep(uart);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Check for normal UART w=
+akeup (and clear it) */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (uart->wk_st && uart->w=
+k_mask) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wkst =3D _=
+_raw_readl(uart->wk_st) & uart->wk_mask;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (wkst)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 __raw_writel(wkst, uart->wk_st);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> -
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Check for normal UART w=
+akeup */
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (__raw_readl(uart->wk_s=
+t) & uart->wk_mask)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_=
+block_sleep(uart);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> =A0 =A0 =A0 }
+>> @@ -550,6 +550,8 @@ static void omap_uart_idle_init(struct omap_uart=
+_state *uart)
+>> =A0 =A0 =A0 ret =3D request_threaded_irq(uart->irq, NULL, omap_uart_=
+interrupt,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0I=
+RQF_SHARED, "serial idle", (void *)uart);
+>> =A0 =A0 =A0 WARN_ON(ret);
+>> + =A0 =A0 ret =3D omap_prcm_register_pad_irq(uart->padconf, uart->ir=
+q);
+>> + =A0 =A0 WARN_ON(ret);
+>> =A0}
+>>
+>> =A0void omap_uart_enable_irqs(int enable)
+>
 >
 >
 > Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040=
