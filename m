@@ -1,165 +1,161 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH 0/8] HDMI: Split hdmi.c to seperate HDMI IP dependant code
- from DSS.
-Date: Thu, 23 Jun 2011 17:35:12 +0530
-Message-ID: <BANLkTinc9JUr-gBGSynzMtrqTVncDUbNKQ@mail.gmail.com>
-References: <1308298637-29753-1-git-send-email-mythripk@ti.com> <1308823101.1834.79.camel@deskari>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH] OMAP4: Keyboard: Mux changes in the board file
+Date: Thu, 23 Jun 2011 17:45:17 +0530
+Message-ID: <1308831317-17092-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:47054 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756339Ab1FWMFd convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jun 2011 08:05:33 -0400
-Received: by mail-fx0-f52.google.com with SMTP id 6so1919090fxm.11
-        for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 05:05:32 -0700 (PDT)
-In-Reply-To: <1308823101.1834.79.camel@deskari>
+Received: from comal.ext.ti.com ([198.47.26.152]:40192 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756030Ab1FWMP1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 08:15:27 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5NCFOSR019591
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 07:15:26 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5NCFNPC020208
+	for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 17:45:23 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Hi Tomi,
+The mux settings for keypad  are done for omap4430sdp in
+board file.
 
-On Thu, Jun 23, 2011 at 3:28 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> On Fri, 2011-06-17 at 13:47 +0530, Mythri P K wrote:
->> HDMI IP block is common between TI OMAP4 Procerssor and Netra proces=
-sor although
->> the Display subsytem is different. Thus to reuse the code between th=
-ese two
->> processors , HDMI IP dependant code is seperated out from hdmi.c and=
- moved to
->> new library file hdmi_ti_4xxx_ip.c which now resides in /drivers/vid=
-eo a more
->> generic location out of omap2/dss folder.
->>
->> This patch series does the split and also renames hdmi_omap4_panel.c=
- to
->> hdmi_panel.c as that file has nothing specific to OMAP4 and can be r=
-eused for
->> other OMAP family of processors as well.
->
-> These comments are based on the branch you have, not to particular
-> patches:
->
-> include/video/hdmi_ti_4xxx_ip.h:
->
-> - This file is in a way the most important one, because it's the publ=
-ic
-> API of the component. So you should be extra careful with this, and s=
-ee
-> that everything in it makes sense, and it's clear how it is to be use=
-d.
->
-> - hdmi_core_hdmi_dvi is defined but not used. Should it be in the
-> private header?
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c            |   67 +++++++++++++++++++++++-
+ arch/arm/mach-omap2/devices.c                  |    3 +-
+ arch/arm/plat-omap/include/plat/omap4-keypad.h |    3 +-
+ 3 files changed, 70 insertions(+), 3 deletions(-)
 
- HDMI_HDMI  and HDMI_DVI are used everywhere in hdmi.c and hdmi_ti_4xxx=
-_ip.c,
-one thing  i could do is to add a patch to used this enumerator
-instead of int mode ?
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 63de2d3..47e6ab9 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -125,6 +125,64 @@ static const int sdp4430_keymap[] = {
+ 	KEY(7, 6, KEY_OK),
+ 	KEY(7, 7, KEY_DOWN),
+ };
++static struct omap_device_pad keypad_pads[] __initdata = {
++	{	.name   = "kpd_col1.kpd_col1",
++		.enable = OMAP_WAKEUP_EN | OMAP_MUX_MODE1,
++	},
++	{	.name   = "kpd_col1.kpd_col1",
++		.enable = OMAP_WAKEUP_EN | OMAP_MUX_MODE1,
++	},
++	{	.name   = "kpd_col2.kpd_col2",
++		.enable = OMAP_WAKEUP_EN | OMAP_MUX_MODE1,
++	},
++	{	.name   = "kpd_col3.kpd_col3",
++		.enable = OMAP_WAKEUP_EN | OMAP_MUX_MODE1,
++	},
++	{	.name   = "kpd_col4.kpd_col4",
++		.enable = OMAP_WAKEUP_EN | OMAP_MUX_MODE1,
++	},
++	{	.name   = "kpd_col5.kpd_col5",
++		.enable = OMAP_WAKEUP_EN | OMAP_MUX_MODE1,
++	},
++	{	.name   = "gpmc_a23.kpd_col7",
++		.enable = OMAP_WAKEUP_EN | OMAP_MUX_MODE1,
++	},
++	{	.name   = "gpmc_a22.kpd_col6",
++		.enable = OMAP_WAKEUP_EN | OMAP_MUX_MODE1,
++	},
++	{	.name   = "kpd_row0.kpd_row0",
++		.enable = OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN |
++			OMAP_MUX_MODE1 | OMAP_INPUT_EN,
++	},
++	{	.name   = "kpd_row1.kpd_row1",
++		.enable = OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN |
++			OMAP_MUX_MODE1 | OMAP_INPUT_EN,
++	},
++	{	.name   = "kpd_row2.kpd_row2",
++		.enable = OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN |
++			OMAP_MUX_MODE1 | OMAP_INPUT_EN,
++	},
++	{	.name   = "kpd_row3.kpd_row3",
++		.enable = OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN |
++			OMAP_MUX_MODE1 | OMAP_INPUT_EN,
++	},
++	{	.name   = "kpd_row4.kpd_row4",
++		.enable = OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN |
++			OMAP_MUX_MODE1 | OMAP_INPUT_EN,
++	},
++	{	.name   = "kpd_row5.kpd_row5",
++		.enable = OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN |
++			OMAP_MUX_MODE1 | OMAP_INPUT_EN,
++	},
++	{	.name   = "gpmc_a18.kpd_row6",
++		.enable = OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN |
++			OMAP_MUX_MODE1 | OMAP_INPUT_EN,
++	},
++	{	.name   = "gpmc_a19.kpd_row7",
++		.enable = OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN |
++			OMAP_MUX_MODE1 | OMAP_INPUT_EN,
++	},
++};
+ 
+ static struct matrix_keymap_data sdp4430_keymap_data = {
+ 	.keymap			= sdp4430_keymap,
+@@ -136,6 +194,13 @@ static struct omap4_keypad_platform_data sdp4430_keypad_data = {
+ 	.rows			= 8,
+ 	.cols			= 8,
+ };
++
++static struct omap_board_data keypad_data = {
++	.id	    = 1,
++	.pads	 = keypad_pads,
++	.pads_cnt       = ARRAY_SIZE(keypad_pads),
++};
++
+ static struct gpio_led sdp4430_gpio_leds[] = {
+ 	{
+ 		.name	= "omap4:green:debug0",
+@@ -752,7 +817,7 @@ static void __init omap_4430sdp_init(void)
+ 				ARRAY_SIZE(sdp4430_spi_board_info));
+ 	}
+ 
+-	status = omap4_keyboard_init(&sdp4430_keypad_data);
++	status = omap4_keyboard_init(&sdp4430_keypad_data, &keypad_data);
+ 	if (status)
+ 		pr_err("Keypad initialization failed: %d\n", status);
+ 
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 5b8ca68..1077ad6 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -230,7 +230,7 @@ struct omap_device_pm_latency omap_keyboard_latency[] = {
+ };
+ 
+ int __init omap4_keyboard_init(struct omap4_keypad_platform_data
+-						*sdp4430_keypad_data)
++			*sdp4430_keypad_data, struct omap_board_data *bdata)
+ {
+ 	struct omap_device *od;
+ 	struct omap_hwmod *oh;
+@@ -257,6 +257,7 @@ int __init omap4_keyboard_init(struct omap4_keypad_platform_data
+ 						name, oh->name);
+ 		return PTR_ERR(od);
+ 	}
++	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/plat-omap/include/plat/omap4-keypad.h b/arch/arm/plat-omap/include/plat/omap4-keypad.h
+index 2b1d9bc..9fe6c87 100644
+--- a/arch/arm/plat-omap/include/plat/omap4-keypad.h
++++ b/arch/arm/plat-omap/include/plat/omap4-keypad.h
+@@ -10,5 +10,6 @@ struct omap4_keypad_platform_data {
+ 	u8 cols;
+ };
+ 
+-extern int omap4_keyboard_init(struct omap4_keypad_platform_data *);
++extern int omap4_keyboard_init(struct omap4_keypad_platform_data *,
++				struct omap_board_data *);
+ #endif
+-- 
+1.7.1
 
->
-> - hdmi_pll_pwr seems to be very low level thing. It requires the user=
- to
-> know HW details about the PLL, I don't think it should be visible to =
-the
-> users. It is used in parameters for hdmi_ti_4xxx_set_pll_pwr(). When =
-is
-> it supposed to be used? Why is hdmi_ti_4xxx_wp_video_start() not enou=
-gh?
->
-HDMI has core , PLL and PHY blocks, so user of the ip driver should
-configure them separately.
-
-> - The same goes to hdmi_ti_4xxx_pll_program. Who does the PLL
-> calculations, omapdss driver? Shouldn't the HDMI driver do it, the PL=
-L
-> is a HDMI HW thing, not DSS HW? Or if they are defined in the board
-> file, and omapdss just gives them to the HDMI driver, I think the dat=
-a
-> should be somehow passed through omapdss without omapdss actively
-> participating in the PLL programming. This would be easy if the HDMI
-> would use a platform device/driver model, the data could be passed vi=
-a
-> the device data.
->
-> - If the PLL calculations have to be done by omapdss, couldn't the
-> hdmi_pll_info be part of hdmi_config?
-
-hdmi_pll_info would be used only once while configuring (power on) ,
-Why would we have to store the pll_info then in hdmi_config?
-
->
-> - Is hdmi_ti_4xxx_phy_off the counterpart of hdmi_ti_4xxx_phy_init? I=
-f
-> so, the naming could be better to clearly show this. Like init/uninit=
-,
-> enable/disable, etc.
-
-I shall rename. yes phy_off is counterpart of init , i shall renmane
-it to enable ,disable.
->
-> - Is the "phy" relevant (from the user's point of view) in
-> hdmi_ti_4xxx_phy_init and off? Or could they be just init and uninit?
-
-PHY is a seperate block in HDMI and even from the user point of view
-user should be aware of PHY, PLL and core blocks. so phy_init is
-relevant.
->
-> - Perhaps hdmi_ti_4xxx_basic_configure could be just configure, there=
-'s
-> no advanced configure or similar.
-Well, makes sense but this is the init_configuration(default
-configuration) is what was intended in the patch.
->
-> - is the "wp" important in hdmi_ti_4xxx_wp_video_start?
->
-yes wp =3D=3D wrapper , so it would be clear to have a wp_video_Start.
-
-> - read_ti_4xxx_edid() is named differently than the other functions.
->
-I shall rename to hdmi_ti_4xxx_read_edid.
-
-> drivers/video/hdmi_ti_4xxx_ip.c:
->
-> - EXPORT_SYMBOL(hdmi_ti_4xxx_phy_init); is not below the function.
->
-> drivers/video/omap2/dss/hdmi.c:
->
-> - hdmi_ti_4xxx_set_pll_pwr() is only called in power_off(), but never
-> enabled. I presume the HDMI driver does that internally. That doesn't
-> sound like a valid use of the function.
-
-It is enabled in hdmi_ti_4xxx_pll_program called from power on.
-
->
-> - Looking at hdmi_power_on(), I feel that the API of the HDMI driver
-> could be simpler. Would it be enough to have just one function to set=
-up
-> the HDMI, and another to turn the output on?
-No , I suppose it is the responsibility of the user of IP driver to
-configure PHY , PLL and CORE blocks seperately as we can reuse the PLL
-or PHY block in different SOC's as well.
-
->
-> - omapdss_hdmi_display_set_timing() seems to be broken. It just sets
-> some variables and calls display_enable().
-It sets a variable custom_set , appropriate action will be taken while
-configuring timings based on that parameter.
->
-> =A0Tomi
->
->
->
---=20
-Thanks and regards,
-Mythri.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
