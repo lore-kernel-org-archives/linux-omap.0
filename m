@@ -1,59 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 5/6] OMAP3: Serial: Made serial to work properly with
- PRCM chain handler
-Date: Thu, 23 Jun 2011 01:21:50 -0700
-Message-ID: <20110623082150.GX23145@atomide.com>
-References: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
- <1308760934-9757-6-git-send-email-t-kristo@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/8] OMAP4: DSS: HDMI: Use specific HDMI timings
+ structure
+Date: Thu, 23 Jun 2011 11:30:43 +0300
+Message-ID: <1308817843.1834.40.camel@deskari>
+References: <1308298637-29753-1-git-send-email-mythripk@ti.com>
+	 <1308298637-29753-2-git-send-email-mythripk@ti.com>
+	 <1308298637-29753-3-git-send-email-mythripk@ti.com>
+	 <1308298637-29753-4-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39051 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753078Ab1FWIVw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 04:21:52 -0400
-Content-Disposition: inline
-In-Reply-To: <1308760934-9757-6-git-send-email-t-kristo@ti.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:38138 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754166Ab1FWIau (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 04:30:50 -0400
+Received: by bwg12 with SMTP id 12so1710288bwg.12
+        for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 01:30:47 -0700 (PDT)
+In-Reply-To: <1308298637-29753-4-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
+To: Mythri P K <mythripk@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [110622 09:38]:
-> @@ -550,6 +550,8 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
->  	ret = request_threaded_irq(uart->irq, NULL, omap_uart_interrupt,
->  				   IRQF_SHARED, "serial idle", (void *)uart);
->  	WARN_ON(ret);
-> +	ret = omap_prcm_register_pad_irq(uart->padconf, uart->irq);
-> +	WARN_ON(ret);
+On Fri, 2011-06-17 at 13:47 +0530, Mythri P K wrote:
+> Define new HDMI timings structure to replace the OMAP DSS timing strucutre in hdmi.c
+> to have the HDMI include defintion out of DSS.
+> 
+> Signed-off-by: Mythri P K <mythripk@ti.com>
+> ---
+>  drivers/video/omap2/dss/hdmi.c |   23 ++++++++++++++++++++---
+>  drivers/video/omap2/dss/hdmi.h |   15 ++++++++++++++-
+>  2 files changed, 34 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+> index 4ee879a..c24d573 100644
+> --- a/drivers/video/omap2/dss/hdmi.c
+> +++ b/drivers/video/omap2/dss/hdmi.c
+> @@ -593,6 +593,20 @@ static int read_edid(struct hdmi_ip_data *ip_data, u8 *pedid, u16 max_length)
+>  	return 0;
 >  }
+>  
+> +static void copy_hdmi_to_dss_timings(struct hdmi_video_timings hdmi_timings,
+> +			struct omap_video_timings *timings)
 
-Argh, looks like we still have direct mux register tinkering in serial.c:
+There's no reason to pass hdmi_timings as a value, so it should be a
+pointer.
 
-$ grep "padconf = 0x" serial.c
-                        padconf = 0x182;
-                        padconf = 0x17a;
-                        padconf = 0x19e;
-                        padconf = 0x0d2;
+> +{
+> +	timings->x_res = hdmi_timings.x_res;
+> +	timings->y_res = hdmi_timings.y_res;
+> +	timings->pixel_clock = hdmi_timings.pixel_clock;
+> +	timings->hbp = hdmi_timings.hbp;
+> +	timings->hfp = hdmi_timings.hfp;
+> +	timings->hsw = hdmi_timings.hsw;
+> +	timings->vbp = hdmi_timings.vbp;
+> +	timings->vfp = hdmi_timings.vfp;
+> +	timings->vsw = hdmi_timings.vsw;
+> +}
+> +
+>  static int get_timings_index(void)
+>  {
+>  	int code;
+> @@ -617,7 +631,7 @@ static struct hdmi_cm hdmi_get_code(struct omap_video_timings *timing)
+>  {
+>  	int i = 0, code = -1, temp_vsync = 0, temp_hsync = 0;
+>  	int timing_vsync = 0, timing_hsync = 0;
+> -	struct omap_video_timings temp;
+> +	struct hdmi_video_timings temp;
+>  	struct hdmi_cm cm = {-1};
+>  	DSSDBG("hdmi_get_code\n");
+>  
+> @@ -775,7 +789,8 @@ static void hdmi_read_edid(struct omap_video_timings *dp)
 
-By deducting 0x30 from the values above, these map into the following mux defines:
+"dp" feels a rather odd name for video timings variable. What does it
+stand for?
 
-$ grep RX_OFFSET mux34xx.h
-#define OMAP3_CONTROL_PADCONF_UART2_RX_OFFSET                   0x14a
-#define OMAP3_CONTROL_PADCONF_UART1_RX_OFFSET                   0x152
-#define OMAP3_CONTROL_PADCONF_UART3_RX_IRRX_OFFSET              0x16e
+ Tomi
 
-So you can make things more generic by getting rid of those and using
-struct omap_mux_partition instead for omap_prcm_register_pad_irq.
-The pins used are set already in serial.c with omap_hwmod_mux_init.
 
-Otherwise we have to patch the hardcoded padconf values for every new omap.
-And looks like we're already missing them for 44xx in serial.c.
-
-Then access to the padconf registers should be done with
-omap_mux_read/write instead. If you need to do something more complex
-with them maybe consider adding some new functions to mux.c as needed.
-
-Regards,
-
-Tony
