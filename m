@@ -1,788 +1,243 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 16/16] OMAP4: hwmod data: Replace CHIP_IS_OMAP4430 by OMAP44XX
-Date: Thu, 23 Jun 2011 19:43:45 +0200
-Message-ID: <1308851025-26313-17-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 15/16] OMAP4: hwmod data: Fix typo and alignement
+Date: Thu, 23 Jun 2011 19:43:44 +0200
+Message-ID: <1308851025-26313-16-git-send-email-b-cousson@ti.com>
 References: <1308851025-26313-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58052 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60165 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934021Ab1FWRoh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jun 2011 13:44:37 -0400
+	id S934021Ab1FWRoe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 13:44:34 -0400
 In-Reply-To: <1308851025-26313-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, rnayak@ti.com
 Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-In order to make hwmod data usable for all OMAP4430 variants,
-rename chip macro CHIP_IS_OMAP44XX.
+Fix a typo in the mailbox description comment.
 
-Create the macro as well in cpu.h
+Fix .prcm alignement and usb_otg_hs class and hwmod structures.
+
+Add a couple of more potential hwmods in the comment.
+Remove hsi, since it is already included in the data.
+
+Remove one blank line.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  164 ++++++++++++++--------------
- arch/arm/plat-omap/include/plat/cpu.h      |    2 +
- 2 files changed, 84 insertions(+), 82 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   49 ++++++++++++++-------------
+ 1 files changed, 25 insertions(+), 24 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 1ba676b..2def5f6 100644
+index 199e689..1ba676b 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -124,7 +124,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dmm_slaves),
- 	.mpu_irqs	= omap44xx_dmm_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dmm_irqs),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -173,7 +173,7 @@ static struct omap_hwmod omap44xx_emif_fw_hwmod = {
- 	.class		= &omap44xx_emif_fw_hwmod_class,
- 	.slaves		= omap44xx_emif_fw_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_emif_fw_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -212,7 +212,7 @@ static struct omap_hwmod omap44xx_l3_instr_hwmod = {
- 	.class		= &omap44xx_l3_hwmod_class,
- 	.slaves		= omap44xx_l3_instr_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_instr_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* l3_main_1 interface data */
-@@ -305,7 +305,7 @@ static struct omap_hwmod omap44xx_l3_main_1_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_main_1_slaves),
- 	.mpu_irqs	= omap44xx_l3_main_1_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_l3_main_1_irqs),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* l3_main_2 interface data */
-@@ -400,7 +400,7 @@ static struct omap_hwmod omap44xx_l3_main_2_hwmod = {
- 	.class		= &omap44xx_l3_hwmod_class,
- 	.slaves		= omap44xx_l3_main_2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_main_2_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* l3_main_3 interface data */
-@@ -450,7 +450,7 @@ static struct omap_hwmod omap44xx_l3_main_3_hwmod = {
- 	.class		= &omap44xx_l3_hwmod_class,
- 	.slaves		= omap44xx_l3_main_3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_main_3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -507,7 +507,7 @@ static struct omap_hwmod omap44xx_l4_abe_hwmod = {
- 	.class		= &omap44xx_l4_hwmod_class,
- 	.slaves		= omap44xx_l4_abe_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_abe_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* l4_cfg interface data */
-@@ -529,7 +529,7 @@ static struct omap_hwmod omap44xx_l4_cfg_hwmod = {
- 	.class		= &omap44xx_l4_hwmod_class,
- 	.slaves		= omap44xx_l4_cfg_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_cfg_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* l4_per interface data */
-@@ -551,7 +551,7 @@ static struct omap_hwmod omap44xx_l4_per_hwmod = {
- 	.class		= &omap44xx_l4_hwmod_class,
- 	.slaves		= omap44xx_l4_per_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_per_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* l4_wkup interface data */
-@@ -573,7 +573,7 @@ static struct omap_hwmod omap44xx_l4_wkup_hwmod = {
- 	.class		= &omap44xx_l4_hwmod_class,
- 	.slaves		= omap44xx_l4_wkup_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_wkup_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -603,7 +603,7 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
- 	.class		= &omap44xx_mpu_bus_hwmod_class,
- 	.slaves		= omap44xx_mpu_private_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mpu_private_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -750,7 +750,7 @@ static struct omap_hwmod omap44xx_aess_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_aess_slaves),
- 	.masters	= omap44xx_aess_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_aess_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -777,7 +777,7 @@ static struct omap_hwmod omap44xx_bandgap_hwmod = {
- 	},
- 	.opt_clks	= bandgap_opt_clks,
- 	.opt_clks_cnt	= ARRAY_SIZE(bandgap_opt_clks),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -836,7 +836,7 @@ static struct omap_hwmod omap44xx_counter_32k_hwmod = {
- 	},
- 	.slaves		= omap44xx_counter_32k_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_counter_32k_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -922,7 +922,7 @@ static struct omap_hwmod omap44xx_dma_system_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dma_system_slaves),
- 	.masters	= omap44xx_dma_system_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_dma_system_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -1012,7 +1012,7 @@ static struct omap_hwmod omap44xx_dmic_hwmod = {
- 	},
- 	.slaves		= omap44xx_dmic_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dmic_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -1076,7 +1076,7 @@ static struct omap_hwmod omap44xx_dsp_c0_hwmod = {
- 			.rstctrl_reg = OMAP4430_RM_TESLA_RSTCTRL,
+@@ -632,7 +632,9 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
+  *  gpmc
+  *  gpu
+  *  hdq1w
+- *  hsi
++ *  mcasp
++ *  mpu_c0
++ *  mpu_c1
+  *  ocmc_ram
+  *  ocp2scp_usb_phy
+  *  ocp_wp_noc
+@@ -739,7 +741,7 @@ static struct omap_hwmod omap44xx_aess_hwmod = {
+ 	.sdma_reqs	= omap44xx_aess_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_aess_sdma_reqs),
+ 	.main_clk	= "aess_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM1_ABE_AESS_CLKCTRL,
  		},
- 	},
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- static struct omap_hwmod omap44xx_dsp_hwmod = {
-@@ -1097,7 +1097,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dsp_slaves),
- 	.masters	= omap44xx_dsp_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_dsp_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -1186,7 +1186,7 @@ static struct omap_hwmod omap44xx_dss_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_slaves),
- 	.masters	= omap44xx_dss_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_dss_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -1279,7 +1279,7 @@ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
- 	},
- 	.slaves		= omap44xx_dss_dispc_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dispc_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -1370,7 +1370,7 @@ static struct omap_hwmod omap44xx_dss_dsi1_hwmod = {
- 	},
- 	.slaves		= omap44xx_dss_dsi1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dsi1_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* dss_dsi2 */
-@@ -1440,7 +1440,7 @@ static struct omap_hwmod omap44xx_dss_dsi2_hwmod = {
- 	},
- 	.slaves		= omap44xx_dss_dsi2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dsi2_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -1530,7 +1530,7 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
- 	},
- 	.slaves		= omap44xx_dss_hdmi_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_hdmi_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -1614,7 +1614,7 @@ static struct omap_hwmod omap44xx_dss_rfbi_hwmod = {
- 	},
- 	.slaves		= omap44xx_dss_rfbi_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_rfbi_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -1681,7 +1681,7 @@ static struct omap_hwmod omap44xx_dss_venc_hwmod = {
- 	},
- 	.slaves		= omap44xx_dss_venc_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_venc_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -1762,7 +1762,7 @@ static struct omap_hwmod omap44xx_gpio1_hwmod = {
- 	.dev_attr	= &gpio_dev_attr,
- 	.slaves		= omap44xx_gpio1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio1_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* gpio2 */
-@@ -1815,7 +1815,7 @@ static struct omap_hwmod omap44xx_gpio2_hwmod = {
- 	.dev_attr	= &gpio_dev_attr,
- 	.slaves		= omap44xx_gpio2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio2_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* gpio3 */
-@@ -1868,7 +1868,7 @@ static struct omap_hwmod omap44xx_gpio3_hwmod = {
- 	.dev_attr	= &gpio_dev_attr,
- 	.slaves		= omap44xx_gpio3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* gpio4 */
-@@ -1921,7 +1921,7 @@ static struct omap_hwmod omap44xx_gpio4_hwmod = {
- 	.dev_attr	= &gpio_dev_attr,
- 	.slaves		= omap44xx_gpio4_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio4_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* gpio5 */
-@@ -1974,7 +1974,7 @@ static struct omap_hwmod omap44xx_gpio5_hwmod = {
- 	.dev_attr	= &gpio_dev_attr,
- 	.slaves		= omap44xx_gpio5_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio5_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* gpio6 */
-@@ -2027,7 +2027,7 @@ static struct omap_hwmod omap44xx_gpio6_hwmod = {
- 	.dev_attr	= &gpio_dev_attr,
- 	.slaves		= omap44xx_gpio6_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio6_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -2104,7 +2104,7 @@ static struct omap_hwmod omap44xx_hsi_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_hsi_slaves),
- 	.masters	= omap44xx_hsi_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_hsi_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -2178,7 +2178,7 @@ static struct omap_hwmod omap44xx_i2c1_hwmod = {
- 	},
- 	.slaves		= omap44xx_i2c1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c1_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* i2c2 */
-@@ -2231,7 +2231,7 @@ static struct omap_hwmod omap44xx_i2c2_hwmod = {
- 	},
- 	.slaves		= omap44xx_i2c2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c2_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* i2c3 */
-@@ -2284,7 +2284,7 @@ static struct omap_hwmod omap44xx_i2c3_hwmod = {
- 	},
- 	.slaves		= omap44xx_i2c3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* i2c4 */
-@@ -2337,7 +2337,7 @@ static struct omap_hwmod omap44xx_i2c4_hwmod = {
- 	},
- 	.slaves		= omap44xx_i2c4_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c4_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -2396,7 +2396,7 @@ static struct omap_hwmod omap44xx_ipu_c0_hwmod = {
+@@ -768,7 +770,7 @@ static struct omap_hwmod_opt_clk bandgap_opt_clks[] = {
+ static struct omap_hwmod omap44xx_bandgap_hwmod = {
+ 	.name		= "bandgap",
+ 	.class		= &omap44xx_bandgap_hwmod_class,
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_WKUP_BANDGAP_CLKCTRL,
+ 		},
+@@ -827,7 +829,7 @@ static struct omap_hwmod omap44xx_counter_32k_hwmod = {
+ 	.class		= &omap44xx_counter_hwmod_class,
+ 	.flags		= HWMOD_SWSUP_SIDLE,
+ 	.main_clk	= "sys_32k_ck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_WKUP_SYNCTIMER_CLKCTRL,
+ 		},
+@@ -1003,7 +1005,7 @@ static struct omap_hwmod omap44xx_dmic_hwmod = {
+ 	.sdma_reqs	= omap44xx_dmic_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_dmic_sdma_reqs),
+ 	.main_clk	= "dmic_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM1_ABE_DMIC_CLKCTRL,
+ 		},
+@@ -2093,7 +2095,7 @@ static struct omap_hwmod omap44xx_hsi_hwmod = {
+ 	.mpu_irqs	= omap44xx_hsi_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_hsi_irqs),
+ 	.main_clk	= "hsi_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_L3INIT_HSI_CLKCTRL,
+ 		},
+@@ -2389,7 +2391,7 @@ static struct omap_hwmod omap44xx_ipu_c0_hwmod = {
+ 	.flags		= HWMOD_INIT_NO_RESET,
+ 	.rst_lines	= omap44xx_ipu_c0_resets,
+ 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_c0_resets),
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
  			.rstctrl_reg = OMAP4430_RM_DUCATI_RSTCTRL,
  		},
- 	},
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* Pseudo hwmod for reset control purpose only */
-@@ -2411,7 +2411,7 @@ static struct omap_hwmod omap44xx_ipu_c1_hwmod = {
+@@ -2404,7 +2406,7 @@ static struct omap_hwmod omap44xx_ipu_c1_hwmod = {
+ 	.flags		= HWMOD_INIT_NO_RESET,
+ 	.rst_lines	= omap44xx_ipu_c1_resets,
+ 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_c1_resets),
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
  			.rstctrl_reg = OMAP4430_RM_DUCATI_RSTCTRL,
  		},
- 	},
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- static struct omap_hwmod omap44xx_ipu_hwmod = {
-@@ -2432,7 +2432,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_ipu_slaves),
- 	.masters	= omap44xx_ipu_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_ipu_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
+@@ -2420,7 +2422,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
+ 	.rst_lines	= omap44xx_ipu_resets,
+ 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_resets),
+ 	.main_clk	= "ipu_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_DUCATI_DUCATI_CLKCTRL,
+ 			.rstctrl_reg = OMAP4430_RM_DUCATI_RSTCTRL,
+@@ -2506,7 +2508,7 @@ static struct omap_hwmod omap44xx_iss_hwmod = {
+ 	.sdma_reqs	= omap44xx_iss_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_iss_sdma_reqs),
+ 	.main_clk	= "iss_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_CAM_ISS_CLKCTRL,
+ 		},
+@@ -2686,7 +2688,7 @@ static struct omap_hwmod omap44xx_kbd_hwmod = {
+ 	.mpu_irqs	= omap44xx_kbd_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_kbd_irqs),
+ 	.main_clk	= "kbd_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_WKUP_KEYBOARD_CLKCTRL,
+ 		},
+@@ -2698,8 +2700,8 @@ static struct omap_hwmod omap44xx_kbd_hwmod = {
  
  /*
-@@ -2519,7 +2519,7 @@ static struct omap_hwmod omap44xx_iss_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_iss_slaves),
- 	.masters	= omap44xx_iss_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_iss_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+  * 'mailbox' class
+- * mailbox module allowing communication between the on-chip processors using a
+- * queued mailbox-interrupt mechanism.
++ * mailbox module allowing communication between the on-chip processors
++ * useusing a queued mailbox-interrupt mechanism.
+  */
+ 
+ static struct omap_hwmod_class_sysconfig omap44xx_mailbox_sysc = {
+@@ -2750,7 +2752,7 @@ static struct omap_hwmod omap44xx_mailbox_hwmod = {
+ 	.class		= &omap44xx_mailbox_hwmod_class,
+ 	.mpu_irqs	= omap44xx_mailbox_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mailbox_irqs),
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_L4CFG_MAILBOX_CLKCTRL,
+ 		},
+@@ -3132,7 +3134,7 @@ static struct omap_hwmod omap44xx_mcpdm_hwmod = {
+ 	.sdma_reqs	= omap44xx_mcpdm_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcpdm_sdma_reqs),
+ 	.main_clk	= "mcpdm_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM1_ABE_PDM_CLKCTRL,
+ 		},
+@@ -3429,7 +3431,6 @@ static struct omap_hwmod_class omap44xx_mmc_hwmod_class = {
  };
  
- /*
-@@ -2592,7 +2592,7 @@ static struct omap_hwmod omap44xx_iva_seq0_hwmod = {
- 			.rstctrl_reg = OMAP4430_RM_IVAHD_RSTCTRL,
+ /* mmc1 */
+-
+ static struct omap_hwmod_irq_info omap44xx_mmc1_irqs[] = {
+ 	{ .irq = 83 + OMAP44XX_IRQ_GIC_START },
+ };
+@@ -3480,7 +3481,7 @@ static struct omap_hwmod omap44xx_mmc1_hwmod = {
+ 	.sdma_reqs	= omap44xx_mmc1_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc1_sdma_reqs),
+ 	.main_clk	= "mmc1_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_L3INIT_MMC1_CLKCTRL,
+ 		},
+@@ -3539,7 +3540,7 @@ static struct omap_hwmod omap44xx_mmc2_hwmod = {
+ 	.sdma_reqs	= omap44xx_mmc2_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc2_sdma_reqs),
+ 	.main_clk	= "mmc2_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_L3INIT_MMC2_CLKCTRL,
+ 		},
+@@ -3593,7 +3594,7 @@ static struct omap_hwmod omap44xx_mmc3_hwmod = {
+ 	.sdma_reqs	= omap44xx_mmc3_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc3_sdma_reqs),
+ 	.main_clk	= "mmc3_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_L4PER_MMCSD3_CLKCTRL,
+ 		},
+@@ -3645,7 +3646,7 @@ static struct omap_hwmod omap44xx_mmc4_hwmod = {
+ 	.sdma_reqs	= omap44xx_mmc4_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc4_sdma_reqs),
+ 	.main_clk	= "mmc4_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_L4PER_MMCSD4_CLKCTRL,
+ 		},
+@@ -3697,7 +3698,7 @@ static struct omap_hwmod omap44xx_mmc5_hwmod = {
+ 	.sdma_reqs	= omap44xx_mmc5_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc5_sdma_reqs),
+ 	.main_clk	= "mmc5_fck",
+-	.prcm		= {
++	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_L4PER_MMCSD5_CLKCTRL,
+ 		},
+@@ -4831,8 +4832,8 @@ static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
+ };
+ 
+ static struct omap_hwmod_class omap44xx_usb_otg_hs_hwmod_class = {
+-	.name = "usb_otg_hs",
+-	.sysc = &omap44xx_usb_otg_hs_sysc,
++	.name	= "usb_otg_hs",
++	.sysc	= &omap44xx_usb_otg_hs_sysc,
+ };
+ 
+ /* usb_otg_hs */
+@@ -4886,7 +4887,7 @@ static struct omap_hwmod omap44xx_usb_otg_hs_hwmod = {
  		},
  	},
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* Pseudo hwmod for reset control purpose only */
-@@ -2607,7 +2607,7 @@ static struct omap_hwmod omap44xx_iva_seq1_hwmod = {
- 			.rstctrl_reg = OMAP4430_RM_IVAHD_RSTCTRL,
- 		},
- 	},
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- static struct omap_hwmod omap44xx_iva_hwmod = {
-@@ -2628,7 +2628,7 @@ static struct omap_hwmod omap44xx_iva_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_iva_slaves),
- 	.masters	= omap44xx_iva_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_iva_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -2695,7 +2695,7 @@ static struct omap_hwmod omap44xx_kbd_hwmod = {
- 	},
- 	.slaves		= omap44xx_kbd_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_kbd_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -2759,7 +2759,7 @@ static struct omap_hwmod omap44xx_mailbox_hwmod = {
- 	},
- 	.slaves		= omap44xx_mailbox_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mailbox_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -2851,7 +2851,7 @@ static struct omap_hwmod omap44xx_mcbsp1_hwmod = {
- 	},
- 	.slaves		= omap44xx_mcbsp1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcbsp1_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* mcbsp2 */
-@@ -2924,7 +2924,7 @@ static struct omap_hwmod omap44xx_mcbsp2_hwmod = {
- 	},
- 	.slaves		= omap44xx_mcbsp2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcbsp2_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* mcbsp3 */
-@@ -2997,7 +2997,7 @@ static struct omap_hwmod omap44xx_mcbsp3_hwmod = {
- 	},
- 	.slaves		= omap44xx_mcbsp3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcbsp3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* mcbsp4 */
-@@ -3049,7 +3049,7 @@ static struct omap_hwmod omap44xx_mcbsp4_hwmod = {
- 	},
- 	.slaves		= omap44xx_mcbsp4_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcbsp4_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -3141,7 +3141,7 @@ static struct omap_hwmod omap44xx_mcpdm_hwmod = {
- 	},
- 	.slaves		= omap44xx_mcpdm_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcpdm_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -3227,7 +3227,7 @@ static struct omap_hwmod omap44xx_mcspi1_hwmod = {
- 	.dev_attr	= &mcspi1_dev_attr,
- 	.slaves		= omap44xx_mcspi1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi1_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* mcspi2 */
-@@ -3287,7 +3287,7 @@ static struct omap_hwmod omap44xx_mcspi2_hwmod = {
- 	.dev_attr	= &mcspi2_dev_attr,
- 	.slaves		= omap44xx_mcspi2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi2_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* mcspi3 */
-@@ -3347,7 +3347,7 @@ static struct omap_hwmod omap44xx_mcspi3_hwmod = {
- 	.dev_attr	= &mcspi3_dev_attr,
- 	.slaves		= omap44xx_mcspi3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* mcspi4 */
-@@ -3405,7 +3405,7 @@ static struct omap_hwmod omap44xx_mcspi4_hwmod = {
- 	.dev_attr	= &mcspi4_dev_attr,
- 	.slaves		= omap44xx_mcspi4_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi4_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -3491,7 +3491,7 @@ static struct omap_hwmod omap44xx_mmc1_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mmc1_slaves),
- 	.masters	= omap44xx_mmc1_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_mmc1_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* mmc2 */
-@@ -3549,7 +3549,7 @@ static struct omap_hwmod omap44xx_mmc2_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mmc2_slaves),
- 	.masters	= omap44xx_mmc2_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_mmc2_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* mmc3 */
-@@ -3601,7 +3601,7 @@ static struct omap_hwmod omap44xx_mmc3_hwmod = {
- 	},
- 	.slaves		= omap44xx_mmc3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mmc3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* mmc4 */
-@@ -3653,7 +3653,7 @@ static struct omap_hwmod omap44xx_mmc4_hwmod = {
- 	},
- 	.slaves		= omap44xx_mmc4_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mmc4_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* mmc5 */
-@@ -3705,7 +3705,7 @@ static struct omap_hwmod omap44xx_mmc5_hwmod = {
- 	},
- 	.slaves		= omap44xx_mmc5_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mmc5_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -3745,7 +3745,7 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
- 	},
- 	.masters	= omap44xx_mpu_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_mpu_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -3817,7 +3817,7 @@ static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
- 	},
- 	.slaves		= omap44xx_smartreflex_core_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* smartreflex_iva */
-@@ -3863,7 +3863,7 @@ static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
- 	},
- 	.slaves		= omap44xx_smartreflex_iva_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* smartreflex_mpu */
-@@ -3909,7 +3909,7 @@ static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
- 	},
- 	.slaves		= omap44xx_smartreflex_mpu_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -3970,7 +3970,7 @@ static struct omap_hwmod omap44xx_spinlock_hwmod = {
- 	},
- 	.slaves		= omap44xx_spinlock_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_spinlock_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -4053,7 +4053,7 @@ static struct omap_hwmod omap44xx_timer1_hwmod = {
- 	},
- 	.slaves		= omap44xx_timer1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_timer1_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* timer2 */
-@@ -4098,7 +4098,7 @@ static struct omap_hwmod omap44xx_timer2_hwmod = {
- 	},
- 	.slaves		= omap44xx_timer2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_timer2_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* timer3 */
-@@ -4143,7 +4143,7 @@ static struct omap_hwmod omap44xx_timer3_hwmod = {
- 	},
- 	.slaves		= omap44xx_timer3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_timer3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* timer4 */
-@@ -4188,7 +4188,7 @@ static struct omap_hwmod omap44xx_timer4_hwmod = {
- 	},
- 	.slaves		= omap44xx_timer4_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_timer4_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* timer5 */
-@@ -4252,7 +4252,7 @@ static struct omap_hwmod omap44xx_timer5_hwmod = {
- 	},
- 	.slaves		= omap44xx_timer5_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_timer5_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* timer6 */
-@@ -4316,7 +4316,7 @@ static struct omap_hwmod omap44xx_timer6_hwmod = {
- 	},
- 	.slaves		= omap44xx_timer6_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_timer6_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* timer7 */
-@@ -4380,7 +4380,7 @@ static struct omap_hwmod omap44xx_timer7_hwmod = {
- 	},
- 	.slaves		= omap44xx_timer7_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_timer7_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* timer8 */
-@@ -4444,7 +4444,7 @@ static struct omap_hwmod omap44xx_timer8_hwmod = {
- 	},
- 	.slaves		= omap44xx_timer8_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_timer8_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* timer9 */
-@@ -4489,7 +4489,7 @@ static struct omap_hwmod omap44xx_timer9_hwmod = {
- 	},
- 	.slaves		= omap44xx_timer9_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_timer9_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* timer10 */
-@@ -4534,7 +4534,7 @@ static struct omap_hwmod omap44xx_timer10_hwmod = {
- 	},
- 	.slaves		= omap44xx_timer10_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_timer10_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* timer11 */
-@@ -4579,7 +4579,7 @@ static struct omap_hwmod omap44xx_timer11_hwmod = {
- 	},
- 	.slaves		= omap44xx_timer11_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_timer11_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -4653,7 +4653,7 @@ static struct omap_hwmod omap44xx_uart1_hwmod = {
- 	},
- 	.slaves		= omap44xx_uart1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart1_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* uart2 */
-@@ -4705,7 +4705,7 @@ static struct omap_hwmod omap44xx_uart2_hwmod = {
- 	},
- 	.slaves		= omap44xx_uart2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart2_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* uart3 */
-@@ -4758,7 +4758,7 @@ static struct omap_hwmod omap44xx_uart3_hwmod = {
- 	},
- 	.slaves		= omap44xx_uart3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* uart4 */
-@@ -4810,7 +4810,7 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
- 	},
- 	.slaves		= omap44xx_uart4_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart4_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -4892,7 +4892,7 @@ static struct omap_hwmod omap44xx_usb_otg_hs_hwmod = {
+ 	.opt_clks	= usb_otg_hs_opt_clks,
+-	.opt_clks_cnt = ARRAY_SIZE(usb_otg_hs_opt_clks),
++	.opt_clks_cnt	= ARRAY_SIZE(usb_otg_hs_opt_clks),
+ 	.slaves		= omap44xx_usb_otg_hs_slaves,
  	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_slaves),
  	.masters	= omap44xx_usb_otg_hs_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_masters),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /*
-@@ -4960,7 +4960,7 @@ static struct omap_hwmod omap44xx_wd_timer2_hwmod = {
- 	},
- 	.slaves		= omap44xx_wd_timer2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- /* wd_timer3 */
-@@ -5024,7 +5024,7 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
- 	},
- 	.slaves		= omap44xx_wd_timer3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- };
- 
- static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 8198bb6..96850a6 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -447,6 +447,8 @@ IS_OMAP_TYPE(3517, 0x3517)
- 					 CHIP_IS_OMAP4430ES2_1 |	\
- 					 CHIP_IS_OMAP4430ES2_2)
- 
-+#define CHIP_IS_OMAP44XX		(CHIP_IS_OMAP4430)
-+
- /*
-  * "GE" here represents "greater than or equal to" in terms of ES
-  * levels.  So CHIP_GE_OMAP3430ES2 is intended to match all OMAP3430
 -- 
 1.7.0.4
 
