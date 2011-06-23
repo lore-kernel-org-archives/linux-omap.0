@@ -1,100 +1,83 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 6/6] OMAP2+: hwmod: Fix the HW reset management
-Date: Thu, 23 Jun 2011 23:00:42 +0200
-Message-ID: <1308862842-3933-7-git-send-email-b-cousson@ti.com>
-References: <1308862842-3933-1-git-send-email-b-cousson@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43090 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752990Ab1FWVBP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jun 2011 17:01:15 -0400
-In-Reply-To: <1308862842-3933-1-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Jassi Brar <jassisinghbrar@gmail.com>
+Subject: [PATCH] mfd: omap: Restore TLL initialization
+Date: Fri, 24 Jun 2011 02:31:34 +0530
+Message-ID: <1308862894-13802-1-git-send-email-jaswinder.singh@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: ti@lists.linaro.org, Keshava_mgowda@ti.com, parthab@india.ti.com, sameo@linux.intel.com, gadiyar@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Jassi Brar <jaswinder.singh@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-The HW reset must be de-assert after the clocks are enabled
-but before waiting for the target to be ready. Otherwise the
-reset might not work properly since the clock is not running
-to proceed the reset.
+The commit
+  7e6502d577106fb5b202bbaac64c5f1b065 'mfd: Add omap-usbhs runtime PM support'
+besides moving to RPM, removes necessary TLL initialization as well.
 
-De-assert the reset after _enable_clocks and before
-_wait_target_ready.
-Re-assert it only when the clocks are disabled.
+Restore the TLL initialization, without which device detection fails.
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   32 ++++++++++++++++----------------
- 1 files changed, 16 insertions(+), 16 deletions(-)
+ drivers/mfd/omap-usb-host.c |   42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 42 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index f401417..55ad6a5 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1250,15 +1250,6 @@ static int _enable(struct omap_hwmod *oh)
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 8552195..12ca77b 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -640,6 +640,7 @@ static int usbhs_enable(struct device *dev)
+ 	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+ 	unsigned long			flags = 0;
+ 	int				ret = 0;
++	unsigned long			timeout;
+ 	unsigned			reg;
  
- 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
+ 	dev_dbg(dev, "starting TI HSUSB Controller\n");
+@@ -676,6 +677,47 @@ static int usbhs_enable(struct device *dev)
+ 	omap->usbhs_rev = usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
+ 	dev_dbg(dev, "OMAP UHH_REVISION 0x%x\n", omap->usbhs_rev);
  
--	/*
--	 * If an IP contains only one HW reset line, then de-assert it in order
--	 * to allow to enable the clocks. Otherwise the PRCM will return
--	 * Intransition status, and the init will failed.
--	 */
--	if ((oh->_state == _HWMOD_STATE_INITIALIZED ||
--	     oh->_state == _HWMOD_STATE_DISABLED) && oh->rst_lines_cnt == 1)
--		_deassert_hardreset(oh, oh->rst_lines[0].name);
--
- 	/* Mux pins for device runtime if populated */
- 	if (oh->mux && (!oh->mux->enabled ||
- 			((oh->_state == _HWMOD_STATE_IDLE) &&
-@@ -1268,6 +1259,15 @@ static int _enable(struct omap_hwmod *oh)
- 	_add_initiator_dep(oh, mpu_oh);
- 	_enable_clocks(oh);
- 
-+	/*
-+	 * If an IP contains only one HW reset line, then de-assert it in order
-+	 * to allow to enable the clocks. Otherwise the PRCM will return
-+	 * Intransition status, and the init will failed.
-+	 */
-+	if ((oh->_state == _HWMOD_STATE_INITIALIZED ||
-+	     oh->_state == _HWMOD_STATE_DISABLED) && oh->rst_lines_cnt == 1)
-+		_deassert_hardreset(oh, oh->rst_lines[0].name);
++	/* perform TLL soft reset, and wait until reset is complete */
++	usbhs_write(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
++			OMAP_USBTLL_SYSCONFIG_SOFTRESET);
 +
- 	r = _wait_target_ready(oh);
- 	if (!r) {
- 		oh->_state = _HWMOD_STATE_ENABLED;
-@@ -1396,13 +1396,6 @@ static int _shutdown(struct omap_hwmod *oh)
- 		_shutdown_sysc(oh);
- 	}
- 
--	/*
--	 * If an IP contains only one HW reset line, then assert it
--	 * before disabling the clocks and shutting down the IP.
--	 */
--	if (oh->rst_lines_cnt == 1)
--		_assert_hardreset(oh, oh->rst_lines[0].name);
--
- 	/* clocks and deps are already disabled in idle */
- 	if (oh->_state == _HWMOD_STATE_ENABLED) {
- 		_del_initiator_dep(oh, mpu_oh);
-@@ -1411,6 +1404,13 @@ static int _shutdown(struct omap_hwmod *oh)
- 	}
- 	/* XXX Should this code also force-disable the optional clocks? */
- 
-+	/*
-+	 * If an IP contains only one HW reset line, then assert it
-+	 * before disabling the clocks and shutting down the IP.
-+	 */
-+	if (oh->rst_lines_cnt == 1)
-+		_assert_hardreset(oh, oh->rst_lines[0].name);
++	/* Wait for TLL reset to complete */
++	timeout = jiffies + msecs_to_jiffies(1000);
++	while (!(usbhs_read(omap->tll_base, OMAP_USBTLL_SYSSTATUS)
++			& OMAP_USBTLL_SYSSTATUS_RESETDONE)) {
++		cpu_relax();
 +
- 	/* Mux pins to safe mode or use populated off mode values */
- 	if (oh->mux)
- 		omap_hwmod_mux(oh->mux, _HWMOD_STATE_DISABLED);
++		if (time_after(jiffies, timeout)) {
++			dev_dbg(dev, "operation timed out\n");
++			ret = -EINVAL;
++			goto err_tll;
++		}
++	}
++	dev_dbg(dev, "TLL RESET DONE\n");
++
++	/* (1<<3) = no idle mode only for initial debugging */
++	usbhs_write(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
++			OMAP_USBTLL_SYSCONFIG_ENAWAKEUP |
++			OMAP_USBTLL_SYSCONFIG_SIDLEMODE |
++			OMAP_USBTLL_SYSCONFIG_AUTOIDLE);
++
++	/* Put UHH in NoIdle/NoStandby mode */
++	reg = usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG);
++	if (is_omap_usbhs_rev1(omap)) {
++		reg |= (OMAP_UHH_SYSCONFIG_ENAWAKEUP
++				| OMAP_UHH_SYSCONFIG_SIDLEMODE
++				| OMAP_UHH_SYSCONFIG_CACTIVITY
++				| OMAP_UHH_SYSCONFIG_MIDLEMODE);
++		reg &= ~OMAP_UHH_SYSCONFIG_AUTOIDLE;
++	} else if (is_omap_usbhs_rev2(omap)) {
++		reg &= ~OMAP4_UHH_SYSCONFIG_IDLEMODE_CLEAR;
++		reg |= OMAP4_UHH_SYSCONFIG_NOIDLE;
++		reg &= ~OMAP4_UHH_SYSCONFIG_STDBYMODE_CLEAR;
++		reg |= OMAP4_UHH_SYSCONFIG_NOSTDBY;
++	}
++
++	usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
++
+ 	reg = usbhs_read(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
+ 	/* setup ULPI bypass and burst configurations */
+ 	reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
 -- 
-1.7.0.4
-
+1.7.4.1
