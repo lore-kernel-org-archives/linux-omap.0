@@ -1,8 +1,8 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 23/25] ARM: pm: omap34xx: convert to generic suspend/resume
- support
-Date: Thu, 23 Jun 2011 20:16:48 +0100
-Message-ID: <E1QZpOS-0005nt-Fq@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 24/25] ARM: pm: hide 1st and 2nd arguments to cpu_suspend
+ from platform code
+Date: Thu, 23 Jun 2011 20:17:08 +0100
+Message-ID: <E1QZpOm-0005nx-T1@rmk-PC.arm.linux.org.uk>
 References: <20110623190900.GH9449@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,272 +13,239 @@ Sender: linux-samsung-soc-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Convert sa11x0 to use the generic CPU suspend/resume support, rather
-than implementing its own version.  Tested on 3430 LDP.
+The first and second arguments shouldn't concern platform code, so
+hide them from each platforms caller.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/pm34xx.c    |   47 +++----------
- arch/arm/mach-omap2/sleep34xx.S |  143 +--------------------------------------
- 2 files changed, 13 insertions(+), 177 deletions(-)
+ arch/arm/include/asm/suspend.h |   19 +++++++++++++++++++
+ arch/arm/include/asm/system.h  |    2 --
+ arch/arm/kernel/sleep.S        |    2 +-
+ arch/arm/mach-omap2/pm34xx.c   |    5 +++--
+ arch/arm/mach-pxa/palmz72.c    |    1 +
+ arch/arm/mach-pxa/pxa25x.c     |    4 ++--
+ arch/arm/mach-pxa/pxa27x.c     |    4 ++--
+ arch/arm/mach-pxa/pxa3xx.c     |    3 ++-
+ arch/arm/mach-pxa/zeus.c       |    4 ++--
+ arch/arm/mach-sa1100/pm.c      |    3 ++-
+ arch/arm/plat-samsung/pm.c     |    3 ++-
+ 11 files changed, 36 insertions(+), 14 deletions(-)
+ create mode 100644 arch/arm/include/asm/suspend.h
 
+diff --git a/arch/arm/include/asm/suspend.h b/arch/arm/include/asm/suspend.h
+new file mode 100644
+index 0000000..8d5b446
+--- /dev/null
++++ b/arch/arm/include/asm/suspend.h
+@@ -0,0 +1,19 @@
++#ifndef __ASM_ARM_SUSPEND_H
++#define __ASM_ARM_SUSPEND_H
++
++#include <asm/memory.h>
++
++extern void cpu_resume(void);
++
++/*
++ * Hide the first two arguments to __cpu_suspend - these are an implementation
++ * detail which platform code shouldn't have to know about.
++ */
++static inline void cpu_suspend(unsigned long arg, void (*fn)(unsigned long))
++{
++	extern void __cpu_suspend(int, long, unsigned long,
++				  void (*)(unsigned long));
++	__cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, arg, fn);
++}
++
++#endif
+diff --git a/arch/arm/include/asm/system.h b/arch/arm/include/asm/system.h
+index 50be605..832888d 100644
+--- a/arch/arm/include/asm/system.h
++++ b/arch/arm/include/asm/system.h
+@@ -106,8 +106,6 @@ extern void __show_regs(struct pt_regs *);
+ 
+ extern int cpu_architecture(void);
+ extern void cpu_init(void);
+-extern void cpu_suspend(int, long, unsigned long, void (*)(unsigned long));
+-extern void cpu_resume(void);
+ 
+ void arm_machine_restart(char mode, const char *cmd);
+ extern void (*arm_pm_restart)(char str, const char *cmd);
+diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
+index 5392274..0bdcc72 100644
+--- a/arch/arm/kernel/sleep.S
++++ b/arch/arm/kernel/sleep.S
+@@ -14,7 +14,7 @@
+  *  r3 = suspend function
+  * Note: does not return until system resumes
+  */
+-ENTRY(cpu_suspend)
++ENTRY(__cpu_suspend)
+ 	stmfd	sp!, {r4 - r11, lr}
+ #ifdef MULTI_CPU
+ 	ldr	r10, =processor
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c155c9d..ae40177 100644
+index ae40177..3e9a13e 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -40,8 +40,6 @@
- #include <plat/gpmc.h>
- #include <plat/dma.h>
+@@ -31,6 +31,8 @@
+ #include <linux/console.h>
+ #include <trace/events/power.h>
  
--#include <asm/tlbflush.h>
--
- #include "cm2xxx_3xxx.h"
- #include "cm-regbits-34xx.h"
- #include "prm-regbits-34xx.h"
-@@ -64,11 +62,6 @@ static inline bool is_suspending(void)
- }
- #endif
- 
--/* Scratchpad offsets */
--#define OMAP343X_TABLE_ADDRESS_OFFSET	   0xc4
--#define OMAP343X_TABLE_VALUE_OFFSET	   0xc0
--#define OMAP343X_CONTROL_REG_VALUE_OFFSET  0xc8
--
- /* pm34xx errata defined in pm.h */
- u16 pm34xx_errata;
- 
-@@ -312,28 +305,9 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--/* Function to restore the table entry that was modified for enabling MMU */
--static void restore_table_entry(void)
-+static void omap34xx_do_sram_idle(unsigned long save_state)
- {
--	void __iomem *scratchpad_address;
--	u32 previous_value, control_reg_value;
--	u32 *address;
--
--	scratchpad_address = OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD);
--
--	/* Get address of entry that was modified */
--	address = (u32 *)__raw_readl(scratchpad_address +
--				     OMAP343X_TABLE_ADDRESS_OFFSET);
--	/* Get the previous value which needs to be restored */
--	previous_value = __raw_readl(scratchpad_address +
--				     OMAP343X_TABLE_VALUE_OFFSET);
--	address = __va(address);
--	*address = previous_value;
--	flush_tlb_all();
--	control_reg_value = __raw_readl(scratchpad_address
--					+ OMAP343X_CONTROL_REG_VALUE_OFFSET);
--	/* This will enable caches and prediction */
--	set_cr(control_reg_value);
-+	_omap_sram_idle(omap3_arm_context, save_state);
- }
- 
- void omap_sram_idle(void)
-@@ -432,12 +406,15 @@ void omap_sram_idle(void)
- 		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
- 
- 	/*
--	 * omap3_arm_context is the location where ARM registers
--	 * get saved. The restore path then reads from this
--	 * location and restores them back.
-+	 * omap3_arm_context is the location where some ARM context
-+	 * get saved. The rest is placed on the stack, and restored
-+	 * from there before resuming.
++#include <asm/suspend.h>
++
+ #include <plat/sram.h>
+ #include "clockdomain.h"
+ #include "powerdomain.h"
+@@ -411,8 +413,7 @@ void omap_sram_idle(void)
+ 	 * from there before resuming.
  	 */
--	_omap_sram_idle(omap3_arm_context, save_state);
--	cpu_init();
-+	if (save_state == 1 || save_state == 3)
-+		cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, save_state,
-+			    omap34xx_do_sram_idle);
-+	else
-+		omap34xx_do_sram_idle(save_state);
+ 	if (save_state == 1 || save_state == 3)
+-		cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, save_state,
+-			    omap34xx_do_sram_idle);
++		cpu_suspend(save_state, omap34xx_do_sram_idle);
+ 	else
+ 		omap34xx_do_sram_idle(save_state);
  
- 	/* Restore normal SDRC POWER settings */
- 	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
-@@ -445,10 +422,6 @@ void omap_sram_idle(void)
- 	    core_next_state == PWRDM_POWER_OFF)
- 		sdrc_write_reg(sdrc_pwr, SDRC_POWER);
+diff --git a/arch/arm/mach-pxa/palmz72.c b/arch/arm/mach-pxa/palmz72.c
+index 65f24f0..5a5329b 100644
+--- a/arch/arm/mach-pxa/palmz72.c
++++ b/arch/arm/mach-pxa/palmz72.c
+@@ -33,6 +33,7 @@
+ #include <linux/i2c-gpio.h>
  
--	/* Restore table entry modified during MMU restoration */
--	if (pwrdm_read_prev_pwrst(mpu_pwrdm) == PWRDM_POWER_OFF)
--		restore_table_entry();
--
- 	/* CORE */
- 	if (core_next_state < PWRDM_POWER_ON) {
- 		core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 12e9da2..9a1349e 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -211,37 +211,6 @@ save_context_wfi:
- 	mrc	p15, 1, r5, c9, c0, 2	@ Read L2 AUX ctrl register
- 	stmia	r8!, {r4-r5}		@ Push parameters for restore call
+ #include <asm/mach-types.h>
++#include <asm/suspend.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
  
--        /* Check what that target sleep state is from r1 */
--	cmp	r1, #0x2		@ Only L2 lost, no need to save context
--	beq	clean_caches
--
--l1_logic_lost:
--	mov	r4, sp			@ Store sp
--	mrs	r5, spsr		@ Store spsr
--	mov	r6, lr			@ Store lr
--	stmia	r8!, {r4-r6}
--
--	mrc	p15, 0, r4, c1, c0, 2	@ Coprocessor access control register
--	mrc	p15, 0, r5, c2, c0, 0	@ TTBR0
--	mrc	p15, 0, r6, c2, c0, 1	@ TTBR1
--	mrc	p15, 0, r7, c2, c0, 2	@ TTBCR
--	stmia	r8!, {r4-r7}
--
--	mrc	p15, 0, r4, c3, c0, 0	@ Domain access Control Register
--	mrc	p15, 0, r5, c10, c2, 0	@ PRRR
--	mrc	p15, 0, r6, c10, c2, 1	@ NMRR
--	stmia	r8!,{r4-r6}
--
--	mrc	p15, 0, r4, c13, c0, 1	@ Context ID
--	mrc	p15, 0, r5, c13, c0, 2	@ User r/w thread and process ID
--	mrc	p15, 0, r6, c12, c0, 0	@ Secure or NS vector base address
--	mrs	r7, cpsr		@ Store current cpsr
--	stmia	r8!, {r4-r7}
--
--	mrc	p15, 0, r4, c1, c0, 0	@ save control register
--	stmia	r8!, {r4}
--
--clean_caches:
+diff --git a/arch/arm/mach-pxa/pxa25x.c b/arch/arm/mach-pxa/pxa25x.c
+index fd7725c..9c434d2 100644
+--- a/arch/arm/mach-pxa/pxa25x.c
++++ b/arch/arm/mach-pxa/pxa25x.c
+@@ -25,6 +25,7 @@
+ #include <linux/irq.h>
+ 
+ #include <asm/mach/map.h>
++#include <asm/suspend.h>
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+ #include <mach/gpio.h>
+@@ -244,8 +245,7 @@ static void pxa25x_cpu_pm_enter(suspend_state_t state)
+ 
+ 	switch (state) {
+ 	case PM_SUSPEND_MEM:
+-		cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, PWRMODE_SLEEP,
+-			    pxa25x_finish_suspend);
++		cpu_suspend(PWRMODE_SLEEP, pxa25x_finish_suspend);
+ 		break;
+ 	}
+ }
+diff --git a/arch/arm/mach-pxa/pxa27x.c b/arch/arm/mach-pxa/pxa27x.c
+index 824379d..9d2400b 100644
+--- a/arch/arm/mach-pxa/pxa27x.c
++++ b/arch/arm/mach-pxa/pxa27x.c
+@@ -24,6 +24,7 @@
+ #include <asm/mach/map.h>
+ #include <mach/hardware.h>
+ #include <asm/irq.h>
++#include <asm/suspend.h>
+ #include <mach/irqs.h>
+ #include <mach/gpio.h>
+ #include <mach/pxa27x.h>
+@@ -304,8 +305,7 @@ void pxa27x_cpu_pm_enter(suspend_state_t state)
+ 		pxa_cpu_standby();
+ 		break;
+ 	case PM_SUSPEND_MEM:
+-		cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, pwrmode,
+-			    pxa27x_finish_suspend);
++		cpu_suspend(pwrmode, pxa27x_finish_suspend);
+ #ifndef CONFIG_IWMMXT
+ 		asm volatile("mar acc0, %Q0, %R0" : "=r" (acc0));
+ #endif
+diff --git a/arch/arm/mach-pxa/pxa3xx.c b/arch/arm/mach-pxa/pxa3xx.c
+index 220fd8c..9fe947b 100644
+--- a/arch/arm/mach-pxa/pxa3xx.c
++++ b/arch/arm/mach-pxa/pxa3xx.c
+@@ -24,6 +24,7 @@
+ #include <linux/i2c/pxa-i2c.h>
+ 
+ #include <asm/mach/map.h>
++#include <asm/suspend.h>
+ #include <mach/hardware.h>
+ #include <mach/gpio.h>
+ #include <mach/pxa3xx-regs.h>
+@@ -167,7 +168,7 @@ static void pxa3xx_cpu_pm_suspend(void)
+ 	/* overwrite with the resume address */
+ 	*p = virt_to_phys(cpu_resume);
+ 
+-	cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, 0, pxa3xx_finish_suspend);
++	cpu_suspend(0, pxa3xx_finish_suspend);
+ 
+ 	*p = saved_data;
+ 
+diff --git a/arch/arm/mach-pxa/zeus.c b/arch/arm/mach-pxa/zeus.c
+index 28eb410..9b99cc1 100644
+--- a/arch/arm/mach-pxa/zeus.c
++++ b/arch/arm/mach-pxa/zeus.c
+@@ -31,6 +31,7 @@
+ #include <linux/can/platform/mcp251x.h>
+ 
+ #include <asm/mach-types.h>
++#include <asm/suspend.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+@@ -676,8 +677,7 @@ static struct pxa2xx_udc_mach_info zeus_udc_info = {
+ static void zeus_power_off(void)
+ {
+ 	local_irq_disable();
+-	cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, PWRMODE_DEEPSLEEP,
+-		    pxa27x_finish_suspend);
++	cpu_suspend(PWRMODE_DEEPSLEEP, pxa27x_finish_suspend);
+ }
+ #else
+ #define zeus_power_off   NULL
+diff --git a/arch/arm/mach-sa1100/pm.c b/arch/arm/mach-sa1100/pm.c
+index 259ed3b..cf9a1e9 100644
+--- a/arch/arm/mach-sa1100/pm.c
++++ b/arch/arm/mach-sa1100/pm.c
+@@ -29,6 +29,7 @@
+ 
+ #include <mach/hardware.h>
+ #include <asm/memory.h>
++#include <asm/suspend.h>
+ #include <asm/system.h>
+ #include <asm/mach/time.h>
+ 
+@@ -75,7 +76,7 @@ static int sa11x0_pm_enter(suspend_state_t state)
+ 	PSPR = virt_to_phys(cpu_resume);
+ 
+ 	/* go zzz */
+-	cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, 0, sa1100_finish_suspend);
++	cpu_suspend(0, sa1100_finish_suspend);
+ 
  	/*
- 	 * jump out to kernel flush routine
- 	 *  - reuse that code is better
-@@ -466,109 +435,11 @@ logic_l1_restore:
- 	orr	r1, r1, #2		@ re-enable L2 cache
- 	mcr	p15, 0, r1, c1, c0, 1
- skipl2reen:
--	mov	r1, #0
--	/*
--	 * Invalidate all instruction caches to PoU
--	 * and flush branch target cache
--	 */
--	mcr	p15, 0, r1, c7, c5, 0
+ 	 * Ensure not to come back here if it wasn't intended
+diff --git a/arch/arm/plat-samsung/pm.c b/arch/arm/plat-samsung/pm.c
+index 3a6d076..69d6b04 100644
+--- a/arch/arm/plat-samsung/pm.c
++++ b/arch/arm/plat-samsung/pm.c
+@@ -20,6 +20,7 @@
+ #include <linux/io.h>
  
--	ldr	r4, scratchpad_base
--	ldr	r3, [r4,#0xBC]
--	adds	r3, r3, #16
--
--	ldmia	r3!, {r4-r6}
--	mov	sp, r4			@ Restore sp
--	msr	spsr_cxsf, r5		@ Restore spsr
--	mov	lr, r6			@ Restore lr
--
--	ldmia	r3!, {r4-r7}
--	mcr	p15, 0, r4, c1, c0, 2	@ Coprocessor access Control Register
--	mcr	p15, 0, r5, c2, c0, 0	@ TTBR0
--	mcr	p15, 0, r6, c2, c0, 1	@ TTBR1
--	mcr	p15, 0, r7, c2, c0, 2	@ TTBCR
--
--	ldmia	r3!,{r4-r6}
--	mcr	p15, 0, r4, c3, c0, 0	@ Domain access Control Register
--	mcr	p15, 0, r5, c10, c2, 0	@ PRRR
--	mcr	p15, 0, r6, c10, c2, 1	@ NMRR
--
--
--	ldmia	r3!,{r4-r7}
--	mcr	p15, 0, r4, c13, c0, 1	@ Context ID
--	mcr	p15, 0, r5, c13, c0, 2	@ User r/w thread and process ID
--	mrc	p15, 0, r6, c12, c0, 0	@ Secure or NS vector base address
--	msr	cpsr, r7		@ store cpsr
--
--	/* Enabling MMU here */
--	mrc	p15, 0, r7, c2, c0, 2 	@ Read TTBRControl
--	/* Extract N (0:2) bits and decide whether to use TTBR0 or TTBR1 */
--	and	r7, #0x7
--	cmp	r7, #0x0
--	beq	usettbr0
--ttbr_error:
--	/*
--	 * More work needs to be done to support N[0:2] value other than 0
--	 * So looping here so that the error can be detected
--	 */
--	b	ttbr_error
--usettbr0:
--	mrc	p15, 0, r2, c2, c0, 0
--	ldr	r5, ttbrbit_mask
--	and	r2, r5
--	mov	r4, pc
--	ldr	r5, table_index_mask
--	and	r4, r5			@ r4 = 31 to 20 bits of pc
--	/* Extract the value to be written to table entry */
--	ldr	r1, table_entry
--	/* r1 has the value to be written to table entry*/
--	add	r1, r1, r4
--	/* Getting the address of table entry to modify */
--	lsr	r4, #18
--	/* r2 has the location which needs to be modified */
--	add	r2, r4
--	/* Storing previous entry of location being modified */
--	ldr	r5, scratchpad_base
--	ldr	r4, [r2]
--	str	r4, [r5, #0xC0]
--	/* Modify the table entry */
--	str	r1, [r2]
--	/*
--	 * Storing address of entry being modified
--	 * - will be restored after enabling MMU
--	 */
--	ldr	r5, scratchpad_base
--	str	r2, [r5, #0xC4]
--
--	mov	r0, #0
--	mcr	p15, 0, r0, c7, c5, 4	@ Flush prefetch buffer
--	mcr	p15, 0, r0, c7, c5, 6	@ Invalidate branch predictor array
--	mcr	p15, 0, r0, c8, c5, 0	@ Invalidate instruction TLB
--	mcr	p15, 0, r0, c8, c6, 0	@ Invalidate data TLB
--	/*
--	 * Restore control register. This enables the MMU.
--	 * The caches and prediction are not enabled here, they
--	 * will be enabled after restoring the MMU table entry.
--	 */
--	ldmia	r3!, {r4}
--	/* Store previous value of control register in scratchpad */
--	str	r4, [r5, #0xC8]
--	ldr	r2, cache_pred_disable_mask
--	and	r4, r2
--	mcr	p15, 0, r4, c1, c0, 0
--	dsb
--	isb
--	ldr     r0, =restoremmu_on
--	bx      r0
--
--/*
-- * ==============================
-- * == Exit point from OFF mode ==
-- * ==============================
-- */
--restoremmu_on:
--	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
-+	/* Now branch to the common CPU resume function */
-+	b	cpu_resume
+ #include <asm/cacheflush.h>
++#include <asm/suspend.h>
+ #include <mach/hardware.h>
+ #include <mach/map.h>
  
-+	.ltorg
+@@ -298,7 +299,7 @@ static int s3c_pm_enter(suspend_state_t state)
+ 	 * we resume as it saves its own register state and restores it
+ 	 * during the resume.  */
  
- /*
-  * Internal functions
-@@ -719,14 +590,6 @@ sram_base:
- 	.word	SRAM_BASE_P + 0x8000
- sdrc_power:
- 	.word	SDRC_POWER_V
--ttbrbit_mask:
--	.word	0xFFFFC000
--table_index_mask:
--	.word	0xFFF00000
--table_entry:
--	.word	0x00000C02
--cache_pred_disable_mask:
--	.word	0xFFFFE7FB
- control_stat:
- 	.word	CONTROL_STAT
- control_mem_rta:
+-	cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, 0, pm_cpu_sleep);
++	cpu_suspend(0, pm_cpu_sleep);
+ 
+ 	/* restore the system state */
+ 
 -- 
 1.7.4.4
