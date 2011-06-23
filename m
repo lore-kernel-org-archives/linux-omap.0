@@ -1,85 +1,52 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: Re: [RFC PATCHv5 4/7] HSI: hsi_char: Add HSI char device driver
-Date: Thu, 23 Jun 2011 12:12:58 +0300
-Message-ID: <1308820378.27256.2773.camel@groo>
-References: <1307713124-3946-5-git-send-email-carlos.chinea@nokia.com>
-	 <1308771464-15980-1-git-send-email-sjur.brandeland@stericsson.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 1/6] omap: prcm: switch to a chained IRQ handler
+ mechanism
+Date: Thu, 23 Jun 2011 02:51:03 -0700
+Message-ID: <20110623095103.GZ23145@atomide.com>
+References: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
+ <1308760934-9757-2-git-send-email-t-kristo@ti.com>
+ <20110623081940.GW23145@atomide.com>
+ <1308820129.5972.15.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1308771464-15980-1-git-send-email-sjur.brandeland@stericsson.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Sjur =?ISO-8859-1?Q?Br=E6ndeland?= <sjur.brandeland@stericsson.com>
-Cc: sjurbren@gmail.com, Andras Domokos <andras.domokos@nokia.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:44883 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758872Ab1FWJvG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 05:51:06 -0400
+Content-Disposition: inline
+In-Reply-To: <1308820129.5972.15.camel@sokoban>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Mahadeva, Avinash" <avinashhm@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi,
+* Tero Kristo <t-kristo@ti.com> [110623 02:04]:
+> On Thu, 2011-06-23 at 10:19 +0200, Tony Lindgren wrote:
+> > 
+> > Please note consider that this data will be coming from device
+> > tree and will disappear from here. We won't be merging any new
+> > data after v3.1 unless it comes from device tree. So this too
+> > will need to be converted because we won't be able to add support
+> > for new omaps otherwise.
+> 
+> This part I am not too sure what you mean with this. Do you have some
+> info / examples about the device tree somewhere and how this data should
+> be converted?
 
-On Wed, 2011-06-22 at 21:37 +0200, ext Sjur Br=C3=A6ndeland wrote:
-> Hi Carlos,
->=20
-> ...
-> >+static ssize_t hsc_read(struct file *file, char __user *buf, size_t=
- len,
-> >+						loff_t *ppos __maybe_unused)
-> >+{
-> ...
-> >+	ret =3D hsi_async_read(channel->cl, msg);
-> >+
-> >+	ret =3D wait_event_interruptible(channel->rx_wait,
-> >+					!list_empty(&channel->rx_msgs_queue));
-> ...
->=20
-> >+}
-> >+
-> >+static ssize_t hsc_write(struct file *file, const char __user *buf,=
- size_t len,
-> >+						loff_t *ppos __maybe_unused)
-> >+{
-> >+	ret =3D hsi_async_write(channel->cl, msg);
-> >+	if (ret < 0)
-> >+		goto out;
-> >+
-> >+	ret =3D wait_event_interruptible(channel->tx_wait,
-> >+					!list_empty(&channel->tx_msgs_queue));
->=20
-> I would really like to see support for non-blocking read/write operat=
-ion here.
->=20
+Well there's some minimal data in the devel-devicetree branch currently.
+That allows you to play with it if, the last commit contains some
+instructions for the devicetree append support.
 
-Non-blocking support will not be supported in hsi_char.
+Then there are tons of examples in arch/powerpc/boot/dts. Basically
+we'll have something like omap34xx.dts included into the board .dts
+file. So your prcm interrupt data would live in the omap34xx.dts as
+would 34xx specific mux data. Then the board specific .dts contains
+the configured pins etc.
 
-> ...
-> >+
-> >+static const struct file_operations hsc_fops =3D {
-> >+	.owner		=3D THIS_MODULE,
-> >+	.read		=3D hsc_read,
-> >+	.write		=3D hsc_write,
-> >+	.unlocked_ioctl	=3D hsc_ioctl,
-> >+	.open		=3D hsc_open,
-> >+	.release	=3D hsc_release,
-> >+};
->=20
-> No poll?
+Just something to consider for organizing the code so you don't have
+to change things around much after the device tree support is merged :)
 
-We did have some "kind" of support for poll in previous versions, but w=
-e
-did not honor properly the poll expected behavior, as we always need to
-"block" waiting for the complete callback to be called. At least for
-reads this was an issue.
+Regards,
 
-However to compensate this, we are planning to add AIO support in the
-future, which maps a lot better into the hsi behavior.
-
-> Currently we do bulk read/write operations upon modem-crash or firmwa=
-re upload,
-> and would perfeer to be able do asynchronous IO (select/poll) in orde=
-r to
-> receive other system events or timeouts during HSI bulk transfers.
->=20
-
-
-Br,
---=20
-Carlos Chinea <carlos.chinea@nokia.com>
+Tony
