@@ -1,88 +1,66 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 00/25] Re-jig cpu_suspend for a saner calling convention
-Date: Thu, 23 Jun 2011 20:09:00 +0100
-Message-ID: <20110623190900.GH9449@n2100.arm.linux.org.uk>
+Subject: [PATCH 01/25] ARM: pm: ensure ARMv7 CPUs save and restore the TLS
+ register
+Date: Thu, 23 Jun 2011 20:09:22 +0100
+Message-ID: <E1QZpHG-0005lf-Fh@rmk-PC.arm.linux.org.uk>
+References: <20110623190900.GH9449@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20110623190900.GH9449@n2100.arm.linux.org.uk>
 Content-Disposition: inline
 Sender: linux-samsung-soc-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Version 3.
+Ensure that the TLS register is saved and restored over a suspend
+cycle, so that userspace programs don't see a corrupted TLS value.
 
-Currently cpu_suspend is not like a normal C function - when it's called
-it returns normally to a bunch of code which is not expected to return.
-The return path is via code pointed to by 'r3'.
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/mm/proc-v7.S |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-It also corrupts a bunch of registers in ways which make it non-compliant
-with a C API.
-
-If we do make this compliant as a normal C-like function, it eliminates
-this register saving, and also allows us to make greater savings.  We
-also swap 'lr' and 'r3', so cpu_suspend effectively only returns to
-following code on resume - and r3 points to the suspend code.
-
-I've also changed cpu_suspend() to have a saner visible prototype for
-calling from platforms, hiding the needed v:p offset parameter in the
-inline function.
-
-So, this becomes:
-static void soc_suspend(void)
-{
-        [soc specific preparation]
-
-        cpu_suspend(soc_suspend_arg, soc_finish_suspend);
-
-        [soc specific cleanup ]
-}
-
-where soc_suspend_fn can be either assembly or C code - but must never
-return.  (See separate patch posted on 13th June to allow it to return.)
-
-This patch series also merges the call to cpu_init() into cpu_suspend(),
-and makes cpu_init() call the per-CPU initialization function to ensure
-that various registers are setup (eg, clock switching on StrongARM,
-read-buffer enabled for userspace, etc.)  This allows some more custom
-platform suspend code to be removed.
-
-I've been able to convert OMAP3 suspend support and test it in both
-retention and off modes.
-
-The only platform not converted to cpu_suspend() is the shmobile stuff,
-which I've requested their assistance with.
-
-This patch set also eliminates 300 LOC from platform code.
-
-Tested on Assabet (SA1100) and 3430LDP only.
-
- arch/arm/include/asm/suspend.h          |   21 ++++
- arch/arm/kernel/setup.c                 |   99 ++++++++++----------
- arch/arm/kernel/sleep.S                 |   73 ++++++---------
- arch/arm/mach-exynos4/pm.c              |    2 +-
- arch/arm/mach-exynos4/sleep.S           |   22 ----
- arch/arm/mach-omap2/pm34xx.c            |   48 ++-------
- arch/arm/mach-omap2/sleep34xx.S         |  160 ++-----------------------------
- arch/arm/mach-pxa/include/mach/pm.h     |    4 +-
- arch/arm/mach-pxa/palmz72.c             |    1 +
- arch/arm/mach-pxa/pm.c                  |    1 -
- arch/arm/mach-pxa/pxa25x.c              |    3 +-
- arch/arm/mach-pxa/pxa27x.c              |   11 ++-
- arch/arm/mach-pxa/pxa3xx.c              |   14 +++-
- arch/arm/mach-pxa/sleep.S               |   55 ++---------
- arch/arm/mach-pxa/zeus.c                |    3 +-
- arch/arm/mach-s3c2412/pm.c              |    4 +-
- arch/arm/mach-s3c2416/pm.c              |    4 +-
- arch/arm/mach-s3c64xx/pm.c              |    2 +-
- arch/arm/mach-s3c64xx/sleep.S           |   23 -----
- arch/arm/mach-s5pv210/pm.c              |    2 +-
- arch/arm/mach-s5pv210/sleep.S           |   21 ----
- arch/arm/mach-sa1100/pm.c               |    7 +-
- arch/arm/mach-sa1100/sleep.S            |   19 +----
- arch/arm/mm/proc-sa1100.S               |    4 +-
- arch/arm/mm/proc-v7.S                   |   10 ++-
- arch/arm/plat-s3c24xx/sleep.S           |   25 -----
- arch/arm/plat-samsung/include/plat/pm.h |    5 +-
- arch/arm/plat-samsung/pm.c              |   11 +--
- 28 files changed, 180 insertions(+), 474 deletions(-)
+diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+index b3b566e..426c946 100644
+--- a/arch/arm/mm/proc-v7.S
++++ b/arch/arm/mm/proc-v7.S
+@@ -208,19 +208,21 @@ cpu_v7_name:
+ 
+ /* Suspend/resume support: derived from arch/arm/mach-s5pv210/sleep.S */
+ .globl	cpu_v7_suspend_size
+-.equ	cpu_v7_suspend_size, 4 * 8
++.equ	cpu_v7_suspend_size, 4 * 9
+ #ifdef CONFIG_PM_SLEEP
+ ENTRY(cpu_v7_do_suspend)
+ 	stmfd	sp!, {r4 - r11, lr}
+ 	mrc	p15, 0, r4, c13, c0, 0	@ FCSE/PID
+ 	mrc	p15, 0, r5, c13, c0, 1	@ Context ID
++	mrc	p15, 0, r6, c13, c0, 3	@ User r/o thread ID
++	stmia	r0!, {r4 - r6}
+ 	mrc	p15, 0, r6, c3, c0, 0	@ Domain ID
+ 	mrc	p15, 0, r7, c2, c0, 0	@ TTB 0
+ 	mrc	p15, 0, r8, c2, c0, 1	@ TTB 1
+ 	mrc	p15, 0, r9, c1, c0, 0	@ Control register
+ 	mrc	p15, 0, r10, c1, c0, 1	@ Auxiliary control register
+ 	mrc	p15, 0, r11, c1, c0, 2	@ Co-processor access control
+-	stmia	r0, {r4 - r11}
++	stmia	r0, {r6 - r11}
+ 	ldmfd	sp!, {r4 - r11, pc}
+ ENDPROC(cpu_v7_do_suspend)
+ 
+@@ -228,9 +230,11 @@ ENTRY(cpu_v7_do_resume)
+ 	mov	ip, #0
+ 	mcr	p15, 0, ip, c8, c7, 0	@ invalidate TLBs
+ 	mcr	p15, 0, ip, c7, c5, 0	@ invalidate I cache
+-	ldmia	r0, {r4 - r11}
++	ldmia	r0!, {r4 - r6}
+ 	mcr	p15, 0, r4, c13, c0, 0	@ FCSE/PID
+ 	mcr	p15, 0, r5, c13, c0, 1	@ Context ID
++	mcr	p15, 0, r6, c13, c0, 3	@ User r/o thread ID
++	ldmia	r0, {r6 - r11}
+ 	mcr	p15, 0, r6, c3, c0, 0	@ Domain ID
+ 	mcr	p15, 0, r7, c2, c0, 0	@ TTB 0
+ 	mcr	p15, 0, r8, c2, c0, 1	@ TTB 1
+-- 
+1.7.4.4
