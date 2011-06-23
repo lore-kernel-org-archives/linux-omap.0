@@ -1,31 +1,40 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC 0/8] Introducing a generic AMP/IPC framework
-Date: Thu, 23 Jun 2011 20:46:35 +0200
-Message-ID: <201106232046.35846.arnd@arndb.de>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com> <4E033041.9090606@criticallink.com> <FFF198FBBF957F4393BA834040FEFFA202CA6E@DFLE35.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 25/25] ARM: pm: omap34xx: convert to generic suspend/resume support
+Date: Thu, 23 Jun 2011 12:05:28 -0700
+Message-ID: <874o3g9xmv.fsf@ti.com>
+References: <20110622150816.GT23234@n2100.arm.linux.org.uk>
+	<E1QZPAo-0002XO-9G@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <FFF198FBBF957F4393BA834040FEFFA202CA6E@DFLE35.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: "Grosen, Mark" <mgrosen@ti.com>, Michael Williamson <michael.williamson@criticallink.com>, Ohad Ben-Cohen <ohad@wizery.com>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Subhasish Ghosh <subhasish@mistralsolutions.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from [74.125.149.109] ([74.125.149.109]:35750 "EHLO psmtp.com"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1759457Ab1FWTFc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 15:05:32 -0400
+In-Reply-To: <E1QZPAo-0002XO-9G@rmk-PC.arm.linux.org.uk> (Russell King's
+	message of "Wed, 22 Jun 2011 16:16:58 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Thursday 23 June 2011 18:27:10 Grosen, Mark wrote:
-> First, we are not abandoning DSPLINK. We have many users of this, even
-> though it is out-of-tree, and we will continue to support it. That said, we
-> do intend to make this new design the basis for DSPLINK-like
-> functionality. It's designed to be done "the right way" for Linux (and we
-> are looking for feedback to make it better).  It is also designed to be more
-> scalable and extensible in userspace. With a solid kernel foundation, we can
-> provide lots of functionality in userspace, or users can implement their own
-> custom solutions. One of the key things to do is map our existing DSPLINK
-> APIs, like MessageQ, to the new rpmsg transport.
+Hi Russell,
 
-Sounds all good. What about the PRUSS code? Does that fit into the new model
-as well?
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-	Arnd
+> Convert sa11x0 to use the generic CPU suspend/resume support, rather
+> than implementing its own version.  Tested on 3430 LDP.
+>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+
+I tested this on 3430/n900 and 3530/Overo and it worked fine for
+retention, but not for off.
+
+Testing with off-mode, I found the MULTI_CPU path to be broken in
+cpu_suspend (jumping to zero.)  Rebuilding for only OMAP3, it worked
+fine for full-chip retention in suspend and idle as well as full-chip
+off in suspend and idle.
+
+I'm digging into the MULTI_CPU path now.
+
+Kevin
