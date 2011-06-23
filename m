@@ -1,128 +1,163 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 5/6] OMAP3: Serial: Made serial to work properly with
- PRCM chain handler
-Date: Thu, 23 Jun 2011 04:12:29 -0700
-Message-ID: <20110623111229.GB23145@atomide.com>
-References: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
- <1308760934-9757-6-git-send-email-t-kristo@ti.com>
- <20110623082150.GX23145@atomide.com>
- <1308820284.5972.18.camel@sokoban>
- <20110623100054.GA23145@atomide.com>
- <BANLkTin1u_tKN8mwM0xYhq=qjWkRfx8X2Q@mail.gmail.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH 0/8] HDMI: Split hdmi.c to seperate HDMI IP dependant code
+ from DSS.
+Date: Thu, 23 Jun 2011 17:35:12 +0530
+Message-ID: <BANLkTinc9JUr-gBGSynzMtrqTVncDUbNKQ@mail.gmail.com>
+References: <1308298637-29753-1-git-send-email-mythripk@ti.com> <1308823101.1834.79.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61791 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758170Ab1FWLMe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 07:12:34 -0400
-Content-Disposition: inline
-In-Reply-To: <BANLkTin1u_tKN8mwM0xYhq=qjWkRfx8X2Q@mail.gmail.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:47054 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756339Ab1FWMFd convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 08:05:33 -0400
+Received: by mail-fx0-f52.google.com with SMTP id 6so1919090fxm.11
+        for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 05:05:32 -0700 (PDT)
+In-Reply-To: <1308823101.1834.79.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Govindraj <govindraj.ti@gmail.com> [110623 03:30]:
-> On Thu, Jun 23, 2011 at 3:30 PM, Tony Lindgren <tony@atomide.com> wro=
-te:
-> > * Tero Kristo <t-kristo@ti.com> [110623 02:06]:
-> >> On Thu, 2011-06-23 at 10:21 +0200, Tony Lindgren wrote:
-> >> > * Tero Kristo <t-kristo@ti.com> [110622 09:38]:
-> >> > > @@ -550,6 +550,8 @@ static void omap_uart_idle_init(struct oma=
-p_uart_state *uart)
-> >> > > =C2=A0 ret =3D request_threaded_irq(uart->irq, NULL, omap_uart=
-_interrupt,
-> >> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0IRQF_SHARED, "serial idle", (=
-void *)uart);
-> >> > > =C2=A0 WARN_ON(ret);
-> >> > > + ret =3D omap_prcm_register_pad_irq(uart->padconf, uart->irq)=
-;
-> >> > > + WARN_ON(ret);
-> >> > > =C2=A0}
-> >> >
-> >> > Argh, looks like we still have direct mux register tinkering in =
-serial.c:
-> >> >
-> >> > $ grep "padconf =3D 0x" serial.c
-> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 padconf =3D 0x182;
-> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 padconf =3D 0x17a;
-> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 padconf =3D 0x19e;
-> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 padconf =3D 0x0d2;
-> >> >
-> >> > By deducting 0x30 from the values above, these map into the foll=
-owing mux defines:
-> >> >
-> >> > $ grep RX_OFFSET mux34xx.h
-> >> > #define OMAP3_CONTROL_PADCONF_UART2_RX_OFFSET =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 0x14a
-> >> > #define OMAP3_CONTROL_PADCONF_UART1_RX_OFFSET =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 0x152
-> >> > #define OMAP3_CONTROL_PADCONF_UART3_RX_IRRX_OFFSET =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A00x16e
-> >> >
-> >> > So you can make things more generic by getting rid of those and =
-using
-> >> > struct omap_mux_partition instead for omap_prcm_register_pad_irq=
-=2E
-> >> > The pins used are set already in serial.c with omap_hwmod_mux_in=
-it.
-> >> >
-> >> > Otherwise we have to patch the hardcoded padconf values for ever=
-y new omap.
-> >> > And looks like we're already missing them for 44xx in serial.c.
-> >> >
-> >> > Then access to the padconf registers should be done with
-> >> > omap_mux_read/write instead. If you need to do something more co=
-mplex
-> >> > with them maybe consider adding some new functions to mux.c as n=
-eeded.
-> >> >
-> >>
-> >> Padconf stuff is not that much related to this patch set yet (I am=
- not
-> >> touching the serial padconf code), but I can probably take a look =
-at
-> >> this also later on, unless you want this fixed with this set alrea=
-dy?
-> >
-> > Yes please, maybe make it a separate patch before your series to
-> > prepare things?
-> >
-> > Otherwise we will have to change the omap_prcm_register_pad_irq
-> > later on in each driver using it.
-> >
->=20
-> Agree,
-> I am planning of use this call from omap-serial driver. :)
->=20
-> How about using omap_hwmod_mux_get_wake_status proposed earlier?
->=20
-> https://patchwork.kernel.org/patch/773932/
+Hi Tomi,
 
-Hmm, usually there's only one wake-up enabled pin though. Do we
-ever have more than one per device? If not, there's no need  to
-iterate over the list every time.
-=20
-> How about register with omap_hwmod data and irq_number from driver
-> after requesting irq ?
->=20
-> I suppose even using omap_hwmod data from driver file not allowed.
-> or use pdev ?
+On Thu, Jun 23, 2011 at 3:28 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Fri, 2011-06-17 at 13:47 +0530, Mythri P K wrote:
+>> HDMI IP block is common between TI OMAP4 Procerssor and Netra proces=
+sor although
+>> the Display subsytem is different. Thus to reuse the code between th=
+ese two
+>> processors , HDMI IP dependant code is seperated out from hdmi.c and=
+ moved to
+>> new library file hdmi_ti_4xxx_ip.c which now resides in /drivers/vid=
+eo a more
+>> generic location out of omap2/dss folder.
+>>
+>> This patch series does the split and also renames hdmi_omap4_panel.c=
+ to
+>> hdmi_panel.c as that file has nothing specific to OMAP4 and can be r=
+eused for
+>> other OMAP family of processors as well.
+>
+> These comments are based on the branch you have, not to particular
+> patches:
+>
+> include/video/hdmi_ti_4xxx_ip.h:
+>
+> - This file is in a way the most important one, because it's the publ=
+ic
+> API of the component. So you should be extra careful with this, and s=
+ee
+> that everything in it makes sense, and it's clear how it is to be use=
+d.
+>
+> - hdmi_core_hdmi_dvi is defined but not used. Should it be in the
+> private header?
 
-Eventually the configured pins come from device tree and then hwmod
-code can set up things automagically for the device. I think drivers
-should just use device_set_wakeup_enable to set it and then the wake-up
-capability should change automatically somehow.. Or maybe I did not
-quite understand what you're after.
+ HDMI_HDMI  and HDMI_DVI are used everywhere in hdmi.c and hdmi_ti_4xxx=
+_ip.c,
+one thing  i could do is to add a patch to used this enumerator
+instead of int mode ?
 
-Tony
+>
+> - hdmi_pll_pwr seems to be very low level thing. It requires the user=
+ to
+> know HW details about the PLL, I don't think it should be visible to =
+the
+> users. It is used in parameters for hdmi_ti_4xxx_set_pll_pwr(). When =
+is
+> it supposed to be used? Why is hdmi_ti_4xxx_wp_video_start() not enou=
+gh?
+>
+HDMI has core , PLL and PHY blocks, so user of the ip driver should
+configure them separately.
+
+> - The same goes to hdmi_ti_4xxx_pll_program. Who does the PLL
+> calculations, omapdss driver? Shouldn't the HDMI driver do it, the PL=
+L
+> is a HDMI HW thing, not DSS HW? Or if they are defined in the board
+> file, and omapdss just gives them to the HDMI driver, I think the dat=
+a
+> should be somehow passed through omapdss without omapdss actively
+> participating in the PLL programming. This would be easy if the HDMI
+> would use a platform device/driver model, the data could be passed vi=
+a
+> the device data.
+>
+> - If the PLL calculations have to be done by omapdss, couldn't the
+> hdmi_pll_info be part of hdmi_config?
+
+hdmi_pll_info would be used only once while configuring (power on) ,
+Why would we have to store the pll_info then in hdmi_config?
+
+>
+> - Is hdmi_ti_4xxx_phy_off the counterpart of hdmi_ti_4xxx_phy_init? I=
+f
+> so, the naming could be better to clearly show this. Like init/uninit=
+,
+> enable/disable, etc.
+
+I shall rename. yes phy_off is counterpart of init , i shall renmane
+it to enable ,disable.
+>
+> - Is the "phy" relevant (from the user's point of view) in
+> hdmi_ti_4xxx_phy_init and off? Or could they be just init and uninit?
+
+PHY is a seperate block in HDMI and even from the user point of view
+user should be aware of PHY, PLL and core blocks. so phy_init is
+relevant.
+>
+> - Perhaps hdmi_ti_4xxx_basic_configure could be just configure, there=
+'s
+> no advanced configure or similar.
+Well, makes sense but this is the init_configuration(default
+configuration) is what was intended in the patch.
+>
+> - is the "wp" important in hdmi_ti_4xxx_wp_video_start?
+>
+yes wp =3D=3D wrapper , so it would be clear to have a wp_video_Start.
+
+> - read_ti_4xxx_edid() is named differently than the other functions.
+>
+I shall rename to hdmi_ti_4xxx_read_edid.
+
+> drivers/video/hdmi_ti_4xxx_ip.c:
+>
+> - EXPORT_SYMBOL(hdmi_ti_4xxx_phy_init); is not below the function.
+>
+> drivers/video/omap2/dss/hdmi.c:
+>
+> - hdmi_ti_4xxx_set_pll_pwr() is only called in power_off(), but never
+> enabled. I presume the HDMI driver does that internally. That doesn't
+> sound like a valid use of the function.
+
+It is enabled in hdmi_ti_4xxx_pll_program called from power on.
+
+>
+> - Looking at hdmi_power_on(), I feel that the API of the HDMI driver
+> could be simpler. Would it be enough to have just one function to set=
+up
+> the HDMI, and another to turn the output on?
+No , I suppose it is the responsibility of the user of IP driver to
+configure PHY , PLL and CORE blocks seperately as we can reuse the PLL
+or PHY block in different SOC's as well.
+
+>
+> - omapdss_hdmi_display_set_timing() seems to be broken. It just sets
+> some variables and calls display_enable().
+It sets a variable custom_set , appropriate action will be taken while
+configuring timings based on that parameter.
+>
+> =A0Tomi
+>
+>
+>
+--=20
+Thanks and regards,
+Mythri.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
