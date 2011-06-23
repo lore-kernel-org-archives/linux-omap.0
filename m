@@ -1,123 +1,31 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 02/16] OMAP4: prcm_mpu: Fix indent in few macros
-Date: Thu, 23 Jun 2011 19:43:31 +0200
-Message-ID: <1308851025-26313-3-git-send-email-b-cousson@ti.com>
-References: <1308851025-26313-1-git-send-email-b-cousson@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC 0/8] Introducing a generic AMP/IPC framework
+Date: Thu, 23 Jun 2011 20:46:35 +0200
+Message-ID: <201106232046.35846.arnd@arndb.de>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com> <4E033041.9090606@criticallink.com> <FFF198FBBF957F4393BA834040FEFFA202CA6E@DFLE35.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60138 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933840Ab1FWRoR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jun 2011 13:44:17 -0400
-In-Reply-To: <1308851025-26313-1-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <FFF198FBBF957F4393BA834040FEFFA202CA6E@DFLE35.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: "Grosen, Mark" <mgrosen@ti.com>, Michael Williamson <michael.williamson@criticallink.com>, Ohad Ben-Cohen <ohad@wizery.com>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Subhasish Ghosh <subhasish@mistralsolutions.com>
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, rnayak@ti.com
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-Some macros were not well aligned. Re-align them.
+On Thursday 23 June 2011 18:27:10 Grosen, Mark wrote:
+> First, we are not abandoning DSPLINK. We have many users of this, even
+> though it is out-of-tree, and we will continue to support it. That said, we
+> do intend to make this new design the basis for DSPLINK-like
+> functionality. It's designed to be done "the right way" for Linux (and we
+> are looking for feedback to make it better).  It is also designed to be more
+> scalable and extensible in userspace. With a solid kernel foundation, we can
+> provide lots of functionality in userspace, or users can implement their own
+> custom solutions. One of the key things to do is map our existing DSPLINK
+> APIs, like MessageQ, to the new rpmsg transport.
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/prcm_mpu44xx.h |   69 +++++++++++++++++------------------
- 1 files changed, 34 insertions(+), 35 deletions(-)
+Sounds all good. What about the PRUSS code? Does that fit into the new model
+as well?
 
-diff --git a/arch/arm/mach-omap2/prcm_mpu44xx.h b/arch/arm/mach-omap2/prcm_mpu44xx.h
-index d22d1b4..8a6e250 100644
---- a/arch/arm/mach-omap2/prcm_mpu44xx.h
-+++ b/arch/arm/mach-omap2/prcm_mpu44xx.h
-@@ -31,7 +31,6 @@
- 	OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE + (inst) + (reg))
- 
- /* PRCM_MPU instances */
--
- #define OMAP4430_PRCM_MPU_OCP_SOCKET_PRCM_INST	0x0000
- #define OMAP4430_PRCM_MPU_DEVICE_PRM_INST	0x0200
- #define OMAP4430_PRCM_MPU_CPU0_INST		0x0400
-@@ -52,46 +51,46 @@
-  */
- 
- /* PRCM_MPU.OCP_SOCKET_PRCM register offsets */
--#define OMAP4_REVISION_PRCM_OFFSET			0x0000
--#define OMAP4430_REVISION_PRCM				OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_OCP_SOCKET_PRCM_INST, 0x0000)
-+#define OMAP4_REVISION_PRCM_OFFSET		0x0000
-+#define OMAP4430_REVISION_PRCM			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_OCP_SOCKET_PRCM_INST, 0x0000)
- 
- /* PRCM_MPU.DEVICE_PRM register offsets */
--#define OMAP4_PRCM_MPU_PRM_RSTST_OFFSET			0x0000
--#define OMAP4430_PRCM_MPU_PRM_RSTST			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_DEVICE_PRM_INST, 0x0000)
--#define OMAP4_PRCM_MPU_PRM_PSCON_COUNT_OFFSET		0x0004
--#define OMAP4430_PRCM_MPU_PRM_PSCON_COUNT		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_DEVICE_PRM_INST, 0x0004)
-+#define OMAP4_PRCM_MPU_PRM_RSTST_OFFSET		0x0000
-+#define OMAP4430_PRCM_MPU_PRM_RSTST		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_DEVICE_PRM_INST, 0x0000)
-+#define OMAP4_PRCM_MPU_PRM_PSCON_COUNT_OFFSET	0x0004
-+#define OMAP4430_PRCM_MPU_PRM_PSCON_COUNT	OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_DEVICE_PRM_INST, 0x0004)
- 
- /* PRCM_MPU.CPU0 register offsets */
--#define OMAP4_PM_CPU0_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_CPU0_PWRSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0000)
--#define OMAP4_PM_CPU0_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_CPU0_PWRSTST			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0004)
--#define OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET		0x0008
--#define OMAP4430_RM_CPU0_CPU0_CONTEXT			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0008)
--#define OMAP4_RM_CPU0_CPU0_RSTCTRL_OFFSET		0x000c
--#define OMAP4430_RM_CPU0_CPU0_RSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x000c)
--#define OMAP4_RM_CPU0_CPU0_RSTST_OFFSET			0x0010
--#define OMAP4430_RM_CPU0_CPU0_RSTST			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0010)
--#define OMAP4_CM_CPU0_CPU0_CLKCTRL_OFFSET		0x0014
--#define OMAP4430_CM_CPU0_CPU0_CLKCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0014)
--#define OMAP4_CM_CPU0_CLKSTCTRL_OFFSET			0x0018
--#define OMAP4430_CM_CPU0_CLKSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0018)
-+#define OMAP4_PM_CPU0_PWRSTCTRL_OFFSET		0x0000
-+#define OMAP4430_PM_CPU0_PWRSTCTRL		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0000)
-+#define OMAP4_PM_CPU0_PWRSTST_OFFSET		0x0004
-+#define OMAP4430_PM_CPU0_PWRSTST		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0004)
-+#define OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET	0x0008
-+#define OMAP4430_RM_CPU0_CPU0_CONTEXT		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0008)
-+#define OMAP4_RM_CPU0_CPU0_RSTCTRL_OFFSET	0x000c
-+#define OMAP4430_RM_CPU0_CPU0_RSTCTRL		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x000c)
-+#define OMAP4_RM_CPU0_CPU0_RSTST_OFFSET		0x0010
-+#define OMAP4430_RM_CPU0_CPU0_RSTST		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0010)
-+#define OMAP4_CM_CPU0_CPU0_CLKCTRL_OFFSET	0x0014
-+#define OMAP4430_CM_CPU0_CPU0_CLKCTRL		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0014)
-+#define OMAP4_CM_CPU0_CLKSTCTRL_OFFSET		0x0018
-+#define OMAP4430_CM_CPU0_CLKSTCTRL		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_INST, 0x0018)
- 
- /* PRCM_MPU.CPU1 register offsets */
--#define OMAP4_PM_CPU1_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_CPU1_PWRSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0000)
--#define OMAP4_PM_CPU1_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_CPU1_PWRSTST			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0004)
--#define OMAP4_RM_CPU1_CPU1_CONTEXT_OFFSET		0x0008
--#define OMAP4430_RM_CPU1_CPU1_CONTEXT			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0008)
--#define OMAP4_RM_CPU1_CPU1_RSTCTRL_OFFSET		0x000c
--#define OMAP4430_RM_CPU1_CPU1_RSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x000c)
--#define OMAP4_RM_CPU1_CPU1_RSTST_OFFSET			0x0010
--#define OMAP4430_RM_CPU1_CPU1_RSTST			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0010)
--#define OMAP4_CM_CPU1_CPU1_CLKCTRL_OFFSET		0x0014
--#define OMAP4430_CM_CPU1_CPU1_CLKCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0014)
--#define OMAP4_CM_CPU1_CLKSTCTRL_OFFSET			0x0018
--#define OMAP4430_CM_CPU1_CLKSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0018)
-+#define OMAP4_PM_CPU1_PWRSTCTRL_OFFSET		0x0000
-+#define OMAP4430_PM_CPU1_PWRSTCTRL		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0000)
-+#define OMAP4_PM_CPU1_PWRSTST_OFFSET		0x0004
-+#define OMAP4430_PM_CPU1_PWRSTST		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0004)
-+#define OMAP4_RM_CPU1_CPU1_CONTEXT_OFFSET	0x0008
-+#define OMAP4430_RM_CPU1_CPU1_CONTEXT		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0008)
-+#define OMAP4_RM_CPU1_CPU1_RSTCTRL_OFFSET	0x000c
-+#define OMAP4430_RM_CPU1_CPU1_RSTCTRL		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x000c)
-+#define OMAP4_RM_CPU1_CPU1_RSTST_OFFSET		0x0010
-+#define OMAP4430_RM_CPU1_CPU1_RSTST		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0010)
-+#define OMAP4_CM_CPU1_CPU1_CLKCTRL_OFFSET	0x0014
-+#define OMAP4430_CM_CPU1_CPU1_CLKCTRL		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0014)
-+#define OMAP4_CM_CPU1_CLKSTCTRL_OFFSET		0x0018
-+#define OMAP4430_CM_CPU1_CLKSTCTRL		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0018)
- 
- /* Function prototypes */
- # ifndef __ASSEMBLER__
--- 
-1.7.0.4
-
+	Arnd
