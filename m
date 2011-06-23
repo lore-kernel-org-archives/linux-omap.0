@@ -1,178 +1,217 @@
-From: Vishal Mahaveer <vishalm@ti.com>
-Subject: [PATCH] OMAP: 4430SDP: add mmc5/wl1283 device support
-Date: Thu, 23 Jun 2011 10:55:50 -0600
-Message-ID: <1308848150-4015-1-git-send-email-vishalm@ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [RFC 5/8] remoteproc: add davinci implementation
+Date: Thu, 23 Jun 2011 19:27:52 +0400
+Message-ID: <4E035B78.3080200@mvista.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com> <1308640714-17961-6-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52139 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759391Ab1FWP2V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jun 2011 11:28:21 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5NFSKvB013315
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 10:28:20 -0500
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5NFSKt1028967
-	for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 10:28:20 -0500 (CDT)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5NFSKkl000833
-	for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 10:28:20 -0500 (CDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1308640714-17961-6-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vishal Mahaveer <vishalm@ti.com>
 
-Add MMC5 support on 4430SDP/Blaze, which has the wl1283 device hardwired to.
+Hello.
 
-The wl1283 is a 4-wire, 1.8V, embedded SDIO WLAN device with an
-external IRQ line, and power-controlled by a GPIO.
+Ohad Ben-Cohen wrote:
 
-Based on the patch for mmc3/wl1271 device support for zoom
-by Ohad Ben-Cohen <ohad@wizery.com>
+> From: Mark Grosen <mgrosen@ti.com>
 
-Signed-off-by: Vishal Mahaveer <vishalm@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |   76 +++++++++++++++++++++++++++++++++++
- 1 files changed, 76 insertions(+), 0 deletions(-)
+> Add remoteproc implementation for da850, so we can boot its DSP.
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 63de2d3..555d4f8 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -24,6 +24,7 @@
- #include <linux/regulator/machine.h>
- #include <linux/leds.h>
- #include <linux/leds_pwm.h>
-+#include <linux/wl12xx.h>
- 
- #include <mach/hardware.h>
- #include <mach/omap4-common.h>
-@@ -51,6 +52,8 @@
- #define OMAP4_SFH7741_ENABLE_GPIO		188
- #define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
- #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
-+#define GPIO_WIFI_PMENA		54
-+#define GPIO_WIFI_IRQ		53
- 
- static const int sdp4430_keymap[] = {
- 	KEY(0, 0, KEY_E),
-@@ -306,6 +309,26 @@ static struct omap_musb_board_data musb_board_data = {
- 	.power			= 100,
- };
- 
-+static int wifi_set_power(struct device *dev, int slot, int power_on, int vdd)
-+{
-+	static int power_state;
-+
-+	pr_debug("Powering %s wifi", (power_on ? "on" : "off"));
-+
-+	if (power_on == power_state)
-+		return 0;
-+	power_state = power_on;
-+
-+	if (power_on) {
-+		gpio_set_value(GPIO_WIFI_PMENA, 1);
-+		mdelay(70);
-+	} else {
-+		gpio_set_value(GPIO_WIFI_PMENA, 0);
-+	}
-+
-+	return 0;
-+}
-+
- static struct twl4030_usb_data omap4_usbphy_data = {
- 	.phy_init	= omap4430_phy_init,
- 	.phy_exit	= omap4430_phy_exit,
-@@ -329,6 +352,14 @@ static struct omap2_hsmmc_info mmc[] = {
- 		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
- 		.gpio_wp	= -EINVAL,
- 	},
-+	{
-+		.mmc		= 5,
-+		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
-+		.gpio_cd	= -EINVAL,
-+		.gpio_wp	= -EINVAL,
-+		.ocr_mask	= MMC_VDD_165_195,
-+		.nonremovable	= true,
-+	},
- 	{}	/* Terminator */
- };
- 
-@@ -361,6 +392,11 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
- 						MMCDETECT_INTR_OFFSET;
- 		pdata->slots[0].card_detect = twl6030_mmc_card_detect;
- 	}
-+
-+	/* Set the MMC5 (wlan) power function */
-+	if (pdev->id == 4)
-+		pdata->slots[0].set_power = wifi_set_power;
-+
- 	return ret;
- }
- 
-@@ -519,6 +555,7 @@ static struct regulator_init_data sdp4430_vusb = {
- static struct regulator_init_data sdp4430_clk32kg = {
- 	.constraints = {
- 		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
-+		.always_on		= true,
- 	},
- };
- 
-@@ -723,6 +760,43 @@ static inline void board_serial_init(void)
- }
-  #endif
- 
-+
-+static void omap4_4430sdp_wifi_mux_init(void)
-+{
-+	omap_mux_init_gpio(GPIO_WIFI_IRQ, OMAP_PIN_INPUT |
-+				OMAP_PIN_OFF_WAKEUPENABLE);
-+	omap_mux_init_gpio(GPIO_WIFI_PMENA, OMAP_PIN_OUTPUT);
-+
-+	omap_mux_init_signal("sdmmc5_cmd.sdmmc5_cmd",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("sdmmc5_clk.sdmmc5_clk",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("sdmmc5_dat0.sdmmc5_dat0",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("sdmmc5_dat1.sdmmc5_dat1",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("sdmmc5_dat2.sdmmc5_dat2",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("sdmmc5_dat3.sdmmc5_dat3",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+
-+}
-+
-+static struct wl12xx_platform_data omap4_4430sdp_wlan_data __initdata = {
-+	.irq = OMAP_GPIO_IRQ(GPIO_WIFI_IRQ),
-+	.board_ref_clock = WL12XX_REFCLOCK_26,
-+	.board_tcxo_clock = 1,
-+};
-+
-+static void omap4_4430sdp_wifi_init(void)
-+{
-+	omap4_4430sdp_wifi_mux_init();
-+	if (gpio_request_one(GPIO_WIFI_PMENA, GPIOF_OUT_INIT_LOW, "wl12xx"))
-+		pr_err("Error initializing up WLAN_EN\n");
-+	if (wl12xx_set_platform_data(&omap4_4430sdp_wlan_data))
-+		pr_err("Error setting wl12xx data\n");
-+}
-+
- static void __init omap_4430sdp_init(void)
- {
- 	int status;
-@@ -741,6 +815,8 @@ static void __init omap_4430sdp_init(void)
- 	board_serial_init();
- 	omap4_twl6030_hsmmc_init(mmc);
- 
-+	omap4_4430sdp_wifi_init();
-+
- 	usb_musb_init(&musb_board_data);
- 
- 	status = omap_ethernet_init();
--- 
-1.7.0.4
+> Signed-off-by: Mark Grosen <mgrosen@ti.com>
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> ---
+>  arch/arm/mach-davinci/include/mach/remoteproc.h |   28 +++++
+>  drivers/remoteproc/Kconfig                      |   16 +++
+>  drivers/remoteproc/Makefile                     |    1 +
+>  drivers/remoteproc/davinci_remoteproc.c         |  147 +++++++++++++++++++++++
+>  4 files changed, 192 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-davinci/include/mach/remoteproc.h
+>  create mode 100644 drivers/remoteproc/davinci_remoteproc.c
 
+> diff --git a/arch/arm/mach-davinci/include/mach/remoteproc.h b/arch/arm/mach-davinci/include/mach/remoteproc.h
+> new file mode 100644
+> index 0000000..af6e88c
+> --- /dev/null
+> +++ b/arch/arm/mach-davinci/include/mach/remoteproc.h
+> @@ -0,0 +1,28 @@
+> +/*
+> + * Remote Processor
+> + *
+> + * Copyright (C) 2011 Texas Instruments, Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#ifndef _DAVINCI_REMOTEPROC_H
+> +#define _DAVINCI_REMOTEPROC_H
+> +
+> +#include <linux/remoteproc.h>
+> +
+> +struct davinci_rproc_pdata {
+> +	struct rproc_ops *ops;
+> +	char *name;
+> +	char *clk_name;
+> +	char *firmware;
+> +};
+> +
+> +#endif /* _DAVINCI_REMOTEPROC_H */
+> diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+> index 88421bd..1e594b5 100644
+> --- a/drivers/remoteproc/Kconfig
+> +++ b/drivers/remoteproc/Kconfig
+> @@ -26,3 +26,19 @@ config OMAP_REMOTE_PROC
+>  
+>  	  It's safe to say n here if you're not interested in multimedia
+>  	  offloading or just want a bare minimum kernel.
+> +
+> +config DAVINCI_REMOTE_PROC
+> +	tristate "Davinci remoteproc support"
+> +	depends on ARCH_DAVINCI_DA850
+
+    It should work on DA830 as well, but not on real DaVinci, so the name is 
+misleading...
+
+[...]
+> diff --git a/drivers/remoteproc/davinci_remoteproc.c b/drivers/remoteproc/davinci_remoteproc.c
+> new file mode 100644
+> index 0000000..0e26fe9
+> --- /dev/null
+> +++ b/drivers/remoteproc/davinci_remoteproc.c
+> @@ -0,0 +1,147 @@
+> +/*
+> + * Remote processor machine-specific module for Davinci
+> + *
+> + * Copyright (C) 2011 Texas Instruments, Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#define pr_fmt(fmt)    "%s: " fmt, __func__
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/err.h>
+> +#include <linux/printk.h>
+> +#include <linux/bitops.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/remoteproc.h>
+> +#include <linux/clk.h>
+> +#include <linux/io.h>
+> +
+> +#include <mach/da8xx.h>
+> +#include <mach/cputype.h>
+> +#include <mach/psc.h>
+> +#include <mach/remoteproc.h>
+> +
+> +/*
+> + * Technical Reference:
+> + * OMAP-L138 Applications Processor System Reference Guide
+> + * http://www.ti.com/litv/pdf/sprugm7d
+> + */
+> +
+> +/* local reset bit (0 is asserted) in MDCTL15 register (section 9.6.18) */
+> +#define LRST		BIT(8)
+
+    Perhaps this should be named nLRST or something if the sense is inverted?
+
+> +/* next state bits in MDCTL15 register (section 9.6.18) */
+> +#define NEXT_ENABLED	0x3
+
+    Isn't this already declared in <mach/psc.h> as PSC_STATE_ENABLED?
+
+> +/* register for DSP boot address in SYSCFG0 module (section 11.5.6) */
+> +#define HOST1CFG	0x44
+
+    Worth declaring in <mach/da8xx.h> instead...
+
+> +static inline int davinci_rproc_start(struct rproc *rproc, u64 bootaddr)
+> +{
+> +	struct device *dev = rproc->dev;
+> +	struct davinci_rproc_pdata *pdata = dev->platform_data;
+> +	struct davinci_soc_info *soc_info = &davinci_soc_info;
+> +	void __iomem *psc_base;
+> +	struct clk *dsp_clk;
+> +
+> +	/* hw requires the start (boot) address be on 1KB boundary */
+> +	if (bootaddr & 0x3ff) {
+> +		dev_err(dev, "invalid boot address: must be aligned to 1KB\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	dsp_clk = clk_get(dev, pdata->clk_name);
+
+    We could match using clkdev functionality, but the clock entry would need to 
+be changed then...
+
+> +	if (IS_ERR_OR_NULL(dsp_clk)) {
+> +		dev_err(dev, "clk_get error: %ld\n", PTR_ERR(dsp_clk));
+> +		return PTR_ERR(dsp_clk);
+> +	}
+> +
+> +	clk_enable(dsp_clk);
+
+     This seems rather senseless activity as on DA8xx the DSP core boots the ARM 
+core, so the DSP clock will be already enabled.
+
+> +	rproc->priv = dsp_clk;
+> +
+> +	psc_base = ioremap(soc_info->psc_bases[0], SZ_4K);
+> +
+> +	/* insure local reset is asserted before writing start address */
+> +	__raw_writel(NEXT_ENABLED, psc_base + MDCTL + 4 * DA8XX_LPSC0_GEM);
+> +
+> +	__raw_writel(bootaddr, DA8XX_SYSCFG0_VIRT(HOST1CFG));
+
+    DA8XX_SYSCFG0_VIRT() is not supposed to be used outside mach-davinci. The 
+variable it refers is not exported, so driver module won't work.
+
+> +	/* de-assert local reset to start the dsp running */
+> +	__raw_writel(LRST | NEXT_ENABLED, psc_base + MDCTL +
+> +		4 * DA8XX_LPSC0_GEM);
+> +
+> +	iounmap(psc_base);
+> +
+> +	return 0;
+> +}
+> +
+> +static inline int davinci_rproc_stop(struct rproc *rproc)
+> +{
+> +	struct davinci_soc_info *soc_info = &davinci_soc_info;
+> +	void __iomem *psc_base;
+> +	struct clk *dsp_clk = rproc->priv;
+> +
+> +	psc_base = ioremap(soc_info->psc_bases[0], SZ_4K);
+> +
+> +	/* halt the dsp by asserting local reset */
+> +	__raw_writel(NEXT_ENABLED, psc_base + MDCTL + 4 * DA8XX_LPSC0_GEM);
+> +
+> +	clk_disable(dsp_clk);
+> +	clk_put(dsp_clk);
+> +
+> +	iounmap(psc_base);
+> +
+> +	return 0;
+> +}
+
+    All this is DA8xx specific code which won't fly on real DaVincis, so I 
+suggest that you rename the file to da8xx_remoteproc.c for clarity; and rename 
+the patch as well...
+
+WBR, Sergei
