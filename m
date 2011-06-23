@@ -1,62 +1,40 @@
-From: "Grosen, Mark" <mgrosen-l0cyMroinI0@public.gmane.org>
-Subject: RE: [RFC 0/8] Introducing a generic AMP/IPC framework
-Date: Thu, 23 Jun 2011 16:27:10 +0000
-Message-ID: <FFF198FBBF957F4393BA834040FEFFA202CA6E@DFLE35.ent.ti.com>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
-	<4E033041.9090606@criticallink.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 0/3] OMAP4: PRCM fixes
+Date: Thu, 23 Jun 2011 18:45:41 +0200
+Message-ID: <1308847544-2322-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <4E033041.9090606-wZX4cNJlHJ2sVWG7oymsAA@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Michael Williamson <michael.williamson-wZX4cNJlHJ2sVWG7oymsAA@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: davinci-linux-open-source <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Brian Swetland <swetland-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57097 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759069Ab1FWQqH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 12:46:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com, rnayak@ti.com
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-> From: Michael Williamson
-> Sent: Thursday, June 23, 2011 5:23 AM
-...
-> I'd like to kick the tires on this with a da850 based platform (MityDSP-L138).
-> Any chance you might be able to share the stuff you did on the remote side
-> (DSP/BIOS adaptations for rpmsg,  utils for ELF or COFF conversion to
-> firmware format, etc.) for the DSP side of your tests done with the
-> hawkboard?
+Hi Paul & Rajendra,
 
-We have only implemented the remoteproc (load, start, stop) part for
-OMAPL138 so far, i.e., not the rpmsg part (communications). I am not sure
-when we will get to the rpmsg part.
+Here are a couple of fixes on PRCM header files and powerdomain data.
 
-We will be publishing a Git tree soon with the "remote processor" code under
-a BSD license. This code works with our TI RTOS, SYS/BIOS (also BSD), on
-both M3 and DSP CPUs. This will include the utility to generate the RPRC
-firmware format from an ELF file. Note that the Linux side does not have any
-explicit binding or dependency on the runtime environment on the remote
-processor, so alternate RTOS or bare-metal implementations could also be
-done. We will post a follow-up to the list with a URL soon.
+The series is based on v3.0-rc4 and tested on OMAP4430 ES2.1 + SDP.
 
-> It looks like, at least for the da850, this subsumes or obsoletes
-> DSPLINK in order to drive a more general purpose architecture
-> (which looks great, so far, BTW).
-> Is that the intent?
+The patches are available here:
+git://gitorious.org/omap-pm/linux.git for_3.0.1/1_prcm_files_fixes
 
-First, we are not abandoning DSPLINK. We have many users of this, even
-though it is out-of-tree, and we will continue to support it. That said, we
-do intend to make this new design the basis for DSPLINK-like
-functionality. It's designed to be done "the right way" for Linux (and we
-are looking for feedback to make it better).  It is also designed to be more
-scalable and extensible in userspace. With a solid kernel foundation, we can
-provide lots of functionality in userspace, or users can implement their own
-custom solutions. One of the key things to do is map our existing DSPLINK
-APIs, like MessageQ, to the new rpmsg transport.
+Regards,
+Benoit
 
-Mark
+
+Benoit Cousson (3):
+  OMAP4: pcrm: Fix errors in few defines name
+  OMAP4: prm: Remove wrong clockdomain offsets
+  OMAP4: powerdomain data: Fix core mem states and missing cefuse flag
+
+ arch/arm/mach-omap2/cm1_44xx.h              |   28 +++++++++++-----------
+ arch/arm/mach-omap2/cm2_44xx.h              |   23 ++++++++---------
+ arch/arm/mach-omap2/powerdomains44xx_data.c |   25 ++++++++++---------
+ arch/arm/mach-omap2/prm44xx.h               |   34 ++++++++------------------
+ 4 files changed, 49 insertions(+), 61 deletions(-)
+
