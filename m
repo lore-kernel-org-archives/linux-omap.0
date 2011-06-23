@@ -1,109 +1,49 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 24/25] ARM: pm: hide 1st and 2nd arguments to cpu_suspend from platform code
-Date: Thu, 23 Jun 2011 14:27:10 -0700
-Message-ID: <87mxh88ci9.fsf@ti.com>
-References: <20110623190900.GH9449@n2100.arm.linux.org.uk>
-	<E1QZpOm-0005nx-T1@rmk-PC.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH] ARM: pm: add v7 suspend/resume functions to v7_processor functions
+Date: Thu, 23 Jun 2011 14:46:11 -0700
+Message-ID: <1308865571-16074-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [74.125.149.146] ([74.125.149.146]:39022 "EHLO psmtp.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752784Ab1FWV1O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jun 2011 17:27:14 -0400
-In-Reply-To: <E1QZpOm-0005nx-T1@rmk-PC.arm.linux.org.uk> (Russell King's
-	message of "Thu, 23 Jun 2011 20:17:08 +0100")
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:41369 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933154Ab1FWVqK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 17:46:10 -0400
+Received: by mail-pv0-f181.google.com with SMTP id 13so1598656pvg.12
+        for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 14:46:09 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+Commit f6b0fa02e8b0708d17d631afce456524eadf87ff (ARM: pm: add generic
+CPU suspend/resume support) added v7 functions for suspend and resume
+but did not added them to v7_processor_functions which are used in the
+MULTI_CPU case.
 
-> The first and second arguments shouldn't concern platform code, so
-> hide them from each platforms caller.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  arch/arm/include/asm/suspend.h |   19 +++++++++++++++++++
->  arch/arm/include/asm/system.h  |    2 --
->  arch/arm/kernel/sleep.S        |    2 +-
->  arch/arm/mach-omap2/pm34xx.c   |    5 +++--
->  arch/arm/mach-pxa/palmz72.c    |    1 +
->  arch/arm/mach-pxa/pxa25x.c     |    4 ++--
->  arch/arm/mach-pxa/pxa27x.c     |    4 ++--
->  arch/arm/mach-pxa/pxa3xx.c     |    3 ++-
->  arch/arm/mach-pxa/zeus.c       |    4 ++--
->  arch/arm/mach-sa1100/pm.c      |    3 ++-
->  arch/arm/plat-samsung/pm.c     |    3 ++-
->  11 files changed, 36 insertions(+), 14 deletions(-)
->  create mode 100644 arch/arm/include/asm/suspend.h
->
-> diff --git a/arch/arm/include/asm/suspend.h b/arch/arm/include/asm/suspend.h
-> new file mode 100644
-> index 0000000..8d5b446
-> --- /dev/null
-> +++ b/arch/arm/include/asm/suspend.h
-> @@ -0,0 +1,19 @@
-> +#ifndef __ASM_ARM_SUSPEND_H
-> +#define __ASM_ARM_SUSPEND_H
-> +
-> +#include <asm/memory.h>
-> +
-> +extern void cpu_resume(void);
-> +
-> +/*
-> + * Hide the first two arguments to __cpu_suspend - these are an implementation
-> + * detail which platform code shouldn't have to know about.
-> + */
-> +static inline void cpu_suspend(unsigned long arg, void (*fn)(unsigned long))
-> +{
-> +	extern void __cpu_suspend(int, long, unsigned long,
-> +				  void (*)(unsigned long));
-> +	__cpu_suspend(0, PHYS_OFFSET - PAGE_OFFSET, arg, fn);
-> +}
-> +
-> +#endif
-> diff --git a/arch/arm/include/asm/system.h b/arch/arm/include/asm/system.h
-> index 50be605..832888d 100644
-> --- a/arch/arm/include/asm/system.h
-> +++ b/arch/arm/include/asm/system.h
-> @@ -106,8 +106,6 @@ extern void __show_regs(struct pt_regs *);
->  
->  extern int cpu_architecture(void);
->  extern void cpu_init(void);
-> -extern void cpu_suspend(int, long, unsigned long, void (*)(unsigned long));
-> -extern void cpu_resume(void);
->  
->  void arm_machine_restart(char mode, const char *cmd);
->  extern void (*arm_pm_restart)(char str, const char *cmd);
-> diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
-> index 5392274..0bdcc72 100644
-> --- a/arch/arm/kernel/sleep.S
-> +++ b/arch/arm/kernel/sleep.S
-> @@ -14,7 +14,7 @@
->   *  r3 = suspend function
->   * Note: does not return until system resumes
->   */
-> -ENTRY(cpu_suspend)
-> +ENTRY(__cpu_suspend)
+Add them in order to have working suspend/resume when using MULTI_CPU.
 
-You missed also changing the ENDPROC here, so it doesn't compile
-without:
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mm/proc-v7.S |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
-index 0bdcc72..c156d0e 100644
---- a/arch/arm/kernel/sleep.S
-+++ b/arch/arm/kernel/sleep.S
-@@ -56,7 +56,7 @@ ENTRY(__cpu_suspend)
-        bl      __cpuc_flush_kern_all
- #endif
-        ldmfd   sp!, {r0, pc}           @ call suspend fn
--ENDPROC(cpu_suspend)
-+ENDPROC(__cpu_suspend)
-        .ltorg
+diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+index 3c38678..e27c011 100644
+--- a/arch/arm/mm/proc-v7.S
++++ b/arch/arm/mm/proc-v7.S
+@@ -418,9 +418,9 @@ ENTRY(v7_processor_functions)
+ 	.word	cpu_v7_dcache_clean_area
+ 	.word	cpu_v7_switch_mm
+ 	.word	cpu_v7_set_pte_ext
+-	.word	0
+-	.word	0
+-	.word	0
++	.word	cpu_v7_suspend_size
++	.word	cpu_v7_do_suspend
++	.word	cpu_v7_do_resume
+ 	.size	v7_processor_functions, . - v7_processor_functions
  
- /*
+ 	.section ".rodata"
+-- 
+1.7.4
 
-
-Kevin
