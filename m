@@ -1,171 +1,323 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/8] HDMI: Split hdmi.c to seperate HDMI IP dependant
- code from DSS.
-Date: Thu, 23 Jun 2011 15:31:14 +0300
-Message-ID: <1308832274.1834.109.camel@deskari>
-References: <1308298637-29753-1-git-send-email-mythripk@ti.com>
-	 <1308823101.1834.79.camel@deskari>
-	 <BANLkTinc9JUr-gBGSynzMtrqTVncDUbNKQ@mail.gmail.com>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: Re: [RFC PATCHv5 1/7] HSI: hsi: Introducing HSI framework
+Date: Thu, 23 Jun 2011 16:08:44 +0300
+Message-ID: <1308834524.27256.3247.camel@groo>
+References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
+	 <1308769914-15440-1-git-send-email-sjur.brandeland@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:55131 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759400Ab1FWMiD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jun 2011 08:38:03 -0400
-Received: by mail-bw0-f47.google.com with SMTP id 5so1899921bwz.20
-        for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 05:38:02 -0700 (PDT)
-In-Reply-To: <BANLkTinc9JUr-gBGSynzMtrqTVncDUbNKQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1308769914-15440-1-git-send-email-sjur.brandeland@stericsson.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Sjur =?ISO-8859-1?Q?Br=E6ndeland?= <sjur.brandeland@stericsson.com>
+Cc: sjurbren@gmail.com, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-On Thu, 2011-06-23 at 17:35 +0530, K, Mythri P wrote:
-> Hi Tomi,
-> 
-> On Thu, Jun 23, 2011 at 3:28 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> > On Fri, 2011-06-17 at 13:47 +0530, Mythri P K wrote:
-> >> HDMI IP block is common between TI OMAP4 Procerssor and Netra processor although
-> >> the Display subsytem is different. Thus to reuse the code between these two
-> >> processors , HDMI IP dependant code is seperated out from hdmi.c and moved to
-> >> new library file hdmi_ti_4xxx_ip.c which now resides in /drivers/video a more
-> >> generic location out of omap2/dss folder.
-> >>
-> >> This patch series does the split and also renames hdmi_omap4_panel.c to
-> >> hdmi_panel.c as that file has nothing specific to OMAP4 and can be reused for
-> >> other OMAP family of processors as well.
-> >
-> > These comments are based on the branch you have, not to particular
-> > patches:
-> >
-> > include/video/hdmi_ti_4xxx_ip.h:
-> >
-> > - This file is in a way the most important one, because it's the public
-> > API of the component. So you should be extra careful with this, and see
-> > that everything in it makes sense, and it's clear how it is to be used.
-> >
-> > - hdmi_core_hdmi_dvi is defined but not used. Should it be in the
-> > private header?
-> 
->  HDMI_HDMI  and HDMI_DVI are used everywhere in hdmi.c and hdmi_ti_4xxx_ip.c,
-> one thing  i could do is to add a patch to used this enumerator
-> instead of int mode ?
+Hi Sjur,
 
-Oh, so the "int mode" in the header is actually "enum hdmi_core_hdmi_dvi
-mode"? Using int is obviously wrong, then.
+On Wed, 2011-06-22 at 21:11 +0200, ext Sjur Br=C3=A6ndeland wrote:
+> Hi Carlos,
+>=20
+> Some weeks ago I submitted a CAIF-HSI protocol driver for
+> Linux 3.0.1, located in drivers/net/caif in David Miller's net-next-2=
+=2E6.
+> This driver depends on a platform specific "glue-layer".
+> It would be nice to adapt to a generic HSI API, so I'm looking forwar=
+d
+> to see a this patch going upstream.
+>=20
+> I have tried to investigate if this API proposal fulfills the
+> needs for the CAIF HSI protocol used by the ST-Ericsson modems.
+>=20
+> Please find my review comments below.
+>=20
+>=20
+> >+/**
+> >+ * struct hsi_config - Configuration for RX/TX HSI modules=20
+> >+ * @mode: Bit transmission mode (STREAM or FRAME)
+> >+ * @channels: Number of channels to use [1..16]
+> >+ * @speed: Max bit transmission speed (Kbit/s)
+>=20
+> Just for clarity maybe you should say if you meen 1000 bit/s or 1024 =
+bit/s?
+>=20
 
-> > - hdmi_pll_pwr seems to be very low level thing. It requires the user to
-> > know HW details about the PLL, I don't think it should be visible to the
-> > users. It is used in parameters for hdmi_ti_4xxx_set_pll_pwr(). When is
-> > it supposed to be used? Why is hdmi_ti_4xxx_wp_video_start() not enough?
-> >
-> HDMI has core , PLL and PHY blocks, so user of the ip driver should
-> configure them separately.
+I meant kbit/s -> 10^3 bit/s. I will change the capital K.
 
-Why? Is there some requirement/benefit to it?
+> >+ * @flow: RX flow type (SYNCHRONIZED or PIPELINE)
+> >+ * @arb_mode: Arbitration mode for TX frame (Round robin, priority)
+> >+ */
+> >+struct hsi_config {
+> >+	unsigned int	mode;
+> >+	unsigned int	channels;
+> >+	unsigned int	speed;
+>=20
+> frame_size: Can we assume 32 bits the only supported frame size,
+> or should this be configurable?
 
-> > - The same goes to hdmi_ti_4xxx_pll_program. Who does the PLL
-> > calculations, omapdss driver? Shouldn't the HDMI driver do it, the PLL
-> > is a HDMI HW thing, not DSS HW? Or if they are defined in the board
-> > file, and omapdss just gives them to the HDMI driver, I think the data
-> > should be somehow passed through omapdss without omapdss actively
-> > participating in the PLL programming. This would be easy if the HDMI
-> > would use a platform device/driver model, the data could be passed via
-> > the device data.
+Correct me if I am wrong but the HSI spec sets 32 bits frame size into
+stone. I know some HW (like OMAP SSI) allows changing the frame size,
+but I can not for see why an hsi_client will need a lower frame size. I=
+f
+a weird client needs this then this information should be pass to the
+controller through other means.
 
-Can you comment on this? Why the PLL calculation is not in the HDMI IP
-driver?
+>=20
+> >+	union {
+> >+		unsigned int	flow;		/* RX only */
+> >+		unsigned int	arb_mode;	/* TX only */
+> >+	};
+>=20
+> It would be usefull with the following RX counters:
+>                       unsigned int    frame_timeout_counter:16;
+>                       unsigned int    tailing_bit_counter:8;
+>                       unsigned int    frame_burst_counter:8;
+> >+};
 
-> > - If the PLL calculations have to be done by omapdss, couldn't the
-> > hdmi_pll_info be part of hdmi_config?
-> 
-> hdmi_pll_info would be used only once while configuring (power on) ,
-> Why would we have to store the pll_info then in hdmi_config?
+IMHO clients do not need to care about this HW specific values. I will
+pass this through the controller in some other way (e.g: platform_data)
+and use the same values for all the clients.
 
-Whether you store the hdmi_pll_info or not is HDMI IP driver internal
-thing, not related to the API. We're talking about the API here.
+> ...
+> >+
+> >+/**
+> >+ * struct hsi_board_info - HSI client board info
+> >+ * @name: Name for the HSI device
+> >+ * @hsi_id: HSI controller id where the client sits
+> >+ * @port: Port number in the controller where the client sits
+> >+ * @tx_cfg: HSI TX configuration
+> >+ * @rx_cfg: HSI RX configuration
+> >+ * @platform_data: Platform related data
+> >+ * @archdata: Architecture-dependent device data
+> >+ */
+> >+struct hsi_board_info {
+> >+	const char		*name;
+> >+	unsigned int		hsi_id;
+> >+	unsigned int		port;
+> >+	struct hsi_config	tx_cfg;
+> >+	struct hsi_config	rx_cfg;
+> >+	void			*platform_data;
+> >+	struct dev_archdata	*archdata;
+> >+};
+>=20
+> What about information about the supported transmission speeds?
+> Is it any way to obtain this information, so we can know the legal
+> values for speed in hsi_config?
 
-Look at the include/video/hdmi_ti_4xxx_ip.h file and think from the
-users view point: what is the most obvious and easiest way to use the
-API. Then make the HDMI IP driver work with the API.
+=46or TX speed sets the max tx speed the HSI should go. The controller
+driver will try to get as close as it possible to that value without
+going over.
 
-> > - Is hdmi_ti_4xxx_phy_off the counterpart of hdmi_ti_4xxx_phy_init? If
-> > so, the naming could be better to clearly show this. Like init/uninit,
-> > enable/disable, etc.
-> 
-> I shall rename. yes phy_off is counterpart of init , i shall renmane
-> it to enable ,disable.
-> >
-> > - Is the "phy" relevant (from the user's point of view) in
-> > hdmi_ti_4xxx_phy_init and off? Or could they be just init and uninit?
-> 
-> PHY is a seperate block in HDMI and even from the user point of view
-> user should be aware of PHY, PLL and core blocks. so phy_init is
-> relevant.
+=46or the RX path it sets min RX speed the HSI should use. The controll=
+er
+should ensure that it does not drop under that value to avoid breaking
+the communication.
 
-Again, why? Why cannot the user just give the configurations to the HDMI
-IP driver, and start it, without knowing anything about PHY/PLL/core.
+All this values need to be and can be known beforehand and are platform
+specific.
 
-> > - Perhaps hdmi_ti_4xxx_basic_configure could be just configure, there's
-> > no advanced configure or similar.
-> Well, makes sense but this is the init_configuration(default
-> configuration) is what was intended in the patch.
-> >
-> > - is the "wp" important in hdmi_ti_4xxx_wp_video_start?
-> >
-> yes wp == wrapper , so it would be clear to have a wp_video_Start.
+>=20
+> Can we really assume that all HW supports linked DMA jobs (scatter li=
+st),
+> or do we need some information about DMA support in board_info as wel=
+l?
+>=20
 
-Why does the user need to know wp == wrapper? Isn't the function just
-about enabling the video output?
+No we don't assume anything and we do not need DMA support info in the
+board_info. The hsi_controller will know. I think Linus Walleij already
+make a comment on this ;)
 
-> > - read_ti_4xxx_edid() is named differently than the other functions.
-> >
-> I shall rename to hdmi_ti_4xxx_read_edid.
-> 
-> > drivers/video/hdmi_ti_4xxx_ip.c:
-> >
-> > - EXPORT_SYMBOL(hdmi_ti_4xxx_phy_init); is not below the function.
-> >
-> > drivers/video/omap2/dss/hdmi.c:
-> >
-> > - hdmi_ti_4xxx_set_pll_pwr() is only called in power_off(), but never
-> > enabled. I presume the HDMI driver does that internally. That doesn't
-> > sound like a valid use of the function.
-> 
-> It is enabled in hdmi_ti_4xxx_pll_program called from power on.
+> ...
+> >+/**
+> >+ * struct hsi_msg - HSI message descriptor
+> >+ * @link: Free to use by the current descriptor owner
+> >+ * @cl: HSI device client that issues the transfer
+> >+ * @sgt: Head of the scatterlist array
+> >+ * @context: Client context data associated to the transfer
+> >+ * @complete: Transfer completion callback
+> >+ * @destructor: Destructor to free resources when flushing
+> >+ * @status: Status of the transfer when completed
+>=20
+> I guess you refer to the enum "HSI message status codes".
+> I think this would be more readable if you don't use anynomus enums,
+> but use enum-name to reference the enum here in the documentation.
 
-Yes, I can see that. But it's bad usage pattern. Never enable something
-in one component, and disable it in another. The same entity has to do
-them both.
+Hmm HSI_STATUS_X I think it is quite self explanatory.
+>=20
+> >+ * @actual_len: Actual length of data transfered on completion
+> >+ * @channel: Channel were to TX/RX the message
+> >+ * @ttype: Transfer type (TX if set, RX otherwise)
+> >+ * @break_frame: if true HSI will send/receive a break frame. Data =
+buffers are
+> >+ *		ignored in the request.
+> >+ */
+> >+struct hsi_msg {
+> >+	struct list_head	link;
+> >+	struct hsi_client	*cl;
+> >+	struct sg_table		sgt;
+> >+	void			*context;
+> >+
+> >+	void			(*complete)(struct hsi_msg *msg);
+> >+	void			(*destructor)(struct hsi_msg *msg);
+> >+
+> >+	int			status;
+> >+	unsigned int		actual_len;
+>=20
+> size_t ?
 
-> > - Looking at hdmi_power_on(), I feel that the API of the HDMI driver
-> > could be simpler. Would it be enough to have just one function to setup
-> > the HDMI, and another to turn the output on?
-> No , I suppose it is the responsibility of the user of IP driver to
-> configure PHY , PLL and CORE blocks seperately as we can reuse the PLL
-> or PHY block in different SOC's as well.
+Yeah maybe better, but I follow here the scatterlist API (see length an=
+d
+dma_length) and I'll continue using unsigned int as long as the
+scatterlist API uses it.
 
-Well, in that case, shouldn't PHY, PLL and CORE be in separate drivers?
-If they are all in one HDMI IP driver, I don't see why the user would
-need to know about PHY/PLL/CORE at all. The user just wants to use the
-HDMI IP as a whole, doesn't it?
+>=20
+> >+	unsigned int		channel;
+> >+	unsigned int		ttype:1;
+> >+	unsigned int		break_frame:1;
+> >+};
+> ...
+> >+/*
+> >+ * API for HSI clients
+> >+ */
+> >+int hsi_async(struct hsi_client *cl, struct hsi_msg *msg);
+> >+
+> >+/**
+>=20
+> I'm pleased to see scatter list support. But is this supported by all=
+ HW?
+> What is the behavior if HW doesn't support this, will hsi_async fail,=
+ or
+> is the scatter-list handled 'under the hood'?
 
-> > - omapdss_hdmi_display_set_timing() seems to be broken. It just sets
-> > some variables and calls display_enable().
-> It sets a variable custom_set , appropriate action will be taken while
-> configuring timings based on that parameter.
+Linus Walleij already explained quite well ;)
 
-This is the same thing as with the use of hdmi_ti_4xxx_set_pll_pwr.
-Well, actually not, this is worse. A "set_timing" function which
-unconditionally calls omapdss_hdmi_display_enable() makes no sense to
-me. Why would set_timing function enable the display? And even more
-importantly, omapdss_hdmi_display_enable() won't work correctly if it is
-called unevenly related to omapdss_hdmi_display_disable(), which will
-happen here.
+>=20
+> Q: Can multiple Read operations be queued?
 
- Tomi
+Yes
 
+> Will multiple read queued operations result in chained DMA operations=
+, or single read operations?
+>=20
 
+Well, it is up to you, but my initial idea is that the complete callbac=
+k
+is called right after the request has been fulfilled. This may be not
+possible if you chain several read requests.
+
+> ...
+> >+/**
+> >+ * hsi_flush - Flush all pending transactions on the client's port
+> >+ * @cl: Pointer to the HSI client
+> >+ *
+> >+ * This function will destroy all pending hsi_msg in the port and r=
+eset
+> >+ * the HW port so it is ready to receive and transmit from a clean =
+state.
+> >+ *
+> >+ * Return -errno on failure, 0 on success
+> >+ */
+> >+static inline int hsi_flush(struct hsi_client *cl)
+> >+{
+> >+	if (!hsi_port_claimed(cl))
+> >+		return -EACCES;
+> >+	return hsi_get_port(cl)->flush(cl);
+> >+}
+>=20
+> For CAIF we need to have independent RX and TX flush operations.
+>=20
+
+The current framework assumes that in the unlikely case of an error or
+whenever you need to to do some cleanup, you will end up cleaning up th=
+e
+two sides anyway. Moreover, you will reset the state of the HW also.=20
+
+Exactly, in which case CAIF will only need to cleanup the TX path but
+not the RX or vice versa ?
+
+> Flushing the TX FIFO can be long duration operation due to HSI flow c=
+ontrol,
+> if counterpart is not receiving data. I would prefer to see a callbac=
+k here.
+>=20
+
+No, flush should not wait for an ongoing TX transfer to finish. You
+should stop all ongoing transfers, call the destructor callback on all
+the requests (queued and ongoing) and clean up the HW state.
+
+> ...
+>=20
+> >+/**
+> >+ * hsi_start_tx - Signal the port that the client wants to start a =
+TX
+> >+ * @cl: Pointer to the HSI client
+> >+ *
+> >+ * Return -errno on failure, 0 on success
+> >+ */
+> >+static inline int hsi_start_tx(struct hsi_client *cl)
+> >+{
+> >+	if (!hsi_port_claimed(cl))
+> >+		return -EACCES;
+> >+	return hsi_get_port(cl)->start_tx(cl);
+> >+}
+> >+
+> >+/**
+> >+ * hsi_stop_tx - Signal the port that the client no longer wants to=
+ transmit
+> >+ * @cl: Pointer to the HSI client
+> >+ *
+> >+ * Return -errno on failure, 0 on success
+> >+ */
+> >+static inline int hsi_stop_tx(struct hsi_client *cl)
+> >+{
+> >+	if (!hsi_port_claimed(cl))
+> >+		return -EACCES;
+> >+	return hsi_get_port(cl)->stop_tx(cl);
+> >+}
+>=20
+> What exactly do hsi_start_tx and hsi_stop_tx functions do?
+> Do they set ACWAKE_UP and ACWAKE_DOWN lines high?
+>=20
+
+Yes.
+
+> *Missing function*: hsi_reset()
+> I would also like to see a hsi_reset function.
+
+This is currently done also in the hsi_flush. See my previous comment.
+
+>=20
+> In modem-restart scenarios or when coming up from low power state we =
+need the ability
+> to perform SW reset in order to discard any garbage received in these=
+ states.
+> We also have the need to force the lines DATA and FLAG (and READY) lo=
+w,
+> this could be done by the hsi_reset function as well.
+> It would be nice to have a callback function to be called upon comple=
+tion as well.
+>=20
+
+Coming up from low power state should be handled by the hsi_controller
+and the hsi_client should not be concerned about this. I think also the
+workaround of setting the DATA and FLAG lines low can be implemented
+just in the hsi_controller without hsi_client intervention.=20
+
+> *Missing function*: hsi_rx_fifo_occupancy()
+> Before putting the link asleep we need to know if the fifo is empty o=
+r not.
+> So we would like to have a way to read out the number of bytes in the=
+ RX fifo.
+>=20
+
+This should be handled only by hsi_controller. Clients should not care
+about this.
+
+> Regards,
+> Sjur
+>=20
+
+Br,
+
+Carlos Chinea <carlos.chinea@nokia.com>
