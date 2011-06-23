@@ -1,144 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 1/6] omap: prcm: switch to a chained IRQ handler
- mechanism
-Date: Thu, 23 Jun 2011 01:19:40 -0700
-Message-ID: <20110623081940.GW23145@atomide.com>
+Subject: Re: [PATCHv3 5/6] OMAP3: Serial: Made serial to work properly with
+ PRCM chain handler
+Date: Thu, 23 Jun 2011 01:21:50 -0700
+Message-ID: <20110623082150.GX23145@atomide.com>
 References: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
- <1308760934-9757-2-git-send-email-t-kristo@ti.com>
+ <1308760934-9757-6-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38164 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39051 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751486Ab1FWITo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 04:19:44 -0400
+	with ESMTP id S1753078Ab1FWIVw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 04:21:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1308760934-9757-2-git-send-email-t-kristo@ti.com>
+In-Reply-To: <1308760934-9757-6-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Avinash.H.M" <avinashhm@ti.com>, Kevin Hilman <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org
 
 * Tero Kristo <t-kristo@ti.com> [110622 09:38]:
-> Introduce a chained interrupt handler mechanism for the PRCM
-> interrupt, so that individual PRCM event can cleanly be handled by
-> handlers in separate drivers. We do this by introducing PRCM event
-> names, which are then matched to the particular PRCM interrupt bit
-> depending on the specific OMAP SoC being used.
-> 
-> arch/arm/mach-omap2/prcm.c implements the chained interrupt mechanism
-> itself, with individual PRCM events for OMAP3 and OMAP4 being
-> described in arch/arm/mach-omap2/prcm3xxx.c and
-> arch/arm/mach-omap2/prcm4xxx.c respectively. At initialization time,
-> the set of PRCM events is filtered against the SoC on which we are
-> running, keeping only the ones that are actually useful. All the logic
-> is written to be generic with regard to OMAP3/OMAP4, even though OMAP3
-> has single PRCM event registers and OMAP4 has two PRCM event
-> registers.
+> @@ -550,6 +550,8 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+>  	ret = request_threaded_irq(uart->irq, NULL, omap_uart_interrupt,
+>  				   IRQF_SHARED, "serial idle", (void *)uart);
+>  	WARN_ON(ret);
+> +	ret = omap_prcm_register_pad_irq(uart->padconf, uart->irq);
+> +	WARN_ON(ret);
+>  }
 
-Nice, this makes things more generic. Some comments below.
- 
-> +int omap_prcm_irq_init(void)
-> +{
-> +	int i, j;
-> +	struct omap_prcm_irq *unfiltered_irqs;
-> +	unsigned unfiltered_irqs_nr;
-> +
-> +	if (cpu_is_omap34xx() || cpu_is_omap3630()) {
-> +		unfiltered_irqs          = omap_prcm_3xxx_irqs;
-> +		unfiltered_irqs_nr       = omap_prcm_3xxx_irqs_nr;
-> +		omap_prcm_mask_event     = omap3_prcm_mask_event;
-> +		omap_prcm_unmask_event   = omap3_prcm_unmask_event;
-> +		omap_prcm_ack_event      = omap3_prcm_ack_event;
-> +		omap_prcm_pending_events = omap3_prcm_pending_events;
-> +		irq_set_chained_handler(INT_34XX_PRCM_MPU_IRQ,
-> +					prcm_irq_handler);
-> +	} else if (cpu_is_omap44xx()) {
-> +		unfiltered_irqs          = omap_prcm_4xxx_irqs;
-> +		unfiltered_irqs_nr       = omap_prcm_4xxx_irqs_nr;
-> +		omap_prcm_mask_event     = omap4_prcm_mask_event;
-> +		omap_prcm_unmask_event   = omap4_prcm_unmask_event;
-> +		omap_prcm_ack_event      = omap4_prcm_ack_event;
-> +		omap_prcm_pending_events = omap4_prcm_pending_events;
-> +		irq_set_chained_handler(OMAP44XX_IRQ_PRCM, prcm_irq_handler);
-> +	} else {
-> +		return -ENODEV;
-> +	}
-> +
-> +	for (i = 0; i < unfiltered_irqs_nr; i++)
-> +		if (omap_chip_is(unfiltered_irqs[i].omap_chip))
-> +			omap_prcm_irqs_nr++;
-> +
-> +	omap_prcm_irqs = kmalloc(omap_prcm_irqs_nr *
-> +				 sizeof(struct omap_prcm_irq),
-> +				 GFP_KERNEL);
-> +	if (!omap_prcm_irqs)
-> +		return -ENOMEM;
-> +
-> +	for (i = 0, j = 0; i < unfiltered_irqs_nr; i++)
-> +		if (omap_chip_is(unfiltered_irqs[i].omap_chip)) {
-> +			memcpy(&omap_prcm_irqs[j], &unfiltered_irqs[i],
-> +			       sizeof(struct omap_prcm_irq));
-> +			j++;
-> +		}
-> +
-> +	for (i = OMAP_PRCM_IRQ_BASE; i < OMAP_PRCM_IRQ_END; i++) {
-> +		irq_set_chip(i, &prcm_irq_chip);
-> +		irq_set_handler(i, handle_level_irq);
-> +		set_irq_flags(i, IRQF_VALID);
-> +	}
-> +
-> +	return 0;
-> +}
+Argh, looks like we still have direct mux register tinkering in serial.c:
 
-Please make omap_prcm_irq_init generic so you pass it the configuration.
-Otherwise you have to add more else if cpu_is_omap code for each new omap.
-Then you can add just an arch_initcall for each new omap to call
-omap_prcm_irq_init. This will also make it easier to add support for
-initializing things from device tree for omap_prcm_irq_init.
+$ grep "padconf = 0x" serial.c
+                        padconf = 0x182;
+                        padconf = 0x17a;
+                        padconf = 0x19e;
+                        padconf = 0x0d2;
 
-> +/*
-> + * Reverses memory allocated and other setups done by
-> + * omap_prcm_irq_init().
-> + */
-> +void omap_prcm_irq_cleanup(void)
-> +{
-> +	int i;
-> +
-> +	for (i = OMAP_PRCM_IRQ_BASE; i < OMAP_PRCM_IRQ_END; i++) {
-> +		irq_set_chip(i, NULL);
-> +		irq_set_handler(i, NULL);
-> +		set_irq_flags(i, 0);
-> +	}
-> +
-> +	kfree(omap_prcm_irqs);
-> +
-> +	if (cpu_is_omap34xx() || cpu_is_omap3630()) {
-> +		irq_set_chained_handler(INT_34XX_PRCM_MPU_IRQ, NULL);
-> +	} else {
-> +		irq_set_chained_handler(OMAP44XX_IRQ_PRCM, NULL);
-> +	}
-> +}
+By deducting 0x30 from the values above, these map into the following mux defines:
 
-Please get rid of the cpu_is_omap tests here too so prcm.c is
-generic for the new code added.
+$ grep RX_OFFSET mux34xx.h
+#define OMAP3_CONTROL_PADCONF_UART2_RX_OFFSET                   0x14a
+#define OMAP3_CONTROL_PADCONF_UART1_RX_OFFSET                   0x152
+#define OMAP3_CONTROL_PADCONF_UART3_RX_IRRX_OFFSET              0x16e
 
-> +struct omap_prcm_irq  __initdata omap_prcm_3xxx_irqs[] = {
-> +	OMAP_PRCM_IRQ("wkup",                  0,
-> +		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-> +	OMAP_PRCM_IRQ("evgenon",               2,
-> +		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-> +	OMAP_PRCM_IRQ("evgenoff",              3,
-> +		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-...
+So you can make things more generic by getting rid of those and using
+struct omap_mux_partition instead for omap_prcm_register_pad_irq.
+The pins used are set already in serial.c with omap_hwmod_mux_init.
 
-Please note consider that this data will be coming from device
-tree and will disappear from here. We won't be merging any new
-data after v3.1 unless it comes from device tree. So this too
-will need to be converted because we won't be able to add support
-for new omaps otherwise.
+Otherwise we have to patch the hardcoded padconf values for every new omap.
+And looks like we're already missing them for 44xx in serial.c.
 
-Also, please Cc linux-arm-kernel too.
+Then access to the padconf registers should be done with
+omap_mux_read/write instead. If you need to do something more complex
+with them maybe consider adding some new functions to mux.c as needed.
 
 Regards,
 
