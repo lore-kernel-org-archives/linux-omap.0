@@ -1,121 +1,79 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCHv3 5/6] OMAP3: Serial: Made serial to work properly with
- PRCM chain handler
-Date: Thu, 23 Jun 2011 16:05:01 +0530
-Message-ID: <BANLkTin1u_tKN8mwM0xYhq=qjWkRfx8X2Q@mail.gmail.com>
-References: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
- <1308760934-9757-6-git-send-email-t-kristo@ti.com> <20110623082150.GX23145@atomide.com>
- <1308820284.5972.18.camel@sokoban> <20110623100054.GA23145@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 25/25] ARM: pm: omap34xx: convert to generic
+	suspend/resume support
+Date: Thu, 23 Jun 2011 11:47:11 +0100
+Message-ID: <20110623104711.GF9449@n2100.arm.linux.org.uk>
+References: <20110622150816.GT23234@n2100.arm.linux.org.uk>
+	<E1QZPAo-0002XO-9G@rmk-PC.arm.linux.org.uk>
+	<20110622161021.GB9449@n2100.arm.linux.org.uk>
+	<4E027BD3.6030500@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:37587 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759222Ab1FWKfW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 06:35:22 -0400
-Received: by bwz15 with SMTP id 15so1408566bwz.19
-        for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 03:35:21 -0700 (PDT)
-In-Reply-To: <20110623100054.GA23145@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <4E027BD3.6030500@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
 
-On Thu, Jun 23, 2011 at 3:30 PM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * Tero Kristo <t-kristo@ti.com> [110623 02:06]:
->> On Thu, 2011-06-23 at 10:21 +0200, Tony Lindgren wrote:
->> > * Tero Kristo <t-kristo@ti.com> [110622 09:38]:
->> > > @@ -550,6 +550,8 @@ static void omap_uart_idle_init(struct omap_=
-uart_state *uart)
->> > > =A0 ret =3D request_threaded_irq(uart->irq, NULL, omap_uart_inte=
-rrupt,
->> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0IRQF_=
-SHARED, "serial idle", (void *)uart);
->> > > =A0 WARN_ON(ret);
->> > > + ret =3D omap_prcm_register_pad_irq(uart->padconf, uart->irq);
->> > > + WARN_ON(ret);
->> > > =A0}
->> >
->> > Argh, looks like we still have direct mux register tinkering in se=
-rial.c:
->> >
->> > $ grep "padconf =3D 0x" serial.c
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 padconf =3D 0x182;
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 padconf =3D 0x17a;
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 padconf =3D 0x19e;
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 padconf =3D 0x0d2;
->> >
->> > By deducting 0x30 from the values above, these map into the follow=
-ing mux defines:
->> >
->> > $ grep RX_OFFSET mux34xx.h
->> > #define OMAP3_CONTROL_PADCONF_UART2_RX_OFFSET =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 0x14a
->> > #define OMAP3_CONTROL_PADCONF_UART1_RX_OFFSET =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 0x152
->> > #define OMAP3_CONTROL_PADCONF_UART3_RX_IRRX_OFFSET =A0 =A0 =A0 =A0=
- =A0 =A0 =A00x16e
->> >
->> > So you can make things more generic by getting rid of those and us=
-ing
->> > struct omap_mux_partition instead for omap_prcm_register_pad_irq.
->> > The pins used are set already in serial.c with omap_hwmod_mux_init=
-=2E
->> >
->> > Otherwise we have to patch the hardcoded padconf values for every =
-new omap.
->> > And looks like we're already missing them for 44xx in serial.c.
->> >
->> > Then access to the padconf registers should be done with
->> > omap_mux_read/write instead. If you need to do something more comp=
-lex
->> > with them maybe consider adding some new functions to mux.c as nee=
-ded.
->> >
+On Thu, Jun 23, 2011 at 05:03:39AM +0530, Santosh Shilimkar wrote:
+> On 6/22/2011 9:40 PM, Russell King - ARM Linux wrote:
+>> A couple of things to point out here:
 >>
->> Padconf stuff is not that much related to this patch set yet (I am n=
-ot
->> touching the serial padconf code), but I can probably take a look at
->> this also later on, unless you want this fixed with this set already=
-?
->
-> Yes please, maybe make it a separate patch before your series to
-> prepare things?
->
-> Otherwise we will have to change the omap_prcm_register_pad_irq
-> later on in each driver using it.
->
+>> On Wed, Jun 22, 2011 at 04:16:58PM +0100, Russell King - ARM Linux wrote:
+>>> -	mrc	p15, 0, r4, c13, c0, 1	@ Context ID
+>>> -	mrc	p15, 0, r5, c13, c0, 2	@ User r/w thread and process ID
+>>> -	mrc	p15, 0, r6, c12, c0, 0	@ Secure or NS vector base address
+>>> -	mrs	r7, cpsr		@ Store current cpsr
+>>> -	stmia	r8!, {r4-r7}
+>>
+>> 1. The User r/w thread and process ID is not saved/restored by Linux over
+>> context switches, so it doesn't serve any useful purpose to save and
+>> restore over resume.
+>>
+> It will be needed for CPUIDLE I guess.
 
-Agree,
-I am planning of use this call from omap-serial driver. :)
+No it isn't.  It is not used by Linux at all - the only thread register
+which is used is the User r/o thread register, and I've patched the
+proc-v7 code to preserve that register.
 
-How about using omap_hwmod_mux_get_wake_status proposed earlier?
+>> 2. Compare the instruction saving and restoring the vector base address
+>> (see below for the restore code.)
+>>
+> That's typo. It should have been mcr. Actually VBAR isn't used on GP
+> devices but might be used on secure devices. I know that common suspend
+> code doesn't consider this register. It's fine to keep it that way
+> and if OMAP needs it, it can save/restored outside common code.
 
-https://patchwork.kernel.org/patch/773932/
+The kernel doesn't use or initialize the register, so its not something
+which the kernel should be concerned about.  Presumably secure devices
+need to restore the secure-mode version of that register.
 
-How about register with omap_hwmod data and irq_number from driver
-after requesting irq ?
+However, there's an extra twist here:
+| On an implementation that does not include the Security Extensions all
+| CP15 c12 encodings are UNDEFINED.
 
-I suppose even using omap_hwmod data from driver file not allowed.
-or use pdev ?
+And a further twist is this:
+| B3.12.40 c12, Vector Base Address Register (VBAR)
+| When the Security Extensions are implemented and high exception vectors are
+| not selected, the Vector Base Address Register, VBAR, provides the exception
+| base address for exceptions that are not handled in Monitor mode, see
+| Exception vectors and the exception base address on page B1-30. The high
+| exception vectors always have the base address 0xFFFF0000 and are not
+| affected by the value of VBAR.
 
-
---
-Thanks,
-Govindraj.R
-
-
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Since we always select high exception vectors, VBAR is not used, so we have
+no requirement to save and restore this register on any ARMv7 MMU platform.
+Given that it would be dangerous to do so (due to not knowing whether
+security stuff is implemented or not) ignoring the presence of this register
+is for the best.
