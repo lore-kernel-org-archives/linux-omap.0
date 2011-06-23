@@ -1,154 +1,53 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 07/16] OMAP4: clock data: Fix max mult and div for USB DPLL
-Date: Thu, 23 Jun 2011 19:43:36 +0200
-Message-ID: <1308851025-26313-8-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 04/16] OMAP4: clock data: Add sddiv to USB DPLL
+Date: Thu, 23 Jun 2011 19:43:33 +0200
+Message-ID: <1308851025-26313-5-git-send-email-b-cousson@ti.com>
 References: <1308851025-26313-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52871 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934008Ab1FWRoX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 13:44:23 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58034 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933109Ab1FWRoT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jun 2011 13:44:19 -0400
 In-Reply-To: <1308851025-26313-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, rnayak@ti.com
 Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-The DPLL USB can generate higher speed (x2) than the regular ones.
-The max multiplication value is then twice the previous value.
+The USB DPLL is a J-Type DPLL with the sddiv extra parameter.
+On the other hand, the UNIPRO is not a J-Type and thus does
+not require this flag.
 
-Fix both max_mult and max_div with that correct values.
-
-Change the max_div variable type to u16 to allow storing up to 256.
-
-Replace as well the define with the value to avoid
-unneeded indirection and provide a better readability.
-
-Remove the defines that become useless.
+Add it in USB DPLL and remove it in UNIPRO DPLL.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clock44xx.h         |    7 -------
- arch/arm/mach-omap2/clock44xx_data.c    |   28 ++++++++++++++--------------
- arch/arm/plat-omap/include/plat/clock.h |    2 +-
- 3 files changed, 15 insertions(+), 22 deletions(-)
+ arch/arm/mach-omap2/clock44xx_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock44xx.h b/arch/arm/mach-omap2/clock44xx.h
-index 6be1095..7ceb870 100644
---- a/arch/arm/mach-omap2/clock44xx.h
-+++ b/arch/arm/mach-omap2/clock44xx.h
-@@ -8,13 +8,6 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_CLOCK44XX_H
- #define __ARCH_ARM_MACH_OMAP2_CLOCK44XX_H
- 
--/*
-- * XXX Missing values for the OMAP4 DPLL_USB
-- * XXX Missing min_multiplier values for all OMAP4 DPLLs
-- */
--#define OMAP4430_MAX_DPLL_MULT	2047
--#define OMAP4430_MAX_DPLL_DIV	128
--
- int omap4xxx_clk_init(void);
- 
- #endif
 diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 555044d..8307c9e 100644
+index 8c96567..227befb 100644
 --- a/arch/arm/mach-omap2/clock44xx_data.c
 +++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -258,8 +258,8 @@ static struct dpll_data dpll_abe_dd = {
+@@ -949,7 +949,6 @@ static struct dpll_data dpll_unipro_dd = {
  	.enable_mask	= OMAP4430_DPLL_EN_MASK,
  	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
  	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
+-	.sddiv_mask	= OMAP4430_DPLL_SD_DIV_MASK,
+ 	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+ 	.max_divider	= OMAP4430_MAX_DPLL_DIV,
  	.min_divider	= 1,
- };
- 
-@@ -434,8 +434,8 @@ static struct dpll_data dpll_core_dd = {
+@@ -1015,6 +1014,7 @@ static struct dpll_data dpll_usb_dd = {
  	.enable_mask	= OMAP4430_DPLL_EN_MASK,
  	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
  	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
++	.sddiv_mask	= OMAP4430_DPLL_SD_DIV_MASK,
+ 	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+ 	.max_divider	= OMAP4430_MAX_DPLL_DIV,
  	.min_divider	= 1,
- };
- 
-@@ -672,8 +672,8 @@ static struct dpll_data dpll_iva_dd = {
- 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
- 	.min_divider	= 1,
- };
- 
-@@ -740,8 +740,8 @@ static struct dpll_data dpll_mpu_dd = {
- 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
- 	.min_divider	= 1,
- };
- 
-@@ -813,8 +813,8 @@ static struct dpll_data dpll_per_dd = {
- 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
- 	.min_divider	= 1,
- };
- 
-@@ -949,8 +949,8 @@ static struct dpll_data dpll_unipro_dd = {
- 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
- 	.min_divider	= 1,
- };
- 
-@@ -1016,8 +1016,8 @@ static struct dpll_data dpll_usb_dd = {
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
- 	.sddiv_mask	= OMAP4430_DPLL_SD_DIV_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 4095,
-+	.max_divider	= 256,
- 	.min_divider	= 1,
- };
- 
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 006e599..f57e064 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -152,7 +152,7 @@ struct dpll_data {
- 	u16			max_multiplier;
- 	u8			last_rounded_n;
- 	u8			min_divider;
--	u8			max_divider;
-+	u16			max_divider;
- 	u8			modes;
- #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- 	void __iomem		*autoidle_reg;
 -- 
 1.7.0.4
 
