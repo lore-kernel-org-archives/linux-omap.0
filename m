@@ -1,71 +1,85 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 5/6] OMAP3: Serial: Made serial to work properly with PRCM chain handler
-Date: Thu, 23 Jun 2011 12:11:24 +0300
-Message-ID: <1308820284.5972.18.camel@sokoban>
-References: <1308760934-9757-1-git-send-email-t-kristo@ti.com> <1308760934-9757-6-git-send-email-t-kristo@ti.com> <20110623082150.GX23145@atomide.com>
-Reply-To: <t-kristo@ti.com>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: Re: [RFC PATCHv5 4/7] HSI: hsi_char: Add HSI char device driver
+Date: Thu, 23 Jun 2011 12:12:58 +0300
+Message-ID: <1308820378.27256.2773.camel@groo>
+References: <1307713124-3946-5-git-send-email-carlos.chinea@nokia.com>
+	 <1308771464-15980-1-git-send-email-sjur.brandeland@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54229 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759025Ab1FWJL2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2011 05:11:28 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <20110623082150.GX23145@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1308771464-15980-1-git-send-email-sjur.brandeland@stericsson.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Sjur =?ISO-8859-1?Q?Br=E6ndeland?= <sjur.brandeland@stericsson.com>
+Cc: sjurbren@gmail.com, Andras Domokos <andras.domokos@nokia.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
 
-On Thu, 2011-06-23 at 10:21 +0200, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [110622 09:38]:
-> > @@ -550,6 +550,8 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
-> >  	ret = request_threaded_irq(uart->irq, NULL, omap_uart_interrupt,
-> >  				   IRQF_SHARED, "serial idle", (void *)uart);
-> >  	WARN_ON(ret);
-> > +	ret = omap_prcm_register_pad_irq(uart->padconf, uart->irq);
-> > +	WARN_ON(ret);
-> >  }
-> 
-> Argh, looks like we still have direct mux register tinkering in serial.c:
-> 
-> $ grep "padconf = 0x" serial.c
->                         padconf = 0x182;
->                         padconf = 0x17a;
->                         padconf = 0x19e;
->                         padconf = 0x0d2;
-> 
-> By deducting 0x30 from the values above, these map into the following mux defines:
-> 
-> $ grep RX_OFFSET mux34xx.h
-> #define OMAP3_CONTROL_PADCONF_UART2_RX_OFFSET                   0x14a
-> #define OMAP3_CONTROL_PADCONF_UART1_RX_OFFSET                   0x152
-> #define OMAP3_CONTROL_PADCONF_UART3_RX_IRRX_OFFSET              0x16e
-> 
-> So you can make things more generic by getting rid of those and using
-> struct omap_mux_partition instead for omap_prcm_register_pad_irq.
-> The pins used are set already in serial.c with omap_hwmod_mux_init.
-> 
-> Otherwise we have to patch the hardcoded padconf values for every new omap.
-> And looks like we're already missing them for 44xx in serial.c.
-> 
-> Then access to the padconf registers should be done with
-> omap_mux_read/write instead. If you need to do something more complex
-> with them maybe consider adding some new functions to mux.c as needed.
-> 
+Hi,
 
-Padconf stuff is not that much related to this patch set yet (I am not
-touching the serial padconf code), but I can probably take a look at
-this also later on, unless you want this fixed with this set already?
+On Wed, 2011-06-22 at 21:37 +0200, ext Sjur Br=C3=A6ndeland wrote:
+> Hi Carlos,
+>=20
+> ...
+> >+static ssize_t hsc_read(struct file *file, char __user *buf, size_t=
+ len,
+> >+						loff_t *ppos __maybe_unused)
+> >+{
+> ...
+> >+	ret =3D hsi_async_read(channel->cl, msg);
+> >+
+> >+	ret =3D wait_event_interruptible(channel->rx_wait,
+> >+					!list_empty(&channel->rx_msgs_queue));
+> ...
+>=20
+> >+}
+> >+
+> >+static ssize_t hsc_write(struct file *file, const char __user *buf,=
+ size_t len,
+> >+						loff_t *ppos __maybe_unused)
+> >+{
+> >+	ret =3D hsi_async_write(channel->cl, msg);
+> >+	if (ret < 0)
+> >+		goto out;
+> >+
+> >+	ret =3D wait_event_interruptible(channel->tx_wait,
+> >+					!list_empty(&channel->tx_msgs_queue));
+>=20
+> I would really like to see support for non-blocking read/write operat=
+ion here.
+>=20
 
-> Regards,
-> 
-> Tony
+Non-blocking support will not be supported in hsi_char.
+
+> ...
+> >+
+> >+static const struct file_operations hsc_fops =3D {
+> >+	.owner		=3D THIS_MODULE,
+> >+	.read		=3D hsc_read,
+> >+	.write		=3D hsc_write,
+> >+	.unlocked_ioctl	=3D hsc_ioctl,
+> >+	.open		=3D hsc_open,
+> >+	.release	=3D hsc_release,
+> >+};
+>=20
+> No poll?
+
+We did have some "kind" of support for poll in previous versions, but w=
+e
+did not honor properly the poll expected behavior, as we always need to
+"block" waiting for the complete callback to be called. At least for
+reads this was an issue.
+
+However to compensate this, we are planning to add AIO support in the
+future, which maps a lot better into the hsi behavior.
+
+> Currently we do bulk read/write operations upon modem-crash or firmwa=
+re upload,
+> and would perfeer to be able do asynchronous IO (select/poll) in orde=
+r to
+> receive other system events or timeouts during HSI bulk transfers.
+>=20
 
 
-
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
-
+Br,
+--=20
+Carlos Chinea <carlos.chinea@nokia.com>
