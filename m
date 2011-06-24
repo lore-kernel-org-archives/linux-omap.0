@@ -1,71 +1,51 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Fri, 24 Jun 2011 20:10:29 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2F08@dbde02.ent.ti.com>
-References: <1308923618-5333-1-git-send-email-premi@ti.com>
- <4E04A0AB.40608@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP3: run the ASM sleep code from DDR
+Date: Fri, 24 Jun 2011 07:42:07 -0700
+Message-ID: <87y60r47gg.fsf@ti.com>
+References: <1308300725-12150-1-git-send-email-j-pihet@ti.com>
+	<874o3g6q1g.fsf@ti.com>
+	<BANLkTinqz=brUeZDWPZ7vTH3jvetB+PASw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44966 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759387Ab1FXOkl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 10:40:41 -0400
-In-Reply-To: <4E04A0AB.40608@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:50903 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758105Ab1FXOmL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Jun 2011 10:42:11 -0400
+Received: by mail-pw0-f45.google.com with SMTP id 5so2348361pwi.18
+        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 07:42:10 -0700 (PDT)
+In-Reply-To: <BANLkTinqz=brUeZDWPZ7vTH3jvetB+PASw@mail.gmail.com> (Jean
+	Pihet's message of "Fri, 24 Jun 2011 10:32:13 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
 
-> -----Original Message-----
-> From: Shilimkar, Santosh 
-> Sent: Friday, June 24, 2011 8:05 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix 
-> loops_per_jiffy calculation
-> 
-> On 6/24/2011 7:23 PM, Sanjeev Premi wrote:
-> > Currently, loops_per_jiffy is being calculated twice for
-> > non-SMP processors.
-> >   - Before calling cpufreq_notify_transition()
-> >   - From within cpufreq_notify_transition()
-> >
-> > Double adjustment leads to incorrect value being assigned to
-> > loops_per_jiffy. This manifests as incorrect BogoMIPS in
-> > "cat /proc/cpuinfo".
-> >
-> > The value of loops_per_jiffy needs to be calculated only
-> > when CONFIG_SMP is true. It is the core change included
-> > in this patch.
-> >
-> > The patch also leverages the definition of for_each_cpu()
-> > with and without CONFIG_SMP to consolidate the mechanism
-> > to call cpufreq_notify_transition().
-> >
-> > Signed-off-by: Sanjeev Premi<premi@ti.com>
-> 
-> NAK. This patch again doesn't make sense considering your issue.
-> Also jiffies should not be undated before changing the freq.
-> If the set_rate failed for some reason then you will have wrong
-> jiffies value.
-> 
-> I understand your issue now. The code for global lpj updation
-> should have been checking smp_on_up() instead of is_smp().
-> That one line change is enough. I will post a patch on
-> the same once I reach to office.
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-[sp] Suggest reading the patch before NAKing.
-     The patch is updating the loops_per_jiffy value "AFTER"
-     the frequency change has happenned and "BEFORE" post
-     change notification is sent.
+> Hi Kevin,
+>
+> On Fri, Jun 24, 2011 at 2:17 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> Hi Jean,
+>>
+>> Can you rebase/retest this on top of my pm-wip/idle-suspend branch,
+>> which now contains Russell's major cleanup to use the common code as
+>> well as an additional patch from me to remove the unncessary
+>> get_*_restore_pointer functions:
+>>
+>> [PATCH] OMAP3: PM: remove get_*_restore_pointer functions, directly use entry points
+>
+> Sure I will rebase on your pm-wip/idle-suspend branch, 
 
-~sanjeev
+Thanks.
 
+> with the
+> ENDPROC fix as well as the v7_processor_functions patch applied.
 
-> 
-> Regards
-> Santosh
-> 
+Russell already has those fixed in his branch, so my pm-wip/idle-suspend
+already includes these.
+
+Thanks,
+
+Kevin
