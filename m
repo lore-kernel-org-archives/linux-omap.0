@@ -1,80 +1,74 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/2] omap2+: pm: cpufreq: Fix loops_per_jiffy
-	calculation
-Date: Fri, 24 Jun 2011 11:43:31 +0100
-Message-ID: <20110624104331.GK9449@n2100.arm.linux.org.uk>
-References: <1308911742-27394-1-git-send-email-premi@ti.com> <1308911742-27394-3-git-send-email-premi@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 2/2] omap2+: pm: cpufreq: Fix loops_per_jiffy	calculation
+Date: Fri, 24 Jun 2011 16:18:31 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2DD9@dbde02.ent.ti.com>
+References: <1308911742-27394-1-git-send-email-premi@ti.com>
+ <1308911742-27394-3-git-send-email-premi@ti.com>
+ <20110624104331.GK9449@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54283 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751392Ab1FXKnm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 06:43:42 -0400
-Content-Disposition: inline
-In-Reply-To: <1308911742-27394-3-git-send-email-premi@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34466 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751769Ab1FXKso convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 06:48:44 -0400
+In-Reply-To: <20110624104331.GK9449@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Jun 24, 2011 at 04:05:42PM +0530, Sanjeev Premi wrote:
-> Currently, loops_per_jiffy is being calculated before calling
-> cpufreq_notify_transition().
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
+> Sent: Friday, June 24, 2011 4:14 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 2/2] omap2+: pm: cpufreq: Fix 
+> loops_per_jiffy calculation
 > 
-> However, generic cpufreq driver adjusts the jiffies as well.
-> Double adjustment leads to incorrect value being assigned to
-> loops_per_jiffy.
+> On Fri, Jun 24, 2011 at 04:05:42PM +0530, Sanjeev Premi wrote:
+> > Currently, loops_per_jiffy is being calculated before calling
+> > cpufreq_notify_transition().
+> > 
+> > However, generic cpufreq driver adjusts the jiffies as well.
+> > Double adjustment leads to incorrect value being assigned to
+> > loops_per_jiffy.
+> 
+> Are you sure the generic cpufreq driver adjusts the per-cpu 
+> loops_per_jiffy
+> values?  I don't believe it does.
 
-Are you sure the generic cpufreq driver adjusts the per-cpu loops_per_jiffy
-values?  I don't believe it does.
+Russell,
 
-> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> index ce9d534..346519e 100644
-> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> @@ -114,29 +114,13 @@ static int omap_target(struct cpufreq_policy *policy,
->  
->  	freqs.new = omap_getspeed(policy->cpu);
->  
-> -	/*
-> -	 * In the generic cpufreq driver jiffies are updated only for
-> -	 * non-SMP cases. Ensure that jiffies are bing updated for both
-> -	 * SMP systems and UP systems built with CONFIG_SMP enabled.
-> -	 */
-> +	/* Notify transitions */
->  	if (is_smp()) {
-> -#ifdef CONFIG_SMP
-> -		for_each_cpu(i, policy->cpus)
-> -			per_cpu(cpu_data, i).loops_per_jiffy =
-> -				cpufreq_scale(per_cpu(cpu_data, i).loops_per_jiffy,
-> -						freqs.old,
-> -						freqs.new);
-> -#endif
-> -		/* Notify transitions */
+I am quoting the function from drivers/cpufreq/cpufreq.h
+Follow the arrows:
 
-So this is a NAK.  What's also missing is a scaling of loops_per_jiffy
-itself here, because with SMP=y the core won't do this for you.
+[quote]
+void cpufreq_notify_transition(struct cpufreq_freqs *freqs, unsigned int state)
+{
+      [snip]...[snip]
 
->  		for_each_cpu(i, policy->cpus) {
->  			freqs.cpu = i;
->  			cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
->  		}
->  	} else {
-> -		loops_per_jiffy = cpufreq_scale(loops_per_jiffy,
-> -					freqs.old, freqs.new);
-> -
-> -		/* Notify transitions */
+	case CPUFREQ_PRECHANGE:
 
-This is almost right - the core cpufreq code looks after this when
-CONFIG_SMP is not selected.  However, if you're running a kernel built
-for SMP on UP, then loops_per_jiffy won't be scaled, so something
-needs to be done to cover that case.
+	      [snip]...[snip]
+		srcu_notifier_call_chain(&cpufreq_transition_notifier_list,
+				CPUFREQ_PRECHANGE, freqs);
+---->		adjust_jiffies(CPUFREQ_PRECHANGE, freqs);
+		break;
 
-Note also that you should scale the loops_per_jiffy against a reference
-value, otherwise you'll get an increasing error each time you scale.
+	case CPUFREQ_POSTCHANGE:
+---->		adjust_jiffies(CPUFREQ_POSTCHANGE, freqs);
+	      [snip]...[snip]
+	}
+}
+[/quote]
 
-So, if we want to do this then we need to store the boot-time lpj and
-frequency as the baseline reference, and scale according to that,
-much like the core cpufreq code does for loops_per_jiffy for the !SMP
-case.
+Same can be viewed here:
+http://lxr.free-electrons.com/source/drivers/cpufreq/cpufreq.c?a=arm#L300
+
+
+~sanjeev
+
+[snip]...[snip]
