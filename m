@@ -1,96 +1,76 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 07/14] OMAP4: prm: Replace warm reset API with the offset based version
-Date: Fri, 24 Jun 2011 13:05:53 +0200
-Message-ID: <1308913560-333-8-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 08/14] OMAP4: prm: Remove deprecated functions
+Date: Fri, 24 Jun 2011 13:05:54 +0200
+Message-ID: <1308913560-333-9-git-send-email-b-cousson@ti.com>
 References: <y>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51889 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754873Ab1FXLGZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jun 2011 07:06:25 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:44210 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754835Ab1FXLG0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 07:06:26 -0400
 In-Reply-To: <y>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-The warm reset function was still using the obsolete API.
-Replace it by the new one and move the file to the proper c file.
+The new prminst_xxx accessors based on partition and offset
+is now used, so removed all the previous prcm_xxx accessors.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/prm44xx.c     |   15 ---------------
- arch/arm/mach-omap2/prm44xx.h     |    2 --
- arch/arm/mach-omap2/prminst44xx.c |   19 +++++++++++++++++++
- 3 files changed, 19 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/prm44xx.c |   37 -------------------------------------
+ 1 files changed, 0 insertions(+), 37 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index faec860..f815329 100644
+index f815329..0016555 100644
 --- a/arch/arm/mach-omap2/prm44xx.c
 +++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -87,18 +87,3 @@ u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 reg)
- {
- 	return omap4_prm_rmw_inst_reg_bits(bits, 0x0, inst, reg);
+@@ -50,40 +50,3 @@ u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 reg)
+ 
+ 	return v;
  }
 -
--void omap4_prm_global_warm_sw_reset(void)
+-/* Read a PRM register, AND it, and shift the result down to bit 0 */
+-/* XXX deprecated */
+-u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask)
 -{
 -	u32 v;
 -
--	v = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
--				    OMAP4_RM_RSTCTRL);
--	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
--	omap4_prm_write_inst_reg(v, OMAP4430_PRM_DEVICE_INST,
--				 OMAP4_RM_RSTCTRL);
+-	v = __raw_readl(reg);
+-	v &= mask;
+-	v >>= __ffs(mask);
 -
--	/* OCP barrier */
--	v = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
--				    OMAP4_RM_RSTCTRL);
+-	return v;
 -}
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index 21b0240..a3887b8 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -691,8 +691,6 @@ extern u32 omap4_prm_set_inst_reg_bits(u32 bits, s16 inst, s16 idx);
- extern u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 idx);
- extern u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask);
- 
--extern void omap4_prm_global_warm_sw_reset(void);
 -
- # endif
- 
- #endif
-diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
-index 67e9e46..1e29b9c 100644
---- a/arch/arm/mach-omap2/prminst44xx.c
-+++ b/arch/arm/mach-omap2/prminst44xx.c
-@@ -151,3 +151,22 @@ int omap4_prm_deassert_hardreset(u8 shift, u8 part, s16 inst,
- 
- 	return (c == MAX_MODULE_HARDRESET_WAIT) ? -EBUSY : 0;
- }
-+
-+
-+void omap4_prm_global_warm_sw_reset(void)
-+{
-+	u32 v;
-+
-+	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-+				    OMAP4430_PRM_DEVICE_INST,
-+				    OMAP4_PRM_RSTCTRL_OFFSET);
-+	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
-+	omap4_prminst_write_inst_reg(v, OMAP4430_PRM_PARTITION,
-+				 OMAP4430_PRM_DEVICE_INST,
-+				 OMAP4_PRM_RSTCTRL_OFFSET);
-+
-+	/* OCP barrier */
-+	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-+				    OMAP4430_PRM_DEVICE_INST,
-+				    OMAP4_PRM_RSTCTRL_OFFSET);
-+}
+-/* Read-modify-write a register in a PRM module. Caller must lock */
+-/* XXX deprecated */
+-u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg)
+-{
+-	u32 v;
+-
+-	v = __raw_readl(reg);
+-	v &= ~mask;
+-	v |= bits;
+-	__raw_writel(v, reg);
+-
+-	return v;
+-}
+-
+-u32 omap4_prm_set_inst_reg_bits(u32 bits, s16 inst, s16 reg)
+-{
+-	return omap4_prm_rmw_inst_reg_bits(bits, bits, inst, reg);
+-}
+-
+-u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 reg)
+-{
+-	return omap4_prm_rmw_inst_reg_bits(bits, 0x0, inst, reg);
+-}
 -- 
 1.7.0.4
 
