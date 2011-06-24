@@ -1,120 +1,107 @@
-From: jean.pihet@newoldbits.com
-Subject: [RFC/PATCH 0/9] PM QoS: add a per-device wake-up latency constraint class
-Date: Fri, 24 Jun 2011 17:30:45 +0200
-Message-ID: <1308929445-31289-1-git-send-email-j-pihet@ti.com>
-References: <1308926286-30445-1-git-send-email-j-pihet@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
+Date: Fri, 24 Jun 2011 21:04:56 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2F26@dbde02.ent.ti.com>
+References: <1308923618-5333-1-git-send-email-premi@ti.com>
+ <20110624140142.GM9449@n2100.arm.linux.org.uk>
+ <B85A65D85D7EB246BE421B3FB0FBB593024D6C2EF2@dbde02.ent.ti.com>
+ <20110624141402.GN9449@n2100.arm.linux.org.uk>
+ <20110624151201.GO9449@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:49341 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754210Ab1FXPbG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 11:31:06 -0400
-Received: by wwe5 with SMTP id 5so2990752wwe.1
-        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 08:31:04 -0700 (PDT)
-In-Reply-To: <1308926286-30445-1-git-send-email-j-pihet@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:48251 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754190Ab1FXPfN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 11:35:13 -0400
+In-Reply-To: <20110624151201.GO9449@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foun>
-Cc: Jean Pihet <j-pihet@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Jean Pihet <j-pihet@ti.com>
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
+> Sent: Friday, June 24, 2011 8:42 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix 
+> loops_per_jiffy calculation
+> 
+> Right, thanks for the file.  Here's the patch.
+> 
+> --- omap2plus-cpufreq.c~	2011-06-24 15:50:32.000000000 +0100
+> +++ omap2plus-cpufreq.c	2011-06-24 16:00:08.000000000 +0100
+> @@ -44,6 +44,16 @@
+>  static char *mpu_clk_name;
+>  static struct device *mpu_dev;
+>  
+> +#ifdef CONFIG_SMP
+> +struct lpj_info {
+> +	unsigned long	ref;
+> +	unsigned int	freq;
+> +};
+> +
+> +static DEFINE_PER_CPU(struct lpj_info, lpj_ref);
+> +static struct lpj_info global_lpj_ref;
+> +#endif
+> +
+>  static int omap_verify_speed(struct cpufreq_policy *policy)
+>  {
+>  	if (!freq_table)
+> @@ -109,14 +119,25 @@
+>  	freqs.new = omap_getspeed(policy->cpu);
+>  
+>  #ifdef CONFIG_SMP
+> -	/* Adjust jiffies before transition */
+> +	/* Adjust per-cpu loops_per_jiffy before transition */
+>  	for_each_cpu(i, policy->cpus) {
+> -		unsigned long lpj = per_cpu(cpu_data, 
+> i).loops_per_jiffy;
+> -
+> -		per_cpu(cpu_data, i).loops_per_jiffy = 
+> cpufreq_scale(lpj,
+> -							freqs.old,
+> -							freqs.new);
+> +		struct lpj_info *lpj = &per_cpu(lpj_ref, i);
+> +		if (!lpj->freq) {
+> +			lpj->ref = per_cpu(cpu_data, i).loops_per_jiffy;
+> +			lpj->freq = freqs.old;
+> +		}
+> +
+> +		per_cpu(cpu_data, i).loops_per_jiffy =
+> +			cpufreq_scale(lpj->ref, lpj->freq, freqs.new);
+> +	}
+> +
+> +	/* And don't forget to adjust the global one */
+> +	if (!global_lpj_ref.freq) {
+> +		global_lpj_ref.ref = loops_per_jiffy;
+> +		global_lpj_ref.freq = freqs.old;
+>  	}
+> +	loops_per_jiffy = cpufreq_scale(global_lpj_ref.ref, 
+> global_lpj_ref.freq,
+> +					freqs.new);
+>  #endif
+>  
+>  	/* Notify transitions */
+> 
+> 
+> Notice how we adjust _both_ the per-cpu loops_per_jiffy, and that we
+> adjust them with reference to the initial values.
+> 
+> If you adjust lpj with reference to the last, then you _will_ build up
+> a progressively bigger and bigger error in the value over time.
 
-This patch set is in an RFC state, for review and comments.
+Russell,
 
-In order to implement the new class in PM QoS the following changes have been
-made:
+I definitely didn't see so many things through your comments. But
+that may just be reflection of my naivety with SMP!
 
-1. Add a new PM QoS class for device wake-up constraints
-(PM_QOS_DEV_WAKEUP_LATENCY).
-Due to the per-device nature of the new class the constraints lists are stored
-inside the device dev_pm_info struct instead of the internal per-class
-constraints lists.
-The new class is only available from kernel drivers and so is not exported to
-user space.
+I am currently testing another patch for beagle - will apply and
+test on OMAP3EVM (just to be sure).
 
-2. Make the pm_qos_add_request API more generic by using a
-struct pm_qos_parameters parameter. This allows easy extension in the future.
+Can I include it in my next patch rev?
 
-3. Upon a change of the strongest constraint in the PM_QOS_DEV_WAKEUP_LATENCY
-class a notification chain mechanism is used to take action on the system.
-This is the proposed way to have PM QoS and the platform dependant code to
-interact with each other, cf. 4 below.
-The notification mechanism now passes the constraint request struct ptr in
-order for the notifier callback to have access to the full set of constraint
-data, e.g. the struct device ptr.
-
-4. cpuidle interaction with the OMAP3 cpuidle handler
-Since cpuidle is a CPU centric framework it decides the MPU next power state
-based on the MPU exit_latency and target_residency figures.
-    
-The rest of the power domains get their next power state programmed from
-the PM_QOS_DEV_WAKEUP_LATENCY class of the PM QoS framework, via the device
-wake-up latency constraints.
-
-Note: the exit_latency and target_residency figures of the MPU include the MPU
-itself and the peripherals needed for the MPU to execute instructions (e.g.
-main memory, caches, IRQ controller, MMU etc).
-Some of those peripherals can belong to other power domains than the MPU
-subsystem and so the corresponding latencies must be included in this figure.
-
-5. Update the pm_qos_add_request callers to the generic API
-
-6. Minor clean-ups and rename of struct fields
-
-Questions:
-1. How to retrieve the device ptr from a given device driver in order to add
-a constraint on it?
-2. The device struct has recently been extended with the power domain
-information. Can this be used to apply the constraints on power domains?
-
-On-going developments, patches in preparation:
-1. write Documentation for the new PM QoS class
-2. validate the constraints framework on OMAP3&4 HW
-3. refine the power domains wake-up latency and the cpuidle figures
-
-Based on the master branch of the linux-omap git tree (3.0.0-rc3). Compile
-tested only using OMAP and x86 generic defconfigs.
-
-
-Jean Pihet (8):
-  PM: add a per-device wake-up latency constraints plist
-  PM: extend PM QoS with per-device wake-up constraints
-  OMAP PM: create a PM layer plugin for per-device constraints
-  OMAP2+: powerdomain: control power domains next state
-  OMAP3: powerdomain data: add wake-up latency figures
-  OMAP2+: omap_hwmod: manage the wake-up latency constraints
-  OMAP: PM CONSTRAINTS: implement the devices wake-up latency
-    constraints
-  OMAP2+: cpuidle only influences the MPU state
-
-Vishwanath BS (1):
-  OMAP4: powerdomain data: add wake-up latency figures
-
- arch/arm/mach-omap2/cpuidle34xx.c            |   42 +---
- arch/arm/mach-omap2/omap_hwmod.c             |   26 ++-
- arch/arm/mach-omap2/pm.h                     |   17 ++-
- arch/arm/mach-omap2/powerdomain.c            |  187 ++++++++++++++
- arch/arm/mach-omap2/powerdomain.h            |   33 +++-
- arch/arm/mach-omap2/powerdomains3xxx_data.c  |   77 ++++++
- arch/arm/mach-omap2/powerdomains44xx_data.c  |   85 +++++++
- arch/arm/plat-omap/Kconfig                   |    7 +
- arch/arm/plat-omap/Makefile                  |    1 +
- arch/arm/plat-omap/i2c.c                     |   20 --
- arch/arm/plat-omap/include/plat/omap-pm.h    |  128 ----------
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
- arch/arm/plat-omap/omap-pm-constraints.c     |  344 ++++++++++++++++++++++++++
- arch/arm/plat-omap/omap-pm-noop.c            |   89 -------
- drivers/base/power/main.c                    |    1 +
- drivers/i2c/busses/i2c-omap.c                |   35 ++-
- drivers/media/video/via-camera.c             |    5 +-
- drivers/net/e1000e/netdev.c                  |    9 +-
- drivers/net/wireless/ipw2x00/ipw2100.c       |    6 +-
- include/linux/pm.h                           |    2 +
- include/linux/pm_qos_params.h                |   40 ++--
- kernel/pm_qos_params.c                       |  142 ++++++-----
- sound/core/pcm_native.c                      |    8 +-
- 23 files changed, 939 insertions(+), 367 deletions(-)
- create mode 100644 arch/arm/plat-omap/omap-pm-constraints.c
-
--- 
-1.7.4.1
-
+~sanjeev
