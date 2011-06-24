@@ -1,66 +1,73 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Fri, 24 Jun 2011 11:51:44 +0100
-Message-ID: <20110624105144.GL9449@n2100.arm.linux.org.uk>
-References: <1308911742-27394-1-git-send-email-premi@ti.com> <1308911742-27394-3-git-send-email-premi@ti.com> <20110624104331.GK9449@n2100.arm.linux.org.uk> <B85A65D85D7EB246BE421B3FB0FBB593024D6C2DD9@dbde02.ent.ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 00/13] OMAP4: Add modulemode support to hwmod framework
+Date: Fri, 24 Jun 2011 13:05:46 +0200
+Message-ID: <1308913560-333-1-git-send-email-b-cousson@ti.com>
+References: <y>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47005 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751392Ab1FXKvw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 06:51:52 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2DD9@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44197 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751584Ab1FXLGG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 07:06:06 -0400
+In-Reply-To: <y>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: paul@pwsan.com
+Cc: rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-On Fri, Jun 24, 2011 at 04:18:31PM +0530, Premi, Sanjeev wrote:
-> > -----Original Message-----
-> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
-> > Sent: Friday, June 24, 2011 4:14 PM
-> > To: Premi, Sanjeev
-> > Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> > Subject: Re: [PATCH 2/2] omap2+: pm: cpufreq: Fix 
-> > loops_per_jiffy calculation
-> > 
-> > On Fri, Jun 24, 2011 at 04:05:42PM +0530, Sanjeev Premi wrote:
-> > > Currently, loops_per_jiffy is being calculated before calling
-> > > cpufreq_notify_transition().
-> > > 
-> > > However, generic cpufreq driver adjusts the jiffies as well.
-> > > Double adjustment leads to incorrect value being assigned to
-> > > loops_per_jiffy.
-> > 
-> > Are you sure the generic cpufreq driver adjusts the per-cpu 
-> > loops_per_jiffy
-> > values?  I don't believe it does.
-> 
-> Russell,
-> 
-> I am quoting the function from drivers/cpufreq/cpufreq.h
-> Follow the arrows:
+Hi Paul,
 
-Let's go to war with quotes then, because clearly you haven't read the code
-properly:
+Here is the series that finally add the management of the modulemode
+directly from hwmod fmwk instead of using a fake clock node to represent
+the IP.
 
-| #ifndef CONFIG_SMP
-^^^^^^^^^^^^^^^^^^^^^
-| static unsigned long l_p_j_ref;
-| static unsigned int  l_p_j_ref_freq;
-| 
-| static void adjust_jiffies(unsigned long val, struct cpufreq_freqs *ci)
-| {
-| 	... code to adjust jiffies ...
-| }
-| #else
-| static inline void adjust_jiffies(unsigned long val, struct cpufreq_freqs *ci)
-| {
-|         return;
-| }
-| #endif
+A second series will clean most of the remaining data from the clock data
+file. Before that I have to rebase Rajendra's series to control the
+clockdomain from the hwmod framework, otherwise the modules will
+not be enabled properly since their clockdomain will not be changed
+to SW_SUP during enable.
 
-Notice how if CONFIG_SMP is set, adjust_jiffies becomes a no-op.  So if
-CONFIG_SMP=y, loops_per_jiffy will _not_ be scaled by core code.
+The series is based on for_3.0.1/3_hwmod_fixes and tested
+on OMAP4430 ES2.1 + SDP. It should not affect OMAP2 & 3, but some testing
+are definitively needed.
+
+The patches are available here:
+git://gitorious.org/omap-pm/linux.git for_3.0.1/4_hwmod_modulemode
+
+Regards,
+Benoit
+
+
+Benoit Cousson (13):
+  OMAP4: hwmod: Add clock domain attribute
+  OMAP2+: hwmod: Init clkdm field at boot time
+  OMAP4: hwmod: Replace CLKCTRL absolute address with offset macros
+  OMAP: hwmod: Wait the idle status to be disabled
+  OMAP2+: hwmod: Replace clkdm access from main_clk using hwmod attribute
+  OMAP4: hwmod: Replace RSTCTRL absolute address with offset macros
+  OMAP4: prm: Replace warm reset API with the offset based version
+  OMAP4: prm: Remove deprecated functions
+  OMAP4: hwmod data: Align interconnect format with regular modules
+  OMAP4: hwmod data: Add PRM context register offset
+  OMAP4: hwmod data: Add modulemode entry in omap_hwmod structure
+  OMAP4: cm: Add two new APIs for modulemode control
+  OMAP4: hwmod: Introduce the module control in hwmod control
+
+Nayak, Rajendra (1):
+  OMAP2+: clockdomain: Add an api to read idle mode
+
+ arch/arm/mach-omap2/clockdomain.c            |   21 ++
+ arch/arm/mach-omap2/clockdomain.h            |    3 +
+ arch/arm/mach-omap2/cm44xx.h                 |    3 +-
+ arch/arm/mach-omap2/cminst44xx.c             |   84 +++++-
+ arch/arm/mach-omap2/cminst44xx.h             |    8 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |  196 +++++++++--
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |  458 ++++++++++++++++++++------
+ arch/arm/mach-omap2/prm44xx.c                |  145 +--------
+ arch/arm/mach-omap2/prm44xx.h                |    6 -
+ arch/arm/mach-omap2/prminst44xx.c            |  108 ++++++-
+ arch/arm/mach-omap2/prminst44xx.h            |   10 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   14 +-
+ 12 files changed, 757 insertions(+), 299 deletions(-)
+
