@@ -1,15 +1,15 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 2/7] OMAP2+: clockdomain: Add SoC support for clkdm_is_idle
-Date: Fri, 24 Jun 2011 14:06:28 +0200
-Message-ID: <1308917193-16912-3-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 3/7] OMAP2+: PM: Initialise sleep_switch to a non-valid value
+Date: Fri, 24 Jun 2011 14:06:29 +0200
+Message-ID: <1308917193-16912-4-git-send-email-b-cousson@ti.com>
 References: <1308917193-16912-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46589 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:46591 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753540Ab1FXMIh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 08:08:37 -0400
+	with ESMTP id S1754776Ab1FXMIj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 08:08:39 -0400
 In-Reply-To: <1308917193-16912-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,84 +18,33 @@ Cc: santosh.shilimkar@ti.com, linux-omap@vger.kernel.org
 
 From: Nayak, Rajendra <rnayak@ti.com>
 
-Add the SoC specific implemenation for clkdm_is_idle
-for OMAP2/3 and OMAP4.
+sleep_switch which is initialised to 0 in omap_set_pwrdm_state
+happens to be a valid sleep_switch type (FORCEWAKEUP_SWITCH)
+which are defined as
+#define FORCEWAKEUP_SWITCH      0
+#define LOWPOWERSTATE_SWITCH    1
+
+This causes the function to wrongly program some clock domains
+even when the Powerdomain is in ON state.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |   12 ++++++++++++
- arch/arm/mach-omap2/clockdomain44xx.c      |    7 +++++++
- 2 files changed, 19 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-index 48d0db7..e0c393f 100644
---- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-@@ -13,6 +13,7 @@
-  */
- 
- #include <linux/types.h>
-+#include <linux/errno.h>
- #include <plat/prcm.h>
- #include "prm.h"
- #include "prm2xxx_3xxx.h"
-@@ -146,6 +147,15 @@ static void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
- 		_clkdm_del_autodeps(clkdm);
- }
- 
-+static int omap2_clkdm_is_idle(struct clockdomain *clkdm)
-+{
-+	if (!clkdm->clktrctrl_mask)
-+		return -EINVAL;
-+
-+	return omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-+				clkdm->clktrctrl_mask);
-+}
-+
- static void _enable_hwsup(struct clockdomain *clkdm)
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 49486f5..d48813f 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -106,7 +106,7 @@ static void omap2_init_processor_devices(void)
+ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
  {
- 	if (cpu_is_omap24xx())
-@@ -252,6 +262,7 @@ struct clkdm_ops omap2_clkdm_operations = {
- 	.clkdm_wakeup		= omap2_clkdm_wakeup,
- 	.clkdm_allow_idle	= omap2_clkdm_allow_idle,
- 	.clkdm_deny_idle	= omap2_clkdm_deny_idle,
-+	.clkdm_is_idle		= omap2_clkdm_is_idle,
- 	.clkdm_clk_enable	= omap2_clkdm_clk_enable,
- 	.clkdm_clk_disable	= omap2_clkdm_clk_disable,
- };
-@@ -269,6 +280,7 @@ struct clkdm_ops omap3_clkdm_operations = {
- 	.clkdm_wakeup		= omap3_clkdm_wakeup,
- 	.clkdm_allow_idle	= omap3_clkdm_allow_idle,
- 	.clkdm_deny_idle	= omap3_clkdm_deny_idle,
-+	.clkdm_is_idle		= omap2_clkdm_is_idle,
- 	.clkdm_clk_enable	= omap2_clkdm_clk_enable,
- 	.clkdm_clk_disable	= omap2_clkdm_clk_disable,
- };
-diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
-index a1a4ecd..4b10727 100644
---- a/arch/arm/mach-omap2/clockdomain44xx.c
-+++ b/arch/arm/mach-omap2/clockdomain44xx.c
-@@ -93,6 +93,12 @@ static void omap4_clkdm_deny_idle(struct clockdomain *clkdm)
- 					clkdm->cm_inst, clkdm->clkdm_offs);
- }
+ 	u32 cur_state;
+-	int sleep_switch = 0;
++	int sleep_switch = -1;
+ 	int ret = 0;
  
-+static int omap4_clkdm_is_idle(struct clockdomain *clkdm)
-+{
-+	return omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
-+				clkdm->cm_inst, clkdm->clkdm_offs);
-+}
-+
- static int omap4_clkdm_clk_enable(struct clockdomain *clkdm)
- {
- 	bool hwsup = false;
-@@ -132,6 +138,7 @@ struct clkdm_ops omap4_clkdm_operations = {
- 	.clkdm_wakeup		= omap4_clkdm_wakeup,
- 	.clkdm_allow_idle	= omap4_clkdm_allow_idle,
- 	.clkdm_deny_idle	= omap4_clkdm_deny_idle,
-+	.clkdm_is_idle		= omap4_clkdm_is_idle,
- 	.clkdm_clk_enable	= omap4_clkdm_clk_enable,
- 	.clkdm_clk_disable	= omap4_clkdm_clk_disable,
- };
+ 	if (pwrdm == NULL || IS_ERR(pwrdm))
 -- 
 1.7.0.4
 
