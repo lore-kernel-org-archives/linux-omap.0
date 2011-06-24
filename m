@@ -1,87 +1,156 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Fri, 24 Jun 2011 16:12:01 +0100
-Message-ID: <20110624151201.GO9449@n2100.arm.linux.org.uk>
-References: <1308923618-5333-1-git-send-email-premi@ti.com>
-	<20110624140142.GM9449@n2100.arm.linux.org.uk>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2EF2@dbde02.ent.ti.com>
-	<20110624141402.GN9449@n2100.arm.linux.org.uk>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [RFC 5/8] remoteproc: add davinci implementation
+Date: Fri, 24 Jun 2011 19:13:50 +0400
+Message-ID: <4E04A9AE.3030801@mvista.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com> <1308640714-17961-6-git-send-email-ohad@wizery.com> <4E035B78.3080200@mvista.com> <FFF198FBBF957F4393BA834040FEFFA202D66E@DFLE35.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20110624141402.GN9449@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:43189 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754277Ab1FXPPj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 11:15:39 -0400
+In-Reply-To: <FFF198FBBF957F4393BA834040FEFFA202D66E@DFLE35.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Grosen, Mark" <mgrosen@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, Grant Likely <grant.likely@secretlab.ca>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 
-Right, thanks for the file.  Here's the patch.
+Hello.
 
---- omap2plus-cpufreq.c~	2011-06-24 15:50:32.000000000 +0100
-+++ omap2plus-cpufreq.c	2011-06-24 16:00:08.000000000 +0100
-@@ -44,6 +44,16 @@
- static char *mpu_clk_name;
- static struct device *mpu_dev;
- 
-+#ifdef CONFIG_SMP
-+struct lpj_info {
-+	unsigned long	ref;
-+	unsigned int	freq;
-+};
-+
-+static DEFINE_PER_CPU(struct lpj_info, lpj_ref);
-+static struct lpj_info global_lpj_ref;
-+#endif
-+
- static int omap_verify_speed(struct cpufreq_policy *policy)
- {
- 	if (!freq_table)
-@@ -109,14 +119,25 @@
- 	freqs.new = omap_getspeed(policy->cpu);
- 
- #ifdef CONFIG_SMP
--	/* Adjust jiffies before transition */
-+	/* Adjust per-cpu loops_per_jiffy before transition */
- 	for_each_cpu(i, policy->cpus) {
--		unsigned long lpj = per_cpu(cpu_data, i).loops_per_jiffy;
--
--		per_cpu(cpu_data, i).loops_per_jiffy = cpufreq_scale(lpj,
--							freqs.old,
--							freqs.new);
-+		struct lpj_info *lpj = &per_cpu(lpj_ref, i);
-+		if (!lpj->freq) {
-+			lpj->ref = per_cpu(cpu_data, i).loops_per_jiffy;
-+			lpj->freq = freqs.old;
-+		}
-+
-+		per_cpu(cpu_data, i).loops_per_jiffy =
-+			cpufreq_scale(lpj->ref, lpj->freq, freqs.new);
-+	}
-+
-+	/* And don't forget to adjust the global one */
-+	if (!global_lpj_ref.freq) {
-+		global_lpj_ref.ref = loops_per_jiffy;
-+		global_lpj_ref.freq = freqs.old;
- 	}
-+	loops_per_jiffy = cpufreq_scale(global_lpj_ref.ref, global_lpj_ref.freq,
-+					freqs.new);
- #endif
- 
- 	/* Notify transitions */
+Grosen, Mark wrote:
 
+>>     It should work on DA830 as well,
 
-Notice how we adjust _both_ the per-cpu loops_per_jiffy, and that we
-adjust them with reference to the initial values.
+    So please make it dependent on ARCH_DAVINCI_DA8XX.
 
-If you adjust lpj with reference to the last, then you _will_ build up
-a progressively bigger and bigger error in the value over time.
+>> but not on real DaVinci, so the name is misleading...
+
+> Yes, we debated calling it da8xx, but felt that with minor changes it could
+> accomodate the other SoCs in the davinci family.
+
+    I don't think it's a good idea. Using cpu_is_*() is drivers is bad. Using 
+#ifdef's is not an option either.
+
+> However, it may be better
+> to start with just the da8xx/omapl13x parts and then rename if we add the
+> others. 
+
+>> [...]
+>>> +
+>>> +/*
+>>> + * Technical Reference:
+>>> + * OMAP-L138 Applications Processor System Reference Guide
+>>> + * http://www.ti.com/litv/pdf/sprugm7d
+>>> + */
+>>> +
+>>> +/* local reset bit (0 is asserted) in MDCTL15 register (section
+>> 9.6.18) */
+>>> +#define LRST		BIT(8)
+
+>>     Perhaps this should be named nLRST or something if the sense is inverted?
+
+> If there is an established naming convention for this, I'll adopt it.
+
+    Looking into my old PSC manual (can't get the recent documentation from TI's 
+site right now), the bit is called LRSTz.
+    It's worth moving this #define into <mach/psc.h> as well.
+
+>>> +/* register for DSP boot address in SYSCFG0 module (section 11.5.6)
+>> */
+>>> +#define HOST1CFG	0x44
+
+>>     Worth declaring in <mach/da8xx.h> instead...
+
+> Possibly - since it is only used for the DSP, I thought it would be better
+> to keep local to this implementation. I'll adopt whichever approach is the
+> convention. 
+
+    Well, the general approach is to keep the #define's where they are used, so 
+maybe we should keep this #define here.
+
+>>> +static inline int davinci_rproc_start(struct rproc *rproc, u64
+>> bootaddr)
+>>> +{
+>>> +	struct device *dev = rproc->dev;
+>>> +	struct davinci_rproc_pdata *pdata = dev->platform_data;
+>>> +	struct davinci_soc_info *soc_info = &davinci_soc_info;
+>>> +	void __iomem *psc_base;
+>>> +	struct clk *dsp_clk;
+>>> +
+>>> +	/* hw requires the start (boot) address be on 1KB boundary */
+>>> +	if (bootaddr & 0x3ff) {
+>>> +		dev_err(dev, "invalid boot address: must be aligned to
+>> 1KB\n");
+>>> +		return -EINVAL;
+>>> +	}
+>>> +
+>>> +	dsp_clk = clk_get(dev, pdata->clk_name);
+
+>>     We could match using clkdev functionality, but the clock entry
+>> would need to be changed then...
+
+> I followed the existing pattern I saw in other drivers.
+
+    Probably MUSB? We're trying to move away from passing the clock name to thge 
+drivers, using match by device instead.
+
+> If there is a new, better way, please point me to an example.
+
+    Look at the da850_clks[] in mach-davinci/da850.c: if the device name is 
+specified as a first argument to CLK() macro (instead of clock name the second 
+argument), the matching is done by device, so you don't need to specify the 
+clock name to clk_get(), passing NULL instead.
+
+>>> +	if (IS_ERR_OR_NULL(dsp_clk)) {
+>>> +		dev_err(dev, "clk_get error: %ld\n", PTR_ERR(dsp_clk));
+>>> +		return PTR_ERR(dsp_clk);
+>>> +	}
+>>> +
+>>> +	clk_enable(dsp_clk);
+
+>>      This seems rather senseless activity as on DA8xx the DSP core
+>> boots the ARM core, so the DSP clock will be already enabled.
+
+> I think it is needed. It's true that the DSP initiates the boot, but then it is
+> reset and the clock disabled. See Section 13.2 of
+
+    Hm, didn't know that. Contrarywise, we had to work around the races between 
+ARM and DSP cores on accessing locked SYSCFG registers -- in kernel. So I was 
+under impression that DSP code continues running some stuff of its own.
+
+> http://focus.ti.com/lit/ug/sprugm7e/sprugm7e.pdf:
+
+> 13.2 DSP Wake Up
+
+> Following deassertion of device reset, the DSP intializes the ARM296 so that
+> it can execute the ARM ROM bootloader. Upon successful wake up, the ARM
+> places the DSP in a reset and clock gated (SwRstDisable) state that is
+> controlled by the LPSC and the SYSCFG modules.
+
+> Besides, the boot loader could have disabled it to save power. The ARM and
+> DSP are clocked independently, so I think it's best to use clock management.
+
+    OK, agreed.
+
+>>> +	rproc->priv = dsp_clk;
+>>> +
+>>> +	psc_base = ioremap(soc_info->psc_bases[0], SZ_4K);
+>>> +
+>>> +	/* insure local reset is asserted before writing start address */
+>>> +	__raw_writel(NEXT_ENABLED, psc_base + MDCTL + 4 *
+>> DA8XX_LPSC0_GEM);
+>>> +
+>>> +	__raw_writel(bootaddr, DA8XX_SYSCFG0_VIRT(HOST1CFG));
+
+>>     DA8XX_SYSCFG0_VIRT() is not supposed to be used outside mach-davinci. The
+>> variable it refers is not exported, so driver module won't work.
+
+> Ooops, I clearly did not build this as a module. Suggestion how to fix this?
+
+    Using the normal ioremap() of SYSCFG0 space, I suppose.
+
+> Mark
+
+WBR, Sergei
