@@ -1,184 +1,88 @@
-From: Vishal Mahaveer <vishalm@ti.com>
-Subject: [PATCH v2 1/1] omap: blaze: add mmc5/wl1283 device support
-Date: Fri, 24 Jun 2011 15:16:29 -0600
-Message-ID: <1308950189-7357-2-git-send-email-vishalm@ti.com>
-References: <1308950189-7357-1-git-send-email-vishalm@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [linux-pm] Runtime PM discussion notes
+Date: Fri, 24 Jun 2011 13:53:55 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com>
+References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org> <201106232234.21930.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42193 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752170Ab1FXTsO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 15:48:14 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5OJmD35028991
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 14:48:13 -0500
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id p5OJmDdK003734
-	for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 14:48:13 -0500 (CDT)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5OJmDcr023546
-	for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 14:48:13 -0500 (CDT)
-In-Reply-To: <1308950189-7357-1-git-send-email-vishalm@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:59205 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753130Ab1FXTx4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 15:53:56 -0400
+In-Reply-To: <201106232234.21930.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vishal Mahaveer <vishalm@ti.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>, arve@android.com
 
-Add MMC5 support on BLAZE, which has the wl1283 device hardwired to.
+(Arve cc'ed, also adding Magnus and Kevin back to cc)
 
-The wl1283 is a 4-wire, 1.8V, embedded SDIO WLAN device with an external IRQ line,
-and power-controlled by a GPIO-based fixed regulator.
+Hi Rafael,
 
-Based on the patch for zoom by Ohad Ben-Cohen <ohad@wizery.com>
+On Thu, 23 Jun 2011, Rafael J. Wysocki wrote:
 
-Signed-off-by: Vishal Mahaveer <vishalm@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |   81 +++++++++++++++++++++++++++++++++++
- 1 files changed, 81 insertions(+), 0 deletions(-)
+> On Thursday, June 23, 2011, Alan Stern wrote:
+> > On Thu, 23 Jun 2011, Paul Walmsley wrote:
+> > > On Wed, 15 Jun 2011, Rafael J. Wysocki wrote:
+> > >
+> > > > Well, the freezing of user space by itself doesn't buy you anything
+> > > > power management-wise, you pretty much need to do the other things too to
+> > > > really save energy this way. 
+> > > 
+> > > Freezing user space stops CPU-hogging processes from running.  When the 
+> > > runqueue is empty, the scheduler can go idle.  This in turn allows the 
+> > > CPU(s) to enter low power sleep states via CPUIdle.
+> 
+> But you don't have to freeze user space for this purpose, do you?
+> You may simply send a SIGSTOP to those processes.
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 63de2d3..189aa65 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -22,6 +22,7 @@
- #include <linux/i2c/twl.h>
- #include <linux/gpio_keys.h>
- #include <linux/regulator/machine.h>
-+#include <linux/regulator/fixed.h>
- #include <linux/leds.h>
- #include <linux/leds_pwm.h>
- 
-@@ -37,6 +38,7 @@
- #include <plat/mmc.h>
- #include <plat/omap4-keypad.h>
- #include <video/omapdss.h>
-+#include <linux/wl12xx.h>
- 
- #include "mux.h"
- #include "hsmmc.h"
-@@ -52,6 +54,9 @@
- #define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
- #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
- 
-+#define GPIO_WIFI_PMENA		54
-+#define GPIO_WIFI_IRQ		53
-+
- static const int sdp4430_keymap[] = {
- 	KEY(0, 0, KEY_E),
- 	KEY(0, 1, KEY_R),
-@@ -329,6 +334,14 @@ static struct omap2_hsmmc_info mmc[] = {
- 		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
- 		.gpio_wp	= -EINVAL,
- 	},
-+	{
-+		.mmc		= 5,
-+		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
-+		.gpio_cd	= -EINVAL,
-+		.gpio_wp	= -EINVAL,
-+		.ocr_mask	= MMC_VDD_165_195,
-+		.nonremovable	= true,
-+	},
- 	{}	/* Terminator */
- };
- 
-@@ -345,6 +358,37 @@ static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
- 	},
- };
- 
-+static struct regulator_consumer_supply omap4_sdp4430_vmmc5_supply = {
-+	.supply = "vmmc",
-+	.dev_name = "omap_hsmmc.4",
-+};
-+
-+static struct regulator_init_data sdp4430_vmmc5 = {
-+	.constraints = {
-+		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies = 1,
-+	.consumer_supplies = &omap4_sdp4430_vmmc5_supply,
-+};
-+
-+static struct fixed_voltage_config sdp4430_vwlan = {
-+	.supply_name = "vwl1271",
-+	.microvolts = 1800000, /* 1.8V */
-+	.gpio = GPIO_WIFI_PMENA,
-+	.startup_delay = 70000, /* 70msec */
-+	.enable_high = 1,
-+	.enabled_at_boot = 0,
-+	.init_data = &sdp4430_vmmc5,
-+};
-+
-+static struct platform_device omap_vwlan_device = {
-+	.name		= "reg-fixed-voltage",
-+	.id		= 1,
-+	.dev = {
-+		.platform_data = &sdp4430_vwlan,
-+	},
-+};
-+
- static int omap4_twl6030_hsmmc_late_init(struct device *dev)
- {
- 	int ret = 0;
-@@ -519,6 +563,7 @@ static struct regulator_init_data sdp4430_vusb = {
- static struct regulator_init_data sdp4430_clk32kg = {
- 	.constraints = {
- 		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
-+		.always_on		= true,
- 	},
- };
- 
-@@ -723,6 +768,41 @@ static inline void board_serial_init(void)
- }
-  #endif
- 
-+static void omap4_sdp4430_wifi_mux_init(void)
-+{
-+	omap_mux_init_gpio(GPIO_WIFI_IRQ, OMAP_PIN_INPUT |
-+				OMAP_PIN_OFF_WAKEUPENABLE);
-+	omap_mux_init_gpio(GPIO_WIFI_PMENA, OMAP_PIN_OUTPUT);
-+
-+	omap_mux_init_signal("sdmmc5_cmd.sdmmc5_cmd",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("sdmmc5_clk.sdmmc5_clk",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("sdmmc5_dat0.sdmmc5_dat0",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("sdmmc5_dat1.sdmmc5_dat1",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("sdmmc5_dat2.sdmmc5_dat2",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("sdmmc5_dat3.sdmmc5_dat3",
-+				OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP);
-+
-+}
-+
-+static struct wl12xx_platform_data omap4_sdp4430_wlan_data __initdata = {
-+	.irq = OMAP_GPIO_IRQ(GPIO_WIFI_IRQ),
-+	.board_ref_clock = WL12XX_REFCLOCK_26,
-+	.board_tcxo_clock = WL12XX_TCXOCLOCK_26,
-+};
-+
-+static void omap4_sdp4430_wifi_init(void)
-+{
-+	omap4_sdp4430_wifi_mux_init();
-+	if (wl12xx_set_platform_data(&omap4_sdp4430_wlan_data))
-+		pr_err("Error setting wl12xx data\n");
-+	platform_device_register(&omap_vwlan_device);
-+}
-+
- static void __init omap_4430sdp_init(void)
- {
- 	int status;
-@@ -739,6 +819,7 @@ static void __init omap_4430sdp_init(void)
- 	omap_sfh7741prox_init();
- 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
- 	board_serial_init();
-+	omap4_sdp4430_wifi_init();
- 	omap4_twl6030_hsmmc_init(mmc);
- 
- 	usb_musb_init(&musb_board_data);
--- 
-1.7.0.4
+Probably that would be useful for some use-cases.  there are two 
+issues with SIGSTOP/SIGCONT that I'm aware of, compared to freezing:
 
+1. if sent from a userspace process, SIGSTOP/SIGCONT are potentially racy 
+with respect to system calls like setsid(), such that the sender may miss 
+some processes;
+
+2. SIGSTOP/SIGCONT are observable, so could cause side-effects: see for 
+example 
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=Documentation/cgroups/freezer-subsystem.txt;h=c21d77742a0799424b09466857681ddcc7100f8b;hb=HEAD#l19
+
+> > > As I understand it, this is really the basis for the modern Android 
+> > > use-case for wakelocks and opportunistic suspend.  They prevent 
+> > > non-power-privileged userspace applications from keeping the system from 
+> > > entering a low-power state.  (Secondarily, suspend also prevents kernel 
+> > > code from running, e.g., timers set by filesystems, the networking stack, 
+> > > etc.; but problems here should be fixed in the offending kernel code, 
+> > > rather than hacked around, since some of the users of those timers could 
+> > > be important)
+> > 
+> > I think you have oversimplified things a little, but never mind...
+> 
+> Well, saying "a little" is an overstatement. :-)
+
+What parts do you feel were oversimplified?
+
+> This was given as one of the arguments why using the wakelocks mechanism
+> along with the opportunistic suspend might be regarded as a good idea, but
+> I think the _real_ reason why it is used by Android is that the system
+> suspend framework was usable already when Android was being developed and if
+> they wanted to get acceptable battery lives at that time, they simply had no
+> choice but to use it.
+
+This is why "modern" was written in the original text: to contrast with 
+the historical rationale for suspend blockers.
+
+As I understand it, in the original Android implementation, the hardware 
+that they were using didn't have fine-grained power management.  So 
+system-wide suspend made more sense in that context.  But that shouldn't 
+be confused with the modern rationale for wakelocks:
+
+https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025668.html
+
+"On the hardware that shipped we enter the same power state from idle
+and suspend, so the only power savings we get from suspend that we
+don't get in idle is from not respecting the scheduler and timers."
+
+
+- Paul
