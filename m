@@ -1,92 +1,94 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 14/14] OMAP2+: clockdomain: Add an api to read idle mode
-Date: Fri, 24 Jun 2011 13:06:00 +0200
-Message-ID: <1308913560-333-15-git-send-email-b-cousson@ti.com>
-References: <y>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 2/2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
+Date: Fri, 24 Jun 2011 16:41:11 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2E04@dbde02.ent.ti.com>
+References: <1308911742-27394-1-git-send-email-premi@ti.com>
+ <1308911742-27394-3-git-send-email-premi@ti.com>
+ <20110624104331.GK9449@n2100.arm.linux.org.uk>
+ <B85A65D85D7EB246BE421B3FB0FBB593024D6C2DD9@dbde02.ent.ti.com>
+ <20110624105144.GL9449@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44219 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755229Ab1FXLGf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 07:06:35 -0400
-In-Reply-To: <y>
+Received: from bear.ext.ti.com ([192.94.94.41]:35383 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753197Ab1FXLLZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 07:11:25 -0400
+In-Reply-To: <20110624105144.GL9449@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Nayak, Rajendra <rnayak@ti.com>
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
+> Sent: Friday, June 24, 2011 4:22 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 2/2] omap2+: pm: cpufreq: Fix 
+> loops_per_jiffy calculation
+> 
+> On Fri, Jun 24, 2011 at 04:18:31PM +0530, Premi, Sanjeev wrote:
+> > > -----Original Message-----
+> > > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
+> > > Sent: Friday, June 24, 2011 4:14 PM
+> > > To: Premi, Sanjeev
+> > > Cc: linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org
+> > > Subject: Re: [PATCH 2/2] omap2+: pm: cpufreq: Fix 
+> > > loops_per_jiffy calculation
+> > > 
+> > > On Fri, Jun 24, 2011 at 04:05:42PM +0530, Sanjeev Premi wrote:
+> > > > Currently, loops_per_jiffy is being calculated before calling
+> > > > cpufreq_notify_transition().
+> > > > 
+> > > > However, generic cpufreq driver adjusts the jiffies as well.
+> > > > Double adjustment leads to incorrect value being assigned to
+> > > > loops_per_jiffy.
+> > > 
+> > > Are you sure the generic cpufreq driver adjusts the per-cpu 
+> > > loops_per_jiffy
+> > > values?  I don't believe it does.
+> > 
+> > Russell,
+> > 
+> > I am quoting the function from drivers/cpufreq/cpufreq.h
+> > Follow the arrows:
+> 
+> Let's go to war with quotes then, because clearly you haven't 
+> read the code
+> properly:
 
-Add a clockdomain api to check if hardware supervised
-idle transitions are enabled on a clockdomain.
+[sp] Peace. No war!
+     Looks like I missed the ifndef in systax highlighting on my
+     editor. As mentioned, I couldn't test on OMAP4.
+     The patch obvioulsy works for A8... SMP needs to be fixed.
+     v2 coming soon.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/clockdomain.c |   21 +++++++++++++++++++++
- arch/arm/mach-omap2/clockdomain.h |    3 +++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+~sanjeev
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 6cb6c03..2ab3686 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -795,6 +795,27 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
- 	arch_clkdm->clkdm_deny_idle(clkdm);
- }
- 
-+/**
-+ * clkdm_is_idle - Check if the clkdm hwsup/autoidle is enabled
-+ * @clkdm: struct clockdomain *
-+ *
-+ * Returns true if the clockdomain is in hardware-supervised
-+ * idle mode, or 0 otherwise.
-+ *
-+ */
-+int clkdm_is_idle(struct clockdomain *clkdm)
-+{
-+	if (!clkdm)
-+		return -EINVAL;
-+
-+	if (!arch_clkdm || !arch_clkdm->clkdm_is_idle)
-+		return -EINVAL;
-+
-+	pr_debug("clockdomain: reading idle state for %s\n", clkdm->name);
-+
-+	return arch_clkdm->clkdm_is_idle(clkdm);
-+}
-+
- 
- /* Clockdomain-to-clock framework interface code */
- 
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 5823584..085ed82 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -138,6 +138,7 @@ struct clockdomain {
-  * @clkdm_wakeup: Force a clockdomain to wakeup
-  * @clkdm_allow_idle: Enable hw supervised idle transitions for clock domain
-  * @clkdm_deny_idle: Disable hw supervised idle transitions for clock domain
-+ * @clkdm_is_idle: Check if hw supervised idle transitions are enabled
-  * @clkdm_clk_enable: Put the clkdm in right state for a clock enable
-  * @clkdm_clk_disable: Put the clkdm in right state for a clock disable
-  */
-@@ -154,6 +155,7 @@ struct clkdm_ops {
- 	int	(*clkdm_wakeup)(struct clockdomain *clkdm);
- 	void	(*clkdm_allow_idle)(struct clockdomain *clkdm);
- 	void	(*clkdm_deny_idle)(struct clockdomain *clkdm);
-+	int	(*clkdm_is_idle)(struct clockdomain *clkdm);
- 	int	(*clkdm_clk_enable)(struct clockdomain *clkdm);
- 	int	(*clkdm_clk_disable)(struct clockdomain *clkdm);
- };
-@@ -177,6 +179,7 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm);
- 
- void clkdm_allow_idle(struct clockdomain *clkdm);
- void clkdm_deny_idle(struct clockdomain *clkdm);
-+int clkdm_is_idle(struct clockdomain *clkdm);
- 
- int clkdm_wakeup(struct clockdomain *clkdm);
- int clkdm_sleep(struct clockdomain *clkdm);
--- 
-1.7.0.4
-
+> 
+> | #ifndef CONFIG_SMP
+> ^^^^^^^^^^^^^^^^^^^^^
+> | static unsigned long l_p_j_ref;
+> | static unsigned int  l_p_j_ref_freq;
+> | 
+> | static void adjust_jiffies(unsigned long val, struct 
+> cpufreq_freqs *ci)
+> | {
+> | 	... code to adjust jiffies ...
+> | }
+> | #else
+> | static inline void adjust_jiffies(unsigned long val, struct 
+> cpufreq_freqs *ci)
+> | {
+> |         return;
+> | }
+> | #endif
+> 
+> Notice how if CONFIG_SMP is set, adjust_jiffies becomes a 
+> no-op.  So if
+> CONFIG_SMP=y, loops_per_jiffy will _not_ be scaled by core code.
+> 
