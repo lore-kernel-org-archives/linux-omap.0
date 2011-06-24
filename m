@@ -1,198 +1,71 @@
-From: jean.pihet@newoldbits.com
-Subject: [RFC/PATCH 9/9] OMAP2+: cpuidle only influences the MPU state
-Date: Fri, 24 Jun 2011 16:38:06 +0200
-Message-ID: <1308926286-30445-10-git-send-email-j-pihet@ti.com>
-References: <1308926286-30445-1-git-send-email-j-pihet@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
+Date: Fri, 24 Jun 2011 20:10:29 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2F08@dbde02.ent.ti.com>
+References: <1308923618-5333-1-git-send-email-premi@ti.com>
+ <4E04A0AB.40608@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:35819 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759400Ab1FXOin (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 10:38:43 -0400
-Received: by mail-wy0-f174.google.com with SMTP id 38so1962683wyb.19
-        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 07:38:42 -0700 (PDT)
-In-Reply-To: <1308926286-30445-1-git-send-email-j-pihet@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:44966 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759387Ab1FXOkl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 10:40:41 -0400
+In-Reply-To: <4E04A0AB.40608@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foun>
-Cc: Jean Pihet <j-pihet@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Jean Pihet <j-pihet@ti.com>
+> -----Original Message-----
+> From: Shilimkar, Santosh 
+> Sent: Friday, June 24, 2011 8:05 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix 
+> loops_per_jiffy calculation
+> 
+> On 6/24/2011 7:23 PM, Sanjeev Premi wrote:
+> > Currently, loops_per_jiffy is being calculated twice for
+> > non-SMP processors.
+> >   - Before calling cpufreq_notify_transition()
+> >   - From within cpufreq_notify_transition()
+> >
+> > Double adjustment leads to incorrect value being assigned to
+> > loops_per_jiffy. This manifests as incorrect BogoMIPS in
+> > "cat /proc/cpuinfo".
+> >
+> > The value of loops_per_jiffy needs to be calculated only
+> > when CONFIG_SMP is true. It is the core change included
+> > in this patch.
+> >
+> > The patch also leverages the definition of for_each_cpu()
+> > with and without CONFIG_SMP to consolidate the mechanism
+> > to call cpufreq_notify_transition().
+> >
+> > Signed-off-by: Sanjeev Premi<premi@ti.com>
+> 
+> NAK. This patch again doesn't make sense considering your issue.
+> Also jiffies should not be undated before changing the freq.
+> If the set_rate failed for some reason then you will have wrong
+> jiffies value.
+> 
+> I understand your issue now. The code for global lpj updation
+> should have been checking smp_on_up() instead of is_smp().
+> That one line change is enough. I will post a patch on
+> the same once I reach to office.
 
-Since cpuidle is a CPU centric framework it decides the MPU
-next power state based on the MPU exit_latency and target_residency
-figures.
+[sp] Suggest reading the patch before NAKing.
+     The patch is updating the loops_per_jiffy value "AFTER"
+     the frequency change has happenned and "BEFORE" post
+     change notification is sent.
 
-The rest of the power domains get their next power state programmed
-from the PM_QOS_DEV_WAKEUP_LATENCY class of the PM QoS framework,
-via the device wake-up latency constraints.
+~sanjeev
 
-Note: the exit_latency and target_residency figures of the MPU
-include the MPU itself and the peripherals needed for the MPU to
-execute instructions (e.g. main memory, caches, IRQ controller,
-MMU etc). Some of those peripherals can belong to other power domains
-than the MPU subsystem and so the corresponding latencies must be
-included in this figure.
 
-Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
-on MPU, CORE and PER.
-
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |   42 +++++++++++-------------------------
- 1 files changed, 13 insertions(+), 29 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 4bf6e6e..b43d1d2 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -37,26 +37,26 @@
- #ifdef CONFIG_CPU_IDLE
- 
- /*
-- * The latencies/thresholds for various C states have
-+ * The MPU latencies/thresholds for various C states have
-  * to be configured from the respective board files.
-  * These are some default values (which might not provide
-  * the best power savings) used on boards which do not
-  * pass these details from the board file.
-  */
- static struct cpuidle_params cpuidle_params_table[] = {
--	/* C1 */
-+	/* C1 . MPU WFI + Core active */
- 	{2 + 2, 5, 1},
--	/* C2 */
-+	/* C2 . MPU WFI + Core inactive */
- 	{10 + 10, 30, 1},
--	/* C3 */
-+	/* C3 . MPU CSWR + Core inactive */
- 	{50 + 50, 300, 1},
--	/* C4 */
-+	/* C4 . MPU OFF + Core inactive */
- 	{1500 + 1800, 4000, 1},
--	/* C5 */
-+	/* C5 . MPU RET + Core RET */
- 	{2500 + 7500, 12000, 1},
--	/* C6 */
-+	/* C6 . MPU OFF + Core RET */
- 	{3000 + 8500, 15000, 1},
--	/* C7 */
-+	/* C7 . MPU OFF + Core OFF */
- 	{10000 + 30000, 300000, 1},
- };
- #define OMAP3_NUM_STATES ARRAY_SIZE(cpuidle_params_table)
-@@ -64,7 +64,6 @@ static struct cpuidle_params cpuidle_params_table[] = {
- /* Mach specific information to be recorded in the C-state driver_data */
- struct omap3_idle_statedata {
- 	u32 mpu_state;
--	u32 core_state;
- 	u8 valid;
- };
- struct omap3_idle_statedata omap3_idle_data[OMAP3_NUM_STATES];
-@@ -98,7 +97,7 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- {
- 	struct omap3_idle_statedata *cx = cpuidle_get_statedata(state);
- 	struct timespec ts_preidle, ts_postidle, ts_idle;
--	u32 mpu_state = cx->mpu_state, core_state = cx->core_state;
-+	u32 mpu_state = cx->mpu_state;
- 
- 	/* Used to keep track of the total time in idle */
- 	getnstimeofday(&ts_preidle);
-@@ -107,7 +106,6 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	local_fiq_disable();
- 
- 	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
--	pwrdm_set_next_pwrst(core_pd, core_state);
- 
- 	if (omap_irq_pending() || need_resched())
- 		goto return_sleep_time;
-@@ -156,6 +154,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
- 	struct omap3_idle_statedata *cx = cpuidle_get_statedata(curr);
- 	u32 mpu_deepest_state = PWRDM_POWER_RET;
- 	u32 core_deepest_state = PWRDM_POWER_RET;
-+	u32 core_next_state = pwrdm_read_next_pwrst(core_pd);
- 
- 	if (enable_off_mode) {
- 		mpu_deepest_state = PWRDM_POWER_OFF;
-@@ -171,7 +170,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
- 	/* Check if current state is valid */
- 	if ((cx->valid) &&
- 	    (cx->mpu_state >= mpu_deepest_state) &&
--	    (cx->core_state >= core_deepest_state)) {
-+	    (core_next_state >= core_deepest_state)) {
- 		return curr;
- 	} else {
- 		int idx = OMAP3_NUM_STATES - 1;
-@@ -196,7 +195,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
- 			cx = cpuidle_get_statedata(&dev->states[idx]);
- 			if ((cx->valid) &&
- 			    (cx->mpu_state >= mpu_deepest_state) &&
--			    (cx->core_state >= core_deepest_state)) {
-+			    (core_next_state >= core_deepest_state)) {
- 				next = &dev->states[idx];
- 				break;
- 			}
-@@ -242,19 +241,11 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 	}
- 
- 	/*
--	 * FIXME: we currently manage device-specific idle states
--	 *        for PER and CORE in combination with CPU-specific
--	 *        idle states.  This is wrong, and device-specific
--	 *        idle management needs to be separated out into
--	 *        its own code.
--	 */
--
--	/*
- 	 * Prevent PER off if CORE is not in retention or off as this
- 	 * would disable PER wakeups completely.
- 	 */
- 	cx = cpuidle_get_statedata(state);
--	core_next_state = cx->core_state;
-+	core_next_state = pwrdm_read_next_pwrst(core_pd);
- 	per_next_state = per_saved_state = pwrdm_read_next_pwrst(per_pd);
- 	if ((per_next_state == PWRDM_POWER_OFF) &&
- 	    (core_next_state > PWRDM_POWER_RET))
-@@ -346,32 +337,26 @@ int __init omap3_idle_init(void)
- 	dev->safe_state = &dev->states[0];
- 	cx->valid = 1;	/* C1 is always valid */
- 	cx->mpu_state = PWRDM_POWER_ON;
--	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C2 . MPU WFI + Core inactive */
- 	cx = _fill_cstate(dev, 1, "MPU ON + CORE ON");
- 	cx->mpu_state = PWRDM_POWER_ON;
--	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C3 . MPU CSWR + Core inactive */
- 	cx = _fill_cstate(dev, 2, "MPU RET + CORE ON");
- 	cx->mpu_state = PWRDM_POWER_RET;
--	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C4 . MPU OFF + Core inactive */
- 	cx = _fill_cstate(dev, 3, "MPU OFF + CORE ON");
- 	cx->mpu_state = PWRDM_POWER_OFF;
--	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C5 . MPU RET + Core RET */
- 	cx = _fill_cstate(dev, 4, "MPU RET + CORE RET");
- 	cx->mpu_state = PWRDM_POWER_RET;
--	cx->core_state = PWRDM_POWER_RET;
- 
- 	/* C6 . MPU OFF + Core RET */
- 	cx = _fill_cstate(dev, 5, "MPU OFF + CORE RET");
- 	cx->mpu_state = PWRDM_POWER_OFF;
--	cx->core_state = PWRDM_POWER_RET;
- 
- 	/* C7 . MPU OFF + Core OFF */
- 	cx = _fill_cstate(dev, 6, "MPU OFF + CORE OFF");
-@@ -386,7 +371,6 @@ int __init omap3_idle_init(void)
- 			__func__);
- 	}
- 	cx->mpu_state = PWRDM_POWER_OFF;
--	cx->core_state = PWRDM_POWER_OFF;
- 
- 	dev->state_count = OMAP3_NUM_STATES;
- 	if (cpuidle_register_device(dev)) {
--- 
-1.7.4.1
-
+> 
+> Regards
+> Santosh
+> 
