@@ -1,57 +1,50 @@
-From: Kukjin Kim <kgene.kim@samsung.com>
-Subject: RE: [PATCH 14/25] ARM: pm: plat-s3c24xx: cleanup s3c_cpu_save
-Date: Fri, 24 Jun 2011 15:48:28 +0900
-Message-ID: <006d01cc323a$beed0c80$3cc72580$%kim@samsung.com>
-References: <20110623190900.GH9449@n2100.arm.linux.org.uk>
- <E1QZpLW-0005mn-4R@rmk-PC.arm.linux.org.uk>
+From: Jaswinder Singh <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] mfd: omap: Restore TLL initialization
+Date: Fri, 24 Jun 2011 12:33:09 +0530
+Message-ID: <BANLkTikODvHRWa6HHaWZr2Gy0SjBbn2J-w@mail.gmail.com>
+References: <1308862894-13802-1-git-send-email-jaswinder.singh@linaro.org>
+	<BANLkTikFFUREhKyPaZrhHZje0KeaA3ef8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-reply-to: <E1QZpLW-0005mn-4R@rmk-PC.arm.linux.org.uk>
-Content-language: ko
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BANLkTikFFUREhKyPaZrhHZje0KeaA3ef8Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ti-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Russell King - ARM Linux wrote:
-> 
-> s3c_cpu_save does not need to save any registers with the new
-> cpu_suspend calling convention.  Remove these redundant instructions.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+On 24 June 2011 11:52, Munegowda, Keshava <keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote=
+:
+> On Fri, Jun 24, 2011 at 2:31 AM, Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org=
+> wrote:
+>> The commit
+>> =A07e6502d577106fb5b202bbaac64c5f1b065 'mfd: Add omap-usbhs runtime =
+PM support'
+>> besides moving to RPM, removes necessary TLL initialization as well.
+>>
+>> Restore the TLL initialization, without which device detection fails=
+=2E
+>>
+>> Signed-off-by: Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>
+> if you move to RPM, you should'tn access these configuration/reset
+> registers in your driver.
+Sorry I don't get it.  Obviously the RPM backend here doesn't initializ=
+e
+the TLL and if it only manages the clocks, can't we safely assume that
+the pm_runtime_get_sync will get clocks to speed and the driver does
+the TLL init ?
 
-Tested-by: Kukjin Kim <kgene.kim@samsung.com>
+> moreover, the patch 'mfd: Add omap-usbhs runtime PM support' is
+> already reverted.
+Ok, though if the ultimate goal is to move on to RPM, this would be a
+step back.
+Btw, which tree could I find the revert in ?
 
-It works fine on Samsung stuff with this whole series.
-
-Thanks.
-
-Best regards,
-Kgene.
+Thanks,
+Jassi
 --
-Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
-SW Solution Development Team, Samsung Electronics Co., Ltd.
-
-> ---
->  arch/arm/plat-s3c24xx/sleep.S |    4 +---
->  1 files changed, 1 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/plat-s3c24xx/sleep.S b/arch/arm/plat-s3c24xx/sleep.S
-> index f822e62..6ada459 100644
-> --- a/arch/arm/plat-s3c24xx/sleep.S
-> +++ b/arch/arm/plat-s3c24xx/sleep.S
-> @@ -48,10 +48,8 @@
->  	*/
-> 
->  ENTRY(s3c_cpu_save)
-> -	stmfd	sp!, { r4 - r12, lr }
->  	adr	r3, BSYM(s3c24xx_finish_suspend)
-> -	bl	cpu_suspend
-> -	ldmfd	sp!, { r4 - r12, pc }
-> +	b	cpu_suspend
-> 
->  s3c24xx_finish_suspend:
->  	@@ jump to final code to send system to sleep
-> --
-> 1.7.4.4
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
