@@ -1,51 +1,67 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [linux-pm] Runtime PM discussion notes
-Date: Fri, 24 Jun 2011 15:27:03 -0700
-Message-ID: <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org>
-	<201106232234.21930.rjw@sisk.pl>
-	<alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v3 02/12] OMAP2+: UART: Remove uart clock handling code from serial.c
+Date: Fri, 24 Jun 2011 15:28:19 -0700
+Message-ID: <877h8ax3ss.fsf@ti.com>
+References: <1307532194-13039-1-git-send-email-govindraj.raja@ti.com>
+	<1307532194-13039-3-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:61908 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754822Ab1FXW1F convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 18:27:05 -0400
-Received: by qwk3 with SMTP id 3so1530245qwk.19
-        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 15:27:03 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:43659 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754822Ab1FXW2X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Jun 2011 18:28:23 -0400
+In-Reply-To: <1307532194-13039-3-git-send-email-govindraj.raja@ti.com>
+	(Govindraj R.'s message of "Wed, 8 Jun 2011 16:53:04 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-On Fri, Jun 24, 2011 at 12:53 PM, Paul Walmsley <paul@pwsan.com> wrote:
-=2E..
->
-> As I understand it, in the original Android implementation, the hardw=
-are
-> that they were using didn't have fine-grained power management. =A0So
-> system-wide suspend made more sense in that context. =A0But that shou=
-ldn't
-> be confused with the modern rationale for wakelocks:
->
-> https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025668=
-=2Ehtml
->
-> "On the hardware that shipped we enter the same power state from idle
-> and suspend, so the only power savings we get from suspend that we
-> don't get in idle is from not respecting the scheduler and timers."
->
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-This is no longer the case. Both the Nexus-S and Xoom enter lower
-power states from suspend than idle.
+> Cleanup serial.c file in preparation to addition of runtime api's in omap-serial
+> file. Remove all clock handling mechanism as this will be taken care with
+> pm runtime api's in omap-serial.c file itself.
+>
+> 1.) Remove omap-device enable and disable. We can can use get_sync/put_sync api's
+> 2.) Remove context save/restore can be done with runtime_resume callback for
+>     get_sync call. No need to save context as all reg details available in
+>     uart_port structure can be used for restore, so add missing regs in
+>     uart port struct.
+> 3.) Add func to identify console uart.
+> 4.) Erratum handling informed as flag to driver and func to handle erratum
+>     can be moved to omap-serial driver itself.
+>
+> Acked-by: Alan Cox <alan@linux.intel.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 
---=20
-Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[...]
+
+> @@ -47,65 +40,9 @@
+>  #include "control.h"
+>  #include "mux.h"
+>  
+> -#define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV	0x52
+> -#define UART_OMAP_WER		0x17	/* Wake-up enable register */
+> -
+> -#define UART_ERRATA_FIFO_FULL_ABORT	(0x1 << 0)
+> -#define UART_ERRATA_i202_MDR1_ACCESS	(0x1 << 1)
+> -
+> -/*
+> - * NOTE: By default the serial timeout is disabled as it causes lost characters
+> - * over the serial ports. This means that the UART clocks will stay on until
+> - * disabled via sysfs. This also causes that any deeper omap sleep states are
+> - * blocked. 
+> - */
+> -#define DEFAULT_TIMEOUT 0
+> -
+> -#define MAX_UART_HWMOD_NAME_LEN		16
+> +#define MAX_UART_HWMOD_NAME_LEN                16
+
+Minor: only whitespace change here, you converted tabs to spaces.
+
+Rest of this looks fine.
+
+Kevin
