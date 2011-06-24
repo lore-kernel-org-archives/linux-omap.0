@@ -1,107 +1,71 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Fri, 24 Jun 2011 21:04:56 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2F26@dbde02.ent.ti.com>
-References: <1308923618-5333-1-git-send-email-premi@ti.com>
- <20110624140142.GM9449@n2100.arm.linux.org.uk>
- <B85A65D85D7EB246BE421B3FB0FBB593024D6C2EF2@dbde02.ent.ti.com>
- <20110624141402.GN9449@n2100.arm.linux.org.uk>
- <20110624151201.GO9449@n2100.arm.linux.org.uk>
+From: "Nori, Sekhar" <nsekhar@ti.com>
+Subject: RE: [RFC 5/8] remoteproc: add davinci implementation
+Date: Fri, 24 Jun 2011 21:13:49 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2F29@dbde02.ent.ti.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
+	<1308640714-17961-6-git-send-email-ohad@wizery.com>
+	<4E035B78.3080200@mvista.com>
+	<FFF198FBBF957F4393BA834040FEFFA202D66E@DFLE35.ent.ti.com>
+	<4E04A9AE.3030801@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48251 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754190Ab1FXPfN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 11:35:13 -0400
-In-Reply-To: <20110624151201.GO9449@n2100.arm.linux.org.uk>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4E04A9AE.3030801@mvista.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>, "Grosen, Mark" <mgrosen@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
-> Sent: Friday, June 24, 2011 8:42 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix 
-> loops_per_jiffy calculation
+Hi Mark,
+
+On Fri, Jun 24, 2011 at 20:43:50, Sergei Shtylyov wrote:
+
+> >>> +	rproc->priv = dsp_clk;
+> >>> +
+> >>> +	psc_base = ioremap(soc_info->psc_bases[0], SZ_4K);
+> >>> +
+> >>> +	/* insure local reset is asserted before writing start address */
+> >>> +	__raw_writel(NEXT_ENABLED, psc_base + MDCTL + 4 *
+> >> DA8XX_LPSC0_GEM);
+> >>> +
+> >>> +	__raw_writel(bootaddr, DA8XX_SYSCFG0_VIRT(HOST1CFG));
 > 
-> Right, thanks for the file.  Here's the patch.
+> >>     DA8XX_SYSCFG0_VIRT() is not supposed to be used outside mach-davinci. The
+> >> variable it refers is not exported, so driver module won't work.
 > 
-> --- omap2plus-cpufreq.c~	2011-06-24 15:50:32.000000000 +0100
-> +++ omap2plus-cpufreq.c	2011-06-24 16:00:08.000000000 +0100
-> @@ -44,6 +44,16 @@
->  static char *mpu_clk_name;
->  static struct device *mpu_dev;
->  
-> +#ifdef CONFIG_SMP
-> +struct lpj_info {
-> +	unsigned long	ref;
-> +	unsigned int	freq;
-> +};
-> +
-> +static DEFINE_PER_CPU(struct lpj_info, lpj_ref);
-> +static struct lpj_info global_lpj_ref;
-> +#endif
-> +
->  static int omap_verify_speed(struct cpufreq_policy *policy)
->  {
->  	if (!freq_table)
-> @@ -109,14 +119,25 @@
->  	freqs.new = omap_getspeed(policy->cpu);
->  
->  #ifdef CONFIG_SMP
-> -	/* Adjust jiffies before transition */
-> +	/* Adjust per-cpu loops_per_jiffy before transition */
->  	for_each_cpu(i, policy->cpus) {
-> -		unsigned long lpj = per_cpu(cpu_data, 
-> i).loops_per_jiffy;
-> -
-> -		per_cpu(cpu_data, i).loops_per_jiffy = 
-> cpufreq_scale(lpj,
-> -							freqs.old,
-> -							freqs.new);
-> +		struct lpj_info *lpj = &per_cpu(lpj_ref, i);
-> +		if (!lpj->freq) {
-> +			lpj->ref = per_cpu(cpu_data, i).loops_per_jiffy;
-> +			lpj->freq = freqs.old;
-> +		}
-> +
-> +		per_cpu(cpu_data, i).loops_per_jiffy =
-> +			cpufreq_scale(lpj->ref, lpj->freq, freqs.new);
-> +	}
-> +
-> +	/* And don't forget to adjust the global one */
-> +	if (!global_lpj_ref.freq) {
-> +		global_lpj_ref.ref = loops_per_jiffy;
-> +		global_lpj_ref.freq = freqs.old;
->  	}
-> +	loops_per_jiffy = cpufreq_scale(global_lpj_ref.ref, 
-> global_lpj_ref.freq,
-> +					freqs.new);
->  #endif
->  
->  	/* Notify transitions */
+> > Ooops, I clearly did not build this as a module. Suggestion how to fix this?
 > 
-> 
-> Notice how we adjust _both_ the per-cpu loops_per_jiffy, and that we
-> adjust them with reference to the initial values.
-> 
-> If you adjust lpj with reference to the last, then you _will_ build up
-> a progressively bigger and bigger error in the value over time.
+>     Using the normal ioremap() of SYSCFG0 space, I suppose.
 
-Russell,
+Since procedure to set the boot address varies across DaVinci
+platforms, you could have a callback populated in platform data
+which will be implemented differently for original DaVinci and
+DA8xx devices.
 
-I definitely didn't see so many things through your comments. But
-that may just be reflection of my naivety with SMP!
+Also, all PSC accesses are better off going through clock
+framework to ensure proper locking and modularity.
 
-I am currently testing another patch for beagle - will apply and
-test on OMAP3EVM (just to be sure).
+To assert/de-assert local reset when enabling or disabling PSC,
+you could use a flag in the clock structure to indicate the need
+for this. This way, if there is any other module needing a local
+reset, it can just define the same flag. Similarly, if the DSP
+does not need a local reset on a particular platform, that
+platform can simply skip the flag.
 
-Can I include it in my next patch rev?
+This can be done in a manner similar to how the support for
+a forced transition PSC was added here:
 
-~sanjeev
+https://patchwork.kernel.org/patch/662941/
+
+Thanks,
+Sekhar
