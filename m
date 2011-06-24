@@ -1,53 +1,61 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] OMAP3: PM: remove get_*_restore_pointer functions, directly
- use entry points
-Date: Fri, 24 Jun 2011 05:55:36 +0530
-Message-ID: <4E03D980.9000705@ti.com>
-References: <1308874574-30663-1-git-send-email-khilman@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [GIT PULL] misc. OMAP PM updates for v3.1
+Date: Thu, 23 Jun 2011 17:37:15 -0700
+Message-ID: <87vcvw5akk.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:37407 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759923Ab1FXAZk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jun 2011 20:25:40 -0400
-Received: by mail-yw0-f43.google.com with SMTP id 2so1245324ywt.2
-        for <linux-omap@vger.kernel.org>; Thu, 23 Jun 2011 17:25:39 -0700 (PDT)
-In-Reply-To: <1308874574-30663-1-git-send-email-khilman@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Jean Pihet <jean.pihet@newoldbits.com>, linux-arm-kernel@lists.infradead.org
 
-On 6/24/2011 5:46 AM, Kevin Hilman wrote:
-> Upon return from off-mode, the ROM code jumps to a restore function
-> saved in the scratchpad.  Based on SoC revision or errata, this
-> restore entry point is different.  Current code uses some helper
-> functions in sleep34xx.S (get_*_restore_pointer) to get the restore
-> function entry point.
->
-> When returning from off-mode, this code is executed from SDRAM, so
-> there's no reason to use these helper functions when using the SDRAM
-> entry points directly would work just fine.
->
-> This patch uses ENTRY/ENDPROC to create "real" entry points for these
-> functions, and uses those values directly when writing the scratchpad.
->
-> Tested all three entry points
-> - restore_es3: 3430/n900
-> - restore_3630: 3630/Zoom3
-> - restore: 3530/Overo
->
-> Suggested-by: Russell King<rmk+kernel@arm.linux.org.uk>
-> Cc: Jean Pihet<jean.pihet@newoldbits.com>
-> Signed-off-by: Kevin Hilman<khilman@ti.com>
-> ---
-This is a nice change. In general now omap3 suspend code
-is looking much cleaner and after Jean's DDR patch, it would
-be even better.
+Tony,
 
-For this patch, my ack if you need one
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Please pull the following misc. OMAP PM updates targetted for v3.1.
 
+This branch is based on your 'fixes' branch due to some dependencies.
+
+Kevin
+
+
+The following changes since commit b8ce9fb8e18af7466e0b915bb5979322cdace322:
+
+  Merge branch 'fixes-v3.0-rc3' into devel-fixes (2011-06-14 05:53:42 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.1/pm-misc
+
+Kevin Hilman (4):
+      OMAP3: PM debug: remove sleep_while_idle feature
+      OMAP2: PM debug: remove register dumping
+      OMAP3: PM debug: remove register dumping
+      OMAP2: PM debug: move wakeup timer into clockevent code
+
+Nishanth Menon (4):
+      OMAP3+: SR: make notify independent of class
+      OMAP3+: SR: disable interrupt by default
+      OMAP3+: SR: enable/disable SR only on need
+      OMAP3+: SR: fix cosmetic indentation
+
+Sanjeev Premi (1):
+      OMAP2+: PM: fix section mismatch in pm_dbg_init()
+
+ arch/arm/mach-omap2/pm-debug.c            |  364 +----------------------------
+ arch/arm/mach-omap2/pm.h                  |    9 -
+ arch/arm/mach-omap2/pm24xx.c              |    6 +-
+ arch/arm/mach-omap2/pm34xx.c              |    6 -
+ arch/arm/mach-omap2/smartreflex.c         |   38 ++--
+ arch/arm/mach-omap2/timer-gp.c            |   33 +++-
+ arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
+ 7 files changed, 53 insertions(+), 404 deletions(-)
