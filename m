@@ -1,63 +1,115 @@
-From: Jaswinder Singh <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH] regulator: twl: Add 'fixed' set_voltage callback
-Date: Fri, 24 Jun 2011 18:36:10 +0530
-Message-ID: <BANLkTi=pWMmfH+GV_kwm8_MtjPpsdNWD6w@mail.gmail.com>
-References: <1308862014-11212-1-git-send-email-jaswinder.singh@linaro.org>
-	<20110624111929.GC9483@opensource.wolfsonmicro.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 0/7] Fix module-mode enable sequence on OMAP4
+Date: Fri, 24 Jun 2011 06:23:37 -0700
+Message-ID: <4E048FD9.6060501@ti.com>
+References: <1308917193-16912-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:65251 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701Ab1FXNGM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 09:06:12 -0400
-In-Reply-To: <20110624111929.GC9483@opensource.wolfsonmicro.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:55993 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752895Ab1FXNXo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Jun 2011 09:23:44 -0400
+Received: by pzk28 with SMTP id 28so1933986pzk.36
+        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 06:23:42 -0700 (PDT)
+In-Reply-To: <1308917193-16912-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, ti@lists.linaro.org, linux-omap@vger.kernel.org, lrg@ti.com, sameo@linux.intel.com
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: paul@pwsan.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org
 
-On 24 June 2011 16:49, Mark Brown <broonie@opensource.wolfsonmicro.com>=
- wrote:
-> On Fri, Jun 24, 2011 at 02:16:54AM +0530, Jassi Brar wrote:
->> Define dummy set_voltage callback for fixed lines,
->> without which voltage constraints fail to apply.
->>
->> Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
+On 6/24/2011 5:06 AM, Benoit Cousson wrote:
+> Hi Paul&  Rajendra,
 >
-> No, this isn't sensible - fixed voltage regulators aren't an unusual
-> property of this device, they've very common. =C2=A0The core should h=
-andle
-> this gracefully. =C2=A0Probably whatever consumer is doing the settin=
-g also
-> ought to be updated to check that the voltages it wants to set are
-> supported at startup since
+> Here is an updated version of the series started by Rajendra.
+> I had to update it because this series is mandatory for the hwmod
+> modulemodule control series.
+> I rebased it on top of the various fixes done on hwmod framework
+> and to take advantage of the new clkdm attribute in omap_hwmod.
+> I thus added 2 new APIs to handle clockdomain from hwmod instead
+> of using the clockdomain done for clock.
+>
+> I drop the clockdomain control for optional clocks that is not
+> mandatory.
 
-Well, there's no consumer in the picture yet. The core even fails to re=
-gister
-the regulator.
-After digging deeper, I realized removing
-       .apply_uV =3D true;
-from the constraints is the correct solution. Patch is coming next.
+There were also some locking issues with this series pointed out
+by Todd, for which I did a RFC patch to add a per-clkdm lock.
+Any thoughts on that? We might need that or something similar to
+prevent concurrent clkdm states being programmed, now that they
+are done from hwmod (with a per-hwmod lock held) instead of being
+earlier done from clk framework with a global lock held.
 
-> otherwise it can end up repeatedly trying to
-> set something that'll never work.
-Though the semantic could be defined that the 'closest' possible value
-is already
-set after the set_{voltage,current_limit} returns.
-The consumer has no point in retrying - just like sample-rate setting
-in Alsa works.
+>
+>
+> On OMAP4, the PRCM recommended sequence for enabling a module after
+> power-on-reset is:
+>
+> -1- Force clkdm to SW_WKUP
+> -2- Configure desired module mode to "enable" or "auto"
+> -3- Wait for the desired module idle status to be FUNC
+> -4- Program clkdm in HW_AUTO(if supported)
+>
+> This sequence applies to all older OMAPs' as well, however since
+> they use 'autodeps', it makes sure that no clkdm is in IDLE, and
+> hence not requiring a force SW_WKUP when a module is being enabled.
+>
+> OMAP4 does not need to support autodeps, because of the dynamic
+> dependency feature, wherein the HW takes care of waking up a
+> clockdomain from idle and hence the module, whenever an interconnect
+> access happens to the given module.
+>
+> Implementing the sequence for OMAP4 requires some of the clockdomain
+> handling that is currently done in clock framework to be done as part
+> of hwmod framework since the step -3- above to "Wait for the desired
+> module idle status to be FUNC" is done as part of hwmod framework.
+>
+> This series moves the clockdomain handling into hwmod framework and
+> implements the above sequence for OMAP4.
+>
+> Lastly, with this series drivers which are yet to be adapted to PM
+> runtime and still rely on clock calls to enable/disable the respective
+> *main* clocks are expected to be broken. MMC is one such which even
+> breaks boot, and hence the series has a TEMP workaround patch added
+> which keeps l3init clockdomain always force-enabled.
+> This TEMP patch will gate all CORE low power transitions but should
+> at least allow MPU low power transitions to work.
+>
+> The series is based on for_3.0.1/4_hwmod_modulemode and tested on
+> OMAP4430 ES2.1 + SDP. It should not affect OMAP2&  3, but some
+> testing are definitively needed.
+>
+> The patches are available here:
+> git://gitorious.org/omap-pm/linux.git for_3.0.1/5_hwmod_clkdm_fixes
+>
+> Regards,
+> Benoit
+>
+>
+> v1:
+>      http://www.spinics.net/lists/linux-omap/msg52265.html
+>
+>
+> Benoit Cousson (1):
+>    OMAP2+: clockdomain: Add 2 APIs to control clockdomain from hwmod framework
+>
+> Nayak, Rajendra (6):
+>    OMAP2+: clockdomain: Add an api to read idle mode
+>    OMAP2+: clockdomain: Add SoC support for clkdm_is_idle
+>    OMAP2+: PM: Initialise sleep_switch to a non-valid value
+>    OMAP2+: PM: idle clkdms only if already in idle
+>    OMAP4: PM: TEMP: Prevent l3init from idling/force sleep
+>    OMAP2+: hwmod: Follow the recommended PRCM module enable sequence
+>
+>   arch/arm/mach-omap2/clock.c                 |   17 +---
+>   arch/arm/mach-omap2/clockdomain.c           |  171 ++++++++++++++++++++++-----
+>   arch/arm/mach-omap2/clockdomain.h           |    6 +
+>   arch/arm/mach-omap2/clockdomain2xxx_3xxx.c  |   12 ++
+>   arch/arm/mach-omap2/clockdomain44xx.c       |   16 ++--
+>   arch/arm/mach-omap2/clockdomains44xx_data.c |    2 +-
+>   arch/arm/mach-omap2/omap_hwmod.c            |   28 ++++-
+>   arch/arm/mach-omap2/pm.c                    |    6 +-
+>   8 files changed, 200 insertions(+), 58 deletions(-)
+>
 
-Thanks,
-Jassi
-
---=20
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106 =C2=A0-
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
