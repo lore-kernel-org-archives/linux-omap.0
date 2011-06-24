@@ -1,168 +1,98 @@
 From: Kevin Hilman <khilman@ti.com>
 Subject: Re: [PATCHv3 2/6] PRCM: Add support for PAD wakeup interrupts
-Date: Fri, 24 Jun 2011 14:21:00 -0700
-Message-ID: <87fwmzylhf.fsf@ti.com>
+Date: Fri, 24 Jun 2011 14:34:32 -0700
+Message-ID: <87sjqyykuv.fsf@ti.com>
 References: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
 	<1308760934-9757-3-git-send-email-t-kristo@ti.com>
+	<BANLkTingCPNkpcyfNwy2=M75n6cmVUR6Yg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:51042 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753951Ab1FXVVD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jun 2011 17:21:03 -0400
-Received: by mail-pz0-f48.google.com with SMTP id 10so2597493pzk.21
-        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 14:21:03 -0700 (PDT)
-In-Reply-To: <1308760934-9757-3-git-send-email-t-kristo@ti.com> (Tero Kristo's
-	message of "Wed, 22 Jun 2011 19:42:10 +0300")
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:39397 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751436Ab1FXVeg convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Jun 2011 17:34:36 -0400
+Received: by mail-pz0-f43.google.com with SMTP id 1so2209187pzk.30
+        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 14:34:35 -0700 (PDT)
+In-Reply-To: <BANLkTingCPNkpcyfNwy2=M75n6cmVUR6Yg@mail.gmail.com> (Govindraj's
+	message of "Thu, 23 Jun 2011 15:53:29 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
 
-Tero Kristo <t-kristo@ti.com> writes:
+Govindraj <govindraj.ti@gmail.com> writes:
 
-> PRCM interrupt handler will now parse registered pads to see whether there
-> is an active wakeup event. If this is the case, the corresponding interrupt
-> will be triggered. This can be used for example with UART driver to register
-> PAD wakeup event for the UART RX pin, and when this happens, UART interrupt
-> will be triggered.
+> On Wed, Jun 22, 2011 at 10:12 PM, Tero Kristo <t-kristo@ti.com> wrote=
+:
+>> PRCM interrupt handler will now parse registered pads to see whether=
+ there
+>> is an active wakeup event. If this is the case, the corresponding in=
+terrupt
+>> will be triggered. This can be used for example with UART driver to =
+register
+>> PAD wakeup event for the UART RX pin, and when this happens, UART in=
+terrupt
+>> will be triggered.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+
+[...]
+
+>> @@ -153,6 +184,25 @@ int omap_prcm_event_to_irq(const char *name)
+>> =C2=A0}
+>>
+>> =C2=A0/*
+>> + * Register interrupt handler for a given pad. When the PRCM interr=
+upt
+>> + * handler detects wakeupevent on the corresponding pad, the IRQ wi=
+ll
+>> + * be triggered.
+>> + */
+>> +int omap_prcm_register_pad_irq(u32 pad, unsigned int irq)
 >
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  arch/arm/mach-omap2/prcm.c             |   50 ++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/prcm.h |    1 +
->  2 files changed, 51 insertions(+), 0 deletions(-)
+> I tested this v3 series seems to work fine.
 >
-> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> index 362c59c..cc92064 100644
-> --- a/arch/arm/mach-omap2/prcm.c
-> +++ b/arch/arm/mach-omap2/prcm.c
-> @@ -53,6 +53,15 @@ static struct omap_prcm_irq *omap_prcm_irqs;
->  /* Number of entries in omap_prcm_irqs */
->  static int omap_prcm_irqs_nr;
->  
-> +/* PAD handlers list */
-> +struct pad_def {
-> +	u32 pad;
-> +	unsigned int irq;
-> +	struct list_head node;
-> +};
-> +
-> +static LIST_HEAD(pad_handler_list);
-> +
->  /* Pointers to either OMAP3 or OMAP4 specific functions */
->  static void (*omap_prcm_mask_event)(unsigned event);
->  static void (*omap_prcm_unmask_event)(unsigned event);
-> @@ -84,6 +93,25 @@ static struct irq_chip prcm_irq_chip = {
->  	.irq_unmask	= prcm_irq_unmask,
->  };
->  
-> +
-> +/*
-> + * Handler for PAD irqs, called from PRCM interrupt handler
-> + */
-> +static void omap_prcm_handle_pad_irqs(void)
-> +{
-> +	struct pad_def *def;
-> +	u16 val = 0;
+> Minor comments.
+>
+> Can we make the prcm_register interface params with mux_name
+> or
+> even omap_hmwod and with hwmod api's check
+> wake-up event through a mux api as here [1]
+> rather than passing pad offset.
 
-minor: insert blank line between variables and code
+Hmm, good point.
 
-> +	list_for_each_entry(def, &pad_handler_list, node) {
-> +		/* Read padconf value based on cpu type */
-> +		if (cpu_is_omap34xx())
-> +			val = omap_ctrl_readw(def->pad);
+In fact, each omap_hwmod already knows about the pads and the IRQ for
+each IP block, so another API to create that mapping isn't really
+needed.
 
-We need to avoid cpu_is_* checks in driver code.
+Instead, what we need is simply a way register an omap_hwmod with the
+PRCM layer to indicate that it should trigger the IRQ whenever a wakup
+is detected.   Then, when a wakeup event is detected, it could call
+a new omap_hwmod_mux_* function which would use the IRQ in the hwmod an=
+d
+call generic_handle_irq().
 
-What we'll need is another control-module API for reading a padconf, and
-the SoC-specific implementation can be managed by the control module code.
+I think adding to Govindraj's patch below[1] with a new API to handle
+the irq: omap_hwmod_mux_handle_irq() or something similar would be the
+right way to handle this.
 
-> +		/* if pad wakeupevent is active, fire registered IRQ */
-> +		if (val & OMAP3_PADCONF_WAKEUPEVENT0)
-
-Does this need to be masked with the wakeup enable?  IOW, is it possible
-to find an pad with a masked wakeup event?  Might be worth double
-checking the TRM on that one, but masking with the enable would not hurt
-here.
-
-> +			generic_handle_irq(def->irq);
-
-Nice, I wish I thought of that!  I was trying to figure out how to SW
-trigger a hard IRQ, but this is much better and doesn't rely on any
-hardware feature.   Sometimes the simplest solution is the best. :)
-
-> +	}
-> +}
-> +
->  /*
->   * PRCM Interrupt Handler
->   *
-> @@ -106,6 +134,9 @@ static void prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
->  	unsigned long pending[OMAP_PRCM_MAX_NR_PENDING_REG];
->  	struct irq_chip *chip = irq_desc_get_chip(desc);
->  
-> +	/* Handle PAD events first, we don't want to ack them before parse */
-> +	omap_prcm_handle_pad_irqs();
-> +
-
-Handling here is fine, but it's not terribly clear on first read where
-the events are eventually cleared.  
-
-I see now that they are cleared upon entry into the idle path, but I
-think it would help readability if they were cleared after this handler
-runs.
-
->  	/*
->  	 * Loop until all pending irqs are handled, since
->  	 * generic_handle_irq(), called by prcm_irq_handle_virtirqs()
-> @@ -153,6 +184,25 @@ int omap_prcm_event_to_irq(const char *name)
->  }
->  
->  /*
-> + * Register interrupt handler for a given pad. When the PRCM interrupt
-> + * handler detects wakeupevent on the corresponding pad, the IRQ will
-> + * be triggered.
-
-This comment needs a minor change: technically, it's not the IRQ that is
-triggered but the ISR for that IRQ will be called.
-
-The same change should be made in the changelog.
-
-> + */
-> +int omap_prcm_register_pad_irq(u32 pad, unsigned int irq)
-> +{
-> +	struct pad_def *def;
-> +
-> +	def = kmalloc(sizeof(struct pad_def), GFP_ATOMIC);
-> +	if (!def)
-> +		return -ENOMEM;
-> +
-> +	def->pad = pad;
-> +	def->irq = irq;
-> +	list_add(&def->node, &pad_handler_list);
-> +	return 0;
-> +}
-
-This wants an unregister counterpart.
-
-> +/*
->   * Prepare the array of PRCM events corresponding to the current SoC,
->   * and set-up the chained interrupt handler mechanism.
->   */
-> diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
-> index 5785555..789eb17 100644
-> --- a/arch/arm/plat-omap/include/plat/prcm.h
-> +++ b/arch/arm/plat-omap/include/plat/prcm.h
-> @@ -72,6 +72,7 @@ void omap4_prcm_pending_events(unsigned long *pending);
->  int omap_prcm_event_to_irq(const char *name);
->  int omap_prcm_irq_init(void);
->  void omap_prcm_irq_cleanup(void);
-> +int omap_prcm_register_pad_irq(u32 pad, unsigned int irq);
->  u32 omap_prcm_get_reset_sources(void);
->  int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, u8 idlest,
->  			 const char *name);
+> since I planning to test uart-runtime changes with irq_chaining,
+> pad offsets are no more available with uart-runtime
+> and uses hmwod_mux api's.
+>
+> --
+> Thanks,
+> Govindraj.R
+>
+> [1] https://patchwork.kernel.org/patch/773932/
 
 Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
