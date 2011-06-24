@@ -1,141 +1,92 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 13/14] OMAP4: hwmod: Introduce the module control in hwmod control
-Date: Fri, 24 Jun 2011 13:05:59 +0200
-Message-ID: <1308913560-333-14-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 14/14] OMAP2+: clockdomain: Add an api to read idle mode
+Date: Fri, 24 Jun 2011 13:06:00 +0200
+Message-ID: <1308913560-333-15-git-send-email-b-cousson@ti.com>
 References: <y>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51901 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755134Ab1FXLGe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jun 2011 07:06:34 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:44219 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755229Ab1FXLGf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 07:06:35 -0400
 In-Reply-To: <y>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
-Cc: rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+Cc: rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org
 
-Take advantage of the explicit modulemode control to fix
-the way parents clocks are managed.
-A module must be disabled before any parents are disabled.
-That programming model was not possible with the previous
-implementation that was considering a modulemode as a leaf
-clock node managed by the clock fmwk.
-This was leading to bad crash upon disable when the parent
-clock was gated before the module completed its transition
-to idle.
+From: Nayak, Rajendra <rnayak@ti.com>
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
+Add a clockdomain api to check if hardware supervised
+idle transitions are enabled on a clockdomain.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   63 ++++++++++++++++++++++++++++++++++++-
- 1 files changed, 61 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/clockdomain.c |   21 +++++++++++++++++++++
+ arch/arm/mach-omap2/clockdomain.h |    3 +++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 5c0169c..6b144c4 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -675,6 +675,56 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 6cb6c03..2ab3686 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -795,6 +795,27 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+ 	arch_clkdm->clkdm_deny_idle(clkdm);
  }
  
- /**
-+ * _enable_module - enable CLKCTRL modulemode on OMAP4
-+ * @oh: struct omap_hwmod *
++/**
++ * clkdm_is_idle - Check if the clkdm hwsup/autoidle is enabled
++ * @clkdm: struct clockdomain *
 + *
-+ * Enables the PRCM module mode related to the hwmod @oh.
-+ * No return value.
++ * Returns true if the clockdomain is in hardware-supervised
++ * idle mode, or 0 otherwise.
++ *
 + */
-+static void _enable_module(struct omap_hwmod *oh)
++int clkdm_is_idle(struct clockdomain *clkdm)
 +{
-+	/* The module mode does not exist prior OMAP4 */
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+		return;
++	if (!clkdm)
++		return -EINVAL;
 +
-+	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
-+		return;
++	if (!arch_clkdm || !arch_clkdm->clkdm_is_idle)
++		return -EINVAL;
 +
-+	pr_debug("omap_hwmod: %s: _enable_module: %d\n",
-+		 oh->name, oh->prcm.omap4.modulemode);
++	pr_debug("clockdomain: reading idle state for %s\n", clkdm->name);
 +
-+	omap4_cm_module_enable(oh->prcm.omap4.modulemode,
-+			       oh->clkdm->prcm_partition,
-+			       oh->clkdm->cm_inst,
-+			       oh->clkdm->clkdm_offs,
-+			       oh->prcm.omap4.clkctrl_offs);
++	return arch_clkdm->clkdm_is_idle(clkdm);
 +}
 +
-+/**
-+ * _disable_module - enable CLKCTRL modulemode on OMAP4
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Disable the PRCM module mode related to the hwmod @oh.
-+ * No return value.
-+ */
-+static void _disable_module(struct omap_hwmod *oh)
-+{
-+	/* The module mode does not exist prior OMAP4 */
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+		return;
-+
-+	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
-+		return;
-+
-+	pr_debug("omap_hwmod: %s: _disable_module\n", oh->name);
-+
-+	omap4_cm_module_disable(oh->clkdm->prcm_partition,
-+				oh->clkdm->cm_inst,
-+				oh->clkdm->clkdm_offs,
-+				oh->prcm.omap4.clkctrl_offs);
-+}
-+
-+/**
-  * _find_mpu_port_index - find hwmod OCP slave port ID intended for MPU use
-  * @oh: struct omap_hwmod *
-  *
-@@ -1329,6 +1379,7 @@ static int _enable(struct omap_hwmod *oh)
  
- 	_add_initiator_dep(oh, mpu_oh);
- 	_enable_clocks(oh);
-+	_enable_module(oh);
+ /* Clockdomain-to-clock framework interface code */
  
- 	/*
- 	 * If an IP contains only one HW reset line, then de-assert it in order
-@@ -1381,11 +1432,18 @@ static int _idle(struct omap_hwmod *oh)
- 	if (oh->class->sysc)
- 		_idle_sysc(oh);
- 	_del_initiator_dep(oh, mpu_oh);
--	_disable_clocks(oh);
-+	_disable_module(oh);
- 	ret = _wait_target_disable(oh);
- 	if (ret)
- 		pr_warning("omap_hwmod: %s: _wait_target_disable failed\n",
- 			   oh->name);
-+	/*
-+	 * The module must be in idle mode before disabling any parents
-+	 * clocks. Otherwise, the parent clock might be disabled before
-+	 * the module transition is done, and thus will prevent the
-+	 * transition to complete properly.
-+	 */
-+	_disable_clocks(oh);
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 5823584..085ed82 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -138,6 +138,7 @@ struct clockdomain {
+  * @clkdm_wakeup: Force a clockdomain to wakeup
+  * @clkdm_allow_idle: Enable hw supervised idle transitions for clock domain
+  * @clkdm_deny_idle: Disable hw supervised idle transitions for clock domain
++ * @clkdm_is_idle: Check if hw supervised idle transitions are enabled
+  * @clkdm_clk_enable: Put the clkdm in right state for a clock enable
+  * @clkdm_clk_disable: Put the clkdm in right state for a clock disable
+  */
+@@ -154,6 +155,7 @@ struct clkdm_ops {
+ 	int	(*clkdm_wakeup)(struct clockdomain *clkdm);
+ 	void	(*clkdm_allow_idle)(struct clockdomain *clkdm);
+ 	void	(*clkdm_deny_idle)(struct clockdomain *clkdm);
++	int	(*clkdm_is_idle)(struct clockdomain *clkdm);
+ 	int	(*clkdm_clk_enable)(struct clockdomain *clkdm);
+ 	int	(*clkdm_clk_disable)(struct clockdomain *clkdm);
+ };
+@@ -177,6 +179,7 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm);
  
- 	/* Mux pins for device idle if populated */
- 	if (oh->mux && oh->mux->pads_dynamic)
-@@ -1477,11 +1535,12 @@ static int _shutdown(struct omap_hwmod *oh)
- 	if (oh->_state == _HWMOD_STATE_ENABLED) {
- 		_del_initiator_dep(oh, mpu_oh);
- 		/* XXX what about the other system initiators here? dma, dsp */
--		_disable_clocks(oh);
-+		_disable_module(oh);
- 		ret = _wait_target_disable(oh);
- 		if (ret)
- 			pr_warning("omap_hwmod: %s: _wait_target_disable failed\n",
- 				   oh->name);
-+		_disable_clocks(oh);
- 	}
- 	/* XXX Should this code also force-disable the optional clocks? */
+ void clkdm_allow_idle(struct clockdomain *clkdm);
+ void clkdm_deny_idle(struct clockdomain *clkdm);
++int clkdm_is_idle(struct clockdomain *clkdm);
  
+ int clkdm_wakeup(struct clockdomain *clkdm);
+ int clkdm_sleep(struct clockdomain *clkdm);
 -- 
 1.7.0.4
 
