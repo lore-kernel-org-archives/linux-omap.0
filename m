@@ -1,112 +1,45 @@
 From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 2/2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Fri, 24 Jun 2011 18:22:48 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2EA3@dbde02.ent.ti.com>
+Subject: RE: [PATCH 1/2] omap2+: pm: Use if...else instead of goto
+Date: Fri, 24 Jun 2011 18:24:04 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2EA4@dbde02.ent.ti.com>
 References: <1308911742-27394-1-git-send-email-premi@ti.com>
-	<1308911742-27394-3-git-send-email-premi@ti.com>
-	<20110624104331.GK9449@n2100.arm.linux.org.uk>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2DD9@dbde02.ent.ti.com>
- <20110624105144.GL9449@n2100.arm.linux.org.uk> <4E0486FD.2080604@ti.com>
+ <1308911742-27394-2-git-send-email-premi@ti.com> <4E048793.1020505@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48337 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751094Ab1FXMxE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 08:53:04 -0400
-In-Reply-To: <4E0486FD.2080604@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:56060 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751094Ab1FXMyP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 08:54:15 -0400
+In-Reply-To: <4E048793.1020505@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 > -----Original Message-----
 > From: Shilimkar, Santosh 
-> Sent: Friday, June 24, 2011 6:16 PM
-> To: Russell King - ARM Linux
-> Cc: Premi, Sanjeev; linux-omap@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 2/2] omap2+: pm: cpufreq: Fix 
-> loops_per_jiffy calculation
+> Sent: Friday, June 24, 2011 6:18 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 1/2] omap2+: pm: Use if...else instead of goto
 > 
-> Sanjeev,
+> On 6/24/2011 4:05 PM, Sanjeev Premi wrote:
+> > This patch replaces the use of goto with simple
+> > if...else syntax. No change in functionality.
+> >
+> > This also means that the comment describing the
+> > dependency between CONFIG_SMP and calculation
+> > of loops_per_jiffy can be unified.
+> >
+> > Signed-off-by: Sanjeev Premi<premi@ti.com>
+> > ---
+> Don't see need of this patch as well considering your second patch.
+> So NAK.
 > 
-> On 6/24/2011 4:21 PM, Russell King - ARM Linux wrote:
-> > On Fri, Jun 24, 2011 at 04:18:31PM +0530, Premi, Sanjeev wrote:
-> >>> -----Original Message-----
-> >>> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> >>> Sent: Friday, June 24, 2011 4:14 PM
-> >>> To: Premi, Sanjeev
-> >>> Cc: linux-omap@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org
-> >>> Subject: Re: [PATCH 2/2] omap2+: pm: cpufreq: Fix
-> >>> loops_per_jiffy calculation
-> >>>
-> >>> On Fri, Jun 24, 2011 at 04:05:42PM +0530, Sanjeev Premi wrote:
-> >>>> Currently, loops_per_jiffy is being calculated before calling
-> >>>> cpufreq_notify_transition().
-> >>>>
-> >>>> However, generic cpufreq driver adjusts the jiffies as well.
-> >>>> Double adjustment leads to incorrect value being assigned to
-> >>>> loops_per_jiffy.
-> >>>
-> >>> Are you sure the generic cpufreq driver adjusts the per-cpu
-> >>> loops_per_jiffy
-> >>> values?  I don't believe it does.
-> >>
-> >> Russell,
-> >>
-> >> I am quoting the function from drivers/cpufreq/cpufreq.h
-> >> Follow the arrows:
-> >
-> > Let's go to war with quotes then, because clearly you 
-> haven't read the code
-> > properly:
-> >
-> > | #ifndef CONFIG_SMP
-> > ^^^^^^^^^^^^^^^^^^^^^
-> > | static unsigned long l_p_j_ref;
-> > | static unsigned int  l_p_j_ref_freq;
-> > |
-> > | static void adjust_jiffies(unsigned long val, struct 
-> cpufreq_freqs *ci)
-> > | {
-> > | 	... code to adjust jiffies ...
-> > | }
-> > | #else
-> > | static inline void adjust_jiffies(unsigned long val, 
-> struct cpufreq_freqs *ci)
-> > | {
-> > |         return;
-> > | }
-> > | #endif
-> >
-> > Notice how if CONFIG_SMP is set, adjust_jiffies becomes a 
-> no-op.  So if
-> > CONFIG_SMP=y, loops_per_jiffy will _not_ be scaled by core code.
-> >
-> As Russell rightly pointed out, you need to take care of 
-> UP/SMP and UP 
-> OVER SMP.
-> 
-> The generic code updates in only in case of UP build. I thought, the
-> comment is the code was well explaining that part.
-
-[sp] I did read the code but took long to understand most of it.
-     Hence patch 1 of this series.
-
-     I already accepted that I didn't notice definition of adjust_jiffies.
-     ...call it perils of leaving job half-done across a good-night-sleep!
-
-     As is, the calculations of UP are incorrect... which I was fixing.
-     Anyway, I have an updated patch - currently testing with CONFIG_SMP
-     enabled. Will be posting soon.
+[sp] May be it isn't needed - but it surely highlights some
+     bad code that does find way upstream.
 
 ~sanjeev
-
-> 
-> Regards
-> Santosh
-> 
