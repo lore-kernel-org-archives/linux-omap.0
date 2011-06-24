@@ -1,88 +1,92 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [linux-pm] Runtime PM discussion notes
-Date: Fri, 24 Jun 2011 13:53:55 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com>
-References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org> <201106232234.21930.rjw@sisk.pl>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
+Date: Fri, 24 Jun 2011 13:14:10 -0700
+Message-ID: <87mxh70yy5.fsf@ti.com>
+References: <1308923618-5333-1-git-send-email-premi@ti.com>
+	<20110624140142.GM9449@n2100.arm.linux.org.uk>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2EF2@dbde02.ent.ti.com>
+	<20110624141402.GN9449@n2100.arm.linux.org.uk>
+	<20110624151201.GO9449@n2100.arm.linux.org.uk>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2F56@dbde02.ent.ti.com>
+	<20110624185107.GP9449@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59205 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753130Ab1FXTx4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 15:53:56 -0400
-In-Reply-To: <201106232234.21930.rjw@sisk.pl>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40625 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752191Ab1FXUOO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Jun 2011 16:14:14 -0400
+Received: by mail-pz0-f50.google.com with SMTP id 2so2362057pzk.37
+        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 13:14:13 -0700 (PDT)
+In-Reply-To: <20110624185107.GP9449@n2100.arm.linux.org.uk> (Russell King's
+	message of "Fri, 24 Jun 2011 19:51:07 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>, arve@android.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-(Arve cc'ed, also adding Magnus and Kevin back to cc)
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-Hi Rafael,
+> On Fri, Jun 24, 2011 at 11:20:44PM +0530, Premi, Sanjeev wrote:
+>> I was able to test BogoMIPS calculations via /proc/cpuinfo for
+>> both with & without CONFIG_SMP selected.
+>> 
+>> For most part things work fine - but I do notice occassional Oops
+>> and segmentation faults while doing "cat /proc/cpuinfo"
+>> 
+>> With CONFIG_SMP enabled, system doesn't recover from the Oops;
+>> but without SMP - I noticed segmentation faults/ BUG but system
+>> does recover.
+>> 
+>> They could be unrelated - but i didn't see any of these earlier
+>> today. I will continue debug on MON.
+>
+> I don't think these are related to the patch - I think there's something
+> up with your hardware.
+>
+> Let's take the first.
+>
+>> [root@OMAP3EVM cpufreq]# cat /proc/cpuinfo
+>> [   73.832366] Internal error: Oops - undefined instruction: 0 [#1] SMP
+>
+> Ok an undefined instruction.  So...
+>
+>> [   73.839019] Modules linked in:
+>> [   73.842193] CPU: 0    Not tainted  (3.0.0-rc3-14002-g40b6752-dirty #21)
+>> [   73.849121] PC is at __do_fault+0x1c0/0x450
+>> [   73.853485] LR is at __do_fault+0x2b0/0x450
+>> [   73.857879] pc : [<c010fa18>]    lr : [<c010fb08>]    psr: 00000113
+>> [   73.857879] sp : c7907d48  ip : 00000000  fp : c5d518c0
+>> [   73.869873] r10: 00000200  r9 : 40214000  r8 : 00000000
+>> [   73.875335] r7 : c2692f98  r6 : c0ad7600  r5 : 87fb018f  r4 : 00000000
+>> [   73.882141] r3 : 87fb0a3e  r2 : 00000800  r1 : 87fb01cf  r0 : c5d518c0
+>> [   73.888977] Flags: nzcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+>> [   73.896423] Control: 10c5387d  Table: 8795c019  DAC: 00000015
+>> [   73.902435] Process cat (pid: 449, stack limit = 0xc79062f8)
+>
+> ... lets look at the code line:
+>
+>> [   74.176879] Code: e1a01005 e3a02000 ebfd1694 e59d0014 (eb07fcba)
+>
+> and disassemble it:
+>
+>    0:   e1a01005        mov     r1, r5
+>    4:   e3a02000        mov     r2, #0  ; 0x0
+>    8:   ebfd1694        bl      0xfff45a60
+>    c:   e59d0014        ldr     r0, [sp, #20]
+>   10:   eb07fcba        bl      0x1ff300
+>
+> There is no way that 0xeb07fcba should ever cause an undefined ARM
+> instruction on a properly functioning system.
+>
+> It points at a hardware problem - are you using a socketed SoC?  Is
+> it properly socketed?  Is the socket dirty?  And all other questions
+> related to hardware integrity...
 
-On Thu, 23 Jun 2011, Rafael J. Wysocki wrote:
+And in particular, since we're talking CPUfreq, are you running at a
+frequency that the SoC and especially the memory support?
 
-> On Thursday, June 23, 2011, Alan Stern wrote:
-> > On Thu, 23 Jun 2011, Paul Walmsley wrote:
-> > > On Wed, 15 Jun 2011, Rafael J. Wysocki wrote:
-> > >
-> > > > Well, the freezing of user space by itself doesn't buy you anything
-> > > > power management-wise, you pretty much need to do the other things too to
-> > > > really save energy this way. 
-> > > 
-> > > Freezing user space stops CPU-hogging processes from running.  When the 
-> > > runqueue is empty, the scheduler can go idle.  This in turn allows the 
-> > > CPU(s) to enter low power sleep states via CPUIdle.
-> 
-> But you don't have to freeze user space for this purpose, do you?
-> You may simply send a SIGSTOP to those processes.
-
-Probably that would be useful for some use-cases.  there are two 
-issues with SIGSTOP/SIGCONT that I'm aware of, compared to freezing:
-
-1. if sent from a userspace process, SIGSTOP/SIGCONT are potentially racy 
-with respect to system calls like setsid(), such that the sender may miss 
-some processes;
-
-2. SIGSTOP/SIGCONT are observable, so could cause side-effects: see for 
-example 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=Documentation/cgroups/freezer-subsystem.txt;h=c21d77742a0799424b09466857681ddcc7100f8b;hb=HEAD#l19
-
-> > > As I understand it, this is really the basis for the modern Android 
-> > > use-case for wakelocks and opportunistic suspend.  They prevent 
-> > > non-power-privileged userspace applications from keeping the system from 
-> > > entering a low-power state.  (Secondarily, suspend also prevents kernel 
-> > > code from running, e.g., timers set by filesystems, the networking stack, 
-> > > etc.; but problems here should be fixed in the offending kernel code, 
-> > > rather than hacked around, since some of the users of those timers could 
-> > > be important)
-> > 
-> > I think you have oversimplified things a little, but never mind...
-> 
-> Well, saying "a little" is an overstatement. :-)
-
-What parts do you feel were oversimplified?
-
-> This was given as one of the arguments why using the wakelocks mechanism
-> along with the opportunistic suspend might be regarded as a good idea, but
-> I think the _real_ reason why it is used by Android is that the system
-> suspend framework was usable already when Android was being developed and if
-> they wanted to get acceptable battery lives at that time, they simply had no
-> choice but to use it.
-
-This is why "modern" was written in the original text: to contrast with 
-the historical rationale for suspend blockers.
-
-As I understand it, in the original Android implementation, the hardware 
-that they were using didn't have fine-grained power management.  So 
-system-wide suspend made more sense in that context.  But that shouldn't 
-be confused with the modern rationale for wakelocks:
-
-https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025668.html
-
-"On the hardware that shipped we enter the same power state from idle
-and suspend, so the only power savings we get from suspend that we
-don't get in idle is from not respecting the scheduler and timers."
+Kevin
 
 
-- Paul
