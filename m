@@ -1,117 +1,120 @@
-From: Moiz Sonasath <m-sonasath@ti.com>
-Subject: [PATCH] USB: OTG: Use work_queue in set_vbus for TWL6030 transciever
-Date: Fri, 24 Jun 2011 10:14:03 -0500
-Message-ID: <1308928443-15352-1-git-send-email-m-sonasath@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: jean.pihet@newoldbits.com
+Subject: [RFC/PATCH 0/9] PM QoS: add a per-device wake-up latency constraint class
+Date: Fri, 24 Jun 2011 17:30:45 +0200
+Message-ID: <1308929445-31289-1-git-send-email-j-pihet@ti.com>
+References: <1308926286-30445-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35698 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754190Ab1FXPQu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jun 2011 11:16:50 -0400
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:49341 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754210Ab1FXPbG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jun 2011 11:31:06 -0400
+Received: by wwe5 with SMTP id 5so2990752wwe.1
+        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 08:31:04 -0700 (PDT)
+In-Reply-To: <1308926286-30445-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, balbi@ti.com, gregkh@suse.de, Moiz Sonasath <m-sonasath@ti.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foun>
+Cc: Jean Pihet <j-pihet@ti.com>
 
-From: Moiz Sonasath <m-sonasath@ti.com>
+From: Jean Pihet <j-pihet@ti.com>
 
-With this commit: cccad6d4b103e53fb3d1fc1467f654ecb572d047
-usb: otg: notifier: switch to atomic notifier
+This patch set is in an RFC state, for review and comments.
 
-Following dumps are observed on attach/detach for MUSB HOST
-mode and on a detach for MUSB Device mode.
+In order to implement the new class in PM QoS the following changes have been
+made:
 
-BUG: sleeping function called from invalid context at kernel/mutex.c:85
-where, the source is:
-twl6030_usb_irq
-->atomic_notifier_call_chain
- ->musb_otg_notifications
-  ->twl6030_set_vbus
-   ->twl_i2c_write_u8
-    ->mutex_lock
+1. Add a new PM QoS class for device wake-up constraints
+(PM_QOS_DEV_WAKEUP_LATENCY).
+Due to the per-device nature of the new class the constraints lists are stored
+inside the device dev_pm_info struct instead of the internal per-class
+constraints lists.
+The new class is only available from kernel drivers and so is not exported to
+user space.
 
-This patch moves the i2c writes in set_vbus function to a
-work-queue thereby avoiding I2C writes in atomic context.
+2. Make the pm_qos_add_request API more generic by using a
+struct pm_qos_parameters parameter. This allows easy extension in the future.
 
-Tested HOST and Device mode functionality on OMAP4460
+3. Upon a change of the strongest constraint in the PM_QOS_DEV_WAKEUP_LATENCY
+class a notification chain mechanism is used to take action on the system.
+This is the proposed way to have PM QoS and the platform dependant code to
+interact with each other, cf. 4 below.
+The notification mechanism now passes the constraint request struct ptr in
+order for the notifier callback to have access to the full set of constraint
+data, e.g. the struct device ptr.
 
-Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
----
- drivers/usb/otg/twl6030-usb.c |   33 +++++++++++++++++++++++++++------
- 1 files changed, 27 insertions(+), 6 deletions(-)
+4. cpuidle interaction with the OMAP3 cpuidle handler
+Since cpuidle is a CPU centric framework it decides the MPU next power state
+based on the MPU exit_latency and target_residency figures.
+    
+The rest of the power domains get their next power state programmed from
+the PM_QOS_DEV_WAKEUP_LATENCY class of the PM QoS framework, via the device
+wake-up latency constraints.
 
-diff --git a/drivers/usb/otg/twl6030-usb.c b/drivers/usb/otg/twl6030-usb.c
-index cfb5aa7..857de79 100644
---- a/drivers/usb/otg/twl6030-usb.c
-+++ b/drivers/usb/otg/twl6030-usb.c
-@@ -95,11 +95,15 @@ struct twl6030_usb {
- 
- 	struct regulator		*usb3v3;
- 
-+	/* used to set vbus, in atomic path */
-+	struct work_struct	set_vbus_work;
-+
- 	int			irq1;
- 	int			irq2;
- 	u8			linkstat;
- 	u8			asleep;
- 	bool			irq_enabled;
-+	bool			vbus_enable;
- 	unsigned long		features;
- };
- 
-@@ -370,20 +374,35 @@ static int twl6030_enable_irq(struct otg_transceiver *x)
- 	return 0;
- }
- 
-+static void otg_set_vbus_work(struct work_struct *data)
-+{
-+	struct twl6030_usb *twl = container_of(data, struct twl6030_usb,
-+								set_vbus_work);
-+
-+	if (twl->vbus_enable)
-+		twl6030_writeb(twl, TWL_MODULE_MAIN_CHARGE , 0x40,
-+							CHARGERUSB_CTRL1);
-+	else
-+		twl6030_writeb(twl, TWL_MODULE_MAIN_CHARGE , 0x00,
-+							CHARGERUSB_CTRL1);
-+}
-+
- static int twl6030_set_vbus(struct otg_transceiver *x, bool enabled)
- {
- 	struct twl6030_usb *twl = xceiv_to_twl(x);
- 
-+	if (enabled)
-+		twl->vbus_enable = 1;
-+	else
-+		twl->vbus_enable = 0;
-+
- 	/*
- 	 * Start driving VBUS. Set OPA_MODE bit in CHARGERUSB_CTRL1
- 	 * register. This enables boost mode.
- 	 */
--	if (enabled)
--		twl6030_writeb(twl, TWL_MODULE_MAIN_CHARGE , 0x40,
--						CHARGERUSB_CTRL1);
--	 else
--		twl6030_writeb(twl, TWL_MODULE_MAIN_CHARGE , 0x00,
--						CHARGERUSB_CTRL1);
-+
-+	schedule_work(&twl->set_vbus_work);
-+
- 	return 0;
- }
- 
-@@ -444,6 +463,8 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
- 
- 	ATOMIC_INIT_NOTIFIER_HEAD(&twl->otg.notifier);
- 
-+	INIT_WORK(&twl->set_vbus_work, otg_set_vbus_work);
-+
- 	twl->irq_enabled = true;
- 	status = request_threaded_irq(twl->irq1, NULL, twl6030_usbotg_irq,
- 			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
+Note: the exit_latency and target_residency figures of the MPU include the MPU
+itself and the peripherals needed for the MPU to execute instructions (e.g.
+main memory, caches, IRQ controller, MMU etc).
+Some of those peripherals can belong to other power domains than the MPU
+subsystem and so the corresponding latencies must be included in this figure.
+
+5. Update the pm_qos_add_request callers to the generic API
+
+6. Minor clean-ups and rename of struct fields
+
+Questions:
+1. How to retrieve the device ptr from a given device driver in order to add
+a constraint on it?
+2. The device struct has recently been extended with the power domain
+information. Can this be used to apply the constraints on power domains?
+
+On-going developments, patches in preparation:
+1. write Documentation for the new PM QoS class
+2. validate the constraints framework on OMAP3&4 HW
+3. refine the power domains wake-up latency and the cpuidle figures
+
+Based on the master branch of the linux-omap git tree (3.0.0-rc3). Compile
+tested only using OMAP and x86 generic defconfigs.
+
+
+Jean Pihet (8):
+  PM: add a per-device wake-up latency constraints plist
+  PM: extend PM QoS with per-device wake-up constraints
+  OMAP PM: create a PM layer plugin for per-device constraints
+  OMAP2+: powerdomain: control power domains next state
+  OMAP3: powerdomain data: add wake-up latency figures
+  OMAP2+: omap_hwmod: manage the wake-up latency constraints
+  OMAP: PM CONSTRAINTS: implement the devices wake-up latency
+    constraints
+  OMAP2+: cpuidle only influences the MPU state
+
+Vishwanath BS (1):
+  OMAP4: powerdomain data: add wake-up latency figures
+
+ arch/arm/mach-omap2/cpuidle34xx.c            |   42 +---
+ arch/arm/mach-omap2/omap_hwmod.c             |   26 ++-
+ arch/arm/mach-omap2/pm.h                     |   17 ++-
+ arch/arm/mach-omap2/powerdomain.c            |  187 ++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h            |   33 +++-
+ arch/arm/mach-omap2/powerdomains3xxx_data.c  |   77 ++++++
+ arch/arm/mach-omap2/powerdomains44xx_data.c  |   85 +++++++
+ arch/arm/plat-omap/Kconfig                   |    7 +
+ arch/arm/plat-omap/Makefile                  |    1 +
+ arch/arm/plat-omap/i2c.c                     |   20 --
+ arch/arm/plat-omap/include/plat/omap-pm.h    |  128 ----------
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
+ arch/arm/plat-omap/omap-pm-constraints.c     |  344 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/omap-pm-noop.c            |   89 -------
+ drivers/base/power/main.c                    |    1 +
+ drivers/i2c/busses/i2c-omap.c                |   35 ++-
+ drivers/media/video/via-camera.c             |    5 +-
+ drivers/net/e1000e/netdev.c                  |    9 +-
+ drivers/net/wireless/ipw2x00/ipw2100.c       |    6 +-
+ include/linux/pm.h                           |    2 +
+ include/linux/pm_qos_params.h                |   40 ++--
+ kernel/pm_qos_params.c                       |  142 ++++++-----
+ sound/core/pcm_native.c                      |    8 +-
+ 23 files changed, 939 insertions(+), 367 deletions(-)
+ create mode 100644 arch/arm/plat-omap/omap-pm-constraints.c
+
 -- 
-1.6.0.4
+1.7.4.1
 
