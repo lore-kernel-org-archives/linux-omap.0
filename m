@@ -1,81 +1,127 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 2/2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Fri, 24 Jun 2011 18:15:49 +0530
-Message-ID: <4E0486FD.2080604@ti.com>
-References: <1308911742-27394-1-git-send-email-premi@ti.com>	<1308911742-27394-3-git-send-email-premi@ti.com>	<20110624104331.GK9449@n2100.arm.linux.org.uk>	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2DD9@dbde02.ent.ti.com> <20110624105144.GL9449@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 1/2] omap2+: pm: Use if...else instead of goto
+Date: Fri, 24 Jun 2011 18:18:19 +0530
+Message-ID: <4E048793.1020505@ti.com>
+References: <1308911742-27394-1-git-send-email-premi@ti.com> <1308911742-27394-2-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:39786 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751753Ab1FXMpy (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:39482 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751094Ab1FXMsX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jun 2011 08:45:54 -0400
-Received: by mail-gx0-f181.google.com with SMTP id 9so1674370gxk.40
-        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 05:45:53 -0700 (PDT)
-In-Reply-To: <20110624105144.GL9449@n2100.arm.linux.org.uk>
+	Fri, 24 Jun 2011 08:48:23 -0400
+Received: by mail-gw0-f47.google.com with SMTP id 11so1155156gwb.6
+        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 05:48:22 -0700 (PDT)
+In-Reply-To: <1308911742-27394-2-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Sanjeev,
+On 6/24/2011 4:05 PM, Sanjeev Premi wrote:
+> This patch replaces the use of goto with simple
+> if...else syntax. No change in functionality.
+>
+> This also means that the comment describing the
+> dependency between CONFIG_SMP and calculation
+> of loops_per_jiffy can be unified.
+>
+> Signed-off-by: Sanjeev Premi<premi@ti.com>
+> ---
+Don't see need of this patch as well considering your second patch.
+So NAK.
 
-On 6/24/2011 4:21 PM, Russell King - ARM Linux wrote:
-> On Fri, Jun 24, 2011 at 04:18:31PM +0530, Premi, Sanjeev wrote:
->>> -----Original Message-----
->>> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
->>> Sent: Friday, June 24, 2011 4:14 PM
->>> To: Premi, Sanjeev
->>> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
->>> Subject: Re: [PATCH 2/2] omap2+: pm: cpufreq: Fix
->>> loops_per_jiffy calculation
->>>
->>> On Fri, Jun 24, 2011 at 04:05:42PM +0530, Sanjeev Premi wrote:
->>>> Currently, loops_per_jiffy is being calculated before calling
->>>> cpufreq_notify_transition().
->>>>
->>>> However, generic cpufreq driver adjusts the jiffies as well.
->>>> Double adjustment leads to incorrect value being assigned to
->>>> loops_per_jiffy.
->>>
->>> Are you sure the generic cpufreq driver adjusts the per-cpu
->>> loops_per_jiffy
->>> values?  I don't believe it does.
->>
->> Russell,
->>
->> I am quoting the function from drivers/cpufreq/cpufreq.h
->> Follow the arrows:
+>   arch/arm/mach-omap2/omap2plus-cpufreq.c |   59 +++++++++++++-----------------
+>   1 files changed, 26 insertions(+), 33 deletions(-)
 >
-> Let's go to war with quotes then, because clearly you haven't read the code
-> properly:
+> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> index 1f3b2e1..ce9d534 100644
+> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> @@ -96,57 +96,50 @@ static int omap_target(struct cpufreq_policy *policy,
+>   	if (freqs.old == freqs.new&&  policy->cur == freqs.new)
+>   		return ret;
 >
-> | #ifndef CONFIG_SMP
-> ^^^^^^^^^^^^^^^^^^^^^
-> | static unsigned long l_p_j_ref;
-> | static unsigned int  l_p_j_ref_freq;
-> |
-> | static void adjust_jiffies(unsigned long val, struct cpufreq_freqs *ci)
-> | {
-> | 	... code to adjust jiffies ...
-> | }
-> | #else
-> | static inline void adjust_jiffies(unsigned long val, struct cpufreq_freqs *ci)
-> | {
-> |         return;
-> | }
-> | #endif
+> -	if (!is_smp()) {
+> -		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+> -		goto set_freq;
+> -	}
+> -
+> -	/* notifiers */
+> -	for_each_cpu(i, policy->cpus) {
+> -		freqs.cpu = i;
+> +	/* Notify transitions */
+> +	if (is_smp()) {
+> +		for_each_cpu(i, policy->cpus) {
+> +			freqs.cpu = i;
+> +			cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+> +		}
+> +	} else {
+>   		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+>   	}
 >
-> Notice how if CONFIG_SMP is set, adjust_jiffies becomes a no-op.  So if
-> CONFIG_SMP=y, loops_per_jiffy will _not_ be scaled by core code.
+> -set_freq:
+>   #ifdef CONFIG_CPU_FREQ_DEBUG
+>   	pr_info("cpufreq-omap: transition: %u -->  %u\n", freqs.old, freqs.new);
+>   #endif
 >
-As Russell rightly pointed out, you need to take care of UP/SMP and UP 
-OVER SMP.
+>   	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+>
+> -	/*
+> -	 * Generic CPUFREQ driver jiffy update is under !SMP. So jiffies
+> -	 * won't get updated when UP machine cpufreq build with
+> -	 * CONFIG_SMP enabled. Below code is added only to manage that
+> -	 * scenario
+> -	 */
+>   	freqs.new = omap_getspeed(policy->cpu);
+> -	if (!is_smp()) {
+> -		loops_per_jiffy =
+> -			 cpufreq_scale(loops_per_jiffy, freqs.old, freqs.new);
+> -		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+> -		goto skip_lpj;
+> -	}
+>
+> -#ifdef CONFIG_SMP
+>   	/*
+> -	 * Note that loops_per_jiffy is not updated on SMP systems in
+> -	 * cpufreq driver. So, update the per-CPU loops_per_jiffy value
+> -	 * on frequency transition. We need to update all dependent CPUs.
+> +	 * In the generic cpufreq driver jiffies are updated only for
+> +	 * non-SMP cases. Ensure that jiffies are bing updated for both
+> +	 * SMP systems and UP systems built with CONFIG_SMP enabled.
+>   	 */
+> -	for_each_cpu(i, policy->cpus)
+> -		per_cpu(cpu_data, i).loops_per_jiffy =
+> -			cpufreq_scale(per_cpu(cpu_data, i).loops_per_jiffy,
+> -					freqs.old, freqs.new);
+> +	if (is_smp()) {
+> +#ifdef CONFIG_SMP
+> +		for_each_cpu(i, policy->cpus)
+> +			per_cpu(cpu_data, i).loops_per_jiffy =
+> +				cpufreq_scale(per_cpu(cpu_data, i).loops_per_jiffy,
+> +						freqs.old,
+> +						freqs.new);
+>   #endif
+> +		/* Notify transitions */
+> +		for_each_cpu(i, policy->cpus) {
+> +			freqs.cpu = i;
+> +			cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+> +		}
+> +	} else {
+> +		loops_per_jiffy = cpufreq_scale(loops_per_jiffy,
+> +					freqs.old, freqs.new);
+>
+> -	/* notifiers */
+> -	for_each_cpu(i, policy->cpus) {
+> -		freqs.cpu = i;
+> +		/* Notify transitions */
+>   		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+>   	}
+>
+> -skip_lpj:
+>   	return ret;
+>   }
+>
 
-The generic code updates in only in case of UP build. I thought, the
-comment is the code was well explaining that part.
-
-Regards
-Santosh
