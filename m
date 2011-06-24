@@ -1,71 +1,86 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Fri, 24 Jun 2011 07:47:11 -0700
-Message-ID: <4E04A36F.103@ti.com>
-References: <1308923618-5333-1-git-send-email-premi@ti.com> <4E04A0AB.40608@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024D6C2F08@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv3 5/6] OMAP3: Serial: Made serial to work properly with PRCM chain handler
+Date: Fri, 24 Jun 2011 08:15:30 -0700
+Message-ID: <87k4cb45wt.fsf@ti.com>
+References: <1308760934-9757-1-git-send-email-t-kristo@ti.com>
+	<1308760934-9757-6-git-send-email-t-kristo@ti.com>
+	<20110623082150.GX23145@atomide.com>
+	<1308820284.5972.18.camel@sokoban>
+	<20110623100054.GA23145@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:57271 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753973Ab1FXOrR (ORCPT
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:56596 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754182Ab1FXPPe (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jun 2011 10:47:17 -0400
-Received: by mail-gy0-f173.google.com with SMTP id 10so1677632gyg.18
-        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 07:47:16 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2F08@dbde02.ent.ti.com>
+	Fri, 24 Jun 2011 11:15:34 -0400
+Received: by mail-pz0-f54.google.com with SMTP id 27so2438415pzk.13
+        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 08:15:33 -0700 (PDT)
+In-Reply-To: <20110623100054.GA23145@atomide.com> (Tony Lindgren's message of
+	"Thu, 23 Jun 2011 03:00:55 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
 
-On 6/24/2011 7:40 AM, Premi, Sanjeev wrote:
->> -----Original Message-----
->> From: Shilimkar, Santosh
->> Sent: Friday, June 24, 2011 8:05 PM
->> To: Premi, Sanjeev
->> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
->> Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix
->> loops_per_jiffy calculation
->>
->> On 6/24/2011 7:23 PM, Sanjeev Premi wrote:
->>> Currently, loops_per_jiffy is being calculated twice for
->>> non-SMP processors.
->>>    - Before calling cpufreq_notify_transition()
->>>    - From within cpufreq_notify_transition()
->>>
->>> Double adjustment leads to incorrect value being assigned to
->>> loops_per_jiffy. This manifests as incorrect BogoMIPS in
->>> "cat /proc/cpuinfo".
->>>
->>> The value of loops_per_jiffy needs to be calculated only
->>> when CONFIG_SMP is true. It is the core change included
->>> in this patch.
->>>
->>> The patch also leverages the definition of for_each_cpu()
->>> with and without CONFIG_SMP to consolidate the mechanism
->>> to call cpufreq_notify_transition().
->>>
->>> Signed-off-by: Sanjeev Premi<premi@ti.com>
->>
->> NAK. This patch again doesn't make sense considering your issue.
->> Also jiffies should not be undated before changing the freq.
->> If the set_rate failed for some reason then you will have wrong
->> jiffies value.
->>
->> I understand your issue now. The code for global lpj updation
->> should have been checking smp_on_up() instead of is_smp().
->> That one line change is enough. I will post a patch on
->> the same once I reach to office.
->
-> [sp] Suggest reading the patch before NAKing.
->       The patch is updating the loops_per_jiffy value "AFTER"
->       the frequency change has happenned and "BEFORE" post
->       change notification is sent.
->
-Sure. Let me respond to you with the patch instead of making
-more noise on the list.
+Tony Lindgren <tony@atomide.com> writes:
 
-Regard
-Santosh
+> * Tero Kristo <t-kristo@ti.com> [110623 02:06]:
+>> On Thu, 2011-06-23 at 10:21 +0200, Tony Lindgren wrote:
+>> > * Tero Kristo <t-kristo@ti.com> [110622 09:38]:
+>> > > @@ -550,6 +550,8 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+>> > >  	ret = request_threaded_irq(uart->irq, NULL, omap_uart_interrupt,
+>> > >  				   IRQF_SHARED, "serial idle", (void *)uart);
+>> > >  	WARN_ON(ret);
+>> > > +	ret = omap_prcm_register_pad_irq(uart->padconf, uart->irq);
+>> > > +	WARN_ON(ret);
+>> > >  }
+>> > 
+>> > Argh, looks like we still have direct mux register tinkering in serial.c:
+>> > 
+>> > $ grep "padconf = 0x" serial.c
+>> >                         padconf = 0x182;
+>> >                         padconf = 0x17a;
+>> >                         padconf = 0x19e;
+>> >                         padconf = 0x0d2;
+>> > 
+>> > By deducting 0x30 from the values above, these map into the following mux defines:
+>> > 
+>> > $ grep RX_OFFSET mux34xx.h
+>> > #define OMAP3_CONTROL_PADCONF_UART2_RX_OFFSET                   0x14a
+>> > #define OMAP3_CONTROL_PADCONF_UART1_RX_OFFSET                   0x152
+>> > #define OMAP3_CONTROL_PADCONF_UART3_RX_IRRX_OFFSET              0x16e
+>> > 
+>> > So you can make things more generic by getting rid of those and using
+>> > struct omap_mux_partition instead for omap_prcm_register_pad_irq.
+>> > The pins used are set already in serial.c with omap_hwmod_mux_init.
+>> > 
+>> > Otherwise we have to patch the hardcoded padconf values for every new omap.
+>> > And looks like we're already missing them for 44xx in serial.c.
+>> > 
+>> > Then access to the padconf registers should be done with
+>> > omap_mux_read/write instead. If you need to do something more complex
+>> > with them maybe consider adding some new functions to mux.c as needed.
+>> > 
+>> 
+>> Padconf stuff is not that much related to this patch set yet (I am not
+>> touching the serial padconf code), but I can probably take a look at
+>> this also later on, unless you want this fixed with this set already?
+>
+> Yes please, maybe make it a separate patch before your series to
+> prepare things?
+>
+> Otherwise we will have to change the omap_prcm_register_pad_irq
+> later on in each driver using it.
+
+Govindraj's UART runtime PM series is addressing this so Tero shouldn't
+need to make those changes as part of this series.
+
+IOW, $SUBJECT patch is only temporary until the UART runtime PM series
+is ready.
+
+Govindraj, are you able to use this series with your runtime PM
+conversion?
+
+Kevin
