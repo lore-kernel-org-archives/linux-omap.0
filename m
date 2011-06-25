@@ -1,82 +1,30 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] Runtime PM discussion notes
-Date: Sat, 25 Jun 2011 14:59:02 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1106251444340.5999-100000@netrider.rowland.org>
-References: <alpine.DEB.2.00.1106240935450.18931@utopia.booyaka.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
+Date: Sat, 25 Jun 2011 20:09:22 +0100
+Message-ID: <20110625190922.GA7736@n2100.arm.linux.org.uk>
+References: <1308923618-5333-1-git-send-email-premi@ti.com> <20110624140142.GM9449@n2100.arm.linux.org.uk> <B85A65D85D7EB246BE421B3FB0FBB593024D6C2EF2@dbde02.ent.ti.com> <20110624141402.GN9449@n2100.arm.linux.org.uk> <20110624151201.GO9449@n2100.arm.linux.org.uk> <4E04DBF8.1050401@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:36700 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751630Ab1FYS7E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jun 2011 14:59:04 -0400
-In-Reply-To: <alpine.DEB.2.00.1106240935450.18931@utopia.booyaka.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54469 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751630Ab1FYTJe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jun 2011 15:09:34 -0400
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE3@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>
 
-On Fri, 24 Jun 2011, Paul Walmsley wrote:
+On Sun, Jun 26, 2011 at 12:23:31AM +0530, Premi, Sanjeev wrote:
+> [sp] I thought we were solving a problem - but this makes it
+>      look like race for addding sign-offs - which I am not
+>      interested in.
 
-> > > But suspend users don't know this either, since they can't predict when 
-> > > the next external wakeup can happen.
-> > 
-> > But they do know (or should know) that they don't intend to use the 
-> > system in the near future.  It might be good to have a separate way to 
-> > express that idea to the kernel.
-> 
-> Are you thinking of the current userspace interfaces to suspend, or 
-> something else?
+No, it's called packaging the patch up and getting it ready, putting it
+out on the list for people to test and provide Tested-by's, acked-by's
+etc.
 
-I'm not thinking of anything in particular.  Just brainstorming...
-
-If somebody decides to freeze userspace without putting the entire 
-system to sleep, how will they know when to unfreeze?  A certain amount 
-of specialized kernel/userspace interaction would be needed.
-
-> > > 1. preventing userspace processes from keeping the system from entering 
-> > >    idle
-> > > 2. preventing userspace processes from waking the system back up
-> > 
-> > It's not clear what this means.  How can a user process wake the system 
-> > up?  Are you referring to user timers?
-> 
-> Yes.
-
-Then those two are almost the same thing.  It doesn't seem to make much 
-sense to say "I want to stop these processes from running now, but 
-allow them to run if one of them gets a timer or I/O signal".
-
-> > > 3. preventing kernel code from keeping the system from entering idle
-> > 
-> > Relatively few kernel threads are freezable.  The ones that are tend to 
-> > be involved in device management.  Did you have something specific in 
-> > mind?
-> 
-> No, nothing specific.
-> 
-> > > 4. preventing kernel code from waking the system back up
-
-Once userspace is inactive, the kernel probably doesn't have very much
-to do.  Responding to some network packets, maybe, if the network
-interfaces are left running (like a router but without support for
-dynamic routing protocols).  In general, I don't think a system could
-do a whole lot of useful work in such a state.
-
-> > > 5. requesting that drivers abort what they are currently doing
-> > 
-> > Not exactly "abort".  More like "stop processing their I/O queues".
-> 
-> Yes, that's a better way of putting it; hopefully most drivers are doing 
-> that.
-
-This is more of a "transition" issue than a "steady-state" concern.  
-When userspace is frozen, it can't generate new I/O requests.  If the 
-old ones were left to terminate normally, pretty soon the I/O queues 
-would drain by themselves.
-
-In short, I'm not sure how these ideas would yield anything new and 
-worthwhile.  Maybe I'm just slow today...
-
-Alan Stern
-
+Would you rather people sat on fixes doing nothing with them for a
+month instead, watching broken -rc after broken -rc going by?
