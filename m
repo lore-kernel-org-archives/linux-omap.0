@@ -1,63 +1,130 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [RFC PATCH 0/7] OMAP: mailbox: removing static declarations
-Date: Fri, 24 Jun 2011 20:17:36 -0500
-Message-ID: <1308964663-5669-1-git-send-email-omar.ramirez@ti.com>
+Subject: [RFC PATCH 4/7] OMAP: mailbox: move framework functions under header file
+Date: Fri, 24 Jun 2011 20:17:40 -0500
+Message-ID: <1308964663-5669-5-git-send-email-omar.ramirez@ti.com>
+References: <1308964663-5669-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:50836 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751588Ab1FYBSJ (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:41434 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753232Ab1FYBSR (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jun 2011 21:18:09 -0400
-Received: by mail-yx0-f173.google.com with SMTP id 7so1688341yxs.4
-        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 18:18:08 -0700 (PDT)
+	Fri, 24 Jun 2011 21:18:17 -0400
+Received: by gya6 with SMTP id 6so1920641gya.31
+        for <linux-omap@vger.kernel.org>; Fri, 24 Jun 2011 18:18:14 -0700 (PDT)
+In-Reply-To: <1308964663-5669-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi Doyu <hiroshi.doyu@nokia.com>
 Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+Move API functions to common framework like save/restore_ctx,
+enable/disable_irq instead of being under a header file. While
+at it dropping their static inline declarations.
 
-This is the first attempt in making the omap mailbox framework generic
-enough to support other mailbox drivers, in this series the way the mailbox
-are defined and registered is changed to support requests of mailboxes through
-an id. So far, the mailbox static declarations have been removed allowing
-a dynamic mailbox configuration.
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ arch/arm/plat-omap/include/plat/mailbox.h |   35 +++-------------------------
+ arch/arm/plat-omap/mailbox.c              |   35 +++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+), 31 deletions(-)
 
-The next steps would involve removing omap references in the code and omap
-specific fields (like "type" embedded in the operations structure) along with
-a trivial cleanup.
+diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
+index 337b93c..271905a 100644
+--- a/arch/arm/plat-omap/include/plat/mailbox.h
++++ b/arch/arm/plat-omap/include/plat/mailbox.h
+@@ -78,36 +78,9 @@ void omap_mbox_put(struct omap_mbox *mbox, struct notifier_block *nb);
+ int omap_mbox_register(struct device *parent, struct omap_mbox **);
+ int omap_mbox_unregister(void);
+ 
+-static inline void omap_mbox_save_ctx(struct omap_mbox *mbox)
+-{
+-	if (!mbox->ops->save_ctx) {
+-		dev_err(mbox->dev, "%s:\tno save\n", __func__);
+-		return;
+-	}
+-
+-	mbox->ops->save_ctx(mbox);
+-}
+-
+-static inline void omap_mbox_restore_ctx(struct omap_mbox *mbox)
+-{
+-	if (!mbox->ops->restore_ctx) {
+-		dev_err(mbox->dev, "%s:\tno restore\n", __func__);
+-		return;
+-	}
+-
+-	mbox->ops->restore_ctx(mbox);
+-}
+-
+-static inline void omap_mbox_enable_irq(struct omap_mbox *mbox,
+-					omap_mbox_irq_t irq)
+-{
+-	mbox->ops->enable_irq(mbox, irq);
+-}
+-
+-static inline void omap_mbox_disable_irq(struct omap_mbox *mbox,
+-					 omap_mbox_irq_t irq)
+-{
+-	mbox->ops->disable_irq(mbox, irq);
+-}
++void omap_mbox_save_ctx(struct omap_mbox *mbox);
++void omap_mbox_restore_ctx(struct omap_mbox *mbox);
++void omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq);
++void omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq);
+ 
+ #endif /* MAILBOX_H */
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 69ddc9f..98b36dc 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -60,6 +60,18 @@ static inline int mbox_fifo_full(struct omap_mbox *mbox)
+ }
+ 
+ /* Mailbox IRQ handle functions */
++void omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
++{
++	mbox->ops->enable_irq(mbox, irq);
++}
++EXPORT_SYMBOL(omap_mbox_enable_irq);
++
++void omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
++{
++	mbox->ops->disable_irq(mbox, irq);
++}
++EXPORT_SYMBOL(omap_mbox_disable_irq);
++
+ static inline void ack_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+ {
+ 	if (mbox->ops->ack_irq)
+@@ -70,6 +82,29 @@ static inline int is_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+ 	return mbox->ops->is_irq(mbox, irq);
+ }
+ 
++/* Mailbox context functions */
++void omap_mbox_save_ctx(struct omap_mbox *mbox)
++{
++	if (!mbox->ops->save_ctx) {
++		dev_err(mbox->dev, "%s:\tno save\n", __func__);
++		return;
++	}
++
++	mbox->ops->save_ctx(mbox);
++}
++EXPORT_SYMBOL(omap_mbox_save_ctx);
++
++void omap_mbox_restore_ctx(struct omap_mbox *mbox)
++{
++	if (!mbox->ops->restore_ctx) {
++		dev_err(mbox->dev, "%s:\tno restore\n", __func__);
++		return;
++	}
++
++	mbox->ops->restore_ctx(mbox);
++}
++EXPORT_SYMBOL(omap_mbox_restore_ctx);
++
+ /*
+  * message sender
+  */
+-- 
+1.7.0.4
 
-The end goal would be moving the mailbox driver into drivers folder and also
-converting other mailbox drivers to reuse this code, the first candidate being
-ux-500 mailbox driver (arch/arm/mach-ux500/mbox-db5500.c).
-
-Tested using one patch on top of Kevin Hilman mailbox loopback test, can be
-found at: https://gitorious.org/~or.rmz/omap-test/mbox-test-clone
-
-If accepted patches 5 to 7 should be a single patch, to avoid compilation issues.
-
-I'll appreciate any comments or suggestions.
-
-Omar Ramirez Luna (7):
-  OMAP2+: hwmod_data: define number of mailboxes
-  OMAP2+: devices: get the number of supported mailboxes
-  OMAP: mailbox: use OMAP's naming convention for devices
-  OMAP: mailbox: move framework functions under header file
-  OMAP: mailbox: implement dynamic mailbox configuration
-  OMAP1: mailbox: adapt to dynamic mailbox requests
-  OMAP2+: mailbox: remove mailbox static declarations
-
- arch/arm/mach-omap1/mailbox.c              |   94 +++++----
- arch/arm/mach-omap2/devices.c              |    8 +-
- arch/arm/mach-omap2/mailbox.c              |  212 +++++---------------
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    6 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    6 +
- arch/arm/plat-omap/include/plat/mailbox.h  |   62 +++----
- arch/arm/plat-omap/mailbox.c               |  298 ++++++++++++++++++----------
- 9 files changed, 364 insertions(+), 334 deletions(-)
-
-Regards,
-
-Omar
