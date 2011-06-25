@@ -1,93 +1,82 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Sun, 26 Jun 2011 00:23:31 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE3@dbde02.ent.ti.com>
-References: <1308923618-5333-1-git-send-email-premi@ti.com>
-	<20110624140142.GM9449@n2100.arm.linux.org.uk>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2EF2@dbde02.ent.ti.com>
-	<20110624141402.GN9449@n2100.arm.linux.org.uk>
- <20110624151201.GO9449@n2100.arm.linux.org.uk> <4E04DBF8.1050401@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] Runtime PM discussion notes
+Date: Sat, 25 Jun 2011 14:59:02 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1106251444340.5999-100000@netrider.rowland.org>
+References: <alpine.DEB.2.00.1106240935450.18931@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46776 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751630Ab1FYSx4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jun 2011 14:53:56 -0400
-In-Reply-To: <4E04DBF8.1050401@ti.com>
-Content-Language: en-US
+Received: from netrider.rowland.org ([192.131.102.5]:36700 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751630Ab1FYS7E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jun 2011 14:59:04 -0400
+In-Reply-To: <alpine.DEB.2.00.1106240935450.18931@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Shilimkar, Santosh 
-> Sent: Saturday, June 25, 2011 12:18 AM
-> To: Russell King - ARM Linux
-> Cc: Premi, Sanjeev; linux-omap@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org; Hilman, Kevin
-> Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix 
-> loops_per_jiffy calculation
-> 
-> Russell,
-> 
-> On 6/24/2011 8:12 AM, Russell King - ARM Linux wrote:
-> > Right, thanks for the file.  Here's the patch.
-> >
-> 
-> [.....]
-> 
-> > Notice how we adjust _both_ the per-cpu loops_per_jiffy, and that we
-> > adjust them with reference to the initial values.
-> >
-> > If you adjust lpj with reference to the last, then you 
-> _will_ build up
-> > a progressively bigger and bigger error in the value over time.
-> >
-> Thanks Russell for the change. This change should fix the global
-> lpj for UP machine as well when build with SMP_ON_UP.
-> 
-> Can you have a look at below complete change which should
-> make the BOGOMIPS happy on all OMAP2PLUS machines. Generated
-> against Kevin's cpufreq branch.
-> 
-> url = 
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-om
-> ap-pm.git 
-> pm-wip/cpufreq.
-> 
-> Just compile tested with UP and SMP OMAP builds. After your
-> review, I can give a test.
-> 
-> Regards
-> Santosh
-> 
->  From 9a6154c0f68e39c4d1fbc4ef3fef5ce577ba87d4 Mon Sep 17 
-> 00:00:00 2001
-> From: Russell King <rmk+kernel@arm.linux.org.uk>
-> Date: Fri, 24 Jun 2011 10:51:17 -0700
-> Subject: [PATCH] OMAP2+: CPUfreq: update lpj with refernce value to 
-> avoid progressive error.
-> 
-> Adjust _both_ the per-cpu loops_per_jiffy and global lpj. 
-> Calibrate them
-> with with reference to the initial values to avoid a progressively
-> bigger and bigger error in the value over time.
-> 
-> While at this also re-use the notifiers for UP/SMP since on
-> UP machine or UP_ON_SMP policy->cpus mask would contain only
-> the one CPU.
-> 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> [santosh.shilimkar@ti.com: rebased against omap cpufreq 
-> upstream branch]
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Cc: Kevin Hilman <khilman@ti.com>
+On Fri, 24 Jun 2011, Paul Walmsley wrote:
 
-[sp] I thought we were solving a problem - but this makes it
-     look like race for addding sign-offs - which I am not
-     interested in.
+> > > But suspend users don't know this either, since they can't predict when 
+> > > the next external wakeup can happen.
+> > 
+> > But they do know (or should know) that they don't intend to use the 
+> > system in the near future.  It might be good to have a separate way to 
+> > express that idea to the kernel.
+> 
+> Are you thinking of the current userspace interfaces to suspend, or 
+> something else?
 
-[snip]...[snip]
+I'm not thinking of anything in particular.  Just brainstorming...
+
+If somebody decides to freeze userspace without putting the entire 
+system to sleep, how will they know when to unfreeze?  A certain amount 
+of specialized kernel/userspace interaction would be needed.
+
+> > > 1. preventing userspace processes from keeping the system from entering 
+> > >    idle
+> > > 2. preventing userspace processes from waking the system back up
+> > 
+> > It's not clear what this means.  How can a user process wake the system 
+> > up?  Are you referring to user timers?
+> 
+> Yes.
+
+Then those two are almost the same thing.  It doesn't seem to make much 
+sense to say "I want to stop these processes from running now, but 
+allow them to run if one of them gets a timer or I/O signal".
+
+> > > 3. preventing kernel code from keeping the system from entering idle
+> > 
+> > Relatively few kernel threads are freezable.  The ones that are tend to 
+> > be involved in device management.  Did you have something specific in 
+> > mind?
+> 
+> No, nothing specific.
+> 
+> > > 4. preventing kernel code from waking the system back up
+
+Once userspace is inactive, the kernel probably doesn't have very much
+to do.  Responding to some network packets, maybe, if the network
+interfaces are left running (like a router but without support for
+dynamic routing protocols).  In general, I don't think a system could
+do a whole lot of useful work in such a state.
+
+> > > 5. requesting that drivers abort what they are currently doing
+> > 
+> > Not exactly "abort".  More like "stop processing their I/O queues".
+> 
+> Yes, that's a better way of putting it; hopefully most drivers are doing 
+> that.
+
+This is more of a "transition" issue than a "steady-state" concern.  
+When userspace is frozen, it can't generate new I/O requests.  If the 
+old ones were left to terminate normally, pretty soon the I/O queues 
+would drain by themselves.
+
+In short, I'm not sure how these ideas would yield anything new and 
+worthwhile.  Maybe I'm just slow today...
+
+Alan Stern
+
