@@ -1,42 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM: export suspend_set_ops,
-	suspend_valid_only_mem
-Date: Sun, 26 Jun 2011 14:22:44 +0200
-Message-ID: <201106261422.45094.rjw@sisk.pl>
-References: <1306542839-5688-1-git-send-email-khilman@ti.com>
-	<201106121620.20442.rjw@sisk.pl>
-	<20110626110843.GC1101@localhost.ucw.cz>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [PATCH 14/14] OMAP2+: clockdomain: Add an api to read idle mode
+Date: Sun, 26 Jun 2011 10:51:41 -0700
+Message-ID: <20110626175141.GA2306@google.com>
+References: <y>
+ <1308913560-333-15-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20110626110843.GC1101@localhost.ucw.cz>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([74.125.121.67]:33782 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754391Ab1FZRvu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Jun 2011 13:51:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1308913560-333-15-git-send-email-b-cousson@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: paul@pwsan.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org
 
-On Sunday, June 26, 2011, Pavel Machek wrote:
-> On Sun 2011-06-12 16:20:20, Rafael J. Wysocki wrote:
-> > On Saturday, May 28, 2011, Kevin Hilman wrote:
-> > > Some platforms wish to implement their PM core suspend code as
-> > > modules.  To do so, these functions need to be exported to modules.
-> > > 
-> > > Reported-by: Jean Pihet <j-pihet@ti.com>
-> > > Signed-off-by: Kevin Hilman <khilman@ti.com>
-> > 
-> > Applied to suspend-2.6/linux-next.
+On Fri, Jun 24, 2011 at 01:06:00PM +0200, Benoit Cousson wrote:
+> From: Nayak, Rajendra <rnayak@ti.com>
 > 
-> I'd do export_symbol_gpl on those; it is really tightly coupled...
+> Add a clockdomain api to check if hardware supervised
+> idle transitions are enabled on a clockdomain.
+> 
+...
+> + * clkdm_is_idle - Check if the clkdm hwsup/autoidle is enabled
+> + * @clkdm: struct clockdomain *
+> + *
+> + * Returns true if the clockdomain is in hardware-supervised
+> + * idle mode, or 0 otherwise.
+> + *
+> + */
+> +int clkdm_is_idle(struct clockdomain *clkdm)
+...
+>  void clkdm_allow_idle(struct clockdomain *clkdm);
+>  void clkdm_deny_idle(struct clockdomain *clkdm);
+> +int clkdm_is_idle(struct clockdomain *clkdm);
 
-Good point, thanks, I'll fix this up.
+Suggest the new API be named clkdm_allows_idle, since it tests that
+hardware-supervised idle is allowed (perhaps via a call to
+clkdm_allow_idle), and not that the clock domain is necessarily
+idle at the time of call.
 
-Rafael
+
+Todd
