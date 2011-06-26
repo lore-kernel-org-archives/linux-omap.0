@@ -1,53 +1,98 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] omap3: beagle: Use GPTIMERi 1 for clockevents
-Date: Sat, 25 Jun 2011 16:49:25 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1106251647110.30205@utopia.booyaka.com>
-References: <1308932625-17632-1-git-send-email-premi@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 0/8] Introducing a generic AMP/IPC framework
+Date: Sun, 26 Jun 2011 04:11:47 +0300
+Message-ID: <BANLkTi=sFtwam29i4TZdi=RO7BoytTTdrw@mail.gmail.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com> <4E04F0B0.4030408@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55146 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752048Ab1FYWt0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jun 2011 18:49:26 -0400
-In-Reply-To: <1308932625-17632-1-git-send-email-premi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <4E04F0B0.4030408@codeaurora.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 24 Jun 2011, Sanjeev Premi wrote:
+Hi Stephen,
 
-> The current selection of the GPTIMER on was result of
-> a hardware issue in early versions of the Beagleboards
-> (Ax and B1 thru B4). [1] [2]
-> 
-> Its been long since the hardware issue has been fixed.
-> This patch uses GPTIMER 1 for all newer board revisions
-> incl. Beagleboard XM.
-> 
->  [1] http://thread.gmane.org/gmane.comp.hardware.beagleboard.general/91
->  [2] Errata #7 at http://elinux.org/BeagleBoard#Errata
-> 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
+On Fri, Jun 24, 2011 at 11:16 PM, Stephen Boyd <sboyd@codeaurora.org> wrote:
+> This sounds a lot like SMD (shared memory driver) on MSM. The main
+> difference I see is that SMD uses the platform bus instead of the virtio
+> bus and it has its own protocol for channel allocation.
 
-Reviewed-by: Paul Walmsley <paul@pwsan.com>
+Yeah, virtio is a key factor in this work; it was suggested to us by
+Arnd at the AMP plumbers discussions last year, where it was apparent
+that many vendors have their own IPC drivers/buses/channels over
+shared memory with some vendor-ish binary protocol. I must say we
+really liked virtio: it considerably simplified the code (we're not
+adding any new binary protocol), it's very nicely optimized and
+flexible, and it comes with a set of virtio drivers (e.g. network,
+console, block) so we don't have to write our own.
 
->   * Browsing through the code, it appears that similar
->     change could be applied for these boards:
->      - devkit8000
->      - omap3stalker
->      - omap3touchbook
->     However, I don't have access to any of these;
->     or information on their revisions.
->     I can update this patch based on confirmations.
+We also cared about adding this functionality as an IPC bus, so the
+driver core will help matching drivers to channels - it simplified the
+code (in both setup and tear down of channels) and kept it flexible.
+It will also facilitate error recovery (on remote crash, we just
+remove the virtio device, and then the driver core will in turn start
+->remove()ing the rpmsg drivers) and power management (via runtime
+PM).
 
-You might want to send an E-mail to the people who are listed as authors 
-in git for these boards.  Otherwise they will probably miss it in the 
-onslaught of mailing list traffic.  Unless the PCB designs are based on 
-A or B revisions of the BeagleBoard, it should be safe for them to switch 
-to GPTIMER1.
+About SMD: I'm not familiar with it too much, but Brian naturally is
+(just for the sake of everyone who are not reading headers - Brian
+Swetland wrote the Linux SMD driver, and is also an author of this
+Google+TI joint work).
 
+Btw, I'm sure SMD is conceptually not MSM-specific, and have wondered
+whether you guys would like to use rpmsg/virtio (I know you have
+several drivers like network/tty/etc over SMD, somewhat similarly to
+virtio). Probably the biggest reason why not to is the pain in
+changing the binary protocol with the modem/dsp side. If you ever do
+think about it, I'd be happy to work with you to make it happen.
 
-- Paul
+> This remote proc code is eerily similar to PIL (peripheral image loader,
+> yes we love our acronyms) which I posted a few months back[1]. Was it
+> inspiration for this patch series?
+
+No, we weren't (or at least I wasn't) aware of PIL.
+
+> In terms of API, s/pil/rproc/ and it would be 95% identical. There are
+> some low-level differences though (see below).
+
+Indeed, eerily similar :O
+
+I just guess the API is so simple that probably most kernel hackers
+would use refcounting get/put semantics here.
+
+> This is an important difference between remote proc and PIL. In PIL, we
+> do image authentication in addition to processor boot.
+
+Yes, we have this too (secure code will need to authenticate the image
+in some use cases) - but that's not ready yet for submission and we
+decided to start off with the basics first and then evolve.
+
+> Instead of devising a new firmware format, we decided
+> to just stick with elf and parse the headers in the kernel because we
+> needed them for authentication anyway. Is this reason enough to move to
+> an ELF format instead?
+
+I think that consolidation of code is enough reason to make an effort.
+I know that our firmware format was chosen for simplicity, but I'm not
+sure if we have the tools yet to build standard ELF files for the
+remote processors (IIRC it's in the works though). I'll let Mark
+comment this one.
+
+> Another difference is inter-processor dependencies. For example, on
+> msm8660 the modem can't boot until the dsp has been booted. I suppose we
+> could hide this detail in the platform specific get() implementation by
+> calling rproc_get() on the dependent processor (hopefully no locking
+> issues arise). I'd rather have it built into the core though as it isn't
+> really specific to the hardware.
+
+No problems, I'm sure we can solve this one easily.
+
+> If we can resolve these differences I think we can easily support remote
+> processor boot on MSM via remoteproc.
+
+That'd be very cool, I sure do hope we can work together.
+
+Thanks for your comments !
+Ohad.
