@@ -1,16 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 07/10] omap2+: Reserve clocksource and timesource and
-	initialize dmtimer later
-Date: Mon, 27 Jun 2011 00:51:02 -0700
-Message-ID: <20110627075101.GE23145@atomide.com>
+Subject: Re: [PATCH 08/10] omap2+: Use dmtimer macros for clocksource
+Date: Mon, 27 Jun 2011 00:54:30 -0700
+Message-ID: <20110627075429.GF23145@atomide.com>
 References: <20110620091754.357.56441.stgit@kaulin>
-	<20110620092343.357.60445.stgit@kaulin> <87ei2ka2u6.fsf@ti.com>
+	<20110620092345.357.11154.stgit@kaulin> <87iprwa2xx.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <87ei2ka2u6.fsf@ti.com>
+In-Reply-To: <87iprwa2xx.fsf@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,19 +23,23 @@ To: Kevin Hilman <khilman@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@ti.com> [110623 10:08]:
+* Kevin Hilman <khilman@ti.com> [110623 10:06]:
 > Tony Lindgren <tony@atomide.com> writes:
+> > +
+> > +	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
 > 
-> > There's no need to initialize the dmtimer framework early.
-> > Just mark the clocksource and timesource as reserved, and
-> > initialize dmtimer with an arch_initcall.
-> >
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > Reviewed-by: Kevin Hilman <khilman@ti.com>
-> 
-> Also, when you are able to fully get rid of omap_dm_timer_init(), you
-> can probably remove it from dmtimer.h and make it static in dmtimer.c
+> This function makes calls into "real" driver, but is called from
+> sys_timer.init so happens before driver is initialized.
 
-Good catch. That can be made static now.
+That one is the static omap2+ specific function that can be passed
+to the dmtimer device driver as a function pointer in the later
+patches. 
+ 
+> > +	omap_dm_timer_set_load_start(&clksrc, 1, 0);
+> 
+> Here's another call into the real driver.  I think you need
+> __omap_dm_timer_set_load_start() here.
+
+Thanks, that's correct. Will fix that one.
 
 Tony
