@@ -1,67 +1,62 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/2] OMAP4: Regulator: Specify system has fully specified constraints
-Date: Mon, 27 Jun 2011 16:11:59 -0700
-Message-ID: <87sjqu6f9c.fsf@ti.com>
-References: <1308702288-12787-1-git-send-email-girishsg@ti.com>
-	<BANLkTim6sY=2qQ7isxhKSWgjCWCrc5UX4g@mail.gmail.com>
-	<BANLkTikrfgHpMTDckUKYSBB1u5YrrT=AQw@mail.gmail.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [RFC 1/8] drivers: add generic remoteproc framework
+Date: Tue, 28 Jun 2011 00:29:03 +0100
+Message-ID: <20110627232903.GB7736@n2100.arm.linux.org.uk>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
+	<1308640714-17961-2-git-send-email-ohad@wizery.com>
+	<20110627204958.GB20865@ponder.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:43746 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755408Ab1F0XMD convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Jun 2011 19:12:03 -0400
-Received: by pzk26 with SMTP id 26so3403116pzk.10
-        for <linux-omap@vger.kernel.org>; Mon, 27 Jun 2011 16:12:01 -0700 (PDT)
-In-Reply-To: <BANLkTikrfgHpMTDckUKYSBB1u5YrrT=AQw@mail.gmail.com> (Girish
-	Ghongdemath's message of "Wed, 22 Jun 2011 17:32:54 -0500")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20110627204958.GB20865-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, davinci-linux-open-source <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Brian Swetland <swetland-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghongdemath, Girish" <girishsg@ti.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-"Ghongdemath, Girish" <girishsg@ti.com> writes:
+On Mon, Jun 27, 2011 at 02:49:58PM -0600, Grant Likely wrote:
+> > +struct {
+> > +      char magic[4] = { 'R', 'P', 'R', 'C' };
+> > +      u32 version;
+> > +      u32 header_len;
+> > +      char header[...] = { header_len bytes of unformatted, textual header };
+> > +      struct section {
+> > +          u32 type;
+> > +          u64 da;
+> > +          u32 len;
+> > +          u8 content[...] = { len bytes of binary data };
+> > +      } [ no limit on number of sections ];
+> > +} __packed;
+> 
+> Other have commented on the image format, so I'll skip this bit other
+> than saying that I agree it would be great to have a common format.
 
-> On Wed, Jun 22, 2011 at 5:12 PM, Pandita, Vikram <vikram.pandita@ti.c=
-om> wrote:
->> On Tue, Jun 21, 2011 at 5:24 PM, Girish S G <girishsg@ti.com> wrote:
->> <snip>
->>> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-om=
-ap2/board-4430sdp.c
->>> index 04b7770..46f6800 100644
->>> --- a/arch/arm/mach-omap2/board-4430sdp.c
->>> +++ b/arch/arm/mach-omap2/board-4430sdp.c
->>> @@ -560,6 +560,9 @@ static struct i2c_board_info __initdata sdp4430=
-_i2c_4_boardinfo[] =3D {
->>> =C2=A0};
->>> =C2=A0static int __init omap4_i2c_init(void)
->>> =C2=A0{
->>> + =C2=A0 =C2=A0 =C2=A0 /* This will allow unused regulator to be sh=
-utdown */
->>> + =C2=A0 =C2=A0 =C2=A0 regulator_has_full_constraints();
->>> +
->>
->> Any particular reason to keep this call in i2c_init() function?
->> Does not look very intuitive to have generic regulator disable call =
-in
->> an i2c init function !
->
-> In the regulator late init call the core will decide on regulator
-> status, so this has to be specified
-> before the pmic/twl data is registered.
+(Don't have the original message to reply to...)
 
-Vikram's point still stands.   This is not related to I2C init, so it
-should not be in the i2c init function.
+Do we really want to end up with header being 5 bytes, header_len set
+as 5, and having to load/store all this data using byte loads/stores ?
 
-Just make it the last call the machine-specific .init_machine function.
+If we don't want that, then I suggest we get rid of the packed attribute,
+and require stuff to be naturally aligned.
 
-Kevin
+First issue is that struct section could be much better layed out:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+struct section {
+	u32 type;
+	u32 len;
+	u64 da;
+	u8 content[];
+};
+
+and require sizeof(struct section) % sizeof(u64) == 0 - iow, to find
+the next section, round len up to sizeof(u64).  Ditto for the header.
