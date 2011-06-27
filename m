@@ -1,18 +1,17 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] OMAP4: PANDA, SDP: Fix EHCI regulator supply
-Date: Mon, 27 Jun 2011 13:11:40 +0300
-Message-ID: <20110627101139.GK2508@legolas.emea.dhcp.ti.com>
-References: <1308926240-13888-1-git-send-email-jaswinder.singh@linaro.org>
-	<BANLkTin=-cRC_ax8AakMD1UZtU+AQ0H==w@mail.gmail.com>
-	<20110627080036.GB2508@legolas.emea.dhcp.ti.com>
-	<BANLkTinVdWjoS-qdGnSxGnmrPKHSDNV7hw@mail.gmail.com>
-	<20110627083507.GG2508@legolas.emea.dhcp.ti.com>
-	<BANLkTim9Wbxo5U77Vo=FFxYU4vsUps7GMA@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap3: beagle: Use GPTIMERi 1 for clockevents
+Date: Mon, 27 Jun 2011 03:14:28 -0700
+Message-ID: <20110627101427.GH23145@atomide.com>
+References: <1308932625-17632-1-git-send-email-premi@ti.com>
+	<86CFE860-E18E-4B96-A753-11EB7C5C1C86@dominion.thruhere.net>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE2@dbde02.ent.ti.com>
+	<alpine.DEB.2.00.1106251635340.30205@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0532531153=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <BANLkTim9Wbxo5U77Vo=FFxYU4vsUps7GMA@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1106251635340.30205@utopia.booyaka.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,104 +21,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jaswinder Singh <jaswinder.singh@linaro.org>
-Cc: patches@linaro.org, tony@atomide.com, Mark Brown <broonie@opensource.wolfsonmicro.com>, balbi@ti.com, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, "Premi, Sanjeev" <premi@ti.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Paul Walmsley <paul@pwsan.com> [110625 15:42]:
+> On Sun, 26 Jun 2011, Premi, Sanjeev wrote:
+> 
+> > [sp] I didn't include a reason - because the problem may not
+> >      be reproducible on the public trees.
+> > 
+> >      During tests performed in internal development trees, the
+> >      BogoMIPS calculations @ 1GHz wouldn't go beyond "830-850"
+> >      range. While there was no such inconsistency on OMAP3EVM.
+> 
+> There are some other reasons to avoid GPTIMER12 when possible, which you 
+> should probably put in the patch description.  The most important, in my 
+> view, is that the clock source for GPTIMER12 is much less frequency-stable 
+> than the clock sources for GPTIMER1.  So using GPTIMER12 can result in 
+> major time skew over a fairly short interval.
+> 
+> I've been meaning to send a patch like this for some time, so I'm happy to 
+> see this fixed.
 
---===============0532531153==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XlS4q8O07AKt4+K1"
-Content-Disposition: inline
+This fix will cause bad dependency issues with sys_timer.
 
+This patch has a dependency to omap3_beagle_init_rev, which depends on
+the mux framework and gpio framework. Not cool for init_early. We just
+want to initialize sys_timer early without any complicated dependencies.
 
---XlS4q8O07AKt4+K1
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The best way to fix this is to set a separate machine ID for the properly
+working beagle boards like xm, then just set the .timer entry to omap3_timer
+for working beagle boards and omap3_secure_timer for non-working beagle
+boards. The rest of the board-*.c file can be shared.
 
-Hi,
+The above assumes the patches in devel-timer branch where we no longer
+have the non-standard timer interface, but use the sys_timer entries
+instead like we should.
 
-On Mon, Jun 27, 2011 at 03:35:41PM +0530, Jaswinder Singh wrote:
-> On 27 June 2011 14:05, Felipe Balbi <balbi@ti.com> wrote:
-> >> >> > +static struct regulator_consumer_supply sdp4430_vusb_supply =3D
-> >> >> > + =A0 =A0 =A0 REGULATOR_SUPPLY("hsusb0", "ehci-omap.0");
-> >> >
-> >> > this should be an array.
-> >> Ok, I can make it an array of _one_ element.
-> >> Though I am not sure why is that a good thing, or are we to use another
-> >> possible VUSB supply on Panda/SDP boards ? =A0Please suggest so that
-> >> I can add that too.
-> >
-> > same comment I gave before to another patch:
-> >
-> > it makes the diff a lot easier to understand should anyone modify this
-> > later. It's also a matter of consistency.
-> >
-> A quick grep showed otherwise though ...
->=20
-> In arch/arm/mach-omap2/
-> Total regulators defined                          =3D  71
-> Regulators with exactly 1 supply           =3D   58
-> Single element non-array definitions     =3D  46/58
-> Single element array definitions             =3D  12/58
->=20
-> Even if we consider 20% to be norm for consistency, I am not sure it's
-> a good one.
+Regards,
 
-the patch which converted all non-array, to array seems to have been
-taken yet, then.
-
-> Still many samsung guys piously enclose magic value defines in parenthesi=
-s,
-> just to maintain 'consistency' !
-
-that's just plain stupidity.
-
-> And, I don't understand how does diff become any easier beyond 2
-> elements in the array.
-
-http://marc.info/?l=3Dlinux-omap&m=3D130738044715490&w=3D2
-
-> Sorry for being bitchy, but I am unable to buy any reason other than
-> having more than
-> one element to use array.
-
-I also seem to recall someone (either Russell or Linus) once explained
-why we should never mistake one-element arrays with pointers.
-Unfortunately, I fail to find the thread, it's quite old.
-
---=20
-balbi
-
---XlS4q8O07AKt4+K1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOCFdbAAoJEAv8Txj19kN1L/QIAKmc7Rf4qoqsI3npNPhrn+la
-+BnpSYfMgMpkSNw06CdzzToADSlibQ7IfVs2rJo3k0S2xxAw5jiMDXSVku9+E8cS
-bxZRuup7hGsFmPhE820WhdOEFGYDujWY1Z1I/hHmyIbl8xFfvPsKFH/8erhuqPwb
-lt6NghZrbFwoZtowf8IAgz+/HPuRvDIfuZMnBRFMMI9mA56bLFGMoO30MN5Qvbw0
-8LzmRUw6Xawd+xBVdHNBx0MbHm6liSMETsF9U16Sc0WJTeM38X+zMp16SxBrjyWN
-4fOf+I/p9fBVwS/GqAg6fN6aBPxN4ZDjGy71DRJ2Lqkvt+mtey4em0V/tG1u0i8=
-=Mg6C
------END PGP SIGNATURE-----
-
---XlS4q8O07AKt4+K1--
-
-
---===============0532531153==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0532531153==--
+Tony
