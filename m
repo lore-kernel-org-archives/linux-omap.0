@@ -1,85 +1,76 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] omap3: beagle: Use GPTIMERi 1 for clockevents
-Date: Mon, 27 Jun 2011 21:10:38 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D793501@dbde02.ent.ti.com>
-References: <1308932625-17632-1-git-send-email-premi@ti.com>
- <86CFE860-E18E-4B96-A753-11EB7C5C1C86@dominion.thruhere.net>
- <B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE2@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1106251635340.30205@utopia.booyaka.com>
- <20110627101427.GH23145@atomide.com>
- <alpine.DEB.2.00.1106270910210.460@utopia.booyaka.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH v2 00/13] OMAP4: Add modulemode support to hwmod framework
+Date: Mon, 27 Jun 2011 17:47:08 +0200
+Message-ID: <1309189641-25010-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36954 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50032 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750994Ab1F0PlI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 11:41:08 -0400
-In-Reply-To: <alpine.DEB.2.00.1106270910210.460@utopia.booyaka.com>
-Content-Language: en-US
+	id S1751462Ab1F0Pr0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Jun 2011 11:47:26 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: paul@pwsan.com, rnayak@ti.com
+Cc: santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com] 
-> Sent: Monday, June 27, 2011 9:00 PM
-> To: Premi, Sanjeev; Tony Lindgren
-> Cc: Koen Kooi; linux-omap@vger.kernel.org List; linux-arm-kernel
-> Subject: Re: [PATCH] omap3: beagle: Use GPTIMERi 1 for clockevents
-> 
-> On Mon, 27 Jun 2011, Tony Lindgren wrote:
-> 
-> > This fix will cause bad dependency issues with sys_timer.
-> > 
-> > This patch has a dependency to omap3_beagle_init_rev, which 
-> depends on
-> > the mux framework and gpio framework. Not cool for 
-> init_early. We just
-> > want to initialize sys_timer early without any complicated 
-> dependencies.
-> > 
-> > The best way to fix this is to set a separate machine ID 
-> for the properly
-> > working beagle boards like xm, then just set the .timer 
-> entry to omap3_timer
-> > for working beagle boards and omap3_secure_timer for 
-> non-working beagle
-> > boards. The rest of the board-*.c file can be shared.
-> 
-> Sanjeev, want to take care of this?  Machine ID update info is in 
-> linux/arch/arm/tools/mach-types.  
-> 
-> This strategy will unfortunately involve patching 
-> bootloaders.  But if the 
-> default is to use GPT12, it should work out okay.
+Hi Paul,
 
-[sp] Just sent another query to Tony on this specific issue.
-     But, if different mach-type is the way forward, then
-     I will take it forward.
+Here is the series that finally add the management of the modulemode
+directly from hwmod fmwk instead of using a fake clock node to represent
+the IP.
 
-> 
-> Hopefully we won't have to do the same thing for the other 
-> Beagle-derived 
-> boards, Devkit8000, Touchbook, etc. etc.  Then again, I 
-> suppose this will 
-> eventually just be another property passed in via DT, with a single 
-> machine ID.
+This v2 update is fixing a couple of regressions I introduced in the first
+release.
 
-[sp] Can you look at my query to Tony? Will that be an acceptable
-     workaround until DT. Going to two machine IDs and then unifying
-     back again could cause confusion - esp. during transition times.
+A second series will clean most of the remaining data from the clock data
+file. Before that I have to rebase Rajendra's series to control the
+clockdomain from the hwmod framework, otherwise the modules will
+not be enabled properly since their clockdomain will not be changed
+to SW_SUP during enable.
 
-~sanjeev
+The series is based on for_3.0.1/3_hwmod_fixes and tested
+on OMAP4430 ES2.1 + SDP. It should not affect OMAP2 & 3, but some testing
+are definitively needed.
 
-> 
-> > The above assumes the patches in devel-timer branch where 
-> we no longer
-> > have the non-standard timer interface, but use the sys_timer entries
-> > instead like we should.
-> 
-> 
-> - Paul
-> 
+The patches are available here:
+git://gitorious.org/omap-pm/linux.git for_3.0.1/4_hwmod_modulemode
+
+Regards,
+Benoit
+
+
+Change since v1: http://www.spinics.net/lists/linux-omap/msg53094.html
+    - Change pr_warning to pr_debug to reduce verbosity
+    - Fix hardreset APIs that were using mask instead of shift
+    - Remove cdoffs addition with clkctrl_offs since the the cdoffs
+      is already included in the register offset.
+
+
+Benoit Cousson (13):
+  OMAP4: hwmod: Add clock domain attribute
+  OMAP2+: hwmod: Init clkdm field at boot time
+  OMAP4: hwmod: Replace CLKCTRL absolute address with offset macros
+  OMAP: hwmod: Wait the idle status to be disabled
+  OMAP2+: hwmod: Replace clkdm access from main_clk using hwmod attribute
+  OMAP4: hwmod: Replace RSTCTRL absolute address with offset macros
+  OMAP4: prm: Replace warm reset API with the offset based version
+  OMAP4: prm: Remove deprecated functions
+  OMAP4: hwmod data: Align interconnect format with regular modules
+  OMAP4: hwmod data: Add PRM context register offset
+  OMAP4: hwmod data: Add modulemode entry in omap_hwmod structure
+  OMAP4: cm: Add two new APIs for modulemode control
+  OMAP4: hwmod: Introduce the module control in hwmod control
+
+ arch/arm/mach-omap2/cm44xx.h                 |    3 +-
+ arch/arm/mach-omap2/cminst44xx.c             |   86 +++++-
+ arch/arm/mach-omap2/cminst44xx.h             |    8 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |  196 +++++++++--
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |  458 ++++++++++++++++++++------
+ arch/arm/mach-omap2/prm44xx.c                |  145 +--------
+ arch/arm/mach-omap2/prm44xx.h                |    6 -
+ arch/arm/mach-omap2/prminst44xx.c            |  108 ++++++-
+ arch/arm/mach-omap2/prminst44xx.h            |   10 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   14 +-
+ 10 files changed, 737 insertions(+), 297 deletions(-)
+
