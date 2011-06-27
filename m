@@ -1,16 +1,19 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC 1/8] drivers: add generic remoteproc framework
-Date: Mon, 27 Jun 2011 17:35:49 -0600
-Message-ID: <BANLkTi=MDSuiGb64Se1T7zCWG6syxXbhTg@mail.gmail.com>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
-	<1308640714-17961-2-git-send-email-ohad@wizery.com>
-	<20110627204958.GB20865@ponder.secretlab.ca>
-	<20110627232903.GB7736@n2100.arm.linux.org.uk>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 4/8] OMAP2+: PM: idle clkdms only if already in idle
+Date: Mon, 27 Jun 2011 16:36:26 -0700
+Message-ID: <4E0913FA.9030607@ti.com>
+References: <1307616853-28395-1-git-send-email-rnayak@ti.com>
+	<1307616853-28395-2-git-send-email-rnayak@ti.com>
+	<1307616853-28395-3-git-send-email-rnayak@ti.com>
+	<1307616853-28395-4-git-send-email-rnayak@ti.com>
+	<1307616853-28395-5-git-send-email-rnayak@ti.com>
+	<20110610001556.GA9159@google.com> <4DF1FE6A.3010202@ti.com>
+	<alpine.DEB.2.00.1106270012410.460@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110627232903.GB7736@n2100.arm.linux.org.uk>
+In-Reply-To: <alpine.DEB.2.00.1106270012410.460@utopia.booyaka.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,56 +23,43 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: khilman@ti.com, Todd Poynor <toddpoynor@google.com>, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 27, 2011 at 5:29 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Mon, Jun 27, 2011 at 02:49:58PM -0600, Grant Likely wrote:
->> > +struct {
->> > + =A0 =A0 =A0char magic[4] =3D { 'R', 'P', 'R', 'C' };
->> > + =A0 =A0 =A0u32 version;
->> > + =A0 =A0 =A0u32 header_len;
->> > + =A0 =A0 =A0char header[...] =3D { header_len bytes of unformatted, t=
-extual header };
->> > + =A0 =A0 =A0struct section {
->> > + =A0 =A0 =A0 =A0 =A0u32 type;
->> > + =A0 =A0 =A0 =A0 =A0u64 da;
->> > + =A0 =A0 =A0 =A0 =A0u32 len;
->> > + =A0 =A0 =A0 =A0 =A0u8 content[...] =3D { len bytes of binary data };
->> > + =A0 =A0 =A0} [ no limit on number of sections ];
->> > +} __packed;
->>
->> Other have commented on the image format, so I'll skip this bit other
->> than saying that I agree it would be great to have a common format.
->
-> (Don't have the original message to reply to...)
->
-> Do we really want to end up with header being 5 bytes, header_len set
-> as 5, and having to load/store all this data using byte loads/stores ?
->
-> If we don't want that, then I suggest we get rid of the packed attribute,
-> and require stuff to be naturally aligned.
->
-> First issue is that struct section could be much better layed out:
->
-> struct section {
-> =A0 =A0 =A0 =A0u32 type;
-> =A0 =A0 =A0 =A0u32 len;
-> =A0 =A0 =A0 =A0u64 da;
-> =A0 =A0 =A0 =A0u8 content[];
-> };
->
-> and require sizeof(struct section) % sizeof(u64) =3D=3D 0 - iow, to find
-> the next section, round len up to sizeof(u64). =A0Ditto for the header.
+Hi Paul,
 
-Hopefully this will all be moot since it has been proposed to use elf
-images directly.
+On 6/26/2011 11:34 PM, Paul Walmsley wrote:
+> Hi Rajendra, Todd,
+>
+> On Fri, 10 Jun 2011, Rajendra Nayak wrote:
+>
+>> Paul/Benoit any thoughts on if a per-clkdm lock seems reasonable?
+>
+> Sounds okay to me.
+>
+> The experimental patch that you sent didn't add the locking to the *wkdep,
+> *sleepdep functions; I guess we'd better add it there at the same time,
+> since some of the register access there does a read-modify-write.
 
-g.
+My initial idea was to just guard the functions which program the
+target clockdomain state, since that's something which had a possibility
+of racing.
+For the sleepdep/wkupdep programming, I thought they are all done from
+within frameworks and during pm-core init at boot and might not run into
+concurrency issues. But maybe it makes sense to guard those as well.
 
--- =
+>
+> It should be possible to get rid of the atomic_t usage in the clockdomain
+> code as part of the same series.
 
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+Sure, I'll get rid of those.
+
+Thanks,
+Rajendra
+
+>
+> Todd, thanks for pointing this out.
+>
+>
+> - Paul
