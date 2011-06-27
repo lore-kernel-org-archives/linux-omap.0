@@ -1,170 +1,159 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v3 05/12] OMAP: Serial: Hold console lock for console
-	usage.
-Date: Mon, 27 Jun 2011 19:05:06 +0530
-Message-ID: <BANLkTi=Zcre6cXrD4bRw-K6DtPKX3=O7jA@mail.gmail.com>
-References: <1307532194-13039-1-git-send-email-govindraj.raja@ti.com>
-	<1307532194-13039-6-git-send-email-govindraj.raja@ti.com>
-	<87boxmsrjt.fsf@ti.com>
+From: mark gross <markgross@thegnar.org>
+Subject: Re: [linux-pm] [RFC/PATCH 0/9] PM QoS: add a per-device wake-up
+ latency constraint class
+Date: Mon, 27 Jun 2011 06:40:19 -0700
+Message-ID: <20110627134019.GA14826@gvim.org>
+References: <1308926286-30445-1-git-send-email-j-pihet@ti.com>
+Reply-To: markgross@thegnar.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87boxmsrjt.fsf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:56819 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751462Ab1F0Nkg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 09:40:36 -0400
+Received: by pwj7 with SMTP id 7so2949207pwj.19
+        for <linux-omap@vger.kernel.org>; Mon, 27 Jun 2011 06:40:35 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1308926286-30445-1-git-send-email-j-pihet@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: jean.pihet@newoldbits.com
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Sat, Jun 25, 2011 at 5:36 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
->
->> Acquire console lock before enabling and writing to console-uart
->> to avoid any recursive prints from console write.
->> for ex:
->> =A0 =A0 =A0 =A0 --> printk
->> =A0 =A0 =A0 =A0 =A0 --> uart_console_write
->> =A0 =A0 =A0 =A0 =A0 =A0 --> get_sync
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 --> printk from omap_device enable
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 --> uart_console write
->>
->> Use RPM_SUSPENDING check to avoid below scenario during bootup
->> As during bootup console_lock is not available.
->> =A0 =A0 =A0 =A0--> uart_add_one_port
->> =A0 =A0 =A0 =A0 =A0 =A0--> console_register
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0--> console_lock
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 --> console_unlock
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0--> call_console_drivers (her=
-e yet console_lock is not released)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 --> uart_console_wri=
-te
->>
->> Acked-by: Alan Cox <alan@linux.intel.com>
->> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->> ---
->> =A0drivers/tty/serial/omap-serial.c | =A0 20 +++++++++++++++++++-
->> =A01 files changed, 19 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-=
-serial.c
->> index 897416f..ee94291 100644
->> --- a/drivers/tty/serial/omap-serial.c
->> +++ b/drivers/tty/serial/omap-serial.c
->> @@ -1008,7 +1008,22 @@ serial_omap_console_write(struct console *co, con=
-st char *s,
->> =A0 =A0 =A0 struct uart_omap_port *up =3D serial_omap_console_ports[co->=
-index];
->> =A0 =A0 =A0 unsigned long flags;
->> =A0 =A0 =A0 unsigned int ier;
->> - =A0 =A0 int locked =3D 1;
->> + =A0 =A0 int console_lock =3D 0, locked =3D 1;
->> +
->> + =A0 =A0 if (console_trylock())
->> + =A0 =A0 =A0 =A0 =A0 =A0 console_lock =3D 1;
->
-> So now we take the console lock on *every* console write? =A0Even if the
-> device is not about to be idled? =A0 This is rather over-protective, don't
-> you think?
->
+On Fri, Jun 24, 2011 at 04:37:57PM +0200, jean.pihet@newoldbits.com wrote:
+> From: Jean Pihet <j-pihet@ti.com>
+> 
+> This patch set is in an RFC state, for review and comments.
+> 
+> In order to implement the new class in PM QoS the following changes
+> have been made:
+> 
+> 1. Add a new PM QoS class for device wake-up constraints
+> (PM_QOS_DEV_WAKEUP_LATENCY).  Due to the per-device nature of the new
+> class the constraints lists are stored inside the device dev_pm_info
+> struct instead of the internal per-class constraints lists.  The new
+> class is only available from kernel drivers and so is not exported to
+> user space.
 
-This scenario is because of print from
-omap_uart_console_write --> get_sync --> omap_enable_enable
-trying to print worst activate or deactivate latency some times.
+I have not looked at the patch yet but, this reads like "add a
+constraint class per LDM device in the current os"  I assume it would
+add and destroy them with driver load / unloads.  I wonder how that
+would work in practice.  Probubly need an notifier or a silent failure
+for constraint dependents  with stale refs to the device.
 
-will result in recursive print scenario.
+Historically, I had initially implemented pm_qos to support dynamic
+creation of constraint classes.  But, the feedback I got on that was
+that "we can't trust driver writers" so lets not enable that.  Perhaps
+keeping such constraints not exposed to user mode gets around the
+objection we had back then.
 
-holding console lock will only ensure that the print from get_sync gets
-logged to be printed later to console.
+> 
+> 2. Make the pm_qos_add_request API more generic by using a struct
+> pm_qos_parameters parameter. This allows easy extension in the future.
+> 
+> 3. Upon a change of the strongest constraint in the
+> PM_QOS_DEV_WAKEUP_LATENCY class a notification chain mechanism is used
 
->> + =A0 =A0 /*
->> + =A0 =A0 =A0* If console_lock is not available and we are in suspending
->> + =A0 =A0 =A0* state then we can avoid the console usage scenario
->
-> s/in suspending state/runtime suspending/
+strongest constraint?  Do you mean the aggregated constraint?
 
-ok.
+> to take action on the system. This is the proposed way to have PM QoS
+> and the platform dependant code to interact with each other, cf. 4
+> below.  The notification mechanism now passes the constraint request
+> struct ptr in order for the notifier callback to have access to the
+> full set of constraint data, e.g. the struct device ptr.
+> 
+> 4. cpuidle interaction with the OMAP3 cpuidle handler
+> Since cpuidle is a CPU centric framework it decides the MPU next power
+> state based on the MPU exit_latency and target_residency figures.
+>     
+> The rest of the power domains get their next power state programmed
+> from the PM_QOS_DEV_WAKEUP_LATENCY class of the PM QoS framework, via
+> the device wake-up latency constraints.
+> 
+> Note: the exit_latency and target_residency figures of the MPU include
+> the MPU itself and the peripherals needed for the MPU to execute
+> instructions (e.g. main memory, caches, IRQ controller, MMU etc).
+> Some of those peripherals can belong to other power domains than the
+> MPU subsystem and so the corresponding latencies must be included in
+> this figure.
+> 
+> 5. Update the pm_qos_add_request callers to the generic API
+> 
+> 6. Minor clean-ups and rename of struct fields
+> 
+> Questions:
+> 1. How to retrieve the device ptr from a given device driver in order
+> to add a constraint on it?
+put the pm_qos constraint class data into the LDM so all devices
+implicitly have a constraint class associated with each is my first
+thought.  Of course you still have the problem of one driver getting the
+handle to the constraint class of some other driver.  hmmm that is a
+messy problem.
 
->
->> + =A0 =A0 =A0* as this may introduce recursive prints.
->> + =A0 =A0 =A0* Basically this scenario occurs during boot while
->> + =A0 =A0 =A0* printing debug bootlogs.
->
-> The exact scenario for triggering this still not well described, and
-> thus still I don't get it.
->
+Might not be a popular idea...
 
-scenario is same as said above.
+I'll look at the patch details and have more thoughts on this soon.
 
-omap_uart_console_write --> get_sync --> omap_device
-
-printk worst activate latency calls omap_uart_console write.
-
-after boot up we have access to console lock,
-but during boot up we don't have console lock available
-and results in printk recursiveness.
-
-> I still don't fully understand this problem,
-
-basically its due to recursive printk during bootup
-and also after bootup as said above.
-
-> but if it's isolated to
-> runtime suspending, maybe you need a console lock in the runtime_suspend
-> path (like you already have in the static suspend path.)
-
-console_lock in runtime_suspend will not help
-during bootup and due to printk emerging out from
-omap_device enable after system bootup.
-
-
->
->> + =A0 =A0 =A0*/
->> +
->> + =A0 =A0 if (!console_lock &&
->> + =A0 =A0 =A0 =A0 =A0 =A0 up->pdev->dev.power.runtime_status =3D=3D RPM_=
-SUSPENDING)
->> + =A0 =A0 =A0 =A0 =A0 =A0 return;
->
-> Assuming this was a printk, it's now lost, right? =A0 Not sure that's an
-> acceptable solution.
->
-
-AFAIK it gets logged prints later.
-
-to summarize holding console lock helps after bootup
-since during boot up console lock is not available need to use
-above runtime_status check.
-
---
-Thanks,
-Govindraj.R
-
-
->> =A0 =A0 =A0 local_irq_save(flags);
->> =A0 =A0 =A0 if (up->port.sysrq)
->> @@ -1044,6 +1059,9 @@ serial_omap_console_write(struct console *co, cons=
-t char *s,
->> =A0 =A0 =A0 if (up->msr_saved_flags)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 check_modem_status(up);
->>
->> + =A0 =A0 if (console_lock)
->> + =A0 =A0 =A0 =A0 =A0 =A0 console_unlock();
->> +
->> =A0 =A0 =A0 serial_omap_port_disable(up);
->> =A0 =A0 =A0 if (locked)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock(&up->port.lock);
->
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-serial" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+--mark
+> 2. The device struct has been extended with the power domain
+> information. Can this be used to apply the constraints on power
+> domains, as proposed by [1]?
+> 
+> On-going developments, patches in preparation:
+> 1. write Documentation for the new PM QoS class
+> 2. validate the constraints framework on OMAP3&4
+> 3. refine the power domains wake-up latency and the cpuidle figures
+> 
+> [1] http://marc.info/?l=linux-omap&m=130451613408148&w=2
+> 
+> Based on the master branch of the linux-omap git tree (3.0.0-rc3). Compile tested only using OMAP and x86 generic defconfigs.
+> 
+> 
+> Jean Pihet (8):
+>   PM: add a per-device wake-up latency constraints plist
+>   PM: extend PM QoS with per-device wake-up constraints
+>   OMAP PM: create a PM layer plugin for per-device constraints
+>   OMAP2+: powerdomain: control power domains next state
+>   OMAP3: powerdomain data: add wake-up latency figures
+>   OMAP2+: omap_hwmod: manage the wake-up latency constraints
+>   OMAP: PM CONSTRAINTS: implement the devices wake-up latency
+>     constraints
+>   OMAP2+: cpuidle only influences the MPU state
+> 
+> Vishwanath BS (1):
+>   OMAP4: powerdomain data: add wake-up latency figures
+> 
+>  arch/arm/mach-omap2/cpuidle34xx.c            |   42 +---
+>  arch/arm/mach-omap2/omap_hwmod.c             |   26 ++-
+>  arch/arm/mach-omap2/pm.h                     |   17 ++-
+>  arch/arm/mach-omap2/powerdomain.c            |  187 ++++++++++++++
+>  arch/arm/mach-omap2/powerdomain.h            |   33 +++-
+>  arch/arm/mach-omap2/powerdomains3xxx_data.c  |   77 ++++++
+>  arch/arm/mach-omap2/powerdomains44xx_data.c  |   85 +++++++
+>  arch/arm/plat-omap/Kconfig                   |    7 +
+>  arch/arm/plat-omap/Makefile                  |    1 +
+>  arch/arm/plat-omap/i2c.c                     |   20 --
+>  arch/arm/plat-omap/include/plat/omap-pm.h    |  128 ----------
+>  arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
+>  arch/arm/plat-omap/omap-pm-constraints.c     |  344 ++++++++++++++++++++++++++
+>  arch/arm/plat-omap/omap-pm-noop.c            |   89 -------
+>  drivers/base/power/main.c                    |    1 +
+>  drivers/i2c/busses/i2c-omap.c                |   35 ++-
+>  drivers/media/video/via-camera.c             |    5 +-
+>  drivers/net/e1000e/netdev.c                  |    9 +-
+>  drivers/net/wireless/ipw2x00/ipw2100.c       |    6 +-
+>  include/linux/pm.h                           |    2 +
+>  include/linux/pm_qos_params.h                |   40 ++--
+>  kernel/pm_qos_params.c                       |  142 ++++++-----
+>  sound/core/pcm_native.c                      |    8 +-
+>  23 files changed, 939 insertions(+), 367 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/omap-pm-constraints.c
+> 
+> -- 
+> 1.7.4.1
+> 
+> _______________________________________________
+> linux-pm mailing list
+> linux-pm@lists.linux-foundation.org
+> https://lists.linux-foundation.org/mailman/listinfo/linux-pm
