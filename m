@@ -1,17 +1,17 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 07/10] omap2+: Reserve clocksource and timesource and
-	initialize dmtimer later
-Date: Mon, 27 Jun 2011 09:41:09 -0700
-Message-ID: <8762nrdy6y.fsf@ti.com>
+Subject: Re: [PATCH 08/10] omap2+: Use dmtimer macros for clocksource
+Date: Mon, 27 Jun 2011 09:41:42 -0700
+Message-ID: <87zkl3cjll.fsf@ti.com>
 References: <20110620091754.357.56441.stgit@kaulin>
-	<20110620092343.357.60445.stgit@kaulin> <87wrgca3dr.fsf@ti.com>
-	<20110627074856.GD23145@atomide.com>
+	<20110620092345.357.11154.stgit@kaulin> <87iprwa2xx.fsf@ti.com>
+	<20110627075429.GF23145@atomide.com>
+	<20110627104815.GL23145@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110627074856.GD23145@atomide.com> (Tony Lindgren's message of
-	"Mon, 27 Jun 2011 00:48:57 -0700")
+In-Reply-To: <20110627104815.GL23145@atomide.com> (Tony Lindgren's message of
+	"Mon, 27 Jun 2011 03:48:16 -0700")
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -27,38 +27,30 @@ List-Id: linux-omap@vger.kernel.org
 
 Tony Lindgren <tony@atomide.com> writes:
 
-> * Kevin Hilman <khilman@ti.com> [110623 09:56]:
->> Tony Lindgren <tony@atomide.com> writes:
+> * Tony Lindgren <tony@atomide.com> [110627 00:50]:
+>> * Kevin Hilman <khilman@ti.com> [110623 10:06]:
+>> > Tony Lindgren <tony@atomide.com> writes:
+>> > > +
+>> > > +	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
+>> > 
+>> > This function makes calls into "real" driver, but is called from
+>> > sys_timer.init so happens before driver is initialized.
 >> 
->> > There's no need to initialize the dmtimer framework early.
+>> That one is the static omap2+ specific function that can be passed
+>> to the dmtimer device driver as a function pointer in the later
+>> patches. 
+>>  
+>> > > +	omap_dm_timer_set_load_start(&clksrc, 1, 0);
+>> > 
+>> > Here's another call into the real driver.  I think you need
+>> > __omap_dm_timer_set_load_start() here.
 >> 
->> Actually, there is, because it's being used from the early code.
->> 
->> The sys_timer.init functions are called before arch_initcalls, so before
->> omap_dm_timer_init() is called, you have:
->> 
->> omap3_timer_init()
->>     omap2_gp_clockevent_init()
->>         omap_dm_timer_init_one()
->>            omap_dm_timer_request_specific()
->>                
->> 
->> Among other things, the spinlock is taken before it has been initialized
->> in omap_dm_timer_init() (that's how I noticed this problem), but the
->> rest of the init of course hasn't been done either.
->> 
->> Basically, the problem is that this "early init" code is not only using
->> the new macros, but it's also using functions from the "real" driver,
->> which is not yet initialized.
+>> Thanks, that's correct. Will fix that one.
 >
-> Sounds like you did not apply the previous patch to remove the PM hack?
->
-> There's no need to call to omap_dm_timer_request_specific here unless
-> you added back the PM hack.
+> Here's this one updated. Looks like I still have your Reviewed-by
+> lines from the last time this series got posted. Can you please check
+> if those are still valid?
 
-Right, I added it back not noticing that it also removed the
-_request_specific call.
-
-Thanks for the clarification,
+Yes, they're still valid as I've now been through the whole series.
 
 Kevin
