@@ -1,56 +1,72 @@
-From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCH 2/7] OMAP: omap_device: Create clkdev entry for hwmod
- main_clk
-Date: Mon, 27 Jun 2011 11:56:04 -0700
-Message-ID: <20110627185604.GB6187@google.com>
-References: <1309192391-12410-1-git-send-email-b-cousson@ti.com>
- <1309192391-12410-3-git-send-email-b-cousson@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2] omap3: beagle: Use GPTIMER1 for clockevents
+Date: Mon, 27 Jun 2011 12:04:17 -0700
+Message-ID: <87vcvrayfi.fsf@ti.com>
+References: <1309171009-8075-1-git-send-email-premi@ti.com>
+	<20110627111556.GM23145@atomide.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D7933C0@dbde02.ent.ti.com>
+	<20110627123140.GP23145@atomide.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D793464@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:1298 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753578Ab1F0S4J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 14:56:09 -0400
-Content-Disposition: inline
-In-Reply-To: <1309192391-12410-3-git-send-email-b-cousson@ti.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:35945 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753210Ab1F0TEZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Jun 2011 15:04:25 -0400
+Received: by mail-pv0-f180.google.com with SMTP id 21so4139146pvc.11
+        for <linux-omap@vger.kernel.org>; Mon, 27 Jun 2011 12:04:21 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D793464@dbde02.ent.ti.com>
+	(Sanjeev Premi's message of "Mon, 27 Jun 2011 18:58:54 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: paul@pwsan.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Gregoire Gentil <gregoire@gentil.com>, "Bhandiwad, Hrishikesh" <hrishikesh.b@ti.com>, Jason Lam <lzg@ema-tech.com>, Thomas Weber <weber@corscience.de>
 
-On Mon, Jun 27, 2011 at 06:33:06PM +0200, Benoit Cousson wrote:
-...
-> +	r = clk_get_sys(dev_name(&od->pdev.dev), clk_alias);
-> +	if (!IS_ERR(r)) {
-> +		pr_warning("omap_device: %s: %s already exist\n",
-> +			   dev_name(&od->pdev.dev), clk_alias);
+"Premi, Sanjeev" <premi@ti.com> writes:
 
-I believe a clk_put(r) is appropriate here.
+>> -----Original Message-----
+>> From: Tony Lindgren [mailto:tony@atomide.com] 
+>> Sent: Monday, June 27, 2011 6:02 PM
+>> To: Premi, Sanjeev
+>> Cc: linux-omap@vger.kernel.org; 
+>> linux-arm-kernel@lists.infradead.org; Gregoire Gentil; 
+>> Bhandiwad, Hrishikesh; Jason Lam; Thomas Weber
+>> Subject: Re: [PATCHv2] omap3: beagle: Use GPTIMER1 for clockevents
+>> 
+>> * Premi, Sanjeev <premi@ti.com> [110627 05:08]:
+>> > > From: Tony Lindgren [mailto:tony@atomide.com] 
+>> > > 
+>> > > I don't think omap3_beagle_init_rev is even called when
+>> > > the timer is set?
+>> > 
+>> > [sp] I verified the patch based on the print indicating that
+>> >      GPTIMER1 being used as clockevent source.
+>> >      http://marc.info/?l=linux-omap&m=130893319726456&w=2
+>> 
+>> I suspect the test always fails though, so it probably never
+>> gets set to gptimer12 on any board :)
+>>
+>
+> [sp] While I take my time understanding things on devel-timer;
+>      I had a quick question - at risk of being flamed.
+>
+>      Adding a new machine ID would trickle to u-boot and same
+>      uImage (default) may not work across board revisions.
+>
+>      How does this scheme look like:
+>      - GPTIMER1 is used as default - as it works for most boards.
+>      - GPTIMER12 is used based on a static config option OR a
+>        board specific bootarg
+>
+>      I know both these options aren't general practice. Still
+>      wanted to know your views in the current context.
+>
 
-> +		return;
-> +	}
-> +
-> +	r = omap_clk_get_by_name(clk_name);
-> +	if (IS_ERR(r)) {
-> +		pr_err("omap_device: %s: omap_clk_get_by_name for %s failed\n",
-> +		       dev_name(&od->pdev.dev), clk_name);
-> +		return;
-> +	}
-> +
-> +	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev.dev));
-> +	if (!l) {
-> +		pr_err("omap_device: %s: clkdev_alloc for %s failed\n",
-> +		       dev_name(&od->pdev.dev), clk_alias);
+Another option may be to always use GPTIMER1 on early boot for all
+boards.  Later in the boot, when the old rev boards are detected, a new
+GPT12 clockevent could be registered (with a higher rating) such that
+the clockevent core would switch to the new source.
 
-And here.
-
-> +		return;
-> +	}
-> +
-> +	clkdev_add(l);
-
-And here.
-
-
-Todd
+Kevin
