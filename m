@@ -1,50 +1,29 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [GIT PULL] misc. OMAP PM updates for v3.1
-Date: Mon, 27 Jun 2011 09:50:15 -0700
-Message-ID: <87oc1jcj7c.fsf@ti.com>
-References: <87vcvw5akk.fsf@ti.com> <20110627112843.GN23145@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] omap3: beagle: Use GPTIMERi 1 for clockevents
+Date: Mon, 27 Jun 2011 10:55:16 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1106271053000.460@utopia.booyaka.com>
+References: <1308932625-17632-1-git-send-email-premi@ti.com> <86CFE860-E18E-4B96-A753-11EB7C5C1C86@dominion.thruhere.net> <B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE2@dbde02.ent.ti.com> <alpine.DEB.2.00.1106251635340.30205@utopia.booyaka.com>
+ <20110627101427.GH23145@atomide.com> <alpine.DEB.2.00.1106270910210.460@utopia.booyaka.com> <B85A65D85D7EB246BE421B3FB0FBB593024D793501@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110627112843.GN23145@atomide.com> (Tony Lindgren's message of
-	"Mon, 27 Jun 2011 04:28:43 -0700")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:41101 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752994Ab1F0QzS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 12:55:18 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D793501@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Tony Lindgren <tony@atomide.com> writes:
+On Mon, 27 Jun 2011, Premi, Sanjeev wrote:
 
-> * Kevin Hilman <khilman@ti.com> [110623 17:32]:
->> Tony,
->> 
->> Please pull the following misc. OMAP PM updates targetted for v3.1.
->> 
->> This branch is based on your 'fixes' branch due to some dependencies.
->>       OMAP2: PM debug: move wakeup timer into clockevent code
->
-> This won't work with the devel-timer branch. I think we should just
-> drop it for now based on what I mentioned in the other thread.
+> [sp] Can you look at my query to Tony? Will that be an acceptable
+>      workaround until DT. Going to two machine IDs and then unifying
+>      back again could cause confusion - esp. during transition times.
 
-Hmm, so it's not just the wakeup timer that conflicts between
-devel-timer and my pm-misc branch.
+It's up to Tony, he's the maintainer...
 
-My branch also removes a bunch of other stuff from pm-debug.c and pm.h
-so it has overlapping changes with your devel-timer branch.
 
-The conflicts are easy enough to resolve since both branches are just
-removing code.
-
-Is your devel-timer branch stable now?  Should I rebase my branch on top
-of devel-timer?  or can you just handle the conflicts?
-
-Kevin
+- Paul
