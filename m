@@ -1,17 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 06/10] omap2+: Remove gptimer_wakeup for now
-Date: Mon, 27 Jun 2011 01:08:05 -0700
-Message-ID: <20110627080804.GG23145@atomide.com>
-References: <20110620091754.357.56441.stgit@kaulin>
-	<20110620092341.357.14183.stgit@kaulin> <4DFF1558.4020509@ti.com>
-	<20110620094846.GG23145@atomide.com> <87oc1obnbw.fsf@ti.com>
-	<4E035835.50405@ti.com>
+From: Jaswinder Singh <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH] OMAP4: PANDA, SDP: Fix EHCI regulator supply
+Date: Mon, 27 Jun 2011 13:38:54 +0530
+Message-ID: <BANLkTinVdWjoS-qdGnSxGnmrPKHSDNV7hw@mail.gmail.com>
+References: <1308926240-13888-1-git-send-email-jaswinder.singh@linaro.org>
+	<BANLkTin=-cRC_ax8AakMD1UZtU+AQ0H==w@mail.gmail.com>
+	<20110627080036.GB2508@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <4E035835.50405@ti.com>
+In-Reply-To: <20110627080036.GB2508@legolas.emea.dhcp.ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,38 +19,45 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: balbi@ti.com
+Cc: patches@linaro.org, tony@atomide.com, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [110623 08:09]:
-> On 6/23/2011 8:35 PM, Kevin Hilman wrote:
-> >Tony Lindgren<tony@atomide.com>  writes:
-> >
-> >So now, the only thing OMAP-specific is the debugfs file used to trigger
-> >it.
-> >
-> >>Maybe Kevin can just carry it along in the PM branch for now?
-> >
-> >I'd prefer to keep it in mainline as this is a very important feature
-> >for the PM functionality already in mainline.
-> >
-> I agree with Kevin and that's what have been saying from begining when
-> we decided to drop this feature. The new patch from Kevin is already
-> doing this in more generic way than that was before.
+Hi Felipe,
 
-To me Kevin's later patch makes more sense, but still has few issues:
+On 27 June 2011 13:30, Felipe Balbi <balbi@ti.com> wrote:
 
-- It keeps the dependency between PM debug code and sys_timer code.
-  That's yet another artificial blocker for making PM code a loadable
-  module. We really don't want to export anything from the sys_timer code.
+>> >
+>> > +static struct regulator_consumer_supply sdp4430_vusb_supply =3D
+>> > + =A0 =A0 =A0 REGULATOR_SUPPLY("hsusb0", "ehci-omap.0");
+>
+> this should be an array.
+Ok, I can make it an array of _one_ element.
+Though I am not sure why is that a good thing, or are we to use another
+possible VUSB supply on Panda/SDP boards ?  Please suggest so that
+I can add that too.
 
-- The interface for programming a wake-up timer should be Linux generic,
-  not omap specific.
+>> > =A0static struct regulator_init_data sdp4430_vusb =3D {
+>> > =A0 =A0 =A0 =A0.constraints =3D {
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.min_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =3D 3300000,
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.max_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =3D 3300000,
+>> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .apply_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D true,
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_modes_mask =A0 =A0 =A0 =3D REGUL=
+ATOR_MODE_NORMAL
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0| REGULATOR_MODE_STANDBY,
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D =A0 =A0 =A0REGUL=
+ATOR_CHANGE_MODE
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0| REGULATOR_CHANGE_STATUS,
+>> > =A0 =A0 =A0 =A0},
+>> > + =A0 =A0 =A0 .num_consumer_supplies =A0=3D 1,
+>
+> ARRAY_SIZE()
+Yes, of course if we are to switch to single-element array.
 
-Further, it's a CONFIG_PM_DEBUG patch. So that code should not be
-in the mainline kernel.
-
-Regards,
-
-Tony
+Thanks,
+Jassi
