@@ -1,69 +1,59 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] mfd: omap: Restore TLL initialization
-Date: Mon, 27 Jun 2011 15:04:09 -0700
-Message-ID: <87ei2f9bja.fsf@ti.com>
-References: <1308862894-13802-1-git-send-email-jaswinder.singh@linaro.org>
-	<BANLkTikFFUREhKyPaZrhHZje0KeaA3ef8Q@mail.gmail.com>
+Subject: Re: [PATCH v4 00/18] I2C: OMAP: I2C fixes, removal of cpu_is...
+	from driver
+Date: Mon, 27 Jun 2011 15:12:06 -0700
+Message-ID: <1309212726.6231.14.camel@vence>
+References: <1306973984-15165-1-git-send-email-khilman@ti.com>
+	<20110615213637.GH15795@trinity.fluff.org>  <87k4cm1xgj.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:54524 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755139Ab1F0WEN convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Jun 2011 18:04:13 -0400
-In-Reply-To: <BANLkTikFFUREhKyPaZrhHZje0KeaA3ef8Q@mail.gmail.com> (Keshava
-	Munegowda's message of "Fri, 24 Jun 2011 11:52:25 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87k4cm1xgj.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ben Dooks <ben-i2c@fluff.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Andy Green <andy.green@linaro.org>, linux-i2c@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, ti@lists.linaro.org, parthab@india.ti.com, sameo@linux.intel.com, gadiyar@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Jassi Brar <jaswinder.singh@linaro.org>
 
-"Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
+On Wed, 2011-06-15 at 16:33 -0700, Kevin Hilman wrote:
+> Hi Ben,
+> 
+> Ben Dooks <ben-i2c@fluff.org> writes:
+> 
+> > On Wed, Jun 01, 2011 at 05:19:26PM -0700, Kevin Hilman wrote:
+> >> Ben, 
+> >> 
+> >> Please pull in this series from Andy Green for the next merge window.
+> >> 
+> >> v4 is simply a rebase of Andy's v3 against v3.0-rc1 with some basic
+> >> sanity testing against with the latest kernel.
+> >
+> > These look much more like functionality changes than actual fixes, and
+> > are much more suited for inclusion into -next for once the next stable
+> > release is out.
+> 
+> Correct, this is a rework of functionality, not a set of fixes.  This
+> series is targeted for the next release (v3.1), not for fixes
+> (v3.0-rc).  
+> 
+> I was requesting for it to be included in your queue for -next and for
+> the next merge window.
+> 
+> Tony has already been merging this in his omap-testing branch so it is
+> has been getting lots of testing on OMAP platforms already.
 
-> On Fri, Jun 24, 2011 at 2:31 AM, Jassi Brar <jassisinghbrar@gmail.com=
-> wrote:
->> The commit
->> =C2=A07e6502d577106fb5b202bbaac64c5f1b065 'mfd: Add omap-usbhs runti=
-me PM support'
->> besides moving to RPM, removes necessary TLL initialization as well.
->>
->> Restore the TLL initialization, without which device detection fails=
-=2E
->>
->> Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
+Ping.  I don't see this in linux-next yet.
 
-[...]
+Are you planning to queue this for v3.1?
 
-> if you move to RPM, you should'tn access these configuration/reset
-> registers in your driver.
-
-Yes, but Jaswinder's changelog clearly shows that the runtime PM (and
-thus hwmod) init is not doing the equivalent of what was removed from
-the driver.
-
-A hunch after a quick glance is that the driver changes are only doing
-runtime PM calls on the UHH device and not the TTL device.  In fact,
-the patch that builds the USB host omap_device[1] doesn't even build on=
-e.
-
-> moreover, the patch 'mfd: Add omap-usbhs runtime PM support' is
-> already reverted.
-
-It is reverted for this merge window, but will be added back for the
-next window, so Jaswinder's problem still needs to be fixed the right w=
-ay.
-
-Please rework the USB host runtime PM conversion so that *all* the IP
-blocks are managed by runtime PM and the driver is doing runtime PM
-calls for all the devices used.
+Thanks,
 
 Kevin
-
-[1] http://marc.info/?l=3Dlinux-omap&m=3D130693494126396&w=3D2
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
