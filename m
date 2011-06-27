@@ -1,51 +1,50 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 06/10] omap2+: Remove gptimer_wakeup for now
-Date: Mon, 27 Jun 2011 10:32:26 -0700
-Message-ID: <8762nrch91.fsf@ti.com>
-References: <20110620091754.357.56441.stgit@kaulin>
-	<20110620092341.357.14183.stgit@kaulin>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2] omap3: beagle: Use GPTIMER1 for clockevents
+Date: Mon, 27 Jun 2011 11:00:27 -0700
+Message-ID: <20110627180027.GR23145@atomide.com>
+References: <1309171009-8075-1-git-send-email-premi@ti.com>
+ <20110627111556.GM23145@atomide.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024D7933C0@dbde02.ent.ti.com>
+ <20110627123140.GP23145@atomide.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024D793464@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:47803 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751462Ab1F0Rcb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Jun 2011 13:32:31 -0400
-Received: by pvc21 with SMTP id 21so2843818pvc.25
-        for <linux-omap@vger.kernel.org>; Mon, 27 Jun 2011 10:32:28 -0700 (PDT)
-In-Reply-To: <20110620092341.357.14183.stgit@kaulin> (Tony Lindgren's message
-	of "Mon, 20 Jun 2011 02:23:41 -0700")
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35912 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752938Ab1F0SAg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 14:00:36 -0400
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D793464@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Gregoire Gentil <gregoire@gentil.com>, "Bhandiwad, Hrishikesh" <hrishikesh.b@ti.com>, Jason Lam <lzg@ema-tech.com>, Thomas Weber <weber@corscience.de>
 
-Tony Lindgren <tony@atomide.com> writes:
+* Premi, Sanjeev <premi@ti.com> [110627 06:24]:
+> 
+> [sp] While I take my time understanding things on devel-timer;
+>      I had a quick question - at risk of being flamed.
+> 
+>      Adding a new machine ID would trickle to u-boot and same
+>      uImage (default) may not work across board revisions.
 
-> This removes the support for setting the wake-up timer for debugging.
->
-> Later on we can reserve gptimer1 for PM code only and have similar
-> functionality.
->
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
-
-Another minor change to fold into patch: gptimer_wakeup doesn't exist
-anymore, so should probably be removed from dmtimer.h
-
-Kevin
-
-
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 40d7936..d0f3a2d 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -59,7 +59,6 @@
-  */
- #define OMAP_TIMER_IP_VERSION_1                        0x1
- struct omap_dm_timer;
--extern struct omap_dm_timer *gptimer_wakeup;
- struct clk;
+Yes that's a hassle :( Until we have device tree, maybe see if
+u-boot passes ATAG_REVISION that's available as system_rev in
+kernel?
  
- struct omap_dm_timer *omap_dm_timer_request(void);
+>      How does this scheme look like:
+>      - GPTIMER1 is used as default - as it works for most boards.
+>      - GPTIMER12 is used based on a static config option OR a
+>        board specific bootarg
+> 
+>      I know both these options aren't general practice. Still
+>      wanted to know your views in the current context.
+
+Let's not do a Kconfig option, but a cmdline option should work
+if done in a generic way. If you decide to go that way, then
+please add that to timer.c against devel-timer branch.
+
+Regards,
+
+Tony
