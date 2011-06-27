@@ -1,44 +1,75 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3: beagle: Use GPTIMERi 1 for clockevents
-Date: Mon, 27 Jun 2011 11:03:51 -0700
-Message-ID: <20110627180351.GS23145@atomide.com>
-References: <1308932625-17632-1-git-send-email-premi@ti.com>
-	<86CFE860-E18E-4B96-A753-11EB7C5C1C86@dominion.thruhere.net>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE2@dbde02.ent.ti.com>
-	<alpine.DEB.2.00.1106251635340.30205@utopia.booyaka.com>
-	<20110627101427.GH23145@atomide.com>
-	<alpine.DEB.2.00.1106270910210.460@utopia.booyaka.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D793501@dbde02.ent.ti.com>
-	<alpine.DEB.2.00.1106271053000.460@utopia.booyaka.com>
+Subject: Re: [PATCH 06/10] omap2+: Remove gptimer_wakeup for now
+Date: Mon, 27 Jun 2011 11:16:16 -0700
+Message-ID: <20110627181616.GT23145@atomide.com>
+References: <20110620091754.357.56441.stgit@kaulin>
+ <20110620092341.357.14183.stgit@kaulin>
+ <4DFF1558.4020509@ti.com>
+ <20110620094846.GG23145@atomide.com>
+ <87oc1obnbw.fsf@ti.com>
+ <4E035835.50405@ti.com>
+ <20110627080804.GG23145@atomide.com>
+ <87hb7bdypb.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:41299 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753300Ab1F0SQV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 14:16:21 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1106271053000.460@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, "Premi, Sanjeev" <premi@ti.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+In-Reply-To: <87hb7bdypb.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [110627 09:50]:
-> On Mon, 27 Jun 2011, Premi, Sanjeev wrote:
+* Kevin Hilman <khilman@ti.com> [110627 09:25]:
+> Tony Lindgren <tony@atomide.com> writes:
 > 
-> > [sp] Can you look at my query to Tony? Will that be an acceptable
-> >      workaround until DT. Going to two machine IDs and then unifying
-> >      back again could cause confusion - esp. during transition times.
+> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [110623 08:09]:
+> >> On 6/23/2011 8:35 PM, Kevin Hilman wrote:
+> >> >Tony Lindgren<tony@atomide.com>  writes:
+> >> >
+> >> >So now, the only thing OMAP-specific is the debugfs file used to trigger
+> >> >it.
+> >> >
+> >> >>Maybe Kevin can just carry it along in the PM branch for now?
+> >> >
+> >> >I'd prefer to keep it in mainline as this is a very important feature
+> >> >for the PM functionality already in mainline.
+> >> >
+> >> I agree with Kevin and that's what have been saying from begining when
+> >> we decided to drop this feature. The new patch from Kevin is already
+> >> doing this in more generic way than that was before.
+> >
+> > To me Kevin's later patch makes more sense, but still has few issues:
+> >
+> > - It keeps the dependency between PM debug code and sys_timer code.
+> >   That's yet another artificial blocker for making PM code a loadable
+> >   module. We really don't want to export anything from the sys_timer code.
+> >
+> > - The interface for programming a wake-up timer should be Linux generic,
+> >   not omap specific.
+> >
+> > Further, it's a CONFIG_PM_DEBUG patch. So that code should not be
+> > in the mainline kernel.
 > 
-> It's up to Tony, he's the maintainer...
+> Huh?  
+> 
+> Please clarify why PM debug code shouldn't be in mainline?
 
-For the record, replied something to the other thread about system_rev
-and cmdline options.
+Oh sorry I did not mean that. I meant that it's a debug interface so it's
+not like we should freeze it. My main issues are the dependencies and
+the interface above.
+
+Anyways, I guess you are using this to test suspend on a remote system
+with no hardware trigger to wake it back up?
+
+If so, how about some RTC alarm like interface to set the wake-up
+event after suspending? There may be a way to do this already and
+have it triggered from rtc-omap..
+
+Regards,
 
 Tony
