@@ -1,57 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: problem with "undefined instruction"
-Date: Mon, 27 Jun 2011 05:12:47 -0700
-Message-ID: <20110627121246.GO23145@atomide.com>
-References: <20110430162357.GA14287@earth.universe>
- <20110606125600.GB20909@earth.universe>
- <20110607115331.GZ8696@atomide.com>
- <20110623195353.GA16800@earth.universe>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Subject: Re: [PATCH] omap3: beagle: Use GPTIMERi 1 for clockevents
+Date: Mon, 27 Jun 2011 13:32:25 +0100
+Message-ID: <4E087859.5010901@cam.ac.uk>
+References: <1308932625-17632-1-git-send-email-premi@ti.com>
+	<86CFE860-E18E-4B96-A753-11EB7C5C1C86@dominion.thruhere.net>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE2@dbde02.ent.ti.com>
+	<DE79F8F5-7D8A-46B8-8C8C-C2A7515E9117@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:10355 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757085Ab1F0MMt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 08:12:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20110623195353.GA16800@earth.universe>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <DE79F8F5-7D8A-46B8-8C8C-C2A7515E9117@dominion.thruhere.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@debian.org> [110623 12:49]:
-> On Tue, Jun 07, 2011 at 02:53:31PM +0300, Tony Lindgren wrote:
-> > * Sebastian Reichel <sre@debian.org> [110606 15:51]:
-> > > On Sat, Apr 30, 2011 at 06:23:57PM +0200, Sebastian Reichel wrote:
-> > > > I'm currently trying to get a mainline based kernel running on my pandaboard.
-> > > > The problem is, that it's crashing very early during the init phase because of
-> > > > "undefined instruction" exceptions:
-> > > > 
-> > > > [    1.867980] udevd (56): undefined instruction: pc=401e6ed4
-> > > > [    1.874603] Code: 9cd0 fffe e92d 4ff0 (ed2d)
-> > > > [    1.977752] modprobe (69): undefined instruction: pc=400c6ed4
-> > > > [    1.977783] Code: 9cd0 fffe e92d 4ff0 (ed2d)
-> > > > [    1.978240] init (1): undefined instruction: pc=40149ed4
-> > > > [    1.978240] Code: 9cd0 fffe e92d 4ff0 (ed2d)
-> > > > [    2.005706] Kernel panic - not syncing: Attempted to kill init!
-> > > >
-> > > > Exactly the same userland boots fine with the original 2.6.35 kernel, so it's
-> > > > probably not the userland's fault.
-> > > 
-> > > I found the source of this problem. VFPv3 support is not working
-> > > correctly when OMAP2 (and thus CPU_V6) is enabled in the kernel
-> > > config.
-> > > 
-> > > I guess this should be mentioned in the kernel config (or fixed if
-> > > possible).
-> > 
-> > This should be easy to fix now. Do you have a minimal test program that
-> > triggers this?
-> 
-> Sorry for the delay, here is a minimal test binary, that triggers
-> the bug: http://elektranox.org/omap-kernel/test
+On 06/25/11 21:10, Koen Kooi wrote:
+> =
 
-Heh that's pretty minimal :) I'll take a look why it fails.
+> Op 25 jun 2011, om 20:51 heeft Premi, Sanjeev het volgende geschreven:
+> =
 
-Tony
+>>> -----Original Message-----
+>>> From: linux-omap-owner@vger.kernel.org =
+
+>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Koen Kooi
+>>> Sent: Saturday, June 25, 2011 1:47 PM
+>>> To: linux-omap@vger.kernel.org List
+>>> Cc: linux-arm-kernel; Paul Walmsley
+>>> Subject: Re: [PATCH] omap3: beagle: Use GPTIMERi 1 for clockevents
+>>>
+>>>
+>>> Op 24 jun 2011, om 18:23 heeft Sanjeev Premi het volgende geschreven:
+>>>
+>>>> The current selection of the GPTIMER on was result of
+>>>> a hardware issue in early versions of the Beagleboards
+>>>> (Ax and B1 thru B4). [1] [2]
+>>>>
+>>>> Its been long since the hardware issue has been fixed.
+>>>> This patch uses GPTIMER 1 for all newer board revisions
+>>>> incl. Beagleboard XM.
+>>
+>> [sp] I didn't include a reason - because the problem may not
+>>     be reproducible on the public trees.
+>>
+>>     During tests performed in internal development trees, the
+>>     BogoMIPS calculations @ 1GHz wouldn't go beyond "830-850"
+>>     range. While there was no such inconsistency on OMAP3EVM.
+>>
+>>     After few days of debug GPTIMER12 came to be only difference.
+>>     Tracing GPTIMER12 in the spec proved quite a challenge; the
+>>     as timer is not included in the TRM and corresponding interrupt
+>>     is marked reserved. Paul (in cc:) obviously had access to
+>>     documents that we don't.
+>>
+>>     This patch is merely trying to bring parity in use of GPTIMER
+>>     across OMAP3 boards (AND use documented IP) - taking note of
+>>     many Beagleboards where current code is necessary.
+> =
+
+
+> I get a value of 1010 =B110 bogoMIPS consistently with .39 + dvfs
+> patches. Having said that, this patch does seem to be an improvement,
+> but has it actually been tested on real beagleboard hardware with a
+> recent kernel? Especially on the boards affected by the capacitor
+> issue on the external clock.--
+Hi Koen,
+
+Probably obvious to anyone else here, but which dvfs patches?
+
+I've only recently acquired an xm and hence wasn't following these threads.
+Don't suppose you could point me to a tree with them in or the relevant
+thread?
+
+Cheers,
+
+Jonathan
