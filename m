@@ -1,53 +1,74 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v2 12/18] GPIO: OMAP: Clean omap_gpio_mod_init function
-Date: Mon, 27 Jun 2011 16:18:51 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BC15847@dbde02.ent.ti.com>
-References: <1308111806-29152-1-git-send-email-tarun.kanti@ti.com>
-	<1308111806-29152-3-git-send-email-tarun.kanti@ti.com>
- <87fwn9mzu0.fsf@ti.com>
+From: Jaswinder Singh <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH] OMAP4: PANDA, SDP: Fix EHCI regulator supply
+Date: Mon, 27 Jun 2011 16:40:41 +0530
+Message-ID: <BANLkTikDBQfxFsUFQcJTo_Nj93VYzbnsfQ@mail.gmail.com>
+References: <1308926240-13888-1-git-send-email-jaswinder.singh@linaro.org>
+	<BANLkTin=-cRC_ax8AakMD1UZtU+AQ0H==w@mail.gmail.com>
+	<20110627080036.GB2508@legolas.emea.dhcp.ti.com>
+	<BANLkTinVdWjoS-qdGnSxGnmrPKHSDNV7hw@mail.gmail.com>
+	<20110627083507.GG2508@legolas.emea.dhcp.ti.com>
+	<BANLkTim9Wbxo5U77Vo=FFxYU4vsUps7GMA@mail.gmail.com>
+	<20110627101139.GK2508@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40559 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757709Ab1F0KtC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 06:49:02 -0400
-In-Reply-To: <87fwn9mzu0.fsf@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110627101139.GK2508@legolas.emea.dhcp.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: patches@linaro.org, tony@atomide.com, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-Kevin,
-[...]
-> >
-> > With register offsets now defined for respective OMAP versions we can
-> get rid
-> > of cpu_class_* checks. In addition, organized common initialization for
-> the
-> > different OMAP silicon versions.
-> >
-> > Signed-off-by: Charulatha V <charu@ti.com>
-> > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> 
-> Since the SYSCONFIG register settings are OMAP1-only and init-time only,
-> they could be done in the OMAP1-specific init functions.
-BTW, I needed some more clarifications here...
-The omap_gpio_mod_init() is called only once from _probe().
-So, does it make sense to have a separate init function?
-If yes, I have to call __init omap1_gpio_mod_init() from _probe() again.
-This is because I need the bank information supplied to it.
-Let me know if this is a fair understanding. Thanks.
---
-Tarun
-
-> 
-> Also, this could be quite a bit more compact by not duplicating code for
-> both bank widths.  Instead, create some local function pointers for 16
-> or 32-bit register access, and assign them based on bank width.
-> 
-> Kevin
-> 
-[...]
+T24gMjcgSnVuZSAyMDExIDE1OjQxLCBGZWxpcGUgQmFsYmkgPGJhbGJpQHRpLmNvbT4gd3JvdGU6
+Cj4gSGksCj4KPiBPbiBNb24sIEp1biAyNywgMjAxMSBhdCAwMzozNTo0MVBNICswNTMwLCBKYXN3
+aW5kZXIgU2luZ2ggd3JvdGU6Cj4+IE9uIDI3IEp1bmUgMjAxMSAxNDowNSwgRmVsaXBlIEJhbGJp
+IDxiYWxiaUB0aS5jb20+IHdyb3RlOgo+PiA+PiA+PiA+ICtzdGF0aWMgc3RydWN0IHJlZ3VsYXRv
+cl9jb25zdW1lcl9zdXBwbHkgc2RwNDQzMF92dXNiX3N1cHBseSA9Cj4+ID4+ID4+ID4gKyDCoCDC
+oCDCoCBSRUdVTEFUT1JfU1VQUExZKCJoc3VzYjAiLCAiZWhjaS1vbWFwLjAiKTsKPj4gPj4gPgo+
+PiA+PiA+IHRoaXMgc2hvdWxkIGJlIGFuIGFycmF5Lgo+PiA+PiBPaywgSSBjYW4gbWFrZSBpdCBh
+biBhcnJheSBvZiBfb25lXyBlbGVtZW50Lgo+PiA+PiBUaG91Z2ggSSBhbSBub3Qgc3VyZSB3aHkg
+aXMgdGhhdCBhIGdvb2QgdGhpbmcsIG9yIGFyZSB3ZSB0byB1c2UgYW5vdGhlcgo+PiA+PiBwb3Nz
+aWJsZSBWVVNCIHN1cHBseSBvbiBQYW5kYS9TRFAgYm9hcmRzID8gwqBQbGVhc2Ugc3VnZ2VzdCBz
+byB0aGF0Cj4+ID4+IEkgY2FuIGFkZCB0aGF0IHRvby4KPj4gPgo+PiA+IHNhbWUgY29tbWVudCBJ
+IGdhdmUgYmVmb3JlIHRvIGFub3RoZXIgcGF0Y2g6Cj4+ID4KPj4gPiBpdCBtYWtlcyB0aGUgZGlm
+ZiBhIGxvdCBlYXNpZXIgdG8gdW5kZXJzdGFuZCBzaG91bGQgYW55b25lIG1vZGlmeSB0aGlzCj4+
+ID4gbGF0ZXIuIEl0J3MgYWxzbyBhIG1hdHRlciBvZiBjb25zaXN0ZW5jeS4KPj4gPgo+PiBBIHF1
+aWNrIGdyZXAgc2hvd2VkIG90aGVyd2lzZSB0aG91Z2ggLi4uCj4+Cj4+IEluIGFyY2gvYXJtL21h
+Y2gtb21hcDIvCj4+IFRvdGFsIHJlZ3VsYXRvcnMgZGVmaW5lZCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoD0gwqA3MQo+PiBSZWd1bGF0b3JzIHdpdGggZXhhY3RseSAxIHN1
+cHBseSDCoCDCoCDCoCDCoCDCoCA9IMKgIDU4Cj4+IFNpbmdsZSBlbGVtZW50IG5vbi1hcnJheSBk
+ZWZpbml0aW9ucyDCoCDCoCA9IMKgNDYvNTgKPj4gU2luZ2xlIGVsZW1lbnQgYXJyYXkgZGVmaW5p
+dGlvbnMgwqAgwqAgwqAgwqAgwqAgwqAgPSDCoDEyLzU4Cj4+Cj4+IEV2ZW4gaWYgd2UgY29uc2lk
+ZXIgMjAlIHRvIGJlIG5vcm0gZm9yIGNvbnNpc3RlbmN5LCBJIGFtIG5vdCBzdXJlIGl0J3MKPj4g
+YSBnb29kIG9uZS4KPgo+IHRoZSBwYXRjaCB3aGljaCBjb252ZXJ0ZWQgYWxsIG5vbi1hcnJheSwg
+dG8gYXJyYXkgc2VlbXMgdG8gaGF2ZSBiZWVuCj4gdGFrZW4geWV0LCB0aGVuLgo+Ck9rLCBJIGRv
+bid0IGhhdmUgdGhhdCBwYXRjaC4gSWYgZXZlcnl0aGluZyBlbHNlIGhhcyBiZWVuIGNvbnZlcnRl
+ZAp0aGVuIHRoZXJlIGlzIG5vIHBvaW50IGluIHN0aWNraW5nIG91dC4gUGxlYXNlIGxldCBtZSBr
+bm93IHdoaWNoIHJlcG8gaGFzIHRoYXQuCkknbGwgYWRhcHQgdG8gdGhhdC4KCj4+IEFuZCwgSSBk
+b24ndCB1bmRlcnN0YW5kIGhvdyBkb2VzIGRpZmYgYmVjb21lIGFueSBlYXNpZXIgYmV5b25kIDIK
+Pj4gZWxlbWVudHMgaW4gdGhlIGFycmF5Lgo+Cj4gaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1v
+bWFwJm09MTMwNzM4MDQ0NzE1NDkwJnc9Mgo+ClllcywgdGhhdCdzIHdoeSBJIHNhaWQgImJleW9u
+ZCAyIGVsZW1lbnRzIgpPbmx5LCBpZiBhbnksICJkaWZmaWN1bHR5IiB3b3VsZCBiZSBfZmlyc3Rf
+IHRpbWUgd2hlbiBzb21lb25lIHBhdGNoZXMKdG8gYWRkIHNlY29uZCBzdXBwbHkuCkFmdGVyIHRo
+YXQgaXQnbGwganVzdCBiZSBzYW1lIGFzIHlvdSBleHBlY3QuCgo+PiBTb3JyeSBmb3IgYmVpbmcg
+Yml0Y2h5LCBidXQgSSBhbSB1bmFibGUgdG8gYnV5IGFueSByZWFzb24gb3RoZXIgdGhhbgo+PiBo
+YXZpbmcgbW9yZSB0aGFuCj4+IG9uZSBlbGVtZW50IHRvIHVzZSBhcnJheS4KPgo+IEkgYWxzbyBz
+ZWVtIHRvIHJlY2FsbCBzb21lb25lIChlaXRoZXIgUnVzc2VsbCBvciBMaW51cykgb25jZSBleHBs
+YWluZWQKPiB3aHkgd2Ugc2hvdWxkIG5ldmVyIG1pc3Rha2Ugb25lLWVsZW1lbnQgYXJyYXlzIHdp
+dGggcG9pbnRlcnMuCj4gVW5mb3J0dW5hdGVseSwgSSBmYWlsIHRvIGZpbmQgdGhlIHRocmVhZCwg
+aXQncyBxdWl0ZSBvbGQuClllcywgSSB2YWd1ZWx5IHJlbWVtYmVyIHRoZSB0aHJlYWQsIGJ1dCBu
+b3Qgc3VyZSBpZiBpdCdzIGlzc3VlIGhlcmUuCgotagoKLS0gCkxpbmFyby5vcmcg4pSCIE9wZW4g
+c291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcyB8IEZvbGxvdyBMaW5hcm8KaHR0cDovL2ZhY2Vi
+b29rLmNvbS9wYWdlcy9MaW5hcm8vMTU1OTc0NTgxMDkxMTA2IMKgLQpodHRwOi8vdHdpdHRlci5j
+b20vIyEvbGluYXJvb3JnIC0gaHR0cDovL2xpbmFyby5vcmcvbGluYXJvLWJsb2cKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwg
+bWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8v
+bGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
