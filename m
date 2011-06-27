@@ -1,108 +1,76 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 05/13] OMAP2+: hwmod: Replace clkdm access from main_clk using hwmod attribute
-Date: Mon, 27 Jun 2011 17:47:13 +0200
-Message-ID: <1309189641-25010-6-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 08/13] OMAP4: prm: Remove deprecated functions
+Date: Mon, 27 Jun 2011 17:47:16 +0200
+Message-ID: <1309189641-25010-9-git-send-email-b-cousson@ti.com>
 References: <1309189641-25010-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50054 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50063 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751747Ab1F0Prl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Jun 2011 11:47:41 -0400
+	id S1751449Ab1F0Prq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Jun 2011 11:47:46 -0400
 In-Reply-To: <1309189641-25010-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, rnayak@ti.com
 Cc: santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-Since the clkdm is now part of the omap_hwmod structure, there is no need
-to retrieve it from the main_clock or interface clock.
-The code can be simplified a little bit with a direct access.
+The new prminst_xxx accessors based on partition and offset
+is now used, so removed all the previous prcm_xxx accessors.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   34 ++++++++--------------------------
- 1 files changed, 8 insertions(+), 26 deletions(-)
+ arch/arm/mach-omap2/prm44xx.c |   37 -------------------------------------
+ 1 files changed, 0 insertions(+), 37 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index adbd4b8..b6cc43f 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -463,13 +463,13 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
-  */
- static int _add_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
- {
--	if (!oh->_clk)
-+	if (!oh->clkdm)
- 		return -EINVAL;
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index f815329..0016555 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -50,40 +50,3 @@ u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 reg)
  
--	if (oh->_clk->clkdm && oh->_clk->clkdm->flags & CLKDM_NO_AUTODEPS)
-+	if (oh->clkdm->flags & CLKDM_NO_AUTODEPS)
- 		return 0;
- 
--	return clkdm_add_sleepdep(oh->_clk->clkdm, init_oh->_clk->clkdm);
-+	return clkdm_add_sleepdep(oh->clkdm, init_oh->clkdm);
+ 	return v;
  }
- 
- /**
-@@ -487,13 +487,13 @@ static int _add_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
-  */
- static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
- {
--	if (!oh->_clk)
-+	if (!oh->clkdm)
- 		return -EINVAL;
- 
--	if (oh->_clk->clkdm && oh->_clk->clkdm->flags & CLKDM_NO_AUTODEPS)
-+	if (oh->clkdm->flags & CLKDM_NO_AUTODEPS)
- 		return 0;
- 
--	return clkdm_del_sleepdep(oh->_clk->clkdm, init_oh->_clk->clkdm);
-+	return clkdm_del_sleepdep(oh->clkdm, init_oh->clkdm);
- }
- 
- /**
-@@ -518,10 +518,6 @@ static int _init_main_clk(struct omap_hwmod *oh)
- 		return -EINVAL;
- 	}
- 
--	if (!oh->_clk->clkdm)
--		pr_warning("omap_hwmod: %s: missing clockdomain for %s.\n",
--			   oh->main_clk, oh->_clk->name);
 -
- 	return ret;
- }
- 
-@@ -2104,24 +2100,10 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
-  */
- struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh)
- {
--	struct clk *c;
+-/* Read a PRM register, AND it, and shift the result down to bit 0 */
+-/* XXX deprecated */
+-u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask)
+-{
+-	u32 v;
 -
--	if (!oh)
-+	if (!oh || !oh->clkdm)
- 		return NULL;
- 
--	if (oh->_clk) {
--		c = oh->_clk;
--	} else {
--		if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
--			return NULL;
--		c = oh->slaves[oh->_mpu_port_index]->_clk;
--	}
+-	v = __raw_readl(reg);
+-	v &= mask;
+-	v >>= __ffs(mask);
 -
--	if (!c->clkdm)
--		return NULL;
+-	return v;
+-}
 -
--	return c->clkdm->pwrdm.ptr;
+-/* Read-modify-write a register in a PRM module. Caller must lock */
+-/* XXX deprecated */
+-u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg)
+-{
+-	u32 v;
 -
-+	return oh->clkdm->pwrdm.ptr;
- }
- 
- /**
+-	v = __raw_readl(reg);
+-	v &= ~mask;
+-	v |= bits;
+-	__raw_writel(v, reg);
+-
+-	return v;
+-}
+-
+-u32 omap4_prm_set_inst_reg_bits(u32 bits, s16 inst, s16 reg)
+-{
+-	return omap4_prm_rmw_inst_reg_bits(bits, bits, inst, reg);
+-}
+-
+-u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 reg)
+-{
+-	return omap4_prm_rmw_inst_reg_bits(bits, 0x0, inst, reg);
+-}
 -- 
 1.7.0.4
 
