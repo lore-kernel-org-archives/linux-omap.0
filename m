@@ -1,79 +1,36 @@
-From: "Grosen, Mark" <mgrosen-l0cyMroinI0@public.gmane.org>
-Subject: RE: [RFC 5/8] remoteproc: add davinci implementation
-Date: Mon, 27 Jun 2011 18:31:41 +0000
-Message-ID: <FFF198FBBF957F4393BA834040FEFFA202EC99@DFLE35.ent.ti.com>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
-	<1308640714-17961-6-git-send-email-ohad@wizery.com>
-	<4E035B78.3080200@mvista.com>
-	<FFF198FBBF957F4393BA834040FEFFA202D66E@DFLE35.ent.ti.com>
-	<4E04A9AE.3030801@mvista.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2F29@dbde02.ent.ti.com>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [RFC/PATCH 8/9] OMAP: PM CONSTRAINTS: implement the devices
+ wake-up latency constraints
+Date: Mon, 27 Jun 2011 11:33:45 -0700
+Message-ID: <20110627183345.GA6187@google.com>
+References: <1308926286-30445-1-git-send-email-j-pihet@ti.com>
+ <1308926286-30445-9-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D6C2F29-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, davinci-linux-open-source <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Brian Swetland <swetland-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([216.239.44.51]:54483 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753178Ab1F0SeS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 14:34:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1308926286-30445-9-git-send-email-j-pihet@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: jean.pihet@newoldbits.com
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-> From: Nori, Sekhar
-> Sent: Friday, June 24, 2011 8:44 AM
-> 
-> Hi Mark,
+On Fri, Jun 24, 2011 at 04:38:05PM +0200, jean.pihet@newoldbits.com wrote:
+...
+> +	/* Find the associated omap_device for dev */
+> +	od = container_of(pdev, struct omap_device, pdev);
+> +	if (!od || (od->hwmods_cnt != 1)) {
+> +		pr_err("%s: Error: No unique hwmod for device %s\n",
+> +		       __func__, dev_name(pm_qos_req->dev));
+> +		return -EINVAL;
 
-Sekhar, thanks for your feedback and ideas. Comments below.
+Check for !od can be dropped... if there's a check for !pdev needed
+can add that, but container_of() won't return NULL for a valid
+contained field.
 
-Mark
 
-> Since procedure to set the boot address varies across DaVinci
-> platforms, you could have a callback populated in platform data
-> which will be implemented differently for original DaVinci and
-> DA8xx devices.
-
-I looked at DM6467 and it's the same as OMAPL13x, except at a different
-address. Rather than a callback, it could be just an address in the
-platform data.
-
-> 
-> Also, all PSC accesses are better off going through clock
-> framework to ensure proper locking and modularity.
-> 
-> To assert/de-assert local reset when enabling or disabling PSC,
-> you could use a flag in the clock structure to indicate the need
-> for this. This way, if there is any other module needing a local
-> reset, it can just define the same flag. Similarly, if the DSP
-> does not need a local reset on a particular platform, that
-> platform can simply skip the flag.
-> 
-> This can be done in a manner similar to how the support for
-> a forced transition PSC was added here:
-> 
-> https://patchwork.kernel.org/patch/662941/
-
-Yes, I like this idea - much cleaner. For example, the start() method
-becomes (pseudo-code):
-
-start()
-{
-    /* bootaddrreg derived from platform data */
-    bootaddrreg = boot_address;
-
-    clk_enable();
-}
-
-Referring to your patch above, would it be better to just pass
-the flags into the davinci_psc_config() function rather than breaking out more
-arguments for each flag?
-
-Mark
+Todd
