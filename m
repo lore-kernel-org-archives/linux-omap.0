@@ -1,67 +1,49 @@
-From: "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] USB: OTG: Use work_queue in set_vbus for TWL6030 transciever
-Date: Mon, 27 Jun 2011 10:06:01 -0500
-Message-ID: <BANLkTimtKAY7J2=c+ZhAEKAdZP3KY7CAPw@mail.gmail.com>
-References: <1308928443-15352-1-git-send-email-m-sonasath@ti.com>
-	<20110625063116.GA14681@google.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] omap3: beagle: Use GPTIMERi 1 for clockevents
+Date: Mon, 27 Jun 2011 09:29:51 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1106270910210.460@utopia.booyaka.com>
+References: <1308932625-17632-1-git-send-email-premi@ti.com> <86CFE860-E18E-4B96-A753-11EB7C5C1C86@dominion.thruhere.net> <B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE2@dbde02.ent.ti.com> <alpine.DEB.2.00.1106251635340.30205@utopia.booyaka.com>
+ <20110627101427.GH23145@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110625063116.GA14681-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Todd Poynor <toddpoynor-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:54322 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750973Ab1F0P3w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 11:29:52 -0400
+In-Reply-To: <20110627101427.GH23145@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Todd,
+On Mon, 27 Jun 2011, Tony Lindgren wrote:
 
-On Sat, Jun 25, 2011 at 1:31 AM, Todd Poynor <toddpoynor-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org> wr=
-ote:
-> On Fri, Jun 24, 2011 at 10:14:03AM -0500, Moiz Sonasath wrote:
-> ...
->> + =A0 =A0 if (enabled)
->> + =A0 =A0 =A0 =A0 =A0 =A0 twl->vbus_enable =3D 1;
->> + =A0 =A0 else
->> + =A0 =A0 =A0 =A0 =A0 =A0 twl->vbus_enable =3D 0;
->> +
->
-> Suggest twl->vbus_enable =3D enabled;
->
->> =A0 =A0 =A0 /*
->> =A0 =A0 =A0 =A0* Start driving VBUS. Set OPA_MODE bit in CHARGERUSB_=
-CTRL1
->> =A0 =A0 =A0 =A0* register. This enables boost mode.
->> =A0 =A0 =A0 =A0*/
->> - =A0 =A0 if (enabled)
->> - =A0 =A0 =A0 =A0 =A0 =A0 twl6030_writeb(twl, TWL_MODULE_MAIN_CHARGE=
- , 0x40,
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 CHARGERUSB_CTRL1);
->> - =A0 =A0 =A0else
->> - =A0 =A0 =A0 =A0 =A0 =A0 twl6030_writeb(twl, TWL_MODULE_MAIN_CHARGE=
- , 0x00,
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 CHARGERUSB_CTRL1);
->> +
->> + =A0 =A0 schedule_work(&twl->set_vbus_work);
->> +
->
-> Suggest also moving the comments together with the new location of
-> the code to write CHARGERUSB_CTRL1.
->
-> Add a cancel_work_sync(&twl->set_vbus_work) at twl6030_usb_remove(),
-> prior to kfree(twl).
->
+> This fix will cause bad dependency issues with sys_timer.
+> 
+> This patch has a dependency to omap3_beagle_init_rev, which depends on
+> the mux framework and gpio framework. Not cool for init_early. We just
+> want to initialize sys_timer early without any complicated dependencies.
+> 
+> The best way to fix this is to set a separate machine ID for the properly
+> working beagle boards like xm, then just set the .timer entry to omap3_timer
+> for working beagle boards and omap3_secure_timer for non-working beagle
+> boards. The rest of the board-*.c file can be shared.
 
-Thank you for the feedback, have posted a V2 of the patch.
+Sanjeev, want to take care of this?  Machine ID update info is in 
+linux/arch/arm/tools/mach-types.  
+
+This strategy will unfortunately involve patching bootloaders.  But if the 
+default is to use GPT12, it should work out okay.
+
+Hopefully we won't have to do the same thing for the other Beagle-derived 
+boards, Devkit8000, Touchbook, etc. etc.  Then again, I suppose this will 
+eventually just be another property passed in via DT, with a single 
+machine ID.
+
+> The above assumes the patches in devel-timer branch where we no longer
+> have the non-standard timer interface, but use the sys_timer entries
+> instead like we should.
 
 
---=20
-Regards
-Moiz Sonasath
-Android Kernel Team
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
