@@ -1,62 +1,61 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 06/10] omap2+: Remove gptimer_wakeup for now
-Date: Mon, 27 Jun 2011 09:30:08 -0700
-Message-ID: <87hb7bdypb.fsf@ti.com>
-References: <20110620091754.357.56441.stgit@kaulin>
-	<20110620092341.357.14183.stgit@kaulin> <4DFF1558.4020509@ti.com>
-	<20110620094846.GG23145@atomide.com> <87oc1obnbw.fsf@ti.com>
-	<4E035835.50405@ti.com> <20110627080804.GG23145@atomide.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 0/7] OMAP4: Add modulemode support to hwmod framework (part 2)
+Date: Mon, 27 Jun 2011 18:33:04 +0200
+Message-ID: <1309192391-12410-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110627080804.GG23145@atomide.com> (Tony Lindgren's message of
-	"Mon, 27 Jun 2011 01:08:05 -0700")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:40849 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752665Ab1F0Qdu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 12:33:50 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com, rnayak@ti.com
+Cc: santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-Tony Lindgren <tony@atomide.com> writes:
+Hi Paul,
 
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110623 08:09]:
->> On 6/23/2011 8:35 PM, Kevin Hilman wrote:
->> >Tony Lindgren<tony@atomide.com>  writes:
->> >
->> >So now, the only thing OMAP-specific is the debugfs file used to trigger
->> >it.
->> >
->> >>Maybe Kevin can just carry it along in the PM branch for now?
->> >
->> >I'd prefer to keep it in mainline as this is a very important feature
->> >for the PM functionality already in mainline.
->> >
->> I agree with Kevin and that's what have been saying from begining when
->> we decided to drop this feature. The new patch from Kevin is already
->> doing this in more generic way than that was before.
->
-> To me Kevin's later patch makes more sense, but still has few issues:
->
-> - It keeps the dependency between PM debug code and sys_timer code.
->   That's yet another artificial blocker for making PM code a loadable
->   module. We really don't want to export anything from the sys_timer code.
->
-> - The interface for programming a wake-up timer should be Linux generic,
->   not omap specific.
->
-> Further, it's a CONFIG_PM_DEBUG patch. So that code should not be
-> in the mainline kernel.
+Here is the second part of the modulemode series. 
+The goal here is to do the cleanup on the clock nodes and PRCM macros
+that are not needed anymore by the hwmod data.
+Some macros are still needed because of clock data. It should be removed
+once the clock data will be cleaned.
 
-Huh?  
+Moreover, in order to get rid of static clkdev, omap_device is trying to
+create dynamically an "fck" alias if a main_clk is defined in hwmod data.
 
-Please clarify why PM debug code shouldn't be in mainline?
+As usual, because of drivers non-adapted to pm_runtime, some temp hacks
+are needed for both MMC and timer1.
+If the drivers are fixes before these series, these temp patches could be
+dropped.
 
-Kevin
+The series is based on for_3.0.1/5_hwmod_clkdm_fixes and tested
+on OMAP4430 ES2.1 + SDP. It should not affect OMAP2 & 3, but some testing
+are definitively needed.
+
+The patches are available here:
+git://gitorious.org/omap-pm/linux.git for_3.0.1/6_hwmod_modulemode
+
+Regards,
+Benoit
+
+
+Benoit Cousson (7):
+  OMAP: hwmod: Add warnings if enable failed
+  OMAP: omap_device: Create clkdev entry for hwmod main_clk
+  OMAP4: hwmod data: TEMP: Do not idle MMC1 & MMC2 after boot
+  OMAP4: hwmod data: Replace main_clk with the real input clock
+  OMAP4: clock data: Remove leaf clock nodes
+  OMAP4: hwmod data: TEMP: Fix timer1 main_clk
+  OMAP4: prcm: Remove macros with absolute address
+
+ arch/arm/mach-omap2/clock44xx_data.c       | 1730 ++++++++--------------------
+ arch/arm/mach-omap2/cm1_44xx.h             |   24 -
+ arch/arm/mach-omap2/cm2_44xx.h             |   55 -
+ arch/arm/mach-omap2/omap_hwmod.c           |    2 +
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  111 +-
+ arch/arm/mach-omap2/prm44xx.h              |  269 -----
+ arch/arm/plat-omap/omap_device.c           |   84 +-
+ 7 files changed, 610 insertions(+), 1665 deletions(-)
+
