@@ -1,93 +1,174 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 6/7] OMAP2+: clockdomain: Add 2 APIs to control clockdomain
- from hwmod framework
-Date: Mon, 27 Jun 2011 11:18:47 +0200
-Message-ID: <4E084AF7.8030005@ti.com>
-References: <1308917193-16912-1-git-send-email-b-cousson@ti.com> <1308917193-16912-7-git-send-email-b-cousson@ti.com> <20110626200715.GB2306@google.com>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v6 00/18] MFD/ASoC/Input: TWL4030/TWL60X0
+	changes
+Date: Mon, 27 Jun 2011 12:43:57 +0300
+Message-ID: <1770658.gTOGV79JgY@barack>
+References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44626 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757005Ab1F0JSv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Jun 2011 05:18:51 -0400
-In-Reply-To: <20110626200715.GB2306@google.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Girdwood, Liam" <lrg@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Todd,
+Hi Tony, Samuel,
 
-On 6/26/2011 10:07 PM, Todd Poynor wrote:
-> On Fri, Jun 24, 2011 at 02:06:32PM +0200, Benoit Cousson wrote:
->> Duplicate the existing API for clockdomain enable from clock to enable
->> a clock domain from hwmod framework.
->> This will be needed when the hwmod framework will move from the current
->> clock centric approach to the module based approach.
->>
-> ...
->> +static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm)
->> +{
->> +	if (!clkdm || !arch_clkdm || !arch_clkdm->clkdm_clk_disable)
->> +		return -EINVAL;
->> +
->> +#ifdef DEBUG
->> +	if (atomic_read(&clkdm->usecount) == 0) {
->> +		WARN_ON(1); /* underflow */
->> +		return -ERANGE;
->> +	}
->> +#endif
->> +
->> +	if (atomic_dec_return(&clkdm->usecount)>  0)
->> +		return 0;
->
-> Suggest taking the error return out of the #ifdef DEBUG code (mainly
-> to lessen the chance that enabling debugging features makes problems
-> appear or disappear, although the WARN_ON should be a prominent clue
-> in this case), and maybe just have the function always handle
-> underflow.
+Would you have time to take a look at this series?
 
-If your final point is that we'd better remove the #ifdef, I do agree.
+Thanks,
+P=E9ter
 
-> ...
->> @@ -877,35 +911,93 @@ int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
->>    */
->>   int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
->>   {
->> +	int ret = 0;
->> +
->>   	/*
->>   	 * XXX Rewrite this code to maintain a list of enabled
->>   	 * downstream clocks for debugging purposes?
->>   	 */
->>
->> -	if (!clkdm || !clk)
->> +	if (!clk)
->>   		return -EINVAL;
->>
->> -	if (!arch_clkdm || !arch_clkdm->clkdm_clk_disable)
->> +	ret = _clkdm_clk_hwmod_disable(clkdm);
->> +
->> +	/* All downstream clocks of this clockdomain are now disabled */
->> +	pr_debug("clockdomain: clkdm %s: clk %s now disabled\n", clkdm->name,
->> +		 clk->name);
->
-> The pr_debug should be printed only if ret == 0.
+On Tuesday 21 June 2011 15:38:58 Ujfalusi, Peter wrote:
+> Hello,
+> =
 
-That's not even enough, because the function is returning 0 even if the 
-domain is already enabled.
+> Changes since v5:
+> - Use alloc_workqueue in the twl6040-vibra driver (comment from Tejun Heo)
+> - Allow user to change the headset power mode, but if the change is not
+> allowed by the use case the change is not written to the HW (comment from
+> Mark Brown)
+> =
 
-> The comment seems true only if the clock domain's usecount went to zero.
->
-> The terminology here may be a bit confusing: the function does not actually
-> disable the named downstream clock in the usual sense
-> (as in clk_disable(clk), or any action to individually gate that
-> clock)  Similar comments for clkdm_clk_enable).
+> Mark: I have added your acks for the patches, except for patch 15, where =
+you
+> requested a change.
+> =
 
-Yeah, I kept that from the original code, but in fact, I'll probably get 
-rid of the pr_debug here and put it in the two helper functions.
+> Intro message from the v5 series:
+> The series will do five major things, and they are in one series, because
+> they pretty much depending on each other, so it is easier to handle them
+> together.
+> =
 
-Benoit
+> 1. Move the common pmic related configurations out from the board files.
+> New twl-common.c/h file has been created for this purpose.
+> OMAP3 board files received two patches (pdata, and regualtor changes), OM=
+AP4
+> board files has been changed with one patch.
+> =
 
+> 2. Rename the twl4030-codec MFD driver to twl4030-audio
+> Since the ASoC multicomponent introduction (2.6.37) the twl4030-codec MFD
+> dirver had been using twl4030-audio to register (twl4030-codec is the ASoC
+> codec driver). The documentation refers to this part of twl as audio bloc=
+k,
+> so it is better to rename the driver as well to avoid confusion.
+> =
+
+> 3. Introduction of MFD driver for twl6040.
+> The TWL6040 audio IC has codec and vibra functionality.
+> Convert the existing ASoC codec driver to use the new MFD driver's
+> interface.
+> =
+
+> 4. Vibrator driver for TWL6040 (Input/ForceFeedback driver)
+> The driver itself, and support for the vibrators in SDP4430 board.
+> =
+
+> 5. Updates for twl6040 ASoC codec driver
+> HS ramp configuration, new ABE dais, updated sample rate constraints,
+> SDP4430 configuration.
+> =
+
+> Regards,
+> Peter
+> =
+
+> ---
+> Axel Castaneda Gonzalez (1):
+>   ASoC: twl6040: Configure ramp step based on platform
+> =
+
+> Liam Girdwood (3):
+>   ASoC: twl6040: add all ABE DAIs
+>   ASoC: twl6040: Support other sample rates in constraints.
+>   ASoC: twl6040: set default constraints.
+> =
+
+> Misael Lopez Cruz (5):
+>   mfd: twl6040: Add initial support
+>   ASoC: twl6040: Convert into TWL6040 MFD child
+>   input: Add initial support for TWL6040 vibrator
+>   ASoC: twl6040: Remove pll and headset mode dependency
+>   OMAP4: SDP4430: Add twl6040 codec platform support
+> =
+
+> Peter Ujfalusi (9):
+>   OMAP: New twl-common for common TWL configuration
+>   OMAP4: Move common twl6030 configuration to twl-common
+>   OMAP3: Move common twl configuration to twl-common
+>   OMAP3: Move common regulator configuration to twl-common
+>   MFD: twl4030-codec: Rename internals from codec to audio
+>   MFD: twl4030-codec -> twl4030-audio: Rename the driver
+>   MFD: twl4030-audio: Rename platform data
+>   MFD: twl6040: Change platform data for soc codec driver
+>   OMAP4: SDP4430: Add twl6040 vibrator platform support
+> =
+
+>  arch/arm/mach-omap2/Makefile                       |    2 +-
+>  arch/arm/mach-omap2/board-3430sdp.c                |   89 +---
+>  arch/arm/mach-omap2/board-4430sdp.c                |  187 ++----
+>  arch/arm/mach-omap2/board-cm-t35.c                 |   48 +--
+>  arch/arm/mach-omap2/board-devkit8000.c             |   37 +--
+>  arch/arm/mach-omap2/board-igep0020.c               |   44 +--
+>  arch/arm/mach-omap2/board-ldp.c                    |   15 +-
+>  arch/arm/mach-omap2/board-omap3beagle.c            |   60 +--
+>  arch/arm/mach-omap2/board-omap3evm.c               |   67 +--
+>  arch/arm/mach-omap2/board-omap3pandora.c           |   59 +--
+>  arch/arm/mach-omap2/board-omap3stalker.c           |   70 +--
+>  arch/arm/mach-omap2/board-omap3touchbook.c         |   57 +--
+>  arch/arm/mach-omap2/board-omap4panda.c             |  149 +-----
+>  arch/arm/mach-omap2/board-overo.c                  |   59 +--
+>  arch/arm/mach-omap2/board-rm680.c                  |    8 +-
+>  arch/arm/mach-omap2/board-rx51-peripherals.c       |   44 +--
+>  arch/arm/mach-omap2/board-zoom-peripherals.c       |   88 +---
+>  arch/arm/mach-omap2/common-board-devices.c         |   21 -
+>  arch/arm/mach-omap2/common-board-devices.h         |   26 +-
+>  arch/arm/mach-omap2/twl-common.c                   |  304 ++++++++++
+>  arch/arm/mach-omap2/twl-common.h                   |   59 ++
+>  arch/arm/plat-omap/include/plat/irqs.h             |   12 +-
+>  drivers/input/misc/Kconfig                         |   13 +-
+>  drivers/input/misc/Makefile                        |    1 +
+>  drivers/input/misc/twl4030-vibra.c                 |   12 +-
+>  drivers/input/misc/twl6040-vibra.c                 |  416 +++++++++++++
+>  drivers/mfd/Kconfig                                |    8 +-
+>  drivers/mfd/Makefile                               |    3 +-
+>  drivers/mfd/twl-core.c                             |   13 +-
+>  drivers/mfd/twl4030-audio.c                        |  277 +++++++++
+>  drivers/mfd/twl4030-codec.c                        |  277 ---------
+>  drivers/mfd/twl6040-core.c                         |  601
+> +++++++++++++++++++ drivers/mfd/twl6040-irq.c                          | =
+
+> 205 +++++++ include/linux/i2c/twl.h                            |   25 +-
+>  .../linux/mfd/{twl4030-codec.h =3D> twl4030-audio.h} |   16 +-
+>  include/linux/mfd/twl6040.h                        |  261 ++++++++
+>  sound/soc/codecs/Kconfig                           |    3 +-
+>  sound/soc/codecs/twl4030.c                         |   22 +-
+>  sound/soc/codecs/twl6040.c                         |  628
+> ++++++++------------ sound/soc/codecs/twl6040.h                         | =
+
+> 118 ----
+>  sound/soc/omap/sdp3430.c                           |    2 +-
+>  sound/soc/omap/sdp4430.c                           |    2 +
+>  sound/soc/omap/zoom2.c                             |    2 +-
+>  43 files changed, 2635 insertions(+), 1775 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/twl-common.c
+>  create mode 100644 arch/arm/mach-omap2/twl-common.h
+>  create mode 100644 drivers/input/misc/twl6040-vibra.c
+>  create mode 100644 drivers/mfd/twl4030-audio.c
+>  delete mode 100644 drivers/mfd/twl4030-codec.c
+>  create mode 100644 drivers/mfd/twl6040-core.c
+>  create mode 100644 drivers/mfd/twl6040-irq.c
+>  rename include/linux/mfd/{twl4030-codec.h =3D> twl4030-audio.h} (96%)
+>  create mode 100644 include/linux/mfd/twl6040.h
