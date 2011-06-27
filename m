@@ -1,98 +1,96 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 02/13] OMAP2+: hwmod: Init clkdm field at boot time
-Date: Mon, 27 Jun 2011 17:47:10 +0200
-Message-ID: <1309189641-25010-3-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 07/13] OMAP4: prm: Replace warm reset API with the offset based version
+Date: Mon, 27 Jun 2011 17:47:15 +0200
+Message-ID: <1309189641-25010-8-git-send-email-b-cousson@ti.com>
 References: <1309189641-25010-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58124 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751747Ab1F0Prg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Jun 2011 11:47:36 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:38119 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751747Ab1F0Prn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 11:47:43 -0400
 In-Reply-To: <1309189641-25010-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, rnayak@ti.com
 Cc: santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-At boot time, lookup the clkdm_name to get the clkdm
-structure pointer for further usage.
+The warm reset function was still using the obsolete API.
+Replace it by the new one and move the file to the proper c file.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |   34 +++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 2 files changed, 34 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/prm44xx.c     |   15 ---------------
+ arch/arm/mach-omap2/prm44xx.h     |    2 --
+ arch/arm/mach-omap2/prminst44xx.c |   19 +++++++++++++++++++
+ 3 files changed, 19 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 55ad6a5..bb63e2d 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -919,9 +919,40 @@ static struct omap_hwmod *_lookup(const char *name)
- 
- 	return oh;
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index faec860..f815329 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -87,18 +87,3 @@ u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 reg)
+ {
+ 	return omap4_prm_rmw_inst_reg_bits(bits, 0x0, inst, reg);
  }
-+/**
-+ * _init_clkdm - look up a clockdomain name, store pointer in omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Convert a clockdomain name stored in a struct omap_hwmod into a
-+ * clockdomain pointer, and save it into the struct omap_hwmod.
-+ * return -EINVAL if clkdm_name does not exist or if the lookup failed.
-+ */
-+static int _init_clkdm(struct omap_hwmod *oh)
+-
+-void omap4_prm_global_warm_sw_reset(void)
+-{
+-	u32 v;
+-
+-	v = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
+-				    OMAP4_RM_RSTCTRL);
+-	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
+-	omap4_prm_write_inst_reg(v, OMAP4430_PRM_DEVICE_INST,
+-				 OMAP4_RM_RSTCTRL);
+-
+-	/* OCP barrier */
+-	v = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
+-				    OMAP4_RM_RSTCTRL);
+-}
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index 21b0240..a3887b8 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -691,8 +691,6 @@ extern u32 omap4_prm_set_inst_reg_bits(u32 bits, s16 inst, s16 idx);
+ extern u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 idx);
+ extern u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask);
+ 
+-extern void omap4_prm_global_warm_sw_reset(void);
+-
+ # endif
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index 95fbbcf..f5a9cf5 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -151,3 +151,22 @@ int omap4_prm_deassert_hardreset(u8 shift, u8 part, s16 inst,
+ 
+ 	return (c == MAX_MODULE_HARDRESET_WAIT) ? -EBUSY : 0;
+ }
++
++
++void omap4_prm_global_warm_sw_reset(void)
 +{
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+		return 0;
++	u32 v;
 +
-+	if (!oh->clkdm_name) {
-+		pr_warning("omap_hwmod: %s: no clkdm_name\n", oh->name);
-+		return -EINVAL;
-+	}
++	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
++				    OMAP4430_PRM_DEVICE_INST,
++				    OMAP4_PRM_RSTCTRL_OFFSET);
++	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
++	omap4_prminst_write_inst_reg(v, OMAP4430_PRM_PARTITION,
++				 OMAP4430_PRM_DEVICE_INST,
++				 OMAP4_PRM_RSTCTRL_OFFSET);
 +
-+	oh->clkdm = clkdm_lookup(oh->clkdm_name);
-+	if (!oh->clkdm) {
-+		pr_warning("omap_hwmod: %s: could not associate to clkdm %s\n",
-+			oh->name, oh->clkdm_name);
-+		return -EINVAL;
-+	}
-+
-+	pr_debug("omap_hwmod: %s: associated to clkdm %s\n",
-+		oh->name, oh->clkdm_name);
-+
-+	return 0;
++	/* OCP barrier */
++	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
++				    OMAP4430_PRM_DEVICE_INST,
++				    OMAP4_PRM_RSTCTRL_OFFSET);
 +}
- 
- /**
-- * _init_clocks - clk_get() all clocks associated with this hwmod
-+ * _init_clocks - clk_get() all clocks associated with this hwmod. Retrieve as
-+ * well the clockdomain.
-  * @oh: struct omap_hwmod *
-  * @data: not used; pass NULL
-  *
-@@ -941,6 +972,7 @@ static int _init_clocks(struct omap_hwmod *oh, void *data)
- 	ret |= _init_main_clk(oh);
- 	ret |= _init_interface_clks(oh);
- 	ret |= _init_opt_clks(oh);
-+	ret |= _init_clkdm(oh);
- 
- 	if (!ret)
- 		oh->_state = _HWMOD_STATE_CLKS_INITED;
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 5d77c5b..28ea1c8 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -520,6 +520,7 @@ struct omap_hwmod {
- 	struct clk			*_clk;
- 	struct omap_hwmod_opt_clk	*opt_clks;
- 	char				*clkdm_name;
-+	struct clockdomain		*clkdm;
- 	char				*vdd_name;
- 	struct voltagedomain		*voltdm;
- 	struct omap_hwmod_ocp_if	**masters; /* connect to *_IA */
 -- 
 1.7.0.4
 
