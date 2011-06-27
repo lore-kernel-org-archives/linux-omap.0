@@ -1,56 +1,68 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 08/10] omap2+: Use dmtimer macros for clocksource
-Date: Mon, 27 Jun 2011 09:41:42 -0700
-Message-ID: <87zkl3cjll.fsf@ti.com>
-References: <20110620091754.357.56441.stgit@kaulin>
-	<20110620092345.357.11154.stgit@kaulin> <87iprwa2xx.fsf@ti.com>
-	<20110627075429.GF23145@atomide.com>
-	<20110627104815.GL23145@atomide.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [PATCH] rtc-twl: Switch to using threaded irq
+Date: Mon, 27 Jun 2011 18:45:06 +0200
+Message-ID: <20110627164506.GA10827@earth.universe>
+References: <1300291634-17884-1-git-send-email-ilkka.koskinen@nokia.com>
+ <BANLkTinp8M4nndDC5Sfm=PzCiL-vGEqELg@mail.gmail.com>
+ <4F5287B0C366D047BF44025F9ED7BB43E9D7@008-AM1MPN1-001.mgdnok.nokia.com>
+ <1305242664.2680.28.camel@work-vm>
+ <4DD41BE5.4050600@kolumbus.fi>
+ <20110531085139.GA7290@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110627104815.GL23145@atomide.com> (Tony Lindgren's message of
-	"Mon, 27 Jun 2011 03:48:16 -0700")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comu.ring0.de ([46.4.151.82]:45950 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752558Ab1F0QpM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Jun 2011 12:45:12 -0400
+Content-Disposition: inline
+In-Reply-To: <20110531085139.GA7290@earth.universe>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, John Stultz <john.stultz@linaro.org>, a.zummo@towertech.it, rtc-linux@googlegroups.com, balajitk@ti.com, Ilkka Koskinen <ilkkakos@kolumbus.fi>
 
-Tony Lindgren <tony@atomide.com> writes:
 
-> * Tony Lindgren <tony@atomide.com> [110627 00:50]:
->> * Kevin Hilman <khilman@ti.com> [110623 10:06]:
->> > Tony Lindgren <tony@atomide.com> writes:
->> > > +
->> > > +	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
->> > 
->> > This function makes calls into "real" driver, but is called from
->> > sys_timer.init so happens before driver is initialized.
->> 
->> That one is the static omap2+ specific function that can be passed
->> to the dmtimer device driver as a function pointer in the later
->> patches. 
->>  
->> > > +	omap_dm_timer_set_load_start(&clksrc, 1, 0);
->> > 
->> > Here's another call into the real driver.  I think you need
->> > __omap_dm_timer_set_load_start() here.
->> 
->> Thanks, that's correct. Will fix that one.
->
-> Here's this one updated. Looks like I still have your Reviewed-by
-> lines from the last time this series got posted. Can you please check
-> if those are still valid?
+--gKMricLos+KVdGMg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Yes, they're still valid as I've now been through the whole series.
+On Tue, May 31, 2011 at 10:51:39AM +0200, Sebastian Reichel wrote:
+> > The driver is accessing to i2c bus in interrupt handler.
+> > Therefore, it should use threaded irq.
+> I think the patch should also remove the local_irq_enable() call in
+> twl_rtc_interrupt, since it's no longer needed with threaded irq. At
+> least on the Pandaboard the RTC is still working with the appended
+> patch.
 
-Kevin
+ping.
+
+Currently the kernel prints a stacktrace for each rtc-twl interrupt,
+because its interrupt handler enables interrupts.
+
+-- Sebastian
+
+--gKMricLos+KVdGMg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCAAGBQJOCLOSAAoJENju1/PIO/qa75UP/RKWQyq7ySicYqR4oPAqYydz
+MADkav5mc2DIsDiVvhCJO5f4EXXgSb22mmmBYRGg/cESOo8t9/gJTagta19ANBr3
+LtYQz5hkXIig1ksTB+qV1DbOG0EaChu5GfFqI7W471sj4K9LYkTqLJTW3H0hHISQ
+wg9Nx1iI0dtTKPD+vJpQv9ib6sEp1n5SpEkuj0tLIakeZG+sJV170FQGSWa8DJrv
+tAHD5OpDXTM2Ahzb5eU6KLGLZnB5jkBtTaHrfSPPeGuf6i1iKTB1NpB3nWfDY7cO
+EN6JdhlMWSHDHL8KgtN1cEuVWuDkptFtqPdR6/MEEDf3/emzB3Xg1170TbhyB1V6
+w6ojLYuo/mK4o5GJt5ObqBA03DNyxL14PAvreOVlJRvKRD9Sr+xPOSeqWc56damN
+pLwXfnopU37E/bMRw0dfhLA3qZ2iMrN5WPCbfExyV8kzhAK+6hoNOuSdA4TDtVtI
+ZaVqTLLb2dOouUsdXh+HW810hghxAhnh0I4hKFy+B44eX2x53ui2KrhtJigvSwzr
+/U8WnySsmMWYawm7VoJWYYUqSuiWcr8J6txXQIxZtTZKDdJcDbzImwLYue1rf7o7
+qIJIZEdrM2epNaweto0ltuYHReSNNuFOrMyrt89YUSwiqhXXsYbt7sYY+tO5/+x3
+CIo1f+0++w+jvUuNCH3f
+=LlOM
+-----END PGP SIGNATURE-----
+
+--gKMricLos+KVdGMg--
