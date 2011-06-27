@@ -1,22 +1,16 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Mon, 27 Jun 2011 08:40:46 +0100
-Message-ID: <20110627074046.GA1777@n2100.arm.linux.org.uk>
-References: <1308923618-5333-1-git-send-email-premi@ti.com>
-	<20110624140142.GM9449@n2100.arm.linux.org.uk>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2EF2@dbde02.ent.ti.com>
-	<20110624141402.GN9449@n2100.arm.linux.org.uk>
-	<20110624151201.GO9449@n2100.arm.linux.org.uk>
-	<4E04DBF8.1050401@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE3@dbde02.ent.ti.com>
-	<20110625190922.GA7736@n2100.arm.linux.org.uk>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D6C3103@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 07/10] omap2+: Reserve clocksource and timesource and
+	initialize dmtimer later
+Date: Mon, 27 Jun 2011 00:48:57 -0700
+Message-ID: <20110627074856.GD23145@atomide.com>
+References: <20110620091754.357.56441.stgit@kaulin>
+	<20110620092343.357.60445.stgit@kaulin> <87wrgca3dr.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D6C3103@dbde02.ent.ti.com>
+In-Reply-To: <87wrgca3dr.fsf@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -26,36 +20,39 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 27, 2011 at 10:24:43AM +0530, Premi, Sanjeev wrote:
-> > -----Original Message-----
-> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
-> > Sent: Sunday, June 26, 2011 12:39 AM
-> > To: Premi, Sanjeev
-> > Cc: Shilimkar, Santosh; linux-omap@vger.kernel.org; 
-> > linux-arm-kernel@lists.infradead.org; Hilman, Kevin
-> > Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix 
-> > loops_per_jiffy calculation
-> > 
-> > On Sun, Jun 26, 2011 at 12:23:31AM +0530, Premi, Sanjeev wrote:
-> > > [sp] I thought we were solving a problem - but this makes it
-> > >      look like race for addding sign-offs - which I am not
-> > >      interested in.
-> > 
-> > No, it's called packaging the patch up and getting it ready, 
-> > putting it
-> > out on the list for people to test and provide Tested-by's, acked-by's
-> > etc.
+* Kevin Hilman <khilman@ti.com> [110623 09:56]:
+> Tony Lindgren <tony@atomide.com> writes:
 > 
-> [sp] Agree.
+> > There's no need to initialize the dmtimer framework early.
 > 
-> > 
-> > Would you rather people sat on fixes doing nothing with them for a
-> > month instead, watching broken -rc after broken -rc going by?
-> >
-> [sp] The original patch was just few hours ago... not month(s).
+> Actually, there is, because it's being used from the early code.
+> 
+> The sys_timer.init functions are called before arch_initcalls, so before
+> omap_dm_timer_init() is called, you have:
+> 
+> omap3_timer_init()
+>     omap2_gp_clockevent_init()
+>         omap_dm_timer_init_one()
+>            omap_dm_timer_request_specific()
+>                
+> 
+> Among other things, the spinlock is taken before it has been initialized
+> in omap_dm_timer_init() (that's how I noticed this problem), but the
+> rest of the init of course hasn't been done either.
+> 
+> Basically, the problem is that this "early init" code is not only using
+> the new macros, but it's also using functions from the "real" driver,
+> which is not yet initialized.
 
-I fail to see what the problem is you're referring to.
+Sounds like you did not apply the previous patch to remove the PM hack?
+
+There's no need to call to omap_dm_timer_request_specific here unless
+you added back the PM hack.
+
+Regards,
+
+Tony
