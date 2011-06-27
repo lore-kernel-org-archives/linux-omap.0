@@ -1,16 +1,20 @@
 From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] omap3: beagle: Use GPTIMERi 1 for clockevents
-Date: Mon, 27 Jun 2011 10:17:25 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C30F4@dbde02.ent.ti.com>
-References: <1308932625-17632-1-git-send-email-premi@ti.com>
-	<86CFE860-E18E-4B96-A753-11EB7C5C1C86@dominion.thruhere.net>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE2@dbde02.ent.ti.com>
-	<alpine.DEB.2.00.1106251635340.30205@utopia.booyaka.com>
+Subject: RE: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
+Date: Mon, 27 Jun 2011 10:24:43 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6C3103@dbde02.ent.ti.com>
+References: <1308923618-5333-1-git-send-email-premi@ti.com>
+	<20110624140142.GM9449@n2100.arm.linux.org.uk>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2EF2@dbde02.ent.ti.com>
+	<20110624141402.GN9449@n2100.arm.linux.org.uk>
+	<20110624151201.GO9449@n2100.arm.linux.org.uk>
+	<4E04DBF8.1050401@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2FE3@dbde02.ent.ti.com>
+	<20110625190922.GA7736@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.1106251635340.30205@utopia.booyaka.com>
+In-Reply-To: <20110625190922.GA7736@n2100.arm.linux.org.uk>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -21,43 +25,35 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>, Koen Kooi <koen@dominion.thruhere.net>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
 > -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com] 
-> Sent: Sunday, June 26, 2011 4:17 AM
-> To: Koen Kooi; Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org List; linux-arm-kernel
-> Subject: RE: [PATCH] omap3: beagle: Use GPTIMERi 1 for clockevents
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
+> Sent: Sunday, June 26, 2011 12:39 AM
+> To: Premi, Sanjeev
+> Cc: Shilimkar, Santosh; linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; Hilman, Kevin
+> Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix 
+> loops_per_jiffy calculation
 > 
-> On Sun, 26 Jun 2011, Premi, Sanjeev wrote:
+> On Sun, Jun 26, 2011 at 12:23:31AM +0530, Premi, Sanjeev wrote:
+> > [sp] I thought we were solving a problem - but this makes it
+> >      look like race for addding sign-offs - which I am not
+> >      interested in.
 > 
-> > [sp] I didn't include a reason - because the problem may not
-> >      be reproducible on the public trees.
-> > 
-> >      During tests performed in internal development trees, the
-> >      BogoMIPS calculations @ 1GHz wouldn't go beyond "830-850"
-> >      range. While there was no such inconsistency on OMAP3EVM.
-> 
-> There are some other reasons to avoid GPTIMER12 when 
-> possible, which you 
-> should probably put in the patch description.  The most 
-> important, in my 
-> view, is that the clock source for GPTIMER12 is much less 
-> frequency-stable 
-> than the clock sources for GPTIMER1.  So using GPTIMER12 can 
-> result in 
-> major time skew over a fairly short interval.
+> No, it's called packaging the patch up and getting it ready, 
+> putting it
+> out on the list for people to test and provide Tested-by's, acked-by's
+> etc.
 
-[sp] Thanks for details. I will include in next rev.
+[sp] Agree.
 
 > 
-> I've been meaning to send a patch like this for some time, so 
-> I'm happy to 
-> see this fixed.
-> 
-> 
-> - Paul
-> 
+> Would you rather people sat on fixes doing nothing with them for a
+> month instead, watching broken -rc after broken -rc going by?
+>
+[sp] The original patch was just few hours ago... not month(s).
+
+~sanjeev
