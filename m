@@ -1,17 +1,16 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCHv2] omap3: beagle: Use GPTIMER1 for clockevents
-Date: Mon, 27 Jun 2011 18:58:54 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D793464@dbde02.ent.ti.com>
-References: <1309171009-8075-1-git-send-email-premi@ti.com>
-	<20110627111556.GM23145@atomide.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D7933C0@dbde02.ent.ti.com>
-	<20110627123140.GP23145@atomide.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v3 05/12] OMAP: Serial: Hold console lock for console
+	usage.
+Date: Mon, 27 Jun 2011 19:05:06 +0530
+Message-ID: <BANLkTi=Zcre6cXrD4bRw-K6DtPKX3=O7jA@mail.gmail.com>
+References: <1307532194-13039-1-git-send-email-govindraj.raja@ti.com>
+	<1307532194-13039-6-git-send-email-govindraj.raja@ti.com>
+	<87boxmsrjt.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110627123140.GP23145@atomide.com>
-Content-Language: en-US
+In-Reply-To: <87boxmsrjt.fsf@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,48 +20,151 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Thomas Weber <weber@corscience.de>, Gregoire Gentil <gregoire@gentil.com>, "Bhandiwad, Hrishikesh" <hrishikesh.b@ti.com>, Jason Lam <lzg@ema-tech.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Monday, June 27, 2011 6:02 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org; Gregoire Gentil; 
-> Bhandiwad, Hrishikesh; Jason Lam; Thomas Weber
-> Subject: Re: [PATCHv2] omap3: beagle: Use GPTIMER1 for clockevents
-> 
-> * Premi, Sanjeev <premi@ti.com> [110627 05:08]:
-> > > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > > 
-> > > I don't think omap3_beagle_init_rev is even called when
-> > > the timer is set?
-> > 
-> > [sp] I verified the patch based on the print indicating that
-> >      GPTIMER1 being used as clockevent source.
-> >      http://marc.info/?l=linux-omap&m=130893319726456&w=2
-> 
-> I suspect the test always fails though, so it probably never
-> gets set to gptimer12 on any board :)
+On Sat, Jun 25, 2011 at 5:36 AM, Kevin Hilman <khilman@ti.com> wrote:
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>
+>> Acquire console lock before enabling and writing to console-uart
+>> to avoid any recursive prints from console write.
+>> for ex:
+>> =A0 =A0 =A0 =A0 --> printk
+>> =A0 =A0 =A0 =A0 =A0 --> uart_console_write
+>> =A0 =A0 =A0 =A0 =A0 =A0 --> get_sync
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 --> printk from omap_device enable
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 --> uart_console write
+>>
+>> Use RPM_SUSPENDING check to avoid below scenario during bootup
+>> As during bootup console_lock is not available.
+>> =A0 =A0 =A0 =A0--> uart_add_one_port
+>> =A0 =A0 =A0 =A0 =A0 =A0--> console_register
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0--> console_lock
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 --> console_unlock
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0--> call_console_drivers (her=
+e yet console_lock is not released)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 --> uart_console_wri=
+te
+>>
+>> Acked-by: Alan Cox <alan@linux.intel.com>
+>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>> ---
+>> =A0drivers/tty/serial/omap-serial.c | =A0 20 +++++++++++++++++++-
+>> =A01 files changed, 19 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-=
+serial.c
+>> index 897416f..ee94291 100644
+>> --- a/drivers/tty/serial/omap-serial.c
+>> +++ b/drivers/tty/serial/omap-serial.c
+>> @@ -1008,7 +1008,22 @@ serial_omap_console_write(struct console *co, con=
+st char *s,
+>> =A0 =A0 =A0 struct uart_omap_port *up =3D serial_omap_console_ports[co->=
+index];
+>> =A0 =A0 =A0 unsigned long flags;
+>> =A0 =A0 =A0 unsigned int ier;
+>> - =A0 =A0 int locked =3D 1;
+>> + =A0 =A0 int console_lock =3D 0, locked =3D 1;
+>> +
+>> + =A0 =A0 if (console_trylock())
+>> + =A0 =A0 =A0 =A0 =A0 =A0 console_lock =3D 1;
+>
+> So now we take the console lock on *every* console write? =A0Even if the
+> device is not about to be idled? =A0 This is rather over-protective, don't
+> you think?
 >
 
-[sp] While I take my time understanding things on devel-timer;
-     I had a quick question - at risk of being flamed.
+This scenario is because of print from
+omap_uart_console_write --> get_sync --> omap_enable_enable
+trying to print worst activate or deactivate latency some times.
 
-     Adding a new machine ID would trickle to u-boot and same
-     uImage (default) may not work across board revisions.
+will result in recursive print scenario.
 
-     How does this scheme look like:
-     - GPTIMER1 is used as default - as it works for most boards.
-     - GPTIMER12 is used based on a static config option OR a
-       board specific bootarg
+holding console lock will only ensure that the print from get_sync gets
+logged to be printed later to console.
 
-     I know both these options aren't general practice. Still
-     wanted to know your views in the current context.
+>> + =A0 =A0 /*
+>> + =A0 =A0 =A0* If console_lock is not available and we are in suspending
+>> + =A0 =A0 =A0* state then we can avoid the console usage scenario
+>
+> s/in suspending state/runtime suspending/
 
-~sanjeev
+ok.
 
-> Tony
+>
+>> + =A0 =A0 =A0* as this may introduce recursive prints.
+>> + =A0 =A0 =A0* Basically this scenario occurs during boot while
+>> + =A0 =A0 =A0* printing debug bootlogs.
+>
+> The exact scenario for triggering this still not well described, and
+> thus still I don't get it.
+>
+
+scenario is same as said above.
+
+omap_uart_console_write --> get_sync --> omap_device
+
+printk worst activate latency calls omap_uart_console write.
+
+after boot up we have access to console lock,
+but during boot up we don't have console lock available
+and results in printk recursiveness.
+
+> I still don't fully understand this problem,
+
+basically its due to recursive printk during bootup
+and also after bootup as said above.
+
+> but if it's isolated to
+> runtime suspending, maybe you need a console lock in the runtime_suspend
+> path (like you already have in the static suspend path.)
+
+console_lock in runtime_suspend will not help
+during bootup and due to printk emerging out from
+omap_device enable after system bootup.
+
+
+>
+>> + =A0 =A0 =A0*/
+>> +
+>> + =A0 =A0 if (!console_lock &&
+>> + =A0 =A0 =A0 =A0 =A0 =A0 up->pdev->dev.power.runtime_status =3D=3D RPM_=
+SUSPENDING)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return;
+>
+> Assuming this was a printk, it's now lost, right? =A0 Not sure that's an
+> acceptable solution.
+>
+
+AFAIK it gets logged prints later.
+
+to summarize holding console lock helps after bootup
+since during boot up console lock is not available need to use
+above runtime_status check.
+
+--
+Thanks,
+Govindraj.R
+
+
+>> =A0 =A0 =A0 local_irq_save(flags);
+>> =A0 =A0 =A0 if (up->port.sysrq)
+>> @@ -1044,6 +1059,9 @@ serial_omap_console_write(struct console *co, cons=
+t char *s,
+>> =A0 =A0 =A0 if (up->msr_saved_flags)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 check_modem_status(up);
+>>
+>> + =A0 =A0 if (console_lock)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 console_unlock();
+>> +
+>> =A0 =A0 =A0 serial_omap_port_disable(up);
+>> =A0 =A0 =A0 if (locked)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock(&up->port.lock);
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-serial" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >
