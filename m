@@ -1,133 +1,65 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] OMAP4: PANDA, SDP: Fix EHCI regulator supply
-Date: Mon, 27 Jun 2011 11:00:37 +0300
-Message-ID: <20110627080036.GB2508@legolas.emea.dhcp.ti.com>
-References: <1308926240-13888-1-git-send-email-jaswinder.singh@linaro.org>
-	<BANLkTin=-cRC_ax8AakMD1UZtU+AQ0H==w@mail.gmail.com>
+Subject: Re: [PATCH 05/16] OMAP4: clock data: Remove usb_host_fs clkdev with
+ NULL dev
+Date: Mon, 27 Jun 2011 11:03:17 +0300
+Message-ID: <20110627080316.GC2508@legolas.emea.dhcp.ti.com>
+References: <1308851025-26313-1-git-send-email-b-cousson@ti.com>
+ <1308851025-26313-6-git-send-email-b-cousson@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1656929460=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <BANLkTin=-cRC_ax8AakMD1UZtU+AQ0H==w@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jaswinder Singh <jaswinder.singh@linaro.org>
-Cc: patches@linaro.org, tony@atomide.com, Mark Brown <broonie@opensource.wolfsonmicro.com>, balbi@ti.com, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
-
-
---===============1656929460==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bCsyhTFzCvuiizWE"
+	protocol="application/pgp-signature"; boundary="zCKi3GIZzVBPywwA"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:39130 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755791Ab1F0IDW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Jun 2011 04:03:22 -0400
+Received: by mail-bw0-f50.google.com with SMTP id 11so1539671bwb.23
+        for <linux-omap@vger.kernel.org>; Mon, 27 Jun 2011 01:03:21 -0700 (PDT)
 Content-Disposition: inline
+In-Reply-To: <1308851025-26313-6-git-send-email-b-cousson@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: paul@pwsan.com, rnayak@ti.com, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
 
---bCsyhTFzCvuiizWE
-Content-Type: text/plain; charset=iso-8859-1
+--zCKi3GIZzVBPywwA
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Fri, Jun 24, 2011 at 10:37:56PM +0530, Jaswinder Singh wrote:
-> [CC'ing Liam and Mark as well]
+On Thu, Jun 23, 2011 at 07:43:34PM +0200, Benoit Cousson wrote:
+> usb_host_fs_fck does have a clkdev mapping with "usbhs-omap.0"
+> and "fs_fck" alias used by the driver.
+> The entry with NULL dev is thus not needed anymore.
 >=20
-> On 24 June 2011 20:07, Jassi Brar <jaswinder.singh@linaro.org> wrote:
-> > VUSB is a fixed level line and hence have no set_voltage
-> > callback in regulator ops, but has apply_uV set to true.
-> > As a result it fails to register with the regulator core.
-> > Remove setting apply_uV.
-> >
-> > Also, assign name to VUSB supply, without which regulator core
-> > fails to find it and assigns the default 'dummy' regulator to
-> > the ehci-omap device.
-> >
-> > Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
-> > ---
-> > =A0arch/arm/mach-omap2/board-4430sdp.c =A0 =A0| =A0 =A06 +++++-
-> > =A0arch/arm/mach-omap2/board-omap4panda.c | =A0 =A06 +++++-
-> > =A02 files changed, 10 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/=
-board-4430sdp.c
-> > index 63de2d3..1ec60be 100644
-> > --- a/arch/arm/mach-omap2/board-4430sdp.c
-> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> > @@ -504,16 +504,20 @@ static struct regulator_init_data sdp4430_vdac =
-=3D {
-> > =A0 =A0 =A0 =A0},
-> > =A0};
-> >
-> > +static struct regulator_consumer_supply sdp4430_vusb_supply =3D
-> > + =A0 =A0 =A0 REGULATOR_SUPPLY("hsusb0", "ehci-omap.0");
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Felipe Balbi <balbi@ti.com>
 
-this should be an array.
+looks good to me. That was duplicated anyway:
 
-> > =A0static struct regulator_init_data sdp4430_vusb =3D {
-> > =A0 =A0 =A0 =A0.constraints =3D {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.min_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=3D 3300000,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.max_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=3D 3300000,
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .apply_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D=
- true,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_modes_mask =A0 =A0 =A0 =3D REGULA=
-TOR_MODE_NORMAL
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_MODE_STANDBY,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D =A0 =A0 =A0REGULA=
-TOR_CHANGE_MODE
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| REGULATOR_CHANGE_STATUS,
-> > =A0 =A0 =A0 =A0},
-> > + =A0 =A0 =A0 .num_consumer_supplies =A0=3D 1,
-
-ARRAY_SIZE()
-
-> > + =A0 =A0 =A0 .consumer_supplies =A0 =A0 =A0=3D &sdp4430_vusb_supply,
-
-drop the &.
-
-ditto to other.
+Acked-by: Felipe Balbi <balbi@ti.com>
 
 --=20
 balbi
 
---bCsyhTFzCvuiizWE
+--zCKi3GIZzVBPywwA
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOCDikAAoJEAv8Txj19kN1fqkIAJADr0arIhE07+H5aGqVhMpY
-6Ydg4loo1xqB3HZ5WfD5aZNtyERxFhh4hJzzKl4xAlcoVHTVyG0r7VAuzVs1tEA4
-eYferbf9OXsI9K8qHTcU3SIyiN0Og51wu4AcCr0qL/w8KDAPC8W3wv1nu09j4Y1K
-lqRl/UYX8dZUAuniKWSSvHfF7ZhE3OP+EMS5rbHQm4rQ1nOqg/lE+tJtn97whyOY
-dX4PtydRFK3H3XvUhvJtjZ7eA1lplAf7638PC4DC3DWzepvZq5YXTzg49eEgJtYa
-YkmZew7TuH8FV/Qmfuf6hz0xLaF59P2R+Ba6r4nUtllnJT7a/RYsVxHna515pxU=
-=yvGE
+iQEcBAEBAgAGBQJOCDlEAAoJEAv8Txj19kN1BtYIAIc21K28hKarza3SqLPpUHsT
+zlHNMVHYr6DeKL9lM2fJjK7gQNO4Gd3hrXZW+XCCZTtoID8GfOTKL0HyWEuSwvlk
+ZZtbmYsgtN2Z8Y0ek0D95VmTnuZ3DBItGB1XCZeZXwbCRduNX8ViA/vB+XC4/DFJ
+aFtqGfNPtciLngAeylphZ00YlXgKM8OtB2rwvzmaCTMS1fLydN8WApQ3znYoQH42
+Zc5iZmK+tuZWLGbZ3sSNiGG1ErTUQwDF/wYheiuQkdPglu9KM60D0kPgIakRBCIK
+CQbBR9xlGPmsYzkVpaiXsyNQXFE5EJBhuXXjmy3JKDVLOSds/zzUtST/22VLQK0=
+=onMI
 -----END PGP SIGNATURE-----
 
---bCsyhTFzCvuiizWE--
-
-
---===============1656929460==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1656929460==--
+--zCKi3GIZzVBPywwA--
