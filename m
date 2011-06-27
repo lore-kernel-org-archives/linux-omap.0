@@ -1,14 +1,17 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [GIT PULL] misc. OMAP PM updates for v3.1
-Date: Mon, 27 Jun 2011 09:35:32 -0700
-Message-ID: <87aad3dygb.fsf@ti.com>
-References: <87vcvw5akk.fsf@ti.com> <20110627112843.GN23145@atomide.com>
+Subject: Re: [PATCH 07/10] omap2+: Reserve clocksource and timesource and
+	initialize dmtimer later
+Date: Mon, 27 Jun 2011 09:41:09 -0700
+Message-ID: <8762nrdy6y.fsf@ti.com>
+References: <20110620091754.357.56441.stgit@kaulin>
+	<20110620092343.357.60445.stgit@kaulin> <87wrgca3dr.fsf@ti.com>
+	<20110627074856.GD23145@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110627112843.GN23145@atomide.com> (Tony Lindgren's message of
-	"Mon, 27 Jun 2011 04:28:43 -0700")
+In-Reply-To: <20110627074856.GD23145@atomide.com> (Tony Lindgren's message of
+	"Mon, 27 Jun 2011 00:48:57 -0700")
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,56 +22,43 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 Tony Lindgren <tony@atomide.com> writes:
 
-> * Kevin Hilman <khilman@ti.com> [110623 17:32]:
->> Tony,
+> * Kevin Hilman <khilman@ti.com> [110623 09:56]:
+>> Tony Lindgren <tony@atomide.com> writes:
 >> 
->> Please pull the following misc. OMAP PM updates targetted for v3.1.
+>> > There's no need to initialize the dmtimer framework early.
 >> 
->> This branch is based on your 'fixes' branch due to some dependencies.
->>       OMAP2: PM debug: move wakeup timer into clockevent code
+>> Actually, there is, because it's being used from the early code.
+>> 
+>> The sys_timer.init functions are called before arch_initcalls, so before
+>> omap_dm_timer_init() is called, you have:
+>> 
+>> omap3_timer_init()
+>>     omap2_gp_clockevent_init()
+>>         omap_dm_timer_init_one()
+>>            omap_dm_timer_request_specific()
+>>                
+>> 
+>> Among other things, the spinlock is taken before it has been initialized
+>> in omap_dm_timer_init() (that's how I noticed this problem), but the
+>> rest of the init of course hasn't been done either.
+>> 
+>> Basically, the problem is that this "early init" code is not only using
+>> the new macros, but it's also using functions from the "real" driver,
+>> which is not yet initialized.
 >
-> This won't work with the devel-timer branch. I think we should just
-> drop it for now based on what I mentioned in the other thread.
+> Sounds like you did not apply the previous patch to remove the PM hack?
+>
+> There's no need to call to omap_dm_timer_request_specific here unless
+> you added back the PM hack.
 
-OK, dropped the timer patch.  Updated pull request below.
+Right, I added it back not noticing that it also removed the
+_request_specific call.
 
-Thanks,
+Thanks for the clarification,
 
 Kevin
-
-
-
-
-The following changes since commit b8ce9fb8e18af7466e0b915bb5979322cdace322:
-
-  Merge branch 'fixes-v3.0-rc3' into devel-fixes (2011-06-14 05:53:42 -0700)
-
-are available in the git repository at:
-
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.1/pm-misc
-
-Kevin Hilman (3):
-      OMAP3: PM debug: remove sleep_while_idle feature
-      OMAP2: PM debug: remove register dumping
-      OMAP3: PM debug: remove register dumping
-
-Nishanth Menon (4):
-      OMAP3+: SR: make notify independent of class
-      OMAP3+: SR: disable interrupt by default
-      OMAP3+: SR: enable/disable SR only on need
-      OMAP3+: SR: fix cosmetic indentation
-
-Sanjeev Premi (1):
-      OMAP2+: PM: fix section mismatch in pm_dbg_init()
-
- arch/arm/mach-omap2/pm-debug.c    |  345 +------------------------------------
- arch/arm/mach-omap2/pm.h          |    6 -
- arch/arm/mach-omap2/pm24xx.c      |    6 +-
- arch/arm/mach-omap2/pm34xx.c      |    2 -
- arch/arm/mach-omap2/smartreflex.c |   38 ++--
- 5 files changed, 23 insertions(+), 374 deletions(-)
