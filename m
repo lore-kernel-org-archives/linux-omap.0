@@ -1,62 +1,75 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+From: Grant Likely <grant.likely@secretlab.ca>
 Subject: Re: [RFC 1/8] drivers: add generic remoteproc framework
-Date: Tue, 28 Jun 2011 00:29:03 +0100
-Message-ID: <20110627232903.GB7736@n2100.arm.linux.org.uk>
+Date: Mon, 27 Jun 2011 17:35:49 -0600
+Message-ID: <BANLkTi=MDSuiGb64Se1T7zCWG6syxXbhTg@mail.gmail.com>
 References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
 	<1308640714-17961-2-git-send-email-ohad@wizery.com>
 	<20110627204958.GB20865@ponder.secretlab.ca>
+	<20110627232903.GB7736@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20110627204958.GB20865-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, davinci-linux-open-source <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Brian Swetland <swetland-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110627232903.GB7736@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 27, 2011 at 02:49:58PM -0600, Grant Likely wrote:
-> > +struct {
-> > +      char magic[4] = { 'R', 'P', 'R', 'C' };
-> > +      u32 version;
-> > +      u32 header_len;
-> > +      char header[...] = { header_len bytes of unformatted, textual header };
-> > +      struct section {
-> > +          u32 type;
-> > +          u64 da;
-> > +          u32 len;
-> > +          u8 content[...] = { len bytes of binary data };
-> > +      } [ no limit on number of sections ];
-> > +} __packed;
-> 
-> Other have commented on the image format, so I'll skip this bit other
-> than saying that I agree it would be great to have a common format.
+On Mon, Jun 27, 2011 at 5:29 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Mon, Jun 27, 2011 at 02:49:58PM -0600, Grant Likely wrote:
+>> > +struct {
+>> > + =A0 =A0 =A0char magic[4] =3D { 'R', 'P', 'R', 'C' };
+>> > + =A0 =A0 =A0u32 version;
+>> > + =A0 =A0 =A0u32 header_len;
+>> > + =A0 =A0 =A0char header[...] =3D { header_len bytes of unformatted, t=
+extual header };
+>> > + =A0 =A0 =A0struct section {
+>> > + =A0 =A0 =A0 =A0 =A0u32 type;
+>> > + =A0 =A0 =A0 =A0 =A0u64 da;
+>> > + =A0 =A0 =A0 =A0 =A0u32 len;
+>> > + =A0 =A0 =A0 =A0 =A0u8 content[...] =3D { len bytes of binary data };
+>> > + =A0 =A0 =A0} [ no limit on number of sections ];
+>> > +} __packed;
+>>
+>> Other have commented on the image format, so I'll skip this bit other
+>> than saying that I agree it would be great to have a common format.
+>
+> (Don't have the original message to reply to...)
+>
+> Do we really want to end up with header being 5 bytes, header_len set
+> as 5, and having to load/store all this data using byte loads/stores ?
+>
+> If we don't want that, then I suggest we get rid of the packed attribute,
+> and require stuff to be naturally aligned.
+>
+> First issue is that struct section could be much better layed out:
+>
+> struct section {
+> =A0 =A0 =A0 =A0u32 type;
+> =A0 =A0 =A0 =A0u32 len;
+> =A0 =A0 =A0 =A0u64 da;
+> =A0 =A0 =A0 =A0u8 content[];
+> };
+>
+> and require sizeof(struct section) % sizeof(u64) =3D=3D 0 - iow, to find
+> the next section, round len up to sizeof(u64). =A0Ditto for the header.
 
-(Don't have the original message to reply to...)
+Hopefully this will all be moot since it has been proposed to use elf
+images directly.
 
-Do we really want to end up with header being 5 bytes, header_len set
-as 5, and having to load/store all this data using byte loads/stores ?
+g.
 
-If we don't want that, then I suggest we get rid of the packed attribute,
-and require stuff to be naturally aligned.
+-- =
 
-First issue is that struct section could be much better layed out:
-
-struct section {
-	u32 type;
-	u32 len;
-	u64 da;
-	u8 content[];
-};
-
-and require sizeof(struct section) % sizeof(u64) == 0 - iow, to find
-the next section, round len up to sizeof(u64).  Ditto for the header.
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
