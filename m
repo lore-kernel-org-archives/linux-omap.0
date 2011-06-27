@@ -1,17 +1,17 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC 1/8] drivers: add generic remoteproc framework
-Date: Mon, 27 Jun 2011 16:24:01 -0600
-Message-ID: <20110627222401.GE20865@ponder.secretlab.ca>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
-	<1308640714-17961-2-git-send-email-ohad@wizery.com>
-	<20110627204958.GB20865@ponder.secretlab.ca>
-	<FFF198FBBF957F4393BA834040FEFFA202EE00@DFLE35.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v3 11/12] OMAP2: Serial: Add has_async_wake flag.
+Date: Mon, 27 Jun 2011 15:28:57 -0700
+Message-ID: <877h86aoye.fsf@ti.com>
+References: <1307532194-13039-1-git-send-email-govindraj.raja@ti.com>
+	<1307532194-13039-12-git-send-email-govindraj.raja@ti.com>
+	<87y60qpxcq.fsf@ti.com>
+	<BANLkTik9ZLyA4+1VMFj08Zke151OqAhATQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <FFF198FBBF957F4393BA834040FEFFA202EE00@DFLE35.ent.ti.com>
+In-Reply-To: <BANLkTik9ZLyA4+1VMFj08Zke151OqAhATQ@mail.gmail.com> (Govindraj's
+	message of "Mon, 27 Jun 2011 18:39:54 +0530")
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,44 +21,42 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Grosen, Mark" <mgrosen@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 27, 2011 at 09:52:30PM +0000, Grosen, Mark wrote:
-> > From: Grant Likely
-> > Sent: Monday, June 27, 2011 1:50 PM
-> 
-> Grant, thanks for the feedback. I'll try to answer one of your
-> questions below and leave the rest for Ohad.
-> 
-> Mark
->  
-> > > +Every remoteproc implementation must provide these handlers:
-> > > +
-> > > +struct rproc_ops {
-> > > +	int (*start)(struct rproc *rproc, u64 bootaddr);
-> > > +	int (*stop)(struct rproc *rproc);
-> > > +};
-> > > +
-> > > +The ->start() handler takes a rproc handle and an optional bootaddr
-> > argument,
-> > > +and should power on the device and boot it (using the bootaddr
-> > argument
-> > > +if the hardware requires one).
-> > 
-> > Naive question: Why is bootaddr an argument?  Wouldn't rproc drivers
-> > keep track of the boot address in their driver private data?
->  
-> Our AMPs (remote processors) have a variety of boot mechanisms that vary
-> across the different SoCs (yes, TI likes HW diversity). In some cases, the
-> boot address is more like an entry point and that comes from the firmware,
-> so it is not a static attribute of a driver. Correct me if I misunderstood
-> your question.
-
-More to the point, I would expect the boot_address to be a property of
-the rproc instance because it represents the configuration of the
-remote processor.  It seems odd that the caller of ->start would know
-better than the rproc driver about the entry point of the processor.
-
-g.
+R292aW5kcmFqIDxnb3ZpbmRyYWoudGlAZ21haWwuY29tPiB3cml0ZXM6Cgo+IE9uIFNhdCwgSnVu
+IDI1LCAyMDExIGF0IDU6NTkgQU0sIEtldmluIEhpbG1hbiA8a2hpbG1hbkB0aS5jb20+IHdyb3Rl
+Ogo+PiAiR292aW5kcmFqLlIiIDxnb3ZpbmRyYWoucmFqYUB0aS5jb20+IHdyaXRlczoKPj4KPj4+
+IFByaW9yIHRvIHRoaXMgcGF0Y2ggdGhlIHVhcnRfY2xvY2sgd2FzIGN1dCB1c2luZyBwcmVwYXJl
+L3Jlc3VtZSBjYWxscyBzaW5jZQo+Pj4gdGhlc2UgZnVuY3MgYXJlIG5vIG1vcmUgYXZhaWxhYmxl
+IHdpdGggcnVudGltZSBjaGFuZ2VzIHVzZSBoYXNfYXN5bmNfd2FrZQo+Pj4gZmxhZyB0byBrZWVw
+IGNsb2NrIGFjdGl2ZSBkdXJpbmcgYm9vdHVwIG90aGVyd2lzZSB1YXJ0IHBvcnQgd2lsbCBkaXNh
+YmxlZAo+Pj4gZHVyaW5nIGJvb3QtdXAgYW5kIGNhbm5vdCBiZSBlbmFibGVkIGJhY2suCj4+Cj4+
+IElzIHRoaXMgb25seSBhIGJvb3R1cCBpc3N1ZSwgb3IgYSBydW50aW1lIFBNIGlzc3VlPyDCoEl0
+IGFwcGVhcnMgdG8gbWUKPj4gdGhhdCB3aXRoIHRoaXMgcGF0Y2gsIHJ1bnRpbWUgUE0gaXMgZWZm
+ZWN0aXZlbHkgZGlzYWJsZWQgZm9yIHRoZSB3aG9sZQo+PiB0aW1lLgo+Pgo+Cj4gaXQgYm9vdHMg
+dXAgZmluZSwgaXRzIGEgcnVudGltZSBQTSBpc3N1ZSB3aGVyZSB0aGVyZSBpcwo+IG5vIG1lY2hh
+bmlzbSB0byB3YWtldXAgYWZ0ZXIgY2xvY2sgY3V0dGluZyBmcm9tCj4gcnVudGltZSBhdXRvc3Vz
+cGVuZC4KPgo+Cj4+IFdoeSBub3QganVzdCB1c2UgcG1fcnVudGltZV9kaXNhYmxlKCkgaW4gX3By
+b2JlKCkgZm9yIGRldmljZXMgd2l0aCBubwo+PiBhc3luYyB3YWtldXAuCj4+Cj4KPiBBZ3JlZS4K
+PiBjYW4gZHJvcCBvZiB0aGlzIHBhdGNoIGFuZCBiaW5kIGJlbG93IGNoYW5nZXMgaW4gcnVudGlt
+ZSBjb252ZXJzaW9uIHBhdGNoICAwNC8xMgo+Cj4gZG8gcG1fcnVudGltZV9lbmFibGUgb25seSBp
+ZiBkZXZpY2VfbWF5X3dha2V1cAo+IGlzIHRydWUgaW4gcHJvYmUuCj4KPiA8PFNOSVA+Pgo+IGlu
+IHNlcmlhbF9vbWFwX3Byb2JlCj4KPiBpZiAoZGV2aWNlX21heV93YWtldXAoJnBkZXYtPmRldikp
+IHsKPiAJcG1fcnVudGltZV91c2VfYXV0b3N1c3BlbmQoJnBkZXYtPmRldik7Cj4gCXBtX3J1bnRp
+bWVfc2V0X2F1dG9zdXNwZW5kX2RlbGF5KCZwZGV2LT5kZXYsCj4gCQkJCU9NQVBfVUFSVF9BVVRP
+U1VTUEVORF9ERUxBWSk7Cj4gCXBtX3J1bnRpbWVfZW5hYmxlKCZwZGV2LT5kZXYpOwo+IAlwbV9y
+dW50aW1lX2lycV9zYWZlKCZwZGV2LT5kZXYpOwo+IH0KCldlbGwsIEkgdGhpbmsgb25seSB0aGUg
+X2VuYWJsZSgpIHNob3VsZCBiZSBjb25kaXRpb25hbC4KCj4+PiBBbHNvIGJhc2VkIG9uIHRoaXMg
+ZmxhZyB3ZSBjYW4gZGlzYWJsZSB1YXJ0IHBvcnQgZHVyaW5nIHN1c3BlbmQgYW5kCj4+PiBlbmFi
+bGUgYmFjayBkdXJpbmcgcmVzdW1lIGZvciBvbWFwX3NvY3MgdGhhdCBoYXZlIG5vdCBzZXQKPj4+
+IGhhc19hc3luY193YWtlLgo+Pgo+PiBUaGVuIHlvdSBjYW4gdXNlIHBtX3J1bnRpbWVfZW5hYmxl
+KCkgaW4gLT5wcmVwYXJlKCkgYW5kCj4+IHBtX3J1bnRpbWVfZGlzYWJsZSgpIGluIC0+Y29tcGxl
+dGUoKQo+Pgo+Cj4gdSBtZWFuIHJ1bnRpbWUgZW5hYmxlIGluIHN1c3BlbmQgYW5kIHJ1bnRpbWUg
+ZGlzYWJsZSBpbiByZXN1bWUKPiBpZiBkZXZpY2VfbWF5X3dha2V1cCBpcyBmYWxzZS4KCk5vLCBJ
+IG1lYW50IHRoZSAucHJlcGFyZSAocnVucyBiZWZvcmUgLnN1c3BlbmQpIGFuZCAuY29tcGxldGUg
+KHJ1bnMKYWZ0ZXIgLnJlc3VtZSkgY2FsbGJhY2tzLiAgCgpLZXZpbgoKCgpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxp
+bmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
+LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
