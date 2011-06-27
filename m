@@ -1,86 +1,67 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv2] OMAP4: PANDA, SDP: Fix EHCI regulator supply
-Date: Mon, 27 Jun 2011 18:05:44 +0300
-Message-ID: <20110627150543.GR2508@legolas.emea.dhcp.ti.com>
-References: <1308926240-13888-1-git-send-email-jaswinder.singh@linaro.org>
-	<1309186923-29192-1-git-send-email-jaswinder.singh@linaro.org>
-Reply-To: balbi@ti.com
+From: "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] USB: OTG: Use work_queue in set_vbus for TWL6030 transciever
+Date: Mon, 27 Jun 2011 10:06:01 -0500
+Message-ID: <BANLkTimtKAY7J2=c+ZhAEKAdZP3KY7CAPw@mail.gmail.com>
+References: <1308928443-15352-1-git-send-email-m-sonasath@ti.com>
+	<20110625063116.GA14681@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0947720971=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1309186923-29192-1-git-send-email-jaswinder.singh@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: patches@linaro.org, tony@atomide.com, broonie@opensource.wolfsonmicro.com, balbi@ti.com, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110625063116.GA14681-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Todd Poynor <toddpoynor-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Todd,
 
---===============0947720971==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PLOb/g6AMdJ1vPHZ"
-Content-Disposition: inline
+On Sat, Jun 25, 2011 at 1:31 AM, Todd Poynor <toddpoynor-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org> wr=
+ote:
+> On Fri, Jun 24, 2011 at 10:14:03AM -0500, Moiz Sonasath wrote:
+> ...
+>> + =A0 =A0 if (enabled)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 twl->vbus_enable =3D 1;
+>> + =A0 =A0 else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 twl->vbus_enable =3D 0;
+>> +
+>
+> Suggest twl->vbus_enable =3D enabled;
+>
+>> =A0 =A0 =A0 /*
+>> =A0 =A0 =A0 =A0* Start driving VBUS. Set OPA_MODE bit in CHARGERUSB_=
+CTRL1
+>> =A0 =A0 =A0 =A0* register. This enables boost mode.
+>> =A0 =A0 =A0 =A0*/
+>> - =A0 =A0 if (enabled)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 twl6030_writeb(twl, TWL_MODULE_MAIN_CHARGE=
+ , 0x40,
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 CHARGERUSB_CTRL1);
+>> - =A0 =A0 =A0else
+>> - =A0 =A0 =A0 =A0 =A0 =A0 twl6030_writeb(twl, TWL_MODULE_MAIN_CHARGE=
+ , 0x00,
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 CHARGERUSB_CTRL1);
+>> +
+>> + =A0 =A0 schedule_work(&twl->set_vbus_work);
+>> +
+>
+> Suggest also moving the comments together with the new location of
+> the code to write CHARGERUSB_CTRL1.
+>
+> Add a cancel_work_sync(&twl->set_vbus_work) at twl6030_usb_remove(),
+> prior to kfree(twl).
+>
 
+Thank you for the feedback, have posted a V2 of the patch.
 
---PLOb/g6AMdJ1vPHZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Jun 27, 2011 at 08:32:03PM +0530, Jassi Brar wrote:
-> VUSB is a fixed level line and hence have no set_voltage
-> callback in regulator ops, but has apply_uV set to true.
-> As a result it fails to register with the regulator core.
-> Remove setting apply_uV.
->=20
-> Also, assign name to VUSB supply, without which regulator core
-> fails to find it and assigns the default 'dummy' regulator to
-> the ehci-omap device.
->=20
-> Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
-
-FWIW:
-
-Reviewed-by: Felipe Balbi <balbi@ti.com>
 
 --=20
-balbi
-
---PLOb/g6AMdJ1vPHZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOCJxHAAoJEAv8Txj19kN1cUkH/09wY8Qyx9VRtQDHzJr/6w1X
-AL8n4fnnuSPSrarz2tlbggMEQvrvWYwvD4/u/+tg+Orz34N9Nhf8QzqaHY2KAFbt
-Bpko9jChED1LOtRu3dCQkeno7vQahGwRCzWuuw/oKF5gkyvENlGsXFz8PalpKTA/
-CsD4NFQbYBlo+pguzNQIiPOjbk8DnvE71eVtyAUlJDNQwBeY/oGPB00sXVR3STHT
-UKFT+4Jw75Yp68iShEnOc9XM5ismqJ3ESzfavU8fXK1qS6Hy9To+yTmS06XGADzy
-nGi5ZfKeRx/CePtyehz+S1tWdD4hwwh7i+HHw7py40BY2Rj7ovr2ERjH4F7KZJM=
-=koi6
------END PGP SIGNATURE-----
-
---PLOb/g6AMdJ1vPHZ--
-
-
---===============0947720971==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0947720971==--
+Regards
+Moiz Sonasath
+Android Kernel Team
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
