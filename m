@@ -1,48 +1,51 @@
-From: Dima Zavin <dima@android.com>
-Subject: [PATCH] OMAP: DSS: dispc: enable/disable clocks in error handler
-Date: Mon, 27 Jun 2011 10:31:05 -0700
-Message-ID: <1309195865-23808-1-git-send-email-dima@android.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 06/10] omap2+: Remove gptimer_wakeup for now
+Date: Mon, 27 Jun 2011 10:32:26 -0700
+Message-ID: <8762nrch91.fsf@ti.com>
+References: <20110620091754.357.56441.stgit@kaulin>
+	<20110620092341.357.14183.stgit@kaulin>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:54151 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752978Ab1F0Rbb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 13:31:31 -0400
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:47803 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751462Ab1F0Rcb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Jun 2011 13:32:31 -0400
+Received: by pvc21 with SMTP id 21so2843818pvc.25
+        for <linux-omap@vger.kernel.org>; Mon, 27 Jun 2011 10:32:28 -0700 (PDT)
+In-Reply-To: <20110620092341.357.14183.stgit@kaulin> (Tony Lindgren's message
+	of "Mon, 20 Jun 2011 02:23:41 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Dima Zavin <dima@android.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-There's no guarantee that the error handler worker thread
-will run while the dispc clocks are on. Explicitly enable/disable
-them.
+Tony Lindgren <tony@atomide.com> writes:
 
-Signed-off-by: Dima Zavin <dima@android.com>
----
- drivers/video/omap2/dss/dispc.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+> This removes the support for setting the wake-up timer for debugging.
+>
+> Later on we can reserve gptimer1 for PM code only and have similar
+> functionality.
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 62aa77c..2458248 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -3292,6 +3292,8 @@ static void dispc_error_worker(struct work_struct *work)
- 	dispc.error_irqs = 0;
- 	spin_unlock_irqrestore(&dispc.irq_lock, flags);
+Another minor change to fold into patch: gptimer_wakeup doesn't exist
+anymore, so should probably be removed from dmtimer.h
+
+Kevin
+
+
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index 40d7936..d0f3a2d 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -59,7 +59,6 @@
+  */
+ #define OMAP_TIMER_IP_VERSION_1                        0x1
+ struct omap_dm_timer;
+-extern struct omap_dm_timer *gptimer_wakeup;
+ struct clk;
  
-+	dispc_runtime_get();
-+
- 	if (errors & DISPC_IRQ_GFX_FIFO_UNDERFLOW) {
- 		DSSERR("GFX_FIFO_UNDERFLOW, disabling GFX\n");
- 		for (i = 0; i < omap_dss_get_num_overlays(); ++i) {
-@@ -3478,6 +3480,8 @@ static void dispc_error_worker(struct work_struct *work)
- 	dispc.irq_error_mask |= errors;
- 	_omap_dispc_set_irqs();
- 	spin_unlock_irqrestore(&dispc.irq_lock, flags);
-+
-+	dispc_runtime_put();
- }
- 
- int omap_dispc_wait_for_irq_timeout(u32 irqmask, unsigned long timeout)
--- 
-1.7.3.1
-
+ struct omap_dm_timer *omap_dm_timer_request(void);
