@@ -1,60 +1,103 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Wed, 29 Jun 2011 00:17:11 +0100
-Message-ID: <20110628231711.GC23312@n2100.arm.linux.org.uk>
-References: <1308923618-5333-1-git-send-email-premi@ti.com> <CAMbhsRQUKBZbC3jJt8XpjTW2n7uA529D6G0g4eT5iLEHn2iNLg@mail.gmail.com> <20110628225523.GA23312@n2100.arm.linux.org.uk> <CAMbhsRQjMmXrULVmFg9CoM0wzZ29wcHqEaT480NaDhB8hHEKZg@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Tue, 28 Jun 2011 16:32:48 -0700
+Message-ID: <87mxh1v8f3.fsf@ti.com>
+References: <1309282049-23739-1-git-send-email-balajitk@ti.com>
+	<1309282049-23739-3-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59931 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751237Ab1F1XRZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jun 2011 19:17:25 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMbhsRQjMmXrULVmFg9CoM0wzZ29wcHqEaT480NaDhB8hHEKZg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1309282049-23739-3-git-send-email-balajitk@ti.com> (Balaji
+	T. K.'s message of "Tue, 28 Jun 2011 22:57:28 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com, svenkatr@ti.com, "Nayak, Rajendra" <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@google.com>
-Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Tue, Jun 28, 2011 at 03:58:57PM -0700, Colin Cross wrote:
-> On Tue, Jun 28, 2011 at 3:55 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Tue, Jun 28, 2011 at 03:29:57PM -0700, Colin Cross wrote:
-> >> Can't this rewrite the loops_per_jiffy for the other CPU while it =
-is
-> >> in a udelay? =A0If it has already calculated the number of loops
-> >> necessary, and the CPU frequency increases, it could end up return=
-ing
-> >> too early from udelay.
-> >
-> > udelay uses the global loops_per_jiffy.
-> >
->=20
-> The problem is still the same - loops_per_jiffy applies to both CPUs,
-> and the frequency of the other CPU cannot be changed if it is in a
-> udelay.
++Rajendra
 
-If you have a SMP system where both CPUs scale together then you will
-get both CPUs being impacted, which may result in udelay() terminating
-well early or taking much longer than was originally intended.
+Balaji T K <balajitk@ti.com> writes:
 
-That's rather unavoidable with software timing loops - we could add a
-rw spinlock around udelay, but that would require interrupts to be
-disabled and that wouldn't be nice in general to have every udelay
-running with IRQs off.
+> add runtime pm support to HSMMC host controller
+> Use runtime pm API to enable/disable HSMMC clock
+> Use runtime autosuspend APIs to enable auto suspend delay
+>
+> Based on OMAP HSMMC runtime implementation by Kevin Hilman, Kishore Kadiyala
+>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
 
-That's why people have proposed hardware-timer based delay loops -
-these screw up the bogomips value (it no longer refers to the CPU
-but to the timer used for the delays) and the code proposed thus far
-probably has a severe negative impact on ARMs running at low clock
-rates (the calculation cost of the number of loops to run becomes
-significant for CPUs below 100MHz for short delays with the existing
-optimized assembler, so moving it into C and introducing function
-pointers will only make it worse.)
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I tried to test this series along with Benoit's clkdm/modulemode/hwmod
+cleanups and something strange is happening on OMAP4.
+
+First, this series by itself is working as I would expect, but testing
+in combination with Benoit's series, it's different...
+
+First, I'm using Benoit's branch:
+
+       git://gitorious.org/omap-pm/linux.git for_3.0.1/7_hwmod_modulemode
+
+in combination with your series.
+
+I've also reverted these two commits:
+
+   OMAP4: PM: TEMP: Prevent l3init from idling/force sleep
+   OMAP3+: hwmod data: TEMP: Do not idle MMC1 & MMC2 after boot
+
+which are temporary workarounds for not having MMC runtime PM.
+
+I turned the dev_dbg calls in the runtime PM callbacks into dev_info
+callbacks to see exactly when the device is enabled/disabled via runtime
+PM.
+
+To my surprise, I didn't see the device being enabled/disabled when
+writing do the device.
+
+First, I mounted:
+
+root@foo:~# mount /dev/mmcblk0p2 /media/mmc2
+[  730.392944] omap_hsmmc omap_hsmmc.0: host: enabled
+[  730.445831] EXT3-fs: barriers not enabled
+[  730.453124] kjournald starting.  Commit interval 5 seconds
+[  730.459045] EXT3-fs (mmcblk0p2): warning: maximal mount count reached, runnid
+[  730.474731] EXT3-fs (mmcblk0p2): using internal journal
+[  730.480316] EXT3-fs (mmcblk0p2): mounted filesystem with ordered data mode
+[  730.522613] omap_hsmmc omap_hsmmc.0: disabled                                
+
+As expected, the device is enabled for mount, and soon disabled
+(presumably after the autosuspend timeout.)
+
+Then, I cd'd to the card:
+
+root@foo:~# cd /media/mmc2/tmp                                                
+[  744.350921] omap_hsmmc omap_hsmmc.0: host: enabled                           
+[  744.413238] omap_hsmmc omap_hsmmc.0: disabled    
+
+and see a brief enable/disable, probably to get the directory contents.
+
+Now the strange part.  I wrote a chunk of random data to the device,
+but didn't see any enable/disable activity until the unmount.  Not even
+after I did a sync.
+
+root@foo:/media/mmc2/tmp# dd if=/dev/urandom of=rand.bin bs=1M count=4        
+4+0 records in                                                                  
+4+0 records out                                                                 
+4194304 bytes (4.2 MB) copied, 9.91346 s, 423 kB/s                              
+root@foo:/media/mmc2/tmp# sync                                                
+root@foo:/media/mmc2/tmp# cd                                                  
+root@foo:~# umount /media/mmc2                                                
+[ 1026.711578] omap_hsmmc omap_hsmmc.0: host: enabled                           
+[ 1026.772918] omap_hsmmc omap_hsmmc.0: disabled                                
+root@foo:~# 
+
+
+Using this series standalone I see a few enable/disable cycles during
+the write, presumably as the MMC core buffers and bursts writes.
+
+Any ideas why the same isn't happening when used with Benoit's series?
+
+Kevin
+
+P.S. note that the debug messages don't quite match.  One says 'host:
+enabled' the other says 'disabled' (without the host: prefix.)  making
+the prefixes match would be more readable.
+
