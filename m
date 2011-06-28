@@ -1,42 +1,27 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Tue, 28 Jun 2011 16:04:27 -0700
-Message-ID: <4E0A5DFB.9060703@ti.com>
-References: <1308923618-5333-1-git-send-email-premi@ti.com>	<CAMbhsRQUKBZbC3jJt8XpjTW2n7uA529D6G0g4eT5iLEHn2iNLg@mail.gmail.com>	<4E0A5982.8040002@ti.com> <CAMbhsRRctHC2wSi7cWjO2Fn_rM7=dMtTrt6PbsVehrgx9SKwzw@mail.gmail.com> <4E0A5D27.5090709@ti.com>
+Date: Tue, 28 Jun 2011 16:07:58 -0700
+Message-ID: <4E0A5ECE.5080508@ti.com>
+References: <1308923618-5333-1-git-send-email-premi@ti.com> <CAMbhsRQUKBZbC3jJt8XpjTW2n7uA529D6G0g4eT5iLEHn2iNLg@mail.gmail.com> <4E0A5982.8040002@ti.com> <20110628230358.GB23312@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:52900 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750974Ab1F1XEc (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:57218 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751205Ab1F1XIB (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Jun 2011 19:04:32 -0400
-Received: by gxk7 with SMTP id 7so329716gxk.7
-        for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 16:04:30 -0700 (PDT)
-In-Reply-To: <4E0A5D27.5090709@ti.com>
+	Tue, 28 Jun 2011 19:08:01 -0400
+Received: by mail-gy0-f179.google.com with SMTP id 15so411836gyc.10
+        for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 16:08:00 -0700 (PDT)
+In-Reply-To: <20110628230358.GB23312@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@google.com>
-Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Colin Cross <ccross@google.com>, Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 6/28/2011 4:00 PM, Santosh Shilimkar wrote:
-> On 6/28/2011 3:53 PM, Colin Cross wrote:
->> On Tue, Jun 28, 2011 at 3:45 PM, Santosh Shilimkar
->> <santosh.shilimkar@ti.com <mailto:santosh.shilimkar@ti.com>> wrote:
->
-> [....]
->
->> Can't this rewrite the loops_per_jiffy for the other CPU while it is
->> in a udelay? If it has already calculated the number of loops
->> necessary, and the CPU frequency increases, it could end up
->> returning
->> too early from udelay.
->>
->> There were previous discussions about polling a fixed-frequency
->> timer
->> for udelay on SMP systems.
->>
+On 6/28/2011 4:03 PM, Russell King - ARM Linux wrote:
+> On Tue, Jun 28, 2011 at 03:45:22PM -0700, Santosh Shilimkar wrote:
 >> The udelay code doesn't use the per-cpu lpj variable. It uses the global
 >> lpj. Secondly the calibration of no. of loops to be done is
 >> precalculateed so overwrite shouldn't impact the scenario you mentioned.
@@ -44,20 +29,23 @@ On 6/28/2011 4:00 PM, Santosh Shilimkar wrote:
 >> Though it has an issue where, pre-calculated loops can become short/long
 >> based on new clock change which impacts both CPU's on OMAP, when the
 >> other CPU is in in the middle of u-delay routine..
->>
->>
->> The precalculated loops is exactly the problem I described. udelay(100)
->> can return in 50 microseconds if the cpu speed is doubled. On OMAP4,
->> frequencies can range from 350Mhz to 1.5GHz, so udelay can be more than
->> 4 times too short. That breaks the guarantees of udelay.
->>
-> You have a point and I agree with you on above.
-> And to fix that scenrio, the only option is to use hardware
-> timer based u-delay() which can remain constant across the
-> CPU freq change.
 >
-Or block CPUFREQ change when any CPU which is in udelay() is done with
-it, which will be stupid to do :-)
+> And there's also the issue where you can start a udelay loop on one CPU,
+> be pre-empted and end up running it on a different CPU running at a
+> different speed.
+>
+Indeed.
+
+> The thing to bear in mind is that udelays are approximate at best - I did
+> some investigation into the accuracy of the loops_per_jiffy calculation,
+> and it _will_ produce shorter delays than expected by the fact that
+> what is being calibrated is the udelay() loop _plus_ the timer interrupt
+> overhead.
+ >
+Sure but as Colin pointed out 4 times shorter delay will be too much.
 
 Regards
 Santosh
+
+
+
