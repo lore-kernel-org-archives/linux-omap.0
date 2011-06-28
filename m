@@ -1,117 +1,141 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v3 8/8] OMAP2+: hwmod: Follow the recommended PRCM module
- enable sequence
-Date: Wed, 29 Jun 2011 00:23:43 +0200
-Message-ID: <4E0A546F.5010607@ti.com>
-References: <1309191103-8817-1-git-send-email-b-cousson@ti.com>	<1309191103-8817-9-git-send-email-b-cousson@ti.com> <87iprq4xx2.fsf@ti.com> <4E09D19E.2020409@ti.com> <4E0A4FB4.70404@ti.com>
+From: Colin Cross <ccross@google.com>
+Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
+Date: Tue, 28 Jun 2011 15:29:57 -0700
+Message-ID: <CAMbhsRQUKBZbC3jJt8XpjTW2n7uA529D6G0g4eT5iLEHn2iNLg@mail.gmail.com>
+References: <1308923618-5333-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43966 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751149Ab1F1WXt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Jun 2011 18:23:49 -0400
-In-Reply-To: <4E0A4FB4.70404@ti.com>
+Received: from smtp-out.google.com ([74.125.121.67]:52599 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751328Ab1F1WaC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jun 2011 18:30:02 -0400
+Received: from hpaq5.eem.corp.google.com (hpaq5.eem.corp.google.com [172.25.149.5])
+	by smtp-out.google.com with ESMTP id p5SMU0br005830
+	for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 15:30:01 -0700
+Received: from ywn13 (ywn13.prod.google.com [10.192.14.13])
+	by hpaq5.eem.corp.google.com with ESMTP id p5SMTxQI001490
+	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
+	for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 15:29:59 -0700
+Received: by ywn13 with SMTP id 13so394141ywn.21
+        for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 15:29:58 -0700 (PDT)
+In-Reply-To: <1308923618-5333-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "toddpoynor@google.com" <toddpoynor@google.com>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-On 6/29/2011 12:03 AM, Nayak, Rajendra wrote:
-> On 6/28/2011 6:05 AM, Cousson, Benoit wrote:
->> Hi Kevin,
->>
->> On 6/28/2011 2:11 AM, Hilman, Kevin wrote:
->>> Benoit Cousson<b-cousson@ti.com>    writes:
->>>
->>>> From: Rajendra Nayak<rnayak@ti.com>
->>>>
->>>> On OMAP4, the PRCM recommended sequence for enabling
->>>> a module after power-on-reset is:
->>>> -1- Force clkdm to SW_WKUP
->>>> -2- Enabling the clocks
->>>> -3- Configure desired module mode to "enable" or "auto"
->>>> -4- Wait for the desired module idle status to be FUNC
->>>> -5- Program clkdm in HW_AUTO(if supported)
->>>>
->>>> This sequence applies to all older OMAPs' as well,
->>>> however since they use autodeps, it makes sure that
->>>> no clkdm is in IDLE, and hence not requiring a force
->>>> SW_WKUP when a module is being enabled.
->>>>
->>>> OMAP4 does not need to support autodeps, because
->>>> of the dyanamic dependency feature, wherein
->>>> the HW takes care of waking up a clockdomain from
->>>> idle and hence the module, whenever an interconnect
->>>> access happens to the given module.
->>>>
->>>> Implementing the sequence for OMAP4 requires
->>>> the clockdomain handling that is currently done in
->>>> clock framework to be done as part of hwmod framework
->>>> since the step -4- above to "Wait for the desired
->>>> module idle status to be FUNC" is done as part of
->>>> hwmod framework.
->>>>
->>>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->>>> [b-cousson@ti.com: Adapt it to the new clkdm hwmod attribute and API]
->>>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->>>> Cc: Paul Walmsley<paul@pwsan.com>
->>>
->>> [...]
->>>
->>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->>>> index 3eef106..3538805 100644
->>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>>> @@ -1360,6 +1360,7 @@ static int _reset(struct omap_hwmod *oh)
->>>>     static int _enable(struct omap_hwmod *oh)
->>>>     {
->>>>      int r;
->>>> +   int hwsup = 0;
->>>>
->>>>      if (oh->_state != _HWMOD_STATE_INITIALIZED&&
->>>>      oh->_state != _HWMOD_STATE_IDLE&&
->>>> @@ -1378,6 +1379,19 @@ static int _enable(struct omap_hwmod *oh)
->>>>              omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
->>>>
->>>>      _add_initiator_dep(oh, mpu_oh);
->>>> +
->>>> +   /*
->>>> +    * A clockdomain must be in SW_SUP before enabling completely the
->>>> +    * module. The clockdomain can be set in HW_AUTO only when the module
->>>> +    * become ready.
->>>> +    */
->>>> +   hwsup = clkdm_allows_idle(oh->clkdm);
->>>> +   r = clkdm_hwmod_enable(oh->clkdm, oh);
->>>> +   if (r) {
->>>> +           WARN(1, "omap_hwmod: %s: could not enable clockdomain %s: %d\n",
->>>> +                oh->name, oh->clkdm->name, r);
->>>> +           return r;
->>>> +   }
->>>
->>> If oh->clkdm == NULL (as it is on OMAP3 since the hwmod data has no
->>> clkdms yet), this hangs trying to dereference oh->clkdm->name.
->>>
->>> Simple fix below, but probably better is to not call any of these
->>> functions if oh->clkdm == NULL, otherwise this is very noisy on OMAP3
->>> since that WARN is printed for every hwmod.
->>
->> I can as well prevent the clkdm_hwmod_enable function to return any errors in case of omap2&   omap3...
->
-> Is'nt it best to do this..
->
-> if (oh->clkdm)
->          hwsup = clkdm_allows_idle(oh->clkdm);
->          r = clkdm_hwmod_enable(oh->clkdm, oh);
->          ...
->
-> My original patch infact had this check :-)
+<resending as plain text>
 
-Yep, I remember :-) I removed them because for my point of view that 
-attribute is mandatory for every hwmod entries and thus we should not 
-have to check for it.
-I preferred to hide that inside clkdm_hwmod_enable... but I'm not that 
-sure it should be there now :-)
+On Fri, Jun 24, 2011 at 6:53 AM, Sanjeev Premi <premi@ti.com> wrote:
+>
+> Currently, loops_per_jiffy is being calculated twice for
+> non-SMP processors.
+> =A0- Before calling cpufreq_notify_transition()
+> =A0- From within cpufreq_notify_transition()
+>
+> Double adjustment leads to incorrect value being assigned to
+> loops_per_jiffy. This manifests as incorrect BogoMIPS in
+> "cat /proc/cpuinfo".
+>
+> The value of loops_per_jiffy needs to be calculated only
+> when CONFIG_SMP is true. It is the core change included
+> in this patch.
+>
+> The patch also leverages the definition of for_each_cpu()
+> with and without CONFIG_SMP to consolidate the mechanism
+> to call cpufreq_notify_transition().
+>
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+> =A0Changes since v1:
+> =A0 * loops_per_jiffy are updated when CONFIG_SMP is true.
+> =A0 * leverage definition of for_each_cpu()
+>
+> =A0Tested on OMAP3EVM with and without CONFIG_SMP.
+> =A0Since the log is rather long, will be posting the log in
+> =A0a follow-up mail.
+>
+> =A0arch/arm/mach-omap2/omap2plus-cpufreq.c | =A0 27 +++++++++++++++--=
+----------
+> =A01 files changed, 15 insertions(+), 12 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-=
+omap2/omap2plus-cpufreq.c
+> index 346519e..0263cae 100644
+> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> @@ -97,12 +97,8 @@ static int omap_target(struct cpufreq_policy *poli=
+cy,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ret;
+>
+> =A0 =A0 =A0 =A0/* Notify transitions */
+> - =A0 =A0 =A0 if (is_smp()) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 for_each_cpu(i, policy->cpus) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 freqs.cpu =3D i;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpufreq_notify_transiti=
+on(&freqs, CPUFREQ_PRECHANGE);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> - =A0 =A0 =A0 } else {
+> + =A0 =A0 =A0 for_each_cpu(i, policy->cpus) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 freqs.cpu =3D i;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpufreq_notify_transition(&freqs, CPUF=
+REQ_PRECHANGE);
+> =A0 =A0 =A0 =A0}
+>
+> @@ -114,13 +110,20 @@ static int omap_target(struct cpufreq_policy *p=
+olicy,
+>
+> =A0 =A0 =A0 =A0freqs.new =3D omap_getspeed(policy->cpu);
+>
+> +#ifdef CONFIG_SMP
+> + =A0 =A0 =A0 /* Adjust jiffies before transition */
+> + =A0 =A0 =A0 for_each_cpu(i, policy->cpus) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsigned long lpj =3D per_cpu(cpu_data,=
+ i).loops_per_jiffy;
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 per_cpu(cpu_data, i).loops_per_jiffy =3D=
+ cpufreq_scale(lpj,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 freqs.old,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 freqs.new);
+Can't this rewrite the loops_per_jiffy for the other CPU while it is
+in a udelay?  If it has already calculated the number of loops
+necessary, and the CPU frequency increases, it could end up returning
+too early from udelay.
 
-Benoit
+There were previous discussions about polling a fixed-frequency timer
+for udelay on SMP systems.
+
+> + =A0 =A0 =A0 }
+> +#endif
+> +
+> =A0 =A0 =A0 =A0/* Notify transitions */
+> - =A0 =A0 =A0 if (is_smp()) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 for_each_cpu(i, policy->cpus) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 freqs.cpu =3D i;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpufreq_notify_transiti=
+on(&freqs, CPUFREQ_POSTCHANGE);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> - =A0 =A0 =A0 } else {
+> + =A0 =A0 =A0 for_each_cpu(i, policy->cpus) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 freqs.cpu =3D i;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpufreq_notify_transition(&freqs, CPUF=
+REQ_POSTCHANGE);
+> =A0 =A0 =A0 =A0}
+>
+> --
+> 1.7.2.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
