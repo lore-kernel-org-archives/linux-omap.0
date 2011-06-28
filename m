@@ -1,76 +1,45 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH] mfd: omap: Restore TLL initialization
-Date: Tue, 28 Jun 2011 10:59:30 +0530
-Message-ID: <BANLkTimeOq=UUkHZ0rZgAW8dz0zggHcp0A@mail.gmail.com>
-References: <1308862894-13802-1-git-send-email-jaswinder.singh@linaro.org>
-	<BANLkTikFFUREhKyPaZrhHZje0KeaA3ef8Q@mail.gmail.com>
-	<87ei2f9bja.fsf@ti.com>
+From: Silesh C V <silesh@ti.com>
+Subject: [PATCH] OMAP: 4430SDP: Register the card detect GPIO properly
+Date: Tue, 28 Jun 2011 11:26:24 +0530
+Message-ID: <1309240584-17401-1-git-send-email-silesh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:37566 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754953Ab1F1F3f convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Jun 2011 01:29:35 -0400
-In-Reply-To: <87ei2f9bja.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: kishore.kadiyala@ti.com, balajitk@ti.com, linux-arm-kernel@lists.infradead.org, Silesh C V <silesh@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, ti@lists.linaro.org, parthab@india.ti.com, sameo@linux.intel.com, gadiyar@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Jassi Brar <jaswinder.singh@linaro.org>
 
-On Tue, Jun 28, 2011 at 3:34 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
->
->> On Fri, Jun 24, 2011 at 2:31 AM, Jassi Brar <jassisinghbrar@gmail.co=
-m> wrote:
->>> The commit
->>> =A07e6502d577106fb5b202bbaac64c5f1b065 'mfd: Add omap-usbhs runtime=
- PM support'
->>> besides moving to RPM, removes necessary TLL initialization as well=
-=2E
->>>
->>> Restore the TLL initialization, without which device detection fail=
-s.
->>>
->>> Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
->
-> [...]
->
->> if you move to RPM, you should'tn access these configuration/reset
->> registers in your driver.
->
-> Yes, but Jaswinder's changelog clearly shows that the runtime PM (and
-> thus hwmod) init is not doing the equivalent of what was removed from
-> the driver.
->
-> A hunch after a quick glance is that the driver changes are only doin=
-g
-> runtime PM calls on the UHH device and not the TTL device. =A0In fact=
-,
-> the patch that builds the USB host omap_device[1] doesn't even build =
-one.
->
->> moreover, the patch 'mfd: Add omap-usbhs runtime PM support' is
->> already reverted.
->
-> It is reverted for this merge window, but will be added back for the
-> next window, so Jaswinder's problem still needs to be fixed the right=
- way.
->
-> Please rework the USB host runtime PM conversion so that *all* the IP
-> blocks are managed by runtime PM and the driver is doing runtime PM
-> calls for all the devices used.
->
-> Kevin
-> [1] http://marc.info/?l=3Dlinux-omap&m=3D130693494126396&w=3D2
->
+Without this the HSMMC driver takes GPIO 0 to be the card detect gpio
+and requests/configures it. This will give rise to issues when another
+driver needs to use GPIO 0. On 4430SDP, the card detection is through
+TWL 6030.
 
-Ya, the changes are going on ; I will post the patches soon.
-keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Silesh C V <silesh@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 63de2d3..7a1460f 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -327,6 +327,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+ 		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
++		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+-- 
+1.7.1
