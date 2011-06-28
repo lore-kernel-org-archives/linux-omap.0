@@ -1,58 +1,72 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [linux-pm] Runtime PM discussion notes
-Date: Tue, 28 Jun 2011 13:47:47 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1106281346160.2874@utopia.booyaka.com>
-References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org> <201106232234.21930.rjw@sisk.pl> <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com> <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/7] OMAP: omap_device: Create clkdev entry for hwmod
+ main_clk
+Date: Tue, 28 Jun 2011 22:09:38 +0200
+Message-ID: <4E0A3502.6020605@ti.com>
+References: <1309192391-12410-1-git-send-email-b-cousson@ti.com> <1309192391-12410-3-git-send-email-b-cousson@ti.com> <20110627185604.GB6187@google.com> <4E09E0EF.9040600@ti.com> <20110628182142.GA13018@google.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-293461756-1309290467=:2874"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40054 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738Ab1F1Trs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jun 2011 15:47:48 -0400
-In-Reply-To: <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40599 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751047Ab1F1UJn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jun 2011 16:09:43 -0400
+In-Reply-To: <20110628182142.GA13018@google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>
+To: Todd Poynor <toddpoynor@google.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On 6/28/2011 8:21 PM, Todd Poynor wrote:
+> On Tue, Jun 28, 2011 at 04:10:55PM +0200, Cousson, Benoit wrote:
+>> On 6/27/2011 8:56 PM, Todd Poynor wrote:
+>>> On Mon, Jun 27, 2011 at 06:33:06PM +0200, Benoit Cousson wrote:
+>>> ...
+>>>> +	r = clk_get_sys(dev_name(&od->pdev.dev), clk_alias);
+>>>> +	if (!IS_ERR(r)) {
+>>>> +		pr_warning("omap_device: %s: %s already exist\n",
+>>>> +			   dev_name(&od->pdev.dev), clk_alias);
+>>>
+>>> I believe a clk_put(r) is appropriate here.
+>>
+>> Appropriate I don't know, but useless for sure :-)
+>> This clk_put is a no-op for every ARM platforms (I found one exception).
+>
+> I haven't followed the design of common struct clk closely, but it
+> probably will do ref counting on these, so it's best to keep these
+> matched up.
 
---155748971-293461756-1309290467=:2874
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+I didn't follow the design either, but it was posted in 2008, and still 
+nobody is doing any reference counting...
 
-Hello Arve,
+That being said we can expect the common clock fmwk to use that and even 
+Paul might want to do some stuff with that.
 
-On Fri, 24 Jun 2011, Arve Hj=F8nnev=E5g wrote:
+Let's start using it.
 
-> On Fri, Jun 24, 2011 at 12:53 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> >
-> > As I understand it, in the original Android implementation, the hardwar=
-e
-> > that they were using didn't have fine-grained power management. =A0So
-> > system-wide suspend made more sense in that context. =A0But that should=
-n't
-> > be confused with the modern rationale for wakelocks:
-> >
-> > https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025668.h=
-tml
-> >
-> > "On the hardware that shipped we enter the same power state from idle
-> > and suspend, so the only power savings we get from suspend that we
-> > don't get in idle is from not respecting the scheduler and timers."
-> >
->=20
-> This is no longer the case. Both the Nexus-S and Xoom enter lower
-> power states from suspend than idle.
+>
+>>>> +	r = omap_clk_get_by_name(clk_name);
+>>>> +	if (IS_ERR(r)) {
+>>>> +		pr_err("omap_device: %s: omap_clk_get_by_name for %s failed\n",
+>>>> +		       dev_name(&od->pdev.dev), clk_name);
+>>>> +		return;
+>>>> +	}
+>>>> +
+>>>> +	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev.dev));
+>>>> +	if (!l) {
+>>>> +		pr_err("omap_device: %s: clkdev_alloc for %s failed\n",
+>>>> +		       dev_name(&od->pdev.dev), clk_alias);
+>>>
+>>> And here.
+>>
+>> No, it is not needed in that case because the omap_clk_get_by_name
+>> is not using the clk_get API.
+>
+> Ah, didn't check that one, sorry.  That's an unfortunate use of "get"
+> in the API name IMO.  When common struct clk takes over, this may need
+> some tweaking.
 
-Just out of curiosity, is that due to some kind of hardware limitation on=
-=20
-those platforms, or is it because the software infrastructure for dynamic=
-=20
-deep idle hasn't been fully implemented in that subarchitecture code?
+Yep, I do agree.
 
-
-- Paul
---155748971-293461756-1309290467=:2874--
+Benoit
