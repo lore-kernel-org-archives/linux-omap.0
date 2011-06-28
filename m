@@ -1,55 +1,64 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
-Date: Tue, 28 Jun 2011 23:18:03 +0530
-Message-ID: <BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com>
-References: <1308752314-32079-1-git-send-email-balajitk@ti.com>
-	<1308752314-32079-3-git-send-email-balajitk@ti.com>
-	<alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [PATCH 2/7] OMAP: omap_device: Create clkdev entry for hwmod
+ main_clk
+Date: Tue, 28 Jun 2011 11:21:42 -0700
+Message-ID: <20110628182142.GA13018@google.com>
+References: <1309192391-12410-1-git-send-email-b-cousson@ti.com>
+ <1309192391-12410-3-git-send-email-b-cousson@ti.com>
+ <20110627185604.GB6187@google.com>
+ <4E09E0EF.9040600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, khilman@ti.com, b-cousson@ti.com, adrian.hunter@nokia.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([74.125.121.67]:6880 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932409Ab1F1SVz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jun 2011 14:21:55 -0400
+Content-Disposition: inline
+In-Reply-To: <4E09E0EF.9040600@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>
 
-On Tue, Jun 28, 2011 at 10:52 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> (cc'ing Adrian also)
->
-> Hi Balaji
->
-> On Wed, 22 Jun 2011, Balaji T K wrote:
->
->> Use runtime autosuspend APIs to enable auto suspend delay
->
-> Does this really need to use runtime autosuspend? =A0Seems to me that=
- since
-> PM runtime is just controlling the MMC IP blocks and not the regulato=
-rs in
-> this instance, this could simply use pm_runtime_put*() and just avoid=
- the
-> extra power wastage and complexity involved in autosuspend.
->
+On Tue, Jun 28, 2011 at 04:10:55PM +0200, Cousson, Benoit wrote:
+> On 6/27/2011 8:56 PM, Todd Poynor wrote:
+> >On Mon, Jun 27, 2011 at 06:33:06PM +0200, Benoit Cousson wrote:
+> >...
+> >>+	r = clk_get_sys(dev_name(&od->pdev.dev), clk_alias);
+> >>+	if (!IS_ERR(r)) {
+> >>+		pr_warning("omap_device: %s: %s already exist\n",
+> >>+			   dev_name(&od->pdev.dev), clk_alias);
+> >
+> >I believe a clk_put(r) is appropriate here.
+> 
+> Appropriate I don't know, but useless for sure :-)
+> This clk_put is a no-op for every ARM platforms (I found one exception).
 
-I have seen some instabilities if delay is very less, on some productio=
-n boards.
-The previous implementation used 100ms delay before disabling the clock=
-s.
-Is there any specific issue I should be aware of, for using _autosuspen=
-d ?
+I haven't followed the design of common struct clk closely, but it
+probably will do ref counting on these, so it's best to keep these
+matched up.
 
-> Besides, the correct autosuspend timeout seems use-case dependent.
->
-> By the way, if possible, it would be really good if you could update =
-this
-> patch series soon to address the comments. =A0If these MMC driver cha=
-nges
-> can be ready to merge for 3.1, then we also have a chance of
-> integrating some hwmod cleanup patches that depend on this driver's P=
-M
-> runtime conversion.
->
->
-Just noticed your mail after I posted my patches..
+> >>+	r = omap_clk_get_by_name(clk_name);
+> >>+	if (IS_ERR(r)) {
+> >>+		pr_err("omap_device: %s: omap_clk_get_by_name for %s failed\n",
+> >>+		       dev_name(&od->pdev.dev), clk_name);
+> >>+		return;
+> >>+	}
+> >>+
+> >>+	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev.dev));
+> >>+	if (!l) {
+> >>+		pr_err("omap_device: %s: clkdev_alloc for %s failed\n",
+> >>+		       dev_name(&od->pdev.dev), clk_alias);
+> >
+> >And here.
+> 
+> No, it is not needed in that case because the omap_clk_get_by_name
+> is not using the clk_get API.
+
+Ah, didn't check that one, sorry.  That's an unfortunate use of "get"
+in the API name IMO.  When common struct clk takes over, this may need
+some tweaking.
+
+
+Todd
