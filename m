@@ -1,72 +1,50 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/7] OMAP: omap_device: Create clkdev entry for hwmod
- main_clk
-Date: Tue, 28 Jun 2011 22:09:38 +0200
-Message-ID: <4E0A3502.6020605@ti.com>
-References: <1309192391-12410-1-git-send-email-b-cousson@ti.com> <1309192391-12410-3-git-send-email-b-cousson@ti.com> <20110627185604.GB6187@google.com> <4E09E0EF.9040600@ti.com> <20110628182142.GA13018@google.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Tue, 28 Jun 2011 13:30:39 -0700
+Message-ID: <87ei2dy9zk.fsf@ti.com>
+References: <1308752314-32079-1-git-send-email-balajitk@ti.com>
+	<1308752314-32079-3-git-send-email-balajitk@ti.com>
+	<alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com>
+	<BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40599 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751047Ab1F1UJn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jun 2011 16:09:43 -0400
-In-Reply-To: <20110628182142.GA13018@google.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com>
+	(T. Krishnamoorthy's message of "Tue, 28 Jun 2011 23:18:03 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com, adrian.hunter@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>
 
-On 6/28/2011 8:21 PM, Todd Poynor wrote:
-> On Tue, Jun 28, 2011 at 04:10:55PM +0200, Cousson, Benoit wrote:
->> On 6/27/2011 8:56 PM, Todd Poynor wrote:
->>> On Mon, Jun 27, 2011 at 06:33:06PM +0200, Benoit Cousson wrote:
->>> ...
->>>> +	r = clk_get_sys(dev_name(&od->pdev.dev), clk_alias);
->>>> +	if (!IS_ERR(r)) {
->>>> +		pr_warning("omap_device: %s: %s already exist\n",
->>>> +			   dev_name(&od->pdev.dev), clk_alias);
->>>
->>> I believe a clk_put(r) is appropriate here.
+"T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
+
+> On Tue, Jun 28, 2011 at 10:52 PM, Paul Walmsley <paul@pwsan.com> wrot=
+e:
+>> (cc'ing Adrian also)
 >>
->> Appropriate I don't know, but useless for sure :-)
->> This clk_put is a no-op for every ARM platforms (I found one exception).
->
-> I haven't followed the design of common struct clk closely, but it
-> probably will do ref counting on these, so it's best to keep these
-> matched up.
-
-I didn't follow the design either, but it was posted in 2008, and still 
-nobody is doing any reference counting...
-
-That being said we can expect the common clock fmwk to use that and even 
-Paul might want to do some stuff with that.
-
-Let's start using it.
-
->
->>>> +	r = omap_clk_get_by_name(clk_name);
->>>> +	if (IS_ERR(r)) {
->>>> +		pr_err("omap_device: %s: omap_clk_get_by_name for %s failed\n",
->>>> +		       dev_name(&od->pdev.dev), clk_name);
->>>> +		return;
->>>> +	}
->>>> +
->>>> +	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev.dev));
->>>> +	if (!l) {
->>>> +		pr_err("omap_device: %s: clkdev_alloc for %s failed\n",
->>>> +		       dev_name(&od->pdev.dev), clk_alias);
->>>
->>> And here.
+>> Hi Balaji
 >>
->> No, it is not needed in that case because the omap_clk_get_by_name
->> is not using the clk_get API.
+>> On Wed, 22 Jun 2011, Balaji T K wrote:
+>>
+>>> Use runtime autosuspend APIs to enable auto suspend delay
+>>
+>> Does this really need to use runtime autosuspend? =C2=A0Seems to me =
+that since
+>> PM runtime is just controlling the MMC IP blocks and not the regulat=
+ors in
+>> this instance, this could simply use pm_runtime_put*() and just avoi=
+d the
+>> extra power wastage and complexity involved in autosuspend.
+>>
 >
-> Ah, didn't check that one, sorry.  That's an unfortunate use of "get"
-> in the API name IMO.  When common struct clk takes over, this may need
-> some tweaking.
+> I have seen some instabilities if delay is very less, on some product=
+ion boards.
+> The previous implementation used 100ms delay before disabling the clo=
+cks.
 
-Yep, I do agree.
+And your new one is using 50ms.  How did this value come about?
 
-Benoit
+As Paul mentioned, the timeout value here is probably usecase depeend
+
+Kevin
