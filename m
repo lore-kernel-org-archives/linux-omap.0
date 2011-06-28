@@ -1,85 +1,102 @@
-From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Subject: [RFC] OMAP3: powerdomains: Match silicon revision to select the
- correct "core_pwrdm" definition
-Date: Tue, 28 Jun 2011 15:22:55 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870370A4D8EF@dbde02.ent.ti.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC 6/8] davinci: da850: add remoteproc dsp device
+Date: Tue, 28 Jun 2011 14:18:19 +0400
+Message-ID: <4E09AA6B.9090609@mvista.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
+	<1308640714-17961-7-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48012 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754858Ab1F1Jz2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jun 2011 05:55:28 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5S9tPUR011212
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 04:55:27 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5S9tOKW015577
-	for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 15:25:24 +0530 (IST)
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1308640714-17961-7-git-send-email-ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: davinci-linux-open-source <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Brian Swetland <swetland-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Premi, Sanjeev" <premi@ti.com>
 
-powerdomains3xxx_data.c defines core_3xxx_pre_es3_1_pwrdm and
-core_3xxx_es3_1_pwrdm to take care of differences in "core_pwrdm"
-implementations across revisions.
-However,_pwrdm_lookup("core_pwrdm") always matches the first definition for
-3630 ES 1.1 and 1.2 which is incorrect. This patch fixes this issue by adding
-code to match silicon revision as well while looking up "core_pwrdm" in
-_pwrdm_lookup().
-core_3xxx_es3_1_pwrdm is different from core_3xxx_pre_es3_1_pwrdm in
-that the former adds hardware save-restore support for USBTLL for 3430
-ES3.1 and for 3630 ES1.1 and ES1.2.
-However,with this change, issuing a standby command (by suspending to RAM)
-seems to crash the system on a 3630 ES1.2., with or without the USB support
-enabled.
-I'm not very sure about how the USBTLL setting effects the suspend operation of
-the rest of the system.
+Hello.
 
+On 21.06.2011 11:18, Ohad Ben-Cohen wrote:
 
-Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
----
- arch/arm/mach-omap2/powerdomain.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+> From: Mark Grosen <mgrosen-l0cyMroinI0@public.gmane.org>
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index eaed0df..cc2b6e6 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -29,6 +29,7 @@
- #include "powerdomain.h"
- #include "clockdomain.h"
- #include <plat/prcm.h>
-+#include <plat/cpu.h>
+> Add davinci remoteproc device for the da850's C674x dsp remote
+> processor, and support it on the da850-evm and omapl138-hawk boards.
 
- #include "pm.h"
+> Signed-off-by: Mark Grosen<mgrosen-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Ohad Ben-Cohen<ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+[...]
 
-@@ -53,6 +54,22 @@ static struct powerdomain *_pwrdm_lookup(const char *name)
+> diff --git a/arch/arm/mach-davinci/da850.c b/arch/arm/mach-davinci/da850.c
+> index 133aac4..9280b1e 100644
+> --- a/arch/arm/mach-davinci/da850.c
+> +++ b/arch/arm/mach-davinci/da850.c
+> @@ -74,6 +74,13 @@ static struct clk pll0_aux_clk = {
+>   	.flags		= CLK_PLL | PRE_PLL,
+>   };
+>
+> +static struct clk pll0_sysclk1 = {
+> +	.name		= "pll0_sysclk1",
+> +	.parent		= &pll0_clk,
+> +	.flags		= CLK_PLL,
+> +	.div_reg	= PLLDIV1,
+> +};
+> +
+>   static struct clk pll0_sysclk2 = {
+>   	.name		= "pll0_sysclk2",
+>   	.parent		= &pll0_clk,
+> @@ -373,6 +380,12 @@ static struct clk spi1_clk = {
+>   	.flags		= DA850_CLK_ASYNC3,
+>   };
+>
+> +static struct clk dsp_clk = {
+> +	.name		= "dsp",
+> +	.parent		= &pll0_sysclk1,
+> +	.lpsc		= DA8XX_LPSC0_GEM,
+> +};
+> +
+>   static struct clk_lookup da850_clks[] = {
+>   	CLK(NULL,		"ref",		&ref_clk),
+>   	CLK(NULL,		"pll0",		&pll0_clk),
+> @@ -419,6 +432,7 @@ static struct clk_lookup da850_clks[] = {
+>   	CLK(NULL,		"usb20",	&usb20_clk),
+>   	CLK("spi_davinci.0",	NULL,		&spi0_clk),
+>   	CLK("spi_davinci.1",	NULL,		&spi1_clk),
+> +	CLK(NULL,		"dsp",		&dsp_clk),
+>   	CLK(NULL,		NULL,		NULL),
+>   };
 
-        list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
-                if (!strcmp(name, temp_pwrdm->name)) {
-+                       if (!strcmp(name, "core_pwrdm") && cpu_is_omap3630()) {
-+                               if (omap_rev() > OMAP3630_REV_ES1_0) {
-+                               /*
-+                                * match omap_chip info for OMAP3630 Rev ES1.1, 
-+                                * ES1.2 or higher
-+                                */
-+                                       if (!(temp_pwrdm->omap_chip.oc
-+                                               & CHIP_GE_OMAP3630ES1_1))
-+                                               continue;
-+                               } else {
-+                               /* match omap_chip info for OMAP3630 Rev ES1.0 */
-+                                       if (!(temp_pwrdm->omap_chip.oc
-+                                                & CHIP_IS_OMAP3630ES1))
-+                                               continue;
-+                               }
-+                       }
-                        pwrdm = temp_pwrdm;
-                        break;
-                }
--- 
-1.7.1
+    How about also adding the clock for DA830?
+
+> diff --git a/arch/arm/mach-davinci/devices-da8xx.c b/arch/arm/mach-davinci/devices-da8xx.c
+> index fc4e98e..3becfd1 100644
+> --- a/arch/arm/mach-davinci/devices-da8xx.c
+> +++ b/arch/arm/mach-davinci/devices-da8xx.c
+[...]
+> @@ -647,6 +648,20 @@ int __init da850_register_mmcsd1(struct davinci_mmc_config *config)
+>   	da850_mmcsd1_device.dev.platform_data = config;
+>   	return platform_device_register(&da850_mmcsd1_device);
+>   }
+> +
+> +int __init da850_register_rproc(void)
+
+    Please rename to da8xx_register_rproc() -- there's nothing DA850-specific 
+here.
+
+> +{
+> +	struct platform_device *rproc;
+> +	struct davinci_rproc_pdata rproc_pdata = {
+> +		.name		= "dsp",
+> +		.firmware	= "davinci-dsp.bin",
+
+    Isn't the firmware DA8xx-specific?
+
+WBR, Sergei
