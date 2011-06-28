@@ -1,49 +1,47 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
-Date: Tue, 28 Jun 2011 12:41:30 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1106281240390.2874@utopia.booyaka.com>
-References: <1308752314-32079-1-git-send-email-balajitk@ti.com> <1308752314-32079-3-git-send-email-balajitk@ti.com> <alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com> <BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com>
+From: "Anna, Suman" <s-anna@ti.com>
+Subject: Re: [PATCH] omap: iommu: fix pte attributes for super section
+Date: Tue, 28 Jun 2011 14:46:33 -0500
+Message-ID: <BANLkTinX=jCjh0yK=yS1hDifUtTwUVZvKg@mail.gmail.com>
+References: <BANLkTinqPkftv7KmghCCBpEdULh0cNivHg@mail.gmail.com>
+	<20110516.101157.344277473342871979.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-16772951-1309286490=:2874"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, khilman@ti.com, b-cousson@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:60181 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751172Ab1F1Tqe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Jun 2011 15:46:34 -0400
+Received: by mail-pv0-f172.google.com with SMTP id 18so465081pvh.17
+        for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 12:46:33 -0700 (PDT)
+In-Reply-To: <20110516.101157.344277473342871979.Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Mon, May 16, 2011 at 2:11 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> From: "ext Anna, Suman" <s-anna@ti.com>
+> Subject: [PATCH] omap: iommu: fix pte attributes for super section
+> Date: Tue, 10 May 2011 10:25:17 -0700
+>
+>> From 5796d8d8a0ea5aee342b78ca6ead229971cff6c5 Mon Sep 17 00:00:00 2001
+>> From: Suman Anna <s-anna@ti.com>
+>> Date: Wed, 4 May 2011 17:45:37 -0500
+>> Subject: [PATCH] omap: iommu: fix pte attributes for super section
+>>
+>> The PTE programming causes a 16MB entry to be interpreted
+>> as a 4K entry because of the bitwise check, and therefore does
+>> not set the attributes properly in the first-level descriptor
+>> table. The bitwise check has been replaced appropriately.
+>>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
---155748971-16772951-1309286490=:2874
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Tony,
+Can this patch be queued up for the next rc, or is there any reason
+for this to remain archived?
+https://patchwork.kernel.org/patch/774932/
 
-On Tue, 28 Jun 2011, T Krishnamoorthy, Balaji wrote:
-
-> On Tue, Jun 28, 2011 at 10:52 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> >
-> > On Wed, 22 Jun 2011, Balaji T K wrote:
-> >
-> >> Use runtime autosuspend APIs to enable auto suspend delay
-> >
-> > Does this really need to use runtime autosuspend? =A0Seems to me that s=
-ince
-> > PM runtime is just controlling the MMC IP blocks and not the regulators=
- in
-> > this instance, this could simply use pm_runtime_put*() and just avoid t=
-he
-> > extra power wastage and complexity involved in autosuspend.
->=20
-> I have seen some instabilities if delay is very less, on some production =
-boards.
-
-Could you be more specific?  What type of instabilities did you see?
-
-> The previous implementation used 100ms delay before disabling the clocks.
-> Is there any specific issue I should be aware of, for using _autosuspend =
-?
-
-
-- Paul
---155748971-16772951-1309286490=:2874--
+regards
+Suman
