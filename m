@@ -1,73 +1,70 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] OMAP: HSMMC: Fix GPIO muxing
-Date: Tue, 28 Jun 2011 16:50:11 +0300
-Message-ID: <4E09DC13.3010304@compulab.co.il>
-References: <1309250759-18472-1-git-send-email-silesh@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/7] OMAP: omap_device: Create clkdev entry for hwmod
+ main_clk
+Date: Tue, 28 Jun 2011 16:10:55 +0200
+Message-ID: <4E09E0EF.9040600@ti.com>
+References: <1309192391-12410-1-git-send-email-b-cousson@ti.com> <1309192391-12410-3-git-send-email-b-cousson@ti.com> <20110627185604.GB6187@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1309250759-18472-1-git-send-email-silesh@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Silesh C V <silesh@ti.com>
-Cc: linux-omap@vger.kernel.org, kishore.kadiyala@ti.com, balajitk@ti.com, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44359 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757542Ab1F1OLD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Jun 2011 10:11:03 -0400
+In-Reply-To: <20110627185604.GB6187@google.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Todd Poynor <toddpoynor@google.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>
 
-Hi Silesh,
-
-On 06/28/11 11:45, Silesh C V wrote:
-
-> Use generic gpio call to check the validity of the gpio. Note that
-> this includes gpio 0 also which was missing before.
+On 6/27/2011 8:56 PM, Todd Poynor wrote:
+> On Mon, Jun 27, 2011 at 06:33:06PM +0200, Benoit Cousson wrote:
+> ...
+>> +	r = clk_get_sys(dev_name(&od->pdev.dev), clk_alias);
+>> +	if (!IS_ERR(r)) {
+>> +		pr_warning("omap_device: %s: %s already exist\n",
+>> +			   dev_name(&od->pdev.dev), clk_alias);
 >
-> Signed-off-by: Silesh C V <silesh@ti.com>
-> ---
->  arch/arm/mach-omap2/hsmmc.c |    7 +++----
->  1 files changed, 3 insertions(+), 4 deletions(-)
+> I believe a clk_put(r) is appropriate here.
+
+Appropriate I don't know, but useless for sure :-)
+This clk_put is a no-op for every ARM platforms (I found one exception).
+
+I do not know why it was originally done like that, but that api is 
+clearly not a put/get kind of API.
+
+I'm OK to add that, but I think it is a little bit misleading.
+
 >
-> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-> index 66868c5..a9b45c7 100644
-> --- a/arch/arm/mach-omap2/hsmmc.c
-> +++ b/arch/arm/mach-omap2/hsmmc.c
-> @@ -13,6 +13,7 @@
->  #include <linux/slab.h>
->  #include <linux/string.h>
->  #include <linux/delay.h>
-> +#include <linux/gpio.h>
->  #include <mach/hardware.h>
->  #include <plat/mmc.h>
->  #include <plat/omap-pm.h>
-> @@ -213,12 +214,10 @@ static int nop_mmc_set_power(struct device *dev, int slot, int power_on,
->  static inline void omap_hsmmc_mux(struct omap_mmc_platform_data *mmc_controller,
->  			int controller_nr)
->  {
-> -	if ((mmc_controller->slots[0].switch_pin > 0) && \
-> -		(mmc_controller->slots[0].switch_pin < OMAP_MAX_GPIO_LINES))
-> +	if (gpio_is_valid(mmc_controller->slots[0].switch_pin))
->  		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
->  					OMAP_PIN_INPUT_PULLUP);
-> -	if ((mmc_controller->slots[0].gpio_wp > 0) && \
-> -		(mmc_controller->slots[0].gpio_wp < OMAP_MAX_GPIO_LINES))
-> +	if (gpio_is_valid(mmc_controller->slots[0].gpio_wp))
->  		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
->  					OMAP_PIN_INPUT_PULLUP);
->  	if (cpu_is_omap34xx()) {
+>> +		return;
+>> +	}
+>> +
+>> +	r = omap_clk_get_by_name(clk_name);
+>> +	if (IS_ERR(r)) {
+>> +		pr_err("omap_device: %s: omap_clk_get_by_name for %s failed\n",
+>> +		       dev_name(&od->pdev.dev), clk_name);
+>> +		return;
+>> +	}
+>> +
+>> +	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev.dev));
+>> +	if (!l) {
+>> +		pr_err("omap_device: %s: clkdev_alloc for %s failed\n",
+>> +		       dev_name(&od->pdev.dev), clk_alias);
+>
+> And here.
 
-IMHO, you should not separate the patches
-(this one and OMAP: 4430SDP: Register the card detect GPIO properly),
-because the 4430sdp fix should come before or together with this patch,
-otherwise 4430sdp will be broken, once this patch is applied.
+No, it is not needed in that case because the omap_clk_get_by_name is 
+not using the clk_get API.
 
-You can either make it a one patch or make it a single properly numbered series.
+>
+>> +		return;
+>> +	}
+>> +
+>> +	clkdev_add(l);
+>
+> And here.
 
--- 
-Regards,
-Igor.
+Not needed either, no clk_get used.
+
+Benoit
