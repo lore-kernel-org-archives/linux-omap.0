@@ -1,92 +1,64 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC] OMAP3: powerdomains: Match silicon revision to select the correct "core_pwrdm" definition
-Date: Tue, 28 Jun 2011 09:17:03 -0700
-Message-ID: <87fwmuylq8.fsf@ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870370A4D8EF@dbde02.ent.ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH] OMAP: DSS: dispc: enable/disable clocks in error handler
+Date: Tue, 28 Jun 2011 09:19:09 -0700
+Message-ID: <4E09FEFD.9020005@ti.com>
+References: <1309195865-23808-1-git-send-email-dima@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:42703 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758156Ab1F1QRH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Jun 2011 12:17:07 -0400
-Received: by mail-pw0-f43.google.com with SMTP id 9so305139pwi.2
-        for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 09:17:06 -0700 (PDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870370A4D8EF@dbde02.ent.ti.com>
-	(Abhilash Koyamangalath's message of "Tue, 28 Jun 2011 15:22:55
-	+0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53009 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757601Ab1F1QTW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Jun 2011 12:19:22 -0400
+In-Reply-To: <1309195865-23808-1-git-send-email-dima@android.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Premi, Sanjeev" <premi@ti.com>
+To: Dima Zavin <dima@android.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Koyamangalath, Abhilash" <abhilash.kv@ti.com> writes:
+Hi,
 
-> powerdomains3xxx_data.c defines core_3xxx_pre_es3_1_pwrdm and
-> core_3xxx_es3_1_pwrdm to take care of differences in "core_pwrdm"
-> implementations across revisions.
-> However,_pwrdm_lookup("core_pwrdm") always matches the first definition for
-> 3630 ES 1.1 and 1.2 which is incorrect. This patch fixes this issue by adding
-> code to match silicon revision as well while looking up "core_pwrdm" in
-> _pwrdm_lookup().
-> core_3xxx_es3_1_pwrdm is different from core_3xxx_pre_es3_1_pwrdm in
-> that the former adds hardware save-restore support for USBTLL for 3430
-> ES3.1 and for 3630 ES1.1 and ES1.2.
-> However,with this change, issuing a standby command (by suspending to RAM)
-> seems to crash the system on a 3630 ES1.2., with or without the USB support
-> enabled.
-> I'm not very sure about how the USBTLL setting effects the suspend operation of
-> the rest of the system.
+On Monday 27 June 2011 10:31 AM, Dima Zavin wrote:
+> There's no guarantee that the error handler worker thread
+> will run while the dispc clocks are on. Explicitly enable/disable
+> them.
 
-Checkpatch reports:
-total: 17 errors, 16 warnings, 29 lines checked
+I agree with this.
 
-Please fix punctuation, spacing, line-wrapping in changelog for
-readability.
+Tomi,
 
-The CPU rev is also used on other 34xx SoCs, please check for those too.
+We could get prevent scheduling of the error worker by registering 
+omap_dispc_irq_handler() as an interrupt thread.
 
-Kevin
+Archit
 
 >
-> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+> Signed-off-by: Dima Zavin<dima@android.com>
 > ---
->  arch/arm/mach-omap2/powerdomain.c |   17 +++++++++++++++++
->  1 files changed, 17 insertions(+), 0 deletions(-)
+>   drivers/video/omap2/dss/dispc.c |    4 ++++
+>   1 files changed, 4 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index eaed0df..cc2b6e6 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -29,6 +29,7 @@
->  #include "powerdomain.h"
->  #include "clockdomain.h"
->  #include <plat/prcm.h>
-> +#include <plat/cpu.h>
+> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+> index 62aa77c..2458248 100644
+> --- a/drivers/video/omap2/dss/dispc.c
+> +++ b/drivers/video/omap2/dss/dispc.c
+> @@ -3292,6 +3292,8 @@ static void dispc_error_worker(struct work_struct *work)
+>   	dispc.error_irqs = 0;
+>   	spin_unlock_irqrestore(&dispc.irq_lock, flags);
 >
->  #include "pm.h"
+> +	dispc_runtime_get();
+> +
+>   	if (errors&  DISPC_IRQ_GFX_FIFO_UNDERFLOW) {
+>   		DSSERR("GFX_FIFO_UNDERFLOW, disabling GFX\n");
+>   		for (i = 0; i<  omap_dss_get_num_overlays(); ++i) {
+> @@ -3478,6 +3480,8 @@ static void dispc_error_worker(struct work_struct *work)
+>   	dispc.irq_error_mask |= errors;
+>   	_omap_dispc_set_irqs();
+>   	spin_unlock_irqrestore(&dispc.irq_lock, flags);
+> +
+> +	dispc_runtime_put();
+>   }
 >
-> @@ -53,6 +54,22 @@ static struct powerdomain *_pwrdm_lookup(const char *name)
->
->         list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
->                 if (!strcmp(name, temp_pwrdm->name)) {
-> +                       if (!strcmp(name, "core_pwrdm") && cpu_is_omap3630()) {
-> +                               if (omap_rev() > OMAP3630_REV_ES1_0) {
-> +                               /*
-> +                                * match omap_chip info for OMAP3630 Rev ES1.1, 
-> +                                * ES1.2 or higher
-> +                                */
-> +                                       if (!(temp_pwrdm->omap_chip.oc
-> +                                               & CHIP_GE_OMAP3630ES1_1))
-> +                                               continue;
-> +                               } else {
-> +                               /* match omap_chip info for OMAP3630 Rev ES1.0 */
-> +                                       if (!(temp_pwrdm->omap_chip.oc
-> +                                                & CHIP_IS_OMAP3630ES1))
-> +                                               continue;
-> +                               }
-> +                       }
->                         pwrdm = temp_pwrdm;
->                         break;
->                 }
+>   int omap_dispc_wait_for_irq_timeout(u32 irqmask, unsigned long timeout)
+
