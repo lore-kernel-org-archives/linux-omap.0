@@ -1,47 +1,58 @@
-From: "Anna, Suman" <s-anna@ti.com>
-Subject: Re: [PATCH] omap: iommu: fix pte attributes for super section
-Date: Tue, 28 Jun 2011 14:46:33 -0500
-Message-ID: <BANLkTinX=jCjh0yK=yS1hDifUtTwUVZvKg@mail.gmail.com>
-References: <BANLkTinqPkftv7KmghCCBpEdULh0cNivHg@mail.gmail.com>
-	<20110516.101157.344277473342871979.Hiroshi.DOYU@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [linux-pm] Runtime PM discussion notes
+Date: Tue, 28 Jun 2011 13:47:47 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1106281346160.2874@utopia.booyaka.com>
+References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org> <201106232234.21930.rjw@sisk.pl> <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com> <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-293461756-1309290467=:2874"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:60181 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751172Ab1F1Tqe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Jun 2011 15:46:34 -0400
-Received: by mail-pv0-f172.google.com with SMTP id 18so465081pvh.17
-        for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 12:46:33 -0700 (PDT)
-In-Reply-To: <20110516.101157.344277473342871979.Hiroshi.DOYU@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:40054 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751738Ab1F1Trs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jun 2011 15:47:48 -0400
+In-Reply-To: <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>
 
-On Mon, May 16, 2011 at 2:11 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
-> From: "ext Anna, Suman" <s-anna@ti.com>
-> Subject: [PATCH] omap: iommu: fix pte attributes for super section
-> Date: Tue, 10 May 2011 10:25:17 -0700
->
->> From 5796d8d8a0ea5aee342b78ca6ead229971cff6c5 Mon Sep 17 00:00:00 2001
->> From: Suman Anna <s-anna@ti.com>
->> Date: Wed, 4 May 2011 17:45:37 -0500
->> Subject: [PATCH] omap: iommu: fix pte attributes for super section
->>
->> The PTE programming causes a 16MB entry to be interpreted
->> as a 4K entry because of the bitwise check, and therefore does
->> not set the attributes properly in the first-level descriptor
->> table. The bitwise check has been replaced appropriately.
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
-> Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Tony,
-Can this patch be queued up for the next rc, or is there any reason
-for this to remain archived?
-https://patchwork.kernel.org/patch/774932/
+--155748971-293461756-1309290467=:2874
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-regards
-Suman
+Hello Arve,
+
+On Fri, 24 Jun 2011, Arve Hj=F8nnev=E5g wrote:
+
+> On Fri, Jun 24, 2011 at 12:53 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> >
+> > As I understand it, in the original Android implementation, the hardwar=
+e
+> > that they were using didn't have fine-grained power management. =A0So
+> > system-wide suspend made more sense in that context. =A0But that should=
+n't
+> > be confused with the modern rationale for wakelocks:
+> >
+> > https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025668.h=
+tml
+> >
+> > "On the hardware that shipped we enter the same power state from idle
+> > and suspend, so the only power savings we get from suspend that we
+> > don't get in idle is from not respecting the scheduler and timers."
+> >
+>=20
+> This is no longer the case. Both the Nexus-S and Xoom enter lower
+> power states from suspend than idle.
+
+Just out of curiosity, is that due to some kind of hardware limitation on=
+=20
+those platforms, or is it because the software infrastructure for dynamic=
+=20
+deep idle hasn't been fully implemented in that subarchitecture code?
+
+
+- Paul
+--155748971-293461756-1309290467=:2874--
