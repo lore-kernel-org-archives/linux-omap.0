@@ -1,59 +1,38 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] OMAP: board-omap3evm: Fix compillation error
-Date: Tue, 28 Jun 2011 13:16:55 +0300
-Message-ID: <1309256215-9879-1-git-send-email-peter.ujfalusi@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 0/8] Introducing a generic AMP/IPC framework
+Date: Tue, 28 Jun 2011 14:26:01 +0300
+Message-ID: <BANLkTiniBEuHKnmhoJEaVELpMefZ=Xk=bA@mail.gmail.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
+	<4E04F0B0.4030408@codeaurora.org>
+	<BANLkTi=sFtwam29i4TZdi=RO7BoytTTdrw@mail.gmail.com>
+	<FFF198FBBF957F4393BA834040FEFFA202EDA3@DFLE35.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60316 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755438Ab1F1KRC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Jun 2011 06:17:02 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <FFF198FBBF957F4393BA834040FEFFA202EDA3@DFLE35.ent.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Grosen, Mark" <mgrosen@ti.com>
+Cc: davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, Stephen Boyd <sboyd@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
+On Tue, Jun 28, 2011 at 12:22 AM, Grosen, Mark <mgrosen@ti.com> wrote:
+> 2. We added a special section (resource table) that is interpreted as part
+> of the loading process. The tool that generates our simple format just
+> recognizes a named section (".resource_table"), so perhaps that could be
+> done with the PIL ELF loader.
 
-Hello Tony,
-
-While rebasing my series on top of your devel-cleanup branch,
-I found this compillation error.
-You can pick it right away, or I can queue this within my series.
-But I still waiting for Samuel's saying on the series, so it might
-be faster if you just pick this, I'll rebase my series before I
-send you the pull request anyways.
-
-Regards,
-Peter
-
- arch/arm/mach-omap2/board-omap3evm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index e2202dd..c2ea437 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -510,7 +510,7 @@ static struct regulator_init_data omap3evm_vio = {
- #define OMAP3EVM_WLAN_IRQ_GPIO		(149)
- 
- static struct regulator_consumer_supply omap3evm_vmmc2_supply[] = {
--	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
-+	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1"),
- };
- 
- /* VMMC2 for driving the WL12xx module */
-@@ -518,7 +518,7 @@ static struct regulator_init_data omap3evm_vmmc2 = {
- 	.constraints = {
- 		.valid_ops_mask	= REGULATOR_CHANGE_STATUS,
- 	},
--	.num_consumer_supplies	= ARRAY_SIZE(omap3evm_vmmc2_supply);,
-+	.num_consumer_supplies	= ARRAY_SIZE(omap3evm_vmmc2_supply),
- 	.consumer_supplies	= omap3evm_vmmc2_supply,
- };
- 
--- 
-1.7.5.3
-
+I hope that DT will completely replace that "resource table" section
+eventually. We still need to try it out (as soon as DT materializes on
+ARM/pandaboard) and see how it all fits together, but in general it
+looks like DT could provide all the necessary static resource
+configuration, and then we just need to expose it to the remote
+processor.
