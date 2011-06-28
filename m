@@ -1,67 +1,153 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
-Date: Tue, 28 Jun 2011 15:45:22 -0700
-Message-ID: <4E0A5982.8040002@ti.com>
-References: <1308923618-5333-1-git-send-email-premi@ti.com> <CAMbhsRQUKBZbC3jJt8XpjTW2n7uA529D6G0g4eT5iLEHn2iNLg@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 7/8] drivers: introduce rpmsg, a remote-processor messaging bus
+Date: Wed, 29 Jun 2011 01:46:44 +0300
+Message-ID: <BANLkTikt08CDJiKNxGF2mKmOhyxHfv21_g@mail.gmail.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
+ <1308640714-17961-8-git-send-email-ohad@wizery.com> <20110627222121.GD20865@ponder.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:39848 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750948Ab1F1Wp1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Jun 2011 18:45:27 -0400
-Received: by yxd30 with SMTP id 30so400865yxd.40
-        for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 15:45:25 -0700 (PDT)
-In-Reply-To: <CAMbhsRQUKBZbC3jJt8XpjTW2n7uA529D6G0g4eT5iLEHn2iNLg@mail.gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:48643 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750948Ab1F1WrG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jun 2011 18:47:06 -0400
+In-Reply-To: <20110627222121.GD20865@ponder.secretlab.ca>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@google.com>
-Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>
 
-On 6/28/2011 3:29 PM, Colin Cross wrote:
-> <resending as plain text>
+Hi Grant,
+
+On Tue, Jun 28, 2011 at 1:21 AM, Grant Likely <grant.likely@secretlab.c=
+a> wrote:
+> Nice patch. =A0I'm quite thrilled to see this implemented. =A0Some
+> comments below, but otherwise I think it looks pretty good.
+
+Thanks !
+
+>> +source "drivers/virtio/Kconfig"
 >
-> On Fri, Jun 24, 2011 at 6:53 AM, Sanjeev Premi<premi@ti.com>  wrote:
->>
+> What happens when kvm and rpmsg both get enabled on the same kernel.
 
->> +#ifdef CONFIG_SMP
->> +       /* Adjust jiffies before transition */
->> +       for_each_cpu(i, policy->cpus) {
->> +               unsigned long lpj = per_cpu(cpu_data, i).loops_per_jiffy;
+Sounds to me that eventually we'll have to source virtio's Kconfig in
+drivers/Kconfig, and remove all the other locations it is sourced at
+(currently it is directly sourced by several arch Kconfigs when
+VIRTUALIZATION is selected).
+
+>> + =A0 =A0 if (strncmp(id->name, rpdev->id.name, RPMSG_NAME_SIZE))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return 0;
 >> +
->> +               per_cpu(cpu_data, i).loops_per_jiffy = cpufreq_scale(lpj,
->> +                                                       freqs.old,
->> +                                                       freqs.new);
-
-This isn't the right patch since it does suffer from the progressive
-error. There was an updated patch on this thread from Russell which
-I re-based.
-> Can't this rewrite the loops_per_jiffy for the other CPU while it is
-> in a udelay?  If it has already calculated the number of loops
-> necessary, and the CPU frequency increases, it could end up returning
-> too early from udelay.
+>> + =A0 =A0 return 1;
+>> +}
 >
-> There were previous discussions about polling a fixed-frequency timer
-> for udelay on SMP systems.
+> or simply: 'return strncmp(id->name, rpdev->id.name, RPMSG_NAME_SIZE)=
+ =3D=3D 0;'
 >
-The udelay code doesn't use the per-cpu lpj variable. It uses the global
-lpj. Secondly the calibration of no. of loops to be done is
-precalculateed so overwrite shouldn't impact the scenario you mentioned.
+> :-)
 
-Though it has an issue where, pre-calculated loops can become short/long
-based on new clock change which impacts both CPU's on OMAP, when the 
-other CPU is in in the middle of u-delay routine..
+that works too ;)
 
-When CPU can scale independently, then we have bigger problem since
-global lpj based udelay becomes always error prone in all scenario's.
+>> + =A0 =A0 spin_lock(&vrp->endpoints_lock);
+>
+> Is a spin_lock the right choice for endpoints, or should it be a
+> mutex (do the endpoints operations need to be atomic)?
 
-So for the OMAP, where the whole CPU cluster is scaled together,
-I don't see this as a bigger problem.
+Today it can be a mutex: it protects idr operations invoked either by
+users (creating new endpoints, definitely not requiring atomicity) or
+by platform code indicating that a new message has arrived (today it's
+omap's mailbox driver, which calls from a process context).
 
-Regards
-Santosh
+I can change that, and if someone requires atomic operations later on,
+move to spinlocks again.
 
+But it probably won't matter too much as there's no contention on that
+lock today (notifications coming from omap's mailbox are serialized,
+and users creating new endpoints show up very infrequently).
 
+> At put_device time, it is conceivable that the dev pointer is no
+> longer valid. =A0You'll need to get do the to_rpmsg_channel() before
+> putting the dev.
 
+sure.
+
+>> +static void rpmsg_upref_sleepers(struct virtproc_info *vrp)
+>> +{
+>> + =A0 =A0 /* support multiple concurrent senders */
+>> + =A0 =A0 spin_lock(&vrp->tx_lock);
+>> +
+>> + =A0 =A0 /* are we the first sleeping context waiting for tx buffer=
+s ? */
+>> + =A0 =A0 if (!vrp->sleepers++)
+>
+> Maybe use a kref?
+
+I can change it to an atomic variable, but I don't think kref's memory
+barriers are needed here: we already have memory barriers induced by
+the spinlock.
+
+>> +static int rpmsg_remove_device(struct device *dev, void *data)
+>> +{
+>> + =A0 =A0 struct rpmsg_channel *rpdev =3D to_rpmsg_channel(dev);
+>> +
+>> + =A0 =A0 device_unregister(dev);
+>> +
+>> + =A0 =A0 kfree(rpdev);
+>
+> put_device() I think.
+
+Don't think so, we get the device handle from device_for_each_child
+here, which doesn't call get_device (unlike device_find_child).
+
+>> +static int __init init(void)
+>
+> Even for static functions, it's a really good idea to prefix all
+> function names and file scoped symbol with a common prefix like
+> "rpmsg_". =A0Doing so avoids even the outside chance of a namespace
+> conflict.
+
+Sure thing.
+
+>> + =A0 =A0 ret =3D bus_register(&rpmsg_bus);
+>> + =A0 =A0 if (ret) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("failed to register rpmsg bus: %d\n=
+", ret);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return ret;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 return register_virtio_driver(&virtio_ipc_driver);
+>
+> And if register_virtio_driver fails?
+
+I'll handle that, thanks.
+
+>> +struct rpmsg_device_id {
+>> + =A0 =A0 char name[RPMSG_NAME_SIZE];
+>> + =A0 =A0 kernel_ulong_t driver_data =A0 =A0 =A0/* Data private to t=
+he driver */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __attribute__((aligned(siz=
+eof(kernel_ulong_t))));
+>> +};
+>
+> Should this be co-located with vio_device_id?
+
+Sure, can't hurt (I assume you meant virtio_device_id here).
+
+> It makes it easier to dereference in kernel code if you do:
+>
+> #ifdef __KERNEL__
+> =A0 =A0 =A0 =A0void *data;
+> #else
+> =A0 =A0 =A0 =A0kernel_ulong_t data;
+> #endif
+
+Sure thing.
+
+Thanks!
+Ohad.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
