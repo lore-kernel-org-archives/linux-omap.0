@@ -1,17 +1,13 @@
-From: Brian Swetland <swetland@google.com>
-Subject: Re: [RFC 0/8] Introducing a generic AMP/IPC framework
-Date: Tue, 28 Jun 2011 04:36:46 -0700
-Message-ID: <CANqkERATQbXU7ooHkUX+qieEejMAejRRvSRr606e5mF2d_qtbA@mail.gmail.com>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
-	<4E04F0B0.4030408@codeaurora.org>
-	<BANLkTi=sFtwam29i4TZdi=RO7BoytTTdrw@mail.gmail.com>
-	<FFF198FBBF957F4393BA834040FEFFA202EDA3@DFLE35.ent.ti.com>
-	<BANLkTiniBEuHKnmhoJEaVELpMefZ=Xk=bA@mail.gmail.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH] OMAP: HSMMC: Fix GPIO muxing
+Date: Tue, 28 Jun 2011 17:07:05 +0530
+Message-ID: <BANLkTin39hkDNa+v=29PLMZRdBtWGCfseA@mail.gmail.com>
+References: <1309250759-18472-1-git-send-email-silesh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <BANLkTiniBEuHKnmhoJEaVELpMefZ=Xk=bA@mail.gmail.com>
+In-Reply-To: <1309250759-18472-1-git-send-email-silesh@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,31 +17,57 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, Stephen Boyd <sboyd@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Grosen, Mark" <mgrosen@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Silesh C V <silesh@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "kishore.kadiyala" <kishore.kadiyala@ti.com>, balajitk <balajitk@ti.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 28, 2011 at 4:26 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> On Tue, Jun 28, 2011 at 12:22 AM, Grosen, Mark <mgrosen@ti.com> wrote:
->> 2. We added a special section (resource table) that is interpreted as part
->> of the loading process. The tool that generates our simple format just
->> recognizes a named section (".resource_table"), so perhaps that could be
->> done with the PIL ELF loader.
+On Tue, Jun 28, 2011 at 2:15 PM, Silesh C V <silesh@ti.com> wrote:
+> Use generic gpio call to check the validity of the gpio. Note that
+> this includes gpio 0 also which was missing before.
 >
-> I hope that DT will completely replace that "resource table" section
-> eventually. We still need to try it out (as soon as DT materializes on
-> ARM/pandaboard) and see how it all fits together, but in general it
-> looks like DT could provide all the necessary static resource
-> configuration, and then we just need to expose it to the remote
-> processor.
+> Signed-off-by: Silesh C V <silesh@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/hsmmc.c | =A0 =A07 +++----
+> =A01 files changed, 3 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+> index 66868c5..a9b45c7 100644
+> --- a/arch/arm/mach-omap2/hsmmc.c
+> +++ b/arch/arm/mach-omap2/hsmmc.c
+> @@ -13,6 +13,7 @@
+> =A0#include <linux/slab.h>
+> =A0#include <linux/string.h>
+> =A0#include <linux/delay.h>
+> +#include <linux/gpio.h>
+> =A0#include <mach/hardware.h>
+> =A0#include <plat/mmc.h>
+> =A0#include <plat/omap-pm.h>
+> @@ -213,12 +214,10 @@ static int nop_mmc_set_power(struct device *dev, in=
+t slot, int power_on,
+> =A0static inline void omap_hsmmc_mux(struct omap_mmc_platform_data *mmc_c=
+ontroller,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0int controller_nr)
+> =A0{
+> - =A0 =A0 =A0 if ((mmc_controller->slots[0].switch_pin > 0) && \
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 (mmc_controller->slots[0].switch_pin < OMAP=
+_MAX_GPIO_LINES))
+> + =A0 =A0 =A0 if (gpio_is_valid(mmc_controller->slots[0].switch_pin))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_mux_init_gpio(mmc_controller->slots[0=
+].switch_pin,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0OMAP_PIN_INPUT_PULLUP);
+> - =A0 =A0 =A0 if ((mmc_controller->slots[0].gpio_wp > 0) && \
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 (mmc_controller->slots[0].gpio_wp < OMAP_MA=
+X_GPIO_LINES))
+> + =A0 =A0 =A0 if (gpio_is_valid(mmc_controller->slots[0].gpio_wp))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_mux_init_gpio(mmc_controller->slots[0=
+].gpio_wp,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0OMAP_PIN_INPUT_PULLUP);
+> =A0 =A0 =A0 =A0if (cpu_is_omap34xx()) {
+> --
+> 1.7.1
+>
 
-I'm not sure I see the benefit to pulling the resource information out
-of the firmware image.  The resource information is a description of
-what resources the firmware requires to work properly (it needs
-certain amounts of working memory, timers, peripheral interfaces like
-i2c to control camera hw, etc), which will be specific to a given
-firmware build.  Pulling that information out into another place adds
-new ways for things to break as the firmware and its resource
-requirements are now separate and could get out of sync, etc.
-
-Brian
+Looks good to me.
+Reviewed-by: Venkatraman S <svenkatr@ti.com>
