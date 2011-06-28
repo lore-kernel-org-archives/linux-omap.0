@@ -1,41 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 00/18] MFD/ASoC/Input: TWL4030/TWL60X0
- changes
-Date: Mon, 27 Jun 2011 23:50:10 -0700
-Message-ID: <20110628065010.GZ23145@atomide.com>
-References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
-	<2519112.D3nfO1VTXY@barack> <20110628061721.GY23145@atomide.com>
-	<7290395.1hzL9xckCf@barack>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/7] OMAP4: Add modulemode support to hwmod framework
+ (part 2)
+Date: Tue, 28 Jun 2011 09:56:22 +0300
+Message-ID: <1309244182.1825.28.camel@deskari>
+References: <1309192391-12410-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <7290395.1hzL9xckCf@barack>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:57573 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756173Ab1F1G42 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Jun 2011 02:56:28 -0400
+Received: by bwb17 with SMTP id 17so2200225bwb.31
+        for <linux-omap@vger.kernel.org>; Mon, 27 Jun 2011 23:56:26 -0700 (PDT)
+In-Reply-To: <1309192391-12410-1-git-send-email-b-cousson@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: paul@pwsan.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org
 
-KiBQw6l0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT4gWzExMDYyNyAyMzozOV06
-Cj4gSGkgVG9ueSwKPiAKPiBPbiBUdWVzZGF5IDI4IEp1bmUgMjAxMSAwODoxNzoyMSBUb255IExp
-bmRncmVuIHdyb3RlOgo+ID4gT0suIEFzc3VtaW5nIFNhbXVlbCBpcyBmaW5lIHdpdGggdGhlIHBh
-dGNoZXMsIGNhcmUgdG8gcHV0Cj4gPiB0b2dldGhlciBhIGJyYW5jaCBhZ2FpbnN0IGRldmVsLWNs
-ZWFudXAgZm9yIG1lIHRvIHB1bGw/Cj4gCj4gV2hpbGUgd2FpdGluZyBmb3IgU2FtdWVsLCBJIGNh
-biBzdGFydCBwcmVwYXJpbmcgdGhlIGJyYW5jaCBmb3IgeW91LCBzaW5jZSB0aGUgCj4gYnVsayBv
-ZiB0aGUgY29uZmxpY3RzIGFyZSBpbiBtYWNoLW9tYXAyLCBzaG91bGQgbm90IGFmZmVjdCB0aGUg
-TUZEIHBhcnRzLgo+IENhbiBJIGFkZCB5b3VyIGFjayB0byB0aGUgbWFjaC1vbWFwMiBwYXJ0cywg
-b3IgYXJlIHlvdSBwcmVmZXIgdG8gaGFuZGxlIHRoaXMgCj4geW91cnNlbGY/CgpPSyBoZXJlIHlv
-dSBnbyBmb3IgdGhlIG9tYXAgY2hhbmdlczoKCkFja2VkLWJ5OiBUb255IExpbmRncmVuIDx0b255
-QGF0b21pZGUuY29tPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcK
-aHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2
-ZWwK
+On Mon, 2011-06-27 at 18:33 +0200, Benoit Cousson wrote:
+> Hi Paul,
+> 
+> Here is the second part of the modulemode series. 
+> The goal here is to do the cleanup on the clock nodes and PRCM macros
+> that are not needed anymore by the hwmod data.
+> Some macros are still needed because of clock data. It should be removed
+> once the clock data will be cleaned.
+> 
+> Moreover, in order to get rid of static clkdev, omap_device is trying to
+> create dynamically an "fck" alias if a main_clk is defined in hwmod data.
+> 
+> As usual, because of drivers non-adapted to pm_runtime, some temp hacks
+> are needed for both MMC and timer1.
+> If the drivers are fixes before these series, these temp patches could be
+> dropped.
+> 
+> The series is based on for_3.0.1/5_hwmod_clkdm_fixes and tested
+> on OMAP4430 ES2.1 + SDP. It should not affect OMAP2 & 3, but some testing
+> are definitively needed.
+> 
+> The patches are available here:
+> git://gitorious.org/omap-pm/linux.git for_3.0.1/6_hwmod_modulemode
+
+I tested the branch on Blaze, but DSS doesn't work as the clock aliases
+have changed, leading to crash. And as only OMAP4 clocks/hwmods were
+changed, this makes me believe OMAP2/3 DSS would still work.
+
+I think the OMAP2/3/4 changes need to be done in sync, and at the same
+time keeping the peripherals working.
+
+ Tomi
+
+
