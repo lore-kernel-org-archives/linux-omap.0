@@ -1,39 +1,76 @@
-From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCH v3 6/8] OMAP2+: clockdomain: Add 2 APIs to control
- clockdomain from hwmod framework
-Date: Mon, 27 Jun 2011 18:08:30 -0700
-Message-ID: <20110628010830.GA22263@google.com>
-References: <1309191103-8817-1-git-send-email-b-cousson@ti.com>
- <1309191103-8817-7-git-send-email-b-cousson@ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH] mfd: omap: Restore TLL initialization
+Date: Tue, 28 Jun 2011 10:59:30 +0530
+Message-ID: <BANLkTimeOq=UUkHZ0rZgAW8dz0zggHcp0A@mail.gmail.com>
+References: <1308862894-13802-1-git-send-email-jaswinder.singh@linaro.org>
+	<BANLkTikFFUREhKyPaZrhHZje0KeaA3ef8Q@mail.gmail.com>
+	<87ei2f9bja.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:7866 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755015Ab1F1BIf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jun 2011 21:08:35 -0400
-Content-Disposition: inline
-In-Reply-To: <1309191103-8817-7-git-send-email-b-cousson@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:37566 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754953Ab1F1F3f convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Jun 2011 01:29:35 -0400
+In-Reply-To: <87ei2f9bja.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: paul@pwsan.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, ti@lists.linaro.org, parthab@india.ti.com, sameo@linux.intel.com, gadiyar@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Jassi Brar <jaswinder.singh@linaro.org>
 
-On Mon, Jun 27, 2011 at 06:11:41PM +0200, Benoit Cousson wrote:
-...
-> + * clkdm_hwmod_disable - remove an enabled downstream hwmod from this clkdm
-> + * @clkdm: struct clockdomain *
-> + * @oh: struct omap_hwmod * of the disabled downstream hwmod
-> + *
-> + * Decrement the usecount of this clockdomain @clkdm when @oh is
-> + * disabled. Intended to be called by module_disable() code.
-> + * If the clockdomain usecount goes to 0, put the clockdomain to sleep
-> + * (software-supervised mode) or remove the clkdm autodependencies
-> + * (hardware-supervised mode).
-> + * Returns -EINVAL if passed null pointers; -ERANGE if the @clkdm usecount
-> + * underflows and debugging is enabled; or returns 0 upon success or if the
+On Tue, Jun 28, 2011 at 3:34 AM, Kevin Hilman <khilman@ti.com> wrote:
+> "Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
+>
+>> On Fri, Jun 24, 2011 at 2:31 AM, Jassi Brar <jassisinghbrar@gmail.co=
+m> wrote:
+>>> The commit
+>>> =A07e6502d577106fb5b202bbaac64c5f1b065 'mfd: Add omap-usbhs runtime=
+ PM support'
+>>> besides moving to RPM, removes necessary TLL initialization as well=
+=2E
+>>>
+>>> Restore the TLL initialization, without which device detection fail=
+s.
+>>>
+>>> Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
+>
+> [...]
+>
+>> if you move to RPM, you should'tn access these configuration/reset
+>> registers in your driver.
+>
+> Yes, but Jaswinder's changelog clearly shows that the runtime PM (and
+> thus hwmod) init is not doing the equivalent of what was removed from
+> the driver.
+>
+> A hunch after a quick glance is that the driver changes are only doin=
+g
+> runtime PM calls on the UHH device and not the TTL device. =A0In fact=
+,
+> the patch that builds the USB host omap_device[1] doesn't even build =
+one.
+>
+>> moreover, the patch 'mfd: Add omap-usbhs runtime PM support' is
+>> already reverted.
+>
+> It is reverted for this merge window, but will be added back for the
+> next window, so Jaswinder's problem still needs to be fixed the right=
+ way.
+>
+> Please rework the USB host runtime PM conversion so that *all* the IP
+> blocks are managed by runtime PM and the driver is doing runtime PM
+> calls for all the devices used.
+>
+> Kevin
+> [1] http://marc.info/?l=3Dlinux-omap&m=3D130693494126396&w=3D2
+>
 
-Can take out "and debugging is enabled", this is no longer the case.
-
-
-Todd
+Ya, the changes are going on ; I will post the patches soon.
+keshava
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
