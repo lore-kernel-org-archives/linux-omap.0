@@ -1,185 +1,127 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
-Date: Wed, 29 Jun 2011 12:20:18 -0700
-Message-ID: <87pqlwqwb1.fsf@ti.com>
-References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-2-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-3-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
-	<87d3ix5c6y.fsf@ti.com>
-	<BANLkTim43pAKe1o-aFmgh79bNqSyZmW_Fg@mail.gmail.com>
-	<BANLkTi=pKL6RDBTDBStv+uhxVKp3-bwXbg@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Wed, 29 Jun 2011 14:07:45 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1106291304350.2874@utopia.booyaka.com>
+References: <1308752314-32079-1-git-send-email-balajitk@ti.com> <1308752314-32079-3-git-send-email-balajitk@ti.com> <alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com> <BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com> <alpine.DEB.2.00.1106281240390.2874@utopia.booyaka.com>
+ <BANLkTikni_xO7NQXQyv7XVeEH4Nowpr1Ow@mail.gmail.com> <alpine.DEB.2.00.1106290937350.2874@utopia.booyaka.com> <BANLkTikE_CV7+oQdtzxJYirZy4JnJcQVsQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTi=pKL6RDBTDBStv+uhxVKp3-bwXbg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org> (Keshava
-	Munegowda's message of "Wed, 29 Jun 2011 22:07:21 +0530")
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <BANLkTikE_CV7+oQdtzxJYirZy4JnJcQVsQ@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: "S, Venkatraman" <svenkatr@ti.com>, "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, cjb <cjb@laptop.org>, tony <tony@atomide.com>, "madhu.cr" <madhu.cr@ti.com>, khilman <khilman@ti.com>, b-cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-"Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
+cc'ing lakml
 
-> On Wed, Jun 29, 2011 at 8:52 PM, Munegowda, Keshava
-> <keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
->> On Thu, Jun 2, 2011 at 5:36 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
->>> Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
->>>
->>>> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>>>
->>>> The global suspend and resume functions for usbhs core driver
->>>> are implemented.These routine are called when the global suspend
->>>> and resume occurs. Before calling these functions, the
->>>> bus suspend and resume of ehci and ohci drivers are called
->>>> from runtime pm.
->>>>
->>>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>>
->>> First, from what I can see, this is only a partial implementation o=
-f
->>> runtime PM. =C2=A0What I mean is that the runtime PM methods are us=
-ed only
->>> during the suspend path. =C2=A0The rest of the time the USB host IP=
- block is
->>> left enabled, even when nothing is connected.
->>>
->>> I tested this on my 3530/Overo board, and verified that indeed the
->>> usbhost powerdomain hits retention on suspend, but while idle, when
->>> nothing is connected, I would expect the driver could be clever eno=
-ugh
->>> to use runtime PM (probably using autosuspend timeouts) to disable =
-the
->>> hardware as well.
->>>
->>>> ---
->>>> =C2=A0drivers/mfd/omap-usb-host.c | =C2=A0103 ++++++++++++++++++++=
-+++++++++++++++++++++++
->>>> =C2=A01 files changed, 103 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-ho=
-st.c
->>>> index 43de12a..32d19e2 100644
->>>> --- a/drivers/mfd/omap-usb-host.c
->>>> +++ b/drivers/mfd/omap-usb-host.c
->>>> @@ -146,6 +146,10 @@
->>>> =C2=A0#define is_ehci_hsic_mode(x) (x =3D=3D OMAP_EHCI_PORT_MODE_H=
-SIC)
->>>>
->>>>
->>>> +/* USBHS state bits */
->>>> +#define OMAP_USBHS_INIT =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A00
->>>> +#define OMAP_USBHS_SUSPEND =C2=A0 4
->>>
->>> These additional state bits don't seem to be necessary.
->>>
->>> For suspend, just check 'pm_runtime_is_suspended()'
->>>
->>> The init flag is only used in the suspend/resume hooks, but the nee=
-d for
->>> it is a side effect of not correctly using the runtime PM callbacks=
-=2E
->>>
->>> Remember that the runtime PM get/put hooks have usage counting. =C2=
-=A0Only
->>> when the usage count transitions to/from zero is the actual
->>> hardware-level enable/disable (via omap_hwmod) being done.
->>>
->>> The current code is making the assumption that every call to get/pu=
-t is
->>> going to result in an enable/disable of the hardware.
->>>
->>> Instead, all of the code that needs to be run only upon actual
->>> enable/disable of the hardware should be done in the driver's
->>> runtime_suspend/runtime_resume callbacks. =C2=A0These are only call=
-ed when
->>> the hardware actually changes state.
->>>
->>> Not knowing that much about the EHCI block, upon first glance, it l=
-ooks
->>> like mmuch of what is done in usbhs_enable() should actually be don=
-e in
->>> the ->runtime_resume() callback, and similarily, much of what is do=
-ne in
->>> usbhs_disable() should be done in the ->runtime_suspend() callback.
->>
->> Kevin,
->> =C2=A0 do you mean driver->runtime_resume and driver->runtime_resume=
- call backs.
->> are these call backs from pm_runtime_get_sync and pm_runtime_put_syn=
-c?
->
-> for usb host case , I am seeing that the pm_runtime_get_sync
->
->
-> static int rpm_resume(struct device *dev, int rpmflags)
-> {
->   ............
->  ..........
-> 	if (dev->pwr_domain) {
-> 		callback =3D dev->pwr_domain->ops.runtime_resume;
-> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
-> 			 pr_err("dev->pwr_domain->ops.runtime_resume");
-> 	}=09
-> 	else if (dev->type && dev->type->pm) {
-> 		callback =3D dev->type->pm->runtime_resume;
-> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
-> 			 pr_err("dev->type->pm->runtime_resume");
-> 	}=09
-> 	else if (dev->class && dev->class->pm) {
-> 		callback =3D dev->class->pm->runtime_resume;
-> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
-> 			 pr_err("ev->class->pm->runtime_resume");
-> 	}=09
-> 	else if (dev->bus && dev->bus->pm) {
-> 		callback =3D dev->bus->pm->runtime_resume;
-> 	if(!strcmp(dev_name(dev),"usbhs_omap"))
-> 		 pr_err("dev->bus->pm->runtime_resume");
-> 	}=09
-> 	else
-> 		callback =3D NULL;
-> }
->
->
-> I am seeing that below if statement was hitting true:
->
-> 	if (dev->pwr_domain) {
-> 		callback =3D dev->pwr_domain->ops.runtime_resume;
-> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
-> 			 pr_err("dev->pwr_domain->ops.runtime_resume");
->
->
-> due to this; the driver->runtime_resume was not getting called.
->
-> Any idea on why I am seeing only the dev->pwr_domain is set not
-> dev->bus && dev->bus->pm is hitting here?
+Hi Venkat, Balaji,
 
-Because that's how it was designed. :)
+On Wed, 29 Jun 2011, S, Venkatraman wrote:
 
-On OMAP, for on-chip devices (omap_devices) we use PM domains
-(pwr_domain) and not the subsystem (bus) to implment runtime PM, and as
-Alan pointed out, PM domains have precedence over subsystem callbacks.
+> On Wed, Jun 29, 2011 at 9:08 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Wed, 29 Jun 2011, T Krishnamoorthy, Balaji wrote:
+> >
+> >> There have been some experiments on our customer programs to reduce this
+> >> value to a few ms and infrequent crashes were observed (stress testing
+> >> for several hours) while trying to access the controller registers.
+> >
+> > By the way, could you send along a copy of the stress test script?
+> >
+> 
+> Paul, these scenarios are not scripted but end user tests with
+> additional devices
+> (WLAN, which is connected on the same controller) and executed 'on field' .
 
-I'm curious why you determined the driver's runtime resume was not
-getting called?
+OK, thanks Venkat.  Do you still have one of these devices so the test can 
+be repeated?
 
-The PM domain callback will call your driver's runtime_resume (assuming
-it exists.)
+> One such log is here .. http://pastebin.com/nq3cfZnT
 
-rpm_resume()
-   dev->pwr_domain->ops.runtime_resume()
-       omap_device_enable()
-       pm_generic_runtime_resume()
-          dev->driver->pm->runtime_resume()
+Looks like this is an Android 2.6.35.7-derived kernel on a 4430 ES2.2 EMU.  
+Power management is enabled but MPU, L3INIT, and PER aren't entering any 
+deeper power states than retention idle, so no context save/restore or 
+off-mode worries here.
 
-Note that the PM domain implementation is done at the omap_device
-level.  Specifically, see plat-omap/omap_device.c:_od_runtime_resume()
+The system looks like it's entered suspend at least once and resumed, 
+before the oops.  Also the second CPU is starting up and shutting down 
+dynamically.  Backtrace is copied below for the archives.
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Does the above summary match your understanding?
+
+...
+
+Reviewing this backtrace and the one that Balaji sent, it looks to 
+me like this write in omap_hsmmc_prepare_data() is the proximate 
+cause of the abort:
+
+	OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
+					| (req->data->blocks << 16));
+
+I'll bet this was first access to the MMC IP block after the MMC layer 
+re-enabled it.  The abort is imprecise because the Linux OMAP4 kernel 
+marks MMIO registers as bufferable, so the ARM can continue executing 
+while a register write is making its way across the OMAP interconnect(s).  
+This guess also assumes that the ARM is executing instructions out of 
+order, which is a reasonable assumption on a Cortex-A9.  This could be 
+confirmed by reading some HSMMC register right before the 
+OMAP_HSMMC_WRITE(); then the abort would turn precise and occur on the 
+read.
+
+Anyway, it looks like the HSMMC IP block wasn't yet ready to be accessed.  
+Probably, this is because either the HSMMC IP block hasn't yet left the 
+Idle or SleepTrans states, and the OMAP4 clock framework doesn't wait for 
+that; or the PRCM is getting confused because the correct clockdomain 
+enable sequence isn't being followed -- see for example the "Fix 
+module-mode enable sequence on OMAP4" patch series that have been posted 
+to the linux-omap mailing list.  Probably one of those two issues is the 
+root cause.
+
+If you have a testing setup where you can reproduce this problem, I'd 
+suggest adding the read as described above.  Otherwise, I don't think this 
+will be an issue for the runtime PM conversion: first, because the hwmod 
+code will wait for the HSMMC block to indicate that it has left idle 
+before continuing; and second, because we'll hopefully have a patch series 
+going in at the same time to make sure the clockdomain enable sequence is 
+correct.
+
+
+- Paul
+
+
+<0> Process mmcqd (pid: 851, stack limit = 0xef9682f8)
+<0> Stack: (0xef969db8 to 0xef96a000)
+<0> 9da0:                                                       ef969ee4 efa30640
+<0> 9dc0: ef969e78 00000000 00000001 efa30400 ef969e2c ef969de0 c06ae2b8 c06ace10
+<0> 9de0: 00000000 efa305d8 ef969e04 efa30400 00000000 efa30578 ef969e44 ef969e08
+<0> 9e00: c054ea5c ef969e78 efa30400 ef969e34 00000001 ef837e4c 00000000 ef969ee4
+<0> 9e20: ef969e64 ef969e30 c06a54d8 c06adff4 00000000 00000000 00000000 00000000
+<0> 9e40: ef969e40 ef969e40 ed3d4680 ed3d4680 efa30c00 ef837e40 ef969f94 ef969e68
+<0> 9e60: c06abe80 c06a53cc 00000000 efa31458 ef0cfdb4 ef0cfdb4 ef969e8c ef969ee4
+<0> 9e80: ef969eb8 ef969e34 c06a55d0 00000019 00fd50a2 00000000 00000000 00000000
+<0> 9ea0: 00000000 000000b5 00000000 00000000 ef969ee4 ef969e78 0000000c 00000000
+<0> 9ec0: 00000000 00000000 00000000 00000000 0000049d 00000000 00000000 00000000
+<0> 9ee0: ef969e78 23c34600 00000fa0 00000200 00000400 00000000 00000100 00000000
+<0> 9f00: ef969eb8 ef969e78 0000003f ef238000 ef969f54 ef969f20 c0556c00 c0555fac
+<0> 9f20: ef969f3c 00000001 c0425fa0 ef837e4c ef230000 ef837e54 ef837e4c ef230000
+<0> 9f40: ef837e54 ef230000 ef969f7c ef969f58 00000000 ed3d4680 ef969f7c ef969f68
+<0> 9f60: c054911c c054ee7c 01082e21 ef837e4c ef968000 ef837e54 ef230000 ef2301d8
+<0> 9f80: 00000000 ed3d4680 ef969fbc ef969f98 c06acab8 c06abccc ef985d68 ef969fc4
+<0> 9fa0: c06ac9c4 ef837e4c 00000000 00000000 ef969ff4 ef969fc0 c041fd20 c06ac9d0
+<0> 9fc0: 00000000 00000000 00000000 00000000 ef969fd0 ef969fd0 ef985d68 c041fc9c
+<0> 9fe0: c040d67c 00000013 00000000 ef969ff8 c040d67c c041fca8 00000000 00000000
+<4> Backtrace:
+<4> [<c06ace04>] (set_data_timeout+0x0/0xcc) from [<c06ae2b8>] (omap_hsmmc_request+0x2d0/0x5c8)
+<4>  r8:efa30400 r7:00000001 r6:00000000 r5:ef969e78 r4:efa30640
+<4> r3:ef969ee4
+<4> [<c06adfe8>] (omap_hsmmc_request+0x0/0x5c8) from [<c06a54d8>] (mmc_wait_for_req+0x118/0x130)
+<4> [<c06a53c0>] (mmc_wait_for_req+0x0/0x130) from [<c06abe80>] (mmc_blk_issue_rq+0x1c0/0x500)
+<4>  r6:ef837e40 r5:efa30c00 r4:ed3d4680
+<4> [<c06abcc0>] (mmc_blk_issue_rq+0x0/0x500) from [<c06acab8>] (mmc_queue_thread+0xf4/0xf8)
+<4> [<c06ac9c4>] (mmc_queue_thread+0x0/0xf8) from [<c041fd20>] (kthread+0x84/0x8c)
+<4> [<c041fc9c>] (kthread+0x0/0x8c) from [<c040d67c>] (do_exit+0x0/0x604)
+<4>  r7:00000013 r6:c040d67c r5:c041fc9c r4:ef985d68
+<0> Code: 11a0c423 11c0c0b0 e1a0f00e e2512001 (01a0f00e)
+<4> ---[ end trace d27fcce5bd5b71d6 ]---
+
+
