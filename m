@@ -1,94 +1,59 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 2/2] cbus: retu: stop polluting <plat/irqs.h>
-Date: Wed, 29 Jun 2011 14:46:51 +0300
-Message-ID: <1309348011-23141-3-git-send-email-balbi@ti.com>
-References: <1309348011-23141-1-git-send-email-balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] misc. OMAP PM updates for v3.1
+Date: Wed, 29 Jun 2011 04:53:51 -0700
+Message-ID: <20110629115351.GE23145@atomide.com>
+References: <87vcvw5akk.fsf@ti.com>
+ <20110627112843.GN23145@atomide.com>
+ <87oc1jcj7c.fsf@ti.com>
+ <20110627192211.GX23145@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:49206 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755346Ab1F2LrE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 07:47:04 -0400
-Received: by bwf20 with SMTP id 20so1182761bwf.20
-        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 04:47:02 -0700 (PDT)
-In-Reply-To: <1309348011-23141-1-git-send-email-balbi@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19815 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754439Ab1F2Lxy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 07:53:54 -0400
+Content-Disposition: inline
+In-Reply-To: <20110627192211.GX23145@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-now that we're using sparse IRQs, we don't
-need to polute <plat/irqs.h> anymore with
-the dumb IRQ_BASE/IRQ_END definitions.
+* Tony Lindgren <tony@atomide.com> [110627 12:17]:
+> * Kevin Hilman <khilman@ti.com> [110627 09:45]:
+> > Tony Lindgren <tony@atomide.com> writes:
+> > 
+> > > * Kevin Hilman <khilman@ti.com> [110623 17:32]:
+> > >> Tony,
+> > >> 
+> > >> Please pull the following misc. OMAP PM updates targetted for v3.1.
+> > >> 
+> > >> This branch is based on your 'fixes' branch due to some dependencies.
+> > >>       OMAP2: PM debug: move wakeup timer into clockevent code
+> > >
+> > > This won't work with the devel-timer branch. I think we should just
+> > > drop it for now based on what I mentioned in the other thread.
+> > 
+> > Hmm, so it's not just the wakeup timer that conflicts between
+> > devel-timer and my pm-misc branch.
+> > 
+> > My branch also removes a bunch of other stuff from pm-debug.c and pm.h
+> > so it has overlapping changes with your devel-timer branch.
+> > 
+> > The conflicts are easy enough to resolve since both branches are just
+> > removing code.
+> 
+> OK thanks for checking.
+>  
+> > Is your devel-timer branch stable now?  Should I rebase my branch on top
+> > of devel-timer?  or can you just handle the conflicts?
+> 
+> Just pushed what hopefully is the last version. But since there may
+> still be some comments, it's probably best that I resolve the
+> conflicts when merging.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap1/board-nokia770.c   |    2 --
- arch/arm/mach-omap2/board-n8x0.c       |    2 --
- arch/arm/plat-omap/include/plat/irqs.h |   10 +---------
- include/linux/platform_data/cbus.h     |    2 --
- 4 files changed, 1 insertions(+), 15 deletions(-)
+Pulled now into devel-cleanup and pushed out. Also merged in devel-timer
+branch into devel-cleanup.
 
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index 7990c48..5eb1a7f 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -124,8 +124,6 @@ static struct resource retu_resource[] = {
- };
- 
- static struct cbus_retu_platform_data nokia770_retu_data = {
--	.irq_base	= CBUS_RETU_IRQ_BASE,
--	.irq_end	= CBUS_RETU_IRQ_END,
- 	.devid		= CBUS_RETU_DEVICE_ID,
- };
- 
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index b3e80c9..f7548e4 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -220,8 +220,6 @@ static struct resource retu_resource[] = {
- };
- 
- static struct cbus_retu_platform_data n8x0_retu_data = {
--	.irq_base	= CBUS_RETU_IRQ_BASE,
--	.irq_end	= CBUS_RETU_IRQ_END,
- 	.devid		= CBUS_RETU_DEVICE_ID,
- };
- 
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index 8c8f517..24eeccd 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -419,15 +419,7 @@
- #define OMAP_GPMC_NR_IRQS	8
- #define OMAP_GPMC_IRQ_END	(OMAP_GPMC_IRQ_BASE + OMAP_GPMC_NR_IRQS)
- 
--#define CBUS_RETU_IRQ_BASE	OMAP_GPMC_IRQ_END
--#ifdef CONFIG_CBUS_RETU
--#define CBUS_RETU_NR_IRQS	16
--#else
--#define CBUS_RETU_NR_IRQS	0
--#endif
--#define CBUS_RETU_IRQ_END	(CBUS_RETU_IRQ_BASE + CBUS_RETU_NR_IRQS)
--
--#define NR_IRQS			CBUS_RETU_IRQ_END
-+#define NR_IRQS			OMAP_GPMC_IRQ_END
- 
- #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
- 
-diff --git a/include/linux/platform_data/cbus.h b/include/linux/platform_data/cbus.h
-index a1c5a26..09809c7 100644
---- a/include/linux/platform_data/cbus.h
-+++ b/include/linux/platform_data/cbus.h
-@@ -32,8 +32,6 @@ struct cbus_host_platform_data {
- };
- 
- struct cbus_retu_platform_data {
--	int	irq_base;
--	int	irq_end;
- 	int	devid;
- };
- 
--- 
-1.7.6
-
+Tony
