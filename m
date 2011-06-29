@@ -1,147 +1,185 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP3: run the ASM sleep code from DDR
-Date: Wed, 29 Jun 2011 12:06:07 -0700
-Message-ID: <8762nosbj4.fsf@ti.com>
-References: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
-	<87mxh0tuk2.fsf@ti.com>
-	<20110629180535.GF23312@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
+Date: Wed, 29 Jun 2011 12:20:18 -0700
+Message-ID: <87pqlwqwb1.fsf@ti.com>
+References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-2-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-3-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
+	<87d3ix5c6y.fsf@ti.com>
+	<BANLkTim43pAKe1o-aFmgh79bNqSyZmW_Fg@mail.gmail.com>
+	<BANLkTi=pKL6RDBTDBStv+uhxVKp3-bwXbg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:42367 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752277Ab1F2TGM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 15:06:12 -0400
-Received: by iyn35 with SMTP id 35so1709219iyn.24
-        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 12:06:11 -0700 (PDT)
-In-Reply-To: <20110629180535.GF23312@n2100.arm.linux.org.uk> (Russell King's
-	message of "Wed, 29 Jun 2011 19:05:35 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BANLkTi=pKL6RDBTDBStv+uhxVKp3-bwXbg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org> (Keshava
+	Munegowda's message of "Wed, 29 Jun 2011 22:07:21 +0530")
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: jean.pihet@newoldbits.com, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+"Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
 
-> On Wed, Jun 29, 2011 at 10:29:49AM -0700, Kevin Hilman wrote:
->> Russell, if you're OK with it, can you add it to your suspend branch for
->> the upcoming merge window?
+> On Wed, Jun 29, 2011 at 8:52 PM, Munegowda, Keshava
+> <keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
+>> On Thu, Jun 2, 2011 at 5:36 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
+>>> Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
+>>>
+>>>> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>>>>
+>>>> The global suspend and resume functions for usbhs core driver
+>>>> are implemented.These routine are called when the global suspend
+>>>> and resume occurs. Before calling these functions, the
+>>>> bus suspend and resume of ehci and ohci drivers are called
+>>>> from runtime pm.
+>>>>
+>>>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>>>
+>>> First, from what I can see, this is only a partial implementation o=
+f
+>>> runtime PM. =C2=A0What I mean is that the runtime PM methods are us=
+ed only
+>>> during the suspend path. =C2=A0The rest of the time the USB host IP=
+ block is
+>>> left enabled, even when nothing is connected.
+>>>
+>>> I tested this on my 3530/Overo board, and verified that indeed the
+>>> usbhost powerdomain hits retention on suspend, but while idle, when
+>>> nothing is connected, I would expect the driver could be clever eno=
+ugh
+>>> to use runtime PM (probably using autosuspend timeouts) to disable =
+the
+>>> hardware as well.
+>>>
+>>>> ---
+>>>> =C2=A0drivers/mfd/omap-usb-host.c | =C2=A0103 ++++++++++++++++++++=
++++++++++++++++++++++++
+>>>> =C2=A01 files changed, 103 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-ho=
+st.c
+>>>> index 43de12a..32d19e2 100644
+>>>> --- a/drivers/mfd/omap-usb-host.c
+>>>> +++ b/drivers/mfd/omap-usb-host.c
+>>>> @@ -146,6 +146,10 @@
+>>>> =C2=A0#define is_ehci_hsic_mode(x) (x =3D=3D OMAP_EHCI_PORT_MODE_H=
+SIC)
+>>>>
+>>>>
+>>>> +/* USBHS state bits */
+>>>> +#define OMAP_USBHS_INIT =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A00
+>>>> +#define OMAP_USBHS_SUSPEND =C2=A0 4
+>>>
+>>> These additional state bits don't seem to be necessary.
+>>>
+>>> For suspend, just check 'pm_runtime_is_suspended()'
+>>>
+>>> The init flag is only used in the suspend/resume hooks, but the nee=
+d for
+>>> it is a side effect of not correctly using the runtime PM callbacks=
+=2E
+>>>
+>>> Remember that the runtime PM get/put hooks have usage counting. =C2=
+=A0Only
+>>> when the usage count transitions to/from zero is the actual
+>>> hardware-level enable/disable (via omap_hwmod) being done.
+>>>
+>>> The current code is making the assumption that every call to get/pu=
+t is
+>>> going to result in an enable/disable of the hardware.
+>>>
+>>> Instead, all of the code that needs to be run only upon actual
+>>> enable/disable of the hardware should be done in the driver's
+>>> runtime_suspend/runtime_resume callbacks. =C2=A0These are only call=
+ed when
+>>> the hardware actually changes state.
+>>>
+>>> Not knowing that much about the EHCI block, upon first glance, it l=
+ooks
+>>> like mmuch of what is done in usbhs_enable() should actually be don=
+e in
+>>> the ->runtime_resume() callback, and similarily, much of what is do=
+ne in
+>>> usbhs_disable() should be done in the ->runtime_suspend() callback.
+>>
+>> Kevin,
+>> =C2=A0 do you mean driver->runtime_resume and driver->runtime_resume=
+ call backs.
+>> are these call backs from pm_runtime_get_sync and pm_runtime_put_syn=
+c?
 >
-> Yes - though I think we can go a little bit further - this patch is on
-> top of my code so far, and is untested.  There isn't a need for the
-> saving of these registers to be in assembly because we can read them
-> just as easily from C code.
-
-Indeed
-
-> Comments?
-
-Looks good to me (although untested) care to respin on top of $SUBJECT
-patch?  
-
-Minor comments below...
-
->  arch/arm/mach-omap2/pm.h        |    2 +-
->  arch/arm/mach-omap2/pm34xx.c    |   19 +++++++++++++++++--
->  arch/arm/mach-omap2/sleep34xx.S |   12 ++----------
->  3 files changed, 20 insertions(+), 13 deletions(-)
+> for usb host case , I am seeing that the pm_runtime_get_sync
 >
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 45bcfce..4984cca 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -92,7 +92,7 @@ extern void omap24xx_idle_loop_suspend(void);
->  
->  extern void omap24xx_cpu_suspend(u32 dll_ctrl, void __iomem *sdrc_dlla_ctrl,
->  					void __iomem *sdrc_power);
-> -extern void omap34xx_cpu_suspend(u32 *addr, int save_state);
-> +extern void omap34xx_cpu_suspend(int save_state);
->  extern int save_secure_ram_context(u32 *addr);
->  extern void omap3_save_scratchpad_contents(void);
->  
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 3e9a13e..6366352 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -78,7 +78,7 @@ struct power_state {
->  
->  static LIST_HEAD(pwrst_list);
->  
-> -static void (*_omap_sram_idle)(u32 *addr, int save_state);
-> +static void (*_omap_sram_idle)(int save_state);
->  
->  static int (*_omap_save_secure_sram)(u32 *addr);
->  
-> @@ -307,9 +307,22 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
->  	return IRQ_HANDLED;
->  }
->  
-> +static void omap34xx_save_context(u32 *save)
-> +{
-> +	u32 val;
-> +
-> +	asm("mrc p15, 0, %0, c1, c0, 1" : "=r" (val));
+>
+> static int rpm_resume(struct device *dev, int rpmflags)
+> {
+>   ............
+>  ..........
+> 	if (dev->pwr_domain) {
+> 		callback =3D dev->pwr_domain->ops.runtime_resume;
+> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
+> 			 pr_err("dev->pwr_domain->ops.runtime_resume");
+> 	}=09
+> 	else if (dev->type && dev->type->pm) {
+> 		callback =3D dev->type->pm->runtime_resume;
+> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
+> 			 pr_err("dev->type->pm->runtime_resume");
+> 	}=09
+> 	else if (dev->class && dev->class->pm) {
+> 		callback =3D dev->class->pm->runtime_resume;
+> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
+> 			 pr_err("ev->class->pm->runtime_resume");
+> 	}=09
+> 	else if (dev->bus && dev->bus->pm) {
+> 		callback =3D dev->bus->pm->runtime_resume;
+> 	if(!strcmp(dev_name(dev),"usbhs_omap"))
+> 		 pr_err("dev->bus->pm->runtime_resume");
+> 	}=09
+> 	else
+> 		callback =3D NULL;
+> }
+>
+>
+> I am seeing that below if statement was hitting true:
+>
+> 	if (dev->pwr_domain) {
+> 		callback =3D dev->pwr_domain->ops.runtime_resume;
+> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
+> 			 pr_err("dev->pwr_domain->ops.runtime_resume");
+>
+>
+> due to this; the driver->runtime_resume was not getting called.
+>
+> Any idea on why I am seeing only the dev->pwr_domain is set not
+> dev->bus && dev->bus->pm is hitting here?
 
-Minor: for those of us who don't have all these registers memorized when
-looking at the assembly, maybe keeping the original comments (e.g. "Read
-AUX 
+Because that's how it was designed. :)
 
-> +	*save++ = 1;
-> +	*save++ = val;
-> +
-> +	asm("mrc p15, 1, %0, c9, c0, 2" : "=r" (val));
-> +	*save++ = 1;
-> +	*save++ = val;
-> +}
-> +
->  static void omap34xx_do_sram_idle(unsigned long save_state)
->  {
-> -	_omap_sram_idle(omap3_arm_context, save_state);
-> +	_omap_sram_idle(save_state);
->  }
->  
->  void omap_sram_idle(void)
-> @@ -412,6 +425,8 @@ void omap_sram_idle(void)
->  	 * get saved. The rest is placed on the stack, and restored
->  	 * from there before resuming.
->  	 */
-> +	if (save_state)
-> +		omap34xx_save_context(omap3_arm_context);
->  	if (save_state == 1 || save_state == 3)
->  		cpu_suspend(save_state, omap34xx_do_sram_idle);
->  	else
-> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-> index d18f52e..3335753 100644
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -150,8 +150,7 @@ ENTRY(omap34xx_cpu_suspend)
->  	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
->  
->  	/*
-> -	 * r0 contains CPU context save/restore pointer in sdram
-> -	 * r1 contains information about saving context:
-> +	 * r0 contains information about saving context:
->  	 *   0 - No context lost
->  	 *   1 - Only L1 and logic lost
->  	 *   2 - Only L2 lost (Even L1 is retained we clean it along with L2)
-> @@ -159,18 +158,11 @@ ENTRY(omap34xx_cpu_suspend)
->  	 */
->  
->  	/* Directly jump to WFI is the context save is not required */
-> -	cmp	r1, #0x0
-> +	cmp	r0, #0x0
->  	beq	omap3_do_wfi
->  
->  	/* Otherwise fall through to the save context code */
->  save_context_wfi:
-> -	mov	r8, r0			@ Store SDRAM address in r8
-> -	mrc	p15, 0, r5, c1, c0, 1	@ Read Auxiliary Control Register
-> -	mov	r4, #0x1		@ Number of parameters for restore call
-> -	stmia	r8!, {r4-r5}		@ Push parameters for restore call
-> -	mrc	p15, 1, r5, c9, c0, 2	@ Read L2 AUX ctrl register
-> -	stmia	r8!, {r4-r5}		@ Push parameters for restore call
-> -
->  	/*
->  	 * jump out to kernel flush routine
->  	 *  - reuse that code is better
+On OMAP, for on-chip devices (omap_devices) we use PM domains
+(pwr_domain) and not the subsystem (bus) to implment runtime PM, and as
+Alan pointed out, PM domains have precedence over subsystem callbacks.
+
+I'm curious why you determined the driver's runtime resume was not
+getting called?
+
+The PM domain callback will call your driver's runtime_resume (assuming
+it exists.)
+
+rpm_resume()
+   dev->pwr_domain->ops.runtime_resume()
+       omap_device_enable()
+       pm_generic_runtime_resume()
+          dev->driver->pm->runtime_resume()
+
+Note that the PM domain implementation is done at the omap_device
+level.  Specifically, see plat-omap/omap_device.c:_od_runtime_resume()
+
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
