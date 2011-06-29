@@ -1,824 +1,129 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 1/9] omap: prcm: switch to a chained IRQ handler mechanism
-Date: Wed, 29 Jun 2011 12:04:55 +0300
-Message-ID: <1309338303-2086-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 8/9] TEMP: OMAP: serial: remove padconf hacks
+Date: Wed, 29 Jun 2011 12:05:02 +0300
+Message-ID: <1309338303-2086-9-git-send-email-t-kristo@ti.com>
 References: <1309338303-2086-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40691 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45696 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754153Ab1F2JFT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 05:05:19 -0400
+	id S1754175Ab1F2JFU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 05:05:20 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5T95KAu031299
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 04:05:20 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p5T95Kl6004565
+	for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 04:05:20 -0500 (CDT)
+Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5T95GCU009169
+	for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 04:05:19 -0500 (CDT)
 Content-Class: urn:content-classes:message
 In-Reply-To: <1309338303-2086-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Avinash.H.M" <avinashhm@ti.com>, Kevin Hilman <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-Introduce a chained interrupt handler mechanism for the PRCM
-interrupt, so that individual PRCM event can cleanly be handled by
-handlers in separate drivers. We do this by introducing PRCM event
-names, which are then matched to the particular PRCM interrupt bit
-depending on the specific OMAP SoC being used.
-
-arch/arm/mach-omap2/prcm.c implements the chained interrupt mechanism
-itself, with individual PRCM events for OMAP3 and OMAP4 being
-described in arch/arm/mach-omap2/prcm3xxx.c and
-arch/arm/mach-omap2/prcm4xxx.c respectively. At initialization time,
-the set of PRCM events is filtered against the SoC on which we are
-running, keeping only the ones that are actually useful. All the logic
-is written to be generic with regard to OMAP3/OMAP4, even though OMAP3
-has single PRCM event registers and OMAP4 has two PRCM event
-registers.
-
-Patch tested on OMAP3 beagleboard.
+These are no longer needed as omap_hwmod takes care of multiplexing of pads.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Avinash.H.M <avinashhm@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Cousson, Benoit <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/Makefile           |    4 +
- arch/arm/mach-omap2/pm34xx.c           |  116 ++++++++--------------
- arch/arm/mach-omap2/prcm.c             |  163 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm3xxx.c         |  141 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm4xxx.c         |  170 ++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/irqs.h |    9 ++-
- arch/arm/plat-omap/include/plat/prcm.h |   43 ++++++++
- 7 files changed, 569 insertions(+), 77 deletions(-)
- create mode 100644 arch/arm/mach-omap2/prcm3xxx.c
- create mode 100644 arch/arm/mach-omap2/prcm4xxx.c
+ arch/arm/mach-omap2/serial.c |   25 +------------------------
+ 1 files changed, 1 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 5024064..339d2d4 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -39,6 +39,10 @@ AFLAGS_sram242x.o			:=-Wa,-march=armv6
- AFLAGS_sram243x.o			:=-Wa,-march=armv6
- AFLAGS_sram34xx.o			:=-Wa,-march=armv7-a
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 822c9b8..f8fafdd 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -73,7 +73,6 @@ struct omap_uart_state {
+ 	void __iomem *wk_st;
+ 	void __iomem *wk_en;
+ 	u32 wk_mask;
+-	u32 padconf;
+ 	u32 dma_enabled;
  
-+# PRCM
-+obj-$(CONFIG_ARCH_OMAP3)                += prcm3xxx.o
-+obj-$(CONFIG_ARCH_OMAP4)                += prcm4xxx.o
-+
- # Pin multiplexing
- obj-$(CONFIG_SOC_OMAP2420)		+= mux2420.o
- obj-$(CONFIG_SOC_OMAP2430)		+= mux2430.o
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 96a7624..89cf027 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -64,6 +64,9 @@ static inline bool is_suspending(void)
- }
- #endif
- 
-+static int prcm_io_irq;
-+static int prcm_wkup_irq;
-+
- /* Scratchpad offsets */
- #define OMAP343X_TABLE_ADDRESS_OFFSET	   0xc4
- #define OMAP343X_TABLE_VALUE_OFFSET	   0xc0
-@@ -240,75 +243,16 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
- 	return c;
+ 	struct clk *ick;
+@@ -309,13 +308,6 @@ static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
+ 		v |= uart->wk_mask;
+ 		__raw_writel(v, uart->wk_en);
+ 	}
+-
+-	/* Ensure IOPAD wake-enables are set */
+-	if (cpu_is_omap34xx() && uart->padconf) {
+-		u16 v = omap_ctrl_readw(uart->padconf);
+-		v |= OMAP3_PADCONF_WAKEUPENABLE0;
+-		omap_ctrl_writew(v, uart->padconf);
+-	}
  }
  
--static int _prcm_int_handle_wakeup(void)
-+static irqreturn_t _prcm_int_handle_wakeup(int irq, void *unused)
- {
--	int c;
--
--	c = prcm_clear_mod_irqs(WKUP_MOD, 1);
--	c += prcm_clear_mod_irqs(CORE_MOD, 1);
--	c += prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
-+	prcm_clear_mod_irqs(WKUP_MOD, 1);
-+	prcm_clear_mod_irqs(CORE_MOD, 1);
-+	prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
- 	if (omap_rev() > OMAP3430_REV_ES1_0) {
--		c += prcm_clear_mod_irqs(CORE_MOD, 3);
--		c += prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
-+		prcm_clear_mod_irqs(CORE_MOD, 3);
-+		prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
+ static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
+@@ -326,13 +318,6 @@ static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
+ 		v &= ~uart->wk_mask;
+ 		__raw_writel(v, uart->wk_en);
  	}
- 
--	return c;
--}
 -
--/*
-- * PRCM Interrupt Handler
-- *
-- * The PRM_IRQSTATUS_MPU register indicates if there are any pending
-- * interrupts from the PRCM for the MPU. These bits must be cleared in
-- * order to clear the PRCM interrupt. The PRCM interrupt handler is
-- * implemented to simply clear the PRM_IRQSTATUS_MPU in order to clear
-- * the PRCM interrupt. Please note that bit 0 of the PRM_IRQSTATUS_MPU
-- * register indicates that a wake-up event is pending for the MPU and
-- * this bit can only be cleared if the all the wake-up events latched
-- * in the various PM_WKST_x registers have been cleared. The interrupt
-- * handler is implemented using a do-while loop so that if a wake-up
-- * event occurred during the processing of the prcm interrupt handler
-- * (setting a bit in the corresponding PM_WKST_x register and thus
-- * preventing us from clearing bit 0 of the PRM_IRQSTATUS_MPU register)
-- * this would be handled.
-- */
--static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
--{
--	u32 irqenable_mpu, irqstatus_mpu;
--	int c = 0;
--
--	irqenable_mpu = omap2_prm_read_mod_reg(OCP_MOD,
--					 OMAP3_PRM_IRQENABLE_MPU_OFFSET);
--	irqstatus_mpu = omap2_prm_read_mod_reg(OCP_MOD,
--					 OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--	irqstatus_mpu &= irqenable_mpu;
--
--	do {
--		if (irqstatus_mpu & (OMAP3430_WKUP_ST_MASK |
--				     OMAP3430_IO_ST_MASK)) {
--			c = _prcm_int_handle_wakeup();
--
--			/*
--			 * Is the MPU PRCM interrupt handler racing with the
--			 * IVA2 PRCM interrupt handler ?
--			 */
--			WARN(c == 0, "prcm: WARNING: PRCM indicated MPU wakeup "
--			     "but no wakeup sources are marked\n");
--		} else {
--			/* XXX we need to expand our PRCM interrupt handler */
--			WARN(1, "prcm: WARNING: PRCM interrupt received, but "
--			     "no code to handle it (%08x)\n", irqstatus_mpu);
--		}
--
--		omap2_prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
--					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--
--		irqstatus_mpu = omap2_prm_read_mod_reg(OCP_MOD,
--					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--		irqstatus_mpu &= irqenable_mpu;
--
--	} while (irqstatus_mpu);
--
- 	return IRQ_HANDLED;
+-	/* Ensure IOPAD wake-enables are cleared */
+-	if (cpu_is_omap34xx() && uart->padconf) {
+-		u16 v = omap_ctrl_readw(uart->padconf);
+-		v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
+-		omap_ctrl_writew(v, uart->padconf);
+-	}
  }
  
-@@ -880,20 +824,35 @@ static int __init omap3_pm_init(void)
- 	/* XXX prcm_setup_regs needs to be before enabling hw
- 	 * supervised mode for powerdomains */
- 	prcm_setup_regs();
-+	ret = omap_prcm_irq_init();
-+	if (ret) {
-+		pr_err("omap_prcm_irq_init() failed with %d\n", ret);
-+		goto err_prcm_irq_init;
-+	}
-+
-+	prcm_wkup_irq = omap_prcm_event_to_irq("wkup");
-+	prcm_io_irq = omap_prcm_event_to_irq("io");
-+
-+	ret = request_irq(prcm_wkup_irq, _prcm_int_handle_wakeup,
-+			IRQF_NO_SUSPEND | IRQF_DISABLED, "prcm_wkup", NULL);
+ static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
+@@ -479,7 +464,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
+ 		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
+ 		u32 wk_mask = 0;
+-		u32 padconf = 0;
  
--	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
--			  (irq_handler_t)prcm_interrupt_handler,
--			  IRQF_DISABLED, "prcm", NULL);
- 	if (ret) {
--		printk(KERN_ERR "request_irq failed to register for 0x%x\n",
--		       INT_34XX_PRCM_MPU_IRQ);
--		goto err1;
-+		printk(KERN_ERR "Failed to request prcm_wkup irq\n");
-+		goto err_prcm_wkup;
-+	}
-+
-+	ret = request_irq(prcm_io_irq, _prcm_int_handle_wakeup,
-+			IRQF_NO_SUSPEND | IRQF_DISABLED, "prcm_io", NULL);
-+
-+	if (ret) {
-+		printk(KERN_ERR "Failed to request prcm_io irq\n");
-+		goto err_prcm_io;
+ 		/* XXX These PRM accesses do not belong here */
+ 		uart->wk_en = OMAP34XX_PRM_REGADDR(mod, PM_WKEN1);
+@@ -487,23 +471,18 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		switch (uart->num) {
+ 		case 0:
+ 			wk_mask = OMAP3430_ST_UART1_MASK;
+-			padconf = 0x182;
+ 			break;
+ 		case 1:
+ 			wk_mask = OMAP3430_ST_UART2_MASK;
+-			padconf = 0x17a;
+ 			break;
+ 		case 2:
+ 			wk_mask = OMAP3430_ST_UART3_MASK;
+-			padconf = 0x19e;
+ 			break;
+ 		case 3:
+ 			wk_mask = OMAP3630_ST_UART4_MASK;
+-			padconf = 0x0d2;
+ 			break;
+ 		}
+ 		uart->wk_mask = wk_mask;
+-		uart->padconf = padconf;
+ 	} else if (cpu_is_omap24xx()) {
+ 		u32 wk_mask = 0;
+ 		u32 wk_en = PM_WKEN1, wk_st = PM_WKST1;
+@@ -533,7 +512,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		uart->wk_en = NULL;
+ 		uart->wk_st = NULL;
+ 		uart->wk_mask = 0;
+-		uart->padconf = 0;
  	}
  
- 	ret = pwrdm_for_each(pwrdms_setup, NULL);
- 	if (ret) {
- 		printk(KERN_ERR "Failed to setup powerdomains\n");
--		goto err2;
-+		goto err_pwrdms_setup;
+ 	uart->irqflags |= IRQF_SHARED;
+@@ -833,8 +811,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+ 
+ 	console_unlock();
+ 
+-	if ((cpu_is_omap34xx() && uart->padconf) ||
+-	    (uart->wk_en && uart->wk_mask)) {
++	if (uart->oh->mux || (uart->wk_en && uart->wk_mask)) {
+ 		device_init_wakeup(&od->pdev.dev, true);
+ 		DEV_CREATE_FILE(&od->pdev.dev, &dev_attr_sleep_timeout);
  	}
- 
- 	(void) clkdm_for_each(clkdms_setup, NULL);
-@@ -901,7 +860,7 @@ static int __init omap3_pm_init(void)
- 	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
- 	if (mpu_pwrdm == NULL) {
- 		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
--		goto err2;
-+		goto err_pwrdms_setup;
- 	}
- 
- 	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
-@@ -950,14 +909,19 @@ static int __init omap3_pm_init(void)
- 	}
- 
- 	omap3_save_scratchpad_contents();
--err1:
-+
- 	return ret;
--err2:
--	free_irq(INT_34XX_PRCM_MPU_IRQ, NULL);
-+
-+ err_pwrdms_setup:
- 	list_for_each_entry_safe(pwrst, tmp, &pwrst_list, node) {
- 		list_del(&pwrst->node);
- 		kfree(pwrst);
- 	}
-+ err_prcm_io:
-+	free_irq(prcm_wkup_irq, NULL);
-+ err_prcm_wkup:
-+	omap_prcm_irq_cleanup();
-+ err_prcm_irq_init:
- 	return ret;
- }
- 
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 6be1438..794e451 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -23,6 +23,8 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/delay.h>
-+#include <linux/irq.h>
-+#include <linux/slab.h>
- 
- #include <mach/system.h>
- #include <plat/common.h>
-@@ -45,6 +47,167 @@ void __iomem *cm2_base;
- 
- #define MAX_MODULE_ENABLE_WAIT		100000
- 
-+/* Setup for the interrupt handling based on used platform */
-+static struct omap_prcm_irq_setup *irq_setup;
-+
-+static void prcm_irq_ack(struct irq_data *data)
-+{
-+	unsigned int prcm_irq = data->irq - OMAP_PRCM_IRQ_BASE;
-+	irq_setup->ack_event(prcm_irq);
-+}
-+
-+static void prcm_irq_mask(struct irq_data *data)
-+{
-+	unsigned int prcm_irq = data->irq - OMAP_PRCM_IRQ_BASE;
-+	irq_setup->mask_event(prcm_irq);
-+}
-+
-+static void prcm_irq_unmask(struct irq_data *data)
-+{
-+	unsigned int prcm_irq = data->irq - OMAP_PRCM_IRQ_BASE;
-+	irq_setup->unmask_event(prcm_irq);
-+}
-+
-+static struct irq_chip_generic *prcm_irq_chips[OMAP_PRCM_MAX_NR_PENDING_REG];
-+
-+/*
-+ * PRCM Interrupt Handler
-+ *
-+ * The PRM_IRQSTATUS_MPU register indicates if there are any pending
-+ * interrupts from the PRCM for the MPU. These bits must be cleared in
-+ * order to clear the PRCM interrupt. The PRCM interrupt handler is
-+ * implemented to simply clear the PRM_IRQSTATUS_MPU in order to clear
-+ * the PRCM interrupt. Please note that bit 0 of the PRM_IRQSTATUS_MPU
-+ * register indicates that a wake-up event is pending for the MPU and
-+ * this bit can only be cleared if the all the wake-up events latched
-+ * in the various PM_WKST_x registers have been cleared. The interrupt
-+ * handler is implemented using a do-while loop so that if a wake-up
-+ * event occurred during the processing of the prcm interrupt handler
-+ * (setting a bit in the corresponding PM_WKST_x register and thus
-+ * preventing us from clearing bit 0 of the PRM_IRQSTATUS_MPU register)
-+ * this would be handled.
-+ */
-+static void prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
-+{
-+	unsigned long pending[OMAP_PRCM_MAX_NR_PENDING_REG];
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
-+
-+	/*
-+	 * Loop until all pending irqs are handled, since
-+	 * generic_handle_irq(), called by prcm_irq_handle_virtirqs()
-+	 * can cause new irqs to come
-+	 */
-+	while (1) {
-+		unsigned int virtirq;
-+
-+		chip->irq_ack(&desc->irq_data);
-+
-+		memset(pending, 0, sizeof(pending));
-+		irq_setup->pending_events(pending);
-+
-+		/* No bit set, then all IRQs are handled */
-+		if (find_first_bit(pending, OMAP_PRCM_NR_IRQS)
-+		    >= OMAP_PRCM_NR_IRQS) {
-+			chip->irq_unmask(&desc->irq_data);
-+			break;
-+		}
-+
-+		/*
-+		 * Loop on all currently pending irqs so that new irqs
-+		 * cannot starve previously pending irqs
-+		 */
-+		for_each_set_bit(virtirq, pending, OMAP_PRCM_NR_IRQS)
-+			generic_handle_irq(OMAP_PRCM_IRQ_BASE + virtirq);
-+
-+		chip->irq_unmask(&desc->irq_data);
-+	}
-+}
-+
-+/*
-+ * Given a PRCM event name, returns the corresponding IRQ on which the
-+ * handler should be registered.
-+ */
-+int omap_prcm_event_to_irq(const char *name)
-+{
-+	int i;
-+
-+	for (i = 0; i < irq_setup->num_irqs; i++)
-+		if (!strcmp(irq_setup->irqs[i].name, name))
-+			return OMAP_PRCM_IRQ_BASE + irq_setup->irqs[i].offset;
-+
-+	return -ENOENT;
-+}
-+
-+/*
-+ * Prepare the array of PRCM events corresponding to the current SoC,
-+ * and set-up the chained interrupt handler mechanism.
-+ */
-+int __init omap_prcm_irq_init(void)
-+{
-+	int i;
-+	struct irq_chip_generic *gc;
-+	struct irq_chip_type *ct;
-+	u32 mask[2] = { 0, 0 };
-+	int offset;
-+	int max_irq = 0;
-+
-+	for (i = 0; i < irq_setup->num_irqs; i++)
-+		if (omap_chip_is(irq_setup->irqs[i].omap_chip)) {
-+			offset = irq_setup->irqs[i].offset;
-+			if (offset < 32)
-+				mask[0] |= 1 << offset;
-+			else
-+				mask[1] |= 1 << (offset - 32);
-+			if (offset > max_irq)
-+				max_irq = offset;
-+		}
-+
-+	irq_set_chained_handler(irq_setup->irq, prcm_irq_handler);
-+
-+	for (i = 0; i <= max_irq / 32; i++) {
-+		gc = irq_alloc_generic_chip("PRCM", 1,
-+			OMAP_PRCM_IRQ_BASE + i * 32, NULL, handle_level_irq);
-+
-+		ct = gc->chip_types;
-+		ct->chip.irq_ack = prcm_irq_ack;
-+		ct->chip.irq_mask = prcm_irq_mask;
-+		ct->chip.irq_unmask = prcm_irq_unmask;
-+
-+		irq_setup_generic_chip(gc, mask[i], 0, IRQ_NOREQUEST, 0);
-+		prcm_irq_chips[i] = gc;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * Reverses memory allocated and other setups done by
-+ * omap_prcm_irq_init().
-+ */
-+void omap_prcm_irq_cleanup(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < OMAP_PRCM_MAX_NR_PENDING_REG; i++)
-+		irq_remove_generic_chip(prcm_irq_chips[i], 0xffffffff, 0, 0);
-+
-+	irq_set_chained_handler(irq_setup->irq, NULL);
-+}
-+
-+void __init omap_prcm_irq_setup(struct omap_prcm_irq_setup *setup)
-+{
-+	struct omap_prcm_irq *irqs;
-+
-+	/* Copy setup from __initdata section */
-+	irq_setup = kmalloc(sizeof(struct omap_prcm_irq_setup), GFP_KERNEL);
-+	memcpy(irq_setup, setup, sizeof(struct omap_prcm_irq_setup));
-+
-+	irqs = kmalloc(sizeof(struct omap_prcm_irq) *
-+		setup->num_irqs, GFP_KERNEL);
-+	memcpy(irqs, setup->irqs, sizeof(struct omap_prcm_irq) *
-+		setup->num_irqs);
-+	irq_setup->irqs = irqs;
-+}
-+
- u32 omap_prcm_get_reset_sources(void)
- {
- 	/* XXX This presumably needs modification for 34XX */
-diff --git a/arch/arm/mach-omap2/prcm3xxx.c b/arch/arm/mach-omap2/prcm3xxx.c
-new file mode 100644
-index 0000000..5671650
---- /dev/null
-+++ b/arch/arm/mach-omap2/prcm3xxx.c
-@@ -0,0 +1,141 @@
-+/*
-+ * linux/arch/arm/mach-omap2/prcm3xxx.c
-+ *
-+ * OMAP 3xxx Power Reset and Clock Management (PRCM) interrupt
-+ * definitions
-+ *
-+ * Written by Thomas Petazzoni <t-petazzoni@ti.com>
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+
-+#include <plat/prcm.h>
-+#include <plat/cpu.h>
-+#include <plat/irqs.h>
-+
-+#include "prm-regbits-24xx.h"
-+
-+static void omap3_prcm_mask_event(unsigned event);
-+static void omap3_prcm_unmask_event(unsigned event);
-+static void omap3_prcm_ack_event(unsigned event);
-+static void omap3_prcm_pending_events(unsigned long *events);
-+
-+static struct omap_prcm_irq  __initdata omap_prcm_3xxx_irqs[] = {
-+	OMAP_PRCM_IRQ("wkup",                  0,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("evgenon",               2,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("evgenoff",              3,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("transition",            4,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("core_dpll_recal",       5,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("periph_dpll_recal",     6,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("mpu_dpll_recal",        7,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("iva2_dpll_recal",       8,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("io",	            9,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp1_oppchangedone",    10,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp1_minvdd",           11,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp1_maxvdd",           12,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp1_nosmpsack",        13,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp1_eqvalue",          14,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp1_tranxdone",        15,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp2_oppchangedone",    16,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp2_minvdd",           17,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp2_maxvdd",           18,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp2_nosmpsack",        19,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp2_eqvalue",          20,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vp2_tranxdone",        21,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vc_saerr",             22,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vc_raerr",             23,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vc_timeout_err",       24,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("snd_periph_recal",     25,
-+		      CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("abb_ldo_tranxdone",    26,
-+		      CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vc_vp1_ack",           27,
-+		      CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("vc_bypass_ack",        28,
-+		      CHIP_GE_OMAP3630ES1_1),
-+};
-+
-+static struct omap_prcm_irq_setup __initdata omap3_prcm_irq_setup = {
-+	.mask_event = omap3_prcm_mask_event,
-+	.unmask_event = omap3_prcm_unmask_event,
-+	.ack_event = omap3_prcm_ack_event,
-+	.pending_events = omap3_prcm_pending_events,
-+	.irqs = omap_prcm_3xxx_irqs,
-+	.num_irqs = ARRAY_SIZE(omap_prcm_3xxx_irqs),
-+	.irq = INT_34XX_PRCM_MPU_IRQ,
-+};
-+
-+static void omap3_prcm_mask_event(unsigned event)
-+{
-+	unsigned int bit = BIT(event);
-+
-+	omap2_prm_rmw_mod_reg_bits(bit, 0, OCP_MOD,
-+				   OMAP3_PRM_IRQENABLE_MPU_OFFSET);
-+}
-+
-+static void omap3_prcm_unmask_event(unsigned event)
-+{
-+	unsigned int bit = BIT(event);
-+
-+	omap2_prm_rmw_mod_reg_bits(0, bit, OCP_MOD,
-+				   OMAP3_PRM_IRQENABLE_MPU_OFFSET);
-+}
-+
-+static void omap3_prcm_ack_event(unsigned event)
-+{
-+	unsigned int bit = BIT(event);
-+
-+	omap2_prm_write_mod_reg(bit, OCP_MOD,
-+				OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+}
-+
-+static void omap3_prcm_pending_events(unsigned long *events)
-+{
-+	u32 irqenable_mpu =
-+		omap2_prm_read_mod_reg(OCP_MOD,
-+				       OMAP3_PRM_IRQENABLE_MPU_OFFSET);
-+	u32 irqstatus_mpu =
-+		omap2_prm_read_mod_reg(OCP_MOD,
-+				       OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+	events[0] = irqenable_mpu & irqstatus_mpu;
-+}
-+
-+static int __init omap3_prcm_setup_irq(void)
-+{
-+	if (!cpu_is_omap34xx())
-+		return -ENODEV;
-+	omap_prcm_irq_setup(&omap3_prcm_irq_setup);
-+	return 0;
-+}
-+arch_initcall(omap3_prcm_setup_irq);
-diff --git a/arch/arm/mach-omap2/prcm4xxx.c b/arch/arm/mach-omap2/prcm4xxx.c
-new file mode 100644
-index 0000000..e4d267e
---- /dev/null
-+++ b/arch/arm/mach-omap2/prcm4xxx.c
-@@ -0,0 +1,170 @@
-+/*
-+ * linux/arch/arm/mach-omap2/prcm4xxx.c
-+ *
-+ * OMAP 4xxx Power Reset and Clock Management (PRCM) interrupt
-+ * definitions
-+ *
-+ * Written by Thomas Petazzoni <t-petazzoni@ti.com>
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+
-+#include <plat/prcm.h>
-+#include <plat/cpu.h>
-+#include <plat/irqs.h>
-+
-+#include "prcm44xx.h"
-+#include "prm44xx.h"
-+
-+static void omap4_prcm_mask_event(unsigned event);
-+static void omap4_prcm_unmask_event(unsigned event);
-+static void omap4_prcm_ack_event(unsigned event);
-+static void omap4_prcm_pending_events(unsigned long *events);
-+
-+struct omap_prcm_irq __initdata omap_prcm_4xxx_irqs[] = {
-+	OMAP_PRCM_IRQ("dpll_core_recal",       0,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("dpll_mpu_recal",        1,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("dpll_iva_recal",        2,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("dpll_per_recal",        3,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("dpll_abe_recal",        4,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("dpll_usb_recal",        5,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("dpll_unipro_recal",     7,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("transition",            8,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("io",                    9,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vc_saerr",              11,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vc_raerr",              12,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vc_toerr",              13,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vc_bypassack",          14,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_core_oppchangedone", 16,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_core_minvdd",        17,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_core_maxvdd",        18,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_core_nosmpsack",     19,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_core_eqvalue",       20,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_core_tranxdone",     21,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_iva_oppchangedone",  24,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_iva_minvdd",         25,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_iva_maxvdd",         26,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_iva_nosmpsack",      27,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_iva_eqvalue",        28,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_iva_tranxdone",      29,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_iva_vpack",          30,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("abb_iva_done",          31,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_mpu_oppchangedone",  32,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_mpu_minvdd",         33,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_mpu_maxvdd",         34,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_mpu_nosmpsack",      35,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_mpu_eqvalue",        36,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_mpu_tranxdone",      37,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("vp_mpu_vpack",          38,
-+		      CHIP_IS_OMAP4430),
-+	OMAP_PRCM_IRQ("abb_mpu_done",          39,
-+		      CHIP_IS_OMAP4430),
-+};
-+
-+static struct omap_prcm_irq_setup __initdata omap4_prcm_irq_setup = {
-+	.mask_event = omap4_prcm_mask_event,
-+	.unmask_event = omap4_prcm_unmask_event,
-+	.ack_event = omap4_prcm_ack_event,
-+	.pending_events = omap4_prcm_pending_events,
-+	.irqs = omap_prcm_4xxx_irqs,
-+	.num_irqs = ARRAY_SIZE(omap_prcm_4xxx_irqs),
-+	.irq = OMAP44XX_IRQ_PRCM,
-+};
-+
-+void omap4_prcm_mask_event(unsigned event)
-+{
-+	unsigned int bit = BIT(event % 32);
-+	unsigned int off = (event / 32) * 4;
-+
-+	omap4_prm_rmw_inst_reg_bits(bit, 0,
-+				    OMAP4430_PRM_OCP_SOCKET_INST,
-+				    OMAP4_PRM_IRQENABLE_MPU_OFFSET + off);
-+}
-+
-+void omap4_prcm_unmask_event(unsigned event)
-+{
-+	unsigned int bit = BIT(event % 32);
-+	unsigned int off = (event / 32) * 4;
-+
-+	omap4_prm_rmw_inst_reg_bits(0, bit,
-+				    OMAP4430_PRM_OCP_SOCKET_INST,
-+				    OMAP4_PRM_IRQENABLE_MPU_OFFSET + off);
-+}
-+
-+void omap4_prcm_ack_event(unsigned event)
-+{
-+	unsigned int bit = BIT(event % 32);
-+	unsigned int off = (event / 32) * 4;
-+
-+	omap4_prm_write_inst_reg(bit,
-+				 OMAP4430_PRM_OCP_SOCKET_INST,
-+				 OMAP4_PRM_IRQSTATUS_MPU_OFFSET + off);
-+}
-+
-+void omap4_prcm_pending_events(unsigned long *events)
-+{
-+	u32 irqenable_mpu, irqstatus_mpu;
-+	int i;
-+
-+	/* OMAP4 has two enable/status registers for the PRCM */
-+	for (i = 0; i < 2; i++) {
-+		irqenable_mpu =
-+			omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
-+						OMAP4_PRM_IRQENABLE_MPU_OFFSET
-+						+ i * 4);
-+		irqstatus_mpu =
-+			omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
-+						OMAP4_PRM_IRQSTATUS_MPU_OFFSET
-+						+ i * 4);
-+		events[i] = irqenable_mpu & irqstatus_mpu;
-+	}
-+}
-+
-+int __init omap4_prcm_setup_irq(void)
-+{
-+	if (!cpu_is_omap44xx())
-+		return -ENODEV;
-+	omap_prcm_irq_setup(&omap4_prcm_irq_setup);
-+	return 0;
-+}
-+arch_initcall(omap4_prcm_setup_irq);
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index 5a25098..23b9680 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -366,7 +366,14 @@
- #define OMAP_MAX_GPIO_LINES	192
- #define IH_GPIO_BASE		(128 + IH2_BASE)
- #define IH_MPUIO_BASE		(OMAP_MAX_GPIO_LINES + IH_GPIO_BASE)
--#define OMAP_IRQ_END		(IH_MPUIO_BASE + 16)
-+#define OMAP_MPUIO_IRQ_END	(IH_MPUIO_BASE + 16)
-+
-+/* 64 IRQs for the PRCM (32 are needed on OMAP3, 64 on OMAP4) */
-+#define OMAP_PRCM_IRQ_BASE      (OMAP_MPUIO_IRQ_END)
-+#define OMAP_PRCM_NR_IRQS       64
-+#define OMAP_PRCM_IRQ_END       (OMAP_PRCM_IRQ_BASE + OMAP_PRCM_NR_IRQS)
-+
-+#define OMAP_IRQ_END            (OMAP_PRCM_IRQ_END)
- 
- /* External FPGA handles interrupts on Innovator boards */
- #define	OMAP_FPGA_IRQ_BASE	(OMAP_IRQ_END)
-diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
-index 267f43b..205b9b1 100644
---- a/arch/arm/plat-omap/include/plat/prcm.h
-+++ b/arch/arm/plat-omap/include/plat/prcm.h
-@@ -27,6 +27,49 @@
- #ifndef __ASM_ARM_ARCH_OMAP_PRCM_H
- #define __ASM_ARM_ARCH_OMAP_PRCM_H
- 
-+#include <plat/cpu.h>
-+
-+/*
-+ * Structure describing the interrupt corresponding to each PRCM event
-+ */
-+struct omap_prcm_irq {
-+	/* Logical name for the interrupt */
-+	const char *name;
-+
-+	/*
-+	 * Corresponding offset in the status/enable register. The
-+	 * offset can be greater than 32, in which case it spans over
-+	 * the second status register
-+	 */
-+	unsigned int offset;
-+
-+	/* OMAP chip for which this PRCM event exists */
-+	const struct omap_chip_id omap_chip;
-+};
-+
-+#define OMAP_PRCM_IRQ(_name, _offset, _chip)   \
-+	{ .name = _name,                       \
-+	  .offset = _offset,                   \
-+	  .omap_chip = OMAP_CHIP_INIT(_chip) }
-+
-+/* Maximum number of PRCM interrupt status registers */
-+#define OMAP_PRCM_MAX_NR_PENDING_REG 2
-+
-+/* Setup for the PRCM interrupt handler */
-+struct omap_prcm_irq_setup {
-+	void (*mask_event)(unsigned);
-+	void (*unmask_event)(unsigned);
-+	void (*ack_event)(unsigned);
-+	void (*pending_events)(unsigned long *);
-+	struct omap_prcm_irq *irqs;
-+	int num_irqs;
-+	int irq;
-+};
-+
-+int omap_prcm_event_to_irq(const char *name);
-+int omap_prcm_irq_init(void);
-+void omap_prcm_irq_setup(struct omap_prcm_irq_setup *setup);
-+void omap_prcm_irq_cleanup(void);
- u32 omap_prcm_get_reset_sources(void);
- int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, u8 idlest,
- 			 const char *name);
 -- 
 1.7.4.1
 
