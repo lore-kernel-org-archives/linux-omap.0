@@ -1,27 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] cbus: move <plat/cbus.h> to
- <linux/platform_data/cbus.h>
-Date: Wed, 29 Jun 2011 03:51:06 -0700
-Message-ID: <20110629105106.GD23145@atomide.com>
-References: <1308223638-9634-1-git-send-email-balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 0/2] RETU meets Sparse IRQ
+Date: Wed, 29 Jun 2011 14:46:49 +0300
+Message-ID: <1309348011-23141-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39547 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753277Ab1F2KvJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 06:51:09 -0400
-Content-Disposition: inline
-In-Reply-To: <1308223638-9634-1-git-send-email-balbi@ti.com>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:43591 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754734Ab1F2Lq6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Jun 2011 07:46:58 -0400
+Received: by bwf20 with SMTP id 20so1182676bwf.20
+        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 04:46:55 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-* Felipe Balbi <balbi@ti.com> [110616 04:22]:
-> it's a much more sensible location for that
-> sort of thing.
+now with Sparse IRQ numbering, we don't need
+to add a bunch of defines in <plat/irqs.h>
 
-Applying all four to cbus branch.
+Compile tested with omap2plus_defconfig (+cbus)
+and omap1_defconfig (+cbus).
 
-Tony
+Felipe Balbi (2):
+  cbus: retu: use sparse IRQ numbering
+  cbus: retu: stop polluting <plat/irqs.h>
+
+ arch/arm/mach-omap1/board-nokia770.c   |    2 --
+ arch/arm/mach-omap2/board-n8x0.c       |    2 --
+ arch/arm/plat-omap/include/plat/irqs.h |   10 +---------
+ drivers/cbus/retu.c                    |   25 ++++++++++++++++---------
+ include/linux/platform_data/cbus.h     |    2 --
+ 5 files changed, 17 insertions(+), 24 deletions(-)
+
+-- 
+1.7.6
+
