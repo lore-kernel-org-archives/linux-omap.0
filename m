@@ -1,29 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
-Date: Wed, 29 Jun 2011 09:38:07 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1106290937350.2874@utopia.booyaka.com>
-References: <1308752314-32079-1-git-send-email-balajitk@ti.com> <1308752314-32079-3-git-send-email-balajitk@ti.com> <alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com> <BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com> <alpine.DEB.2.00.1106281240390.2874@utopia.booyaka.com>
- <BANLkTikni_xO7NQXQyv7XVeEH4Nowpr1Ow@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC 7/8] drivers: introduce rpmsg, a remote-processor messaging bus
+Date: Wed, 29 Jun 2011 09:43:10 -0600
+Message-ID: <BANLkTikJGHSwqMW2W2YA4EnvJ0yj+9C6ow@mail.gmail.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
+ <1308640714-17961-8-git-send-email-ohad@wizery.com> <20110627222121.GD20865@ponder.secretlab.ca>
+ <BANLkTikt08CDJiKNxGF2mKmOhyxHfv21_g@mail.gmail.com> <BANLkTim+CemMz7A3J94e1UywCNd0r1SABQ@mail.gmail.com>
+ <BANLkTi=16XEpvhWEAoUt_s5F41czeq2DVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54352 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755109Ab1F2PiI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 11:38:08 -0400
-In-Reply-To: <BANLkTikni_xO7NQXQyv7XVeEH4Nowpr1Ow@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <BANLkTi=16XEpvhWEAoUt_s5F41czeq2DVQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>
 List-Id: linux-omap@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, khilman@ti.com, b-cousson@ti.com
 
-On Wed, 29 Jun 2011, T Krishnamoorthy, Balaji wrote:
+On Tue, Jun 28, 2011 at 5:00 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
+:
+> On Wed, Jun 29, 2011 at 1:51 AM, Grant Likely <grant.likely@secretlab=
+=2Eca> wrote:
+>> It's not the device_for_each_child() that you're 'putting' back from
+>> here. =A0Its the original kref initialization when the device was
+>> created.
+>
+> device_unregister() is already calling put_device(), doesn't that dea=
+l
+> with the original kref init for us ?
 
-> There have been some experiments on our customer programs to reduce this 
-> value to a few ms and infrequent crashes were observed (stress testing 
-> for several hours) while trying to access the controller registers.
+/me digs deeper:
 
-By the way, could you send along a copy of the stress test script?
+device_register() has 2 parts; device_initialize() and device_add()
+device_init() initialized the kref to 1 (via kobject_init()
+device_add() calls get_device() to increment it to 2
 
+Then similarly for device_unregister():
+device_del() calls put_device() to decrement the kref to 1
+a final put_device() call decrements the kref to 0 - which triggers a
+call to the release method that kfrees the object.
 
-- Paul
+So you are right that device_unregister drops the refcount to zero,
+but the code still needs to be fixed to not call kfree() directly.
+
+It also looks like rpmsg_destroy_channel() needs to be fixed to remove
+the kfree call and an extra put_device() call.  This is important
+because the last put_device() call above might /not/ decrement the
+refcount to zero is for some reason something still holds a reference
+to the device.  But the device will still get freed correctly when the
+other holder finally calls device_put().
+
+g.
