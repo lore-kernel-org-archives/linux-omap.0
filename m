@@ -1,56 +1,46 @@
-From: Silesh C V <silesh@ti.com>
-Subject: [PATCH v2 2/2] OMAP: HSMMC: Fix GPIO muxing
-Date: Wed, 29 Jun 2011 07:44:57 +0530
-Message-ID: <1309313698-19438-2-git-send-email-silesh@ti.com>
-References: <1309313698-19438-1-git-send-email-silesh@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP: DSS: dispc: enable/disable clocks in error
+ handler
+Date: Wed, 29 Jun 2011 07:58:07 +0300
+Message-ID: <1309323487.1829.9.camel@deskari>
+References: <1309195865-23808-1-git-send-email-dima@android.com>
+	 <4E09FEFD.9020005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54640 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751289Ab1F2CJe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Jun 2011 22:09:34 -0400
-In-Reply-To: <1309313698-19438-1-git-send-email-silesh@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:34298 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750974Ab1F2E6O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Jun 2011 00:58:14 -0400
+In-Reply-To: <4E09FEFD.9020005@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, balajitk@ti.com, grinberg@compulab.co.il, svenkatr@ti.com, Silesh C V <silesh@ti.com>
+To: Archit Taneja <a0393947@ti.com>
+Cc: Dima Zavin <dima@android.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Use generic gpio call to check the validity of the gpio. Note that
-this includes gpio 0 also which was missing before.
+On Tue, 2011-06-28 at 09:19 -0700, Archit Taneja wrote:
+> Hi,
+> 
+> On Monday 27 June 2011 10:31 AM, Dima Zavin wrote:
+> > There's no guarantee that the error handler worker thread
+> > will run while the dispc clocks are on. Explicitly enable/disable
+> > them.
+> 
+> I agree with this.
 
-Signed-off-by: Silesh C V <silesh@ti.com>
----
- arch/arm/mach-omap2/hsmmc.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+Yes, I think this patch is fine. I'll apply it to DSS tree.
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index 66868c5..a9b45c7 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -13,6 +13,7 @@
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/delay.h>
-+#include <linux/gpio.h>
- #include <mach/hardware.h>
- #include <plat/mmc.h>
- #include <plat/omap-pm.h>
-@@ -213,12 +214,10 @@ static int nop_mmc_set_power(struct device *dev, int slot, int power_on,
- static inline void omap_hsmmc_mux(struct omap_mmc_platform_data *mmc_controller,
- 			int controller_nr)
- {
--	if ((mmc_controller->slots[0].switch_pin > 0) && \
--		(mmc_controller->slots[0].switch_pin < OMAP_MAX_GPIO_LINES))
-+	if (gpio_is_valid(mmc_controller->slots[0].switch_pin))
- 		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
- 					OMAP_PIN_INPUT_PULLUP);
--	if ((mmc_controller->slots[0].gpio_wp > 0) && \
--		(mmc_controller->slots[0].gpio_wp < OMAP_MAX_GPIO_LINES))
-+	if (gpio_is_valid(mmc_controller->slots[0].gpio_wp))
- 		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
- 					OMAP_PIN_INPUT_PULLUP);
- 	if (cpu_is_omap34xx()) {
--- 
-1.7.1
+> Tomi,
+> 
+> We could get prevent scheduling of the error worker by registering 
+> omap_dispc_irq_handler() as an interrupt thread.
+
+But then we would get extra latency on the interrupt handlers. I wanted
+to keep handling DSS interrupts in interrupt context, because some use
+cases may require very fast reaction to an interrupt.
+
+ Tomi
+
 
