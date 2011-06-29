@@ -1,47 +1,58 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
-Date: Wed, 29 Jun 2011 16:23:57 -0700
-Message-ID: <871uycql0y.fsf@ti.com>
-References: <1309327221-4121-1-git-send-email-shubhrajyoti@ti.com>
+Subject: Re: [PATCH] OMAP3: run the ASM sleep code from DDR
+Date: Wed, 29 Jun 2011 16:30:13 -0700
+Message-ID: <87wrg4p662.fsf@ti.com>
+References: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
+	<87mxh0tuk2.fsf@ti.com>
+	<20110629180535.GF23312@n2100.arm.linux.org.uk>
+	<8762nosbj4.fsf@ti.com>
+	<20110629215423.GI23312@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:47483 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752348Ab1F2XYE (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:43748 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752574Ab1F2XaR (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 19:24:04 -0400
-In-Reply-To: <1309327221-4121-1-git-send-email-shubhrajyoti@ti.com>
-	(Shubhrajyoti D.'s message of "Wed, 29 Jun 2011 11:30:21 +0530")
+	Wed, 29 Jun 2011 19:30:17 -0400
+Received: by mail-iy0-f172.google.com with SMTP id 7so1526760iye.3
+        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 16:30:17 -0700 (PDT)
+In-Reply-To: <20110629215423.GI23312@n2100.arm.linux.org.uk> (Russell King's
+	message of "Wed, 29 Jun 2011 22:54:23 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: jean.pihet@newoldbits.com, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-Shubhrajyoti D <shubhrajyoti@ti.com> writes:
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-> Currently the fifo depth is set to zero for OMAP4 which disables
-> the FIFO usage. This patch enables the FIFO usage for I2C transactions
-> on OMAP4 also.
+> On Wed, Jun 29, 2011 at 12:06:07PM -0700, Kevin Hilman wrote:
+>> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+>> 
+>> > On Wed, Jun 29, 2011 at 10:29:49AM -0700, Kevin Hilman wrote:
+>> >> Russell, if you're OK with it, can you add it to your suspend branch for
+>> >> the upcoming merge window?
+>> >
+>> > Yes - though I think we can go a little bit further - this patch is on
+>> > top of my code so far, and is untested.  There isn't a need for the
+>> > saving of these registers to be in assembly because we can read them
+>> > just as easily from C code.
+>> 
+>> Indeed
+>> 
+>> > Comments?
+>> 
+>> Looks good to me (although untested) care to respin on top of $SUBJECT
+>> patch?  
+>> 
+>> Minor comments below...
+>
+> Done.
 
-Do you know the history of why the FIFO depth was set to zero?  A
-summary of that history would greatly help reviewers.
+Tested-by: Kevin Hilman <khilman@ti.com>
 
-> Reported-By:Nishanth Menon <nm@ti.com>
-
-minor: missing space after ':'
-
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-
-Tested on what platforms?   OMAP3 also?
-
-Could you please rebase this onto my for_3.1/i2c-andy branch[1] where we
-have a large series of I2C patches queued up for the v3.1 merge window
-already? 
-
-Thanks,
+Tested full-chip retention and off on 3430/n900, 3530/Overo and
+3630/Zoom3.
 
 Kevin
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
 
