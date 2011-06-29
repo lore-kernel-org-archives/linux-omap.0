@@ -1,61 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
-Date: Wed, 29 Jun 2011 08:42:42 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1106290841160.2874@utopia.booyaka.com>
-References: <1308752314-32079-1-git-send-email-balajitk@ti.com> <1308752314-32079-3-git-send-email-balajitk@ti.com> <alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com> <BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com> <alpine.DEB.2.00.1106281240390.2874@utopia.booyaka.com>
- <BANLkTikni_xO7NQXQyv7XVeEH4Nowpr1Ow@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 2/8] remoteproc: add omap implementation
+Date: Wed, 29 Jun 2011 18:04:37 +0300
+Message-ID: <BANLkTi=4Pp1UYWFsBywRvLL1n=ggCZgAeA@mail.gmail.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
+ <1308640714-17961-3-git-send-email-ohad@wizery.com> <20110627210007.GC20865@ponder.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-850960283-1309358562=:2874"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60554 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754417Ab1F2Omn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 10:42:43 -0400
-In-Reply-To: <BANLkTikni_xO7NQXQyv7XVeEH4Nowpr1Ow@mail.gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41285 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751996Ab1F2PE6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 11:04:58 -0400
+In-Reply-To: <20110627210007.GC20865@ponder.secretlab.ca>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, khilman@ti.com, b-cousson@ti.com
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Tue, Jun 28, 2011 at 12:00 AM, Grant Likely
+<grant.likely@secretlab.ca> wrote:
+> Very little for me to comment on here. =A0However, something I just
+> noticed. =A0Why is it necessary to pass in THIS_MODULE to the
+> rproc_register function? =A0Having a reference to the pdev gives you =
+the
+> pointer to the driver, which has the THIS_MODULE value in it. =A0That
+> should be sufficient.
 
---155748971-850960283-1309358562=:2874
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Nice one, thanks !
 
-On Wed, 29 Jun 2011, T Krishnamoorthy, Balaji wrote:
+> /me also isn't sure if incrementing the refcount on the module is the
+> best way to prevent the rproc from going away, but I haven't dug into
+> the details in the driver code to find out. =A0Drivers can get unboun=
+d
+> from devices without the driver being unloaded, so I imagine there is
+> an in-use count on the device itself that would prevent driver
+> unbinding.
 
-> On Wed, Jun 29, 2011 at 12:11 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> > On Tue, 28 Jun 2011, T Krishnamoorthy, Balaji wrote:
-> >
-> >> On Tue, Jun 28, 2011 at 10:52 PM, Paul Walmsley <paul@pwsan.com> wrote=
-:
-> >> >
-> >> > On Wed, 22 Jun 2011, Balaji T K wrote:
-> >> >
-> >> >> Use runtime autosuspend APIs to enable auto suspend delay
-> >> >
-> >> > Does this really need to use runtime autosuspend? =A0Seems to me tha=
-t since
-> >> > PM runtime is just controlling the MMC IP blocks and not the regulat=
-ors in
-> >> > this instance, this could simply use pm_runtime_put*() and just avoi=
-d the
-> >> > extra power wastage and complexity involved in autosuspend.
-> >>
-> >> I have seen some instabilities if delay is very less, on some producti=
-on boards.
-> >
-> > Could you be more specific? =A0What type of instabilities did you see?
->=20
-> There have been some experiments on our customer programs to reduce this=
-=20
-> value to a few ms and infrequent crashes were observed (stress testing=20
-> for several hours) while trying to access the controller registers.
+Yes, increasing the module refcount is necessary to prevent the user
+from removing the driver when the rproc is used.
 
-Was there an oops?  Any analysis, etc.?
+If the underlying device goes away while rproc is used, then
+rproc_unregister should return -EBUSY, which would fail the underlying
+driver's ->remove() handler (gpiolib is doing something very similar).
+I have forgotten to add this check, and will add it now.
 
-
-- Paul
---155748971-850960283-1309358562=:2874--
+Thanks !
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
