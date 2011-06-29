@@ -1,60 +1,147 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
-Date: Wed, 29 Jun 2011 13:04:30 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1106291259320.2874@utopia.booyaka.com>
-References: <1308752314-32079-1-git-send-email-balajitk@ti.com> <1308752314-32079-3-git-send-email-balajitk@ti.com> <alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com> <BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com> <alpine.DEB.2.00.1106281240390.2874@utopia.booyaka.com>
- <BANLkTikni_xO7NQXQyv7XVeEH4Nowpr1Ow@mail.gmail.com> <alpine.DEB.2.00.1106290841160.2874@utopia.booyaka.com> <BANLkTiniSBRpgbW7cE0VritgCgstPbs5tg@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP3: run the ASM sleep code from DDR
+Date: Wed, 29 Jun 2011 12:06:07 -0700
+Message-ID: <8762nosbj4.fsf@ti.com>
+References: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
+	<87mxh0tuk2.fsf@ti.com>
+	<20110629180535.GF23312@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <BANLkTiniSBRpgbW7cE0VritgCgstPbs5tg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, "S, Venkatraman" <svenkatr@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, khilman@ti.com, b-cousson@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:42367 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752277Ab1F2TGM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Jun 2011 15:06:12 -0400
+Received: by iyn35 with SMTP id 35so1709219iyn.24
+        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 12:06:11 -0700 (PDT)
+In-Reply-To: <20110629180535.GF23312@n2100.arm.linux.org.uk> (Russell King's
+	message of "Wed, 29 Jun 2011 19:05:35 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: jean.pihet@newoldbits.com, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-+ Venkat
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-Hi Balaji, Venkat,
+> On Wed, Jun 29, 2011 at 10:29:49AM -0700, Kevin Hilman wrote:
+>> Russell, if you're OK with it, can you add it to your suspend branch for
+>> the upcoming merge window?
+>
+> Yes - though I think we can go a little bit further - this patch is on
+> top of my code so far, and is untested.  There isn't a need for the
+> saving of these registers to be in assembly because we can read them
+> just as easily from C code.
 
-On Wed, 29 Jun 2011, T Krishnamoorthy, Balaji wrote:
+Indeed
 
-> OOPS pointed to omap_hsmmc_prepare_data / set_data_timeout
-> Use case was MMC + SDIO +GPS activity, on kernel 2.6.35 though.
-> 
-> Unhandled fault: imprecise external abort (0x1406) at 0x4073102c
-                   ^^^^^^^^^
+> Comments?
 
-That's not good...
+Looks good to me (although untested) care to respin on top of $SUBJECT
+patch?  
 
-> Internal error: : 1406 [#1] PREEMPT SMP
-> last sysfs file: /sys/devices/platform/switch-sio/usb_sel
-> Modules linked in: param(P) j4fs(P) vibetonz Si4709_driver fm_drv(C)
-> bt_drv(C) st_drv(C)
-> CPU: 0    Tainted: P        WC   (2.6.35.7 #2)
-            ^^^^^^^^^^
+Minor comments below...
 
-Neither is this...
+>  arch/arm/mach-omap2/pm.h        |    2 +-
+>  arch/arm/mach-omap2/pm34xx.c    |   19 +++++++++++++++++--
+>  arch/arm/mach-omap2/sleep34xx.S |   12 ++----------
+>  3 files changed, 20 insertions(+), 13 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index 45bcfce..4984cca 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -92,7 +92,7 @@ extern void omap24xx_idle_loop_suspend(void);
+>  
+>  extern void omap24xx_cpu_suspend(u32 dll_ctrl, void __iomem *sdrc_dlla_ctrl,
+>  					void __iomem *sdrc_power);
+> -extern void omap34xx_cpu_suspend(u32 *addr, int save_state);
+> +extern void omap34xx_cpu_suspend(int save_state);
+>  extern int save_secure_ram_context(u32 *addr);
+>  extern void omap3_save_scratchpad_contents(void);
+>  
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 3e9a13e..6366352 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -78,7 +78,7 @@ struct power_state {
+>  
+>  static LIST_HEAD(pwrst_list);
+>  
+> -static void (*_omap_sram_idle)(u32 *addr, int save_state);
+> +static void (*_omap_sram_idle)(int save_state);
+>  
+>  static int (*_omap_save_secure_sram)(u32 *addr);
+>  
+> @@ -307,9 +307,22 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> +static void omap34xx_save_context(u32 *save)
+> +{
+> +	u32 val;
+> +
+> +	asm("mrc p15, 0, %0, c1, c0, 1" : "=r" (val));
 
-> PC is at clk_get_rate+0x4/0x48
-> LR is at set_data_timeout+0x68/0xf4
-> [<c06e78e0>] (set_data_timeout+0x0/0xf4) from [<c06e7dc8>]
-> (omap_hsmmc_request+0x2d0/0x5c8)
->  r8:efa78400 r7:00000001 r6:00000000 r5:ef9efe78 r4:efa78640
-> r3:ef9efee4
-> [<c06e7af8>] (omap_hsmmc_request+0x0/0x5c8) from [<c06df040>]
-> (mmc_wait_for_req+0x118/0x130)
-> [<c06def28>] (mmc_wait_for_req+0x0/0x130) from [<c06e59e8>]
-> (mmc_blk_issue_rq+0x1c0/0x500)
->  r6:ef86f000 r5:efa79000 r4:c91e61a0
-> [<c06e5828>] (mmc_blk_issue_rq+0x0/0x500) from [<c06e6620>]
-> (mmc_queue_thread+0xf4/0xf8)
-> [<c06e652c>] (mmc_queue_thread+0x0/0xf8) from [<c045ddec>] (kthread+0x84/0x8c)
-> [<c045dd68>] (kthread+0x0/0x8c) from [<c044b748>] (do_exit+0x0/0x604)
->  r7:00000013 r6:c044b748 r5:c045dd68 r4:ef8d5d68
+Minor: for those of us who don't have all these registers memorized when
+looking at the assembly, maybe keeping the original comments (e.g. "Read
+AUX 
 
-Was CONFIG_PM enabled?  If so, was off-mode enabled for any IP blocks, or 
-was it just clock-stop and/or retention?
-
-
-- Paul
+> +	*save++ = 1;
+> +	*save++ = val;
+> +
+> +	asm("mrc p15, 1, %0, c9, c0, 2" : "=r" (val));
+> +	*save++ = 1;
+> +	*save++ = val;
+> +}
+> +
+>  static void omap34xx_do_sram_idle(unsigned long save_state)
+>  {
+> -	_omap_sram_idle(omap3_arm_context, save_state);
+> +	_omap_sram_idle(save_state);
+>  }
+>  
+>  void omap_sram_idle(void)
+> @@ -412,6 +425,8 @@ void omap_sram_idle(void)
+>  	 * get saved. The rest is placed on the stack, and restored
+>  	 * from there before resuming.
+>  	 */
+> +	if (save_state)
+> +		omap34xx_save_context(omap3_arm_context);
+>  	if (save_state == 1 || save_state == 3)
+>  		cpu_suspend(save_state, omap34xx_do_sram_idle);
+>  	else
+> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> index d18f52e..3335753 100644
+> --- a/arch/arm/mach-omap2/sleep34xx.S
+> +++ b/arch/arm/mach-omap2/sleep34xx.S
+> @@ -150,8 +150,7 @@ ENTRY(omap34xx_cpu_suspend)
+>  	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
+>  
+>  	/*
+> -	 * r0 contains CPU context save/restore pointer in sdram
+> -	 * r1 contains information about saving context:
+> +	 * r0 contains information about saving context:
+>  	 *   0 - No context lost
+>  	 *   1 - Only L1 and logic lost
+>  	 *   2 - Only L2 lost (Even L1 is retained we clean it along with L2)
+> @@ -159,18 +158,11 @@ ENTRY(omap34xx_cpu_suspend)
+>  	 */
+>  
+>  	/* Directly jump to WFI is the context save is not required */
+> -	cmp	r1, #0x0
+> +	cmp	r0, #0x0
+>  	beq	omap3_do_wfi
+>  
+>  	/* Otherwise fall through to the save context code */
+>  save_context_wfi:
+> -	mov	r8, r0			@ Store SDRAM address in r8
+> -	mrc	p15, 0, r5, c1, c0, 1	@ Read Auxiliary Control Register
+> -	mov	r4, #0x1		@ Number of parameters for restore call
+> -	stmia	r8!, {r4-r5}		@ Push parameters for restore call
+> -	mrc	p15, 1, r5, c9, c0, 2	@ Read L2 AUX ctrl register
+> -	stmia	r8!, {r4-r5}		@ Push parameters for restore call
+> -
+>  	/*
+>  	 * jump out to kernel flush routine
+>  	 *  - reuse that code is better
