@@ -1,46 +1,46 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAP: DSS: dispc: enable/disable clocks in error
- handler
-Date: Wed, 29 Jun 2011 07:58:07 +0300
-Message-ID: <1309323487.1829.9.camel@deskari>
-References: <1309195865-23808-1-git-send-email-dima@android.com>
-	 <4E09FEFD.9020005@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
+Date: Wed, 29 Jun 2011 11:30:21 +0530
+Message-ID: <1309327221-4121-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:34298 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750974Ab1F2E6O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 00:58:14 -0400
-In-Reply-To: <4E09FEFD.9020005@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: Dima Zavin <dima@android.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, 2011-06-28 at 09:19 -0700, Archit Taneja wrote:
-> Hi,
-> 
-> On Monday 27 June 2011 10:31 AM, Dima Zavin wrote:
-> > There's no guarantee that the error handler worker thread
-> > will run while the dispc clocks are on. Explicitly enable/disable
-> > them.
-> 
-> I agree with this.
+Currently the fifo depth is set to zero for OMAP4 which disables
+the FIFO usage. This patch enables the FIFO usage for I2C transactions
+on OMAP4 also.
 
-Yes, I think this patch is fine. I'll apply it to DSS tree.
+Reported-By:Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
 
-> Tomi,
-> 
-> We could get prevent scheduling of the error worker by registering 
-> omap_dispc_irq_handler() as an interrupt thread.
-
-But then we would get extra latency on the interrupt handlers. I wanted
-to keep handling DSS interrupts in interrupt context, because some use
-cases may require very fast reaction to an interrupt.
-
- Tomi
-
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 58a58c7..934b52c 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1059,13 +1059,12 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		 * size. This is to ensure that we can handle the status on int
+ 		 * call back latencies.
+ 		 */
+-		if (dev->rev >= OMAP_I2C_REV_ON_4430) {
+-			dev->fifo_size = 0;
++		dev->fifo_size = (dev->fifo_size / 2);
++		if (dev->rev >= OMAP_I2C_REV_ON_4430)
+ 			dev->b_hw = 0; /* Disable hardware fixes */
+-		} else {
+-			dev->fifo_size = (dev->fifo_size / 2);
++		else
+ 			dev->b_hw = 1; /* Enable hardware fixes */
+-		}
++
+ 		/* calculate wakeup latency constraint for MPU */
+ 		if (dev->set_mpu_wkup_lat != NULL)
+ 			dev->latency = (1000000 * dev->fifo_size) /
+-- 
+1.7.1
