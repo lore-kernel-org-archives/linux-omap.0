@@ -1,65 +1,67 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP3: run the ASM sleep code from DDR
-Date: Wed, 29 Jun 2011 10:29:49 -0700
-Message-ID: <87mxh0tuk2.fsf@ti.com>
-References: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and
+ ohci
+Date: Wed, 29 Jun 2011 13:33:28 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1106291331300.2064-100000@iolanthe.rowland.org>
+References: <BANLkTi=pKL6RDBTDBStv+uhxVKp3-bwXbg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:49056 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756276Ab1F2R3y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 13:29:54 -0400
-Received: by pzk10 with SMTP id 10so1403321pzk.35
-        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 10:29:52 -0700 (PDT)
-In-Reply-To: <1309365623-14704-1-git-send-email-j-pihet@ti.com> (jean pihet's
-	message of "Wed, 29 Jun 2011 18:40:23 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <BANLkTi=pKL6RDBTDBStv+uhxVKp3-bwXbg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, b-cousson@ti.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-jean.pihet@newoldbits.com writes:
+On Wed, 29 Jun 2011, Munegowda, Keshava wrote:
 
-> From: Jean Pihet <j-pihet@ti.com>
->
-> Most of the ASM sleep code (in arch/arm/mach-omap2/sleep34xx.S)
-> is copied to internal SRAM at boot and after wake-up from CORE OFF mode.
-> However only a small part of the code really needs to run from internal SRAM.
->
-> This fix lets most of the ASM idle code run from the DDR
-> in order to minimize the SRAM usage and the overhead in the code copy.
->
-> The only pieces of code that are mandatory in SRAM are:
-> - the i443 erratum WA,
-> - the i581 erratum WA,
-> - the security extension code.
->
-> SRAM usage:
-> - original code:
->   . 560 bytes for omap3_sram_configure_core_dpll (used by DVFS),
->   . 852 bytes for omap_sram_idle (used by suspend/resume in RETention),
->   . 124 bytes for es3_sdrc_fix (used by suspend/resume in OFF mode on ES3.x),
->   . 108 bytes for save_secure_ram_context (used on HS parts only).
->
-> With this fix the usage for suspend/resume in RETention goes down 288 bytes,
-> so the gain in SRAM usage for suspend/resume is 564 bytes.
->
-> Also fixed the SRAM initialization sequence to avoid an unnecessary
-> copy to SRAM at boot time and for readability.
->
-> Tested on Beagleboard (ES2.x) in idle with full RET and OFF modes.
->
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> for usb host case , I am seeing that the pm_runtime_get_sync
+> 
+> 
+> static int rpm_resume(struct device *dev, int rpmflags)
+> {
+>   ............
+>  ..........
+> 	if (dev->pwr_domain) {
+> 		callback = dev->pwr_domain->ops.runtime_resume;
+> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
+> 			 pr_err("dev->pwr_domain->ops.runtime_resume");
+> 	}	
+> 	else if (dev->type && dev->type->pm) {
+> 		callback = dev->type->pm->runtime_resume;
+> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
+> 			 pr_err("dev->type->pm->runtime_resume");
+> 	}	
+> 	else if (dev->class && dev->class->pm) {
+> 		callback = dev->class->pm->runtime_resume;
+> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
+> 			 pr_err("ev->class->pm->runtime_resume");
+> 	}	
+> 	else if (dev->bus && dev->bus->pm) {
+> 		callback = dev->bus->pm->runtime_resume;
+> 	if(!strcmp(dev_name(dev),"usbhs_omap"))
+> 		 pr_err("dev->bus->pm->runtime_resume");
+> 	}	
+> 	else
+> 		callback = NULL;
+> }
+> 
+> 
+> I am seeing that below if statement was hitting true:
+> 
+> 	if (dev->pwr_domain) {
+> 		callback = dev->pwr_domain->ops.runtime_resume;
+> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
+> 			 pr_err("dev->pwr_domain->ops.runtime_resume");
+> 
+> 
+> due to this; the driver->runtime_resume was not getting called.
+> 
+> Any idea on why I am seeing only the dev->pwr_domain is set not
+> dev->bus && dev->bus->pm is hitting here?
 
-Reviewed-by: Kevin Hilman <khilman@ti.com>
+Because the PM domain takes precedence over the subsystem for PM 
+callbacks.  If the subsystem routine should be called then the PM 
+domain code has to call it.
 
-Also tested retention and off on 3430/n900, 3530/Overo and 3630/Zoom3
-
-Tested-by: Kevin Hilman <khilman@ti.com>
-
-Russell, if you're OK with it, can you add it to your suspend branch for
-the upcoming merge window?
-
-Kevin
+Alan Stern
