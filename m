@@ -1,55 +1,65 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH] OMAP: DSS: dispc: enable/disable clocks in error handler
-Date: Wed, 29 Jun 2011 10:02:30 -0700
-Message-ID: <4E0B5AA6.7070603@ti.com>
-References: <1309195865-23808-1-git-send-email-dima@android.com>	 <4E09FEFD.9020005@ti.com> <1309323487.1829.9.camel@deskari>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP3: run the ASM sleep code from DDR
+Date: Wed, 29 Jun 2011 10:29:49 -0700
+Message-ID: <87mxh0tuk2.fsf@ti.com>
+References: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41554 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753092Ab1F2RCq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 13:02:46 -0400
-In-Reply-To: <1309323487.1829.9.camel@deskari>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:49056 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756276Ab1F2R3y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Jun 2011 13:29:54 -0400
+Received: by pzk10 with SMTP id 10so1403321pzk.35
+        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 10:29:52 -0700 (PDT)
+In-Reply-To: <1309365623-14704-1-git-send-email-j-pihet@ti.com> (jean pihet's
+	message of "Wed, 29 Jun 2011 18:40:23 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "Taneja, Archit" <archit@ti.com>, Dima Zavin <dima@android.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: jean.pihet@newoldbits.com
+Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-Hi,
+jean.pihet@newoldbits.com writes:
 
-On Tuesday 28 June 2011 09:58 PM, Valkeinen, Tomi wrote:
-> On Tue, 2011-06-28 at 09:19 -0700, Archit Taneja wrote:
->> Hi,
->>
->> On Monday 27 June 2011 10:31 AM, Dima Zavin wrote:
->>> There's no guarantee that the error handler worker thread
->>> will run while the dispc clocks are on. Explicitly enable/disable
->>> them.
->>
->> I agree with this.
+> From: Jean Pihet <j-pihet@ti.com>
 >
-> Yes, I think this patch is fine. I'll apply it to DSS tree.
+> Most of the ASM sleep code (in arch/arm/mach-omap2/sleep34xx.S)
+> is copied to internal SRAM at boot and after wake-up from CORE OFF mode.
+> However only a small part of the code really needs to run from internal SRAM.
 >
->> Tomi,
->>
->> We could get prevent scheduling of the error worker by registering
->> omap_dispc_irq_handler() as an interrupt thread.
+> This fix lets most of the ASM idle code run from the DDR
+> in order to minimize the SRAM usage and the overhead in the code copy.
 >
-> But then we would get extra latency on the interrupt handlers. I wanted
-> to keep handling DSS interrupts in interrupt context, because some use
-> cases may require very fast reaction to an interrupt.
+> The only pieces of code that are mandatory in SRAM are:
+> - the i443 erratum WA,
+> - the i581 erratum WA,
+> - the security extension code.
+>
+> SRAM usage:
+> - original code:
+>   . 560 bytes for omap3_sram_configure_core_dpll (used by DVFS),
+>   . 852 bytes for omap_sram_idle (used by suspend/resume in RETention),
+>   . 124 bytes for es3_sdrc_fix (used by suspend/resume in OFF mode on ES3.x),
+>   . 108 bytes for save_secure_ram_context (used on HS parts only).
+>
+> With this fix the usage for suspend/resume in RETention goes down 288 bytes,
+> so the gain in SRAM usage for suspend/resume is 564 bytes.
+>
+> Also fixed the SRAM initialization sequence to avoid an unnecessary
+> copy to SRAM at boot time and for readability.
+>
+> Tested on Beagleboard (ES2.x) in idle with full RET and OFF modes.
+>
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
 
-Okay..we don't need to handle the errors in interrupt context..the 
-request_threaded_irq() takes 2 functions I think, we could have have 
-omap_dispc_irq_handler() as the primary handler, and the error_worker as 
-the thread.
+Reviewed-by: Kevin Hilman <khilman@ti.com>
 
-I think the change I'm just suggesting just leads to some beautification 
-in the end :), we would still need to ensure that clocks are enabled in 
-the error_worker path.
+Also tested retention and off on 3430/n900, 3530/Overo and 3630/Zoom3
 
-Archit
+Tested-by: Kevin Hilman <khilman@ti.com>
 
+Russell, if you're OK with it, can you add it to your suspend branch for
+the upcoming merge window?
 
+Kevin
