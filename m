@@ -1,44 +1,56 @@
 From: Silesh C V <silesh@ti.com>
-Subject: [PATCH v2 1/2] OMAP: 4430SDP: Register the card detect GPIO properly
-Date: Wed, 29 Jun 2011 07:44:56 +0530
-Message-ID: <1309313698-19438-1-git-send-email-silesh@ti.com>
+Subject: [PATCH v2 2/2] OMAP: HSMMC: Fix GPIO muxing
+Date: Wed, 29 Jun 2011 07:44:57 +0530
+Message-ID: <1309313698-19438-2-git-send-email-silesh@ti.com>
+References: <1309313698-19438-1-git-send-email-silesh@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54596 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54640 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751289Ab1F2CJX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Jun 2011 22:09:23 -0400
+	id S1751289Ab1F2CJe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Jun 2011 22:09:34 -0400
+In-Reply-To: <1309313698-19438-1-git-send-email-silesh@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, balajitk@ti.com, grinberg@compulab.co.il, svenkatr@ti.com, Silesh C V <silesh@ti.com>
 
-Without this the HSMMC driver takes GPIO 0 to be the card detect gpio
-and requests/configures it. This will give rise to issues when another
-driver needs to use GPIO 0. On 4430SDP, the card detection is through
-TWL 6030.
+Use generic gpio call to check the validity of the gpio. Note that
+this includes gpio 0 also which was missing before.
 
 Signed-off-by: Silesh C V <silesh@ti.com>
 ---
-Changes for v2 :
-	- Made it a series to make sure this one goes before the mux fix.
+ arch/arm/mach-omap2/hsmmc.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
- arch/arm/mach-omap2/board-4430sdp.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 63de2d3..7a1460f 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -327,6 +327,7 @@ static struct omap2_hsmmc_info mmc[] = {
- 	{
- 		.mmc		= 1,
- 		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
-+		.gpio_cd	= -EINVAL,
- 		.gpio_wp	= -EINVAL,
- 	},
- 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index 66868c5..a9b45c7 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -13,6 +13,7 @@
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/delay.h>
++#include <linux/gpio.h>
+ #include <mach/hardware.h>
+ #include <plat/mmc.h>
+ #include <plat/omap-pm.h>
+@@ -213,12 +214,10 @@ static int nop_mmc_set_power(struct device *dev, int slot, int power_on,
+ static inline void omap_hsmmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 			int controller_nr)
+ {
+-	if ((mmc_controller->slots[0].switch_pin > 0) && \
+-		(mmc_controller->slots[0].switch_pin < OMAP_MAX_GPIO_LINES))
++	if (gpio_is_valid(mmc_controller->slots[0].switch_pin))
+ 		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
+ 					OMAP_PIN_INPUT_PULLUP);
+-	if ((mmc_controller->slots[0].gpio_wp > 0) && \
+-		(mmc_controller->slots[0].gpio_wp < OMAP_MAX_GPIO_LINES))
++	if (gpio_is_valid(mmc_controller->slots[0].gpio_wp))
+ 		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
+ 					OMAP_PIN_INPUT_PULLUP);
+ 	if (cpu_is_omap34xx()) {
 -- 
 1.7.1
 
