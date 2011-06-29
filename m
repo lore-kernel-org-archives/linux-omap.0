@@ -1,67 +1,78 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 9/9] OMAP3: PM: Disable / enable PRCM chain interrupts during wakeup from suspend
-Date: Wed, 29 Jun 2011 12:05:03 +0300
-Message-ID: <1309338303-2086-10-git-send-email-t-kristo@ti.com>
-References: <1309338303-2086-1-git-send-email-t-kristo@ti.com>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCHv2 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Wed, 29 Jun 2011 15:52:09 +0530
+Message-ID: <BANLkTimWocMSCAxMf2ruLBzqdTOi0d2OLg@mail.gmail.com>
+References: <1309282049-23739-1-git-send-email-balajitk@ti.com>
+	<1309282049-23739-3-git-send-email-balajitk@ti.com>
+	<87mxh1v8f3.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48937 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753822Ab1F2JFV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 05:05:21 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5T95LH7030703
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 04:05:21 -0500
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep35.itg.ti.com (8.13.7/8.13.8) with ESMTP id p5T95LMe001822
-	for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 04:05:21 -0500 (CDT)
-Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5T95KNr009264
-	for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 04:05:20 -0500 (CDT)
-Content-Class: urn:content-classes:message
-In-Reply-To: <1309338303-2086-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <87mxh1v8f3.fsf@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com, svenkatr@ti.com, "Nayak, Rajendra" <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-This prevents system hang while attempting to access suspended console.
+On Wed, Jun 29, 2011 at 5:02 AM, Kevin Hilman <khilman@ti.com> wrote:
+> +Rajendra
+>
+> Balaji T K <balajitk@ti.com> writes:
+>
+>> add runtime pm support to HSMMC host controller
+>> Use runtime pm API to enable/disable HSMMC clock
+>> Use runtime autosuspend APIs to enable auto suspend delay
+>>
+>> Based on OMAP HSMMC runtime implementation by Kevin Hilman, Kishore =
+Kadiyala
+>>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>
+> I tried to test this series along with Benoit's clkdm/modulemode/hwmo=
+d
+> cleanups and something strange is happening on OMAP4.
+>
+> First, this series by itself is working as I would expect, but testin=
+g
+> in combination with Benoit's series, it's different...
+>
+> First, I'm using Benoit's branch:
+>
+> =A0 =A0 =A0 git://gitorious.org/omap-pm/linux.git for_3.0.1/7_hwmod_m=
+odulemode
+>
+> in combination with your series.
+>
+> I've also reverted these two commits:
+>
+> =A0 OMAP4: PM: TEMP: Prevent l3init from idling/force sleep
+> =A0 OMAP3+: hwmod data: TEMP: Do not idle MMC1 & MMC2 after boot
+>
+> which are temporary workarounds for not having MMC runtime PM.
+>
+> I turned the dev_dbg calls in the runtime PM callbacks into dev_info
+> callbacks to see exactly when the device is enabled/disabled via runt=
+ime
+> PM.
+>
+> To my surprise, I didn't see the device being enabled/disabled when
+> writing do the device.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+I tried for_3.0.1/7_hwmod_modulemode as you mentioned above,
+changing dev_dbg to dev_err and I am not observing the delayed write
+during umount. Can you let me know if the files are there in MMC after
+remounting ?
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e626a3d..dae0a8a 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -418,6 +418,10 @@ void omap_sram_idle(void)
- 	pwrdm_post_transition();
- 
- 	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
-+	if (suspend_state != PM_SUSPEND_ON) {
-+		disable_irq(prcm_io_irq);
-+		disable_irq(prcm_wkup_irq);
-+	}
- }
- 
- int omap3_can_sleep(void)
-@@ -524,6 +528,8 @@ static void omap3_pm_end(void)
- 	suspend_state = PM_SUSPEND_ON;
- 	omap_uart_enable_irqs(1);
- 	enable_hlt();
-+	enable_irq(prcm_io_irq);
-+	enable_irq(prcm_wkup_irq);
- 	return;
- }
- 
--- 
-1.7.4.1
+> Any ideas why the same isn't happening when used with Benoit's series=
+?
+>
+> Kevin
+>
+> P.S. note that the debug messages don't quite match. =A0One says 'hos=
+t:
+> enabled' the other says 'disabled' (without the host: prefix.) =A0mak=
+ing
+> the prefixes match would be more readable.
 
-
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
-
+Ok, Will align dev_dbg prints.
