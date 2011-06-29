@@ -1,47 +1,30 @@
-From: Leigh Brown <leigh@solinno.co.uk>
-Subject: Re: [PATCH 0/2] RETU meets Sparse IRQ
-Date: Wed, 29 Jun 2011 22:18:57 +0100
-Message-ID: <c1c24abe84b7634c6751d51e88213424@doppler.thel33t.co.uk>
-References: <1309348011-23141-1-git-send-email-balbi@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] OMAP3: run the ASM sleep code from DDR
+Date: Wed, 29 Jun 2011 22:45:45 +0100
+Message-ID: <20110629214545.GH23312@n2100.arm.linux.org.uk>
+References: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from doppler.thel33t.co.uk ([193.110.88.198]:58843 "EHLO
-	doppler.thel33t.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751199Ab1F2VTA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 17:19:00 -0400
-In-Reply-To: <1309348011-23141-1-git-send-email-balbi@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44055 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754159Ab1F2VqB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 17:46:01 -0400
+Content-Disposition: inline
+In-Reply-To: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: jean.pihet@newoldbits.com
+Cc: khilman@ti.com, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-On Wed, 29 Jun 2011 14:46:49 +0300, Felipe Balbi wrote:
-> now with Sparse IRQ numbering, we don't need
-> to add a bunch of defines in <plat/irqs.h>
->
-> Compile tested with omap2plus_defconfig (+cbus)
-> and omap1_defconfig (+cbus).
->
-> Felipe Balbi (2):
->   cbus: retu: use sparse IRQ numbering
->   cbus: retu: stop polluting <plat/irqs.h>
->
->  arch/arm/mach-omap1/board-nokia770.c   |    2 --
->  arch/arm/mach-omap2/board-n8x0.c       |    2 --
->  arch/arm/plat-omap/include/plat/irqs.h |   10 +---------
->  drivers/cbus/retu.c                    |   25 
-> ++++++++++++++++---------
->  include/linux/platform_data/cbus.h     |    2 --
->  5 files changed, 17 insertions(+), 24 deletions(-)
+On Wed, Jun 29, 2011 at 06:40:23PM +0200, jean.pihet@newoldbits.com wrote:
+> @@ -309,7 +308,7 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+>  
+>  static void omap34xx_do_sram_idle(unsigned long save_state)
+>  {
+> -	_omap_sram_idle(omap3_arm_context, save_state);
+> +	omap34xx_cpu_suspend(omap3_arm_context, save_state);
 
-Tested-by: Leigh Brown <leigh@solinno.co.uk>
-
-Booted fine on my N810.
-
-Regards,
-
-Leigh.
-
+Actually, this should be called omap34xx_soc_suspend() or
+omap34xx_finish_suspend() - finish_suspend() reflects the naming
+of other such functions elsewhere.
