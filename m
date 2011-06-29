@@ -1,417 +1,153 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH 0/8] HDMI: Split hdmi.c to seperate HDMI IP dependant code
- from DSS.
-Date: Wed, 29 Jun 2011 19:08:22 +0530
-Message-ID: <BANLkTi=VAaTf7SwXJikHAJGmxJLmbg84Dw@mail.gmail.com>
-References: <1308298637-29753-1-git-send-email-mythripk@ti.com>
- <1308823101.1834.79.camel@deskari> <BANLkTinc9JUr-gBGSynzMtrqTVncDUbNKQ@mail.gmail.com>
- <1308832274.1834.109.camel@deskari> <BANLkTik1TYgaGBYKqYxih1RjPKn8nU_cAA@mail.gmail.com>
- <1309179518.1813.38.camel@lappyti>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
+Date: Wed, 29 Jun 2011 15:00:59 +0100
+Message-ID: <20110629140059.GE23312@n2100.arm.linux.org.uk>
+References: <1308923618-5333-1-git-send-email-premi@ti.com> <CAMbhsRQUKBZbC3jJt8XpjTW2n7uA529D6G0g4eT5iLEHn2iNLg@mail.gmail.com> <20110628225523.GA23312@n2100.arm.linux.org.uk> <CAMbhsRQjMmXrULVmFg9CoM0wzZ29wcHqEaT480NaDhB8hHEKZg@mail.gmail.com> <20110628231711.GC23312@n2100.arm.linux.org.uk> <CAMbhsRQUg75R=1TvqYwgcF5eCSFq3WFaAg7EsJ=yaT9VgcfJNA@mail.gmail.com> <20110628234621.GD23312@n2100.arm.linux.org.uk> <CAMbhsRRBhT5YX6E4Nkyvns5YykqzqV3-g4JhR2KPcxBhj0ABww@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:39470 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754109Ab1F2Npa convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 09:45:30 -0400
-Received: by mail-fx0-f44.google.com with SMTP id 6so1050249fxe.3
-        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 06:45:28 -0700 (PDT)
-In-Reply-To: <1309179518.1813.38.camel@lappyti>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49499 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363Ab1F2OBQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 10:01:16 -0400
+Content-Disposition: inline
+In-Reply-To: <CAMbhsRRBhT5YX6E4Nkyvns5YykqzqV3-g4JhR2KPcxBhj0ABww@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Colin Cross <ccross@google.com>
+Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Tomi,
-
-
-On Mon, Jun 27, 2011 at 6:28 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> On Mon, 2011-06-27 at 11:21 +0530, K, Mythri P wrote:
->> Hi Tomi,
->>
->> On Thu, Jun 23, 2011 at 6:01 PM, Tomi Valkeinen <tomi.valkeinen@ti.c=
-om> wrote:
->> > On Thu, 2011-06-23 at 17:35 +0530, K, Mythri P wrote:
->> >> Hi Tomi,
->> >>
->> >> On Thu, Jun 23, 2011 at 3:28 PM, Tomi Valkeinen <tomi.valkeinen@t=
-i.com> wrote:
->> >> > On Fri, 2011-06-17 at 13:47 +0530, Mythri P K wrote:
->> >> >> HDMI IP block is common between TI OMAP4 Procerssor and Netra =
-processor although
->> >> >> the Display subsytem is different. Thus to reuse the code betw=
-een these two
->> >> >> processors , HDMI IP dependant code is seperated out from hdmi=
-=2Ec and moved to
->> >> >> new library file hdmi_ti_4xxx_ip.c which now resides in /drive=
-rs/video a more
->> >> >> generic location out of omap2/dss folder.
->> >> >>
->> >> >> This patch series does the split and also renames hdmi_omap4_p=
-anel.c to
->> >> >> hdmi_panel.c as that file has nothing specific to OMAP4 and ca=
-n be reused for
->> >> >> other OMAP family of processors as well.
->> >> >
->> >> > These comments are based on the branch you have, not to particu=
-lar
->> >> > patches:
->> >> >
->> >> > include/video/hdmi_ti_4xxx_ip.h:
->> >> >
->> >> > - This file is in a way the most important one, because it's th=
-e public
->> >> > API of the component. So you should be extra careful with this,=
- and see
->> >> > that everything in it makes sense, and it's clear how it is to =
-be used.
->> >> >
->> >> > - hdmi_core_hdmi_dvi is defined but not used. Should it be in t=
-he
->> >> > private header?
->> >>
->> >> =A0HDMI_HDMI =A0and HDMI_DVI are used everywhere in hdmi.c and hd=
-mi_ti_4xxx_ip.c,
->> >> one thing =A0i could do is to add a patch to used this enumerator
->> >> instead of int mode ?
->> >
->> > Oh, so the "int mode" in the header is actually "enum hdmi_core_hd=
-mi_dvi
->> > mode"? Using int is obviously wrong, then.
->> sure i shall fix it in a separate patch.
->> >
->> >> > - hdmi_pll_pwr seems to be very low level thing. It requires th=
-e user to
->> >> > know HW details about the PLL, I don't think it should be visib=
-le to the
->> >> > users. It is used in parameters for hdmi_ti_4xxx_set_pll_pwr().=
- When is
->> >> > it supposed to be used? Why is hdmi_ti_4xxx_wp_video_start() no=
-t enough?
->> >> >
->> >> HDMI has core , PLL and PHY blocks, so user of the ip driver shou=
-ld
->> >> configure them separately.
->> >
->> > Why? Is there some requirement/benefit to it?
->>
->> Yes , When the core block is replaced in future OMAP's same PLL and
->> PHY blocks are used.
->
-> That doesn't answer the question why the user should know about the
-> details of the HW. As far as I see, the user wants basically to
-> configure, enable and disable the HDMI HW. The user wants to do the s=
-ame
-> things, regardless of the HDMI HW blocks used in that particular OMAP=
-=2E
->
-> However, there is a reason why the HDMI PLL should be considered
-> separately: the PLL can be used as a clock source for DISPC and VENC.=
- So
-> the API should offer functionality to configure and use the PLL
-> separately from the HDMI core/phy. But even so, hdmi_pll_pwr feels a =
-bit
-> too low-level function for this API.
->
-> As for HDMI core/phy, is there ever reason to use one but not another=
-?
-> Or is there a reason to configure them separately? If not, I don't se=
-e
-> why they should be present separately in the API.
->
->> >> > - The same goes to hdmi_ti_4xxx_pll_program. Who does the PLL
->> >> > calculations, omapdss driver? Shouldn't the HDMI driver do it, =
-the PLL
->> >> > is a HDMI HW thing, not DSS HW? Or if they are defined in the b=
-oard
->> >> > file, and omapdss just gives them to the HDMI driver, I think t=
-he data
->> >> > should be somehow passed through omapdss without omapdss active=
-ly
->> >> > participating in the PLL programming. This would be easy if the=
- HDMI
->> >> > would use a platform device/driver model, the data could be pas=
-sed via
->> >> > the device data.
->> >
->> > Can you comment on this? Why the PLL calculation is not in the HDM=
-I IP
->> > driver?
->> The calculation of the PLL would depend on the sysclk freq right ? b=
-ut
->> only the TMDS is the concern of HDMI IP block , so i would configure
->> only the TMDS portion in HDMI IP and calculation in DSS.
->
-> The HDMI PLL is part of the HDMI HW, not DSS HW, right? What if the H=
-DMI
-> PLL used in next OMAP would contain one more divider? Using it would
-> require writing new calculation code into DSS driver. The PLL divider=
-s
-> and calculations sound very much like HDMI PLL internal thing, not
-> something that should be handled in the DSS level.
->
-> Yes, PLL calculations depend on the input clock, in this case sys_clk=
-=2E
-> So it should be provided to the HDMI code.
->
->> >> > - If the PLL calculations have to be done by omapdss, couldn't =
-the
->> >> > hdmi_pll_info be part of hdmi_config?
->> >>
->> >> hdmi_pll_info would be used only once while configuring (power on=
-) ,
->> >> Why would we have to store the pll_info then in hdmi_config?
->> >
->> > Whether you store the hdmi_pll_info or not is HDMI IP driver inter=
-nal
->> > thing, not related to the API. We're talking about the API here.
->> >
->> > Look at the include/video/hdmi_ti_4xxx_ip.h file and think from th=
-e
->> > users view point: what is the most obvious and easiest way to use =
-the
->> > API. Then make the HDMI IP driver work with the API.
->>
->> As the pll_info in needed only for config of the PLL block it wouldn=
+On Tue, Jun 28, 2011 at 04:59:57PM -0700, Colin Cross wrote:
+> On Tue, Jun 28, 2011 at 4:46 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Tue, Jun 28, 2011 at 04:37:08PM -0700, Colin Cross wrote:
+> >> I don't think it affects bogomips - loops_per_jiffy can still be
+> >> calibrated and updated by cpufreq, udelay just wont use them.
+> >
+> > No, you can't avoid it. =A0__delay(), udelay(), and the global
+> > loops_per_jiffy are all linked together - for instance this is how
+> > the spinlock code has a 1s timeout:
+> >
+> > static void __spin_lock_debug(raw_spinlock_t *lock)
+> > {
+> > =A0 =A0 =A0 =A0u64 loops =3D loops_per_jiffy * HZ;
+> > =A0 =A0 =A0 =A0int print_once =3D 1;
+> >
+> > =A0 =A0 =A0 =A0for (;;) {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0for (i =3D 0; i < loops; i++) {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (arch_spin_tryloc=
+k(&lock->raw_lock))
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0retu=
+rn;
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0__delay(1);
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> >
+> > which goes wrong for all the same reasons you're pointing out about
+> > udelay(). =A0So just restricting your argument to udelay() is not
+> > realistic.
+> >
+>=20
+> True, there are a few other users of loops_per_jiffy and __delay, but
+> it looks like __spin_lock_debug is the only one worth worrying about,
+> and it's timing is not as critical as udelay - worst case here is tha=
 t
->> make sense to store it.[even from API point of view].
->
-> The API doesn't have anything related to storing the pll_info. If a g=
-ood
-> API requires the HDMI driver to store some pieces of information, why
-> would that be a problem?
->
->> >> > - Is hdmi_ti_4xxx_phy_off the counterpart of hdmi_ti_4xxx_phy_i=
-nit? If
->> >> > so, the naming could be better to clearly show this. Like init/=
-uninit,
->> >> > enable/disable, etc.
->> >>
->> >> I shall rename. yes phy_off is counterpart of init , i shall renm=
-ane
->> >> it to enable ,disable.
->> >> >
->> >> > - Is the "phy" relevant (from the user's point of view) in
->> >> > hdmi_ti_4xxx_phy_init and off? Or could they be just init and u=
-ninit?
->> >>
->> >> PHY is a seperate block in HDMI and even from the user point of v=
-iew
->> >> user should be aware of PHY, PLL and core blocks. so phy_init is
->> >> relevant.
->> >
->> > Again, why? Why cannot the user just give the configurations to th=
-e HDMI
->> > IP driver, and start it, without knowing anything about PHY/PLL/co=
-re.
->> >
->> Please see the comment above. The PHY , PLL and core blocks are inte=
-rchangeable.
->
-> I don't see how this answers the question.
->
-> If the GPIO hardware on some platform would have three HW blocks that
-> can be changed depending on the SoC version, we would still just use =
-the
-> normal GPIO API. Not a GPIO API with separate functions to configure =
-all
-> those three HW blocks.
->
+> the warning occurs after 250 ms instead of 1s.  Leaving
+> loops_per_jiffy and __delay intact, and fixing udelay, would still be
+> a net gain.
 
-As the HDMI PLL , PHY and video blocks are logical blocks it would
-make sense to have the API's for all and the DSS HDMI (interface
-driver - user driver) would make a call to configure this in a
-particular sequence to enable HDMI , in case you the call to be
-generic across OMAPS in future then we should i either have a funtion
-in hdmi.c which will do this sequence and will be  aware of underlying
-IP , Which doesnt appear to be the solution you prefer but then there
-would be a need to have an intermediate file which would take the
-common API call(function pointer) and then arbitrate between different
-IP's based on the make , Is that what you are suggesting ?
+Other users of loops_per_jiffy are incorrect in any case:
 
->> >> > - Perhaps hdmi_ti_4xxx_basic_configure could be just configure,=
- there's
->> >> > no advanced configure or similar.
->> >> Well, makes sense but this is the init_configuration(default
->> >> configuration) is what was intended in the patch.
->> >> >
->> >> > - is the "wp" important in hdmi_ti_4xxx_wp_video_start?
->> >> >
->> >> yes wp =3D=3D wrapper , so it would be clear to have a wp_video_S=
-tart.
->> >
->> > Why does the user need to know wp =3D=3D wrapper? Isn't the functi=
-on just
->> > about enabling the video output?
->> Well it is just to distinguish , yes the user doesn't have to know.
->> >
->> >> > - read_ti_4xxx_edid() is named differently than the other funct=
-ions.
->> >> >
->> >> I shall rename to hdmi_ti_4xxx_read_edid.
->> >>
->> >> > drivers/video/hdmi_ti_4xxx_ip.c:
->> >> >
->> >> > - EXPORT_SYMBOL(hdmi_ti_4xxx_phy_init); is not below the functi=
-on.
->> >> >
->> >> > drivers/video/omap2/dss/hdmi.c:
->> >> >
->> >> > - hdmi_ti_4xxx_set_pll_pwr() is only called in power_off(), but=
- never
->> >> > enabled. I presume the HDMI driver does that internally. That d=
-oesn't
->> >> > sound like a valid use of the function.
->> >>
->> >> It is enabled in hdmi_ti_4xxx_pll_program called from power on.
->> >
->> > Yes, I can see that. But it's bad usage pattern. Never enable some=
-thing
->> > in one component, and disable it in another. The same entity has t=
-o do
->> > them both.
->> >
->> >> > - Looking at hdmi_power_on(), I feel that the API of the HDMI d=
-river
->> >> > could be simpler. Would it be enough to have just one function =
-to setup
->> >> > the HDMI, and another to turn the output on?
->> >> No , I suppose it is the responsibility of the user of IP driver =
-to
->> >> configure PHY , PLL and CORE blocks seperately as we can reuse th=
-e PLL
->> >> or PHY block in different SOC's as well.
->> >
->> > Well, in that case, shouldn't PHY, PLL and CORE be in separate dri=
-vers?
->> > If they are all in one HDMI IP driver, I don't see why the user wo=
-uld
->> > need to know about PHY/PLL/CORE at all. The user just wants to use=
- the
->> > HDMI IP as a whole, doesn't it?
->>
->> Please see above comment, we could still use the same PLL block in
->> future OMAP's only replacing the core block so is the case with
->> PHY.But then it doesnt make sense to split the driver for every 2/3
->> functions right ? User could still access the PLL and PHY from this =
-IP
->> where as use the new API's for core?
->
-> But it shouldn't be the user's job to handle that. The user doesn't w=
-ant
-> to use a driver for a particular version of the HDMI core. It just wa=
-nts
-> to use the HDMI, regardless of what HW blocks are being used on that
-> particular platform.
->
->> >> > - omapdss_hdmi_display_set_timing() seems to be broken. It just=
- sets
->> >> > some variables and calls display_enable().
->> >> It sets a variable custom_set , appropriate action will be taken =
-while
->> >> configuring timings based on that parameter.
->> >
->> > This is the same thing as with the use of hdmi_ti_4xxx_set_pll_pwr=
-=2E
->> > Well, actually not, this is worse. A "set_timing" function which
->> > unconditionally calls omapdss_hdmi_display_enable() makes no sense=
- to
->> > me. Why would set_timing function enable the display? And even mor=
-e
->> > importantly, omapdss_hdmi_display_enable() won't work correctly if=
- it is
->> > called unevenly related to omapdss_hdmi_display_disable(), which w=
-ill
->> > happen here.
->> >
->> There is a disable and enable called , This is on the same lines as
->> other panels,
->
-> What other panel/interface does it like that? It needs to be fixed al=
-so,
-> then.
->
-> The problem is not that enable and disable would not be called. It's =
-how
-> they are called.
->
-> A set_timing function which would disable the interface, configure th=
-e
-> timings, and enable the interface would make sense. A set_timings
-> function which would require the caller to first disable the interfac=
-e,
-> and re-enable it after calling would make sense. A set_timing functio=
-n
-> that requires the caller to disable the interface, and then implicitl=
-y
-> enables the interface by its own does not make sense.
->
-> I also wonder why the interface needs to be disabled and enabled when
-> timings are changed. Is there a specific requirement from the HW that
-> this needs to be done?
->
-When the timings are changed HDMI PLL has to be reconfigured also the
-core block to reflect the new timing. so it has to be re configured.
-But can we take that in a seperate thread as i dont see this whole
-section as a part of this patch series.
+static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsmmc_ho=
+st *host,                                                   unsigned lo=
+ng bit)
+{
+        unsigned long i =3D 0;
+        unsigned long limit =3D (loops_per_jiffy *
+                                msecs_to_jiffies(MMC_TIMEOUT_MS));
+=2E..
+        if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET) {
+                while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
+                                        && (i++ < limit))
+                        cpu_relax();
+        }
 
->> I shall re check and post different patch in case of any correction,
->> as i don't see it as a part of this patch series.
->
-> Sure. The set_timings issue is not directly related to this split pat=
-ch
-> set.
->
-> However, I just want to point out that getting this patch set ready m=
-ay
-> require more changes than you (or I) had originally in =A0mind. The r=
-eason
-> is that the HDMI API will become public and used by other SoCs. The A=
-PI
-> has to be good enough so that we don't need to do major rewrites to a=
-ll
-> users of the API later. If this requires making fixes and changes to =
-the
-> current HDMI driver, that's what needs to be done first.
->
-> And it just occurred to me that perhaps our views of the API are a bi=
-t
-> different, and that's why we have differing opinions. I see this API =
-as
-> something that could be used by OMAP DSS (and equivalent components o=
-n
-> other SoCs) to use the HDMI HW on OMAP4 and any future OMAPs. And
-> perhaps you see this API more as an API to use the current HDMI HW in
-> the OMAP4.
+Is rubbish.
 
-Tomi , Yes my Idea of this API is for OMAP and Netra series only , I
-am unable to envision a common HDMI API library , in that case it
-would make more sense to have an intermediate file and have function
-pointer , which would take common API calls like hdmi_enable ,
-hdmi_avi_confg etc and then arbitrate based on the build. Please let
-me know if you have anything else in mind.
+static void omap_write_buf_pref(struct mtd_info *mtd,
+                                        const u_char *buf, int len)
+{
+=2E..
+                /* wait for data to flushed-out before reset the prefet=
+ch */
+                tim =3D 0;
+                limit =3D (loops_per_jiffy *
+                                        msecs_to_jiffies(OMAP_NAND_TIME=
+OUT_MS));                while (gpmc_read_status(GPMC_PREFETCH_COUNT) &=
+& (tim++ < limit))                        cpu_relax();
 
->
-> While I don't want to take this too far, and try to make a perfect AP=
-I
-> (because it'd just fail as we don't have a clear view of the future H=
-W
-> and the future needs), I would still like to get the API into the
-> direction where it's not strictly an API to use the current HDMI HW, =
-but
-> something that can be easily used for later HWs also.
->
-> =A0Tomi
->
->
->
+Another load of rubbish.
 
---=20
-Thanks and regards,
-Mythri.
+static int flush(struct pl022 *pl022)
+{
+        unsigned long limit =3D loops_per_jiffy << 1;
+
+        dev_dbg(&pl022->adev->dev, "flush\n");
+        do {
+                while (readw(SSP_SR(pl022->virtbase)) & SSP_SR_MASK_RNE=
+)
+                        readw(SSP_DR(pl022->virtbase));
+        } while ((readw(SSP_SR(pl022->virtbase)) & SSP_SR_MASK_BSY) && =
+limit--);
+
+Yet more...
+
+static int flush(struct driver_data *drv_data)
+{
+        unsigned long limit =3D loops_per_jiffy << 1;
+
+        void __iomem *reg =3D drv_data->ioaddr;
+
+        do {
+                while (read_SSSR(reg) & SSSR_RNE) {
+                        read_SSDR(reg);
+                }
+        } while ((read_SSSR(reg) & SSSR_BSY) && --limit);
+
+and...
+
+sound/soc/samsung/i2s.c:
+#define msecs_to_loops(t) (loops_per_jiffy / 1000 * HZ * t)
+        /* Be patient */
+        val =3D msecs_to_loops(1) / 1000; /* 1 usec */
+        while (--val)
+                cpu_relax();
+
+even worse.
+
+#define msecs_to_loops(t) (loops_per_jiffy / 1000 * HZ * t)
+static int s3c2412_snd_lrsync(struct s3c_i2sv2_info *i2s)
+{
+        u32 iiscon;
+        unsigned long loops =3D msecs_to_loops(5);
+
+        while (--loops) {
+                iiscon =3D readl(i2s->regs + S3C2412_IISCON);
+                if (iiscon & S3C2412_IISCON_LRINDEX)
+                        break;
+
+                cpu_relax();
+        }
+
+It just goes on...
+
+And strangely the major offender of this stuff are ARM drivers, not oth=
+er
+peoples stuff and not stuff in drivers/staging.
+
+So I don't think its sane to ignore loops_per_jiffy and __delay, and ju=
+st
+concentrate on udelay().
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
