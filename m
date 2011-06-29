@@ -1,78 +1,45 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCHv2 2/3] MMC: OMAP: HSMMC: add runtime pm support
-Date: Wed, 29 Jun 2011 15:52:09 +0530
-Message-ID: <BANLkTimWocMSCAxMf2ruLBzqdTOi0d2OLg@mail.gmail.com>
-References: <1309282049-23739-1-git-send-email-balajitk@ti.com>
-	<1309282049-23739-3-git-send-email-balajitk@ti.com>
-	<87mxh1v8f3.fsf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 1/2] omap: mcbsp: Drop SPI mode support
+Date: Wed, 29 Jun 2011 03:31:16 -0700
+Message-ID: <20110629103116.GC23145@atomide.com>
+References: <1308050632-4733-1-git-send-email-jhnikula@gmail.com>
+ <6027329.5ZCJWRgjcM@barack>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <87mxh1v8f3.fsf@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com, svenkatr@ti.com, "Nayak, Rajendra" <rnayak@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:24344 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751735Ab1F2KbW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 06:31:22 -0400
+Content-Disposition: inline
+In-Reply-To: <6027329.5ZCJWRgjcM@barack>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Jun 29, 2011 at 5:02 AM, Kevin Hilman <khilman@ti.com> wrote:
-> +Rajendra
->
-> Balaji T K <balajitk@ti.com> writes:
->
->> add runtime pm support to HSMMC host controller
->> Use runtime pm API to enable/disable HSMMC clock
->> Use runtime autosuspend APIs to enable auto suspend delay
->>
->> Based on OMAP HSMMC runtime implementation by Kevin Hilman, Kishore =
-Kadiyala
->>
->> Signed-off-by: Balaji T K <balajitk@ti.com>
->
-> I tried to test this series along with Benoit's clkdm/modulemode/hwmo=
-d
-> cleanups and something strange is happening on OMAP4.
->
-> First, this series by itself is working as I would expect, but testin=
-g
-> in combination with Benoit's series, it's different...
->
-> First, I'm using Benoit's branch:
->
-> =A0 =A0 =A0 git://gitorious.org/omap-pm/linux.git for_3.0.1/7_hwmod_m=
-odulemode
->
-> in combination with your series.
->
-> I've also reverted these two commits:
->
-> =A0 OMAP4: PM: TEMP: Prevent l3init from idling/force sleep
-> =A0 OMAP3+: hwmod data: TEMP: Do not idle MMC1 & MMC2 after boot
->
-> which are temporary workarounds for not having MMC runtime PM.
->
-> I turned the dev_dbg calls in the runtime PM callbacks into dev_info
-> callbacks to see exactly when the device is enabled/disabled via runt=
-ime
-> PM.
->
-> To my surprise, I didn't see the device being enabled/disabled when
-> writing do the device.
+* P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.com> [110614 05:34]:
+> On Tuesday 14 June 2011 13:23:51 Jarkko Nikula wrote:
+> > We haven't seen any use for the SPI API in McBSP driver over the ye=
+ars. More
+> > over, Peter Ujfalusi <peter.ujfalusi@ti.com> noticed that SPI mode =
+is not
+> > even supported since OMAP2430 so it's very unlikely that we'll see =
+any use
+> > for it in the future either.
+> >=20
+> > Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+>=20
+> Either now or later, but for both:
+>=20
+> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-I tried for_3.0.1/7_hwmod_modulemode as you mentioned above,
-changing dev_dbg to dev_err and I am not observing the delayed write
-during umount. Can you let me know if the files are there in MMC after
-remounting ?
+Applying both of these into devel-cleanup branch.
 
-> Any ideas why the same isn't happening when used with Benoit's series=
-?
->
-> Kevin
->
-> P.S. note that the debug messages don't quite match. =A0One says 'hos=
-t:
-> enabled' the other says 'disabled' (without the host: prefix.) =A0mak=
-ing
-> the prefixes match would be more readable.
-
-Ok, Will align dev_dbg prints.
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
