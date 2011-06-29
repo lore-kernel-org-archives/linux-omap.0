@@ -1,99 +1,55 @@
-From: Partha Basak <p-basak2@ti.com>
-Subject: RE: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
-Date: Wed, 29 Jun 2011 23:47:50 +0530
-Message-ID: <2f837bd4c0fb09f310feb414479f3350@mail.gmail.com>
-References: <BANLkTi=pKL6RDBTDBStv+uhxVKp3-bwXbg@mail.gmail.com> <Pine.LNX.4.44L0.1106291331300.2064-100000@iolanthe.rowland.org>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCHv2] omap2+: pm: cpufreq: Fix loops_per_jiffy calculation
+Date: Wed, 29 Jun 2011 11:29:29 -0700
+Message-ID: <4E0B6F09.7010401@codeaurora.org>
+References: <1308923618-5333-1-git-send-email-premi@ti.com>	<CAMbhsRQUKBZbC3jJt8XpjTW2n7uA529D6G0g4eT5iLEHn2iNLg@mail.gmail.com>	<20110628225523.GA23312@n2100.arm.linux.org.uk>	<CAMbhsRQjMmXrULVmFg9CoM0wzZ29wcHqEaT480NaDhB8hHEKZg@mail.gmail.com> <20110628231711.GC23312@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1106291331300.2064-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>, Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:18975 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756891Ab1F2S3a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 14:29:30 -0400
+In-Reply-To: <20110628231711.GC23312@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Colin Cross <ccross@google.com>, linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
->-----Original Message-----
->From: Alan Stern [mailto:stern@rowland.harvard.edu]
->Sent: Wednesday, June 29, 2011 11:03 PM
->To: Munegowda, Keshava
->Cc: Kevin Hilman; linux-usb@vger.kernel.org; linux-omap@vger.kernel.org;
->linux-kernel@vger.kernel.org; balbi@ti.com; gadiyar@ti.com;
->sameo@linux.intel.com; parthab@india.ti.com; tony@atomide.com; b-
->cousson@ti.com; paul@pwsan.com
->Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci
->and ohci
+On 06/28/2011 04:17 PM, Russell King - ARM Linux wrote:
 >
->On Wed, 29 Jun 2011, Munegowda, Keshava wrote:
->
->> for usb host case , I am seeing that the pm_runtime_get_sync
->>
->>
->> static int rpm_resume(struct device *dev, int rpmflags)
->> {
->>   ............
->>  ..........
->> 	if (dev->pwr_domain) {
->> 		callback = dev->pwr_domain->ops.runtime_resume;
->> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
->> 			 pr_err("dev->pwr_domain->ops.runtime_resume");
->> 	}
->> 	else if (dev->type && dev->type->pm) {
->> 		callback = dev->type->pm->runtime_resume;
->> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
->> 			 pr_err("dev->type->pm->runtime_resume");
->> 	}
->> 	else if (dev->class && dev->class->pm) {
->> 		callback = dev->class->pm->runtime_resume;
->> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
->> 			 pr_err("ev->class->pm->runtime_resume");
->> 	}
->> 	else if (dev->bus && dev->bus->pm) {
->> 		callback = dev->bus->pm->runtime_resume;
->> 	if(!strcmp(dev_name(dev),"usbhs_omap"))
->> 		 pr_err("dev->bus->pm->runtime_resume");
->> 	}
->> 	else
->> 		callback = NULL;
->> }
->>
->>
->> I am seeing that below if statement was hitting true:
->>
->> 	if (dev->pwr_domain) {
->> 		callback = dev->pwr_domain->ops.runtime_resume;
->> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
->> 			 pr_err("dev->pwr_domain->ops.runtime_resume");
->>
->>
->> due to this; the driver->runtime_resume was not getting called.
->>
->> Any idea on why I am seeing only the dev->pwr_domain is set not
->> dev->bus && dev->bus->pm is hitting here?
->
->Because the PM domain takes precedence over the subsystem for PM
->callbacks.  If the subsystem routine should be called then the PM
->domain code has to call it.
+> That's why people have proposed hardware-timer based delay loops -
+> these screw up the bogomips value (it no longer refers to the CPU
+> but to the timer used for the delays) and the code proposed thus far
+> probably has a severe negative impact on ARMs running at low clock
+> rates (the calculation cost of the number of loops to run becomes
+> significant for CPUs below 100MHz for short delays with the existing
+> optimized assembler, so moving it into C and introducing function
+> pointers will only make it worse.)
 
-This is taken care of in the pm-domain code:
-static int _od_runtime_resume(struct device *dev)
-{
-	struct platform_device *pdev = to_platform_device(dev);
+Am I people? ;-)
 
-	omap_device_enable(pdev);
+The code I've proposed doesn't seem to have a negative impact on our
+targets even when the processor is running at 19.2 Mhz. Before and after
+the patches I get the same lpj value (this is all described in the
+commit text). I've also shown that rewriting delay.S into C doesn't
+negatively affect the hand optimized assembly as the before and after
+object code is nearly identical modulo register allocation. The only
+issue would be the one function pointer which I haven't heard anyone
+complain about until now.
 
-	return pm_generic_runtime_resume(dev);
-}
-pm_generic_runtime_resume will in turn call the driver call back.
+Even if the time to get into the __delay() routine increases by a few
+instructions I don't see how this harms anything as udelay() is a
+minimum time guarantee. We should strive to make it as close as possible
+to the time requested by the caller, but we shouldn't balk at the
+introduction of a few more cycles along the setup path. Finally, since
+the calibration takes into account most of the new instructions I doubt
+it will even be noticeable overhead to have the function pointers.
 
-int pm_generic_runtime_resume(struct device *dev)
-{
-	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm :
-NULL;
-	int ret;
+What more can I do to convince you to take this patch?
 
-	ret = pm && pm->runtime_resume ? pm->runtime_resume(dev) : 0;
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
 
-	return ret;
-}
->
->Alan Stern
