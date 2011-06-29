@@ -1,101 +1,61 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
-Date: Wed, 29 Jun 2011 20:52:30 +0530
-Message-ID: <BANLkTim43pAKe1o-aFmgh79bNqSyZmW_Fg@mail.gmail.com>
-References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-2-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-3-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
-	<87d3ix5c6y.fsf@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC 2/8] remoteproc: add omap implementation
+Date: Wed, 29 Jun 2011 09:31:19 -0600
+Message-ID: <BANLkTikGaYjjuXOb0ANM4+-j3nWFJ1BaCg@mail.gmail.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
+ <1308640714-17961-3-git-send-email-ohad@wizery.com> <20110627210007.GC20865@ponder.secretlab.ca>
+ <BANLkTi=4Pp1UYWFsBywRvLL1n=ggCZgAeA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87d3ix5c6y.fsf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, b-cousson@ti.com, paul@pwsan.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:53911 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753085Ab1F2Pbk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 11:31:40 -0400
+In-Reply-To: <BANLkTi=4Pp1UYWFsBywRvLL1n=ggCZgAeA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
 
-On Thu, Jun 2, 2011 at 5:36 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Keshava Munegowda <keshava_mgowda@ti.com> writes:
+On Wed, Jun 29, 2011 at 9:04 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
+:
+> On Tue, Jun 28, 2011 at 12:00 AM, Grant Likely
+> <grant.likely@secretlab.ca> wrote:
+>> Very little for me to comment on here. =A0However, something I just
+>> noticed. =A0Why is it necessary to pass in THIS_MODULE to the
+>> rproc_register function? =A0Having a reference to the pdev gives you=
+ the
+>> pointer to the driver, which has the THIS_MODULE value in it. =A0Tha=
+t
+>> should be sufficient.
 >
->> From: Keshava Munegowda <Keshava_mgowda@ti.com>
->>
->> The global suspend and resume functions for usbhs core driver
->> are implemented.These routine are called when the global suspend
->> and resume occurs. Before calling these functions, the
->> bus suspend and resume of ehci and ohci drivers are called
->> from runtime pm.
->>
->> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+> Nice one, thanks !
 >
-> First, from what I can see, this is only a partial implementation of
-> runtime PM. =A0What I mean is that the runtime PM methods are used on=
-ly
-> during the suspend path. =A0The rest of the time the USB host IP bloc=
-k is
-> left enabled, even when nothing is connected.
->
-> I tested this on my 3530/Overo board, and verified that indeed the
-> usbhost powerdomain hits retention on suspend, but while idle, when
-> nothing is connected, I would expect the driver could be clever enoug=
-h
-> to use runtime PM (probably using autosuspend timeouts) to disable th=
+>> /me also isn't sure if incrementing the refcount on the module is th=
 e
-> hardware as well.
+>> best way to prevent the rproc from going away, but I haven't dug int=
+o
+>> the details in the driver code to find out. =A0Drivers can get unbou=
+nd
+>> from devices without the driver being unloaded, so I imagine there i=
+s
+>> an in-use count on the device itself that would prevent driver
+>> unbinding.
 >
->> ---
->> =A0drivers/mfd/omap-usb-host.c | =A0103 ++++++++++++++++++++++++++++=
-+++++++++++++++
->> =A01 files changed, 103 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host=
-=2Ec
->> index 43de12a..32d19e2 100644
->> --- a/drivers/mfd/omap-usb-host.c
->> +++ b/drivers/mfd/omap-usb-host.c
->> @@ -146,6 +146,10 @@
->> =A0#define is_ehci_hsic_mode(x) (x =3D=3D OMAP_EHCI_PORT_MODE_HSIC)
->>
->>
->> +/* USBHS state bits */
->> +#define OMAP_USBHS_INIT =A0 =A0 =A0 =A0 =A0 =A0 =A00
->> +#define OMAP_USBHS_SUSPEND =A0 4
->
-> These additional state bits don't seem to be necessary.
->
-> For suspend, just check 'pm_runtime_is_suspended()'
->
-> The init flag is only used in the suspend/resume hooks, but the need =
-for
-> it is a side effect of not correctly using the runtime PM callbacks.
->
-> Remember that the runtime PM get/put hooks have usage counting. =A0On=
-ly
-> when the usage count transitions to/from zero is the actual
-> hardware-level enable/disable (via omap_hwmod) being done.
->
-> The current code is making the assumption that every call to get/put =
-is
-> going to result in an enable/disable of the hardware.
->
-> Instead, all of the code that needs to be run only upon actual
-> enable/disable of the hardware should be done in the driver's
-> runtime_suspend/runtime_resume callbacks. =A0These are only called wh=
-en
-> the hardware actually changes state.
->
-> Not knowing that much about the EHCI block, upon first glance, it loo=
-ks
-> like mmuch of what is done in usbhs_enable() should actually be done =
-in
-> the ->runtime_resume() callback, and similarily, much of what is done=
- in
-> usbhs_disable() should be done in the ->runtime_suspend() callback.
+> Yes, increasing the module refcount is necessary to prevent the user
+> from removing the driver when the rproc is used.
 
-Kevin,
-   do you mean driver->runtime_resume and driver->runtime_resume call b=
-acks.
-are these call backs from pm_runtime_get_sync and pm_runtime_put_sync?
+That prevents removing the module which necessitates unbinding the
+device.  However, I believe it is possible to unbind a driver
+/without/ the module being unloaded.  My question (for which I don't
+have an answer) is whether or not there is a way to increment a
+refcount on users of the driver bound to the device..
+
+g.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
