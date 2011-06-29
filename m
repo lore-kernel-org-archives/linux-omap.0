@@ -1,45 +1,44 @@
 From: Silesh C V <silesh@ti.com>
-Subject: Re: [PATCH] OMAP: HSMMC: Fix GPIO muxing
-Date: Wed, 29 Jun 2011 10:26:38 +0900
-Message-ID: <BANLkTin19ZDH97zXsDPgfQzX8bjxp=Hwjg@mail.gmail.com>
-References: <1309250759-18472-1-git-send-email-silesh@ti.com>
-	<4E09DC13.3010304@compulab.co.il>
+Subject: [PATCH v2 1/2] OMAP: 4430SDP: Register the card detect GPIO properly
+Date: Wed, 29 Jun 2011 07:44:56 +0530
+Message-ID: <1309313698-19438-1-git-send-email-silesh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:47972 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645Ab1F2B0j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jun 2011 21:26:39 -0400
-Received: by iwn6 with SMTP id 6so633405iwn.19
-        for <linux-omap@vger.kernel.org>; Tue, 28 Jun 2011 18:26:38 -0700 (PDT)
-In-Reply-To: <4E09DC13.3010304@compulab.co.il>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54596 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751289Ab1F2CJX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Jun 2011 22:09:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, kishore.kadiyala@ti.com, balajitk@ti.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, balajitk@ti.com, grinberg@compulab.co.il, svenkatr@ti.com, Silesh C V <silesh@ti.com>
 
-Hi Igor,
+Without this the HSMMC driver takes GPIO 0 to be the card detect gpio
+and requests/configures it. This will give rise to issues when another
+driver needs to use GPIO 0. On 4430SDP, the card detection is through
+TWL 6030.
 
-On Tue, Jun 28, 2011 at 10:50 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
-> Hi Silesh,
->
->
-> IMHO, you should not separate the patches
-> (this one and OMAP: 4430SDP: Register the card detect GPIO properly),
-> because the 4430sdp fix should come before or together with this patch,
-> otherwise 4430sdp will be broken, once this patch is applied.
+Signed-off-by: Silesh C V <silesh@ti.com>
+---
+Changes for v2 :
+	- Made it a series to make sure this one goes before the mux fix.
 
-4430SDP is already broken because it requests/configures GPIO 0. But
-as you said if this patch goes before the SDP fix, the driver will do
-Muxing of the pad (as this pad fixes that for GPIO 0)also. Thanks for
-the suggestion.
+ arch/arm/mach-omap2/board-4430sdp.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
->
-> You can either make it a one patch or make it a single properly numbered series.
->
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 63de2d3..7a1460f 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -327,6 +327,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+ 		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
++		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+-- 
+1.7.1
 
-I will send it as a series.
-
-Regards,
-Silesh
