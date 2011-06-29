@@ -1,93 +1,82 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
-Date: Wed, 29 Jun 2011 10:39:45 -0700
-Message-ID: <87y60ksfj2.fsf@ti.com>
-References: <1308752314-32079-1-git-send-email-balajitk@ti.com>
-	<1308752314-32079-3-git-send-email-balajitk@ti.com>
-	<alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com>
-	<BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com>
-	<87ei2dy9zk.fsf@ti.com>
-	<BANLkTimccmdwXW2=jnAhv4GbzhcNPsUDQA@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] OMAP3: run the ASM sleep code from DDR
+Date: Wed, 29 Jun 2011 19:48:50 +0200
+Message-ID: <BANLkTin8HQTCfV6zqNcWN-80vQ53YxT7xQ@mail.gmail.com>
+References: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
+	<87mxh0tuk2.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:36921 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753872Ab1F2Rjv convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 13:39:51 -0400
-In-Reply-To: <BANLkTimccmdwXW2=jnAhv4GbzhcNPsUDQA@mail.gmail.com>
-	(T. Krishnamoorthy's message of "Wed, 29 Jun 2011 20:03:58 +0530")
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:42426 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753072Ab1F2Rsv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 13:48:51 -0400
+Received: by qwk3 with SMTP id 3so733507qwk.19
+        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 10:48:50 -0700 (PDT)
+In-Reply-To: <87mxh0tuk2.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-"T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
-
-> On Wed, Jun 29, 2011 at 2:00 AM, Kevin Hilman <khilman@ti.com> wrote:
->> "T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
->>
->>> On Tue, Jun 28, 2011 at 10:52 PM, Paul Walmsley <paul@pwsan.com> wr=
-ote:
->>>> (cc'ing Adrian also)
->>>>
->>>> Hi Balaji
->>>>
->>>> On Wed, 22 Jun 2011, Balaji T K wrote:
->>>>
->>>>> Use runtime autosuspend APIs to enable auto suspend delay
->>>>
->>>> Does this really need to use runtime autosuspend? =C2=A0Seems to m=
-e that since
->>>> PM runtime is just controlling the MMC IP blocks and not the regul=
-ators in
->>>> this instance, this could simply use pm_runtime_put*() and just av=
-oid the
->>>> extra power wastage and complexity involved in autosuspend.
->>>>
->>>
->>> I have seen some instabilities if delay is very less, on some produ=
-ction boards.
->>> The previous implementation used 100ms delay before disabling the c=
-locks.
->>
->> And your new one is using 50ms. =C2=A0How did this value come about?
->>
-
-> I don't have any specific affinity to this number, but when requests
-> are bursty, they arrive within a few 10s of ms within each
-> other. Didn't want to have the context/save restore penalty associate=
-d
-> with every request.
-
-Have you measured the context save/restore penalty when only the clocks
-are gated (and no regulators involved) ?
-
-In the current code, it's understandable why there were large latencies
-that were avoided because the regulators were also cut.  With only the
-clocks being cut, the latency involved will be significantly less.
-
->> As Paul mentioned, the timeout value here is probably usecase depeen=
-d
->>
+On Wed, Jun 29, 2011 at 7:29 PM, Kevin Hilman <khilman@ti.com> wrote:
+> jean.pihet@newoldbits.com writes:
 >
-> There is no direct relationship to the use case. Block layer buffers
-> and reworks the order of requests and they are usually queued
-> together. Having no context save / restore penalty for each request i=
-s
-> definitely desirable. =20
+>> From: Jean Pihet <j-pihet@ti.com>
+>>
+>> Most of the ASM sleep code (in arch/arm/mach-omap2/sleep34xx.S)
+>> is copied to internal SRAM at boot and after wake-up from CORE OFF m=
+ode.
+>> However only a small part of the code really needs to run from inter=
+nal SRAM.
+>>
+>> This fix lets most of the ASM idle code run from the DDR
+>> in order to minimize the SRAM usage and the overhead in the code cop=
+y.
+>>
+>> The only pieces of code that are mandatory in SRAM are:
+>> - the i443 erratum WA,
+>> - the i581 erratum WA,
+>> - the security extension code.
+>>
+>> SRAM usage:
+>> - original code:
+>> =A0 . 560 bytes for omap3_sram_configure_core_dpll (used by DVFS),
+>> =A0 . 852 bytes for omap_sram_idle (used by suspend/resume in RETent=
+ion),
+>> =A0 . 124 bytes for es3_sdrc_fix (used by suspend/resume in OFF mode=
+ on ES3.x),
+>> =A0 . 108 bytes for save_secure_ram_context (used on HS parts only).
+>>
+>> With this fix the usage for suspend/resume in RETention goes down 28=
+8 bytes,
+>> so the gain in SRAM usage for suspend/resume is 564 bytes.
+>>
+>> Also fixed the SRAM initialization sequence to avoid an unnecessary
+>> copy to SRAM at boot time and for readability.
+>>
+>> Tested on Beagleboard (ES2.x) in idle with full RET and OFF modes.
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
+>
+> Also tested retention and off on 3430/n900, 3530/Overo and 3630/Zoom3
+>
+> Tested-by: Kevin Hilman <khilman@ti.com>
+Thanks for the extensive testing!
 
-Desirable for what?
+Regards,
+Jean
 
-What is implied in that statement is desirable for performance.
-
-What if a different user would prefer the power savings gained by more
-aggressively cuttting clocks over the performance gains of leaving
-clocks enabled?
-
-Kevin
+>
+> Russell, if you're OK with it, can you add it to your suspend branch =
+for
+> the upcoming merge window?
+>
+> Kevin
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
