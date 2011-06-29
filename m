@@ -1,102 +1,69 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 7/8] drivers: introduce rpmsg, a remote-processor messaging bus
-Date: Wed, 29 Jun 2011 09:30:38 +0300
-Message-ID: <BANLkTinDX9ETcqZ=hvSGaao2s=ZcM-JsAg@mail.gmail.com>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
- <1308640714-17961-8-git-send-email-ohad@wizery.com> <20110628164453.aa85c85c.rdunlap@xenotime.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: cleanup NAND platform data
+Date: Wed, 29 Jun 2011 01:12:43 -0700
+Message-ID: <20110629081243.GA23145@atomide.com>
+References: <1307130993-15265-1-git-send-email-notasas@gmail.com>
+ <BANLkTimnP-HuvVruB5hNSMHVnQUmned8Pg@mail.gmail.com>
+ <BANLkTimXxOcr4q2fkD0hjq4pMVPC0StBFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:44730 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974Ab1F2Ga7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 02:30:59 -0400
-In-Reply-To: <20110628164453.aa85c85c.rdunlap@xenotime.net>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19696 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752324Ab1F2IMq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 04:12:46 -0400
+Content-Disposition: inline
+In-Reply-To: <BANLkTimXxOcr4q2fkD0hjq4pMVPC0StBFw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Randy Dunlap <rdunlap@xenotime.net>, Rusty Russell <rusty@rustcorp.com.au>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Vimal Singh <vimal.newwork@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Randy,
+* Grazvydas Ignotas <notasas@gmail.com> [110603 15:01]:
+> On Sat, Jun 4, 2011 at 12:14 AM, Vimal Singh <vimal.newwork@gmail.com=
+> wrote:
+> > On Sat, Jun 4, 2011 at 1:26 AM, Grazvydas Ignotas <notasas@gmail.co=
+m> wrote:
+> >>
+> >> -static int omap2_nand_gpmc_retime(void)
+> >> +static int omap2_nand_gpmc_retime(struct omap_nand_platform_data =
+*gpmc_nand_data)
+> >> =C2=A0{
+> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct gpmc_timings t;
+> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0int err;
+> >> @@ -83,13 +81,11 @@ static int omap2_nand_gpmc_retime(void)
+> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0return 0;
+> >> =C2=A0}
+> >>
+> >> -int __init gpmc_nand_init(struct omap_nand_platform_data *_nand_d=
+ata)
+> >> +int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_na=
+nd_data)
+> >> =C2=A0{
+> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0int err =3D 0;
+> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct device *dev =3D &gpmc_nand_devic=
+e.dev;
+> >>
+> >> - =C2=A0 =C2=A0 =C2=A0 gpmc_nand_data =3D _nand_data;
+> >> - =C2=A0 =C2=A0 =C2=A0 gpmc_nand_data->nand_setup =3D omap2_nand_g=
+pmc_retime;
+> >
+> > Purpose of doing this was to be able to utilise
+> > 'omap2_nand_gpmc_retime', when DVFS is ready to use it,
+> > for changing timing parameter dynamically when a frequency change i=
+s done.
+>=20
+> Well but it seems currently ...retime() only does single static
+> configuration, I guess when it's updated to do DVFS stuff callback ca=
+n
+> easily be added back..
 
-Thanks for your comments !
+Applying this into devel-cleanup.
 
-On Wed, Jun 29, 2011 at 2:44 AM, Randy Dunlap <rdunlap@xenotime.net> wr=
-ote:
->> +hardware accelerators, and therefore are often used to offload cpu-=
-intensive
->
-> prefer: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 CPU-
-> throughout.
+Regards,
 
-Isn't that changing the meaning a bit ? Let's stick with the original
-version, I think it's more clear.
-
->> +system's physical memory and/or other sensitive hardware resources =
-(e.g. on
->> +OMAP4, remote cores (/hardware accelerators) may have direct access=
- to the
->> +physical memory, gpio banks, dma controllers, i2c bus, gptimers, ma=
-ilbox
->> +devices, hwspinlocks, etc..). Moreover, those remote processors mig=
-ht be
->> +running RTOS where every task can access the entire memory/devices =
-exposed
->> +to the processor. To minimize the risks of rogue (/buggy) userland =
-code
->
-> What is with the leading / here and above (/hardware) and below?
-
-/ here means "or". You can read the sentence twice, either without the
-(/ ..) options or with them, and then you get two (different)
-examples.
-
-Any idea how to make it more readable ? I prefer not to drop the
-second example, as it's adding information.
-
->> +if RPMSG
->> +
->> +# OK, it's a little counter-intuitive to do this, but it puts it ne=
-atly under
->> +# the rpmsg menu (and it's the approach preferred by the virtio fol=
-ks).
->> +
->> +source "drivers/virtio/Kconfig"
->
-> It seems odd to have that Kconfig file sourced in multiple places.
-> Are the kconfig tools happy with that?
-
-They are, probably because these places are mutually exclusive today:
-
-$ git grep "drivers/virtio/Kconfig"
-arch/ia64/kvm/Kconfig:source drivers/virtio/Kconfig
-arch/mips/Kconfig:source drivers/virtio/Kconfig
-arch/powerpc/kvm/Kconfig:source drivers/virtio/Kconfig
-arch/s390/kvm/Kconfig:source drivers/virtio/Kconfig
-arch/sh/Kconfig:source drivers/virtio/Kconfig
-arch/tile/kvm/Kconfig:source drivers/virtio/Kconfig
-arch/x86/kvm/Kconfig:source drivers/virtio/Kconfig
-
-Now that we start using virtio for inter-processor communications,
-too, we might soon bump into a situation where virtio will be sourced
-twice.
-
-Probably the solution is to move 'source "drivers/virtio/Kconfig"'
-into drivers/Kconfig, and remove all other instances.
-
-Rusty, are you ok with that ?
-
-Thanks,
-Ohad.
-
-> Sorry about the delay. =A0I had most of this in my drafts folder and
-> forgot about it...
-
-Np, thanks a lot !
-
-Ohad.
+Tony
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
