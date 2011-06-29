@@ -1,84 +1,91 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] OMAP3: run the ASM sleep code from DDR
-Date: Wed, 29 Jun 2011 19:48:50 +0200
-Message-ID: <BANLkTin8HQTCfV6zqNcWN-80vQ53YxT7xQ@mail.gmail.com>
-References: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
-	<87mxh0tuk2.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Wed, 29 Jun 2011 10:56:09 -0700
+Message-ID: <87iproserq.fsf@ti.com>
+References: <1309282049-23739-1-git-send-email-balajitk@ti.com>
+	<1309282049-23739-3-git-send-email-balajitk@ti.com>
+	<87mxh1v8f3.fsf@ti.com>
+	<BANLkTimWocMSCAxMf2ruLBzqdTOi0d2OLg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:42426 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753072Ab1F2Rsv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 13:48:51 -0400
-Received: by qwk3 with SMTP id 3so733507qwk.19
-        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 10:48:50 -0700 (PDT)
-In-Reply-To: <87mxh0tuk2.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <BANLkTimWocMSCAxMf2ruLBzqdTOi0d2OLg@mail.gmail.com>
+	(T. Krishnamoorthy's message of "Wed, 29 Jun 2011 15:52:09 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com, svenkatr@ti.com, "Nayak, Rajendra" <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-On Wed, Jun 29, 2011 at 7:29 PM, Kevin Hilman <khilman@ti.com> wrote:
-> jean.pihet@newoldbits.com writes:
->
->> From: Jean Pihet <j-pihet@ti.com>
->>
->> Most of the ASM sleep code (in arch/arm/mach-omap2/sleep34xx.S)
->> is copied to internal SRAM at boot and after wake-up from CORE OFF m=
-ode.
->> However only a small part of the code really needs to run from inter=
-nal SRAM.
->>
->> This fix lets most of the ASM idle code run from the DDR
->> in order to minimize the SRAM usage and the overhead in the code cop=
-y.
->>
->> The only pieces of code that are mandatory in SRAM are:
->> - the i443 erratum WA,
->> - the i581 erratum WA,
->> - the security extension code.
->>
->> SRAM usage:
->> - original code:
->> =A0 . 560 bytes for omap3_sram_configure_core_dpll (used by DVFS),
->> =A0 . 852 bytes for omap_sram_idle (used by suspend/resume in RETent=
-ion),
->> =A0 . 124 bytes for es3_sdrc_fix (used by suspend/resume in OFF mode=
- on ES3.x),
->> =A0 . 108 bytes for save_secure_ram_context (used on HS parts only).
->>
->> With this fix the usage for suspend/resume in RETention goes down 28=
-8 bytes,
->> so the gain in SRAM usage for suspend/resume is 564 bytes.
->>
->> Also fixed the SRAM initialization sequence to avoid an unnecessary
->> copy to SRAM at boot time and for readability.
->>
->> Tested on Beagleboard (ES2.x) in idle with full RET and OFF modes.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
->
-> Also tested retention and off on 3430/n900, 3530/Overo and 3630/Zoom3
->
-> Tested-by: Kevin Hilman <khilman@ti.com>
-Thanks for the extensive testing!
+"T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
 
-Regards,
-Jean
+> On Wed, Jun 29, 2011 at 5:02 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> +Rajendra
+>>
+>> Balaji T K <balajitk@ti.com> writes:
+>>
+>>> add runtime pm support to HSMMC host controller
+>>> Use runtime pm API to enable/disable HSMMC clock
+>>> Use runtime autosuspend APIs to enable auto suspend delay
+>>>
+>>> Based on OMAP HSMMC runtime implementation by Kevin Hilman, Kishore=
+ Kadiyala
+>>>
+>>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>>
+>> I tried to test this series along with Benoit's clkdm/modulemode/hwm=
+od
+>> cleanups and something strange is happening on OMAP4.
+>>
+>> First, this series by itself is working as I would expect, but testi=
+ng
+>> in combination with Benoit's series, it's different...
+>>
+>> First, I'm using Benoit's branch:
+>>
+>> =C2=A0 =C2=A0 =C2=A0 git://gitorious.org/omap-pm/linux.git for_3.0.1=
+/7_hwmod_modulemode
+>>
+>> in combination with your series.
+>>
+>> I've also reverted these two commits:
+>>
+>> =C2=A0 OMAP4: PM: TEMP: Prevent l3init from idling/force sleep
+>> =C2=A0 OMAP3+: hwmod data: TEMP: Do not idle MMC1 & MMC2 after boot
+>>
+>> which are temporary workarounds for not having MMC runtime PM.
+>>
+>> I turned the dev_dbg calls in the runtime PM callbacks into dev_info
+>> callbacks to see exactly when the device is enabled/disabled via run=
+time
+>> PM.
+>>
+>> To my surprise, I didn't see the device being enabled/disabled when
+>> writing do the device.
+>
+> I tried for_3.0.1/7_hwmod_modulemode as you mentioned above,
+> changing dev_dbg to dev_err and I am not observing the delayed write
+> during umount. Can you let me know if the files are there in MMC afte=
+r
+> remounting ?
 
->
-> Russell, if you're OK with it, can you add it to your suspend branch =
-for
-> the upcoming merge window?
->
-> Kevin
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Did you also revert the above two commits?
+
+I've pushed a 'tmp/mmc' branch to my git tree[1] which is my PM branch
+(including various PM stuff queued for upstream) as well as Benoit's
+series with the TEMP patches above reverted and your series on top of
+it.  There's one additional patch to convert the dev_dbg into dev_info
+to see the transitions.
+
+Testing this on my OMAP4430 ES2.2 EMU device, I still see the above
+behavior.
+
+Can you try out this branch on your board using the default
+omap2plus_defconfig?
+
+Thanks,
+
+Kevin
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm=
+=2Egit
