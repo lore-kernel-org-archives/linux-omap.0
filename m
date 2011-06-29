@@ -1,67 +1,95 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and
- ohci
-Date: Wed, 29 Jun 2011 13:33:28 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1106291331300.2064-100000@iolanthe.rowland.org>
-References: <BANLkTi=pKL6RDBTDBStv+uhxVKp3-bwXbg@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Wed, 29 Jun 2011 10:39:45 -0700
+Message-ID: <87y60ksfj2.fsf@ti.com>
+References: <1308752314-32079-1-git-send-email-balajitk@ti.com>
+	<1308752314-32079-3-git-send-email-balajitk@ti.com>
+	<alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com>
+	<BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com>
+	<87ei2dy9zk.fsf@ti.com>
+	<BANLkTimccmdwXW2=jnAhv4GbzhcNPsUDQA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BANLkTi=pKL6RDBTDBStv+uhxVKp3-bwXbg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, b-cousson@ti.com, paul@pwsan.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:36921 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753872Ab1F2Rjv convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Jun 2011 13:39:51 -0400
+In-Reply-To: <BANLkTimccmdwXW2=jnAhv4GbzhcNPsUDQA@mail.gmail.com>
+	(T. Krishnamoorthy's message of "Wed, 29 Jun 2011 20:03:58 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com
 
-On Wed, 29 Jun 2011, Munegowda, Keshava wrote:
+"T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
 
-> for usb host case , I am seeing that the pm_runtime_get_sync
-> 
-> 
-> static int rpm_resume(struct device *dev, int rpmflags)
-> {
->   ............
->  ..........
-> 	if (dev->pwr_domain) {
-> 		callback = dev->pwr_domain->ops.runtime_resume;
-> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
-> 			 pr_err("dev->pwr_domain->ops.runtime_resume");
-> 	}	
-> 	else if (dev->type && dev->type->pm) {
-> 		callback = dev->type->pm->runtime_resume;
-> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
-> 			 pr_err("dev->type->pm->runtime_resume");
-> 	}	
-> 	else if (dev->class && dev->class->pm) {
-> 		callback = dev->class->pm->runtime_resume;
-> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
-> 			 pr_err("ev->class->pm->runtime_resume");
-> 	}	
-> 	else if (dev->bus && dev->bus->pm) {
-> 		callback = dev->bus->pm->runtime_resume;
-> 	if(!strcmp(dev_name(dev),"usbhs_omap"))
-> 		 pr_err("dev->bus->pm->runtime_resume");
-> 	}	
-> 	else
-> 		callback = NULL;
-> }
-> 
-> 
-> I am seeing that below if statement was hitting true:
-> 
-> 	if (dev->pwr_domain) {
-> 		callback = dev->pwr_domain->ops.runtime_resume;
-> 		if(!strcmp(dev_name(dev),"usbhs_omap"))
-> 			 pr_err("dev->pwr_domain->ops.runtime_resume");
-> 
-> 
-> due to this; the driver->runtime_resume was not getting called.
-> 
-> Any idea on why I am seeing only the dev->pwr_domain is set not
-> dev->bus && dev->bus->pm is hitting here?
+> On Wed, Jun 29, 2011 at 2:00 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> "T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
+>>
+>>> On Tue, Jun 28, 2011 at 10:52 PM, Paul Walmsley <paul@pwsan.com> wr=
+ote:
+>>>> (cc'ing Adrian also)
+>>>>
+>>>> Hi Balaji
+>>>>
+>>>> On Wed, 22 Jun 2011, Balaji T K wrote:
+>>>>
+>>>>> Use runtime autosuspend APIs to enable auto suspend delay
+>>>>
+>>>> Does this really need to use runtime autosuspend? =C2=A0Seems to m=
+e that since
+>>>> PM runtime is just controlling the MMC IP blocks and not the regul=
+ators in
+>>>> this instance, this could simply use pm_runtime_put*() and just av=
+oid the
+>>>> extra power wastage and complexity involved in autosuspend.
+>>>>
+>>>
+>>> I have seen some instabilities if delay is very less, on some produ=
+ction boards.
+>>> The previous implementation used 100ms delay before disabling the c=
+locks.
+>>
+>> And your new one is using 50ms. =C2=A0How did this value come about?
+>>
 
-Because the PM domain takes precedence over the subsystem for PM 
-callbacks.  If the subsystem routine should be called then the PM 
-domain code has to call it.
+> I don't have any specific affinity to this number, but when requests
+> are bursty, they arrive within a few 10s of ms within each
+> other. Didn't want to have the context/save restore penalty associate=
+d
+> with every request.
 
-Alan Stern
+Have you measured the context save/restore penalty when only the clocks
+are gated (and no regulators involved) ?
+
+In the current code, it's understandable why there were large latencies
+that were avoided because the regulators were also cut.  With only the
+clocks being cut, the latency involved will be significantly less.
+
+>> As Paul mentioned, the timeout value here is probably usecase depeen=
+d
+>>
+>
+> There is no direct relationship to the use case. Block layer buffers
+> and reworks the order of requests and they are usually queued
+> together. Having no context save / restore penalty for each request i=
+s
+> definitely desirable. =20
+
+Desirable for what?
+
+What is implied in that statement is desirable for performance.
+
+What if a different user would prefer the power savings gained by more
+aggressively cuttting clocks over the performance gains of leaving
+clocks enabled?
+
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
