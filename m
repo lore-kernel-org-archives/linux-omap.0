@@ -1,58 +1,107 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP3: run the ASM sleep code from DDR
-Date: Wed, 29 Jun 2011 16:30:13 -0700
-Message-ID: <87wrg4p662.fsf@ti.com>
-References: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
-	<87mxh0tuk2.fsf@ti.com>
-	<20110629180535.GF23312@n2100.arm.linux.org.uk>
-	<8762nosbj4.fsf@ti.com>
-	<20110629215423.GI23312@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mike Turquette <mturquette@ti.com>
+Subject: [PATCH 1/8] OMAP3630: PRM: add ABB PRM register definitions
+Date: Wed, 29 Jun 2011 17:25:53 -0700
+Message-ID: <1309393560-8874-2-git-send-email-mturquette@ti.com>
+References: <1309393560-8874-1-git-send-email-mturquette@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:43748 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752574Ab1F2XaR (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:56633 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757533Ab1F3A1E (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 19:30:17 -0400
-Received: by mail-iy0-f172.google.com with SMTP id 7so1526760iye.3
-        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 16:30:17 -0700 (PDT)
-In-Reply-To: <20110629215423.GI23312@n2100.arm.linux.org.uk> (Russell King's
-	message of "Wed, 29 Jun 2011 22:54:23 +0100")
+	Wed, 29 Jun 2011 20:27:04 -0400
+Received: by gwj22 with SMTP id 22so999532gwj.35
+        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 17:27:03 -0700 (PDT)
+In-Reply-To: <1309393560-8874-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: jean.pihet@newoldbits.com, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, nm@ti.com, Mike Turquette <mturquette@ti.com>
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+OMAP3630 supports an Adaptive Body-Bias ldo as well as some MPU interrupts
+related to voltage control that are not present on OMAP34XX.  This patch
+adds the offsets, register addresses, bitfield shifts and masks to support
+this feature.
 
-> On Wed, Jun 29, 2011 at 12:06:07PM -0700, Kevin Hilman wrote:
->> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
->> 
->> > On Wed, Jun 29, 2011 at 10:29:49AM -0700, Kevin Hilman wrote:
->> >> Russell, if you're OK with it, can you add it to your suspend branch for
->> >> the upcoming merge window?
->> >
->> > Yes - though I think we can go a little bit further - this patch is on
->> > top of my code so far, and is untested.  There isn't a need for the
->> > saving of these registers to be in assembly because we can read them
->> > just as easily from C code.
->> 
->> Indeed
->> 
->> > Comments?
->> 
->> Looks good to me (although untested) care to respin on top of $SUBJECT
->> patch?  
->> 
->> Minor comments below...
->
-> Done.
+Signed-off-by: Mike Turquette <mturquette@ti.com>
+---
+ arch/arm/mach-omap2/prm-regbits-34xx.h |   34 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.h     |    4 +++
+ 2 files changed, 38 insertions(+), 0 deletions(-)
 
-Tested-by: Kevin Hilman <khilman@ti.com>
-
-Tested full-chip retention and off on 3430/n900, 3530/Overo and
-3630/Zoom3.
-
-Kevin
+diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
+index 64c087a..0309ff6 100644
+--- a/arch/arm/mach-omap2/prm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+@@ -216,6 +216,12 @@
+ /* PRM_SYSCONFIG specific bits */
+ 
+ /* PRM_IRQSTATUS_MPU specific bits */
++#define OMAP3630_VC_BYPASS_ACK_ST_SHIFT			28
++#define OMAP3630_VC_BYPASS_ACK_ST_MASK			(1 << 28)
++#define OMAP3630_VC_VP1_ACK_ST_SHIFT			27
++#define OMAP3630_VC_VP1_ACK_ST_MASK			(1 << 27)
++#define OMAP3630_ABB_LDO_TRANXDONE_ST_SHIFT		26
++#define OMAP3630_ABB_LDO_TRANXDONE_ST_MASK		(1 << 26)
+ #define OMAP3430ES2_SND_PERIPH_DPLL_ST_SHIFT		25
+ #define OMAP3430ES2_SND_PERIPH_DPLL_ST_MASK		(1 << 25)
+ #define OMAP3430_VC_TIMEOUTERR_ST_MASK			(1 << 24)
+@@ -248,6 +254,12 @@
+ #define OMAP3430_FS_USB_WKUP_ST_MASK			(1 << 1)
+ 
+ /* PRM_IRQENABLE_MPU specific bits */
++#define OMAP3630_VC_BYPASS_ACK_EN_SHIFT				28
++#define OMAP3630_VC_BYPASS_ACK_EN_MASK				(1 << 28)
++#define OMAP3630_VC_VP1_ACK_EN_SHIFT				27
++#define OMAP3630_VC_VP1_ACK_EN_MASK				(1 << 27)
++#define OMAP3630_ABB_LDO_TRANXDONE_EN_SHIFT			26
++#define OMAP3630_ABB_LDO_TRANXDONE_EN_MASK			(1 << 26)
+ #define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN_SHIFT		25
+ #define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN_MASK		(1 << 25)
+ #define OMAP3430_VC_TIMEOUTERR_EN_MASK				(1 << 24)
+@@ -587,6 +599,28 @@
+ 
+ /* PRM_VP2_STATUS specific bits */
+ 
++/* PRM_LDO_ABB_SETUP specific bits */
++#define OMAP3630_SR2_IN_TRANSITION_SHIFT		6
++#define OMAP3630_SR2_IN_TRANSITION_MASK			(1 << 6)
++#define OMAP3630_SR2_STATUS_SHIFT			3
++#define OMAP3630_SR2_STATUS_MASK			(3 << 3)
++#define OMAP3630_OPP_CHANGE_SHIFT			2
++#define OMAP3630_OPP_CHANGE_MASK			(1 << 2)
++#define OMAP3630_OPP_SEL_SHIFT				0
++#define OMAP3630_OPP_SEL_MASK				(3 << 0)
++
++/* PRM_LDO_ABB_CTRL specific bits */
++#define OMAP3630_SR2_WTCNT_VALUE_SHIFT			8
++#define OMAP3630_SR2_WTCNT_VALUE_MASK			(0xff << 8)
++#define OMAP3630_SLEEP_RBB_SEL_SHIFT			3
++#define OMAP3630_SLEEP_RBB_SEL_MASK			(1 << 3)
++#define OMAP3630_ACTIVE_FBB_SEL_SHIFT			2
++#define OMAP3630_ACTIVE_FBB_SEL_MASK			(1 << 2)
++#define OMAP3630_ACTIVE_RBB_SEL_SHIFT			1
++#define OMAP3630_ACTIVE_RBB_SEL_MASK			(1 << 1)
++#define OMAP3630_SR2EN_SHIFT				0
++#define OMAP3630_SR2EN_MASK				(1 << 0)
++
+ /* RM_RSTST_NEON specific bits */
+ 
+ /* PM_WKDEP_NEON specific bits */
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+index cef533d..408d1c7 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+@@ -167,6 +167,10 @@
+ #define OMAP3430_PRM_VP2_VOLTAGE	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e0)
+ #define OMAP3_PRM_VP2_STATUS_OFFSET	0x00e4
+ #define OMAP3430_PRM_VP2_STATUS		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e4)
++#define OMAP3_PRM_LDO_ABB_SETUP_OFFSET	0x00f0
++#define OMAP3630_PRM_LDO_ABB_SETUP	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00f0)
++#define OMAP3_PRM_LDO_ABB_CTRL_OFFSET	0x00f4
++#define OMAP3630_PRM_LDO_ABB_CTRL	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00f4)
+ 
+ #define OMAP3_PRM_CLKSEL_OFFSET	0x0040
+ #define OMAP3430_PRM_CLKSEL		OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, 0x0040)
+-- 
+1.7.4.1
 
