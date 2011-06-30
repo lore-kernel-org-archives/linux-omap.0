@@ -1,70 +1,59 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 08/18] GPIO: OMAP: Use wkup regs off/suspend support flag
-Date: Thu, 30 Jun 2011 15:57:21 -0700
-Message-ID: <87y60jc4ha.fsf@ti.com>
-References: <1308111776-29130-1-git-send-email-tarun.kanti@ti.com>
-	<1308111776-29130-7-git-send-email-tarun.kanti@ti.com>
-	<87boxxpvi2.fsf@ti.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB037BC164D8@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/3] OMAP4: pcrm: Fix errors in few defines name
+Date: Thu, 30 Jun 2011 17:02:31 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1106301646410.2874@utopia.booyaka.com>
+References: <1308847544-2322-1-git-send-email-b-cousson@ti.com> <1308847544-2322-2-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1054549009-1309474951=:2874"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:33808 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751514Ab1F3W5Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Jun 2011 18:57:25 -0400
-Received: by mail-iy0-f179.google.com with SMTP id 35so3111127iyn.24
-        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 15:57:24 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037BC164D8@dbde02.ent.ti.com>
-	(Tarun Kanti DebBarma's message of "Thu, 30 Jun 2011 19:05:42 +0530")
+Received: from utopia.booyaka.com ([72.9.107.138]:39240 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752479Ab1F3XCc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 19:02:32 -0400
+In-Reply-To: <1308847544-2322-2-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org
 
-"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> Kevin,
-> [...]
->> > -#endif
->> > -		default:
->> > -			continue;
->> > -		}
->> > +		if (!bank->suspend_support)
->> > +			return 0;
->> 
->> Rather than check the flag here in every suspend, don't add a suspend
->> method in dev_pm_ops for banks that don't have the wkup_* registers.
-> While trying to implement this comment I am facing issues:
->
-> struct device_driver {
-> ...
->         const struct dev_pm_ops *pm;
->
-> ...
-> };
->
-> Since *pm is constant we can not assign pm->suspend/resume dynamically.
+--155748971-1054549009-1309474951=:2874
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Oh, right.
+Hi,
 
-> Also, I am not sure if it is permissible to have following code in probe:
->
-> ... omap_gpio_probe(...)
-> {
-> ...
->         if (bank->regs->wkup_status) {
->                 pdrv->driver.pm->suspend = omap_gpio_suspend;
->                 pdrv->driver.pm->resume = omap_gpio_resume;
->         }
-> ...
->
+just FYI the subject of this message should read "prcm" rather than "pcrm"
 
-OK, then I guess having a check for regs->wkup_status in the beginning
-of the suspend/resume functions will be fine.
+On Thu, 23 Jun 2011, Benoit Cousson wrote:
 
-Thanks,
+> A couple of macros were wrongly changed during the _MOD to _INST
+> rename done in the following commit:
+>=20
+>   OMAP4: PRCM: rename _MOD macros to _INST
+>   cdb54c4457d68994da7c2e16907adfbfc130060d
+>=20
+> Fix them to their original name.
+>=20
+> Some CM and PRM instances were not well aligned. Align them.
+>=20
+> Remove one blank line in cm2_44xx.h to align the output with
+> the other (cm1_44xx.h, prm44xx.h) files.
+>=20
+> Replace one tab with space.
+>=20
+> Update header copyright date.
+>=20
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Rajendra Nayak <rnayak@ti.com>
 
-Kevin
+Thanks Beno=EEt, this one was my fault.
 
+Reviewed-by: Paul Walmsley <paul@pwsan.com>
+
+
+- Paul
+--155748971-1054549009-1309474951=:2874--
