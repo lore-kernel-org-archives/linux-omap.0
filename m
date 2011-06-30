@@ -1,45 +1,116 @@
-From: Scott Ellis <scott@jumpnowtek.com>
-Subject: [PATCH] DMA: OMAP: Remove extra looping from omap_request_dma
-Date: Wed, 29 Jun 2011 10:09:09 -0400
-Message-ID: <1309356549.3995.13.camel@quad>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCHv2 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Thu, 30 Jun 2011 10:01:01 +0530
+Message-ID: <BANLkTim7P=91OX2R90Ewaeeb43NfM77Smw@mail.gmail.com>
+References: <1309282049-23739-1-git-send-email-balajitk@ti.com>
+	<1309282049-23739-3-git-send-email-balajitk@ti.com>
+	<87mxh1v8f3.fsf@ti.com>
+	<BANLkTimWocMSCAxMf2ruLBzqdTOi0d2OLg@mail.gmail.com>
+	<87iproserq.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:58405 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750888Ab1F3EbF convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Jun 2011 00:31:05 -0400
+In-Reply-To: <87iproserq.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com, svenkatr@ti.com, "Nayak, Rajendra" <rnayak@ti.com>
 
-Break from dma channel search when a free one is found.
+On Wed, Jun 29, 2011 at 11:26 PM, Kevin Hilman <khilman@ti.com> wrote:
+> "T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
+>
+>> On Wed, Jun 29, 2011 at 5:02 AM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>>> +Rajendra
+>>>
+>>> Balaji T K <balajitk@ti.com> writes:
+>>>
+>>>> add runtime pm support to HSMMC host controller
+>>>> Use runtime pm API to enable/disable HSMMC clock
+>>>> Use runtime autosuspend APIs to enable auto suspend delay
+>>>>
+>>>> Based on OMAP HSMMC runtime implementation by Kevin Hilman, Kishor=
+e Kadiyala
+>>>>
+>>>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>>>
+>>> I tried to test this series along with Benoit's clkdm/modulemode/hw=
+mod
+>>> cleanups and something strange is happening on OMAP4.
+>>>
+>>> First, this series by itself is working as I would expect, but test=
+ing
+>>> in combination with Benoit's series, it's different...
+>>>
+>>> First, I'm using Benoit's branch:
+>>>
+>>> =A0 =A0 =A0 git://gitorious.org/omap-pm/linux.git for_3.0.1/7_hwmod=
+_modulemode
+>>>
+>>> in combination with your series.
+>>>
+>>> I've also reverted these two commits:
+>>>
+>>> =A0 OMAP4: PM: TEMP: Prevent l3init from idling/force sleep
+>>> =A0 OMAP3+: hwmod data: TEMP: Do not idle MMC1 & MMC2 after boot
+>>>
+>>> which are temporary workarounds for not having MMC runtime PM.
+>>>
+>>> I turned the dev_dbg calls in the runtime PM callbacks into dev_inf=
+o
+>>> callbacks to see exactly when the device is enabled/disabled via ru=
+ntime
+>>> PM.
+>>>
+>>> To my surprise, I didn't see the device being enabled/disabled when
+>>> writing do the device.
+>>
+>> I tried for_3.0.1/7_hwmod_modulemode as you mentioned above,
+>> changing dev_dbg to dev_err and I am not observing the delayed write
+>> during umount. Can you let me know if the files are there in MMC aft=
+er
+>> remounting ?
+>
+> Did you also revert the above two commits?
 
-Signed-off-by: Scott Ellis <scott@jumpnowtek.com>
----
- arch/arm/plat-omap/dma.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+yes
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index c22217c..3d36fcf 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -678,10 +678,9 @@ int omap_request_dma(int dev_id, const char *dev_name,
- 
- 	spin_lock_irqsave(&dma_chan_lock, flags);
- 	for (ch = 0; ch < dma_chan_count; ch++) {
--		if (free_ch == -1 && dma_chan[ch].dev_id == -1) {
-+		if (dma_chan[ch].dev_id == -1) {
- 			free_ch = ch;
--			if (dev_id == 0)
--				break;
-+			break;
- 		}
- 	}
- 	if (free_ch == -1) {
+>
+> I've pushed a 'tmp/mmc' branch to my git tree[1] which is my PM branc=
+h
+> (including various PM stuff queued for upstream) as well as Benoit's
+> series with the TEMP patches above reverted and your series on top of
+> it. =A0There's one additional patch to convert the dev_dbg into dev_i=
+nfo
+> to see the transitions.
+>
+> Testing this on my OMAP4430 ES2.2 EMU device, I still see the above
+> behavior.
+
+I used OMAP4430 ES2.1 GP
+
+>
+> Can you try out this branch on your board using the default
+> omap2plus_defconfig?
+
+Ok, I will retry on EMU device.
+
+>
+> Thanks,
+>
+> Kevin
+>
+> [1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-=
+pm.git
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
