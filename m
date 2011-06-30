@@ -1,50 +1,70 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
-Date: Thu, 30 Jun 2011 15:50:19 -0700
-Message-ID: <874o37djdg.fsf@ti.com>
-References: <1309327221-4121-1-git-send-email-shubhrajyoti@ti.com>
-	<871uycql0y.fsf@ti.com> <4E0C24A5.5020905@ti.com>
+Subject: Re: [PATCH v2 08/18] GPIO: OMAP: Use wkup regs off/suspend support flag
+Date: Thu, 30 Jun 2011 15:57:21 -0700
+Message-ID: <87y60jc4ha.fsf@ti.com>
+References: <1308111776-29130-1-git-send-email-tarun.kanti@ti.com>
+	<1308111776-29130-7-git-send-email-tarun.kanti@ti.com>
+	<87boxxpvi2.fsf@ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB037BC164D8@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:34348 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752270Ab1F3WuX (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:33808 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751514Ab1F3W5Z (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Jun 2011 18:50:23 -0400
-In-Reply-To: <4E0C24A5.5020905@ti.com> (shubhrajyoti@ti.com's message of "Thu,
-	30 Jun 2011 12:54:21 +0530")
+	Thu, 30 Jun 2011 18:57:25 -0400
+Received: by mail-iy0-f179.google.com with SMTP id 35so3111127iyn.24
+        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 15:57:24 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037BC164D8@dbde02.ent.ti.com>
+	(Tarun Kanti DebBarma's message of "Thu, 30 Jun 2011 19:05:42 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-Shubhrajyoti <shubhrajyoti@ti.com> writes:
+"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 
-> On Thursday 30 June 2011 04:53 AM, Kevin Hilman wrote:
->> Shubhrajyoti D<shubhrajyoti@ti.com>  writes:
->>
->>> Currently the fifo depth is set to zero for OMAP4 which disables
->>> the FIFO usage. This patch enables the FIFO usage for I2C transactions
->>> on OMAP4 also.
->> Do you know the history of why the FIFO depth was set to zero?  A
->> summary of that history would greatly help reviewers.
->>
->>> Reported-By:Nishanth Menon<nm@ti.com>
->> minor: missing space after ':'
->>
->>> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
->> Tested on what platforms?   OMAP3 also?
-> OMAP4 and OMAP3
+> Kevin,
+> [...]
+>> > -#endif
+>> > -		default:
+>> > -			continue;
+>> > -		}
+>> > +		if (!bank->suspend_support)
+>> > +			return 0;
+>> 
+>> Rather than check the flag here in every suspend, don't add a suspend
+>> method in dev_pm_ops for banks that don't have the wkup_* registers.
+> While trying to implement this comment I am facing issues:
+>
+> struct device_driver {
+> ...
+>         const struct dev_pm_ops *pm;
+>
+> ...
+> };
+>
+> Since *pm is constant we can not assign pm->suspend/resume dynamically.
 
-Please add a brief summary of what platforms it was tested on in the
-changelog.
+Oh, right.
 
->> Could you please rebase this onto my for_3.1/i2c-andy branch[1] where we
->> have a large series of I2C patches queued up for the v3.1 merge window
->> already?
-> OK will rebase and resend.
+> Also, I am not sure if it is permissible to have following code in probe:
+>
+> ... omap_gpio_probe(...)
+> {
+> ...
+>         if (bank->regs->wkup_status) {
+>                 pdrv->driver.pm->suspend = omap_gpio_suspend;
+>                 pdrv->driver.pm->resume = omap_gpio_resume;
+>         }
+> ...
+>
+
+OK, then I guess having a check for regs->wkup_status in the beginning
+of the suspend/resume functions will be fine.
 
 Thanks,
 
 Kevin
+
