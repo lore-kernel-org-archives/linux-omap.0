@@ -1,55 +1,76 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 7/7] rtc: twl: move to threaded irq
-Date: Thu, 30 Jun 2011 12:51:10 +0300
-Message-ID: <1309427470-605-8-git-send-email-balbi@ti.com>
-References: <1309427470-605-1-git-send-email-balbi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:54087 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754809Ab1F3Jvl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Jun 2011 05:51:41 -0400
-In-Reply-To: <1309427470-605-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap clean-up for v3.1 merge window
+Date: Thu, 30 Jun 2011 13:25:02 +0200
+Message-ID: <201106301325.02204.arnd@arndb.de>
+References: <20110630091019.GJ23145@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110630091019.GJ23145@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <balbi@ti.com>
 
-simple trivial conversion to threaded_irq.
+On Thursday 30 June 2011, Tony Lindgren wrote:
+> Hi Arnd & Nico,
+> 
+> Please pull omap clean-up patches from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git devel-cleanup
+> 
+> This branch contains little bit more of omap code shrinkage
+> for regulators and PM debug.
+> 
+> It also contains cleanup of irq and timer init code, and some
+> fixes.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/rtc/rtc-twl.c |   10 +---------
- 1 files changed, 1 insertions(+), 9 deletions(-)
+Hi Tony,
 
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index f9a2799..eca0502 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -362,14 +362,6 @@ static irqreturn_t twl_rtc_interrupt(int irq, void *rtc)
- 	int res;
- 	u8 rd_reg;
- 
--#ifdef CONFIG_LOCKDEP
--	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
--	 * we don't want and can't tolerate.  Although it might be
--	 * friendlier not to borrow this thread context...
--	 */
--	local_irq_enable();
--#endif
--
- 	res = twl_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
- 	if (res)
- 		goto out;
-@@ -462,7 +454,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto out1;
- 
--	ret = request_irq(irq, twl_rtc_interrupt,
-+	ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
- 				IRQF_TRIGGER_RISING,
- 				dev_name(&rtc->dev), rtc);
- 	if (ret < 0) {
--- 
-1.7.6
+The cleanups all look great, with one exception (see below). In the
+future, I'd prefer to get separate pull requests for cleanups and
+bug fixes, but no need to worry about it this time.
 
+> I have not added this into linux next assuming that you will
+> do it. If not, please let me know and I will add it.
+
+Right, I'll ask Stephen to add the master branch of the arm-soc
+tree to linux-next soon, after I've made sure that there are no
+conflicts with existing branches that get merged there.
+
+For our upstream submission, my preference would be to send them
+piecemeal to Linus and group them across the branches as
+appropriate.
+
+>       omap: Set separate timer init functions to avoid cpu_is_omap tests
+
+This commit causes a build regression for me in some configurations.
+If you agree, I'd apply this patch on top:
+
+8<-------
+omap2+: fix build regression
+
+board-generic.c now contains a reference to omap3_timer, but depends only
+on ARCH_OMAP2, not on ARCH_OMAP3, which controls that symbol.
+omap2_timer seems to be more appropriate anyway, so use that instead.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -72,5 +72,5 @@ MACHINE_START(OMAP_GENERIC, "Generic OMAP24xx")
+        .init_early     = omap_generic_init_early,
+        .init_irq       = omap2_init_irq,
+        .init_machine   = omap_generic_init,
+-       .timer          = &omap3_timer,
++       .timer          = &omap2_timer,
+ MACHINE_END
