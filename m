@@ -1,69 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 1/5] OMAP3:I2C: Add device tree nodes for beagle
- board
-Date: Thu, 30 Jun 2011 07:27:02 -0700
-Message-ID: <20110630142702.GV23145@atomide.com>
-References: <1309426647-31587-1-git-send-email-manjugk@ti.com>
- <1309426647-31587-2-git-send-email-manjugk@ti.com>
+From: Gregoire Gentil <gregoire@alwaysinnovating.com>
+Subject: Re: Beagleboard -XM and 32GB microSD card oddities
+Date: Thu, 30 Jun 2011 07:43:58 -0700
+Message-ID: <1309445038.308.10.camel@gregoire-laptop>
+References: <4E0C4703.9000207@blueyonder.co.uk>
+Reply-To: gregoire@alwaysinnovating.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16792 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750852Ab1F3O1K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 10:27:10 -0400
-Content-Disposition: inline
-In-Reply-To: <1309426647-31587-2-git-send-email-manjugk@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55611 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751174Ab1F3OoD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 10:44:03 -0400
+Received: by iyb12 with SMTP id 12so1967657iyb.19
+        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 07:44:03 -0700 (PDT)
+In-Reply-To: <4E0C4703.9000207@blueyonder.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, ben-linux@fluff.org
+To: sboyce@blueyonder.co.uk
+Cc: Beagle Board <beagleboard@googlegroups.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Is your card labeled SDHC or SDXC? Can you give the specs of your card?
+Have you tried on Pandaboard?=20
 
-Few comments on the .dts data layout below.
+Gr=C3=A9goire
 
-* G, Manjunath Kondaiah <manjugk@ti.com> [110630 02:44]:
-> --- a/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
-> @@ -2,11 +2,6 @@
->  
->  / {
->  	i2c@48072000 {
-> -		compatible = "ti,omap3-i2c";
-> -		reg = <0x48072000 0x80>;
-> -		#address-cells = <1>;
-> -		#size-cells = <0>;
-> -
->  		eeprom@50 {
->  			compatible = "at,at24c01";
->  			reg = < 0x50 >;
+On Thu, 2011-06-30 at 10:50 +0100, Sid Boyce wrote:
+> I'm not really looking for a solution, just supplying some informatio=
+n=20
+> in case anyone is contemplating a >16GB card.
+>=20
+> Using Ubuntu 11.04 ARM or x86_64, I cannot create an ext4 partition t=
+hat=20
+> will mount. Doing fsck.ext4 appears to fix the filesystem, but rerunn=
+ing=20
+> fsck.ext4 a second time gives the same errors.
+>=20
+> Only BTRFS works.
+>=20
+> A BTRFS partition can be created without a problem. I then use rsync =
+to=20
+> copy across all the data from the 16GB (ext4) partition and it mounts=
+=20
+> without errors. After the rsync I create the excluded directories pro=
+c,=20
+> sys, tmp, media.
+>=20
+> I get a kernel oops (2.6.39-x1) on boot up of the 32GB card.
+> I'm still trying to figure why I'm getting the oops that I don't have=
+ on=20
+> the original 16GB card.
+> Regards
+> Sid.
 
-The board .dts file should include the omap3 SoC .dts file.
 
-The omap3 SoC .dts file should have the devices mapped to L3 and L4
-busses, and the then i2c@1 would just contain the bus offset.
-
-Then the i2c@1 entry would be repeated in the board specific
-.dts and tell that the i2c@1 is enabled.
-
-> --- a/arch/arm/boot/dts/omap3-beagle.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle.dts
-> @@ -4,4 +4,46 @@
->  / {
->  	model = "TI OMAP3 BeagleBoard";
->  	compatible = "ti,omap3-beagle";
-> +	interrupt-parent = <&gic>;
-> +
-> +	gic: interrupt-controller@48241000 {
-> +		compatible = "ti,omap-gic", "arm,gic";
-> +		interrupt-controller;
-> +		#interrupt-cells = <1>;
-> +		reg = <0x48200000 0x1000>;
-> +	};
-
-There's no GIC on omap3, that's only on Cortex A9 systems.
-
-Regards,
-
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
