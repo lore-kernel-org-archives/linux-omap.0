@@ -1,56 +1,76 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [RFC/PATCH 8/9] OMAP: PM CONSTRAINTS: implement the devices
- wake-up latency constraints
-Date: Thu, 30 Jun 2011 17:08:08 +0200
-Message-ID: <BANLkTin0A8hYaL9-XB95vNyb8=YgPzDMBg@mail.gmail.com>
-References: <1308926286-30445-1-git-send-email-j-pihet@ti.com>
-	<1308926286-30445-9-git-send-email-j-pihet@ti.com>
-	<20110627183345.GA6187@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: jean.pihet@newoldbits.com
+Subject: [PATCH 01/11] PM: add a per-device wake-up latency constraints plist
+Date: Thu, 30 Jun 2011 17:11:15 +0200
+Message-ID: <1309446685-17502-2-git-send-email-j-pihet@ti.com>
+References: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:47110 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751105Ab1F3PII convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 11:08:08 -0400
-Received: by qwk3 with SMTP id 3so1152176qwk.19
-        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 08:08:08 -0700 (PDT)
-In-Reply-To: <20110627183345.GA6187@google.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:36749 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752630Ab1F3PLr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 11:11:47 -0400
+Received: by wyg8 with SMTP id 8so1617923wyg.19
+        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 08:11:46 -0700 (PDT)
+In-Reply-To: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foun>
+Cc: Jean Pihet <j-pihet@ti.com>
 
-On Mon, Jun 27, 2011 at 8:33 PM, Todd Poynor <toddpoynor@google.com> wr=
-ote:
-> On Fri, Jun 24, 2011 at 04:38:05PM +0200, jean.pihet@newoldbits.com w=
-rote:
-> ...
->> + =A0 =A0 /* Find the associated omap_device for dev */
->> + =A0 =A0 od =3D container_of(pdev, struct omap_device, pdev);
->> + =A0 =A0 if (!od || (od->hwmods_cnt !=3D 1)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: Error: No unique hwmod for dev=
-ice %s\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0__func__, dev_name(pm_qos_r=
-eq->dev));
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->
-> Check for !od can be dropped... if there's a check for !pdev needed
-> can add that, but container_of() won't return NULL for a valid
-> contained field.
-Ok fixed in the v2 version.
+From: Jean Pihet <j-pihet@ti.com>
 
-Thanks!
-Jean
+Add the field wakeup_lat_plist_head in the struct dev_pm_info
+and the initialization of the plist in device_pm_init.
 
+This enables the implementation of per-device constraints in
+PM QoS.
 
->
->
-> Todd
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ drivers/base/power/main.c |    3 +++
+ include/linux/pm.h        |    2 ++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+index aa632020..b1fd96b 100644
+--- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -96,6 +96,8 @@ void device_pm_add(struct device *dev)
+ 			dev_name(dev->parent));
+ 	list_add_tail(&dev->power.entry, &dpm_list);
+ 	mutex_unlock(&dpm_list_mtx);
++	/* ToDo: call PM QoS to init the per-device wakeup latency constraints */
++	plist_head_init(&dev->power.wakeup_lat_plist_head, &dev->power.lock);
+ }
+ 
+ /**
+@@ -106,6 +108,7 @@ void device_pm_remove(struct device *dev)
+ {
+ 	pr_debug("PM: Removing info for %s:%s\n",
+ 		 dev->bus ? dev->bus->name : "No Bus", dev_name(dev));
++	/* ToDo: call PM QoS to de-init the per-device wakeup latency constraints */
+ 	complete_all(&dev->power.completion);
+ 	mutex_lock(&dpm_list_mtx);
+ 	list_del_init(&dev->power.entry);
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index 3160648..35fe682 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -22,6 +22,7 @@
+ #define _LINUX_PM_H
+ 
+ #include <linux/list.h>
++#include <linux/plist.h>
+ #include <linux/workqueue.h>
+ #include <linux/spinlock.h>
+ #include <linux/wait.h>
+@@ -462,6 +463,7 @@ struct dev_pm_info {
+ 	unsigned long		accounting_timestamp;
+ 	void			*subsys_data;  /* Owned by the subsystem. */
+ #endif
++	struct plist_head	wakeup_lat_plist_head;
+ };
+ 
+ extern void update_pm_runtime_accounting(struct device *dev);
+-- 
+1.7.4.1
+
