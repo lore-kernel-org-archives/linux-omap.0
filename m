@@ -1,52 +1,60 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: about n810 integration status
-Date: Thu, 30 Jun 2011 08:17:03 +0300
-Message-ID: <20110630051703.GG12671@valkosipuli.localdomain>
-References: <42DA59FF-FC09-437C-9C0E-85AE527B3606@gmail.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Thu, 30 Jun 2011 10:56:41 +0530
+Message-ID: <BANLkTin8vYXwc8cWhDWMQ9O7xuK+1RYnHg@mail.gmail.com>
+References: <1308752314-32079-1-git-send-email-balajitk@ti.com>
+	<1308752314-32079-3-git-send-email-balajitk@ti.com>
+	<alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com>
+	<BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com>
+	<87ei2dy9zk.fsf@ti.com>
+	<BANLkTimccmdwXW2=jnAhv4GbzhcNPsUDQA@mail.gmail.com>
+	<alpine.DEB.2.00.1106291813580.2874@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:36584 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751263Ab1F3FYw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 01:24:52 -0400
-Content-Disposition: inline
-In-Reply-To: <42DA59FF-FC09-437C-9C0E-85AE527B3606@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1106291813580.2874@utopia.booyaka.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, Kevin Hilman <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, cjb <cjb@laptop.org>, tony <tony@atomide.com>, "madhu.cr" <madhu.cr@ti.com>, b-cousson <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kim HeungJun <riverful@gmail.com>
-Cc: linux-omap@vger.kernel.org, dacohen@gmail.com, fbalbi@ti.com
 
-On Sat, Jun 25, 2011 at 03:00:01PM +0900, Kim HeungJun wrote:
-> Hi everyone,
+On Thu, Jun 30, 2011 at 6:10 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> + Venkat
+>
+> Hi Balaji
+>
+> On Wed, 29 Jun 2011, T Krishnamoorthy, Balaji wrote:
+>
+>> On Wed, Jun 29, 2011 at 2:00 AM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>> > "T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
+>> >>
+>> >> I have seen some instabilities if delay is very less, on some
+>> >> production boards. The previous implementation used 100ms delay
+>> >> before disabling the clocks.
+>> >
+>> > And your new one is using 50ms. =A0How did this value come about?
+>>
+>> I don't have any specific affinity to this number, but when requests=
+ are
+>> bursty, they arrive within a few 10s of ms within each other. Didn't
+>> want to have the context/save restore penalty associated with every
+>> request.
+>
+> Kevin and I just chatted a little bit about this. =A0It seems best to
+> separate the work done on the autosuspend timeout from the runtime PM
+> conversion.
+>
+> So how about this: please send a new version of these patches with th=
+e
+> previous value, 100ms, for the autosuspend timeout. =A0That should ho=
+pefully
+> minimize the behavior change here for existing users. =A0And hopefull=
+y we'll
+> be able to get the series in for this merge window.
+>
+> Then later, we need to come back to this autosuspend timeout issue.
+>
 
-Hi HeungJun,
-
-> Does anybody knows about n810 integration status on Kernel? I have one
-> n810, and I try to update the newest kernel and filesystem image freely.
-> And, if anyone know about , please let me know.
-
-Are you using your own root filesystem or the original Diablo one?
-
-I've been using Debian without display so I just have had a serial console.
-The display might be working as well --- I just haven't tried it since the
-serial port is enough for me right now. :-P I can find my kernel .config if
-you're interested. NFS over USB works fine.
-
-Just grab latest linux-omap kernel. I don't think all the required CBUS
-changes are in mainline quite yet, but they're on their way there.
-
-> The information which I know is just the flasher from Nokia is needed for
-> updating. And, I can compile kernel and handle a litte.
-
-Flashing instructions are available here:
-
-<URL:http://wiki.maemo.org/index.php?title=Updating_the_firmware&oldid=17120>
-
-It's the same flasher as on N900.
-
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Ok.
