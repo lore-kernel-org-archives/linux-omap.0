@@ -1,60 +1,34 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
-Date: Thu, 30 Jun 2011 10:56:41 +0530
-Message-ID: <BANLkTin8vYXwc8cWhDWMQ9O7xuK+1RYnHg@mail.gmail.com>
-References: <1308752314-32079-1-git-send-email-balajitk@ti.com>
-	<1308752314-32079-3-git-send-email-balajitk@ti.com>
-	<alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com>
-	<BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com>
-	<87ei2dy9zk.fsf@ti.com>
-	<BANLkTimccmdwXW2=jnAhv4GbzhcNPsUDQA@mail.gmail.com>
-	<alpine.DEB.2.00.1106291813580.2874@utopia.booyaka.com>
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCH] arm: platsmp: Allow secondary cpu hotplug with maxcpus=1
+Date: Thu, 30 Jun 2011 14:38:52 +0900
+Message-ID: <20110630053851.GC22023@linux-sh.org>
+References: <1309372300-28911-1-git-send-email-sboyd@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1106291813580.2874@utopia.booyaka.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, Kevin Hilman <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, cjb <cjb@laptop.org>, tony <tony@atomide.com>, "madhu.cr" <madhu.cr@ti.com>, b-cousson <b-cousson@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1309372300-28911-1-git-send-email-sboyd@codeaurora.org>
+Sender: linux-sh-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, David Brown <davidb@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Linus Walleij <linus.walleij@stericsson.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 30, 2011 at 6:10 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> + Venkat
->
-> Hi Balaji
->
-> On Wed, 29 Jun 2011, T Krishnamoorthy, Balaji wrote:
->
->> On Wed, Jun 29, 2011 at 2:00 AM, Kevin Hilman <khilman@ti.com> wrote=
-:
->> > "T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
->> >>
->> >> I have seen some instabilities if delay is very less, on some
->> >> production boards. The previous implementation used 100ms delay
->> >> before disabling the clocks.
->> >
->> > And your new one is using 50ms. =A0How did this value come about?
->>
->> I don't have any specific affinity to this number, but when requests=
- are
->> bursty, they arrive within a few 10s of ms within each other. Didn't
->> want to have the context/save restore penalty associated with every
->> request.
->
-> Kevin and I just chatted a little bit about this. =A0It seems best to
-> separate the work done on the autosuspend timeout from the runtime PM
-> conversion.
->
-> So how about this: please send a new version of these patches with th=
-e
-> previous value, 100ms, for the autosuspend timeout. =A0That should ho=
-pefully
-> minimize the behavior change here for existing users. =A0And hopefull=
-y we'll
-> be able to get the series in for this merge window.
->
-> Then later, we need to come back to this autosuspend timeout issue.
->
+On Wed, Jun 29, 2011 at 11:31:39AM -0700, Stephen Boyd wrote:
+> If an ARM system has multiple cpus in the same socket and the
+> kernel is booted with maxcpus=1, secondary cpus are possible but
+> not present due to how platform_smp_prepare_cpus() is called.
+> Fix this by always calling platform_smp_prepare_cpus() as long as
+> max_cpus is non-zero (0 means no SMP) to allow platform code to
+> decide if any non-boot cpus are present in the system. Since
+> all current platform code doesn't support physical hotplug we
+> have a situation where possible == present and thus we can
+> simply copy the possible map to the present map.
+> 
+> With this patch it's possible to boot an ARM system with
+> maxcpus=1 on the command line and then hotplug in secondary cpus
+> via sysfs. This is more in line with how x86 works with maxcpus=1
+> on the command line.
+> 
+> Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
 
-Ok.
+Acked-by: Paul Mundt <lethal@linux-sh.org>
