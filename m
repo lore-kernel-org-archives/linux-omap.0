@@ -1,38 +1,63 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/3] OMAP4: prm: Remove wrong clockdomain offsets
-Date: Thu, 30 Jun 2011 17:12:05 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1106301711510.2874@utopia.booyaka.com>
-References: <1308847544-2322-1-git-send-email-b-cousson@ti.com> <1308847544-2322-3-git-send-email-b-cousson@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv3 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Thu, 30 Jun 2011 16:23:12 -0700
+Message-ID: <87d3hudhun.fsf@ti.com>
+References: <1309460700-25898-1-git-send-email-balajitk@ti.com>
+	<1309460700-25898-3-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45765 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752365Ab1F3XMF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 19:12:05 -0400
-In-Reply-To: <1308847544-2322-3-git-send-email-b-cousson@ti.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:49261 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751358Ab1F3XXQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Jun 2011 19:23:16 -0400
+In-Reply-To: <1309460700-25898-3-git-send-email-balajitk@ti.com> (Balaji
+	T. K.'s message of "Fri, 1 Jul 2011 00:34:58 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com, paul@pwsan.com, kishore.kadiyala@ti.com
 
-On Thu, 23 Jun 2011, Benoit Cousson wrote:
+Balaji T K <balajitk@ti.com> writes:
 
-> The following commit introduced new macros to define an offset
-> per clock domain in an instance.
-> 
-> commit e4156ee52fe617c2c2d80b5db993ff4bf07d7c3c
-> 
->     OMAP4: CM instances: add clockdomain register offsets
-> 
-> The PRM contains only two clock controls management entities:
-> EMU and WKUP.
-> Remove the other ones.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
+> add runtime pm support to HSMMC host controller
+> Use runtime pm API to enable/disable HSMMC clock
+> Use runtime autosuspend APIs to enable auto suspend delay
+>
+> Based on OMAP HSMMC runtime implementation by Kevin Hilman, Kishore Kadiyala
+>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
 
-Reviewed-by: Paul Walmsley <paul@pwsan.com>
+Minor nit below...
 
+[...]
 
-- Paul
+> +static int omap_hsmmc_runtime_suspend(struct device *dev)
+> +{
+> +	struct omap_hsmmc_host *host;
+> +
+> +	host = platform_get_drvdata(to_platform_device(dev));
+> +	omap_hsmmc_context_save(host);
+> +	dev_dbg(mmc_dev(host->mmc), "disabled\n");
+> +
+> +	return 0;
+> +}
+> +
+> +static int omap_hsmmc_runtime_resume(struct device *dev)
+> +{
+> +	struct omap_hsmmc_host *host;
+> +
+> +	host = platform_get_drvdata(to_platform_device(dev));
+> +	omap_hsmmc_context_restore(host);
+> +	dev_dbg(mmc_dev(host->mmc), "host: enabled\n");
+
+Minor: this has a 'host: ' prefix, where as the one in
+.runtime_suspend() does not. 
+
+> +
+> +	return 0;
+> +}
+> +
+
+Kevin
