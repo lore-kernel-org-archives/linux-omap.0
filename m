@@ -1,97 +1,65 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: [PATCH 6/8] OMAP3+: Voltage: add ABB data to voltage domains
-Date: Wed, 29 Jun 2011 17:25:58 -0700
-Message-ID: <1309393560-8874-7-git-send-email-mturquette@ti.com>
-References: <1309393560-8874-1-git-send-email-mturquette@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Wed, 29 Jun 2011 18:40:02 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1106291813580.2874@utopia.booyaka.com>
+References: <1308752314-32079-1-git-send-email-balajitk@ti.com> <1308752314-32079-3-git-send-email-balajitk@ti.com> <alpine.DEB.2.00.1106281116530.2874@utopia.booyaka.com> <BANLkTimT6nGP_ecJjZ6201=CiddN7BrsPg@mail.gmail.com> <87ei2dy9zk.fsf@ti.com>
+ <BANLkTimccmdwXW2=jnAhv4GbzhcNPsUDQA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1961410799-1309393046=:2874"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:47213 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753661Ab1F3AfY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 20:35:24 -0400
-Received: by mail-gw0-f43.google.com with SMTP id 21so754202gwj.30
-        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 17:35:23 -0700 (PDT)
-In-Reply-To: <1309393560-8874-1-git-send-email-mturquette@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:45936 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752574Ab1F3AkD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jun 2011 20:40:03 -0400
+In-Reply-To: <BANLkTimccmdwXW2=jnAhv4GbzhcNPsUDQA@mail.gmail.com>
+Content-ID: <alpine.DEB.2.00.1106291817560.2874@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, nm@ti.com, Mike Turquette <mturquette@ti.com>
+To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, "S, Venkatraman" <svenkatr@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com
 
-Starting with OMAP36xx, some voltage domains have an ABB ldo meant to
-insure stability when that voltage domain is operating at a high OPP.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-This patch adds struct omap_abb_instance to struct voltagedomain and
-populates the data for those voltage domains that have an ABB ldo on
-both 36xx and 44xx silicon.
+--155748971-1961410799-1309393046=:2874
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1106291817561.2874@utopia.booyaka.com>
 
-Signed-off-by: Mike Turquette <mturquette@ti.com>
----
- arch/arm/mach-omap2/voltage.h                 |    1 +
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |    3 +++
- arch/arm/mach-omap2/voltagedomains44xx_data.c |    3 +++
- 3 files changed, 7 insertions(+), 0 deletions(-)
++ Venkat
 
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 51c0b31..5d567a2 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -71,6 +71,7 @@ struct voltagedomain {
- 	struct omap_vc_channel *vc;
- 	const struct omap_vfsm_instance *vfsm;
- 	struct omap_vp_instance *vp;
-+	struct omap_abb_instance *abb;
- 	struct omap_voltdm_pmic *pmic;
- 
- 	/* VC/VP register access functions: SoC specific */
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index e7a0be1..a7473e1 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -26,6 +26,7 @@
- #include "voltage.h"
- #include "vc.h"
- #include "vp.h"
-+#include "abb.h"
- 
- /*
-  * VDD data
-@@ -96,6 +97,8 @@ void __init omap3xxx_voltagedomains_init(void)
- 	if (cpu_is_omap3630()) {
- 		omap3_vdd1_info.volt_data = omap36xx_vddmpu_volt_data;
- 		omap3_vdd2_info.volt_data = omap36xx_vddcore_volt_data;
-+
-+		omap3_voltdm_mpu.abb = &omap36xx_abb_mpu;
- 	} else {
- 		omap3_vdd1_info.volt_data = omap34xx_vddmpu_volt_data;
- 		omap3_vdd2_info.volt_data = omap34xx_vddcore_volt_data;
-diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-index d5f06c5e..31124c4 100644
---- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-@@ -32,6 +32,7 @@
- #include "omap_opp_data.h"
- #include "vc.h"
- #include "vp.h"
-+#include "abb.h"
- 
- static const struct omap_vfsm_instance omap4_vdd_mpu_vfsm = {
- 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET,
-@@ -60,6 +61,7 @@ static struct voltagedomain omap4_voltdm_mpu = {
- 	.vc = &omap4_vc_mpu,
- 	.vfsm = &omap4_vdd_mpu_vfsm,
- 	.vp = &omap4_vp_mpu,
-+	.abb = &omap4_abb_mpu,
- 	.vdd = &omap4_vdd_mpu_info,
- };
- 
-@@ -72,6 +74,7 @@ static struct voltagedomain omap4_voltdm_iva = {
- 	.vc = &omap4_vc_iva,
- 	.vfsm = &omap4_vdd_iva_vfsm,
- 	.vp = &omap4_vp_iva,
-+	.abb = &omap4_abb_iva,
- 	.vdd = &omap4_vdd_iva_info,
- };
- 
--- 
-1.7.4.1
+Hi Balaji
 
+On Wed, 29 Jun 2011, T Krishnamoorthy, Balaji wrote:
+
+> On Wed, Jun 29, 2011 at 2:00 AM, Kevin Hilman <khilman@ti.com> wrote:
+> > "T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
+> >>
+> >> I have seen some instabilities if delay is very less, on some=20
+> >> production boards. The previous implementation used 100ms delay=20
+> >> before disabling the clocks.
+> >
+> > And your new one is using 50ms. =A0How did this value come about?
+>
+> I don't have any specific affinity to this number, but when requests are=
+=20
+> bursty, they arrive within a few 10s of ms within each other. Didn't=20
+> want to have the context/save restore penalty associated with every=20
+> request.
+
+Kevin and I just chatted a little bit about this.  It seems best to=20
+separate the work done on the autosuspend timeout from the runtime PM=20
+conversion. =20
+
+So how about this: please send a new version of these patches with the=20
+previous value, 100ms, for the autosuspend timeout.  That should hopefully=
+=20
+minimize the behavior change here for existing users.  And hopefully we'll=
+=20
+be able to get the series in for this merge window.
+
+Then later, we need to come back to this autosuspend timeout issue.
+
+
+- Paul
+--155748971-1961410799-1309393046=:2874--
