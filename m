@@ -1,7 +1,7 @@
 From: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH 4/5] OMAP4: Panda: Update panda board file to use DT
-Date: Thu, 30 Jun 2011 15:07:26 +0500
-Message-ID: <1309426647-31587-5-git-send-email-manjugk@ti.com>
+Subject: [RFC PATCH 5/5] OMAP: I2C: Convert I2C driver to use device tree
+Date: Thu, 30 Jun 2011 15:07:27 +0500
+Message-ID: <1309426647-31587-6-git-send-email-manjugk@ti.com>
 References: <1309426647-31587-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,83 +21,113 @@ Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
-The OMAP4 panda board file is updated to use i2c nodes from device
-tree data structures.
+The OMAP I2C driver is modified to use platform_device data from
+device tree data structures.
 
 Signed-off-by: G, Manjunath Kondaiah <manjugk-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-omap4panda.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   30 +++++++++++++++++++++++++++++-
+ 1 files changed, 29 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index c9d1e13..b3151a0 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -22,12 +22,15 @@
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index ae1545b..d4ccc52 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -38,9 +38,13 @@
  #include <linux/clk.h>
  #include <linux/io.h>
- #include <linux/leds.h>
+ #include <linux/of_i2c.h>
++#include <linux/of_irq.h>
 +#include <linux/of_platform.h>
 +#include <linux/of_address.h>
- #include <linux/gpio.h>
- #include <linux/usb/otg.h>
- #include <linux/i2c/twl.h>
- #include <linux/regulator/machine.h>
- #include <linux/regulator/fixed.h>
- #include <linux/wl12xx.h>
-+#include <linux/irq.h>
+ #include <linux/slab.h>
+ #include <linux/i2c-omap.h>
+ #include <linux/pm_runtime.h>
++#include <plat/i2c.h>
  
- #include <mach/hardware.h>
- #include <mach/omap4-common.h>
-@@ -410,6 +413,7 @@ static struct i2c_board_info __initdata panda_i2c_eeprom[] = {
- static int __init omap4_panda_i2c_init(void)
+ /* I2C controller revisions */
+ #define OMAP_I2C_REV_2			0x20
+@@ -972,6 +976,7 @@ static const struct i2c_algorithm omap_i2c_algo = {
+ 	.functionality	= omap_i2c_func,
+ };
+ 
++static const struct of_device_id omap_i2c_of_match[];
+ static int __devinit
+ omap_i2c_probe(struct platform_device *pdev)
  {
- 	omap4_pmic_init("twl6030", &omap4_panda_twldata);
-+#if !defined(CONFIG_OF)
- 	omap_register_i2c_bus(2, 400, NULL, 0);
- 	/*
- 	 * Bus 3 is attached to the DVI port where devices like the pico DLP
-@@ -418,6 +422,7 @@ static int __init omap4_panda_i2c_init(void)
- 	omap_register_i2c_bus(3, 100, panda_i2c_eeprom,
- 					ARRAY_SIZE(panda_i2c_eeprom));
- 	omap_register_i2c_bus(4, 400, NULL, 0);
-+#endif
+@@ -979,10 +984,15 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	struct i2c_adapter	*adap;
+ 	struct resource		*mem, *irq, *ioarea;
+ 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
++	const struct of_device_id *match;
+ 	irq_handler_t isr;
+ 	int r;
+ 	u32 speed = 0;
+ 
++	match = of_match_device(omap_i2c_of_match, &pdev->dev);
++	if (!match)
++		dev_err(&pdev->dev, "DT: i2c device match not found.......\n");
++
+ 	/* NOTE: driver uses the static register mapping */
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!mem) {
+@@ -1007,10 +1017,19 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		r = -ENOMEM;
+ 		goto err_release_region;
+ 	}
+-
++	/* I2C device without DT might use this */
+ 	if (pdata != NULL) {
+ 		speed = pdata->clkrate;
+ 		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
++	} else if (pdev->dev.of_node) {
++		const unsigned int *prop;
++		prop = of_get_property(pdev->dev.of_node,
++				"clock-frequency", NULL);
++		if (prop)
++			speed = be32_to_cpup(prop);
++		else
++			speed = 100;
++		dev->set_mpu_wkup_lat = NULL;
+ 	} else {
+ 		speed = 100;	/* Default speed */
+ 		dev->set_mpu_wkup_lat = NULL;
+@@ -1045,6 +1064,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+ 
++
+ 	if (dev->rev <= OMAP_I2C_REV_ON_3430)
+ 		dev->errata |= I2C_OMAP3_1P153;
+ 
+@@ -1073,6 +1093,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 				       (1000 * speed / 8);
+ 	}
+ 
++
+ 	/* reset ASAP, clearing any IRQs */
+ 	omap_i2c_init(dev);
+ 
+@@ -1162,6 +1183,12 @@ static int omap_i2c_resume(struct device *dev)
  	return 0;
  }
  
-@@ -681,9 +686,25 @@ void omap4_panda_display_init(void)
- 	omap_display_init(&omap4_panda_dss_data);
- }
- 
-+static struct of_device_id omap_dt_gic_match[] __initdata = {
-+	{ .compatible = "ti,omap-gic", },
-+	{}
-+};
++static const struct of_device_id omap_i2c_of_match[] = {
++	{.compatible = "ti,omap_i2c", },
++	{},
++}
++MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
 +
-+static struct of_device_id omap_dt_match_table[] __initdata = {
-+	{ .compatible = "ti,omap4-panda", },
-+	{}
-+};
-+
- static void __init omap4_panda_init(void)
- {
- 	int package = OMAP_PACKAGE_CBS;
-+	struct device_node *node;
-+
-+	node = of_find_matching_node_by_address(NULL, omap_dt_gic_match,
-+						OMAP44XX_GIC_DIST_BASE);
-+	if (node)
-+		irq_domain_add_simple(node, 0);
+ static struct dev_pm_ops omap_i2c_pm_ops = {
+ 	.suspend = omap_i2c_suspend,
+ 	.resume = omap_i2c_resume,
+@@ -1178,6 +1205,7 @@ static struct platform_driver omap_i2c_driver = {
+ 		.name	= "omap_i2c",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= OMAP_I2C_PM_OPS,
++		.of_match_table = omap_i2c_of_match,
+ 	},
+ };
  
- 	if (omap_rev() == OMAP4430_REV_ES1_0)
- 		package = OMAP_PACKAGE_CBL;
-@@ -700,6 +721,7 @@ static void __init omap4_panda_init(void)
- 	omap4_ehci_init();
- 	usb_musb_init(&musb_board_data);
- 	omap4_panda_display_init();
-+	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
- }
- 
- static void __init omap4_panda_map_io(void)
 -- 
 1.7.4.1
