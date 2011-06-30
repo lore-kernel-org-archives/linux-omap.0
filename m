@@ -1,79 +1,96 @@
-From: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH 0/5] OMAP: I2C: Add device tree support
-Date: Thu, 30 Jun 2011 15:07:22 +0500
-Message-ID: <1309426647-31587-1-git-send-email-manjugk@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [RFC PATCH 1/5] OMAP3:I2C: Add device tree nodes for beagle board
+Date: Thu, 30 Jun 2011 15:07:23 +0500
+Message-ID: <1309426647-31587-2-git-send-email-manjugk@ti.com>
+References: <1309426647-31587-1-git-send-email-manjugk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from [117.192.67.160] ([117.192.67.160]:41589 "EHLO manju-desktop"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751825Ab1F3JtK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Jun 2011 05:49:10 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: grant.likely@secretlab.ca, ben-linux@fluff.org
 
 
-As a part of arm consolidation activity, the OMAP board files needs to
-be converted to use device tree.
+Add I2C and it's child device nodes for beagle board.
+The I2C1 controller child devices are not populated and it
+should be handled along with OMAP clock changes.
 
-To begin with, two board files are selected to use device tree for I2C
-device registration. The I2C and it's child devices existing on beagle
-and panda boards are modified in order to use device tree nodes created
-in device tree blob.
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+---
+ arch/arm/boot/dts/omap3-beagle-nunchuck.dts |    5 ---
+ arch/arm/boot/dts/omap3-beagle.dts          |   42 +++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+), 5 deletions(-)
 
-This patch series demonstrates i2c nodes creation and it's usage in i2c
-and it's client drivers. Since, current implementation of OMAP I2C driver
-uses SoC specific HWMOD framework for clock initilization, enable/disable
-and other PM functionalities, the patch series cannot work independently
-since device registration through device tree bypasses HWMOD framework.
-
-There should be method to control peripheral level clock and to use 
-existing hwmod framework api's and features through device tree.
-This might require alignment and suggestions from hwmod maintainers and
-contributors so that it can be adapted for other drivers also.
-
-TODO: 
-1. The board file changes will move to new file board_dt.c once board file
-   is completly migrated to DT.
-
-2. Look up table can be provided if specific device names are required and
-   also platform_data can be passed through lookup table while populating
-   device nodes.
-
-Applies on top of:
-git://git.secretlab.ca/git/linux-2.6
-Branch:devicetree/test
-
-Compilation:
-Compiles for omap2plus_defconfig
-
-Testing:
-Boot testing is done on beagle and panda and in i2c driver, the device tree
-node data is verified manually in i2c driver and i2c driver will not work after
-the probe due to non availability of clock for I2C controllers(Testing is
-exempted for I2C1 since it interfaces with power chip).
-
-G, Manjunath Kondaiah (5):
-  OMAP3:I2C: Add device tree nodes for beagle board
-  OMAP4:I2C: Add device tree nodes for panda board
-  OMAP3: Beagle: Update beagle board file to use DT
-  OMAP4: Panda: Update panda board file to use DT
-  OMAP: I2C: Convert I2C driver to use device tree
-
- arch/arm/boot/dts/omap3-beagle-nunchuck.dts |    5 --
- arch/arm/boot/dts/omap3-beagle.dts          |   42 ++++++++++++++++++++
- arch/arm/boot/dts/omap4-panda.dts           |   57 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-omap3beagle.c     |   24 +++++++++--
- arch/arm/mach-omap2/board-omap4panda.c      |   22 ++++++++++
- drivers/i2c/busses/i2c-omap.c               |   30 ++++++++++++++-
- 6 files changed, 170 insertions(+), 10 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap3-beagle-nunchuck.dts b/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
+index 2607be5..479be11 100644
+--- a/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
++++ b/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
+@@ -2,11 +2,6 @@
+ 
+ / {
+ 	i2c@48072000 {
+-		compatible = "ti,omap3-i2c";
+-		reg = <0x48072000 0x80>;
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-
+ 		eeprom@50 {
+ 			compatible = "at,at24c01";
+ 			reg = < 0x50 >;
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index 4439466..491ee2b 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -4,4 +4,46 @@
+ / {
+ 	model = "TI OMAP3 BeagleBoard";
+ 	compatible = "ti,omap3-beagle";
++	interrupt-parent = <&gic>;
++
++	gic: interrupt-controller@48241000 {
++		compatible = "ti,omap-gic", "arm,gic";
++		interrupt-controller;
++		#interrupt-cells = <1>;
++		reg = <0x48200000 0x1000>;
++	};
++
++	i2c@48070000 {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		compatible = "ti,omap_i2c";
++		reg = <0x48070000 0x100>;
++		interrupts = < 88 >;
++		interrupt-parent = <&gic>;
++		clock-frequency = <2600>;
++		status = "disabled";
++	};
++
++	i2c@48072000 {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		compatible = "ti,omap_i2c";
++		reg = <0x48072000 0x100>;
++		interrupts = < 89 >;
++		interrupt-parent = <&gic>;
++		clock-frequency = <400>;
++		status = "ok";
++	};
++
++	i2c@48060000 {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		compatible = "ti,omap_i2c";
++		reg = <0x48060000 0x100>;
++		interrupts = < 93 >;
++		interrupt-parent = <&gic>;
++		clock-frequency = <100>;
++		status = "ok";
++	};
++
+ };
 -- 
 1.7.4.1
+
