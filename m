@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 07/11] OMAP3: powerdomain data: add wake-up latency figures
-Date: Thu, 30 Jun 2011 17:11:21 +0200
-Message-ID: <1309446685-17502-8-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 03/11] PM QoS: support the dynamic devices insertion and removal
+Date: Thu, 30 Jun 2011 17:11:17 +0200
+Message-ID: <1309446685-17502-4-git-send-email-j-pihet@ti.com>
 References: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:62514 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753085Ab1F3PMA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 11:12:00 -0400
-Received: by mail-ww0-f44.google.com with SMTP id 5so2347794wwe.1
-        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 08:11:59 -0700 (PDT)
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:40049 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752630Ab1F3PLw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 11:11:52 -0400
+Received: by wyg8 with SMTP id 8so1618012wyg.19
+        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 08:11:51 -0700 (PDT)
 In-Reply-To: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,178 +18,180 @@ Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Figures are added to the power domains structs.
+The devices wake-up latency constraints class of PM QoS is
+storing the constraints list using the device pm_info struct.
 
-Note: the figures are preliminary figures. More accurate measurements
-are needed. Also the conditions of measurements shall be investigated
-and described.
-
-Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
-on MPU, CORE and PER.
+This patch adds the init and de-init of the per-device constraints
+list in order to support the dynamic insertion and removal
+of the devices in the system.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/powerdomains3xxx_data.c |   77 +++++++++++++++++++++++++++
- 1 files changed, 77 insertions(+), 0 deletions(-)
+ drivers/base/power/main.c     |    8 +++--
+ include/linux/pm.h            |    1 +
+ include/linux/pm_qos_params.h |    2 +
+ kernel/pm_qos_params.c        |   70 ++++++++++++++++++++++++++++++++--------
+ 4 files changed, 64 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-index 469a920..64446e7 100644
---- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-@@ -31,6 +31,13 @@
+diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+index b1fd96b..51f5526 100644
+--- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -27,6 +27,7 @@
+ #include <linux/sched.h>
+ #include <linux/async.h>
+ #include <linux/suspend.h>
++#include <linux/pm_qos_params.h>
  
- /*
-  * Powerdomains
-+ *
-+ * The wakeup_lat values are derived from measurements on
-+ * the actual target.
-+ *
-+ * Note: the latency figures are preliminary and only used
-+ * for the constraints framework validation.
-+ * Actual figures and measurements conditions shall be added.
-  */
+ #include "../base.h"
+ #include "power.h"
+@@ -96,8 +97,8 @@ void device_pm_add(struct device *dev)
+ 			dev_name(dev->parent));
+ 	list_add_tail(&dev->power.entry, &dpm_list);
+ 	mutex_unlock(&dpm_list_mtx);
+-	/* ToDo: call PM QoS to init the per-device wakeup latency constraints */
+-	plist_head_init(&dev->power.wakeup_lat_plist_head, &dev->power.lock);
++	/* Call PM QoS to init the per-device wakeup latency constraints */
++	pm_qos_dev_wakeup_lat_init(dev);
+ }
  
- static struct powerdomain iva2_pwrdm = {
-@@ -52,6 +59,13 @@ static struct powerdomain iva2_pwrdm = {
- 		[2] = PWRSTS_OFF_ON,
- 		[3] = PWRSTS_ON,
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 1100,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 350,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
+ /**
+@@ -108,7 +109,8 @@ void device_pm_remove(struct device *dev)
+ {
+ 	pr_debug("PM: Removing info for %s:%s\n",
+ 		 dev->bus ? dev->bus->name : "No Bus", dev_name(dev));
+-	/* ToDo: call PM QoS to de-init the per-device wakeup latency constraints */
++	/* Call PM QoS to de-init the per-device wakeup latency constraints */
++	pm_qos_dev_wakeup_lat_deinit(dev);
+ 	complete_all(&dev->power.completion);
+ 	mutex_lock(&dpm_list_mtx);
+ 	list_del_init(&dev->power.entry);
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index 35fe682..d9b6092 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -464,6 +464,7 @@ struct dev_pm_info {
+ 	void			*subsys_data;  /* Owned by the subsystem. */
+ #endif
+ 	struct plist_head	wakeup_lat_plist_head;
++	int			wakeup_lat_init;
  };
  
- static struct powerdomain mpu_3xxx_pwrdm = {
-@@ -68,6 +82,13 @@ static struct powerdomain mpu_3xxx_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_OFF_ON,
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 95,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 45,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- };
+ extern void update_pm_runtime_accounting(struct device *dev);
+diff --git a/include/linux/pm_qos_params.h b/include/linux/pm_qos_params.h
+index e6e16cb..5b6707a 100644
+--- a/include/linux/pm_qos_params.h
++++ b/include/linux/pm_qos_params.h
+@@ -45,4 +45,6 @@ int pm_qos_add_notifier(int class, struct notifier_block *notifier);
+ int pm_qos_remove_notifier(int class, struct notifier_block *notifier);
+ int pm_qos_request_active(struct pm_qos_request_list *req);
  
- /*
-@@ -98,6 +119,13 @@ static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
- 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
- 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 100,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 60,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- };
++void pm_qos_dev_wakeup_lat_init(struct device *dev);
++void pm_qos_dev_wakeup_lat_deinit(struct device *dev);
+ #endif
+diff --git a/kernel/pm_qos_params.c b/kernel/pm_qos_params.c
+index d61c8e5..6f25ccb 100644
+--- a/kernel/pm_qos_params.c
++++ b/kernel/pm_qos_params.c
+@@ -275,11 +275,21 @@ void pm_qos_add_request(struct pm_qos_request_list *pm_qos_req,
+ 	struct pm_qos_object *o =  pm_qos_array[pm_qos_params->class];
+ 	int new_value;
  
- static struct powerdomain core_3xxx_es3_1_pwrdm = {
-@@ -121,6 +149,13 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
- 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
- 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 100,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 60,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- };
+-	if ((pm_qos_params->class != PM_QOS_DEV_WAKEUP_LATENCY) &&
+-	    (pm_qos_request_active(pm_qos_req))) {
+-		WARN(1, KERN_ERR "pm_qos_add_request() called for already "
+-		     "added request\n");
+-		return;
++	if (pm_qos_params->class == PM_QOS_DEV_WAKEUP_LATENCY) {
++		if (!pm_qos_params->dev) {
++			WARN(1, KERN_ERR "pm_qos_add_request() called for "
++				"invalid device\n");
++			return;
++		}
++		/* Silently return if the device is being released */
++		if (!pm_qos_params->dev->power.wakeup_lat_init)
++			return;
++	} else {
++		if (pm_qos_request_active(pm_qos_req)) {
++			WARN(1, KERN_ERR "pm_qos_add_request() called for "
++				"already added request\n");
++			return;
++		}
+ 	}
  
- static struct powerdomain dss_pwrdm = {
-@@ -136,6 +171,13 @@ static struct powerdomain dss_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 70,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 20,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- };
+ 	if (pm_qos_params->value == PM_QOS_DEFAULT_VALUE)
+@@ -312,11 +322,16 @@ void pm_qos_update_request(struct pm_qos_request_list *pm_qos_req,
+ 	if (!pm_qos_req) /*guard against callers passing in null */
+ 		return;
  
- /*
-@@ -157,6 +199,13 @@ static struct powerdomain sgx_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 1000,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- };
+-	if ((pm_qos_req->class != PM_QOS_DEV_WAKEUP_LATENCY) &&
+-	    (!pm_qos_request_active(pm_qos_req))) {
+-		WARN(1, KERN_ERR "pm_qos_update_request() called for unknown "
+-		     "object\n");
+-		return;
++	if (pm_qos_req->class == PM_QOS_DEV_WAKEUP_LATENCY) {
++		/* Silently return if the device is being released */
++		if (!pm_qos_req->dev->power.wakeup_lat_init)
++			return;
++	} else {
++		if (!pm_qos_request_active(pm_qos_req)) {
++			WARN(1, KERN_ERR "pm_qos_update_request() called "
++				"for unknown object\n");
++			return;
++		}
+ 	}
  
- static struct powerdomain cam_pwrdm = {
-@@ -172,6 +221,13 @@ static struct powerdomain cam_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 850,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 35,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- };
+ 	if (new_value == PM_QOS_DEFAULT_VALUE)
+@@ -343,11 +358,16 @@ void pm_qos_remove_request(struct pm_qos_request_list *pm_qos_req)
+ 		return;
+ 		/* silent return to keep pcm code cleaner */
  
- static struct powerdomain per_pwrdm = {
-@@ -187,6 +243,13 @@ static struct powerdomain per_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 200,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 110,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- };
+-	if ((pm_qos_req->class != PM_QOS_DEV_WAKEUP_LATENCY) &&
+-	    (!pm_qos_request_active(pm_qos_req))) {
+-		WARN(1, KERN_ERR "pm_qos_remove_request() called for unknown "
+-		     "object\n");
++	if (pm_qos_req->class == PM_QOS_DEV_WAKEUP_LATENCY) {
++		/* Silently return if the device is being released */
++		if (!pm_qos_req->dev->power.wakeup_lat_init)
++			return;
++	} else {
++		if (!pm_qos_request_active(pm_qos_req)) {
++			WARN(1, KERN_ERR "pm_qos_remove_request() called "
++				"for unknown object\n");
+ 		return;
++		}
+ 	}
  
- static struct powerdomain emu_pwrdm = {
-@@ -201,6 +264,13 @@ static struct powerdomain neon_pwrdm = {
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_RET,
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 200,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 35,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- };
+ 	update_target(pm_qos_req, 1, PM_QOS_DEFAULT_VALUE);
+@@ -393,6 +413,28 @@ int pm_qos_remove_notifier(int class, struct notifier_block *notifier)
+ }
+ EXPORT_SYMBOL_GPL(pm_qos_remove_notifier);
  
- static struct powerdomain usbhost_pwrdm = {
-@@ -223,6 +293,13 @@ static struct powerdomain usbhost_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 800,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 150,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- };
- 
- static struct powerdomain dpll1_pwrdm = {
++/* Called from the device PM subsystem at device init */
++void pm_qos_dev_wakeup_lat_init(struct device *dev)
++{
++	plist_head_init(&dev->power.wakeup_lat_plist_head, &dev->power.lock);
++	dev->power.wakeup_lat_init = 1;
++}
++
++/* Called from the device PM subsystem at device release */
++void pm_qos_dev_wakeup_lat_deinit(struct device *dev)
++{
++	struct pm_qos_request_list *req, *tmp;
++
++	dev->power.wakeup_lat_init = 0;
++
++	/* Flush the constraints list for the device */
++	plist_for_each_entry_safe(req, tmp,
++				  &dev->power.wakeup_lat_plist_head,
++				  list)
++		update_target(req, 1, PM_QOS_DEFAULT_VALUE);
++	plist_head_init(&dev->power.wakeup_lat_plist_head, &dev->power.lock);
++}
++
+ static int pm_qos_power_open(struct inode *inode, struct file *filp)
+ {
+ 	struct pm_qos_parameters pm_qos_params;
 -- 
 1.7.4.1
 
