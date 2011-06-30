@@ -1,31 +1,79 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Re: Re: [alsa-devel] [PATCH v6 00/18] MFD/ASoC/Input: TWL4030/TWL60X0 changes
-Date: Thu, 30 Jun 2011 12:41:14 +0300
-Message-ID: <1716345.TLaZkrJrpR@barack>
-References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com> <1764311.fyKV9VEiMM@barack> <20110630080443.GD12106@sortiz-mobl>
+From: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH 0/5] OMAP: I2C: Add device tree support
+Date: Thu, 30 Jun 2011 15:07:22 +0500
+Message-ID: <1309426647-31587-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20110630080443.GD12106@sortiz-mobl>
-Sender: linux-input-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Girdwood, Liam" <lrg@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Samuel,
 
-On Thursday 30 June 2011 10:04:43 Samuel Ortiz wrote:
-> I will do that very soon, no worries.
+As a part of arm consolidation activity, the OMAP board files needs to
+be converted to use device tree.
 
-Thank you very much, I'm going to have another series on top of this on=
-e=20
-coming, and want to make sure that I'm in the right track.
+To begin with, two board files are selected to use device tree for I2C
+device registration. The I2C and it's child devices existing on beagle
+and panda boards are modified in order to use device tree nodes created
+in device tree blob.
 
-Thanks,
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch series demonstrates i2c nodes creation and it's usage in i2c
+and it's client drivers. Since, current implementation of OMAP I2C driver
+uses SoC specific HWMOD framework for clock initilization, enable/disable
+and other PM functionalities, the patch series cannot work independently
+since device registration through device tree bypasses HWMOD framework.
+
+There should be method to control peripheral level clock and to use 
+existing hwmod framework api's and features through device tree.
+This might require alignment and suggestions from hwmod maintainers and
+contributors so that it can be adapted for other drivers also.
+
+TODO: 
+1. The board file changes will move to new file board_dt.c once board file
+   is completly migrated to DT.
+
+2. Look up table can be provided if specific device names are required and
+   also platform_data can be passed through lookup table while populating
+   device nodes.
+
+Applies on top of:
+git://git.secretlab.ca/git/linux-2.6
+Branch:devicetree/test
+
+Compilation:
+Compiles for omap2plus_defconfig
+
+Testing:
+Boot testing is done on beagle and panda and in i2c driver, the device tree
+node data is verified manually in i2c driver and i2c driver will not work after
+the probe due to non availability of clock for I2C controllers(Testing is
+exempted for I2C1 since it interfaces with power chip).
+
+G, Manjunath Kondaiah (5):
+  OMAP3:I2C: Add device tree nodes for beagle board
+  OMAP4:I2C: Add device tree nodes for panda board
+  OMAP3: Beagle: Update beagle board file to use DT
+  OMAP4: Panda: Update panda board file to use DT
+  OMAP: I2C: Convert I2C driver to use device tree
+
+ arch/arm/boot/dts/omap3-beagle-nunchuck.dts |    5 --
+ arch/arm/boot/dts/omap3-beagle.dts          |   42 ++++++++++++++++++++
+ arch/arm/boot/dts/omap4-panda.dts           |   57 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c     |   24 +++++++++--
+ arch/arm/mach-omap2/board-omap4panda.c      |   22 ++++++++++
+ drivers/i2c/busses/i2c-omap.c               |   30 ++++++++++++++-
+ 6 files changed, 170 insertions(+), 10 deletions(-)
+
+-- 
+1.7.4.1
