@@ -1,246 +1,207 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 1/9] omap: prcm: switch to a chained IRQ handler mechanism
-Date: Thu, 30 Jun 2011 08:51:39 +0300
-Message-ID: <1309413099.6148.46.camel@sokoban>
-References: <1309338303-2086-1-git-send-email-t-kristo@ti.com> <1309338303-2086-2-git-send-email-t-kristo@ti.com> <20110629165318.GH2760@legolas.emea.dhcp.ti.com>
-Reply-To: <t-kristo@ti.com>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v6 00/18] MFD/ASoC/Input: TWL4030/TWL60X0
+	changes
+Date: Thu, 30 Jun 2011 09:15:08 +0300
+Message-ID: <1764311.fyKV9VEiMM@barack>
+References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
+	<1770658.gTOGV79JgY@barack>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53716 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752568Ab1F3Fvr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 01:51:47 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <20110629165318.GH2760@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1770658.gTOGV79JgY@barack>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Mahadeva, Avinash" <avinashhm@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "R, Govindraj" <govindraj.raja@ti.com>
 
-On Wed, 2011-06-29 at 18:53 +0200, Balbi, Felipe wrote:
-> Hi,
-> 
-> On Wed, Jun 29, 2011 at 12:04:55PM +0300, Tero Kristo wrote:
-> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> > index 96a7624..89cf027 100644
-> > --- a/arch/arm/mach-omap2/pm34xx.c
-> > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > @@ -880,20 +824,35 @@ static int __init omap3_pm_init(void)
-> >  	/* XXX prcm_setup_regs needs to be before enabling hw
-> >  	 * supervised mode for powerdomains */
-> >  	prcm_setup_regs();
-> > +	ret = omap_prcm_irq_init();
-> > +	if (ret) {
-> > +		pr_err("omap_prcm_irq_init() failed with %d\n", ret);
-> > +		goto err_prcm_irq_init;
-> > +	}
-> > +
-> > +	prcm_wkup_irq = omap_prcm_event_to_irq("wkup");
-> > +	prcm_io_irq = omap_prcm_event_to_irq("io");
-> > +
-> > +	ret = request_irq(prcm_wkup_irq, _prcm_int_handle_wakeup,
-> > +			IRQF_NO_SUSPEND | IRQF_DISABLED, "prcm_wkup", NULL);
-> 
-> does this _have_ to be all in hardirq context ?
+Hi Samuel,
 
-Not really, imo this does not need to be done in an interrupt at all.
-The wakeup event ack can be done just before entering next idle, as I
-did in a previous version of this set, but it did not receive that
-positive comments yet. I will probably try to push this idea forward
-once this set is pulled.
+Would you be able to take a look at this series?
+I already have the rebased version on top of linux-omap/devel-cleanup branc=
+h =
 
-> 
-> > -	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
-> > -			  (irq_handler_t)prcm_interrupt_handler,
-> > -			  IRQF_DISABLED, "prcm", NULL);
-> >  	if (ret) {
-> > -		printk(KERN_ERR "request_irq failed to register for 0x%x\n",
-> > -		       INT_34XX_PRCM_MPU_IRQ);
-> > -		goto err1;
-> > +		printk(KERN_ERR "Failed to request prcm_wkup irq\n");
-> > +		goto err_prcm_wkup;
-> > +	}
-> > +
-> > +	ret = request_irq(prcm_io_irq, _prcm_int_handle_wakeup,
-> > +			IRQF_NO_SUSPEND | IRQF_DISABLED, "prcm_io", NULL);
-> 
-> same here...
+as Tony requested, and I'm now waiting for your comments.
 
-Same... though the interrupt does not really do that much even if the
-code looks horrible with the looping around. Usually only one wakeup
-source is active.
+Thank you,
+P=E9ter
 
-> 
-> > diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> > index 6be1438..794e451 100644
-> > --- a/arch/arm/mach-omap2/prcm.c
-> > +++ b/arch/arm/mach-omap2/prcm.c
-> > @@ -23,6 +23,8 @@
-> >  #include <linux/clk.h>
-> >  #include <linux/io.h>
-> >  #include <linux/delay.h>
-> > +#include <linux/irq.h>
-> > +#include <linux/slab.h>
-> >  
-> >  #include <mach/system.h>
-> >  #include <plat/common.h>
-> > @@ -45,6 +47,167 @@ void __iomem *cm2_base;
-> >  
-> >  #define MAX_MODULE_ENABLE_WAIT		100000
-> >  
-> > +/* Setup for the interrupt handling based on used platform */
-> > +static struct omap_prcm_irq_setup *irq_setup;
-> 
-> you can set this is irq_chip data, then you can:
-> 
-> > +static void prcm_irq_ack(struct irq_data *data)
-> > +{
-> 	struct omap_prcm_irq_setup	*irq_setup = irq_data_get_irq_chip_data(data)
-> 	unsigned int			prcm_irq = data->irq - irq_setup->base;
-> 
-> 	irq_setup->ack_event(prcm_irq);
-> > +}
-> 
-> ditto to all other operations.
+On Monday 27 June 2011 11:43:57 Ujfalusi, Peter wrote:
+> Hi Tony, Samuel,
+> =
 
-This is related to the dynamic allocation of irq numbers you speak of
-later I think... anyway, I'll take a look at this.
+> Would you have time to take a look at this series?
+> =
 
-> > +static struct irq_chip_generic *prcm_irq_chips[OMAP_PRCM_MAX_NR_PENDING_REG];
-> 
-> can't you allocate this dynamically ???
+> Thanks,
+> P=E9ter
+> =
 
-Well yea, but it is only 1 or 2 pointers. The code for dynamic
-allocation will eat more than 4 bytes easily.
+> On Tuesday 21 June 2011 15:38:58 Ujfalusi, Peter wrote:
+> > Hello,
+> > =
 
-> 
-> > +/*
-> > + * PRCM Interrupt Handler
-> > + *
-> > + * The PRM_IRQSTATUS_MPU register indicates if there are any pending
-> > + * interrupts from the PRCM for the MPU. These bits must be cleared in
-> > + * order to clear the PRCM interrupt. The PRCM interrupt handler is
-> > + * implemented to simply clear the PRM_IRQSTATUS_MPU in order to clear
-> > + * the PRCM interrupt. Please note that bit 0 of the PRM_IRQSTATUS_MPU
-> > + * register indicates that a wake-up event is pending for the MPU and
-> > + * this bit can only be cleared if the all the wake-up events latched
-> > + * in the various PM_WKST_x registers have been cleared. The interrupt
-> > + * handler is implemented using a do-while loop so that if a wake-up
-> > + * event occurred during the processing of the prcm interrupt handler
-> > + * (setting a bit in the corresponding PM_WKST_x register and thus
-> > + * preventing us from clearing bit 0 of the PRM_IRQSTATUS_MPU register)
-> > + * this would be handled.
-> > + */
-> > +static void prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
-> > +{
-> > +	unsigned long pending[OMAP_PRCM_MAX_NR_PENDING_REG];
-> > +	struct irq_chip *chip = irq_desc_get_chip(desc);
-> > +
-> > +	/*
-> > +	 * Loop until all pending irqs are handled, since
-> > +	 * generic_handle_irq(), called by prcm_irq_handle_virtirqs()
-> > +	 * can cause new irqs to come
-> > +	 */
-> > +	while (1) {
-> > +		unsigned int virtirq;
-> > +
-> > +		chip->irq_ack(&desc->irq_data);
-> > +
-> > +		memset(pending, 0, sizeof(pending));
-> > +		irq_setup->pending_events(pending);
-> > +
-> > +		/* No bit set, then all IRQs are handled */
-> > +		if (find_first_bit(pending, OMAP_PRCM_NR_IRQS)
-> > +		    >= OMAP_PRCM_NR_IRQS) {
-> > +			chip->irq_unmask(&desc->irq_data);
-> > +			break;
-> > +		}
-> > +
-> > +		/*
-> > +		 * Loop on all currently pending irqs so that new irqs
-> > +		 * cannot starve previously pending irqs
-> > +		 */
-> > +		for_each_set_bit(virtirq, pending, OMAP_PRCM_NR_IRQS)
-> > +			generic_handle_irq(OMAP_PRCM_IRQ_BASE + virtirq);
-> 
-> if you use nested IRQ threads, you could be using
-> handle_nested_irq(irq);
+> > Changes since v5:
+> > - Use alloc_workqueue in the twl6040-vibra driver (comment from Tejun
+> > Heo) - Allow user to change the headset power mode, but if the change
+> > is not allowed by the use case the change is not written to the HW
+> > (comment from Mark Brown)
+> > =
 
-1st level PRCM interrupt can't be a thread I think. I don't think
-chained interrupt handlers even support that, and even if they did,
-there might be reasons where in some cases we want to execute some of
-the PRCM events as hard irqs.
+> > Mark: I have added your acks for the patches, except for patch 15, where
+> > you requested a change.
+> > =
 
-> 
-> > +		chip->irq_unmask(&desc->irq_data);
-> > +	}
-> > +}
-> > +
-> > +/*
-> > + * Given a PRCM event name, returns the corresponding IRQ on which the
-> > + * handler should be registered.
-> > + */
-> > +int omap_prcm_event_to_irq(const char *name)
-> > +{
-> > +	int i;
-> > +
-> > +	for (i = 0; i < irq_setup->num_irqs; i++)
-> > +		if (!strcmp(irq_setup->irqs[i].name, name))
-> > +			return OMAP_PRCM_IRQ_BASE + irq_setup->irqs[i].offset;
-> > +
-> > +	return -ENOENT;
-> > +}
-> > +
-> > +/*
-> > + * Prepare the array of PRCM events corresponding to the current SoC,
-> > + * and set-up the chained interrupt handler mechanism.
-> > + */
-> > +int __init omap_prcm_irq_init(void)
-> > +{
-> > +	int i;
-> > +	struct irq_chip_generic *gc;
-> > +	struct irq_chip_type *ct;
-> > +	u32 mask[2] = { 0, 0 };
-> > +	int offset;
-> > +	int max_irq = 0;
-> > +
-> > +	for (i = 0; i < irq_setup->num_irqs; i++)
-> 
-> how about using irq_alloc_descs() ?? Then we can make use of Sparse IRQ
-> numbers and avoid passing irq_base/irq_end and adding that weird ifdef
-> hackery to get NR_IRQS right.
+> > Intro message from the v5 series:
+> > The series will do five major things, and they are in one series,
+> > because
+> > they pretty much depending on each other, so it is easier to handle them
+> > together.
+> > =
 
-I'll take a look at this and the references you provided later on today.
+> > 1. Move the common pmic related configurations out from the board files.
+> > New twl-common.c/h file has been created for this purpose.
+> > OMAP3 board files received two patches (pdata, and regualtor changes),
+> > OMAP4 board files has been changed with one patch.
+> > =
 
-> 
-> > diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-> > index 5a25098..23b9680 100644
-> > --- a/arch/arm/plat-omap/include/plat/irqs.h
-> > +++ b/arch/arm/plat-omap/include/plat/irqs.h
-> > @@ -366,7 +366,14 @@
-> >  #define OMAP_MAX_GPIO_LINES	192
-> >  #define IH_GPIO_BASE		(128 + IH2_BASE)
-> >  #define IH_MPUIO_BASE		(OMAP_MAX_GPIO_LINES + IH_GPIO_BASE)
-> > -#define OMAP_IRQ_END		(IH_MPUIO_BASE + 16)
-> > +#define OMAP_MPUIO_IRQ_END	(IH_MPUIO_BASE + 16)
-> > +
-> > +/* 64 IRQs for the PRCM (32 are needed on OMAP3, 64 on OMAP4) */
-> > +#define OMAP_PRCM_IRQ_BASE      (OMAP_MPUIO_IRQ_END)
-> > +#define OMAP_PRCM_NR_IRQS       64
-> > +#define OMAP_PRCM_IRQ_END       (OMAP_PRCM_IRQ_BASE + OMAP_PRCM_NR_IRQS)
-> > +
-> > +#define OMAP_IRQ_END            (OMAP_PRCM_IRQ_END)
-> 
-> this is unnecessary with Sparse IRQ numbers and IMHO we should aim for
-> that. See the very simple conversion that I sent for the very old retu
-> driver [1] and [2] and you'll see that with time, we could get rid of
-> NR_IRQS altogether.
-> 
+> > 2. Rename the twl4030-codec MFD driver to twl4030-audio
+> > Since the ASoC multicomponent introduction (2.6.37) the twl4030-codec
+> > MFD
+> > dirver had been using twl4030-audio to register (twl4030-codec is the
+> > ASoC codec driver). The documentation refers to this part of twl as
+> > audio block, so it is better to rename the driver as well to avoid
+> > confusion.
+> > =
 
+> > 3. Introduction of MFD driver for twl6040.
+> > The TWL6040 audio IC has codec and vibra functionality.
+> > Convert the existing ASoC codec driver to use the new MFD driver's
+> > interface.
+> > =
 
+> > 4. Vibrator driver for TWL6040 (Input/ForceFeedback driver)
+> > The driver itself, and support for the vibrators in SDP4430 board.
+> > =
 
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
+> > 5. Updates for twl6040 ASoC codec driver
+> > HS ramp configuration, new ABE dais, updated sample rate constraints,
+> > SDP4430 configuration.
+> > =
 
+> > Regards,
+> > Peter
+> > =
+
+> > ---
+> > =
+
+> > Axel Castaneda Gonzalez (1):
+> >   ASoC: twl6040: Configure ramp step based on platform
+> > =
+
+> > Liam Girdwood (3):
+> >   ASoC: twl6040: add all ABE DAIs
+> >   ASoC: twl6040: Support other sample rates in constraints.
+> >   ASoC: twl6040: set default constraints.
+> > =
+
+> > Misael Lopez Cruz (5):
+> >   mfd: twl6040: Add initial support
+> >   ASoC: twl6040: Convert into TWL6040 MFD child
+> >   input: Add initial support for TWL6040 vibrator
+> >   ASoC: twl6040: Remove pll and headset mode dependency
+> >   OMAP4: SDP4430: Add twl6040 codec platform support
+> > =
+
+> > Peter Ujfalusi (9):
+> >   OMAP: New twl-common for common TWL configuration
+> >   OMAP4: Move common twl6030 configuration to twl-common
+> >   OMAP3: Move common twl configuration to twl-common
+> >   OMAP3: Move common regulator configuration to twl-common
+> >   MFD: twl4030-codec: Rename internals from codec to audio
+> >   MFD: twl4030-codec -> twl4030-audio: Rename the driver
+> >   MFD: twl4030-audio: Rename platform data
+> >   MFD: twl6040: Change platform data for soc codec driver
+> >   OMAP4: SDP4430: Add twl6040 vibrator platform support
+> >  =
+
+> >  arch/arm/mach-omap2/Makefile                       |    2 +-
+> >  arch/arm/mach-omap2/board-3430sdp.c                |   89 +---
+> >  arch/arm/mach-omap2/board-4430sdp.c                |  187 ++----
+> >  arch/arm/mach-omap2/board-cm-t35.c                 |   48 +--
+> >  arch/arm/mach-omap2/board-devkit8000.c             |   37 +--
+> >  arch/arm/mach-omap2/board-igep0020.c               |   44 +--
+> >  arch/arm/mach-omap2/board-ldp.c                    |   15 +-
+> >  arch/arm/mach-omap2/board-omap3beagle.c            |   60 +--
+> >  arch/arm/mach-omap2/board-omap3evm.c               |   67 +--
+> >  arch/arm/mach-omap2/board-omap3pandora.c           |   59 +--
+> >  arch/arm/mach-omap2/board-omap3stalker.c           |   70 +--
+> >  arch/arm/mach-omap2/board-omap3touchbook.c         |   57 +--
+> >  arch/arm/mach-omap2/board-omap4panda.c             |  149 +-----
+> >  arch/arm/mach-omap2/board-overo.c                  |   59 +--
+> >  arch/arm/mach-omap2/board-rm680.c                  |    8 +-
+> >  arch/arm/mach-omap2/board-rx51-peripherals.c       |   44 +--
+> >  arch/arm/mach-omap2/board-zoom-peripherals.c       |   88 +---
+> >  arch/arm/mach-omap2/common-board-devices.c         |   21 -
+> >  arch/arm/mach-omap2/common-board-devices.h         |   26 +-
+> >  arch/arm/mach-omap2/twl-common.c                   |  304 ++++++++++
+> >  arch/arm/mach-omap2/twl-common.h                   |   59 ++
+> >  arch/arm/plat-omap/include/plat/irqs.h             |   12 +-
+> >  drivers/input/misc/Kconfig                         |   13 +-
+> >  drivers/input/misc/Makefile                        |    1 +
+> >  drivers/input/misc/twl4030-vibra.c                 |   12 +-
+> >  drivers/input/misc/twl6040-vibra.c                 |  416
+> >  +++++++++++++
+> >  drivers/mfd/Kconfig                                |    8 +-
+> >  drivers/mfd/Makefile                               |    3 +-
+> >  drivers/mfd/twl-core.c                             |   13 +-
+> >  drivers/mfd/twl4030-audio.c                        |  277 +++++++++
+> >  drivers/mfd/twl4030-codec.c                        |  277 ---------
+> >  drivers/mfd/twl6040-core.c                         |  601
+> > =
+
+> > +++++++++++++++++++ drivers/mfd/twl6040-irq.c                          |
+> > 205 +++++++ include/linux/i2c/twl.h                            |   25 +-
+> > =
+
+> >  .../linux/mfd/{twl4030-codec.h =3D> twl4030-audio.h} |   16 +-
+> >  include/linux/mfd/twl6040.h                        |  261 ++++++++
+> >  sound/soc/codecs/Kconfig                           |    3 +-
+> >  sound/soc/codecs/twl4030.c                         |   22 +-
+> >  sound/soc/codecs/twl6040.c                         |  628
+> > =
+
+> > ++++++++------------ sound/soc/codecs/twl6040.h                        =
+
+> > |
+> > 118 ----
+> > =
+
+> >  sound/soc/omap/sdp3430.c                           |    2 +-
+> >  sound/soc/omap/sdp4430.c                           |    2 +
+> >  sound/soc/omap/zoom2.c                             |    2 +-
+> >  43 files changed, 2635 insertions(+), 1775 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/twl-common.c
+> >  create mode 100644 arch/arm/mach-omap2/twl-common.h
+> >  create mode 100644 drivers/input/misc/twl6040-vibra.c
+> >  create mode 100644 drivers/mfd/twl4030-audio.c
+> >  delete mode 100644 drivers/mfd/twl4030-codec.c
+> >  create mode 100644 drivers/mfd/twl6040-core.c
+> >  create mode 100644 drivers/mfd/twl6040-irq.c
+> >  rename include/linux/mfd/{twl4030-codec.h =3D> twl4030-audio.h} (96%)
+> >  create mode 100644 include/linux/mfd/twl6040.h
+> =
+
+> _______________________________________________
+> Alsa-devel mailing list
+> Alsa-devel@alsa-project.org
+> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
