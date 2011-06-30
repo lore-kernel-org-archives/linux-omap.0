@@ -1,77 +1,58 @@
 From: Mike Turquette <mturquette@ti.com>
-Subject: [PATCH 4/8] OMAP3+: ABB: Adaptive Body-Bias structures & data
-Date: Wed, 29 Jun 2011 17:25:56 -0700
-Message-ID: <1309393560-8874-5-git-send-email-mturquette@ti.com>
+Subject: [PATCH 7/8] OMAP3+: ABB: initialization & transition functions
+Date: Wed, 29 Jun 2011 17:25:59 -0700
+Message-ID: <1309393560-8874-8-git-send-email-mturquette@ti.com>
 References: <1309393560-8874-1-git-send-email-mturquette@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:58608 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757681Ab1F3A1I (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:54404 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757850Ab1F3A1L (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 20:27:08 -0400
-Received: by mail-yw0-f54.google.com with SMTP id 7so904905ywf.41
-        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 17:27:07 -0700 (PDT)
+	Wed, 29 Jun 2011 20:27:11 -0400
+Received: by mail-yi0-f50.google.com with SMTP id 19so712844yib.9
+        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 17:27:10 -0700 (PDT)
 In-Reply-To: <1309393560-8874-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, nm@ti.com, Mike Turquette <mturquette@ti.com>
 
-Due to voltage domain trimming and silicon characterstics some silicon
-may experience instability when operating at a high voltage.  To
-compensate for this an Adaptive Body-Bias ldo exists.  First featured in
-OMAP3630, the purpose of this ldo is to provide a voltage boost to PMOS
-backgates when a voltage domain is operating at a high OPP.  In this
-mode the ldo is said to be in Forward Body-Bias.  At OPPs within a
-nominal voltage range the ABB ldo is bypassed.
+The Adaptive Body-Bias ldo can be set to bypass or Forward Body-Bias
+after voltage scaling is performed.
 
-This patch introduces the data structures needed to represent the ABB
-ldo's in the voltage layer, and populates the appropriate data for 3630
-and OMAP4.  Not all voltage domains have an ABB ldo, and OMAP34xx does
-not have it at all; in such cases the voltage data will be marked with
-OMAP_ABB_NO_LDO.
+This patch implements the Adaptive Body-Bias ldo initialization routine
+and the transition sequence which is needed after a vc_bypass or
+vp_forceupdate sequence completes.
 
 Signed-off-by: Mike Turquette <mturquette@ti.com>
 ---
- arch/arm/mach-omap2/Makefile       |    5 +-
- arch/arm/mach-omap2/abb.h          |   85 ++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/abb36xx_data.c |   38 ++++++++++++++++
- arch/arm/mach-omap2/abb44xx_data.c |   44 ++++++++++++++++++
- 4 files changed, 170 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/mach-omap2/abb.h
- create mode 100644 arch/arm/mach-omap2/abb36xx_data.c
- create mode 100644 arch/arm/mach-omap2/abb44xx_data.c
+ arch/arm/mach-omap2/Makefile |    2 +-
+ arch/arm/mach-omap2/abb.c    |  218 ++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/abb.h    |    5 +
+ 3 files changed, 224 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/abb.c
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 2cbef35..7dbb4d5 100644
+index 7dbb4d5..f87e1b2 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -79,14 +79,15 @@ endif
- # PRCM
- obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o \
--					   vc3xxx_data.o vp3xxx_data.o
-+					   vc3xxx_data.o vp3xxx_data.o \
-+					   abb36xx_data.o
- # XXX The presence of cm2xxx_3xxx.o on the line below is temporary and
- # will be removed once the OMAP4 part of the codebase is converted to
- # use OMAP4-specific PRCM functions.
- obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
- 					   cm44xx.o prcm_mpu44xx.o \
- 					   prminst44xx.o vc44xx_data.o \
--					   vp44xx_data.o
-+					   vp44xx_data.o abb44xx_data.o
+@@ -91,7 +91,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
  
  # OMAP voltage domains
  ifeq ($(CONFIG_PM),y)
-diff --git a/arch/arm/mach-omap2/abb.h b/arch/arm/mach-omap2/abb.h
+-voltagedomain-common			:= voltage.o vc.o vp.o
++voltagedomain-common			:= voltage.o vc.o vp.o abb.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= $(voltagedomain-common) \
+ 					   voltagedomains2xxx_data.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= $(voltagedomain-common) \
+diff --git a/arch/arm/mach-omap2/abb.c b/arch/arm/mach-omap2/abb.c
 new file mode 100644
-index 0000000..74f2044
+index 0000000..b8b6b4b
 --- /dev/null
-+++ b/arch/arm/mach-omap2/abb.h
-@@ -0,0 +1,85 @@
++++ b/arch/arm/mach-omap2/abb.c
+@@ -0,0 +1,218 @@
 +/*
-+ * OMAP Adaptive Body-Bias structure and macro definitions
++ * OMAP Adaptive Body-Bias core
 + *
 + * Copyright (C) 2011 Texas Instruments, Inc.
 + * Mike Turquette <mturquette@ti.com>
@@ -81,174 +62,227 @@ index 0000000..74f2044
 + * published by the Free Software Foundation.
 + */
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_ABB_H
-+#define __ARCH_ARM_MACH_OMAP2_ABB_H
++#include <linux/init.h>
++#include <linux/delay.h>
 +
-+#include <linux/kernel.h>
-+
++#include "abb.h"
 +#include "voltage.h"
 +
-+/* NOMINAL_OPP bypasses the ABB ldo, FAST_OPP sets it to Forward Body-Bias */
-+#define OMAP_ABB_NOMINAL_OPP	0
-+#define OMAP_ABB_FAST_OPP	1
-+#define OMAP_ABB_NO_LDO		~0
++/*
++ * omap_abb_set_opp - program ABB ldo based on new voltage
++ *
++ * @voltdm - pointer to voltage domain that just finished scaling voltage
++ *
++ * Look up the ABB ldo state for the new voltage that voltdm just finished
++ * transitioning to and compare it to current ldo state.  If a change is needed
++ * then clear appropriate PRM_IRQSTATUS bit, transition ldo and then clear
++ * PRM_IRQSTATUS bit again.  Returns 0 on success, -EERROR otherwise.
++ */
++int omap_abb_set_opp(struct voltagedomain *voltdm)
++{
++	struct omap_abb_instance *abb = voltdm->abb;
++	struct omap_volt_data *volt_data;
++	int ret, timeout;
++	u8 opp_sel;
 +
-+/* Time for the ABB ldo to settle after transition (in micro-seconds) */
-+#define ABB_TRANXDONE_TIMEOUT	50
++	/* fetch the ABB ldo OPP_SEL value for the new voltage */
++	volt_data = omap_voltage_get_voltdata(voltdm, voltdm->curr_volt);
++
++	if (IS_ERR_OR_NULL(volt_data))
++		return -EINVAL;
++
++	opp_sel = volt_data->opp_sel;
++
++	/* bail early if no transition is necessary */
++	if (opp_sel == abb->_opp_sel)
++		return 0;
++
++	/* clear interrupt status */
++	timeout = 0;
++	while (timeout++ < ABB_TRANXDONE_TIMEOUT) {
++		abb->common->ops->clear_tranxdone(abb->prm_irq_id);
++
++		ret = abb->common->ops->check_tranxdone(abb->prm_irq_id);
++		if (!ret)
++			break;
++
++		udelay(1);
++	}
++
++	if (timeout>= ABB_TRANXDONE_TIMEOUT) {
++		pr_warning("%s: vdd_%s ABB TRANXDONE timeout\n",
++				__func__, voltdm->name);
++		return -ETIMEDOUT;
++	}
++
++	/* program next state of ABB ldo */
++	voltdm->rmw(abb->common->opp_sel_mask,
++			opp_sel << __ffs(abb->common->opp_sel_mask),
++			abb->ctrl_offs);
++
++	/* initiate ABB ldo change */
++	voltdm->rmw(abb->common->opp_change_mask,
++			abb->common->opp_change_mask,
++			abb->ctrl_offs);
++
++	/* clear interrupt status */
++	timeout = 0;
++	while (timeout++ < ABB_TRANXDONE_TIMEOUT) {
++		abb->common->ops->clear_tranxdone(abb->prm_irq_id);
++
++		ret = abb->common->ops->check_tranxdone(abb->prm_irq_id);
++		if (!ret)
++			break;
++
++		udelay(1);
++	}
++
++	if (timeout>= ABB_TRANXDONE_TIMEOUT) {
++		pr_warning("%s: vdd_%s ABB TRANXDONE timeout\n",
++				__func__, voltdm->name);
++		return -ETIMEDOUT;
++	}
++
++	/* track internal state */
++	abb->_opp_sel = opp_sel;
++
++	return 0;
++}
 +
 +/*
-+ * struct omap_abb_ops - per-OMAP operations needed for ABB transition
++ * omap_abb_enable - enable ABB ldo on a particular voltage domain
 + *
-+ * @check_tranxdone: return status of ldo transition from PRM_IRQSTATUS
-+ * @clear_tranxdone: clear ABB transition status bit from PRM_IRQSTATUS
++ * @voltdm - pointer to particular voltage domain
 + */
-+struct omap_abb_ops {
-+	u32 (*check_tranxdone)(u8 irq_id);
-+	void (*clear_tranxdone)(u8 irq_id);
-+};
++void omap_abb_enable(struct voltagedomain *voltdm)
++{
++	struct omap_abb_instance *abb = voltdm->abb;
++
++	if (abb->enabled)
++		return;
++
++	abb->enabled = true;
++
++	voltdm->rmw(abb->common->sr2en_mask, abb->common->sr2en_mask,
++			abb->setup_offs);
++}
 +
 +/*
-+ * struct omap_abb_common - ABB data common to an OMAP family
++ * omap_abb_disable - disable ABB ldo on a particular voltage domain
 + *
-+ * @opp_sel_mask: CTRL reg uses this to program next state of ldo
-+ * @opp_change_mask: CTRL reg uses this to initiate ldo state change
-+ * @sr2_wtcnt_value_mask: SETUP reg uses this to program ldo settling time
-+ * @sr2en_mask: SETUP reg uses this to enable/disable ldo
-+ * @active_fbb_sel_mask: SETUP reg uses this to enable/disable FBB operation
-+ * @settling_time: number of micro-seconds it takes for ldo to transition
-+ * @clock_cycles: settling_time is counted in multiples of clock cycles
-+ * @ops: pointer to common ops for manipulating PRM_IRQSTATUS bits
++ * @voltdm - pointer to particular voltage domain
++ *
++ * Included for completeness.  Not currently used but will be needed in the
++ * future if ABB is converted to a loadable module.
 + */
-+struct omap_abb_common {
-+	u32 opp_sel_mask;
-+	u32 opp_change_mask;
-+	u32 sr2_wtcnt_value_mask;
-+	u32 sr2en_mask;
-+	u32 active_fbb_sel_mask;
-+	unsigned long settling_time;
-+	unsigned long clock_cycles;
-+	const struct omap_abb_ops *ops;
-+};
++void omap_abb_disable(struct voltagedomain *voltdm)
++{
++	struct omap_abb_instance *abb = voltdm->abb;
++
++	if (!abb->enabled)
++		return;
++
++	abb->enabled = false;
++
++	voltdm->rmw(abb->common->sr2en_mask,
++			(0 << __ffs(abb->common->sr2en_mask)),
++			abb->setup_offs);
++}
 +
 +/*
-+ * struct omap_abb_instance - data for each instance of ABB ldo
++ * omap_abb_init - Initialize an ABB ldo instance
 + *
-+ * @setup_offs: PRM register offset for initial configuration of ABB ldo
-+ * @ctrl_offs: PRM register offset for active programming of ABB ldo
-+ * @prm_irq_id: IRQ handle used to resolve IRQSTATUS offset & masks
-+ * @enabled: track whether ABB ldo is enabled or disabled
-+ * @common: pointer to common data for all ABB ldo's
-+ * @_opp_sel: internally track last programmed state of ABB ldo.  DO NOT USE
++ * @voltdm: voltage domain upon which ABB ldo resides
++ *
++ * Initializes an individual ABB ldo for Forward Body-Bias.  FBB is used to
++ * insure stability at higher voltages.  Note that some older OMAP chips have a
++ * Reverse Body-Bias mode meant to save power at low voltage, but that mode is
++ * unsupported and phased out on newer chips.
 + */
-+struct omap_abb_instance {
-+	u8 setup_offs;
-+	u8 ctrl_offs;
-+	u8 prm_irq_id;
-+	bool enabled;
-+	const struct omap_abb_common *common;
-+	u8 _opp_sel;
-+};
++void __init omap_abb_init(struct voltagedomain *voltdm)
++{
++	struct omap_abb_instance *abb = voltdm->abb;
++	u32 sys_clk_rate;
++	u32 sr2_wt_cnt_val;
++	u32 clock_cycles;
++	u32 settling_time;
++	u32 val;
 +
-+extern struct omap_abb_instance omap36xx_abb_mpu;
++	if(IS_ERR_OR_NULL(abb))
++		return;
 +
-+extern struct omap_abb_instance omap4_abb_mpu;
-+extern struct omap_abb_instance omap4_abb_iva;
++	/*
++	 * SR2_WTCNT_VALUE is the settling time for the ABB ldo after a
++	 * transition and must be programmed with the correct time at boot.
++	 * The value programmed into the register is the number of SYS_CLK
++	 * clock cycles that match a given wall time profiled for the ldo.
++	 * This value depends on:
++	 * 	settling time of ldo in micro-seconds (varies per OMAP family)
++	 * 	# of clock cycles per SYS_CLK period (varies per OMAP family)
++	 * 	the SYS_CLK frequency in MHz (varies per board)
++	 * The formula is:
++	 *
++	 *                      ldo settling time (in micro-seconds)
++	 * SR2_WTCNT_VALUE = ------------------------------------------
++	 *                   (# system clock cycles) * (sys_clk period)
++	 *
++	 * Put another way:
++	 *
++	 * SR2_WTCNT_VALUE = settling time / (# SYS_CLK cycles / SYS_CLK rate))
++	 *
++	 * To avoid dividing by zero multiply both "# clock cycles" and
++	 * "settling time" by 10 such that the final result is the one we want.
++	 */
 +
-+#endif
-diff --git a/arch/arm/mach-omap2/abb36xx_data.c b/arch/arm/mach-omap2/abb36xx_data.c
-new file mode 100644
-index 0000000..0bcfd66
---- /dev/null
-+++ b/arch/arm/mach-omap2/abb36xx_data.c
-@@ -0,0 +1,38 @@
-+/*
-+ * OMAP36xx Adaptive Body-Bias (ABB) data
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Mike Turquette <mturquette@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++	/* convert SYS_CLK rate to MHz & prevent divide by zero */
++	sys_clk_rate = DIV_ROUND_CLOSEST(voltdm->sys_clk.rate, 1000000);
++	clock_cycles = abb->common->clock_cycles * 10;
++	settling_time = abb->common->settling_time * 10;
 +
-+#include "abb.h"
-+#include "prm2xxx_3xxx.h"
-+#include "prm-regbits-34xx.h"
++	/* calculate cycle rate */
++	clock_cycles = DIV_ROUND_CLOSEST(clock_cycles, sys_clk_rate);
 +
-+static const struct omap_abb_ops omap36xx_abb_ops = {
-+	.check_tranxdone   = &omap36xx_prm_abb_check_txdone,
-+	.clear_tranxdone   = &omap36xx_prm_abb_clear_txdone,
-+};
++	/* calulate SR2_WTCNT_VALUE */
++	sr2_wt_cnt_val = DIV_ROUND_CLOSEST(settling_time, clock_cycles);
 +
-+static const struct omap_abb_common omap36xx_abb_common = {
-+	.opp_sel_mask		= OMAP3630_OPP_SEL_MASK,
-+	.opp_change_mask	= OMAP3630_OPP_CHANGE_MASK,
-+	.sr2en_mask		= OMAP3630_SR2EN_MASK,
-+	.active_fbb_sel_mask	= OMAP3630_ACTIVE_FBB_SEL_MASK,
-+	.sr2_wtcnt_value_mask	= OMAP3630_SR2_WTCNT_VALUE_MASK,
-+	.settling_time		= 30,
-+	.clock_cycles		= 8,
-+	.ops			= &omap36xx_abb_ops,
-+};
++	voltdm->rmw(abb->common->sr2_wtcnt_value_mask,
++			(sr2_wt_cnt_val << __ffs(abb->common->sr2_wtcnt_value_mask)),
++			abb->setup_offs);
 +
-+/* SETUP & CTRL registers swapped names in OMAP4; thus 36xx looks strange */
-+struct omap_abb_instance omap36xx_abb_mpu = {
-+	.setup_offs		= OMAP3_PRM_LDO_ABB_CTRL_OFFSET,
-+	.ctrl_offs		= OMAP3_PRM_LDO_ABB_SETUP_OFFSET,
-+	.prm_irq_id		= OMAP3_PRM_IRQ_VDD_MPU_ID,
-+	.common			= &omap36xx_abb_common,
-+};
-diff --git a/arch/arm/mach-omap2/abb44xx_data.c b/arch/arm/mach-omap2/abb44xx_data.c
-new file mode 100644
-index 0000000..a7cf855
---- /dev/null
-+++ b/arch/arm/mach-omap2/abb44xx_data.c
-@@ -0,0 +1,44 @@
-+/*
-+ * OMAP44xx Adaptive Body-Bias (ABB) data
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Mike Turquette <mturquette@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++	/* allow Forward Body-Bias */
++	voltdm->rmw(abb->common->active_fbb_sel_mask,
++			abb->common->active_fbb_sel_mask,
++			abb->setup_offs);
 +
-+#include "abb.h"
-+#include "prm44xx.h"
-+#include "prm-regbits-44xx.h"
++	/* did bootloader set OPP_SEL? */
++	val = voltdm->read(abb->ctrl_offs);
++	val &= abb->common->opp_sel_mask;
++	abb->_opp_sel = val >> __ffs(abb->common->opp_sel_mask);
 +
-+static const struct omap_abb_ops omap4_abb_ops = {
-+	.check_tranxdone   = &omap4_prm_abb_check_txdone,
-+	.clear_tranxdone   = &omap4_prm_abb_clear_txdone,
-+};
++	/* enable the ldo if not done by bootloader */
++	val = voltdm->read(abb->setup_offs);
++	val &= abb->common->sr2en_mask;
++	if (val)
++		abb->enabled = true;
++	else
++		omap_abb_enable(voltdm);
 +
-+static const struct omap_abb_common omap4_abb_common = {
-+	.opp_sel_mask		= OMAP4430_OPP_SEL_MASK,
-+	.opp_change_mask	= OMAP4430_OPP_CHANGE_MASK,
-+	.sr2en_mask		= OMAP4430_SR2EN_MASK,
-+	.active_fbb_sel_mask	= OMAP4430_ACTIVE_FBB_SEL_MASK,
-+	.sr2_wtcnt_value_mask	= OMAP4430_SR2_WTCNT_VALUE_MASK,
-+	.settling_time		= 50,
-+	.clock_cycles		= 16,
-+	.ops			= &omap4_abb_ops,
-+};
++	return;
++}
+diff --git a/arch/arm/mach-omap2/abb.h b/arch/arm/mach-omap2/abb.h
+index 74f2044..c06c7d6 100644
+--- a/arch/arm/mach-omap2/abb.h
++++ b/arch/arm/mach-omap2/abb.h
+@@ -82,4 +82,9 @@ extern struct omap_abb_instance omap36xx_abb_mpu;
+ extern struct omap_abb_instance omap4_abb_mpu;
+ extern struct omap_abb_instance omap4_abb_iva;
+ 
++void omap_abb_init(struct voltagedomain *voltdm);
++void omap_abb_enable(struct voltagedomain *voltdm);
++void omap_abb_disble(struct voltagedomain *voltdm);
++int omap_abb_set_opp(struct voltagedomain *voltdm);
 +
-+struct omap_abb_instance omap4_abb_mpu = {
-+	.setup_offs		= OMAP4_PRM_LDO_ABB_MPU_SETUP_OFFSET,
-+	.ctrl_offs		= OMAP4_PRM_LDO_ABB_MPU_CTRL_OFFSET,
-+	.prm_irq_id		= OMAP4_PRM_IRQ_VDD_MPU_ID,
-+	.common			= &omap4_abb_common,
-+};
-+
-+struct omap_abb_instance omap4_abb_iva = {
-+	.setup_offs		= OMAP4_PRM_LDO_ABB_IVA_SETUP_OFFSET,
-+	.ctrl_offs		= OMAP4_PRM_LDO_ABB_IVA_CTRL_OFFSET,
-+	.prm_irq_id		= OMAP4_PRM_IRQ_VDD_IVA_ID,
-+	.common			= &omap4_abb_common,
-+};
+ #endif
 -- 
 1.7.4.1
 
