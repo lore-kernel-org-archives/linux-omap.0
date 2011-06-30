@@ -1,207 +1,170 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v6 00/18] MFD/ASoC/Input: TWL4030/TWL60X0
-	changes
-Date: Thu, 30 Jun 2011 09:15:08 +0300
-Message-ID: <1764311.fyKV9VEiMM@barack>
-References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
-	<1770658.gTOGV79JgY@barack>
+From: Mohan V <mohanvforum@gmail.com>
+Subject: OMAP3: Enabling IO Daisy Chain
+Date: Thu, 30 Jun 2011 12:39:03 +0530
+Message-ID: <BANLkTinw1Qz7Q7H0n+d=3WA93Hpzty_g5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1770658.gTOGV79JgY@barack>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:50139 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758212Ab1F3HJE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 03:09:04 -0400
+Received: by vws1 with SMTP id 1so1418141vws.19
+        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 00:09:03 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com
 
-Hi Samuel,
+Hello all,
 
-Would you be able to take a look at this series?
-I already have the rebased version on top of linux-omap/devel-cleanup branc=
-h =
+I am trying to correct the implementation of the enabling/disabling IO
+daisy chain in omap3. I am
+following the steps as listed in the OMAP36xx TRM Sec. 3.5.7.2.2 for the same.
 
-as Tony requested, and I'm now waiting for your comments.
+Branch: linux-omap-pm: "pm" branch
+config: omap2plus_defconfig
 
-Thank you,
-P=E9ter
+Please find the below patch for the same.
+------------------------------------------------------------
 
-On Monday 27 June 2011 11:43:57 Ujfalusi, Peter wrote:
-> Hi Tony, Samuel,
-> =
+From: Mohan <mohanv@ti.com>
+Date: Thu, 30 Jun 2011 12:19:55 +0530
+Subject: [PATCH] omap3: pm: correct enable/disable of daisy io chain
 
-> Would you have time to take a look at this series?
-> =
+Currently the enabling and disabling of IO Daisy chain is not
+according to the TRM.
+The below steps are followed to enable/disable the IO chain.
 
-> Thanks,
-> P=E9ter
-> =
+Steps to enable IO chain:
+(a) Set PM_WKEN_WKUP.EN_IO bit
+(b) Set the PM_WKEN_WKUP.EN_IO_CHAIN bit
+(c) Poll for PM_WKST_WKUP.ST_IO_CHAIN. When set to 1, clear it.
 
-> On Tuesday 21 June 2011 15:38:58 Ujfalusi, Peter wrote:
-> > Hello,
-> > =
+Steps to disable IO chain:
+[a] Clear PM_WKEN_WKUP.EN_IO_CHAIN bit
+[b] Clear PM_WKEN_WKUP.EN_IO bit
+[c] Clear PM_WKST_WKUP.ST_IO bit by writing 1 to it.
 
-> > Changes since v5:
-> > - Use alloc_workqueue in the twl6040-vibra driver (comment from Tejun
-> > Heo) - Allow user to change the headset power mode, but if the change
-> > is not allowed by the use case the change is not written to the HW
-> > (comment from Mark Brown)
-> > =
+Signed-off-by: Mohan V <mohanv@ti.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-> > Mark: I have added your acks for the patches, except for patch 15, where
-> > you requested a change.
-> > =
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index d8c00e4..7f0d371 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -91,7 +91,7 @@ static void omap3_enable_io_chain(void)
+ 		/* Do a readback to assure write has been done */
+ 		prm_read_mod_reg(WKUP_MOD, PM_WKEN);
 
-> > Intro message from the v5 series:
-> > The series will do five major things, and they are in one series,
-> > because
-> > they pretty much depending on each other, so it is easier to handle them
-> > together.
-> > =
+-		while (!(prm_read_mod_reg(WKUP_MOD, PM_WKEN) &
++		while (!(prm_read_mod_reg(WKUP_MOD, PM_WKST) &
+ 			 OMAP3430_ST_IO_CHAIN_MASK)) {
+ 			timeout++;
+ 			if (timeout > 1000) {
+@@ -99,9 +99,9 @@ static void omap3_enable_io_chain(void)
+ 				       "activation failed.\n");
+ 				return;
+ 			}
+-			prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK,
+-					     WKUP_MOD, PM_WKEN);
+ 		}
++		prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK,
++					     WKUP_MOD, PM_WKST);
+ 	}
+ }
 
-> > 1. Move the common pmic related configurations out from the board files.
-> > New twl-common.c/h file has been created for this purpose.
-> > OMAP3 board files received two patches (pdata, and regualtor changes),
-> > OMAP4 board files has been changed with one patch.
-> > =
+@@ -572,6 +572,7 @@ void omap_sram_idle(void)
+ 			core_next_state < PWRDM_POWER_ON) {
+ 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
+ 		omap3_disable_io_chain();
++		prm_set_mod_reg_bits(OMAP3430_ST_IO_MASK, WKUP_MOD, PM_WKST);
+ 	}
 
-> > 2. Rename the twl4030-codec MFD driver to twl4030-audio
-> > Since the ASoC multicomponent introduction (2.6.37) the twl4030-codec
-> > MFD
-> > dirver had been using twl4030-audio to register (twl4030-codec is the
-> > ASoC codec driver). The documentation refers to this part of twl as
-> > audio block, so it is better to rename the driver as well to avoid
-> > confusion.
-> > =
+ 	pwrdm_post_transition();
+-- 
+1.7.1
 
-> > 3. Introduction of MFD driver for twl6040.
-> > The TWL6040 audio IC has codec and vibra functionality.
-> > Convert the existing ASoC codec driver to use the new MFD driver's
-> > interface.
-> > =
+------------------------------------------------------------
 
-> > 4. Vibrator driver for TWL6040 (Input/ForceFeedback driver)
-> > The driver itself, and support for the vibrators in SDP4430 board.
-> > =
+But I am seeing below continuous warning messages being printed after
+this change, once the system comes
+back from suspend with this change.
 
-> > 5. Updates for twl6040 ASoC codec driver
-> > HS ramp configuration, new ABE dais, updated sample rate constraints,
-> > SDP4430 configuration.
-> > =
+sh-4.1# echo mem > /sys/power/state
+[   15.584960] PM: Syncing filesystems ... done.
+[   16.477020] Freezing user space processes ... (elapsed 0.02 seconds) done.
+[   16.507537] Freezing remaining freezable tasks ... (elapsed 0.02
+seconds) done.
+[   16.544555] Suspending console(s) (use no_console_suspend to debug)
+[   16.796661] PM: suspend of devices complete after 240.203 msecs
+[   16.799652] PM: late suspend of devices complete after 2.929 msecs
+[   16.799743] Disabling non-boot CPUs ...
+[   16.800384] omap_device: omap_uart.2: new worst case deactivate
+latency 0: 91552
+[   39.979492] omap_device: omap_uart.0: new worst case activate
+latency 0: 61035
+[   39.979705] Successfully put all powerdomains to target state
+[   39.981750] PM: early resume of devices complete after 1.831 msecs
+[   39.982299] ------------[ cut here ]------------
+[   39.982330] WARNING: at arch/arm/mach-omap2/pm34xx.c:291
+prcm_interrupt_handler+0xfc/0x11c()
+[   39.982330] prcm: WARNING: PRCM indicated MPU wakeup but no wakeup
+sources are marked
+[   39.982360] Modules linked in:
+[   39.982391] [<c0065764>] (unwind_backtrace+0x0/0xf4) from
+[<c009ca4c>] (warn_slowpath_common+0x4c/0x64)
+[   39.982421] [<c009ca4c>] (warn_slowpath_common+0x4c/0x64) from
+[<c009caf8>] (warn_slowpath_fmt+0x30/0x40)
+[   39.982452] [<c009caf8>] (warn_slowpath_fmt+0x30/0x40) from
+[<c0073858>] (prcm_interrupt_handler+0xfc/0x11c)
+[   39.982482] [<c0073858>] (prcm_interrupt_handler+0xfc/0x11c) from
+[<c00e60ac>] (handle_irq_event_percpu+0x5c/0x22c)
+[   39.982513] [<c00e60ac>] (handle_irq_event_percpu+0x5c/0x22c) from
+[<c00e62b8>] (handle_irq_event+0x3c/0x5c)
+[   39.982543] [<c00e62b8>] (handle_irq_event+0x3c/0x5c) from
+[<c00e8994>] (handle_level_irq+0xac/0x118)
+[   39.982574] [<c00e8994>] (handle_level_irq+0xac/0x118) from
+[<c00e5c14>] (generic_handle_irq+0x34/0x44)
+[   39.982604] [<c00e5c14>] (generic_handle_irq+0x34/0x44) from
+[<c005204c>] (asm_do_IRQ+0x4c/0xac)
+[   39.982635] [<c005204c>] (asm_do_IRQ+0x4c/0xac) from [<c0491c5c>]
+(__irq_svc+0x3c/0x120)
+[   39.982635] Exception stack(0xef2c1e88 to 0xef2c1ed0)
+[   39.982666] 1e80:                   00027a5f 00027a60 00000006
+ef2c0000 a0000013 c062c9cc
+[   39.982696] 1ea0: a0000013 c068372c c062c980 c04b3674 ef801820
+be891bcc 00000003 ef2c1ed0
+[   39.982696] 1ec0: c00d2fb0 c04919ac 20000013 ffffffff
+[   39.982727] [<c0491c5c>] (__irq_svc+0x3c/0x120) from [<c04919ac>]
+(_raw_spin_unlock_irqrestore+0x34/0x44)
+[   39.982757] [<c04919ac>] (_raw_spin_unlock_irqrestore+0x34/0x44)
+from [<c00ea7e8>] (resume_device_irqs+0x58/0x7c)
+[   39.982788] [<c00ea7e8>] (resume_device_irqs+0x58/0x7c) from
+[<c00e28a8>] (suspend_devices_and_enter+0x11c/0x284)
+[   39.982818] [<c00e28a8>] (suspend_devices_and_enter+0x11c/0x284)
+from [<c00e2afc>] (enter_state+0xec/0x128)
+[   39.982818] [<c00e2afc>] (enter_state+0xec/0x128) from [<c00e1fa4>]
+(state_store+0xd0/0x124)
+[   39.982849] [<c00e1fa4>] (state_store+0xd0/0x124) from [<c0280a24>]
+(kobj_attr_store+0x18/0x1c)
+[   39.982879] [<c0280a24>] (kobj_attr_store+0x18/0x1c) from
+[<c01a4bc0>] (sysfs_write_file+0xfc/0x180)
+[   39.982910] [<c01a4bc0>] (sysfs_write_file+0xfc/0x180) from
+[<c0148acc>] (vfs_write+0xb0/0x134)
+[   39.982940] [<c0148acc>] (vfs_write+0xb0/0x134) from [<c0148c20>]
+(sys_write+0x40/0x70)
+[   39.982971] [<c0148c20>] (sys_write+0x40/0x70) from [<c005df40>]
+(ret_fast_syscall+0x0/0x3c)
+[   39.983001] ---[ end trace e50a27d94f6bdb1d ]---
 
-> > Regards,
-> > Peter
-> > =
+--------------------------
 
-> > ---
-> > =
+Can anyone please let me know if I am missing something? I found this
+link regarding the similar problem,
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg33325.html
 
-> > Axel Castaneda Gonzalez (1):
-> >   ASoC: twl6040: Configure ramp step based on platform
-> > =
-
-> > Liam Girdwood (3):
-> >   ASoC: twl6040: add all ABE DAIs
-> >   ASoC: twl6040: Support other sample rates in constraints.
-> >   ASoC: twl6040: set default constraints.
-> > =
-
-> > Misael Lopez Cruz (5):
-> >   mfd: twl6040: Add initial support
-> >   ASoC: twl6040: Convert into TWL6040 MFD child
-> >   input: Add initial support for TWL6040 vibrator
-> >   ASoC: twl6040: Remove pll and headset mode dependency
-> >   OMAP4: SDP4430: Add twl6040 codec platform support
-> > =
-
-> > Peter Ujfalusi (9):
-> >   OMAP: New twl-common for common TWL configuration
-> >   OMAP4: Move common twl6030 configuration to twl-common
-> >   OMAP3: Move common twl configuration to twl-common
-> >   OMAP3: Move common regulator configuration to twl-common
-> >   MFD: twl4030-codec: Rename internals from codec to audio
-> >   MFD: twl4030-codec -> twl4030-audio: Rename the driver
-> >   MFD: twl4030-audio: Rename platform data
-> >   MFD: twl6040: Change platform data for soc codec driver
-> >   OMAP4: SDP4430: Add twl6040 vibrator platform support
-> >  =
-
-> >  arch/arm/mach-omap2/Makefile                       |    2 +-
-> >  arch/arm/mach-omap2/board-3430sdp.c                |   89 +---
-> >  arch/arm/mach-omap2/board-4430sdp.c                |  187 ++----
-> >  arch/arm/mach-omap2/board-cm-t35.c                 |   48 +--
-> >  arch/arm/mach-omap2/board-devkit8000.c             |   37 +--
-> >  arch/arm/mach-omap2/board-igep0020.c               |   44 +--
-> >  arch/arm/mach-omap2/board-ldp.c                    |   15 +-
-> >  arch/arm/mach-omap2/board-omap3beagle.c            |   60 +--
-> >  arch/arm/mach-omap2/board-omap3evm.c               |   67 +--
-> >  arch/arm/mach-omap2/board-omap3pandora.c           |   59 +--
-> >  arch/arm/mach-omap2/board-omap3stalker.c           |   70 +--
-> >  arch/arm/mach-omap2/board-omap3touchbook.c         |   57 +--
-> >  arch/arm/mach-omap2/board-omap4panda.c             |  149 +-----
-> >  arch/arm/mach-omap2/board-overo.c                  |   59 +--
-> >  arch/arm/mach-omap2/board-rm680.c                  |    8 +-
-> >  arch/arm/mach-omap2/board-rx51-peripherals.c       |   44 +--
-> >  arch/arm/mach-omap2/board-zoom-peripherals.c       |   88 +---
-> >  arch/arm/mach-omap2/common-board-devices.c         |   21 -
-> >  arch/arm/mach-omap2/common-board-devices.h         |   26 +-
-> >  arch/arm/mach-omap2/twl-common.c                   |  304 ++++++++++
-> >  arch/arm/mach-omap2/twl-common.h                   |   59 ++
-> >  arch/arm/plat-omap/include/plat/irqs.h             |   12 +-
-> >  drivers/input/misc/Kconfig                         |   13 +-
-> >  drivers/input/misc/Makefile                        |    1 +
-> >  drivers/input/misc/twl4030-vibra.c                 |   12 +-
-> >  drivers/input/misc/twl6040-vibra.c                 |  416
-> >  +++++++++++++
-> >  drivers/mfd/Kconfig                                |    8 +-
-> >  drivers/mfd/Makefile                               |    3 +-
-> >  drivers/mfd/twl-core.c                             |   13 +-
-> >  drivers/mfd/twl4030-audio.c                        |  277 +++++++++
-> >  drivers/mfd/twl4030-codec.c                        |  277 ---------
-> >  drivers/mfd/twl6040-core.c                         |  601
-> > =
-
-> > +++++++++++++++++++ drivers/mfd/twl6040-irq.c                          |
-> > 205 +++++++ include/linux/i2c/twl.h                            |   25 +-
-> > =
-
-> >  .../linux/mfd/{twl4030-codec.h =3D> twl4030-audio.h} |   16 +-
-> >  include/linux/mfd/twl6040.h                        |  261 ++++++++
-> >  sound/soc/codecs/Kconfig                           |    3 +-
-> >  sound/soc/codecs/twl4030.c                         |   22 +-
-> >  sound/soc/codecs/twl6040.c                         |  628
-> > =
-
-> > ++++++++------------ sound/soc/codecs/twl6040.h                        =
-
-> > |
-> > 118 ----
-> > =
-
-> >  sound/soc/omap/sdp3430.c                           |    2 +-
-> >  sound/soc/omap/sdp4430.c                           |    2 +
-> >  sound/soc/omap/zoom2.c                             |    2 +-
-> >  43 files changed, 2635 insertions(+), 1775 deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/twl-common.c
-> >  create mode 100644 arch/arm/mach-omap2/twl-common.h
-> >  create mode 100644 drivers/input/misc/twl6040-vibra.c
-> >  create mode 100644 drivers/mfd/twl4030-audio.c
-> >  delete mode 100644 drivers/mfd/twl4030-codec.c
-> >  create mode 100644 drivers/mfd/twl6040-core.c
-> >  create mode 100644 drivers/mfd/twl6040-irq.c
-> >  rename include/linux/mfd/{twl4030-codec.h =3D> twl4030-audio.h} (96%)
-> >  create mode 100644 include/linux/mfd/twl6040.h
-> =
-
-> _______________________________________________
-> Alsa-devel mailing list
-> Alsa-devel@alsa-project.org
-> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
+Thanks,
+Mohan
