@@ -1,208 +1,32 @@
-From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
-Date: Thu, 30 Jun 2011 18:10:40 +0530
-Message-ID: <BANLkTimcaRX0epF27ntGnK7rvrCgQ-zyBQ@mail.gmail.com>
-References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-2-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-3-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
-	<87d3ix5c6y.fsf@ti.com>
-	<BANLkTim43pAKe1o-aFmgh79bNqSyZmW_Fg@mail.gmail.com>
-	<BANLkTi=pKL6RDBTDBStv+uhxVKp3-bwXbg@mail.gmail.com>
-	<87pqlwqwb1.fsf@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] arm: platsmp: Allow secondary cpu hotplug with
+	maxcpus=1
+Date: Thu, 30 Jun 2011 14:11:54 +0100
+Message-ID: <20110630131154.GJ23312@n2100.arm.linux.org.uk>
+References: <1309372300-28911-1-git-send-email-sboyd@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87pqlwqwb1.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1309372300-28911-1-git-send-email-sboyd@codeaurora.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, David Brown <davidb@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Linus Walleij <linus.walleij@stericsson.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 30, 2011 at 12:50 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
-> "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
->
->> On Wed, Jun 29, 2011 at 8:52 PM, Munegowda, Keshava
->> <keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
->>> On Thu, Jun 2, 2011 at 5:36 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote=
-:
->>>> Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
->>>>
->>>>> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>>>>
->>>>> The global suspend and resume functions for usbhs core driver
->>>>> are implemented.These routine are called when the global suspend
->>>>> and resume occurs. Before calling these functions, the
->>>>> bus suspend and resume of ehci and ohci drivers are called
->>>>> from runtime pm.
->>>>>
->>>>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>>>
->>>> First, from what I can see, this is only a partial implementation =
-of
->>>> runtime PM. =A0What I mean is that the runtime PM methods are used=
- only
->>>> during the suspend path. =A0The rest of the time the USB host IP b=
-lock is
->>>> left enabled, even when nothing is connected.
->>>>
->>>> I tested this on my 3530/Overo board, and verified that indeed the
->>>> usbhost powerdomain hits retention on suspend, but while idle, whe=
-n
->>>> nothing is connected, I would expect the driver could be clever en=
-ough
->>>> to use runtime PM (probably using autosuspend timeouts) to disable=
- the
->>>> hardware as well.
->>>>
->>>>> ---
->>>>> =A0drivers/mfd/omap-usb-host.c | =A0103 +++++++++++++++++++++++++=
-++++++++++++++++++
->>>>> =A01 files changed, 103 insertions(+), 0 deletions(-)
->>>>>
->>>>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-h=
-ost.c
->>>>> index 43de12a..32d19e2 100644
->>>>> --- a/drivers/mfd/omap-usb-host.c
->>>>> +++ b/drivers/mfd/omap-usb-host.c
->>>>> @@ -146,6 +146,10 @@
->>>>> =A0#define is_ehci_hsic_mode(x) (x =3D=3D OMAP_EHCI_PORT_MODE_HSI=
-C)
->>>>>
->>>>>
->>>>> +/* USBHS state bits */
->>>>> +#define OMAP_USBHS_INIT =A0 =A0 =A0 =A0 =A0 =A0 =A00
->>>>> +#define OMAP_USBHS_SUSPEND =A0 4
->>>>
->>>> These additional state bits don't seem to be necessary.
->>>>
->>>> For suspend, just check 'pm_runtime_is_suspended()'
->>>>
->>>> The init flag is only used in the suspend/resume hooks, but the ne=
-ed for
->>>> it is a side effect of not correctly using the runtime PM callback=
-s.
->>>>
->>>> Remember that the runtime PM get/put hooks have usage counting. =A0=
-Only
->>>> when the usage count transitions to/from zero is the actual
->>>> hardware-level enable/disable (via omap_hwmod) being done.
->>>>
->>>> The current code is making the assumption that every call to get/p=
-ut is
->>>> going to result in an enable/disable of the hardware.
->>>>
->>>> Instead, all of the code that needs to be run only upon actual
->>>> enable/disable of the hardware should be done in the driver's
->>>> runtime_suspend/runtime_resume callbacks. =A0These are only called=
- when
->>>> the hardware actually changes state.
->>>>
->>>> Not knowing that much about the EHCI block, upon first glance, it =
-looks
->>>> like mmuch of what is done in usbhs_enable() should actually be do=
-ne in
->>>> the ->runtime_resume() callback, and similarily, much of what is d=
-one in
->>>> usbhs_disable() should be done in the ->runtime_suspend() callback=
-=2E
->>>
->>> Kevin,
->>> =A0 do you mean driver->runtime_resume and driver->runtime_resume c=
-all backs.
->>> are these call backs from pm_runtime_get_sync and pm_runtime_put_sy=
-nc?
->>
->> for usb host case , I am seeing that the pm_runtime_get_sync
->>
->>
->> static int rpm_resume(struct device *dev, int rpmflags)
->> {
->> =A0 ............
->> =A0..........
->> =A0 =A0 =A0 if (dev->pwr_domain) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 callback =3D dev->pwr_domain->ops.runtim=
-e_resume;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if(!strcmp(dev_name(dev),"usbhs_omap"))
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("dev->pwr_doma=
-in->ops.runtime_resume");
->> =A0 =A0 =A0 }
->> =A0 =A0 =A0 else if (dev->type && dev->type->pm) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 callback =3D dev->type->pm->runtime_resu=
-me;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if(!strcmp(dev_name(dev),"usbhs_omap"))
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("dev->type->pm=
-->runtime_resume");
->> =A0 =A0 =A0 }
->> =A0 =A0 =A0 else if (dev->class && dev->class->pm) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 callback =3D dev->class->pm->runtime_res=
-ume;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if(!strcmp(dev_name(dev),"usbhs_omap"))
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("ev->class->pm=
-->runtime_resume");
->> =A0 =A0 =A0 }
->> =A0 =A0 =A0 else if (dev->bus && dev->bus->pm) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 callback =3D dev->bus->pm->runtime_resum=
-e;
->> =A0 =A0 =A0 if(!strcmp(dev_name(dev),"usbhs_omap"))
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("dev->bus->pm->runtime_resume"=
-);
->> =A0 =A0 =A0 }
->> =A0 =A0 =A0 else
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 callback =3D NULL;
->> }
->>
->>
->> I am seeing that below if statement was hitting true:
->>
->> =A0 =A0 =A0 if (dev->pwr_domain) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 callback =3D dev->pwr_domain->ops.runtim=
-e_resume;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if(!strcmp(dev_name(dev),"usbhs_omap"))
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("dev->pwr_doma=
-in->ops.runtime_resume");
->>
->>
->> due to this; the driver->runtime_resume was not getting called.
->>
->> Any idea on why I am seeing only the dev->pwr_domain is set not
->> dev->bus && dev->bus->pm is hitting here?
->
-> Because that's how it was designed. :)
->
-> On OMAP, for on-chip devices (omap_devices) we use PM domains
-> (pwr_domain) and not the subsystem (bus) to implment runtime PM, and =
-as
-> Alan pointed out, PM domains have precedence over subsystem callbacks=
-=2E
->
-> I'm curious why you determined the driver's runtime resume was not
-> getting called?
->
-> The PM domain callback will call your driver's runtime_resume (assumi=
-ng
-> it exists.)
->
-> rpm_resume()
-> =A0 dev->pwr_domain->ops.runtime_resume()
-> =A0 =A0 =A0 omap_device_enable()
-> =A0 =A0 =A0 pm_generic_runtime_resume()
-> =A0 =A0 =A0 =A0 =A0dev->driver->pm->runtime_resume()
->
-> Note that the PM domain implementation is done at the omap_device
-> level. =A0Specifically, see plat-omap/omap_device.c:_od_runtime_resum=
-e()
->
-> Kevin
+On Wed, Jun 29, 2011 at 11:31:39AM -0700, Stephen Boyd wrote:
+>  void __init platform_smp_prepare_cpus(unsigned int max_cpus)
+>  {
+> -	int i;
+> -
+>  	/*
+>  	 * Initialise the present map, which describes the set of CPUs
+>  	 * actually populated at the present time.
+>  	 */
+> -	for (i = 0; i < max_cpus; i++)
+> -		set_cpu_present(i, true);
+> +	init_cpu_present(&cpu_possible_map);
 
-Thanks to partha and others
-
-I was an rc issue; I migrated to latest kernel ; its working now.
-driver runtime call backs are getting
-called now. :-)
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok, if we're now doing this in every platform, it might as well go into
+arch/arm/kernel/smp.c - platforms can re-initialize the present map
+in this callback if they need to do something different.
