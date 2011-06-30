@@ -1,47 +1,50 @@
-From: Sid Boyce <sboyce-QgLWrMLu8clzjhtm8Ag3mw@public.gmane.org>
-Subject: Beagleboard -XM and 32GB microSD card oddities
-Date: Thu, 30 Jun 2011 10:50:59 +0100
-Message-ID: <4E0C4703.9000207@blueyonder.co.uk>
-Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Return-path: <beagleboard+bncCKzTgayWERCHjrHwBBoEuaCvZA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Post: <http://groups.google.com/group/beagleboard/post?hl=en_US>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/beagleboard?hl=en_US>
-Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=en_US>,
- <mailto:beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-To: Beagle Board <beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 0/7] twl4030: finish threaded IRQ conversion
+Date: Thu, 30 Jun 2011 12:51:03 +0300
+Message-ID: <1309427470-605-1-git-send-email-balbi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:37594 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752043Ab1F3JvQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Jun 2011 05:51:16 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <balbi@ti.com>
 
-I'm not really looking for a solution, just supplying some information 
-in case anyone is contemplating a >16GB card.
+Hi,
 
-Using Ubuntu 11.04 ARM or x86_64, I cannot create an ext4 partition that 
-will mount. Doing fsck.ext4 appears to fix the filesystem, but rerunning 
-fsck.ext4 a second time gives the same errors.
+the following patches where boot-tested on beagle xM
+and everything seems fine. MMC root filesystem still
+mounts, /proc/interrupts looks like ps aux | grep irq
+shows our threads, etc.
 
-Only BTRFS works.
+please give it a thorough review as there are places
+where I was confused of what to do.
 
-A BTRFS partition can be created without a problem. I then use rsync to 
-copy across all the data from the 16GB (ext4) partition and it mounts 
-without errors. After the rsync I create the excluded directories proc, 
-sys, tmp, media.
+Later patches could (should?) come making use of
+Sparse IRQ numbers (by allocating irq_descs dynamically)
+and I'm not sure I like that chained handler too much.
 
-I get a kernel oops (2.6.39-x1) on boot up of the 32GB card.
-I'm still trying to figure why I'm getting the oops that I don't have on 
-the original 16GB card.
-Regards
-Sid.
+If I understood correctly the chained handler is simply
+avoiding a request_threaded_irq() on e.g. twl4030-gpio.c
+driver. Not sure if it's that nice. Anyway, here we have
+the final conversion.
+
+Felipe Balbi (7):
+  mfd: twl4030-irq: remove trailing whitespaces
+  mfd: twl4030-irq: implement bus_lock/bus_sync_unlock methods
+  mfd: twl4030-irq: drop the kthread
+  mfd: twl4030-irq: drop mask_work
+  mfd: twl4030-irq: drop edge_work
+  mfd: twl4030-irq: set irq nested flag
+  rtc: twl: move to threaded irq
+
+ drivers/mfd/twl4030-irq.c |  342 +++++++++++++++++----------------------------
+ drivers/rtc/rtc-twl.c     |   10 +--
+ 2 files changed, 132 insertions(+), 220 deletions(-)
+
 -- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
-Senior Staff Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+1.7.6
 
--- 
-You received this message because you are subscribed to the Google Groups "Beagle Board" group.
-To post to this group, send email to beagleboard-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-To unsubscribe from this group, send email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit this group at http://groups.google.com/group/beagleboard?hl=en.
