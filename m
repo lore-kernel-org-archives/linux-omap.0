@@ -1,32 +1,47 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] arm: platsmp: Allow secondary cpu hotplug with
-	maxcpus=1
-Date: Thu, 30 Jun 2011 14:11:54 +0100
-Message-ID: <20110630131154.GJ23312@n2100.arm.linux.org.uk>
-References: <1309372300-28911-1-git-send-email-sboyd@codeaurora.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Fix wrong OMAP_ES_x_y defines that make
+ omap_rev_lt_x_y and friends misbehave
+Date: Thu, 30 Jun 2011 06:23:15 -0700
+Message-ID: <20110630132315.GN23145@atomide.com>
+References: <BANLkTinWdQsjttt0m1h9KbVPjb6rWXNpvA@mail.gmail.com>
+ <BANLkTi=75up6OQwRzGJ586eVLorEdpCa7w@mail.gmail.com>
+ <20110614114116.GQ3352@atomide.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024D563DE4@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:28390 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751356Ab1F3NXU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 09:23:20 -0400
 Content-Disposition: inline
-In-Reply-To: <1309372300-28911-1-git-send-email-sboyd@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, David Brown <davidb@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Linus Walleij <linus.walleij@stericsson.com>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D563DE4@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: Tasslehoff Kjappfot <tasskjapp@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Jun 29, 2011 at 11:31:39AM -0700, Stephen Boyd wrote:
->  void __init platform_smp_prepare_cpus(unsigned int max_cpus)
->  {
-> -	int i;
-> -
->  	/*
->  	 * Initialise the present map, which describes the set of CPUs
->  	 * actually populated at the present time.
->  	 */
-> -	for (i = 0; i < max_cpus; i++)
-> -		set_cpu_present(i, true);
-> +	init_cpu_present(&cpu_possible_map);
+* Premi, Sanjeev <premi@ti.com> [110616 06:22]:
+> > 
+> > Hmm, we don't seem to have these in the mainline kernel?
+> > Maybe take a look if something still needs to patched
+> > there?
+> 
+> [sp] Yes. these don't apply on mainline.
+>      I believe the kernel is using this patch I submitted [1],
+>      (or derived from it), but missing [2].
+> 
+> Tony,
+>   Now that there are multiple processors with their own
+>   revisions, do you believe an update version of [1]
+>   patch would be useful?
 
-Ok, if we're now doing this in every platform, it might as well go into
-arch/arm/kernel/smp.c - platforms can re-initialize the present map
-in this callback if they need to do something different.
+Yes please take a look and see if we still need to patch
+something in the mainline kernel for this.
+
+Regards,
+
+Tony
+ 
+>   [1] http://marc.info/?l=linux-omap&m=127972517400499&w=2
+>   [2] http://marc.info/?l=linux-omap&m=128597605524824&w=2
