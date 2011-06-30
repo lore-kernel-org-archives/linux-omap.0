@@ -1,218 +1,254 @@
 From: Mike Turquette <mturquette@ti.com>
-Subject: [PATCH 3/8] OMAP3+: PRM: add tranxdone IRQ handlers for ABB
-Date: Wed, 29 Jun 2011 17:25:55 -0700
-Message-ID: <1309393560-8874-4-git-send-email-mturquette@ti.com>
+Subject: [PATCH 4/8] OMAP3+: ABB: Adaptive Body-Bias structures & data
+Date: Wed, 29 Jun 2011 17:25:56 -0700
+Message-ID: <1309393560-8874-5-git-send-email-mturquette@ti.com>
 References: <1309393560-8874-1-git-send-email-mturquette@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:38657 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754144Ab1F3A1H (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:58608 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757681Ab1F3A1I (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jun 2011 20:27:07 -0400
-Received: by yib18 with SMTP id 18so929643yib.34
-        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 17:27:06 -0700 (PDT)
+	Wed, 29 Jun 2011 20:27:08 -0400
+Received: by mail-yw0-f54.google.com with SMTP id 7so904905ywf.41
+        for <linux-omap@vger.kernel.org>; Wed, 29 Jun 2011 17:27:07 -0700 (PDT)
 In-Reply-To: <1309393560-8874-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, nm@ti.com, Mike Turquette <mturquette@ti.com>
 
-From: Nishanth Menon <nm@ti.com>
+Due to voltage domain trimming and silicon characterstics some silicon
+may experience instability when operating at a high voltage.  To
+compensate for this an Adaptive Body-Bias ldo exists.  First featured in
+OMAP3630, the purpose of this ldo is to provide a voltage boost to PMOS
+backgates when a voltage domain is operating at a high OPP.  In this
+mode the ldo is said to be in Forward Body-Bias.  At OPPs within a
+nominal voltage range the ABB ldo is bypassed.
 
-OMAP3 and more recent platforms support a PRM interrupt to the MPU for
-Adapative Body-Bias ldo transitions.
+This patch introduces the data structures needed to represent the ABB
+ldo's in the voltage layer, and populates the appropriate data for 3630
+and OMAP4.  Not all voltage domains have an ABB ldo, and OMAP34xx does
+not have it at all; in such cases the voltage data will be marked with
+OMAP_ABB_NO_LDO.
 
-Add helpers to the OMAP3 & OMAP4 PRM code to check the status of the
-interrupt and also to clear it.  These will be called from the ABB code
-as part of the greater voltage scaling sequence.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Mike Turquette <mturquette@ti.com>
 ---
- arch/arm/mach-omap2/prm2xxx_3xxx.c |   35 ++++++++++++++++++++++++++-----
- arch/arm/mach-omap2/prm2xxx_3xxx.h |    3 ++
- arch/arm/mach-omap2/prm44xx.c      |   40 +++++++++++++++++++++++++++++------
- arch/arm/mach-omap2/prm44xx.h      |    3 ++
- 4 files changed, 68 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/Makefile       |    5 +-
+ arch/arm/mach-omap2/abb.h          |   85 ++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/abb36xx_data.c |   38 ++++++++++++++++
+ arch/arm/mach-omap2/abb44xx_data.c |   44 ++++++++++++++++++
+ 4 files changed, 170 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/abb.h
+ create mode 100644 arch/arm/mach-omap2/abb36xx_data.c
+ create mode 100644 arch/arm/mach-omap2/abb44xx_data.c
 
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index 8a20242..49e9719 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -163,18 +163,23 @@ int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift, u8 st_shift)
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 2cbef35..7dbb4d5 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -79,14 +79,15 @@ endif
+ # PRCM
+ obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o \
+-					   vc3xxx_data.o vp3xxx_data.o
++					   vc3xxx_data.o vp3xxx_data.o \
++					   abb36xx_data.o
+ # XXX The presence of cm2xxx_3xxx.o on the line below is temporary and
+ # will be removed once the OMAP4 part of the codebase is converted to
+ # use OMAP4-specific PRCM functions.
+ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
+ 					   cm44xx.o prcm_mpu44xx.o \
+ 					   prminst44xx.o vc44xx_data.o \
+-					   vp44xx_data.o
++					   vp44xx_data.o abb44xx_data.o
  
- /*
-  * struct omap3_prm_irq - OMAP3 PRM IRQ register access description.
-- * @tranxdone_status: VP_TRANXDONE_ST bitmask in PRM_IRQSTATUS_MPU reg
-+ * @vp_tranxdone_status: VP_TRANXDONE_ST bitmask in PRM_IRQSTATUS_MPU reg
-+ * @abb_tranxdone_status: ABB_TRANXDONE_ST bitmask in PRM_IRQSTATUS_MPU reg
-+ *			  (ONLY for OMAP3630)
-  */
- struct omap3_prm_irq {
--	u32 tranxdone_status;
-+	u32 vp_tranxdone_status;
-+	u32 abb_tranxdone_status;
- };
- 
- static struct omap3_prm_irq omap3_prm_irqs[] = {
- 	[OMAP3_PRM_IRQ_VDD_MPU_ID] = {
--		.tranxdone_status = OMAP3430_VP1_TRANXDONE_ST_MASK,
-+		.vp_tranxdone_status = OMAP3430_VP1_TRANXDONE_ST_MASK,
-+		.abb_tranxdone_status = OMAP3630_ABB_LDO_TRANXDONE_ST_MASK,
- 	},
- 	[OMAP3_PRM_IRQ_VDD_CORE_ID] = {
--		.tranxdone_status = OMAP3430_VP2_TRANXDONE_ST_MASK,
-+		.vp_tranxdone_status = OMAP3430_VP2_TRANXDONE_ST_MASK,
-+		/* no abb for core */
- 	},
- };
- 
-@@ -187,14 +192,32 @@ u32 omap3_prm_vp_check_txdone(u8 irq_id)
- 
- 	irqstatus = omap2_prm_read_mod_reg(OCP_MOD,
- 					   OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--	return irqstatus & irq->tranxdone_status;
-+	return irqstatus & irq->vp_tranxdone_status;
- }
- 
- void omap3_prm_vp_clear_txdone(u8 irq_id)
- {
- 	struct omap3_prm_irq *irq = &omap3_prm_irqs[irq_id];
- 
--	omap2_prm_write_mod_reg(irq->tranxdone_status,
-+	omap2_prm_write_mod_reg(irq->vp_tranxdone_status,
-+				OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+}
+ # OMAP voltage domains
+ ifeq ($(CONFIG_PM),y)
+diff --git a/arch/arm/mach-omap2/abb.h b/arch/arm/mach-omap2/abb.h
+new file mode 100644
+index 0000000..74f2044
+--- /dev/null
++++ b/arch/arm/mach-omap2/abb.h
+@@ -0,0 +1,85 @@
++/*
++ * OMAP Adaptive Body-Bias structure and macro definitions
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ * Mike Turquette <mturquette@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+u32 omap36xx_prm_abb_check_txdone(u8 irq_id)
-+{
-+	struct omap3_prm_irq *irq = &omap3_prm_irqs[irq_id];
-+	u32 irqstatus;
++#ifndef __ARCH_ARM_MACH_OMAP2_ABB_H
++#define __ARCH_ARM_MACH_OMAP2_ABB_H
 +
-+	irqstatus = omap2_prm_read_mod_reg(OCP_MOD,
-+					   OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+	return irqstatus & irq->abb_tranxdone_status;
-+}
++#include <linux/kernel.h>
 +
-+void omap36xx_prm_abb_clear_txdone(u8 irq_id)
-+{
-+	struct omap3_prm_irq *irq = &omap3_prm_irqs[irq_id];
++#include "voltage.h"
 +
-+	omap2_prm_write_mod_reg(irq->abb_tranxdone_status,
- 				OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
- }
- 
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index d90b23f..08d5f1e 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -313,6 +313,9 @@ extern int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift, u8 st_shift);
- u32 omap3_prm_vp_check_txdone(u8 irq_id);
- void omap3_prm_vp_clear_txdone(u8 irq_id);
- 
-+/* OMAP36xx-specific ABB functions */
-+u32 omap36xx_prm_abb_check_txdone(u8 irq_id);
-+void omap36xx_prm_abb_clear_txdone(u8 irq_id);
- 
- /*
-  * OMAP3 access functions for voltage controller (VC) and
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 9d0b641..a062b63 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -202,25 +202,30 @@ void omap4_prm_global_warm_sw_reset(void)
- /*
-  * struct omap4_prm_irq - OMAP4 VP register access description.
-  * @irqstatus_mpu: offset to IRQSTATUS_MPU register for VP
-- * @tranxdone_status: VP_TRANXDONE_ST bitmask in PRM_IRQSTATUS_MPU reg
-+ * @vp_tranxdone_status: VP_TRANXDONE_ST bitmask in PRM_IRQSTATUS_MPU reg
-+ * @abb_tranxdone_status: ABB_TRANXDONE_ST bitmask in PRM_IRQSTATUS_MPU reg
-  */
- struct omap4_prm_irq {
- 	u32 irqstatus_mpu;
--	u32 tranxdone_status;
-+	u32 vp_tranxdone_status;
-+	u32 abb_tranxdone_status;
- };
- 
- static struct omap4_prm_irq omap4_prm_irqs[] = {
- 	[OMAP4_PRM_IRQ_VDD_MPU_ID] = {
- 		.irqstatus_mpu = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
--		.tranxdone_status = OMAP4430_VP_MPU_TRANXDONE_ST_MASK,
-+		.vp_tranxdone_status = OMAP4430_VP_MPU_TRANXDONE_ST_MASK,
-+		.abb_tranxdone_status = OMAP4430_ABB_MPU_DONE_ST_MASK
- 	},
- 	[OMAP4_PRM_IRQ_VDD_IVA_ID] = {
- 		.irqstatus_mpu = OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
--		.tranxdone_status = OMAP4430_VP_IVA_TRANXDONE_ST_MASK,
-+		.vp_tranxdone_status = OMAP4430_VP_IVA_TRANXDONE_ST_MASK,
-+		.abb_tranxdone_status = OMAP4430_ABB_IVA_DONE_ST_MASK,
- 	},
- 	[OMAP4_PRM_IRQ_VDD_CORE_ID] = {
- 		.irqstatus_mpu = OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
--		.tranxdone_status = OMAP4430_VP_CORE_TRANXDONE_ST_MASK,
-+		.vp_tranxdone_status = OMAP4430_VP_CORE_TRANXDONE_ST_MASK,
-+		/* Core has no ABB */
- 	},
- };
- 
-@@ -232,19 +237,40 @@ u32 omap4_prm_vp_check_txdone(u8 irq_id)
- 	irqstatus = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
- 						OMAP4430_PRM_OCP_SOCKET_INST,
- 						irq->irqstatus_mpu);
--	return irqstatus & irq->tranxdone_status;
-+	return irqstatus & irq->vp_tranxdone_status;
- }
- 
- void omap4_prm_vp_clear_txdone(u8 irq_id)
- {
- 	struct omap4_prm_irq *irq = &omap4_prm_irqs[irq_id];
- 
--	omap4_prminst_write_inst_reg(irq->tranxdone_status,
-+	omap4_prminst_write_inst_reg(irq->vp_tranxdone_status,
- 				     OMAP4430_PRM_PARTITION,
- 				     OMAP4430_PRM_OCP_SOCKET_INST,
- 				     irq->irqstatus_mpu);
- };
- 
-+u32 omap4_prm_abb_check_txdone(u8 irq_id)
-+{
-+	struct omap4_prm_irq *irq = &omap4_prm_irqs[irq_id];
-+	u32 irqstatus;
++/* NOMINAL_OPP bypasses the ABB ldo, FAST_OPP sets it to Forward Body-Bias */
++#define OMAP_ABB_NOMINAL_OPP	0
++#define OMAP_ABB_FAST_OPP	1
++#define OMAP_ABB_NO_LDO		~0
 +
-+	irqstatus = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-+						OMAP4430_PRM_OCP_SOCKET_INST,
-+						irq->irqstatus_mpu);
-+	return irqstatus & irq->abb_tranxdone_status;
-+}
++/* Time for the ABB ldo to settle after transition (in micro-seconds) */
++#define ABB_TRANXDONE_TIMEOUT	50
 +
-+void omap4_prm_abb_clear_txdone(u8 irq_id)
-+{
-+	struct omap4_prm_irq *irq = &omap4_prm_irqs[irq_id];
++/*
++ * struct omap_abb_ops - per-OMAP operations needed for ABB transition
++ *
++ * @check_tranxdone: return status of ldo transition from PRM_IRQSTATUS
++ * @clear_tranxdone: clear ABB transition status bit from PRM_IRQSTATUS
++ */
++struct omap_abb_ops {
++	u32 (*check_tranxdone)(u8 irq_id);
++	void (*clear_tranxdone)(u8 irq_id);
++};
 +
-+	omap4_prminst_write_inst_reg(irq->abb_tranxdone_status,
-+				     OMAP4430_PRM_PARTITION,
-+				     OMAP4430_PRM_OCP_SOCKET_INST,
-+				     irq->irqstatus_mpu);
-+}
++/*
++ * struct omap_abb_common - ABB data common to an OMAP family
++ *
++ * @opp_sel_mask: CTRL reg uses this to program next state of ldo
++ * @opp_change_mask: CTRL reg uses this to initiate ldo state change
++ * @sr2_wtcnt_value_mask: SETUP reg uses this to program ldo settling time
++ * @sr2en_mask: SETUP reg uses this to enable/disable ldo
++ * @active_fbb_sel_mask: SETUP reg uses this to enable/disable FBB operation
++ * @settling_time: number of micro-seconds it takes for ldo to transition
++ * @clock_cycles: settling_time is counted in multiples of clock cycles
++ * @ops: pointer to common ops for manipulating PRM_IRQSTATUS bits
++ */
++struct omap_abb_common {
++	u32 opp_sel_mask;
++	u32 opp_change_mask;
++	u32 sr2_wtcnt_value_mask;
++	u32 sr2en_mask;
++	u32 active_fbb_sel_mask;
++	unsigned long settling_time;
++	unsigned long clock_cycles;
++	const struct omap_abb_ops *ops;
++};
 +
- u32 omap4_prm_vcvp_read(u8 offset)
- {
- 	return omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index bd0fc85..3993ed4 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -779,6 +779,9 @@ extern void omap4_prm_global_warm_sw_reset(void);
- /* OMAP4-specific VP functions */
- u32 omap4_prm_vp_check_txdone(u8 irq_id);
- void omap4_prm_vp_clear_txdone(u8 irq_id);
-+/* OMAP4-specific ABB functions */
-+u32 omap4_prm_abb_check_txdone(u8 irq_id);
-+void omap4_prm_abb_clear_txdone(u8 irq_id);
- 
- /*
-  * OMAP4 access functions for voltage controller (VC) and
++/*
++ * struct omap_abb_instance - data for each instance of ABB ldo
++ *
++ * @setup_offs: PRM register offset for initial configuration of ABB ldo
++ * @ctrl_offs: PRM register offset for active programming of ABB ldo
++ * @prm_irq_id: IRQ handle used to resolve IRQSTATUS offset & masks
++ * @enabled: track whether ABB ldo is enabled or disabled
++ * @common: pointer to common data for all ABB ldo's
++ * @_opp_sel: internally track last programmed state of ABB ldo.  DO NOT USE
++ */
++struct omap_abb_instance {
++	u8 setup_offs;
++	u8 ctrl_offs;
++	u8 prm_irq_id;
++	bool enabled;
++	const struct omap_abb_common *common;
++	u8 _opp_sel;
++};
++
++extern struct omap_abb_instance omap36xx_abb_mpu;
++
++extern struct omap_abb_instance omap4_abb_mpu;
++extern struct omap_abb_instance omap4_abb_iva;
++
++#endif
+diff --git a/arch/arm/mach-omap2/abb36xx_data.c b/arch/arm/mach-omap2/abb36xx_data.c
+new file mode 100644
+index 0000000..0bcfd66
+--- /dev/null
++++ b/arch/arm/mach-omap2/abb36xx_data.c
+@@ -0,0 +1,38 @@
++/*
++ * OMAP36xx Adaptive Body-Bias (ABB) data
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ * Mike Turquette <mturquette@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "abb.h"
++#include "prm2xxx_3xxx.h"
++#include "prm-regbits-34xx.h"
++
++static const struct omap_abb_ops omap36xx_abb_ops = {
++	.check_tranxdone   = &omap36xx_prm_abb_check_txdone,
++	.clear_tranxdone   = &omap36xx_prm_abb_clear_txdone,
++};
++
++static const struct omap_abb_common omap36xx_abb_common = {
++	.opp_sel_mask		= OMAP3630_OPP_SEL_MASK,
++	.opp_change_mask	= OMAP3630_OPP_CHANGE_MASK,
++	.sr2en_mask		= OMAP3630_SR2EN_MASK,
++	.active_fbb_sel_mask	= OMAP3630_ACTIVE_FBB_SEL_MASK,
++	.sr2_wtcnt_value_mask	= OMAP3630_SR2_WTCNT_VALUE_MASK,
++	.settling_time		= 30,
++	.clock_cycles		= 8,
++	.ops			= &omap36xx_abb_ops,
++};
++
++/* SETUP & CTRL registers swapped names in OMAP4; thus 36xx looks strange */
++struct omap_abb_instance omap36xx_abb_mpu = {
++	.setup_offs		= OMAP3_PRM_LDO_ABB_CTRL_OFFSET,
++	.ctrl_offs		= OMAP3_PRM_LDO_ABB_SETUP_OFFSET,
++	.prm_irq_id		= OMAP3_PRM_IRQ_VDD_MPU_ID,
++	.common			= &omap36xx_abb_common,
++};
+diff --git a/arch/arm/mach-omap2/abb44xx_data.c b/arch/arm/mach-omap2/abb44xx_data.c
+new file mode 100644
+index 0000000..a7cf855
+--- /dev/null
++++ b/arch/arm/mach-omap2/abb44xx_data.c
+@@ -0,0 +1,44 @@
++/*
++ * OMAP44xx Adaptive Body-Bias (ABB) data
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ * Mike Turquette <mturquette@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "abb.h"
++#include "prm44xx.h"
++#include "prm-regbits-44xx.h"
++
++static const struct omap_abb_ops omap4_abb_ops = {
++	.check_tranxdone   = &omap4_prm_abb_check_txdone,
++	.clear_tranxdone   = &omap4_prm_abb_clear_txdone,
++};
++
++static const struct omap_abb_common omap4_abb_common = {
++	.opp_sel_mask		= OMAP4430_OPP_SEL_MASK,
++	.opp_change_mask	= OMAP4430_OPP_CHANGE_MASK,
++	.sr2en_mask		= OMAP4430_SR2EN_MASK,
++	.active_fbb_sel_mask	= OMAP4430_ACTIVE_FBB_SEL_MASK,
++	.sr2_wtcnt_value_mask	= OMAP4430_SR2_WTCNT_VALUE_MASK,
++	.settling_time		= 50,
++	.clock_cycles		= 16,
++	.ops			= &omap4_abb_ops,
++};
++
++struct omap_abb_instance omap4_abb_mpu = {
++	.setup_offs		= OMAP4_PRM_LDO_ABB_MPU_SETUP_OFFSET,
++	.ctrl_offs		= OMAP4_PRM_LDO_ABB_MPU_CTRL_OFFSET,
++	.prm_irq_id		= OMAP4_PRM_IRQ_VDD_MPU_ID,
++	.common			= &omap4_abb_common,
++};
++
++struct omap_abb_instance omap4_abb_iva = {
++	.setup_offs		= OMAP4_PRM_LDO_ABB_IVA_SETUP_OFFSET,
++	.ctrl_offs		= OMAP4_PRM_LDO_ABB_IVA_CTRL_OFFSET,
++	.prm_irq_id		= OMAP4_PRM_IRQ_VDD_IVA_ID,
++	.common			= &omap4_abb_common,
++};
 -- 
 1.7.4.1
 
