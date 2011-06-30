@@ -1,127 +1,69 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCHv2 2/3] MMC: OMAP: HSMMC: add runtime pm support
-Date: Thu, 30 Jun 2011 19:43:29 +0530
-Message-ID: <BANLkTin7mQPWsiOCJ2UfxyH1OsDVfVR=2g@mail.gmail.com>
-References: <1309282049-23739-1-git-send-email-balajitk@ti.com>
-	<1309282049-23739-3-git-send-email-balajitk@ti.com>
-	<87mxh1v8f3.fsf@ti.com>
-	<BANLkTimWocMSCAxMf2ruLBzqdTOi0d2OLg@mail.gmail.com>
-	<87iproserq.fsf@ti.com>
-	<BANLkTim7P=91OX2R90Ewaeeb43NfM77Smw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH 1/5] OMAP3:I2C: Add device tree nodes for beagle
+ board
+Date: Thu, 30 Jun 2011 07:27:02 -0700
+Message-ID: <20110630142702.GV23145@atomide.com>
+References: <1309426647-31587-1-git-send-email-manjugk@ti.com>
+ <1309426647-31587-2-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:37975 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752082Ab1F3ONb convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Jun 2011 10:13:31 -0400
-In-Reply-To: <BANLkTim7P=91OX2R90Ewaeeb43NfM77Smw@mail.gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16792 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750852Ab1F3O1K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 10:27:10 -0400
+Content-Disposition: inline
+In-Reply-To: <1309426647-31587-2-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com, svenkatr@ti.com, "Nayak, Rajendra" <rnayak@ti.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, ben-linux@fluff.org
 
-On Thu, Jun 30, 2011 at 10:01 AM, T Krishnamoorthy, Balaji
-<balajitk@ti.com> wrote:
-> On Wed, Jun 29, 2011 at 11:26 PM, Kevin Hilman <khilman@ti.com> wrote=
-:
->> "T Krishnamoorthy, Balaji" <balajitk@ti.com> writes:
->>
->>> On Wed, Jun 29, 2011 at 5:02 AM, Kevin Hilman <khilman@ti.com> wrot=
-e:
->>>> +Rajendra
->>>>
->>>> Balaji T K <balajitk@ti.com> writes:
->>>>
->>>>> add runtime pm support to HSMMC host controller
->>>>> Use runtime pm API to enable/disable HSMMC clock
->>>>> Use runtime autosuspend APIs to enable auto suspend delay
->>>>>
->>>>> Based on OMAP HSMMC runtime implementation by Kevin Hilman, Kisho=
-re Kadiyala
->>>>>
->>>>> Signed-off-by: Balaji T K <balajitk@ti.com>
->>>>
->>>> I tried to test this series along with Benoit's clkdm/modulemode/h=
-wmod
->>>> cleanups and something strange is happening on OMAP4.
->>>>
->>>> First, this series by itself is working as I would expect, but tes=
-ting
->>>> in combination with Benoit's series, it's different...
->>>>
->>>> First, I'm using Benoit's branch:
->>>>
->>>> =A0 =A0 =A0 git://gitorious.org/omap-pm/linux.git for_3.0.1/7_hwmo=
-d_modulemode
->>>>
->>>> in combination with your series.
->>>>
->>>> I've also reverted these two commits:
->>>>
->>>> =A0 OMAP4: PM: TEMP: Prevent l3init from idling/force sleep
->>>> =A0 OMAP3+: hwmod data: TEMP: Do not idle MMC1 & MMC2 after boot
->>>>
->>>> which are temporary workarounds for not having MMC runtime PM.
->>>>
->>>> I turned the dev_dbg calls in the runtime PM callbacks into dev_in=
-fo
->>>> callbacks to see exactly when the device is enabled/disabled via r=
-untime
->>>> PM.
->>>>
->>>> To my surprise, I didn't see the device being enabled/disabled whe=
-n
->>>> writing do the device.
->>>
->>> I tried for_3.0.1/7_hwmod_modulemode as you mentioned above,
->>> changing dev_dbg to dev_err and I am not observing the delayed writ=
-e
->>> during umount. Can you let me know if the files are there in MMC af=
-ter
->>> remounting ?
->>
->> Did you also revert the above two commits?
->
-> yes
->
->>
->> I've pushed a 'tmp/mmc' branch to my git tree[1] which is my PM bran=
-ch
->> (including various PM stuff queued for upstream) as well as Benoit's
->> series with the TEMP patches above reverted and your series on top o=
-f
->> it. =A0There's one additional patch to convert the dev_dbg into dev_=
-info
->> to see the transitions.
->>
->> Testing this on my OMAP4430 ES2.2 EMU device, I still see the above
->> behavior.
->
-> I used OMAP4430 ES2.1 GP
->
->>
->> Can you try out this branch on your board using the default
->> omap2plus_defconfig?
->
-> Ok, I will retry on EMU device.
-Tried on ES2.1 EMU, log shared at http://pastebin.com/Umg2zF2J
+Hi,
 
-Can you share your complete log?
+Few comments on the .dts data layout below.
 
->
->>
->> Thanks,
->>
->> Kevin
->>
->> [1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap=
--pm.git
->>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+* G, Manjunath Kondaiah <manjugk@ti.com> [110630 02:44]:
+> --- a/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
+> @@ -2,11 +2,6 @@
+>  
+>  / {
+>  	i2c@48072000 {
+> -		compatible = "ti,omap3-i2c";
+> -		reg = <0x48072000 0x80>;
+> -		#address-cells = <1>;
+> -		#size-cells = <0>;
+> -
+>  		eeprom@50 {
+>  			compatible = "at,at24c01";
+>  			reg = < 0x50 >;
+
+The board .dts file should include the omap3 SoC .dts file.
+
+The omap3 SoC .dts file should have the devices mapped to L3 and L4
+busses, and the then i2c@1 would just contain the bus offset.
+
+Then the i2c@1 entry would be repeated in the board specific
+.dts and tell that the i2c@1 is enabled.
+
+> --- a/arch/arm/boot/dts/omap3-beagle.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+> @@ -4,4 +4,46 @@
+>  / {
+>  	model = "TI OMAP3 BeagleBoard";
+>  	compatible = "ti,omap3-beagle";
+> +	interrupt-parent = <&gic>;
+> +
+> +	gic: interrupt-controller@48241000 {
+> +		compatible = "ti,omap-gic", "arm,gic";
+> +		interrupt-controller;
+> +		#interrupt-cells = <1>;
+> +		reg = <0x48200000 0x1000>;
+> +	};
+
+There's no GIC on omap3, that's only on Cortex A9 systems.
+
+Regards,
+
+Tony
