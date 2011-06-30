@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 05/11] OMAP PM: early init of the pwrdms states
-Date: Thu, 30 Jun 2011 17:11:19 +0200
-Message-ID: <1309446685-17502-6-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 09/11] OMAP2+: omap_hwmod: manage the wake-up latency constraints
+Date: Thu, 30 Jun 2011 17:11:23 +0200
+Message-ID: <1309446685-17502-10-git-send-email-j-pihet@ti.com>
 References: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ww0-f44.google.com ([74.125.82.44]:62514 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752919Ab1F3PL4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 11:11:56 -0400
+	with ESMTP id S1753189Ab1F3PME (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 11:12:04 -0400
 Received: by mail-ww0-f44.google.com with SMTP id 5so2347794wwe.1
-        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 08:11:55 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 08:12:03 -0700 (PDT)
 In-Reply-To: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,68 +18,80 @@ Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-The powerdomains next states are initialized in pwrdms_setup as a
-late_initcall. Because the wake-up constraint can be requested
-early in the boot sequence, the power domains next states can be
-overwritten by pwrdms_setup.
+Hwmod is queried from the OMAP_PM layer to manage the power domains
+wake-up latency constraints. Hwmod retrieves the correct power domain
+and if it exists it calls the corresponding power domain function.
 
-This patch fixes it by initializing the power domains next states
-early at boot, so that the constraints can be applied.
-Later in the pwrdms_setup function the currently programmed
-next states are re-used as next state values.
-
-Applies to OMAP3 and OMAP4.
-
-Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using
-wake-up latency constraints on MPU, CORE and PER.
+Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using wake-up
+latency constraints on MPU, CORE and PER.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c      |    2 +-
- arch/arm/mach-omap2/pm44xx.c      |    2 +-
- arch/arm/mach-omap2/powerdomain.c |    3 +++
- 3 files changed, 5 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c             |   26 +++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 ++
+ 2 files changed, 27 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c155c9d..0b0a842 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -828,7 +828,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 	if (!pwrst)
- 		return -ENOMEM;
- 	pwrst->pwrdm = pwrdm;
--	pwrst->next_state = PWRDM_POWER_RET;
-+	pwrst->next_state = pwrdm_read_next_pwrst(pwrdm);
- 	list_add(&pwrst->node, &pwrst_list);
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 293fa6c..69fa946 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -142,6 +142,7 @@
+ #include "powerdomain.h"
+ #include <plat/clock.h>
+ #include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
+ #include <plat/prcm.h>
  
- 	if (pwrdm_has_hdwr_sar(pwrdm))
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 59a870b..91ede72 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -84,7 +84,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 	if (!pwrst)
- 		return -ENOMEM;
- 	pwrst->pwrdm = pwrdm;
--	pwrst->next_state = PWRDM_POWER_ON;
-+	pwrst->next_state = pwrdm_read_next_pwrst(pwrdm);
- 	list_add(&pwrst->node, &pwrst_list);
+ #include "cm2xxx_3xxx.h"
+@@ -2322,11 +2323,34 @@ ohsps_unlock:
+ 	return ret;
+ }
  
- 	return pwrdm_set_next_pwrst(pwrst->pwrdm, pwrst->next_state);
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 9af0847..63c3e7a 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -108,6 +108,9 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
- 	pwrdm->state = pwrdm_read_pwrst(pwrdm);
- 	pwrdm->state_counter[pwrdm->state] = 1;
- 
-+	/* Early init of the next power state */
-+	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_RET);
++/*
++ * omap_hwmod_set_wkup_constraint- set/release a wake-up latency constraint
++ *
++ * @oh: struct omap_hwmod* to which the target device belongs to.
++ * @cookie: identifier of the constraints list for @oh.
++ * @min_latency: the minimum allowed wake-up latency for @oh.
++ *
++ * Returns 0 upon success.
++ */
++int omap_hwmod_set_wkup_lat_constraint(struct omap_hwmod *oh,
++				       void *cookie, long min_latency)
++{
++	struct powerdomain *pwrdm = omap_hwmod_get_pwrdm(oh);
 +
- 	pr_debug("powerdomain: registered %s\n", pwrdm->name);
++	if (!pwrdm) {
++		pr_err("%s: Error: could not find powerdomain "
++		       "for %s\n", __func__, oh->name);
++		return -EINVAL;
++	}
++
++	return pwrdm_set_wkup_lat_constraint(pwrdm, cookie, min_latency);
++}
++
+ /**
+  * omap_hwmod_get_context_loss_count - get lost context count
+  * @oh: struct omap_hwmod *
+  *
+- * Query the powerdomain of of @oh to get the context loss
++ * Query the powerdomain of @oh to get the context loss
+  * count for this device.
+  *
+  * Returns the context loss count of the powerdomain assocated with @oh
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 1adea9c..bf9e81d 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -598,6 +598,8 @@ int omap_hwmod_for_each_by_class(const char *classname,
+ 				 void *user);
  
- 	return 0;
+ int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
++int omap_hwmod_set_wkup_lat_constraint(struct omap_hwmod *oh, void *cookie,
++				       long min_latency);
+ u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+ 
+ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
 -- 
 1.7.4.1
 
