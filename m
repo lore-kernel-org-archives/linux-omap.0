@@ -1,7 +1,7 @@
 From: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH 2/5] OMAP4:I2C: Add device tree nodes for panda board
-Date: Thu, 30 Jun 2011 15:07:24 +0500
-Message-ID: <1309426647-31587-3-git-send-email-manjugk@ti.com>
+Subject: [RFC PATCH 3/5] OMAP3: Beagle: Update beagle board file to use DT
+Date: Thu, 30 Jun 2011 15:07:25 +0500
+Message-ID: <1309426647-31587-4-git-send-email-manjugk@ti.com>
 References: <1309426647-31587-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,80 +21,79 @@ Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
-Add I2C and it's child device nodes for beagle board.
-The I2C1 controller child devices are not populated and it
-should be handled along with OMAP clock changes.
+The beagle board file is updated to use i2c nodes from device
+tree data structures.
 
 Signed-off-by: G, Manjunath Kondaiah <manjugk-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4-panda.dts |   57 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 57 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c |   24 ++++++++++++++++++++----
+ 1 files changed, 20 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index 58909e9..f9af72f 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -8,4 +8,61 @@
- / {
- 	model = "TI OMAP4 PandaBoard";
- 	compatible = "ti,omap4-panda", "ti,omap4430";
-+	interrupt-parent = <&gic>;
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 213c4cd..db494aa 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -20,6 +20,7 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/of_platform.h>
++#include <linux/of_address.h>
+ #include <linux/leds.h>
+ #include <linux/gpio.h>
+ #include <linux/input.h>
+@@ -33,6 +34,7 @@
+ 
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
++#include <linux/irq.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -421,8 +423,8 @@ static int __init omap3_beagle_i2c_init(void)
+ 	omap3_pmic_init("twl4030", &beagle_twldata);
+ 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
+ 	 * projector don't work reliably with 400kHz */
++#if !defined(CONFIG_OF)
+ 	omap_register_i2c_bus(3, 100, beagle_i2c_eeprom, ARRAY_SIZE(beagle_i2c_eeprom));
+-#ifdef CONFIG_OF
+ 	omap_register_i2c_bus(2, 100, NULL, 0);
+ #endif /* CONFIG_OF */
+ 	return 0;
+@@ -565,11 +567,24 @@ static void __init beagle_opp_init(void)
+ 	return;
+ }
+ 
++static struct of_device_id omap_dt_gic_match[] __initdata = {
++	{ .compatible = "ti,omap-gic", },
++	{}
++};
 +
-+	gic: interrupt-controller@48241000 {
-+		compatible = "ti,omap-gic", "arm,gic";
-+		interrupt-controller;
-+		#interrupt-cells = <1>;
-+		reg = <0x48241000 0x1000>,
-+		      <0X48240100 0x0200>;
-+	};
++static struct of_device_id omap_dt_match_table[] __initdata = {
++	{ .compatible = "ti,omap3-beagle", },
++	{}
++};
 +
-+	i2c@48070000 {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		compatible = "ti,omap_i2c";
-+		reg = <0x48070000 0x100>;
-+		interrupts = < 88 >;
-+		interrupt-parent = <&gic>;
-+		clock-frequency = <400>;
-+		status = "disabled";
-+	};
+ static void __init omap3_beagle_init(void)
+ {
+-#ifdef CONFIG_OF
+-	of_platform_prepare(NULL, NULL);
+-#endif /* CONFIG_OF */
++	struct device_node *node;
 +
-+	i2c@48072000 {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		compatible = "ti,omap_i2c";
-+		reg = <0x48072000 0x100>;
-+		interrupts = < 89 >;
-+		interrupt-parent = <&gic>;
-+		clock-frequency = <400>;
-+		status = "ok";
-+	};
-+
-+	i2c@48060000 {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		compatible = "ti,omap_i2c";
-+		reg = <0x48060000 0x100>;
-+		interrupts = < 93 >;
-+		interrupt-parent = <&gic>;
-+		clock-frequency = <100>;
-+		status = "ok";
-+		eeprom@50 {
-+			compatible = "at,at24c01";
-+			reg = < 0x50 >;
-+		};
-+	};
-+
-+	i2c@48350000 {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		compatible = "ti,omap_i2c";
-+		reg = <0x48350000 0x100>;
-+		interrupts = < 94 >;
-+		interrupt-parent = <&gic>;
-+		clock-frequency = <400>;
-+		status = "ok";
-+	};
- };
++	node = of_find_matching_node_by_address(NULL, omap_dt_gic_match,
++						OMAP34XX_IC_BASE);
++	if (node)
++		irq_domain_add_simple(node, 0);
+ 
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3_beagle_init_rev();
+@@ -597,6 +612,7 @@ static void __init omap3_beagle_init(void)
+ 
+ 	beagle_display_init();
+ 	beagle_opp_init();
++	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+ }
+ 
+ static const char *omap3_beagle_dt_match[] __initdata = {
 -- 
 1.7.4.1
