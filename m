@@ -1,34 +1,34 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP: HSMMC maintainence
-Date: Fri, 01 Jul 2011 10:39:16 -0700
-Message-ID: <87oc1dzyrf.fsf@ti.com>
-References: <1309468046-17904-1-git-send-email-m-sonasath@ti.com>
-	<BANLkTimZMBUbtGcWo851FTFeJ+Qs-dfGfQ@mail.gmail.com>
+From: hong zhang <henryzhang62@yahoo.com>
+Subject: gpio interrupt is not invoked on Panda board
+Date: Fri, 1 Jul 2011 11:10:35 -0700 (PDT)
+Message-ID: <1309543835.48880.YahooMailClassic@web161712.mail.bf1.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <BANLkTimZMBUbtGcWo851FTFeJ+Qs-dfGfQ@mail.gmail.com> (Venkatraman
-	S.'s message of "Fri, 1 Jul 2011 09:59:02 +0530")
-Sender: linux-mmc-owner@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: Madhusudhan <madhu.cr@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, cjb <cjb@laptop.org>, linux-omap <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nm19.bullet.mail.bf1.yahoo.com ([98.139.212.178]:38694 "HELO
+	nm19.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752302Ab1GASRM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 14:17:12 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-"S, Venkatraman" <svenkatr@ti.com> writes:
+List,
 
-> On Fri, Jul 1, 2011 at 2:37 AM,  <Chikkature@lina0132712> wrote:
->> From: Madhusudhan Chikkature <madhu.cr@ti.com>
->>
->> Removing the OMAP HS MMC entry from the MAINTAINERS file as I will
->> no longer be able to maintain this driver.
->>
->> Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+I try to get gpio_191 ping interrupted on panda but never succeeded. What I do is
 
-[...]
+1. set 0x410b on dpm_emu19 register to enable interrupt and wakeup 
+   on gpio_191
+2. set bit 31 to 1 on GPIO_IRQSTATUS_SET_0 register at 0x4805d034
+3. set bit 31 to 1 on GPIO_IRQWAKEN_0 register at 0x4805d044
+4. set bit 31 to 0 on GPIO_OE register at 0x4805d134 (output)
+5. set bit 31 to 1 on GPIO_SETDATAOUT register at 0x4805d194
 
-> It would be better to just change the status to 'Orphaned' than
-> deleting the entire section.
+Then I expect I should see interrupt on GPIO_IRQSTATUS_0 register at 0x4805d02c. But nothing happens for both output and input (put pin on ground or 1,8v).
 
-Agreed, I'll post an updated patch, and also Cc LKML.
+Would you please give me hint what I miss here to get interrupt happened?
+I want to use gpio_191 for IR receiver.
 
-Kevin
+Thanks.
+
+---henry
