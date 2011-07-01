@@ -1,58 +1,44 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RFC 07/12] omap: mcbsp: Get rid of remaining is_omap tests
-Date: Fri, 1 Jul 2011 17:05:17 +0300
-Message-ID: <20110701170517.8b13c94d.jhnikula@gmail.com>
-References: <1309510356-27147-1-git-send-email-jhnikula@gmail.com>
-	<1309510356-27147-8-git-send-email-jhnikula@gmail.com>
-	<CA+HSevrUgP8pKNjSgkpDB6hUX=cvCUOU8mpU2Ca5qa75Rnp36w@mail.gmail.com>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Subject: Build issue.
+Date: Fri, 01 Jul 2011 15:37:10 +0100
+Message-ID: <4E0DDB96.3090707@cam.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:57667 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756598Ab1GAOFV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 10:05:21 -0400
-Received: by bwd5 with SMTP id 5so2633143bwd.19
-        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 07:05:19 -0700 (PDT)
-In-Reply-To: <CA+HSevrUgP8pKNjSgkpDB6hUX=cvCUOU8mpU2Ca5qa75Rnp36w@mail.gmail.com>
+Received: from ppsw-41.csi.cam.ac.uk ([131.111.8.141]:37431 "EHLO
+	ppsw-41.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756748Ab1GAO3E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 10:29:04 -0400
+Received: from arcturus.eng.cam.ac.uk ([129.169.154.73]:43396)
+	by ppsw-41.csi.cam.ac.uk (smtp.hermes.cam.ac.uk [131.111.8.156]:25)
+	with esmtpsa (PLAIN:jic23) (TLSv1:DHE-RSA-CAMELLIA256-SHA:256)
+	id 1QceiN-0001T1-Qw (Exim 4.72) for linux-omap@vger.kernel.org
+	(return-path <jic23@cam.ac.uk>); Fri, 01 Jul 2011 15:29:03 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi
+No time to look into this now, but linux next today is giving:
 
-On Fri, 1 Jul 2011 16:41:23 +0530
-"Varadarajan, Charulatha" <charu@ti.com> wrote:
+  CHK     include/linux/version.h
+  CHK     include/generated/utsrelease.h
+make[1]: `include/generated/mach-types.h' is up to date.
+  CALL    scripts/checksyscalls.sh
+  CHK     include/generated/compile.h
+  CC      drivers/media/video/omap/omap_vout.o
+drivers/media/video/omap/omap_vout.c: In function 'omap_vout_probe':
+drivers/media/video/omap/omap_vout.c:2549:15: error: 'struct omap_dss_driver' has no member named 'set_update_mode'
+drivers/media/video/omap/omap_vout.c:2550:12: error: 'struct omap_dss_driver' has no member named 'set_update_mode'
+drivers/media/video/omap/omap_vout.c:2551:8: error: 'OMAP_DSS_UPDATE_MANUAL' undeclared (first use in this function)
+drivers/media/video/omap/omap_vout.c:2551:8: note: each undeclared identifier is reported only once for each function it appears in
+drivers/media/video/omap/omap_vout.c:2553:15: error: 'struct omap_dss_driver' has no member named 'set_update_mode'
+drivers/media/video/omap/omap_vout.c:2554:12: error: 'struct omap_dss_driver' has no member named 'set_update_mode'
+drivers/media/video/omap/omap_vout.c:2555:8: error: 'OMAP_DSS_UPDATE_AUTO' undeclared (first use in this function)
+make[4]: *** [drivers/media/video/omap/omap_vout.o] Error 1
+make[3]: *** [drivers/media/video/omap] Error 2
+make[2]: *** [drivers/media/video] Error 2
+make[1]: *** [drivers/media] Error 2
+make: *** [drivers] Error 2
 
-> > @@ -712,7 +710,7 @@ static inline void omap34xx_mcbsp_free(struct o=
-map_mcbsp *mcbsp)
-> > =A0 =A0 =A0 =A0/*
-> > =A0 =A0 =A0 =A0 * Disable wakup behavior, smart idle and all wakeup=
-s
-> > =A0 =A0 =A0 =A0 */
-> > - =A0 =A0 =A0 if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
-> > + =A0 =A0 =A0 if (mcbsp->mcbsp_config_type >=3D MCBSP_CONFIG_TYPE3)=
- {
->=20
->=20
-> I think that it would be a good idea to not use
-> MCBSP_CONFIG_TYPE* in plat-omap/* as it is the .rev info.
-> At later point of time, this might make the code look uglier
-> as it happened with GPIO_METHOD_* flags in OMAP GPIO driver.
-> Instead use this .rev info in mach-omap*/ to fill the pdata and pass =
-it
-> to driver.
->=20
-Exactly and this is already a little uggly here. Kind of simple
-replacement for cpu_is_omap tests and definitely must be replaced with
-some feature flags before moving code outside of plat-omap.
-
---=20
-Jarkko
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Have I missed a relevant patch?
