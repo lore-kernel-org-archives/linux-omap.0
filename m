@@ -1,75 +1,37 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCHv3 0/3] OMAP: HSMMC: cleanup and runtime pm
-Date: Fri, 1 Jul 2011 11:46:01 +0530
-Message-ID: <BANLkTikwEH+wFzn-7gno5tXzJSeweDvTLw@mail.gmail.com>
-References: <1309460700-25898-1-git-send-email-balajitk@ti.com>
-	<4E0CD055.30902@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/7] OMAP: ID: introduce chip detection for OMAP4460
+Date: Thu, 30 Jun 2011 23:25:05 -0700
+Message-ID: <20110701062505.GW23145@atomide.com>
+References: <1309486081-8257-1-git-send-email-rnayak@ti.com>
+ <1309486081-8257-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4E0CD055.30902@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "tony@atomide.com" <tony@atomide.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:14454 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751365Ab1GAGZI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 02:25:08 -0400
+Content-Disposition: inline
+In-Reply-To: <1309486081-8257-2-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, Aneesh V <aneesh@ti.com>, Nishanth Menon <nm@ti.com>
 
-On Fri, Jul 1, 2011 at 1:06 AM, Cousson, Benoit <b-cousson@ti.com> wrot=
-e:
-> Hi Balaji,
->
-> On 6/30/2011 9:04 PM, Krishnamoorthy, Balaji T wrote:
->>
->> Removing the custom state machine - lazy disable framework in omap_h=
-smmc
->> to make way for runtime pm to handle host controller
->> power states.
->> This allows mmc_host_enable/mmc_host_disable to be replaced by
->> runtime get_sync and put_sync at host controller driver.
->>
->> Enable runtime PM in omap_hsmmc
->>
->> Rebased to 3.0-rc5
->> Tested on OMAP4430SDP, OMAP3430SDP, OMAP2430SDP
->>
->> MMC runtime patch has dependency on
->> [PATCH 0/6] OMAP2+: hwmod framework fixes [1]
->> for MMC1/MMC2 clock to get ungated after idle in OMAP4.
->>
->> Without [1] patches, MMC1/MMC2 fails to get detected on OMAP4.
->
-> Mmm, that's weird, which one exactly is fixing the issue?
+* Rajendra Nayak <rnayak@ti.com> [110630 19:03]:
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -331,8 +331,8 @@ static void __init omap3_check_revision(void)
+>  static void __init omap4_check_revision(void)
+>  {
+>  	u32 idcode;
+> -	u16 hawkeye;
+>  	u8 rev;
+> +	u16 hawkeye;
+>  
+>  	/*
+>  	 * The IC rev detection is done with hawkeye and rev.
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg51458.html
-[PATCH 1/6] OMAP2+: hwmod: Fix smart-standby + wakeup support
+Please leave out this change, there's no need for it.
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg51461.html
-[PATCH 2/6] OMAP4: hwmod data: Add MSTANDBY_SMART_WKUP flag
-
-
-> BTW, what is the issue exactly?
-
-with SIDLE_SMART_WKUP flag set in omap44xx_mmc_sysc,
-module got stuck after second clock enable.
-It got resolved after adding MSTANDBY_SMART_WKUP fixes
-=2E
-Removing SIDLE_SMART_WKUP also solves the issue..
-
->
-> Benoit
->
->>
->> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg51457.=
-html
->>
->> Balaji T K (3):
->> =A0 MMC: OMAP: HSMMC: Remove lazy_disable
->> =A0 MMC: OMAP: HSMMC: add runtime pm support
->> =A0 MMC: OMAP: HSMMC: Remove unused iclk
->>
->> =A0drivers/mmc/host/omap_hsmmc.c | =A0365
->> +++++++----------------------------------
->> =A01 files changed, 57 insertions(+), 308 deletions(-)
->>
->
->
+Tony
