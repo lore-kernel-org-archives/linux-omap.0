@@ -1,129 +1,108 @@
 From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [RFC 06/12] omap: mcbsp: Implement generic register and cache access
-Date: Fri,  1 Jul 2011 11:52:30 +0300
-Message-ID: <1309510356-27147-7-git-send-email-jhnikula@gmail.com>
+Subject: [RFC 09/12] omap: mcbsp: Move OMAP3+ wakeup enable/disable to omap_mcbsp_request/_free
+Date: Fri,  1 Jul 2011 11:52:33 +0300
+Message-ID: <1309510356-27147-10-git-send-email-jhnikula@gmail.com>
 References: <1309510356-27147-1-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:58452 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755729Ab1GAIxF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 04:53:05 -0400
+	with ESMTP id S1755751Ab1GAIxL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 04:53:11 -0400
 Received: by mail-bw0-f46.google.com with SMTP id 5so2453487bwd.19
-        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 01:53:04 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 01:53:10 -0700 (PDT)
 In-Reply-To: <1309510356-27147-1-git-send-email-jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-Get rid of is_omap tests in omap_mcbsp_write and omap_mcbsp_read by using
-register size and register step variables that are passed via platform data
+There are only enable/disable wakeup behavior code left in
+omap34xx_mcbsp_request/_free after hwmod conversion so it can be well moved
+to generic omap_mcbsp_request/_free.
+
+Remove also old comments about idle mode settings and HW bug workarounds
+that were not updated during hwmod conversion.
 
 Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
 ---
- arch/arm/mach-omap1/mcbsp.c             |    2 +
- arch/arm/mach-omap2/mcbsp.c             |    7 ++++++
- arch/arm/plat-omap/include/plat/mcbsp.h |    2 +
- arch/arm/plat-omap/mcbsp.c              |   32 +++++++++++++++++-------------
- 4 files changed, 29 insertions(+), 14 deletions(-)
+ arch/arm/plat-omap/mcbsp.c |   43 +++++++++----------------------------------
+ 1 files changed, 9 insertions(+), 34 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
-index 3c985ac..36ab5d8 100644
---- a/arch/arm/mach-omap1/mcbsp.c
-+++ b/arch/arm/mach-omap1/mcbsp.c
-@@ -391,6 +391,8 @@ static void omap_mcbsp_register_board_cfg(struct resource *res, int res_count,
- 			continue;
- 		platform_device_add_resources(new_mcbsp, &res[i * res_count],
- 					res_count);
-+		config[i].reg_size = 2;
-+		config[i].reg_step = 2;
- 		new_mcbsp->dev.platform_data = &config[i];
- 		ret = platform_device_add(new_mcbsp);
- 		if (ret) {
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 4a6ef6a..1408156 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -137,6 +137,13 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
- 			pdata->buffer_size = 0x80;
- 	}
- 
-+	pdata->reg_step = 4;
-+	if (oh->class->rev < MCBSP_CONFIG_TYPE2)
-+		pdata->reg_size = 2;
-+	else
-+		pdata->reg_size = 4;
-+
-+
- 	oh_device[0] = oh;
- 
- 	if (oh->dev_attr) {
-diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 2202457..31b24c9 100644
---- a/arch/arm/plat-omap/include/plat/mcbsp.h
-+++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -320,6 +320,8 @@ struct omap_mcbsp_platform_data {
- #endif
- 	u16 buffer_size;
- 	unsigned int mcbsp_config_type;
-+	u8 reg_size;
-+	u8 reg_step;
- };
- 
- struct omap_mcbsp_st_data {
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index a7ced1b..92d6d4f 100644
+index 7511287..202292a 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -36,31 +36,35 @@ int omap_mcbsp_count, omap_mcbsp_cache_size;
- 
- static void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
- {
--	if (cpu_class_is_omap1()) {
--		reg /= 2;
--		((u16 *)mcbsp->reg_cache)[reg / sizeof(u16)] = (u16)val;
--		__raw_writew((u16)val, mcbsp->io_base + reg);
--	} else if (cpu_is_omap2420()) {
--		((u16 *)mcbsp->reg_cache)[reg / sizeof(u32)] = (u16)val;
-+	int index;
-+
-+	if (mcbsp->pdata->reg_size == 2 && mcbsp->pdata->reg_step == 2)
-+		reg /= 2; /* Calculate OMAP1 register offset */
-+
-+	index = reg / mcbsp->pdata->reg_step;
-+	if (mcbsp->pdata->reg_size == 2) {
-+		((u16 *)mcbsp->reg_cache)[index] = (u16)val;
- 		__raw_writew((u16)val, mcbsp->io_base + reg);
- 	} else {
--		((u32 *)mcbsp->reg_cache)[reg / sizeof(u32)] = val;
-+		((u32 *)mcbsp->reg_cache)[index] = val;
- 		__raw_writel(val, mcbsp->io_base + reg);
- 	}
+@@ -667,35 +667,7 @@ int omap_mcbsp_get_dma_op_mode(unsigned int id)
  }
+ EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
  
- static int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg, bool from_cache)
- {
--	if (cpu_class_is_omap1()) {
--		reg /= 2;
--		return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
--				((u16 *)mcbsp->reg_cache)[reg / sizeof(u16)];
--	} else if (cpu_is_omap2420()) {
-+	int index;
-+
-+	if (mcbsp->pdata->reg_size == 2 && mcbsp->pdata->reg_step == 2)
-+		reg /= 2; /* Calculate OMAP1 register offset */
-+
-+	index = reg / mcbsp->pdata->reg_step;
-+	if (mcbsp->pdata->reg_size == 2) {
- 		return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
--				((u16 *)mcbsp->reg_cache)[reg / sizeof(u32)];
-+				     ((u16 *)mcbsp->reg_cache)[index];
- 	} else {
- 		return !from_cache ? __raw_readl(mcbsp->io_base + reg) :
--				((u32 *)mcbsp->reg_cache)[reg / sizeof(u32)];
-+				     ((u32 *)mcbsp->reg_cache)[index];
- 	}
- }
+-static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+-{
+-	/*
+-	 * Enable wakup behavior, smart idle and all wakeups
+-	 * REVISIT: some wakeups may be unnecessary
+-	 */
+-	if (mcbsp->mcbsp_config_type >= MCBSP_CONFIG_TYPE3) {
+-		MCBSP_WRITE(mcbsp, WAKEUPEN, XRDYEN | RRDYEN);
+-	}
+-}
+-
+-static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
+-{
+-	/*
+-	 * Disable wakup behavior, smart idle and all wakeups
+-	 */
+-	if (mcbsp->mcbsp_config_type >= MCBSP_CONFIG_TYPE3) {
+-		/*
+-		 * HW bug workaround - If no_idle mode is taken, we need to
+-		 * go to smart_idle before going to always_idle, or the
+-		 * device will not hit retention anymore.
+-		 */
+-
+-		MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
+-	}
+-}
+ #else
+-static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp) {}
+-static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp) {}
+ static inline void omap_st_start(struct omap_mcbsp *mcbsp) {}
+ static inline void omap_st_stop(struct omap_mcbsp *mcbsp) {}
+ #endif
+@@ -734,8 +706,9 @@ int omap_mcbsp_request(unsigned int id)
+ 
+ 	pm_runtime_get_sync(mcbsp->dev);
+ 
+-	/* Do procedure specific to omap34xx arch, if applicable */
+-	omap34xx_mcbsp_request(mcbsp);
++	/* Enable wakup behavior */
++	if (mcbsp->mcbsp_config_type >= MCBSP_CONFIG_TYPE3)
++		MCBSP_WRITE(mcbsp, WAKEUPEN, XRDYEN | RRDYEN);
+ 
+ 	/*
+ 	 * Make sure that transmitter, receiver and sample-rate generator are
+@@ -772,8 +745,9 @@ err_clk_disable:
+ 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+ 		mcbsp->pdata->ops->free(id);
+ 
+-	/* Do procedure specific to omap34xx arch, if applicable */
+-	omap34xx_mcbsp_free(mcbsp);
++	/* Disable wakup behavior */
++	if (mcbsp->mcbsp_config_type >= MCBSP_CONFIG_TYPE3)
++		MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
+ 
+ 	pm_runtime_put_sync(mcbsp->dev);
+ 
+@@ -802,8 +776,9 @@ void omap_mcbsp_free(unsigned int id)
+ 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+ 		mcbsp->pdata->ops->free(id);
+ 
+-	/* Do procedure specific to omap34xx arch, if applicable */
+-	omap34xx_mcbsp_free(mcbsp);
++	/* Disable wakup behavior */
++	if (mcbsp->mcbsp_config_type >= MCBSP_CONFIG_TYPE3)
++		MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
+ 
+ 	pm_runtime_put_sync(mcbsp->dev);
  
 -- 
 1.7.0.4
