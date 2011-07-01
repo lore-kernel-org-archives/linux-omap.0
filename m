@@ -1,465 +1,94 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v3 06/13] OMAP4: hwmod: Replace RSTCTRL absolute address with offset macros
-Date: Fri, 1 Jul 2011 23:09:11 +0200
-Message-ID: <1309554558-19819-7-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v3 12/13] OMAP4: cm: Add two new APIs for modulemode control
+Date: Fri, 1 Jul 2011 23:09:17 +0200
+Message-ID: <1309554558-19819-13-git-send-email-b-cousson@ti.com>
 References: <1309554558-19819-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58894 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753288Ab1GAVJo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 17:09:44 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:41581 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756361Ab1GAVJt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 17:09:49 -0400
 In-Reply-To: <1309554558-19819-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-The RSTCTRL register was accessed using an absolute address.
-The usage of hardcoded macros to calculate virtual address from physical
-one should be avoided as much as possible.
-The usage of an offset will allow future improvement like migration from
-the current architecture code toward a module driver.
-
-Update prm_xxx accessors, move definition to the proper header file and
-update copyrights.
-Change the s16 register offset parameter to u16.
+In OMAP4, a new programming model based on module control instead
+of clock control was introduced.
+Expose two APIs to allow the upper layer (omap_hwmod) to control
+the module mode independently of the parent clocks management.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |   19 ++++--
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   16 ++--
- arch/arm/mach-omap2/prm44xx.c                |   93 +-------------------------
- arch/arm/mach-omap2/prm44xx.h                |    4 -
- arch/arm/mach-omap2/prminst44xx.c            |   89 ++++++++++++++++++++++++-
- arch/arm/mach-omap2/prminst44xx.h            |   10 +++-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    3 +-
- 7 files changed, 121 insertions(+), 113 deletions(-)
+ arch/arm/mach-omap2/cminst44xx.c |   38 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cminst44xx.h |    3 +++
+ 2 files changed, 41 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index fdf6547..8d4129c 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -148,6 +148,7 @@
- #include "cminst44xx.h"
- #include "prm2xxx_3xxx.h"
- #include "prm44xx.h"
-+#include "prminst44xx.h"
- #include "mux.h"
+diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+index fa44ff5..70f55a3 100644
+--- a/arch/arm/mach-omap2/cminst44xx.c
++++ b/arch/arm/mach-omap2/cminst44xx.c
+@@ -269,3 +269,41 @@ int omap4_cm_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
  
- /* Maximum microseconds to wait for OMAP module to softreset */
-@@ -1112,8 +1113,10 @@ static int _assert_hardreset(struct omap_hwmod *oh, const char *name)
- 		return omap2_prm_assert_hardreset(oh->prcm.omap2.module_offs,
- 						  ohri.rst_shift);
- 	else if (cpu_is_omap44xx())
--		return omap4_prm_assert_hardreset(oh->prcm.omap4.rstctrl_reg,
--						  ohri.rst_shift);
-+		return omap4_prm_assert_hardreset(ohri.rst_shift,
-+				  oh->clkdm->pwrdm.ptr->prcm_partition,
-+				  oh->clkdm->pwrdm.ptr->prcm_offs,
-+				  oh->prcm.omap4.rstctrl_offs);
- 	else
- 		return -EINVAL;
+ 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
  }
-@@ -1148,8 +1151,10 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
- 		if (ohri.st_shift)
- 			pr_err("omap_hwmod: %s: %s: hwmod data error: OMAP4 does not support st_shift\n",
- 			       oh->name, name);
--		ret = omap4_prm_deassert_hardreset(oh->prcm.omap4.rstctrl_reg,
--						   ohri.rst_shift);
-+		ret = omap4_prm_deassert_hardreset(ohri.rst_shift,
-+				  oh->clkdm->pwrdm.ptr->prcm_partition,
-+				  oh->clkdm->pwrdm.ptr->prcm_offs,
-+				  oh->prcm.omap4.rstctrl_offs);
- 	} else {
- 		return -EINVAL;
- 	}
-@@ -1184,8 +1189,10 @@ static int _read_hardreset(struct omap_hwmod *oh, const char *name)
- 		return omap2_prm_is_hardreset_asserted(oh->prcm.omap2.module_offs,
- 						       ohri.st_shift);
- 	} else if (cpu_is_omap44xx()) {
--		return omap4_prm_is_hardreset_asserted(oh->prcm.omap4.rstctrl_reg,
--						       ohri.rst_shift);
-+		return omap4_prm_is_hardreset_asserted(ohri.rst_shift,
-+				  oh->clkdm->pwrdm.ptr->prcm_partition,
-+				  oh->clkdm->pwrdm.ptr->prcm_offs,
-+				  oh->prcm.omap4.rstctrl_offs);
- 	} else {
- 		return -EINVAL;
- 	}
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 59233c7..ec87cc6 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1141,7 +1141,7 @@ static struct omap_hwmod omap44xx_dsp_c0_hwmod = {
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_dsp_c0_resets),
- 	.prcm = {
- 		.omap4 = {
--			.rstctrl_reg = OMAP4430_RM_TESLA_RSTCTRL,
-+			.rstctrl_offs = OMAP4_RM_TESLA_RSTCTRL_OFFSET,
- 		},
- 	},
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
-@@ -1159,7 +1159,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_TESLA_TESLA_CLKCTRL_OFFSET,
--			.rstctrl_reg = OMAP4430_RM_TESLA_RSTCTRL,
-+			.rstctrl_offs = OMAP4_RM_TESLA_RSTCTRL_OFFSET,
- 		},
- 	},
- 	.slaves		= omap44xx_dsp_slaves,
-@@ -2525,7 +2525,7 @@ static struct omap_hwmod omap44xx_ipu_c0_hwmod = {
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_c0_resets),
- 	.prcm = {
- 		.omap4 = {
--			.rstctrl_reg = OMAP4430_RM_DUCATI_RSTCTRL,
-+			.rstctrl_offs = OMAP4_RM_DUCATI_RSTCTRL_OFFSET,
- 		},
- 	},
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
-@@ -2541,7 +2541,7 @@ static struct omap_hwmod omap44xx_ipu_c1_hwmod = {
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_c1_resets),
- 	.prcm = {
- 		.omap4 = {
--			.rstctrl_reg = OMAP4430_RM_DUCATI_RSTCTRL,
-+			.rstctrl_offs = OMAP4_RM_DUCATI_RSTCTRL_OFFSET,
- 		},
- 	},
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
-@@ -2559,7 +2559,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET,
--			.rstctrl_reg = OMAP4430_RM_DUCATI_RSTCTRL,
-+			.rstctrl_offs = OMAP4_RM_DUCATI_RSTCTRL_OFFSET,
- 		},
- 	},
- 	.slaves		= omap44xx_ipu_slaves,
-@@ -2725,7 +2725,7 @@ static struct omap_hwmod omap44xx_iva_seq0_hwmod = {
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_iva_seq0_resets),
- 	.prcm = {
- 		.omap4 = {
--			.rstctrl_reg = OMAP4430_RM_IVAHD_RSTCTRL,
-+			.rstctrl_offs = OMAP4_RM_IVAHD_RSTCTRL_OFFSET,
- 		},
- 	},
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
-@@ -2741,7 +2741,7 @@ static struct omap_hwmod omap44xx_iva_seq1_hwmod = {
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_iva_seq1_resets),
- 	.prcm = {
- 		.omap4 = {
--			.rstctrl_reg = OMAP4430_RM_IVAHD_RSTCTRL,
-+			.rstctrl_offs = OMAP4_RM_IVAHD_RSTCTRL_OFFSET,
- 		},
- 	},
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
-@@ -2759,7 +2759,7 @@ static struct omap_hwmod omap44xx_iva_hwmod = {
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_IVAHD_IVAHD_CLKCTRL_OFFSET,
--			.rstctrl_reg = OMAP4430_RM_IVAHD_RSTCTRL,
-+			.rstctrl_offs = OMAP4_RM_IVAHD_RSTCTRL_OFFSET,
- 		},
- 	},
- 	.slaves		= omap44xx_iva_slaves,
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index a2a04bf..faec860 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -1,7 +1,7 @@
- /*
-  * OMAP4 PRM module functions
-  *
-- * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-  * Copyright (C) 2010 Nokia Corporation
-  * Benoît Cousson
-  * Paul Walmsley
-@@ -24,12 +24,6 @@
- #include "prm44xx.h"
- #include "prm-regbits-44xx.h"
- 
--/*
-- * Address offset (in bytes) between the reset control and the reset
-- * status registers: 4 bytes on OMAP4
-- */
--#define OMAP4_RST_CTRL_ST_OFFSET		4
--
- /* PRM low-level functions */
- 
- /* Read a register in a CM/PRM instance in the PRM module */
-@@ -94,91 +88,6 @@ u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 reg)
- 	return omap4_prm_rmw_inst_reg_bits(bits, 0x0, inst, reg);
- }
- 
--/**
-- * omap4_prm_is_hardreset_asserted - read the HW reset line state of
-- * submodules contained in the hwmod module
-- * @rstctrl_reg: RM_RSTCTRL register address for this module
-- * @shift: register bit shift corresponding to the reset line to check
-- *
-- * Returns 1 if the (sub)module hardreset line is currently asserted,
-- * 0 if the (sub)module hardreset line is not currently asserted, or
-- * -EINVAL upon parameter error.
-- */
--int omap4_prm_is_hardreset_asserted(void __iomem *rstctrl_reg, u8 shift)
--{
--	if (!cpu_is_omap44xx() || !rstctrl_reg)
--		return -EINVAL;
--
--	return omap4_prm_read_bits_shift(rstctrl_reg, (1 << shift));
--}
--
--/**
-- * omap4_prm_assert_hardreset - assert the HW reset line of a submodule
-- * @rstctrl_reg: RM_RSTCTRL register address for this module
-- * @shift: register bit shift corresponding to the reset line to assert
-- *
-- * Some IPs like dsp, ipu or iva contain processors that require an HW
-- * reset line to be asserted / deasserted in order to fully enable the
-- * IP.  These modules may have multiple hard-reset lines that reset
-- * different 'submodules' inside the IP block.  This function will
-- * place the submodule into reset.  Returns 0 upon success or -EINVAL
-- * upon an argument error.
-- */
--int omap4_prm_assert_hardreset(void __iomem *rstctrl_reg, u8 shift)
--{
--	u32 mask;
--
--	if (!cpu_is_omap44xx() || !rstctrl_reg)
--		return -EINVAL;
--
--	mask = 1 << shift;
--	omap4_prm_rmw_reg_bits(mask, mask, rstctrl_reg);
--
--	return 0;
--}
--
--/**
-- * omap4_prm_deassert_hardreset - deassert a submodule hardreset line and wait
-- * @rstctrl_reg: RM_RSTCTRL register address for this module
-- * @shift: register bit shift corresponding to the reset line to deassert
-- *
-- * Some IPs like dsp, ipu or iva contain processors that require an HW
-- * reset line to be asserted / deasserted in order to fully enable the
-- * IP.  These modules may have multiple hard-reset lines that reset
-- * different 'submodules' inside the IP block.  This function will
-- * take the submodule out of reset and wait until the PRCM indicates
-- * that the reset has completed before returning.  Returns 0 upon success or
-- * -EINVAL upon an argument error, -EEXIST if the submodule was already out
-- * of reset, or -EBUSY if the submodule did not exit reset promptly.
-- */
--int omap4_prm_deassert_hardreset(void __iomem *rstctrl_reg, u8 shift)
--{
--	u32 mask;
--	void __iomem *rstst_reg;
--	int c;
--
--	if (!cpu_is_omap44xx() || !rstctrl_reg)
--		return -EINVAL;
--
--	rstst_reg = rstctrl_reg + OMAP4_RST_CTRL_ST_OFFSET;
--
--	mask = 1 << shift;
--
--	/* Check the current status to avoid de-asserting the line twice */
--	if (omap4_prm_read_bits_shift(rstctrl_reg, mask) == 0)
--		return -EEXIST;
--
--	/* Clear the reset status by writing 1 to the status bit */
--	omap4_prm_rmw_reg_bits(0xffffffff, mask, rstst_reg);
--	/* de-assert the reset control line */
--	omap4_prm_rmw_reg_bits(mask, 0, rstctrl_reg);
--	/* wait the status to be set */
--	omap_test_timeout(omap4_prm_read_bits_shift(rstst_reg, mask),
--			  MAX_MODULE_HARDRESET_WAIT, c);
--
--	return (c == MAX_MODULE_HARDRESET_WAIT) ? -EBUSY : 0;
--}
--
- void omap4_prm_global_warm_sw_reset(void)
- {
- 	u32 v;
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index 11e878f..21b0240 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -691,10 +691,6 @@ extern u32 omap4_prm_set_inst_reg_bits(u32 bits, s16 inst, s16 idx);
- extern u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 idx);
- extern u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask);
- 
--extern int omap4_prm_is_hardreset_asserted(void __iomem *rstctrl_reg, u8 shift);
--extern int omap4_prm_assert_hardreset(void __iomem *rstctrl_reg, u8 shift);
--extern int omap4_prm_deassert_hardreset(void __iomem *rstctrl_reg, u8 shift);
--
- extern void omap4_prm_global_warm_sw_reset(void);
- 
- # endif
-diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
-index a303242..95fbbcf 100644
---- a/arch/arm/mach-omap2/prminst44xx.c
-+++ b/arch/arm/mach-omap2/prminst44xx.c
-@@ -2,6 +2,7 @@
-  * OMAP4 PRM instance functions
-  *
-  * Copyright (C) 2009 Nokia Corporation
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-  * Paul Walmsley
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -53,7 +54,7 @@ void omap4_prminst_write_inst_reg(u32 val, u8 part, s16 inst, u16 idx)
- 
- /* Read-modify-write a register in PRM. Caller must lock */
- u32 omap4_prminst_rmw_inst_reg_bits(u32 mask, u32 bits, u8 part, s16 inst,
--				   s16 idx)
-+				    u16 idx)
- {
- 	u32 v;
- 
-@@ -64,3 +65,89 @@ u32 omap4_prminst_rmw_inst_reg_bits(u32 mask, u32 bits, u8 part, s16 inst,
- 
- 	return v;
- }
-+
-+/*
-+ * Address offset (in bytes) between the reset control and the reset
-+ * status registers: 4 bytes on OMAP4
-+ */
-+#define OMAP4_RST_CTRL_ST_OFFSET		4
 +
 +/**
-+ * omap4_prm_is_hardreset_asserted - read the HW reset line state of
-+ * submodules contained in the hwmod module
-+ * @rstctrl_reg: RM_RSTCTRL register address for this module
-+ * @shift: register bit shift corresponding to the reset line to check
-+ *
-+ * Returns 1 if the (sub)module hardreset line is currently asserted,
-+ * 0 if the (sub)module hardreset line is not currently asserted, or
-+ * -EINVAL upon parameter error.
++ * omap4_cm_module_enable - Enable the modulemode inside CLKCTRL
++ * @mode: Module mode (SW or HW)
++ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ * No return value.
 + */
-+int omap4_prm_is_hardreset_asserted(u8 shift, u8 part, s16 inst,
-+				    u16 rstctrl_offs)
++void omap4_cm_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
++			    u16 clkctrl_offs)
 +{
 +	u32 v;
 +
-+	v = omap4_prminst_read_inst_reg(part, inst, rstctrl_offs);
-+	v &= 1 << shift;
-+	v >>= shift;
-+
-+	return v;
++	v = omap4_cminst_read_inst_reg(part, inst, clkctrl_offs);
++	v &= ~OMAP4430_MODULEMODE_MASK;
++	v |= mode << OMAP4430_MODULEMODE_SHIFT;
++	omap4_cminst_write_inst_reg(v, part, inst, clkctrl_offs);
 +}
 +
 +/**
-+ * omap4_prm_assert_hardreset - assert the HW reset line of a submodule
-+ * @rstctrl_reg: RM_RSTCTRL register address for this module
-+ * @shift: register bit shift corresponding to the reset line to assert
-+ *
-+ * Some IPs like dsp, ipu or iva contain processors that require an HW
-+ * reset line to be asserted / deasserted in order to fully enable the
-+ * IP.  These modules may have multiple hard-reset lines that reset
-+ * different 'submodules' inside the IP block.  This function will
-+ * place the submodule into reset.  Returns 0 upon success or -EINVAL
-+ * upon an argument error.
++ * omap4_cm_module_disable - Disable the module inside CLKCTRL
++ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ * No return value.
 + */
-+int omap4_prm_assert_hardreset(u8 shift, u8 part, s16 inst,
-+			       u16 rstctrl_offs)
++void omap4_cm_module_disable(u8 part, u16 inst, s16 cdoffs,
++			     u16 clkctrl_offs)
 +{
-+	u32 mask = 1 << shift;
++	u32 v;
 +
-+	omap4_prminst_rmw_inst_reg_bits(mask, mask, part, inst, rstctrl_offs);
-+
-+	return 0;
++	v = omap4_cminst_read_inst_reg(part, inst, clkctrl_offs);
++	v &= ~OMAP4430_MODULEMODE_MASK;
++	omap4_cminst_write_inst_reg(v, part, inst, clkctrl_offs);
 +}
-+
-+/**
-+ * omap4_prm_deassert_hardreset - deassert a submodule hardreset line and wait
-+ * @rstctrl_reg: RM_RSTCTRL register address for this module
-+ * @shift: register bit shift corresponding to the reset line to deassert
-+ *
-+ * Some IPs like dsp, ipu or iva contain processors that require an HW
-+ * reset line to be asserted / deasserted in order to fully enable the
-+ * IP.  These modules may have multiple hard-reset lines that reset
-+ * different 'submodules' inside the IP block.  This function will
-+ * take the submodule out of reset and wait until the PRCM indicates
-+ * that the reset has completed before returning.  Returns 0 upon success or
-+ * -EINVAL upon an argument error, -EEXIST if the submodule was already out
-+ * of reset, or -EBUSY if the submodule did not exit reset promptly.
-+ */
-+int omap4_prm_deassert_hardreset(u8 shift, u8 part, s16 inst,
-+				 u16 rstctrl_offs)
-+{
-+	int c;
-+	u32 mask = 1 << shift;
-+	u16 rstst_offs = rstctrl_offs + OMAP4_RST_CTRL_ST_OFFSET;
-+
-+	/* Check the current status to avoid de-asserting the line twice */
-+	if (omap4_prm_is_hardreset_asserted(shift, part, inst, rstctrl_offs) == 0)
-+		return -EEXIST;
-+
-+	/* Clear the reset status by writing 1 to the status bit */
-+	omap4_prminst_rmw_inst_reg_bits(0xffffffff, mask, part, inst, rstst_offs);
-+	/* de-assert the reset control line */
-+	omap4_prminst_rmw_inst_reg_bits(mask, 0, part, inst, rstctrl_offs);
-+	/* wait the status to be set */
-+	omap_test_timeout(omap4_prm_is_hardreset_asserted(shift, part, inst, rstst_offs),
-+			  MAX_MODULE_HARDRESET_WAIT, c);
-+
-+	return (c == MAX_MODULE_HARDRESET_WAIT) ? -EBUSY : 0;
-+}
-diff --git a/arch/arm/mach-omap2/prminst44xx.h b/arch/arm/mach-omap2/prminst44xx.h
-index 02dd66d..80e930e 100644
---- a/arch/arm/mach-omap2/prminst44xx.h
-+++ b/arch/arm/mach-omap2/prminst44xx.h
-@@ -2,6 +2,7 @@
-  * OMAP4 Power/Reset Management (PRM) function prototypes
-  *
-  * Copyright (C) 2010 Nokia Corporation
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-  * Paul Walmsley
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -18,8 +19,15 @@
- extern u32 omap4_prminst_read_inst_reg(u8 part, s16 inst, u16 idx);
- extern void omap4_prminst_write_inst_reg(u32 val, u8 part, s16 inst, u16 idx);
- extern u32 omap4_prminst_rmw_inst_reg_bits(u32 mask, u32 bits, u8 part,
--					   s16 inst, s16 idx);
-+					   s16 inst, u16 idx);
+diff --git a/arch/arm/mach-omap2/cminst44xx.h b/arch/arm/mach-omap2/cminst44xx.h
+index 4c5da7d..8034e5c 100644
+--- a/arch/arm/mach-omap2/cminst44xx.h
++++ b/arch/arm/mach-omap2/cminst44xx.h
+@@ -20,6 +20,9 @@ extern void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs);
+ extern int omap4_cm_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
+ extern int omap4_cm_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
  
- extern void omap4_prm_global_warm_sw_reset(void);
- 
-+extern int omap4_prm_is_hardreset_asserted(u8 shift, u8 part, s16 inst,
-+					   u16 rstctrl_offs);
-+extern int omap4_prm_assert_hardreset(u8 shift, u8 part, s16 inst,
-+				      u16 rstctrl_offs);
-+extern int omap4_prm_deassert_hardreset(u8 shift, u8 part, s16 inst,
-+					u16 rstctrl_offs);
++extern void omap4_cm_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
++extern void omap4_cm_module_disable(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
 +
- #endif
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 22864fd..75bf4fa 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -2,6 +2,7 @@
-  * omap_hwmod macros, structures
-  *
-  * Copyright (C) 2009-2011 Nokia Corporation
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-  * Paul Walmsley
-  *
-  * Created in collaboration with (alphabetical order): Benoît Cousson,
-@@ -363,7 +364,7 @@ struct omap_hwmod_omap2_prcm {
-  */
- struct omap_hwmod_omap4_prcm {
- 	u16		clkctrl_offs;
--	void __iomem	*rstctrl_reg;
-+	u16		rstctrl_offs;
- 	u8		submodule_wkdep_bit;
- };
- 
+ /*
+  * In an ideal world, we would not export these low-level functions,
+  * but this will probably take some time to fix properly
 -- 
 1.7.0.4
 
