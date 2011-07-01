@@ -1,94 +1,80 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v3 12/13] OMAP4: cm: Add two new APIs for modulemode control
-Date: Fri, 1 Jul 2011 23:09:17 +0200
-Message-ID: <1309554558-19819-13-git-send-email-b-cousson@ti.com>
-References: <1309554558-19819-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v3 00/13] OMAP4: Add modulemode support to hwmod framework
+Date: Fri, 1 Jul 2011 23:09:05 +0200
+Message-ID: <1309554558-19819-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41581 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756361Ab1GAVJt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 17:09:49 -0400
-In-Reply-To: <1309554558-19819-1-git-send-email-b-cousson@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35992 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753516Ab1GAVJc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 17:09:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-In OMAP4, a new programming model based on module control instead
-of clock control was introduced.
-Expose two APIs to allow the upper layer (omap_hwmod) to control
-the module mode independently of the parent clocks management.
+Hi Paul,
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/cminst44xx.c |   38 ++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/cminst44xx.h |    3 +++
- 2 files changed, 41 insertions(+), 0 deletions(-)
+Here is the series that finally add the management of the modulemode
+directly from hwmod fmwk instead of using a fake clock node to represent
+the IP.
 
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index fa44ff5..70f55a3 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -269,3 +269,41 @@ int omap4_cm_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
- 
- 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
- }
-+
-+/**
-+ * omap4_cm_module_enable - Enable the modulemode inside CLKCTRL
-+ * @mode: Module mode (SW or HW)
-+ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
-+ * @inst: CM instance register offset (*_INST macro)
-+ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
-+ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
-+ * No return value.
-+ */
-+void omap4_cm_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
-+			    u16 clkctrl_offs)
-+{
-+	u32 v;
-+
-+	v = omap4_cminst_read_inst_reg(part, inst, clkctrl_offs);
-+	v &= ~OMAP4430_MODULEMODE_MASK;
-+	v |= mode << OMAP4430_MODULEMODE_SHIFT;
-+	omap4_cminst_write_inst_reg(v, part, inst, clkctrl_offs);
-+}
-+
-+/**
-+ * omap4_cm_module_disable - Disable the module inside CLKCTRL
-+ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
-+ * @inst: CM instance register offset (*_INST macro)
-+ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
-+ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
-+ * No return value.
-+ */
-+void omap4_cm_module_disable(u8 part, u16 inst, s16 cdoffs,
-+			     u16 clkctrl_offs)
-+{
-+	u32 v;
-+
-+	v = omap4_cminst_read_inst_reg(part, inst, clkctrl_offs);
-+	v &= ~OMAP4430_MODULEMODE_MASK;
-+	omap4_cminst_write_inst_reg(v, part, inst, clkctrl_offs);
-+}
-diff --git a/arch/arm/mach-omap2/cminst44xx.h b/arch/arm/mach-omap2/cminst44xx.h
-index 4c5da7d..8034e5c 100644
---- a/arch/arm/mach-omap2/cminst44xx.h
-+++ b/arch/arm/mach-omap2/cminst44xx.h
-@@ -20,6 +20,9 @@ extern void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs);
- extern int omap4_cm_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
- extern int omap4_cm_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
- 
-+extern void omap4_cm_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
-+extern void omap4_cm_module_disable(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
-+
- /*
-  * In an ideal world, we would not export these low-level functions,
-  * but this will probably take some time to fix properly
--- 
-1.7.0.4
+This v2 update is fixing a couple of regressions I introduced in the first
+release.
+
+A second series will clean most of the remaining data from the clock data
+file. Before that I have to rebase Rajendra's series to control the
+clockdomain from the hwmod framework, otherwise the modules will
+not be enabled properly since their clockdomain will not be changed
+to SW_SUP during enable.
+
+The series is based on for_3.1/3_hwmod_fixes and tested
+on OMAP4430 ES2.1 + SDP. It should not affect OMAP2 & 3, but some testing
+are definitively needed.
+
+The patches are available here:
+git://gitorious.org/omap-pm/linux.git for_3.1/4_hwmod_modulemode
+
+Regards,
+Benoit
+
+
+Change since v1: http://www.spinics.net/lists/linux-omap/msg53094.html
+    - Change pr_warning to pr_debug to reduce verbosity
+    - Fix hardreset APIs that were using mask instead of shift
+    - Remove cdoffs addition with clkctrl_offs since the the cdoffs
+      is already included in the register offset.
+
+Change since v2:
+    - Fix name in reset prm code
+
+
+Benoit Cousson (13):
+  OMAP4: hwmod data: Add clock domain attribute
+  OMAP2+: hwmod: Init clkdm field at boot time
+  OMAP4: hwmod: Replace CLKCTRL absolute address with offset macros
+  OMAP: hwmod: Wait the idle status to be disabled
+  OMAP2+: hwmod: Replace clkdm access from main_clk using hwmod attribute
+  OMAP4: hwmod: Replace RSTCTRL absolute address with offset macros
+  OMAP4: prm: Replace warm reset API with the offset based version
+  OMAP4: prm: Remove deprecated functions
+  OMAP4: hwmod data: Align interconnect format with regular modules
+  OMAP4: hwmod data: Add PRM context register offset
+  OMAP4: hwmod data: Add modulemode entry in omap_hwmod structure
+  OMAP4: cm: Add two new APIs for modulemode control
+  OMAP4: hwmod: Introduce the module control in hwmod control
+
+ arch/arm/mach-omap2/cm44xx.h                 |    3 +-
+ arch/arm/mach-omap2/cminst44xx.c             |   86 +++++-
+ arch/arm/mach-omap2/cminst44xx.h             |    8 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |  196 +++++++++--
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |  457 ++++++++++++++++++++------
+ arch/arm/mach-omap2/prcm.c                   |    2 +-
+ arch/arm/mach-omap2/prm44xx.c                |  145 +--------
+ arch/arm/mach-omap2/prm44xx.h                |    6 -
+ arch/arm/mach-omap2/prminst44xx.c            |  108 ++++++-
+ arch/arm/mach-omap2/prminst44xx.h            |   12 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   14 +-
+ 11 files changed, 738 insertions(+), 299 deletions(-)
 
