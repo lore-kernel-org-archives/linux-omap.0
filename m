@@ -1,42 +1,107 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 7/8] OMAP: hwmod: Add warnings if enable failed
-Date: Fri, 1 Jul 2011 22:54:06 +0200
-Message-ID: <1309553647-14624-8-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 8/8] OMAP: hwmod: Move pr_debug to improve the readability
+Date: Fri, 1 Jul 2011 22:54:07 +0200
+Message-ID: <1309553647-14624-9-git-send-email-b-cousson@ti.com>
 References: <1309553647-14624-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58585 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58194 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756927Ab1GAUy1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 16:54:27 -0400
+	id S1756864Ab1GAUy2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 16:54:28 -0400
 In-Reply-To: <1309553647-14624-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Change the debug into warning to check what IPs are failing.
+Move the pr_debug at the top of the function
+to trace the entry even if the first test is failing.
+That help understanding that we entered the function
+but failed in it.
+
+Move the _enable last part out of the test to reduce
+indentation and improve readability.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   32 +++++++++++++++++---------------
+ 1 files changed, 17 insertions(+), 15 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index df91bb1..64e9830 100644
+index 64e9830..e530bcb 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -944,6 +944,8 @@ static int _init_clocks(struct omap_hwmod *oh, void *data)
+@@ -1242,6 +1242,8 @@ static int _enable(struct omap_hwmod *oh)
+ {
+ 	int r;
  
- 	if (!ret)
- 		oh->_state = _HWMOD_STATE_CLKS_INITED;
-+	else
-+		pr_warning("omap_hwmod: %s: cannot _init_clocks\n", oh->name);
++	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
++
+ 	if (oh->_state != _HWMOD_STATE_INITIALIZED &&
+ 	    oh->_state != _HWMOD_STATE_IDLE &&
+ 	    oh->_state != _HWMOD_STATE_DISABLED) {
+@@ -1250,8 +1252,6 @@ static int _enable(struct omap_hwmod *oh)
+ 		return -EINVAL;
+ 	}
  
- 	return ret;
- }
+-	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
+-
+ 	/* Mux pins for device runtime if populated */
+ 	if (oh->mux && (!oh->mux->enabled ||
+ 			((oh->_state == _HWMOD_STATE_IDLE) &&
+@@ -1271,19 +1271,21 @@ static int _enable(struct omap_hwmod *oh)
+ 		_deassert_hardreset(oh, oh->rst_lines[0].name);
+ 
+ 	r = _wait_target_ready(oh);
+-	if (!r) {
+-		oh->_state = _HWMOD_STATE_ENABLED;
+-
+-		/* Access the sysconfig only if the target is ready */
+-		if (oh->class->sysc) {
+-			if (!(oh->_int_flags & _HWMOD_SYSCONFIG_LOADED))
+-				_update_sysc_cache(oh);
+-			_enable_sysc(oh);
+-		}
+-	} else {
+-		_disable_clocks(oh);
++	if (r) {
+ 		pr_debug("omap_hwmod: %s: _wait_target_ready: %d\n",
+ 			 oh->name, r);
++		_disable_clocks(oh);
++
++		return r;
++	}
++
++	oh->_state = _HWMOD_STATE_ENABLED;
++
++	/* Access the sysconfig only if the target is ready */
++	if (oh->class->sysc) {
++		if (!(oh->_int_flags & _HWMOD_SYSCONFIG_LOADED))
++			_update_sysc_cache(oh);
++		_enable_sysc(oh);
+ 	}
+ 
+ 	return r;
+@@ -1299,14 +1301,14 @@ static int _enable(struct omap_hwmod *oh)
+  */
+ static int _idle(struct omap_hwmod *oh)
+ {
++	pr_debug("omap_hwmod: %s: idling\n", oh->name);
++
+ 	if (oh->_state != _HWMOD_STATE_ENABLED) {
+ 		WARN(1, "omap_hwmod: %s: idle state can only be entered from "
+ 		     "enabled state\n", oh->name);
+ 		return -EINVAL;
+ 	}
+ 
+-	pr_debug("omap_hwmod: %s: idling\n", oh->name);
+-
+ 	if (oh->class->sysc)
+ 		_idle_sysc(oh);
+ 	_del_initiator_dep(oh, mpu_oh);
 -- 
 1.7.0.4
 
