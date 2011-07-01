@@ -1,173 +1,104 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v4 7/7] OMAP2+: hwmod: Follow the recommended PRCM module enable sequence
-Date: Fri, 1 Jul 2011 23:27:06 +0200
-Message-ID: <1309555626-22608-8-git-send-email-b-cousson@ti.com>
-References: <1309555626-22608-1-git-send-email-b-cousson@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] runtime PM usage_count during driver_probe_device()?
+Date: Fri, 1 Jul 2011 23:42:46 +0200
+Message-ID: <201107012342.46292.rjw@sisk.pl>
+References: <87k4c3dktm.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59748 "EHLO arroyo.ext.ti.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:48861 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757681Ab1GAV10 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 17:27:26 -0400
-In-Reply-To: <1309555626-22608-1-git-send-email-b-cousson@ti.com>
+	id S1757610Ab1GAVmD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 17:42:03 -0400
+In-Reply-To: <87k4c3dktm.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+To: linux-pm@lists.linux-foundation.org
+Cc: Kevin Hilman <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Rajendra Nayak <rnayak@ti.com>
+On Friday, July 01, 2011, Kevin Hilman wrote:
+> Continuing on the theme of runtime PM interactions with other parts of
+> the driver core...
+> 
+> In drivers/base/dd.c:driver_probe_device(), the driver core increments
+> the usage count around ->probe():
+> 
+>         [...]
+> 	pm_runtime_get_noresume(dev);
+> 	pm_runtime_barrier(dev);
+> 	ret = really_probe(dev, drv);
+> 	pm_runtime_put_sync(dev);
+> 
+> I'm not following the reason for this.  On driver's I'm familar with,
+> it's not until ->probe where pm_runtime_enable() is called.  What is
+> being protected against here?
+> 
+> These seem to exist since the introduction of the runtime PM core, but I
+> can't find any explanation.
+> 
+> The documentation refers to the increment by the core, but not the
+> reasons why:
+> 
+>     If the device bus type's or driver's ->probe() or ->remove()
+>     callback runs pm_runtime_suspend() or pm_runtime_idle() or their
+>     asynchronous counterparts, they will fail returning -EAGAIN, because
+>     the device's usage counter is incremented by the core before
+>     executing ->probe() and ->remove().  Still, it may be desirable to
+>     suspend the device as soon as ->probe() or ->remove() has finished,
+>     so the PM core uses pm_runtime_idle_sync() to invoke the
+>     subsystem-level idle callback for the device at that time.
+> 
+> On a side note, the bit about -EAGAIN above is not accurate with today's
+> code.  For example, __pm_runtime_suspend() returns zero when the usage
+> count decrement is non-zero, so callers can't currently know that doing
+> a pm_runtime_suspend() or pm_runtime_put_sync() in their ->probe()
+> actually didn't happen.
+> 
+> Another curiosity is that, contrary to the above documentation, there is
+> no usage_count increment before the bus/driver ->remove() (although
+> there is a _get_sync/_put_sync around the sysfs_remove and notifier just
+> before the bus/driver->remove().
+> 
+> Also, below is a patch for a typo in the above Documentation exerpt.
+> 
+> Kevin
+> 
+> 
+> 
+> From 069484f8d2bb86473a271c27733e10fbfd410c2c Mon Sep 17 00:00:00 2001
+> From: Kevin Hilman <khilman@ti.com>
+> Date: Thu, 30 Jun 2011 15:07:31 -0700
+> Subject: [PATCH] PM: Documentation: fix typo: pm_runtime_idle_sync() doesn't exist.
+> 
+> Replace reference to pm_runtime_idle_sync() in the driver core with
+> pm_runtime_put_sync() which is used in the code.
+> 
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 
-On OMAP4, the PRCM recommended sequence for enabling
-a module after power-on-reset is:
--1- Force clkdm to SW_WKUP
--2- Enabling the clocks
--3- Configure desired module mode to "enable" or "auto"
--4- Wait for the desired module idle status to be FUNC
--5- Program clkdm in HW_AUTO(if supported)
+Applied to suspend-2.6/linux-next.
 
-This sequence applies to all older OMAPs' as well,
-however since they use autodeps, it makes sure that
-no clkdm is in IDLE, and hence not requiring a force
-SW_WKUP when a module is being enabled.
+Thanks,
+Rafael
 
-OMAP4 does not need to support autodeps, because
-of the dyanamic dependency feature, wherein
-the HW takes care of waking up a clockdomain from
-idle and hence the module, whenever an interconnect
-access happens to the given module.
 
-Implementing the sequence for OMAP4 requires
-the clockdomain handling that is currently done in
-clock framework to be done as part of hwmod framework
-since the step -4- above to "Wait for the desired
-module idle status to be FUNC" is done as part of
-hwmod framework.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-[b-cousson@ti.com: Adapt it to the new clkdm hwmod attribute and API]
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clock.c      |   17 +----------------
- arch/arm/mach-omap2/omap_hwmod.c |   25 +++++++++++++++++++++++++
- 2 files changed, 26 insertions(+), 16 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 180299e..2828d29 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -268,9 +268,6 @@ void omap2_clk_disable(struct clk *clk)
- 		clk->ops->disable(clk);
- 	}
- 
--	if (clk->clkdm)
--		clkdm_clk_disable(clk->clkdm, clk);
--
- 	if (clk->parent)
- 		omap2_clk_disable(clk->parent);
- }
-@@ -308,30 +305,18 @@ int omap2_clk_enable(struct clk *clk)
- 		}
- 	}
- 
--	if (clk->clkdm) {
--		ret = clkdm_clk_enable(clk->clkdm, clk);
--		if (ret) {
--			WARN(1, "clock: %s: could not enable clockdomain %s: "
--			     "%d\n", clk->name, clk->clkdm->name, ret);
--			goto oce_err2;
--		}
--	}
--
- 	if (clk->ops && clk->ops->enable) {
- 		trace_clock_enable(clk->name, 1, smp_processor_id());
- 		ret = clk->ops->enable(clk);
- 		if (ret) {
- 			WARN(1, "clock: %s: could not enable: %d\n",
- 			     clk->name, ret);
--			goto oce_err3;
-+			goto oce_err2;
- 		}
- 	}
- 
- 	return 0;
- 
--oce_err3:
--	if (clk->clkdm)
--		clkdm_clk_disable(clk->clkdm, clk);
- oce_err2:
- 	if (clk->parent)
- 		omap2_clk_disable(clk->parent);
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 117a4d5..3d7a37e 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1362,6 +1362,7 @@ static int _reset(struct omap_hwmod *oh)
- static int _enable(struct omap_hwmod *oh)
- {
- 	int r;
-+	int hwsup = 0;
- 
- 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
- 
-@@ -1380,6 +1381,19 @@ static int _enable(struct omap_hwmod *oh)
- 		omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
- 
- 	_add_initiator_dep(oh, mpu_oh);
-+
-+	/*
-+	 * A clockdomain must be in SW_SUP before enabling completely the
-+	 * module. The clockdomain can be set in HW_AUTO only when the module
-+	 * become ready.
-+	 */
-+	hwsup = clkdm_allows_idle(oh->clkdm);
-+	r = clkdm_hwmod_enable(oh->clkdm, oh);
-+	if (r) {
-+		WARN(1, "omap_hwmod: %s: could not enable clockdomain %s: %d\n",
-+		     oh->name, oh->clkdm->name, r);
-+		return r;
-+	}
- 	_enable_clocks(oh);
- 	_enable_module(oh);
- 
-@@ -1396,11 +1410,20 @@ static int _enable(struct omap_hwmod *oh)
- 	if (r) {
- 		pr_debug("omap_hwmod: %s: _wait_target_ready: %d\n",
- 			 oh->name, r);
-+
- 		_disable_clocks(oh);
-+		clkdm_hwmod_disable(oh->clkdm, oh);
- 
- 		return r;
- 	}
- 
-+	/*
-+	 * Set the clockdomain to HW_AUTO only if the target is ready,
-+	 * assuming that the previous state was HW_AUTO
-+	 */
-+	if (hwsup)
-+		clkdm_allow_idle(oh->clkdm);
-+
- 	oh->_state = _HWMOD_STATE_ENABLED;
- 
- 	/* Access the sysconfig only if the target is ready */
-@@ -1448,6 +1471,7 @@ static int _idle(struct omap_hwmod *oh)
- 	 * transition to complete properly.
- 	 */
- 	_disable_clocks(oh);
-+	clkdm_hwmod_disable(oh->clkdm, oh);
- 
- 	/* Mux pins for device idle if populated */
- 	if (oh->mux && oh->mux->pads_dynamic)
-@@ -1545,6 +1569,7 @@ static int _shutdown(struct omap_hwmod *oh)
- 			pr_debug("omap_hwmod: %s: _wait_target_disable failed\n",
- 				   oh->name);
- 		_disable_clocks(oh);
-+		clkdm_hwmod_disable(oh->clkdm, oh);
- 	}
- 	/* XXX Should this code also force-disable the optional clocks? */
- 
--- 
-1.7.0.4
+> ---
+>  Documentation/power/runtime_pm.txt |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/Documentation/power/runtime_pm.txt b/Documentation/power/runtime_pm.txt
+> index 22accb3..518d9be 100644
+> --- a/Documentation/power/runtime_pm.txt
+> +++ b/Documentation/power/runtime_pm.txt
+> @@ -506,7 +506,7 @@ pm_runtime_suspend() or pm_runtime_idle() or their asynchronous counterparts,
+>  they will fail returning -EAGAIN, because the device's usage counter is
+>  incremented by the core before executing ->probe() and ->remove().  Still, it
+>  may be desirable to suspend the device as soon as ->probe() or ->remove() has
+> -finished, so the PM core uses pm_runtime_idle_sync() to invoke the
+> +finished, so the PM core uses pm_runtime_put_sync() to invoke the
+>  subsystem-level idle callback for the device at that time.
+>  
+>  The user space can effectively disallow the driver of the device to power manage
+> 
 
