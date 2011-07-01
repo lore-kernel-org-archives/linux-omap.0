@@ -1,506 +1,961 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 2/4] OMAP4: hwmod data: Replace main_clk with the real input clock
-Date: Fri, 1 Jul 2011 23:54:25 +0200
-Message-ID: <1309557267-27165-3-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 4/4] OMAP4: prcm: Remove macros with absolute address
+Date: Fri, 1 Jul 2011 23:54:27 +0200
+Message-ID: <1309557267-27165-5-git-send-email-b-cousson@ti.com>
 References: <1309557267-27165-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43583 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757801Ab1GAVyn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 17:54:43 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32791 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757817Ab1GAVyx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 17:54:53 -0400
 In-Reply-To: <1309557267-27165-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Previously, main_clk was a fake clock node that was accessing the
-PRCM modulemode register. Since the module mode is directly
-controlled by the hwmod fmwk, these fake clock node are not
-needed anymore. The hwmod main_clk will point directly to the
-input clock node if applicable.
-For example, some IPs, like the GPIOs, do not have any functional
-clock and are using only the iclk. In that case, the main_clk
-field will be empty.
+Remove partially macros using the absolute address.
+The new API should use the XXXX_OFFSET version.
 
-That will simplify greatly the driver management and the integration
-with hwmod.
+Keep some macros since the clock nodes are still
+relying on them.
+
+Once the clocks will be cleaned, all these remaining
+macros will be removed.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   97 +++++++++++++---------------
- 1 files changed, 45 insertions(+), 52 deletions(-)
+ arch/arm/mach-omap2/cm1_44xx.h |   24 ----
+ arch/arm/mach-omap2/cm2_44xx.h |   55 --------
+ arch/arm/mach-omap2/prm44xx.h  |  269 ----------------------------------------
+ 3 files changed, 0 insertions(+), 348 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index e2971bc..878a031 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -813,7 +813,7 @@ static struct omap_hwmod omap44xx_aess_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_aess_irqs),
- 	.sdma_reqs	= omap44xx_aess_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_aess_sdma_reqs),
--	.main_clk	= "aess_fck",
-+	.main_clk	= "aess_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM1_ABE_AESS_CLKCTRL_OFFSET,
-@@ -1085,7 +1085,7 @@ static struct omap_hwmod omap44xx_dmic_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dmic_irqs),
- 	.sdma_reqs	= omap44xx_dmic_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_dmic_sdma_reqs),
--	.main_clk	= "dmic_fck",
-+	.main_clk	= "func_dmic_abe_gfclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM1_ABE_DMIC_CLKCTRL_OFFSET,
-@@ -1171,7 +1171,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dsp_irqs),
- 	.rst_lines	= omap44xx_dsp_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_dsp_resets),
--	.main_clk	= "dsp_fck",
-+	.main_clk	= "dpll_iva_m4x2_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_TESLA_TESLA_CLKCTRL_OFFSET,
-@@ -1897,7 +1897,6 @@ static struct omap_hwmod omap44xx_gpio1_hwmod = {
- 	.clkdm_name	= "l4_wkup_clkdm",
- 	.mpu_irqs	= omap44xx_gpio1_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio1_irqs),
--	.main_clk	= "gpio1_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_WKUP_GPIO1_CLKCTRL_OFFSET,
-@@ -1953,7 +1952,6 @@ static struct omap_hwmod omap44xx_gpio2_hwmod = {
- 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap44xx_gpio2_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio2_irqs),
--	.main_clk	= "gpio2_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_GPIO2_CLKCTRL_OFFSET,
-@@ -2009,7 +2007,6 @@ static struct omap_hwmod omap44xx_gpio3_hwmod = {
- 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap44xx_gpio3_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio3_irqs),
--	.main_clk	= "gpio3_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_GPIO3_CLKCTRL_OFFSET,
-@@ -2065,7 +2062,6 @@ static struct omap_hwmod omap44xx_gpio4_hwmod = {
- 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap44xx_gpio4_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio4_irqs),
--	.main_clk	= "gpio4_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_GPIO4_CLKCTRL_OFFSET,
-@@ -2121,7 +2117,6 @@ static struct omap_hwmod omap44xx_gpio5_hwmod = {
- 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap44xx_gpio5_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio5_irqs),
--	.main_clk	= "gpio5_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_GPIO5_CLKCTRL_OFFSET,
-@@ -2177,7 +2172,6 @@ static struct omap_hwmod omap44xx_gpio6_hwmod = {
- 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap44xx_gpio6_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio6_irqs),
--	.main_clk	= "gpio6_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_GPIO6_CLKCTRL_OFFSET,
-@@ -2332,7 +2326,7 @@ static struct omap_hwmod omap44xx_hsi_hwmod = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.mpu_irqs	= omap44xx_hsi_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_hsi_irqs),
--	.main_clk	= "hsi_fck",
-+	.main_clk	= "hsi_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L3INIT_HSI_CLKCTRL_OFFSET,
-@@ -2411,7 +2405,7 @@ static struct omap_hwmod omap44xx_i2c1_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c1_irqs),
- 	.sdma_reqs	= omap44xx_i2c1_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c1_sdma_reqs),
--	.main_clk	= "i2c1_fck",
-+	.main_clk	= "func_96m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_I2C1_CLKCTRL_OFFSET,
-@@ -2467,7 +2461,7 @@ static struct omap_hwmod omap44xx_i2c2_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c2_irqs),
- 	.sdma_reqs	= omap44xx_i2c2_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c2_sdma_reqs),
--	.main_clk	= "i2c2_fck",
-+	.main_clk	= "func_96m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_I2C2_CLKCTRL_OFFSET,
-@@ -2523,7 +2517,7 @@ static struct omap_hwmod omap44xx_i2c3_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c3_irqs),
- 	.sdma_reqs	= omap44xx_i2c3_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c3_sdma_reqs),
--	.main_clk	= "i2c3_fck",
-+	.main_clk	= "func_96m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_I2C3_CLKCTRL_OFFSET,
-@@ -2579,7 +2573,7 @@ static struct omap_hwmod omap44xx_i2c4_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c4_irqs),
- 	.sdma_reqs	= omap44xx_i2c4_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c4_sdma_reqs),
--	.main_clk	= "i2c4_fck",
-+	.main_clk	= "func_96m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_I2C4_CLKCTRL_OFFSET,
-@@ -2676,7 +2670,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_ipu_irqs),
- 	.rst_lines	= omap44xx_ipu_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_resets),
--	.main_clk	= "ipu_fck",
-+	.main_clk	= "ducati_clk_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET,
-@@ -2765,7 +2759,7 @@ static struct omap_hwmod omap44xx_iss_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_iss_irqs),
- 	.sdma_reqs	= omap44xx_iss_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_iss_sdma_reqs),
--	.main_clk	= "iss_fck",
-+	.main_clk	= "ducati_clk_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_CAM_ISS_CLKCTRL_OFFSET,
-@@ -2880,7 +2874,7 @@ static struct omap_hwmod omap44xx_iva_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_iva_irqs),
- 	.rst_lines	= omap44xx_iva_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_iva_resets),
--	.main_clk	= "iva_fck",
-+	.main_clk	= "dpll_iva_m5x2_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_IVAHD_IVAHD_CLKCTRL_OFFSET,
-@@ -2953,7 +2947,7 @@ static struct omap_hwmod omap44xx_kbd_hwmod = {
- 	.clkdm_name	= "l4_wkup_clkdm",
- 	.mpu_irqs	= omap44xx_kbd_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_kbd_irqs),
--	.main_clk	= "kbd_fck",
-+	.main_clk	= "sys_32k_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_WKUP_KEYBOARD_CLKCTRL_OFFSET,
-@@ -3114,7 +3108,7 @@ static struct omap_hwmod omap44xx_mcbsp1_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp1_irqs),
- 	.sdma_reqs	= omap44xx_mcbsp1_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp1_sdma_reqs),
--	.main_clk	= "mcbsp1_fck",
-+	.main_clk	= "func_mcbsp1_gfclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM1_ABE_MCBSP1_CLKCTRL_OFFSET,
-@@ -3190,7 +3184,7 @@ static struct omap_hwmod omap44xx_mcbsp2_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp2_irqs),
- 	.sdma_reqs	= omap44xx_mcbsp2_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp2_sdma_reqs),
--	.main_clk	= "mcbsp2_fck",
-+	.main_clk	= "func_mcbsp2_gfclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM1_ABE_MCBSP2_CLKCTRL_OFFSET,
-@@ -3266,7 +3260,7 @@ static struct omap_hwmod omap44xx_mcbsp3_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp3_irqs),
- 	.sdma_reqs	= omap44xx_mcbsp3_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp3_sdma_reqs),
--	.main_clk	= "mcbsp3_fck",
-+	.main_clk	= "func_mcbsp3_gfclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM1_ABE_MCBSP3_CLKCTRL_OFFSET,
-@@ -3321,7 +3315,7 @@ static struct omap_hwmod omap44xx_mcbsp4_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp4_irqs),
- 	.sdma_reqs	= omap44xx_mcbsp4_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp4_sdma_reqs),
--	.main_clk	= "mcbsp4_fck",
-+	.main_clk	= "per_mcbsp4_gfclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_MCBSP4_CLKCTRL_OFFSET,
-@@ -3416,7 +3410,7 @@ static struct omap_hwmod omap44xx_mcpdm_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcpdm_irqs),
- 	.sdma_reqs	= omap44xx_mcpdm_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcpdm_sdma_reqs),
--	.main_clk	= "mcpdm_fck",
-+	.main_clk	= "pad_clks_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM1_ABE_PDM_CLKCTRL_OFFSET,
-@@ -3504,7 +3498,7 @@ static struct omap_hwmod omap44xx_mcspi1_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi1_irqs),
- 	.sdma_reqs	= omap44xx_mcspi1_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi1_sdma_reqs),
--	.main_clk	= "mcspi1_fck",
-+	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI1_CLKCTRL_OFFSET,
-@@ -3567,7 +3561,7 @@ static struct omap_hwmod omap44xx_mcspi2_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi2_irqs),
- 	.sdma_reqs	= omap44xx_mcspi2_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi2_sdma_reqs),
--	.main_clk	= "mcspi2_fck",
-+	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI2_CLKCTRL_OFFSET,
-@@ -3630,7 +3624,7 @@ static struct omap_hwmod omap44xx_mcspi3_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi3_irqs),
- 	.sdma_reqs	= omap44xx_mcspi3_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi3_sdma_reqs),
--	.main_clk	= "mcspi3_fck",
-+	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI3_CLKCTRL_OFFSET,
-@@ -3691,7 +3685,7 @@ static struct omap_hwmod omap44xx_mcspi4_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi4_irqs),
- 	.sdma_reqs	= omap44xx_mcspi4_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi4_sdma_reqs),
--	.main_clk	= "mcspi4_fck",
-+	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI4_CLKCTRL_OFFSET,
-@@ -3778,7 +3772,7 @@ static struct omap_hwmod omap44xx_mmc1_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mmc1_irqs),
- 	.sdma_reqs	= omap44xx_mmc1_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc1_sdma_reqs),
--	.main_clk	= "mmc1_fck",
-+	.main_clk	= "hsmmc1_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L3INIT_MMC1_CLKCTRL_OFFSET,
-@@ -3840,7 +3834,7 @@ static struct omap_hwmod omap44xx_mmc2_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mmc2_irqs),
- 	.sdma_reqs	= omap44xx_mmc2_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc2_sdma_reqs),
--	.main_clk	= "mmc2_fck",
-+	.main_clk	= "hsmmc2_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L3INIT_MMC2_CLKCTRL_OFFSET,
-@@ -3897,7 +3891,7 @@ static struct omap_hwmod omap44xx_mmc3_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mmc3_irqs),
- 	.sdma_reqs	= omap44xx_mmc3_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc3_sdma_reqs),
--	.main_clk	= "mmc3_fck",
-+	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_MMCSD3_CLKCTRL_OFFSET,
-@@ -3952,7 +3946,7 @@ static struct omap_hwmod omap44xx_mmc4_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mmc4_irqs),
- 	.sdma_reqs	= omap44xx_mmc4_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc4_sdma_reqs),
--	.main_clk	= "mmc4_fck",
-+	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_MMCSD4_CLKCTRL_OFFSET,
-@@ -4007,7 +4001,7 @@ static struct omap_hwmod omap44xx_mmc5_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mmc5_irqs),
- 	.sdma_reqs	= omap44xx_mmc5_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc5_sdma_reqs),
--	.main_clk	= "mmc5_fck",
-+	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_MMCSD5_CLKCTRL_OFFSET,
-@@ -4123,7 +4117,7 @@ static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
- 	.clkdm_name	= "l4_ao_clkdm",
- 	.mpu_irqs	= omap44xx_smartreflex_core_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_irqs),
--	.main_clk	= "smartreflex_core_fck",
-+	.main_clk	= "l4_wkup_clk_mux_ck",
- 	.vdd_name	= "core",
- 	.prcm = {
- 		.omap4 = {
-@@ -4172,7 +4166,7 @@ static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
- 	.clkdm_name	= "l4_ao_clkdm",
- 	.mpu_irqs	= omap44xx_smartreflex_iva_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_irqs),
--	.main_clk	= "smartreflex_iva_fck",
-+	.main_clk	= "l4_wkup_clk_mux_ck",
- 	.vdd_name	= "iva",
- 	.prcm = {
- 		.omap4 = {
-@@ -4221,7 +4215,7 @@ static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
- 	.clkdm_name	= "l4_ao_clkdm",
- 	.mpu_irqs	= omap44xx_smartreflex_mpu_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_irqs),
--	.main_clk	= "smartreflex_mpu_fck",
-+	.main_clk	= "l4_wkup_clk_mux_ck",
- 	.vdd_name	= "mpu",
- 	.prcm = {
- 		.omap4 = {
-@@ -4419,7 +4413,7 @@ static struct omap_hwmod omap44xx_timer2_hwmod = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.mpu_irqs	= omap44xx_timer2_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer2_irqs),
--	.main_clk	= "timer2_fck",
-+	.main_clk	= "cm2_dm2_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER2_CLKCTRL_OFFSET,
-@@ -4467,7 +4461,7 @@ static struct omap_hwmod omap44xx_timer3_hwmod = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.mpu_irqs	= omap44xx_timer3_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer3_irqs),
--	.main_clk	= "timer3_fck",
-+	.main_clk	= "cm2_dm3_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER3_CLKCTRL_OFFSET,
-@@ -4515,7 +4509,7 @@ static struct omap_hwmod omap44xx_timer4_hwmod = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.mpu_irqs	= omap44xx_timer4_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer4_irqs),
--	.main_clk	= "timer4_fck",
-+	.main_clk	= "cm2_dm4_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER4_CLKCTRL_OFFSET,
-@@ -4582,7 +4576,7 @@ static struct omap_hwmod omap44xx_timer5_hwmod = {
- 	.clkdm_name	= "abe_clkdm",
- 	.mpu_irqs	= omap44xx_timer5_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer5_irqs),
--	.main_clk	= "timer5_fck",
-+	.main_clk	= "timer5_sync_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM1_ABE_TIMER5_CLKCTRL_OFFSET,
-@@ -4649,7 +4643,7 @@ static struct omap_hwmod omap44xx_timer6_hwmod = {
- 	.clkdm_name	= "abe_clkdm",
- 	.mpu_irqs	= omap44xx_timer6_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer6_irqs),
--	.main_clk	= "timer6_fck",
-+	.main_clk	= "timer6_sync_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM1_ABE_TIMER6_CLKCTRL_OFFSET,
-@@ -4716,7 +4710,7 @@ static struct omap_hwmod omap44xx_timer7_hwmod = {
- 	.clkdm_name	= "abe_clkdm",
- 	.mpu_irqs	= omap44xx_timer7_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer7_irqs),
--	.main_clk	= "timer7_fck",
-+	.main_clk	= "timer7_sync_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM1_ABE_TIMER7_CLKCTRL_OFFSET,
-@@ -4783,7 +4777,7 @@ static struct omap_hwmod omap44xx_timer8_hwmod = {
- 	.clkdm_name	= "abe_clkdm",
- 	.mpu_irqs	= omap44xx_timer8_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer8_irqs),
--	.main_clk	= "timer8_fck",
-+	.main_clk	= "timer8_sync_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM1_ABE_TIMER8_CLKCTRL_OFFSET,
-@@ -4831,7 +4825,7 @@ static struct omap_hwmod omap44xx_timer9_hwmod = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.mpu_irqs	= omap44xx_timer9_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer9_irqs),
--	.main_clk	= "timer9_fck",
-+	.main_clk	= "cm2_dm9_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER9_CLKCTRL_OFFSET,
-@@ -4879,7 +4873,7 @@ static struct omap_hwmod omap44xx_timer10_hwmod = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.mpu_irqs	= omap44xx_timer10_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer10_irqs),
--	.main_clk	= "timer10_fck",
-+	.main_clk	= "cm2_dm10_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER10_CLKCTRL_OFFSET,
-@@ -4927,7 +4921,7 @@ static struct omap_hwmod omap44xx_timer11_hwmod = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.mpu_irqs	= omap44xx_timer11_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer11_irqs),
--	.main_clk	= "timer11_fck",
-+	.main_clk	= "cm2_dm11_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER11_CLKCTRL_OFFSET,
-@@ -5004,7 +4998,7 @@ static struct omap_hwmod omap44xx_uart1_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart1_irqs),
- 	.sdma_reqs	= omap44xx_uart1_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart1_sdma_reqs),
--	.main_clk	= "uart1_fck",
-+	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_UART1_CLKCTRL_OFFSET,
-@@ -5059,7 +5053,7 @@ static struct omap_hwmod omap44xx_uart2_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart2_irqs),
- 	.sdma_reqs	= omap44xx_uart2_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart2_sdma_reqs),
--	.main_clk	= "uart2_fck",
-+	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_UART2_CLKCTRL_OFFSET,
-@@ -5115,7 +5109,7 @@ static struct omap_hwmod omap44xx_uart3_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart3_irqs),
- 	.sdma_reqs	= omap44xx_uart3_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart3_sdma_reqs),
--	.main_clk	= "uart3_fck",
-+	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_UART3_CLKCTRL_OFFSET,
-@@ -5170,7 +5164,7 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart4_irqs),
- 	.sdma_reqs	= omap44xx_uart4_sdma_reqs,
- 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart4_sdma_reqs),
--	.main_clk	= "uart4_fck",
-+	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L4PER_UART4_CLKCTRL_OFFSET,
-@@ -5251,7 +5245,6 @@ static struct omap_hwmod omap44xx_usb_otg_hs_hwmod = {
- 	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
- 	.mpu_irqs	= omap44xx_usb_otg_hs_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_irqs),
--	.main_clk	= "usb_otg_hs_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_L3INIT_USB_OTG_CLKCTRL_OFFSET,
-@@ -5326,7 +5319,7 @@ static struct omap_hwmod omap44xx_wd_timer2_hwmod = {
- 	.clkdm_name	= "l4_wkup_clkdm",
- 	.mpu_irqs	= omap44xx_wd_timer2_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_irqs),
--	.main_clk	= "wd_timer2_fck",
-+	.main_clk	= "sys_32k_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_WKUP_WDT2_CLKCTRL_OFFSET,
-@@ -5393,7 +5386,7 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
- 	.clkdm_name	= "abe_clkdm",
- 	.mpu_irqs	= omap44xx_wd_timer3_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_irqs),
--	.main_clk	= "wd_timer3_fck",
-+	.main_clk	= "sys_32k_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM1_ABE_WDT3_CLKCTRL_OFFSET,
+diff --git a/arch/arm/mach-omap2/cm1_44xx.h b/arch/arm/mach-omap2/cm1_44xx.h
+index 1bc00dc..31d90a5 100644
+--- a/arch/arm/mach-omap2/cm1_44xx.h
++++ b/arch/arm/mach-omap2/cm1_44xx.h
+@@ -49,7 +49,6 @@
+ 
+ /* CM1.OCP_SOCKET_CM1 register offsets */
+ #define OMAP4_REVISION_CM1_OFFSET			0x0000
+-#define OMAP4430_REVISION_CM1				OMAP44XX_CM1_REGADDR(OMAP4430_CM1_OCP_SOCKET_INST, 0x0000)
+ #define OMAP4_CM_CM1_PROFILING_CLKCTRL_OFFSET		0x0040
+ #define OMAP4430_CM_CM1_PROFILING_CLKCTRL		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_OCP_SOCKET_INST, 0x0040)
+ 
+@@ -59,7 +58,6 @@
+ #define OMAP4_CM_CLKSEL_ABE_OFFSET			0x0008
+ #define OMAP4430_CM_CLKSEL_ABE				OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0008)
+ #define OMAP4_CM_DLL_CTRL_OFFSET			0x0010
+-#define OMAP4430_CM_DLL_CTRL				OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0010)
+ #define OMAP4_CM_CLKMODE_DPLL_CORE_OFFSET		0x0020
+ #define OMAP4430_CM_CLKMODE_DPLL_CORE			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0020)
+ #define OMAP4_CM_IDLEST_DPLL_CORE_OFFSET		0x0024
+@@ -81,11 +79,8 @@
+ #define OMAP4_CM_DIV_M7_DPLL_CORE_OFFSET		0x0044
+ #define OMAP4430_CM_DIV_M7_DPLL_CORE			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0044)
+ #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_CORE_OFFSET	0x0048
+-#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_CORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0048)
+ #define OMAP4_CM_SSC_MODFREQDIV_DPLL_CORE_OFFSET	0x004c
+-#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_CORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x004c)
+ #define OMAP4_CM_EMU_OVERRIDE_DPLL_CORE_OFFSET		0x0050
+-#define OMAP4430_CM_EMU_OVERRIDE_DPLL_CORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0050)
+ #define OMAP4_CM_CLKMODE_DPLL_MPU_OFFSET		0x0060
+ #define OMAP4430_CM_CLKMODE_DPLL_MPU			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0060)
+ #define OMAP4_CM_IDLEST_DPLL_MPU_OFFSET			0x0064
+@@ -97,9 +92,7 @@
+ #define OMAP4_CM_DIV_M2_DPLL_MPU_OFFSET			0x0070
+ #define OMAP4430_CM_DIV_M2_DPLL_MPU			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0070)
+ #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_MPU_OFFSET		0x0088
+-#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_MPU		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0088)
+ #define OMAP4_CM_SSC_MODFREQDIV_DPLL_MPU_OFFSET		0x008c
+-#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_MPU		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x008c)
+ #define OMAP4_CM_BYPCLK_DPLL_MPU_OFFSET			0x009c
+ #define OMAP4430_CM_BYPCLK_DPLL_MPU			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x009c)
+ #define OMAP4_CM_CLKMODE_DPLL_IVA_OFFSET		0x00a0
+@@ -115,9 +108,7 @@
+ #define OMAP4_CM_DIV_M5_DPLL_IVA_OFFSET			0x00bc
+ #define OMAP4430_CM_DIV_M5_DPLL_IVA			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x00bc)
+ #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_IVA_OFFSET		0x00c8
+-#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_IVA		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x00c8)
+ #define OMAP4_CM_SSC_MODFREQDIV_DPLL_IVA_OFFSET		0x00cc
+-#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_IVA		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x00cc)
+ #define OMAP4_CM_BYPCLK_DPLL_IVA_OFFSET			0x00dc
+ #define OMAP4430_CM_BYPCLK_DPLL_IVA			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x00dc)
+ #define OMAP4_CM_CLKMODE_DPLL_ABE_OFFSET		0x00e0
+@@ -133,9 +124,7 @@
+ #define OMAP4_CM_DIV_M3_DPLL_ABE_OFFSET			0x00f4
+ #define OMAP4430_CM_DIV_M3_DPLL_ABE			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x00f4)
+ #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_ABE_OFFSET		0x0108
+-#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_ABE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0108)
+ #define OMAP4_CM_SSC_MODFREQDIV_DPLL_ABE_OFFSET		0x010c
+-#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_ABE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x010c)
+ #define OMAP4_CM_CLKMODE_DPLL_DDRPHY_OFFSET		0x0120
+ #define OMAP4430_CM_CLKMODE_DPLL_DDRPHY			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0120)
+ #define OMAP4_CM_IDLEST_DPLL_DDRPHY_OFFSET		0x0124
+@@ -153,41 +142,28 @@
+ #define OMAP4_CM_DIV_M6_DPLL_DDRPHY_OFFSET		0x0140
+ #define OMAP4430_CM_DIV_M6_DPLL_DDRPHY			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0140)
+ #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_DDRPHY_OFFSET	0x0148
+-#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_DDRPHY		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0148)
+ #define OMAP4_CM_SSC_MODFREQDIV_DPLL_DDRPHY_OFFSET	0x014c
+-#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_DDRPHY		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x014c)
+ #define OMAP4_CM_SHADOW_FREQ_CONFIG1_OFFSET		0x0160
+-#define OMAP4430_CM_SHADOW_FREQ_CONFIG1			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0160)
+ #define OMAP4_CM_SHADOW_FREQ_CONFIG2_OFFSET		0x0164
+-#define OMAP4430_CM_SHADOW_FREQ_CONFIG2			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0164)
+ #define OMAP4_CM_DYN_DEP_PRESCAL_OFFSET			0x0170
+-#define OMAP4430_CM_DYN_DEP_PRESCAL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0170)
+ #define OMAP4_CM_RESTORE_ST_OFFSET			0x0180
+-#define OMAP4430_CM_RESTORE_ST				OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0180)
+ 
+ /* CM1.MPU_CM1 register offsets */
+ #define OMAP4_CM_MPU_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM_MPU_CLKSTCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_MPU_INST, 0x0000)
+ #define OMAP4_CM_MPU_STATICDEP_OFFSET			0x0004
+-#define OMAP4430_CM_MPU_STATICDEP			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_MPU_INST, 0x0004)
+ #define OMAP4_CM_MPU_DYNAMICDEP_OFFSET			0x0008
+-#define OMAP4430_CM_MPU_DYNAMICDEP			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_MPU_INST, 0x0008)
+ #define OMAP4_CM_MPU_MPU_CLKCTRL_OFFSET			0x0020
+ #define OMAP4430_CM_MPU_MPU_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_MPU_INST, 0x0020)
+ 
+ /* CM1.TESLA_CM1 register offsets */
+ #define OMAP4_CM_TESLA_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM_TESLA_CLKSTCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_TESLA_INST, 0x0000)
+ #define OMAP4_CM_TESLA_STATICDEP_OFFSET			0x0004
+-#define OMAP4430_CM_TESLA_STATICDEP			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_TESLA_INST, 0x0004)
+ #define OMAP4_CM_TESLA_DYNAMICDEP_OFFSET		0x0008
+-#define OMAP4430_CM_TESLA_DYNAMICDEP			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_TESLA_INST, 0x0008)
+ #define OMAP4_CM_TESLA_TESLA_CLKCTRL_OFFSET		0x0020
+ #define OMAP4430_CM_TESLA_TESLA_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_TESLA_INST, 0x0020)
+ 
+ /* CM1.ABE_CM1 register offsets */
+ #define OMAP4_CM1_ABE_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM1_ABE_CLKSTCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_ABE_INST, 0x0000)
+ #define OMAP4_CM1_ABE_L4ABE_CLKCTRL_OFFSET		0x0020
+ #define OMAP4430_CM1_ABE_L4ABE_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_ABE_INST, 0x0020)
+ #define OMAP4_CM1_ABE_AESS_CLKCTRL_OFFSET		0x0028
+diff --git a/arch/arm/mach-omap2/cm2_44xx.h b/arch/arm/mach-omap2/cm2_44xx.h
+index 50a5771..bdc7026 100644
+--- a/arch/arm/mach-omap2/cm2_44xx.h
++++ b/arch/arm/mach-omap2/cm2_44xx.h
+@@ -69,7 +69,6 @@
+ 
+ /* CM2.OCP_SOCKET_CM2 register offsets */
+ #define OMAP4_REVISION_CM2_OFFSET			0x0000
+-#define OMAP4430_REVISION_CM2				OMAP44XX_CM2_REGADDR(OMAP4430_CM2_OCP_SOCKET_INST, 0x0000)
+ #define OMAP4_CM_CM2_PROFILING_CLKCTRL_OFFSET		0x0040
+ #define OMAP4430_CM_CM2_PROFILING_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_OCP_SOCKET_INST, 0x0040)
+ 
+@@ -81,23 +80,14 @@
+ #define OMAP4_CM_SCALE_FCLK_OFFSET			0x0008
+ #define OMAP4430_CM_SCALE_FCLK				OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0008)
+ #define OMAP4_CM_CORE_DVFS_PERF1_OFFSET			0x0010
+-#define OMAP4430_CM_CORE_DVFS_PERF1			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0010)
+ #define OMAP4_CM_CORE_DVFS_PERF2_OFFSET			0x0014
+-#define OMAP4430_CM_CORE_DVFS_PERF2			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0014)
+ #define OMAP4_CM_CORE_DVFS_PERF3_OFFSET			0x0018
+-#define OMAP4430_CM_CORE_DVFS_PERF3			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0018)
+ #define OMAP4_CM_CORE_DVFS_PERF4_OFFSET			0x001c
+-#define OMAP4430_CM_CORE_DVFS_PERF4			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x001c)
+ #define OMAP4_CM_CORE_DVFS_CURRENT_OFFSET		0x0024
+-#define OMAP4430_CM_CORE_DVFS_CURRENT			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0024)
+ #define OMAP4_CM_IVA_DVFS_PERF_TESLA_OFFSET		0x0028
+-#define OMAP4430_CM_IVA_DVFS_PERF_TESLA			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0028)
+ #define OMAP4_CM_IVA_DVFS_PERF_IVAHD_OFFSET		0x002c
+-#define OMAP4430_CM_IVA_DVFS_PERF_IVAHD			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x002c)
+ #define OMAP4_CM_IVA_DVFS_PERF_ABE_OFFSET		0x0030
+-#define OMAP4430_CM_IVA_DVFS_PERF_ABE			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0030)
+ #define OMAP4_CM_IVA_DVFS_CURRENT_OFFSET		0x0038
+-#define OMAP4430_CM_IVA_DVFS_CURRENT			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0038)
+ #define OMAP4_CM_CLKMODE_DPLL_PER_OFFSET		0x0040
+ #define OMAP4430_CM_CLKMODE_DPLL_PER			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0040)
+ #define OMAP4_CM_IDLEST_DPLL_PER_OFFSET			0x0044
+@@ -119,9 +109,7 @@
+ #define OMAP4_CM_DIV_M7_DPLL_PER_OFFSET			0x0064
+ #define OMAP4430_CM_DIV_M7_DPLL_PER			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0064)
+ #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_PER_OFFSET		0x0068
+-#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_PER		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0068)
+ #define OMAP4_CM_SSC_MODFREQDIV_DPLL_PER_OFFSET		0x006c
+-#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_PER		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x006c)
+ #define OMAP4_CM_CLKMODE_DPLL_USB_OFFSET		0x0080
+ #define OMAP4430_CM_CLKMODE_DPLL_USB			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0080)
+ #define OMAP4_CM_IDLEST_DPLL_USB_OFFSET			0x0084
+@@ -133,9 +121,7 @@
+ #define OMAP4_CM_DIV_M2_DPLL_USB_OFFSET			0x0090
+ #define OMAP4430_CM_DIV_M2_DPLL_USB			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0090)
+ #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_USB_OFFSET		0x00a8
+-#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_USB		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00a8)
+ #define OMAP4_CM_SSC_MODFREQDIV_DPLL_USB_OFFSET		0x00ac
+-#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_USB		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00ac)
+ #define OMAP4_CM_CLKDCOLDO_DPLL_USB_OFFSET		0x00b4
+ #define OMAP4430_CM_CLKDCOLDO_DPLL_USB			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00b4)
+ #define OMAP4_CM_CLKMODE_DPLL_UNIPRO_OFFSET		0x00c0
+@@ -149,13 +135,10 @@
+ #define OMAP4_CM_DIV_M2_DPLL_UNIPRO_OFFSET		0x00d0
+ #define OMAP4430_CM_DIV_M2_DPLL_UNIPRO			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00d0)
+ #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_UNIPRO_OFFSET	0x00e8
+-#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_UNIPRO		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00e8)
+ #define OMAP4_CM_SSC_MODFREQDIV_DPLL_UNIPRO_OFFSET	0x00ec
+-#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_UNIPRO		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00ec)
+ 
+ /* CM2.ALWAYS_ON_CM2 register offsets */
+ #define OMAP4_CM_ALWON_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM_ALWON_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_ALWAYS_ON_INST, 0x0000)
+ #define OMAP4_CM_ALWON_SR_MPU_CLKCTRL_OFFSET		0x0028
+ #define OMAP4430_CM_ALWON_SR_MPU_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_ALWAYS_ON_INST, 0x0028)
+ #define OMAP4_CM_ALWON_SR_IVA_CLKCTRL_OFFSET		0x0030
+@@ -167,15 +150,11 @@
+ 
+ /* CM2.CORE_CM2 register offsets */
+ #define OMAP4_CM_L3_1_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM_L3_1_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0000)
+ #define OMAP4_CM_L3_1_DYNAMICDEP_OFFSET			0x0008
+-#define OMAP4430_CM_L3_1_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0008)
+ #define OMAP4_CM_L3_1_L3_1_CLKCTRL_OFFSET		0x0020
+ #define OMAP4430_CM_L3_1_L3_1_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0020)
+ #define OMAP4_CM_L3_2_CLKSTCTRL_OFFSET			0x0100
+-#define OMAP4430_CM_L3_2_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0100)
+ #define OMAP4_CM_L3_2_DYNAMICDEP_OFFSET			0x0108
+-#define OMAP4430_CM_L3_2_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0108)
+ #define OMAP4_CM_L3_2_L3_2_CLKCTRL_OFFSET		0x0120
+ #define OMAP4430_CM_L3_2_L3_2_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0120)
+ #define OMAP4_CM_L3_2_GPMC_CLKCTRL_OFFSET		0x0128
+@@ -183,23 +162,16 @@
+ #define OMAP4_CM_L3_2_OCMC_RAM_CLKCTRL_OFFSET		0x0130
+ #define OMAP4430_CM_L3_2_OCMC_RAM_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0130)
+ #define OMAP4_CM_DUCATI_CLKSTCTRL_OFFSET		0x0200
+-#define OMAP4430_CM_DUCATI_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0200)
+ #define OMAP4_CM_DUCATI_STATICDEP_OFFSET		0x0204
+-#define OMAP4430_CM_DUCATI_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0204)
+ #define OMAP4_CM_DUCATI_DYNAMICDEP_OFFSET		0x0208
+-#define OMAP4430_CM_DUCATI_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0208)
+ #define OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET		0x0220
+ #define OMAP4430_CM_DUCATI_DUCATI_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0220)
+ #define OMAP4_CM_SDMA_CLKSTCTRL_OFFSET			0x0300
+-#define OMAP4430_CM_SDMA_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0300)
+ #define OMAP4_CM_SDMA_STATICDEP_OFFSET			0x0304
+-#define OMAP4430_CM_SDMA_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0304)
+ #define OMAP4_CM_SDMA_DYNAMICDEP_OFFSET			0x0308
+-#define OMAP4430_CM_SDMA_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0308)
+ #define OMAP4_CM_SDMA_SDMA_CLKCTRL_OFFSET		0x0320
+ #define OMAP4430_CM_SDMA_SDMA_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0320)
+ #define OMAP4_CM_MEMIF_CLKSTCTRL_OFFSET			0x0400
+-#define OMAP4430_CM_MEMIF_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0400)
+ #define OMAP4_CM_MEMIF_DMM_CLKCTRL_OFFSET		0x0420
+ #define OMAP4430_CM_MEMIF_DMM_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0420)
+ #define OMAP4_CM_MEMIF_EMIF_FW_CLKCTRL_OFFSET		0x0428
+@@ -213,11 +185,8 @@
+ #define OMAP4_CM_MEMIF_DLL_H_CLKCTRL_OFFSET		0x0460
+ #define OMAP4430_CM_MEMIF_DLL_H_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0460)
+ #define OMAP4_CM_D2D_CLKSTCTRL_OFFSET			0x0500
+-#define OMAP4430_CM_D2D_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0500)
+ #define OMAP4_CM_D2D_STATICDEP_OFFSET			0x0504
+-#define OMAP4430_CM_D2D_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0504)
+ #define OMAP4_CM_D2D_DYNAMICDEP_OFFSET			0x0508
+-#define OMAP4430_CM_D2D_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0508)
+ #define OMAP4_CM_D2D_SAD2D_CLKCTRL_OFFSET		0x0520
+ #define OMAP4430_CM_D2D_SAD2D_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0520)
+ #define OMAP4_CM_D2D_MODEM_ICR_CLKCTRL_OFFSET		0x0528
+@@ -225,9 +194,7 @@
+ #define OMAP4_CM_D2D_SAD2D_FW_CLKCTRL_OFFSET		0x0530
+ #define OMAP4430_CM_D2D_SAD2D_FW_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0530)
+ #define OMAP4_CM_L4CFG_CLKSTCTRL_OFFSET			0x0600
+-#define OMAP4430_CM_L4CFG_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0600)
+ #define OMAP4_CM_L4CFG_DYNAMICDEP_OFFSET		0x0608
+-#define OMAP4430_CM_L4CFG_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0608)
+ #define OMAP4_CM_L4CFG_L4_CFG_CLKCTRL_OFFSET		0x0620
+ #define OMAP4430_CM_L4CFG_L4_CFG_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0620)
+ #define OMAP4_CM_L4CFG_HW_SEM_CLKCTRL_OFFSET		0x0628
+@@ -237,7 +204,6 @@
+ #define OMAP4_CM_L4CFG_SAR_ROM_CLKCTRL_OFFSET		0x0638
+ #define OMAP4430_CM_L4CFG_SAR_ROM_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0638)
+ #define OMAP4_CM_L3INSTR_CLKSTCTRL_OFFSET		0x0700
+-#define OMAP4430_CM_L3INSTR_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0700)
+ #define OMAP4_CM_L3INSTR_L3_3_CLKCTRL_OFFSET		0x0720
+ #define OMAP4430_CM_L3INSTR_L3_3_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0720)
+ #define OMAP4_CM_L3INSTR_L3_INSTR_CLKCTRL_OFFSET	0x0728
+@@ -247,11 +213,8 @@
+ 
+ /* CM2.IVAHD_CM2 register offsets */
+ #define OMAP4_CM_IVAHD_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM_IVAHD_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_IVAHD_INST, 0x0000)
+ #define OMAP4_CM_IVAHD_STATICDEP_OFFSET			0x0004
+-#define OMAP4430_CM_IVAHD_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_IVAHD_INST, 0x0004)
+ #define OMAP4_CM_IVAHD_DYNAMICDEP_OFFSET		0x0008
+-#define OMAP4430_CM_IVAHD_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_IVAHD_INST, 0x0008)
+ #define OMAP4_CM_IVAHD_IVAHD_CLKCTRL_OFFSET		0x0020
+ #define OMAP4430_CM_IVAHD_IVAHD_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_IVAHD_INST, 0x0020)
+ #define OMAP4_CM_IVAHD_SL2_CLKCTRL_OFFSET		0x0028
+@@ -259,11 +222,8 @@
+ 
+ /* CM2.CAM_CM2 register offsets */
+ #define OMAP4_CM_CAM_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM_CAM_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CAM_INST, 0x0000)
+ #define OMAP4_CM_CAM_STATICDEP_OFFSET			0x0004
+-#define OMAP4430_CM_CAM_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CAM_INST, 0x0004)
+ #define OMAP4_CM_CAM_DYNAMICDEP_OFFSET			0x0008
+-#define OMAP4430_CM_CAM_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CAM_INST, 0x0008)
+ #define OMAP4_CM_CAM_ISS_CLKCTRL_OFFSET			0x0020
+ #define OMAP4430_CM_CAM_ISS_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CAM_INST, 0x0020)
+ #define OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET		0x0028
+@@ -271,31 +231,22 @@
+ 
+ /* CM2.DSS_CM2 register offsets */
+ #define OMAP4_CM_DSS_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM_DSS_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_DSS_INST, 0x0000)
+ #define OMAP4_CM_DSS_STATICDEP_OFFSET			0x0004
+-#define OMAP4430_CM_DSS_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_DSS_INST, 0x0004)
+ #define OMAP4_CM_DSS_DYNAMICDEP_OFFSET			0x0008
+-#define OMAP4430_CM_DSS_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_DSS_INST, 0x0008)
+ #define OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET			0x0020
+ #define OMAP4430_CM_DSS_DSS_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_DSS_INST, 0x0020)
+ 
+ /* CM2.GFX_CM2 register offsets */
+ #define OMAP4_CM_GFX_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM_GFX_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_GFX_INST, 0x0000)
+ #define OMAP4_CM_GFX_STATICDEP_OFFSET			0x0004
+-#define OMAP4430_CM_GFX_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_GFX_INST, 0x0004)
+ #define OMAP4_CM_GFX_DYNAMICDEP_OFFSET			0x0008
+-#define OMAP4430_CM_GFX_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_GFX_INST, 0x0008)
+ #define OMAP4_CM_GFX_GFX_CLKCTRL_OFFSET			0x0020
+ #define OMAP4430_CM_GFX_GFX_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_GFX_INST, 0x0020)
+ 
+ /* CM2.L3INIT_CM2 register offsets */
+ #define OMAP4_CM_L3INIT_CLKSTCTRL_OFFSET		0x0000
+-#define OMAP4430_CM_L3INIT_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x0000)
+ #define OMAP4_CM_L3INIT_STATICDEP_OFFSET		0x0004
+-#define OMAP4430_CM_L3INIT_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x0004)
+ #define OMAP4_CM_L3INIT_DYNAMICDEP_OFFSET		0x0008
+-#define OMAP4430_CM_L3INIT_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x0008)
+ #define OMAP4_CM_L3INIT_MMC1_CLKCTRL_OFFSET		0x0028
+ #define OMAP4430_CM_L3INIT_MMC1_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x0028)
+ #define OMAP4_CM_L3INIT_MMC2_CLKCTRL_OFFSET		0x0030
+@@ -315,9 +266,7 @@
+ 
+ /* CM2.L4PER_CM2 register offsets */
+ #define OMAP4_CM_L4PER_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM_L4PER_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0000)
+ #define OMAP4_CM_L4PER_DYNAMICDEP_OFFSET		0x0008
+-#define OMAP4430_CM_L4PER_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0008)
+ #define OMAP4_CM_L4PER_DMTIMER10_CLKCTRL_OFFSET		0x0028
+ #define OMAP4430_CM_L4PER_DMTIMER10_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0028)
+ #define OMAP4_CM_L4PER_DMTIMER11_CLKCTRL_OFFSET		0x0030
+@@ -383,11 +332,8 @@
+ #define OMAP4_CM_L4PER_I2C5_CLKCTRL_OFFSET		0x0168
+ #define OMAP4430_CM_L4PER_I2C5_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0168)
+ #define OMAP4_CM_L4SEC_CLKSTCTRL_OFFSET			0x0180
+-#define OMAP4430_CM_L4SEC_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0180)
+ #define OMAP4_CM_L4SEC_STATICDEP_OFFSET			0x0184
+-#define OMAP4430_CM_L4SEC_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0184)
+ #define OMAP4_CM_L4SEC_DYNAMICDEP_OFFSET		0x0188
+-#define OMAP4430_CM_L4SEC_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0188)
+ #define OMAP4_CM_L4SEC_AES1_CLKCTRL_OFFSET		0x01a0
+ #define OMAP4430_CM_L4SEC_AES1_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x01a0)
+ #define OMAP4_CM_L4SEC_AES2_CLKCTRL_OFFSET		0x01a8
+@@ -405,7 +351,6 @@
+ 
+ /* CM2.CEFUSE_CM2 register offsets */
+ #define OMAP4_CM_CEFUSE_CLKSTCTRL_OFFSET		0x0000
+-#define OMAP4430_CM_CEFUSE_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CEFUSE_INST, 0x0000)
+ #define OMAP4_CM_CEFUSE_CEFUSE_CLKCTRL_OFFSET		0x0020
+ #define OMAP4430_CM_CEFUSE_CEFUSE_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CEFUSE_INST, 0x0020)
+ 
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index a3887b8..1b4cab3 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -72,23 +72,14 @@
+ 
+ /* PRM.OCP_SOCKET_PRM register offsets */
+ #define OMAP4_REVISION_PRM_OFFSET			0x0000
+-#define OMAP4430_REVISION_PRM				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0000)
+ #define OMAP4_PRM_IRQSTATUS_MPU_OFFSET			0x0010
+-#define OMAP4430_PRM_IRQSTATUS_MPU			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0010)
+ #define OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET		0x0014
+-#define OMAP4430_PRM_IRQSTATUS_MPU_2			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0014)
+ #define OMAP4_PRM_IRQENABLE_MPU_OFFSET			0x0018
+-#define OMAP4430_PRM_IRQENABLE_MPU			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0018)
+ #define OMAP4_PRM_IRQENABLE_MPU_2_OFFSET		0x001c
+-#define OMAP4430_PRM_IRQENABLE_MPU_2			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x001c)
+ #define OMAP4_PRM_IRQSTATUS_DUCATI_OFFSET		0x0020
+-#define OMAP4430_PRM_IRQSTATUS_DUCATI			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0020)
+ #define OMAP4_PRM_IRQENABLE_DUCATI_OFFSET		0x0028
+-#define OMAP4430_PRM_IRQENABLE_DUCATI			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0028)
+ #define OMAP4_PRM_IRQSTATUS_TESLA_OFFSET		0x0030
+-#define OMAP4430_PRM_IRQSTATUS_TESLA			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0030)
+ #define OMAP4_PRM_IRQENABLE_TESLA_OFFSET		0x0038
+-#define OMAP4430_PRM_IRQENABLE_TESLA			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0038)
+ #define OMAP4_CM_PRM_PROFILING_CLKCTRL_OFFSET		0x0040
+ #define OMAP4430_CM_PRM_PROFILING_CLKCTRL		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0040)
+ 
+@@ -104,415 +95,223 @@
+ 
+ /* PRM.MPU_PRM register offsets */
+ #define OMAP4_PM_MPU_PWRSTCTRL_OFFSET			0x0000
+-#define OMAP4430_PM_MPU_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_MPU_INST, 0x0000)
+ #define OMAP4_PM_MPU_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_MPU_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_MPU_INST, 0x0004)
+ #define OMAP4_RM_MPU_RSTST_OFFSET			0x0014
+-#define OMAP4430_RM_MPU_RSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_MPU_INST, 0x0014)
+ #define OMAP4_RM_MPU_MPU_CONTEXT_OFFSET			0x0024
+-#define OMAP4430_RM_MPU_MPU_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_MPU_INST, 0x0024)
+ 
+ /* PRM.TESLA_PRM register offsets */
+ #define OMAP4_PM_TESLA_PWRSTCTRL_OFFSET			0x0000
+-#define OMAP4430_PM_TESLA_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_TESLA_INST, 0x0000)
+ #define OMAP4_PM_TESLA_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_TESLA_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_TESLA_INST, 0x0004)
+ #define OMAP4_RM_TESLA_RSTCTRL_OFFSET			0x0010
+-#define OMAP4430_RM_TESLA_RSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_TESLA_INST, 0x0010)
+ #define OMAP4_RM_TESLA_RSTST_OFFSET			0x0014
+-#define OMAP4430_RM_TESLA_RSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_TESLA_INST, 0x0014)
+ #define OMAP4_RM_TESLA_TESLA_CONTEXT_OFFSET		0x0024
+-#define OMAP4430_RM_TESLA_TESLA_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_TESLA_INST, 0x0024)
+ 
+ /* PRM.ABE_PRM register offsets */
+ #define OMAP4_PM_ABE_PWRSTCTRL_OFFSET			0x0000
+-#define OMAP4430_PM_ABE_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0000)
+ #define OMAP4_PM_ABE_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_ABE_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0004)
+ #define OMAP4_RM_ABE_AESS_CONTEXT_OFFSET		0x002c
+-#define OMAP4430_RM_ABE_AESS_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x002c)
+ #define OMAP4_PM_ABE_PDM_WKDEP_OFFSET			0x0030
+-#define OMAP4430_PM_ABE_PDM_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0030)
+ #define OMAP4_RM_ABE_PDM_CONTEXT_OFFSET			0x0034
+-#define OMAP4430_RM_ABE_PDM_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0034)
+ #define OMAP4_PM_ABE_DMIC_WKDEP_OFFSET			0x0038
+-#define OMAP4430_PM_ABE_DMIC_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0038)
+ #define OMAP4_RM_ABE_DMIC_CONTEXT_OFFSET		0x003c
+-#define OMAP4430_RM_ABE_DMIC_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x003c)
+ #define OMAP4_PM_ABE_MCASP_WKDEP_OFFSET			0x0040
+-#define OMAP4430_PM_ABE_MCASP_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0040)
+ #define OMAP4_RM_ABE_MCASP_CONTEXT_OFFSET		0x0044
+-#define OMAP4430_RM_ABE_MCASP_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0044)
+ #define OMAP4_PM_ABE_MCBSP1_WKDEP_OFFSET		0x0048
+-#define OMAP4430_PM_ABE_MCBSP1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0048)
+ #define OMAP4_RM_ABE_MCBSP1_CONTEXT_OFFSET		0x004c
+-#define OMAP4430_RM_ABE_MCBSP1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x004c)
+ #define OMAP4_PM_ABE_MCBSP2_WKDEP_OFFSET		0x0050
+-#define OMAP4430_PM_ABE_MCBSP2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0050)
+ #define OMAP4_RM_ABE_MCBSP2_CONTEXT_OFFSET		0x0054
+-#define OMAP4430_RM_ABE_MCBSP2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0054)
+ #define OMAP4_PM_ABE_MCBSP3_WKDEP_OFFSET		0x0058
+-#define OMAP4430_PM_ABE_MCBSP3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0058)
+ #define OMAP4_RM_ABE_MCBSP3_CONTEXT_OFFSET		0x005c
+-#define OMAP4430_RM_ABE_MCBSP3_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x005c)
+ #define OMAP4_PM_ABE_SLIMBUS_WKDEP_OFFSET		0x0060
+-#define OMAP4430_PM_ABE_SLIMBUS_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0060)
+ #define OMAP4_RM_ABE_SLIMBUS_CONTEXT_OFFSET		0x0064
+-#define OMAP4430_RM_ABE_SLIMBUS_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0064)
+ #define OMAP4_PM_ABE_TIMER5_WKDEP_OFFSET		0x0068
+-#define OMAP4430_PM_ABE_TIMER5_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0068)
+ #define OMAP4_RM_ABE_TIMER5_CONTEXT_OFFSET		0x006c
+-#define OMAP4430_RM_ABE_TIMER5_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x006c)
+ #define OMAP4_PM_ABE_TIMER6_WKDEP_OFFSET		0x0070
+-#define OMAP4430_PM_ABE_TIMER6_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0070)
+ #define OMAP4_RM_ABE_TIMER6_CONTEXT_OFFSET		0x0074
+-#define OMAP4430_RM_ABE_TIMER6_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0074)
+ #define OMAP4_PM_ABE_TIMER7_WKDEP_OFFSET		0x0078
+-#define OMAP4430_PM_ABE_TIMER7_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0078)
+ #define OMAP4_RM_ABE_TIMER7_CONTEXT_OFFSET		0x007c
+-#define OMAP4430_RM_ABE_TIMER7_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x007c)
+ #define OMAP4_PM_ABE_TIMER8_WKDEP_OFFSET		0x0080
+-#define OMAP4430_PM_ABE_TIMER8_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0080)
+ #define OMAP4_RM_ABE_TIMER8_CONTEXT_OFFSET		0x0084
+-#define OMAP4430_RM_ABE_TIMER8_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0084)
+ #define OMAP4_PM_ABE_WDT3_WKDEP_OFFSET			0x0088
+-#define OMAP4430_PM_ABE_WDT3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0088)
+ #define OMAP4_RM_ABE_WDT3_CONTEXT_OFFSET		0x008c
+-#define OMAP4430_RM_ABE_WDT3_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x008c)
+ 
+ /* PRM.ALWAYS_ON_PRM register offsets */
+ #define OMAP4_PM_ALWON_SR_MPU_WKDEP_OFFSET		0x0028
+-#define OMAP4430_PM_ALWON_SR_MPU_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x0028)
+ #define OMAP4_RM_ALWON_SR_MPU_CONTEXT_OFFSET		0x002c
+-#define OMAP4430_RM_ALWON_SR_MPU_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x002c)
+ #define OMAP4_PM_ALWON_SR_IVA_WKDEP_OFFSET		0x0030
+-#define OMAP4430_PM_ALWON_SR_IVA_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x0030)
+ #define OMAP4_RM_ALWON_SR_IVA_CONTEXT_OFFSET		0x0034
+-#define OMAP4430_RM_ALWON_SR_IVA_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x0034)
+ #define OMAP4_PM_ALWON_SR_CORE_WKDEP_OFFSET		0x0038
+-#define OMAP4430_PM_ALWON_SR_CORE_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x0038)
+ #define OMAP4_RM_ALWON_SR_CORE_CONTEXT_OFFSET		0x003c
+-#define OMAP4430_RM_ALWON_SR_CORE_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x003c)
+ 
+ /* PRM.CORE_PRM register offsets */
+ #define OMAP4_PM_CORE_PWRSTCTRL_OFFSET			0x0000
+-#define OMAP4430_PM_CORE_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0000)
+ #define OMAP4_PM_CORE_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_CORE_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0004)
+ #define OMAP4_RM_L3_1_L3_1_CONTEXT_OFFSET		0x0024
+-#define OMAP4430_RM_L3_1_L3_1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0024)
+ #define OMAP4_RM_L3_2_L3_2_CONTEXT_OFFSET		0x0124
+-#define OMAP4430_RM_L3_2_L3_2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0124)
+ #define OMAP4_RM_L3_2_GPMC_CONTEXT_OFFSET		0x012c
+-#define OMAP4430_RM_L3_2_GPMC_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x012c)
+ #define OMAP4_RM_L3_2_OCMC_RAM_CONTEXT_OFFSET		0x0134
+-#define OMAP4430_RM_L3_2_OCMC_RAM_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0134)
+ #define OMAP4_RM_DUCATI_RSTCTRL_OFFSET			0x0210
+-#define OMAP4430_RM_DUCATI_RSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0210)
+ #define OMAP4_RM_DUCATI_RSTST_OFFSET			0x0214
+-#define OMAP4430_RM_DUCATI_RSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0214)
+ #define OMAP4_RM_DUCATI_DUCATI_CONTEXT_OFFSET		0x0224
+-#define OMAP4430_RM_DUCATI_DUCATI_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0224)
+ #define OMAP4_RM_SDMA_SDMA_CONTEXT_OFFSET		0x0324
+-#define OMAP4430_RM_SDMA_SDMA_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0324)
+ #define OMAP4_RM_MEMIF_DMM_CONTEXT_OFFSET		0x0424
+-#define OMAP4430_RM_MEMIF_DMM_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0424)
+ #define OMAP4_RM_MEMIF_EMIF_FW_CONTEXT_OFFSET		0x042c
+-#define OMAP4430_RM_MEMIF_EMIF_FW_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x042c)
+ #define OMAP4_RM_MEMIF_EMIF_1_CONTEXT_OFFSET		0x0434
+-#define OMAP4430_RM_MEMIF_EMIF_1_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0434)
+ #define OMAP4_RM_MEMIF_EMIF_2_CONTEXT_OFFSET		0x043c
+-#define OMAP4430_RM_MEMIF_EMIF_2_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x043c)
+ #define OMAP4_RM_MEMIF_DLL_CONTEXT_OFFSET		0x0444
+-#define OMAP4430_RM_MEMIF_DLL_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0444)
+ #define OMAP4_RM_MEMIF_DLL_H_CONTEXT_OFFSET		0x0464
+-#define OMAP4430_RM_MEMIF_DLL_H_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0464)
+ #define OMAP4_RM_D2D_SAD2D_CONTEXT_OFFSET		0x0524
+-#define OMAP4430_RM_D2D_SAD2D_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0524)
+ #define OMAP4_RM_D2D_MODEM_ICR_CONTEXT_OFFSET		0x052c
+-#define OMAP4430_RM_D2D_MODEM_ICR_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x052c)
+ #define OMAP4_RM_D2D_SAD2D_FW_CONTEXT_OFFSET		0x0534
+-#define OMAP4430_RM_D2D_SAD2D_FW_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0534)
+ #define OMAP4_RM_L4CFG_L4_CFG_CONTEXT_OFFSET		0x0624
+-#define OMAP4430_RM_L4CFG_L4_CFG_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0624)
+ #define OMAP4_RM_L4CFG_HW_SEM_CONTEXT_OFFSET		0x062c
+-#define OMAP4430_RM_L4CFG_HW_SEM_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x062c)
+ #define OMAP4_RM_L4CFG_MAILBOX_CONTEXT_OFFSET		0x0634
+-#define OMAP4430_RM_L4CFG_MAILBOX_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0634)
+ #define OMAP4_RM_L4CFG_SAR_ROM_CONTEXT_OFFSET		0x063c
+-#define OMAP4430_RM_L4CFG_SAR_ROM_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x063c)
+ #define OMAP4_RM_L3INSTR_L3_3_CONTEXT_OFFSET		0x0724
+-#define OMAP4430_RM_L3INSTR_L3_3_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0724)
+ #define OMAP4_RM_L3INSTR_L3_INSTR_CONTEXT_OFFSET	0x072c
+-#define OMAP4430_RM_L3INSTR_L3_INSTR_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x072c)
+ #define OMAP4_RM_L3INSTR_OCP_WP1_CONTEXT_OFFSET		0x0744
+-#define OMAP4430_RM_L3INSTR_OCP_WP1_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0744)
+ 
+ /* PRM.IVAHD_PRM register offsets */
+ #define OMAP4_PM_IVAHD_PWRSTCTRL_OFFSET			0x0000
+-#define OMAP4430_PM_IVAHD_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x0000)
+ #define OMAP4_PM_IVAHD_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_IVAHD_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x0004)
+ #define OMAP4_RM_IVAHD_RSTCTRL_OFFSET			0x0010
+-#define OMAP4430_RM_IVAHD_RSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x0010)
+ #define OMAP4_RM_IVAHD_RSTST_OFFSET			0x0014
+-#define OMAP4430_RM_IVAHD_RSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x0014)
+ #define OMAP4_RM_IVAHD_IVAHD_CONTEXT_OFFSET		0x0024
+-#define OMAP4430_RM_IVAHD_IVAHD_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x0024)
+ #define OMAP4_RM_IVAHD_SL2_CONTEXT_OFFSET		0x002c
+-#define OMAP4430_RM_IVAHD_SL2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x002c)
+ 
+ /* PRM.CAM_PRM register offsets */
+ #define OMAP4_PM_CAM_PWRSTCTRL_OFFSET			0x0000
+-#define OMAP4430_PM_CAM_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CAM_INST, 0x0000)
+ #define OMAP4_PM_CAM_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_CAM_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CAM_INST, 0x0004)
+ #define OMAP4_RM_CAM_ISS_CONTEXT_OFFSET			0x0024
+-#define OMAP4430_RM_CAM_ISS_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CAM_INST, 0x0024)
+ #define OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET		0x002c
+-#define OMAP4430_RM_CAM_FDIF_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CAM_INST, 0x002c)
+ 
+ /* PRM.DSS_PRM register offsets */
+ #define OMAP4_PM_DSS_PWRSTCTRL_OFFSET			0x0000
+-#define OMAP4430_PM_DSS_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DSS_INST, 0x0000)
+ #define OMAP4_PM_DSS_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_DSS_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DSS_INST, 0x0004)
+ #define OMAP4_PM_DSS_DSS_WKDEP_OFFSET			0x0020
+-#define OMAP4430_PM_DSS_DSS_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DSS_INST, 0x0020)
+ #define OMAP4_RM_DSS_DSS_CONTEXT_OFFSET			0x0024
+-#define OMAP4430_RM_DSS_DSS_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DSS_INST, 0x0024)
+ 
+ /* PRM.GFX_PRM register offsets */
+ #define OMAP4_PM_GFX_PWRSTCTRL_OFFSET			0x0000
+-#define OMAP4430_PM_GFX_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_GFX_INST, 0x0000)
+ #define OMAP4_PM_GFX_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_GFX_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_GFX_INST, 0x0004)
+ #define OMAP4_RM_GFX_GFX_CONTEXT_OFFSET			0x0024
+-#define OMAP4430_RM_GFX_GFX_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_GFX_INST, 0x0024)
+ 
+ /* PRM.L3INIT_PRM register offsets */
+ #define OMAP4_PM_L3INIT_PWRSTCTRL_OFFSET		0x0000
+-#define OMAP4430_PM_L3INIT_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0000)
+ #define OMAP4_PM_L3INIT_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_L3INIT_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0004)
+ #define OMAP4_PM_L3INIT_MMC1_WKDEP_OFFSET		0x0028
+-#define OMAP4430_PM_L3INIT_MMC1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0028)
+ #define OMAP4_RM_L3INIT_MMC1_CONTEXT_OFFSET		0x002c
+-#define OMAP4430_RM_L3INIT_MMC1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x002c)
+ #define OMAP4_PM_L3INIT_MMC2_WKDEP_OFFSET		0x0030
+-#define OMAP4430_PM_L3INIT_MMC2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0030)
+ #define OMAP4_RM_L3INIT_MMC2_CONTEXT_OFFSET		0x0034
+-#define OMAP4430_RM_L3INIT_MMC2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0034)
+ #define OMAP4_PM_L3INIT_HSI_WKDEP_OFFSET		0x0038
+-#define OMAP4430_PM_L3INIT_HSI_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0038)
+ #define OMAP4_RM_L3INIT_HSI_CONTEXT_OFFSET		0x003c
+-#define OMAP4430_RM_L3INIT_HSI_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x003c)
+ #define OMAP4_PM_L3INIT_USB_HOST_WKDEP_OFFSET		0x0058
+-#define OMAP4430_PM_L3INIT_USB_HOST_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0058)
+ #define OMAP4_RM_L3INIT_USB_HOST_CONTEXT_OFFSET		0x005c
+-#define OMAP4430_RM_L3INIT_USB_HOST_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x005c)
+ #define OMAP4_PM_L3INIT_USB_OTG_WKDEP_OFFSET		0x0060
+-#define OMAP4430_PM_L3INIT_USB_OTG_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0060)
+ #define OMAP4_RM_L3INIT_USB_OTG_CONTEXT_OFFSET		0x0064
+-#define OMAP4430_RM_L3INIT_USB_OTG_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0064)
+ #define OMAP4_PM_L3INIT_USB_TLL_WKDEP_OFFSET		0x0068
+-#define OMAP4430_PM_L3INIT_USB_TLL_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0068)
+ #define OMAP4_RM_L3INIT_USB_TLL_CONTEXT_OFFSET		0x006c
+-#define OMAP4430_RM_L3INIT_USB_TLL_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x006c)
+ #define OMAP4_PM_L3INIT_USB_HOST_FS_WKDEP_OFFSET	0x00d0
+-#define OMAP4430_PM_L3INIT_USB_HOST_FS_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x00d0)
+ #define OMAP4_RM_L3INIT_USB_HOST_FS_CONTEXT_OFFSET	0x00d4
+-#define OMAP4430_RM_L3INIT_USB_HOST_FS_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x00d4)
+ #define OMAP4_RM_L3INIT_USBPHYOCP2SCP_CONTEXT_OFFSET	0x00e4
+-#define OMAP4430_RM_L3INIT_USBPHYOCP2SCP_CONTEXT	OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x00e4)
+ 
+ /* PRM.L4PER_PRM register offsets */
+ #define OMAP4_PM_L4PER_PWRSTCTRL_OFFSET			0x0000
+-#define OMAP4430_PM_L4PER_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0000)
+ #define OMAP4_PM_L4PER_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_L4PER_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0004)
+ #define OMAP4_PM_L4PER_DMTIMER10_WKDEP_OFFSET		0x0028
+-#define OMAP4430_PM_L4PER_DMTIMER10_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0028)
+ #define OMAP4_RM_L4PER_DMTIMER10_CONTEXT_OFFSET		0x002c
+-#define OMAP4430_RM_L4PER_DMTIMER10_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x002c)
+ #define OMAP4_PM_L4PER_DMTIMER11_WKDEP_OFFSET		0x0030
+-#define OMAP4430_PM_L4PER_DMTIMER11_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0030)
+ #define OMAP4_RM_L4PER_DMTIMER11_CONTEXT_OFFSET		0x0034
+-#define OMAP4430_RM_L4PER_DMTIMER11_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0034)
+ #define OMAP4_PM_L4PER_DMTIMER2_WKDEP_OFFSET		0x0038
+-#define OMAP4430_PM_L4PER_DMTIMER2_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0038)
+ #define OMAP4_RM_L4PER_DMTIMER2_CONTEXT_OFFSET		0x003c
+-#define OMAP4430_RM_L4PER_DMTIMER2_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x003c)
+ #define OMAP4_PM_L4PER_DMTIMER3_WKDEP_OFFSET		0x0040
+-#define OMAP4430_PM_L4PER_DMTIMER3_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0040)
+ #define OMAP4_RM_L4PER_DMTIMER3_CONTEXT_OFFSET		0x0044
+-#define OMAP4430_RM_L4PER_DMTIMER3_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0044)
+ #define OMAP4_PM_L4PER_DMTIMER4_WKDEP_OFFSET		0x0048
+-#define OMAP4430_PM_L4PER_DMTIMER4_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0048)
+ #define OMAP4_RM_L4PER_DMTIMER4_CONTEXT_OFFSET		0x004c
+-#define OMAP4430_RM_L4PER_DMTIMER4_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x004c)
+ #define OMAP4_PM_L4PER_DMTIMER9_WKDEP_OFFSET		0x0050
+-#define OMAP4430_PM_L4PER_DMTIMER9_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0050)
+ #define OMAP4_RM_L4PER_DMTIMER9_CONTEXT_OFFSET		0x0054
+-#define OMAP4430_RM_L4PER_DMTIMER9_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0054)
+ #define OMAP4_RM_L4PER_ELM_CONTEXT_OFFSET		0x005c
+-#define OMAP4430_RM_L4PER_ELM_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x005c)
+ #define OMAP4_PM_L4PER_GPIO2_WKDEP_OFFSET		0x0060
+-#define OMAP4430_PM_L4PER_GPIO2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0060)
+ #define OMAP4_RM_L4PER_GPIO2_CONTEXT_OFFSET		0x0064
+-#define OMAP4430_RM_L4PER_GPIO2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0064)
+ #define OMAP4_PM_L4PER_GPIO3_WKDEP_OFFSET		0x0068
+-#define OMAP4430_PM_L4PER_GPIO3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0068)
+ #define OMAP4_RM_L4PER_GPIO3_CONTEXT_OFFSET		0x006c
+-#define OMAP4430_RM_L4PER_GPIO3_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x006c)
+ #define OMAP4_PM_L4PER_GPIO4_WKDEP_OFFSET		0x0070
+-#define OMAP4430_PM_L4PER_GPIO4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0070)
+ #define OMAP4_RM_L4PER_GPIO4_CONTEXT_OFFSET		0x0074
+-#define OMAP4430_RM_L4PER_GPIO4_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0074)
+ #define OMAP4_PM_L4PER_GPIO5_WKDEP_OFFSET		0x0078
+-#define OMAP4430_PM_L4PER_GPIO5_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0078)
+ #define OMAP4_RM_L4PER_GPIO5_CONTEXT_OFFSET		0x007c
+-#define OMAP4430_RM_L4PER_GPIO5_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x007c)
+ #define OMAP4_PM_L4PER_GPIO6_WKDEP_OFFSET		0x0080
+-#define OMAP4430_PM_L4PER_GPIO6_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0080)
+ #define OMAP4_RM_L4PER_GPIO6_CONTEXT_OFFSET		0x0084
+-#define OMAP4430_RM_L4PER_GPIO6_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0084)
+ #define OMAP4_RM_L4PER_HDQ1W_CONTEXT_OFFSET		0x008c
+-#define OMAP4430_RM_L4PER_HDQ1W_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x008c)
+ #define OMAP4_PM_L4PER_I2C1_WKDEP_OFFSET		0x00a0
+-#define OMAP4430_PM_L4PER_I2C1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00a0)
+ #define OMAP4_RM_L4PER_I2C1_CONTEXT_OFFSET		0x00a4
+-#define OMAP4430_RM_L4PER_I2C1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00a4)
+ #define OMAP4_PM_L4PER_I2C2_WKDEP_OFFSET		0x00a8
+-#define OMAP4430_PM_L4PER_I2C2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00a8)
+ #define OMAP4_RM_L4PER_I2C2_CONTEXT_OFFSET		0x00ac
+-#define OMAP4430_RM_L4PER_I2C2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00ac)
+ #define OMAP4_PM_L4PER_I2C3_WKDEP_OFFSET		0x00b0
+-#define OMAP4430_PM_L4PER_I2C3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00b0)
+ #define OMAP4_RM_L4PER_I2C3_CONTEXT_OFFSET		0x00b4
+-#define OMAP4430_RM_L4PER_I2C3_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00b4)
+ #define OMAP4_PM_L4PER_I2C4_WKDEP_OFFSET		0x00b8
+-#define OMAP4430_PM_L4PER_I2C4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00b8)
+ #define OMAP4_RM_L4PER_I2C4_CONTEXT_OFFSET		0x00bc
+-#define OMAP4430_RM_L4PER_I2C4_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00bc)
+ #define OMAP4_RM_L4PER_L4_PER_CONTEXT_OFFSET		0x00c0
+-#define OMAP4430_RM_L4PER_L4_PER_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00c0)
+ #define OMAP4_PM_L4PER_MCBSP4_WKDEP_OFFSET		0x00e0
+-#define OMAP4430_PM_L4PER_MCBSP4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00e0)
+ #define OMAP4_RM_L4PER_MCBSP4_CONTEXT_OFFSET		0x00e4
+-#define OMAP4430_RM_L4PER_MCBSP4_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00e4)
+ #define OMAP4_PM_L4PER_MCSPI1_WKDEP_OFFSET		0x00f0
+-#define OMAP4430_PM_L4PER_MCSPI1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00f0)
+ #define OMAP4_RM_L4PER_MCSPI1_CONTEXT_OFFSET		0x00f4
+-#define OMAP4430_RM_L4PER_MCSPI1_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00f4)
+ #define OMAP4_PM_L4PER_MCSPI2_WKDEP_OFFSET		0x00f8
+-#define OMAP4430_PM_L4PER_MCSPI2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00f8)
+ #define OMAP4_RM_L4PER_MCSPI2_CONTEXT_OFFSET		0x00fc
+-#define OMAP4430_RM_L4PER_MCSPI2_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00fc)
+ #define OMAP4_PM_L4PER_MCSPI3_WKDEP_OFFSET		0x0100
+-#define OMAP4430_PM_L4PER_MCSPI3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0100)
+ #define OMAP4_RM_L4PER_MCSPI3_CONTEXT_OFFSET		0x0104
+-#define OMAP4430_RM_L4PER_MCSPI3_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0104)
+ #define OMAP4_PM_L4PER_MCSPI4_WKDEP_OFFSET		0x0108
+-#define OMAP4430_PM_L4PER_MCSPI4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0108)
+ #define OMAP4_RM_L4PER_MCSPI4_CONTEXT_OFFSET		0x010c
+-#define OMAP4430_RM_L4PER_MCSPI4_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x010c)
+ #define OMAP4_PM_L4PER_MMCSD3_WKDEP_OFFSET		0x0120
+-#define OMAP4430_PM_L4PER_MMCSD3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0120)
+ #define OMAP4_RM_L4PER_MMCSD3_CONTEXT_OFFSET		0x0124
+-#define OMAP4430_RM_L4PER_MMCSD3_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0124)
+ #define OMAP4_PM_L4PER_MMCSD4_WKDEP_OFFSET		0x0128
+-#define OMAP4430_PM_L4PER_MMCSD4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0128)
+ #define OMAP4_RM_L4PER_MMCSD4_CONTEXT_OFFSET		0x012c
+-#define OMAP4430_RM_L4PER_MMCSD4_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x012c)
+ #define OMAP4_PM_L4PER_SLIMBUS2_WKDEP_OFFSET		0x0138
+-#define OMAP4430_PM_L4PER_SLIMBUS2_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0138)
+ #define OMAP4_RM_L4PER_SLIMBUS2_CONTEXT_OFFSET		0x013c
+-#define OMAP4430_RM_L4PER_SLIMBUS2_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x013c)
+ #define OMAP4_PM_L4PER_UART1_WKDEP_OFFSET		0x0140
+-#define OMAP4430_PM_L4PER_UART1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0140)
+ #define OMAP4_RM_L4PER_UART1_CONTEXT_OFFSET		0x0144
+-#define OMAP4430_RM_L4PER_UART1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0144)
+ #define OMAP4_PM_L4PER_UART2_WKDEP_OFFSET		0x0148
+-#define OMAP4430_PM_L4PER_UART2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0148)
+ #define OMAP4_RM_L4PER_UART2_CONTEXT_OFFSET		0x014c
+-#define OMAP4430_RM_L4PER_UART2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x014c)
+ #define OMAP4_PM_L4PER_UART3_WKDEP_OFFSET		0x0150
+-#define OMAP4430_PM_L4PER_UART3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0150)
+ #define OMAP4_RM_L4PER_UART3_CONTEXT_OFFSET		0x0154
+-#define OMAP4430_RM_L4PER_UART3_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0154)
+ #define OMAP4_PM_L4PER_UART4_WKDEP_OFFSET		0x0158
+-#define OMAP4430_PM_L4PER_UART4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0158)
+ #define OMAP4_RM_L4PER_UART4_CONTEXT_OFFSET		0x015c
+-#define OMAP4430_RM_L4PER_UART4_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x015c)
+ #define OMAP4_PM_L4PER_MMCSD5_WKDEP_OFFSET		0x0160
+-#define OMAP4430_PM_L4PER_MMCSD5_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0160)
+ #define OMAP4_RM_L4PER_MMCSD5_CONTEXT_OFFSET		0x0164
+-#define OMAP4430_RM_L4PER_MMCSD5_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0164)
+ #define OMAP4_PM_L4PER_I2C5_WKDEP_OFFSET		0x0168
+-#define OMAP4430_PM_L4PER_I2C5_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0168)
+ #define OMAP4_RM_L4PER_I2C5_CONTEXT_OFFSET		0x016c
+-#define OMAP4430_RM_L4PER_I2C5_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x016c)
+ #define OMAP4_RM_L4SEC_AES1_CONTEXT_OFFSET		0x01a4
+-#define OMAP4430_RM_L4SEC_AES1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01a4)
+ #define OMAP4_RM_L4SEC_AES2_CONTEXT_OFFSET		0x01ac
+-#define OMAP4430_RM_L4SEC_AES2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01ac)
+ #define OMAP4_RM_L4SEC_DES3DES_CONTEXT_OFFSET		0x01b4
+-#define OMAP4430_RM_L4SEC_DES3DES_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01b4)
+ #define OMAP4_RM_L4SEC_PKAEIP29_CONTEXT_OFFSET		0x01bc
+-#define OMAP4430_RM_L4SEC_PKAEIP29_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01bc)
+ #define OMAP4_RM_L4SEC_RNG_CONTEXT_OFFSET		0x01c4
+-#define OMAP4430_RM_L4SEC_RNG_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01c4)
+ #define OMAP4_RM_L4SEC_SHA2MD51_CONTEXT_OFFSET		0x01cc
+-#define OMAP4430_RM_L4SEC_SHA2MD51_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01cc)
+ #define OMAP4_RM_L4SEC_CRYPTODMA_CONTEXT_OFFSET		0x01dc
+-#define OMAP4430_RM_L4SEC_CRYPTODMA_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01dc)
+ 
+ /* PRM.CEFUSE_PRM register offsets */
+ #define OMAP4_PM_CEFUSE_PWRSTCTRL_OFFSET		0x0000
+-#define OMAP4430_PM_CEFUSE_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CEFUSE_INST, 0x0000)
+ #define OMAP4_PM_CEFUSE_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_CEFUSE_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CEFUSE_INST, 0x0004)
+ #define OMAP4_RM_CEFUSE_CEFUSE_CONTEXT_OFFSET		0x0024
+-#define OMAP4430_RM_CEFUSE_CEFUSE_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CEFUSE_INST, 0x0024)
+ 
+ /* PRM.WKUP_PRM register offsets */
+ #define OMAP4_RM_WKUP_L4WKUP_CONTEXT_OFFSET		0x0024
+-#define OMAP4430_RM_WKUP_L4WKUP_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0024)
+ #define OMAP4_RM_WKUP_WDT1_CONTEXT_OFFSET		0x002c
+-#define OMAP4430_RM_WKUP_WDT1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x002c)
+ #define OMAP4_PM_WKUP_WDT2_WKDEP_OFFSET			0x0030
+-#define OMAP4430_PM_WKUP_WDT2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0030)
+ #define OMAP4_RM_WKUP_WDT2_CONTEXT_OFFSET		0x0034
+-#define OMAP4430_RM_WKUP_WDT2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0034)
+ #define OMAP4_PM_WKUP_GPIO1_WKDEP_OFFSET		0x0038
+-#define OMAP4430_PM_WKUP_GPIO1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0038)
+ #define OMAP4_RM_WKUP_GPIO1_CONTEXT_OFFSET		0x003c
+-#define OMAP4430_RM_WKUP_GPIO1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x003c)
+ #define OMAP4_PM_WKUP_TIMER1_WKDEP_OFFSET		0x0040
+-#define OMAP4430_PM_WKUP_TIMER1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0040)
+ #define OMAP4_RM_WKUP_TIMER1_CONTEXT_OFFSET		0x0044
+-#define OMAP4430_RM_WKUP_TIMER1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0044)
+ #define OMAP4_PM_WKUP_TIMER12_WKDEP_OFFSET		0x0048
+-#define OMAP4430_PM_WKUP_TIMER12_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0048)
+ #define OMAP4_RM_WKUP_TIMER12_CONTEXT_OFFSET		0x004c
+-#define OMAP4430_RM_WKUP_TIMER12_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x004c)
+ #define OMAP4_RM_WKUP_SYNCTIMER_CONTEXT_OFFSET		0x0054
+-#define OMAP4430_RM_WKUP_SYNCTIMER_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0054)
+ #define OMAP4_PM_WKUP_USIM_WKDEP_OFFSET			0x0058
+-#define OMAP4430_PM_WKUP_USIM_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0058)
+ #define OMAP4_RM_WKUP_USIM_CONTEXT_OFFSET		0x005c
+-#define OMAP4430_RM_WKUP_USIM_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x005c)
+ #define OMAP4_RM_WKUP_SARRAM_CONTEXT_OFFSET		0x0064
+-#define OMAP4430_RM_WKUP_SARRAM_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0064)
+ #define OMAP4_PM_WKUP_KEYBOARD_WKDEP_OFFSET		0x0078
+-#define OMAP4430_PM_WKUP_KEYBOARD_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0078)
+ #define OMAP4_RM_WKUP_KEYBOARD_CONTEXT_OFFSET		0x007c
+-#define OMAP4430_RM_WKUP_KEYBOARD_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x007c)
+ 
+ /* PRM.WKUP_CM register offsets */
+ #define OMAP4_CM_WKUP_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM_WKUP_CLKSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_CM_INST, 0x0000)
+ #define OMAP4_CM_WKUP_L4WKUP_CLKCTRL_OFFSET		0x0020
+ #define OMAP4430_CM_WKUP_L4WKUP_CLKCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_CM_INST, 0x0020)
+ #define OMAP4_CM_WKUP_WDT1_CLKCTRL_OFFSET		0x0028
+@@ -538,147 +337,79 @@
+ 
+ /* PRM.EMU_PRM register offsets */
+ #define OMAP4_PM_EMU_PWRSTCTRL_OFFSET			0x0000
+-#define OMAP4430_PM_EMU_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_INST, 0x0000)
+ #define OMAP4_PM_EMU_PWRSTST_OFFSET			0x0004
+-#define OMAP4430_PM_EMU_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_INST, 0x0004)
+ #define OMAP4_RM_EMU_DEBUGSS_CONTEXT_OFFSET		0x0024
+-#define OMAP4430_RM_EMU_DEBUGSS_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_INST, 0x0024)
+ 
+ /* PRM.EMU_CM register offsets */
+ #define OMAP4_CM_EMU_CLKSTCTRL_OFFSET			0x0000
+-#define OMAP4430_CM_EMU_CLKSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_CM_INST, 0x0000)
+ #define OMAP4_CM_EMU_DYNAMICDEP_OFFSET			0x0008
+-#define OMAP4430_CM_EMU_DYNAMICDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_CM_INST, 0x0008)
+ #define OMAP4_CM_EMU_DEBUGSS_CLKCTRL_OFFSET		0x0020
+ #define OMAP4430_CM_EMU_DEBUGSS_CLKCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_CM_INST, 0x0020)
+ 
+ /* PRM.DEVICE_PRM register offsets */
+ #define OMAP4_PRM_RSTCTRL_OFFSET			0x0000
+-#define OMAP4430_PRM_RSTCTRL				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0000)
+ #define OMAP4_PRM_RSTST_OFFSET				0x0004
+-#define OMAP4430_PRM_RSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0004)
+ #define OMAP4_PRM_RSTTIME_OFFSET			0x0008
+-#define OMAP4430_PRM_RSTTIME				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0008)
+ #define OMAP4_PRM_CLKREQCTRL_OFFSET			0x000c
+-#define OMAP4430_PRM_CLKREQCTRL				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x000c)
+ #define OMAP4_PRM_VOLTCTRL_OFFSET			0x0010
+-#define OMAP4430_PRM_VOLTCTRL				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0010)
+ #define OMAP4_PRM_PWRREQCTRL_OFFSET			0x0014
+-#define OMAP4430_PRM_PWRREQCTRL				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0014)
+ #define OMAP4_PRM_PSCON_COUNT_OFFSET			0x0018
+-#define OMAP4430_PRM_PSCON_COUNT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0018)
+ #define OMAP4_PRM_IO_COUNT_OFFSET			0x001c
+-#define OMAP4430_PRM_IO_COUNT				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x001c)
+ #define OMAP4_PRM_IO_PMCTRL_OFFSET			0x0020
+-#define OMAP4430_PRM_IO_PMCTRL				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0020)
+ #define OMAP4_PRM_VOLTSETUP_WARMRESET_OFFSET		0x0024
+-#define OMAP4430_PRM_VOLTSETUP_WARMRESET		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0024)
+ #define OMAP4_PRM_VOLTSETUP_CORE_OFF_OFFSET		0x0028
+-#define OMAP4430_PRM_VOLTSETUP_CORE_OFF			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0028)
+ #define OMAP4_PRM_VOLTSETUP_MPU_OFF_OFFSET		0x002c
+-#define OMAP4430_PRM_VOLTSETUP_MPU_OFF			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x002c)
+ #define OMAP4_PRM_VOLTSETUP_IVA_OFF_OFFSET		0x0030
+-#define OMAP4430_PRM_VOLTSETUP_IVA_OFF			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0030)
+ #define OMAP4_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET	0x0034
+-#define OMAP4430_PRM_VOLTSETUP_CORE_RET_SLEEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0034)
+ #define OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET	0x0038
+-#define OMAP4430_PRM_VOLTSETUP_MPU_RET_SLEEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0038)
+ #define OMAP4_PRM_VOLTSETUP_IVA_RET_SLEEP_OFFSET	0x003c
+-#define OMAP4430_PRM_VOLTSETUP_IVA_RET_SLEEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x003c)
+ #define OMAP4_PRM_VP_CORE_CONFIG_OFFSET			0x0040
+-#define OMAP4430_PRM_VP_CORE_CONFIG			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0040)
+ #define OMAP4_PRM_VP_CORE_STATUS_OFFSET			0x0044
+-#define OMAP4430_PRM_VP_CORE_STATUS			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0044)
+ #define OMAP4_PRM_VP_CORE_VLIMITTO_OFFSET		0x0048
+-#define OMAP4430_PRM_VP_CORE_VLIMITTO			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0048)
+ #define OMAP4_PRM_VP_CORE_VOLTAGE_OFFSET		0x004c
+-#define OMAP4430_PRM_VP_CORE_VOLTAGE			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x004c)
+ #define OMAP4_PRM_VP_CORE_VSTEPMAX_OFFSET		0x0050
+-#define OMAP4430_PRM_VP_CORE_VSTEPMAX			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0050)
+ #define OMAP4_PRM_VP_CORE_VSTEPMIN_OFFSET		0x0054
+-#define OMAP4430_PRM_VP_CORE_VSTEPMIN			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0054)
+ #define OMAP4_PRM_VP_MPU_CONFIG_OFFSET			0x0058
+-#define OMAP4430_PRM_VP_MPU_CONFIG			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0058)
+ #define OMAP4_PRM_VP_MPU_STATUS_OFFSET			0x005c
+-#define OMAP4430_PRM_VP_MPU_STATUS			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x005c)
+ #define OMAP4_PRM_VP_MPU_VLIMITTO_OFFSET		0x0060
+-#define OMAP4430_PRM_VP_MPU_VLIMITTO			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0060)
+ #define OMAP4_PRM_VP_MPU_VOLTAGE_OFFSET			0x0064
+-#define OMAP4430_PRM_VP_MPU_VOLTAGE			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0064)
+ #define OMAP4_PRM_VP_MPU_VSTEPMAX_OFFSET		0x0068
+-#define OMAP4430_PRM_VP_MPU_VSTEPMAX			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0068)
+ #define OMAP4_PRM_VP_MPU_VSTEPMIN_OFFSET		0x006c
+-#define OMAP4430_PRM_VP_MPU_VSTEPMIN			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x006c)
+ #define OMAP4_PRM_VP_IVA_CONFIG_OFFSET			0x0070
+-#define OMAP4430_PRM_VP_IVA_CONFIG			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0070)
+ #define OMAP4_PRM_VP_IVA_STATUS_OFFSET			0x0074
+-#define OMAP4430_PRM_VP_IVA_STATUS			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0074)
+ #define OMAP4_PRM_VP_IVA_VLIMITTO_OFFSET		0x0078
+-#define OMAP4430_PRM_VP_IVA_VLIMITTO			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0078)
+ #define OMAP4_PRM_VP_IVA_VOLTAGE_OFFSET			0x007c
+-#define OMAP4430_PRM_VP_IVA_VOLTAGE			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x007c)
+ #define OMAP4_PRM_VP_IVA_VSTEPMAX_OFFSET		0x0080
+-#define OMAP4430_PRM_VP_IVA_VSTEPMAX			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0080)
+ #define OMAP4_PRM_VP_IVA_VSTEPMIN_OFFSET		0x0084
+-#define OMAP4430_PRM_VP_IVA_VSTEPMIN			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0084)
+ #define OMAP4_PRM_VC_SMPS_SA_OFFSET			0x0088
+-#define OMAP4430_PRM_VC_SMPS_SA				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0088)
+ #define OMAP4_PRM_VC_VAL_SMPS_RA_VOL_OFFSET		0x008c
+-#define OMAP4430_PRM_VC_VAL_SMPS_RA_VOL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x008c)
+ #define OMAP4_PRM_VC_VAL_SMPS_RA_CMD_OFFSET		0x0090
+-#define OMAP4430_PRM_VC_VAL_SMPS_RA_CMD			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0090)
+ #define OMAP4_PRM_VC_VAL_CMD_VDD_CORE_L_OFFSET		0x0094
+-#define OMAP4430_PRM_VC_VAL_CMD_VDD_CORE_L		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0094)
+ #define OMAP4_PRM_VC_VAL_CMD_VDD_MPU_L_OFFSET		0x0098
+-#define OMAP4430_PRM_VC_VAL_CMD_VDD_MPU_L		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0098)
+ #define OMAP4_PRM_VC_VAL_CMD_VDD_IVA_L_OFFSET		0x009c
+-#define OMAP4430_PRM_VC_VAL_CMD_VDD_IVA_L		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x009c)
+ #define OMAP4_PRM_VC_VAL_BYPASS_OFFSET			0x00a0
+-#define OMAP4430_PRM_VC_VAL_BYPASS			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00a0)
+ #define OMAP4_PRM_VC_CFG_CHANNEL_OFFSET			0x00a4
+-#define OMAP4430_PRM_VC_CFG_CHANNEL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00a4)
+ #define OMAP4_PRM_VC_CFG_I2C_MODE_OFFSET		0x00a8
+-#define OMAP4430_PRM_VC_CFG_I2C_MODE			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00a8)
+ #define OMAP4_PRM_VC_CFG_I2C_CLK_OFFSET			0x00ac
+-#define OMAP4430_PRM_VC_CFG_I2C_CLK			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00ac)
+ #define OMAP4_PRM_SRAM_COUNT_OFFSET			0x00b0
+-#define OMAP4430_PRM_SRAM_COUNT				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00b0)
+ #define OMAP4_PRM_SRAM_WKUP_SETUP_OFFSET		0x00b4
+-#define OMAP4430_PRM_SRAM_WKUP_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00b4)
+ #define OMAP4_PRM_LDO_SRAM_CORE_SETUP_OFFSET		0x00b8
+-#define OMAP4430_PRM_LDO_SRAM_CORE_SETUP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00b8)
+ #define OMAP4_PRM_LDO_SRAM_CORE_CTRL_OFFSET		0x00bc
+-#define OMAP4430_PRM_LDO_SRAM_CORE_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00bc)
+ #define OMAP4_PRM_LDO_SRAM_MPU_SETUP_OFFSET		0x00c0
+-#define OMAP4430_PRM_LDO_SRAM_MPU_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00c0)
+ #define OMAP4_PRM_LDO_SRAM_MPU_CTRL_OFFSET		0x00c4
+-#define OMAP4430_PRM_LDO_SRAM_MPU_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00c4)
+ #define OMAP4_PRM_LDO_SRAM_IVA_SETUP_OFFSET		0x00c8
+-#define OMAP4430_PRM_LDO_SRAM_IVA_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00c8)
+ #define OMAP4_PRM_LDO_SRAM_IVA_CTRL_OFFSET		0x00cc
+-#define OMAP4430_PRM_LDO_SRAM_IVA_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00cc)
+ #define OMAP4_PRM_LDO_ABB_MPU_SETUP_OFFSET		0x00d0
+-#define OMAP4430_PRM_LDO_ABB_MPU_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00d0)
+ #define OMAP4_PRM_LDO_ABB_MPU_CTRL_OFFSET		0x00d4
+-#define OMAP4430_PRM_LDO_ABB_MPU_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00d4)
+ #define OMAP4_PRM_LDO_ABB_IVA_SETUP_OFFSET		0x00d8
+-#define OMAP4430_PRM_LDO_ABB_IVA_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00d8)
+ #define OMAP4_PRM_LDO_ABB_IVA_CTRL_OFFSET		0x00dc
+-#define OMAP4430_PRM_LDO_ABB_IVA_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00dc)
+ #define OMAP4_PRM_LDO_BANDGAP_SETUP_OFFSET		0x00e0
+-#define OMAP4430_PRM_LDO_BANDGAP_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00e0)
+ #define OMAP4_PRM_DEVICE_OFF_CTRL_OFFSET		0x00e4
+-#define OMAP4430_PRM_DEVICE_OFF_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00e4)
+ #define OMAP4_PRM_PHASE1_CNDP_OFFSET			0x00e8
+-#define OMAP4430_PRM_PHASE1_CNDP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00e8)
+ #define OMAP4_PRM_PHASE2A_CNDP_OFFSET			0x00ec
+-#define OMAP4430_PRM_PHASE2A_CNDP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00ec)
+ #define OMAP4_PRM_PHASE2B_CNDP_OFFSET			0x00f0
+-#define OMAP4430_PRM_PHASE2B_CNDP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00f0)
+ #define OMAP4_PRM_MODEM_IF_CTRL_OFFSET			0x00f4
+-#define OMAP4430_PRM_MODEM_IF_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00f4)
+ #define OMAP4_PRM_VC_ERRST_OFFSET			0x00f8
+-#define OMAP4430_PRM_VC_ERRST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00f8)
+ 
+ /* Function prototypes */
+ # ifndef __ASSEMBLER__
 -- 
 1.7.0.4
 
