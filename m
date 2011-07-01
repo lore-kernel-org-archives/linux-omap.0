@@ -1,37 +1,39 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv4 7/9] OMAP: hwmod: enable / disable pad wakeups for a module dynamically
-Date: Fri, 01 Jul 2011 15:18:17 -0700
-Message-ID: <87mxgxsl06.fsf@ti.com>
-References: <1309338303-2086-1-git-send-email-t-kristo@ti.com>
-	<1309338303-2086-8-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH] PM / Runtime: Update documentation regarding driver removal
+Date: Fri, 01 Jul 2011 15:49:45 -0700
+Message-ID: <8739ipsjjq.fsf@ti.com>
+References: <Pine.LNX.4.44L0.1107011711370.1624-100000@iolanthe.rowland.org>
+	<201107020012.29661.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:36492 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756640Ab1GAWSV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 18:18:21 -0400
-Received: by mail-pz0-f52.google.com with SMTP id 13so4615081pzd.11
-        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 15:18:20 -0700 (PDT)
-In-Reply-To: <1309338303-2086-8-git-send-email-t-kristo@ti.com> (Tero Kristo's
-	message of "Wed, 29 Jun 2011 12:05:01 +0300")
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:56985 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757921Ab1GAWtt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 18:49:49 -0400
+Received: by pvf24 with SMTP id 24so3308928pvf.20
+        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 15:49:48 -0700 (PDT)
+In-Reply-To: <201107020012.29661.rjw@sisk.pl> (Rafael J. Wysocki's message of
+	"Sat, 2 Jul 2011 00:12:29 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tero Kristo <t-kristo@ti.com> writes:
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-> PRCM chain interrupt registration is done now as part of
-> omap_hwmod_enable_wakeup() and omap_hwmod_disable_wakeup() calls. This
-> allows module ISR:s to be called when the module is idle but an IO_PAD
-> event is detected on the module input pads.
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+>
+> Commit e1866b33b1e89f077b7132daae3dfd9a594e9a1a (PM / Runtime: Rework
+> runtime PM handling during driver removal) forgot to update the
+> documentation in Documentation/power/runtime_pm.txt to match the new
+> code in drivers/base/dd.c.  Update that documentation to match the
+> code it describes.
+>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-These functions are the enable/disable for module-level wakeups, you
-need to use the proposed enable/disable functions for IO ring wakeups as
-proposed in the patch from Govindraj[1].
+Reviewed-by: Kevin Hilman <khilman@ti.com>
 
-I'm hoping that patch will be queued for v3.1, but will wait for Paul's
-comments on that patch.
+Thanks, it's clear now.
 
 Kevin
