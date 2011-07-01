@@ -1,71 +1,48 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] arm: omap: fix the alphabetical order
-Date: Thu, 30 Jun 2011 19:36:19 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1106301935480.27025@utopia.booyaka.com>
-References: <1309434503-1737-1-git-send-email-balbi@ti.com> <1309435611-2068-1-git-send-email-balbi@ti.com> <BANLkTin4HPEkKQi0TB-4-9JXz_ockTwwcQ@mail.gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 0/7] OMAP4: Add 4460 base support
+Date: Fri, 1 Jul 2011 07:37:54 +0530
+Message-ID: <1309486081-8257-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-111817376-1309484179=:27025"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57370 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753321Ab1GABgU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 21:36:20 -0400
-In-Reply-To: <BANLkTin4HPEkKQi0TB-4-9JXz_ockTwwcQ@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54648 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752149Ab1GACIO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Jun 2011 22:08:14 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Silesh C V <silesh@ti.com>, Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This series adds base support needed to be able
+to boot on a OMAP4460 device.
+Patches are based on Benoit's for_3.0.1/7_hwmod_modulemode
+branch and boot tested on both 4460sdp as well as 4430sdp.
 
---155748971-111817376-1309484179=:27025
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Aneesh V (2):
+  OMAP: ID: introduce chip detection for OMAP4460
+  OMAP4: ID: add omap_has_feature for max freq supported
 
-On Fri, 1 Jul 2011, Silesh C V wrote:
+Rajendra Nayak (5):
+  OMAP4: PRCM: OMAP4460 specific PRM and CM register bitshifts
+  OMAP4: clocks: Update the clock tree with 4460 clock nodes
+  OMAP4: powerdomain: Reuse on 4460 using CHIP_IS_44XX
+  OMAP4: clockdomain: Reuse on 4460 using CHIP_IS_44XX
+  4460sdp/blaze/panda: hwmod: Prevent gpio1 reset during hwmod init
 
-> On Thu, Jun 30, 2011 at 9:06 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > That might have been correct on some ancient
-> > dead language, but I like better when things
-> > are recent.
-> >
-> > Fix the alphabetical order.
-> >
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >
-> > Fixed missing comma after Richard's name and removed
-> > comma after Vikram's name.
-> >
-> > Thanks Charulatha Varadarajan for spotting those two.
-> >
-> > =A0arch/arm/plat-omap/include/plat/omap_device.h | =A0 =A07 +++----
-> > =A01 files changed, 3 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/p=
-lat-omap/include/plat/omap_device.h
-> > index e4c349f..5a2369ba 100644
-> > --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> > +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> > @@ -4,10 +4,9 @@
-> > =A0* Copyright (C) 2009 Nokia Corporation
-> > =A0* Paul Walmsley
-> > =A0*
-> > - * Developed in collaboration with (alphabetical order): Benoit
-> > - * Cousson, Kevin Hilman, Tony Lindgren, Rajendra Nayak, Vikram
-> > - * Pandita, Sakari Poussa, Anand Sawant, Santosh Shilimkar, Richard
-> > - * Woodruff
->=20
-> Looks like the original author was referring to the last names when he
-> meant 'in alphabetical order' which is also correct in a way. So it
-> looks like it is not only correct in a dead ancient language but also
-> in some recent ones. :-)
->=20
-> http://en.wikipedia.org/wiki/Name_order#Name_order
+ arch/arm/mach-omap2/board-4430sdp.c           |   14 ++
+ arch/arm/mach-omap2/board-omap4panda.c        |   14 ++
+ arch/arm/mach-omap2/clock44xx_data.c          |   39 +++++
+ arch/arm/mach-omap2/clockdomains44xx_data.c   |  200 ++++++++++++------------
+ arch/arm/mach-omap2/cm-regbits-44xx.h         |   36 +++++
+ arch/arm/mach-omap2/id.c                      |   44 +++++-
+ arch/arm/mach-omap2/powerdomains44xx_data.c   |   30 ++--
+ arch/arm/mach-omap2/prm-regbits-44xx.h        |    8 +
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |    2 +-
+ arch/arm/plat-omap/include/plat/clock.h       |    3 +-
+ arch/arm/plat-omap/include/plat/cpu.h         |   32 ++++-
+ 11 files changed, 301 insertions(+), 121 deletions(-)
 
-Silesh's conclusion is correct.
+-- 
+1.7.4.1
 
-
-- Paul
---155748971-111817376-1309484179=:27025--
