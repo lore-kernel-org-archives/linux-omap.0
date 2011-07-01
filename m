@@ -1,34 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP4: Keyboard: Mux changes in the board file
-Date: Fri, 1 Jul 2011 00:48:25 -0700
-Message-ID: <20110701074824.GH23145@atomide.com>
-References: <1308831317-17092-1-git-send-email-shubhrajyoti@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [GIT PULL] omap iommu fixes for v3.0-rc
+Date: Fri, 1 Jul 2011 10:51:06 +0300
+Message-ID: <BANLkTikhZhUzyk=31cUOcV3Ygj=BHUrbew@mail.gmail.com>
+References: <BANLkTi=vd2TE6JjueGmY=ydRQRygo8-Q1Q@mail.gmail.com> <20110701070056.GZ23145@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:20967 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755094Ab1GAHs1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 03:48:27 -0400
-Content-Disposition: inline
-In-Reply-To: <1308831317-17092-1-git-send-email-shubhrajyoti@ti.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:60778 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752801Ab1GAHv1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 03:51:27 -0400
+Received: by wwe5 with SMTP id 5so2979248wwe.1
+        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 00:51:26 -0700 (PDT)
+In-Reply-To: <20110701070056.GZ23145@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-* Shubhrajyoti D <shubhrajyoti@ti.com> [110623 05:10]:
-> The mux settings for keypad  are done for omap4430sdp in
-> board file.
+On Fri, Jul 1, 2011 at 10:00 AM, Tony Lindgren <tony@atomide.com> wrote:
+> These look like real fixes, but can you please update the commits
+> with something like "This fixes an issue with foo when doing bar".
 
-Applying into devel-board branch.
+Done, please tell me if it's OK now.
 
-> +static struct omap_board_data keypad_data = {
-> +	.id	    = 1,
-> +	.pads	 = keypad_pads,
-> +	.pads_cnt       = ARRAY_SIZE(keypad_pads),
-> +};
+> Otherwise it's easy to claim that these are "fixes for features that
+> never worked" and it might be hard to justify them this late into
+> the -rc cycle.
 
-Aligned this struct better.
+It seems we did have these issues for quite some time, and these are not
+explicit 3.0 regressions. So they might vaguely fall into the "fixes
+for features that never worked" definition too in a sense.
 
-Tony
+If you prefer to take them into 3.1, that's OK too.
+
+Thanks,
+Ohad.
