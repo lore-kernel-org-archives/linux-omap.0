@@ -1,44 +1,34 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Subject: Build issue.
-Date: Fri, 01 Jul 2011 15:37:10 +0100
-Message-ID: <4E0DDB96.3090707@cam.ac.uk>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] runtime PM usage_count during driver_probe_device()?
+Date: Fri, 1 Jul 2011 10:43:34 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1107011040570.1988-100000@iolanthe.rowland.org>
+References: <87k4c3dktm.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ppsw-41.csi.cam.ac.uk ([131.111.8.141]:37431 "EHLO
-	ppsw-41.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756748Ab1GAO3E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 10:29:04 -0400
-Received: from arcturus.eng.cam.ac.uk ([129.169.154.73]:43396)
-	by ppsw-41.csi.cam.ac.uk (smtp.hermes.cam.ac.uk [131.111.8.156]:25)
-	with esmtpsa (PLAIN:jic23) (TLSv1:DHE-RSA-CAMELLIA256-SHA:256)
-	id 1QceiN-0001T1-Qw (Exim 4.72) for linux-omap@vger.kernel.org
-	(return-path <jic23@cam.ac.uk>); Fri, 01 Jul 2011 15:29:03 +0100
+Received: from iolanthe.rowland.org ([192.131.102.54]:54553 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756689Ab1GAOne (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 10:43:34 -0400
+In-Reply-To: <87k4c3dktm.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-pm@lists.linux-foundation.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-No time to look into this now, but linux next today is giving:
+On Thu, 30 Jun 2011, Kevin Hilman wrote:
 
-  CHK     include/linux/version.h
-  CHK     include/generated/utsrelease.h
-make[1]: `include/generated/mach-types.h' is up to date.
-  CALL    scripts/checksyscalls.sh
-  CHK     include/generated/compile.h
-  CC      drivers/media/video/omap/omap_vout.o
-drivers/media/video/omap/omap_vout.c: In function 'omap_vout_probe':
-drivers/media/video/omap/omap_vout.c:2549:15: error: 'struct omap_dss_driver' has no member named 'set_update_mode'
-drivers/media/video/omap/omap_vout.c:2550:12: error: 'struct omap_dss_driver' has no member named 'set_update_mode'
-drivers/media/video/omap/omap_vout.c:2551:8: error: 'OMAP_DSS_UPDATE_MANUAL' undeclared (first use in this function)
-drivers/media/video/omap/omap_vout.c:2551:8: note: each undeclared identifier is reported only once for each function it appears in
-drivers/media/video/omap/omap_vout.c:2553:15: error: 'struct omap_dss_driver' has no member named 'set_update_mode'
-drivers/media/video/omap/omap_vout.c:2554:12: error: 'struct omap_dss_driver' has no member named 'set_update_mode'
-drivers/media/video/omap/omap_vout.c:2555:8: error: 'OMAP_DSS_UPDATE_AUTO' undeclared (first use in this function)
-make[4]: *** [drivers/media/video/omap/omap_vout.o] Error 1
-make[3]: *** [drivers/media/video/omap] Error 2
-make[2]: *** [drivers/media/video] Error 2
-make[1]: *** [drivers/media] Error 2
-make: *** [drivers] Error 2
+> Another curiosity is that, contrary to the above documentation, there is
+> no usage_count increment before the bus/driver ->remove() (although
+> there is a _get_sync/_put_sync around the sysfs_remove and notifier just
+> before the bus/driver->remove().
 
-Have I missed a relevant patch?
+I hadn't noticed that.  There may be a reason for using get_sync 
+instead of get_noresume, but it isn't explained anywhere.  And it 
+certainly looks like a mistake for the put_sync to occur before the 
+->remove() call instead of after.
+
+This needs to be fixed.
+
+Alan Stern
+
