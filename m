@@ -1,47 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] RETU meets Sparse IRQ
-Date: Fri, 1 Jul 2011 00:55:23 -0700
-Message-ID: <20110701075522.GI23145@atomide.com>
-References: <1309348011-23141-1-git-send-email-balbi@ti.com>
- <c1c24abe84b7634c6751d51e88213424@doppler.thel33t.co.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 00/16] OMAP4: PRCM big spring (late) cleanup
+Date: Fri, 1 Jul 2011 02:23:06 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107010221020.27025@utopia.booyaka.com>
+References: <1308851025-26313-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1431689597-1309508586=:27025"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26186 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754945Ab1GAHz1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 03:55:27 -0400
-Content-Disposition: inline
-In-Reply-To: <c1c24abe84b7634c6751d51e88213424@doppler.thel33t.co.uk>
+Received: from utopia.booyaka.com ([72.9.107.138]:57132 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754902Ab1GAIXH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 04:23:07 -0400
+In-Reply-To: <1308851025-26313-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Leigh Brown <leigh@solinno.co.uk>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org
 
-* Leigh Brown <leigh@solinno.co.uk> [110629 14:14]:
-> On Wed, 29 Jun 2011 14:46:49 +0300, Felipe Balbi wrote:
-> >now with Sparse IRQ numbering, we don't need
-> >to add a bunch of defines in <plat/irqs.h>
-> >
-> >Compile tested with omap2plus_defconfig (+cbus)
-> >and omap1_defconfig (+cbus).
-> >
-> >Felipe Balbi (2):
-> >  cbus: retu: use sparse IRQ numbering
-> >  cbus: retu: stop polluting <plat/irqs.h>
-> >
-> > arch/arm/mach-omap1/board-nokia770.c   |    2 --
-> > arch/arm/mach-omap2/board-n8x0.c       |    2 --
-> > arch/arm/plat-omap/include/plat/irqs.h |   10 +---------
-> > drivers/cbus/retu.c                    |   25
-> >++++++++++++++++---------
-> > include/linux/platform_data/cbus.h     |    2 --
-> > 5 files changed, 17 insertions(+), 24 deletions(-)
-> 
-> Tested-by: Leigh Brown <leigh@solinno.co.uk>
-> 
-> Booted fine on my N810.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Thanks for testing, applying both into cbus branch.
+--155748971-1431689597-1309508586=:27025
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Tony
+Hi Beno=EEt,
+
+On Thu, 23 Jun 2011, Benoit Cousson wrote:
+
+> Here are a bunch of cleanups on almost every PRCM related files.
+> Some of them are purely code moves, and will look like a lot of
+> noise for nothing, but this is needed if we want to keep the files
+> aligned with generator tool and thus ease the future migration to
+> whatever format (common clock framework + DT).
+> Moreover, the diffstat is negative:-)
+
+These look okay to me.  I guess you have at least one change to make to=20
+patch 15; please also cc lakml when you repost.
+
+
+- Paul
+--155748971-1431689597-1309508586=:27025--
