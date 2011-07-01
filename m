@@ -1,107 +1,98 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 8/8] OMAP: hwmod: Move pr_debug to improve the readability
-Date: Fri, 1 Jul 2011 22:54:07 +0200
-Message-ID: <1309553647-14624-9-git-send-email-b-cousson@ti.com>
-References: <1309553647-14624-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v3 02/13] OMAP2+: hwmod: Init clkdm field at boot time
+Date: Fri, 1 Jul 2011 23:09:07 +0200
+Message-ID: <1309554558-19819-3-git-send-email-b-cousson@ti.com>
+References: <1309554558-19819-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58194 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35993 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756864Ab1GAUy2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 16:54:28 -0400
-In-Reply-To: <1309553647-14624-1-git-send-email-b-cousson@ti.com>
+	id S1755066Ab1GAVJc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 17:09:32 -0400
+In-Reply-To: <1309554558-19819-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Move the pr_debug at the top of the function
-to trace the entry even if the first test is failing.
-That help understanding that we entered the function
-but failed in it.
-
-Move the _enable last part out of the test to reduce
-indentation and improve readability.
+At boot time, lookup the clkdm_name to get the clkdm
+structure pointer for further usage.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   32 +++++++++++++++++---------------
- 1 files changed, 17 insertions(+), 15 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c             |   34 +++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 2 files changed, 34 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 64e9830..e530bcb 100644
+index e530bcb..9b6b8c6 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1242,6 +1242,8 @@ static int _enable(struct omap_hwmod *oh)
- {
- 	int r;
+@@ -919,9 +919,40 @@ static struct omap_hwmod *_lookup(const char *name)
  
-+	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
+ 	return oh;
+ }
++/**
++ * _init_clkdm - look up a clockdomain name, store pointer in omap_hwmod
++ * @oh: struct omap_hwmod *
++ *
++ * Convert a clockdomain name stored in a struct omap_hwmod into a
++ * clockdomain pointer, and save it into the struct omap_hwmod.
++ * return -EINVAL if clkdm_name does not exist or if the lookup failed.
++ */
++static int _init_clkdm(struct omap_hwmod *oh)
++{
++	if (cpu_is_omap24xx() || cpu_is_omap34xx())
++		return 0;
 +
- 	if (oh->_state != _HWMOD_STATE_INITIALIZED &&
- 	    oh->_state != _HWMOD_STATE_IDLE &&
- 	    oh->_state != _HWMOD_STATE_DISABLED) {
-@@ -1250,8 +1252,6 @@ static int _enable(struct omap_hwmod *oh)
- 		return -EINVAL;
- 	}
- 
--	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
--
- 	/* Mux pins for device runtime if populated */
- 	if (oh->mux && (!oh->mux->enabled ||
- 			((oh->_state == _HWMOD_STATE_IDLE) &&
-@@ -1271,19 +1271,21 @@ static int _enable(struct omap_hwmod *oh)
- 		_deassert_hardreset(oh, oh->rst_lines[0].name);
- 
- 	r = _wait_target_ready(oh);
--	if (!r) {
--		oh->_state = _HWMOD_STATE_ENABLED;
--
--		/* Access the sysconfig only if the target is ready */
--		if (oh->class->sysc) {
--			if (!(oh->_int_flags & _HWMOD_SYSCONFIG_LOADED))
--				_update_sysc_cache(oh);
--			_enable_sysc(oh);
--		}
--	} else {
--		_disable_clocks(oh);
-+	if (r) {
- 		pr_debug("omap_hwmod: %s: _wait_target_ready: %d\n",
- 			 oh->name, r);
-+		_disable_clocks(oh);
-+
-+		return r;
++	if (!oh->clkdm_name) {
++		pr_warning("omap_hwmod: %s: no clkdm_name\n", oh->name);
++		return -EINVAL;
 +	}
 +
-+	oh->_state = _HWMOD_STATE_ENABLED;
++	oh->clkdm = clkdm_lookup(oh->clkdm_name);
++	if (!oh->clkdm) {
++		pr_warning("omap_hwmod: %s: could not associate to clkdm %s\n",
++			oh->name, oh->clkdm_name);
++		return -EINVAL;
++	}
 +
-+	/* Access the sysconfig only if the target is ready */
-+	if (oh->class->sysc) {
-+		if (!(oh->_int_flags & _HWMOD_SYSCONFIG_LOADED))
-+			_update_sysc_cache(oh);
-+		_enable_sysc(oh);
- 	}
- 
- 	return r;
-@@ -1299,14 +1301,14 @@ static int _enable(struct omap_hwmod *oh)
-  */
- static int _idle(struct omap_hwmod *oh)
- {
-+	pr_debug("omap_hwmod: %s: idling\n", oh->name);
++	pr_debug("omap_hwmod: %s: associated to clkdm %s\n",
++		oh->name, oh->clkdm_name);
 +
- 	if (oh->_state != _HWMOD_STATE_ENABLED) {
- 		WARN(1, "omap_hwmod: %s: idle state can only be entered from "
- 		     "enabled state\n", oh->name);
- 		return -EINVAL;
- 	}
++	return 0;
++}
  
--	pr_debug("omap_hwmod: %s: idling\n", oh->name);
--
- 	if (oh->class->sysc)
- 		_idle_sysc(oh);
- 	_del_initiator_dep(oh, mpu_oh);
+ /**
+- * _init_clocks - clk_get() all clocks associated with this hwmod
++ * _init_clocks - clk_get() all clocks associated with this hwmod. Retrieve as
++ * well the clockdomain.
+  * @oh: struct omap_hwmod *
+  * @data: not used; pass NULL
+  *
+@@ -941,6 +972,7 @@ static int _init_clocks(struct omap_hwmod *oh, void *data)
+ 	ret |= _init_main_clk(oh);
+ 	ret |= _init_interface_clks(oh);
+ 	ret |= _init_opt_clks(oh);
++	ret |= _init_clkdm(oh);
+ 
+ 	if (!ret)
+ 		oh->_state = _HWMOD_STATE_CLKS_INITED;
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 5d77c5b..28ea1c8 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -520,6 +520,7 @@ struct omap_hwmod {
+ 	struct clk			*_clk;
+ 	struct omap_hwmod_opt_clk	*opt_clks;
+ 	char				*clkdm_name;
++	struct clockdomain		*clkdm;
+ 	char				*vdd_name;
+ 	struct voltagedomain		*voltdm;
+ 	struct omap_hwmod_ocp_if	**masters; /* connect to *_IA */
 -- 
 1.7.0.4
 
