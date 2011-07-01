@@ -1,73 +1,37 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] PM / Runtime: Update documentation regarding driver removal
-Date: Sat, 2 Jul 2011 00:12:29 +0200
-Message-ID: <201107020012.29661.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1107011711370.1624-100000@iolanthe.rowland.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv4 7/9] OMAP: hwmod: enable / disable pad wakeups for a module dynamically
+Date: Fri, 01 Jul 2011 15:18:17 -0700
+Message-ID: <87mxgxsl06.fsf@ti.com>
+References: <1309338303-2086-1-git-send-email-t-kristo@ti.com>
+	<1309338303-2086-8-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48904 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756130Ab1GAWLo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 18:11:44 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1107011711370.1624-100000@iolanthe.rowland.org>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:36492 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756640Ab1GAWSV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 18:18:21 -0400
+Received: by mail-pz0-f52.google.com with SMTP id 13so4615081pzd.11
+        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 15:18:20 -0700 (PDT)
+In-Reply-To: <1309338303-2086-8-git-send-email-t-kristo@ti.com> (Tero Kristo's
+	message of "Wed, 29 Jun 2011 12:05:01 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Kevin Hilman <khilman@ti.com>, linux-pm@lists.linux-foundation.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Tero Kristo <t-kristo@ti.com> writes:
 
-Commit e1866b33b1e89f077b7132daae3dfd9a594e9a1a (PM / Runtime: Rework
-runtime PM handling during driver removal) forgot to update the
-documentation in Documentation/power/runtime_pm.txt to match the new
-code in drivers/base/dd.c.  Update that documentation to match the
-code it describes.
+> PRCM chain interrupt registration is done now as part of
+> omap_hwmod_enable_wakeup() and omap_hwmod_disable_wakeup() calls. This
+> allows module ISR:s to be called when the module is idle but an IO_PAD
+> event is detected on the module input pads.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- Documentation/power/runtime_pm.txt |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+These functions are the enable/disable for module-level wakeups, you
+need to use the proposed enable/disable functions for IO ring wakeups as
+proposed in the patch from Govindraj[1].
 
-Index: linux-2.6/Documentation/power/runtime_pm.txt
-===================================================================
---- linux-2.6.orig/Documentation/power/runtime_pm.txt
-+++ linux-2.6/Documentation/power/runtime_pm.txt
-@@ -513,13 +513,29 @@ helper functions described in Section 4.
- should be used.  Of course, for this purpose the device's runtime PM has to be
- enabled earlier by calling pm_runtime_enable().
- 
--If the device bus type's or driver's ->probe() or ->remove() callback runs
-+If the device bus type's or driver's ->probe() callback runs
- pm_runtime_suspend() or pm_runtime_idle() or their asynchronous counterparts,
- they will fail returning -EAGAIN, because the device's usage counter is
--incremented by the core before executing ->probe() and ->remove().  Still, it
--may be desirable to suspend the device as soon as ->probe() or ->remove() has
--finished, so the PM core uses pm_runtime_put_sync() to invoke the
--subsystem-level idle callback for the device at that time.
-+incremented by the driver core before executing ->probe().  Still, it may be
-+desirable to suspend the device as soon as ->probe() has finished, so the driver
-+core uses pm_runtime_put_sync() to invoke the subsystem-level idle callback for
-+the device at that time.
-+
-+Moreover, the driver core prevents runtime PM callbacks from racing with the bus
-+notifier callback in __device_release_driver(), which is necessary, because the
-+notifier is used by some subsystems to carry out operations affecting the
-+runtime PM functionality.  It does so by calling pm_runtime_get_sync() before
-+driver_sysfs_remove() and the BUS_NOTIFY_UNBIND_DRIVER notifications.  This
-+resumes the device if it's in the suspended state and prevents it from
-+being suspended again while those routines are being executed.
-+
-+To allow bus types and drivers to put devices into the suspended state by
-+calling pm_runtime_suspend() from their ->remove() routines, the driver core
-+executes pm_runtime_put_sync() after running the BUS_NOTIFY_UNBIND_DRIVER
-+notifications in __device_release_driver().  This requires bus types and
-+drivers to make their ->remove() callbacks avoid races with runtime PM directly,
-+but also it allows of more flexibility in the handling of devices during the
-+removal of their drivers.
- 
- The user space can effectively disallow the driver of the device to power manage
- it at run time by changing the value of its /sys/devices/.../power/control
+I'm hoping that patch will be queued for v3.1, but will wait for Paul's
+comments on that patch.
 
+Kevin
