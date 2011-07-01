@@ -1,41 +1,76 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 7/8] drivers: introduce rpmsg, a remote-processor messaging bus
-Date: Fri, 1 Jul 2011 18:13:54 +0300
-Message-ID: <BANLkTi=XBVNqNx_dvW87AHHqAKdMJMiMmQ@mail.gmail.com>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
- <1308640714-17961-8-git-send-email-ohad@wizery.com> <20110627222121.GD20865@ponder.secretlab.ca>
- <BANLkTikt08CDJiKNxGF2mKmOhyxHfv21_g@mail.gmail.com> <BANLkTim+CemMz7A3J94e1UywCNd0r1SABQ@mail.gmail.com>
- <BANLkTi=16XEpvhWEAoUt_s5F41czeq2DVQ@mail.gmail.com> <BANLkTikJGHSwqMW2W2YA4EnvJ0yj+9C6ow@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] runtime PM usage_count during driver_probe_device()?
+Date: Fri, 1 Jul 2011 11:25:56 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1107011123590.1988-100000@iolanthe.rowland.org>
+References: <87d3hu6oxo.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BANLkTikJGHSwqMW2W2YA4EnvJ0yj+9C6ow@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:54664 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752456Ab1GAPZ5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 11:25:57 -0400
+In-Reply-To: <87d3hu6oxo.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-pm@lists.linux-foundation.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Jun 29, 2011 at 6:43 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
-> So you are right that device_unregister drops the refcount to zero,
-> but the code still needs to be fixed to not call kfree() directly.
+On Fri, 1 Jul 2011, Kevin Hilman wrote:
 
-Good point, thanks !
+> OK, so the ->probe() part has been explained and makes sense, but I
+> would expect ->remove() to be similarily protected (as the documentation
+> states.)  But that is not the case.  Is that a bug?  If so, patch below
+> makes the code match the documentation.
 
-> It also looks like rpmsg_destroy_channel() needs to be fixed to remove
-> the kfree call
+I suspect it is a bug, but it's hard to be sure.  It's so _blatantly_ 
+wrong that it looks like it was done deliberately.
 
-Yes, I need to remove this direct kfree as well, and indeed just let
-rpmsg_release_device do its thing when the last reference is dropped.
+> Kevin
+> 
+> From eef73ab2feb203bacb57dc35862f2a9969b61593 Mon Sep 17 00:00:00 2001
+> From: Kevin Hilman <khilman@ti.com>
+> Date: Fri, 1 Jul 2011 07:37:47 -0700
+> Subject: [PATCH] driver core: prevent runtime PM races with ->remove()
+> 
+> Runtime PM Documentation states that the runtime PM usage count is
+> incremented during driver ->probe() and ->remove().  This is designed
+> to prevent driver runtime PM races with subsystems which may initiate
+> runtime PM transitions before during and after drivers are loaded.
+> 
+> Current code increments the usage_count during ->probe() but not
+> during ->remove().  This patch fixes the ->remove() part and makes the
+> code match the documentation.
+> 
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+>  drivers/base/dd.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> index 6658da7..47e079d 100644
+> --- a/drivers/base/dd.c
+> +++ b/drivers/base/dd.c
+> @@ -329,13 +329,13 @@ static void __device_release_driver(struct device *dev)
+>  			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+>  						     BUS_NOTIFY_UNBIND_DRIVER,
+>  						     dev);
+> -
+> -		pm_runtime_put_sync(dev);
+> -
+>  		if (dev->bus && dev->bus->remove)
+>  			dev->bus->remove(dev);
+>  		else if (drv->remove)
+>  			drv->remove(dev);
+> +
+> +		pm_runtime_put_sync(dev);
+> +
+>  		devres_release_all(dev);
+>  		dev->driver = NULL;
+>  		klist_remove(&dev->p->knode_driver);
 
-I should also remove the direct kfree when device_register fails: in
-that case, I need only to put_device and let the release handler do
-its thing too.
+To be safer, the put_sync() call should be moved down here.  Or maybe 
+even after the blocking_notifier_call_chain() that occurs here.
 
-> and an extra put_device() call.
+Alan Stern
 
-We need that extra put_device in rpmsg_destroy_channel because
-device_find_child() is doing get_device before returning it.
-
-Thanks, Grant!
-
-Ohad.
