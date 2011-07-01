@@ -1,100 +1,78 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 6/8] OMAP2+: hwmod: Fix the HW reset management
-Date: Fri, 1 Jul 2011 22:54:05 +0200
-Message-ID: <1309553647-14624-7-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 4/8] OMAP2+: hwmod: Do not write the enawakeup bit if SYSC_HAS_ENAWAKEUP is not set
+Date: Fri, 1 Jul 2011 22:54:03 +0200
+Message-ID: <1309553647-14624-5-git-send-email-b-cousson@ti.com>
 References: <1309553647-14624-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58192 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58576 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757110Ab1GAUy0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 16:54:26 -0400
+	id S1757070Ab1GAUyW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 16:54:22 -0400
 In-Reply-To: <1309553647-14624-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-The HW reset must be de-assert after the clocks are enabled
-but before waiting for the target to be ready. Otherwise the
-reset might not work properly since the clock is not running
-to proceed the reset.
+The Type 2 type of IPs will not have any enawakeup bit in their sysconfig.
+Writing to that bit will instead trigger a softreset.
+Check the flag to write this bit only if the module supports it.
 
-De-assert the reset after _enable_clocks and before
-_wait_target_ready.
-Re-assert it only when the clocks are disabled.
-
+Reported-by: Miguel Vadillo <vadillo@ti.com>
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Acked-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   32 ++++++++++++++++----------------
- 1 files changed, 16 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   14 ++++----------
+ 1 files changed, 4 insertions(+), 10 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index f401417..df91bb1 100644
+index cbc2a8a..3800084 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1250,15 +1250,6 @@ static int _enable(struct omap_hwmod *oh)
- 
- 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
- 
--	/*
--	 * If an IP contains only one HW reset line, then de-assert it in order
--	 * to allow to enable the clocks. Otherwise the PRCM will return
--	 * Intransition status, and the init will failed.
--	 */
--	if ((oh->_state == _HWMOD_STATE_INITIALIZED ||
--	     oh->_state == _HWMOD_STATE_DISABLED) && oh->rst_lines_cnt == 1)
--		_deassert_hardreset(oh, oh->rst_lines[0].name);
+@@ -387,8 +387,6 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
+  */
+ static int _enable_wakeup(struct omap_hwmod *oh, u32 *v)
+ {
+-	u32 wakeup_mask;
 -
- 	/* Mux pins for device runtime if populated */
- 	if (oh->mux && (!oh->mux->enabled ||
- 			((oh->_state == _HWMOD_STATE_IDLE) &&
-@@ -1268,6 +1259,15 @@ static int _enable(struct omap_hwmod *oh)
- 	_add_initiator_dep(oh, mpu_oh);
- 	_enable_clocks(oh);
- 
-+	/*
-+	 * If an IP contains only one HW reset line, then de-assert it in order
-+	 * to allow the module state transition. Otherwise the PRCM will return
-+	 * Intransition status, and the init will failed.
-+	 */
-+	if ((oh->_state == _HWMOD_STATE_INITIALIZED ||
-+	     oh->_state == _HWMOD_STATE_DISABLED) && oh->rst_lines_cnt == 1)
-+		_deassert_hardreset(oh, oh->rst_lines[0].name);
-+
- 	r = _wait_target_ready(oh);
- 	if (!r) {
- 		oh->_state = _HWMOD_STATE_ENABLED;
-@@ -1396,13 +1396,6 @@ static int _shutdown(struct omap_hwmod *oh)
- 		_shutdown_sysc(oh);
+ 	if (!oh->class->sysc ||
+ 	    !((oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP) ||
+ 	      (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP) ||
+@@ -400,9 +398,8 @@ static int _enable_wakeup(struct omap_hwmod *oh, u32 *v)
+ 		return -EINVAL;
  	}
  
--	/*
--	 * If an IP contains only one HW reset line, then assert it
--	 * before disabling the clocks and shutting down the IP.
--	 */
--	if (oh->rst_lines_cnt == 1)
--		_assert_hardreset(oh, oh->rst_lines[0].name);
+-	wakeup_mask = (0x1 << oh->class->sysc->sysc_fields->enwkup_shift);
 -
- 	/* clocks and deps are already disabled in idle */
- 	if (oh->_state == _HWMOD_STATE_ENABLED) {
- 		_del_initiator_dep(oh, mpu_oh);
-@@ -1411,6 +1404,13 @@ static int _shutdown(struct omap_hwmod *oh)
- 	}
- 	/* XXX Should this code also force-disable the optional clocks? */
+-	*v |= wakeup_mask;
++	if (oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP)
++		*v |= 0x1 << oh->class->sysc->sysc_fields->enwkup_shift;
  
-+	/*
-+	 * If an IP contains only one HW reset line, then assert it
-+	 * after disabling the clocks and before shutting down the IP.
-+	 */
-+	if (oh->rst_lines_cnt == 1)
-+		_assert_hardreset(oh, oh->rst_lines[0].name);
-+
- 	/* Mux pins to safe mode or use populated off mode values */
- 	if (oh->mux)
- 		omap_hwmod_mux(oh->mux, _HWMOD_STATE_DISABLED);
+ 	if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
+ 		_set_slave_idlemode(oh, HWMOD_IDLEMODE_SMART_WKUP, v);
+@@ -425,8 +422,6 @@ static int _enable_wakeup(struct omap_hwmod *oh, u32 *v)
+  */
+ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
+ {
+-	u32 wakeup_mask;
+-
+ 	if (!oh->class->sysc ||
+ 	    !((oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP) ||
+ 	      (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP) ||
+@@ -438,9 +433,8 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
+ 		return -EINVAL;
+ 	}
+ 
+-	wakeup_mask = (0x1 << oh->class->sysc->sysc_fields->enwkup_shift);
+-
+-	*v &= ~wakeup_mask;
++	if (oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP)
++		*v &= ~(0x1 << oh->class->sysc->sysc_fields->enwkup_shift);
+ 
+ 	if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
+ 		_set_slave_idlemode(oh, HWMOD_IDLEMODE_SMART, v);
 -- 
 1.7.0.4
 
