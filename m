@@ -1,15 +1,15 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v3 05/20] GPIO: OMAP: Handle save/restore ctx in GPIO driver
-Date: Fri, 1 Jul 2011 15:16:59 +0530
-Message-ID: <1309513634-20971-6-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v3 06/20] GPIO: OMAP2+: Make non-wakeup GPIO part of pdata
+Date: Fri, 1 Jul 2011 15:17:00 +0530
+Message-ID: <1309513634-20971-7-git-send-email-tarun.kanti@ti.com>
 References: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53458 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755707Ab1GAJr1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 05:47:27 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:59298 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755736Ab1GAJr3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 05:47:29 -0400
 In-Reply-To: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,323 +18,73 @@ Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, Charulatha V <ch
 
 From: Charulatha V <charu@ti.com>
 
-Modify omap_gpio_prepare_for_idle() & omap_gpio_resume_after_idle() functions
-to handle save context & restore context respectively in the OMAP GPIO driver
-itself instead of calling these functions from pm specific files.
-For this, in gpio_prepare_for_idle(), call *_get_context_loss_count() and in
-gpio_resume_after_idle() call it again. If the count is different, do restore
-context. The workaround_enabled flag is no more required and is removed.
+Non-wakeup GPIOs are available only in OMAP2. Avoid cpu_is checks by making
+non_wakeup_gpios as part of pdata.
 
 Signed-off-by: Charulatha V <charu@ti.com>
 ---
- arch/arm/mach-omap2/gpio.c             |   12 +++
- arch/arm/mach-omap2/pm34xx.c           |   14 ----
- arch/arm/plat-omap/include/plat/gpio.h |    5 +-
- drivers/gpio/gpio-omap.c               |  131 ++++++++++++++------------------
- 4 files changed, 73 insertions(+), 89 deletions(-)
+ arch/arm/mach-omap2/gpio.c             |    8 ++++++++
+ arch/arm/plat-omap/include/plat/gpio.h |    1 +
+ drivers/gpio/gpio-omap.c               |    8 +-------
+ 3 files changed, 10 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-index 95195a8..2e65377 100644
+index 2e65377..4952a9d 100644
 --- a/arch/arm/mach-omap2/gpio.c
 +++ b/arch/arm/mach-omap2/gpio.c
-@@ -23,6 +23,7 @@
+@@ -84,6 +84,14 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
  
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
-+#include <plat/omap-pm.h>
- 
- #include "powerdomain.h"
- 
-@@ -34,6 +35,16 @@ static struct omap_device_pm_latency omap_gpio_latency[] = {
- 	},
- };
- 
-+#ifdef CONFIG_PM
-+static int omap_gpio_get_context_loss(struct device *dev)
-+{
-+	return omap_pm_get_dev_context_loss_count(dev);
-+}
+ 	switch (oh->class->rev) {
+ 	case 0:
++		if (id == 1)
++			/* non-wakeup GPIO pins for OMAP2 Bank1 */
++			pdata->non_wakeup_gpios = 0xe203ffc0;
++		else if (id == 2)
++			/* non-wakeup GPIO pins for OMAP2 Bank2 */
++			pdata->non_wakeup_gpios = 0x08700040;
++		/* fall through */
 +
-+#else
-+#define omap_gpio_get_context_loss NULL
-+#endif
-+
- static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- {
- 	struct omap_device *od;
-@@ -63,6 +74,7 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- 	pdata->bank_width = dev_attr->bank_width;
- 	pdata->dbck_flag = dev_attr->dbck_flag;
- 	pdata->virtual_irq_start = IH_GPIO_BASE + 32 * (id - 1);
-+	pdata->get_context_loss_count = omap_gpio_get_context_loss;
- 
- 	pdata->regs = kzalloc(sizeof(struct omap_gpio_reg_offs), GFP_KERNEL);
- 	if (!pdata) {
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 51d5a5c..0aaa32c 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -91,16 +91,6 @@ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
- static struct powerdomain *core_pwrdm, *per_pwrdm;
- static struct powerdomain *cam_pwrdm;
- 
--static inline void omap3_per_save_context(void)
--{
--	omap_gpio_save_context();
--}
--
--static inline void omap3_per_restore_context(void)
--{
--	omap_gpio_restore_context();
--}
--
- static void omap3_enable_io_chain(void)
- {
- 	int timeout = 0;
-@@ -405,8 +395,6 @@ void omap_sram_idle(void)
- 		omap_uart_prepare_idle(2);
- 		omap_uart_prepare_idle(3);
- 		omap2_gpio_prepare_for_idle(per_going_off);
--		if (per_next_state == PWRDM_POWER_OFF)
--				omap3_per_save_context();
- 	}
- 
- 	/* CORE */
-@@ -474,8 +462,6 @@ void omap_sram_idle(void)
- 	if (per_next_state < PWRDM_POWER_ON) {
- 		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
- 		omap2_gpio_resume_after_idle();
--		if (per_prev_state == PWRDM_POWER_OFF)
--			omap3_per_restore_context();
- 		omap_uart_resume_idle(2);
- 		omap_uart_resume_idle(3);
- 	}
+ 	case 1:
+ 		pdata->bank_type = METHOD_GPIO_24XX;
+ 		pdata->regs->revision = OMAP24XX_GPIO_REVISION;
 diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
-index 58d0bf2..f7798b5 100644
+index f7798b5..ce417cd 100644
 --- a/arch/arm/plat-omap/include/plat/gpio.h
 +++ b/arch/arm/plat-omap/include/plat/gpio.h
-@@ -201,14 +201,15 @@ struct omap_gpio_platform_data {
+@@ -199,6 +199,7 @@ struct omap_gpio_platform_data {
+ 	int bank_stride;	/* Only needed for omap1 MPUIO */
+ 	bool dbck_flag;		/* dbck required or not - True for OMAP3&4 */
  	bool loses_context;	/* whether the bank would ever lose context */
++	u32 non_wakeup_gpios;
  
  	struct omap_gpio_reg_offs *regs;
-+
-+	/* Return context loss count due to PM states changing */
-+	int (*get_context_loss_count)(struct device *dev);
- };
  
- extern void omap2_gpio_prepare_for_idle(int off_mode);
- extern void omap2_gpio_resume_after_idle(void);
- extern void omap_set_gpio_debounce(int gpio, int enable);
- extern void omap_set_gpio_debounce_time(int gpio, int enable);
--extern void omap_gpio_save_context(void);
--extern void omap_gpio_restore_context(void);
- /*-------------------------------------------------------------------------*/
- 
- /* Wrappers for "new style" GPIO calls, using the new infrastructure
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c01863c..9a6bf8e 100644
+index 9a6bf8e..76553f8 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -72,9 +72,11 @@ struct gpio_bank {
- 	bool loses_context;
- 	int stride;
- 	u32 width;
-+	u32 ctx_loss_count;
- 	u16 id;
+@@ -1016,13 +1016,6 @@ static void omap_gpio_mod_init(struct gpio_bank *bank)
  
- 	void (*set_dataout)(struct gpio_bank *bank, int gpio, int enable);
-+	int (*get_context_loss_count)(struct device *dev);
- 
- 	struct omap_gpio_reg_offs *regs;
- };
-@@ -1169,6 +1171,7 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 			/* Initialize interface clk ungated, module enabled */
+ 			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
+-		} else if (cpu_is_omap24xx()) {
+-			static const u32 non_wakeup_gpios[] = {
+-				0xe203ffc0, 0x08700040
+-			};
+-			if (bank->id < ARRAY_SIZE(non_wakeup_gpios))
+-				bank->non_wakeup_gpios =
+-						non_wakeup_gpios[bank->id];
+ 		}
+ 	} else if (cpu_class_is_omap1()) {
+ 		if (bank_is_mpuio(bank)) {
+@@ -1170,6 +1163,7 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	bank->dbck_flag = pdata->dbck_flag;
  	bank->stride = pdata->bank_stride;
  	bank->width = pdata->bank_width;
++	bank->non_wakeup_gpios = pdata->non_wakeup_gpios;
  	bank->loses_context = pdata->loses_context;
-+	bank->get_context_loss_count = pdata->get_context_loss_count;
+ 	bank->get_context_loss_count = pdata->get_context_loss_count;
  	bank->regs = pdata->regs;
- 
- 	if (bank->regs->set_dataout && bank->regs->clr_dataout)
-@@ -1313,11 +1316,11 @@ static struct syscore_ops omap_gpio_syscore_ops = {
- 
- #ifdef CONFIG_ARCH_OMAP2PLUS
- 
--static int workaround_enabled;
-+static void omap_gpio_save_context(struct gpio_bank *bank);
-+static void omap_gpio_restore_context(struct gpio_bank *bank);
- 
- void omap2_gpio_prepare_for_idle(int off_mode)
- {
--	int c = 0;
- 	struct gpio_bank *bank;
- 
- 	list_for_each_entry(bank, &omap_gpio_list, node) {
-@@ -1337,7 +1340,7 @@ void omap2_gpio_prepare_for_idle(int off_mode)
- 		 * non-wakeup GPIOs.  Otherwise spurious IRQs will be
- 		 * generated.  See OMAP2420 Errata item 1.101. */
- 		if (!(bank->enabled_non_wakeup_gpios))
--			continue;
-+			goto save_gpio_ctx;
- 
- 		if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
- 			bank->saved_datain = __raw_readl(bank->base +
-@@ -1374,13 +1377,13 @@ void omap2_gpio_prepare_for_idle(int off_mode)
- 			__raw_writel(l2, bank->base + OMAP4_GPIO_RISINGDETECT);
- 		}
- 
--		c++;
--	}
--	if (!c) {
--		workaround_enabled = 0;
--		return;
-+save_gpio_ctx:
-+		if (bank->get_context_loss_count)
-+			bank->ctx_loss_count =
-+				bank->get_context_loss_count(bank->dev);
-+
-+		omap_gpio_save_context(bank);
- 	}
--	workaround_enabled = 1;
- }
- 
- void omap2_gpio_resume_after_idle(void)
-@@ -1388,6 +1391,7 @@ void omap2_gpio_resume_after_idle(void)
- 	struct gpio_bank *bank;
- 
- 	list_for_each_entry(bank, &omap_gpio_list, node) {
-+		u32 ctx_lost_cnt_after;
- 		u32 l = 0, gen, gen0, gen1;
- 		int j;
- 
-@@ -1397,8 +1401,13 @@ void omap2_gpio_resume_after_idle(void)
- 		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
- 			clk_enable(bank->dbck);
- 
--		if (!workaround_enabled)
--			continue;
-+		if (bank->get_context_loss_count) {
-+			ctx_lost_cnt_after =
-+				bank->get_context_loss_count(bank->dev);
-+			if (ctx_lost_cnt_after != bank->ctx_loss_count ||
-+				!ctx_lost_cnt_after)
-+				omap_gpio_restore_context(bank);
-+		}
- 
- 		if (!(bank->enabled_non_wakeup_gpios))
- 			continue;
-@@ -1476,74 +1485,50 @@ void omap2_gpio_resume_after_idle(void)
- 			}
- 		}
- 	}
--
- }
- 
--#endif
--
--#ifdef CONFIG_ARCH_OMAP3
--void omap_gpio_save_context(void)
-+static void omap_gpio_save_context(struct gpio_bank *bank)
- {
--	struct gpio_bank *bank;
--
--	list_for_each_entry(bank, &omap_gpio_list, node) {
--
--		if (!bank->loses_context)
--			continue;
--
--		bank->context.irqenable1 =
--			__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE1);
--		bank->context.irqenable2 =
--			__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE2);
--		bank->context.wake_en =
--			__raw_readl(bank->base + OMAP24XX_GPIO_WAKE_EN);
--		bank->context.ctrl =
--			__raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
--		bank->context.oe =
--			__raw_readl(bank->base + OMAP24XX_GPIO_OE);
--		bank->context.leveldetect0 =
--			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0);
--		bank->context.leveldetect1 =
--			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
--		bank->context.risingdetect =
--			__raw_readl(bank->base + OMAP24XX_GPIO_RISINGDETECT);
--		bank->context.fallingdetect =
--			__raw_readl(bank->base + OMAP24XX_GPIO_FALLINGDETECT);
--		bank->context.dataout =
--			__raw_readl(bank->base + OMAP24XX_GPIO_DATAOUT);
--	}
-+	bank->context.irqenable1 =
-+		__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE1);
-+	bank->context.irqenable2 =
-+		__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE2);
-+	bank->context.wake_en =
-+		__raw_readl(bank->base + OMAP24XX_GPIO_WAKE_EN);
-+	bank->context.ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
-+	bank->context.oe = __raw_readl(bank->base + OMAP24XX_GPIO_OE);
-+	bank->context.leveldetect0 =
-+		__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0);
-+	bank->context.leveldetect1 =
-+		__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
-+	bank->context.risingdetect =
-+		__raw_readl(bank->base + OMAP24XX_GPIO_RISINGDETECT);
-+	bank->context.fallingdetect =
-+		__raw_readl(bank->base + OMAP24XX_GPIO_FALLINGDETECT);
-+	bank->context.dataout =
-+		__raw_readl(bank->base + OMAP24XX_GPIO_DATAOUT);
- }
- 
--void omap_gpio_restore_context(void)
-+static void omap_gpio_restore_context(struct gpio_bank *bank)
- {
--	struct gpio_bank *bank;
--
--	list_for_each_entry(bank, &omap_gpio_list, node) {
--
--		if (!bank->loses_context)
--			continue;
--
--		__raw_writel(bank->context.irqenable1,
--				bank->base + OMAP24XX_GPIO_IRQENABLE1);
--		__raw_writel(bank->context.irqenable2,
--				bank->base + OMAP24XX_GPIO_IRQENABLE2);
--		__raw_writel(bank->context.wake_en,
--				bank->base + OMAP24XX_GPIO_WAKE_EN);
--		__raw_writel(bank->context.ctrl,
--				bank->base + OMAP24XX_GPIO_CTRL);
--		__raw_writel(bank->context.oe,
--				bank->base + OMAP24XX_GPIO_OE);
--		__raw_writel(bank->context.leveldetect0,
--				bank->base + OMAP24XX_GPIO_LEVELDETECT0);
--		__raw_writel(bank->context.leveldetect1,
--				bank->base + OMAP24XX_GPIO_LEVELDETECT1);
--		__raw_writel(bank->context.risingdetect,
--				bank->base + OMAP24XX_GPIO_RISINGDETECT);
--		__raw_writel(bank->context.fallingdetect,
--				bank->base + OMAP24XX_GPIO_FALLINGDETECT);
--		__raw_writel(bank->context.dataout,
--				bank->base + OMAP24XX_GPIO_DATAOUT);
--	}
-+	__raw_writel(bank->context.irqenable1,
-+			bank->base + OMAP24XX_GPIO_IRQENABLE1);
-+	__raw_writel(bank->context.irqenable2,
-+			bank->base + OMAP24XX_GPIO_IRQENABLE2);
-+	__raw_writel(bank->context.wake_en,
-+			bank->base + OMAP24XX_GPIO_WAKE_EN);
-+	__raw_writel(bank->context.ctrl, bank->base + OMAP24XX_GPIO_CTRL);
-+	__raw_writel(bank->context.oe, bank->base + OMAP24XX_GPIO_OE);
-+	__raw_writel(bank->context.leveldetect0,
-+			bank->base + OMAP24XX_GPIO_LEVELDETECT0);
-+	__raw_writel(bank->context.leveldetect1,
-+			bank->base + OMAP24XX_GPIO_LEVELDETECT1);
-+	__raw_writel(bank->context.risingdetect,
-+			bank->base + OMAP24XX_GPIO_RISINGDETECT);
-+	__raw_writel(bank->context.fallingdetect,
-+			bank->base + OMAP24XX_GPIO_FALLINGDETECT);
-+	__raw_writel(bank->context.dataout,
-+			bank->base + OMAP24XX_GPIO_DATAOUT);
- }
- #endif
- 
 -- 
 1.6.0.4
 
