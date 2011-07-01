@@ -1,59 +1,82 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 5/5] OMAP4: powerdomain data: Remove unsupported MPU powerdomain state
-Date: Fri, 1 Jul 2011 22:27:40 +0200
-Message-ID: <1309552060-4547-6-git-send-email-b-cousson@ti.com>
-References: <1309552060-4547-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 00/18] OMAP4: PM data big spring cleanup and fixes
+Date: Fri, 1 Jul 2011 22:41:23 +0200
+Message-ID: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56855 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34605 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755480Ab1GAU16 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 16:27:58 -0400
-In-Reply-To: <1309552060-4547-1-git-send-email-b-cousson@ti.com>
+	id S1752090Ab1GAUlv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 16:41:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, rnayak@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>
+To: paul@pwsan.com
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Hi Paul,
 
-On OMAP4430 devices, because of boot ROM code bug, MPU OFF state can't
-be attempted independently. When coming out of MPU OFF state, ROM code
-disables the clocks of IVAHD, TESLA which is not desirable. Hence the
-MPU OFF state is not usable on OMAP4430 devices.
+Here are a bunch of cleanups on almost every PRCM related data files.
+Some of them are purely code moves, and will look like a lot of
+noise for nothing, but this is needed if we want to keep the files
+aligned with generator tool and thus ease the future migration to
+whatever format (common clock framework + DT).
+Moreover, the diffstat is negative:-)
 
-OMAP4460 onwards, MPU OFF state will be descoped completely because
-the DDR firewall falls in MPU power domain. When the MPU hit OFF state,
-DDR won't be accessible for other initiators. The deepest state supported
-is open switch retention (OSWR) just like CORE and PER PD on OMAP4430.
+I added as well the 2 fixes that Tomi did for the DSS pm_runtime
+migration. That series must then be merged before the DSS series.
 
-So in summary MPU power domain OFF state is not supported on OMAP4
-and onwards designs. Thanks to new PRCM design, device off mode can
-still be achieved with power domains hitting OSWR state.
+The series is based on for_3.1/1_prcm_files_fixes and tested
+on OMAP4430 ES2.1 + SDP.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-[b-cousson@ti.com: Fix changelog typos]
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/powerdomains44xx_data.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+The patches are available here:
+git://gitorious.org/omap-pm/linux.git for_3.1/2_prcm_files_cleanup
 
-diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
-index 8f46e7d..247e794 100644
---- a/arch/arm/mach-omap2/powerdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
-@@ -205,7 +205,7 @@ static struct powerdomain mpu_44xx_pwrdm = {
- 	.prcm_offs	  = OMAP4430_PRM_MPU_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
--	.pwrsts		  = PWRSTS_OFF_RET_ON,
-+	.pwrsts		  = PWRSTS_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.banks		  = 3,
- 	.pwrsts_mem_ret	= {
--- 
-1.7.0.4
+Regards,
+Benoit
+
+
+Changes since v1:
+    - Add 2 patches for the DSS
+
+Benoit Cousson (12):
+  OMAP4: cm: Remove RESTORE macros to avoid access from SW
+  OMAP4: prcm_mpu: Fix indent in few macros
+  OMAP4: clockdomain data: Fix data order and wrong name
+  OMAP4: clock data: Add sddiv to USB DPLL
+  OMAP4: clock data: Remove usb_host_fs clkdev with NULL dev
+  OMAP4: clock data: Re-order some clock nodes and structure fields
+  OMAP4: clock data: Fix max mult and div for USB DPLL
+  OMAP4: prcm: Remove references to non-existant peripherals
+  OMAP4: hwmod data: Fix L3 interconnect data order and alignement
+  OMAP4: hwmod data: Remove un-needed parens
+  OMAP4: hwmod data: Fix bad alignement
+  OMAP4: hwmod data: Replace CHIP_IS_OMAP4430 by OMAP44XX
+
+Jon Hunter (2):
+  OMAP4: clock data: Remove McASP2, McASP3 and MMC6 clocks
+  OMAP4: clock data: Remove UNIPRO clock nodes
+
+Rajendra Nayak (2):
+  OMAP4: clock data: Rename clock flags from 443X to 44XX
+  OMAP4: clock data: Add missing divider selection for auxclks
+
+Tomi Valkeinen (2):
+  OMAP4: hwmod data: Modify DSS opt clocks
+  OMAP4: hwmod data: Change DSS main_clk scheme
+
+ arch/arm/mach-omap2/clock44xx.h               |    7 -
+ arch/arm/mach-omap2/clock44xx_data.c          | 1022 +++++++++++++------------
+ arch/arm/mach-omap2/clockdomains44xx_data.c   |  124 ++--
+ arch/arm/mach-omap2/cm-regbits-44xx.h         |  702 +++++++----------
+ arch/arm/mach-omap2/cm1_44xx.h                |   36 -
+ arch/arm/mach-omap2/cm2_44xx.h                |   90 ---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  312 +++++----
+ arch/arm/mach-omap2/prcm_mpu44xx.h            |   69 +-
+ arch/arm/mach-omap2/prm-regbits-44xx.h        |  178 +----
+ arch/arm/mach-omap2/prm44xx.h                 |   64 --
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |    2 +
+ arch/arm/plat-omap/include/plat/clock.h       |    3 +-
+ arch/arm/plat-omap/include/plat/cpu.h         |    2 +
+ 13 files changed, 1130 insertions(+), 1481 deletions(-)
 
