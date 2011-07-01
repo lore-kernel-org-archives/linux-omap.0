@@ -1,60 +1,154 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 05/18] OMAP4: clock data: Remove usb_host_fs clkdev with NULL dev
-Date: Fri, 1 Jul 2011 22:41:28 +0200
-Message-ID: <1309552901-8944-6-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 07/18] OMAP4: clock data: Fix max mult and div for USB DPLL
+Date: Fri, 1 Jul 2011 22:41:30 +0200
+Message-ID: <1309552901-8944-8-git-send-email-b-cousson@ti.com>
 References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34616 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34622 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755723Ab1GAUmA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 16:42:00 -0400
+	id S1755723Ab1GAUmE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 16:42:04 -0400
 In-Reply-To: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-usb_host_fs_fck does have a clkdev mapping with "usbhs-omap.0"
-and "fs_fck" alias used by the driver.
-The entry with NULL dev is thus not needed anymore.
+The DPLL USB can generate higher speed (x2) than the regular ones.
+The max multiplication value is then twice the previous value.
+
+Fix both max_mult and max_div with that correct values.
+
+Change the max_div variable type to u16 to allow storing up to 256.
+
+Replace as well the define with the value to avoid
+unneeded indirection and provide a better readability.
+
+Remove the defines that become useless.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clock44xx_data.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/clock44xx.h         |    7 -------
+ arch/arm/mach-omap2/clock44xx_data.c    |   28 ++++++++++++++--------------
+ arch/arm/plat-omap/include/plat/clock.h |    2 +-
+ 3 files changed, 15 insertions(+), 22 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clock44xx.h b/arch/arm/mach-omap2/clock44xx.h
+index 6be1095..7ceb870 100644
+--- a/arch/arm/mach-omap2/clock44xx.h
++++ b/arch/arm/mach-omap2/clock44xx.h
+@@ -8,13 +8,6 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_CLOCK44XX_H
+ #define __ARCH_ARM_MACH_OMAP2_CLOCK44XX_H
+ 
+-/*
+- * XXX Missing values for the OMAP4 DPLL_USB
+- * XXX Missing min_multiplier values for all OMAP4 DPLLs
+- */
+-#define OMAP4430_MAX_DPLL_MULT	2047
+-#define OMAP4430_MAX_DPLL_DIV	128
+-
+ int omap4xxx_clk_init(void);
+ 
+ #endif
 diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index bd2aa4b..2a0820b 100644
+index 9d7d9a6..9370695 100644
 --- a/arch/arm/mach-omap2/clock44xx_data.c
 +++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3205,7 +3205,6 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"uart2_fck",			&uart2_fck,	CK_443X),
- 	CLK(NULL,	"uart3_fck",			&uart3_fck,	CK_443X),
- 	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_443X),
--	CLK(NULL,	"usb_host_fs_fck",		&usb_host_fs_fck,	CK_443X),
- 	CLK("usbhs-omap.0",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
- 	CLK(NULL,	"utmi_p1_gfclk",		&utmi_p1_gfclk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&usb_host_hs_utmi_p1_clk,	CK_443X),
-@@ -3217,7 +3216,6 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"usb_host_hs_hsic60m_p2_clk",	&usb_host_hs_hsic60m_p2_clk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_hsic480m_p2_clk",	&usb_host_hs_hsic480m_p2_clk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_func48mclk",	&usb_host_hs_func48mclk,	CK_443X),
--	CLK(NULL,	"usb_host_hs_fck",		&usb_host_hs_fck,	CK_443X),
- 	CLK("usbhs-omap.0",	"hs_fck",		&usb_host_hs_fck,	CK_443X),
- 	CLK("usbhs-omap.0",	"usbhost_ick",		&dummy_ck,		CK_443X),
- 	CLK(NULL,	"otg_60m_gfclk",		&otg_60m_gfclk,	CK_443X),
-@@ -3227,7 +3225,6 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"usb_tll_hs_usb_ch2_clk",	&usb_tll_hs_usb_ch2_clk,	CK_443X),
- 	CLK(NULL,	"usb_tll_hs_usb_ch0_clk",	&usb_tll_hs_usb_ch0_clk,	CK_443X),
- 	CLK(NULL,	"usb_tll_hs_usb_ch1_clk",	&usb_tll_hs_usb_ch1_clk,	CK_443X),
--	CLK(NULL,	"usb_tll_hs_ick",		&usb_tll_hs_ick,	CK_443X),
- 	CLK("usbhs-omap.0",	"usbtll_ick",		&usb_tll_hs_ick,	CK_443X),
- 	CLK("usbhs-omap.0",	"usbtll_fck",		&dummy_ck,	CK_443X),
- 	CLK(NULL,	"usim_ck",			&usim_ck,	CK_443X),
+@@ -258,8 +258,8 @@ static struct dpll_data dpll_abe_dd = {
+ 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
+ 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
+ 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
+-	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+-	.max_divider	= OMAP4430_MAX_DPLL_DIV,
++	.max_multiplier	= 2047,
++	.max_divider	= 128,
+ 	.min_divider	= 1,
+ };
+ 
+@@ -434,8 +434,8 @@ static struct dpll_data dpll_core_dd = {
+ 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
+ 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
+ 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
+-	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+-	.max_divider	= OMAP4430_MAX_DPLL_DIV,
++	.max_multiplier	= 2047,
++	.max_divider	= 128,
+ 	.min_divider	= 1,
+ };
+ 
+@@ -672,8 +672,8 @@ static struct dpll_data dpll_iva_dd = {
+ 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
+ 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
+ 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
+-	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+-	.max_divider	= OMAP4430_MAX_DPLL_DIV,
++	.max_multiplier	= 2047,
++	.max_divider	= 128,
+ 	.min_divider	= 1,
+ };
+ 
+@@ -740,8 +740,8 @@ static struct dpll_data dpll_mpu_dd = {
+ 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
+ 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
+ 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
+-	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+-	.max_divider	= OMAP4430_MAX_DPLL_DIV,
++	.max_multiplier	= 2047,
++	.max_divider	= 128,
+ 	.min_divider	= 1,
+ };
+ 
+@@ -813,8 +813,8 @@ static struct dpll_data dpll_per_dd = {
+ 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
+ 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
+ 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
+-	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+-	.max_divider	= OMAP4430_MAX_DPLL_DIV,
++	.max_multiplier	= 2047,
++	.max_divider	= 128,
+ 	.min_divider	= 1,
+ };
+ 
+@@ -949,8 +949,8 @@ static struct dpll_data dpll_unipro_dd = {
+ 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
+ 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
+ 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
+-	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+-	.max_divider	= OMAP4430_MAX_DPLL_DIV,
++	.max_multiplier	= 2047,
++	.max_divider	= 128,
+ 	.min_divider	= 1,
+ };
+ 
+@@ -1016,8 +1016,8 @@ static struct dpll_data dpll_usb_dd = {
+ 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
+ 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
+ 	.sddiv_mask	= OMAP4430_DPLL_SD_DIV_MASK,
+-	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+-	.max_divider	= OMAP4430_MAX_DPLL_DIV,
++	.max_multiplier	= 4095,
++	.max_divider	= 256,
+ 	.min_divider	= 1,
+ };
+ 
+diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+index 006e599..f57e064 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -152,7 +152,7 @@ struct dpll_data {
+ 	u16			max_multiplier;
+ 	u8			last_rounded_n;
+ 	u8			min_divider;
+-	u8			max_divider;
++	u16			max_divider;
+ 	u8			modes;
+ #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ 	void __iomem		*autoidle_reg;
 -- 
 1.7.0.4
 
