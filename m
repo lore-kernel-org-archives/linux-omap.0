@@ -1,64 +1,50 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv4 9/9] OMAP3: PM: Disable / enable PRCM chain interrupts during wakeup from suspend
-Date: Fri, 01 Jul 2011 13:10:03 -0700
-Message-ID: <87oc1dwyn8.fsf@ti.com>
-References: <1309338303-2086-1-git-send-email-t-kristo@ti.com>
-	<1309338303-2086-10-git-send-email-t-kristo@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH v2 0/5] OMAP4: PM HW bugs & PRCM fixes
+Date: Fri, 1 Jul 2011 22:27:35 +0200
+Message-ID: <1309552060-4547-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:57383 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751921Ab1GAUKJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 16:10:09 -0400
-Received: by pzk9 with SMTP id 9so89147pzk.19
-        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 13:10:07 -0700 (PDT)
-In-Reply-To: <1309338303-2086-10-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Wed, 29 Jun 2011 12:05:03 +0300")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56848 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752817Ab1GAU1u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 16:27:50 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: paul@pwsan.com, rnayak@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Tero Kristo <t-kristo@ti.com> writes:
+Hi Paul & Rajendra,
 
-> This prevents system hang while attempting to access suspended console.
+Here are a couple of fixes on PRCM header files and powerdomain data.
+There are as well 2 HW bugs fixes from Santosh.
 
-Please add more detail.  Who is accessing console?   This sounds more
-like it's masking a UART/console bug.
+The series is based on v3.0-rc5 and tested on OMAP4430 ES2.1 + SDP.
 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  arch/arm/mach-omap2/pm34xx.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index e626a3d..dae0a8a 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -418,6 +418,10 @@ void omap_sram_idle(void)
->  	pwrdm_post_transition();
->  
->  	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
-> +	if (suspend_state != PM_SUSPEND_ON) {
-> +		disable_irq(prcm_io_irq);
-> +		disable_irq(prcm_wkup_irq);
-> +	}
+The patches are available here:
+git://gitorious.org/omap-pm/linux.git for_3.1/1_prcm_files_fixes
 
->  }
->  
->  int omap3_can_sleep(void)
-> @@ -524,6 +528,8 @@ static void omap3_pm_end(void)
->  	suspend_state = PM_SUSPEND_ON;
->  	omap_uart_enable_irqs(1);
->  	enable_hlt();
-> +	enable_irq(prcm_io_irq);
-> +	enable_irq(prcm_wkup_irq);
->  	return;
->  }
+Regards,
+Benoit
 
-The re-enable is in ->end(), shouldn't the disable be in ->begin() ?
 
-Kevin
+Changes since v1:
+	- Add 2 HW bugs fixes
 
+
+Benoit Cousson (3):
+  OMAP4: prcm: Fix errors in few defines name
+  OMAP4: prm: Remove wrong clockdomain offsets
+  OMAP4: powerdomain data: Fix core mem states and missing cefuse flag
+
+Santosh Shilimkar (2):
+  OMAP4: clock data: Keep GPMC clocks always enabled and hardware managed
+  OMAP4: powerdomain data: Remove unsupported MPU powerdomain state
+
+ arch/arm/mach-omap2/clock44xx_data.c        |    1 +
+ arch/arm/mach-omap2/cm1_44xx.h              |   28 +++++++++++-----------
+ arch/arm/mach-omap2/cm2_44xx.h              |   23 ++++++++---------
+ arch/arm/mach-omap2/powerdomains44xx_data.c |   27 +++++++++++----------
+ arch/arm/mach-omap2/prm44xx.h               |   34 ++++++++------------------
+ 5 files changed, 51 insertions(+), 62 deletions(-)
 
