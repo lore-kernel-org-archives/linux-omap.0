@@ -1,46 +1,34 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] MMC: OMAP: change HSMMC maintainence to Orphan
-Date: Fri,  1 Jul 2011 10:36:42 -0700
-Message-ID: <1309541802-5975-1-git-send-email-khilman@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:53234 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753516Ab1GARgi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 13:36:38 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Subject: Re: [PATCH] OMAP: HSMMC maintainence
+Date: Fri, 01 Jul 2011 10:39:16 -0700
+Message-ID: <87oc1dzyrf.fsf@ti.com>
+References: <1309468046-17904-1-git-send-email-m-sonasath@ti.com>
+	<BANLkTimZMBUbtGcWo851FTFeJ+Qs-dfGfQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <BANLkTimZMBUbtGcWo851FTFeJ+Qs-dfGfQ@mail.gmail.com> (Venkatraman
+	S.'s message of "Fri, 1 Jul 2011 09:59:02 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: Madhusudhan <madhu.cr@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, cjb <cjb@laptop.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>
 
-From: Madhusudhan Chikkature <madhu.cr@ti.com>
+"S, Venkatraman" <svenkatr@ti.com> writes:
 
-Update the OMAP HS MMC entry from the MAINTAINERS file as I will
-no longer be able to maintain this driver.
+> On Fri, Jul 1, 2011 at 2:37 AM,  <Chikkature@lina0132712> wrote:
+>> From: Madhusudhan Chikkature <madhu.cr@ti.com>
+>>
+>> Removing the OMAP HS MMC entry from the MAINTAINERS file as I will
+>> no longer be able to maintain this driver.
+>>
+>> Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-[khilman@ti.com: change to Orphan rather than complete removal]
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Applies to v3.0-rc5
+[...]
 
- MAINTAINERS |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+> It would be better to just change the status to 'Orphaned' than
+> deleting the entire section.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f0358cd..2f238b5 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4574,9 +4574,8 @@ S:	Maintained
- F:	drivers/mmc/host/omap.c
- 
- OMAP HS MMC SUPPORT
--M:	Madhusudhan Chikkature <madhu.cr@ti.com>
- L:	linux-omap@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- F:	drivers/mmc/host/omap_hsmmc.c
- 
- OMAP RANDOM NUMBER GENERATOR SUPPORT
--- 
-1.7.6
+Agreed, I'll post an updated patch, and also Cc LKML.
 
+Kevin
