@@ -1,154 +1,506 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 1/4] OMAP4: hwmod data: Add GPMC
-Date: Fri, 1 Jul 2011 23:54:24 +0200
-Message-ID: <1309557267-27165-2-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 2/4] OMAP4: hwmod data: Replace main_clk with the real input clock
+Date: Fri, 1 Jul 2011 23:54:25 +0200
+Message-ID: <1309557267-27165-3-git-send-email-b-cousson@ti.com>
 References: <1309557267-27165-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32775 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757791Ab1GAVyi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 17:54:38 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:43583 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757801Ab1GAVyn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 17:54:43 -0400
 In-Reply-To: <1309557267-27165-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Add the GPMC hwmod data.
+Previously, main_clk was a fake clock node that was accessing the
+PRCM modulemode register. Since the module mode is directly
+controlled by the hwmod fmwk, these fake clock node are not
+needed anymore. The hwmod main_clk will point directly to the
+input clock node if applicable.
+For example, some IPs, like the GPIOs, do not have any functional
+clock and are using only the iclk. In that case, the main_clk
+field will be empty.
 
-The GPMC hwmod does need the flags HWMOD_INIT_NO_IDLE and
-HWMOD_INIT_NO_RESET due to a bug described in the previous commit:
-
- OMAP4: clock: Keep GPMC clocks always enabled and hardware managed
-
- On OMAP4, CPU accesses on unmapped addresses are redirected to GPMC by
- L3 interconnect. Because of CPU speculative nature, such accesses are
- possible which can lead to indirect access to GPMC and if it's clock is
- not running, it can result in hang/abort on the platform.
-
- Above makes access to GPMC unpredictable during the execution, so it's
- module mode needs to be kept under hardware control instead of software
- control.
- Since the auto gating is supported for GPMC, there isn't any power impact
- because of this change.
-
- The issue was un-covered with security middleware running along with HLOS.
- In this case GPMC had a valid MMU descriptor on secure side where as HLOS
- didn't map the GMPC because it isn't being used.
+That will simplify greatly the driver management and the integration
+with hwmod.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   78 +++++++++++++++++++++++++++-
- 1 files changed, 77 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   97 +++++++++++++---------------
+ 1 files changed, 45 insertions(+), 52 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 160c77a..e2971bc 100644
+index e2971bc..878a031 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -701,7 +701,6 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
-  *  emif1
-  *  emif2
-  *  fdif
-- *  gpmc
-  *  gpu
-  *  hdq1w
-  *  mcasp
-@@ -2195,6 +2194,80 @@ static struct omap_hwmod omap44xx_gpio6_hwmod = {
- };
- 
- /*
-+ * 'gpmc' class
-+ * general purpose memory controller
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap44xx_gpmc_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap44xx_gpmc_hwmod_class = {
-+	.name	= "gpmc",
-+	.sysc	= &omap44xx_gpmc_sysc,
-+};
-+
-+/* gpmc */
-+static struct omap_hwmod omap44xx_gpmc_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_gpmc_irqs[] = {
-+	{ .irq = 20 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_dma_info omap44xx_gpmc_sdma_reqs[] = {
-+	{ .dma_req = 3 + OMAP44XX_DMA_REQ_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_gpmc_addrs[] = {
-+	{
-+		.pa_start	= 0x50000000,
-+		.pa_end		= 0x500003ff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l3_main_2 -> gpmc */
-+static struct omap_hwmod_ocp_if omap44xx_l3_main_2__gpmc = {
-+	.master		= &omap44xx_l3_main_2_hwmod,
-+	.slave		= &omap44xx_gpmc_hwmod,
-+	.clk		= "l3_div_ck",
-+	.addr		= omap44xx_gpmc_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_gpmc_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* gpmc slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_gpmc_slaves[] = {
-+	&omap44xx_l3_main_2__gpmc,
-+};
-+
-+static struct omap_hwmod omap44xx_gpmc_hwmod = {
-+	.name		= "gpmc",
-+	.class		= &omap44xx_gpmc_hwmod_class,
-+	.clkdm_name	= "l3_2_clkdm",
-+	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-+	.mpu_irqs	= omap44xx_gpmc_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpmc_irqs),
-+	.sdma_reqs	= omap44xx_gpmc_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_gpmc_sdma_reqs),
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = OMAP4_CM_L3_2_GPMC_CLKCTRL_OFFSET,
-+			.context_offs = OMAP4_RM_L3_2_GPMC_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_gpmc_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpmc_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
-+};
-+
-+/*
-  * 'hsi' class
-  * mipi high-speed synchronous serial interface (multichannel and full-duplex
-  * serial if)
-@@ -5392,6 +5465,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_gpio5_hwmod,
- 	&omap44xx_gpio6_hwmod,
- 
-+	/* gpmc class */
-+	&omap44xx_gpmc_hwmod,
-+
- 	/* hsi class */
- /*	&omap44xx_hsi_hwmod, */
- 
+@@ -813,7 +813,7 @@ static struct omap_hwmod omap44xx_aess_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_aess_irqs),
+ 	.sdma_reqs	= omap44xx_aess_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_aess_sdma_reqs),
+-	.main_clk	= "aess_fck",
++	.main_clk	= "aess_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_AESS_CLKCTRL_OFFSET,
+@@ -1085,7 +1085,7 @@ static struct omap_hwmod omap44xx_dmic_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dmic_irqs),
+ 	.sdma_reqs	= omap44xx_dmic_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_dmic_sdma_reqs),
+-	.main_clk	= "dmic_fck",
++	.main_clk	= "func_dmic_abe_gfclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_DMIC_CLKCTRL_OFFSET,
+@@ -1171,7 +1171,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dsp_irqs),
+ 	.rst_lines	= omap44xx_dsp_resets,
+ 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_dsp_resets),
+-	.main_clk	= "dsp_fck",
++	.main_clk	= "dpll_iva_m4x2_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_TESLA_TESLA_CLKCTRL_OFFSET,
+@@ -1897,7 +1897,6 @@ static struct omap_hwmod omap44xx_gpio1_hwmod = {
+ 	.clkdm_name	= "l4_wkup_clkdm",
+ 	.mpu_irqs	= omap44xx_gpio1_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio1_irqs),
+-	.main_clk	= "gpio1_ick",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_WKUP_GPIO1_CLKCTRL_OFFSET,
+@@ -1953,7 +1952,6 @@ static struct omap_hwmod omap44xx_gpio2_hwmod = {
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap44xx_gpio2_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio2_irqs),
+-	.main_clk	= "gpio2_ick",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_GPIO2_CLKCTRL_OFFSET,
+@@ -2009,7 +2007,6 @@ static struct omap_hwmod omap44xx_gpio3_hwmod = {
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap44xx_gpio3_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio3_irqs),
+-	.main_clk	= "gpio3_ick",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_GPIO3_CLKCTRL_OFFSET,
+@@ -2065,7 +2062,6 @@ static struct omap_hwmod omap44xx_gpio4_hwmod = {
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap44xx_gpio4_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio4_irqs),
+-	.main_clk	= "gpio4_ick",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_GPIO4_CLKCTRL_OFFSET,
+@@ -2121,7 +2117,6 @@ static struct omap_hwmod omap44xx_gpio5_hwmod = {
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap44xx_gpio5_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio5_irqs),
+-	.main_clk	= "gpio5_ick",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_GPIO5_CLKCTRL_OFFSET,
+@@ -2177,7 +2172,6 @@ static struct omap_hwmod omap44xx_gpio6_hwmod = {
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap44xx_gpio6_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio6_irqs),
+-	.main_clk	= "gpio6_ick",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_GPIO6_CLKCTRL_OFFSET,
+@@ -2332,7 +2326,7 @@ static struct omap_hwmod omap44xx_hsi_hwmod = {
+ 	.clkdm_name	= "l3_init_clkdm",
+ 	.mpu_irqs	= omap44xx_hsi_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_hsi_irqs),
+-	.main_clk	= "hsi_fck",
++	.main_clk	= "hsi_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L3INIT_HSI_CLKCTRL_OFFSET,
+@@ -2411,7 +2405,7 @@ static struct omap_hwmod omap44xx_i2c1_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c1_irqs),
+ 	.sdma_reqs	= omap44xx_i2c1_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c1_sdma_reqs),
+-	.main_clk	= "i2c1_fck",
++	.main_clk	= "func_96m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_I2C1_CLKCTRL_OFFSET,
+@@ -2467,7 +2461,7 @@ static struct omap_hwmod omap44xx_i2c2_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c2_irqs),
+ 	.sdma_reqs	= omap44xx_i2c2_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c2_sdma_reqs),
+-	.main_clk	= "i2c2_fck",
++	.main_clk	= "func_96m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_I2C2_CLKCTRL_OFFSET,
+@@ -2523,7 +2517,7 @@ static struct omap_hwmod omap44xx_i2c3_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c3_irqs),
+ 	.sdma_reqs	= omap44xx_i2c3_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c3_sdma_reqs),
+-	.main_clk	= "i2c3_fck",
++	.main_clk	= "func_96m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_I2C3_CLKCTRL_OFFSET,
+@@ -2579,7 +2573,7 @@ static struct omap_hwmod omap44xx_i2c4_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c4_irqs),
+ 	.sdma_reqs	= omap44xx_i2c4_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c4_sdma_reqs),
+-	.main_clk	= "i2c4_fck",
++	.main_clk	= "func_96m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_I2C4_CLKCTRL_OFFSET,
+@@ -2676,7 +2670,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_ipu_irqs),
+ 	.rst_lines	= omap44xx_ipu_resets,
+ 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_resets),
+-	.main_clk	= "ipu_fck",
++	.main_clk	= "ducati_clk_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET,
+@@ -2765,7 +2759,7 @@ static struct omap_hwmod omap44xx_iss_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_iss_irqs),
+ 	.sdma_reqs	= omap44xx_iss_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_iss_sdma_reqs),
+-	.main_clk	= "iss_fck",
++	.main_clk	= "ducati_clk_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_CAM_ISS_CLKCTRL_OFFSET,
+@@ -2880,7 +2874,7 @@ static struct omap_hwmod omap44xx_iva_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_iva_irqs),
+ 	.rst_lines	= omap44xx_iva_resets,
+ 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_iva_resets),
+-	.main_clk	= "iva_fck",
++	.main_clk	= "dpll_iva_m5x2_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_IVAHD_IVAHD_CLKCTRL_OFFSET,
+@@ -2953,7 +2947,7 @@ static struct omap_hwmod omap44xx_kbd_hwmod = {
+ 	.clkdm_name	= "l4_wkup_clkdm",
+ 	.mpu_irqs	= omap44xx_kbd_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_kbd_irqs),
+-	.main_clk	= "kbd_fck",
++	.main_clk	= "sys_32k_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_WKUP_KEYBOARD_CLKCTRL_OFFSET,
+@@ -3114,7 +3108,7 @@ static struct omap_hwmod omap44xx_mcbsp1_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp1_irqs),
+ 	.sdma_reqs	= omap44xx_mcbsp1_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp1_sdma_reqs),
+-	.main_clk	= "mcbsp1_fck",
++	.main_clk	= "func_mcbsp1_gfclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_MCBSP1_CLKCTRL_OFFSET,
+@@ -3190,7 +3184,7 @@ static struct omap_hwmod omap44xx_mcbsp2_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp2_irqs),
+ 	.sdma_reqs	= omap44xx_mcbsp2_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp2_sdma_reqs),
+-	.main_clk	= "mcbsp2_fck",
++	.main_clk	= "func_mcbsp2_gfclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_MCBSP2_CLKCTRL_OFFSET,
+@@ -3266,7 +3260,7 @@ static struct omap_hwmod omap44xx_mcbsp3_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp3_irqs),
+ 	.sdma_reqs	= omap44xx_mcbsp3_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp3_sdma_reqs),
+-	.main_clk	= "mcbsp3_fck",
++	.main_clk	= "func_mcbsp3_gfclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_MCBSP3_CLKCTRL_OFFSET,
+@@ -3321,7 +3315,7 @@ static struct omap_hwmod omap44xx_mcbsp4_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp4_irqs),
+ 	.sdma_reqs	= omap44xx_mcbsp4_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp4_sdma_reqs),
+-	.main_clk	= "mcbsp4_fck",
++	.main_clk	= "per_mcbsp4_gfclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_MCBSP4_CLKCTRL_OFFSET,
+@@ -3416,7 +3410,7 @@ static struct omap_hwmod omap44xx_mcpdm_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcpdm_irqs),
+ 	.sdma_reqs	= omap44xx_mcpdm_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcpdm_sdma_reqs),
+-	.main_clk	= "mcpdm_fck",
++	.main_clk	= "pad_clks_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_PDM_CLKCTRL_OFFSET,
+@@ -3504,7 +3498,7 @@ static struct omap_hwmod omap44xx_mcspi1_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi1_irqs),
+ 	.sdma_reqs	= omap44xx_mcspi1_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi1_sdma_reqs),
+-	.main_clk	= "mcspi1_fck",
++	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI1_CLKCTRL_OFFSET,
+@@ -3567,7 +3561,7 @@ static struct omap_hwmod omap44xx_mcspi2_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi2_irqs),
+ 	.sdma_reqs	= omap44xx_mcspi2_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi2_sdma_reqs),
+-	.main_clk	= "mcspi2_fck",
++	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI2_CLKCTRL_OFFSET,
+@@ -3630,7 +3624,7 @@ static struct omap_hwmod omap44xx_mcspi3_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi3_irqs),
+ 	.sdma_reqs	= omap44xx_mcspi3_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi3_sdma_reqs),
+-	.main_clk	= "mcspi3_fck",
++	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI3_CLKCTRL_OFFSET,
+@@ -3691,7 +3685,7 @@ static struct omap_hwmod omap44xx_mcspi4_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi4_irqs),
+ 	.sdma_reqs	= omap44xx_mcspi4_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi4_sdma_reqs),
+-	.main_clk	= "mcspi4_fck",
++	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI4_CLKCTRL_OFFSET,
+@@ -3778,7 +3772,7 @@ static struct omap_hwmod omap44xx_mmc1_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mmc1_irqs),
+ 	.sdma_reqs	= omap44xx_mmc1_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc1_sdma_reqs),
+-	.main_clk	= "mmc1_fck",
++	.main_clk	= "hsmmc1_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L3INIT_MMC1_CLKCTRL_OFFSET,
+@@ -3840,7 +3834,7 @@ static struct omap_hwmod omap44xx_mmc2_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mmc2_irqs),
+ 	.sdma_reqs	= omap44xx_mmc2_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc2_sdma_reqs),
+-	.main_clk	= "mmc2_fck",
++	.main_clk	= "hsmmc2_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L3INIT_MMC2_CLKCTRL_OFFSET,
+@@ -3897,7 +3891,7 @@ static struct omap_hwmod omap44xx_mmc3_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mmc3_irqs),
+ 	.sdma_reqs	= omap44xx_mmc3_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc3_sdma_reqs),
+-	.main_clk	= "mmc3_fck",
++	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_MMCSD3_CLKCTRL_OFFSET,
+@@ -3952,7 +3946,7 @@ static struct omap_hwmod omap44xx_mmc4_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mmc4_irqs),
+ 	.sdma_reqs	= omap44xx_mmc4_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc4_sdma_reqs),
+-	.main_clk	= "mmc4_fck",
++	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_MMCSD4_CLKCTRL_OFFSET,
+@@ -4007,7 +4001,7 @@ static struct omap_hwmod omap44xx_mmc5_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mmc5_irqs),
+ 	.sdma_reqs	= omap44xx_mmc5_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mmc5_sdma_reqs),
+-	.main_clk	= "mmc5_fck",
++	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_MMCSD5_CLKCTRL_OFFSET,
+@@ -4123,7 +4117,7 @@ static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
+ 	.clkdm_name	= "l4_ao_clkdm",
+ 	.mpu_irqs	= omap44xx_smartreflex_core_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_irqs),
+-	.main_clk	= "smartreflex_core_fck",
++	.main_clk	= "l4_wkup_clk_mux_ck",
+ 	.vdd_name	= "core",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -4172,7 +4166,7 @@ static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
+ 	.clkdm_name	= "l4_ao_clkdm",
+ 	.mpu_irqs	= omap44xx_smartreflex_iva_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_irqs),
+-	.main_clk	= "smartreflex_iva_fck",
++	.main_clk	= "l4_wkup_clk_mux_ck",
+ 	.vdd_name	= "iva",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -4221,7 +4215,7 @@ static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
+ 	.clkdm_name	= "l4_ao_clkdm",
+ 	.mpu_irqs	= omap44xx_smartreflex_mpu_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_irqs),
+-	.main_clk	= "smartreflex_mpu_fck",
++	.main_clk	= "l4_wkup_clk_mux_ck",
+ 	.vdd_name	= "mpu",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -4419,7 +4413,7 @@ static struct omap_hwmod omap44xx_timer2_hwmod = {
+ 	.clkdm_name	= "l4_per_clkdm",
+ 	.mpu_irqs	= omap44xx_timer2_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer2_irqs),
+-	.main_clk	= "timer2_fck",
++	.main_clk	= "cm2_dm2_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER2_CLKCTRL_OFFSET,
+@@ -4467,7 +4461,7 @@ static struct omap_hwmod omap44xx_timer3_hwmod = {
+ 	.clkdm_name	= "l4_per_clkdm",
+ 	.mpu_irqs	= omap44xx_timer3_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer3_irqs),
+-	.main_clk	= "timer3_fck",
++	.main_clk	= "cm2_dm3_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER3_CLKCTRL_OFFSET,
+@@ -4515,7 +4509,7 @@ static struct omap_hwmod omap44xx_timer4_hwmod = {
+ 	.clkdm_name	= "l4_per_clkdm",
+ 	.mpu_irqs	= omap44xx_timer4_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer4_irqs),
+-	.main_clk	= "timer4_fck",
++	.main_clk	= "cm2_dm4_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER4_CLKCTRL_OFFSET,
+@@ -4582,7 +4576,7 @@ static struct omap_hwmod omap44xx_timer5_hwmod = {
+ 	.clkdm_name	= "abe_clkdm",
+ 	.mpu_irqs	= omap44xx_timer5_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer5_irqs),
+-	.main_clk	= "timer5_fck",
++	.main_clk	= "timer5_sync_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_TIMER5_CLKCTRL_OFFSET,
+@@ -4649,7 +4643,7 @@ static struct omap_hwmod omap44xx_timer6_hwmod = {
+ 	.clkdm_name	= "abe_clkdm",
+ 	.mpu_irqs	= omap44xx_timer6_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer6_irqs),
+-	.main_clk	= "timer6_fck",
++	.main_clk	= "timer6_sync_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_TIMER6_CLKCTRL_OFFSET,
+@@ -4716,7 +4710,7 @@ static struct omap_hwmod omap44xx_timer7_hwmod = {
+ 	.clkdm_name	= "abe_clkdm",
+ 	.mpu_irqs	= omap44xx_timer7_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer7_irqs),
+-	.main_clk	= "timer7_fck",
++	.main_clk	= "timer7_sync_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_TIMER7_CLKCTRL_OFFSET,
+@@ -4783,7 +4777,7 @@ static struct omap_hwmod omap44xx_timer8_hwmod = {
+ 	.clkdm_name	= "abe_clkdm",
+ 	.mpu_irqs	= omap44xx_timer8_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer8_irqs),
+-	.main_clk	= "timer8_fck",
++	.main_clk	= "timer8_sync_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_TIMER8_CLKCTRL_OFFSET,
+@@ -4831,7 +4825,7 @@ static struct omap_hwmod omap44xx_timer9_hwmod = {
+ 	.clkdm_name	= "l4_per_clkdm",
+ 	.mpu_irqs	= omap44xx_timer9_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer9_irqs),
+-	.main_clk	= "timer9_fck",
++	.main_clk	= "cm2_dm9_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER9_CLKCTRL_OFFSET,
+@@ -4879,7 +4873,7 @@ static struct omap_hwmod omap44xx_timer10_hwmod = {
+ 	.clkdm_name	= "l4_per_clkdm",
+ 	.mpu_irqs	= omap44xx_timer10_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer10_irqs),
+-	.main_clk	= "timer10_fck",
++	.main_clk	= "cm2_dm10_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER10_CLKCTRL_OFFSET,
+@@ -4927,7 +4921,7 @@ static struct omap_hwmod omap44xx_timer11_hwmod = {
+ 	.clkdm_name	= "l4_per_clkdm",
+ 	.mpu_irqs	= omap44xx_timer11_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer11_irqs),
+-	.main_clk	= "timer11_fck",
++	.main_clk	= "cm2_dm11_mux_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER11_CLKCTRL_OFFSET,
+@@ -5004,7 +4998,7 @@ static struct omap_hwmod omap44xx_uart1_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart1_irqs),
+ 	.sdma_reqs	= omap44xx_uart1_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart1_sdma_reqs),
+-	.main_clk	= "uart1_fck",
++	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_UART1_CLKCTRL_OFFSET,
+@@ -5059,7 +5053,7 @@ static struct omap_hwmod omap44xx_uart2_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart2_irqs),
+ 	.sdma_reqs	= omap44xx_uart2_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart2_sdma_reqs),
+-	.main_clk	= "uart2_fck",
++	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_UART2_CLKCTRL_OFFSET,
+@@ -5115,7 +5109,7 @@ static struct omap_hwmod omap44xx_uart3_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart3_irqs),
+ 	.sdma_reqs	= omap44xx_uart3_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart3_sdma_reqs),
+-	.main_clk	= "uart3_fck",
++	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_UART3_CLKCTRL_OFFSET,
+@@ -5170,7 +5164,7 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart4_irqs),
+ 	.sdma_reqs	= omap44xx_uart4_sdma_reqs,
+ 	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart4_sdma_reqs),
+-	.main_clk	= "uart4_fck",
++	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L4PER_UART4_CLKCTRL_OFFSET,
+@@ -5251,7 +5245,6 @@ static struct omap_hwmod omap44xx_usb_otg_hs_hwmod = {
+ 	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+ 	.mpu_irqs	= omap44xx_usb_otg_hs_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_irqs),
+-	.main_clk	= "usb_otg_hs_ick",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_L3INIT_USB_OTG_CLKCTRL_OFFSET,
+@@ -5326,7 +5319,7 @@ static struct omap_hwmod omap44xx_wd_timer2_hwmod = {
+ 	.clkdm_name	= "l4_wkup_clkdm",
+ 	.mpu_irqs	= omap44xx_wd_timer2_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_irqs),
+-	.main_clk	= "wd_timer2_fck",
++	.main_clk	= "sys_32k_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_WKUP_WDT2_CLKCTRL_OFFSET,
+@@ -5393,7 +5386,7 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
+ 	.clkdm_name	= "abe_clkdm",
+ 	.mpu_irqs	= omap44xx_wd_timer3_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_irqs),
+-	.main_clk	= "wd_timer3_fck",
++	.main_clk	= "sys_32k_ck",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_WDT3_CLKCTRL_OFFSET,
 -- 
 1.7.0.4
 
