@@ -1,109 +1,113 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 6/6] OMAP2+: hwmod: Fix the HW reset management
-Date: Fri, 1 Jul 2011 10:46:18 +0200
-Message-ID: <4E0D895A.1080406@ti.com>
-References: <1308862842-3933-1-git-send-email-b-cousson@ti.com> <1308862842-3933-7-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1107010243170.27025@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/8] HDMI: Split hdmi.c to seperate HDMI IP dependant
+ code from DSS.
+Date: Fri, 01 Jul 2011 11:51:09 +0300
+Message-ID: <1309510269.1821.18.camel@deskari>
+References: <1308298637-29753-1-git-send-email-mythripk@ti.com>
+	 <1308823101.1834.79.camel@deskari>
+	 <BANLkTinc9JUr-gBGSynzMtrqTVncDUbNKQ@mail.gmail.com>
+	 <1308832274.1834.109.camel@deskari>
+	 <BANLkTik1TYgaGBYKqYxih1RjPKn8nU_cAA@mail.gmail.com>
+	 <1309179518.1813.38.camel@lappyti>
+	 <BANLkTi=VAaTf7SwXJikHAJGmxJLmbg84Dw@mail.gmail.com>
+	 <1309364515.20494.20.camel@deskari>
+	 <BANLkTi=XUVEXxw7Ag23BEBw8zHY6J+c9OQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47202 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755515Ab1GAIqX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 04:46:23 -0400
-In-Reply-To: <alpine.DEB.2.00.1107010243170.27025@utopia.booyaka.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:53000 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755538Ab1GAIvQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 04:51:16 -0400
+Received: by bwf20 with SMTP id 20so3123576bwf.20
+        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 01:51:13 -0700 (PDT)
+In-Reply-To: <BANLkTi=XUVEXxw7Ag23BEBw8zHY6J+c9OQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On 7/1/2011 10:44 AM, Paul Walmsley wrote:
-> One quick comment here:
->
-> On Thu, 23 Jun 2011, Benoit Cousson wrote:
->
->> The HW reset must be de-assert after the clocks are enabled
->> but before waiting for the target to be ready. Otherwise the
->> reset might not work properly since the clock is not running
->> to proceed the reset.
->>
->> De-assert the reset after _enable_clocks and before
->> _wait_target_ready.
->> Re-assert it only when the clocks are disabled.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Paul Walmsley<paul@pwsan.com>
->> ---
->>   arch/arm/mach-omap2/omap_hwmod.c |   32 ++++++++++++++++----------------
->>   1 files changed, 16 insertions(+), 16 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->> index f401417..55ad6a5 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -1250,15 +1250,6 @@ static int _enable(struct omap_hwmod *oh)
->>
->>   	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
->>
->> -	/*
->> -	 * If an IP contains only one HW reset line, then de-assert it in order
->> -	 * to allow to enable the clocks. Otherwise the PRCM will return
->> -	 * Intransition status, and the init will failed.
->> -	 */
->> -	if ((oh->_state == _HWMOD_STATE_INITIALIZED ||
->> -	     oh->_state == _HWMOD_STATE_DISABLED)&&  oh->rst_lines_cnt == 1)
->> -		_deassert_hardreset(oh, oh->rst_lines[0].name);
->> -
->>   	/* Mux pins for device runtime if populated */
->>   	if (oh->mux&&  (!oh->mux->enabled ||
->>   			((oh->_state == _HWMOD_STATE_IDLE)&&
->> @@ -1268,6 +1259,15 @@ static int _enable(struct omap_hwmod *oh)
->>   	_add_initiator_dep(oh, mpu_oh);
->>   	_enable_clocks(oh);
->>
->> +	/*
->> +	 * If an IP contains only one HW reset line, then de-assert it in order
->> +	 * to allow to enable the clocks. Otherwise the PRCM will return
->> +	 * Intransition status, and the init will failed.
->> +	 */
->
-> Please update this comment, this doesn't make sense any more...
+On Thu, 2011-06-30 at 23:16 +0530, K, Mythri P wrote:
+> Hi Tomi,
+> 
+> On Wed, Jun 29, 2011 at 9:51 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> > Hi,
+> >
+> > On Wed, 2011-06-29 at 19:08 +0530, K, Mythri P wrote:
+> >> Hi Tomi,
+> >
+> >> As the HDMI PLL , PHY and video blocks are logical blocks it would
+> >> make sense to have the API's for all and the DSS HDMI (interface
+> >> driver - user driver) would make a call to configure this in a
+> >> particular sequence to enable HDMI , in case you the call to be
+> >> generic across OMAPS in future then we should i either have a funtion
+> >> in hdmi.c which will do this sequence and will be  aware of underlying
+> >> IP , Which doesnt appear to be the solution you prefer but then there
+> >> would be a need to have an intermediate file which would take the
+> >> common API call(function pointer) and then arbitrate between different
+> >> IP's based on the make , Is that what you are suggesting ?
+> >
+> > I agree that they are separate blocks, and at some level they need to be
+> > separate with own functions for each. But I don't see why the user needs
+> > to know about it.
+> >
+> > For example, consider OMAP DSI. DSI has protocol, PLL and PHY blocks,
+> > and the driver has functions to initialize them, use them etc. But the
+> > user of DSI, in this case panel drivers, do not need to know about it,
+> > and the API exported to the panel drivers does not contain any functions
+> > related to PLL or PHY. The panel drivers just enable the DSI driver and
+> > use it.
+> >
+> > So I'm still asking: what benefit does it give to the user that the API
+> > has functions to handle the blocks separately? There has to be a reason
+> > for the functions in the API.
+> >
+> It doesnt give any additional benefit but flexibility to change the
+> blocks (PHY / PLL) indivudally to use a different one.
 
-Good point, I'll fix that.
+Right. But this API is not the right place to implement that
+flexibility. If there's no benefit for the user of the API to know about
+the details of the HW, it's better hidden. The user just wants to use
+the functionality, not know what lies below.
 
->
->> +	if ((oh->_state == _HWMOD_STATE_INITIALIZED ||
->> +	     oh->_state == _HWMOD_STATE_DISABLED)&&  oh->rst_lines_cnt == 1)
->> +		_deassert_hardreset(oh, oh->rst_lines[0].name);
->> +
->>   	r = _wait_target_ready(oh);
->>   	if (!r) {
->>   		oh->_state = _HWMOD_STATE_ENABLED;
->> @@ -1396,13 +1396,6 @@ static int _shutdown(struct omap_hwmod *oh)
->>   		_shutdown_sysc(oh);
->>   	}
->>
->> -	/*
->> -	 * If an IP contains only one HW reset line, then assert it
->> -	 * before disabling the clocks and shutting down the IP.
->> -	 */
->> -	if (oh->rst_lines_cnt == 1)
->> -		_assert_hardreset(oh, oh->rst_lines[0].name);
->> -
->>   	/* clocks and deps are already disabled in idle */
->>   	if (oh->_state == _HWMOD_STATE_ENABLED) {
->>   		_del_initiator_dep(oh, mpu_oh);
->> @@ -1411,6 +1404,13 @@ static int _shutdown(struct omap_hwmod *oh)
->>   	}
->>   	/* XXX Should this code also force-disable the optional clocks? */
->>
->> +	/*
->> +	 * If an IP contains only one HW reset line, then assert it
->> +	 * before disabling the clocks and shutting down the IP.
->> +	 */
->
-> And this one too.
+> >> > And it just occurred to me that perhaps our views of the API are a bit
+> >> > different, and that's why we have differing opinions. I see this API as
+> >> > something that could be used by OMAP DSS (and equivalent components on
+> >> > other SoCs) to use the HDMI HW on OMAP4 and any future OMAPs. And
+> >> > perhaps you see this API more as an API to use the current HDMI HW in
+> >> > the OMAP4.
+> >>
+> >> Tomi , Yes my Idea of this API is for OMAP and Netra series only , I
+> >> am unable to envision a common HDMI API library , in that case it
+> >> would make more sense to have an intermediate file and have function
+> >> pointer , which would take common API calls like hdmi_enable ,
+> >> hdmi_avi_confg etc and then arbitrate based on the build. Please let
+> >> me know if you have anything else in mind.
+> >
+> > I didn't mean a generic HDMI API either. I meant a TI HDMI API,
+> > currently for OMAP and Netra. But my comments would be valid even if the
+> > API would be only OMAP DSS internal.
+> >
+> Neither the HDMI DSS driver should be concerned about these PHY/PLL
+> internal API's nor should the configuration be done in the  IP driver
+> as the IP driver shpuld only provide functionality and should be
+> flexible enough as across OMAP4 and netra itself there is a
 
-OK.
+What configuration are you referring to? I don't think the user of the
+API (i.e. omapdss) should do any configuration that requires knowledge
+of the underlying HDMI HW.
 
-Benoit
+> possibility of the PHY block being different , so  Now the only
+> solution i see is to have a intermediate file , whose job is to
+> provide common API function and based on the CPU switch would be aware
+> of the IP inside and make appropriate call to IP driver , Does this
+> sound like a good approach ?
+
+I don't see a need for a separate file right now. We have the
+hdmi_ti_4xxx_ip.c file which contains code for the HDMI block as a
+whole, and could well contain the code that implements the API.
+
+ Tomi
+
+
