@@ -1,57 +1,46 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 0/7] OMAP4: Add 4460 base support
-Date: Fri, 01 Jul 2011 10:00:06 -0700
-Message-ID: <4E0DFD16.40407@ti.com>
-References: <1309486081-8257-1-git-send-email-rnayak@ti.com>	 <87boxe2c1q.fsf@ti.com> <1309538407.6231.84.camel@vence>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH] MMC: OMAP: change HSMMC maintainence to Orphan
+Date: Fri,  1 Jul 2011 10:36:42 -0700
+Message-ID: <1309541802-5975-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:34651 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754965Ab1GARAK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 13:00:10 -0400
-Received: by mail-gx0-f172.google.com with SMTP id 19so2199528gxk.17
-        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 10:00:09 -0700 (PDT)
-In-Reply-To: <1309538407.6231.84.camel@vence>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:53234 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753516Ab1GARgi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 13:36:38 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com
+To: linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>
 
-On 7/1/2011 9:40 AM, Kevin Hilman wrote:
-> On Fri, 2011-07-01 at 09:36 -0700, Kevin Hilman wrote:
->> Rajendra Nayak<rnayak@ti.com>  writes:
->>
->>> This series adds base support needed to be able
->>> to boot on a OMAP4460 device.
->>> Patches are based on Benoit's for_3.0.1/7_hwmod_modulemode
->>> branch and boot tested on both 4460sdp as well as 4430sdp.
->>
->> Can you also briefly summarize the dependencies between this series an
->> Benoit's?   I'm assuming it is mainly because of the s/4430/44XX/
->> changes, and also avoiding conflicts in clockdomain and powerdomain data
->> files.
->>
->> With that, you can add
->>
->> Reviewed-by: Kevin Hilman<khilman@ti.com>
->>
->> for the whole series.
->
-> oops, except for [7/7], where I agree with Tony.
->
-> As discussed off-list, lets just drop this patch all together and state
-> in [0/7] that there is a limitation that until we fix the hwmod fwk to
-> do lazy disable as Tony suggested, 4460 can only reliably boot at OPP50.
+From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-Sure, I'll re-post the series once I have Benoit's updated one's
-to base on.
+Update the OMAP HS MMC entry from the MAINTAINERS file as I will
+no longer be able to maintain this driver.
 
-Thanks Kevin.
+Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+[khilman@ti.com: change to Orphan rather than complete removal]
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Applies to v3.0-rc5
 
->
-> Kevin
->
->
+ MAINTAINERS |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index f0358cd..2f238b5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4574,9 +4574,8 @@ S:	Maintained
+ F:	drivers/mmc/host/omap.c
+ 
+ OMAP HS MMC SUPPORT
+-M:	Madhusudhan Chikkature <madhu.cr@ti.com>
+ L:	linux-omap@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ F:	drivers/mmc/host/omap_hsmmc.c
+ 
+ OMAP RANDOM NUMBER GENERATOR SUPPORT
+-- 
+1.7.6
 
