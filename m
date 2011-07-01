@@ -1,60 +1,62 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 4/5] OMAP4: clock data: Keep GPMC clocks always enabled and hardware managed
-Date: Fri, 1 Jul 2011 22:27:39 +0200
-Message-ID: <1309552060-4547-5-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 2/5] OMAP4: prm: Remove wrong clockdomain offsets
+Date: Fri, 1 Jul 2011 22:27:37 +0200
+Message-ID: <1309552060-4547-3-git-send-email-b-cousson@ti.com>
 References: <1309552060-4547-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57091 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33795 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755480Ab1GAU15 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1755314Ab1GAU15 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 1 Jul 2011 16:27:57 -0400
 In-Reply-To: <1309552060-4547-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, rnayak@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+The following commit introduced new macros to define an offset
+per clock domain in an instance.
 
-On OMAP4, CPU accesses on unmapped addresses are redirected to GPMC by
-L3 interconnect. Because of CPU speculative nature, such accesses are
-possible which can lead to indirect access to GPMC and if it's clock is
-not running, it can result in hang/abort on the platform.
+commit e4156ee52fe617c2c2d80b5db993ff4bf07d7c3c
 
-Above makes access to GPMC unpredictable during the execution, so it's
-module mode needs to be kept under hardware control instead of software
-control.
-Since the auto gating is supported for GPMC, there isn't any power impact
-because of this change.
+    OMAP4: CM instances: add clockdomain register offsets
 
-The issue was un-covered with security middleware running along with HLOS.
-In this case GPMC had a valid MMU descriptor on secure side where as HLOS
-didn't map the GMPC because it isn't being used.
+The PRM contains only two clock controls management entities:
+EMU and WKUP.
+Remove the other ones.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-[b-cousson@ti.com: Update subject and fix typos in the changelog]
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
+Reviewed-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock44xx_data.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/prm44xx.h |   12 ------------
+ 1 files changed, 0 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 8c96567..72a3976 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -1694,6 +1694,7 @@ static struct clk gpmc_ick = {
- 	.ops		= &clkops_omap2_dflt,
- 	.enable_reg	= OMAP4430_CM_L3_2_GPMC_CLKCTRL,
- 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
-+	.flags		= ENABLE_ON_INIT,
- 	.clkdm_name	= "l3_2_clkdm",
- 	.parent		= &l3_div_ck,
- 	.recalc		= &followparent_recalc,
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index 2aec8c8..6e53120 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -57,19 +57,7 @@
+ #define OMAP4430_PRM_INSTR_INST		0x1f00
+ 
+ /* PRM clockdomain register offsets (from instance start) */
+-#define OMAP4430_PRM_MPU_MPU_CDOFFS		0x0000
+-#define OMAP4430_PRM_TESLA_TESLA_CDOFFS		0x0000
+-#define OMAP4430_PRM_ABE_ABE_CDOFFS		0x0000
+-#define OMAP4430_PRM_CORE_CORE_CDOFFS		0x0000
+-#define OMAP4430_PRM_IVAHD_IVAHD_CDOFFS		0x0000
+-#define OMAP4430_PRM_CAM_CAM_CDOFFS		0x0000
+-#define OMAP4430_PRM_DSS_DSS_CDOFFS		0x0000
+-#define OMAP4430_PRM_GFX_GFX_CDOFFS		0x0000
+-#define OMAP4430_PRM_L3INIT_L3INIT_CDOFFS	0x0000
+-#define OMAP4430_PRM_L4PER_L4PER_CDOFFS		0x0000
+-#define OMAP4430_PRM_CEFUSE_CEFUSE_CDOFFS	0x0000
+ #define OMAP4430_PRM_WKUP_CM_WKUP_CDOFFS	0x0000
+-#define OMAP4430_PRM_EMU_EMU_CDOFFS		0x0000
+ #define OMAP4430_PRM_EMU_CM_EMU_CDOFFS		0x0000
+ 
+ /* OMAP4 specific register offsets */
 -- 
 1.7.0.4
 
