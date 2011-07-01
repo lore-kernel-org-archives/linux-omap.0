@@ -1,37 +1,75 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [linux-pm] runtime PM usage_count during driver_probe_device()?
-Date: Fri, 1 Jul 2011 08:57:40 +0300
-Message-ID: <BANLkTikLna-jbrNfD2fz_QC1BfrCHpByNA@mail.gmail.com>
-References: <87k4c3dktm.fsf@ti.com> <87vcvmaml6.fsf@ti.com> <201107010233.12377.rjw@sisk.pl>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCHv3 0/3] OMAP: HSMMC: cleanup and runtime pm
+Date: Fri, 1 Jul 2011 11:46:01 +0530
+Message-ID: <BANLkTikwEH+wFzn-7gno5tXzJSeweDvTLw@mail.gmail.com>
+References: <1309460700-25898-1-git-send-email-balajitk@ti.com>
+	<4E0CD055.30902@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:61953 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752655Ab1GAF6C convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 01:58:02 -0400
-Received: by wwe5 with SMTP id 5so2904533wwe.1
-        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 22:58:00 -0700 (PDT)
-In-Reply-To: <201107010233.12377.rjw@sisk.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4E0CD055.30902@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "tony@atomide.com" <tony@atomide.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, Kevin Hilman <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
 
-On Fri, Jul 1, 2011 at 3:33 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> In theory it is possible that a subsystem (e.g. bus type) will enable
-> runtime PM for devices without drivers and will (for example) put the=
-m
-> into low power states until the drivers are loaded. =A0Then, it makes
-> sense for the core to prevent such transitions from racing with .prob=
-e().
+On Fri, Jul 1, 2011 at 1:06 AM, Cousson, Benoit <b-cousson@ti.com> wrot=
+e:
+> Hi Balaji,
 >
-> I'm not sure if this happens in practice, though,
+> On 6/30/2011 9:04 PM, Krishnamoorthy, Balaji T wrote:
+>>
+>> Removing the custom state machine - lazy disable framework in omap_h=
+smmc
+>> to make way for runtime pm to handle host controller
+>> power states.
+>> This allows mmc_host_enable/mmc_host_disable to be replaced by
+>> runtime get_sync and put_sync at host controller driver.
+>>
+>> Enable runtime PM in omap_hsmmc
+>>
+>> Rebased to 3.0-rc5
+>> Tested on OMAP4430SDP, OMAP3430SDP, OMAP2430SDP
+>>
+>> MMC runtime patch has dependency on
+>> [PATCH 0/6] OMAP2+: hwmod framework fixes [1]
+>> for MMC1/MMC2 clock to get ungated after idle in OMAP4.
+>>
+>> Without [1] patches, MMC1/MMC2 fails to get detected on OMAP4.
+>
+> Mmm, that's weird, which one exactly is fixing the issue?
 
-Yeah, this is exactly what the SDIO subsystem is doing.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg51458.html
+[PATCH 1/6] OMAP2+: hwmod: Fix smart-standby + wakeup support
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg51461.html
+[PATCH 2/6] OMAP4: hwmod data: Add MSTANDBY_SMART_WKUP flag
+
+
+> BTW, what is the issue exactly?
+
+with SIDLE_SMART_WKUP flag set in omap44xx_mmc_sysc,
+module got stuck after second clock enable.
+It got resolved after adding MSTANDBY_SMART_WKUP fixes
+=2E
+Removing SIDLE_SMART_WKUP also solves the issue..
+
+>
+> Benoit
+>
+>>
+>> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg51457.=
+html
+>>
+>> Balaji T K (3):
+>> =A0 MMC: OMAP: HSMMC: Remove lazy_disable
+>> =A0 MMC: OMAP: HSMMC: add runtime pm support
+>> =A0 MMC: OMAP: HSMMC: Remove unused iclk
+>>
+>> =A0drivers/mmc/host/omap_hsmmc.c | =A0365
+>> +++++++----------------------------------
+>> =A01 files changed, 57 insertions(+), 308 deletions(-)
+>>
+>
+>
