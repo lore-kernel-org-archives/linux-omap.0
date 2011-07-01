@@ -1,90 +1,75 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 03/13] OMAP4: hwmod: Replace CLKCTRL absolute address
- with offset macros
-Date: Fri, 1 Jul 2011 03:39:59 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107010337120.27025@utopia.booyaka.com>
-References: <1309189641-25010-1-git-send-email-b-cousson@ti.com> <1309189641-25010-4-git-send-email-b-cousson@ti.com>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v3 04/20] GPIO: OMAP: Fix pwrdm_post_transition call sequence
+Date: Fri, 1 Jul 2011 15:16:58 +0530
+Message-ID: <1309513634-20971-5-git-send-email-tarun.kanti@ti.com>
+References: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35080 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755430Ab1GAJkA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 05:40:00 -0400
-In-Reply-To: <1309189641-25010-4-git-send-email-b-cousson@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:53456 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755664Ab1GAJrZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 05:47:25 -0400
+In-Reply-To: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, Charulatha V <charu@ti.com>
 
-Hi
+From: Charulatha V <charu@ti.com>
 
-On Mon, 27 Jun 2011, Benoit Cousson wrote:
+The context lost count is modified in omap_sram_idle() path when
+pwrdm_post_transition() is called. But pwrdm_post_transition() is called
+only after omap_gpio_resume_after_idle() is called. Correct this so that
+context lost count is modified before calling omap_gpio_resume_after_idle().
 
-> The CLKCTRL register was accessed using an absolute address.
-> The usage of hardcoded macros to calculate virtual address from physical
-> one should be avoided as much as possible.
-> The usage of a offset will allow future improvement like migration from
-> the current architecture code toward a module driver.
+This would be useful when OMAP GPIO save/restore context is called by
+the OMAP GPIO driver itself.
 
-one minor comment below:
+Signed-off-by: Charulatha V <charu@ti.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-> 
-> Update cm_xxx accessor, move definition to the proper header file and
-> update copyrights.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/cm44xx.h                 |    3 +-
->  arch/arm/mach-omap2/cminst44xx.c             |   23 +++-
->  arch/arm/mach-omap2/cminst44xx.h             |    4 +-
->  arch/arm/mach-omap2/omap_hwmod.c             |   10 +-
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |  182 ++++++++++++++++---------
->  arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +-
->  6 files changed, 145 insertions(+), 79 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/cm44xx.h b/arch/arm/mach-omap2/cm44xx.h
-> index 0b87ec8..cdda756 100644
-> --- a/arch/arm/mach-omap2/cm44xx.h
-> +++ b/arch/arm/mach-omap2/cm44xx.h
-> @@ -1,7 +1,7 @@
->  /*
->   * OMAP4 Clock Management (CM) definitions
->   *
-> - * Copyright (C) 2007-2009 Texas Instruments, Inc.
-> + * Copyright (C) 2007-2011 Texas Instruments, Inc.
->   * Copyright (C) 2007-2009 Nokia Corporation
->   *
->   * Written by Paul Walmsley
-> @@ -26,7 +26,6 @@
->  /* Function prototypes */
->  # ifndef __ASSEMBLER__
->  
-> -extern int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg);
->  
->  # endif
->  #endif
-> diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-> index a482bfa..1df740e 100644
-> --- a/arch/arm/mach-omap2/cminst44xx.c
-> +++ b/arch/arm/mach-omap2/cminst44xx.c
-> @@ -2,6 +2,7 @@
->   * OMAP4 CM instance functions
->   *
->   * Copyright (C) 2009 Nokia Corporation
-> + * Copyright (C) 2011 Texas Instruments, Inc.
->   * Paul Walmsley
->   *
->   * This program is free software; you can redistribute it and/or modify
-> @@ -199,9 +200,20 @@ void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs)
->   *
->   */
->  
-> +static u32 _clkctrl_idlest(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index c155c9d..51d5a5c 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -375,7 +375,6 @@ void omap_sram_idle(void)
+ 		printk(KERN_ERR "Invalid mpu state in sram_idle\n");
+ 		return;
+ 	}
+-	pwrdm_pre_transition();
+ 
+ 	/* NEON control */
+ 	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
+@@ -398,6 +397,8 @@ void omap_sram_idle(void)
+ 			if (!console_trylock())
+ 				goto console_still_active;
+ 
++	pwrdm_pre_transition();
++
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
+@@ -467,6 +468,8 @@ void omap_sram_idle(void)
+ 	}
+ 	omap3_intc_resume_idle();
+ 
++	pwrdm_post_transition();
++
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
+@@ -490,8 +493,6 @@ console_still_active:
+ 		omap3_disable_io_chain();
+ 	}
+ 
+-	pwrdm_post_transition();
+-
+ 	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+ }
+ 
+-- 
+1.6.0.4
 
-Maybe call this _read_clkctrl_idlest() to identify what it's doing?
-
-
-- Paul
