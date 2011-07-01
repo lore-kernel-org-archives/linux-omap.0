@@ -1,81 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] runtime PM usage_count during driver_probe_device()?
-Date: Fri, 1 Jul 2011 02:33:12 +0200
-Message-ID: <201107010233.12377.rjw@sisk.pl>
-References: <87k4c3dktm.fsf@ti.com> <87vcvmaml6.fsf@ti.com>
+From: Silesh C V <silesh@ti.com>
+Subject: Re: [PATCH v2] arm: omap: fix the alphabetical order
+Date: Fri, 1 Jul 2011 10:04:00 +0900
+Message-ID: <BANLkTin4HPEkKQi0TB-4-9JXz_ockTwwcQ@mail.gmail.com>
+References: <1309434503-1737-1-git-send-email-balbi@ti.com>
+	<1309435611-2068-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:44984 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754473Ab1GAAcX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Jun 2011 20:32:23 -0400
-In-Reply-To: <87vcvmaml6.fsf@ti.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:43300 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754133Ab1GABEB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jun 2011 21:04:01 -0400
+Received: by iwn6 with SMTP id 6so2391057iwn.19
+        for <linux-omap@vger.kernel.org>; Thu, 30 Jun 2011 18:04:01 -0700 (PDT)
+In-Reply-To: <1309435611-2068-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: Kevin Hilman <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Friday, July 01, 2011, Kevin Hilman wrote:
-> Kevin Hilman <khilman@ti.com> writes:
-> 
-> > Continuing on the theme of runtime PM interactions with other parts of
-> > the driver core...
-> >
-> > In drivers/base/dd.c:driver_probe_device(), the driver core increments
-> > the usage count around ->probe():
-> >
-> >         [...]
-> > 	pm_runtime_get_noresume(dev);
-> > 	pm_runtime_barrier(dev);
-> > 	ret = really_probe(dev, drv);
-> > 	pm_runtime_put_sync(dev);
-> >
-> > I'm not following the reason for this.  On driver's I'm familar with,
-> > it's not until ->probe where pm_runtime_enable() is called.  What is
-> > being protected against here?
-> >
-> > These seem to exist since the introduction of the runtime PM core, but I
-> > can't find any explanation.
-> >
-> > The documentation refers to the increment by the core, but not the
-> > reasons why:
-> >
-> >     If the device bus type's or driver's ->probe() or ->remove()
-> >     callback runs pm_runtime_suspend() or pm_runtime_idle() or their
-> >     asynchronous counterparts, they will fail returning -EAGAIN, because
-> >     the device's usage counter is incremented by the core before
-> >     executing ->probe() and ->remove().  Still, it may be desirable to
-> >     suspend the device as soon as ->probe() or ->remove() has finished,
-> >     so the PM core uses pm_runtime_idle_sync() to invoke the
-> >     subsystem-level idle callback for the device at that time.
-> >
-> > On a side note, the bit about -EAGAIN above is not accurate with today's
-> > code.  For example, __pm_runtime_suspend() returns zero when the usage
-> > count decrement is non-zero, so callers can't currently know that doing
-> > a pm_runtime_suspend() or pm_runtime_put_sync() in their ->probe()
-> > actually didn't happen.
-> 
-> Oops, I'm not quite right here. 
-> 
-> The doc is actually right here if the driver uses pm_runtime_suspend()
-> or pm_runtime_idle() in ->probe().  It's only when drivers use
-> pm_runtime_put_sync() where there wouldn't be an -EAGAIN, but that seems
-> correct.  Sorry for the noise.
-> 
-> I'm still confused about the usage_count increment around ->probe
-> though.
+On Thu, Jun 30, 2011 at 9:06 PM, Felipe Balbi <balbi@ti.com> wrote:
+> That might have been correct on some ancient
+> dead language, but I like better when things
+> are recent.
+>
+> Fix the alphabetical order.
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>
+> Fixed missing comma after Richard's name and removed
+> comma after Vikram's name.
+>
+> Thanks Charulatha Varadarajan for spotting those two.
+>
+> =A0arch/arm/plat-omap/include/plat/omap_device.h | =A0 =A07 +++----
+> =A01 files changed, 3 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm=
+/plat-omap/include/plat/omap_device.h
+> index e4c349f..5a2369ba 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -4,10 +4,9 @@
+> =A0* Copyright (C) 2009 Nokia Corporation
+> =A0* Paul Walmsley
+> =A0*
+> - * Developed in collaboration with (alphabetical order): Benoit
+> - * Cousson, Kevin Hilman, Tony Lindgren, Rajendra Nayak, Vikram
+> - * Pandita, Sakari Poussa, Anand Sawant, Santosh Shilimkar, Richard
+> - * Woodruff
 
-In theory it is possible that a subsystem (e.g. bus type) will enable
-runtime PM for devices without drivers and will (for example) put them
-into low power states until the drivers are loaded.  Then, it makes
-sense for the core to prevent such transitions from racing with .probe().
+Looks like the original author was referring to the last names when he
+meant 'in alphabetical order' which is also correct in a way. So it
+looks like it is not only correct in a dead ancient language but also
+in some recent ones. :-)
 
-I'm not sure if this happens in practice, though, but also I'm not sure
-whether or not that's used by USB.  Moreover, even if that doesn't happen
-right now, it may start to happen at one point.
+http://en.wikipedia.org/wiki/Name_order#Name_order
 
-Thanks,
-Rafael
+Regards,
+Silesh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
