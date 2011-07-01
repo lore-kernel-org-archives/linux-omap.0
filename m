@@ -1,70 +1,105 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/8] HDMI: Split hdmi.c to seperate HDMI IP dependant
- code from DSS.
-Date: Fri, 01 Jul 2011 14:44:37 +0300
-Message-ID: <1309520677.1821.43.camel@deskari>
-References: <1308298637-29753-1-git-send-email-mythripk@ti.com>
-	 <1308823101.1834.79.camel@deskari>
-	 <BANLkTinc9JUr-gBGSynzMtrqTVncDUbNKQ@mail.gmail.com>
-	 <1308832274.1834.109.camel@deskari>
-	 <BANLkTik1TYgaGBYKqYxih1RjPKn8nU_cAA@mail.gmail.com>
-	 <1309179518.1813.38.camel@lappyti>
-	 <BANLkTi=VAaTf7SwXJikHAJGmxJLmbg84Dw@mail.gmail.com>
-	 <1309364515.20494.20.camel@deskari>
-	 <BANLkTi=XUVEXxw7Ag23BEBw8zHY6J+c9OQ@mail.gmail.com>
-	 <1309510269.1821.18.camel@deskari>
-	 <BANLkTik+0P1ycGpS-xU1Utu2Zfzk17ZkWA@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 1/8] OMAP2+: clockdomain: Add an api to read idle
+ mode
+Date: Fri, 1 Jul 2011 06:22:38 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107010622050.27025@utopia.booyaka.com>
+References: <1309191103-8817-1-git-send-email-b-cousson@ti.com> <1309191103-8817-2-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:46283 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755255Ab1GALol (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 07:44:41 -0400
-Received: by mail-bw0-f54.google.com with SMTP id 20so5317921bwa.27
-        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 04:44:40 -0700 (PDT)
-In-Reply-To: <BANLkTik+0P1ycGpS-xU1Utu2Zfzk17ZkWA@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:33879 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755084Ab1GAMWj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 08:22:39 -0400
+In-Reply-To: <1309191103-8817-2-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, toddpoynor@google.com
 
-On Fri, 2011-07-01 at 14:52 +0530, K, Mythri P wrote:
+Hi
 
-> > I don't see a need for a separate file right now. We have the
-> > hdmi_ti_4xxx_ip.c file which contains code for the HDMI block as a
-> > whole, and could well contain the code that implements the API.
-> >
-> if the hdmi_ti_4xxx_ip.c  is handling the configuration then how are
-> we going to handle a scenario where netra uses a different PHY block ,
+On Mon, 27 Jun 2011, Benoit Cousson wrote:
 
-I wasn't aware that Netra has different HDMI blocks. I understood it's
-the same as on OMAP4.
+> From: Rajendra Nayak <rnayak@ti.com>
+> 
+> Add a clockdomain api to check if hardware supervised
+> idle transitions are enabled on a clockdomain.
 
-So they have a different PHY driver, but want to use PLL and core parts
-of OMAP4 HDMI driver?
+This looks good but I'd also suggest crediting Todd in the changelog for 
+his review comments...
 
-> you suggest to have a #if in the programming sequence within
-> hdmi_ti_4xxx_ip.c function ?
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/clockdomain.c |   21 +++++++++++++++++++++
+>  arch/arm/mach-omap2/clockdomain.h |    3 +++
+>  2 files changed, 24 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+> index 6cb6c03..3f2a8e7 100644
+> --- a/arch/arm/mach-omap2/clockdomain.c
+> +++ b/arch/arm/mach-omap2/clockdomain.c
+> @@ -795,6 +795,27 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+>  	arch_clkdm->clkdm_deny_idle(clkdm);
+>  }
+>  
+> +/**
+> + * clkdm_allows_idle - Check if the clkdm hwsup/autoidle is enabled
+> + * @clkdm: struct clockdomain *
+> + *
+> + * Returns true if the clockdomain is in hardware-supervised
+> + * idle mode, or 0 otherwise.
+> + *
+> + */
+> +int clkdm_allows_idle(struct clockdomain *clkdm)
+> +{
+> +	if (!clkdm)
+> +		return -EINVAL;
+> +
+> +	if (!arch_clkdm || !arch_clkdm->clkdm_allows_idle)
+> +		return -EINVAL;
+> +
+> +	pr_debug("clockdomain: reading idle state for %s\n", clkdm->name);
+> +
+> +	return arch_clkdm->clkdm_allows_idle(clkdm);
+> +}
+> +
+>  
+>  /* Clockdomain-to-clock framework interface code */
+>  
+> diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+> index 5823584..2d3d970 100644
+> --- a/arch/arm/mach-omap2/clockdomain.h
+> +++ b/arch/arm/mach-omap2/clockdomain.h
+> @@ -138,6 +138,7 @@ struct clockdomain {
+>   * @clkdm_wakeup: Force a clockdomain to wakeup
+>   * @clkdm_allow_idle: Enable hw supervised idle transitions for clock domain
+>   * @clkdm_deny_idle: Disable hw supervised idle transitions for clock domain
+> + * @clkdm_allows_idle: Check if hw supervised idle transitions are enabled
+>   * @clkdm_clk_enable: Put the clkdm in right state for a clock enable
+>   * @clkdm_clk_disable: Put the clkdm in right state for a clock disable
+>   */
+> @@ -154,6 +155,7 @@ struct clkdm_ops {
+>  	int	(*clkdm_wakeup)(struct clockdomain *clkdm);
+>  	void	(*clkdm_allow_idle)(struct clockdomain *clkdm);
+>  	void	(*clkdm_deny_idle)(struct clockdomain *clkdm);
+> +	int	(*clkdm_allows_idle)(struct clockdomain *clkdm);
+>  	int	(*clkdm_clk_enable)(struct clockdomain *clkdm);
+>  	int	(*clkdm_clk_disable)(struct clockdomain *clkdm);
+>  };
+> @@ -177,6 +179,7 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm);
+>  
+>  void clkdm_allow_idle(struct clockdomain *clkdm);
+>  void clkdm_deny_idle(struct clockdomain *clkdm);
+> +int clkdm_allows_idle(struct clockdomain *clkdm);
+>  
+>  int clkdm_wakeup(struct clockdomain *clkdm);
+>  int clkdm_sleep(struct clockdomain *clkdm);
+> -- 
+> 1.7.0.4
+> 
 
-No, we can't use #ifdefs as the same kernel has to work for both SoCs.
 
-> Also in future OMAP's when are using the PHY and PLL block from
-> hdmi_ti_4xxx_ip.c , but a different core/video block from
-> hdmi_ti_5xxx_ip.c then how  would hdmi_ti_5xxx_ip.c hdmi_enable be
-> able to call the PHY and PLL configuration functions  from
-> hdmi_ti_4xxx_ip.c ??
-
-If the different HDMI blocks will be mixed like that, then we need to
-split the blocks to separate files. Otherwise it will get strange if
-OMAP5 HDMI code is calling PLL functions from OMAP4 HDMI code.
-
-And on top of those drivers/libs we would have a higher level driver/lib
-for the whole HDMI entity, and this higher level driver would implement
-the API being discussed. It would then use the lower level drivers/libs,
-and be used by OMAP/Netra DSS.
-
- Tomi
-
-
+- Paul
