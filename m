@@ -1,154 +1,306 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 07/18] OMAP4: clock data: Fix max mult and div for USB DPLL
-Date: Fri, 1 Jul 2011 22:41:30 +0200
-Message-ID: <1309552901-8944-8-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 11/18] OMAP4: clock data: Add missing divider selection for auxclks
+Date: Fri, 1 Jul 2011 22:41:34 +0200
+Message-ID: <1309552901-8944-12-git-send-email-b-cousson@ti.com>
 References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34622 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57601 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755723Ab1GAUmE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 16:42:04 -0400
+	id S1755723Ab1GAUmK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 16:42:10 -0400
 In-Reply-To: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-The DPLL USB can generate higher speed (x2) than the regular ones.
-The max multiplication value is then twice the previous value.
+From: Rajendra Nayak <rnayak@ti.com>
 
-Fix both max_mult and max_div with that correct values.
+On OMAP4 the auxclk nodes (part of SCRM) support both
+divider as well as parent selection.
+Supporting this requires splitting the existing nodes
+(which support only parent selection) into two nodes,
+one for parent and another for divider selection.
+The nodes for parent selection are named auxclk*_src_ck
+and the ones for divider selection as auxclk*_ck.
 
-Change the max_div variable type to u16 to allow storing up to 256.
-
-Replace as well the define with the value to avoid
-unneeded indirection and provide a better readability.
-
-Remove the defines that become useless.
-
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+[b-cousson@ti.com: Rebase on top of clock cleanup
+and autogen alignement]
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clock44xx.h         |    7 -------
- arch/arm/mach-omap2/clock44xx_data.c    |   28 ++++++++++++++--------------
- arch/arm/plat-omap/include/plat/clock.h |    2 +-
- 3 files changed, 15 insertions(+), 22 deletions(-)
+ arch/arm/mach-omap2/clock44xx_data.c |  176 +++++++++++++++++++++++++++++-----
+ 1 files changed, 152 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock44xx.h b/arch/arm/mach-omap2/clock44xx.h
-index 6be1095..7ceb870 100644
---- a/arch/arm/mach-omap2/clock44xx.h
-+++ b/arch/arm/mach-omap2/clock44xx.h
-@@ -8,13 +8,6 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_CLOCK44XX_H
- #define __ARCH_ARM_MACH_OMAP2_CLOCK44XX_H
- 
--/*
-- * XXX Missing values for the OMAP4 DPLL_USB
-- * XXX Missing min_multiplier values for all OMAP4 DPLLs
-- */
--#define OMAP4430_MAX_DPLL_MULT	2047
--#define OMAP4430_MAX_DPLL_DIV	128
--
- int omap4xxx_clk_init(void);
- 
- #endif
 diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 9d7d9a6..9370695 100644
+index 2f7b5e6..8dd3e03 100644
 --- a/arch/arm/mach-omap2/clock44xx_data.c
 +++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -258,8 +258,8 @@ static struct dpll_data dpll_abe_dd = {
- 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
- 	.min_divider	= 1,
+@@ -2773,19 +2773,39 @@ static struct clk trace_clk_div_ck = {
+ 
+ /* SCRM aux clk nodes */
+ 
+-static const struct clksel auxclk_sel[] = {
++static const struct clksel auxclk_src_sel[] = {
+ 	{ .parent = &sys_clkin_ck, .rates = div_1_0_rates },
+ 	{ .parent = &dpll_core_m3x2_ck, .rates = div_1_1_rates },
+ 	{ .parent = &dpll_per_m3x2_ck, .rates = div_1_2_rates },
+ 	{ .parent = NULL },
  };
  
-@@ -434,8 +434,8 @@ static struct dpll_data dpll_core_dd = {
- 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
- 	.min_divider	= 1,
+-static struct clk auxclk0_ck = {
+-	.name		= "auxclk0_ck",
++static const struct clksel_rate div16_1to16_rates[] = {
++	{ .div = 1, .val = 0, .flags = RATE_IN_44XX },
++	{ .div = 2, .val = 1, .flags = RATE_IN_44XX },
++	{ .div = 3, .val = 2, .flags = RATE_IN_44XX },
++	{ .div = 4, .val = 3, .flags = RATE_IN_44XX },
++	{ .div = 5, .val = 4, .flags = RATE_IN_44XX },
++	{ .div = 6, .val = 5, .flags = RATE_IN_44XX },
++	{ .div = 7, .val = 6, .flags = RATE_IN_44XX },
++	{ .div = 8, .val = 7, .flags = RATE_IN_44XX },
++	{ .div = 9, .val = 8, .flags = RATE_IN_44XX },
++	{ .div = 10, .val = 9, .flags = RATE_IN_44XX },
++	{ .div = 11, .val = 10, .flags = RATE_IN_44XX },
++	{ .div = 12, .val = 11, .flags = RATE_IN_44XX },
++	{ .div = 13, .val = 12, .flags = RATE_IN_44XX },
++	{ .div = 14, .val = 13, .flags = RATE_IN_44XX },
++	{ .div = 15, .val = 14, .flags = RATE_IN_44XX },
++	{ .div = 16, .val = 15, .flags = RATE_IN_44XX },
++	{ .div = 0 },
++};
++
++static struct clk auxclk0_src_ck = {
++	.name		= "auxclk0_src_ck",
+ 	.parent		= &sys_clkin_ck,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.ops		= &clkops_omap2_dflt,
+-	.clksel		= auxclk_sel,
++	.clksel		= auxclk_src_sel,
+ 	.clksel_reg	= OMAP4_SCRM_AUXCLK0,
+ 	.clksel_mask	= OMAP4_SRCSELECT_MASK,
+ 	.recalc		= &omap2_clksel_recalc,
+@@ -2793,12 +2813,29 @@ static struct clk auxclk0_ck = {
+ 	.enable_bit	= OMAP4_ENABLE_SHIFT,
  };
  
-@@ -672,8 +672,8 @@ static struct dpll_data dpll_iva_dd = {
- 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
- 	.min_divider	= 1,
+-static struct clk auxclk1_ck = {
+-	.name		= "auxclk1_ck",
++static const struct clksel auxclk0_sel[] = {
++	{ .parent = &auxclk0_src_ck, .rates = div16_1to16_rates },
++	{ .parent = NULL },
++};
++
++static struct clk auxclk0_ck = {
++	.name		= "auxclk0_ck",
++	.parent		= &auxclk0_src_ck,
++	.clksel		= auxclk0_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK0,
++	.clksel_mask	= OMAP4_CLKDIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++static struct clk auxclk1_src_ck = {
++	.name		= "auxclk1_src_ck",
+ 	.parent		= &sys_clkin_ck,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.ops		= &clkops_omap2_dflt,
+-	.clksel		= auxclk_sel,
++	.clksel		= auxclk_src_sel,
+ 	.clksel_reg	= OMAP4_SCRM_AUXCLK1,
+ 	.clksel_mask	= OMAP4_SRCSELECT_MASK,
+ 	.recalc		= &omap2_clksel_recalc,
+@@ -2806,12 +2843,29 @@ static struct clk auxclk1_ck = {
+ 	.enable_bit	= OMAP4_ENABLE_SHIFT,
  };
  
-@@ -740,8 +740,8 @@ static struct dpll_data dpll_mpu_dd = {
- 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
- 	.min_divider	= 1,
+-static struct clk auxclk2_ck = {
+-	.name		= "auxclk2_ck",
++static const struct clksel auxclk1_sel[] = {
++	{ .parent = &auxclk1_src_ck, .rates = div16_1to16_rates },
++	{ .parent = NULL },
++};
++
++static struct clk auxclk1_ck = {
++	.name		= "auxclk1_ck",
++	.parent		= &auxclk1_src_ck,
++	.clksel		= auxclk1_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK1,
++	.clksel_mask	= OMAP4_CLKDIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++static struct clk auxclk2_src_ck = {
++	.name		= "auxclk2_src_ck",
+ 	.parent		= &sys_clkin_ck,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.ops		= &clkops_omap2_dflt,
+-	.clksel		= auxclk_sel,
++	.clksel		= auxclk_src_sel,
+ 	.clksel_reg	= OMAP4_SCRM_AUXCLK2,
+ 	.clksel_mask	= OMAP4_SRCSELECT_MASK,
+ 	.recalc		= &omap2_clksel_recalc,
+@@ -2819,12 +2873,29 @@ static struct clk auxclk2_ck = {
+ 	.enable_bit	= OMAP4_ENABLE_SHIFT,
  };
  
-@@ -813,8 +813,8 @@ static struct dpll_data dpll_per_dd = {
- 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
- 	.min_divider	= 1,
+-static struct clk auxclk3_ck = {
+-	.name		= "auxclk3_ck",
++static const struct clksel auxclk2_sel[] = {
++	{ .parent = &auxclk2_src_ck, .rates = div16_1to16_rates },
++	{ .parent = NULL },
++};
++
++static struct clk auxclk2_ck = {
++	.name		= "auxclk2_ck",
++	.parent		= &auxclk2_src_ck,
++	.clksel		= auxclk2_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK2,
++	.clksel_mask	= OMAP4_CLKDIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++static struct clk auxclk3_src_ck = {
++	.name		= "auxclk3_src_ck",
+ 	.parent		= &sys_clkin_ck,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.ops		= &clkops_omap2_dflt,
+-	.clksel		= auxclk_sel,
++	.clksel		= auxclk_src_sel,
+ 	.clksel_reg	= OMAP4_SCRM_AUXCLK3,
+ 	.clksel_mask	= OMAP4_SRCSELECT_MASK,
+ 	.recalc		= &omap2_clksel_recalc,
+@@ -2832,12 +2903,29 @@ static struct clk auxclk3_ck = {
+ 	.enable_bit	= OMAP4_ENABLE_SHIFT,
  };
  
-@@ -949,8 +949,8 @@ static struct dpll_data dpll_unipro_dd = {
- 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 2047,
-+	.max_divider	= 128,
- 	.min_divider	= 1,
+-static struct clk auxclk4_ck = {
+-	.name		= "auxclk4_ck",
++static const struct clksel auxclk3_sel[] = {
++	{ .parent = &auxclk3_src_ck, .rates = div16_1to16_rates },
++	{ .parent = NULL },
++};
++
++static struct clk auxclk3_ck = {
++	.name		= "auxclk3_ck",
++	.parent		= &auxclk3_src_ck,
++	.clksel		= auxclk3_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK3,
++	.clksel_mask	= OMAP4_CLKDIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++static struct clk auxclk4_src_ck = {
++	.name		= "auxclk4_src_ck",
+ 	.parent		= &sys_clkin_ck,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.ops		= &clkops_omap2_dflt,
+-	.clksel		= auxclk_sel,
++	.clksel		= auxclk_src_sel,
+ 	.clksel_reg	= OMAP4_SCRM_AUXCLK4,
+ 	.clksel_mask	= OMAP4_SRCSELECT_MASK,
+ 	.recalc		= &omap2_clksel_recalc,
+@@ -2845,12 +2933,29 @@ static struct clk auxclk4_ck = {
+ 	.enable_bit	= OMAP4_ENABLE_SHIFT,
  };
  
-@@ -1016,8 +1016,8 @@ static struct dpll_data dpll_usb_dd = {
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
- 	.sddiv_mask	= OMAP4430_DPLL_SD_DIV_MASK,
--	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
--	.max_divider	= OMAP4430_MAX_DPLL_DIV,
-+	.max_multiplier	= 4095,
-+	.max_divider	= 256,
- 	.min_divider	= 1,
+-static struct clk auxclk5_ck = {
+-	.name		= "auxclk5_ck",
++static const struct clksel auxclk4_sel[] = {
++	{ .parent = &auxclk4_src_ck, .rates = div16_1to16_rates },
++	{ .parent = NULL },
++};
++
++static struct clk auxclk4_ck = {
++	.name		= "auxclk4_ck",
++	.parent		= &auxclk4_src_ck,
++	.clksel		= auxclk4_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK4,
++	.clksel_mask	= OMAP4_CLKDIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++static struct clk auxclk5_src_ck = {
++	.name		= "auxclk5_src_ck",
+ 	.parent		= &sys_clkin_ck,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.ops		= &clkops_omap2_dflt,
+-	.clksel		= auxclk_sel,
++	.clksel		= auxclk_src_sel,
+ 	.clksel_reg	= OMAP4_SCRM_AUXCLK5,
+ 	.clksel_mask	= OMAP4_SRCSELECT_MASK,
+ 	.recalc		= &omap2_clksel_recalc,
+@@ -2858,6 +2963,23 @@ static struct clk auxclk5_ck = {
+ 	.enable_bit	= OMAP4_ENABLE_SHIFT,
  };
  
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 006e599..f57e064 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -152,7 +152,7 @@ struct dpll_data {
- 	u16			max_multiplier;
- 	u8			last_rounded_n;
- 	u8			min_divider;
--	u8			max_divider;
-+	u16			max_divider;
- 	u8			modes;
- #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- 	void __iomem		*autoidle_reg;
++static const struct clksel auxclk5_sel[] = {
++	{ .parent = &auxclk5_src_ck, .rates = div16_1to16_rates },
++	{ .parent = NULL },
++};
++
++static struct clk auxclk5_ck = {
++	.name		= "auxclk5_ck",
++	.parent		= &auxclk5_src_ck,
++	.clksel		= auxclk5_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK5,
++	.clksel_mask	= OMAP4_CLKDIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
+ static const struct clksel auxclkreq_sel[] = {
+ 	{ .parent = &auxclk0_ck, .rates = div_1_0_rates },
+ 	{ .parent = &auxclk1_ck, .rates = div_1_1_rates },
+@@ -3149,17 +3271,23 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"wd_timer3_fck",		&wd_timer3_fck,	CK_44XX),
+ 	CLK(NULL,	"stm_clk_div_ck",		&stm_clk_div_ck,	CK_44XX),
+ 	CLK(NULL,	"trace_clk_div_ck",		&trace_clk_div_ck,	CK_44XX),
++	CLK(NULL,	"auxclk0_src_ck",		&auxclk0_src_ck,	CK_44XX),
+ 	CLK(NULL,	"auxclk0_ck",			&auxclk0_ck,	CK_44XX),
+-	CLK(NULL,	"auxclk1_ck",			&auxclk1_ck,	CK_44XX),
+-	CLK(NULL,	"auxclk2_ck",			&auxclk2_ck,	CK_44XX),
+-	CLK(NULL,	"auxclk3_ck",			&auxclk3_ck,	CK_44XX),
+-	CLK(NULL,	"auxclk4_ck",			&auxclk4_ck,	CK_44XX),
+-	CLK(NULL,	"auxclk5_ck",			&auxclk5_ck,	CK_44XX),
+ 	CLK(NULL,	"auxclkreq0_ck",		&auxclkreq0_ck,	CK_44XX),
++	CLK(NULL,	"auxclk1_src_ck",		&auxclk1_src_ck,	CK_44XX),
++	CLK(NULL,	"auxclk1_ck",			&auxclk1_ck,	CK_44XX),
+ 	CLK(NULL,	"auxclkreq1_ck",		&auxclkreq1_ck,	CK_44XX),
++	CLK(NULL,	"auxclk2_src_ck",		&auxclk2_src_ck,	CK_44XX),
++	CLK(NULL,	"auxclk2_ck",			&auxclk2_ck,	CK_44XX),
+ 	CLK(NULL,	"auxclkreq2_ck",		&auxclkreq2_ck,	CK_44XX),
++	CLK(NULL,	"auxclk3_src_ck",		&auxclk3_src_ck,	CK_44XX),
++	CLK(NULL,	"auxclk3_ck",			&auxclk3_ck,	CK_44XX),
+ 	CLK(NULL,	"auxclkreq3_ck",		&auxclkreq3_ck,	CK_44XX),
++	CLK(NULL,	"auxclk4_src_ck",		&auxclk4_src_ck,	CK_44XX),
++	CLK(NULL,	"auxclk4_ck",			&auxclk4_ck,	CK_44XX),
+ 	CLK(NULL,	"auxclkreq4_ck",		&auxclkreq4_ck,	CK_44XX),
++	CLK(NULL,	"auxclk5_src_ck",		&auxclk5_src_ck,	CK_44XX),
++	CLK(NULL,	"auxclk5_ck",			&auxclk5_ck,	CK_44XX),
+ 	CLK(NULL,	"auxclkreq5_ck",		&auxclkreq5_ck,	CK_44XX),
+ 	CLK(NULL,	"gpmc_ck",			&dummy_ck,	CK_44XX),
+ 	CLK(NULL,	"gpt1_ick",			&dummy_ck,	CK_44XX),
 -- 
 1.7.0.4
 
