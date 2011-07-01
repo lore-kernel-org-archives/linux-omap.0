@@ -1,79 +1,57 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [linux-pm] runtime PM usage_count during driver_probe_device()?
-Date: Fri, 01 Jul 2011 09:54:32 -0700
-Message-ID: <87vcvm0wmv.fsf@ti.com>
-References: <Pine.LNX.4.44L0.1107011154120.1988-100000@iolanthe.rowland.org>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 0/7] OMAP4: Add 4460 base support
+Date: Fri, 01 Jul 2011 10:00:06 -0700
+Message-ID: <4E0DFD16.40407@ti.com>
+References: <1309486081-8257-1-git-send-email-rnayak@ti.com>	 <87boxe2c1q.fsf@ti.com> <1309538407.6231.84.camel@vence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:54690 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752403Ab1GAQyh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 12:54:37 -0400
-Received: by mail-iw0-f169.google.com with SMTP id 8so3238877iwn.28
-        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 09:54:36 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.44L0.1107011154120.1988-100000@iolanthe.rowland.org>
-	(Alan Stern's message of "Fri, 1 Jul 2011 11:59:09 -0400 (EDT)")
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:34651 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754965Ab1GARAK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 13:00:10 -0400
+Received: by mail-gx0-f172.google.com with SMTP id 19so2199528gxk.17
+        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 10:00:09 -0700 (PDT)
+In-Reply-To: <1309538407.6231.84.camel@vence>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-pm@lists.linux-foundation.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com
 
-Alan Stern <stern@rowland.harvard.edu> writes:
+On 7/1/2011 9:40 AM, Kevin Hilman wrote:
+> On Fri, 2011-07-01 at 09:36 -0700, Kevin Hilman wrote:
+>> Rajendra Nayak<rnayak@ti.com>  writes:
+>>
+>>> This series adds base support needed to be able
+>>> to boot on a OMAP4460 device.
+>>> Patches are based on Benoit's for_3.0.1/7_hwmod_modulemode
+>>> branch and boot tested on both 4460sdp as well as 4430sdp.
+>>
+>> Can you also briefly summarize the dependencies between this series an
+>> Benoit's?   I'm assuming it is mainly because of the s/4430/44XX/
+>> changes, and also avoiding conflicts in clockdomain and powerdomain data
+>> files.
+>>
+>> With that, you can add
+>>
+>> Reviewed-by: Kevin Hilman<khilman@ti.com>
+>>
+>> for the whole series.
+>
+> oops, except for [7/7], where I agree with Tony.
+>
+> As discussed off-list, lets just drop this patch all together and state
+> in [0/7] that there is a limitation that until we fix the hwmod fwk to
+> do lazy disable as Tony suggested, 4460 can only reliably boot at OPP50.
 
-> On Fri, 1 Jul 2011, Kevin Hilman wrote:
->
->> >> --- a/drivers/base/dd.c
->> >> +++ b/drivers/base/dd.c
->> >> @@ -329,13 +329,13 @@ static void __device_release_driver(struct device *dev)
->> >>  			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
->> >>  						     BUS_NOTIFY_UNBIND_DRIVER,
->> >>  						     dev);
->> >> -
->> >> -		pm_runtime_put_sync(dev);
->> >> -
->> >>  		if (dev->bus && dev->bus->remove)
->> >>  			dev->bus->remove(dev);
->> >>  		else if (drv->remove)
->> >>  			drv->remove(dev);
->> >> +
->> >> +		pm_runtime_put_sync(dev);
->> >> +
->> >>  		devres_release_all(dev);
->> >>  		dev->driver = NULL;
->> >>  		klist_remove(&dev->p->knode_driver);
->> >
->> > To be safer, the put_sync() call should be moved down here.  Or maybe 
->> > even after the blocking_notifier_call_chain() that occurs here.
->> 
->> I was actually thinking about the other direction: moving the get_sync
->> after the first notifier chain.  IOW, the get_sync/put_sync only
->> protects the ->remove() calls, not the notifiers.
->> 
->> The protection around the notifiers doesn't make sense to me, at least
->> in the context of driver runtime PM racing with the subsystem.
->> Especially since these notifiers are likely how the
->> subsystem/bus/pm_domain code getting notified that there may be a device
->> to manage in the first place.
->
-> The get_sync part doesn't matter so much.  Moving it past the notifier 
-> call would probably be okay -- unless one of the listeners on the 
-> notifier chain expects the device to be active.  Changing the get_sync 
-> to get_noresume would probably also be okay -- subject to a similar 
-> reservation.
+Sure, I'll re-post the series once I have Benoit's updated one's
+to base on.
 
-There are enough "probably"s in the above to make me a bit uncomfortable
-making this change.  Maybe you can take this patch forward?
+Thanks Kevin.
 
-Kevin
+>
+> Kevin
+>
+>
 
-> The problem with the put_sync isn't the notifier.  If you leave it
-> where you've got it now, you'll end up invoking a callback at a time
-> when the driver thinks it no longer controls the device but the
-> driver-model core still thinks it does.  You certainly want to do the
->
-> 	dev->driver = NULL;
->
-> first.
->
-> Alan Stern
