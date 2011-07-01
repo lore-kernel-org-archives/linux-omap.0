@@ -1,39 +1,161 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: gpio interrupt is not invoked on Panda board
-Date: Fri, 1 Jul 2011 16:17:44 -0500
-Message-ID: <4E0E3978.9050805@ti.com>
-References: <1309543835.48880.YahooMailClassic@web161712.mail.bf1.yahoo.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH v2] OMAP: omap_device: Create clkdev entry for hwmod main_clk
+Date: Fri, 1 Jul 2011 23:18:21 +0200
+Message-ID: <1309555101-21198-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59339 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36476 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757559Ab1GAVRp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 17:17:45 -0400
-In-Reply-To: <1309543835.48880.YahooMailClassic@web161712.mail.bf1.yahoo.com>
+	id S1757638Ab1GAVSc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 17:18:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hong zhang <henryzhang62@yahoo.com>
-Cc: linux-omap@vger.kernel.org
+To: paul@pwsan.com
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Todd Poynor <toddpoynor@google.com>
 
-Hi Henry
+Extend the existing function to create clkdev for every optional
+clocks to add a well one "fck" alias for the main_clk of the
+omap_hwmod.
+It will allow to remove these static clkdev entries from the
+clockXXX_data.c file.
 
-On 7/1/2011 1:10 PM, hong zhang wrote:
-> List,
->
-> I try to get gpio_191 ping interrupted on panda but never succeeded. What I do is
->
-> 1. set 0x410b on dpm_emu19 register to enable interrupt and wakeup
->     on gpio_191
-> 2. set bit 31 to 1 on GPIO_IRQSTATUS_SET_0 register at 0x4805d034
-> 3. set bit 31 to 1 on GPIO_IRQWAKEN_0 register at 0x4805d044
-> 4. set bit 31 to 0 on GPIO_OE register at 0x4805d134 (output)
-> 5. set bit 31 to 1 on GPIO_SETDATAOUT register at 0x4805d194
->
-> Then I expect I should see interrupt on GPIO_IRQSTATUS_0 register at 0x4805d02c. But nothing happens for both output and input (put pin on ground or 1,8v).
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Todd Poynor <toddpoynor@google.com>
+---
+The first version of that patch was included in the modulemode series.
+It is now a standalone patch due to the lack of dependency with the
+original series.
 
-You will not get an interrupt if you are configuring the gpio as an 
-output (GPIO_OE[31] = 0).
+I fixed a clk_put issue reported by Todd.
 
-Jon
+Benoit
+
+
+ arch/arm/plat-omap/omap_device.c |   85 ++++++++++++++++++++++---------------
+ 1 files changed, 50 insertions(+), 35 deletions(-)
+
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 49fc0df..9a02d95 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -241,56 +241,71 @@ static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
+ 	return container_of(pdev, struct omap_device, pdev);
+ }
+ 
++static void _add_clkdev(struct omap_device *od, const char *clk_alias,
++		       const char *clk_name)
++{
++	struct clk *r;
++	struct clk_lookup *l;
++
++	if (!clk_alias || !clk_name)
++		return;
++
++	pr_debug("omap_device: %s: Creating %s -> %s\n",
++		 dev_name(&od->pdev.dev), clk_alias, clk_name);
++
++	r = clk_get_sys(dev_name(&od->pdev.dev), clk_alias);
++	if (!IS_ERR(r)) {
++		pr_warning("omap_device: %s: %s already exist\n",
++			   dev_name(&od->pdev.dev), clk_alias);
++		clk_put(r);
++		return;
++	}
++
++	r = omap_clk_get_by_name(clk_name);
++	if (IS_ERR(r)) {
++		pr_err("omap_device: %s: omap_clk_get_by_name for %s failed\n",
++		       dev_name(&od->pdev.dev), clk_name);
++		return;
++	}
++
++	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev.dev));
++	if (!l) {
++		pr_err("omap_device: %s: clkdev_alloc for %s failed\n",
++		       dev_name(&od->pdev.dev), clk_alias);
++		return;
++	}
++
++	clkdev_add(l);
++}
++
+ /**
+- * _add_optional_clock_clkdev - Add clkdev entry for hwmod optional clocks
++ * _add_hwmod_clocks_clkdev - Add clkdev entry for hwmod optional clocks
++ * and main clock
+  * @od: struct omap_device *od
++ * @oh: struct omap_hwmod *oh
+  *
+- * For every optional clock present per hwmod per omap_device, this function
+- * adds an entry in the clkdev table of the form <dev-id=dev_name, con-id=role>
+- * if it does not exist already.
++ * For the main clock and every optional clock present per hwmod per
++ * omap_device, this function adds an entry in the clkdev table of the
++ * form <dev-id=dev_name, con-id=role> if it does not exist already.
+  *
+  * The function is called from inside omap_device_build_ss(), after
+  * omap_device_register.
+  *
+  * This allows drivers to get a pointer to its optional clocks based on its role
+  * by calling clk_get(<dev*>, <role>).
++ * In the case of the main clock, a "fck" alias is used.
+  *
+  * No return value.
+  */
+-static void _add_optional_clock_clkdev(struct omap_device *od,
+-				      struct omap_hwmod *oh)
++static void _add_hwmod_clocks_clkdev(struct omap_device *od,
++				     struct omap_hwmod *oh)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < oh->opt_clks_cnt; i++) {
+-		struct omap_hwmod_opt_clk *oc;
+-		struct clk *r;
+-		struct clk_lookup *l;
+-
+-		oc = &oh->opt_clks[i];
+-
+-		if (!oc->_clk)
+-			continue;
+-
+-		r = clk_get_sys(dev_name(&od->pdev.dev), oc->role);
+-		if (!IS_ERR(r))
+-			continue; /* clkdev entry exists */
++	_add_clkdev(od, "fck", oh->main_clk);
+ 
+-		r = omap_clk_get_by_name((char *)oc->clk);
+-		if (IS_ERR(r)) {
+-			pr_err("omap_device: %s: omap_clk_get_by_name for %s failed\n",
+-			       dev_name(&od->pdev.dev), oc->clk);
+-			continue;
+-		}
+-
+-		l = clkdev_alloc(r, oc->role, dev_name(&od->pdev.dev));
+-		if (!l) {
+-			pr_err("omap_device: %s: clkdev_alloc for %s failed\n",
+-			       dev_name(&od->pdev.dev), oc->role);
+-			return;
+-		}
+-		clkdev_add(l);
+-	}
++	for (i = 0; i < oh->opt_clks_cnt; i++)
++		_add_clkdev(od, oh->opt_clks[i].role, oh->opt_clks[i].clk);
+ }
+ 
+ 
+@@ -497,7 +512,7 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 
+ 	for (i = 0; i < oh_cnt; i++) {
+ 		hwmods[i]->od = od;
+-		_add_optional_clock_clkdev(od, hwmods[i]);
++		_add_hwmod_clocks_clkdev(od, hwmods[i]);
+ 	}
+ 
+ 	if (ret)
+-- 
+1.7.0.4
+
