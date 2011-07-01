@@ -1,961 +1,2126 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 4/4] OMAP4: prcm: Remove macros with absolute address
-Date: Fri, 1 Jul 2011 23:54:27 +0200
-Message-ID: <1309557267-27165-5-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 3/4] OMAP4: clock data: Remove leaf clock nodes
+Date: Fri, 1 Jul 2011 23:54:26 +0200
+Message-ID: <1309557267-27165-4-git-send-email-b-cousson@ti.com>
 References: <1309557267-27165-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32791 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32786 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757817Ab1GAVyx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 17:54:53 -0400
+	id S1757807Ab1GAVyw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 17:54:52 -0400
 In-Reply-To: <1309557267-27165-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Remove partially macros using the absolute address.
-The new API should use the XXXX_OFFSET version.
+Since the modulemode is now handled by the hwmod, the clock leaf
+nodes are not needed anymore.
 
-Keep some macros since the clock nodes are still
-relying on them.
+Remove them.
 
-Once the clocks will be cleaned, all these remaining
-macros will be removed.
+Keep timer1, dss and ocp2scp clocks that do are still required by
+their respective drivers.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
+c: Paul Walmsley <paul@pwsan.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/cm1_44xx.h |   24 ----
- arch/arm/mach-omap2/cm2_44xx.h |   55 --------
- arch/arm/mach-omap2/prm44xx.h  |  269 ----------------------------------------
- 3 files changed, 0 insertions(+), 348 deletions(-)
+ arch/arm/mach-omap2/clock44xx_data.c | 1723 ++++++++++------------------------
+ 1 files changed, 514 insertions(+), 1209 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm1_44xx.h b/arch/arm/mach-omap2/cm1_44xx.h
-index 1bc00dc..31d90a5 100644
---- a/arch/arm/mach-omap2/cm1_44xx.h
-+++ b/arch/arm/mach-omap2/cm1_44xx.h
-@@ -49,7 +49,6 @@
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 8dd3e03..9372d01 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -1267,512 +1267,572 @@ static struct clk syc_clk_div_ck = {
  
- /* CM1.OCP_SOCKET_CM1 register offsets */
- #define OMAP4_REVISION_CM1_OFFSET			0x0000
--#define OMAP4430_REVISION_CM1				OMAP44XX_CM1_REGADDR(OMAP4430_CM1_OCP_SOCKET_INST, 0x0000)
- #define OMAP4_CM_CM1_PROFILING_CLKCTRL_OFFSET		0x0040
- #define OMAP4430_CM_CM1_PROFILING_CLKCTRL		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_OCP_SOCKET_INST, 0x0040)
+ /* Leaf clocks controlled by modules */
  
-@@ -59,7 +58,6 @@
- #define OMAP4_CM_CLKSEL_ABE_OFFSET			0x0008
- #define OMAP4430_CM_CLKSEL_ABE				OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0008)
- #define OMAP4_CM_DLL_CTRL_OFFSET			0x0010
--#define OMAP4430_CM_DLL_CTRL				OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0010)
- #define OMAP4_CM_CLKMODE_DPLL_CORE_OFFSET		0x0020
- #define OMAP4430_CM_CLKMODE_DPLL_CORE			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0020)
- #define OMAP4_CM_IDLEST_DPLL_CORE_OFFSET		0x0024
-@@ -81,11 +79,8 @@
- #define OMAP4_CM_DIV_M7_DPLL_CORE_OFFSET		0x0044
- #define OMAP4430_CM_DIV_M7_DPLL_CORE			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0044)
- #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_CORE_OFFSET	0x0048
--#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_CORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0048)
- #define OMAP4_CM_SSC_MODFREQDIV_DPLL_CORE_OFFSET	0x004c
--#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_CORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x004c)
- #define OMAP4_CM_EMU_OVERRIDE_DPLL_CORE_OFFSET		0x0050
--#define OMAP4430_CM_EMU_OVERRIDE_DPLL_CORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0050)
- #define OMAP4_CM_CLKMODE_DPLL_MPU_OFFSET		0x0060
- #define OMAP4430_CM_CLKMODE_DPLL_MPU			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0060)
- #define OMAP4_CM_IDLEST_DPLL_MPU_OFFSET			0x0064
-@@ -97,9 +92,7 @@
- #define OMAP4_CM_DIV_M2_DPLL_MPU_OFFSET			0x0070
- #define OMAP4430_CM_DIV_M2_DPLL_MPU			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0070)
- #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_MPU_OFFSET		0x0088
--#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_MPU		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0088)
- #define OMAP4_CM_SSC_MODFREQDIV_DPLL_MPU_OFFSET		0x008c
--#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_MPU		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x008c)
- #define OMAP4_CM_BYPCLK_DPLL_MPU_OFFSET			0x009c
- #define OMAP4430_CM_BYPCLK_DPLL_MPU			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x009c)
- #define OMAP4_CM_CLKMODE_DPLL_IVA_OFFSET		0x00a0
-@@ -115,9 +108,7 @@
- #define OMAP4_CM_DIV_M5_DPLL_IVA_OFFSET			0x00bc
- #define OMAP4430_CM_DIV_M5_DPLL_IVA			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x00bc)
- #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_IVA_OFFSET		0x00c8
--#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_IVA		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x00c8)
- #define OMAP4_CM_SSC_MODFREQDIV_DPLL_IVA_OFFSET		0x00cc
--#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_IVA		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x00cc)
- #define OMAP4_CM_BYPCLK_DPLL_IVA_OFFSET			0x00dc
- #define OMAP4430_CM_BYPCLK_DPLL_IVA			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x00dc)
- #define OMAP4_CM_CLKMODE_DPLL_ABE_OFFSET		0x00e0
-@@ -133,9 +124,7 @@
- #define OMAP4_CM_DIV_M3_DPLL_ABE_OFFSET			0x00f4
- #define OMAP4430_CM_DIV_M3_DPLL_ABE			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x00f4)
- #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_ABE_OFFSET		0x0108
--#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_ABE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0108)
- #define OMAP4_CM_SSC_MODFREQDIV_DPLL_ABE_OFFSET		0x010c
--#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_ABE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x010c)
- #define OMAP4_CM_CLKMODE_DPLL_DDRPHY_OFFSET		0x0120
- #define OMAP4430_CM_CLKMODE_DPLL_DDRPHY			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0120)
- #define OMAP4_CM_IDLEST_DPLL_DDRPHY_OFFSET		0x0124
-@@ -153,41 +142,28 @@
- #define OMAP4_CM_DIV_M6_DPLL_DDRPHY_OFFSET		0x0140
- #define OMAP4430_CM_DIV_M6_DPLL_DDRPHY			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0140)
- #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_DDRPHY_OFFSET	0x0148
--#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_DDRPHY		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0148)
- #define OMAP4_CM_SSC_MODFREQDIV_DPLL_DDRPHY_OFFSET	0x014c
--#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_DDRPHY		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x014c)
- #define OMAP4_CM_SHADOW_FREQ_CONFIG1_OFFSET		0x0160
--#define OMAP4430_CM_SHADOW_FREQ_CONFIG1			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0160)
- #define OMAP4_CM_SHADOW_FREQ_CONFIG2_OFFSET		0x0164
--#define OMAP4430_CM_SHADOW_FREQ_CONFIG2			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0164)
- #define OMAP4_CM_DYN_DEP_PRESCAL_OFFSET			0x0170
--#define OMAP4430_CM_DYN_DEP_PRESCAL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0170)
- #define OMAP4_CM_RESTORE_ST_OFFSET			0x0180
--#define OMAP4430_CM_RESTORE_ST				OMAP44XX_CM1_REGADDR(OMAP4430_CM1_CKGEN_INST, 0x0180)
+-static struct clk aes1_fck = {
+-	.name		= "aes1_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4SEC_AES1_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_secure_clkdm",
+-	.parent		= &l3_div_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk aes2_fck = {
+-	.name		= "aes2_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4SEC_AES2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_secure_clkdm",
+-	.parent		= &l3_div_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk aess_fck = {
+-	.name		= "aess_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM1_ABE_AESS_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+-	.parent		= &aess_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+ static struct clk bandgap_fclk = {
+ 	.name		= "bandgap_fclk",
++	.parent		= &sys_32k_ck,
+ 	.ops		= &clkops_omap2_dflt,
++	.recalc		= &followparent_recalc,
+ 	.enable_reg	= OMAP4430_CM_WKUP_BANDGAP_CLKCTRL,
+ 	.enable_bit	= OMAP4430_OPTFCLKEN_BGAP_32K_SHIFT,
+ 	.clkdm_name	= "l4_wkup_clkdm",
+-	.parent		= &sys_32k_ck,
+-	.recalc		= &followparent_recalc,
+ };
  
- /* CM1.MPU_CM1 register offsets */
- #define OMAP4_CM_MPU_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM_MPU_CLKSTCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_MPU_INST, 0x0000)
- #define OMAP4_CM_MPU_STATICDEP_OFFSET			0x0004
--#define OMAP4430_CM_MPU_STATICDEP			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_MPU_INST, 0x0004)
- #define OMAP4_CM_MPU_DYNAMICDEP_OFFSET			0x0008
--#define OMAP4430_CM_MPU_DYNAMICDEP			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_MPU_INST, 0x0008)
- #define OMAP4_CM_MPU_MPU_CLKCTRL_OFFSET			0x0020
- #define OMAP4430_CM_MPU_MPU_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_MPU_INST, 0x0020)
+-static struct clk des3des_fck = {
+-	.name		= "des3des_fck",
++static struct clk dss_fck = {
++	.name		= "dss_fck",
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4SEC_DES3DES_CLKCTRL,
++	.enable_reg	= OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_secure_clkdm",
+-	.parent		= &l4_div_ck,
++	.clkdm_name	= "l3_dss_clkdm",
++	.parent		= &l3_div_ck,
+ 	.recalc		= &followparent_recalc,
+ };
  
- /* CM1.TESLA_CM1 register offsets */
- #define OMAP4_CM_TESLA_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM_TESLA_CLKSTCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_TESLA_INST, 0x0000)
- #define OMAP4_CM_TESLA_STATICDEP_OFFSET			0x0004
--#define OMAP4430_CM_TESLA_STATICDEP			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_TESLA_INST, 0x0004)
- #define OMAP4_CM_TESLA_DYNAMICDEP_OFFSET		0x0008
--#define OMAP4430_CM_TESLA_DYNAMICDEP			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_TESLA_INST, 0x0008)
- #define OMAP4_CM_TESLA_TESLA_CLKCTRL_OFFSET		0x0020
- #define OMAP4430_CM_TESLA_TESLA_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_TESLA_INST, 0x0020)
+-static const struct clksel dmic_sync_mux_sel[] = {
+-	{ .parent = &abe_24m_fclk, .rates = div_1_0_rates },
+-	{ .parent = &syc_clk_div_ck, .rates = div_1_1_rates },
+-	{ .parent = &func_24m_clk, .rates = div_1_2_rates },
+-	{ .parent = NULL },
+-};
+-
+-static struct clk dmic_sync_mux_ck = {
+-	.name		= "dmic_sync_mux_ck",
+-	.parent		= &abe_24m_fclk,
+-	.clksel		= dmic_sync_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM1_ABE_DMIC_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_INTERNAL_SOURCE_MASK,
+-	.ops		= &clkops_null,
+-	.recalc		= &omap2_clksel_recalc,
+-};
+-
+-static const struct clksel func_dmic_abe_gfclk_sel[] = {
+-	{ .parent = &dmic_sync_mux_ck, .rates = div_1_0_rates },
+-	{ .parent = &pad_clks_ck, .rates = div_1_1_rates },
+-	{ .parent = &slimbus_clk, .rates = div_1_2_rates },
+-	{ .parent = NULL },
+-};
+-
+-/* Merged func_dmic_abe_gfclk into dmic */
+-static struct clk dmic_fck = {
+-	.name		= "dmic_fck",
+-	.parent		= &dmic_sync_mux_ck,
+-	.clksel		= func_dmic_abe_gfclk_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM1_ABE_DMIC_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_SOURCE_MASK,
++static struct clk dss_48mhz_clk = {
++	.name		= "dss_48mhz_clk",
++	.parent		= &func_48mc_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_DMIC_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
++	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_DSS_DSS_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_48MHZ_CLK_SHIFT,
++	.clkdm_name	= "l3_dss_clkdm",
+ };
  
- /* CM1.ABE_CM1 register offsets */
- #define OMAP4_CM1_ABE_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM1_ABE_CLKSTCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_ABE_INST, 0x0000)
- #define OMAP4_CM1_ABE_L4ABE_CLKCTRL_OFFSET		0x0020
- #define OMAP4430_CM1_ABE_L4ABE_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_ABE_INST, 0x0020)
- #define OMAP4_CM1_ABE_AESS_CLKCTRL_OFFSET		0x0028
-diff --git a/arch/arm/mach-omap2/cm2_44xx.h b/arch/arm/mach-omap2/cm2_44xx.h
-index 50a5771..bdc7026 100644
---- a/arch/arm/mach-omap2/cm2_44xx.h
-+++ b/arch/arm/mach-omap2/cm2_44xx.h
-@@ -69,7 +69,6 @@
+-static struct clk dsp_fck = {
+-	.name		= "dsp_fck",
++static struct clk dss_dss_clk = {
++	.name		= "dss_dss_clk",
++	.parent		= &dpll_per_m5x2_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_TESLA_TESLA_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "tesla_clkdm",
+-	.parent		= &dpll_iva_m4x2_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_DSS_DSS_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_DSSCLK_SHIFT,
++	.clkdm_name	= "l3_dss_clkdm",
+ };
  
- /* CM2.OCP_SOCKET_CM2 register offsets */
- #define OMAP4_REVISION_CM2_OFFSET			0x0000
--#define OMAP4430_REVISION_CM2				OMAP44XX_CM2_REGADDR(OMAP4430_CM2_OCP_SOCKET_INST, 0x0000)
- #define OMAP4_CM_CM2_PROFILING_CLKCTRL_OFFSET		0x0040
- #define OMAP4430_CM_CM2_PROFILING_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_OCP_SOCKET_INST, 0x0040)
+ static struct clk dss_sys_clk = {
+ 	.name		= "dss_sys_clk",
++	.parent		= &syc_clk_div_ck,
+ 	.ops		= &clkops_omap2_dflt,
++	.recalc		= &followparent_recalc,
+ 	.enable_reg	= OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 	.enable_bit	= OMAP4430_OPTFCLKEN_SYS_CLK_SHIFT,
+ 	.clkdm_name	= "l3_dss_clkdm",
+-	.parent		= &syc_clk_div_ck,
+-	.recalc		= &followparent_recalc,
+ };
  
-@@ -81,23 +80,14 @@
- #define OMAP4_CM_SCALE_FCLK_OFFSET			0x0008
- #define OMAP4430_CM_SCALE_FCLK				OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0008)
- #define OMAP4_CM_CORE_DVFS_PERF1_OFFSET			0x0010
--#define OMAP4430_CM_CORE_DVFS_PERF1			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0010)
- #define OMAP4_CM_CORE_DVFS_PERF2_OFFSET			0x0014
--#define OMAP4430_CM_CORE_DVFS_PERF2			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0014)
- #define OMAP4_CM_CORE_DVFS_PERF3_OFFSET			0x0018
--#define OMAP4430_CM_CORE_DVFS_PERF3			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0018)
- #define OMAP4_CM_CORE_DVFS_PERF4_OFFSET			0x001c
--#define OMAP4430_CM_CORE_DVFS_PERF4			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x001c)
- #define OMAP4_CM_CORE_DVFS_CURRENT_OFFSET		0x0024
--#define OMAP4430_CM_CORE_DVFS_CURRENT			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0024)
- #define OMAP4_CM_IVA_DVFS_PERF_TESLA_OFFSET		0x0028
--#define OMAP4430_CM_IVA_DVFS_PERF_TESLA			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0028)
- #define OMAP4_CM_IVA_DVFS_PERF_IVAHD_OFFSET		0x002c
--#define OMAP4430_CM_IVA_DVFS_PERF_IVAHD			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x002c)
- #define OMAP4_CM_IVA_DVFS_PERF_ABE_OFFSET		0x0030
--#define OMAP4430_CM_IVA_DVFS_PERF_ABE			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0030)
- #define OMAP4_CM_IVA_DVFS_CURRENT_OFFSET		0x0038
--#define OMAP4430_CM_IVA_DVFS_CURRENT			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0038)
- #define OMAP4_CM_CLKMODE_DPLL_PER_OFFSET		0x0040
- #define OMAP4430_CM_CLKMODE_DPLL_PER			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0040)
- #define OMAP4_CM_IDLEST_DPLL_PER_OFFSET			0x0044
-@@ -119,9 +109,7 @@
- #define OMAP4_CM_DIV_M7_DPLL_PER_OFFSET			0x0064
- #define OMAP4430_CM_DIV_M7_DPLL_PER			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0064)
- #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_PER_OFFSET		0x0068
--#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_PER		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0068)
- #define OMAP4_CM_SSC_MODFREQDIV_DPLL_PER_OFFSET		0x006c
--#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_PER		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x006c)
- #define OMAP4_CM_CLKMODE_DPLL_USB_OFFSET		0x0080
- #define OMAP4430_CM_CLKMODE_DPLL_USB			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0080)
- #define OMAP4_CM_IDLEST_DPLL_USB_OFFSET			0x0084
-@@ -133,9 +121,7 @@
- #define OMAP4_CM_DIV_M2_DPLL_USB_OFFSET			0x0090
- #define OMAP4430_CM_DIV_M2_DPLL_USB			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x0090)
- #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_USB_OFFSET		0x00a8
--#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_USB		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00a8)
- #define OMAP4_CM_SSC_MODFREQDIV_DPLL_USB_OFFSET		0x00ac
--#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_USB		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00ac)
- #define OMAP4_CM_CLKDCOLDO_DPLL_USB_OFFSET		0x00b4
- #define OMAP4430_CM_CLKDCOLDO_DPLL_USB			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00b4)
- #define OMAP4_CM_CLKMODE_DPLL_UNIPRO_OFFSET		0x00c0
-@@ -149,13 +135,10 @@
- #define OMAP4_CM_DIV_M2_DPLL_UNIPRO_OFFSET		0x00d0
- #define OMAP4430_CM_DIV_M2_DPLL_UNIPRO			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00d0)
- #define OMAP4_CM_SSC_DELTAMSTEP_DPLL_UNIPRO_OFFSET	0x00e8
--#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_UNIPRO		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00e8)
- #define OMAP4_CM_SSC_MODFREQDIV_DPLL_UNIPRO_OFFSET	0x00ec
--#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_UNIPRO		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CKGEN_INST, 0x00ec)
+ static struct clk dss_tv_clk = {
+ 	.name		= "dss_tv_clk",
++	.parent		= &extalt_clkin_ck,
+ 	.ops		= &clkops_omap2_dflt,
++	.recalc		= &followparent_recalc,
+ 	.enable_reg	= OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 	.enable_bit	= OMAP4430_OPTFCLKEN_TV_CLK_SHIFT,
+ 	.clkdm_name	= "l3_dss_clkdm",
+-	.parent		= &extalt_clkin_ck,
+-	.recalc		= &followparent_recalc,
+ };
  
- /* CM2.ALWAYS_ON_CM2 register offsets */
- #define OMAP4_CM_ALWON_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM_ALWON_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_ALWAYS_ON_INST, 0x0000)
- #define OMAP4_CM_ALWON_SR_MPU_CLKCTRL_OFFSET		0x0028
- #define OMAP4430_CM_ALWON_SR_MPU_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_ALWAYS_ON_INST, 0x0028)
- #define OMAP4_CM_ALWON_SR_IVA_CLKCTRL_OFFSET		0x0030
-@@ -167,15 +150,11 @@
+-static struct clk dss_dss_clk = {
+-	.name		= "dss_dss_clk",
++static struct clk gpio1_dbclk = {
++	.name		= "gpio1_dbclk",
++	.parent		= &sys_32k_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_DSS_DSS_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_DSSCLK_SHIFT,
+-	.clkdm_name	= "l3_dss_clkdm",
+-	.parent		= &dpll_per_m5x2_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_WKUP_GPIO1_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
++	.clkdm_name	= "l4_wkup_clkdm",
+ };
  
- /* CM2.CORE_CM2 register offsets */
- #define OMAP4_CM_L3_1_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM_L3_1_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0000)
- #define OMAP4_CM_L3_1_DYNAMICDEP_OFFSET			0x0008
--#define OMAP4430_CM_L3_1_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0008)
- #define OMAP4_CM_L3_1_L3_1_CLKCTRL_OFFSET		0x0020
- #define OMAP4430_CM_L3_1_L3_1_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0020)
- #define OMAP4_CM_L3_2_CLKSTCTRL_OFFSET			0x0100
--#define OMAP4430_CM_L3_2_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0100)
- #define OMAP4_CM_L3_2_DYNAMICDEP_OFFSET			0x0108
--#define OMAP4430_CM_L3_2_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0108)
- #define OMAP4_CM_L3_2_L3_2_CLKCTRL_OFFSET		0x0120
- #define OMAP4430_CM_L3_2_L3_2_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0120)
- #define OMAP4_CM_L3_2_GPMC_CLKCTRL_OFFSET		0x0128
-@@ -183,23 +162,16 @@
- #define OMAP4_CM_L3_2_OCMC_RAM_CLKCTRL_OFFSET		0x0130
- #define OMAP4430_CM_L3_2_OCMC_RAM_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0130)
- #define OMAP4_CM_DUCATI_CLKSTCTRL_OFFSET		0x0200
--#define OMAP4430_CM_DUCATI_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0200)
- #define OMAP4_CM_DUCATI_STATICDEP_OFFSET		0x0204
--#define OMAP4430_CM_DUCATI_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0204)
- #define OMAP4_CM_DUCATI_DYNAMICDEP_OFFSET		0x0208
--#define OMAP4430_CM_DUCATI_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0208)
- #define OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET		0x0220
- #define OMAP4430_CM_DUCATI_DUCATI_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0220)
- #define OMAP4_CM_SDMA_CLKSTCTRL_OFFSET			0x0300
--#define OMAP4430_CM_SDMA_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0300)
- #define OMAP4_CM_SDMA_STATICDEP_OFFSET			0x0304
--#define OMAP4430_CM_SDMA_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0304)
- #define OMAP4_CM_SDMA_DYNAMICDEP_OFFSET			0x0308
--#define OMAP4430_CM_SDMA_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0308)
- #define OMAP4_CM_SDMA_SDMA_CLKCTRL_OFFSET		0x0320
- #define OMAP4430_CM_SDMA_SDMA_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0320)
- #define OMAP4_CM_MEMIF_CLKSTCTRL_OFFSET			0x0400
--#define OMAP4430_CM_MEMIF_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0400)
- #define OMAP4_CM_MEMIF_DMM_CLKCTRL_OFFSET		0x0420
- #define OMAP4430_CM_MEMIF_DMM_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0420)
- #define OMAP4_CM_MEMIF_EMIF_FW_CLKCTRL_OFFSET		0x0428
-@@ -213,11 +185,8 @@
- #define OMAP4_CM_MEMIF_DLL_H_CLKCTRL_OFFSET		0x0460
- #define OMAP4430_CM_MEMIF_DLL_H_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0460)
- #define OMAP4_CM_D2D_CLKSTCTRL_OFFSET			0x0500
--#define OMAP4430_CM_D2D_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0500)
- #define OMAP4_CM_D2D_STATICDEP_OFFSET			0x0504
--#define OMAP4430_CM_D2D_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0504)
- #define OMAP4_CM_D2D_DYNAMICDEP_OFFSET			0x0508
--#define OMAP4430_CM_D2D_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0508)
- #define OMAP4_CM_D2D_SAD2D_CLKCTRL_OFFSET		0x0520
- #define OMAP4430_CM_D2D_SAD2D_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0520)
- #define OMAP4_CM_D2D_MODEM_ICR_CLKCTRL_OFFSET		0x0528
-@@ -225,9 +194,7 @@
- #define OMAP4_CM_D2D_SAD2D_FW_CLKCTRL_OFFSET		0x0530
- #define OMAP4430_CM_D2D_SAD2D_FW_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0530)
- #define OMAP4_CM_L4CFG_CLKSTCTRL_OFFSET			0x0600
--#define OMAP4430_CM_L4CFG_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0600)
- #define OMAP4_CM_L4CFG_DYNAMICDEP_OFFSET		0x0608
--#define OMAP4430_CM_L4CFG_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0608)
- #define OMAP4_CM_L4CFG_L4_CFG_CLKCTRL_OFFSET		0x0620
- #define OMAP4430_CM_L4CFG_L4_CFG_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0620)
- #define OMAP4_CM_L4CFG_HW_SEM_CLKCTRL_OFFSET		0x0628
-@@ -237,7 +204,6 @@
- #define OMAP4_CM_L4CFG_SAR_ROM_CLKCTRL_OFFSET		0x0638
- #define OMAP4430_CM_L4CFG_SAR_ROM_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0638)
- #define OMAP4_CM_L3INSTR_CLKSTCTRL_OFFSET		0x0700
--#define OMAP4430_CM_L3INSTR_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0700)
- #define OMAP4_CM_L3INSTR_L3_3_CLKCTRL_OFFSET		0x0720
- #define OMAP4430_CM_L3INSTR_L3_3_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0720)
- #define OMAP4_CM_L3INSTR_L3_INSTR_CLKCTRL_OFFSET	0x0728
-@@ -247,11 +213,8 @@
+-static struct clk dss_48mhz_clk = {
+-	.name		= "dss_48mhz_clk",
++static struct clk gpio2_dbclk = {
++	.name		= "gpio2_dbclk",
++	.parent		= &sys_32k_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_DSS_DSS_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_48MHZ_CLK_SHIFT,
+-	.clkdm_name	= "l3_dss_clkdm",
+-	.parent		= &func_48mc_fclk,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_GPIO2_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
++	.clkdm_name	= "l4_per_clkdm",
+ };
  
- /* CM2.IVAHD_CM2 register offsets */
- #define OMAP4_CM_IVAHD_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM_IVAHD_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_IVAHD_INST, 0x0000)
- #define OMAP4_CM_IVAHD_STATICDEP_OFFSET			0x0004
--#define OMAP4430_CM_IVAHD_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_IVAHD_INST, 0x0004)
- #define OMAP4_CM_IVAHD_DYNAMICDEP_OFFSET		0x0008
--#define OMAP4430_CM_IVAHD_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_IVAHD_INST, 0x0008)
- #define OMAP4_CM_IVAHD_IVAHD_CLKCTRL_OFFSET		0x0020
- #define OMAP4430_CM_IVAHD_IVAHD_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_IVAHD_INST, 0x0020)
- #define OMAP4_CM_IVAHD_SL2_CLKCTRL_OFFSET		0x0028
-@@ -259,11 +222,8 @@
+-static struct clk dss_fck = {
+-	.name		= "dss_fck",
++static struct clk gpio3_dbclk = {
++	.name		= "gpio3_dbclk",
++	.parent		= &sys_32k_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_DSS_DSS_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l3_dss_clkdm",
+-	.parent		= &l3_div_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_GPIO3_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
++	.clkdm_name	= "l4_per_clkdm",
+ };
  
- /* CM2.CAM_CM2 register offsets */
- #define OMAP4_CM_CAM_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM_CAM_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CAM_INST, 0x0000)
- #define OMAP4_CM_CAM_STATICDEP_OFFSET			0x0004
--#define OMAP4430_CM_CAM_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CAM_INST, 0x0004)
- #define OMAP4_CM_CAM_DYNAMICDEP_OFFSET			0x0008
--#define OMAP4430_CM_CAM_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CAM_INST, 0x0008)
- #define OMAP4_CM_CAM_ISS_CLKCTRL_OFFSET			0x0020
- #define OMAP4430_CM_CAM_ISS_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CAM_INST, 0x0020)
- #define OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET		0x0028
-@@ -271,31 +231,22 @@
+-static struct clk efuse_ctrl_cust_fck = {
+-	.name		= "efuse_ctrl_cust_fck",
++static struct clk gpio4_dbclk = {
++	.name		= "gpio4_dbclk",
++	.parent		= &sys_32k_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_CEFUSE_CEFUSE_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_cefuse_clkdm",
+-	.parent		= &sys_clkin_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_GPIO4_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
++	.clkdm_name	= "l4_per_clkdm",
+ };
  
- /* CM2.DSS_CM2 register offsets */
- #define OMAP4_CM_DSS_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM_DSS_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_DSS_INST, 0x0000)
- #define OMAP4_CM_DSS_STATICDEP_OFFSET			0x0004
--#define OMAP4430_CM_DSS_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_DSS_INST, 0x0004)
- #define OMAP4_CM_DSS_DYNAMICDEP_OFFSET			0x0008
--#define OMAP4430_CM_DSS_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_DSS_INST, 0x0008)
- #define OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET			0x0020
- #define OMAP4430_CM_DSS_DSS_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_DSS_INST, 0x0020)
+-static struct clk emif1_fck = {
+-	.name		= "emif1_fck",
++static struct clk gpio5_dbclk = {
++	.name		= "gpio5_dbclk",
++	.parent		= &sys_32k_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_1_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.flags		= ENABLE_ON_INIT,
+-	.clkdm_name	= "l3_emif_clkdm",
+-	.parent		= &ddrphy_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_GPIO5_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
++	.clkdm_name	= "l4_per_clkdm",
+ };
  
- /* CM2.GFX_CM2 register offsets */
- #define OMAP4_CM_GFX_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM_GFX_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_GFX_INST, 0x0000)
- #define OMAP4_CM_GFX_STATICDEP_OFFSET			0x0004
--#define OMAP4430_CM_GFX_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_GFX_INST, 0x0004)
- #define OMAP4_CM_GFX_DYNAMICDEP_OFFSET			0x0008
--#define OMAP4430_CM_GFX_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_GFX_INST, 0x0008)
- #define OMAP4_CM_GFX_GFX_CLKCTRL_OFFSET			0x0020
- #define OMAP4430_CM_GFX_GFX_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_GFX_INST, 0x0020)
+-static struct clk emif2_fck = {
+-	.name		= "emif2_fck",
++static struct clk gpio6_dbclk = {
++	.name		= "gpio6_dbclk",
++	.parent		= &sys_32k_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.flags		= ENABLE_ON_INIT,
+-	.clkdm_name	= "l3_emif_clkdm",
+-	.parent		= &ddrphy_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_GPIO6_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
++	.clkdm_name	= "l4_per_clkdm",
+ };
  
- /* CM2.L3INIT_CM2 register offsets */
- #define OMAP4_CM_L3INIT_CLKSTCTRL_OFFSET		0x0000
--#define OMAP4430_CM_L3INIT_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x0000)
- #define OMAP4_CM_L3INIT_STATICDEP_OFFSET		0x0004
--#define OMAP4430_CM_L3INIT_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x0004)
- #define OMAP4_CM_L3INIT_DYNAMICDEP_OFFSET		0x0008
--#define OMAP4430_CM_L3INIT_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x0008)
- #define OMAP4_CM_L3INIT_MMC1_CLKCTRL_OFFSET		0x0028
- #define OMAP4430_CM_L3INIT_MMC1_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L3INIT_INST, 0x0028)
- #define OMAP4_CM_L3INIT_MMC2_CLKCTRL_OFFSET		0x0030
-@@ -315,9 +266,7 @@
+-static const struct clksel fdif_fclk_div[] = {
+-	{ .parent = &dpll_per_m4x2_ck, .rates = div3_1to4_rates },
+-	{ .parent = NULL },
+-};
+-
+-/* Merged fdif_fclk into fdif */
+-static struct clk fdif_fck = {
+-	.name		= "fdif_fck",
+-	.parent		= &dpll_per_m4x2_ck,
+-	.clksel		= fdif_fclk_div,
+-	.clksel_reg	= OMAP4430_CM_CAM_FDIF_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_FCLK_MASK,
++static struct clk iss_ctrlclk = {
++	.name		= "iss_ctrlclk",
++	.parent		= &func_96m_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate,
+-	.set_rate	= &omap2_clksel_set_rate,
+-	.enable_reg	= OMAP4430_CM_CAM_FDIF_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_CAM_ISS_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_CTRLCLK_SHIFT,
+ 	.clkdm_name	= "iss_clkdm",
+ };
  
- /* CM2.L4PER_CM2 register offsets */
- #define OMAP4_CM_L4PER_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM_L4PER_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0000)
- #define OMAP4_CM_L4PER_DYNAMICDEP_OFFSET		0x0008
--#define OMAP4430_CM_L4PER_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0008)
- #define OMAP4_CM_L4PER_DMTIMER10_CLKCTRL_OFFSET		0x0028
- #define OMAP4430_CM_L4PER_DMTIMER10_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0028)
- #define OMAP4_CM_L4PER_DMTIMER11_CLKCTRL_OFFSET		0x0030
-@@ -383,11 +332,8 @@
- #define OMAP4_CM_L4PER_I2C5_CLKCTRL_OFFSET		0x0168
- #define OMAP4430_CM_L4PER_I2C5_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0168)
- #define OMAP4_CM_L4SEC_CLKSTCTRL_OFFSET			0x0180
--#define OMAP4430_CM_L4SEC_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0180)
- #define OMAP4_CM_L4SEC_STATICDEP_OFFSET			0x0184
--#define OMAP4430_CM_L4SEC_STATICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0184)
- #define OMAP4_CM_L4SEC_DYNAMICDEP_OFFSET		0x0188
--#define OMAP4430_CM_L4SEC_DYNAMICDEP			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x0188)
- #define OMAP4_CM_L4SEC_AES1_CLKCTRL_OFFSET		0x01a0
- #define OMAP4430_CM_L4SEC_AES1_CLKCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_L4PER_INST, 0x01a0)
- #define OMAP4_CM_L4SEC_AES2_CLKCTRL_OFFSET		0x01a8
-@@ -405,7 +351,6 @@
+-static struct clk fpka_fck = {
+-	.name		= "fpka_fck",
++static struct clk ocp2scp_usb_phy_phy_48m = {
++	.name		= "ocp2scp_usb_phy_phy_48m",
++	.parent		= &func_48m_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4SEC_PKAEIP29_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_secure_clkdm",
+-	.parent		= &l4_div_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_PHY_48M_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
  
- /* CM2.CEFUSE_CM2 register offsets */
- #define OMAP4_CM_CEFUSE_CLKSTCTRL_OFFSET		0x0000
--#define OMAP4430_CM_CEFUSE_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CEFUSE_INST, 0x0000)
- #define OMAP4_CM_CEFUSE_CEFUSE_CLKCTRL_OFFSET		0x0020
- #define OMAP4430_CM_CEFUSE_CEFUSE_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CEFUSE_INST, 0x0020)
+-static struct clk gpio1_dbclk = {
+-	.name		= "gpio1_dbclk",
++static struct clk ocp2scp_usb_phy_ick = {
++	.name		= "ocp2scp_usb_phy_ick",
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_WKUP_GPIO1_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
+-	.clkdm_name	= "l4_wkup_clkdm",
+-	.parent		= &sys_32k_ck,
++	.enable_reg	= OMAP4430_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
++	.clkdm_name	= "l3_init_clkdm",
++	.parent		= &l4_div_ck,
+ 	.recalc		= &followparent_recalc,
+ };
  
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index a3887b8..1b4cab3 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -72,23 +72,14 @@
+-static struct clk gpio1_ick = {
+-	.name		= "gpio1_ick",
++static struct clk slimbus1_fclk_0 = {
++	.name		= "slimbus1_fclk_0",
++	.parent		= &abe_24m_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_WKUP_GPIO1_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l4_wkup_clkdm",
+-	.parent		= &l4_wkup_clk_mux_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM1_ABE_SLIMBUS_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_FCLK0_SHIFT,
++	.clkdm_name	= "abe_clkdm",
+ };
  
- /* PRM.OCP_SOCKET_PRM register offsets */
- #define OMAP4_REVISION_PRM_OFFSET			0x0000
--#define OMAP4430_REVISION_PRM				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0000)
- #define OMAP4_PRM_IRQSTATUS_MPU_OFFSET			0x0010
--#define OMAP4430_PRM_IRQSTATUS_MPU			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0010)
- #define OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET		0x0014
--#define OMAP4430_PRM_IRQSTATUS_MPU_2			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0014)
- #define OMAP4_PRM_IRQENABLE_MPU_OFFSET			0x0018
--#define OMAP4430_PRM_IRQENABLE_MPU			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0018)
- #define OMAP4_PRM_IRQENABLE_MPU_2_OFFSET		0x001c
--#define OMAP4430_PRM_IRQENABLE_MPU_2			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x001c)
- #define OMAP4_PRM_IRQSTATUS_DUCATI_OFFSET		0x0020
--#define OMAP4430_PRM_IRQSTATUS_DUCATI			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0020)
- #define OMAP4_PRM_IRQENABLE_DUCATI_OFFSET		0x0028
--#define OMAP4430_PRM_IRQENABLE_DUCATI			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0028)
- #define OMAP4_PRM_IRQSTATUS_TESLA_OFFSET		0x0030
--#define OMAP4430_PRM_IRQSTATUS_TESLA			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0030)
- #define OMAP4_PRM_IRQENABLE_TESLA_OFFSET		0x0038
--#define OMAP4430_PRM_IRQENABLE_TESLA			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0038)
- #define OMAP4_CM_PRM_PROFILING_CLKCTRL_OFFSET		0x0040
- #define OMAP4430_CM_PRM_PROFILING_CLKCTRL		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_INST, 0x0040)
+-static struct clk gpio2_dbclk = {
+-	.name		= "gpio2_dbclk",
++static struct clk slimbus1_fclk_1 = {
++	.name		= "slimbus1_fclk_1",
++	.parent		= &func_24m_clk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_GPIO2_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &sys_32k_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM1_ABE_SLIMBUS_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_FCLK1_SHIFT,
++	.clkdm_name	= "abe_clkdm",
+ };
  
-@@ -104,415 +95,223 @@
+-static struct clk gpio2_ick = {
+-	.name		= "gpio2_ick",
++static struct clk slimbus1_fclk_2 = {
++	.name		= "slimbus1_fclk_2",
++	.parent		= &pad_clks_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_GPIO2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &l4_div_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM1_ABE_SLIMBUS_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_FCLK2_SHIFT,
++	.clkdm_name	= "abe_clkdm",
+ };
  
- /* PRM.MPU_PRM register offsets */
- #define OMAP4_PM_MPU_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_MPU_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_MPU_INST, 0x0000)
- #define OMAP4_PM_MPU_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_MPU_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_MPU_INST, 0x0004)
- #define OMAP4_RM_MPU_RSTST_OFFSET			0x0014
--#define OMAP4430_RM_MPU_RSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_MPU_INST, 0x0014)
- #define OMAP4_RM_MPU_MPU_CONTEXT_OFFSET			0x0024
--#define OMAP4430_RM_MPU_MPU_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_MPU_INST, 0x0024)
+-static struct clk gpio3_dbclk = {
+-	.name		= "gpio3_dbclk",
++static struct clk slimbus1_slimbus_clk = {
++	.name		= "slimbus1_slimbus_clk",
++	.parent		= &slimbus_clk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_GPIO3_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &sys_32k_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM1_ABE_SLIMBUS_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_SLIMBUS_CLK_11_11_SHIFT,
++	.clkdm_name	= "abe_clkdm",
+ };
  
- /* PRM.TESLA_PRM register offsets */
- #define OMAP4_PM_TESLA_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_TESLA_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_TESLA_INST, 0x0000)
- #define OMAP4_PM_TESLA_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_TESLA_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_TESLA_INST, 0x0004)
- #define OMAP4_RM_TESLA_RSTCTRL_OFFSET			0x0010
--#define OMAP4430_RM_TESLA_RSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_TESLA_INST, 0x0010)
- #define OMAP4_RM_TESLA_RSTST_OFFSET			0x0014
--#define OMAP4430_RM_TESLA_RSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_TESLA_INST, 0x0014)
- #define OMAP4_RM_TESLA_TESLA_CONTEXT_OFFSET		0x0024
--#define OMAP4430_RM_TESLA_TESLA_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_TESLA_INST, 0x0024)
+-static struct clk gpio3_ick = {
+-	.name		= "gpio3_ick",
++static struct clk slimbus2_fclk_0 = {
++	.name		= "slimbus2_fclk_0",
++	.parent		= &func_24mc_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_GPIO3_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &l4_div_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_SLIMBUS2_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_PER24MC_GFCLK_SHIFT,
++	.clkdm_name	= "l4_per_clkdm",
+ };
  
- /* PRM.ABE_PRM register offsets */
- #define OMAP4_PM_ABE_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_ABE_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0000)
- #define OMAP4_PM_ABE_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_ABE_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0004)
- #define OMAP4_RM_ABE_AESS_CONTEXT_OFFSET		0x002c
--#define OMAP4430_RM_ABE_AESS_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x002c)
- #define OMAP4_PM_ABE_PDM_WKDEP_OFFSET			0x0030
--#define OMAP4430_PM_ABE_PDM_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0030)
- #define OMAP4_RM_ABE_PDM_CONTEXT_OFFSET			0x0034
--#define OMAP4430_RM_ABE_PDM_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0034)
- #define OMAP4_PM_ABE_DMIC_WKDEP_OFFSET			0x0038
--#define OMAP4430_PM_ABE_DMIC_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0038)
- #define OMAP4_RM_ABE_DMIC_CONTEXT_OFFSET		0x003c
--#define OMAP4430_RM_ABE_DMIC_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x003c)
- #define OMAP4_PM_ABE_MCASP_WKDEP_OFFSET			0x0040
--#define OMAP4430_PM_ABE_MCASP_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0040)
- #define OMAP4_RM_ABE_MCASP_CONTEXT_OFFSET		0x0044
--#define OMAP4430_RM_ABE_MCASP_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0044)
- #define OMAP4_PM_ABE_MCBSP1_WKDEP_OFFSET		0x0048
--#define OMAP4430_PM_ABE_MCBSP1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0048)
- #define OMAP4_RM_ABE_MCBSP1_CONTEXT_OFFSET		0x004c
--#define OMAP4430_RM_ABE_MCBSP1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x004c)
- #define OMAP4_PM_ABE_MCBSP2_WKDEP_OFFSET		0x0050
--#define OMAP4430_PM_ABE_MCBSP2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0050)
- #define OMAP4_RM_ABE_MCBSP2_CONTEXT_OFFSET		0x0054
--#define OMAP4430_RM_ABE_MCBSP2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0054)
- #define OMAP4_PM_ABE_MCBSP3_WKDEP_OFFSET		0x0058
--#define OMAP4430_PM_ABE_MCBSP3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0058)
- #define OMAP4_RM_ABE_MCBSP3_CONTEXT_OFFSET		0x005c
--#define OMAP4430_RM_ABE_MCBSP3_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x005c)
- #define OMAP4_PM_ABE_SLIMBUS_WKDEP_OFFSET		0x0060
--#define OMAP4430_PM_ABE_SLIMBUS_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0060)
- #define OMAP4_RM_ABE_SLIMBUS_CONTEXT_OFFSET		0x0064
--#define OMAP4430_RM_ABE_SLIMBUS_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0064)
- #define OMAP4_PM_ABE_TIMER5_WKDEP_OFFSET		0x0068
--#define OMAP4430_PM_ABE_TIMER5_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0068)
- #define OMAP4_RM_ABE_TIMER5_CONTEXT_OFFSET		0x006c
--#define OMAP4430_RM_ABE_TIMER5_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x006c)
- #define OMAP4_PM_ABE_TIMER6_WKDEP_OFFSET		0x0070
--#define OMAP4430_PM_ABE_TIMER6_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0070)
- #define OMAP4_RM_ABE_TIMER6_CONTEXT_OFFSET		0x0074
--#define OMAP4430_RM_ABE_TIMER6_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0074)
- #define OMAP4_PM_ABE_TIMER7_WKDEP_OFFSET		0x0078
--#define OMAP4430_PM_ABE_TIMER7_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0078)
- #define OMAP4_RM_ABE_TIMER7_CONTEXT_OFFSET		0x007c
--#define OMAP4430_RM_ABE_TIMER7_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x007c)
- #define OMAP4_PM_ABE_TIMER8_WKDEP_OFFSET		0x0080
--#define OMAP4430_PM_ABE_TIMER8_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0080)
- #define OMAP4_RM_ABE_TIMER8_CONTEXT_OFFSET		0x0084
--#define OMAP4430_RM_ABE_TIMER8_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0084)
- #define OMAP4_PM_ABE_WDT3_WKDEP_OFFSET			0x0088
--#define OMAP4430_PM_ABE_WDT3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x0088)
- #define OMAP4_RM_ABE_WDT3_CONTEXT_OFFSET		0x008c
--#define OMAP4430_RM_ABE_WDT3_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ABE_INST, 0x008c)
+-static struct clk gpio4_dbclk = {
+-	.name		= "gpio4_dbclk",
++static struct clk slimbus2_fclk_1 = {
++	.name		= "slimbus2_fclk_1",
++	.parent		= &per_abe_24m_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_GPIO4_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &sys_32k_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_SLIMBUS2_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_PERABE24M_GFCLK_SHIFT,
++	.clkdm_name	= "l4_per_clkdm",
+ };
  
- /* PRM.ALWAYS_ON_PRM register offsets */
- #define OMAP4_PM_ALWON_SR_MPU_WKDEP_OFFSET		0x0028
--#define OMAP4430_PM_ALWON_SR_MPU_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x0028)
- #define OMAP4_RM_ALWON_SR_MPU_CONTEXT_OFFSET		0x002c
--#define OMAP4430_RM_ALWON_SR_MPU_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x002c)
- #define OMAP4_PM_ALWON_SR_IVA_WKDEP_OFFSET		0x0030
--#define OMAP4430_PM_ALWON_SR_IVA_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x0030)
- #define OMAP4_RM_ALWON_SR_IVA_CONTEXT_OFFSET		0x0034
--#define OMAP4430_RM_ALWON_SR_IVA_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x0034)
- #define OMAP4_PM_ALWON_SR_CORE_WKDEP_OFFSET		0x0038
--#define OMAP4430_PM_ALWON_SR_CORE_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x0038)
- #define OMAP4_RM_ALWON_SR_CORE_CONTEXT_OFFSET		0x003c
--#define OMAP4430_RM_ALWON_SR_CORE_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_ALWAYS_ON_INST, 0x003c)
+-static struct clk gpio4_ick = {
+-	.name		= "gpio4_ick",
++static struct clk slimbus2_slimbus_clk = {
++	.name		= "slimbus2_slimbus_clk",
++	.parent		= &pad_slimbus_core_clks_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_GPIO4_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &l4_div_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_SLIMBUS2_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_SLIMBUS_CLK_SHIFT,
++	.clkdm_name	= "l4_per_clkdm",
+ };
  
- /* PRM.CORE_PRM register offsets */
- #define OMAP4_PM_CORE_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_CORE_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0000)
- #define OMAP4_PM_CORE_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_CORE_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0004)
- #define OMAP4_RM_L3_1_L3_1_CONTEXT_OFFSET		0x0024
--#define OMAP4430_RM_L3_1_L3_1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0024)
- #define OMAP4_RM_L3_2_L3_2_CONTEXT_OFFSET		0x0124
--#define OMAP4430_RM_L3_2_L3_2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0124)
- #define OMAP4_RM_L3_2_GPMC_CONTEXT_OFFSET		0x012c
--#define OMAP4430_RM_L3_2_GPMC_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x012c)
- #define OMAP4_RM_L3_2_OCMC_RAM_CONTEXT_OFFSET		0x0134
--#define OMAP4430_RM_L3_2_OCMC_RAM_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0134)
- #define OMAP4_RM_DUCATI_RSTCTRL_OFFSET			0x0210
--#define OMAP4430_RM_DUCATI_RSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0210)
- #define OMAP4_RM_DUCATI_RSTST_OFFSET			0x0214
--#define OMAP4430_RM_DUCATI_RSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0214)
- #define OMAP4_RM_DUCATI_DUCATI_CONTEXT_OFFSET		0x0224
--#define OMAP4430_RM_DUCATI_DUCATI_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0224)
- #define OMAP4_RM_SDMA_SDMA_CONTEXT_OFFSET		0x0324
--#define OMAP4430_RM_SDMA_SDMA_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0324)
- #define OMAP4_RM_MEMIF_DMM_CONTEXT_OFFSET		0x0424
--#define OMAP4430_RM_MEMIF_DMM_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0424)
- #define OMAP4_RM_MEMIF_EMIF_FW_CONTEXT_OFFSET		0x042c
--#define OMAP4430_RM_MEMIF_EMIF_FW_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x042c)
- #define OMAP4_RM_MEMIF_EMIF_1_CONTEXT_OFFSET		0x0434
--#define OMAP4430_RM_MEMIF_EMIF_1_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0434)
- #define OMAP4_RM_MEMIF_EMIF_2_CONTEXT_OFFSET		0x043c
--#define OMAP4430_RM_MEMIF_EMIF_2_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x043c)
- #define OMAP4_RM_MEMIF_DLL_CONTEXT_OFFSET		0x0444
--#define OMAP4430_RM_MEMIF_DLL_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0444)
- #define OMAP4_RM_MEMIF_DLL_H_CONTEXT_OFFSET		0x0464
--#define OMAP4430_RM_MEMIF_DLL_H_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0464)
- #define OMAP4_RM_D2D_SAD2D_CONTEXT_OFFSET		0x0524
--#define OMAP4430_RM_D2D_SAD2D_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0524)
- #define OMAP4_RM_D2D_MODEM_ICR_CONTEXT_OFFSET		0x052c
--#define OMAP4430_RM_D2D_MODEM_ICR_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x052c)
- #define OMAP4_RM_D2D_SAD2D_FW_CONTEXT_OFFSET		0x0534
--#define OMAP4430_RM_D2D_SAD2D_FW_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0534)
- #define OMAP4_RM_L4CFG_L4_CFG_CONTEXT_OFFSET		0x0624
--#define OMAP4430_RM_L4CFG_L4_CFG_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0624)
- #define OMAP4_RM_L4CFG_HW_SEM_CONTEXT_OFFSET		0x062c
--#define OMAP4430_RM_L4CFG_HW_SEM_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x062c)
- #define OMAP4_RM_L4CFG_MAILBOX_CONTEXT_OFFSET		0x0634
--#define OMAP4430_RM_L4CFG_MAILBOX_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0634)
- #define OMAP4_RM_L4CFG_SAR_ROM_CONTEXT_OFFSET		0x063c
--#define OMAP4430_RM_L4CFG_SAR_ROM_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x063c)
- #define OMAP4_RM_L3INSTR_L3_3_CONTEXT_OFFSET		0x0724
--#define OMAP4430_RM_L3INSTR_L3_3_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0724)
- #define OMAP4_RM_L3INSTR_L3_INSTR_CONTEXT_OFFSET	0x072c
--#define OMAP4430_RM_L3INSTR_L3_INSTR_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x072c)
- #define OMAP4_RM_L3INSTR_OCP_WP1_CONTEXT_OFFSET		0x0744
--#define OMAP4430_RM_L3INSTR_OCP_WP1_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CORE_INST, 0x0744)
+-static struct clk gpio5_dbclk = {
+-	.name		= "gpio5_dbclk",
++static struct clk usb_host_hs_func48mclk = {
++	.name		= "usb_host_hs_func48mclk",
++	.parent		= &func_48mc_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_GPIO5_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &sys_32k_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_FUNC48MCLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
  
- /* PRM.IVAHD_PRM register offsets */
- #define OMAP4_PM_IVAHD_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_IVAHD_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x0000)
- #define OMAP4_PM_IVAHD_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_IVAHD_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x0004)
- #define OMAP4_RM_IVAHD_RSTCTRL_OFFSET			0x0010
--#define OMAP4430_RM_IVAHD_RSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x0010)
- #define OMAP4_RM_IVAHD_RSTST_OFFSET			0x0014
--#define OMAP4430_RM_IVAHD_RSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x0014)
- #define OMAP4_RM_IVAHD_IVAHD_CONTEXT_OFFSET		0x0024
--#define OMAP4430_RM_IVAHD_IVAHD_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x0024)
- #define OMAP4_RM_IVAHD_SL2_CONTEXT_OFFSET		0x002c
--#define OMAP4430_RM_IVAHD_SL2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_IVAHD_INST, 0x002c)
+-static struct clk gpio5_ick = {
+-	.name		= "gpio5_ick",
++static struct clk usb_host_hs_hsic480m_p1_clk = {
++	.name		= "usb_host_hs_hsic480m_p1_clk",
++	.parent		= &dpll_usb_m2_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_GPIO5_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &l4_div_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_HSIC480M_P1_CLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
  
- /* PRM.CAM_PRM register offsets */
- #define OMAP4_PM_CAM_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_CAM_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CAM_INST, 0x0000)
- #define OMAP4_PM_CAM_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_CAM_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CAM_INST, 0x0004)
- #define OMAP4_RM_CAM_ISS_CONTEXT_OFFSET			0x0024
--#define OMAP4430_RM_CAM_ISS_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CAM_INST, 0x0024)
- #define OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET		0x002c
--#define OMAP4430_RM_CAM_FDIF_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CAM_INST, 0x002c)
+-static struct clk gpio6_dbclk = {
+-	.name		= "gpio6_dbclk",
++static struct clk usb_host_hs_hsic480m_p2_clk = {
++	.name		= "usb_host_hs_hsic480m_p2_clk",
++	.parent		= &dpll_usb_m2_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_GPIO6_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_DBCLK_SHIFT,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &sys_32k_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_HSIC480M_P2_CLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
  
- /* PRM.DSS_PRM register offsets */
- #define OMAP4_PM_DSS_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_DSS_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DSS_INST, 0x0000)
- #define OMAP4_PM_DSS_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_DSS_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DSS_INST, 0x0004)
- #define OMAP4_PM_DSS_DSS_WKDEP_OFFSET			0x0020
--#define OMAP4430_PM_DSS_DSS_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DSS_INST, 0x0020)
- #define OMAP4_RM_DSS_DSS_CONTEXT_OFFSET			0x0024
--#define OMAP4430_RM_DSS_DSS_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DSS_INST, 0x0024)
+-static struct clk gpio6_ick = {
+-	.name		= "gpio6_ick",
++static struct clk usb_host_hs_hsic60m_p1_clk = {
++	.name		= "usb_host_hs_hsic60m_p1_clk",
++	.parent		= &init_60m_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_GPIO6_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &l4_div_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_HSIC60M_P1_CLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
  
- /* PRM.GFX_PRM register offsets */
- #define OMAP4_PM_GFX_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_GFX_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_GFX_INST, 0x0000)
- #define OMAP4_PM_GFX_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_GFX_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_GFX_INST, 0x0004)
- #define OMAP4_RM_GFX_GFX_CONTEXT_OFFSET			0x0024
--#define OMAP4430_RM_GFX_GFX_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_GFX_INST, 0x0024)
+-static struct clk gpmc_ick = {
+-	.name		= "gpmc_ick",
++static struct clk usb_host_hs_hsic60m_p2_clk = {
++	.name		= "usb_host_hs_hsic60m_p2_clk",
++	.parent		= &init_60m_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3_2_GPMC_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.flags		= ENABLE_ON_INIT,
+-	.clkdm_name	= "l3_2_clkdm",
+-	.parent		= &l3_div_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_HSIC60M_P2_CLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
  
- /* PRM.L3INIT_PRM register offsets */
- #define OMAP4_PM_L3INIT_PWRSTCTRL_OFFSET		0x0000
--#define OMAP4430_PM_L3INIT_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0000)
- #define OMAP4_PM_L3INIT_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_L3INIT_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0004)
- #define OMAP4_PM_L3INIT_MMC1_WKDEP_OFFSET		0x0028
--#define OMAP4430_PM_L3INIT_MMC1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0028)
- #define OMAP4_RM_L3INIT_MMC1_CONTEXT_OFFSET		0x002c
--#define OMAP4430_RM_L3INIT_MMC1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x002c)
- #define OMAP4_PM_L3INIT_MMC2_WKDEP_OFFSET		0x0030
--#define OMAP4430_PM_L3INIT_MMC2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0030)
- #define OMAP4_RM_L3INIT_MMC2_CONTEXT_OFFSET		0x0034
--#define OMAP4430_RM_L3INIT_MMC2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0034)
- #define OMAP4_PM_L3INIT_HSI_WKDEP_OFFSET		0x0038
--#define OMAP4430_PM_L3INIT_HSI_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0038)
- #define OMAP4_RM_L3INIT_HSI_CONTEXT_OFFSET		0x003c
--#define OMAP4430_RM_L3INIT_HSI_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x003c)
- #define OMAP4_PM_L3INIT_USB_HOST_WKDEP_OFFSET		0x0058
--#define OMAP4430_PM_L3INIT_USB_HOST_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0058)
- #define OMAP4_RM_L3INIT_USB_HOST_CONTEXT_OFFSET		0x005c
--#define OMAP4430_RM_L3INIT_USB_HOST_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x005c)
- #define OMAP4_PM_L3INIT_USB_OTG_WKDEP_OFFSET		0x0060
--#define OMAP4430_PM_L3INIT_USB_OTG_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0060)
- #define OMAP4_RM_L3INIT_USB_OTG_CONTEXT_OFFSET		0x0064
--#define OMAP4430_RM_L3INIT_USB_OTG_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0064)
- #define OMAP4_PM_L3INIT_USB_TLL_WKDEP_OFFSET		0x0068
--#define OMAP4430_PM_L3INIT_USB_TLL_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x0068)
- #define OMAP4_RM_L3INIT_USB_TLL_CONTEXT_OFFSET		0x006c
--#define OMAP4430_RM_L3INIT_USB_TLL_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x006c)
- #define OMAP4_PM_L3INIT_USB_HOST_FS_WKDEP_OFFSET	0x00d0
--#define OMAP4430_PM_L3INIT_USB_HOST_FS_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x00d0)
- #define OMAP4_RM_L3INIT_USB_HOST_FS_CONTEXT_OFFSET	0x00d4
--#define OMAP4430_RM_L3INIT_USB_HOST_FS_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x00d4)
- #define OMAP4_RM_L3INIT_USBPHYOCP2SCP_CONTEXT_OFFSET	0x00e4
--#define OMAP4430_RM_L3INIT_USBPHYOCP2SCP_CONTEXT	OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L3INIT_INST, 0x00e4)
+-static const struct clksel sgx_clk_mux_sel[] = {
+-	{ .parent = &dpll_core_m7x2_ck, .rates = div_1_0_rates },
+-	{ .parent = &dpll_per_m7x2_ck, .rates = div_1_1_rates },
++static const struct clksel utmi_p1_gfclk_sel[] = {
++	{ .parent = &init_60m_fclk, .rates = div_1_0_rates },
++	{ .parent = &xclk60mhsp1_ck, .rates = div_1_1_rates },
+ 	{ .parent = NULL },
+ };
  
- /* PRM.L4PER_PRM register offsets */
- #define OMAP4_PM_L4PER_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_L4PER_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0000)
- #define OMAP4_PM_L4PER_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_L4PER_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0004)
- #define OMAP4_PM_L4PER_DMTIMER10_WKDEP_OFFSET		0x0028
--#define OMAP4430_PM_L4PER_DMTIMER10_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0028)
- #define OMAP4_RM_L4PER_DMTIMER10_CONTEXT_OFFSET		0x002c
--#define OMAP4430_RM_L4PER_DMTIMER10_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x002c)
- #define OMAP4_PM_L4PER_DMTIMER11_WKDEP_OFFSET		0x0030
--#define OMAP4430_PM_L4PER_DMTIMER11_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0030)
- #define OMAP4_RM_L4PER_DMTIMER11_CONTEXT_OFFSET		0x0034
--#define OMAP4430_RM_L4PER_DMTIMER11_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0034)
- #define OMAP4_PM_L4PER_DMTIMER2_WKDEP_OFFSET		0x0038
--#define OMAP4430_PM_L4PER_DMTIMER2_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0038)
- #define OMAP4_RM_L4PER_DMTIMER2_CONTEXT_OFFSET		0x003c
--#define OMAP4430_RM_L4PER_DMTIMER2_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x003c)
- #define OMAP4_PM_L4PER_DMTIMER3_WKDEP_OFFSET		0x0040
--#define OMAP4430_PM_L4PER_DMTIMER3_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0040)
- #define OMAP4_RM_L4PER_DMTIMER3_CONTEXT_OFFSET		0x0044
--#define OMAP4430_RM_L4PER_DMTIMER3_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0044)
- #define OMAP4_PM_L4PER_DMTIMER4_WKDEP_OFFSET		0x0048
--#define OMAP4430_PM_L4PER_DMTIMER4_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0048)
- #define OMAP4_RM_L4PER_DMTIMER4_CONTEXT_OFFSET		0x004c
--#define OMAP4430_RM_L4PER_DMTIMER4_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x004c)
- #define OMAP4_PM_L4PER_DMTIMER9_WKDEP_OFFSET		0x0050
--#define OMAP4430_PM_L4PER_DMTIMER9_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0050)
- #define OMAP4_RM_L4PER_DMTIMER9_CONTEXT_OFFSET		0x0054
--#define OMAP4430_RM_L4PER_DMTIMER9_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0054)
- #define OMAP4_RM_L4PER_ELM_CONTEXT_OFFSET		0x005c
--#define OMAP4430_RM_L4PER_ELM_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x005c)
- #define OMAP4_PM_L4PER_GPIO2_WKDEP_OFFSET		0x0060
--#define OMAP4430_PM_L4PER_GPIO2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0060)
- #define OMAP4_RM_L4PER_GPIO2_CONTEXT_OFFSET		0x0064
--#define OMAP4430_RM_L4PER_GPIO2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0064)
- #define OMAP4_PM_L4PER_GPIO3_WKDEP_OFFSET		0x0068
--#define OMAP4430_PM_L4PER_GPIO3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0068)
- #define OMAP4_RM_L4PER_GPIO3_CONTEXT_OFFSET		0x006c
--#define OMAP4430_RM_L4PER_GPIO3_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x006c)
- #define OMAP4_PM_L4PER_GPIO4_WKDEP_OFFSET		0x0070
--#define OMAP4430_PM_L4PER_GPIO4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0070)
- #define OMAP4_RM_L4PER_GPIO4_CONTEXT_OFFSET		0x0074
--#define OMAP4430_RM_L4PER_GPIO4_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0074)
- #define OMAP4_PM_L4PER_GPIO5_WKDEP_OFFSET		0x0078
--#define OMAP4430_PM_L4PER_GPIO5_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0078)
- #define OMAP4_RM_L4PER_GPIO5_CONTEXT_OFFSET		0x007c
--#define OMAP4430_RM_L4PER_GPIO5_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x007c)
- #define OMAP4_PM_L4PER_GPIO6_WKDEP_OFFSET		0x0080
--#define OMAP4430_PM_L4PER_GPIO6_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0080)
- #define OMAP4_RM_L4PER_GPIO6_CONTEXT_OFFSET		0x0084
--#define OMAP4430_RM_L4PER_GPIO6_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0084)
- #define OMAP4_RM_L4PER_HDQ1W_CONTEXT_OFFSET		0x008c
--#define OMAP4430_RM_L4PER_HDQ1W_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x008c)
- #define OMAP4_PM_L4PER_I2C1_WKDEP_OFFSET		0x00a0
--#define OMAP4430_PM_L4PER_I2C1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00a0)
- #define OMAP4_RM_L4PER_I2C1_CONTEXT_OFFSET		0x00a4
--#define OMAP4430_RM_L4PER_I2C1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00a4)
- #define OMAP4_PM_L4PER_I2C2_WKDEP_OFFSET		0x00a8
--#define OMAP4430_PM_L4PER_I2C2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00a8)
- #define OMAP4_RM_L4PER_I2C2_CONTEXT_OFFSET		0x00ac
--#define OMAP4430_RM_L4PER_I2C2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00ac)
- #define OMAP4_PM_L4PER_I2C3_WKDEP_OFFSET		0x00b0
--#define OMAP4430_PM_L4PER_I2C3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00b0)
- #define OMAP4_RM_L4PER_I2C3_CONTEXT_OFFSET		0x00b4
--#define OMAP4430_RM_L4PER_I2C3_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00b4)
- #define OMAP4_PM_L4PER_I2C4_WKDEP_OFFSET		0x00b8
--#define OMAP4430_PM_L4PER_I2C4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00b8)
- #define OMAP4_RM_L4PER_I2C4_CONTEXT_OFFSET		0x00bc
--#define OMAP4430_RM_L4PER_I2C4_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00bc)
- #define OMAP4_RM_L4PER_L4_PER_CONTEXT_OFFSET		0x00c0
--#define OMAP4430_RM_L4PER_L4_PER_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00c0)
- #define OMAP4_PM_L4PER_MCBSP4_WKDEP_OFFSET		0x00e0
--#define OMAP4430_PM_L4PER_MCBSP4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00e0)
- #define OMAP4_RM_L4PER_MCBSP4_CONTEXT_OFFSET		0x00e4
--#define OMAP4430_RM_L4PER_MCBSP4_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00e4)
- #define OMAP4_PM_L4PER_MCSPI1_WKDEP_OFFSET		0x00f0
--#define OMAP4430_PM_L4PER_MCSPI1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00f0)
- #define OMAP4_RM_L4PER_MCSPI1_CONTEXT_OFFSET		0x00f4
--#define OMAP4430_RM_L4PER_MCSPI1_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00f4)
- #define OMAP4_PM_L4PER_MCSPI2_WKDEP_OFFSET		0x00f8
--#define OMAP4430_PM_L4PER_MCSPI2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00f8)
- #define OMAP4_RM_L4PER_MCSPI2_CONTEXT_OFFSET		0x00fc
--#define OMAP4430_RM_L4PER_MCSPI2_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x00fc)
- #define OMAP4_PM_L4PER_MCSPI3_WKDEP_OFFSET		0x0100
--#define OMAP4430_PM_L4PER_MCSPI3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0100)
- #define OMAP4_RM_L4PER_MCSPI3_CONTEXT_OFFSET		0x0104
--#define OMAP4430_RM_L4PER_MCSPI3_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0104)
- #define OMAP4_PM_L4PER_MCSPI4_WKDEP_OFFSET		0x0108
--#define OMAP4430_PM_L4PER_MCSPI4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0108)
- #define OMAP4_RM_L4PER_MCSPI4_CONTEXT_OFFSET		0x010c
--#define OMAP4430_RM_L4PER_MCSPI4_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x010c)
- #define OMAP4_PM_L4PER_MMCSD3_WKDEP_OFFSET		0x0120
--#define OMAP4430_PM_L4PER_MMCSD3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0120)
- #define OMAP4_RM_L4PER_MMCSD3_CONTEXT_OFFSET		0x0124
--#define OMAP4430_RM_L4PER_MMCSD3_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0124)
- #define OMAP4_PM_L4PER_MMCSD4_WKDEP_OFFSET		0x0128
--#define OMAP4430_PM_L4PER_MMCSD4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0128)
- #define OMAP4_RM_L4PER_MMCSD4_CONTEXT_OFFSET		0x012c
--#define OMAP4430_RM_L4PER_MMCSD4_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x012c)
- #define OMAP4_PM_L4PER_SLIMBUS2_WKDEP_OFFSET		0x0138
--#define OMAP4430_PM_L4PER_SLIMBUS2_WKDEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0138)
- #define OMAP4_RM_L4PER_SLIMBUS2_CONTEXT_OFFSET		0x013c
--#define OMAP4430_RM_L4PER_SLIMBUS2_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x013c)
- #define OMAP4_PM_L4PER_UART1_WKDEP_OFFSET		0x0140
--#define OMAP4430_PM_L4PER_UART1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0140)
- #define OMAP4_RM_L4PER_UART1_CONTEXT_OFFSET		0x0144
--#define OMAP4430_RM_L4PER_UART1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0144)
- #define OMAP4_PM_L4PER_UART2_WKDEP_OFFSET		0x0148
--#define OMAP4430_PM_L4PER_UART2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0148)
- #define OMAP4_RM_L4PER_UART2_CONTEXT_OFFSET		0x014c
--#define OMAP4430_RM_L4PER_UART2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x014c)
- #define OMAP4_PM_L4PER_UART3_WKDEP_OFFSET		0x0150
--#define OMAP4430_PM_L4PER_UART3_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0150)
- #define OMAP4_RM_L4PER_UART3_CONTEXT_OFFSET		0x0154
--#define OMAP4430_RM_L4PER_UART3_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0154)
- #define OMAP4_PM_L4PER_UART4_WKDEP_OFFSET		0x0158
--#define OMAP4430_PM_L4PER_UART4_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0158)
- #define OMAP4_RM_L4PER_UART4_CONTEXT_OFFSET		0x015c
--#define OMAP4430_RM_L4PER_UART4_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x015c)
- #define OMAP4_PM_L4PER_MMCSD5_WKDEP_OFFSET		0x0160
--#define OMAP4430_PM_L4PER_MMCSD5_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0160)
- #define OMAP4_RM_L4PER_MMCSD5_CONTEXT_OFFSET		0x0164
--#define OMAP4430_RM_L4PER_MMCSD5_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0164)
- #define OMAP4_PM_L4PER_I2C5_WKDEP_OFFSET		0x0168
--#define OMAP4430_PM_L4PER_I2C5_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x0168)
- #define OMAP4_RM_L4PER_I2C5_CONTEXT_OFFSET		0x016c
--#define OMAP4430_RM_L4PER_I2C5_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x016c)
- #define OMAP4_RM_L4SEC_AES1_CONTEXT_OFFSET		0x01a4
--#define OMAP4430_RM_L4SEC_AES1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01a4)
- #define OMAP4_RM_L4SEC_AES2_CONTEXT_OFFSET		0x01ac
--#define OMAP4430_RM_L4SEC_AES2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01ac)
- #define OMAP4_RM_L4SEC_DES3DES_CONTEXT_OFFSET		0x01b4
--#define OMAP4430_RM_L4SEC_DES3DES_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01b4)
- #define OMAP4_RM_L4SEC_PKAEIP29_CONTEXT_OFFSET		0x01bc
--#define OMAP4430_RM_L4SEC_PKAEIP29_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01bc)
- #define OMAP4_RM_L4SEC_RNG_CONTEXT_OFFSET		0x01c4
--#define OMAP4430_RM_L4SEC_RNG_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01c4)
- #define OMAP4_RM_L4SEC_SHA2MD51_CONTEXT_OFFSET		0x01cc
--#define OMAP4430_RM_L4SEC_SHA2MD51_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01cc)
- #define OMAP4_RM_L4SEC_CRYPTODMA_CONTEXT_OFFSET		0x01dc
--#define OMAP4430_RM_L4SEC_CRYPTODMA_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_L4PER_INST, 0x01dc)
+-/* Merged sgx_clk_mux into gpu */
+-static struct clk gpu_fck = {
+-	.name		= "gpu_fck",
+-	.parent		= &dpll_core_m7x2_ck,
+-	.clksel		= sgx_clk_mux_sel,
++static struct clk utmi_p1_gfclk = {
++	.name		= "utmi_p1_gfclk",
++	.parent		= &init_60m_fclk,
++	.clksel		= utmi_p1_gfclk_sel,
+ 	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_GFX_GFX_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_SGX_FCLK_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.clksel_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_UTMI_P1_MASK,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_GFX_GFX_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l3_gfx_clkdm",
+ };
  
- /* PRM.CEFUSE_PRM register offsets */
- #define OMAP4_PM_CEFUSE_PWRSTCTRL_OFFSET		0x0000
--#define OMAP4430_PM_CEFUSE_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CEFUSE_INST, 0x0000)
- #define OMAP4_PM_CEFUSE_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_CEFUSE_PWRSTST			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CEFUSE_INST, 0x0004)
- #define OMAP4_RM_CEFUSE_CEFUSE_CONTEXT_OFFSET		0x0024
--#define OMAP4430_RM_CEFUSE_CEFUSE_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_CEFUSE_INST, 0x0024)
+-static struct clk hdq1w_fck = {
+-	.name		= "hdq1w_fck",
++static struct clk usb_host_hs_utmi_p1_clk = {
++	.name		= "usb_host_hs_utmi_p1_clk",
++	.parent		= &utmi_p1_gfclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_HDQ1W_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_12m_fclk,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_UTMI_P1_CLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
  
- /* PRM.WKUP_PRM register offsets */
- #define OMAP4_RM_WKUP_L4WKUP_CONTEXT_OFFSET		0x0024
--#define OMAP4430_RM_WKUP_L4WKUP_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0024)
- #define OMAP4_RM_WKUP_WDT1_CONTEXT_OFFSET		0x002c
--#define OMAP4430_RM_WKUP_WDT1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x002c)
- #define OMAP4_PM_WKUP_WDT2_WKDEP_OFFSET			0x0030
--#define OMAP4430_PM_WKUP_WDT2_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0030)
- #define OMAP4_RM_WKUP_WDT2_CONTEXT_OFFSET		0x0034
--#define OMAP4430_RM_WKUP_WDT2_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0034)
- #define OMAP4_PM_WKUP_GPIO1_WKDEP_OFFSET		0x0038
--#define OMAP4430_PM_WKUP_GPIO1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0038)
- #define OMAP4_RM_WKUP_GPIO1_CONTEXT_OFFSET		0x003c
--#define OMAP4430_RM_WKUP_GPIO1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x003c)
- #define OMAP4_PM_WKUP_TIMER1_WKDEP_OFFSET		0x0040
--#define OMAP4430_PM_WKUP_TIMER1_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0040)
- #define OMAP4_RM_WKUP_TIMER1_CONTEXT_OFFSET		0x0044
--#define OMAP4430_RM_WKUP_TIMER1_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0044)
- #define OMAP4_PM_WKUP_TIMER12_WKDEP_OFFSET		0x0048
--#define OMAP4430_PM_WKUP_TIMER12_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0048)
- #define OMAP4_RM_WKUP_TIMER12_CONTEXT_OFFSET		0x004c
--#define OMAP4430_RM_WKUP_TIMER12_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x004c)
- #define OMAP4_RM_WKUP_SYNCTIMER_CONTEXT_OFFSET		0x0054
--#define OMAP4430_RM_WKUP_SYNCTIMER_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0054)
- #define OMAP4_PM_WKUP_USIM_WKDEP_OFFSET			0x0058
--#define OMAP4430_PM_WKUP_USIM_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0058)
- #define OMAP4_RM_WKUP_USIM_CONTEXT_OFFSET		0x005c
--#define OMAP4430_RM_WKUP_USIM_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x005c)
- #define OMAP4_RM_WKUP_SARRAM_CONTEXT_OFFSET		0x0064
--#define OMAP4430_RM_WKUP_SARRAM_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0064)
- #define OMAP4_PM_WKUP_KEYBOARD_WKDEP_OFFSET		0x0078
--#define OMAP4430_PM_WKUP_KEYBOARD_WKDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x0078)
- #define OMAP4_RM_WKUP_KEYBOARD_CONTEXT_OFFSET		0x007c
--#define OMAP4430_RM_WKUP_KEYBOARD_CONTEXT		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_INST, 0x007c)
+-static const struct clksel hsi_fclk_div[] = {
+-	{ .parent = &dpll_per_m2x2_ck, .rates = div3_1to4_rates },
++static const struct clksel utmi_p2_gfclk_sel[] = {
++	{ .parent = &init_60m_fclk, .rates = div_1_0_rates },
++	{ .parent = &xclk60mhsp2_ck, .rates = div_1_1_rates },
+ 	{ .parent = NULL },
+ };
  
- /* PRM.WKUP_CM register offsets */
- #define OMAP4_CM_WKUP_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM_WKUP_CLKSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_CM_INST, 0x0000)
- #define OMAP4_CM_WKUP_L4WKUP_CLKCTRL_OFFSET		0x0020
- #define OMAP4430_CM_WKUP_L4WKUP_CLKCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_WKUP_CM_INST, 0x0020)
- #define OMAP4_CM_WKUP_WDT1_CLKCTRL_OFFSET		0x0028
-@@ -538,147 +337,79 @@
+-/* Merged hsi_fclk into hsi */
+-static struct clk hsi_fck = {
+-	.name		= "hsi_fck",
+-	.parent		= &dpll_per_m2x2_ck,
+-	.clksel		= hsi_fclk_div,
+-	.clksel_reg	= OMAP4430_CM_L3INIT_HSI_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_24_25_MASK,
+-	.ops		= &clkops_omap2_dflt,
++static struct clk utmi_p2_gfclk = {
++	.name		= "utmi_p2_gfclk",
++	.parent		= &init_60m_fclk,
++	.clksel		= utmi_p2_gfclk_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_UTMI_P2_MASK,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate,
+-	.set_rate	= &omap2_clksel_set_rate,
+-	.enable_reg	= OMAP4430_CM_L3INIT_HSI_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l3_init_clkdm",
+ };
  
- /* PRM.EMU_PRM register offsets */
- #define OMAP4_PM_EMU_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4430_PM_EMU_PWRSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_INST, 0x0000)
- #define OMAP4_PM_EMU_PWRSTST_OFFSET			0x0004
--#define OMAP4430_PM_EMU_PWRSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_INST, 0x0004)
- #define OMAP4_RM_EMU_DEBUGSS_CONTEXT_OFFSET		0x0024
--#define OMAP4430_RM_EMU_DEBUGSS_CONTEXT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_INST, 0x0024)
+-static struct clk i2c1_fck = {
+-	.name		= "i2c1_fck",
++static struct clk usb_host_hs_utmi_p2_clk = {
++	.name		= "usb_host_hs_utmi_p2_clk",
++	.parent		= &utmi_p2_gfclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_I2C1_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_96m_fclk,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_UTMI_P2_CLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
  
- /* PRM.EMU_CM register offsets */
- #define OMAP4_CM_EMU_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4430_CM_EMU_CLKSTCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_CM_INST, 0x0000)
- #define OMAP4_CM_EMU_DYNAMICDEP_OFFSET			0x0008
--#define OMAP4430_CM_EMU_DYNAMICDEP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_CM_INST, 0x0008)
- #define OMAP4_CM_EMU_DEBUGSS_CLKCTRL_OFFSET		0x0020
- #define OMAP4430_CM_EMU_DEBUGSS_CLKCTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_EMU_CM_INST, 0x0020)
+-static struct clk i2c2_fck = {
+-	.name		= "i2c2_fck",
++static struct clk usb_host_hs_utmi_p3_clk = {
++	.name		= "usb_host_hs_utmi_p3_clk",
++	.parent		= &init_60m_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_I2C2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_96m_fclk,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_UTMI_P3_CLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
  
- /* PRM.DEVICE_PRM register offsets */
- #define OMAP4_PRM_RSTCTRL_OFFSET			0x0000
--#define OMAP4430_PRM_RSTCTRL				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0000)
- #define OMAP4_PRM_RSTST_OFFSET				0x0004
--#define OMAP4430_PRM_RSTST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0004)
- #define OMAP4_PRM_RSTTIME_OFFSET			0x0008
--#define OMAP4430_PRM_RSTTIME				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0008)
- #define OMAP4_PRM_CLKREQCTRL_OFFSET			0x000c
--#define OMAP4430_PRM_CLKREQCTRL				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x000c)
- #define OMAP4_PRM_VOLTCTRL_OFFSET			0x0010
--#define OMAP4430_PRM_VOLTCTRL				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0010)
- #define OMAP4_PRM_PWRREQCTRL_OFFSET			0x0014
--#define OMAP4430_PRM_PWRREQCTRL				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0014)
- #define OMAP4_PRM_PSCON_COUNT_OFFSET			0x0018
--#define OMAP4430_PRM_PSCON_COUNT			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0018)
- #define OMAP4_PRM_IO_COUNT_OFFSET			0x001c
--#define OMAP4430_PRM_IO_COUNT				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x001c)
- #define OMAP4_PRM_IO_PMCTRL_OFFSET			0x0020
--#define OMAP4430_PRM_IO_PMCTRL				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0020)
- #define OMAP4_PRM_VOLTSETUP_WARMRESET_OFFSET		0x0024
--#define OMAP4430_PRM_VOLTSETUP_WARMRESET		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0024)
- #define OMAP4_PRM_VOLTSETUP_CORE_OFF_OFFSET		0x0028
--#define OMAP4430_PRM_VOLTSETUP_CORE_OFF			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0028)
- #define OMAP4_PRM_VOLTSETUP_MPU_OFF_OFFSET		0x002c
--#define OMAP4430_PRM_VOLTSETUP_MPU_OFF			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x002c)
- #define OMAP4_PRM_VOLTSETUP_IVA_OFF_OFFSET		0x0030
--#define OMAP4430_PRM_VOLTSETUP_IVA_OFF			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0030)
- #define OMAP4_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET	0x0034
--#define OMAP4430_PRM_VOLTSETUP_CORE_RET_SLEEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0034)
- #define OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET	0x0038
--#define OMAP4430_PRM_VOLTSETUP_MPU_RET_SLEEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0038)
- #define OMAP4_PRM_VOLTSETUP_IVA_RET_SLEEP_OFFSET	0x003c
--#define OMAP4430_PRM_VOLTSETUP_IVA_RET_SLEEP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x003c)
- #define OMAP4_PRM_VP_CORE_CONFIG_OFFSET			0x0040
--#define OMAP4430_PRM_VP_CORE_CONFIG			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0040)
- #define OMAP4_PRM_VP_CORE_STATUS_OFFSET			0x0044
--#define OMAP4430_PRM_VP_CORE_STATUS			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0044)
- #define OMAP4_PRM_VP_CORE_VLIMITTO_OFFSET		0x0048
--#define OMAP4430_PRM_VP_CORE_VLIMITTO			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0048)
- #define OMAP4_PRM_VP_CORE_VOLTAGE_OFFSET		0x004c
--#define OMAP4430_PRM_VP_CORE_VOLTAGE			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x004c)
- #define OMAP4_PRM_VP_CORE_VSTEPMAX_OFFSET		0x0050
--#define OMAP4430_PRM_VP_CORE_VSTEPMAX			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0050)
- #define OMAP4_PRM_VP_CORE_VSTEPMIN_OFFSET		0x0054
--#define OMAP4430_PRM_VP_CORE_VSTEPMIN			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0054)
- #define OMAP4_PRM_VP_MPU_CONFIG_OFFSET			0x0058
--#define OMAP4430_PRM_VP_MPU_CONFIG			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0058)
- #define OMAP4_PRM_VP_MPU_STATUS_OFFSET			0x005c
--#define OMAP4430_PRM_VP_MPU_STATUS			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x005c)
- #define OMAP4_PRM_VP_MPU_VLIMITTO_OFFSET		0x0060
--#define OMAP4430_PRM_VP_MPU_VLIMITTO			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0060)
- #define OMAP4_PRM_VP_MPU_VOLTAGE_OFFSET			0x0064
--#define OMAP4430_PRM_VP_MPU_VOLTAGE			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0064)
- #define OMAP4_PRM_VP_MPU_VSTEPMAX_OFFSET		0x0068
--#define OMAP4430_PRM_VP_MPU_VSTEPMAX			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0068)
- #define OMAP4_PRM_VP_MPU_VSTEPMIN_OFFSET		0x006c
--#define OMAP4430_PRM_VP_MPU_VSTEPMIN			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x006c)
- #define OMAP4_PRM_VP_IVA_CONFIG_OFFSET			0x0070
--#define OMAP4430_PRM_VP_IVA_CONFIG			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0070)
- #define OMAP4_PRM_VP_IVA_STATUS_OFFSET			0x0074
--#define OMAP4430_PRM_VP_IVA_STATUS			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0074)
- #define OMAP4_PRM_VP_IVA_VLIMITTO_OFFSET		0x0078
--#define OMAP4430_PRM_VP_IVA_VLIMITTO			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0078)
- #define OMAP4_PRM_VP_IVA_VOLTAGE_OFFSET			0x007c
--#define OMAP4430_PRM_VP_IVA_VOLTAGE			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x007c)
- #define OMAP4_PRM_VP_IVA_VSTEPMAX_OFFSET		0x0080
--#define OMAP4430_PRM_VP_IVA_VSTEPMAX			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0080)
- #define OMAP4_PRM_VP_IVA_VSTEPMIN_OFFSET		0x0084
--#define OMAP4430_PRM_VP_IVA_VSTEPMIN			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0084)
- #define OMAP4_PRM_VC_SMPS_SA_OFFSET			0x0088
--#define OMAP4430_PRM_VC_SMPS_SA				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0088)
- #define OMAP4_PRM_VC_VAL_SMPS_RA_VOL_OFFSET		0x008c
--#define OMAP4430_PRM_VC_VAL_SMPS_RA_VOL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x008c)
- #define OMAP4_PRM_VC_VAL_SMPS_RA_CMD_OFFSET		0x0090
--#define OMAP4430_PRM_VC_VAL_SMPS_RA_CMD			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0090)
- #define OMAP4_PRM_VC_VAL_CMD_VDD_CORE_L_OFFSET		0x0094
--#define OMAP4430_PRM_VC_VAL_CMD_VDD_CORE_L		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0094)
- #define OMAP4_PRM_VC_VAL_CMD_VDD_MPU_L_OFFSET		0x0098
--#define OMAP4430_PRM_VC_VAL_CMD_VDD_MPU_L		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0098)
- #define OMAP4_PRM_VC_VAL_CMD_VDD_IVA_L_OFFSET		0x009c
--#define OMAP4430_PRM_VC_VAL_CMD_VDD_IVA_L		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x009c)
- #define OMAP4_PRM_VC_VAL_BYPASS_OFFSET			0x00a0
--#define OMAP4430_PRM_VC_VAL_BYPASS			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00a0)
- #define OMAP4_PRM_VC_CFG_CHANNEL_OFFSET			0x00a4
--#define OMAP4430_PRM_VC_CFG_CHANNEL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00a4)
- #define OMAP4_PRM_VC_CFG_I2C_MODE_OFFSET		0x00a8
--#define OMAP4430_PRM_VC_CFG_I2C_MODE			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00a8)
- #define OMAP4_PRM_VC_CFG_I2C_CLK_OFFSET			0x00ac
--#define OMAP4430_PRM_VC_CFG_I2C_CLK			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00ac)
- #define OMAP4_PRM_SRAM_COUNT_OFFSET			0x00b0
--#define OMAP4430_PRM_SRAM_COUNT				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00b0)
- #define OMAP4_PRM_SRAM_WKUP_SETUP_OFFSET		0x00b4
--#define OMAP4430_PRM_SRAM_WKUP_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00b4)
- #define OMAP4_PRM_LDO_SRAM_CORE_SETUP_OFFSET		0x00b8
--#define OMAP4430_PRM_LDO_SRAM_CORE_SETUP		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00b8)
- #define OMAP4_PRM_LDO_SRAM_CORE_CTRL_OFFSET		0x00bc
--#define OMAP4430_PRM_LDO_SRAM_CORE_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00bc)
- #define OMAP4_PRM_LDO_SRAM_MPU_SETUP_OFFSET		0x00c0
--#define OMAP4430_PRM_LDO_SRAM_MPU_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00c0)
- #define OMAP4_PRM_LDO_SRAM_MPU_CTRL_OFFSET		0x00c4
--#define OMAP4430_PRM_LDO_SRAM_MPU_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00c4)
- #define OMAP4_PRM_LDO_SRAM_IVA_SETUP_OFFSET		0x00c8
--#define OMAP4430_PRM_LDO_SRAM_IVA_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00c8)
- #define OMAP4_PRM_LDO_SRAM_IVA_CTRL_OFFSET		0x00cc
--#define OMAP4430_PRM_LDO_SRAM_IVA_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00cc)
- #define OMAP4_PRM_LDO_ABB_MPU_SETUP_OFFSET		0x00d0
--#define OMAP4430_PRM_LDO_ABB_MPU_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00d0)
- #define OMAP4_PRM_LDO_ABB_MPU_CTRL_OFFSET		0x00d4
--#define OMAP4430_PRM_LDO_ABB_MPU_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00d4)
- #define OMAP4_PRM_LDO_ABB_IVA_SETUP_OFFSET		0x00d8
--#define OMAP4430_PRM_LDO_ABB_IVA_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00d8)
- #define OMAP4_PRM_LDO_ABB_IVA_CTRL_OFFSET		0x00dc
--#define OMAP4430_PRM_LDO_ABB_IVA_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00dc)
- #define OMAP4_PRM_LDO_BANDGAP_SETUP_OFFSET		0x00e0
--#define OMAP4430_PRM_LDO_BANDGAP_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00e0)
- #define OMAP4_PRM_DEVICE_OFF_CTRL_OFFSET		0x00e4
--#define OMAP4430_PRM_DEVICE_OFF_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00e4)
- #define OMAP4_PRM_PHASE1_CNDP_OFFSET			0x00e8
--#define OMAP4430_PRM_PHASE1_CNDP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00e8)
- #define OMAP4_PRM_PHASE2A_CNDP_OFFSET			0x00ec
--#define OMAP4430_PRM_PHASE2A_CNDP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00ec)
- #define OMAP4_PRM_PHASE2B_CNDP_OFFSET			0x00f0
--#define OMAP4430_PRM_PHASE2B_CNDP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00f0)
- #define OMAP4_PRM_MODEM_IF_CTRL_OFFSET			0x00f4
--#define OMAP4430_PRM_MODEM_IF_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00f4)
- #define OMAP4_PRM_VC_ERRST_OFFSET			0x00f8
--#define OMAP4430_PRM_VC_ERRST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00f8)
+-static struct clk i2c3_fck = {
+-	.name		= "i2c3_fck",
++static const struct clksel otg_60m_gfclk_sel[] = {
++	{ .parent = &utmi_phy_clkout_ck, .rates = div_1_0_rates },
++	{ .parent = &xclk60motg_ck, .rates = div_1_1_rates },
++	{ .parent = NULL },
++};
++
++static struct clk otg_60m_gfclk = {
++	.name		= "otg_60m_gfclk",
++	.parent		= &utmi_phy_clkout_ck,
++	.clksel		= otg_60m_gfclk_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_60M_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk usb_otg_hs_xclk = {
++	.name		= "usb_otg_hs_xclk",
++	.parent		= &otg_60m_gfclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_I2C3_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_96m_fclk,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_XCLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
  
- /* Function prototypes */
- # ifndef __ASSEMBLER__
+-static struct clk i2c4_fck = {
+-	.name		= "i2c4_fck",
++static struct clk usb_phy_cm_clk32k = {
++	.name		= "usb_phy_cm_clk32k",
++	.parent		= &sys_32k_ck,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_I2C4_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_96m_fclk,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_ALWON_USBPHY_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_CLK32K_SHIFT,
++	.clkdm_name	= "l4_ao_clkdm",
+ };
+ 
+-static struct clk ipu_fck = {
+-	.name		= "ipu_fck",
++static struct clk usb_tll_hs_usb_ch0_clk = {
++	.name		= "usb_tll_hs_usb_ch0_clk",
++	.parent		= &init_60m_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_DUCATI_DUCATI_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "ducati_clkdm",
+-	.parent		= &ducati_clk_mux_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_USB_CH0_CLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
+ 
+-static struct clk iss_ctrlclk = {
+-	.name		= "iss_ctrlclk",
++static struct clk usb_tll_hs_usb_ch1_clk = {
++	.name		= "usb_tll_hs_usb_ch1_clk",
++	.parent		= &init_60m_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_CAM_ISS_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_CTRLCLK_SHIFT,
+-	.clkdm_name	= "iss_clkdm",
+-	.parent		= &func_96m_fclk,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_USB_CH1_CLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
+ };
+ 
+-static struct clk iss_fck = {
+-	.name		= "iss_fck",
++static struct clk usb_tll_hs_usb_ch2_clk = {
++	.name		= "usb_tll_hs_usb_ch2_clk",
++	.parent		= &init_60m_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_CAM_ISS_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "iss_clkdm",
+-	.parent		= &ducati_clk_mux_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_USB_CH2_CLK_SHIFT,
++	.clkdm_name	= "l3_init_clkdm",
++};
++
++static const struct clksel_rate div2_14to18_rates[] = {
++	{ .div = 14, .val = 0, .flags = RATE_IN_44XX },
++	{ .div = 18, .val = 1, .flags = RATE_IN_44XX },
++	{ .div = 0 },
++};
++
++static const struct clksel usim_fclk_div[] = {
++	{ .parent = &dpll_per_m4x2_ck, .rates = div2_14to18_rates },
++	{ .parent = NULL },
+ };
+ 
+-static struct clk iva_fck = {
+-	.name		= "iva_fck",
++static struct clk usim_fclk = {
++	.name		= "usim_fclk",
++	.parent		= &dpll_per_m4x2_ck,
++	.clksel		= usim_fclk_div,
++	.clksel_reg	= OMAP4430_CM_WKUP_USIM_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_DIV_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++static struct clk usim_clk = {
++	.name		= "usim_clk",
++	.parent		= &usim_fclk,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_IVAHD_IVAHD_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "ivahd_clkdm",
+-	.parent		= &dpll_iva_m5x2_ck,
+ 	.recalc		= &followparent_recalc,
++	.enable_reg	= OMAP4430_CM_WKUP_USIM_CLKCTRL,
++	.enable_bit	= OMAP4430_OPTFCLKEN_FCLK_SHIFT,
++	.clkdm_name	= "l4_wkup_clkdm",
++};
++
++static struct clk cm2_dm10_mux_ck = {
++	.name		= "cm2_dm10_mux_ck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= abe_dpll_bypass_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER10_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk cm2_dm11_mux_ck = {
++	.name		= "cm2_dm11_mux_ck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= abe_dpll_bypass_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER11_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk cm2_dm2_mux_ck = {
++	.name		= "cm2_dm2_mux_ck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= abe_dpll_bypass_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER2_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk cm2_dm3_mux_ck = {
++	.name		= "cm2_dm3_mux_ck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= abe_dpll_bypass_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER3_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk cm2_dm4_mux_ck = {
++	.name		= "cm2_dm4_mux_ck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= abe_dpll_bypass_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER4_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk cm2_dm9_mux_ck = {
++	.name		= "cm2_dm9_mux_ck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= abe_dpll_bypass_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER9_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static const struct clksel dmic_sync_mux_sel[] = {
++	{ .parent = &abe_24m_fclk, .rates = div_1_0_rates },
++	{ .parent = &syc_clk_div_ck, .rates = div_1_1_rates },
++	{ .parent = &func_24m_clk, .rates = div_1_2_rates },
++	{ .parent = NULL },
++};
++
++static struct clk dmic_sync_mux_ck = {
++	.name		= "dmic_sync_mux_ck",
++	.parent		= &abe_24m_fclk,
++	.clksel		= dmic_sync_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM1_ABE_DMIC_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_INTERNAL_SOURCE_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+-static struct clk kbd_fck = {
+-	.name		= "kbd_fck",
++/* Merged dmt1_clk_mux into timer1 */
++static struct clk timer1_fck = {
++	.name		= "timer1_fck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= abe_dpll_bypass_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_WKUP_TIMER1_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_WKUP_KEYBOARD_CLKCTRL,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM_WKUP_TIMER1_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+ 	.clkdm_name	= "l4_wkup_clkdm",
+-	.parent		= &sys_32k_ck,
+-	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk l3_instr_ick = {
+-	.name		= "l3_instr_ick",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INSTR_L3_INSTR_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.flags		= ENABLE_ON_INIT,
+-	.clkdm_name	= "l3_instr_clkdm",
+-	.parent		= &l3_div_ck,
+-	.recalc		= &followparent_recalc,
++static const struct clksel fdif_fclk_div[] = {
++	{ .parent = &dpll_per_m4x2_ck, .rates = div3_1to4_rates },
++	{ .parent = NULL },
+ };
+ 
+-static struct clk l3_main_3_ick = {
+-	.name		= "l3_main_3_ick",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INSTR_L3_3_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.flags		= ENABLE_ON_INIT,
+-	.clkdm_name	= "l3_instr_clkdm",
+-	.parent		= &l3_div_ck,
+-	.recalc		= &followparent_recalc,
++static struct clk fdif_fclk = {
++	.name		= "fdif_fclk",
++	.parent		= &dpll_per_m4x2_ck,
++	.clksel		= fdif_fclk_div,
++	.clksel_reg	= OMAP4430_CM_CAM_FDIF_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_FCLK_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
++};
++
++static const struct clksel func_dmic_abe_gfclk_sel[] = {
++	{ .parent = &dmic_sync_mux_ck, .rates = div_1_0_rates },
++	{ .parent = &pad_clks_ck, .rates = div_1_1_rates },
++	{ .parent = &slimbus_clk, .rates = div_1_2_rates },
++	{ .parent = NULL },
++};
++
++static struct clk func_dmic_abe_gfclk = {
++	.name		= "func_dmic_abe_gfclk",
++	.parent		= &dmic_sync_mux_ck,
++	.clksel		= func_dmic_abe_gfclk_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM1_ABE_DMIC_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_SOURCE_MASK,
++	.ops		= &clkops_null,
++	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+ static struct clk mcasp_sync_mux_ck = {
+@@ -1793,19 +1853,15 @@ static const struct clksel func_mcasp_abe_gfclk_sel[] = {
+ 	{ .parent = NULL },
+ };
+ 
+-/* Merged func_mcasp_abe_gfclk into mcasp */
+-static struct clk mcasp_fck = {
+-	.name		= "mcasp_fck",
++static struct clk func_mcasp_abe_gfclk = {
++	.name		= "func_mcasp_abe_gfclk",
+ 	.parent		= &mcasp_sync_mux_ck,
+ 	.clksel		= func_mcasp_abe_gfclk_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM1_ABE_MCASP_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_SOURCE_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_MCASP_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+ };
+ 
+ static struct clk mcbsp1_sync_mux_ck = {
+@@ -1826,19 +1882,15 @@ static const struct clksel func_mcbsp1_gfclk_sel[] = {
+ 	{ .parent = NULL },
+ };
+ 
+-/* Merged func_mcbsp1_gfclk into mcbsp1 */
+-static struct clk mcbsp1_fck = {
+-	.name		= "mcbsp1_fck",
++static struct clk func_mcbsp1_gfclk = {
++	.name		= "func_mcbsp1_gfclk",
+ 	.parent		= &mcbsp1_sync_mux_ck,
+ 	.clksel		= func_mcbsp1_gfclk_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM1_ABE_MCBSP1_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_SOURCE_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_MCBSP1_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+ };
+ 
+ static struct clk mcbsp2_sync_mux_ck = {
+@@ -1859,19 +1911,15 @@ static const struct clksel func_mcbsp2_gfclk_sel[] = {
+ 	{ .parent = NULL },
+ };
+ 
+-/* Merged func_mcbsp2_gfclk into mcbsp2 */
+-static struct clk mcbsp2_fck = {
+-	.name		= "mcbsp2_fck",
++static struct clk func_mcbsp2_gfclk = {
++	.name		= "func_mcbsp2_gfclk",
+ 	.parent		= &mcbsp2_sync_mux_ck,
+ 	.clksel		= func_mcbsp2_gfclk_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM1_ABE_MCBSP2_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_SOURCE_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_MCBSP2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+ };
+ 
+ static struct clk mcbsp3_sync_mux_ck = {
+@@ -1892,107 +1940,32 @@ static const struct clksel func_mcbsp3_gfclk_sel[] = {
+ 	{ .parent = NULL },
+ };
+ 
+-/* Merged func_mcbsp3_gfclk into mcbsp3 */
+-static struct clk mcbsp3_fck = {
+-	.name		= "mcbsp3_fck",
++static struct clk func_mcbsp3_gfclk = {
++	.name		= "func_mcbsp3_gfclk",
+ 	.parent		= &mcbsp3_sync_mux_ck,
+ 	.clksel		= func_mcbsp3_gfclk_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM1_ABE_MCBSP3_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_SOURCE_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_MCBSP3_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+-};
+-
+-static const struct clksel mcbsp4_sync_mux_sel[] = {
+-	{ .parent = &func_96m_fclk, .rates = div_1_0_rates },
+-	{ .parent = &per_abe_nc_fclk, .rates = div_1_1_rates },
+-	{ .parent = NULL },
+-};
+-
+-static struct clk mcbsp4_sync_mux_ck = {
+-	.name		= "mcbsp4_sync_mux_ck",
+-	.parent		= &func_96m_fclk,
+-	.clksel		= mcbsp4_sync_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_MCBSP4_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_INTERNAL_SOURCE_MASK,
+ 	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+-static const struct clksel per_mcbsp4_gfclk_sel[] = {
+-	{ .parent = &mcbsp4_sync_mux_ck, .rates = div_1_0_rates },
+-	{ .parent = &pad_clks_ck, .rates = div_1_1_rates },
++static const struct clksel hsi_fclk_div[] = {
++	{ .parent = &dpll_per_m2x2_ck, .rates = div3_1to4_rates },
+ 	{ .parent = NULL },
+ };
+ 
+-/* Merged per_mcbsp4_gfclk into mcbsp4 */
+-static struct clk mcbsp4_fck = {
+-	.name		= "mcbsp4_fck",
+-	.parent		= &mcbsp4_sync_mux_ck,
+-	.clksel		= per_mcbsp4_gfclk_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_MCBSP4_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_SOURCE_24_24_MASK,
+-	.ops		= &clkops_omap2_dflt,
++static struct clk hsi_fclk = {
++	.name		= "hsi_fclk",
++	.parent		= &dpll_per_m2x2_ck,
++	.clksel		= hsi_fclk_div,
++	.clksel_reg	= OMAP4430_CM_L3INIT_HSI_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_24_25_MASK,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_MCBSP4_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-};
+-
+-static struct clk mcpdm_fck = {
+-	.name		= "mcpdm_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM1_ABE_PDM_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+-	.parent		= &pad_clks_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk mcspi1_fck = {
+-	.name		= "mcspi1_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_MCSPI1_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk mcspi2_fck = {
+-	.name		= "mcspi2_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_MCSPI2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk mcspi3_fck = {
+-	.name		= "mcspi3_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_MCSPI3_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk mcspi4_fck = {
+-	.name		= "mcspi4_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_MCSPI4_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
+ };
+ 
+ static const struct clksel hsmmc1_fclk_sel[] = {
+@@ -2001,335 +1974,94 @@ static const struct clksel hsmmc1_fclk_sel[] = {
+ 	{ .parent = NULL },
+ };
+ 
+-/* Merged hsmmc1_fclk into mmc1 */
+-static struct clk mmc1_fck = {
+-	.name		= "mmc1_fck",
++static struct clk hsmmc1_fclk = {
++	.name		= "hsmmc1_fclk",
+ 	.parent		= &func_64m_fclk,
+ 	.clksel		= hsmmc1_fclk_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM_L3INIT_MMC1_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L3INIT_MMC1_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l3_init_clkdm",
+ };
+ 
+-/* Merged hsmmc2_fclk into mmc2 */
+-static struct clk mmc2_fck = {
+-	.name		= "mmc2_fck",
++static struct clk hsmmc2_fclk = {
++	.name		= "hsmmc2_fclk",
+ 	.parent		= &func_64m_fclk,
+ 	.clksel		= hsmmc1_fclk_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM_L3INIT_MMC2_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L3INIT_MMC2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l3_init_clkdm",
+-};
+-
+-static struct clk mmc3_fck = {
+-	.name		= "mmc3_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_MMCSD3_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk mmc4_fck = {
+-	.name		= "mmc4_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_MMCSD4_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk mmc5_fck = {
+-	.name		= "mmc5_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_MMCSD5_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk ocp2scp_usb_phy_phy_48m = {
+-	.name		= "ocp2scp_usb_phy_phy_48m",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_PHY_48M_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk ocp2scp_usb_phy_ick = {
+-	.name		= "ocp2scp_usb_phy_ick",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &l4_div_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk ocp_wp_noc_ick = {
+-	.name		= "ocp_wp_noc_ick",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INSTR_OCP_WP1_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.flags		= ENABLE_ON_INIT,
+-	.clkdm_name	= "l3_instr_clkdm",
+-	.parent		= &l3_div_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk rng_ick = {
+-	.name		= "rng_ick",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4SEC_RNG_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l4_secure_clkdm",
+-	.parent		= &l4_div_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk sha2md5_fck = {
+-	.name		= "sha2md5_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4SEC_SHA2MD51_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_secure_clkdm",
+-	.parent		= &l3_div_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk sl2if_ick = {
+-	.name		= "sl2if_ick",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_IVAHD_SL2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "ivahd_clkdm",
+-	.parent		= &dpll_iva_m5x2_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk slimbus1_fclk_1 = {
+-	.name		= "slimbus1_fclk_1",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM1_ABE_SLIMBUS_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_FCLK1_SHIFT,
+-	.clkdm_name	= "abe_clkdm",
+-	.parent		= &func_24m_clk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk slimbus1_fclk_0 = {
+-	.name		= "slimbus1_fclk_0",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM1_ABE_SLIMBUS_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_FCLK0_SHIFT,
+-	.clkdm_name	= "abe_clkdm",
+-	.parent		= &abe_24m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk slimbus1_fclk_2 = {
+-	.name		= "slimbus1_fclk_2",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM1_ABE_SLIMBUS_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_FCLK2_SHIFT,
+-	.clkdm_name	= "abe_clkdm",
+-	.parent		= &pad_clks_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk slimbus1_slimbus_clk = {
+-	.name		= "slimbus1_slimbus_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM1_ABE_SLIMBUS_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_SLIMBUS_CLK_11_11_SHIFT,
+-	.clkdm_name	= "abe_clkdm",
+-	.parent		= &slimbus_clk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk slimbus1_fck = {
+-	.name		= "slimbus1_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM1_ABE_SLIMBUS_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+-	.parent		= &ocp_abe_iclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk slimbus2_fclk_1 = {
+-	.name		= "slimbus2_fclk_1",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_SLIMBUS2_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_PERABE24M_GFCLK_SHIFT,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &per_abe_24m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk slimbus2_fclk_0 = {
+-	.name		= "slimbus2_fclk_0",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_SLIMBUS2_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_PER24MC_GFCLK_SHIFT,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_24mc_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk slimbus2_slimbus_clk = {
+-	.name		= "slimbus2_slimbus_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_SLIMBUS2_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_SLIMBUS_CLK_SHIFT,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &pad_slimbus_core_clks_ck,
+-	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk slimbus2_fck = {
+-	.name		= "slimbus2_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_SLIMBUS2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &l4_div_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk smartreflex_core_fck = {
+-	.name		= "smartreflex_core_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_ALWON_SR_CORE_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_ao_clkdm",
+-	.parent		= &l4_wkup_clk_mux_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk smartreflex_iva_fck = {
+-	.name		= "smartreflex_iva_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_ALWON_SR_IVA_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_ao_clkdm",
+-	.parent		= &l4_wkup_clk_mux_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk smartreflex_mpu_fck = {
+-	.name		= "smartreflex_mpu_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_ALWON_SR_MPU_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_ao_clkdm",
+-	.parent		= &l4_wkup_clk_mux_ck,
+-	.recalc		= &followparent_recalc,
++static const struct clksel mcbsp4_sync_mux_sel[] = {
++	{ .parent = &func_96m_fclk, .rates = div_1_0_rates },
++	{ .parent = &per_abe_nc_fclk, .rates = div_1_1_rates },
++	{ .parent = NULL },
+ };
+ 
+-/* Merged dmt1_clk_mux into timer1 */
+-static struct clk timer1_fck = {
+-	.name		= "timer1_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= abe_dpll_bypass_clk_mux_sel,
++static struct clk mcbsp4_sync_mux_ck = {
++	.name		= "mcbsp4_sync_mux_ck",
++	.parent		= &func_96m_fclk,
++	.clksel		= mcbsp4_sync_mux_sel,
+ 	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_WKUP_TIMER1_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.clksel_reg	= OMAP4430_CM_L4PER_MCBSP4_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_INTERNAL_SOURCE_MASK,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_WKUP_TIMER1_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_wkup_clkdm",
+ };
+ 
+-/* Merged cm2_dm10_mux into timer10 */
+-static struct clk timer10_fck = {
+-	.name		= "timer10_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= abe_dpll_bypass_clk_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER10_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER10_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
++static const struct clksel per_mcbsp4_gfclk_sel[] = {
++	{ .parent = &mcbsp4_sync_mux_ck, .rates = div_1_0_rates },
++	{ .parent = &pad_clks_ck, .rates = div_1_1_rates },
++	{ .parent = NULL },
+ };
+ 
+-/* Merged cm2_dm11_mux into timer11 */
+-static struct clk timer11_fck = {
+-	.name		= "timer11_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= abe_dpll_bypass_clk_mux_sel,
++static struct clk per_mcbsp4_gfclk = {
++	.name		= "per_mcbsp4_gfclk",
++	.parent		= &mcbsp4_sync_mux_ck,
++	.clksel		= per_mcbsp4_gfclk_sel,
+ 	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER11_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.clksel_reg	= OMAP4430_CM_L4PER_MCBSP4_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_SOURCE_24_24_MASK,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER11_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+ };
+ 
+-/* Merged cm2_dm2_mux into timer2 */
+-static struct clk timer2_fck = {
+-	.name		= "timer2_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= abe_dpll_bypass_clk_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER2_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
++static const struct clksel sgx_clk_mux_sel[] = {
++	{ .parent = &dpll_core_m7x2_ck, .rates = div_1_0_rates },
++	{ .parent = &dpll_per_m7x2_ck, .rates = div_1_1_rates },
++	{ .parent = NULL },
+ };
+ 
+-/* Merged cm2_dm3_mux into timer3 */
+-static struct clk timer3_fck = {
+-	.name		= "timer3_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= abe_dpll_bypass_clk_mux_sel,
++static struct clk sgx_clk_mux_ck = {
++	.name		= "sgx_clk_mux_ck",
++	.parent		= &dpll_core_m7x2_ck,
++	.clksel		= sgx_clk_mux_sel,
+ 	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER3_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.clksel_reg	= OMAP4430_CM_GFX_GFX_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_SGX_FCLK_MASK,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER3_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+ };
+ 
+-/* Merged cm2_dm4_mux into timer4 */
+-static struct clk timer4_fck = {
+-	.name		= "timer4_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= abe_dpll_bypass_clk_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER4_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
++static const struct clksel stm_clk_div_div[] = {
++	{ .parent = &pmd_stm_clock_mux_ck, .rates = div3_1to4_rates },
++	{ .parent = NULL },
++};
++
++static struct clk stm_clk_div_ck = {
++	.name		= "stm_clk_div_ck",
++	.parent		= &pmd_stm_clock_mux_ck,
++	.clksel		= stm_clk_div_div,
++	.clksel_reg	= OMAP4430_CM_EMU_DEBUGSS_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_PMD_STM_CLK_MASK,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER4_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
+ };
+ 
+ static const struct clksel timer5_sync_mux_sel[] = {
+@@ -2338,422 +2070,50 @@ static const struct clksel timer5_sync_mux_sel[] = {
+ 	{ .parent = NULL },
+ };
+ 
+-/* Merged timer5_sync_mux into timer5 */
+-static struct clk timer5_fck = {
+-	.name		= "timer5_fck",
++static struct clk timer5_sync_mux_ck = {
++	.name		= "timer5_sync_mux_ck",
+ 	.parent		= &syc_clk_div_ck,
+ 	.clksel		= timer5_sync_mux_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM1_ABE_TIMER5_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_TIMER5_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+ };
+ 
+-/* Merged timer6_sync_mux into timer6 */
+-static struct clk timer6_fck = {
+-	.name		= "timer6_fck",
++static struct clk timer6_sync_mux_ck = {
++	.name		= "timer6_sync_mux_ck",
+ 	.parent		= &syc_clk_div_ck,
+ 	.clksel		= timer5_sync_mux_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM1_ABE_TIMER6_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_TIMER6_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+ };
+ 
+-/* Merged timer7_sync_mux into timer7 */
+-static struct clk timer7_fck = {
+-	.name		= "timer7_fck",
++static struct clk timer7_sync_mux_ck = {
++	.name		= "timer7_sync_mux_ck",
+ 	.parent		= &syc_clk_div_ck,
+ 	.clksel		= timer5_sync_mux_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM1_ABE_TIMER7_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_TIMER7_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+ };
+ 
+-/* Merged timer8_sync_mux into timer8 */
+-static struct clk timer8_fck = {
+-	.name		= "timer8_fck",
++static struct clk timer8_sync_mux_ck = {
++	.name		= "timer8_sync_mux_ck",
+ 	.parent		= &syc_clk_div_ck,
+ 	.clksel		= timer5_sync_mux_sel,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP4430_CM1_ABE_TIMER8_CLKCTRL,
+ 	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_TIMER8_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+-};
+-
+-/* Merged cm2_dm9_mux into timer9 */
+-static struct clk timer9_fck = {
+-	.name		= "timer9_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= abe_dpll_bypass_clk_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER9_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER9_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-};
+-
+-static struct clk uart1_fck = {
+-	.name		= "uart1_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_UART1_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk uart2_fck = {
+-	.name		= "uart2_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_UART2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk uart3_fck = {
+-	.name		= "uart3_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_UART3_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk uart4_fck = {
+-	.name		= "uart4_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4PER_UART4_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-	.parent		= &func_48m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_host_fs_fck = {
+-	.name		= "usb_host_fs_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_FS_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &func_48mc_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static const struct clksel utmi_p1_gfclk_sel[] = {
+-	{ .parent = &init_60m_fclk, .rates = div_1_0_rates },
+-	{ .parent = &xclk60mhsp1_ck, .rates = div_1_1_rates },
+-	{ .parent = NULL },
+-};
+-
+-static struct clk utmi_p1_gfclk = {
+-	.name		= "utmi_p1_gfclk",
+-	.parent		= &init_60m_fclk,
+-	.clksel		= utmi_p1_gfclk_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_UTMI_P1_MASK,
+-	.ops		= &clkops_null,
+-	.recalc		= &omap2_clksel_recalc,
+-};
+-
+-static struct clk usb_host_hs_utmi_p1_clk = {
+-	.name		= "usb_host_hs_utmi_p1_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_UTMI_P1_CLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &utmi_p1_gfclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static const struct clksel utmi_p2_gfclk_sel[] = {
+-	{ .parent = &init_60m_fclk, .rates = div_1_0_rates },
+-	{ .parent = &xclk60mhsp2_ck, .rates = div_1_1_rates },
+-	{ .parent = NULL },
+-};
+-
+-static struct clk utmi_p2_gfclk = {
+-	.name		= "utmi_p2_gfclk",
+-	.parent		= &init_60m_fclk,
+-	.clksel		= utmi_p2_gfclk_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_UTMI_P2_MASK,
+ 	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+-static struct clk usb_host_hs_utmi_p2_clk = {
+-	.name		= "usb_host_hs_utmi_p2_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_UTMI_P2_CLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &utmi_p2_gfclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_host_hs_utmi_p3_clk = {
+-	.name		= "usb_host_hs_utmi_p3_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_UTMI_P3_CLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &init_60m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_host_hs_hsic480m_p1_clk = {
+-	.name		= "usb_host_hs_hsic480m_p1_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_HSIC480M_P1_CLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &dpll_usb_m2_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_host_hs_hsic60m_p1_clk = {
+-	.name		= "usb_host_hs_hsic60m_p1_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_HSIC60M_P1_CLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &init_60m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_host_hs_hsic60m_p2_clk = {
+-	.name		= "usb_host_hs_hsic60m_p2_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_HSIC60M_P2_CLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &init_60m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_host_hs_hsic480m_p2_clk = {
+-	.name		= "usb_host_hs_hsic480m_p2_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_HSIC480M_P2_CLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &dpll_usb_m2_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_host_hs_func48mclk = {
+-	.name		= "usb_host_hs_func48mclk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_FUNC48MCLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &func_48mc_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_host_hs_fck = {
+-	.name		= "usb_host_hs_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &init_60m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static const struct clksel otg_60m_gfclk_sel[] = {
+-	{ .parent = &utmi_phy_clkout_ck, .rates = div_1_0_rates },
+-	{ .parent = &xclk60motg_ck, .rates = div_1_1_rates },
+-	{ .parent = NULL },
+-};
+-
+-static struct clk otg_60m_gfclk = {
+-	.name		= "otg_60m_gfclk",
+-	.parent		= &utmi_phy_clkout_ck,
+-	.clksel		= otg_60m_gfclk_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_60M_MASK,
+-	.ops		= &clkops_null,
+-	.recalc		= &omap2_clksel_recalc,
+-};
+-
+-static struct clk usb_otg_hs_xclk = {
+-	.name		= "usb_otg_hs_xclk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_XCLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &otg_60m_gfclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_otg_hs_ick = {
+-	.name		= "usb_otg_hs_ick",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &l3_div_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_phy_cm_clk32k = {
+-	.name		= "usb_phy_cm_clk32k",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_ALWON_USBPHY_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_CLK32K_SHIFT,
+-	.clkdm_name	= "l4_ao_clkdm",
+-	.parent		= &sys_32k_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_tll_hs_usb_ch2_clk = {
+-	.name		= "usb_tll_hs_usb_ch2_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_USB_CH2_CLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &init_60m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_tll_hs_usb_ch0_clk = {
+-	.name		= "usb_tll_hs_usb_ch0_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_USB_CH0_CLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &init_60m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_tll_hs_usb_ch1_clk = {
+-	.name		= "usb_tll_hs_usb_ch1_clk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_USB_CH1_CLK_SHIFT,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &init_60m_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_tll_hs_ick = {
+-	.name		= "usb_tll_hs_ick",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &l4_div_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static const struct clksel_rate div2_14to18_rates[] = {
+-	{ .div = 14, .val = 0, .flags = RATE_IN_44XX },
+-	{ .div = 18, .val = 1, .flags = RATE_IN_44XX },
+-	{ .div = 0 },
+-};
+-
+-static const struct clksel usim_fclk_div[] = {
+-	{ .parent = &dpll_per_m4x2_ck, .rates = div2_14to18_rates },
+-	{ .parent = NULL },
+-};
+-
+-static struct clk usim_ck = {
+-	.name		= "usim_ck",
+-	.parent		= &dpll_per_m4x2_ck,
+-	.clksel		= usim_fclk_div,
+-	.clksel_reg	= OMAP4430_CM_WKUP_USIM_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_DIV_MASK,
+-	.ops		= &clkops_null,
+-	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate,
+-	.set_rate	= &omap2_clksel_set_rate,
+-};
+-
+-static struct clk usim_fclk = {
+-	.name		= "usim_fclk",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_WKUP_USIM_CLKCTRL,
+-	.enable_bit	= OMAP4430_OPTFCLKEN_FCLK_SHIFT,
+-	.clkdm_name	= "l4_wkup_clkdm",
+-	.parent		= &usim_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usim_fck = {
+-	.name		= "usim_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_WKUP_USIM_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l4_wkup_clkdm",
+-	.parent		= &sys_32k_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk wd_timer2_fck = {
+-	.name		= "wd_timer2_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_WKUP_WDT2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_wkup_clkdm",
+-	.parent		= &sys_32k_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk wd_timer3_fck = {
+-	.name		= "wd_timer3_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM1_ABE_WDT3_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+-	.parent		= &sys_32k_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static const struct clksel stm_clk_div_div[] = {
+-	{ .parent = &pmd_stm_clock_mux_ck, .rates = div3_1to4_rates },
+-	{ .parent = NULL },
+-};
+-
+-static struct clk stm_clk_div_ck = {
+-	.name		= "stm_clk_div_ck",
+-	.parent		= &pmd_stm_clock_mux_ck,
+-	.clksel		= stm_clk_div_div,
+-	.clksel_reg	= OMAP4430_CM_EMU_DEBUGSS_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_PMD_STM_CLK_MASK,
+-	.ops		= &clkops_null,
+-	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate,
+-	.set_rate	= &omap2_clksel_set_rate,
+-};
+-
+ static const struct clksel trace_clk_div_div[] = {
+ 	{ .parent = &pmd_trace_clk_mux_ck, .rates = div3_1to4_rates },
+ 	{ .parent = NULL },
+@@ -3146,130 +2506,75 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"pmd_stm_clock_mux_ck",		&pmd_stm_clock_mux_ck,	CK_44XX),
+ 	CLK(NULL,	"pmd_trace_clk_mux_ck",		&pmd_trace_clk_mux_ck,	CK_44XX),
+ 	CLK(NULL,	"syc_clk_div_ck",		&syc_clk_div_ck,	CK_44XX),
+-	CLK(NULL,	"aes1_fck",			&aes1_fck,	CK_44XX),
+-	CLK(NULL,	"aes2_fck",			&aes2_fck,	CK_44XX),
+-	CLK(NULL,	"aess_fck",			&aess_fck,	CK_44XX),
+ 	CLK(NULL,	"bandgap_fclk",			&bandgap_fclk,	CK_44XX),
+-	CLK(NULL,	"des3des_fck",			&des3des_fck,	CK_44XX),
+-	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_44XX),
+-	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_44XX),
+-	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_44XX),
+ 	CLK("omapdss_dss",	"sys_clk",		&dss_sys_clk,	CK_44XX),
+ 	CLK("omapdss_dss",	"tv_clk",		&dss_tv_clk,	CK_44XX),
+ 	CLK("omapdss_dss",	"fck",			&dss_dss_clk,	CK_44XX),
+ 	CLK("omapdss_dss",	"video_clk",		&dss_48mhz_clk,	CK_44XX),
+ 	CLK("omapdss_dss",	"ick",			&dss_fck,	CK_44XX),
+-	CLK(NULL,	"efuse_ctrl_cust_fck",		&efuse_ctrl_cust_fck,	CK_44XX),
+-	CLK(NULL,	"emif1_fck",			&emif1_fck,	CK_44XX),
+-	CLK(NULL,	"emif2_fck",			&emif2_fck,	CK_44XX),
+-	CLK(NULL,	"fdif_fck",			&fdif_fck,	CK_44XX),
+-	CLK(NULL,	"fpka_fck",			&fpka_fck,	CK_44XX),
+ 	CLK(NULL,	"gpio1_dbclk",			&gpio1_dbclk,	CK_44XX),
+-	CLK(NULL,	"gpio1_ick",			&gpio1_ick,	CK_44XX),
+ 	CLK(NULL,	"gpio2_dbclk",			&gpio2_dbclk,	CK_44XX),
+-	CLK(NULL,	"gpio2_ick",			&gpio2_ick,	CK_44XX),
+ 	CLK(NULL,	"gpio3_dbclk",			&gpio3_dbclk,	CK_44XX),
+-	CLK(NULL,	"gpio3_ick",			&gpio3_ick,	CK_44XX),
+ 	CLK(NULL,	"gpio4_dbclk",			&gpio4_dbclk,	CK_44XX),
+-	CLK(NULL,	"gpio4_ick",			&gpio4_ick,	CK_44XX),
+ 	CLK(NULL,	"gpio5_dbclk",			&gpio5_dbclk,	CK_44XX),
+-	CLK(NULL,	"gpio5_ick",			&gpio5_ick,	CK_44XX),
+ 	CLK(NULL,	"gpio6_dbclk",			&gpio6_dbclk,	CK_44XX),
+-	CLK(NULL,	"gpio6_ick",			&gpio6_ick,	CK_44XX),
+-	CLK(NULL,	"gpmc_ick",			&gpmc_ick,	CK_44XX),
+-	CLK(NULL,	"gpu_fck",			&gpu_fck,	CK_44XX),
+-	CLK("omap2_hdq.0",	"fck",			&hdq1w_fck,	CK_44XX),
+-	CLK(NULL,	"hsi_fck",			&hsi_fck,	CK_44XX),
+-	CLK("omap_i2c.1",	"fck",			&i2c1_fck,	CK_44XX),
+-	CLK("omap_i2c.2",	"fck",			&i2c2_fck,	CK_44XX),
+-	CLK("omap_i2c.3",	"fck",			&i2c3_fck,	CK_44XX),
+-	CLK("omap_i2c.4",	"fck",			&i2c4_fck,	CK_44XX),
+-	CLK(NULL,	"ipu_fck",			&ipu_fck,	CK_44XX),
+ 	CLK(NULL,	"iss_ctrlclk",			&iss_ctrlclk,	CK_44XX),
+-	CLK(NULL,	"iss_fck",			&iss_fck,	CK_44XX),
+-	CLK(NULL,	"iva_fck",			&iva_fck,	CK_44XX),
+-	CLK(NULL,	"kbd_fck",			&kbd_fck,	CK_44XX),
+-	CLK(NULL,	"l3_instr_ick",			&l3_instr_ick,	CK_44XX),
+-	CLK(NULL,	"l3_main_3_ick",		&l3_main_3_ick,	CK_44XX),
+-	CLK(NULL,	"mcasp_sync_mux_ck",		&mcasp_sync_mux_ck,	CK_44XX),
+-	CLK(NULL,	"mcasp_fck",			&mcasp_fck,	CK_44XX),
+-	CLK(NULL,	"mcbsp1_sync_mux_ck",		&mcbsp1_sync_mux_ck,	CK_44XX),
+-	CLK("omap-mcbsp.1",	"fck",			&mcbsp1_fck,	CK_44XX),
+-	CLK(NULL,	"mcbsp2_sync_mux_ck",		&mcbsp2_sync_mux_ck,	CK_44XX),
+-	CLK("omap-mcbsp.2",	"fck",			&mcbsp2_fck,	CK_44XX),
+-	CLK(NULL,	"mcbsp3_sync_mux_ck",		&mcbsp3_sync_mux_ck,	CK_44XX),
+-	CLK("omap-mcbsp.3",	"fck",			&mcbsp3_fck,	CK_44XX),
+-	CLK(NULL,	"mcbsp4_sync_mux_ck",		&mcbsp4_sync_mux_ck,	CK_44XX),
+-	CLK("omap-mcbsp.4",	"fck",			&mcbsp4_fck,	CK_44XX),
+-	CLK(NULL,	"mcpdm_fck",			&mcpdm_fck,	CK_44XX),
+-	CLK("omap2_mcspi.1",	"fck",			&mcspi1_fck,	CK_44XX),
+-	CLK("omap2_mcspi.2",	"fck",			&mcspi2_fck,	CK_44XX),
+-	CLK("omap2_mcspi.3",	"fck",			&mcspi3_fck,	CK_44XX),
+-	CLK("omap2_mcspi.4",	"fck",			&mcspi4_fck,	CK_44XX),
+-	CLK("omap_hsmmc.0",	"fck",			&mmc1_fck,	CK_44XX),
+-	CLK("omap_hsmmc.1",	"fck",			&mmc2_fck,	CK_44XX),
+-	CLK("omap_hsmmc.2",	"fck",			&mmc3_fck,	CK_44XX),
+-	CLK("omap_hsmmc.3",	"fck",			&mmc4_fck,	CK_44XX),
+-	CLK("omap_hsmmc.4",	"fck",			&mmc5_fck,	CK_44XX),
+-	CLK(NULL,	"ocp2scp_usb_phy_phy_48m",	&ocp2scp_usb_phy_phy_48m,	CK_44XX),
+ 	CLK(NULL,	"ocp2scp_usb_phy_ick",		&ocp2scp_usb_phy_ick,	CK_44XX),
+-	CLK(NULL,	"ocp_wp_noc_ick",		&ocp_wp_noc_ick,	CK_44XX),
+-	CLK("omap_rng",	"ick",				&rng_ick,	CK_44XX),
+-	CLK(NULL,	"sha2md5_fck",			&sha2md5_fck,	CK_44XX),
+-	CLK(NULL,	"sl2if_ick",			&sl2if_ick,	CK_44XX),
+-	CLK(NULL,	"slimbus1_fclk_1",		&slimbus1_fclk_1,	CK_44XX),
++	CLK(NULL,	"ocp2scp_usb_phy_phy_48m",	&ocp2scp_usb_phy_phy_48m,	CK_44XX),
+ 	CLK(NULL,	"slimbus1_fclk_0",		&slimbus1_fclk_0,	CK_44XX),
++	CLK(NULL,	"slimbus1_fclk_1",		&slimbus1_fclk_1,	CK_44XX),
+ 	CLK(NULL,	"slimbus1_fclk_2",		&slimbus1_fclk_2,	CK_44XX),
+ 	CLK(NULL,	"slimbus1_slimbus_clk",		&slimbus1_slimbus_clk,	CK_44XX),
+-	CLK(NULL,	"slimbus1_fck",			&slimbus1_fck,	CK_44XX),
+-	CLK(NULL,	"slimbus2_fclk_1",		&slimbus2_fclk_1,	CK_44XX),
+ 	CLK(NULL,	"slimbus2_fclk_0",		&slimbus2_fclk_0,	CK_44XX),
++	CLK(NULL,	"slimbus2_fclk_1",		&slimbus2_fclk_1,	CK_44XX),
+ 	CLK(NULL,	"slimbus2_slimbus_clk",		&slimbus2_slimbus_clk,	CK_44XX),
+-	CLK(NULL,	"slimbus2_fck",			&slimbus2_fck,	CK_44XX),
+-	CLK(NULL,	"smartreflex_core_fck",		&smartreflex_core_fck,	CK_44XX),
+-	CLK(NULL,	"smartreflex_iva_fck",		&smartreflex_iva_fck,	CK_44XX),
+-	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_mpu_fck,	CK_44XX),
+-	CLK(NULL,	"gpt1_fck",			&timer1_fck,	CK_44XX),
+-	CLK(NULL,	"gpt10_fck",			&timer10_fck,	CK_44XX),
+-	CLK(NULL,	"gpt11_fck",			&timer11_fck,	CK_44XX),
+-	CLK(NULL,	"gpt2_fck",			&timer2_fck,	CK_44XX),
+-	CLK(NULL,	"gpt3_fck",			&timer3_fck,	CK_44XX),
+-	CLK(NULL,	"gpt4_fck",			&timer4_fck,	CK_44XX),
+-	CLK(NULL,	"gpt5_fck",			&timer5_fck,	CK_44XX),
+-	CLK(NULL,	"gpt6_fck",			&timer6_fck,	CK_44XX),
+-	CLK(NULL,	"gpt7_fck",			&timer7_fck,	CK_44XX),
+-	CLK(NULL,	"gpt8_fck",			&timer8_fck,	CK_44XX),
+-	CLK(NULL,	"gpt9_fck",			&timer9_fck,	CK_44XX),
+-	CLK(NULL,	"uart1_fck",			&uart1_fck,	CK_44XX),
+-	CLK(NULL,	"uart2_fck",			&uart2_fck,	CK_44XX),
+-	CLK(NULL,	"uart3_fck",			&uart3_fck,	CK_44XX),
+-	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_44XX),
+-	CLK("usbhs-omap.0",	"fs_fck",		&usb_host_fs_fck,	CK_44XX),
++	CLK(NULL,	"usb_host_hs_func48mclk",	&usb_host_hs_func48mclk,	CK_44XX),
++	CLK(NULL,	"usb_host_hs_hsic480m_p1_clk",	&usb_host_hs_hsic480m_p1_clk,	CK_44XX),
++	CLK(NULL,	"usb_host_hs_hsic480m_p2_clk",	&usb_host_hs_hsic480m_p2_clk,	CK_44XX),
++	CLK(NULL,	"usb_host_hs_hsic60m_p1_clk",	&usb_host_hs_hsic60m_p1_clk,	CK_44XX),
++	CLK(NULL,	"usb_host_hs_hsic60m_p2_clk",	&usb_host_hs_hsic60m_p2_clk,	CK_44XX),
+ 	CLK(NULL,	"utmi_p1_gfclk",		&utmi_p1_gfclk,	CK_44XX),
+ 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&usb_host_hs_utmi_p1_clk,	CK_44XX),
+ 	CLK(NULL,	"utmi_p2_gfclk",		&utmi_p2_gfclk,	CK_44XX),
+ 	CLK(NULL,	"usb_host_hs_utmi_p2_clk",	&usb_host_hs_utmi_p2_clk,	CK_44XX),
+ 	CLK(NULL,	"usb_host_hs_utmi_p3_clk",	&usb_host_hs_utmi_p3_clk,	CK_44XX),
+-	CLK(NULL,	"usb_host_hs_hsic480m_p1_clk",	&usb_host_hs_hsic480m_p1_clk,	CK_44XX),
+-	CLK(NULL,	"usb_host_hs_hsic60m_p1_clk",	&usb_host_hs_hsic60m_p1_clk,	CK_44XX),
+-	CLK(NULL,	"usb_host_hs_hsic60m_p2_clk",	&usb_host_hs_hsic60m_p2_clk,	CK_44XX),
+-	CLK(NULL,	"usb_host_hs_hsic480m_p2_clk",	&usb_host_hs_hsic480m_p2_clk,	CK_44XX),
+-	CLK(NULL,	"usb_host_hs_func48mclk",	&usb_host_hs_func48mclk,	CK_44XX),
+-	CLK("usbhs-omap.0",	"hs_fck",		&usb_host_hs_fck,	CK_44XX),
+ 	CLK(NULL,	"otg_60m_gfclk",		&otg_60m_gfclk,	CK_44XX),
+ 	CLK(NULL,	"usb_otg_hs_xclk",		&usb_otg_hs_xclk,	CK_44XX),
+-	CLK("musb-omap2430",	"ick",			&usb_otg_hs_ick,	CK_44XX),
+ 	CLK(NULL,	"usb_phy_cm_clk32k",		&usb_phy_cm_clk32k,	CK_44XX),
+-	CLK(NULL,	"usb_tll_hs_usb_ch2_clk",	&usb_tll_hs_usb_ch2_clk,	CK_44XX),
+ 	CLK(NULL,	"usb_tll_hs_usb_ch0_clk",	&usb_tll_hs_usb_ch0_clk,	CK_44XX),
+ 	CLK(NULL,	"usb_tll_hs_usb_ch1_clk",	&usb_tll_hs_usb_ch1_clk,	CK_44XX),
+-	CLK("usbhs-omap.0",	"usbtll_ick",		&usb_tll_hs_ick,	CK_44XX),
+-	CLK(NULL,	"usim_ck",			&usim_ck,	CK_44XX),
++	CLK(NULL,	"usb_tll_hs_usb_ch2_clk",	&usb_tll_hs_usb_ch2_clk,	CK_44XX),
+ 	CLK(NULL,	"usim_fclk",			&usim_fclk,	CK_44XX),
+-	CLK(NULL,	"usim_fck",			&usim_fck,	CK_44XX),
+-	CLK("omap_wdt",	"fck",				&wd_timer2_fck,	CK_44XX),
+-	CLK(NULL,	"wd_timer3_fck",		&wd_timer3_fck,	CK_44XX),
++	CLK(NULL,	"usim_clk",			&usim_clk,	CK_44XX),
++	CLK(NULL,	"cm2_dm10_mux_ck",		&cm2_dm10_mux_ck,	CK_44XX),
++	CLK(NULL,	"cm2_dm11_mux_ck",		&cm2_dm11_mux_ck,	CK_44XX),
++	CLK(NULL,	"cm2_dm2_mux_ck",		&cm2_dm2_mux_ck,	CK_44XX),
++	CLK(NULL,	"cm2_dm3_mux_ck",		&cm2_dm3_mux_ck,	CK_44XX),
++	CLK(NULL,	"cm2_dm4_mux_ck",		&cm2_dm4_mux_ck,	CK_44XX),
++	CLK(NULL,	"cm2_dm9_mux_ck",		&cm2_dm9_mux_ck,	CK_44XX),
++	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_44XX),
++	CLK(NULL,	"gpt1_fck",			&timer1_fck,	CK_44XX),
++	CLK(NULL,	"fdif_fclk",			&fdif_fclk,	CK_44XX),
++	CLK(NULL,	"func_dmic_abe_gfclk",		&func_dmic_abe_gfclk,	CK_44XX),
++	CLK(NULL,	"mcasp_sync_mux_ck",		&mcasp_sync_mux_ck,	CK_44XX),
++	CLK(NULL,	"func_mcasp_abe_gfclk",		&func_mcasp_abe_gfclk,	CK_44XX),
++	CLK(NULL,	"mcbsp1_sync_mux_ck",		&mcbsp1_sync_mux_ck,	CK_44XX),
++	CLK(NULL,	"func_mcbsp1_gfclk",		&func_mcbsp1_gfclk,	CK_44XX),
++	CLK(NULL,	"mcbsp2_sync_mux_ck",		&mcbsp2_sync_mux_ck,	CK_44XX),
++	CLK(NULL,	"func_mcbsp2_gfclk",		&func_mcbsp2_gfclk,	CK_44XX),
++	CLK(NULL,	"mcbsp3_sync_mux_ck",		&mcbsp3_sync_mux_ck,	CK_44XX),
++	CLK(NULL,	"func_mcbsp3_gfclk",		&func_mcbsp3_gfclk,	CK_44XX),
++	CLK(NULL,	"hsi_fclk",			&hsi_fclk,	CK_44XX),
++	CLK(NULL,	"hsmmc1_fclk",			&hsmmc1_fclk,	CK_44XX),
++	CLK(NULL,	"hsmmc2_fclk",			&hsmmc2_fclk,	CK_44XX),
++	CLK(NULL,	"mcbsp4_sync_mux_ck",		&mcbsp4_sync_mux_ck,	CK_44XX),
++	CLK(NULL,	"per_mcbsp4_gfclk",		&per_mcbsp4_gfclk,	CK_44XX),
++	CLK(NULL,	"sgx_clk_mux_ck",		&sgx_clk_mux_ck,	CK_44XX),
+ 	CLK(NULL,	"stm_clk_div_ck",		&stm_clk_div_ck,	CK_44XX),
++	CLK(NULL,	"gpt5_sync_mux_ck",		&timer5_sync_mux_ck,	CK_44XX),
++	CLK(NULL,	"gpt6_sync_mux_ck",		&timer6_sync_mux_ck,	CK_44XX),
++	CLK(NULL,	"gpt7_sync_mux_ck",		&timer7_sync_mux_ck,	CK_44XX),
++	CLK(NULL,	"gpt8_sync_mux_ck",		&timer8_sync_mux_ck,	CK_44XX),
+ 	CLK(NULL,	"trace_clk_div_ck",		&trace_clk_div_ck,	CK_44XX),
+ 	CLK(NULL,	"auxclk0_src_ck",		&auxclk0_src_ck,	CK_44XX),
+ 	CLK(NULL,	"auxclk0_ck",			&auxclk0_ck,	CK_44XX),
 -- 
 1.7.0.4
 
