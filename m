@@ -1,63 +1,64 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
- of ehci and ohci
-Date: Fri, 1 Jul 2011 15:06:49 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1107011504530.1624-100000@iolanthe.rowland.org>
-References: <1309546474-15363-7-git-send-email-keshava_mgowda@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv4 9/9] OMAP3: PM: Disable / enable PRCM chain interrupts during wakeup from suspend
+Date: Fri, 01 Jul 2011 13:10:03 -0700
+Message-ID: <87oc1dwyn8.fsf@ti.com>
+References: <1309338303-2086-1-git-send-email-t-kristo@ti.com>
+	<1309338303-2086-10-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:48579 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752423Ab1GATGu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 15:06:50 -0400
-In-Reply-To: <1309546474-15363-7-git-send-email-keshava_mgowda@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:57383 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751921Ab1GAUKJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 16:10:09 -0400
+Received: by pzk9 with SMTP id 9so89147pzk.19
+        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 13:10:07 -0700 (PDT)
+In-Reply-To: <1309338303-2086-10-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Wed, 29 Jun 2011 12:05:03 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Sat, 2 Jul 2011, Keshava Munegowda wrote:
+Tero Kristo <t-kristo@ti.com> writes:
 
-> From: Keshava Munegowda <Keshava_mgowda@ti.com>
-> 
-> The global suspend and resume functions for ehci and ohci
-> drivers are implemented; these functions does the
-> pm_runtime_get_sync and pm_runtime_put_sync of the
-> parent device usbhs core driver respectively.
-> 
-> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+> This prevents system hang while attempting to access suspended console.
+
+Please add more detail.  Who is accessing console?   This sounds more
+like it's masking a UART/console bug.
+
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > ---
->  drivers/usb/host/ehci-omap.c  |   22 ++++++++++++++++++++--
->  drivers/usb/host/ohci-omap3.c |   21 +++++++++++++++++++++
->  2 files changed, 41 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-> index 178f63e..a02a684 100644
-> --- a/drivers/usb/host/ehci-omap.c
-> +++ b/drivers/usb/host/ehci-omap.c
-> @@ -259,14 +259,32 @@ static void ehci_hcd_omap_shutdown(struct platform_device *pdev)
->  		hcd->driver->shutdown(hcd);
+>  arch/arm/mach-omap2/pm34xx.c |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index e626a3d..dae0a8a 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -418,6 +418,10 @@ void omap_sram_idle(void)
+>  	pwrdm_post_transition();
+>  
+>  	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+> +	if (suspend_state != PM_SUSPEND_ON) {
+> +		disable_irq(prcm_io_irq);
+> +		disable_irq(prcm_wkup_irq);
+> +	}
+
 >  }
 >  
-> +static int omap_ehci_resume(struct device *dev)
-> +{
-> +	if (dev->parent)
-> +		pm_runtime_get_sync(dev->parent);
-> +	return 0;
-> +}
-> +
-> +static int omap_ehci_suspend(struct device *dev)
-> +{
-> +	if (dev->parent)
-> +		pm_runtime_put_sync(dev->parent);
-> +	return 0;
-> +}
+>  int omap3_can_sleep(void)
+> @@ -524,6 +528,8 @@ static void omap3_pm_end(void)
+>  	suspend_state = PM_SUSPEND_ON;
+>  	omap_uart_enable_irqs(1);
+>  	enable_hlt();
+> +	enable_irq(prcm_io_irq);
+> +	enable_irq(prcm_wkup_irq);
+>  	return;
+>  }
 
-I don't see any point in these routines (and likewise for
-omap_ohci_suspend/resume).  When the whole system is going to sleep
-anyway, what reason is there for enabling runtime PM on the parent
-device?
+The re-enable is in ->end(), shouldn't the disable be in ->begin() ?
 
-Alan Stern
+Kevin
+
 
