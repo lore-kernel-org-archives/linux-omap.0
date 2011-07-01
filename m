@@ -1,97 +1,104 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v4 1/7] OMAP2+: clockdomain: Add an api to read idle mode
-Date: Fri, 1 Jul 2011 23:27:00 +0200
-Message-ID: <1309555626-22608-2-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v4 2/7] OMAP2+: clockdomain: Add SoC support for clkdm_allows_idle
+Date: Fri, 1 Jul 2011 23:27:01 +0200
+Message-ID: <1309555626-22608-3-git-send-email-b-cousson@ti.com>
 References: <1309555626-22608-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42327 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757174Ab1GAV1R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 17:27:17 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59738 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757362Ab1GAV1U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 17:27:20 -0400
 In-Reply-To: <1309555626-22608-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Todd Poynor <toddpoynor@google.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-Add a clockdomain api to check if hardware supervised
-idle transitions are enabled on a clockdomain.
-
-Thanks to Todd Poynor <toddpoynor@google.com> for a
-better function name suggestion.
+Add the SoC specific implementation for clkdm_allows_idle
+for OMAP2/3 and OMAP4.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+[b-cousson@ti.com: Update the changelog and subject]
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Todd Poynor <toddpoynor@google.com>
 ---
- arch/arm/mach-omap2/clockdomain.c |   21 +++++++++++++++++++++
- arch/arm/mach-omap2/clockdomain.h |    3 +++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |   12 ++++++++++++
+ arch/arm/mach-omap2/clockdomain44xx.c      |    7 +++++++
+ 2 files changed, 19 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 6cb6c03..3f2a8e7 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -795,6 +795,27 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
- 	arch_clkdm->clkdm_deny_idle(clkdm);
+diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+index 48d0db7..81f3e46 100644
+--- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+@@ -13,6 +13,7 @@
+  */
+ 
+ #include <linux/types.h>
++#include <linux/errno.h>
+ #include <plat/prcm.h>
+ #include "prm.h"
+ #include "prm2xxx_3xxx.h"
+@@ -146,6 +147,15 @@ static void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
+ 		_clkdm_del_autodeps(clkdm);
  }
  
-+/**
-+ * clkdm_allows_idle - Check if the clkdm hwsup/autoidle is enabled
-+ * @clkdm: struct clockdomain *
-+ *
-+ * Returns true if the clockdomain is in hardware-supervised
-+ * idle mode, or 0 otherwise.
-+ *
-+ */
-+int clkdm_allows_idle(struct clockdomain *clkdm)
++static int omap2_clkdm_allows_idle(struct clockdomain *clkdm)
 +{
-+	if (!clkdm)
++	if (!clkdm->clktrctrl_mask)
 +		return -EINVAL;
 +
-+	if (!arch_clkdm || !arch_clkdm->clkdm_allows_idle)
-+		return -EINVAL;
-+
-+	pr_debug("clockdomain: reading idle state for %s\n", clkdm->name);
-+
-+	return arch_clkdm->clkdm_allows_idle(clkdm);
++	return omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
++				clkdm->clktrctrl_mask);
 +}
 +
- 
- /* Clockdomain-to-clock framework interface code */
- 
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 5823584..2d3d970 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -138,6 +138,7 @@ struct clockdomain {
-  * @clkdm_wakeup: Force a clockdomain to wakeup
-  * @clkdm_allow_idle: Enable hw supervised idle transitions for clock domain
-  * @clkdm_deny_idle: Disable hw supervised idle transitions for clock domain
-+ * @clkdm_allows_idle: Check if hw supervised idle transitions are enabled
-  * @clkdm_clk_enable: Put the clkdm in right state for a clock enable
-  * @clkdm_clk_disable: Put the clkdm in right state for a clock disable
-  */
-@@ -154,6 +155,7 @@ struct clkdm_ops {
- 	int	(*clkdm_wakeup)(struct clockdomain *clkdm);
- 	void	(*clkdm_allow_idle)(struct clockdomain *clkdm);
- 	void	(*clkdm_deny_idle)(struct clockdomain *clkdm);
-+	int	(*clkdm_allows_idle)(struct clockdomain *clkdm);
- 	int	(*clkdm_clk_enable)(struct clockdomain *clkdm);
- 	int	(*clkdm_clk_disable)(struct clockdomain *clkdm);
+ static void _enable_hwsup(struct clockdomain *clkdm)
+ {
+ 	if (cpu_is_omap24xx())
+@@ -252,6 +262,7 @@ struct clkdm_ops omap2_clkdm_operations = {
+ 	.clkdm_wakeup		= omap2_clkdm_wakeup,
+ 	.clkdm_allow_idle	= omap2_clkdm_allow_idle,
+ 	.clkdm_deny_idle	= omap2_clkdm_deny_idle,
++	.clkdm_allows_idle	= omap2_clkdm_allows_idle,
+ 	.clkdm_clk_enable	= omap2_clkdm_clk_enable,
+ 	.clkdm_clk_disable	= omap2_clkdm_clk_disable,
  };
-@@ -177,6 +179,7 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm);
+@@ -269,6 +280,7 @@ struct clkdm_ops omap3_clkdm_operations = {
+ 	.clkdm_wakeup		= omap3_clkdm_wakeup,
+ 	.clkdm_allow_idle	= omap3_clkdm_allow_idle,
+ 	.clkdm_deny_idle	= omap3_clkdm_deny_idle,
++	.clkdm_allows_idle	= omap2_clkdm_allows_idle,
+ 	.clkdm_clk_enable	= omap2_clkdm_clk_enable,
+ 	.clkdm_clk_disable	= omap2_clkdm_clk_disable,
+ };
+diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
+index a1a4ecd..1599b18 100644
+--- a/arch/arm/mach-omap2/clockdomain44xx.c
++++ b/arch/arm/mach-omap2/clockdomain44xx.c
+@@ -93,6 +93,12 @@ static void omap4_clkdm_deny_idle(struct clockdomain *clkdm)
+ 					clkdm->cm_inst, clkdm->clkdm_offs);
+ }
  
- void clkdm_allow_idle(struct clockdomain *clkdm);
- void clkdm_deny_idle(struct clockdomain *clkdm);
-+int clkdm_allows_idle(struct clockdomain *clkdm);
- 
- int clkdm_wakeup(struct clockdomain *clkdm);
- int clkdm_sleep(struct clockdomain *clkdm);
++static int omap4_clkdm_allows_idle(struct clockdomain *clkdm)
++{
++	return omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
++				clkdm->cm_inst, clkdm->clkdm_offs);
++}
++
+ static int omap4_clkdm_clk_enable(struct clockdomain *clkdm)
+ {
+ 	bool hwsup = false;
+@@ -132,6 +138,7 @@ struct clkdm_ops omap4_clkdm_operations = {
+ 	.clkdm_wakeup		= omap4_clkdm_wakeup,
+ 	.clkdm_allow_idle	= omap4_clkdm_allow_idle,
+ 	.clkdm_deny_idle	= omap4_clkdm_deny_idle,
++	.clkdm_allows_idle	= omap4_clkdm_allows_idle,
+ 	.clkdm_clk_enable	= omap4_clkdm_clk_enable,
+ 	.clkdm_clk_disable	= omap4_clkdm_clk_disable,
+ };
 -- 
 1.7.0.4
 
