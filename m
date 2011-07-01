@@ -1,45 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap iommu fixes for v3.0-rc
-Date: Fri, 1 Jul 2011 03:05:26 -0700
-Message-ID: <20110701100525.GK23145@atomide.com>
-References: <BANLkTi=vd2TE6JjueGmY=ydRQRygo8-Q1Q@mail.gmail.com>
- <20110701070056.GZ23145@atomide.com>
- <BANLkTikhZhUzyk=31cUOcV3Ygj=BHUrbew@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 3/3] OMAP4: powerdomain data: Fix core mem states and
+ missing cefuse flag
+Date: Fri, 1 Jul 2011 12:09:33 +0200
+Message-ID: <4E0D9CDD.6090008@ti.com>
+References: <1308847544-2322-1-git-send-email-b-cousson@ti.com> <1308847544-2322-4-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1106301730340.2874@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:29148 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755074Ab1GAKF2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 06:05:28 -0400
-Content-Disposition: inline
-In-Reply-To: <BANLkTikhZhUzyk=31cUOcV3Ygj=BHUrbew@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:55304 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755161Ab1GAKJi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 06:09:38 -0400
+In-Reply-To: <alpine.DEB.2.00.1106301730340.2874@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-* Ohad Ben-Cohen <ohad@wizery.com> [110701 00:46]:
-> On Fri, Jul 1, 2011 at 10:00 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > These look like real fixes, but can you please update the commits
-> > with something like "This fixes an issue with foo when doing bar".
-> 
-> Done, please tell me if it's OK now.
+On 7/1/2011 1:48 AM, Paul Walmsley wrote:
+> On Thu, 23 Jun 2011, Benoit Cousson wrote:
+>
+>> Since ES2.0, the core ocmram does not support a different state
+>> than the main power domain anymore during both ON and RET power
+>> domain state.
+>> Since PM is not supported at all in ES1.0, update the common
+>> structure.
+>>
+>> LOWPOWERSTATECHANGE is supported by the cefuse power domain but
+>> the flag was missing.
+>> Add the PWRDM_HAS_LOWPOWERSTATECHANGE in flags field.
+>>
+>> Indent all previous flags to be aligned with other fields.
+>>
+>> Update the TI copyright date to 2011.
+>>
+>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>> Cc: Paul Walmsley<paul@pwsan.com>
+>> Cc: Rajendra Nayak<rnayak@ti.com>
+>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>
+> Reviewed-by: Paul Walmsley<paul@pwsan.com>
+>
+> I guess the CEFUSE LOWPOWERSTATECHANGE bit is in the Security TRM?
 
-OK thanks!
- 
-> > Otherwise it's easy to claim that these are "fixes for features that
-> > never worked" and it might be hard to justify them this late into
-> > the -rc cycle.
-> 
-> It seems we did have these issues for quite some time, and these are not
-> explicit 3.0 regressions. So they might vaguely fall into the "fixes
-> for features that never worked" definition too in a sense.
-> 
-> If you prefer to take them into 3.1, that's OK too.
+Good question... but I think so.
 
-Let's do that then.
+Benoit
 
-Regards,
-
-Tony
