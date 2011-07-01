@@ -1,138 +1,184 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 4/7] OMAP4: clocks: Update the clock tree with 4460 clock nodes
-Date: Fri, 1 Jul 2011 07:37:58 +0530
-Message-ID: <1309486081-8257-5-git-send-email-rnayak@ti.com>
+Subject: [PATCH 5/7] OMAP4: powerdomain: Reuse on 4460 using CHIP_IS_44XX
+Date: Fri, 1 Jul 2011 07:37:59 +0530
+Message-ID: <1309486081-8257-6-git-send-email-rnayak@ti.com>
 References: <1309486081-8257-1-git-send-email-rnayak@ti.com>
  <1309486081-8257-2-git-send-email-rnayak@ti.com>
  <1309486081-8257-3-git-send-email-rnayak@ti.com>
  <1309486081-8257-4-git-send-email-rnayak@ti.com>
+ <1309486081-8257-5-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56762 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54655 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752149Ab1GACIX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Jun 2011 22:08:23 -0400
-In-Reply-To: <1309486081-8257-4-git-send-email-rnayak@ti.com>
+	id S1752149Ab1GACIY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Jun 2011 22:08:24 -0400
+In-Reply-To: <1309486081-8257-5-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>
 
-Add the new clock nodes (bandgap_ts_fclk, div_ts_ck) for omap4460.
-Handle these nodes using the clock flags (CK_*).
+The 4460 platform has no difference in the powerdomains as compared
+to the 4430 platform. Hence just update the .omap_chip field to make
+sure the same powerdomain data can be reused on the 4460 platform.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/clock44xx_data.c          |   39 +++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/clkdev_omap.h |    2 +-
- arch/arm/plat-omap/include/plat/clock.h       |    3 +-
- 3 files changed, 42 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/powerdomains44xx_data.c |   32 +++++++++++++-------------
+ 1 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index f1cfa3c..be016ee 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -1277,6 +1277,40 @@ static struct clk bandgap_fclk = {
- 	.clkdm_name	= "l4_wkup_clkdm",
+diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
+index 8f46e7d..29d2e2e 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+@@ -35,7 +35,7 @@ static struct powerdomain core_44xx_pwrdm = {
+ 	.name		  = "core_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_CORE_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 5,
+@@ -61,7 +61,7 @@ static struct powerdomain gfx_44xx_pwrdm = {
+ 	.name		  = "gfx_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_GFX_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -78,7 +78,7 @@ static struct powerdomain abe_44xx_pwrdm = {
+ 	.name		  = "abe_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_ABE_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF,
+ 	.banks		  = 2,
+@@ -98,7 +98,7 @@ static struct powerdomain dss_44xx_pwrdm = {
+ 	.name		  = "dss_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_DSS_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF,
+ 	.banks		  = 1,
+@@ -116,7 +116,7 @@ static struct powerdomain tesla_44xx_pwrdm = {
+ 	.name		  = "tesla_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_TESLA_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 3,
+@@ -138,7 +138,7 @@ static struct powerdomain wkup_44xx_pwrdm = {
+ 	.name		  = "wkup_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_WKUP_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_ON,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -154,7 +154,7 @@ static struct powerdomain cpu0_44xx_pwrdm = {
+ 	.name		  = "cpu0_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU0_INST,
+ 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+@@ -171,7 +171,7 @@ static struct powerdomain cpu1_44xx_pwrdm = {
+ 	.name		  = "cpu1_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU1_INST,
+ 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+@@ -188,7 +188,7 @@ static struct powerdomain emu_44xx_pwrdm = {
+ 	.name		  = "emu_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_EMU_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -204,7 +204,7 @@ static struct powerdomain mpu_44xx_pwrdm = {
+ 	.name		  = "mpu_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_MPU_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 3,
+@@ -225,7 +225,7 @@ static struct powerdomain ivahd_44xx_pwrdm = {
+ 	.name		  = "ivahd_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_IVAHD_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF,
+ 	.banks		  = 4,
+@@ -249,7 +249,7 @@ static struct powerdomain cam_44xx_pwrdm = {
+ 	.name		  = "cam_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_CAM_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -266,7 +266,7 @@ static struct powerdomain l3init_44xx_pwrdm = {
+ 	.name		  = "l3init_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_L3INIT_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+@@ -284,7 +284,7 @@ static struct powerdomain l4per_44xx_pwrdm = {
+ 	.name		  = "l4per_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_L4PER_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 2,
+@@ -307,7 +307,7 @@ static struct powerdomain always_on_core_44xx_pwrdm = {
+ 	.name		  = "always_on_core_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_ALWAYS_ON_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_ON,
  };
  
-+static const struct clksel_rate div3_8to32_rates[] = {
-+	{ .div = 8, .val = 0, .flags = RATE_IN_44XX },
-+	{ .div = 16, .val = 1, .flags = RATE_IN_44XX },
-+	{ .div = 32, .val = 2, .flags = RATE_IN_44XX },
-+	{ .div = 0 },
-+};
-+
-+static const struct clksel div_ts_div[] = {
-+	{ .parent = &l4_wkup_clk_mux_ck, .rates = div3_8to32_rates },
-+	{ .parent = NULL },
-+};
-+
-+static struct clk div_ts_ck = {
-+	.name		= "div_ts_ck",
-+	.parent		= &l4_wkup_clk_mux_ck,
-+	.clksel		= div_ts_div,
-+	.clksel_reg	= OMAP4430_CM_WKUP_BANDGAP_CLKCTRL,
-+	.clksel_mask	= OMAP4430_CLKSEL_24_25_MASK,
-+	.ops		= &clkops_null,
-+	.recalc		= &omap2_clksel_recalc,
-+	.round_rate	= &omap2_clksel_round_rate,
-+	.set_rate	= &omap2_clksel_set_rate,
-+};
-+
-+static struct clk bandgap_ts_fclk = {
-+	.name		= "bandgap_ts_fclk",
-+	.ops		= &clkops_omap2_dflt,
-+	.enable_reg	= OMAP4430_CM_WKUP_BANDGAP_CLKCTRL,
-+	.enable_bit	= OMAP4460_OPTFCLKEN_TS_FCLK_SHIFT,
-+	.clkdm_name	= "l4_wkup_clkdm",
-+	.parent		= &div_ts_ck,
-+	.recalc		= &followparent_recalc,
-+};
-+
- static struct clk dss_48mhz_clk = {
- 	.name		= "dss_48mhz_clk",
- 	.parent		= &func_48mc_fclk,
-@@ -2487,6 +2521,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"pmd_trace_clk_mux_ck",		&pmd_trace_clk_mux_ck,	CK_44XX),
- 	CLK(NULL,	"syc_clk_div_ck",		&syc_clk_div_ck,	CK_44XX),
- 	CLK(NULL,	"bandgap_fclk",			&bandgap_fclk,	CK_44XX),
-+	CLK(NULL,	"bandgap_ts_fclk",		&bandgap_ts_fclk,	CK_446X),
- 	CLK("omapdss_dss",	"video_clk",		&dss_48mhz_clk,	CK_44XX),
- 	CLK("omapdss_dss",	"fck",			&dss_dss_clk,	CK_44XX),
- 	CLK("omapdss_dss",	"sys_clk",		&dss_sys_clk,	CK_44XX),
-@@ -2530,6 +2565,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"cm2_dm3_mux_ck",		&cm2_dm3_mux_ck,	CK_44XX),
- 	CLK(NULL,	"cm2_dm4_mux_ck",		&cm2_dm4_mux_ck,	CK_44XX),
- 	CLK(NULL,	"cm2_dm9_mux_ck",		&cm2_dm9_mux_ck,	CK_44XX),
-+	CLK(NULL,	"div_ts_ck",			&div_ts_ck,	CK_446X),
- 	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_44XX),
- 	CLK(NULL,	"gpt1_fck",			&timer1_fck,	CK_44XX),
- 	CLK(NULL,	"fdif_fclk",			&fdif_fclk,	CK_44XX),
-@@ -2619,6 +2655,9 @@ int __init omap4xxx_clk_init(void)
- 	if (cpu_is_omap443x()) {
- 		cpu_mask = RATE_IN_4430;
- 		cpu_clkflg = CK_443X;
-+	} else if (cpu_is_omap446x()) {
-+		cpu_mask = RATE_IN_4460;
-+		cpu_clkflg = CK_446X;
- 	}
- 
- 	clk_init(&omap2_clk_functions);
-diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h b/arch/arm/plat-omap/include/plat/clkdev_omap.h
-index 4609a3f..324446b 100644
---- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
-+++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
-@@ -45,7 +45,7 @@ struct omap_clk {
- #define CK_34XX		(CK_3430ES1 | CK_3430ES2PLUS)
- #define CK_AM35XX	(CK_3505 | CK_3517)	/* all Sitara AM35xx */
- #define CK_3XXX		(CK_34XX | CK_AM35XX | CK_36XX)
--#define CK_44XX		(CK_443X)
-+#define CK_44XX		(CK_443X | CK_446X)
- 
- 
- #endif
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 10349fe..df4b968 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -58,11 +58,12 @@ struct clkops {
- #define RATE_IN_36XX		(1 << 4)
- #define RATE_IN_4430		(1 << 5)
- #define RATE_IN_TI816X		(1 << 6)
-+#define RATE_IN_4460		(1 << 7)
- 
- #define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
- #define RATE_IN_34XX		(RATE_IN_3430ES1 | RATE_IN_3430ES2PLUS)
- #define RATE_IN_3XXX		(RATE_IN_34XX | RATE_IN_36XX)
--#define RATE_IN_44XX		(RATE_IN_4430)
-+#define RATE_IN_44XX		(RATE_IN_4430 | RATE_IN_4460)
- 
- /* RATE_IN_3430ES2PLUS_36XX includes 34xx/35xx with ES >=2, and all 36xx/37xx */
- #define RATE_IN_3430ES2PLUS_36XX	(RATE_IN_3430ES2PLUS | RATE_IN_36XX)
+@@ -316,7 +316,7 @@ static struct powerdomain cefuse_44xx_pwrdm = {
+ 	.name		  = "cefuse_pwrdm",
+ 	.prcm_offs	  = OMAP4430_PRM_CEFUSE_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ 	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
+ };
 -- 
 1.7.4.1
 
