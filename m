@@ -1,110 +1,101 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 07/13] OMAP4: prm: Replace warm reset API with the
- offset based version
-Date: Fri, 1 Jul 2011 06:39:03 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107010638110.27025@utopia.booyaka.com>
-References: <1309189641-25010-1-git-send-email-b-cousson@ti.com> <1309189641-25010-8-git-send-email-b-cousson@ti.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH 0/8] HDMI: Split hdmi.c to seperate HDMI IP dependant code
+ from DSS.
+Date: Fri, 1 Jul 2011 18:13:03 +0530
+Message-ID: <BANLkTikQ2H4aO=fLx91Lcd5_HrqMRt2=9w@mail.gmail.com>
+References: <1308298637-29753-1-git-send-email-mythripk@ti.com>
+ <1308823101.1834.79.camel@deskari> <BANLkTinc9JUr-gBGSynzMtrqTVncDUbNKQ@mail.gmail.com>
+ <1308832274.1834.109.camel@deskari> <BANLkTik1TYgaGBYKqYxih1RjPKn8nU_cAA@mail.gmail.com>
+ <1309179518.1813.38.camel@lappyti> <BANLkTi=VAaTf7SwXJikHAJGmxJLmbg84Dw@mail.gmail.com>
+ <1309364515.20494.20.camel@deskari> <BANLkTi=XUVEXxw7Ag23BEBw8zHY6J+c9OQ@mail.gmail.com>
+ <1309510269.1821.18.camel@deskari> <BANLkTik+0P1ycGpS-xU1Utu2Zfzk17ZkWA@mail.gmail.com>
+ <1309520677.1821.43.camel@deskari>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39913 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756290Ab1GAMjD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 08:39:03 -0400
-In-Reply-To: <1309189641-25010-8-git-send-email-b-cousson@ti.com>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:58814 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755010Ab1GAMnZ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 08:43:25 -0400
+Received: by fxg11 with SMTP id 11so3574634fxg.34
+        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 05:43:23 -0700 (PDT)
+In-Reply-To: <1309520677.1821.43.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi
+Hi Tomi,
 
-minor issue...
+On Fri, Jul 1, 2011 at 5:14 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> =
+wrote:
+> On Fri, 2011-07-01 at 14:52 +0530, K, Mythri P wrote:
+>
+>> > I don't see a need for a separate file right now. We have the
+>> > hdmi_ti_4xxx_ip.c file which contains code for the HDMI block as a
+>> > whole, and could well contain the code that implements the API.
+>> >
+>> if the hdmi_ti_4xxx_ip.c =A0is handling the configuration then how a=
+re
+>> we going to handle a scenario where netra uses a different PHY block=
+ ,
+>
+> I wasn't aware that Netra has different HDMI blocks. I understood it'=
+s
+> the same as on OMAP4.
+>
+> So they have a different PHY driver, but want to use PLL and core par=
+ts
+> of OMAP4 HDMI driver?
+>
+That was precisely what i was trying to explain for last few threads :-=
+).
+>> you suggest to have a #if in the programming sequence within
+>> hdmi_ti_4xxx_ip.c function ?
+>
+> No, we can't use #ifdefs as the same kernel has to work for both SoCs=
+=2E
+>
+>> Also in future OMAP's when are using the PHY and PLL block from
+>> hdmi_ti_4xxx_ip.c , but a different core/video block from
+>> hdmi_ti_5xxx_ip.c then how =A0would hdmi_ti_5xxx_ip.c hdmi_enable be
+>> able to call the PHY and PLL configuration functions =A0from
+>> hdmi_ti_4xxx_ip.c ??
+>
+> If the different HDMI blocks will be mixed like that, then we need to
+> split the blocks to separate files. Otherwise it will get strange if
+> OMAP5 HDMI code is calling PLL functions from OMAP4 HDMI code.
+>
+> And on top of those drivers/libs we would have a higher level driver/=
+lib
+> for the whole HDMI entity, and this higher level driver would impleme=
+nt
+> the API being discussed. It would then use the lower level drivers/li=
+bs,
+> and be used by OMAP/Netra DSS.
+>
+Splitting that to multiple would be a file overhead , ie creating a
+file to just host 2/3 functions.
+Also note it is not OMAP5 HDMI code calling OMAP4 HDMI code , It it no
+way in relation to OMAP's as such , so these IP drivers be
+provisioning for API's , which the intermediate Arbitration lib / file
+which can provide the clean handle to user and can handle the sequence
+ as to what IP functions should be called.
 
-On Mon, 27 Jun 2011, Benoit Cousson wrote:
-
-> The warm reset function was still using the obsolete API.
-> Replace it by the new one and move the file to the proper c file.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/prm44xx.c     |   15 ---------------
->  arch/arm/mach-omap2/prm44xx.h     |    2 --
->  arch/arm/mach-omap2/prminst44xx.c |   19 +++++++++++++++++++
->  3 files changed, 19 insertions(+), 17 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-> index faec860..f815329 100644
-> --- a/arch/arm/mach-omap2/prm44xx.c
-> +++ b/arch/arm/mach-omap2/prm44xx.c
-> @@ -87,18 +87,3 @@ u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 reg)
->  {
->  	return omap4_prm_rmw_inst_reg_bits(bits, 0x0, inst, reg);
->  }
-> -
-> -void omap4_prm_global_warm_sw_reset(void)
-> -{
-> -	u32 v;
-> -
-> -	v = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
-> -				    OMAP4_RM_RSTCTRL);
-> -	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
-> -	omap4_prm_write_inst_reg(v, OMAP4430_PRM_DEVICE_INST,
-> -				 OMAP4_RM_RSTCTRL);
-> -
-> -	/* OCP barrier */
-> -	v = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
-> -				    OMAP4_RM_RSTCTRL);
-> -}
-> diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-> index 21b0240..a3887b8 100644
-> --- a/arch/arm/mach-omap2/prm44xx.h
-> +++ b/arch/arm/mach-omap2/prm44xx.h
-> @@ -691,8 +691,6 @@ extern u32 omap4_prm_set_inst_reg_bits(u32 bits, s16 inst, s16 idx);
->  extern u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 idx);
->  extern u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask);
->  
-> -extern void omap4_prm_global_warm_sw_reset(void);
-> -
->  # endif
->  
->  #endif
-> diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
-> index 95fbbcf..f5a9cf5 100644
-> --- a/arch/arm/mach-omap2/prminst44xx.c
-> +++ b/arch/arm/mach-omap2/prminst44xx.c
-> @@ -151,3 +151,22 @@ int omap4_prm_deassert_hardreset(u8 shift, u8 part, s16 inst,
->  
->  	return (c == MAX_MODULE_HARDRESET_WAIT) ? -EBUSY : 0;
->  }
-> +
-> +
-> +void omap4_prm_global_warm_sw_reset(void)
-
-This function should be named 'omap4_prminst_global_warm_sw_reset' if it's 
-in the prminst44xx.c file.
-
-> +{
-> +	u32 v;
-> +
-> +	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-> +				    OMAP4430_PRM_DEVICE_INST,
-> +				    OMAP4_PRM_RSTCTRL_OFFSET);
-> +	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
-> +	omap4_prminst_write_inst_reg(v, OMAP4430_PRM_PARTITION,
-> +				 OMAP4430_PRM_DEVICE_INST,
-> +				 OMAP4_PRM_RSTCTRL_OFFSET);
-> +
-> +	/* OCP barrier */
-> +	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-> +				    OMAP4430_PRM_DEVICE_INST,
-> +				    OMAP4_PRM_RSTCTRL_OFFSET);
-> +}
-> -- 
-> 1.7.0.4
-> 
+> =A0Tomi
+>
+>
+>
 
 
-- Paul
+
+--=20
+Thanks and regards,
+Mythri.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
