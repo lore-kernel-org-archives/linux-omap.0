@@ -1,157 +1,56 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/6] OMAP4: hwmod data: Add MSTANDBY_SMART_WKUP flag
-Date: Fri, 1 Jul 2011 15:56:19 +0200
-Message-ID: <4E0DD203.9060501@ti.com>
-References: <1308862842-3933-1-git-send-email-b-cousson@ti.com> <1308862842-3933-3-git-send-email-b-cousson@ti.com> <74583B8642AB8841B30447520659FCA901FB33D546@dnce01.ent.ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [RFC 07/12] omap: mcbsp: Get rid of remaining is_omap tests
+Date: Fri, 1 Jul 2011 17:05:17 +0300
+Message-ID: <20110701170517.8b13c94d.jhnikula@gmail.com>
+References: <1309510356-27147-1-git-send-email-jhnikula@gmail.com>
+	<1309510356-27147-8-git-send-email-jhnikula@gmail.com>
+	<CA+HSevrUgP8pKNjSgkpDB6hUX=cvCUOU8mpU2Ca5qa75Rnp36w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38734 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756619Ab1GAN4Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 09:56:24 -0400
-In-Reply-To: <74583B8642AB8841B30447520659FCA901FB33D546@dnce01.ent.ti.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:57667 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756598Ab1GAOFV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 10:05:21 -0400
+Received: by bwd5 with SMTP id 5so2633143bwd.19
+        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 07:05:19 -0700 (PDT)
+In-Reply-To: <CA+HSevrUgP8pKNjSgkpDB6hUX=cvCUOU8mpU2Ca5qa75Rnp36w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Elaidi, Djamil" <d-elaidi@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Hi Djamil,
+Hi
 
-On 7/1/2011 3:50 PM, Elaidi, Djamil wrote:
-> Benoit,
->
-> HSI has no RESET_STATUS bit in SYSCONFIG register.
+On Fri, 1 Jul 2011 16:41:23 +0530
+"Varadarajan, Charulatha" <charu@ti.com> wrote:
 
-Yes indeed, the RESETDONE is inside HSI_SYSSTATUS.
+> > @@ -712,7 +710,7 @@ static inline void omap34xx_mcbsp_free(struct o=
+map_mcbsp *mcbsp)
+> > =A0 =A0 =A0 =A0/*
+> > =A0 =A0 =A0 =A0 * Disable wakup behavior, smart idle and all wakeup=
+s
+> > =A0 =A0 =A0 =A0 */
+> > - =A0 =A0 =A0 if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+> > + =A0 =A0 =A0 if (mcbsp->mcbsp_config_type >=3D MCBSP_CONFIG_TYPE3)=
+ {
+>=20
+>=20
+> I think that it would be a good idea to not use
+> MCBSP_CONFIG_TYPE* in plat-omap/* as it is the .rev info.
+> At later point of time, this might make the code look uglier
+> as it happened with GPIO_METHOD_* flags in OMAP GPIO driver.
+> Instead use this .rev info in mach-omap*/ to fill the pdata and pass =
+it
+> to driver.
+>=20
+Exactly and this is already a little uggly here. Kind of simple
+replacement for cpu_is_omap tests and definitely must be replaced with
+some feature flags before moving code outside of plat-omap.
 
-And this is what that flag is meaning: SYSS_HAS_RESET_STATUS, with the=20
-SYSS prefix.
-
-The other one will be SYSC_HAS_RESET_STATUS with the SYSC prefix.
-
-I know this is confusing, like the HW spec :-)
-
->
-> The SYSC should be :
->
-> static struct omap_hwmod_class_sysconfig omap44xx_hsi_sysc =3D {
->          .rev_offs       =3D 0x0000,
->          .sysc_offs      =3D 0x0010,
->          .syss_offs      =3D 0x0014,
->          .sysc_flags     =3D (SYSC_HAS_AUTOIDLE | SYSC_HAS_EMUFREE |
->                             SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
-> ---                        SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS=
-),
-
-So these flags are fine.
-
-Benoit
-
-> +++                        SYSC_HAS_SOFTRESET),
->          .idlemodes      =3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
->                             SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTAN=
-DBY_NO |
->                             MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
->          .sysc_fields    =3D&omap_hwmod_sysc_type1,
->
-> Best regards
-> Djamil ELA=CFDI
-> +33 (0)4 97 27 50 97
-> Software Systems Engineer
-> OMAP Platform Business Unit - PSI Modem Integration
-> Texas Instruments
->
->
-> Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve =
-Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
->
-> -----Original Message-----
->
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.=
-kernel.org] On Behalf Of Cousson, Benoit
-> Sent: jeudi 23 juin 2011 23:01
-> To: paul@pwsan.com
-> Cc: Nayak, Rajendra; linux-omap@vger.kernel.org; Cousson, Benoit
-> Subject: [PATCH 2/6] OMAP4: hwmod data: Add MSTANDBY_SMART_WKUP flag
->
-> Add the flag to every IPs that support it to allow the
-> framework to enable it instead of the SMART_STANDBY default
-> mode.
-> Without that, an IP with busmaster capability will not
-> be able to wakeup the interconnect at all.
->
-> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
-> Cc: Paul Walmsley<paul@pwsan.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    9 +++++----
->   1 files changed, 5 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/ma=
-ch-omap2/omap_hwmod_44xx_data.c
-> index f7f4840..c531611 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -661,7 +661,8 @@ static struct omap_hwmod_class_sysconfig omap44xx=
-_aess_sysc =3D {
->          .sysc_offs      =3D 0x0010,
->          .sysc_flags     =3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE=
-),
->          .idlemodes      =3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> -                          MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SM=
-ART),
-> +                          MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SM=
-ART |
-> +                          MSTANDBY_SMART_WKUP),
->          .sysc_fields    =3D&omap_hwmod_sysc_type2,
->   };
->
-> @@ -2045,7 +2046,7 @@ static struct omap_hwmod_class_sysconfig omap44=
-xx_hsi_sysc =3D {
->                             SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATU=
-S),
->          .idlemodes      =3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
->                             SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTAN=
-DBY_NO |
-> -                          MSTANDBY_SMART),
-> +                          MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
->          .sysc_fields    =3D&omap_hwmod_sysc_type1,
->   };
->
-> @@ -2447,7 +2448,7 @@ static struct omap_hwmod_class_sysconfig omap44=
-xx_iss_sysc =3D {
->                             SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
->          .idlemodes      =3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
->                             SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTAN=
-DBY_NO |
-> -                          MSTANDBY_SMART),
-> +                          MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
->          .sysc_fields    =3D&omap_hwmod_sysc_type2,
->   };
->
-> @@ -3421,7 +3422,7 @@ static struct omap_hwmod_class_sysconfig omap44=
-xx_mmc_sysc =3D {
->                             SYSC_HAS_SOFTRESET),
->          .idlemodes      =3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
->                             SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTAN=
-DBY_NO |
-> -                          MSTANDBY_SMART),
-> +                          MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
->          .sysc_fields    =3D&omap_hwmod_sysc_type2,
->   };
->
-> --
-> 1.7.0.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+--=20
+Jarkko
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
