@@ -1,38 +1,47 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [GIT PULL] omap iommu fixes for v3.0-rc
-Date: Fri, 1 Jul 2011 10:51:06 +0300
-Message-ID: <BANLkTikhZhUzyk=31cUOcV3Ygj=BHUrbew@mail.gmail.com>
-References: <BANLkTi=vd2TE6JjueGmY=ydRQRygo8-Q1Q@mail.gmail.com> <20110701070056.GZ23145@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] RETU meets Sparse IRQ
+Date: Fri, 1 Jul 2011 00:55:23 -0700
+Message-ID: <20110701075522.GI23145@atomide.com>
+References: <1309348011-23141-1-git-send-email-balbi@ti.com>
+ <c1c24abe84b7634c6751d51e88213424@doppler.thel33t.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:60778 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752801Ab1GAHv1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 03:51:27 -0400
-Received: by wwe5 with SMTP id 5so2979248wwe.1
-        for <linux-omap@vger.kernel.org>; Fri, 01 Jul 2011 00:51:26 -0700 (PDT)
-In-Reply-To: <20110701070056.GZ23145@atomide.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26186 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754945Ab1GAHz1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2011 03:55:27 -0400
+Content-Disposition: inline
+In-Reply-To: <c1c24abe84b7634c6751d51e88213424@doppler.thel33t.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Leigh Brown <leigh@solinno.co.uk>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Fri, Jul 1, 2011 at 10:00 AM, Tony Lindgren <tony@atomide.com> wrote:
-> These look like real fixes, but can you please update the commits
-> with something like "This fixes an issue with foo when doing bar".
+* Leigh Brown <leigh@solinno.co.uk> [110629 14:14]:
+> On Wed, 29 Jun 2011 14:46:49 +0300, Felipe Balbi wrote:
+> >now with Sparse IRQ numbering, we don't need
+> >to add a bunch of defines in <plat/irqs.h>
+> >
+> >Compile tested with omap2plus_defconfig (+cbus)
+> >and omap1_defconfig (+cbus).
+> >
+> >Felipe Balbi (2):
+> >  cbus: retu: use sparse IRQ numbering
+> >  cbus: retu: stop polluting <plat/irqs.h>
+> >
+> > arch/arm/mach-omap1/board-nokia770.c   |    2 --
+> > arch/arm/mach-omap2/board-n8x0.c       |    2 --
+> > arch/arm/plat-omap/include/plat/irqs.h |   10 +---------
+> > drivers/cbus/retu.c                    |   25
+> >++++++++++++++++---------
+> > include/linux/platform_data/cbus.h     |    2 --
+> > 5 files changed, 17 insertions(+), 24 deletions(-)
+> 
+> Tested-by: Leigh Brown <leigh@solinno.co.uk>
+> 
+> Booted fine on my N810.
 
-Done, please tell me if it's OK now.
+Thanks for testing, applying both into cbus branch.
 
-> Otherwise it's easy to claim that these are "fixes for features that
-> never worked" and it might be hard to justify them this late into
-> the -rc cycle.
-
-It seems we did have these issues for quite some time, and these are not
-explicit 3.0 regressions. So they might vaguely fall into the "fixes
-for features that never worked" definition too in a sense.
-
-If you prefer to take them into 3.1, that's OK too.
-
-Thanks,
-Ohad.
+Tony
