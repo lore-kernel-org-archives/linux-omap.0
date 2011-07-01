@@ -1,62 +1,59 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 2/5] OMAP4: prm: Remove wrong clockdomain offsets
-Date: Fri, 1 Jul 2011 22:27:37 +0200
-Message-ID: <1309552060-4547-3-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 5/5] OMAP4: powerdomain data: Remove unsupported MPU powerdomain state
+Date: Fri, 1 Jul 2011 22:27:40 +0200
+Message-ID: <1309552060-4547-6-git-send-email-b-cousson@ti.com>
 References: <1309552060-4547-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33795 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56855 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755314Ab1GAU15 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 16:27:57 -0400
+	id S1755480Ab1GAU16 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 16:27:58 -0400
 In-Reply-To: <1309552060-4547-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, rnayak@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-The following commit introduced new macros to define an offset
-per clock domain in an instance.
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-commit e4156ee52fe617c2c2d80b5db993ff4bf07d7c3c
+On OMAP4430 devices, because of boot ROM code bug, MPU OFF state can't
+be attempted independently. When coming out of MPU OFF state, ROM code
+disables the clocks of IVAHD, TESLA which is not desirable. Hence the
+MPU OFF state is not usable on OMAP4430 devices.
 
-    OMAP4: CM instances: add clockdomain register offsets
+OMAP4460 onwards, MPU OFF state will be descoped completely because
+the DDR firewall falls in MPU power domain. When the MPU hit OFF state,
+DDR won't be accessible for other initiators. The deepest state supported
+is open switch retention (OSWR) just like CORE and PER PD on OMAP4430.
 
-The PRM contains only two clock controls management entities:
-EMU and WKUP.
-Remove the other ones.
+So in summary MPU power domain OFF state is not supported on OMAP4
+and onwards designs. Thanks to new PRCM design, device off mode can
+still be achieved with power domains hitting OSWR state.
 
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+[b-cousson@ti.com: Fix changelog typos]
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Reviewed-by: Paul Walmsley <paul@pwsan.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/prm44xx.h |   12 ------------
- 1 files changed, 0 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/powerdomains44xx_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index 2aec8c8..6e53120 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -57,19 +57,7 @@
- #define OMAP4430_PRM_INSTR_INST		0x1f00
- 
- /* PRM clockdomain register offsets (from instance start) */
--#define OMAP4430_PRM_MPU_MPU_CDOFFS		0x0000
--#define OMAP4430_PRM_TESLA_TESLA_CDOFFS		0x0000
--#define OMAP4430_PRM_ABE_ABE_CDOFFS		0x0000
--#define OMAP4430_PRM_CORE_CORE_CDOFFS		0x0000
--#define OMAP4430_PRM_IVAHD_IVAHD_CDOFFS		0x0000
--#define OMAP4430_PRM_CAM_CAM_CDOFFS		0x0000
--#define OMAP4430_PRM_DSS_DSS_CDOFFS		0x0000
--#define OMAP4430_PRM_GFX_GFX_CDOFFS		0x0000
--#define OMAP4430_PRM_L3INIT_L3INIT_CDOFFS	0x0000
--#define OMAP4430_PRM_L4PER_L4PER_CDOFFS		0x0000
--#define OMAP4430_PRM_CEFUSE_CEFUSE_CDOFFS	0x0000
- #define OMAP4430_PRM_WKUP_CM_WKUP_CDOFFS	0x0000
--#define OMAP4430_PRM_EMU_EMU_CDOFFS		0x0000
- #define OMAP4430_PRM_EMU_CM_EMU_CDOFFS		0x0000
- 
- /* OMAP4 specific register offsets */
+diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
+index 8f46e7d..247e794 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+@@ -205,7 +205,7 @@ static struct powerdomain mpu_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_MPU_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 3,
+ 	.pwrsts_mem_ret	= {
 -- 
 1.7.0.4
 
