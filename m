@@ -1,66 +1,57 @@
-From: hong zhang <henryzhang62@yahoo.com>
-Subject: Re: gpio interrupt is not invoked on Panda board
-Date: Fri, 1 Jul 2011 16:15:42 -0700 (PDT)
-Message-ID: <1309562142.93488.YahooMailClassic@web161708.mail.bf1.yahoo.com>
-References: <4E0E3978.9050805@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v2 0/6] OMAP4: Add 4460 base support
+Date: Sat, 2 Jul 2011 08:00:20 +0530
+Message-ID: <1309573826-10615-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm30.bullet.mail.bf1.yahoo.com ([98.139.212.189]:20241 "HELO
-	nm30.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758072Ab1GAXPn convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 19:15:43 -0400
-In-Reply-To: <4E0E3978.9050805@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42723 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751833Ab1GBCbZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 22:31:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
---- On Fri, 7/1/11, Jon Hunter <jon-hunter@ti.com> wrote:
+This series adds base support needed to be able
+to boot on a OMAP4460 device.
+Patches are based on 
+git://gitorious.org/omap-pm/linux.git for_3.1/7_hwmod_modulemode
+and boot tested on 4430sdp and 4460sdp boards.
+The series updates the prcm/clock and clockdomain/powerdomain
+data files which are also cleaned up/fixed by the various series
+posted by Benoit, and hence the dependency.
 
-> From: Jon Hunter <jon-hunter@ti.com>
-> Subject: Re: gpio interrupt is not invoked on Panda board
-> To: "hong zhang" <henryzhang62@yahoo.com>
-> Cc: linux-omap@vger.kernel.org
-> Date: Friday, July 1, 2011, 4:17 PM
-> Hi Henry
->=20
-> On 7/1/2011 1:10 PM, hong zhang wrote:
-> > List,
-> >
-> > I try to get gpio_191 ping interrupted on panda but
-> never succeeded. What I do is
-> >
-> > 1. set 0x410b on dpm_emu19 register to enable
-> interrupt and wakeup
-> >=A0 =A0=A0=A0on gpio_191
-> > 2. set bit 31 to 1 on GPIO_IRQSTATUS_SET_0 register at
-> 0x4805d034
-> > 3. set bit 31 to 1 on GPIO_IRQWAKEN_0 register at
-> 0x4805d044
-> > 4. set bit 31 to 0 on GPIO_OE register at 0x4805d134
-> (output)
-> > 5. set bit 31 to 1 on GPIO_SETDATAOUT register at
-> 0x4805d194
-> >
-> > Then I expect I should see interrupt on
-> GPIO_IRQSTATUS_0 register at 0x4805d02c. But nothing happens
-> for both output and input (put pin on ground or 1,8v).
->=20
-> You will not get an interrupt if you are configuring the
-> gpio as an=20
-> output (GPIO_OE[31] =3D 0).
->=20
- Jon
+Changes since v1:
+1. Removed the minor issues in the ID detection patches 
+2. Dropped '4460sdp/blaze/panda: hwmod: Prevent gpio1 reset during hwmod init'
+since the right way to fix it is to do a lazy-disable in hmwod as suggested 
+by Tony.
+For now, with this patch dropped and until the lazy-disable for hwmod
+gets in, 4460 based devices can only boot reliably at OPP50 on MPU.
 
-GPIO_OE[31]=3D0 means output. I should get interrupt for output.
-GPIO_OE[31]=3D1 means input, but I do not get interrupt too.
+Aneesh V (2):
+  OMAP: ID: introduce chip detection for OMAP4460
+  OMAP4: ID: add omap_has_feature for max freq supported
 
-Do I miss anything here?=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rajendra Nayak (4):
+  OMAP4: PRCM: OMAP4460 specific PRM and CM register bitshifts
+  OMAP4: clocks: Update the clock tree with 4460 clock nodes
+  OMAP4: powerdomain: Reuse on 4460 using CHIP_IS_44XX
+  OMAP4: clockdomain: Reuse on 4460 using CHIP_IS_44XX
+
+ arch/arm/mach-omap2/clock44xx_data.c          |   39 +++++
+ arch/arm/mach-omap2/clockdomains44xx_data.c   |  200 ++++++++++++------------
+ arch/arm/mach-omap2/cm-regbits-44xx.h         |   36 +++++
+ arch/arm/mach-omap2/id.c                      |   53 ++++++-
+ arch/arm/mach-omap2/powerdomains44xx_data.c   |   32 ++--
+ arch/arm/mach-omap2/prm-regbits-44xx.h        |    8 +
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |    2 +-
+ arch/arm/plat-omap/include/plat/clock.h       |    3 +-
+ arch/arm/plat-omap/include/plat/cpu.h         |   36 ++++-
+ 9 files changed, 279 insertions(+), 130 deletions(-)
+
+-- 
+1.7.4.1
+
