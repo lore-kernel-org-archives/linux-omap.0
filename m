@@ -1,16 +1,17 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 1/6] OMAP: ID: introduce chip detection for OMAP4460
-Date: Sat, 2 Jul 2011 08:00:21 +0530
-Message-ID: <1309573826-10615-2-git-send-email-rnayak@ti.com>
+Subject: [PATCH v2 2/6] OMAP4: ID: add omap_has_feature for max freq supported
+Date: Sat, 2 Jul 2011 08:00:22 +0530
+Message-ID: <1309573826-10615-3-git-send-email-rnayak@ti.com>
 References: <1309573826-10615-1-git-send-email-rnayak@ti.com>
+ <1309573826-10615-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43115 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43120 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752337Ab1GBCbe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Jul 2011 22:31:34 -0400
-In-Reply-To: <1309573826-10615-1-git-send-email-rnayak@ti.com>
+	id S1751967Ab1GBCbk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Jul 2011 22:31:40 -0400
+In-Reply-To: <1309573826-10615-2-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -18,132 +19,163 @@ Cc: paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.inf
 
 From: Aneesh V <aneesh@ti.com>
 
-Add support for detecting the latest in the OMAP4 family: OMAP4460
-Among other changes, the new chip also can support 1.5GHz A9s,
-1080p stereoscopic 3D and 12 MP stereo (dual camera). In addition,
-we have changes to OPPs supported, clock tree etc, hence having a
-chip detection is required.
+Macros for identifying the max frequency supported by various
+OMAP4 variants - Expanding along the lines of OMAP3's feature
+handling.
 
-For more details on OMAP4460, see
-Highlights:
-http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?contentId=53243&navigationId=12843&templateId=6123
-Public TRM is available here as usual:
-http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?templateId=6123&navigationId=12667
-
-[nm@ti.com: cleanups and introduction of ramp system]
+[nm@ti.com: minor fixes for checks that should only for 443x|446x]
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Aneesh V <aneesh@ti.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
 V2:
-* Removed un-necessary movement of variable declaration(hawkeye)
+* Replaced 'omap3_features' and 'omap4_features' with a single
+  variable 'omap_features'
 ---
- arch/arm/mach-omap2/id.c              |   13 +++++++++++--
- arch/arm/plat-omap/include/plat/cpu.h |   13 ++++++++++++-
- 2 files changed, 23 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/id.c              |   40 +++++++++++++++++++++++++++-----
+ arch/arm/plat-omap/include/plat/cpu.h |   23 +++++++++++++++++-
+ 2 files changed, 54 insertions(+), 9 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 2537090..743889a 100644
+index 743889a..37efb86 100644
 --- a/arch/arm/mach-omap2/id.c
 +++ b/arch/arm/mach-omap2/id.c
-@@ -344,10 +344,10 @@ static void __init omap4_check_revision(void)
- 	rev = (idcode >> 28) & 0xf;
+@@ -31,7 +31,7 @@
+ static struct omap_chip_id omap_chip;
+ static unsigned int omap_revision;
+ 
+-u32 omap3_features;
++u32 omap_features;
+ 
+ unsigned int omap_rev(void)
+ {
+@@ -183,14 +183,14 @@ static void __init omap24xx_check_revision(void)
+ #define OMAP3_CHECK_FEATURE(status,feat)				\
+ 	if (((status & OMAP3_ ##feat## _MASK) 				\
+ 		>> OMAP3_ ##feat## _SHIFT) != FEAT_ ##feat## _NONE) { 	\
+-		omap3_features |= OMAP3_HAS_ ##feat;			\
++		omap_features |= OMAP3_HAS_ ##feat;			\
+ 	}
+ 
+ static void __init omap3_check_features(void)
+ {
+ 	u32 status;
+ 
+-	omap3_features = 0;
++	omap_features = 0;
+ 
+ 	status = omap_ctrl_readl(OMAP3_CONTROL_OMAP_STATUS);
+ 
+@@ -200,11 +200,11 @@ static void __init omap3_check_features(void)
+ 	OMAP3_CHECK_FEATURE(status, NEON);
+ 	OMAP3_CHECK_FEATURE(status, ISP);
+ 	if (cpu_is_omap3630())
+-		omap3_features |= OMAP3_HAS_192MHZ_CLK;
++		omap_features |= OMAP3_HAS_192MHZ_CLK;
+ 	if (!cpu_is_omap3505() && !cpu_is_omap3517())
+-		omap3_features |= OMAP3_HAS_IO_WAKEUP;
++		omap_features |= OMAP3_HAS_IO_WAKEUP;
+ 
+-	omap3_features |= OMAP3_HAS_SDRC;
++	omap_features |= OMAP3_HAS_SDRC;
  
  	/*
--	 * Few initial ES2.0 samples IDCODE is same as ES1.0
-+	 * Few initial 4430 ES2.0 samples IDCODE is same as ES1.0
- 	 * Use ARM register to detect the correct ES version
+ 	 * TODO: Get additional info (where applicable)
+@@ -212,9 +212,34 @@ static void __init omap3_check_features(void)
  	 */
--	if (!rev) {
-+	if (!rev && (hawkeye != 0xb94e)) {
- 		idcode = read_cpuid(CPUID_ID);
- 		rev = (idcode & 0xf) - 1;
- 	}
-@@ -377,6 +377,15 @@ static void __init omap4_check_revision(void)
- 			omap_chip.oc |= CHIP_IS_OMAP4430ES2_2;
- 		}
- 		break;
-+	case 0xb94e:
-+		switch (rev) {
-+		case 0:
+ }
+ 
++static void __init omap4_check_features(void)
++{
++	u32 si_type;
++
++	if (cpu_is_omap443x())
++		omap_features |= OMAP4_HAS_MPU_1GHZ;
++
++
++	if (cpu_is_omap446x()) {
++		si_type =
++			read_tap_reg(OMAP4_CTRL_MODULE_CORE_STD_FUSE_PROD_ID_1);
++		switch ((si_type & (3 << 16)) >> 16) {
++		case 2:
++			/* High performance device */
++			omap_features |= OMAP4_HAS_MPU_1_5GHZ;
++			break;
++		case 1:
 +		default:
-+			omap_revision = OMAP4460_REV_ES1_0;
-+			omap_chip.oc |= CHIP_IS_OMAP4460ES1_0;
++			/* Standard device */
++			omap_features |= OMAP4_HAS_MPU_1_2GHZ;
 +			break;
 +		}
-+		break;
- 	default:
- 		/* Unknown default to latest silicon rev as default */
- 		omap_revision = OMAP4430_REV_ES2_2;
++	}
++}
++
+ static void __init ti816x_check_features(void)
+ {
+-	omap3_features = OMAP3_HAS_NEON;
++	omap_features = OMAP3_HAS_NEON;
+ }
+ 
+ static void __init omap3_check_revision(void)
+@@ -527,6 +552,7 @@ void __init omap2_check_revision(void)
+ 		return;
+ 	} else if (cpu_is_omap44xx()) {
+ 		omap4_check_revision();
++		omap4_check_features();
+ 		return;
+ 	} else {
+ 		pr_err("OMAP revision unknown, please fix!\n");
 diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 96850a6..86b1420 100644
+index 86b1420..0690f1a 100644
 --- a/arch/arm/plat-omap/include/plat/cpu.h
 +++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -88,6 +88,7 @@ unsigned int omap_rev(void);
-  * cpu_is_omap243x():	True for OMAP2430
-  * cpu_is_omap343x():	True for OMAP3430
-  * cpu_is_omap443x():	True for OMAP4430
-+ * cpu_is_omap446x():	True for OMAP4460
+@@ -481,7 +481,7 @@ void omap2_check_revision(void);
+ /*
+  * Runtime detection of OMAP3 features
   */
- #define GET_OMAP_CLASS	(omap_rev() & 0xff)
+-extern u32 omap3_features;
++extern u32 omap_features;
  
-@@ -123,6 +124,7 @@ IS_OMAP_SUBCLASS(243x, 0x243)
- IS_OMAP_SUBCLASS(343x, 0x343)
- IS_OMAP_SUBCLASS(363x, 0x363)
- IS_OMAP_SUBCLASS(443x, 0x443)
-+IS_OMAP_SUBCLASS(446x, 0x446)
- 
- IS_TI_SUBCLASS(816x, 0x816)
- 
-@@ -137,6 +139,7 @@ IS_TI_SUBCLASS(816x, 0x816)
- #define cpu_is_ti816x()			0
- #define cpu_is_omap44xx()		0
- #define cpu_is_omap443x()		0
-+#define cpu_is_omap446x()		0
- 
- #if defined(MULTI_OMAP1)
- # if defined(CONFIG_ARCH_OMAP730)
-@@ -361,8 +364,10 @@ IS_OMAP_TYPE(3517, 0x3517)
- # if defined(CONFIG_ARCH_OMAP4)
- # undef cpu_is_omap44xx
- # undef cpu_is_omap443x
-+# undef cpu_is_omap446x
- # define cpu_is_omap44xx()		is_omap44xx()
- # define cpu_is_omap443x()		is_omap443x()
-+# define cpu_is_omap446x()		is_omap446x()
- # endif
- 
- /* Macros to detect if we have OMAP1 or OMAP2 */
-@@ -410,6 +415,9 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define OMAP4430_REV_ES2_1	(OMAP443X_CLASS | (0x21 << 8))
- #define OMAP4430_REV_ES2_2	(OMAP443X_CLASS | (0x22 << 8))
- 
-+#define OMAP446X_CLASS		0x44600044
-+#define OMAP4460_REV_ES1_0	(OMAP446X_CLASS | (0x10 << 8))
+ #define OMAP3_HAS_L2CACHE		BIT(0)
+ #define OMAP3_HAS_IVA			BIT(1)
+@@ -491,11 +491,15 @@ extern u32 omap3_features;
+ #define OMAP3_HAS_192MHZ_CLK		BIT(5)
+ #define OMAP3_HAS_IO_WAKEUP		BIT(6)
+ #define OMAP3_HAS_SDRC			BIT(7)
++#define OMAP4_HAS_MPU_1GHZ		BIT(8)
++#define OMAP4_HAS_MPU_1_2GHZ		BIT(9)
++#define OMAP4_HAS_MPU_1_5GHZ		BIT(10)
 +
- /*
-  * omap_chip bits
-  *
-@@ -439,6 +447,7 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define CHIP_IS_OMAP4430ES2_1		(1 << 12)
- #define CHIP_IS_OMAP4430ES2_2		(1 << 13)
- #define CHIP_IS_TI816X			(1 << 14)
-+#define CHIP_IS_OMAP4460ES1_0		(1 << 15)
  
- #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
+ #define OMAP3_HAS_FEATURE(feat,flag)			\
+ static inline unsigned int omap3_has_ ##feat(void)	\
+ {							\
+-	return (omap3_features & OMAP3_HAS_ ##flag);	\
++	return omap_features & OMAP3_HAS_ ##flag;	\
+ }							\
  
-@@ -447,7 +456,9 @@ IS_OMAP_TYPE(3517, 0x3517)
- 					 CHIP_IS_OMAP4430ES2_1 |	\
- 					 CHIP_IS_OMAP4430ES2_2)
+ OMAP3_HAS_FEATURE(l2cache, L2CACHE)
+@@ -507,4 +511,19 @@ OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+ OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
+ OMAP3_HAS_FEATURE(sdrc, SDRC)
  
--#define CHIP_IS_OMAP44XX		(CHIP_IS_OMAP4430)
-+#define CHIP_IS_OMAP446X		CHIP_IS_OMAP4460ES1_0
++/*
++ * Runtime detection of OMAP4 features
++ */
++extern u32 omap_features;
 +
-+#define CHIP_IS_OMAP44XX		(CHIP_IS_OMAP4430 | CHIP_IS_OMAP446X)
- 
- /*
-  * "GE" here represents "greater than or equal to" in terms of ES
++#define OMAP4_HAS_FEATURE(feat, flag)			\
++static inline unsigned int omap4_has_ ##feat(void)	\
++{							\
++	return omap_features & OMAP4_HAS_ ##flag;	\
++}							\
++
++OMAP4_HAS_FEATURE(mpu_1ghz, MPU_1GHZ)
++OMAP4_HAS_FEATURE(mpu_1_2ghz, MPU_1_2GHZ)
++OMAP4_HAS_FEATURE(mpu_1_5ghz, MPU_1_5GHZ)
++
+ #endif
 -- 
 1.7.4.1
 
