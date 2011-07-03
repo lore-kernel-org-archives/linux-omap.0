@@ -1,135 +1,84 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP: hwmod: add kernel cmdline flag to avoid resetting IP
-	blocks during init
-Date: Sat, 02 Jul 2011 19:02:08 -0600
-Message-ID: <20110703010206.19046.85293.stgit@dusk>
-References: <20110703010204.19046.85186.stgit@dusk>
+Subject: Re: [PATCH 7/7] 4460sdp/blaze/panda: hwmod: Prevent gpio1 reset
+ during hwmod init
+Date: Sat, 2 Jul 2011 22:14:47 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107022103430.12499@utopia.booyaka.com>
+References: <1309486081-8257-1-git-send-email-rnayak@ti.com> <1309486081-8257-2-git-send-email-rnayak@ti.com> <1309486081-8257-3-git-send-email-rnayak@ti.com> <1309486081-8257-4-git-send-email-rnayak@ti.com> <1309486081-8257-5-git-send-email-rnayak@ti.com>
+ <1309486081-8257-6-git-send-email-rnayak@ti.com> <1309486081-8257-7-git-send-email-rnayak@ti.com> <1309486081-8257-8-git-send-email-rnayak@ti.com> <20110701063241.GX23145@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110703010204.19046.85186.stgit@dusk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Michael Buesch <mb@bu3sch.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:32879 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750730Ab1GCEOt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 3 Jul 2011 00:14:49 -0400
+In-Reply-To: <20110701063241.GX23145@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, Nishanth Menon <nm@ti.com>, s-sintes@ti.com, Moiz Sonasath <m-sonasath@ti.com>
 
-On some boards, it's not possible to reset certain IP blocks during
-kernel initialization.  Some boards connect GPIO lines to external
-voltage controllers, so resetting them may cause voltage to drop on a
-critical supply[1].  Other boards connect GPIO lines to reset pins on
-external devices without open documentation, so if the GPIO blocks are
-reset, the external devices cannot currently be reconfigured[2].
+Hi Tony
 
-The correct way to fix these issues on OMAP is to add a
-hwmod_no_setup_reset(hwmod) call to the board file, that references
-the IP block that must preserve its state.  This allows the OMAP core
-code to reset the remaining IP blocks.
+On Thu, 30 Jun 2011, Tony Lindgren wrote:
 
-However, during initial bring-up of a new board, it may be desirable
-to not reset any IP block, for ease of debugging.  This patch adds a
-kernel command line parameter, 'hwmod_no_setup_reset', that prevents
-the OMAP hwmod code from resetting any IP block during init.
+> NAK for this patch. We don't want any of this in init_early.
+> 
+> The problem is with hwmod core code that wrongly assumes it
+> can just reset all devices.
 
-1. Nayak, Rajendra.  _[PATCH 7/7] 4460sdp/blaze/panda: hwmod: Prevent
-   gpio1 reset during hwmod init_.  1 July 2011.  E-mail to the
-   linux-omap@vger.kernel.org mailing list.  Retrieved from
-   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg51992.html
+I don't think the hwmod core code has any way of knowing which devices 
+shouldn't be reset unless the board file specifically tells it.  Even if 
+the reset happens right before the hwmod enable (as called by the device 
+driver), the 4460 boards would still crash when the GPIO driver starts.
 
-2. Buesch, Michael.  _Nokia n810 LCD (MIPID/blizzard) on 2.6.38_.  28
-   Feb 2011.  E-mail to the linux-omap@vger.kernel.org mailing list.
-   Retrieved from http://www.spinics.net/lists/linux-omap/msg47277.html
+What you suggested below should allow those omap_hwmod_no_setup_reset() 
+calls to live in init_machine, rather than init_early.  Hopefully that is 
+acceptable?  So I did a test implementation of your idea, and learned some 
+good news and bad news.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Tony Lindgren <tony@atomide.com>
----
- Documentation/kernel-parameters.txt |    9 +++++++++
- arch/arm/mach-omap2/omap_hwmod.c    |   19 +++++++++++++++++--
- 2 files changed, 26 insertions(+), 2 deletions(-)
+The good news is that it seems to work for the PM runtime-converted 
+drivers.  omap_hwmod_no_setup_reset() calls can go into init_machine code.  
+We should also be able to get rid of the postsetup code in 
+mach-omap2/io.c.
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel=
--parameters.txt
-index fd248a31..4b1c03f 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -75,6 +75,7 @@ parameter is applicable:
- 	NET	Appropriate network support is enabled.
- 	NUMA	NUMA support is enabled.
- 	NFS	Appropriate NFS support is enabled.
-+	OMAP	OMAP sub-architecture is enabled.
- 	OSS	OSS sound support is enabled.
- 	PV_OPS	A paravirtualized kernel is enabled.
- 	PARIDE	The ParIDE (parallel port IDE) subsystem is enabled.
-@@ -872,6 +873,14 @@ bytes respectively. Such letter suffixes can also =
-be entirely omitted.
- 			       If specified, z/VM IUCV HVC accepts connections
- 			       from listed z/VM user IDs only.
-=20
-+	hwmod_no_setup_reset
-+			[OMAP] During kernel initialization,
-+			prevent the subarchitecture code from resetting
-+			IP blocks before the driver loads.  Useful for
-+			initial bring-up of boards which require some
-+			bootloader configuration to be retained on GPIO or
-+			other IP blocks.
-+
- 	keep_bootcon	[KNL]
- 			Do not unregister boot console at start. This is only
- 			useful for debugging when something happens in the window
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
-p_hwmod.c
-index 293fa6c..025bf2f 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -86,7 +86,9 @@
-  * completely self-reliant and independent from bootloaders.  This is
-  * to ensure a repeatable configuration, both to ensure consistent
-  * runtime behavior, and to make it easier for others to reproduce
-- * bugs.
-+ * bugs.  (This behavior can be disabled while bringing up a new board
-+ * by passing the kernel command line parameter
-+ * 'hwmod_no_setup_reset'.)
-  *
-  * OMAP module activity states
-  * ---------------------------
-@@ -162,6 +164,12 @@ static LIST_HEAD(omap_hwmod_list);
- /* mpu_oh: used to add/remove MPU initiator from sleepdep list */
- static struct omap_hwmod *mpu_oh;
-=20
-+/*
-+ * no_setup_reset: if true, then don't reset any hwmods on boot.  This
-+ * can be changed by the 'hwmod_no_setup_reset' kernel command line
-+ * parameter
-+ */
-+static bool no_setup_reset;
-=20
- /* Private functions */
-=20
-@@ -1453,7 +1461,7 @@ static int _setup(struct omap_hwmod *oh, void *da=
-ta)
- 		return 0;
- 	}
-=20
--	if (!(oh->flags & HWMOD_INIT_NO_RESET)) {
-+	if (!no_setup_reset && !(oh->flags & HWMOD_INIT_NO_RESET)) {
- 		_reset(oh);
-=20
- 		/*
-@@ -1542,6 +1550,13 @@ static int __init _register(struct omap_hwmod *o=
-h)
- 	return 0;
- }
-=20
-+static int __init _cmdline_no_setup_reset(char *s)
-+{
-+	no_setup_reset =3D true;
-+	return 1;
-+}
-+
-+__setup("hwmod_no_setup_reset", _cmdline_no_setup_reset);
-=20
- /* Public functions */
-=20
+The bad news is that the unused IP block reset code will reset IP blocks 
+used by drivers that haven't been converted to use runtime PM.  The hwmod 
+core code doesn't know that those IP blocks are in use, since 
+omap_hwmod_enable() is never called for them.  The unused IP block reset 
+code will then reset those blocks after the drivers have already probed, 
+and the drivers are not expecting this :-)
+
+GPTIMER and HSMMC drivers are the obvious problems in terms of getting a 
+successful boot, but DSS is another one that may cause some problems here.  
+There are HSMMC and DSS driver PM runtime conversion patches posted, 
+hopefully they will go into mainline soon, but there are probably some 
+other important drivers yet to be converted or yet to be pushed.
+
+Here are some options that come to mind:
+
+1. Wait until the driver runtime PM conversion is finished before doing 
+   anything.  In the meantime, boards with IP blocks that can't be reset 
+   - N810, TI 4460 boards - will have problems.
+
+2. Merge the lazy/unused hwmod reset code, but prevent IP blocks 
+   controlled by non-runtime PM drivers from being reset.  We'd have to
+   maintain a list of these somewhere, perhaps in some common code called 
+   by board file init_machine code.  Then we'd need to redact that list as 
+   new driver runtime PM conversions complete.
+
+3. Merge the lazy/unused hwmod reset code, but disable the unused hwmod 
+   reset code until the driver runtime PM conversion is finished.  This
+   could cause problems with driverless devices that are left configured
+   by bootloaders or ROM code, and that problem would reoccur for each new
+   OMAP chip.
+
+Do you have a preference as to which approach to take?
+
+> We should fix the hwmod code to lazily only reset devices as they
+> are enabled, and only reset unused devices with late_initcall
+> when we have decent debug output. And the reset of unused devices
+> should be possible to turn off with some kernel cmdline option.
+
+
+- Paul
