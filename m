@@ -1,39 +1,64 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v6 08/18] mfd: twl6040: Add initial support
-Date: Mon, 4 Jul 2011 17:08:17 +0300
-Message-ID: <1650114.SY7VdjHPHs@barack>
-References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
-	<1308663556-29120-9-git-send-email-peter.ujfalusi@ti.com>
-	<20110704114844.GA3021@sortiz-mobl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20110704114844.GA3021@sortiz-mobl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH 3/5] arch/arm/mach-omap2/smartreflex.c: add missing error-handling code
+Date: Mon,  4 Jul 2011 16:11:43 +0200
+Message-ID: <1309788705-22278-3-git-send-email-julia@diku.dk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: kernel-janitors@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Samuel,
+From: Julia Lawall <julia@diku.dk>
 
-On Monday 04 July 2011 13:48:44 Samuel Ortiz wrote:
-> I don't see the value of those 3 inline functions. Removing them would ma=
-ke
-> the code actually more understandable (especially for the 2nd one).
+At this point, the ioremap has taken place, so the error handling code at
+the label err_iounmap should be used rather than returning directly.
 
-Is it OK for you if I fix these as a follow-up series, so I do not need to =
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-rewrite this series, and resend it?
+// <smpl>
+@r@
+identifier x;
+@@
 
--- =
+kfree(x)
 
-P=E9ter
+@@
+identifier r.x;
+expression E1!=0,E2,E3,E4;
+statement S;
+@@
+
+(
+if (<+...x...+>) S
+|
+if (...) { ... when != kfree(x)
+               when != if (...) { ... kfree(x); ... }
+               when != x = E3
+* return E1;
+}
+... when != x = E2
+if (...) { ... when != x = E4
+ kfree(x); ... return ...; }
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ arch/arm/mach-omap2/smartreflex.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index fb7dc52..e8280df 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -891,7 +891,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 		ret = sr_late_init(sr_info);
+ 		if (ret) {
+ 			pr_warning("%s: Error in SR late init\n", __func__);
+-			return ret;
++			goto err_iounmap;
+ 		}
+ 	}
+ 
