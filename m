@@ -1,48 +1,103 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: Re: [PATCH v6 08/18] mfd: twl6040: Add initial support
-Date: Mon, 4 Jul 2011 19:39:35 +0200
-Message-ID: <20110704173935.GT3021@sortiz-mobl>
-References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
- <1308663556-29120-9-git-send-email-peter.ujfalusi@ti.com>
- <20110704114844.GA3021@sortiz-mobl>
- <1650114.SY7VdjHPHs@barack>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCHv4 0/3] OMAP: HSMMC: cleanup and runtime pm
+Date: Mon, 4 Jul 2011 23:35:31 +0530
+Message-ID: <CANfBPZ-A8WMqjkNspvtXK1FSE1BRG_PE6JKKqmLWQerzn=h2Xw@mail.gmail.com>
+References: <1309538376-23260-1-git-send-email-balajitk@ti.com>
+	<8762nlzy1d.fsf@ti.com>
+	<CANrkHUb-i4cQmGzrDjcooZPRvyQLSd0+kqLMA04hGzgVjCT+=A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1650114.SY7VdjHPHs@barack>
-Sender: linux-input-owner@vger.kernel.org
-To: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Cc: "Girdwood, Liam" <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:38817 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750711Ab1GDSFc convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Jul 2011 14:05:32 -0400
+In-Reply-To: <CANrkHUb-i4cQmGzrDjcooZPRvyQLSd0+kqLMA04hGzgVjCT+=A@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, Chris Ball <cjb@laptop.org>
+Cc: Madhusudhan <madhu.cr@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
 
-Hi Peter,
+> From: Kevin Hilman <khilman@ti.com>
+> Date: Fri, Jul 1, 2011 at 11:24 PM
+> Subject: Re: [PATCHv4 0/3] OMAP: HSMMC: cleanup and runtime pm
+> To: cjb@laptop.org
+> Cc: Balaji T K <balajitk@ti.com>, linux-omap@vger.kernel.org,
+> linux-mmc@vger.kernel.org, tony@atomide.com, madhu.cr@ti.com,
+> b-cousson@ti.com, paul@pwsan.com, kishore.kadiyala@ti.com
+>
+>
+> Chris,
+>
+> Balaji T K <balajitk@ti.com> writes:
+>
+>> Removing the custom state machine - lazy disable framework in
+>> omap_hsmmc to make way for runtime pm to handle host controller powe=
+r
+>> states.
+>>
+>> This allows mmc_host_enable/mmc_host_disable to be replaced
+>> by runtime get_sync and put_sync at host controller driver.
+>>
+>> Enable runtime PM in omap_hsmmc
+>>
+>> Rebased to MMC tree : mmc-next branch
+>> Tested on OMAP4430SDP, OMAP3430SDP, OMAP2430SDP
+>
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> Tested-by: Kevin Hilman <khilman@ti.com>
+>
+> Could you queue this series for the v3.1 merge window? =A0Or, with yo=
+ur
+> ack, we are happy to take this through the OMAP tree along with the
+> other dependecies mentioned below.
+>
+> I've also tested this on OMAP4430/Blaze, OMAP3630/Zoom3 and
+> OMAP3430/n900.
+>
+> We have OMAP PM core code changes queued for v3.1 which require the M=
+MC
+> driver to correctly use runtime PM or we can get hangs if MMC is used
+> during boot.
+>
+> Kevin
 
-On Mon, Jul 04, 2011 at 05:08:17PM +0300, P=E9ter Ujfalusi wrote:
-> Hi Samuel,
->=20
-> On Monday 04 July 2011 13:48:44 Samuel Ortiz wrote:
-> > I don't see the value of those 3 inline functions. Removing them wo=
-uld make
-> > the code actually more understandable (especially for the 2nd one).
->=20
-> Is it OK for you if I fix these as a follow-up series, so I do not ne=
-ed to=20
-> rewrite this series, and resend it?
-That is fine with me, yes. That's why I ACK the MFD patches for Tony to=
- take
-them.
-Thanks in advance for the follow up patches.
+Kevin,
+  Another series from Per Forlin [1] is also modifying the same file,
+and might result in merge conflict if this series is queued under OMAP
+and the other is queued by Chris.
 
-Cheers,
-Samuel.
+Chris,
+  If you intend to queue [1] into mmc-next, Balaji / myself can repost
+this series on
+top of it or you'd like to practice some git merge ? Let me know if
+there is anything that I can do to help.
 
---=20
-Intel Open Source Technology Centre
-http://oss.intel.com/
+[1] https://lkml.org/lkml/2011/7/1/303
+
+>
+>> MMC runtime patch has dependency on
+>> [PATCH 0/6] OMAP2+: hwmod framework fixes [1]
+>> for MMC1/MMC2 clock to get ungated after idle in OMAP4.
+>>
+>> Without [1] patches, MMC1/MMC2 fails to get detected on OMAP4.
+>>
+>> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg51457.=
+html
+>>
+>> Balaji T K (3):
+>> =A0 MMC: OMAP: HSMMC: Remove lazy_disable
+>> =A0 MMC: OMAP: HSMMC: add runtime pm support
+>> =A0 MMC: OMAP: HSMMC: Remove unused iclk
+>>
+>> =A0drivers/mmc/host/omap_hsmmc.c | =A0365 +++++++-------------------=
+---------------
+>> =A01 files changed, 57 insertions(+), 308 deletions(-)
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
