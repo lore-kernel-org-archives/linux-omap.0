@@ -1,66 +1,24 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
- of ehci and ohci
-Date: Mon, 4 Jul 2011 12:01:24 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1107041157360.12242-100000@netrider.rowland.org>
-References: <20110704093056.GD25295@legolas.emea.dhcp.ti.com>
+From: duloiscarole@yahoo.fr
+Subject: Your Ad ?
+Date: Mon,  4 Jul 2011 17:59:53 +0200 (CEST)
+Message-ID: <20110704155953.BC677275D4@60gp.ovh.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110704093056.GD25295@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Partha Basak <p-basak2@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 86.mail-out.ovh.net ([178.32.118.31]:46005 "HELO
+	86.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1758236Ab1GDQGh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jul 2011 12:06:37 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by localhost.domain.tld (Postfix) with ESMTP id EAA79275F6
+	for <linux-omap@vger.kernel.org>; Mon,  4 Jul 2011 17:59:53 +0200 (CEST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Mon, 4 Jul 2011, Felipe Balbi wrote:
 
-> sounds to me like a bug on pm runtime ? If you're calling
-> pm_runtime_*_sync() family, shouldn't all calls be _sync() too ?
+Hello,
 
-No.  This was a deliberate design decision.  It minimizes stack usage 
-and it gives a chance for some other child to resume before the parent 
-is powered down.
+ your ad on http://www.universfreeads.com/ads.php?ads=385323 
 
-> > static int rpm_suspend(struct device *dev, int rpmflags)
-> > 	__releases(&dev->power.lock) __acquires(&dev->power.lock)
-> > {
-> > .
-> > .
-> > .
-> > no_callback:
-> > .
-> > .
-> > .
-> > 	/* Maybe the parent is now able to suspend. */
-> > 	if (parent && !parent->power.ignore_children &&
-> > !dev->power.irq_safe) {
-> > 		spin_unlock(&dev->power.lock);
-> > 
-> > 		spin_lock(&parent->power.lock);
-> > 		rpm_idle(parent, RPM_ASYNC);
-> 
-> to me this is bogus, if you called pm_runtime_put_sync() should should
-> be sync too. Shouldn't it ?
 
-No, it shouldn't.
-
-> > 		spin_unlock(&parent->power.lock);
-> > 
-> > 		spin_lock(&dev->power.lock);
-> > 	}
-> > This is the reason of directly calling the parent Runtime PM calls from
-> > the children.
-> > If directly calling Runtime PM APIs with parent dev-pointer isn't
-> > acceptable,
-> > this can be achieved by exporting wrapper APIs from the
-> > parent and calling them from the chidren .suspend/.resume routines.
-> 
-> Still no good, IMHO.
-
-The real problem here is that you guys are trying to use the runtime PM
-framework to carry out activities during system suspend.  That won't
-work; it's just a bad idea all round.  Use the proper callbacks to do
-what you want.
-
-Alan Stern
+..
