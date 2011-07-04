@@ -1,103 +1,52 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCHv4 0/3] OMAP: HSMMC: cleanup and runtime pm
-Date: Mon, 4 Jul 2011 23:35:31 +0530
-Message-ID: <CANfBPZ-A8WMqjkNspvtXK1FSE1BRG_PE6JKKqmLWQerzn=h2Xw@mail.gmail.com>
-References: <1309538376-23260-1-git-send-email-balajitk@ti.com>
-	<8762nlzy1d.fsf@ti.com>
-	<CANrkHUb-i4cQmGzrDjcooZPRvyQLSd0+kqLMA04hGzgVjCT+=A@mail.gmail.com>
+From: FONDAZIONE DI VITTORIO <online981422@telkomsa.net>
+Subject: IMPORTANT NOTICE: Contact Due Process Unit
+Date: Mon, 4 Jul 2011 21:26:26 +0200 (SAST)
+Message-ID: <304467573.2662750.1309807586315.JavaMail.root@zimbra7-vm1.telkomsa.net>
+Reply-To: FONDAZIONE DI VITTORIO <ssww102@rediffmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:38817 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750711Ab1GDSFc convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jul 2011 14:05:32 -0400
-In-Reply-To: <CANrkHUb-i4cQmGzrDjcooZPRvyQLSd0+kqLMA04hGzgVjCT+=A@mail.gmail.com>
+Received: from scorpius.telkomsa.net ([196.25.211.121]:57689 "EHLO
+	scorpius.telkomsa.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751500Ab1GDT0c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jul 2011 15:26:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, Chris Ball <cjb@laptop.org>
-Cc: Madhusudhan <madhu.cr@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
 
-> From: Kevin Hilman <khilman@ti.com>
-> Date: Fri, Jul 1, 2011 at 11:24 PM
-> Subject: Re: [PATCHv4 0/3] OMAP: HSMMC: cleanup and runtime pm
-> To: cjb@laptop.org
-> Cc: Balaji T K <balajitk@ti.com>, linux-omap@vger.kernel.org,
-> linux-mmc@vger.kernel.org, tony@atomide.com, madhu.cr@ti.com,
-> b-cousson@ti.com, paul@pwsan.com, kishore.kadiyala@ti.com
->
->
-> Chris,
->
-> Balaji T K <balajitk@ti.com> writes:
->
->> Removing the custom state machine - lazy disable framework in
->> omap_hsmmc to make way for runtime pm to handle host controller powe=
-r
->> states.
->>
->> This allows mmc_host_enable/mmc_host_disable to be replaced
->> by runtime get_sync and put_sync at host controller driver.
->>
->> Enable runtime PM in omap_hsmmc
->>
->> Rebased to MMC tree : mmc-next branch
->> Tested on OMAP4430SDP, OMAP3430SDP, OMAP2430SDP
->
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
-> Tested-by: Kevin Hilman <khilman@ti.com>
->
-> Could you queue this series for the v3.1 merge window? =A0Or, with yo=
-ur
-> ack, we are happy to take this through the OMAP tree along with the
-> other dependecies mentioned below.
->
-> I've also tested this on OMAP4430/Blaze, OMAP3630/Zoom3 and
-> OMAP3430/n900.
->
-> We have OMAP PM core code changes queued for v3.1 which require the M=
-MC
-> driver to correctly use runtime PM or we can get hangs if MMC is used
-> during boot.
->
-> Kevin
+VITTORIO FONDAZIONE. 
+Corso Ercole I d'Este 44,
+Ferrara 44100 - Italy.
+IMPORTANT NOTICE
+Foundation's Officer,
+Fondazion Di Vittorio, Italy 
+http://www.fondazionedivittorio.it
 
-Kevin,
-  Another series from Per Forlin [1] is also modifying the same file,
-and might result in merge conflict if this series is queued under OMAP
-and the other is queued by Chris.
+CONCERN
 
-Chris,
-  If you intend to queue [1] into mmc-next, Balaji / myself can repost
-this series on
-top of it or you'd like to practice some git merge ? Let me know if
-there is anything that I can do to help.
+You were selected among the lucky recipients to receive the award sum of US$650,000.00 (Six Hundred Fifty Thousand United State Dollars) as charity donations/aid from the Vittorio Fondazione, Ecowas and the UN These funds are freely given to you for your business, educational and personal development in accordance with the enabling act of Parliament.
 
-[1] https://lkml.org/lkml/2011/7/1/303
+You are required to expeditiously contact the Executive Secretary with your Qualification numbers (P-333-7858, B-011-67) for processing of your claims, you will be given your donation pin number. Contact Claudio Giovanni (DPU) Information Officer.
 
->
->> MMC runtime patch has dependency on
->> [PATCH 0/6] OMAP2+: hwmod framework fixes [1]
->> for MMC1/MMC2 clock to get ungated after idle in OMAP4.
->>
->> Without [1] patches, MMC1/MMC2 fails to get detected on OMAP4.
->>
->> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg51457.=
-html
->>
->> Balaji T K (3):
->> =A0 MMC: OMAP: HSMMC: Remove lazy_disable
->> =A0 MMC: OMAP: HSMMC: add runtime pm support
->> =A0 MMC: OMAP: HSMMC: Remove unused iclk
->>
->> =A0drivers/mmc/host/omap_hsmmc.c | =A0365 +++++++-------------------=
----------------
->> =A01 files changed, 57 insertions(+), 308 deletions(-)
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Enter Personal Details:
+
+Beneficiary full name:
+Nationality:
+Complete home address:
+Tel:
+Mobile/Cell:(Very important):
+Fax number:(optional)
+Email address:
+
+---------------------------------------------------------
+DUE PROCESS UNIT:
+Executive Secretary - Claudio Giovanni.
+Email: ssww102@rediffmail.com
+--------------------------------------------------------
+On behalf of the Board kindly accept our warmest
+
+congratulations.
+
+Yours faithfully,
+Mrs. Marian Bern.
+(Foundation's Officer)
