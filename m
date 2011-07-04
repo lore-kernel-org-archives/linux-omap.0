@@ -1,106 +1,56 @@
-From: Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
- of ehci and ohci
-Date: Mon, 4 Jul 2011 10:36:54 +0530
-Message-ID: <11640ef76f97628579e457b5c6a74cc3@mail.gmail.com>
-References: <1309546474-15363-7-git-send-email-keshava_mgowda@ti.com> <Pine.LNX.4.44L0.1107011504530.1624-100000@iolanthe.rowland.org>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH 2/2 v4] OMAP2+: hwmod: Add API to check IO PAD wakeup status
+Date: Mon, 4 Jul 2011 10:38:55 +0530
+Message-ID: <CAAL8m4xRe7z3N=2t2o=JpXC6kLXU9WGsr4ujdHBCp_Uno2f1xg@mail.gmail.com>
+References: <1309603946-25395-1-git-send-email-govindraj.raja@ti.com>
+ <1309603946-25395-3-git-send-email-govindraj.raja@ti.com> <alpine.DEB.2.00.1107021037040.8874@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1107011504530.1624-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, Vishwanath Sripathy <vishwanath.bs-l0cyMroinI0@public.gmane.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:34586 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750944Ab1GDFJQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jul 2011 01:09:16 -0400
+Received: by bwd5 with SMTP id 5so3798992bwd.19
+        for <linux-omap@vger.kernel.org>; Sun, 03 Jul 2011 22:09:15 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1107021037040.8874@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Tero Kristo <t-kristo@ti.com>
 
->-----Original Message-----
->From: Alan Stern [mailto:stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org]
->Sent: Saturday, July 02, 2011 12:37 AM
->To: Keshava Munegowda
->Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
->kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; balbi-l0cyMroinI0@public.gmane.org; gadiyar-l0cyMroinI0@public.gmane.org;
->sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org; parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org;
->khilman-l0cyMroinI0@public.gmane.org; b-cousson-l0cyMroinI0@public.gmane.org; paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org; johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org;
->vishwanath.bs-l0cyMroinI0@public.gmane.org
->Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume
->support of ehci and ohci
+On Sat, Jul 2, 2011 at 10:07 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Sat, 2 Jul 2011, Govindraj.R wrote:
 >
->On Sat, 2 Jul 2011, Keshava Munegowda wrote:
+>> +int omap_hmwod_pad_get_wakeup_status(struct omap_hwmod *oh)
+> =A0 =A0 =A0 =A0 =A0 =A0^^^^^
 >
->> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>
->> The global suspend and resume functions for ehci and ohci
->> drivers are implemented; these functions does the
->> pm_runtime_get_sync and pm_runtime_put_sync of the
->> parent device usbhs core driver respectively.
->>
->> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
->> ---
->>  drivers/usb/host/ehci-omap.c  |   22 ++++++++++++++++++++--
->>  drivers/usb/host/ohci-omap3.c |   21 +++++++++++++++++++++
->>  2 files changed, 41 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-
->omap.c
->> index 178f63e..a02a684 100644
->> --- a/drivers/usb/host/ehci-omap.c
->> +++ b/drivers/usb/host/ehci-omap.c
->> @@ -259,14 +259,32 @@ static void ehci_hcd_omap_shutdown(struct
->platform_device *pdev)
->>  		hcd->driver->shutdown(hcd);
->>  }
->>
->> +static int omap_ehci_resume(struct device *dev)
->> +{
->> +	if (dev->parent)
->> +		pm_runtime_get_sync(dev->parent);
->> +	return 0;
->> +}
->> +
->> +static int omap_ehci_suspend(struct device *dev)
->> +{
->> +	if (dev->parent)
->> +		pm_runtime_put_sync(dev->parent);
->> +	return 0;
->> +}
->
->I don't see any point in these routines (and likewise for
->omap_ohci_suspend/resume).  When the whole system is going to sleep
->anyway, what reason is there for enabling runtime PM on the parent
->device?
+> should be "hwmod"
 
-Both for EHCI & OHCI, the clocks are owned by the parent (uhh-tll).
+corrected and re-posted both patches.
 
-Calling pm_runtime_put_sync(dev->parent) within omap_ehci_suspend
-will turn-off the parent clocks in the Suspend path.
+http://permalink.gmane.org/gmane.linux.ports.arm.omap/60250
 
-Similarly, calling pm_runtime_get_sync(dev->parent) within
-omap_ehci_resume
-will turn-on the parent clocks in the resume path.
+http://permalink.gmane.org/gmane.linux.ports.arm.omap/60252
 
-This way, all reference counting are implicit within the Runtime PM layer
-and takes care of all combinations of only EHCI insmoded, OHCI insmoded,
-both insmoded etc.
-
-When both EHCI & OHCI are suspended, parent clocks will actually be
-turned OFF and vice-versa.
-
-Note that the parent per-se does not have any .suspend & .resume hooked
-up.
-At the end of the _probe of parent, the clocks are turned OFF.
-Subsequently, enabling
-the parent clocks are entirely done implicitly by the children get_sync()
-in their _probe.
-
-Therefore while .suspend/.resume of children are called they call back
-into the parent to turn-off the clocks.
-
-FYI, Keshava is out of office due to some emergency this week,
-there will be some delays in replying from his side.
-
->
->Alan Stern
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Thanks,
+Govindraj.R
+
+
+>
+>
+> - Paul
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
