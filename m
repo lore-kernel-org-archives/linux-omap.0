@@ -1,56 +1,154 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCH] MMC: OMAP: change HSMMC maintainence to Orphan
-Date: Mon, 4 Jul 2011 14:30:02 +0530
-Message-ID: <CANfBPZ9XiHomYEmnf_xobtVvOs=PpGLnifAkn6wDFquBR+8QHQ@mail.gmail.com>
-References: <1309541802-5975-1-git-send-email-khilman@ti.com>
+From: Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
+ of ehci and ohci
+Date: Mon, 4 Jul 2011 14:56:30 +0530
+Message-ID: <99b22453092fc32b751c3e7d0223c7eb@mail.gmail.com>
+References: <1309546474-15363-7-git-send-email-keshava_mgowda@ti.com>
+ <Pine.LNX.4.44L0.1107011504530.1624-100000@iolanthe.rowland.org>
+ <11640ef76f97628579e457b5c6a74cc3@mail.gmail.com> <20110704082553.GH15044@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1309541802-5975-1-git-send-email-khilman@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110704082553.GH15044-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, Vishwanath Sripathy <vishwanath.bs-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 1, 2011 at 11:06 PM, Kevin Hilman <khilman@ti.com> wrote:
-> From: Madhusudhan Chikkature <madhu.cr@ti.com>
+>-----Original Message-----
+>From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
+>Sent: Monday, July 04, 2011 1:56 PM
+>To: Partha Basak
+>Cc: Alan Stern; Keshava Munegowda; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+>omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Felipe Balbi; Anand
+>Gadiyar; sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org; parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org;
+>Kevin Hilman; Benoit Cousson; paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org; johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org;
+>Vishwanath Sripathy
+>Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume
+>support of ehci and ohci
 >
-> Update the OMAP HS MMC entry from the MAINTAINERS file as I will
-> no longer be able to maintain this driver.
+>Hi,
 >
-> Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-> [khilman@ti.com: change to Orphan rather than complete removal]
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> Applies to v3.0-rc5
+>On Mon, Jul 04, 2011 at 10:36:54AM +0530, Partha Basak wrote:
+>> >-----Original Message-----
+>> >From: Alan Stern [mailto:stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org]
+>> >Sent: Saturday, July 02, 2011 12:37 AM
+>> >To: Keshava Munegowda
+>> >Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+>> >kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; balbi-l0cyMroinI0@public.gmane.org; gadiyar-l0cyMroinI0@public.gmane.org;
+>> >sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org; parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org;
+>> >khilman-l0cyMroinI0@public.gmane.org; b-cousson-l0cyMroinI0@public.gmane.org; paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org;
+>> >johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org; vishwanath.bs-l0cyMroinI0@public.gmane.org
+>> >Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume
+>> >support of ehci and ohci
+>> >
+>> >On Sat, 2 Jul 2011, Keshava Munegowda wrote:
+>> >
+>> >> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>> >>
+>> >> The global suspend and resume functions for ehci and ohci drivers
+>> >> are implemented; these functions does the pm_runtime_get_sync and
+>> >> pm_runtime_put_sync of the parent device usbhs core driver
+>> >> respectively.
+>> >>
+>> >> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>> >> ---
+>> >>  drivers/usb/host/ehci-omap.c  |   22 ++++++++++++++++++++--
+>> >>  drivers/usb/host/ohci-omap3.c |   21 +++++++++++++++++++++
+>> >>  2 files changed, 41 insertions(+), 2 deletions(-)
+>> >>
+>> >> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-
+>> >omap.c
+>> >> index 178f63e..a02a684 100644
+>> >> --- a/drivers/usb/host/ehci-omap.c
+>> >> +++ b/drivers/usb/host/ehci-omap.c
+>> >> @@ -259,14 +259,32 @@ static void ehci_hcd_omap_shutdown(struct
+>> >platform_device *pdev)
+>> >>  		hcd->driver->shutdown(hcd);
+>> >>  }
+>> >>
+>> >> +static int omap_ehci_resume(struct device *dev) {
+>> >> +	if (dev->parent)
+>> >> +		pm_runtime_get_sync(dev->parent);
+>> >> +	return 0;
+>> >> +}
+>> >> +
+>> >> +static int omap_ehci_suspend(struct device *dev) {
+>> >> +	if (dev->parent)
+>> >> +		pm_runtime_put_sync(dev->parent);
+>> >> +	return 0;
+>> >> +}
+>> >
+>> >I don't see any point in these routines (and likewise for
+>> >omap_ohci_suspend/resume).  When the whole system is going to sleep
+>> >anyway, what reason is there for enabling runtime PM on the parent
+>> >device?
+>>
+>> Both for EHCI & OHCI, the clocks are owned by the parent (uhh-tll).
+>>
+>> Calling pm_runtime_put_sync(dev->parent) within omap_ehci_suspend will
+>> turn-off the parent clocks in the Suspend path.
+>>
+>> Similarly, calling pm_runtime_get_sync(dev->parent) within
+>> omap_ehci_resume will turn-on the parent clocks in the resume path.
+>>
+>> This way, all reference counting are implicit within the Runtime PM
+>> layer and takes care of all combinations of only EHCI insmoded, OHCI
+>> insmoded, both insmoded etc.
+>>
+>> When both EHCI & OHCI are suspended, parent clocks will actually be
+>> turned OFF and vice-versa.
 >
-> =A0MAINTAINERS | =A0 =A03 +--
-> =A01 files changed, 1 insertions(+), 2 deletions(-)
+>not sure this is necessary. I would expect:
 >
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index f0358cd..2f238b5 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -4574,9 +4574,8 @@ S: =A0 =A0 =A0 =A0Maintained
-> =A0F: =A0 =A0 drivers/mmc/host/omap.c
+>pm_runtime_get_sync(dev) to propagate up the parent tree and enable all
+>necessary resources to get the child in a working state. IOW, you
+>shouldn't need to manuall access the parent device.
 >
-> =A0OMAP HS MMC SUPPORT
-> -M: =A0 =A0 Madhusudhan Chikkature <madhu.cr@ti.com>
-> =A0L: =A0 =A0 linux-omap@vger.kernel.org
-> -S: =A0 =A0 Maintained
-> +S: =A0 =A0 Orphan
-> =A0F: =A0 =A0 drivers/mmc/host/omap_hsmmc.c
->
-> =A0OMAP RANDOM NUMBER GENERATOR SUPPORT
-> --
-> 1.7.6
->
-Note for the record:
-I am interested in making sure that this driver is well supported, even=
- if
-not designated as 'official' maintainer due to other commitments (as of=
- now).
-Patches are welcome.
+Refer to the description in Patch(5/6)
+<snip>
+In fact, the runtime framework takes care the get sync and put sync of the
+child
+in turn call the get sync and put sync of parent too; but calling get sync
+and
+put sync of parent is by ASYNC mode;
+This mode queues the work item in runtime pm work queue,
+which not getting scheduled in case of global suspend path.
+<snip>
+This approach was tried, but did not work in the Suspend path
+static int rpm_suspend(struct device *dev, int rpmflags)
+	__releases(&dev->power.lock) __acquires(&dev->power.lock)
+{
+.
+.
+.
+no_callback:
+.
+.
+.
+	/* Maybe the parent is now able to suspend. */
+	if (parent && !parent->power.ignore_children &&
+!dev->power.irq_safe) {
+		spin_unlock(&dev->power.lock);
 
-Acked-by: Venkatraman S <svenkatr@ti.com>
+		spin_lock(&parent->power.lock);
+		rpm_idle(parent, RPM_ASYNC);
+		spin_unlock(&parent->power.lock);
+
+		spin_lock(&dev->power.lock);
+	}
+This is the reason of directly calling the parent Runtime PM calls from
+the children.
+If directly calling Runtime PM APIs with parent dev-pointer isn't
+acceptable,
+this can be achieved by exporting wrapper APIs from the
+parent and calling them from the chidren .suspend/.resume routines.
+
+>Kevin ? Paul ?
+>
+>--
+>balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
