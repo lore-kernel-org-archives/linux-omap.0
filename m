@@ -1,64 +1,67 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 3/5] arch/arm/mach-omap2/smartreflex.c: add missing error-handling code
-Date: Mon,  4 Jul 2011 16:11:43 +0200
-Message-ID: <1309788705-22278-3-git-send-email-julia@diku.dk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: kernel-janitors@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: RE: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
+ of ehci and ohci
+Date: Mon, 4 Jul 2011 11:50:47 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1107041147510.12242-100000@netrider.rowland.org>
+References: <11640ef76f97628579e457b5c6a74cc3@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from netrider.rowland.org ([192.131.102.5]:37477 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757235Ab1GDPur (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jul 2011 11:50:47 -0400
+In-Reply-To: <11640ef76f97628579e457b5c6a74cc3@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Partha Basak <p-basak2@ti.com>
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-From: Julia Lawall <julia@diku.dk>
+On Mon, 4 Jul 2011, Partha Basak wrote:
 
-At this point, the ioremap has taken place, so the error handling code at
-the label err_iounmap should be used rather than returning directly.
+> >I don't see any point in these routines (and likewise for
+> >omap_ohci_suspend/resume).  When the whole system is going to sleep
+> >anyway, what reason is there for enabling runtime PM on the parent
+> >device?
+> 
+> Both for EHCI & OHCI, the clocks are owned by the parent (uhh-tll).
+> 
+> Calling pm_runtime_put_sync(dev->parent) within omap_ehci_suspend
+> will turn-off the parent clocks in the Suspend path.
+> 
+> Similarly, calling pm_runtime_get_sync(dev->parent) within
+> omap_ehci_resume
+> will turn-on the parent clocks in the resume path.
+> 
+> This way, all reference counting are implicit within the Runtime PM layer
+> and takes care of all combinations of only EHCI insmoded, OHCI insmoded,
+> both insmoded etc.
+> 
+> When both EHCI & OHCI are suspended, parent clocks will actually be
+> turned OFF and vice-versa.
+> 
+> Note that the parent per-se does not have any .suspend & .resume hooked
+> up.
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+Why not?  That sounds like a big bug.
 
-// <smpl>
-@r@
-identifier x;
-@@
+> At the end of the _probe of parent, the clocks are turned OFF.
+> Subsequently, enabling
+> the parent clocks are entirely done implicitly by the children get_sync()
+> in their _probe.
+> 
+> Therefore while .suspend/.resume of children are called they call back
+> into the parent to turn-off the clocks.
 
-kfree(x)
+You have ignored a few very important points:
 
-@@
-identifier r.x;
-expression E1!=0,E2,E3,E4;
-statement S;
-@@
+Firstly, system suspend is supposed to work even when runtime PM is not 
+configured.
 
-(
-if (<+...x...+>) S
-|
-if (...) { ... when != kfree(x)
-               when != if (...) { ... kfree(x); ... }
-               when != x = E3
-* return E1;
-}
-... when != x = E2
-if (...) { ... when != x = E4
- kfree(x); ... return ...; }
-)
-// </smpl>
+Secondly, the user can disable runtime PM via sysfs at any time.  This 
+shouldn't mess up system suspend.
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Basically, it's a bad idea to mix up system suspend with runtime PM.
 
----
- arch/arm/mach-omap2/smartreflex.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Alan Stern
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index fb7dc52..e8280df 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -891,7 +891,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		ret = sr_late_init(sr_info);
- 		if (ret) {
- 			pr_warning("%s: Error in SR late init\n", __func__);
--			return ret;
-+			goto err_iounmap;
- 		}
- 	}
- 
