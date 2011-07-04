@@ -1,105 +1,67 @@
-From: Partha Basak <p-basak2@ti.com>
-Subject: RE: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
- of ehci and ohci
-Date: Mon, 4 Jul 2011 16:31:45 +0530
-Message-ID: <c026265b1b15473e41ea3c8cd72abf07@mail.gmail.com>
-References: <1309546474-15363-7-git-send-email-keshava_mgowda@ti.com>
- <Pine.LNX.4.44L0.1107011504530.1624-100000@iolanthe.rowland.org>
- <11640ef76f97628579e457b5c6a74cc3@mail.gmail.com> <20110704082553.GH15044@legolas.emea.dhcp.ti.com>
- <99b22453092fc32b751c3e7d0223c7eb@mail.gmail.com> <20110704093056.GD25295@legolas.emea.dhcp.ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 0/2] OMAP: omap_device: API to modify SYSCONFIG register
+Date: Mon, 4 Jul 2011 16:38:31 +0530
+Message-ID: <1309777713-17528-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110704093056.GD25295@legolas.emea.dhcp.ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Alan Stern <stern@rowland.harvard.edu>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, p-basak2@ti.com, peter.ujfalusi@ti.com, jhnikula@gmail.com, kishon@ti.com, charu@ti.com
 List-Id: linux-omap@vger.kernel.org
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Felipe Balbi
->Sent: Monday, July 04, 2011 3:01 PM
->To: Partha Basak
->Cc: balbi@ti.com; Alan Stern; Keshava Munegowda; linux-
->usb@vger.kernel.org; linux-omap@vger.kernel.org; linux-
->kernel@vger.kernel.org; Anand Gadiyar; sameo@linux.intel.com;
->parthab@india.ti.com; tony@atomide.com; Kevin Hilman; Benoit Cousson;
->paul@pwsan.com; johnstul@us.ibm.com; Vishwanath Sripathy
->Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume
->support of ehci and ohci
->
->Hi,
->
->On Mon, Jul 04, 2011 at 02:56:30PM +0530, Partha Basak wrote:
->> >> Both for EHCI & OHCI, the clocks are owned by the parent (uhh-tll).
->> >>
->> >> Calling pm_runtime_put_sync(dev->parent) within omap_ehci_suspend
->> >> will turn-off the parent clocks in the Suspend path.
->> >>
->> >> Similarly, calling pm_runtime_get_sync(dev->parent) within
->> >> omap_ehci_resume will turn-on the parent clocks in the resume path.
->> >>
->> >> This way, all reference counting are implicit within the Runtime PM
->> >> layer and takes care of all combinations of only EHCI insmoded,
->> >> OHCI insmoded, both insmoded etc.
->> >>
->> >> When both EHCI & OHCI are suspended, parent clocks will actually be
->> >> turned OFF and vice-versa.
->> >
->> >not sure this is necessary. I would expect:
->> >
->> >pm_runtime_get_sync(dev) to propagate up the parent tree and enable
->> >all necessary resources to get the child in a working state. IOW, you
->> >shouldn't need to manuall access the parent device.
->> >
->> Refer to the description in Patch(5/6) <snip> In fact, the runtime
->> framework takes care the get sync and put sync of the child in turn
->> call the get sync and put sync of parent too; but calling get sync and
->> put sync of parent is by ASYNC mode; This mode queues the work item in
->> runtime pm work queue, which not getting scheduled in case of global
->> suspend path.
->> <snip>
->> This approach was tried, but did not work in the Suspend path
->
->sounds to me like a bug on pm runtime ? If you're calling
->pm_runtime_*_sync() family, shouldn't all calls be _sync() too ?
->
->> static int rpm_suspend(struct device *dev, int rpmflags)
->> 	__releases(&dev->power.lock) __acquires(&dev->power.lock) { .
->> .
->> .
->> no_callback:
->> .
->> .
->> .
->> 	/* Maybe the parent is now able to suspend. */
->> 	if (parent && !parent->power.ignore_children &&
->> !dev->power.irq_safe) {
->> 		spin_unlock(&dev->power.lock);
->>
->> 		spin_lock(&parent->power.lock);
->> 		rpm_idle(parent, RPM_ASYNC);
->
->to me this is bogus, if you called pm_runtime_put_sync() should should
->be sync too. Shouldn't it ?
->
->> 		spin_unlock(&parent->power.lock);
->>
->> 		spin_lock(&dev->power.lock);
->> 	}
->> This is the reason of directly calling the parent Runtime PM calls
->> from the children.
->> If directly calling Runtime PM APIs with parent dev-pointer isn't
->> acceptable, this can be achieved by exporting wrapper APIs from the
->> parent and calling them from the chidren .suspend/.resume routines.
->
->Still no good, IMHO.
+Certain peripherals require autoidle bits to be disabled before performing
+some operations. This patch series provides APIs in omap_device layer and 
+omap_hwmod layer to modify the SYSCONFIG register.
 
-Kevin, any comments?
+Since current implementation of PM run time framework does not support
+changing sysconfig settings during middle of the on going operation,
+these APIs will support the same.
 
-Shouldn't the framework ensure that if put_sync(dev) is called
-it should ensure that the parent is rmp_idled synchronously?
->
->--
->balbi
+For e.g McBSP 2 and 3 in OMAP3 has sidetone feature which requires
+autoidle to be disabled before starting the sidetone.
+
+McBSP also requires the SYSCONFIG to be in NOIDLE when ELEMENTSYNCH
+mode is selected for DMA operation.
+
+Created on top of linux OMAP master (linux-omap-2.6 :master)
+commit-id: d9be6df1331f8078618745298d38ed619729ec91
+Tested on OMAP4430 and OMAP3430 SDP boards. Verified that this patch
+series does not break the OMAP1 build.
+
+V3:
+created one-one mapping between omap_device APIs and omap_hwmod APIs to
+modify the sysconfig register.
+
+V2:
+Mutex is replaced with spinlock.
+
+V1:
+* Creates 3 separate API's to change the idle mode to NOIDLE, SMARTIDLE
+ and FORCEIDLE and one more API to change the idlemode to default value
+ based on the hwmod flag. This change is done to align with the discussion
+ on [3]
+
+* Added hwmod mutex in omap hwmod APIs that modifies SYSCONFIG register.
+
+* omap_hwmod_set_slave_idlemode() is not modified to take true/false kind-of
+argument since 3 states are associated with SIDLE bits (force, no and smart).
+
+These changes were made to align with Benoit's and Paul's comments for a
+similar patch written by Manjunath [1] for changing MSTANDBY bits.
+
+The discussions that happened for the RFC patch can be found at [2]
+
+[1]: http://www.mail-archive.com/linux-omap <at> vger.kernel.org/msg39647.html
+[2]: https://patchwork.kernel.org/patch/134371/
+[3]: http://www.mail-archive.com/linux-omap <at> vger.kernel.org/msg39615.html
+
+Kishon Vijay Abraham I (2):
+  OMAP: omap_hwmod: API to modify AUTOIDLE and SMARTIDLE bits
+  OMAP: omap_device: API to modify AUTOIDLE and SMARTIDLE bits
+
+ arch/arm/mach-omap2/omap_hwmod.c              |   93 ++++++++++++++
+ arch/arm/plat-omap/include/plat/omap_device.h |    6 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |   11 ++
+ arch/arm/plat-omap/omap_device.c              |  165 +++++++++++++++++++++++++
+ 4 files changed, 275 insertions(+), 0 deletions(-)
