@@ -1,15 +1,15 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
 Subject: [REPOST PATCH 2/2 v4] OMAP2+: hwmod: Add API to check IO PAD wakeup status
-Date: Mon, 4 Jul 2011 10:28:02 +0530
-Message-ID: <1309755482-28603-1-git-send-email-govindraj.raja@ti.com>
+Date: Mon, 4 Jul 2011 10:32:17 +0530
+Message-ID: <1309755737-28661-1-git-send-email-govindraj.raja@ti.com>
 References: <1309603946-25395-3-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54218 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54445 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750860Ab1GDE6T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jul 2011 00:58:19 -0400
+	id S1750944Ab1GDFC3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Jul 2011 01:02:29 -0400
 In-Reply-To: <1309603946-25395-3-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -103,7 +103,7 @@ index 3b28e0a..f9495fe 100644
  	return 0;
  }
 +
-+int omap_hwwod_pad_get_wakeup_status(struct omap_hwmod *oh)
++int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh)
 +{
 +	if (oh && oh->mux)
 +		return omap_hwmod_mux_get_wake_status(oh->mux);
@@ -117,7 +117,7 @@ index 1adea9c..da6ab5c 100644
  
  int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
  
-+int omap_hwwod_pad_get_wakeup_status(struct omap_hwmod *oh);
++int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh);
  /*
   * Chip variant-specific hwmod init routines - XXX should be converted
   * to use initcalls once the initial boot ordering is straightened out
