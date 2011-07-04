@@ -1,126 +1,106 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [REPOST PATCH 2/2 v4] OMAP2+: hwmod: Add API to check IO PAD wakeup status
-Date: Mon, 4 Jul 2011 10:32:17 +0530
-Message-ID: <1309755737-28661-1-git-send-email-govindraj.raja@ti.com>
-References: <1309603946-25395-3-git-send-email-govindraj.raja@ti.com>
+From: Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
+ of ehci and ohci
+Date: Mon, 4 Jul 2011 10:36:54 +0530
+Message-ID: <11640ef76f97628579e457b5c6a74cc3@mail.gmail.com>
+References: <1309546474-15363-7-git-send-email-keshava_mgowda@ti.com> <Pine.LNX.4.44L0.1107011504530.1624-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54445 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750944Ab1GDFC3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jul 2011 01:02:29 -0400
-In-Reply-To: <1309603946-25395-3-git-send-email-govindraj.raja@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1107011504530.1624-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, Vishwanath Sripathy <vishwanath.bs-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-Add API to determine IO-PAD wakeup event status for a given
-hwmod dynamic_mux pad.
+>-----Original Message-----
+>From: Alan Stern [mailto:stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org]
+>Sent: Saturday, July 02, 2011 12:37 AM
+>To: Keshava Munegowda
+>Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+>kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; balbi-l0cyMroinI0@public.gmane.org; gadiyar-l0cyMroinI0@public.gmane.org;
+>sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org; parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org;
+>khilman-l0cyMroinI0@public.gmane.org; b-cousson-l0cyMroinI0@public.gmane.org; paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org; johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org;
+>vishwanath.bs-l0cyMroinI0@public.gmane.org
+>Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume
+>support of ehci and ohci
+>
+>On Sat, 2 Jul 2011, Keshava Munegowda wrote:
+>
+>> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>>
+>> The global suspend and resume functions for ehci and ohci
+>> drivers are implemented; these functions does the
+>> pm_runtime_get_sync and pm_runtime_put_sync of the
+>> parent device usbhs core driver respectively.
+>>
+>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/usb/host/ehci-omap.c  |   22 ++++++++++++++++++++--
+>>  drivers/usb/host/ohci-omap3.c |   21 +++++++++++++++++++++
+>>  2 files changed, 41 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-
+>omap.c
+>> index 178f63e..a02a684 100644
+>> --- a/drivers/usb/host/ehci-omap.c
+>> +++ b/drivers/usb/host/ehci-omap.c
+>> @@ -259,14 +259,32 @@ static void ehci_hcd_omap_shutdown(struct
+>platform_device *pdev)
+>>  		hcd->driver->shutdown(hcd);
+>>  }
+>>
+>> +static int omap_ehci_resume(struct device *dev)
+>> +{
+>> +	if (dev->parent)
+>> +		pm_runtime_get_sync(dev->parent);
+>> +	return 0;
+>> +}
+>> +
+>> +static int omap_ehci_suspend(struct device *dev)
+>> +{
+>> +	if (dev->parent)
+>> +		pm_runtime_put_sync(dev->parent);
+>> +	return 0;
+>> +}
+>
+>I don't see any point in these routines (and likewise for
+>omap_ohci_suspend/resume).  When the whole system is going to sleep
+>anyway, what reason is there for enabling runtime PM on the parent
+>device?
 
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/mux.c                    |   30 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/mux.h                    |   13 +++++++++++
- arch/arm/mach-omap2/omap_hwmod.c             |    7 ++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 4 files changed, 51 insertions(+), 0 deletions(-)
+Both for EHCI & OHCI, the clocks are owned by the parent (uhh-tll).
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index c7fb22a..50ee806 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -351,6 +351,36 @@ err1:
- 	return NULL;
- }
- 
-+/**
-+ * omap_hwmod_mux_get_wake_status - omap hwmod check pad wakeup
-+ * @hmux:		Pads for a hwmod
-+ *
-+ * Gets the wakeup status of given pad from omap-hwmod.
-+ * Returns true if wakeup event is set for pad else false
-+ * if wakeup is not occured or pads are not avialable.
-+ */
-+bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
-+{
-+	int i;
-+	unsigned int val;
-+	u8 ret = false;
-+
-+	for (i = 0; i < hmux->nr_pads; i++) {
-+		struct omap_device_pad *pad = &hmux->pads[i];
-+
-+		if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
-+			val = omap_mux_read(pad->partition,
-+					pad->mux->reg_offset);
-+			if (val & OMAP_WAKEUP_EVENT) {
-+				ret = true;
-+				break;
-+			}
-+		}
-+	}
-+
-+	return ret;
-+}
-+
- /* Assumes the calling function takes care of locking */
- void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
- {
-diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-index 2132308..8b2150a 100644
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -225,8 +225,21 @@ omap_hwmod_mux_init(struct omap_device_pad *bpads, int nr_pads);
-  */
- void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state);
- 
-+/**
-+ * omap_hwmod_mux_get_wake_status - omap hwmod check pad wakeup
-+ * @hmux:		Pads for a hwmod
-+ *
-+ * Called only from omap_hwmod.c, do not use.
-+ */
-+bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux);
- #else
- 
-+static inline bool
-+omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
-+{
-+	return 0;
-+}
-+
- static inline int omap_mux_init_gpio(int gpio, int val)
- {
- 	return 0;
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 3b28e0a..f9495fe 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2428,3 +2428,10 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh)
- 
- 	return 0;
- }
-+
-+int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh)
-+{
-+	if (oh && oh->mux)
-+		return omap_hwmod_mux_get_wake_status(oh->mux);
-+	return -EINVAL;
-+}
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 1adea9c..da6ab5c 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -602,6 +602,7 @@ u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
- 
- int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
- 
-+int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh);
- /*
-  * Chip variant-specific hwmod init routines - XXX should be converted
-  * to use initcalls once the initial boot ordering is straightened out
--- 
-1.7.4.1
+Calling pm_runtime_put_sync(dev->parent) within omap_ehci_suspend
+will turn-off the parent clocks in the Suspend path.
 
+Similarly, calling pm_runtime_get_sync(dev->parent) within
+omap_ehci_resume
+will turn-on the parent clocks in the resume path.
+
+This way, all reference counting are implicit within the Runtime PM layer
+and takes care of all combinations of only EHCI insmoded, OHCI insmoded,
+both insmoded etc.
+
+When both EHCI & OHCI are suspended, parent clocks will actually be
+turned OFF and vice-versa.
+
+Note that the parent per-se does not have any .suspend & .resume hooked
+up.
+At the end of the _probe of parent, the clocks are turned OFF.
+Subsequently, enabling
+the parent clocks are entirely done implicitly by the children get_sync()
+in their _probe.
+
+Therefore while .suspend/.resume of children are called they call back
+into the parent to turn-off the clocks.
+
+FYI, Keshava is out of office due to some emergency this week,
+there will be some delays in replying from his side.
+
+>
+>Alan Stern
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
