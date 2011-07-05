@@ -1,60 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 7/7] 4460sdp/blaze/panda: hwmod: Prevent gpio1 reset
- during hwmod init
-Date: Tue, 5 Jul 2011 01:40:14 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107050136120.4217@utopia.booyaka.com>
-References: <1309486081-8257-1-git-send-email-rnayak@ti.com> <1309486081-8257-2-git-send-email-rnayak@ti.com> <1309486081-8257-3-git-send-email-rnayak@ti.com> <1309486081-8257-4-git-send-email-rnayak@ti.com> <1309486081-8257-5-git-send-email-rnayak@ti.com>
- <1309486081-8257-6-git-send-email-rnayak@ti.com> <1309486081-8257-7-git-send-email-rnayak@ti.com> <1309486081-8257-8-git-send-email-rnayak@ti.com> <20110701063241.GX23145@atomide.com> <alpine.DEB.2.00.1107022103430.12499@utopia.booyaka.com>
- <20110704085335.GP23145@atomide.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH][RFC] OMAP4: I2C : I2C context save
+Date: Tue, 5 Jul 2011 14:50:46 +0530
+Message-ID: <1309857646-29401-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42822 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753886Ab1GEHkP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 03:40:15 -0400
-In-Reply-To: <20110704085335.GP23145@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, Nishanth Menon <nm@ti.com>, s-sintes@ti.com, Moiz Sonasath <m-sonasath@ti.com>
 
-Hi Tony
+Currently the OMAP4 doesnot hit device off still the
+driver may have support for it.Adding support for the
+same.
 
-On Mon, 4 Jul 2011, Tony Lindgren wrote:
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+Applies on top of patches from Andy Green
+http://www.spinics.net/lists/linux-i2c/msg05632.html
+Tested on OMAP4430
 
-> * Paul Walmsley <paul@pwsan.com> [110702 21:09]:
-> 
-> > Here are some options that come to mind:
-> > 
-> > 1. Wait until the driver runtime PM conversion is finished before doing 
-> >    anything.  In the meantime, boards with IP blocks that can't be reset 
-> >    - N810, TI 4460 boards - will have problems.
-> > 
-> > 2. Merge the lazy/unused hwmod reset code, but prevent IP blocks 
-> >    controlled by non-runtime PM drivers from being reset.  We'd have to
-> >    maintain a list of these somewhere, perhaps in some common code called 
-> >    by board file init_machine code.  Then we'd need to redact that list as 
-> >    new driver runtime PM conversions complete.
-> > 
-> > 3. Merge the lazy/unused hwmod reset code, but disable the unused hwmod 
-> >    reset code until the driver runtime PM conversion is finished.  This
-> >    could cause problems with driverless devices that are left configured
-> >    by bootloaders or ROM code, and that problem would reoccur for each new
-> >    OMAP chip.
-> > 
-> > Do you have a preference as to which approach to take?
-> 
-> I think #3 above is the safest option. How about make it only happen with
-> hwmod_reset=1 cmdline with 0 being the default value?
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-With the patch that was posted, that would disable all reset.  Probably we 
-want to reset devices that have drivers with PM runtime support?  That 
-would allow drivers to assume that they are starting from consistent 
-device state.  It also should prevent some power management problems 
-that are dependent on particular bootloaders.   How about if we add a 
-second parameter, hwmod_reset_unused?  The default could be 'no' and then 
-only devices with PM runtime-enabled drivers would be reset first.
-
-
-- Paul
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 0fe9556..5e2c748 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2130,7 +2130,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
+ };
+ 
+ static struct omap_i2c_dev_attr i2c_dev_attr = {
+-	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
++	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE |
++			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
+ };
+ 
+ /* i2c1 */
+-- 
+1.7.1
