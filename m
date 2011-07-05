@@ -1,95 +1,129 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 05/11] TEMP: OMAP3: pm: remove serial resume / idle calls from idle path
-Date: Tue, 5 Jul 2011 13:27:51 +0300
-Message-ID: <1309861677-2769-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 09/11] TEMP: OMAP: serial: remove padconf hacks
+Date: Tue, 5 Jul 2011 13:27:55 +0300
+Message-ID: <1309861677-2769-10-git-send-email-t-kristo@ti.com>
 References: <1309861677-2769-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58470 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755224Ab1GEK2M convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 06:28:12 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p65ASCou031109
+Received: from devils.ext.ti.com ([198.47.26.153]:44342 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755089Ab1GEK2Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 06:28:16 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p65ASGg2032193
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:12 -0500
+	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:16 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p65ASCCm007963
-	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:12 -0500 (CDT)
+	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id p65ASGBj024553
+	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:16 -0500 (CDT)
 Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p65ASBEx028475
-	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:11 -0500 (CDT)
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p65ASFYl028528
+	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:15 -0500 (CDT)
 Content-Class: urn:content-classes:message
 In-Reply-To: <1309861677-2769-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This is no longer needed as it will be handled within serial driver itself.
+These are no longer needed as omap_hwmod takes care of multiplexing of pads.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |   19 -------------------
- 1 files changed, 0 insertions(+), 19 deletions(-)
+ arch/arm/mach-omap2/serial.c |   25 +------------------------
+ 1 files changed, 1 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index d80bf8b..d45e7ad 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -315,18 +315,9 @@ void omap_sram_idle(void)
- 		omap3_enable_io_chain();
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index ff973b4..c94f87d 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -73,7 +73,6 @@ struct omap_uart_state {
+ 	void __iomem *wk_st;
+ 	void __iomem *wk_en;
+ 	u32 wk_mask;
+-	u32 padconf;
+ 	u32 dma_enabled;
+ 
+ 	struct clk *ick;
+@@ -309,13 +308,6 @@ static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
+ 		v |= uart->wk_mask;
+ 		__raw_writel(v, uart->wk_en);
  	}
- 
--	/* Block console output in case it is on one of the OMAP UARTs */
--	if (!is_suspending())
--		if (per_next_state < PWRDM_POWER_ON ||
--		    core_next_state < PWRDM_POWER_ON)
--			if (!console_trylock())
--				goto console_still_active;
 -
- 	/* PER */
- 	if (per_next_state < PWRDM_POWER_ON) {
- 		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
--		omap_uart_prepare_idle(2);
--		omap_uart_prepare_idle(3);
- 		omap2_gpio_prepare_for_idle(per_going_off);
- 		if (per_next_state == PWRDM_POWER_OFF)
- 				omap3_per_save_context();
-@@ -334,8 +325,6 @@ void omap_sram_idle(void)
+-	/* Ensure IOPAD wake-enables are set */
+-	if (cpu_is_omap34xx() && uart->padconf) {
+-		u16 v = omap_ctrl_readw(uart->padconf);
+-		v |= OMAP3_PADCONF_WAKEUPENABLE0;
+-		omap_ctrl_writew(v, uart->padconf);
+-	}
+ }
  
- 	/* CORE */
- 	if (core_next_state < PWRDM_POWER_ON) {
--		omap_uart_prepare_idle(0);
--		omap_uart_prepare_idle(1);
- 		if (core_next_state == PWRDM_POWER_OFF) {
- 			omap3_core_save_context();
- 			omap3_cm_save_context();
-@@ -380,8 +369,6 @@ void omap_sram_idle(void)
- 			omap3_sram_restore_context();
- 			omap2_sms_restore_context();
+ static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
+@@ -326,13 +318,6 @@ static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
+ 		v &= ~uart->wk_mask;
+ 		__raw_writel(v, uart->wk_en);
+ 	}
+-
+-	/* Ensure IOPAD wake-enables are cleared */
+-	if (cpu_is_omap34xx() && uart->padconf) {
+-		u16 v = omap_ctrl_readw(uart->padconf);
+-		v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
+-		omap_ctrl_writew(v, uart->padconf);
+-	}
+ }
+ 
+ static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
+@@ -479,7 +464,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
+ 		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
+ 		u32 wk_mask = 0;
+-		u32 padconf = 0;
+ 
+ 		/* XXX These PRM accesses do not belong here */
+ 		uart->wk_en = OMAP34XX_PRM_REGADDR(mod, PM_WKEN1);
+@@ -487,23 +471,18 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		switch (uart->num) {
+ 		case 0:
+ 			wk_mask = OMAP3430_ST_UART1_MASK;
+-			padconf = 0x182;
+ 			break;
+ 		case 1:
+ 			wk_mask = OMAP3430_ST_UART2_MASK;
+-			padconf = 0x17a;
+ 			break;
+ 		case 2:
+ 			wk_mask = OMAP3430_ST_UART3_MASK;
+-			padconf = 0x19e;
+ 			break;
+ 		case 3:
+ 			wk_mask = OMAP3630_ST_UART4_MASK;
+-			padconf = 0x0d2;
+ 			break;
  		}
--		omap_uart_resume_idle(0);
--		omap_uart_resume_idle(1);
- 		if (core_next_state == PWRDM_POWER_OFF)
- 			omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
- 					       OMAP3430_GR_MOD,
-@@ -395,14 +382,8 @@ void omap_sram_idle(void)
- 		omap2_gpio_resume_after_idle();
- 		if (per_prev_state == PWRDM_POWER_OFF)
- 			omap3_per_restore_context();
--		omap_uart_resume_idle(2);
--		omap_uart_resume_idle(3);
+ 		uart->wk_mask = wk_mask;
+-		uart->padconf = padconf;
+ 	} else if (cpu_is_omap24xx()) {
+ 		u32 wk_mask = 0;
+ 		u32 wk_en = PM_WKEN1, wk_st = PM_WKST1;
+@@ -533,7 +512,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		uart->wk_en = NULL;
+ 		uart->wk_st = NULL;
+ 		uart->wk_mask = 0;
+-		uart->padconf = 0;
  	}
  
--	if (!is_suspending())
--		console_unlock();
--
--console_still_active:
- 	/* Disable IO-PAD and IO-CHAIN wakeup */
- 	if (omap3_has_io_wakeup() &&
- 	    (per_next_state < PWRDM_POWER_ON ||
+ 	uart->irqflags |= IRQF_SHARED;
+@@ -833,8 +811,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+ 
+ 	console_unlock();
+ 
+-	if ((cpu_is_omap34xx() && uart->padconf) ||
+-	    (uart->wk_en && uart->wk_mask)) {
++	if (uart->oh->mux || (uart->wk_en && uart->wk_mask)) {
+ 		device_init_wakeup(&od->pdev.dev, true);
+ 		DEV_CREATE_FILE(&od->pdev.dev, &dev_attr_sleep_timeout);
+ 	}
 -- 
 1.7.4.1
 
