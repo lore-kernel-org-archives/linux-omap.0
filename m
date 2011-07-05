@@ -1,222 +1,217 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: [PATCHv2] arm: platsmp: Allow secondary cpu hotplug with maxcpus=1
-Date: Tue,  5 Jul 2011 10:29:17 -0700
-Message-ID: <1309886957-7548-1-git-send-email-sboyd@codeaurora.org>
-Return-path: <linux-sh-owner@vger.kernel.org>
-Sender: linux-sh-owner@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>, Kukjin Kim <kgene.kim@samsung.com>, David Brown <davidb@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Linus Walleij <linus.walleij@stericsson.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support of ehci and ohci
+Date: Tue, 05 Jul 2011 10:37:40 -0700
+Message-ID: <8762ngtyqj.fsf@ti.com>
+References: <Pine.LNX.4.44L0.1107051018580.2060-100000@iolanthe.rowland.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:52030 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751792Ab1GERhx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 13:37:53 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1107051018580.2060-100000@iolanthe.rowland.org>
+	(Alan Stern's message of "Tue, 5 Jul 2011 10:22:09 -0400 (EDT)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Partha Basak <p-basak2@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-If an ARM system has multiple cpus in the same socket and the
-kernel is booted with maxcpus=1, secondary cpus are possible but
-not present due to how platform_smp_prepare_cpus() is called.
-Since most typical ARM processors don't actually support physical
-hotplug, initialize the present map to be equal to the possible
-map in generic ARM SMP code. Also, always call
-platform_smp_prepare_cpus() as long as max_cpus is non-zero (0
-means no SMP) to allow platform code to do any SMP setup.
+Alan Stern <stern@rowland.harvard.edu> writes:
 
-After applying this patch it's possible to boot an ARM system
-with maxcpus=1 on the command line and then hotplug in secondary
-cpus via sysfs. This is more in line with how x86 does things.
+[...]
 
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
-Cc: David Brown <davidb@codeaurora.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
+>>>You have ignored a few very important points:
+>>>
+>>>Firstly, system suspend is supposed to work even when runtime PM is
+>>>not configured.
+>>>
+>>>Secondly, the user can disable runtime PM via sysfs at any time.
+>>>This shouldn't mess up system suspend.
+>>>
+>>>Basically, it's a bad idea to mix up system suspend with runtime PM.
+>> 
+>> Your observations are correct but this is a generic limitation and
+>> Kevin is working on this problem in parallel.
+>> 
+>> As of now, all OMAP drivers are mandated to use ONLY runtime pm framework
+>> for enabling/disabling clocks. I will let Kevin comment further.
+>
+> Okay, let's see what Kevin says.
+
+While I did design the OMAP PM core to be runtime PM centric, and we
+implemented several drivers based on runtime PM alone, after some long
+discussions on linux-pm[1] with Alan and Rafael (PM maintainer) over the
+last couple weeks, I'm now convinced I had the wrong design/approach.
+
+Rafael and Alan have been patient with my stubborness, but now I've been
+pursuaded.  Rafael has detailed on linux-pm the various
+problems/limitations/races between runtime PM and system PM[2], so I
+don't plan debating them again here.
+
+That being said, today we have several drivers that use runtime PM calls
+in their suspend/resume path and our PM domain implementation (inside
+omap_device) deals with most of the limitations fine.  However, there
+are 2 main problems/limitation with this that we've chosen to live with
+(for now):
+        
+1) synchronous calls must be used in the suspend/resume path (because
+   PM workqueue is frozen during suspend/resumea)
+2) disabling runtime PM from userspace will prevent that device
+   from hitting its low-power state during suspend.
+
+For v3.1 (and before), we've lived with these limitations, and I'm OK
+with merging other drivers for v3.1 with these limitations.  After 3.1,
+this will be changing (more on this below.)  
+
+So, while I've been OK with merging drivers with the above limitations
+for one more merge window, $SUBJECT patch adds a new twist by forcibly
+managing the parent device from the child device.  Personally, I really
+don't like that approach and it serves as a good illustration of yet
+another reason why system PM and runtime PM need understood as
+conceptually very different.
+
+For v3.2, the PM core will change[2] to futher limit/protect
+interactions between runtime PM and system PM, and I will be reworking
+our PM domain (omap_device) implementation accordingly.  
+
+Basically, what that will mean is that our PM domain layer (omap_device)
+will also call omap_device_idle() in the suspend path, but only if the
+device is *not* already idle (from previous runtime suspend.)  The PM
+domain layer will then omap_device_enable() the device in the system
+resume path if it was suspended in the system suspend path.  A minimally
+tested patch to do this is below.
+
+So, the driver still does not have to care about it's specific clocks
+etc. (which should address Felipe's concern), clocks and other
+IP-specific PM details will all continue to be handled by omap_device,
+just like it is with runtime PM.
+
+The primary change to the driver, is that whatever needs to be done to
+prepare for both runtime PM and system PM (including context
+save/restore etc.) will have to be done in a common function(s) that
+will be called by *both* of its ->runtime_suspend() and ->suspend()
+callbacks, and similar for ->runtime_resume() and ->resume().  
+
+Some drivers will have additional work to do for system PM though.  This
+is mainly because system PM can happen at *any* time, including in the
+middle of ongoing activity, whereas runtime PM transitions happen when
+the device is known to be idle.  What that means is that for example, a
+drivers ->suspend() method might need to wait for (or forcibly stop) any
+ongoing activity in order to be sure the device is ready to be suspended.
+
+Frankly, this is not a very big change for the drivers, as the
+device-specific idle work will still be handled by the PM domain layer.
+
+Hope that helps clarify the background.
+
+As for this particular patch, since it is rather late in the development
+cycle for v3.1, I would recommend that it wait until the omap_device
+changes, and then let the PM core (for system PM and runtime PM) handle
+the parent/child relationships as they are designed to.   But that is up
+to Felipe and USB maintainers to decide.
+
+Kevin
+
+[1] https://lists.linux-foundation.org/pipermail/linux-pm/2011-June/031559.html
+[2] https://lists.linux-foundation.org/pipermail/linux-pm/2011-June/031977.html
+
+
+>From 6696e9a2b106ca9c9936e5c2ad89650010120e10 Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Tue, 7 Jun 2011 16:07:28 -0700
+Subject: [PATCH] OMAP: PM: omap_device: add system PM methods for PM domain handling
+
+Using PM domain callbacks, use omap_device idle/enable to
+automatically suspend/resume devices.  Also use pm_generic_* routines
+to ensure driver's callbacks are correctly called.
+
+Driver ->suspend callback is needed to ensure the driver is in a state
+that it can be suspended.
+
+If device is already idle (typically because of previous runtime PM
+activity), there's nothing extra to do.
+
+KJH: The omap_device_* calls should probably actually be done in the
+     _noirq() methods.
+
+Not-yet-Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
+ arch/arm/plat-omap/include/plat/omap_device.h |    4 +++
+ arch/arm/plat-omap/omap_device.c              |   32 +++++++++++++++++++++++++
+ 2 files changed, 36 insertions(+), 0 deletions(-)
 
-Changes since V1:
- * Pulled up init_cpu_present() to arm/kernel/smp.c instead of
-   in each platform_smp_prepare_cpus()
-
- arch/arm/kernel/smp.c             |   11 +++++++++--
- arch/arm/mach-exynos4/platsmp.c   |    8 --------
- arch/arm/mach-msm/platsmp.c       |    8 --------
- arch/arm/mach-omap2/omap-smp.c    |    8 --------
- arch/arm/mach-realview/platsmp.c  |    8 --------
- arch/arm/mach-shmobile/platsmp.c  |    5 -----
- arch/arm/mach-tegra/platsmp.c     |    8 --------
- arch/arm/mach-ux500/platsmp.c     |    8 --------
- arch/arm/mach-vexpress/ct-ca9x4.c |    4 ----
- 9 files changed, 9 insertions(+), 59 deletions(-)
-
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index e7f92a4..167e3cb 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -365,8 +365,7 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
- 	 */
- 	if (max_cpus > ncores)
- 		max_cpus = ncores;
--
--	if (max_cpus > 1) {
-+	if (ncores > 1 && max_cpus) {
- 		/*
- 		 * Enable the local timer or broadcast device for the
- 		 * boot CPU, but only if we have more than one CPU.
-@@ -374,6 +373,14 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
- 		percpu_timer_setup();
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index e4c349f..bc36d05 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -44,6 +44,9 @@ extern struct device omap_device_parent;
+ #define OMAP_DEVICE_STATE_IDLE		2
+ #define OMAP_DEVICE_STATE_SHUTDOWN	3
  
- 		/*
-+		 * Initialise the present map, which describes the set of CPUs
-+		 * actually populated at the present time. A platform should
-+		 * re-initialize the map in platform_smp_prepare_cpus() if
-+		 * present != possible (e.g. physical hotplug).
-+		 */
-+		init_cpu_present(&cpu_possible_map);
++/* omap_device.flags values */
++#define OMAP_DEVICE_SUSPENDED BIT(0)
 +
-+		/*
- 		 * Initialise the SCU if there are more than one CPU
- 		 * and let them know where to start.
- 		 */
-diff --git a/arch/arm/mach-exynos4/platsmp.c b/arch/arm/mach-exynos4/platsmp.c
-index c5e65a0..b68d5bd 100644
---- a/arch/arm/mach-exynos4/platsmp.c
-+++ b/arch/arm/mach-exynos4/platsmp.c
-@@ -154,14 +154,6 @@ void __init smp_init_cpus(void)
+ /**
+  * struct omap_device - omap_device wrapper for platform_devices
+  * @pdev: platform_device
+@@ -73,6 +76,7 @@ struct omap_device {
+ 	s8				pm_lat_level;
+ 	u8				hwmods_cnt;
+ 	u8				_state;
++	u8                              flags;
+ };
  
- void __init platform_smp_prepare_cpus(unsigned int max_cpus)
- {
--	int i;
--
--	/*
--	 * Initialise the present map, which describes the set of CPUs
--	 * actually populated at the present time.
--	 */
--	for (i = 0; i < max_cpus; i++)
--		set_cpu_present(i, true);
- 
- 	scu_enable(scu_base_addr());
- 
-diff --git a/arch/arm/mach-msm/platsmp.c b/arch/arm/mach-msm/platsmp.c
-index 2034098..315b9f3 100644
---- a/arch/arm/mach-msm/platsmp.c
-+++ b/arch/arm/mach-msm/platsmp.c
-@@ -157,12 +157,4 @@ void __init smp_init_cpus(void)
- 
- void __init platform_smp_prepare_cpus(unsigned int max_cpus)
- {
--	int i;
--
--	/*
--	 * Initialise the present map, which describes the set of CPUs
--	 * actually populated at the present time.
--	 */
--	for (i = 0; i < max_cpus; i++)
--		set_cpu_present(i, true);
+ /* Device driver interface (call via platform_data fn ptrs) */
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 49fc0df..f2711c3 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -564,12 +564,44 @@ static int _od_runtime_resume(struct device *dev)
+ 	return pm_generic_runtime_resume(dev);
  }
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index ecfe93c..ce65e93 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -125,14 +125,6 @@ void __init smp_init_cpus(void)
  
- void __init platform_smp_prepare_cpus(unsigned int max_cpus)
- {
--	int i;
--
--	/*
--	 * Initialise the present map, which describes the set of CPUs
--	 * actually populated at the present time.
--	 */
--	for (i = 0; i < max_cpus; i++)
--		set_cpu_present(i, true);
++static int _od_suspend(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_device *od = to_omap_device(pdev);
++	int ret;
++
++	ret = pm_generic_suspend(dev);
++
++	od->flags &= ~OMAP_DEVICE_SUSPENDED;
++
++	if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
++		omap_device_idle(pdev);
++		od->flags |= OMAP_DEVICE_SUSPENDED;
++	}
++
++	return ret;
++}
++
++static int _od_resume(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_device *od = to_omap_device(pdev);
++
++	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
++	    (od->_state == OMAP_DEVICE_STATE_IDLE))
++		omap_device_enable(pdev);
++	
++	return pm_generic_resume(dev);
++}
++
+ static struct dev_power_domain omap_device_power_domain = {
+ 	.ops = {
+ 		.runtime_suspend = _od_runtime_suspend,
+ 		.runtime_idle = _od_runtime_idle,
+ 		.runtime_resume = _od_runtime_resume,
+ 		USE_PLATFORM_PM_SLEEP_OPS
++		.suspend = _od_suspend,
++		.resume = _od_resume,
+ 	}
+ };
  
- 	/*
- 	 * Initialise the SCU and wake up the secondary core using
-diff --git a/arch/arm/mach-realview/platsmp.c b/arch/arm/mach-realview/platsmp.c
-index 963bf0d..4ae943b 100644
---- a/arch/arm/mach-realview/platsmp.c
-+++ b/arch/arm/mach-realview/platsmp.c
-@@ -68,14 +68,6 @@ void __init smp_init_cpus(void)
- 
- void __init platform_smp_prepare_cpus(unsigned int max_cpus)
- {
--	int i;
--
--	/*
--	 * Initialise the present map, which describes the set of CPUs
--	 * actually populated at the present time.
--	 */
--	for (i = 0; i < max_cpus; i++)
--		set_cpu_present(i, true);
- 
- 	scu_enable(scu_base_addr());
- 
-diff --git a/arch/arm/mach-shmobile/platsmp.c b/arch/arm/mach-shmobile/platsmp.c
-index f3888fe..66f9806 100644
---- a/arch/arm/mach-shmobile/platsmp.c
-+++ b/arch/arm/mach-shmobile/platsmp.c
-@@ -64,10 +64,5 @@ void __init smp_init_cpus(void)
- 
- void __init platform_smp_prepare_cpus(unsigned int max_cpus)
- {
--	int i;
--
--	for (i = 0; i < max_cpus; i++)
--		set_cpu_present(i, true);
--
- 	shmobile_smp_prepare_cpus();
- }
-diff --git a/arch/arm/mach-tegra/platsmp.c b/arch/arm/mach-tegra/platsmp.c
-index b8ae3c9..1a594dc 100644
---- a/arch/arm/mach-tegra/platsmp.c
-+++ b/arch/arm/mach-tegra/platsmp.c
-@@ -129,14 +129,6 @@ void __init smp_init_cpus(void)
- 
- void __init platform_smp_prepare_cpus(unsigned int max_cpus)
- {
--	int i;
--
--	/*
--	 * Initialise the present map, which describes the set of CPUs
--	 * actually populated at the present time.
--	 */
--	for (i = 0; i < max_cpus; i++)
--		set_cpu_present(i, true);
- 
- 	scu_enable(scu_base);
- }
-diff --git a/arch/arm/mach-ux500/platsmp.c b/arch/arm/mach-ux500/platsmp.c
-index 0c527fe..a33df5f 100644
---- a/arch/arm/mach-ux500/platsmp.c
-+++ b/arch/arm/mach-ux500/platsmp.c
-@@ -172,14 +172,6 @@ void __init smp_init_cpus(void)
- 
- void __init platform_smp_prepare_cpus(unsigned int max_cpus)
- {
--	int i;
--
--	/*
--	 * Initialise the present map, which describes the set of CPUs
--	 * actually populated at the present time.
--	 */
--	for (i = 0; i < max_cpus; i++)
--		set_cpu_present(i, true);
- 
- 	scu_enable(scu_base_addr());
- 	wakeup_secondary();
-diff --git a/arch/arm/mach-vexpress/ct-ca9x4.c b/arch/arm/mach-vexpress/ct-ca9x4.c
-index 765a71f..bfd32f5 100644
---- a/arch/arm/mach-vexpress/ct-ca9x4.c
-+++ b/arch/arm/mach-vexpress/ct-ca9x4.c
-@@ -229,10 +229,6 @@ static void ct_ca9x4_init_cpu_map(void)
- 
- static void ct_ca9x4_smp_enable(unsigned int max_cpus)
- {
--	int i;
--	for (i = 0; i < max_cpus; i++)
--		set_cpu_present(i, true);
--
- 	scu_enable(MMIO_P2V(A9_MPCORE_SCU));
- }
- #endif
 -- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+1.7.6
 
