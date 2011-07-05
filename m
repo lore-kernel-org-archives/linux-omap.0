@@ -1,75 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 7/7] 4460sdp/blaze/panda: hwmod: Prevent gpio1 reset
- during hwmod init
-Date: Tue, 5 Jul 2011 03:45:53 -0700
-Message-ID: <20110705104553.GF5783@atomide.com>
-References: <1309486081-8257-3-git-send-email-rnayak@ti.com>
- <1309486081-8257-4-git-send-email-rnayak@ti.com>
- <1309486081-8257-5-git-send-email-rnayak@ti.com>
- <1309486081-8257-6-git-send-email-rnayak@ti.com>
- <1309486081-8257-7-git-send-email-rnayak@ti.com>
- <1309486081-8257-8-git-send-email-rnayak@ti.com>
- <20110701063241.GX23145@atomide.com>
- <alpine.DEB.2.00.1107022103430.12499@utopia.booyaka.com>
- <20110704085335.GP23145@atomide.com>
- <alpine.DEB.2.00.1107050136120.4217@utopia.booyaka.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv5 01/11] OMAP: prcm: switch to a chained IRQ handler
+ mechanism
+Date: Tue, 5 Jul 2011 14:18:43 +0300
+Message-ID: <20110705111842.GZ2820@legolas.emea.dhcp.ti.com>
+References: <1309861677-2769-1-git-send-email-t-kristo@ti.com>
+ <1309861677-2769-2-git-send-email-t-kristo@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="kncZREqT6Wt3NQEl"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:57738 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755433Ab1GEKp5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 06:45:57 -0400
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:33958 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932110Ab1GELSu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 07:18:50 -0400
+Received: by bwd7 with SMTP id 7so5700358bwd.30
+        for <linux-omap@vger.kernel.org>; Tue, 05 Jul 2011 04:18:47 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1107050136120.4217@utopia.booyaka.com>
+In-Reply-To: <1309861677-2769-2-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, Nishanth Menon <nm@ti.com>, s-sintes@ti.com, Moiz Sonasath <m-sonasath@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Avinash.H.M" <avinashhm@ti.com>, Kevin Hilman <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, Felipe Balbi <balbi@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [110705 00:35]:
-> Hi Tony
-> 
-> On Mon, 4 Jul 2011, Tony Lindgren wrote:
-> 
-> > * Paul Walmsley <paul@pwsan.com> [110702 21:09]:
-> > 
-> > > Here are some options that come to mind:
-> > > 
-> > > 1. Wait until the driver runtime PM conversion is finished before doing 
-> > >    anything.  In the meantime, boards with IP blocks that can't be reset 
-> > >    - N810, TI 4460 boards - will have problems.
-> > > 
-> > > 2. Merge the lazy/unused hwmod reset code, but prevent IP blocks 
-> > >    controlled by non-runtime PM drivers from being reset.  We'd have to
-> > >    maintain a list of these somewhere, perhaps in some common code called 
-> > >    by board file init_machine code.  Then we'd need to redact that list as 
-> > >    new driver runtime PM conversions complete.
-> > > 
-> > > 3. Merge the lazy/unused hwmod reset code, but disable the unused hwmod 
-> > >    reset code until the driver runtime PM conversion is finished.  This
-> > >    could cause problems with driverless devices that are left configured
-> > >    by bootloaders or ROM code, and that problem would reoccur for each new
-> > >    OMAP chip.
-> > > 
-> > > Do you have a preference as to which approach to take?
-> > 
-> > I think #3 above is the safest option. How about make it only happen with
-> > hwmod_reset=1 cmdline with 0 being the default value?
-> 
-> With the patch that was posted, that would disable all reset.  Probably we 
-> want to reset devices that have drivers with PM runtime support?
 
-Can't we always reset the registered hwmods automatically one at a time when
-omap_device_build is called?
+--kncZREqT6Wt3NQEl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> That would allow drivers to assume that they are starting from consistent 
-> device state.  It also should prevent some power management problems 
-> that are dependent on particular bootloaders.   How about if we add a 
-> second parameter, hwmod_reset_unused?  The default could be 'no' and then 
-> only devices with PM runtime-enabled drivers would be reset first.
+Hi,
 
-Yes I think hwmod_reset_unsed would be a better name, but do we actually
-need any other reset option in addition to that?
+On Tue, Jul 05, 2011 at 01:27:47PM +0300, Tero Kristo wrote:
+> @@ -854,20 +802,35 @@ static int __init omap3_pm_init(void)
+>  	/* XXX prcm_setup_regs needs to be before enabling hw
+>  	 * supervised mode for powerdomains */
+>  	prcm_setup_regs();
+> +	ret =3D omap_prcm_irq_init();
+> +	if (ret) {
+> +		pr_err("omap_prcm_irq_init() failed with %d\n", ret);
+> +		goto err_prcm_irq_init;
+> +	}
+> +
+> +	prcm_wkup_irq =3D omap_prcm_event_to_irq("wkup");
+> +	prcm_io_irq =3D omap_prcm_event_to_irq("io");
+> +
+> +	ret =3D request_irq(prcm_wkup_irq, _prcm_int_handle_wakeup,
+> +			IRQF_NO_SUSPEND | IRQF_DISABLED, "prcm_wkup", NULL);
 
-TOny
+IRQF_DISABLED shouldn't be used anymore ;-)
+
+<linux/interrupt.h>:
+
+ 45  * IRQF_DISABLED - keep irqs disabled when calling the action handler.
+ 46  *                 DEPRECATED. This flag is a NOOP and scheduled to be =
+removed
+
+
+--=20
+balbi
+
+--kncZREqT6Wt3NQEl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOEvMSAAoJEAv8Txj19kN1pY8H/jk0rrmoh3qUNRHly72/DutL
+MAGgNcret/lNufbbZjs8QK3pA6tmV+nWhPsfp8KOZ6IUORqYPGx6nvzPD5M+tVDR
+/BZavb+DSChAOXNmhjMOFLPZ/4SRyB5tHzFyieuhm40Ss71CavhZsre5QqxFjUTK
+KqcI86tCO/iKB+6Is72V95cQOwMjAJkkGVctuQ83XXy/lGYzT21+cF9o8w+JIUCy
+6O5F5qhUkQvM4zmP5K1zb50s3hDS2ouR2d4N7dNlGyIkQuLjwnFDWLSxrj6Tgg1Z
+dnMPieq1BtUu/0NtwPgXpiPg/nPLY3w+qrfCnSzLd+LMl/d+2ry2kIArKkWTW2E=
+=3c6n
+-----END PGP SIGNATURE-----
+
+--kncZREqT6Wt3NQEl--
