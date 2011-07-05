@@ -1,82 +1,111 @@
-From: =?UTF-8?B?UmFwaGHDq2wgQXNzw6luYXQ=?= <raph@8d.com>
-Subject: Re: AM3505/3517 support
-Date: Tue, 05 Jul 2011 10:35:47 -0400
-Message-ID: <4E132143.7040802@8d.com>
-References: <4E121485.6060700@8d.com> <20110705111952.GG5783@atomide.com>
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCH] OMAP4460: Hwmod: Add hwmod for thermal sensor
+Date: Tue, 5 Jul 2011 20:28:52 +0530
+Message-ID: <1309877932-27202-1-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from roc.holo.8d.com ([64.254.227.115]:39502 "EHLO roc.holo.8d.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753034Ab1GEOfu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Jul 2011 10:35:50 -0400
-In-Reply-To: <20110705111952.GG5783@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58264 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755129Ab1GEO5j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 10:57:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>, Vishwnath BS <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-On 05/07/11 07:19 AM, Tony Lindgren wrote:
-> * Rapha=C3=ABl Ass=C3=A9nat <raph@8d.com> [110704 12:51]:
->>
->> The am3505 is apparently so similar to the 3430 that it was treated =
-as such=20
->> (omap_chip.oc was being set to CHIP_IS_OMAP3430ES3_1). There are how=
-ever a
->> few differences that need to be addressed. I have therefore created =
-a new
->> CHIP_IS and patched clocks, hwmod and power management related files
->> consequently. My system now boots until it complains that it is unab=
-le=20
->> to mount its root filesystem.
->=20
-> Can you please describe where you need CHIP_IS for am3505? It seems t=
-hat
-> your patches just enable the same CHIP_IS_OMAP3430 features for am350=
-5 too?
-Actually it's only needed for the 3505/3517 specific UART 4 which shoul=
-d
-not be registered on real OMAP3430's. (see struct omap_hwmod=20
-am35xx_uart4_hwmod; in omap_hwmod_3xxx_data.c)
+From: Keerthy <j-keerthy@ti.com>
 
-But there are also cases where OMAP3430 hwmods must not be registered
-on AM35xx. For instance, omap3xxx_timer12_hwmod since timer12 does
-not exist general purpose AM3505's.
+Patch adds hwmod entry for 4460 thermal sensor module. Thermal sensor module
+is part of Control module sharing its address space and clocked via Bandgap
+Functional Clock. Adding a seperate hwmod entry for thermal sensor will
+enable thermal sensor driver to manage its clock cleanly using PM runtime
+interfaces.
 
-> I'd rather see us improve the code so we can support am3505 properly =
-without
-> a need to patch all over the place..
-Maybe instead of having one big array of hwmods registered for
-all CPUs in omap_hwmod_3xxx_data we could have a separate
-one for am35xx (and maybe, eventually others) such as:
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Vishwnath BS <vishwanath.bs@ti.com>
 
-static __initdata struct omap_hwmod *omap3xxx_hwmods[]
-static __initdata struct omap_hwmod *am35xx_hwmods[]
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+---
+Patch is generated against "[PATCH v2 0/6] OMAP4: Add 4460 base support"
+patch series from Rajendra and boot tested on 4430 and 4460.
 
-=2E..and maybe also a 'common' array.
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   54 ++++++++++++++++++++++++++++
+ 1 files changed, 54 insertions(+), 0 deletions(-)
 
-The init function would then register the appropriate hwmod array(s). T=
-he only=20
-thing I don't like is that for this to work we would have to keep setti=
-ng=20
-CHIP_IS_OMAP3430 even on AM35xx CPUs. But maybe we could change the beh=
-aviour of
-omap_hwmod_register to trust the caller and accept the hwmods without l=
-ooking=20
-at the omap_chip member. By doing this I think we could drop all the=20
-=2Eomap_chip =3D OMAP_CHIP_INIT(...) instances.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 5e9df34..a01a9ec
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -755,6 +755,58 @@ static struct omap_hwmod omap44xx_aess_hwmod = {
+ };
+ 
+ /*
++ * 'thermal_sensor' class
++ * thermal sensor module inside the bandgap / control module
++ */
++
++static struct omap_hwmod_class omap44xx_thermal_sensor_hwmod_class = {
++	.name   = "thermal_sensor",
++};
++
++static struct omap_hwmod_irq_info omap44xx_thermal_sensor_irqs[] = {
++	{ .name = "thermal_alert", .irq = 126 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_thermal_sensor_addrs[] = {
++	{
++		.pa_start       = 0x4a002378,
++		.pa_end         = 0x4a0023ff,
++	},
++};
++
++static struct omap_hwmod omap44xx_thermal_sensor_hwmod;
++/* l4_cfg -> ctrl_module_core */
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__thermal_sensor = {
++	.master         = &omap44xx_l4_cfg_hwmod,
++	.slave          = &omap44xx_thermal_sensor_hwmod,
++	.clk            = "l4_div_ck",
++	.addr           = omap44xx_thermal_sensor_addrs,
++	.addr_cnt       = ARRAY_SIZE(omap44xx_thermal_sensor_addrs),
++	.user           = OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* ctrl_module_core slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_thermal_sensor_slaves[] = {
++	&omap44xx_l4_cfg__thermal_sensor,
++};
++
++static struct omap_hwmod omap44xx_thermal_sensor_hwmod = {
++	.name           = "thermal_sensor",
++	.class          = &omap44xx_thermal_sensor_hwmod_class,
++	.mpu_irqs       = omap44xx_thermal_sensor_irqs,
++	.mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_thermal_sensor_irqs),
++	.main_clk       = "bandgap_ts_fclk",
++	.slaves		= omap44xx_thermal_sensor_slaves,
++	.slaves_cnt     = ARRAY_SIZE(omap44xx_thermal_sensor_slaves),
++	.prcm           = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_WKUP_BANDGAP_CLKCTRL,
++		},
++	},
++	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP446X),
++};
++
++/*
+  * 'bandgap' class
+  * bangap reference for ldo regulators
+  */
+@@ -5205,6 +5257,8 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_timer10_hwmod,
+ 	&omap44xx_timer11_hwmod,
+ 
++	/* thermal sensor hwmod */
++	&omap44xx_thermal_sensor_hwmod,
+ 	/* uart class */
+ 	&omap44xx_uart1_hwmod,
+ 	&omap44xx_uart2_hwmod,
+-- 
+1.7.0.4
 
-Otherwise I think the current approach, despite the size of the initial=
- patch,
-has at least the benefit of being explicit and less confusing than (ab)=
-using the
-CHIP_IS from a different CPU.
-
-Best regards,
-Rapha=C3=ABl Ass=C3=A9nat
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
