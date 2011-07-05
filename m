@@ -1,67 +1,50 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
- of ehci and ohci
-Date: Tue, 5 Jul 2011 12:28:22 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1107051220220.2060-100000@iolanthe.rowland.org>
-References: <20110705155312.GQ2820@legolas.emea.dhcp.ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: omap4: rename gpmc clock to gpmc_ick
+Date: Tue, 05 Jul 2011 09:49:46 -0700
+Message-ID: <4E1340AA.2020007@ti.com>
+References: <1309868377-22379-1-git-send-email-j.weitzel@phytec.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110705155312.GQ2820@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Partha Basak <p-basak2@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:56071 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755896Ab1GEQtu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 12:49:50 -0400
+Received: by mail-gx0-f174.google.com with SMTP id 21so2303828gxk.19
+        for <linux-omap@vger.kernel.org>; Tue, 05 Jul 2011 09:49:49 -0700 (PDT)
+In-Reply-To: <1309868377-22379-1-git-send-email-j.weitzel@phytec.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jan Weitzel <j.weitzel@phytec.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, tony@atomide.com, Benoit Cousson <b-cousson@ti.com>
 
-On Tue, 5 Jul 2011, Felipe Balbi wrote:
++ Benoit
 
-> > >  Well, of
-> > > course runtime PM will conserve power on runtime, but system suspend
-> > > should be no different other than an "always deepest sleep state"
-> > > decision.
-> > 
-> > No, it is significantly different for several reasons.  Some of the
-> > most important differences are concerned with freezing userspace and
-> > deciding what events should be allowed to wake up the system.  Also, 
-> > there are systems which can achieve greater power savings by system 
-> > sleep than they can by runtime PM + cpuidle.
-> 
-> I remember we've been through this discussion before and it's just
-> nonsensical to make such statement. What does freezing userspace have to
-> do with power consumption ? If you can't reach lower power consumption
-> with runtime PM it only means userspace is waking the system too much.
+On 7/5/2011 5:19 AM, Jan Weitzel wrote:
+> The gpmc clock on omap44xx is called gpmc_ick not gpmc_ck in
+> clock44xx_data.c
+>
+> Signed-off-by: Jan Weitzel<j.weitzel@phytec.de>
+This happened after renaming the clock-nodes some time back.
+Looks good to me as a fix though in long run GPMC should be
+moved to hwmod to avoid such naming issues
 
-_That's_ what freezing userspace has to do with power consumption.  You 
-have answered your own question.
+> ---
+>   arch/arm/mach-omap2/gpmc.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 130034b..34bcd17 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -708,7 +708,7 @@ static int __init gpmc_init(void)
+>   		l = OMAP34XX_GPMC_BASE;
+>   		gpmc_irq = INT_34XX_GPMC_IRQ;
+>   	} else if (cpu_is_omap44xx()) {
+> -		ck = "gpmc_ck";
+> +		ck = "gpmc_ick";
+>   		l = OMAP44XX_GPMC_BASE;
+>   		gpmc_irq = OMAP44XX_IRQ_GPMC;
+>   	}
 
-And don't forget the other points about wakeup events and greater power
-savings.  If you want to discuss this further, you should start a new
-thread on linux-pm.
-
-
-> > Furthermore, from what I've gathered so far from this thread, the
-> > _real_ problem is that nobody has written suspend and resume callbacks
-> > for the parent device.  You're relying on runtime PM to do things with
-> > the parent, but instead you should make use of the usual system sleep
-> > mechanism: Parents are always suspended after their children and
-> > awakened before.  Have the parent's suspend routine disable the clocks 
-> > and have the resume routine enable them.  Problem solved, no changes 
-> > needed in the child's driver code.
-> 
-> that's currently hidden on the omap rutime pm support. No driver is to
-> talk to clk API directly anymore. Granted, now that I read what I just
-> wrote it does sound like it's a limitation, although it's really nice
-> not to have to remember all the numerous clocks needed for a particular
-> device to work properly. So, if there would be a way, other than
-> pm_runtime_resume(), to enable all clocks a particular device has
-> without really having to clk_get(); clk_enable() each one of them, fine,
-> this would be solved. But as of today, we only have pm_runtime_resume()
-> to achieve that, unless I'm missing something.
-
-(Actually, your problem isn't enabling clocks during resume; it is 
-disabling them during suspend.)
-
-The OMAP maintainer should be involved in this discussion.  Basically,
-the new PM domain framework is now supposed to handle these issues.
-
-Alan Stern
