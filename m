@@ -1,74 +1,62 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 08/11] TEMP: OMAP device: change pr_warnings to pr_debugs
-Date: Tue, 5 Jul 2011 13:27:54 +0300
-Message-ID: <1309861677-2769-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 10/11] TEMP: OMAP3: pm: disable / enable PRCM chain interrupts during wakeup from suspend
+Date: Tue, 5 Jul 2011 13:27:56 +0300
+Message-ID: <1309861677-2769-11-git-send-email-t-kristo@ti.com>
 References: <1309861677-2769-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43640 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58473 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755034Ab1GEK2P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 06:28:15 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p65ASFtc026632
+	id S1755334Ab1GEK2Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 06:28:16 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p65ASGPV031114
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:15 -0500
+	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:16 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id p65ASFuQ024549
-	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:15 -0500 (CDT)
+	by dlep35.itg.ti.com (8.13.7/8.13.8) with ESMTP id p65ASGgX013830
+	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:16 -0500 (CDT)
 Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p65ASEJ9028520
-	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:14 -0500 (CDT)
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p65ASFYm028528
+	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:16 -0500 (CDT)
 Content-Class: urn:content-classes:message
 In-Reply-To: <1309861677-2769-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Prevents a hang when omap_device would want to print something for
-serial console device while enabling / disabling its clocks.
+This prevents system hang while attempting to access suspended console. Should
+most likely be fixed with proper console locking.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/plat-omap/omap_device.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 9a02d95..9a71751 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -146,12 +146,12 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
- 			odpl->activate_lat_worst = act_lat;
- 			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
- 				odpl->activate_lat = act_lat;
--				pr_warning("omap_device: %s.%d: new worst case "
-+				pr_debug("omap_device: %s.%d: new worst case "
- 					   "activate latency %d: %llu\n",
- 					   od->pdev.name, od->pdev.id,
- 					   od->pm_lat_level, act_lat);
- 			} else
--				pr_warning("omap_device: %s.%d: activate "
-+				pr_debug("omap_device: %s.%d: activate "
- 					   "latency %d higher than exptected. "
- 					   "(%llu > %d)\n",
- 					   od->pdev.name, od->pdev.id,
-@@ -214,12 +214,12 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
- 			odpl->deactivate_lat_worst = deact_lat;
- 			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
- 				odpl->deactivate_lat = deact_lat;
--				pr_warning("omap_device: %s.%d: new worst case "
-+				pr_debug("omap_device: %s.%d: new worst case "
- 					   "deactivate latency %d: %llu\n",
- 					   od->pdev.name, od->pdev.id,
- 					   od->pm_lat_level, deact_lat);
- 			} else
--				pr_warning("omap_device: %s.%d: deactivate "
-+				pr_debug("omap_device: %s.%d: deactivate "
- 					   "latency %d higher than exptected. "
- 					   "(%llu > %d)\n",
- 					   od->pdev.name, od->pdev.id,
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index d45e7ad..34feff4 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -494,6 +494,8 @@ static int omap3_pm_begin(suspend_state_t state)
+ 	disable_hlt();
+ 	suspend_state = state;
+ 	omap_uart_enable_irqs(0);
++	disable_irq(prcm_io_irq);
++	disable_irq(prcm_wkup_irq);
+ 	return 0;
+ }
+ 
+@@ -502,6 +504,8 @@ static void omap3_pm_end(void)
+ 	suspend_state = PM_SUSPEND_ON;
+ 	omap_uart_enable_irqs(1);
+ 	enable_hlt();
++	enable_irq(prcm_io_irq);
++	enable_irq(prcm_wkup_irq);
+ 	return;
+ }
+ 
 -- 
 1.7.4.1
 
