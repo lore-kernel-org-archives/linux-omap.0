@@ -1,58 +1,53 @@
-From: "Nori, Sekhar" <nsekhar@ti.com>
-Subject: RE: [RFC 5/8] remoteproc: add davinci implementation
-Date: Tue, 5 Jul 2011 11:04:59 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D91A2CC@dbde02.ent.ti.com>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
-	<1308640714-17961-6-git-send-email-ohad@wizery.com>
-	<4E035B78.3080200@mvista.com>
-	<FFF198FBBF957F4393BA834040FEFFA202D66E@DFLE35.ent.ti.com>
-	<4E04A9AE.3030801@mvista.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2F29@dbde02.ent.ti.com>
-	<FFF198FBBF957F4393BA834040FEFFA202EC99@DFLE35.ent.ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
+Date: Tue, 5 Jul 2011 12:41:10 +0530
+Message-ID: <1309849870-25660-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <FFF198FBBF957F4393BA834040FEFFA202EC99@DFLE35.ent.ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Grosen, Mark" <mgrosen@ti.com>, Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
+Currently the fifo depth is set to zero for OMAP4 which disables
+the FIFO usage. This patch enables the FIFO usage for I2C transactions
+on OMAP4 also.
 
-On Tue, Jun 28, 2011 at 00:01:41, Grosen, Mark wrote:
-> > From: Nori, Sekhar
-> > Sent: Friday, June 24, 2011 8:44 AM
-> > 
-> > Hi Mark,
-> 
-> Sekhar, thanks for your feedback and ideas. Comments below.
-> 
-> Mark
-> 
-> > Since procedure to set the boot address varies across DaVinci
-> > platforms, you could have a callback populated in platform data
-> > which will be implemented differently for original DaVinci and
-> > DA8xx devices.
-> 
-> I looked at DM6467 and it's the same as OMAPL13x, except at a different
-> address. Rather than a callback, it could be just an address in the
-> platform data.
+Tested on omap4430 and 3430.
 
-Sounds okay as long as _all_ the DaVinci devices have the same
-bit to be set. Plus, I hope there are no other users of the
-register so that there is no race with other platform code using
-the same register.
+Reported-By: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+Rebased on top of the series by Andy Green
+http://www.spinics.net/lists/linux-i2c/msg05632.html
 
-Thanks,
-Sekhar
+ drivers/i2c/busses/i2c-omap.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index d53cd61..8f87a37 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1068,13 +1068,14 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		 * size. This is to ensure that we can handle the status on int
+ 		 * call back latencies.
+ 		 */
+-		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430) {
+-			dev->fifo_size = 0;
++
++		dev->fifo_size = (dev->fifo_size / 2);
++
++		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
+ 			dev->b_hw = 0; /* Disable hardware fixes */
+-		} else {
+-			dev->fifo_size = (dev->fifo_size / 2);
++		else
+ 			dev->b_hw = 1; /* Enable hardware fixes */
+-		}
++
+ 		/* calculate wakeup latency constraint for MPU */
+ 		if (dev->set_mpu_wkup_lat != NULL)
+ 			dev->latency = (1000000 * dev->fifo_size) /
+-- 
+1.7.1
