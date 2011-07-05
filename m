@@ -1,53 +1,60 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
-Date: Tue, 05 Jul 2011 12:41:24 +0530
-Message-ID: <4E12B91C.8020102@ti.com>
-References: <1309327221-4121-1-git-send-email-shubhrajyoti@ti.com>	<871uycql0y.fsf@ti.com> <4E0C24A5.5020905@ti.com> <874o37djdg.fsf@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 7/7] 4460sdp/blaze/panda: hwmod: Prevent gpio1 reset
+ during hwmod init
+Date: Tue, 5 Jul 2011 01:40:14 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107050136120.4217@utopia.booyaka.com>
+References: <1309486081-8257-1-git-send-email-rnayak@ti.com> <1309486081-8257-2-git-send-email-rnayak@ti.com> <1309486081-8257-3-git-send-email-rnayak@ti.com> <1309486081-8257-4-git-send-email-rnayak@ti.com> <1309486081-8257-5-git-send-email-rnayak@ti.com>
+ <1309486081-8257-6-git-send-email-rnayak@ti.com> <1309486081-8257-7-git-send-email-rnayak@ti.com> <1309486081-8257-8-git-send-email-rnayak@ti.com> <20110701063241.GX23145@atomide.com> <alpine.DEB.2.00.1107022103430.12499@utopia.booyaka.com>
+ <20110704085335.GP23145@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <874o37djdg.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:42822 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753886Ab1GEHkP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 03:40:15 -0400
+In-Reply-To: <20110704085335.GP23145@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, Nishanth Menon <nm@ti.com>, s-sintes@ti.com, Moiz Sonasath <m-sonasath@ti.com>
 
-On Friday 01 July 2011 04:20 AM, Kevin Hilman wrote:
-> Shubhrajyoti<shubhrajyoti-l0cyMroinI0@public.gmane.org>  writes:
->
->> On Thursday 30 June 2011 04:53 AM, Kevin Hilman wrote:
->>> Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>   writes:
->>>
->>>> Currently the fifo depth is set to zero for OMAP4 which disables
->>>> the FIFO usage. This patch enables the FIFO usage for I2C transact=
-ions
->>>> on OMAP4 also.
->>> Do you know the history of why the FIFO depth was set to zero?  A
->>> summary of that history would greatly help reviewers.
-Looks like it is disabled in the initial bring up and some how didn=92t=
-=20
-get enabled.
-All I could find is
-http://www.mail-archive.com/linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg01404.html
+Hi Tony
 
->>>> Reported-By:Nishanth Menon<nm-l0cyMroinI0@public.gmane.org>
->>> minor: missing space after ':'
-Yes will fix it.
->>>> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
->>> Tested on what platforms?   OMAP3 also?
->> OMAP4 and OMAP3
-> Please add a brief summary of what platforms it was tested on in the
-> changelog.
-Will update it
->>> Could you please rebase this onto my for_3.1/i2c-andy branch[1] whe=
-re we
->>> have a large series of I2C patches queued up for the v3.1 merge win=
-dow
->>> already?
->> OK will rebase and resend.
-Sent a rebased version.
-> Thanks,
->
-> Kevin
+On Mon, 4 Jul 2011, Tony Lindgren wrote:
+
+> * Paul Walmsley <paul@pwsan.com> [110702 21:09]:
+> 
+> > Here are some options that come to mind:
+> > 
+> > 1. Wait until the driver runtime PM conversion is finished before doing 
+> >    anything.  In the meantime, boards with IP blocks that can't be reset 
+> >    - N810, TI 4460 boards - will have problems.
+> > 
+> > 2. Merge the lazy/unused hwmod reset code, but prevent IP blocks 
+> >    controlled by non-runtime PM drivers from being reset.  We'd have to
+> >    maintain a list of these somewhere, perhaps in some common code called 
+> >    by board file init_machine code.  Then we'd need to redact that list as 
+> >    new driver runtime PM conversions complete.
+> > 
+> > 3. Merge the lazy/unused hwmod reset code, but disable the unused hwmod 
+> >    reset code until the driver runtime PM conversion is finished.  This
+> >    could cause problems with driverless devices that are left configured
+> >    by bootloaders or ROM code, and that problem would reoccur for each new
+> >    OMAP chip.
+> > 
+> > Do you have a preference as to which approach to take?
+> 
+> I think #3 above is the safest option. How about make it only happen with
+> hwmod_reset=1 cmdline with 0 being the default value?
+
+With the patch that was posted, that would disable all reset.  Probably we 
+want to reset devices that have drivers with PM runtime support?  That 
+would allow drivers to assume that they are starting from consistent 
+device state.  It also should prevent some power management problems 
+that are dependent on particular bootloaders.   How about if we add a 
+second parameter, hwmod_reset_unused?  The default could be 'no' and then 
+only devices with PM runtime-enabled drivers would be reset first.
+
+
+- Paul
