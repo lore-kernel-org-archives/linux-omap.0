@@ -1,88 +1,60 @@
-From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCH v3 04/13] OMAP: hwmod: Wait the idle status to be disabled
-Date: Tue, 5 Jul 2011 11:21:44 -0700
-Message-ID: <20110705182144.GA10846@google.com>
-References: <1309554558-19819-1-git-send-email-b-cousson@ti.com>
-	<1309554558-19819-5-git-send-email-b-cousson@ti.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH][RFC] OMAP4: I2C : I2C context save
+Date: Tue, 05 Jul 2011 11:31:23 -0700
+Message-ID: <87y60cr344.fsf@ti.com>
+References: <1308559552-24028-1-git-send-email-shubhrajyoti@ti.com>
+	<87ips08qis.fsf@ti.com> <4DFF6A9E.5050209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1309554558-19819-5-git-send-email-b-cousson@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: paul@pwsan.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4DFF6A9E.5050209-l0cyMroinI0@public.gmane.org> (shubhrajyoti-l0cyMroinI0@public.gmane.org's message of "Mon,
+	20 Jun 2011 21:13:26 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 01, 2011 at 11:09:09PM +0200, Benoit Cousson wrote:
-> It is mandatory to wait for a module to be in disabled state before
-> potentially disabling source clock or re-asserting a reset.
-> 
-> omap_hwmod_idle and omap_hwmod_shutdown does not wait for
-> the module to be fully idle.
-> 
-> Add a cm_xxx accessor to wait the clkctrl idle status to be disabled.
-> Fix hwmod_[idle|shutdown] to use this API.
-...
-> +int omap4_cm_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
+Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
 
-Technically this waits for a module slave to enter "full idle" --
-"interface idle" not good enough, and if the module is also a master
-its standby status could possibly be different... personally, these
-details make my brain hurt, but thought I'd mention this in case
-the naming of this interface should capture any of these distinctions.
+> On Monday 20 June 2011 09:05 PM, Kevin Hilman wrote:
+>> shubhrajyoti-l0cyMroinI0@public.gmane.org writes:
+>>
+>>> From: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>>>
+>>> Currently the OMAP4 doesnot hit device off still the
+>>> driver may have support for it.Adding support for the
+>>> same.
+>>>
+>>> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>> Please Cc linux-omap as this change to the hwmod data would go through
+>> Tony.
+> Yes , missed out.
+>> Also, please describe why this hwmod data change affects the problem
+>> described in the changelog.
+>>
+> After Andy's patch set
+> <code snippet>
+> static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+> {
+> <snip>
+>
+>         pm_runtime_get_sync(&pdev->dev);
+>
+>         if (pdata->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+>                 omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>                 omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
+>                 omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+>                 omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+>                 omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+>                 omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
+>                 omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+>                 omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+>         }
+>         dev->idle = 0;
+>
+> This is dependent on the flag, I am making it true for OMAP4 also.
 
-> +{
-> +	int i = 0;
-> +
-> +	if (!clkctrl_offs)
-> +		return 0;
-> +
-> +	omap_test_timeout(
-> +		_clkctrl_idlest(part, inst, cdoffs, clkctrl_offs) == 0x3,
-> +		MAX_MODULE_READY_TIME, i);
+What I meant was: please describe this in the changelog.  Without more
+detail, the hwmod change itself is not understandable.
 
-The numeric constant may already have an equivalent symbol defined, or
-suggest adding one.
-
->  /**
-> + * _wait_target_disable - wait for a module to be disabled
-> + * @oh: struct omap_hwmod *
-> + *
-> + * Wait for a module @oh to leave slave idle.  Returns 0 if the module
-> + * does not have an IDLEST bit or if the module successfully leaves
-> + * slave idle; otherwise, pass along the return value of the
-> + * appropriate *_cm_wait_module_ready() function.
-
-This paragraph probably c&p from a function with opposite meaning.
-
-...
->  static int _idle(struct omap_hwmod *oh)
->  {
-> +	int ret;
-> +
->  	pr_debug("omap_hwmod: %s: idling\n", oh->name);
->  
->  	if (oh->_state != _HWMOD_STATE_ENABLED) {
-> @@ -1351,6 +1383,10 @@ static int _idle(struct omap_hwmod *oh)
->  		_idle_sysc(oh);
->  	_del_initiator_dep(oh, mpu_oh);
->  	_disable_clocks(oh);
-> +	ret = _wait_target_disable(oh);
-> +	if (ret)
-> +		pr_debug("omap_hwmod: %s: _wait_target_disable failed\n",
-> +			   oh->name);
-
-Should callers see an error function return in this case?
-
-
-Todd
+Kevin
