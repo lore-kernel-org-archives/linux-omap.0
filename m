@@ -1,79 +1,65 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv5 01/11] OMAP: prcm: switch to a chained IRQ handler
- mechanism
-Date: Tue, 5 Jul 2011 14:18:43 +0300
-Message-ID: <20110705111842.GZ2820@legolas.emea.dhcp.ti.com>
-References: <1309861677-2769-1-git-send-email-t-kristo@ti.com>
- <1309861677-2769-2-git-send-email-t-kristo@ti.com>
-Reply-To: balbi@ti.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: AM3505/3517 support
+Date: Tue, 5 Jul 2011 04:19:52 -0700
+Message-ID: <20110705111952.GG5783@atomide.com>
+References: <4E121485.6060700@8d.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kncZREqT6Wt3NQEl"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:33958 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932110Ab1GELSu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 07:18:50 -0400
-Received: by bwd7 with SMTP id 7so5700358bwd.30
-        for <linux-omap@vger.kernel.org>; Tue, 05 Jul 2011 04:18:47 -0700 (PDT)
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:36685 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932074Ab1GELTz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 07:19:55 -0400
 Content-Disposition: inline
-In-Reply-To: <1309861677-2769-2-git-send-email-t-kristo@ti.com>
+In-Reply-To: <4E121485.6060700@8d.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Avinash.H.M" <avinashhm@ti.com>, Kevin Hilman <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, Felipe Balbi <balbi@ti.com>
+To: =?utf-8?B?UmFwaGHDq2wgQXNzw6luYXQ=?= <raph@8d.com>
+Cc: linux-omap@vger.kernel.org
 
+* Rapha=C3=ABl Ass=C3=A9nat <raph@8d.com> [110704 12:51]:
+>=20
+> The am3505 is apparently so similar to the 3430 that it was treated a=
+s such=20
+> (omap_chip.oc was being set to CHIP_IS_OMAP3430ES3_1). There are howe=
+ver a
+> few differences that need to be addressed. I have therefore created a=
+ new
+> CHIP_IS and patched clocks, hwmod and power management related files
+> consequently. My system now boots until it complains that it is unabl=
+e=20
+> to mount its root filesystem.
 
---kncZREqT6Wt3NQEl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Can you please describe where you need CHIP_IS for am3505? It seems tha=
+t
+your patches just enable the same CHIP_IS_OMAP3430 features for am3505 =
+too?
 
-Hi,
+I'd rather see us improve the code so we can support am3505 properly wi=
+thout
+a need to patch all over the place..
 
-On Tue, Jul 05, 2011 at 01:27:47PM +0300, Tero Kristo wrote:
-> @@ -854,20 +802,35 @@ static int __init omap3_pm_init(void)
->  	/* XXX prcm_setup_regs needs to be before enabling hw
->  	 * supervised mode for powerdomains */
->  	prcm_setup_regs();
-> +	ret =3D omap_prcm_irq_init();
-> +	if (ret) {
-> +		pr_err("omap_prcm_irq_init() failed with %d\n", ret);
-> +		goto err_prcm_irq_init;
-> +	}
-> +
-> +	prcm_wkup_irq =3D omap_prcm_event_to_irq("wkup");
-> +	prcm_io_irq =3D omap_prcm_event_to_irq("io");
-> +
-> +	ret =3D request_irq(prcm_wkup_irq, _prcm_int_handle_wakeup,
-> +			IRQF_NO_SUSPEND | IRQF_DISABLED, "prcm_wkup", NULL);
+> One of the next things I'll look at is how to properly support the ZC=
+N package.
+> Right now, the CBB package is used (board-am3517evm.c for instance) b=
+ut there
+> are differences that prevent some GPIOs from being configured properl=
+y. It would
+> be nice to know if someone is working on this before I start...
 
-IRQF_DISABLED shouldn't be used anymore ;-)
+You should be able to handle the differences easily just by adding a
+new package_subset to mux34xx.c, that just overrides the desired pins
+in omap3_muxmodes. Eventually we will be using device tree + common
+mux framework for this, but you might as well do the omap3_znc_subset
+meanwhile as we can then generate the device tree entries for all of
+them. That is assuming it's not a huge delta from omap3_muxmodes :)
 
-<linux/interrupt.h>:
+Regards,
 
- 45  * IRQF_DISABLED - keep irqs disabled when calling the action handler.
- 46  *                 DEPRECATED. This flag is a NOOP and scheduled to be =
-removed
-
-
---=20
-balbi
-
---kncZREqT6Wt3NQEl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOEvMSAAoJEAv8Txj19kN1pY8H/jk0rrmoh3qUNRHly72/DutL
-MAGgNcret/lNufbbZjs8QK3pA6tmV+nWhPsfp8KOZ6IUORqYPGx6nvzPD5M+tVDR
-/BZavb+DSChAOXNmhjMOFLPZ/4SRyB5tHzFyieuhm40Ss71CavhZsre5QqxFjUTK
-KqcI86tCO/iKB+6Is72V95cQOwMjAJkkGVctuQ83XXy/lGYzT21+cF9o8w+JIUCy
-6O5F5qhUkQvM4zmP5K1zb50s3hDS2ouR2d4N7dNlGyIkQuLjwnFDWLSxrj6Tgg1Z
-dnMPieq1BtUu/0NtwPgXpiPg/nPLY3w+qrfCnSzLd+LMl/d+2ry2kIArKkWTW2E=
-=3c6n
------END PGP SIGNATURE-----
-
---kncZREqT6Wt3NQEl--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
