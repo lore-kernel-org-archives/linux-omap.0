@@ -1,48 +1,99 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v6 08/18] mfd: twl6040: Add initial support
-Date: Tue, 5 Jul 2011 12:28:17 +0300
-Message-ID: <2205166.k2KJlqZUA7@barack>
-References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
-	<1650114.SY7VdjHPHs@barack> <20110704173935.GT3021@sortiz-mobl>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: AM3505/3517 support
+Date: Tue, 5 Jul 2011 15:29:04 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D91A50F@dbde02.ent.ti.com>
+References: <4E121485.6060700@8d.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20110704173935.GT3021@sortiz-mobl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55984 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753210Ab1GEJ7i convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 05:59:38 -0400
+In-Reply-To: <4E121485.6060700@8d.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?iso-8859-1?Q?Rapha=EBl_Ass=E9nat?= <raph@8d.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Samuel,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org=20
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Rapha=EBl Ass=E9=
+nat
+> Sent: Tuesday, July 05, 2011 12:59 AM
+> To: linux-omap@vger.kernel.org
+> Subject: AM3505/3517 support
+>=20
+> Hello,
+>=20
+> We have a custom designed based on the AM3505 and we wish to=20
+> run a modern kernel
+> on it. Unfortunately, it seems a lot of efforts have been=20
+> made to support other=20
+> OMAP chips and that some work is still required to support=20
+> the AM3505/3517=20
+> completely. (does not boot as-is)
+>=20
+> Is there anyone working on this right now? Not knowing, I=20
+> have already started
+> working on it.
+>=20
+> The am3505 is apparently so similar to the 3430 that it was=20
+> treated as such=20
+> (omap_chip.oc was being set to CHIP_IS_OMAP3430ES3_1). There=20
+> are however a
+> few differences that need to be addressed. I have therefore=20
+> created a new
+> CHIP_IS and patched clocks, hwmod and power management related files
+> consequently. My system now boots until it complains that it=20
+> is unable=20
+> to mount its root filesystem.
+>=20
+> I will send my patches in a moment for comments and=20
+> hopefully, after a=20
+> few iterations, they will be acceptable. I know a lot of cleanup is=20
+> happening right now and as a result my patches may not apply=20
+> or conflict.=20
+> Please let me know and I will be happy to rebase them as needed.
+>=20
+> Looking forward to your comments and help.=20
+>=20
+> One of the next things I'll look at is how to properly=20
+> support the ZCN package.
+> Right now, the CBB package is used (board-am3517evm.c for=20
+> instance) but there
+> are differences that prevent some GPIOs from being configured=20
+> properly. It would
+> be nice to know if someone is working on this before I start...
 
-On Monday 04 July 2011 19:39:35 Samuel Ortiz wrote:
-> That is fine with me, yes. That's why I ACK the MFD patches for Tony to t=
-ake
-> them.
+Raphael,
 
-I have changed the series for Tony in my branch for the following comments:
-wl6040_is_powered, twl6040_get_rev removal, since these are really small =
+The AM35x support has been trailing on the linux-omap. Usually,
+due to delays in dependency resolution:
 
-changes, if you want to see it before Tony pulls it, I can send the selecte=
-d =
+If you are not specifically looking for the latest kernel,
+revision you can get the sources from:
+http://arago-project.org/git/projects/?p=3Dlinux-omap3.git
 
-patches (few lines has been changed).
+Use the tag: v2.6.37_OMAPPSP_04.02.00.07
 
-> Thanks in advance for the follow up patches.
+This tree is supported by TI. The patches contained here, are
+being reworked for upstream submission...
 
-For the twl6040_*_irq changes, I sent the series, since I ended up with a =
+~sanjeev
 
-bigger change than I would have expected.
-
-Regards, =
-
-P=E9ter
+>=20
+> Best regards,
+> Rapha=EBl Ass=E9nat
+> 8D Technologies inc.
+> --
+> To unsubscribe from this list: send the line "unsubscribe=20
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
