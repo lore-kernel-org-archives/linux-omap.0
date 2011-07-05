@@ -1,50 +1,61 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: omap4: rename gpmc clock to gpmc_ick
-Date: Tue, 05 Jul 2011 09:49:46 -0700
-Message-ID: <4E1340AA.2020007@ti.com>
-References: <1309868377-22379-1-git-send-email-j.weitzel@phytec.de>
+From: "Grosen, Mark" <mgrosen-l0cyMroinI0@public.gmane.org>
+Subject: RE: [RFC 5/8] remoteproc: add davinci implementation
+Date: Tue, 5 Jul 2011 16:54:21 +0000
+Message-ID: <FFF198FBBF957F4393BA834040FEFFA2032F6F@DFLE35.ent.ti.com>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
+	<1308640714-17961-6-git-send-email-ohad@wizery.com>
+	<4E035B78.3080200@mvista.com>
+	<FFF198FBBF957F4393BA834040FEFFA202D66E@DFLE35.ent.ti.com>
+	<4E04A9AE.3030801@mvista.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2F29@dbde02.ent.ti.com>
+	<FFF198FBBF957F4393BA834040FEFFA202EC99@DFLE35.ent.ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D91A2CC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:56071 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755896Ab1GEQtu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 12:49:50 -0400
-Received: by mail-gx0-f174.google.com with SMTP id 21so2303828gxk.19
-        for <linux-omap@vger.kernel.org>; Tue, 05 Jul 2011 09:49:49 -0700 (PDT)
-In-Reply-To: <1309868377-22379-1-git-send-email-j.weitzel@phytec.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D91A2CC-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, davinci-linux-open-source <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Brian Swetland <swetland-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jan Weitzel <j.weitzel@phytec.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, tony@atomide.com, Benoit Cousson <b-cousson@ti.com>
 
-+ Benoit
+> From: Nori, Sekhar
+> Sent: Monday, July 04, 2011 10:35 PM
+> To: Grosen, Mark; Sergei Shtylyov
 
-On 7/5/2011 5:19 AM, Jan Weitzel wrote:
-> The gpmc clock on omap44xx is called gpmc_ick not gpmc_ck in
-> clock44xx_data.c
->
-> Signed-off-by: Jan Weitzel<j.weitzel@phytec.de>
-This happened after renaming the clock-nodes some time back.
-Looks good to me as a fix though in long run GPMC should be
-moved to hwmod to avoid such naming issues
+...
+> > > Since procedure to set the boot address varies across DaVinci
+> > > platforms, you could have a callback populated in platform data
+> > > which will be implemented differently for original DaVinci and
+> > > DA8xx devices.
+> >
+> > I looked at DM6467 and it's the same as OMAPL13x, except at a
+> different
+> > address. Rather than a callback, it could be just an address in the
+> > platform data.
+> 
+> Sounds okay as long as _all_ the DaVinci devices have the same
+> bit to be set. Plus, I hope there are no other users of the
+> register so that there is no race with other platform code using
+> the same register.
 
-> ---
->   arch/arm/mach-omap2/gpmc.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 130034b..34bcd17 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -708,7 +708,7 @@ static int __init gpmc_init(void)
->   		l = OMAP34XX_GPMC_BASE;
->   		gpmc_irq = INT_34XX_GPMC_IRQ;
->   	} else if (cpu_is_omap44xx()) {
-> -		ck = "gpmc_ck";
-> +		ck = "gpmc_ick";
->   		l = OMAP44XX_GPMC_BASE;
->   		gpmc_irq = OMAP44XX_IRQ_GPMC;
->   	}
+Sekhar,
 
+The register is a dedicated 32-bit register that holds the start/boot
+address for the DSP, so no other platform code should be using it. Once
+the LRST is de-asserted (via the PSC code enhancement), the DSP starts
+execution at the address in this register.
+
+Thanks,
+
+Mark
