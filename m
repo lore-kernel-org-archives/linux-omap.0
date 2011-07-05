@@ -1,7 +1,7 @@
 From: "Grosen, Mark" <mgrosen-l0cyMroinI0@public.gmane.org>
 Subject: RE: [RFC 5/8] remoteproc: add davinci implementation
-Date: Tue, 5 Jul 2011 16:54:21 +0000
-Message-ID: <FFF198FBBF957F4393BA834040FEFFA2032F6F@DFLE35.ent.ti.com>
+Date: Tue, 5 Jul 2011 16:54:14 +0000
+Message-ID: <FFF198FBBF957F4393BA834040FEFFA2032F69@DFLE35.ent.ti.com>
 References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
 	<1308640714-17961-6-git-send-email-ohad@wizery.com>
 	<4E035B78.3080200@mvista.com>
@@ -9,12 +9,12 @@ References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
 	<4E04A9AE.3030801@mvista.com>
 	<B85A65D85D7EB246BE421B3FB0FBB593024D6C2F29@dbde02.ent.ti.com>
 	<FFF198FBBF957F4393BA834040FEFFA202EC99@DFLE35.ent.ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D91A2CC@dbde02.ent.ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D91A2BE@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D91A2CC-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D91A2BE-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
 	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
@@ -30,32 +30,39 @@ Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, davinci-linux
 List-Id: linux-omap@vger.kernel.org
 
 > From: Nori, Sekhar
-> Sent: Monday, July 04, 2011 10:35 PM
-> To: Grosen, Mark; Sergei Shtylyov
+> Sent: Monday, July 04, 2011 10:30 PM
 
 ...
-> > > Since procedure to set the boot address varies across DaVinci
-> > > platforms, you could have a callback populated in platform data
-> > > which will be implemented differently for original DaVinci and
-> > > DA8xx devices.
+> > > https://patchwork.kernel.org/patch/662941/
 > >
-> > I looked at DM6467 and it's the same as OMAPL13x, except at a
-> different
-> > address. Rather than a callback, it could be just an address in the
-> > platform data.
+> > Yes, I like this idea - much cleaner. For example, the start() method
+> > becomes (pseudo-code):
+> >
+> > start()
+> > {
+> >     /* bootaddrreg derived from platform data */
+> >     bootaddrreg = boot_address;
+> >
+> >     clk_enable();
+> > }
+> >
+> > Referring to your patch above, would it be better to just pass
+> > the flags into the davinci_psc_config() function rather than breaking
+> out more
+> > arguments for each flag?
 > 
-> Sounds okay as long as _all_ the DaVinci devices have the same
-> bit to be set. Plus, I hope there are no other users of the
-> register so that there is no race with other platform code using
-> the same register.
+> I did dwell on this quite a bit while writing that
+> patch, but finally decided on passing an argument
+> instead since I was not sure if there are going
+> to be more modifiers required.
+> 
+> Now that you have the need for one more flag, I
+> think we should go ahead and pass the flags directly
+> to davinci_psc_config(). My original patch is not
+> upstream yet. I will re-spin it and you can build
+> on top of it.
 
-Sekhar,
-
-The register is a dedicated 32-bit register that holds the start/boot
-address for the DSP, so no other platform code should be using it. Once
-the LRST is de-asserted (via the PSC code enhancement), the DSP starts
-execution at the address in this register.
-
-Thanks,
+Thanks, Sekhar, this sounds good. I'll look for your patch and utilize
+it in the next rev of this patch.
 
 Mark
