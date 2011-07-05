@@ -1,41 +1,48 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH][RFC] OMAP4: I2C : I2C context save
-Date: Tue, 5 Jul 2011 14:50:46 +0530
-Message-ID: <1309857646-29401-1-git-send-email-shubhrajyoti@ti.com>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v6 08/18] mfd: twl6040: Add initial support
+Date: Tue, 5 Jul 2011 12:28:17 +0300
+Message-ID: <2205166.k2KJlqZUA7@barack>
+References: <1308663556-29120-1-git-send-email-peter.ujfalusi@ti.com>
+	<1650114.SY7VdjHPHs@barack> <20110704173935.GT3021@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20110704173935.GT3021@sortiz-mobl>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Currently the OMAP4 doesnot hit device off still the
-driver may have support for it.Adding support for the
-same.
+Hi Samuel,
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
-Applies on top of patches from Andy Green
-http://www.spinics.net/lists/linux-i2c/msg05632.html
-Tested on OMAP4430
+On Monday 04 July 2011 19:39:35 Samuel Ortiz wrote:
+> That is fine with me, yes. That's why I ACK the MFD patches for Tony to t=
+ake
+> them.
 
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+I have changed the series for Tony in my branch for the following comments:
+wl6040_is_powered, twl6040_get_rev removal, since these are really small =
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 0fe9556..5e2c748 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2130,7 +2130,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
--	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
-+	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE |
-+			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
- };
- 
- /* i2c1 */
--- 
-1.7.1
+changes, if you want to see it before Tony pulls it, I can send the selecte=
+d =
+
+patches (few lines has been changed).
+
+> Thanks in advance for the follow up patches.
+
+For the twl6040_*_irq changes, I sent the series, since I ended up with a =
+
+bigger change than I would have expected.
+
+Regards, =
+
+P=E9ter
