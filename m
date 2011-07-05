@@ -1,104 +1,100 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
+From: Partha Basak <p-basak2@ti.com>
+Subject: RE: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
  of ehci and ohci
-Date: Tue, 5 Jul 2011 15:52:29 +0300
-Message-ID: <20110705125227.GI2820@legolas.emea.dhcp.ti.com>
-References: <20110704093056.GD25295@legolas.emea.dhcp.ti.com>
- <Pine.LNX.4.44L0.1107041157360.12242-100000@netrider.rowland.org>
-Reply-To: balbi@ti.com
+Date: Tue, 5 Jul 2011 19:30:26 +0530
+Message-ID: <41049fa81376d2973fa760cf061ee460@mail.gmail.com>
+References: <11640ef76f97628579e457b5c6a74cc3@mail.gmail.com> <Pine.LNX.4.44L0.1107041147510.12242-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hvDi6/M7gW6JbuLr"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1107041157360.12242-100000@netrider.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.1107041147510.12242-100000@netrider.rowland.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Felipe Balbi <balbi@ti.com>, Partha Basak <p-basak2@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>owner@vger.kernel.org] On Behalf Of Alan Stern
+>Sent: Monday, July 04, 2011 9:21 PM
+>To: Partha Basak
+>Cc: Keshava Munegowda; linux-usb@vger.kernel.org; linux-
+>omap@vger.kernel.org; linux-kernel@vger.kernel.org; Felipe Balbi; Anand
+>Gadiyar; sameo@linux.intel.com; parthab@india.ti.com; tony@atomide.com;
+>Kevin Hilman; Benoit Cousson; paul@pwsan.com; johnstul@us.ibm.com;
+>Vishwanath Sripathy
+>Subject: RE: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume
+>support of ehci and ohci
+>
+>On Mon, 4 Jul 2011, Partha Basak wrote:
+>
+>> >I don't see any point in these routines (and likewise for
+>> >omap_ohci_suspend/resume).  When the whole system is going to sleep
+>> >anyway, what reason is there for enabling runtime PM on the parent
+>> >device?
+>>
+>> Both for EHCI & OHCI, the clocks are owned by the parent (uhh-tll).
+>>
+>> Calling pm_runtime_put_sync(dev->parent) within omap_ehci_suspend
+>> will turn-off the parent clocks in the Suspend path.
+>>
+>> Similarly, calling pm_runtime_get_sync(dev->parent) within
+>> omap_ehci_resume
+>> will turn-on the parent clocks in the resume path.
+>>
+>> This way, all reference counting are implicit within the Runtime PM
+>layer
+>> and takes care of all combinations of only EHCI insmoded, OHCI
+>insmoded,
+>> both insmoded etc.
+>>
+>> When both EHCI & OHCI are suspended, parent clocks will actually be
+>> turned OFF and vice-versa.
+>>
+>> Note that the parent per-se does not have any .suspend & .resume
+>hooked
+>> up.
+>
+>Why not?  That sounds like a big bug.
 
---hvDi6/M7gW6JbuLr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This was a design decision since the parent needs to be activated only
+when at-least one child is insmoded.
 
-Hi,
+If the chidren are suspended, automatically the parent is suspended
+via the pm_runtime_putsync calls to the parent.
 
-On Mon, Jul 04, 2011 at 12:01:24PM -0400, Alan Stern wrote:
-> On Mon, 4 Jul 2011, Felipe Balbi wrote:
->=20
-> > sounds to me like a bug on pm runtime ? If you're calling
-> > pm_runtime_*_sync() family, shouldn't all calls be _sync() too ?
->=20
-> No.  This was a deliberate design decision.  It minimizes stack usage=20
-> and it gives a chance for some other child to resume before the parent=20
-> is powered down.
+So, effectively, we do not need an explicit suspend for the parent.
+>
+>> At the end of the _probe of parent, the clocks are turned OFF.
+>> Subsequently, enabling
+>> the parent clocks are entirely done implicitly by the children
+>get_sync()
+>> in their _probe.
+>>
+>> Therefore while .suspend/.resume of children are called they call back
+>> into the parent to turn-off the clocks.
+>
+>You have ignored a few very important points:
+>
+>Firstly, system suspend is supposed to work even when runtime PM is not
+>configured.
+>
+>Secondly, the user can disable runtime PM via sysfs at any time.  This
+>shouldn't mess up system suspend.
+>
+>Basically, it's a bad idea to mix up system suspend with runtime PM.
 
-fair enough.
+Your observations are correct but this is a generic limitation and Kevin
+is working
+on this problem in parallel.
 
-> > > 		spin_unlock(&parent->power.lock);
-> > >=20
-> > > 		spin_lock(&dev->power.lock);
-> > > 	}
-> > > This is the reason of directly calling the parent Runtime PM calls fr=
-om
-> > > the children.
-> > > If directly calling Runtime PM APIs with parent dev-pointer isn't
-> > > acceptable,
-> > > this can be achieved by exporting wrapper APIs from the
-> > > parent and calling them from the chidren .suspend/.resume routines.
-> >=20
-> > Still no good, IMHO.
->=20
-> The real problem here is that you guys are trying to use the runtime PM
-> framework to carry out activities during system suspend.  That won't
-> work; it's just a bad idea all round.  Use the proper callbacks to do
-> what you want.
+As of now, all OMAP drivers are mandated to use ONLY runtime pm framework
+for enabling/disabling clocks. I will let Kevin comment further.
 
-then what's the point in even having runtime PM if we will still have to
-implement the same functionality on the other callbacks ? Well, of
-course runtime PM will conserve power on runtime, but system suspend
-should be no different other than an "always deepest sleep state"
-decision.
-
-The thing now is that pm_runtime was done so that drivers would stop
-caring about clocks, which is a big plus, but if we still have to handle
-->suspend()/->resume() differently, we will still need to clk_get();
-clk_enable(); clk_disable(); Then what was the big deal with runtime PM?
-
-IMHO, we should have only one PM layer. System suspend/resume should be
-implemented so that core PM "forcefully" calls
-->runtime_suspend()/->runtime_resume() of call drivers, all
-synchronously. Maybe we need an extra
-RPM_STATIC_SUSPEND_PLEASE_HANDLE_IT_ALL_SYNCHRONOUSLY flag, but that's
-another detail.
-
-If drivers are really supposed to stop handling clocks directly, then
-runtime PM is THE framework to do that, but if we still have system
-suspend/resume the old way, I don't see the benefit for the driver
-(other than the uAmps saved during runtime, which is great, don't get me
-wrong ;-) that this will bring. Having two PM layers which, in fact, are
-doing the same thing - reducing power consumption - is just too much
-IMO.
-
---=20
-balbi
-
---hvDi6/M7gW6JbuLr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOEwkLAAoJEAv8Txj19kN1wtkH/RYY1tnz0ow0ZQMKqm/R8Fzs
-R8xGWUGwFRW4Aw13gZgpM56uGwItP9T7yhkHCS3fCUoNXFsU+cRUUs3tjJY7rQbd
-bzpXN4qw4U0Jjy1o7m/Smo9G4urcM6T2Uw0KLnWY2jSP6b+EnKVfmkScE/tZjIc8
-cHq0D3/FjNS+jij0Fr2F+Zav+t5pXWzFuCVrttbDRkLcWMl5XBFFKNBJ68UWCVw2
-f+oLFQ4ZAlIah0kzF9tI28Zn7BWEqxNeIM00nu+wx8UjnQoVJOca7uaRapecaK19
-kB95F5dWuSIRff8ZbwgvXM1x2I977wYLDzVmnZBA0SDwP48YhmXbMnYiWmfqd7E=
-=VQRv
------END PGP SIGNATURE-----
-
---hvDi6/M7gW6JbuLr--
+>
+>Alan Stern
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
