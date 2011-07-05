@@ -1,54 +1,140 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 00/11] PRCM chain handler
-Date: Tue, 5 Jul 2011 13:27:46 +0300
-Message-ID: <1309861677-2769-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 02/11] OMAP2+: hwmod: Add API to enable IO ring wakeup.
+Date: Tue, 5 Jul 2011 13:27:48 +0300
+Message-ID: <1309861677-2769-3-git-send-email-t-kristo@ti.com>
+References: <1309861677-2769-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57138 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750812Ab1GEK2H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 06:28:07 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:44330 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755034Ab1GEK2K convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 06:28:10 -0400
 Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p65AS6oO018741
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p65AS9Rg032177
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:06 -0500
+	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:09 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep35.itg.ti.com (8.13.7/8.13.8) with ESMTP id p65AS6ii013803
-	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:06 -0500 (CDT)
-Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p65AS6HV028399
-	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:06 -0500 (CDT)
+	by dlep35.itg.ti.com (8.13.7/8.13.8) with ESMTP id p65AS91V013810
+	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:09 -0500 (CDT)
 Content-Class: urn:content-classes:message
+In-Reply-To: <1309861677-2769-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: "R, Govindraj" <govindraj.raja@ti.com>
 
-Changes compared to previous version:
+From: R, Govindraj <govindraj.raja@ti.com>
 
-- rebased on top of latest PM branch
-- sparse interrupt numbering in use (thanks Felipe)
-- removed duplicate pad mapping as proposed by Kevin
-  * io pad parsing done now in a support function provided by omap_hwmod
-  * see patch 4
-- using Govindraj's ioring support functions for mux
-  * patches 2 + 3 only added as reference and because this set needs those
-- tagged a couple of more patches as TEMP, these are just for testing purposes
-  * also changed suspend irq disable / enable logic a bit
-- generic irq chip used more properly now, dropped most of the support funcs
+Add API to enable IO pad wakeup capability based on mux dynamic pad and
+wake_up enable flag available from hwmod_mux initialization.
 
-Tested again on omap3-beagle:
-- suspend / resume with retention -> ok
-- cpuidle with retention -> ok
+Use the wakeup_enable flag and enable wakeup capability
+for the given pads. Wakeup capability will be enabled/disabled
+during hwmod idle transition based on whether wakeup_flag is
+set or cleared.
 
-Off-mode tested also, kind of works but hangs eventually. This happens with
-plain PM branch also, so it is not caused by this set.
+Map the enable/disable pad wakeup API's to hwmod_wakeup_enable/disable.
 
-On top of commit 40d10207b5389184333bacb786d27036cbcee500 off-mode was
-still functional, so it would seem like some late patch has broken something.
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |   59 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 59 insertions(+), 0 deletions(-)
 
--Tero
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 51a13f3..17fa1ab 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1952,6 +1952,34 @@ static int __init omap_hwmod_setup_all(void)
+ core_initcall(omap_hwmod_setup_all);
+ 
+ /**
++ * omap_hwmod_set_ioring_wakeup - enable io pad wakeup flag.
++ * @oh: struct omap_hwmod *
++ * @set: bool value indicating to set or clear wakeup status.
++ *
++ * Set or Clear wakeup flag for the io_pad.
++ */
++static int omap_hwmod_set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
++{
++	struct omap_device_pad *pad;
++	int ret = -EINVAL, j;
++
++	if (oh->mux && oh->mux->enabled) {
++		for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
++			pad = oh->mux->pads_dynamic[j];
++			if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
++				if (set_wake)
++					pad->idle |= OMAP_WAKEUP_EN;
++				else
++					pad->idle &= ~OMAP_WAKEUP_EN;
++				ret = 0;
++			}
++		}
++	}
++
++	return ret;
++}
++
++/**
+  * omap_hwmod_enable - enable an omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+@@ -2265,6 +2293,35 @@ int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
+ {
+ 	return _del_initiator_dep(oh, init_oh);
+ }
++/**
++ * omap_hwmod_enable_ioring_wakeup - Set wakeup flag for iopad.
++ * @oh: struct omap_hwmod *
++ *
++ * Traverse through dynamic pads, if pad is enabled then
++ * set wakeup enable bit flag for the mux pin. Wakeup pad bit
++ * will be set during hwmod idle transistion.
++ * Return error if pads are not enabled or not available.
++ */
++int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh)
++{
++	/* Enable pad wake-up capability */
++	return omap_hwmod_set_ioring_wakeup(oh, true);
++}
++
++/**
++ * omap_hwmod_disable_ioring_wakeup - Clear wakeup flag for iopad.
++ * @oh: struct omap_hwmod *
++ *
++ * Traverse through dynamic pads, if pad is enabled then
++ * clear wakeup enable bit flag for the mux pin. Wakeup pad bit
++ * will be set during hwmod idle transistion.
++ * Return error if pads are not enabled or not available.
++ */
++int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh)
++{
++	/* Disable pad wakeup capability */
++	return omap_hwmod_set_ioring_wakeup(oh, false);
++}
+ 
+ /**
+  * omap_hwmod_enable_wakeup - allow device to wake up the system
+@@ -2291,6 +2348,7 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
+ 	v = oh->_sysc_cache;
+ 	_enable_wakeup(oh, &v);
+ 	_write_sysconfig(v, oh);
++	omap_hwmod_enable_ioring_wakeup(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+ 
+ 	return 0;
+@@ -2321,6 +2379,7 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
+ 	v = oh->_sysc_cache;
+ 	_disable_wakeup(oh, &v);
+ 	_write_sysconfig(v, oh);
++	omap_hwmod_disable_ioring_wakeup(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+ 
+ 	return 0;
+-- 
+1.7.4.1
 
 
 Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
