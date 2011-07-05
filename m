@@ -1,96 +1,57 @@
 From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
+Subject: RE: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
  of ehci and ohci
-Date: Tue, 5 Jul 2011 10:17:14 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1107050958090.2060-100000@iolanthe.rowland.org>
-References: <20110705125227.GI2820@legolas.emea.dhcp.ti.com>
+Date: Tue, 5 Jul 2011 10:22:09 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1107051018580.2060-100000@iolanthe.rowland.org>
+References: <41049fa81376d2973fa760cf061ee460@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110705125227.GI2820@legolas.emea.dhcp.ti.com>
+In-Reply-To: <41049fa81376d2973fa760cf061ee460@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Partha Basak <p-basak2@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
+To: Partha Basak <p-basak2@ti.com>
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 5 Jul 2011, Felipe Balbi wrote:
+On Tue, 5 Jul 2011, Partha Basak wrote:
 
-> > The real problem here is that you guys are trying to use the runtime PM
-> > framework to carry out activities during system suspend.  That won't
-> > work; it's just a bad idea all round.  Use the proper callbacks to do
-> > what you want.
+> >> Note that the parent per-se does not have any .suspend & .resume
+> >hooked
+> >> up.
+> >
+> >Why not?  That sounds like a big bug.
 > 
-> then what's the point in even having runtime PM if we will still have to
-> implement the same functionality on the other callbacks ?
+> This was a design decision since the parent needs to be activated only
+> when at-least one child is insmoded.
+> 
+> If the chidren are suspended, automatically the parent is suspended
+> via the pm_runtime_putsync calls to the parent.
 
-You don't have to duplicate the functionality.  You can use exactly the
-same functions for both sets of callbacks if you want; just make sure
-the callbacks point to them.
+Now you know that this isn't true, because those calls don't get made 
+while a system sleep transition is in progress.
 
->  Well, of
-> course runtime PM will conserve power on runtime, but system suspend
-> should be no different other than an "always deepest sleep state"
-> decision.
+> So, effectively, we do not need an explicit suspend for the parent.
 
-No, it is significantly different for several reasons.  Some of the
-most important differences are concerned with freezing userspace and
-deciding what events should be allowed to wake up the system.  Also, 
-there are systems which can achieve greater power savings by system 
-sleep than they can by runtime PM + cpuidle.
+Now you know that effectively you _do_ need an explicit suspend for the 
+parent.
 
-> The thing now is that pm_runtime was done so that drivers would stop
-> caring about clocks, which is a big plus, but if we still have to handle
-> ->suspend()/->resume() differently, we will still need to clk_get();
-> clk_enable(); clk_disable(); Then what was the big deal with runtime PM?
+> >You have ignored a few very important points:
+> >
+> >Firstly, system suspend is supposed to work even when runtime PM is not
+> >configured.
+> >
+> >Secondly, the user can disable runtime PM via sysfs at any time.  This
+> >shouldn't mess up system suspend.
+> >
+> >Basically, it's a bad idea to mix up system suspend with runtime PM.
+> 
+> Your observations are correct but this is a generic limitation and Kevin
+> is working
+> on this problem in parallel.
+> 
+> As of now, all OMAP drivers are mandated to use ONLY runtime pm framework
+> for enabling/disabling clocks. I will let Kevin comment further.
 
-I don't know about that.  Clock usage has always been internal to the
-implementation you guys have been working on, and I haven't followed
-it.  If your implementation was designed incorrectly, well, that's a
-shame but it's understandable.  Things like that happen.  It shouldn't
-be too hard to fix.
-
-But first you do need to understand that system suspend really _is_ 
-different from runtime suspend.  Sure, you may be able to share some 
-code between them, but you should not expect to be able to use one in 
-place of the other.
-
-> IMHO, we should have only one PM layer. System suspend/resume should be
-> implemented so that core PM "forcefully" calls
-> ->runtime_suspend()/->runtime_resume() of call drivers, all
-> synchronously. Maybe we need an extra
-> RPM_STATIC_SUSPEND_PLEASE_HANDLE_IT_ALL_SYNCHRONOUSLY flag, but that's
-> another detail.
-
-Statements like this should be posted to linux-pm where they can be 
-discussed properly.  It certainly isn't fair to make such claims 
-without even CC-ing the PM maintainer.
-
-Besides, handling runtime PM synchronously won't do you any good if the 
-user has disabled runtime PM via sysfs or not enabled 
-CONFIG_PM_RUNTIME in the first place.  Have you forgotten about those 
-possibilities?
-
-Furthermore, from what I've gathered so far from this thread, the
-_real_ problem is that nobody has written suspend and resume callbacks
-for the parent device.  You're relying on runtime PM to do things with
-the parent, but instead you should make use of the usual system sleep
-mechanism: Parents are always suspended after their children and
-awakened before.  Have the parent's suspend routine disable the clocks 
-and have the resume routine enable them.  Problem solved, no changes 
-needed in the child's driver code.
-
-> If drivers are really supposed to stop handling clocks directly, then
-> runtime PM is THE framework to do that, but if we still have system
-> suspend/resume the old way, I don't see the benefit for the driver
-> (other than the uAmps saved during runtime, which is great, don't get me
-> wrong ;-) that this will bring. Having two PM layers which, in fact, are
-> doing the same thing - reducing power consumption - is just too much
-> IMO.
-
-They aren't doing the same thing.  If you don't believe me, ask the PM 
-maintainer.
-
-And if you actually do need your callbacks to do the same thing, simply
-use shared subroutines.
+Okay, let's see what Kevin says.
 
 Alan Stern
