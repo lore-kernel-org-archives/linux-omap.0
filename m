@@ -1,200 +1,96 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [RFC] virtio: expose for non-virtualization users too
-Date: Tue,  5 Jul 2011 17:06:14 +0300
-Message-ID: <1309874774-31689-1-git-send-email-ohad@wizery.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
+ of ehci and ohci
+Date: Tue, 5 Jul 2011 10:17:14 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1107050958090.2060-100000@iolanthe.rowland.org>
+References: <20110705125227.GI2820@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-To: Rusty Russell <rusty@rustcorp.com.au>, virtualization@lists.linux-foundation.org
-Cc: Carsten Otte <cotte@de.ibm.com>, linux-ia64@vger.kernel.org, kvm@vger.kernel.org, "Michael S. Tsirkin" <mst@redhat.com>, linux-mips@linux-mips.org, Heiko Carstens <heiko.carstens@de.ibm.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, x86@kernel.org, Alexander Graf <agraf@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Avi Kivity <avi@redhat.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Xiantao Zhang <xiantao.zhang@intel.com>, Ohad Ben-Cohen <ohad@wizery.com>, Fenghua Yu <fenghua.yu@intel.com>, Arnd Bergmann <arnd@arndb.de>, Chris Metcalf <cmetcalf@tilera.com>, John Stultz <john.stultz@linaro.org>, kvm-ppc@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110705125227.GI2820@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Partha Basak <p-basak2@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-virtio has been so far used only in the context of virtualization,
-and the virtio Kconfig was sourced directly by the relevant arch
-Kconfigs when VIRTUALIZATION was selected.
+On Tue, 5 Jul 2011, Felipe Balbi wrote:
 
-Now that we start using virtio for inter-processor communications,
-we need to source the virtio Kconfig outside of the virtualization
-scope too.
+> > The real problem here is that you guys are trying to use the runtime PM
+> > framework to carry out activities during system suspend.  That won't
+> > work; it's just a bad idea all round.  Use the proper callbacks to do
+> > what you want.
+> 
+> then what's the point in even having runtime PM if we will still have to
+> implement the same functionality on the other callbacks ?
 
-Moreover, some architectures might use virtio for both virtualization
-and inter-processor communications, so directly sourcing virtio
-might yield unexpected results due to conflicting selections.
+You don't have to duplicate the functionality.  You can use exactly the
+same functions for both sets of callbacks if you want; just make sure
+the callbacks point to them.
 
-The simple solution offered by this patch is to always source virtio's
-Kconfig in drivers/Kconfig, and remove it from the appropriate arch
-Kconfigs. Additionally, a virtio menu entry has been added so virtio
-drivers don't show up in the general drivers menu.
+>  Well, of
+> course runtime PM will conserve power on runtime, but system suspend
+> should be no different other than an "always deepest sleep state"
+> decision.
 
-This way anyone can use virtio, though it's arguably less accessible
-(and neat!) for virtualization users now.
+No, it is significantly different for several reasons.  Some of the
+most important differences are concerned with freezing userspace and
+deciding what events should be allowed to wake up the system.  Also, 
+there are systems which can achieve greater power savings by system 
+sleep than they can by runtime PM + cpuidle.
 
-Note: some architectures (mips and sh) seem to have a VIRTUALIZATION
-menu merely for sourcing virtio's Kconfig, so that menu is removed too.
+> The thing now is that pm_runtime was done so that drivers would stop
+> caring about clocks, which is a big plus, but if we still have to handle
+> ->suspend()/->resume() differently, we will still need to clk_get();
+> clk_enable(); clk_disable(); Then what was the big deal with runtime PM?
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
-The motivation behind this patch is: https://lkml.org/lkml/2011/6/21/47
+I don't know about that.  Clock usage has always been internal to the
+implementation you guys have been working on, and I haven't followed
+it.  If your implementation was designed incorrectly, well, that's a
+shame but it's understandable.  Things like that happen.  It shouldn't
+be too hard to fix.
 
-If the general approach is agreed upon, we can either merge the patch
-independently, or add it to the AMP patch set.
+But first you do need to understand that system suspend really _is_ 
+different from runtime suspend.  Sure, you may be able to share some 
+code between them, but you should not expect to be able to use one in 
+place of the other.
 
- arch/ia64/kvm/Kconfig    |    1 -
- arch/mips/Kconfig        |   16 ----------------
- arch/powerpc/kvm/Kconfig |    1 -
- arch/s390/kvm/Kconfig    |    1 -
- arch/sh/Kconfig          |   16 ----------------
- arch/tile/kvm/Kconfig    |    1 -
- arch/x86/kvm/Kconfig     |    1 -
- drivers/Kconfig          |    2 ++
- drivers/virtio/Kconfig   |    3 +++
- 9 files changed, 5 insertions(+), 37 deletions(-)
+> IMHO, we should have only one PM layer. System suspend/resume should be
+> implemented so that core PM "forcefully" calls
+> ->runtime_suspend()/->runtime_resume() of call drivers, all
+> synchronously. Maybe we need an extra
+> RPM_STATIC_SUSPEND_PLEASE_HANDLE_IT_ALL_SYNCHRONOUSLY flag, but that's
+> another detail.
 
-diff --git a/arch/ia64/kvm/Kconfig b/arch/ia64/kvm/Kconfig
-index fa4d1e5..9806e55 100644
---- a/arch/ia64/kvm/Kconfig
-+++ b/arch/ia64/kvm/Kconfig
-@@ -49,6 +49,5 @@ config KVM_INTEL
- 	  extensions.
- 
- source drivers/vhost/Kconfig
--source drivers/virtio/Kconfig
- 
- endif # VIRTUALIZATION
-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index 653da62..a627a2c 100644
---- a/arch/mips/Kconfig
-+++ b/arch/mips/Kconfig
-@@ -2489,20 +2489,4 @@ source "security/Kconfig"
- 
- source "crypto/Kconfig"
- 
--menuconfig VIRTUALIZATION
--	bool "Virtualization"
--	default n
--	---help---
--	  Say Y here to get to see options for using your Linux host to run other
--	  operating systems inside virtual machines (guests).
--	  This option alone does not add any kernel code.
--
--	  If you say N, all options in this submenu will be skipped and disabled.
--
--if VIRTUALIZATION
--
--source drivers/virtio/Kconfig
--
--endif # VIRTUALIZATION
--
- source "lib/Kconfig"
-diff --git a/arch/powerpc/kvm/Kconfig b/arch/powerpc/kvm/Kconfig
-index b7baff7..105b691 100644
---- a/arch/powerpc/kvm/Kconfig
-+++ b/arch/powerpc/kvm/Kconfig
-@@ -99,6 +99,5 @@ config KVM_E500
- 	  If unsure, say N.
- 
- source drivers/vhost/Kconfig
--source drivers/virtio/Kconfig
- 
- endif # VIRTUALIZATION
-diff --git a/arch/s390/kvm/Kconfig b/arch/s390/kvm/Kconfig
-index f66a1bd..a216341 100644
---- a/arch/s390/kvm/Kconfig
-+++ b/arch/s390/kvm/Kconfig
-@@ -37,6 +37,5 @@ config KVM
- # OK, it's a little counter-intuitive to do this, but it puts it neatly under
- # the virtualization menu.
- source drivers/vhost/Kconfig
--source drivers/virtio/Kconfig
- 
- endif # VIRTUALIZATION
-diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
-index bbdeb48..748ff19 100644
---- a/arch/sh/Kconfig
-+++ b/arch/sh/Kconfig
-@@ -897,20 +897,4 @@ source "security/Kconfig"
- 
- source "crypto/Kconfig"
- 
--menuconfig VIRTUALIZATION
--	bool "Virtualization"
--	default n
--	---help---
--	  Say Y here to get to see options for using your Linux host to run other
--	  operating systems inside virtual machines (guests).
--	  This option alone does not add any kernel code.
--
--	  If you say N, all options in this submenu will be skipped and disabled.
--
--if VIRTUALIZATION
--
--source drivers/virtio/Kconfig
--
--endif # VIRTUALIZATION
--
- source "lib/Kconfig"
-diff --git a/arch/tile/kvm/Kconfig b/arch/tile/kvm/Kconfig
-index b88f9c0..669fcdb 100644
---- a/arch/tile/kvm/Kconfig
-+++ b/arch/tile/kvm/Kconfig
-@@ -33,6 +33,5 @@ config KVM
- 	  If unsure, say N.
- 
- source drivers/vhost/Kconfig
--source drivers/virtio/Kconfig
- 
- endif # VIRTUALIZATION
-diff --git a/arch/x86/kvm/Kconfig b/arch/x86/kvm/Kconfig
-index 50f6364..65cf823 100644
---- a/arch/x86/kvm/Kconfig
-+++ b/arch/x86/kvm/Kconfig
-@@ -76,6 +76,5 @@ config KVM_MMU_AUDIT
- # the virtualization menu.
- source drivers/vhost/Kconfig
- source drivers/lguest/Kconfig
--source drivers/virtio/Kconfig
- 
- endif # VIRTUALIZATION
-diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 3bb154d..795218e 100644
---- a/drivers/Kconfig
-+++ b/drivers/Kconfig
-@@ -114,6 +114,8 @@ source "drivers/uio/Kconfig"
- 
- source "drivers/vlynq/Kconfig"
- 
-+source "drivers/virtio/Kconfig"
-+
- source "drivers/xen/Kconfig"
- 
- source "drivers/staging/Kconfig"
-diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
-index 3dd6294..57e493b 100644
---- a/drivers/virtio/Kconfig
-+++ b/drivers/virtio/Kconfig
-@@ -7,6 +7,8 @@ config VIRTIO_RING
- 	tristate
- 	depends on VIRTIO
- 
-+menu "Virtio drivers"
-+
- config VIRTIO_PCI
- 	tristate "PCI driver for virtio devices (EXPERIMENTAL)"
- 	depends on PCI && EXPERIMENTAL
-@@ -33,3 +35,4 @@ config VIRTIO_BALLOON
- 
- 	 If unsure, say M.
- 
-+endmenu
--- 
-1.7.1
+Statements like this should be posted to linux-pm where they can be 
+discussed properly.  It certainly isn't fair to make such claims 
+without even CC-ing the PM maintainer.
+
+Besides, handling runtime PM synchronously won't do you any good if the 
+user has disabled runtime PM via sysfs or not enabled 
+CONFIG_PM_RUNTIME in the first place.  Have you forgotten about those 
+possibilities?
+
+Furthermore, from what I've gathered so far from this thread, the
+_real_ problem is that nobody has written suspend and resume callbacks
+for the parent device.  You're relying on runtime PM to do things with
+the parent, but instead you should make use of the usual system sleep
+mechanism: Parents are always suspended after their children and
+awakened before.  Have the parent's suspend routine disable the clocks 
+and have the resume routine enable them.  Problem solved, no changes 
+needed in the child's driver code.
+
+> If drivers are really supposed to stop handling clocks directly, then
+> runtime PM is THE framework to do that, but if we still have system
+> suspend/resume the old way, I don't see the benefit for the driver
+> (other than the uAmps saved during runtime, which is great, don't get me
+> wrong ;-) that this will bring. Having two PM layers which, in fact, are
+> doing the same thing - reducing power consumption - is just too much
+> IMO.
+
+They aren't doing the same thing.  If you don't believe me, ask the PM 
+maintainer.
+
+And if you actually do need your callbacks to do the same thing, simply
+use shared subroutines.
+
+Alan Stern
