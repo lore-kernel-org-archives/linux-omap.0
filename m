@@ -1,99 +1,82 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: AM3505/3517 support
-Date: Tue, 5 Jul 2011 15:29:04 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D91A50F@dbde02.ent.ti.com>
-References: <4E121485.6060700@8d.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] non-critical omap fixes for v3.1 merge window
+Date: Tue, 5 Jul 2011 03:23:50 -0700
+Message-ID: <20110705102349.GE5783@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55984 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753210Ab1GEJ7i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 05:59:38 -0400
-In-Reply-To: <4E121485.6060700@8d.com>
-Content-Language: en-US
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:37381 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750812Ab1GEKXz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 06:23:55 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?Rapha=EBl_Ass=E9nat?= <raph@8d.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org=20
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Rapha=EBl Ass=E9=
-nat
-> Sent: Tuesday, July 05, 2011 12:59 AM
-> To: linux-omap@vger.kernel.org
-> Subject: AM3505/3517 support
->=20
-> Hello,
->=20
-> We have a custom designed based on the AM3505 and we wish to=20
-> run a modern kernel
-> on it. Unfortunately, it seems a lot of efforts have been=20
-> made to support other=20
-> OMAP chips and that some work is still required to support=20
-> the AM3505/3517=20
-> completely. (does not boot as-is)
->=20
-> Is there anyone working on this right now? Not knowing, I=20
-> have already started
-> working on it.
->=20
-> The am3505 is apparently so similar to the 3430 that it was=20
-> treated as such=20
-> (omap_chip.oc was being set to CHIP_IS_OMAP3430ES3_1). There=20
-> are however a
-> few differences that need to be addressed. I have therefore=20
-> created a new
-> CHIP_IS and patched clocks, hwmod and power management related files
-> consequently. My system now boots until it complains that it=20
-> is unable=20
-> to mount its root filesystem.
->=20
-> I will send my patches in a moment for comments and=20
-> hopefully, after a=20
-> few iterations, they will be acceptable. I know a lot of cleanup is=20
-> happening right now and as a result my patches may not apply=20
-> or conflict.=20
-> Please let me know and I will be happy to rebase them as needed.
->=20
-> Looking forward to your comments and help.=20
->=20
-> One of the next things I'll look at is how to properly=20
-> support the ZCN package.
-> Right now, the CBB package is used (board-am3517evm.c for=20
-> instance) but there
-> are differences that prevent some GPIOs from being configured=20
-> properly. It would
-> be nice to know if someone is working on this before I start...
+Hi Arnd,
 
-Raphael,
+Please pull some fixes from:
 
-The AM35x support has been trailing on the linux-omap. Usually,
-due to delays in dependency resolution:
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git devel-fixes
 
-If you are not specifically looking for the latest kernel,
-revision you can get the sources from:
-http://arago-project.org/git/projects/?p=3Dlinux-omap3.git
+These are intented for the merge window, there's no rush for
+these to go in during the -rc cycle this late. I have one fix
+queued for the -rc cycle still that I'll send separately.
 
-Use the tag: v2.6.37_OMAPPSP_04.02.00.07
+The dmtimer fix in this series has a dependency to the cleanup
+series you pulled earlier.
 
-This tree is supported by TI. The patches contained here, are
-being reworked for upstream submission...
+Regards,
 
-~sanjeev
+Tony
 
->=20
-> Best regards,
-> Rapha=EBl Ass=E9nat
-> 8D Technologies inc.
-> --
-> To unsubscribe from this list: send the line "unsubscribe=20
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+The following changes since commit 48cb1258e8b0f8c81cfb699b42326c5b2147b3f8:
+  Tony Lindgren (1):
+        Merge branch 'for_3.1/pm-misc' of git://git.kernel.org/.../khilman/linux-omap-pm into devel-cleanup
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git devel-fixes
+
+Ambresh K (1):
+      OMAP4: DMTIMER: enable autoidle mode
+
+Charulatha V (1):
+      omap: ZOOM: QUART: Request reset GPIO
+
+Daniel Mack (1):
+      omap: Overo: remove duplicate call to overo_ads7846_init()
+
+Igor Grinberg (2):
+      arm: omap3: cm-t35: minor comments fixes
+      arm: omap3: cm-t35: fix slow path warning
+
+Julia Lawall (1):
+      arch/arm/mach-omap2/clock.c: add missing clk_put
+
+Ohad Ben-Cohen (2):
+      omap: iovmm: s/sg_dma_len(sg)/sg->length/
+      OMAP4: iommu: fix clock name
+
+Silesh C V (1):
+      omap: HSMMC: Fix GPIO muxing
+
+Suman Anna (1):
+      omap: iommu: fix pte programming
+
+Tony Lindgren (1):
+      Merge branch 'iommu-for-tony' of git://github.com/ohadbc/omap-iommu into devel-fixes
+
+ arch/arm/mach-omap2/board-cm-t35.c          |   18 +++++++-----------
+ arch/arm/mach-omap2/board-overo.c           |    1 -
+ arch/arm/mach-omap2/board-zoom-debugboard.c |    9 +++++++++
+ arch/arm/mach-omap2/clock.c                 |    1 +
+ arch/arm/mach-omap2/hsmmc.c                 |    7 +++----
+ arch/arm/mach-omap2/iommu2.c                |    4 ++--
+ arch/arm/mach-omap2/omap-iommu.c            |    2 +-
+ arch/arm/plat-omap/dmtimer.c                |    4 ++--
+ arch/arm/plat-omap/iovmm.c                  |    6 +++---
+ 9 files changed, 28 insertions(+), 24 deletions(-)
