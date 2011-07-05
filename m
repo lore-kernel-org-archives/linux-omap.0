@@ -1,100 +1,200 @@
-From: Partha Basak <p-basak2@ti.com>
-Subject: RE: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
- of ehci and ohci
-Date: Tue, 5 Jul 2011 19:30:26 +0530
-Message-ID: <41049fa81376d2973fa760cf061ee460@mail.gmail.com>
-References: <11640ef76f97628579e457b5c6a74cc3@mail.gmail.com> <Pine.LNX.4.44L0.1107041147510.12242-100000@netrider.rowland.org>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [RFC] virtio: expose for non-virtualization users too
+Date: Tue,  5 Jul 2011 17:06:14 +0300
+Message-ID: <1309874774-31689-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1107041147510.12242-100000@netrider.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+To: Rusty Russell <rusty@rustcorp.com.au>, virtualization@lists.linux-foundation.org
+Cc: Carsten Otte <cotte@de.ibm.com>, linux-ia64@vger.kernel.org, kvm@vger.kernel.org, "Michael S. Tsirkin" <mst@redhat.com>, linux-mips@linux-mips.org, Heiko Carstens <heiko.carstens@de.ibm.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, x86@kernel.org, Alexander Graf <agraf@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Avi Kivity <avi@redhat.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Xiantao Zhang <xiantao.zhang@intel.com>, Ohad Ben-Cohen <ohad@wizery.com>, Fenghua Yu <fenghua.yu@intel.com>, Arnd Bergmann <arnd@arndb.de>, Chris Metcalf <cmetcalf@tilera.com>, John Stultz <john.stultz@linaro.org>, kvm-ppc@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck>
 List-Id: linux-omap@vger.kernel.org
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Alan Stern
->Sent: Monday, July 04, 2011 9:21 PM
->To: Partha Basak
->Cc: Keshava Munegowda; linux-usb@vger.kernel.org; linux-
->omap@vger.kernel.org; linux-kernel@vger.kernel.org; Felipe Balbi; Anand
->Gadiyar; sameo@linux.intel.com; parthab@india.ti.com; tony@atomide.com;
->Kevin Hilman; Benoit Cousson; paul@pwsan.com; johnstul@us.ibm.com;
->Vishwanath Sripathy
->Subject: RE: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume
->support of ehci and ohci
->
->On Mon, 4 Jul 2011, Partha Basak wrote:
->
->> >I don't see any point in these routines (and likewise for
->> >omap_ohci_suspend/resume).  When the whole system is going to sleep
->> >anyway, what reason is there for enabling runtime PM on the parent
->> >device?
->>
->> Both for EHCI & OHCI, the clocks are owned by the parent (uhh-tll).
->>
->> Calling pm_runtime_put_sync(dev->parent) within omap_ehci_suspend
->> will turn-off the parent clocks in the Suspend path.
->>
->> Similarly, calling pm_runtime_get_sync(dev->parent) within
->> omap_ehci_resume
->> will turn-on the parent clocks in the resume path.
->>
->> This way, all reference counting are implicit within the Runtime PM
->layer
->> and takes care of all combinations of only EHCI insmoded, OHCI
->insmoded,
->> both insmoded etc.
->>
->> When both EHCI & OHCI are suspended, parent clocks will actually be
->> turned OFF and vice-versa.
->>
->> Note that the parent per-se does not have any .suspend & .resume
->hooked
->> up.
->
->Why not?  That sounds like a big bug.
+virtio has been so far used only in the context of virtualization,
+and the virtio Kconfig was sourced directly by the relevant arch
+Kconfigs when VIRTUALIZATION was selected.
 
-This was a design decision since the parent needs to be activated only
-when at-least one child is insmoded.
+Now that we start using virtio for inter-processor communications,
+we need to source the virtio Kconfig outside of the virtualization
+scope too.
 
-If the chidren are suspended, automatically the parent is suspended
-via the pm_runtime_putsync calls to the parent.
+Moreover, some architectures might use virtio for both virtualization
+and inter-processor communications, so directly sourcing virtio
+might yield unexpected results due to conflicting selections.
 
-So, effectively, we do not need an explicit suspend for the parent.
->
->> At the end of the _probe of parent, the clocks are turned OFF.
->> Subsequently, enabling
->> the parent clocks are entirely done implicitly by the children
->get_sync()
->> in their _probe.
->>
->> Therefore while .suspend/.resume of children are called they call back
->> into the parent to turn-off the clocks.
->
->You have ignored a few very important points:
->
->Firstly, system suspend is supposed to work even when runtime PM is not
->configured.
->
->Secondly, the user can disable runtime PM via sysfs at any time.  This
->shouldn't mess up system suspend.
->
->Basically, it's a bad idea to mix up system suspend with runtime PM.
+The simple solution offered by this patch is to always source virtio's
+Kconfig in drivers/Kconfig, and remove it from the appropriate arch
+Kconfigs. Additionally, a virtio menu entry has been added so virtio
+drivers don't show up in the general drivers menu.
 
-Your observations are correct but this is a generic limitation and Kevin
-is working
-on this problem in parallel.
+This way anyone can use virtio, though it's arguably less accessible
+(and neat!) for virtualization users now.
 
-As of now, all OMAP drivers are mandated to use ONLY runtime pm framework
-for enabling/disabling clocks. I will let Kevin comment further.
+Note: some architectures (mips and sh) seem to have a VIRTUALIZATION
+menu merely for sourcing virtio's Kconfig, so that menu is removed too.
 
->
->Alan Stern
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+The motivation behind this patch is: https://lkml.org/lkml/2011/6/21/47
+
+If the general approach is agreed upon, we can either merge the patch
+independently, or add it to the AMP patch set.
+
+ arch/ia64/kvm/Kconfig    |    1 -
+ arch/mips/Kconfig        |   16 ----------------
+ arch/powerpc/kvm/Kconfig |    1 -
+ arch/s390/kvm/Kconfig    |    1 -
+ arch/sh/Kconfig          |   16 ----------------
+ arch/tile/kvm/Kconfig    |    1 -
+ arch/x86/kvm/Kconfig     |    1 -
+ drivers/Kconfig          |    2 ++
+ drivers/virtio/Kconfig   |    3 +++
+ 9 files changed, 5 insertions(+), 37 deletions(-)
+
+diff --git a/arch/ia64/kvm/Kconfig b/arch/ia64/kvm/Kconfig
+index fa4d1e5..9806e55 100644
+--- a/arch/ia64/kvm/Kconfig
++++ b/arch/ia64/kvm/Kconfig
+@@ -49,6 +49,5 @@ config KVM_INTEL
+ 	  extensions.
+ 
+ source drivers/vhost/Kconfig
+-source drivers/virtio/Kconfig
+ 
+ endif # VIRTUALIZATION
+diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+index 653da62..a627a2c 100644
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -2489,20 +2489,4 @@ source "security/Kconfig"
+ 
+ source "crypto/Kconfig"
+ 
+-menuconfig VIRTUALIZATION
+-	bool "Virtualization"
+-	default n
+-	---help---
+-	  Say Y here to get to see options for using your Linux host to run other
+-	  operating systems inside virtual machines (guests).
+-	  This option alone does not add any kernel code.
+-
+-	  If you say N, all options in this submenu will be skipped and disabled.
+-
+-if VIRTUALIZATION
+-
+-source drivers/virtio/Kconfig
+-
+-endif # VIRTUALIZATION
+-
+ source "lib/Kconfig"
+diff --git a/arch/powerpc/kvm/Kconfig b/arch/powerpc/kvm/Kconfig
+index b7baff7..105b691 100644
+--- a/arch/powerpc/kvm/Kconfig
++++ b/arch/powerpc/kvm/Kconfig
+@@ -99,6 +99,5 @@ config KVM_E500
+ 	  If unsure, say N.
+ 
+ source drivers/vhost/Kconfig
+-source drivers/virtio/Kconfig
+ 
+ endif # VIRTUALIZATION
+diff --git a/arch/s390/kvm/Kconfig b/arch/s390/kvm/Kconfig
+index f66a1bd..a216341 100644
+--- a/arch/s390/kvm/Kconfig
++++ b/arch/s390/kvm/Kconfig
+@@ -37,6 +37,5 @@ config KVM
+ # OK, it's a little counter-intuitive to do this, but it puts it neatly under
+ # the virtualization menu.
+ source drivers/vhost/Kconfig
+-source drivers/virtio/Kconfig
+ 
+ endif # VIRTUALIZATION
+diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
+index bbdeb48..748ff19 100644
+--- a/arch/sh/Kconfig
++++ b/arch/sh/Kconfig
+@@ -897,20 +897,4 @@ source "security/Kconfig"
+ 
+ source "crypto/Kconfig"
+ 
+-menuconfig VIRTUALIZATION
+-	bool "Virtualization"
+-	default n
+-	---help---
+-	  Say Y here to get to see options for using your Linux host to run other
+-	  operating systems inside virtual machines (guests).
+-	  This option alone does not add any kernel code.
+-
+-	  If you say N, all options in this submenu will be skipped and disabled.
+-
+-if VIRTUALIZATION
+-
+-source drivers/virtio/Kconfig
+-
+-endif # VIRTUALIZATION
+-
+ source "lib/Kconfig"
+diff --git a/arch/tile/kvm/Kconfig b/arch/tile/kvm/Kconfig
+index b88f9c0..669fcdb 100644
+--- a/arch/tile/kvm/Kconfig
++++ b/arch/tile/kvm/Kconfig
+@@ -33,6 +33,5 @@ config KVM
+ 	  If unsure, say N.
+ 
+ source drivers/vhost/Kconfig
+-source drivers/virtio/Kconfig
+ 
+ endif # VIRTUALIZATION
+diff --git a/arch/x86/kvm/Kconfig b/arch/x86/kvm/Kconfig
+index 50f6364..65cf823 100644
+--- a/arch/x86/kvm/Kconfig
++++ b/arch/x86/kvm/Kconfig
+@@ -76,6 +76,5 @@ config KVM_MMU_AUDIT
+ # the virtualization menu.
+ source drivers/vhost/Kconfig
+ source drivers/lguest/Kconfig
+-source drivers/virtio/Kconfig
+ 
+ endif # VIRTUALIZATION
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index 3bb154d..795218e 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -114,6 +114,8 @@ source "drivers/uio/Kconfig"
+ 
+ source "drivers/vlynq/Kconfig"
+ 
++source "drivers/virtio/Kconfig"
++
+ source "drivers/xen/Kconfig"
+ 
+ source "drivers/staging/Kconfig"
+diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
+index 3dd6294..57e493b 100644
+--- a/drivers/virtio/Kconfig
++++ b/drivers/virtio/Kconfig
+@@ -7,6 +7,8 @@ config VIRTIO_RING
+ 	tristate
+ 	depends on VIRTIO
+ 
++menu "Virtio drivers"
++
+ config VIRTIO_PCI
+ 	tristate "PCI driver for virtio devices (EXPERIMENTAL)"
+ 	depends on PCI && EXPERIMENTAL
+@@ -33,3 +35,4 @@ config VIRTIO_BALLOON
+ 
+ 	 If unsure, say M.
+ 
++endmenu
+-- 
+1.7.1
