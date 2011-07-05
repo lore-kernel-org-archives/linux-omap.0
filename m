@@ -1,82 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] non-critical omap fixes for v3.1 merge window
-Date: Tue, 5 Jul 2011 03:23:50 -0700
-Message-ID: <20110705102349.GE5783@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv5 00/11] PRCM chain handler
+Date: Tue, 5 Jul 2011 13:27:46 +0300
+Message-ID: <1309861677-2769-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:37381 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750812Ab1GEKXz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 06:23:55 -0400
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57138 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750812Ab1GEK2H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 06:28:07 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p65AS6oO018741
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:06 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep35.itg.ti.com (8.13.7/8.13.8) with ESMTP id p65AS6ii013803
+	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:06 -0500 (CDT)
+Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p65AS6HV028399
+	for <linux-omap@vger.kernel.org>; Tue, 5 Jul 2011 05:28:06 -0500 (CDT)
+Content-Class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>
+To: linux-omap@vger.kernel.org
 
-Hi Arnd,
+Changes compared to previous version:
 
-Please pull some fixes from:
+- rebased on top of latest PM branch
+- sparse interrupt numbering in use (thanks Felipe)
+- removed duplicate pad mapping as proposed by Kevin
+  * io pad parsing done now in a support function provided by omap_hwmod
+  * see patch 4
+- using Govindraj's ioring support functions for mux
+  * patches 2 + 3 only added as reference and because this set needs those
+- tagged a couple of more patches as TEMP, these are just for testing purposes
+  * also changed suspend irq disable / enable logic a bit
+- generic irq chip used more properly now, dropped most of the support funcs
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git devel-fixes
+Tested again on omap3-beagle:
+- suspend / resume with retention -> ok
+- cpuidle with retention -> ok
 
-These are intented for the merge window, there's no rush for
-these to go in during the -rc cycle this late. I have one fix
-queued for the -rc cycle still that I'll send separately.
+Off-mode tested also, kind of works but hangs eventually. This happens with
+plain PM branch also, so it is not caused by this set.
 
-The dmtimer fix in this series has a dependency to the cleanup
-series you pulled earlier.
+On top of commit 40d10207b5389184333bacb786d27036cbcee500 off-mode was
+still functional, so it would seem like some late patch has broken something.
 
-Regards,
-
-Tony
+-Tero
 
 
-The following changes since commit 48cb1258e8b0f8c81cfb699b42326c5b2147b3f8:
-  Tony Lindgren (1):
-        Merge branch 'for_3.1/pm-misc' of git://git.kernel.org/.../khilman/linux-omap-pm into devel-cleanup
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git devel-fixes
-
-Ambresh K (1):
-      OMAP4: DMTIMER: enable autoidle mode
-
-Charulatha V (1):
-      omap: ZOOM: QUART: Request reset GPIO
-
-Daniel Mack (1):
-      omap: Overo: remove duplicate call to overo_ads7846_init()
-
-Igor Grinberg (2):
-      arm: omap3: cm-t35: minor comments fixes
-      arm: omap3: cm-t35: fix slow path warning
-
-Julia Lawall (1):
-      arch/arm/mach-omap2/clock.c: add missing clk_put
-
-Ohad Ben-Cohen (2):
-      omap: iovmm: s/sg_dma_len(sg)/sg->length/
-      OMAP4: iommu: fix clock name
-
-Silesh C V (1):
-      omap: HSMMC: Fix GPIO muxing
-
-Suman Anna (1):
-      omap: iommu: fix pte programming
-
-Tony Lindgren (1):
-      Merge branch 'iommu-for-tony' of git://github.com/ohadbc/omap-iommu into devel-fixes
-
- arch/arm/mach-omap2/board-cm-t35.c          |   18 +++++++-----------
- arch/arm/mach-omap2/board-overo.c           |    1 -
- arch/arm/mach-omap2/board-zoom-debugboard.c |    9 +++++++++
- arch/arm/mach-omap2/clock.c                 |    1 +
- arch/arm/mach-omap2/hsmmc.c                 |    7 +++----
- arch/arm/mach-omap2/iommu2.c                |    4 ++--
- arch/arm/mach-omap2/omap-iommu.c            |    2 +-
- arch/arm/plat-omap/dmtimer.c                |    4 ++--
- arch/arm/plat-omap/iovmm.c                  |    6 +++---
- 9 files changed, 28 insertions(+), 24 deletions(-)
