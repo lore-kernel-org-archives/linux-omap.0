@@ -1,72 +1,223 @@
 From: =?ISO-8859-1?Q?Rapha=EBl_Ass=E9nat?= <raph@8d.com>
-Subject: Re: [PATCH] AM3505/3517 ZCN package support
-Date: Wed, 06 Jul 2011 12:54:49 -0400
-Message-ID: <4E149359.1090400@8d.com>
-References: <4E147F55.8090805@8d.com> <B85A65D85D7EB246BE421B3FB0FBB593024D9B4CA5@dbde02.ent.ti.com>
+Subject: [PATCH] mux34xx: Compact declaration of placeholders in omap3_muxmodes
+Date: Wed, 06 Jul 2011 12:58:10 -0400
+Message-ID: <4E149422.1060103@8d.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from roc.holo.8d.com ([64.254.227.115]:53699 "EHLO roc.holo.8d.com"
+Received: from roc.holo.8d.com ([64.254.227.115]:54930 "EHLO roc.holo.8d.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751987Ab1GFQyu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Jul 2011 12:54:50 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D9B4CA5@dbde02.ent.ti.com>
+	id S1752862Ab1GFQ6L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Jul 2011 12:58:11 -0400
+Received: from raph.usine.8d.com ([192.168.142.55])
+	by roc.holo.8d.com with esmtps (TLS1.0:RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <raph@8d.com>)
+	id 1QeVQQ-0008HL-C6
+	for linux-omap@vger.kernel.org; Wed, 06 Jul 2011 12:58:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 06/07/11 12:11 PM, Premi, Sanjeev wrote:
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org=20
->> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Rapha=EBl Ass=
-=E9nat
->> Sent: Wednesday, July 06, 2011 8:59 PM
->> To: linux-omap@vger.kernel.org
->> Subject: [PATCH] AM3505/3517 ZCN package support
->>
->> This patch adds support for the AM35xx ZCN package specific muxmodes=
-=2E
->>
->> Signed-off-by: Raphael Assenat <raph@8d.com>
->>
->=20
-> [sp] Few quick comments below:
-Thank you for your comments. I just sent an updated version according t=
-o them.
+With the addition of support for the ZCN package, there
+are even more placeholders in the superset, such as:
+
+	_OMAP3_MUXENTRY(GPMC_A11, 0,
+		NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL),
+
+which takes a lot of space. This patch introduces and uses
+_OMAP3_NULL_MUXENTRY to declare such entries.
+
+Also, a duplicate GPMC_A11 entry is removed.
+
+Signed-off-by: Raphael Assenat <raph@8d.com>
 
 
->> +#define _OMAP3_NULL_MUXENTRY(M0) _OMAP3_MUXENTRY(M0, 0,=20
->> NULL, NULL,	\
->> +				NULL, NULL, NULL, NULL, NULL, NULL)
->> +
->>  /*
->>   * Superset of all mux modes for omap3
->>   */
->> @@ -651,51 +654,50 @@ static struct omap_mux __initdata=20
->> omap3_muxmodes[] =3D {
->>  		"gpio_166", NULL, NULL, "safe_mode"),
->> =20
->>  	/* Only on 3630, see omap36xx_cbp_subset for the signals */
->> -	_OMAP3_MUXENTRY(GPMC_A11, 0,
->> -		NULL, NULL, NULL, NULL,
->> -		NULL, NULL, NULL, NULL),
-> [snip]...[snip]
->> +	_OMAP3_NULL_MUXENTRY(GPMC_A11),
->> +	_OMAP3_NULL_MUXENTRY(SAD2D_MBUSFLAG),
->> +	_OMAP3_NULL_MUXENTRY(SAD2D_MREAD),
->=20
-> [sp] These changes don't go with the current patch description.
->      You may want to keep them in a separate patch; and use here.
-Ok, I will send another patch for this that will apply on top of the ZC=
-N
-patch.
-
-Regards,
-Rapha=EBl Ass=E9nat
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/mux34xx.c b/arch/arm/mach-omap2/mux34xx.c
+index 26b703a..d775040 100644
+--- a/arch/arm/mach-omap2/mux34xx.c
++++ b/arch/arm/mach-omap2/mux34xx.c
+@@ -37,6 +37,9 @@
+ 	.balls		= { bb, bt },					\
+ }
+ 
++#define _OMAP3_NULL_MUXENTRY(M0) _OMAP3_MUXENTRY(M0, 0, NULL, NULL,	\
++	NULL, NULL, NULL, NULL, NULL, NULL)
++
+ /*
+  * Superset of all mux modes for omap3
+  */
+@@ -651,131 +654,48 @@ static struct omap_mux __initdata omap3_muxmodes[] = {
+ 		"gpio_166", NULL, NULL, "safe_mode"),
+ 
+ 	/* Only on 3630, see omap36xx_cbp_subset for the signals */
+-	_OMAP3_MUXENTRY(GPMC_A11, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_MBUSFLAG, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_MREAD, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_MWRITE, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_SBUSFLAG, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_SREAD, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_SWRITE, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(GPMC_A11, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_MCAD28, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_MCAD29, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_MCAD32, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_MCAD33, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_MCAD34, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_MCAD35, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(SAD2D_MCAD36, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
++	_OMAP3_NULL_MUXENTRY(GPMC_A11),
++	_OMAP3_NULL_MUXENTRY(SAD2D_MBUSFLAG),
++	_OMAP3_NULL_MUXENTRY(SAD2D_MREAD),
++	_OMAP3_NULL_MUXENTRY(SAD2D_MWRITE),
++	_OMAP3_NULL_MUXENTRY(SAD2D_SBUSFLAG),
++	_OMAP3_NULL_MUXENTRY(SAD2D_SREAD),
++	_OMAP3_NULL_MUXENTRY(SAD2D_SWRITE),
++	_OMAP3_NULL_MUXENTRY(SAD2D_MCAD28),
++	_OMAP3_NULL_MUXENTRY(SAD2D_MCAD29),
++	_OMAP3_NULL_MUXENTRY(SAD2D_MCAD32),
++	_OMAP3_NULL_MUXENTRY(SAD2D_MCAD33),
++	_OMAP3_NULL_MUXENTRY(SAD2D_MCAD34),
++	_OMAP3_NULL_MUXENTRY(SAD2D_MCAD35),
++	_OMAP3_NULL_MUXENTRY(SAD2D_MCAD36),
+ 
+ 	/* Only on AM35xx, see am35xx_zcn_subset for the signals */
+-	_OMAP3_MUXENTRY(CCDC_PCLK, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_FIELD, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_HD, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_VD, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_WEN, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_DATA0, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_DATA1, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_DATA2, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_DATA3, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_DATA4, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_DATA5, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_DATA6, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(CCDC_DATA7, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(RMII_MDIO_DATA, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(RMII_MDIO_CLK, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(RMII_RXD0, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(RMII_RXD1, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(RMII_CRS_DV, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(RMII_RXER, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(RMII_TXD0, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(RMII_TXD1, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(RMII_TXEN, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(RMII_50MHZ_CLK, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(USB0_DRVVBUS, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(HECC1_TXD, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
+-	_OMAP3_MUXENTRY(HECC1_RXD, 0,
+-		NULL, NULL, NULL, NULL,
+-		NULL, NULL, NULL, NULL),
++	_OMAP3_NULL_MUXENTRY(CCDC_PCLK),
++	_OMAP3_NULL_MUXENTRY(CCDC_FIELD),
++	_OMAP3_NULL_MUXENTRY(CCDC_HD),
++	_OMAP3_NULL_MUXENTRY(CCDC_VD),
++	_OMAP3_NULL_MUXENTRY(CCDC_WEN),
++	_OMAP3_NULL_MUXENTRY(CCDC_DATA0),
++	_OMAP3_NULL_MUXENTRY(CCDC_DATA1),
++	_OMAP3_NULL_MUXENTRY(CCDC_DATA2),
++	_OMAP3_NULL_MUXENTRY(CCDC_DATA3),
++	_OMAP3_NULL_MUXENTRY(CCDC_DATA4),
++	_OMAP3_NULL_MUXENTRY(CCDC_DATA5),
++	_OMAP3_NULL_MUXENTRY(CCDC_DATA6),
++	_OMAP3_NULL_MUXENTRY(CCDC_DATA7),
++	_OMAP3_NULL_MUXENTRY(RMII_MDIO_DATA),
++	_OMAP3_NULL_MUXENTRY(RMII_MDIO_CLK),
++	_OMAP3_NULL_MUXENTRY(RMII_RXD0),
++	_OMAP3_NULL_MUXENTRY(RMII_RXD1),
++	_OMAP3_NULL_MUXENTRY(RMII_CRS_DV),
++	_OMAP3_NULL_MUXENTRY(RMII_RXER),
++	_OMAP3_NULL_MUXENTRY(RMII_TXD0),
++	_OMAP3_NULL_MUXENTRY(RMII_TXD1),
++	_OMAP3_NULL_MUXENTRY(RMII_TXEN),
++	_OMAP3_NULL_MUXENTRY(RMII_50MHZ_CLK),
++	_OMAP3_NULL_MUXENTRY(USB0_DRVVBUS),
++	_OMAP3_NULL_MUXENTRY(HECC1_TXD),
++	_OMAP3_NULL_MUXENTRY(HECC1_RXD),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ 
