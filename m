@@ -1,71 +1,108 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 7/7] 4460sdp/blaze/panda: hwmod: Prevent gpio1 reset
- during hwmod init
-Date: Tue, 5 Jul 2011 23:47:54 -0700
-Message-ID: <20110706064754.GJ5783@atomide.com>
-References: <1309486081-8257-5-git-send-email-rnayak@ti.com>
- <1309486081-8257-6-git-send-email-rnayak@ti.com>
- <1309486081-8257-7-git-send-email-rnayak@ti.com>
- <1309486081-8257-8-git-send-email-rnayak@ti.com>
- <20110701063241.GX23145@atomide.com>
- <alpine.DEB.2.00.1107022103430.12499@utopia.booyaka.com>
- <20110704085335.GP23145@atomide.com>
- <alpine.DEB.2.00.1107050136120.4217@utopia.booyaka.com>
- <20110705104553.GF5783@atomide.com>
- <alpine.DEB.2.00.1107051534140.4217@utopia.booyaka.com>
+Subject: Re: AM3505/3517 support
+Date: Tue, 5 Jul 2011 23:56:05 -0700
+Message-ID: <20110706065605.GK5783@atomide.com>
+References: <4E121485.6060700@8d.com>
+ <20110705111952.GG5783@atomide.com>
+ <4E132143.7040802@8d.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:63416 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:14887 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750930Ab1GFGr5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 02:47:57 -0400
+	with ESMTP id S1752499Ab1GFG4I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 02:56:08 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1107051534140.4217@utopia.booyaka.com>
+In-Reply-To: <4E132143.7040802@8d.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, Nishanth Menon <nm@ti.com>, s-sintes@ti.com, Moiz Sonasath <m-sonasath@ti.com>
+To: =?utf-8?B?UmFwaGHDq2wgQXNzw6luYXQ=?= <raph@8d.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [110705 14:42]:
-> On Tue, 5 Jul 2011, Tony Lindgren wrote:
-> > 
-> > Can't we always reset the registered hwmods automatically one at a time when
-> > omap_device_build is called?
-> 
-> The experimental series that I wrote, but haven't posted yet, resets each 
-> IP block during the first time it's enabled -- which is probably going to 
-> be when omap_device_build() is called.
+* Rapha=C3=ABl Ass=C3=A9nat <raph@8d.com> [110705 07:30]:
+> On 05/07/11 07:19 AM, Tony Lindgren wrote:
+> > * Rapha=C3=ABl Ass=C3=A9nat <raph@8d.com> [110704 12:51]:
+> >>
+> >> The am3505 is apparently so similar to the 3430 that it was treate=
+d as such=20
+> >> (omap_chip.oc was being set to CHIP_IS_OMAP3430ES3_1). There are h=
+owever a
+> >> few differences that need to be addressed. I have therefore create=
+d a new
+> >> CHIP_IS and patched clocks, hwmod and power management related fil=
+es
+> >> consequently. My system now boots until it complains that it is un=
+able=20
+> >> to mount its root filesystem.
+> >=20
+> > Can you please describe where you need CHIP_IS for am3505? It seems=
+ that
+> > your patches just enable the same CHIP_IS_OMAP3430 features for am3=
+505 too?
+>
+> Actually it's only needed for the 3505/3517 specific UART 4 which sho=
+uld
+> not be registered on real OMAP3430's. (see struct omap_hwmod=20
+> am35xx_uart4_hwmod; in omap_hwmod_3xxx_data.c)
+>=20
+> But there are also cases where OMAP3430 hwmods must not be registered
+> on AM35xx. For instance, omap3xxx_timer12_hwmod since timer12 does
+> not exist general purpose AM3505's.
 
-OK
- 
-> > > That would allow drivers to assume that they are starting from consistent 
-> > > device state.  It also should prevent some power management problems 
-> > > that are dependent on particular bootloaders.   How about if we add a 
-> > > second parameter, hwmod_reset_unused?  The default could be 'no' and then 
-> > > only devices with PM runtime-enabled drivers would be reset first.
-> > 
-> > Yes I think hwmod_reset_unsed would be a better name, but do we actually
-> > need any other reset option in addition to that?
-> 
-> If a driver doesn't reset its device(s) when it starts, then disabling all 
-> reset might allow the kernel to boot when the board file is missing some 
-> omap_hwmod_no_setup_reset() calls.
-> 
-> Consider the 4460 GPIO case.  If someone hasn't added in the 
-> omap_hwmod_no_setup_reset(gpioX_hwmod) call into the 4460 board file's 
-> init_machine(), then these boards would still crash on boot.
-> 
-> This would definitely be considered a bug in the board file, that it's 
-> missing that omap_hwmod_no_setup_reset() call.  But having a general 
-> 'hwmod_no_reset' might make it easier during initial board bring-up to 
-> determine whether a problem is caused by reset.
-> 
-> In any case, it doesn't matter too much to me whether a 'hwmod_no_reset' 
-> option is preserved or not; this is just based on our discussion of the 
-> issue a few months ago.
+Sounds like we should be able to handle both uart and gptimer12 the sam=
+e way
+as we'll be handling the hwmod reset for special cases like gptimer12 f=
+or
+secure mode. So addding Paul to Cc.
 
-Yeah. Sounds like for passing the board specific flags for special case
-devices is best done with omap2_init_devices() like you suggested.
+Basically we can have a am35xx specific arch_initcall that sets the spe=
+cial
+flags for these devices like noreset, disabled or unavailable.
+
+In this case we would just set some devices as unavailable on am35xx.
+=20
+> > I'd rather see us improve the code so we can support am3505 properl=
+y without
+> > a need to patch all over the place..
+> Maybe instead of having one big array of hwmods registered for
+> all CPUs in omap_hwmod_3xxx_data we could have a separate
+> one for am35xx (and maybe, eventually others) such as:
+>=20
+> static __initdata struct omap_hwmod *omap3xxx_hwmods[]
+> static __initdata struct omap_hwmod *am35xx_hwmods[]
+>=20
+> ...and maybe also a 'common' array.
+>=20
+> The init function would then register the appropriate hwmod array(s).=
+ The only=20
+> thing I don't like is that for this to work we would have to keep set=
+ting=20
+> CHIP_IS_OMAP3430 even on AM35xx CPUs. But maybe we could change the b=
+ehaviour of
+> omap_hwmod_register to trust the caller and accept the hwmods without=
+ looking=20
+> at the omap_chip member. By doing this I think we could drop all the=20
+> .omap_chip =3D OMAP_CHIP_INIT(...) instances.
+>=20
+> Otherwise I think the current approach, despite the size of the initi=
+al patch,
+> has at least the benefit of being explicit and less confusing than (a=
+b)using the
+> CHIP_IS from a different CPU.
+
+Well let's see how far we can get with passing the special case flags w=
+ith
+omap2_init_devices(). Initially we can call that from the board-*.c fil=
+e
+that should get your board booting. Then we can add the am35xx specific
+arch_initcall.
+
+Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
