@@ -1,80 +1,66 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
- of ehci and ohci
-Date: Thu, 7 Jul 2011 01:17:39 +0300
-Message-ID: <20110706221738.GA823@legolas.emea.dhcp.ti.com>
-References: <Pine.LNX.4.44L0.1107051018580.2060-100000@iolanthe.rowland.org>
- <8762ngtyqj.fsf@ti.com>
- <20110706175412.GH10729@legolas.emea.dhcp.ti.com>
- <87sjqji5br.fsf@ti.com>
+Subject: Re: [PATCH] OMAP: omap_device: replace _find_by_pdev() with
+ to_omap_device()
+Date: Thu, 7 Jul 2011 01:18:57 +0300
+Message-ID: <20110706221856.GB823@legolas.emea.dhcp.ti.com>
+References: <1309980377-5964-1-git-send-email-khilman@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UugvWAfsgieZRqgk"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="pvezYHf7grwyp3Bc"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:47156 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752494Ab1GFWTC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 18:19:02 -0400
+Received: by mail-bw0-f43.google.com with SMTP id 7so798224bwd.16
+        for <linux-omap@vger.kernel.org>; Wed, 06 Jul 2011 15:19:01 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <87sjqji5br.fsf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: balbi@ti.com, Alan Stern <stern@rowland.harvard.edu>, Partha Basak <p-basak2@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
+In-Reply-To: <1309980377-5964-1-git-send-email-khilman@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
 
 
---UugvWAfsgieZRqgk
+--pvezYHf7grwyp3Bc
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Wed, Jul 06, 2011 at 12:20:40PM -0700, Kevin Hilman wrote:
-> >> +	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
-> >> +	    (od->_state =3D=3D OMAP_DEVICE_STATE_IDLE))
-> >> +		omap_device_enable(pdev);
-> >> +=09
-> >> +	return pm_generic_resume(dev);
-> >> +}
-> >> +
-> >>  static struct dev_power_domain omap_device_power_domain =3D {
-> >>  	.ops =3D {
-> >>  		.runtime_suspend =3D _od_runtime_suspend,
-> >>  		.runtime_idle =3D _od_runtime_idle,
-> >>  		.runtime_resume =3D _od_runtime_resume,
-> >>  		USE_PLATFORM_PM_SLEEP_OPS
-> >> +		.suspend =3D _od_suspend,
-> >> +		.resume =3D _od_resume,
-> >>  	}
-> >>  };
-> >
-> > it all depends on when are you planning to get this patch upstream. I'm
-> > considering getting some PM working on USB host and remove the
-> > pm_runtime calls from system suspend/resume either during -rc or next
-> > merge window.
+On Wed, Jul 06, 2011 at 12:26:17PM -0700, Kevin Hilman wrote:
+> The omap_device layer currently has two ways of getting an omap_device
+> pointer from a platform_device pointer.
 >=20
-> Well, IMO it's way too late for this kind of change for -rc, so I'm
-> considering it for the upcoming merge window.
+> Replace current usage of _find_by_pdev() with to_omap_device() since
+> to_omap_device() is more familiar to the existing to_platform_device()
+> used when getting a platform_device pointer from a struct device pointer.
+>=20
+> Cc: Felipe Balbi <balbi@ti.com>
 
-yes, that's true. Who should take the hwmod patches btw ? I'm still
-wondering if we should patch hwmod data first and push the _correct_ PM
-part on 3.2.
+FWIW:
+
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
+thanks for sending this one Kevin ;-)
 
 --=20
 balbi
 
---UugvWAfsgieZRqgk
+--pvezYHf7grwyp3Bc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOFN8CAAoJEAv8Txj19kN1wwgH/0vaLqA0qVNToQbiiM/57xF0
-BdGFNqvlJJjsoKBE7n7OcJFFrB1A0NteUldEHiyhS8hds1JR2U68Q6Cs516xWaf1
-eTfVKKMIwUmeQkvclsLCYux7DW5tvHw9zUc8AigJx/sl5+2Fb0Ed1JIlXdkcSYh4
-M/5bW2Y7W8oIhhCM2kX3NBYeRkeVNYT8LF4VGd1Yg6zc7WZPPZe7XRKQRkHO00yE
-30g3d4YWFYia9eqvtnkIjV7nrZKLE2LSvdo+GQiPK5xy3chHIVeh9fG8BbyJhTbT
-PpeEg2CJiYCQTS/5sHKOIVZKASybfAjXJvZ5aE5wue0aZ8QeD2RfbTGrgfBpe6Q=
-=HIM2
+iQEcBAEBAgAGBQJOFN9QAAoJEAv8Txj19kN1/WYH/jKnAATv6fGoGwQ2UzuoepND
+NEDWMegQLxKGkt4jaPsNc0qzWSUWsjdz02SaMIt091h6EW0mq85FrNaeJc5jSYHT
+WEJT81qfImUNnLXe0pif8ueh9ZAlZqXQggpPOk1TWa4In0bfgoFQp5BsU5vRSomj
+wvnl99JRKK59eTX8SW4xRX1jGdmrIyxEfD471PpWBDjJMqPYFxD5cyLWbILzlaZA
+6CwvuvpadmyexZmmb3p0iCcTukWd1MQPgacRd9ZY+NEkVu3pMi1XRzfDxGf84wXQ
+w2+6gdee0pkQBSy/n3bfZPLTxEm78BJH5J9WbKJm8NCXValXH7v1H5YcQK/YKhk=
+=mmR+
 -----END PGP SIGNATURE-----
 
---UugvWAfsgieZRqgk--
+--pvezYHf7grwyp3Bc--
