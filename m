@@ -1,43 +1,33 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 09/18] OMAP4: clock data: Remove McASP2, McASP3 and
-	MMC6 clocks
-Date: Wed, 6 Jul 2011 00:59:12 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107060057100.4217@utopia.booyaka.com>
-References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
-	<1309552901-8944-10-git-send-email-b-cousson@ti.com>
+Subject: Re: [PATCH v2 10/18] OMAP4: clock data: Remove UNIPRO clock nodes
+Date: Wed, 6 Jul 2011 01:00:05 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107060059330.4217@utopia.booyaka.com>
+References: <1309552901-8944-1-git-send-email-b-cousson@ti.com> <1309552901-8944-11-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1309552901-8944-10-git-send-email-b-cousson@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:36437 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752585Ab1GFHAG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 03:00:06 -0400
+In-Reply-To: <1309552901-8944-11-git-send-email-b-cousson@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>
 
 On Fri, 1 Jul 2011, Benoit Cousson wrote:
 
 > From: Jon Hunter <jon-hunter@ti.com>
 > 
-> McASP2, 3 and MMC6 modules are not present in the OMAP4 family.
-> Remove the fclk and the clksel related to these nodes.
-> Rename the references that were potentially re-used in order nodes.
-> 
-> Remove related macros in prcm header files.
-> 
-> Update TI copyright date.
+> UNIPRO was removed from OMAP4 devices from ES2.0 onwards.
+> Since this IP was anyway non-functional and not supported,
+> it is best to remove it completely.
 > 
 > Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> [b-cousson@ti.com: Update the patch according to autogen output]
+> [b-cousson@ti.com: Update the changelog]
 > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
 
 The PRCM data changes in this patch have been separated from the clock
 data changes.  The PRCM data changes have been queued for 3.1 at 
