@@ -1,31 +1,36 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v3 00/20] GPIO: OMAP: driver cleanup and fixes
-Date: Wed, 06 Jul 2011 14:07:22 -0700
-Message-ID: <874o2zf791.fsf@ti.com>
-References: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 0/8] OMAP2+: hwmod framework fixes
+Date: Wed, 6 Jul 2011 15:33:16 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107061532390.31498@utopia.booyaka.com>
+References: <1309553647-14624-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:42207 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756271Ab1GFVH2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 17:07:28 -0400
-Received: by mail-iw0-f169.google.com with SMTP id 8so277133iwn.28
-        for <linux-omap@vger.kernel.org>; Wed, 06 Jul 2011 14:07:27 -0700 (PDT)
-In-Reply-To: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Fri, 1 Jul 2011 15:16:54 +0530")
+Received: from utopia.booyaka.com ([72.9.107.138]:38056 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756295Ab1GFVdR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 17:33:17 -0400
+In-Reply-To: <1309553647-14624-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+Hi
 
-> This series is continuation of cleanup of OMAP GPIO driver and fixes.
+On Fri, 1 Jul 2011, Benoit Cousson wrote:
 
-Please also Cc the linux-arm-kernel mailing list for OMAP patches
-targetted for upstream.
+> Here are the latest bug fixes done on the hwmod framework.
+> There are mainly around wakeup capability added in OMAP4.
+> 
+> The series is based on for_3.1/2_prcm_files_cleanup and tested
+> on OMAP4430 ES2.1 + SDP.
+> 
+> The patches are available here:
+> git://gitorious.org/omap-pm/linux.git for_3.1/3_hwmod_fixes
 
-Thanks,
+Thanks, this series has been queued for 3.1 at 
+git://git.pwsan.com/linux-2.6 in the 'hwmod_core_cleanup_a_3.1' branch.
 
-Kevin
+
+- Paul
