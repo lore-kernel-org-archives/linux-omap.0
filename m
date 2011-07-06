@@ -1,55 +1,31 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP: hwmod: add kernel cmdline flag to avoid resetting
-	IP blocks during init
-Date: Wed, 6 Jul 2011 15:01:49 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107061458460.4217@utopia.booyaka.com>
-References: <20110703010204.19046.85186.stgit@dusk>
-	<20110703010206.19046.85293.stgit@dusk>
-	<20110704085503.GQ23145@atomide.com>
-	<alpine.DEB.2.00.1107051936250.4217@utopia.booyaka.com>
-	<alpine.DEB.2.00.1107051955450.4217@utopia.booyaka.com>
-	<20110706064326.GI5783@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v3 00/20] GPIO: OMAP: driver cleanup and fixes
+Date: Wed, 06 Jul 2011 14:07:22 -0700
+Message-ID: <874o2zf791.fsf@ti.com>
+References: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110706064326.GI5783@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@nokia.com>, Michael Buesch <mb@bu3sch.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:42207 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756271Ab1GFVH2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 17:07:28 -0400
+Received: by mail-iw0-f169.google.com with SMTP id 8so277133iwn.28
+        for <linux-omap@vger.kernel.org>; Wed, 06 Jul 2011 14:07:27 -0700 (PDT)
+In-Reply-To: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Fri, 1 Jul 2011 15:16:54 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com
 
-On Tue, 5 Jul 2011, Tony Lindgren wrote:
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-> * Paul Walmsley <paul@pwsan.com> [110705 18:55]:
-> > On Tue, 5 Jul 2011, Paul Walmsley wrote:
-> > 
-> > > For this case, we probably need some board file function to tell the 
-> > > hwmod code to disregard a device completely, to tell the kernel to 
-> > > pretend that the device does not exist.
-> > 
-> > ... and the other problem here is that we currently probe devices via an 
-> > arch_initcall(), and the board file init_machine is also an arch_initcall.
-> > Either we'll need to be very careful about Makefile ordering, or we should 
-> > just call omap2_init_devices() from the board file init_machine directly.
-> > The latter makes the most sense to me.
-> 
-> And that can then be passed the list of devices with the special flags
-> for noreset, disabled and reserved. Then the late_initcall can optionally
-> reset the rest of the devices.
+> This series is continuation of cleanup of OMAP GPIO driver and fixes.
 
-'disabled' can probably be the default for a device that doesn't have a 
-driver associated with it, once the runtime PM conversion is complete.  
-That's what the late_initcall would do.  Then if a driver is dynamically 
-loaded for one of those devices, the hwmod code would just re-enable it.
+Please also Cc the linux-arm-kernel mailing list for OMAP patches
+targetted for upstream.
 
+Thanks,
 
-- Paul
+Kevin
