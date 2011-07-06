@@ -1,94 +1,221 @@
-From: "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
-Date: Tue, 5 Jul 2011 17:05:48 -0700
-Message-ID: <CAOMWX4crxR0TQ38mFVkqv5eDQuEAry139+zoD2kKNm6imeR7yQ@mail.gmail.com>
-References: <1309849870-25660-1-git-send-email-shubhrajyoti@ti.com> <8739ikp9aa.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v3 12/20] GPIO: OMAP: Use wkup_status for all SoCs
+Date: Tue, 05 Jul 2011 17:50:49 -0700
+Message-ID: <87k4bwkz9y.fsf@ti.com>
+References: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
+	<1309513634-20971-13-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8739ikp9aa.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:58376 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752179Ab1GFAux (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 20:50:53 -0400
+Received: by mail-iw0-f182.google.com with SMTP id 19so7337131iwr.41
+        for <linux-omap@vger.kernel.org>; Tue, 05 Jul 2011 17:50:53 -0700 (PDT)
+In-Reply-To: <1309513634-20971-13-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Fri, 1 Jul 2011 15:17:06 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com
 
-On Tue, Jul 5, 2011 at 17:01, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
->
-> Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
->
-> > Currently the fifo depth is set to zero for OMAP4 which disables
-> > the FIFO usage. This patch enables the FIFO usage for I2C transacti=
-ons
-> > on OMAP4 also.
-> >
-> > Tested on omap4430 and 3430.
-> >
-> > Reported-By: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> > Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> > ---
-> > Rebased on top of the series by Andy Green
-> > http://www.spinics.net/lists/linux-i2c/msg05632.html
->
-> Thanks.
->
-> This is v3.1 material, but would be nice to see a couple tested-by or
-> acked-by tags from folks that are more actively using the I2C driver
-> before merging
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-=46or what it is worth: tested on SDP4460/4430 with 255 multi-byte i2c
-read operation on twl6030.
+> On OMAP4 we are not allowed to access wakeup_set/clear registers.
 
-Tested-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+We are allowed, it is not recommended.  Probably makes sense to
+reference the TRM here.  Basically, these are legacy registers and
+starting with OMAP4, the legacy registers should not be used in
+combination with the updated regsiters.
 
-Regards,
-Nishanth Menon
+> So instead of having additional check and separate logics for
+> manipulating the status register use wakup_status regisre consistently
 
+type: regisre
 
+> for all SoCs wherever applicable. Use the MOD_REG_BIT macro to read,
+> modify and write the status register.
 
+Good, thanks for including this change.
+
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> ---
+>  arch/arm/mach-omap1/gpio16xx.c         |    2 -
+>  arch/arm/mach-omap2/gpio.c             |    4 ---
+>  arch/arm/plat-omap/include/plat/gpio.h |    2 -
+>  drivers/gpio/gpio-omap.c               |   35 +++++++++++---------------------
+>  4 files changed, 12 insertions(+), 31 deletions(-)
 >
-> Kevin
->
->
-> > =A0drivers/i2c/busses/i2c-omap.c | =A0 11 ++++++-----
-> > =A01 files changed, 6 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c=
--omap.c
-> > index d53cd61..8f87a37 100644
-> > --- a/drivers/i2c/busses/i2c-omap.c
-> > +++ b/drivers/i2c/busses/i2c-omap.c
-> > @@ -1068,13 +1068,14 @@ omap_i2c_probe(struct platform_device *pdev=
-)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* size. This is to ensure that we ca=
-n handle the status on int
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* call back latencies.
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> > - =A0 =A0 =A0 =A0 =A0 =A0 if (dev->rev >=3D OMAP_I2C_REV_ON_3530_44=
-30) {
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->fifo_size =3D 0;
-> > +
-> > + =A0 =A0 =A0 =A0 =A0 =A0 dev->fifo_size =3D (dev->fifo_size / 2);
-> > +
-> > + =A0 =A0 =A0 =A0 =A0 =A0 if (dev->rev >=3D OMAP_I2C_REV_ON_3530_44=
-30)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->b_hw =3D 0; /* Dis=
-able hardware fixes */
-> > - =A0 =A0 =A0 =A0 =A0 =A0 } else {
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->fifo_size =3D (dev->=
-fifo_size / 2);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 else
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->b_hw =3D 1; /* Ena=
-ble hardware fixes */
-> > - =A0 =A0 =A0 =A0 =A0 =A0 }
-> > +
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* calculate wakeup latency constraint =
-for MPU */
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (dev->set_mpu_wkup_lat !=3D NULL)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->latency =3D (10000=
-00 * dev->fifo_size) /
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
+> index abde9e9..08dda3c 100644
+> --- a/arch/arm/mach-omap1/gpio16xx.c
+> +++ b/arch/arm/mach-omap1/gpio16xx.c
+> @@ -91,8 +91,6 @@ static struct omap_gpio_reg_offs omap16xx_gpio_regs = {
+>  	.set_irqenable	= OMAP1610_GPIO_SET_IRQENABLE1,
+>  	.clr_irqenable	= OMAP1610_GPIO_CLEAR_IRQENABLE1,
+>  	.wkup_status	= OMAP1610_GPIO_WAKEUPENABLE,
+> -	.wkup_clear	= OMAP1610_GPIO_CLEAR_WAKEUPENA,
+> -	.wkup_set	= OMAP1610_GPIO_SET_WAKEUPENA,
+>  	.edgectrl1	= OMAP1610_GPIO_EDGE_CTRL1,
+>  	.edgectrl2	= OMAP1610_GPIO_EDGE_CTRL2,
+>  };
+> diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+> index be5a906..c99eea4 100644
+> --- a/arch/arm/mach-omap2/gpio.c
+> +++ b/arch/arm/mach-omap2/gpio.c
+> @@ -114,8 +114,6 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
+>  		pdata->regs->debounce_en = OMAP24XX_GPIO_DEBOUNCE_EN;
+>  		pdata->regs->ctrl = OMAP24XX_GPIO_CTRL;
+>  		pdata->regs->wkup_status = OMAP24XX_GPIO_WAKE_EN;
+> -		pdata->regs->wkup_clear = OMAP24XX_GPIO_CLEARWKUENA;
+> -		pdata->regs->wkup_set = OMAP24XX_GPIO_SETWKUENA;
+>  		pdata->regs->leveldetect0 = OMAP24XX_GPIO_LEVELDETECT0;
+>  		pdata->regs->leveldetect1 = OMAP24XX_GPIO_LEVELDETECT1;
+>  		pdata->regs->risingdetect = OMAP24XX_GPIO_RISINGDETECT;
+> @@ -139,8 +137,6 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
+>  		pdata->regs->debounce_en = OMAP4_GPIO_DEBOUNCENABLE;
+>  		pdata->regs->ctrl = OMAP4_GPIO_CTRL;
+>  		pdata->regs->wkup_status = OMAP4_GPIO_IRQWAKEN0;
+> -		pdata->regs->wkup_clear = OMAP4_GPIO_IRQWAKEN0;
+> -		pdata->regs->wkup_set = OMAP4_GPIO_IRQWAKEN0;
+>  		pdata->regs->leveldetect0 = OMAP4_GPIO_LEVELDETECT0;
+>  		pdata->regs->leveldetect1 = OMAP4_GPIO_LEVELDETECT1;
+>  		pdata->regs->risingdetect = OMAP4_GPIO_RISINGDETECT;
+> diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+> index 6dcbe7d..4f584de 100644
+> --- a/arch/arm/plat-omap/include/plat/gpio.h
+> +++ b/arch/arm/plat-omap/include/plat/gpio.h
+> @@ -191,8 +191,6 @@ struct omap_gpio_reg_offs {
+>  	u16 debounce_en;
+>  	u16 ctrl;
+>  	u16 wkup_status;
+> -	u16 wkup_clear;
+> -	u16 wkup_set;
+>  	u16 leveldetect0;
+>  	u16 leveldetect1;
+>  	u16 risingdetect;
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 42f0411..769fae7 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -261,10 +261,11 @@ static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio) {}
+>  
+>  static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+>  {
+> +	void __iomem *base = bank->base;
+>  	void __iomem *reg = bank->base;
+>  	u32 l = 0;
+>  
+> -	if (bank->regs->leveldetect0 && bank->regs->wkup_status) {
+> +	if (bank->regs->leveldetect0) {
+
+Why is the check for wkup_status removed here?   That field still
+exists, and removing it leads to a blind register access below.
+
+>  		set_gpio_trigger(bank, gpio, trigger);
+>  	} else if (bank->regs->irqctrl) {
+>  		reg += bank->regs->irqctrl;
+> @@ -295,13 +296,7 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+>  		if (trigger & IRQ_TYPE_EDGE_FALLING)
+>  			l |= 1 << (gpio << 1);
+>  
+> -		if (trigger)
+> -			/* Enable wake-up during idle for dynamic tick */
+> -			__raw_writel(1 << gpio, bank->base
+> -						+ bank->regs->wkup_set);
+> -		else
+> -			__raw_writel(1 << gpio, bank->base
+> -						+ bank->regs->wkup_clear);
+> +		MOD_REG_BIT(bank->regs->wkup_status, 1 << gpio, trigger != 0);
+
+This isn't right, so I'm not sure how this is working. At this point:
+
+     base = bank->base;
+     reg = bank->base + bank->regs->edgectrl[12];
+
+but if you look at MOD_REG_BIT(), it does register access using 'base +
+reg', but here that will be 'bank->base + bank->base + reg offset',
+which will be doing a read/modify/write to who-knows-where.
+
+>  		__raw_writel(l, reg);
+
+Oh, now I see why it works: because you have an additional write here,
+which isn't right either because MOD_REG_BIT() already does the read
+*and* write.
+
+>  	}
+> @@ -515,13 +510,14 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+>  static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+>  {
+>  	struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
+> +	void __iomem *base = bank->base;
+>  	unsigned long flags;
+>  
+>  	spin_lock_irqsave(&bank->lock, flags);
+>  
+> -	if (bank->regs->wkup_clear)
+> +	if (bank->regs->wkup_status)
+>  		/* Disable wake-up during idle for dynamic tick */
+> -		__raw_writel(1 << offset, bank->base + bank->regs->wkup_clear);
+> +		MOD_REG_BIT(bank->regs->wkup_status, 1 << offset, 0);
+>  
+>  	bank->mod_usage &= ~(1 << offset);
+>  
+> @@ -1091,22 +1087,19 @@ static int omap_gpio_suspend(void)
+>  	struct gpio_bank *bank;
+>  
+>  	list_for_each_entry(bank, &omap_gpio_list, node) {
+> +		void __iomem *base = bank->base;
+>  		void __iomem *wake_status;
+> -		void __iomem *wake_clear;
+> -		void __iomem *wake_set;
+>  		unsigned long flags;
+>  
+>  		if (!bank->regs->wkup_status)
+>  			return 0;
+>  
+>  		wake_status = bank->base + bank->regs->wkup_status;
+> -		wake_clear = bank->base + bank->regs->wkup_clear;
+> -		wake_set = bank->base + bank->regs->wkup_set;
+>  
+>  		spin_lock_irqsave(&bank->lock, flags);
+>  		bank->saved_wakeup = __raw_readl(wake_status);
+> -		__raw_writel(0xffffffff, wake_clear);
+> -		__raw_writel(bank->suspend_wakeup, wake_set);
+> +		MOD_REG_BIT(bank->regs->wkup_status, 0xffffffff, 0);
+> +		MOD_REG_BIT(bank->regs->wkup_status, bank->suspend_wakeup, 1);
+
+You don't need two rmw accesses to the wkup_status.  Just do a single write.
+
+>  		spin_unlock_irqrestore(&bank->lock, flags);
+>  	}
+>  
+> @@ -1118,19 +1111,15 @@ static void omap_gpio_resume(void)
+>  	struct gpio_bank *bank;
+>  
+>  	list_for_each_entry(bank, &omap_gpio_list, node) {
+> -		void __iomem *wake_clear;
+> -		void __iomem *wake_set;
+> +		void __iomem *base = bank->base;
+>  		unsigned long flags;
+>  
+>  		if (!bank->regs->wkup_status)
+>  			return;
+>  
+> -		wake_clear = bank->base + bank->regs->wkup_clear;
+> -		wake_set = bank->base + bank->regs->wkup_set;
+> -
+>  		spin_lock_irqsave(&bank->lock, flags);
+> -		__raw_writel(0xffffffff, wake_clear);
+> -		__raw_writel(bank->saved_wakeup, wake_set);
+> +		MOD_REG_BIT(bank->regs->wkup_status, 0xffffffff, 0);
+> +		MOD_REG_BIT(bank->regs->wkup_status, bank->saved_wakeup, 1);
+
+ditto
+
+>  		spin_unlock_irqrestore(&bank->lock, flags);
+>  	}
+>  }
+
+Kevin
