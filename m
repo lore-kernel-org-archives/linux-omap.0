@@ -1,52 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 0/8] OMAP2+: hwmod framework fixes
-Date: Wed, 6 Jul 2011 02:02:39 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107060201160.4217@utopia.booyaka.com>
-References: <1309553647-14624-1-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1107060129420.4217@utopia.booyaka.com>
+From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
+Subject: Multiple NAND flash chips on OMAP3
+Date: Wed, 6 Jul 2011 10:05:51 +0200
+Message-ID: <5448984682E7954C9BFF27F747A9C6CA4EAC62@dolphin.TIGRIS.local>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-359429710-1309939359=:4217"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="=-/eIpySI2VYjlzTPz6crW"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48229 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751093Ab1GFICk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 04:02:40 -0400
-In-Reply-To: <alpine.DEB.2.00.1107060129420.4217@utopia.booyaka.com>
+Received: from www45.your-server.de ([213.133.104.45]:53546 "EHLO
+	www45.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188Ab1GFIg6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 04:36:58 -0400
+Received: from [217.91.135.48] (helo=IT_AstaroMailGateway)
+	by www45.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.72)
+	(envelope-from <prvs=0168d4b72f=maximilian.schwerin@tigris.de>)
+	id 1QeN7X-0001ki-EW
+	for linux-omap@vger.kernel.org; Wed, 06 Jul 2011 10:06:07 +0200
+Received: from dolphin.tigris.local ([192.168.0.10]:1053)
+	by IT_AstaroMailGateway with esmtp (Exim 4.69)
+	(envelope-from <Maximilian.Schwerin@tigris.de>)
+	id 1QeN7H-0000ZR-2T
+	for linux-omap@vger.kernel.org; Wed, 06 Jul 2011 10:05:51 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, Benoit Cousson <b-cousson@ti.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+--=-/eIpySI2VYjlzTPz6crW
+Content-class: urn:content-classes:message
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
---155748971-359429710-1309939359=:4217
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Hi,
 
-On Wed, 6 Jul 2011, Paul Walmsley wrote:
+I'm currently working on a beagleboard clone that has two NAND chips on
+OMAP3 CS0 and CS1. The flash on CS0 works as expected. What would be the
+correct way to get both chips to work?
 
-> On Fri, 1 Jul 2011, Benoit Cousson wrote:
->=20
-> > Here are the latest bug fixes done on the hwmod framework.
-> > There are mainly around wakeup capability added in OMAP4.
-> >=20
-> > The series is based on for_3.1/2_prcm_files_cleanup and tested
-> > on OMAP4430 ES2.1 + SDP.
-> >=20
-> > The patches are available here:
-> > git://gitorious.org/omap-pm/linux.git for_3.1/3_hwmod_fixes
->=20
-> Thanks, these all look good to me.  Tony, maybe you can pull these=20
-> straight from Beno=EEt's branch?
+Thanks, Maximilian
 
-Eh, never mind... I just realized that this branch is based on one of=20
-his earlier branches.  So if you pull it, you'll get a bunch of other=20
-stuff that shouldn't be part of this.
+--=-/eIpySI2VYjlzTPz6crW
+Content-Type: application/pgp-signature
 
-Tony, I'll pick these patches out into a separate topic branch and send a=
-=20
-new pull request.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.8 (GNU/Linux)
 
+iEYEABECAAYFAk4UF2kACgkQ6nqkzTWctv43rgCfUNYiYIvwqQYDoWzzAPS7GQaG
+0oMAnjBU2ZYC2VUBoNwaWPSW6anipCLO
+=aRtf
+-----END PGP SIGNATURE-----
 
-- Paul
---155748971-359429710-1309939359=:4217--
+--=-/eIpySI2VYjlzTPz6crW--
