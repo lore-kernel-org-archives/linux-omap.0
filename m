@@ -1,221 +1,96 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support of ehci and ohci
-Date: Wed, 06 Jul 2011 12:20:40 -0700
-Message-ID: <87sjqji5br.fsf@ti.com>
-References: <Pine.LNX.4.44L0.1107051018580.2060-100000@iolanthe.rowland.org>
-	<8762ngtyqj.fsf@ti.com>
-	<20110706175412.GH10729@legolas.emea.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110706175412.GH10729-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org> (Felipe Balbi's
-	message of "Wed, 6 Jul 2011 20:54:14 +0300")
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, Vishwanath Sripathy <vishwanath.bs-l0cyMroinI0@public.gmane.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH] OMAP: omap_device: replace _find_by_pdev() with to_omap_device()
+Date: Wed,  6 Jul 2011 12:26:17 -0700
+Message-ID: <1309980377-5964-1-git-send-email-khilman@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:38892 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755701Ab1GFT0U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 15:26:20 -0400
+Received: by mail-iw0-f180.google.com with SMTP id 9so391840iwn.11
+        for <linux-omap@vger.kernel.org>; Wed, 06 Jul 2011 12:26:19 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
+The omap_device layer currently has two ways of getting an omap_device
+pointer from a platform_device pointer.
 
-> Hi,
->
-> On Tue, Jul 05, 2011 at 10:37:40AM -0700, Kevin Hilman wrote:
->> While I did design the OMAP PM core to be runtime PM centric, and we
->> implemented several drivers based on runtime PM alone, after some long
->> discussions on linux-pm[1] with Alan and Rafael (PM maintainer) over the
->> last couple weeks, I'm now convinced I had the wrong design/approach.
->> 
->> Rafael and Alan have been patient with my stubborness, but now I've been
->> pursuaded.  Rafael has detailed on linux-pm the various
->> problems/limitations/races between runtime PM and system PM[2], so I
->> don't plan debating them again here.
->> 
->> That being said, today we have several drivers that use runtime PM calls
->> in their suspend/resume path and our PM domain implementation (inside
->> omap_device) deals with most of the limitations fine.  However, there
->> are 2 main problems/limitation with this that we've chosen to live with
->> (for now):
->>         
->> 1) synchronous calls must be used in the suspend/resume path (because
->>    PM workqueue is frozen during suspend/resumea)
->> 2) disabling runtime PM from userspace will prevent that device
->>    from hitting its low-power state during suspend.
->> 
->> For v3.1 (and before), we've lived with these limitations, and I'm OK
->> with merging other drivers for v3.1 with these limitations.  After 3.1,
->> this will be changing (more on this below.)  
->> 
->> So, while I've been OK with merging drivers with the above limitations
->> for one more merge window, $SUBJECT patch adds a new twist by forcibly
->> managing the parent device from the child device.  Personally, I really
->> don't like that approach and it serves as a good illustration of yet
->> another reason why system PM and runtime PM need understood as
->> conceptually very different.
->> 
->> For v3.2, the PM core will change[2] to futher limit/protect
->> interactions between runtime PM and system PM, and I will be reworking
->> our PM domain (omap_device) implementation accordingly.  
->> 
->> Basically, what that will mean is that our PM domain layer (omap_device)
->> will also call omap_device_idle() in the suspend path, but only if the
->> device is *not* already idle (from previous runtime suspend.)  The PM
->> domain layer will then omap_device_enable() the device in the system
->> resume path if it was suspended in the system suspend path.  A minimally
->> tested patch to do this is below.
->> 
->> So, the driver still does not have to care about it's specific clocks
->> etc. (which should address Felipe's concern), clocks and other
->> IP-specific PM details will all continue to be handled by omap_device,
->> just like it is with runtime PM.
->> 
->> The primary change to the driver, is that whatever needs to be done to
->> prepare for both runtime PM and system PM (including context
->> save/restore etc.) will have to be done in a common function(s) that
->> will be called by *both* of its ->runtime_suspend() and ->suspend()
->> callbacks, and similar for ->runtime_resume() and ->resume().  
->> 
->> Some drivers will have additional work to do for system PM though.  This
->> is mainly because system PM can happen at *any* time, including in the
->> middle of ongoing activity, whereas runtime PM transitions happen when
->> the device is known to be idle.  What that means is that for example, a
->> drivers ->suspend() method might need to wait for (or forcibly stop) any
->> ongoing activity in order to be sure the device is ready to be suspended.
->> 
->> Frankly, this is not a very big change for the drivers, as the
->> device-specific idle work will still be handled by the PM domain layer.
->> 
->> Hope that helps clarify the background.
->> 
->> As for this particular patch, since it is rather late in the development
->> cycle for v3.1, I would recommend that it wait until the omap_device
->> changes, and then let the PM core (for system PM and runtime PM) handle
->> the parent/child relationships as they are designed to.   But that is up
->> to Felipe and USB maintainers to decide.
->> 
->> Kevin
->> 
->> [1] https://lists.linux-foundation.org/pipermail/linux-pm/2011-June/031559.html
->> [2] https://lists.linux-foundation.org/pipermail/linux-pm/2011-June/031977.html
->> 
->> 
->> From 6696e9a2b106ca9c9936e5c2ad89650010120e10 Mon Sep 17 00:00:00 2001
->> From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
->> Date: Tue, 7 Jun 2011 16:07:28 -0700
->> Subject: [PATCH] OMAP: PM: omap_device: add system PM methods for PM domain handling
->> 
->> Using PM domain callbacks, use omap_device idle/enable to
->> automatically suspend/resume devices.  Also use pm_generic_* routines
->> to ensure driver's callbacks are correctly called.
->> 
->> Driver ->suspend callback is needed to ensure the driver is in a state
->> that it can be suspended.
->> 
->> If device is already idle (typically because of previous runtime PM
->> activity), there's nothing extra to do.
->> 
->> KJH: The omap_device_* calls should probably actually be done in the
->>      _noirq() methods.
->> 
->> Not-yet-Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
->> ---
->>  arch/arm/plat-omap/include/plat/omap_device.h |    4 +++
->>  arch/arm/plat-omap/omap_device.c              |   32 +++++++++++++++++++++++++
->>  2 files changed, 36 insertions(+), 0 deletions(-)
->> 
->> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
->> index e4c349f..bc36d05 100644
->> --- a/arch/arm/plat-omap/include/plat/omap_device.h
->> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
->> @@ -44,6 +44,9 @@ extern struct device omap_device_parent;
->>  #define OMAP_DEVICE_STATE_IDLE		2
->>  #define OMAP_DEVICE_STATE_SHUTDOWN	3
->>  
->> +/* omap_device.flags values */
->> +#define OMAP_DEVICE_SUSPENDED BIT(0)
->> +
->>  /**
->>   * struct omap_device - omap_device wrapper for platform_devices
->>   * @pdev: platform_device
->> @@ -73,6 +76,7 @@ struct omap_device {
->>  	s8				pm_lat_level;
->>  	u8				hwmods_cnt;
->>  	u8				_state;
->> +	u8                              flags;
->>  };
->>  
->>  /* Device driver interface (call via platform_data fn ptrs) */
->> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
->> index 49fc0df..f2711c3 100644
->> --- a/arch/arm/plat-omap/omap_device.c
->> +++ b/arch/arm/plat-omap/omap_device.c
->> @@ -564,12 +564,44 @@ static int _od_runtime_resume(struct device *dev)
->>  	return pm_generic_runtime_resume(dev);
->>  }
->>  
->> +static int _od_suspend(struct device *dev)
->> +{
->> +	struct platform_device *pdev = to_platform_device(dev);
->> +	struct omap_device *od = to_omap_device(pdev);
->> +	int ret;
->> +
->> +	ret = pm_generic_suspend(dev);
->> +
->> +	od->flags &= ~OMAP_DEVICE_SUSPENDED;
->> +
->> +	if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
->> +		omap_device_idle(pdev);
->> +		od->flags |= OMAP_DEVICE_SUSPENDED;
->> +	}
->> +
->> +	return ret;
->> +}
->> +
->> +static int _od_resume(struct device *dev)
->> +{
->> +	struct platform_device *pdev = to_platform_device(dev);
->> +	struct omap_device *od = to_omap_device(pdev);
->
-> seems like you guys have duplicated helpers for this. There's
-> _find_by_pdev() and to_omap_device and both do the exact same thing:
->
-> static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
-> {
-> 	return container_of(pdev, struct omap_device, pdev);
-> }
->
-> #define to_omap_device(x) container_of((x), struct omap_device, pdev)
+Replace current usage of _find_by_pdev() with to_omap_device() since
+to_omap_device() is more familiar to the existing to_platform_device()
+used when getting a platform_device pointer from a struct device pointer.
 
-Yeah, I know.
+Cc: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Paul, please consider this minor cleanup for the v3.1 merge window.
+Applies to v3.0-c6.
 
->> +
->> +	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
->> +	    (od->_state == OMAP_DEVICE_STATE_IDLE))
->> +		omap_device_enable(pdev);
->> +	
->> +	return pm_generic_resume(dev);
->> +}
->> +
->>  static struct dev_power_domain omap_device_power_domain = {
->>  	.ops = {
->>  		.runtime_suspend = _od_runtime_suspend,
->>  		.runtime_idle = _od_runtime_idle,
->>  		.runtime_resume = _od_runtime_resume,
->>  		USE_PLATFORM_PM_SLEEP_OPS
->> +		.suspend = _od_suspend,
->> +		.resume = _od_resume,
->>  	}
->>  };
->
-> it all depends on when are you planning to get this patch upstream. I'm
-> considering getting some PM working on USB host and remove the
-> pm_runtime calls from system suspend/resume either during -rc or next
-> merge window.
+ arch/arm/plat-omap/omap_device.c |   15 +++++----------
+ 1 files changed, 5 insertions(+), 10 deletions(-)
 
-Well, IMO it's way too late for this kind of change for -rc, so I'm
-considering it for the upcoming merge window.
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 49fc0df..c8b9cd1 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -236,11 +236,6 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+ 	return 0;
+ }
+ 
+-static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
+-{
+-	return container_of(pdev, struct omap_device, pdev);
+-}
+-
+ /**
+  * _add_optional_clock_clkdev - Add clkdev entry for hwmod optional clocks
+  * @od: struct omap_device *od
+@@ -316,7 +311,7 @@ u32 omap_device_get_context_loss_count(struct platform_device *pdev)
+ 	struct omap_device *od;
+ 	u32 ret = 0;
+ 
+-	od = _find_by_pdev(pdev);
++	od = to_omap_device(pdev);
+ 
+ 	if (od->hwmods_cnt)
+ 		ret = omap_hwmod_get_context_loss_count(od->hwmods[0]);
+@@ -611,7 +606,7 @@ int omap_device_enable(struct platform_device *pdev)
+ 	int ret;
+ 	struct omap_device *od;
+ 
+-	od = _find_by_pdev(pdev);
++	od = to_omap_device(pdev);
+ 
+ 	if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
+ 		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
+@@ -650,7 +645,7 @@ int omap_device_idle(struct platform_device *pdev)
+ 	int ret;
+ 	struct omap_device *od;
+ 
+-	od = _find_by_pdev(pdev);
++	od = to_omap_device(pdev);
+ 
+ 	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
+ 		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
+@@ -681,7 +676,7 @@ int omap_device_shutdown(struct platform_device *pdev)
+ 	int ret, i;
+ 	struct omap_device *od;
+ 
+-	od = _find_by_pdev(pdev);
++	od = to_omap_device(pdev);
+ 
+ 	if (od->_state != OMAP_DEVICE_STATE_ENABLED &&
+ 	    od->_state != OMAP_DEVICE_STATE_IDLE) {
+@@ -722,7 +717,7 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
+ 	int ret = -EINVAL;
+ 	struct omap_device *od;
+ 
+-	od = _find_by_pdev(pdev);
++	od = to_omap_device(pdev);
+ 
+ 	if (new_wakeup_lat_limit == od->dev_wakeup_lat)
+ 		return 0;
+-- 
+1.7.6
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
