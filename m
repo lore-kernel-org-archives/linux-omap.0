@@ -1,48 +1,59 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH] OMAP4: I2C : I2C context save
-Date: Wed, 6 Jul 2011 11:49:05 +0530
-Message-ID: <1309933145-8825-1-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH][RFC] OMAP4: I2C : I2C context save
+Date: Wed, 06 Jul 2011 11:51:58 +0530
+Message-ID: <4E13FF06.7040505@ti.com>
+References: <1308559552-24028-1-git-send-email-shubhrajyoti@ti.com>	<87ips08qis.fsf@ti.com> <4DFF6A9E.5050209@ti.com> <87y60cr344.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50095 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750830Ab1GFGTP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 02:19:15 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87y60cr344.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-i2c@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Restore of context is not done for OMAP4. This patch 
-adds the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE in the OMAP4
-hwmod which activates the restore for OMAP4.
-Currently the OMAP4 doesnot hit device off still the
-driver may have support for it.
-
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
-Applies on top of patches from Andy Green
-http://www.spinics.net/lists/linux-i2c/msg05632.html
-Tested on OMAP4430
-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 0fe9556..5e2c748 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2130,7 +2130,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
--	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
-+	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE |
-+			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
- };
- 
- /* i2c1 */
--- 
-1.7.1
-
+On Wednesday 06 July 2011 12:01 AM, Kevin Hilman wrote:
+> Shubhrajyoti<shubhrajyoti-l0cyMroinI0@public.gmane.org>  writes:
+>
+>> On Monday 20 June 2011 09:05 PM, Kevin Hilman wrote:
+>>> shubhrajyoti-l0cyMroinI0@public.gmane.org writes:
+>>>
+>>>> From: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>>>>
+>>>> Currently the OMAP4 doesnot hit device off still the
+>>>> driver may have support for it.Adding support for the
+>>>> same.
+>>>>
+>>>> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>>> Please Cc linux-omap as this change to the hwmod data would go through
+>>> Tony.
+>> Yes , missed out.
+>>> Also, please describe why this hwmod data change affects the problem
+>>> described in the changelog.
+>>>
+>> After Andy's patch set
+>> <code snippet>
+>> static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+>> {
+>> <snip>
+>>
+>>          pm_runtime_get_sync(&pdev->dev);
+>>
+>>          if (pdata->flags&  OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+>>                  omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>>                  omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
+>>                  omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+>>                  omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+>>                  omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+>>                  omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
+>>                  omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+>>                  omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+>>          }
+>>          dev->idle = 0;
+>>
+>> This is dependent on the flag, I am making it true for OMAP4 also.
+> What I meant was: please describe this in the changelog.  Without more
+> detail, the hwmod change itself is not understandable.
+Yes , will explain it in the change logs.
+> Kevin
