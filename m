@@ -1,96 +1,67 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] OMAP: omap_device: replace _find_by_pdev() with to_omap_device()
-Date: Wed,  6 Jul 2011 12:26:17 -0700
-Message-ID: <1309980377-5964-1-git-send-email-khilman@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 00/18] OMAP4: PM data big spring cleanup and fixes
+Date: Wed, 06 Jul 2011 12:31:44 -0700
+Message-ID: <4E14B820.6070202@ti.com>
+References: <1309552901-8944-1-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:38892 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755701Ab1GFT0U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 15:26:20 -0400
-Received: by mail-iw0-f180.google.com with SMTP id 9so391840iwn.11
-        for <linux-omap@vger.kernel.org>; Wed, 06 Jul 2011 12:26:19 -0700 (PDT)
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:45803 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755481Ab1GFTbs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 15:31:48 -0400
+Received: by mail-yw0-f54.google.com with SMTP id 7so131925ywf.13
+        for <linux-omap@vger.kernel.org>; Wed, 06 Jul 2011 12:31:47 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
-Cc: Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-The omap_device layer currently has two ways of getting an omap_device
-pointer from a platform_device pointer.
+On 7/6/2011 12:19 AM, Paul Walmsley wrote:
+> Hi,
+>
+> On Fri, 1 Jul 2011, Benoit Cousson wrote:
+>
+>> Here are a bunch of cleanups on almost every PRCM related data files.
+>> Some of them are purely code moves, and will look like a lot of
+>> noise for nothing, but this is needed if we want to keep the files
+>> aligned with generator tool and thus ease the future migration to
+>> whatever format (common clock framework + DT).
+>
+> Thanks.  I'll split these up into smaller topic branches, I think
+> that's what Tony wants for this window.
+>
+> Patches 1-3 and 12 have been queued for 3.1 at
+> git://git.pwsan.com/linux-2.6 in the 'prcm_cleanup_a_3.1' branch.
+>
+> Patches 4-8 and 11 have been queued for 3.1 at
+> git://git.pwsan.com/linux-2.6 in the 'clock_cleanup_a_3.1' branch.
+>
+> Patches 9 and 10 have been split into PRCM changes and clock changes. The
+> PRCM changes have been queued for 3.1 at git://git.pwsan.com/linux-2.6 in
+> the 'prcm_cleanup_a_3.1' branch.  The clock changes have been queued for
+> 3.1 at git://git.pwsan.com/linux-2.6 in the 'clock_cleanup_a_3.1' branch.
+>
+> Patches 13-15 have been queued for 3.1 at
+> git://git.pwsan.com/linux-2.6 in the 'hwmod_cleanup_a_3.1' branch.
+>
+> Patches 17-18 have been queued for 3.1 at
+> git://git.pwsan.com/linux-2.6 in the 'hwmod_dss_fix_3.1' branch.
+>
+> Patch 16, to me, belongs best with the 4460 support series and so I'll see
+> if it makes sense to fit it in there somewhere.
 
-Replace current usage of _find_by_pdev() with to_omap_device() since
-to_omap_device() is more familiar to the existing to_platform_device()
-used when getting a platform_device pointer from a struct device pointer.
+Paul,
 
-Cc: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Paul, please consider this minor cleanup for the v3.1 merge window.
-Applies to v3.0-c6.
+Do you want me to base the 4460 support series on one of your branches
+and re-post including the above patch?
 
- arch/arm/plat-omap/omap_device.c |   15 +++++----------
- 1 files changed, 5 insertions(+), 10 deletions(-)
+regards,
+Rajendra
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 49fc0df..c8b9cd1 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -236,11 +236,6 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
- 	return 0;
- }
- 
--static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
--{
--	return container_of(pdev, struct omap_device, pdev);
--}
--
- /**
-  * _add_optional_clock_clkdev - Add clkdev entry for hwmod optional clocks
-  * @od: struct omap_device *od
-@@ -316,7 +311,7 @@ u32 omap_device_get_context_loss_count(struct platform_device *pdev)
- 	struct omap_device *od;
- 	u32 ret = 0;
- 
--	od = _find_by_pdev(pdev);
-+	od = to_omap_device(pdev);
- 
- 	if (od->hwmods_cnt)
- 		ret = omap_hwmod_get_context_loss_count(od->hwmods[0]);
-@@ -611,7 +606,7 @@ int omap_device_enable(struct platform_device *pdev)
- 	int ret;
- 	struct omap_device *od;
- 
--	od = _find_by_pdev(pdev);
-+	od = to_omap_device(pdev);
- 
- 	if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
- 		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
-@@ -650,7 +645,7 @@ int omap_device_idle(struct platform_device *pdev)
- 	int ret;
- 	struct omap_device *od;
- 
--	od = _find_by_pdev(pdev);
-+	od = to_omap_device(pdev);
- 
- 	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
- 		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
-@@ -681,7 +676,7 @@ int omap_device_shutdown(struct platform_device *pdev)
- 	int ret, i;
- 	struct omap_device *od;
- 
--	od = _find_by_pdev(pdev);
-+	od = to_omap_device(pdev);
- 
- 	if (od->_state != OMAP_DEVICE_STATE_ENABLED &&
- 	    od->_state != OMAP_DEVICE_STATE_IDLE) {
-@@ -722,7 +717,7 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
- 	int ret = -EINVAL;
- 	struct omap_device *od;
- 
--	od = _find_by_pdev(pdev);
-+	od = to_omap_device(pdev);
- 
- 	if (new_wakeup_lat_limit == od->dev_wakeup_lat)
- 		return 0;
--- 
-1.7.6
+>
+>
+> - Paul
 
