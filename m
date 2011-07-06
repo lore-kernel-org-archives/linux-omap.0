@@ -1,59 +1,69 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v3 09/20] GPIO: OMAP: Use level/edge detect reg offsets
-Date: Tue, 05 Jul 2011 16:51:39 -0700
-Message-ID: <87d3hop9pw.fsf@ti.com>
-References: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
-	<1309513634-20971-10-git-send-email-tarun.kanti@ti.com>
+Subject: Re: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
+Date: Tue, 05 Jul 2011 17:01:01 -0700
+Message-ID: <8739ikp9aa.fsf@ti.com>
+References: <1309849870-25660-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:42229 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751750Ab1GEXvo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 19:51:44 -0400
-Received: by iwn8 with SMTP id 8so6165740iwn.28
-        for <linux-omap@vger.kernel.org>; Tue, 05 Jul 2011 16:51:43 -0700 (PDT)
-In-Reply-To: <1309513634-20971-10-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Fri, 1 Jul 2011 15:17:03 +0530")
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:60281 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751378Ab1GFABG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jul 2011 20:01:06 -0400
+In-Reply-To: <1309849870-25660-1-git-send-email-shubhrajyoti@ti.com>
+	(Shubhrajyoti D.'s message of "Tue, 5 Jul 2011 12:41:10 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com, Charulatha V <charu@ti.com>
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+Shubhrajyoti D <shubhrajyoti@ti.com> writes:
 
-> From: Charulatha V <charu@ti.com>
+> Currently the fifo depth is set to zero for OMAP4 which disables
+> the FIFO usage. This patch enables the FIFO usage for I2C transactions
+> on OMAP4 also.
 >
-> By adding level and edge detection register offsets and then initializing them
-> correctly according to OMAP versions during device registrations we can now remove
-> lot of revision checks in these functions.
+> Tested on omap4430 and 3430.
 >
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> Signed-off-by: Charulatha V <charu@ti.com>
+> Reported-By: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+> Rebased on top of the series by Andy Green
+> http://www.spinics.net/lists/linux-i2c/msg05632.html
 
-Found the bug causing GPIO IRQ triggering failures for Blaze and Zoom3
-GPIO-based network IRQs...
+Thanks.
 
-> @@ -400,12 +394,12 @@ static int gpio_irq_type(struct irq_data *d, unsigned type)
->  	if (type & ~IRQ_TYPE_SENSE_MASK)
->  		return -EINVAL;
->  
-> -	/* OMAP1 allows only only edge triggering */
-> -	if (!cpu_class_is_omap2()
-> -			&& (type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
-> +	bank = irq_data_get_irq_chip_data(d);
-> +
-> +	if (bank->regs->leveldetect0 && (type &
-> +			(IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
-
-This check is not the same as the one it replaced.  This check should
-be:
-
-	if (!bank->regs->leveldetect0 &&
-	    (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH)))
-		return -EINVAL;
-
-Note the formatting changes also for readability, but the bugfix is just
-adding the '!' before regs->leveldetect0.
+This is v3.1 material, but would be nice to see a couple tested-by or
+acked-by tags from folks that are more actively using the I2C driver
+before merging
 
 Kevin
+
+
+>  drivers/i2c/busses/i2c-omap.c |   11 ++++++-----
+>  1 files changed, 6 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index d53cd61..8f87a37 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1068,13 +1068,14 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		 * size. This is to ensure that we can handle the status on int
+>  		 * call back latencies.
+>  		 */
+> -		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430) {
+> -			dev->fifo_size = 0;
+> +
+> +		dev->fifo_size = (dev->fifo_size / 2);
+> +
+> +		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
+>  			dev->b_hw = 0; /* Disable hardware fixes */
+> -		} else {
+> -			dev->fifo_size = (dev->fifo_size / 2);
+> +		else
+>  			dev->b_hw = 1; /* Enable hardware fixes */
+> -		}
+> +
+>  		/* calculate wakeup latency constraint for MPU */
+>  		if (dev->set_mpu_wkup_lat != NULL)
+>  			dev->latency = (1000000 * dev->fifo_size) /
