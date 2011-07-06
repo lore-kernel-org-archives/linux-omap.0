@@ -1,67 +1,87 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 00/18] OMAP4: PM data big spring cleanup and fixes
-Date: Wed, 06 Jul 2011 12:31:44 -0700
-Message-ID: <4E14B820.6070202@ti.com>
-References: <1309552901-8944-1-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v3 08/20] GPIO: OMAP: Use wkup regs off/suspend support flag
+Date: Wed, 06 Jul 2011 12:51:17 -0700
+Message-ID: <871uy3i3wq.fsf@ti.com>
+References: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
+	<1309513634-20971-9-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:45803 "EHLO
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:43678 "EHLO
 	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755481Ab1GFTbs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 15:31:48 -0400
-Received: by mail-yw0-f54.google.com with SMTP id 7so131925ywf.13
-        for <linux-omap@vger.kernel.org>; Wed, 06 Jul 2011 12:31:47 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
+	by vger.kernel.org with ESMTP id S1755484Ab1GFTvV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jul 2011 15:51:21 -0400
+Received: by mail-pz0-f50.google.com with SMTP id 2so234175pzk.9
+        for <linux-omap@vger.kernel.org>; Wed, 06 Jul 2011 12:51:20 -0700 (PDT)
+In-Reply-To: <1309513634-20971-9-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Fri, 1 Jul 2011 15:17:02 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com, Charulatha V <charu@ti.com>
 
-On 7/6/2011 12:19 AM, Paul Walmsley wrote:
-> Hi,
->
-> On Fri, 1 Jul 2011, Benoit Cousson wrote:
->
->> Here are a bunch of cleanups on almost every PRCM related data files.
->> Some of them are purely code moves, and will look like a lot of
->> noise for nothing, but this is needed if we want to keep the files
->> aligned with generator tool and thus ease the future migration to
->> whatever format (common clock framework + DT).
->
-> Thanks.  I'll split these up into smaller topic branches, I think
-> that's what Tony wants for this window.
->
-> Patches 1-3 and 12 have been queued for 3.1 at
-> git://git.pwsan.com/linux-2.6 in the 'prcm_cleanup_a_3.1' branch.
->
-> Patches 4-8 and 11 have been queued for 3.1 at
-> git://git.pwsan.com/linux-2.6 in the 'clock_cleanup_a_3.1' branch.
->
-> Patches 9 and 10 have been split into PRCM changes and clock changes. The
-> PRCM changes have been queued for 3.1 at git://git.pwsan.com/linux-2.6 in
-> the 'prcm_cleanup_a_3.1' branch.  The clock changes have been queued for
-> 3.1 at git://git.pwsan.com/linux-2.6 in the 'clock_cleanup_a_3.1' branch.
->
-> Patches 13-15 have been queued for 3.1 at
-> git://git.pwsan.com/linux-2.6 in the 'hwmod_cleanup_a_3.1' branch.
->
-> Patches 17-18 have been queued for 3.1 at
-> git://git.pwsan.com/linux-2.6 in the 'hwmod_dss_fix_3.1' branch.
->
-> Patch 16, to me, belongs best with the 4460 support series and so I'll see
-> if it makes sense to fit it in there somewhere.
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-Paul,
-
-Do you want me to base the 4460 support series on one of your branches
-and re-post including the above patch?
-
-regards,
-Rajendra
-
+> From: Charulatha V <charu@ti.com>
 >
+> Wakeup register offsets are initialized according to OMAP versions
+> during device registration. These explicit checks are no longer needed.
 >
-> - Paul
+> mpuio_init() function is defined under #ifdefs. It is required only in case
+> of MPUIO bank type and only when PM operations are supported by it.
+> This is applicable only in case of OMAP16xx SoC's MPUIO GPIO bank type.
+> For all the other cases it is a dummy function. Hence clean up the same
+> and remove all the OMAP SoC specific #ifdefs.
+>
+> bank_is_mpuio() is defined as a check to identify if the bank type is MPUIO.
+> It is not required to define it separately as zero for OMAP2plus. Remove this.
 
+The MPUIO stuff should really be separated from the wkup register stuff.
+
+[...]
+
+> @@ -596,27 +594,11 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+>  	unsigned long flags;
+>  
+>  	spin_lock_irqsave(&bank->lock, flags);
+> -#ifdef CONFIG_ARCH_OMAP16XX
+> -	if (bank->method == METHOD_GPIO_1610) {
+> -		/* Disable wake-up during idle for dynamic tick */
+> -		void __iomem *reg = bank->base + OMAP1610_GPIO_CLEAR_WAKEUPENA;
+> -		__raw_writel(1 << offset, reg);
+> -	}
+> -#endif
+> -#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> -	if (bank->method == METHOD_GPIO_24XX) {
+> -		/* Disable wake-up during idle for dynamic tick */
+> -		void __iomem *reg = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
+> -		__raw_writel(1 << offset, reg);
+> -	}
+> -#endif
+> -#ifdef CONFIG_ARCH_OMAP4
+> -	if (bank->method == METHOD_GPIO_44XX) {
+> +
+> +	if (bank->regs->wkup_clear)
+>  		/* Disable wake-up during idle for dynamic tick */
+> -		void __iomem *reg = bank->base + OMAP4_GPIO_IRQWAKEN0;
+> -		__raw_writel(1 << offset, reg);
+> -	}
+> -#endif
+> +		__raw_writel(1 << offset, bank->base + bank->regs->wkup_clear);
+> +
+
+Note that this is not an equivalent change.  The current code is using
+IRQWAKEN0 register and you're changing it to use the CLEARWKUPENA
+register.
+
+While the current code is clearly broken since it's not doing a
+read/modify/write, this change is not very clear either, and not
+documented in the changelog.
+
+I think a better approach is to just drop the parts of this patch where
+the wkup_set and wkup_clear registers are added.  Since they are removed
+in patch 12/20 anyways, maybe moving 12/20 earlier in the series
+would make this clearer and avoid unnessary additions followed by
+removals.
+
+Kevin
