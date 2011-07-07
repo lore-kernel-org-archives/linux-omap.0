@@ -1,64 +1,141 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/18] OMAP4: PM data big spring cleanup and fixes
-Date: Thu, 7 Jul 2011 15:10:42 +0300
-Message-ID: <20110707121040.GF15815@atomide.com>
-References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
- <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
- <4E14B820.6070202@ti.com>
- <20110707055549.GC15815@atomide.com>
- <E9AF1FACCF71F448B55E58D9AED1B0F40E626BEE32@staex7mb2.telecom.sna.samsung.com>
+From: "Raju, Sundaram" <sundaram@ti.com>
+Subject: RE: [RFC] dmaengine: add new api for preparing simple slave transfer
+Date: Thu, 7 Jul 2011 17:45:04 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9403024F5420@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2DED@dbde02.ent.ti.com>
+	<20110609124723.GA24636@n2100.arm.linux.org.uk>
+	<E0D41E29EB0DAC4E9F3FF173962E9E940301FE2EFB@dbde02.ent.ti.com>
+	<1307686140.10976.111.camel@vkoul-udesk3>
+	<E0D41E29EB0DAC4E9F3FF173962E9E940301FE3405@dbde02.ent.ti.com>
+	<1307724439.10976.188.camel@vkoul-udesk3>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9403020B7C2A@dbde02.ent.ti.com>
+	<1308203119.10976.234.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:64834 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755675Ab1GGMKu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 08:10:50 -0400
-Content-Disposition: inline
-In-Reply-To: <E9AF1FACCF71F448B55E58D9AED1B0F40E626BEE32@staex7mb2.telecom.sna.samsung.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1308203119.10976.234.camel@vkoul-udesk3>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Koul, Vinod" <vinod.koul@intel.com>
+Cc: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dan <dan.j.williams@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Martin Fouts <mfouts@sta.samsung.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Martin Fouts <mfouts@sta.samsung.com> [110707 10:20]:
-> > Do we really need to do that patching right now to add base 4460 support?
+> -----Original Message-----
+> From: Koul, Vinod [mailto:vinod.koul@intel.com]
+> Sent: Thursday, June 16, 2011 11:15 AM
+> To: Raju, Sundaram
+> Cc: Russell King - ARM Linux; Linus Walleij; Dan; davinci-linux-open-
+> source@linux.davincidsp.com; linux-omap@vger.kernel.org; linux-
+> kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [RFC] dmaengine: add new api for preparing simple slave transfer
 > 
-> It should be done sometime, but I see no need for it to be right now.
-> 
-> > If we're just doing a bunch of renames all over the place to add support
-> > for a new processor variant, something is wrong. This is exactly the kind
-> > of "crazy churn" Linus was complaining about. In this case the crazy churn
-> > is "let's rename 4430 to 44XX all over the place".
-> 
-> To me, this is not 'crazy churn', but rather, correcting an earlier oversight. I did not understand Linus to say "never fix a naming oversight", but "don't change names without a good reason."
+> On Tue, 2011-06-14 at 12:12 +0530, Raju, Sundaram wrote:
 
-I think this is crazy churn. It does not fix the problem we have, which
-is "how can we support lots of SoCs in a sane way". It just postpones
-fixing the problem until the next SoC variant comes around. And now
-we already have the exact same problem with both the am3505 support
-and 4460 support.
+<snip>
 
-The second problem we have here is "why does adding 4460 support depend
-on a cosmetic clean-up patch". That dependency should not exist at all
-as it seems the 4460 patches should work even without this patch.
+> Okay now things are more clear on what you are trying to do...
+
+Vinod, 
+Sorry for the delayed response. I was OOO and not well.
+Thanks for going through the design documents and giving options.
+
+>
+> 2) I think this can be achieved in two ways:
+> a) you use current standard sg_list mechanism, the dmac driver parses
+> the list and  programs the dma offsets into dmac
+> Pros: you can use existing APIs, no changes to i/f.
+> If dmac has this capability they program dmac accordingly
+> Cons: you need to create sg-list in client driver
+>
+
+This option does not satisfy the requirements.
+As Russell has pointed out
+
+> > >
+> > > The overall conclusion which I'm coming to is that we already support
+> > > what you're asking for, but the problem is that we're using different
+> > > (and I'd argue standard) terminology to describe what we have.
+> > >
+> > > The only issue which I see that we don't cover is the case where you want
+> > > to describe a single buffer which is organised as N bytes to be transferred,
+> > > M following bytes to be skipped, N bytes to be transferred, M bytes to be
+> > > skipped.  I doubt there are many controllers which can be programmed with
+> > > both 'N' and 'M' parameters directly.
+> > >
+> >
+> > Yes this is what I wanted to communicate and discuss in the list.
+> > Thanks for describing it in the standard terminology, and pointing me in the
+> > right direction.
+> >
+
+The sg_list caters to all the parameters that a client driver has to pass
+to the DMAC driver except for the STRIDE related info of skipping certain
+bytes within a single buffer entry of the sg_list.
+
+> 
+> b) create a new api to describe these offset values, something like:
+> prep_buffer_offset(struct offset_description *buffer,.....)
+> I would not like to change the current API for this and rather have a
+> new API for this, this should better then overriding current.
+> 
+
+Yes, it would be better not to change the existing API.
+This option seems good. But new API has to be added for this option.
+Linus, had suggested something similar, but different,
+Using the control API with a new dma_ctrl_cmd enum
+defined for TI DMAC special configuration to be passed.
  
-> > To me it's sane to assume that we can have most of 4430 features on 4460
-> > and don't need to rename 4430 to 44XX for that. Adding 4460 should be
-> > just add few new 4460 defines, then do an arch_initcall to fixup things
-> > between 4430 and 4460.
-> 
-> This is a topic upon which mileage varies.  My experience has made we wary of making such assumptions, because too often they have turned out to be wrong.  It is much better to make it clear that the same code supports both than to leave people guessing.  Saying so in the filename is useful. It is also consistent with the naming scheme used in much of the kernel.
-> 
-> I don't feel a sense of urgency to correct this, nor a need to hit a merge window, but from my mileage, I would prefer that it be corrected within a reasonable time frame.
-> 
-> It seems to me that there is also a bullet to bite here. To achieve the sort of rationalization across the arm architecture that is envisioned, inconsistencies in naming styles between platforms will have to be reconciled and resolved, lest the habit continue.
+| Sundaram is this how your controller works?
+| I mean the hardware can skip over sequences like this?
+| 
+| When we added the config interface to DMAengine I originally included
+| a "custom config" call, but Dan wanted me to keep it out until we
+| had some specific usecase for it. FSLDMA recently started
+| to use it.
+| 
+| Notice how dmaengine_slave_config() is implemented:
+| 
+| static inline int dmaengine_slave_config(struct dma_chan *chan,
+| 					  struct dma_slave_config *config)
+| {
+| 	return dmaengine_device_control(chan, DMA_SLAVE_CONFIG,
+| 			(unsigned long)config);
+| }
+| 
+| So what is passed to the driver is just an unsigned long.
+| 
+| This is actually modeled to be ioctl()-like so you can pass in a
+| custom config to the same callback on the device driver,
+| just use some other enumerator than DMA_SLAVE_CONFIG,
+| say like FSLDMA already does with FSLDMA_EXTERNAL_START.
+| 
+| Just put some enumerator in enum dma_ctrl_cmd in
+| dmaengine.h such as SDMA_TEXAS_STRIDE_CONFIG and call
+| like this:
+| 
+| /* However that config struct needs to look, basically */
+| static struct sdma_ti_stride_cgf = {
+|      take = M,
+|      skip = N,
+| };
+| 
+| ret = chan->device->device_control(chan, SDMA_TEXAS_STRIDE_CONFIG,
+| &sdma_ti_stride_cfg);
+| 
+| Or something like this.
 
-Sure things should be fixed, but things should be fixed properly. Here
-we are repeating the CHIP_IS flag in hundreds of places where it really
-should be only checked once after SoC is detected. And then based on
-that a SoC specifc list of devices can then be initialized.
+I think this is better option than your 2b. This requires just an addition of
+one more enum in the dma_ctrl_cmd. What do you think about this?
+If Dan and you are okay with this I will send a small patch for this asap.
 
 Regards,
-
-Tony
+Sundaram
