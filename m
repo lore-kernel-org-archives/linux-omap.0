@@ -1,42 +1,29 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Re: [GIT PULL] TWL6040 MFD and followups
-Date: Thu, 7 Jul 2011 21:46:01 +0300
-Message-ID: <2495406.tIHCNdL4la@barack>
-References: <5898202.Q4JP1WeJj2@barack> <20110707182947.GM5783@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 02/12] omap: mcbsp: Remove rx_/tx_word_length variables
+Date: Thu, 7 Jul 2011 12:08:39 -0700
+Message-ID: <20110707190838.GO5783@atomide.com>
+References: <1309510356-27147-1-git-send-email-jhnikula@gmail.com>
+ <1309510356-27147-3-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46638 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755519Ab1GGSqJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 14:46:09 -0400
-In-Reply-To: <20110707182947.GM5783@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55952 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755380Ab1GGTIm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 15:08:42 -0400
+Content-Disposition: inline
+In-Reply-To: <1309510356-27147-3-git-send-email-jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Girdwood, Liam" <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-On Thursday 07 July 2011 20:29:47 Tony Lindgren wrote:
-> Thanks. Can you please add one more branch for cleanup only for me to
-> pull at your commit b252b0efb605b92a2f5d118e294d088d89cfd286
-> (OMAP3: Move common regulator configuration to twl-common)?
+* Jarkko Nikula <jhnikula@gmail.com> [110701 01:48]:
+> These variables got unused after ("omap: mcbsp: Drop in-driver transfer
+> support") but was noticed only afterwards.
 
-Do you want a separate pull request for it?
-The branch name, which only have the cleanup (ends with=20
-b252b0efb605b92a2f5d118e294d088d89cfd286):
-peter/topic/for-tony_mach-cleanup
+I'll queue this and the one after this into cleanup.
 
-> That way I can first pull that into cleanup and send that to Arnd.
-> Then we can do a separate twl-asoc branch so the cleanup stays
-> separate from new code.
+Regards,
 
-Sound like a plan.
-
---=20
-P=C3=A9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
