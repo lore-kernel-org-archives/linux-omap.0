@@ -1,76 +1,45 @@
-From: Liam Girdwood <lrg@ti.com>
-Subject: Re: [PATCH 1/3] ASoC: omap-mcpdm: Replace legacy driver
-Date: Thu, 7 Jul 2011 20:55:16 +0100
-Message-ID: <1310068516.3569.22.camel@CNA0741383>
-References: <1310041672-18634-1-git-send-email-peter.ujfalusi@ti.com>
-	 <1310041672-18634-2-git-send-email-peter.ujfalusi@ti.com>
-	 <20110707155742.GC16325@opensource.wolfsonmicro.com>
-	 <4E15DFAA.7030508@ti.com>
-	 <20110707165329.GG16325@opensource.wolfsonmicro.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap board updates for v3.1 merge window
+Date: Thu, 7 Jul 2011 22:40:58 +0200
+Message-ID: <201107072240.58987.arnd@arndb.de>
+References: <20110707162911.GL5783@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32877 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752624Ab1GGUFp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Jul 2011 16:05:45 -0400
-In-Reply-To: <20110707165329.GG16325@opensource.wolfsonmicro.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:55876 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751607Ab1GGUlf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 16:41:35 -0400
+In-Reply-To: <20110707162911.GL5783@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
 
-On 07/07/11 17:53, Mark Brown wrote:
-> On Thu, Jul 07, 2011 at 05:32:42PM +0100, Liam Girdwood wrote:
->> On 07/07/11 16:57, Mark Brown wrote:
->>> On Thu, Jul 07, 2011 at 03:27:50PM +0300, Peter Ujfalusi wrote:
+On Thursday 07 July 2011 18:29:11 Tony Lindgren wrote:
+> Please pull omap board updates from:
 > 
->>>> The current McPDM driver design is not suitable to support both
->>>> the ABE and Legacy DMA operating modes. Therefore remove most
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git devel-board
 > 
->>> In what way is it not suitable?
-> 
->> It cant support both the ABE and Legacy DMA modes without adding some
->> unnecessary and complicated logic. My preference is 1 driver to
->> support both modes of operation and this is the easiest way to do so
->> (also keeping the maintenance easier too).
-> 
-> My comment was more that the changelog should say why it's not suitable
-> given that it involves a near total rewrite of the driver which is a
-> pretty big step, I'm fine with the actual change.  I guess that the
-> current McPDM driver configures some things that should be moved to the
-> DMA driver?
-> 
+> These are currently on top of the fixes you pulled earlier but
+> could be also rebased on the earlier cleanup if you prefer that.
 
-I cant think of anything thing atm that could be moved to DMA driver,
-McPDM mostly uses ABE for moving PCM data around.
+I would generally prefer them to be independent, even if that causes
+minor conflicts. If some branches are built on top of others, that
+mainly means I have to remember the order in which to send them
+upstream, and my memory for these things is limited.
+ 
+> Please note that the board-cm-t35.c change will need a minor fix
+> when merging with the atag_offset patch series. In MACHINE_START
+> the .boot_params needs to be replaced with .atag_offset = 0x100.
+>
+> Also note that this series is missing the Nook Color board
+> support as that one is waiting on the machine_id patch.
 
->>> It occurs to me that it'd be much simpler to implement this by doing the
->>> cleanup in your runtime suspend callback, it looks like you're working
->>> around the pm_runtime framework rather than using it.  If you need to do
->>> some cleanup when the device goes idle and you can't do it within a
->>> framework designed to suspend the device when it goes idle then there's
->>> an issue there.
-> 
->>> Alternatively, why is this deferred?
-> 
->> There are some power, clock and pop dependencies here between the
->> CODEC, ABE and McPDM interface and this deferred work allows us to
->> shutwdown McPDM (in a pop free manner) and satisfy the dependencies
->> without causing a data abort and/or locking the ABE firmware.
-> 
-> Sounds like runtime PM ought to be able to handle this, though?  If you
-> need to sync with the ABE can the ABE take PM references to the DAIs
-> it's talking to?  I guess the ABE will be happier if everything it's
-> talking to runs for longer than it does.  Or the DAI could switch into
-> autosuspend mode when it goes idle to do the delay.
+Ok
 
-It's not that simple in this situation. We also have a PM dependency on
-the CODEC here too, it supplies our interface clock via the DAI so we
-have to be very careful how we interact with the ABE and CODEC. The
-critical thing here is the pop reduction and a subsequent ABE patch will
-also introduce some hard timing constraints here too.
+Thanks,
 
-Liam
-
+	Arnd
