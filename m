@@ -1,48 +1,66 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP4460: Hwmod: Add hwmod for thermal sensor
-Date: Thu, 7 Jul 2011 03:29:21 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107070328150.30028@utopia.booyaka.com>
-References: <1309877932-27202-1-git-send-email-vishwanath.bs@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/6 v2] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Thu, 7 Jul 2011 13:29:01 +0300
+Message-ID: <20110707102900.GG1311@legolas.emea.dhcp.ti.com>
+References: <1309546474-15363-1-git-send-email-keshava_mgowda@ti.com>
+ <1309546474-15363-2-git-send-email-keshava_mgowda@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1957162917-1310030961=:30028"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="f5QefDQHtn8hx44O"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53345 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753110Ab1GGJ3W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 05:29:22 -0400
-In-Reply-To: <1309877932-27202-1-git-send-email-vishwanath.bs@ti.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:37413 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753224Ab1GGK3J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 06:29:09 -0400
+Content-Disposition: inline
+In-Reply-To: <1309546474-15363-2-git-send-email-keshava_mgowda@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Benoit Cousson <b-cousson@ti.com>
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
---155748971-1957162917-1310030961=:30028
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+--f5QefDQHtn8hx44O
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi
+Hi Tony, Benoit, Kevin, Paul,
 
-On Tue, 5 Jul 2011, Vishwanath BS wrote:
-
-> From: Keerthy <j-keerthy@ti.com>
+On Sat, Jul 02, 2011 at 12:24:29AM +0530, Keshava Munegowda wrote:
+> From: Benoit Cousson <b-cousson@ti.com>
 >=20
-> Patch adds hwmod entry for 4460 thermal sensor module. Thermal sensor mod=
-ule
-> is part of Control module sharing its address space and clocked via Bandg=
-ap
-> Functional Clock. Adding a seperate hwmod entry for thermal sensor will
-> enable thermal sensor driver to manage its clock cleanly using PM runtime
-> interfaces.
+> Following 4 hwmod strcuture are added:
+> UHH hwmod of usbhs with uhh base address and functional clock,
+> EHCI hwmod with irq and base address,
+> OHCI hwmod with irq and base address,
+> TLL hwmod of usbhs with the TLL base address and irq.
 >=20
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Vishwnath BS <vishwanath.bs@ti.com>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 
-This needs to be coordinated with Beno=EEt, since he's the maintainer of=20
-this file.  Since he's away at the moment, this is probably 3.2 material.
+Can the hwmod part go into this merge window ? I can fix the PM part
+later on but without hwmod, I can't do anything.
 
+--=20
+balbi
 
-- Paul
---155748971-1957162917-1310030961=:30028--
+--f5QefDQHtn8hx44O
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOFYpsAAoJEAv8Txj19kN15BcH/iTlNst2b0dnUitUzdItLwIQ
+8DeYs5iDIlC3fb0+c8RPtcKrfEicV4s6XzeJ1Zc924EB2Jza6fFEH+mlHlOAUS+B
+R+l1n6/OwBSDi3hchkdRDx8mdn5GPqy+OmSeWp+L0FMesNeD05Gzn+Pdx5gF+cUj
+2lhdFMOY3c6KDy/q/MJCO3KC/9PPr0ci6tzgJmEazsgn41FOifFy20tBXtPlLC3P
+KT4NpDQWBD009FOIn7K1V96YAyW4vAs/jol6KgWediVC99DwLt1luo2OOQNt7TU+
+ZREjAyK+rcFIBUJRdsw8Y2h+9BQN2++lgQLbJ0ygvm9T8CB0Rs1DbOz8+CVbxL8=
+=kx3s
+-----END PGP SIGNATURE-----
+
+--f5QefDQHtn8hx44O--
