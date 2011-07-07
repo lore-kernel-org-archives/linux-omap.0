@@ -1,110 +1,181 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [RFC PATCH 3/5] OMAP3: Beagle: Update beagle board file to use DT
-Date: Thu, 7 Jul 2011 22:34:08 +0530
-Message-ID: <20110707170408.GB3124@manju-desktop>
+Subject: Re: [RFC PATCH 5/5] OMAP: I2C: Convert I2C driver to use device tree
+Date: Thu, 7 Jul 2011 22:43:49 +0530
+Message-ID: <20110707171349.GC3124@manju-desktop>
 References: <1309426647-31587-1-git-send-email-manjugk@ti.com>
-	<1309426647-31587-4-git-send-email-manjugk@ti.com>
-	<20110706190022.GL4871@ponder.secretlab.ca>
+ <1309426647-31587-6-git-send-email-manjugk@ti.com>
+ <20110706190803.GN4871@ponder.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:52760 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752852Ab1GGRN6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 13:13:58 -0400
+Received: by mail-pv0-f179.google.com with SMTP id 18so666920pvg.10
+        for <linux-omap@vger.kernel.org>; Thu, 07 Jul 2011 10:13:58 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20110706190022.GL4871@ponder.secretlab.ca>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, ben-linux@fluff.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20110706190803.GN4871@ponder.secretlab.ca>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, ben-linux@fluff.org
 
-On Wed, Jul 06, 2011 at 01:00:22PM -0600, Grant Likely wrote:
-> On Thu, Jun 30, 2011 at 03:07:25PM +0500, G, Manjunath Kondaiah wrote:
+On Wed, Jul 06, 2011 at 01:08:03PM -0600, Grant Likely wrote:
+> On Thu, Jun 30, 2011 at 03:07:27PM +0500, G, Manjunath Kondaiah wrote:
 > > 
-> > The beagle board file is updated to use i2c nodes from device
-> > tree data structures.
+> > The OMAP I2C driver is modified to use platform_device data from
+> > device tree data structures.
 > > 
 > > Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> 
+> Mostly looks good, but a few things that need to be fixed.  You can
+> probably even get this change merged for v3.1
+
+Thanks. I will fix the review comments and we can have these changes with
+board-omapx-dt.c file so that dt and not dt builds can co exist.
+
+For complete functionality with dt build, omap hwmod needs to be handled
+through DT framework. I am waiting for comments from omap hwmod maintainers.
+
+> 
 > > ---
-> >  arch/arm/mach-omap2/board-omap3beagle.c |   24 ++++++++++++++++++++----
-> >  1 files changed, 20 insertions(+), 4 deletions(-)
+> >  drivers/i2c/busses/i2c-omap.c |   30 +++++++++++++++++++++++++++++-
+> >  1 files changed, 29 insertions(+), 1 deletions(-)
 > > 
-> > diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> > index 213c4cd..db494aa 100644
-> > --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> > +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> > @@ -20,6 +20,7 @@
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> > index ae1545b..d4ccc52 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -38,9 +38,13 @@
 > >  #include <linux/clk.h>
 > >  #include <linux/io.h>
-> >  #include <linux/of_platform.h>
+> >  #include <linux/of_i2c.h>
+> > +#include <linux/of_irq.h>
+> > +#include <linux/of_platform.h>
 > > +#include <linux/of_address.h>
-> >  #include <linux/leds.h>
-> >  #include <linux/gpio.h>
-> >  #include <linux/input.h>
-> > @@ -33,6 +34,7 @@
+> >  #include <linux/slab.h>
+> >  #include <linux/i2c-omap.h>
+> >  #include <linux/pm_runtime.h>
+> > +#include <plat/i2c.h>
 > >  
-> >  #include <linux/regulator/machine.h>
-> >  #include <linux/i2c/twl.h>
-> > +#include <linux/irq.h>
+> >  /* I2C controller revisions */
+> >  #define OMAP_I2C_REV_2			0x20
+> > @@ -972,6 +976,7 @@ static const struct i2c_algorithm omap_i2c_algo = {
+> >  	.functionality	= omap_i2c_func,
+> >  };
 > >  
-> >  #include <mach/hardware.h>
-> >  #include <asm/mach-types.h>
-> > @@ -421,8 +423,8 @@ static int __init omap3_beagle_i2c_init(void)
-> >  	omap3_pmic_init("twl4030", &beagle_twldata);
-> >  	/* Bus 3 is attached to the DVI port where devices like the pico DLP
-> >  	 * projector don't work reliably with 400kHz */
-> > +#if !defined(CONFIG_OF)
-> >  	omap_register_i2c_bus(3, 100, beagle_i2c_eeprom, ARRAY_SIZE(beagle_i2c_eeprom));
-> > -#ifdef CONFIG_OF
-> >  	omap_register_i2c_bus(2, 100, NULL, 0);
-> >  #endif /* CONFIG_OF */
+> > +static const struct of_device_id omap_i2c_of_match[];
+> >  static int __devinit
+> >  omap_i2c_probe(struct platform_device *pdev)
+> >  {
+> > @@ -979,10 +984,15 @@ omap_i2c_probe(struct platform_device *pdev)
+> >  	struct i2c_adapter	*adap;
+> >  	struct resource		*mem, *irq, *ioarea;
+> >  	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
+> > +	const struct of_device_id *match;
+> >  	irq_handler_t isr;
+> >  	int r;
+> >  	u32 speed = 0;
+> >  
+> > +	match = of_match_device(omap_i2c_of_match, &pdev->dev);
+> > +	if (!match)
+> > +		dev_err(&pdev->dev, "DT: i2c device match not found.......\n");
+> > +
+> 
+> This isn't an error.  It just mean that the device wasn't registered
+> from the device tree, and it needs to get its configuration from
+> pdata.
+> 
+> In fact, you don't even need this block since the driver never uses
+> the match entry returned by of_match_device()
+
+ok. I will remove this.
+> 
+> >  	/* NOTE: driver uses the static register mapping */
+> >  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> >  	if (!mem) {
+> > @@ -1007,10 +1017,19 @@ omap_i2c_probe(struct platform_device *pdev)
+> >  		r = -ENOMEM;
+> >  		goto err_release_region;
+> >  	}
+> > -
+> 
+> Don't drop the empty line.
+> 
+> > +	/* I2C device without DT might use this */
+> 
+> No need for the comment.
+ok
+> 
+> >  	if (pdata != NULL) {
+> >  		speed = pdata->clkrate;
+> >  		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+> > +	} else if (pdev->dev.of_node) {
+> > +		const unsigned int *prop;
+> > +		prop = of_get_property(pdev->dev.of_node,
+> > +				"clock-frequency", NULL);
+> > +		if (prop)
+> > +			speed = be32_to_cpup(prop);
+> > +		else
+> > +			speed = 100;
+> 
+> There is a new function that makes this easier.  Do this instead:
+> 
+> 	speed = 100;
+> 	if (of_property_read_u32(pdev->dev.of_node, "clock-frequency", &prop)
+> 		speed = prop / 1000000; /* speed in Hz, this might be wrong */
+These patches got merged after posting this series. I will take care of it in
+the next version.
+
+BTW, I have posted seperate patch to use above API for code optimization.
+
+
+> 
+> > +		dev->set_mpu_wkup_lat = NULL;
+> 
+> dev is kzalloced, which means set_mpu_wkup_lat is already NULL.
+> 
+> >  	} else {
+> >  		speed = 100;	/* Default speed */
+> >  		dev->set_mpu_wkup_lat = NULL;
+> > @@ -1045,6 +1064,7 @@ omap_i2c_probe(struct platform_device *pdev)
+> >  
+> >  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+> >  
+> > +
+> 
+> Drop the unrelated whitespace change.
+> 
+> >  	if (dev->rev <= OMAP_I2C_REV_ON_3430)
+> >  		dev->errata |= I2C_OMAP3_1P153;
+> >  
+> > @@ -1073,6 +1093,7 @@ omap_i2c_probe(struct platform_device *pdev)
+> >  				       (1000 * speed / 8);
+> >  	}
+> >  
+> > +
+> 
+> Ditto.
+> 
+> >  	/* reset ASAP, clearing any IRQs */
+> >  	omap_i2c_init(dev);
+> >  
+> > @@ -1162,6 +1183,12 @@ static int omap_i2c_resume(struct device *dev)
 > >  	return 0;
-> > @@ -565,11 +567,24 @@ static void __init beagle_opp_init(void)
-> >  	return;
 > >  }
 > >  
-> > +static struct of_device_id omap_dt_gic_match[] __initdata = {
-> > +	{ .compatible = "ti,omap-gic", },
-> > +	{}
-> > +};
+> > +static const struct of_device_id omap_i2c_of_match[] = {
+> > +	{.compatible = "ti,omap_i2c", },
+> > +	{},
+> > +}
+> > +MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
 > > +
-> > +static struct of_device_id omap_dt_match_table[] __initdata = {
-> > +	{ .compatible = "ti,omap3-beagle", },
-> > +	{}
-> > +};
-> > +
-> >  static void __init omap3_beagle_init(void)
-> >  {
-> > -#ifdef CONFIG_OF
-> > -	of_platform_prepare(NULL, NULL);
-> > -#endif /* CONFIG_OF */
-> > +	struct device_node *node;
-> > +
-> > +	node = of_find_matching_node_by_address(NULL, omap_dt_gic_match,
-> > +						OMAP34XX_IC_BASE);
-> > +	if (node)
-> > +		irq_domain_add_simple(node, 0);
-> >  
-> >  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> >  	omap3_beagle_init_rev();
-> > @@ -597,6 +612,7 @@ static void __init omap3_beagle_init(void)
-> >  
-> >  	beagle_display_init();
-> >  	beagle_opp_init();
-> > +	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
 > 
-> This is probably a loosing approach.  Until the DT stuff is stable on
-> omap, you should avoid doing anything that might break existing board
-> ports.  Instead, I recommend creating an board-omap3-dt.c board file,
-> and pull in only the static beagle device registrations that you need
-> to get up and running, then you can pull them back out as the beagle
-> DT board support matures.
-yes. that is the plan. I have mentioned the same in PATCH 0/5
+> This needs to be protected with #ifdef CONFIG_OF/#else/#endif.  Don't
+> break non-dt builds.
+> 
+
+ok. Thanks.
 
 -Manjunath
