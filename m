@@ -1,77 +1,100 @@
-From: Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
- of ehci and ohci
-Date: Thu, 7 Jul 2011 10:23:59 +0530
-Message-ID: <94f8609ab03603c27ef2cf3850bb92e6@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1107051018580.2060-100000@iolanthe.rowland.org>
- <8762ngtyqj.fsf@ti.com> <20110706175412.GH10729@legolas.emea.dhcp.ti.com>
- <87sjqji5br.fsf@ti.com> <20110706221738.GA823@legolas.emea.dhcp.ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v3 08/20] GPIO: OMAP: Use wkup regs off/suspend support
+ flag
+Date: Thu, 7 Jul 2011 10:36:12 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BD02D79@dbde02.ent.ti.com>
+References: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
+	<1309513634-20971-9-git-send-email-tarun.kanti@ti.com>
+ <871uy3i3wq.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110706221738.GA823-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, Vishwanath Sripathy <vishwanath.bs-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45188 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750756Ab1GGFGW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 01:06:22 -0400
+In-Reply-To: <871uy3i3wq.fsf@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Varadarajan, Charulatha" <charu@ti.com>
 
->-----Original Message-----
->From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
->Sent: Thursday, July 07, 2011 3:48 AM
->To: Kevin Hilman
->Cc: balbi-l0cyMroinI0@public.gmane.org; Alan Stern; Partha Basak; Keshava Munegowda; linux-
->usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
->kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Anand Gadiyar; sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org;
->parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; Benoit Cousson; paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org;
->johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org; Vishwanath Sripathy
->Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume
->support of ehci and ohci
->
->Hi,
->
->On Wed, Jul 06, 2011 at 12:20:40PM -0700, Kevin Hilman wrote:
->> >> +	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
->> >> +	    (od->_state == OMAP_DEVICE_STATE_IDLE))
->> >> +		omap_device_enable(pdev);
->> >> +
->> >> +	return pm_generic_resume(dev);
->> >> +}
->> >> +
->> >>  static struct dev_power_domain omap_device_power_domain = {
->> >>  	.ops = {
->> >>  		.runtime_suspend = _od_runtime_suspend,
->> >>  		.runtime_idle = _od_runtime_idle,
->> >>  		.runtime_resume = _od_runtime_resume,
->> >>  		USE_PLATFORM_PM_SLEEP_OPS
->> >> +		.suspend = _od_suspend,
->> >> +		.resume = _od_resume,
->> >>  	}
->> >>  };
->> >
->> > it all depends on when are you planning to get this patch upstream.
->> > I'm considering getting some PM working on USB host and remove the
->> > pm_runtime calls from system suspend/resume either during -rc or
->> > next merge window.
->>
->> Well, IMO it's way too late for this kind of change for -rc, so I'm
->> considering it for the upcoming merge window.
->
->yes, that's true. Who should take the hwmod patches btw ? I'm still
->wondering if we should patch hwmod data first and push the _correct_ PM
->part on 3.2.
+[...]
+> 
+> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+> 
+> > From: Charulatha V <charu@ti.com>
+> >
+> > Wakeup register offsets are initialized according to OMAP versions
+> > during device registration. These explicit checks are no longer needed.
+> >
+> > mpuio_init() function is defined under #ifdefs. It is required only in
+> case
+> > of MPUIO bank type and only when PM operations are supported by it.
+> > This is applicable only in case of OMAP16xx SoC's MPUIO GPIO bank type.
+> > For all the other cases it is a dummy function. Hence clean up the same
+> > and remove all the OMAP SoC specific #ifdefs.
+> >
+> > bank_is_mpuio() is defined as a check to identify if the bank type is
+> MPUIO.
+> > It is not required to define it separately as zero for OMAP2plus. Remove
+> this.
+> 
+> The MPUIO stuff should really be separated from the wkup register stuff.
+Ok.
+> 
+> [...]
+> 
+> > @@ -596,27 +594,11 @@ static void omap_gpio_free(struct gpio_chip *chip,
+> unsigned offset)
+> >  	unsigned long flags;
+> >
+> >  	spin_lock_irqsave(&bank->lock, flags);
+> > -#ifdef CONFIG_ARCH_OMAP16XX
+> > -	if (bank->method == METHOD_GPIO_1610) {
+> > -		/* Disable wake-up during idle for dynamic tick */
+> > -		void __iomem *reg = bank->base + OMAP1610_GPIO_CLEAR_WAKEUPENA;
+> > -		__raw_writel(1 << offset, reg);
+> > -	}
+> > -#endif
+> > -#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> > -	if (bank->method == METHOD_GPIO_24XX) {
+> > -		/* Disable wake-up during idle for dynamic tick */
+> > -		void __iomem *reg = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
+> > -		__raw_writel(1 << offset, reg);
+> > -	}
+> > -#endif
+> > -#ifdef CONFIG_ARCH_OMAP4
+> > -	if (bank->method == METHOD_GPIO_44XX) {
+> > +
+> > +	if (bank->regs->wkup_clear)
+> >  		/* Disable wake-up during idle for dynamic tick */
+> > -		void __iomem *reg = bank->base + OMAP4_GPIO_IRQWAKEN0;
+> > -		__raw_writel(1 << offset, reg);
+> > -	}
+> > -#endif
+> > +		__raw_writel(1 << offset, bank->base + bank->regs->wkup_clear);
+> > +
+> 
+> Note that this is not an equivalent change.  The current code is using
+> IRQWAKEN0 register and you're changing it to use the CLEARWKUPENA
+> register.
+Ok, I missed that.
 
-Once Kevin pushes this infrastructure enhancement, all drivers have to
-rework
-the Suspend/Resume anyways. Another way would be to go by the current
-approach
-now and then do the rework in 3.2 along with other drivers.
-
-In this way, we can soak the Runtime support of EHCI/OHCI for one merge
-window.
->
->--
->balbi
+> 
+> While the current code is clearly broken since it's not doing a
+> read/modify/write, this change is not very clear either, and not
+> documented in the changelog.
+> 
+> I think a better approach is to just drop the parts of this patch where
+> the wkup_set and wkup_clear registers are added.  Since they are removed
+> in patch 12/20 anyways, maybe moving 12/20 earlier in the series
+> would make this clearer and avoid unnessary additions followed by
+> removals.
+I will consolidate. Thanks.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tarun
+> 
+> Kevin
