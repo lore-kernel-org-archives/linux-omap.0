@@ -1,55 +1,76 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC] dmaengine: add new api for preparing simple slave transfer
-Date: Thu, 7 Jul 2011 21:37:53 +0200
-Message-ID: <CAKnu2MorpLQuzwDGBJ7uSt6NOk=9vgeBN4f+Zx=CSU9okqzvGw@mail.gmail.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2DED@dbde02.ent.ti.com>
-	<20110609124723.GA24636@n2100.arm.linux.org.uk>
-	<E0D41E29EB0DAC4E9F3FF173962E9E940301FE2EFB@dbde02.ent.ti.com>
-	<1307686140.10976.111.camel@vkoul-udesk3>
-	<E0D41E29EB0DAC4E9F3FF173962E9E940301FE3405@dbde02.ent.ti.com>
-	<1307724439.10976.188.camel@vkoul-udesk3>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9403020B7C2A@dbde02.ent.ti.com>
-	<1308203119.10976.234.camel@vkoul-udesk3>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9403024F5420@dbde02.ent.ti.com>
+From: Liam Girdwood <lrg@ti.com>
+Subject: Re: [PATCH 1/3] ASoC: omap-mcpdm: Replace legacy driver
+Date: Thu, 7 Jul 2011 20:55:16 +0100
+Message-ID: <1310068516.3569.22.camel@CNA0741383>
+References: <1310041672-18634-1-git-send-email-peter.ujfalusi@ti.com>
+	 <1310041672-18634-2-git-send-email-peter.ujfalusi@ti.com>
+	 <20110707155742.GC16325@opensource.wolfsonmicro.com>
+	 <4E15DFAA.7030508@ti.com>
+	 <20110707165329.GG16325@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9403024F5420@dbde02.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Raju, Sundaram" <sundaram@ti.com>
-Cc: "Koul, Vinod" <vinod.koul@intel.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dan <dan.j.williams@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32877 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752624Ab1GGUFp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Jul 2011 16:05:45 -0400
+In-Reply-To: <20110707165329.GG16325@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-2011/7/7 Raju, Sundaram <sundaram@ti.com>:
+On 07/07/11 17:53, Mark Brown wrote:
+> On Thu, Jul 07, 2011 at 05:32:42PM +0100, Liam Girdwood wrote:
+>> On 07/07/11 16:57, Mark Brown wrote:
+>>> On Thu, Jul 07, 2011 at 03:27:50PM +0300, Peter Ujfalusi wrote:
+> 
+>>>> The current McPDM driver design is not suitable to support both
+>>>> the ABE and Legacy DMA operating modes. Therefore remove most
+> 
+>>> In what way is it not suitable?
+> 
+>> It cant support both the ABE and Legacy DMA modes without adding some
+>> unnecessary and complicated logic. My preference is 1 driver to
+>> support both modes of operation and this is the easiest way to do so
+>> (also keeping the maintenance easier too).
+> 
+> My comment was more that the changelog should say why it's not suitable
+> given that it involves a near total rewrite of the driver which is a
+> pretty big step, I'm fine with the actual change.  I guess that the
+> current McPDM driver configures some things that should be moved to the
+> DMA driver?
+> 
 
-> | Just put some enumerator in enum dma_ctrl_cmd in
-> | dmaengine.h such as SDMA_TEXAS_STRIDE_CONFIG and call
-> | like this:
-> |
-> | /* However that config struct needs to look, basically */
-> | static struct sdma_ti_stride_cgf =3D {
-> | =A0 =A0 =A0take =3D M,
-> | =A0 =A0 =A0skip =3D N,
-> | };
-> |
-> | ret =3D chan->device->device_control(chan, SDMA_TEXAS_STRIDE_CONFIG=
-,
-> | &sdma_ti_stride_cfg);
-> |
-> | Or something like this.
->
-> I think this is better option than your 2b. This requires just an add=
-ition of
-> one more enum in the dma_ctrl_cmd. What do you think about this?
-> If Dan and you are okay with this I will send a small patch for this =
-asap.
+I cant think of anything thing atm that could be moved to DMA driver,
+McPDM mostly uses ABE for moving PCM data around.
 
-I think this is the best way to solve it atleast. It's clear what is
-being done, and it's easy for a client trying to create such a slave
-transfer to back out if it turns out that the DMAC in use does not
-support this striding.
+>>> It occurs to me that it'd be much simpler to implement this by doing the
+>>> cleanup in your runtime suspend callback, it looks like you're working
+>>> around the pm_runtime framework rather than using it.  If you need to do
+>>> some cleanup when the device goes idle and you can't do it within a
+>>> framework designed to suspend the device when it goes idle then there's
+>>> an issue there.
+> 
+>>> Alternatively, why is this deferred?
+> 
+>> There are some power, clock and pop dependencies here between the
+>> CODEC, ABE and McPDM interface and this deferred work allows us to
+>> shutwdown McPDM (in a pop free manner) and satisfy the dependencies
+>> without causing a data abort and/or locking the ABE firmware.
+> 
+> Sounds like runtime PM ought to be able to handle this, though?  If you
+> need to sync with the ABE can the ABE take PM references to the DAIs
+> it's talking to?  I guess the ABE will be happier if everything it's
+> talking to runs for longer than it does.  Or the DAI could switch into
+> autosuspend mode when it goes idle to do the delay.
 
-Send a patch out and I'll Ack it, FWIW.
+It's not that simple in this situation. We also have a PM dependency on
+the CODEC here too, it supplies our interface clock via the DAI so we
+have to be very careful how we interact with the ABE and CODEC. The
+critical thing here is the pop reduction and a subsequent ABE patch will
+also introduce some hard timing constraints here too.
 
-Linus Walleij
+Liam
+
