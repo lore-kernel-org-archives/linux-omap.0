@@ -1,41 +1,73 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Re: [PATCH 1/3] ASoC: omap-mcpdm: Replace legacy driver
-Date: Thu, 7 Jul 2011 20:19:09 +0300
-Message-ID: <1349557.nxjzoW6muP@barack>
-References: <1310041672-18634-1-git-send-email-peter.ujfalusi@ti.com> <4E15DFAA.7030508@ti.com> <20110707165329.GG16325@opensource.wolfsonmicro.com>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [PATCH v3 03/13] OMAP4: hwmod: Replace CLKCTRL absolute
+ address with offset macros
+Date: Thu, 7 Jul 2011 11:27:58 -0700
+Message-ID: <20110707182758.GA32199@google.com>
+References: <1309554558-19819-1-git-send-email-b-cousson@ti.com>
+ <1309554558-19819-4-git-send-email-b-cousson@ti.com>
+ <alpine.DEB.2.00.1107070223340.30028@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53218 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755125Ab1GGR3V convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 13:29:21 -0400
-In-Reply-To: <20110707165329.GG16325@opensource.wolfsonmicro.com>
+Received: from smtp-out.google.com ([216.239.44.51]:62323 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754810Ab1GGS2T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 14:28:19 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1107070223340.30028@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Girdwood, Liam" <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 07 July 2011 18:53:29 Mark Brown wrote:
-> Sounds like runtime PM ought to be able to handle this, though?  If y=
-ou
-> need to sync with the ABE can the ABE take PM references to the DAIs
-> it's talking to?
+On Thu, Jul 07, 2011 at 02:25:23AM -0600, Paul Walmsley wrote:
+> On Fri, 1 Jul 2011, Benoit Cousson wrote:
+> 
+> > The CLKCTRL register was accessed using an absolute address.
+> > The usage of hardcoded macros to calculate virtual address from physical
+> > one should be avoided as much as possible.
+> > The usage of a offset will allow future improvement like migration from
+> > the current architecture code toward a module driver.
+> > 
+> > Update cm_xxx accessor, move definition to the proper header file and
+> > update copyrights.
+> > 
+> > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Rajendra Nayak <rnayak@ti.com>
+> 
+> This patch was updated to use '_cminst_' in the function names that are in 
+> the cminst44xx.c file, rather than '_cm_', to preserve consistency with 
+> the rest of the file.  Updated patch below.
+> 
+...
+> -int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
+> +int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
+>  {
+>  	int i = 0;
+>  
+> -	if (!clkctrl_reg)
+> +	if (!clkctrl_offs)
+>  		return 0;
+>  
+>  	omap_test_timeout((
+> -		((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) == 0) ||
+> -		 (((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) >>
+> -		  OMAP4430_IDLEST_SHIFT) == 0x2)),
+> +		_clkctrl_idlest(part, inst, cdoffs, clkctrl_offs) == 0 ||
+> +		_clkctrl_idlest(part, inst, cdoffs, clkctrl_offs) == 0x2),
+>  		MAX_MODULE_READY_TIME, i);
 
-It is not (just?) the ABE, but rather the twl6040 codec, which needs th=
-is=20
-deferred stopping of the PDM interface. AFAIK.
+Suggest adding symbols for the constant IDLEST values, next to the 0x3
+value added for "[PATCH v2 04/13] OMAP: hwmod: Wait the idle status to
+be disabled".
 
-> I guess the ABE will be happier if everything it's
-> talking to runs for longer than it does.  Or the DAI could switch int=
-o
-> autosuspend mode when it goes idle to do the delay.
+Would be nice to call _clkctrl_idlest() once.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Similar vague questioning of the API names as for the above-mentioned
+patch: this waits for the module slave to be ready, don't know if
+anything similar is needed for module masters or if it's important to
+keep this distinction.
+
+
+Todd
