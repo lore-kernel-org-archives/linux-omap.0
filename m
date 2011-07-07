@@ -1,37 +1,43 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] OMAP: omap_device: Create clkdev entry for hwmod
- main_clk
-Date: Thu, 7 Jul 2011 16:09:08 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107071607580.2647@utopia.booyaka.com>
-References: <1309555101-21198-1-git-send-email-b-cousson@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: [PATCH] ARM: omap2: cm-t3730: convert boot_params to atag_offset
+Date: Fri,  8 Jul 2011 01:10:11 +0300
+Message-ID: <1310076611-10135-1-git-send-email-grinberg@compulab.co.il>
+References: <201107072240.58987.arnd@arndb.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34065 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753094Ab1GGWJJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 18:09:09 -0400
-In-Reply-To: <1309555101-21198-1-git-send-email-b-cousson@ti.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:56494
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751601Ab1GGWKU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 18:10:20 -0400
+In-Reply-To: <201107072240.58987.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Todd Poynor <toddpoynor@google.com>
-
-On Fri, 1 Jul 2011, Benoit Cousson wrote:
-
-> Extend the existing function to create clkdev for every optional
-> clocks to add a well one "fck" alias for the main_clk of the
-> omap_hwmod.
-> It will allow to remove these static clkdev entries from the
-> clockXXX_data.c file.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Todd Poynor <toddpoynor@google.com>
-
-Thanks, this patch has been queued for 3.1 at 
-git://git.pwsan.com/linux-2.6 in the 'omap_device_a_3.1' branch.
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
 
-- Paul
+Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+---
+Hi Arnd,
+This one should apply cleanly on top of Nicolas' series
+and does the missing change for cm-t3730.
+If it somehow helps/saves you an effort, here it is.
+
+ arch/arm/mach-omap2/board-cm-t35.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index fcd4032..e7d48e8 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -679,7 +679,7 @@ MACHINE_START(CM_T35, "Compulab CM-T35")
+ MACHINE_END
+ 
+ MACHINE_START(CM_T3730, "Compulab CM-T3730")
+-	.boot_params    = 0x80000100,
++	.atag_offset	= 0x100,
+ 	.reserve        = omap_reserve,
+ 	.map_io         = omap3_map_io,
+ 	.init_early     = cm_t35_init_early,
+-- 
+1.7.3.4
+
