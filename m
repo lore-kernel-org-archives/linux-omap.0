@@ -1,125 +1,144 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 12/13] OMAP4: cm: Add two new APIs for modulemode
- control
-Date: Thu, 7 Jul 2011 02:32:40 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107070231110.30028@utopia.booyaka.com>
-References: <1309554558-19819-1-git-send-email-b-cousson@ti.com> <1309554558-19819-13-git-send-email-b-cousson@ti.com>
+Subject: Re: AM3505/3517 support
+Date: Thu, 7 Jul 2011 03:14:55 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107070240350.30028@utopia.booyaka.com>
+References: <4E121485.6060700@8d.com> <20110705111952.GG5783@atomide.com> <4E132143.7040802@8d.com> <20110706065605.GK5783@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-56793464-1310029117=:30028"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60737 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:35027 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754913Ab1GGIcl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 04:32:41 -0400
-In-Reply-To: <1309554558-19819-13-git-send-email-b-cousson@ti.com>
+	with ESMTP id S1751393Ab1GGJO4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 05:14:56 -0400
+In-Reply-To: <20110706065605.GK5783@atomide.com>
+Content-ID: <alpine.DEB.2.00.1107070259210.30028@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?ISO-8859-15?Q?Rapha=EBl_Ass=E9nat?= <raph@8d.com>, linux-omap@vger.kernel.org
 
-On Fri, 1 Jul 2011, Benoit Cousson wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> In OMAP4, a new programming model based on module control instead
-> of clock control was introduced.
-> Expose two APIs to allow the upper layer (omap_hwmod) to control
-> the module mode independently of the parent clocks management.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
+--155748971-56793464-1310029117=:30028
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1107070259211.30028@utopia.booyaka.com>
 
-This patch was updated to use '_cminst_' in function names that are part 
-of the cminst44xx.c file, rather than '_cm_', to preserve consistency 
-with the rest of the file.  Updated patch below.
+On Tue, 5 Jul 2011, Tony Lindgren wrote:
+
+> * Rapha=EBl Ass=E9nat <raph@8d.com> [110705 07:30]:
+> > On 05/07/11 07:19 AM, Tony Lindgren wrote:
+> > > * Rapha=EBl Ass=E9nat <raph@8d.com> [110704 12:51]:
+> > >>
+> > >> The am3505 is apparently so similar to the 3430 that it was treated =
+as such=20
+> > >> (omap_chip.oc was being set to CHIP_IS_OMAP3430ES3_1). There are how=
+ever a
+> > >> few differences that need to be addressed. I have therefore created =
+a new
+> > >> CHIP_IS and patched clocks, hwmod and power management related files
+> > >> consequently. My system now boots until it complains that it is unab=
+le=20
+> > >> to mount its root filesystem.
+> > >=20
+> > > Can you please describe where you need CHIP_IS for am3505? It seems t=
+hat
+> > > your patches just enable the same CHIP_IS_OMAP3430 features for am350=
+5 too?
+> >
+> > Actually it's only needed for the 3505/3517 specific UART 4 which shoul=
+d
+> > not be registered on real OMAP3430's. (see struct omap_hwmod=20
+> > am35xx_uart4_hwmod; in omap_hwmod_3xxx_data.c)
+> >=20
+> > But there are also cases where OMAP3430 hwmods must not be registered
+> > on AM35xx. For instance, omap3xxx_timer12_hwmod since timer12 does
+> > not exist general purpose AM3505's.
+>=20
+> Sounds like we should be able to handle both uart and gptimer12 the same =
+way
+> as we'll be handling the hwmod reset for special cases like gptimer12 for
+> secure mode. So addding Paul to Cc.
+
+So the idea would be to mark those devices as unavailable from the board=20
+file?
+
+It sounds possible, but AM35xx also has some devices that are not present=
+=20
+on 34xx chips, like the VPFE, EMAC, and HECC.  And there are probably some=
+=20
+other devices that are present on 34xx that are not present on AM35xx,=20
+like SSI, MSPRO, D2D, etc.
+
+I'd suggest adding a separate CHIP_IS_* for those AM35xx chips, as it=20
+sounds like Rapha=EBl has done, since they are different silicon, unlike th=
+e=20
+34xx HS and GP chips, which just have some eFuse differences.
+
+=2E..
+
+This is a bit of a side issue, but right now, the CHIP_IS_* macros are=20
+kind of messed up for OMAP3.  That CHIP_IS_OMAP3430 macro is the main=20
+problem.  The different CHIP_IS_OMAP* bits were intended to be mutually=20
+exclusive, so only one bit would be set at runtime for a given SoC.  Then=
+=20
+superset definitions would be defined as combinations of those bits, for=20
+use with data structures that are common to multiple OMAP3 SoCs.  We do=20
+this the right way with OMAP2 and OMAP4, just not with OMAP3.
+
+I have a patch for this, but part of it involves renaming some=20
+CHIP_IS_OMAP3430 to CHIP_IS_OMAP3XXX, so I've been hesitant to post it --=
+=20
+sounds like that would be grounds for flaming?  Or maybe it can be posted=
+=20
+as a 'cleanup' patch for the 3.2 time frame?
+
+> Basically we can have a am35xx specific arch_initcall that sets the speci=
+al
+> flags for these devices like noreset, disabled or unavailable.
+>=20
+> In this case we would just set some devices as unavailable on am35xx.
+> =20
+> > > I'd rather see us improve the code so we can support am3505 properly =
+without
+> > > a need to patch all over the place..
+> > Maybe instead of having one big array of hwmods registered for
+> > all CPUs in omap_hwmod_3xxx_data we could have a separate
+> > one for am35xx (and maybe, eventually others) such as:
+> >=20
+> > static __initdata struct omap_hwmod *omap3xxx_hwmods[]
+> > static __initdata struct omap_hwmod *am35xx_hwmods[]
+> >=20
+> > ...and maybe also a 'common' array.
+> >=20
+> > The init function would then register the appropriate hwmod array(s). T=
+he only=20
+> > thing I don't like is that for this to work we would have to keep setti=
+ng=20
+> > CHIP_IS_OMAP3430 even on AM35xx CPUs. But maybe we could change the beh=
+aviour of
+> > omap_hwmod_register to trust the caller and accept the hwmods without l=
+ooking=20
+> > at the omap_chip member. By doing this I think we could drop all the=20
+> > .omap_chip =3D OMAP_CHIP_INIT(...) instances.
+
+For what it's worth, there are some patches here that are 3.2 material=20
+that hopefully will make it easier to share hwmod data between different=20
+chips with large portions that are similar.
+
+> > Otherwise I think the current approach, despite the size of the initial=
+ patch,
+> > has at least the benefit of being explicit and less confusing than (ab)=
+using the
+> > CHIP_IS from a different CPU.
+>=20
+> Well let's see how far we can get with passing the special case flags wit=
+h
+> omap2_init_devices(). Initially we can call that from the board-*.c file
+> that should get your board booting. Then we can add the am35xx specific
+> arch_initcall.
 
 
 - Paul
-
-
-From: Benoit Cousson <b-cousson@ti.com>
-Date: Fri, 1 Jul 2011 23:09:17 +0200
-Subject: [PATCH] OMAP4: cm: Add two new APIs for modulemode control
-
-In OMAP4, a new programming model based on module control instead
-of clock control was introduced.
-Expose two APIs to allow the upper layer (omap_hwmod) to control
-the module mode independently of the parent clocks management.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-[paul@pwsan.com: renamed 'omap4_cm_' fns to 'omap4_cminst_'; cleaned up
- kerneldoc]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/cminst44xx.c |   40 ++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/cminst44xx.h |    5 ++++
- 2 files changed, 45 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index 61e4382..2b96e72 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -271,3 +271,43 @@ int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_off
- 
- 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
- }
-+
-+/**
-+ * omap4_cminst_module_enable - Enable the modulemode inside CLKCTRL
-+ * @mode: Module mode (SW or HW)
-+ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
-+ * @inst: CM instance register offset (*_INST macro)
-+ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
-+ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
-+ *
-+ * No return value.
-+ */
-+void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
-+			    u16 clkctrl_offs)
-+{
-+	u32 v;
-+
-+	v = omap4_cminst_read_inst_reg(part, inst, clkctrl_offs);
-+	v &= ~OMAP4430_MODULEMODE_MASK;
-+	v |= mode << OMAP4430_MODULEMODE_SHIFT;
-+	omap4_cminst_write_inst_reg(v, part, inst, clkctrl_offs);
-+}
-+
-+/**
-+ * omap4_cminst_module_disable - Disable the module inside CLKCTRL
-+ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
-+ * @inst: CM instance register offset (*_INST macro)
-+ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
-+ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
-+ *
-+ * No return value.
-+ */
-+void omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
-+			     u16 clkctrl_offs)
-+{
-+	u32 v;
-+
-+	v = omap4_cminst_read_inst_reg(part, inst, clkctrl_offs);
-+	v &= ~OMAP4430_MODULEMODE_MASK;
-+	omap4_cminst_write_inst_reg(v, part, inst, clkctrl_offs);
-+}
-diff --git a/arch/arm/mach-omap2/cminst44xx.h b/arch/arm/mach-omap2/cminst44xx.h
-index a985400..f2ea645 100644
---- a/arch/arm/mach-omap2/cminst44xx.h
-+++ b/arch/arm/mach-omap2/cminst44xx.h
-@@ -20,6 +20,11 @@ extern void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs);
- extern int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
- extern int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
- 
-+extern void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
-+				       u16 clkctrl_offs);
-+extern void omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
-+					u16 clkctrl_offs);
-+
- /*
-  * In an ideal world, we would not export these low-level functions,
-  * but this will probably take some time to fix properly
--- 
-1.7.5.4
-
+--155748971-56793464-1310029117=:30028--
