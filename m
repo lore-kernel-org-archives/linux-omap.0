@@ -1,100 +1,84 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v3 08/20] GPIO: OMAP: Use wkup regs off/suspend support
- flag
-Date: Thu, 7 Jul 2011 10:36:12 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BD02D79@dbde02.ent.ti.com>
-References: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
-	<1309513634-20971-9-git-send-email-tarun.kanti@ti.com>
- <871uy3i3wq.fsf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: hwmod: add kernel cmdline flag to avoid
+ resetting IP blocks during init
+Date: Thu, 7 Jul 2011 08:27:40 +0300
+Message-ID: <20110707052735.GB15815@atomide.com>
+References: <20110703010204.19046.85186.stgit@dusk>
+ <20110703010206.19046.85293.stgit@dusk>
+ <20110704085503.GQ23145@atomide.com>
+ <alpine.DEB.2.00.1107051936250.4217@utopia.booyaka.com>
+ <20110706064116.GH5783@atomide.com>
+ <alpine.DEB.2.00.1107060155250.4217@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45188 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750756Ab1GGFGW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 01:06:22 -0400
-In-Reply-To: <871uy3i3wq.fsf@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1107060155250.4217@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@nokia.com>, Rajendra Nayak <rnayak@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Michael Buesch <mb@bu3sch.de>
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Varadarajan, Charulatha" <charu@ti.com>
 
-[...]
+* Paul Walmsley <paul@pwsan.com> [110706 23:52]:
+> Hi Tony
 > 
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+> On Tue, 5 Jul 2011, Tony Lindgren wrote:
 > 
-> > From: Charulatha V <charu@ti.com>
-> >
-> > Wakeup register offsets are initialized according to OMAP versions
-> > during device registration. These explicit checks are no longer needed.
-> >
-> > mpuio_init() function is defined under #ifdefs. It is required only in
-> case
-> > of MPUIO bank type and only when PM operations are supported by it.
-> > This is applicable only in case of OMAP16xx SoC's MPUIO GPIO bank type.
-> > For all the other cases it is a dummy function. Hence clean up the same
-> > and remove all the OMAP SoC specific #ifdefs.
-> >
-> > bank_is_mpuio() is defined as a check to identify if the bank type is
-> MPUIO.
-> > It is not required to define it separately as zero for OMAP2plus. Remove
-> this.
+> > So basically we want to tell the following from the board file or board
+> > specific .dts file:
+> > 
+> > - Device is being used on the board and can be reset and configured.
+> >   This is the usual case.
 > 
-> The MPUIO stuff should really be separated from the wkup register stuff.
-Ok.
-> 
-> [...]
-> 
-> > @@ -596,27 +594,11 @@ static void omap_gpio_free(struct gpio_chip *chip,
-> unsigned offset)
-> >  	unsigned long flags;
-> >
-> >  	spin_lock_irqsave(&bank->lock, flags);
-> > -#ifdef CONFIG_ARCH_OMAP16XX
-> > -	if (bank->method == METHOD_GPIO_1610) {
-> > -		/* Disable wake-up during idle for dynamic tick */
-> > -		void __iomem *reg = bank->base + OMAP1610_GPIO_CLEAR_WAKEUPENA;
-> > -		__raw_writel(1 << offset, reg);
-> > -	}
-> > -#endif
-> > -#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-> > -	if (bank->method == METHOD_GPIO_24XX) {
-> > -		/* Disable wake-up during idle for dynamic tick */
-> > -		void __iomem *reg = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
-> > -		__raw_writel(1 << offset, reg);
-> > -	}
-> > -#endif
-> > -#ifdef CONFIG_ARCH_OMAP4
-> > -	if (bank->method == METHOD_GPIO_44XX) {
-> > +
-> > +	if (bank->regs->wkup_clear)
-> >  		/* Disable wake-up during idle for dynamic tick */
-> > -		void __iomem *reg = bank->base + OMAP4_GPIO_IRQWAKEN0;
-> > -		__raw_writel(1 << offset, reg);
-> > -	}
-> > -#endif
-> > +		__raw_writel(1 << offset, bank->base + bank->regs->wkup_clear);
-> > +
-> 
-> Note that this is not an equivalent change.  The current code is using
-> IRQWAKEN0 register and you're changing it to use the CLEARWKUPENA
-> register.
-Ok, I missed that.
+> By 'used', you mean, have a Linux driver associated with them, right?
 
+Right.
+ 
+> > - Device is being used on the board but can't be reset. This is the
+> >   case for booting Linux from other operating systems initially where
+> >   you want to keep the LCD on for debug console.
 > 
-> While the current code is clearly broken since it's not doing a
-> read/modify/write, this change is not very clear either, and not
-> documented in the changelog.
+> Or, to use examples that would be needed in a production device, the 
+> 4460/N810 GPIO examples discussed earlier.  
 > 
-> I think a better approach is to just drop the parts of this patch where
-> the wkup_set and wkup_clear registers are added.  Since they are removed
-> in patch 12/20 anyways, maybe moving 12/20 earlier in the series
-> would make this clearer and avoid unnessary additions followed by
-> removals.
-I will consolidate. Thanks.
---
-Tarun
+> Based on our current experience, there are a very small number of these 
+> cases, and they are board-specific.  So it seems to make sense to 
+> explicitly state these exceptions in the board files, via 
+> omap_hwmod_no_setup_reset() or something similar.
+
+Yeah they should be all board specific. One more example comes to mind
+was to keep the bootup logo around from bootloader on the LCD that the
+DSS code was doing earlier.
+ 
+> > - Device is not being used on the board but can be reset for decent PM.
+> >   This is often needed in cases where the bootloader just enables all the
+> >   clocks.
 > 
-> Kevin
+> Yeah.  And it's not just bootloaders, it's also the previous kernel in the 
+> case of something like kexec.  Since we don't know what devices the 
+> bootloader or previous kernel touched, it seems to make sense to reset all 
+> of these devices by default, once the drivers are converted to use runtime 
+> PM.
+> 
+> The current issue here is that some drivers aren't yet converted, so the 
+> hwmod code might think that some devices are 'unused' when they are 
+> actually in use by a non-runtime-PM-based driver.
+>  
+> > - Device is reserved by secure mode or a coprocessor. In this case
+> >   the device can't be reset.
+> 
+> Indeed - or even accessed.
+> 
+> > So I guess that makes the flags noreset, disabled and unavailable?
+> 
+> I think we only need 'no reset' and 'unavailable'?  Once the runtime PM 
+> driver conversion is complete, I don't think there's any reason to keep 
+> the 'hwmod_unused_reset' command line flag around, since it can be the 
+> default.  That's because the hwmod code would then be able to track which 
+> devices were actually used.
+
+Sounds doable to me.
+
+Regards,
+
+Tony
