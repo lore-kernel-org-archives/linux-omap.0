@@ -1,47 +1,113 @@
-From: Martin Fouts <mfouts@sta.samsung.com>
-Subject: RE: [PATCH v2 00/18] OMAP4: PM data big spring cleanup and fixes
-Date: Thu, 7 Jul 2011 02:24:54 -0500
-Message-ID: <E9AF1FACCF71F448B55E58D9AED1B0F40E626BEE32@staex7mb2.telecom.sna.samsung.com>
-References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
-	<alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
-	<4E14B820.6070202@ti.com>,<20110707055549.GC15815@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
+ of ehci and ohci
+Date: Thu, 7 Jul 2011 10:28:36 +0300
+Message-ID: <20110707072834.GB1311@legolas.emea.dhcp.ti.com>
+References: <Pine.LNX.4.44L0.1107051018580.2060-100000@iolanthe.rowland.org>
+ <8762ngtyqj.fsf@ti.com>
+ <20110706175412.GH10729@legolas.emea.dhcp.ti.com>
+ <87sjqji5br.fsf@ti.com>
+ <20110706221738.GA823@legolas.emea.dhcp.ti.com>
+ <94f8609ab03603c27ef2cf3850bb92e6@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110707055549.GC15815@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VrqPEDrXMn8OVzN4"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <94f8609ab03603c27ef2cf3850bb92e6@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Partha Basak <p-basak2@ti.com>
+Cc: balbi@ti.com, Kevin Hilman <khilman@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-> Do we really need to do that patching right now to add base 4460 support?
 
-It should be done sometime, but I see no need for it to be right now.
+--VrqPEDrXMn8OVzN4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> If we're just doing a bunch of renames all over the place to add support
-> for a new processor variant, something is wrong. This is exactly the kind
-> of "crazy churn" Linus was complaining about. In this case the crazy churn
-> is "let's rename 4430 to 44XX all over the place".
+Hi,
 
-To me, this is not 'crazy churn', but rather, correcting an earlier oversight. I did not understand Linus to say "never fix a naming oversight", but "don't change names without a good reason."
+On Thu, Jul 07, 2011 at 10:23:59AM +0530, Partha Basak wrote:
+> >-----Original Message-----
+> >From: Felipe Balbi [mailto:balbi@ti.com]
+> >Sent: Thursday, July 07, 2011 3:48 AM
+> >To: Kevin Hilman
+> >Cc: balbi@ti.com; Alan Stern; Partha Basak; Keshava Munegowda; linux-
+> >usb@vger.kernel.org; linux-omap@vger.kernel.org; linux-
+> >kernel@vger.kernel.org; Anand Gadiyar; sameo@linux.intel.com;
+> >parthab@india.ti.com; tony@atomide.com; Benoit Cousson; paul@pwsan.com;
+> >johnstul@us.ibm.com; Vishwanath Sripathy
+> >Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume
+> >support of ehci and ohci
+> >
+> >Hi,
+> >
+> >On Wed, Jul 06, 2011 at 12:20:40PM -0700, Kevin Hilman wrote:
+> >> >> +	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
+> >> >> +	    (od->_state =3D=3D OMAP_DEVICE_STATE_IDLE))
+> >> >> +		omap_device_enable(pdev);
+> >> >> +
+> >> >> +	return pm_generic_resume(dev);
+> >> >> +}
+> >> >> +
+> >> >>  static struct dev_power_domain omap_device_power_domain =3D {
+> >> >>  	.ops =3D {
+> >> >>  		.runtime_suspend =3D _od_runtime_suspend,
+> >> >>  		.runtime_idle =3D _od_runtime_idle,
+> >> >>  		.runtime_resume =3D _od_runtime_resume,
+> >> >>  		USE_PLATFORM_PM_SLEEP_OPS
+> >> >> +		.suspend =3D _od_suspend,
+> >> >> +		.resume =3D _od_resume,
+> >> >>  	}
+> >> >>  };
+> >> >
+> >> > it all depends on when are you planning to get this patch upstream.
+> >> > I'm considering getting some PM working on USB host and remove the
+> >> > pm_runtime calls from system suspend/resume either during -rc or
+> >> > next merge window.
+> >>
+> >> Well, IMO it's way too late for this kind of change for -rc, so I'm
+> >> considering it for the upcoming merge window.
+> >
+> >yes, that's true. Who should take the hwmod patches btw ? I'm still
+> >wondering if we should patch hwmod data first and push the _correct_ PM
+> >part on 3.2.
+>=20
+> Once Kevin pushes this infrastructure enhancement, all drivers have to
+> rework
+> the Suspend/Resume anyways. Another way would be to go by the current
+> approach
+> now and then do the rework in 3.2 along with other drivers.
+>=20
+> In this way, we can soak the Runtime support of EHCI/OHCI for one merge
+> window.
 
-> To me it's sane to assume that we can have most of 4430 features on 4460
-> and don't need to rename 4430 to 44XX for that. Adding 4460 should be
-> just add few new 4460 defines, then do an arch_initcall to fixup things
-> between 4430 and 4460.
+but if it's known to be broken, why add something which is broken
+anyway ?
 
-This is a topic upon which mileage varies.  My experience has made we wary of making such assumptions, because too often they have turned out to be wrong.  It is much better to make it clear that the same code supports both than to leave people guessing.  Saying so in the filename is useful. It is also consistent with the naming scheme used in much of the kernel.
+Tony, can you queue the arch/arm/*omap*/ patches ? I'll take care of
+the EHCI stuff for the next merge window, will keep them pending in my
+queue.
 
-I don't feel a sense of urgency to correct this, nor a need to hit a merge window, but from my mileage, I would prefer that it be corrected within a reasonable time frame.
+--=20
+balbi
 
-It seems to me that there is also a bullet to bite here. To achieve the sort of rationalization across the arm architecture that is envisioned, inconsistencies in naming styles between platforms will have to be reconciled and resolved, lest the habit continue.
+--VrqPEDrXMn8OVzN4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOFWAiAAoJEAv8Txj19kN11rEIAJbsB3ukaTvT7gditpHKKXzL
+pTLGGy4MZ+zmxmHg3xqgmRNyx2u+3k264ZzIhNq/6i+66PlnuEUGW5V8e2BAN28R
+M7cjj/rdOVTMNfe0EJn2JxfRBNTONMvSf6ZC5LM8yKrfk/Qc19LX7LUALMnKwXAI
+cihAzl8TjSlO/NoXbJxMkm/NacZqOM+mnszPqtfKefWyT2VkN3TJuaw0HrxXmzCF
+5vUZOWGMHbQWHEGpcpoj64QqGky3IjHULH0JPZO82dFGbvOPxTaVWLYNec4zovH2
+a/9sClzNiYVkUHKXiEnAAgeocl9wl++ezeFBXZXf7IeMVvIarBiyj95WAo6kudI=
+=wP1L
+-----END PGP SIGNATURE-----
+
+--VrqPEDrXMn8OVzN4--
