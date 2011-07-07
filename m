@@ -1,43 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] AM3505/3517 ZCN package support
-Date: Thu, 7 Jul 2011 17:19:57 +0300
-Message-ID: <20110707141957.GG15815@atomide.com>
-References: <4E1492C0.8060900@8d.com>
+From: Martin Fouts <mfouts@sta.samsung.com>
+Subject: RE: [PATCH v2 00/18] OMAP4: PM data big spring cleanup and fixes
+Date: Thu, 7 Jul 2011 09:30:58 -0500
+Message-ID: <E9AF1FACCF71F448B55E58D9AED1B0F40E626BEE34@staex7mb2.telecom.sna.samsung.com>
+References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
+ <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
+ <4E14B820.6070202@ti.com> <20110707055549.GC15815@atomide.com>
+ <E9AF1FACCF71F448B55E58D9AED1B0F40E626BEE32@staex7mb2.telecom.sna.samsung.com>,<20110707121040.GF15815@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48415 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752807Ab1GGOUC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 10:20:02 -0400
-Content-Disposition: inline
-In-Reply-To: <4E1492C0.8060900@8d.com>
+Received: from mailedge.sta.samsung.com ([63.166.115.4]:51846 "EHLO
+	cuda1.sta.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751565Ab1GGObc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 10:31:32 -0400
+In-Reply-To: <20110707121040.GF15815@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?UmFwaGHDq2wgQXNzw6luYXQ=?= <raph@8d.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Premi, Sanjeev" <premi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Rapha=C3=ABl Ass=C3=A9nat <raph@8d.com> [110706 19:47]:
-> Fixes according to Sanjeev's comments in previous thread.
->=20
-> ---
-> This patch adds support for the AM35xx ZCN package specific muxmodes.
+From: Tony Lindgren [tony@atomide.com]
 
-Thanks for doing this. Still it's quite a few lines of data.. So
-I suggest that we just plan on doing the mux data for v3.2 merge
-window in device tree format. I'm planning on working on that after
-v3.1 merge window and should be able to generate it for am3505
-using your patch.
+>> * Martin Fouts <mfouts@sta.samsung.com> [110707 10:20]:
 
-Otherwise we'll be patching something that will be disappearing
-quite soon anyways.
+>>>From: Tony Lindgren [tony@atomide.com]
 
-Regards,
+>> > If we're just doing a bunch of renames all over the place to add support
+>> > for a new processor variant, something is wrong. This is exactly the kind
+>> > of "crazy churn" Linus was complaining about. In this case the crazy churn
+>> > is "let's rename 4430 to 44XX all over the place".
+>
+>> To me, this is not 'crazy churn', but rather, correcting an earlier oversight. I did not understand Linus to say 
+>> "never fix a naming oversight", but "don't change names without a good reason."
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I think this is crazy churn. It does not fix the problem we have, which
+> is "how can we support lots of SoCs in a sane way". It just postpones
+> fixing the problem until the next SoC variant comes around. And now
+> we already have the exact same problem with both the am3505 support
+> and 4460 support.
+
+We are looking at different aspects of the problem. "How can we support lots of SoCs in a sane way" is obviously the key problem.  I was referring to the smaller, ongoing problem that every device dependent piece of code has: "how do we best communicate what variants are supported by this code."
+
+> The second problem we have here is "why does adding 4460 support depend
+> on a cosmetic clean-up patch". That dependency should not exist at all
+> as it seems the 4460 patches should work even without this patch.
+
+I agree. Had the original submitter had the foresight to realize that the code should work for all 44xx family processors, we would have no issue at all.  Do we promulgate that oversight and introduce ambiguity about what is really supported in those files, or do we correct it?
+
+>> It seems to me that there is also a bullet to bite here. To achieve the sort of rationalization across the arm architecture that is
+>> envisioned, inconsistencies in naming styles between platforms will have to be reconciled and resolved, lest the habit continue.
+
+> Sure things should be fixed, but things should be fixed properly. Here
+> we are repeating the CHIP_IS flag in hundreds of places where it really
+> should be only checked once after SoC is detected. And then based on
+> that a SoC specifc list of devices can then be initialized.
+
+Yes.  I was unclear.  I didn't mean we should duplicate the 4430 code and make small changes to it, to create nearly identical 4460 code. I only meant that the unified code that works for 4430 and 4460 should not rely on names that make it appear that one SoC is supported but not the other. I do not feel that the later is cosmetic, although I agree it can be postponed.
