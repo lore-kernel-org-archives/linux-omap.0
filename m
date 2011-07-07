@@ -1,83 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: hwmod: add kernel cmdline flag to avoid
- resetting IP blocks during init
-Date: Thu, 7 Jul 2011 08:27:40 +0300
-Message-ID: <20110707052735.GB15815@atomide.com>
-References: <20110703010204.19046.85186.stgit@dusk>
- <20110703010206.19046.85293.stgit@dusk>
- <20110704085503.GQ23145@atomide.com>
- <alpine.DEB.2.00.1107051936250.4217@utopia.booyaka.com>
- <20110706064116.GH5783@atomide.com>
- <alpine.DEB.2.00.1107060155250.4217@utopia.booyaka.com>
+Subject: Re: [PATCH v2 00/18] OMAP4: PM data big spring cleanup and fixes
+Date: Thu, 7 Jul 2011 09:01:30 +0300
+Message-ID: <20110707055549.GC15815@atomide.com>
+References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
+ <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
+ <4E14B820.6070202@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:22817 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751826Ab1GGGBf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 02:01:35 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1107060155250.4217@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@nokia.com>, Rajendra Nayak <rnayak@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Michael Buesch <mb@bu3sch.de>
+In-Reply-To: <4E14B820.6070202@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Paul Walmsley <paul@pwsan.com> [110706 23:52]:
-> Hi Tony
+* Rajendra Nayak <rnayak@ti.com> [110706 22:26]:
+> On 7/6/2011 12:19 AM, Paul Walmsley wrote:
+> >
+> >Patch 16, to me, belongs best with the 4460 support series and so I'll see
+> >if it makes sense to fit it in there somewhere.
 > 
-> On Tue, 5 Jul 2011, Tony Lindgren wrote:
+> Paul,
 > 
-> > So basically we want to tell the following from the board file or board
-> > specific .dts file:
-> > 
-> > - Device is being used on the board and can be reset and configured.
-> >   This is the usual case.
-> 
-> By 'used', you mean, have a Linux driver associated with them, right?
+> Do you want me to base the 4460 support series on one of your branches
+> and re-post including the above patch?
 
-Right.
- 
-> > - Device is being used on the board but can't be reset. This is the
-> >   case for booting Linux from other operating systems initially where
-> >   you want to keep the LCD on for debug console.
-> 
-> Or, to use examples that would be needed in a production device, the 
-> 4460/N810 GPIO examples discussed earlier.  
-> 
-> Based on our current experience, there are a very small number of these 
-> cases, and they are board-specific.  So it seems to make sense to 
-> explicitly state these exceptions in the board files, via 
-> omap_hwmod_no_setup_reset() or something similar.
+Do we really need to do that patching right now to add base 4460 support?
 
-Yeah they should be all board specific. One more example comes to mind
-was to keep the bootup logo around from bootloader on the LCD that the
-DSS code was doing earlier.
- 
-> > - Device is not being used on the board but can be reset for decent PM.
-> >   This is often needed in cases where the bootloader just enables all the
-> >   clocks.
-> 
-> Yeah.  And it's not just bootloaders, it's also the previous kernel in the 
-> case of something like kexec.  Since we don't know what devices the 
-> bootloader or previous kernel touched, it seems to make sense to reset all 
-> of these devices by default, once the drivers are converted to use runtime 
-> PM.
-> 
-> The current issue here is that some drivers aren't yet converted, so the 
-> hwmod code might think that some devices are 'unused' when they are 
-> actually in use by a non-runtime-PM-based driver.
->  
-> > - Device is reserved by secure mode or a coprocessor. In this case
-> >   the device can't be reset.
-> 
-> Indeed - or even accessed.
-> 
-> > So I guess that makes the flags noreset, disabled and unavailable?
-> 
-> I think we only need 'no reset' and 'unavailable'?  Once the runtime PM 
-> driver conversion is complete, I don't think there's any reason to keep 
-> the 'hwmod_unused_reset' command line flag around, since it can be the 
-> default.  That's because the hwmod code would then be able to track which 
-> devices were actually used.
+If we're just doing a bunch of renames all over the place to add support
+for a new processor variant, something is wrong. This is exactly the kind
+of "crazy churn" Linus was complaining about. In this case the crazy churn
+is "let's rename 4430 to 44XX all over the place".
 
-Sounds doable to me.
+To me it's sane to assume that we can have most of 4430 features on 4460
+and don't need to rename 4430 to 44XX for that. Adding 4460 should be
+just add few new 4460 defines, then do an arch_initcall to fixup things
+between 4430 and 4460.
+
+It would be nice to get the base 4460 support merged as the patches look
+ready to go otherwise. Rajendra, I suggest you take a quick look and see
+if you can leave out the dependency to the 4430 to 44XX rename patch to
+add minimal 4460 support. Then we can patch in the missing features later
+on, most likely we don't even need the arch_initcall fixup initially either.
+
+This would also leave out the dependency between the various patch
+series which will always lead into issues with merging code. Changes to
+the infrastructure issues like this should have been patched away early.
+The merge window is about to start and we're still waiting for the
+dependencies to get sorted out.
 
 Regards,
 
