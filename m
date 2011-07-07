@@ -1,76 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap board updates for v3.1 merge window
-Date: Thu, 7 Jul 2011 09:29:11 -0700
-Message-ID: <20110707162911.GL5783@atomide.com>
+From: Liam Girdwood <lrg@ti.com>
+Subject: Re: [PATCH 1/3] ASoC: omap-mcpdm: Replace legacy driver
+Date: Thu, 7 Jul 2011 17:32:42 +0100
+Message-ID: <4E15DFAA.7030508@ti.com>
+References: <1310041672-18634-1-git-send-email-peter.ujfalusi@ti.com> <1310041672-18634-2-git-send-email-peter.ujfalusi@ti.com> <20110707155742.GC16325@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:20014 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750830Ab1GGQ3P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 12:29:15 -0400
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:39590 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752075Ab1GGQhJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 12:37:09 -0400
+In-Reply-To: <20110707155742.GC16325@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi Arnd,
+On 07/07/11 16:57, Mark Brown wrote:
+> On Thu, Jul 07, 2011 at 03:27:50PM +0300, Peter Ujfalusi wrote:
+> 
+>> The current McPDM driver design is not suitable to support both
+>> the ABE and Legacy DMA operating modes. Therefore remove most
+> 
+> In what way is it not suitable?
 
-Please pull omap board updates from:
+It cant support both the ABE and Legacy DMA modes without adding some unnecessary and complicated logic. My preference is 1 driver to support both modes of operation and this is the easiest way to do so (also keeping the maintenance easier too).
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git devel-board
+> 
+>> +/*
+>> + * Enables the transfer through the PDM interface to/from the Phoenix
+>> + * codec by enabling the corresponding UP or DN channels.
+>> + */
+>> +static void omap_mcpdm_start(struct omap_mcpdm *mcpdm)
+>> +{
+>> +	u32 ctrl = omap_mcpdm_read(mcpdm, MCPDM_REG_CTRL);
+>> +
+>> +	ctrl |= (MCPDM_SW_DN_RST | MCPDM_SW_UP_RST);
+>> +	omap_mcpdm_write(mcpdm, MCPDM_REG_CTRL, ctrl);
+>> +
+>> +	ctrl |= mcpdm->dn_channels | mcpdm->up_channels;
+>> +	omap_mcpdm_write(mcpdm, MCPDM_REG_CTRL, ctrl);
+>> +
+>> +	ctrl &= ~(MCPDM_SW_DN_RST | MCPDM_SW_UP_RST);
+>> +	omap_mcpdm_write(mcpdm, MCPDM_REG_CTRL, ctrl);
+>> +}
+> 
+> Presumably this works with any PDM input/output?
 
-These are currently on top of the fixes you pulled earlier but
-could be also rebased on the earlier cleanup if you prefer that.
+Yes.
 
-Please note that the board-cm-t35.c change will need a minor fix
-when merging with the atag_offset patch series. In MACHINE_START
-the .boot_params needs to be replaced with .atag_offset = 0x100.
+> 
+>> +/* work to delay McPDM shutdown */
+>> +static void playback_work(struct work_struct *work)
+>> +{
+>> +	struct omap_mcpdm *mcpdm = container_of(work,
+>> +					struct omap_mcpdm, delayed_work.work);
+>> +
+>> +	if (!mcpdm->active && omap_mcpdm_active(mcpdm)) {
+>> +		omap_mcpdm_stop(mcpdm);
+>> +		omap_mcpdm_close_streams(mcpdm);
+>> +	}
+>> +
+>> +	if (!omap_mcpdm_active(mcpdm))
+>> +		pm_runtime_put_sync(mcpdm->dev);
+>> +}
+> 
+> It occurs to me that it'd be much simpler to implement this by doing the
+> cleanup in your runtime suspend callback, it looks like you're working
+> around the pm_runtime framework rather than using it.  If you need to do
+> some cleanup when the device goes idle and you can't do it within a
+> framework designed to suspend the device when it goes idle then there's
+> an issue there.
+> 
+> Alternatively, why is this deferred?
 
-Also note that this series is missing the Nook Color board
-support as that one is waiting on the machine_id patch.
+There are some power, clock and pop dependencies here between the CODEC, ABE and McPDM interface and this deferred work allows us to shutwdown McPDM (in a pop free manner) and satisfy the dependencies without causing a data abort and/or locking the ABE firmware.
 
-Regards,
+Liam
 
-Tony
-
-
-The following changes since commit fdcc205fb9ba006bcd37f72e1b1b904704257351:
-  Tony Lindgren (1):
-        Merge branch 'iommu-for-tony' of git://github.com/ohadbc/omap-iommu into devel-fixes
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git devel-board
-
-Ameya Palande (1):
-      omap: rx51: Platform support for lp5523 led chip
-
-Igor Grinberg (1):
-      arm: omap3: cm-t35: add support for cm-t3730
-
-Joel A Fernandes (1):
-      OMAP3: beagle: add support for beagleboard xM revision C
-
-Kalle Jokiniemi (1):
-      OMAP3: rx-51: Add full regulator definitions
-
-Shubhrajyoti Datta (1):
-      OMAP4: Keyboard: Mux changes in the board file
-
-Silesh C V (1):
-      omap: 4430SDP: Register the card detect GPIO properly
-
-Vishal Mahaveer (1):
-      omap: blaze: add mmc5/wl1283 device support
-
- arch/arm/mach-omap2/Kconfig                    |    6 +-
- arch/arm/mach-omap2/board-4430sdp.c            |  149 +++++++++++++++++++++++-
- arch/arm/mach-omap2/board-cm-t35.c             |   77 ++++++++++---
- arch/arm/mach-omap2/board-omap3beagle.c        |   78 ++++++++-----
- arch/arm/mach-omap2/board-rx51-peripherals.c   |  135 +++++++++++++++++++++
- arch/arm/mach-omap2/devices.c                  |    3 +-
- arch/arm/plat-omap/include/plat/omap4-keypad.h |    3 +-
- arch/arm/plat-omap/include/plat/uncompress.h   |    1 +
- 8 files changed, 405 insertions(+), 47 deletions(-)
