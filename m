@@ -1,113 +1,291 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume support
- of ehci and ohci
-Date: Thu, 7 Jul 2011 10:28:36 +0300
-Message-ID: <20110707072834.GB1311@legolas.emea.dhcp.ti.com>
-References: <Pine.LNX.4.44L0.1107051018580.2060-100000@iolanthe.rowland.org>
- <8762ngtyqj.fsf@ti.com>
- <20110706175412.GH10729@legolas.emea.dhcp.ti.com>
- <87sjqji5br.fsf@ti.com>
- <20110706221738.GA823@legolas.emea.dhcp.ti.com>
- <94f8609ab03603c27ef2cf3850bb92e6@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 04/13] OMAP: hwmod: Wait the idle status to be
+ disabled
+Date: Thu, 7 Jul 2011 02:10:52 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107070029570.31498@utopia.booyaka.com>
+References: <1309554558-19819-1-git-send-email-b-cousson@ti.com> <1309554558-19819-5-git-send-email-b-cousson@ti.com> <20110705182144.GA10846@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VrqPEDrXMn8OVzN4"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <94f8609ab03603c27ef2cf3850bb92e6@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Partha Basak <p-basak2@ti.com>
-Cc: balbi@ti.com, Kevin Hilman <khilman@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-401741330-1310022414=:31498"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:33646 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752104Ab1GGIKx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jul 2011 04:10:53 -0400
+In-Reply-To: <20110705182144.GA10846@google.com>
+Content-ID: <alpine.DEB.2.00.1107070110000.31498@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Todd Poynor <toddpoynor@google.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---VrqPEDrXMn8OVzN4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+--155748971-401741330-1310022414=:31498
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1107070110001.31498@utopia.booyaka.com>
 
-Hi,
+Hi Todd,
 
-On Thu, Jul 07, 2011 at 10:23:59AM +0530, Partha Basak wrote:
-> >-----Original Message-----
-> >From: Felipe Balbi [mailto:balbi@ti.com]
-> >Sent: Thursday, July 07, 2011 3:48 AM
-> >To: Kevin Hilman
-> >Cc: balbi@ti.com; Alan Stern; Partha Basak; Keshava Munegowda; linux-
-> >usb@vger.kernel.org; linux-omap@vger.kernel.org; linux-
-> >kernel@vger.kernel.org; Anand Gadiyar; sameo@linux.intel.com;
-> >parthab@india.ti.com; tony@atomide.com; Benoit Cousson; paul@pwsan.com;
-> >johnstul@us.ibm.com; Vishwanath Sripathy
-> >Subject: Re: [PATCH 6/6 v2] arm: omap: usb: global Suspend and resume
-> >support of ehci and ohci
-> >
-> >Hi,
-> >
-> >On Wed, Jul 06, 2011 at 12:20:40PM -0700, Kevin Hilman wrote:
-> >> >> +	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
-> >> >> +	    (od->_state =3D=3D OMAP_DEVICE_STATE_IDLE))
-> >> >> +		omap_device_enable(pdev);
-> >> >> +
-> >> >> +	return pm_generic_resume(dev);
-> >> >> +}
-> >> >> +
-> >> >>  static struct dev_power_domain omap_device_power_domain =3D {
-> >> >>  	.ops =3D {
-> >> >>  		.runtime_suspend =3D _od_runtime_suspend,
-> >> >>  		.runtime_idle =3D _od_runtime_idle,
-> >> >>  		.runtime_resume =3D _od_runtime_resume,
-> >> >>  		USE_PLATFORM_PM_SLEEP_OPS
-> >> >> +		.suspend =3D _od_suspend,
-> >> >> +		.resume =3D _od_resume,
-> >> >>  	}
-> >> >>  };
-> >> >
-> >> > it all depends on when are you planning to get this patch upstream.
-> >> > I'm considering getting some PM working on USB host and remove the
-> >> > pm_runtime calls from system suspend/resume either during -rc or
-> >> > next merge window.
-> >>
-> >> Well, IMO it's way too late for this kind of change for -rc, so I'm
-> >> considering it for the upcoming merge window.
-> >
-> >yes, that's true. Who should take the hwmod patches btw ? I'm still
-> >wondering if we should patch hwmod data first and push the _correct_ PM
-> >part on 3.2.
+Beno=EEt is away right now, so I'll deal with the straightforward aspects o=
+f=20
+your comments, and leave the more complex parts for him when he gets=20
+back.
+
+On Tue, 5 Jul 2011, Todd Poynor wrote:
+
+> On Fri, Jul 01, 2011 at 11:09:09PM +0200, Benoit Cousson wrote:
+> > It is mandatory to wait for a module to be in disabled state before
+> > potentially disabling source clock or re-asserting a reset.
+> >=20
+> > omap_hwmod_idle and omap_hwmod_shutdown does not wait for
+> > the module to be fully idle.
+> >=20
+> > Add a cm_xxx accessor to wait the clkctrl idle status to be disabled.
+> > Fix hwmod_[idle|shutdown] to use this API.
+> ...
+> > +int omap4_cm_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkct=
+rl_offs)
 >=20
-> Once Kevin pushes this infrastructure enhancement, all drivers have to
-> rework
-> the Suspend/Resume anyways. Another way would be to go by the current
-> approach
-> now and then do the rework in 3.2 along with other drivers.
+> Technically this waits for a module slave to enter "full idle" --
+> "interface idle" not good enough, and if the module is also a master
+> its standby status could possibly be different... personally, these
+> details make my brain hurt, but thought I'd mention this in case
+> the naming of this interface should capture any of these distinctions.
+
+This is probably going to need clarification from someone who knows the=20
+PRCM state machine.
+
 >=20
-> In this way, we can soak the Runtime support of EHCI/OHCI for one merge
-> window.
+> > +{
+> > +=09int i =3D 0;
+> > +
+> > +=09if (!clkctrl_offs)
+> > +=09=09return 0;
+> > +
+> > +=09omap_test_timeout(
+> > +=09=09_clkctrl_idlest(part, inst, cdoffs, clkctrl_offs) =3D=3D 0x3,
+> > +=09=09MAX_MODULE_READY_TIME, i);
+>=20
+> The numeric constant may already have an equivalent symbol defined, or
+> suggest adding one.
 
-but if it's known to be broken, why add something which is broken
-anyway ?
+Added.
 
-Tony, can you queue the arch/arm/*omap*/ patches ? I'll take care of
-the EHCI stuff for the next merge window, will keep them pending in my
-queue.
+>=20
+> >  /**
+> > + * _wait_target_disable - wait for a module to be disabled
+> > + * @oh: struct omap_hwmod *
+> > + *
+> > + * Wait for a module @oh to leave slave idle.  Returns 0 if the module
+> > + * does not have an IDLEST bit or if the module successfully leaves
+> > + * slave idle; otherwise, pass along the return value of the
+> > + * appropriate *_cm_wait_module_ready() function.
+>=20
+> This paragraph probably c&p from a function with opposite meaning.
 
+Fixed.
+
+> >  static int _idle(struct omap_hwmod *oh)
+> >  {
+> > +=09int ret;
+> > +
+> >  =09pr_debug("omap_hwmod: %s: idling\n", oh->name);
+> > =20
+> >  =09if (oh->_state !=3D _HWMOD_STATE_ENABLED) {
+> > @@ -1351,6 +1383,10 @@ static int _idle(struct omap_hwmod *oh)
+> >  =09=09_idle_sysc(oh);
+> >  =09_del_initiator_dep(oh, mpu_oh);
+> >  =09_disable_clocks(oh);
+> > +=09ret =3D _wait_target_disable(oh);
+> > +=09if (ret)
+> > +=09=09pr_debug("omap_hwmod: %s: _wait_target_disable failed\n",
+> > +=09=09=09   oh->name);
+>=20
+> Should callers see an error function return in this case?
+
+I don't know, but I've changed the pr_debug() to pr_warn() so that these=20
+aren't hidden.  That will result in some warnings on boot.  The goal is to=
+=20
+'inspire' someone to fix those issues in the -rc series or 3.2.
+
+The updated patch is below.
+
+
+- Paul
+
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Fri, 1 Jul 2011 23:09:09 +0200
+Subject: [PATCH] OMAP: hwmod: Wait the idle status to be disabled
+
+It is mandatory to wait for a module to be in disabled state before
+potentially disabling source clock or re-asserting a reset.
+
+omap_hwmod_idle and omap_hwmod_shutdown does not wait for
+the module to be fully idle.
+
+Add a cm_xxx accessor to wait the clkctrl idle status to be disabled.
+Fix hwmod_[idle|shutdown] to use this API.
+
+Based on Rajendra's initial patch.
+
+Please note that most interconnects hwmod will return one timeout because
+it is impossible for them to be in idle since the processor is accessing
+the registers though the interconnect.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Todd Poynor <toddpoynor@google.com>
+[paul@pwsan.com: move cpu_is_*() tests to the top of _wait_target_disable()=
+;
+ incorporate some feedback from Todd]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/cminst44xx.c |   27 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/cminst44xx.h |    1 +
+ arch/arm/mach-omap2/omap_hwmod.c |   40 ++++++++++++++++++++++++++++++++++=
+++++
+ 3 files changed, 68 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst4=
+4xx.c
+index 3f65ce0..61e4382 100644
+--- a/arch/arm/mach-omap2/cminst44xx.c
++++ b/arch/arm/mach-omap2/cminst44xx.c
+@@ -33,6 +33,8 @@
+ #include "prm44xx.h"
+ #include "prcm_mpu44xx.h"
+=20
++#define CLKCTRL_IDLEST_DISABLED=09=09=090x3
++
+ static u32 _cm_bases[OMAP4_MAX_PRCM_PARTITIONS] =3D {
+ =09[OMAP4430_INVALID_PRCM_PARTITION]=09=3D 0,
+ =09[OMAP4430_PRM_PARTITION]=09=09=3D OMAP4430_PRM_BASE,
+@@ -244,3 +246,28 @@ int omap4_cminst_wait_module_ready(u8 part, u16 inst, =
+s16 cdoffs, u16 clkctrl_of
+ =09return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
+ }
+=20
++/**
++ * omap4_cminst_wait_module_idle - wait for a module to be in 'disabled'
++ * state
++ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * Wait for the module IDLEST to be disabled. Some PRCM transition,
++ * like reset assertion or parent clock de-activation must wait the
++ * module to be fully disabled.
++ */
++int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkct=
+rl_offs)
++{
++=09int i =3D 0;
++
++=09if (!clkctrl_offs)
++=09=09return 0;
++
++=09omap_test_timeout((_clkctrl_idlest(part, inst, cdoffs, clkctrl_offs) =
+=3D=3D
++=09=09=09   CLKCTRL_IDLEST_DISABLED),
++=09=09=09  MAX_MODULE_READY_TIME, i);
++
++=09return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
++}
+diff --git a/arch/arm/mach-omap2/cminst44xx.h b/arch/arm/mach-omap2/cminst4=
+4xx.h
+index 8eba2ae..a985400 100644
+--- a/arch/arm/mach-omap2/cminst44xx.h
++++ b/arch/arm/mach-omap2/cminst44xx.h
+@@ -18,6 +18,7 @@ extern void omap4_cminst_clkdm_force_sleep(u8 part, s16 i=
+nst, u16 cdoffs);
+ extern void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs)=
+;
+=20
+ extern int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u=
+16 clkctrl_offs);
++extern int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u1=
+6 clkctrl_offs);
+=20
+ /*
+  * In an ideal world, we would not export these low-level functions,
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hw=
+mod.c
+index 39c8831..fee80a8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1013,6 +1013,36 @@ static int _wait_target_ready(struct omap_hwmod *oh)
+ }
+=20
+ /**
++ * _wait_target_disable - wait for a module to be disabled
++ * @oh: struct omap_hwmod *
++ *
++ * Wait for a module @oh to enter slave idle.  Returns 0 if the module
++ * does not have an IDLEST bit or if the module successfully enters
++ * slave idle; otherwise, pass along the return value of the
++ * appropriate *_cm*_wait_module_idle() function.
++ */
++static int _wait_target_disable(struct omap_hwmod *oh)
++{
++=09/* TODO: For now just handle OMAP4+ */
++=09if (cpu_is_omap24xx() || cpu_is_omap34xx())
++=09=09return 0;
++
++=09if (!oh)
++=09=09return -EINVAL;
++
++=09if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
++=09=09return 0;
++
++=09if (oh->flags & HWMOD_NO_IDLEST)
++=09=09return 0;
++
++=09return omap4_cminst_wait_module_idle(oh->clkdm->prcm_partition,
++=09=09=09=09=09     oh->clkdm->cm_inst,
++=09=09=09=09=09     oh->clkdm->clkdm_offs,
++=09=09=09=09=09     oh->prcm.omap4.clkctrl_offs);
++}
++
++/**
+  * _lookup_hardreset - fill register bit info for this hwmod/reset line
+  * @oh: struct omap_hwmod *
+  * @name: name of the reset line in the context of this hwmod
+@@ -1319,6 +1349,8 @@ static int _enable(struct omap_hwmod *oh)
+  */
+ static int _idle(struct omap_hwmod *oh)
+ {
++=09int ret;
++
+ =09if (oh->_state !=3D _HWMOD_STATE_ENABLED) {
+ =09=09WARN(1, "omap_hwmod: %s: idle state can only be entered from "
+ =09=09     "enabled state\n", oh->name);
+@@ -1331,6 +1363,10 @@ static int _idle(struct omap_hwmod *oh)
+ =09=09_idle_sysc(oh);
+ =09_del_initiator_dep(oh, mpu_oh);
+ =09_disable_clocks(oh);
++=09ret =3D _wait_target_disable(oh);
++=09if (ret)
++=09=09pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
++=09=09=09oh->name);
+=20
+ =09/* Mux pins for device idle if populated */
+ =09if (oh->mux && oh->mux->pads_dynamic)
+@@ -1427,6 +1463,10 @@ static int _shutdown(struct omap_hwmod *oh)
+ =09=09_del_initiator_dep(oh, mpu_oh);
+ =09=09/* XXX what about the other system initiators here? dma, dsp */
+ =09=09_disable_clocks(oh);
++=09=09ret =3D _wait_target_disable(oh);
++=09=09if (ret)
++=09=09=09pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
++=09=09=09=09oh->name);
+ =09}
+ =09/* XXX Should this code also force-disable the optional clocks? */
+=20
 --=20
-balbi
+1.7.5.4
 
---VrqPEDrXMn8OVzN4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOFWAiAAoJEAv8Txj19kN11rEIAJbsB3ukaTvT7gditpHKKXzL
-pTLGGy4MZ+zmxmHg3xqgmRNyx2u+3k264ZzIhNq/6i+66PlnuEUGW5V8e2BAN28R
-M7cjj/rdOVTMNfe0EJn2JxfRBNTONMvSf6ZC5LM8yKrfk/Qc19LX7LUALMnKwXAI
-cihAzl8TjSlO/NoXbJxMkm/NacZqOM+mnszPqtfKefWyT2VkN3TJuaw0HrxXmzCF
-5vUZOWGMHbQWHEGpcpoj64QqGky3IjHULH0JPZO82dFGbvOPxTaVWLYNec4zovH2
-a/9sClzNiYVkUHKXiEnAAgeocl9wl++ezeFBXZXf7IeMVvIarBiyj95WAo6kudI=
-=wP1L
------END PGP SIGNATURE-----
-
---VrqPEDrXMn8OVzN4--
+--155748971-401741330-1310022414=:31498--
