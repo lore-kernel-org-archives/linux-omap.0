@@ -1,50 +1,48 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP4: Add pcm049 to Kconfig/Makefile
-Date: Fri, 08 Jul 2011 15:49:35 +0400
-Message-ID: <4E16EECF.7030102@mvista.com>
-References: <1310119464-3514-1-git-send-email-j.weitzel@phytec.de> <1310119464-3514-2-git-send-email-j.weitzel@phytec.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fix for v3.0
+Date: Fri, 8 Jul 2011 04:52:49 -0700
+Message-ID: <20110708115249.GZ5783@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f52.google.com ([209.85.161.52]:64553 "EHLO
-	mail-fx0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189Ab1GHLuq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 07:50:46 -0400
-Received: by fxd18 with SMTP id 18so1980177fxd.11
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jul 2011 04:50:45 -0700 (PDT)
-In-Reply-To: <1310119464-3514-2-git-send-email-j.weitzel@phytec.de>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54341 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752189Ab1GHLwx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 07:52:53 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jan Weitzel <j.weitzel@phytec.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hello.
+Hi Linus,
 
-On 08-07-2011 14:04, Jan Weitzel wrote:
+Please pull one fix from:
 
-> Signed-off-by: Jan Weitzel<j.weitzel@phytec.de>
-> ---
->   arch/arm/mach-omap2/Kconfig  |    5 +++++
->   arch/arm/mach-omap2/Makefile |    4 ++++
->   2 files changed, 9 insertions(+), 0 deletions(-)
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 19d5891..c6a2d43 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-[...]
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index b148077..e81b594 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -238,6 +238,10 @@ obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o \
->   					   hsmmc.o \
->   					   omap_phy_internal.o
->
-> +obj-$(CONFIG_MACH_PCM049)		+= board-omap4pcm049.o \
+This fixes an embarassing segfault by dropping __initdata from data that
+should not be marked __initdata.
 
-    You need to first add board-omap4pcm049.c, and only then wire it to the 
-Makefile. You could do both in onme patch though...
+Regards,
 
-WBR, Sergei
+Tony
+
+
+The following changes since commit fe0d42203cb5616eeff68b14576a0f7e2dd56625:
+  Linus Torvalds (1):
+        Linux 3.0-rc6
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Janusz Krzysztofik (1):
+      omap: drop __initdata tags from static struct platform_device declarations
+
+ arch/arm/mach-omap1/board-ams-delta.c        |    8 ++++----
+ arch/arm/mach-omap1/gpio15xx.c               |    4 ++--
+ arch/arm/mach-omap1/gpio16xx.c               |   10 +++++-----
+ arch/arm/mach-omap1/gpio7xx.c                |   14 +++++++-------
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
+ 5 files changed, 19 insertions(+), 19 deletions(-)
