@@ -1,54 +1,53 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 4/6] OMAP4: clocks: Update the clock tree with 4460
- clock nodes
-Date: Fri, 8 Jul 2011 01:35:02 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107080134430.24181@utopia.booyaka.com>
-References: <1309573826-10615-1-git-send-email-rnayak@ti.com> <1309573826-10615-2-git-send-email-rnayak@ti.com> <1309573826-10615-3-git-send-email-rnayak@ti.com> <1309573826-10615-4-git-send-email-rnayak@ti.com> <1309573826-10615-5-git-send-email-rnayak@ti.com>
- <alpine.DEB.2.00.1107080044270.24181@utopia.booyaka.com> <4E16AD18.7040402@ti.com>
+Subject: Re: [PATCH v2 0/4] OMAP4: Add modulemode support to hwmod framework
+	(part 2)
+Date: Fri, 8 Jul 2011 01:45:12 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107080142090.24181@utopia.booyaka.com>
+References: <1309557267-27165-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42366 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751232Ab1GHHfD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 03:35:03 -0400
-In-Reply-To: <4E16AD18.7040402@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1309557267-27165-1-git-send-email-b-cousson@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-On Fri, 8 Jul 2011, Rajendra Nayak wrote:
+Hi
 
-> On 7/7/2011 11:49 PM, Paul Walmsley wrote:
-> > On Sat, 2 Jul 2011, Rajendra Nayak wrote:
-> > 
-> > > Add the new clock nodes (bandgap_ts_fclk, div_ts_ck) for omap4460.
-> > > Handle these nodes using the clock flags (CK_*).
-> > > 
-> > > Signed-off-by: Rajendra Nayak<rnayak@ti.com>
-> > > Signed-off-by: Nishanth Menon<nm@ti.com>
-> > > Signed-off-by: Benoit Cousson<b-cousson@ti.com>
-> > > Reviewed-by: Kevin Hilman<khilman@ti.com>
-> > 
-> > Is this data coming from autogenerator scripts that have been checked into
-> > that repository, or have these been hand-edited?
+On Fri, 1 Jul 2011, Benoit Cousson wrote:
+
+> Here is the second part of the modulemode series. 
+> The goal here is to do the cleanup on the clock nodes and PRCM macros
+> that are not needed anymore by the hwmod data.
+> Some macros are still needed because of clock data. It should be removed
+> once the clock data will be cleaned.
 > 
-> They have been hand edited to create a diff from the 4430 autogen output
-> and 4460 autogen output.
+> Since the MMC pm_runtime is done, we can drop the TEMP hacks.
 > 
-> > 
-> > Also, this isn't the complete set of clock changes needed for full 4460
-> > support, right?  I'm thinking of the duty cycle correction changes
-> > described in TRM 3.6.3.7.2 "Tactical Clocking Adjustment".
-> > Are those planned to go into a future patch?
+> The series is based on for_3.1/6_hwmod_clkdm_fixes and tested
+> on OMAP4430 ES2.1 + SDP. It should not affect OMAP2 & 3, but some testing
+> are definitively needed.
 > 
-> Yes, this series was targeted at providing basic boot support. I was
-> planning to add the DCC changes as part of the next series.
+> The patches are available here:
+> git://gitorious.org/omap-pm/linux.git for_3.1/7_hwmod_modulemode
 
-Okay.
-
-Acked-by: Paul Walmsley <paul@pwsan.com>
+At this point, these don't seem like 3.1 material, mostly because this 
+series removes main_clk entries.  This is going to cause problems 
+retrieving the main_clk clockdomain, since the patch to retrieve it from 
+the hwmod clkdm was dropped due to OMAP2/3 breakage.  Also, we should 
+probably discuss whether there are additional implications to removing a 
+module's main_clk, as opposed to setting it to a clock tree node closer to 
+the root.
 
 
 - Paul
