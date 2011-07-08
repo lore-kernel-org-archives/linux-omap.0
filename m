@@ -1,76 +1,52 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 11/11] cbus: retu: IRQ demux optimization
-Date: Sat,  9 Jul 2011 01:52:39 +0300
-Message-ID: <1310165559-31037-12-git-send-email-balbi@ti.com>
-References: <1310165559-31037-1-git-send-email-balbi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/3] OMAP2+: hwmod_data: I2C updates for v3.1
+Date: Fri, 8 Jul 2011 17:40:16 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107081736060.15984@utopia.booyaka.com>
+References: <1310141504-13688-1-git-send-email-khilman@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:41934 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752377Ab1GHWxU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 18:53:20 -0400
-Received: by mail-bw0-f49.google.com with SMTP id 12so3191254bwf.22
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jul 2011 15:53:19 -0700 (PDT)
-In-Reply-To: <1310165559-31037-1-git-send-email-balbi@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:35806 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750878Ab1GHXkS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 19:40:18 -0400
+In-Reply-To: <1310141504-13688-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Andy Green <andy@warmcat.com>, linux-arm-kernel@lists.infradead.org
 
-it's definitely not always that we will have
-all 16 interrupts fired at the same time, so
-in order to avoid looping so many times, we
-are now using ffs() which is implemented
-(on ARM) using the far better clz instruction.
+Hi
 
-This will save us quite some loops and could
-improve IRQ latency on Retu significantly
-(no actual measurements were made, though)
+On Fri, 8 Jul 2011, Kevin Hilman wrote:
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/cbus/retu.c |   14 ++++++++------
- 1 files changed, 8 insertions(+), 6 deletions(-)
+> I've separated out the omap_hwmod data changes from Andy's original
+> series so they can be easier managed with the rest of the hwmod data
+> changes.
+> 
+> This series applies against v3.0-rc6 and is also available here:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.1/i2c-hwmod-data
+> 
+> Kevin
+> 
+> Andy Green (3):
+>   I2C: OMAP2+: Set hwmod flags to only allow 16-bit accesses to i2c
+>   I2C: OMAP2+: Tag all OMAP2+ hwmod defintions with I2C IP revision
+>   I2C: OMAP2+: add correct functionality flags to all omap2plus i2c
+>     dev_attr
 
-diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index b7fbd18..e749c0e 100644
---- a/drivers/cbus/retu.c
-+++ b/drivers/cbus/retu.c
-@@ -36,6 +36,8 @@
- #include <linux/platform_device.h>
- #include <linux/platform_data/cbus.h>
- 
-+#include <asm/bitops.h>
-+
- #include "cbus.h"
- #include "retu.h"
- 
-@@ -183,8 +185,6 @@ static irqreturn_t retu_irq_handler(int irq, void *_retu)
- {
- 	struct retu		*retu = _retu;
- 
--	int			i;
--
- 	u16			idr;
- 	u16			imr;
- 
-@@ -199,11 +199,13 @@ static irqreturn_t retu_irq_handler(int irq, void *_retu)
- 		return IRQ_NONE;
- 	}
- 
--	for (i = retu->irq_base; idr != 0; i++, idr >>= 1) {
--		if (!(idr & 1))
--			continue;
-+	while (idr) {
-+		unsigned long	pending = __ffs(idr);
-+		unsigned int	irq;
- 
--		handle_nested_irq(i);
-+		idr &= ~BIT(pending);
-+		irq = pending + retu->irq_base;
-+		handle_nested_irq(irq);
- 	}
- 
- 	return IRQ_HANDLED;
--- 
-1.7.6
+Unfortunately, this subset of patches doesn't compile on its own.  To get 
+these to build, I also had to pull in these patches from Andy's 
+series:
 
+  I2C: OMAP2+: increase omap_i2c_dev_attr flags from u8 to u32
+  I2C: OMAP2+:  Introduce I2C IP versioning constants
+  I2C: OMAP1/OMAP2+: create omap I2C functionality flags for each cpu_... test
+
+So I've queued the patches that you sent, plus the above three, for 3.1 at 
+git://git.pwsan.com/linux-2.6 in the 'i2c_fixes_3.1' branch.
+
+thanks
+
+- Paul
