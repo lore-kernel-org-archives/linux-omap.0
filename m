@@ -1,109 +1,187 @@
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 6/6 v3] arm: omap: usb: global Suspend and resume support of ehci and ohci
-Date: Fri, 8 Jul 2011 16:32:45 +0530
-Message-ID: <1310122965-23612-7-git-send-email-keshava_mgowda@ti.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH 3/6 v3] arm: omap: usb: register hwmods of usbhs
+Date: Fri, 8 Jul 2011 16:32:42 +0530
+Message-ID: <1310122965-23612-4-git-send-email-keshava_mgowda@ti.com>
 References: <1310122965-23612-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1310122965-23612-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46671 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752854Ab1GHLES (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Jul 2011 07:04:18 -0400
+In-Reply-To: <1310122965-23612-1-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: keshava_mgowda@ti.com, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, kishon@ti.com
 
-The global suspend and resume functions for ehci and ohci
-drivers are implemented; these functions does the
-pm_runtime_get_sync and pm_runtime_put_sync of the
-parent device usbhs core driver respectively.
+The hwmod structure of uhh, ohci, ehci and tll are
+retrived and registered with omap device
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 ---
- drivers/usb/host/ehci-omap.c  |   22 ++++++++++++++++++++--
- drivers/usb/host/ohci-omap3.c |   21 +++++++++++++++++++++
- 2 files changed, 41 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/usb-host.c |  113 +++++++++++++++++----------------------
+ 1 files changed, 49 insertions(+), 64 deletions(-)
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 178f63e..a02a684 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -259,14 +259,32 @@ static void ehci_hcd_omap_shutdown(struct platform_device *pdev)
- 		hcd->driver->shutdown(hcd);
- }
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 89ae298..dea0eed 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -28,51 +28,30 @@
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+ #include <plat/usb.h>
++#include <plat/omap_device.h>
  
-+static int omap_ehci_resume(struct device *dev)
-+{
-+	if (dev->parent)
-+		pm_runtime_get_sync(dev->parent);
-+	return 0;
-+}
-+
-+static int omap_ehci_suspend(struct device *dev)
-+{
-+	if (dev->parent)
-+		pm_runtime_put_sync(dev->parent);
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops omap_ehci_dev_pm_ops = {
-+	.suspend	= omap_ehci_suspend,
-+	.resume		= omap_ehci_resume,
+ #include "mux.h"
+ 
+ #ifdef CONFIG_MFD_OMAP_USB_HOST
+ 
+-#define OMAP_USBHS_DEVICE	"usbhs-omap"
+-
+-static struct resource usbhs_resources[] = {
+-	{
+-		.name	= "uhh",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "tll",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ehci",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ehci-irq",
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-	{
+-		.name	= "ohci",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ohci-irq",
+-		.flags	= IORESOURCE_IRQ,
+-	}
+-};
+-
+-static struct platform_device usbhs_device = {
+-	.name		= OMAP_USBHS_DEVICE,
+-	.id		= 0,
+-	.num_resources	= ARRAY_SIZE(usbhs_resources),
+-	.resource	= usbhs_resources,
+-};
++#define OMAP_USBHS_DEVICE	"usbhs_omap"
++#define	USBHS_UHH_HWMODNAME	"usbhs_uhh"
++#define	USBHS_OHCI_HWMODNAME	"usbhs_ohci"
++#define USBHS_EHCI_HWMODNAME	"usbhs_ehci"
++#define USBHS_TLL_HWMODNAME	"usbhs_tll"
+ 
+ static struct usbhs_omap_platform_data		usbhs_data;
+ static struct ehci_hcd_omap_platform_data	ehci_data;
+ static struct ohci_hcd_omap_platform_data	ohci_data;
+ 
++static struct omap_device_pm_latency omap_uhhtll_latency[] = {
++	  {
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func	 = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	  },
 +};
 +
- static struct platform_driver ehci_hcd_omap_driver = {
- 	.probe			= ehci_hcd_omap_probe,
- 	.remove			= ehci_hcd_omap_remove,
- 	.shutdown		= ehci_hcd_omap_shutdown,
--	/*.suspend		= ehci_hcd_omap_suspend, */
--	/*.resume		= ehci_hcd_omap_resume, */
- 	.driver = {
- 		.name		= "ehci-omap",
-+		.pm		= &omap_ehci_dev_pm_ops,
+ /* MUX settings for EHCI pins */
+ /*
+  * setup_ehci_io_mux - initialize IO pad mux for USBHOST
+@@ -508,7 +487,10 @@ static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 
+ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ {
+-	int	i;
++	struct omap_hwmod	*oh[4];
++	struct omap_device	*od;
++	int			bus_id = -1;
++	int			i;
+ 
+ 	for (i = 0; i < OMAP3_HS_USB_PORTS; i++) {
+ 		usbhs_data.port_mode[i] = pdata->port_mode[i];
+@@ -523,44 +505,47 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 	usbhs_data.ohci_data = &ohci_data;
+ 
+ 	if (cpu_is_omap34xx()) {
+-		usbhs_resources[0].start = OMAP34XX_UHH_CONFIG_BASE;
+-		usbhs_resources[0].end = OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1;
+-		usbhs_resources[1].start = OMAP34XX_USBTLL_BASE;
+-		usbhs_resources[1].end = OMAP34XX_USBTLL_BASE + SZ_4K - 1;
+-		usbhs_resources[2].start	= OMAP34XX_EHCI_BASE;
+-		usbhs_resources[2].end	= OMAP34XX_EHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[3].start = INT_34XX_EHCI_IRQ;
+-		usbhs_resources[4].start	= OMAP34XX_OHCI_BASE;
+-		usbhs_resources[4].end	= OMAP34XX_OHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[5].start = INT_34XX_OHCI_IRQ;
+ 		setup_ehci_io_mux(pdata->port_mode);
+ 		setup_ohci_io_mux(pdata->port_mode);
+ 	} else if (cpu_is_omap44xx()) {
+-		usbhs_resources[0].start = OMAP44XX_UHH_CONFIG_BASE;
+-		usbhs_resources[0].end = OMAP44XX_UHH_CONFIG_BASE + SZ_1K - 1;
+-		usbhs_resources[1].start = OMAP44XX_USBTLL_BASE;
+-		usbhs_resources[1].end = OMAP44XX_USBTLL_BASE + SZ_4K - 1;
+-		usbhs_resources[2].start = OMAP44XX_HSUSB_EHCI_BASE;
+-		usbhs_resources[2].end = OMAP44XX_HSUSB_EHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[3].start = OMAP44XX_IRQ_EHCI;
+-		usbhs_resources[4].start = OMAP44XX_HSUSB_OHCI_BASE;
+-		usbhs_resources[4].end = OMAP44XX_HSUSB_OHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[5].start = OMAP44XX_IRQ_OHCI;
+ 		setup_4430ehci_io_mux(pdata->port_mode);
+ 		setup_4430ohci_io_mux(pdata->port_mode);
  	}
- };
  
-diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
-index 6ce50de..a1a7981 100644
---- a/drivers/usb/host/ohci-omap3.c
-+++ b/drivers/usb/host/ohci-omap3.c
-@@ -230,12 +230,33 @@ static void ohci_hcd_omap3_shutdown(struct platform_device *pdev)
- 		hcd->driver->shutdown(hcd);
+-	if (platform_device_add_data(&usbhs_device,
+-				&usbhs_data, sizeof(usbhs_data)) < 0) {
+-		printk(KERN_ERR "USBHS platform_device_add_data failed\n");
+-		goto init_end;
++	oh[0] = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
++	if (!oh[0]) {
++		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
++		return;
++	}
++
++	oh[1] = omap_hwmod_lookup(USBHS_OHCI_HWMODNAME);
++	if (!oh[1]) {
++		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
++		return;
+ 	}
+ 
+-	if (platform_device_register(&usbhs_device) < 0)
+-		printk(KERN_ERR "USBHS platform_device_register failed\n");
++	oh[2] = omap_hwmod_lookup(USBHS_EHCI_HWMODNAME);
++	if (!oh[2]) {
++		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
++		return;
++	}
+ 
+-init_end:
+-	return;
++	oh[3] = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
++	if (!oh[3]) {
++		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
++		return;
++	}
++
++	od = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 4,
++				(void *)&usbhs_data, sizeof(usbhs_data),
++				omap_uhhtll_latency,
++				ARRAY_SIZE(omap_uhhtll_latency), false);
++
++	if (IS_ERR(od)) {
++		pr_err("Could not build hwmod devices %s, %s\n",
++			USBHS_UHH_HWMODNAME, USBHS_TLL_HWMODNAME);
++		return;
++	}
  }
  
-+
-+static int omap_ohci_resume(struct device *dev)
-+{
-+	if (dev->parent)
-+		pm_runtime_get_sync(dev->parent);
-+	return 0;
-+}
-+
-+static int omap_ohci_suspend(struct device *dev)
-+{
-+	if (dev->parent)
-+		pm_runtime_put_sync(dev->parent);
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops omap_ohci_dev_pm_ops = {
-+	.suspend	= omap_ohci_suspend,
-+	.resume		= omap_ohci_resume,
-+};
-+
- static struct platform_driver ohci_hcd_omap3_driver = {
- 	.probe		= ohci_hcd_omap3_probe,
- 	.remove		= __devexit_p(ohci_hcd_omap3_remove),
- 	.shutdown	= ohci_hcd_omap3_shutdown,
- 	.driver		= {
- 		.name	= "ohci-omap3",
-+		.pm		= &omap_ohci_dev_pm_ops,
- 	},
- };
- 
+ #else
 -- 
 1.7.0.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
