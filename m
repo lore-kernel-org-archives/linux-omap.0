@@ -1,55 +1,104 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/18] OMAP4: PM data big spring cleanup and fixes
-Date: Fri, 8 Jul 2011 16:16:12 +0300
-Message-ID: <20110708131611.GE11037@atomide.com>
-References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
- <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
- <4E14B820.6070202@ti.com>
- <20110707055549.GC15815@atomide.com>
- <alpine.DEB.2.00.1107080031440.24181@utopia.booyaka.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v3 0/2] OMAP: omap_device: API to modify SYSCONFIG register
+Date: Fri, 8 Jul 2011 18:51:38 +0530
+Message-ID: <CAAe_U6+rRLSm6My1SWHt=Fc1MZjN_0bvsWvpZeqNG6c48nsHzA@mail.gmail.com>
+References: <1309777713-17528-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:60008 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751564Ab1GHNQR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 09:16:17 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1107080031440.24181@utopia.booyaka.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:51689 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752553Ab1GHNVj convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Jul 2011 09:21:39 -0400
+In-Reply-To: <1309777713-17528-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: paul@pwsan.com, b-cousson@ti.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, vishwanath.bs@ti.com, p-basak2@ti.com, peter.ujfalusi@ti.com, jhnikula@gmail.com, kishon@ti.com, charu@ti.com
 
-* Paul Walmsley <paul@pwsan.com> [110708 09:34]:
-> On Thu, 7 Jul 2011, Tony Lindgren wrote:
->=20
-> Rajendra's patch series doesn't require the 4430 -> 44XX changes in t=
-he=20
-> PRM/CM macros (Beno=C3=AEt's patch 16).  That patch can be put in a s=
-eparate=20
-> series, if you like. =20
->=20
-> It does require changing CHIP_IS_OMAP4430 to CHIP_IS_OMAP44XX in the=20
-> powerdomains, clockdomains, etc.  To me, that seems reasonable since =
-the=20
-> 4460 isn't simply a die shrink, it has some other changes on it; but =
-I=20
-> guess you have a different view on that.
+Paul, Benoit,
 
-To me it seems the CHIP_IS_OMAP44XX is just defined as CHIP_IS_OMAP3430
-in Benoit's patch 16.
+Do you have any comments for this series?
 
-> I will add acks/reviewed-by:s on the 4460 patches, and maybe you can=20
-> decide which ones you'd like to merge, if any.
+Regards
+Kishon
 
-I applied the first four 4460 patches but left out the CHIP_IS44XX
-changes.
-
-Regards,
-
-Tony
+On Mon, Jul 4, 2011 at 4:38 PM, Kishon Vijay Abraham I <kishon@ti.com> =
+wrote:
+> Certain peripherals require autoidle bits to be disabled before perfo=
+rming
+> some operations. This patch series provides APIs in omap_device layer=
+ and
+> omap_hwmod layer to modify the SYSCONFIG register.
+>
+> Since current implementation of PM run time framework does not suppor=
+t
+> changing sysconfig settings during middle of the on going operation,
+> these APIs will support the same.
+>
+> For e.g McBSP 2 and 3 in OMAP3 has sidetone feature which requires
+> autoidle to be disabled before starting the sidetone.
+>
+> McBSP also requires the SYSCONFIG to be in NOIDLE when ELEMENTSYNCH
+> mode is selected for DMA operation.
+>
+> Created on top of linux OMAP master (linux-omap-2.6 :master)
+> commit-id: d9be6df1331f8078618745298d38ed619729ec91
+> Tested on OMAP4430 and OMAP3430 SDP boards. Verified that this patch
+> series does not break the OMAP1 build.
+>
+> V3:
+> created one-one mapping between omap_device APIs and omap_hwmod APIs =
+to
+> modify the sysconfig register.
+>
+> V2:
+> Mutex is replaced with spinlock.
+>
+> V1:
+> * Creates 3 separate API's to change the idle mode to NOIDLE, SMARTID=
+LE
+> =A0and FORCEIDLE and one more API to change the idlemode to default v=
+alue
+> =A0based on the hwmod flag. This change is done to align with the dis=
+cussion
+> =A0on [3]
+>
+> * Added hwmod mutex in omap hwmod APIs that modifies SYSCONFIG regist=
+er.
+>
+> * omap_hwmod_set_slave_idlemode() is not modified to take true/false =
+kind-of
+> argument since 3 states are associated with SIDLE bits (force, no and=
+ smart).
+>
+> These changes were made to align with Benoit's and Paul's comments fo=
+r a
+> similar patch written by Manjunath [1] for changing MSTANDBY bits.
+>
+> The discussions that happened for the RFC patch can be found at [2]
+>
+> [1]: http://www.mail-archive.com/linux-omap <at> vger.kernel.org/msg3=
+9647.html
+> [2]: https://patchwork.kernel.org/patch/134371/
+> [3]: http://www.mail-archive.com/linux-omap <at> vger.kernel.org/msg3=
+9615.html
+>
+> Kishon Vijay Abraham I (2):
+> =A0OMAP: omap_hwmod: API to modify AUTOIDLE and SMARTIDLE bits
+> =A0OMAP: omap_device: API to modify AUTOIDLE and SMARTIDLE bits
+>
+> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =
+93 ++++++++++++++
+> =A0arch/arm/plat-omap/include/plat/omap_device.h | =A0 =A06 +
+> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h =A0| =A0 11 ++
+> =A0arch/arm/plat-omap/omap_device.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A01=
+65 +++++++++++++++++++++++++
+> =A04 files changed, 275 insertions(+), 0 deletions(-)
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
