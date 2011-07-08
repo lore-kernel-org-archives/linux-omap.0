@@ -1,72 +1,73 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH 5/6 v3] arm: omap: usb: Runtime PM support
-Date: Fri, 8 Jul 2011 10:45:41 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1107081044460.2208-100000@iolanthe.rowland.org>
-References: <1310122965-23612-6-git-send-email-keshava_mgowda@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 0/6 v3] arm: omap: usb: Runtime PM support for EHCI and OHCI drivers
+Date: Fri, 08 Jul 2011 07:49:09 -0700
+Message-ID: <87k4bsbzfe.fsf@ti.com>
+References: <1310122965-23612-1-git-send-email-keshava_mgowda@ti.com>
+	<20110708114425.GI4820@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1310122965-23612-6-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:40132 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752129Ab1GHOtP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 10:49:15 -0400
+In-Reply-To: <20110708114425.GI4820@legolas.emea.dhcp.ti.com> (Felipe Balbi's
+	message of "Fri, 8 Jul 2011 14:44:26 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, kishon@ti.com
 
-On Fri, 8 Jul 2011, Keshava Munegowda wrote:
+Felipe Balbi <balbi@ti.com> writes:
 
-> The usbhs core driver does not enable/disable the intefrace and
-> fucntional clocks; These clocks are handled by hwmod and runtime pm,
-> hence insted of the clock enable/disable, the runtime pm APIS are
-> used. however,the port clocks and tll clocks are handled
-> by the usbhs core.
-> In this architecture, the usbhs is core driver and it is parent of
-> ehci and ohci drivers.The earlier APIs omap_usbhs_enable and
-> omap_usbhs_disable of usbhs core driver are removed;
-> The ehci and ohci drivers call the pm_runtime_get_sync and
-> pm_runtime_put_sync of parent device usbhs core.
-> In fact, the runtime framework takes care the get sync and
-> put sync of the child in turn call the get sync and put sync
-> of parent too; but calling get sync and put sync of parent is
-> by ASYNC mode; This mode queues the work item in runtime pm
-> work queue, which not getting scheduled in case of global suspend path.
-> so, here ehci and ohci runtim pm is not required, these
-> drivers will pass the parent usbhs dev pointer in runtime pm APIs.
+> Hi Kevin, Paul, Tony, Benoit,
+>
+> On Fri, Jul 08, 2011 at 04:32:39PM +0530, Keshava Munegowda wrote:
+>> The Hwmod structures and Runtime PM features are implemented
+>> For EHCI and OHCI drivers of OMAP3 and OMAP4.
+>> The global suspend/resume of EHCI and OHCI
+>> is validated on OMAP3430 sdp board with these patches.
+>> 
+>> V3:
+>> Set MSTANDBY_SMART_WKUP for idlemode of usbhost
+>> Rebased on top of git://gitorious.org/omap-pm/linux.git
+>> Branch: for_3.1/3_hwmod_fixes
+>> commit 213ca8a3a8d73225f2f5304ab3a68c6eda0f6d1b
+>> Author: Benoit Cousson <b-cousson@ti.com>
+>> Date:   Fri Jul 1 13:52:03 2011 +0200
+>> 
+>>     OMAP: hwmod: Move pr_debug to improve the readability
+>>     
+>>     Sligtly move the pr_debug at the top of the function
+>>     to trace the entry even if the first test is failing.
+>>     That help understanding that we entered the function
+>>     but failed in it.
+>>     
+>>     Move the _enable last part out of the test to reduce
+>>     indentation and improve readability.
+>>     
+>>     Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+>>     Cc: Paul Walmsley <paul@pwsan.com>
+>> 
+>> Benoit Cousson (1):
+>>  arm: omap: usb: ehci and ohci hwmod structures for omap4
+>> 
+>> Keshava Munegowda (5):
+>>   arm: omap: usb: ehci and ohci hwmod structures for omap3
+>>   arm: omap: usb: register hwmods of usbhs
+>>   arm: omap: usb: device name change for the clk names of usbhs
+>>   arm: omap: usb: Runtime PM support
+>>   arm: omap: usb: global Suspend and resume support of ehci and ohci
+>
+> can we get the hwmod stuff in this merge window now ? It has been
+> rebased on Benoit's branch.
 
-> --- a/drivers/usb/host/ohci-omap3.c
-> +++ b/drivers/usb/host/ohci-omap3.c
-> @@ -31,6 +31,7 @@
->  
->  #include <linux/platform_device.h>
->  #include <plat/usb.h>
-> +#include <linux/pm_runtime.h>
->  
->  /*-------------------------------------------------------------------------*/
->  
-> @@ -172,11 +173,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
->  	hcd->rsrc_len = resource_size(res);
->  	hcd->regs =  regs;
->  
-> -	ret = omap_usbhs_enable(dev);
-> -	if (ret) {
-> -		dev_dbg(dev, "failed to start ohci\n");
-> -		goto err_end;
-> -	}
-> +	pm_runtime_get_sync(dev->parent);
->  
->  	ohci_hcd_init(hcd_to_ohci(hcd));
->  
-> @@ -189,7 +186,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
->  	return 0;
->  
->  err_add_hcd:
-> -	omap_usbhs_disable(dev);
-> +	pm_runtime_get_sync(dev->parent);
+Not yet.
 
-Looks like a typo; this should be _put_sync().
+It's not about rebasing, it's that the data itself has changed, and new
+fields have been added to the hwmod (like clkdm.)
 
-Alan Stern
+Please check the result of the latest auto-generated hwmods against the
+stuff that is being submitted.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
