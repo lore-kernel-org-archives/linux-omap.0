@@ -1,65 +1,120 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v4 00/18] I2C: OMAP: I2C fixes, removal of cpu_is... from driver
-Date: Fri, 08 Jul 2011 08:14:31 -0700
-Message-ID: <87box4by94.fsf@ti.com>
-References: <1306973984-15165-1-git-send-email-khilman@ti.com>
-	<20110615213637.GH15795@trinity.fluff.org> <87k4cm1xgj.fsf@ti.com>
-	<1309212726.6231.14.camel@vence> <1309212918.6231.16.camel@vence>
-	<1309892457.3077.8.camel@vence>
-	<20110707230122.GM15795@trinity.fluff.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap twl cleanup for v3.1 merge window
+Date: Fri, 8 Jul 2011 17:41:23 +0200
+Message-ID: <201107081741.23425.arnd@arndb.de>
+References: <20110708130102.GB5783@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:54687 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751794Ab1GHPOo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 11:14:44 -0400
-In-Reply-To: <20110707230122.GM15795@trinity.fluff.org> (Ben Dooks's message
-	of "Fri, 8 Jul 2011 00:01:22 +0100")
+Received: from moutng.kundenserver.de ([212.227.126.171]:55743 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750879Ab1GHPl2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 11:41:28 -0400
+In-Reply-To: <20110708130102.GB5783@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Dooks <ben-i2c@fluff.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Andy Green <andy.green@linaro.org>, linux-i2c@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>
 
-Ben Dooks <ben-i2c@fluff.org> writes:
-
-> On Tue, Jul 05, 2011 at 12:00:56PM -0700, Kevin Hilman wrote:
->> Hi Ben,
->> 
->> On Mon, 2011-06-27 at 15:15 -0700, Kevin Hilman wrote:
->> > On Mon, 2011-06-27 at 15:12 -0700, Kevin Hilman wrote:
->> > 
->> > > Ping.  I don't see this in linux-next yet.
->> > > 
->> > > Are you planning to queue this for v3.1?
->> > > 
->> > 
->> > Oops, pushed send too soon on this...
->> > 
->> > As this series touches various data files in arch/arm/mach-omap2/* and
->> > we have a handful of other changes to that data for this merge window, I
->> > think it would be better for conflict avoidance if this series is merged
->> > via Tony's linux-omap tree.
->> > 
->> > With your Ack, we'll merge it via OMAP.
->> 
->> I see that the same day I sent this, you merged it into your next-i2c
->> branch.  Guess I was too late with my request.
->> 
->> As I mentioned above, we will have several conflicts with the
->> arch/arm/mach-omap2 changes in this series, so we would prefer to merge
->> them via the OMAP tree if at all possible so we can properly handle the
->> conflicts.
->> 
->> Do you mind dropping it from your next-i2c so we can merge it via
->> linux-omap (with your Ack.)
+On Friday 08 July 2011, Tony Lindgren wrote:
 >
-> Yes, and if you could indicate all the other omap i2c patches and I'll
-> add my ack to yours.
+>I've attached a conflict resolution patch too, it's trivial execpt
+>note that .vdac needs to be removed in board-rx51-peripherals.c.
 >
-> Acked-by: Ben Dooks <ben-linux@fluff.org>
+>If this conflict causes problems for you, I can also base this series
+>on omap/board.
 
-Thanks, I will refresh/repost any remaining OMAP I2C patches today and
-let you know.
+The conflict resolution you suggested doesn't build here:
 
-Kevin
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@@ -572,75 -395,10 +509,62 @@@ static struct regulator_init_data sdp44
+>         },
+>   };
+>   
+>  +static struct regulator_init_data sdp4430_vana = {
+>  +      .constraints = {
+>  +              .min_uV                 = 2100000,
+>  +              .max_uV                 = 2100000,
+>  +              .valid_modes_mask       = REGULATOR_MODE_NORMAL
+>  +                                      | REGULATOR_MODE_STANDBY,
+>  +              .valid_ops_mask  = REGULATOR_CHANGE_MODE
+>  +                                      | REGULATOR_CHANGE_STATUS,
+>  +      },
+>  +};
+>  +
+>  +static struct regulator_init_data sdp4430_vcxio = {
+>  +      .constraints = {
+>  +              .min_uV                 = 1800000,
+>  +              .max_uV                 = 1800000,
+>  +              .valid_modes_mask       = REGULATOR_MODE_NORMAL
+>  +                                      | REGULATOR_MODE_STANDBY,
+>  +              .valid_ops_mask  = REGULATOR_CHANGE_MODE
+>  +                                      | REGULATOR_CHANGE_STATUS,
+>  +      },
+>  +};
+>  +
+>  +static struct regulator_init_data sdp4430_vdac = {
+>  +      .constraints = {
+>  +              .min_uV                 = 1800000,
+>  +              .max_uV                 = 1800000,
+>  +              .valid_modes_mask       = REGULATOR_MODE_NORMAL
+>  +                                      | REGULATOR_MODE_STANDBY,
+>  +              .valid_ops_mask  = REGULATOR_CHANGE_MODE
+>  +                                      | REGULATOR_CHANGE_STATUS,
+>  +      },
+>  +};
+>  +
+>  +static struct regulator_init_data sdp4430_vusb = {
+>  +      .constraints = {
+>  +              .min_uV                 = 3300000,
+>  +              .max_uV                 = 3300000,
+>  +              .apply_uV               = true,
+>  +              .valid_modes_mask       = REGULATOR_MODE_NORMAL
+>  +                                      | REGULATOR_MODE_STANDBY,
+>  +              .valid_ops_mask  =      REGULATOR_CHANGE_MODE
+>  +                                      | REGULATOR_CHANGE_STATUS,
+>  +      },
+>  +};
+>  +
+>  +static struct regulator_init_data sdp4430_clk32kg = {
+>  +      .constraints = {
+>  +              .valid_ops_mask         = REGULATOR_CHANGE_STATUS,
+>  +              .always_on              = true,
+>  +      },
+>  +};
+
+These are removed in the cleanup series, but changed in the fixes branch,
+now the removal is undone
+
+>   static struct twl4030_platform_data sdp4430_twldata = {
+> -       .irq_base       = TWL6030_IRQ_BASE,
+> -       .irq_end        = TWL6030_IRQ_END,
+> - 
+>         /* Regulators */
+> -       .vmmc           = &sdp4430_vmmc,
+> -       .vpp            = &sdp4430_vpp,
+>         .vusim          = &sdp4430_vusim,
+> -       .vana           = &sdp4430_vana,
+> -       .vcxio          = &sdp4430_vcxio,
+> -       .vdac           = &sdp4430_vdac,
+> -       .vusb           = &sdp4430_vusb,
+>         .vaux1          = &sdp4430_vaux1,
+> -       .vaux2          = &sdp4430_vaux2,
+> -       .vaux3          = &sdp4430_vaux3,
+> -       .clk32kg        = &sdp4430_clk32kg,
+> -       .usb            = &omap4_usbphy_data
+>   };
+>   
+
+but the references remain.
+
+I tried a different path, but then got
+
+arch/arm/mach-omap2/board-4430sdp.c:406:41: warning: 'sdp4430_vmmc_supply' defined but not used [-Wunused-variable]
+
+Should that variable be removed or kept referenced?
+
+	Arnd
