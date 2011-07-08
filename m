@@ -1,48 +1,41 @@
-From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] usb: musb: restore INDEX register in resume path
-Date: Fri, 8 Jul 2011 15:10:21 +0530
-Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047B9A2577F9@dbde03.ent.ti.com>
-References: <1310117773-31571-1-git-send-email-ajay.gupta@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC] dmaengine: Moving TI SDMA driver to dmaengine - design
+	plan
+Date: Fri, 8 Jul 2011 11:04:10 +0100
+Message-ID: <20110708100410.GA4957@n2100.arm.linux.org.uk>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94030259CD17@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1310117773-31571-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58678 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752341Ab1GHKEZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 06:04:25 -0400
+Content-Disposition: inline
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94030259CD17@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Raju, Sundaram" <sundaram@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Dan <dan.j.williams@intel.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Gupta, Ajay Kumar wrote:
-> Restoring the missing INDEX register value in musb_restore_context().
-> Without this suspend resume functionality is broken with offmode
-> enabled.
+On Fri, Jul 08, 2011 at 01:52:17PM +0530, Raju, Sundaram wrote:
+> I am planning to move TI SDMA driver in OMAP tree
+> into the dmaengine framework.
 > 
-> Cc: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-
-FWIW,
-
-Acked-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-
-> ---
->  drivers/usb/musb/musb_core.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
+> The first immediate issue of concern I noticed is the
+> huge number of client drivers that use the existing SDMA driver.
+> More than 15 client drivers are using the current SDMA driver.
 > 
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index c71b037..dce7182 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -2329,6 +2329,7 @@ static void musb_restore_context(struct musb *musb)
->  				musb->context.index_regs[i].rxhubport);
->  		}
->  	}
-> +	musb_writeb(musb_base, MUSB_INDEX, musb->context.index);
->  }
->  
->  static int musb_suspend(struct device *dev)
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Moving the SDMA driver along with all of these client drivers at a
+> single stretch seems a humungous task. 
+> I noticed a model in the existing DMA drivers in dmaengine
+> framework that will over come this issue. 
+
+It _is_ sane to build a dmaengine driver on top of the existing SoC
+private API, then convert the drivers to DMA engine, and then cleanup
+the resulting DMA engine driver.
+
+What we must make sure though is that the DMA engine slave API (which
+isn't well documented) is correctly implemented before drivers are
+converted over to use the DMA engine support code, otherwise we may
+end up with lots of drivers that require re-fixing several times over.
