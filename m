@@ -1,74 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap board updates for v3.1 merge window
-Date: Fri, 8 Jul 2011 03:25:21 -0700
-Message-ID: <20110708102521.GS5783@atomide.com>
-References: <20110707162911.GL5783@atomide.com>
- <201107072240.58987.arnd@arndb.de>
- <20110708083042.GQ5783@atomide.com>
- <201107081054.01295.arnd@arndb.de>
+Subject: Re: [RFC] dmaengine: Moving TI SDMA driver to dmaengine - design
+ plan
+Date: Fri, 8 Jul 2011 03:27:51 -0700
+Message-ID: <20110708102751.GT5783@atomide.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94030259CD17@dbde02.ent.ti.com>
+ <20110708100410.GA4957@n2100.arm.linux.org.uk>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94030259CDC4@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53935 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751476Ab1GHKZ1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 06:25:27 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201107081054.01295.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94030259CDC4@dbde02.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Raju, Sundaram" <sundaram@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Dan <dan.j.williams@intel.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
 
-* Arnd Bergmann <arnd@arndb.de> [110708 01:49]:
-> On Friday 08 July 2011 10:30:42 Tony Lindgren wrote:
+* Raju, Sundaram <sundaram@ti.com> [110708 03:09]:
+> > -----Original Message-----
+> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> > Sent: Friday, July 08, 2011 3:34 PM
+> > To: Raju, Sundaram
+> > Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org; Dan;
+> > Shilimkar, Santosh; linux-kernel@vger.kernel.org
+> > Subject: Re: [RFC] dmaengine: Moving TI SDMA driver to dmaengine - design
+> > plan
 > > 
-> > * Arnd Bergmann <arnd@arndb.de> [110707 13:36]:
-> > > On Thursday 07 July 2011 18:29:11 Tony Lindgren wrote:
-> > > > Please pull omap board updates from:
-> > > > 
-> > > > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git devel-board
-> > > > 
-> > > > These are currently on top of the fixes you pulled earlier but
-> > > > could be also rebased on the earlier cleanup if you prefer that.
-> > > 
-> > > I would generally prefer them to be independent, even if that causes
-> > > minor conflicts. If some branches are built on top of others, that
-> > > mainly means I have to remember the order in which to send them
-> > > upstream, and my memory for these things is limited.
+> > On Fri, Jul 08, 2011 at 01:52:17PM +0530, Raju, Sundaram wrote:
+> > > I am planning to move TI SDMA driver in OMAP tree
+> > > into the dmaengine framework.
+> > >
+> > > The first immediate issue of concern I noticed is the
+> > > huge number of client drivers that use the existing SDMA driver.
+> > > More than 15 client drivers are using the current SDMA driver.
+> > >
+> > > Moving the SDMA driver along with all of these client drivers at a
+> > > single stretch seems a humungous task.
+> > > I noticed a model in the existing DMA drivers in dmaengine
+> > > framework that will over come this issue.
 > > 
-> > Sure. So let's wait on this one a bit. I'll send you some more cleanup
-> > first as I just noticed that the TWL cleanup series will conflict with
-> > these patches.
+> > It _is_ sane to build a dmaengine driver on top of the existing SoC
+> > private API, then convert the drivers to DMA engine, and then cleanup
+> > the resulting DMA engine driver.
 > 
-> Sorry for being unclear, I forgot to say that I did in fact pull your tree
-> already.
+> Yes, that is what I thought. Thanks.
 
-OK no problem that's fine with me.
+Yes that's what we did with the gpiolib changes. That allows then
+converting the drivers over to the DMA engine API one function at
+a time (or one driver at a time).
 
-BTW, looks like your tree is no longer showing up on kernel.org?
- 
-> > I need to base these board files on all the cleanup though, otherwise
-> > things will get messy with merge and build conflicts.
-> > 
-> > Unfortunately there will be dependencies between branches until we
-> > have the driver probe and bus (hwmod) code initializing things
-> > using device tree data..
-> 
-> I already need to stage things out a bit, because the omap fixes
-> depend on the omap cleanups, while the imx cleanups depend on the
-> pxa fixes. So it's likely going to be something like
-> 
-> * fixes
-> * cleanup
-> * more fixes
-> * more cleanup
-> * new subarchitectures
-> * new boards
-> * wait for devicetree to get pulled in
-> * more cleanups based on device tree
-> * other new features
-
-It's getting messy :)
+Regards,
 
 Tony
