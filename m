@@ -1,139 +1,182 @@
-From: Jan Weitzel <j.weitzel@phytec.de>
-Subject: [PATCH] ARM: OMAP2+ Add Primview dispalys to panel-generic
-Date: Fri, 8 Jul 2011 12:47:14 +0200
-Message-ID: <1310122034-6561-1-git-send-email-j.weitzel@phytec.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/6] OMAP: ID: introduce chip detection for OMAP4460
+Date: Fri, 8 Jul 2011 03:49:42 -0700
+Message-ID: <20110708104942.GU5783@atomide.com>
+References: <1309573826-10615-1-git-send-email-rnayak@ti.com>
+ <1309573826-10615-2-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.1107080039330.24181@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.phytec.de ([217.6.246.34]:56816 "EHLO root.phytec.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751604Ab1GHKrR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Jul 2011 06:47:17 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61870 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751604Ab1GHKtr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 06:49:47 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1107080039330.24181@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: linux-fbdev@vger.kernel.org, tomi.valkeinen@ti.com, Jan Weitzel <j.weitzel@phytec.de>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Aneesh V <aneesh@ti.com>, Nishanth Menon <nm@ti.com>
 
-Add displays to panel-generic-dpi.c
-Prime View PD035VL1 (640 x 480)
-Prime View PD050VL1 (640 x 480)
-Prime View PD104SLF (800 x 600)
-Prime View PM070WL4 (800 x 480)
+* Paul Walmsley <paul@pwsan.com> [110707 23:34]:
+> On Sat, 2 Jul 2011, Rajendra Nayak wrote:
+> 
+> > From: Aneesh V <aneesh@ti.com>
+> > 
+> > Add support for detecting the latest in the OMAP4 family: OMAP4460
+> > Among other changes, the new chip also can support 1.5GHz A9s,
+> > 1080p stereoscopic 3D and 12 MP stereo (dual camera). In addition,
+> > we have changes to OPPs supported, clock tree etc, hence having a
+> > chip detection is required.
+> > 
+> > For more details on OMAP4460, see
+> > Highlights:
+> > http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?contentId=53243&navigationId=12843&templateId=6123
+> > Public TRM is available here as usual:
+> > http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?templateId=6123&navigationId=12667
+> > 
+> > [nm@ti.com: cleanups and introduction of ramp system]
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> > Signed-off-by: Aneesh V <aneesh@ti.com>
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> > Reviewed-by: Kevin Hilman <khilman@ti.com>
+> 
+> Reviewed-by: Paul Walmsley <paul@pwsan.com>
 
-Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
----
- drivers/video/omap2/displays/panel-generic-dpi.c |  100 ++++++++++++++++++++++
- 1 files changed, 100 insertions(+), 0 deletions(-)
+I've applied the first for patches of this series slightly
+modified on top of devel-cleanup branch.
 
-diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-index 9c90f75..87d9ba1 100644
---- a/drivers/video/omap2/displays/panel-generic-dpi.c
-+++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -232,6 +232,106 @@ static struct panel_config generic_dpi_panels[] = {
- 		.power_off_delay	= 0,
- 		.name			= "powertip_ph480272t",
- 	},
-+
-+	/* Prime-View PD035VL1 */
-+	{
-+		{
-+			.x_res		= 640,
-+			.y_res		= 480,
-+
-+			.pixel_clock	= 25000,
-+
-+			.hsw		= 96,
-+			.hfp		= 18,
-+			.hbp		= 46,
-+
-+			.vsw		= 2,
-+			.vfp		= 10,
-+			.vbp		= 33,
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x28,
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
-+		.power_on_delay		= 50,
-+		.power_off_delay	= 100,
-+		.name			= "pd035vl1",
-+	},
-+
-+	/* Prime-View PD050VL1 */
-+	{
-+		{
-+			.x_res		= 640,
-+			.y_res		= 480,
-+
-+			.pixel_clock	= 25000,
-+
-+			.hsw		= 96,
-+			.hfp		= 18,
-+			.hbp		= 46,
-+
-+			.vsw		= 2,
-+			.vfp		= 10,
-+			.vbp		= 33,
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x28,
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
-+		.power_on_delay		= 50,
-+		.power_off_delay	= 100,
-+		.name			= "pd050vl1",
-+	},
-+
-+	/* Prime-View PM070WL4 */
-+	{
-+		{
-+			.x_res		= 800,
-+			.y_res		= 480,
-+
-+			.pixel_clock	= 32000,
-+
-+			.hsw		= 128,
-+			.hfp		= 42,
-+			.hbp		= 86,
-+
-+			.vsw		= 2,
-+			.vfp		= 10,
-+			.vbp		= 33,
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x28,
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
-+		.power_on_delay		= 50,
-+		.power_off_delay	= 100,
-+		.name			= "pm070wl4",
-+	},
-+
-+	/* Prime-View PD104SLF */
-+	{
-+		{
-+			.x_res		= 800,
-+			.y_res		= 600,
-+
-+			.pixel_clock	= 40000,
-+
-+			.hsw		= 128,
-+			.hfp		= 42,
-+			.hbp		= 86,
-+
-+			.vsw		= 4,
-+			.vfp		= 1,
-+			.vbp		= 23,
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x28,
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
-+		.power_on_delay		= 50,
-+		.power_off_delay	= 100,
-+		.name			= "pd104slf",
-+	},
- };
+I've left out the CHIP_IS_44XX dependency as we're running
+out of time here, and that leaves out three out of the eight
+orignal patches. That can be sorted out in a separate series.
+
+Updated patch below.
+
+Tony
+
+
+From: Aneesh V <aneesh@ti.com>
+Date: Sat, 2 Jul 2011 08:00:21 +0530
+Subject: [PATCH] OMAP: ID: introduce chip detection for OMAP4460
+
+Add support for detecting the latest in the OMAP4 family: OMAP4460
+Among other changes, the new chip also can support 1.5GHz A9s,
+1080p stereoscopic 3D and 12 MP stereo (dual camera). In addition,
+we have changes to OPPs supported, clock tree etc, hence having a
+chip detection is required.
+
+For more details on OMAP4460, see Highlights:
+http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?contentId=53243&navigationId=12843&templateId=6123
+
+Public TRM is available here as usual:
+http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?templateId=6123&navigationId=12667
+
+[nm@ti.com: cleanups and introduction of ramp system]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Aneesh V <aneesh@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+Reviewed-by: Paul Walmsley <paul@pwsan.com>
+[tony@atomide.com: updated to not use CHIP_IS_OMAP44XX]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 2537090..743889a 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -344,10 +344,10 @@ static void __init omap4_check_revision(void)
+ 	rev = (idcode >> 28) & 0xf;
  
- struct panel_drv_data {
--- 
-1.7.0.4
-
+ 	/*
+-	 * Few initial ES2.0 samples IDCODE is same as ES1.0
++	 * Few initial 4430 ES2.0 samples IDCODE is same as ES1.0
+ 	 * Use ARM register to detect the correct ES version
+ 	 */
+-	if (!rev) {
++	if (!rev && (hawkeye != 0xb94e)) {
+ 		idcode = read_cpuid(CPUID_ID);
+ 		rev = (idcode & 0xf) - 1;
+ 	}
+@@ -377,6 +377,15 @@ static void __init omap4_check_revision(void)
+ 			omap_chip.oc |= CHIP_IS_OMAP4430ES2_2;
+ 		}
+ 		break;
++	case 0xb94e:
++		switch (rev) {
++		case 0:
++		default:
++			omap_revision = OMAP4460_REV_ES1_0;
++			omap_chip.oc |= CHIP_IS_OMAP4460ES1_0;
++			break;
++		}
++		break;
+ 	default:
+ 		/* Unknown default to latest silicon rev as default */
+ 		omap_revision = OMAP4430_REV_ES2_2;
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 8198bb6..a2cec99 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -88,6 +88,7 @@ unsigned int omap_rev(void);
+  * cpu_is_omap243x():	True for OMAP2430
+  * cpu_is_omap343x():	True for OMAP3430
+  * cpu_is_omap443x():	True for OMAP4430
++ * cpu_is_omap446x():	True for OMAP4460
+  */
+ #define GET_OMAP_CLASS	(omap_rev() & 0xff)
+ 
+@@ -123,6 +124,7 @@ IS_OMAP_SUBCLASS(243x, 0x243)
+ IS_OMAP_SUBCLASS(343x, 0x343)
+ IS_OMAP_SUBCLASS(363x, 0x363)
+ IS_OMAP_SUBCLASS(443x, 0x443)
++IS_OMAP_SUBCLASS(446x, 0x446)
+ 
+ IS_TI_SUBCLASS(816x, 0x816)
+ 
+@@ -137,6 +139,7 @@ IS_TI_SUBCLASS(816x, 0x816)
+ #define cpu_is_ti816x()			0
+ #define cpu_is_omap44xx()		0
+ #define cpu_is_omap443x()		0
++#define cpu_is_omap446x()		0
+ 
+ #if defined(MULTI_OMAP1)
+ # if defined(CONFIG_ARCH_OMAP730)
+@@ -361,8 +364,10 @@ IS_OMAP_TYPE(3517, 0x3517)
+ # if defined(CONFIG_ARCH_OMAP4)
+ # undef cpu_is_omap44xx
+ # undef cpu_is_omap443x
++# undef cpu_is_omap446x
+ # define cpu_is_omap44xx()		is_omap44xx()
+ # define cpu_is_omap443x()		is_omap443x()
++# define cpu_is_omap446x()		is_omap446x()
+ # endif
+ 
+ /* Macros to detect if we have OMAP1 or OMAP2 */
+@@ -410,6 +415,9 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define OMAP4430_REV_ES2_1	(OMAP443X_CLASS | (0x21 << 8))
+ #define OMAP4430_REV_ES2_2	(OMAP443X_CLASS | (0x22 << 8))
+ 
++#define OMAP446X_CLASS		0x44600044
++#define OMAP4460_REV_ES1_0	(OMAP446X_CLASS | (0x10 << 8))
++
+ /*
+  * omap_chip bits
+  *
+@@ -439,13 +447,15 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define CHIP_IS_OMAP4430ES2_1		(1 << 12)
+ #define CHIP_IS_OMAP4430ES2_2		(1 << 13)
+ #define CHIP_IS_TI816X			(1 << 14)
++#define CHIP_IS_OMAP4460ES1_0		(1 << 15)
+ 
+ #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
+ 
+ #define CHIP_IS_OMAP4430		(CHIP_IS_OMAP4430ES1 |		\
+ 					 CHIP_IS_OMAP4430ES2 |		\
+ 					 CHIP_IS_OMAP4430ES2_1 |	\
+-					 CHIP_IS_OMAP4430ES2_2)
++					 CHIP_IS_OMAP4430ES2_2 |	\
++					 CHIP_IS_OMAP4460ES1_0)
+ 
+ /*
+  * "GE" here represents "greater than or equal to" in terms of ES
