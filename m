@@ -1,98 +1,157 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RFC 2/4] omap3beagle: Instantiate VDD1 and VDD2 regulators
-Date: Fri, 8 Jul 2011 18:56:26 +0300
-Message-ID: <1310140588-26078-3-git-send-email-t-kristo@ti.com>
+Subject: [RFC 3/4] omap: attach external controller to VDD1/VDD2
+Date: Fri, 8 Jul 2011 18:56:27 +0300
+Message-ID: <1310140588-26078-4-git-send-email-t-kristo@ti.com>
 References: <1310140588-26078-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37430 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37420 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752416Ab1GHP5K convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 11:57:10 -0400
+	id S1752612Ab1GHP5I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 11:57:08 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1310140588-26078-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: lrg@ti.com, broonie@opensource.wolfsonmicro.com, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Thomas Petazzoni <t-petazzoni@ti.com>
+Cc: lrg@ti.com, broonie@opensource.wolfsonmicro.com
 
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-
-Instantiate the VDD1 and VDD2 regulators and connect them to their
-respective consumers: mpu.0 for VDD1 and l3_main.0 for VDD2.
+Instiante a twlreg_ext_ctrl structure in the OMAP voltage code for
+VDD1 and VDD2 and attach it as an external controller for these
+regulators. It will allow the OMAP voltage code to take over the
+default regulator driver code for ->set_voltage() and ->get_voltage().
 
 TODO:
 
- * As these instantiations will be identical for all OMAP3 boards,
-   find a way of sharing them throughout the different OMAP3 boards.
+ * Does this really belong to the OMAP voltage code ? The PowerIC
+   attached to the OMAP may not be the traditional TWL, so maybe this
+   code belongs to a more board-specific location (but then we have
+   the question of avoiding too much duplication of this code
+   throughout the different board files)
 
-Signed-off-by: Thomas Petazzoni <t-petazzoni@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |   35 +++++++++++++++++++++++++++++++
- 1 files changed, 35 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/voltage.c                 |   37 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/voltage.h                 |    4 +++
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 +
+ 3 files changed, 43 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 78cf5f2..6d3a266 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -24,6 +24,7 @@
- #include <linux/input.h>
- #include <linux/gpio_keys.h>
- #include <linux/opp.h>
-+#include <linux/regulator/driver.h>
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 9ef3789..e9b9bbb 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -59,6 +59,9 @@ static struct dentry *voltage_dir;
+ /* Init function pointers */
+ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
+ 					unsigned long target_volt);
++static int omap_twlreg_ext_ctrl_get_voltage(struct twlreg_ext_ctrl *ext_ctrl);
++static int omap_twlreg_ext_ctrl_set_voltage(struct twlreg_ext_ctrl *ext_ctrl,
++					    int min_uV, int max_uV);
  
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-@@ -400,6 +401,38 @@ static struct regulator_init_data beagle_vpll2 = {
- 	.consumer_supplies	= beagle_vdvi_supplies,
+ static u32 omap3_voltage_read_reg(u16 mod, u8 offset)
+ {
+@@ -1029,6 +1032,19 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+ 	}
+ }
+ 
++static int omap_twlreg_ext_ctrl_get_voltage(struct twlreg_ext_ctrl *ext_ctrl)
++{
++	struct voltagedomain *voltdm = (struct voltagedomain *) ext_ctrl->data;
++	return omap_vp_get_curr_volt(voltdm);
++}
++
++static int omap_twlreg_ext_ctrl_set_voltage(struct twlreg_ext_ctrl *ext_ctrl,
++					    int min_uV, int max_uV)
++{
++	struct voltagedomain *voltdm = (struct voltagedomain *) ext_ctrl->data;
++	return omap_voltage_scale_vdd(voltdm, min_uV);
++}
++
+ /**
+  * omap_voltage_domain_lookup() - API to get the voltage domain pointer
+  * @name:	Name of the voltage domain
+@@ -1071,6 +1087,8 @@ struct voltagedomain *omap_voltage_domain_lookup(char *name)
+ int __init omap_voltage_late_init(void)
+ {
+ 	int i;
++	struct twlreg_ext_ctrl *ctrl;
++	struct voltagedomain *voltdm;
+ 
+ 	if (!vdd_info) {
+ 		pr_err("%s: Voltage driver support not added\n",
+@@ -1088,6 +1106,25 @@ int __init omap_voltage_late_init(void)
+ 		omap_vc_init(vdd_info[i]);
+ 		vp_init(vdd_info[i]);
+ 		vdd_debugfs_init(vdd_info[i]);
++
++		voltdm = &vdd_info[i]->voltdm;
++		/* Attach twlreg external controller */
++		if (voltdm->reg_name) {
++			ctrl = kmalloc(sizeof(struct twlreg_ext_ctrl),
++				GFP_KERNEL);
++			if (!ctrl) {
++				pr_err("%s: can't alloc twlreg_ext_ctrl for"
++				       " vdd_%s\n", __func__, voltdm->name);
++				return -ENOMEM;
++			}
++			ctrl->set_voltage = omap_twlreg_ext_ctrl_set_voltage;
++			ctrl->get_voltage = omap_twlreg_ext_ctrl_get_voltage;
++			ctrl->data = voltdm;
++
++			twlreg_attach_external_controller(voltdm->reg_name,
++				ctrl);
++			voltdm->twl_ext_ctrl = ctrl;
++		}
+ 	}
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index e9f5408..1fb1d85 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -15,6 +15,7 @@
+ #define __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
+ 
+ #include <linux/err.h>
++#include <linux/regulator/twl.h>
+ 
+ #include "vc.h"
+ #include "vp.h"
+@@ -52,9 +53,12 @@ struct omap_vfsm_instance_data {
+  * struct voltagedomain - omap voltage domain global structure.
+  * @name:	Name of the voltage domain which can be used as a unique
+  *		identifier.
++ * @twl_ext_ctrl:  External controller for the voltage domain
+  */
+ struct voltagedomain {
+ 	char *name;
++	char *reg_name;
++	struct twlreg_ext_ctrl *twl_ext_ctrl;
  };
  
-+static struct regulator_consumer_supply beagle_vdd1_supply =
-+	REGULATOR_SUPPLY("vcc", "mpu.0");
-+
-+static struct regulator_consumer_supply beagle_vdd2_supply =
-+	REGULATOR_SUPPLY("vcc", "l3_main.0");
-+
-+static struct regulator_init_data beagle_vdd1 = {
-+	.constraints = {
-+		.name			= "VDD1",
-+		.min_uV			= 600000,
-+		.max_uV			= 1450000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &beagle_vdd1_supply,
-+};
-+
-+static struct regulator_init_data beagle_vdd2 = {
-+	.constraints = {
-+		.name			= "VDD2",
-+		.min_uV			= 600000,
-+		.max_uV			= 1450000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &beagle_vdd2_supply,
-+};
-+
- static struct twl4030_usb_data beagle_usb_data = {
- 	.usb_mode	= T2_USB_MODE_ULPI,
- };
-@@ -423,6 +456,8 @@ static struct twl4030_platform_data beagle_twldata = {
- 	.vsim		= &beagle_vsim,
- 	.vdac		= &beagle_vdac,
- 	.vpll2		= &beagle_vpll2,
-+	.vdd1           = &beagle_vdd1,
-+	.vdd2           = &beagle_vdd2,
+ /**
+diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+index def230f..02a93c5 100644
+--- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+@@ -43,6 +43,7 @@ static struct omap_vdd_info omap3_vdd1_info = {
+ 	.vfsm = &omap3_vdd1_vfsm_data,
+ 	.voltdm = {
+ 		.name = "mpu",
++		.reg_name = "VDD1",
+ 	},
  };
  
- static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+@@ -58,6 +59,7 @@ static struct omap_vdd_info omap3_vdd2_info = {
+ 	.vfsm = &omap3_vdd2_vfsm_data,
+ 	.voltdm = {
+ 		.name = "core",
++		.reg_name = "VDD2",
+ 	},
+ };
+ 
 -- 
 1.7.4.1
 
