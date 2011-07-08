@@ -1,43 +1,147 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 0/3] OMAP2+: hwmod_data: I2C updates for v3.1
-Date: Fri,  8 Jul 2011 09:11:41 -0700
-Message-ID: <1310141504-13688-1-git-send-email-khilman@ti.com>
+Subject: [PATCH 1/3] I2C: OMAP2+: Set hwmod flags to only allow 16-bit accesses to i2c
+Date: Fri,  8 Jul 2011 09:11:42 -0700
+Message-ID: <1310141504-13688-2-git-send-email-khilman@ti.com>
+References: <1310141504-13688-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:32805 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751539Ab1GHQLo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 12:11:44 -0400
-Received: by mail-pw0-f46.google.com with SMTP id 7so1769427pwj.33
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jul 2011 09:11:43 -0700 (PDT)
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:52978 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751539Ab1GHQLr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 12:11:47 -0400
+Received: by mail-pw0-f54.google.com with SMTP id 7so2012789pwi.27
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jul 2011 09:11:47 -0700 (PDT)
+In-Reply-To: <1310141504-13688-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap@vger.kernel.org, Andy Green <andy@warmcat.com>, linux-arm-kernel@lists.infradead.org
 
-Paul,
+From: Andy Green <andy@warmcat.com>
 
-I've separated out the omap_hwmod data changes from Andy's original
-series so they can be easier managed with the rest of the hwmod data
-changes.
+Peter Maydell noticed when running under QEMU he was getting
+errors reporting 32-bit access to I2C peripheral unit registers
+that are documented to be 8 or 16-bit only[1][2]
 
-This series applies against v3.0-rc6 and is also available here:
+The I2C driver is blameless as it wraps its accesses in a
+function using __raw_writew and __raw_readw, it turned out it
+is the hwmod stuff.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.1/i2c-hwmod-data
+However the hwmod code already has a flag to force a
+perhipheral unit to only be accessed using 16-bit operations.
 
-Kevin
+This patch applies the 16-bit only flag to the 2430,
+OMAP3xxx and OMAP44xx hwmod structs.  2420 was already
+correctly marked up as 16-bit.
 
-Andy Green (3):
-  I2C: OMAP2+: Set hwmod flags to only allow 16-bit accesses to i2c
-  I2C: OMAP2+: Tag all OMAP2+ hwmod defintions with I2C IP revision
-  I2C: OMAP2+: add correct functionality flags to all omap2plus i2c
-    dev_attr
+The 2430 change will need testing by TI as arranged
+in the comments to the previous patch version.
 
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    8 +++++++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 ++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   13 +++++++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   18 ++++++++++++++----
- 4 files changed, 40 insertions(+), 5 deletions(-)
+When the 16-bit flag is or-ed with other flags, it is placed
+first as requested in comments.
 
+[1] OMAP4430 Technical reference manual section 23.1.6.2
+[2] OMAP3530 Techincal reference manual section 18.6
+
+Cc: patches@linaro.org
+Cc: Ben Dooks <ben-linux@fluff.org>
+Reported-by: Peter Maydell <peter.maydell@linaro.org>
+Signed-off-by: Andy Green <andy.green@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    2 ++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    3 +++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    8 ++++----
+ 3 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 9682dd5..0c272be 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -1547,6 +1547,7 @@ static struct omap_hwmod_ocp_if *omap2430_i2c1_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_i2c1_hwmod = {
+ 	.name		= "i2c1",
++	.flags		= HWMOD_16BIT_REG,
+ 	.mpu_irqs	= i2c1_mpu_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(i2c1_mpu_irqs),
+ 	.sdma_reqs	= i2c1_sdma_reqs,
+@@ -1593,6 +1594,7 @@ static struct omap_hwmod_ocp_if *omap2430_i2c2_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_i2c2_hwmod = {
+ 	.name		= "i2c2",
++	.flags		= HWMOD_16BIT_REG,
+ 	.mpu_irqs	= i2c2_mpu_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(i2c2_mpu_irqs),
+ 	.sdma_reqs	= i2c2_sdma_reqs,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 909a84d..78efb59 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -1891,6 +1891,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_i2c1_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_i2c1_hwmod = {
+ 	.name		= "i2c1",
++	.flags		= HWMOD_16BIT_REG,
+ 	.mpu_irqs	= i2c1_mpu_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(i2c1_mpu_irqs),
+ 	.sdma_reqs	= i2c1_sdma_reqs,
+@@ -1933,6 +1934,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_i2c2_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_i2c2_hwmod = {
+ 	.name		= "i2c2",
++	.flags		= HWMOD_16BIT_REG,
+ 	.mpu_irqs	= i2c2_mpu_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(i2c2_mpu_irqs),
+ 	.sdma_reqs	= i2c2_sdma_reqs,
+@@ -1975,6 +1977,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_i2c3_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_i2c3_hwmod = {
+ 	.name		= "i2c3",
++	.flags		= HWMOD_16BIT_REG,
+ 	.mpu_irqs	= i2c3_mpu_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(i2c3_mpu_irqs),
+ 	.sdma_reqs	= i2c3_sdma_reqs,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index e1c69ff..ba5e05a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2164,7 +2164,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c1_slaves[] = {
+ static struct omap_hwmod omap44xx_i2c1_hwmod = {
+ 	.name		= "i2c1",
+ 	.class		= &omap44xx_i2c_hwmod_class,
+-	.flags		= HWMOD_INIT_NO_RESET,
++	.flags		= HWMOD_16BIT_REG | HWMOD_INIT_NO_RESET,
+ 	.mpu_irqs	= omap44xx_i2c1_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c1_irqs),
+ 	.sdma_reqs	= omap44xx_i2c1_sdma_reqs,
+@@ -2217,7 +2217,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c2_slaves[] = {
+ static struct omap_hwmod omap44xx_i2c2_hwmod = {
+ 	.name		= "i2c2",
+ 	.class		= &omap44xx_i2c_hwmod_class,
+-	.flags		= HWMOD_INIT_NO_RESET,
++	.flags		= HWMOD_16BIT_REG | HWMOD_INIT_NO_RESET,
+ 	.mpu_irqs	= omap44xx_i2c2_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c2_irqs),
+ 	.sdma_reqs	= omap44xx_i2c2_sdma_reqs,
+@@ -2270,7 +2270,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c3_slaves[] = {
+ static struct omap_hwmod omap44xx_i2c3_hwmod = {
+ 	.name		= "i2c3",
+ 	.class		= &omap44xx_i2c_hwmod_class,
+-	.flags		= HWMOD_INIT_NO_RESET,
++	.flags		= HWMOD_16BIT_REG | HWMOD_INIT_NO_RESET,
+ 	.mpu_irqs	= omap44xx_i2c3_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c3_irqs),
+ 	.sdma_reqs	= omap44xx_i2c3_sdma_reqs,
+@@ -2323,7 +2323,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c4_slaves[] = {
+ static struct omap_hwmod omap44xx_i2c4_hwmod = {
+ 	.name		= "i2c4",
+ 	.class		= &omap44xx_i2c_hwmod_class,
+-	.flags		= HWMOD_INIT_NO_RESET,
++	.flags		= HWMOD_16BIT_REG | HWMOD_INIT_NO_RESET,
+ 	.mpu_irqs	= omap44xx_i2c4_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c4_irqs),
+ 	.sdma_reqs	= omap44xx_i2c4_sdma_reqs,
 -- 
 1.7.6
 
