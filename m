@@ -1,61 +1,48 @@
-From: "Raju, Sundaram" <sundaram@ti.com>
-Subject: [RFC] dmaengine: Moving TI SDMA driver to dmaengine - design plan
-Date: Fri, 8 Jul 2011 13:52:17 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94030259CD17@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap board updates for v3.1 merge window
+Date: Fri, 8 Jul 2011 01:30:42 -0700
+Message-ID: <20110708083042.GQ5783@atomide.com>
+References: <20110707162911.GL5783@atomide.com>
+ <201107072240.58987.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Dan <dan.j.williams@intel.com>, "Shilimkar,
-	Santosh" <santosh.shilimkar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49264 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753137Ab1GHIat (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 04:30:49 -0400
+Content-Disposition: inline
+In-Reply-To: <201107072240.58987.arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
 
-Hi,
+* Arnd Bergmann <arnd@arndb.de> [110707 13:36]:
+> On Thursday 07 July 2011 18:29:11 Tony Lindgren wrote:
+> > Please pull omap board updates from:
+> > 
+> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git devel-board
+> > 
+> > These are currently on top of the fixes you pulled earlier but
+> > could be also rebased on the earlier cleanup if you prefer that.
+> 
+> I would generally prefer them to be independent, even if that causes
+> minor conflicts. If some branches are built on top of others, that
+> mainly means I have to remember the order in which to send them
+> upstream, and my memory for these things is limited.
 
-I am planning to move TI SDMA driver in OMAP tree
-into the dmaengine framework.
+Sure. So let's wait on this one a bit. I'll send you some more cleanup
+first as I just noticed that the TWL cleanup series will conflict with
+these patches.
 
-The first immediate issue of concern I noticed is the
-huge number of client drivers that use the existing SDMA driver.
-More than 15 client drivers are using the current SDMA driver.
+I need to base these board files on all the cleanup though, otherwise
+things will get messy with merge and build conflicts.
 
-Moving the SDMA driver along with all of these client drivers at a
-single stretch seems a humungous task. 
-I noticed a model in the existing DMA drivers in dmaengine
-framework that will over come this issue. 
-
-I would like to follow the Freescale i.MX DMA driver model,
-where imx-dma.c in drivers/dma which implements all the
-dmaengine hooks, internally uses the APIs in dma-v1.c file in 
-arch/arm/mach-imx. All APIs in dma-v1.c are also exported
-out for direct use by clients.
-
-Advantages of this model:
-1. No compilation breaks for any of the existing client drivers.
-2. Client drivers can be moved one by one to the new SDMA driver 
-after complete testing on all OMAP boards.
-
-We can mark the old SDMA driver APIs as deprecated and insist on
-all client drivers to be moved to the new SDMA driver in the
-dmaengine framework soon.
-
-I have made the preliminary changes in code for this design and
-I am in the phase of testing a few client drivers. If this is a good way
-to proceed then I will send out my patches with the client drivers I
-have changed for review once I am done with the testing.
-
-Let me know your thoughts.
+Unfortunately there will be dependencies between branches until we
+have the driver probe and bus (hwmod) code initializing things
+using device tree data..
 
 Regards,
-Sundaram
+
+Tony
