@@ -1,160 +1,60 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 3/3] I2C: OMAP2+: add correct functionality flags to all omap2plus i2c dev_attr
-Date: Fri,  8 Jul 2011 09:11:44 -0700
-Message-ID: <1310141504-13688-4-git-send-email-khilman@ti.com>
-References: <1310141504-13688-1-git-send-email-khilman@ti.com>
+Subject: [GIT PULL] OMAP I2C cleanups for v3.1
+Date: Fri, 08 Jul 2011 09:22:03 -0700
+Message-ID: <87liw8agk4.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:54557 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752484Ab1GHQLy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 12:11:54 -0400
-Received: by mail-pz0-f47.google.com with SMTP id 36so1726999pzk.20
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jul 2011 09:11:53 -0700 (PDT)
-In-Reply-To: <1310141504-13688-1-git-send-email-khilman@ti.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:60636 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750757Ab1GHQWI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 12:22:08 -0400
+Received: by iyh42 with SMTP id 42so3666470iyh.11
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jul 2011 09:22:07 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Andy Green <andy@warmcat.com>, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andy Green <andy@warmcat.com>
 
-From: Andy Green <andy@warmcat.com>
+Tony,
 
-This adds the new functionality flags for omap i2c unit to all OMAP2
-hwmod definitions
+Please pull the I2C cleanup changes below for v3.1.
 
-Cc: patches@linaro.org
-Cc: Ben Dooks <ben-linux@fluff.org>
-Reported-by: Peter Maydell <peter.maydell@linaro.org>
-Signed-off-by: Andy Green <andy.green@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    7 ++++++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    3 +++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    9 +++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    9 +++++++++
- 4 files changed, 27 insertions(+), 1 deletions(-)
+This is the same series from Andy Green that has been
+posted/reviewed/tested many times except the omap_hwmod data patches
+have been separated out into a separate series.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 2223c44..e9a416c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -1450,7 +1450,12 @@ static struct omap_hwmod_class i2c_class = {
- 	.rev		= OMAP_I2C_IP_VERSION_1,
- };
- 
--static struct omap_i2c_dev_attr i2c_dev_attr;
-+static struct omap_i2c_dev_attr i2c_dev_attr = {
-+	.flags		= OMAP_I2C_FLAG_NO_FIFO |
-+			  OMAP_I2C_FLAG_SIMPLE_CLOCK |
-+			  OMAP_I2C_FLAG_16BIT_DATA_REG |
-+			  OMAP_I2C_FLAG_BUS_SHIFT_2,
-+};
- 
- /* I2C1 */
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index dbcc36e..beedda6 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -1529,6 +1529,9 @@ static struct omap_hwmod_class i2c_class = {
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
- 	.fifo_depth	= 8, /* bytes */
-+	.flags		= OMAP_I2C_FLAG_APPLY_ERRATA_I207 |
-+			  OMAP_I2C_FLAG_BUS_SHIFT_2 |
-+			  OMAP_I2C_FLAG_FORCE_19200_INT_CLK,
- };
- 
- /* I2C1 */
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 80839b1..dec1a38 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1875,6 +1875,9 @@ static struct omap_hwmod omap3xxx_dss_venc_hwmod = {
- 
- static struct omap_i2c_dev_attr i2c1_dev_attr = {
- 	.fifo_depth	= 8, /* bytes */
-+	.flags = OMAP_I2C_FLAG_APPLY_ERRATA_I207 |
-+		 OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
-+		 OMAP_I2C_FLAG_BUS_SHIFT_2,
- };
- 
- static struct omap_hwmod_irq_info i2c1_mpu_irqs[] = {
-@@ -1918,6 +1921,9 @@ static struct omap_hwmod omap3xxx_i2c1_hwmod = {
- 
- static struct omap_i2c_dev_attr i2c2_dev_attr = {
- 	.fifo_depth	= 8, /* bytes */
-+	.flags = OMAP_I2C_FLAG_APPLY_ERRATA_I207 |
-+		 OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
-+		 OMAP_I2C_FLAG_BUS_SHIFT_2,
- };
- 
- static struct omap_hwmod_irq_info i2c2_mpu_irqs[] = {
-@@ -1961,6 +1967,9 @@ static struct omap_hwmod omap3xxx_i2c2_hwmod = {
- 
- static struct omap_i2c_dev_attr i2c3_dev_attr = {
- 	.fifo_depth	= 64, /* bytes */
-+	.flags = OMAP_I2C_FLAG_APPLY_ERRATA_I207 |
-+		 OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
-+		 OMAP_I2C_FLAG_BUS_SHIFT_2,
- };
- 
- static struct omap_hwmod_irq_info i2c3_mpu_irqs[] = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 6578a36..0fe9556 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -27,6 +27,7 @@
- #include <plat/mcspi.h>
- #include <plat/mcbsp.h>
- #include <plat/mmc.h>
-+#include <plat/i2c.h>
- 
- #include "omap_hwmod_common_data.h"
- 
-@@ -2128,6 +2129,10 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
- 	.rev	= OMAP_I2C_IP_VERSION_2,
- };
- 
-+static struct omap_i2c_dev_attr i2c_dev_attr = {
-+	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
-+};
-+
- /* i2c1 */
- static struct omap_hwmod omap44xx_i2c1_hwmod;
- static struct omap_hwmod_irq_info omap44xx_i2c1_irqs[] = {
-@@ -2178,6 +2183,7 @@ static struct omap_hwmod omap44xx_i2c1_hwmod = {
- 	},
- 	.slaves		= omap44xx_i2c1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c1_slaves),
-+	.dev_attr	= &i2c_dev_attr,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
- 
-@@ -2231,6 +2237,7 @@ static struct omap_hwmod omap44xx_i2c2_hwmod = {
- 	},
- 	.slaves		= omap44xx_i2c2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c2_slaves),
-+	.dev_attr	= &i2c_dev_attr,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
- 
-@@ -2284,6 +2291,7 @@ static struct omap_hwmod omap44xx_i2c3_hwmod = {
- 	},
- 	.slaves		= omap44xx_i2c3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c3_slaves),
-+	.dev_attr	= &i2c_dev_attr,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
- 
-@@ -2337,6 +2345,7 @@ static struct omap_hwmod omap44xx_i2c4_hwmod = {
- 	},
- 	.slaves		= omap44xx_i2c4_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c4_slaves),
-+	.dev_attr	= &i2c_dev_attr,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
- 
--- 
-1.7.6
+This version also has an Ack from Ben Dooks for merge via linux-omap.
 
+Kevin
+
+
+The following changes since commit fe0d42203cb5616eeff68b14576a0f7e2dd56625:
+
+  Linux 3.0-rc6 (2011-07-04 15:56:24 -0700)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.1/i2c-andy
+
+Andy Green (15):
+      I2C: OMAP2+: Name registers in I2C IP V2 only accordingly
+      I2C: OMAP2+: Introduce I2C IP versioning constants
+      I2C: OMAP: add rev to omap i2c platform data
+      I2C: OMAP1: set IP revision in platform data
+      I2C: OMAP2+: Pass hwmod rev knowledge via platform_data when i2c bus added
+      I2C: OMAP2+: use platform_data ip revision to select register map
+      I2C: OMAP2+: Solve array bounds overflow error on i2c idle
+      I2C: OMAP2+: address confused probed version naming
+      I2C: OMAP2+: increase omap_i2c_dev_attr flags from u8 to u32
+      I2C: OMAP1/OMAP2+: add flags field to omap i2c platform data
+      I2C: OMAP2+: Pass flags up to omap i2c platform_data as well
+      I2C: OMAP1/OMAP2+: create omap I2C functionality flags for each cpu_... test
+      I2C: OMAP1: set i2c unit feature implementation flags in platform data
+      I2C: OMAP2+: Convert omap I2C driver to use feature implementation flags from platform data
+      I2C: OMAP1/OMAP2+: prepend I2C IP version to probed version shown in dev_info
+
+ arch/arm/plat-omap/i2c.c              |   27 +++++++++
+ arch/arm/plat-omap/include/plat/i2c.h |    3 +-
+ drivers/i2c/busses/i2c-omap.c         |  100 ++++++++++++++++++---------------
+ include/linux/i2c-omap.h              |   29 ++++++++++
+ 4 files changed, 113 insertions(+), 46 deletions(-)
