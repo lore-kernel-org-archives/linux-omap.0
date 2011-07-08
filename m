@@ -1,51 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 6/7] ARM / Samsung: Use struct syscore_ops for "core"
-	power management
-Date: Fri, 8 Jul 2011 20:12:07 +0200
-Message-ID: <201107082012.07610.rjw@sisk.pl>
-References: <201103280125.11750.rjw@sisk.pl> <201103280129.50192.rjw@sisk.pl>
-	<20110327234521.GH9995@trinity.fluff.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv4 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Fri, 08 Jul 2011 11:24:17 -0700
+Message-ID: <8739ig8wby.fsf@ti.com>
+References: <1309538376-23260-1-git-send-email-balajitk@ti.com>
+	<1309538376-23260-3-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110327234521.GH9995@trinity.fluff.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@ti.com>, Russell King <linux@arm.linux.org.uk>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, Ben Dooks <ben-linux@fluff.org>, Kay Sievers <kay.sievers@suse.de>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1309538376-23260-3-git-send-email-balajitk@ti.com> (Balaji
+	T. K.'s message of "Fri, 1 Jul 2011 22:09:35 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, madhu.cr@ti.com, b-cousson@ti.com, paul@pwsan.com, kishore.kadiyala@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Monday, March 28, 2011, Ben Dooks wrote:
-> On Mon, Mar 28, 2011 at 01:29:49AM +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > 
-> > Replace sysdev classes and struct sys_device objects used for "core"
-> > power management by Samsung platforms with struct syscore_ops objects
-> > that are simpler.
-> > 
-> > This generally reduces the code size and the kernel memory footprint.
-> > It also is necessary for removing sysdevs entirely from the kernel in
-> > the future.
-> 
-> Hmm, does it still allow the system to choose which bits are bound
-> depending on the cpu being registered, as for the s3c stuff it isn't
-> just about the suspend/resume, it's binding items that get registered
-> early in the startup sequence?
+Balaji T K <balajitk@ti.com> writes:
 
-Yes, it does, AFAICS.  It didn't change the bits that weren't directly
-related to suspend/resume (at least that wasn't the intention).
+> add runtime pm support to HSMMC host controller
+> Use runtime pm API to enable/disable HSMMC clock
+> Use runtime autosuspend APIs to enable auto suspend delay
+>
+> Based on OMAP HSMMC runtime implementation by Kevin Hilman, Kishore Kadiyala
+>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
 
-That said, using sysdevs for the initialization of things the way you describe
-will have to change anyway, because sysdevs are going to be removed entirely
-from the kernel at one point.
+It's not relevant for this merge window, but I'm exploring some future
+changes to our PM core code and have a question about how MMC works for
+system suspend.
 
-Thanks,
-Rafael
+Basially, the question is: can the driver be reworked such that a system
+suspend does not need to runtime resume the device?  For most devices,
+we kind of expect that if the device is runtime suspended, a system
+suspend will have nothing extra to do, but this driver runtime resumes
+the device during system suspend in order to do "stuff", which I
+admitedly don't fully undestand.
+
+Ideally, the "stuff" needed for runtime suspend and system suspend could
+be made to be common such that a system suspend of a runtime suspended
+device would be a noop.
+
+Is this possible?
+
+Kevin
+
+> @@ -2100,6 +2087,7 @@ static int omap_hsmmc_suspend(struct device *dev)
+>  		return 0;
+>  
+>  	if (host) {
+> +		pm_runtime_get_sync(host->dev);
+>  		host->suspended = 1;
+>  		if (host->pdata->suspend) {
+>  			ret = host->pdata->suspend(&pdev->dev,
+> @@ -2114,13 +2102,11 @@ static int omap_hsmmc_suspend(struct device *dev)
+>  		}
+>  		cancel_work_sync(&host->mmc_carddetect_work);
+>  		ret = mmc_suspend_host(host->mmc);
+> -		mmc_host_enable(host->mmc);
+> +
+>  		if (ret == 0) {
+>  			omap_hsmmc_disable_irq(host);
+>  			OMAP_HSMMC_WRITE(host->base, HCTL,
+>  				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+> -			mmc_host_disable(host->mmc);
+> -			clk_disable(host->iclk);
+>  			if (host->got_dbclk)
+>  				clk_disable(host->dbclk);
+>  		} else {
+> @@ -2132,9 +2118,8 @@ static int omap_hsmmc_suspend(struct device *dev)
+>  					dev_dbg(mmc_dev(host->mmc),
+>  						"Unmask interrupt failed\n");
+>  			}
+> -			mmc_host_disable(host->mmc);
+>  		}
+> -
+> +		pm_runtime_put_sync(host->dev);
+>  	}
+>  	return ret;
+>  }
