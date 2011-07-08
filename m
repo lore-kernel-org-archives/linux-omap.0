@@ -1,120 +1,75 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [RFC 4/4] OMAP3: beagle rev-c4: enable OPP6
-Date: Fri, 8 Jul 2011 17:23:47 +0100
-Message-ID: <09F67D77-858A-48E2-8E1E-9EFCC26C26A0@dominion.thruhere.net>
-References: <1310140588-26078-1-git-send-email-t-kristo@ti.com> <1310140588-26078-5-git-send-email-t-kristo@ti.com>
-Mime-Version: 1.0 (iPhone Mail 8J2)
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC 0/4] TWL external controller support
+Date: Fri, 8 Jul 2011 19:25:32 +0300
+Message-ID: <20110708162531.GE31978@legolas.emea.dhcp.ti.com>
+References: <1310140588-26078-1-git-send-email-t-kristo@ti.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lkTb+7nhmha7W+c3"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:57774 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859Ab1GHQX4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 12:23:56 -0400
-Received: by wwe5 with SMTP id 5so2132146wwe.1
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jul 2011 09:23:55 -0700 (PDT)
-In-Reply-To: <1310140588-26078-5-git-send-email-t-kristo@ti.com>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:37586 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751136Ab1GHQZg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 12:25:36 -0400
+Received: by mail-bw0-f42.google.com with SMTP id 19so2113912bwa.29
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jul 2011 09:25:35 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1310140588-26078-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
-Cc: "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<lrg@ti.com>" <lrg@ti.com>, "<broonie@opensource.wolfsonmicro.com>" <broonie@opensource.wolfsonmicro.com>
+Cc: linux-omap@vger.kernel.org, lrg@ti.com, broonie@opensource.wolfsonmicro.com
 
 
+--lkTb+7nhmha7W+c3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Op 8 jul. 2011 om 16:56 heeft Tero Kristo <t-kristo@ti.com> het volgende geschreven:
+hi,
 
-> Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can run at 720MHz.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
-> arch/arm/mach-omap2/board-omap3beagle.c |   32 +++++++++++++++++++++++++++++++
-> arch/arm/mach-omap2/opp3xxx_data.c      |    4 +++
-> 2 files changed, 36 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 6d3a266..bc3e5ed 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -574,6 +574,38 @@ static void __init beagle_opp_init(void)
->        return;
->    }
-> 
-> +    /* Custom OPP enabled for C4 */
-> +    if (omap3_beagle_version == OMAP3BEAGLE_BOARD_C4) {
+On Fri, Jul 08, 2011 at 06:56:24PM +0300, Tero Kristo wrote:
+> Following patches add an external controller support for TWL SMPS regulat=
+ors.
+> This is needed because OMAP has voltage processor support which provides
+> interface to control a few regulators (VDD1 / VDD2 for OMAP3), and this
+> is shared with smartreflex.
+>=20
+> These patches work in a way that twl regulators now provide an external
+> controller registration interface, and this is used by the OMAP voltage
+> layer during init. set_voltage / get_voltage APIs now check for presence
+> of external controller, and if it is there, calls are routed to external
+> controller.
+>=20
+> Baseline work for these patches was done by Thomas Petezzoni.
+>=20
+> Any comments welcome, does something like this look like it could be push=
+ed
+> to regulator framework?
 
-The 720 capable chips have a sku id you can read, so this is better done in the core code. Sanjeev Premi has been trying to get that merged for a while now, so please take this issue up with him.
+isn't this all the same as claiming the regulator but never actually
+using the regulator APIs ? I mean, you could add the regulator, then on
+smartreflex code, regulator_get(), but when it gets to get/set voltage,
+you use the omap_*() functions instead of regulator_*().
 
+--=20
+balbi
 
+--lkTb+7nhmha7W+c3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
+iQEcBAEBAgAGBQJOFy97AAoJEAv8Txj19kN1GN8H/RrwKW6zwM6xw4pBEDWb3W2L
+3r9xS+sMynQB/B4GQvWjRMpfnJNA8muAv6DyubYARsd5e/Df7zpbNBiy69c6QSeg
+UXr9DixhaWkhDHRO56mSq+N5XTgwT44bbxktWZhSfj7/W9AvlAL9iLlXWfJ+bE9F
+3gbUG7rslRhLnNVrPrWL27mHpw/y+PZx/5BQgQbMnCOdo+5WtWjeDwraKE3lqJCW
+n28XM8sD91SuWbpLrUX5nfzM75Zs7T6adR5l7/EQn+4kiltz4Wo6SweS38LFuO4G
+/jLCW40jUHcIbjC5f7XVayFUx4w+uXNiSRaYFg4mZO77W1cbo52H8E+3Lh7FPVI=
+=pvyH
+-----END PGP SIGNATURE-----
 
-
-
-> +        struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-> +        struct omap_hwmod *dh = omap_hwmod_lookup("iva");
-> +        struct device *dev;
-> +
-> +        if (!mh || !dh) {
-> +            pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
-> +                __func__, mh, dh);
-> +        }
-> +        /* Enable MPU 720MHz opp */
-> +        dev = &mh->od->pdev.dev;
-> +        r = opp_enable(dev, 720000000);
-> +
-> +        /* Enable IVA 520MHz opp */
-> +        dev = &dh->od->pdev.dev;
-> +        r |= opp_enable(dev, 520000000);
-> +
-> +        if (r) {
-> +            pr_err("%s: failed to enable higher opp %d\n",
-> +                __func__, r);
-> +            /*
-> +             * Cleanup - disable the higher freqs - we dont care
-> +             * about the results
-> +             */
-> +            dev = &mh->od->pdev.dev;
-> +            opp_disable(dev, 720000000);
-> +            dev = &dh->od->pdev.dev;
-> +            opp_disable(dev, 520000000);
-> +        }
-> +    }
-> +
->    /* Custom OPP enabled for all xM versions */
->    if (cpu_is_omap3630()) {
->        struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-> diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-> index d95f3f9..a0f5fe1 100644
-> --- a/arch/arm/mach-omap2/opp3xxx_data.c
-> +++ b/arch/arm/mach-omap2/opp3xxx_data.c
-> @@ -98,6 +98,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
->    OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
->    /* MPU OPP5 */
->    OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
-> +    /* MPU OPP6 : omap3530 high speed grade only */
-> +    OPP_INITIALIZER("mpu", false, 720000000, OMAP3430_VDD_MPU_OPP5_UV),
-> 
->    /*
->     * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-> @@ -123,6 +125,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
->    OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
->    /* DSP OPP5 */
->    OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
-> +    /* DSP OPP6 : omap3530 high speed grade only */
-> +    OPP_INITIALIZER("iva", false, 520000000, OMAP3430_VDD_MPU_OPP5_UV),
-> };
-> 
-> static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
-> -- 
-> 1.7.4.1
-> 
-> 
-> Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+--lkTb+7nhmha7W+c3--
