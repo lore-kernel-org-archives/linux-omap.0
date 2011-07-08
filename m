@@ -1,49 +1,110 @@
-From: Liam Girdwood <lrg@ti.com>
-Subject: Re: [RFC 1/4] twl-regulator: extend for SMPS regulators and
- external controllers
-Date: Fri, 8 Jul 2011 19:26:46 +0100
-Message-ID: <1310149606.3534.35.camel@CNA0741383>
-References: <1310140588-26078-1-git-send-email-t-kristo@ti.com>
-	 <1310140588-26078-2-git-send-email-t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 01/11] cbus: tahvo: convert spinlock into mutex
+Date: Sat,  9 Jul 2011 01:52:29 +0300
+Message-ID: <1310165559-31037-2-git-send-email-balbi@ti.com>
+References: <1310165559-31037-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37016 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751811Ab1GHS0w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 14:26:52 -0400
-In-Reply-To: <1310140588-26078-2-git-send-email-t-kristo@ti.com>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:55769 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752099Ab1GHWwt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 18:52:49 -0400
+Received: by bwd5 with SMTP id 5so3205324bwd.33
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jul 2011 15:52:47 -0700 (PDT)
+In-Reply-To: <1310165559-31037-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kristo, Tero" <t-kristo@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Petazzoni-XID, Thomas" <t-petazzoni@ti.com>, Graeme Gregory <gg@slimlogic.co.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-On Fri, 2011-07-08 at 17:56 +0200, Kristo, Tero wrote:
-> This commit adds two things to the TWL regulator driver code :
-> 
->  * It extends the twl4030_set_voltage() and twl4030_get_voltage()
->    functions to understand that VDD1 and VDD2 are different regulators
->    from all the other regulators: they don't support a fixed set of
->    voltages, but a wide range of voltages between two minimum and
->    maximum limits.
-> 
->  * It creates a twlreg_ext_ctrl structure, which allows code outside
->    of the TWL regulator driver to implement a regulator
->    controller. Such a controller is attached using the new
->    twlreg_attach_external_controller() function of the driver. When
->    such a controller is attached to a regulator, the ->set_voltage()
->    and ->get_voltage() calls made on the regulator will be forwarded
->    to the external controller. This facility will later be used to
->    integrate the Voltage Controller and SmartReflex features of the
->    OMAP CPU with this regulator driver.
+GPIO operations can sleep, so move to a
+mutex.
 
-This just looks like it should just be another regulator to me. The
-board will be responsible for setting up the client mapping (i.e.
-whether it should use the "extended" or normal regulator).
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/cbus/tahvo.c |   19 +++++++++----------
+ 1 files changed, 9 insertions(+), 10 deletions(-)
 
-Fwiw, Graeme has already done a lot of work on supporting Smartreflex
-with TWL6025, it may be best to contact him to align your work.
-
-Liam
+diff --git a/drivers/cbus/tahvo.c b/drivers/cbus/tahvo.c
+index d4a89a6..bc3ca6d 100644
+--- a/drivers/cbus/tahvo.c
++++ b/drivers/cbus/tahvo.c
+@@ -32,6 +32,7 @@
+ #include <linux/irq.h>
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
++#include <linux/mutex.h>
+ 
+ #include "cbus.h"
+ #include "tahvo.h"
+@@ -43,7 +44,7 @@ static int tahvo_initialized;
+ static int tahvo_is_betty;
+ 
+ static struct tasklet_struct tahvo_tasklet;
+-static DEFINE_SPINLOCK(tahvo_lock);
++static struct mutex tahvo_lock;
+ 
+ static struct device *the_dev;
+ 
+@@ -97,15 +98,14 @@ EXPORT_SYMBOL(tahvo_write_reg);
+  */
+ void tahvo_set_clear_reg_bits(unsigned reg, u16 set, u16 clear)
+ {
+-	unsigned long flags;
+ 	u16 w;
+ 
+-	spin_lock_irqsave(&tahvo_lock, flags);
++	mutex_lock(&tahvo_lock);
+ 	w = tahvo_read_reg(reg);
+ 	w &= ~clear;
+ 	w |= set;
+ 	tahvo_write_reg(reg, w);
+-	spin_unlock_irqrestore(&tahvo_lock, flags);
++	mutex_unlock(&tahvo_lock);
+ }
+ 
+ /*
+@@ -113,14 +113,13 @@ void tahvo_set_clear_reg_bits(unsigned reg, u16 set, u16 clear)
+  */
+ void tahvo_disable_irq(int id)
+ {
+-	unsigned long flags;
+ 	u16 mask;
+ 
+-	spin_lock_irqsave(&tahvo_lock, flags);
++	mutex_lock(&tahvo_lock);
+ 	mask = tahvo_read_reg(TAHVO_REG_IMR);
+ 	mask |= 1 << id;
+ 	tahvo_write_reg(TAHVO_REG_IMR, mask);
+-	spin_unlock_irqrestore(&tahvo_lock, flags);
++	mutex_unlock(&tahvo_lock);
+ }
+ EXPORT_SYMBOL(tahvo_disable_irq);
+ 
+@@ -129,14 +128,13 @@ EXPORT_SYMBOL(tahvo_disable_irq);
+  */
+ void tahvo_enable_irq(int id)
+ {
+-	unsigned long flags;
+ 	u16 mask;
+ 
+-	spin_lock_irqsave(&tahvo_lock, flags);
++	mutex_lock(&tahvo_lock);
+ 	mask = tahvo_read_reg(TAHVO_REG_IMR);
+ 	mask &= ~(1 << id);
+ 	tahvo_write_reg(TAHVO_REG_IMR, mask);
+-	spin_unlock_irqrestore(&tahvo_lock, flags);
++	mutex_unlock(&tahvo_lock);
+ }
+ EXPORT_SYMBOL(tahvo_enable_irq);
+ 
+@@ -297,6 +295,7 @@ static int __init tahvo_probe(struct platform_device *pdev)
+ 	int rev, id, ret;
+ 	int irq;
+ 
++	mutex_init(&tahvo_lock);
+ 	the_dev = &pdev->dev;
+ 
+ 	/* Prepare tasklet */
+-- 
+1.7.6
 
