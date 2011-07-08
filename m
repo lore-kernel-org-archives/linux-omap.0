@@ -1,13 +1,13 @@
 From: Jan Weitzel <j.weitzel@phytec.de>
-Subject: [PATCH 1/3] ARM: OMAP4: Add pcm049 to Kconfig/Makefile
-Date: Fri, 8 Jul 2011 12:04:22 +0200
-Message-ID: <1310119464-3514-2-git-send-email-j.weitzel@phytec.de>
+Subject: [PATCH 2/3] ARM: OMAP4: add pcm049 DEBUGLL
+Date: Fri, 8 Jul 2011 12:04:23 +0200
+Message-ID: <1310119464-3514-3-git-send-email-j.weitzel@phytec.de>
 References: <1310119464-3514-1-git-send-email-j.weitzel@phytec.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.phytec.eu ([217.6.246.34]:42549 "EHLO root.phytec.de"
+Received: from mail.x-arc.co.uk ([217.6.246.34]:42552 "EHLO root.phytec.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752971Ab1GHKEd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Jul 2011 06:04:33 -0400
+	id S1753037Ab1GHKEf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Jul 2011 06:04:35 -0400
 In-Reply-To: <1310119464-3514-1-git-send-email-j.weitzel@phytec.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -17,41 +17,21 @@ Cc: tony@atomide.com, Jan Weitzel <j.weitzel@phytec.de>
 
 Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
 ---
- arch/arm/mach-omap2/Kconfig  |    5 +++++
- arch/arm/mach-omap2/Makefile |    4 ++++
- 2 files changed, 9 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 19d5891..c6a2d43 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -323,6 +323,11 @@ config MACH_OMAP4_PANDA
- 	select OMAP_PACKAGE_CBS
- 	select REGULATOR_FIXED_VOLTAGE
+diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+index ac4b60d..10507a6 100644
+--- a/arch/arm/plat-omap/include/plat/uncompress.h
++++ b/arch/arm/plat-omap/include/plat/uncompress.h
+@@ -164,6 +164,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
+ 		/* omap4 based boards using UART3 */
+ 		DEBUG_LL_OMAP4(3, omap_4430sdp);
+ 		DEBUG_LL_OMAP4(3, omap4_panda);
++		DEBUG_LL_OMAP4(3, pcm049);
  
-+config MACH_PCM049
-+	bool "OMAP4 based phyCORE OMAP4"
-+	depends on ARCH_OMAP4
-+	select OMAP_PACKAGE_CBS
-+
- config OMAP3_EMU
- 	bool "OMAP3 debugging peripherals"
- 	depends on ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index b148077..e81b594 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -238,6 +238,10 @@ obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o \
- 					   hsmmc.o \
- 					   omap_phy_internal.o
- 
-+obj-$(CONFIG_MACH_PCM049)		+= board-omap4pcm049.o \
-+					   hsmmc.o \
-+					   omap_phy_internal.o
-+
- obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o \
- 					   omap_phy_internal.o \
- 
+ 		/* zoom2/3 external uart */
+ 		DEBUG_LL_ZOOM(omap_zoom2);
 -- 
 1.7.0.4
 
