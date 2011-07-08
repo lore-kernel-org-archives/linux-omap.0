@@ -1,96 +1,98 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RFC 4/4] OMAP3: beagle rev-c4: enable OPP6
-Date: Fri, 8 Jul 2011 18:56:28 +0300
-Message-ID: <1310140588-26078-5-git-send-email-t-kristo@ti.com>
+Subject: [RFC 2/4] omap3beagle: Instantiate VDD1 and VDD2 regulators
+Date: Fri, 8 Jul 2011 18:56:26 +0300
+Message-ID: <1310140588-26078-3-git-send-email-t-kristo@ti.com>
 References: <1310140588-26078-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35157 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37430 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752446Ab1GHP5K convert rfc822-to-8bit (ORCPT
+	id S1752416Ab1GHP5K convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 11:57:10 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1310140588-26078-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: lrg@ti.com, broonie@opensource.wolfsonmicro.com
+Cc: lrg@ti.com, broonie@opensource.wolfsonmicro.com, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Thomas Petazzoni <t-petazzoni@ti.com>
 
-Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can run at 720MHz.
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Instantiate the VDD1 and VDD2 regulators and connect them to their
+respective consumers: mpu.0 for VDD1 and l3_main.0 for VDD2.
+
+TODO:
+
+ * As these instantiations will be identical for all OMAP3 boards,
+   find a way of sharing them throughout the different OMAP3 boards.
+
+Signed-off-by: Thomas Petazzoni <t-petazzoni@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |   32 +++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/opp3xxx_data.c      |    4 +++
- 2 files changed, 36 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c |   35 +++++++++++++++++++++++++++++++
+ 1 files changed, 35 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 6d3a266..bc3e5ed 100644
+index 78cf5f2..6d3a266 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -574,6 +574,38 @@ static void __init beagle_opp_init(void)
- 		return;
- 	}
+@@ -24,6 +24,7 @@
+ #include <linux/input.h>
+ #include <linux/gpio_keys.h>
+ #include <linux/opp.h>
++#include <linux/regulator/driver.h>
  
-+	/* Custom OPP enabled for C4 */
-+	if (omap3_beagle_version == OMAP3BEAGLE_BOARD_C4) {
-+		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-+		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
-+		struct device *dev;
-+
-+		if (!mh || !dh) {
-+			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
-+				__func__, mh, dh);
-+		}
-+		/* Enable MPU 720MHz opp */
-+		dev = &mh->od->pdev.dev;
-+		r = opp_enable(dev, 720000000);
-+
-+		/* Enable IVA 520MHz opp */
-+		dev = &dh->od->pdev.dev;
-+		r |= opp_enable(dev, 520000000);
-+
-+		if (r) {
-+			pr_err("%s: failed to enable higher opp %d\n",
-+				__func__, r);
-+			/*
-+			 * Cleanup - disable the higher freqs - we dont care
-+			 * about the results
-+			 */
-+			dev = &mh->od->pdev.dev;
-+			opp_disable(dev, 720000000);
-+			dev = &dh->od->pdev.dev;
-+			opp_disable(dev, 520000000);
-+		}
-+	}
-+
- 	/* Custom OPP enabled for all xM versions */
- 	if (cpu_is_omap3630()) {
- 		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index d95f3f9..a0f5fe1 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -98,6 +98,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* MPU OPP5 */
- 	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* MPU OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("mpu", false, 720000000, OMAP3430_VDD_MPU_OPP5_UV),
- 
- 	/*
- 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-@@ -123,6 +125,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* DSP OPP5 */
- 	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* DSP OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("iva", false, 520000000, OMAP3430_VDD_MPU_OPP5_UV),
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+@@ -400,6 +401,38 @@ static struct regulator_init_data beagle_vpll2 = {
+ 	.consumer_supplies	= beagle_vdvi_supplies,
  };
  
- static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
++static struct regulator_consumer_supply beagle_vdd1_supply =
++	REGULATOR_SUPPLY("vcc", "mpu.0");
++
++static struct regulator_consumer_supply beagle_vdd2_supply =
++	REGULATOR_SUPPLY("vcc", "l3_main.0");
++
++static struct regulator_init_data beagle_vdd1 = {
++	.constraints = {
++		.name			= "VDD1",
++		.min_uV			= 600000,
++		.max_uV			= 1450000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &beagle_vdd1_supply,
++};
++
++static struct regulator_init_data beagle_vdd2 = {
++	.constraints = {
++		.name			= "VDD2",
++		.min_uV			= 600000,
++		.max_uV			= 1450000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &beagle_vdd2_supply,
++};
++
+ static struct twl4030_usb_data beagle_usb_data = {
+ 	.usb_mode	= T2_USB_MODE_ULPI,
+ };
+@@ -423,6 +456,8 @@ static struct twl4030_platform_data beagle_twldata = {
+ 	.vsim		= &beagle_vsim,
+ 	.vdac		= &beagle_vdac,
+ 	.vpll2		= &beagle_vpll2,
++	.vdd1           = &beagle_vdd1,
++	.vdd2           = &beagle_vdd2,
+ };
+ 
+ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
 -- 
 1.7.4.1
 
