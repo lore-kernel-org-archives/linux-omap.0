@@ -1,65 +1,67 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap board updates for v3.1 merge window
-Date: Fri, 8 Jul 2011 10:54:01 +0200
-Message-ID: <201107081054.01295.arnd@arndb.de>
-References: <20110707162911.GL5783@atomide.com> <201107072240.58987.arnd@arndb.de> <20110708083042.GQ5783@atomide.com>
+From: Peter De Schrijver <pdeschrijver@nvidia.com>
+Subject: Re: [PATCH v2 00/18] OMAP4: PM data big spring cleanup and fixes
+Date: Fri, 8 Jul 2011 12:04:16 +0300
+Message-ID: <20110708090416.GQ12485@tbergstrom-lnx.Nvidia.com>
+References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
+ <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
+ <4E14B820.6070202@ti.com>
+ <20110707055549.GC15815@atomide.com>
+ <E9AF1FACCF71F448B55E58D9AED1B0F40E626BEE32@staex7mb2.telecom.sna.samsung.com>
+ <20110707121040.GF15815@atomide.com>
+ <E9AF1FACCF71F448B55E58D9AED1B0F40E626BEE34@staex7mb2.telecom.sna.samsung.com>
+ <alpine.DEB.2.00.1107080053100.24181@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:52776 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754591Ab1GHIyh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 04:54:37 -0400
-In-Reply-To: <20110708083042.GQ5783@atomide.com>
+Received: from hqemgate03.nvidia.com ([216.228.121.140]:2206 "EHLO
+	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750867Ab1GHJFN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 05:05:13 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1107080053100.24181@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Martin Fouts <mfouts@sta.samsung.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Friday 08 July 2011 10:30:42 Tony Lindgren wrote:
+On Fri, Jul 08, 2011 at 09:11:43AM +0200, Paul Walmsley wrote:
+> On Thu, 7 Jul 2011, Martin Fouts wrote:
 > 
-> * Arnd Bergmann <arnd@arndb.de> [110707 13:36]:
-> > On Thursday 07 July 2011 18:29:11 Tony Lindgren wrote:
-> > > Please pull omap board updates from:
-> > > 
-> > > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git devel-board
-> > > 
-> > > These are currently on top of the fixes you pulled earlier but
-> > > could be also rebased on the earlier cleanup if you prefer that.
+> > From: Tony Lindgren [tony@atomide.com]
 > > 
-> > I would generally prefer them to be independent, even if that causes
-> > minor conflicts. If some branches are built on top of others, that
-> > mainly means I have to remember the order in which to send them
-> > upstream, and my memory for these things is limited.
+> > > The second problem we have here is "why does adding 4460 support depend
+> > > on a cosmetic clean-up patch". That dependency should not exist at all
+> > > as it seems the 4460 patches should work even without this patch.
+> > 
+> > I agree. Had the original submitter had the foresight to realize that 
+> > the code should work for all 44xx family processors, we would have no 
+> > issue at all. 
 > 
-> Sure. So let's wait on this one a bit. I'll send you some more cleanup
-> first as I just noticed that the TWL cleanup series will conflict with
-> these patches.
-
-Sorry for being unclear, I forgot to say that I did in fact pull your tree
-already.
-
-> I need to base these board files on all the cleanup though, otherwise
-> things will get messy with merge and build conflicts.
+> Uhhh...
 > 
-> Unfortunately there will be dependencies between branches until we
-> have the driver probe and bus (hwmod) code initializing things
-> using device tree data..
+> The original 4430 data, which is mostly what we're talking about here, was 
+> added in 2009.  Maybe a few people inside TI knew what was going to change 
+> and what was going to be the same for future OMAP4 parts.  But even if 
+> someone did know, the decision of what to call a chip often isn't up to 
+> engineers, it's up to marketing, which picks whatever name they like.  
+> You know, like Linux 2.6.40^H^H^H^H^H^H3.0.
+> 
+> So back in 2009, the submitter and maintainers were faced with a choice:
+> 
+> Option 1. Submit patches with facts.  "OMAP4430".  Don't speculate what 
+> future, as-yet-nonexistent products will be numbered, and what their 
+> feature set will be.  Plan to generalize later once it is known exactly 
+> what needs to be generalized.
+> 
+> Option 2. Try to predict what marketing will call the next chip, and what 
+> features will still be present, then put that into the codebase.  
+> "OMAP44XX".  Hope you guess right so you don't have to change them all if 
+> marketing or engineering comes up with something different. 
+> 
+> So, what's the right answer?
 
-I already need to stage things out a bit, because the omap fixes
-depend on the omap cleanups, while the imx cleanups depend on the
-pxa fixes. So it's likely going to be something like
+Option 3. have engineering and marketing names and use the engineering names in the code.
 
-* fixes
-* cleanup
-* more fixes
-* more cleanup
-* new subarchitectures
-* new boards
-* wait for devicetree to get pulled in
-* more cleanups based on device tree
-* other new features
+Cheers,
 
-	Arnd
+Peter.
