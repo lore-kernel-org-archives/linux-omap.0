@@ -1,54 +1,139 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] dmaengine: Moving TI SDMA driver to dmaengine - design
- plan
-Date: Fri, 8 Jul 2011 03:27:51 -0700
-Message-ID: <20110708102751.GT5783@atomide.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E94030259CD17@dbde02.ent.ti.com>
- <20110708100410.GA4957@n2100.arm.linux.org.uk>
- <E0D41E29EB0DAC4E9F3FF173962E9E94030259CDC4@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94030259CDC4@dbde02.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Raju, Sundaram" <sundaram@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Dan <dan.j.williams@intel.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Jan Weitzel <j.weitzel@phytec.de>
+Subject: [PATCH] ARM: OMAP2+ Add Primview dispalys to panel-generic
+Date: Fri, 8 Jul 2011 12:47:14 +0200
+Message-ID: <1310122034-6561-1-git-send-email-j.weitzel@phytec.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.phytec.de ([217.6.246.34]:56816 "EHLO root.phytec.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751604Ab1GHKrR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Jul 2011 06:47:17 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-fbdev@vger.kernel.org, tomi.valkeinen@ti.com, Jan Weitzel <j.weitzel@phytec.de>
 
-* Raju, Sundaram <sundaram@ti.com> [110708 03:09]:
-> > -----Original Message-----
-> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> > Sent: Friday, July 08, 2011 3:34 PM
-> > To: Raju, Sundaram
-> > Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org; Dan;
-> > Shilimkar, Santosh; linux-kernel@vger.kernel.org
-> > Subject: Re: [RFC] dmaengine: Moving TI SDMA driver to dmaengine - design
-> > plan
-> > 
-> > On Fri, Jul 08, 2011 at 01:52:17PM +0530, Raju, Sundaram wrote:
-> > > I am planning to move TI SDMA driver in OMAP tree
-> > > into the dmaengine framework.
-> > >
-> > > The first immediate issue of concern I noticed is the
-> > > huge number of client drivers that use the existing SDMA driver.
-> > > More than 15 client drivers are using the current SDMA driver.
-> > >
-> > > Moving the SDMA driver along with all of these client drivers at a
-> > > single stretch seems a humungous task.
-> > > I noticed a model in the existing DMA drivers in dmaengine
-> > > framework that will over come this issue.
-> > 
-> > It _is_ sane to build a dmaengine driver on top of the existing SoC
-> > private API, then convert the drivers to DMA engine, and then cleanup
-> > the resulting DMA engine driver.
-> 
-> Yes, that is what I thought. Thanks.
+Add displays to panel-generic-dpi.c
+Prime View PD035VL1 (640 x 480)
+Prime View PD050VL1 (640 x 480)
+Prime View PD104SLF (800 x 600)
+Prime View PM070WL4 (800 x 480)
 
-Yes that's what we did with the gpiolib changes. That allows then
-converting the drivers over to the DMA engine API one function at
-a time (or one driver at a time).
+Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
+---
+ drivers/video/omap2/displays/panel-generic-dpi.c |  100 ++++++++++++++++++++++
+ 1 files changed, 100 insertions(+), 0 deletions(-)
 
-Regards,
+diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+index 9c90f75..87d9ba1 100644
+--- a/drivers/video/omap2/displays/panel-generic-dpi.c
++++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+@@ -232,6 +232,106 @@ static struct panel_config generic_dpi_panels[] = {
+ 		.power_off_delay	= 0,
+ 		.name			= "powertip_ph480272t",
+ 	},
++
++	/* Prime-View PD035VL1 */
++	{
++		{
++			.x_res		= 640,
++			.y_res		= 480,
++
++			.pixel_clock	= 25000,
++
++			.hsw		= 96,
++			.hfp		= 18,
++			.hbp		= 46,
++
++			.vsw		= 2,
++			.vfp		= 10,
++			.vbp		= 33,
++		},
++		.acbi			= 0x0,
++		.acb			= 0x28,
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
++		.power_on_delay		= 50,
++		.power_off_delay	= 100,
++		.name			= "pd035vl1",
++	},
++
++	/* Prime-View PD050VL1 */
++	{
++		{
++			.x_res		= 640,
++			.y_res		= 480,
++
++			.pixel_clock	= 25000,
++
++			.hsw		= 96,
++			.hfp		= 18,
++			.hbp		= 46,
++
++			.vsw		= 2,
++			.vfp		= 10,
++			.vbp		= 33,
++		},
++		.acbi			= 0x0,
++		.acb			= 0x28,
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
++		.power_on_delay		= 50,
++		.power_off_delay	= 100,
++		.name			= "pd050vl1",
++	},
++
++	/* Prime-View PM070WL4 */
++	{
++		{
++			.x_res		= 800,
++			.y_res		= 480,
++
++			.pixel_clock	= 32000,
++
++			.hsw		= 128,
++			.hfp		= 42,
++			.hbp		= 86,
++
++			.vsw		= 2,
++			.vfp		= 10,
++			.vbp		= 33,
++		},
++		.acbi			= 0x0,
++		.acb			= 0x28,
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
++		.power_on_delay		= 50,
++		.power_off_delay	= 100,
++		.name			= "pm070wl4",
++	},
++
++	/* Prime-View PD104SLF */
++	{
++		{
++			.x_res		= 800,
++			.y_res		= 600,
++
++			.pixel_clock	= 40000,
++
++			.hsw		= 128,
++			.hfp		= 42,
++			.hbp		= 86,
++
++			.vsw		= 4,
++			.vfp		= 1,
++			.vbp		= 23,
++		},
++		.acbi			= 0x0,
++		.acb			= 0x28,
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
++		.power_on_delay		= 50,
++		.power_off_delay	= 100,
++		.name			= "pd104slf",
++	},
+ };
+ 
+ struct panel_drv_data {
+-- 
+1.7.0.4
 
-Tony
