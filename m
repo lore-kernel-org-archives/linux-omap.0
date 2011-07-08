@@ -1,182 +1,190 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/6] OMAP: ID: introduce chip detection for OMAP4460
-Date: Fri, 8 Jul 2011 03:49:42 -0700
-Message-ID: <20110708104942.GU5783@atomide.com>
+Subject: Re: [PATCH v2 3/6] OMAP4: PRCM: OMAP4460 specific PRM and CM
+ register bitshifts
+Date: Fri, 8 Jul 2011 03:51:15 -0700
+Message-ID: <20110708105115.GV5783@atomide.com>
 References: <1309573826-10615-1-git-send-email-rnayak@ti.com>
  <1309573826-10615-2-git-send-email-rnayak@ti.com>
- <alpine.DEB.2.00.1107080039330.24181@utopia.booyaka.com>
+ <1309573826-10615-3-git-send-email-rnayak@ti.com>
+ <1309573826-10615-4-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.1107080029550.24181@utopia.booyaka.com>
+ <4E16AB3C.7020007@ti.com>
+ <alpine.DEB.2.00.1107080133470.24181@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61870 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62417 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751604Ab1GHKtr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 06:49:47 -0400
+	with ESMTP id S1751604Ab1GHKvR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 06:51:17 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1107080039330.24181@utopia.booyaka.com>
+In-Reply-To: <alpine.DEB.2.00.1107080133470.24181@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Aneesh V <aneesh@ti.com>, Nishanth Menon <nm@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [110707 23:34]:
-> On Sat, 2 Jul 2011, Rajendra Nayak wrote:
+* Paul Walmsley <paul@pwsan.com> [110708 00:29]:
+> On Fri, 8 Jul 2011, Rajendra Nayak wrote:
 > 
-> > From: Aneesh V <aneesh@ti.com>
+> > Hi Paul,
 > > 
-> > Add support for detecting the latest in the OMAP4 family: OMAP4460
-> > Among other changes, the new chip also can support 1.5GHz A9s,
-> > 1080p stereoscopic 3D and 12 MP stereo (dual camera). In addition,
-> > we have changes to OPPs supported, clock tree etc, hence having a
-> > chip detection is required.
+> > On 7/7/2011 11:30 PM, Paul Walmsley wrote:
+> > > Hi Rajendra
+> > > 
+> > > On Sat, 2 Jul 2011, Rajendra Nayak wrote:
+> > > 
+> > > > This patch adds additional register bitshifts for
+> > > > registers added in OMAP4460 platform.
+> > > > 
+> > > > Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+> > > > Signed-off-by: Nishanth Menon<nm@ti.com>
+> > > > Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+> > > > Reviewed-by: Kevin Hilman<khilman@ti.com>
+> > > 
+> > > Does this data come from the autogenerator scripts?
 > > 
-> > For more details on OMAP4460, see
-> > Highlights:
-> > http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?contentId=53243&navigationId=12843&templateId=6123
-> > Public TRM is available here as usual:
-> > http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?templateId=6123&navigationId=12667
-> > 
-> > [nm@ti.com: cleanups and introduction of ramp system]
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
-> > Signed-off-by: Aneesh V <aneesh@ti.com>
-> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> > Reviewed-by: Kevin Hilman <khilman@ti.com>
+> > Yes, it does. But the patch is created by manually
+> > diffing the 4430 and 4460 autogen script outputs.
+> > That's because the autogen scripts cannot generate
+> > data for multiple SoC's at once.
 > 
-> Reviewed-by: Paul Walmsley <paul@pwsan.com>
+> Okay.  So then, 
+> 
+> Acked-by: Paul Walmsley <paul@pwsan.com>
 
-I've applied the first for patches of this series slightly
-modified on top of devel-cleanup branch.
-
-I've left out the CHIP_IS_44XX dependency as we're running
-out of time here, and that leaves out three out of the eight
-orignal patches. That can be sorted out in a separate series.
-
-Updated patch below.
+Here's this one updated.
 
 Tony
 
 
-From: Aneesh V <aneesh@ti.com>
-Date: Sat, 2 Jul 2011 08:00:21 +0530
-Subject: [PATCH] OMAP: ID: introduce chip detection for OMAP4460
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Sat, 2 Jul 2011 08:00:23 +0530
+Subject: [PATCH] OMAP4: PRCM: OMAP4460 specific PRM and CM register bitshifts
 
-Add support for detecting the latest in the OMAP4 family: OMAP4460
-Among other changes, the new chip also can support 1.5GHz A9s,
-1080p stereoscopic 3D and 12 MP stereo (dual camera). In addition,
-we have changes to OPPs supported, clock tree etc, hence having a
-chip detection is required.
+This patch adds additional register bitshifts for
+registers added in OMAP4460 platform.
 
-For more details on OMAP4460, see Highlights:
-http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?contentId=53243&navigationId=12843&templateId=6123
-
-Public TRM is available here as usual:
-http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?templateId=6123&navigationId=12667
-
-[nm@ti.com: cleanups and introduction of ramp system]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Aneesh V <aneesh@ti.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
-Reviewed-by: Paul Walmsley <paul@pwsan.com>
-[tony@atomide.com: updated to not use CHIP_IS_OMAP44XX]
+Acked-by: Paul Walmsley <paul@pwsan.com>
+[tony@atomide.com: updated to apply on cleanup patches]
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 2537090..743889a 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -344,10 +344,10 @@ static void __init omap4_check_revision(void)
- 	rev = (idcode >> 28) & 0xf;
+diff --git a/arch/arm/mach-omap2/cm-regbits-44xx.h b/arch/arm/mach-omap2/cm-regbits-44xx.h
+index 9d47a05..28e20d3 100644
+--- a/arch/arm/mach-omap2/cm-regbits-44xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-44xx.h
+@@ -106,6 +106,10 @@
+ #define OMAP4430_CLKACTIVITY_CORE_DPLL_EMU_CLK_SHIFT		9
+ #define OMAP4430_CLKACTIVITY_CORE_DPLL_EMU_CLK_MASK		(1 << 9)
  
- 	/*
--	 * Few initial ES2.0 samples IDCODE is same as ES1.0
-+	 * Few initial 4430 ES2.0 samples IDCODE is same as ES1.0
- 	 * Use ARM register to detect the correct ES version
- 	 */
--	if (!rev) {
-+	if (!rev && (hawkeye != 0xb94e)) {
- 		idcode = read_cpuid(CPUID_ID);
- 		rev = (idcode & 0xf) - 1;
- 	}
-@@ -377,6 +377,15 @@ static void __init omap4_check_revision(void)
- 			omap_chip.oc |= CHIP_IS_OMAP4430ES2_2;
- 		}
- 		break;
-+	case 0xb94e:
-+		switch (rev) {
-+		case 0:
-+		default:
-+			omap_revision = OMAP4460_REV_ES1_0;
-+			omap_chip.oc |= CHIP_IS_OMAP4460ES1_0;
-+			break;
-+		}
-+		break;
- 	default:
- 		/* Unknown default to latest silicon rev as default */
- 		omap_revision = OMAP4430_REV_ES2_2;
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 8198bb6..a2cec99 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -88,6 +88,7 @@ unsigned int omap_rev(void);
-  * cpu_is_omap243x():	True for OMAP2430
-  * cpu_is_omap343x():	True for OMAP3430
-  * cpu_is_omap443x():	True for OMAP4430
-+ * cpu_is_omap446x():	True for OMAP4460
-  */
- #define GET_OMAP_CLASS	(omap_rev() & 0xff)
++/* Used by CM_L4CFG_CLKSTCTRL */
++#define OMAP4460_CLKACTIVITY_CORE_TS_GFCLK_SHIFT		9
++#define OMAP4460_CLKACTIVITY_CORE_TS_GFCLK_MASK			(1 << 9)
++
+ /* Used by CM_CEFUSE_CLKSTCTRL */
+ #define OMAP4430_CLKACTIVITY_CUST_EFUSE_SYS_CLK_SHIFT		9
+ #define OMAP4430_CLKACTIVITY_CUST_EFUSE_SYS_CLK_MASK		(1 << 9)
+@@ -418,6 +422,10 @@
+ #define OMAP4430_CLKACTIVITY_WKUP_32K_GFCLK_SHIFT		11
+ #define OMAP4430_CLKACTIVITY_WKUP_32K_GFCLK_MASK		(1 << 11)
  
-@@ -123,6 +124,7 @@ IS_OMAP_SUBCLASS(243x, 0x243)
- IS_OMAP_SUBCLASS(343x, 0x343)
- IS_OMAP_SUBCLASS(363x, 0x363)
- IS_OMAP_SUBCLASS(443x, 0x443)
-+IS_OMAP_SUBCLASS(446x, 0x446)
- 
- IS_TI_SUBCLASS(816x, 0x816)
- 
-@@ -137,6 +139,7 @@ IS_TI_SUBCLASS(816x, 0x816)
- #define cpu_is_ti816x()			0
- #define cpu_is_omap44xx()		0
- #define cpu_is_omap443x()		0
-+#define cpu_is_omap446x()		0
- 
- #if defined(MULTI_OMAP1)
- # if defined(CONFIG_ARCH_OMAP730)
-@@ -361,8 +364,10 @@ IS_OMAP_TYPE(3517, 0x3517)
- # if defined(CONFIG_ARCH_OMAP4)
- # undef cpu_is_omap44xx
- # undef cpu_is_omap443x
-+# undef cpu_is_omap446x
- # define cpu_is_omap44xx()		is_omap44xx()
- # define cpu_is_omap443x()		is_omap443x()
-+# define cpu_is_omap446x()		is_omap446x()
- # endif
- 
- /* Macros to detect if we have OMAP1 or OMAP2 */
-@@ -410,6 +415,9 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define OMAP4430_REV_ES2_1	(OMAP443X_CLASS | (0x21 << 8))
- #define OMAP4430_REV_ES2_2	(OMAP443X_CLASS | (0x22 << 8))
- 
-+#define OMAP446X_CLASS		0x44600044
-+#define OMAP4460_REV_ES1_0	(OMAP446X_CLASS | (0x10 << 8))
++/* Used by CM_WKUP_CLKSTCTRL */
++#define OMAP4460_CLKACTIVITY_WKUP_TS_GFCLK_SHIFT		13
++#define OMAP4460_CLKACTIVITY_WKUP_TS_GFCLK_MASK			(1 << 13)
 +
  /*
-  * omap_chip bits
-  *
-@@ -439,13 +447,15 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define CHIP_IS_OMAP4430ES2_1		(1 << 12)
- #define CHIP_IS_OMAP4430ES2_2		(1 << 13)
- #define CHIP_IS_TI816X			(1 << 14)
-+#define CHIP_IS_OMAP4460ES1_0		(1 << 15)
+  * Used by CM1_ABE_TIMER5_CLKCTRL, CM1_ABE_TIMER6_CLKCTRL,
+  * CM1_ABE_TIMER7_CLKCTRL, CM1_ABE_TIMER8_CLKCTRL, CM_L3INIT_MMC1_CLKCTRL,
+@@ -449,6 +457,10 @@
+ #define OMAP4430_CLKSEL_60M_SHIFT				24
+ #define OMAP4430_CLKSEL_60M_MASK				(1 << 24)
  
- #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
++/* Used by CM_MPU_MPU_CLKCTRL */
++#define OMAP4460_CLKSEL_ABE_DIV_MODE_SHIFT			25
++#define OMAP4460_CLKSEL_ABE_DIV_MODE_MASK			(1 << 25)
++
+ /* Used by CM1_ABE_AESS_CLKCTRL */
+ #define OMAP4430_CLKSEL_AESS_FCLK_SHIFT				24
+ #define OMAP4430_CLKSEL_AESS_FCLK_MASK				(1 << 24)
+@@ -468,6 +480,10 @@
+ #define OMAP4430_CLKSEL_DIV_SHIFT				24
+ #define OMAP4430_CLKSEL_DIV_MASK				(1 << 24)
  
- #define CHIP_IS_OMAP4430		(CHIP_IS_OMAP4430ES1 |		\
- 					 CHIP_IS_OMAP4430ES2 |		\
- 					 CHIP_IS_OMAP4430ES2_1 |	\
--					 CHIP_IS_OMAP4430ES2_2)
-+					 CHIP_IS_OMAP4430ES2_2 |	\
-+					 CHIP_IS_OMAP4460ES1_0)
++/* Used by CM_MPU_MPU_CLKCTRL */
++#define OMAP4460_CLKSEL_EMIF_DIV_MODE_SHIFT			24
++#define OMAP4460_CLKSEL_EMIF_DIV_MODE_MASK			(1 << 24)
++
+ /* Used by CM_CAM_FDIF_CLKCTRL */
+ #define OMAP4430_CLKSEL_FCLK_SHIFT				24
+ #define OMAP4430_CLKSEL_FCLK_MASK				(0x3 << 24)
+@@ -572,6 +588,14 @@
+ #define OMAP4430_D2D_STATDEP_SHIFT				18
+ #define OMAP4430_D2D_STATDEP_MASK				(1 << 18)
  
++/* Used by CM_CLKSEL_DPLL_MPU */
++#define OMAP4460_DCC_COUNT_MAX_SHIFT				24
++#define OMAP4460_DCC_COUNT_MAX_MASK				(0xff << 24)
++
++/* Used by CM_CLKSEL_DPLL_MPU */
++#define OMAP4460_DCC_EN_SHIFT					22
++#define OMAP4460_DCC_EN_MASK					(1 << 22)
++
  /*
-  * "GE" here represents "greater than or equal to" in terms of ES
+  * Used by CM_SSC_DELTAMSTEP_DPLL_ABE, CM_SSC_DELTAMSTEP_DPLL_CORE,
+  * CM_SSC_DELTAMSTEP_DPLL_CORE_RESTORE, CM_SSC_DELTAMSTEP_DPLL_DDRPHY,
+@@ -582,6 +606,10 @@
+ #define OMAP4430_DELTAMSTEP_SHIFT				0
+ #define OMAP4430_DELTAMSTEP_MASK				(0xfffff << 0)
+ 
++/* Renamed from DELTAMSTEP Used by CM_SSC_DELTAMSTEP_DPLL_USB */
++#define OMAP4460_DELTAMSTEP_0_20_SHIFT				0
++#define OMAP4460_DELTAMSTEP_0_20_MASK				(0x1fffff << 0)
++
+ /* Used by CM_SHADOW_FREQ_CONFIG1, CM_SHADOW_FREQ_CONFIG1_RESTORE */
+ #define OMAP4430_DLL_OVERRIDE_SHIFT				2
+ #define OMAP4430_DLL_OVERRIDE_MASK				(1 << 2)
+@@ -1204,6 +1232,10 @@
+ #define OMAP4430_MODULEMODE_SHIFT				0
+ #define OMAP4430_MODULEMODE_MASK				(0x3 << 0)
+ 
++/* Used by CM_L4CFG_DYNAMICDEP */
++#define OMAP4460_MPU_DYNDEP_SHIFT				19
++#define OMAP4460_MPU_DYNDEP_MASK				(1 << 19)
++
+ /* Used by CM_DSS_DSS_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_48MHZ_CLK_SHIFT			9
+ #define OMAP4430_OPTFCLKEN_48MHZ_CLK_MASK			(1 << 9)
+@@ -1298,6 +1330,10 @@
+ #define OMAP4430_OPTFCLKEN_SYS_CLK_SHIFT			10
+ #define OMAP4430_OPTFCLKEN_SYS_CLK_MASK				(1 << 10)
+ 
++/* Used by CM_WKUP_BANDGAP_CLKCTRL */
++#define OMAP4460_OPTFCLKEN_TS_FCLK_SHIFT			8
++#define OMAP4460_OPTFCLKEN_TS_FCLK_MASK				(1 << 8)
++
+ /* Used by CM_DSS_DSS_CLKCTRL */
+ #define OMAP4430_OPTFCLKEN_TV_CLK_SHIFT				11
+ #define OMAP4430_OPTFCLKEN_TV_CLK_MASK				(1 << 11)
+diff --git a/arch/arm/mach-omap2/prm-regbits-44xx.h b/arch/arm/mach-omap2/prm-regbits-44xx.h
+index 6d2776f..3cb247b 100644
+--- a/arch/arm/mach-omap2/prm-regbits-44xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-44xx.h
+@@ -283,6 +283,14 @@
+ #define OMAP4430_DUCATI_UNICACHE_STATEST_SHIFT				10
+ #define OMAP4430_DUCATI_UNICACHE_STATEST_MASK				(0x3 << 10)
+ 
++/* Used by PRM_DEVICE_OFF_CTRL */
++#define OMAP4460_EMIF1_OFFWKUP_DISABLE_SHIFT				8
++#define OMAP4460_EMIF1_OFFWKUP_DISABLE_MASK				(1 << 8)
++
++/* Used by PRM_DEVICE_OFF_CTRL */
++#define OMAP4460_EMIF2_OFFWKUP_DISABLE_SHIFT				9
++#define OMAP4460_EMIF2_OFFWKUP_DISABLE_MASK				(1 << 9)
++
+ /* Used by RM_MPU_RSTST */
+ #define OMAP4430_EMULATION_RST_SHIFT					0
+ #define OMAP4430_EMULATION_RST_MASK					(1 << 0)
