@@ -1,345 +1,209 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v5 2/2] OMAP: hwmod: fix the i2c-reset timeout during
- bootup
-Date: Fri, 8 Jul 2011 17:43:58 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107081740470.15984@utopia.booyaka.com>
-References: <1308743174-12265-1-git-send-email-avinashhm@ti.com> <1308743174-12265-2-git-send-email-avinashhm@ti.com> <BANLkTim8uuAv0=OfMyNt07mDr40F2AzUWA@mail.gmail.com>
+Subject: Re: [PATCH v4 1/7] OMAP2+: clockdomain: Add an api to read idle
+ mode
+Date: Fri, 8 Jul 2011 18:06:08 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107081756190.15984@utopia.booyaka.com>
+References: <1309555626-22608-1-git-send-email-b-cousson@ti.com> <1309555626-22608-2-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1982801894-1310169968=:15984"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35820 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60742 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904Ab1GHXn7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 19:43:59 -0400
-In-Reply-To: <BANLkTim8uuAv0=OfMyNt07mDr40F2AzUWA@mail.gmail.com>
+	with ESMTP id S1750937Ab1GIAGJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 20:06:09 -0400
+In-Reply-To: <1309555626-22608-2-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mahadeva, Avinash" <avinashhm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: rnayak@ti.com, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Todd Poynor <toddpoynor@google.com>
 
-Hi Avinash
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Thu, 30 Jun 2011, Mahadeva, Avinash wrote:
+--155748971-1982801894-1310169968=:15984
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> Hi Paul , Kevin ,
-> 
-> Ping. Could you please review this patch.
-> 
-> thanks ,
-> - Avinash
-> 
-> On Wed, Jun 22, 2011 at 5:16 PM, Avinash.H.M <avinashhm@ti.com> wrote:
-> 
-> > The sequence of _ocp_softreset doesn't work for i2c. The i2c module has a
-> > special sequence to reset the module. The sequence is
-> >  - Disable the I2C.
-> >  - Write to SOFTRESET bit.
-> >  - Enable the I2C.
-> >  - Poll on the RESETDONE bit.
-> > The sequence is implemented as a function and the i2c_class is updated with
-> > the correct 'reset' pointer.  omap_hwmod_softreset function is implemented
-> > which triggers the softreset by writing into sysconfig register. On
-> > following
-> > this sequence, i2c module resets properly and timeouts are not seen.
-> >
-> > Cc: Rajendra Nayak <rnayak@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Benoit Cousson <b-cousson@ti.com>
-> > Cc: Kevin Hilman <khilman@ti.com>
-> > Signed-off-by: Avinash.H.M <avinashhm@ti.com>
+Hi
 
-I combined this patch with your patch to remove HWMOD_INIT_NO_RESET from 
-the OMAP4 hwmod data, and modified your register offset selection code to 
-use the hwmod class revision data.  The updated patch is below.  
+On Fri, 1 Jul 2011, Benoit Cousson wrote:
 
-It's been queued for 3.1 at git://git.pwsan.com/linux-2.6 in the 
-'i2c_fixes_3.1' branch.
- 
+> From: Rajendra Nayak <rnayak@ti.com>
+>=20
+> Add a clockdomain api to check if hardware supervised
+> idle transitions are enabled on a clockdomain.
+>=20
+> Thanks to Todd Poynor <toddpoynor@google.com> for a
+> better function name suggestion.
+>=20
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Todd Poynor <toddpoynor@google.com>
+
+I've been looking at this patch and the subsequent one.  Two thoughts=20
+occurred to me.
+
+The first is that clkdm_allows_idle() shouldn't need to touch the CM=20
+hardware at all, since all clockdomain auto-idle mode changes should go=20
+through the clockdomain code.  So we can just keep an in-memory flag in=20
+the struct clockdomain and avoid the slow CM register access.
+
+The second is that the name 'clkdm_allows_idle', while a better name=20
+than the original, still doesn't seem right.  Na=EFvely, I'd expect a=20
+function with that name to reveal whether the clockdomain supports=20
+auto-idle mode, not to test its current state.  So this function has been=
+=20
+renamed to 'clkdm_in_hwsup'.  This name seems slightly uglier, but more=20
+accurate.
+
+Updated patch below, queued for 3.1 at git://git.pwsan.com/linux-2.6 in=20
+the 'clockdomain_a_3.1' branch.
+
 
 - Paul
 
-From: "Avinash.H.M" <avinashhm@ti.com>
-Date: Wed, 22 Jun 2011 17:16:14 +0530
-Subject: [PATCH] OMAP: hwmod: fix the i2c-reset timeout during bootup
+From: Paul Walmsley <paul@pwsan.com>
+Date: Thu, 7 Jul 2011 22:55:08 -0600
+Subject: [PATCH] OMAP2+: clockdomain: add clkdm_in_hwsup()
 
-The sequence of _ocp_softreset doesn't work for i2c. The i2c module has a
-special sequence to reset the module. The sequence is
- - Disable the I2C.
- - Write to SOFTRESET bit.
- - Enable the I2C.
- - Poll on the RESETDONE bit.
-The sequence is implemented as a function and the i2c_class is updated with
-the correct 'reset' pointer.  omap_hwmod_softreset function is implemented
-which triggers the softreset by writing into sysconfig register. On following
-this sequence, i2c module resets properly and timeouts are not seen.
+Add a new function, clkdm_in_hwsup(), that returns true if a clockdomain
+is configured for hardware-supervised idle.  It does not actually read the
+hardware; rather, it checks an internal flag in the struct clockdomain, whi=
+ch
+is changed when the clockdomain is switched in and out of hardware-supervis=
+ed
+idle.  This should be safe, since all changes to the idle mode should
+pass through the clockdomain code.
 
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Avinash.H.M <avinashhm@ti.com>
-[paul@pwsan.com: combined this patch with a patch to remove
- HWMOD_INIT_NO_RESET from the 44xx hwmod flags; change register
- offset conditional code to use the IP block revision; minor code
- cleanup]
+Based on a set of patches by Rajendra Nayak <rnayak@ti.com> which do
+the same thing by checking the hardware bits.  This approach should be
+faster and more compact.
+
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Todd Poynor <toddpoynor@google.com>
+Cc: Beno=EEt Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/i2c.c                    |   68 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod.c             |   27 ++++++++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    1 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    1 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    7 ++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   10 ++--
- arch/arm/plat-omap/include/plat/i2c.h        |    3 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 8 files changed, 111 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/clockdomain.c |   30 ++++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/clockdomain.h |    6 ++++++
+ 2 files changed, 34 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
-index 79c478c..ace9994 100644
---- a/arch/arm/mach-omap2/i2c.c
-+++ b/arch/arm/mach-omap2/i2c.c
-@@ -21,9 +21,19 @@
- 
- #include <plat/cpu.h>
- #include <plat/i2c.h>
-+#include <plat/common.h>
-+#include <plat/omap_hwmod.h>
- 
- #include "mux.h"
- 
-+/* In register I2C_CON, Bit 15 is the I2C enable bit */
-+#define I2C_EN					BIT(15)
-+#define OMAP2_I2C_CON_OFFSET			0x24
-+#define OMAP4_I2C_CON_OFFSET			0xA4
-+
-+/* Maximum microseconds to wait for OMAP module to softreset */
-+#define MAX_MODULE_SOFTRESET_WAIT	10000
-+
- void __init omap2_i2c_mux_pins(int bus_id)
- {
- 	char mux_name[sizeof("i2c2_scl.i2c2_scl")];
-@@ -37,3 +47,61 @@ void __init omap2_i2c_mux_pins(int bus_id)
- 	sprintf(mux_name, "i2c%i_sda.i2c%i_sda", bus_id, bus_id);
- 	omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
- }
-+
-+/**
-+ * omap_i2c_reset - reset the omap i2c module.
-+ * @oh: struct omap_hwmod *
-+ *
-+ * The i2c moudle in omap2, omap3 had a special sequence to reset. The
-+ * sequence is:
-+ * - Disable the I2C.
-+ * - Write to SOFTRESET bit.
-+ * - Enable the I2C.
-+ * - Poll on the RESETDONE bit.
-+ * The sequence is implemented in below function. This is called for 2420,
-+ * 2430 and omap3.
-+ */
-+int omap_i2c_reset(struct omap_hwmod *oh)
-+{
-+	u32 v;
-+	u16 i2c_con;
-+	int c = 0;
-+
-+	if (oh->class->rev == OMAP_I2C_IP_VERSION_2) {
-+		i2c_con = OMAP4_I2C_CON_OFFSET;
-+	} else if (oh->class->rev == OMAP_I2C_IP_VERSION_1) {
-+		i2c_con = OMAP2_I2C_CON_OFFSET;
-+	} else {
-+		WARN(1, "Cannot reset I2C block %s: unsupported revision\n",
-+		     oh->name);
-+		return -EINVAL;
-+	}
-+
-+	/* Disable I2C */
-+	v = omap_hwmod_read(oh, i2c_con);
-+	v &= ~I2C_EN;
-+	omap_hwmod_write(v, oh, i2c_con);
-+
-+	/* Write to the SOFTRESET bit */
-+	omap_hwmod_softreset(oh);
-+
-+	/* Enable I2C */
-+	v = omap_hwmod_read(oh, i2c_con);
-+	v |= I2C_EN;
-+	omap_hwmod_write(v, oh, i2c_con);
-+
-+	/* Poll on RESETDONE bit */
-+	omap_test_timeout((omap_hwmod_read(oh,
-+				oh->class->sysc->syss_offs)
-+				& SYSS_RESETDONE_MASK),
-+				MAX_MODULE_SOFTRESET_WAIT, c);
-+
-+	if (c == MAX_MODULE_SOFTRESET_WAIT)
-+		pr_warning("%s: %s: softreset failed (waited %d usec)\n",
-+			__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
-+	else
-+		pr_debug("%s: %s: softreset in %d usec\n", __func__,
-+			oh->name, c);
-+
-+	return 0;
-+}
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 293fa6c..64ffec4 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1562,6 +1562,33 @@ void omap_hwmod_write(u32 v, struct omap_hwmod *oh, u16 reg_offs)
- }
- 
- /**
-+ * omap_hwmod_softreset - reset a module via SYSCONFIG.SOFTRESET bit
-+ * @oh: struct omap_hwmod *
-+ *
-+ * This is a public function exposed to drivers. Some drivers may need to do
-+ * some settings before and after resetting the device.  Those drivers after
-+ * doing the necessary settings could use this function to start a reset by
-+ * setting the SYSCONFIG.SOFTRESET bit.
-+ */
-+int omap_hwmod_softreset(struct omap_hwmod *oh)
-+{
-+	u32 v;
-+	int ret;
-+
-+	if (!oh || !(oh->_sysc_cache))
-+		return -EINVAL;
-+
-+	v = oh->_sysc_cache;
-+	ret = _set_softreset(oh, &v);
-+	if (ret)
-+		goto error;
-+	_write_sysconfig(v, oh);
-+
-+error:
-+	return ret;
-+}
-+
-+/**
-  * omap_hwmod_set_slave_idlemode - set the hwmod's OCP slave idlemode
-  * @oh: struct omap_hwmod *
-  * @idlemode: SIDLEMODE field bits (shifted to bit 0)
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index e9a416c..575e062 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -1448,6 +1448,7 @@ static struct omap_hwmod_class i2c_class = {
- 	.name		= "i2c",
- 	.sysc		= &i2c_sysc,
- 	.rev		= OMAP_I2C_IP_VERSION_1,
-+	.reset		= &omap_i2c_reset,
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index beedda6..710dd64 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -1525,6 +1525,7 @@ static struct omap_hwmod_class i2c_class = {
- 	.name		= "i2c",
- 	.sysc		= &i2c_sysc,
- 	.rev		= OMAP_I2C_IP_VERSION_1,
-+	.reset		= &omap_i2c_reset,
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index c9fc5ab..e32fed2 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1458,9 +1458,10 @@ static struct omap_hwmod omap3xxx_uart4_hwmod = {
- };
- 
- static struct omap_hwmod_class i2c_class = {
--	.name = "i2c",
--	.sysc = &i2c_sysc,
--	.rev  = OMAP_I2C_IP_VERSION_1,
-+	.name	= "i2c",
-+	.sysc	= &i2c_sysc,
-+	.rev	= OMAP_I2C_IP_VERSION_1,
-+	.reset	= &omap_i2c_reset,
- };
- 
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockd=
+omain.c
+index 5a57de5..239b558 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -1,8 +1,8 @@
  /*
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index d9ad2a6..5c1bbb2 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -22,6 +22,7 @@
- 
- #include <plat/omap_hwmod.h>
- #include <plat/cpu.h>
-+#include <plat/i2c.h>
- #include <plat/gpio.h>
- #include <plat/dma.h>
- #include <plat/mcspi.h>
-@@ -2127,6 +2128,7 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
- 	.name	= "i2c",
- 	.sysc	= &omap44xx_i2c_sysc,
- 	.rev	= OMAP_I2C_IP_VERSION_2,
-+	.reset	= &omap_i2c_reset,
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
-@@ -2170,7 +2172,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c1_slaves[] = {
- static struct omap_hwmod omap44xx_i2c1_hwmod = {
- 	.name		= "i2c1",
- 	.class		= &omap44xx_i2c_hwmod_class,
--	.flags		= HWMOD_16BIT_REG | HWMOD_INIT_NO_RESET,
-+	.flags		= HWMOD_16BIT_REG,
- 	.mpu_irqs	= omap44xx_i2c1_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c1_irqs),
- 	.sdma_reqs	= omap44xx_i2c1_sdma_reqs,
-@@ -2224,7 +2226,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c2_slaves[] = {
- static struct omap_hwmod omap44xx_i2c2_hwmod = {
- 	.name		= "i2c2",
- 	.class		= &omap44xx_i2c_hwmod_class,
--	.flags		= HWMOD_16BIT_REG | HWMOD_INIT_NO_RESET,
-+	.flags		= HWMOD_16BIT_REG,
- 	.mpu_irqs	= omap44xx_i2c2_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c2_irqs),
- 	.sdma_reqs	= omap44xx_i2c2_sdma_reqs,
-@@ -2278,7 +2280,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c3_slaves[] = {
- static struct omap_hwmod omap44xx_i2c3_hwmod = {
- 	.name		= "i2c3",
- 	.class		= &omap44xx_i2c_hwmod_class,
--	.flags		= HWMOD_16BIT_REG | HWMOD_INIT_NO_RESET,
-+	.flags		= HWMOD_16BIT_REG,
- 	.mpu_irqs	= omap44xx_i2c3_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c3_irqs),
- 	.sdma_reqs	= omap44xx_i2c3_sdma_reqs,
-@@ -2332,7 +2334,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c4_slaves[] = {
- static struct omap_hwmod omap44xx_i2c4_hwmod = {
- 	.name		= "i2c4",
- 	.class		= &omap44xx_i2c_hwmod_class,
--	.flags		= HWMOD_16BIT_REG | HWMOD_INIT_NO_RESET,
-+	.flags		= HWMOD_16BIT_REG,
- 	.mpu_irqs	= omap44xx_i2c4_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c4_irqs),
- 	.sdma_reqs	= omap44xx_i2c4_sdma_reqs,
-diff --git a/arch/arm/plat-omap/include/plat/i2c.h b/arch/arm/plat-omap/include/plat/i2c.h
-index fd75dad..7c22b9e 100644
---- a/arch/arm/plat-omap/include/plat/i2c.h
-+++ b/arch/arm/plat-omap/include/plat/i2c.h
-@@ -53,4 +53,7 @@ struct omap_i2c_dev_attr {
- void __init omap1_i2c_mux_pins(int bus_id);
- void __init omap2_i2c_mux_pins(int bus_id);
- 
-+struct omap_hwmod;
-+int omap_i2c_reset(struct omap_hwmod *oh);
+  * OMAP2/3/4 clockdomain framework functions
+  *
+- * Copyright (C) 2008-2010 Texas Instruments, Inc.
+- * Copyright (C) 2008-2010 Nokia Corporation
++ * Copyright (C) 2008-2011 Texas Instruments, Inc.
++ * Copyright (C) 2008-2011 Nokia Corporation
+  *
+  * Written by Paul Walmsley and Jouni H=F6gander
+  * Added OMAP4 specific support by Abhijit Pagare <abhijitpagare@ti.com>
+@@ -704,6 +704,8 @@ int clkdm_sleep(struct clockdomain *clkdm)
+=20
+ =09pr_debug("clockdomain: forcing sleep on %s\n", clkdm->name);
+=20
++=09clkdm->_flags &=3D ~_CLKDM_FLAG_HWSUP_ENABLED;
 +
- #endif /* __ASM__ARCH_OMAP_I2C_H */
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 1adea9c..fe8a0a2 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -572,6 +572,7 @@ void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
- 
- void omap_hwmod_write(u32 v, struct omap_hwmod *oh, u16 reg_offs);
- u32 omap_hwmod_read(struct omap_hwmod *oh, u16 reg_offs);
-+int omap_hwmod_softreset(struct omap_hwmod *oh);
- 
- int omap_hwmod_count_resources(struct omap_hwmod *oh);
- int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res);
--- 
+ =09return arch_clkdm->clkdm_sleep(clkdm);
+ }
+=20
+@@ -732,6 +734,8 @@ int clkdm_wakeup(struct clockdomain *clkdm)
+=20
+ =09pr_debug("clockdomain: forcing wakeup on %s\n", clkdm->name);
+=20
++=09clkdm->_flags &=3D ~_CLKDM_FLAG_HWSUP_ENABLED;
++
+ =09return arch_clkdm->clkdm_wakeup(clkdm);
+ }
+=20
+@@ -762,6 +766,8 @@ void clkdm_allow_idle(struct clockdomain *clkdm)
+ =09pr_debug("clockdomain: enabling automatic idle transitions for %s\n",
+ =09=09 clkdm->name);
+=20
++=09clkdm->_flags |=3D _CLKDM_FLAG_HWSUP_ENABLED;
++
+ =09arch_clkdm->clkdm_allow_idle(clkdm);
+ =09pwrdm_clkdm_state_switch(clkdm);
+ }
+@@ -792,9 +798,29 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+ =09pr_debug("clockdomain: disabling automatic idle transitions for %s\n",
+ =09=09 clkdm->name);
+=20
++=09clkdm->_flags &=3D ~_CLKDM_FLAG_HWSUP_ENABLED;
++
+ =09arch_clkdm->clkdm_deny_idle(clkdm);
+ }
+=20
++/**
++ * clkdm_in_hwsup - is clockdomain @clkdm have hardware-supervised idle en=
+abled?
++ * @clkdm: struct clockdomain *
++ *
++ * Returns true if clockdomain @clkdm currently has
++ * hardware-supervised idle enabled, or false if it does not or if
++ * @clkdm is NULL.  It is only valid to call this function after
++ * clkdm_init() has been called.  This function does not actually read
++ * bits from the hardware; it instead tests an in-memory flag that is
++ * changed whenever the clockdomain code changes the auto-idle mode.
++ */
++bool clkdm_in_hwsup(struct clockdomain *clkdm)
++{
++=09if (!clkdm)
++=09=09return false;
++
++=09return (clkdm->_flags & _CLKDM_FLAG_HWSUP_ENABLED) ? true : false;
++}
+=20
+ /* Clockdomain-to-clock/hwmod framework interface code */
+=20
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockd=
+omain.h
+index 8e0da64..8782a5c 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -83,6 +83,9 @@ struct clkdm_dep {
+ =09const struct omap_chip_id omap_chip;
+ };
+=20
++/* Possible flags for struct clockdomain._flags */
++#define _CLKDM_FLAG_HWSUP_ENABLED=09=09BIT(0)
++
+ /**
+  * struct clockdomain - OMAP clockdomain
+  * @name: clockdomain name
+@@ -90,6 +93,7 @@ struct clkdm_dep {
+  * @clktrctrl_reg: CLKSTCTRL reg for the given clock domain
+  * @clktrctrl_mask: CLKTRCTRL/AUTOSTATE field mask in CM_CLKSTCTRL reg
+  * @flags: Clockdomain capability flags
++ * @_flags: Flags for use only by internal clockdomain code
+  * @dep_bit: Bit shift of this clockdomain's PM_WKDEP/CM_SLEEPDEP bit
+  * @prcm_partition: (OMAP4 only) PRCM partition ID for this clkdm's regist=
+ers
+  * @cm_inst: (OMAP4 only) CM instance register offset
+@@ -114,6 +118,7 @@ struct clockdomain {
+ =09} pwrdm;
+ =09const u16 clktrctrl_mask;
+ =09const u8 flags;
++=09u8 _flags;
+ =09const u8 dep_bit;
+ =09const u8 prcm_partition;
+ =09const s16 cm_inst;
+@@ -178,6 +183,7 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm=
+);
+=20
+ void clkdm_allow_idle(struct clockdomain *clkdm);
+ void clkdm_deny_idle(struct clockdomain *clkdm);
++bool clkdm_in_hwsup(struct clockdomain *clkdm);
+=20
+ int clkdm_wakeup(struct clockdomain *clkdm);
+ int clkdm_sleep(struct clockdomain *clkdm);
+--=20
 1.7.5.4
 
+--155748971-1982801894-1310169968=:15984--
