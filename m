@@ -1,45 +1,59 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 17/18] OMAP4: hwmod data: Modify DSS opt clocks
-Date: Sat, 9 Jul 2011 02:26:18 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107090224410.15984@utopia.booyaka.com>
-References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
-	<1309552901-8944-18-git-send-email-b-cousson@ti.com>
-	<1309598037.1846.3.camel@deskari>
-	<1309599388.1846.12.camel@deskari>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: pm_runtime_suspended() can be false if RPM_SUSPENDED
+Date: Sat, 9 Jul 2011 12:19:05 +0200
+Message-ID: <201107091219.06089.rjw@sisk.pl>
+References: <871uy0733n.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1309599388.1846.12.camel@deskari>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:40897 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752245Ab1GIKSO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 9 Jul 2011 06:18:14 -0400
+In-Reply-To: <871uy0733n.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-pm@lists.linux-foundation.org, Linux OMAP <linux-omap@vger.kernel.org>
 
-On Sat, 2 Jul 2011, Tomi Valkeinen wrote:
+Hi,
 
-> Even after removing the "fck"s from the hwmod data, I see:
+On Saturday, July 09, 2011, Kevin Hilman wrote:
+> Hi Rafael,
 > 
-> [    0.218200] omap_device: omapdss_dss: fck already exist
-> [    0.218231] omap_device: omapdss_dss: sys_clk already exist
-> [    0.218231] omap_device: omapdss_dss: tv_clk already exist
-> [    0.218292] omap_device: omapdss_dss: video_clk already exist
+> Just curious why pm_runtime_suspended() requires the device to be
+> enabled for it to return true:
 > 
-> I think those come from the clock44xxx_data.c. I believe those are more
-> or less exact duplicates from the driver's point of view? If so, I guess
-> the ones in clockdata could be removed after adding those to hwmod data?
+> static inline bool pm_runtime_suspended(struct device *dev)
+> {
+> 	return dev->power.runtime_status == RPM_SUSPENDED
+> 		&& !dev->power.disable_depth;
+> }
+> 
+> I must be misunderstanding something, but I would consider a device that
+> has been runtime suspended before runtime PM was disabled to still be
+> runtime suspended.
 
-I've removed these too.
+The problem is that while the runtime PM of the device is disabled
+(ie. dev->power.disable_depth > 0), its status may be switched from
+RPM_SUSPENDED to RPM_ACTIVE on the fly, using pm_runtime_set_active()
+(and the other way around) and it doesn't reflect the real status in
+principle.  So it was a tough choice what to do about that and I decided
+to go with returning false (in many cases runtime PM disabled means the
+device is always operational).
 
+> I just noticed this when testing with your pm-domains branch.  when I
+> noticed that an 'if (pm_runtime_suspended(dev))' check in my PM domain's
+> ->suspend_noirq() was always failing since it's after the PM core calls
+> pm_runtime_disable().  I had to change my PM domain code to only check
+> dev->power.runtime_status for it to work.
 
-thanks,
+Well, at this point I'm kind of cautious about changing pm_runtime_suspended(),
+so perhaps we need a separate callback returnig true in the status is
+RPM_SUSPENDED regardless of the value of power.disable_depth, like
+pm_runtime_status_suspended() or something similar.
 
-- Paul
+Thanks,
+Rafael
