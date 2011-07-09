@@ -1,144 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP2+: clock: allow per-SoC clock init code to prevent
- clockdomain calls from clock code
-Date: Sat, 9 Jul 2011 15:26:00 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107091524390.15984@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-424436621-1310246760=:15984"
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] OMAP3+: SR: ensure pm-runtime callbacks can be invoked with IRQ disabled
+Date: Sat,  9 Jul 2011 14:37:21 -0700
+Message-ID: <1310247441-2709-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52766 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754782Ab1GIV0B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 17:26:01 -0400
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:50645 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754814Ab1GIVhe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 17:37:34 -0400
+Received: by yxl31 with SMTP id 31so1438096yxl.13
+        for <linux-omap@vger.kernel.org>; Sat, 09 Jul 2011 14:37:32 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@ti.com>, Nishanth Menon <nm@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+SmartReflex should be disabled while entering low power mode due to
+a) SmartReflex values are not defined for retention voltageFurther
+b) with SmartReflex enabled, if CPU enters lower c-states, FSM will try
+to bump the voltage to current OPP's voltage for which it has entered c-state;
+hence SmartReflex needs to be disabled for MPU, CORE and IVA voltage
+domains in idle path before enabling auto retention voltage achievement
+on the device.
 
---155748971-424436621-1310246760=:15984
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+However, since the current pm_runtime setup for SmartReflex devices are
+setup to allow callbacks to be invoked with interrupts enabled, calling
+SmartReflex enable/disable from other contexts such as idle paths
+where preemption is disabled causes warnings such as the following
+indicating of a potential race.
+[   82.023895] [<c04d079c>] (__irq_svc+0x3c/0x120) from [<c04d0484>] (_raw_spin_unlock_irq+0x28/0x2c)
+[   82.023895] [<c04d0484>] (_raw_spin_unlock_irq+0x28/0x2c) from [<c0323234>] (rpm_callback+0x4c/0x68)
+[   82.023956] [<c0323234>] (rpm_callback+0x4c/0x68) from [<c0323f7c>] (rpm_resume+0x338/0x53c)
+[   82.023956] [<c0323f7c>] (rpm_resume+0x338/0x53c) from [<c03243f4>] (__pm_runtime_resume+0x48/0x60)
+[   82.023986] [<c03243f4>] (__pm_runtime_resume+0x48/0x60) from [<c008aee0>] (sr_enable+0xa8/0x19c)
+[   82.023986] [<c008aee0>] (sr_enable+0xa8/0x19c) from [<c008b2fc>] (omap_sr_enable+0x50/0x90)
+[   82.024017] [<c008b2fc>] (omap_sr_enable+0x50/0x90) from [<c00888c0>] (omap4_enter_sleep+0x138/0x168)
 
+Instead, we use pm_runtime_irq_safe to tell the PM core that callbacks can be
+invoked in interrupt disabled contexts.
 
-The OMAP2/3 clock code was written to notify the clockdomain code when
-the first clock in a clockdomain is enabled and when the last enabled
-clock in a clockdomain is disabled.  OMAP4 requires a different
-approach: the hwmod code needs to signal the clockdomain code when to
-force-enable and auto-idle a clockdomain during the IP block enable
-process.  The current conjecture is that once that hwmod sequence is
-implemented, it will no longer be necessary for the clock code to call
-into the clockdomain code for "optional clocks" on OMAP4.
-
-Add a static flag to the OMAP2+ clock code, clkdm_control, that by
-default preserves the OMAP2/3 behavior.  Also add a function,
-omap2_clk_disable_clkdm_control(), intended to be called from OMAP4
-and beyond clock initcalls, that disables the old behavior.
-
-Part of this patch was originally based on a patch by Rajendra Nayak
-<rnayak@ti.com>.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Beno=EEt Cousson <b-cousson@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
+Acked-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/clock.c |   27 ++++++++++++++++++++++++---
- arch/arm/mach-omap2/clock.h |    3 +++
- 2 files changed, 27 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 180299e..fc84576 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -38,6 +38,14 @@
- u8 cpu_mask;
-=20
- /*
-+ * clkdm_control: if true, then when a clock is enabled in the
-+ * hardware, its clockdomain will first be enabled; and when a clock
-+ * is disabled in the hardware, its clockdomain will be disabled
-+ * afterwards.
-+ */
-+static bool clkdm_control =3D true;
-+
-+/*
-  * OMAP2+ specific clock functions
-  */
-=20
-@@ -100,6 +108,19 @@ void omap2_init_clk_clkdm(struct clk *clk)
- }
-=20
- /**
-+ * omap2_clk_disable_clkdm_control - disable clkdm control on clk enable/d=
-isable
-+ *
-+ * Prevent the OMAP clock code from calling into the clockdomain code
-+ * when a hardware clock in that clockdomain is enabled or disabled.
-+ * Intended to be called at init time from omap*_clk_init().  No
-+ * return value.
-+ */
-+void __init omap2_clk_disable_clkdm_control(void)
-+{
-+=09clkdm_control =3D false;
-+}
-+
-+/**
-  * omap2_clk_dflt_find_companion - find companion clock to @clk
-  * @clk: struct clk * to find the companion clock of
-  * @other_reg: void __iomem ** to return the companion clock CM_*CLKEN va =
-in
-@@ -268,7 +289,7 @@ void omap2_clk_disable(struct clk *clk)
- =09=09clk->ops->disable(clk);
- =09}
-=20
--=09if (clk->clkdm)
-+=09if (clkdm_control && clk->clkdm)
- =09=09clkdm_clk_disable(clk->clkdm, clk);
-=20
- =09if (clk->parent)
-@@ -308,7 +329,7 @@ int omap2_clk_enable(struct clk *clk)
- =09=09}
- =09}
-=20
--=09if (clk->clkdm) {
-+=09if (clkdm_control && clk->clkdm) {
- =09=09ret =3D clkdm_clk_enable(clk->clkdm, clk);
- =09=09if (ret) {
- =09=09=09WARN(1, "clock: %s: could not enable clockdomain %s: "
-@@ -330,7 +351,7 @@ int omap2_clk_enable(struct clk *clk)
- =09return 0;
-=20
- oce_err3:
--=09if (clk->clkdm)
-+=09if (clkdm_control && clk->clkdm)
- =09=09clkdm_clk_disable(clk->clkdm, clk);
- oce_err2:
- =09if (clk->parent)
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index e10ff2b..48ac568 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -16,6 +16,8 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_CLOCK_H
- #define __ARCH_ARM_MACH_OMAP2_CLOCK_H
-=20
-+#include <linux/kernel.h>
-+
- #include <plat/clock.h>
-=20
- /* CM_CLKSEL2_PLL.CORE_CLK_SRC bits (2XXX) */
-@@ -72,6 +74,7 @@ void omap2_clk_disable_unused(struct clk *clk);
- #endif
-=20
- void omap2_init_clk_clkdm(struct clk *clk);
-+void __init omap2_clk_disable_clkdm_control(void);
-=20
- /* clkt_clksel.c public functions */
- u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate=
-,
---=20
-1.7.5.4
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index f8c6305..444c5b2 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -862,6 +862,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 
+ 	pm_runtime_enable(&pdev->dev);
++	pm_runtime_irq_safe(&pdev->dev);
+ 
+ 	sr_info->pdev = pdev;
+ 	sr_info->srid = pdev->id;
+-- 
+1.7.1
 
---155748971-424436621-1310246760=:15984--
