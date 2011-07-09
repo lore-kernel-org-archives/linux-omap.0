@@ -1,27 +1,51 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 0/7] twl4030: finish threaded IRQ conversion
-Date: Sat, 9 Jul 2011 05:09:00 +0100
-Message-ID: <20110709040900.GI26900@sirena.org.uk>
-References: <1309427470-605-1-git-send-email-balbi@ti.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] [PATCH] mfd: twl4030: Fix mismatch in mutex
+ lock-unlock
+Date: Sat, 9 Jul 2011 08:51:24 +0200
+Message-ID: <20110709085124.401dba10@endymion.delvare>
+References: <1310129879-4748-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:48476 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750848Ab1GIEJC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 00:09:02 -0400
-Content-Disposition: inline
-In-Reply-To: <1309427470-605-1-git-send-email-balbi@ti.com>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:22840 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752278Ab1GIGvl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 02:51:41 -0400
+In-Reply-To: <1310129879-4748-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
+To: Sanjeev Premi <premi@ti.com>
+Cc: lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org
 
-On Thu, Jun 30, 2011 at 12:51:03PM +0300, Felipe Balbi wrote:
+On Fri, 8 Jul 2011 18:27:59 +0530, Sanjeev Premi wrote:
+> A mutex is locked on entry into twl4030_madc_conversion().
+> Immediate return on some error conditions leaves the
+> mutex locked.
+> 
+> This patch ensures that mutex is always unlocked before
+> leaving the function.
+> 
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> Cc: Keerthy <j-keerthy@ti.com>
+> ---
+> 
+>  Compile tested only.
+> 
+> 
+>  drivers/mfd/twl4030-madc.c |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl4030-madc.c b/drivers/mfd/twl4030-madc.c
+> index 3941ddc..b5d598c 100644
+> --- a/drivers/mfd/twl4030-madc.c
+> +++ b/drivers/mfd/twl4030-madc.c
+> (...)
 
-> the following patches where boot-tested on beagle xM
-> and everything seems fine. MMC root filesystem still
-> mounts, /proc/interrupts looks like ps aux | grep irq
-> shows our threads, etc.
+Wrong list. This isn't a hwmon driver, so lm-sensors isn't suitable.
+scripts/get_maintainer.pl says that you should send this patch to:
+Samuel Ortiz <sameo@linux.intel.com>
 
-Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Thanks,
+-- 
+Jean Delvare
