@@ -1,39 +1,27 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [linux-pm] Runtime PM discussion notes
-Date: Sat, 9 Jul 2011 05:06:22 +0100
-Message-ID: <20110709040622.GH26900@sirena.org.uk>
-References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org> <201106232234.21930.rjw@sisk.pl> <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com> <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com> <alpine.DEB.2.00.1106281346160.2874@utopia.booyaka.com>
+Subject: Re: [PATCH 0/7] twl4030: finish threaded IRQ conversion
+Date: Sat, 9 Jul 2011 05:09:00 +0100
+Message-ID: <20110709040900.GI26900@sirena.org.uk>
+References: <1309427470-605-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:48471 "EHLO
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:48476 "EHLO
 	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750702Ab1GIEGg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 00:06:36 -0400
+	with ESMTP id S1750848Ab1GIEJC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 00:09:02 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1106281346160.2874@utopia.booyaka.com>
+In-Reply-To: <1309427470-605-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Arve Hj?nnev?g <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On Tue, Jun 28, 2011 at 01:47:47PM -0600, Paul Walmsley wrote:
-> On Fri, 24 Jun 2011, Arve Hj?nnev?g wrote:
-> > On Fri, Jun 24, 2011 at 12:53 PM, Paul Walmsley <paul@pwsan.com> wrote:
+On Thu, Jun 30, 2011 at 12:51:03PM +0300, Felipe Balbi wrote:
 
-> > > "On the hardware that shipped we enter the same power state from idle
-> > > and suspend, so the only power savings we get from suspend that we
-> > > don't get in idle is from not respecting the scheduler and timers."
+> the following patches where boot-tested on beagle xM
+> and everything seems fine. MMC root filesystem still
+> mounts, /proc/interrupts looks like ps aux | grep irq
+> shows our threads, etc.
 
-> > This is no longer the case. Both the Nexus-S and Xoom enter lower
-> > power states from suspend than idle.
-
-> Just out of curiosity, is that due to some kind of hardware limitation on 
-> those platforms, or is it because the software infrastructure for dynamic 
-> deep idle hasn't been fully implemented in that subarchitecture code?
-
-At least the Nexus S doesn't implmeent any of the deep idle
-infrastructure.  However, I'd expect that you can achieve some power
-saving from entering system suspend as if *everything* is off then the
-PMIC can be suspended which can enable additional power savings.  Unless
-I'm missing something that'd be hard to hit with cpuidle only stuff.
+Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
