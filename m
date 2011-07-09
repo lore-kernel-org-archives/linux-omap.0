@@ -1,45 +1,45 @@
 From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: [PATCH v2 17/18] OMAP4: hwmod data: Modify DSS opt clocks
-Date: Sat, 9 Jul 2011 02:24:38 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107090224100.15984@utopia.booyaka.com>
-References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>  <1309552901-8944-18-git-send-email-b-cousson@ti.com> <1309598037.1846.3.camel@deskari>
+Date: Sat, 9 Jul 2011 02:26:18 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107090224410.15984@utopia.booyaka.com>
+References: <1309552901-8944-1-git-send-email-b-cousson@ti.com>
+	<1309552901-8944-18-git-send-email-b-cousson@ti.com>
+	<1309598037.1846.3.camel@deskari>
+	<1309599388.1846.12.camel@deskari>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60884 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752225Ab1GIIYj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 04:24:39 -0400
-In-Reply-To: <1309598037.1846.3.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1309599388.1846.12.camel@deskari>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
-Hi,
+Cc: linux-omap@vger.kernel.org, rnayak@ti.com, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
 On Sat, 2 Jul 2011, Tomi Valkeinen wrote:
 
-> This patch adds "fck" opt-clocks for DSS. After your patch set
-> for_3.1/5_auto_fck_clkdev, in which you create "fck" automatically, I
-> see:
+> Even after removing the "fck"s from the hwmod data, I see:
 > 
-> [    0.218231] omap_device: omapdss_dss: fck already exist
-> [    0.218261] omap_device: omapdss_dss: fck already exist
-> [    0.218261] omap_device: omapdss_dss: sys_clk already exist
-> [    0.218261] omap_device: omapdss_dss: tv_clk already exist
-> [    0.218322] omap_device: omapdss_dss: video_clk already exist
-> [    0.218627] omap_device: omapdss_dispc: fck already exist
-> [    0.219329] omap_device: omapdss_venc: fck already exist
-> [    0.219635] omap_device: omapdss_dsi1: fck already exist
-> [    0.219970] omap_device: omapdss_dsi2: fck already exist
-> [    0.220336] omap_device: omapdss_hdmi: fck already exist
+> [    0.218200] omap_device: omapdss_dss: fck already exist
+> [    0.218231] omap_device: omapdss_dss: sys_clk already exist
+> [    0.218231] omap_device: omapdss_dss: tv_clk already exist
+> [    0.218292] omap_device: omapdss_dss: video_clk already exist
 > 
-> So I think the "fck" clocks in this patch should be removed. I only
-> added them for compatibility, as I didn't have the automatic "fck"
-> creation patch in my tree.
+> I think those come from the clock44xxx_data.c. I believe those are more
+> or less exact duplicates from the driver's point of view? If so, I guess
+> the ones in clockdata could be removed after adding those to hwmod data?
 
-Thanks Tomi, I've gone ahead and removed these.
+I've removed these too.
 
+
+thanks,
 
 - Paul
