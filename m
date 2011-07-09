@@ -1,56 +1,57 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] MAINTAINERS: add Kevin Hilman as the omap_device
- maintainer
-Date: Sat, 9 Jul 2011 15:52:51 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107091551350.15984@utopia.booyaka.com>
+Subject: Re: [PATCH] omap3: l3: Temporary fix to avoid the kernel hang with
+ beagle board.
+Date: Sat, 9 Jul 2011 16:25:16 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107091615000.15984@utopia.booyaka.com>
+References: <1304952352-27837-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@ti.com, tony@atomide.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:52961 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752309Ab1GIWZR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 18:25:17 -0400
+In-Reply-To: <1304952352-27837-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org
+
+Hi
+
+On Mon, 9 May 2011, sricharan wrote:
+
+> Paul Walmsley reported a kernel hang issue with beagle board during
+> boot. This is an intermittent bug and the execution was found to be
+> stuck at the l3 interrupt handler.
+> 
+> This was due to a dss initiator agent timeout occuring during
+> the boot even when there is no actual interconnect access made by the
+> dss. since the reason for the dss timeout is not root caused yet,
+> the time out feature is disabled at the interconnect level.
+> Note that this is a temporary fix that should be removed once
+> the dss interconnect agent timeout issue is resolved.
+
+So it's been two months since this bug was reported.  Any progress on 
+root-causing it?
+
+I don't see how I can upstream this temporary patch with a straight face.
+
+First, it tries to unconditionally reset the L3 DSS interconnect agent, 
+even if there's no problem on the L3 DSS IA that requires a reset.  It 
+should only try to reset an IA if it's in a bad state.
+
+Second, are you sure that reset sequence is correct?  Writing a 1 and then 
+a 0 to that reset bit, without any barrier or delay in between?  Could you 
+please confirm that this is a correct reset sequence with the L3 IA
+designers and cc me on the E-mails, or send me an extract from the 
+relevant documentation?
+
+Third, the patch disables L3 timeout reporting.  This effectively reacts 
+to an error by pretending that the error did not exist.  This isn't right.  
+If there's an L3 timeout, it needs to be reported, if at all possible.  It 
+should never happen and it indicates something is wrong with the software 
+or the hardware.
 
 
-Currently, plat-omap/omap_device.c is used as the interface between
-the core Linux PM code (such as the system suspend and PM runtime
-code) and the internal OMAP power management infrastructure (such as
-the hwmod code, clockdomains, powerdomains, clocks, etc.)
-
-Kevin's doing most of the interaction with the core Linux PM people on
-this, so it makes sense for him to be the maintainer.
-
-Later, if we add some omap_bus code and convert omap_device into a proper 
-Linux device, I suggest that maintainership of this piece should return to 
-Tony.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
- MAINTAINERS |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index ae563fa..4b5a5dc 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4534,6 +4534,7 @@ M:	Kevin Hilman <khilman@ti.com>
- L:	linux-omap@vger.kernel.org
- S:	Maintained
- F:	arch/arm/*omap*/*pm*
-+F:	arch/arm/plat-omap/omap_device.c
- 
- OMAP POWERDOMAIN/CLOCKDOMAIN SOC ADAPTATION LAYER SUPPORT
- M:	Rajendra Nayak <rnayak@ti.com>
--- 
-1.7.5.4
+- Paul
