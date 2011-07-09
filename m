@@ -1,88 +1,93 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: PM domain using _noirq methods to "finish" pending runtime PM transistions
-Date: Fri, 08 Jul 2011 17:30:55 -0700
-Message-ID: <87iprc2t34.fsf@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: Re: [PATCH 1/3] ASoC: omap-mcpdm: Replace legacy driver
+Date: Sat, 9 Jul 2011 10:08:10 +0900
+Message-ID: <20110709010808.GC18860@opensource.wolfsonmicro.com>
+References: <1310041672-18634-1-git-send-email-peter.ujfalusi@ti.com>
+ <1310068516.3569.22.camel@CNA0741383>
+ <20110708083733.GA18860@opensource.wolfsonmicro.com>
+ <2323058.DqPoNzVktU@barack>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:46493 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751842Ab1GIAbA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 20:31:00 -0400
-Received: by pve37 with SMTP id 37so2221685pve.35
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jul 2011 17:30:59 -0700 (PDT)
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54181 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751838Ab1GIBIS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2011 21:08:18 -0400
+Content-Disposition: inline
+In-Reply-To: <2323058.DqPoNzVktU@barack>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: "Girdwood, Liam" <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi Rafael,
+On Fri, Jul 08, 2011 at 06:02:26PM +0300, P=E9ter Ujfalusi wrote:
+> On Friday 08 July 2011 16:28:05 Mark Brown wrote:
 
-So I'm now experimenting with your suggestion of using the noirq
-callbacks of the PM domain to ensure device low-power state transitions
-for the cases where runtime PM has been disabled from userspace (or a
-driver has used runtime PM calls in it's suspend/resume path but they
-have no effect since runtime PM is disabled.)
+> > the clocking dependencies are far
+> > from unique, for example, and would normally be managed by the mach=
+ine
+> > drivers with the current infrastructure.
 
-Before I get too far, I want to be sure I understood your suggestion
-correctly, and run my current implemtation past you.
+> Sort of yes, but as soon as we have more devices, we will need either=
+ ways in=20
+> the core, or some common file to handle the clocking, startup, and ot=
+her=20
+> dependencies between McPDM and the twl6040 - I'm completely ignoring =
+the ABE=20
+> here.
 
-For starters, I just set the driver's noirq callbacks to point to the
-runtime PM callbacks.
+Well, clearly the machine driver is the common place to handle the
+interdependencies between the two devices.  After all either device
+(particularly the OMAP) could potentially be used with different system
+designs.  If there are many boards with identical setups then they
+probably ought to be using the same machine driver anyway.
 
-Then, in the PM domain's suspend_noirq, I basically do
+> BTW: what infrastructure you are suggesting?
 
-	ret = pm_generic_suspend_noirq(dev);
-	if (!ret && !(dev->power.runtime_status == RPM_SUSPENDED))
-		magic_device_power_down(dev); /* shared with pm_domain runtime PM methods */
-                priv->flags |= MAGIC_DEVICE_SUSPENDED;
-	}
-	return ret;
+I've got a few ideas but nothing comprehensive right now; the main thin=
+g
+I can think we're missing at the minute is more fine grained hooks
+around stream start in order to allow things to clock off the audio
+stream.  Equally well none of the systems I've had to deal with have ha=
+d
+a particularly pressing problem here.
 
-and in the PM domain's resume_norq, I basically do:
+> > Right now it's all sounding
+> > far too fragile due to the lack of any explicit indication of what'=
+s
+> > going on and the fact that things are going to be spread over a bun=
+ch of
+> > different drivers.
 
-	if ((priv->flags & MAGIC_DEVICE_SUSPENDED) &&
-	    !(dev->power.runtime_status == RPM_SUSPENDED)) {
-		priv->flags &= ~OMAP_DEVICE_SUSPENDED;
-		magic_device_power_up(dev);
-	}
-	return pm_generic_resume_noirq(dev);
+> Agreed, but... if we handle the McPDM stop start from the outside, wi=
+ll it=20
+> help? I mean we need to keep on eye what the twl6040 is doing, and do=
+ things=20
+> accordingly within the McPDM.
 
-Note: The MAGIC_DEVICE_SUSPENDED flag is used so resume_noirq only
-reenables devices that were disabled by suspend_noirq so that devices
-which were disabled by runtime PM are left untouched (similar to how
-you've implmented generic PM domains.)
+If the machine driver controls the system integration (as we're doing
+for everything else) it's at least clear what's going on for this
+particular system.  My main concern here is making the code actually sa=
+y
+what's going on.
 
-Since the driver's noirq callbacks point to the runtime PM callbacks
-this all works quite well. 
+> Another, not directly related thing is that with this driver in place=
+ at least=20
+> one can play audio on OMAP4 with upstream kernel (through McPDM, and =
+without=20
+> ABE).
 
-I believe this was basically the suggestion you were recommending, right?
+> This area is still work in progress, but I prefer to start from somet=
+hing,=20
+> which shows some sign of life.
 
-However, what I need is for the driver's runtime PM callbacks not to be
-called unconditionally, but only if the PM domain's noirq methods are
-actually going to disable/power-down the device (e.g. it's not already
-runtime suspended.)
-
-The first obvious solution is to create new driver noirq methods that
-check if the device is not already RPM_SUSPENDED and only then call the
-runtime PM callbacks.   That works, but hey, it's a Friday night so I
-decided to take it to the next level...
-
-Instead of making all the drivers add new noirq methods that just
-conditionally call the runtime PM methods, what if I just handle it in
-the PM domain?  IOW, what if I just call pm_generic_runtime_* from the
-PM domain's noirq methods?  e.g. call pm_generic_runtime_suspend() just
-before magic_device_power_down() and call pm_generic_runtime_resume()
-just after magic_device_power_up()?
-
-I tested this today with a handful of our drivers that do all their PM
-in terms of the runtime PM API (including get_sync/put_sync in their
-suspend path) and they all work as expected without modification.
-
-I know it's not much to add a couple new callbacks to each of these
-drivers, but if I can handle it at the PM domain level, I'd rather allow
-the drivers to stay simple.
-
-What do you think?
-
-Kevin
+Could we split the rewrite out from the delay thing so we can review it
+separately?  This'd also be good from the point of view of documentatio=
+n
+of what's going on as the changelogs would provide a bit more details.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
