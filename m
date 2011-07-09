@@ -1,59 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: pm_runtime_suspended() can be false if RPM_SUSPENDED
-Date: Sat, 9 Jul 2011 12:19:05 +0200
-Message-ID: <201107091219.06089.rjw@sisk.pl>
-References: <871uy0733n.fsf@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC 0/4] TWL external controller support
+Date: Sat, 9 Jul 2011 13:40:08 +0300
+Message-ID: <20110709104007.GM31978@legolas.emea.dhcp.ti.com>
+References: <1310140588-26078-1-git-send-email-t-kristo@ti.com>
+ <20110708162531.GE31978@legolas.emea.dhcp.ti.com>
+ <20110709012407.GG18860@opensource.wolfsonmicro.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="75WsOQSofUOhcSOp"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40897 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752245Ab1GIKSO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 9 Jul 2011 06:18:14 -0400
-In-Reply-To: <871uy0733n.fsf@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:58095 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752710Ab1GIKkP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 06:40:15 -0400
+Received: by bwa20 with SMTP id 20so80764bwa.27
+        for <linux-omap@vger.kernel.org>; Sat, 09 Jul 2011 03:40:12 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20110709012407.GG18860@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-pm@lists.linux-foundation.org, Linux OMAP <linux-omap@vger.kernel.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Felipe Balbi <balbi@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, lrg@ti.com
+
+
+--75WsOQSofUOhcSOp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Saturday, July 09, 2011, Kevin Hilman wrote:
-> Hi Rafael,
-> 
-> Just curious why pm_runtime_suspended() requires the device to be
-> enabled for it to return true:
-> 
-> static inline bool pm_runtime_suspended(struct device *dev)
-> {
-> 	return dev->power.runtime_status == RPM_SUSPENDED
-> 		&& !dev->power.disable_depth;
-> }
-> 
-> I must be misunderstanding something, but I would consider a device that
-> has been runtime suspended before runtime PM was disabled to still be
-> runtime suspended.
+On Sat, Jul 09, 2011 at 10:24:09AM +0900, Mark Brown wrote:
+> On Fri, Jul 08, 2011 at 07:25:32PM +0300, Felipe Balbi wrote:
+>=20
+> > isn't this all the same as claiming the regulator but never actually
+> > using the regulator APIs ? I mean, you could add the regulator, then on
+> > smartreflex code, regulator_get(), but when it gets to get/set voltage,
+> > you use the omap_*() functions instead of regulator_*().
+>=20
+> That wasn't what I got from the patches but it also sounds like a bad
+> idea.  Why go around the core code?
 
-The problem is that while the runtime PM of the device is disabled
-(ie. dev->power.disable_depth > 0), its status may be switched from
-RPM_SUSPENDED to RPM_ACTIVE on the fly, using pm_runtime_set_active()
-(and the other way around) and it doesn't reflect the real status in
-principle.  So it was a tough choice what to do about that and I decided
-to go with returning false (in many cases runtime PM disabled means the
-device is always operational).
+a hack for a hack... what's the difference ? If it's only to solve a
+limitation temporarily anyways... although it would be better to discuss
+how to add such support to the framework already.
 
-> I just noticed this when testing with your pm-domains branch.  when I
-> noticed that an 'if (pm_runtime_suspended(dev))' check in my PM domain's
-> ->suspend_noirq() was always failing since it's after the PM core calls
-> pm_runtime_disable().  I had to change my PM domain code to only check
-> dev->power.runtime_status for it to work.
+--=20
+balbi
 
-Well, at this point I'm kind of cautious about changing pm_runtime_suspended(),
-so perhaps we need a separate callback returnig true in the status is
-RPM_SUSPENDED regardless of the value of power.disable_depth, like
-pm_runtime_status_suspended() or something similar.
+--75WsOQSofUOhcSOp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Thanks,
-Rafael
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOGDAHAAoJEAv8Txj19kN1iqYH/RxuVNFHh/KRoQJnO0QB75+Z
+srCE40XcKtj5AqtWYERNNifxTtPWI8PVOJBlJrwucW3+3viiq6Cdq5x/Wnad/zZN
+wyFl0ST3tVQENlCphu+2zGLxA8RFuZA/IYD+OwJODTWhXJ8YWFzss34wfNbiSMy+
+TFHYOjtkSx/kqkpQ9kbdt9hUQnEuPL+HJsi6CYHx0OWvM1/arIbxsjI2l2AJCFm7
+siX0cCuJM0pOFgVsZHKO9DXKgEZYwfw5UYzjszZDeye/eZouo70JcZZNyUMECFIg
+mw+HSfeaGziKdyFhLxo/NBVsZ7j/JBgSrLavo3EXB/Fg5ozI68j6Os5FnG//XUA=
+=ebxX
+-----END PGP SIGNATURE-----
+
+--75WsOQSofUOhcSOp--
