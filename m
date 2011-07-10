@@ -1,52 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] minimal omap4460 support for v3.1 merge window
-Date: Sat, 9 Jul 2011 23:56:27 -0700
-Message-ID: <20110710065627.GE5783@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] OMAP: SoC data/core: fixes for 3.1
+Date: Sun, 10 Jul 2011 01:34:19 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107100132470.15984@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20971 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751007Ab1GJG4a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jul 2011 02:56:30 -0400
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:36624 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221Ab1GJHeU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jul 2011 03:34:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arnd@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Arnd,
+Hi Tony,
 
-Please pull minimal omap4460 support from:
+The following changes since commit c402c0d9dfa8d4fb54dd98fc12525f39d0f29bfe:
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git 4460
-
-Regards,
-
-Tony
-
-
-The following changes since commit 48cb1258e8b0f8c81cfb699b42326c5b2147b3f8:
-  Tony Lindgren (1):
-        Merge branch 'for_3.1/pm-misc' of git://git.kernel.org/.../khilman/linux-omap-pm into devel-cleanup
+  Merge branches 'dmtimer_precleanup_3.1', 'hwmod_core_cleanup_a_3.1', 'combine_common_hwmod_3.1', 'omap4_hwmod_data_cleanup_a_3.1', 'clock_cleanup_a_3.1', 'prcm_cleanup_a_3.1', 'omap_pm_cleanup_3.1' and 'omap_device_cleanup_3.1' into prcm-cleanup-3.1 (2011-07-09 20:24:07 -0600)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git 4460
+  git://git.pwsan.com/linux-2.6 prcm-fixes-3.1
 
-Aneesh V (2):
-      OMAP: ID: introduce chip detection for OMAP4460
-      OMAP4: ID: add omap_has_feature for max freq supported
+Andy Green (6):
+      I2C: OMAP2+: Set hwmod flags to only allow 16-bit accesses to i2c
+      I2C: OMAP2+: increase omap_i2c_dev_attr flags from u8 to u32
+      I2C: OMAP2+:  Introduce I2C IP versioning constants
+      I2C: OMAP1/OMAP2+: create omap I2C functionality flags for each cpu_... test
+      I2C: OMAP2+: Tag all OMAP2+ hwmod defintions with I2C IP revision
+      I2C: OMAP2+: add correct functionality flags to all omap2plus i2c dev_attr
 
-Rajendra Nayak (2):
-      OMAP4: PRCM: OMAP4460 specific PRM and CM register bitshifts
-      OMAP4: clocks: Update the clock tree with 4460 clock nodes
+Avinash.H.M (1):
+      OMAP: hwmod: fix the i2c-reset timeout during bootup
 
- arch/arm/mach-omap2/clock44xx_data.c          |   39 ++++++++++++++++++
- arch/arm/mach-omap2/cm-regbits-44xx.h         |   36 +++++++++++++++++
- arch/arm/mach-omap2/id.c                      |   53 ++++++++++++++++++++----
- arch/arm/mach-omap2/prm-regbits-44xx.h        |    8 ++++
- arch/arm/plat-omap/include/plat/clkdev_omap.h |    1 +
- arch/arm/plat-omap/include/plat/clock.h       |    2 +
- arch/arm/plat-omap/include/plat/cpu.h         |   35 +++++++++++++++-
- 7 files changed, 162 insertions(+), 12 deletions(-)
+Benoit Cousson (1):
+      OMAP4: powerdomain data: Fix core mem states and missing cefuse flag
+
+Paul Walmsley (1):
+      Merge branches 'powerdomain_fixes_3.1', 'hardware_workarounds_3.1', 'hwmod_dss_fix_3.1' and 'i2c_fixes_3.1' into prcm-fixes-3.1
+
+Rajendra Nayak (1):
+      OMAP2+: PM: Initialise sleep_switch to a non-valid value
+
+Santosh Shilimkar (2):
+      OMAP4: clock data: Keep GPMC clocks always enabled and hardware managed
+      OMAP4: powerdomain data: Remove unsupported MPU powerdomain state
+
+Tomi Valkeinen (2):
+      OMAP4: hwmod data: Modify DSS opt clocks
+      OMAP4: hwmod data: Change DSS main_clk scheme
+
+ arch/arm/mach-omap2/clock44xx_data.c         |    9 ++-
+ arch/arm/mach-omap2/i2c.c                    |   68 +++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod.c             |   27 +++++++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    9 +++-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    7 ++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |   18 +++++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   81 ++++++++++++++++++++------
+ arch/arm/mach-omap2/pm.c                     |    2 +-
+ arch/arm/mach-omap2/powerdomains44xx_data.c  |    9 ++-
+ arch/arm/plat-omap/include/plat/i2c.h        |    6 ++-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ include/linux/i2c-omap.h                     |   27 +++++++++
+ 12 files changed, 233 insertions(+), 31 deletions(-)
+
+omap2plus_defconfig
+   text    data     bss     dec     hex filename
+6353285  528944 5591048 12473277         be53bd vmlinux.orig
+6352073	 529392	5591048	12472513	 be50c1	vmlinux.patched
+
