@@ -1,38 +1,44 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP2-only kernel compile broken
-Date: Sat, 9 Jul 2011 19:57:20 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107091955040.15984@utopia.booyaka.com>
+Subject: Re: [PATCH v2 08/18] OMAP4: clock data: Rename clock flags from 443X
+ to 44XX
+Date: Sat, 9 Jul 2011 20:03:20 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107092000370.15984@utopia.booyaka.com>
+References: <1309552901-8944-1-git-send-email-b-cousson@ti.com> <1309552901-8944-9-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50386 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60039 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755214Ab1GJB5V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 21:57:21 -0400
+	with ESMTP id S1751779Ab1GJCDV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 22:03:21 -0400
+In-Reply-To: <1309552901-8944-9-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, hemahk@ti.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
+Hi
 
-Hello Hema, Felipe,
+On Fri, 1 Jul 2011, Benoit Cousson wrote:
 
-Commits 208466dc10083e734a8af71d10f923ee4bff950c ("usb: otg:
-OMAP4430: Powerdown the internal PHY when USB is disabled") and
-fb91cde49c327ff957c55d91805bc6abda59b311 ("usb: musb: OMAP4430:
-Power down the PHY during board init") break compilation on OMAP2:
+> From: Rajendra Nayak <rnayak@ti.com>
+> 
+> Rename current 4430 definitions to 44XX in oder to make this file
+> applicable for the next revision (OMAP4460).
+> 
+> Create new flags for 44XX. They will be extented when OMAP4460
+> will be introduced.
+> 
+> Fix as well the clkdev indentation that were previously broken.
+> 
+> Replace a couple of spaces by tabs.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
 
-  LD      .tmp_vmlinux1
-arch/arm/mach-omap2/built-in.o:(.data+0x7ce0): undefined reference to `omap4430_phy_init'
-arch/arm/mach-omap2/built-in.o:(.data+0x7ce4): undefined reference to `omap4430_phy_exit'
-arch/arm/mach-omap2/built-in.o:(.data+0x7ce8): undefined reference to `omap4430_phy_power'
-arch/arm/mach-omap2/built-in.o:(.data+0x7cec): undefined reference to `omap4430_phy_set_clk'
-arch/arm/mach-omap2/built-in.o:(.data+0x7cf0): undefined reference to `omap4430_phy_suspend'
-make: *** [.tmp_vmlinux1] Error 1
+I've dropped this patch because Tony has indicated he doesn't want to
+merge rename patches like this.
 
-
-Could you please figure out a clean way to fix this for the 3.1 rc series?
-
-thanks,
 
 - Paul
