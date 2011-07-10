@@ -1,40 +1,61 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] Use MMIO clocksource for 32kHz counter
-Date: Sun, 10 Jul 2011 15:15:37 +0100
-Message-ID: <20110710141537.GB4957@n2100.arm.linux.org.uk>
-References: <20110627123315.GB1777@n2100.arm.linux.org.uk> <20110627123754.GQ23145@atomide.com> <20110627191102.GV23145@atomide.com>
+From: Sundaram Raju <sundaram-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] dmaengine: add dma_ctrl_cmd to pass buffer stride
+	configuration
+Date: Sun, 10 Jul 2011 20:33:23 +0530
+Message-ID: <1310310203-12288-1-git-send-email-sundaram@ti.com>
+References: <y>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42501 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559Ab1GJOP7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jul 2011 10:15:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20110627191102.GV23145@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <y>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Jun 27, 2011 at 12:11:02PM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [110627 05:33]:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [110627 05:28]:
-> > > --- a/arch/arm/plat-omap/counter_32k.c
-> > > +++ b/arch/arm/plat-omap/counter_32k.c
-> > > +#ifdef CONFIG_ARCH_OMAP16XX
-> > > +		else if (cpu_is_omap16xx())
-> > > +			base = OMAP2_L4_IO_ADDRESS(OMAP16XX_TIMER_32K_SYNCHRONIZED);
-> 
-> BTW, the above should have been OMAP1_IO_ADDRESS instead..
->   
-> > You should be able to replace the above with just ioremap as we now
-> > have the static mappings.
-> 
-> ..here's a patch to use ioremap with comment added about the static
-> mapping requirements.
-> 
-> Thanks for getting rid of hopefully the last remaining omap_readl
-> for omap2+ BTW :)
+Added new dma_ctrl_cmd TI_DMA_STRIDE_CONFIG to pass the TI DMA
+controller specific configurations on how a buffer must be walked
+through and how data is picked for transfer based on a specified
+pattern over the channel.
 
-What're we doing with this patch and your follow-up patch?
+The configuration passed is specific to the TI DMA controller used.
+
+Signed-off-by: Sundaram Raju <sundaram-l0cyMroinI0@public.gmane.org>
+---
+ include/linux/dmaengine.h |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index eee7add..51dadc4 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -123,6 +123,10 @@ enum dma_ctrl_flags {
+  * command.
+  * @FSLDMA_EXTERNAL_START: this command will put the Freescale DMA controller
+  * into external start mode.
++ * @TI_DMA_STRIDE_CONFIG: this command is only implemented by TI DMA
++ * controllers that need to pass special configuration on how to walk through
++ * the buffer to pick up data in a specified pattern to be transferred in
++ * the channel.
+  */
+ enum dma_ctrl_cmd {
+ 	DMA_TERMINATE_ALL,
+@@ -130,6 +134,7 @@ enum dma_ctrl_cmd {
+ 	DMA_RESUME,
+ 	DMA_SLAVE_CONFIG,
+ 	FSLDMA_EXTERNAL_START,
++	TI_DMA_STRIDE_CONFIG,
+ };
+ 
+ /**
+-- 
+1.6.2.4
