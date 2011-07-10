@@ -1,58 +1,38 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] omap3: l3: Temporary fix to avoid the kernel hang with
- beagle board.
-Date: Sat, 9 Jul 2011 18:30:39 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107091828310.15984@utopia.booyaka.com>
-References: <1304952352-27837-1-git-send-email-r.sricharan@ti.com> <alpine.DEB.2.00.1107091615000.15984@utopia.booyaka.com> <4E18F0D1.3080704@ti.com>
+Subject: OMAP2-only kernel compile broken
+Date: Sat, 9 Jul 2011 19:57:20 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107091955040.15984@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45990 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:50386 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755100Ab1GJAak (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 20:30:40 -0400
-In-Reply-To: <4E18F0D1.3080704@ti.com>
+	with ESMTP id S1755214Ab1GJB5V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jul 2011 21:57:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: sricharan <r.sricharan@ti.com>, linux-omap@vger.kernel.org, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+To: balbi@ti.com, hemahk@ti.com
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-Hi Santosh,
 
-On Sat, 9 Jul 2011, Santosh Shilimkar wrote:
+Hello Hema, Felipe,
 
-> Sorry for not closing the loop on this thread but I thought Tomi
-> root-caused the DSS timeout issue to incorrect reset sequence of
-> DSS IP. With that fixed I though we shouldn't see that issue.
+Commits 208466dc10083e734a8af71d10f923ee4bff950c ("usb: otg:
+OMAP4430: Powerdown the internal PHY when USB is disabled") and
+fb91cde49c327ff957c55d91805bc6abda59b311 ("usb: musb: OMAP4430:
+Power down the PHY during board init") break compilation on OMAP2:
 
-OK great, happy to hear that it was tracked down!
+  LD      .tmp_vmlinux1
+arch/arm/mach-omap2/built-in.o:(.data+0x7ce0): undefined reference to `omap4430_phy_init'
+arch/arm/mach-omap2/built-in.o:(.data+0x7ce4): undefined reference to `omap4430_phy_exit'
+arch/arm/mach-omap2/built-in.o:(.data+0x7ce8): undefined reference to `omap4430_phy_power'
+arch/arm/mach-omap2/built-in.o:(.data+0x7cec): undefined reference to `omap4430_phy_set_clk'
+arch/arm/mach-omap2/built-in.o:(.data+0x7cf0): undefined reference to `omap4430_phy_suspend'
+make: *** [.tmp_vmlinux1] Error 1
 
-Tomi, do you have patches to fix the reset bug?
 
-> > First, it tries to unconditionally reset the L3 DSS interconnect
-> > agent, even if there's no problem on the L3 DSS IA that requires a
-> > reset.  It should only try to reset an IA if it's in a bad state.
-> > 
-> This was to ensure that the issue hasn't happened during boot-loader
-> DSS reset sequence in case it does. But I agree with your comments.
+Could you please figure out a clean way to fix this for the 3.1 rc series?
 
-That's a good idea, but the patch should only do that if the L3 DSS IA is 
-reporting a timeout error.
-
-> > Second, are you sure that reset sequence is correct?  Writing a 1 and
-> > then a 0 to that reset bit, without any barrier or delay in between?
-> > Could you please confirm that this is a correct reset sequence with
-> > the L3 IA designers and cc me on the E-mails, or send me an extract
-> > from the relevant documentation?
-> > 
-> > Third, the patch disables L3 timeout reporting.  This effectively
-> > reacts to an error by pretending that the error did not exist.  This
-> > isn't right. If there's an L3 timeout, it needs to be reported, if at
-> > all possible.  It should never happen and it indicates something is
-> > wrong with the software or the hardware.
-> > 
-> Will come back to you on above queries.
-
-regards,
+thanks,
 
 - Paul
