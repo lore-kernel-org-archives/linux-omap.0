@@ -1,56 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap twl cleanup for v3.1 merge window
-Date: Sat, 9 Jul 2011 23:55:37 -0700
-Message-ID: <20110710065537.GD5783@atomide.com>
-References: <20110708130102.GB5783@atomide.com>
- <201107081741.23425.arnd@arndb.de>
+Subject: [GIT PULL] minimal omap4460 support for v3.1 merge window
+Date: Sat, 9 Jul 2011 23:56:27 -0700
+Message-ID: <20110710065627.GE5783@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30831 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20971 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751007Ab1GJGzn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jul 2011 02:55:43 -0400
+	with ESMTP id S1751007Ab1GJG4a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jul 2011 02:56:30 -0400
 Content-Disposition: inline
-In-Reply-To: <201107081741.23425.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
+To: arnd@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>
 
-* Arnd Bergmann <arnd@arndb.de> [110708 08:36]:
-> On Friday 08 July 2011, Tony Lindgren wrote:
-> >
-> >I've attached a conflict resolution patch too, it's trivial execpt
-> >note that .vdac needs to be removed in board-rx51-peripherals.c.
-> >
-> >If this conflict causes problems for you, I can also base this series
-> >on omap/board.
-> 
-> The conflict resolution you suggested doesn't build here:
-...
+Hi Arnd,
 
-> 
-> These are removed in the cleanup series, but changed in the fixes branch,
-> now the removal is undone
+Please pull minimal omap4460 support from:
 
-Hmm these are added in omap/board. Maybe the issue is caused by not
-merging omap/board also?
- 
-> I tried a different path, but then got
-> 
-> arch/arm/mach-omap2/board-4430sdp.c:406:41: warning: 'sdp4430_vmmc_supply' defined but not used [-Wunused-variable]
-> 
-> Should that variable be removed or kept referenced?
-
-That's added in omap/board. I think the resolution I posted
-should work if you merge omap/cleanup omap/fixes and omap/board
-into your master branch.
-
-Or maybe I'm missing something. If you want, I can try out your
-merge here too.
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git 4460
 
 Regards,
 
 Tony
 
+
+The following changes since commit 48cb1258e8b0f8c81cfb699b42326c5b2147b3f8:
+  Tony Lindgren (1):
+        Merge branch 'for_3.1/pm-misc' of git://git.kernel.org/.../khilman/linux-omap-pm into devel-cleanup
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git 4460
+
+Aneesh V (2):
+      OMAP: ID: introduce chip detection for OMAP4460
+      OMAP4: ID: add omap_has_feature for max freq supported
+
+Rajendra Nayak (2):
+      OMAP4: PRCM: OMAP4460 specific PRM and CM register bitshifts
+      OMAP4: clocks: Update the clock tree with 4460 clock nodes
+
+ arch/arm/mach-omap2/clock44xx_data.c          |   39 ++++++++++++++++++
+ arch/arm/mach-omap2/cm-regbits-44xx.h         |   36 +++++++++++++++++
+ arch/arm/mach-omap2/id.c                      |   53 ++++++++++++++++++++----
+ arch/arm/mach-omap2/prm-regbits-44xx.h        |    8 ++++
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |    1 +
+ arch/arm/plat-omap/include/plat/clock.h       |    2 +
+ arch/arm/plat-omap/include/plat/cpu.h         |   35 +++++++++++++++-
+ 7 files changed, 162 insertions(+), 12 deletions(-)
