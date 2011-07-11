@@ -1,219 +1,131 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 13/22] cbus: tahvo: start using irq_chip
-Date: Mon, 11 Jul 2011 14:17:26 +0300
-Message-ID: <1310383055-20211-14-git-send-email-balbi@ti.com>
+Subject: [PATCH 14/22] cbus: tahvo: usb: fix up to use threaded irqs
+Date: Mon, 11 Jul 2011 14:17:27 +0300
+Message-ID: <1310383055-20211-15-git-send-email-balbi@ti.com>
 References: <1310383055-20211-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:39837 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755067Ab1GKLSx (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:33731 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755068Ab1GKLSz (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jul 2011 07:18:53 -0400
-Received: by gxk27 with SMTP id 27so2077327gxk.15
-        for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 04:18:50 -0700 (PDT)
+	Mon, 11 Jul 2011 07:18:55 -0400
+Received: by mail-yi0-f41.google.com with SMTP id 13so1485311yia.28
+        for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 04:18:55 -0700 (PDT)
 In-Reply-To: <1310383055-20211-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, =?UTF-8?q?Michael=20B=C3=BCsch?= <mb@bu3sch.de>, Felipe Balbi <balbi@ti.com>
 
-in order to chieve that, we needed to allocate
-our children devices (currently only one) and
-fix up the irq handler.
+fix up tahvo-usb to use threaded irqs and the
+new IRQ chip.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap1/board-nokia770.c |    6 --
- arch/arm/mach-omap2/board-n8x0.c     |    6 --
- drivers/cbus/tahvo.c                 |  110 ++++++++++++++++++++++++---------
- 3 files changed, 80 insertions(+), 42 deletions(-)
+ drivers/cbus/tahvo-usb.c |   35 +++++++++++++----------------------
+ 1 files changed, 13 insertions(+), 22 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index 5eb1a7f..ecdf77b 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -155,11 +155,6 @@ static struct platform_device tahvo_device = {
- 	},
+diff --git a/drivers/cbus/tahvo-usb.c b/drivers/cbus/tahvo-usb.c
+index be0333f..10619a8 100644
+--- a/drivers/cbus/tahvo-usb.c
++++ b/drivers/cbus/tahvo-usb.c
+@@ -93,12 +93,13 @@ struct tahvo_usb {
+ 	struct platform_device *pt_dev;
+ 	struct otg_transceiver otg;
+ 	int vbus_state;
+-	struct work_struct irq_work;
+ 	struct mutex serialize;
+ #ifdef CONFIG_USB_OTG
+ 	int tahvo_mode;
+ #endif
+ 	struct clk *ick;
++
++	int		irq;
  };
+ static struct tahvo_usb *tahvo_usb_device;
  
--static struct platform_device tahvo_usb_device = {
--	.name		= "tahvo-usb",
--	.id		= -1,
--};
--
- static void __init nokia770_cbus_init(void)
- {
- 	int		ret;
-@@ -200,7 +195,6 @@ static void __init nokia770_cbus_init(void)
- 
- 	tahvo_resource[0].start = gpio_to_irq(40);
- 	platform_device_register(&tahvo_device);
--	platform_device_register(&tahvo_usb_device);
+@@ -523,23 +524,13 @@ static int tahvo_usb_set_peripheral(struct otg_transceiver *otg, struct usb_gadg
+ 	return 0;
  }
  
- #else
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index f7548e4..295b4d7 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -251,11 +251,6 @@ static struct platform_device tahvo_device = {
- 	},
- };
- 
--static struct platform_device tahvo_usb_device = {
--	.name		= "tahvo-usb",
--	.id		= -1,
--};
--
- static void __init n8x0_cbus_init(void)
+-static void tahvo_usb_irq_work(struct work_struct *work)
++static irqreturn_t tahvo_usb_vbus_interrupt(int irq, void *_tu)
  {
- 	int		ret;
-@@ -297,7 +292,6 @@ static void __init n8x0_cbus_init(void)
+-	struct tahvo_usb *tu = container_of(work, struct tahvo_usb, irq_work);
++	struct tahvo_usb *tu = _tu;
  
- 	tahvo_resource[0].start = gpio_to_irq(111);
- 	platform_device_register(&tahvo_device);
--	platform_device_register(&tahvo_usb_device);
+-	mutex_lock(&tu->serialize);
+ 	check_vbus_state(tu);
+-	mutex_unlock(&tu->serialize);
+-}
+ 
+-static void tahvo_usb_vbus_interrupt(unsigned long arg)
+-{
+-	struct tahvo_usb *tu = (struct tahvo_usb *) arg;
+-
+-	tahvo_ack_irq(TAHVO_INT_VBUSON);
+-	/* Seems we need this to acknowledge the interrupt */
+-	tahvo_read_reg(TAHVO_REG_IDSR);
+-	schedule_work(&tu->irq_work);
++	return IRQ_HANDLED;
  }
  
- #else
-diff --git a/drivers/cbus/tahvo.c b/drivers/cbus/tahvo.c
-index 3aaf0eb..f01defc 100644
---- a/drivers/cbus/tahvo.c
-+++ b/drivers/cbus/tahvo.c
-@@ -215,39 +215,26 @@ EXPORT_SYMBOL(tahvo_set_backlight_level);
+ #ifdef CONFIG_USB_OTG
+@@ -602,6 +593,7 @@ static int __init tahvo_usb_probe(struct platform_device *pdev)
+ 	struct tahvo_usb *tu;
+ 	struct device *dev = &pdev->dev;
+ 	int ret;
++	int irq;
  
- static irqreturn_t tahvo_irq_handler(int irq, void *_tahvo)
- {
--	struct tahvo_irq_handler_desc *hnd;
--
- 	struct tahvo		*tahvo = _tahvo;
- 	u16			id;
- 	u16			im;
--	int			i;
--
--	for (;;) {
--		id = __tahvo_read_reg(tahvo, TAHVO_REG_IDR);
--		im = ~__tahvo_read_reg(tahvo, TAHVO_REG_IMR);
--		id &= im;
--
--		if (!id)
--			break;
--
--		for (i = 0; id != 0; i++, id >>= 1) {
--			if (!(id & 1))
--				continue;
--			hnd = &tahvo_irq_handlers[i];
--			if (hnd->func == NULL) {
--				/* Spurious tahvo interrupt - just ack it */
--				dev_err(tahvo->dev, "Spurious interrupt "
--						 "(id %d)\n", i);
--				tahvo_disable_irq(i);
--				tahvo_ack_irq(i);
--				continue;
--			}
--			hnd->func(hnd->arg);
--			/*
--			 * Don't acknowledge the interrupt here
--			 * It must be done explicitly
--			 */
--		}
-+
-+	id = __tahvo_read_reg(tahvo, TAHVO_REG_IDR);
-+	im = __tahvo_read_reg(tahvo, TAHVO_REG_IMR);
-+	id &= ~im;
-+
-+	if (!id) {
-+		dev_vdbg(tahvo->dev, "No IRQ, spurious ?\n");
-+		return IRQ_NONE;
-+	}
-+
-+	while (id) {
-+		unsigned long	pending = __ffs(id);
-+		unsigned int	irq;
-+
-+		id &= ~BIT(pending);
-+		irq = pending + tahvo->irq_base;
-+		handle_nested_irq(irq);
- 	}
+ 	ret = tahvo_get_status();
+ 	if (!ret)
+@@ -625,7 +617,6 @@ static int __init tahvo_usb_probe(struct platform_device *pdev)
+ #endif
+ #endif
  
- 	return IRQ_HANDLED;
-@@ -397,6 +384,63 @@ static void tahvo_irq_init(struct tahvo *tahvo)
+-	INIT_WORK(&tu->irq_work, tahvo_usb_irq_work);
+ 	mutex_init(&tu->serialize);
  
- /* -------------------------------------------------------------------------- */
+ 	tu->ick = clk_get(NULL, "usb_l4_ick");
+@@ -640,9 +631,12 @@ static int __init tahvo_usb_probe(struct platform_device *pdev)
+ 	 * state changes */
+ 	tu->vbus_state = tahvo_read_reg(TAHVO_REG_IDSR) & 0x01;
  
-+static struct resource generic_resources[] = {
-+	{
-+		.start		= -EINVAL,	/* fixed later */
-+		.flags		= IORESOURCE_IRQ,
-+	},
-+};
++	irq = platform_get_irq(pdev, 0);
++	tu->irq = irq;
 +
-+static struct device *tahvo_allocate_child(const char *name,
-+		struct device *parent, int irq)
-+{
-+	struct platform_device	*pdev;
-+	int			ret;
-+
-+	pdev = platform_device_alloc(name, -1);
-+	if (!pdev) {
-+		dev_dbg(parent, "can't allocate %s\n", name);
-+		goto err0;
-+	}
-+
-+	pdev->dev.parent = parent;
-+
-+	generic_resources[0].start = irq;
-+
-+	ret = platform_device_add_resources(pdev,
-+			generic_resources, ARRAY_SIZE(generic_resources));
-+	if (ret < 0) {
-+		dev_dbg(parent, "can't add resources to %s\n", name);
-+		goto err1;
-+	}
-+
-+	ret = platform_device_add(pdev);
-+	if (ret < 0) {
-+		dev_dbg(parent, "can't add %s\n", name);
-+		goto err1;
-+	}
-+
-+	return &pdev->dev;
-+
-+err1:
-+	platform_device_put(pdev);
-+
-+err0:
-+	return NULL;
-+}
-+
-+static int tahvo_allocate_children(struct device *parent, int irq_base)
-+{
-+	struct device		*child;
-+
-+	child = tahvo_allocate_child("tahvo-usb", parent,
-+			irq_base + TAHVO_INT_VBUSON);
-+	if (!child)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
- static int __devinit tahvo_probe(struct platform_device *pdev)
- {
- 	struct tahvo		*tahvo;
-@@ -450,6 +494,12 @@ static int __devinit tahvo_probe(struct platform_device *pdev)
- 		goto err2;
- 	}
+ 	/* We cannot enable interrupt until omap_udc is initialized */
+-	ret = tahvo_request_irq(TAHVO_INT_VBUSON, tahvo_usb_vbus_interrupt,
+-				(unsigned long) tu, "vbus_interrupt");
++	ret = request_threaded_irq(irq, NULL, tahvo_usb_vbus_interrupt,
++			IRQF_ONESHOT, "tahvo-vbus", tu);
+ 	if (ret != 0) {
+ 		printk(KERN_ERR "Could not register Tahvo interrupt for VBUS\n");
+ 		goto err_release_clk;
+@@ -675,13 +669,10 @@ static int __init tahvo_usb_probe(struct platform_device *pdev)
  
-+	ret = tahvo_allocate_children(&pdev->dev, tahvo->irq_base);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "failed to allocate children\n");
-+		goto err2;
-+	}
-+
- 	dev_err(&pdev->dev, "%s v%d.%d found\n",
- 			tahvo->is_betty ? "Betty" : "Tahvo",
- 			(rev >> 4) & 0x0f, rev & 0x0f);
+ 	dev_set_drvdata(dev, tu);
+ 
+-	/* Act upon current vbus state once at startup. A vbus state irq may or
+-	 * may not be generated in addition to this. */
+-	schedule_work(&tu->irq_work);
+ 	return 0;
+ 
+ err_free_irq:
+-	tahvo_free_irq(TAHVO_INT_VBUSON);
++	free_irq(tu->irq, tu);
+ err_release_clk:
+ 	clk_disable(tu->ick);
+ 	clk_put(tu->ick);
+@@ -698,7 +689,7 @@ static int __exit tahvo_usb_remove(struct platform_device *pdev)
+ 
+ 	dev_dbg(&pdev->dev, "remove\n");
+ 
+-	tahvo_free_irq(TAHVO_INT_VBUSON);
++	free_irq(tu->irq, tu);
+ 	flush_scheduled_work();
+ 	otg_set_transceiver(0);
+ 	device_remove_file(&pdev->dev, &dev_attr_vbus_state);
 -- 
 1.7.6
 
