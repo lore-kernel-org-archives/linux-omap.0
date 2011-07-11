@@ -1,59 +1,58 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 0/4] OMAP: PM: omap_device: update PM domain support for v3.1
-Date: Mon, 11 Jul 2011 16:29:25 -0700
-Message-ID: <1310426969-30306-1-git-send-email-khilman@ti.com>
+Subject: [PATCH 1/4] OMAP: PM: omap_device: conditionally use PM domain runtime helpers
+Date: Mon, 11 Jul 2011 16:29:26 -0700
+Message-ID: <1310426969-30306-2-git-send-email-khilman@ti.com>
+References: <1310426969-30306-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:47705 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753946Ab1GKX3e (ORCPT
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:58107 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758502Ab1GKX3g (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jul 2011 19:29:34 -0400
-Received: by mail-iw0-f182.google.com with SMTP id 19so7054833iwr.27
-        for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 16:29:32 -0700 (PDT)
+	Mon, 11 Jul 2011 19:29:36 -0400
+Received: by mail-iw0-f180.google.com with SMTP id 9so7920169iwn.11
+        for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 16:29:35 -0700 (PDT)
+In-Reply-To: <1310426969-30306-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-pm@lists.linux-foundation.org
 
-For v3.1, the PM core has some changes that impact various assumptions
-made (by me) during the design and implementation of the PM domain
-support in the omap_device layer.
+Only build and use the runtime PM helper functions only when runtime
+PM is actually enabled.
 
-This series is needed to update our PM domain layer to behave properly
-under the new rules of the PM core code which are planned to be merged
-for v3.1 (see recent linux-pm discussions for the gory details.)
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/plat-omap/omap_device.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-This series is based on the pm-domains branch of Rafael Wysocki's
-suspend-2.6 tree, and also depends on the patch which adds
-pm_runtime_status_suspended() helper function[1].
-
-Rafael, because of the dependencies on your pm-domains branch (due to
-the pwr_domain -> pm_domain rename), it might be easiest to merge
-these via your tree.   Let me know if that's OK with you.
-
-I've tested this series with all of the PM core changes planned for
-v3.1 (Rafael's linux-next branch[2]) and have done various
-suspend/resume testing (including off-mode) with individual devices
-disabled via /sys/devices/.../power/control.
-
-Kevin
-
-[1] https://patchwork.kernel.org/patch/966732/
-[2] git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-2.6.git
-
-Kevin Hilman (4):
-  OMAP: PM: omap_device: conditionally use PM domain runtime helpers
-  OMAP: PM: omap_device: add system PM methods for PM domain handling
-  OMAP: PM: omap_device: add API to disable idle on suspend
-  OMAP: PM: disable idle on suspend for GPIO and UART
-
- arch/arm/mach-omap2/Kconfig                   |    4 +-
- arch/arm/mach-omap2/gpio.c                    |    2 +
- arch/arm/mach-omap2/serial.c                  |    1 +
- arch/arm/plat-omap/include/plat/omap_device.h |    9 +++++
- arch/arm/plat-omap/omap_device.c              |   49 +++++++++++++++++++++++--
- 5 files changed, 60 insertions(+), 5 deletions(-)
-
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index d21579b..f7d2ff7 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -537,6 +537,7 @@ int omap_early_device_register(struct omap_device *od)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM_RUNTIME
+ static int _od_runtime_suspend(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+@@ -563,12 +564,12 @@ static int _od_runtime_resume(struct device *dev)
+ 
+ 	return pm_generic_runtime_resume(dev);
+ }
++#endif
+ 
+ static struct dev_pm_domain omap_device_pm_domain = {
+ 	.ops = {
+-		.runtime_suspend = _od_runtime_suspend,
+-		.runtime_idle = _od_runtime_idle,
+-		.runtime_resume = _od_runtime_resume,
++		SET_RUNTIME_PM_OPS(_od_runtime_suspend, _od_runtime_resume,
++				   _od_runtime_idle)
+ 		USE_PLATFORM_PM_SLEEP_OPS
+ 	}
+ };
 -- 
 1.7.6
 
