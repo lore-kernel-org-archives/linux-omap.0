@@ -1,67 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [linux-pm] Runtime PM discussion notes
-Date: Mon, 11 Jul 2011 04:14:24 -0700
-Message-ID: <20110711111424.GV5783@atomide.com>
-References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org>
- <201106232234.21930.rjw@sisk.pl>
- <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com>
- <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
- <alpine.DEB.2.00.1106281346160.2874@utopia.booyaka.com>
- <20110709040622.GH26900@sirena.org.uk>
- <20110711095812.GT5783@atomide.com>
- <20110711110435.GF5092@opensource.wolfsonmicro.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 00/22] Tahvo cleanups and Retu optimization
+Date: Mon, 11 Jul 2011 14:17:13 +0300
+Message-ID: <1310383055-20211-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41291 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752531Ab1GKLOr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 07:14:47 -0400
-Content-Disposition: inline
-In-Reply-To: <20110711110435.GF5092@opensource.wolfsonmicro.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:47928 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754633Ab1GKLRp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jul 2011 07:17:45 -0400
+Received: by mail-gw0-f53.google.com with SMTP id 20so1808691gwj.26
+        for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 04:17:44 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Arve Hj?nnev?g <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, =?UTF-8?q?Michael=20B=C3=BCsch?= <mb@bu3sch.de>, Felipe Balbi <balbi@ti.com>
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [110711 03:59]:
-> On Mon, Jul 11, 2011 at 02:58:12AM -0700, Tony Lindgren wrote:
-> > * Mark Brown <broonie@opensource.wolfsonmicro.com> [110708 21:01]:
-> 
-> > > At least the Nexus S doesn't implmeent any of the deep idle
-> > > infrastructure.  However, I'd expect that you can achieve some power
-> > > saving from entering system suspend as if *everything* is off then the
-> > > PMIC can be suspended which can enable additional power savings.  Unless
-> > > I'm missing something that'd be hard to hit with cpuidle only stuff.
-> 
-> > You should be able to hit the same states from idle no problem. At that
-> > point the only things on are memory in retention and some wake-up timer.
-> > Even the timer could be off if you have hardware wake-up events, but then
-> > system timer won't work the noral way naturally.
-> 
-> Right, but it can be interesting to tell the PMIC that we went into this
-> mode.  Possibly cpuidle will end up doing this as a result of signals
-> generated as the CPU core goes down, but at that point it's just s2ram
-> by another name.
+Hi Tony,
 
-All PMIC devices should be shut down when not in use, so I don't know
-what else you would configure in the PMIC. Maybe you have something else
-there to configure? Just curious what kind of mess you have to deal with
-compared to the mess I need to deal with :)
+here's the complete series... I'll stop playing
+with these for a while. If you have some free time
+to boot test on n8x0, I'd be really glad ;-)
 
-Also, hitting deeper sleep states from idle is not same as suspend to ram.
-With suspend to ram the system timer is killed while timers behave in a
-normal way when hitting deeper sleep states from idle.
- 
-> > The only way power down everything in suspend to disk :) Most PMICs have
-> > some functionality always on so they can charge the battery when it's
-> > empty.
-> 
-> With some PMICs the truly always on functionality is *very* minimal and
-> doesn't include chargers, it can be pretty much limited to wake sources
-> (including power status changes which might start charging if power
-> appears).
+Maybe Michael could test too ??
 
-Sure.
+Felipe Balbi (22):
+  cbus: tahvo: convert spinlock into mutex
+  cbus: tahvo: move to __devinit/__devexit sections
+  cbus: tahvo: a switch looks better
+  cbus: tahvo: don't go over 80 columns
+  cbus: tahvo: drop the tasklet
+  cbus: retu: set IRQF_ONESHOT flag
+  cbus: tahvo: git it a context structure
+  cbus: tahvo: pass tahvo to IRQ handler
+  cbus: tahvo: introduce __tahvo_(read/write)_reg
+  cbus: tahvo: drop some unneded defines
+  cbus: retu: IRQ demux optimization
+  cbus: tahvo: give it an irq_chip
+  cbus: tahvo: start using irq_chip
+  cbus: tahvo: usb: fix up to use threaded irqs
+  cbus: tahvo drop the legacy interfaces
+  cbus: tahvo: usb: drop unused variable
+  cbus: tahvo: no need to mask interrupts on exit
+  cbus: tahvo: drop the get_status hack
+  cbus: tahvo: drop more unused interfaces
+  cbus: tahvo: pass child device pointer
+  cbus: tahvo: drop backlight interfaces
+  cbus: tahvo: drop static global pointer
 
-Tony
+ arch/arm/mach-omap1/board-nokia770.c |    6 -
+ arch/arm/mach-omap2/board-n8x0.c     |    6 -
+ drivers/cbus/retu.c                  |   18 +-
+ drivers/cbus/tahvo-usb.c             |   58 ++---
+ drivers/cbus/tahvo.c                 |  462 ++++++++++++++++++----------------
+ drivers/cbus/tahvo.h                 |   16 +-
+ 6 files changed, 283 insertions(+), 283 deletions(-)
+
+-- 
+1.7.6
+
