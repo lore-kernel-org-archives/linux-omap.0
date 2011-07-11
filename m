@@ -1,47 +1,72 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH 1/2] OMAP: I2C: Add a device reset field to platform data
-Date: Mon, 11 Jul 2011 15:25:12 +0530
-Message-ID: <1310378113-28098-1-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCH 2/2] OMAP: I2C: Reset support
+Date: Mon, 11 Jul 2011 15:25:13 +0530
+Message-ID: <1310378113-28098-2-git-send-email-shubhrajyoti@ti.com>
+References: <1310378113-28098-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36523 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47747 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752653Ab1GKJz2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jul 2011 05:55:28 -0400
+	id S1753052Ab1GKJzc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jul 2011 05:55:32 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6B9tP0C028500
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6B9tTB9011065
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 04:55:27 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6B9tNmR019065
-	for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 15:25:24 +0530 (IST)
+	for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 04:55:31 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6B9tSYA019098
+	for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 15:25:28 +0530 (IST)
+In-Reply-To: <1310378113-28098-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Under some conditions the driver may want to do a reset
-of the device. Adding a reset field field to the platform
-data.
+Under some error conditions the i2c  driver may do a reset
+adding support in the platform.
 
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- include/linux/i2c-omap.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/i2c.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
-index 98ae49b..8aa91b6 100644
---- a/include/linux/i2c-omap.h
-+++ b/include/linux/i2c-omap.h
-@@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
- 	int		(*device_enable) (struct platform_device *pdev);
- 	int		(*device_shutdown) (struct platform_device *pdev);
- 	int		(*device_idle) (struct platform_device *pdev);
-+	int		(*device_reset) (struct device *dev);
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index 2388b8e..3d144d1 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -146,6 +146,22 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
+ 		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+ 	},
  };
++/**
++ * omap2_i2c_reset - reset the omap i2c module.
++ * @dev: struct device*
++ */
++
++static int omap2_i2c_reset(struct device *dev)
++{
++	int r = 0;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_device *odev = to_omap_device(pdev);
++	struct omap_hwmod *oh;
++
++	oh = odev->hwmods[0];
++	r = omap_hwmod_reset(oh);
++	return r;
++}
  
- #endif
+ static inline int omap2_i2c_add_bus(int bus_id)
+ {
+@@ -187,6 +203,8 @@ static inline int omap2_i2c_add_bus(int bus_id)
+ 	 */
+ 	if (cpu_is_omap34xx())
+ 		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
++
++	pdata->device_reset = omap2_i2c_reset;
+ 	od = omap_device_build(name, bus_id, oh, pdata,
+ 			sizeof(struct omap_i2c_bus_platform_data),
+ 			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
 -- 
 1.7.1
 
