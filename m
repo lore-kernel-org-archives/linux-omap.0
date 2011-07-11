@@ -1,35 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Change in mmap driver performance from 2..6.38 to 2.6.39
-Date: Mon, 11 Jul 2011 07:42:03 -0700
-Message-ID: <20110711144202.GE5783@atomide.com>
-References: <4E1B06FD.5090107@balister.org>
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCHv2] mfd: twl4030: Fix mismatch in mutex lock-unlock
+Date: Mon, 11 Jul 2011 20:50:31 +0530
+Message-ID: <1310397631-1596-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28002 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754002Ab1GKOmH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 10:42:07 -0400
-Content-Disposition: inline
-In-Reply-To: <4E1B06FD.5090107@balister.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36372 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752653Ab1GKPUw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jul 2011 11:20:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Philip Balister <philip@balister.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>, Keerthy <j-keerthy@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-* Philip Balister <philip@balister.org> [110711 07:23]:
-> I have a device drier that uses a mmap'd section of memory to expose
-> dma buffers to user space. (https://github.com/balister/linux-omap-philip/blob/e100-2.6.38/drivers/misc/usrp_e.c).
-> 
-> I have it running on the 2.6.38 and 2.6.39 kernel, but it looks like
-> read performance is much slower in the .39 version than the .28
-> version.
-> 
-> Does anyone know what changed between these two kernel versions and
-> how it might fix it?
+A mutex is locked on entry into twl4030_madc_conversion().
+Immediate return on some error conditions leaves the
+mutex locked.
 
-Maybe try git bisect it to some commit? You can use quilt to keep
-applying the temporary patches needed in between test builds for
-your driver.. Or maybe git allows that somehow too.
+This patch ensures that mutex is always unlocked before
+leaving the function.
 
-Tony
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+---
+
+ Compile tested only.
+
+ Changes since v1:
+   None. Repost after adding Samuel Ortiz to cc: and
+   removed lm-sensors list from to: list.
+
+ drivers/mfd/twl4030-madc.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/mfd/twl4030-madc.c b/drivers/mfd/twl4030-madc.c
+index 3941ddc..b5d598c 100644
+--- a/drivers/mfd/twl4030-madc.c
++++ b/drivers/mfd/twl4030-madc.c
+@@ -530,13 +530,13 @@ int twl4030_madc_conversion(struct twl4030_madc_request *req)
+ 	if (ret) {
+ 		dev_err(twl4030_madc->dev,
+ 			"unable to write sel register 0x%X\n", method->sel + 1);
+-		return ret;
++		goto out;
+ 	}
+ 	ret = twl_i2c_write_u8(TWL4030_MODULE_MADC, ch_lsb, method->sel);
+ 	if (ret) {
+ 		dev_err(twl4030_madc->dev,
+ 			"unable to write sel register 0x%X\n", method->sel + 1);
+-		return ret;
++		goto out;
+ 	}
+ 	/* Select averaging for all channels if do_avg is set */
+ 	if (req->do_avg) {
+@@ -546,7 +546,7 @@ int twl4030_madc_conversion(struct twl4030_madc_request *req)
+ 			dev_err(twl4030_madc->dev,
+ 				"unable to write avg register 0x%X\n",
+ 				method->avg + 1);
+-			return ret;
++			goto out;
+ 		}
+ 		ret = twl_i2c_write_u8(TWL4030_MODULE_MADC,
+ 				       ch_lsb, method->avg);
+@@ -554,7 +554,7 @@ int twl4030_madc_conversion(struct twl4030_madc_request *req)
+ 			dev_err(twl4030_madc->dev,
+ 				"unable to write sel reg 0x%X\n",
+ 				method->sel + 1);
+-			return ret;
++			goto out;
+ 		}
+ 	}
+ 	if (req->type == TWL4030_MADC_IRQ_ONESHOT && req->func_cb != NULL) {
+-- 
+1.7.2.2
+
