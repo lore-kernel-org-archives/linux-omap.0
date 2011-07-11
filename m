@@ -1,53 +1,69 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [linux-pm] Runtime PM discussion notes
-Date: Mon, 11 Jul 2011 20:04:38 +0900
-Message-ID: <20110711110435.GF5092@opensource.wolfsonmicro.com>
-References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org>
- <201106232234.21930.rjw@sisk.pl>
- <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com>
- <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
- <alpine.DEB.2.00.1106281346160.2874@utopia.booyaka.com>
- <20110709040622.GH26900@sirena.org.uk>
- <20110711095812.GT5783@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 00/11] Tahvo cleanups and Retu optimization
+Date: Mon, 11 Jul 2011 14:13:08 +0300
+Message-ID: <20110711111306.GY2680@legolas.emea.dhcp.ti.com>
+References: <1310165559-31037-1-git-send-email-balbi@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="QZ+LYBYf4/WKxcjd"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40265 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754229Ab1GKLEu (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:40516 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754229Ab1GKLNN (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jul 2011 07:04:50 -0400
+	Mon, 11 Jul 2011 07:13:13 -0400
+Received: by mail-yx0-f171.google.com with SMTP id 38so2034938yxk.16
+        for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 04:13:12 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20110711095812.GT5783@atomide.com>
+In-Reply-To: <1310165559-31037-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Arve Hj?nnev?g <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Mon, Jul 11, 2011 at 02:58:12AM -0700, Tony Lindgren wrote:
-> * Mark Brown <broonie@opensource.wolfsonmicro.com> [110708 21:01]:
 
-> > At least the Nexus S doesn't implmeent any of the deep idle
-> > infrastructure.  However, I'd expect that you can achieve some power
-> > saving from entering system suspend as if *everything* is off then the
-> > PMIC can be suspended which can enable additional power savings.  Unless
-> > I'm missing something that'd be hard to hit with cpuidle only stuff.
+--QZ+LYBYf4/WKxcjd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> You should be able to hit the same states from idle no problem. At that
-> point the only things on are memory in retention and some wake-up timer.
-> Even the timer could be off if you have hardware wake-up events, but then
-> system timer won't work the noral way naturally.
+On Sat, Jul 09, 2011 at 01:52:28AM +0300, Felipe Balbi wrote:
+> Hi Tony,
+>=20
+> a few more CBUS patches. I started cleaning
+> up tahvo and also found two possible optimizations
+> on Retu which are based on patches from Thomas
+> Gleixner and Sebastian Siewior - on other pieces
+> of code, of course :-p
+>=20
+> These patches were compile tested only. It would
+> be very nice if someone could actually measure
+> IRQ latency on Retu to see if managed to spend
+> considerably less time looping on the IDR register.
+>=20
+> Anyway, following are the patches.
 
-Right, but it can be interesting to tell the PMIC that we went into this
-mode.  Possibly cpuidle will end up doing this as a result of signals
-generated as the CPU core goes down, but at that point it's just s2ram
-by another name.
+hold on.. I made more patches... will send them all in a jiffy, forget
+about this version.
 
-> The only way power down everything in suspend to disk :) Most PMICs have
-> some functionality always on so they can charge the battery when it's
-> empty.
+--=20
+balbi
 
-With some PMICs the truly always on functionality is *very* minimal and
-doesn't include chargers, it can be pretty much limited to wake sources
-(including power status changes which might start charging if power
-appears).
+--QZ+LYBYf4/WKxcjd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOGtrCAAoJEAv8Txj19kN1Nq8IAKviVJ/q4H+ICH1vIuZewcnk
+K4DAkxbvVbWDRdgO1/kGVksMIE+FhreJ7Bd1dawC+QtIXHIkYfhynVQQbf3V1RIK
+PZjazv6WybbQA0mpiHpQe5KQRVQSb6s4BaelpjqlNSeRK9wZXhJGOOAM/5P9Gtl6
+o/j8doCTCm6At7MZBEjznPc+oRVymo8EYZB9Dju4ef0C1mTlVgsAmkegS+KDkkBC
+LgIv3oOYzWBGuO5kOt7W/8kzgVyzvJQ05uHXDnm7kpRl8HfgtwafYuRAzmDkhZD9
+CQHl9Q5hfXDlQzJhfEQxTJOiFuhsvPGfx5Lj3njlYFHuLtdXJipg4ux+9sP8lwM=
+=E3L7
+-----END PGP SIGNATURE-----
+
+--QZ+LYBYf4/WKxcjd--
