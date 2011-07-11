@@ -1,106 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap related MFD and ASoC patches for v3.1 merge window
-Date: Mon, 11 Jul 2011 04:53:09 -0700
-Message-ID: <20110711115309.GA5783@atomide.com>
-References: <20110711114736.GX5783@atomide.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC 0/4] TWL external controller support
+Date: Mon, 11 Jul 2011 21:11:14 +0900
+Message-ID: <20110711121111.GL5092@opensource.wolfsonmicro.com>
+References: <1310140588-26078-1-git-send-email-t-kristo@ti.com>
+ <20110708162531.GE31978@legolas.emea.dhcp.ti.com>
+ <20110709012407.GG18860@opensource.wolfsonmicro.com>
+ <20110709104007.GM31978@legolas.emea.dhcp.ti.com>
+ <20110709105649.GA17036@opensource.wolfsonmicro.com>
+ <1310372591.4331.27.camel@sokoban>
+ <20110711100509.GC5092@opensource.wolfsonmicro.com>
+ <1310381339.4331.45.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:52091 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756292Ab1GKML0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jul 2011 08:11:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20110711114736.GX5783@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>
+In-Reply-To: <1310381339.4331.45.camel@sokoban>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, linux-omap@vger.kernel.org, "Girdwood, Liam" <lrg@ti.com>
 
-The following changes since commit 727e18b429e3badda12d1de74f492bfa363a2e94:
-  Tony Lindgren (1):
-        Merge branch 'peter/topic/for-tony_mach-cleanup' of git://gitorious.org/omap-audio/linux-audio into cleanup-part-2
+On Mon, Jul 11, 2011 at 01:48:59PM +0300, Tero Kristo wrote:
+> On Mon, 2011-07-11 at 12:05 +0200, Mark Brown wrote:
 
-are available in the git repository at:
+> > No.  Why do you want these regulators to have anything to do with the
+> > TWL4030?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git twl-asoc
+> So, a completely new driver should be made for these? The reason I
+> wanted to put them within TWL4030 code is that they reside inside
+> TWL4030, and there is already some code for accessing these regulators
+> (in the standard I2C access method) from the twl-regulator.c.
 
-These depend on the cleanup-part-2 branch, so it was agreed with the MFD and ASoC
-maintainers that they should get merged along with the other omap patches.
+Well, if they're not perceptibly part of the same chip from a control
+point of view and need you to provide board specific callbacks it would
+seem logical...
 
-Axel Castaneda Gonzalez (1):
-      ASoC: twl6040: Configure ramp step based on platform
+> > > configured from the TWL side. The voltage processor support is currently
+> > > provided by the omap platform code, and regulator code knows nothing
+> > > about this. It might also be possible to do compile time switch for the
+> > > interface here if that is acceptable, however a runtime interface for
+> > > doing this would provide more flexibility.
 
-Liam Girdwood (3):
-      ASoC: twl6040: add all ABE DAIs
-      ASoC: twl6040: Support other sample rates in constraints.
-      ASoC: twl6040: set default constraints.
+> > This isn't making much sense to me, what is the relationship between
+> > this and the other regulators you're adding these bodge interfaces for?
+> > Why would you want to switch between the two modes at runtime and how
+> > would anyone take the decision to do so?
 
-Misael Lopez Cruz (5):
-      mfd: twl6040: Add initial support
-      ASoC: twl6040: Convert into TWL6040 MFD child
-      input: Add initial support for TWL6040 vibrator
-      ASoC: twl6040: Remove pll and headset mode dependency
-      OMAP4: SDP4430: Add twl6040 codec platform support
+> Runtime switching would mostly be useful as a testing feature. In
+> typical setup the configuration is just selected during boot time, and
+> thats it. And normally we would just want to use the voltage processor
+> interfaces to control these regulators.
 
-Peter Ujfalusi (17):
-      MFD: twl4030-codec: Rename internals from codec to audio
-      MFD: twl4030-codec -> twl4030-audio: Rename the driver
-      MFD: twl4030-audio: Rename platform data
-      MFD: twl6040: Change platform data for soc codec driver
-      OMAP4: SDP4430: Add twl6040 vibrator platform support
-      MFD: twl6040: Use resource to provide irq number for slaves
-      input: twl6040-vibra: Do not use wrapper for irq request
-      ASoC: twl6040: Do not use wrapper for irq request
-      MFD: twl6040: Demand valid interrupt configuration
-      MFD: twl6040: Remove wrapper for threaded irq request
-      ASoC: twl6040: Use neutral name for power mode text/enum
-      ASoC: twl6040: Move PLL selection to codec driver
-      ASoC: twl6040: Simplify sample rate constraint handling
-      ASoC: twl6040: Configure PLL only once
-      MFD: twl6040: Remove enum for PLL tracking
-      ASoC: twl6040: No need to convert the PLL ID
-      ASoC: twl6040: Add back support for legacy mode
+It doesn't seem like a good idea to support that, then.  If there's no
+benefit to switching dynamically we're just adding complexity to the
+system which people will then spend time tweaking and making work
+dealing with any robustness issues from managing the transitions.
 
-Tony Lindgren (1):
-      Merge branch 'peter/topic/for-tony' of git://gitorious.org/omap-audio/linux-audio into twl-asoc
+> > If some of the TWL4030 regulators are controlled by something other than
+> > the CPU in your system then the TWL4030 driver shouldn't be configured
+> > to do anything with them except possibly provide read only access.
 
- arch/arm/mach-omap2/board-4430sdp.c                |   56 ++
- arch/arm/mach-omap2/board-rx51-peripherals.c       |    6 +-
- arch/arm/mach-omap2/board-zoom-peripherals.c       |   10 +-
- arch/arm/mach-omap2/twl-common.c                   |   10 +-
- arch/arm/plat-omap/include/plat/irqs.h             |   12 +-
- drivers/input/misc/Kconfig                         |   13 +-
- drivers/input/misc/Makefile                        |    1 +
- drivers/input/misc/twl4030-vibra.c                 |   12 +-
- drivers/input/misc/twl6040-vibra.c                 |  423 +++++++++++
- drivers/mfd/Kconfig                                |    8 +-
- drivers/mfd/Makefile                               |    3 +-
- drivers/mfd/twl-core.c                             |   13 +-
- drivers/mfd/twl4030-audio.c                        |  277 ++++++++
- drivers/mfd/twl4030-codec.c                        |  277 --------
- drivers/mfd/twl6040-core.c                         |  620 +++++++++++++++++
- drivers/mfd/twl6040-irq.c                          |  191 +++++
- include/linux/i2c/twl.h                            |   25 +-
- .../linux/mfd/{twl4030-codec.h => twl4030-audio.h} |   16 +-
- include/linux/mfd/twl6040.h                        |  228 ++++++
- sound/soc/codecs/Kconfig                           |    3 +-
- sound/soc/codecs/twl4030.c                         |   22 +-
- sound/soc/codecs/twl6040.c                         |  733 +++++++++-----------
- sound/soc/codecs/twl6040.h                         |  119 +----
- sound/soc/omap/sdp3430.c                           |    2 +-
- sound/soc/omap/sdp4430.c                           |   52 +--
- sound/soc/omap/zoom2.c                             |    2 +-
- 26 files changed, 2230 insertions(+), 904 deletions(-)
- create mode 100644 drivers/input/misc/twl6040-vibra.c
- create mode 100644 drivers/mfd/twl4030-audio.c
- delete mode 100644 drivers/mfd/twl4030-codec.c
- create mode 100644 drivers/mfd/twl6040-core.c
- create mode 100644 drivers/mfd/twl6040-irq.c
- rename include/linux/mfd/{twl4030-codec.h => twl4030-audio.h} (96%)
- create mode 100644 include/linux/mfd/twl6040.h
+> I think this part I have not been too clear about... CPU is controlling
+> the voltage level for these regulators, but the used hardware interface
+> is different... and the CPU is giving a guideline that we should be
+> using the nominal voltage level based on cpufreq setup, but the actual
+> voltage set on the TWL chip is usually different.
+
+Right, but from a software point of view the fact that we end up with
+the same physical regulator is immaterial as you have to try *really*
+hard to notice.
