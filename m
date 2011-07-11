@@ -1,33 +1,42 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH] dmaengine: add dma_ctrl_cmd to pass buffer stride configuration
-Date: Mon, 11 Jul 2011 14:39:17 -0700
-Message-ID: <CAA9_cmeWUjiTghKbjAvith5c6z9PDVdFSeK55RYWfyQKFSjA+Q@mail.gmail.com>
-References: <1310310203-12288-1-git-send-email-sundaram@ti.com>
-	<CAKnu2MqzSm8BVK4z9E-ud8e_jUohDfSfYO9aW-oN3RFw4p7GrA@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: Remaining omap pull requests
+Date: Tue, 12 Jul 2011 00:16:12 +0200
+Message-ID: <201107120016.12366.arnd@arndb.de>
+References: <20110711114736.GX5783@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKnu2MqzSm8BVK4z9E-ud8e_jUohDfSfYO9aW-oN3RFw4p7GrA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Sundaram Raju <sundaram@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.8]:64646 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752960Ab1GKWQY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 18:16:24 -0400
+In-Reply-To: <20110711114736.GX5783@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>
 
-On Mon, Jul 11, 2011 at 2:28 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> 2011/7/10 Sundaram Raju <sundaram@ti.com>:
->
->> Added new dma_ctrl_cmd TI_DMA_STRIDE_CONFIG to pass the TI DMA
->> controller specific configurations on how a buffer must be walked
->> through and how data is picked for transfer based on a specified
->> pattern over the channel.
->>
->> The configuration passed is specific to the TI DMA controller used.
+On Monday 11 July 2011, Tony Lindgren wrote:
+> Hi Arnd,
+> 
+> Below is a summary of the pending omap pull requests as there are still
+> few branches pending.
+> 
+> Can you please take a look and see what you can take of these for v3.1
+> merge window?
+> 
+> There's still quite a bit more code shrinkage, and the new code for 4460
+> and PRCM related changes are badly needed.
 
-...and I suspect the slave device drivers that use TI DMA are not
-expected to ever work with other dmaengines?  Likely the case, but
-just wondering out loud.
+I've pulled everything now, please check if it looks ok to you.
 
->> Signed-off-by: Sundaram Raju <sundaram@ti.com>
->
-> This is exactly how I think we should do this.
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
+I haven't really looked at the patches much, I hope that I have time
+to at least do some test builds and take a very rough look at the
+contents tomorrow.
+
+Thanks for the detailed descriptions, and for splitting it
+into good-sized series.
+
+	Arnd
