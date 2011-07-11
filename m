@@ -1,16 +1,16 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Subject: [PATCH v14 03/12] OMAP1: dmtimer: conversion to platform devices
-Date: Mon, 11 Jul 2011 16:51:27 +0530
-Message-ID: <1310383296-18956-4-git-send-email-tarun.kanti@ti.com>
-References: <1310383296-18956-1-git-send-email-tarun.kanti@ti.com>
+Date: Mon, 11 Jul 2011 16:59:10 +0530
+Message-ID: <1310383759-19059-4-git-send-email-tarun.kanti@ti.com>
+References: <1310383759-19059-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52974 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:52973 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756723Ab1GKMsv (ORCPT
+	with ESMTP id S1753200Ab1GKMsv (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 08:48:51 -0400
-In-Reply-To: <1310383296-18956-1-git-send-email-tarun.kanti@ti.com>
+In-Reply-To: <1310383759-19059-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
