@@ -1,59 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: pm_runtime_suspended() can be false if RPM_SUSPENDED
-Date: Tue, 12 Jul 2011 00:36:49 +0200
-Message-ID: <201107120036.49823.rjw@sisk.pl>
-References: <871uy0733n.fsf@ti.com> <201107112222.18917.rjw@sisk.pl> <CALyTGOANs9ZUKmWH43s7H1Aod-y=jAueo045yzao66ze7Wko5g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:46949 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751363Ab1GKWfm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jul 2011 18:35:42 -0400
-In-Reply-To: <CALyTGOANs9ZUKmWH43s7H1Aod-y=jAueo045yzao66ze7Wko5g@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Dima Zavin <dima-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] usb: musb: omap2430: handle charger OTG xceiver event
+Date: Mon, 11 Jul 2011 15:43:17 -0700
+Message-ID: <1310424197-22909-1-git-send-email-dima@android.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dima Zavin <dima-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: linux-pm@lists.linux-foundation.org, Linux OMAP <linux-omap@vger.kernel.org>
 
-On Monday, July 11, 2011, Hilman, Kevin wrote:
-> On Mon, Jul 11, 2011 at 1:22 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Monday, July 11, 2011, Kevin Hilman wrote:
-> >> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> >>
-> >> [...]
-> >>
-> >> >>
-> >> >> However, based on the pm_runtime_set_active() problem you mentioned
-> >> >> above, I'm not sure this will help either, since what the PM domain's
-> >> >> noirq callback will want to do will be based on the actual device
-> >> >> hardware state, not on the PM core's view of the device state.
-> >> >
-> >> > Yes.  For devices whose runtime PM is never enabled, this is quite clear
-> >> > (we must assume they are operational).  For devices whose runtime PM is
-> >> > temporarily disabled and the reenabled, it's not that clear, but at
-> >> > least for the system suspend case we may require drivers not to use
-> >> > pm_runtime_set_active/suspended() in their callbacks, so that we may
-> >> > assume that the status hasn't changed between .suspend() and .resume().
-> >> >
-> >> > So, I think your approach (to check power.runtime_status) is correct in this
-> >> > respect.
-> >>
-> >> OK, I'll just directly check power.runtime_status in the noirq methods,
-> >> since at that point I always know that disable_depth > 0.
-> >
-> > That's what I wanted to say. :-)  The only problem with that is if
-> > CONFIG_PM_RUNTIME is unset, power.runtime_status is not present, so I think
-> > we'll need a static inline to work around that.
-> >
-> 
-> OK, I can prepare a patch for a static inline for
-> pm_runtime_status_suspended(), unless you have one already in
-> progress.
+Set a flag on OTG charger event and check it on cable
+remove event (i.e. USB_EVENT_NONE). This way we will
+not need to power up the PHY when an external charger
+is detected by the transceiver itself.
 
-No, I don't, please send me one if you can. :-)
+Signed-off-by: Dima Zavin <dima-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/usb/musb/musb_core.h |    1 +
+ drivers/usb/musb/omap2430.c  |   12 ++++++++++++
+ 2 files changed, 13 insertions(+), 0 deletions(-)
 
-Thanks,
-Rafael
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 0e053b5..f65269d 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -497,6 +497,7 @@ struct musb {
+ 	struct usb_gadget	g;			/* the gadget */
+ 	struct usb_gadget_driver *gadget_driver;	/* its driver */
+ #endif
++	bool			is_ac_charger:1;
+ 
+ 	/*
+ 	 * FIXME: Remove this flag.
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index c5d4c44..ac4cfbc 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -257,6 +257,11 @@ static int musb_otg_notifications(struct notifier_block *nb,
+ 		}
+ 		break;
+ 
++	case USB_EVENT_CHARGER:
++		dev_dbg(musb->controller, "Dedicated charger connect\n");
++		musb->is_ac_charger = true;
++		break;
++
+ 	case USB_EVENT_VBUS:
+ 		dev_dbg(musb->controller, "VBUS Connect\n");
+ 
+@@ -268,6 +273,13 @@ static int musb_otg_notifications(struct notifier_block *nb,
+ 		break;
+ 
+ 	case USB_EVENT_NONE:
++		if (musb->is_ac_charger) {
++			dev_dbg(musb->controller,
++				"Dedicated charger disconnect\n");
++			musb->is_ac_charger = false;
++			break;
++		}
++
+ 		dev_dbg(musb->controller, "VBUS Disconnect\n");
+ 
+ #ifdef CONFIG_USB_GADGET_MUSB_HDRC
+-- 
+1.7.3.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
