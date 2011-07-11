@@ -1,68 +1,53 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: [PATCH] TPS6507X: define MFD dependencies for touch and regulator
- unit
-Date: Mon, 11 Jul 2011 12:52:41 +0200
-Message-ID: <4E1AD5F9.6090103@visionsystems.de>
-References: <4E1ABB5E.8070406@visionsystems.de>
-Reply-To: yegor_sub1@visionsystems.de
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [linux-pm] Runtime PM discussion notes
+Date: Mon, 11 Jul 2011 20:04:38 +0900
+Message-ID: <20110711110435.GF5092@opensource.wolfsonmicro.com>
+References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org>
+ <201106232234.21930.rjw@sisk.pl>
+ <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com>
+ <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
+ <alpine.DEB.2.00.1106281346160.2874@utopia.booyaka.com>
+ <20110709040622.GH26900@sirena.org.uk>
+ <20110711095812.GT5783@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.visionsystems.de ([62.145.30.242]:41574 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753222Ab1GKKwv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 06:52:51 -0400
-In-Reply-To: <4E1ABB5E.8070406@visionsystems.de>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40265 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754229Ab1GKLEu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jul 2011 07:04:50 -0400
+Content-Disposition: inline
+In-Reply-To: <20110711095812.GT5783@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: yegor_sub1@visionsystems.de
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Arve Hj?nnev?g <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>
 
-Am 11.07.2011 10:59, schrieb Yegor Yefremov:
-> both touchscreen and regulator units are only working if
-> mfd device is activated. So if mfd support is enabled,
-> select TPS6507X mfd support automatically.
-> 
-> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
-> ---
->  drivers/input/touchscreen/Kconfig |    3 ++-
->  drivers/regulator/Kconfig         |    3 ++-
->  2 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> Index: b/drivers/input/touchscreen/Kconfig
-> ===================================================================
-> --- a/drivers/input/touchscreen/Kconfig
-> +++ b/drivers/input/touchscreen/Kconfig
-> @@ -716,7 +716,8 @@
->  
->  config TOUCHSCREEN_TPS6507X
->  	tristate "TPS6507x based touchscreens"
-> -	depends on I2C
-> +	depends on I2C && MFD_SUPPORT
-> +	select TPS6507X
->  	help
->  	  Say Y here if you have a TPS6507x based touchscreen
->  	  controller.
-> Index: b/drivers/regulator/Kconfig
-> ===================================================================
-> --- a/drivers/regulator/Kconfig
-> +++ b/drivers/regulator/Kconfig
-> @@ -242,7 +242,8 @@
->  
->  config REGULATOR_TPS6507X
->  	tristate "TI TPS6507X Power regulators"
-> -	depends on I2C
-> +	depends on I2C && MFD_SUPPORT
-> +	select TPS6507X
->  	help
->  	  This driver supports TPS6507X voltage regulator chips. TPS6507X provides
->  	  three step-down converters and two general-purpose LDO voltage regulators.
-> 
+On Mon, Jul 11, 2011 at 02:58:12AM -0700, Tony Lindgren wrote:
+> * Mark Brown <broonie@opensource.wolfsonmicro.com> [110708 21:01]:
 
-sorry for the noise. I've sent the patch to the proper list. 
+> > At least the Nexus S doesn't implmeent any of the deep idle
+> > infrastructure.  However, I'd expect that you can achieve some power
+> > saving from entering system suspend as if *everything* is off then the
+> > PMIC can be suspended which can enable additional power savings.  Unless
+> > I'm missing something that'd be hard to hit with cpuidle only stuff.
 
-Was just trying to get this touchscreen interface working with am3517 and after some hours of research I found out, that it depends on MFD driver ....
+> You should be able to hit the same states from idle no problem. At that
+> point the only things on are memory in retention and some wake-up timer.
+> Even the timer could be off if you have hardware wake-up events, but then
+> system timer won't work the noral way naturally.
 
-Best regards,
-Yegor
+Right, but it can be interesting to tell the PMIC that we went into this
+mode.  Possibly cpuidle will end up doing this as a result of signals
+generated as the CPU core goes down, but at that point it's just s2ram
+by another name.
+
+> The only way power down everything in suspend to disk :) Most PMICs have
+> some functionality always on so they can charge the battery when it's
+> empty.
+
+With some PMICs the truly always on functionality is *very* minimal and
+doesn't include chargers, it can be pretty much limited to wake sources
+(including power status changes which might start charging if power
+appears).
