@@ -1,72 +1,100 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] PM / Runtime: add new helper function: pm_runtime_status_suspended()
-Date: Mon, 11 Jul 2011 15:51:22 -0700
-Message-ID: <1310424682-21255-1-git-send-email-khilman@ti.com>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [PATCH v14 05/12] OMAP: dmtimer: platform driver
+Date: Mon, 11 Jul 2011 16:10:55 -0700
+Message-ID: <20110711231055.GA8312@google.com>
+References: <1310383759-19059-1-git-send-email-tarun.kanti@ti.com>
+ <1310383759-19059-6-git-send-email-tarun.kanti@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:48334 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758147Ab1GKWv0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jul 2011 18:51:26 -0400
-Received: by mail-iy0-f173.google.com with SMTP id 3so5023411iyb.32
-        for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 15:51:25 -0700 (PDT)
+Received: from smtp-out.google.com ([216.239.44.51]:56511 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754200Ab1GKXLk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 19:11:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1310383759-19059-6-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org
-Cc: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Thara Gopinath <thara@ti.com>
 
-This boolean function simply returns whether or not the runtime status
-of the device is 'suspended'.  Unlike pm_runtime_suspended(), this
-function returns the runtime status whether or not runtime PM for the
-device has been disabled or not.
+On Mon, Jul 11, 2011 at 04:59:12PM +0530, Tarun Kanti DebBarma wrote:
+> Add dmtimer platform driver functions which include:
+> (1) platform driver initialization
+> (2) driver probe function
+> (3) driver remove function
+> 
+...
+> +	timer = kzalloc(sizeof(struct omap_dm_timer), GFP_KERNEL);
+> +	if (!timer) {
+> +		dev_err(&pdev->dev, "%s: no memory for omap_dm_timer.\n",
+> +			__func__);
+> +		ret = -ENOMEM;
+> +		goto err_release_ioregion;
+> +	}
+> +
+> +	timer->io_base = ioremap(mem->start, resource_size(mem));
+> +	if (!timer->io_base) {
+> +		dev_err(&pdev->dev, "%s: ioremap failed.\n", __func__);
+> +		ret = -ENOMEM;
+> +		goto err_free_mem;
+> +	}
+> +
+> +	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
+> +		timer->func_offset = VERSION2_TIMER_WAKEUP_EN_REG_OFFSET;
+> +		timer->intr_offset = VERSION2_TIMER_STAT_REG_OFFSET;
+> +	} else {
+> +		timer->func_offset = 0;
+> +		timer->intr_offset = 0;
 
-Also add entry to Documentation/power/runtime.txt
+Don't need to init kzalloc'ed fields to zero.
 
-Suggested-by: Rafael J. Wysocki <rjw@sisk.pl>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- Documentation/power/runtime_pm.txt |    3 +++
- include/linux/pm_runtime.h         |    6 ++++++
- 2 files changed, 9 insertions(+), 0 deletions(-)
+> +	}
+> +
+> +	timer->id = pdev->id;
+> +	timer->irq = irq->start;
+> +	timer->pdev = pdev;
+> +	timer->reserved = 0;
 
-diff --git a/Documentation/power/runtime_pm.txt b/Documentation/power/runtime_pm.txt
-index 4b011b1..feca92f 100644
---- a/Documentation/power/runtime_pm.txt
-+++ b/Documentation/power/runtime_pm.txt
-@@ -400,6 +400,9 @@ drivers/base/power/runtime.c and include/linux/pm_runtime.h:
-     - return true if the device's runtime PM status is 'suspended' and its
-       'power.disable_depth' field is equal to zero, or false otherwise
- 
-+  bool pm_runtime_status_suspended(struct device *dev);
-+    - return true if the device's runtime PM status is 'suspended'
-+
-   void pm_runtime_allow(struct device *dev);
-     - set the power.runtime_auto flag for the device and decrease its usage
-       counter (used by the /sys/devices/.../power/control interface to
-diff --git a/include/linux/pm_runtime.h b/include/linux/pm_runtime.h
-index dfb8539..daac05d 100644
---- a/include/linux/pm_runtime.h
-+++ b/include/linux/pm_runtime.h
-@@ -82,6 +82,11 @@ static inline bool pm_runtime_suspended(struct device *dev)
- 		&& !dev->power.disable_depth;
- }
- 
-+static inline bool pm_runtime_status_suspended(struct device *dev)
-+{
-+	return dev->power.runtime_status == RPM_SUSPENDED;
-+}
-+
- static inline bool pm_runtime_enabled(struct device *dev)
- {
- 	return !dev->power.disable_depth;
-@@ -130,6 +135,7 @@ static inline void pm_runtime_put_noidle(struct device *dev) {}
- static inline bool device_run_wake(struct device *dev) { return false; }
- static inline void device_set_run_wake(struct device *dev, bool enable) {}
- static inline bool pm_runtime_suspended(struct device *dev) { return false; }
-+static inline bool pm_runtime_status_suspended(struct device *dev) { return false; }
- static inline bool pm_runtime_enabled(struct device *dev) { return false; }
- 
- static inline int pm_generic_runtime_idle(struct device *dev) { return 0; }
--- 
-1.7.6
+And here.
+
+> +err_free_pdev:
+> +	kfree(pdata);
+
+pdata wasn't allocated here, shouldn't be freed here.
+
+> +	platform_device_unregister(pdev);
+
+The platform device wasn't registered here.
+
+...
+> +static int __devexit omap_dm_timer_remove(struct platform_device *pdev)
+> +{
+> +	struct omap_dm_timer *timer, *tmp;
+> +	unsigned long flags;
+> +	int ret = -EINVAL;
+> +
+> +	spin_lock_irqsave(&dm_timer_lock, flags);
+> +	list_for_each_entry_safe(timer, tmp, &omap_timer_list, node) {
+
+
+Don't need list_for_each_entry_safe, you have the lock protecting list
+modifications held and IRQs off.
+
+> +		if (timer->pdev->id == pdev->id) {
+> +			kfree(timer->pdev->dev.platform_data);
+
+
+Not allocated by this driver.
+
+> +			platform_device_del(timer->pdev);
+
+
+Not added by this driver.
+
+> +			list_del(&timer->node);
+> +			kfree(timer);
+
+
+Todd
 
