@@ -1,64 +1,99 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [linux-pm] Runtime PM discussion notes
-Date: Mon, 11 Jul 2011 04:32:12 -0700
-Message-ID: <20110711113212.GW5783@atomide.com>
-References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org>
- <201106232234.21930.rjw@sisk.pl>
- <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com>
- <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
- <alpine.DEB.2.00.1106281346160.2874@utopia.booyaka.com>
- <20110709040622.GH26900@sirena.org.uk>
- <20110711095812.GT5783@atomide.com>
- <20110711110435.GF5092@opensource.wolfsonmicro.com>
- <20110711111424.GV5783@atomide.com>
- <20110711112619.GH5092@opensource.wolfsonmicro.com>
+Subject: Remaining omap pull requests
+Date: Mon, 11 Jul 2011 04:47:37 -0700
+Message-ID: <20110711114736.GX5783@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26113 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752568Ab1GKLcX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 07:32:23 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20110711112619.GH5092@opensource.wolfsonmicro.com>
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Arve Hj?nnev?g <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [110711 04:21]:
-> On Mon, Jul 11, 2011 at 04:14:24AM -0700, Tony Lindgren wrote:
-> > * Mark Brown <broonie@opensource.wolfsonmicro.com> [110711 03:59]:
-> 
-> > > Right, but it can be interesting to tell the PMIC that we went into this
-> > > mode.  Possibly cpuidle will end up doing this as a result of signals
-> > > generated as the CPU core goes down, but at that point it's just s2ram
-> > > by another name.
-> 
-> > All PMIC devices should be shut down when not in use, so I don't know
-> > what else you would configure in the PMIC. Maybe you have something else
-> > there to configure? Just curious what kind of mess you have to deal with
-> > compared to the mess I need to deal with :)
-> 
-> The interesting bits are things like being able to kill lots of the SoC
-> core supplies when the RAM is in retention mode - the CPU needs to go
-> through its shutdown procedures.
+Hi Arnd,
 
-I see. I've seen cases these are pre-programmed to the PMIC and then
-automatically triggered based on some event like WFI.
- 
-> > Also, hitting deeper sleep states from idle is not same as suspend to ram.
-> > With suspend to ram the system timer is killed while timers behave in a
-> > normal way when hitting deeper sleep states from idle.
-> 
-> Actually, it just occurred to me that if we're waiting for a system
-> timer and can hand that off to a suitable timer in the PMIC then we can
-> do a suspend to RAM for the deep idle state from the hardware point of
-> view.
+Below is a summary of the pending omap pull requests as there are still
+few branches pending.
 
-Cool, it would be nice to have a Linux generic way for programming a
-separate hardware wake-up timer. Not RTC, but some more accurate timer that
-might be too slow to access for general purpose usage.
+Can you please take a look and see what you can take of these for v3.1
+merge window?
+
+There's still quite a bit more code shrinkage, and the new code for 4460
+and PRCM related changes are badly needed.
+
+Here's what's still pending:
+
+1. Branches to pull into omap/cleanup
+
+   I will reply to this mail with a pull request for cleanup-part-3
+   that contains Russell's timer cleanup patch and Paul's PRCM cleanup
+   series.
+
+2. Branches to pull into omap/fixes
+
+   I will reply to this mail with a pull request for fixes-part-2 that
+   contains Paul's PRCM fixes, and one McBSP fix also from Paul.
+
+   This branch depends on cleanup-part-3 in #1 above for the PRCM fixes.
+
+3. Branches to pull into omap/board
+
+   This one needs one merge commit to clear the merge conflict that
+   I posted on Sunday at:
+
+   http://marc.info/?l=linux-omap&m=131032743717583&w=2
+
+4. New code for minimal omap4460 support
+
+   This I've posted here:
+
+   http://marc.info/?l=linux-omap&m=131032754417673&w=2
+
+   It has some a trivial merge conflict with the cleanup-part-3 in
+   #1 above that you should be able to handle.
+
+5. New code for ASoC and MFD changes
+
+   Because of the TWL cleanup, it was agreed that the TWL related
+   MFD/ASoC changes should be merged by us also. I will reply to
+   this mail with a pull request for this email.
+
+   Note that this could also be merged by the ASoC or MFD people
+   if they pull in your omap/cleanup-part-2.
+
+6. New code for PRCM changes
+
+   This you might as well pull from Paul directly as posted here:
+
+   http://marc.info/?l=linux-omap&m=131030152129307&w=2
+
+   It depends on the PRCM fixes in #2 above. I've already pulled
+   this into linux-omap master branch for testing.
+
+The following order should be kept for these branches:
+
+omap/cleanup
+omap/fixes
+omap/board
+
+And after that these can be merged in whatever order:
+
+new code for minimal 4460 support
+new code for ASoC/MFD
+new code for PRCM changes
+
+Then there are two new boards remaining, but they both are waiting
+on the machine_id patch.
 
 Regards,
 
