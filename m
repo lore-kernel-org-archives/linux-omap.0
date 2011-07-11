@@ -1,59 +1,53 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 22/22] cbus: tahvo: drop static global pointer
-Date: Mon, 11 Jul 2011 14:17:35 +0300
-Message-ID: <1310383055-20211-23-git-send-email-balbi@ti.com>
-References: <1310383055-20211-1-git-send-email-balbi@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [linux-pm] Runtime PM discussion notes
+Date: Mon, 11 Jul 2011 20:26:22 +0900
+Message-ID: <20110711112619.GH5092@opensource.wolfsonmicro.com>
+References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org>
+ <201106232234.21930.rjw@sisk.pl>
+ <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com>
+ <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
+ <alpine.DEB.2.00.1106281346160.2874@utopia.booyaka.com>
+ <20110709040622.GH26900@sirena.org.uk>
+ <20110711095812.GT5783@atomide.com>
+ <20110711110435.GF5092@opensource.wolfsonmicro.com>
+ <20110711111424.GV5783@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:60956 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754477Ab1GKLTg (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:59590 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754477Ab1GKL0e (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jul 2011 07:19:36 -0400
-Received: by gxk8 with SMTP id 8so1929789gxk.23
-        for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 04:19:35 -0700 (PDT)
-In-Reply-To: <1310383055-20211-1-git-send-email-balbi@ti.com>
+	Mon, 11 Jul 2011 07:26:34 -0400
+Content-Disposition: inline
+In-Reply-To: <20110711111424.GV5783@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, =?UTF-8?q?Michael=20B=C3=BCsch?= <mb@bu3sch.de>, Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Arve Hj?nnev?g <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>
 
-that's not used anywhere anymore. We can
-safely drop it.
+On Mon, Jul 11, 2011 at 04:14:24AM -0700, Tony Lindgren wrote:
+> * Mark Brown <broonie@opensource.wolfsonmicro.com> [110711 03:59]:
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/cbus/tahvo.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+> > Right, but it can be interesting to tell the PMIC that we went into this
+> > mode.  Possibly cpuidle will end up doing this as a result of signals
+> > generated as the CPU core goes down, but at that point it's just s2ram
+> > by another name.
 
-diff --git a/drivers/cbus/tahvo.c b/drivers/cbus/tahvo.c
-index 784431c..43f6d6a 100644
---- a/drivers/cbus/tahvo.c
-+++ b/drivers/cbus/tahvo.c
-@@ -56,8 +56,6 @@ struct tahvo {
- 	unsigned int	is_betty:1;
- };
- 
--static struct tahvo *the_tahvo;
--
- /**
-  * __tahvo_read_reg - Reads a value from a register in Tahvo
-  * @tahvo: pointer to tahvo structure
-@@ -334,7 +332,6 @@ static int __devinit tahvo_probe(struct platform_device *pdev)
- 	tahvo->irq_end	= ret + MAX_TAHVO_IRQ_HANDLERS;
- 	tahvo->dev	= &pdev->dev;
- 	tahvo->irq	= irq;
--	the_tahvo	= tahvo;
- 
- 	tahvo_irq_init(tahvo);
- 
-@@ -388,7 +385,6 @@ static int __devexit tahvo_remove(struct platform_device *pdev)
- 	free_irq(irq, 0);
- 	irq_free_descs(tahvo->irq_base, MAX_TAHVO_IRQ_HANDLERS);
- 	kfree(tahvo);
--	the_tahvo = NULL;
- 
- 	return 0;
- }
--- 
-1.7.6
+> All PMIC devices should be shut down when not in use, so I don't know
+> what else you would configure in the PMIC. Maybe you have something else
+> there to configure? Just curious what kind of mess you have to deal with
+> compared to the mess I need to deal with :)
 
+The interesting bits are things like being able to kill lots of the SoC
+core supplies when the RAM is in retention mode - the CPU needs to go
+through its shutdown procedures.
+
+> Also, hitting deeper sleep states from idle is not same as suspend to ram.
+> With suspend to ram the system timer is killed while timers behave in a
+> normal way when hitting deeper sleep states from idle.
+
+Actually, it just occurred to me that if we're waiting for a system
+timer and can hand that off to a suitable timer in the PMIC then we can
+do a suspend to RAM for the deep idle state from the hardware point of
+view.
