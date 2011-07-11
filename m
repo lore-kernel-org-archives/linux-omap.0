@@ -1,50 +1,70 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RFC 0/4] TWL external controller support
-Date: Mon, 11 Jul 2011 16:06:32 +0300
-Message-ID: <1310389592.4331.53.camel@sokoban>
-References: <1310140588-26078-1-git-send-email-t-kristo@ti.com> <20110708162531.GE31978@legolas.emea.dhcp.ti.com> <20110709012407.GG18860@opensource.wolfsonmicro.com> <20110709104007.GM31978@legolas.emea.dhcp.ti.com> <20110709105649.GA17036@opensource.wolfsonmicro.com> <1310372591.4331.27.camel@sokoban> <20110711100509.GC5092@opensource.wolfsonmicro.com> <1310381339.4331.45.camel@sokoban> <20110711121111.GL5092@opensource.wolfsonmicro.com>
-Reply-To: <t-kristo@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [lm-sensors] [PATCH] mfd: twl4030: Fix mismatch in mutex
+ lock-unlock
+Date: Mon, 11 Jul 2011 18:40:44 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024DA7AA59@dbde02.ent.ti.com>
+References: <1310129879-4748-1-git-send-email-premi@ti.com>
+ <20110709085124.401dba10@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56331 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45961 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756767Ab1GKNGh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 09:06:37 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <20110711121111.GL5092@opensource.wolfsonmicro.com>
+	id S1756792Ab1GKNLf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 09:11:35 -0400
+In-Reply-To: <20110709085124.401dba10@endymion.delvare>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, linux-omap@vger.kernel.org, "Girdwood, Liam" <lrg@ti.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2011-07-11 at 14:11 +0200, Mark Brown wrote:
-> On Mon, Jul 11, 2011 at 01:48:59PM +0300, Tero Kristo wrote:
-> > On Mon, 2011-07-11 at 12:05 +0200, Mark Brown wrote:
+> -----Original Message-----
+> From: Jean Delvare [mailto:khali@linux-fr.org] 
+> Sent: Saturday, July 09, 2011 12:21 PM
+> To: Premi, Sanjeev
+> Cc: lm-sensors@lm-sensors.org; linux-omap@vger.kernel.org
+> Subject: Re: [lm-sensors] [PATCH] mfd: twl4030: Fix mismatch 
+> in mutex lock-unlock
 > 
-> > > No.  Why do you want these regulators to have anything to do with the
-> > > TWL4030?
+> On Fri, 8 Jul 2011 18:27:59 +0530, Sanjeev Premi wrote:
+> > A mutex is locked on entry into twl4030_madc_conversion().
+> > Immediate return on some error conditions leaves the
+> > mutex locked.
+> > 
+> > This patch ensures that mutex is always unlocked before
+> > leaving the function.
+> > 
+> > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> > Cc: Keerthy <j-keerthy@ti.com>
+> > ---
+> > 
+> >  Compile tested only.
+> > 
+> > 
+> >  drivers/mfd/twl4030-madc.c |    8 ++++----
+> >  1 files changed, 4 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/mfd/twl4030-madc.c b/drivers/mfd/twl4030-madc.c
+> > index 3941ddc..b5d598c 100644
+> > --- a/drivers/mfd/twl4030-madc.c
+> > +++ b/drivers/mfd/twl4030-madc.c
+> > (...)
 > 
-> > So, a completely new driver should be made for these? The reason I
-> > wanted to put them within TWL4030 code is that they reside inside
-> > TWL4030, and there is already some code for accessing these regulators
-> > (in the standard I2C access method) from the twl-regulator.c.
+> Wrong list. This isn't a hwmon driver, so lm-sensors isn't suitable.
+> scripts/get_maintainer.pl says that you should send this patch to:
+> Samuel Ortiz <sameo@linux.intel.com>
+
+[sp] I picked the list from the patch where this functionality was first
+     introduced. Assumed that Samuel would on this list itself...
+
+     sorry for noise :(
+
+~sanjeev
+
 > 
-> Well, if they're not perceptibly part of the same chip from a control
-> point of view and need you to provide board specific callbacks it would
-> seem logical...
-
-Ok sounds fair enough, I'll rework this series to something like this
-and re-post for commenting once I hear from Graeme also. I'll add a
-compile time switch (or most likely use something existing) for
-selecting which implementation to use for VDD1 and VDD2.
-
-Thanks for comments.
-
--Tero
-
-
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
-
+> Thanks,
+> -- 
+> Jean Delvare
+> 
