@@ -1,58 +1,124 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] OMAP2+: PM: fix watchdog boot when runtime PM is disabled
-Date: Mon, 11 Jul 2011 16:21:24 -0700
-Message-ID: <1310426484-30083-1-git-send-email-khilman@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v14 05/12] OMAP: dmtimer: platform driver
+Date: Tue, 12 Jul 2011 04:57:59 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BE7806F@dbde02.ent.ti.com>
+References: <1310383759-19059-1-git-send-email-tarun.kanti@ti.com>
+ <1310383759-19059-6-git-send-email-tarun.kanti@ti.com>
+ <20110711231055.GA8312@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:54724 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752488Ab1GKXV1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jul 2011 19:21:27 -0400
-Received: by mail-iy0-f169.google.com with SMTP id 8so4869749iyl.0
-        for <linux-omap@vger.kernel.org>; Mon, 11 Jul 2011 16:21:27 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34096 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757986Ab1GKX2L convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 19:28:11 -0400
+In-Reply-To: <20110711231055.GA8312@google.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+To: Todd Poynor <toddpoynor@google.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Gopinath, Thara" <thara@ti.com>
 
-Fix boot crash in watchdog driver when runtime PM is disabled.
+> -----Original Message-----
+> From: Todd Poynor [mailto:toddpoynor@google.com]
+> Sent: Tuesday, July 12, 2011 4:41 AM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org; Hilman, Kevin; Shilimkar, Santosh;
+> tony@atomide.com; linux-arm-kernel@lists.infradead.org; Gopinath, Thara
+> Subject: Re: [PATCH v14 05/12] OMAP: dmtimer: platform driver
+> 
+> On Mon, Jul 11, 2011 at 04:59:12PM +0530, Tarun Kanti DebBarma wrote:
+> > Add dmtimer platform driver functions which include:
+> > (1) platform driver initialization
+> > (2) driver probe function
+> > (3) driver remove function
+> >
+> ...
+> > +	timer = kzalloc(sizeof(struct omap_dm_timer), GFP_KERNEL);
+> > +	if (!timer) {
+> > +		dev_err(&pdev->dev, "%s: no memory for omap_dm_timer.\n",
+> > +			__func__);
+> > +		ret = -ENOMEM;
+> > +		goto err_release_ioregion;
+> > +	}
+> > +
+> > +	timer->io_base = ioremap(mem->start, resource_size(mem));
+> > +	if (!timer->io_base) {
+> > +		dev_err(&pdev->dev, "%s: ioremap failed.\n", __func__);
+> > +		ret = -ENOMEM;
+> > +		goto err_free_mem;
+> > +	}
+> > +
+> > +	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
+> > +		timer->func_offset = VERSION2_TIMER_WAKEUP_EN_REG_OFFSET;
+> > +		timer->intr_offset = VERSION2_TIMER_STAT_REG_OFFSET;
+> > +	} else {
+> > +		timer->func_offset = 0;
+> > +		timer->intr_offset = 0;
+> 
+> Don't need to init kzalloc'ed fields to zero.
+Yes, I will remove.
 
-When runtime PM is disabled, devices should be left enabled so that
-all device accesses in drivers will succeed even though the runtime PM
-get/put calls are noops.
+> 
+> > +	}
+> > +
+> > +	timer->id = pdev->id;
+> > +	timer->irq = irq->start;
+> > +	timer->pdev = pdev;
+> > +	timer->reserved = 0;
+> 
+> And here.
+Yes.
+> 
+> > +err_free_pdev:
+> > +	kfree(pdata);
+> 
+> pdata wasn't allocated here, shouldn't be freed here.
+Yes, I will correct the error handling labels appropriately.
 
-This is already the case for all devices, but the WDT init has its
-own hwmod postsetup which was not taking this into account.
+> 
+> > +	platform_device_unregister(pdev);
+> 
+> The platform device wasn't registered here.
+Oops... I will remove. Thanks.
 
-This fixes a boot crash where the first device access in the WDT probe
-function would crash a booting kernel.
+> 
+> ...
+> > +static int __devexit omap_dm_timer_remove(struct platform_device *pdev)
+> > +{
+> > +	struct omap_dm_timer *timer, *tmp;
+> > +	unsigned long flags;
+> > +	int ret = -EINVAL;
+> > +
+> > +	spin_lock_irqsave(&dm_timer_lock, flags);
+> > +	list_for_each_entry_safe(timer, tmp, &omap_timer_list, node) {
+> 
+> 
+> Don't need list_for_each_entry_safe, you have the lock protecting list
+> modifications held and IRQs off.
+Ok.
 
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Tony, as this is a boot crash, it should probably be queued for v3.0.
-However, since OMAP2PLUS_TYPICAL always enables runtime PM, this is
-unlikely to be seen unless specifically testing with runtime PM disabled.
+> 
+> > +		if (timer->pdev->id == pdev->id) {
+> > +			kfree(timer->pdev->dev.platform_data);
+> 
+> 
+> Not allocated by this driver.
+In fact it gets automatically freed. I will remove.
 
- arch/arm/mach-omap2/io.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 441e79d..95c08aa 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -395,7 +395,11 @@ void __init omap2_init_common_infrastructure(void)
- 	 * XXX ideally we could detect whether the MPU WDT was currently
- 	 * enabled here and make this conditional
- 	 */
-+#ifdef CONFIG_PM_RUNTIME
- 	postsetup_state = _HWMOD_STATE_DISABLED;
-+#else
-+	postsetup_state = _HWMOD_STATE_ENABLED;
-+#endif
- 	omap_hwmod_for_each_by_class("wd_timer",
- 				     _set_hwmod_postsetup_state,
- 				     &postsetup_state);
--- 
-1.7.6
+> 
+> > +			platform_device_del(timer->pdev);
+> 
+> 
+> Not added by this driver.
+Ok.
+--
+Tarun
+> 
+> > +			list_del(&timer->node);
+> > +			kfree(timer);
+> 
+> 
+> Todd
 
