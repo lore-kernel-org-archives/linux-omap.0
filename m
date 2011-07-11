@@ -1,19 +1,19 @@
 From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v14 05/12] OMAP: dmtimer: platform driver
-Date: Tue, 12 Jul 2011 04:57:59 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BE7806F@dbde02.ent.ti.com>
+Subject: RE: [PATCH v14 04/12] OMAP2+: dmtimer: convert to platform devices
+Date: Tue, 12 Jul 2011 04:59:10 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BE78070@dbde02.ent.ti.com>
 References: <1310383759-19059-1-git-send-email-tarun.kanti@ti.com>
- <1310383759-19059-6-git-send-email-tarun.kanti@ti.com>
- <20110711231055.GA8312@google.com>
+ <1310383759-19059-5-git-send-email-tarun.kanti@ti.com>
+ <20110711231935.GB8312@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34096 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54238 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757986Ab1GKX2L convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 19:28:11 -0400
-In-Reply-To: <20110711231055.GA8312@google.com>
+	id S1753946Ab1GKX3T convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 19:29:19 -0400
+In-Reply-To: <20110711231935.GB8312@google.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -22,103 +22,85 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <
 
 > -----Original Message-----
 > From: Todd Poynor [mailto:toddpoynor@google.com]
-> Sent: Tuesday, July 12, 2011 4:41 AM
+> Sent: Tuesday, July 12, 2011 4:50 AM
 > To: DebBarma, Tarun Kanti
 > Cc: linux-omap@vger.kernel.org; Hilman, Kevin; Shilimkar, Santosh;
 > tony@atomide.com; linux-arm-kernel@lists.infradead.org; Gopinath, Thara
-> Subject: Re: [PATCH v14 05/12] OMAP: dmtimer: platform driver
+> Subject: Re: [PATCH v14 04/12] OMAP2+: dmtimer: convert to platform
+> devices
 > 
-> On Mon, Jul 11, 2011 at 04:59:12PM +0530, Tarun Kanti DebBarma wrote:
-> > Add dmtimer platform driver functions which include:
-> > (1) platform driver initialization
-> > (2) driver probe function
-> > (3) driver remove function
+> On Mon, Jul 11, 2011 at 04:59:11PM +0530, Tarun Kanti DebBarma wrote:
+> > Add routines to converts dmtimers to platform devices. The device data
+> > is obtained from hwmod database of respective platform and is registered
+> > to device model after successful binding to driver.
+> > In addition, capability attribute of each of the timers is added in
+> > hwmod database.
 > >
 > ...
-> > +	timer = kzalloc(sizeof(struct omap_dm_timer), GFP_KERNEL);
-> > +	if (!timer) {
-> > +		dev_err(&pdev->dev, "%s: no memory for omap_dm_timer.\n",
-> > +			__func__);
-> > +		ret = -ENOMEM;
-> > +		goto err_release_ioregion;
+> > +static int omap2_dm_timer_set_src(struct platform_device *pdev, int
+> source)
+> > +{
+> > +	int ret;
+> > +	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
+> > +	struct clk *fclk, *parent;
+> > +	char *parent_name = NULL;
+> > +
+> > +	fclk = clk_get(&pdev->dev, "fck");
+> > +	if (IS_ERR_OR_NULL(fclk)) {
+> > +		dev_err(&pdev->dev, "%s: %d: clk_get() FAILED\n",
+> > +				__func__, __LINE__);
+> > +		return -EINVAL;
 > > +	}
 > > +
-> > +	timer->io_base = ioremap(mem->start, resource_size(mem));
-> > +	if (!timer->io_base) {
-> > +		dev_err(&pdev->dev, "%s: ioremap failed.\n", __func__);
-> > +		ret = -ENOMEM;
-> > +		goto err_free_mem;
-> > +	}
+> > +	switch (source) {
+> > +	case OMAP_TIMER_SRC_SYS_CLK:
+> > +		parent_name = "sys_ck";
+> > +		break;
 > > +
-> > +	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
-> > +		timer->func_offset = VERSION2_TIMER_WAKEUP_EN_REG_OFFSET;
-> > +		timer->intr_offset = VERSION2_TIMER_STAT_REG_OFFSET;
-> > +	} else {
-> > +		timer->func_offset = 0;
-> > +		timer->intr_offset = 0;
-> 
-> Don't need to init kzalloc'ed fields to zero.
-Yes, I will remove.
-
-> 
-> > +	}
+> > +	case OMAP_TIMER_SRC_32_KHZ:
+> > +		parent_name = "32k_ck";
+> > +		break;
 > > +
-> > +	timer->id = pdev->id;
-> > +	timer->irq = irq->start;
-> > +	timer->pdev = pdev;
-> > +	timer->reserved = 0;
+> > +	case OMAP_TIMER_SRC_EXT_CLK:
+> > +		if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_1) {
+> > +			parent_name = "alt_ck";
+> > +			break;
+> > +		}
+> > +		dev_err(&pdev->dev, "%s: %d: invalid clk src.\n",
+> > +			__func__, __LINE__);
+> > +		return -EINVAL;
 > 
-> And here.
-Yes.
-> 
-> > +err_free_pdev:
-> > +	kfree(pdata);
-> 
-> pdata wasn't allocated here, shouldn't be freed here.
-Yes, I will correct the error handling labels appropriately.
-
-> 
-> > +	platform_device_unregister(pdev);
-> 
-> The platform device wasn't registered here.
-Oops... I will remove. Thanks.
+> Should clk_put(fclk);
+Ok.
 
 > 
 > ...
-> > +static int __devexit omap_dm_timer_remove(struct platform_device *pdev)
-> > +{
-> > +	struct omap_dm_timer *timer, *tmp;
-> > +	unsigned long flags;
-> > +	int ret = -EINVAL;
+> > +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+> > +	if (!pdata) {
+> > +		pr_err("%s: No memory for [%s]\n", __func__, oh->name);
+> > +		return -ENOMEM;
+> > +	}
 > > +
-> > +	spin_lock_irqsave(&dm_timer_lock, flags);
-> > +	list_for_each_entry_safe(timer, tmp, &omap_timer_list, node) {
+> > +	/*
+> > +	 * Extract the IDs from name field in hwmod database
+> > +	 * and use the same for constructing ids' for the
+> > +	 * timer devices. In a way, we are avoiding usage of
+> > +	 * static variable witin the function to do the same.
+> > +	 * CAUTION: We have to be careful and make sure the
+> > +	 * name in hwmod database does not change in which case
+> > +	 * we might either make corresponding change here or
+> > +	 * switch back static variable mechanism.
+> > +	 */
+> > +	sscanf(oh->name, "timer%2d", &id);
+> > +
+> > +	pdata->set_timer_src = omap2_dm_timer_set_src;
+> > +	pdata->timer_ip_type = oh->class->rev;
+> > +	pdata->needs_manual_reset = 0;
 > 
-> 
-> Don't need list_for_each_entry_safe, you have the lock protecting list
-> modifications held and IRQs off.
-Ok.
-
-> 
-> > +		if (timer->pdev->id == pdev->id) {
-> > +			kfree(timer->pdev->dev.platform_data);
-> 
-> 
-> Not allocated by this driver.
-In fact it gets automatically freed. I will remove.
-
-> 
-> > +			platform_device_del(timer->pdev);
-> 
-> 
-> Not added by this driver.
-Ok.
+> Can omit init to zero of kzalloc'ed mem.
+Sure. Thanks.
 --
 Tarun
 > 
-> > +			list_del(&timer->node);
-> > +			kfree(timer);
-> 
 > 
 > Todd
-
