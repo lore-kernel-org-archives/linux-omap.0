@@ -1,16 +1,16 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Subject: [PATCH v14 07/12] OMAP: dmtimer: pm_runtime support
-Date: Mon, 11 Jul 2011 16:51:31 +0530
-Message-ID: <1310383296-18956-8-git-send-email-tarun.kanti@ti.com>
-References: <1310383296-18956-1-git-send-email-tarun.kanti@ti.com>
+Date: Mon, 11 Jul 2011 16:59:14 +0530
+Message-ID: <1310383759-19059-8-git-send-email-tarun.kanti@ti.com>
+References: <1310383759-19059-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44234 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50857 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753604Ab1GKMsp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753316Ab1GKMsp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 11 Jul 2011 08:48:45 -0400
-In-Reply-To: <1310383296-18956-1-git-send-email-tarun.kanti@ti.com>
+In-Reply-To: <1310383759-19059-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
