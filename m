@@ -1,76 +1,257 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC 0/4] TWL external controller support
-Date: Mon, 11 Jul 2011 21:11:14 +0900
-Message-ID: <20110711121111.GL5092@opensource.wolfsonmicro.com>
-References: <1310140588-26078-1-git-send-email-t-kristo@ti.com>
- <20110708162531.GE31978@legolas.emea.dhcp.ti.com>
- <20110709012407.GG18860@opensource.wolfsonmicro.com>
- <20110709104007.GM31978@legolas.emea.dhcp.ti.com>
- <20110709105649.GA17036@opensource.wolfsonmicro.com>
- <1310372591.4331.27.camel@sokoban>
- <20110711100509.GC5092@opensource.wolfsonmicro.com>
- <1310381339.4331.45.camel@sokoban>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v14 05/12] OMAP: dmtimer: platform driver
+Date: Mon, 11 Jul 2011 16:51:29 +0530
+Message-ID: <1310383296-18956-6-git-send-email-tarun.kanti@ti.com>
+References: <1310383296-18956-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:52091 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756292Ab1GKML0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jul 2011 08:11:26 -0400
-Content-Disposition: inline
-In-Reply-To: <1310381339.4331.45.camel@sokoban>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54940 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751344Ab1GKMsn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jul 2011 08:48:43 -0400
+In-Reply-To: <1310383296-18956-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, linux-omap@vger.kernel.org, "Girdwood, Liam" <lrg@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Thara Gopinath <thara@ti.com>
 
-On Mon, Jul 11, 2011 at 01:48:59PM +0300, Tero Kristo wrote:
-> On Mon, 2011-07-11 at 12:05 +0200, Mark Brown wrote:
+Add dmtimer platform driver functions which include:
+(1) platform driver initialization
+(2) driver probe function
+(3) driver remove function
 
-> > No.  Why do you want these regulators to have anything to do with the
-> > TWL4030?
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Acked-by: Cousson, Benoit <b-cousson@ti.com>
+---
+ arch/arm/plat-omap/dmtimer.c              |  159 +++++++++++++++++++++++++++--
+ arch/arm/plat-omap/include/plat/dmtimer.h |   11 ++
+ 2 files changed, 163 insertions(+), 7 deletions(-)
 
-> So, a completely new driver should be made for these? The reason I
-> wanted to put them within TWL4030 code is that they reside inside
-> TWL4030, and there is already some code for accessing these regulators
-> (in the standard I2C access method) from the twl-regulator.c.
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 995bab0..c5573c3 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -35,14 +35,9 @@
+  * 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include <linux/init.h>
+-#include <linux/spinlock.h>
+-#include <linux/errno.h>
+-#include <linux/list.h>
+-#include <linux/clk.h>
+-#include <linux/delay.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
++#include <linux/slab.h>
+ #include <mach/hardware.h>
+ #include <plat/dmtimer.h>
+ #include <mach/irqs.h>
+@@ -149,6 +144,7 @@ static const char **dm_source_names;
+ static struct clk **dm_source_clocks;
+ 
+ static spinlock_t dm_timer_lock;
++static LIST_HEAD(omap_timer_list);
+ 
+ /*
+  * Reads timer registers in posted and non-posted mode. The posted mode bit
+@@ -544,7 +540,156 @@ int omap_dm_timers_active(void)
+ }
+ EXPORT_SYMBOL_GPL(omap_dm_timers_active);
+ 
+-static int __init omap_dm_timer_init(void)
++/**
++ * omap_dm_timer_probe - probe function called for every registered device
++ * @pdev:	pointer to current timer platform device
++ *
++ * Called by driver framework at the end of device registration for all
++ * timer devices.
++ */
++static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
++{
++	int ret;
++	unsigned long flags;
++	struct omap_dm_timer *timer;
++	struct resource *mem, *irq, *ioarea;
++	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "%s: no platform data.\n", __func__);
++		return -ENODEV;
++	}
++
++	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++	if (unlikely(!irq)) {
++		dev_err(&pdev->dev, "%s: no IRQ resource.\n", __func__);
++		ret = -ENODEV;
++		goto err_free_pdev;
++	}
++
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (unlikely(!mem)) {
++		dev_err(&pdev->dev, "%s: no memory resource.\n", __func__);
++		ret = -ENODEV;
++		goto err_free_pdev;
++	}
++
++	ioarea = request_mem_region(mem->start, resource_size(mem),
++			pdev->name);
++	if (!ioarea) {
++		dev_err(&pdev->dev, "%s: region already claimed.\n", __func__);
++		ret = -EBUSY;
++		goto err_free_pdev;
++	}
++
++	timer = kzalloc(sizeof(struct omap_dm_timer), GFP_KERNEL);
++	if (!timer) {
++		dev_err(&pdev->dev, "%s: no memory for omap_dm_timer.\n",
++			__func__);
++		ret = -ENOMEM;
++		goto err_release_ioregion;
++	}
++
++	timer->io_base = ioremap(mem->start, resource_size(mem));
++	if (!timer->io_base) {
++		dev_err(&pdev->dev, "%s: ioremap failed.\n", __func__);
++		ret = -ENOMEM;
++		goto err_free_mem;
++	}
++
++	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
++		timer->func_offset = VERSION2_TIMER_WAKEUP_EN_REG_OFFSET;
++		timer->intr_offset = VERSION2_TIMER_STAT_REG_OFFSET;
++	} else {
++		timer->func_offset = 0;
++		timer->intr_offset = 0;
++	}
++
++	timer->id = pdev->id;
++	timer->irq = irq->start;
++	timer->pdev = pdev;
++	timer->reserved = 0;
++
++	/* add the timer element to the list */
++	spin_lock_irqsave(&dm_timer_lock, flags);
++	list_add_tail(&timer->node, &omap_timer_list);
++	spin_unlock_irqrestore(&dm_timer_lock, flags);
++
++	dev_dbg(&pdev->dev, "Device Probed.\n");
++
++	return 0;
++
++err_free_mem:
++	kfree(timer);
++
++err_release_ioregion:
++	release_mem_region(mem->start, resource_size(mem));
++
++err_free_pdev:
++	kfree(pdata);
++	platform_device_unregister(pdev);
++
++	return ret;
++}
++
++/**
++ * omap_dm_timer_remove - cleanup a registered timer device
++ * @pdev:	pointer to current timer platform device
++ *
++ * Called by driver framework whenever a timer device is unregistered.
++ * In addition to freeing platform resources it also deletes the timer
++ * entry from the local list.
++ */
++static int __devexit omap_dm_timer_remove(struct platform_device *pdev)
++{
++	struct omap_dm_timer *timer, *tmp;
++	unsigned long flags;
++	int ret = -EINVAL;
++
++	spin_lock_irqsave(&dm_timer_lock, flags);
++	list_for_each_entry_safe(timer, tmp, &omap_timer_list, node) {
++		if (timer->pdev->id == pdev->id) {
++			kfree(timer->pdev->dev.platform_data);
++			platform_device_del(timer->pdev);
++			list_del(&timer->node);
++			kfree(timer);
++			ret = 0;
++			break;
++		}
++	}
++	spin_unlock_irqrestore(&dm_timer_lock, flags);
++
++	return ret;
++}
++
++static struct platform_driver omap_dm_timer_driver = {
++	.probe  = omap_dm_timer_probe,
++	.remove = omap_dm_timer_remove,
++	.driver = {
++		.name   = "omap_timer",
++	},
++};
++
++static int __init omap_dm_timer_driver_init(void)
++{
++	return platform_driver_register(&omap_dm_timer_driver);
++}
++
++static void __exit omap_dm_timer_driver_exit(void)
++{
++	platform_driver_unregister(&omap_dm_timer_driver);
++}
++
++early_platform_init("earlytimer", &omap_dm_timer_driver);
++module_init(omap_dm_timer_driver_init);
++module_exit(omap_dm_timer_driver_exit);
++
++MODULE_DESCRIPTION("OMAP Dual-Mode Timer Driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRIVER_NAME);
++MODULE_AUTHOR("Texas Instruments Inc");
++
++int __init omap_dm_timer_init(void)
+ {
+ 	struct omap_dm_timer *timer;
+ 	int i, map_size = SZ_8K;	/* Module 4KB + L4 4KB except on omap1 */
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index 400fe3c..833a33b 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -61,6 +61,13 @@
+ #define OMAP_TIMER_IP_VERSION_1			0x1
+ #define OMAP_TIMER_IP_VERSION_2			0x2
+ 
++/*
++ * OMAP4 IP revision has different register offsets
++ * for interrupt registers and functional registers.
++ */
++#define VERSION2_TIMER_WAKEUP_EN_REG_OFFSET     0x14
++#define VERSION2_TIMER_STAT_REG_OFFSET          0x10
++
+ /* timer capabilities used in hwmod database */
+ #define OMAP_TIMER_SECURE				0x80000000
+ #define OMAP_TIMER_ALWON				0x40000000
+@@ -225,6 +232,7 @@ int omap_dm_timers_active(void);
+ 
+ struct omap_dm_timer {
+ 	unsigned long phys_base;
++	int id;
+ 	int irq;
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+ 	struct clk *iclk, *fclk;
+@@ -234,7 +242,10 @@ struct omap_dm_timer {
+ 	unsigned reserved:1;
+ 	unsigned enabled:1;
+ 	unsigned posted:1;
++	u8 func_offset;
++	u8 intr_offset;
+ 	struct platform_device *pdev;
++	struct list_head node;
+ };
+ 
+ extern u32 sys_timer_reserved;
+-- 
+1.6.0.4
 
-Well, if they're not perceptibly part of the same chip from a control
-point of view and need you to provide board specific callbacks it would
-seem logical...
-
-> > > configured from the TWL side. The voltage processor support is currently
-> > > provided by the omap platform code, and regulator code knows nothing
-> > > about this. It might also be possible to do compile time switch for the
-> > > interface here if that is acceptable, however a runtime interface for
-> > > doing this would provide more flexibility.
-
-> > This isn't making much sense to me, what is the relationship between
-> > this and the other regulators you're adding these bodge interfaces for?
-> > Why would you want to switch between the two modes at runtime and how
-> > would anyone take the decision to do so?
-
-> Runtime switching would mostly be useful as a testing feature. In
-> typical setup the configuration is just selected during boot time, and
-> thats it. And normally we would just want to use the voltage processor
-> interfaces to control these regulators.
-
-It doesn't seem like a good idea to support that, then.  If there's no
-benefit to switching dynamically we're just adding complexity to the
-system which people will then spend time tweaking and making work
-dealing with any robustness issues from managing the transitions.
-
-> > If some of the TWL4030 regulators are controlled by something other than
-> > the CPU in your system then the TWL4030 driver shouldn't be configured
-> > to do anything with them except possibly provide read only access.
-
-> I think this part I have not been too clear about... CPU is controlling
-> the voltage level for these regulators, but the used hardware interface
-> is different... and the CPU is giving a guideline that we should be
-> using the nominal voltage level based on cpufreq setup, but the actual
-> voltage set on the TWL chip is usually different.
-
-Right, but from a software point of view the fact that we end up with
-the same physical regulator is immaterial as you have to try *really*
-hard to notice.
