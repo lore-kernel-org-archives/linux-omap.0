@@ -1,69 +1,65 @@
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-Subject: Re: [PATCH 00/22] Tahvo cleanups and Retu optimization
-Date: Mon, 11 Jul 2011 13:28:42 +0200
-Message-ID: <20110711132842.10606a31@maggie>
-References: <1310383055-20211-1-git-send-email-balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [linux-pm] Runtime PM discussion notes
+Date: Mon, 11 Jul 2011 04:32:12 -0700
+Message-ID: <20110711113212.GW5783@atomide.com>
+References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org>
+ <201106232234.21930.rjw@sisk.pl>
+ <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com>
+ <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
+ <alpine.DEB.2.00.1106281346160.2874@utopia.booyaka.com>
+ <20110709040622.GH26900@sirena.org.uk>
+ <20110711095812.GT5783@atomide.com>
+ <20110711110435.GF5092@opensource.wolfsonmicro.com>
+ <20110711111424.GV5783@atomide.com>
+ <20110711112619.GH5092@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:36801 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754637Ab1GKL2x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jul 2011 07:28:53 -0400
-In-Reply-To: <1310383055-20211-1-git-send-email-balbi@ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26113 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752568Ab1GKLcX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 07:32:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20110711112619.GH5092@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Michael =?UTF-8?B?QsO8c2No?= <mb@bu3sch.de>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Arve Hj?nnev?g <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>
 
-On Mon, 11 Jul 2011 14:17:13 +0300
-Felipe Balbi <balbi@ti.com> wrote:
+* Mark Brown <broonie@opensource.wolfsonmicro.com> [110711 04:21]:
+> On Mon, Jul 11, 2011 at 04:14:24AM -0700, Tony Lindgren wrote:
+> > * Mark Brown <broonie@opensource.wolfsonmicro.com> [110711 03:59]:
+> 
+> > > Right, but it can be interesting to tell the PMIC that we went into this
+> > > mode.  Possibly cpuidle will end up doing this as a result of signals
+> > > generated as the CPU core goes down, but at that point it's just s2ram
+> > > by another name.
+> 
+> > All PMIC devices should be shut down when not in use, so I don't know
+> > what else you would configure in the PMIC. Maybe you have something else
+> > there to configure? Just curious what kind of mess you have to deal with
+> > compared to the mess I need to deal with :)
+> 
+> The interesting bits are things like being able to kill lots of the SoC
+> core supplies when the RAM is in retention mode - the CPU needs to go
+> through its shutdown procedures.
 
-> Hi Tony,
+I see. I've seen cases these are pre-programmed to the PMIC and then
+automatically triggered based on some event like WFI.
+ 
+> > Also, hitting deeper sleep states from idle is not same as suspend to ram.
+> > With suspend to ram the system timer is killed while timers behave in a
+> > normal way when hitting deeper sleep states from idle.
 > 
-> here's the complete series... I'll stop playing
-> with these for a while. If you have some free time
-> to boot test on n8x0, I'd be really glad ;-)
-> 
-> Maybe Michael could test too ??
-> 
-> Felipe Balbi (22):
->   cbus: tahvo: convert spinlock into mutex
->   cbus: tahvo: move to __devinit/__devexit sections
->   cbus: tahvo: a switch looks better
->   cbus: tahvo: don't go over 80 columns
->   cbus: tahvo: drop the tasklet
->   cbus: retu: set IRQF_ONESHOT flag
->   cbus: tahvo: git it a context structure
->   cbus: tahvo: pass tahvo to IRQ handler
->   cbus: tahvo: introduce __tahvo_(read/write)_reg
->   cbus: tahvo: drop some unneded defines
->   cbus: retu: IRQ demux optimization
->   cbus: tahvo: give it an irq_chip
->   cbus: tahvo: start using irq_chip
->   cbus: tahvo: usb: fix up to use threaded irqs
->   cbus: tahvo drop the legacy interfaces
->   cbus: tahvo: usb: drop unused variable
->   cbus: tahvo: no need to mask interrupts on exit
->   cbus: tahvo: drop the get_status hack
->   cbus: tahvo: drop more unused interfaces
->   cbus: tahvo: pass child device pointer
->   cbus: tahvo: drop backlight interfaces
->   cbus: tahvo: drop static global pointer
-> 
->  arch/arm/mach-omap1/board-nokia770.c |    6 -
->  arch/arm/mach-omap2/board-n8x0.c     |    6 -
->  drivers/cbus/retu.c                  |   18 +-
->  drivers/cbus/tahvo-usb.c             |   58 ++---
->  drivers/cbus/tahvo.c                 |  462 ++++++++++++++++++----------------
->  drivers/cbus/tahvo.h                 |   16 +-
->  6 files changed, 283 insertions(+), 283 deletions(-)
-> 
+> Actually, it just occurred to me that if we're waiting for a system
+> timer and can hand that off to a suitable timer in the PMIC then we can
+> do a suspend to RAM for the deep idle state from the hardware point of
+> view.
 
-I currently lack a bit of time for testing, however I'll check it
-I can test them at some point. Don't hold your breath, though.
+Cool, it would be nice to have a Linux generic way for programming a
+separate hardware wake-up timer. Not RTC, but some more accurate timer that
+might be too slow to access for general purpose usage.
 
-Are you planning to implement a backlight driver for tahvo? I'm actually
-using the functionality that you removed in this patchset in the OpenWRT
-distribution.
+Regards,
+
+Tony
