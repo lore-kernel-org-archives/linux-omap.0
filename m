@@ -1,40 +1,48 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] OMAP3: run the ASM sleep code from DDR
-Date: Tue, 12 Jul 2011 06:07:55 +0000
-Message-ID: <20110712060755.GA18622@localhost.ucw.cz>
-References: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH] OMAP: Keypad: Make keypad_data initdata
+Date: Tue, 12 Jul 2011 12:01:46 +0530
+Message-ID: <1310452306-2246-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1309365623-14704-1-git-send-email-j-pihet@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: jean.pihet@newoldbits.com
-Cc: khilman@ti.com, santosh.shilimkar@ti.com, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46036 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752261Ab1GLGb4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jul 2011 02:31:56 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6C6Vq32021296
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 12 Jul 2011 01:31:55 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6C6VqgC002067
+	for <linux-omap@vger.kernel.org>; Tue, 12 Jul 2011 12:01:52 +0530 (IST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-On Wed 2011-06-29 18:40:23, jean.pihet@newoldbits.com wrote:
-> From: Jean Pihet <j-pihet@ti.com>
-> 
-> Most of the ASM sleep code (in arch/arm/mach-omap2/sleep34xx.S)
-> is copied to internal SRAM at boot and after wake-up from CORE OFF mode.
-> However only a small part of the code really needs to run from internal SRAM.
-> 
-> This fix lets most of the ASM idle code run from the DDR
-> in order to minimize the SRAM usage and the overhead in the code copy.
+The keypad data is accessed only at init so making it initdata.
+This removes the section mismatch warning.
 
-So... what do you plan to use sram for? Because I don't think the
-speedup is worth the complexity...
+Reported-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 47e6ab9..2b28c7e 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -195,7 +195,7 @@ static struct omap4_keypad_platform_data sdp4430_keypad_data = {
+ 	.cols			= 8,
+ };
+ 
+-static struct omap_board_data keypad_data = {
++static struct omap_board_data keypad_data __initdata = {
+ 	.id	    = 1,
+ 	.pads	 = keypad_pads,
+ 	.pads_cnt       = ARRAY_SIZE(keypad_pads),
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.7.1
+
