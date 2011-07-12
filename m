@@ -1,89 +1,64 @@
-From: Jassi Brar <jassisinghbrar@gmail.com>
-Subject: Re: [PATCH] dmaengine: add dma_ctrl_cmd to pass buffer stride configuration
-Date: Tue, 12 Jul 2011 18:15:22 +0530
-Message-ID: <CABb+yY1_vuM7NGxV4o103YmYfte09XKpaXnYARcn3jjnChiBsQ@mail.gmail.com>
-References: <1310310203-12288-1-git-send-email-sundaram@ti.com>
-	<CABb+yY1HJOR+QzmM4-ju4cs+8keoyUbMv+SpVoM6BW=DCMzmQQ@mail.gmail.com>
-	<CACRpkdbLg0+_2kpi4NizFj0fDWb6QPtkcKirKgoH+83vGD0O0A@mail.gmail.com>
-	<CABb+yY1RqHJ6jsMB2RqPNnBLff-bzhwaXG1U-hCD8CpME+a3aA@mail.gmail.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E94030259DBBE@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP2+: PM: fix watchdog boot when runtime PM is disabled
+Date: Tue, 12 Jul 2011 07:55:00 -0700
+Message-ID: <878vs3v9a3.fsf@ti.com>
+References: <1310426484-30083-1-git-send-email-khilman@ti.com>
+	<4E1B8B47.3020904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94030259DBBE@dbde02.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Raju, Sundaram" <sundaram@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:39414 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751009Ab1GLOzF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jul 2011 10:55:05 -0400
+Received: by mail-iy0-f178.google.com with SMTP id 26so6580557iyb.23
+        for <linux-omap@vger.kernel.org>; Tue, 12 Jul 2011 07:55:04 -0700 (PDT)
+In-Reply-To: <4E1B8B47.3020904@ti.com> (Santosh Shilimkar's message of "Mon,
+	11 Jul 2011 16:46:15 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jul 12, 2011 at 5:01 PM, Raju, Sundaram <sundaram@ti.com> wrote=
-:
->> -----Original Message-----
->> From: Jassi Brar [mailto:jassisinghbrar@gmail.com]
->> Sent: Tuesday, July 12, 2011 4:51 PM
->> To: Linus Walleij
->> Cc: Raju, Sundaram; linux-arm-kernel@lists.infradead.org; linux-
->> kernel@vger.kernel.org; davinci-linux-open-source@linux.davincidsp.c=
-om;
->> linux@arm.linux.org.uk; dan.j.williams@intel.com; linux-omap@vger.ke=
-rnel.org
->> Subject: Re: [PATCH] dmaengine: add dma_ctrl_cmd to pass buffer stri=
-de
->> configuration
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+
+> On 7/11/2011 4:21 PM, Kevin Hilman wrote:
+>> Fix boot crash in watchdog driver when runtime PM is disabled.
 >>
->> On Tue, Jul 12, 2011 at 3:33 PM, Linus Walleij <linus.walleij@linaro=
-=2Eorg>
->> wrote:
->> > On Tue, Jul 12, 2011 at 6:17 AM, Jassi Brar <jassisinghbrar@gmail.=
-com>
->> wrote:
->> >
->> >> 1) Striding, in one form or other, is supported by other DMACs as=
- well.
->> >> =C2=A0 The number will only increase in future.
->> >> =C2=A0 Are we to add =C2=A0<VENDOR>_DMA_STRIDE_CONFIG for each ca=
-se ?
->> >
->> > If we are sure about this and striding will work in a similar way =
-on all
->> > then let's have the enum named DMA_STRIDE_CONFIG and move the
->> > passed-in struct to <linux/dmaengine.h) then?
->> >
->> > Would that be:
->> >
->> > struct dma_stride_config {
->> > =C2=A0 =C2=A0u32 read_bytes;
->> > =C2=A0 =C2=A0u32 skip_bytes;
->> > };
->> >
->> > Or something more complex?
->> Well, I am not sure if striding needs any special treatment at all.
->> Why not have client drivers prepare and submit sg-list.
->> Let the DMAC drivers interpret/parse the sg-list and program it
->> as strides if the h/w supports it.
->> If anything, we should make preparation and submission of sg-list
->> as efficient as possible.
-> Jassi,
+>> When runtime PM is disabled, devices should be left enabled so that
+>> all device accesses in drivers will succeed even though the runtime PM
+>> get/put calls are noops.
+>>
+>> This is already the case for all devices, but the WDT init has its
+>> own hwmod postsetup which was not taking this into account.
+>>
+>> This fixes a boot crash where the first device access in the WDT probe
+>> function would crash a booting kernel.
+>>
+>> Cc: Paul Walmsley<paul@pwsan.com>
+>> Signed-off-by: Kevin Hilman<khilman@ti.com>
+>> ---
+>> Tony, as this is a boot crash, it should probably be queued for v3.0.
+>> However, since OMAP2PLUS_TYPICAL always enables runtime PM, this is
+>> unlikely to be seen unless specifically testing with runtime PM disabled.
+>>
+> This patch is exactly same as the one I submitted on Jan 5, 2011 for
+> the same issue. Here is the patchwork link for the same.
 >
-> sg_lists describe only a bunch of disjoint buffers. But what if the
-> DMAC can skip and read the bytes within each of the buffers in
-> the sg_list? (like TI EDMAC and TI SDMAC)
-> How can that information be passed to the offload
-> engine driver from the client?
+> https://patchwork.kernel.org/patch/453481/
 >
-OK, I overlooked.
-We do need something new to handle these ultra-fine-grained sg-lists.
-But still we shouldn't add SoC specific API to the common sub-systems.
+> Paul had a valid concern about the boot-loader leaving the watchdog
+> enabled. More on this in below thread.
+>
+> http://www.spinics.net/lists/arm-kernel/msg110937.html
+>
 
-Maybe a new api to pass fixed-format variable-length encoded message
-to the DMAC drivers?
-Which could be interpreted by DMAC drivers to extract all the needed xf=
-er
-parameters from the 'header' section and instructions to program the xf=
-ers
-in the DMAC from the variable length body of the 'message' buffer.
-It might sound complicated but we can have helpers to make the job easy=
-=2E
-Btw, the regular single/sg-list xfers could also be expressed by this m=
-ethod.
+Paul's concern is valid, and could be addressed by making that init code
+actually check if the WDT is currently active (as suggested by the
+comment there.)
+
+In the mean time, this simple fix should be applied to prevent a boot
+crash, IMO.
+
+Kevin
