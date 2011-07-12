@@ -1,40 +1,50 @@
-From: Todd Poynor <toddpoynor@google.com>
-Subject: [PATCH 4/4] ARM: OMAP2+: Check NULL return from irq_alloc_generic_chip
-Date: Tue, 12 Jul 2011 15:42:05 -0700
-Message-ID: <1310510525-4786-1-git-send-email-toddpoynor@google.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:53291 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753934Ab1GLWmV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jul 2011 18:42:21 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/3] ASoC: omap-mcpdm: Replace legacy driver
+Date: Wed, 13 Jul 2011 08:25:07 +0900
+Message-ID: <20110712232505.GA17710@opensource.wolfsonmicro.com>
+References: <1310041672-18634-1-git-send-email-peter.ujfalusi@ti.com>
+	<2323058.DqPoNzVktU@barack>
+	<20110709010808.GC18860@opensource.wolfsonmicro.com>
+	<4479173.gaSts1MLKP@barack>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <4479173.gaSts1MLKP@barack>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Cousson,
+	Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "Lopez Cruz,
+	Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Todd Poynor <toddpoynor@google.com>
 
-Signed-off-by: Todd Poynor <toddpoynor@google.com>
----
- arch/arm/mach-omap2/irq.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+On Tue, Jul 12, 2011 at 10:35:53PM +0300, P=E9ter Ujfalusi wrote:
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 3af2b7a..acbb05c 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -129,6 +129,13 @@ omap_alloc_gc(void __iomem *base, unsigned int irq_start, unsigned int num)
- 
- 	gc = irq_alloc_generic_chip("INTC", 1, irq_start, base,
- 					handle_level_irq);
-+
-+	if (!gc) {
-+		pr_err("%s: irq_alloc_generic_chip for IRQ %u failed\n",
-+		       __func__, irq_start);
-+		return;
-+	}
-+
- 	ct = gc->chip_types;
- 	ct->chip.irq_ack = omap_mask_ack_irq;
- 	ct->chip.irq_mask = irq_gc_mask_disable_reg;
--- 
-1.7.3.1
+> Just to avoid confusion (in my part): if I split this patch to one big + =
 
+> several small incremental patches, which eventually lead to the current =
+
+> situation is what you were asking for?
+
+The rest of the patch looked fine from a code point of view so probably
+just leave that as-is and improve the changelog - the delayed_work was
+the only real issue I saw from a code point of view and the bit I was
+suggesting to split out into a separate patch.
+
+> With the patches I can document the reasoning behind the non standard =
+
+> workarounds. Probably if we see them spread out, we might be able to find =
+
+> better ways for them...
+
+Yeah, and like I say if it were controlled by the machine driver it'd be
+better.
