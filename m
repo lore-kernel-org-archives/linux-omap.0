@@ -1,79 +1,70 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v3 12/20] GPIO: OMAP: Use wkup_status for all SoCs
-Date: Tue, 12 Jul 2011 05:34:50 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BE78072@dbde02.ent.ti.com>
-References: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
-	<1309513634-20971-13-git-send-email-tarun.kanti@ti.com>
- <87k4bwkz9y.fsf@ti.com>
+From: Jassi Brar <jassisinghbrar@gmail.com>
+Subject: Re: [PATCH] dmaengine: add dma_ctrl_cmd to pass buffer stride configuration
+Date: Tue, 12 Jul 2011 09:47:19 +0530
+Message-ID: <CABb+yY1HJOR+QzmM4-ju4cs+8keoyUbMv+SpVoM6BW=DCMzmQQ@mail.gmail.com>
+References: <1310310203-12288-1-git-send-email-sundaram@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35471 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755180Ab1GLAE7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jul 2011 20:04:59 -0400
-In-Reply-To: <87k4bwkz9y.fsf@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1310310203-12288-1-git-send-email-sundaram@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sundaram Raju <sundaram@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux@arm.linux.org.uk, linus.walleij@linaro.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-Kevin,
-[...]
-> 
-> >  		set_gpio_trigger(bank, gpio, trigger);
-> >  	} else if (bank->regs->irqctrl) {
-> >  		reg += bank->regs->irqctrl;
-> > @@ -295,13 +296,7 @@ static int _set_gpio_triggering(struct gpio_bank
-> *bank, int gpio, int trigger)
-> >  		if (trigger & IRQ_TYPE_EDGE_FALLING)
-> >  			l |= 1 << (gpio << 1);
-> >
-> > -		if (trigger)
-> > -			/* Enable wake-up during idle for dynamic tick */
-> > -			__raw_writel(1 << gpio, bank->base
-> > -						+ bank->regs->wkup_set);
-> > -		else
-> > -			__raw_writel(1 << gpio, bank->base
-> > -						+ bank->regs->wkup_clear);
-> > +		MOD_REG_BIT(bank->regs->wkup_status, 1 << gpio, trigger != 0);
-> 
-> This isn't right, so I'm not sure how this is working. At this point:
-> 
->      base = bank->base;
->      reg = bank->base + bank->regs->edgectrl[12];
-Right so far...
+On Sun, Jul 10, 2011 at 8:33 PM, Sundaram Raju <sundaram@ti.com> wrote:
+> Added new dma_ctrl_cmd TI_DMA_STRIDE_CONFIG to pass the TI DMA
+> controller specific configurations on how a buffer must be walked
+> through and how data is picked for transfer based on a specified
+> pattern over the channel.
+>
+> The configuration passed is specific to the TI DMA controller used.
+>
+> Signed-off-by: Sundaram Raju <sundaram@ti.com>
+> ---
+> =C2=A0include/linux/dmaengine.h | =C2=A0 =C2=A05 +++++
+> =C2=A01 files changed, 5 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+> index eee7add..51dadc4 100644
+> --- a/include/linux/dmaengine.h
+> +++ b/include/linux/dmaengine.h
+> @@ -123,6 +123,10 @@ enum dma_ctrl_flags {
+> =C2=A0* command.
+> =C2=A0* @FSLDMA_EXTERNAL_START: this command will put the Freescale D=
+MA controller
+> =C2=A0* into external start mode.
+> + * @TI_DMA_STRIDE_CONFIG: this command is only implemented by TI DMA
+> + * controllers that need to pass special configuration on how to wal=
+k through
+> + * the buffer to pick up data in a specified pattern to be transferr=
+ed in
+> + * the channel.
+> =C2=A0*/
+> =C2=A0enum dma_ctrl_cmd {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0DMA_TERMINATE_ALL,
+> @@ -130,6 +134,7 @@ enum dma_ctrl_cmd {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0DMA_RESUME,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0DMA_SLAVE_CONFIG,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0FSLDMA_EXTERNAL_START,
+> + =C2=A0 =C2=A0 =C2=A0 TI_DMA_STRIDE_CONFIG,
+> =C2=A0};
+IMHO this isn't very correct.
 
-> 
-> but if you look at MOD_REG_BIT(), it does register access using 'base +
-> reg', but here that will be 'bank->base + bank->base + reg offset',
-> which will be doing a read/modify/write to who-knows-where.
-My understanding was MOD_REG_BIT(bank->regs->wkup_status, ...) translate to:
-bank->base + bank->regs->wkup_status, for the following reason:
+1) Striding, in one form or other, is supported by other DMACs as well.
+   The number will only increase in future.
+   Are we to add  <VENDOR>_DMA_STRIDE_CONFIG for each case ?
 
-In the following macro, reg is equivalent to bank->regs->wkup_status.
-But this is not the case with base, which remains as bank->base.
-Please correct me.
+2) As Dan noted, client drivers are going to have ifdef hackery in
+order to be common
+ to other SoCs.
 
-#define MOD_REG_BIT(reg, bit_mask, set) \
-do {    \
-        int l = __raw_readl(base + reg); \
-        if (set) l |= bit_mask; \
-        else l &= ~bit_mask; \
-        __raw_writel(l, base + reg); \
-} while(0)
-
-> 
-> >  		__raw_writel(l, reg);
-> 
-> Oh, now I see why it works: because you have an additional write here,
-> which isn't right either because MOD_REG_BIT() already does the read
-> *and* write.
-This should be writing to following still.
-reg = bank->base + bank->regs->edgectrl[12];
---
-Tarun
-> 
-[...]
+3) TI may not have just one DMAC IP used in all the SoCs. So if you wan=
+t
+  vendor specific defines anyway, please atleast also add DMAC version =
+to it.
+  Something like
+>        DMA_SLAVE_CONFIG,
+>        FSLDMA_EXTERNAL_START,
+> +       TI_DMA_v1_STRIDE_CONFIG,
