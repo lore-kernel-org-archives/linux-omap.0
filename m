@@ -1,63 +1,95 @@
-From: "Raju, Sundaram" <sundaram@ti.com>
-Subject: RE: [PATCH] dmaengine: add dma_ctrl_cmd to pass buffer stride
-	configuration
-Date: Tue, 12 Jul 2011 17:01:23 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94030259DBBE@dbde02.ent.ti.com>
-References: <1310310203-12288-1-git-send-email-sundaram@ti.com>
-	<CABb+yY1HJOR+QzmM4-ju4cs+8keoyUbMv+SpVoM6BW=DCMzmQQ@mail.gmail.com>
-	<CACRpkdbLg0+_2kpi4NizFj0fDWb6QPtkcKirKgoH+83vGD0O0A@mail.gmail.com>
-	<CABb+yY1RqHJ6jsMB2RqPNnBLff-bzhwaXG1U-hCD8CpME+a3aA@mail.gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: RFC: Issues using runtime API's with console uart
+Date: Tue, 12 Jul 2011 17:14:11 +0530
+Message-ID: <CAAL8m4yeT9Qm0WFP-7rVH6dMuLd0YHB9zGS4NiHL8thOY4QWFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CABb+yY1RqHJ6jsMB2RqPNnBLff-bzhwaXG1U-hCD8CpME+a3aA@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jassi Brar <jassisinghbrar@gmail.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:38525 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753279Ab1GLLob (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jul 2011 07:44:31 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 5so3966544bwd.19
+        for <linux-omap@vger.kernel.org>; Tue, 12 Jul 2011 04:44:31 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Basak, Partha" <p-basak2@ti.com>, Tony Lindgren <tony@atomide.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYXNzaSBCcmFyIFttYWlsdG86
-amFzc2lzaW5naGJyYXJAZ21haWwuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBKdWx5IDEyLCAyMDEx
-IDQ6NTEgUE0NCj4gVG86IExpbnVzIFdhbGxlaWoNCj4gQ2M6IFJhanUsIFN1bmRhcmFtOyBsaW51
-eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmc7IGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5r
-ZXJuZWwub3JnOyBkYXZpbmNpLWxpbnV4LW9wZW4tc291cmNlQGxpbnV4LmRhdmluY2lkc3AuY29t
-Ow0KPiBsaW51eEBhcm0ubGludXgub3JnLnVrOyBkYW4uai53aWxsaWFtc0BpbnRlbC5jb207IGxp
-bnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIGRtYWVuZ2lu
-ZTogYWRkIGRtYV9jdHJsX2NtZCB0byBwYXNzIGJ1ZmZlciBzdHJpZGUNCj4gY29uZmlndXJhdGlv
-bg0KPiANCj4gT24gVHVlLCBKdWwgMTIsIDIwMTEgYXQgMzozMyBQTSwgTGludXMgV2FsbGVpaiA8
-bGludXMud2FsbGVpakBsaW5hcm8ub3JnPg0KPiB3cm90ZToNCj4gPiBPbiBUdWUsIEp1bCAxMiwg
-MjAxMSBhdCA2OjE3IEFNLCBKYXNzaSBCcmFyIDxqYXNzaXNpbmdoYnJhckBnbWFpbC5jb20+DQo+
-IHdyb3RlOg0KPiA+DQo+ID4+IDEpIFN0cmlkaW5nLCBpbiBvbmUgZm9ybSBvciBvdGhlciwgaXMg
-c3VwcG9ydGVkIGJ5IG90aGVyIERNQUNzIGFzIHdlbGwuDQo+ID4+IMKgIFRoZSBudW1iZXIgd2ls
-bCBvbmx5IGluY3JlYXNlIGluIGZ1dHVyZS4NCj4gPj4gwqAgQXJlIHdlIHRvIGFkZCDCoDxWRU5E
-T1I+X0RNQV9TVFJJREVfQ09ORklHIGZvciBlYWNoIGNhc2UgPw0KPiA+DQo+ID4gSWYgd2UgYXJl
-IHN1cmUgYWJvdXQgdGhpcyBhbmQgc3RyaWRpbmcgd2lsbCB3b3JrIGluIGEgc2ltaWxhciB3YXkg
-b24gYWxsDQo+ID4gdGhlbiBsZXQncyBoYXZlIHRoZSBlbnVtIG5hbWVkIERNQV9TVFJJREVfQ09O
-RklHIGFuZCBtb3ZlIHRoZQ0KPiA+IHBhc3NlZC1pbiBzdHJ1Y3QgdG8gPGxpbnV4L2RtYWVuZ2lu
-ZS5oKSB0aGVuPw0KPiA+DQo+ID4gV291bGQgdGhhdCBiZToNCj4gPg0KPiA+IHN0cnVjdCBkbWFf
-c3RyaWRlX2NvbmZpZyB7DQo+ID4gwqAgwqB1MzIgcmVhZF9ieXRlczsNCj4gPiDCoCDCoHUzMiBz
-a2lwX2J5dGVzOw0KPiA+IH07DQo+ID4NCj4gPiBPciBzb21ldGhpbmcgbW9yZSBjb21wbGV4Pw0K
-PiBXZWxsLCBJIGFtIG5vdCBzdXJlIGlmIHN0cmlkaW5nIG5lZWRzIGFueSBzcGVjaWFsIHRyZWF0
-bWVudCBhdCBhbGwuDQo+IFdoeSBub3QgaGF2ZSBjbGllbnQgZHJpdmVycyBwcmVwYXJlIGFuZCBz
-dWJtaXQgc2ctbGlzdC4NCj4gTGV0IHRoZSBETUFDIGRyaXZlcnMgaW50ZXJwcmV0L3BhcnNlIHRo
-ZSBzZy1saXN0IGFuZCBwcm9ncmFtIGl0DQo+IGFzIHN0cmlkZXMgaWYgdGhlIGgvdyBzdXBwb3J0
-cyBpdC4NCj4gSWYgYW55dGhpbmcsIHdlIHNob3VsZCBtYWtlIHByZXBhcmF0aW9uIGFuZCBzdWJt
-aXNzaW9uIG9mIHNnLWxpc3QNCj4gYXMgZWZmaWNpZW50IGFzIHBvc3NpYmxlLg0KSmFzc2ksDQoN
-CnNnX2xpc3RzIGRlc2NyaWJlIG9ubHkgYSBidW5jaCBvZiBkaXNqb2ludCBidWZmZXJzLiBCdXQg
-d2hhdCBpZiB0aGUNCkRNQUMgY2FuIHNraXAgYW5kIHJlYWQgdGhlIGJ5dGVzIHdpdGhpbiBlYWNo
-IG9mIHRoZSBidWZmZXJzIGluDQp0aGUgc2dfbGlzdD8gKGxpa2UgVEkgRURNQUMgYW5kIFRJIFNE
-TUFDKQ0KSG93IGNhbiB0aGF0IGluZm9ybWF0aW9uIGJlIHBhc3NlZCB0byB0aGUgb2ZmbG9hZA0K
-ZW5naW5lIGRyaXZlciBmcm9tIHRoZSBjbGllbnQ/DQoNCn5TdW5kYXJhbQ0KX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWls
-aW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0
-cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+Hi All,
+
+With recent uart runtime conversion I am facing some issues with runtime
+API usage with console.
+
+With runtime adaptation the clock cutting is done aggressively with get and put.
+
+as below with console_write API in uart code.
+
+serial_omap_console_write(.....)
+{
+      get_sync();
+      .
+      .
+      .
+      put();
+}
+
+serial_omap_set_mctrl(..)
+{
+     get_sync();
+      .
+      .
+      .
+      put()
+}
+
+Now if debug messages(pr_debug) from hwmod and omap_device are enabled
+then get_sync and put will internally have prints which get redirected to
+console_write and will call get_sync.
+
+so from a runtime API context I call another runtime API which leads
+to power lock contention, since every runtime API entrant tries to get
+a power lock.
+
+To elaborate further from above code snippets consider set_mctrl
+calling get_sync and printk from omap_hwmod calling console_write
+which calls get_sync.
+
+-> leads to get_sync calling get_sync.
+
+similarly with put_sync having prints calling console driver calling get_sync
+leading to power_lock contention.
+
+As of today I don't see any clean approaches to be available.
+
+Some of the approaches I am considering is
+
+1.) let the clock gating for uart be handled with idle path as done today with
+     prepare and resume calls.
+
+2.) Aggressively binding all get and put with console lock to suppress
+     prints from get/put and to printed during console_unlock.
+
+    uart_port_enb(..)
+    {
+          if (console_trylock()) {
+              get_sync();
+              console_unlock();
+          }
+    }
+
+    Even this approach doesn't seem fool proof, Similarly if I have port_disable
+    console unlock(has not yet released the console lock)
+    will have a print stating uart clock is disabled will call console_write
+    which will call port_enb since above trylock fails and eventually
+    might oops out trying
+    to print the message as put has already disabled the uart clocks.
+
+
+I don't see any clean method rather using approach[1] as of today.
+
+So any suggestions on any other approach will be helpful.
+
+---
+Thanks,
+Govindraj.R
