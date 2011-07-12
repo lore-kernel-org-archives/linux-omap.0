@@ -1,69 +1,81 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH] OMAP: Keypad: Make keypad_data initdata
-Date: Tue, 12 Jul 2011 14:13:54 +0530
-Message-ID: <4E1C094A.7000307@ti.com>
-References: <1310452306-2246-1-git-send-email-shubhrajyoti@ti.com> <b288e44002208a77adcd0c206d15ecf5@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] PM / Runtime: add new helper function: pm_runtime_status_suspended()
+Date: Tue, 12 Jul 2011 11:33:48 +0200
+Message-ID: <201107121133.48591.rjw@sisk.pl>
+References: <1310424682-21255-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:43973 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751140Ab1GLIoD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Jul 2011 04:44:03 -0400
-Received: by yxi13 with SMTP id 13so2621457yxi.26
-        for <linux-omap@vger.kernel.org>; Tue, 12 Jul 2011 01:44:01 -0700 (PDT)
-In-Reply-To: <b288e44002208a77adcd0c206d15ecf5@mail.gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:48236 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751241Ab1GLJdc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jul 2011 05:33:32 -0400
+In-Reply-To: <1310424682-21255-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-On Tuesday 12 July 2011 12:09 PM, Vishwanath Sripathy wrote:
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Shubhrajyoti D
->> Sent: Tuesday, July 12, 2011 12:02 PM
->> To: linux-omap@vger.kernel.org
->> Cc: Shubhrajyoti D
->> Subject: [PATCH] OMAP: Keypad: Make keypad_data initdata
->>
->> The keypad data is accessed only at init so making it initdata.
->> This removes the section mismatch warning.
->>
->> Reported-by: Kevin Hilman<khilman@ti.com>
->> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
->> ---
->>   arch/arm/mach-omap2/board-4430sdp.c |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-
->> omap2/board-4430sdp.c
-> Is this issue only for OMAP4 SDP? What about Panda, Beagle, OMAP3 SDP
-> boards?
-> If it's only for OMAP4, pls correct the subject.
-Yes will correct the subject line.
-> Vishwa
->> index 47e6ab9..2b28c7e 100644
->> --- a/arch/arm/mach-omap2/board-4430sdp.c
->> +++ b/arch/arm/mach-omap2/board-4430sdp.c
->> @@ -195,7 +195,7 @@ static struct omap4_keypad_platform_data
->> sdp4430_keypad_data = {
->>   	.cols			= 8,
->>   };
->>
->> -static struct omap_board_data keypad_data = {
->> +static struct omap_board_data keypad_data __initdata = {
->>   	.id	    = 1,
->>   	.pads	 = keypad_pads,
->>   	.pads_cnt       = ARRAY_SIZE(keypad_pads),
->> --
->> 1.7.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-
->> omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tuesday, July 12, 2011, Kevin Hilman wrote:
+> This boolean function simply returns whether or not the runtime status
+> of the device is 'suspended'.  Unlike pm_runtime_suspended(), this
+> function returns the runtime status whether or not runtime PM for the
+> device has been disabled or not.
+> 
+> Also add entry to Documentation/power/runtime.txt
+> 
+> Suggested-by: Rafael J. Wysocki <rjw@sisk.pl>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+
+Applied to suspend-2.6/pm-runtime, thanks!
+
+Rafael
+
+
+> ---
+>  Documentation/power/runtime_pm.txt |    3 +++
+>  include/linux/pm_runtime.h         |    6 ++++++
+>  2 files changed, 9 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/power/runtime_pm.txt b/Documentation/power/runtime_pm.txt
+> index 4b011b1..feca92f 100644
+> --- a/Documentation/power/runtime_pm.txt
+> +++ b/Documentation/power/runtime_pm.txt
+> @@ -400,6 +400,9 @@ drivers/base/power/runtime.c and include/linux/pm_runtime.h:
+>      - return true if the device's runtime PM status is 'suspended' and its
+>        'power.disable_depth' field is equal to zero, or false otherwise
+>  
+> +  bool pm_runtime_status_suspended(struct device *dev);
+> +    - return true if the device's runtime PM status is 'suspended'
+> +
+>    void pm_runtime_allow(struct device *dev);
+>      - set the power.runtime_auto flag for the device and decrease its usage
+>        counter (used by the /sys/devices/.../power/control interface to
+> diff --git a/include/linux/pm_runtime.h b/include/linux/pm_runtime.h
+> index dfb8539..daac05d 100644
+> --- a/include/linux/pm_runtime.h
+> +++ b/include/linux/pm_runtime.h
+> @@ -82,6 +82,11 @@ static inline bool pm_runtime_suspended(struct device *dev)
+>  		&& !dev->power.disable_depth;
+>  }
+>  
+> +static inline bool pm_runtime_status_suspended(struct device *dev)
+> +{
+> +	return dev->power.runtime_status == RPM_SUSPENDED;
+> +}
+> +
+>  static inline bool pm_runtime_enabled(struct device *dev)
+>  {
+>  	return !dev->power.disable_depth;
+> @@ -130,6 +135,7 @@ static inline void pm_runtime_put_noidle(struct device *dev) {}
+>  static inline bool device_run_wake(struct device *dev) { return false; }
+>  static inline void device_set_run_wake(struct device *dev, bool enable) {}
+>  static inline bool pm_runtime_suspended(struct device *dev) { return false; }
+> +static inline bool pm_runtime_status_suspended(struct device *dev) { return false; }
+>  static inline bool pm_runtime_enabled(struct device *dev) { return false; }
+>  
+>  static inline int pm_generic_runtime_idle(struct device *dev) { return 0; }
+> 
 
