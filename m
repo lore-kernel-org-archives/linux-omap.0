@@ -1,91 +1,47 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
-Date: Tue, 12 Jul 2011 11:53:26 +0200
-Message-ID: <201107121153.27115.jkrzyszt@tis.icnet.pl>
-References: <201012051929.07220.jkrzyszt@tis.icnet.pl>
-	<201106082354.10985.jkrzyszt@tis.icnet.pl>
-	<20110608221330.GA13246@n2100.arm.linux.org.uk>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] dmaengine: add dma_ctrl_cmd to pass buffer stride configuration
+Date: Tue, 12 Jul 2011 11:58:04 +0200
+Message-ID: <CACRpkdbj-xucUN+jxMsBnfXfcmy3ohuhd=66x_AqcCykMsNwPQ@mail.gmail.com>
+References: <1310310203-12288-1-git-send-email-sundaram@ti.com>
+	<CAKnu2MqzSm8BVK4z9E-ud8e_jUohDfSfYO9aW-oN3RFw4p7GrA@mail.gmail.com>
+	<CAA9_cmeWUjiTghKbjAvith5c6z9PDVdFSeK55RYWfyQKFSjA+Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110608221330.GA13246@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-arm-kernel@lists.infradead.org, Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAA9_cmeWUjiTghKbjAvith5c6z9PDVdFSeK55RYWfyQKFSjA+Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Sundaram Raju <sundaram@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCA5IEp1biAyMDExIGF0IDAwOjEzOjMwIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eCB3
-cm90ZToKPiBPbiBXZWQsIEp1biAwOCwgMjAxMSBhdCAxMTo1Mzo0OVBNICswMjAwLCBKYW51c3og
-S3J6eXN6dG9maWsgd3JvdGU6Cj4gPiBPbiBGcmkgMTAgRGVjIDIwMTAgYXQgMjI6MDM6NTIgSmFu
-dXN6IEtyenlzenRvZmlrIHdyb3RlOgo+ID4gPiBGcmlkYXkgMTAgRGVjZW1iZXIgMjAxMCAxODow
-Mzo1NiBSdXNzZWxsIEtpbmcgLSBBUk0gTGludXggbmFwaXNhxYIoYSk6Cj4gPiA+ID4gT24gRnJp
-LCBEZWMgMTAsIDIwMTAgYXQgMTI6MDM6MDdQTSArMDEwMCwgSmFudXN6IEtyenlzenRvZmlrIHdy
-b3RlOgo+ID4gPiA+ID4gIHZvaWQgX19pbml0IG9tYXAxX2NhbWVyYV9pbml0KHZvaWQgKmluZm8p
-Cj4gPiA+ID4gPiAgewo+ID4gPiA+ID4gIAo+ID4gPiA+ID4gIAlzdHJ1Y3QgcGxhdGZvcm1fZGV2
-aWNlICpkZXYgPSAmb21hcDFfY2FtZXJhX2RldmljZTsKPiA+ID4gPiA+IAo+ID4gPiA+ID4gKwlk
-bWFfYWRkcl90IHBhZGRyID0gb21hcDFfY2FtZXJhX3BoeXNfbWVtcG9vbF9iYXNlOwo+ID4gPiA+
-ID4gKwlkbWFfYWRkcl90IHNpemUgPSBvbWFwMV9jYW1lcmFfcGh5c19tZW1wb29sX3NpemU7Cj4g
-PiA+ID4gPiAKPiA+ID4gPiA+ICAJaW50IHJldDsKPiA+ID4gPiA+ICAJCj4gPiA+ID4gPiAgCWRl
-di0+ZGV2LnBsYXRmb3JtX2RhdGEgPSBpbmZvOwo+ID4gPiA+ID4gCj4gPiA+ID4gPiArCWlmIChw
-YWRkcikgewo+ID4gPiA+ID4gKwkJaWYgKGRtYV9kZWNsYXJlX2NvaGVyZW50X21lbW9yeSgmZGV2
-LT5kZXYsIHBhZGRyLCBwYWRkciwgc2l6ZSwKPiA+ID4gPiA+ICsJCQkJRE1BX01FTU9SWV9NQVAg
-fCBETUFfTUVNT1JZX0VYQ0xVU0lWRSkpCj4gPiA+ID4gCj4gPiA+ID4gQWx0aG91Z2ggdGhpcyB3
-b3JrcywgeW91J3JlIGVuZGluZyB1cCB3aXRoIFNEUkFNIGJlaW5nIG1hcHBlZAo+ID4gPiA+IHZp
-YSBpb3JlbWFwLCB3aGljaCB1c2VzIE1UX0RFVklDRSAtIHNvIHdoYXQgaXMgU0RSQU0gZW5kcyB1
-cAo+ID4gPiA+IGJlaW5nIG1hcHBlZCBhcyBpZiBpdCB3ZXJlIGEgZGV2aWNlLgo+ID4gPiA+IAo+
-ID4gPiA+IEZvciBPTUFQMSwgd2hpY2ggaXMgQVJNdjUgb3IgbG93ZXIsIGRldmljZSBtZW1vcnkg
-YmVjb21lcwo+ID4gPiA+ICd1bmNhY2hlYWJsZSwgdW5idWZmZXJhYmxlJyB3aGljaCBpcyBsdWNr
-aWx5IHdoYXQgaXMgdXNlZCBmb3IKPiA+ID4gPiB0aGUgRE1BIGNvaGVyZW50IG1lbW9yeSBvbiB0
-aG9zZSBwbGF0Zm9ybXMgLSBzbyBubyB0ZWNobmljYWwKPiA+ID4gPiBwcm9ibGVtIGhlcmUuCj4g
-PiA+ID4gCj4gPiA+ID4gSG93ZXZlciwgb24gQVJNdjYgYW5kIGxhdGVyLCBpb3JlbWFwcGVkIG1l
-bW9yeSBpcyBkZXZpY2UKPiA+ID4gPiBtZW1vcnksIHdoaWNoIGhhcyBkaWZmZXJlbnQgb3JkZXJp
-bmcgd3J0IG5vcm1hbCBtZW1vcnkKPiA+ID4gPiBtYXBwaW5ncywgYW5kIG1heSBhcHBlYXIgb24g
-ZGlmZmVyZW50IGJ1c3NlcyBvbiB0aGUgQ1BVJ3MKPiA+ID4gPiBpbnRlcmZhY2UuICBTbywgdGhp
-cyBpcyBzb21ldGhpbmcgSSBkb24ndCBlbmNvdXJhZ2UgYXMgaXQncwo+ID4gPiA+IHVuY2xlYXIg
-dGhhdCB0aGUgaGFyZHdhcmUgd2lsbCB3b3JrLgo+ID4gPiA+IAo+ID4gPiA+IEVzc2VudGlhbGx5
-LCBkbWFfZGVjbGFyZV9jb2hlcmVudF9tZW1vcnkoKSBvbiBBUk0gd2l0aCBtYWluCj4gPiA+ID4g
-U0RSQU0gc2hvdWxkIGJlIHZpZXdlZCBhcyBhICdpdCBtaWdodCB3b3JrLCBpdCBtaWdodCBub3Qs
-IGFuZAo+ID4gPiA+IGl0IG1pZ2h0IHN0b3Agd29ya2luZyBpbiB0aGUgZnV0dXJlJyBraW5kIG9m
-IGludGVyZmFjZS4gIEluCj4gPiA+ID4gb3RoZXIgd29yZHMsIHRoZXJlIGlzIG5vIGd1YXJhbnRl
-ZSB0aGF0IHRoaXMga2luZCBvZiB0aGluZwo+ID4gPiA+IHdpbGwgYmUgc3VwcG9ydGVkIGluIHRo
-ZSBmdXR1cmUuCj4gPiAKPiA+IFJ1c3NlbGwsIFRvbnksCj4gPiAKPiA+IFNvcnJ5IGZvciBnZXR0
-aW5nIGJhY2sgdG8gdGhpcyBvbGQgdGhyZWFkLCBidXQgc2luY2UgbXkgcHJldmlvdXMKPiA+IGF0
-dGVtcHRzIHRvIHByb3ZpZGVbMV0gb3Igc3VwcG9ydFsyXSBhIHBvc3NpYmx5IGJldHRlciBzb2x1
-dGlvbiB0bwo+ID4gdGhlIHByb2JsZW0gYWxsIGZhaWxlZCBvbiBvbmUgaGFuZCwgYW5kIEkgY2Fu
-IHNlZSBwYXRjaGVzIG5vdCB2ZXJ5Cj4gPiBkaWZmZXJlbnQgZnJvbSBtaW5lWzNdIGJlaW5nIGFj
-Y2VwdGVkIGZvciBhcmNoL2FybS9tYWNoLXtteDMsaW14fQo+ID4gZHVyaW5nIHRoaXMgYW5kIHBy
-ZXZpb3VzIG1lcmdlIHdpbmRvd3NbNF1bNV1bNl0gb24gdGhlIG90aGVyLCBpcwo+ID4gdGhlcmUg
-YW55IGNoYW5jZSBmb3IgdGhlICdkbWFfZGVjbGFyZV9jb2hlcmVudF9tZW1vcnkoKSBvdmVyIGEK
-PiA+IG1lbWJsb2NrX2FsbG9jKCktPmZyZWUoKS0+cmVtb3ZlKCkgb2J0YWluZWQgYXJlYScgYmFz
-ZWQgc29sdXRpb24KPiA+IGJlaW5nIGFjY2VwdGVkIGZvciBvbWFwMV9jYW1lcmEgYXMgd2VsbCBp
-ZiBJIHJlc2VuZCBpdCByZWZyZXNoZWQ/Cj4gCj4gSSBzdGFuZCBieSBteSBhbnN3ZXIgdG8geW91
-ciBwYXRjaGVzIHF1b3RlZCBhYm92ZSBmcm9tIGEgdGVjaG5pY2FsCj4gcG9pbnQgb2Ygdmlldzsg
-d2Ugc2hvdWxkIG5vdCBiZSBtYXBwaW5nIFNEUkFNIHVzaW5nIGRldmljZSBtYXBwaW5ncy4KClJ1
-c3NlbGwsCldvdWxkIGl0IGNoYW5nZSBhbnl0aGluZyBoZXJlIGlmIHdlIGRlZmluZSBBUkNIX0hB
-U19IT0xFU19NRU1PUllNT0RFTCwgCmFzIHN1Z2dlc3RlZCBieSBNYXJlayBTenlwcm93c2tpIHJl
-Y2VudGx5WypdLCB3aGVuIGNvbmZpZ3VyaW5nIGZvciAKQVJDSF9PTUFQMSB3aXRoIFZJREVPX09N
-QVAxIChjYW1lcmEpIHNlbGVjdGVkPwoKWypdIGh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL3Bp
-cGVybWFpbC9saW51eC1hcm0ta2VybmVsLzIwMTEtSnVseS8wNTc0NDcuaHRtbAoKPiBDZXJ0YWlu
-bHkgdGhlIG1lbWJsb2NrX2FsbG9jKCkrZnJlZSgpK3JlbW92ZSgpIGlzIHRoZSByaWdodCB3YXkg
-dG8KPiByZXNlcnZlIHRoZSBtZW1vcnksIGJ1dCBhcyBpdCBzdGFuZHMgZG1hX2RlY2xhcmVfY29o
-ZXJlbnRfbWVtb3J5KCkKPiBzaG91bGQgbm90IGJlIHVzZWQgb24gQVJNdjYgb3IgaGlnaGVyIENQ
-VXMgdG8gcGFzcyB0aGF0IG1lbW9yeSB0byB0aGUKPiBkZXZpY2UgZHJpdmVyLgoKVG9ueSwKV2l0
-aCBmdWxsIHJlc3BlY3QgdG8gYWxsIFJ1c3NlbGwncyByZXNlcnZhdGlvbnMgYWJvdXQgaW5jb3Jy
-ZWN0bmVzcyBvZiAKaW9yZW1hcHBpbmcgU0RSQU0gaW4gZ2VuZXJhbCwgd291bGQgeW91IGJlIHdp
-bGxpbmcgdG8gYWNjZXB0IHRoaXMgCnNvbHV0aW9uIGluIHRoZSBPTUFQMSBjYW1lcmEgY2FzZSwg
-dGFraW5nIGludG8gYWNjb3VudCB0aGF0LCBxdW90aW5nIApSdXNzZWxsLCAidGhlcmUgaXMgbm8g
-dGVjaG5pY2FsIHByb2JsZW0gaGVyZSIsIGFuZCBzaW1pbGlhciBzb2x1dGlvbnMgCmhhZCBiZWVu
-IGFjY2VwdGVkIHJlY2VudGx5IHdpdGggb3RoZXIgQVJNIHBsYXRmb3Jtcz8KClRoYW5rcywKSmFu
-dXN6CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
-eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVh
-ZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1h
-cm0ta2VybmVsCg==
+On Mon, Jul 11, 2011 at 11:39 PM, Dan Williams <dan.j.williams@intel.co=
+m> wrote:
+> On Mon, Jul 11, 2011 at 2:28 AM, Linus Walleij <linus.walleij@linaro.=
+org> wrote:
+
+> ...and I suspect the slave device drivers that use TI DMA are not
+> expected to ever work with other dmaengines? =A0Likely the case, but
+> just wondering out loud.
+
+Typically the OMAP/TI drivers are one-to-one with this specific DMA
+controller, but they *can* support controllers without stride options, =
+and
+notice that striding will only be used for the display driver IIRC,
+pseudo-code:
+
+ret =3D dmaengine_device_control(chan, TI_DMA_STRIDE_CONFIG,
+                        (unsigned long) &my_stride_config);
+if (ret) {
+   /*
+    * OK no striding on this DMA engine, fall back to something else,
+    * such as creating an SGlist which emulates the striding with one
+    * sglist element per stride.
+    */
+}
+
+By injecting an error in the stride config path this can even be
+properly tested. So it will become an optional acceleration.
+
+Thanks,
+Linus Walleij
