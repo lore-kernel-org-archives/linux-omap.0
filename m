@@ -1,54 +1,41 @@
-From: Vinod Koul <vkoul@infradead.org>
-Subject: Re: [RFC] dmaengine: Moving TI SDMA driver to dmaengine - design plan
-Date: Tue, 12 Jul 2011 21:30:18 +0530
-Message-ID: <1310486418.14637.1.camel@psiaudioba-mobl1>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E94030259CD17@dbde02.ent.ti.com>
-	<20110708100410.GA4957@n2100.arm.linux.org.uk>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH] OMAP4: 4430SDP: Keypad: Make keypad_data initdata
+Date: Tue, 12 Jul 2011 22:02:09 +0530
+Message-ID: <1310488329-16139-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110708100410.GA4957@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: vinod.koul@intel.com, "Raju, Sundaram" <sundaram@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Dan <dan.j.williams@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54160 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753723Ab1GLQcb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jul 2011 12:32:31 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-On Fri, 2011-07-08 at 11:04 +0100, Russell King - ARM Linux wrote:
-> On Fri, Jul 08, 2011 at 01:52:17PM +0530, Raju, Sundaram wrote:
-> > I am planning to move TI SDMA driver in OMAP tree
-> > into the dmaengine framework.
-> > 
-> > The first immediate issue of concern I noticed is the
-> > huge number of client drivers that use the existing SDMA driver.
-> > More than 15 client drivers are using the current SDMA driver.
-> > 
-> > Moving the SDMA driver along with all of these client drivers at a
-> > single stretch seems a humungous task. 
-> > I noticed a model in the existing DMA drivers in dmaengine
-> > framework that will over come this issue. 
-> 
-> It _is_ sane to build a dmaengine driver on top of the existing SoC
-> private API, then convert the drivers to DMA engine, and then cleanup
-> the resulting DMA engine driver.
-> 
-> What we must make sure though is that the DMA engine slave API (which
-> isn't well documented) is correctly implemented before drivers are
-> converted over to use the DMA engine support code, otherwise we may
-> end up with lots of drivers that require re-fixing several times over.
-Russel,
+The keypad data is accessed only at init so making it initdata.
+This removes the section mismatch warning.
 
-Remember we have addressed the documentation part, is there something
-else you feel is still missing?
+Reported-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 47e6ab9..2b28c7e 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -195,7 +195,7 @@ static struct omap4_keypad_platform_data sdp4430_keypad_data = {
+ 	.cols			= 8,
+ };
+ 
+-static struct omap_board_data keypad_data = {
++static struct omap_board_data keypad_data __initdata = {
+ 	.id	    = 1,
+ 	.pads	 = keypad_pads,
+ 	.pads_cnt       = ARRAY_SIZE(keypad_pads),
 -- 
-~Vinod Koul
-Intel Corp.
+1.7.1
+
