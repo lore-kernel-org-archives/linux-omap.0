@@ -1,73 +1,73 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2 0/5] OMAP SMPS regulator driver
-Date: Wed, 13 Jul 2011 12:00:37 -0700
-Message-ID: <87r55uxay2.fsf@ti.com>
-References: <1310565638-13140-1-git-send-email-t-kristo@ti.com>
+From: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Subject: Re: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
+Date: Wed, 13 Jul 2011 20:20:55 +0100
+Message-ID: <20110713192055.GC3369@freya.fluff.org>
+References: <1309849870-25660-1-git-send-email-shubhrajyoti@ti.com>
+ <8739ikp9aa.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:51638 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751657Ab1GMTAn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jul 2011 15:00:43 -0400
-Received: by iwn6 with SMTP id 6so5868039iwn.19
-        for <linux-omap@vger.kernel.org>; Wed, 13 Jul 2011 12:00:42 -0700 (PDT)
-In-Reply-To: <1310565638-13140-1-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Wed, 13 Jul 2011 17:00:33 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <8739ikp9aa.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@ti.com, Paul Walmsley <paul@pwsan.com>
 
-+Paul
+On Tue, Jul 05, 2011 at 05:01:01PM -0700, Kevin Hilman wrote:
+> Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+> 
+> > Currently the fifo depth is set to zero for OMAP4 which disables
+> > the FIFO usage. This patch enables the FIFO usage for I2C transactions
+> > on OMAP4 also.
+> >
+> > Tested on omap4430 and 3430.
+> >
+> > Reported-By: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> > Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> > ---
+> > Rebased on top of the series by Andy Green
+> > http://www.spinics.net/lists/linux-i2c/msg05632.html
+> 
+> Thanks.
+> 
+> This is v3.1 material, but would be nice to see a couple tested-by or
+> acked-by tags from folks that are more actively using the I2C driver
+> before merging
+> 
+> Kevin
 
-Tero Kristo <t-kristo@ti.com> writes:
-
-> Based on the comments for the previous version of this set, I implemented
-> a regulator driver for the OMAP SMPS now. It could actually be moved under
-> arch/arm/mach-omap2/ directory instead of drivers/regulator, I think it
-> should work from there also. This would also require less hacking for the
-> header files. Any thoughts on this?
-
-Actually, I'd prefer it stay in drivers/regulator.  We're trying to move
-driver-type stuff out of arch/arm/* into the right place in drivers/*.
-In fact, I wonder if our VP/VC layers might better live under
-drivers/regulator also.
-
-I'd appreciate any input from Mark/Liam on how to organize things.
-
-For some background, see Figures 3-75 and 3-76 in the OMAP4430 Public
-TRM[1].  The SMPSs are physically on an external PMIC, but all the
-control is typically done via on-chip resources: voltage processor (VP),
-voltage controller (VC).  There's also an optional SmartReflex (SR)
-block involved which can drive the VP.  I'm not as familiar with other
-non-OMAP SoCs, but I don't imagine this is unique to OMAP.
-
-Currently, we have separate drivers for VC, VP and SR in
-arch/arm/mach-omap2.  In mainline, these are currently more like
-libraries than drivers and are a bit hackish and interwoven with each
-other.  We're currently separating these out into separate VC, VP and SR
-layers[2], and I'm wondering exactly how we should structure this, and
-where they should live under drivers/*.
-
-What Paul and I have discussed so far is that SR should just be
-implemented as a sensor under hwmod.  For VC/VP, I think it makes the
-most sense that these be part of drivers/regulator someplace.  In this
-series, the proposed driver is just small shell that calls the VP
-functions.  
-
-Mark/Liam, are you OK with having some "helper" libraries in
-drivers/regulator?  I'm thinking specifically of our VC/VP layers (see
-arch/arm/mach-omap2/vc*.c and vp*.c here in my pm-wip/voltdm branch[2].)
-
-So far, I'm just brainstorming on how to cleanup/restructure this stuff,
-so any advice from you guys would be appreciated.
-
-Thanks,
-
-Kevin
-
-[1] http://focus.ti.com/pdfs/wtbu/OMAP4430_ES2.x_PUBLIC_TRM_vU.zip
-[2] latest are in pm-wip/voltdm branch of my git tree
-    git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+guess you'll be picking these up?
+ 
+> 
+> >  drivers/i2c/busses/i2c-omap.c |   11 ++++++-----
+> >  1 files changed, 6 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> > index d53cd61..8f87a37 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -1068,13 +1068,14 @@ omap_i2c_probe(struct platform_device *pdev)
+> >  		 * size. This is to ensure that we can handle the status on int
+> >  		 * call back latencies.
+> >  		 */
+> > -		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430) {
+> > -			dev->fifo_size = 0;
+> > +
+> > +		dev->fifo_size = (dev->fifo_size / 2);
+> > +
+> > +		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
+> >  			dev->b_hw = 0; /* Disable hardware fixes */
+> > -		} else {
+> > -			dev->fifo_size = (dev->fifo_size / 2);
+> > +		else
+> >  			dev->b_hw = 1; /* Enable hardware fixes */
+> > -		}
+> > +
+> >  		/* calculate wakeup latency constraint for MPU */
+> >  		if (dev->set_mpu_wkup_lat != NULL)
+> >  			dev->latency = (1000000 * dev->fifo_size) /
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
