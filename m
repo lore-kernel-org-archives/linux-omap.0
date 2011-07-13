@@ -1,72 +1,71 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 2/5] regulator: omap smps regulator driver
-Date: Wed, 13 Jul 2011 18:53:45 +0300
-Message-ID: <1310572425.4331.96.camel@sokoban>
-References: <1310565638-13140-1-git-send-email-t-kristo@ti.com> <1310565638-13140-3-git-send-email-t-kristo@ti.com> <20110713144019.GA7861@opensource.wolfsonmicro.com>
-Reply-To: <t-kristo@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv4 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Wed, 13 Jul 2011 08:56:26 -0700
+Message-ID: <871uxuqimt.fsf@ti.com>
+References: <1309538376-23260-1-git-send-email-balajitk@ti.com>
+	<1309538376-23260-3-git-send-email-balajitk@ti.com>
+	<8739ig8wby.fsf@ti.com>
+	<5D8008F58939784290FAB48F5497519846C4113396@shsmsx502.ccr.corp.intel.com>
+	<87sjqaql91.fsf@ti.com>
+	<CANfBPZ-M+yrZv2r3sGYFRC4vRmD5AZ1b4FfyFYENmqH+FDgCcg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43357 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754596Ab1GMPyx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 11:54:53 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <20110713144019.GA7861@opensource.wolfsonmicro.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:49032 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754596Ab1GMP4c convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Jul 2011 11:56:32 -0400
+In-Reply-To: <CANfBPZ-M+yrZv2r3sGYFRC4vRmD5AZ1b4FfyFYENmqH+FDgCcg@mail.gmail.com>
+	(Venkatraman S.'s message of "Wed, 13 Jul 2011 21:04:14 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: linux-omap@vger.kernel.org, "Girdwood, Liam" <lrg@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: "Dong, Chuanxiao" <chuanxiao.dong@intel.com>, Balaji T K <balajitk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "tony@atomide.com" <tony@atomide.com>, "madhu.cr@ti.com" <madhu.cr@ti.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "kishore.kadiyala@ti.com" <kishore.kadiyala@ti.com>
 
-On Wed, 2011-07-13 at 16:40 +0200, Mark Brown wrote:
-> On Wed, Jul 13, 2011 at 05:00:35PM +0300, Tero Kristo wrote:
-> 
-> > +config REGULATOR_OMAP_SMPS
-> > +	tristate "TI OMAP SMPS Power Regulators"
-> > +	depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM && TWL4030_CORE
-> 
-> What is the dependency on the TWL4030?  I see no references to it in the
-> code...
+"S, Venkatraman" <svenkatr@ti.com> writes:
 
-Hmm, true... I was mainly thinking about the HW setup where we usually
-have a TWL family chip which is controlled by the SMPS regulator driver.
-I think that one can actually be dropped as it might be possible to use
-some other power IC behind the SMPS channels. I think I'll remove all
-the references to TWL4030 / TWL6030 from this patch.
+> On Wed, Jul 13, 2011 at 8:29 PM, Kevin Hilman <khilman@ti.com> wrote:
 
-> 
-> > +	for (i = 0; i < pdata->num_regulators; i++) {
-> > +		initdata = pdata->regulators[i];
-> > +
-> 
-> I do strongly prefer the idiom of just registering all the regulators
-> even if they're read only.
+[...]
 
-Number of available SMPS regulators is kind of board specific issue.
-OMAP3 has 2 available, OMAP4 has 3. If we are using some custom powering
-solution, we might have even different amounts for these.
+>>
+>> My basic question is this: why does this device need to be runtime
+>> resumed during system suspend? =C2=A0Why can't it just stay runtime
+>> suspended?
+>>
+>
+> From my understanding, the runtime suspend is usually implemented to =
+not
+> lose the card 'context', i.e. transactions can continue after a
+> runtime suspend /
+> resume cycle.
+>
+> For system suspend, the MMC core sends a sleep command (which, in
+> itself, is a transaction) to the card to go to sleep state, and for
+> all practical purposes, the card is treated as 'removed'. When the
+> system resumes, the card is rescanned and re-initialized.
+>
+> Hence, for system suspend, the MMC controller needs to be enabled to
+> actually send the command which puts the card to sleep (and hence the
+> resume).
 
-> 
-> > +		c = &initdata->constraints;
-> > +		c->valid_modes_mask &= REGULATOR_MODE_NORMAL;
-> > +		c->valid_ops_mask &= REGULATOR_CHANGE_VOLTAGE;
-> > +		c->always_on = true;
-> 
-> No, this is bad.  We *always* pay attention to the constraints the user
-> set even if they're nuts or won't work, the machine driver has the final
-> say on what is or isn't allowed on a given board.  The mode setting is
-> especially suspect as there's no mode support in the driver.
+Great, this is the detail I was looking for since my MMC knowledge is
+quite limited. =20
 
-Just a clarification on this one that I have understood your comment
-right... Do you mean that I should be checking the constraints user sets
-more thoroughly to see if there is something bogus? I was looking at
-some of the other regulator drivers and they seem to be fiddling with
-the constraints in similar manner.
+So, in theory, this same sleep command could be sent during runtime
+suspend as well, so that a system suspend would not have to runtime
+resume, correct?  But I suppose it would result in a much higher latenc=
+y
+runtime resumes.  It might be worth experimenting with doing this,
+possibly in combination with longer auto-suspend delay times.
 
--Tero
+Thanks for the explanation,
 
-
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
-
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
