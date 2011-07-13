@@ -1,19 +1,19 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 3/4] dt: omap3: add generic board file for dt support
-Date: Thu, 14 Jul 2011 08:15:16 +0900
-Message-ID: <CACxGe6sELS=C==16TZ2pfrxJDDyqjS_qOwJUfwzwMO8hqo8Xag@mail.gmail.com>
-References: <1310592975-25773-1-git-send-email-manjugk@ti.com> <1310592975-25773-4-git-send-email-manjugk@ti.com>
+Subject: Re: [PATCH 4/4] dt: i2c-omap: Convert i2c driver to use device tree
+Date: Thu, 14 Jul 2011 08:20:28 +0900
+Message-ID: <CACxGe6vG9BKUDvthOKFtx3u=Vq0EfBaZakxVqx8AYfRe_ruNdg@mail.gmail.com>
+References: <1310592975-25773-1-git-send-email-manjugk@ti.com> <1310592975-25773-5-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:41783 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752562Ab1GMXPh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 19:15:37 -0400
-Received: by yia27 with SMTP id 27so2635573yia.19
-        for <linux-omap@vger.kernel.org>; Wed, 13 Jul 2011 16:15:36 -0700 (PDT)
-In-Reply-To: <1310592975-25773-4-git-send-email-manjugk@ti.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:46204 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752507Ab1GMXUt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 19:20:49 -0400
+Received: by yxi11 with SMTP id 11so2642508yxi.19
+        for <linux-omap@vger.kernel.org>; Wed, 13 Jul 2011 16:20:48 -0700 (PDT)
+In-Reply-To: <1310592975-25773-5-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "G, Manjunath Kondaiah" <manjugk@ti.com>
@@ -22,228 +22,174 @@ Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, l
 On Thu, Jul 14, 2011 at 7:06 AM, G, Manjunath Kondaiah <manjugk@ti.com>=
  wrote:
 >
-> The generic board file is created and derived from beagle board file.
-> The beagle board file is migrated to boot from flattened device tree =
-and
-> the cleanup of generic board file will happen in different stages.
+> The i2c-omap driver is converted for supporting both
+> dt and non dt builds and driver is modified to use dt
+> data partially.
 >
-> The changes here focus on i2c device registration through dt and upco=
-ming
-> patches in the series will adopt i2c driver to use dt registered i2c
-> devices.
-
-Since this is a new board file instead of a modification of an
-existing one, I recommend *not* trying to completely duplicate the
-behaviour of the beagle board.  Start small with only the registration
-of the UART and i2c drivers from the device tree and build up
-functionality until it can be used for all the OMAP3 boards.
-Otherwise the patch just adds a lot of code that needs to be removed
-again.
-
+> Tested on OMAP3 beagle board.
 >
 > Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
 > ---
-> =A0arch/arm/mach-omap2/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 | =A0 12 +
-> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +
-> =A0arch/arm/mach-omap2/board-omap3-dt.c =A0 =A0| =A0623 +++++++++++++=
-++++++++++++++++++
-> =A0arch/arm/mach-omap2/board-omap3beagle.c | =A0 13 -
-> =A04 files changed, 637 insertions(+), 13 deletions(-)
-> =A0create mode 100644 arch/arm/mach-omap2/board-omap3-dt.c
+> =A0drivers/i2c/busses/i2c-omap.c | =A0 48 +++++++++++++++++++++++++++=
++++++++++++++-
+> =A01 files changed, 47 insertions(+), 1 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfi=
-g
-> index 19d5891..174f6d1 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -302,6 +302,18 @@ config MACH_OMAP_3630SDP
-> =A0 =A0 =A0 =A0default y
-> =A0 =A0 =A0 =A0select OMAP_PACKAGE_CBP
->
-> +config MACH_OMAP3_DT
-> + =A0 =A0 =A0 bool "Generic OMAP3 board(FDT support)"
-> + =A0 =A0 =A0 depends on ARCH_OMAP3
-> + =A0 =A0 =A0 select OMAP_PACKAGE_CBB
-> + =A0 =A0 =A0 select USE_OF
-> + =A0 =A0 =A0 select PROC_DEVICETREE
-
-Don't select PROC_DEVICETREE
-
-> +
-> + =A0 =A0 =A0 help
-> + =A0 =A0 =A0 =A0 Support for generic TI OMAP3 boards using Flattened=
- Device Tree.
-> + =A0 =A0 =A0 =A0 Say Y here to enable OMAP3 device tree support
-> + =A0 =A0 =A0 =A0 More information at Documentation/devicetree
-> +
-> =A0config MACH_TI8168EVM
-> =A0 =A0 =A0 =A0bool "TI8168 Evaluation Module"
-> =A0 =A0 =A0 =A0depends on SOC_OMAPTI816X
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makef=
-ile
-> index b148077..86e66f7 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -178,6 +178,8 @@ obj-$(CONFIG_MACH_OMAP_H4) =A0 =A0 =A0 =A0 =A0+=3D=
- board-h4.o
-> =A0obj-$(CONFIG_MACH_OMAP_2430SDP) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0+=3D=
- board-2430sdp.o \
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 hsmmc.o
-> =A0obj-$(CONFIG_MACH_OMAP_APOLLON) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0+=3D=
- board-apollon.o
-> +obj-$(CONFIG_MACH_OMAP3_DT) =A0 =A0 =A0 =A0 =A0 =A0+=3D board-omap3-=
-dt.o \
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0hsmmc.o
-> =A0obj-$(CONFIG_MACH_OMAP3_BEAGLE) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0+=3D=
- board-omap3beagle.o \
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 hsmmc.o
-
-This is an odd construct.  Tony, why does each board add hsmmc to the
-oby-y variable instead of it having its own kconfig symbol?
-
-> +static void __init omap3_init(void)
-> +{
-> + =A0 =A0 =A0 struct device_node *node;
-> +
-> + =A0 =A0 =A0 node =3D of_find_matching_node_by_address(NULL, omap3_d=
-t_intc_match,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 OMAP34XX_IC_BASE);
-> + =A0 =A0 =A0 if (node)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq_domain_add_simple(node, 0);
-> +
-> + =A0 =A0 =A0 omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> + =A0 =A0 =A0 omap3_beagle_init_rev();
-> + =A0 =A0 =A0 omap3_beagle_i2c_init();
-> + =A0 =A0 =A0 platform_add_devices(omap3_beagle_devices,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ARRAY_SIZE(omap3_beagle=
-_devices));
-> + =A0 =A0 =A0 omap_display_init(&beagle_dss_data);
-> + =A0 =A0 =A0 omap_serial_init();
-> +
-> + =A0 =A0 =A0 omap_mux_init_gpio(170, OMAP_PIN_INPUT);
-> + =A0 =A0 =A0 /* REVISIT leave DVI powered down until it's needed ...=
- */
-> + =A0 =A0 =A0 gpio_request_one(170, GPIOF_OUT_INIT_HIGH, "DVI_nPD");
-> +
-> + =A0 =A0 =A0 usb_musb_init(NULL);
-> + =A0 =A0 =A0 usbhs_init(&usbhs_bdata);
-> + =A0 =A0 =A0 omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand=
-_partitions,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ARRAY_SIZE(o=
-map3beagle_nand_partitions));
-> +
-> + =A0 =A0 =A0 /* Ensure msecure is mux'd to be able to set the RTC. *=
-/
-> + =A0 =A0 =A0 omap_mux_init_signal("sys_drm_msecure", OMAP_PIN_OFF_OU=
-TPUT_HIGH);
-> +
-> + =A0 =A0 =A0 /* Ensure SDRC pins are mux'd for self-refresh */
-> + =A0 =A0 =A0 omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
-> + =A0 =A0 =A0 omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
-> +
-> + =A0 =A0 =A0 beagle_display_init();
-> + =A0 =A0 =A0 beagle_opp_init();
-> + =A0 =A0 =A0 of_platform_populate(NULL, omap_dt_match_table, NULL, N=
-ULL);
-
-Hmmm, I don't think this will work for OMAP because it will not create
-the i2c bus as an omap_device.  It will only be a plane
-platform_deevice.  You'll need to have a hook in
-of_platform_populate() to create devices the way omap3 infrastructure
-expects.
-
-> +}
-> +
-> +static const char *omap3_dt_match[] __initdata =3D {
-> + =A0 =A0 =A0 "ti,omap3-beagle",
-> + =A0 =A0 =A0 NULL
-
-"ti,omap3" should be sufficient.
-
-> +};
-> +
-> +DT_MACHINE_START(OMAP3_DT, "TI OMAP3 (Flattened Device Tree)")
-> + =A0 =A0 =A0 .boot_params =A0 =A0=3D 0x80000100,
-
-Drop boot_params.
-
-> + =A0 =A0 =A0 .reserve =A0 =A0 =A0 =A0=3D omap_reserve,
-> + =A0 =A0 =A0 .map_io =A0 =A0 =A0 =A0 =3D omap3_map_io,
-> + =A0 =A0 =A0 .init_early =A0 =A0 =3D omap3_init_early,
-> + =A0 =A0 =A0 .init_irq =A0 =A0 =A0 =3D omap3_init_irq,
-> + =A0 =A0 =A0 .init_machine =A0 =3D omap3_init,
-> + =A0 =A0 =A0 .timer =A0 =A0 =A0 =A0 =A0=3D &omap_timer,
-> + =A0 =A0 =A0 .dt_compat =A0 =A0 =A0=3D omap3_dt_match,
-> +MACHINE_END
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-=
-omap2/board-omap3beagle.c
-> index 213c4cd..7efb178 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -19,7 +19,6 @@
-> =A0#include <linux/err.h>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
+map.c
+> index ae1545b..6d11a13 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -38,9 +38,13 @@
 > =A0#include <linux/clk.h>
 > =A0#include <linux/io.h>
-> -#include <linux/of_platform.h>
-> =A0#include <linux/leds.h>
-> =A0#include <linux/gpio.h>
-> =A0#include <linux/input.h>
-> @@ -422,9 +421,7 @@ static int __init omap3_beagle_i2c_init(void)
-> =A0 =A0 =A0 =A0/* Bus 3 is attached to the DVI port where devices lik=
-e the pico DLP
-> =A0 =A0 =A0 =A0 * projector don't work reliably with 400kHz */
-> =A0 =A0 =A0 =A0omap_register_i2c_bus(3, 100, beagle_i2c_eeprom, ARRAY=
-_SIZE(beagle_i2c_eeprom));
-> -#ifdef CONFIG_OF
-> =A0 =A0 =A0 =A0omap_register_i2c_bus(2, 100, NULL, 0);
-> -#endif /* CONFIG_OF */
+> =A0#include <linux/of_i2c.h>
+> +#include <linux/of_irq.h>
+> +#include <linux/of_platform.h>
+> +#include <linux/of_address.h>
+> =A0#include <linux/slab.h>
+> =A0#include <linux/i2c-omap.h>
+> =A0#include <linux/pm_runtime.h>
+> +#include <plat/i2c.h>
+>
+> =A0/* I2C controller revisions */
+> =A0#define OMAP_I2C_REV_2 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x20
+> @@ -972,6 +976,10 @@ static const struct i2c_algorithm omap_i2c_algo =
+=3D {
+> =A0 =A0 =A0 =A0.functionality =A0=3D omap_i2c_func,
+> =A0};
+>
+> +#if defined(CONFIG_OF)
+> +static const struct of_device_id omap_i2c_of_match[];
+> +#endif
+> +
+> =A0static int __devinit
+> =A0omap_i2c_probe(struct platform_device *pdev)
+> =A0{
+> @@ -979,10 +987,17 @@ omap_i2c_probe(struct platform_device *pdev)
+> =A0 =A0 =A0 =A0struct i2c_adapter =A0 =A0 =A0*adap;
+> =A0 =A0 =A0 =A0struct resource =A0 =A0 =A0 =A0 *mem, *irq, *ioarea;
+> =A0 =A0 =A0 =A0struct omap_i2c_bus_platform_data *pdata =3D pdev->dev=
+=2Eplatform_data;
+> +#if defined(CONFIG_OF)
+> + =A0 =A0 =A0 const struct of_device_id *match;
+> +#endif
+> =A0 =A0 =A0 =A0irq_handler_t isr;
+> =A0 =A0 =A0 =A0int r;
+> =A0 =A0 =A0 =A0u32 speed =3D 0;
+>
+> +#if defined(CONFIG_OF)
+> + =A0 =A0 =A0 match =3D of_match_device(omap_i2c_of_match, &pdev->dev=
+);
+> +#endif
+
+of_match_device() is an empty inline when CONFIG_OF is not defined.
+You can drop the #if defined() protection around this statement.
+
+> +
+> =A0 =A0 =A0 =A0/* NOTE: driver uses the static register mapping */
+> =A0 =A0 =A0 =A0mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0)=
+;
+> =A0 =A0 =A0 =A0if (!mem) {
+> @@ -1011,11 +1026,25 @@ omap_i2c_probe(struct platform_device *pdev)
+> =A0 =A0 =A0 =A0if (pdata !=3D NULL) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0speed =3D pdata->clkrate;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev->set_mpu_wkup_lat =3D pdata->set_m=
+pu_wkup_lat;
+> +#if defined(CONFIG_OF)
+> + =A0 =A0 =A0 } else if (pdev->dev.of_node) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 prop;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!of_property_read_u32(pdev->dev.of_=
+node, "clock-frequency",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ &prop))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed =3D prop/100;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed =3D 100;
+
+If you move the 'speed =3D 100' statement above the if(pdata !=3D NULL)
+test, then this whole block can become simpler for both the pdata and
+DT situations.
+
+> +#else
+> =A0 =A0 =A0 =A0} else {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0speed =3D 100; =A0 =A0/* Default speed=
+ */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->set_mpu_wkup_lat =3D NULL;
+> +#endif
+> =A0 =A0 =A0 =A0}
+>
+> +#if defined(CONFIG_OF)
+> + =A0 =A0 =A0 /* TODO: remove this after DT depencies with hwmod are =
+resolved */
+> + =A0 =A0 =A0 if (match)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +#endif
+> =A0 =A0 =A0 =A0dev->speed =3D speed;
+> =A0 =A0 =A0 =A0dev->idle =3D 1;
+> =A0 =A0 =A0 =A0dev->dev =3D &pdev->dev;
+> @@ -1096,7 +1125,9 @@ omap_i2c_probe(struct platform_device *pdev)
+> =A0 =A0 =A0 =A0strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->n=
+ame));
+> =A0 =A0 =A0 =A0adap->algo =3D &omap_i2c_algo;
+> =A0 =A0 =A0 =A0adap->dev.parent =3D &pdev->dev;
+> +#if defined(CONFIG_OF)
+> =A0 =A0 =A0 =A0adap->dev.of_node =3D pdev->dev.of_node;
+> +#endif
+
+The #if defined() can be safely removed here.
+
+>
+> =A0 =A0 =A0 =A0/* i2c device drivers may be active on return from add=
+_adapter() */
+> =A0 =A0 =A0 =A0adap->nr =3D pdev->id;
+> @@ -1106,7 +1137,9 @@ omap_i2c_probe(struct platform_device *pdev)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_free_irq;
+> =A0 =A0 =A0 =A0}
+>
+> +#if defined(CONFIG_OF)
+> =A0 =A0 =A0 =A0of_i2c_register_devices(adap);
+> +#endif
+
+Ditto here. of_i2c_register_devices() is an empty inline when !CONFIG_O=
+=46
+
+>
+> =A0 =A0 =A0 =A0return 0;
+>
+> @@ -1162,6 +1195,16 @@ static int omap_i2c_resume(struct device *dev)
 > =A0 =A0 =A0 =A0return 0;
 > =A0}
 >
-> @@ -567,10 +564,6 @@ static void __init beagle_opp_init(void)
->
-> =A0static void __init omap3_beagle_init(void)
-> =A0{
-> -#ifdef CONFIG_OF
-> - =A0 =A0 =A0 of_platform_prepare(NULL, NULL);
-> -#endif /* CONFIG_OF */
-> -
-> =A0 =A0 =A0 =A0omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> =A0 =A0 =A0 =A0omap3_beagle_init_rev();
-> =A0 =A0 =A0 =A0omap3_beagle_i2c_init();
-> @@ -599,11 +592,6 @@ static void __init omap3_beagle_init(void)
-> =A0 =A0 =A0 =A0beagle_opp_init();
-> =A0}
->
-> -static const char *omap3_beagle_dt_match[] __initdata =3D {
-> - =A0 =A0 =A0 "ti,omap3-beagle",
-> - =A0 =A0 =A0 NULL
-> -};
-> -
-> =A0MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
-> =A0 =A0 =A0 =A0/* Maintainer: Syed Mohammed Khasim - http://beagleboa=
-rd.org */
-> =A0 =A0 =A0 =A0.boot_params =A0 =A0=3D 0x80000100,
-> @@ -613,5 +601,4 @@ MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
-> =A0 =A0 =A0 =A0.init_irq =A0 =A0 =A0 =3D omap3_beagle_init_irq,
-> =A0 =A0 =A0 =A0.init_machine =A0 =3D omap3_beagle_init,
-> =A0 =A0 =A0 =A0.timer =A0 =A0 =A0 =A0 =A0=3D &omap_timer,
-> - =A0 =A0 =A0 .dt_compat =A0 =A0 =A0=3D omap3_beagle_dt_match,
-> =A0MACHINE_END
-> --
-> 1.7.4.1
->
->
+> +#if defined(CONFIG_OF)
+> +static const struct of_device_id omap_i2c_of_match[] =3D {
+> + =A0 =A0 =A0 {.compatible =3D "ti,omap3-i2c", },
+> + =A0 =A0 =A0 {},
+> +}
+> +MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
+> +#else
+> +#define omap_i2c_of_match NULL
+> +#endif
 
+You can move this whole block up to where omap_i2c_of_match is forward
+declared, which will make the patch smaller.
 
+> +
+> =A0static struct dev_pm_ops omap_i2c_pm_ops =3D {
+> =A0 =A0 =A0 =A0.suspend =3D omap_i2c_suspend,
+> =A0 =A0 =A0 =A0.resume =3D omap_i2c_resume,
+> @@ -1178,6 +1221,9 @@ static struct platform_driver omap_i2c_driver =3D=
+ {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "omap_i2c",
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.owner =A0=3D THIS_MODULE,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.pm =A0 =A0 =3D OMAP_I2C_PM_OPS,
+> +#if defined(CONFIG_OF)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .of_match_table =3D omap_i2c_of_match,
+> +#endif
 
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+Drop the #if defined() protection.
+
+g.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
