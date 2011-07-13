@@ -1,62 +1,46 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 5/5] omap: voltage: changed parameter of omap_voltage_lookup to const
-Date: Wed, 13 Jul 2011 17:00:38 +0300
-Message-ID: <1310565638-13140-6-git-send-email-t-kristo@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCHv2 2/5] regulator: omap smps regulator driver
+Date: Wed, 13 Jul 2011 23:40:22 +0900
+Message-ID: <20110713144019.GA7861@opensource.wolfsonmicro.com>
 References: <1310565638-13140-1-git-send-email-t-kristo@ti.com>
+ <1310565638-13140-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35760 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754627Ab1GMOCf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 10:02:35 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <1310565638-13140-1-git-send-email-t-kristo@ti.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:47700 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754654Ab1GMOk3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Jul 2011 10:40:29 -0400
+Content-Disposition: inline
+In-Reply-To: <1310565638-13140-3-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, lrg@ti.com, khilman@ti.com
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, lrg@ti.com, khilman@ti.com
 
-This fixes a couple of compilation warnings with OMAP SMPS regulator
-driver.
+On Wed, Jul 13, 2011 at 05:00:35PM +0300, Tero Kristo wrote:
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/voltage.c             |    2 +-
- arch/arm/plat-omap/include/plat/voltage.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+> +config REGULATOR_OMAP_SMPS
+> +	tristate "TI OMAP SMPS Power Regulators"
+> +	depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM && TWL4030_CORE
 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 7e3c512..832fa7a 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -1036,7 +1036,7 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
-  * a pointer to the voltage domain structure corresponding to the
-  * VDD<name>. Else retuns error pointer.
-  */
--struct voltagedomain *omap_voltage_domain_lookup(char *name)
-+struct voltagedomain *omap_voltage_domain_lookup(const char *name)
- {
- 	int i;
- 
-diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
-index 46573bf..76d314c 100644
---- a/arch/arm/plat-omap/include/plat/voltage.h
-+++ b/arch/arm/plat-omap/include/plat/voltage.h
-@@ -159,7 +159,7 @@ int omap_voltage_register_pmic(struct voltagedomain *voltdm,
- void omap_change_voltscale_method(struct voltagedomain *voltdm,
- 		int voltscale_method);
- /* API to get the voltagedomain pointer */
--struct voltagedomain *omap_voltage_domain_lookup(char *name);
-+struct voltagedomain *omap_voltage_domain_lookup(const char *name);
- 
- int omap_voltage_late_init(void);
- #else
--- 
-1.7.4.1
+What is the dependency on the TWL4030?  I see no references to it in the
+code...
 
+> +	for (i = 0; i < pdata->num_regulators; i++) {
+> +		initdata = pdata->regulators[i];
+> +
 
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
+I do strongly prefer the idiom of just registering all the regulators
+even if they're read only.
 
+> +		c = &initdata->constraints;
+> +		c->valid_modes_mask &= REGULATOR_MODE_NORMAL;
+> +		c->valid_ops_mask &= REGULATOR_CHANGE_VOLTAGE;
+> +		c->always_on = true;
+
+No, this is bad.  We *always* pay attention to the constraints the user
+set even if they're nuts or won't work, the machine driver has the final
+say on what is or isn't allowed on a given board.  The mode setting is
+especially suspect as there's no mode support in the driver.
