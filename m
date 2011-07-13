@@ -1,139 +1,73 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCHv2 4/5] TEMP: OMAP3: beagle rev-c4: enable OPP6
-Date: Wed, 13 Jul 2011 23:19:32 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024DB119F6@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2 0/5] OMAP SMPS regulator driver
+Date: Wed, 13 Jul 2011 12:00:37 -0700
+Message-ID: <87r55uxay2.fsf@ti.com>
 References: <1310565638-13140-1-git-send-email-t-kristo@ti.com>
- <1310565638-13140-5-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49869 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964805Ab1GMRtk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 13:49:40 -0400
-In-Reply-To: <1310565638-13140-5-git-send-email-t-kristo@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:51638 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751657Ab1GMTAn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Jul 2011 15:00:43 -0400
+Received: by iwn6 with SMTP id 6so5868039iwn.19
+        for <linux-omap@vger.kernel.org>; Wed, 13 Jul 2011 12:00:42 -0700 (PDT)
+In-Reply-To: <1310565638-13140-1-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Wed, 13 Jul 2011 17:00:33 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Girdwood, Liam" <lrg@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@ti.com, Paul Walmsley <paul@pwsan.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kristo, Tero
-> Sent: Wednesday, July 13, 2011 7:31 PM
-> To: linux-omap@vger.kernel.org
-> Cc: broonie@opensource.wolfsonmicro.com; Girdwood, Liam; Hilman, Kevin
-> Subject: [PATCHv2 4/5] TEMP: OMAP3: beagle rev-c4: enable OPP6
-> 
-> Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can 
-> run at 720MHz.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap3beagle.c |   32 
-> +++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/opp3xxx_data.c      |    4 +++
->  2 files changed, 36 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c 
-> b/arch/arm/mach-omap2/board-omap3beagle.c
-> index d7ae648..5ab507d 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -592,6 +592,38 @@ static void __init beagle_opp_init(void)
->  		return;
->  	}
->  
-> +	/* Custom OPP enabled for C4 */
-> +	if (omap3_beagle_version == OMAP3BEAGLE_BOARD_C4) {
-> +		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-> +		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
-> +		struct device *dev;
-> +
-> +		if (!mh || !dh) {
-> +			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
-> +				__func__, mh, dh);
-> +		}
-> +		/* Enable MPU 720MHz opp */
-> +		dev = &mh->od->pdev.dev;
-> +		r = opp_enable(dev, 720000000);
-> +
-> +		/* Enable IVA 520MHz opp */
-> +		dev = &dh->od->pdev.dev;
-> +		r |= opp_enable(dev, 520000000);
-> +
-> +		if (r) {
-> +			pr_err("%s: failed to enable higher opp %d\n",
-> +				__func__, r);
-> +			/*
-> +			 * Cleanup - disable the higher freqs - 
-> we dont care
-> +			 * about the results
-> +			 */
-> +			dev = &mh->od->pdev.dev;
-> +			opp_disable(dev, 720000000);
-> +			dev = &dh->od->pdev.dev;
-> +			opp_disable(dev, 520000000);
-> +		}
-> +	}
-> +
->  	/* Custom OPP enabled for all xM versions */
->  	if (cpu_is_omap3630()) {
->  		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-> diff --git a/arch/arm/mach-omap2/opp3xxx_data.c 
-> b/arch/arm/mach-omap2/opp3xxx_data.c
-> index d95f3f9..a0f5fe1 100644
-> --- a/arch/arm/mach-omap2/opp3xxx_data.c
-> +++ b/arch/arm/mach-omap2/opp3xxx_data.c
-> @@ -98,6 +98,8 @@ static struct omap_opp_def __initdata 
-> omap34xx_opp_def_list[] = {
->  	OPP_INITIALIZER("mpu", true, 550000000, 
-> OMAP3430_VDD_MPU_OPP4_UV),
->  	/* MPU OPP5 */
->  	OPP_INITIALIZER("mpu", true, 600000000, 
-> OMAP3430_VDD_MPU_OPP5_UV),
-> +	/* MPU OPP6 : omap3530 high speed grade only */
-> +	OPP_INITIALIZER("mpu", false, 720000000, 
-> OMAP3430_VDD_MPU_OPP5_UV),
->  
->  	/*
->  	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage 
-> for that OPP is
-> @@ -123,6 +125,8 @@ static struct omap_opp_def __initdata 
-> omap34xx_opp_def_list[] = {
->  	OPP_INITIALIZER("iva", true, 400000000, 
-> OMAP3430_VDD_MPU_OPP4_UV),
->  	/* DSP OPP5 */
->  	OPP_INITIALIZER("iva", true, 430000000, 
-> OMAP3430_VDD_MPU_OPP5_UV),
-> +	/* DSP OPP6 : omap3530 high speed grade only */
-> +	OPP_INITIALIZER("iva", false, 520000000, 
-> OMAP3430_VDD_MPU_OPP5_UV),
->  };
->  
->  static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
++Paul
 
-[sp] Basic support for 720MHz was already closed early this year.
-     See: http://marc.info/?l=linux-omap&m=129735630928696&w=2
+Tero Kristo <t-kristo@ti.com> writes:
 
-     I cannot check the current tree status right now; but I assume
-     the patch should already be in.
+> Based on the comments for the previous version of this set, I implemented
+> a regulator driver for the OMAP SMPS now. It could actually be moved under
+> arch/arm/mach-omap2/ directory instead of drivers/regulator, I think it
+> should work from there also. This would also require less hacking for the
+> header files. Any thoughts on this?
 
-~sanjeev
+Actually, I'd prefer it stay in drivers/regulator.  We're trying to move
+driver-type stuff out of arch/arm/* into the right place in drivers/*.
+In fact, I wonder if our VP/VC layers might better live under
+drivers/regulator also.
 
-> -- 
-> 1.7.4.1
-> 
-> 
-> Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 
-> 0115040-6. Kotipaikka: Helsinki
->  
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I'd appreciate any input from Mark/Liam on how to organize things.
+
+For some background, see Figures 3-75 and 3-76 in the OMAP4430 Public
+TRM[1].  The SMPSs are physically on an external PMIC, but all the
+control is typically done via on-chip resources: voltage processor (VP),
+voltage controller (VC).  There's also an optional SmartReflex (SR)
+block involved which can drive the VP.  I'm not as familiar with other
+non-OMAP SoCs, but I don't imagine this is unique to OMAP.
+
+Currently, we have separate drivers for VC, VP and SR in
+arch/arm/mach-omap2.  In mainline, these are currently more like
+libraries than drivers and are a bit hackish and interwoven with each
+other.  We're currently separating these out into separate VC, VP and SR
+layers[2], and I'm wondering exactly how we should structure this, and
+where they should live under drivers/*.
+
+What Paul and I have discussed so far is that SR should just be
+implemented as a sensor under hwmod.  For VC/VP, I think it makes the
+most sense that these be part of drivers/regulator someplace.  In this
+series, the proposed driver is just small shell that calls the VP
+functions.  
+
+Mark/Liam, are you OK with having some "helper" libraries in
+drivers/regulator?  I'm thinking specifically of our VC/VP layers (see
+arch/arm/mach-omap2/vc*.c and vp*.c here in my pm-wip/voltdm branch[2].)
+
+So far, I'm just brainstorming on how to cleanup/restructure this stuff,
+so any advice from you guys would be appreciated.
+
+Thanks,
+
+Kevin
+
+[1] http://focus.ti.com/pdfs/wtbu/OMAP4430_ES2.x_PUBLIC_TRM_vU.zip
+[2] latest are in pm-wip/voltdm branch of my git tree
+    git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
