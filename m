@@ -1,37 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Remaining omap pull requests
-Date: Tue, 12 Jul 2011 23:25:30 -0700
-Message-ID: <20110713062530.GH5783@atomide.com>
-References: <20110711114736.GX5783@atomide.com>
- <1310460112.19324.3.camel@lws-weitzel>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [GIT PULL] OMAP: SoC data/core: cleanups for 3.1
+Date: Wed, 13 Jul 2011 00:38:37 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107130037140.30229@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1107092031400.15984@utopia.booyaka.com> <20110711083225.GO5783@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17088 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751791Ab1GMGZf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 02:25:35 -0400
-Content-Disposition: inline
-In-Reply-To: <1310460112.19324.3.camel@lws-weitzel>
+Received: from utopia.booyaka.com ([72.9.107.138]:44645 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964928Ab1GMGii (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 02:38:38 -0400
+In-Reply-To: <20110711083225.GO5783@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jan Weitzel <J.Weitzel@phytec.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Jan Weitzel <J.Weitzel@phytec.de> [110712 01:36]:
-> Am Montag, den 11.07.2011, 04:47 -0700 schrieb Tony Lindgren:
+Hi Tony,
+
+On Mon, 11 Jul 2011, Tony Lindgren wrote:
+
+> Paul, please use the mainline tags or linux-omap static branches
+> instead of the arm-soc branches. In this case there's only the extra
+> merge commit there, so not a problem. Now it just makes it a bit
+> harder for me to do pull requests and diffs to other branches.
 > 
-> > Then there are two new boards remaining, but they both are waiting
-> > on the machine_id patch.
-> > 
-> 
-> If one of them is our pcm049 OMAP4 board, the machine_id is already in.
-> pcm049                  MACH_PCM049             PCM049                  3364
+> In general, we want to keep the dependencies between branches and
+> other trees to minimum.
 
-Yes, thanks for pointing that out. And now we also have an ack from Russell
-for the Nook mach-types changes. I'll take one more look at the machine
-patches and if no issues will apply them.
+Sorry about that.  It was a misunderstanding on my part.
 
-Regards,
+Would you like me to rebase the prcm-fixes-3.1 and prcm-devel-3.1 branches 
+on a different branch/commit?
 
-Tony
+
+- Paul
