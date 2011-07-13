@@ -1,36 +1,65 @@
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: [PATCH] tusb6010_omap: fix build failure: error: 'musb' undeclared
-Date: Thu, 14 Jul 2011 00:29:38 +0300
-Message-ID: <1310592578-31194-1-git-send-email-slyfox@gentoo.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sergei Trofimovich <slyfox@gentoo.org>
+From: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/4] dt: omap3: add device tree support
+Date: Thu, 14 Jul 2011 03:06:11 +0500
+Message-ID: <1310592975-25773-1-git-send-email-manjugk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-  CC      drivers/usb/musb/tusb6010_omap.o
-drivers/usb/musb/tusb6010_omap.c: In function 'tusb_omap_use_shared_dmareq':
-drivers/usb/musb/tusb6010_omap.c:92: error: 'musb' undeclared (first use in this function)
-drivers/usb/musb/tusb6010_omap.c:92: error: (Each undeclared identifier is reported only once
-drivers/usb/musb/tusb6010_omap.c:92: error: for each function it appears in.)
 
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
----
- drivers/usb/musb/tusb6010_omap.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+This patch series is for migrating omap3 beagle board file and to use
+device tree data structures in i2c-omap driver.
 
-diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
-index c784e6c..07c8a73 100644
---- a/drivers/usb/musb/tusb6010_omap.c
-+++ b/drivers/usb/musb/tusb6010_omap.c
-@@ -89,7 +89,7 @@ static inline int tusb_omap_use_shared_dmareq(struct tusb_omap_dma_ch *chdat)
- 	u32		reg = musb_readl(chdat->tbase, TUSB_DMA_EP_MAP);
- 
- 	if (reg != 0) {
--		dev_dbg(musb->controller, "ep%i dmareq0 is busy for ep%i\n",
-+		dev_dbg(chdat->musb->controller, "ep%i dmareq0 is busy for ep%i\n",
- 			chdat->epnum, reg & 0xf);
- 		return -EAGAIN;
- 	}
+These are basic changes in order to adopt device tree for using generic
+board file with omap3 platforms. Existing non dt setup and build is not 
+disturbed and device tree boot needs to be explicitly enabled through
+menuconfig option by selecting CONFIG_OMAP3_DT
+
+Build and boot tested for both dt and not dt options on omap3 beagle
+board.
+
+Initial review comments and alignment can be found at:
+http://comments.gmane.org/gmane.linux.drivers.devicetree/6188
+
+Baseline:
+Applies cleanly on top of:
+git://git.secretlab.ca/git/linux-2.6
+Branch: origin/devicetree/test
+commit 88c559f5479ec28a1acd38c081d89f90a059a6ef
+Author: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+
+    drivercore: Add driver probe deferral mechanism
+
+G, Manjunath Kondaiah (4):
+  DT: OMAP3: Add SoC file for handling i2c controllers
+  DT: OMAP3: Beagle board: set clock freq for i2c devices
+  DT: OMAP3: Add generic board file for dt support
+  DT: OMAP: Convert I2C driver to use device tree
+
+ arch/arm/boot/dts/omap3-beagle-nunchuck.dts |   11 +-
+ arch/arm/boot/dts/omap3-beagle.dts          |   29 ++-
+ arch/arm/boot/dts/omap3-soc.dtsi            |   65 +++
+ arch/arm/mach-omap2/Kconfig                 |   12 +
+ arch/arm/mach-omap2/Makefile                |    2 +
+ arch/arm/mach-omap2/board-omap3-dt.c        |  623 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c     |   13 -
+ drivers/i2c/busses/i2c-omap.c               |   48 ++-
+ 8 files changed, 777 insertions(+), 26 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-soc.dtsi
+ create mode 100644 arch/arm/mach-omap2/board-omap3-dt.c
+
 -- 
-1.7.3.4
+1.7.4.1
