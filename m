@@ -1,66 +1,109 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] Runtime PM discussion notes
-Date: Wed, 13 Jul 2011 11:04:06 +0200
-Message-ID: <201107131104.06995.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org> <20110711112619.GH5092@opensource.wolfsonmicro.com> <alpine.DEB.2.00.1107130105530.30229@utopia.booyaka.com>
+From: "Dong, Chuanxiao" <chuanxiao.dong@intel.com>
+Subject: RE: [PATCHv4 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Wed, 13 Jul 2011 17:09:08 +0800
+Message-ID: <5D8008F58939784290FAB48F5497519846C4113396@shsmsx502.ccr.corp.intel.com>
+References: <1309538376-23260-1-git-send-email-balajitk@ti.com>
+	<1309538376-23260-3-git-send-email-balajitk@ti.com> <8739ig8wby.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:50702 "EHLO ogre.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:3194 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965115Ab1GMJD0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jul 2011 05:03:26 -0400
-In-Reply-To: <alpine.DEB.2.00.1107130105530.30229@utopia.booyaka.com>
+	id S965050Ab1GMJKQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 05:10:16 -0400
+In-Reply-To: <8739ig8wby.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Arve Hj?nnev?g <arve@android.com>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>, Len Brown <lenb@kernel.org>
+To: Kevin Hilman <khilman@ti.com>, Balaji T K <balajitk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "tony@atomide.com" <tony@atomide.com>, "madhu.cr@ti.com" <madhu.cr@ti.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "kishore.kadiyala@ti.com" <kishore.kadiyala@ti.com>
 
-On Wednesday, July 13, 2011, Paul Walmsley wrote:
-> (cc'ing Len)
-> 
-> Hi Mark,
-> 
-> On Mon, 11 Jul 2011, Mark Brown wrote:
-> 
-> > The interesting bits are things like being able to kill lots of the SoC
-> > core supplies when the RAM is in retention mode - the CPU needs to go
-> > through its shutdown procedures.
-> 
-> This is indeed possible on OMAP3+ chips with TWL4030+ PMICs.  Probably 
-> other PMICs also.  TI calls it "off-mode."  The N900 shipped with this 
-> feature enabled.  Not sure how many other similar products did.
-> 
-> This can be enabled in mainline, but not all of the mainline drivers have 
-> context save/restore code merged yet, so in mainline it only works with a 
-> subset of drivers.
-> 
-> > Actually, it just occurred to me that if we're waiting for a system
-> > timer and can hand that off to a suitable timer in the PMIC then we can
-> > do a suspend to RAM for the deep idle state from the hardware point of
-> > view.
-> 
-> Yep.  At LinuxCon Cambridge two years ago, we had a discussion about 
-> whether it would be possible to enter ACPI S-states from CPUIdle (or some 
-> idle governor) on Intel chips.  If I remember correctly, the conclusion 
-> was that ACPI always disables the screen/backlight, so it would only be 
-> useful for situations where that was acceptable.
 
-The reason why you can't enter ACPI S-states from CPUidle is because you
-need to go out of the idle loop to execute some ACPI-specific stuff.  Which
-is not even specific to Intel chips, but to ACPI in general.
 
-So entering ACPI S-states from idle is a no-no and I don't think it'll
-change in foreseeable future.
+> -----Original Message-----
+> From: linux-mmc-owner@vger.kernel.org
+> [mailto:linux-mmc-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Saturday, July 09, 2011 2:24 AM
+> To: Balaji T K
+> Cc: linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org; cjb@laptop.org;
+> tony@atomide.com; madhu.cr@ti.com; b-cousson@ti.com; paul@pwsan.com;
+> kishore.kadiyala@ti.com
+> Subject: Re: [PATCHv4 2/3] MMC: OMAP: HSMMC: add runtime pm support
+> 
+> Balaji T K <balajitk@ti.com> writes:
+> 
+> > add runtime pm support to HSMMC host controller
+> > Use runtime pm API to enable/disable HSMMC clock
+> > Use runtime autosuspend APIs to enable auto suspend delay
+> >
+> > Based on OMAP HSMMC runtime implementation by Kevin Hilman, Kishore
+> Kadiyala
+> >
+> > Signed-off-by: Balaji T K <balajitk@ti.com>
+> 
+> It's not relevant for this merge window, but I'm exploring some future
+> changes to our PM core code and have a question about how MMC works for
+> system suspend.
+> 
+> Basially, the question is: can the driver be reworked such that a system
+> suspend does not need to runtime resume the device?  For most devices,
+> we kind of expect that if the device is runtime suspended, a system
+> suspend will have nothing extra to do, but this driver runtime resumes
+> the device during system suspend in order to do "stuff", which I
+> admitedly don't fully undestand.
+> 
+> Ideally, the "stuff" needed for runtime suspend and system suspend could
+> be made to be common such that a system suspend of a runtime suspended
+> device would be a noop.
+> 
+> Is this possible?
+> 
+> Kevin
 
-> To the best of my (limited) knowledge, that's the only case I know of 
-> where there's a hardware limitation that prevents dynamic idle from 
-> reaching the same low power state as system suspend.  If someone has hard 
-> details of a similar example, it would be great to know about it.
+During system suspended patch, a callback named .prepare will be first done before .suspend is called, and .complete callback will be called after .resume is called. These two callbacks are in pair. If driver can implement the .prepare and hold the usage count in this callback, then runtime pm suspend/resume will not happen during device suspending. So there will be no need to add pm_runtime_get* and pm_runtime_put* in .suspend/.resume.
+BTW, if .prepare has hold the usage count, then .complete callback need to release the usage count and put device in runtime suspended mode.
 
-Google G1 had this problem IIRC, but I don't have any details.
+Thanks
+Chuanxiao
 
-Thanks,
-Rafael
+> 
+> > @@ -2100,6 +2087,7 @@ static int omap_hsmmc_suspend(struct device *dev)
+> >  		return 0;
+> >
+> >  	if (host) {
+> > +		pm_runtime_get_sync(host->dev);
+> >  		host->suspended = 1;
+> >  		if (host->pdata->suspend) {
+> >  			ret = host->pdata->suspend(&pdev->dev,
+> > @@ -2114,13 +2102,11 @@ static int omap_hsmmc_suspend(struct device
+> *dev)
+> >  		}
+> >  		cancel_work_sync(&host->mmc_carddetect_work);
+> >  		ret = mmc_suspend_host(host->mmc);
+> > -		mmc_host_enable(host->mmc);
+> > +
+> >  		if (ret == 0) {
+> >  			omap_hsmmc_disable_irq(host);
+> >  			OMAP_HSMMC_WRITE(host->base, HCTL,
+> >  				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+> > -			mmc_host_disable(host->mmc);
+> > -			clk_disable(host->iclk);
+> >  			if (host->got_dbclk)
+> >  				clk_disable(host->dbclk);
+> >  		} else {
+> > @@ -2132,9 +2118,8 @@ static int omap_hsmmc_suspend(struct device *dev)
+> >  					dev_dbg(mmc_dev(host->mmc),
+> >  						"Unmask interrupt failed\n");
+> >  			}
+> > -			mmc_host_disable(host->mmc);
+> >  		}
+> > -
+> > +		pm_runtime_put_sync(host->dev);
+> >  	}
+> >  	return ret;
+> >  }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
