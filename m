@@ -1,56 +1,43 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [linux-pm] Runtime PM discussion notes
-Date: Wed, 13 Jul 2011 01:17:51 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107130105530.30229@utopia.booyaka.com>
-References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org> <201106232234.21930.rjw@sisk.pl> <alpine.DEB.2.00.1106241239340.25533@utopia.booyaka.com> <BANLkTinaa2W0mTUGCzfLAgBsgC5nP57x9ZXC0PfOvqa7x16kvw@mail.gmail.com>
- <alpine.DEB.2.00.1106281346160.2874@utopia.booyaka.com> <20110709040622.GH26900@sirena.org.uk> <20110711095812.GT5783@atomide.com> <20110711110435.GF5092@opensource.wolfsonmicro.com> <20110711111424.GV5783@atomide.com>
- <20110711112619.GH5092@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] OMAP2+: PM: fix watchdog boot when runtime PM is
+ disabled
+Date: Wed, 13 Jul 2011 01:54:41 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107130142470.30229@utopia.booyaka.com>
+References: <1310426484-30083-1-git-send-email-khilman@ti.com> <4E1B8B47.3020904@ti.com> <878vs3v9a3.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34349 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42353 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752544Ab1GMHRw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 03:17:52 -0400
-In-Reply-To: <20110711112619.GH5092@opensource.wolfsonmicro.com>
+	with ESMTP id S1758672Ab1GMHym (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 03:54:42 -0400
+In-Reply-To: <878vs3v9a3.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Tony Lindgren <tony@atomide.com>, Arve Hj?nnev?g <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Kevin Hilman <khilman@ti.com>, Len Brown <lenb@kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-(cc'ing Len)
+On Tue, 12 Jul 2011, Kevin Hilman wrote:
 
-Hi Mark,
+> Paul's concern is valid, and could be addressed by making that init code
+> actually check if the WDT is currently active (as suggested by the
+> comment there.)
+> 
+> In the mean time, this simple fix should be applied to prevent a boot
+> crash, IMO.
 
-On Mon, 11 Jul 2011, Mark Brown wrote:
+Thing is, applying this fix will cause crashes if the bootloader enables 
+the watchdog, but the kernel does not.  It just trades one source of 
+crashes for another.
 
-> The interesting bits are things like being able to kill lots of the SoC
-> core supplies when the RAM is in retention mode - the CPU needs to go
-> through its shutdown procedures.
+The root cause of this problem is that the drivers are incorrectly relying 
+on runtime PM to "enable" devices.  My personal opinion is that we should 
+be doing what SSB, PCI, etc. do, and have a omap_device_enable() that is 
+called by the driver.  Basically, we need a real omap_bus/omap_device.
 
-This is indeed possible on OMAP3+ chips with TWL4030+ PMICs.  Probably 
-other PMICs also.  TI calls it "off-mode."  The N900 shipped with this 
-feature enabled.  Not sure how many other similar products did.
-
-This can be enabled in mainline, but not all of the mainline drivers have 
-context save/restore code merged yet, so in mainline it only works with a 
-subset of drivers.
-
-> Actually, it just occurred to me that if we're waiting for a system
-> timer and can hand that off to a suitable timer in the PMIC then we can
-> do a suspend to RAM for the deep idle state from the hardware point of
-> view.
-
-Yep.  At LinuxCon Cambridge two years ago, we had a discussion about 
-whether it would be possible to enter ACPI S-states from CPUIdle (or some 
-idle governor) on Intel chips.  If I remember correctly, the conclusion 
-was that ACPI always disables the screen/backlight, so it would only be 
-useful for situations where that was acceptable.
-
-To the best of my (limited) knowledge, that's the only case I know of 
-where there's a hardware limitation that prevents dynamic idle from 
-reaching the same low power state as system suspend.  If someone has hard 
-details of a similar example, it would be great to know about it.
+Meanwhile, switching to lazy device reset as Tony suggested should mask 
+the issue.  The patches for this are 95% done; the intention is to post 
+them for early 3.2.  Or if people are really gung-ho, 3.1 rc.
 
 
 - Paul
