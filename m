@@ -1,48 +1,63 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: hwmod, postsetup_state, omap_device and !CONFIG_PM_RUNTIME
-Date: Tue, 12 Jul 2011 16:51:22 -0700
-Message-ID: <87bowzrrb9.fsf@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] OMAP: powerdomains: Make all powerdomain target states as ON at init
+Date: Wed, 13 Jul 2011 08:56:27 +0530
+Message-ID: <1310527588-13022-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:55636 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751203Ab1GLXv1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Jul 2011 19:51:27 -0400
-Received: by iym1 with SMTP id 1so10673865iym.1
-        for <linux-omap@vger.kernel.org>; Tue, 12 Jul 2011 16:51:26 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:40521 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932357Ab1GMD0u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jul 2011 23:26:50 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-With CONFIG_PM_RUNTIME disabled, we have a few problems due to the
-current way of handling the postsetup_state of each hwmod.
+From: Rajendra Nayak <rnayak@ti.com>
 
-The primary one is that the omap_hwmod internal startup state does not
-match the omap_device internal state.  For example, with
-!CONFIG_PM_RUNTIME, all the hwmods are left enabled (and the bootup
-state is OMAP_HWMOD_STATE_ENABLED.)
+Program all powerdomain target state as ON; This is to
+prevent domains from hitting low power states (if bootloader
+has target states set to something other than ON) and potentially
+even losing context while PM is not fully initilized.
+The PM late init code can then program the desired target
+state for all the power domains.
 
-However, omap_device doesn't know this, so the first call
-omap_device_enable() will generate the noisy warnings:
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/powerdomain.c |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletions(-)
 
-omap_device_enable()
-    /* Here, the omap_device default state is 0x0: UNKNOWN */
-    deactivate_func -> omap_device_enable_hwmods()
-        omap_hwmod_enable()
-            /* WARN is hit since state is already enabled */           
-
-
-A second one is where device init code is directly calling
-omap_hwmod_enable()  (e.g. in omap_dm_timer_init_one()).  This code has
-no way of knowing that the device was left enabled due to the
-postsetup_state, so calls like this to omap_hwmod_* fail with the noisy
-warnings from the hwmod core.
-
-I haven't dug too much into how to handle this, but wanted to post this
-to see if anyone has any good ideas about how to handle it.
-
-Kevin
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index e0490bc..e61866c 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -109,6 +109,16 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 
+ 	list_add(&pwrdm->node, &pwrdm_list);
+ 
++	/*
++	* Program all powerdomain target state as ON; This is to
++	* prevent domains from hitting low power states (if bootloader
++	* has target states set to something other than ON) and potentially
++	* even losing context while PM is not fully initilized.
++	* The PM late init code can then program the desired target
++	* state for all the power domains.
++	*/
++	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_ON);
++
+ 	/* Initialize the powerdomain's state counter */
+ 	for (i = 0; i < PWRDM_MAX_PWRSTS; i++)
+ 		pwrdm->state_counter[i] = 0;
+@@ -218,7 +228,7 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+ /**
+  * pwrdm_init - set up the powerdomain layer
+  * @pwrdm_list: array of struct powerdomain pointers to register
+- * @custom_funcs: func pointers for arch specific implementations
++ * @custom_funcs: func pointers for arch specfic implementations
+  *
+  * Loop through the array of powerdomains @pwrdm_list, registering all
+  * that are available on the current CPU. If pwrdm_list is supplied
+-- 
+1.7.4.1
 
