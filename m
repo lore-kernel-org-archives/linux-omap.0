@@ -1,65 +1,30 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] OMAP: clockdomain: Wait for powerdomain to be ON when using clockdomain force wakeup
-Date: Wed, 13 Jul 2011 08:56:28 +0530
-Message-ID: <1310527588-13022-2-git-send-email-santosh.shilimkar@ti.com>
-References: <1310527588-13022-1-git-send-email-santosh.shilimkar@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v3 00/20] GPIO: OMAP: driver cleanup and fixes
+Date: Wed, 13 Jul 2011 09:18:45 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BE784D3@dbde02.ent.ti.com>
+References: <1309513634-20971-1-git-send-email-tarun.kanti@ti.com>
+	<874o2zf791.fsf@ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB037BD02D1B@dbde02.ent.ti.com>
+ <CALyTGOBAWtoHvHqaGeF-o6TVvdo6eijVD=PzeCAdThy-iPyrpQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35031 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932349Ab1GMD0v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Jul 2011 23:26:51 -0400
-In-Reply-To: <1310527588-13022-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41457 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932383Ab1GMDsy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jul 2011 23:48:54 -0400
+In-Reply-To: <CALyTGOBAWtoHvHqaGeF-o6TVvdo6eijVD=PzeCAdThy-iPyrpQ@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-While using clockdomain force wakeup method, not waiting for powerdomain
-to be effectively ON may end up locking the clockdomain FSM until a
-next wakeup event occurs.
-
-One such issue was seen on OMAP4430, where L4_PER was periodically
-getting stuck in in-transition state when transitioning from from OSWR to ON.
-
-This issue was reported and investigated by Patrick Titiano <p-titiano@ti.com>
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Reported-by: Patrick Titiano <p-titiano@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clockdomain.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index b98a972..583cc3d 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -718,6 +718,8 @@ int clkdm_sleep(struct clockdomain *clkdm)
-  */
- int clkdm_wakeup(struct clockdomain *clkdm)
- {
-+	int ret;
-+
- 	if (!clkdm)
- 		return -EINVAL;
- 
-@@ -732,7 +734,10 @@ int clkdm_wakeup(struct clockdomain *clkdm)
- 
- 	pr_debug("clockdomain: forcing wakeup on %s\n", clkdm->name);
- 
--	return arch_clkdm->clkdm_wakeup(clkdm);
-+	ret = arch_clkdm->clkdm_wakeup(clkdm);
-+	ret |= pwrdm_wait_transition(clkdm->pwrdm.ptr);
-+
-+	return ret;
- }
- 
- /**
--- 
-1.7.4.1
-
+[...]
+> 
+> And also, change all subject prefixes to 'gpio/omap: ...' as requested
+> by GPIO maintainer.
+Ok.
+> 
+> Kevin
