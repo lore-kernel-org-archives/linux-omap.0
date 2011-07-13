@@ -1,46 +1,54 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv2 2/5] regulator: omap smps regulator driver
-Date: Wed, 13 Jul 2011 23:40:22 +0900
-Message-ID: <20110713144019.GA7861@opensource.wolfsonmicro.com>
-References: <1310565638-13140-1-git-send-email-t-kristo@ti.com>
- <1310565638-13140-3-git-send-email-t-kristo@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv4 2/3] MMC: OMAP: HSMMC: add runtime pm support
+Date: Wed, 13 Jul 2011 07:59:54 -0700
+Message-ID: <87sjqaql91.fsf@ti.com>
+References: <1309538376-23260-1-git-send-email-balajitk@ti.com>
+	<1309538376-23260-3-git-send-email-balajitk@ti.com>
+	<8739ig8wby.fsf@ti.com>
+	<5D8008F58939784290FAB48F5497519846C4113396@shsmsx502.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:47700 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754654Ab1GMOk3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jul 2011 10:40:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1310565638-13140-3-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <5D8008F58939784290FAB48F5497519846C4113396@shsmsx502.ccr.corp.intel.com>
+	(Chuanxiao Dong's message of "Wed, 13 Jul 2011 17:09:08 +0800")
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Dong, Chuanxiao" <chuanxiao.dong@intel.com>
+Cc: Balaji T K <balajitk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "tony@atomide.com" <tony@atomide.com>, "madhu.cr@ti.com" <madhu.cr@ti.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "kishore.kadiyala@ti.com" <kishore.kadiyala@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, lrg@ti.com, khilman@ti.com
 
-On Wed, Jul 13, 2011 at 05:00:35PM +0300, Tero Kristo wrote:
+"Dong, Chuanxiao" <chuanxiao.dong@intel.com> writes:
 
-> +config REGULATOR_OMAP_SMPS
-> +	tristate "TI OMAP SMPS Power Regulators"
-> +	depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM && TWL4030_CORE
+[...]
 
-What is the dependency on the TWL4030?  I see no references to it in the
-code...
+>> 
+>> Basially, the question is: can the driver be reworked such that a system
+>> suspend does not need to runtime resume the device?  For most devices,
+>> we kind of expect that if the device is runtime suspended, a system
+>> suspend will have nothing extra to do, but this driver runtime resumes
+>> the device during system suspend in order to do "stuff", which I
+>> admitedly don't fully undestand.
+>> 
+>> Ideally, the "stuff" needed for runtime suspend and system suspend could
+>> be made to be common such that a system suspend of a runtime suspended
+>> device would be a noop.
+>> 
+>> Is this possible?
+>> 
+>> Kevin
+>
+> During system suspended patch, a callback named .prepare will be first
+> done before .suspend is called, and .complete callback will be called
+> after .resume is called. These two callbacks are in pair. If driver
+> can implement the .prepare and hold the usage count in this callback,
+> then runtime pm suspend/resume will not happen during device
+> suspending. So there will be no need to add pm_runtime_get* and
+> pm_runtime_put* in .suspend/.resume.
 
-> +	for (i = 0; i < pdata->num_regulators; i++) {
-> +		initdata = pdata->regulators[i];
-> +
+That doesn't avoid the problem, since the device is still runtime
+resumed and then re-suspended during system suspend.
 
-I do strongly prefer the idiom of just registering all the regulators
-even if they're read only.
+My basic question is this: why does this device need to be runtime
+resumed during system suspend?  Why can't it just stay runtime
+suspended?
 
-> +		c = &initdata->constraints;
-> +		c->valid_modes_mask &= REGULATOR_MODE_NORMAL;
-> +		c->valid_ops_mask &= REGULATOR_CHANGE_VOLTAGE;
-> +		c->always_on = true;
-
-No, this is bad.  We *always* pay attention to the constraints the user
-set even if they're nuts or won't work, the machine driver has the final
-say on what is or isn't allowed on a given board.  The mode setting is
-especially suspect as there's no mode support in the driver.
+Kevin
