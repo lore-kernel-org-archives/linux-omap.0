@@ -1,109 +1,125 @@
-From: "Dong, Chuanxiao" <chuanxiao.dong@intel.com>
-Subject: RE: [PATCHv4 2/3] MMC: OMAP: HSMMC: add runtime pm support
-Date: Wed, 13 Jul 2011 17:09:08 +0800
-Message-ID: <5D8008F58939784290FAB48F5497519846C4113396@shsmsx502.ccr.corp.intel.com>
-References: <1309538376-23260-1-git-send-email-balajitk@ti.com>
-	<1309538376-23260-3-git-send-email-balajitk@ti.com> <8739ig8wby.fsf@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH V2 00/16] omap_hsmmc patches
+Date: Wed, 13 Jul 2011 13:48:08 +0300
+Message-ID: <CANOLnONWmYn4FpuF-UAKQR4rAA6LOgWdMfu2bMN46nna6rOxAw@mail.gmail.com>
+References: <1304673255-31634-1-git-send-email-adrian.hunter@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:3194 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965050Ab1GMJKQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 05:10:16 -0400
-In-Reply-To: <8739ig8wby.fsf@ti.com>
-Content-Language: en-US
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:36681 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965016Ab1GMKsK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 06:48:10 -0400
+In-Reply-To: <1304673255-31634-1-git-send-email-adrian.hunter@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, Balaji T K <balajitk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "tony@atomide.com" <tony@atomide.com>, "madhu.cr@ti.com" <madhu.cr@ti.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "kishore.kadiyala@ti.com" <kishore.kadiyala@ti.com>
+To: Chris Ball <cjb@laptop.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Adrian Hunter <adrian.hunter@nokia.com>
+
+Hello,
+
+it seems this series got lost in time, at least patches 01, 02, 03,
+04, 05, 06, 07, 08, 12 look like valid standalone fixes and
+improvements to me, they don't touch other trees and still apply
+cleanly, so would be good to have.
+
+Chris, can you queue these for upcoming merge window?
+These patches are also archived in patchwork here:
+https://patchwork.kernel.org/project/linux-omap/list/?archive=3Dboth&pa=
+ge=3D8
 
 
-
-> -----Original Message-----
-> From: linux-mmc-owner@vger.kernel.org
-> [mailto:linux-mmc-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Saturday, July 09, 2011 2:24 AM
-> To: Balaji T K
-> Cc: linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org; cjb@laptop.org;
-> tony@atomide.com; madhu.cr@ti.com; b-cousson@ti.com; paul@pwsan.com;
-> kishore.kadiyala@ti.com
-> Subject: Re: [PATCHv4 2/3] MMC: OMAP: HSMMC: add runtime pm support
-> 
-> Balaji T K <balajitk@ti.com> writes:
-> 
-> > add runtime pm support to HSMMC host controller
-> > Use runtime pm API to enable/disable HSMMC clock
-> > Use runtime autosuspend APIs to enable auto suspend delay
-> >
-> > Based on OMAP HSMMC runtime implementation by Kevin Hilman, Kishore
-> Kadiyala
-> >
-> > Signed-off-by: Balaji T K <balajitk@ti.com>
-> 
-> It's not relevant for this merge window, but I'm exploring some future
-> changes to our PM core code and have a question about how MMC works for
-> system suspend.
-> 
-> Basially, the question is: can the driver be reworked such that a system
-> suspend does not need to runtime resume the device?  For most devices,
-> we kind of expect that if the device is runtime suspended, a system
-> suspend will have nothing extra to do, but this driver runtime resumes
-> the device during system suspend in order to do "stuff", which I
-> admitedly don't fully undestand.
-> 
-> Ideally, the "stuff" needed for runtime suspend and system suspend could
-> be made to be common such that a system suspend of a runtime suspended
-> device would be a noop.
-> 
-> Is this possible?
-> 
-> Kevin
-
-During system suspended patch, a callback named .prepare will be first done before .suspend is called, and .complete callback will be called after .resume is called. These two callbacks are in pair. If driver can implement the .prepare and hold the usage count in this callback, then runtime pm suspend/resume will not happen during device suspending. So there will be no need to add pm_runtime_get* and pm_runtime_put* in .suspend/.resume.
-BTW, if .prepare has hold the usage count, then .complete callback need to release the usage count and put device in runtime suspended mode.
-
-Thanks
-Chuanxiao
-
-> 
-> > @@ -2100,6 +2087,7 @@ static int omap_hsmmc_suspend(struct device *dev)
-> >  		return 0;
-> >
-> >  	if (host) {
-> > +		pm_runtime_get_sync(host->dev);
-> >  		host->suspended = 1;
-> >  		if (host->pdata->suspend) {
-> >  			ret = host->pdata->suspend(&pdev->dev,
-> > @@ -2114,13 +2102,11 @@ static int omap_hsmmc_suspend(struct device
-> *dev)
-> >  		}
-> >  		cancel_work_sync(&host->mmc_carddetect_work);
-> >  		ret = mmc_suspend_host(host->mmc);
-> > -		mmc_host_enable(host->mmc);
-> > +
-> >  		if (ret == 0) {
-> >  			omap_hsmmc_disable_irq(host);
-> >  			OMAP_HSMMC_WRITE(host->base, HCTL,
-> >  				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
-> > -			mmc_host_disable(host->mmc);
-> > -			clk_disable(host->iclk);
-> >  			if (host->got_dbclk)
-> >  				clk_disable(host->dbclk);
-> >  		} else {
-> > @@ -2132,9 +2118,8 @@ static int omap_hsmmc_suspend(struct device *dev)
-> >  					dev_dbg(mmc_dev(host->mmc),
-> >  						"Unmask interrupt failed\n");
-> >  			}
-> > -			mmc_host_disable(host->mmc);
-> >  		}
-> > -
-> > +		pm_runtime_put_sync(host->dev);
-> >  	}
-> >  	return ret;
-> >  }
+On Fri, May 6, 2011 at 12:13 PM, Adrian Hunter <adrian.hunter@nokia.com=
+> wrote:
+> Hi
+>
+> Here is V2 of some patches for omap_hsmmc.
+>
+> Changes in V2:
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0OMAP: sDMA: descriptor autoloading feature
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0- removed the =
+feature entirely as per Tony Lindgren
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: fix few bugs when set the=
+ clock divisor
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0- added cpu_re=
+lax() as per Grazvydas Ignotas
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: fix missing mmc_release_h=
+ost() in no_off case
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0- removed {} a=
+s per Sergei Shtylyov
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0OMAP: hsmmc: implement clock switcher
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0- changed to >=
+=3D threshold as per Grazvydas Ignotas
+>
+>
+> Adrian Hunter (6):
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: correct debug report error statu=
+s mnemonics
+> =C2=A0 =C2=A0 =C2=A0OMAP: board-rm680: set MMC nomux flag
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: ensure pbias configuration is al=
+ways done
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: fix oops in omap_hsmmc_dma_cb
+> =C2=A0 =C2=A0 =C2=A0OMAP: hsmmc: add platform data for eMMC hardware =
+reset gpio
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: add a hardware reset before init=
+ialization
+>
+> Andy Shevchenko (8):
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: move hardcoded frequency constan=
+ts to definition block
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: reduce a bit the error handlers =
+in probe()
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: split duplicate code to calc_div=
+isor() function
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: introduce start_clock and re-use=
+ stop_clock
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: fix few bugs when set the clock =
+divisor
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: split same pieces of code to sep=
+arate functions
+> =C2=A0 =C2=A0 =C2=A0OMAP: hsmmc: implement clock switcher
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: adjust host controller clock in =
+regard to current OPP
+>
+> Jarkko Lavinen (1):
+> =C2=A0 =C2=A0 =C2=A0OMAP: hsmmc: Do not mux the slot if non default m=
+uxing is already done
+>
+> Sudhir Bera (1):
+> =C2=A0 =C2=A0 =C2=A0mmc: omap_hsmmc: fix missing mmc_release_host() i=
+n no_off case
+>
+> =C2=A0arch/arm/mach-omap2/board-rm680.c =C2=A0 =C2=A0 | =C2=A0 =C2=A0=
+1 +
+> =C2=A0arch/arm/mach-omap2/hsmmc.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+| =C2=A0188 +++++++++++++++++-
+> =C2=A0arch/arm/mach-omap2/hsmmc.h =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+| =C2=A0 =C2=A02 +
+> =C2=A0arch/arm/plat-omap/include/plat/mmc.h | =C2=A0 =C2=A09 +
+> =C2=A0drivers/mmc/host/omap_hsmmc.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=
+=A0353 ++++++++++++++++++++-------------
+> =C2=A05 files changed, 414 insertions(+), 139 deletions(-)
+>
+> Regards
+> Adrian
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
+
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
