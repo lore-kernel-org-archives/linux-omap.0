@@ -1,172 +1,104 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 1/4] dt: omap3: add SoC file for handling i2c controllers
-Date: Thu, 14 Jul 2011 07:58:35 +0900
-Message-ID: <CACxGe6vuX4286cN7sNa=3RsWeGzNmNBGVqeqKvcoyiLU9Z9A9A@mail.gmail.com>
-References: <1310592975-25773-1-git-send-email-manjugk@ti.com>
- <1310592975-25773-2-git-send-email-manjugk@ti.com> <CACxGe6u3D=ZgK2TpLP7waCwH=MA_5UR+YBRSgVE9QBVyvkF32A@mail.gmail.com>
+Subject: Re: [PATCH 2/4] dt: OMAP3: Beagle board: set clock freq for i2c devices
+Date: Thu, 14 Jul 2011 08:04:29 +0900
+Message-ID: <CACxGe6uaR41CLPRWURDiXxnphScHPikLU3AmwxNZsijt9GP4qg@mail.gmail.com>
+References: <1310592975-25773-1-git-send-email-manjugk@ti.com> <1310592975-25773-3-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:48419 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752741Ab1GMW6z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 18:58:55 -0400
-Received: by ywe9 with SMTP id 9so2625071ywe.19
-        for <linux-omap@vger.kernel.org>; Wed, 13 Jul 2011 15:58:55 -0700 (PDT)
-In-Reply-To: <CACxGe6u3D=ZgK2TpLP7waCwH=MA_5UR+YBRSgVE9QBVyvkF32A@mail.gmail.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:56261 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752109Ab1GMXEt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2011 19:04:49 -0400
+Received: by gxk21 with SMTP id 21so2616012gxk.19
+        for <linux-omap@vger.kernel.org>; Wed, 13 Jul 2011 16:04:49 -0700 (PDT)
+In-Reply-To: <1310592975-25773-3-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "G, Manjunath Kondaiah" <manjugk@ti.com>
 Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, ben-linux@fluff.org
 
-On Thu, Jul 14, 2011 at 7:57 AM, Grant Likely <grant.likely@secretlab.c=
-a> wrote:
-> On Thu, Jul 14, 2011 at 7:06 AM, G, Manjunath Kondaiah <manjugk@ti.co=
-m> wrote:
->>
->> Add omap3 SoC file for handling omap3 SoC i2c controllers existing
->> on l4-core bus.
->>
->> Out of three i2c controllers, first i2c controller is interfaced wit=
-h
->> PMIC on all the boards of OMAP3. The clock for i2c controllers are
->> controlled through omap hwmod framework hence first i2c controller
->> device registration through dt is disabled till hwmod dependencies
->> are resolved.
->>
->> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
->> ---
->> =A0arch/arm/boot/dts/omap3-soc.dtsi | =A0 65 +++++++++++++++++++++++=
-+++++++++++++++
->> =A01 files changed, 65 insertions(+), 0 deletions(-)
->> =A0create mode 100644 arch/arm/boot/dts/omap3-soc.dtsi
->>
->> diff --git a/arch/arm/boot/dts/omap3-soc.dtsi b/arch/arm/boot/dts/om=
-ap3-soc.dtsi
->> new file mode 100644
->> index 0000000..f186a32
->> --- /dev/null
->> +++ b/arch/arm/boot/dts/omap3-soc.dtsi
->> @@ -0,0 +1,65 @@
->> +/*
->> + * Device Tree Source for OMAP3 SoC
->> + *
->> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.t=
-i.com/
->> + *
->> + * This file is licensed under the terms of the GNU General Public =
-License
->> + * version 2. =A0This program is licensed "as is" without any warra=
-nty of any
->> + * kind, whether express or implied.
->> + */
->> +
->> +/dts-v1/;
->> +/include/ "skeleton.dtsi"
->> +
->> +/ {
->> + =A0 =A0 =A0 #address-cells =3D <1>;
->> + =A0 =A0 =A0 #size-cells =3D <1>;
->> + =A0 =A0 =A0 model =3D "ti,omap3";
+On Thu, Jul 14, 2011 at 7:06 AM, G, Manjunath Kondaiah <manjugk@ti.com>=
+ wrote:
 >
-> You can drop the model property here since this doesn't define a boar=
-d.
+> Update omap3 beagle dts file with required clock frequencies for the =
+i2c
+> client devices existing on beagle board.
 >
->> + =A0 =A0 =A0 compatible =3D "ti,omap3";
->> +
->> + =A0 =A0 =A0 intc: interrupt-controller@0x48200000 {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 compatible =3D "ti,omap3-intc", "arm,i=
-ntc";
+> Beagle custom board dts file is cleaned up so that it can coexist wit=
+h omap3
+> soc dts file.
 >
-> Which arm intc controller? =A0For any new 'compatible' value you defi=
-ne,
-> the patch needs to include documentation for it in
-> Documentation/devicetree/bindings.
+> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> ---
+> =A0arch/arm/boot/dts/omap3-beagle-nunchuck.dts | =A0 11 +---------
+> =A0arch/arm/boot/dts/omap3-beagle.dts =A0 =A0 =A0 =A0 =A0| =A0 29 +++=
+++++++++++++++++++++++-
+> =A02 files changed, 28 insertions(+), 12 deletions(-)
 >
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 interrupt-controller;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 #interrupt-cells =3D <1>;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg =3D <0x48200000 0x1000>;
->> + =A0 =A0 =A0 };
->> +
->> + =A0 =A0 =A0 l4-core {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 compatible =3D "ti,l4-core";
+> diff --git a/arch/arm/boot/dts/omap3-beagle-nunchuck.dts b/arch/arm/b=
+oot/dts/omap3-beagle-nunchuck.dts
+> index 2607be5..324ff86 100644
+> --- a/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
+> @@ -1,16 +1,7 @@
+> =A0/include/ "omap3-beagle.dts"
 >
-> Probably should be "ti,omap3-l4-core"?
+> =A0/ {
+> - =A0 =A0 =A0 i2c@48072000 {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 compatible =3D "ti,omap3-i2c";
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg =3D <0x48072000 0x80>;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 #address-cells =3D <1>;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 #size-cells =3D <0>;
+> -
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 eeprom@50 {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 compatible =3D "at,at24=
+c01";
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg =3D < 0x50 >;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> + =A0 =A0 =A0 i2c@2 {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0joystick@52 {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0compatible =3D "sparkf=
+un,wiichuck";
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0reg =3D < 0x52 >;
+> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/o=
+map3-beagle.dts
+> index 4439466..b45fbc9 100644
+> --- a/arch/arm/boot/dts/omap3-beagle.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+> @@ -1,7 +1,32 @@
+> -/dts-v1/;
+> -/include/ "skeleton.dtsi"
+> +/include/ "omap3-soc.dtsi"
 >
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 #address-cells =3D <1>;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 #size-cells =3D <1>;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ranges =3D <0 0x48000000 0x1000000>;
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 i2c@1 {
+> =A0/ {
+> =A0 =A0 =A0 =A0model =3D "TI OMAP3 BeagleBoard";
+> =A0 =A0 =A0 =A0compatible =3D "ti,omap3-beagle";
 
-This name is wrong.  The address portion of the name must match the
-address in the first entry of the 'reg' property.  So, that would be:
-"i2c@70000".
+compatible =3D "ti,omap3-beagle", "ti,omap3";
 
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 #address-cells =3D <1>=
-;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 #size-cells =3D <0>;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 compatible =3D "ti,oma=
-p3-i2c";
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg =3D <0x70000 0x100=
->;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 interrupts =3D < 88 >;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D "disabled";
->
-> Drop the 'status' properties. =A0I know the current tegra code does
-> this, but I'd prefer devices to be enabled by default and for boards
-> to explicitly disable them instead of the other way around.
->
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 i2c@2 {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 #address-cells =3D <1>=
-;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 #size-cells =3D <0>;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 compatible =3D "ti,oma=
-p3-i2c";
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg =3D <0x72000 0x100=
->;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 interrupts =3D < 89 >;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 i2c@3 {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 #address-cells =3D <1>=
-;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 #size-cells =3D <0>;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 compatible =3D "ti,oma=
-p3-i2c";
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg =3D <0x60000 0x100=
->;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 interrupts =3D < 93 >;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
->> + =A0 =A0 =A0 };
->> +
->> + =A0 =A0 =A0 l4-per {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 compatible =3D "ti,l4-per";
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 #address-cells =3D <1>;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 #size-cells =3D <1>;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ranges =3D <0 0x49000000 0x100000>;
->> + =A0 =A0 =A0 };
->> +};
->> --
->> 1.7.4.1
->>
->>
->
->
->
-> --
-> Grant Likely, B.Sc., P.Eng.
-> Secret Lab Technologies Ltd.
->
+> +
+> + =A0 =A0 =A0 i2c@1 {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 #address-cells =3D <1>;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 #size-cells =3D <0>;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 clock-frequency =3D <2600000>;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D "disabled";
+> + =A0 =A0 =A0 };
 
+Since this file include the omap3-soc dtsi, you don't need to
+duplicate the #address-cells and #size-cells properties.  You only
+need to specify the ones that have changed.  Also, since the include
+file has the i2c nodes as children of the l4 bus, you should you need
+to either duplicate the same bus hierarchy here, or use an independent
+label reference by adding a label to the node in omap3-soc.dtsi, and
+using the following syntax /outside/ of the /{ ... } root node:
 
+&i2c-1 {
+       clock-frequency =3D <2600000>;
+};
 
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+g.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
