@@ -1,45 +1,43 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: RE: [PATCH 1/2] TI816X: Add minimal hwmod data
-Date: Thu, 14 Jul 2011 14:58:10 -0700
-Message-ID: <1310680690.8322.41.camel@vence>
-References: <1303922002-6946-1-git-send-email-hemantp@ti.com>
-	 <alpine.DEB.2.00.1104281634050.11487@utopia.booyaka.com>
-	 <5F744A5A3C131242B81CE5874BD2CFFBBF8F8F14@dlee01.ent.ti.com>
-	 <alpine.DEB.2.00.1104282058370.11487@utopia.booyaka.com>
-	 <2A3DCF3DA181AD40BDE86A3150B27B6B03AB5FAAAB@dbde02.ent.ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH 0/6] OMAP3+ Clock Fixes
+Date: Thu, 14 Jul 2011 18:24:17 -0500
+Message-ID: <1310685857-3211-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:55116 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754801Ab1GNV6P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jul 2011 17:58:15 -0400
-Received: by mail-iy0-f175.google.com with SMTP id 10so857245iym.34
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jul 2011 14:58:14 -0700 (PDT)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B03AB5FAAAB@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:52546 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932558Ab1GNXYU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jul 2011 19:24:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pedanekar, Hemant" <hemantp@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Grosen, Mark" <mgrosen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>
 
-Hi Hemant,
+From: Jon Hunter <jon-hunter@ti.com>
 
-On Wed, 2011-07-13 at 05:07 +0530, Pedanekar, Hemant wrote:
+Various clock fixes for OMAP3 and OMAP4 devices.
+Plus one debug patch (if anyone is interested).
 
-> Any comments on the hwmod and clock patch sets?
+Jon Hunter (4):
+  OMAP4: Add missing clock divider for OCP_ABE_ICLK
+  OMAP3+: use DPLLs recalc function instead of omap2_get_dpll_rate
+  OMAP3+: Update DPLL Fint range for OMAP36xx and OMAP4xxx devices
+  OMAP: Add debugfs node to show the summary of all clocks
 
-I just discovered that other devices in this family are coming along
-which will require changing the names/macros/etc. from 816x to 81xx[1].
+Mike Turquette (2):
+  OMAP4: Clock: round_rate and recalc functions for DPLL_ABE
+  OMAP3+: use DPLL's round_rate when setting rate
 
-Merging this series, followed shortly by another series that renames
-everything is the type of churn we are trying to avoid.
+ arch/arm/mach-omap2/clkt_dpll.c      |   51 +++++++++++++++++++++++----------
+ arch/arm/mach-omap2/clock.h          |    2 +
+ arch/arm/mach-omap2/clock44xx.h      |    1 +
+ arch/arm/mach-omap2/clock44xx_data.c |   20 +++++++++++--
+ arch/arm/mach-omap2/dpll3xxx.c       |    6 ++--
+ arch/arm/mach-omap2/dpll44xx.c       |   45 ++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/clock.c           |   39 ++++++++++++++++++++++++++
+ 7 files changed, 142 insertions(+), 22 deletions(-)
 
-To avoid this kind of churn, I recommend starting from the broader
-family name first.
-
-Kevin
-
-http://arago-project.org/git/projects/?p=linux-omap3.git;a=commit;h=ce17fa2f527ed614399e577fc2fd5cd3624ee501
+-- 
+1.7.4.1
 
