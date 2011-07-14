@@ -1,34 +1,49 @@
-From: Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>
-Subject: Realistic bandwidth to get through ehci controller on a dm3730?
-Date: Thu, 14 Jul 2011 16:14:07 +0100
-Message-ID: <4E1F07BF.5090105@cam.ac.uk>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH][RFC] OMAP4: I2C : I2C context save
+Date: Thu, 14 Jul 2011 08:38:45 -0700
+Message-ID: <87hb6oq3cq.fsf@ti.com>
+References: <1309857646-29401-1-git-send-email-shubhrajyoti@ti.com>
+	<20110713190723.GA3369@freya.fluff.org> <87k4blopaw.fsf@ti.com>
+	<CALyTGOB6KgwScQNnG4fGveCjmsLH9LeEK7hSk5o+Gf=aBwb-=A@mail.gmail.com>
+	<4E1ECABA.7010306@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4E1ECABA.7010306-l0cyMroinI0@public.gmane.org> (shubhrajyoti-l0cyMroinI0@public.gmane.org's message of "Thu,
+	14 Jul 2011 16:23:46 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
 
-Just wondering if anyone had any figures for how much data one can expect
-the omap3's usb controller to handle?
+> On Thursday 14 July 2011 02:57 AM, Hilman, Kevin wrote:
+>> On Wed, Jul 13, 2011 at 2:15 PM, Kevin Hilman<khilman-l0cyMroinI0@public.gmane.org>  wrote:
+>>> Ben Dooks<ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>  writes:
+>>>
+>>>> On Tue, Jul 05, 2011 at 02:50:46PM +0530, Shubhrajyoti D wrote:
+>>>>> Currently the OMAP4 doesnot hit device off still the
+>>>>> driver may have support for it.Adding support for the
+>>>>> same.
+>>>>>
+>>>>> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>>>> I guess since the previous set has been taken by Kevin
+>>>> then these will be too.
+>>> Sure, I'll pick these up, but it's probably to late for v3.1.
+>>>
+>>> We've already submitted the bulk of the OMAP stuff for v3.1.
+> Kevin in the folowing I tried taking the comments do do have any
+> further comments or suggestions.
+>
+> http://www.spinics.net/lists/linux-i2c/msg05823.html
 
-I'm trying to get a playstation eye (ov534) camera to run as at 60fps,
-but gspca is giving me payload errors at 50fps or 60fps. (50*640*480 bytes
-per sec, or about 122Mbits / sec (15MB / sec)
+Sorry, my ti.com email got unsubscribed from vger lists for a couple
+days around July 5 & 6, so I missed that one.
 
-Quick and dirty tests of the beagle xm's network adapter suggest about
-4MB/s so even at 40 fps when the camera is fine, I'm way above that.
+It's always best to directly Cc people you are expecting to get review
+comments from.
 
-Anyhow. Basically I'm trying to work out if I've run into a brick wall
-or if it is worth more time to get this to work?
+I'll reply to your updated one shortly.
 
-Thanks,
-
-Jonathan
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
