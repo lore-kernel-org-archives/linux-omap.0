@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3] OMAP4:hwmod: I2C : I2C context save
-Date: Thu, 14 Jul 2011 22:03:38 +0530
-Message-ID: <1310661218-3819-1-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCH v3] OMAP4:hwmod: I2C : I2C context restore
+Date: Thu, 14 Jul 2011 22:04:55 +0530
+Message-ID: <1310661295-3855-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
