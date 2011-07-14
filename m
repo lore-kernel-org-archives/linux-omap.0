@@ -1,30 +1,43 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3] OMAP4:hwmod: I2C : I2C context restore
-Date: Thu, 14 Jul 2011 10:59:19 -0700
-Message-ID: <87aacgoia0.fsf@ti.com>
-References: <1310661295-3855-1-git-send-email-shubhrajyoti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1310661295-3855-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-	(Shubhrajyoti D.'s message of "Thu, 14 Jul 2011 22:04:55 +0530")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Nick Pelly <npelly@google.com>
+Subject: [PATCH] omap-serial: Allow IXON and IXOFF to be disabled.
+Date: Thu, 14 Jul 2011 11:49:20 -0700
+Message-ID: <1310669360-752-1-git-send-email-npelly@google.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([74.125.121.67]:2164 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754652Ab1GNStZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 14:49:25 -0400
+Received: from kpbe20.cbf.corp.google.com (kpbe20.cbf.corp.google.com [172.25.105.84])
+	by smtp-out.google.com with ESMTP id p6EInNsS003052
+	for <linux-omap@vger.kernel.org>; Thu, 14 Jul 2011 11:49:24 -0700
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Nick Pelly <npelly@google.com>
 
-Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+Fixes logic bug that software flow control cannot be disabled, because
+serial_omap_configure_xonxoff() is not called if both IXON and IXOFF bits
+are cleared.
 
-> Restore of context is not done for OMAP4. This patch 
-> adds the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE in the OMAP4
-> hwmod data which activates the restore for OMAP4.
-> Currently the OMAP4 does not hit device off still the
-> driver may have support for it.
->
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Nick Pelly <npelly@google.com>
+---
+ drivers/tty/serial/omap-serial.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-Subject should include 'hwmod data', and fix up the spacing:
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 47cadf4..6d3ec14 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -806,8 +806,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 
+ 	serial_omap_set_mctrl(&up->port, up->port.mctrl);
+ 	/* Software Flow Control Configuration */
+-	if (termios->c_iflag & (IXON | IXOFF))
+-		serial_omap_configure_xonxoff(up, termios);
++	serial_omap_configure_xonxoff(up, termios);
+ 
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ 	dev_dbg(up->port.dev, "serial_omap_set_termios+%d\n", up->pdev->id);
+-- 
+1.7.5.2
 
-OMAP4: hwmod data: I2C: add flag for context restore
-
-Kevin
