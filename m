@@ -1,73 +1,91 @@
 From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCH v4 18/20] gpio/omap: use pm-runtime framework
-Date: Wed, 13 Jul 2011 23:09:39 -0700
-Message-ID: <20110714060939.GB22467@google.com>
-References: <1310565259-31267-1-git-send-email-tarun.kanti@ti.com>
- <1310565259-31267-19-git-send-email-tarun.kanti@ti.com>
+Subject: Re: [PATCHv2 2/5] regulator: omap smps regulator driver
+Date: Wed, 13 Jul 2011 23:29:04 -0700
+Message-ID: <20110714062904.GC22467@google.com>
+References: <1310565638-13140-1-git-send-email-t-kristo@ti.com>
+ <1310565638-13140-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:25874 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:32923 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752766Ab1GNGLS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 02:11:18 -0400
+	with ESMTP id S1752642Ab1GNG3L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 02:29:11 -0400
 Content-Disposition: inline
-In-Reply-To: <1310565259-31267-19-git-send-email-tarun.kanti@ti.com>
+In-Reply-To: <1310565638-13140-3-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@ti.com, khilman@ti.com
 
-On Wed, Jul 13, 2011 at 07:24:17PM +0530, Tarun Kanti DebBarma wrote:
-> From: Charulatha V <charu@ti.com>
+On Wed, Jul 13, 2011 at 05:00:35PM +0300, Tero Kristo wrote:
+> OMAP SMPS regulator driver provides access to OMAP voltage processor
+> controlled regulators. These include VDD1 and VDD2 for OMAP3 and additionally
+> VDD3 for OMAP4. SMPS regulators use the OMAP voltage layer for the actual
+> voltage regulation operations.
 > 
-> Call runtime pm APIs pm_runtime_get_sync() and pm_runtime_put_sync()
-> for enabling/disabling clocks appropriately. Remove syscore_ops and
-> instead use dev_pm_ops now.
-> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
 ...
-> +	/*
-> +	 * If this is the first gpio_request for the bank,
-> +	 * enable the bank module.
-> +	 */
-> +	if (!bank->mod_usage) {
-> +		if (IS_ERR_VALUE(pm_runtime_get_sync(bank->dev) < 0)) {
-> +			dev_err(bank->dev, "%s: GPIO bank %d "
-> +					"pm_runtime_get_sync failed\n",
-> +					__func__, bank->id);
-> +			return -EINVAL;
-> +		}
+> +	for (i = 0; i < pdata->num_regulators; i++) {
+> +		initdata = pdata->regulators[i];
 > +
-> +		/* Initialize the gpio bank registers to init time value */
-> +		omap_gpio_mod_init(bank);
+> +		c = &initdata->constraints;
+> +		c->valid_modes_mask &= REGULATOR_MODE_NORMAL;
+> +		c->valid_ops_mask &= REGULATOR_CHANGE_VOLTAGE;
+> +		c->always_on = true;
+> +
+> +		voltdm = omap_voltage_domain_lookup(
+> +			initdata->consumer_supplies[0].dev_name);
+> +
+> +		if (IS_ERR(voltdm)) {
+> +			dev_err(&pdev->dev, "can't find voltdm %s, %ld\n",
+> +				initdata->consumer_supplies[0].dev_name,
+> +				PTR_ERR(voltdm));
+> +			return PTR_ERR(voltdm);
+
+
+Or maybe continue to next loop iteration.
+
+> +		}
+> +		info = kzalloc(sizeof(struct omap_smps_reg_info), GFP_KERNEL);
+> +
+> +		info->voltdm = voltdm;
+
+
+Check kzalloc NULL return.
+
+> +		info->desc.ops = &omap_smps_ops;
+> +		info->desc.name = c->name;
+> +		info->desc.type = REGULATOR_VOLTAGE;
+> +		info->desc.n_voltages = 0;
+> +		rdev = regulator_register(&info->desc, &pdev->dev, initdata,
+> +			info);
+> +		if (IS_ERR(rdev)) {
+> +			dev_err(&pdev->dev, "can't register %s, %ld\n",
+> +				info->desc.name, PTR_ERR(rdev));
+> +			return PTR_ERR(rdev);
+
+Or suggest continue to next loop iteration.
+
+> +		}
+> +		platform_set_drvdata(pdev, rdev);
+
+Performed in a loop, but only last iteration's rdev is set as the
+driver data for pdev.  Platform driver data should be pdata?
+
 > +	}
 > +
->  	spin_lock_irqsave(&bank->lock, flags);
-
-Does the check for first gpio_request and omap_gpio_mod_init() call
-need concurrency protection, possibly moved under the spinlock?
-
->  
->  	/* Set trigger to none. You need to enable the desired trigger with
-> @@ -536,6 +554,18 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
->  
->  	_reset_gpio(bank, bank->chip.base + offset);
->  	spin_unlock_irqrestore(&bank->lock, flags);
+> +	return 0;
+> +}
 > +
-> +	/*
-> +	 * If this is the last gpio to be freed in the bank,
-> +	 * disable the bank module.
-> +	 */
-> +	if (!bank->mod_usage) {
-> +		if (IS_ERR_VALUE(pm_runtime_put_sync(bank->dev) < 0)) {
-> +			dev_err(bank->dev, "%s: GPIO bank %d "
-> +					"pm_runtime_put_sync failed\n",
-> +					__func__, bank->id);
-> +		}
-> +	}
+> +static int omap_smps_reg_remove(struct platform_device *pdev)
+> +{
+> +	regulator_unregister(platform_get_drvdata(pdev));
 
-And need mutual exclusion here?
+
+Should kfree() the struct omap_smps_reg_info data structure(s) and
+platform_set_drvdata(pdev, NULL) ?
 
 
 Todd
-
