@@ -1,91 +1,152 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCHv2 4/5] TEMP: OMAP3: beagle rev-c4: enable OPP6
-Date: Thu, 14 Jul 2011 14:16:15 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024DB11D0A@dbde02.ent.ti.com>
-References: <1310565638-13140-1-git-send-email-t-kristo@ti.com>
- <1310565638-13140-5-git-send-email-t-kristo@ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB593024DB119F6@dbde02.ent.ti.com>
- <1310627438.4331.98.camel@sokoban>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] omap2+: Use Kconfig symbol in Makefile instead of obj-y
+Date: Thu, 14 Jul 2011 01:53:29 -0700
+Message-ID: <20110714085328.GN5783@atomide.com>
+References: <1310592975-25773-1-git-send-email-manjugk@ti.com>
+ <1310592975-25773-4-git-send-email-manjugk@ti.com>
+ <CACxGe6sELS=C==16TZ2pfrxJDDyqjS_qOwJUfwzwMO8hqo8Xag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58907 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752894Ab1GNIqW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 04:46:22 -0400
-In-Reply-To: <1310627438.4331.98.camel@sokoban>
-Content-Language: en-US
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:29963 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753214Ab1GNIxl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 04:53:41 -0400
+Content-Disposition: inline
+In-Reply-To: <CACxGe6sELS=C==16TZ2pfrxJDDyqjS_qOwJUfwzwMO8hqo8Xag@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kristo, Tero" <t-kristo@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Girdwood, Liam" <lrg@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, ben-linux@fluff.org
 
-> -----Original Message-----
-> From: Kristo, Tero 
-> Sent: Thursday, July 14, 2011 12:41 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org; 
-> broonie@opensource.wolfsonmicro.com; Girdwood, Liam; Hilman, Kevin
-> Subject: RE: [PATCHv2 4/5] TEMP: OMAP3: beagle rev-c4: enable OPP6
-> 
-> On Wed, 2011-07-13 at 19:49 +0200, Premi, Sanjeev wrote:
-> > > 
-> Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 
-> 0115040-6. Kotipaikka: Helsinki
->  
-> -----Original Message-----
-> 
-> > > From: linux-omap-owner@vger.kernel.org 
-> > > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Kristo, Tero
-> > > Sent: Wednesday, July 13, 2011 7:31 PM
-> > > To: linux-omap@vger.kernel.org
-> > > Cc: broonie@opensource.wolfsonmicro.com; Girdwood, Liam; 
-> Hilman, Kevin
-> > > Subject: [PATCHv2 4/5] TEMP: OMAP3: beagle rev-c4: enable OPP6
-> > > 
-> > > Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can 
-> > > run at 720MHz.
-> > > 
-> > > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > > ---
+As noted by Grant Likely <grant.likely@secretlab.ca>, omap2+ Makefile unnecessarily
+repeats entries for common device init code instead of using Kconfig symbol.
 
-[snip]...[snip]
+Remove references to hsmmc.o and board-flash.o. Also omap_phy_internal.o
+references can be removed once it has some Kconfig symbol to use.
 
-> > 
-> > [sp] Basic support for 720MHz was already closed early this year.
-> >      See: http://marc.info/?l=linux-omap&m=129735630928696&w=2
-> > 
-> >      I cannot check the current tree status right now; but I assume
-> >      the patch should already be in.
-> > 
+Signed-off-by: Tony Lindgren <tony@atomide.com
+---
+* Grant Likely <grant.likely@secretlab.ca> [110713 16:10]:
 > 
-> Yea, I heard this was agreed upon, however it is not in the tree yet.
-> Thus I just added this patch in the set for testing purposes... and
-> tagged as TEMP.
+> This is an odd construct.  Tony, why does each board add hsmmc to the
+> oby-y variable instead of it having its own kconfig symbol?
 
-I noticed this today morning. Will be reposting it today after rebase.
+Heh that's true. Something that got added for one board got cloned
+all over the Makefile. Here's a patch to simplify that.
 
-~sanjeev
-
-> 
-> > ~sanjeev
-> > 
-> > > -- 
-> > > 1.7.4.1
-> > > 
-> > > 
-> > > Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 
-> > > 0115040-6. Kotipaikka: Helsinki
-> > >  
-> > > 
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe 
-> > > linux-omap" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > 
-> 
-> 
-> 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index ff1466f..9c49a86 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -175,78 +175,66 @@ endif
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+-obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
+-					   hsmmc.o
++obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
+-obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+-					   hsmmc.o
+-obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o \
+-                                           hsmmc.o
+-obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
+-					   board-flash.o \
+-					   hsmmc.o
+-obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o \
+-					   hsmmc.o
+-obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o \
+-					   hsmmc.o
+-obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+-					   hsmmc.o
+-obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+-					   hsmmc.o
+-obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+-					   hsmmc.o
+-obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+-					   hsmmc.o \
+-					   board-flash.o
++obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
++obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o
++obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o
++obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o
++obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o
++obj-$(CONFIG_MACH_ENCORE)		+= board-omap3encore.o
++obj-$(CONFIG_MACH_OVERO)		+= board-overo.o
++obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
++obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
++obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
+ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+ obj-$(CONFIG_MACH_NOKIA_RM680)		+= board-rm680.o \
+-					   sdram-nokia.o \
+-					   hsmmc.o
++					   sdram-nokia.o
+ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ 					   sdram-nokia.o \
+ 					   board-rx51-peripherals.o \
+-					   board-rx51-video.o \
+-					   hsmmc.o
++					   board-rx51-video.o
+ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom.o \
+ 					   board-zoom-peripherals.o \
+ 					   board-zoom-display.o \
+-					   board-flash.o \
+-					   hsmmc.o \
+ 					   board-zoom-debugboard.o
+ obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom.o \
+ 					   board-zoom-peripherals.o \
+ 					   board-zoom-display.o \
+-					   board-flash.o \
+-					   hsmmc.o \
+ 					   board-zoom-debugboard.o
+ obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
+ 					   board-zoom-peripherals.o \
+-					   board-zoom-display.o \
+-					   board-flash.o \
+-					   hsmmc.o
+-obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
+-					   hsmmc.o
++					   board-zoom-display.o
++obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o
+ obj-$(CONFIG_MACH_CM_T3517)		+= board-cm-t3517.o
+-obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o \
+-					   hsmmc.o
+-obj-$(CONFIG_MACH_OMAP3_TOUCHBOOK)	+= board-omap3touchbook.o \
+-					   hsmmc.o
++obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o
++obj-$(CONFIG_MACH_OMAP3_TOUCHBOOK)	+= board-omap3touchbook.o
+ obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o \
+-					   hsmmc.o \
+ 					   omap_phy_internal.o
+ obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o \
+-					   hsmmc.o \
++					   omap_phy_internal.o
++
++obj-$(CONFIG_MACH_PCM049)		+= board-omap4pcm049.o \
+ 					   omap_phy_internal.o
+ 
+ obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o \
+-					   omap_phy_internal.o \
++					   omap_phy_internal.o
+ 
+ obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
+ 
+-obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o \
+-					   hsmmc.o
++obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o
+ obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
++
+ # Platform specific device init code
++
++omap-flash-$(CONFIG_MTD_NAND_OMAP2)	:= board-flash.o
++omap-flash-$(CONFIG_MTD_ONENAND_OMAP2)	:= board-flash.o
++obj-y					+= $(omap-flash-y) $(omap-flash-m)
++
++omap-hsmmc-$(CONFIG_MMC_OMAP_HS)	:= hsmmc.o
++obj-y					+= $(omap-hsmmc-m) $(omap-hsmmc-y)
++
++
+ usbfs-$(CONFIG_ARCH_OMAP_OTG)		:= usb-fs.o
+ obj-y					+= $(usbfs-m) $(usbfs-y)
+ obj-y					+= usb-musb.o
