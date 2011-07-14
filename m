@@ -1,91 +1,151 @@
-From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCHv2 2/5] regulator: omap smps regulator driver
-Date: Wed, 13 Jul 2011 23:29:04 -0700
-Message-ID: <20110714062904.GC22467@google.com>
-References: <1310565638-13140-1-git-send-email-t-kristo@ti.com>
- <1310565638-13140-3-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: RE: [PATCHv2 4/5] TEMP: OMAP3: beagle rev-c4: enable OPP6
+Date: Thu, 14 Jul 2011 10:10:38 +0300
+Message-ID: <1310627438.4331.98.camel@sokoban>
+References: <1310565638-13140-1-git-send-email-t-kristo@ti.com> <1310565638-13140-5-git-send-email-t-kristo@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024DB119F6@dbde02.ent.ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:32923 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642Ab1GNG3L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 02:29:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1310565638-13140-3-git-send-email-t-kristo@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54981 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751623Ab1GNHKo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 03:10:44 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024DB119F6@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@ti.com, khilman@ti.com
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, "Girdwood, Liam" <lrg@ti.com>, "Hilman, Kevin" <khilman@ti.com>
 
-On Wed, Jul 13, 2011 at 05:00:35PM +0300, Tero Kristo wrote:
-> OMAP SMPS regulator driver provides access to OMAP voltage processor
-> controlled regulators. These include VDD1 and VDD2 for OMAP3 and additionally
-> VDD3 for OMAP4. SMPS regulators use the OMAP voltage layer for the actual
-> voltage regulation operations.
+On Wed, 2011-07-13 at 19:49 +0200, Premi, Sanjeev wrote:
+> > 
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
+-----Original Message-----
+
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kristo, Tero
+> > Sent: Wednesday, July 13, 2011 7:31 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: broonie@opensource.wolfsonmicro.com; Girdwood, Liam; Hilman, Kevin
+> > Subject: [PATCHv2 4/5] TEMP: OMAP3: beagle rev-c4: enable OPP6
+> > 
+> > Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can 
+> > run at 720MHz.
+> > 
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/board-omap3beagle.c |   32 
+> > +++++++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/opp3xxx_data.c      |    4 +++
+> >  2 files changed, 36 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/board-omap3beagle.c 
+> > b/arch/arm/mach-omap2/board-omap3beagle.c
+> > index d7ae648..5ab507d 100644
+> > --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> > +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> > @@ -592,6 +592,38 @@ static void __init beagle_opp_init(void)
+> >  		return;
+> >  	}
+> >  
+> > +	/* Custom OPP enabled for C4 */
+> > +	if (omap3_beagle_version == OMAP3BEAGLE_BOARD_C4) {
+> > +		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
+> > +		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
+> > +		struct device *dev;
+> > +
+> > +		if (!mh || !dh) {
+> > +			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
+> > +				__func__, mh, dh);
+> > +		}
+> > +		/* Enable MPU 720MHz opp */
+> > +		dev = &mh->od->pdev.dev;
+> > +		r = opp_enable(dev, 720000000);
+> > +
+> > +		/* Enable IVA 520MHz opp */
+> > +		dev = &dh->od->pdev.dev;
+> > +		r |= opp_enable(dev, 520000000);
+> > +
+> > +		if (r) {
+> > +			pr_err("%s: failed to enable higher opp %d\n",
+> > +				__func__, r);
+> > +			/*
+> > +			 * Cleanup - disable the higher freqs - 
+> > we dont care
+> > +			 * about the results
+> > +			 */
+> > +			dev = &mh->od->pdev.dev;
+> > +			opp_disable(dev, 720000000);
+> > +			dev = &dh->od->pdev.dev;
+> > +			opp_disable(dev, 520000000);
+> > +		}
+> > +	}
+> > +
+> >  	/* Custom OPP enabled for all xM versions */
+> >  	if (cpu_is_omap3630()) {
+> >  		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
+> > diff --git a/arch/arm/mach-omap2/opp3xxx_data.c 
+> > b/arch/arm/mach-omap2/opp3xxx_data.c
+> > index d95f3f9..a0f5fe1 100644
+> > --- a/arch/arm/mach-omap2/opp3xxx_data.c
+> > +++ b/arch/arm/mach-omap2/opp3xxx_data.c
+> > @@ -98,6 +98,8 @@ static struct omap_opp_def __initdata 
+> > omap34xx_opp_def_list[] = {
+> >  	OPP_INITIALIZER("mpu", true, 550000000, 
+> > OMAP3430_VDD_MPU_OPP4_UV),
+> >  	/* MPU OPP5 */
+> >  	OPP_INITIALIZER("mpu", true, 600000000, 
+> > OMAP3430_VDD_MPU_OPP5_UV),
+> > +	/* MPU OPP6 : omap3530 high speed grade only */
+> > +	OPP_INITIALIZER("mpu", false, 720000000, 
+> > OMAP3430_VDD_MPU_OPP5_UV),
+> >  
+> >  	/*
+> >  	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage 
+> > for that OPP is
+> > @@ -123,6 +125,8 @@ static struct omap_opp_def __initdata 
+> > omap34xx_opp_def_list[] = {
+> >  	OPP_INITIALIZER("iva", true, 400000000, 
+> > OMAP3430_VDD_MPU_OPP4_UV),
+> >  	/* DSP OPP5 */
+> >  	OPP_INITIALIZER("iva", true, 430000000, 
+> > OMAP3430_VDD_MPU_OPP5_UV),
+> > +	/* DSP OPP6 : omap3530 high speed grade only */
+> > +	OPP_INITIALIZER("iva", false, 520000000, 
+> > OMAP3430_VDD_MPU_OPP5_UV),
+> >  };
+> >  
+> >  static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
 > 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
-...
-> +	for (i = 0; i < pdata->num_regulators; i++) {
-> +		initdata = pdata->regulators[i];
-> +
-> +		c = &initdata->constraints;
-> +		c->valid_modes_mask &= REGULATOR_MODE_NORMAL;
-> +		c->valid_ops_mask &= REGULATOR_CHANGE_VOLTAGE;
-> +		c->always_on = true;
-> +
-> +		voltdm = omap_voltage_domain_lookup(
-> +			initdata->consumer_supplies[0].dev_name);
-> +
-> +		if (IS_ERR(voltdm)) {
-> +			dev_err(&pdev->dev, "can't find voltdm %s, %ld\n",
-> +				initdata->consumer_supplies[0].dev_name,
-> +				PTR_ERR(voltdm));
-> +			return PTR_ERR(voltdm);
+> [sp] Basic support for 720MHz was already closed early this year.
+>      See: http://marc.info/?l=linux-omap&m=129735630928696&w=2
+> 
+>      I cannot check the current tree status right now; but I assume
+>      the patch should already be in.
+> 
+
+Yea, I heard this was agreed upon, however it is not in the tree yet.
+Thus I just added this patch in the set for testing purposes... and
+tagged as TEMP.
+
+> ~sanjeev
+> 
+> > -- 
+> > 1.7.4.1
+> > 
+> > 
+> > Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 
+> > 0115040-6. Kotipaikka: Helsinki
+> >  
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> > linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
 
 
-Or maybe continue to next loop iteration.
-
-> +		}
-> +		info = kzalloc(sizeof(struct omap_smps_reg_info), GFP_KERNEL);
-> +
-> +		info->voltdm = voltdm;
-
-
-Check kzalloc NULL return.
-
-> +		info->desc.ops = &omap_smps_ops;
-> +		info->desc.name = c->name;
-> +		info->desc.type = REGULATOR_VOLTAGE;
-> +		info->desc.n_voltages = 0;
-> +		rdev = regulator_register(&info->desc, &pdev->dev, initdata,
-> +			info);
-> +		if (IS_ERR(rdev)) {
-> +			dev_err(&pdev->dev, "can't register %s, %ld\n",
-> +				info->desc.name, PTR_ERR(rdev));
-> +			return PTR_ERR(rdev);
-
-Or suggest continue to next loop iteration.
-
-> +		}
-> +		platform_set_drvdata(pdev, rdev);
-
-Performed in a loop, but only last iteration's rdev is set as the
-driver data for pdev.  Platform driver data should be pdata?
-
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int omap_smps_reg_remove(struct platform_device *pdev)
-> +{
-> +	regulator_unregister(platform_get_drvdata(pdev));
-
-
-Should kfree() the struct omap_smps_reg_info data structure(s) and
-platform_set_drvdata(pdev, NULL) ?
-
-
-Todd
