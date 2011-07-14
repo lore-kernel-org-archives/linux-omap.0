@@ -1,38 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP4: Add pcm049 to Kconfig/Makefile
-Date: Thu, 14 Jul 2011 00:47:10 -0700
-Message-ID: <20110714074710.GM5783@atomide.com>
-References: <1310119464-3514-1-git-send-email-j.weitzel@phytec.de>
- <1310119464-3514-2-git-send-email-j.weitzel@phytec.de>
- <4E16EECF.7030102@mvista.com>
- <20110708115521.GA5783@atomide.com>
- <20110708115842.GJ4820@legolas.emea.dhcp.ti.com>
- <20110714072708.GK5783@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 2/5] regulator: omap smps regulator driver
+Date: Thu, 14 Jul 2011 10:51:46 +0300
+Message-ID: <1310629906.4331.116.camel@sokoban>
+References: <1310565638-13140-1-git-send-email-t-kristo@ti.com> <1310565638-13140-3-git-send-email-t-kristo@ti.com> <20110713144019.GA7861@opensource.wolfsonmicro.com> <1310572425.4331.96.camel@sokoban> <20110713225524.GA9770@opensource.wolfsonmicro.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:15251 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753834Ab1GNHrQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 03:47:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20110714072708.GK5783@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39509 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753715Ab1GNHvw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 03:51:52 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <20110713225524.GA9770@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, Jan Weitzel <j.weitzel@phytec.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-omap@vger.kernel.org, "Girdwood, Liam" <lrg@ti.com>, "Hilman, Kevin" <khilman@ti.com>, toddpoynor@google.com
 
-* Tony Lindgren <tony@atomide.com> [110714 00:22]:
-> * Felipe Balbi <balbi@ti.com> [110708 04:53]:
-> > 
-> > Are you or are you not taking now board files ? We have one which was
-> > left out due to a comment from Russell stating that no new board-files
-> > would be accepted until the move to device tree was completed [1]
+On Thu, 2011-07-14 at 00:55 +0200, Mark Brown wrote:
+> On Wed, Jul 13, 2011 at 06:53:45PM +0300, Tero Kristo wrote:
+> > On Wed, 2011-07-13 at 16:40 +0200, Mark Brown wrote:
+> 
+> > > I do strongly prefer the idiom of just registering all the regulators
+> > > even if they're read only.
+> 
+> > Number of available SMPS regulators is kind of board specific issue.
+> > OMAP3 has 2 available, OMAP4 has 3. If we are using some custom powering
+> > solution, we might have even different amounts for these.
+> 
+> Right, but the interface to them is always there?
 
-For the mcop changes, that should be updated against current devel-board
-for the irq/timer/init_early changes. Then I can add that to testing-board
-too.
+The library used in this driver will attempt to lookup for the
+voltagedomains, and this will fail for 'iva' on omap3, as it does not
+exist. I could change the driver to always try to look for all of the
+possible known domains, and just register the ones it finds, and apply
+user settings for the ones that board file provides. This contradicts
+now a bit on the comment I just said to Todd, but you believe this to be
+a better way?
 
-Tony
+> 
+> > > No, this is bad.  We *always* pay attention to the constraints the user
+> > > set even if they're nuts or won't work, the machine driver has the final
+> > > say on what is or isn't allowed on a given board.  The mode setting is
+> > > especially suspect as there's no mode support in the driver.
+> 
+> > Just a clarification on this one that I have understood your comment
+> > right... Do you mean that I should be checking the constraints user sets
+> > more thoroughly to see if there is something bogus? I was looking at
+> > some of the other regulator drivers and they seem to be fiddling with
+> > the constraints in similar manner.
+> 
+> No!  You should *always* use the constraints the user has set, don't
+> randomly add new permissions without them doing so.
+
+Ah ok, so no fiddling with the constraints at all, core should take care
+of proper functioning regarding this part.
+
+-Tero
+
+
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
  
-> > [1] http://marc.info/?t=130199607500006&r=1&w=2
+
