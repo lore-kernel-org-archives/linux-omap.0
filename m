@@ -1,53 +1,60 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 3/6] OMAP3+: use DPLL's round_rate when setting rate
-Date: Thu, 14 Jul 2011 18:24:41 -0500
-Message-ID: <1310685881-3323-1-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 4/6] OMAP3+: use DPLLs recalc function instead of omap2_get_dpll_rate
+Date: Thu, 14 Jul 2011 18:24:48 -0500
+Message-ID: <1310685888-3360-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58803 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932590Ab1GNXYo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 19:24:44 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:55766 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932590Ab1GNXYv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jul 2011 19:24:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Mike Turquette <mturquette@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>
 
-From: Mike Turquette <mturquette@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
 
-omap3_noncore_dpll_set_rate uses omap2_dpll_round_rate explicitly.  Instead
-use the struct clk pointer's round_rate function to allow for DPLL's with
-special needs.
+This is a continuation of Mike Turquette's patch "OMAP3+: use
+DPLL's round_rate when setting rate".
 
-Also the rounded rate can differ from target rate, so to better reflect
-reality set clk->rate equal to the rounded rate when setting DPLL frequency.
-This avoids issues where the DPLL frequency is slightly different than what
-debugfs clock tree reports using the old target rate.
+omap3_noncore_dpll_set_rate() and omap3_noncore_dpll_enable() call
+omap2_get_dpll_rate() explicitly. It may be necessary for some
+DPLLs to use a different function and so use the DPLLs recalc()
+function pointer instead.
 
-An example of both of these needs is DPLL_ABE on OMAP4 which can have a 4x
-multiplier on top of the usual MN dividers depending on register settings.
-This requires a special round_rate function that might yield a rate
-different from the initial target.
+An example is the DPLL_ABE on OMAP4 which can have a 4X multiplier
+in addition to the usual MN multipler and dividers and therefore
+uses a different round_rate and recalc function.
 
-Signed-off-by: Mike Turquette <mturquette@ti.com>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/dpll3xxx.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/dpll3xxx.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index f77022b..73a1595 100644
+index 73a1595..7916f66 100644
 --- a/arch/arm/mach-omap2/dpll3xxx.c
 +++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -455,7 +455,7 @@ int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
- 			new_parent = dd->clk_bypass;
- 	} else {
- 		if (dd->last_rounded_rate != rate)
--			omap2_dpll_round_rate(clk, rate);
-+			rate = clk->round_rate(clk, rate);
+@@ -390,7 +390,7 @@ int omap3_noncore_dpll_enable(struct clk *clk)
+ 	 * propagating?
+ 	 */
+ 	if (!r)
+-		clk->rate = omap2_get_dpll_rate(clk);
++		clk->rate = clk->recalc(clk);
  
- 		if (dd->last_rounded_rate == 0)
- 			return -EINVAL;
+ 	return r;
+ }
+@@ -435,7 +435,7 @@ int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
+ 	if (!dd)
+ 		return -EINVAL;
+ 
+-	if (rate == omap2_get_dpll_rate(clk))
++	if (rate == clk->recalc(clk))
+ 		return 0;
+ 
+ 	/*
 -- 
 1.7.4.1
 
