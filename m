@@ -1,50 +1,91 @@
-From: Jan Weitzel <J.Weitzel@phytec.de>
-Subject: Re: [PATCH] ARM: OMAP4: PCM049: remove vusim regulator
-Date: Thu, 14 Jul 2011 10:39:52 +0200
-Message-ID: <1310632792.4008.3.camel@lws-weitzel>
-References: <1310554738.18446.12.camel@lws-weitzel>
-	 <1310554762-10743-1-git-send-email-j.weitzel@phytec.de>
-	 <4E1D8BCD.5060901@ru.mvista.com> <1310561772.18446.14.camel@lws-weitzel>
-	 <20110714073445.GL5783@atomide.com>
-Reply-To: J.Weitzel@phytec.de
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCHv2 4/5] TEMP: OMAP3: beagle rev-c4: enable OPP6
+Date: Thu, 14 Jul 2011 14:16:15 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024DB11D0A@dbde02.ent.ti.com>
+References: <1310565638-13140-1-git-send-email-t-kristo@ti.com>
+ <1310565638-13140-5-git-send-email-t-kristo@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024DB119F6@dbde02.ent.ti.com>
+ <1310627438.4331.98.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.phytec.co.uk ([217.6.246.34]:60190 "EHLO root.phytec.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58907 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752466Ab1GNIjz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jul 2011 04:39:55 -0400
-In-Reply-To: <20110714073445.GL5783@atomide.com>
+	id S1752894Ab1GNIqW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 04:46:22 -0400
+In-Reply-To: <1310627438.4331.98.camel@sokoban>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sergei Shtylyov <sshtylyov@mvista.com>
+To: "Kristo, Tero" <t-kristo@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Girdwood, Liam" <lrg@ti.com>, "Hilman, Kevin" <khilman@ti.com>
 
-Am Donnerstag, den 14.07.2011, 00:34 -0700 schrieb Tony Lindgren:
-> * Jan Weitzel <J.Weitzel@phytec.de> [110713 05:51]:
-> > Am Mittwoch, den 13.07.2011, 16:13 +0400 schrieb Sergei Shtylyov:
+> -----Original Message-----
+> From: Kristo, Tero 
+> Sent: Thursday, July 14, 2011 12:41 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org; 
+> broonie@opensource.wolfsonmicro.com; Girdwood, Liam; Hilman, Kevin
+> Subject: RE: [PATCHv2 4/5] TEMP: OMAP3: beagle rev-c4: enable OPP6
+> 
+> On Wed, 2011-07-13 at 19:49 +0200, Premi, Sanjeev wrote:
+> > > 
+> Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 
+> 0115040-6. Kotipaikka: Helsinki
+>  
+> -----Original Message-----
+> 
+> > > From: linux-omap-owner@vger.kernel.org 
+> > > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Kristo, Tero
+> > > Sent: Wednesday, July 13, 2011 7:31 PM
+> > > To: linux-omap@vger.kernel.org
+> > > Cc: broonie@opensource.wolfsonmicro.com; Girdwood, Liam; 
+> Hilman, Kevin
+> > > Subject: [PATCHv2 4/5] TEMP: OMAP3: beagle rev-c4: enable OPP6
+> > > 
+> > > Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can 
+> > > run at 720MHz.
+> > > 
+> > > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > > ---
+
+[snip]...[snip]
+
 > > 
+> > [sp] Basic support for 720MHz was already closed early this year.
+> >      See: http://marc.info/?l=linux-omap&m=129735630928696&w=2
+> > 
+> >      I cannot check the current tree status right now; but I assume
+> >      the patch should already be in.
+> > 
+> 
+> Yea, I heard this was agreed upon, however it is not in the tree yet.
+> Thus I just added this patch in the set for testing purposes... and
+> tagged as TEMP.
+
+I noticed this today morning. Will be reposting it today after rebase.
+
+~sanjeev
+
+> 
+> > ~sanjeev
+> > 
+> > > -- 
+> > > 1.7.4.1
 > > > 
-> > >     Have you added that 'i' at the end intentionally?
 > > > 
-> > Thank you. It was a tribute to vim.
+> > > Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 
+> > > 0115040-6. Kotipaikka: Helsinki
+> > >  
+> > > 
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe 
+> > > linux-omap" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > 
 > 
-> :i)
 > 
-> I'll fold the fixed patch into your original patch. Will also
-> keep the new board files in testing-board because of the code
-> coalescing and device tree conversion effort.
-
-So there is no way to get the board mainline yet?
-
-Jan
-
-> Tony
 > 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
-
