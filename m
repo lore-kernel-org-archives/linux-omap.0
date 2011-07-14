@@ -1,47 +1,47 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 0/5] OMAP SMPS regulator driver
-Date: Thu, 14 Jul 2011 10:24:24 +0300
-Message-ID: <1310628264.4331.108.camel@sokoban>
-References: <1310565638-13140-1-git-send-email-t-kristo@ti.com> <87ipr5n21x.fsf@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP4: Add pcm049 to Kconfig/Makefile
+Date: Thu, 14 Jul 2011 00:27:08 -0700
+Message-ID: <20110714072708.GK5783@atomide.com>
+References: <1310119464-3514-1-git-send-email-j.weitzel@phytec.de>
+ <1310119464-3514-2-git-send-email-j.weitzel@phytec.de>
+ <4E16EECF.7030102@mvista.com>
+ <20110708115521.GA5783@atomide.com>
+ <20110708115842.GJ4820@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55554 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753553Ab1GNHY3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 03:24:29 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <87ipr5n21x.fsf@ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:52428 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753577Ab1GNH1P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 03:27:15 -0400
+Content-Disposition: inline
+In-Reply-To: <20110708115842.GJ4820@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, "Girdwood, Liam" <lrg@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, Jan Weitzel <j.weitzel@phytec.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2011-07-14 at 02:22 +0200, Hilman, Kevin wrote:
-> Hi Tero,
+* Felipe Balbi <balbi@ti.com> [110708 04:53]:
 > 
-> Tero Kristo <t-kristo@ti.com> writes:
-> 
-> > Based on the comments for the previous version of this set, I implemented
-> > a regulator driver for the OMAP SMPS now. 
-> 
-> Could you rebase this on my pm-wip/voltdm branch where I've started the
-> work to separate out the VC/VP layers into their own files.
-> 
+> Are you or are you not taking now board files ? We have one which was
+> left out due to a comment from Russell stating that no new board-files
+> would be accepted until the move to device tree was completed [1]
 
-I'll do this for next version.
+Well looking at the cumulative diffstats, adding these board files
+with about total of 1000 lines of addition would push our diffstat to
+positive side. And that's not a good sign of code coalescing.
 
-> I've just rebased that branch on top of current l-o master, so it also
-> includes all the PRCM core code changes queued for v3.1.
-> 
-> Thanks,
-> 
-> Kevin
+So I'll carry the board files in testing-board until we have device tree
+working and won't need those.
 
+Alternatively if somebody combines beagle variants to use board-beagle-common.c
+and board-panda-common.c then adding new boards would have minimal impact
+and would probably make device tree conversion of these boards easier
+too.
 
+Regards,
 
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+Tony
+
  
-
+> [1] http://marc.info/?t=130199607500006&r=1&w=2
