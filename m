@@ -1,57 +1,94 @@
-From: Jan Weitzel <J.Weitzel@phytec.de>
-Subject: Re: [PATCH] ARM: OMAP4: PCM049: remove vusim regulator
-Date: Fri, 15 Jul 2011 11:47:54 +0200
-Message-ID: <1310723274.26087.38.camel@lws-weitzel>
-References: <1310554738.18446.12.camel@lws-weitzel>
-	 <1310554762-10743-1-git-send-email-j.weitzel@phytec.de>
-	 <4E1D8BCD.5060901@ru.mvista.com> <1310561772.18446.14.camel@lws-weitzel>
-	 <20110714073445.GL5783@atomide.com> <1310632792.4008.3.camel@lws-weitzel>
-	 <20110715075024.GO5783@atomide.com>
-Reply-To: J.Weitzel@phytec.de
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [GIT PULL] minimal omap4460 support for v3.1 merge window
+Date: Fri, 15 Jul 2011 15:34:08 +0530
+Message-ID: <f4cffad16aa1de61a44edfae84e2249a@mail.gmail.com>
+References: <20110710065627.GE5783@atomide.com> <20110710195215.GJ5783@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.x-arc.co.uk ([217.6.246.34]:54432 "EHLO root.phytec.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965262Ab1GOJsB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jul 2011 05:48:01 -0400
-In-Reply-To: <20110715075024.GO5783@atomide.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:52224 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S965014Ab1GOKEO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jul 2011 06:04:14 -0400
+Received: by mail-vx0-f173.google.com with SMTP id 29so245564vxi.18
+        for <linux-omap@vger.kernel.org>; Fri, 15 Jul 2011 03:04:13 -0700 (PDT)
+In-Reply-To: <20110710195215.GJ5783@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sergei Shtylyov <sshtylyov@mvista.com>
+To: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>
 
-Am Freitag, den 15.07.2011, 00:50 -0700 schrieb Tony Lindgren:
-> Well we can add it even before device tree support if it makes
-> sense from code coalescing point of view. In this case it would
-> mean creating board-panda-common.c or similar so the code can
-> be shared amongst the panda variants.
-> 
-> It seems that some GPIO pins are different and there are some
-> difference in devices connected, but big parts of the code can be
-> shared.
-> 
-> Adding the pending boards without combining code would be adding code
-> that will be going away for most part with the device tree support.
-> 
-> And most likely the beagle and panda based boards will be the first
-> ones to work with device tree. So anything we can do to have common
-> board init code will also help with this effort.
-> 
-> Regards,
-> 
-> Tony
-pcm049 and panda board have some more different devices.
-I am working on patches to add NAND support and using tlv320aic3x audio
-codec which need regulators in platformcode. I need a hack to controll
-usb otg by gpio (controlling a external power circuit). The patches are
-not mainline ready by now. 
-If using machine_is_xxxx() in board-omap4panda.c then also is good way,
-I could provide our board as patches on top of board-omap4panda.c.
-When will pandaboard use device tree to boot?
+Tony,
+I boot tested this pull request on 4460 Panda and it boots up fine.
 
-Kind Regards,
-Jan
+Regards
+Vishwa
 
 
+> -----Original Message-----
+> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-
+> arm-kernel-bounces@lists.infradead.org] On Behalf Of Tony Lindgren
+> Sent: Monday, July 11, 2011 1:22 AM
+> To: Arnd Bergmann
+> Cc: Thomas Gleixner; linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; Nicolas Pitre
+> Subject: Re: [GIT PULL] minimal omap4460 support for v3.1 merge
+> window
+>
+> Correting the email address for Arnd.
+>
+> * Tony Lindgren <tony@atomide.com> [110709 23:51]:
+> > Hi Arnd,
+> >
+> > Please pull minimal omap4460 support from:
+> >
+> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-
+> 2.6.git 4460
+> >
+> > Regards,
+> >
+> > Tony
+> >
+> >
+> > The following changes since commit
+> 48cb1258e8b0f8c81cfb699b42326c5b2147b3f8:
+> >   Tony Lindgren (1):
+> >         Merge branch 'for_3.1/pm-misc' of
+> git://git.kernel.org/.../khilman/linux-omap-pm into devel-cleanup
+> >
+> > are available in the git repository at:
+> >
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-
+> 2.6.git 4460
+> >
+> > Aneesh V (2):
+> >       OMAP: ID: introduce chip detection for OMAP4460
+> >       OMAP4: ID: add omap_has_feature for max freq supported
+> >
+> > Rajendra Nayak (2):
+> >       OMAP4: PRCM: OMAP4460 specific PRM and CM register bitshifts
+> >       OMAP4: clocks: Update the clock tree with 4460 clock nodes
+> >
+> >  arch/arm/mach-omap2/clock44xx_data.c          |   39
+> ++++++++++++++++++
+> >  arch/arm/mach-omap2/cm-regbits-44xx.h         |   36
+> +++++++++++++++++
+> >  arch/arm/mach-omap2/id.c                      |   53
+> ++++++++++++++++++++----
+> >  arch/arm/mach-omap2/prm-regbits-44xx.h        |    8 ++++
+> >  arch/arm/plat-omap/include/plat/clkdev_omap.h |    1 +
+> >  arch/arm/plat-omap/include/plat/clock.h       |    2 +
+> >  arch/arm/plat-omap/include/plat/cpu.h         |   35
+> +++++++++++++++-
+> >  7 files changed, 162 insertions(+), 12 deletions(-)
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
