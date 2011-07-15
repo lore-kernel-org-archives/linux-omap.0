@@ -1,852 +1,327 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v14 REPOST 06/12] OMAP: dmtimer: switch-over to platform device driver
-Date: Fri, 15 Jul 2011 17:34:55 +0530
-Message-ID: <1310731501-13078-7-git-send-email-tarun.kanti@ti.com>
-References: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v14 REPOST 00/12] dmtimer adaptation to platform_driver
+Date: Fri, 15 Jul 2011 17:34:49 +0530
+Message-ID: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34015 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751019Ab1GOMFa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jul 2011 08:05:30 -0400
-In-Reply-To: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:55877 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750953Ab1GOMGF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jul 2011 08:06:05 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-Register timer devices by going through hwmod database using
-hwmod API. The driver probes each of the registered devices.
-Functionality which are already performed by hwmod framework
-are removed from timer code. New set of timers present on
-OMAP4 are now supported.
+Adaptation of dmtimer code to platform driver using omap_device and
+omap_hwmod abstraction. It also include pm-runtime and off-mode support.
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Acked-by: Cousson, Benoit <b-cousson@ti.com>
----
- arch/arm/mach-omap2/timer.c               |   48 +++-
- arch/arm/plat-omap/dmtimer.c              |  356 +++++++++--------------------
- arch/arm/plat-omap/include/plat/dmtimer.h |   80 ++++---
- 3 files changed, 195 insertions(+), 289 deletions(-)
+Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+Branch: Master
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 1c1e72b..9d47300 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -80,7 +80,8 @@ static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
- {
- 	struct clock_event_device *evt = &clockevent_gpt;
- 
--	__omap_dm_timer_write_status(clkev.io_base, OMAP_TIMER_INT_OVERFLOW);
-+	__omap_dm_timer_write_status(clkev.io_base, OMAP_TIMER_INT_OVERFLOW,
-+				clkev.intr_offset, clkev.func_offset);
- 
- 	evt->event_handler(evt);
- 	return IRQ_HANDLED;
-@@ -96,7 +97,7 @@ static int omap2_gp_timer_set_next_event(unsigned long cycles,
- 					 struct clock_event_device *evt)
- {
- 	__omap_dm_timer_load_start(clkev.io_base, OMAP_TIMER_CTRL_ST,
--						0xffffffff - cycles, 1);
-+				0xffffffff - cycles, 1, clkev.func_offset);
- 
- 	return 0;
- }
-@@ -106,7 +107,8 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
- {
- 	u32 period;
- 
--	__omap_dm_timer_stop(clkev.io_base, 1, clkev.rate);
-+	__omap_dm_timer_stop(clkev.io_base, 1, clkev.rate, true,
-+				clkev.intr_offset, clkev.func_offset);
- 
- 	switch (mode) {
- 	case CLOCK_EVT_MODE_PERIODIC:
-@@ -114,10 +116,10 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
- 		period -= 1;
- 		/* Looks like we need to first set the load value separately */
- 		__omap_dm_timer_write(clkev.io_base, OMAP_TIMER_LOAD_REG,
--					0xffffffff - period, 1);
-+				0xffffffff - period, 1, clkev.func_offset);
- 		__omap_dm_timer_load_start(clkev.io_base,
--					OMAP_TIMER_CTRL_AR | OMAP_TIMER_CTRL_ST,
--						0xffffffff - period, 1);
-+				OMAP_TIMER_CTRL_AR | OMAP_TIMER_CTRL_ST,
-+				0xffffffff - period, 1, clkev.func_offset);
- 		break;
- 	case CLOCK_EVT_MODE_ONESHOT:
- 		break;
-@@ -191,7 +193,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
- 			clk_put(src);
- 		}
- 	}
--	__omap_dm_timer_reset(timer->io_base, 1, 1);
-+	__omap_dm_timer_reset(timer->io_base, 1, 1, timer->func_offset);
- 	timer->posted = 1;
- 
- 	timer->rate = clk_get_rate(timer->fclk);
-@@ -212,7 +214,8 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- 	omap2_gp_timer_irq.dev_id = (void *)&clkev;
- 	setup_irq(clkev.irq, &omap2_gp_timer_irq);
- 
--	__omap_dm_timer_int_enable(clkev.io_base, OMAP_TIMER_INT_OVERFLOW);
-+	__omap_dm_timer_int_enable(clkev.io_base, OMAP_TIMER_INT_OVERFLOW,
-+					clkev.intr_offset, clkev.func_offset);
- 
- 	clockevent_gpt.mult = div_sc(clkev.rate, NSEC_PER_SEC,
- 				     clockevent_gpt.shift);
-@@ -253,7 +256,8 @@ static struct omap_dm_timer clksrc;
- static DEFINE_CLOCK_DATA(cd);
- static cycle_t clocksource_read_cycles(struct clocksource *cs)
- {
--	return (cycle_t)__omap_dm_timer_read_counter(clksrc.io_base, 1);
-+	return (cycle_t)__omap_dm_timer_read_counter(clksrc.io_base, 1,
-+						clksrc.func_offset);
- }
- 
- static struct clocksource clocksource_gpt = {
-@@ -268,7 +272,8 @@ static void notrace dmtimer_update_sched_clock(void)
- {
- 	u32 cyc;
- 
--	cyc = __omap_dm_timer_read_counter(clksrc.io_base, 1);
-+	cyc = __omap_dm_timer_read_counter(clksrc.io_base, 1,
-+						clksrc.func_offset);
- 
- 	update_sched_clock(&cd, cyc, (u32)~0);
- }
-@@ -278,7 +283,8 @@ unsigned long long notrace sched_clock(void)
- 	u32 cyc = 0;
- 
- 	if (clksrc.reserved)
--		cyc = __omap_dm_timer_read_counter(clksrc.io_base, 1);
-+		cyc = __omap_dm_timer_read_counter(clksrc.io_base, 1,
-+							clksrc.func_offset);
- 
- 	return cyc_to_sched_clock(&cd, cyc, (u32)~0);
- }
-@@ -476,3 +482,23 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
- 
- 	return ret;
- }
-+
-+/**
-+ * omap2_dm_timer_init - top level regular device initialization
-+ *
-+ * Uses dedicated hwmod api to parse through hwmod database for
-+ * given class name and then build and register the timer device.
-+ */
-+static int __init omap2_dm_timer_init(void)
-+{
-+	int ret;
-+
-+	ret = omap_hwmod_for_each_by_class("timer", omap_timer_init, NULL);
-+	if (unlikely(ret)) {
-+		pr_err("%s: device registration failed.\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+arch_initcall(omap2_dm_timer_init);
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 8a22583..54564e9 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -36,136 +36,54 @@
-  */
- 
- #include <linux/io.h>
--#include <linux/module.h>
- #include <linux/slab.h>
--#include <mach/hardware.h>
--#include <plat/dmtimer.h>
--#include <mach/irqs.h>
--
--static int dm_timer_count;
--
--#ifdef CONFIG_ARCH_OMAP2
--static struct omap_dm_timer omap2_dm_timers[] = {
--	{ .phys_base = 0x48028000, .irq = INT_24XX_GPTIMER1 },
--	{ .phys_base = 0x4802a000, .irq = INT_24XX_GPTIMER2 },
--	{ .phys_base = 0x48078000, .irq = INT_24XX_GPTIMER3 },
--	{ .phys_base = 0x4807a000, .irq = INT_24XX_GPTIMER4 },
--	{ .phys_base = 0x4807c000, .irq = INT_24XX_GPTIMER5 },
--	{ .phys_base = 0x4807e000, .irq = INT_24XX_GPTIMER6 },
--	{ .phys_base = 0x48080000, .irq = INT_24XX_GPTIMER7 },
--	{ .phys_base = 0x48082000, .irq = INT_24XX_GPTIMER8 },
--	{ .phys_base = 0x48084000, .irq = INT_24XX_GPTIMER9 },
--	{ .phys_base = 0x48086000, .irq = INT_24XX_GPTIMER10 },
--	{ .phys_base = 0x48088000, .irq = INT_24XX_GPTIMER11 },
--	{ .phys_base = 0x4808a000, .irq = INT_24XX_GPTIMER12 },
--};
--
--static const char *omap2_dm_source_names[] __initdata = {
--	"sys_ck",
--	"func_32k_ck",
--	"alt_ck",
--	NULL
--};
--
--static struct clk *omap2_dm_source_clocks[3];
--static const int omap2_dm_timer_count = ARRAY_SIZE(omap2_dm_timers);
--
--#else
--#define omap2_dm_timers			NULL
--#define omap2_dm_timer_count		0
--#define omap2_dm_source_names		NULL
--#define omap2_dm_source_clocks		NULL
--#endif	/* CONFIG_ARCH_OMAP2 */
--
--#ifdef CONFIG_ARCH_OMAP3
--static struct omap_dm_timer omap3_dm_timers[] = {
--	{ .phys_base = 0x48318000, .irq = INT_24XX_GPTIMER1 },
--	{ .phys_base = 0x49032000, .irq = INT_24XX_GPTIMER2 },
--	{ .phys_base = 0x49034000, .irq = INT_24XX_GPTIMER3 },
--	{ .phys_base = 0x49036000, .irq = INT_24XX_GPTIMER4 },
--	{ .phys_base = 0x49038000, .irq = INT_24XX_GPTIMER5 },
--	{ .phys_base = 0x4903A000, .irq = INT_24XX_GPTIMER6 },
--	{ .phys_base = 0x4903C000, .irq = INT_24XX_GPTIMER7 },
--	{ .phys_base = 0x4903E000, .irq = INT_24XX_GPTIMER8 },
--	{ .phys_base = 0x49040000, .irq = INT_24XX_GPTIMER9 },
--	{ .phys_base = 0x48086000, .irq = INT_24XX_GPTIMER10 },
--	{ .phys_base = 0x48088000, .irq = INT_24XX_GPTIMER11 },
--	{ .phys_base = 0x48304000, .irq = INT_34XX_GPT12_IRQ },
--};
--
--static const char *omap3_dm_source_names[] __initdata = {
--	"sys_ck",
--	"omap_32k_fck",
--	NULL
--};
--
--static struct clk *omap3_dm_source_clocks[2];
--static const int omap3_dm_timer_count = ARRAY_SIZE(omap3_dm_timers);
--
--#else
--#define omap3_dm_timers			NULL
--#define omap3_dm_timer_count		0
--#define omap3_dm_source_names		NULL
--#define omap3_dm_source_clocks		NULL
--#endif	/* CONFIG_ARCH_OMAP3 */
--
--#ifdef CONFIG_ARCH_OMAP4
--static struct omap_dm_timer omap4_dm_timers[] = {
--	{ .phys_base = 0x4a318000, .irq = OMAP44XX_IRQ_GPT1 },
--	{ .phys_base = 0x48032000, .irq = OMAP44XX_IRQ_GPT2 },
--	{ .phys_base = 0x48034000, .irq = OMAP44XX_IRQ_GPT3 },
--	{ .phys_base = 0x48036000, .irq = OMAP44XX_IRQ_GPT4 },
--	{ .phys_base = 0x40138000, .irq = OMAP44XX_IRQ_GPT5 },
--	{ .phys_base = 0x4013a000, .irq = OMAP44XX_IRQ_GPT6 },
--	{ .phys_base = 0x4013a000, .irq = OMAP44XX_IRQ_GPT7 },
--	{ .phys_base = 0x4013e000, .irq = OMAP44XX_IRQ_GPT8 },
--	{ .phys_base = 0x4803e000, .irq = OMAP44XX_IRQ_GPT9 },
--	{ .phys_base = 0x48086000, .irq = OMAP44XX_IRQ_GPT10 },
--	{ .phys_base = 0x48088000, .irq = OMAP44XX_IRQ_GPT11 },
--	{ .phys_base = 0x4a320000, .irq = OMAP44XX_IRQ_GPT12 },
--};
--static const char *omap4_dm_source_names[] __initdata = {
--	"sys_clkin_ck",
--	"sys_32k_ck",
--	NULL
--};
--static struct clk *omap4_dm_source_clocks[2];
--static const int omap4_dm_timer_count = ARRAY_SIZE(omap4_dm_timers);
-+#include <linux/err.h>
- 
--#else
--#define omap4_dm_timers			NULL
--#define omap4_dm_timer_count		0
--#define omap4_dm_source_names		NULL
--#define omap4_dm_source_clocks		NULL
--#endif	/* CONFIG_ARCH_OMAP4 */
--
--static struct omap_dm_timer *dm_timers;
--static const char **dm_source_names;
--static struct clk **dm_source_clocks;
-+#include <plat/dmtimer.h>
- 
--static spinlock_t dm_timer_lock;
- static LIST_HEAD(omap_timer_list);
-+static DEFINE_SPINLOCK(dm_timer_lock);
- 
--/*
-- * Reads timer registers in posted and non-posted mode. The posted mode bit
-- * is encoded in reg. Note that in posted mode write pending bit must be
-- * checked. Otherwise a read of a non completed write will produce an error.
-+/**
-+ * omap_dm_timer_read_reg - read timer registers in posted and non-posted mode
-+ * @timer:      timer pointer over which read operation to perform
-+ * @reg:        lowest byte holds the register offset
-+ *
-+ * The posted mode bit is encoded in reg. Note that in posted mode write
-+ * pending bit must be checked. Otherwise a read of a non completed write
-+ * will produce an error.
-  */
- static inline u32 omap_dm_timer_read_reg(struct omap_dm_timer *timer, u32 reg)
- {
--	return __omap_dm_timer_read(timer->io_base, reg, timer->posted);
-+	if (reg >= OMAP_TIMER_WAKEUP_EN_REG)
-+		reg += timer->func_offset;
-+	else if (reg >= OMAP_TIMER_STAT_REG)
-+		reg += timer->intr_offset;
-+
-+	return __omap_dm_timer_read(timer->io_base, reg, timer->posted,
-+					timer->func_offset);
- }
- 
--/*
-- * Writes timer registers in posted and non-posted mode. The posted mode bit
-- * is encoded in reg. Note that in posted mode the write pending bit must be
-- * checked. Otherwise a write on a register which has a pending write will be
-- * lost.
-+/**
-+ * omap_dm_timer_write_reg - write timer registers in posted and non-posted mode
-+ * @timer:      timer pointer over which write operation is to perform
-+ * @reg:        lowest byte holds the register offset
-+ * @value:      data to write into the register
-+ *
-+ * The posted mode bit is encoded in reg. Note that in posted mode the write
-+ * pending bit must be checked. Otherwise a write on a register which has a
-+ * pending write will be lost.
-  */
- static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
- 						u32 value)
- {
--	__omap_dm_timer_write(timer->io_base, reg, value, timer->posted);
-+	if (reg >= OMAP_TIMER_WAKEUP_EN_REG)
-+		reg += timer->func_offset;
-+	else if (reg >= OMAP_TIMER_STAT_REG)
-+		reg += timer->intr_offset;
-+
-+	__omap_dm_timer_write(timer->io_base, reg, value, timer->posted,
-+				timer->func_offset);
- }
- 
- static void omap_dm_timer_wait_for_reset(struct omap_dm_timer *timer)
-@@ -184,53 +102,56 @@ static void omap_dm_timer_wait_for_reset(struct omap_dm_timer *timer)
- 
- static void omap_dm_timer_reset(struct omap_dm_timer *timer)
- {
--	int autoidle = 0, wakeup = 0;
--
--	if (!cpu_class_is_omap2() || timer != &dm_timers[0]) {
-+	if (timer->pdev->id != 1) {
- 		omap_dm_timer_write_reg(timer, OMAP_TIMER_IF_CTRL_REG, 0x06);
- 		omap_dm_timer_wait_for_reset(timer);
- 	}
--	omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
--
--	/* Enable autoidle on OMAP2 / OMAP3 */
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())
--		autoidle = 1;
--
--	/*
--	 * Enable wake-up on OMAP2 CPUs.
--	 */
--	if (cpu_class_is_omap2())
--		wakeup = 1;
- 
--	__omap_dm_timer_reset(timer->io_base, autoidle, wakeup);
-+	__omap_dm_timer_reset(timer->io_base, 0, 0, timer->func_offset);
- 	timer->posted = 1;
- }
- 
- void omap_dm_timer_prepare(struct omap_dm_timer *timer)
- {
-+	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-+
-+	timer->fclk = clk_get(&timer->pdev->dev, "fck");
-+	if (WARN_ON_ONCE(IS_ERR_OR_NULL(timer->fclk))) {
-+		timer->fclk = NULL;
-+		dev_err(&timer->pdev->dev, ": No fclk handle.\n");
-+		return;
-+	}
-+
- 	omap_dm_timer_enable(timer);
--	omap_dm_timer_reset(timer);
-+
-+	if (pdata->needs_manual_reset)
-+		omap_dm_timer_reset(timer);
-+
-+	omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
-+
-+	timer->posted = 1;
- }
- 
- struct omap_dm_timer *omap_dm_timer_request(void)
- {
--	struct omap_dm_timer *timer = NULL;
-+	struct omap_dm_timer *timer = NULL, *t;
- 	unsigned long flags;
--	int i;
- 
- 	spin_lock_irqsave(&dm_timer_lock, flags);
--	for (i = 0; i < dm_timer_count; i++) {
--		if (dm_timers[i].reserved)
-+	list_for_each_entry(t, &omap_timer_list, node) {
-+		if (t->reserved)
- 			continue;
- 
--		timer = &dm_timers[i];
-+		timer = t;
- 		timer->reserved = 1;
- 		break;
- 	}
- 	spin_unlock_irqrestore(&dm_timer_lock, flags);
- 
--	if (timer != NULL)
-+	if (timer)
- 		omap_dm_timer_prepare(timer);
-+	else
-+		pr_debug("%s: free timer not available.\n", __func__);
- 
- 	return timer;
- }
-@@ -238,23 +159,23 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_request);
- 
- struct omap_dm_timer *omap_dm_timer_request_specific(int id)
- {
--	struct omap_dm_timer *timer;
-+	struct omap_dm_timer *timer = NULL, *t;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&dm_timer_lock, flags);
--	if (id <= 0 || id > dm_timer_count || dm_timers[id-1].reserved) {
--		spin_unlock_irqrestore(&dm_timer_lock, flags);
--		printk("BUG: warning at %s:%d/%s(): unable to get timer %d\n",
--		       __FILE__, __LINE__, __func__, id);
--		dump_stack();
--		return NULL;
-+	list_for_each_entry(t, &omap_timer_list, node) {
-+		if (t->pdev->id == id && !t->reserved) {
-+			timer = t;
-+			timer->reserved = 1;
-+			break;
-+		}
- 	}
--
--	timer = &dm_timers[id-1];
--	timer->reserved = 1;
- 	spin_unlock_irqrestore(&dm_timer_lock, flags);
- 
--	omap_dm_timer_prepare(timer);
-+	if (timer)
-+		omap_dm_timer_prepare(timer);
-+	else
-+		pr_debug("%s: timer%d not available.\n", __func__, id);
- 
- 	return timer;
- }
-@@ -262,9 +183,8 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_request_specific);
- 
- void omap_dm_timer_free(struct omap_dm_timer *timer)
- {
--	omap_dm_timer_enable(timer);
--	omap_dm_timer_reset(timer);
- 	omap_dm_timer_disable(timer);
-+	clk_put(timer->fclk);
- 
- 	WARN_ON(!timer->reserved);
- 	timer->reserved = 0;
-@@ -273,15 +193,15 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_free);
- 
- void omap_dm_timer_enable(struct omap_dm_timer *timer)
- {
-+	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-+
- 	if (timer->enabled)
- 		return;
- 
--#ifdef CONFIG_ARCH_OMAP2PLUS
--	if (cpu_class_is_omap2()) {
-+	if (!pdata->needs_manual_reset) {
- 		clk_enable(timer->fclk);
- 		clk_enable(timer->iclk);
- 	}
--#endif
- 
- 	timer->enabled = 1;
- }
-@@ -289,15 +209,15 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_enable);
- 
- void omap_dm_timer_disable(struct omap_dm_timer *timer)
- {
-+	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-+
- 	if (!timer->enabled)
- 		return;
- 
--#ifdef CONFIG_ARCH_OMAP2PLUS
--	if (cpu_class_is_omap2()) {
-+	if (!pdata->needs_manual_reset) {
- 		clk_disable(timer->iclk);
- 		clk_disable(timer->fclk);
- 	}
--#endif
- 
- 	timer->enabled = 0;
- }
-@@ -317,24 +237,29 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_get_irq);
-  */
- __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
- {
--	int i;
-+	int i = 0;
-+	struct omap_dm_timer *timer = NULL;
-+	unsigned long flags;
- 
- 	/* If ARMXOR cannot be idled this function call is unnecessary */
- 	if (!(inputmask & (1 << 1)))
- 		return inputmask;
- 
- 	/* If any active timer is using ARMXOR return modified mask */
--	for (i = 0; i < dm_timer_count; i++) {
-+	spin_lock_irqsave(&dm_timer_lock, flags);
-+	list_for_each_entry(timer, &omap_timer_list, node) {
- 		u32 l;
- 
--		l = omap_dm_timer_read_reg(&dm_timers[i], OMAP_TIMER_CTRL_REG);
-+		l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
- 		if (l & OMAP_TIMER_CTRL_ST) {
- 			if (((omap_readl(MOD_CONF_CTRL_1) >> (i * 2)) & 0x03) == 0)
- 				inputmask &= ~(1 << 1);
- 			else
- 				inputmask &= ~(1 << 2);
- 		}
-+		i++;
- 	}
-+	spin_unlock_irqrestore(&dm_timer_lock, flags);
- 
- 	return inputmask;
- }
-@@ -379,26 +304,34 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_start);
- void omap_dm_timer_stop(struct omap_dm_timer *timer)
- {
- 	unsigned long rate = 0;
-+	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-+	bool is_omap2 = true;
- 
--#ifdef CONFIG_ARCH_OMAP2PLUS
--	rate = clk_get_rate(timer->fclk);
--#endif
-+	if (pdata->needs_manual_reset)
-+		is_omap2 = false;
-+	else
-+		rate = clk_get_rate(timer->fclk);
- 
--	__omap_dm_timer_stop(timer->io_base, timer->posted, rate);
-+	__omap_dm_timer_stop(timer->io_base, timer->posted, rate,
-+			is_omap2, timer->intr_offset, timer->func_offset);
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
- 
- int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
- {
-+	int ret = -EINVAL;
-+	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-+
- 	if (source < 0 || source >= 3)
- 		return -EINVAL;
- 
--#ifdef CONFIG_ARCH_OMAP2PLUS
--	return __omap_dm_timer_set_source(timer->fclk,
--						dm_source_clocks[source]);
--#else
--	return 0;
--#endif
-+	omap_dm_timer_disable(timer);
-+	ret = pdata->set_timer_src(timer->pdev, source);
-+	omap_dm_timer_enable(timer);
-+
-+	__delay(300000);
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_set_source);
- 
-@@ -434,7 +367,8 @@ void omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
- 	}
- 	l |= OMAP_TIMER_CTRL_ST;
- 
--	__omap_dm_timer_load_start(timer->io_base, l, load, timer->posted);
-+	__omap_dm_timer_load_start(timer->io_base, l, load, timer->posted,
-+					timer->func_offset);
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_set_load_start);
- 
-@@ -487,7 +421,8 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_set_prescaler);
- void omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
- 				  unsigned int value)
- {
--	__omap_dm_timer_int_enable(timer->io_base, value);
-+	__omap_dm_timer_int_enable(timer->io_base, value,
-+					timer->intr_offset, timer->func_offset);
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_set_int_enable);
- 
-@@ -503,13 +438,15 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_read_status);
- 
- void omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value)
- {
--	__omap_dm_timer_write_status(timer->io_base, value);
-+	__omap_dm_timer_write_status(timer->io_base, value,
-+					timer->intr_offset, timer->func_offset);
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_write_status);
- 
- unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer)
- {
--	return __omap_dm_timer_read_counter(timer->io_base, timer->posted);
-+	return __omap_dm_timer_read_counter(timer->io_base, timer->posted,
-+						timer->func_offset);
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_read_counter);
- 
-@@ -521,13 +458,9 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_write_counter);
- 
- int omap_dm_timers_active(void)
- {
--	int i;
--
--	for (i = 0; i < dm_timer_count; i++) {
--		struct omap_dm_timer *timer;
--
--		timer = &dm_timers[i];
-+	struct omap_dm_timer *timer;
- 
-+	list_for_each_entry(timer, &omap_timer_list, node) {
- 		if (!timer->enabled)
- 			continue;
- 
-@@ -674,66 +607,3 @@ MODULE_DESCRIPTION("OMAP Dual-Mode Timer Driver");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("platform:" DRIVER_NAME);
- MODULE_AUTHOR("Texas Instruments Inc");
--
--int __init omap_dm_timer_init(void)
--{
--	struct omap_dm_timer *timer;
--	int i, map_size = SZ_8K;	/* Module 4KB + L4 4KB except on omap1 */
--
--	if (!cpu_class_is_omap2())
--		return -ENODEV;
--
--	spin_lock_init(&dm_timer_lock);
--
--	if (cpu_is_omap24xx()) {
--		dm_timers = omap2_dm_timers;
--		dm_timer_count = omap2_dm_timer_count;
--		dm_source_names = omap2_dm_source_names;
--		dm_source_clocks = omap2_dm_source_clocks;
--	} else if (cpu_is_omap34xx()) {
--		dm_timers = omap3_dm_timers;
--		dm_timer_count = omap3_dm_timer_count;
--		dm_source_names = omap3_dm_source_names;
--		dm_source_clocks = omap3_dm_source_clocks;
--	} else if (cpu_is_omap44xx()) {
--		dm_timers = omap4_dm_timers;
--		dm_timer_count = omap4_dm_timer_count;
--		dm_source_names = omap4_dm_source_names;
--		dm_source_clocks = omap4_dm_source_clocks;
--	}
--
--	if (cpu_class_is_omap2())
--		for (i = 0; dm_source_names[i] != NULL; i++)
--			dm_source_clocks[i] = clk_get(NULL, dm_source_names[i]);
--
--	if (cpu_is_omap243x())
--		dm_timers[0].phys_base = 0x49018000;
--
--	for (i = 0; i < dm_timer_count; i++) {
--		timer = &dm_timers[i];
--
--		/* Static mapping, never released */
--		timer->io_base = ioremap(timer->phys_base, map_size);
--		BUG_ON(!timer->io_base);
--
--#ifdef CONFIG_ARCH_OMAP2PLUS
--		if (cpu_class_is_omap2()) {
--			char clk_name[16];
--			sprintf(clk_name, "gpt%d_ick", i + 1);
--			timer->iclk = clk_get(NULL, clk_name);
--			sprintf(clk_name, "gpt%d_fck", i + 1);
--			timer->fclk = clk_get(NULL, clk_name);
--		}
--
--		/* One or two timers may be set up early for sys_timer */
--		if (sys_timer_reserved & (1  << i)) {
--			timer->reserved = 1;
--			timer->posted = 1;
--		}
--#endif
--	}
--
--	return 0;
--}
--
--arch_initcall(omap_dm_timer_init);
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 833a33b..90a504a 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -234,9 +234,7 @@ struct omap_dm_timer {
- 	unsigned long phys_base;
- 	int id;
- 	int irq;
--#ifdef CONFIG_ARCH_OMAP2PLUS
- 	struct clk *iclk, *fclk;
--#endif
- 	void __iomem *io_base;
- 	unsigned long rate;
- 	unsigned reserved:1;
-@@ -252,10 +250,11 @@ extern u32 sys_timer_reserved;
- void omap_dm_timer_prepare(struct omap_dm_timer *timer);
- 
- static inline u32 __omap_dm_timer_read(void __iomem *base, u32 reg,
--						int posted)
-+						int posted, u8 func_offset)
- {
- 	if (posted)
--		while (__raw_readl(base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
-+		while (__raw_readl(base +
-+			((OMAP_TIMER_WRITE_PEND_REG + func_offset) & 0xff))
- 				& (reg >> WPSHIFT))
- 			cpu_relax();
- 
-@@ -263,10 +262,11 @@ static inline u32 __omap_dm_timer_read(void __iomem *base, u32 reg,
- }
- 
- static inline void __omap_dm_timer_write(void __iomem *base, u32 reg, u32 val,
--						int posted)
-+						int posted, u8 func_offset)
- {
- 	if (posted)
--		while (__raw_readl(base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
-+		while (__raw_readl(base +
-+			((OMAP_TIMER_WRITE_PEND_REG + func_offset) & 0xff))
- 				& (reg >> WPSHIFT))
- 			cpu_relax();
- 
-@@ -275,11 +275,11 @@ static inline void __omap_dm_timer_write(void __iomem *base, u32 reg, u32 val,
- 
- /* Assumes the source clock has been set by caller */
- static inline void __omap_dm_timer_reset(void __iomem *base, int autoidle,
--						int wakeup)
-+						int wakeup, u8 func_offset)
- {
- 	u32 l;
- 
--	l = __omap_dm_timer_read(base, OMAP_TIMER_OCP_CFG_REG, 0);
-+	l = __omap_dm_timer_read(base, OMAP_TIMER_OCP_CFG_REG, 0, func_offset);
- 	l |= 0x02 << 3;  /* Set to smart-idle mode */
- 	l |= 0x2 << 8;   /* Set clock activity to perserve f-clock on idle */
- 
-@@ -289,11 +289,11 @@ static inline void __omap_dm_timer_reset(void __iomem *base, int autoidle,
- 	if (wakeup)
- 		l |= 1 << 2;
- 
--	__omap_dm_timer_write(base, OMAP_TIMER_OCP_CFG_REG, l, 0);
-+	__omap_dm_timer_write(base, OMAP_TIMER_OCP_CFG_REG, l, 0, func_offset);
- 
- 	/* Match hardware reset default of posted mode */
--	__omap_dm_timer_write(base, OMAP_TIMER_IF_CTRL_REG,
--					OMAP_TIMER_CTRL_POSTED, 0);
-+	__omap_dm_timer_write(base, OMAP_TIMER_IF_CTRL_REG + func_offset,
-+					OMAP_TIMER_CTRL_POSTED, 0, func_offset);
- }
- 
- static inline int __omap_dm_timer_set_source(struct clk *timer_fck,
-@@ -315,54 +315,64 @@ static inline int __omap_dm_timer_set_source(struct clk *timer_fck,
- }
- 
- static inline void __omap_dm_timer_stop(void __iomem *base, int posted,
--						unsigned long rate)
-+	unsigned long rate, bool is_omap2, u8 intr_offset, u8 func_offset)
- {
- 	u32 l;
- 
--	l = __omap_dm_timer_read(base, OMAP_TIMER_CTRL_REG, posted);
-+	l = __omap_dm_timer_read(base, OMAP_TIMER_CTRL_REG + func_offset,
-+					posted, func_offset);
- 	if (l & OMAP_TIMER_CTRL_ST) {
- 		l &= ~0x1;
--		__omap_dm_timer_write(base, OMAP_TIMER_CTRL_REG, l, posted);
--#ifdef CONFIG_ARCH_OMAP2PLUS
--		/* Readback to make sure write has completed */
--		__omap_dm_timer_read(base, OMAP_TIMER_CTRL_REG, posted);
--		/*
--		 * Wait for functional clock period x 3.5 to make sure that
--		 * timer is stopped
--		 */
--		udelay(3500000 / rate + 1);
--#endif
-+		__omap_dm_timer_write(base, OMAP_TIMER_CTRL_REG + func_offset,
-+					l, posted, func_offset);
-+		if (is_omap2) {
-+			/* Readback to make sure write has completed */
-+			__omap_dm_timer_read(base,
-+					OMAP_TIMER_CTRL_REG + func_offset,
-+					posted, func_offset);
-+			/*
-+			 * Wait for functional clock period x 3.5 to make sure
-+			 * timer is stopped
-+			 */
-+			udelay(3500000 / rate + 1);
-+		}
- 	}
- 
- 	/* Ack possibly pending interrupt */
--	__omap_dm_timer_write(base, OMAP_TIMER_STAT_REG,
--					OMAP_TIMER_INT_OVERFLOW, 0);
-+	__omap_dm_timer_write(base, OMAP_TIMER_STAT_REG + intr_offset,
-+				OMAP_TIMER_INT_OVERFLOW, 0, func_offset);
- }
- 
- static inline void __omap_dm_timer_load_start(void __iomem *base, u32 ctrl,
--						unsigned int load, int posted)
-+				unsigned int load, int posted, u8 func_offset)
- {
--	__omap_dm_timer_write(base, OMAP_TIMER_COUNTER_REG, load, posted);
--	__omap_dm_timer_write(base, OMAP_TIMER_CTRL_REG, ctrl, posted);
-+	__omap_dm_timer_write(base, OMAP_TIMER_COUNTER_REG + func_offset,
-+				load, posted, func_offset);
-+	__omap_dm_timer_write(base, OMAP_TIMER_CTRL_REG + func_offset,
-+				ctrl, posted, func_offset);
- }
- 
- static inline void __omap_dm_timer_int_enable(void __iomem *base,
--						unsigned int value)
-+			unsigned int value, u8 intr_offset, u8 func_offset)
- {
--	__omap_dm_timer_write(base, OMAP_TIMER_INT_EN_REG, value, 0);
--	__omap_dm_timer_write(base, OMAP_TIMER_WAKEUP_EN_REG, value, 0);
-+	__omap_dm_timer_write(base, OMAP_TIMER_INT_EN_REG + intr_offset,
-+				value, 0, func_offset);
-+	__omap_dm_timer_write(base, OMAP_TIMER_WAKEUP_EN_REG + func_offset,
-+				value, 0, func_offset);
- }
- 
- static inline unsigned int __omap_dm_timer_read_counter(void __iomem *base,
--							int posted)
-+						int posted, u8 func_offset)
- {
--	return __omap_dm_timer_read(base, OMAP_TIMER_COUNTER_REG, posted);
-+	return __omap_dm_timer_read(base, OMAP_TIMER_COUNTER_REG + func_offset,
-+						posted, func_offset);
- }
- 
- static inline void __omap_dm_timer_write_status(void __iomem *base,
--						unsigned int value)
-+			unsigned int value, u8 intr_offset, u8 func_offset)
- {
--	__omap_dm_timer_write(base, OMAP_TIMER_STAT_REG, value, 0);
-+	__omap_dm_timer_write(base, OMAP_TIMER_STAT_REG + intr_offset,
-+				value, 0, func_offset);
- }
- 
- #endif /* __ASM_ARCH_DMTIMER_H */
--- 
-1.6.0.4
+I have applied the patch series on top of Tony Lindgren's dmtimer patch series
+taken from git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+Branch:devel-timer 
+
+REPOST:
+- Following comments from Todd Poynor <toddpoynor@google.com> implemented
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg52677.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg52676.html
+
+- Incorrect balancing of *_runtime_get/put_sync for wakeup domain timers
+  in the off-mode patch corrected.
+
+Test Info:
+- OMAP4430SDP: Functional tests.
+- OMAP3430SDP: Functional and Off-mode tests. 
+- OMAP2430SDP: Functional tests.
+- OMAP2420SDP: Functional tests.
+- OMAP1710SDP: Boot test.
+
+v14:
+(1) Baselined on top of Tony Lindgren's latest timer patch series.
+
+(2) Context save/restore routines.
+
+(3) Off-mode support
+
+v13:
+(1) Handling of early timer removed because this is being taken care by
+Tony's patch series.
+(2) Timers reserved for clockevent/clocksource during early boot are
+registered and marked reserved.
+(3) Platform specific timer code merged to mach-omap2/timer.c.
+(4) Timer capabilities are added in the hwmod database to each of the
+omap timers.
+(5) plat-omap/dmtimer.c plat-omap/include/plat/dmtimer.h are converted
+to a driver by moving them to drivers/misc/timer-omap.c and 
+include/linux/timer-omap.h
+
+v12:
+(1) Remove registration and initialization of all timers during early boot.
+Initialize only the system timer which is set by the board file or default
+value assigned to it. This timer is not considered later during rest of the
+timers initialization.
+
+(2) Use mutex instead of spinlock since there is no interrupt context.
+
+(3) Remove hacky code to manage GPTIMER12 in mach-omap2/dmtimer.c. This is
+now changed to use dev_attr instead to identify if it is a secure timer.
+In the hwmod database, any secure timer entry can use this dev_attr so that
+driver avoids registering tha particular timer.
+
+(4) Removed reset function from OMAP1 and kept it back to its original place
+in plat-omap/dmtimer.c, with modification of course. Instead of (is_omap16xx)
+flag a new variable (needs_manual_reset) added. This flag is set for OMAP1.
+So, call to reset function is made if this value is set implying that reset
+is called only for OMAP1.
+
+(5) Timer enable and disable functions cleanup with checks for early boot
+condition removed. Added new interface wrapper function to configure
+system timer clock source.
+
+(6) Move OMAP4 specific register offsets from mach-omap2 to driver code
+along with other register offset definitions.
+
+(7) omap2_dm_timer_early_init() renamed to omap2_system_timer_init(),
+omap2_dm_timer_normal_init() renamed to omap2_dm_timer_init().
+
+(8) Use dev_err() instead of pr_err() in low level read/write functions.
+
+v11:
+(1) Removed early timer initialization call from omap2_init_common_devices()
+in io.c. It is now called from omap2_gp_timer_init() in timer-gp.c as part
+of following call sequence:
+start_kernel()->time_init()->timer->init()->omap2_gp_timer_init()
+(2) Basedlined on top of Paul's patch series mentioned above.
+
+v10:
+(1) Update PM runtime for active early timers so that PM runtime userspace
+info is correct.
+(2) Include code to configure timers to POSTED mode which got missed in
+the previous version.
+(3) Remove pm runtime_enable from OMAP1 specific code since this is not
+applicable.
+
+v9:
+(1) In OMAP3 hwmod database, added entry for timer12 which was missing.
+Beagle board uses timer12 as its millisecond timer.
+(2) In OMAP3 hwmod database, rectified in-correct prcm configurations
+for timer10 and timer11.
+From:
+       .prcm           = {
+                       .module_bit = OMAP24XX_EN_GPT10_SHIFT,
+                       .idlest_idle_bit = OMAP24XX_ST_GPT10_SHIFT,
+       },
+To:
+       .prcm           = {
+                       .module_bit = OMAP3430_EN_GPT10_SHIFT,
+                       .idlest_idle_bit = OMAP3430_ST_GPT10_SHIFT,
+               },
+(3) In OMAP3 hwmod database, removed timer master port entry for all
+timers because it is not supported.
+
+static struct omap_hwmod_ocp_if *omap3xxx_timer7_masters[] = {
+       &omap3xxx_l4_per__timer7,
+};
+
+(4) In OMAP4 hwmod database, added SIDLE_SMART_WKUP flag for
+non-millisecond timers.
+(5) In OMAP3 hwmod database, rectified sysconfig configuration for
+non-millisecond timers.
+From: omap_hwmod_sysc_type2 To: omap_hwmod_sysc_type1.
+This was preventing system to go to RETENTION and OFF modes.
+
+v8:
+(1) Baselined on Tony's tree in omap-for-linus branch
+(2) The last patch in v7 series has been removed because it is fixed
+by following patch:
+commit: 78f26e872f77b6312273216de1a8f836c6f2e143
+OMAP: hwmod: Set autoidle after smartidle during _sysc_enable
+
+v7:
+(1) In omap1_dm_timer_set_src(), the computation of shift value to respective
+dmtimer clock source was corrected:
+From:
+int n = (pdev->id) << 1;
+To:
+int n = (pdev->id - 1) << 1;
+This change is needed because dmtimer is indexed from 1 now instead of 0.
+(2) In  omap1_dm_timer_init(void) memory resource end address chnaged:
+From:
+res[0].end = base + 0xff;
+To:
+res[0].end = base + 0x46;
+This was causing request_mem_region() failure in driver probe().
+(3) In the export APIs there are some calls which are not applicable to OMAP1.
+They have been made conditional now. They include following calls:
+
+timer->fclk = clk_get(&timer->pdev->dev, "fck");
+omap_dm_timer_enable()
+omap_dm_timer_disable()
+
+(4) Remove usage of cpu_is_omap16xx() and instead a flag has been added in
+struct dmtimer_platform_data {
+...
+u32 is_omap16xx:1;
+}
+This flag is set to 1 in mach-omap1/dmtimer.c and set to 0 in mach-omap2/dmtimer.c
+This flag is used in plat-omap/dmtimer.c wherever it needs to distiguish omap16xx.
+(5) Remove #include <plat/omap_device.h> from mach-omap1/dmtimer.c
+(6) Instead of using macros like INT_24XX_GPTIMERx, use the numbers
+directly in OMAP2420, OMAP2430 and OMAP3xxx hwmod database.
+(7) pm_runtime_get_sync() and pm_runtime_put_sync() return value check modified
+from positive to negative value:
+if (pm_runtime_get_sync(...) < 0) {
+...
+}
+
+v6:
+(1) Removed reset functions to mach-omap1/dmtimer.c.
+Access to reset function from plat-omap/dmtimer.c is provided by means
+of function pointer.
+(2) Remove multiple calls to omap_device_build() for registering timer devices
+during early and regular initialization. Regular device registration is now done
+by reading data from temporary list. This list is populated during early init
+where timer data is read from hwmod database and corresponding memory allocated.
+(3) kfree(pdata) under error condition since platform_device_unregister does
+not free its pdata.
+(4) Removed extra header inclusion in mach-omap2 and plat-omap
+NOTE: omap_dm_timer.<id> field could not be removed because during regular boot
+there is no mechanism to match the current pdev with corresponding entry in the
+timer list which was partially initialized during early boot.
+
+v5:
+(1) In mach-omap2/dmtimer.c merged the merged two different init functions
+into a single one, viz: omap_timer_init(*oh, *user). Now this function is
+used both during early init and later. The distinction is between the two
+is made thriugh the *user field.
+(2) Added timeout to low-level access routines in place of infinite while
+loop which waits on write-pend register bit.
+(3) Modified devices names from "omap-timer.x" to "omap_timer.x"
+(4) Modified module description from "OMAP DUAL MODE TIMER DRIVER" to:
+MODULE_DESCRIPTION("OMAP Dual-Mode Timer Driver");
+(5) Use well-defined constants for new IP revision register constants instead
+of hard-coded values.
+(6) Use consistent naming mechanism by using _dm_timer_ instead of _dmtimer_
+wherever applicable.
+(7) Removed id field from omap_dm_timer{} since the same can be obtained from
+pdev.
+(8) clk_get() and clk_put() moved from probe() and remove() functions.
+Now clk_get() is called when timer is acquired in the omap_dm_timer_prepare()
+and clk_put() is called in omap_dm_timer_free().
+(9) Incorporated general comments:
+(i) Redundant Copyright information.
+(ii) Typos in comments.
+(iii) Modify subjects for hwmod database related patches.
+(iv) Remove redundant comments from hwmod database as they would be lost during
+auto-generation in the future.
+
+v4:
+(1) clock aliases are renamed as "32k_ck", "sys_ck" and "alt_ck"
+(2) incorporate missing clk_put() for corresponding clk_get()
+(3) modified clk_get()/clk_put() to be called once once in platform driver.
+(4) consistent header for new files
+(5) check return value of omap_hwmod_for_each_by_class() in device init
+routines.
+(6) remove is_abe_timer field in dmtimer_platform_data structure. this is
+no longer needed with new input clock source aliasing.
+(7) proper splitting of patch series
+(8) remove register map from hwmod database.
+(9) remove clock source strings array from hwmod database and associated
+structure declaration from plat/dmtimer.h. this is no longer needed.
+(10) remove dev_attr from hwmod database. this is no longer needed.
+(11) use register offsets to identify OMAP 4 registers instead of register map.
+(12) remove clock source name strings from hwmod database.
+(13) introduce new mechanism for getting struct clk associated with clock source
+names. this is achieved by adding clock alisases for all supported clock sources.
+(14) remove clock setup functions in mach-omap2 for populating struct clk
+associated with all input clock sources because this is no longer needed with
+above implementation.
+(15) device names changed from dmtimer to omap-timer
+(16) device index starts from 1 instead of 0
+(17) remove .init_name from hwmod database. this is not needed.
+(18) introduce separate functions for reading/writing interrupt registers instead of
+doing all operations within a single function.
+
+v3:
+(1) multi-line comment error correction
+(2) provision to allow any of the available dmtimers as early timers
+instead of restricting them to millisecond timers only.
+(3) in 'struct omap_dmtimer{}' is_initialized flag is redundant and
+so must be removed. if the element is found in the list it is already
+initialized.
+(4) remove 'found' flag in omap_dm_timer_request() and
+omap_dm_timer_request_specific() functions.
+this is not needed with alternate implementation.
+(5) use .init_name to initialize device names so that it can be identified
+during early boot as well. This is to avoid duplicate functions for clock
+manipulations during early boot and later.
+(6) remove redundant functions from mach-omap2 which are created just to
+call pm functions like: pm_runtime_get_sync(),pm_runtime_put_sync(),..
+and instead call them directly from plat-omap function api's.
+(7) timer clock source names made part of hwmod database. source_clock[]
+of type 'struct clk' is made part of platform data.
+(8) clockactivity field initialized in hwmod database to preserve fclk
+during idle. code which manipulate OCP config removed since they are
+already taken care by hwmod framework.
+(9) omap2_dm_timer_set_src() is optimized. Clock enable/disbale routines
+moved to plat-omap layer and simplfied to the level so as not to sacrifice
+intended functionality.
+NOTE: During early boot clock management was requested to be placed upon
+client drivers responsibility. this has not been done keeping in mind
+that it would entail (i) multiple modifications of client drivers (ii) it
+would violate the purpose of having a framework (open to debate).
+(10) dmtimer register maps moved to hwmod database
+
+v2:
+(1) removed dedicated functions for early timer clock access.
+instead, now we have common functions for early and normal timers.
+(2) removed usage of clock source strings for reading corresponding
+struct clks. this is now achieved through clock aliases introduced
+for each input clock sources.
+(3) IP revision to distinguish new IP standard and the rest and then
+initialize dmtimer interrupt and functional offsets.
+(4) provision to initialize all dmtimers as early timers.
+(5) remove dm_timer_setup() function because this is no longer needed.
+(6) modify the device index to start from 1 instead of 0.
+(7) device name changed from dmtimer to omap-timer
+(8) extract device ids' from hwmod name and same used for device build.
+(9) additional resource allocation checks and free
+(10) early timer variable initialization
+(11) initialize timer_ip_type and register offsets in platform data structure.
+(12) some more comments/logs
+
+Tarun Kanti DebBarma (11):
+  OMAP2+: dmtimer: add device names to flck nodes
+  OMAP4: hwmod data: add dmtimer version information
+  OMAP2+: dmtimer: convert to platform devices
+  OMAP: dmtimer: platform driver
+  OMAP: dmtimer: switch-over to platform device driver
+  OMAP: dmtimer: pm_runtime support
+  OMAP: dmtimer: add timeout to low-level routines
+  OMAP: dmtimer: use mutex instead of spinlock
+  OMAP: dmtimer: mark clocksource and clockevent timers reserved
+  OMAP: dmtimer: add context save/restore routines
+  OMAP: dmtimer: Off mode support
+
+Thara Gopinath (1):
+  OMAP1: dmtimer: conversion to platform devices
+
+ arch/arm/mach-omap1/Makefile               |    2 +-
+ arch/arm/mach-omap1/timer.c                |  176 ++++++++
+ arch/arm/mach-omap2/clock2420_data.c       |   52 ++-
+ arch/arm/mach-omap2/clock2430_data.c       |   48 ++
+ arch/arm/mach-omap2/clock3xxx_data.c       |   36 ++
+ arch/arm/mach-omap2/clock44xx_data.c       |   33 ++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   22 +
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   22 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   27 ++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   24 +
+ arch/arm/mach-omap2/timer.c                |  201 ++++++++-
+ arch/arm/plat-omap/dmtimer.c               |  674 ++++++++++++++++------------
+ arch/arm/plat-omap/include/plat/dmtimer.h  |  173 ++++++--
+ 13 files changed, 1139 insertions(+), 351 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/timer.c
 
