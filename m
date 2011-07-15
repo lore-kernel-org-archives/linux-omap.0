@@ -1,156 +1,81 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: PCM049: remove vusim regulator
-Date: Fri, 15 Jul 2011 11:31:04 +0300
-Message-ID: <20110715083103.GF2611@legolas.emea.dhcp.ti.com>
-References: <1310554738.18446.12.camel@lws-weitzel>
- <1310554762-10743-1-git-send-email-j.weitzel@phytec.de>
- <4E1D8BCD.5060901@ru.mvista.com>
- <1310561772.18446.14.camel@lws-weitzel>
- <20110714073445.GL5783@atomide.com>
- <1310632792.4008.3.camel@lws-weitzel>
- <20110715075024.GO5783@atomide.com>
- <20110715075825.GB2611@legolas.emea.dhcp.ti.com>
- <20110715082012.GR5783@atomide.com>
+Subject: Re: [PATCH] OMAP: powerdomains: Make all powerdomain target states
+ as ON at init
+Date: Fri, 15 Jul 2011 11:37:54 +0300
+Message-ID: <20110715083753.GG2611@legolas.emea.dhcp.ti.com>
+References: <1310527588-13022-1-git-send-email-santosh.shilimkar@ti.com>
+ <20110715080315.GC2611@legolas.emea.dhcp.ti.com>
+ <alpine.DEB.2.00.1107150204510.16606@utopia.booyaka.com>
+ <20110715081725.GE2611@legolas.emea.dhcp.ti.com>
+ <alpine.DEB.2.00.1107150222400.16606@utopia.booyaka.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+jhVVhN62yS6hEJ8"
+	protocol="application/pgp-signature"; boundary="+sHJum3is6Tsg7/J"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:51039 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965146Ab1GOIbI (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:33600 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964947Ab1GOIh7 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jul 2011 04:31:08 -0400
-Received: by mail-gw0-f53.google.com with SMTP id 20so547496gwj.26
-        for <linux-omap@vger.kernel.org>; Fri, 15 Jul 2011 01:31:07 -0700 (PDT)
+	Fri, 15 Jul 2011 04:37:59 -0400
+Received: by mail-yw0-f53.google.com with SMTP id 21so556640ywm.26
+        for <linux-omap@vger.kernel.org>; Fri, 15 Jul 2011 01:37:58 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20110715082012.GR5783@atomide.com>
+In-Reply-To: <alpine.DEB.2.00.1107150222400.16606@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Jan Weitzel <J.Weitzel@phytec.de>, linux-omap@vger.kernel.org, Sergei Shtylyov <sshtylyov@mvista.com>, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
 
 
---+jhVVhN62yS6hEJ8
+--+sHJum3is6Tsg7/J
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Fri, Jul 15, 2011 at 01:20:12AM -0700, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [110715 00:53]:
-> > Hi,
-> >=20
-> > On Fri, Jul 15, 2011 at 12:50:24AM -0700, Tony Lindgren wrote:
-> > > * Jan Weitzel <J.Weitzel@phytec.de> [110714 01:34]:
-> > > > Am Donnerstag, den 14.07.2011, 00:34 -0700 schrieb Tony Lindgren:
-> > > > > * Jan Weitzel <J.Weitzel@phytec.de> [110713 05:51]:
-> > > > > > Am Mittwoch, den 13.07.2011, 16:13 +0400 schrieb Sergei Shtylyo=
-v:
-> > > > > >=20
-> > > > > > >=20
-> > > > > > >     Have you added that 'i' at the end intentionally?
-> > > > > > >=20
-> > > > > > Thank you. It was a tribute to vim.
-> > > > >=20
-> > > > > :i)
-> > > > >=20
-> > > > > I'll fold the fixed patch into your original patch. Will also
-> > > > > keep the new board files in testing-board because of the code
-> > > > > coalescing and device tree conversion effort.
-> > > >=20
-> > > > So there is no way to get the board mainline yet?
-> > >=20
-> > > Well we can add it even before device tree support if it makes
-> > > sense from code coalescing point of view. In this case it would
-> > > mean creating board-panda-common.c or similar so the code can
-> > > be shared amongst the panda variants.
-> > >=20
-> > > It seems that some GPIO pins are different and there are some
-> > > difference in devices connected, but big parts of the code can be
-> > > shared.
-> >=20
-> > isn't it easier than to just add a few if (machine_is_xxxx()) checks and
-> > another MACHINE_START() to board-omap4panda.c rather than creating a new
-> > file, shuffling code around and then adding a new board file ??
+On Fri, Jul 15, 2011 at 02:23:16AM -0600, Paul Walmsley wrote:
+> Hi Felipe,
 >=20
-> That works too if the init_machine does not get too complicated.
+> On Fri, 15 Jul 2011, Felipe Balbi wrote:
+>=20
+> > I see... thanks for clarifying. The comment above the code wasn't really
+> > clear about it to me.
+>=20
+> No worries.  If you propose a clarification, I'll stick that into the=20
+> patch.
 
-possibly something like this (still missing MACHINE_START a few more
-things):
+How about something like:
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/b=
-oard-omap4panda.c
-index 0cfe200..dff174c 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -681,20 +681,44 @@ void omap4_panda_display_init(void)
-        omap_display_init(&omap4_panda_dss_data);
- }
-=20
-+static struct omap_smsc911x_platform_data board_smsc911x_data __initdata =
-=3D {
-+       .cs             =3D OMAP4_SMSC911X_ETH_CS,
-+       .gpio_irq       =3D OMAP4_SMSC911X_ETH_GPIO_IRQ,
-+       .gpio_reset     =3D -EINVAL,
-+       .flags          =3D SMSC911X_USE_16BIT,
-+};
-+
-+static void __init omap4_panda_smsc91xx_init(void)
-+{
-+       if (!machine_is_pcm049())
-+               return;
-+
-+       omap_mux_init_gpio(OMAP4_PCM049_ETH_GPIO_IRQ, OMAP_PIN_INPUT);
-+       gpmc_smsc911x_init(&board_smsc911x_data);
-+}
-+
- static void __init omap4_panda_init(void)
- {
-        int package =3D OMAP_PACKAGE_CBS;
-=20
-        if (omap_rev() =3D=3D OMAP4430_REV_ES1_0)
-                package =3D OMAP_PACKAGE_CBL;
-+
-        omap4_mux_init(board_mux, NULL, package);
-=20
--       if (wl12xx_set_platform_data(&omap_panda_wlan_data))
--               pr_err("error setting wl12xx data\n");
-+       if (machine_is_omap4panda()) {
-+               int             ret;
-+
-+               ret =3D wl12xx_set_platform_data(&omap_panda_wlan_data);
-+               if (ret)
-+                       pr_err("error setting wl12xx data\n");
-+
-+               platform_device_register(&omap_vwlan_device);
-+       }
-=20
-+       omap4_panda_smsc91xx_init();
-        omap4_panda_i2c_init();
-        platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
--       platform_device_register(&omap_vwlan_device);
-        board_serial_init();
-        omap4_twl6030_hsmmc_init(mmc);
+/*
+ * Program target state of all power domains to ON. This is to prevent
+ * power domains from hitting low power states during boot up and
+ * potentially causing accesses to the address space of an IP while it
+ * is disabled.
+ *
+ * PM late init code will make sure of disabling all unused IPs later.
+ */
+
+not sure if it's a lot better though.
 
 --=20
 balbi
 
---+jhVVhN62yS6hEJ8
+--+sHJum3is6Tsg7/J
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOH/rHAAoJEAv8Txj19kN1fUIIAJGtCx3IE7xKmdsHIp7IAiww
-bXEergC/tnRMUGy6hfZyJjpYJxxAG+1VIaEf4MrcpVYeEbzjioNFolgKB/mjPfbF
-ItVhtqByS5SvUMU9ea6g+Du7j6UDFemS1dJJJNK9JQgmbYz3IjKuIaPz71SitFTI
-itPYY40xQBmx2DxpYVLupPhYlPYeFPb5u8TwO2/M5V5qfTRduz6Oy+bAXQNLdnDv
-bAFRtIuAVzW0+oLgh0IoPWemtMbSCjye6M6WrKaAW1WXPg9wr6TGRRW65JhcFJex
-ce0PM3mbSOfyHbHf1DazvFm6j8VczYCbhQ7p6NQy7XH6lmdXX9mgSH0qLwas1/0=
-=uscT
+iQEcBAEBAgAGBQJOH/xhAAoJEAv8Txj19kN1qq4H/3cWpMsPw2m20abp9bPj03Pf
+bJANrM93sxDRg3kKdw5RoicpECi6AxZtL5hry2Pn0HURakpc9QfdL90NyWl5P3ea
+F0sDWkDTSrU1boOuVRCSQpPz1hQCFOlXt8DErJgxPR/zsl02PzJaYuroU+Yjjse3
+veRHB3QpporqQiEizDwxJa7fEc5DmaBn+VhxF75IHNl9GSYy7Q1fA6Y3c2nvGd60
+NLsqTzJHUe2RY6hPeNZdkJhdJJ6kj46LlnWtIb8WACohOEUgaIkAJ22xS7YewIE7
+wvIRVG2gsjljtovx5A24iSSxHaSnPumGpuLOgv/EuTX0xJ4EnxKaGPi5TbA1YjY=
+=WMRT
 -----END PGP SIGNATURE-----
 
---+jhVVhN62yS6hEJ8--
+--+sHJum3is6Tsg7/J--
