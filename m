@@ -1,114 +1,77 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v14 REPOST 07/12] OMAP: dmtimer: pm_runtime support
-Date: Fri, 15 Jul 2011 17:34:56 +0530
-Message-ID: <1310731501-13078-8-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v14 REPOST 02/12] OMAP4: hwmod data: add dmtimer version information
+Date: Fri, 15 Jul 2011 17:34:51 +0530
+Message-ID: <1310731501-13078-3-git-send-email-tarun.kanti@ti.com>
 References: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34012 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751056Ab1GOMF2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jul 2011 08:05:28 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45936 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750837Ab1GOMFS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jul 2011 08:05:18 -0400
 In-Reply-To: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Partha Basak <p-basak2@ti.com>
+Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Add pm_runtime feature to dmtimer whereby _get_sync() is called within
-omap_dm_timer_enable(), _put_sync() is called in omap_dm_timer_disable().
+OMAP4 has two groups of timers: version 1 timers are 1, 2, 10,
+while the rest of the timers, 3-9, 11 are version 2 timers.
+The version information is required by the driver so that they
+could be handled correctly by it.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-[p-basak2@ti.com: added pm_runtime logic in probe()]
-Signed-off-by: Partha Basak <p-basak2@ti.com>
-Reviewed-by: Varadarajan, Charulatha <charu@ti.com>
 Acked-by: Cousson, Benoit <b-cousson@ti.com>
+Cc: Cousson, Benoit <b-cousson@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c              |   31 +++++++---------------------
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
- 2 files changed, 8 insertions(+), 24 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +++
+ arch/arm/plat-omap/include/plat/dmtimer.h  |    4 +++-
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 54564e9..0560248 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -38,6 +38,7 @@
- #include <linux/io.h>
- #include <linux/slab.h>
- #include <linux/err.h>
-+#include <linux/pm_runtime.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index e1c69ff..be8ef2c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -27,6 +27,7 @@
+ #include <plat/mcspi.h>
+ #include <plat/mcbsp.h>
+ #include <plat/mmc.h>
++#include <plat/dmtimer.h>
  
- #include <plat/dmtimer.h>
+ #include "omap_hwmod_common_data.h"
  
-@@ -193,33 +194,13 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_free);
+@@ -3994,6 +3995,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_1ms_sysc = {
+ static struct omap_hwmod_class omap44xx_timer_1ms_hwmod_class = {
+ 	.name	= "timer",
+ 	.sysc	= &omap44xx_timer_1ms_sysc,
++	.rev    = OMAP_TIMER_IP_VERSION_1,
+ };
  
- void omap_dm_timer_enable(struct omap_dm_timer *timer)
- {
--	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
--
--	if (timer->enabled)
--		return;
--
--	if (!pdata->needs_manual_reset) {
--		clk_enable(timer->fclk);
--		clk_enable(timer->iclk);
--	}
--
--	timer->enabled = 1;
-+	pm_runtime_get_sync(&timer->pdev->dev);
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_enable);
+ static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc = {
+@@ -4009,6 +4011,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc = {
+ static struct omap_hwmod_class omap44xx_timer_hwmod_class = {
+ 	.name	= "timer",
+ 	.sysc	= &omap44xx_timer_sysc,
++	.rev    = OMAP_TIMER_IP_VERSION_2,
+ };
  
- void omap_dm_timer_disable(struct omap_dm_timer *timer)
- {
--	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
--
--	if (!timer->enabled)
--		return;
--
--	if (!pdata->needs_manual_reset) {
--		clk_disable(timer->iclk);
--		clk_disable(timer->fclk);
--	}
--
--	timer->enabled = 0;
-+	pm_runtime_put_sync(&timer->pdev->dev);
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_disable);
- 
-@@ -461,7 +442,7 @@ int omap_dm_timers_active(void)
- 	struct omap_dm_timer *timer;
- 
- 	list_for_each_entry(timer, &omap_timer_list, node) {
--		if (!timer->enabled)
-+		if (!timer->reserved)
- 			continue;
- 
- 		if (omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG) &
-@@ -536,6 +517,10 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
- 	timer->irq = irq->start;
- 	timer->pdev = pdev;
- 
-+	/* Skip pm_runtime_enable for OMAP1 */
-+	if (!pdata->needs_manual_reset)
-+		pm_runtime_enable(&pdev->dev);
-+
- 	/* add the timer element to the list */
- 	spin_lock_irqsave(&dm_timer_lock, flags);
- 	list_add_tail(&timer->node, &omap_timer_list);
+ /* timer1 */
 diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 90a504a..53d5da6 100644
+index d0f3a2d..1892abf 100644
 --- a/arch/arm/plat-omap/include/plat/dmtimer.h
 +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -238,7 +238,6 @@ struct omap_dm_timer {
- 	void __iomem *io_base;
- 	unsigned long rate;
- 	unsigned reserved:1;
--	unsigned enabled:1;
- 	unsigned posted:1;
- 	u8 func_offset;
- 	u8 intr_offset;
+@@ -57,7 +57,9 @@
+  * IP revision identifier so that Highlander IP
+  * in OMAP4 can be distinguished.
+  */
+-#define OMAP_TIMER_IP_VERSION_1                        0x1
++#define OMAP_TIMER_IP_VERSION_1			0x1
++#define OMAP_TIMER_IP_VERSION_2			0x2
++
+ struct omap_dm_timer;
+ struct clk;
+ 
 -- 
 1.6.0.4
 
