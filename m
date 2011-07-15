@@ -1,327 +1,256 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v14 REPOST 00/12] dmtimer adaptation to platform_driver
-Date: Fri, 15 Jul 2011 17:34:49 +0530
-Message-ID: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v14 REPOST 01/12] OMAP2+: dmtimer: add device names to flck nodes
+Date: Fri, 15 Jul 2011 17:34:50 +0530
+Message-ID: <1310731501-13078-2-git-send-email-tarun.kanti@ti.com>
+References: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55877 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750953Ab1GOMGF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jul 2011 08:06:05 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:34042 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751019Ab1GOMGF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jul 2011 08:06:05 -0400
+In-Reply-To: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Thara Gopinath <thara@ti.com>
 
-Adaptation of dmtimer code to platform driver using omap_device and
-omap_hwmod abstraction. It also include pm-runtime and off-mode support.
+Add device name to OMAP2 dmtimer fclk nodes so that the fclk nodes can be
+retrieved by doing a clk_get with the corresponding device pointers or
+device names.
 
-Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-Branch: Master
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Acked-by: Cousson, Benoit <b-cousson@ti.com>
+---
+ arch/arm/mach-omap2/clock2420_data.c |   52 ++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/clock2430_data.c |   48 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock3xxx_data.c |   36 +++++++++++++++++++++++
+ arch/arm/mach-omap2/clock44xx_data.c |   33 +++++++++++++++++++++
+ 4 files changed, 167 insertions(+), 2 deletions(-)
 
-I have applied the patch series on top of Tony Lindgren's dmtimer patch series
-taken from git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-Branch:devel-timer 
-
-REPOST:
-- Following comments from Todd Poynor <toddpoynor@google.com> implemented
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg52677.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg52676.html
-
-- Incorrect balancing of *_runtime_get/put_sync for wakeup domain timers
-  in the off-mode patch corrected.
-
-Test Info:
-- OMAP4430SDP: Functional tests.
-- OMAP3430SDP: Functional and Off-mode tests. 
-- OMAP2430SDP: Functional tests.
-- OMAP2420SDP: Functional tests.
-- OMAP1710SDP: Boot test.
-
-v14:
-(1) Baselined on top of Tony Lindgren's latest timer patch series.
-
-(2) Context save/restore routines.
-
-(3) Off-mode support
-
-v13:
-(1) Handling of early timer removed because this is being taken care by
-Tony's patch series.
-(2) Timers reserved for clockevent/clocksource during early boot are
-registered and marked reserved.
-(3) Platform specific timer code merged to mach-omap2/timer.c.
-(4) Timer capabilities are added in the hwmod database to each of the
-omap timers.
-(5) plat-omap/dmtimer.c plat-omap/include/plat/dmtimer.h are converted
-to a driver by moving them to drivers/misc/timer-omap.c and 
-include/linux/timer-omap.h
-
-v12:
-(1) Remove registration and initialization of all timers during early boot.
-Initialize only the system timer which is set by the board file or default
-value assigned to it. This timer is not considered later during rest of the
-timers initialization.
-
-(2) Use mutex instead of spinlock since there is no interrupt context.
-
-(3) Remove hacky code to manage GPTIMER12 in mach-omap2/dmtimer.c. This is
-now changed to use dev_attr instead to identify if it is a secure timer.
-In the hwmod database, any secure timer entry can use this dev_attr so that
-driver avoids registering tha particular timer.
-
-(4) Removed reset function from OMAP1 and kept it back to its original place
-in plat-omap/dmtimer.c, with modification of course. Instead of (is_omap16xx)
-flag a new variable (needs_manual_reset) added. This flag is set for OMAP1.
-So, call to reset function is made if this value is set implying that reset
-is called only for OMAP1.
-
-(5) Timer enable and disable functions cleanup with checks for early boot
-condition removed. Added new interface wrapper function to configure
-system timer clock source.
-
-(6) Move OMAP4 specific register offsets from mach-omap2 to driver code
-along with other register offset definitions.
-
-(7) omap2_dm_timer_early_init() renamed to omap2_system_timer_init(),
-omap2_dm_timer_normal_init() renamed to omap2_dm_timer_init().
-
-(8) Use dev_err() instead of pr_err() in low level read/write functions.
-
-v11:
-(1) Removed early timer initialization call from omap2_init_common_devices()
-in io.c. It is now called from omap2_gp_timer_init() in timer-gp.c as part
-of following call sequence:
-start_kernel()->time_init()->timer->init()->omap2_gp_timer_init()
-(2) Basedlined on top of Paul's patch series mentioned above.
-
-v10:
-(1) Update PM runtime for active early timers so that PM runtime userspace
-info is correct.
-(2) Include code to configure timers to POSTED mode which got missed in
-the previous version.
-(3) Remove pm runtime_enable from OMAP1 specific code since this is not
-applicable.
-
-v9:
-(1) In OMAP3 hwmod database, added entry for timer12 which was missing.
-Beagle board uses timer12 as its millisecond timer.
-(2) In OMAP3 hwmod database, rectified in-correct prcm configurations
-for timer10 and timer11.
-From:
-       .prcm           = {
-                       .module_bit = OMAP24XX_EN_GPT10_SHIFT,
-                       .idlest_idle_bit = OMAP24XX_ST_GPT10_SHIFT,
-       },
-To:
-       .prcm           = {
-                       .module_bit = OMAP3430_EN_GPT10_SHIFT,
-                       .idlest_idle_bit = OMAP3430_ST_GPT10_SHIFT,
-               },
-(3) In OMAP3 hwmod database, removed timer master port entry for all
-timers because it is not supported.
-
-static struct omap_hwmod_ocp_if *omap3xxx_timer7_masters[] = {
-       &omap3xxx_l4_per__timer7,
-};
-
-(4) In OMAP4 hwmod database, added SIDLE_SMART_WKUP flag for
-non-millisecond timers.
-(5) In OMAP3 hwmod database, rectified sysconfig configuration for
-non-millisecond timers.
-From: omap_hwmod_sysc_type2 To: omap_hwmod_sysc_type1.
-This was preventing system to go to RETENTION and OFF modes.
-
-v8:
-(1) Baselined on Tony's tree in omap-for-linus branch
-(2) The last patch in v7 series has been removed because it is fixed
-by following patch:
-commit: 78f26e872f77b6312273216de1a8f836c6f2e143
-OMAP: hwmod: Set autoidle after smartidle during _sysc_enable
-
-v7:
-(1) In omap1_dm_timer_set_src(), the computation of shift value to respective
-dmtimer clock source was corrected:
-From:
-int n = (pdev->id) << 1;
-To:
-int n = (pdev->id - 1) << 1;
-This change is needed because dmtimer is indexed from 1 now instead of 0.
-(2) In  omap1_dm_timer_init(void) memory resource end address chnaged:
-From:
-res[0].end = base + 0xff;
-To:
-res[0].end = base + 0x46;
-This was causing request_mem_region() failure in driver probe().
-(3) In the export APIs there are some calls which are not applicable to OMAP1.
-They have been made conditional now. They include following calls:
-
-timer->fclk = clk_get(&timer->pdev->dev, "fck");
-omap_dm_timer_enable()
-omap_dm_timer_disable()
-
-(4) Remove usage of cpu_is_omap16xx() and instead a flag has been added in
-struct dmtimer_platform_data {
-...
-u32 is_omap16xx:1;
-}
-This flag is set to 1 in mach-omap1/dmtimer.c and set to 0 in mach-omap2/dmtimer.c
-This flag is used in plat-omap/dmtimer.c wherever it needs to distiguish omap16xx.
-(5) Remove #include <plat/omap_device.h> from mach-omap1/dmtimer.c
-(6) Instead of using macros like INT_24XX_GPTIMERx, use the numbers
-directly in OMAP2420, OMAP2430 and OMAP3xxx hwmod database.
-(7) pm_runtime_get_sync() and pm_runtime_put_sync() return value check modified
-from positive to negative value:
-if (pm_runtime_get_sync(...) < 0) {
-...
-}
-
-v6:
-(1) Removed reset functions to mach-omap1/dmtimer.c.
-Access to reset function from plat-omap/dmtimer.c is provided by means
-of function pointer.
-(2) Remove multiple calls to omap_device_build() for registering timer devices
-during early and regular initialization. Regular device registration is now done
-by reading data from temporary list. This list is populated during early init
-where timer data is read from hwmod database and corresponding memory allocated.
-(3) kfree(pdata) under error condition since platform_device_unregister does
-not free its pdata.
-(4) Removed extra header inclusion in mach-omap2 and plat-omap
-NOTE: omap_dm_timer.<id> field could not be removed because during regular boot
-there is no mechanism to match the current pdev with corresponding entry in the
-timer list which was partially initialized during early boot.
-
-v5:
-(1) In mach-omap2/dmtimer.c merged the merged two different init functions
-into a single one, viz: omap_timer_init(*oh, *user). Now this function is
-used both during early init and later. The distinction is between the two
-is made thriugh the *user field.
-(2) Added timeout to low-level access routines in place of infinite while
-loop which waits on write-pend register bit.
-(3) Modified devices names from "omap-timer.x" to "omap_timer.x"
-(4) Modified module description from "OMAP DUAL MODE TIMER DRIVER" to:
-MODULE_DESCRIPTION("OMAP Dual-Mode Timer Driver");
-(5) Use well-defined constants for new IP revision register constants instead
-of hard-coded values.
-(6) Use consistent naming mechanism by using _dm_timer_ instead of _dmtimer_
-wherever applicable.
-(7) Removed id field from omap_dm_timer{} since the same can be obtained from
-pdev.
-(8) clk_get() and clk_put() moved from probe() and remove() functions.
-Now clk_get() is called when timer is acquired in the omap_dm_timer_prepare()
-and clk_put() is called in omap_dm_timer_free().
-(9) Incorporated general comments:
-(i) Redundant Copyright information.
-(ii) Typos in comments.
-(iii) Modify subjects for hwmod database related patches.
-(iv) Remove redundant comments from hwmod database as they would be lost during
-auto-generation in the future.
-
-v4:
-(1) clock aliases are renamed as "32k_ck", "sys_ck" and "alt_ck"
-(2) incorporate missing clk_put() for corresponding clk_get()
-(3) modified clk_get()/clk_put() to be called once once in platform driver.
-(4) consistent header for new files
-(5) check return value of omap_hwmod_for_each_by_class() in device init
-routines.
-(6) remove is_abe_timer field in dmtimer_platform_data structure. this is
-no longer needed with new input clock source aliasing.
-(7) proper splitting of patch series
-(8) remove register map from hwmod database.
-(9) remove clock source strings array from hwmod database and associated
-structure declaration from plat/dmtimer.h. this is no longer needed.
-(10) remove dev_attr from hwmod database. this is no longer needed.
-(11) use register offsets to identify OMAP 4 registers instead of register map.
-(12) remove clock source name strings from hwmod database.
-(13) introduce new mechanism for getting struct clk associated with clock source
-names. this is achieved by adding clock alisases for all supported clock sources.
-(14) remove clock setup functions in mach-omap2 for populating struct clk
-associated with all input clock sources because this is no longer needed with
-above implementation.
-(15) device names changed from dmtimer to omap-timer
-(16) device index starts from 1 instead of 0
-(17) remove .init_name from hwmod database. this is not needed.
-(18) introduce separate functions for reading/writing interrupt registers instead of
-doing all operations within a single function.
-
-v3:
-(1) multi-line comment error correction
-(2) provision to allow any of the available dmtimers as early timers
-instead of restricting them to millisecond timers only.
-(3) in 'struct omap_dmtimer{}' is_initialized flag is redundant and
-so must be removed. if the element is found in the list it is already
-initialized.
-(4) remove 'found' flag in omap_dm_timer_request() and
-omap_dm_timer_request_specific() functions.
-this is not needed with alternate implementation.
-(5) use .init_name to initialize device names so that it can be identified
-during early boot as well. This is to avoid duplicate functions for clock
-manipulations during early boot and later.
-(6) remove redundant functions from mach-omap2 which are created just to
-call pm functions like: pm_runtime_get_sync(),pm_runtime_put_sync(),..
-and instead call them directly from plat-omap function api's.
-(7) timer clock source names made part of hwmod database. source_clock[]
-of type 'struct clk' is made part of platform data.
-(8) clockactivity field initialized in hwmod database to preserve fclk
-during idle. code which manipulate OCP config removed since they are
-already taken care by hwmod framework.
-(9) omap2_dm_timer_set_src() is optimized. Clock enable/disbale routines
-moved to plat-omap layer and simplfied to the level so as not to sacrifice
-intended functionality.
-NOTE: During early boot clock management was requested to be placed upon
-client drivers responsibility. this has not been done keeping in mind
-that it would entail (i) multiple modifications of client drivers (ii) it
-would violate the purpose of having a framework (open to debate).
-(10) dmtimer register maps moved to hwmod database
-
-v2:
-(1) removed dedicated functions for early timer clock access.
-instead, now we have common functions for early and normal timers.
-(2) removed usage of clock source strings for reading corresponding
-struct clks. this is now achieved through clock aliases introduced
-for each input clock sources.
-(3) IP revision to distinguish new IP standard and the rest and then
-initialize dmtimer interrupt and functional offsets.
-(4) provision to initialize all dmtimers as early timers.
-(5) remove dm_timer_setup() function because this is no longer needed.
-(6) modify the device index to start from 1 instead of 0.
-(7) device name changed from dmtimer to omap-timer
-(8) extract device ids' from hwmod name and same used for device build.
-(9) additional resource allocation checks and free
-(10) early timer variable initialization
-(11) initialize timer_ip_type and register offsets in platform data structure.
-(12) some more comments/logs
-
-Tarun Kanti DebBarma (11):
-  OMAP2+: dmtimer: add device names to flck nodes
-  OMAP4: hwmod data: add dmtimer version information
-  OMAP2+: dmtimer: convert to platform devices
-  OMAP: dmtimer: platform driver
-  OMAP: dmtimer: switch-over to platform device driver
-  OMAP: dmtimer: pm_runtime support
-  OMAP: dmtimer: add timeout to low-level routines
-  OMAP: dmtimer: use mutex instead of spinlock
-  OMAP: dmtimer: mark clocksource and clockevent timers reserved
-  OMAP: dmtimer: add context save/restore routines
-  OMAP: dmtimer: Off mode support
-
-Thara Gopinath (1):
-  OMAP1: dmtimer: conversion to platform devices
-
- arch/arm/mach-omap1/Makefile               |    2 +-
- arch/arm/mach-omap1/timer.c                |  176 ++++++++
- arch/arm/mach-omap2/clock2420_data.c       |   52 ++-
- arch/arm/mach-omap2/clock2430_data.c       |   48 ++
- arch/arm/mach-omap2/clock3xxx_data.c       |   36 ++
- arch/arm/mach-omap2/clock44xx_data.c       |   33 ++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |   22 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   22 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   27 ++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   24 +
- arch/arm/mach-omap2/timer.c                |  201 ++++++++-
- arch/arm/plat-omap/dmtimer.c               |  674 ++++++++++++++++------------
- arch/arm/plat-omap/include/plat/dmtimer.h  |  173 ++++++--
- 13 files changed, 1139 insertions(+), 351 deletions(-)
- create mode 100644 arch/arm/mach-omap1/timer.c
+diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+index 2926d02..15114f5 100644
+--- a/arch/arm/mach-omap2/clock2420_data.c
++++ b/arch/arm/mach-omap2/clock2420_data.c
+@@ -1838,9 +1838,9 @@ static struct omap_clk omap2420_clks[] = {
+ 	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_242X),
+ 	CLK(NULL,	"gpt9_fck",	&gpt9_fck,	CK_242X),
+ 	CLK(NULL,	"gpt10_ick",	&gpt10_ick,	CK_242X),
+-	CLK(NULL,	"gpt10_fck",	&gpt10_fck,	CK_242X),
++	CLK(NULL,	"gpt_10fck",	&gpt10_fck,	CK_242X),
+ 	CLK(NULL,	"gpt11_ick",	&gpt11_ick,	CK_242X),
+-	CLK(NULL,	"gpt11_fck",	&gpt11_fck,	CK_242X),
++	CLK(NULL,	"gpt_11fck",	&gpt11_fck,	CK_242X),
+ 	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_242X),
+ 	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_242X),
+ 	CLK("omap-mcbsp.1", "ick",	&mcbsp1_ick,	CK_242X),
+@@ -1898,6 +1898,54 @@ static struct omap_clk omap2420_clks[] = {
+ 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
+ 	CLK(NULL,	"usb_fck",	&usb_fck,	CK_242X),
+ 	CLK("musb-hdrc",	"fck",	&osc_ck,	CK_242X),
++	CLK("omap_timer.1",	"fck",	&gpt1_fck,	CK_242X),
++	CLK("omap_timer.2",	"fck",	&gpt2_fck,	CK_242X),
++	CLK("omap_timer.3",	"fck",	&gpt3_fck,	CK_242X),
++	CLK("omap_timer.4",	"fck",	&gpt4_fck,	CK_242X),
++	CLK("omap_timer.5",	"fck",	&gpt5_fck,	CK_242X),
++	CLK("omap_timer.6",	"fck",	&gpt6_fck,	CK_242X),
++	CLK("omap_timer.7",	"fck",	&gpt7_fck,	CK_242X),
++	CLK("omap_timer.8",	"fck",	&gpt8_fck,	CK_242X),
++	CLK("omap_timer.9",	"fck",	&gpt9_fck,	CK_242X),
++	CLK("omap_timer.10",	"fck",	&gpt10_fck,	CK_242X),
++	CLK("omap_timer.11",	"fck",	&gpt11_fck,	CK_242X),
++	CLK("omap_timer.12",	"fck",	&gpt12_fck,	CK_242X),
++	CLK("omap_timer.1",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.2",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.3",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.4",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.5",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.6",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.7",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.8",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.9",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.10",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.11",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.12",	"32k_ck",	&func_32k_ck,	CK_243X),
++	CLK("omap_timer.1",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.2",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.3",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.4",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.5",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.6",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.7",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.8",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.9",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.10",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.11",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.12",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.1",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.2",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.3",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.4",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.5",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.6",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.7",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.8",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.9",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.10",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.11",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.12",	"alt_ck",	&alt_ck,	CK_243X),
+ };
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+index 0c79d39..7b4e688 100644
+--- a/arch/arm/mach-omap2/clock2430_data.c
++++ b/arch/arm/mach-omap2/clock2430_data.c
+@@ -1998,6 +1998,54 @@ static struct omap_clk omap2430_clks[] = {
+ 	CLK(NULL,	"mdm_intc_ick",	&mdm_intc_ick,	CK_243X),
+ 	CLK("omap_hsmmc.0", "mmchsdb_fck",	&mmchsdb1_fck,	CK_243X),
+ 	CLK("omap_hsmmc.1", "mmchsdb_fck",	&mmchsdb2_fck,	CK_243X),
++	CLK("omap_timer.1",     "fck",  &gpt1_fck,      CK_243X),
++	CLK("omap_timer.2",     "fck",  &gpt2_fck,      CK_243X),
++	CLK("omap_timer.3",     "fck",  &gpt3_fck,      CK_243X),
++	CLK("omap_timer.4",     "fck",  &gpt4_fck,      CK_243X),
++	CLK("omap_timer.5",     "fck",  &gpt5_fck,      CK_243X),
++	CLK("omap_timer.6",     "fck",  &gpt6_fck,      CK_243X),
++	CLK("omap_timer.7",     "fck",  &gpt7_fck,      CK_243X),
++	CLK("omap_timer.8",     "fck",  &gpt8_fck,      CK_243X),
++	CLK("omap_timer.9",     "fck",  &gpt9_fck,      CK_243X),
++	CLK("omap_timer.10",    "fck",  &gpt10_fck,     CK_243X),
++	CLK("omap_timer.11",    "fck",  &gpt11_fck,     CK_243X),
++	CLK("omap_timer.12",    "fck",  &gpt12_fck,     CK_243X),
++	CLK("omap_timer.1",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.2",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.3",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.4",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.5",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.6",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.7",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.8",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.9",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.10",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.11",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.12",	"32k_ck",  &func_32k_ck,   CK_243X),
++	CLK("omap_timer.1",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.2",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.3",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.4",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.5",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.6",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.7",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.8",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.9",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.10",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.11",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.12",	"sys_ck",	&sys_ck,	CK_243X),
++	CLK("omap_timer.1",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.2",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.3",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.4",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.5",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.6",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.7",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.8",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.9",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.10",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.11",	"alt_ck",	&alt_ck,	CK_243X),
++	CLK("omap_timer.12",	"alt_ck",	&alt_ck,	CK_243X),
+ };
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 75b119b..7d97525 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3462,6 +3462,42 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK("musb-am35x",	"fck",		&hsotgusb_fck_am35xx,	CK_AM35XX),
+ 	CLK(NULL,	"hecc_ck",	&hecc_ck,	CK_AM35XX),
+ 	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx,	CK_AM35XX),
++	CLK("omap_timer.1",	"fck",	&gpt1_fck,	CK_3XXX),
++	CLK("omap_timer.2",	"fck",	&gpt2_fck,	CK_3XXX),
++	CLK("omap_timer.3",	"fck",	&gpt3_fck,	CK_3XXX),
++	CLK("omap_timer.4",	"fck",	&gpt4_fck,	CK_3XXX),
++	CLK("omap_timer.5",	"fck",	&gpt5_fck,	CK_3XXX),
++	CLK("omap_timer.6",	"fck",	&gpt6_fck,	CK_3XXX),
++	CLK("omap_timer.7",	"fck",	&gpt7_fck,	CK_3XXX),
++	CLK("omap_timer.8",	"fck",	&gpt8_fck,	CK_3XXX),
++	CLK("omap_timer.9",	"fck",	&gpt9_fck,	CK_3XXX),
++	CLK("omap_timer.10",    "fck",  &gpt10_fck,     CK_3XXX),
++	CLK("omap_timer.11",    "fck",  &gpt11_fck,     CK_3XXX),
++	CLK("omap_timer.12",    "fck",  &gpt12_fck,     CK_3XXX),
++	CLK("omap_timer.1",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.2",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.3",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.4",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.5",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.6",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.7",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.8",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.9",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.10",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.11",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.12",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
++	CLK("omap_timer.1",	"sys_ck",	&sys_ck,	CK_3XXX),
++	CLK("omap_timer.2",	"sys_ck",	&sys_ck,	CK_3XXX),
++	CLK("omap_timer.3",	"sys_ck",	&sys_ck,	CK_3XXX),
++	CLK("omap_timer.4",	"sys_ck",	&sys_ck,	CK_3XXX),
++	CLK("omap_timer.5",	"sys_ck",	&sys_ck,	CK_3XXX),
++	CLK("omap_timer.6",	"sys_ck",	&sys_ck,	CK_3XXX),
++	CLK("omap_timer.7",	"sys_ck",	&sys_ck,	CK_3XXX),
++	CLK("omap_timer.8",	"sys_ck",	&sys_ck,	CK_3XXX),
++	CLK("omap_timer.9",	"sys_ck",	&sys_ck,	CK_3XXX),
++	CLK("omap_timer.10",	"sys_ck",	&sys_ck,	CK_3XXX),
++	CLK("omap_timer.11",	"sys_ck",	&sys_ck,	CK_3XXX),
++	CLK("omap_timer.12",	"sys_ck",	&sys_ck,	CK_3XXX),
+ };
+ 
+ 
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 8c96567..7d18b13 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3283,6 +3283,39 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"auxclkreq3_ck",		&auxclkreq3_ck,	CK_443X),
+ 	CLK(NULL,	"auxclkreq4_ck",		&auxclkreq4_ck,	CK_443X),
+ 	CLK(NULL,	"auxclkreq5_ck",		&auxclkreq5_ck,	CK_443X),
++	CLK("omap_timer.1",	"fck",			&timer1_fck,	CK_443X),
++	CLK("omap_timer.2",	"fck",			&timer2_fck,	CK_443X),
++	CLK("omap_timer.3",	"fck",			&timer3_fck,	CK_443X),
++	CLK("omap_timer.4",	"fck",			&timer4_fck,	CK_443X),
++	CLK("omap_timer.5",	"fck",			&timer5_fck,	CK_443X),
++	CLK("omap_timer.6",	"fck",			&timer6_fck,	CK_443X),
++	CLK("omap_timer.7",	"fck",			&timer7_fck,	CK_443X),
++	CLK("omap_timer.8",	"fck",			&timer8_fck,	CK_443X),
++	CLK("omap_timer.9",	"fck",			&timer9_fck,	CK_443X),
++	CLK("omap_timer.10",	"fck",			&timer10_fck,	CK_443X),
++	CLK("omap_timer.11",	"fck",			&timer11_fck,	CK_443X),
++	CLK("omap_timer.1",	"32k_ck",	&sys_32k_ck,	CK_443X),
++	CLK("omap_timer.2",	"32k_ck",	&sys_32k_ck,	CK_443X),
++	CLK("omap_timer.3",	"32k_ck",	&sys_32k_ck,	CK_443X),
++	CLK("omap_timer.4",	"32k_ck",	&sys_32k_ck,	CK_443X),
++	CLK("omap_timer.5",	"32k_ck",	&sys_32k_ck,	CK_443X),
++	CLK("omap_timer.6",	"32k_ck",	&sys_32k_ck,	CK_443X),
++	CLK("omap_timer.7",	"32k_ck",	&sys_32k_ck,	CK_443X),
++	CLK("omap_timer.8",	"32k_ck",	&sys_32k_ck,	CK_443X),
++	CLK("omap_timer.9",	"32k_ck",	&sys_32k_ck,	CK_443X),
++	CLK("omap_timer.10",	"32k_ck",	&sys_32k_ck,	CK_443X),
++	CLK("omap_timer.11",	"32k_ck",	&sys_32k_ck,	CK_443X),
++	CLK("omap_timer.1",	"sys_ck",	&sys_clkin_ck,	CK_443X),
++	CLK("omap_timer.2",	"sys_ck",	&sys_clkin_ck,	CK_443X),
++	CLK("omap_timer.3",	"sys_ck",	&sys_clkin_ck,	CK_443X),
++	CLK("omap_timer.4",	"sys_ck",	&sys_clkin_ck,	CK_443X),
++	CLK("omap_timer.9",	"sys_ck",	&sys_clkin_ck,	CK_443X),
++	CLK("omap_timer.10",	"sys_ck",	&sys_clkin_ck,	CK_443X),
++	CLK("omap_timer.11",	"sys_ck",	&sys_clkin_ck,	CK_443X),
++	CLK("omap_timer.5",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
++	CLK("omap_timer.6",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
++	CLK("omap_timer.7",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
++	CLK("omap_timer.8",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
+ };
+ 
+ int __init omap4xxx_clk_init(void)
+-- 
+1.6.0.4
 
