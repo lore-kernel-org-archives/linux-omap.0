@@ -1,43 +1,27 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4] OMAP4: hwmod data: I2C: add flag for context restore
-Date: Fri, 15 Jul 2011 11:31:54 +0530
-Message-ID: <1310709714-3295-1-git-send-email-shubhrajyoti@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv2 17/28] OMAP2420: HWMOD: Add DSS opt clocks
+Date: Fri, 15 Jul 2011 00:48:41 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107150047160.16606@utopia.booyaka.com>
+References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com> <1307627810-3768-18-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:50936 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750868Ab1GOGsm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jul 2011 02:48:42 -0400
+In-Reply-To: <1307627810-3768-18-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, b-cousson@ti.com, khilman@ti.com
 
-Restore of context is not done for OMAP4. This patch 
-adds the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE in the OMAP4
-hwmod data which activates the restore for OMAP4.
-Currently the OMAP4 does not hit device off still the
-driver may have support for it.
+On Thu, 9 Jun 2011, Tomi Valkeinen wrote:
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
-Applies on top of patches from Andy Green
-http://www.spinics.net/lists/linux-i2c/msg05632.html
-Tested on OMAP4430
+> Add DSS optional clocks to HWMOD data for OMAP2420.
 
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Thanks; queued for 3.1-rc fixes at git://git.pwsan.com/linux-2.6 in the 
+branch 'omap2_3_hwmod_dss_fixes_3.1rc'.  
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 0fe9556..5e2c748 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2130,7 +2130,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
--	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
-+	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE |
-+			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
- };
- 
- /* i2c1 */
--- 
-1.7.1
+
+- Paul
