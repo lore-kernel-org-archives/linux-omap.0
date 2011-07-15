@@ -1,96 +1,85 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] OMAP: powerdomains: Make all powerdomain target states
- as ON at init
-Date: Fri, 15 Jul 2011 11:03:16 +0300
-Message-ID: <20110715080315.GC2611@legolas.emea.dhcp.ti.com>
-References: <1310527588-13022-1-git-send-email-santosh.shilimkar@ti.com>
-Reply-To: balbi@ti.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP: clockdomain: Wait for powerdomain to be ON when
+ using clockdomain force wakeup
+Date: Fri, 15 Jul 2011 02:03:26 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107150159580.16606@utopia.booyaka.com>
+References: <1310527588-13022-1-git-send-email-santosh.shilimkar@ti.com> <1310527588-13022-2-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="s9fJI615cBHmzTOP"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:42015 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964873Ab1GOIDV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jul 2011 04:03:21 -0400
-Received: by ywb3 with SMTP id 3so590453ywb.18
-        for <linux-omap@vger.kernel.org>; Fri, 15 Jul 2011 01:03:20 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1310527588-13022-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:39619 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964873Ab1GOID1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jul 2011 04:03:27 -0400
+In-Reply-To: <1310527588-13022-2-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, p-titiano@ti.com, b-cousson@ti.com
 
+cc'ing Patrick
 
---s9fJI615cBHmzTOP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Rajendra, Santosh,
 
-Hi,
+some comments here:
 
-On Wed, Jul 13, 2011 at 08:56:27AM +0530, Santosh Shilimkar wrote:
-> From: Rajendra Nayak <rnayak@ti.com>
->=20
-> Program all powerdomain target state as ON; This is to
-> prevent domains from hitting low power states (if bootloader
-> has target states set to something other than ON) and potentially
-> even losing context while PM is not fully initilized.
-> The PM late init code can then program the desired target
-> state for all the power domains.
->=20
+On Wed, 13 Jul 2011, Santosh Shilimkar wrote:
+
+> While using clockdomain force wakeup method, not waiting for powerdomain
+> to be effectively ON may end up locking the clockdomain FSM until a
+> next wakeup event occurs.
+> 
+> One such issue was seen on OMAP4430, where L4_PER was periodically
+> getting stuck in in-transition state when transitioning from from OSWR to ON.
+> 
+> This issue was reported and investigated by Patrick Titiano <p-titiano@ti.com>
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Reported-by: Patrick Titiano <p-titiano@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
 > ---
->  arch/arm/mach-omap2/powerdomain.c |   12 +++++++++++-
->  1 files changed, 11 insertions(+), 1 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powe=
-rdomain.c
-> index e0490bc..e61866c 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -109,6 +109,16 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
-> =20
->  	list_add(&pwrdm->node, &pwrdm_list);
-> =20
-> +	/*
-> +	* Program all powerdomain target state as ON; This is to
-> +	* prevent domains from hitting low power states (if bootloader
-> +	* has target states set to something other than ON) and potentially
-> +	* even losing context while PM is not fully initilized.
-> +	* The PM late init code can then program the desired target
-> +	* state for all the power domains.
-> +	*/
-> +	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_ON);
+>  arch/arm/mach-omap2/clockdomain.c |    7 ++++++-
+>  1 files changed, 6 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+> index b98a972..583cc3d 100644
+> --- a/arch/arm/mach-omap2/clockdomain.c
+> +++ b/arch/arm/mach-omap2/clockdomain.c
+> @@ -718,6 +718,8 @@ int clkdm_sleep(struct clockdomain *clkdm)
+>   */
+>  int clkdm_wakeup(struct clockdomain *clkdm)
+>  {
+> +	int ret;
+> +
+>  	if (!clkdm)
+>  		return -EINVAL;
+>  
+> @@ -732,7 +734,10 @@ int clkdm_wakeup(struct clockdomain *clkdm)
+>  
+>  	pr_debug("clockdomain: forcing wakeup on %s\n", clkdm->name);
+>  
+> -	return arch_clkdm->clkdm_wakeup(clkdm);
+> +	ret = arch_clkdm->clkdm_wakeup(clkdm);
+> +	ret |= pwrdm_wait_transition(clkdm->pwrdm.ptr);
 
-Just out of curiosity, I was wondering if it really makes sense to power
-up all power domains during boot just to avoid loosing context. Doesn't
-hwmod/omap_device soft-reset all IPs during initialization ? If that's
-really the case, shouldn't we then choose which powerdomains are
-strictly necessary for boot and only power those up ?
+Seems like this should just call pwrdm_state_switch() or 
+pwrdm_clkdm_state_switch()?  (This second function looks superfluous, we 
+should probably get rid of it.)
 
-Sorry if this is a non-sensical question, but I was curious about it
-;-)
+Shouldn't this be added to all of 
+clkdm_{wakeup,sleep,allow_idle,deny_idle}() if it isn't there already?
 
---=20
-balbi
+> +
+> +	return ret;
+>  }
+>  
+>  /**
+> -- 
+> 1.7.4.1
+> 
 
---s9fJI615cBHmzTOP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOH/RDAAoJEAv8Txj19kN1v48IAJ/oEpVJ3qW8U4CfWnpBtKO7
-1POp8wITHU71BAhNhng8OoF2itb/Iitt+N+TUwGnjaUwASKkD3JtL5SiGifWsQyX
-itQ2ilgNtla5ifa8PDN2vd4e4TYV9Myloa5reXs8IO51A/f6jztiMCLL788DYPOG
-NXwyuDoNb1lM5akb2Ja9rubmADGk5UuBf62RRoRIHqvtc2prwoqxNjxUA2k4TLKD
-BbL2bPVEZ2/LMJymB/9WKMSmn09DIB3ttN5aLIu7hh7gP/6ww6tlzF0Fks12CyrF
-9XzDppedI7BdOzcbYaKtvOkBWWn8Rk5mab0zWRx6qm96h1wdAMQ/Zq0Fl2O6ioQ=
-=hbQ8
------END PGP SIGNATURE-----
-
---s9fJI615cBHmzTOP--
+- Paul
