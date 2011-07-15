@@ -1,37 +1,28 @@
-From: "Mr. Vincent Cheng" <vincent@usc.es>
-Subject: (unknown)
-Date: Fri, 15 Jul 2011 16:31:33 +0200
-Message-ID: <20110715163133.5o6xanngnsw8o4o8__35457.0844247521$1310740910$gmane$org@correoweb.usc.es>
-Reply-To: choi_chu112@yahoo.co.jp
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Transfer-Encoding: 7bit
+From: Jan Weitzel <j.weitzel@phytec.de>
+Subject: [RFC 0/2] join omap4panda and pcm049
+Date: Fri, 15 Jul 2011 18:06:52 +0200
+Message-ID: <1310746014-13293-1-git-send-email-j.weitzel@phytec.de>
+References: <20110715105558.GT5783@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from correo1.usc.es ([193.144.75.21]:15597 "EHLO correo1.usc.es"
+Received: from mail.phycard.co.uk ([217.6.246.34]:40580 "EHLO root.phytec.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750924Ab1GOOlX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jul 2011 10:41:23 -0400
-Subject: 
-Content-Disposition: inline
+	id S1753181Ab1GOQG5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jul 2011 12:06:57 -0400
+In-Reply-To: <20110715105558.GT5783@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Jan Weitzel <j.weitzel@phytec.de>
 
+First try to join both boards. Only compile testet.
+basis for discusson
 
-Good Day,
+Jan Weitzel (2):
+  omap4: board-omap4panda: prepare for join
+  omap4: board-omap4panda: join Phytec phyCORE-OMAP4
 
-I have a business proposal of USD $22,500,000.00 only for you to transact with
-me from my bank to your country.
-Reply to address:choi_chu112@yahoo.co.jp and I will let you know what is
-required of you.
-
-Best Regards,
-
-Mr. Vincent Cheng
-
-
-
-
+ arch/arm/mach-omap2/Kconfig                  |    6 +
+ arch/arm/mach-omap2/board-omap4panda.c       |  817 +++++++++++++++++++-------
+ arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+ 3 files changed, 616 insertions(+), 208 deletions(-)
 
