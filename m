@@ -1,33 +1,59 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 0/3] OMAP3 ISP patches for v3.1
-Date: Fri, 15 Jul 2011 20:24:07 +0200
-Message-ID: <1310754250-28788-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Return-path: <linux-media-owner@vger.kernel.org>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH 2/3] OMAP3: RX-51: define vdds_csib regulator supply
+Date: Fri, 15 Jul 2011 20:24:09 +0200
+Message-ID: <1310754250-28788-3-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1310754250-28788-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33600 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752657Ab1GOSYP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jul 2011 14:24:15 -0400
+In-Reply-To: <1310754250-28788-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, tony@atomide.com
 
-Hi everybody,
+From: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
 
-Here are the OMAP3 ISP patches in my queue for v3.1. I'll send a pull request
-in a couple of days if there's no objection.
+The RX-51 uses the CSIb IO complex for camera operation. The
+board file is missing definition for the regulator supplying
+the CSIb complex, so this is added for better power
+management.
 
-Kalle Jokiniemi (2):
-  OMAP3: ISP: Add regulator control for omap34xx
-  OMAP3: RX-51: define vdds_csib regulator supply
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: tony@atomide.com
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-Laurent Pinchart (1):
-  omap3isp: Support configurable HS/VS polarities
+Tony, can I push this patch through the V4L/DVB tree, or would you like to
+pick it yourself ?
 
- arch/arm/mach-omap2/board-rx51-peripherals.c |    5 ++++
- drivers/media/video/omap3isp/isp.h           |    6 +++++
- drivers/media/video/omap3isp/ispccdc.c       |    4 +-
- drivers/media/video/omap3isp/ispccp2.c       |   27 ++++++++++++++++++++++++-
- drivers/media/video/omap3isp/ispccp2.h       |    1 +
- 5 files changed, 39 insertions(+), 4 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 88bd6f7..17e5685 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -361,6 +361,9 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ static struct regulator_consumer_supply rx51_vmmc1_supply =
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
+ 
++static struct regulator_consumer_supply rx51_vaux2_supply =
++	REGULATOR_SUPPLY("vdds_csib", "omap3isp");
++
+ static struct regulator_consumer_supply rx51_vaux3_supply =
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
+ 
+@@ -424,6 +427,8 @@ static struct regulator_init_data rx51_vaux2 = {
+ 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ 					| REGULATOR_CHANGE_STATUS,
+ 	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &rx51_vaux2_supply,
+ };
+ 
+ /* VAUX3 - adds more power to VIO_18 rail */
 -- 
-Regards,
+1.7.3.4
 
-Laurent Pinchart
