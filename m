@@ -1,39 +1,82 @@
-From: "Pedanekar, Hemant" <hemantp@ti.com>
-Subject: RE: [PATCH 1/2] TI816X: Add minimal hwmod data
-Date: Fri, 15 Jul 2011 06:15:11 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03AB5FB771@dbde02.ent.ti.com>
-References: <1303922002-6946-1-git-send-email-hemantp@ti.com>
-	 <alpine.DEB.2.00.1104281634050.11487@utopia.booyaka.com>
-	 <5F744A5A3C131242B81CE5874BD2CFFBBF8F8F14@dlee01.ent.ti.com>
-	 <alpine.DEB.2.00.1104282058370.11487@utopia.booyaka.com>
-	 <2A3DCF3DA181AD40BDE86A3150B27B6B03AB5FAAAB@dbde02.ent.ti.com>
- <1310680690.8322.41.camel@vence>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH] omap-serial: Allow IXON and IXOFF to be disabled.
+Date: Fri, 15 Jul 2011 11:07:10 +0530
+Message-ID: <CAAL8m4zQkOqdy0J4wKTR-OQWZDFsfBkDgJmhwhr9DPGmDQ+kBA@mail.gmail.com>
+References: <1310669360-752-1-git-send-email-npelly@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34010 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932409Ab1GOAp3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 20:45:29 -0400
-In-Reply-To: <1310680690.8322.41.camel@vence>
-Content-Language: en-US
+Received: from mail-fx0-f52.google.com ([209.85.161.52]:52600 "EHLO
+	mail-fx0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755182Ab1GOFhb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jul 2011 01:37:31 -0400
+Received: by fxd18 with SMTP id 18so2227921fxd.11
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jul 2011 22:37:30 -0700 (PDT)
+In-Reply-To: <1310669360-752-1-git-send-email-npelly@google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Grosen, Mark" <mgrosen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Nick Pelly <npelly@google.com>
+Cc: linux-omap@vger.kernel.org
 
-SGkgS2V2aW4sDQoNCkhpbG1hbiwgS2V2aW4gd3JvdGUgb24gRnJpZGF5LCBKdWx5IDE1LCAyMDEx
-IDM6MjggQU06DQoNCj4gSGkgSGVtYW50LA0KPiANCj4gT24gV2VkLCAyMDExLTA3LTEzIGF0IDA1
-OjA3ICswNTMwLCBQZWRhbmVrYXIsIEhlbWFudCB3cm90ZToNCj4gDQo+PiBBbnkgY29tbWVudHMg
-b24gdGhlIGh3bW9kIGFuZCBjbG9jayBwYXRjaCBzZXRzPw0KPiANCj4gSSBqdXN0IGRpc2NvdmVy
-ZWQgdGhhdCBvdGhlciBkZXZpY2VzIGluIHRoaXMgZmFtaWx5IGFyZSBjb21pbmcgYWxvbmcNCj4g
-d2hpY2ggd2lsbCByZXF1aXJlIGNoYW5naW5nIHRoZSBuYW1lcy9tYWNyb3MvZXRjLiBmcm9tIDgx
-NngNCj4gdG8gODF4eFsxXS4NCj4gDQo+IE1lcmdpbmcgdGhpcyBzZXJpZXMsIGZvbGxvd2VkIHNo
-b3J0bHkgYnkgYW5vdGhlciBzZXJpZXMgdGhhdCByZW5hbWVzDQo+IGV2ZXJ5dGhpbmcgaXMgdGhl
-IHR5cGUgb2YgY2h1cm4gd2UgYXJlIHRyeWluZyB0byBhdm9pZC4NCj4gDQo+IFRvIGF2b2lkIHRo
-aXMga2luZCBvZiBjaHVybiwgSSByZWNvbW1lbmQgc3RhcnRpbmcgZnJvbSB0aGUgYnJvYWRlciBm
-YW1pbHkNCj4gbmFtZSBmaXJzdC4gDQo+IA0KPiBLZXZpbg0KPiANCj4gaHR0cDovL2FyYWdvLXBy
-b2plY3Qub3JnL2dpdC9wcm9qZWN0cy8/cD1saW51eC1vbWFwMy5naXQ7YT1jb20NCj4gbWl0O2g9
-Y2UxN2ZhMmY1MjdlZDYxNDM5OWU1NzdmYzJmZDVjZDM2MjRlZTUwMQ0KDQpTdXJlLCBJIHdpbGwg
-c2VuZCBpbiBUSTgxNFggcGF0Y2hlcyB0aGVuLg0KDQpUaGFua3MuDQoNCiAgIEhlbWFudA==
+On Fri, Jul 15, 2011 at 12:19 AM, Nick Pelly <npelly@google.com> wrote:
+> Fixes logic bug that software flow control cannot be disabled, becaus=
+e
+> serial_omap_configure_xonxoff() is not called if both IXON and IXOFF =
+bits
+> are cleared.
+>
+
+Thanks, Good Point.
+
+need to send to this patch to linux-serial@vger.kernel.org,
+CC'ing "Greg Kroah-Hartman <gregkh@suse.de>"
+
+will be merged through tty tree.
+
+feel free to add
+
+Acked-by: Govindraj.R <govindraj.raja@ti.com>
+Tested-by: Govindraj.R <govindraj.raja@ti.com>
+
+--
+Thanks,
+Govindraj.R
+
+> Signed-off-by: Nick Pelly <npelly@google.com>
+> ---
+> =A0drivers/tty/serial/omap-serial.c | =A0 =A03 +--
+> =A01 files changed, 1 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
+ap-serial.c
+> index 47cadf4..6d3ec14 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -806,8 +806,7 @@ serial_omap_set_termios(struct uart_port *port, s=
+truct ktermios *termios,
+>
+> =A0 =A0 =A0 =A0serial_omap_set_mctrl(&up->port, up->port.mctrl);
+> =A0 =A0 =A0 =A0/* Software Flow Control Configuration */
+> - =A0 =A0 =A0 if (termios->c_iflag & (IXON | IXOFF))
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 serial_omap_configure_xonxoff(up, termi=
+os);
+> + =A0 =A0 =A0 serial_omap_configure_xonxoff(up, termios);
+>
+> =A0 =A0 =A0 =A0spin_unlock_irqrestore(&up->port.lock, flags);
+> =A0 =A0 =A0 =A0dev_dbg(up->port.dev, "serial_omap_set_termios+%d\n", =
+up->pdev->id);
+> --
+> 1.7.5.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
