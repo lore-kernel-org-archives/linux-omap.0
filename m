@@ -1,95 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: PCM049: remove vusim regulator
-Date: Fri, 15 Jul 2011 03:59:20 -0700
-Message-ID: <20110715105920.GU5783@atomide.com>
-References: <1310554738.18446.12.camel@lws-weitzel>
- <1310554762-10743-1-git-send-email-j.weitzel@phytec.de>
- <4E1D8BCD.5060901@ru.mvista.com>
- <1310561772.18446.14.camel@lws-weitzel>
- <20110714073445.GL5783@atomide.com>
- <1310632792.4008.3.camel@lws-weitzel>
- <20110715075024.GO5783@atomide.com>
- <20110715075825.GB2611@legolas.emea.dhcp.ti.com>
- <20110715082012.GR5783@atomide.com>
- <20110715083103.GF2611@legolas.emea.dhcp.ti.com>
+From: Abhilash K V <abhilash.kv@ti.com>
+Subject: [PATCH v2] OMAP3: powerdomains: Match silicon revision to select the correct "core_pwrdm" definition
+Date: Fri, 15 Jul 2011 17:14:10 +0530
+Message-ID: <1310730250-10920-1-git-send-email-abhilash.kv@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:23275 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S964787Ab1GOK70 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jul 2011 06:59:26 -0400
-Content-Disposition: inline
-In-Reply-To: <20110715083103.GF2611@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Abhilash K V <abhilash.kv@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Jan Weitzel <J.Weitzel@phytec.de>, linux-omap@vger.kernel.org, Sergei Shtylyov <sshtylyov@mvista.com>, linux-arm-kernel@lists.infradead.org
 
-* Felipe Balbi <balbi@ti.com> [110715 01:25]:
-> 
-> possibly something like this (still missing MACHINE_START a few more
-> things):
+powerdomains3xxx_data.c defines core_3xxx_pre_es3_1_pwrdm and
+core_3xxx_es3_1_pwrdm to take care of differences in "core_pwrdm"
+implementations across revisions.
+However,_pwrdm_lookup("core_pwrdm") always matches the first definition for
+3630 ES 1.1 and 1.2 which is incorrect. This patch fixes this issue by adding
+code to match silicon revision as well while looking up "core_pwrdm" in
+_pwrdm_lookup().
+core_3xxx_es3_1_pwrdm is different from core_3xxx_pre_es3_1_pwrdm in
+that the former adds hardware save-restore support for USBTLL for 3430
+ES3.1 and for 3630 ES1.1 and ES1.2.
 
-Yes and it would be better to initialize data in the .init_machine
-to avoid adding machine_is tests in multiple places.
+Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+---
+v2:
+* now tested on 3630 (ES1.2 and ES1.0) and 3530 (ES3.0 and ES3.1)
+* fixed checkpatch errors/warnings.
+
+ arch/arm/mach-omap2/powerdomain.c |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 9af0847..82a2e30 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -32,6 +32,7 @@
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+ #include <plat/prcm.h>
++#include <plat/cpu.h>
  
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index 0cfe200..dff174c 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -681,20 +681,44 @@ void omap4_panda_display_init(void)
->         omap_display_init(&omap4_panda_dss_data);
->  }
->  
-> +static struct omap_smsc911x_platform_data board_smsc911x_data __initdata = {
-> +       .cs             = OMAP4_SMSC911X_ETH_CS,
-> +       .gpio_irq       = OMAP4_SMSC911X_ETH_GPIO_IRQ,
-> +       .gpio_reset     = -EINVAL,
-> +       .flags          = SMSC911X_USE_16BIT,
-> +};
-> +
-> +static void __init omap4_panda_smsc91xx_init(void)
-> +{
-> +       if (!machine_is_pcm049())
-> +               return;
-> +
-> +       omap_mux_init_gpio(OMAP4_PCM049_ETH_GPIO_IRQ, OMAP_PIN_INPUT);
-> +       gpmc_smsc911x_init(&board_smsc911x_data);
-> +}
-> +
->  static void __init omap4_panda_init(void)
->  {
->         int package = OMAP_PACKAGE_CBS;
->  
->         if (omap_rev() == OMAP4430_REV_ES1_0)
->                 package = OMAP_PACKAGE_CBL;
-> +
->         omap4_mux_init(board_mux, NULL, package);
->  
-> -       if (wl12xx_set_platform_data(&omap_panda_wlan_data))
-> -               pr_err("error setting wl12xx data\n");
-> +       if (machine_is_omap4panda()) {
-> +               int             ret;
-> +
-> +               ret = wl12xx_set_platform_data(&omap_panda_wlan_data);
-> +               if (ret)
-> +                       pr_err("error setting wl12xx data\n");
-> +
-> +               platform_device_register(&omap_vwlan_device);
-> +       }
->  
-> +       omap4_panda_smsc91xx_init();
->         omap4_panda_i2c_init();
->         platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
-> -       platform_device_register(&omap_vwlan_device);
->         board_serial_init();
->         omap4_twl6030_hsmmc_init(mmc);
-
-So we sould have panda_common_init() and then omap4_panda_init()
-and omap4_phycore_init() or something like that. No need for machine_is
-tests then as the .machine_init already takes care of that test.
-
-Regards,
-
-Tony
+ #include "pm.h"
+ 
+@@ -58,6 +59,24 @@ static struct powerdomain *_pwrdm_lookup(const char *name)
+ 
+ 	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
+ 		if (!strcmp(name, temp_pwrdm->name)) {
++			if (!strcmp(name, "core_pwrdm") && cpu_is_omap3630()) {
++				if (omap_rev() > OMAP3630_REV_ES1_0) {
++					/*
++					 * match omap_chip info for OMAP3630
++					 * Rev ES1.1, ES1.2 or higher
++					 */
++					if (!(temp_pwrdm->omap_chip.oc
++						& CHIP_GE_OMAP3630ES1_1))
++						continue;
++				} else {
++					/* match omap_chip info for OMAP3630
++					 * Rev ES1.0
++					 */
++					if (!(temp_pwrdm->omap_chip.oc
++						 & CHIP_IS_OMAP3630ES1))
++						continue;
++				}
++			}
+ 			pwrdm = temp_pwrdm;
+ 			break;
+ 		}
+-- 
+1.7.1
