@@ -1,96 +1,39 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 6/6] OMAP: Add debugfs node to show the summary of all clocks
-Date: Thu, 14 Jul 2011 18:25:08 -0500
-Message-ID: <1310685908-3434-1-git-send-email-jon-hunter@ti.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH 1/2] TI816X: Add minimal hwmod data
+Date: Fri, 15 Jul 2011 06:15:11 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03AB5FB771@dbde02.ent.ti.com>
+References: <1303922002-6946-1-git-send-email-hemantp@ti.com>
+	 <alpine.DEB.2.00.1104281634050.11487@utopia.booyaka.com>
+	 <5F744A5A3C131242B81CE5874BD2CFFBBF8F8F14@dlee01.ent.ti.com>
+	 <alpine.DEB.2.00.1104282058370.11487@utopia.booyaka.com>
+	 <2A3DCF3DA181AD40BDE86A3150B27B6B03AB5FAAAB@dbde02.ent.ti.com>
+ <1310680690.8322.41.camel@vence>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52583 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932590Ab1GNXZL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jul 2011 19:25:11 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:34010 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932409Ab1GOAp3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2011 20:45:29 -0400
+In-Reply-To: <1310680690.8322.41.camel@vence>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "Grosen, Mark" <mgrosen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Jon Hunter <jon-hunter@ti.com>
-
-Add a debugfs node called "summary" to /sys/kernel/debug/clock/
-that displays a quick summary of all clocks registered in the
-"clocks" structure. The format of the output from this node is:
-
-<clock-name> <parent-name> <rate> <usecount>
-
-This debugfs node was very helpful for taking a quick snapshot of
-the linux clock tree for OMAP and ensuring clock frequencies
-calculated by the kernel were indeed correct. This patch helped
-uncover some bugs in the linux clock tree for OMAP4.
-
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/plat-omap/clock.c |   39 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 39 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index c9122dd..156b27d 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -475,8 +475,41 @@ int __init clk_init(struct clk_functions * custom_clocks)
- /*
-  *	debugfs support to trace clock tree hierarchy and attributes
-  */
-+
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+
- static struct dentry *clk_debugfs_root;
- 
-+static int clk_dbg_show_summary(struct seq_file *s, void *unused)
-+{
-+	struct clk *c;
-+	struct clk *pa;
-+
-+	seq_printf(s, "%-30s %-30s %-10s %s\n",
-+		"clock-name", "parent-name", "rate", "use-count");
-+
-+	list_for_each_entry(c, &clocks, node) {
-+		pa = c->parent;
-+		seq_printf(s, "%-30s %-30s %-10lu %d\n",
-+			c->name, pa ? pa->name : "none", c->rate, c->usecount);
-+	}
-+
-+	return 0;
-+}
-+
-+static int clk_dbg_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, clk_dbg_show_summary, inode->i_private);
-+}
-+
-+static const struct file_operations debug_clock_fops = {
-+	.open           = clk_dbg_open,
-+	.read           = seq_read,
-+	.llseek         = seq_lseek,
-+	.release        = single_release,
-+};
-+
- static int clk_debugfs_register_one(struct clk *c)
- {
- 	int err;
-@@ -551,6 +584,12 @@ static int __init clk_debugfs_init(void)
- 		if (err)
- 			goto err_out;
- 	}
-+
-+	d = debugfs_create_file("summary", S_IRUGO,
-+		d, NULL, &debug_clock_fops);
-+	if (!d)
-+		return -ENOMEM;
-+
- 	return 0;
- err_out:
- 	debugfs_remove_recursive(clk_debugfs_root);
--- 
-1.7.4.1
-
+SGkgS2V2aW4sDQoNCkhpbG1hbiwgS2V2aW4gd3JvdGUgb24gRnJpZGF5LCBKdWx5IDE1LCAyMDEx
+IDM6MjggQU06DQoNCj4gSGkgSGVtYW50LA0KPiANCj4gT24gV2VkLCAyMDExLTA3LTEzIGF0IDA1
+OjA3ICswNTMwLCBQZWRhbmVrYXIsIEhlbWFudCB3cm90ZToNCj4gDQo+PiBBbnkgY29tbWVudHMg
+b24gdGhlIGh3bW9kIGFuZCBjbG9jayBwYXRjaCBzZXRzPw0KPiANCj4gSSBqdXN0IGRpc2NvdmVy
+ZWQgdGhhdCBvdGhlciBkZXZpY2VzIGluIHRoaXMgZmFtaWx5IGFyZSBjb21pbmcgYWxvbmcNCj4g
+d2hpY2ggd2lsbCByZXF1aXJlIGNoYW5naW5nIHRoZSBuYW1lcy9tYWNyb3MvZXRjLiBmcm9tIDgx
+NngNCj4gdG8gODF4eFsxXS4NCj4gDQo+IE1lcmdpbmcgdGhpcyBzZXJpZXMsIGZvbGxvd2VkIHNo
+b3J0bHkgYnkgYW5vdGhlciBzZXJpZXMgdGhhdCByZW5hbWVzDQo+IGV2ZXJ5dGhpbmcgaXMgdGhl
+IHR5cGUgb2YgY2h1cm4gd2UgYXJlIHRyeWluZyB0byBhdm9pZC4NCj4gDQo+IFRvIGF2b2lkIHRo
+aXMga2luZCBvZiBjaHVybiwgSSByZWNvbW1lbmQgc3RhcnRpbmcgZnJvbSB0aGUgYnJvYWRlciBm
+YW1pbHkNCj4gbmFtZSBmaXJzdC4gDQo+IA0KPiBLZXZpbg0KPiANCj4gaHR0cDovL2FyYWdvLXBy
+b2plY3Qub3JnL2dpdC9wcm9qZWN0cy8/cD1saW51eC1vbWFwMy5naXQ7YT1jb20NCj4gbWl0O2g9
+Y2UxN2ZhMmY1MjdlZDYxNDM5OWU1NzdmYzJmZDVjZDM2MjRlZTUwMQ0KDQpTdXJlLCBJIHdpbGwg
+c2VuZCBpbiBUSTgxNFggcGF0Y2hlcyB0aGVuLg0KDQpUaGFua3MuDQoNCiAgIEhlbWFudA==
