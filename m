@@ -1,99 +1,65 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v14 REPOST 08/12] OMAP: dmtimer: add timeout to low-level routines
-Date: Fri, 15 Jul 2011 17:34:57 +0530
-Message-ID: <1310731501-13078-9-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v14 REPOST 10/12] OMAP: dmtimer: mark clocksource and clockevent timers reserved
+Date: Fri, 15 Jul 2011 17:34:59 +0530
+Message-ID: <1310731501-13078-11-git-send-email-tarun.kanti@ti.com>
 References: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55831 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55833 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751103Ab1GOMFa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jul 2011 08:05:30 -0400
+	id S1751063Ab1GOMFc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jul 2011 08:05:32 -0400
 In-Reply-To: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-The low-level read and write access routines wait on write-pending register
-in posted mode to make sure that previous write is complete on respective
-registers. This waiting is done in an infinite while loop. Now it is being
-modified to use timeout instead.
+In driver probe use sys_timer_reserved to identify which all timers
+have already been used for clocksource and clockevent. Mark all those
+timers as reserved so that no one else can use them.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Reviewed-by: Varadarajan, Charulatha <charu@ti.com>
-Acked-by: Cousson, Benoit <b-cousson@ti.com>
 ---
- arch/arm/plat-omap/include/plat/dmtimer.h |   34 ++++++++++++++++++++--------
- 1 files changed, 24 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap1/timer.c  |    2 ++
+ arch/arm/plat-omap/dmtimer.c |    8 ++++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 53d5da6..6e34094 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -36,6 +36,8 @@
- #include <linux/delay.h>
- #include <linux/platform_device.h>
+diff --git a/arch/arm/mach-omap1/timer.c b/arch/arm/mach-omap1/timer.c
+index 980b23b..0b318c7 100644
+--- a/arch/arm/mach-omap1/timer.c
++++ b/arch/arm/mach-omap1/timer.c
+@@ -41,6 +41,8 @@
  
-+#include <plat/common.h>
+ #define OMAP1_DM_TIMER_COUNT		8
+ 
++u32 sys_timer_reserved;
 +
- #ifndef __ASM_ARCH_DMTIMER_H
- #define __ASM_ARCH_DMTIMER_H
- 
-@@ -230,6 +232,8 @@ int omap_dm_timers_active(void);
- #define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
- 		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
- 
-+#define MAX_WRITE_PEND_WAIT            10000 /* 10ms timeout delay */
-+
- struct omap_dm_timer {
- 	unsigned long phys_base;
- 	int id;
-@@ -251,11 +255,16 @@ void omap_dm_timer_prepare(struct omap_dm_timer *timer);
- static inline u32 __omap_dm_timer_read(void __iomem *base, u32 reg,
- 						int posted, u8 func_offset)
+ static int omap1_dm_timer_set_src(struct platform_device *pdev,
+ 				int source)
  {
--	if (posted)
--		while (__raw_readl(base +
--			((OMAP_TIMER_WRITE_PEND_REG + func_offset) & 0xff))
--				& (reg >> WPSHIFT))
--			cpu_relax();
-+	int i = 0;
-+
-+	if (posted) {
-+		omap_test_timeout(!(__raw_readl(base +
-+			((OMAP_TIMER_WRITE_PEND_REG + func_offset) & 0xff)) &
-+				(reg >> WPSHIFT)), MAX_WRITE_PEND_WAIT, i);
-+
-+		if (WARN_ON_ONCE(i == MAX_WRITE_PEND_WAIT))
-+			pr_err("read timeout.\n");
-+	}
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index be55e42..8c8cb00 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -513,10 +513,14 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+ 	timer->irq = irq->start;
+ 	timer->pdev = pdev;
  
- 	return __raw_readl(base + (reg & 0xff));
- }
-@@ -263,11 +272,16 @@ static inline u32 __omap_dm_timer_read(void __iomem *base, u32 reg,
- static inline void __omap_dm_timer_write(void __iomem *base, u32 reg, u32 val,
- 						int posted, u8 func_offset)
- {
--	if (posted)
--		while (__raw_readl(base +
--			((OMAP_TIMER_WRITE_PEND_REG + func_offset) & 0xff))
--				& (reg >> WPSHIFT))
--			cpu_relax();
-+	int i = 0;
-+
-+	if (posted) {
-+		omap_test_timeout(!(__raw_readl(base +
-+			((OMAP_TIMER_WRITE_PEND_REG + func_offset) & 0xff)) &
-+				(reg >> WPSHIFT)), MAX_WRITE_PEND_WAIT, i);
-+
-+		if (WARN_ON(i == MAX_WRITE_PEND_WAIT))
-+			pr_err("write timeout.\n");
-+	}
+-	/* Skip pm_runtime_enable for OMAP1 */
+-	if (!pdata->needs_manual_reset)
++	if (!pdata->needs_manual_reset) {
+ 		pm_runtime_enable(&pdev->dev);
  
- 	__raw_writel(val, base + (reg & 0xff));
- }
++		/* Mark clocksource and clockevent timers as reserved */
++		if ((sys_timer_reserved >> (pdev->id - 1)) & 0x1)
++			timer->reserved = 1;
++	}
++
+ 	/* add the timer element to the list */
+ 	mutex_lock(&dm_timer_mutex);
+ 	list_add_tail(&timer->node, &omap_timer_list);
 -- 
 1.6.0.4
 
