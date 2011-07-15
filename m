@@ -1,59 +1,74 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 2/3] OMAP3: RX-51: define vdds_csib regulator supply
-Date: Fri, 15 Jul 2011 20:24:09 +0200
-Message-ID: <1310754250-28788-3-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 3/3] omap3isp: Support configurable HS/VS polarities
+Date: Fri, 15 Jul 2011 20:24:10 +0200
+Message-ID: <1310754250-28788-4-git-send-email-laurent.pinchart@ideasonboard.com>
 References: <1310754250-28788-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33600 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33601 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752657Ab1GOSYP (ORCPT
+	with ESMTP id S1751084Ab1GOSYP (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jul 2011 14:24:15 -0400
 In-Reply-To: <1310754250-28788-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
 
-From: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Add two fields to the ISP parallel platform data to set the HS and VS
+signals polarities.
 
-The RX-51 uses the CSIb IO complex for camera operation. The
-board file is missing definition for the regulator supplying
-the CSIb complex, so this is added for better power
-management.
-
-Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: tony@atomide.com
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ drivers/media/video/omap3isp/isp.h     |    6 ++++++
+ drivers/media/video/omap3isp/ispccdc.c |    4 ++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-Tony, can I push this patch through the V4L/DVB tree, or would you like to
-pick it yourself ?
-
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 88bd6f7..17e5685 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -361,6 +361,9 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
- static struct regulator_consumer_supply rx51_vmmc1_supply =
- 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
- 
-+static struct regulator_consumer_supply rx51_vaux2_supply =
-+	REGULATOR_SUPPLY("vdds_csib", "omap3isp");
-+
- static struct regulator_consumer_supply rx51_vaux3_supply =
- 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
- 
-@@ -424,6 +427,8 @@ static struct regulator_init_data rx51_vaux2 = {
- 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
- 					| REGULATOR_CHANGE_STATUS,
- 	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &rx51_vaux2_supply,
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index 2620c40..529e582 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -139,6 +139,10 @@ struct isp_reg {
+  *		3 - CAMEXT[13:6] -> CAM[7:0]
+  * @clk_pol: Pixel clock polarity
+  *		0 - Non Inverted, 1 - Inverted
++ * @hs_pol: Horizontal synchronization polarity
++ *		0 - Active high, 1 - Active low
++ * @vs_pol: Vertical synchronization polarity
++ *		0 - Active high, 1 - Active low
+  * @bridge: CCDC Bridge input control
+  *		ISPCTRL_PAR_BRIDGE_DISABLE - Disable
+  *		ISPCTRL_PAR_BRIDGE_LENDIAN - Little endian
+@@ -147,6 +151,8 @@ struct isp_reg {
+ struct isp_parallel_platform_data {
+ 	unsigned int data_lane_shift:2;
+ 	unsigned int clk_pol:1;
++	unsigned int hs_pol:1;
++	unsigned int vs_pol:1;
+ 	unsigned int bridge:4;
  };
  
- /* VAUX3 - adds more power to VIO_18 rail */
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 6766247..b8cb7dd 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -1148,6 +1148,8 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+ 	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift);
+ 
+ 	ccdc->syncif.datsz = depth_out;
++	ccdc->syncif.hdpol = pdata ? pdata->hs_pol : 0;
++	ccdc->syncif.vdpol = pdata ? pdata->vs_pol : 0;
+ 	ccdc_config_sync_if(ccdc, &ccdc->syncif);
+ 
+ 	/* CCDC_PAD_SINK */
+@@ -2256,8 +2258,6 @@ int omap3isp_ccdc_init(struct isp_device *isp)
+ 	ccdc->syncif.fldout = 0;
+ 	ccdc->syncif.fldpol = 0;
+ 	ccdc->syncif.fldstat = 0;
+-	ccdc->syncif.hdpol = 0;
+-	ccdc->syncif.vdpol = 0;
+ 
+ 	ccdc->clamp.oblen = 0;
+ 	ccdc->clamp.dcsubval = 0;
 -- 
 1.7.3.4
 
