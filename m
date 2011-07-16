@@ -1,114 +1,79 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v4 REPOST 19/20] gpio/omap: optimize suspend and resume functions
-Date: Sat, 16 Jul 2011 13:45:51 +0530
-Message-ID: <1310804152-9243-20-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v4 REPOST 14/20] gpio/omap: use pinctrl offset instead of macro
+Date: Sat, 16 Jul 2011 13:45:46 +0530
+Message-ID: <1310804152-9243-15-git-send-email-tarun.kanti@ti.com>
 References: <1310804152-9243-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49852 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49838 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752757Ab1GPIQm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 16 Jul 2011 04:16:42 -0400
+	id S1752654Ab1GPIQd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 16 Jul 2011 04:16:33 -0400
 In-Reply-To: <1310804152-9243-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-There is no need to operate on all the banks every time the function is called.
-Just operate on the current bank passed by the framework.
+From: Charulatha V <charu@ti.com>
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Use regs->pinctrl field instead of using the macro OMAP1510_GPIO_PIN_CONTROL
+
+Signed-off-by: Charulatha V <charu@ti.com>
 ---
- drivers/gpio/gpio-omap.c |   53 +++++++++++++++++++++------------------------
- 1 files changed, 25 insertions(+), 28 deletions(-)
+ arch/arm/mach-omap1/gpio15xx.c         |    1 +
+ arch/arm/plat-omap/include/plat/gpio.h |    1 +
+ drivers/gpio/gpio-omap.c               |    8 +++-----
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
+index fd2fe8f..020725f 100644
+--- a/arch/arm/mach-omap1/gpio15xx.c
++++ b/arch/arm/mach-omap1/gpio15xx.c
+@@ -85,6 +85,7 @@ static struct omap_gpio_reg_offs omap15xx_gpio_regs = {
+ 	.irqenable	= OMAP1510_GPIO_INT_MASK,
+ 	.irqenable_inv	= true,
+ 	.irqctrl	= OMAP1510_GPIO_INT_CONTROL,
++	.pinctrl	= OMAP1510_GPIO_PIN_CONTROL,
+ };
+ 
+ static struct __initdata omap_gpio_platform_data omap15xx_gpio_config = {
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index 4f584de..3a05c58 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -198,6 +198,7 @@ struct omap_gpio_reg_offs {
+ 	u16 irqctrl;
+ 	u16 edgectrl1;
+ 	u16 edgectrl2;
++	u16 pinctrl;
+ 
+ 	bool irqenable_inv;
+ };
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 6f52395..02a6c04 100644
+index 0da78f3..742c310 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1061,6 +1061,8 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 		goto err_free;
+@@ -486,15 +486,13 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+ 	 */
+ 	_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
+ 
+-#ifdef CONFIG_ARCH_OMAP15XX
+-	if (bank->method == METHOD_GPIO_1510) {
+-		void __iomem *reg;
++	if (bank->regs->pinctrl) {
++		void __iomem *reg = bank->base + bank->regs->pinctrl;
+ 
+ 		/* Claim the pin for MPU */
+-		reg = bank->base + OMAP1510_GPIO_PIN_CONTROL;
+ 		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
  	}
- 
-+	platform_set_drvdata(pdev, bank);
+-#endif
 +
- 	pm_runtime_enable(bank->dev);
- 	pm_runtime_irq_safe(bank->dev);
- 	if (IS_ERR_VALUE(pm_runtime_get_sync(bank->dev) < 0)) {
-@@ -1093,26 +1095,23 @@ err_exit:
- 
- static int omap_gpio_suspend(struct device *dev)
- {
--	struct gpio_bank *bank;
--
--	pm_runtime_get_sync(dev);
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct gpio_bank *bank = platform_get_drvdata(pdev);
-+	void __iomem *base = bank->base;
-+	void __iomem *wake_status;
-+	unsigned long flags;
- 
--	list_for_each_entry(bank, &omap_gpio_list, node) {
--		void __iomem *base = bank->base;
--		void __iomem *wake_status;
--		unsigned long flags;
-+	if (!bank->regs->wkup_status || !bank->suspend_wakeup)
-+		return 0;
- 
--		if (!bank->regs->wkup_status)
--			return 0;
-+	wake_status = bank->base + bank->regs->wkup_status;
- 
--		wake_status = bank->base + bank->regs->wkup_status;
-+	pm_runtime_get_sync(dev);
- 
--		spin_lock_irqsave(&bank->lock, flags);
--		bank->saved_wakeup = __raw_readl(wake_status);
--		_gpio_rmw(base, bank->regs->wkup_status,
--					bank->suspend_wakeup, 1);
--		spin_unlock_irqrestore(&bank->lock, flags);
--	}
-+	spin_lock_irqsave(&bank->lock, flags);
-+	bank->saved_wakeup = __raw_readl(wake_status);
-+	_gpio_rmw(base, bank->regs->wkup_status, bank->suspend_wakeup, 1);
-+	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	pm_runtime_put_sync(dev);
- 
-@@ -1121,21 +1120,19 @@ static int omap_gpio_suspend(struct device *dev)
- 
- static int omap_gpio_resume(struct device *dev)
- {
--	struct gpio_bank *bank;
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct gpio_bank *bank = platform_get_drvdata(pdev);
-+	void __iomem *base = bank->base;
-+	unsigned long flags;
- 
--	pm_runtime_get_sync(dev);
-+	if (!bank->regs->wkup_status || !bank->saved_wakeup)
-+		return 0;
- 
--	list_for_each_entry(bank, &omap_gpio_list, node) {
--		void __iomem *base = bank->base;
--		unsigned long flags;
--
--		if (!bank->regs->wkup_status)
--			return 0;
-+	pm_runtime_get_sync(dev);
- 
--		spin_lock_irqsave(&bank->lock, flags);
--		_gpio_rmw(base, bank->regs->wkup_status, bank->saved_wakeup, 1);
--		spin_unlock_irqrestore(&bank->lock, flags);
--	}
-+	spin_lock_irqsave(&bank->lock, flags);
-+	_gpio_rmw(base, bank->regs->wkup_status, bank->saved_wakeup, 1);
-+	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	pm_runtime_put_sync(dev);
- 
+ 	if (bank->regs->ctrl && !bank->mod_usage) {
+ 		void __iomem *reg = bank->base + bank->regs->ctrl;
+ 		u32 ctrl;
 -- 
 1.6.0.4
 
