@@ -1,39 +1,39 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/4] TI816X: clock: Add clock data
-Date: Sat, 16 Jul 2011 02:05:40 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1107160201410.25013@utopia.booyaka.com>
-References: <1301070006-8363-1-git-send-email-hemantp@ti.com>
+Subject: RE: [PATCH 1/2] TI816X: Add minimal hwmod data
+Date: Sat, 16 Jul 2011 02:08:24 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1107160139470.25013@utopia.booyaka.com>
+References: <1303922002-6946-1-git-send-email-hemantp@ti.com> <alpine.DEB.2.00.1104281634050.11487@utopia.booyaka.com> <5F744A5A3C131242B81CE5874BD2CFFBBF8F8F14@dlee01.ent.ti.com> <alpine.DEB.2.00.1104282058370.11487@utopia.booyaka.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B03AB5FAAAB@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38726 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:38736 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084Ab1GPIFm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Jul 2011 04:05:42 -0400
-In-Reply-To: <1301070006-8363-1-git-send-email-hemantp@ti.com>
+	with ESMTP id S1752018Ab1GPIIZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Jul 2011 04:08:25 -0400
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B03AB5FAAAB@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemant Pedanekar <hemantp@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com
+To: "Pedanekar, Hemant" <hemantp@ti.com>
+Cc: "Grosen, Mark" <mgrosen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+Hello Hemant,
 
-Spot-checking this...
+On Wed, 13 Jul 2011, Pedanekar, Hemant wrote:
 
-On Fri, 25 Mar 2011, Hemant Pedanekar wrote:
+> Any comments on the hwmod and clock patch sets?
 
-> +static struct clk uart1_fck = {
-> +	.name		= "uart1_fck",
-> +	.parent		= &sysclk10_ck,
-> +	.ops		= &clkops_omap2_dflt,
-> +	.enable_reg	= TI816X_CM_ALWON_UART_0_CLKCTRL,
-> +	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
-> +	.clkdm_name	= "alwon_l3_slow_clkdm",
-> +	.recalc		= &followparent_recalc,
-> +};
+I haven't forgotten about these patches.
 
-Is this really in the alwon_l3_slow_clkdm clockdomain?  Looking at SPRS680 
-section 5.2 "L4 Interconnect", these UARTs seem to be in some L4 
-clockdomain?
+Here are a few questions:
+
+- Are there are public documents about what interconnect is used on these 
+chips?  Is it a SonicsMX, an Arteris NOC, or something else?
+
+- It looks like you've grouped the PRCM implementation with the existing 
+OMAP3 PRCM code.  But it appears to me, looking at the 816X TRM, that the
+register layout is closer to OMAP4 - the MODULEMODE bits, etc.  Any 
+comments on this?
 
 
 - Paul
