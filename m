@@ -1,38 +1,56 @@
-From: Sergei Trofimovich <slyich@gmail.com>
-Subject: [resend PATCH] tusb6010_omap: fix build failure: error: 'musb' undeclared
-Date: Sun, 17 Jul 2011 18:28:00 +0300
-Message-ID: <1310916480-3477-1-git-send-email-slyich@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Sergei Trofimovich <slyfox@gentoo.org>
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4] OMAP4: hwmod data: I2C: add flag for context restore
+Date: Sun, 17 Jul 2011 21:03:42 +0530
+Message-ID: <4E2300D6.1000802@ti.com>
+References: <1310709714-3295-1-git-send-email-shubhrajyoti@ti.com> <871uxrnr92.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <871uxrnr92.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Sergei Trofimovich <slyfox@gentoo.org>
-
-  CC      drivers/usb/musb/tusb6010_omap.o
-drivers/usb/musb/tusb6010_omap.c: In function 'tusb_omap_use_shared_dmareq':
-drivers/usb/musb/tusb6010_omap.c:92: error: 'musb' undeclared (first use in this function)
-drivers/usb/musb/tusb6010_omap.c:92: error: (Each undeclared identifier is reported only once
-drivers/usb/musb/tusb6010_omap.c:92: error: for each function it appears in.)
-
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
----
- drivers/usb/musb/tusb6010_omap.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
-index c784e6c..07c8a73 100644
---- a/drivers/usb/musb/tusb6010_omap.c
-+++ b/drivers/usb/musb/tusb6010_omap.c
-@@ -89,7 +89,7 @@ static inline int tusb_omap_use_shared_dmareq(struct tusb_omap_dma_ch *chdat)
- 	u32		reg = musb_readl(chdat->tbase, TUSB_DMA_EP_MAP);
- 
- 	if (reg != 0) {
--		dev_dbg(musb->controller, "ep%i dmareq0 is busy for ep%i\n",
-+		dev_dbg(chdat->musb->controller, "ep%i dmareq0 is busy for ep%i\n",
- 			chdat->epnum, reg & 0xf);
- 		return -EAGAIN;
- 	}
--- 
-1.7.3.4
+On Saturday 16 July 2011 03:25 AM, Kevin Hilman wrote:
+> Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>  writes:
+>
+>> Restore of context is not done for OMAP4. This patch
+>> adds the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE in the OMAP4
+>> hwmod data which activates the restore for OMAP4.
+>> Currently the OMAP4 does not hit device off still the
+>> driver may have support for it.
+>>
+>> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> Reviewed-by: Kevin Hilman<khilman-l0cyMroinI0@public.gmane.org>
+>
+> Please repost one more time with the linux-arm-kernel list Cc'd (and you
+> can add my reviewed-by tag.)
+>
+> Paul can then probably queue this for v3.1-rc
+>
+> Kevin
+OK thanks
+>> ---
+>> Applies on top of patches from Andy Green
+>> http://www.spinics.net/lists/linux-i2c/msg05632.html
+>> Tested on OMAP4430
+>>
+>>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
+>>   1 files changed, 2 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> index 0fe9556..5e2c748 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> @@ -2130,7 +2130,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
+>>   };
+>>
+>>   static struct omap_i2c_dev_attr i2c_dev_attr = {
+>> -	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
+>> +	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE |
+>> +			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
+>>   };
+>>
+>>   /* i2c1 */
