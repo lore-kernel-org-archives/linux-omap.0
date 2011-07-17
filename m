@@ -1,56 +1,31 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4] OMAP4: hwmod data: I2C: add flag for context restore
-Date: Sun, 17 Jul 2011 21:03:42 +0530
-Message-ID: <4E2300D6.1000802@ti.com>
-References: <1310709714-3295-1-git-send-email-shubhrajyoti@ti.com> <871uxrnr92.fsf@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: conflicts between omap/cleanup branch and omap_dss2 tree
+Date: Sun, 17 Jul 2011 23:39:32 +0200
+Message-ID: <201107172339.32516.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <871uxrnr92.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:64838 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730Ab1GQVk1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 17 Jul 2011 17:40:27 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
 
-On Saturday 16 July 2011 03:25 AM, Kevin Hilman wrote:
-> Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>  writes:
->
->> Restore of context is not done for OMAP4. This patch
->> adds the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE in the OMAP4
->> hwmod data which activates the restore for OMAP4.
->> Currently the OMAP4 does not hit device off still the
->> driver may have support for it.
->>
->> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> Reviewed-by: Kevin Hilman<khilman-l0cyMroinI0@public.gmane.org>
->
-> Please repost one more time with the linux-arm-kernel list Cc'd (and you
-> can add my reviewed-by tag.)
->
-> Paul can then probably queue this for v3.1-rc
->
-> Kevin
-OK thanks
->> ---
->> Applies on top of patches from Andy Green
->> http://www.spinics.net/lists/linux-i2c/msg05632.html
->> Tested on OMAP4430
->>
->>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
->>   1 files changed, 2 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> index 0fe9556..5e2c748 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> @@ -2130,7 +2130,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
->>   };
->>
->>   static struct omap_i2c_dev_attr i2c_dev_attr = {
->> -	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
->> +	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE |
->> +			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
->>   };
->>
->>   /* i2c1 */
+Hi Paul and Tomi,
+
+I'm trying to get the arm-soc tree integrated into linux-next, but right
+now that fails because of lots of conflicts in the arch/arm/mach-omap2/clock44xx_data.c
+and arch/arm/mach-omap2/omap_hwmod_44xx_data.c files.
+
+I've done a dumb resolution by pulling in the omap_dss2/for_next tree as a
+depedency and taking Tomi's version of the files, which is probably wrong 
+but lets Stephen at least take the arm-soc tree.
+
+Please fix this properly in either the omap or the omap_dss2 trees.
+
+	Arnd
