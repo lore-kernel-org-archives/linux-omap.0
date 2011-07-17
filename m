@@ -1,39 +1,38 @@
-From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Realistic bandwidth to get through ehci controller on a dm3730?
-Date: Sun, 17 Jul 2011 22:25:59 +0800
-Message-ID: <CACVXFVPwqjWut8TavRGGs8Pxqj68z3FKQ91u3Pk6GhjzKyxNsA@mail.gmail.com>
-References: <4E1F07BF.5090105@cam.ac.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E1F07BF.5090105-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Sergei Trofimovich <slyich@gmail.com>
+Subject: [resend PATCH] tusb6010_omap: fix build failure: error: 'musb' undeclared
+Date: Sun, 17 Jul 2011 18:28:00 +0300
+Message-ID: <1310916480-3477-1-git-send-email-slyich@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Sergei Trofimovich <slyfox@gentoo.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: Sergei Trofimovich <slyfox@gentoo.org>
 
-On Thu, Jul 14, 2011 at 11:14 PM, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org> wrote:
-> Hi All,
->
-> Just wondering if anyone had any figures for how much data one can expect
-> the omap3's usb controller to handle?
->
-> I'm trying to get a playstation eye (ov534) camera to run as at 60fps,
-> but gspca is giving me payload errors at 50fps or 60fps. (50*640*480 bytes
-> per sec, or about 122Mbits / sec (15MB / sec)
+  CC      drivers/usb/musb/tusb6010_omap.o
+drivers/usb/musb/tusb6010_omap.c: In function 'tusb_omap_use_shared_dmareq':
+drivers/usb/musb/tusb6010_omap.c:92: error: 'musb' undeclared (first use in this function)
+drivers/usb/musb/tusb6010_omap.c:92: error: (Each undeclared identifier is reported only once
+drivers/usb/musb/tusb6010_omap.c:92: error: for each function it appears in.)
 
-As far as I know, uvc can work well at 3*1024B/uF(24MB/s) in beagle xm, and
-it uses ISO transfer.
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+---
+ drivers/usb/musb/tusb6010_omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I don't know if gspca uses ISO endpoint to transfer stream data. If it uses bulk
-to transfer video data, it will share the usb bandwidth with other devices.
-
-thanks,
+diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
+index c784e6c..07c8a73 100644
+--- a/drivers/usb/musb/tusb6010_omap.c
++++ b/drivers/usb/musb/tusb6010_omap.c
+@@ -89,7 +89,7 @@ static inline int tusb_omap_use_shared_dmareq(struct tusb_omap_dma_ch *chdat)
+ 	u32		reg = musb_readl(chdat->tbase, TUSB_DMA_EP_MAP);
+ 
+ 	if (reg != 0) {
+-		dev_dbg(musb->controller, "ep%i dmareq0 is busy for ep%i\n",
++		dev_dbg(chdat->musb->controller, "ep%i dmareq0 is busy for ep%i\n",
+ 			chdat->epnum, reg & 0xf);
+ 		return -EAGAIN;
+ 	}
 -- 
-Ming Lei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.3.4
