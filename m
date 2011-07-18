@@ -1,57 +1,48 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC 7/8] drivers: introduce rpmsg, a remote-processor
- messaging bus
-Date: Thu, 9 Jun 2011 19:12:10 +0200
-Message-ID: <20110609171210.GB3877@ucw.cz>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
- <1308640714-17961-8-git-send-email-ohad@wizery.com>
+From: Nick Pelly <npelly@google.com>
+Subject: Re: [PATCH] omap-serial: Allow IXON and IXOFF to be disabled.
+Date: Mon, 18 Jul 2011 16:09:42 -0700
+Message-ID: <CAESwx=jhutBN9ESiuQkhD9xYR95zUxBZjA_YTyubSniguGmrjg@mail.gmail.com>
+References: <1310669360-752-1-git-send-email-npelly@google.com> <CAAL8m4zQkOqdy0J4wKTR-OQWZDFsfBkDgJmhwhr9DPGmDQ+kBA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1308640714-17961-8-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([216.239.44.51]:15837 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750850Ab1GRXKQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jul 2011 19:10:16 -0400
+Received: from hpaq14.eem.corp.google.com (hpaq14.eem.corp.google.com [172.25.149.14])
+	by smtp-out.google.com with ESMTP id p6INAEjD001835
+	for <linux-omap@vger.kernel.org>; Mon, 18 Jul 2011 16:10:15 -0700
+Received: from yxk38 (yxk38.prod.google.com [10.190.3.166])
+	by hpaq14.eem.corp.google.com with ESMTP id p6IN9nuQ019358
+	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
+	for <linux-omap@vger.kernel.org>; Mon, 18 Jul 2011 16:10:13 -0700
+Received: by yxk38 with SMTP id 38so1831251yxk.2
+        for <linux-omap@vger.kernel.org>; Mon, 18 Jul 2011 16:10:13 -0700 (PDT)
+In-Reply-To: <CAAL8m4zQkOqdy0J4wKTR-OQWZDFsfBkDgJmhwhr9DPGmDQ+kBA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi!
+On Thu, Jul 14, 2011 at 10:37 PM, Govindraj <govindraj.ti@gmail.com> wrote:
+>
+> On Fri, Jul 15, 2011 at 12:19 AM, Nick Pelly <npelly@google.com> wrote:
+> > Fixes logic bug that software flow control cannot be disabled, because
+> > serial_omap_configure_xonxoff() is not called if both IXON and IXOFF bits
+> > are cleared.
+> >
+>
+> Thanks, Good Point.
+>
+> need to send to this patch to linux-serial@vger.kernel.org,
+> CC'ing "Greg Kroah-Hartman <gregkh@suse.de>"
+>
+> will be merged through tty tree.
+>
+> feel free to add
+>
+> Acked-by: Govindraj.R <govindraj.raja@ti.com>
+> Tested-by: Govindraj.R <govindraj.raja@ti.com>
 
-> @@ -0,0 +1,75 @@
-> +What:		/sys/bus/rpmsg/devices/.../name
-> +Date:		June 2011
-> +KernelVersion:	3.2
-> +Contact:	Ohad Ben-Cohen <ohad@wizery.com>
-> +Description:
-> +		Every rpmsg device is a communication channel with a remote
-> +		processor. Channels are identified with a (textual) name,
-> +		which is maximum 32 bytes long (defined as RPMSG_NAME_SIZE in
-> +		rpmsg.h).
-> +
-> +		This sysfs entry contains the name of this channel.
-> +
-> +What:		/sys/bus/rpmsg/devices/.../src
-> +Date:		June 2011
-> +KernelVersion:	3.2
-> +Contact:	Ohad Ben-Cohen <ohad@wizery.com>
-> +Description:
-> +		Every rpmsg device is a communication channel with a remote
-> +		processor. Channels have a local ("source") rpmsg address,
-> +		and remote ("destination") rpmsg address. When an entity
-> +		starts listening on one end of a channel, it assigns it with
-> +		a unique rpmsg address (a 32 bits integer). This way when
-> +		inbound messages arrive to this address, the rpmsg core
-> +		dispatches them to the listening entity (a kernel driver).
-> +
-> +		This sysfs entry contains the src (local) rpmsg address
-> +		of this channel. If it contains 0xffffffff, then an address
-> +		wasn't assigned (can happen if no driver exists for this
-> +		channel).
-
-So this is basically networking... right? Why not implement it as
-sockets? (accept, connect, read, write)?
-
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Done.
