@@ -1,89 +1,37 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv3 4/6] omap3: pmic: add API to get common SMPS regulators
-Date: Mon, 18 Jul 2011 21:23:48 +0300
-Message-ID: <20110718182347.GK25081@legolas.emea.dhcp.ti.com>
-References: <1311010522-5868-1-git-send-email-t-kristo@ti.com>
- <1311010522-5868-5-git-send-email-t-kristo@ti.com>
-Reply-To: balbi@ti.com
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/6] OMAP4: Add missing clock divider for OCP_ABE_ICLK
+Date: Mon, 18 Jul 2011 15:57:57 -0500
+Message-ID: <4E249E55.6010004@ti.com>
+References: <1310685865-3249-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1107150216380.16606@utopia.booyaka.com> <4E204FFC.5080700@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="g4MvFqI7wmANiPDo"
+Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:34682 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751469Ab1GRSXx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jul 2011 14:23:53 -0400
-Received: by eyd10 with SMTP id 10so2317110eyd.1
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jul 2011 11:23:51 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1311010522-5868-5-git-send-email-t-kristo@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:35735 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750713Ab1GRU6A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Jul 2011 16:58:00 -0400
+In-Reply-To: <4E204FFC.5080700@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, toddpoynor@google.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, b-cousson@ti.com
 
 
---g4MvFqI7wmANiPDo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 7/15/2011 9:34, Jon Hunter wrote:
+> 2). The "ocp_abe_iclk" is an interface clock and is not a parent to any
+> other functional clock and therefore, is not driving any internal logic
+> in a peripheral which would have a direct impact of the speed of that
+> peripheral. However, there does appear to be another bug here in the
+> clock44xx_data.c as it shows that the "ocp_abe_iclk" is parent to the
+> "slimbus1_fck" which I believe is incorrect. According to the TRM, the
+> the ocp_abe_iclk is parent to the slimbus1_iclk. I can send another
+> patch for this. However, I will let Benoit chime in first.
 
-Hi,
+On further inspection of the clock44xx_data.c, it appears that all 
+interface clocks are called xxx_fck and not xxx_ick. I will ask Benoit 
+about this. However, this particular clock we are dealing with here is 
+an interface clock.
 
-On Mon, Jul 18, 2011 at 08:35:20PM +0300, Tero Kristo wrote:
-> diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-c=
-ommon.h
-> index 5e83a5b..fde8467 100644
-> --- a/arch/arm/mach-omap2/twl-common.h
-> +++ b/arch/arm/mach-omap2/twl-common.h
-> @@ -25,6 +25,11 @@
->  #define TWL_COMMON_REGULATOR_VPLL1	(1 << 4)
->  #define TWL_COMMON_REGULATOR_VPLL2	(1 << 5)
-> =20
-> +/* TWLxxxx SMPS regulators */
-> +#define SMPS_COMMON_REGULATOR_MPU	(1 << 0)
-> +#define SMPS_COMMON_REGULATOR_CORE	(1 << 1)
-> +#define SMPS_COMMON_REGULATOR_IVA	(1 << 2)
-> +#define SMPS_COMMON_REGULATOR_MPU_IVA	(1 << 3)
-> =20
->  struct twl4030_platform_data;
-> =20
-> @@ -56,4 +61,13 @@ void omap3_pmic_get_config(struct twl4030_platform_dat=
-a *pmic_data,
->  void omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
->  			   u32 pdata_flags, u32 regulators_flags);
-> =20
-> +void omap_pmic_get_smps_config(struct platform_device *smps_dev,
-> +				u32 smps_flags);
-> +
-> +static inline void omap3_pmic_get_smps_config(struct platform_device *sm=
-ps_dev)
-> +{
-> +	omap_pmic_get_smps_config(smps_dev, SMPS_COMMON_REGULATOR_MPU_IVA |
-> +		SMPS_COMMON_REGULATOR_CORE);
-> +}
-
-if these are specific to OMAP SoC, why do they come on twl-common.h
-header ?
-
---=20
-balbi
-
---g4MvFqI7wmANiPDo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOJHozAAoJEAv8Txj19kN1qEIH/A0jIzL2OES9PNDPoqX5YbtK
-50DxFYwEoSFXrmvdKT0y6x76jgVgsKtcfgGIO2gHkg78Mwxpsyb3XRXe46AEFXRj
-DXKyDP70GlAbj9Bx1RohpepOZjrKn7sOKjJ+yXId/euZGwc7vH4fO19R1Bdi1/Hq
-vJkGJSCRxdy+t2ECTOa149il/+4fWo93hzpAshuNuOqz2c6wbJlRHF1tBBUCqe3L
-owGwPgIsdpO9Jvce30gweqsUqU1DfTMRImUJp6xkBRHviJCN0iBWthRUIetFM41h
-mShhWycuaKfo5BEn8ZgLmGOfLtqnbVFxPFHdfg4MFPxYja9i1PrOhvJKuO3dSE4=
-=7Znb
------END PGP SIGNATURE-----
-
---g4MvFqI7wmANiPDo--
+Cheers
+Jon
