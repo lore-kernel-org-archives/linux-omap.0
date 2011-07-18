@@ -1,131 +1,94 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH 3/4] dt: omap3: add generic board file for dt support
-Date: Mon, 18 Jul 2011 15:45:57 +0530
-Message-ID: <CAP6yH7eSmdU16r5iC2MwvU3RwOBXaJNygMUXG=HSMiWUKnor-w@mail.gmail.com>
-References: <1310592975-25773-1-git-send-email-manjugk@ti.com>
-	<1310592975-25773-4-git-send-email-manjugk@ti.com>
-	<CACxGe6sELS=C==16TZ2pfrxJDDyqjS_qOwJUfwzwMO8hqo8Xag@mail.gmail.com>
-	<CAC63_iSqN=rX6MbzFWM6z+zf1Eybg3MOD=qQVdeNg5cyENhPjw@mail.gmail.com>
-	<CAC63_iTf696D6Q_EzFeUUp5R38pYNEJBkmKviEu6-yuF0y=bNA@mail.gmail.com>
-	<CACxGe6uzyxf35WDg6COnPVt3dhQv1H80L1svALxp4naySx2BcA@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 01/11] OMAP: prcm: switch to a chained IRQ handler mechanism
+Date: Mon, 18 Jul 2011 15:19:19 +0300
+Message-ID: <1310991559.10230.9.camel@sokoban>
+References: <1309861677-2769-1-git-send-email-t-kristo@ti.com> <1309861677-2769-2-git-send-email-t-kristo@ti.com> <20110715164046.GA16552@google.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:50037 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753787Ab1GRKP6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jul 2011 06:15:58 -0400
-Received: by wwe5 with SMTP id 5so3026360wwe.1
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jul 2011 03:15:57 -0700 (PDT)
-In-Reply-To: <CACxGe6uzyxf35WDg6COnPVt3dhQv1H80L1svALxp4naySx2BcA@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:59625 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750745Ab1GRMT1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jul 2011 08:19:27 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <20110715164046.GA16552@google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, ben-linux@fluff.org, linux-arm-kernel@lists.infradead.org
+To: Todd Poynor <toddpoynor@google.com>
+Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Mahadeva, Avinash" <avinashhm@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "R, Govindraj" <govindraj.raja@ti.com>, "Balbi, Felipe" <balbi@ti.com>
 
-Hi Grant,
+On Fri, 2011-07-15 at 18:40 +0200, Todd Poynor wrote:
+> On Tue, Jul 05, 2011 at 01:27:47PM +0300, Tero Kristo wrote:
+> > Introduce a chained interrupt handler mechanism for the PRCM
+> > interrupt, so that individual PRCM event can cleanly be handled by
+> > handlers in separate drivers. We do this by introducing PRCM event
+> > names, which are then matched to the particular PRCM interrupt bit
+> > depending on the specific OMAP SoC being used.
+> > 
+> > arch/arm/mach-omap2/prcm.c implements the chained interrupt mechanism
+> > itself, with individual PRCM events for OMAP3 and OMAP4 being
+> > described in arch/arm/mach-omap2/prcm3xxx.c and
+> > arch/arm/mach-omap2/prcm4xxx.c respectively. At initialization time,
+> > the set of PRCM events is filtered against the SoC on which we are
+> > running, keeping only the ones that are actually useful. All the logic
+> > is written to be generic with regard to OMAP3/OMAP4, even though OMAP3
+> > has single PRCM event registers and OMAP4 has two PRCM event
+> > registers.
+> > 
+> ...
+> > +
+> > +	prcm_wkup_irq = omap_prcm_event_to_irq("wkup");
+> > +	prcm_io_irq = omap_prcm_event_to_irq("io");
+> 
+> 
+> Should check error return for both.
 
-On 17 July 2011 10:43, Grant Likely <grant.likely@secretlab.ca> wrote:
-> Hi Manjunath,
->
-> Comments below. =A0I left in a lot of context for the new folks that
-> I've cc'd (Tony and Kevin).
->
-> On Sat, Jul 16, 2011 at 2:07 PM, G, Manjunath Kondaiah <manjugk@ti.co=
-m> wrote:
->> On Thu, Jul 14, 2011 at 4:45 AM, Grant Likely <grant.likely@secretla=
-b.ca> wrote:
->>>> > +static void __init omap3_init(void)
->>>> > +{
->>>> > + =A0 =A0 =A0 struct device_node *node;
->>>> > +
-[...]
->> +static struct omap_device *of_omap_i2c_device_create(struct device_=
-node *node,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0const char *bus_id,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0void *platform_data,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0struct device *parent)
->> +{
->> + =A0 =A0 =A0 struct platform_device *pdev;
->> + =A0 =A0 =A0 struct i2c_board_info *i2c_board_info;
->> + =A0 =A0 =A0 u8 id;
->> +
->> + =A0 =A0 =A0 printk("Creating omap i2c device %s\n", node->full_nam=
-e);
->> +
->> + =A0 =A0 =A0 if (!of_device_is_available(node))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
->> +
->> + =A0 =A0 =A0 id =3D simple_strtol(bus_id, NULL, 0);
->> + =A0 =A0 =A0 pdev =3D kzalloc(sizeof(*pdev), GFP_KERNEL);
->> + =A0 =A0 =A0 pdev->dev.of_node =3D of_node_get(node);
->> + =A0 =A0 =A0 if (!pdev->dev.of_node) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed =3D 100;
->> + =A0 =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 prop;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!of_property_read_u32(pdev->dev.of=
-_node, "clock-frequency",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- &prop))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed =3D prop/100;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed =3D 100;
->> + =A0 =A0 =A0 }
->> + =A0 =A0 =A0 printk("%s : speed->%d\n",__func__, speed);
->> +
->> + =A0 =A0 =A0 for_each_child_of_node(bus, child) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 prop;
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(" =A0 create child: %s\n", chil=
-d->full_name);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 i2c_board_info =3D kzalloc(sizeof(*i2c=
-_board_info), GFP_KERNEL);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!of_property_read_u32(pdev->dev.of=
-_node, "reg",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &prop))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 i2c_board_info->addr =3D prop;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!of_property_read_u32(pdev->dev.of=
-_node, "interrupts",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &prop))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 i2c_board_info->irq =3D prop;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 i2c_board_info->platform_data =3D plat=
-form_data;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 strncpy(i2c_board_info->type, child->n=
-ame,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 sizeof(i2c_board_info->type));
->> + =A0 =A0 =A0 }
->> + =A0 =A0 =A0 omap_register_i2c_bus(id, speed, i2c_board_info, 1);
->
-> While this does in a sense work, and creates an omap_device for the
-> i2c bus that does get probed, it ends up encoding an awful lot of
-> device specific details into the generic devicetree support code. =A0=
-The
-> i2c bus driver itself must be responsible for decoding the speed and
-> child nodes, and in fact it can easily be modified to do so (I've
+Not needed, the next calls for request_irq will fail if these do not
+succeed (attempting to request irq with invalid number.)
 
-Decoding speed in i2c driver seems to be fine. But the i2c child nodes =
-are
-board specific. We might bring board specific handling code into i2c dr=
-iver
-with this approach.
+Rest of the return value checks I can add to the next version of this
+set.
 
-BTW, I have observed that, if we create i2c device node in omapx-soc.dt=
-si
-file and the define i2c bus clock-frequency in beagle.dts, the clock-fr=
-equency
-is not available in driver probe. Is this expected behavior?
+> 
+> > +
+> > +	ret = request_irq(prcm_wkup_irq, _prcm_int_handle_wakeup,
+> > +			IRQF_NO_SUSPEND | IRQF_DISABLED, "prcm_wkup", NULL);
+> >  
+> 
+> ...
+> > +	for (i = 0; i <= max_irq / 32; i++) {
+> > +		gc = irq_alloc_generic_chip("PRCM", 1,
+> > +			irq_setup->base_irq + i * 32, NULL, handle_level_irq);
+> > +
+> 
+> Should check NULL return for out of memory.
+> 
+> > +		ct = gc->chip_types;
+> 
+> ...
+> > +	/* Copy setup from __initdata section */
+> > +	irq_setup = kmalloc(sizeof(struct omap_prcm_irq_setup), GFP_KERNEL);
+> 
+> 
+> Check NULL return.
+> 
+> > +	memcpy(irq_setup, setup, sizeof(struct omap_prcm_irq_setup));
+> > +
+> > +	irqs = kmalloc(sizeof(struct omap_prcm_irq) *
+> > +		setup->num_irqs, GFP_KERNEL);
+> 
+> Check NULL return.
+> 
+> > +	memcpy(irqs, setup->irqs, sizeof(struct omap_prcm_irq) *
+> > +		setup->num_irqs);
+> 
+> 
+> Todd
 
--M
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
+
