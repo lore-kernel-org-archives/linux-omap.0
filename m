@@ -1,85 +1,42 @@
-From: "Raju, Sundaram" <sundaram@ti.com>
-Subject: RE: [PATCH] dmaengine: add dma_ctrl_cmd to pass buffer stride
- configuration
-Date: Mon, 18 Jul 2011 13:21:58 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9403026FE695@dbde02.ent.ti.com>
-References: <1310310203-12288-1-git-send-email-sundaram@ti.com>
-	<CABb+yY1HJOR+QzmM4-ju4cs+8keoyUbMv+SpVoM6BW=DCMzmQQ@mail.gmail.com>
-	<CACRpkdbLg0+_2kpi4NizFj0fDWb6QPtkcKirKgoH+83vGD0O0A@mail.gmail.com>
-	<CABb+yY1RqHJ6jsMB2RqPNnBLff-bzhwaXG1U-hCD8CpME+a3aA@mail.gmail.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E94030259DBBE@dbde02.ent.ti.com>
- <CABb+yY1_vuM7NGxV4o103YmYfte09XKpaXnYARcn3jjnChiBsQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: conflicts between omap/cleanup branch and omap_dss2 tree
+Date: Mon, 18 Jul 2011 01:08:56 -0700
+Message-ID: <20110718080856.GW5783@atomide.com>
+References: <201107172339.32516.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CABb+yY1_vuM7NGxV4o103YmYfte09XKpaXnYARcn3jjnChiBsQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jassi Brar <jassisinghbrar@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:46639 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750745Ab1GRIJD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jul 2011 04:09:03 -0400
+Content-Disposition: inline
+In-Reply-To: <201107172339.32516.arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYXNzaSBCcmFyIFttYWlsdG86
-amFzc2lzaW5naGJyYXJAZ21haWwuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBKdWx5IDEyLCAyMDEx
-IDY6MTUgUE0NCj4gVG86IFJhanUsIFN1bmRhcmFtDQo+IENjOiBMaW51cyBXYWxsZWlqOyBsaW51
-eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmc7IGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5r
-ZXJuZWwub3JnOyBkYXZpbmNpLWxpbnV4LW9wZW4tc291cmNlQGxpbnV4LmRhdmluY2lkc3AuY29t
-Ow0KPiBsaW51eEBhcm0ubGludXgub3JnLnVrOyBkYW4uai53aWxsaWFtc0BpbnRlbC5jb207IGxp
-bnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIGRtYWVuZ2lu
-ZTogYWRkIGRtYV9jdHJsX2NtZCB0byBwYXNzIGJ1ZmZlciBzdHJpZGUNCj4gY29uZmlndXJhdGlv
-bg0KPiANCj4gT24gVHVlLCBKdWwgMTIsIDIwMTEgYXQgNTowMSBQTSwgUmFqdSwgU3VuZGFyYW0g
-PHN1bmRhcmFtQHRpLmNvbT4gd3JvdGU6DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
-DQo+ID4+IEZyb206IEphc3NpIEJyYXIgW21haWx0bzpqYXNzaXNpbmdoYnJhckBnbWFpbC5jb21d
-DQo+ID4+IFNlbnQ6IFR1ZXNkYXksIEp1bHkgMTIsIDIwMTEgNDo1MSBQTQ0KPiA+PiBUbzogTGlu
-dXMgV2FsbGVpag0KPiA+PiBDYzogUmFqdSwgU3VuZGFyYW07IGxpbnV4LWFybS1rZXJuZWxAbGlz
-dHMuaW5mcmFkZWFkLm9yZzsgbGludXgtDQo+ID4+IGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGRh
-dmluY2ktbGludXgtb3Blbi1zb3VyY2VAbGludXguZGF2aW5jaWRzcC5jb207DQo+ID4+IGxpbnV4
-QGFybS5saW51eC5vcmcudWs7IGRhbi5qLndpbGxpYW1zQGludGVsLmNvbTsgbGludXgtDQo+IG9t
-YXBAdmdlci5rZXJuZWwub3JnDQo+ID4+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIGRtYWVuZ2luZTog
-YWRkIGRtYV9jdHJsX2NtZCB0byBwYXNzIGJ1ZmZlciBzdHJpZGUNCj4gPj4gY29uZmlndXJhdGlv
-bg0KPiA+Pg0KPiA+PiBPbiBUdWUsIEp1bCAxMiwgMjAxMSBhdCAzOjMzIFBNLCBMaW51cyBXYWxs
-ZWlqIDxsaW51cy53YWxsZWlqQGxpbmFyby5vcmc+DQo+ID4+IHdyb3RlOg0KPiA+PiA+IE9uIFR1
-ZSwgSnVsIDEyLCAyMDExIGF0IDY6MTcgQU0sIEphc3NpIEJyYXIgPGphc3Npc2luZ2hicmFyQGdt
-YWlsLmNvbT4NCj4gPj4gd3JvdGU6DQo+ID4+ID4NCj4gPj4gPj4gMSkgU3RyaWRpbmcsIGluIG9u
-ZSBmb3JtIG9yIG90aGVyLCBpcyBzdXBwb3J0ZWQgYnkgb3RoZXIgRE1BQ3MgYXMgd2VsbC4NCj4g
-Pj4gPj4gwqAgVGhlIG51bWJlciB3aWxsIG9ubHkgaW5jcmVhc2UgaW4gZnV0dXJlLg0KPiA+PiA+
-PiDCoCBBcmUgd2UgdG8gYWRkIMKgPFZFTkRPUj5fRE1BX1NUUklERV9DT05GSUcgZm9yIGVhY2gg
-Y2FzZSA/DQo+ID4+ID4NCj4gPj4gPiBJZiB3ZSBhcmUgc3VyZSBhYm91dCB0aGlzIGFuZCBzdHJp
-ZGluZyB3aWxsIHdvcmsgaW4gYSBzaW1pbGFyIHdheSBvbiBhbGwNCj4gPj4gPiB0aGVuIGxldCdz
-IGhhdmUgdGhlIGVudW0gbmFtZWQgRE1BX1NUUklERV9DT05GSUcgYW5kIG1vdmUgdGhlDQo+ID4+
-ID4gcGFzc2VkLWluIHN0cnVjdCB0byA8bGludXgvZG1hZW5naW5lLmgpIHRoZW4/DQo+ID4+ID4N
-Cj4gPj4gPiBXb3VsZCB0aGF0IGJlOg0KPiA+PiA+DQo+ID4+ID4gc3RydWN0IGRtYV9zdHJpZGVf
-Y29uZmlnIHsNCj4gPj4gPiDCoCDCoHUzMiByZWFkX2J5dGVzOw0KPiA+PiA+IMKgIMKgdTMyIHNr
-aXBfYnl0ZXM7DQo+ID4+ID4gfTsNCj4gPj4gPg0KPiA+PiA+IE9yIHNvbWV0aGluZyBtb3JlIGNv
-bXBsZXg/DQo+ID4+IFdlbGwsIEkgYW0gbm90IHN1cmUgaWYgc3RyaWRpbmcgbmVlZHMgYW55IHNw
-ZWNpYWwgdHJlYXRtZW50IGF0IGFsbC4NCj4gPj4gV2h5IG5vdCBoYXZlIGNsaWVudCBkcml2ZXJz
-IHByZXBhcmUgYW5kIHN1Ym1pdCBzZy1saXN0Lg0KPiA+PiBMZXQgdGhlIERNQUMgZHJpdmVycyBp
-bnRlcnByZXQvcGFyc2UgdGhlIHNnLWxpc3QgYW5kIHByb2dyYW0gaXQNCj4gPj4gYXMgc3RyaWRl
-cyBpZiB0aGUgaC93IHN1cHBvcnRzIGl0Lg0KPiA+PiBJZiBhbnl0aGluZywgd2Ugc2hvdWxkIG1h
-a2UgcHJlcGFyYXRpb24gYW5kIHN1Ym1pc3Npb24gb2Ygc2ctbGlzdA0KPiA+PiBhcyBlZmZpY2ll
-bnQgYXMgcG9zc2libGUuDQo+ID4gSmFzc2ksDQo+ID4NCj4gPiBzZ19saXN0cyBkZXNjcmliZSBv
-bmx5IGEgYnVuY2ggb2YgZGlzam9pbnQgYnVmZmVycy4gQnV0IHdoYXQgaWYgdGhlDQo+ID4gRE1B
-QyBjYW4gc2tpcCBhbmQgcmVhZCB0aGUgYnl0ZXMgd2l0aGluIGVhY2ggb2YgdGhlIGJ1ZmZlcnMg
-aW4NCj4gPiB0aGUgc2dfbGlzdD8gKGxpa2UgVEkgRURNQUMgYW5kIFRJIFNETUFDKQ0KPiA+IEhv
-dyBjYW4gdGhhdCBpbmZvcm1hdGlvbiBiZSBwYXNzZWQgdG8gdGhlIG9mZmxvYWQNCj4gPiBlbmdp
-bmUgZHJpdmVyIGZyb20gdGhlIGNsaWVudD8NCj4gPg0KPiBPSywgSSBvdmVybG9va2VkLg0KPiBX
-ZSBkbyBuZWVkIHNvbWV0aGluZyBuZXcgdG8gaGFuZGxlIHRoZXNlIHVsdHJhLWZpbmUtZ3JhaW5l
-ZCBzZy1saXN0cy4NCj4gQnV0IHN0aWxsIHdlIHNob3VsZG4ndCBhZGQgU29DIHNwZWNpZmljIEFQ
-SSB0byB0aGUgY29tbW9uIHN1Yi1zeXN0ZW1zLg0KPiANCj4gTWF5YmUgYSBuZXcgYXBpIHRvIHBh
-c3MgZml4ZWQtZm9ybWF0IHZhcmlhYmxlLWxlbmd0aCBlbmNvZGVkIG1lc3NhZ2UNCj4gdG8gdGhl
-IERNQUMgZHJpdmVycz8NCj4gV2hpY2ggY291bGQgYmUgaW50ZXJwcmV0ZWQgYnkgRE1BQyBkcml2
-ZXJzIHRvIGV4dHJhY3QgYWxsIHRoZSBuZWVkZWQgeGZlcg0KPiBwYXJhbWV0ZXJzIGZyb20gdGhl
-ICdoZWFkZXInIHNlY3Rpb24gYW5kIGluc3RydWN0aW9ucyB0byBwcm9ncmFtIHRoZSB4ZmVycw0K
-PiBpbiB0aGUgRE1BQyBmcm9tIHRoZSB2YXJpYWJsZSBsZW5ndGggYm9keSBvZiB0aGUgJ21lc3Nh
-Z2UnIGJ1ZmZlci4NCj4gSXQgbWlnaHQgc291bmQgY29tcGxpY2F0ZWQgYnV0IHdlIGNhbiBoYXZl
-IGhlbHBlcnMgdG8gbWFrZSB0aGUgam9iIGVhc3kuDQo+IEJ0dywgdGhlIHJlZ3VsYXIgc2luZ2xl
-L3NnLWxpc3QgeGZlcnMgY291bGQgYWxzbyBiZSBleHByZXNzZWQgYnkgdGhpcyBtZXRob2QuDQoN
-CkRvIHlvdSBleHBlY3QgdGhpcyB2YXJpYWJsZSBsZW5ndGggYm9keSBvZiB0aGUgbWVzc2FnZSB0
-byBiZSBETUFDDQppbmRlcGVuZGVudD8gSSBkb24ndCB0aGluayBzby4gSW4gdGhhdCBjYXNlIGhv
-dyBpcyB0aGlzIGRpZmZlcmVudCBmcm9tIHdoYXQNCndlIGhhdmUgaGVyZSBhbHJlYWR5Pw0KDQpJ
-ZiBpdCBjYW4gYmUgRE1BQyBpbmRlcGVuZGVudCwgY2FuIHlvdSBpbGx1c3RyYXRlIG1vcmUgb24g
-aG93IHRoaXMgY2FuDQpiZSBkb25lPyBCdXQgdGhlIHBvaW50IHRvIG5vdGUgaXMsIGlmIHRoaXMg
-Y2FuIGJlIG1hZGUgRE1BQyBpbmRlcGVuZGVudA0KdGhlbiB0aGUgY29udHJvbCBjb21tYW5kIHdl
-IGhhdmUgYWxzbyBjYW4gYmUgbWFkZSBETUFDIGluZGVwZW5kZW50DQpieSBnZW5lcmFsaXppbmcg
-dGhlIGNvbmZpZ3VyYXRpb24gc3RydWN0dXJlIHBhc3NlZCB0byBpdC4NCg0KfiBTdW5kYXJhbQ0K
+* Arnd Bergmann <arnd@arndb.de> [110717 14:36]:
+> Hi Paul and Tomi,
+> 
+> I'm trying to get the arm-soc tree integrated into linux-next, but right
+> now that fails because of lots of conflicts in the arch/arm/mach-omap2/clock44xx_data.c
+> and arch/arm/mach-omap2/omap_hwmod_44xx_data.c files.
+> 
+> I've done a dumb resolution by pulling in the omap_dss2/for_next tree as a
+> depedency and taking Tomi's version of the files, which is probably wrong 
+> but lets Stephen at least take the arm-soc tree.
+
+Yes that's the wrong way around for these files..
+
+> Please fix this properly in either the omap or the omap_dss2 trees.
+
+The clock and hwmod data patches should get queued by Benoit and Paul,
+so I'm suspecting these are some of Tomi's patches still in development.
+
+Tomi can you please check what you have in for-next?
+
+Regards,
+
+Tony
