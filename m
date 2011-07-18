@@ -1,12 +1,12 @@
 From: Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: SanDisk MMC card timeouts
-Date: Mon, 18 Jul 2011 01:30:22 -0500
-Message-ID: <CAD=GYpaWYcvho87EMzy1Szz3=VZiU=GYApSozd4U_ELhRBtdjA@mail.gmail.com>
+Date: Mon, 18 Jul 2011 01:34:07 -0500
+Message-ID: <CAD=GYpavhxCQD4ttE8xB2tsKXeNm-TTOmozaB68OJ+_Lf8p2ng@mail.gmail.com>
 Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <beagleboard+bncCK_qjoz9EhCApo_xBBoEZhXjSQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <beagleboard+bncCK_qjoz9EhDhp4_xBBoENtd3wA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Post: <http://groups.google.com/group/beagleboard/post?hl=en_US>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Archive: <http://groups.google.com/group/beagleboard?hl=en_US>
@@ -14,12 +14,14 @@ Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=en_US>,
  <mailto:beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, "Kooi, Koen" <k-kooi-l0cyMroinI0@public.gmane.org>, "Kridner, Jason" <jdk-l0cyMroinI0@public.gmane.org>, "Kipisz, Steven" <s-kipisz2-l0cyMroinI0@public.gmane.org>, "Coley, Gerald" <g-coley1-l0cyMroinI0@public.gmane.org>
+Cc: sakoman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, "Kridner, Jason" <jdk-l0cyMroinI0@public.gmane.org>, "Kooi, Koen" <k-kooi-l0cyMroinI0@public.gmane.org>, "Kipisz, Steven" <s-kipisz2-l0cyMroinI0@public.gmane.org>, "Coley, Gerald" <g-coley1-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
+
+[Added Steven Sakoman to the CC list]
 
 Hi,
 
-We're seeing MMC timeout errors with SanDisk MMC cards and a 2.6.32
+We're seeing timeout errors with SanDisk MMC cards and a 2.6.32
 kernel (BeagleBoard Rev C5).
 
 The suggested fix of setting dto timeout to 14
@@ -98,14 +100,14 @@ Loading file "/boot/uImage" from mmc device 0:2 (xxa2)
 3202868 bytes read
 Booting from mmc ...
 ## Booting kernel from Legacy Image at 80200000 ...
-  Image Name:   Angstrom/2.6.32/beagleboard
+ Image Name:   Angstrom/2.6.32/beagleboard
 
-  Image Type:   ARM Linux Kernel Image (uncompressed)
-  Data Size:    3202804 Bytes =3D 3.1 MiB
-  Load Address: 80008000
-  Entry Point:  80008000
-  Verifying Checksum ... OK
-  Loading Kernel Image ... OK
+ Image Type:   ARM Linux Kernel Image (uncompressed)
+ Data Size:    3202804 Bytes =3D 3.1 MiB
+ Load Address: 80008000
+ Entry Point:  80008000
+ Verifying Checksum ... OK
+ Loading Kernel Image ... OK
 OK
 
 Starting kernel ...
