@@ -1,48 +1,177 @@
-From: Nick Pelly <npelly@google.com>
-Subject: Re: [PATCH] omap-serial: Allow IXON and IXOFF to be disabled.
-Date: Mon, 18 Jul 2011 16:09:42 -0700
-Message-ID: <CAESwx=jhutBN9ESiuQkhD9xYR95zUxBZjA_YTyubSniguGmrjg@mail.gmail.com>
-References: <1310669360-752-1-git-send-email-npelly@google.com> <CAAL8m4zQkOqdy0J4wKTR-OQWZDFsfBkDgJmhwhr9DPGmDQ+kBA@mail.gmail.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: Re: [PATCH] usb: musb: Enable DMA mode1 RX for USB-Mass-Storage
+Date: Mon, 18 Jul 2011 16:38:59 -0700
+Message-ID: <CAFm5wm0+t5DBO98k7krcp8Y+_GKDRT4UkxGWZgQ-jb-6QTQqXg@mail.gmail.com>
+References: <1310773489-19184-1-git-send-email-vikram.pandita@ti.com> <4E21746C.4040301@ru.mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:15837 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750850Ab1GRXKQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jul 2011 19:10:16 -0400
-Received: from hpaq14.eem.corp.google.com (hpaq14.eem.corp.google.com [172.25.149.14])
-	by smtp-out.google.com with ESMTP id p6INAEjD001835
-	for <linux-omap@vger.kernel.org>; Mon, 18 Jul 2011 16:10:15 -0700
-Received: from yxk38 (yxk38.prod.google.com [10.190.3.166])
-	by hpaq14.eem.corp.google.com with ESMTP id p6IN9nuQ019358
-	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Mon, 18 Jul 2011 16:10:13 -0700
-Received: by yxk38 with SMTP id 38so1831251yxk.2
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jul 2011 16:10:13 -0700 (PDT)
-In-Reply-To: <CAAL8m4zQkOqdy0J4wKTR-OQWZDFsfBkDgJmhwhr9DPGmDQ+kBA@mail.gmail.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:35910 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751728Ab1GRXjU convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Jul 2011 19:39:20 -0400
+In-Reply-To: <4E21746C.4040301@ru.mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, gadiyar@ti.com, linux-omap@vger.kernel.org, Moiz Sonasath <m-sonasath@ti.com>
 
-On Thu, Jul 14, 2011 at 10:37 PM, Govindraj <govindraj.ti@gmail.com> wrote:
+On Sat, Jul 16, 2011 at 4:22 AM, Sergei Shtylyov <sshtylyov@mvista.com>=
+ wrote:
 >
-> On Fri, Jul 15, 2011 at 12:19 AM, Nick Pelly <npelly@google.com> wrote:
-> > Fixes logic bug that software flow control cannot be disabled, because
-> > serial_omap_configure_xonxoff() is not called if both IXON and IXOFF bits
-> > are cleared.
-> >
+> Hello.
 >
-> Thanks, Good Point.
+> On 16-07-2011 3:44, Vikram Pandita wrote:
 >
-> need to send to this patch to linux-serial@vger.kernel.org,
-> CC'ing "Greg Kroah-Hartman <gregkh@suse.de>"
+>> From: Vikram Pandita <vikram.pandita@ti.com>
 >
-> will be merged through tty tree.
+>> This patch enables the DMA mode1 RX support.
+>> This feature is enabled based on the short_not_ok flag passed from
+>> gadget drivers.
 >
-> feel free to add
+>> This will result in a thruput performance gain of around
+>> 40% for USB mass-storage/mtp use cases.
 >
-> Acked-by: Govindraj.R <govindraj.raja@ti.com>
-> Tested-by: Govindraj.R <govindraj.raja@ti.com>
+>> Based on Original work by
+>> Anand Gadiyar<gadiyar@ti.com> =A0on 2.6.35 kernel
+>
+>> Tested on OMAP4460 Blaze board.
+>
+>> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
+>> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+>> ---
+>> =A0drivers/usb/musb/musb_gadget.c | =A0 42 +++++++++++++++++++++++++=
++++-----------
+>> =A01 files changed, 30 insertions(+), 12 deletions(-)
+>
+>> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_=
+gadget.c
+>> index 9412410..e643ec2 100644
+>> --- a/drivers/usb/musb/musb_gadget.c
+>> +++ b/drivers/usb/musb/musb_gadget.c
+>> @@ -624,6 +624,7 @@ void musb_g_tx(struct musb *musb, u8 epnum)
+>> =A0/*
+>> =A0 * Context: controller locked, IRQs blocked, endpoint selected
+>> =A0 */
+>> +
+>
+> =A0 Why?
 
-Done.
+typo - will fix in v2
+
+>
+>> =A0static void rxstate(struct musb *musb, struct musb_request *req)
+>> =A0{
+>> =A0 =A0 =A0 =A0const u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0epnum =3D req=
+->epnum;
+>> @@ -714,10 +728,13 @@ static void rxstate(struct musb *musb, struct =
+musb_request *req)
+>> =A0 =A0 =A0 =A0 * then becomes usable as a runtime "use mode 1" hint=
+=2E..
+>> =A0 =A0 =A0 =A0 */
+>>
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 csr |=3D=
+ MUSB_RXCSR_DMAENAB;
+>> -#ifdef USE_MODE1
+>> + =A0 =A0 =A0 /* Experimental: Mode1 works with mass storage use cas=
+es
+>> + =A0 =A0 =A0 =A0*/
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (use_mode_1) {
+>
+> =A0 No, you can't put the code at the arbitrary indentation levels. P=
+lease indent properly.
+
+agree. v2 will address.
+
+>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0csr |=
+=3D MUSB_RXCSR_AUTOCLEAR;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* csr=
+ |=3D MUSB_RXCSR_DMAMODE; */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 musb_w=
+ritew(epio, MUSB_RXCSR, csr);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 csr |=3D=
+ MUSB_RXCSR_DMAENAB;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 musb_w=
+ritew(epio, MUSB_RXCSR, csr);
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* th=
+is special sequence (enabling and then
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * di=
+sabling MUSB_RXCSR_DMAMODE) is required
+>> @@ -725,26 +742,27 @@ static void rxstate(struct musb *musb, struct =
+musb_request *req)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0musb_=
+writew(epio, MUSB_RXCSR,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0csr | MUSB_RXCSR_DMAMODE);
+>> -#else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 musb_w=
+ritew(epio, MUSB_RXCSR, csr);
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (!=
+musb_ep->hb_mult &&
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0musb_ep->hw_ep->rx_double_buffered)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0csr |=3D MUSB_RXCSR_AUTOCLEAR;
+>> -#endif
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 csr |=3D=
+ MUSB_RXCSR_DMAENAB;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0musb_=
+writew(epio, MUSB_RXCSR, csr);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (r=
+equest->actual< =A0request->length) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0int transfer_size =3D 0;
+>> -#ifdef USE_MODE1
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (use_mode_1) {
+>
+> =A0 Same here.
+
+agree. v2 will address.
+
+
+>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0transfer_size =3D min(request->length - request->actual,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0channel->max_len);
+>> -#else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 musb_ep->dma->desired_mode =3D 1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0transfer_size =3D min(request->length - request->actual,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(unsigned)len);
+>> -#endif
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 if (transfer_size <=3D musb_ep->packet_sz)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 musb_ep->dma->desired_mode =3D 0;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 else
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 musb_ep->dma->desired_mode =3D 1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 musb_ep->dma->desired_mode =3D 0;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0use_dma =3D c->channel_program(
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0channel,
+>
+> WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
