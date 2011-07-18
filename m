@@ -1,38 +1,140 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv3 1/6] OMAP: move voltage.h and vp.h under platform include directory
-Date: Mon, 18 Jul 2011 16:45:27 -0700
-Message-ID: <8762mzkvag.fsf@ti.com>
-References: <1311010522-5868-1-git-send-email-t-kristo@ti.com>
-	<1311010522-5868-2-git-send-email-t-kristo@ti.com>
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH v2] usb: musb: Enable DMA mode1 RX for USB-Mass-Storage
+Date: Mon, 18 Jul 2011 16:51:43 -0700
+Message-ID: <1311033103-15854-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:42761 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751728Ab1GRXpb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jul 2011 19:45:31 -0400
-Received: by mail-iw0-f176.google.com with SMTP id 5so5004562iwi.35
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jul 2011 16:45:30 -0700 (PDT)
-In-Reply-To: <1311010522-5868-2-git-send-email-t-kristo@ti.com> (Tero Kristo's
-	message of "Mon, 18 Jul 2011 20:35:17 +0300")
+Received: from comal.ext.ti.com ([198.47.26.152]:41108 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750933Ab1GRXv4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Jul 2011 19:51:56 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, toddpoynor@google.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com
+To: balbi@ti.com, linux-usb@vger.kernel.org, gadiyar@ti.com
+Cc: linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>, Moiz Sonasath <m-sonasath@ti.com>
 
-Tero Kristo <t-kristo@ti.com> writes:
+From: Vikram Pandita <vikram.pandita@ti.com>
 
-> This is needed so that these include files can be accessed from drivers.
+This patch enables the DMA mode1 RX support.
+This feature is enabled based on the short_not_ok flag passed from
+gadget drivers.
 
-I think you can get by with a <plat/voltage.h> with simply an opaque
-struct voltagedomain, and the definitions of the functions needed by the
-regulator driver (currently only voltdm_scale, omap_vp_get_curr_volt).
-Then mach-omap2/voltage.h could just include <plat/voltage.h> and all
-the truly internal stuff can stay internal.
+This will result in a thruput performance gain of around
+40% for USB mass-storage/mtp use cases.
 
-Also note that in the latest pm-wip/voltdm branch (just pushed)
-omap_vp_get_curr_volt() no longer exists.  Just use
-voltdm_get_voltage().
+Based on Original work by
+Anand Gadiyar <gadiyar@ti.com> on 2.6.35 kernel
 
-Kevin
+Change-Id: I9b3a7cae73b63e86128d2caf4cdd67ab77556e75
+Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+
+V1 - initial drop
+V2 - fixed whitespace issues as per Sergei Shtylyov<sshtylyov@mvista.com> comments
+
+ drivers/usb/musb/musb_gadget.c |   68 ++++++++++++++++++++++++---------------
+ 1 files changed, 42 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+index 6aeb363..4a1432e 100644
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -634,6 +634,7 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 	u16			len;
+ 	u16			csr = musb_readw(epio, MUSB_RXCSR);
+ 	struct musb_hw_ep	*hw_ep = &musb->endpoints[epnum];
++	u8			use_mode_1;
+ 
+ 	if (hw_ep->is_shared_fifo)
+ 		musb_ep = &hw_ep->ep_in;
+@@ -683,6 +684,18 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 
+ 	if (csr & MUSB_RXCSR_RXPKTRDY) {
+ 		len = musb_readw(epio, MUSB_RXCOUNT);
++
++		/*
++		 * Enable Mode 1 for RX transfers only for mass-storage
++		 * use-case, based on short_not_ok flag which is set only
++		 * from file_storage and f_mass_storage drivers
++		 */
++
++		if (request->short_not_ok && len == musb_ep->packet_sz)
++			use_mode_1 = 1;
++		else
++			use_mode_1 = 0;
++
+ 		if (request->actual < request->length) {
+ #ifdef CONFIG_USB_INVENTRA_DMA
+ 			if (is_buffer_mapped(req)) {
+@@ -714,37 +727,40 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 	 * then becomes usable as a runtime "use mode 1" hint...
+ 	 */
+ 
+-				csr |= MUSB_RXCSR_DMAENAB;
+-#ifdef USE_MODE1
+-				csr |= MUSB_RXCSR_AUTOCLEAR;
+-				/* csr |= MUSB_RXCSR_DMAMODE; */
+-
+-				/* this special sequence (enabling and then
+-				 * disabling MUSB_RXCSR_DMAMODE) is required
+-				 * to get DMAReq to activate
+-				 */
+-				musb_writew(epio, MUSB_RXCSR,
+-					csr | MUSB_RXCSR_DMAMODE);
+-#else
+-				if (!musb_ep->hb_mult &&
+-					musb_ep->hw_ep->rx_double_buffered)
++				/* Experimental: Mode1 works with mass storage use cases */
++				if (use_mode_1) {
+ 					csr |= MUSB_RXCSR_AUTOCLEAR;
+-#endif
+-				musb_writew(epio, MUSB_RXCSR, csr);
++					musb_writew(epio, MUSB_RXCSR, csr);
++					csr |= MUSB_RXCSR_DMAENAB;
++					musb_writew(epio, MUSB_RXCSR, csr);
++
++					/* this special sequence (enabling and then
++					* disabling MUSB_RXCSR_DMAMODE) is required
++					* to get DMAReq to activate
++					*/
++					musb_writew(epio, MUSB_RXCSR,
++						csr | MUSB_RXCSR_DMAMODE);
++					musb_writew(epio, MUSB_RXCSR, csr);
++
++				} else {
++					if (!musb_ep->hb_mult &&
++						musb_ep->hw_ep->rx_double_buffered)
++						csr |= MUSB_RXCSR_AUTOCLEAR;
++					csr |= MUSB_RXCSR_DMAENAB;
++					musb_writew(epio, MUSB_RXCSR, csr);
++				}
+ 
+ 				if (request->actual < request->length) {
+ 					int transfer_size = 0;
+-#ifdef USE_MODE1
+-					transfer_size = min(request->length - request->actual,
+-							channel->max_len);
+-#else
+-					transfer_size = min(request->length - request->actual,
+-							(unsigned)len);
+-#endif
+-					if (transfer_size <= musb_ep->packet_sz)
+-						musb_ep->dma->desired_mode = 0;
+-					else
++					if (use_mode_1) {
++						transfer_size = min(request->length - request->actual,
++								channel->max_len);
+ 						musb_ep->dma->desired_mode = 1;
++					} else {
++						transfer_size = min(request->length - request->actual,
++								(unsigned)len);
++						musb_ep->dma->desired_mode = 0;
++					}
+ 
+ 					use_dma = c->channel_program(
+ 							channel,
+-- 
+1.7.4.1
+
