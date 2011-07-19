@@ -1,137 +1,288 @@
-From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3] usb: musb: Enable DMA mode1 RX for USB-Mass-Storage
-Date: Tue, 19 Jul 2011 01:52:14 -0700
-Message-ID: <1311065534-8300-1-git-send-email-vikram.pandita@ti.com>
+From: Graeme Gregory <dp@xora.org.uk>
+Subject: Re: [PATCHv3 3/6] regulator: omap smps regulator driver
+Date: Tue, 19 Jul 2011 11:28:21 +0100
+Message-ID: <4E255C45.3040700@xora.org.uk>
+References: <1311010522-5868-1-git-send-email-t-kristo@ti.com> <1311010522-5868-4-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.xora.org.uk ([80.68.91.202]:39126 "EHLO
+	xora.vm.bytemark.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752069Ab1GSKgZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jul 2011 06:36:25 -0400
+In-Reply-To: <1311010522-5868-4-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, toddpoynor@google.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com
 
-From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+On 07/18/2011 06:35 PM, Tero Kristo wrote:
+> OMAP SMPS regulator driver provides access to OMAP voltage processor
+> controlled regulators. These include VDD_MPU and VDD_CORE for OMAP3 and
+> additionally VDD_IVA for OMAP4. SMPS regulators use the OMAP voltage
+> layer for the actual voltage regulation operations.
+>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Todd Poynor <toddpoynor@google.com>
+> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Cc: Liam Girdwood <lrg@ti.com>
+> ---
+>  drivers/regulator/Kconfig               |    9 ++
+>  drivers/regulator/Makefile              |    1 +
+>  drivers/regulator/omap-smps-regulator.c |  180 +++++++++++++++++++++++++++++++
+>  include/linux/regulator/omap-smps.h     |   20 ++++
+>  4 files changed, 210 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/regulator/omap-smps-regulator.c
+>  create mode 100644 include/linux/regulator/omap-smps.h
+>
+> diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+> index d7ed20f..bb18ff2 100644
+> --- a/drivers/regulator/Kconfig
+> +++ b/drivers/regulator/Kconfig
+> @@ -303,5 +303,14 @@ config REGULATOR_TPS65910
+>  	help
+>  	  This driver supports TPS65910 voltage regulator chips.
+>  
+> +config REGULATOR_OMAP_SMPS
+> +	tristate "TI OMAP SMPS Power Regulators"
+> +	depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM && TWL4030_CORE
+> +	help
+> +	  This driver supports the OMAP3 / OMAP4 SMPS regulators for VDD1,
+> +	  VDD2 and VDD3. These regulators reside inside the TWL4030 /
+> +	  TWL6030 chip but are accessed using the voltage processor
+> +	  interface of OMAP.
+> +
+>  endif
+>  
+> diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
+> index 3932d2e..191e3d5 100644
+> --- a/drivers/regulator/Makefile
+> +++ b/drivers/regulator/Makefile
+> @@ -43,5 +43,6 @@ obj-$(CONFIG_REGULATOR_ISL6271A) += isl6271a-regulator.o
+>  obj-$(CONFIG_REGULATOR_AB8500)	+= ab8500.o
+>  obj-$(CONFIG_REGULATOR_DB8500_PRCMU) += db8500-prcmu.o
+>  obj-$(CONFIG_REGULATOR_TPS65910) += tps65910-regulator.o
+> +obj-$(CONFIG_REGULATOR_OMAP_SMPS) += omap-smps-regulator.o
+>  
+>  ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
+> diff --git a/drivers/regulator/omap-smps-regulator.c b/drivers/regulator/omap-smps-regulator.c
+> new file mode 100644
+> index 0000000..8b56e4f
+> --- /dev/null
+> +++ b/drivers/regulator/omap-smps-regulator.c
+> @@ -0,0 +1,179 @@
+> +/*
+> + * omap-vp-regulator.c -- support SMPS regulators for OMAP chips
+> + *
+> + * Copyright (C) 2011 Texas Instruments, Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/ctype.h>
+> +#include <linux/module.h>
+> +#include <linux/slab.h>
+> +#include <linux/init.h>
+> +#include <linux/err.h>
+> +#include <linux/delay.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/regulator/driver.h>
+> +#include <linux/regulator/machine.h>
+> +#include <linux/regulator/omap-smps.h>
+> +#include <plat/voltage.h>
+> +
+> +#define DRIVER_NAME		"omap-smps"
+> +
+> +struct omap_smps_reg_info {
+> +	const char		*vdd_name;
+> +	struct regulator_dev	*rdev;
+> +	struct voltagedomain	*voltdm;
+> +	struct regulator_desc	desc;
+> +};
+> +
+> +static int omap_smps_set_voltage(struct regulator_dev *rdev, int min_uV,
+> +				    int max_uV, unsigned *selector)
+> +{
+> +	struct omap_smps_reg_info	*info = rdev_get_drvdata(rdev);
+> +	return voltdm_scale(info->voltdm, min_uV);
+> +}
+> +
+> +static int omap_smps_get_voltage(struct regulator_dev *rdev)
+> +{
+> +	struct omap_smps_reg_info	*info = rdev_get_drvdata(rdev);
+> +	return omap_vp_get_curr_volt(info->voltdm);
+> +}
+> +
+> +static struct regulator_ops omap_smps_ops = {
+> +	.set_voltage	= omap_smps_set_voltage,
+> +	.get_voltage	= omap_smps_get_voltage,
+> +};
+> +
+> +#define SMPS_REG(name) { \
+> +	.vdd_name = #name, \
+> +	.desc = { \
+> +		.ops = &omap_smps_ops, \
+> +		.type = REGULATOR_VOLTAGE, \
+> +		.owner = THIS_MODULE, \
+> +		}, \
+> +	}
+> +
+> +static struct omap_smps_reg_info omap_smps_regs[] = {
+> +	SMPS_REG(mpu),
+> +	SMPS_REG(mpu_iva),
+> +	SMPS_REG(iva),
+> +	SMPS_REG(core),
+> +};
+> +
+> +static void omap_smps_reg_cleanup(void)
+> +{
+> +	int				i;
+> +	struct omap_smps_reg_info	*info;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(omap_smps_regs); i++) {
+> +		info = &omap_smps_regs[i];
+> +		if (info->rdev) {
+> +			regulator_unregister(info->rdev);
+> +			info->rdev = NULL;
+> +		}
+> +
+> +		kfree(info->desc.name);
+> +		info->desc.name = NULL;
+> +	}
+> +}
+> +
+> +static struct regulator_init_data dummy_initdata __initdata;
+> +
+> +static int __devinit omap_smps_reg_probe(struct platform_device *pdev)
+> +{
+> +	int				i, j, ret;
+> +	struct omap_smps_reg_info	*info;
+> +	struct omap_smps_platform_data	*pdata;
+> +	struct regulator_dev		*rdev;
+> +	struct regulator_init_data	*initdata;
+> +	struct voltagedomain		*voltdm;
+> +	char				*name;
+> +
+> +	pdata = pdev->dev.platform_data;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(omap_smps_regs); i++) {
+> +		initdata = &dummy_initdata;
+> +		info = &omap_smps_regs[i];
+> +
+> +		for (j = 0; j < pdata->num_regulators; j++)
+> +			if (!strcmp(info->vdd_name,
+> +				    pdata->regulators[j]->consumer_supplies[0].
+> +				    dev_name)) {
+> +				initdata = pdata->regulators[j];
+> +				break;
+> +			}
+> +
+> +		voltdm = voltdm_lookup(info->vdd_name);
+> +
+> +		if (!voltdm)
+> +			continue;
+> +
+> +		info->voltdm = voltdm;
+> +
+> +		name = kmalloc(strlen(info->vdd_name) + 5, GFP_KERNEL);
+> +
+> +		if (!name) {
+> +			ret = -ENOMEM;
+> +			goto err;
+> +		}
+> +
+> +		sprintf(name, "VDD_%s", info->vdd_name);
+> +
+> +		for (j = 0; j < strlen(name); j++)
+> +			name[j] = toupper(name[j]);
+> +
+> +		info->desc.name = name;
+> +
+> +		rdev = regulator_register(&info->desc, &pdev->dev, initdata,
+> +			info);
+> +
+> +		if (IS_ERR(rdev)) {
+> +			dev_err(&pdev->dev, "can't register %s, %ld\n",
+> +				info->desc.name, PTR_ERR(rdev));
+> +			ret = PTR_ERR(rdev);
+> +			goto err;
+> +		}
+> +
+> +		info->rdev = rdev;
+> +	}
+> +
+> +	return 0;
+> +err:
+> +	omap_smps_reg_cleanup();
+> +	return ret;
+> +}
+> +
+> +static int omap_smps_reg_remove(struct platform_device *pdev)
+> +{
+> +	omap_smps_reg_cleanup();
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver omap_smps_reg_driver = {
+> +	.probe		= omap_smps_reg_probe,
+> +	.remove		= __devexit_p(omap_smps_reg_remove),
+> +	.driver.name	= DRIVER_NAME,
+> +	.driver.owner	= THIS_MODULE,
+> +};
+> +
+> +static int __init omap_smps_reg_init(void)
+> +{
+> +	return platform_driver_register(&omap_smps_reg_driver);
+> +}
+> +subsys_initcall(omap_smps_reg_init);
+> +
+> +static void __exit omap_smps_reg_exit(void)
+> +{
+> +	platform_driver_unregister(&omap_smps_reg_driver);
+> +}
+> +module_exit(omap_smps_reg_exit);
+> +
+> +MODULE_ALIAS("platform:"DRIVER_NAME);
+> +MODULE_AUTHOR("Tero Kristo <t-kristo@ti.com>");
+> +MODULE_DESCRIPTION("OMAP SMPS regulator driver");
+> +MODULE_LICENSE("GPL");
+> diff --git a/include/linux/regulator/omap-smps.h b/include/linux/regulator/omap-smps.h
+> new file mode 100644
+> index 0000000..1d5f940
+> --- /dev/null
+> +++ b/include/linux/regulator/omap-smps.h
+> @@ -0,0 +1,20 @@
+> +/*
+> + * omap-smps.h - header for OMAP SMPS regulator support
+> + *
+> + * Copyright (C) 2011 Texas Instruments, Inc.
+> + *
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef __OMAP_SMPS_H__
+> +#define __OMAP_SMPS_H__
+> +
+> +struct omap_smps_platform_data {
+> +	struct regulator_init_data	**regulators;
+> +	int				num_regulators;
+> +};
+> +
+> +#endif /* End of __OMAP_SMPS_H__ */
+This does not conflict with my driver for the same functionality on non
+omap CPUs which is still waiting for me to clean up and upstream. So
 
-This patch enables the DMA mode1 RX support.
-This feature is enabled based on the short_not_ok flag passed from
-gadget drivers.
+Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
 
-This will result in a thruput performance gain of around
-40% for USB mass-storage/mtp use cases.
+Graeme
 
-Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
-Tested-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
----
-v1 - initial push
-v2 - fixed whitespace issues as per Sergei Shtylyov<sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org> comments
-v3 - restor authorship to Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-
- drivers/usb/musb/musb_gadget.c |   68 ++++++++++++++++++++++++---------------
- 1 files changed, 42 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 6aeb363..4a1432e 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -634,6 +634,7 @@ static void rxstate(struct musb *musb, struct musb_request *req)
- 	u16			len;
- 	u16			csr = musb_readw(epio, MUSB_RXCSR);
- 	struct musb_hw_ep	*hw_ep = &musb->endpoints[epnum];
-+	u8			use_mode_1;
- 
- 	if (hw_ep->is_shared_fifo)
- 		musb_ep = &hw_ep->ep_in;
-@@ -683,6 +684,18 @@ static void rxstate(struct musb *musb, struct musb_request *req)
- 
- 	if (csr & MUSB_RXCSR_RXPKTRDY) {
- 		len = musb_readw(epio, MUSB_RXCOUNT);
-+
-+		/*
-+		 * Enable Mode 1 for RX transfers only for mass-storage
-+		 * use-case, based on short_not_ok flag which is set only
-+		 * from file_storage and f_mass_storage drivers
-+		 */
-+
-+		if (request->short_not_ok && len == musb_ep->packet_sz)
-+			use_mode_1 = 1;
-+		else
-+			use_mode_1 = 0;
-+
- 		if (request->actual < request->length) {
- #ifdef CONFIG_USB_INVENTRA_DMA
- 			if (is_buffer_mapped(req)) {
-@@ -714,37 +727,40 @@ static void rxstate(struct musb *musb, struct musb_request *req)
- 	 * then becomes usable as a runtime "use mode 1" hint...
- 	 */
- 
--				csr |= MUSB_RXCSR_DMAENAB;
--#ifdef USE_MODE1
--				csr |= MUSB_RXCSR_AUTOCLEAR;
--				/* csr |= MUSB_RXCSR_DMAMODE; */
--
--				/* this special sequence (enabling and then
--				 * disabling MUSB_RXCSR_DMAMODE) is required
--				 * to get DMAReq to activate
--				 */
--				musb_writew(epio, MUSB_RXCSR,
--					csr | MUSB_RXCSR_DMAMODE);
--#else
--				if (!musb_ep->hb_mult &&
--					musb_ep->hw_ep->rx_double_buffered)
-+				/* Experimental: Mode1 works with mass storage use cases */
-+				if (use_mode_1) {
- 					csr |= MUSB_RXCSR_AUTOCLEAR;
--#endif
--				musb_writew(epio, MUSB_RXCSR, csr);
-+					musb_writew(epio, MUSB_RXCSR, csr);
-+					csr |= MUSB_RXCSR_DMAENAB;
-+					musb_writew(epio, MUSB_RXCSR, csr);
-+
-+					/* this special sequence (enabling and then
-+					* disabling MUSB_RXCSR_DMAMODE) is required
-+					* to get DMAReq to activate
-+					*/
-+					musb_writew(epio, MUSB_RXCSR,
-+						csr | MUSB_RXCSR_DMAMODE);
-+					musb_writew(epio, MUSB_RXCSR, csr);
-+
-+				} else {
-+					if (!musb_ep->hb_mult &&
-+						musb_ep->hw_ep->rx_double_buffered)
-+						csr |= MUSB_RXCSR_AUTOCLEAR;
-+					csr |= MUSB_RXCSR_DMAENAB;
-+					musb_writew(epio, MUSB_RXCSR, csr);
-+				}
- 
- 				if (request->actual < request->length) {
- 					int transfer_size = 0;
--#ifdef USE_MODE1
--					transfer_size = min(request->length - request->actual,
--							channel->max_len);
--#else
--					transfer_size = min(request->length - request->actual,
--							(unsigned)len);
--#endif
--					if (transfer_size <= musb_ep->packet_sz)
--						musb_ep->dma->desired_mode = 0;
--					else
-+					if (use_mode_1) {
-+						transfer_size = min(request->length - request->actual,
-+								channel->max_len);
- 						musb_ep->dma->desired_mode = 1;
-+					} else {
-+						transfer_size = min(request->length - request->actual,
-+								(unsigned)len);
-+						musb_ep->dma->desired_mode = 0;
-+					}
- 
- 					use_dma = c->channel_program(
- 							channel,
--- 
-1.7.4.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
