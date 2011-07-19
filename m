@@ -1,46 +1,24 @@
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] arm: omap: usb: clock enable typo fix in usbhs driver
-Date: Tue, 19 Jul 2011 19:41:43 +0530
-Message-ID: <1311084703-10266-1-git-send-email-keshava_mgowda@ti.com>
+From: "Liu Wang" <anuragkr@iitk.ac.in>
+Subject: (unknown)
+Date: Tue, 19 Jul 2011 20:39:28 +0530
+Message-ID: <10507dab286b00aa0ff5f03f1a64325d.squirrel__14972.5411007696$1311088247$gmane$org@webmail.iitk.ac.in>
+Reply-To: linsun@gala.net
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail4.iitk.ac.in ([202.3.77.189]:42303 "EHLO mail4.iitk.ac.in"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751167Ab1GSPK3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Jul 2011 11:10:29 -0400
+Subject: 
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
 
-The usbhs_disable function was invoking clk_enable api
-instead of clk_disable; The clk_disable is called to
-disble the port clocks of usbhs
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
----
- drivers/mfd/omap-usb-host.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 1717144..29601e7 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -998,9 +998,9 @@ static void usbhs_disable(struct device *dev)
- 
- 	if (is_omap_usbhs_rev2(omap)) {
- 		if (is_ehci_tll_mode(pdata->port_mode[0]))
--			clk_enable(omap->usbtll_p1_fck);
-+			clk_disable(omap->usbtll_p1_fck);
- 		if (is_ehci_tll_mode(pdata->port_mode[1]))
--			clk_enable(omap->usbtll_p2_fck);
-+			clk_disable(omap->usbtll_p2_fck);
- 		clk_disable(omap->utmi_p2_fck);
- 		clk_disable(omap->utmi_p1_fck);
- 	}
--- 
-1.6.0.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I am Mr. Liu Wang from Taipei, Taiwan. I requesting for your partnership
+in re-profiling funds. In summary the funds are coming via the
+International Bank of Taipei. You shall be entitled to 30% for your
+management fee. Please get back for further details.
