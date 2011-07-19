@@ -1,92 +1,92 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 3/6] regulator: omap smps regulator driver
-Date: Tue, 19 Jul 2011 10:58:17 +0300
-Message-ID: <1311062297.10230.22.camel@sokoban>
-References: <1311010522-5868-1-git-send-email-t-kristo@ti.com> <1311010522-5868-4-git-send-email-t-kristo@ti.com> <20110718182218.GJ25081@legolas.emea.dhcp.ti.com>
-Reply-To: <t-kristo@ti.com>
+From: "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] usb: musb: Enable DMA mode1 RX for USB-Mass-Storage
+Date: Tue, 19 Jul 2011 01:06:06 -0700
+Message-ID: <CAFm5wm1xVbC_=+hUnHp4g7XVihhN_=qyJDPzD3zz32Zt7jEtJw@mail.gmail.com>
+References: <1311033103-15854-1-git-send-email-vikram.pandita@ti.com>
+ <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4CFC000B@dbde03.ent.ti.com>
+ <CAFm5wm1kruM0WCoAsC7Ps09TsaCUA6G6NBT24q0QY6-_B9AAog@mail.gmail.com> <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4CFC0054@dbde03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36451 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752339Ab1GSH6Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jul 2011 03:58:24 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <20110718182218.GJ25081@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4CFC0054-tzSpAVkrWRmIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: linux-omap@vger.kernel.org, "Hilman, Kevin" <khilman@ti.com>, tony@atomide.com, toddpoynor@google.com, broonie@opensource.wolfsonmicro.com, "Girdwood, Liam" <lrg@ti.com>
 
-On Mon, 2011-07-18 at 20:22 +0200, Balbi, Felipe wrote:
-> Hi,
-> 
-> On Mon, Jul 18, 2011 at 08:35:19PM +0300, Tero Kristo wrote:
-> > diff --git a/drivers/regulator/omap-smps-regulator.c b/drivers/regulator/omap-smps-regulator.c
-> > new file mode 100644
-> > index 0000000..8b56e4f
-> > --- /dev/null
-> > +++ b/drivers/regulator/omap-smps-regulator.c
-> > @@ -0,0 +1,179 @@
-> > +/*
-> > + * omap-vp-regulator.c -- support SMPS regulators for OMAP chips
-> 
-> name is wrong here.
-> 
-> > + *
-> > + * Copyright (C) 2011 Texas Instruments, Inc.
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License as published by
-> > + * the Free Software Foundation; either version 2 of the License, or
-> > + * (at your option) any later version.
-> > + */
-> > +
-> > +#include <linux/kernel.h>
-> > +#include <linux/ctype.h>
-> > +#include <linux/module.h>
-> > +#include <linux/slab.h>
-> > +#include <linux/init.h>
-> > +#include <linux/err.h>
-> > +#include <linux/delay.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/regulator/driver.h>
-> > +#include <linux/regulator/machine.h>
-> > +#include <linux/regulator/omap-smps.h>
-> > +#include <plat/voltage.h>
-> > +
-> > +#define DRIVER_NAME		"omap-smps"
-> > +
-> > +struct omap_smps_reg_info {
-> > +	const char		*vdd_name;
-> > +	struct regulator_dev	*rdev;
-> > +	struct voltagedomain	*voltdm;
-> > +	struct regulator_desc	desc;
-> > +};
-> > +
-> > +static int omap_smps_set_voltage(struct regulator_dev *rdev, int min_uV,
-> > +				    int max_uV, unsigned *selector)
-> > +{
-> > +	struct omap_smps_reg_info	*info = rdev_get_drvdata(rdev);
-> > +	return voltdm_scale(info->voltdm, min_uV);
-> > +}
-> > +
-> > +static int omap_smps_get_voltage(struct regulator_dev *rdev)
-> > +{
-> > +	struct omap_smps_reg_info	*info = rdev_get_drvdata(rdev);
-> > +	return omap_vp_get_curr_volt(info->voltdm);
-> > +}
-> > +
-> > +static struct regulator_ops omap_smps_ops = {
-> 
-> should this be const ?
-> 
+On Tue, Jul 19, 2011 at 12:46 AM, Gadiyar, Anand <gadiyar-l0cyMroinI0@public.gmane.org> wrote:
+> Pandita, Vikram wrote:
+>> On Mon, Jul 18, 2011 at 11:22 PM, Gadiyar, Anand <gadiyar-l0cyMroinI0@public.gmane.org> wrote:
+<snip>
+> But you can't just change authorship when the entire functional code
+> is the same. (It doesn't matter much to me - I'm not as active on
+> MUSB as I used to be; it's just the principle of the thing).
 
-I think it can be yea, I'll change that for next version.
+Moiz fixed the second part of your patch - which was not there on your
+original work:
+
+<snip>
++                                       if (use_mode_1) {
++                                               transfer_size =
+min(request->length - request->actual,
++
+channel->max_len);
+                                               musb_ep->dma->desired_mode = 1;
++                                       } else {
++                                               transfer_size =
+min(request->length - request->actual,
++                                                               (unsigned)len);
++
+musb_ep->dma->desired_mode = 0;+
+if (use_mode_1) {
++                                               transfer_size =
+min(request->length - request->actual,
++
+channel->max_len);
+                                               musb_ep->dma->desired_mode = 1;
++                                       } else {
++                                               transfer_size =
+min(request->length - request->actual,
++                                                               (unsigned)len);
++                                               musb_ep->dma->desired_mode = 0;
+<snip end>
+
+The history is:
+
+Original author on .35 or .32 kernel : Anand Gadiyar
+Fixes done by and some more forward ports: Moiz Sonasath
+Tested on 3.0 and code cleanups, commit message updates, community
+comment fixes: Vikram Pandita
+
+Wonder if original author did not act all this while, is there
+anything wrong in changing authorship with proper accreditation to
+original author?
+For future pushes, i would really like to learn what the linux
+community suggests the right approach for such cases.
+
+As i said, i am open to change and will repost as decided - there is
+no attempt to sabotage anyone's work here :-)
 
 
-
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
-
+>
+>> We have been carrying this optimisation around in product kernels for
+>> a long time now and we keep redoing on each migration,
+>> with the downside of sometimes loosing the authorship.
+>>
+>> > (and if I remember correctly several
+>> > attempts to get this merged upstream)? I don't see any
+>> > functional changes from my original patch.
+>>
+>> Wonder what were the reasons for not getting accepted?
+>> Can you re-ignite the discussion why it cannot be taken in then?
+>
+> You've already re-ignited this discussion. I haven't tested the patch
+> with the current kernel (and will do so soon), but if it does still
+> work and there are no objections, it ought to be merged.
+>
+> - Anand
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
