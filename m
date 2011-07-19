@@ -1,69 +1,137 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH v2] usb: musb: Enable DMA mode1 RX for USB-Mass-Storage
-Date: Tue, 19 Jul 2011 14:13:29 +0530
-Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4CFC0093@dbde03.ent.ti.com>
-References: <1311033103-15854-1-git-send-email-vikram.pandita@ti.com>
- <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4CFC000B@dbde03.ent.ti.com>
- <CAFm5wm1kruM0WCoAsC7Ps09TsaCUA6G6NBT24q0QY6-_B9AAog@mail.gmail.com>
- <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4CFC0054@dbde03.ent.ti.com>
- <CAFm5wm1xVbC_=+hUnHp4g7XVihhN_=qyJDPzD3zz32Zt7jEtJw@mail.gmail.com>
+From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3] usb: musb: Enable DMA mode1 RX for USB-Mass-Storage
+Date: Tue, 19 Jul 2011 01:52:14 -0700
+Message-ID: <1311065534-8300-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47197 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752365Ab1GSInj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jul 2011 04:43:39 -0400
-In-Reply-To: <CAFm5wm1xVbC_=+hUnHp4g7XVihhN_=qyJDPzD3zz32Zt7jEtJw@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>
 
-Pandita, Vikram wrote:
-> On Tue, Jul 19, 2011 at 12:46 AM, Gadiyar, Anand <gadiyar@ti.com> wrote:
-> > Pandita, Vikram wrote:
-> >> On Mon, Jul 18, 2011 at 11:22 PM, Gadiyar, Anand <gadiyar@ti.com> wrote:
-> <snip>
-> > But you can't just change authorship when the entire functional code
-> > is the same. (It doesn't matter much to me - I'm not as active on
-> > MUSB as I used to be; it's just the principle of the thing).
-> 
-> Moiz fixed the second part of your patch - which was not there on your
-> original work:
-> 
-> <snip>
+From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 
-...
+This patch enables the DMA mode1 RX support.
+This feature is enabled based on the short_not_ok flag passed from
+gadget drivers.
 
-> <snip end>
-> 
-> The history is:
-> 
-> Original author on .35 or .32 kernel : Anand Gadiyar
-> Fixes done by and some more forward ports: Moiz Sonasath
-> Tested on 3.0 and code cleanups, commit message updates, community
-> comment fixes: Vikram Pandita
-> 
-> Wonder if original author did not act all this while, is there
-> anything wrong in changing authorship with proper accreditation to
-> original author?
-> For future pushes, i would really like to learn what the linux
-> community suggests the right approach for such cases.
-> 
-> As i said, i am open to change and will repost as decided - there is
-> no attempt to sabotage anyone's work here :-)
+This will result in a thruput performance gain of around
+40% for USB mass-storage/mtp use cases.
 
-Checking the git tree history and the patch you just posted, you're right.
-I missed Moiz's changes.
+Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
+Tested-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+---
+v1 - initial push
+v2 - fixed whitespace issues as per Sergei Shtylyov<sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org> comments
+v3 - restor authorship to Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 
-(but that same git tree shows you've got my sign-off on all the
-internal patches Moiz posted - and I don't remember if the
-original debugging was done by me or not)
+ drivers/usb/musb/musb_gadget.c |   68 ++++++++++++++++++++++++---------------
+ 1 files changed, 42 insertions(+), 26 deletions(-)
 
-I'm withdrawing my objection - let's just get the patch merged. It's
-stayed out-of-tree for far too long.
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+index 6aeb363..4a1432e 100644
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -634,6 +634,7 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 	u16			len;
+ 	u16			csr = musb_readw(epio, MUSB_RXCSR);
+ 	struct musb_hw_ep	*hw_ep = &musb->endpoints[epnum];
++	u8			use_mode_1;
+ 
+ 	if (hw_ep->is_shared_fifo)
+ 		musb_ep = &hw_ep->ep_in;
+@@ -683,6 +684,18 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 
+ 	if (csr & MUSB_RXCSR_RXPKTRDY) {
+ 		len = musb_readw(epio, MUSB_RXCOUNT);
++
++		/*
++		 * Enable Mode 1 for RX transfers only for mass-storage
++		 * use-case, based on short_not_ok flag which is set only
++		 * from file_storage and f_mass_storage drivers
++		 */
++
++		if (request->short_not_ok && len == musb_ep->packet_sz)
++			use_mode_1 = 1;
++		else
++			use_mode_1 = 0;
++
+ 		if (request->actual < request->length) {
+ #ifdef CONFIG_USB_INVENTRA_DMA
+ 			if (is_buffer_mapped(req)) {
+@@ -714,37 +727,40 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 	 * then becomes usable as a runtime "use mode 1" hint...
+ 	 */
+ 
+-				csr |= MUSB_RXCSR_DMAENAB;
+-#ifdef USE_MODE1
+-				csr |= MUSB_RXCSR_AUTOCLEAR;
+-				/* csr |= MUSB_RXCSR_DMAMODE; */
+-
+-				/* this special sequence (enabling and then
+-				 * disabling MUSB_RXCSR_DMAMODE) is required
+-				 * to get DMAReq to activate
+-				 */
+-				musb_writew(epio, MUSB_RXCSR,
+-					csr | MUSB_RXCSR_DMAMODE);
+-#else
+-				if (!musb_ep->hb_mult &&
+-					musb_ep->hw_ep->rx_double_buffered)
++				/* Experimental: Mode1 works with mass storage use cases */
++				if (use_mode_1) {
+ 					csr |= MUSB_RXCSR_AUTOCLEAR;
+-#endif
+-				musb_writew(epio, MUSB_RXCSR, csr);
++					musb_writew(epio, MUSB_RXCSR, csr);
++					csr |= MUSB_RXCSR_DMAENAB;
++					musb_writew(epio, MUSB_RXCSR, csr);
++
++					/* this special sequence (enabling and then
++					* disabling MUSB_RXCSR_DMAMODE) is required
++					* to get DMAReq to activate
++					*/
++					musb_writew(epio, MUSB_RXCSR,
++						csr | MUSB_RXCSR_DMAMODE);
++					musb_writew(epio, MUSB_RXCSR, csr);
++
++				} else {
++					if (!musb_ep->hb_mult &&
++						musb_ep->hw_ep->rx_double_buffered)
++						csr |= MUSB_RXCSR_AUTOCLEAR;
++					csr |= MUSB_RXCSR_DMAENAB;
++					musb_writew(epio, MUSB_RXCSR, csr);
++				}
+ 
+ 				if (request->actual < request->length) {
+ 					int transfer_size = 0;
+-#ifdef USE_MODE1
+-					transfer_size = min(request->length - request->actual,
+-							channel->max_len);
+-#else
+-					transfer_size = min(request->length - request->actual,
+-							(unsigned)len);
+-#endif
+-					if (transfer_size <= musb_ep->packet_sz)
+-						musb_ep->dma->desired_mode = 0;
+-					else
++					if (use_mode_1) {
++						transfer_size = min(request->length - request->actual,
++								channel->max_len);
+ 						musb_ep->dma->desired_mode = 1;
++					} else {
++						transfer_size = min(request->length - request->actual,
++								(unsigned)len);
++						musb_ep->dma->desired_mode = 0;
++					}
+ 
+ 					use_dma = c->channel_program(
+ 							channel,
+-- 
+1.7.4.1
 
-- Anand
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
