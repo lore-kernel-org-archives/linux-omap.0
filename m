@@ -1,21 +1,21 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 03/11] PM QoS: support the dynamic devices insertion and removal
-Date: Wed, 20 Jul 2011 11:16:01 +0200
-Message-ID: <CAORVsuWukz1xNfMEu61cgCYvokBVDhxHsNKDuOjK0Ay5JaH0tQ@mail.gmail.com>
+Subject: Re: [PATCH v2 00/11] PM QoS: add a per-device wake-up latency
+ constraint class
+Date: Wed, 20 Jul 2011 11:26:13 +0200
+Message-ID: <CAORVsuVt1cg04T7wKKTeaGHEDs-OEejs7+cuDXpVcCUv7r4_FQ@mail.gmail.com>
 References: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
-	<1309446685-17502-4-git-send-email-j-pihet@ti.com>
-	<201107022314.21713.rjw@sisk.pl>
+	<201107022120.47221.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:44269 "EHLO
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:41624 "EHLO
 	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750745Ab1GTJQD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jul 2011 05:16:03 -0400
-Received: by qyk29 with SMTP id 29so2549221qyk.19
-        for <linux-omap@vger.kernel.org>; Wed, 20 Jul 2011 02:16:01 -0700 (PDT)
-In-Reply-To: <201107022314.21713.rjw@sisk.pl>
+	with ESMTP id S1751072Ab1GTJ0O convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jul 2011 05:26:14 -0400
+Received: by qyk29 with SMTP id 29so2553142qyk.19
+        for <linux-omap@vger.kernel.org>; Wed, 20 Jul 2011 02:26:13 -0700 (PDT)
+In-Reply-To: <201107022120.47221.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
@@ -29,243 +29,151 @@ Hi Rafael,
 > On Thursday, June 30, 2011, jean.pihet@newoldbits.com wrote:
 >> From: Jean Pihet <j-pihet@ti.com>
 >>
->> The devices wake-up latency constraints class of PM QoS is
->> storing the constraints list using the device pm_info struct.
->>
->> This patch adds the init and de-init of the per-device constraints
->> list in order to support the dynamic insertion and removal
->> of the devices in the system.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> This patch set is in an RFC state, for review and comments.
 >
-> The number of times this patch special cases PM_QOS_DEV_WAKEUP_LATENC=
-Y with
-> respect to the other PM QoS classes indicates a design issue, which k=
-ind of
-> corresponds with my comments on [3/11].
-Do you mean 02/11? Indeed the special cases changes are introduced by
-02/11. Re-designing 02/11 will solve those special cases issues.
+> First off, I'm sorry I couldn't review the patchset earlier.
+Thank you very much for reviewing the patches!
 
-Thanks,
-Jean
+>
+>> In order to implement the new class in PM QoS the following changes =
+have been
+>> made:
+>>
+>> 1. Add a new PM QoS class for device wake-up constraints
+>> (PM_QOS_DEV_WAKEUP_LATENCY).
+>> Due to the per-device nature of the new class the constraints lists =
+are stored
+>> inside the device dev_pm_info struct instead of the internal per-cla=
+ss
+>> constraints lists.
+>> The new class is only available from kernel drivers and so is not ex=
+ported to
+>> user space.
+>
+> Have you considered a design in which multiple devices may use the sa=
+me
+> list of constraints? =A0It seems plausible that the constraints will =
+be the
+> same, for example, for all Ethernet adapters in the system, in which =
+case it
+> will be wasteful to duplicate the list of constraints for each of the=
+m.
+How would the devices be grouped together? Today it looks like the
+network throughput constraints from the device drivers are not used at
+all but rather use the CPU_DMA latency API.
 
+>
+>> 2. Added a notification of device insertion/removal from the device =
+PM framework
+>> to PM QoS.
+>> This allows to init/de-init the per-device constraints list upon dev=
+ice insertion
+>> and removal.
+>> RFC state for comments and review, barely tested
+>
+> I need to have a look at the details, but in principle this means tha=
+t the
+> per-device lists will be usable only after the devices have been regi=
+stered.
+> In particular, this means that it will only be possible to add new co=
+nstraints
+> after registering the device, which may be too late for some use case=
+s.
+Hmm I wonder how to solve this issue. How to manage constraints for a
+non-present (not yet present or already removed) device? The CPU_DMA
+latency constraint API might be used in those cases.
+
+>
+>> 3. Make the pm_qos_add_request API more generic by using a
+>> struct pm_qos_parameters parameter. This allows easy extension in th=
+e future.
+>>
+>> 4. Upon a change of the strongest constraint in the PM_QOS_DEV_WAKEU=
+P_LATENCY
+>> class a notification chain mechanism is used to take action on the s=
+ystem.
+>> This is the proposed way to have PM QoS and the platform dependant c=
+ode to
+>> interact with each other, cf. 4 below.
+>
+> I guess you mean 5.?
+Yes
+
+>
+> I think we will need something in addition to the notifier here. =A0F=
+or example,
+> I wouldn't like any core code, like runtime PM or cpuidle, to have to=
+ register
+> a notifier with PM QoS.
+I am not following this. Can you elaborate a bit?
+
+>
+>> The notification mechanism now passes the constraint request struct =
+ptr in
+>> order for the notifier callback to have access to the full set of co=
+nstraint
+>> data, e.g. the struct device ptr.
+>>
+>> 5. cpuidle interaction with the OMAP3 cpuidle handler
+>> Since cpuidle is a CPU centric framework it decides the MPU next pow=
+er state
+>> based on the MPU exit_latency and target_residency figures.
+>>
+>> The rest of the power domains get their next power state programmed =
+from
+>> the PM_QOS_DEV_WAKEUP_LATENCY class of the PM QoS framework, via the=
+ device
+>> wake-up latency constraints.
+>>
+>> Note: the exit_latency and target_residency figures of the MPU inclu=
+de the MPU
+>> itself and the peripherals needed for the MPU to execute instruction=
+s (e.g.
+>> main memory, caches, IRQ controller, MMU etc).
+>> Some of those peripherals can belong to other power domains than the=
+ MPU
+>> subsystem and so the corresponding latencies must be included in tho=
+se figures.
+>>
+>> 6. Update the pm_qos_add_request callers to the generic API
+>>
+>> 7. Minor clean-ups and rename of struct fields
+>>
+>> Questions:
+>> 1. How to retrieve the device ptr from a given device driver in orde=
+r to add
+>> a constraint on it?
+>> 2. The device struct has recently been extended with the power domai=
+n
+>> information. Can this be used to apply the constraints on power doma=
+ins?
+>
+> Yes, it can in principle, but that will require some work.
+>
+>> On-going developments, patches in preparation:
+>> 1. write Documentation for the new PM QoS class
+>
+> I'd wait with that until the code has settled.
+Ok that was the intention to write the doc once for good.
+
+>
+>> 2. validate the constraints framework on OMAP4 HW (done on OMAP3)
+>> 3. refine the power domains wake-up latency and the cpuidle figures
+>>
+>> Based on the master branch of the linux-omap git tree (3.0.0-rc3). C=
+ompile
+>> tested using OMAP and x86 generic defconfigs.
+>> Tested on OMAP3 Beagleboard (ES2.x) with full RETention and OFF mode=
+s.
+>
+> More detailed comments will follow.
 >
 > Thanks,
 > Rafael
 >
->
->> ---
->> =A0drivers/base/power/main.c =A0 =A0 | =A0 =A08 +++--
->> =A0include/linux/pm.h =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A01 +
->> =A0include/linux/pm_qos_params.h | =A0 =A02 +
->> =A0kernel/pm_qos_params.c =A0 =A0 =A0 =A0| =A0 70 ++++++++++++++++++=
-++++++++++++++--------
->> =A04 files changed, 64 insertions(+), 17 deletions(-)
->>
->> diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
->> index b1fd96b..51f5526 100644
->> --- a/drivers/base/power/main.c
->> +++ b/drivers/base/power/main.c
->> @@ -27,6 +27,7 @@
->> =A0#include <linux/sched.h>
->> =A0#include <linux/async.h>
->> =A0#include <linux/suspend.h>
->> +#include <linux/pm_qos_params.h>
->>
->> =A0#include "../base.h"
->> =A0#include "power.h"
->> @@ -96,8 +97,8 @@ void device_pm_add(struct device *dev)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_name(dev->parent));
->> =A0 =A0 =A0 list_add_tail(&dev->power.entry, &dpm_list);
->> =A0 =A0 =A0 mutex_unlock(&dpm_list_mtx);
->> - =A0 =A0 /* ToDo: call PM QoS to init the per-device wakeup latency=
- constraints */
->> - =A0 =A0 plist_head_init(&dev->power.wakeup_lat_plist_head, &dev->p=
-ower.lock);
->> + =A0 =A0 /* Call PM QoS to init the per-device wakeup latency const=
-raints */
->> + =A0 =A0 pm_qos_dev_wakeup_lat_init(dev);
->> =A0}
->>
->> =A0/**
->> @@ -108,7 +109,8 @@ void device_pm_remove(struct device *dev)
->> =A0{
->> =A0 =A0 =A0 pr_debug("PM: Removing info for %s:%s\n",
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev->bus ? dev->bus->name : "No Bus",=
- dev_name(dev));
->> - =A0 =A0 /* ToDo: call PM QoS to de-init the per-device wakeup late=
-ncy constraints */
->> + =A0 =A0 /* Call PM QoS to de-init the per-device wakeup latency co=
-nstraints */
->> + =A0 =A0 pm_qos_dev_wakeup_lat_deinit(dev);
->> =A0 =A0 =A0 complete_all(&dev->power.completion);
->> =A0 =A0 =A0 mutex_lock(&dpm_list_mtx);
->> =A0 =A0 =A0 list_del_init(&dev->power.entry);
->> diff --git a/include/linux/pm.h b/include/linux/pm.h
->> index 35fe682..d9b6092 100644
->> --- a/include/linux/pm.h
->> +++ b/include/linux/pm.h
->> @@ -464,6 +464,7 @@ struct dev_pm_info {
->> =A0 =A0 =A0 void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*subsys_data=
-; =A0/* Owned by the subsystem. */
->> =A0#endif
->> =A0 =A0 =A0 struct plist_head =A0 =A0 =A0 wakeup_lat_plist_head;
->> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wakeup_lat_ini=
-t;
->> =A0};
->>
->> =A0extern void update_pm_runtime_accounting(struct device *dev);
->> diff --git a/include/linux/pm_qos_params.h b/include/linux/pm_qos_pa=
-rams.h
->> index e6e16cb..5b6707a 100644
->> --- a/include/linux/pm_qos_params.h
->> +++ b/include/linux/pm_qos_params.h
->> @@ -45,4 +45,6 @@ int pm_qos_add_notifier(int class, struct notifier=
-_block *notifier);
->> =A0int pm_qos_remove_notifier(int class, struct notifier_block *noti=
-fier);
->> =A0int pm_qos_request_active(struct pm_qos_request_list *req);
->>
->> +void pm_qos_dev_wakeup_lat_init(struct device *dev);
->> +void pm_qos_dev_wakeup_lat_deinit(struct device *dev);
->> =A0#endif
->> diff --git a/kernel/pm_qos_params.c b/kernel/pm_qos_params.c
->> index d61c8e5..6f25ccb 100644
->> --- a/kernel/pm_qos_params.c
->> +++ b/kernel/pm_qos_params.c
->> @@ -275,11 +275,21 @@ void pm_qos_add_request(struct pm_qos_request_=
-list *pm_qos_req,
->> =A0 =A0 =A0 struct pm_qos_object *o =3D =A0pm_qos_array[pm_qos_param=
-s->class];
->> =A0 =A0 =A0 int new_value;
->>
->> - =A0 =A0 if ((pm_qos_params->class !=3D PM_QOS_DEV_WAKEUP_LATENCY) =
-&&
->> - =A0 =A0 =A0 =A0 (pm_qos_request_active(pm_qos_req))) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, KERN_ERR "pm_qos_add_request() cal=
-led for already "
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"added request\n");
->> - =A0 =A0 =A0 =A0 =A0 =A0 return;
->> + =A0 =A0 if (pm_qos_params->class =3D=3D PM_QOS_DEV_WAKEUP_LATENCY)=
- {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (!pm_qos_params->dev) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, KERN_ERR "pm_qos_a=
-dd_request() called for "
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "invalid d=
-evice\n");
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> + =A0 =A0 =A0 =A0 =A0 =A0 /* Silently return if the device is being =
-released */
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (!pm_qos_params->dev->power.wakeup_lat_=
-init)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->> + =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (pm_qos_request_active(pm_qos_req)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, KERN_ERR "pm_qos_a=
-dd_request() called for "
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "already a=
-dded request\n");
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> =A0 =A0 =A0 }
->>
->> =A0 =A0 =A0 if (pm_qos_params->value =3D=3D PM_QOS_DEFAULT_VALUE)
->> @@ -312,11 +322,16 @@ void pm_qos_update_request(struct pm_qos_reque=
-st_list *pm_qos_req,
->> =A0 =A0 =A0 if (!pm_qos_req) /*guard against callers passing in null=
- */
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->>
->> - =A0 =A0 if ((pm_qos_req->class !=3D PM_QOS_DEV_WAKEUP_LATENCY) &&
->> - =A0 =A0 =A0 =A0 (!pm_qos_request_active(pm_qos_req))) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, KERN_ERR "pm_qos_update_request() =
-called for unknown "
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"object\n");
->> - =A0 =A0 =A0 =A0 =A0 =A0 return;
->> + =A0 =A0 if (pm_qos_req->class =3D=3D PM_QOS_DEV_WAKEUP_LATENCY) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 /* Silently return if the device is being =
-released */
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (!pm_qos_req->dev->power.wakeup_lat_ini=
-t)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->> + =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (!pm_qos_request_active(pm_qos_req)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, KERN_ERR "pm_qos_u=
-pdate_request() called "
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "for unkno=
-wn object\n");
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> =A0 =A0 =A0 }
->>
->> =A0 =A0 =A0 if (new_value =3D=3D PM_QOS_DEFAULT_VALUE)
->> @@ -343,11 +358,16 @@ void pm_qos_remove_request(struct pm_qos_reque=
-st_list *pm_qos_req)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* silent return to keep pcm code cleane=
-r */
->>
->> - =A0 =A0 if ((pm_qos_req->class !=3D PM_QOS_DEV_WAKEUP_LATENCY) &&
->> - =A0 =A0 =A0 =A0 (!pm_qos_request_active(pm_qos_req))) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, KERN_ERR "pm_qos_remove_request() =
-called for unknown "
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"object\n");
->> + =A0 =A0 if (pm_qos_req->class =3D=3D PM_QOS_DEV_WAKEUP_LATENCY) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 /* Silently return if the device is being =
-released */
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (!pm_qos_req->dev->power.wakeup_lat_ini=
-t)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->> + =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (!pm_qos_request_active(pm_qos_req)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, KERN_ERR "pm_qos_r=
-emove_request() called "
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "for unkno=
-wn object\n");
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> =A0 =A0 =A0 }
->>
->> =A0 =A0 =A0 update_target(pm_qos_req, 1, PM_QOS_DEFAULT_VALUE);
->> @@ -393,6 +413,28 @@ int pm_qos_remove_notifier(int class, struct no=
-tifier_block *notifier)
->> =A0}
->> =A0EXPORT_SYMBOL_GPL(pm_qos_remove_notifier);
->>
->> +/* Called from the device PM subsystem at device init */
->> +void pm_qos_dev_wakeup_lat_init(struct device *dev)
->> +{
->> + =A0 =A0 plist_head_init(&dev->power.wakeup_lat_plist_head, &dev->p=
-ower.lock);
->> + =A0 =A0 dev->power.wakeup_lat_init =3D 1;
->> +}
->> +
->> +/* Called from the device PM subsystem at device release */
->> +void pm_qos_dev_wakeup_lat_deinit(struct device *dev)
->> +{
->> + =A0 =A0 struct pm_qos_request_list *req, *tmp;
->> +
->> + =A0 =A0 dev->power.wakeup_lat_init =3D 0;
->> +
->> + =A0 =A0 /* Flush the constraints list for the device */
->> + =A0 =A0 plist_for_each_entry_safe(req, tmp,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &dev->=
-power.wakeup_lat_plist_head,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 list)
->> + =A0 =A0 =A0 =A0 =A0 =A0 update_target(req, 1, PM_QOS_DEFAULT_VALUE=
-);
->> + =A0 =A0 plist_head_init(&dev->power.wakeup_lat_plist_head, &dev->p=
-ower.lock);
->> +}
->> +
->> =A0static int pm_qos_power_open(struct inode *inode, struct file *fi=
-lp)
->> =A0{
->> =A0 =A0 =A0 struct pm_qos_parameters pm_qos_params;
->>
->
->
+
+Thanks a lot,
+Jean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
