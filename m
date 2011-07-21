@@ -1,81 +1,38 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHV3 1/4] OMAP: I2C: Reset support
-Date: Thu, 21 Jul 2011 19:22:58 +0530
-Message-ID: <1311256381-25548-2-git-send-email-shubhrajyoti@ti.com>
-References: <1311256381-25548-1-git-send-email-shubhrajyoti@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Kconfig help descriptions
+Date: Thu, 21 Jul 2011 10:45:39 +0100
+Message-ID: <20110721094539.GB28942@n2100.arm.linux.org.uk>
+References: <20110721092221.GA28942@n2100.arm.linux.org.uk> <20110721093718.GM23253@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1311256381-25548-1-git-send-email-shubhrajyoti@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, balajitk@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-i2c@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42077 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751318Ab1GUJpt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jul 2011 05:45:49 -0400
+Content-Disposition: inline
+In-Reply-To: <20110721093718.GM23253@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
- Under some error conditions the i2c  driver may do a reset.
- Adding a reset field  and support in the platform.
+On Thu, Jul 21, 2011 at 12:37:19PM +0300, Felipe Balbi wrote:
+> On Thu, Jul 21, 2011 at 10:22:21AM +0100, Russell King - ARM Linux wrote:
+> > Some of the Kconfig help descriptions aren't very useful - for example:
+> > 
+> > | CONFIG_TWL4030_MADC:
+> > | 
+> > | This driver provides support for triton TWL4030-MADC. The
+> > | driver supports both RT and SW conversion methods.
+> > | 
+> > | This driver can be built as a module. If so it will be
+> > | named twl4030-madc
+> > 
+> > What is madc?  What does it do?  Do I enable it for the OMAP 4430SDP ?
+> 
+> Monitoring ADC.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- arch/arm/plat-omap/i2c.c |   17 +++++++++++++++++
- include/linux/i2c-omap.h |    1 +
- 2 files changed, 18 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index 2388b8e..98a97b0 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -146,6 +146,22 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
- 		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
- 	},
- };
-+/**
-+ * omap2_i2c_reset - reset the omap i2c module.
-+ * @dev: struct device*
-+ */
-+
-+static int omap2_i2c_reset(struct device *dev)
-+{
-+	int r = 0;
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omap_device *odev = to_omap_device(pdev);
-+	struct omap_hwmod *oh;
-+
-+	oh = odev->hwmods[0];
-+	r = omap_hwmod_reset(oh);
-+	return r;
-+}
- 
- static inline int omap2_i2c_add_bus(int bus_id)
- {
-@@ -187,6 +203,7 @@ static inline int omap2_i2c_add_bus(int bus_id)
- 	 */
- 	if (cpu_is_omap34xx())
- 		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
-+	pdata->device_reset = omap2_i2c_reset;
- 	od = omap_device_build(name, bus_id, oh, pdata,
- 			sizeof(struct omap_i2c_bus_platform_data),
- 			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
-diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
-index 98ae49b..8aa91b6 100644
---- a/include/linux/i2c-omap.h
-+++ b/include/linux/i2c-omap.h
-@@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
- 	int		(*device_enable) (struct platform_device *pdev);
- 	int		(*device_shutdown) (struct platform_device *pdev);
- 	int		(*device_idle) (struct platform_device *pdev);
-+	int		(*device_reset) (struct device *dev);
- };
- 
- #endif
--- 
-1.7.1
+Well, why doesn't the text _say_ that then?  I'm still none the wiser
+whether it should be enabled or not.  What's it used for?  Who uses it?
+When should it be enabled?
