@@ -1,99 +1,79 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] OMAP: omap_device: replace _find_by_pdev() with to_omap_device()
-Date: Thu, 21 Jul 2011 16:52:11 -0700
-Message-ID: <1311292338-11830-2-git-send-email-khilman@ti.com>
+Subject: [RFC/PATCH 2/7] OMAP3: beagle: don't touch omap_device internals
+Date: Thu, 21 Jul 2011 16:52:13 -0700
+Message-ID: <1311292338-11830-4-git-send-email-khilman@ti.com>
 References: <1311292338-11830-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:40800 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753160Ab1GUXwI (ORCPT
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:58750 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753199Ab1GUXwM (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jul 2011 19:52:08 -0400
-Received: by mail-iy0-f179.google.com with SMTP id 35so1808744iyn.24
-        for <linux-omap@vger.kernel.org>; Thu, 21 Jul 2011 16:52:07 -0700 (PDT)
+	Thu, 21 Jul 2011 19:52:12 -0400
+Received: by mail-iy0-f175.google.com with SMTP id 12so1551716iyj.20
+        for <linux-omap@vger.kernel.org>; Thu, 21 Jul 2011 16:52:10 -0700 (PDT)
 In-Reply-To: <1311292338-11830-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Grant Likely <grant.likely@secretlab.ca>
-Cc: "G. Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Felipe Balbi <balbi@ti.com>
+Cc: "G. Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-The omap_device layer currently has two ways of getting an omap_device
-pointer from a platform_device pointer.
+Board code should not touch omap_device internals.  To get the MPU/IVA devices,
+use existing APIs: omap2_get_mpu_device(), omap2_get_iva_device().
 
-Replace current usage of _find_by_pdev() with to_omap_device() since
-to_omap_device() is more familiar to the existing to_platform_device()
-used when getting a platform_device pointer from a struct device pointer.
-
-Cc: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
-Paul, please consider this minor cleanup for the v3.1 merge window.
-Applies to v3.0-c6.
+ arch/arm/mach-omap2/board-omap3beagle.c |   23 ++++++++++-------------
+ 1 files changed, 10 insertions(+), 13 deletions(-)
 
- arch/arm/plat-omap/omap_device.c |   15 +++++----------
- 1 files changed, 5 insertions(+), 10 deletions(-)
-
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 49fc0df..c8b9cd1 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -236,11 +236,6 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 32f5f89..3ae16b4 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -491,23 +491,22 @@ static void __init beagle_opp_init(void)
  
--static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
--{
--	return container_of(pdev, struct omap_device, pdev);
--}
--
- /**
-  * _add_optional_clock_clkdev - Add clkdev entry for hwmod optional clocks
-  * @od: struct omap_device *od
-@@ -316,7 +311,7 @@ u32 omap_device_get_context_loss_count(struct platform_device *pdev)
- 	struct omap_device *od;
- 	u32 ret = 0;
+ 	/* Custom OPP enabled for all xM versions */
+ 	if (cpu_is_omap3630()) {
+-		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
+-		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
+-		struct device *dev;
++		struct device *mpu_dev, *iva_dev;
  
--	od = _find_by_pdev(pdev);
-+	od = to_omap_device(pdev);
+-		if (!mh || !dh) {
++		mpu_dev = omap2_get_mpuss_device();
++		iva_dev = omap2_get_iva_device();
++
++		if (!mpu_dev || !iva_dev) {
+ 			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
+-				__func__, mh, dh);
++				__func__, mpu_dev, iva_dev);
+ 			return;
+ 		}
+ 		/* Enable MPU 1GHz and lower opps */
+-		dev = &mh->od->pdev.dev;
+-		r = opp_enable(dev, 800000000);
++		r = opp_enable(mpu_dev, 800000000);
+ 		/* TODO: MPU 1GHz needs SR and ABB */
  
- 	if (od->hwmods_cnt)
- 		ret = omap_hwmod_get_context_loss_count(od->hwmods[0]);
-@@ -611,7 +606,7 @@ int omap_device_enable(struct platform_device *pdev)
- 	int ret;
- 	struct omap_device *od;
- 
--	od = _find_by_pdev(pdev);
-+	od = to_omap_device(pdev);
- 
- 	if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
- 		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
-@@ -650,7 +645,7 @@ int omap_device_idle(struct platform_device *pdev)
- 	int ret;
- 	struct omap_device *od;
- 
--	od = _find_by_pdev(pdev);
-+	od = to_omap_device(pdev);
- 
- 	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
- 		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
-@@ -681,7 +676,7 @@ int omap_device_shutdown(struct platform_device *pdev)
- 	int ret, i;
- 	struct omap_device *od;
- 
--	od = _find_by_pdev(pdev);
-+	od = to_omap_device(pdev);
- 
- 	if (od->_state != OMAP_DEVICE_STATE_ENABLED &&
- 	    od->_state != OMAP_DEVICE_STATE_IDLE) {
-@@ -722,7 +717,7 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
- 	int ret = -EINVAL;
- 	struct omap_device *od;
- 
--	od = _find_by_pdev(pdev);
-+	od = to_omap_device(pdev);
- 
- 	if (new_wakeup_lat_limit == od->dev_wakeup_lat)
- 		return 0;
+ 		/* Enable IVA 800MHz and lower opps */
+-		dev = &dh->od->pdev.dev;
+-		r |= opp_enable(dev, 660000000);
++		r |= opp_enable(iva_dev, 660000000);
+ 		/* TODO: DSP 800MHz needs SR and ABB */
+ 		if (r) {
+ 			pr_err("%s: failed to enable higher opp %d\n",
+@@ -516,10 +515,8 @@ static void __init beagle_opp_init(void)
+ 			 * Cleanup - disable the higher freqs - we dont care
+ 			 * about the results
+ 			 */
+-			dev = &mh->od->pdev.dev;
+-			opp_disable(dev, 800000000);
+-			dev = &dh->od->pdev.dev;
+-			opp_disable(dev, 660000000);
++			opp_disable(mpu_dev, 800000000);
++			opp_disable(iva_dev, 660000000);
+ 		}
+ 	}
+ 	return;
 -- 
 1.7.6
 
