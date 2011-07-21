@@ -1,98 +1,79 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP: omap_device: replace pr_* prints with dev_*
-Date: Thu, 21 Jul 2011 11:52:36 -0700
-Message-ID: <1311274356.8322.98.camel@vence>
-References: <1311269976-4035-1-git-send-email-khilman@ti.com>
-	 <20110721174306.GD32058@legolas.emea.dhcp.ti.com>
+From: Bryan Buckley <bryan.buckley@ti.com>
+Subject: [PATCH] OMAP4: MMC: fix power and audio issue, decouple USBC1 from MMC1
+Date: Thu, 21 Jul 2011 14:29:03 -0500
+Message-ID: <1311276543-9374-1-git-send-email-bryan.buckley@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:49010 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753212Ab1GUSwk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jul 2011 14:52:40 -0400
-Received: by mail-iw0-f177.google.com with SMTP id 35so1329003iwn.8
-        for <linux-omap@vger.kernel.org>; Thu, 21 Jul 2011 11:52:39 -0700 (PDT)
-In-Reply-To: <20110721174306.GD32058@legolas.emea.dhcp.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41650 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751304Ab1GUT31 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jul 2011 15:29:27 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, Moiz Sonasath <m-sonasath@ti.com>, Viswanath Puttagunta <vishp@ti.com>, Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Bryan Buckley <bryan.buckley@ti.com>
 
-On Thu, 2011-07-21 at 20:43 +0300, Felipe Balbi wrote:
-> On Thu, Jul 21, 2011 at 10:39:36AM -0700, Kevin Hilman wrote:
-> > For consistency in kernel printk output for devices, use dev_dbg(),
-> > dev_warn(), dev_err() instead of pr_debug(), pr_warning() and
-> > pr_err(), some of which currently use direct access of name from
-> > platform_device and others of which use dev_name().  Using the dev_*
-> > versions uses the standard device naming from the driver core.
-> > 
-> > Some pr_* prints were not converted with this patch since they are
-> > used before the platform_device and struct device are created so
-> > neither the dev_* prints or dev_name() is valid.
-> > 
-> > Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > Cc: Felipe Balbi <balbi@ti.com>
-> > Signed-off-by: Kevin Hilman <khilman@ti.com>
-> > ---
-> 
-> FWIW:
-> 
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
+Remove OMAP4_USBC1_ICUSB_PWRDNZ_MASK during enable/disable PWRDNZ mode for
+MMC1_PBIAS and associated extended-drain MMC1 I/O cell. This is in accordance
+with the control module programming guide. This fixes a bug where if trying to
+use gpio_98 or gpio_99 and MMC1 at the same time the GPIO signal will be
+affected by a changing SDMMC1_VDDS.
 
-Thanks.
+Software must keep MMC1_PBIAS cell and MMC1_IO cell PWRDNZ signals low whenever
+SDMMC1_VDDS ramps up/down or changes for cell protection purposes.
 
-> BTW, I tried applying this to today's linus/master, but it fails
-> (rejects below), are you depending on some other changes ?
+MMC1 is based on SDMMC1_VDDS whereas USBC1 is based on SIM_VDDS therefore
+they can operate independently.
 
-Oops, I forgot to mention it applies on top of a bunch of stuff queued
-for v3.1.  Specifically, it's on top of Paul's prcm-devel-3.1 branch[1],
-which Arnd has merged into the arm-soc tree.
+Signed-off-by: Bryan Buckley <bryan.buckley@ti.com>
+---
+ arch/arm/mach-omap2/hsmmc.c |   12 ++++--------
+ 1 files changed, 4 insertions(+), 8 deletions(-)
 
-Kevin
-
-[1] git://git.pwsan.com/linux-2.6 prcm-devel-3.1
-
-> --- arch/arm/plat-omap/omap_device.c
-> +++ arch/arm/plat-omap/omap_device.c
-> @@ -242,28 +239,27 @@
->  	if (!clk_alias || !clk_name)
->  		return;
->  
-> -	pr_debug("omap_device: %s: Creating %s -> %s\n",
-> -		 dev_name(&od->pdev.dev), clk_alias, clk_name);
-> +	dev_dbg(&od->pdev.dev, "Creating %s -> %s\n", clk_alias, clk_name);
->  
->  	r = clk_get_sys(dev_name(&od->pdev.dev), clk_alias);
->  	if (!IS_ERR(r)) {
-> -		pr_warning("omap_device: %s: alias %s already exists\n",
-> -			   dev_name(&od->pdev.dev), clk_alias);
-> +		dev_warn(&od->pdev.dev,
-> +			 "alias %s already exists\n", clk_alias);
->  		clk_put(r);
->  		return;
->  	}
->  
->  	r = omap_clk_get_by_name(clk_name);
->  	if (IS_ERR(r)) {
-> -		pr_err("omap_device: %s: omap_clk_get_by_name for %s failed\n",
-> -		       dev_name(&od->pdev.dev), clk_name);
-> +		dev_err(&od->pdev.dev,
-> +			"omap_clk_get_by_name for %s failed\n", clk_name);
->  		return;
->  	}
->  
->  	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev.dev));
->  	if (!l) {
-> -		pr_err("omap_device: %s: clkdev_alloc for %s failed\n",
-> -		       dev_name(&od->pdev.dev), clk_alias);
-> +		dev_err(&od->pdev.dev,
-> +			"clkdev_alloc for %s failed\n", clk_alias);
->  		return;
->  	}
->  
-> 
-
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index 3842405..a6135df 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -144,8 +144,7 @@ static void omap4_hsmmc1_before_set_reg(struct device *dev, int slot,
+ 	 */
+ 	reg = omap4_ctrl_pad_readl(control_pbias_offset);
+ 	reg &= ~(OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
+-		OMAP4_MMC1_PWRDNZ_MASK |
+-		OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
++		OMAP4_MMC1_PWRDNZ_MASK);
+ 	omap4_ctrl_pad_writel(reg, control_pbias_offset);
+ }
+ 
+@@ -165,8 +164,7 @@ static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
+ 		else
+ 			reg |= OMAP4_MMC1_PBIASLITE_VMODE_MASK;
+ 		reg |= (OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
+-			OMAP4_MMC1_PWRDNZ_MASK |
+-			OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
++			OMAP4_MMC1_PWRDNZ_MASK);
+ 		omap4_ctrl_pad_writel(reg, control_pbias_offset);
+ 		/* 4 microsec delay for comparator to generate an error*/
+ 		udelay(4);
+@@ -174,16 +172,14 @@ static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
+ 		if (reg & OMAP4_MMC1_PBIASLITE_VMODE_ERROR_MASK) {
+ 			pr_err("Pbias Voltage is not same as LDO\n");
+ 			/* Caution : On VMODE_ERROR Power Down MMC IO */
+-			reg &= ~(OMAP4_MMC1_PWRDNZ_MASK |
+-				OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
++			reg &= ~(OMAP4_MMC1_PWRDNZ_MASK);
+ 			omap4_ctrl_pad_writel(reg, control_pbias_offset);
+ 		}
+ 	} else {
+ 		reg = omap4_ctrl_pad_readl(control_pbias_offset);
+ 		reg |= (OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
+ 			OMAP4_MMC1_PWRDNZ_MASK |
+-			OMAP4_MMC1_PBIASLITE_VMODE_MASK |
+-			OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
++			OMAP4_MMC1_PBIASLITE_VMODE_MASK);
+ 		omap4_ctrl_pad_writel(reg, control_pbias_offset);
+ 	}
+ }
+-- 
+1.7.0.4
 
