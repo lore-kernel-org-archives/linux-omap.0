@@ -1,69 +1,48 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH 4/5] OMAP: I2C: Remove the SYSC register definition
-Date: Thu, 21 Jul 2011 12:23:04 +0530
-Message-ID: <1311231185-5503-5-git-send-email-shubhrajyoti@ti.com>
-References: <1311231185-5503-1-git-send-email-shubhrajyoti@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCHV2 1/5] OMAP: I2C: Add a device reset field to platform
+ data
+Date: Thu, 21 Jul 2011 16:48:11 +0530
+Message-ID: <4E280AF3.5000907@ti.com>
+References: <1311246554-22975-1-git-send-email-shubhrajyoti@ti.com> <1311246554-22975-2-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1311231185-5503-1-git-send-email-shubhrajyoti@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, rnayak@ti.com, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:34194 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751690Ab1GULST (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jul 2011 07:18:19 -0400
+In-Reply-To: <1311246554-22975-2-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, rnayak@ti.com, balajitk@ti.com
 
-The SYSC register should not accessed in the driver removing the
-define from the driver.
+Shubro,
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+On 7/21/2011 4:39 PM, Shubhrajyoti D wrote:
+> Under some conditions the driver may want to do a reset
+> of the device. Adding a reset field  to the platform
+> data.
+>
+> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
+> ---
+>   include/linux/i2c-omap.h |    1 +
+>   1 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+> index 98ae49b..8aa91b6 100644
+> --- a/include/linux/i2c-omap.h
+> +++ b/include/linux/i2c-omap.h
+> @@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
+>   	int		(*device_enable) (struct platform_device *pdev);
+>   	int		(*device_shutdown) (struct platform_device *pdev);
+>   	int		(*device_idle) (struct platform_device *pdev);
+> +	int		(*device_reset) (struct device *dev);
+Any reason you haven't clubbed this with the omap i2c reset
+implementation patch ?
+Since i2c-omap.h isn't a generic header file and specific
+to omap i2c drive, you could combine 1/5 and 2/5
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index d6ea7de..07e5a64 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -63,7 +63,6 @@ enum {
- 	OMAP_I2C_BUF_REG,
- 	OMAP_I2C_CNT_REG,
- 	OMAP_I2C_DATA_REG,
--	OMAP_I2C_SYSC_REG,
- 	OMAP_I2C_CON_REG,
- 	OMAP_I2C_OA_REG,
- 	OMAP_I2C_SA_REG,
-@@ -214,7 +213,6 @@ const static u8 reg_map_ip_v1[] = {
- 	[OMAP_I2C_BUF_REG] = 0x05,
- 	[OMAP_I2C_CNT_REG] = 0x06,
- 	[OMAP_I2C_DATA_REG] = 0x07,
--	[OMAP_I2C_SYSC_REG] = 0x08,
- 	[OMAP_I2C_CON_REG] = 0x09,
- 	[OMAP_I2C_OA_REG] = 0x0a,
- 	[OMAP_I2C_SA_REG] = 0x0b,
-@@ -235,7 +233,6 @@ const static u8 reg_map_ip_v2[] = {
- 	[OMAP_I2C_BUF_REG] = 0x94,
- 	[OMAP_I2C_CNT_REG] = 0x98,
- 	[OMAP_I2C_DATA_REG] = 0x9c,
--	[OMAP_I2C_SYSC_REG] = 0x20,
- 	[OMAP_I2C_CON_REG] = 0xa4,
- 	[OMAP_I2C_OA_REG] = 0xa8,
- 	[OMAP_I2C_SA_REG] = 0xac,
-@@ -282,7 +279,6 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- 		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
- 		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
- 		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
- 		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
- 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
- 	}
--- 
-1.7.1
+
