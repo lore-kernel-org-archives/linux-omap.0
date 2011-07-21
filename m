@@ -1,46 +1,38 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHV3 2/4] OMAP: I2C: Remove the reset in the init path
-Date: Thu, 21 Jul 2011 08:30:29 -0700
-Message-ID: <87hb6fabxm.fsf@ti.com>
-References: <1311256381-25548-1-git-send-email-shubhrajyoti@ti.com>
-	<1311256381-25548-3-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHV3 0/4] The series attempts to do the following
+Date: Thu, 21 Jul 2011 19:22:57 +0530
+Message-ID: <1311256381-25548-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:35086 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752314Ab1GUPac (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jul 2011 11:30:32 -0400
-In-Reply-To: <1311256381-25548-3-git-send-email-shubhrajyoti@ti.com>
-	(Shubhrajyoti D.'s message of "Thu, 21 Jul 2011 19:22:59 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, balajitk@ti.com, santosh.shilimkar@ti.com
 
-Shubhrajyoti D <shubhrajyoti@ti.com> writes:
+- The reset should not be done in the driver 
+  have support for the same.
+- Remove the sysc register access in the driver.
+- Restore the context only if the context is lost.
 
-> The reset in the driver at init is not needed
-> anymore as the hwmod framework takes care of
-> reseting it.
+version 2
+ - Fix the indentation.
+ - Restore in the error path is not needed as we are
+   doing a init.
 
-Agreed, but...
+version 3
+ - Combine the patch 1 and 2 as i2c-omap.h isn't a generic header
 
-The addition of the new places for reset (after timeout, after error) is
-not immediately clear, and not described here at all.
+Acknowledge Balaji and Santosh for the review comments.
+Tested on sdp4430 and on omap3430
 
-After digging myself (since it wasn't described in the changelog), I see
-that since the reset was removed from omap_i2c_init(), which was called
-not only during probe, but also after time out and error handling, new
-reset calls were added back in those locations.
+Shubhrajyoti D (4):
+  OMAP: I2C: Reset support
+  OMAP: I2C: Remove the reset in the init path
+  OMAP: I2C: Remove the SYSC register definition
+  OMAP: I2C: I2C register restore only if context is lost
 
-This is the kind of thing that needs to be thoroughly described in the
-changelog so reviewers who are not necessarily experts in this driver
-will easily and *quickly* understand what is going on without having to
-dig into all the details themselves.
-
-Summary: Descriptive, detailed changelogs are invaluable to
-reviewers/maintainers.
-
-Kevin
+ arch/arm/plat-omap/i2c.c      |   17 +++++++
+ drivers/i2c/busses/i2c-omap.c |  101 ++++++++++++++++-------------------------
+ include/linux/i2c-omap.h      |    1 +
+ 3 files changed, 57 insertions(+), 62 deletions(-)
