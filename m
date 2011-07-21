@@ -1,53 +1,66 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: conflicts between omap/cleanup branch and omap_dss2 tree
-Date: Thu, 21 Jul 2011 10:19:44 +0300
-Message-ID: <1311232784.1874.3.camel@deskari>
-References: <201107172339.32516.arnd@arndb.de>
-	<20110718080856.GW5783@atomide.com> <4E25784D.8070300@ti.com>
-	<201107191459.44992.arnd@arndb.de>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHV3 3/4] OMAP: I2C: Remove the SYSC register definition
+Date: Thu, 21 Jul 2011 19:23:00 +0530
+Message-ID: <1311256381-25548-4-git-send-email-shubhrajyoti@ti.com>
+References: <1311256381-25548-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201107191459.44992.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:55210 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751283Ab1GUNx0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jul 2011 09:53:26 -0400
+In-Reply-To: <1311256381-25548-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, rnayak@ti.com, balajitk@ti.com, santosh.shilimkar@ti.com, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-On Tue, 2011-07-19 at 14:59 +0200, Arnd Bergmann wrote:
-> On Tuesday 19 July 2011, Archit Taneja wrote:
-> > Tomi is on vacation right now, but he checks his mail once in a while, 
-> > so we may get a response soon.
-> > 
-> > Tomi's for-next branch is not up to date yet. So it shouldn't be 
-> > considered for now. The HWMOD patches in Tomi's for-next branch will be 
-> > pushed by Paul as 3.1-rc fixes.
-> > 
-> > We will make a temporary branch which will contain all the DSS2 patches 
-> > which Tomi intended to push for this merge window, once he gets a 
-> > chance, he can quickly update his for-next branch with it.
-> 
-> Ok, just let me know when you upload that branch so I can remove the
-> dependency from the arm-soc tree. Right now, I'm pulling the
-> omap_dss2/for_next branch into arm-soc/for_next as a dependency
-> to resolve the conflict.
+The SYSC register should not accessed in the driver removing the
+define from the driver.
 
-I've pushed a new for-next branch to
-git://gitorious.org/linux-omap-dss2/linux.git for-next. However, I
-decided to just reset it to -rc4 for now.
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-The latest DSS code does not work without bunch of HWMOD/omap_device
-patches so I'm not sure if there's any point to push the code to
-linux-next which, afaik, does not currently have those HWMOD/omap_device
-patches (Paul, correct me if I'm wrong).
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 8dc54d5..75bb62d 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -63,7 +63,6 @@ enum {
+ 	OMAP_I2C_BUF_REG,
+ 	OMAP_I2C_CNT_REG,
+ 	OMAP_I2C_DATA_REG,
+-	OMAP_I2C_SYSC_REG,
+ 	OMAP_I2C_CON_REG,
+ 	OMAP_I2C_OA_REG,
+ 	OMAP_I2C_SA_REG,
+@@ -213,7 +212,6 @@ const static u8 reg_map_ip_v1[] = {
+ 	[OMAP_I2C_BUF_REG] = 0x05,
+ 	[OMAP_I2C_CNT_REG] = 0x06,
+ 	[OMAP_I2C_DATA_REG] = 0x07,
+-	[OMAP_I2C_SYSC_REG] = 0x08,
+ 	[OMAP_I2C_CON_REG] = 0x09,
+ 	[OMAP_I2C_OA_REG] = 0x0a,
+ 	[OMAP_I2C_SA_REG] = 0x0b,
+@@ -234,7 +232,6 @@ const static u8 reg_map_ip_v2[] = {
+ 	[OMAP_I2C_BUF_REG] = 0x94,
+ 	[OMAP_I2C_CNT_REG] = 0x98,
+ 	[OMAP_I2C_DATA_REG] = 0x9c,
+-	[OMAP_I2C_SYSC_REG] = 0x20,
+ 	[OMAP_I2C_CON_REG] = 0xa4,
+ 	[OMAP_I2C_OA_REG] = 0xa8,
+ 	[OMAP_I2C_SA_REG] = 0xac,
+@@ -281,7 +278,6 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+ 	}
+-- 
+1.7.1
 
- Tomi
