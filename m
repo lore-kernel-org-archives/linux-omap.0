@@ -1,42 +1,40 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHV2 1/5] OMAP: I2C: Add a device reset field to platform data
-Date: Thu, 21 Jul 2011 16:39:10 +0530
-Message-ID: <1311246554-22975-2-git-send-email-shubhrajyoti@ti.com>
-References: <1311246554-22975-1-git-send-email-shubhrajyoti@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: Kconfig help descriptions
+Date: Thu, 21 Jul 2011 17:01:53 +0530
+Message-ID: <4E280E29.4070805@ti.com>
+References: <20110721092221.GA28942@n2100.arm.linux.org.uk>	<20110721095702.GP23253@legolas.emea.dhcp.ti.com> <CAJ6a13bGkxkWbqQ_=GrFBmyBRZxk5TA-w+UCN5wU3HAVBw_3xQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39407 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751740Ab1GULJe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jul 2011 07:09:34 -0400
-In-Reply-To: <1311246554-22975-1-git-send-email-shubhrajyoti@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:47838 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752136Ab1GULcA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jul 2011 07:32:00 -0400
+Received: by gwb19 with SMTP id 19so1100703gwb.32
+        for <linux-omap@vger.kernel.org>; Thu, 21 Jul 2011 04:31:59 -0700 (PDT)
+In-Reply-To: <CAJ6a13bGkxkWbqQ_=GrFBmyBRZxk5TA-w+UCN5wU3HAVBw_3xQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, rnayak@ti.com, balajitk@ti.com, Shubhrajyoti D <shubhrajyoti@ti.com>
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, balbi@ti.com
 
-Under some conditions the driver may want to do a reset
-of the device. Adding a reset field  to the platform
-data.
+Keerthy,
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- include/linux/i2c-omap.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+On 7/21/2011 4:49 PM, J, KEERTHY wrote:
+> Hello Russel,
+>
+> MADC stands for monitoring ADC. It is part of TWL4030 power IC.
+> TWL4030 is only on OMAP3 and hence not applicable for OMAP4.
+>
+> The driver is split accross mfd and hwmon. Generic ADC
+> reading part is in mfd and exposing the individual ADC channel
+> sysfs nodes is part of hwmon. I apologize for missing this
+> information in KConfig help. I will post a patch to update this.
+>
+Avoid top posting while replying on patches.
 
-diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
-index 98ae49b..8aa91b6 100644
---- a/include/linux/i2c-omap.h
-+++ b/include/linux/i2c-omap.h
-@@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
- 	int		(*device_enable) (struct platform_device *pdev);
- 	int		(*device_shutdown) (struct platform_device *pdev);
- 	int		(*device_idle) (struct platform_device *pdev);
-+	int		(*device_reset) (struct device *dev);
- };
- 
- #endif
--- 
-1.7.1
+Regards
+Santosh
 
