@@ -1,112 +1,72 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Kconfig help descriptions
-Date: Thu, 21 Jul 2011 12:57:03 +0300
-Message-ID: <20110721095702.GP23253@legolas.emea.dhcp.ti.com>
-References: <20110721092221.GA28942@n2100.arm.linux.org.uk>
-Reply-To: balbi@ti.com
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHV4 1/4] OMAP: I2C: Reset support
+Date: Thu, 21 Jul 2011 20:53:35 +0530
+Message-ID: <1311261818-25784-2-git-send-email-shubhrajyoti@ti.com>
+References: <1311261818-25784-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/NwG7NuG0/W8LcLh"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:42009 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751318Ab1GUJ5I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jul 2011 05:57:08 -0400
-Received: by ewy8 with SMTP id 8so1266132ewy.26
-        for <linux-omap@vger.kernel.org>; Thu, 21 Jul 2011 02:57:05 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110721092221.GA28942@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1311261818-25784-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Keerthy <j-keerthy@ti.com>
 
+ Under some error conditions the i2c  driver may do a reset.
+ Adding a reset field  and support in the platform.
 
---/NwG7NuG0/W8LcLh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/plat-omap/i2c.c |   17 +++++++++++++++++
+ include/linux/i2c-omap.h |    1 +
+ 2 files changed, 18 insertions(+), 0 deletions(-)
 
-Hi,
-
-On Thu, Jul 21, 2011 at 10:22:21AM +0100, Russell King - ARM Linux wrote:
-> Some of the Kconfig help descriptions aren't very useful - for example:
->=20
-> | CONFIG_TWL4030_MADC:
-> |=20
-> | This driver provides support for triton TWL4030-MADC. The
-> | driver supports both RT and SW conversion methods.
-> |=20
-> | This driver can be built as a module. If so it will be
-> | named twl4030-madc
->=20
-> What is madc?  What does it do?  Do I enable it for the OMAP 4430SDP ?
-
-the problem seems to be worse then you thought:
-
-$ git ls-files drivers/  | grep madc
-drivers/hwmon/twl4030-madc-hwmon.c
-drivers/mfd/twl4030-madc.c
-
-Both from the same author:
-
-$ git grep -e MODULE_AUTHOR drivers/mfd/twl4030-madc.c drivers/hwmon/twl403=
-0-madc-hwmon.c
-drivers/hwmon/twl4030-madc-hwmon.c:MODULE_AUTHOR("J Keerthy");
-drivers/mfd/twl4030-madc.c:MODULE_AUTHOR("J Keerthy");
-
-but added on different commits:
-
-commit f99c1d4f94f91fd3a20bd2eaa3be9c5e7d2668eb
-Author: Keerthy <j-keerthy@ti.com>
-Date:   Tue Mar 1 19:12:26 2011 +0530
-
-    mfd: Add twl4030 madc driver
-   =20
-    Introducing a driver for MADC on TWL4030 powerIC. MADC stands for monit=
-oring
-    ADC. This driver monitors the real time conversion of analog signals li=
-ke
-    battery temperature, battery cuurent etc.
-   =20
-    Signed-off-by: Keerthy <j-keerthy@ti.com>
-    Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
-
-commit 0070bddfe7275e5bc763884a8ac59651f4e79eab
-Author: Keerthy <j-keerthy@ti.com>
-Date:   Tue Mar 1 19:12:36 2011 +0530
-
-    hwmon: twl4030: Hwmon Driver for TWL4030 MADC
-   =20
-    This driver exposes the sysfs nodes of the TWL4030 MADC module.
-    All the voltage channel values are expressed in terms of mV. Channel 13
-    and channel 14 are reserved. There are channels which represent
-    temperature and current the output is represented by celcius
-    and mA respectively.
-   =20
-    Signed-off-by: Keerthy <j-keerthy@ti.com>
-    Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-    Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
-
-
---=20
-balbi
-
---/NwG7NuG0/W8LcLh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOJ/fuAAoJEAv8Txj19kN1u3QH/jJRqx+xg0ScRvBfzWJWl0B7
-F3ldC/eoT4ehzR3fNN3ElWmTEjh1QigWh8AAdnsQS8by6X31+wFjtIn8pHKAxAo8
-gZho9whJ+/8uzBFog2IOz9uJv+ds9bxlPHWQGRDEkzpSB87v3ZcShlYi8GWssdrX
-IYGU0bQg60ahWpeCU4ftdQqDhivBN7o0fm6Z8HXQPOt894tGcJltLk21x1HxVB3R
-TBkMVoSO+mKyGGzz40NYsJyWIG6i8V2v6hyiMN3MOttvSdtzOpOKG6uoaXKfOQOA
-qnJYh8Cc9euXyLcFAhUSfGc+Gaw0tnfLNqY3BPZa6bJIPfDN4Lzxdu+FqJldDmA=
-=K6m9
------END PGP SIGNATURE-----
-
---/NwG7NuG0/W8LcLh--
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index 2388b8e..98a97b0 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -146,6 +146,22 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
+ 		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+ 	},
+ };
++/**
++ * omap2_i2c_reset - reset the omap i2c module.
++ * @dev: struct device*
++ */
++
++static int omap2_i2c_reset(struct device *dev)
++{
++	int r = 0;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_device *odev = to_omap_device(pdev);
++	struct omap_hwmod *oh;
++
++	oh = odev->hwmods[0];
++	r = omap_hwmod_reset(oh);
++	return r;
++}
+ 
+ static inline int omap2_i2c_add_bus(int bus_id)
+ {
+@@ -187,6 +203,7 @@ static inline int omap2_i2c_add_bus(int bus_id)
+ 	 */
+ 	if (cpu_is_omap34xx())
+ 		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
++	pdata->device_reset = omap2_i2c_reset;
+ 	od = omap_device_build(name, bus_id, oh, pdata,
+ 			sizeof(struct omap_i2c_bus_platform_data),
+ 			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
+diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+index 98ae49b..8aa91b6 100644
+--- a/include/linux/i2c-omap.h
++++ b/include/linux/i2c-omap.h
+@@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
+ 	int		(*device_enable) (struct platform_device *pdev);
+ 	int		(*device_shutdown) (struct platform_device *pdev);
+ 	int		(*device_idle) (struct platform_device *pdev);
++	int		(*device_reset) (struct device *dev);
+ };
+ 
+ #endif
+-- 
+1.7.1
