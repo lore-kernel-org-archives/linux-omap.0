@@ -1,40 +1,81 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: Kconfig help descriptions
-Date: Thu, 21 Jul 2011 17:01:53 +0530
-Message-ID: <4E280E29.4070805@ti.com>
-References: <20110721092221.GA28942@n2100.arm.linux.org.uk>	<20110721095702.GP23253@legolas.emea.dhcp.ti.com> <CAJ6a13bGkxkWbqQ_=GrFBmyBRZxk5TA-w+UCN5wU3HAVBw_3xQ@mail.gmail.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHV3 1/4] OMAP: I2C: Reset support
+Date: Thu, 21 Jul 2011 19:22:58 +0530
+Message-ID: <1311256381-25548-2-git-send-email-shubhrajyoti@ti.com>
+References: <1311256381-25548-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:47838 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752136Ab1GULcA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jul 2011 07:32:00 -0400
-Received: by gwb19 with SMTP id 19so1100703gwb.32
-        for <linux-omap@vger.kernel.org>; Thu, 21 Jul 2011 04:31:59 -0700 (PDT)
-In-Reply-To: <CAJ6a13bGkxkWbqQ_=GrFBmyBRZxk5TA-w+UCN5wU3HAVBw_3xQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1311256381-25548-1-git-send-email-shubhrajyoti@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, balajitk@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-i2c@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, balbi@ti.com
 
-Keerthy,
+ Under some error conditions the i2c  driver may do a reset.
+ Adding a reset field  and support in the platform.
 
-On 7/21/2011 4:49 PM, J, KEERTHY wrote:
-> Hello Russel,
->
-> MADC stands for monitoring ADC. It is part of TWL4030 power IC.
-> TWL4030 is only on OMAP3 and hence not applicable for OMAP4.
->
-> The driver is split accross mfd and hwmon. Generic ADC
-> reading part is in mfd and exposing the individual ADC channel
-> sysfs nodes is part of hwmon. I apologize for missing this
-> information in KConfig help. I will post a patch to update this.
->
-Avoid top posting while replying on patches.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ arch/arm/plat-omap/i2c.c |   17 +++++++++++++++++
+ include/linux/i2c-omap.h |    1 +
+ 2 files changed, 18 insertions(+), 0 deletions(-)
 
-Regards
-Santosh
-
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index 2388b8e..98a97b0 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -146,6 +146,22 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
+ 		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+ 	},
+ };
++/**
++ * omap2_i2c_reset - reset the omap i2c module.
++ * @dev: struct device*
++ */
++
++static int omap2_i2c_reset(struct device *dev)
++{
++	int r = 0;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_device *odev = to_omap_device(pdev);
++	struct omap_hwmod *oh;
++
++	oh = odev->hwmods[0];
++	r = omap_hwmod_reset(oh);
++	return r;
++}
+ 
+ static inline int omap2_i2c_add_bus(int bus_id)
+ {
+@@ -187,6 +203,7 @@ static inline int omap2_i2c_add_bus(int bus_id)
+ 	 */
+ 	if (cpu_is_omap34xx())
+ 		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
++	pdata->device_reset = omap2_i2c_reset;
+ 	od = omap_device_build(name, bus_id, oh, pdata,
+ 			sizeof(struct omap_i2c_bus_platform_data),
+ 			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
+diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+index 98ae49b..8aa91b6 100644
+--- a/include/linux/i2c-omap.h
++++ b/include/linux/i2c-omap.h
+@@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
+ 	int		(*device_enable) (struct platform_device *pdev);
+ 	int		(*device_shutdown) (struct platform_device *pdev);
+ 	int		(*device_idle) (struct platform_device *pdev);
++	int		(*device_reset) (struct device *dev);
+ };
+ 
+ #endif
+-- 
+1.7.1
