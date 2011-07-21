@@ -1,79 +1,37 @@
-From: Bryan Buckley <bryan.buckley@ti.com>
-Subject: [PATCH] OMAP4: MMC: fix power and audio issue, decouple USBC1 from MMC1
-Date: Thu, 21 Jul 2011 14:29:03 -0500
-Message-ID: <1311276543-9374-1-git-send-email-bryan.buckley@ti.com>
+From: "Mr. Vincent Cheng" <info@mat.unb.br>
+Subject: (unknown)
+Date: Thu, 21 Jul 2011 11:27:12 -0300
+Message-ID: <20110721112712.9aoni8ohkwgsg8sg__47208.6477363065$1311276832$gmane$org@webmail.mat.unb.br>
+Reply-To: choi_chu112@yahoo.co.jp
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41650 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751304Ab1GUT31 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jul 2011 15:29:27 -0400
+Received: from pequi.mat.unb.br ([164.41.38.3]:47134 "EHLO mail.mat.unb.br"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753481Ab1GUTdY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jul 2011 15:33:24 -0400
+Subject: 
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, Moiz Sonasath <m-sonasath@ti.com>, Viswanath Puttagunta <vishp@ti.com>, Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Bryan Buckley <bryan.buckley@ti.com>
 
-Remove OMAP4_USBC1_ICUSB_PWRDNZ_MASK during enable/disable PWRDNZ mode for
-MMC1_PBIAS and associated extended-drain MMC1 I/O cell. This is in accordance
-with the control module programming guide. This fixes a bug where if trying to
-use gpio_98 or gpio_99 and MMC1 at the same time the GPIO signal will be
-affected by a changing SDMMC1_VDDS.
 
-Software must keep MMC1_PBIAS cell and MMC1_IO cell PWRDNZ signals low whenever
-SDMMC1_VDDS ramps up/down or changes for cell protection purposes.
+Good Day,
 
-MMC1 is based on SDMMC1_VDDS whereas USBC1 is based on SIM_VDDS therefore
-they can operate independently.
+I have a business proposal of USD $22,500,000.00 only for you to transact with
+me from my bank to your country.
+Reply to address:choi_chu112@yahoo.co.jp and I will let you know what is
+required of you.
 
-Signed-off-by: Bryan Buckley <bryan.buckley@ti.com>
----
- arch/arm/mach-omap2/hsmmc.c |   12 ++++--------
- 1 files changed, 4 insertions(+), 8 deletions(-)
+Best Regards,
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index 3842405..a6135df 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -144,8 +144,7 @@ static void omap4_hsmmc1_before_set_reg(struct device *dev, int slot,
- 	 */
- 	reg = omap4_ctrl_pad_readl(control_pbias_offset);
- 	reg &= ~(OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
--		OMAP4_MMC1_PWRDNZ_MASK |
--		OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
-+		OMAP4_MMC1_PWRDNZ_MASK);
- 	omap4_ctrl_pad_writel(reg, control_pbias_offset);
- }
- 
-@@ -165,8 +164,7 @@ static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
- 		else
- 			reg |= OMAP4_MMC1_PBIASLITE_VMODE_MASK;
- 		reg |= (OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
--			OMAP4_MMC1_PWRDNZ_MASK |
--			OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
-+			OMAP4_MMC1_PWRDNZ_MASK);
- 		omap4_ctrl_pad_writel(reg, control_pbias_offset);
- 		/* 4 microsec delay for comparator to generate an error*/
- 		udelay(4);
-@@ -174,16 +172,14 @@ static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
- 		if (reg & OMAP4_MMC1_PBIASLITE_VMODE_ERROR_MASK) {
- 			pr_err("Pbias Voltage is not same as LDO\n");
- 			/* Caution : On VMODE_ERROR Power Down MMC IO */
--			reg &= ~(OMAP4_MMC1_PWRDNZ_MASK |
--				OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
-+			reg &= ~(OMAP4_MMC1_PWRDNZ_MASK);
- 			omap4_ctrl_pad_writel(reg, control_pbias_offset);
- 		}
- 	} else {
- 		reg = omap4_ctrl_pad_readl(control_pbias_offset);
- 		reg |= (OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
- 			OMAP4_MMC1_PWRDNZ_MASK |
--			OMAP4_MMC1_PBIASLITE_VMODE_MASK |
--			OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
-+			OMAP4_MMC1_PBIASLITE_VMODE_MASK);
- 		omap4_ctrl_pad_writel(reg, control_pbias_offset);
- 	}
- }
--- 
-1.7.0.4
+Mr. Vincent Cheng
+
+
+
+
 
