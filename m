@@ -1,95 +1,165 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] dt: omap3: add generic board file for dt support
-Date: Thu, 21 Jul 2011 00:18:36 -0700
-Message-ID: <20110721071835.GB5783@atomide.com>
-References: <1310592975-25773-1-git-send-email-manjugk@ti.com>
-	<1310592975-25773-4-git-send-email-manjugk@ti.com>
-	<CACxGe6sELS=C==16TZ2pfrxJDDyqjS_qOwJUfwzwMO8hqo8Xag@mail.gmail.com>
-	<CAC63_iSqN=rX6MbzFWM6z+zf1Eybg3MOD=qQVdeNg5cyENhPjw@mail.gmail.com>
-	<CAC63_iTf696D6Q_EzFeUUp5R38pYNEJBkmKviEu6-yuF0y=bNA@mail.gmail.com>
-	<CACxGe6uzyxf35WDg6COnPVt3dhQv1H80L1svALxp4naySx2BcA@mail.gmail.com>
-	<20110718090710.GZ5783@atomide.com>
-	<20110719213458.GO6848@ponder.secretlab.ca>
+From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHV2 3/5] OMAP: I2C: Remove the reset in the init path
+Date: Thu, 21 Jul 2011 16:57:07 +0530
+Message-ID: <4E280D0B.1040701@ti.com>
+References: <1311246554-22975-1-git-send-email-shubhrajyoti@ti.com> <1311246554-22975-4-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20110719213458.GO6848@ponder.secretlab.ca>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Kevin Hilman <khilman@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, devicetree-discuss@lists.ozlabs.org, ben-linux@fluff.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1311246554-22975-4-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Grant Likely <grant.likely@secretlab.ca> [110719 14:29]:
-> On Mon, Jul 18, 2011 at 02:07:10AM -0700, Tony Lindgren wrote:
-> > * Grant Likely <grant.likely@secretlab.ca> [110716 22:08]:
-> > > 
-> > > The way I see it, you've got two options:
-> > > 
-> > > 1) modify the of_platform_bus_create() to call some kind of
-> > > of_platform_bus_create_omap() for devices that match "ti,omap3-device"
-> > > or something.
-> > > 
-> > > 2) Leave of_platform_bus_create(), and instead us a notifier to attach
-> > > hwmod data to normal platform devices.  omap_device_build() is
-> > > actually pretty simple.  It allocated a device, it attaches
-> > > platform_data and hwmod pointers to the device and registers it.
-> > > omap_device_register() is just a wrapper around
-> > > platform_device_register().
-> > > 
-> > > My preference is definitely #2, but there is a wrinkle in this
-> > > approach.  Unfortunately omap_devices are not simply plain
-> > > platform_devices with extra data attached, an omap_device actually
-> > > embeds the platform_device inside it, which cannot be attached after
-> > > the fact.  I think I had talked with Kevin (cc'd) about eliminating
-> > > the embedding, but I cannot remember clearly on this point.  As long
-> > > as platform_device remains embedded inside struct omap_device, #2
-> > > won't work.
-> > > 
-> > > In either case, looking up the correct hwmod data should be easy for
-> > > any device provided the omap code maintains a lookup table of
-> > > compatible strings and base addresses of devices (much like auxdata).
-> > > In fact, I'd be okay with extending auxdata to include OMAP fields if
-> > > that would be easiest since the whole point of auxdata is to ease the
-> > > transition to DT support.  When a matching device is created, the
-> > > hwmod pointer can easily be attached.  This should work transparently
-> > > for all omap devices, not just the i2c bus.
-> > 
-> > Well we should be able to automgagically build the omap_device for
-> > each device tree entry.
-> > 
-> > And then the device driver probe and runtime PM should be able to take
-> > care of the rest for the driver. And then there's no more driver
-> > specific platform init code needed ;)
-> 
-> Right!  That's the solution I'd like to see.
-> 
-> > How about if we just have the hwmod code call omap_device_build for
-> > each device tree entry?
-> 
-> I think that is pretty much equivalent to suggestion #1 above, only
-> I'm suggesting to take advantage of the infrastructure already
-> available in driver/of/platform.c in the form of
-> of_platform_populate().  The "of_platform_bus_create_omap()" function
-> suggested above I assumed would directly call omap_device_build().
+On 7/21/2011 4:39 PM, Shubhrajyoti D wrote:
+> The reset in the driver at init is not needed
+> anymore as the hwmod framework takes care of
+> reseting it.
+>
+> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> ---
+>   drivers/i2c/busses/i2c-omap.c |   73 ++++++++++++----------------------------
+>   1 files changed, 22 insertions(+), 51 deletions(-)
 
-OK
- 
-> There are already hooks in the _populate call path to handle the
-> creation of amba_devices.  I have no problem doing the same thing for
-> omap devices.
+Excellent cleanup. Some minor coments
 
-OK 
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 8f87a37..8dc54d5 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -155,9 +155,6 @@ enum {
+>   #define OMAP_I2C_SYSTEST_SDA_O		(1<<  0)	/* SDA line drive out */
+>   #endif
+>
+> -/* OCP_SYSSTATUS bit definitions */
+> -#define SYSS_RESETDONE_MASK		(1<<  0)
+> -
+>   /* OCP_SYSCONFIG bit definitions */
+>   #define SYSC_CLOCKACTIVITY_MASK		(0x3<<  8)
+>   #define SYSC_SIDLEMODE_MASK		(0x3<<  3)
+> @@ -182,6 +179,7 @@ struct omap_i2c_dev {
+>   	u32			latency;	/* maximum mpu wkup latency */
+>   	void			(*set_mpu_wkup_lat)(struct device *dev,
+>   						    long latency);
+> +	int			(*device_reset)(struct device *dev);
+>   	u32			speed;		/* Speed of bus in Khz */
+>   	u16			cmd_err;
+>   	u8			*buf;
+> @@ -332,7 +330,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+>   	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
+>   	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
+>   	unsigned long fclk_rate = 12000000;
+> -	unsigned long timeout;
+>   	unsigned long internal_clk = 0;
+>   	struct clk *fclk;
+>   	struct platform_device *pdev;
+> @@ -341,53 +338,16 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+>   	pdev = to_platform_device(dev->dev);
+>   	pdata = pdev->dev.platform_data;
+>
+> -	if (dev->rev>= OMAP_I2C_OMAP1_REV_2) {
+> -		/* Disable I2C controller before soft reset */
+> -		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+> -			omap_i2c_read_reg(dev, OMAP_I2C_CON_REG)&
+> -				~(OMAP_I2C_CON_EN));
+> -
+> -		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, SYSC_SOFTRESET_MASK);
+> -		/* For some reason we need to set the EN bit before the
+> -		 * reset done bit gets set. */
+> -		timeout = jiffies + OMAP_I2C_TIMEOUT;
+> -		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+> -		while (!(omap_i2c_read_reg(dev, OMAP_I2C_SYSS_REG)&
+> -			 SYSS_RESETDONE_MASK)) {
+> -			if (time_after(jiffies, timeout)) {
+> -				dev_warn(dev->dev, "timeout waiting "
+> -						"for controller reset\n");
+> -				return -ETIMEDOUT;
+> -			}
+> -			msleep(1);
+> -		}
+> -
+> -		/* SYSC register is cleared by the reset; rewrite it */
+> -		if (dev->rev == OMAP_I2C_REV_ON_2430) {
+> -
+> -			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+> -					   SYSC_AUTOIDLE_MASK);
+> -
+> -		} else if (dev->rev>= OMAP_I2C_REV_ON_3430) {
+> -			dev->syscstate = SYSC_AUTOIDLE_MASK;
+> -			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
+> -			dev->syscstate |= (SYSC_IDLEMODE_SMART<<
+> -			      __ffs(SYSC_SIDLEMODE_MASK));
+> -			dev->syscstate |= (SYSC_CLOCKACTIVITY_FCLK<<
+> -			      __ffs(SYSC_CLOCKACTIVITY_MASK));
+> -
+> -			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+> -							dev->syscstate);
+> -			/*
+> -			 * Enabling all wakup sources to stop I2C freezing on
+> -			 * WFI instruction.
+> -			 * REVISIT: Some wkup sources might not be needed.
+> -			 */
+> -			dev->westate = OMAP_I2C_WE_ALL;
+> -			if (dev->rev<  OMAP_I2C_REV_ON_3530_4430)
+> -				omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+> -								dev->westate);
+> -		}
+> +	if (dev->rev>= OMAP_I2C_REV_ON_3430) {
+Space please if (dev->rev >= OMAP_I2C_REV_ON_3430) {
+> +		/*
+> +		 * Enabling all wakup sources to stop I2C freezing on
+> +		 * WFI instruction.
+> +		 * REVISIT: Some wkup sources might not be needed.
+> +		 */
+Surely not related to your patch. But the 'REVISIT:' caught
+my attention. Is the comment still valid.
 
-Regards,
+> +		dev->westate = OMAP_I2C_WE_ALL;
+> +		if (dev->rev<  OMAP_I2C_REV_ON_3530_4430)
+Space if (dev->rev <  OMAP_I2C_REV_ON_3530_4430)
+> +			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+> +							dev->westate);
+>   	}
+>   	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>
+> @@ -612,6 +572,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>   		return r;
+>   	if (r == 0) {
+>   		dev_err(dev->dev, "controller timed out\n");
+> +		if (dev->device_reset != NULL) {
+> +			r = dev->device_reset(dev->dev);
+> +			if (r<  0)
+ditto
+> +				dev_err(dev->dev, "reset failed\n");
+> +		}
+>   		omap_i2c_init(dev);
+>   		return -ETIMEDOUT;
+>   	}
+> @@ -622,6 +587,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>   	/* We have an error */
+>   	if (dev->cmd_err&  (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
+You can fix this one as well.
+>   			    OMAP_I2C_STAT_XUDF)) {
+> +		if (dev->device_reset != NULL) {
+> +			r = dev->device_reset(dev->dev);
+> +			if (r<  0)
+here too.
+> +				dev_err(dev->dev, "reset failed\n");
+> +		}
+>   		omap_i2c_init(dev);
+>   		return -EIO;
+>   	}
+> @@ -1024,6 +994,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>   	if (pdata != NULL) {
+>   		speed = pdata->clkrate;
+>   		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+> +		dev->device_reset = pdata->device_reset;
+>   	} else {
+>   		speed = 100;	/* Default speed */
+>   		dev->set_mpu_wkup_lat = NULL;
 
-Tony
+Regards
+Santosh
