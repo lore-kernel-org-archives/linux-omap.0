@@ -1,37 +1,26 @@
-From: "Mr. Vincent Cheng" <info@mat.unb.br>
-Subject: (unknown)
-Date: Thu, 21 Jul 2011 11:27:12 -0300
-Message-ID: <20110721112712.9aoni8ohkwgsg8sg__47208.6477363065$1311276832$gmane$org@webmail.mat.unb.br>
-Reply-To: choi_chu112@yahoo.co.jp
+From: "Western Union de transferencia de dinero" <irs.p3@w.cn>
+Subject: Confirmar
+Date: Thu, 21 Jul 2011 17:15:59 -0300 (BRT)
+Message-ID: <21856.88.255.100.254.1311279359.squirrel__22795.3622852967$1311279499$gmane$org@webmail.usb.org.br>
+Reply-To: irs.p3@w.cn
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pequi.mat.unb.br ([164.41.38.3]:47134 "EHLO mail.mat.unb.br"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753481Ab1GUTdY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jul 2011 15:33:24 -0400
-Subject: 
-Content-Disposition: inline
+Received: from usb.org.br ([200.178.205.154]:55439 "EHLO usb.org.br"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752991Ab1GUUR6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jul 2011 16:17:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Usted tiene una transferencia de dinero de $85.000.Por favor confirmar =
+la
+recepci=F3n con su nombre y su pa=EDs. Enviar por correo electr=F3nico:=
+ irs.p3@w.cn
 
-Good Day,
-
-I have a business proposal of USD $22,500,000.00 only for you to transact with
-me from my bank to your country.
-Reply to address:choi_chu112@yahoo.co.jp and I will let you know what is
-required of you.
-
-Best Regards,
-
-Mr. Vincent Cheng
-
-
-
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
