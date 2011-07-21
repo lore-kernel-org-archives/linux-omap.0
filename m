@@ -1,14 +1,13 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHV3 2/4] OMAP: I2C: Remove the reset in the init path
-Date: Thu, 21 Jul 2011 16:59:39 +0300
-Message-ID: <20110721135938.GC30943@legolas.emea.dhcp.ti.com>
-References: <1311256381-25548-1-git-send-email-shubhrajyoti@ti.com>
-	<1311256381-25548-3-git-send-email-shubhrajyoti@ti.com>
-Reply-To: balbi@ti.com
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHV4 3/4] OMAP: I2C: Remove the SYSC register definition
+Date: Thu, 21 Jul 2011 20:53:37 +0530
+Message-ID: <1311261818-25784-4-git-send-email-shubhrajyoti@ti.com>
+References: <1311261818-25784-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0228291527=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1311256381-25548-3-git-send-email-shubhrajyoti@ti.com>
+In-Reply-To: <1311261818-25784-1-git-send-email-shubhrajyoti@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,67 +17,54 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: khilman@ti.com, balajitk@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, balajitk@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-i2c@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+The SYSC register should not accessed in the driver removing the
+define from the driver.
 
---===============0228291527==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CblX+4bnyfN0pR09"
-Content-Disposition: inline
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-
---CblX+4bnyfN0pR09
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Thu, Jul 21, 2011 at 07:22:59PM +0530, Shubhrajyoti D wrote:
-> The reset in the driver at init is not needed
-> anymore as the hwmod framework takes care of
-> reseting it.
->=20
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-
-this is still doing two things:
-
-a. remove the reset from init path
-b. add and use ->device_reset() when needed.
-
---=20
-balbi
-
---CblX+4bnyfN0pR09
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOKDDKAAoJEAv8Txj19kN1wvQH/1EYfhsK+kob7QSUDHCRdJxR
-lsxTFNLKvb9CFhWKYQPVJ65COLyurinXmrQac2Jw65uStmscuE3p4ljUTRjTUbUn
-5t7frLzEpEqURctkV52+++xlRJ18bNyXLbWoMP6zIb2mIRlsYdi8J6Kl/OMaXHDA
-ZMF7sONfyT0B3FXJMW7X3VaIi9NzUoBLUzIPigdR2zo2J5gHLEP1+LYpPLozNBp3
-5hw4AEQoZ8sulN4rAJbdlpSXVuyvje+3rE18KT9XfmW1D3wICUfpVn5vjTYPZnXd
-rnIbwwGsnYO7qPOw7IJWoj9vlHppOQpr3N+Lb/LnQbgmrwRqykUGiEbUZxweOkE=
-=lfec
------END PGP SIGNATURE-----
-
---CblX+4bnyfN0pR09--
-
-
---===============0228291527==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0228291527==--
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 8dc54d5..75bb62d 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -63,7 +63,6 @@ enum {
+ 	OMAP_I2C_BUF_REG,
+ 	OMAP_I2C_CNT_REG,
+ 	OMAP_I2C_DATA_REG,
+-	OMAP_I2C_SYSC_REG,
+ 	OMAP_I2C_CON_REG,
+ 	OMAP_I2C_OA_REG,
+ 	OMAP_I2C_SA_REG,
+@@ -213,7 +212,6 @@ const static u8 reg_map_ip_v1[] = {
+ 	[OMAP_I2C_BUF_REG] = 0x05,
+ 	[OMAP_I2C_CNT_REG] = 0x06,
+ 	[OMAP_I2C_DATA_REG] = 0x07,
+-	[OMAP_I2C_SYSC_REG] = 0x08,
+ 	[OMAP_I2C_CON_REG] = 0x09,
+ 	[OMAP_I2C_OA_REG] = 0x0a,
+ 	[OMAP_I2C_SA_REG] = 0x0b,
+@@ -234,7 +232,6 @@ const static u8 reg_map_ip_v2[] = {
+ 	[OMAP_I2C_BUF_REG] = 0x94,
+ 	[OMAP_I2C_CNT_REG] = 0x98,
+ 	[OMAP_I2C_DATA_REG] = 0x9c,
+-	[OMAP_I2C_SYSC_REG] = 0x20,
+ 	[OMAP_I2C_CON_REG] = 0xa4,
+ 	[OMAP_I2C_OA_REG] = 0xa8,
+ 	[OMAP_I2C_SA_REG] = 0xac,
+@@ -281,7 +278,6 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+ 	}
+-- 
+1.7.1
