@@ -1,65 +1,163 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Kconfig help descriptions
-Date: Thu, 21 Jul 2011 12:37:19 +0300
-Message-ID: <20110721093718.GM23253@legolas.emea.dhcp.ti.com>
-References: <20110721092221.GA28942@n2100.arm.linux.org.uk>
-Reply-To: balbi@ti.com
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCH 3/5] OMAP: I2C: Remove the reset in the init path
+Date: Thu, 21 Jul 2011 14:01:42 +0530
+Message-ID: <CANrkHUZbL++_-etFzRD55G8gMChrs9geXvLOXzacTLKshAfryw@mail.gmail.com>
+References: <1311231185-5503-1-git-send-email-shubhrajyoti@ti.com>
+	<1311231185-5503-4-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gw4vLALk08fVJy3V"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:57772 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751717Ab1GUJhY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jul 2011 05:37:24 -0400
-Received: by ewy10 with SMTP id 10so1061258ewy.9
-        for <linux-omap@vger.kernel.org>; Thu, 21 Jul 2011 02:37:21 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110721092221.GA28942@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org
-
-
---gw4vLALk08fVJy3V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1311231185-5503-4-git-send-email-shubhrajyoti@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: khilman@ti.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 21, 2011 at 10:22:21AM +0100, Russell King - ARM Linux wrote:
-> Some of the Kconfig help descriptions aren't very useful - for example:
->=20
-> | CONFIG_TWL4030_MADC:
-> |=20
-> | This driver provides support for triton TWL4030-MADC. The
-> | driver supports both RT and SW conversion methods.
-> |=20
-> | This driver can be built as a module. If so it will be
-> | named twl4030-madc
->=20
-> What is madc?  What does it do?  Do I enable it for the OMAP 4430SDP ?
+On Thu, Jul 21, 2011 at 12:23 PM, Shubhrajyoti D <shubhrajyoti@ti.com> wrot=
+e:
+> The reset in the driver at init is not needed
+> anymore as the hwmod framework takes care of
+> reseting it.
+>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+> =A0drivers/i2c/busses/i2c-omap.c | =A0 57 +++++++++++--------------------=
+----------
+> =A01 files changed, 15 insertions(+), 42 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 8f87a37..d6ea7de 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -155,9 +155,6 @@ enum {
+> =A0#define OMAP_I2C_SYSTEST_SDA_O =A0 =A0 =A0 =A0 (1 << 0) =A0 =A0 =A0 =
+=A0/* SDA line drive out */
+> =A0#endif
+>
+> -/* OCP_SYSSTATUS bit definitions */
+> -#define SYSS_RESETDONE_MASK =A0 =A0 =A0 =A0 =A0 =A0(1 << 0)
+> -
+> =A0/* OCP_SYSCONFIG bit definitions */
+> =A0#define SYSC_CLOCKACTIVITY_MASK =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(0x3 <<=
+ 8)
+> =A0#define SYSC_SIDLEMODE_MASK =A0 =A0 =A0 =A0 =A0 =A0(0x3 << 3)
+> @@ -182,6 +179,8 @@ struct omap_i2c_dev {
+> =A0 =A0 =A0 =A0u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 latency; =A0 =
+=A0 =A0 =A0/* maximum mpu wkup latency */
+> =A0 =A0 =A0 =A0void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*set_mpu_wkup=
+_lat)(struct device *dev,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0long latency);
+> + =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (*device_reset)=
+(struct device *dev);
+> +
+> =A0 =A0 =A0 =A0u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed; =A0 =A0=
+ =A0 =A0 =A0/* Speed of bus in Khz */
+> =A0 =A0 =A0 =A0u16 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmd_err;
+> =A0 =A0 =A0 =A0u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*buf;
+> @@ -332,7 +331,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> =A0 =A0 =A0 =A0u16 psc =3D 0, scll =3D 0, sclh =3D 0, buf =3D 0;
+> =A0 =A0 =A0 =A0u16 fsscll =3D 0, fssclh =3D 0, hsscll =3D 0, hssclh =3D 0;
+> =A0 =A0 =A0 =A0unsigned long fclk_rate =3D 12000000;
+> - =A0 =A0 =A0 unsigned long timeout;
+> =A0 =A0 =A0 =A0unsigned long internal_clk =3D 0;
+> =A0 =A0 =A0 =A0struct clk *fclk;
+> =A0 =A0 =A0 =A0struct platform_device *pdev;
+> @@ -341,43 +339,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> =A0 =A0 =A0 =A0pdev =3D to_platform_device(dev->dev);
+> =A0 =A0 =A0 =A0pdata =3D pdev->dev.platform_data;
+>
+> - =A0 =A0 =A0 if (dev->rev >=3D OMAP_I2C_OMAP1_REV_2) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Disable I2C controller before soft reset=
+ */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_read_reg(dev, OMAP=
+_I2C_CON_REG) &
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ~(OMAP_I2C_=
+CON_EN));
+> -
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, =
+SYSC_SOFTRESET_MASK);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* For some reason we need to set the EN bi=
+t before the
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* reset done bit gets set. */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 timeout =3D jiffies + OMAP_I2C_TIMEOUT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, O=
+MAP_I2C_CON_EN);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (!(omap_i2c_read_reg(dev, OMAP_I2C_SY=
+SS_REG) &
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0SYSS_RESETDONE_MASK)) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (time_after(jiffies, tim=
+eout)) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_warn(de=
+v->dev, "timeout waiting "
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 "for controller reset\n");
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ETI=
+MEDOUT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 msleep(1);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> -
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* SYSC register is cleared by the reset; r=
+ewrite it */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (dev->rev =3D=3D OMAP_I2C_REV_ON_2430) {
+> -
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(dev, OMA=
+P_I2C_SYSC_REG,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0SYSC_AUTOIDLE_MASK);
+> -
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else if (dev->rev >=3D OMAP_I2C_REV_ON_34=
+30) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->syscstate =3D SYSC_AUT=
+OIDLE_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->syscstate |=3D SYSC_EN=
+AWAKEUP_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->syscstate |=3D (SYSC_I=
+DLEMODE_SMART <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __ffs(SYSC_SIDL=
+EMODE_MASK));
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->syscstate |=3D (SYSC_C=
+LOCKACTIVITY_FCLK <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __ffs(SYSC_CLOC=
+KACTIVITY_MASK));
+> -
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(dev, OMA=
+P_I2C_SYSC_REG,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->syscstate);
+> + =A0 =A0 =A0 if (dev->rev >=3D OMAP_I2C_REV_ON_3430) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/*
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * Enabling all wakup sour=
+ces to stop I2C freezing on
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * WFI instruction.
 
-Monitoring ADC.
+one extra level of indentation
 
---=20
-balbi
+> @@ -388,7 +350,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_i2c_w=
+rite_reg(dev, OMAP_I2C_WE_REG,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev->westate);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
 
---gw4vLALk08fVJy3V
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+same
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+> - =A0 =A0 =A0 }
+> +
 
-iQEcBAEBAgAGBQJOJ/NOAAoJEAv8Txj19kN1J78H/jKDWb6g5FvDLFCFeOEvZZgc
-KV+iZbbZ3xMtOTSJqlKlLFlY2QkVrF0krgGIv685DDegQQaUm5IJBzs6A+0EgEPC
-FGsIhCbFPL0EyxG8hN0Gr8i64RrQQT7YniIbmXMXNZEmNOUs1a/N0/6v08MljRA/
-7BrH99ZcJi2eCuba8md/Nj3S1TlwXQ5jxZVlScbxMrnyY/KsZAmVtI3RK/C5Dmja
-mSsof+PP8YExxLmDGFTtZWSBcU0Aoi/nCJcqWQ907gwP9DN1DZlvSL/ER6EFPoKW
-7N9Jfb2RX6dBYBE+E9i2VaqaDS4G7a6ZEwb8vpIxlLJWG7KIDq3Gi8isw3mr77U=
-=4xRo
------END PGP SIGNATURE-----
+spurious change, This comment applies to other patches in the series.
 
---gw4vLALk08fVJy3V--
+> =A0 =A0 =A0 =A0omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>
+> =A0 =A0 =A0 =A0if (pdata->flags & OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK) {
