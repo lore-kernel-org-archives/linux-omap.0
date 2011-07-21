@@ -1,72 +1,48 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHV4 1/4] OMAP: I2C: Reset support
-Date: Thu, 21 Jul 2011 20:53:35 +0530
-Message-ID: <1311261818-25784-2-git-send-email-shubhrajyoti@ti.com>
-References: <1311261818-25784-1-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHV4 0/4] I2C: driver updates
+Date: Thu, 21 Jul 2011 20:53:34 +0530
+Message-ID: <1311261818-25784-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1311261818-25784-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39274 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751498Ab1GUPX6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jul 2011 11:23:58 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, rnayak@ti.com, balajitk@ti.com, santosh.shilimkar@ti.com, Shubhrajyoti D <shubhrajyoti@ti.com>
 
- Under some error conditions the i2c  driver may do a reset.
- Adding a reset field  and support in the platform.
+The series attempts to do the following
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
- arch/arm/plat-omap/i2c.c |   17 +++++++++++++++++
- include/linux/i2c-omap.h |    1 +
- 2 files changed, 18 insertions(+), 0 deletions(-)
+- The reset should not be done in the driver 
+  have support for the same.
+- Remove the sysc register access in the driver.
+- Restore the context only if the context is lost.
 
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index 2388b8e..98a97b0 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -146,6 +146,22 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
- 		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
- 	},
- };
-+/**
-+ * omap2_i2c_reset - reset the omap i2c module.
-+ * @dev: struct device*
-+ */
-+
-+static int omap2_i2c_reset(struct device *dev)
-+{
-+	int r = 0;
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omap_device *odev = to_omap_device(pdev);
-+	struct omap_hwmod *oh;
-+
-+	oh = odev->hwmods[0];
-+	r = omap_hwmod_reset(oh);
-+	return r;
-+}
- 
- static inline int omap2_i2c_add_bus(int bus_id)
- {
-@@ -187,6 +203,7 @@ static inline int omap2_i2c_add_bus(int bus_id)
- 	 */
- 	if (cpu_is_omap34xx())
- 		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
-+	pdata->device_reset = omap2_i2c_reset;
- 	od = omap_device_build(name, bus_id, oh, pdata,
- 			sizeof(struct omap_i2c_bus_platform_data),
- 			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
-diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
-index 98ae49b..8aa91b6 100644
---- a/include/linux/i2c-omap.h
-+++ b/include/linux/i2c-omap.h
-@@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
- 	int		(*device_enable) (struct platform_device *pdev);
- 	int		(*device_shutdown) (struct platform_device *pdev);
- 	int		(*device_idle) (struct platform_device *pdev);
-+	int		(*device_reset) (struct device *dev);
- };
- 
- #endif
--- 
-1.7.1
+version 2
+ - Fix the indentation.
+ - Restore in the error path is not needed as we are
+   doing a init.
+
+version 3
+ - Combine the patch 1 and 2 as i2c-omap.h isn't a generic header
+
+version 4
+ - Adding the description of patch 2.	
+
+Acknowledge Balaji and Santosh for the review comments.
+Tested on sdp4430 and on omap3430
+
+Shubhrajyoti D (4):
+  OMAP: I2C: Reset support
+  OMAP: I2C: Remove the reset in the init path
+  OMAP: I2C: Remove the SYSC register definition
+  OMAP: I2C: I2C register restore only if context is lost
+
+ arch/arm/plat-omap/i2c.c      |   17 +++++++
+ drivers/i2c/busses/i2c-omap.c |  101 ++++++++++++++++-------------------------
+ include/linux/i2c-omap.h      |    1 +
+ 3 files changed, 57 insertions(+), 62 deletions(-)
+
