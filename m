@@ -1,64 +1,99 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [RFC/PATCH 0/7] decouple platform_device from omap_device
-Date: Thu, 21 Jul 2011 16:52:10 -0700
-Message-ID: <1311292338-11830-1-git-send-email-khilman@ti.com>
+Subject: [PATCH] OMAP: omap_device: replace _find_by_pdev() with to_omap_device()
+Date: Thu, 21 Jul 2011 16:52:11 -0700
+Message-ID: <1311292338-11830-2-git-send-email-khilman@ti.com>
+References: <1311292338-11830-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:56205 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753185Ab1GUXwH (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:40800 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753160Ab1GUXwI (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jul 2011 19:52:07 -0400
-Received: by mail-iy0-f174.google.com with SMTP id 12so1739482iyb.5
-        for <linux-omap@vger.kernel.org>; Thu, 21 Jul 2011 16:52:05 -0700 (PDT)
+	Thu, 21 Jul 2011 19:52:08 -0400
+Received: by mail-iy0-f179.google.com with SMTP id 35so1808744iyn.24
+        for <linux-omap@vger.kernel.org>; Thu, 21 Jul 2011 16:52:07 -0700 (PDT)
+In-Reply-To: <1311292338-11830-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Grant Likely <grant.likely@secretlab.ca>
-Cc: "G. Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+Cc: "G. Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Felipe Balbi <balbi@ti.com>
 
-Here's a first whack, proof-of-concept on how we could start to
-decouple the platform_device from an omap_device.
+The omap_device layer currently has two ways of getting an omap_device
+pointer from a platform_device pointer.
 
-The main RFC is in the last patch, and everything leading up to it are
-misc. omap_device cleanups that make the last patch cleaner and
-clearer.  It's really the last patch that does the decoupling.
+Replace current usage of _find_by_pdev() with to_omap_device() since
+to_omap_device() is more familiar to the existing to_platform_device()
+used when getting a platform_device pointer from a struct device pointer.
 
-This will be necessary if we're going to decouple the platform_device
-creation from the omap_device/omap_hwmod creation etc.  This patch
-leaves them both done in omap_device_build(), but shows that they can
-be decoupled.
+Cc: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Paul, please consider this minor cleanup for the v3.1 merge window.
+Applies to v3.0-c6.
 
+ arch/arm/plat-omap/omap_device.c |   15 +++++----------
+ 1 files changed, 5 insertions(+), 10 deletions(-)
 
-Kevin Hilman (7):
-  OMAP: omap_device: replace debug/warning/error prints with dev_*
-    macros
-  OMAP3: beagle: don't touch omap_device internals
-  OMAP: McBSP: use existing macros for converting between devices
-  OMAP: omap_device: remove internal functions from omap_device.h
-  OMAP: omap_device: when building return platform_device instead of
-    omap_device
-  OMAP: omap_device: device register functions now take platform_device
-    pointer
-  WIP: HACK/RFC: omap_device: begin to decouple platform_device from
-    omap_device
-
- arch/arm/mach-omap2/board-omap3beagle.c       |   23 ++--
- arch/arm/mach-omap2/devices.c                 |   44 ++++----
- arch/arm/mach-omap2/display.c                 |    6 +-
- arch/arm/mach-omap2/dma.c                     |   16 ++--
- arch/arm/mach-omap2/gpio.c                    |    8 +-
- arch/arm/mach-omap2/hsmmc.c                   |    8 +-
- arch/arm/mach-omap2/hwspinlock.c              |    8 +-
- arch/arm/mach-omap2/mcbsp.c                   |    8 +-
- arch/arm/mach-omap2/opp.c                     |    2 +-
- arch/arm/mach-omap2/pm.c                      |    8 +-
- arch/arm/mach-omap2/serial.c                  |   12 +-
- arch/arm/plat-omap/i2c.c                      |    8 +-
- arch/arm/plat-omap/include/plat/omap_device.h |   14 +--
- arch/arm/plat-omap/mcbsp.c                    |    6 +-
- arch/arm/plat-omap/omap_device.c              |  165 ++++++++++++++-----------
- drivers/base/dd.c                             |    2 +-
- 16 files changed, 173 insertions(+), 165 deletions(-)
-
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 49fc0df..c8b9cd1 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -236,11 +236,6 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+ 	return 0;
+ }
+ 
+-static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
+-{
+-	return container_of(pdev, struct omap_device, pdev);
+-}
+-
+ /**
+  * _add_optional_clock_clkdev - Add clkdev entry for hwmod optional clocks
+  * @od: struct omap_device *od
+@@ -316,7 +311,7 @@ u32 omap_device_get_context_loss_count(struct platform_device *pdev)
+ 	struct omap_device *od;
+ 	u32 ret = 0;
+ 
+-	od = _find_by_pdev(pdev);
++	od = to_omap_device(pdev);
+ 
+ 	if (od->hwmods_cnt)
+ 		ret = omap_hwmod_get_context_loss_count(od->hwmods[0]);
+@@ -611,7 +606,7 @@ int omap_device_enable(struct platform_device *pdev)
+ 	int ret;
+ 	struct omap_device *od;
+ 
+-	od = _find_by_pdev(pdev);
++	od = to_omap_device(pdev);
+ 
+ 	if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
+ 		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
+@@ -650,7 +645,7 @@ int omap_device_idle(struct platform_device *pdev)
+ 	int ret;
+ 	struct omap_device *od;
+ 
+-	od = _find_by_pdev(pdev);
++	od = to_omap_device(pdev);
+ 
+ 	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
+ 		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
+@@ -681,7 +676,7 @@ int omap_device_shutdown(struct platform_device *pdev)
+ 	int ret, i;
+ 	struct omap_device *od;
+ 
+-	od = _find_by_pdev(pdev);
++	od = to_omap_device(pdev);
+ 
+ 	if (od->_state != OMAP_DEVICE_STATE_ENABLED &&
+ 	    od->_state != OMAP_DEVICE_STATE_IDLE) {
+@@ -722,7 +717,7 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
+ 	int ret = -EINVAL;
+ 	struct omap_device *od;
+ 
+-	od = _find_by_pdev(pdev);
++	od = to_omap_device(pdev);
+ 
+ 	if (new_wakeup_lat_limit == od->dev_wakeup_lat)
+ 		return 0;
 -- 
 1.7.6
 
