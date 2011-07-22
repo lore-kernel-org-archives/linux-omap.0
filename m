@@ -1,21 +1,21 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/2] OMAP2+: PM: SR: add suspend/resume handlers
-Date: Fri, 22 Jul 2011 13:10:53 -0700
-Message-ID: <87hb6e13g2.fsf@ti.com>
+Subject: Re: [PATCH 1/2] OMAP3+: PM: SR: use put_sync_suspend for disabling
+Date: Fri, 22 Jul 2011 13:14:05 -0700
+Message-ID: <877h7a13aq.fsf@ti.com>
 References: <1311314153-23531-1-git-send-email-nm@ti.com>
-	<1311314153-23531-3-git-send-email-nm@ti.com>
+	<1311314153-23531-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:56999 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755132Ab1GVUK4 (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:51691 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755132Ab1GVUOH (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jul 2011 16:10:56 -0400
-Received: by mail-yw0-f45.google.com with SMTP id 3so1717532ywb.4
-        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 13:10:55 -0700 (PDT)
-In-Reply-To: <1311314153-23531-3-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Fri, 22 Jul 2011 00:55:53 -0500")
+	Fri, 22 Jul 2011 16:14:07 -0400
+Received: by mail-pz0-f50.google.com with SMTP id 2so4711853pzk.37
+        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 13:14:07 -0700 (PDT)
+In-Reply-To: <1311314153-23531-2-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Fri, 22 Jul 2011 00:55:52 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
@@ -23,64 +23,37 @@ Cc: Colin <ccross@google.com>, linux-arm <linux-arm-kernel@lists.infradead.org>,
 
 Nishanth Menon <nm@ti.com> writes:
 
-> Suspend and Resume paths are safe enough to do it in
+> From: Colin Cross <ccross@google.com>
+>
+> omap_sr_disable_reset_volt is called with irqs off in omapx_enter_sleep,
+> as part of idle sequence, this eventually calls sr_disable and
+> pm_runtime_put_sync. pm_runtime_put_sync calls rpm_idle, which will
+> enable interrupts in order to call the callback. In this short interval
+> when interrupts are enabled, scenarios such as the following can occur:
+> while interrupts are enabled, the timer interrupt that is supposed to
+> wake the device out of idle occurs and is acked, so when the CPU finally
+> goes to off, the timer is already gone, missing a wakeup event.
+>
+> Further, as the documentation for runtime states:"
+>  However, subsystems can use the pm_runtime_irq_safe() helper function
+>  to tell the PM core that a device's ->runtime_suspend() and ->runtime_resume()
+>  callbacks should be invoked in atomic context with interrupts disabled
+>  (->runtime_idle() is still invoked the default way)."
+>
+> Hence, replace pm_runtime_put_sync with pm_runtime_put_sync_suspend
+> to invoke the suspend handler and shut off the fclk for SmartReflex
+> module instead of using the idle handler in interrupt disabled context.
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Colin Cross <ccross@google.com>
 
-What is 'it'  ?
+Great catch!
 
-> the standard LDM suspend/resume handlers where one can
-> sleep. Add suspend/resume handlers for SmartReflex.
+Looking through Documentation/power/runtime_pm.txt, I see (now) that it
+is well documented that _put_sync_suspend() is safe to use from
+interrupts-disabled context, but _put_sync() is not on that list.
 
-Minor comments on the code below, but this changelog doesn't read well,
-or at least I can't make any sense of it.
-
-[...]
-
-> @@ -684,6 +685,12 @@ void omap_sr_enable(struct voltagedomain *voltdm)
->  	if (!sr->autocomp_active)
->  		return;
->  
-> +	if (sr->is_suspended) {
-> +		dev_dbg(&sr->pdev->dev, "%s: in suspended state\n", __func__);
-> +		return;
-> +	}
-> +
-> +
-
-extra blank line
-
->  	if (!sr_class || !(sr_class->enable) || !(sr_class->configure)) {
->  		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
->  			"registered\n", __func__);
-
-[...]
-
->  static struct platform_driver smartreflex_driver = {
->  	.remove         = omap_sr_remove,
-> +	.suspend	= omap_sr_suspend,
-> +	.resume		= omap_sr_resume,
-
-You're using the legacy methods here, please use dev_pm_ops.
-
-That means you'll need to create a struct dev_pm_ops and fill in these
-mehods there (and note the dev_pm_ops methods don't have a 'state'
-argument.
-
-Also, when implementing suspend/resume, you need to make sure the
-hibernate callbacks are populated also.  They should be populated with
-the same callbacks, so the best way to do this is to use
-SIMPLE_DEV_PM_OPS() (see <linux/pm.h>).  That macro also takes care of
-the !CONFIG_PM case as well.
-
-IOW, the result would look someting like this (not even compile tested):
-
-static SIMPLE_DEV_PM_OPS(omap_sr_pm_ops, omap_sr_suspend, omap_sr_resume)
-
-static struct platform_driver smartreflex_driver = {
-	.remove         = omap_sr_remove,
-	.driver		= {
-		.name	= "smartreflex",
-                .pm     = &omap_sr_pm_ops,
-	},
-};
+Queuing this as a fix for v3.1.
 
 Kevin
+
