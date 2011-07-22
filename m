@@ -1,44 +1,47 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH] mfd: omap-usb-host: fix clock API usage on usbhs_disable()
-Date: Fri, 22 Jul 2011 18:39:30 +0530
-Message-ID: <1311340170-28773-1-git-send-email-keshava_mgowda@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] OMAP: omap_device: replace pr_* prints with dev_*
+Date: Fri, 22 Jul 2011 16:15:27 +0300
+Message-ID: <CANOLnOOAJMyHUjrf_cM2LVSAs6Zm2bK3RWK73ibNcVg=7vQP4w@mail.gmail.com>
+References: <1311269976-4035-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, kishon@ti.com, Keshava Munegowda <Keshava_mgowda@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:43499 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754203Ab1GVNP2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jul 2011 09:15:28 -0400
+Received: by iyb12 with SMTP id 12so1963925iyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 06:15:27 -0700 (PDT)
+In-Reply-To: <1311269976-4035-1-git-send-email-khilman@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 
-From: Keshava Munegowda <Keshava_mgowda@ti.com>
-
-usbhs_disable function was invoking clk_enable() instead of
-clk_disable(), thus only increasing the clock usage counter and
-preventing this particular clock from being ever turned off.
-Because of this, the power domain of omap4 the USB Host subsystem
-would never reach lower power states.This patch calls clk_disable()
-in usbhs_disable function
-
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
----
- drivers/mfd/omap-usb-host.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 1717144..29601e7 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -998,9 +998,9 @@ static void usbhs_disable(struct device *dev)
- 
- 	if (is_omap_usbhs_rev2(omap)) {
- 		if (is_ehci_tll_mode(pdata->port_mode[0]))
--			clk_enable(omap->usbtll_p1_fck);
-+			clk_disable(omap->usbtll_p1_fck);
- 		if (is_ehci_tll_mode(pdata->port_mode[1]))
--			clk_enable(omap->usbtll_p2_fck);
-+			clk_disable(omap->usbtll_p2_fck);
- 		clk_disable(omap->utmi_p2_fck);
- 		clk_disable(omap->utmi_p1_fck);
- 	}
--- 
-1.6.0.4
+T24gVGh1LCBKdWwgMjEsIDIwMTEgYXQgODozOSBQTSwgS2V2aW4gSGlsbWFuIDxraGlsbWFuQHRp
+LmNvbT4gd3JvdGU6Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBpZiAoYWN0X2xhdCA+IG9kcGwt
+PmFjdGl2YXRlX2xhdCkgewo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgb2Rw
+bC0+YWN0aXZhdGVfbGF0X3dvcnN0ID0gYWN0X2xhdDsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoGlmIChvZHBsLT5mbGFncyAmIE9NQVBfREVWSUNFX0xBVEVOQ1lfQVVUT19B
+REpVU1QpIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oG9kcGwtPmFjdGl2YXRlX2xhdCA9IGFjdF9sYXQ7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBwcl93YXJuaW5nKCJvbWFwX2RldmljZTogJXMuJWQ6IG5l
+dyB3b3JzdCBjYXNlICIKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgImFjdGl2YXRlIGxhdGVuY3kgJWQ6ICVsbHVcbiIsCj4g
+LSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoG9kLT5wZGV2Lm5hbWUsIG9kLT5wZGV2LmlkLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBvZC0+cG1fbGF0X2xl
+dmVsLCBhY3RfbGF0KTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIGRldl93YXJuKCZvZC0+cGRldi5kZXYsCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCJuZXcgd29yc3QgY2FzZSBhY3Rp
+dmF0ZSBsYXRlbmN5ICIKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIiVkOiAlbGx1XG4iLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBvZC0+cG1fbGF0X2xldmVs
+LCBhY3RfbGF0KTsKCkkgd29uZGVyIHdoeSB0aGVzZSBoYXZlIHRvIGJlIHdhcm5pbmdzLCBJIGdl
+dCBxdWl0ZSBhIGxvdCBvZiB0aGVtIGFuZApmaW5kIHRoZW0gcmF0aGVyIGFubm95aW5nLiBPciBp
+cyBteSBoYXJkd2FyZSBicm9rZW4gb3Igc29tZXRoaW5nPwoKSSBrbm93IG90aGVyIHBlb3BsZSBh
+cmUgZGlzYWJsaW5nIHRoaXMgaW4gdGhlaXIgdHJlZXMgdG9vOgpodHRwOi8vd3d3LnNha29tYW4u
+Y29tL2NnaS1iaW4vZ2l0d2ViLmNnaT9wPWxpbnV4LW9tYXAtMi42LmdpdDthPWNvbW1pdGRpZmY7
+aD0xNDVjZjlhN2Q0YmE3YzI2MGRmNzA3MWEyOGVmNDBjNmE0ODFiNmRmCgoKCgotLSAKR3Jhxb52
+eWRhcwo=
