@@ -1,47 +1,87 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] OMAP: omap_device: replace pr_* prints with dev_*
-Date: Fri, 22 Jul 2011 16:15:27 +0300
-Message-ID: <CANOLnOOAJMyHUjrf_cM2LVSAs6Zm2bK3RWK73ibNcVg=7vQP4w@mail.gmail.com>
-References: <1311269976-4035-1-git-send-email-khilman@ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH 2/2] OMAP2+: PM: SR: add suspend/resume handlers
+Date: Fri, 22 Jul 2011 08:53:12 -0500
+Message-ID: <CAOMWX4djN8D1hWGuqRLkk53pVPghT_T=3FUkhJv8Hnu7CWQ8Mg@mail.gmail.com>
+References: <1311314153-23531-1-git-send-email-nm@ti.com>
+	<1311314153-23531-3-git-send-email-nm@ti.com>
+	<20110722091303.GK32058@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:43499 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754203Ab1GVNP2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jul 2011 09:15:28 -0400
-Received: by iyb12 with SMTP id 12so1963925iyb.19
-        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 06:15:27 -0700 (PDT)
-In-Reply-To: <1311269976-4035-1-git-send-email-khilman@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110722091303.GK32058@legolas.emea.dhcp.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: Kevin <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Colin <ccross@google.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 
-T24gVGh1LCBKdWwgMjEsIDIwMTEgYXQgODozOSBQTSwgS2V2aW4gSGlsbWFuIDxraGlsbWFuQHRp
-LmNvbT4gd3JvdGU6Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBpZiAoYWN0X2xhdCA+IG9kcGwt
-PmFjdGl2YXRlX2xhdCkgewo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgb2Rw
-bC0+YWN0aXZhdGVfbGF0X3dvcnN0ID0gYWN0X2xhdDsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoGlmIChvZHBsLT5mbGFncyAmIE9NQVBfREVWSUNFX0xBVEVOQ1lfQVVUT19B
-REpVU1QpIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oG9kcGwtPmFjdGl2YXRlX2xhdCA9IGFjdF9sYXQ7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBwcl93YXJuaW5nKCJvbWFwX2RldmljZTogJXMuJWQ6IG5l
-dyB3b3JzdCBjYXNlICIKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgImFjdGl2YXRlIGxhdGVuY3kgJWQ6ICVsbHVcbiIsCj4g
-LSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoG9kLT5wZGV2Lm5hbWUsIG9kLT5wZGV2LmlkLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBvZC0+cG1fbGF0X2xl
-dmVsLCBhY3RfbGF0KTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIGRldl93YXJuKCZvZC0+cGRldi5kZXYsCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCJuZXcgd29yc3QgY2FzZSBhY3Rp
-dmF0ZSBsYXRlbmN5ICIKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIiVkOiAlbGx1XG4iLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBvZC0+cG1fbGF0X2xldmVs
-LCBhY3RfbGF0KTsKCkkgd29uZGVyIHdoeSB0aGVzZSBoYXZlIHRvIGJlIHdhcm5pbmdzLCBJIGdl
-dCBxdWl0ZSBhIGxvdCBvZiB0aGVtIGFuZApmaW5kIHRoZW0gcmF0aGVyIGFubm95aW5nLiBPciBp
-cyBteSBoYXJkd2FyZSBicm9rZW4gb3Igc29tZXRoaW5nPwoKSSBrbm93IG90aGVyIHBlb3BsZSBh
-cmUgZGlzYWJsaW5nIHRoaXMgaW4gdGhlaXIgdHJlZXMgdG9vOgpodHRwOi8vd3d3LnNha29tYW4u
-Y29tL2NnaS1iaW4vZ2l0d2ViLmNnaT9wPWxpbnV4LW9tYXAtMi42LmdpdDthPWNvbW1pdGRpZmY7
-aD0xNDVjZjlhN2Q0YmE3YzI2MGRmNzA3MWEyOGVmNDBjNmE0ODFiNmRmCgoKCgotLSAKR3Jhxb52
-eWRhcwo=
+On Fri, Jul 22, 2011 at 04:13, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Fri, Jul 22, 2011 at 12:55:53AM -0500, Nishanth Menon wrote:
+>> Suspend and Resume paths are safe enough to do it in
+>> the standard LDM suspend/resume handlers where one can
+>> sleep. Add suspend/resume handlers for SmartReflex.
+>>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/smartreflex.c | =A0 87 ++++++++++++++++++++++++++=
++++++++++++
+>> =A01 files changed, 87 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/sma=
+rtreflex.c
+>> index 33a027f..fb90bd2 100644
+>> --- a/arch/arm/mach-omap2/smartreflex.c
+>> +++ b/arch/arm/mach-omap2/smartreflex.c
+>> @@ -39,6 +39,7 @@ struct omap_sr {
+>> =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+ip_type;
+>> =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+nvalue_count;
+>> =A0 =A0 =A0 bool =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+autocomp_active;
+>> + =A0 =A0 bool =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0is=
+_suspended;
+>> =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+clk_length;
+>> =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+err_weight;
+>> =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+err_minlimit;
+>> @@ -684,6 +685,12 @@ void omap_sr_enable(struct voltagedomain *voltdm)
+>> =A0 =A0 =A0 if (!sr->autocomp_active)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>>
+>> + =A0 =A0 if (sr->is_suspended) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(&sr->pdev->dev, "%s: in suspended stat=
+e\n", __func__);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> + =A0 =A0 }
+>
+> I wonder why you get these called if you're in suspend state. If this is
+> called by some other driver, then shouldn't you pm_runtime_get_sync();
+> do_whatever_you_need_to_do(); and pm_runtime_put(); rather then just
+> returning ?
+
+because we have two state machines running in parallel - cpu idle and
+dvfs(cpufreq, and other dependent domain voltage scaling) and SR
+driver is just one - it does it's own get_sync and put_sync_suspend.
+we cannot guarentee that the SR enable/disable calls can be properly
+sequenced unless we use suspend lockouts. SmartReflex driver is an
+independent entity of it's own - yeah we can do the same as we have
+done historically in the omap[34]_idle paths(which is disable SR after
+we have disabled interrupts), but in case of suspend(unlike in idle),
+we do *know* that SR will have to be disabled - hence doing it earlier
+as part of standard LDM suspend sequences is more opportunistic.
+
+Regards,
+Nishanth Menon
