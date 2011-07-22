@@ -1,104 +1,145 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [RFC/PATCH v2] PM / Runtime: allow _put_sync() from interrupts-disabled context
-Date: Fri, 22 Jul 2011 14:46:28 -0700
-Message-ID: <1311371188-28879-1-git-send-email-khilman@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:34623 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932157Ab1GVVqO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jul 2011 17:46:14 -0400
-Received: by mail-pz0-f42.google.com with SMTP id 37so4200290pzk.1
-        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 14:46:13 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] Power management updates for 3.1
+Date: Sat, 23 Jul 2011 00:27:54 +0200
+Message-ID: <201107230027.54769.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-sh@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Colin Cross <ccross@google.com>, Nishanth Menon <nm@ti.com>
 
-Currently the use of pm_runtime_put_sync() is not safe from
-interrupts-disabled context because rpm_idle() will release the
-spinlock and enable interrupts for the idle callbacks.  This enables
-interrupts during a time where interrupts were expected to be
-disabled, and can have strange side effects on drivers that expected
-interrupts to be disabled.
+Hi Linus,
 
-This is not a bug since the documentation clearly states that only
-_put_sync_suspend() is safe in IRQ-safe mode.
+Please pull power management updates for 3.1 from:
 
-However, pm_runtime_put_sync() could be made safe when in IRQ-safe
-mode by releasing the spinlock but not re-enabling interrupts, which
-is what this patch aims to do.
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-2.6.git for-linus
 
-Problem was found when using some buggy drivers that set
-pm_runtime_irq_safe() and used _put_sync() in interrupts-disabled
-context.
+They include:
 
-The offending drivers have been fixed to use _put_sync_suspend(),
-But this patch is an RFC to see if it might make sense to allow
-using _put_sync() from interrupts-disabled context.
+* Introduction of core PM code to support power domains and related
+  modifications of the ARM shmobile platform which is its first user (the
+  Samsung exynos4 platform is going to use it too).
 
-Reported-by: Colin Cross <ccross@google.com>
-Tested-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-v2: update documentation also
+* Modifications of the runtime PM framework clarifying its interactions with
+  the core system suspend/resume and hibernate code and related changes of the
+  ARM OMAP platform.
 
- Documentation/power/runtime_pm.txt |   10 +++++-----
- drivers/base/power/runtime.c       |   10 ++++++++--
- 2 files changed, 13 insertions(+), 7 deletions(-)
+* Various PM fixes and extensions.
 
-diff --git a/Documentation/power/runtime_pm.txt b/Documentation/power/runtime_pm.txt
-index 14dd3c6..4ce5450 100644
---- a/Documentation/power/runtime_pm.txt
-+++ b/Documentation/power/runtime_pm.txt
-@@ -54,11 +54,10 @@ referred to as subsystem-level callbacks in what follows.
- By default, the callbacks are always invoked in process context with interrupts
- enabled.  However, subsystems can use the pm_runtime_irq_safe() helper function
- to tell the PM core that a device's ->runtime_suspend() and ->runtime_resume()
--callbacks should be invoked in atomic context with interrupts disabled
--(->runtime_idle() is still invoked the default way).  This implies that these
--callback routines must not block or sleep, but it also means that the
--synchronous helper functions listed at the end of Section 4 can be used within
--an interrupt handler or in an atomic context.
-+callbacks should be invoked in atomic context with interrupts disabled.
-+This implies that these callback routines must not block or sleep, but it also
-+means that the synchronous helper functions listed at the end of Section 4 can
-+be used within an interrupt handler or in an atomic context.
- 
- The subsystem-level suspend callback is _entirely_ _responsible_ for handling
- the suspend of the device as appropriate, which may, but need not include
-@@ -483,6 +482,7 @@ pm_runtime_suspend()
- pm_runtime_autosuspend()
- pm_runtime_resume()
- pm_runtime_get_sync()
-+pm_runtime_put_sync()
- pm_runtime_put_sync_suspend()
- 
- 5. Runtime PM Initialization, Device Probing and Removal
-diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
-index 8dc247c..acb3f83 100644
---- a/drivers/base/power/runtime.c
-+++ b/drivers/base/power/runtime.c
-@@ -226,11 +226,17 @@ static int rpm_idle(struct device *dev, int rpmflags)
- 		callback = NULL;
- 
- 	if (callback) {
--		spin_unlock_irq(&dev->power.lock);
-+		if (dev->power.irq_safe)
-+			spin_unlock(&dev->power.lock);
-+		else
-+			spin_unlock_irq(&dev->power.lock);
- 
- 		callback(dev);
- 
--		spin_lock_irq(&dev->power.lock);
-+		if (dev->power.irq_safe)
-+			spin_lock(&dev->power.lock);
-+		else
-+			spin_lock_irq(&dev->power.lock);
- 	}
- 
- 	dev->power.idle_notification = false;
--- 
-1.7.6
 
+ Documentation/power/devices.txt               |   14 +-
+ Documentation/power/opp.txt                   |    2 +
+ Documentation/power/runtime_pm.txt            |  229 +++--
+ arch/arm/Kconfig                              |    1 +
+ arch/arm/mach-omap1/pm_bus.c                  |   14 +-
+ arch/arm/mach-omap2/gpio.c                    |    2 +
+ arch/arm/mach-omap2/serial.c                  |    1 +
+ arch/arm/mach-shmobile/board-ap4evb.c         |    5 +
+ arch/arm/mach-shmobile/board-mackerel.c       |    5 +
+ arch/arm/mach-shmobile/clock-sh7372.c         |    1 +
+ arch/arm/mach-shmobile/include/mach/sh7372.h  |   29 +
+ arch/arm/mach-shmobile/pm-sh7372.c            |  160 ++++
+ arch/arm/mach-shmobile/pm_runtime.c           |   22 +-
+ arch/arm/mach-shmobile/setup-sh7372.c         |   11 +
+ arch/arm/plat-omap/include/plat/omap_device.h |    9 +
+ arch/arm/plat-omap/omap_device.c              |   53 +-
+ arch/sh/kernel/cpu/shmobile/pm_runtime.c      |    6 +-
+ drivers/base/power/Makefile                   |    1 +
+ drivers/base/power/clock_ops.c                |  234 +++--
+ drivers/base/power/domain.c                   | 1273 +++++++++++++++++++++++++
+ drivers/base/power/generic_ops.c              |   98 ++-
+ drivers/base/power/main.c                     |   65 +-
+ drivers/base/power/opp.c                      |   17 +
+ drivers/base/power/runtime.c                  |   89 +-
+ drivers/base/power/sysfs.c                    |    6 +-
+ drivers/base/power/trace.c                    |    2 +-
+ drivers/char/apm-emulation.c                  |    2 +-
+ drivers/pci/pci-driver.c                      |   18 +-
+ drivers/s390/char/vmwatchdog.c                |    4 +-
+ drivers/s390/cio/css.c                        |    8 +-
+ drivers/scsi/scsi_pm.c                        |    8 +-
+ include/linux/device.h                        |    4 +-
+ include/linux/opp.h                           |    8 +
+ include/linux/pm.h                            |   10 +-
+ include/linux/pm_domain.h                     |  108 +++
+ include/linux/pm_runtime.h                    |   38 +-
+ include/linux/suspend.h                       |    8 +
+ kernel/power/Kconfig                          |    8 +-
+ kernel/power/main.c                           |    5 +-
+ kernel/power/suspend.c                        |   20 +-
+ 40 files changed, 2274 insertions(+), 324 deletions(-)
+
+---------------
+
+Akinobu Mita (1):
+      PM: Improve error code of pm_notifier_call_chain()
+
+Alan Stern (1):
+      PM / Runtime: Prevent runtime_resume from racing with probe
+
+Kevin Hilman (6):
+      PM / Runtime: Add new helper function: pm_runtime_status_suspended()
+      OMAP: PM: omap_device: conditionally use PM domain runtime helpers
+      OMAP: PM: omap_device: add system PM methods for PM domain handling
+      OMAP: PM: omap_device: add API to disable idle on suspend
+      OMAP: PM: disable idle on suspend for GPIO and UART
+      PM / Suspend: Export suspend_set_ops, suspend_valid_only_mem
+
+Kuninori Morimoto (2):
+      ARM: mach-shmobile: sh7372: make sure that fsi is peripheral of spu2
+      ARM: mach-shmobile: sh7372 A4MP support
+
+Magnus Damm (9):
+      ARM: mach-shmobile: sh7372 A4LC support for AP4EVB
+      ARM: mach-shmobile: sh7372 A3RV support
+      ARM: mach-shmobile: sh7372 A3RI support
+      ARM: mach-shmobile: sh7372 A3SG support
+      ARM: mach-shmobile: sh7372 D4 support
+      ARM: mach-shmobile: Runtime PM late init callback
+      ARM: mach-shmobile: sh7372 late pm domain off
+      PM / Domains: Export pm_genpd_poweron() in header
+      ARM: mach-shmobile: sh7372 A3RV requires A4LC
+
+MyungJoo Ham (1):
+      PM / Suspend: Add .suspend_again() callback to suspend_ops
+
+Nishanth Menon (1):
+      PM / OPP: Introduce function to free cpufreq table
+
+Rafael J. Wysocki (29):
+      PM / Domains: Rename struct dev_power_domain to struct dev_pm_domain
+      PM: subsys_data in struct dev_pm_info need not depend on RM_RUNTIME
+      PM / Domains: Support for generic I/O PM domains (v8)
+      PM: Introduce generic "noirq" callback routines for subsystems (v2)
+      PM / Domains: Move code from under #ifdef CONFIG_PM_RUNTIME (v2)
+      PM / Domains: System-wide transitions support for generic domains (v5)
+      PM / Domains: Wakeup devices support for system sleep transitions
+      PM: Allow the clocks management code to be used during system suspend
+      PM: Rename clock management functions
+      ARM / shmobile: Support for I/O power domains for SH7372 (v9)
+      PM / Runtime: Update documentation of interactions with system sleep
+      PM / Runtime: Return special error code if runtime PM is disabled
+      PCI / PM: Detect early wakeup in pci_pm_prepare()
+      PM: Limit race conditions between runtime PM and system sleep (v2)
+      PM / Runtime: Improve documentation of enable, disable and barrier
+      PM / Runtime: Replace "run-time" with "runtime" in documentation
+      PM / Domains: Set device state to "active" during system resume
+      PM / Domains: Make failing pm_genpd_prepare() clean up properly
+      PM / Domains: Do not execute device callbacks under locks
+      PM / Domains: Allow callbacks to execute all runtime PM helpers
+      PM / Domains: Do not restore all devices on power off error
+      PM / Domains: Improve handling of wakeup devices during system suspend
+      PM / Domains: Queue up power off work only if it is not pending
+      PM / Domains: Introduce function to power off all unused PM domains
+      ARM / shmobile: Use pm_genpd_poweroff_unused()
+      ARM / shmobile: Use genpd_queue_power_off_work()
+      PM / Domains: Take .power_off() error code into account
+      ARM / shmobile: Return -EBUSY from A4LC power off if A3RV is active
+      PM: Add "RTC" to PM trace time stamps to avoid confusion
+
+ShuoX Liu (1):
+      PM / Runtime: Consistent utilization of deferred_resume
