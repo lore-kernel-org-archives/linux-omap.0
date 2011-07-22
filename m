@@ -1,77 +1,73 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC/PATCH 3/7] OMAP: McBSP: use existing macros for converting between devices
-Date: Fri, 22 Jul 2011 13:19:21 -0700
-Message-ID: <87y5zqysom.fsf@ti.com>
-References: <1311292338-11830-1-git-send-email-khilman@ti.com>
-	<1311292338-11830-5-git-send-email-khilman@ti.com>
-	<4E296DFB.3010205@ru.mvista.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [RFC/PATCH] PM / Runtime: allow _put_sync() from interrupts-disabled context
+Date: Fri, 22 Jul 2011 14:17:11 -0700
+Message-ID: <1311369431-28775-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:59916 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755132Ab1GVUTY (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:42985 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932211Ab1GVVQ5 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jul 2011 16:19:24 -0400
-Received: by mail-gy0-f180.google.com with SMTP id 4so2033781gyg.25
-        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 13:19:23 -0700 (PDT)
-In-Reply-To: <4E296DFB.3010205@ru.mvista.com> (Sergei Shtylyov's message of
-	"Fri, 22 Jul 2011 16:32:59 +0400")
+	Fri, 22 Jul 2011 17:16:57 -0400
+Received: by mail-pz0-f43.google.com with SMTP id 1so4285759pzk.16
+        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 14:16:56 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Grant Likely <grant.likely@secretlab.ca>, "G. Manjunath Kondaiah" <manjugk@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: linux-pm@lists.linux-foundation.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Colin Cross <ccross@google.com>, Nishanth Menon <nm@ti.com>
 
-Hi Sergei,
+Currently the use of pm_runtime_put_sync() is not safe from
+interrupts-disabled context because rpm_idle() will release the
+spinlock and enable interrupts for the idle callbacks.  This enables
+interrupts during a time where interrupts were expected to be
+disabled, and can have strange side effects on drivers that expected
+interrupts to be disabled.
 
-Sergei Shtylyov <sshtylyov@mvista.com> writes:
+This is not a bug since the documentation clearly states that only
+_put_sync_suspend() is safe in IRQ-safe mode.
 
-> On 22-07-2011 3:52, Kevin Hilman wrote:
->
->> For converting from struct device to platform_device, and from
->> platform_device to struct device,
->
->    You mean from platform_device to omap_device?
->
+However, pm_runtime_put_sync() could be made safe when in IRQ-safe
+mode by releasing the spinlock but not re-enabling interrupts, which
+is what this patch aims to do.
 
-Yes indeed, thanks.  Updated patch below (only changelog changed)
+Problem was found when using some buggy drivers that set
+pm_runtime_irq_safe() and used _put_sync() in interrupts-disabled
+context.
 
-Kevin
+The offending drivers have been fixed to use _put_sync_suspend(),
+But this patch is an RFC to see if it might make sense to allow
+using _put_sync() from interrupts-disabled context.
 
-
->From e3996fdb48e6850bc3f2a383e86fe67be5796d40 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Thu, 21 Jul 2011 14:03:51 -0700
-Subject: [RFC/PATCH 3/7] OMAP: McBSP: use existing macros for converting
- between devices
-
-For converting from struct device to platform_device, and from
-platform_device to struct omap_device, there are existing macros.  Use
-them instead of manual use of container_of().
-
+Reported-by: Colin Cross <ccross@google.com>
+Tested-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/plat-omap/mcbsp.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/base/power/runtime.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 6c62af1..02199e8 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -260,9 +260,9 @@ EXPORT_SYMBOL(omap_mcbsp_dma_reg_params);
- #ifdef CONFIG_ARCH_OMAP3
- static struct omap_device *find_omap_device_by_dev(struct device *dev)
- {
--	struct platform_device *pdev = container_of(dev,
--					struct platform_device, dev);
--	return container_of(pdev, struct omap_device, pdev);
-+	struct platform_device *pdev = to_platform_device(dev);
-+
-+	return to_omap_device(pdev);
- }
+diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+index 8dc247c..acb3f83 100644
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -226,11 +226,17 @@ static int rpm_idle(struct device *dev, int rpmflags)
+ 		callback = NULL;
  
- static void omap_st_on(struct omap_mcbsp *mcbsp)
+ 	if (callback) {
+-		spin_unlock_irq(&dev->power.lock);
++		if (dev->power.irq_safe)
++			spin_unlock(&dev->power.lock);
++		else
++			spin_unlock_irq(&dev->power.lock);
+ 
+ 		callback(dev);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		if (dev->power.irq_safe)
++			spin_lock(&dev->power.lock);
++		else
++			spin_lock_irq(&dev->power.lock);
+ 	}
+ 
+ 	dev->power.idle_notification = false;
 -- 
 1.7.6
-
 
