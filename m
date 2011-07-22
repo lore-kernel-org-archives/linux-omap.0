@@ -1,95 +1,44 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: Re: [RFC PATCHv5 1/7] HSI: hsi: Introducing HSI framework
-Date: Fri, 22 Jul 2011 16:02:09 +0300
-Message-ID: <1311339729.32639.99.camel@groo>
-References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
-	 <1308769914-15440-1-git-send-email-sjur.brandeland@stericsson.com>
-	 <1308834524.27256.3247.camel@groo>
-	 <81C3A93C17462B4BBD7E272753C105791A64C2735E@EXDCVYMBSTM005.EQ1STM.local>
-	 <1311331416.32639.34.camel@groo>
-	 <20110722110102.GR32058@legolas.emea.dhcp.ti.com>
-	 <1311335472.32639.75.camel@groo>
-	 <20110722120553.GZ32058@legolas.emea.dhcp.ti.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH] mfd: omap-usb-host: fix clock API usage on usbhs_disable()
+Date: Fri, 22 Jul 2011 18:39:30 +0530
+Message-ID: <1311340170-28773-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:29077 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754204Ab1GVNHT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jul 2011 09:07:19 -0400
-In-Reply-To: <20110722120553.GZ32058@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, kishon@ti.com, Keshava Munegowda <Keshava_mgowda@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: ext Sjur BRENDELAND <sjur.brandeland@stericsson.com>, "sjurbren@gmail.com" <sjurbren@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, 2011-07-22 at 15:05 +0300, ext Felipe Balbi wrote:
-> Hi,
-> 
-> On Fri, Jul 22, 2011 at 02:51:12PM +0300, Carlos Chinea wrote:
-> > Hi Felipe, 
-> 
-> hello there :-)
-> 
-> > > are you already using pm_runtime ? You could put that logic grouped in
-> > > runtime_suspend()/runtime_resume() calls and from the driver, just call
-> > > pm_runtime_put()/pm_runtime_get_sync() whenever you want to
-> > > suspend/resume.
-> > 
-> > In the case of the omap_ssi driver not yet, but hopefully the
-> > implementation will come soon ;) Anyway, the DATA/FLAG workaround is not
-> > something I'm going to add to the omap_ssi, at least not now. This seems
-> > to be needed by ST-Ericcson in their HSI controller.
-> 
-> aha, I see. Thanks for the clarification.
-> 
-> > > true, but I'm not sure a usecount is a good way to go. Why don't you
-> > > just remove the sync API altogether and use only async, then the OMAP
-> > > HSI controller driver is supposed to know when it can go to sleep. If
-> > > you receive some data before a client queues a request, you just defer
-> > > processing of that data until a new request is queued, or something...
-> > 
-> > Hmmm, Do you mean I remove the hsi_start_tx() and hsi_stop_tx()
-> > completely ? Or Do I just create an async version of them ?
-> 
-> I would say remove completely and add async-only version.
-> 
-> > The truth is that they should not even exist in the first place, and the
-> > wakelines should have been handled silently by the hsi controllers.  
-> > But they are need because the hsi_clients/protocols, like CAIF or the
-> > ssi_protocol in N900, need access to the wakelines to implement some
-> > workarounds due to some races in the HSI/SSI HW spec.
-> 
-> that's quite nasty situation :-)
-> 
-> I still think, though, that if the clients don't really start a transfer
-> straight away (meaning it's all ASYNC), you might be able to handle the
-> workarounds in the HSI framework itself by having some extra flags on
-> your hsi request structure (?).
-> 
-> See for example the use of short_not_ok flags on the gadget framework.
-> The gadget drivers which can't handle short transfers (as of today only
-> the Mass Storage gadget) will set that flag to tell the controller that
-> we're not expecting a short packet and if we do, treat it as error. In
-> case of such error, gadget driver is required to dequeue any queued
-> transfer, flush the FIFO and restart ;-)
-> 
-> Maybe you could have something similar ? Depending on the workaround
-> you're talking about, this might be feasible with few lines of code on
-> the async API.
-> 
+From: Keshava Munegowda <Keshava_mgowda@ti.com>
 
-The problem is that there is no standard way to handle this situation :(
+usbhs_disable function was invoking clk_enable() instead of
+clk_disable(), thus only increasing the clock usage counter and
+preventing this particular clock from being ever turned off.
+Because of this, the power domain of omap4 the USB Host subsystem
+would never reach lower power states.This patch calls clk_disable()
+in usbhs_disable function
 
-For example ssi_protocol tries to deal with the wakelines race problem
-by raising the wakeline and then waiting for the other end to send a
-"READY to receive" data frame, before start sending. But as you can see
-in the case of CAIF, they went for a solution where they raise their
-wakeline and wait for the other end to raise its wakeline to signal that
-they are "READY to received". Both solutions have their pros and cons.
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+---
+ drivers/mfd/omap-usb-host.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Br,
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 1717144..29601e7 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -998,9 +998,9 @@ static void usbhs_disable(struct device *dev)
+ 
+ 	if (is_omap_usbhs_rev2(omap)) {
+ 		if (is_ehci_tll_mode(pdata->port_mode[0]))
+-			clk_enable(omap->usbtll_p1_fck);
++			clk_disable(omap->usbtll_p1_fck);
+ 		if (is_ehci_tll_mode(pdata->port_mode[1]))
+-			clk_enable(omap->usbtll_p2_fck);
++			clk_disable(omap->usbtll_p2_fck);
+ 		clk_disable(omap->utmi_p2_fck);
+ 		clk_disable(omap->utmi_p1_fck);
+ 	}
 -- 
-Carlos Chinea <carlos.chinea@nokia.com>
-
+1.6.0.4
