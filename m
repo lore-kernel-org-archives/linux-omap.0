@@ -1,65 +1,123 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH] arm: omap: usb: clock enable typo fix in usbhs driver
-Date: Fri, 22 Jul 2011 17:57:26 +0530
-Message-ID: <CAP05o4+RKcYPFez0xJYimugPEpPJcFoPJawW+c0hdty7YmNLAg@mail.gmail.com>
-References: <1311084703-10266-1-git-send-email-keshava_mgowda@ti.com>
-	<20110722122221.GG32058@legolas.emea.dhcp.ti.com>
+From: Kishore Kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH] OMAP4: MMC: fix power and audio issue, decouple USBC1
+ from MMC1
+Date: Fri, 22 Jul 2011 18:00:29 +0530
+Message-ID: <CAF=Qhp0YO2zYnwo63ddhKZv-o+eXs2bQETrqF5wYU2EtKQ=Yqw@mail.gmail.com>
+References: <1311276543-9374-1-git-send-email-bryan.buckley@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:54483 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753745Ab1GVM13 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jul 2011 08:27:29 -0400
-In-Reply-To: <20110722122221.GG32058@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1311276543-9374-1-git-send-email-bryan.buckley@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Bryan Buckley <bryan.buckley@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, Moiz Sonasath <m-sonasath@ti.com>, Viswanath Puttagunta <vishp@ti.com>, Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, kishon@ti.com
 
-On Fri, Jul 22, 2011 at 5:52 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
+On Fri, Jul 22, 2011 at 12:59 AM, Bryan Buckley <bryan.buckley@ti.com> =
+wrote:
+> Remove OMAP4_USBC1_ICUSB_PWRDNZ_MASK during enable/disable PWRDNZ mod=
+e for
+> MMC1_PBIAS and associated extended-drain MMC1 I/O cell. This is in ac=
+cordance
+> with the control module programming guide. This fixes a bug where if =
+trying to
+> use gpio_98 or gpio_99 and MMC1 at the same time the GPIO signal will=
+ be
+> affected by a changing SDMMC1_VDDS.
 >
-> On Tue, Jul 19, 2011 at 07:41:43PM +0530, Keshava Munegowda wrote:
->> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+> Software must keep MMC1_PBIAS cell and MMC1_IO cell PWRDNZ signals lo=
+w whenever
+> SDMMC1_VDDS ramps up/down or changes for cell protection purposes.
 >
-> $SUBJECT is quite weird. First, this is not a patch on arch/arm/*omap=
-*/
-> so arm: omap: is already wrong. Also, "enable typo fix" is quite weri=
-d.
+> MMC1 is based on SDMMC1_VDDS whereas USBC1 is based on SIM_VDDS there=
+fore
+> they can operate independently.
 >
-> Something like: "mfd: omap-usb-host: fix clock API usage on
-> usbhs_disable()" would read better.
+> Signed-off-by: Bryan Buckley <bryan.buckley@ti.com>
+
+Good catch,
+
+Acked-by:  Kishore Kadiyala <kishore.kadiyala@ti.com>
+
+> ---
+> =A0arch/arm/mach-omap2/hsmmc.c | =A0 12 ++++--------
+> =A01 files changed, 4 insertions(+), 8 deletions(-)
 >
->> The usbhs_disable function was invoking clk_enable api
->> instead of clk_disable; The clk_disable is called to
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0^ this semicolon shoul=
-d be a period.
+> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.=
+c
+> index 3842405..a6135df 100644
+> --- a/arch/arm/mach-omap2/hsmmc.c
+> +++ b/arch/arm/mach-omap2/hsmmc.c
+> @@ -144,8 +144,7 @@ static void omap4_hsmmc1_before_set_reg(struct de=
+vice *dev, int slot,
+> =A0 =A0 =A0 =A0 */
+> =A0 =A0 =A0 =A0reg =3D omap4_ctrl_pad_readl(control_pbias_offset);
+> =A0 =A0 =A0 =A0reg &=3D ~(OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PWRDNZ_MASK |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PWRDNZ_MASK);
+> =A0 =A0 =A0 =A0omap4_ctrl_pad_writel(reg, control_pbias_offset);
+> =A0}
 >
-> ok, you're missing the actual problem here. How about you extend it t=
-o
-> read as:
->
-> usbhs_disable function was invoking clk_enable() instead of
-> clk_disable(), thus only increasing the clock usage counter and
-> preventing this particular clock from being ever turned off.
->
-> Because of that, the power domain where the USB Host subsystem is
-> located, would never reach lower power states.
->
->> disble the port clocks of usbhs
-> =A0 =A0^^ disable.
+> @@ -165,8 +164,7 @@ static void omap4_hsmmc1_after_set_reg(struct dev=
+ice *dev, int slot,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0reg |=3D OMAP4_MMC1_PB=
+IASLITE_VMODE_MASK;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0reg |=3D (OMAP4_MMC1_PBIASLITE_PWRDNZ_=
+MASK |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PWRDNZ_MASK =
+|
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_USBC1_ICUSB_PWRDN=
+Z_MASK);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PWRDNZ_MASK)=
+;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap4_ctrl_pad_writel(reg, control_pbi=
+as_offset);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* 4 microsec delay for comparator to =
+generate an error*/
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0udelay(4);
+> @@ -174,16 +172,14 @@ static void omap4_hsmmc1_after_set_reg(struct d=
+evice *dev, int slot,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (reg & OMAP4_MMC1_PBIASLITE_VMODE_E=
+RROR_MASK) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("Pbias Voltage =
+is not same as LDO\n");
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Caution : On VMODE_=
+ERROR Power Down MMC IO */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg &=3D ~(OMAP4_MMC1_P=
+WRDNZ_MASK |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_U=
+SBC1_ICUSB_PWRDNZ_MASK);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg &=3D ~(OMAP4_MMC1_P=
+WRDNZ_MASK);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap4_ctrl_pad_writel(=
+reg, control_pbias_offset);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0} else {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0reg =3D omap4_ctrl_pad_readl(control_p=
+bias_offset);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0reg |=3D (OMAP4_MMC1_PBIASLITE_PWRDNZ_=
+MASK |
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP4_MMC1_PWRDNZ_MASK=
+ |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PBIASLITE_VM=
+ODE_MASK |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_USBC1_ICUSB_PWRDN=
+Z_MASK);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PBIASLITE_VM=
+ODE_MASK);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap4_ctrl_pad_writel(reg, control_pbi=
+as_offset);
+> =A0 =A0 =A0 =A0}
+> =A0}
+> --
+> 1.7.0.4
 >
 > --
-> balbi
-
-Thanks I will send the updated patch soon.
-
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
