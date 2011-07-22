@@ -1,90 +1,83 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 2/7] OMAP3: beagle: don't touch omap_device internals
-Date: Fri, 22 Jul 2011 11:57:17 +0300
-Message-ID: <20110722085716.GI32058@legolas.emea.dhcp.ti.com>
+Subject: Re: [RFC/PATCH 3/7] OMAP: McBSP: use existing macros for converting
+ between devices
+Date: Fri, 22 Jul 2011 11:58:20 +0300
+Message-ID: <20110722085819.GJ32058@legolas.emea.dhcp.ti.com>
 References: <1311292338-11830-1-git-send-email-khilman@ti.com>
- <1311292338-11830-4-git-send-email-khilman@ti.com>
+ <1311292338-11830-5-git-send-email-khilman@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cf0hFtnykp6aONGL"
+	protocol="application/pgp-signature"; boundary="2VXyA7JGja7B50zs"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:48191 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751731Ab1GVI5V (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:37381 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751731Ab1GVI6Y (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jul 2011 04:57:21 -0400
-Received: by fxg11 with SMTP id 11so5341195fxg.34
-        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 01:57:19 -0700 (PDT)
+	Fri, 22 Jul 2011 04:58:24 -0400
+Received: by mail-fx0-f43.google.com with SMTP id 17so4354599fxg.2
+        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 01:58:23 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1311292338-11830-4-git-send-email-khilman@ti.com>
+In-Reply-To: <1311292338-11830-5-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
 Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Grant Likely <grant.likely@secretlab.ca>, "G. Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
 
---cf0hFtnykp6aONGL
+--2VXyA7JGja7B50zs
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Thu, Jul 21, 2011 at 04:52:13PM -0700, Kevin Hilman wrote:
-> Board code should not touch omap_device internals.  To get the MPU/IVA de=
-vices,
-> use existing APIs: omap2_get_mpu_device(), omap2_get_iva_device().
+On Thu, Jul 21, 2011 at 04:52:14PM -0700, Kevin Hilman wrote:
+> For converting from struct device to platform_device, and from
+> platform_device to struct device, there are existing macros.  Use
+> them instead of manual use of container_of().
 >=20
 > Signed-off-by: Kevin Hilman <khilman@ti.com>
 > ---
->  arch/arm/mach-omap2/board-omap3beagle.c |   23 ++++++++++-------------
->  1 files changed, 10 insertions(+), 13 deletions(-)
+>  arch/arm/plat-omap/mcbsp.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
 >=20
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap=
-2/board-omap3beagle.c
-> index 32f5f89..3ae16b4 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -491,23 +491,22 @@ static void __init beagle_opp_init(void)
-> =20
->  	/* Custom OPP enabled for all xM versions */
->  	if (cpu_is_omap3630()) {
-> -		struct omap_hwmod *mh =3D omap_hwmod_lookup("mpu");
-> -		struct omap_hwmod *dh =3D omap_hwmod_lookup("iva");
-> -		struct device *dev;
-> +		struct device *mpu_dev, *iva_dev;
-> =20
-> -		if (!mh || !dh) {
-> +		mpu_dev =3D omap2_get_mpuss_device();
-> +		iva_dev =3D omap2_get_iva_device();
+> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+> index 6c62af1..02199e8 100644
+> --- a/arch/arm/plat-omap/mcbsp.c
+> +++ b/arch/arm/plat-omap/mcbsp.c
+> @@ -260,9 +260,9 @@ EXPORT_SYMBOL(omap_mcbsp_dma_reg_params);
+>  #ifdef CONFIG_ARCH_OMAP3
+>  static struct omap_device *find_omap_device_by_dev(struct device *dev)
+>  {
+> -	struct platform_device *pdev =3D container_of(dev,
+> -					struct platform_device, dev);
+> -	return container_of(pdev, struct omap_device, pdev);
+> +	struct platform_device *pdev =3D to_platform_device(dev);
+> +
+> +	return to_omap_device(pdev);
 
-out of curiosity again, nothing to do with this patch.
+could simplify to:
 
-Maybe it would be nicer to have an api such as:
+	return to_omap_device(to_platform_device(dev));
 
-omap2_get_device(name);
-
-there are already four devices to be gotten, if that number grows any
-bigger, so will the number of helper functions.
+but it won't change much. Only decrease readability, probably.
 
 --=20
 balbi
 
---cf0hFtnykp6aONGL
+--2VXyA7JGja7B50zs
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOKTtsAAoJEAv8Txj19kN1LrcH/05YDMUVLojn9TdbCl5R1Kha
-cpNnvpCMvENXfMxsscwzNmKKWIDZ+qMyzX51hY1WW7wGq4wcd+8XBaAEtXPk274I
-KMGfEN8MF2TXkWk4OONiGJE2Gb/mXAzjOglAA2s451yUdTzMYFKudlx9lzJvkyF6
-6sciTblyHNRhZItvaNmd5SPhlsf40WgqZJ+v8bA0x3jtoJX8Znut0E0HpqwfrJQ5
-QsHuFAekcH+j0KLOMdoy9JU8AITZNez4r1L61Fh/0jWlzAlxpGv4L1W+PA7i7RoG
-hTQSdKyKlidcdpWAEepS3VpOIreWAOHNFePhPnes2qBVKu3cpBJeTgCIkkUAG/4=
-=WmES
+iQEcBAEBAgAGBQJOKTurAAoJEAv8Txj19kN1eU4H/0BZku/xOESvjn1mXV4WoiSX
+NAZ4ev4xd5b2bFQC7qMe2ZsIiXQi8CWekj2YyhGb7Jp/wg5iaU5tkchuYSlPn8d6
+k802p+HQ223Ff5uOY9aEOgP+hy+AK3JEFG9d/G07ltcjcdmtXKLCFYedjgM6+HQN
+vYbml1urqtVmTx2dBM6ZJFozeGgtL2JOCWAL3EFmi+x4Nm0ma76fQqqEyU6GZyue
+ERpsLz+dx4T4fKIbBhWb5uiBvxjF9Gf600Mpa41OnMiVj/Ux2FW9/sh3wsL2g9OB
++a7bfPSBjwq1HSVN0pPjH5pGjI1xUlPQvDO2+YstT3QCsYMaZvElF3hISMtfDLo=
+=PEXj
 -----END PGP SIGNATURE-----
 
---cf0hFtnykp6aONGL--
+--2VXyA7JGja7B50zs--
