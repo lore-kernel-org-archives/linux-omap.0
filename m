@@ -1,44 +1,55 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 1/2] of: address: use resource_size helper
-Date: Fri, 22 Jul 2011 22:47:21 +0300
-Message-ID: <1311364042-8325-1-git-send-email-balbi@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP: omap_device: replace pr_* prints with dev_*
+Date: Fri, 22 Jul 2011 12:51:06 -0700
+Message-ID: <87hb6e2ixh.fsf@ti.com>
+References: <1311269976-4035-1-git-send-email-khilman@ti.com>
+	<CANOLnOOAJMyHUjrf_cM2LVSAs6Zm2bK3RWK73ibNcVg=7vQP4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Felipe Balbi <balbi@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:57179 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754948Ab1GVTvO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Jul 2011 15:51:14 -0400
+Received: by gwj20 with SMTP id 20so2423701gwj.40
+        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 12:51:12 -0700 (PDT)
+In-Reply-To: <CANOLnOOAJMyHUjrf_cM2LVSAs6Zm2bK3RWK73ibNcVg=7vQP4w@mail.gmail.com>
+	(Grazvydas Ignotas's message of "Fri, 22 Jul 2011 16:15:27 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 
-that should be the approved way of calculating
-the size of resources. No functional changes.
-
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/of/address.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/of/address.c b/drivers/of/address.c
-index deefc0c..6e7b2cf 100644
---- a/drivers/of/address.c
-+++ b/drivers/of/address.c
-@@ -624,6 +624,6 @@ void __iomem *of_iomap(struct device_node *np, int index)
- 	if (of_address_to_resource(np, index, &res))
- 		return NULL;
- 
--	return ioremap(res.start, 1 + res.end - res.start);
-+	return ioremap(res.start, resource_size(&res));
- }
- EXPORT_SYMBOL(of_iomap);
--- 
-1.7.6
+R3JhenZ5ZGFzIElnbm90YXMgPG5vdGFzYXNAZ21haWwuY29tPiB3cml0ZXM6DQoNCj4gT24gVGh1
+LCBKdWwgMjEsIDIwMTEgYXQgODozOSBQTSwgS2V2aW4gSGlsbWFuIDxraGlsbWFuQHRpLmNvbT4g
+d3JvdGU6DQo+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGlmIChhY3RfbGF0ID4gb2RwbC0+YWN0
+aXZhdGVfbGF0KSB7DQo+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoG9kcGwt
+PmFjdGl2YXRlX2xhdF93b3JzdCA9IGFjdF9sYXQ7DQo+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoGlmIChvZHBsLT5mbGFncyAmIE9NQVBfREVWSUNFX0xBVEVOQ1lfQVVUT19B
+REpVU1QpIHsNCj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgb2RwbC0+YWN0aXZhdGVfbGF0ID0gYWN0X2xhdDsNCj4+IC0gwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcHJfd2FybmluZygib21hcF9kZXZpY2U6ICVzLiVk
+OiBuZXcgd29yc3QgY2FzZSAiDQo+PiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgImFjdGl2YXRlIGxhdGVuY3kgJWQ6ICVsbHVc
+biIsDQo+PiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgb2QtPnBkZXYubmFtZSwgb2QtPnBkZXYuaWQsDQo+PiAtIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgb2Qt
+PnBtX2xhdF9sZXZlbCwgYWN0X2xhdCk7DQo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIGRldl93YXJuKCZvZC0+cGRldi5kZXYsDQo+PiArIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIm5ldyB3
+b3JzdCBjYXNlIGFjdGl2YXRlIGxhdGVuY3kgIg0KPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCIlZDogJWxsdVxuIiwNCj4+ICsg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqBvZC0+cG1fbGF0X2xldmVsLCBhY3RfbGF0KTsNCj4NCj4gSSB3b25kZXIgd2h5IHRoZXNlIGhh
+dmUgdG8gYmUgd2FybmluZ3MsIEkgZ2V0IHF1aXRlIGEgbG90IG9mIHRoZW0gYW5kDQo+IGZpbmQg
+dGhlbSByYXRoZXIgYW5ub3lpbmcuIE9yIGlzIG15IGhhcmR3YXJlIGJyb2tlbiBvciBzb21ldGhp
+bmc/DQoNCk5vLCB5b3VyIGhhcmR3YXJlIGlzIG5vdCBicm9rZW4uDQoNCj4gSSBrbm93IG90aGVy
+IHBlb3BsZSBhcmUgZGlzYWJsaW5nIHRoaXMgaW4gdGhlaXIgdHJlZXMgdG9vOg0KPiBodHRwOi8v
+d3d3LnNha29tYW4uY29tL2NnaS1iaW4vZ2l0d2ViLmNnaT9wPWxpbnV4LW9tYXAtMi42LmdpdDth
+PWNvbW1pdGRpZmY7aD0xNDVjZjlhN2Q0YmE3YzI2MGRmNzA3MWEyOGVmNDBjNmE0ODFiNmRmDQoN
+ClBhdGNoZXMgdG8gY2hhbmdlIHRoYXQgYXJlIHdlbGNvbWUgb24gdGhlIGxpc3QuICANCg0KSXQn
+cyBub3QgcmVsYXRlZCB0byB0aGlzIHBhdGNoIHdoaWNoIGp1c3QgY2hhbmdlcyBmcm9tIHByX3dh
+cm5pbmcgdG8NCmRldl93YXJuLCBzbyBuZWVkcyB0byBiZSBkb25lIGluIGEgc2VwYXJhdGUgcGF0
+Y2guDQoNCktldmluDQo=
