@@ -1,55 +1,86 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP: omap_device: replace pr_* prints with dev_*
-Date: Fri, 22 Jul 2011 12:51:06 -0700
-Message-ID: <87hb6e2ixh.fsf@ti.com>
-References: <1311269976-4035-1-git-send-email-khilman@ti.com>
-	<CANOLnOOAJMyHUjrf_cM2LVSAs6Zm2bK3RWK73ibNcVg=7vQP4w@mail.gmail.com>
+Subject: Re: [PATCH 2/2] OMAP2+: PM: SR: add suspend/resume handlers
+Date: Fri, 22 Jul 2011 13:10:53 -0700
+Message-ID: <87hb6e13g2.fsf@ti.com>
+References: <1311314153-23531-1-git-send-email-nm@ti.com>
+	<1311314153-23531-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:57179 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754948Ab1GVTvO (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:56999 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755132Ab1GVUK4 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jul 2011 15:51:14 -0400
-Received: by gwj20 with SMTP id 20so2423701gwj.40
-        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 12:51:12 -0700 (PDT)
-In-Reply-To: <CANOLnOOAJMyHUjrf_cM2LVSAs6Zm2bK3RWK73ibNcVg=7vQP4w@mail.gmail.com>
-	(Grazvydas Ignotas's message of "Fri, 22 Jul 2011 16:15:27 +0300")
+	Fri, 22 Jul 2011 16:10:56 -0400
+Received: by mail-yw0-f45.google.com with SMTP id 3so1717532ywb.4
+        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 13:10:55 -0700 (PDT)
+In-Reply-To: <1311314153-23531-3-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Fri, 22 Jul 2011 00:55:53 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Colin <ccross@google.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-R3JhenZ5ZGFzIElnbm90YXMgPG5vdGFzYXNAZ21haWwuY29tPiB3cml0ZXM6DQoNCj4gT24gVGh1
-LCBKdWwgMjEsIDIwMTEgYXQgODozOSBQTSwgS2V2aW4gSGlsbWFuIDxraGlsbWFuQHRpLmNvbT4g
-d3JvdGU6DQo+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGlmIChhY3RfbGF0ID4gb2RwbC0+YWN0
-aXZhdGVfbGF0KSB7DQo+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoG9kcGwt
-PmFjdGl2YXRlX2xhdF93b3JzdCA9IGFjdF9sYXQ7DQo+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoGlmIChvZHBsLT5mbGFncyAmIE9NQVBfREVWSUNFX0xBVEVOQ1lfQVVUT19B
-REpVU1QpIHsNCj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgb2RwbC0+YWN0aXZhdGVfbGF0ID0gYWN0X2xhdDsNCj4+IC0gwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcHJfd2FybmluZygib21hcF9kZXZpY2U6ICVzLiVk
-OiBuZXcgd29yc3QgY2FzZSAiDQo+PiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgImFjdGl2YXRlIGxhdGVuY3kgJWQ6ICVsbHVc
-biIsDQo+PiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgb2QtPnBkZXYubmFtZSwgb2QtPnBkZXYuaWQsDQo+PiAtIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgb2Qt
-PnBtX2xhdF9sZXZlbCwgYWN0X2xhdCk7DQo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIGRldl93YXJuKCZvZC0+cGRldi5kZXYsDQo+PiArIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIm5ldyB3
-b3JzdCBjYXNlIGFjdGl2YXRlIGxhdGVuY3kgIg0KPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCIlZDogJWxsdVxuIiwNCj4+ICsg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqBvZC0+cG1fbGF0X2xldmVsLCBhY3RfbGF0KTsNCj4NCj4gSSB3b25kZXIgd2h5IHRoZXNlIGhh
-dmUgdG8gYmUgd2FybmluZ3MsIEkgZ2V0IHF1aXRlIGEgbG90IG9mIHRoZW0gYW5kDQo+IGZpbmQg
-dGhlbSByYXRoZXIgYW5ub3lpbmcuIE9yIGlzIG15IGhhcmR3YXJlIGJyb2tlbiBvciBzb21ldGhp
-bmc/DQoNCk5vLCB5b3VyIGhhcmR3YXJlIGlzIG5vdCBicm9rZW4uDQoNCj4gSSBrbm93IG90aGVy
-IHBlb3BsZSBhcmUgZGlzYWJsaW5nIHRoaXMgaW4gdGhlaXIgdHJlZXMgdG9vOg0KPiBodHRwOi8v
-d3d3LnNha29tYW4uY29tL2NnaS1iaW4vZ2l0d2ViLmNnaT9wPWxpbnV4LW9tYXAtMi42LmdpdDth
-PWNvbW1pdGRpZmY7aD0xNDVjZjlhN2Q0YmE3YzI2MGRmNzA3MWEyOGVmNDBjNmE0ODFiNmRmDQoN
-ClBhdGNoZXMgdG8gY2hhbmdlIHRoYXQgYXJlIHdlbGNvbWUgb24gdGhlIGxpc3QuICANCg0KSXQn
-cyBub3QgcmVsYXRlZCB0byB0aGlzIHBhdGNoIHdoaWNoIGp1c3QgY2hhbmdlcyBmcm9tIHByX3dh
-cm5pbmcgdG8NCmRldl93YXJuLCBzbyBuZWVkcyB0byBiZSBkb25lIGluIGEgc2VwYXJhdGUgcGF0
-Y2guDQoNCktldmluDQo=
+Nishanth Menon <nm@ti.com> writes:
+
+> Suspend and Resume paths are safe enough to do it in
+
+What is 'it'  ?
+
+> the standard LDM suspend/resume handlers where one can
+> sleep. Add suspend/resume handlers for SmartReflex.
+
+Minor comments on the code below, but this changelog doesn't read well,
+or at least I can't make any sense of it.
+
+[...]
+
+> @@ -684,6 +685,12 @@ void omap_sr_enable(struct voltagedomain *voltdm)
+>  	if (!sr->autocomp_active)
+>  		return;
+>  
+> +	if (sr->is_suspended) {
+> +		dev_dbg(&sr->pdev->dev, "%s: in suspended state\n", __func__);
+> +		return;
+> +	}
+> +
+> +
+
+extra blank line
+
+>  	if (!sr_class || !(sr_class->enable) || !(sr_class->configure)) {
+>  		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
+>  			"registered\n", __func__);
+
+[...]
+
+>  static struct platform_driver smartreflex_driver = {
+>  	.remove         = omap_sr_remove,
+> +	.suspend	= omap_sr_suspend,
+> +	.resume		= omap_sr_resume,
+
+You're using the legacy methods here, please use dev_pm_ops.
+
+That means you'll need to create a struct dev_pm_ops and fill in these
+mehods there (and note the dev_pm_ops methods don't have a 'state'
+argument.
+
+Also, when implementing suspend/resume, you need to make sure the
+hibernate callbacks are populated also.  They should be populated with
+the same callbacks, so the best way to do this is to use
+SIMPLE_DEV_PM_OPS() (see <linux/pm.h>).  That macro also takes care of
+the !CONFIG_PM case as well.
+
+IOW, the result would look someting like this (not even compile tested):
+
+static SIMPLE_DEV_PM_OPS(omap_sr_pm_ops, omap_sr_suspend, omap_sr_resume)
+
+static struct platform_driver smartreflex_driver = {
+	.remove         = omap_sr_remove,
+	.driver		= {
+		.name	= "smartreflex",
+                .pm     = &omap_sr_pm_ops,
+	},
+};
+
+Kevin
