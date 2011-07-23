@@ -1,82 +1,55 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] mfd: twl6030-pwm.c needs MODULE_LICENSE
-Date: Sat, 23 Jul 2011 03:33:19 +0300
-Message-ID: <20110723003318.GA13774@legolas.emea.dhcp.ti.com>
-References: <20110722171708.370b2cf5.rdunlap@xenotime.net>
-Reply-To: balbi@ti.com
+From: Jassi Brar <jassisinghbrar@gmail.com>
+Subject: Re: [PATCH] dmaengine: add dma_ctrl_cmd to pass buffer stride configuration
+Date: Sun, 24 Jul 2011 02:05:28 +0530
+Message-ID: <CABb+yY2=CrA8=9ces=4ABjxrHieXjtJTGm6Q3Kg30eHye9_N2g@mail.gmail.com>
+References: <1310310203-12288-1-git-send-email-sundaram@ti.com>
+	<CABb+yY1HJOR+QzmM4-ju4cs+8keoyUbMv+SpVoM6BW=DCMzmQQ@mail.gmail.com>
+	<CACRpkdbLg0+_2kpi4NizFj0fDWb6QPtkcKirKgoH+83vGD0O0A@mail.gmail.com>
+	<CABb+yY1RqHJ6jsMB2RqPNnBLff-bzhwaXG1U-hCD8CpME+a3aA@mail.gmail.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E94030259DBBE@dbde02.ent.ti.com>
+	<CABb+yY1_vuM7NGxV4o103YmYfte09XKpaXnYARcn3jjnChiBsQ@mail.gmail.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9403026FE695@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:44271 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750741Ab1GWAdX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jul 2011 20:33:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20110722171708.370b2cf5.rdunlap@xenotime.net>
+Received: from mail-fx0-f52.google.com ([209.85.161.52]:52793 "EHLO
+	mail-fx0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751228Ab1GWUfa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jul 2011 16:35:30 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9403026FE695@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: lkml <linux-kernel@vger.kernel.org>, Hemanth V <hemanthv@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, akpm <akpm@linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: "Raju, Sundaram" <sundaram@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Mon, Jul 18, 2011 at 1:21 PM, Raju, Sundaram <sundaram@ti.com> wrote:
+>>
+>> Maybe a new api to pass fixed-format variable-length encoded message
+>> to the DMAC drivers?
+>> Which could be interpreted by DMAC drivers to extract all the needed xfer
+>> parameters from the 'header' section and instructions to program the xfers
+>> in the DMAC from the variable length body of the 'message' buffer.
+>> It might sound complicated but we can have helpers to make the job easy.
+>> Btw, the regular single/sg-list xfers could also be expressed by this method.
+>
+> Do you expect this variable length body of the message to be DMAC
+> independent? I don't think so. In that case how is this different from what
+> we have here already?
+Yes, this whould be DMAC independent.
 
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> If it can be DMAC independent, can you illustrate more on how this can
+> be done? But the point to note is, if this can be made DMAC independent
+> then the control command we have also can be made DMAC independent
+> by generalizing the configuration structure passed to it.
+The 'header' I suggest, would in fact be a structure body, only an extra pointer
+would point to the 'instructions' to convey actual location and sizes
+of mico-xfers.
+I don't think it is possible to have general definition of such transfers fully
+within a structure. If I understand what you ask.
 
-Hi,
+I have just posted an RFC. I kept the terms same so that it is easier
+to understand.
+Please have a look. You are CC'ed too.
 
-(adding linux-omap to the loop)
-
-On Fri, Jul 22, 2011 at 05:17:08PM -0700, Randy Dunlap wrote:
-> From: Randy Dunlap <rdunlap@xenotime.net>
->=20
-> twl6030_pwm: module license 'unspecified' taints kernel.
->=20
-> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> Cc: Hemanth V <hemanthv@ti.com>
-
-FWIW:
-
-Acked-by: Felipe Balbi <balbi@ti.com>
-
-> ---
->  drivers/mfd/twl6030-pwm.c |    2 ++
->  1 file changed, 2 insertions(+)
->=20
-> --- lnx-30-rc7.orig/drivers/mfd/twl6030-pwm.c
-> +++ lnx-30-rc7/drivers/mfd/twl6030-pwm.c
-> @@ -161,3 +161,5 @@ void pwm_free(struct pwm_device *pwm)
->  	kfree(pwm);
->  }
->  EXPORT_SYMBOL(pwm_free);
-> +
-> +MODULE_LICENSE("GPL");
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
---=20
-balbi
-
---DocE+STaALJfprDB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOKhbOAAoJEAv8Txj19kN1DywH/1kj2Z9lPnQV3n+M49odGCIY
-ee6n3Best9s/KGx9ciyePgGEiLLvJ/SMPovy4VtPWaFWRqesCxoJBHbJWpLNINoL
-2YWt5r97XOfNwUHU2ZCnPIH9/BaN2F9JZDtCaIb6+ZMlLltSvvYfkt2jzCGFfdNF
-0nVeJVlRjmyScayLbA8D9YMfXc9b42UynfSwv9A1qJVw9LFrqbbh2MBhCvmrqWZS
-Rbrf/PMyhwPi6uY/dYyBwwDk8t4R6lca5p0pPRz0w/FJixQMNCkNXVYQXtAxm/l2
-o2kH5NK+g+W+4bA8SrAmbRMVxsFfQdTJvel9zzWiWjsDFeLbL/tX/lIDtagMj2g=
-=G4cU
------END PGP SIGNATURE-----
-
---DocE+STaALJfprDB--
+Thanks,
+Jassi
