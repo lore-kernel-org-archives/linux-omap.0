@@ -1,63 +1,82 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv5 05/11] TEMP: OMAP3: pm: remove serial resume / idle
- calls from idle path
-Date: Sat, 23 Jul 2011 02:51:50 +0300
-Message-ID: <20110722235150.GB13706@legolas.emea.dhcp.ti.com>
-References: <1309861677-2769-1-git-send-email-t-kristo@ti.com>
- <1309861677-2769-6-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH] mfd: twl6030-pwm.c needs MODULE_LICENSE
+Date: Sat, 23 Jul 2011 03:33:19 +0300
+Message-ID: <20110723003318.GA13774@legolas.emea.dhcp.ti.com>
+References: <20110722171708.370b2cf5.rdunlap@xenotime.net>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="61jdw2sOBCFtR2d/"
+	protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:49610 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750820Ab1GVXvx (ORCPT
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:44271 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750741Ab1GWAdX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jul 2011 19:51:53 -0400
-Received: by mail-fx0-f53.google.com with SMTP id 23so4938655fxd.40
-        for <linux-omap@vger.kernel.org>; Fri, 22 Jul 2011 16:51:52 -0700 (PDT)
+	Fri, 22 Jul 2011 20:33:23 -0400
 Content-Disposition: inline
-In-Reply-To: <1309861677-2769-6-git-send-email-t-kristo@ti.com>
+In-Reply-To: <20110722171708.370b2cf5.rdunlap@xenotime.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: lkml <linux-kernel@vger.kernel.org>, Hemanth V <hemanthv@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, akpm <akpm@linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
 
---61jdw2sOBCFtR2d/
+--DocE+STaALJfprDB
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Jul 05, 2011 at 01:27:51PM +0300, Tero Kristo wrote:
-> This is no longer needed as it will be handled within serial driver itsel=
-f.
->=20
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+(adding linux-omap to the loop)
 
-isn't this introducing a regression ? Should this, maybe, be merged into
-next patch ?
+On Fri, Jul 22, 2011 at 05:17:08PM -0700, Randy Dunlap wrote:
+> From: Randy Dunlap <rdunlap@xenotime.net>
+>=20
+> twl6030_pwm: module license 'unspecified' taints kernel.
+>=20
+> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> Cc: Hemanth V <hemanthv@ti.com>
+
+FWIW:
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+> ---
+>  drivers/mfd/twl6030-pwm.c |    2 ++
+>  1 file changed, 2 insertions(+)
+>=20
+> --- lnx-30-rc7.orig/drivers/mfd/twl6030-pwm.c
+> +++ lnx-30-rc7/drivers/mfd/twl6030-pwm.c
+> @@ -161,3 +161,5 @@ void pwm_free(struct pwm_device *pwm)
+>  	kfree(pwm);
+>  }
+>  EXPORT_SYMBOL(pwm_free);
+> +
+> +MODULE_LICENSE("GPL");
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
 --=20
 balbi
 
---61jdw2sOBCFtR2d/
+--DocE+STaALJfprDB
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOKg0WAAoJEAv8Txj19kN1cusH/jo6aBOO5hs+EPzPGCxpxE3x
-Aw682v8NItb3X1YeK3HONtjtcDiX68nSqbXrhQjKUAMAkQJjwGXOxAgEcAEMrAGM
-edzA5AR7A37zx6/Aw54NYhfArAsg0yUSFpH+jKb8qaBgnelMtvq5Y+wPYPVt1xa/
-EOqKvpQhHCMLQCQHqeJnjTNgWCXNcYHLTH4yUFoxoCYpJz6wZ0tIaHqMPcdr7i/F
-AhXv4E5dX4RnJoFp1rac4F17j9gO3imMaYT4qe/cYc6CmPyrQAJ56/TTe+zltudy
-7m7xfWnI3RdNH/WCczYZXJUZkEC4OWaIm9zkhUN/cJykPN9fSU53bHZ60SZg60k=
-=78N+
+iQEcBAEBAgAGBQJOKhbOAAoJEAv8Txj19kN1DywH/1kj2Z9lPnQV3n+M49odGCIY
+ee6n3Best9s/KGx9ciyePgGEiLLvJ/SMPovy4VtPWaFWRqesCxoJBHbJWpLNINoL
+2YWt5r97XOfNwUHU2ZCnPIH9/BaN2F9JZDtCaIb6+ZMlLltSvvYfkt2jzCGFfdNF
+0nVeJVlRjmyScayLbA8D9YMfXc9b42UynfSwv9A1qJVw9LFrqbbh2MBhCvmrqWZS
+Rbrf/PMyhwPi6uY/dYyBwwDk8t4R6lca5p0pPRz0w/FJixQMNCkNXVYQXtAxm/l2
+o2kH5NK+g+W+4bA8SrAmbRMVxsFfQdTJvel9zzWiWjsDFeLbL/tX/lIDtagMj2g=
+=G4cU
 -----END PGP SIGNATURE-----
 
---61jdw2sOBCFtR2d/--
+--DocE+STaALJfprDB--
