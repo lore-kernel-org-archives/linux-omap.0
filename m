@@ -1,84 +1,64 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH] OMAP4460: Hwmod: Add hwmod for thermal sensor
-Date: Mon, 25 Jul 2011 17:37:15 +0530
-Message-ID: <CAJ6a13YdS-mKz7MJ+U99fSP1kOtc0nf66gEs-=9tVj0CZrJf6w@mail.gmail.com>
-References: <1309877932-27202-1-git-send-email-vishwanath.bs@ti.com>
-	<alpine.DEB.2.00.1107070328150.30028@utopia.booyaka.com>
-	<CAJ6a13brXSxeK82wg86x9gS4=UMAXJaXnR9hPwLzGJrBvh9AOg@mail.gmail.com>
+From: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
+Subject: [PATCH] OMAP3: Beagle: NAND: Specifying partition offsets directly.
+Date: Mon, 25 Jul 2011 18:37:23 +0530
+Message-ID: <1311599243-875-1-git-send-email-hrishikesh.b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:53257 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750946Ab1GYMHQ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Jul 2011 08:07:16 -0400
-Received: by mail-iy0-f174.google.com with SMTP id 12so4553844iyb.19
-        for <linux-omap@vger.kernel.org>; Mon, 25 Jul 2011 05:07:15 -0700 (PDT)
-In-Reply-To: <CAJ6a13brXSxeK82wg86x9gS4=UMAXJaXnR9hPwLzGJrBvh9AOg@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:35664 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751025Ab1GYNJX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Jul 2011 09:09:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
-Cc: Vishwanath BS <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+To: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+Cc: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
 
-On Thu, Jul 21, 2011 at 8:56 PM, J, KEERTHY <j-keerthy@ti.com> wrote:
-> On Thu, Jul 7, 2011 at 2:59 PM, Paul Walmsley <paul@pwsan.com> wrote:
->> Hi
->>
->> On Tue, 5 Jul 2011, Vishwanath BS wrote:
->>
->>> From: Keerthy <j-keerthy@ti.com>
->>>
->>> Patch adds hwmod entry for 4460 thermal sensor module. Thermal sens=
-or module
->>> is part of Control module sharing its address space and clocked via=
- Bandgap
->>> Functional Clock. Adding a seperate hwmod entry for thermal sensor =
-will
->>> enable thermal sensor driver to manage its clock cleanly using PM r=
-untime
->>> interfaces.
->>>
->>> Signed-off-by: Keerthy <j-keerthy@ti.com>
->>> Signed-off-by: Vishwnath BS <vishwanath.bs@ti.com>
->>
->> This needs to be coordinated with Beno=EEt, since he's the maintaine=
-r of
->> this file. =A0Since he's away at the moment, this is probably 3.2 ma=
-terial.
->>
->
-> Hello Paul/Tony,
->
-> This hwmod is specific to OMAP4460. When i tried to compile i see tha=
-t
-> CHIP_IS_OMAP446X is missing. Since this is very much specific to
-> OMAP4460 is there another way to differentiate between OMAP4430 and
-> OMAP4460?
+In the nand partition table specifying the offset addresses
+directly instead of using the macro MTDPART_OFS_APPEND to gain
+runtime efficiency while nand initialization.
+MTDPART_OFS_APPEND has the value (-1) ,if assigned to offset,
+a runtime calculation of actual offset happens each time nand is
+initialized [ Refer: drivers/mtd/mtdpart.c: allocate_partition()].
+To avoid this , specify actual offset.
 
-Hi Paul,
+Signed-off-by: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-Any inputs on this?
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 7f21d24..09f7571 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -140,23 +140,23 @@ static struct mtd_partition omap3beagle_nand_partitions[] = {
+ 	},
+ 	{
+ 		.name		= "U-Boot",
+-		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
++		.offset		= 0x80000
+ 		.size		= 15 * NAND_BLOCK_SIZE,
+ 		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+ 	},
+ 	{
+ 		.name		= "U-Boot Env",
+-		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
++		.offset		= 0x260000
+ 		.size		= 1 * NAND_BLOCK_SIZE,
+ 	},
+ 	{
+ 		.name		= "Kernel",
+-		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
++		.offset		= 0x280000
+ 		.size		= 32 * NAND_BLOCK_SIZE,
+ 	},
+ 	{
+ 		.name		= "File System",
+-		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
++		.offset		= 0x680000
+ 		.size		= MTDPART_SIZ_FULL,
+ 	},
+ };
+-- 
+1.6.2.4
 
->
->>
->> - Paul
->
->
->
-> --
-> Regards and Thanks,
-> Keerthy
->
-
-
-
---=20
-Regards and Thanks,
-Keerthy
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
