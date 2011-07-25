@@ -1,25 +1,25 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 04/11] OMAP2+: mux: add support for PAD wakeup interrupts
-Date: Mon, 25 Jul 2011 19:36:04 +0300
-Message-ID: <1311611771-15093-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 05/11] TEMP: OMAP3: pm: remove serial resume / idle calls from idle path
+Date: Mon, 25 Jul 2011 19:36:05 +0300
+Message-ID: <1311611771-15093-6-git-send-email-t-kristo@ti.com>
 References: <1311611771-15093-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49142 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35175 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752382Ab1GYQgd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jul 2011 12:36:33 -0400
+	id S1752128Ab1GYQge convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jul 2011 12:36:34 -0400
 Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6PGaXHT028179
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6PGaYle014428
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 25 Jul 2011 11:36:33 -0500
+	for <linux-omap@vger.kernel.org>; Mon, 25 Jul 2011 11:36:34 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6PGaXDq007453
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6PGaXbs007457
 	for <linux-omap@vger.kernel.org>; Mon, 25 Jul 2011 11:36:33 -0500 (CDT)
 Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6PGaWoK009271
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6PGaWoL009271
 	for <linux-omap@vger.kernel.org>; Mon, 25 Jul 2011 11:36:33 -0500 (CDT)
 Content-Class: urn:content-classes:message
 In-Reply-To: <1311611771-15093-1-git-send-email-t-kristo@ti.com>
@@ -27,113 +27,69 @@ Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-OMAP mux now provides a service routine to parse pending wakeup events
-and to call registered ISR whenever active wakeups are detected. This
-routine is called directly from PRCM interrupt handler.
+This is no longer needed as it will be handled within serial driver itself.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/mux.c  |   27 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/mux.h  |   11 +++++++++++
- arch/arm/mach-omap2/prcm.c |    4 ++++
- 3 files changed, 42 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |   19 -------------------
+ 1 files changed, 0 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 50ee806..b6c4ea1 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -32,6 +32,7 @@
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/uaccess.h>
-+#include <linux/irq.h>
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 7805a07..b9b5128 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -325,18 +325,9 @@ void omap_sram_idle(void)
+ 		omap3_enable_io_chain();
+ 	}
  
- #include <asm/system.h>
+-	/* Block console output in case it is on one of the OMAP UARTs */
+-	if (!is_suspending())
+-		if (per_next_state < PWRDM_POWER_ON ||
+-		    core_next_state < PWRDM_POWER_ON)
+-			if (!console_trylock())
+-				goto console_still_active;
+-
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
+-		omap_uart_prepare_idle(2);
+-		omap_uart_prepare_idle(3);
+ 		omap2_gpio_prepare_for_idle(per_going_off);
+ 		if (per_next_state == PWRDM_POWER_OFF)
+ 				omap3_per_save_context();
+@@ -344,8 +335,6 @@ void omap_sram_idle(void)
  
-@@ -381,6 +382,32 @@ bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
- 	return ret;
- }
+ 	/* CORE */
+ 	if (core_next_state < PWRDM_POWER_ON) {
+-		omap_uart_prepare_idle(0);
+-		omap_uart_prepare_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF) {
+ 			omap3_core_save_context();
+ 			omap3_cm_save_context();
+@@ -392,8 +381,6 @@ void omap_sram_idle(void)
+ 			omap3_sram_restore_context();
+ 			omap2_sms_restore_context();
+ 		}
+-		omap_uart_resume_idle(0);
+-		omap_uart_resume_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF)
+ 			omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
+ 					       OMAP3430_GR_MOD,
+@@ -407,14 +394,8 @@ void omap_sram_idle(void)
+ 		omap2_gpio_resume_after_idle();
+ 		if (per_prev_state == PWRDM_POWER_OFF)
+ 			omap3_per_restore_context();
+-		omap_uart_resume_idle(2);
+-		omap_uart_resume_idle(3);
+ 	}
  
-+/**
-+ * omap_hwmod_mux_handle_irq - Process wakeup events for a single hwmod
-+ *
-+ * Checks a single hwmod for every wakeup capable pad to see if there is an
-+ * active wakeup event. If this is the case, call the corresponding ISR.
-+ */
-+static int _omap_hwmod_mux_handle_irq(struct omap_hwmod *oh, void *data)
-+{
-+	if (!oh->mux || !oh->mux->enabled)
-+		return 0;
-+	if (omap_hwmod_mux_get_wake_status(oh->mux))
-+		generic_handle_irq(oh->mpu_irqs[0].irq);
-+	return 0;
-+}
-+
-+/**
-+ * omap_hwmod_mux_handle_irq - Process pad wakeup irqs.
-+ *
-+ * Calls a function for each registered omap_hwmod to check
-+ * pad wakeup statuses.
-+ */
-+void omap_hwmod_mux_handle_irq(void)
-+{
-+	omap_hwmod_for_each(_omap_hwmod_mux_handle_irq, NULL);
-+}
-+
- /* Assumes the calling function takes care of locking */
- void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
- {
-diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-index 8b2150a..6e7f1a4 100644
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -232,6 +232,13 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state);
-  * Called only from omap_hwmod.c, do not use.
-  */
- bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux);
-+
-+/**
-+ * omap_hwmod_mux_handle_irq - handler for IO pad wakeup events
-+ *
-+ * Called only from prcm.c to process PRCM IO events, do not use.
-+ */
-+void omap_hwmod_mux_handle_irq(void);
- #else
- 
- static inline bool
-@@ -259,6 +266,10 @@ static inline void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
- {
- }
- 
-+static inline void omap_hwmod_mux_handle_irq(void)
-+{
-+}
-+
- static struct omap_board_mux *board_mux __initdata __maybe_unused;
- 
- #endif
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 83cf8ae..7d8a6d8 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -40,6 +40,7 @@
- #include "prm-regbits-24xx.h"
- #include "prm-regbits-44xx.h"
- #include "control.h"
-+#include "mux.h"
- 
- void __iomem *prm_base;
- void __iomem *cm_base;
-@@ -112,6 +113,9 @@ static void prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
- 	unsigned long pending[OMAP_PRCM_MAX_NR_PENDING_REG];
- 	struct irq_chip *chip = irq_desc_get_chip(desc);
- 
-+	/* Handle PAD events first, we don't want to ack them before parse */
-+	omap_hwmod_mux_handle_irq();
-+
- 	/*
- 	 * Loop until all pending irqs are handled, since
- 	 * generic_handle_irq() can cause new irqs to come
+-	if (!is_suspending())
+-		console_unlock();
+-
+-console_still_active:
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
+ 	if (omap3_has_io_wakeup() &&
+ 	    (per_next_state < PWRDM_POWER_ON ||
 -- 
 1.7.4.1
 
