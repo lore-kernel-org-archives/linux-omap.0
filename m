@@ -1,107 +1,123 @@
-From: =?UTF-8?Q?Sjur_Br=C3=A6ndeland?= <sjurbren@gmail.com>
-Subject: Re: [RFC PATCHv5 1/7] HSI: hsi: Introducing HSI framework
-Date: Sun, 24 Jul 2011 23:56:39 +0200
-Message-ID: <CAJK669bOjK38J3f5=UCXGLSkaB4aJ-jS4jqvp5gGfE2czH8OAQ@mail.gmail.com>
-References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
-	<1308769914-15440-1-git-send-email-sjur.brandeland@stericsson.com>
-	<1308834524.27256.3247.camel@groo>
-	<81C3A93C17462B4BBD7E272753C105791A64C2735E@EXDCVYMBSTM005.EQ1STM.local>
-	<1311331416.32639.34.camel@groo>
-	<20110722110102.GR32058@legolas.emea.dhcp.ti.com>
-	<1311335472.32639.75.camel@groo>
-	<20110722120553.GZ32058@legolas.emea.dhcp.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2 V2] OMAP3+: PM: SR: add suspend/resume handlers
+Date: Mon, 25 Jul 2011 11:42:38 +0300
+Message-ID: <20110725084238.GC18062@legolas.emea.dhcp.ti.com>
+References: <1311526357-7578-1-git-send-email-nm@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9Ek0hoCL9XbhcSqy"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:61843 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752398Ab1GXV4k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Jul 2011 17:56:40 -0400
-In-Reply-To: <20110722120553.GZ32058@legolas.emea.dhcp.ti.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59444 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750781Ab1GYImm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Jul 2011 04:42:42 -0400
+Received: by mail-fx0-f43.google.com with SMTP id 17so7639260fxg.30
+        for <linux-omap@vger.kernel.org>; Mon, 25 Jul 2011 01:42:40 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1311526357-7578-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, Carlos Chinea <carlos.chinea@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmitry.tarnyagin@stericsson.com
-
-Hi Carlos,
-
->Sorry for the long delay. My comments below:
-No worries, I will probably be very slow when responding to you as
-well for the next
-couple of weeks...
-
->+ * @flow: RX flow type (SYNCHRONIZED or PIPELINE)
->+ * @arb_mode: Arbitration mode for TX frame (Round robin, priority)
->+ */
->+struct hsi_config {
->+	unsigned int	mode;
->+	unsigned int	channels;
->+	unsigned int	speed;
-
-I have to pick up on one issue I missed earlier. The CAIF-HSI protocol
-is going to use
-separate RX and TX speeds, where modem and host side looks at the
-throughput and
-TX-queues and request their TX speeds accordingly. So I would prefer
-to be able to set
-the RX and TX speed in each direction individually.
-
-...
->>>... Why don't you
->>> just remove the sync API altogether and use only async, then the OMAP
->>> HSI controller driver is supposed to know when it can go to sleep. If
->>> you receive some data before a client queues a request, you just defer
->>> processing of that data until a new request is queued, or something...
->>
->> Hmmm, Do you mean I remove the hsi_start_tx() and hsi_stop_tx()
->> completely ? Or Do I just create an async version of them ?
->
-> I would say remove completely and add async-only version.
-
-Yes, this is probably the best way, but I'm not too concerned how this is done,
-as long as the API provides some way to assure that the TX FIFO is empty
-before putting the WAKE line low.
+To: Nishanth Menon <nm@ti.com>
+Cc: Kevin <khilman@ti.com>, Colin <ccross@google.com>, l-a <linux-arm-kernel@lists.infradead.org>, l-o <linux-omap@vger.kernel.org>, felipe <balbi@ti.com>
 
 
-> > > > > *Missing function*: hsi_rx_fifo_occupancy()
-> > > > > Before putting the link asleep we need to know if the fifo is empty
-> > > > > or not.
-> > > > > So we would like to have a way to read out the number of bytes in the
-> > > > > RX fifo.
-> > > >
-> > > > This should be handled only by hsi_controller. Clients should not care
-> > > > about this.
-> > >
-> > > There is a corner case when going to low power mode and both side has put the WAKE line low,
-> > > but a RX DMA job is ongoing or the RX-fifo is not empty.
-> > > In this case the host side must wait for the DMA job to complete and RX-
-> > > fifo to be empty, before canceling any pending RX jobs.
-> > >
-> > > One option would be to provide a function hsi_rx_sync() that guarantees that any ongoing
-> > > RX-job is completed and that the RX FIFO is empty. Another option could be to be
-> > > able to provide API for reading RX-job states and RX-fifo occupancy.
-> > >
-> >
-> > I think we don't need another function to do this neither. The
-> > hsi_controller driver should implement a usecount scheme to know when
-> > the HW can be switch off. IMO it is not a good idea to relay just on the
-> > wakelines to power on/off the device, exactly because of this kind of
-> > issues.
+--9Ek0hoCL9XbhcSqy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-For the RX FIFO maybe you are right that the controller can handle the
-power down issues
-on it's own. However I'm uneasy about not having the possibility to
-read out the RX
-FIFO-occupancy from the HSI-controller. In the CAIF HSI implementation
-queued for the 3.1
-kernel (git.kernel.org/?p=linux/kernel/git/davem/net.git;a=blob;f=drivers/net/caif/caif_hsi.c
-)
-we use this both in probe() and when wakeline go low.
-There may also be other corner-cases related to wakeline handling or
-speed change,
-where we need this in the future. So from my point of view think we
-still need to be able read
-out the RX FIFO occupancy.
+Hi,
 
-Regards,
-Sjur
+On Sun, Jul 24, 2011 at 11:52:37AM -0500, Nishanth Menon wrote:
+> SmartReflex should be disabled while entering low power mode due to
+> the following reasons:
+> a) SmartReflex values are not defined for retention voltage.
+> b) With SmartReflex enabled, if the CPU enters low power state, FSM
+>    will try to bump the voltage to current OPP's voltage for which
+>    it has entered low power state, causing power loss and potential
+>    unknown states for the SoC.
+> Since we are sure to attempt entering the lowest possible power state
+> during suspend operation, SmartReflex needs to be disabled for the
+> voltage domains in suspend path before achieving auto retention voltage
+> on the device.
+>=20
+> Traditionally, this has been done with interrupts disabled as part of
+> the common code which handles the idle sequence. Instead, by using the
+> fact that we have to disable SmartReflex for sure during suspend
+> operations, we can opportunistically disable SmartReflex in device
+> standard pm ops, instead of disabling it as part of the code which
+> executes with interrupts disabled and slave CPU{s} shutdown. This
+> allows the system to do other parallel activities(such as suspending
+> other devices in the system using slave CPU{s}) and save the time
+> required to achieve suspend and resume from suspended state as a
+> sequential activity.
+>=20
+> However, by being opportunistic as described above, we also increase
+> the likelihood of SmartReflex library access functions being invoked in
+> parallel contexts *after* SmartReflex driver's suspend handler (during
+> suspend operation) or *before* resume handler (during resume operation)
+> have been invoked (Example: DVFS for dependent devices, cpufreq for
+> MPU etc.). We prevent this by using a flag to reject the callers in
+> the duration where SmartReflex has been disabled.
+
+while at that, SR's IRQ is never freed on exit path, could fix it while
+you're already there ?
+
+> @@ -998,10 +1020,75 @@ static int __devexit omap_sr_remove(struct platfor=
+m_device *pdev)
+>  	return 0;
+>  }
+> =20
+> +static int omap_sr_suspend(struct device *dev)
+> +{
+> +	struct omap_sr_data *pdata;
+> +	struct omap_sr *sr_info;
+> +
+> +	pdata =3D dev_get_platdata(dev);
+
+I'm not sure you need to use platform data here...
+
+> +	if (!pdata) {
+> +		dev_err(dev, "%s: platform data missing\n", __func__);
+> +		return -EINVAL;
+> +	}
+> +
+> +	sr_info =3D _sr_lookup(pdata->voltdm);
+
+this field is held on struct omap_sr. Can't you:
+
+	struct omap_sr	*info =3D dev_get_drvdata(dev);
+
+?? I see that a platform_set_drvdata() is missing from the driver, but
+maybe you should add that instead of accessing platform_data.
+
+>  static struct platform_driver smartreflex_driver =3D {
+>  	.remove         =3D omap_sr_remove,
+>  	.driver		=3D {
+>  		.name	=3D "smartreflex",
+> +		.pm	=3D &omap_sr_dev_pm_ops,
+
+this should not be valid in case CONFIG_PM isn't enabled.
+
+--=20
+balbi
+
+--9Ek0hoCL9XbhcSqy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOLSx+AAoJEAv8Txj19kN18ZYH/2Hg5eXXw0b5o2W4qCO5Hu2V
+uHHvAhaPsDeQSRXQrpkdScYel8ZedANW3LE8C2y1JtIkUqPyQk1dtMfJTZhoPMN2
+58RC0P6fUflaSnSjtUHAiHqedlmI3vzWoyRFt4eRysFk31Z/m216NyA+p2dliwm1
+FDk22XlP7qJlcf/ZSMfmxCfX2SKFCeG7BldIboxT22EOzDzGTSFi72gfn5yVZ6XZ
+2NH49tbb17RH2APiti4IRPyGM4s3RboNZPHr8hZYoRQzGpTkNAJiXSH0PmR0F89m
+/2D1Cigd6Z5Zi1B9KSAKM3h/OBRH5jqXOJpb3QwqCiiaXtS+cvTUIvusH4ozAuI=
+=IQfU
+-----END PGP SIGNATURE-----
+
+--9Ek0hoCL9XbhcSqy--
