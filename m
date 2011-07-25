@@ -1,117 +1,102 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] OMAP3: Beagle: NAND: Specifying partition offsets
- directly.
-Date: Mon, 25 Jul 2011 16:19:53 +0300
-Message-ID: <20110725131953.GZ18062@legolas.emea.dhcp.ti.com>
-References: <1311599243-875-1-git-send-email-hrishikesh.b@ti.com>
- <20110725131406.GY18062@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+From: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
+Subject: [PATCH] OMAP3: NAND: Adding NAND support and specifying NAND partitions.
+Date: Mon, 25 Jul 2011 19:10:53 +0530
+Message-ID: <1311601253-2933-1-git-send-email-hrishikesh.b@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hOmQO3H5Qmmwdmk8"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:33343 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751139Ab1GYNT4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Jul 2011 09:19:56 -0400
-Received: by mail-ey0-f177.google.com with SMTP id 6so3599281eyh.8
-        for <linux-omap@vger.kernel.org>; Mon, 25 Jul 2011 06:19:55 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110725131406.GY18062@legolas.emea.dhcp.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:52851 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751212Ab1GYNmi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Jul 2011 09:42:38 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org
+Cc: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Sanjeev Premi <premi@ti.com>
 
+This patch adds the NAND support on OMAP3EVM board and also allocates
+five partitions  on NAND.
+Referred to file: arch/arm/mach-omap2/board-omap3beagle.c
 
---hOmQO3H5Qmmwdmk8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+Signed-off-by: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   40 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
 
-Hi again,
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index b4d4346..be45b63 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -30,6 +30,10 @@
+ #include <linux/usb/otg.h>
+ #include <linux/smsc911x.h>
+ 
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/partitions.h>
++#include <linux/mtd/nand.h>
++
+ #include <linux/wl12xx.h>
+ #include <linux/regulator/fixed.h>
+ #include <linux/regulator/machine.h>
+@@ -46,6 +50,8 @@
+ #include <plat/mcspi.h>
+ #include <video/omapdss.h>
+ #include <video/omap-panel-generic-dpi.h>
++#include <plat/gpmc.h>
++#include <plat/nand.h>
+ 
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+@@ -101,6 +107,37 @@ static void __init omap3_evm_get_revision(void)
+ 	}
+ }
+ 
++static struct mtd_partition omap3evm_nand_partitions[] = {
++	/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name		= "X-Loader",
++		.offset		= 0,
++		.size		= 4 * NAND_BLOCK_SIZE,
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot",
++		.offset         = 0x80000
++		.size           = 15 * NAND_BLOCK_SIZE,
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot Env",
++		.offset		= 0x260000
++		.size		= 1 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "Kernel",
++		.offset		= 0x280000
++		.size		= 32 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "File System",
++		.offset		= 0x680000
++		.size		= MTDPART_SIZ_FULL,
++	},
++};
++
+ #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+ #include <plat/gpmc-smsc911x.h>
+ 
+@@ -696,6 +733,9 @@ static void __init omap3_evm_init(void)
+ 
+ 	omap_serial_init();
+ 
++	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3evm_nand_partitions,
++			ARRAY_SIZE(omap3evm_nand_partitions));
++
+ 	/* OMAP3EVM uses ISP1504 phy and so register nop transceiver */
+ 	usb_nop_xceiv_register();
+ 
+-- 
+1.6.2.4
 
-On Mon, Jul 25, 2011 at 04:14:06PM +0300, Felipe Balbi wrote:
-> On Mon, Jul 25, 2011 at 06:37:23PM +0530, Hrishikesh Bhandiwad wrote:
-> > In the nand partition table specifying the offset addresses
-> > directly instead of using the macro MTDPART_OFS_APPEND to gain
-> > runtime efficiency while nand initialization.
-> > MTDPART_OFS_APPEND has the value (-1) ,if assigned to offset,
-> > a runtime calculation of actual offset happens each time nand is
-> > initialized [ Refer: drivers/mtd/mtdpart.c: allocate_partition()].
-> > To avoid this , specify actual offset.
-> >=20
-> > Signed-off-by: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
->=20
-> did you measure any significant gains when doing this ? Also, why only
-> beagle ? why not all boards already ? Measurment data of how long it
-> takes for the runtime calculation of the offset to complete would be
-> nice to see.
-
-I was just looking at the code and the offset calculation will always be
-done regardless of you using the direct offset or the MTDPART_OFS_APEND.
-The only thing you avoid by setting it directly is a branch.
-
-See here:
-
-648 int add_mtd_partitions(struct mtd_info *master,
-649                        const struct mtd_partition *parts,
-650                        int nbparts)
-651 {
-652         struct mtd_part *slave;
-653         uint64_t cur_offset =3D 0;
-654         int i;
-655=20
-656         printk(KERN_NOTICE "Creating %d MTD partitions on \"%s\":\n", n=
-bparts, master->name);
-657=20
-658         for (i =3D 0; i < nbparts; i++) {
-659                 slave =3D allocate_partition(master, parts + i, i, cur_=
-offset);
-660                 if (IS_ERR(slave))
-661                         return PTR_ERR(slave);
-662=20
-663                 mutex_lock(&mtd_partitions_mutex);
-664                 list_add(&slave->list, &mtd_partitions);
-665                 mutex_unlock(&mtd_partitions_mutex);
-666=20
-667                 add_mtd_device(&slave->mtd);
-668=20
-669                 cur_offset =3D slave->offset + slave->mtd.size;
-670         }
-671=20
-672         return 0;
-673 }
-
-regardless of you passing MTDPART_OFS_APEND or direct slave->offset,
-cur_ofsset will be calculated, and that thing looks really cheap to
-execute to me. The only thing you're avoid is:
-
-467         slave->offset =3D part->offset;
-468=20
-469         if (slave->offset =3D=3D MTDPART_OFS_APPEND)
-470                 slave->offset =3D cur_offset;
-
-the if at line 469. Am I missing something ??
-
---=20
-balbi
-
---hOmQO3H5Qmmwdmk8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOLW15AAoJEAv8Txj19kN1m6cH/3z3vDNbpIxSlwemjOVOgcGe
-f0mystAM/k3a7eOtPRyjCKy97R35PcdmjxqC2LEAytuf09OMeEnKLg3CKf6GlRMF
-8QfNcuW4ygYiyg/2EgLYZIX7Q9tpUd+tOjDpJjNcwmL2PUs1+/Na4FdbFQahq6rm
-lit9WL/Gvhhd3WT96zBTaSAVpwlgT+nydqHJ2o85HqkInXbYnsPBsR/rTuK60gwv
-mja4Rw3ZSeMomCVBrVPD44zNp9OqdOooJneFDmgCNd9rbuj6pDWkZvUjjGvMQAeN
-L3OqV+JyXz2Y1RYCzm2oJe9rqVt/39+bPNv1MThGDpSCAoLtAJvlDKyCZX09B4A=
-=BGYe
------END PGP SIGNATURE-----
-
---hOmQO3H5Qmmwdmk8--
