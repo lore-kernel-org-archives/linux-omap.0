@@ -1,64 +1,62 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] mfd: omap-usb-host: fix clock API usage on
- usbhs_disable()
-Date: Tue, 26 Jul 2011 17:34:34 +0300
-Message-ID: <20110726143433.GX32582@legolas.emea.dhcp.ti.com>
-References: <1311340170-28773-1-git-send-email-keshava_mgowda@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: ISP
+Date: Tue, 26 Jul 2011 17:36:36 +0300
+Message-ID: <20110726143635.GY32582@legolas.emea.dhcp.ti.com>
+References: <CAOO8FEcnGxf-2xKbpVrN2e4CfgPZ0VgSOoO+dJthNa+8ZaYKPA@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NAuYj0K7Umiq33rm"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="Z8pjODCYYz+3zRe3"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:53109 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753379Ab1GZOgl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Jul 2011 10:36:41 -0400
+Received: by eyb7 with SMTP id 7so727130eyb.4
+        for <linux-omap@vger.kernel.org>; Tue, 26 Jul 2011 07:36:38 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1311340170-28773-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+In-Reply-To: <CAOO8FEcnGxf-2xKbpVrN2e4CfgPZ0VgSOoO+dJthNa+8ZaYKPA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Veda N <veda74@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
 
---NAuYj0K7Umiq33rm
+--Z8pjODCYYz+3zRe3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 22, 2011 at 06:39:30PM +0530, Keshava Munegowda wrote:
-> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
->=20
-> usbhs_disable function was invoking clk_enable() instead of
-> clk_disable(), thus only increasing the clock usage counter and
-> preventing this particular clock from being ever turned off.
-> Because of this, the power domain of omap4 the USB Host subsystem
-> would never reach lower power states.This patch calls clk_disable()
-> in usbhs_disable function
->=20
-> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+hi,
 
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+On Tue, Jul 26, 2011 at 08:03:01PM +0530, Veda N wrote:
+> For developing camera sensors drivers which kernel source
+> and isp drivers sources have been tested and i need to use.
+> And from where i can get them.
+>=20
+> this is for omap3
 
-Samuel, I guess you can take this via MFD ?
+Starting with v3.0 would be a good guess :-) If something isn't working,
+then report the problem to this list linux-media@vger.kernel.org
 
 --=20
 balbi
 
---NAuYj0K7Umiq33rm
+--Z8pjODCYYz+3zRe3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEbBAEBAgAGBQJOLtB5AAoJEAv8Txj19kN1f0YH+Pwg1oUbEOrPgDMMdlAJHC/Q
-c76bwUVnnP6PF4JT8erfKcgAsHQWTtXn54J07l5DBfKjlhKCy8bvzzJZCD06N3Nr
-oZu8oWbeZEgJX141F26cjniUzLOL8RwraIqxKW5JwxX1FcV93MG6ukW2lu7VsrkF
-Ga8gO81XproFSCcRG8mnJmSHAfjW5HFTPFdcKYD5ePVD/csJlUAaMdVV+oLjcGH+
-b0VKpq81SBeZfTCEyOuka+a3Z6Y6b22LRNKRrVA4L5jiC0y0MGQrMOdCgaKHKOtv
-g4zv9mJcPg150HBWNiqkxN9+h4KL4yyWpGj8h12q+E/RgPt2xPuDYuBB4mrHGA==
-=Fb9y
+iQEcBAEBAgAGBQJOLtDzAAoJEAv8Txj19kN1ymAH/0wXfz+gCHT8sJVqLbcj2rYg
+gEw/okglV5CZrlrlB0khFywW8IiipljQPP94agi8YXuBsF4QdSMlOVRaDV3zB90k
+cEgl+uNFGmfQnoQi7y7kYB42RIW28583vhPstoncUmbByAXQl6DQUDLmOMbeI84/
+G+jdXOXAi9ce2PRhkvqUZ95MBjmBTXeTSTOQPeokl5CAOEqLcbO2RlklLie6srSs
+3rrxDJJiJD8IUH9QY0rpTTmiWp/T+hgumuCmtbY5ja9FPRhT3uID8CS9YWRjnZBn
+5OG3i0euAuHsWVBdx8J7oDvpNiht2sTSQejVVUUMijZUVdIMRpFg0PZoKxbc3M0=
+=c98l
 -----END PGP SIGNATURE-----
 
---NAuYj0K7Umiq33rm--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Z8pjODCYYz+3zRe3--
