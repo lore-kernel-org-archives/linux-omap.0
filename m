@@ -1,148 +1,157 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv6 01/11] omap: prcm: switch to a chained IRQ handler
- mechanism
-Date: Tue, 26 Jul 2011 13:40:50 +0300
-Message-ID: <20110726104049.GC32582@legolas.emea.dhcp.ti.com>
-References: <1311611771-15093-1-git-send-email-t-kristo@ti.com>
- <1311611771-15093-2-git-send-email-t-kristo@ti.com>
- <20110725170300.GG18062@legolas.emea.dhcp.ti.com>
- <1311676415.5826.30.camel@sokoban>
-Reply-To: balbi@ti.com
+From: "Bhandiwad, Hrishikesh" <hrishikesh.b@ti.com>
+Subject: RE: [PATCH] OMAP3: NAND: Adding NAND support and specifying NAND
+ partitions.
+Date: Tue, 26 Jul 2011 16:36:54 +0530
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D08A08E@dbde03.ent.ti.com>
+References: <1311601253-2933-1-git-send-email-hrishikesh.b@ti.com>,<CANOLnOODuPKAmRfiokC_4UgwrxCcw5xY1a9vhMsWN0T2LzNzAQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KN5l+BnMqAQyZLvT"
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:34149 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752129Ab1GZKkx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jul 2011 06:40:53 -0400
-Received: by mail-ew0-f53.google.com with SMTP id 8so321529ewy.12
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jul 2011 03:40:52 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1311676415.5826.30.camel@sokoban>
+Received: from comal.ext.ti.com ([198.47.26.152]:59918 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752616Ab1GZLJH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jul 2011 07:09:07 -0400
+In-Reply-To: <CANOLnOODuPKAmRfiokC_4UgwrxCcw5xY1a9vhMsWN0T2LzNzAQ@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Mahadeva, Avinash" <avinashhm@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "R, Govindraj" <govindraj.raja@ti.com>, Paul Walmsley <paul@pwsan.com>, Thomas Gleixner <tglx@linutronix.de>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Premi, Sanjeev" <premi@ti.com>
 
+My Replies inline.
 
---KN5l+BnMqAQyZLvT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks & Regards,
+Hrishikesh
+________________________________________
+=46rom: Grazvydas Ignotas [notasas@gmail.com]
+Sent: Tuesday, July 26, 2011 3:08 PM
+To: Bhandiwad, Hrishikesh
+Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; l=
+inux-kernel@vger.kernel.org; linux-mtd@lists.infradead.org; Hiremath, V=
+aibhav; Premi, Sanjeev
+Subject: Re: [PATCH] OMAP3: NAND: Adding NAND support and specifying NA=
+ND partitions.
 
-Hi,
+On Mon, Jul 25, 2011 at 4:40 PM, Hrishikesh Bhandiwad
+<hrishikesh.b@ti.com> wrote:
+> This patch adds the NAND support on OMAP3EVM board and also allocates
+> five partitions  on NAND.
+> Referred to file: arch/arm/mach-omap2/board-omap3beagle.c
+>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> Signed-off-by: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3evm.c |   40 ++++++++++++++++++++++++=
+++++++++++
+>  1 files changed, 40 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-oma=
+p2/board-omap3evm.c
+> index b4d4346..be45b63 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -30,6 +30,10 @@
+>  #include <linux/usb/otg.h>
+>  #include <linux/smsc911x.h>
+>
+> +#include <linux/mtd/mtd.h>
 
-On Tue, Jul 26, 2011 at 01:33:35PM +0300, Tero Kristo wrote:
-> > > +	while (1) {
-> > > +		unsigned int virtirq;
-> > > +
-> > > +		chip->irq_ack(&desc->irq_data);
-> > > +
-> > > +		memset(pending, 0, sizeof(pending));
-> > > +		irq_setup->pending_events(pending);
-> > > +
-> > > +		/* No bit set, then all IRQs are handled */
-> > > +		if (find_first_bit(pending, OMAP_PRCM_NR_IRQS)
-> > > +		    >=3D OMAP_PRCM_NR_IRQS) {
-> > > +			chip->irq_unmask(&desc->irq_data);
-> > > +			break;
-> > > +		}
-> > > +
-> > > +		/*
-> > > +		 * Loop on all currently pending irqs so that new irqs
-> > > +		 * cannot starve previously pending irqs
-> > > +		 */
-> > > +		for_each_set_bit(virtirq, pending, OMAP_PRCM_NR_IRQS)
-> > > +			generic_handle_irq(irq_setup->base_irq + virtirq);
-> > > +
-> > > +		chip->irq_unmask(&desc->irq_data);
-> >=20
-> > can't the IRQ subsystem handle this for you ? I was expecting it would
-> > call irq_ack() and irq_unmask() automatically and you wouldn't have to
-> > do it yourself. Maybe Thomas can clear this out ? Thomas, should we call
-> > ->irq_ack() ->irq_mask ourselves here ?
->=20
-> These are needed, as we are using a handle and a level interrupt. If you
-> leave out the ack, we will return to the handler immediately as nobody
-> else acks it. If you leave out the unmask, we will only ever get 1
-> interrupt and no more.
+You don't need this include.
 
-but that's the thing, I guess IRQ subsystem can handle this
-automatically. At least from what I remember. That's how I converted the
-retu driver, for instance, and I checked that IRQ subsystem calls
-->irq_ack() and ->irq_mask/unmask() for me...
+> +#include <linux/mtd/partitions.h>
+> +#include <linux/mtd/nand.h>
+> +
+>  #include <linux/wl12xx.h>
+>  #include <linux/regulator/fixed.h>
+>  #include <linux/regulator/machine.h>
+> @@ -46,6 +50,8 @@
+>  #include <plat/mcspi.h>
+>  #include <video/omapdss.h>
+>  #include <video/omap-panel-generic-dpi.h>
+> +#include <plat/gpmc.h>
+> +#include <plat/nand.h>
 
-Maybe the irq_gc stuff is different, dunno.
+These 2 too.
 
-> > if you make this a platform_driver, there would be no need for this
-> > trickery. You could pass this as driver data. Something like:
-> >=20
-> >=20
-> > struct omap_prcm_irq_setup omap3_prcm_irq_setup =3D {
-> > 	.ack		=3D (u32)OMAP3430_PRM_IRQSTATUS_MPU,
-> > 	.mask		=3D (u32)OMAP3430_PRM_IRQENABLE_MPU,
-> > 	.pending_events	=3D omap3_prm_pending_events,
-> > 	.irq		=3D INT_34XX_PRCM_MPU_IRQ,
-> > };
-> >=20
-> > struct const struct platform_device_id prcm_id_table[] __devinitconst =
-=3D
-> > {
-> > 	{
-> > 		.name		=3D "omap3-prcm",
-> > 		.driver_data	=3D &omap3_prcm_irq_setup,
-> > 	},
-> > 	{
-> > 		.name		=3D "omap4-prcm",
-> > 		.driver_data	=3D &omap4_prcm_irq_setup,
-> > 	},
-> > };
-> > MODULE_DEVICE_TABLE(platform, prcm_id_table);
-> >=20
-> > static struct platform_driver prcm_driver =3D {
-> > 	.probe		=3D prcm_probe,
-> > 	.remove		=3D __devexit_p(prcm_remove),
-> > 	.driver		=3D {
-> > 		.name	=3D "prcm",
-> > 		.pm	=3D DEV_PM_OPS,
-> > 	},
-> > 	.id_table	=3D &prcm_id_table,
-> > };
-> >=20
-> > or something similar. Then on probe you can make a copy of irq_setup to
-> > your driver's context structure, or only use temporarily to initialize
-> > some fields and so on...
-> >=20
->=20
-> Hmm, this might be useful, however you would still need a way to
-> register the driver from somewhere, and you would essentially end up
-> with omap_chip version check somewhere. The reason for all this trickery
-> is that the omap chip version detection is heavily frowned upon right
-> now... it would be much cleaner if there was an accepted way of doing
-> this already in place.
+>
+>  #include "mux.h"
+>  #include "sdram-micron-mt46h32m32lf-6.h"
+> @@ -101,6 +107,37 @@ static void __init omap3_evm_get_revision(void)
+>        }
+>  }
+>
+> +static struct mtd_partition omap3evm_nand_partitions[] =3D {
+> +       /* All the partition sizes are listed in terms of NAND block =
+size */
+> +       {
+> +               .name           =3D "X-Loader",
+> +               .offset         =3D 0,
+> +               .size           =3D 4 * NAND_BLOCK_SIZE,
+> +               .mask_flags     =3D MTD_WRITEABLE,        /* force re=
+ad-only */
+> +       },
+> +       {
+> +               .name           =3D "U-Boot",
+> +               .offset         =3D 0x80000
 
-wouldn't hwmod be able to handle this for you ? I mean, it's just the
-driver name that has to change, rather than exporting a few functions.
+Missing comma. Have you at least tried compiling this?
+[Hrishikesh] Apologies. I maintain different git repositories .Had comp=
+iled and tested in other one , missed out the commas while making chang=
+es in this one.
+Will send out a patch with perfect changes in my next revision.
 
---=20
-balbi
+> +               .size           =3D 15 * NAND_BLOCK_SIZE,
+> +               .mask_flags     =3D MTD_WRITEABLE,        /* force re=
+ad-only */
+> +       },
+> +       {
+> +               .name           =3D "U-Boot Env",
+> +               .offset         =3D 0x260000
+> +               .size           =3D 1 * NAND_BLOCK_SIZE,
+> +       },
+> +       {
+> +               .name           =3D "Kernel",
+> +               .offset         =3D 0x280000
+> +               .size           =3D 32 * NAND_BLOCK_SIZE,
+> +       },
+> +       {
+> +               .name           =3D "File System",
+> +               .offset         =3D 0x680000
+> +               .size           =3D MTDPART_SIZ_FULL,
+> +       },
+> +};
+> +
+>  #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+>  #include <plat/gpmc-smsc911x.h>
+>
+> @@ -696,6 +733,9 @@ static void __init omap3_evm_init(void)
+>
+>        omap_serial_init();
+>
+> +       omap_nand_flash_init(NAND_BUSWIDTH_16, omap3evm_nand_partitio=
+ns,
+> +                       ARRAY_SIZE(omap3evm_nand_partitions));
+> +
+>        /* OMAP3EVM uses ISP1504 phy and so register nop transceiver *=
+/
+>        usb_nop_xceiv_register();
+>
+> --
+> 1.6.2.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
---KN5l+BnMqAQyZLvT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOLpmxAAoJEAv8Txj19kN1QY4H/0Y9LYaTQp0ZmqXDfIBwL4u/
-uZn/4WN5EzsVjkjGzz9Yq6u/MkyA5BvluSCJvCbYNdoZAS4VGXSXWhAw5zDqTXSI
-66OcfgK2w1xy5A9ffcUTzoGkupnqbwJljZtl+ml3+eBBrVF669wjmHbprewgLGsw
-yWlY2QoXYXyFp8JEDTlKJXPW9tQXSCkh5fRlcp9Fo+HqqXTXKeHn+KfI9Mkicxdx
-y21qFr+IZHo0w4Z3K8auBN8/ED8j6qtzZlhnEhlL3E5bacxURxuTxg6pGg2RkMr0
-ln9l+wjopIBDVBXQpY19i9rFOrcDueVspAPZkRRakJW60xYQSHEpYjpkLdCpklM=
-=qiWQ
------END PGP SIGNATURE-----
-
---KN5l+BnMqAQyZLvT--
+--
+Gra=9Evydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
