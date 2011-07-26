@@ -1,62 +1,66 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: ISP
-Date: Tue, 26 Jul 2011 17:36:36 +0300
-Message-ID: <20110726143635.GY32582@legolas.emea.dhcp.ti.com>
-References: <CAOO8FEcnGxf-2xKbpVrN2e4CfgPZ0VgSOoO+dJthNa+8ZaYKPA@mail.gmail.com>
+Subject: Re: [resend PATCH] tusb6010_omap: fix build failure: error: 'musb'
+ undeclared
+Date: Tue, 26 Jul 2011 17:53:31 +0300
+Message-ID: <20110726145330.GF32582@legolas.emea.dhcp.ti.com>
+References: <1310916480-3477-1-git-send-email-slyich@gmail.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Z8pjODCYYz+3zRe3"
+	protocol="application/pgp-signature"; boundary="hU50fLDIZPaBYjJk"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:53109 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753379Ab1GZOgl (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:59205 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753597Ab1GZOxe (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jul 2011 10:36:41 -0400
-Received: by eyb7 with SMTP id 7so727130eyb.4
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jul 2011 07:36:38 -0700 (PDT)
+	Tue, 26 Jul 2011 10:53:34 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOO8FEcnGxf-2xKbpVrN2e4CfgPZ0VgSOoO+dJthNa+8ZaYKPA@mail.gmail.com>
+In-Reply-To: <1310916480-3477-1-git-send-email-slyich@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Veda N <veda74@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Sergei Trofimovich <slyich@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sergei Trofimovich <slyfox@gentoo.org>
 
 
---Z8pjODCYYz+3zRe3
+--hU50fLDIZPaBYjJk
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-hi,
-
-On Tue, Jul 26, 2011 at 08:03:01PM +0530, Veda N wrote:
-> For developing camera sensors drivers which kernel source
-> and isp drivers sources have been tested and i need to use.
-> And from where i can get them.
+On Sun, Jul 17, 2011 at 06:28:00PM +0300, Sergei Trofimovich wrote:
+> From: Sergei Trofimovich <slyfox@gentoo.org>
 >=20
-> this is for omap3
+>   CC      drivers/usb/musb/tusb6010_omap.o
+> drivers/usb/musb/tusb6010_omap.c: In function 'tusb_omap_use_shared_dmare=
+q':
+> drivers/usb/musb/tusb6010_omap.c:92: error: 'musb' undeclared (first use =
+in this function)
+> drivers/usb/musb/tusb6010_omap.c:92: error: (Each undeclared identifier i=
+s reported only once
+> drivers/usb/musb/tusb6010_omap.c:92: error: for each function it appears =
+in.)
+>=20
+> Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
 
-Starting with v3.0 would be a good guess :-) If something isn't working,
-then report the problem to this list linux-media@vger.kernel.org
+applied, thanks
 
 --=20
 balbi
 
---Z8pjODCYYz+3zRe3
+--hU50fLDIZPaBYjJk
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOLtDzAAoJEAv8Txj19kN1ymAH/0wXfz+gCHT8sJVqLbcj2rYg
-gEw/okglV5CZrlrlB0khFywW8IiipljQPP94agi8YXuBsF4QdSMlOVRaDV3zB90k
-cEgl+uNFGmfQnoQi7y7kYB42RIW28583vhPstoncUmbByAXQl6DQUDLmOMbeI84/
-G+jdXOXAi9ce2PRhkvqUZ95MBjmBTXeTSTOQPeokl5CAOEqLcbO2RlklLie6srSs
-3rrxDJJiJD8IUH9QY0rpTTmiWp/T+hgumuCmtbY5ja9FPRhT3uID8CS9YWRjnZBn
-5OG3i0euAuHsWVBdx8J7oDvpNiht2sTSQejVVUUMijZUVdIMRpFg0PZoKxbc3M0=
-=c98l
+iQEcBAEBAgAGBQJOLtTqAAoJEAv8Txj19kN1IhMH/RRJXeVyyC0MtHPY00tliPo7
+2dkkzg3E81oKqeGpNsqeIFtixC/WNEJof/j5Ggt5NJ/eoNkRKPs8tEI7xCkMerWl
+3g6bE2i7+QxPdzJ5V+PSWRE3eMdDKD8xgCtBPCGuJ0Ia70bwT6xvvkwWOvTdmBfQ
++KVjAOJJaXRWd9mdGBsqnV+DtMNWRmQ472qGpBGWushxg0Skl+fHDcSlwi/TBJeE
+SAox3oZBBrZwDv1Btyz+QOWFaukF0aQuRz+JCIu3OyE/yTUaDnXiAQVjlm85C96T
+QT5GxcTOtquxCesxtnicL0dnw191qZWheqbqvSLeT2UD+5t85Zg9raLu//BIDgU=
+=nVUO
 -----END PGP SIGNATURE-----
 
---Z8pjODCYYz+3zRe3--
+--hU50fLDIZPaBYjJk--
