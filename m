@@ -1,86 +1,58 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] OMAP: ctrl: Fix CONTROL_DSIPHY register fields
-Date: Wed, 27 Jul 2011 11:06:11 +0200
-Message-ID: <4E2FD503.7080505@ti.com>
-References: <1311747632-26899-1-git-send-email-archit@ti.com> <4E2FAE64.7020806@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [RFC/PATCH v2] PM / Runtime: allow _put_sync() from interrupts-disabled context
+Date: Wed, 27 Jul 2011 11:22:07 +0200
+Message-ID: <201107271122.07701.rjw@sisk.pl>
+References: <1311371188-28879-1-git-send-email-khilman@ti.com> <201107240102.09698.rjw@sisk.pl> <87r55cpnwo.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56620 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013Ab1G0JGO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jul 2011 05:06:14 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6R96DVQ018982
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 27 Jul 2011 04:06:13 -0500
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id p6R96DUG010123
-	for <linux-omap@vger.kernel.org>; Wed, 27 Jul 2011 04:06:13 -0500 (CDT)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6R96DBF023533
-	for <linux-omap@vger.kernel.org>; Wed, 27 Jul 2011 04:06:13 -0500 (CDT)
-In-Reply-To: <4E2FAE64.7020806@ti.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:54203 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754024Ab1G0JUl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jul 2011 05:20:41 -0400
+In-Reply-To: <87r55cpnwo.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Taneja, Archit" <archit@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Stern <stern@rowland.harvard.edu>, Colin Cross <ccross@android.com>
 
-On 7/27/2011 8:21 AM, Shilimkar, Santosh wrote:
-> + Benoit
-
-Thanks Santosh,
-
-
-Archit,
-
-Could you please send your patch to all the authors of the file, including the maintainers?
-
-Without Santosh, I would have missed that one, that seems to highlight a bug in the HW description DB. So it is quite critical to capture such issue ASAP with HW designers.
-
-> On 7/27/2011 11:50 AM, Archit Taneja wrote:
->> Fix the shift and mask macros for DSIx_PPID fields in CONTROL_DSIPHY. The Latest
->> TRM mentions the correct fields in the register.
-> You can mention the TRM version instead of 'latest'
-> Latest is very much relative :)
+On Wednesday, July 27, 2011, Kevin Hilman wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
 > 
->>
->> Signed-off-by: Archit Taneja<archit@ti.com>
-> Change looks good to me.
-> Autogen scripts needs to be checked as well.
+> > On Friday, July 22, 2011, Kevin Hilman wrote:
+> >> Currently the use of pm_runtime_put_sync() is not safe from
+> >> interrupts-disabled context because rpm_idle() will release the
+> >> spinlock and enable interrupts for the idle callbacks.  This enables
+> >> interrupts during a time where interrupts were expected to be
+> >> disabled, and can have strange side effects on drivers that expected
+> >> interrupts to be disabled.
+> >> 
+> >> This is not a bug since the documentation clearly states that only
+> >> _put_sync_suspend() is safe in IRQ-safe mode.
+> >> 
+> >> However, pm_runtime_put_sync() could be made safe when in IRQ-safe
+> >> mode by releasing the spinlock but not re-enabling interrupts, which
+> >> is what this patch aims to do.
+> >> 
+> >> Problem was found when using some buggy drivers that set
+> >> pm_runtime_irq_safe() and used _put_sync() in interrupts-disabled
+> >> context.
+> >> 
+> >> The offending drivers have been fixed to use _put_sync_suspend(),
+> >> But this patch is an RFC to see if it might make sense to allow
+> >> using _put_sync() from interrupts-disabled context.
+> >
+> > OK, I'm going to take this for 3.2.
+> >
 > 
->> ---
->>    .../include/mach/ctrl_module_pad_core_44xx.h       |    8 ++++----
->>    1 files changed, 4 insertions(+), 4 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
->> index c88420d..8321add 100644
->> --- a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
->> +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
->> @@ -941,10 +941,10 @@
->>    #define OMAP4_DSI2_LANEENABLE_MASK				(0x7<<   29)
->>    #define OMAP4_DSI1_LANEENABLE_SHIFT				24
->>    #define OMAP4_DSI1_LANEENABLE_MASK				(0x1f<<   24)
->> -#define OMAP4_DSI1_PIPD_SHIFT					19
->> -#define OMAP4_DSI1_PIPD_MASK					(0x1f<<   19)
->> -#define OMAP4_DSI2_PIPD_SHIFT					14
->> -#define OMAP4_DSI2_PIPD_MASK					(0x1f<<   14)
->> +#define OMAP4_DSI1_PIPD_SHIFT					14
->> +#define OMAP4_DSI1_PIPD_MASK					(0x1f<<   14)
->> +#define OMAP4_DSI2_PIPD_SHIFT					19
->> +#define OMAP4_DSI2_PIPD_MASK					(0x1f<<   19)
+> OK, great.  Thanks.
+> 
+> Might want to just drop the last paragraph from the changelog since it
+> doesn't really belong in the permanant history.
 
-Minor comment, but since this is sorted per shift value, the order should be:
+OK
 
-+#define OMAP4_DSI2_PIPD_SHIFT                                  19
-+#define OMAP4_DSI2_PIPD_MASK                                   (0x1f << 19)
-+#define OMAP4_DSI1_PIPD_SHIFT                                  14
-+#define OMAP4_DSI1_PIPD_MASK                                   (0x1f << 14)
-
-Once you fix the changelog with Santosh comment, put the proper people in the TO list, and fix the order, you can add:
-
-Acked-by: Benoit Cousson <b-cousson@ti.com>
-
-Regards,
-Benoit
+Thanks,
+Rafael
