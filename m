@@ -1,59 +1,66 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] OMAP: ctrl: Fix CONTROL_DSIPHY register fields
-Date: Wed, 27 Jul 2011 11:51:24 +0530
-Message-ID: <4E2FAE64.7020806@ti.com>
-References: <1311747632-26899-1-git-send-email-archit@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Todd Poynor <toddpoynor@google.com>
+Subject: [PATCH 1/2] rtc: twl: Use threaded IRQ, remove IRQ enable in interrupt handler
+Date: Wed, 27 Jul 2011 00:07:20 -0700
+Message-ID: <1311750441-5559-1-git-send-email-toddpoynor@google.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:41347 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752115Ab1G0GVb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Jul 2011 02:21:31 -0400
-Received: by mail-gx0-f180.google.com with SMTP id 10so1227652gxk.39
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jul 2011 23:21:30 -0700 (PDT)
-In-Reply-To: <1311747632-26899-1-git-send-email-archit@ti.com>
+Received: from smtp-out.google.com ([216.239.44.51]:55637 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790Ab1G0HHo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jul 2011 03:07:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+To: Alessandro Zummo <a.zummo@towertech.it>
+Cc: rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Todd Poynor <toddpoynor@google.com>
 
-+ Benoit
+IRQs disabled on entry to twl_rtc_interrupt is not a consequence
+of LOCKDEP; both twl6030 and twl4030 explicitly disable IRQs
+before calling the module IRQ handlers.
 
-On 7/27/2011 11:50 AM, Archit Taneja wrote:
-> Fix the shift and mask macros for DSIx_PPID fields in CONTROL_DSIPHY. The Latest
-> TRM mentions the correct fields in the register.
-You can mention the TRM version instead of 'latest'
-Latest is very much relative :)
+The ISR should not be enabling IRQs; use a threaded IRQ handler
+instead.
 
->
-> Signed-off-by: Archit Taneja<archit@ti.com>
-Change looks good to me.
-Autogen scripts needs to be checked as well.
+Also fixes warnings:
 
-> ---
->   .../include/mach/ctrl_module_pad_core_44xx.h       |    8 ++++----
->   1 files changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
-> index c88420d..8321add 100644
-> --- a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
-> +++ b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
-> @@ -941,10 +941,10 @@
->   #define OMAP4_DSI2_LANEENABLE_MASK				(0x7<<  29)
->   #define OMAP4_DSI1_LANEENABLE_SHIFT				24
->   #define OMAP4_DSI1_LANEENABLE_MASK				(0x1f<<  24)
-> -#define OMAP4_DSI1_PIPD_SHIFT					19
-> -#define OMAP4_DSI1_PIPD_MASK					(0x1f<<  19)
-> -#define OMAP4_DSI2_PIPD_SHIFT					14
-> -#define OMAP4_DSI2_PIPD_MASK					(0x1f<<  14)
-> +#define OMAP4_DSI1_PIPD_SHIFT					14
-> +#define OMAP4_DSI1_PIPD_MASK					(0x1f<<  14)
-> +#define OMAP4_DSI2_PIPD_SHIFT					19
-> +#define OMAP4_DSI2_PIPD_MASK					(0x1f<<  19)
->
->   /* CONTROL_MCBSPLP */
->   #define OMAP4_ALBCTRLRX_FSX_SHIFT				31
+  WARNING: at kernel/irq/handle.c:130 handle_irq_event_percpu+nnn
+  irq nnn handler twl_rtc_interrupt+nnn enabled interrupts
+
+Signed-off-by: Todd Poynor <toddpoynor@google.com>
+---
+ drivers/rtc/rtc-twl.c |   14 +++-----------
+ 1 files changed, 3 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+index 9a81f77..ece41b9 100644
+--- a/drivers/rtc/rtc-twl.c
++++ b/drivers/rtc/rtc-twl.c
+@@ -362,14 +362,6 @@ static irqreturn_t twl_rtc_interrupt(int irq, void *rtc)
+ 	int res;
+ 	u8 rd_reg;
+ 
+-#ifdef CONFIG_LOCKDEP
+-	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
+-	 * we don't want and can't tolerate.  Although it might be
+-	 * friendlier not to borrow this thread context...
+-	 */
+-	local_irq_enable();
+-#endif
+-
+ 	res = twl_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
+ 	if (res)
+ 		goto out;
+@@ -462,9 +454,9 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto out1;
+ 
+-	ret = request_irq(irq, twl_rtc_interrupt,
+-				IRQF_TRIGGER_RISING,
+-				dev_name(&rtc->dev), rtc);
++	ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
++				   IRQF_TRIGGER_RISING,
++				   dev_name(&rtc->dev), rtc);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "IRQ is not free.\n");
+ 		goto out1;
+-- 
+1.7.3.1
 
