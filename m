@@ -1,37 +1,42 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Mon, 13 Jun 2011 13:22:22 +0100
-Message-ID: <20110613122221.GA19552@opensource.wolfsonmicro.com>
-References: <20110610155707.GN26436@opensource.wolfsonmicro.com> <201106102227.25391.rjw@sisk.pl> <20110611114239.GC2738@opensource.wolfsonmicro.com> <201106112256.37012.rjw@sisk.pl>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [RFC/PATCH 0/7] decouple platform_device from omap_device
+Date: Wed, 27 Jul 2011 19:34:57 +0530
+Message-ID: <20110727140457.GA8558@manju-desktop>
+References: <1311292338-11830-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:47373 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752125Ab1G0MT5 (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:50079 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751313Ab1G0OFQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Jul 2011 08:19:57 -0400
+	Wed, 27 Jul 2011 10:05:16 -0400
+Received: by mail-gx0-f169.google.com with SMTP id 23so1365632gxk.14
+        for <linux-omap@vger.kernel.org>; Wed, 27 Jul 2011 07:05:14 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <201106112256.37012.rjw@sisk.pl>
+In-Reply-To: <1311292338-11830-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, Alan Stern <stern@rowland.harvard.edu>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Grant Likely <grant.likely@secretlab.ca>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On Sat, Jun 11, 2011 at 10:56:36PM +0200, Rafael J. Wysocki wrote:
-> On Saturday, June 11, 2011, Mark Brown wrote:
+Kevin,
 
-> > that's a very large proportion of the embedded space.  It really feels
-> > like we could be doing a better job for drivers using these buses,
-> > there's a lot of similarities in what many of them need but I can never
-> > find the time to get my head round it confidently enough to actually
-> > propose anything.
+On Thu, Jul 21, 2011 at 04:52:10PM -0700, Kevin Hilman wrote:
+> Here's a first whack, proof-of-concept on how we could start to
+> decouple the platform_device from an omap_device.
+> 
+> The main RFC is in the last patch, and everything leading up to it are
+> misc. omap_device cleanups that make the last patch cleaner and
+> clearer.  It's really the last patch that does the decoupling.
+> 
+> This will be necessary if we're going to decouple the platform_device
+> creation from the omap_device/omap_hwmod creation etc.  This patch
+> leaves them both done in omap_device_build(), but shows that they can
+> be decoupled.
+Can you pls mention baseline used for these patches? I tried applying on
+latest mainline, v3.0 and  git://git.pwsan.com/linux-2.6 prcm-devel-3.1
 
-> I agree.  That's one of the reasons why I introduced the struct dev_power_domain
-> thing a while ago and the generic PM domains patchset I've just posted is a step
-> in that direction.
+It will not apply cleanly.
 
-Ah, right - I'd not been thinking of those in the context of
-simplifications for basic devices, I'd been thinking of them as being
-for CPUs with more complex power domains that need managing.  I'll keep
-more of an eye on what's going on there.
+-M
