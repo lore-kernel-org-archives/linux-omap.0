@@ -1,58 +1,56 @@
-From: Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4] usb: musb: Enable DMA mode1 RX for USB-Mass-Storage
-Date: Wed, 27 Jul 2011 09:20:02 +0530
-Message-ID: <CABb+yY30bYN=c+oAdt1-bufLq2g2RtgCUefDzNTfW33Wu-wE1g@mail.gmail.com>
-References: <1311138718-5072-1-git-send-email-vikram.pandita@ti.com>
-	<CABb+yY3E69J6vbHNP92k-b6ScFMcU2LY71rqEZMY_9+E+vx=fA@mail.gmail.com>
-	<CAFm5wm3zZyMgScH6OqmVVW32mLUJ6OGcmDy+Wz9Gc7EBjsswJQ@mail.gmail.com>
-	<CABb+yY0QsO-rh6Q9nffmPp=4sYi=6Csor1VPdhLvAXd5LJVeRg@mail.gmail.com>
-	<CAFm5wm2ng-fs0OgUG+h1JaF3_LBp93fHw2Vap2oD_j7Ok0NNnw@mail.gmail.com>
-	<20110726150655.GK32582@legolas.emea.dhcp.ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH] OMAP: ctrl: Fix CONTROL_DSIPHY register fields
+Date: Wed, 27 Jul 2011 11:50:32 +0530
+Message-ID: <1311747632-26899-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110726150655.GK32582-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48036 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752314Ab1G0GLR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jul 2011 02:11:17 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6R6BGJI030982
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 27 Jul 2011 01:11:16 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p6R6BGZn002413
+	for <linux-omap@vger.kernel.org>; Wed, 27 Jul 2011 01:11:16 -0500 (CDT)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6R6BGmt024518
+	for <linux-omap@vger.kernel.org>; Wed, 27 Jul 2011 01:11:16 -0500 (CDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: santosh.shilimkar@ti.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On Tue, Jul 26, 2011 at 8:36 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> Hi,
->
-> On Wed, Jul 20, 2011 at 09:48:53AM -0700, Pandita, Vikram wrote:
->> > This *today happens to be only UMS* is my exact point here.
->> > Can you guarantee no other function driver will ever expect only
->> > full packet xfers and treat short as errors ?
->> >
->>
->> We are trying to test if short_not_ok may not be needed at all. But
->> all gadgets need to be tested on MUSB for that.
->> We will need wider help from MUSB maintainer/author(anand g) to
->> determine if removing short_not_ok is fine on MUSB for _all_ gadgets.
->>
->> To be safe we only enable for UMS use case today that is definitely
->> working fine.
->>
->> Time for Maintainer/author to pitch in !!
->
-> I'm thinking on allowing this patch to go in if nobody has really strong
-> arguments against it. The real fix, though, would need a bigger re-write
-> of the endpoint IRQ handling and that would need more time to write and
-> stabilize. Together with the huge amount of HW issues MUSB has, it's
-> quite a task (been there, done that).
+Fix the shift and mask macros for DSIx_PPID fields in CONTROL_DSIPHY. The Latest
+TRM mentions the correct fields in the register.
 
-Please note that I never objected to the _code_.
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ .../include/mach/ctrl_module_pad_core_44xx.h       |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-I just think if the _comments_ could be made UMS agnostic... for ex if it works
-for other protocols just fine(quite possible) in future the reader
-might wonder what
-is UMS specific about the code snippet.
+diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+index c88420d..8321add 100644
+--- a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
++++ b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+@@ -941,10 +941,10 @@
+ #define OMAP4_DSI2_LANEENABLE_MASK				(0x7 << 29)
+ #define OMAP4_DSI1_LANEENABLE_SHIFT				24
+ #define OMAP4_DSI1_LANEENABLE_MASK				(0x1f << 24)
+-#define OMAP4_DSI1_PIPD_SHIFT					19
+-#define OMAP4_DSI1_PIPD_MASK					(0x1f << 19)
+-#define OMAP4_DSI2_PIPD_SHIFT					14
+-#define OMAP4_DSI2_PIPD_MASK					(0x1f << 14)
++#define OMAP4_DSI1_PIPD_SHIFT					14
++#define OMAP4_DSI1_PIPD_MASK					(0x1f << 14)
++#define OMAP4_DSI2_PIPD_SHIFT					19
++#define OMAP4_DSI2_PIPD_MASK					(0x1f << 19)
+ 
+ /* CONTROL_MCBSPLP */
+ #define OMAP4_ALBCTRLRX_FSX_SHIFT				31
+-- 
+1.7.1
 
-Please feel free to go ahead and apply the patch.
-
-thnx
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
