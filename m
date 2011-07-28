@@ -1,90 +1,97 @@
-From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCH v4 REPOST 18/20] gpio/omap: use pm-runtime framework
-Date: Thu, 28 Jul 2011 10:00:29 -0700
-Message-ID: <20110728170029.GA9819@google.com>
-References: <1310804152-9243-1-git-send-email-tarun.kanti@ti.com>
- <1310804152-9243-19-git-send-email-tarun.kanti@ti.com>
- <20110716190734.GB990@google.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037C202D59@dbde02.ent.ti.com>
- <20110728074327.GA12916@google.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037C2030F7@dbde02.ent.ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 00/18] OMAP4: PM data big spring cleanup and fixes
+Date: Thu, 28 Jul 2011 19:08:11 +0200
+Message-ID: <4E31977B.2000809@ti.com>
+References: <1309552901-8944-1-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com> <4E14B820.6070202@ti.com> <20110707055549.GC15815@atomide.com> <E9AF1FACCF71F448B55E58D9AED1B0F40E626BEE32@staex7mb2.telecom.sna.samsung.com> <20110707121040.GF15815@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:8085 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755798Ab1G1RAs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 13:00:48 -0400
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037C2030F7@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:42703 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755737Ab1G1RIV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jul 2011 13:08:21 -0400
+In-Reply-To: <20110707121040.GF15815@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Varadarajan, Charulatha" <charu@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Martin Fouts <mfouts@sta.samsung.com>, "Nayak, Rajendra" <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Jul 28, 2011 at 03:05:29PM +0530, DebBarma, Tarun Kanti wrote:
-> > ...
-> > Looking at omap_gpio_mod_init() it seems like much of its processing
-> > could probably be done once at probe time (or at pm_runtime_get_sync
-> > time) as well, namely setting the IRQ enable masks.
-> This must be called at the beginning of bank access to get reset state.
-> Otherwise, it would contain settings related to previous bank access.
+On 7/7/2011 2:10 PM, Tony Lindgren wrote:
+> * Martin Fouts<mfouts@sta.samsung.com>  [110707 10:20]:
+>>> Do we really need to do that patching right now to add base 4460
+>>> support?
+>>
+>> It should be done sometime, but I see no need for it to be right
+>> now.
+>>
+>>> If we're just doing a bunch of renames all over the place to add
+>>> support for a new processor variant, something is wrong. This is
+>>> exactly the kind of "crazy churn" Linus was complaining about. In
+>>> this case the crazy churn is "let's rename 4430 to 44XX all over
+>>> the place".
+>>
+>> To me, this is not 'crazy churn', but rather, correcting an earlier
+>> oversight. I did not understand Linus to say "never fix a naming
+>> oversight", but "don't change names without a good reason."
+>
+> I think this is crazy churn. It does not fix the problem we have,
+> which is "how can we support lots of SoCs in a sane way". It just
+> postpones fixing the problem until the next SoC variant comes around.
+> And now we already have the exact same problem with both the am3505
+> support and 4460 support.
 
-What state may have changed between the last time a pin was released
-from the bank and the next time a pin is requested in the bank?  Prior
-to this patch, omap_gpio_mod_init() is called once at probe time, and
-initializing irqenable masks etc. isn't reset at the beginning of bank
-access, if I understand correctly.
+It does help. How can you make the difference between a register that is
+4430 only, vs one that is available on both 4430 and 4460?
+We need to have 44XX for common stuff and 4430 /4460 for specific one.
+Assuming that every 4430 registers will be there on future device,
+including OMAP5, is far from obvious.
+Having today some OMAP2420 defines used in OMAP3430 code is rather
+confusing for my point of view.
 
-If it's not actually necessary to do this on each first request to the
-bank then it's not a large overhead or anything, but want to make sure
-the PM operations being performed are correct.  This patch is
-basically to runtime PM enable the GPIO bank when a pin is requested,
-and disable when no pin is requested.  If other actions beyond the
-runtime PM enable are needed, now that a runtime PM disable is added,
-then it calls into question whether the enable method is missing
-something.  More troubling are the PM actions performed in addition to
-pm_runtime_get_sync...
+> The second problem we have here is "why does adding 4460 support
+> depend on a cosmetic clean-up patch". That dependency should not
+> exist at all as it seems the 4460 patches should work even without
+> this patch.
 
-> > Ungating the interface clock, enabling wakeup, setting smart idle for
-> > the module, and enabling the (old-style) system clock seem like either
-> > one-time actions at probe, or a part of the pm_runtime_get_sync
-> > callback.
-> Yes... sysconfig related settings are done by hwmod framework.
-> Debounce clocks are enabled in callback.
-> 
-> > 
-> > Or is there some other reason these power management actions should be
-> > taken each time a GPIO is requested in the block (when none were
-> > previously requested), after the runtime PM get_sync callback, but
-> > not as part of the get_sync callback?  If so, what caused
-> > the smart idle setting to be lost, or the interface clock gated, if
-> > not the pm_runtime_put_sync?
-> I am not sure which smart idle setting you are referring to.
+It does exist only because they both modify the same file and thus might
+lead to merge conflict.
+It seems to me much better to do the cleanup first before adding new
+feature instead of adding features on a crappy file.
 
-That's part of what the magic constant in this statement is doing:
+Otherwise, there is no real dependency.
 
-         __raw_writew(0x0014, bank->base
-                                 + OMAP1610_GPIO_SYSCONFIG);
+>>> To me it's sane to assume that we can have most of 4430 features
+>>> on 4460 and don't need to rename 4430 to 44XX for that. Adding
+>>> 4460 should be just add few new 4460 defines, then do an
+>>> arch_initcall to fixup things between 4430 and 4460.
+>>
+>> This is a topic upon which mileage varies.  My experience has made
+>> we wary of making such assumptions, because too often they have
+>> turned out to be wrong.  It is much better to make it clear that
+>> the same code supports both than to leave people guessing.  Saying
+>> so in the filename is useful. It is also consistent with the naming
+>> scheme used in much of the kernel.
+>>
+>> I don't feel a sense of urgency to correct this, nor a need to hit
+>> a merge window, but from my mileage, I would prefer that it be
+>> corrected within a reasonable time frame.
+>>
+>> It seems to me that there is also a bullet to bite here. To achieve
+>> the sort of rationalization across the arm architecture that is
+>> envisioned, inconsistencies in naming styles between platforms will
+>> have to be reconciled and resolved, lest the habit continue.
+>
+> Sure things should be fixed, but things should be fixed properly.
+> Here we are repeating the CHIP_IS flag in hundreds of places where it
+> really should be only checked once after SoC is detected. And then
+> based on that a SoC specifc list of devices can then be initialized.
 
-> Most stuffs done in *_get_sync() callback can skip first time.
-> Omap_gpio_mod_init() does resetting irqenable settings to reset value.
-> This should not be part of callback.
+For that part, DT will clearly help us a lot. We will have the ability 
+to define a common subset (omap44xx.dtsi) or even a superset and then 
+disable nodes or add extra nodes in dedicated file for each OMAP 
+(omap4430.dts or omap4460.dts).
 
-To be clear, it seems like resetting irqenable settings should be a
-one-time action at probe time.  The power management actions such as
-enabling debounce clocks, setting module PRCM idle protocol behavior,
-and ungating interface clocks seem like they should either be one-time
-probe actions, or a part of the runtime PM callbacks, or balanced with
-corresponding actions when the last pin in the bank is released.
-Else what caused the interface clock to gate, or the slave idle
-control to change, or the debounce clock to be cut?  The only thing
-added here that would do that is the pm_runtime_put_sync.  If it can
-cause those actions then do other calls to pm_runtime_get_sync need to
-fix these up?
+Regards,
+Benoit
 
-Anyhow, mainly wanted to point that out as a possible optimization.
-It's pretty unlikely there's an actual problem here.
-
-
-Todd
