@@ -1,7 +1,7 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
 Subject: Re: [RFC/PATCH 2/7] OMAP3: beagle: don't touch omap_device internals
-Date: Thu, 28 Jul 2011 10:36:14 +0200
-Message-ID: <CAORVsuUX4uvJW4MaHNZmF=u_Jn7sNjEYGwxpRmcd-b0DPpChPg@mail.gmail.com>
+Date: Thu, 28 Jul 2011 10:40:48 +0200
+Message-ID: <CAORVsuXsZXU+rH7ujYJuYDvYjWkCVnZrvkkinFPd9DEBYtdduQ@mail.gmail.com>
 References: <1311292338-11830-1-git-send-email-khilman@ti.com>
 	<1311292338-11830-4-git-send-email-khilman@ti.com>
 	<20110722085716.GI32058@legolas.emea.dhcp.ti.com>
@@ -9,12 +9,12 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:51926 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754797Ab1G1IgP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 04:36:15 -0400
-Received: by qwk3 with SMTP id 3so1208684qwk.19
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jul 2011 01:36:14 -0700 (PDT)
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:53891 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754837Ab1G1Ikt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 04:40:49 -0400
+Received: by qyk29 with SMTP id 29so2613302qyk.19
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jul 2011 01:40:48 -0700 (PDT)
 In-Reply-To: <20110722085716.GI32058@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
