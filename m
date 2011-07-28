@@ -1,61 +1,60 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 00/18] OMAP4: PM data big spring cleanup and fixes
-Date: Thu, 28 Jul 2011 19:11:01 +0200
-Message-ID: <4E319825.7000102@ti.com>
-References: <1309552901-8944-1-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
+Subject: Re: [PATCH 4/4] dt: i2c-omap: Convert i2c driver to use device tree
+Date: Thu, 28 Jul 2011 19:34:31 +0200
+Message-ID: <4E319DA7.5050608@ti.com>
+References: <1310592975-25773-1-git-send-email-manjugk@ti.com> <1310592975-25773-5-git-send-email-manjugk@ti.com> <CACxGe6vG9BKUDvthOKFtx3u=Vq0EfBaZakxVqx8AYfRe_ruNdg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42831 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755172Ab1G1RLI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jul 2011 13:11:08 -0400
-In-Reply-To: <alpine.DEB.2.00.1107060017480.4217@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60747 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755308Ab1G1Rey (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 13:34:54 -0400
+In-Reply-To: <CACxGe6vG9BKUDvthOKFtx3u=Vq0EfBaZakxVqx8AYfRe_ruNdg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben-linux@fluff.org" <ben-linux@fluff.org>
 
-On 7/6/2011 9:19 AM, Paul Walmsley wrote:
-> Hi,
->
-> On Fri, 1 Jul 2011, Benoit Cousson wrote:
->
->> Here are a bunch of cleanups on almost every PRCM related data files.
->> Some of them are purely code moves, and will look like a lot of
->> noise for nothing, but this is needed if we want to keep the files
->> aligned with generator tool and thus ease the future migration to
->> whatever format (common clock framework + DT).
->
-> Thanks.  I'll split these up into smaller topic branches, I think
-> that's what Tony wants for this window.
->
-> Patches 1-3 and 12 have been queued for 3.1 at
-> git://git.pwsan.com/linux-2.6 in the 'prcm_cleanup_a_3.1' branch.
->
-> Patches 4-8 and 11 have been queued for 3.1 at
-> git://git.pwsan.com/linux-2.6 in the 'clock_cleanup_a_3.1' branch.
->
-> Patches 9 and 10 have been split into PRCM changes and clock changes. The
-> PRCM changes have been queued for 3.1 at git://git.pwsan.com/linux-2.6 in
-> the 'prcm_cleanup_a_3.1' branch.  The clock changes have been queued for
-> 3.1 at git://git.pwsan.com/linux-2.6 in the 'clock_cleanup_a_3.1' branch.
->
-> Patches 13-15 have been queued for 3.1 at
-> git://git.pwsan.com/linux-2.6 in the 'hwmod_cleanup_a_3.1' branch.
->
-> Patches 17-18 have been queued for 3.1 at
-> git://git.pwsan.com/linux-2.6 in the 'hwmod_dss_fix_3.1' branch.
->
-> Patch 16, to me, belongs best with the 4460 support series and so I'll see
-> if it makes sense to fit it in there somewhere.
+Hi Grant,
 
-OK, it's up to you, in fact it was in the original 4460 series from 
-Rajendra and I took it out because for me it is a cleanup that was 
-needed anyway even without 4460. At the end it is all the same :-)
+On 7/14/2011 1:20 AM, Grant Likely wrote:
+> On Thu, Jul 14, 2011 at 7:06 AM, G, Manjunath Kondaiah<manjugk@ti.com>  wrote:
+>>
+>> The i2c-omap driver is converted for supporting both
+>> dt and non dt builds and driver is modified to use dt
+>> data partially.
 
-Thanks a lot Paul for that series as well.
+[...]
 
+>>         /* NOTE: driver uses the static register mapping */
+>>         mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>         if (!mem) {
+>> @@ -1011,11 +1026,25 @@ omap_i2c_probe(struct platform_device *pdev)
+>>         if (pdata != NULL) {
+>>                 speed = pdata->clkrate;
+>>                 dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+>> +#if defined(CONFIG_OF)
+>> +       } else if (pdev->dev.of_node) {
+>> +               u32 prop;
+>> +               if (!of_property_read_u32(pdev->dev.of_node, "clock-frequency",
+>> +&prop))
+>> +                       speed = prop/100;
+>> +               else
+>> +                       speed = 100;
+
+Do we have to modify every drivers in order to take advantage of the DT bus?
+Cannot we init the already existing pdata during device creation and let 
+the driver untouched?
+
+I think it is a pity to add all that #ifdefry in the driver to be able 
+to support two kinds of bus.
+
+Cannot we have an intermediate phase that will deal only with the device 
+creation with DT?
+That will allow us to clean the omap_device creation from hwmod we have 
+today spread everywhere in plat-omap and mach-omap2.
+
+Regards
 Benoit
-
