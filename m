@@ -1,39 +1,70 @@
-From: Huang Weiyi <weiyi.huang@gmail.com>
-Subject: [PATCH] OMAP4: hwmod data: remove duplicated #include
-Date: Thu, 28 Jul 2011 21:35:09 +0800
-Message-ID: <1311860109-5816-1-git-send-email-weiyi.huang@gmail.com>
+From: Arno Steffen <arno.steffen@googlemail.com>
+Subject: Re: [Q] No message from Kernel (Howto start debug?)
+Date: Thu, 28 Jul 2011 16:18:51 +0200
+Message-ID: <CAACX+R0-vUP1z9DoS69iv2gX=YCKanousEHATzot0sSi-S9cEQ@mail.gmail.com>
+References: <CAACX+R297j07GXRtLBCFuSyHTmk4sMXQiUt8YwN7KH6A8251jA@mail.gmail.com>
+	<20110728132629.GH9069@legolas.emea.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:47309 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752963Ab1G1Nfa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 09:35:30 -0400
-Received: by gxk21 with SMTP id 21so1787881gxk.19
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jul 2011 06:35:29 -0700 (PDT)
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:61357 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007Ab1G1OSw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 10:18:52 -0400
+Received: by pzk37 with SMTP id 37so4624316pzk.1
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jul 2011 07:18:51 -0700 (PDT)
+In-Reply-To: <20110728132629.GH9069@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, Huang Weiyi <weiyi.huang@gmail.com>
+To: balbi@ti.com, gary@mlbassoc.com
+Cc: linux-omap@vger.kernel.org
 
-Remove duplicated #include('s) in
-  arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+That has been good points. I've tried both, but with no result so far.
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+boot_nfs_nand=3Dtftpboot 0x80000000 uImage; set bootargs
+${bootargs_fs1}; run addip; bootm 0x80000000 ethaddr=3D00:11:22:33:44:5=
+5
+bootcmd=3Drun boot_nfs_nand
+bootargs=3Dmem=3D128M console=3DttyO2,115200 noinitrd root=3D/dev/mtdbl=
+ock6
+rootfstype=3Djffs2
+bootargs_fs1=3Dmem=3D128M console=3DttyO2,115200 noinitrd
+root=3D/dev/mtdblock6 rootfstype=3Djffs2 debug earlyprintk
+- Arno
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 6201422..374edcf 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -28,7 +28,6 @@
- #include <plat/mcspi.h>
- #include <plat/mcbsp.h>
- #include <plat/mmc.h>
--#include <plat/i2c.h>
- 
- #include "omap_hwmod_common_data.h"
- 
--- 
-1.5.6.4
 
+2011/7/28 Felipe Balbi <balbi@ti.com>:
+> On Thu, Jul 28, 2011 at 03:15:20PM +0200, Arno Steffen wrote:
+>> Maybe you are so kind to give me a hint:
+>>
+>> Try to migrate from Kernel 33 to 37. Currently I don't see any messa=
+ge after
+>>
+>> =A0 Verifying Checksum ... OK
+>> =A0 =A0Loading Kernel Image ... OK
+>> OK
+>>
+>> Starting kernel ...
+>>
+>> From what I understand kernel starts with start_kernel()).
+>> What is best way to find out which part is failing? At which point I
+>> do a printk to see what's going on, or at least set a GPIO Pin of th=
+e
+>> processor?
+>> How to debug without any external tools like JTAG.
+>
+> try to enable CONFIG_DEBUG_LL and CONFIG_EARLY_PRINTK, then add "debu=
+g
+> earlyprintk" to your command line. See if that helps showing more deb=
+ug
+> messages.
+>
+> --
+> balbi
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
