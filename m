@@ -1,128 +1,64 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC/PATCH 2/7] OMAP3: beagle: don't touch omap_device internals
-Date: Thu, 28 Jul 2011 00:53:47 -0500
-Message-ID: <20110728055346.GA11921@foobar>
-References: <1311292338-11830-1-git-send-email-khilman@ti.com>
- <1311292338-11830-4-git-send-email-khilman@ti.com>
- <20110722085716.GI32058@legolas.emea.dhcp.ti.com>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [PATCH v4 REPOST 18/20] gpio/omap: use pm-runtime framework
+Date: Thu, 28 Jul 2011 00:43:27 -0700
+Message-ID: <20110728074327.GA12916@google.com>
+References: <1310804152-9243-1-git-send-email-tarun.kanti@ti.com>
+	<1310804152-9243-19-git-send-email-tarun.kanti@ti.com>
+	<20110716190734.GB990@google.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB037C202D59@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:40119 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751971Ab1G1Fxx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jul 2011 01:53:53 -0400
-Received: by mail-gy0-f174.google.com with SMTP id 3so1976395gyh.5
-        for <linux-omap@vger.kernel.org>; Wed, 27 Jul 2011 22:53:52 -0700 (PDT)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20110722085716.GI32058@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037C202D59@dbde02.ent.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Varadarajan,
+	Charulatha" <charu@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G. Manjunath Kondaiah" <manjugk@ti.com>, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 11:57-20110722, Felipe Balbi wrote:
-[...]
-> >  	/* Custom OPP enabled for all xM versions */
-> >  	if (cpu_is_omap3630()) {
-> > -		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-> > -		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
-> > -		struct device *dev;
-> > +		struct device *mpu_dev, *iva_dev;
-> >  
-> > -		if (!mh || !dh) {
-> > +		mpu_dev = omap2_get_mpuss_device();
-> > +		iva_dev = omap2_get_iva_device();
-> 
-> out of curiosity again, nothing to do with this patch.
-> 
-> Maybe it would be nicer to have an api such as:
-> 
-> omap2_get_device(name);
-> 
-> there are already four devices to be gotten, if that number grows any
-> bigger, so will the number of helper functions.
-I agree, in fact, on a different topic, I hit the same requirement
-here is the patch I had done:
->From 9f226def811bd50e4bac02f427604034cef77706 Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Wed, 27 Jul 2011 15:02:32 -0500
-Subject: [PATCH] OMAP: hwmod: add omap_hwmod_to_device
+On Wed, Jul 27, 2011 at 05:14:58PM +0530, DebBarma, Tarun Kanti wrote:
+...
+> > omap_gpio_mod_init calls mpuio_init calls platform_driver_register
+> > which can't be called in an IRQs off and spinlocked atomic context,
+...
+> I have isolated mpuio_init() from omap_gpio_mod_init().
+> mpuio_init() is now called once in omap_gpio_probe().
 
-omap_hwmod_to_device is useful for drivers when they need to
-look up the device associated with a hwmod name to map back
-into the device structure pointers. These ideally should
-be used by drivers in mach directory. This could in effect
-replace apis such as omap2_get_mpuss_device,
-omap2_get_iva_device, omap2_get_l3_device, omap4_get_dsp_device
-etc..
+Looking at omap_gpio_mod_init() it seems like much of its processing
+could probably be done once at probe time (or at pm_runtime_get_sync
+time) as well, namely setting the IRQ enable masks.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c             |   33 ++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
- 2 files changed, 35 insertions(+), 0 deletions(-)
+Ungating the interface clock, enabling wakeup, setting smart idle for
+the module, and enabling the (old-style) system clock seem like either
+one-time actions at probe, or a part of the pm_runtime_get_sync
+callback.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 293fa6c..77d01a2 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -142,6 +142,7 @@
- #include "powerdomain.h"
- #include <plat/clock.h>
- #include <plat/omap_hwmod.h>
-+#include <plat/omap_device.h>
- #include <plat/prcm.h>
- 
- #include "cm2xxx_3xxx.h"
-@@ -2369,3 +2370,35 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh)
- 
- 	return 0;
- }
-+
-+/**
-+ * omap_hwmod_to_device() - convert a hwmod name to device pointer
-+ * @oh_name: name of the hwmod device
-+ *
-+ * returns back a struct device * pointer associated with a hwmod
-+ * device represented by a hwmod_name
-+ */
-+struct device *omap_hwmod_to_device(const char *oh_name)
-+{
-+	struct omap_hwmod *oh;
-+
-+	if (!oh_name) {
-+		WARN(1, "%s: no hwmod name!\n", __func__);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	oh = _lookup(oh_name);
-+	if (IS_ERR_OR_NULL(oh)) {
-+		WARN(1, "%s: no hwmod for %s\n", __func__,
-+			oh_name);
-+		return ERR_PTR(-ENODEV);
-+	}
-+	if (IS_ERR_OR_NULL(oh->od)) {
-+		WARN(1, "%s: no omap_device for %s\n", __func__,
-+			oh_name);
-+		return ERR_PTR(-ENODEV);
-+	}
-+
-+	return &oh->od->pdev.dev;
-+}
-+EXPORT_SYMBOL(omap_hwmod_to_device);
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 1adea9c..b9eec08 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -611,4 +611,6 @@ extern int omap2430_hwmod_init(void);
- extern int omap3xxx_hwmod_init(void);
- extern int omap44xx_hwmod_init(void);
- 
-+extern struct device *omap_hwmod_to_device(const char *oh_name);
-+
- #endif
--- 
-1.7.4.1
+Or is there some other reason these power management actions should be
+taken each time a GPIO is requested in the block (when none were
+previously requested), after the runtime PM get_sync callback, but
+not as part of the get_sync callback?  If so, what caused
+the smart idle setting to be lost, or the interface clock gated, if
+not the pm_runtime_put_sync?
 
+
+Todd
+
+> > The omap_gpio_mod_init may be unbalanced with the code performed below
+> > on last free of a GPIO for the bank?  If all GPIOs are freed and then
+> > a new GPIO used, does omap_gpio_mod_init do the right thing?  Need a
+> > separate flag to indicate whether one-time init has ever been
+> > performed, vs. needing runtime PM enable/disable?
+> With the above changes I am seeing omap_gpio_mod_init() is balanced.
+> Let me know if I am still missing something.
+> --
+> Tarun
