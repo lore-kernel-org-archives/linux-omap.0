@@ -1,105 +1,286 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 4/4] TEMP: OMAP3: beagle rev-c4: enable OPP6
-Date: Thu, 28 Jul 2011 14:48:59 +0300
-Message-ID: <1311853739-18984-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 2/4] regulator: omap smps regulator driver
+Date: Thu, 28 Jul 2011 14:48:57 +0300
+Message-ID: <1311853739-18984-3-git-send-email-t-kristo@ti.com>
 References: <1311853739-18984-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54330 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54334 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755528Ab1G1LtR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 07:49:17 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6SBnGt0020183
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 28 Jul 2011 06:49:16 -0500
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p6SBnGNR021082
-	for <linux-omap@vger.kernel.org>; Thu, 28 Jul 2011 06:49:16 -0500 (CDT)
-Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6SBnF2J015334
-	for <linux-omap@vger.kernel.org>; Thu, 28 Jul 2011 06:49:16 -0500 (CDT)
+	id S1755529Ab1G1LtV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 07:49:21 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1311853739-18984-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Todd Poynor <toddpoynor@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Graeme Gregory <gg@slimlogic.co.uk>
 
-Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can run at 720MHz.
+OMAP SMPS regulator driver provides access to OMAP voltage processor
+controlled regulators. These include VDD_MPU and VDD_CORE for OMAP3 and
+additionally VDD_IVA for OMAP4. SMPS regulators use the OMAP voltage
+layer for the actual voltage regulation operations.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Todd Poynor <toddpoynor@google.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@ti.com>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |   32 +++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/opp3xxx_data.c      |    4 +++
- 2 files changed, 36 insertions(+), 0 deletions(-)
+ drivers/regulator/Kconfig               |    8 ++
+ drivers/regulator/Makefile              |    1 +
+ drivers/regulator/omap-smps-regulator.c |  182 +++++++++++++++++++++++++++++++
+ include/linux/regulator/omap-smps.h     |   20 ++++
+ 4 files changed, 211 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/regulator/omap-smps-regulator.c
+ create mode 100644 include/linux/regulator/omap-smps.h
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 34f8411..ba84c0e 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -468,6 +468,38 @@ static void __init beagle_opp_init(void)
- 		return;
- 	}
+diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+index d7ed20f..2ba8ed2 100644
+--- a/drivers/regulator/Kconfig
++++ b/drivers/regulator/Kconfig
+@@ -303,5 +303,13 @@ config REGULATOR_TPS65910
+ 	help
+ 	  This driver supports TPS65910 voltage regulator chips.
  
-+	/* Custom OPP enabled for C4 */
-+	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C4) {
-+		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-+		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
-+		struct device *dev;
++config REGULATOR_OMAP_SMPS
++	tristate "TI OMAP SMPS Power Regulators"
++	depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM
++	help
++	  This driver supports the OMAP3 / OMAP4 SMPS regulators for VDD1,
++	  VDD2 and VDD3. These regulators are accessed using the voltage
++	  processor interface of OMAP.
 +
-+		if (!mh || !dh) {
-+			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
-+				__func__, mh, dh);
-+		}
-+		/* Enable MPU 720MHz opp */
-+		dev = &mh->od->pdev.dev;
-+		r = opp_enable(dev, 720000000);
+ endif
+ 
+diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
+index 3932d2e..191e3d5 100644
+--- a/drivers/regulator/Makefile
++++ b/drivers/regulator/Makefile
+@@ -43,5 +43,6 @@ obj-$(CONFIG_REGULATOR_ISL6271A) += isl6271a-regulator.o
+ obj-$(CONFIG_REGULATOR_AB8500)	+= ab8500.o
+ obj-$(CONFIG_REGULATOR_DB8500_PRCMU) += db8500-prcmu.o
+ obj-$(CONFIG_REGULATOR_TPS65910) += tps65910-regulator.o
++obj-$(CONFIG_REGULATOR_OMAP_SMPS) += omap-smps-regulator.o
+ 
+ ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
+diff --git a/drivers/regulator/omap-smps-regulator.c b/drivers/regulator/omap-smps-regulator.c
+new file mode 100644
+index 0000000..e4a0262
+--- /dev/null
++++ b/drivers/regulator/omap-smps-regulator.c
+@@ -0,0 +1,181 @@
++/*
++ * OMAP SMPS regulator driver
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ *
++ * Author: Tero Kristo <t-kristo@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
 +
-+		/* Enable IVA 520MHz opp */
-+		dev = &dh->od->pdev.dev;
-+		r |= opp_enable(dev, 520000000);
++#include <linux/kernel.h>
++#include <linux/ctype.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/delay.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/driver.h>
++#include <linux/regulator/machine.h>
++#include <linux/regulator/omap-smps.h>
++#include <plat/voltage.h>
 +
-+		if (r) {
-+			pr_err("%s: failed to enable higher opp %d\n",
-+				__func__, r);
-+			/*
-+			 * Cleanup - disable the higher freqs - we dont care
-+			 * about the results
-+			 */
-+			dev = &mh->od->pdev.dev;
-+			opp_disable(dev, 720000000);
-+			dev = &dh->od->pdev.dev;
-+			opp_disable(dev, 520000000);
-+		}
++#define DRIVER_NAME		"omap-smps"
++
++struct omap_smps_reg_info {
++	const char		*vdd_name;
++	struct regulator_dev	*rdev;
++	struct voltagedomain	*voltdm;
++	struct regulator_desc	desc;
++};
++
++static int omap_smps_set_voltage(struct regulator_dev *rdev, int min_uV,
++				    int max_uV, unsigned *selector)
++{
++	struct omap_smps_reg_info	*info = rdev_get_drvdata(rdev);
++	return voltdm_scale(info->voltdm, min_uV);
++}
++
++static int omap_smps_get_voltage(struct regulator_dev *rdev)
++{
++	struct omap_smps_reg_info	*info = rdev_get_drvdata(rdev);
++	return voltdm_get_voltage(info->voltdm);
++}
++
++static struct regulator_ops omap_smps_ops = {
++	.set_voltage	= omap_smps_set_voltage,
++	.get_voltage	= omap_smps_get_voltage,
++};
++
++#define SMPS_REG(name) { \
++	.vdd_name = #name, \
++	.desc = { \
++		.ops = &omap_smps_ops, \
++		.type = REGULATOR_VOLTAGE, \
++		.owner = THIS_MODULE, \
++		}, \
 +	}
 +
- 	/* Custom OPP enabled for XM */
- 	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
- 		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index d95f3f9..a0f5fe1 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -98,6 +98,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* MPU OPP5 */
- 	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* MPU OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("mpu", false, 720000000, OMAP3430_VDD_MPU_OPP5_UV),
- 
- 	/*
- 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-@@ -123,6 +125,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* DSP OPP5 */
- 	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* DSP OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("iva", false, 520000000, OMAP3430_VDD_MPU_OPP5_UV),
- };
- 
- static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
++static struct omap_smps_reg_info omap_smps_regs[] = {
++	SMPS_REG(mpu),
++	SMPS_REG(mpu_iva),
++	SMPS_REG(iva),
++	SMPS_REG(core),
++};
++
++static void omap_smps_reg_cleanup(void)
++{
++	int				i;
++	struct omap_smps_reg_info	*info;
++
++	for (i = 0; i < ARRAY_SIZE(omap_smps_regs); i++) {
++		info = &omap_smps_regs[i];
++		if (info->rdev) {
++			regulator_unregister(info->rdev);
++			info->rdev = NULL;
++		}
++
++		kfree(info->desc.name);
++		info->desc.name = NULL;
++	}
++}
++
++static struct regulator_init_data dummy_initdata __initdata;
++
++static int __devinit omap_smps_reg_probe(struct platform_device *pdev)
++{
++	int				i, j, ret;
++	struct omap_smps_reg_info	*info;
++	struct omap_smps_platform_data	*pdata;
++	struct regulator_dev		*rdev;
++	struct regulator_init_data	*initdata;
++	struct voltagedomain		*voltdm;
++	char				*name;
++
++	pdata = pdev->dev.platform_data;
++
++	for (i = 0; i < ARRAY_SIZE(omap_smps_regs); i++) {
++		initdata = &dummy_initdata;
++		info = &omap_smps_regs[i];
++
++		for (j = 0; j < pdata->num_regulators; j++)
++			if (!strcmp(info->vdd_name,
++				    pdata->regulators[j]->consumer_supplies[0].
++				    dev_name)) {
++				initdata = pdata->regulators[j];
++				break;
++			}
++
++		voltdm = voltdm_lookup(info->vdd_name);
++
++		if (!voltdm)
++			continue;
++
++		info->voltdm = voltdm;
++
++		name = kmalloc(strlen(info->vdd_name) + 5, GFP_KERNEL);
++
++		if (!name) {
++			ret = -ENOMEM;
++			goto err;
++		}
++
++		sprintf(name, "VDD_%s", info->vdd_name);
++
++		for (j = 0; j < strlen(name); j++)
++			name[j] = toupper(name[j]);
++
++		info->desc.name = name;
++
++		rdev = regulator_register(&info->desc, &pdev->dev, initdata,
++			info);
++
++		if (IS_ERR(rdev)) {
++			dev_err(&pdev->dev, "can't register %s, %ld\n",
++				info->desc.name, PTR_ERR(rdev));
++			ret = PTR_ERR(rdev);
++			goto err;
++		}
++
++		info->rdev = rdev;
++	}
++
++	return 0;
++err:
++	omap_smps_reg_cleanup();
++	return ret;
++}
++
++static int omap_smps_reg_remove(struct platform_device *pdev)
++{
++	omap_smps_reg_cleanup();
++	return 0;
++}
++
++static struct platform_driver omap_smps_reg_driver = {
++	.probe		= omap_smps_reg_probe,
++	.remove		= __devexit_p(omap_smps_reg_remove),
++	.driver.name	= DRIVER_NAME,
++	.driver.owner	= THIS_MODULE,
++};
++
++static int __init omap_smps_reg_init(void)
++{
++	return platform_driver_register(&omap_smps_reg_driver);
++}
++subsys_initcall(omap_smps_reg_init);
++
++static void __exit omap_smps_reg_exit(void)
++{
++	platform_driver_unregister(&omap_smps_reg_driver);
++}
++module_exit(omap_smps_reg_exit);
++
++MODULE_ALIAS("platform:"DRIVER_NAME);
++MODULE_AUTHOR("Tero Kristo <t-kristo@ti.com>");
++MODULE_DESCRIPTION("OMAP SMPS regulator driver");
++MODULE_LICENSE("GPL");
+diff --git a/include/linux/regulator/omap-smps.h b/include/linux/regulator/omap-smps.h
+new file mode 100644
+index 0000000..1d5f940
+--- /dev/null
++++ b/include/linux/regulator/omap-smps.h
+@@ -0,0 +1,20 @@
++/*
++ * omap-smps.h - header for OMAP SMPS regulator support
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ *
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __OMAP_SMPS_H__
++#define __OMAP_SMPS_H__
++
++struct omap_smps_platform_data {
++	struct regulator_init_data	**regulators;
++	int				num_regulators;
++};
++
++#endif /* End of __OMAP_SMPS_H__ */
 -- 
 1.7.4.1
 
