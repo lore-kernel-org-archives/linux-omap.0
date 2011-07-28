@@ -1,50 +1,43 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC/PATCH 2/7] OMAP3: beagle: don't touch omap_device
-	internals
-Date: Thu, 28 Jul 2011 11:10:12 +0100
-Message-ID: <20110728101012.GA8446@n2100.arm.linux.org.uk>
-References: <1311292338-11830-1-git-send-email-khilman@ti.com> <1311292338-11830-4-git-send-email-khilman@ti.com> <20110722085716.GI32058@legolas.emea.dhcp.ti.com> <20110728055346.GA11921@foobar>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv4 0/4] OMAP SMPS regulator driver
+Date: Thu, 28 Jul 2011 14:48:55 +0300
+Message-ID: <1311853739-18984-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46782 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753057Ab1G1KKk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 06:10:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20110728055346.GA11921@foobar>
+Received: from devils.ext.ti.com ([198.47.26.153]:43410 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753600Ab1G1LtN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 07:49:13 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6SBnDw7000759
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 28 Jul 2011 06:49:13 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p6SBnDrj021059
+	for <linux-omap@vger.kernel.org>; Thu, 28 Jul 2011 06:49:13 -0500 (CDT)
+Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6SBnCYp015288
+	for <linux-omap@vger.kernel.org>; Thu, 28 Jul 2011 06:49:12 -0500 (CDT)
+Content-Class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G. Manjunath Kondaiah" <manjugk@ti.com>, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-On Thu, Jul 28, 2011 at 12:53:47AM -0500, Nishanth Menon wrote:
-> +struct device *omap_hwmod_to_device(const char *oh_name)
-> +{
-> +	struct omap_hwmod *oh;
-> +
-> +	if (!oh_name) {
-> +		WARN(1, "%s: no hwmod name!\n", __func__);
-> +		return ERR_PTR(-EINVAL);
-> +	}
-> +
-> +	oh = _lookup(oh_name);
-> +	if (IS_ERR_OR_NULL(oh)) {
-> +		WARN(1, "%s: no hwmod for %s\n", __func__,
-> +			oh_name);
-> +		return ERR_PTR(-ENODEV);
+Hello,
 
-It is good practice to always propagate back the error codes from functions
-which failed.  So you may need something like:
+This version has following changes:
 
-		return ERR_PTR(oh ? PTR_ERR(oh) : -ENODEV);
+- does not move voltage.h under plat-omap anymore, instead
+  creates a stub voltage.h under plat-omap with minimal support required
+- platform device registration is now done from voltage.c, no need
+  for board file changes anymore
+- Kconfig option does not depend upon TWL core anymore
 
-here.
+-Tero
 
-> +	}
-> +	if (IS_ERR_OR_NULL(oh->od)) {
-> +		WARN(1, "%s: no omap_device for %s\n", __func__,
-> +			oh_name);
-> +		return ERR_PTR(-ENODEV);
 
-Same here.
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
+
