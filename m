@@ -1,114 +1,90 @@
-From: Arno Steffen <arno.steffen@googlemail.com>
-Subject: Re: [Q] No message from Kernel (Howto start debug?)
-Date: Thu, 28 Jul 2011 18:13:22 +0200
-Message-ID: <CAACX+R3dGQQrMei5q9gS4nCnn0f7FmecON9pm1XMM7Z3xjkMCw@mail.gmail.com>
-References: <CAACX+R297j07GXRtLBCFuSyHTmk4sMXQiUt8YwN7KH6A8251jA@mail.gmail.com>
-	<5d52501338122438f9712b01f5b6de81@mail.gmail.com>
-	<CAACX+R37F4G9To3QT97-jODcdmgTiE-9_cTvoS1Z+89n-N_icg@mail.gmail.com>
-	<CAACX+R1Qtzn1uTX4aHg1cSRuBR+29_Tek08RhTU2DVmiH7UP3Q@mail.gmail.com>
-	<accf999739ee7850d7e468c522a2342f@mail.gmail.com>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [PATCH v4 REPOST 18/20] gpio/omap: use pm-runtime framework
+Date: Thu, 28 Jul 2011 10:00:29 -0700
+Message-ID: <20110728170029.GA9819@google.com>
+References: <1310804152-9243-1-git-send-email-tarun.kanti@ti.com>
+ <1310804152-9243-19-git-send-email-tarun.kanti@ti.com>
+ <20110716190734.GB990@google.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037C202D59@dbde02.ent.ti.com>
+ <20110728074327.GA12916@google.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037C2030F7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:60737 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755154Ab1G1QNX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 12:13:23 -0400
-Received: by pzk37 with SMTP id 37so4772620pzk.1
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jul 2011 09:13:22 -0700 (PDT)
-In-Reply-To: <accf999739ee7850d7e468c522a2342f@mail.gmail.com>
+Received: from smtp-out.google.com ([216.239.44.51]:8085 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755798Ab1G1RAs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 13:00:48 -0400
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037C2030F7@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Varadarajan, Charulatha" <charu@ti.com>
 
-2011/7/28 Sricharan R <r.sricharan@ti.com>:
->>-----Original Message-----
->>From: Arno Steffen [mailto:arno.steffen@googlemail.com]
->>Sent: Thursday, July 28, 2011 9:13 PM
->>To: Sricharan R
->>Subject: Re: [Q] No message from Kernel (Howto start debug?)
->>
->>2011/7/28 Arno Steffen <arno.steffen@googlemail.com>:
->>> 2011/7/28 Sricharan R <r.sricharan@ti.com>:
->>>> =A0If you are stuck with Starting kernel ... and do not see
->>>> =A0 "Uncompressing Linux... done, booting the kernel" means could =
-have
->>>> crashed before your kernel in case of uImage.
->>>> =A0Check the arch_id that you are passing from the bootloader.
->>>>
->>>> Also enable early printk.
->>>>
->>>> >From what I understand kernel starts with start_kernel()).
->>>>>What is best way to find out which part is failing? At which point=
- I
->>>>>do a printk to see what's going on, or at least set a GPIO Pin of =
-the
->>>>>processor?
->>>>>How to debug without any external tools like JTAG.
->>>>>--
->>>>>To unsubscribe from this list: send the line "unsubscribe linux-om=
-ap"
-> in
->>>>>the body of a message to majordomo@vger.kernel.org
->>>>>More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
-ml
->>>>
->>>> Thanks,
->>>> =A0Sricharan
->>>>
->>>
->>> You are absolutly right! The strange thing is, uboot can boot my ol=
-d
->>> kernel out of NAND flash.
->>> And with the old kernel I can also boot via ethernet. Yepp, probabl=
-y
->>> the arch-id. I will check this.
->>> Thanks
->>> Arno
->>>
->>
->>To optimistic. :(
->>It seems that I have set the MACHINE_START in a proper way.
->>What can prevent this message in uboot? Why it can uncompressing the
->>old uImages, but not the new one?
->
-> Is the uncompressing done by u-boot in your case?
->
-> I have seen that the uncompress algorithm is built on
-> Top the Image. U-boot simply jumps to that location and
-> Rest is taken care by the uncompresser. It also sets up the
-> Serial port according to the arch
-> and prints " Uncompressing Linux... done, booting the kernel".
->
-> The serial port number is used for early prints by kernel.
->
-> Also check if your load address passed from u-boot is correct?
->
->>Seems I have to dig into uboot.
->>Thanks
->>-Arno
->
+On Thu, Jul 28, 2011 at 03:05:29PM +0530, DebBarma, Tarun Kanti wrote:
+> > ...
+> > Looking at omap_gpio_mod_init() it seems like much of its processing
+> > could probably be done once at probe time (or at pm_runtime_get_sync
+> > time) as well, namely setting the IRQ enable masks.
+> This must be called at the beginning of bank access to get reset state.
+> Otherwise, it would contain settings related to previous bank access.
 
-Mh, so it's not a uboot issue. Checking the outputs (see below) are
-identical, except Linux version and the new image is a bit smaller.
-Where does the uncompressor knows about which serial port to use?
+What state may have changed between the last time a pin was released
+from the bank and the next time a pin is requested in the bank?  Prior
+to this patch, omap_gpio_mod_init() is called once at probe time, and
+initializing irqenable masks etc. isn't reset at the beginning of bank
+access, if I understand correctly.
 
-Bytes transferred =3D 1587592 (183988 hex)
-## Booting kernel from Legacy Image at 80000000 ...
-   Image Name:   Linux-2.6.37
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    1587528 Bytes =3D  1.5 MB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-   Loading Kernel Image ... OK
-OK
+If it's not actually necessary to do this on each first request to the
+bank then it's not a large overhead or anything, but want to make sure
+the PM operations being performed are correct.  This patch is
+basically to runtime PM enable the GPIO bank when a pin is requested,
+and disable when no pin is requested.  If other actions beyond the
+runtime PM enable are needed, now that a runtime PM disable is added,
+then it calls into question whether the enable method is missing
+something.  More troubling are the PM actions performed in addition to
+pm_runtime_get_sync...
 
-Thanks
--Arno
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Ungating the interface clock, enabling wakeup, setting smart idle for
+> > the module, and enabling the (old-style) system clock seem like either
+> > one-time actions at probe, or a part of the pm_runtime_get_sync
+> > callback.
+> Yes... sysconfig related settings are done by hwmod framework.
+> Debounce clocks are enabled in callback.
+> 
+> > 
+> > Or is there some other reason these power management actions should be
+> > taken each time a GPIO is requested in the block (when none were
+> > previously requested), after the runtime PM get_sync callback, but
+> > not as part of the get_sync callback?  If so, what caused
+> > the smart idle setting to be lost, or the interface clock gated, if
+> > not the pm_runtime_put_sync?
+> I am not sure which smart idle setting you are referring to.
+
+That's part of what the magic constant in this statement is doing:
+
+         __raw_writew(0x0014, bank->base
+                                 + OMAP1610_GPIO_SYSCONFIG);
+
+> Most stuffs done in *_get_sync() callback can skip first time.
+> Omap_gpio_mod_init() does resetting irqenable settings to reset value.
+> This should not be part of callback.
+
+To be clear, it seems like resetting irqenable settings should be a
+one-time action at probe time.  The power management actions such as
+enabling debounce clocks, setting module PRCM idle protocol behavior,
+and ungating interface clocks seem like they should either be one-time
+probe actions, or a part of the runtime PM callbacks, or balanced with
+corresponding actions when the last pin in the bank is released.
+Else what caused the interface clock to gate, or the slave idle
+control to change, or the debounce clock to be cut?  The only thing
+added here that would do that is the pm_runtime_put_sync.  If it can
+cause those actions then do other calls to pm_runtime_get_sync need to
+fix these up?
+
+Anyhow, mainly wanted to point that out as a possible optimization.
+It's pretty unlikely there's an actual problem here.
+
+
+Todd
