@@ -1,290 +1,95 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 2/4] regulator: omap smps regulator driver
-Date: Thu, 28 Jul 2011 14:48:57 +0300
-Message-ID: <1311853739-18984-3-git-send-email-t-kristo@ti.com>
-References: <1311853739-18984-1-git-send-email-t-kristo@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC/PATCH 2/7] OMAP3: beagle: don't touch omap_device internals
+Date: Thu, 28 Jul 2011 14:57:03 +0200
+Message-ID: <4E315C9F.1030801@ti.com>
+References: <1311292338-11830-1-git-send-email-khilman@ti.com>
+	<1311292338-11830-4-git-send-email-khilman@ti.com>
+	<20110722085716.GI32058@legolas.emea.dhcp.ti.com>
+	<20110728055346.GA11921@foobar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54334 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755529Ab1G1LtV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jul 2011 07:49:21 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <1311853739-18984-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110728055346.GA11921@foobar>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G,
+	Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Balbi,
+	Felipe" <balbi@ti.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Todd Poynor <toddpoynor@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Graeme Gregory <gg@slimlogic.co.uk>
 
-OMAP SMPS regulator driver provides access to OMAP voltage processor
-controlled regulators. These include VDD_MPU and VDD_CORE for OMAP3 and
-additionally VDD_IVA for OMAP4. SMPS regulators use the OMAP voltage
-layer for the actual voltage regulation operations.
+Hi Nishanth,
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Todd Poynor <toddpoynor@google.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Liam Girdwood <lrg@ti.com>
-Cc: Graeme Gregory <gg@slimlogic.co.uk>
----
- drivers/regulator/Kconfig               |    8 ++
- drivers/regulator/Makefile              |    1 +
- drivers/regulator/omap-smps-regulator.c |  182 +++++++++++++++++++++++++++++++
- include/linux/regulator/omap-smps.h     |   20 ++++
- 4 files changed, 211 insertions(+), 0 deletions(-)
- create mode 100644 drivers/regulator/omap-smps-regulator.c
- create mode 100644 include/linux/regulator/omap-smps.h
+On 7/28/2011 7:53 AM, Menon, Nishanth wrote:
+> On 11:57-20110722, Felipe Balbi wrote:
+> [...]
+>>>   	/* Custom OPP enabled for all xM versions */
+>>>   	if (cpu_is_omap3630()) {
+>>> -		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
+>>> -		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
+>>> -		struct device *dev;
+>>> +		struct device *mpu_dev, *iva_dev;
+>>>
+>>> -		if (!mh || !dh) {
+>>> +		mpu_dev = omap2_get_mpuss_device();
+>>> +		iva_dev = omap2_get_iva_device();
+>>
+>> out of curiosity again, nothing to do with this patch.
+>>
+>> Maybe it would be nicer to have an api such as:
+>>
+>> omap2_get_device(name);
+>>
+>> there are already four devices to be gotten, if that number grows any
+>> bigger, so will the number of helper functions.
+> I agree, in fact, on a different topic, I hit the same requirement
+> here is the patch I had done:
+>  From 9f226def811bd50e4bac02f427604034cef77706 Mon Sep 17 00:00:00 2001
+> From: Nishanth Menon<nm@ti.com>
+> Date: Wed, 27 Jul 2011 15:02:32 -0500
+> Subject: [PATCH] OMAP: hwmod: add omap_hwmod_to_device
+>
+> omap_hwmod_to_device is useful for drivers when they need to
+> look up the device associated with a hwmod name to map back
+> into the device structure pointers. These ideally should
+> be used by drivers in mach directory. This could in effect
+> replace apis such as omap2_get_mpuss_device,
+> omap2_get_iva_device, omap2_get_l3_device, omap4_get_dsp_device
+> etc..
+>
+> Signed-off-by: Nishanth Menon<nm@ti.com>
+> ---
+>   arch/arm/mach-omap2/omap_hwmod.c             |   33 ++++++++++++++++++++++++++
+>   arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
+>   2 files changed, 35 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index 293fa6c..77d01a2 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -142,6 +142,7 @@
+>   #include "powerdomain.h"
+>   #include<plat/clock.h>
+>   #include<plat/omap_hwmod.h>
+> +#include<plat/omap_device.h>
 
-diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index d7ed20f..2ba8ed2 100644
---- a/drivers/regulator/Kconfig
-+++ b/drivers/regulator/Kconfig
-@@ -303,5 +303,13 @@ config REGULATOR_TPS65910
- 	help
- 	  This driver supports TPS65910 voltage regulator chips.
- 
-+config REGULATOR_OMAP_SMPS
-+	tristate "TI OMAP SMPS Power Regulators"
-+	depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM
-+	help
-+	  This driver supports the OMAP3 / OMAP4 SMPS regulators for VDD1,
-+	  VDD2 and VDD3. These regulators are accessed using the voltage
-+	  processor interface of OMAP.
-+
- endif
- 
-diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-index 3932d2e..191e3d5 100644
---- a/drivers/regulator/Makefile
-+++ b/drivers/regulator/Makefile
-@@ -43,5 +43,6 @@ obj-$(CONFIG_REGULATOR_ISL6271A) += isl6271a-regulator.o
- obj-$(CONFIG_REGULATOR_AB8500)	+= ab8500.o
- obj-$(CONFIG_REGULATOR_DB8500_PRCMU) += db8500-prcmu.o
- obj-$(CONFIG_REGULATOR_TPS65910) += tps65910-regulator.o
-+obj-$(CONFIG_REGULATOR_OMAP_SMPS) += omap-smps-regulator.o
- 
- ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
-diff --git a/drivers/regulator/omap-smps-regulator.c b/drivers/regulator/omap-smps-regulator.c
-new file mode 100644
-index 0000000..e4a0262
---- /dev/null
-+++ b/drivers/regulator/omap-smps-regulator.c
-@@ -0,0 +1,181 @@
-+/*
-+ * OMAP SMPS regulator driver
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ *
-+ * Author: Tero Kristo <t-kristo@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/ctype.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/regulator/driver.h>
-+#include <linux/regulator/machine.h>
-+#include <linux/regulator/omap-smps.h>
-+#include <plat/voltage.h>
-+
-+#define DRIVER_NAME		"omap-smps"
-+
-+struct omap_smps_reg_info {
-+	const char		*vdd_name;
-+	struct regulator_dev	*rdev;
-+	struct voltagedomain	*voltdm;
-+	struct regulator_desc	desc;
-+};
-+
-+static int omap_smps_set_voltage(struct regulator_dev *rdev, int min_uV,
-+				    int max_uV, unsigned *selector)
-+{
-+	struct omap_smps_reg_info	*info = rdev_get_drvdata(rdev);
-+	return voltdm_scale(info->voltdm, min_uV);
-+}
-+
-+static int omap_smps_get_voltage(struct regulator_dev *rdev)
-+{
-+	struct omap_smps_reg_info	*info = rdev_get_drvdata(rdev);
-+	return voltdm_get_voltage(info->voltdm);
-+}
-+
-+static struct regulator_ops omap_smps_ops = {
-+	.set_voltage	= omap_smps_set_voltage,
-+	.get_voltage	= omap_smps_get_voltage,
-+};
-+
-+#define SMPS_REG(name) { \
-+	.vdd_name = #name, \
-+	.desc = { \
-+		.ops = &omap_smps_ops, \
-+		.type = REGULATOR_VOLTAGE, \
-+		.owner = THIS_MODULE, \
-+		}, \
-+	}
-+
-+static struct omap_smps_reg_info omap_smps_regs[] = {
-+	SMPS_REG(mpu),
-+	SMPS_REG(mpu_iva),
-+	SMPS_REG(iva),
-+	SMPS_REG(core),
-+};
-+
-+static void omap_smps_reg_cleanup(void)
-+{
-+	int				i;
-+	struct omap_smps_reg_info	*info;
-+
-+	for (i = 0; i < ARRAY_SIZE(omap_smps_regs); i++) {
-+		info = &omap_smps_regs[i];
-+		if (info->rdev) {
-+			regulator_unregister(info->rdev);
-+			info->rdev = NULL;
-+		}
-+
-+		kfree(info->desc.name);
-+		info->desc.name = NULL;
-+	}
-+}
-+
-+static struct regulator_init_data dummy_initdata __initdata;
-+
-+static int __devinit omap_smps_reg_probe(struct platform_device *pdev)
-+{
-+	int				i, j, ret;
-+	struct omap_smps_reg_info	*info;
-+	struct omap_smps_platform_data	*pdata;
-+	struct regulator_dev		*rdev;
-+	struct regulator_init_data	*initdata;
-+	struct voltagedomain		*voltdm;
-+	char				*name;
-+
-+	pdata = pdev->dev.platform_data;
-+
-+	for (i = 0; i < ARRAY_SIZE(omap_smps_regs); i++) {
-+		initdata = &dummy_initdata;
-+		info = &omap_smps_regs[i];
-+
-+		for (j = 0; j < pdata->num_regulators; j++)
-+			if (!strcmp(info->vdd_name,
-+				    pdata->regulators[j]->consumer_supplies[0].
-+				    dev_name)) {
-+				initdata = pdata->regulators[j];
-+				break;
-+			}
-+
-+		voltdm = voltdm_lookup(info->vdd_name);
-+
-+		if (!voltdm)
-+			continue;
-+
-+		info->voltdm = voltdm;
-+
-+		name = kmalloc(strlen(info->vdd_name) + 5, GFP_KERNEL);
-+
-+		if (!name) {
-+			ret = -ENOMEM;
-+			goto err;
-+		}
-+
-+		sprintf(name, "VDD_%s", info->vdd_name);
-+
-+		for (j = 0; j < strlen(name); j++)
-+			name[j] = toupper(name[j]);
-+
-+		info->desc.name = name;
-+
-+		rdev = regulator_register(&info->desc, &pdev->dev, initdata,
-+			info);
-+
-+		if (IS_ERR(rdev)) {
-+			dev_err(&pdev->dev, "can't register %s, %ld\n",
-+				info->desc.name, PTR_ERR(rdev));
-+			ret = PTR_ERR(rdev);
-+			goto err;
-+		}
-+
-+		info->rdev = rdev;
-+	}
-+
-+	return 0;
-+err:
-+	omap_smps_reg_cleanup();
-+	return ret;
-+}
-+
-+static int omap_smps_reg_remove(struct platform_device *pdev)
-+{
-+	omap_smps_reg_cleanup();
-+	return 0;
-+}
-+
-+static struct platform_driver omap_smps_reg_driver = {
-+	.probe		= omap_smps_reg_probe,
-+	.remove		= __devexit_p(omap_smps_reg_remove),
-+	.driver.name	= DRIVER_NAME,
-+	.driver.owner	= THIS_MODULE,
-+};
-+
-+static int __init omap_smps_reg_init(void)
-+{
-+	return platform_driver_register(&omap_smps_reg_driver);
-+}
-+subsys_initcall(omap_smps_reg_init);
-+
-+static void __exit omap_smps_reg_exit(void)
-+{
-+	platform_driver_unregister(&omap_smps_reg_driver);
-+}
-+module_exit(omap_smps_reg_exit);
-+
-+MODULE_ALIAS("platform:"DRIVER_NAME);
-+MODULE_AUTHOR("Tero Kristo <t-kristo@ti.com>");
-+MODULE_DESCRIPTION("OMAP SMPS regulator driver");
-+MODULE_LICENSE("GPL");
-diff --git a/include/linux/regulator/omap-smps.h b/include/linux/regulator/omap-smps.h
-new file mode 100644
-index 0000000..1d5f940
---- /dev/null
-+++ b/include/linux/regulator/omap-smps.h
-@@ -0,0 +1,20 @@
-+/*
-+ * omap-smps.h - header for OMAP SMPS regulator support
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ *
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __OMAP_SMPS_H__
-+#define __OMAP_SMPS_H__
-+
-+struct omap_smps_platform_data {
-+	struct regulator_init_data	**regulators;
-+	int				num_regulators;
-+};
-+
-+#endif /* End of __OMAP_SMPS_H__ */
--- 
-1.7.4.1
+I'd rather put that code inside the omap_device.c instead of here.
+The omap_device layer is on top of the omap_hwmod.
+In order to minimize the dependencies from the low HW description layer 
+to the omap_device layer, you should maybe define a 
+omap_device_from_hwmod() function or something similar.
 
+That being said, do we really need to get the device from the hwmod 
+name? Cannot we use the device name instead?
+I do not know all the usecases, that why I'm asking.
 
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
-
+Regards,
+Benoit
