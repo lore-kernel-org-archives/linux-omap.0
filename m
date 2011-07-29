@@ -1,40 +1,101 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v4 REPOST 18/20] gpio/omap: use pm-runtime framework
-Date: Fri, 29 Jul 2011 16:25:58 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037C374A45@dbde02.ent.ti.com>
-References: <1310804152-9243-1-git-send-email-tarun.kanti@ti.com>
- <1310804152-9243-19-git-send-email-tarun.kanti@ti.com>
- <20110716190734.GB990@google.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037C202D59@dbde02.ent.ti.com>
- <20110728074327.GA12916@google.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037C2030F7@dbde02.ent.ti.com>
- <20110728170029.GA9819@google.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [RFC v2]: Issues implementing clock handling mechanism within
+ UART driver
+Date: Fri, 29 Jul 2011 16:54:44 +0530
+Message-ID: <CAAL8m4xjN15RfwbDd_c1HdoKY327CWOn5qwuoUT=fop4J0K5cw@mail.gmail.com>
+References: <1311845395-31917-1-git-send-email-govindraj.raja@ti.com> <20110729095512.GE31013@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40275 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756055Ab1G2K4J convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jul 2011 06:56:09 -0400
-In-Reply-To: <20110728170029.GA9819@google.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20110729095512.GE31013@legolas.emea.dhcp.ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Varadarajan, Charulatha" <charu@ti.com>
 
-[...]
-> To be clear, it seems like resetting irqenable settings should be a
-> one-time action at probe time.  The power management actions such as
-Looking at it again, well we could probably avoid *_mod_init() in request.
-I will test and confirm. Thanks.
+On Fri, Jul 29, 2011 at 3:25 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+
+Thanks for replying.
+
+> On Thu, Jul 28, 2011 at 02:59:55PM +0530, Govindraj.R wrote:
+>> Proposal:
+>> --------
+>> =A0 =A0 =A0 1. For the UART, follow the current approach of locking =
+the console in
+>> =A0 =A0 =A0 =A0 =A0Idle/Suspend path before cutting the clock but us=
+ing pm_runtime_putsync.
+>> =A0 =A0 =A0 =A0 =A0That is, continue using the prepare/resume Idle c=
+alls in idle path.
+>
+> I believe you should be using ->prepare() to prevent that any other
+> work on UART won't trigger a console_write() right now. Maybe only
+> queueing the work for after ->complete() or, maybe, just ignoring the
+> work and loosing some prints, dunno.
+>
+
+Yes true, for suspend path but for Idle path we don't have any such
+mechanism.
+
+>> =A0 =A0 =A0 2. Other Approach would be adding conditions to debug pr=
+ints from
+>> =A0 =A0 =A0 =A0 =A0omap_device/ omap_hwmod/clock_framework avoid cal=
+ling these debug
+>> =A0 =A0 =A0 =A0 =A0prints for uart.
+>> =A0 =A0 =A0 =A0 =A0Or Even a debug macro that would not debug prints=
+ if the context is
+>> =A0 =A0 =A0 =A0 =A0from uart.
+>
+> yeah, that might work but then again, if we were using 8250.c, would =
+we
+> have this limitation ??
+>
+
+Its not necessary which driver we use, its about clock handling mechani=
+sm
+where it has to be done.
+
+if we add clock handling mechanism into the driver, from driver context
+handling clocks + managing the printks for the same uart port is a
+issue, due to reasons said earlier.
+
+> I think that, maybe, your best call would be to capture console_write=
+()
+> calls into an internal temporary buffer on ->prepare() and flush it o=
+nce
+> ->complete() is called ?
+>
+
+IIUC ->prepare and -> complete are only for suspend path
+when we do system wide suspend
+
+for normal idle path get_sync and put_sycn we dont have any ->prepare
+or -> complete where we can buffer the contents and flush later.
+
+> BTW, where are the patches ? :-)
+
+I have done clock gating in idle path integrating irq chaining patches.
+hosted in gitorious here[1].
+
+Was consolidating whether this approach is OK,
+or
+Are there any other approaches that I should consider?
+
 --
-Tarun
-[...]
-> 
-> Anyhow, mainly wanted to point that out as a possible optimization.
-> It's pretty unlikely there's an actual problem here.
-> 
-> 
-> Todd
+Thanks,
+Govindraj.R
+
+[1]: https://gitorious.org/runtime_3-0/runtime_3-0/commits/wip_irqchn
+
+
+>
+> --
+> balbi
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
