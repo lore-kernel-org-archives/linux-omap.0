@@ -1,252 +1,121 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC v2]: Issues implementing clock handling mechanism within
- UART driver
-Date: Fri, 29 Jul 2011 17:02:11 +0300
-Message-ID: <20110729140210.GT31013@legolas.emea.dhcp.ti.com>
-References: <1311845395-31917-1-git-send-email-govindraj.raja@ti.com>
- <20110729095512.GE31013@legolas.emea.dhcp.ti.com>
- <CAAL8m4xjN15RfwbDd_c1HdoKY327CWOn5qwuoUT=fop4J0K5cw@mail.gmail.com>
- <20110729113713.GK31013@legolas.emea.dhcp.ti.com>
- <CAAL8m4wq7RQ_Rp-+LMWYY=dtTnhtR5UY+8HpO5C_54goKezaTg@mail.gmail.com>
- <20110729121907.GM31013@legolas.emea.dhcp.ti.com>
- <CAAL8m4wQqS64xG0Vi9YCOdy3f2=1V7UkJCErpikHOra4X=g7+w@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] OMAP4: I2C: Enable the wakeup in I2C_WE
+Date: Fri, 29 Jul 2011 17:03:37 +0300
+Message-ID: <20110729140336.GU31013@legolas.emea.dhcp.ti.com>
+References: <1311940122-10681-1-git-send-email-shubhrajyoti@ti.com>
+ <20110729120711.GL31013@legolas.emea.dhcp.ti.com>
+ <4E32A75C.5060400@warmcat.com>
+ <20110729123716.GN31013@legolas.emea.dhcp.ti.com>
+ <4E32B88E.6030508@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eu12+zRL7gQwOC+E"
-Return-path: <linux-serial-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="O9T4zNOkGnr0n+A/"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAAL8m4wQqS64xG0Vi9YCOdy3f2=1V7UkJCErpikHOra4X=g7+w@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: balbi@ti.com, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>
+In-Reply-To: <4E32B88E.6030508-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, =?utf-8?B?IkFuZHkgR3JlZW4gKOael+WuieW7uCki?= <andy-/Zus8d0mwwtBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---eu12+zRL7gQwOC+E
-Content-Type: text/plain; charset=us-ascii
+--O9T4zNOkGnr0n+A/
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Fri, Jul 29, 2011 at 06:28:32PM +0530, Govindraj wrote:
-> On Fri, Jul 29, 2011 at 5:49 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Fri, Jul 29, 2011 at 05:29:12PM +0530, Govindraj wrote:
-> >> Yes fine, But there are scenarios even before first runtime_suspend ha=
-ppens,
+On Fri, Jul 29, 2011 at 07:11:34PM +0530, Shubhrajyoti wrote:
+> On Friday 29 July 2011 06:07 PM, Felipe Balbi wrote:
+> >Hi,
+> >
+> >On Fri, Jul 29, 2011 at 01:28:12PM +0100, "Andy Green (=E6=9E=97=E5=AE=
+=89=E5=BB=B8)" wrote:
+> >>On 07/29/2011 01:07 PM, Somebody in the thread at some point said:
 > >>
-> >> ex: uart_port_configure -> get_sync -> pm_generic_runtime_resume
-> >> (omap_device_enable in this case) debug printk -> console_write -> get=
-_sync.
+> >>Hi -
 > >>
-> >> there are numerous such scenarios where we end from runtime context
-> >> to runtime api context again, or jumping from one uart port operation
-> >> to uart print operation.
-> >
-> > calling pm_runtime_get_sync() should not be a problem. It should only
-> > increase the usage counters... This sounds like a race condition on the
-> > driver, no ?
->=20
-> Actually when we call a API to enable clocks we except the internals of A=
-PI
-> to just enable clocks and return.
->=20
-> *Clock enable API should not cause or trigger to do a _device_driver_oper=
-ation_
-> even before enabling clocks of the device-driver which called it*
->=20
-> for uart context get_sync can land me to uart driver back
-> even before enabling the uart clocks due to printks.
-
-only if _you_ have prints or _your_ runtime_*() calls, no ?
-
-Let's say omap_hwmod.c wants to do a print:
-
--> printk()
-  -> pm_runtime_get_sync
-    -> console_write
-  -> pm_runtim_put
-
-now, if you have a printk() on your runtime_resume() before you enable
-the clocks, then I can see why you would deadlock:
-
--> pm_runtime_get_sync
-  -> omap_serial_runtime_resume
-    -> printk
-      -> pm_runtime_get_sync
-        -> omap_serial_runtime_resume
-	  -> printk
-	   -> pm_runtime_get_sync
-	    .....
-
-maybe I'm missing something, but can you add a stack dump on your
-->runtime_resume and ->runtime_suspend methods, just so we try to figure
-out who's to blame here ?
-
-> > What you're experiencing, if I understood correctly, is a deadlock ? In
-> > that case, can you try to track the locking mechanism on the omap-serial
-> > driver to try to find if there isn't anything obviously wrong ?
-> >
->=20
-> Yes deadlocks. due to entering from runtime context to runtime context
-> or entering from uart_port_operation to uart_console_write ops.
->=20
-> There are already port locks used extensively within the uart driver
-> to secure a port operation.
->=20
-> But cannot secure a port operation while using clock_enable API.
-> since clock enable API can land the control back to uart_console_write
-> operation..
-
-but in that case, if clock isn't enabled, why don't you just ignore the
-print and enable the clock ?? Just return 0 and continue with
-clk_enable() ??
-
-> >> So either we should not have those prints from pm_generic layers or su=
-ppress
-> >> them(seems pretty much a problem for a clean design within the driver
-> >> using console_lock/unlock for every get_sync, and for
-> >> runtime_put we cannot suppress the prints as it gets scheduled later)
+> >>>-                       omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->=
+westate);
+> >>>+                       if (dev->rev<   OMAP_I2C_REV_ON_3530_4430)
+> >>>+                               omap_i2c_write_reg(dev, OMAP_I2C_WE_RE=
+G,
+> >>>+                                                               dev->w=
+estate);
+> >>>Andy, can you clarify why you added the revision check which didn't
+> >>>exist before ?
+> >>>
+> >>>[1] http://git.kernel.org/?p=3Dlinux/kernel/git/khilman/linux-omap-pm.=
+git;a=3Dcommitdiff;h=3Da3a7acbcc3df4e9ecc12aa1fc435534d74ebbdf4
+> >>>
+> >>At the time I wrote the patches back in March, the code there was
+> >>different: there was a pre-extant test avoiding that line on 4430,
+> >>and the patch is simply converting it to the new scheme.  You can see
+> >>it here:
 > >>
-> >> or if other folks who really need those prints form pm_generic* layers
-> >> to debug and analysis then we have no other choice rather control
-> >> the clk_enable/disable from outside driver code in idle path.
-> >
-> > yeah, none of these would be nice :-(
-> >
-> > I think this needs more debugging to be sure what's exactly going on.
-> > What's exactly causing the deadlock ? Which lock is held and never
-> > released ?
-> >
+> >>http://permalink.gmane.org/gmane.linux.ports.arm.omap/54940
+> >>
+> >>@@ -379,7 +379,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> >>  			 * REVISIT: Some wkup sources might not be needed.
+> >>  			 */
+> >>  			dev->westate =3D OMAP_I2C_WE_ALL;
+> >>-			if (dev->rev<  OMAP_I2C_REV_ON_4430)
+> >>+			if (dev->rev<  OMAP_I2C_REV_ON_3530_4430)
+> >>  				omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+> >>  								dev->westate);
+> >>  		}
+> >>
+> >>I guess since March and before this got committed for 3.1, someone
+> >>got a patch in first removing the test, so when my patchset was
+> >>uplevelled for commit against 3.1-rc this conflict was dealt with by
+> >>re-introducing the test.
+> >>
+> >>Long story short, it's there from me as a mechanical 1:1 renaming
+> >>action as part of the fix that 3530 and 4430 (different) IPs return
+> >>the same rev number.  Despite how it now looks I didn't add it, so if
+> >>Shubhrajyoti has reasons to think it should be gone again I have
+> >>nothing against that at all.
+> >yeah, looks like a bad conflict resolution. Shubhrajyoti, care to respin
+> >the patch and update commit log stating that it is fixing a bad conflict
+> >resolution or something ?
+> I wasn't aware of the conflict resolution part. Actually came across this
+> piece of code as per the discussion on the reset implementation patch
+> will update
+> the changelogs.
+> How about,
 >=20
-> I had done some investigations, from scenarios it simply boils down to fa=
-ct
-> to handle clock within uart driver, uart driver expects clock enable API*=
- used
-> to just enable uart clocks but rather not trigger a _uart_ops_ within whi=
-ch
-> kind of unacceptable from the uart_driver context.
+> From: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>=20
+> Currently for OMAP4 the I2C_WE is not programmed.
+> This patch enables the programming for OMAP4.
+>=20
+> Fixes a conflict resolution of Andy's patches.
 
-ok, now I see what you mean:
-
-113 static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
-114 {
-115         struct timespec a, b, c;
-116
-117         pr_debug("omap_device: %s: activating\n", od->pdev.name);
-118
-119         while (od->pm_lat_level > 0) {
-120                 struct omap_device_pm_latency *odpl;
-121                 unsigned long long act_lat =3D 0;
-122
-123                 od->pm_lat_level--;
-124
-125                 odpl =3D od->pm_lats + od->pm_lat_level;
-126
-127                 if (!ignore_lat &&
-128                     (od->dev_wakeup_lat <=3D od->_dev_wakeup_lat_limit))
-129                         break;
-130
-131                 read_persistent_clock(&a);
-132
-133                 /* XXX check return code */
-134                 odpl->activate_func(od);
-135
-136                 read_persistent_clock(&b);
-137
-138                 c =3D timespec_sub(b, a);
-139                 act_lat =3D timespec_to_ns(&c);
-140
-141                 pr_debug("omap_device: %s: pm_lat %d: activate: elapsed=
- time "
-142                          "%llu nsec\n", od->pdev.name, od->pm_lat_level,
-143                          act_lat);
-144
-145                 if (act_lat > odpl->activate_lat) {
-146                         odpl->activate_lat_worst =3D act_lat;
-147                         if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJU=
-ST) {
-148                                 odpl->activate_lat =3D act_lat;
-149                                 pr_warning("omap_device: %s.%d: new wor=
-st case "
-150                                            "activate latency %d: %llu\n=
-",
-151                                            od->pdev.name, od->pdev.id,
-152                                            od->pm_lat_level, act_lat);
-153                         } else
-154                                 pr_warning("omap_device: %s.%d: activat=
-e "
-155                                            "latency %d higher than expt=
-ected. "
-156                                            "(%llu > %d)\n",
-157                                            od->pdev.name, od->pdev.id,
-158                                            od->pm_lat_level, act_lat,
-159                                            odpl->activate_lat);
-160                 }
-161
-162                 od->dev_wakeup_lat -=3D odpl->activate_lat;
-163         }
-164
-165         return 0;
-166 }
-
-When that first pr_debug() triggers, UART's hwmod could be disabled, and
-that would trigger the state I described above where you would keep on
-calling pm_runtime_get_sync() forever ;-)
-
-isn't it enough to patch it like below:
-
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_dev=
-ice.c
-index b6b4097..560f622 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -114,8 +114,6 @@ static int _omap_device_activate(struct omap_device *od=
-, u8 ignore_lat)
- {
-        struct timespec a, b, c;
-=20
--       pr_debug("omap_device: %s: activating\n", od->pdev.name);
--
-        while (od->pm_lat_level > 0) {
-                struct omap_device_pm_latency *odpl;
-                unsigned long long act_lat =3D 0;
-@@ -162,6 +160,8 @@ static int _omap_device_activate(struct omap_device *od=
-, u8 ignore_lat)
-                od->dev_wakeup_lat -=3D odpl->activate_lat;
-        }
-=20
-+       pr_debug("omap_device: %s: activated\n", od->pdev.name);
-+
-        return 0;
- }
-=20
-
-either the above or something like:
-
-if (pm_runtime_suspended(dev))
-	return 0;
-
-on console_write() ??
+I think you need to be a bit more verbose here ;-) Describe what
+happened and point to the commit number and mailing list archives for
+references. Imagine someone else reads this commit half a year from now,
+will s/he have enough information to understand the background of this
+patch ?
 
 --=20
 balbi
 
---eu12+zRL7gQwOC+E
+--O9T4zNOkGnr0n+A/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOMr1iAAoJEAv8Txj19kN1zo0IAI+du5hemqUp5zWsjLQmKcE7
-tBtM4zz6gj0VxMFSTYvtuTOfFT6qvdugwwProDyUK5sEL3edw4wyBYNYjTKp2ddk
-WqZyXQ6wVN24f5boMsKlXY+sNOfyQIsnG1DzaznJixrJqb6H/oAgPFPATfQDmMx1
-CDYupy9N0QeXUpWD/FKFA/aTtVoiRw3DvSjP7bhqFhEvWBV1aXOGkkaeIDl0TLdb
-4w9mKEbLuUWZeQtXiRLofoS6nJupuqwISg/njNvUAbAJVa3oiWLL6rumGVHJNJcF
-8lQF+JqsIsXf8j7kvBNijNx75NH/l+Hg+NBr2BNNR/aP42LKzxIOeTIh0/4RA0s=
-=eDQf
+iQEcBAEBAgAGBQJOMr24AAoJEAv8Txj19kN18IUH/3qUuuCdut/G8nL8JYVa15e4
+zbTFGRzqGaPZyL2CE128iPvqUU1uIvhXzmQoJ6QLhvz2n4yoNLTZfgBSgltOE7rN
+ummvR2ILUEGbm9sPQiLQDLUxRgQMDe4hm4Ayr2Jr1UOVs/BzBcYcnSq4pUw19ITW
+G1GBzybGshgncEDjCdQS+RrEcdC+k7WaVaDow04lvFXqWjCrF0U6IMtyC+a42Jec
+FeYabY5Rqh7gtc8fFI88xnDwHFhTMos+9AVKT0ey/bMteWmnLgpkGjnf7OaL++cs
+KWzry6aNcftpzw864oUp1476O23PRvEbozm6GCCWQL6Dcx2bPz6zuZx/hUmcHgo=
+=t4Fn
 -----END PGP SIGNATURE-----
 
---eu12+zRL7gQwOC+E--
+--O9T4zNOkGnr0n+A/--
