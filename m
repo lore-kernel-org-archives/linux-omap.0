@@ -1,90 +1,91 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCHV2 3/5] OMAP: I2C: Remove the reset in the init path
-Date: Fri, 29 Jul 2011 16:57:44 +0530
-Message-ID: <4E329930.4040301@ti.com>
-References: <1311246554-22975-1-git-send-email-shubhrajyoti@ti.com> <1311246554-22975-4-git-send-email-shubhrajyoti@ti.com> <4E280D0B.1040701@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC v2]: Issues implementing clock handling mechanism within
+ UART driver
+Date: Fri, 29 Jul 2011 14:37:14 +0300
+Message-ID: <20110729113713.GK31013@legolas.emea.dhcp.ti.com>
+References: <1311845395-31917-1-git-send-email-govindraj.raja@ti.com>
+ <20110729095512.GE31013@legolas.emea.dhcp.ti.com>
+ <CAAL8m4xjN15RfwbDd_c1HdoKY327CWOn5qwuoUT=fop4J0K5cw@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KaGhPsiNaI6/sRd6"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:51084 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932106Ab1G2L1y (ORCPT
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:49932 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755180Ab1G2LhW (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jul 2011 07:27:54 -0400
-In-Reply-To: <4E280D0B.1040701@ti.com>
+	Fri, 29 Jul 2011 07:37:22 -0400
+Content-Disposition: inline
+In-Reply-To: <CAAL8m4xjN15RfwbDd_c1HdoKY327CWOn5qwuoUT=fop4J0K5cw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, rnayak@ti.com, balajitk@ti.com
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: balbi@ti.com, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>
 
-On Thursday 21 July 2011 04:57 PM, Santosh Shilimkar wrote:
-Thanks for your review.
-> On 7/21/2011 4:39 PM, Shubhrajyoti D wrote:
->
-<snip>
->> +        /*
->> +         * Enabling all wakup sources to stop I2C freezing on
->> +         * WFI instruction.
->> +         * REVISIT: Some wkup sources might not be needed.
->> +         */
-> Surely not related to your patch. But the 'REVISIT:' caught
-> my attention. Is the comment still valid.
 
-Yes I will look and optimise the settings. Obviously all of them may not 
-be needed.
-Will get back on this.
+--KaGhPsiNaI6/sRd6
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Also I see that we are not writing it for " < OMAP_I2C_REV_ON_3530_4430"
-I will send a patch correcting the same.
+Hi,
 
->
->> +        dev->westate = OMAP_I2C_WE_ALL;
->> +        if (dev->rev<  OMAP_I2C_REV_ON_3530_4430)
-> Space if (dev->rev <  OMAP_I2C_REV_ON_3530_4430)
->> +            omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
->> +                            dev->westate);
->>       }
->>       omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
->>
->> @@ -612,6 +572,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter 
->> *adap,
->>           return r;
->>       if (r == 0) {
->>           dev_err(dev->dev, "controller timed out\n");
->> +        if (dev->device_reset != NULL) {
->> +            r = dev->device_reset(dev->dev);
->> +            if (r<  0)
-> ditto
->> +                dev_err(dev->dev, "reset failed\n");
->> +        }
->>           omap_i2c_init(dev);
->>           return -ETIMEDOUT;
->>       }
->> @@ -622,6 +587,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter 
->> *adap,
->>       /* We have an error */
->>       if (dev->cmd_err&  (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
-> You can fix this one as well.
->>                   OMAP_I2C_STAT_XUDF)) {
->> +        if (dev->device_reset != NULL) {
->> +            r = dev->device_reset(dev->dev);
->> +            if (r<  0)
-> here too.
->> +                dev_err(dev->dev, "reset failed\n");
->> +        }
->>           omap_i2c_init(dev);
->>           return -EIO;
->>       }
->> @@ -1024,6 +994,7 @@ omap_i2c_probe(struct platform_device *pdev)
->>       if (pdata != NULL) {
->>           speed = pdata->clkrate;
->>           dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
->> +        dev->device_reset = pdata->device_reset;
->>       } else {
->>           speed = 100;    /* Default speed */
->>           dev->set_mpu_wkup_lat = NULL;
->
-> Regards
-> Santosh
+On Fri, Jul 29, 2011 at 04:54:44PM +0530, Govindraj wrote:
+> On Fri, Jul 29, 2011 at 3:25 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > Hi,
+> >
+>=20
+> Thanks for replying.
+>=20
+> > On Thu, Jul 28, 2011 at 02:59:55PM +0530, Govindraj.R wrote:
+> >> Proposal:
+> >> --------
+> >> =A0 =A0 =A0 1. For the UART, follow the current approach of locking th=
+e console in
+> >> =A0 =A0 =A0 =A0 =A0Idle/Suspend path before cutting the clock but usin=
+g pm_runtime_putsync.
+> >> =A0 =A0 =A0 =A0 =A0That is, continue using the prepare/resume Idle cal=
+ls in idle path.
+> >
+> > I believe you should be using ->prepare() to prevent that any other
+> > work on UART won't trigger a console_write() right now. Maybe only
+> > queueing the work for after ->complete() or, maybe, just ignoring the
+> > work and loosing some prints, dunno.
+> >
+>=20
+> Yes true, for suspend path but for Idle path we don't have any such
+> mechanism.
 
+aha... good point ;-)
+
+> I have done clock gating in idle path integrating irq chaining patches.
+> hosted in gitorious here[1].
+>=20
+> Was consolidating whether this approach is OK,
+> or
+> Are there any other approaches that I should consider?
+
+why don't you also start queueing writes after the first call to
+runtime_suspend() and flush them after the first call runtime_resume()??
+
+--=20
+balbi
+
+--KaGhPsiNaI6/sRd6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOMptpAAoJEAv8Txj19kN1a1EIAIMHs3SqnpCS+xNzpHLMKZTI
+AbajLXZhYv62xoCKjOr/V1gNlsbEn1/P8cyufgOqrzy4nA1NGli1rUMqDbkfhYDy
+3oRccBYLovJ3duxgqLhdKzj1FSP9cPE6mbeBlq2U7YplJKJtZRk5l3r/4LoMWwkf
+Bdfod4rMXsQwGKZQI1hBsCrlupnVrozi0YIL/Ntj3Mtu9DQDPB+pjMie2URURegO
+MK0O+JNO0Mz23NCljteBMOF4rEEAVI5ubYUzHvxm+cPYFuT9EjjtCutkoD3flJut
+6HWKUVM+5I1MY3Cx47z2QNaAxESPSFZnfCQ6PD7xN3wxfdM+PCpUVWvwfG8iz9Q=
+=DE5E
+-----END PGP SIGNATURE-----
+
+--KaGhPsiNaI6/sRd6--
