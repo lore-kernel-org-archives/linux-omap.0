@@ -1,247 +1,118 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: Re: [PATCH v4] usb: musb: Enable DMA mode1 RX for USB-Mass-Storage
-Date: Thu, 28 Jul 2011 21:50:17 -0700
-Message-ID: <CAFm5wm10MhJOLQ1WcWDSa3CpAQu7FnFcSQ8h4t9ZFJTrCj_V5Q@mail.gmail.com>
-References: <1311138718-5072-1-git-send-email-vikram.pandita@ti.com> <20110729044508.GY9069@legolas.emea.dhcp.ti.com>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [PATCH 08/13] OMAP2+: powerdomain: control power domains next
+ state
+Date: Fri, 29 Jul 2011 00:59:42 -0700
+Message-ID: <20110729075942.GA26959@google.com>
+References: <1311841821-10252-1-git-send-email-j-pihet@ti.com>
+ <1311841821-10252-9-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:39814 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750914Ab1G2Euk convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jul 2011 00:50:40 -0400
-In-Reply-To: <20110729044508.GY9069@legolas.emea.dhcp.ti.com>
+Received: from smtp-out.google.com ([216.239.44.51]:57380 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753758Ab1G2IAV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jul 2011 04:00:21 -0400
+Content-Disposition: inline
+In-Reply-To: <1311841821-10252-9-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, gadiyar@ti.com, linux-omap@vger.kernel.org, Moiz Sonasath <m-sonasath@ti.com>
+To: jean.pihet@newoldbits.com
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, markgross@thegnar.org, broonie@opensource.wolfsonmicro.com, Jean Pihet <j-pihet@ti.com>
 
-On Thu, Jul 28, 2011 at 9:45 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Tue, Jul 19, 2011 at 10:11:58PM -0700, Vikram Pandita wrote:
->> From: Anand Gadiyar <gadiyar@ti.com>
->>
->> This patch enables the DMA mode1 RX support.
->> This feature is enabled based on the short_not_ok flag passed from
->> gadget drivers.
->>
->> This will result in a thruput performance gain of around
->> 40% for USB mass-storage/mtp use cases.
->>
->> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
->> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
->> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->> Tested-by: Vikram Pandita <vikram.pandita@ti.com>
->
-> applied this one, but I changed commit log and code comment a little
-> bit. Here's updated commit:
->
-> commit e9c281b174f188adb7950ea8f6a55ca07be69914
-> Author: Anand Gadiyar <gadiyar@ti.com>
-> Date: =A0 Tue Jul 19 22:11:58 2011 -0700
->
-> =A0 =A0usb: musb: Enable DMA mode1 RX for transfers without short pac=
-kets
->
-> =A0 =A0This patch enables DMA mode1 for the RX patch when we know
-> =A0 =A0there won't be any short packets. We check that by looking
-> =A0 =A0into the short_no_ok flag, if it's true we enable mode1, other=
-wise
-> =A0 =A0we use mode0 to transfer the data.
->
-> =A0 =A0This will result in a throughput performance gain of around
-> =A0 =A040% for USB mass-storage/mtp use cases.
->
-> =A0 =A0[ balbi@ti.com : updated commit log and code comments slightly=
- ]
+On Thu, Jul 28, 2011 at 10:30:15AM +0200, jean.pihet@newoldbits.com wrote:
+...
+> +int pwrdm_set_wkup_lat_constraint(struct powerdomain *pwrdm, void *cookie,
+> +				  long min_latency)
+> +{
+> +	struct pwrdm_wkup_constraints_entry *user = NULL;
+> +	struct pwrdm_wkup_constraints_entry *tmp_user, *new_user;
+> +	int ret = 0, free_new_user = 0, free_node = 0;
+> +	long value = 0;
+> +	unsigned long flags;
+> +
+> +	pr_debug("powerdomain: %s: pwrdm %s, cookie=0x%p, min_latency=%ld\n",
+> +		 __func__, pwrdm->name, cookie, min_latency);
+> +
+> +	new_user = kzalloc(sizeof(struct pwrdm_wkup_constraints_entry),
+> +			   GFP_KERNEL);
+> +	if (!new_user) {
+> +		pr_err("%s: FATAL ERROR: kzalloc failed\n", __func__);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	spin_lock_irqsave(&pwrdm->wkup_lat_plist_lock, flags);
+> +
+> +	/* Check if there already is a constraint for cookie */
+> +	plist_for_each_entry(tmp_user, &pwrdm->wkup_lat_plist_head, node) {
+> +		if (tmp_user->cookie == cookie) {
+> +			user = tmp_user;
+> +			free_new_user = 1;
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE) {
+> +		/* If nothing to update, job done */
+> +		if (user && (user->node.prio == min_latency))
+> +			goto exit_ok;
+> +
+> +		if (!user) {
+> +			/* Add new entry to the list */
+> +			user = new_user;
+> +			user->cookie = cookie;
+> +		} else {
+> +			/* Update existing entry */
+> +			plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
+> +		}
+> +
+> +		plist_node_init(&user->node, min_latency);
+> +		plist_add(&user->node, &pwrdm->wkup_lat_plist_head);
+> +	} else {
+> +		/* Remove the constraint from the list */
+> +		if (!user) {
+> +			pr_err("%s: Error: no prior constraint to release\n",
+> +			       __func__);
+> +			ret = -EINVAL;
+> +			goto exit_error;
+> +		}
+> +
+> +		plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
+> +		free_node = 1;
 
-Ack
+All min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE paths need
+free_new_user = 1.  (Or maybe change the logic to check user !=
+new_user and free new_user if so.)
 
->
-> =A0 =A0Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> =A0 =A0Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
-> =A0 =A0Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> =A0 =A0Tested-by: Vikram Pandita <vikram.pandita@ti.com>
-> =A0 =A0Signed-off-by: Felipe Balbi <balbi@ti.com>
->
-> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_g=
-adget.c
-> index b67a062..d314f58 100644
-> --- a/drivers/usb/musb/musb_gadget.c
-> +++ b/drivers/usb/musb/musb_gadget.c
-> @@ -634,6 +634,7 @@ static void rxstate(struct musb *musb, struct mus=
-b_request *req)
-> =A0 =A0 =A0 =A0u16 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 len;
-> =A0 =A0 =A0 =A0u16 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 csr =3D mu=
-sb_readw(epio, MUSB_RXCSR);
-> =A0 =A0 =A0 =A0struct musb_hw_ep =A0 =A0 =A0 *hw_ep =3D &musb->endpoi=
-nts[epnum];
-> + =A0 =A0 =A0 u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0use_mode_=
-1;
->
-> =A0 =A0 =A0 =A0if (hw_ep->is_shared_fifo)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0musb_ep =3D &hw_ep->ep_in;
-> @@ -683,6 +684,18 @@ static void rxstate(struct musb *musb, struct mu=
-sb_request *req)
->
-> =A0 =A0 =A0 =A0if (csr & MUSB_RXCSR_RXPKTRDY) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0len =3D musb_readw(epio, MUSB_RXCOUNT)=
-;
+> +	}
 > +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Enable Mode 1 on RX transfers only=
- when short_not_ok flag
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* is set. Currently short_not_ok fla=
-g is set only from
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* file_storage and f_mass_storage dr=
-ivers
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> +exit_ok:
+> +	/* Find the strongest constraint from the list */
+> +	if (!plist_head_empty(&pwrdm->wkup_lat_plist_head))
+> +		value = plist_first(&pwrdm->wkup_lat_plist_head)->prio;
 > +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (request->short_not_ok && len =3D=3D=
- musb_ep->packet_sz)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 use_mode_1 =3D 1;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 use_mode_1 =3D 0;
+> +	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
 > +
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (request->actual < request->length)=
- {
-> =A0#ifdef CONFIG_USB_INVENTRA_DMA
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (is_buffer_mapped(r=
-eq)) {
-> @@ -714,37 +727,41 @@ static void rxstate(struct musb *musb, struct m=
-usb_request *req)
-> =A0 =A0 =A0 =A0 * then becomes usable as a runtime "use mode 1" hint.=
-=2E.
-> =A0 =A0 =A0 =A0 */
->
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 csr |=3D=
- MUSB_RXCSR_DMAENAB;
-> -#ifdef USE_MODE1
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 csr |=3D=
- MUSB_RXCSR_AUTOCLEAR;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* csr =
-|=3D MUSB_RXCSR_DMAMODE; */
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* this=
- special sequence (enabling and then
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* di=
-sabling MUSB_RXCSR_DMAMODE) is required
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* to=
- get DMAReq to activate
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 musb_wr=
-itew(epio, MUSB_RXCSR,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 csr | MUSB_RXCSR_DMAMODE);
-> -#else
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!mu=
-sb_ep->hb_mult &&
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 musb_ep->hw_ep->rx_double_buffered)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Expe=
-rimental: Mode1 works with mass storage use cases */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (use=
-_mode_1) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0csr |=3D MUSB_RXCSR_AUTOCLEAR;
-> -#endif
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 musb_wr=
-itew(epio, MUSB_RXCSR, csr);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 musb_writew(epio, MUSB_RXCSR, csr);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 csr |=3D MUSB_RXCSR_DMAENAB;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 musb_writew(epio, MUSB_RXCSR, csr);
+> +	if (free_node)
+> +		kfree(user);
 > +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 /*
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0* this special sequence (enabling and then
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0* disabling MUSB_RXCSR_DMAMODE) is required
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0* to get DMAReq to activate
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0*/
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 musb_writew(epio, MUSB_RXCSR,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 csr | MUSB_RXCSR_DMAMODE);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 musb_writew(epio, MUSB_RXCSR, csr);
+> +	if (free_new_user)
+> +		kfree(new_user);
 > +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else =
-{
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 if (!musb_ep->hb_mult &&
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 musb_ep->hw_ep->rx_double_buffered)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 csr |=3D MUSB_RXCSR_AUTOCLEAR;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 csr |=3D MUSB_RXCSR_DMAENAB;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 musb_writew(epio, MUSB_RXCSR, csr);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (re=
-quest->actual < request->length) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0int transfer_size =3D 0;
-> -#ifdef USE_MODE1
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 transfer_size =3D min(request->length - request->actual,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 channel->max_len);
-> -#else
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 transfer_size =3D min(request->length - request->actual,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (unsigned)len);
-> -#endif
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 if (transfer_size <=3D musb_ep->packet_sz)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 musb_ep->dma->desired_mode =3D 0;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 if (use_mode_1) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 transfer_size =3D min(request->length - reques=
-t->actual,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 channel->max_l=
-en);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0musb_ep->dma->desired_mode =3D 1;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 } else {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 transfer_size =3D min(request->length - reques=
-t->actual,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (unsigned)len)=
-;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 musb_ep->dma->desired_mode =3D 0;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 }
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0use_dma =3D c->channel_program(
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0channel,
->
-> --
-> balbi
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	/* Apply the constraint to the pwrdm */
+> +	pr_debug("powerdomain: %s: pwrdm %s, value=%ld\n",
+> +		 __func__, pwrdm->name, value);
+> +	pwrdm_wakeuplat_update_pwrst(pwrdm, value);
+> +
+> +	return 0;
+> +
+> +exit_error:
+> +	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
+
+Need:
+        kfree(new_user);
+
+> +	return ret;
+> +}
+
+
+Todd
