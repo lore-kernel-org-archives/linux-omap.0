@@ -1,229 +1,252 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC/PATCH 2/7] OMAP3: beagle: don't touch omap_device internals
-Date: Fri, 29 Jul 2011 08:49:34 -0500
-Message-ID: <20110729134932.GA2258@foobar>
-References: <1311292338-11830-1-git-send-email-khilman@ti.com>
- <1311292338-11830-4-git-send-email-khilman@ti.com>
- <20110722085716.GI32058@legolas.emea.dhcp.ti.com>
- <20110728055346.GA11921@foobar>
- <4E315C9F.1030801@ti.com>
- <CAOMWX4fYGD4aRomoHZjvy_F9CRb_U9UV4OOa0BgrzZhx81iQtQ@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC v2]: Issues implementing clock handling mechanism within
+ UART driver
+Date: Fri, 29 Jul 2011 17:02:11 +0300
+Message-ID: <20110729140210.GT31013@legolas.emea.dhcp.ti.com>
+References: <1311845395-31917-1-git-send-email-govindraj.raja@ti.com>
+ <20110729095512.GE31013@legolas.emea.dhcp.ti.com>
+ <CAAL8m4xjN15RfwbDd_c1HdoKY327CWOn5qwuoUT=fop4J0K5cw@mail.gmail.com>
+ <20110729113713.GK31013@legolas.emea.dhcp.ti.com>
+ <CAAL8m4wq7RQ_Rp-+LMWYY=dtTnhtR5UY+8HpO5C_54goKezaTg@mail.gmail.com>
+ <20110729121907.GM31013@legolas.emea.dhcp.ti.com>
+ <CAAL8m4wQqS64xG0Vi9YCOdy3f2=1V7UkJCErpikHOra4X=g7+w@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:59803 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754349Ab1G2Ntl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jul 2011 09:49:41 -0400
-Received: by gwb19 with SMTP id 19so3028982gwb.32
-        for <linux-omap@vger.kernel.org>; Fri, 29 Jul 2011 06:49:39 -0700 (PDT)
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="eu12+zRL7gQwOC+E"
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAOMWX4fYGD4aRomoHZjvy_F9CRb_U9UV4OOa0BgrzZhx81iQtQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAAL8m4wQqS64xG0Vi9YCOdy3f2=1V7UkJCErpikHOra4X=g7+w@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: balbi@ti.com, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 08:31-20110728, Menon, Nishanth wrote:
-> On Thu, Jul 28, 2011 at 07:57, Cousson, Benoit <b-cousson@ti.com> wro=
-te:
-> [...]
-> >> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
-> >> b/arch/arm/mach-omap2/omap_hwmod.c
-> >> index 293fa6c..77d01a2 100644
-> >> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> >> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> >> @@ -142,6 +142,7 @@
-> >> =A0#include "powerdomain.h"
-> >> =A0#include<plat/clock.h>
-> >> =A0#include<plat/omap_hwmod.h>
-> >> +#include<plat/omap_device.h>
+
+--eu12+zRL7gQwOC+E
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Fri, Jul 29, 2011 at 06:28:32PM +0530, Govindraj wrote:
+> On Fri, Jul 29, 2011 at 5:49 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > On Fri, Jul 29, 2011 at 05:29:12PM +0530, Govindraj wrote:
+> >> Yes fine, But there are scenarios even before first runtime_suspend ha=
+ppens,
+> >>
+> >> ex: uart_port_configure -> get_sync -> pm_generic_runtime_resume
+> >> (omap_device_enable in this case) debug printk -> console_write -> get=
+_sync.
+> >>
+> >> there are numerous such scenarios where we end from runtime context
+> >> to runtime api context again, or jumping from one uart port operation
+> >> to uart print operation.
 > >
-> > I'd rather put that code inside the omap_device.c instead of here.
-> > The omap_device layer is on top of the omap_hwmod.
-> > In order to minimize the dependencies from the low HW description l=
-ayer to
-> > the omap_device layer, you should maybe define a omap_device_from_h=
-wmod()
-> > function or something similar.
-> Thanks for the review. will check on this.
+> > calling pm_runtime_get_sync() should not be a problem. It should only
+> > increase the usage counters... This sounds like a race condition on the
+> > driver, no ?
 >=20
+> Actually when we call a API to enable clocks we except the internals of A=
+PI
+> to just enable clocks and return.
+>=20
+> *Clock enable API should not cause or trigger to do a _device_driver_oper=
+ation_
+> even before enabling clocks of the device-driver which called it*
+>=20
+> for uart context get_sync can land me to uart driver back
+> even before enabling the uart clocks due to printks.
+
+only if _you_ have prints or _your_ runtime_*() calls, no ?
+
+Let's say omap_hwmod.c wants to do a print:
+
+-> printk()
+  -> pm_runtime_get_sync
+    -> console_write
+  -> pm_runtim_put
+
+now, if you have a printk() on your runtime_resume() before you enable
+the clocks, then I can see why you would deadlock:
+
+-> pm_runtime_get_sync
+  -> omap_serial_runtime_resume
+    -> printk
+      -> pm_runtime_get_sync
+        -> omap_serial_runtime_resume
+	  -> printk
+	   -> pm_runtime_get_sync
+	    .....
+
+maybe I'm missing something, but can you add a stack dump on your
+->runtime_resume and ->runtime_suspend methods, just so we try to figure
+out who's to blame here ?
+
+> > What you're experiencing, if I understood correctly, is a deadlock ? In
+> > that case, can you try to track the locking mechanism on the omap-serial
+> > driver to try to find if there isn't anything obviously wrong ?
 > >
-> > That being said, do we really need to get the device from the hwmod=
- name?
-> > Cannot we use the device name instead?
-> > I do not know all the usecases, that why I'm asking.
-> mpu.0 , are the device names - which probably lets me walk the kernel
-> data structrues instead of omap database to get to the right device,
-> Vs using the common names like "mpu" " make things a little easier to
-> deal with from driver perspective.
 >=20
-> as an example, some of the dev_driver_string(dev):dev_name(dev) (in
-> bracket hwmod name) I collected from OMAP4 are:
-> platform:mpu.0 ("mpu")
-> platform:l3_main_1.0 ('l3_main_1")
-> pvrsrvkm:pvrsrvkm.0 ("gpu")
-> rpres:fdif.0 ("fdif")
-> omap_hsi:omap_hsi.0 ("hsi")
-> platform:iss.0 ("iss")
-> etc..
+> Yes deadlocks. due to entering from runtime context to runtime context
+> or entering from uart_port_operation to uart_console_write ops.
 >=20
-> I mean I have'nt been keeping track of the device tree discussions so
-> dont know if this function could be better done - but I think I agree
-> with the overall idea that instead of spawning off get_xyz_device() w=
-e
-> need to have some uniform approach to get to the device scaling
-> silicon - I hoped we could consider the hwmod database/what ever
-> replacing it to do that.
-following are a couple of reference patches how this could be done
-with omap_device
-=46rom f03490456e24f72ca5272303c95a6f0b212494d5 Mon Sep 17 00:00:00 200=
-1
-=46rom: Nishanth Menon <nm@ti.com>
-Date: Wed, 27 Jul 2011 15:02:32 -0500
-Subject: [PATCH 1/2] OMAP: PM: omap_device: add omap_hwmod_name_get_ode=
-v
+> There are already port locks used extensively within the uart driver
+> to secure a port operation.
+>=20
+> But cannot secure a port operation while using clock_enable API.
+> since clock enable API can land the control back to uart_console_write
+> operation..
 
-An API which translates a standard hwmod name to corresponding
-omap_device is useful for drivers when they need to look up the
-device associated with a hwmod name to map back into the device
-structure pointers. These ideally should be used by drivers in
-mach directory. Using a generic hwmod name like "gpu" instead of
-the actual device name which could change in the future, allows
-us to:
-a) Could in effect help replace apis such as omap2_get_mpuss_device,
-omap2_get_iva_device, omap2_get_l3_device, omap4_get_dsp_device,
-etc..
-b) Scale to more devices rather than be restricted to named functions
-c) Simplify driver's platform_data from passing additional fields
-all doing the same thing with different function pointer names
-just for accessing a different device name.
+but in that case, if clock isn't enabled, why don't you just ignore the
+print and enable the clock ?? Just return 0 and continue with
+clk_enable() ??
 
-Change-Id: Ib42d22b4a929982c87a79866e3d7dc6e41073a6c
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/plat-omap/include/plat/omap_device.h |    1 +
- arch/arm/plat-omap/omap_device.c              |   32 +++++++++++++++++=
-++++++++
- 2 files changed, 33 insertions(+), 0 deletions(-)
+> >> So either we should not have those prints from pm_generic layers or su=
+ppress
+> >> them(seems pretty much a problem for a clean design within the driver
+> >> using console_lock/unlock for every get_sync, and for
+> >> runtime_put we cannot suppress the prints as it gets scheduled later)
+> >>
+> >> or if other folks who really need those prints form pm_generic* layers
+> >> to debug and analysis then we have no other choice rather control
+> >> the clk_enable/disable from outside driver code in idle path.
+> >
+> > yeah, none of these would be nice :-(
+> >
+> > I think this needs more debugging to be sure what's exactly going on.
+> > What's exactly causing the deadlock ? Which lock is held and never
+> > released ?
+> >
+>=20
+> I had done some investigations, from scenarios it simply boils down to fa=
+ct
+> to handle clock within uart driver, uart driver expects clock enable API*=
+ used
+> to just enable uart clocks but rather not trigger a _uart_ops_ within whi=
+ch
+> kind of unacceptable from the uart_driver context.
 
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/p=
-lat-omap/include/plat/omap_device.h
-index 70d31d0..7a3c046 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -102,6 +102,7 @@ int omap_device_register(struct omap_device *od);
- int omap_early_device_register(struct omap_device *od);
-=20
- void __iomem *omap_device_get_rt_va(struct omap_device *od);
-+struct omap_device *omap_hwmod_name_get_odev(const char *oh_name);
-=20
- /* OMAP PM interface */
- int omap_device_align_pm_lat(struct platform_device *pdev,
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap=
-_device.c
-index 92b4496..21df532 100644
+ok, now I see what you mean:
+
+113 static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+114 {
+115         struct timespec a, b, c;
+116
+117         pr_debug("omap_device: %s: activating\n", od->pdev.name);
+118
+119         while (od->pm_lat_level > 0) {
+120                 struct omap_device_pm_latency *odpl;
+121                 unsigned long long act_lat =3D 0;
+122
+123                 od->pm_lat_level--;
+124
+125                 odpl =3D od->pm_lats + od->pm_lat_level;
+126
+127                 if (!ignore_lat &&
+128                     (od->dev_wakeup_lat <=3D od->_dev_wakeup_lat_limit))
+129                         break;
+130
+131                 read_persistent_clock(&a);
+132
+133                 /* XXX check return code */
+134                 odpl->activate_func(od);
+135
+136                 read_persistent_clock(&b);
+137
+138                 c =3D timespec_sub(b, a);
+139                 act_lat =3D timespec_to_ns(&c);
+140
+141                 pr_debug("omap_device: %s: pm_lat %d: activate: elapsed=
+ time "
+142                          "%llu nsec\n", od->pdev.name, od->pm_lat_level,
+143                          act_lat);
+144
+145                 if (act_lat > odpl->activate_lat) {
+146                         odpl->activate_lat_worst =3D act_lat;
+147                         if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJU=
+ST) {
+148                                 odpl->activate_lat =3D act_lat;
+149                                 pr_warning("omap_device: %s.%d: new wor=
+st case "
+150                                            "activate latency %d: %llu\n=
+",
+151                                            od->pdev.name, od->pdev.id,
+152                                            od->pm_lat_level, act_lat);
+153                         } else
+154                                 pr_warning("omap_device: %s.%d: activat=
+e "
+155                                            "latency %d higher than expt=
+ected. "
+156                                            "(%llu > %d)\n",
+157                                            od->pdev.name, od->pdev.id,
+158                                            od->pm_lat_level, act_lat,
+159                                            odpl->activate_lat);
+160                 }
+161
+162                 od->dev_wakeup_lat -=3D odpl->activate_lat;
+163         }
+164
+165         return 0;
+166 }
+
+When that first pr_debug() triggers, UART's hwmod could be disabled, and
+that would trigger the state I described above where you would keep on
+calling pm_runtime_get_sync() forever ;-)
+
+isn't it enough to patch it like below:
+
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_dev=
+ice.c
+index b6b4097..560f622 100644
 --- a/arch/arm/plat-omap/omap_device.c
 +++ b/arch/arm/plat-omap/omap_device.c
-@@ -780,6 +780,38 @@ void __iomem *omap_device_get_rt_va(struct omap_de=
-vice *od)
- 	return omap_hwmod_get_mpu_rt_va(od->hwmods[0]);
+@@ -114,8 +114,6 @@ static int _omap_device_activate(struct omap_device *od=
+, u8 ignore_lat)
+ {
+        struct timespec a, b, c;
+=20
+-       pr_debug("omap_device: %s: activating\n", od->pdev.name);
+-
+        while (od->pm_lat_level > 0) {
+                struct omap_device_pm_latency *odpl;
+                unsigned long long act_lat =3D 0;
+@@ -162,6 +160,8 @@ static int _omap_device_activate(struct omap_device *od=
+, u8 ignore_lat)
+                od->dev_wakeup_lat -=3D odpl->activate_lat;
+        }
+=20
++       pr_debug("omap_device: %s: activated\n", od->pdev.name);
++
+        return 0;
  }
 =20
-+/**
-+ * omap_hwmod_name_get_odev() - convert a hwmod name to omap_device po=
-inter
-+ * @oh_name: name of the hwmod device
-+ *
-+ * returns back a struct omap_device * pointer associated with a hwmod
-+ * device represented by a hwmod_name
-+ */
-+struct omap_device *omap_hwmod_name_get_odev(const char *oh_name)
-+{
-+	struct omap_hwmod *oh;
-+
-+	if (!oh_name) {
-+		WARN(1, "%s: no hwmod name!\n", __func__);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	oh =3D omap_hwmod_lookup(oh_name);
-+	if (IS_ERR_OR_NULL(oh)) {
-+		WARN(1, "%s: no hwmod for %s\n", __func__,
-+			oh_name);
-+		return ERR_PTR(oh ? PTR_ERR(oh) : -ENODEV);
-+	}
-+	if (IS_ERR_OR_NULL(oh->od)) {
-+		WARN(1, "%s: no omap_device for %s\n", __func__,
-+			oh_name);
-+		return ERR_PTR(oh->od ? PTR_ERR(oh->od) : -ENODEV);
-+	}
-+
-+	return oh->od;
-+}
-+EXPORT_SYMBOL(omap_hwmod_name_get_odev);
-+
- /*
-  * Public functions intended for use in omap_device_pm_latency
-  * .activate_func and .deactivate_func function pointers
+
+either the above or something like:
+
+if (pm_runtime_suspended(dev))
+	return 0;
+
+on console_write() ??
+
 --=20
-1.7.4.1
+balbi
 
-=46rom 51e517c2cb620532a29ec466c32ce1c78663bf43 Mon Sep 17 00:00:00 200=
-1
-=46rom: Nishanth Menon <nm@ti.com>
-Date: Thu, 28 Jul 2011 17:07:28 -0500
-Subject: [PATCH 2/2] OMAP: PM: omap_device: add few quick access functi=
-ons
+--eu12+zRL7gQwOC+E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Provide a quick set of access functions:
-a) Convert omap_device to platform_device - This is the flip of
-   to_omap_device for equivalent usage
-b) Convert omap_device to device pointer - This is useful for
-   most devices that need to go through standard linux functions that
-   take device pointer.
-c) Convert hwmod to device pointer - This wrapper provides ability for
-   drivers to convert directly from hwmod name back to device pointer
-   without having to handle this on a driver by driver basis
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Change-Id: I0fe16eeb41c32d5b166d5cb3f78af4fda140d398
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/plat-omap/include/plat/omap_device.h |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+iQEcBAEBAgAGBQJOMr1iAAoJEAv8Txj19kN1zo0IAI+du5hemqUp5zWsjLQmKcE7
+tBtM4zz6gj0VxMFSTYvtuTOfFT6qvdugwwProDyUK5sEL3edw4wyBYNYjTKp2ddk
+WqZyXQ6wVN24f5boMsKlXY+sNOfyQIsnG1DzaznJixrJqb6H/oAgPFPATfQDmMx1
+CDYupy9N0QeXUpWD/FKFA/aTtVoiRw3DvSjP7bhqFhEvWBV1aXOGkkaeIDl0TLdb
+4w9mKEbLuUWZeQtXiRLofoS6nJupuqwISg/njNvUAbAJVa3oiWLL6rumGVHJNJcF
+8lQF+JqsIsXf8j7kvBNijNx75NH/l+Hg+NBr2BNNR/aP42LKzxIOeTIh0/4RA0s=
+=eDQf
+-----END PGP SIGNATURE-----
 
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/p=
-lat-omap/include/plat/omap_device.h
-index 7a3c046..11cb471 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -150,5 +150,18 @@ struct omap_device_pm_latency {
-=20
- /* Get omap_device pointer from platform_device pointer */
- #define to_omap_device(x) container_of((x), struct omap_device, pdev)
-+/* Convert omap_device to platform device pointer */
-+#define omap_device_get_pdev(x) (&(x)->pdev)
-+/* Convert omap_device to device pointer */
-+#define omap_device_get_dev(x) (&omap_device_get_pdev(x)->dev)
-+/* Convert omap_hwmod name to device pointer */
-+static inline struct device *omap_hwmod_name_get_dev(const char *oh_na=
-me)
-+{
-+	struct omap_device *od;
-+	od =3D omap_hwmod_name_get_dev(oh_name);
-+	if (IS_ERR_OR_NULL(od))
-+		return ERR_PTR(od ? PTR_ERR(od) : -ENODEV);
-+	return omap_device_get_dev(od);
-+}
-=20
- #endif
---=20
-1.7.4.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--eu12+zRL7gQwOC+E--
