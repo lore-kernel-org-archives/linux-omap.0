@@ -1,63 +1,76 @@
-From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCH 07/13] OMAP PM: early init of the pwrdms states
-Date: Fri, 29 Jul 2011 01:08:20 -0700
-Message-ID: <20110729080820.GB26959@google.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [RFC/PATCH v3 00/13] PM QoS: add a per-device latency constraints class
+Date: Fri, 29 Jul 2011 10:37:52 +0200
+Message-ID: <CAORVsuVoJ5-1hx2+6+gCuuWDd9A9h_RTS=U1228BM7EYiG=gxA@mail.gmail.com>
 References: <1311841821-10252-1-git-send-email-j-pihet@ti.com>
- <1311841821-10252-8-git-send-email-j-pihet@ti.com>
+	<20110728131454.GA2579@gvim.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:27471 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751930Ab1G2IIy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jul 2011 04:08:54 -0400
-Content-Disposition: inline
-In-Reply-To: <1311841821-10252-8-git-send-email-j-pihet@ti.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:35271 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755034Ab1G2Ihx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jul 2011 04:37:53 -0400
+Received: by qyk9 with SMTP id 9so2011773qyk.19
+        for <linux-omap@vger.kernel.org>; Fri, 29 Jul 2011 01:37:52 -0700 (PDT)
+In-Reply-To: <20110728131454.GA2579@gvim.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, markgross@thegnar.org, broonie@opensource.wolfsonmicro.com, Jean Pihet <j-pihet@ti.com>, rnayak@ti.com
+To: markgross@thegnar.org
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, Jean Pihet <j-pihet@ti.com>
 
-On Thu, Jul 28, 2011 at 10:30:14AM +0200, jean.pihet@newoldbits.com wrote:
-> From: Jean Pihet <j-pihet@ti.com>
-> 
-> The powerdomains next states are initialized in pwrdms_setup as a
-> late_initcall. Because the PM QoS devices constraint can be requested
-> early in the boot sequence, the power domains next states can be
-> overwritten by pwrdms_setup.
-> 
-> This patch fixes it by initializing the power domains next states
-> early at boot, so that the constraints can be applied.
-> Later in the pwrdms_setup function the currently programmed
-> next states are re-used as next state values.
-> 
-> Applies to OMAP3 and OMAP4.
-> 
-> Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using
-> wake-up latency constraints on MPU, CORE and PER.
-> 
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> ---
-...
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 9af0847..63c3e7a 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -108,6 +108,9 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
->  	pwrdm->state = pwrdm_read_pwrst(pwrdm);
->  	pwrdm->state_counter[pwrdm->state] = 1;
->  
-> +	/* Early init of the next power state */
-> +	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_RET);
-> +
+Mark,
 
-Wanted to check that it's OK to initialize the next state of a power
-domain to RETENTION early in the boot sequence.  I believe patches
-have been previously discussed that set the state to ON to ensure the
-domain doesn't go to a lower state, and possibly lose context, before
-the PM subsystem is setup to handle it?  Not sure, thought maybe worth
-a doublecheck.
+On Thu, Jul 28, 2011 at 3:14 PM, mark gross <markgross@thegnar.org> wro=
+te:
+> On Thu, Jul 28, 2011 at 10:30:07AM +0200, jean.pihet@newoldbits.com w=
+rote:
+>> From: Jean Pihet <j-pihet@ti.com>
+>>
+>> This patch set is in an RFC state, for review and comments.
+>>
+>> High level implementation:
+>>
+=2E..
 
+>> 7. Misc fixes to improve code readability:
+>> . rename of the PM QoS implementation file from pm_qos_params.[ch] t=
+o pm_qos.[ch]
+> I picked the name for the file as pm_qos_params over pm_qos because I
+> wanted to make it implicitly clear that this was not an full QOS
+> implementation. =A0True QOS carries expectations similar to real time=
+ and
+> as the infrastructure is closer to "good intentioned" than even "best
+> effort" and offers no notification when the QOS request is not able t=
+o
+> be met and really doesn't implement a true QOS at all, (it just provi=
+des
+> the parameter interface for part of one its missing the notification
+> interface when the service level is not met and I think a few other
+> things.) So I wanted to have it named a bit different from just pm_qo=
+s.
+>
+> This said I'm not supper attached to the naming of the modules. =A0If
+> folks want to change it I wouldn't complain (too much anyway;).
+Ok got the idea. I do not know what name to chose though. As suggested
+previously the name pm_qos_params does not reflect the implementation,
+that is why I renamed it.
 
-Todd
+>
+> --mark
+> PS I'll look at the rest of the patches tomorrow, this time for real =
+as
+> I'm about to have more free time to focus on non-work stuff :)
+Thanks you for reviewing!
 
+> FWIW this write up sounds interesting.
+Hope it is readable ;p
+
+Regards,
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
