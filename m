@@ -1,99 +1,87 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] OMAP4: I2C: Enable the wakeup in I2C_WE
-Date: Fri, 29 Jul 2011 15:37:17 +0300
-Message-ID: <20110729123716.GN31013@legolas.emea.dhcp.ti.com>
-References: <1311940122-10681-1-git-send-email-shubhrajyoti@ti.com>
- <20110729120711.GL31013@legolas.emea.dhcp.ti.com>
- <4E32A75C.5060400@warmcat.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
+Subject: [PATCH v2] OMAP3: NAND: Adding NAND support and specifying NAND partitions.
+Date: Fri, 29 Jul 2011 18:13:16 +0530
+Message-ID: <1311943396-16710-1-git-send-email-hrishikesh.b@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eGLW8NzjjVmDHwQh"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4E32A75C.5060400-/Zus8d0mwwtBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?utf-8?B?IkFuZHkgR3JlZW4gKOael+WuieW7uCki?= <andy-/Zus8d0mwwtBDgjK7y7TUQ@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Sanjeev Premi <premi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+This patch adds the NAND support on OMAP3EVM board and also allocates
+five partitions  on NAND.
+Referred to file: arch/arm/mach-omap2/board-omap3beagle.c
 
---eGLW8NzjjVmDHwQh
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+Signed-off-by: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   37 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+), 0 deletions(-)
 
-Hi,
-
-On Fri, Jul 29, 2011 at 01:28:12PM +0100, "Andy Green (=E6=9E=97=E5=AE=89=
-=E5=BB=B8)" wrote:
-> On 07/29/2011 01:07 PM, Somebody in the thread at some point said:
->=20
-> Hi -
->=20
-> >-                       omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->we=
-state);
-> >+                       if (dev->rev<  OMAP_I2C_REV_ON_3530_4430)
-> >+                               omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
-> >+                                                               dev->wes=
-tate);
->=20
-> >Andy, can you clarify why you added the revision check which didn't
-> >exist before ?
-> >
-> >[1] http://git.kernel.org/?p=3Dlinux/kernel/git/khilman/linux-omap-pm.gi=
-t;a=3Dcommitdiff;h=3Da3a7acbcc3df4e9ecc12aa1fc435534d74ebbdf4
-> >
->=20
-> At the time I wrote the patches back in March, the code there was
-> different: there was a pre-extant test avoiding that line on 4430,
-> and the patch is simply converting it to the new scheme.  You can see
-> it here:
->=20
-> http://permalink.gmane.org/gmane.linux.ports.arm.omap/54940
->=20
-> @@ -379,7 +379,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			 * REVISIT: Some wkup sources might not be needed.
->  			 */
->  			dev->westate =3D OMAP_I2C_WE_ALL;
-> -			if (dev->rev < OMAP_I2C_REV_ON_4430)
-> +			if (dev->rev < OMAP_I2C_REV_ON_3530_4430)
->  				omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
->  								dev->westate);
->  		}
->=20
-> I guess since March and before this got committed for 3.1, someone
-> got a patch in first removing the test, so when my patchset was
-> uplevelled for commit against 3.1-rc this conflict was dealt with by
-> re-introducing the test.
->=20
-> Long story short, it's there from me as a mechanical 1:1 renaming
-> action as part of the fix that 3530 and 4430 (different) IPs return
-> the same rev number.  Despite how it now looks I didn't add it, so if
-> Shubhrajyoti has reasons to think it should be gone again I have
-> nothing against that at all.
-
-yeah, looks like a bad conflict resolution. Shubhrajyoti, care to respin
-the patch and update commit log stating that it is fixing a bad conflict
-resolution or something ?
-
---=20
-balbi
-
---eGLW8NzjjVmDHwQh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOMql8AAoJEAv8Txj19kN1asAH/17I6yVoZV6x/mG4TXt7C5l8
-3kMjs+njEGKDFovHJGi3Y6z/dw+3rEsyHCM1FWMdVVgjcKysoWotboneMiv8mRrU
-PbIixqQDDH0g54zoperlGnQWjvZ1Czp4YkrUFsBUwh5kkVoxmdGirzIq+HO3H+8D
-jpJEPwIm78OF3ncpfgjwD5PGv/liRtfmplJPV6KyNAAihZh88Wtnyi+X+OhDV/jX
-LmuZhScE6zvJoFKrcJT1z5tpMzoktVX1riaKx5kuNqMXZn8tpJtlI50yxb2jcL63
-72HIeaMB+Ibn6cTMDkacc+pHRA9jH2xfV0tCV62G9YyKAxtFSpoPxBqQsODYeQw=
-=A2O5
------END PGP SIGNATURE-----
-
---eGLW8NzjjVmDHwQh--
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index b4d4346..3ac96d4 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -30,6 +30,9 @@
+ #include <linux/usb/otg.h>
+ #include <linux/smsc911x.h>
+ 
++#include <linux/mtd/partitions.h>
++#include <linux/mtd/nand.h>
++
+ #include <linux/wl12xx.h>
+ #include <linux/regulator/fixed.h>
+ #include <linux/regulator/machine.h>
+@@ -101,6 +104,37 @@ static void __init omap3_evm_get_revision(void)
+ 	}
+ }
+ 
++static struct mtd_partition omap3evm_nand_partitions[] = {
++	/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name		= "X-Loader",
++		.offset		= 0,
++		.size		= 4 * NAND_BLOCK_SIZE,
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot",
++		.offset         = 0x80000,
++		.size           = 15 * NAND_BLOCK_SIZE,
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot Env",
++		.offset		= 0x260000,
++		.size		= 1 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "Kernel",
++		.offset		= 0x280000,
++		.size		= 32 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "File System",
++		.offset		= 0x680000,
++		.size		= MTDPART_SIZ_FULL,
++	},
++};
++
+ #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+ #include <plat/gpmc-smsc911x.h>
+ 
+@@ -696,6 +730,9 @@ static void __init omap3_evm_init(void)
+ 
+ 	omap_serial_init();
+ 
++	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3evm_nand_partitions,
++			ARRAY_SIZE(omap3evm_nand_partitions));
++
+ 	/* OMAP3EVM uses ISP1504 phy and so register nop transceiver */
+ 	usb_nop_xceiv_register();
+ 
+-- 
+1.6.2.4
