@@ -1,101 +1,90 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [RFC v2]: Issues implementing clock handling mechanism within
- UART driver
-Date: Fri, 29 Jul 2011 16:54:44 +0530
-Message-ID: <CAAL8m4xjN15RfwbDd_c1HdoKY327CWOn5qwuoUT=fop4J0K5cw@mail.gmail.com>
-References: <1311845395-31917-1-git-send-email-govindraj.raja@ti.com> <20110729095512.GE31013@legolas.emea.dhcp.ti.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCHV2 3/5] OMAP: I2C: Remove the reset in the init path
+Date: Fri, 29 Jul 2011 16:57:44 +0530
+Message-ID: <4E329930.4040301@ti.com>
+References: <1311246554-22975-1-git-send-email-shubhrajyoti@ti.com> <1311246554-22975-4-git-send-email-shubhrajyoti@ti.com> <4E280D0B.1040701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20110729095512.GE31013@legolas.emea.dhcp.ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:51084 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932106Ab1G2L1y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jul 2011 07:27:54 -0400
+In-Reply-To: <4E280D0B.1040701@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, rnayak@ti.com, balajitk@ti.com
 
-On Fri, Jul 29, 2011 at 3:25 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
+On Thursday 21 July 2011 04:57 PM, Santosh Shilimkar wrote:
+Thanks for your review.
+> On 7/21/2011 4:39 PM, Shubhrajyoti D wrote:
 >
+<snip>
+>> +        /*
+>> +         * Enabling all wakup sources to stop I2C freezing on
+>> +         * WFI instruction.
+>> +         * REVISIT: Some wkup sources might not be needed.
+>> +         */
+> Surely not related to your patch. But the 'REVISIT:' caught
+> my attention. Is the comment still valid.
 
-Thanks for replying.
+Yes I will look and optimise the settings. Obviously all of them may not 
+be needed.
+Will get back on this.
 
-> On Thu, Jul 28, 2011 at 02:59:55PM +0530, Govindraj.R wrote:
->> Proposal:
->> --------
->> =A0 =A0 =A0 1. For the UART, follow the current approach of locking =
-the console in
->> =A0 =A0 =A0 =A0 =A0Idle/Suspend path before cutting the clock but us=
-ing pm_runtime_putsync.
->> =A0 =A0 =A0 =A0 =A0That is, continue using the prepare/resume Idle c=
-alls in idle path.
->
-> I believe you should be using ->prepare() to prevent that any other
-> work on UART won't trigger a console_write() right now. Maybe only
-> queueing the work for after ->complete() or, maybe, just ignoring the
-> work and loosing some prints, dunno.
->
-
-Yes true, for suspend path but for Idle path we don't have any such
-mechanism.
-
->> =A0 =A0 =A0 2. Other Approach would be adding conditions to debug pr=
-ints from
->> =A0 =A0 =A0 =A0 =A0omap_device/ omap_hwmod/clock_framework avoid cal=
-ling these debug
->> =A0 =A0 =A0 =A0 =A0prints for uart.
->> =A0 =A0 =A0 =A0 =A0Or Even a debug macro that would not debug prints=
- if the context is
->> =A0 =A0 =A0 =A0 =A0from uart.
->
-> yeah, that might work but then again, if we were using 8250.c, would =
-we
-> have this limitation ??
->
-
-Its not necessary which driver we use, its about clock handling mechani=
-sm
-where it has to be done.
-
-if we add clock handling mechanism into the driver, from driver context
-handling clocks + managing the printks for the same uart port is a
-issue, due to reasons said earlier.
-
-> I think that, maybe, your best call would be to capture console_write=
-()
-> calls into an internal temporary buffer on ->prepare() and flush it o=
-nce
-> ->complete() is called ?
->
-
-IIUC ->prepare and -> complete are only for suspend path
-when we do system wide suspend
-
-for normal idle path get_sync and put_sycn we dont have any ->prepare
-or -> complete where we can buffer the contents and flush later.
-
-> BTW, where are the patches ? :-)
-
-I have done clock gating in idle path integrating irq chaining patches.
-hosted in gitorious here[1].
-
-Was consolidating whether this approach is OK,
-or
-Are there any other approaches that I should consider?
-
---
-Thanks,
-Govindraj.R
-
-[1]: https://gitorious.org/runtime_3-0/runtime_3-0/commits/wip_irqchn
-
+Also I see that we are not writing it for " < OMAP_I2C_REV_ON_3530_4430"
+I will send a patch correcting the same.
 
 >
-> --
-> balbi
+>> +        dev->westate = OMAP_I2C_WE_ALL;
+>> +        if (dev->rev<  OMAP_I2C_REV_ON_3530_4430)
+> Space if (dev->rev <  OMAP_I2C_REV_ON_3530_4430)
+>> +            omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+>> +                            dev->westate);
+>>       }
+>>       omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>>
+>> @@ -612,6 +572,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter 
+>> *adap,
+>>           return r;
+>>       if (r == 0) {
+>>           dev_err(dev->dev, "controller timed out\n");
+>> +        if (dev->device_reset != NULL) {
+>> +            r = dev->device_reset(dev->dev);
+>> +            if (r<  0)
+> ditto
+>> +                dev_err(dev->dev, "reset failed\n");
+>> +        }
+>>           omap_i2c_init(dev);
+>>           return -ETIMEDOUT;
+>>       }
+>> @@ -622,6 +587,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter 
+>> *adap,
+>>       /* We have an error */
+>>       if (dev->cmd_err&  (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
+> You can fix this one as well.
+>>                   OMAP_I2C_STAT_XUDF)) {
+>> +        if (dev->device_reset != NULL) {
+>> +            r = dev->device_reset(dev->dev);
+>> +            if (r<  0)
+> here too.
+>> +                dev_err(dev->dev, "reset failed\n");
+>> +        }
+>>           omap_i2c_init(dev);
+>>           return -EIO;
+>>       }
+>> @@ -1024,6 +994,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>>       if (pdata != NULL) {
+>>           speed = pdata->clkrate;
+>>           dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+>> +        dev->device_reset = pdata->device_reset;
+>>       } else {
+>>           speed = 100;    /* Default speed */
+>>           dev->set_mpu_wkup_lat = NULL;
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards
+> Santosh
+
