@@ -1,52 +1,55 @@
-From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCH 08/13] OMAP2+: powerdomain: control power domains next
- state
-Date: Fri, 29 Jul 2011 11:00:47 -0700
-Message-ID: <20110729180047.GA14228@google.com>
-References: <1311841821-10252-1-git-send-email-j-pihet@ti.com>
- <1311841821-10252-9-git-send-email-j-pihet@ti.com>
- <20110729075942.GA26959@google.com>
- <CAORVsuV68JhpV5XzXNV3Z9xxRUBbgDen7NDRG+h=in7-ZL=JhQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] Runtime PM discussion notes
+Date: Fri, 29 Jul 2011 21:52:26 +0200
+Message-ID: <201107292152.27066.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1106231113170.2033-100000@iolanthe.rowland.org> <201107131104.06995.rjw@sisk.pl> <20110729134015.GA1561@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:55919 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752473Ab1G2SBi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jul 2011 14:01:38 -0400
-Content-Disposition: inline
-In-Reply-To: <CAORVsuV68JhpV5XzXNV3Z9xxRUBbgDen7NDRG+h=in7-ZL=JhQ@mail.gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:34649 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752493Ab1G2TvF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jul 2011 15:51:05 -0400
+In-Reply-To: <20110729134015.GA1561@ucw.cz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, markgross@thegnar.org, broonie@opensource.wolfsonmicro.com, Jean Pihet <j-pihet@ti.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Paul Walmsley <paul@pwsan.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-On Fri, Jul 29, 2011 at 10:47:43AM +0200, Jean Pihet wrote:
-> On Fri, Jul 29, 2011 at 9:59 AM, Todd Poynor <toddpoynor@google.com> wrote:
-...
-> > All min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE paths need
-> > free_new_user = 1.
-> free_new_user = 1 is only needed if no existing constraint has been
-> found, i.e. user stays at NULL. This is implemented in the check for
-> an existing constraint (plist_for_each_entry(...)).
+On Friday, July 29, 2011, Pavel Machek wrote:
+> Hi!
+> 
+> > > > Actually, it just occurred to me that if we're waiting for a system
+> > > > timer and can hand that off to a suitable timer in the PMIC then we can
+> > > > do a suspend to RAM for the deep idle state from the hardware point of
+> > > > view.
+> > > 
+> > > Yep.  At LinuxCon Cambridge two years ago, we had a discussion about 
+> > > whether it would be possible to enter ACPI S-states from CPUIdle (or some 
+> > > idle governor) on Intel chips.  If I remember correctly, the conclusion 
+> > > was that ACPI always disables the screen/backlight, so it would only be 
+> > > useful for situations where that was acceptable.
+> 
+> Well, auto suspending when screensaver is active would still be
+> useful.
+> 
+> (And IIRC some machines kept screen on when in S-state unless driver
+> powered it down... but that might be S1.
+> 
+> > The reason why you can't enter ACPI S-states from CPUidle is because you
+> > need to go out of the idle loop to execute some ACPI-specific stuff.  Which
+> > is not even specific to Intel chips, but to ACPI in general.
+> 
+> The code was little tricky/unclean, but it "worked" for me at one
+> point... I called it  "sleepy linux".
 
-Oops, I meant to say it applies in all cases where min_latency ==
-PM_QOS_DEV_LAT_DEFAULT_VALUE, since the new node is only used for
-adding a constraint (and no existing constraint found).  I'd suggest
-something like:
+Yes, you can find a system where it might kind of work (just because
+_PTS is empty or something like this).  Is it going to work in general?
+No way.
 
-        if (min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE) {
-                new_user = kzalloc(sizeof(struct pwrdm_wkup_constraints_entry),
-                        GFP_KERNEL);
-                <check NULL return>
-                free_new_user = 1;
-        }
+So please let's turn into something at least _theoretically_ viable.
 
-and then set free_new_user = 0 only if no existing constraint is found
-for the add case.  Because it's easy to miss cases where the
-allocated memory needs to be freed when that's not the default, and you
-might as well skip the allocate on a constraint removal.  Pretty minor
-point, though.
-
-
-Todd
+Thanks,
+Rafael
