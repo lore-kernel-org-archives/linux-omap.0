@@ -1,118 +1,63 @@
 From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCH 08/13] OMAP2+: powerdomain: control power domains next
- state
-Date: Fri, 29 Jul 2011 00:59:42 -0700
-Message-ID: <20110729075942.GA26959@google.com>
+Subject: Re: [PATCH 07/13] OMAP PM: early init of the pwrdms states
+Date: Fri, 29 Jul 2011 01:08:20 -0700
+Message-ID: <20110729080820.GB26959@google.com>
 References: <1311841821-10252-1-git-send-email-j-pihet@ti.com>
- <1311841821-10252-9-git-send-email-j-pihet@ti.com>
+ <1311841821-10252-8-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:57380 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:27471 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753758Ab1G2IAV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jul 2011 04:00:21 -0400
+	with ESMTP id S1751930Ab1G2IIy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jul 2011 04:08:54 -0400
 Content-Disposition: inline
-In-Reply-To: <1311841821-10252-9-git-send-email-j-pihet@ti.com>
+In-Reply-To: <1311841821-10252-8-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: jean.pihet@newoldbits.com
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, markgross@thegnar.org, broonie@opensource.wolfsonmicro.com, Jean Pihet <j-pihet@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, markgross@thegnar.org, broonie@opensource.wolfsonmicro.com, Jean Pihet <j-pihet@ti.com>, rnayak@ti.com
 
-On Thu, Jul 28, 2011 at 10:30:15AM +0200, jean.pihet@newoldbits.com wrote:
+On Thu, Jul 28, 2011 at 10:30:14AM +0200, jean.pihet@newoldbits.com wrote:
+> From: Jean Pihet <j-pihet@ti.com>
+> 
+> The powerdomains next states are initialized in pwrdms_setup as a
+> late_initcall. Because the PM QoS devices constraint can be requested
+> early in the boot sequence, the power domains next states can be
+> overwritten by pwrdms_setup.
+> 
+> This patch fixes it by initializing the power domains next states
+> early at boot, so that the constraints can be applied.
+> Later in the pwrdms_setup function the currently programmed
+> next states are re-used as next state values.
+> 
+> Applies to OMAP3 and OMAP4.
+> 
+> Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using
+> wake-up latency constraints on MPU, CORE and PER.
+> 
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> ---
 ...
-> +int pwrdm_set_wkup_lat_constraint(struct powerdomain *pwrdm, void *cookie,
-> +				  long min_latency)
-> +{
-> +	struct pwrdm_wkup_constraints_entry *user = NULL;
-> +	struct pwrdm_wkup_constraints_entry *tmp_user, *new_user;
-> +	int ret = 0, free_new_user = 0, free_node = 0;
-> +	long value = 0;
-> +	unsigned long flags;
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 9af0847..63c3e7a 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -108,6 +108,9 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+>  	pwrdm->state = pwrdm_read_pwrst(pwrdm);
+>  	pwrdm->state_counter[pwrdm->state] = 1;
+>  
+> +	/* Early init of the next power state */
+> +	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_RET);
 > +
-> +	pr_debug("powerdomain: %s: pwrdm %s, cookie=0x%p, min_latency=%ld\n",
-> +		 __func__, pwrdm->name, cookie, min_latency);
-> +
-> +	new_user = kzalloc(sizeof(struct pwrdm_wkup_constraints_entry),
-> +			   GFP_KERNEL);
-> +	if (!new_user) {
-> +		pr_err("%s: FATAL ERROR: kzalloc failed\n", __func__);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	spin_lock_irqsave(&pwrdm->wkup_lat_plist_lock, flags);
-> +
-> +	/* Check if there already is a constraint for cookie */
-> +	plist_for_each_entry(tmp_user, &pwrdm->wkup_lat_plist_head, node) {
-> +		if (tmp_user->cookie == cookie) {
-> +			user = tmp_user;
-> +			free_new_user = 1;
-> +			break;
-> +		}
-> +	}
-> +
-> +	if (min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE) {
-> +		/* If nothing to update, job done */
-> +		if (user && (user->node.prio == min_latency))
-> +			goto exit_ok;
-> +
-> +		if (!user) {
-> +			/* Add new entry to the list */
-> +			user = new_user;
-> +			user->cookie = cookie;
-> +		} else {
-> +			/* Update existing entry */
-> +			plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
-> +		}
-> +
-> +		plist_node_init(&user->node, min_latency);
-> +		plist_add(&user->node, &pwrdm->wkup_lat_plist_head);
-> +	} else {
-> +		/* Remove the constraint from the list */
-> +		if (!user) {
-> +			pr_err("%s: Error: no prior constraint to release\n",
-> +			       __func__);
-> +			ret = -EINVAL;
-> +			goto exit_error;
-> +		}
-> +
-> +		plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
-> +		free_node = 1;
 
-All min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE paths need
-free_new_user = 1.  (Or maybe change the logic to check user !=
-new_user and free new_user if so.)
-
-> +	}
-> +
-> +exit_ok:
-> +	/* Find the strongest constraint from the list */
-> +	if (!plist_head_empty(&pwrdm->wkup_lat_plist_head))
-> +		value = plist_first(&pwrdm->wkup_lat_plist_head)->prio;
-> +
-> +	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
-> +
-> +	if (free_node)
-> +		kfree(user);
-> +
-> +	if (free_new_user)
-> +		kfree(new_user);
-> +
-> +	/* Apply the constraint to the pwrdm */
-> +	pr_debug("powerdomain: %s: pwrdm %s, value=%ld\n",
-> +		 __func__, pwrdm->name, value);
-> +	pwrdm_wakeuplat_update_pwrst(pwrdm, value);
-> +
-> +	return 0;
-> +
-> +exit_error:
-> +	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
-
-Need:
-        kfree(new_user);
-
-> +	return ret;
-> +}
+Wanted to check that it's OK to initialize the next state of a power
+domain to RETENTION early in the boot sequence.  I believe patches
+have been previously discussed that set the state to ON to ensure the
+domain doesn't go to a lower state, and possibly lose context, before
+the PM subsystem is setup to handle it?  Not sure, thought maybe worth
+a doublecheck.
 
 
 Todd
+
