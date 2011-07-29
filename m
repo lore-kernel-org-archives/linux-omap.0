@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv5 1/3] OMAP: I2C: Reset support
-Date: Fri, 29 Jul 2011 16:06:51 +0530
-Message-ID: <1311935813-8481-2-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv5 3/3] OMAP: I2C: Remove the SYSC register definition
+Date: Fri, 29 Jul 2011 16:06:53 +0530
+Message-ID: <1311935813-8481-4-git-send-email-shubhrajyoti@ti.com>
 References: <1311935813-8481-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,62 +12,59 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
- Under some error conditions the i2c  driver may do a reset.
- Adding a reset field and support in the platform.
+The SYSC register should not accessed in the driver removing the
+define from the driver.
+Also clean up the syscstate from the omap_i2c_dev struct.
 
+Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/plat-omap/i2c.c |   18 ++++++++++++++++++
- include/linux/i2c-omap.h |    1 +
- 2 files changed, 19 insertions(+), 0 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index 2388b8e..be36cac 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -146,6 +146,22 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
- 		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
- 	},
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index d8f4470..d05efe7 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -63,7 +63,6 @@ enum {
+ 	OMAP_I2C_BUF_REG,
+ 	OMAP_I2C_CNT_REG,
+ 	OMAP_I2C_DATA_REG,
+-	OMAP_I2C_SYSC_REG,
+ 	OMAP_I2C_CON_REG,
+ 	OMAP_I2C_OA_REG,
+ 	OMAP_I2C_SA_REG,
+@@ -187,7 +186,6 @@ struct omap_i2c_dev {
+ 	u16			scllstate;
+ 	u16			sclhstate;
+ 	u16			bufstate;
+-	u16			syscstate;
+ 	u16			westate;
+ 	u16			errata;
  };
-+/**
-+ * omap2_i2c_reset - reset the omap i2c module.
-+ * @dev: struct device*
-+ */
-+
-+static int omap2_i2c_reset(struct device *dev)
-+{
-+	int r = 0;
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omap_device *odev = to_omap_device(pdev);
-+	struct omap_hwmod *oh;
-+
-+	oh = odev->hwmods[0];
-+	r = omap_hwmod_reset(oh);
-+	return r;
-+}
- 
- static inline int omap2_i2c_add_bus(int bus_id)
- {
-@@ -187,6 +203,8 @@ static inline int omap2_i2c_add_bus(int bus_id)
- 	 */
- 	if (cpu_is_omap34xx())
- 		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
-+
-+	pdata->device_reset = omap2_i2c_reset;
- 	od = omap_device_build(name, bus_id, oh, pdata,
- 			sizeof(struct omap_i2c_bus_platform_data),
- 			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
-diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
-index 98ae49b..8aa91b6 100644
---- a/include/linux/i2c-omap.h
-+++ b/include/linux/i2c-omap.h
-@@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
- 	int		(*device_enable) (struct platform_device *pdev);
- 	int		(*device_shutdown) (struct platform_device *pdev);
- 	int		(*device_idle) (struct platform_device *pdev);
-+	int		(*device_reset) (struct device *dev);
- };
- 
- #endif
+@@ -202,7 +200,6 @@ const static u8 reg_map_ip_v1[] = {
+ 	[OMAP_I2C_BUF_REG] = 0x05,
+ 	[OMAP_I2C_CNT_REG] = 0x06,
+ 	[OMAP_I2C_DATA_REG] = 0x07,
+-	[OMAP_I2C_SYSC_REG] = 0x08,
+ 	[OMAP_I2C_CON_REG] = 0x09,
+ 	[OMAP_I2C_OA_REG] = 0x0a,
+ 	[OMAP_I2C_SA_REG] = 0x0b,
+@@ -223,7 +220,6 @@ const static u8 reg_map_ip_v2[] = {
+ 	[OMAP_I2C_BUF_REG] = 0x94,
+ 	[OMAP_I2C_CNT_REG] = 0x98,
+ 	[OMAP_I2C_DATA_REG] = 0x9c,
+-	[OMAP_I2C_SYSC_REG] = 0x20,
+ 	[OMAP_I2C_CON_REG] = 0xa4,
+ 	[OMAP_I2C_OA_REG] = 0xa8,
+ 	[OMAP_I2C_SA_REG] = 0xac,
+@@ -264,7 +260,6 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+ 	}
 -- 
 1.7.1
