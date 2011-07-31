@@ -1,70 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Runtime PM discussion notes
-Date: Sun, 31 Jul 2011 00:41:53 +0200
-Message-ID: <201107310041.53344.rjw@sisk.pl>
-References: <20110730220953.GB10450@elf.ucw.cz>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC/PATCH 7/7] WIP: HACK/RFC: omap_device: begin to decouple
+ platform_device from omap_device
+Date: Sat, 30 Jul 2011 20:58:07 -0600
+Message-ID: <20110731025807.GA24334@ponder.secretlab.ca>
+References: <1311292338-11830-1-git-send-email-khilman@ti.com>
+ <1311292338-11830-9-git-send-email-khilman@ti.com>
+ <20110730120332.GA15539@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20110730220953.GB10450@elf.ucw.cz>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:41660 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750859Ab1GaO01 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Jul 2011 10:26:27 -0400
+Received: by mail-ww0-f44.google.com with SMTP id 5so4859103wwe.1
+        for <linux-omap@vger.kernel.org>; Sun, 31 Jul 2011 07:26:27 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20110730120332.GA15539@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, "G. Manjunath Kondaiah" <manjugk@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On Sunday, July 31, 2011, Pavel Machek wrote:
-> Hi!
-> 
-> > > IIRC I solved it by just calling _PTS when sleepy Linux was
-> > > enabled. It had side effect of lighting up moon icon, but otherwise
-> > > seemed to work ok.
-> > > 
-> > > I do not think ACPI says what can and can not be done after _PTS...
+On Sat, Jul 30, 2011 at 01:03:32PM +0100, Russell King - ARM Linux wrote:
+> On Thu, Jul 21, 2011 at 04:52:18PM -0700, Kevin Hilman wrote:
+> > Rather than embedding a struct platform_device inside a struct
+> > omap_device, decouple them, leaving only a pointer to the
+> > platform_device inside the omap_device.
 > > 
-> > Yes, it does.
-> 
-> I have 2.0 spec here; it explains how _PTS can be called long time
-> before actual sleep and may not power down devices...
-> 
-> > > It should be ok to execute _WAK in process context once system is
-> > > resumed. ... or maybe not executing _WAK at all. User can probably
-> > > live with moon icon lighted up.
+> > This patch uses devres to allocate and attach the omap_device to the
+> > struct device, so finding an omap_device from a struct device means
+> > using devres_find(), and the to_omap_device() helper function was
+> > modified accordingly.
 > > 
-> > But I don't think the user can live with certain functionality missing,
-> > like battery status or such things.
+> > RFC/Hack alert:
+> > 
+> > Currently the driver core (drivers/base/dd.c) doesn't expect any
+> > devres resources to exist before the driver's ->probe() is called.  In
+> > this patch, I just comment out the warning, but we'll need to
+> > understand why that limitation exists, and if it's a real limitation.
+> > A first glance suggests that it's not really needed.  If this is a
+> > true limitation, we'll need to find some way other than devres to
+> > attach an omap_device to a struct device.
+> > 
+> > On OMAP, we will need an omap_device attached to a struct device
+> > before probe because device HW may be disabled in probe and drivers
+> > are expected to use runtime PM in ->probe() to activate the hardware
+> > before access.  Because the runtime PM API calls use omap_device (via
+> > our PM domain layer), we need omap_device attached to a
+> > platform_device before probe.
 > 
-> Yep; you'd probably want to execute it before calling other ACPI methods...
-> 
-> > This is completely unrealistic to think that your prototype can be safely
-> > implemented on _every_ ACPI-based system.  Period.
-> 
-> My prototype would probably not be safe on any system, period. It was
-> quick hack to prove the concept.
-> 
-> > And that's even without taking SMP into account, BTW.
-> 
-> Idea was to do hot CPU unplug before enabling sleepy state. Sleepy
-> probably should be enabled when screen is turned off by
-> screensaver (if machine is sufficiently idle).
-> 
-> I'm not saying that task is easy, merely that is doable. (Doing it in
-> clean way will be harder still). Basically prepare all the devices to
-> sleep when machine gets "idle enough", along with _PTS, but keep
-> running, including userspace. Then, if next wake up is "long enough"
-> into future, set up RTC alarm and push machine to sleep.
+> This feels really wrong to overload devres with this.  devres purpose is
+> to provide the device's _drivers_ with a way to allocate and free resources
+> in such a way to avoid leaks on .remove or probe failure.  So I think that
+> overloading it with something that has a different lifetime is completely
+> wrong.
 
-You're supposed to do all that from within the idle loop on one
-of the CPUs (at least in the context of this discussion).  I don't
-really think it's realistically doable.
+I disagree; extending devres to also handle device lifetime scoped
+resources makes perfect sense. It is a clean extension, and struct device
+is really getting rather huge.  I certainly prefer re-scoping devres
+to adding more elements to struct device.
 
-Thanks,
-Rafael
+> We could add a new member to struct dev_archdata or pdev_archdata to carry
+> a pointer to this data, which I think would be a far cleaner (and saner)
+> way to deal with this.  In much the same way as we already have an of_node
+> member in struct device.
+
+Since this is just for omap_device, which by definition is arm-only, I
+don't have any strong objection to using pdev_archdata. If it was
+cross-architecture, then I'd argue strongly for the devres approach.
+
+g.
