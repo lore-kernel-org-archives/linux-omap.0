@@ -1,97 +1,77 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC/PATCH 7/7] WIP: HACK/RFC: omap_device: begin to decouple
-	platform_device from omap_device
-Date: Sun, 31 Jul 2011 16:05:40 +0100
-Message-ID: <20110731150540.GA3019@n2100.arm.linux.org.uk>
-References: <1311292338-11830-1-git-send-email-khilman@ti.com> <1311292338-11830-9-git-send-email-khilman@ti.com> <20110730120332.GA15539@n2100.arm.linux.org.uk> <20110731025807.GA24334@ponder.secretlab.ca>
+From: mark gross <markgross@thegnar.org>
+Subject: Re: [linux-pm] [RFC/PATCH v3 00/13] PM QoS: add a per-device latency
+ constraints class
+Date: Sun, 31 Jul 2011 10:38:46 -0700
+Message-ID: <20110731173846.GA19112@gvim.org>
+References: <1311841821-10252-1-git-send-email-j-pihet@ti.com>
+ <CAORVsuVoJ5-1hx2+6+gCuuWDd9A9h_RTS=U1228BM7EYiG=gxA@mail.gmail.com>
+ <20110729142459.GA5509@gvim.org>
+ <201107292346.22211.rjw@sisk.pl>
+Reply-To: markgross@thegnar.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35857 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750982Ab1GaPF5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Jul 2011 11:05:57 -0400
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:44755 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751818Ab1GaRiu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Jul 2011 13:38:50 -0400
+Received: by pzk37 with SMTP id 37so9953123pzk.1
+        for <linux-omap@vger.kernel.org>; Sun, 31 Jul 2011 10:38:50 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20110731025807.GA24334@ponder.secretlab.ca>
+In-Reply-To: <201107292346.22211.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, "G. Manjunath Kondaiah" <manjugk@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: markgross@thegnar.org, broonie@opensource.wolfsonmicro.com, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Sat, Jul 30, 2011 at 08:58:07PM -0600, Grant Likely wrote:
-> On Sat, Jul 30, 2011 at 01:03:32PM +0100, Russell King - ARM Linux wrote:
-> > On Thu, Jul 21, 2011 at 04:52:18PM -0700, Kevin Hilman wrote:
-> > > Rather than embedding a struct platform_device inside a struct
-> > > omap_device, decouple them, leaving only a pointer to the
-> > > platform_device inside the omap_device.
+On Fri, Jul 29, 2011 at 11:46:21PM +0200, Rafael J. Wysocki wrote:
+> On Friday, July 29, 2011, mark gross wrote:
+> > On Fri, Jul 29, 2011 at 10:37:52AM +0200, Jean Pihet wrote:
+> > > Mark,
 > > > 
-> > > This patch uses devres to allocate and attach the omap_device to the
-> > > struct device, so finding an omap_device from a struct device means
-> > > using devres_find(), and the to_omap_device() helper function was
-> > > modified accordingly.
+> > > On Thu, Jul 28, 2011 at 3:14 PM, mark gross <markgross@thegnar.org> wrote:
+> > > > On Thu, Jul 28, 2011 at 10:30:07AM +0200, jean.pihet@newoldbits.com wrote:
+> > > >> From: Jean Pihet <j-pihet@ti.com>
+> > > >>
+> > > >> This patch set is in an RFC state, for review and comments.
+> > > >>
+> > > >> High level implementation:
+> > > >>
+> > > ...
 > > > 
-> > > RFC/Hack alert:
-> > > 
-> > > Currently the driver core (drivers/base/dd.c) doesn't expect any
-> > > devres resources to exist before the driver's ->probe() is called.  In
-> > > this patch, I just comment out the warning, but we'll need to
-> > > understand why that limitation exists, and if it's a real limitation.
-> > > A first glance suggests that it's not really needed.  If this is a
-> > > true limitation, we'll need to find some way other than devres to
-> > > attach an omap_device to a struct device.
-> > > 
-> > > On OMAP, we will need an omap_device attached to a struct device
-> > > before probe because device HW may be disabled in probe and drivers
-> > > are expected to use runtime PM in ->probe() to activate the hardware
-> > > before access.  Because the runtime PM API calls use omap_device (via
-> > > our PM domain layer), we need omap_device attached to a
-> > > platform_device before probe.
+> > > >> 7. Misc fixes to improve code readability:
+> > > >> . rename of the PM QoS implementation file from pm_qos_params.[ch] to pm_qos.[ch]
+> > > > I picked the name for the file as pm_qos_params over pm_qos because I
+> > > > wanted to make it implicitly clear that this was not an full QOS
+> > > > implementation.  True QOS carries expectations similar to real time and
+> > > > as the infrastructure is closer to "good intentioned" than even "best
+> > > > effort" and offers no notification when the QOS request is not able to
+> > > > be met and really doesn't implement a true QOS at all, (it just provides
+> > > > the parameter interface for part of one its missing the notification
+> > > > interface when the service level is not met and I think a few other
+> > > > things.) So I wanted to have it named a bit different from just pm_qos.
+> > > >
+> > > > This said I'm not supper attached to the naming of the modules.  If
+> > > > folks want to change it I wouldn't complain (too much anyway;).
+> > > Ok got the idea. I do not know what name to chose though. As suggested
+> > > previously the name pm_qos_params does not reflect the implementation,
+> > > that is why I renamed it.
 > > 
-> > This feels really wrong to overload devres with this.  devres purpose is
-> > to provide the device's _drivers_ with a way to allocate and free resources
-> > in such a way to avoid leaks on .remove or probe failure.  So I think that
-> > overloading it with something that has a different lifetime is completely
-> > wrong.
+> > I must have missed the part where the name doesn't reflect the
+> > implementation was talked about.  I look at the interface and I see
+> > parameters all over the place and a small bit of notification.
 > 
-> I disagree; extending devres to also handle device lifetime scoped
-> resources makes perfect sense. It is a clean extension, and struct device
-> is really getting rather huge.  I certainly prefer re-scoping devres
-> to adding more elements to struct device.
-
-The point is you're asking something which is designed to have a well
-defined lifetime of driver-bind...driver-unbind to do a lot more than
-that - extending its lifetime conditional on some flag to the entire
-device lifetime instead.
-
-Such extensions tend to be a disaster - and a recipe for confusion as
-people will no longer have a clear idea of the lifetime issues.  We
-already know that people absolutely struggle to understand lifed
-objects - we see it time and time again where people directly kfree
-stuff like platform devices without thinking about whether they're
-still in use.
-
-So no, extending devres is a _big_ mistake and is far from clean.
-
-Not only that, but if most of the platform devices are omap devices,
-(as it would be on OMAP), you'll consume more memory through having to
-have the additional management structs for the omap_device stuff than
-a simple pointer.
-
-As for struct device getting rather huge, last time I looked it contained
-a load of stuff which was there whether or not a platform used it.  Eg,
-you get 4 bytes wasted for an of_node whether you have DT support or not.
-If sizeof(struct device) really is a problem, then it needs the unused
-stuff ifdef'd away.  So I don't buy the "its getting rather huge" argument.
-
-> > We could add a new member to struct dev_archdata or pdev_archdata to carry
-> > a pointer to this data, which I think would be a far cleaner (and saner)
-> > way to deal with this.  In much the same way as we already have an of_node
-> > member in struct device.
+> The interface is for specifying PM QoS requirements or constraints that
+> may or may not be regarded as "parameters", depending on ones definition
+> of the last term.  Moreover, the code not only implements the interface,
+> but also defines data structures and API to be used throughout the kernel
+> which is quite a bit more than just "parameters".
 > 
-> Since this is just for omap_device, which by definition is arm-only, I
-> don't have any strong objection to using pdev_archdata. If it was
-> cross-architecture, then I'd argue strongly for the devres approach.
+> In my not so humble opinion the name isn't good and the .c file should be
+> in kernel/power in the first place.  I would call it simply qos.c (the fact
+> that _right_ _now_ it's not a full QoS implementation doesn't matter, because
+> it may become one in the future).
 
-Indeed, which is why I think putting it in the platform device archdata
-makes total sense, more sense than buggering up the clean devres lifetime
-rules that we have today.
+Sounds ok to me.
+
+--mark
