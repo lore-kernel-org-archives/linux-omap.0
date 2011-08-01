@@ -1,46 +1,52 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: ISP
-Date: Mon, 1 Aug 2011 13:55:13 +0200
-Message-ID: <201108011355.13993.laurent.pinchart@ideasonboard.com>
-References: <CAOO8FEcnGxf-2xKbpVrN2e4CfgPZ0VgSOoO+dJthNa+8ZaYKPA@mail.gmail.com> <CAORxB+CeQcgR-9eEvUokS2k7snKNp48EciKCNWs=eGKfeZMGzA@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 1/2] of: address: use resource_size helper
+Date: Mon, 1 Aug 2011 12:55:49 +0100
+Message-ID: <20110801115549.GA4566@ponder.secretlab.ca>
+References: <1311364042-8325-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52348 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750827Ab1HALzG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Aug 2011 07:55:06 -0400
-In-Reply-To: <CAORxB+CeQcgR-9eEvUokS2k7snKNp48EciKCNWs=eGKfeZMGzA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1311364042-8325-1-git-send-email-balbi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?q?=E5=8D=9E=E7=A3=8A?= <mykofzone@gmail.com>
-Cc: linux-omap@vger.kernel.org
 
-Hi,
+On Fri, Jul 22, 2011 at 10:47:21PM +0300, Felipe Balbi wrote:
+> that should be the approved way of calculating
+> the size of resources. No functional changes.
+> 
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-On Wednesday 27 July 2011 04:02:01 =E5=8D=9E=E7=A3=8A wrote:
-> 2011/7/26 Veda N <veda74@gmail.com>:
-> > Hello,
-> > For developing camera sensors drivers which kernel source
-> > and isp drivers sources have been tested and i need to use.
-> > And from where i can get them.
-> >=20
-> > this is for omap3
->=20
-> http://code.google.com/p/rowboat/wiki/Source
-> there's omap3cam master driver and ISP driver in rowboat kernel.
+Applied, thanks.
 
-Please don't. That's really old deprecated code. You should use the OMA=
-P3 ISP=20
-driver found in mainline.
-
---=20
-Regards,
-
-Laurent Pinchart
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/of/address.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/of/address.c b/drivers/of/address.c
+> index deefc0c..6e7b2cf 100644
+> --- a/drivers/of/address.c
+> +++ b/drivers/of/address.c
+> @@ -624,6 +624,6 @@ void __iomem *of_iomap(struct device_node *np, int index)
+>  	if (of_address_to_resource(np, index, &res))
+>  		return NULL;
+>  
+> -	return ioremap(res.start, 1 + res.end - res.start);
+> +	return ioremap(res.start, resource_size(&res));
+>  }
+>  EXPORT_SYMBOL(of_iomap);
+> -- 
+> 1.7.6
+> 
