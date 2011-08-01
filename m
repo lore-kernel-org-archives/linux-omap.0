@@ -1,102 +1,109 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [RFC v2]: Issues implementing clock handling mechanism within
- UART driver
-Date: Mon, 1 Aug 2011 18:16:59 +0530
-Message-ID: <CAAL8m4xTiwH4dKYMWm1M=xMSEzZD=hgL_dxUZeSBkda_58VF7g@mail.gmail.com>
-References: <20110729095512.GE31013@legolas.emea.dhcp.ti.com>
- <CAAL8m4xjN15RfwbDd_c1HdoKY327CWOn5qwuoUT=fop4J0K5cw@mail.gmail.com>
- <20110729113713.GK31013@legolas.emea.dhcp.ti.com> <CAAL8m4wq7RQ_Rp-+LMWYY=dtTnhtR5UY+8HpO5C_54goKezaTg@mail.gmail.com>
- <20110729121907.GM31013@legolas.emea.dhcp.ti.com> <CAAL8m4wQqS64xG0Vi9YCOdy3f2=1V7UkJCErpikHOra4X=g7+w@mail.gmail.com>
- <20110729140210.GT31013@legolas.emea.dhcp.ti.com> <CAAL8m4wdKu_XGFaGxuAJ9uypRyyQMkR8HL7Y6E=pBkwX=L43nA@mail.gmail.com>
- <20110801090328.GG31013@legolas.emea.dhcp.ti.com> <CAMrsUdL_9mzKsjrKf=spihxcRTQc6Tsr+MAP9GFAz_7sE27B6Q@mail.gmail.com>
- <20110801100203.GN31013@legolas.emea.dhcp.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [GIT PULL] OMAP display subsystem patches for 3.1
+Date: Mon, 01 Aug 2011 16:49:40 +0300
+Message-ID: <1312206580.1956.21.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20110801100203.GN31013@legolas.emea.dhcp.ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:40943 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750862Ab1HANtt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Aug 2011 09:49:49 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Paul Mundt <lethal@linux-sh.org>, linux-omap mailing list <linux-omap@vger.kernel.org>, linux-fbdev <linux-fbdev@vger.kernel.org>, lk-ml <linux-kernel@vger.kernel.org>
 
-On Mon, Aug 1, 2011 at 3:32 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> (fix your mailer dude)
+Hi Linus,
 
-Sorry some settings got screwed up with my mailer
+Sorry for sending this pull request so late.
 
->
-> On Mon, Aug 01, 2011 at 03:26:52PM +0530, Raja, Govindraj wrote:
+This pull request contains mostly OMAP display subsystem driver patches
+related to preparing and making the DSS driver use runtime PM. Using
+runtime PM creates new dependencies to the lower level arch stuff
+(clocks and HWMODs), and while the patches for arch side have been ready
+for some time, some of them seem to have fallen into some cracks and
+didn't make it into the pull requests sent by the HWMOD maintainer. And
+then the maintainer went to vacation before I could react.
 
-[..]
+I had to make two hack patches to the DSS driver to circumvent the
+problems. The hack patches are small and easily removed for -rc2
+presuming the arch side gets fixed at that point.
 
->> =C2=A0 =C2=A0 =C2=A0this hunk is unnecessary. Clocks are always on w=
-hen they are called.
->>
->> =C2=A0 =C2=A0The problem is:
->> =C2=A0 =C2=A0[1]:
->> =C2=A0 =C2=A0runtime_put -> *power.lock* - > rpm->suspend -> above p=
-r_debug ->
->> =C2=A0 =C2=A0console_write -> get_sync
->> =C2=A0 =C2=A0-> *power.lock* -> rpm resume
->> =C2=A0 =C2=A0power.lock contention.
->
-> Are you sure ? If the device is still on, won't that get_sync() only
-> increase the pm counter ? Instead of going through everything ?? Oh
-> well, this is becoming quite racy :-(
+So, this pull request got delayed until I could make the fixes and test
+them, and thus I'm sending this directly to you, and not via fbdev tree.
+I hope this is not too late to make it into 3.1-rc1.
 
-Yes true, but before it increments the counter it will take
-power.lock
+Br,
+ Tomi
 
-if we look into internals.
 
-pm_runtime_get_sync -> *__pm_runtime_resume* --> rpm_resume
+The following changes since commit 56299378726d5f2ba8d3c8cbbd13cb280ba45e4f:
 
-int __pm_runtime_resume(struct device *dev, int rpmflags)
-{
- [..]
-        spin_lock_irqsave(&dev->power.lock, flags);
-        retval =3D rpm_resume(dev, rpmflags);
-        spin_unlock_irqrestore(&dev->power.lock, flags);
-[..]
-}
+  Linux 3.0-rc4 (2011-06-20 20:25:46 -0700)
 
-Same applicable for runtime_put
+are available in the git repository at:
+  git://gitorious.org/linux-omap-dss2/linux.git for-3.1-rc1
 
-[..]
->> =C2=A0 =C2=A0 =C2=A0I'll leave this to Kevin to decide what to do, b=
-ut clocks are off
->> =C2=A0 =C2=A0 =C2=A0here...
->>
->> =C2=A0 =C2=A0Yes fine.=EF=BF=BD
->> =C2=A0 =C2=A0Since most of these prints will be printed if DEBUG mac=
-ro
->> =C2=A0 =C2=A0is defined in respective files and *debug* is used in c=
-ommand line.
->> =C2=A0 =C2=A0Can't leave uart clocks active always on debug cases.
->> =C2=A0 =C2=A0[If *debug* =EF=BF=BDused as command line]
->> =C2=A0 =C2=A0and gate uart clocks only for non debug cases.
->> =C2=A0 =C2=A0With this approach=EF=BF=BDat least=EF=BF=BDwe can have=
- a clean solution
->> =C2=A0 =C2=A0in uart driver also without adding clock gating from id=
-le path.
->> =C2=A0 =C2=A0Not sure if this=EF=BF=BDagreeable.
->> =C2=A0 =C2=A0As of now gating from idle path seems to be only clean =
-approach.
->
-> I see.. that could be one way... let's see how Kevin feels about it
-> though.
->
+Nishant Kamat (1):
+      OMAP: DSS: Minor cleanup in ovl and mgr cache structs
 
-OK.
+Tomi Valkeinen (30):
+      OMAP: DSS2: remove extra includes from include/video/omapdss.h
+      OMAP: DSS2: DSI: Change dummy macros to inline functions
+      OMAP: DSS2: OMAPFB: Add struct to store per-display data
+      OMAP: DSS2: OMAPFB: Implement auto-update mode
+      OMAP: DSS2: remove update_mode from omapdss
+      OMAP: DSS2: Taal: Make driver more fault tolerant
+      OMAP: DSS2: Reset LANEx_ULPS_SIG2 bits after use
+      OMAP: DSS2: Add FEAT_VENC_REQUIRES_TV_DAC_CLK
+      OMAP: DSS2: Add new FEAT definitions for features missing from OMAP2
+      OMAP: DSS2: Add Color Phase Rotation support
+      OMAP: DSS2: DSI: sync when disabling a display
+      OMAP: DSS2: Fix FIFO threshold and burst size for OMAP4
+      OMAP: DSS2: Handle dpll4_m4_ck in dss_get/put_clocks
+      OMAP: DSS2: Clean up probe for DSS & DSI
+      OMAP: DSS2: Fix init and unit sequence
+      OMAP: DSS2: Remove clk optimization at dss init
+      OMAP: DSS2: rewrite use of context_loss_count
+      OMAP: DSS2: Use omap_pm_get_dev_context_loss_count to get ctx loss count
+      OMAP: DSS2: DPI: remove unneeded SYSCK enable/disable
+      OMAP: DSS2: Remove core_dump_clocks
+      OMAP: DSS2: Remove CONFIG_OMAP2_DSS_SLEEP_BEFORE_RESET
+      OMAP: DSS2: Use PM runtime & HWMOD support
+      OMAP: DSS2: Remove unused opt_clock_available
+      OMAP: DSS2: DISPC: remove finegrained clk enables/disables
+      OMAP: DSS2: Remove unused code from display.c
+      OMAP: DSS2: Remove ctx loss count from dss.c
+      OMAP: DSS2: DISPC: Fix context save/restore
+      OMAP: DSS2: DSS: Fix context save/restore
+      HACK: OMAP: DSS2: clk hack for OMAP2/3
+      OMAP: DSS2: HDMI: fix hdmi clock name
 
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/mach-omap2/display.c             |   26 +--
+ drivers/video/omap2/displays/panel-taal.c |   55 ++--
+ drivers/video/omap2/dss/Kconfig           |   12 -
+ drivers/video/omap2/dss/core.c            |   21 +-
+ drivers/video/omap2/dss/dispc.c           |  562 ++++++++++++++++------------
+ drivers/video/omap2/dss/display.c         |   57 +---
+ drivers/video/omap2/dss/dpi.c             |   73 +++--
+ drivers/video/omap2/dss/dsi.c             |  296 +++++++++------
+ drivers/video/omap2/dss/dss.c             |  583 +++++++----------------------
+ drivers/video/omap2/dss/dss.h             |   54 ++--
+ drivers/video/omap2/dss/dss_features.c    |   36 ++-
+ drivers/video/omap2/dss/dss_features.h    |    7 +
+ drivers/video/omap2/dss/hdmi.c            |  162 ++++++--
+ drivers/video/omap2/dss/manager.c         |  351 ++++++++++--------
+ drivers/video/omap2/dss/overlay.c         |   27 +-
+ drivers/video/omap2/dss/rfbi.c            |  114 +++++-
+ drivers/video/omap2/dss/sdi.c             |   40 ++-
+ drivers/video/omap2/dss/venc.c            |  183 +++++++--
+ drivers/video/omap2/omapfb/omapfb-ioctl.c |   72 ++--
+ drivers/video/omap2/omapfb/omapfb-main.c  |  166 +++++++--
+ drivers/video/omap2/omapfb/omapfb-sysfs.c |   34 ++
+ drivers/video/omap2/omapfb/omapfb.h       |   37 ++-
+ include/video/omapdss.h                   |   26 +-
+ 23 files changed, 1639 insertions(+), 1355 deletions(-)
+
+
