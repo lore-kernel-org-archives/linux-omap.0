@@ -1,109 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [GIT PULL] OMAP display subsystem patches for 3.1
-Date: Mon, 01 Aug 2011 16:49:40 +0300
-Message-ID: <1312206580.1956.21.camel@deskari>
+From: Michael Jones <michael.jones@matrix-vision.de>
+Subject: timing in driver function
+Date: Mon, 01 Aug 2011 17:15:26 +0200
+Message-ID: <4E36C30E.9060809@matrix-vision.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:40943 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750862Ab1HANtt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Aug 2011 09:49:49 -0400
+Received: from mail1.matrix-vision.com ([78.47.19.71]:37396 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752979Ab1HAPVn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Aug 2011 11:21:43 -0400
+Received: from mail1.matrix-vision.com (localhost [127.0.0.1])
+	by mail1.matrix-vision.com (Postfix) with ESMTP id C787B722BC
+	for <linux-omap@vger.kernel.org>; Mon,  1 Aug 2011 17:15:27 +0200 (CEST)
+Received: from erinome (g2.matrix-vision.com [80.152.136.245])
+	by mail1.matrix-vision.com (Postfix) with ESMTPA id 9AB83722B0
+	for <linux-omap@vger.kernel.org>; Mon,  1 Aug 2011 17:15:27 +0200 (CEST)
+Received: from erinome (localhost [127.0.0.1])
+	by erinome (Postfix) with ESMTP id D13D56F8A
+	for <linux-omap@vger.kernel.org>; Mon,  1 Aug 2011 17:15:26 +0200 (CEST)
+Received: from [192.168.65.46] (host65-46.intern.matrix-vision.de [192.168.65.46])
+	by erinome (Postfix) with ESMTPA id AF4C06F8A
+	for <linux-omap@vger.kernel.org>; Mon,  1 Aug 2011 17:15:26 +0200 (CEST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Paul Mundt <lethal@linux-sh.org>, linux-omap mailing list <linux-omap@vger.kernel.org>, linux-fbdev <linux-fbdev@vger.kernel.org>, lk-ml <linux-kernel@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi Linus,
+I have a function in a driver which takes ~50ms to execute, which I've
+measured by reading jiffies at the beginning and end. But jiffies only
+counts at 128Hz on my system, so this was a very coarse measurement. Now
+I would like to find out more exactly where the time is going inside
+this function. So my basic question is, what is the best way to measure
+lapsed time with reasonable resolution on an OMAP?
 
-Sorry for sending this pull request so late.
+As I had done with the jiffies measurement, what I imagined was
+inserting lines into my function, sampling the value of some counter at
+various points within it. This approach is crude but simple and would
+suffice for my case.
 
-This pull request contains mostly OMAP display subsystem driver patches
-related to preparing and making the DSS driver use runtime PM. Using
-runtime PM creates new dependencies to the lower level arch stuff
-(clocks and HWMODs), and while the patches for arch side have been ready
-for some time, some of them seem to have fallen into some cracks and
-didn't make it into the pull requests sent by the HWMOD maintainer. And
-then the maintainer went to vacation before I could react.
+Since it must be a very common task, I thought I'd ask here what the
+recommended approach is. I see a few directions...
 
-I had to make two hack patches to the DSS driver to circumvent the
-problems. The hack patches are small and easily removed for -rc2
-presuming the arch side gets fixed at that point.
+1. Using the OMAP's 32kHz timer, which is provided as a "struct
+clocksource". It seems like what I would want is to call
+clocksource_32k.read(), but I don't know how to retrieve clocksource_32k.
 
-So, this pull request got delayed until I could make the fixes and test
-them, and thus I'm sending this directly to you, and not via fbdev tree.
-I hope this is not too late to make it into 3.1-rc1.
+2. Using the ARM core's Performance Monitor Count Registers. This seems
+to be what perf_event uses. I'm not familiar with perf_events, but it
+sounds like I would also need to build 'perf', which according to
+http://www.omappedia.org/wiki/Using_perf isn't possible to
+cross-compile. I don't want to tackle that without some reassurance that
+it is the right/only way.
 
-Br,
- Tomi
+I am currently using a 2.6.38 kernel.
 
+thanks,
+Michael
 
-The following changes since commit 56299378726d5f2ba8d3c8cbbd13cb280ba45e4f:
-
-  Linux 3.0-rc4 (2011-06-20 20:25:46 -0700)
-
-are available in the git repository at:
-  git://gitorious.org/linux-omap-dss2/linux.git for-3.1-rc1
-
-Nishant Kamat (1):
-      OMAP: DSS: Minor cleanup in ovl and mgr cache structs
-
-Tomi Valkeinen (30):
-      OMAP: DSS2: remove extra includes from include/video/omapdss.h
-      OMAP: DSS2: DSI: Change dummy macros to inline functions
-      OMAP: DSS2: OMAPFB: Add struct to store per-display data
-      OMAP: DSS2: OMAPFB: Implement auto-update mode
-      OMAP: DSS2: remove update_mode from omapdss
-      OMAP: DSS2: Taal: Make driver more fault tolerant
-      OMAP: DSS2: Reset LANEx_ULPS_SIG2 bits after use
-      OMAP: DSS2: Add FEAT_VENC_REQUIRES_TV_DAC_CLK
-      OMAP: DSS2: Add new FEAT definitions for features missing from OMAP2
-      OMAP: DSS2: Add Color Phase Rotation support
-      OMAP: DSS2: DSI: sync when disabling a display
-      OMAP: DSS2: Fix FIFO threshold and burst size for OMAP4
-      OMAP: DSS2: Handle dpll4_m4_ck in dss_get/put_clocks
-      OMAP: DSS2: Clean up probe for DSS & DSI
-      OMAP: DSS2: Fix init and unit sequence
-      OMAP: DSS2: Remove clk optimization at dss init
-      OMAP: DSS2: rewrite use of context_loss_count
-      OMAP: DSS2: Use omap_pm_get_dev_context_loss_count to get ctx loss count
-      OMAP: DSS2: DPI: remove unneeded SYSCK enable/disable
-      OMAP: DSS2: Remove core_dump_clocks
-      OMAP: DSS2: Remove CONFIG_OMAP2_DSS_SLEEP_BEFORE_RESET
-      OMAP: DSS2: Use PM runtime & HWMOD support
-      OMAP: DSS2: Remove unused opt_clock_available
-      OMAP: DSS2: DISPC: remove finegrained clk enables/disables
-      OMAP: DSS2: Remove unused code from display.c
-      OMAP: DSS2: Remove ctx loss count from dss.c
-      OMAP: DSS2: DISPC: Fix context save/restore
-      OMAP: DSS2: DSS: Fix context save/restore
-      HACK: OMAP: DSS2: clk hack for OMAP2/3
-      OMAP: DSS2: HDMI: fix hdmi clock name
-
- arch/arm/mach-omap2/display.c             |   26 +--
- drivers/video/omap2/displays/panel-taal.c |   55 ++--
- drivers/video/omap2/dss/Kconfig           |   12 -
- drivers/video/omap2/dss/core.c            |   21 +-
- drivers/video/omap2/dss/dispc.c           |  562 ++++++++++++++++------------
- drivers/video/omap2/dss/display.c         |   57 +---
- drivers/video/omap2/dss/dpi.c             |   73 +++--
- drivers/video/omap2/dss/dsi.c             |  296 +++++++++------
- drivers/video/omap2/dss/dss.c             |  583 +++++++----------------------
- drivers/video/omap2/dss/dss.h             |   54 ++--
- drivers/video/omap2/dss/dss_features.c    |   36 ++-
- drivers/video/omap2/dss/dss_features.h    |    7 +
- drivers/video/omap2/dss/hdmi.c            |  162 ++++++--
- drivers/video/omap2/dss/manager.c         |  351 ++++++++++--------
- drivers/video/omap2/dss/overlay.c         |   27 +-
- drivers/video/omap2/dss/rfbi.c            |  114 +++++-
- drivers/video/omap2/dss/sdi.c             |   40 ++-
- drivers/video/omap2/dss/venc.c            |  183 +++++++--
- drivers/video/omap2/omapfb/omapfb-ioctl.c |   72 ++--
- drivers/video/omap2/omapfb/omapfb-main.c  |  166 +++++++--
- drivers/video/omap2/omapfb/omapfb-sysfs.c |   34 ++
- drivers/video/omap2/omapfb/omapfb.h       |   37 ++-
- include/video/omapdss.h                   |   26 +-
- 23 files changed, 1639 insertions(+), 1355 deletions(-)
-
-
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
