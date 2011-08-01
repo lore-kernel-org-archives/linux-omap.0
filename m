@@ -1,71 +1,78 @@
-From: Arno Steffen <arno.steffen@googlemail.com>
-Subject: Re: [Q] No message from Kernel (Howto start debug?)
-Date: Mon, 1 Aug 2011 10:15:47 +0200
-Message-ID: <CAACX+R39afQOJ4xy_54qBWphyVKghfoK0WzvEZxnb6iAyrpbJg@mail.gmail.com>
-References: <CAACX+R297j07GXRtLBCFuSyHTmk4sMXQiUt8YwN7KH6A8251jA@mail.gmail.com>
-	<20110728132629.GH9069@legolas.emea.dhcp.ti.com>
-	<CAACX+R0-vUP1z9DoS69iv2gX=YCKanousEHATzot0sSi-S9cEQ@mail.gmail.com>
-	<20110729094439.74156e05@myhost>
-	<CAACX+R29sogiU3PkNf+doFEWewAqcsT6Hj4HTa10rk4+WR+5Dg@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/PATCH 2/7] OMAP3: beagle: don't touch omap_device internals
+Date: Mon, 1 Aug 2011 11:52:52 +0300
+Message-ID: <20110801085251.GF31013@legolas.emea.dhcp.ti.com>
+References: <1311292338-11830-1-git-send-email-khilman@ti.com>
+ <1311292338-11830-4-git-send-email-khilman@ti.com>
+ <20110722085716.GI32058@legolas.emea.dhcp.ti.com>
+ <20110728055346.GA11921@foobar>
+ <4E315C9F.1030801@ti.com>
+ <CAOMWX4fYGD4aRomoHZjvy_F9CRb_U9UV4OOa0BgrzZhx81iQtQ@mail.gmail.com>
+ <20110729134932.GA2258@foobar>
+ <20110729140515.GV31013@legolas.emea.dhcp.ti.com>
+ <CAOMWX4e0CODd8YT4LC2zHdGhzzZpOqRc0CU8roV-Pw1VTx5XCw@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZsxMXj7gRnSZQ7B8"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:55374 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752698Ab1HAIPs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Aug 2011 04:15:48 -0400
-Received: by iyb12 with SMTP id 12so6639507iyb.19
-        for <linux-omap@vger.kernel.org>; Mon, 01 Aug 2011 01:15:47 -0700 (PDT)
-In-Reply-To: <CAACX+R29sogiU3PkNf+doFEWewAqcsT6Hj4HTa10rk4+WR+5Dg@mail.gmail.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:52959 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752031Ab1HAIw5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Aug 2011 04:52:57 -0400
+Received: by fxbb27 with SMTP id b27so4738527fxb.4
+        for <linux-omap@vger.kernel.org>; Mon, 01 Aug 2011 01:52:55 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAOMWX4e0CODd8YT4LC2zHdGhzzZpOqRc0CU8roV-Pw1VTx5XCw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tapani Utriainen <tapani@technexion.com>, Sricharan R <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: balbi@ti.com, "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-2011/7/29 Arno Steffen <arno.steffen@googlemail.com>:
-> 2011/7/29 Tapani Utriainen <tapani@technexion.com>:
->> On Thu, 28 Jul 2011 16:18:51 +0200
->> Arno Steffen <arno.steffen@googlemail.com> wrote:
->>
->>> That has been good points. I've tried both, but with no result so far.
->>>
->>
->> Try appending earlyprintk=${console} to your bootargs (where ${console}
->> is your console string, e.g. ttyO0,115200n8 )
->>
->> ---
->> Tapani Utriainen, PhD
->> Senior Software Engineer
->> TechNexion Ltd, www.technexion.com
->>
->>
->
-> Tried this without a change. I really think this is a machine-id problem.
-> So although I have done same changes for my board as in my previous 33
-> kernel, it might be not enough to cover the machine-id. Maybe I can
-> overule this for test to find out the source of this misbehaviour.
-> The problem is already before the first debug messages are coming.
-> Sricharan is right, first the message uncompress has to be printed.
-> Thanks
-> - Arno
->
 
-Did some test. So with old I can always see the message "Uncompressing
-Linux... done, booting the kernel."
-Even if machine-id is not match or if bootargs are wrong regarding ttyS/ttyO.
-With new kernel I can't see this message. So the question: Is
-something changes there in uncompressing?
-I am also a bit confused that I get this:
+--ZsxMXj7gRnSZQ7B8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-## Booting kernel from Legacy Image at 80000000 ...
-   Image Name:   Linux-2.6.33
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    1505256 Bytes = 1.4 MiB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-   Loading Kernel Image ... OK
-OK
+Hi,
 
-and the kernel still has to be uncompressed?
-- Arno
+On Fri, Jul 29, 2011 at 06:07:17PM -0500, Menon, Nishanth wrote:
+> On Fri, Jul 29, 2011 at 09:05, Felipe Balbi <balbi@ti.com> wrote:
+> >
+> >> +}
+> >> +EXPORT_SYMBOL(omap_hwmod_name_get_odev);
+> >
+> > maybe EXPORT_SYMBOL_GPL() ?? Not sure we want non-GPL code to access
+> > this ;-)
+>=20
+> Sure.. but is this the way we want to go? if yes, I can post the
+> series in a formal way to the list.
+
+I would expect so, but if there are concerns of other non-GPL drivers
+needing this, you can at least use:
+
+EXPORT_SYMBOL_GPL_FUTURE();
+
+this would allow you to catch non-GPL drivers accessing this symbol.
+
+--=20
+balbi
+
+--ZsxMXj7gRnSZQ7B8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJONmljAAoJEAv8Txj19kN1njgIAJOGgevV0HNBkUar++7amyGI
++XcNfWCf8SOqGjLOfPXB6i7OO7QrHUHE1aLGGpuTT9+p0X/H29RP6vU+XXYWFPwL
+2mmlPR4uKUz1CTYoF2taKH4iX37+j1X1QdzVDbe24Bfo8jXC+fNfOfHWTPYvbuaq
+LVR5LDiW4rqEOUBXgyf9ix5VS95AAzMCTYzhhoU/0kK2hkDVy9x71p4RZMpoXFyj
+EWFb0p76euLuVpXTF3Cpl77dka04TdQ9H8JZlixA0q8aAu7D2se5S2a/+IPeJya9
+OIfunzb70pKeKS9E2843YbsXo48/AWajgor7lzCEoSsCfbmrfldcfhYEvolmgTw=
+=y+gM
+-----END PGP SIGNATURE-----
+
+--ZsxMXj7gRnSZQ7B8--
