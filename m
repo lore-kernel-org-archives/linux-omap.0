@@ -1,77 +1,50 @@
-From: mark gross <markgross@thegnar.org>
-Subject: Re: [linux-pm] [RFC/PATCH v3 00/13] PM QoS: add a per-device latency
- constraints class
-Date: Sun, 31 Jul 2011 10:38:46 -0700
-Message-ID: <20110731173846.GA19112@gvim.org>
-References: <1311841821-10252-1-git-send-email-j-pihet@ti.com>
- <CAORVsuVoJ5-1hx2+6+gCuuWDd9A9h_RTS=U1228BM7EYiG=gxA@mail.gmail.com>
- <20110729142459.GA5509@gvim.org>
- <201107292346.22211.rjw@sisk.pl>
-Reply-To: markgross@thegnar.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omap3: l3: Temporary fix to avoid the kernel hang with
+ beagle board.
+Date: Mon, 01 Aug 2011 09:01:19 +0300
+Message-ID: <1312178479.2075.12.camel@deskari>
+References: <1304952352-27837-1-git-send-email-r.sricharan@ti.com>
+	 <alpine.DEB.2.00.1107091615000.15984@utopia.booyaka.com>
+	 <4E18F0D1.3080704@ti.com>
+	 <alpine.DEB.2.00.1107091828310.15984@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:44755 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751818Ab1GaRiu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Jul 2011 13:38:50 -0400
-Received: by pzk37 with SMTP id 37so9953123pzk.1
-        for <linux-omap@vger.kernel.org>; Sun, 31 Jul 2011 10:38:50 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <201107292346.22211.rjw@sisk.pl>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:47194 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753350Ab1HAGBZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Aug 2011 02:01:25 -0400
+Received: by mail-fx0-f45.google.com with SMTP id b27so4857169fxb.32
+        for <linux-omap@vger.kernel.org>; Sun, 31 Jul 2011 23:01:24 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1107091828310.15984@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: markgross@thegnar.org, broonie@opensource.wolfsonmicro.com, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, sricharan <r.sricharan@ti.com>, linux-omap@vger.kernel.org
 
-On Fri, Jul 29, 2011 at 11:46:21PM +0200, Rafael J. Wysocki wrote:
-> On Friday, July 29, 2011, mark gross wrote:
-> > On Fri, Jul 29, 2011 at 10:37:52AM +0200, Jean Pihet wrote:
-> > > Mark,
-> > > 
-> > > On Thu, Jul 28, 2011 at 3:14 PM, mark gross <markgross@thegnar.org> wrote:
-> > > > On Thu, Jul 28, 2011 at 10:30:07AM +0200, jean.pihet@newoldbits.com wrote:
-> > > >> From: Jean Pihet <j-pihet@ti.com>
-> > > >>
-> > > >> This patch set is in an RFC state, for review and comments.
-> > > >>
-> > > >> High level implementation:
-> > > >>
-> > > ...
-> > > 
-> > > >> 7. Misc fixes to improve code readability:
-> > > >> . rename of the PM QoS implementation file from pm_qos_params.[ch] to pm_qos.[ch]
-> > > > I picked the name for the file as pm_qos_params over pm_qos because I
-> > > > wanted to make it implicitly clear that this was not an full QOS
-> > > > implementation.  True QOS carries expectations similar to real time and
-> > > > as the infrastructure is closer to "good intentioned" than even "best
-> > > > effort" and offers no notification when the QOS request is not able to
-> > > > be met and really doesn't implement a true QOS at all, (it just provides
-> > > > the parameter interface for part of one its missing the notification
-> > > > interface when the service level is not met and I think a few other
-> > > > things.) So I wanted to have it named a bit different from just pm_qos.
-> > > >
-> > > > This said I'm not supper attached to the naming of the modules.  If
-> > > > folks want to change it I wouldn't complain (too much anyway;).
-> > > Ok got the idea. I do not know what name to chose though. As suggested
-> > > previously the name pm_qos_params does not reflect the implementation,
-> > > that is why I renamed it.
-> > 
-> > I must have missed the part where the name doesn't reflect the
-> > implementation was talked about.  I look at the interface and I see
-> > parameters all over the place and a small bit of notification.
+On Sat, 2011-07-09 at 18:30 -0600, Paul Walmsley wrote:
+> Hi Santosh,
 > 
-> The interface is for specifying PM QoS requirements or constraints that
-> may or may not be regarded as "parameters", depending on ones definition
-> of the last term.  Moreover, the code not only implements the interface,
-> but also defines data structures and API to be used throughout the kernel
-> which is quite a bit more than just "parameters".
+> On Sat, 9 Jul 2011, Santosh Shilimkar wrote:
 > 
-> In my not so humble opinion the name isn't good and the .c file should be
-> in kernel/power in the first place.  I would call it simply qos.c (the fact
-> that _right_ _now_ it's not a full QoS implementation doesn't matter, because
-> it may become one in the future).
+> > Sorry for not closing the loop on this thread but I thought Tomi
+> > root-caused the DSS timeout issue to incorrect reset sequence of
+> > DSS IP. With that fixed I though we shouldn't see that issue.
+> 
+> OK great, happy to hear that it was tracked down!
+> 
+> Tomi, do you have patches to fix the reset bug?
 
-Sounds ok to me.
+I have to say I'm not sure what this is about... I haven't seen any
+hangs.
 
---mark
+There was (or perhaps still is) problems with the hwmod code resetting
+DSS. This was because the hwmod code didn't enable all the DSS clocks
+before doing the reset. However, this shouldn't cause any problems in
+the current mainline kernel, as the DSS driver there does a reset
+itself. This will change then the DSS starts using pmruntime.
+
+ Tomi
+
+
