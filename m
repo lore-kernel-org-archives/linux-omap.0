@@ -1,14 +1,14 @@
 From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv5 1/3] OMAP: I2C: Reset support
-Date: Tue, 02 Aug 2011 16:23:57 -0700
-Message-ID: <87sjpj75yq.fsf@ti.com>
+Subject: Re: [PATCHv5 2/3] OMAP: I2C: Remove the reset in the init path
+Date: Tue, 02 Aug 2011 16:27:42 -0700
+Message-ID: <87d3gn75sh.fsf@ti.com>
 References: <1311935813-8481-1-git-send-email-shubhrajyoti@ti.com>
-	<1311935813-8481-2-git-send-email-shubhrajyoti@ti.com>
+	<1311935813-8481-3-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1311935813-8481-2-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-	(Shubhrajyoti D.'s message of "Fri, 29 Jul 2011 16:06:51 +0530")
+In-Reply-To: <1311935813-8481-3-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+	(Shubhrajyoti D.'s message of "Fri, 29 Jul 2011 16:06:52 +0530")
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org
@@ -16,75 +16,176 @@ List-Id: linux-omap@vger.kernel.org
 
 Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
 
->  Under some error conditions the i2c  driver may do a reset.
-  ^                                    ^
-minor: extra whitespace
+> -  The reset in the driver at init is not needed anymore as the
+>    hwmod framework takes care of reseting it.
+> -  Reset is removed from omap_i2c_init, which was called
+>    not only during probe, but also after time out and error handling.
+>    device_reset were added in those places to effect the reset.
 
->  Adding a reset field and support in the platform.
+Not specifically related to this patch, as the reset behavior was
+already there, but do you know why the reset is needed after timeout and
+error handling?
 
-s/platform/device-specific code/
+IOW, was the reset truly required in those cases, or was just the
+re-init necessary?
 
+To me doing a full reset of the IP in those cases sounds like a hack for
+a buggy driver.
+
+> -  Earlier the hwmod SYSC settings were over-written in the driver.
+>    Removing the same and letting the hwmod take care of the settings.
+> -  Clean up the SYSS_RESETDONE_MASK macro as it is no longer needed.
+> -  Clean up the SYSCONFIG SYSC bit defination macros.
+> -  Fix the typos in wakeup.
+>
 > Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |   83 +++++++++++------------------------------
+>  1 files changed, 22 insertions(+), 61 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 4e3256f..d8f4470 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -155,19 +155,6 @@ enum {
+>  #define OMAP_I2C_SYSTEST_SDA_O		(1 << 0)	/* SDA line drive out */
+>  #endif
+>  
+> -/* OCP_SYSSTATUS bit definitions */
+> -#define SYSS_RESETDONE_MASK		(1 << 0)
+> -
+> -/* OCP_SYSCONFIG bit definitions */
+> -#define SYSC_CLOCKACTIVITY_MASK		(0x3 << 8)
+> -#define SYSC_SIDLEMODE_MASK		(0x3 << 3)
+> -#define SYSC_ENAWAKEUP_MASK		(1 << 2)
+> -#define SYSC_SOFTRESET_MASK		(1 << 1)
+> -#define SYSC_AUTOIDLE_MASK		(1 << 0)
+> -
+> -#define SYSC_IDLEMODE_SMART		0x2
+> -#define SYSC_CLOCKACTIVITY_FCLK		0x2
+> -
+>  /* Errata definitions */
+>  #define I2C_OMAP_ERRATA_I207		(1 << 0)
+>  #define I2C_OMAP3_1P153			(1 << 1)
+> @@ -182,6 +169,7 @@ struct omap_i2c_dev {
+>  	u32			latency;	/* maximum mpu wkup latency */
+>  	void			(*set_mpu_wkup_lat)(struct device *dev,
+>  						    long latency);
+> +	int			(*device_reset)(struct device *dev);
+>  	u32			speed;		/* Speed of bus in Khz */
+>  	u16			cmd_err;
+>  	u8			*buf;
+> @@ -317,60 +305,22 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+>  	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
+>  	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
+>  	unsigned long fclk_rate = 12000000;
+> -	unsigned long timeout;
+>  	unsigned long internal_clk = 0;
+>  	struct clk *fclk;
+>  	struct omap_i2c_bus_platform_data *pdata;
+>  
+>  	pdata = dev->dev->platform_data;
+>  
+> -	if (dev->rev >= OMAP_I2C_OMAP1_REV_2) {
+> -		/* Disable I2C controller before soft reset */
+> -		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+> -			omap_i2c_read_reg(dev, OMAP_I2C_CON_REG) &
+> -				~(OMAP_I2C_CON_EN));
+> -
+> -		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, SYSC_SOFTRESET_MASK);
+> -		/* For some reason we need to set the EN bit before the
+> -		 * reset done bit gets set. */
+> -		timeout = jiffies + OMAP_I2C_TIMEOUT;
+> -		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+> -		while (!(omap_i2c_read_reg(dev, OMAP_I2C_SYSS_REG) &
+> -			 SYSS_RESETDONE_MASK)) {
+> -			if (time_after(jiffies, timeout)) {
+> -				dev_warn(dev->dev, "timeout waiting "
+> -						"for controller reset\n");
+> -				return -ETIMEDOUT;
+> -			}
+> -			msleep(1);
+> -		}
+> -
+> -		/* SYSC register is cleared by the reset; rewrite it */
+> -		if (dev->rev == OMAP_I2C_REV_ON_2430) {
+> -
+> -			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+> -					   SYSC_AUTOIDLE_MASK);
+> -
+> -		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
+> -			dev->syscstate = SYSC_AUTOIDLE_MASK;
+> -			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
+> -			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
+> -			      __ffs(SYSC_SIDLEMODE_MASK));
+> -			dev->syscstate |= (SYSC_CLOCKACTIVITY_FCLK <<
+> -			      __ffs(SYSC_CLOCKACTIVITY_MASK));
+> -
+> -			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+> -							dev->syscstate);
+> -			/*
+> -			 * Enabling all wakup sources to stop I2C freezing on
+> -			 * WFI instruction.
+> -			 * REVISIT: Some wkup sources might not be needed.
+> -			 */
+> -			dev->westate = OMAP_I2C_WE_ALL;
+> -			if (dev->rev < OMAP_I2C_REV_ON_3530_4430)
+> -				omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+> -								dev->westate);
+> -		}
+> +	if (dev->rev >= OMAP_I2C_REV_ON_3430) {
+> +		/*
+> +		 * Enabling all wakeup sources to stop I2C freezing on
+> +		 * WFI instruction.
+> +		 * REVISIT: Some wakeup sources might not be needed.
+> +		 */
+> +		dev->westate = OMAP_I2C_WE_ALL;
+> +		if (dev->rev < OMAP_I2C_REV_ON_3530_4430)
+> +			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+> +							dev->westate);
+>  	}
+>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>  
+> @@ -595,6 +545,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>  		return r;
+>  	if (r == 0) {
+>  		dev_err(dev->dev, "controller timed out\n");
+> +		if (dev->device_reset != NULL) {
 
-That being said, omap_device_shutdown() should already do a clean
-shutdown + reset for you, and i2c-omap.h already has a pointer for
-->device_shutdown() so a new device_reset() should not be needed.
+No need for the '!= NULL'
 
-IOW, simply adding pdata->device_shutdown = omap_device_shutdown()
-should work.
+                if (dev->device_reset)
+
+is more typical.  
+
+And based on my comments in 1/3, this would become device_shutdown.
+
+> +			r = dev->device_reset(dev->dev);
+> +			if (r < 0)
+> +				dev_err(dev->dev, "reset failed\n");
+> +		}
+>  		omap_i2c_init(dev);
+>  		return -ETIMEDOUT;
+>  	}
+> @@ -605,6 +560,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>  	/* We have an error */
+>  	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
+>  			    OMAP_I2C_STAT_XUDF)) {
+> +		if (dev->device_reset != NULL) {
+> +			r = dev->device_reset(dev->dev);
+> +			if (r < 0)
+> +				dev_err(dev->dev, "reset failed\n");
+> +		}
+>  		omap_i2c_init(dev);
+>  		return -EIO;
+>  	}
+> @@ -1005,6 +965,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	if (pdata != NULL) {
+>  		speed = pdata->clkrate;
+>  		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+> +		dev->device_reset = pdata->device_reset;
+>  	} else {
+>  		speed = 100;	/* Default speed */
+>  		dev->set_mpu_wkup_lat = NULL;
 
 Kevin
-
-> ---
->  arch/arm/plat-omap/i2c.c |   18 ++++++++++++++++++
->  include/linux/i2c-omap.h |    1 +
->  2 files changed, 19 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-> index 2388b8e..be36cac 100644
-> --- a/arch/arm/plat-omap/i2c.c
-> +++ b/arch/arm/plat-omap/i2c.c
-> @@ -146,6 +146,22 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
->  		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
->  	},
->  };
-> +/**
-> + * omap2_i2c_reset - reset the omap i2c module.
-> + * @dev: struct device*
-> + */
-> +
-> +static int omap2_i2c_reset(struct device *dev)
-> +{
-> +	int r = 0;
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct omap_device *odev = to_omap_device(pdev);
-> +	struct omap_hwmod *oh;
-> +
-> +	oh = odev->hwmods[0];
-> +	r = omap_hwmod_reset(oh);
-> +	return r;
-> +}
->
->  static inline int omap2_i2c_add_bus(int bus_id)
->  {
-> @@ -187,6 +203,8 @@ static inline int omap2_i2c_add_bus(int bus_id)
->  	 */
->  	if (cpu_is_omap34xx())
->  		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
-> +
-> +	pdata->device_reset = omap2_i2c_reset;
->  	od = omap_device_build(name, bus_id, oh, pdata,
->  			sizeof(struct omap_i2c_bus_platform_data),
->  			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
-> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
-> index 98ae49b..8aa91b6 100644
-> --- a/include/linux/i2c-omap.h
-> +++ b/include/linux/i2c-omap.h
-> @@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
->  	int		(*device_enable) (struct platform_device *pdev);
->  	int		(*device_shutdown) (struct platform_device *pdev);
->  	int		(*device_idle) (struct platform_device *pdev);
-> +	int		(*device_reset) (struct device *dev);
->  };
->  
->  #endif
