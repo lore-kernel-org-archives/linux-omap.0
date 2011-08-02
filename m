@@ -1,50 +1,90 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2] OMAP4: I2C: Enable the wakeup in I2C_WE
-Date: Tue, 02 Aug 2011 16:16:02 -0700
-Message-ID: <877h6v8kwd.fsf@ti.com>
-References: <1311953092-12506-1-git-send-email-shubhrajyoti@ti.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv5 1/3] OMAP: I2C: Reset support
+Date: Tue, 02 Aug 2011 16:23:57 -0700
+Message-ID: <87sjpj75yq.fsf@ti.com>
+References: <1311935813-8481-1-git-send-email-shubhrajyoti@ti.com>
+	<1311935813-8481-2-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:57082 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752966Ab1HBXQG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Aug 2011 19:16:06 -0400
-In-Reply-To: <1311953092-12506-1-git-send-email-shubhrajyoti@ti.com>
-	(Shubhrajyoti D.'s message of "Fri, 29 Jul 2011 20:54:52 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1311935813-8481-2-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+	(Shubhrajyoti D.'s message of "Fri, 29 Jul 2011 16:06:51 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, santosh.shilimkar@ti.com
 
-Shubhrajyoti D <shubhrajyoti@ti.com> writes:
+Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
 
-> Currently for OMAP4 the I2C_WE is not programmed.
-> This patch enables the programming for OMAP4.
->
-> This patch fixes a bad conflict resolution.
-> This effectively restores the following commit
->
-> Commit 120bdaa47[i2c-omap: Program I2C_WE on OMAP4 to enable i2c wakeup] 
->
-> which got changed by
->
-> Commit a3a7acbc[I2C: OMAP2+: address confused probed version naming] 
->
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-> Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
-> TODO:
-> Currently all the wakeup sources are enabled.
-> There is scope of optimising the same. Will revisit it.
-> Rebased on Kevin's wip/i2c branch
+>  Under some error conditions the i2c  driver may do a reset.
+  ^                                    ^
+minor: extra whitespace
 
-Actually, this is based on top of your I2C reset series.
+>  Adding a reset field and support in the platform.
 
-Please rebase this onto my for_3.1/i2c-andy branch, and I'll queue it as
-a fix for v3.1.
+s/platform/device-specific code/
 
-Thanks,
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+
+That being said, omap_device_shutdown() should already do a clean
+shutdown + reset for you, and i2c-omap.h already has a pointer for
+->device_shutdown() so a new device_reset() should not be needed.
+
+IOW, simply adding pdata->device_shutdown = omap_device_shutdown()
+should work.
 
 Kevin
+
+> ---
+>  arch/arm/plat-omap/i2c.c |   18 ++++++++++++++++++
+>  include/linux/i2c-omap.h |    1 +
+>  2 files changed, 19 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+> index 2388b8e..be36cac 100644
+> --- a/arch/arm/plat-omap/i2c.c
+> +++ b/arch/arm/plat-omap/i2c.c
+> @@ -146,6 +146,22 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
+>  		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+>  	},
+>  };
+> +/**
+> + * omap2_i2c_reset - reset the omap i2c module.
+> + * @dev: struct device*
+> + */
+> +
+> +static int omap2_i2c_reset(struct device *dev)
+> +{
+> +	int r = 0;
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct omap_device *odev = to_omap_device(pdev);
+> +	struct omap_hwmod *oh;
+> +
+> +	oh = odev->hwmods[0];
+> +	r = omap_hwmod_reset(oh);
+> +	return r;
+> +}
+>
+>  static inline int omap2_i2c_add_bus(int bus_id)
+>  {
+> @@ -187,6 +203,8 @@ static inline int omap2_i2c_add_bus(int bus_id)
+>  	 */
+>  	if (cpu_is_omap34xx())
+>  		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
+> +
+> +	pdata->device_reset = omap2_i2c_reset;
+>  	od = omap_device_build(name, bus_id, oh, pdata,
+>  			sizeof(struct omap_i2c_bus_platform_data),
+>  			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
+> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+> index 98ae49b..8aa91b6 100644
+> --- a/include/linux/i2c-omap.h
+> +++ b/include/linux/i2c-omap.h
+> @@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
+>  	int		(*device_enable) (struct platform_device *pdev);
+>  	int		(*device_shutdown) (struct platform_device *pdev);
+>  	int		(*device_idle) (struct platform_device *pdev);
+> +	int		(*device_reset) (struct device *dev);
+>  };
+>  
+>  #endif
