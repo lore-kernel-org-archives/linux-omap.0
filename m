@@ -1,18 +1,18 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 03/13] PM: QoS: extend the in-kernel API with per-device latency constraints
-Date: Tue, 2 Aug 2011 23:02:59 +0200
-Message-ID: <201108022302.59637.rjw@sisk.pl>
-References: <1311841821-10252-1-git-send-email-j-pihet@ti.com> <201107300055.49468.rjw@sisk.pl> <CAORVsuVY63VYGEB7CM50UzJS3wLt+jZn5U6S9X+277GB_ETV1g@mail.gmail.com>
+Subject: Re: [PATCH 04/13] PM: QoS: implement the per-device latency constraints
+Date: Tue, 2 Aug 2011 23:13:47 +0200
+Message-ID: <201108022313.47986.rjw@sisk.pl>
+References: <1311841821-10252-1-git-send-email-j-pihet@ti.com> <201107310030.29286.rjw@sisk.pl> <CAORVsuXzn8wGZsyxUcAN7stjbU4Kshwdg2CW06w17Y5O7oJVsA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42460 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:42487 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755313Ab1HBVCC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Aug 2011 17:02:02 -0400
-In-Reply-To: <CAORVsuVY63VYGEB7CM50UzJS3wLt+jZn5U6S9X+277GB_ETV1g@mail.gmail.com>
+	id S1755152Ab1HBVMU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Aug 2011 17:12:20 -0400
+In-Reply-To: <CAORVsuXzn8wGZsyxUcAN7stjbU4Kshwdg2CW06w17Y5O7oJVsA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
@@ -21,115 +21,181 @@ Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <
 Hi,
 
 On Tuesday, August 02, 2011, Jean Pihet wrote:
+
 ...
-> I will keep pm_qos_class if the rename brings in some confusion. The
-> intention was to simplify the names of the fields in structs with
-> explicit names.
-
-Please keep it for now.  You can rename it later if there's a clear
-benefit, but I'm not sure still.
-
+> >> -static inline void pm_qos_set_value(struct pm_qos_object *o, s32 value)
+> >> +static inline void pm_qos_set_value(struct pm_qos_constraints *c, s32 value)
+> >>  {
+> >> -     o->target_value = value;
+> >> +     c->target_value = value;
+> >>  }
 > >
-> >> +     struct device *dev;
-> >>  };
-> >>
-> >> -void pm_qos_add_request(struct pm_qos_request_list *l, int pm_qos_class, s32 value);
-> >> -void pm_qos_update_request(struct pm_qos_request_list *pm_qos_req,
-> >> -             s32 new_value);
-> >> -void pm_qos_remove_request(struct pm_qos_request_list *pm_qos_req);
-> >> +struct pm_qos_parameters {
-> >> +     int class;
-> >> +     struct device *dev;
-> >> +     s32 value;
-> >> +};
+> > Well, I'm not sure that this function is necessary at all.  You might as well
+> > simply remove it as far as I'm concerned.
+> The idea is to provide an efficient and lockless way to get the
+> aggregated constraint class value. When the constraints a re changing
+> the new value is calculated and stored using pm_qos_get_value and
+> pm_qos_set_value. Then pm_qos_read_value is used to retrieve the
+> value. For example cpuidle calls pm_qos_request which uses
+> pm_qos_read_value to get the CPU/DMA minimum latency.
+
+Still, pm_qos_set_value() is static in this file and doesn't really serve
+any specific purpose except for symmetry with pm_qos_read_value().
+
+Anyway, as I said I'm not sure, so it's OK to leave it as is to me too.
+
+> 
 > >
-> > What exactly is the "dev" member needed for?
-> This is the target device that is passed as parameter to the API. It
-> is used for constraints of the devices latency class.
-
-Well, I don't like this change.
-
-In fact, I'd prefer it if the old interface were kept unmodified.
-
-> ...
-> >> +static BLOCKING_NOTIFIER_HEAD(dev_lat_notifier);
-> >> +static struct pm_qos_object dev_pm_qos = {
-> >> +     .requests = PLIST_HEAD_INIT(dev_pm_qos.requests, pm_qos_lock),
-> >> +     .notifiers = &dev_lat_notifier,
-> >> +     .name = "dev_latency",
-> >> +     .target_value = PM_QOS_DEV_LAT_DEFAULT_VALUE,
-> >> +     .default_value = PM_QOS_DEV_LAT_DEFAULT_VALUE,
-> >> +     .type = PM_QOS_MIN,
-> >> +};
+> >> -static void update_target(struct pm_qos_object *o, struct plist_node *node,
+> >> -                       int del, int value)
+> >> +static void update_target(struct pm_qos_request *req,
+> >> +                       enum pm_qos_req_action action, int value)
+> >>  {
+> >>       unsigned long flags;
+> >> -     int prev_value, curr_value;
+> >> +     int prev_value, curr_value, new_value;
+> >> +     struct pm_qos_object *o = pm_qos_array[req->class];
+> >> +     struct pm_qos_constraints *c;
 > >> +
+> >> +     switch (req->class) {
+> >> +     case PM_QOS_DEV_LATENCY:
+> >> +             if (!req->dev) {
+> >> +                     WARN(1, KERN_ERR "PM QoS API called with NULL dev\n");
+> >> +                     return;
+> >> +             }
+> >> +             c = &req->dev->power.latency_constraints;
+> >> +             break;
+> >> +     case PM_QOS_CPU_DMA_LATENCY:
+> >> +     case PM_QOS_NETWORK_LATENCY:
+> >> +     case PM_QOS_NETWORK_THROUGHPUT:
+> >> +             c = o->constraints;
+> >> +             break;
+> >> +     case PM_QOS_RESERVED:
+> >> +     default:
+> >> +             WARN(1, KERN_ERR "PM QoS API called with wrong class %d, "
+> >> +                     "req 0x%p\n", req->class, req);
+> >> +             return;
+> >> +     }
 > >
-> > You seem to be confusing things here.  Since devices will have their own lists
-> > of requests now (as per the previous patch), the .requests member above is not
-> > necessary.  Moreover, it seems to be used incorrectly below.
-> The idea was to split the patches as requested previously: first the
-> API changes (this very patch [03/13]) and then the actual
-> implementation ([04/13]). Is this correct?
+> > Do we _really_ need that switch()?
+> >
+> > What about introducing dev_pm_qos_add_request() and friends specifically
+> > for devices, such that they will take the target device object (dev) as
+> > their first argument?  Then, you could keep pm_qos_add_request() pretty
+> > much as is, right?
+> Yes but in that case I need to duplicate the API functions for devices
+> (add, update, remove). Those functions will call update_target.
+> I prefer the way this patch does it: simplify the API functions and
+> have only 1 place with the constraints management and notification
+> logic (in update_target).
 
-The idea is right in general, but so to speak it didn't work out too well.
+The device functions would still call update_target(), but directly on the
+device's struct struct pm_qos_constraints, so they wouldn't really duplicate
+the existing pm_qos_*_request().
 
-The most important change is the introduction of struct pm_qos_constraints,
-which doesn't need any preparation IMO.  I'd do this possibly early in the
-series and I'd do it like this:
+> 
+> >
+> >>
+> >>       spin_lock_irqsave(&pm_qos_lock, flags);
+> >> -     prev_value = pm_qos_get_value(o);
+> >> -     /* PM_QOS_DEFAULT_VALUE is a signal that the value is unchanged */
+> >> -     if (value != PM_QOS_DEFAULT_VALUE) {
+> >> +
+> >> +     prev_value = pm_qos_get_value(c);
+> >> +     if (value == PM_QOS_DEFAULT_VALUE)
+> >> +             new_value = c->default_value;
+> >> +     else
+> >> +             new_value = value;
+> >
+> > What about writing that as
+> >
+> >        new_value = value != PM_QOS_DEFAULT_VALUE ? value : c->default_value;
+> This is shorter but more difficult to read ;8
 
-+struct pm_qos_constraints {
-+       struct plist_head list;
-+       s32 target_value;
-+       s32 default_value;
-+       struct blocking_notifier_head *notifiers;
-+};
+That depends on who you ask. :-)
 
-(more on the notifiers later).  Please note the lack of the type field.
+> >
+> >> +
+> >> +     switch (action) {
+> >> +     case PM_QOS_REMOVE_REQ:
+> >> +             plist_del(&req->node, &c->list);
+> >> +             break;
+> >> +     case PM_QOS_UPDATE_REQ:
+> >>               /*
+> >>                * to change the list, we atomically remove, reinit
+> >>                * with new value and add, then see if the extremal
+> >>                * changed
+> >>                */
+> >> -             plist_del(node, &o->requests);
+> >> -             plist_node_init(node, value);
+> >> -             plist_add(node, &o->requests);
+> >> -     } else if (del) {
+> >> -             plist_del(node, &o->requests);
+> >> -     } else {
+> >> -             plist_add(node, &o->requests);
+> >> +             plist_del(&req->node, &c->list);
+> >> +     case PM_QOS_ADD_REQ:
+> >> +             plist_node_init(&req->node, new_value);
+> >> +             plist_add(&req->node, &c->list);
+> >> +             break;
+> >> +     default:
+> >> +             /* no action */
+> >> +             ;
+> >>       }
+> >> -     curr_value = pm_qos_get_value(o);
+> >> -     pm_qos_set_value(o, curr_value);
+> >> +
+> >> +     curr_value = pm_qos_get_value(c);
+> >> +     pm_qos_set_value(c, curr_value);
+> >>       spin_unlock_irqrestore(&pm_qos_lock, flags);
+> >>
+> >>       if (prev_value != curr_value)
+> >>               blocking_notifier_call_chain(o->notifiers,
+> >
+> > That's why I'm thinking that it would be helpful to have a pointer
+> > to the notifier list from struct pm_qos_constraints .
+> I think having a per-device notifier list is complicating things. If a
+> subsystem needs te be notified it needs to register a notifier
+> callback for _every_ device in the system.
 
-At the same time I'd redefine struct pm_qos_object in the following way:
+I'm not really sure.  For example, why would a video subsystem want to be
+notified of a PM QoS change in a keyboard?
 
- struct pm_qos_object {
--       struct plist_head requests;
-+       struct pm_qos_constraints *constraints;
--       struct blocking_notifier_head *notifiers;
-        struct miscdevice pm_qos_power_miscdev;
-        char *name;
--       s32 target_value;       /* Do not change to 64 bit */
--       s32 default_value;
-        enum pm_qos_type type;
- };
+> As a first implementation for OMAP the low-level PM code is using a
+> single notifier to retrieve all the devices latency constraints and
+> apply them to the pwer domains. I do not see how this could work with
+> a per-device notifier list.
 
-so for the _existing_ PM QoS classes you can simply use
-constraints->list instead of requests, constraints->target_value
-instead of target_value, constraints->defaul_value instead of default_value
-and constraints->notifiers instead of notifiers.
+If you need a global notifier chain, it can be implemented as a separate
+static variable as I said in my last reply in the [03/13] thread.
 
-I wouldn't introduce a "global" PM QoS class for devices.
+> 
+> >
+> > Besides, you can use "pm_qos_array[req->class]->notifiers" instead of
+> > "o->notifiers".
+> Ok
+> 
+> ...
+> >> +static int find_pm_qos_object_by_minor(int minor)
+> >> +{
+> >> +     int pm_qos_class;
+> >> +
+> >> +     for (pm_qos_class = 0;
+> >> +             pm_qos_class < PM_QOS_NUM_CLASSES; pm_qos_class++) {
+> >> +             if (minor ==
+> >> +                     pm_qos_array[pm_qos_class]->pm_qos_power_miscdev.minor)
+> >> +                     return pm_qos_class;
+> >> +     }
+> >> +     return -1;
+> >> +}
+> >
+> > This function doesn't seem to be used anywhere, what's the purpose of it?
+> It is used by pm_qos_power_open in order to retrieve the class
+> associated with the MISC device.
+> BTW this patch is moving the code so that all the MISC related
+> functions are grouped together.
 
-That should be a relatively simple patch that doesn't change the
-existing interface and functionality.
+OK, one more thing that needs to be done in a separate patch. :-)
 
-The next patch would be to modify update_target() so that it takes
-a pointer to struct pm_qos_constraints instead of the pointers to
-struct pm_qos_object and struct plist_node (possibly also to take
-an "operation" argument instead of the "del" one).  All it needs is
-in struct pm_qos_constraints, so that should be simple too.
-The modified update_target() should return a value indicating
-whether or not prev_value was different from curr_value, so that
-the device PM QoS functions (introduced by the next patch) can use it
-to trigger system-wide notifications.
-
-The next patch would introduce the per-device PM QoS by (1) adding
-a struct pm_qos_constraints _pointer_ to struct dev_pm_info (assuming
-that at least _some_ devices won't use PM QoS) and (2) adding
-dev_pm_qos_add/update/remove_request() in drivers/base/power/qos.c,
-all of them using the modified update_target().
-
-Now if system-wide notifier chain for devices is necessary, you can
-simply define it as a static variable in drivers/base/power/qos.c
-without actually adding any "PM QoS object" for this purpose.  Now,
-you can use the value returned by the modified update_target() to
-decide whether or not to run notifiers from dev_pm_qos_*_request().
-
-Does it make sense to you?
-
+Thanks,
 Rafael
