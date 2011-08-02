@@ -1,51 +1,62 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: timing in driver function
-Date: Mon, 1 Aug 2011 19:41:17 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108011931151.28427@utopia.booyaka.com>
-References: <4E36C30E.9060809@matrix-vision.de>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: Re: pandaboard brctl oops
+Date: Tue, 02 Aug 2011 10:24:22 +0800
+Message-ID: <4E375FD6.4090404@cn.fujitsu.com>
+References: <201108012325.17312.marek.vasut@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35978 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753161Ab1HBBlS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Aug 2011 21:41:18 -0400
-In-Reply-To: <4E36C30E.9060809@matrix-vision.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <201108012325.17312.marek.vasut@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Marek Vasut <marek.vasut@gmail.com>
+Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, m.kloucek.m@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: linux-omap@vger.kernel.org
 
-Hi,
+hi
 
-On Mon, 1 Aug 2011, Michael Jones wrote:
-
-> I have a function in a driver which takes ~50ms to execute, which I've
-> measured by reading jiffies at the beginning and end. But jiffies only
-> counts at 128Hz on my system, so this was a very coarse measurement. Now
-> I would like to find out more exactly where the time is going inside
-> this function. So my basic question is, what is the best way to measure
-> lapsed time with reasonable resolution on an OMAP?
+Marek Vasut wrote, at 08/02/2011 05:25 AM:
+> Hi,
 > 
-> As I had done with the jiffies measurement, what I imagined was
-> inserting lines into my function, sampling the value of some counter at
-> various points within it. This approach is crude but simple and would
-> suffice for my case.
+> recently a friend of mine sent me this backtrace. I put him in CC so please any 
+> subsequent questions shall be forwarded to him.
 > 
-> Since it must be a very common task, I thought I'd ask here what the
-> recommended approach is. I see a few directions...
+> He claims this happens on pandaboard.
 > 
-> 1. Using the OMAP's 32kHz timer, which is provided as a "struct
-> clocksource". It seems like what I would want is to call
-> clocksource_32k.read(), but I don't know how to retrieve clocksource_32k.
+> Cheers
+> 
+> root@box:~# brctl addbr br0
+> root@box:~# brctl addif br0 eth0
+> [   77.795776] Unable to handle kernel NULL pointer dereference at virtual 
+> address 00000000
+> [   77.804321] pgd = ee8d4000
+> [   77.807312] [00000000] *pgd=af8e6831, *pte=00000000, *ppte=00000000
+> [   77.813995] Internal error: Oops: 80000007 [#1] SMP
+> [   77.819122] last sysfs file: /sys/devices/virtual/net/br0/uevent
+> [   77.825439] Modules linked in: bridge stp llc wl12xx_sdio wl12xx
+> [   77.831787] CPU: 0    Not tainted  (2.6.39.2-omap4 #3)
+> [   77.837188] PC is at 0x0
+> [   77.839904] LR is at br_change_mtu+0x64/0x7c [bridge]
 
-Consider getnstimeofday().  It's not OMAP-specific; there are several 
-examples in the Linux codebase[1]; and if you use a higher-resolution 
-clocksource, the resolution should also increase (try disabling 
-CONFIG_OMAP_32K_TIMER).
+This one has been fixed in latest kernel.
 
+commit 6407d74c5106bb362b4087693688afd34942b094
+Author: Alexander Holler <holler@ahsoftware.de>
+Date:   Tue Jun 7 00:51:35 2011 -0700
 
-1. http://git.kernel.org/?p=linux%2Fkernel%2Fgit%2Ftorvalds%2Flinux-2.6.git&a=search&h=HEAD&st=grep&s=getnstimeofday
+    bridge: provide a cow_metrics method for fake_ops
+    
+    Like in commit 0972ddb237 (provide cow_metrics() methods to blackhole
+    dst_ops), we must provide a cow_metrics for bridges fake_dst_ops as
+    well.
+    
+    This fixes a regression coming from commits 62fa8a846d7d (net: Implement
+    read-only protection and COW'ing of metrics.) and 33eb9873a28 (bridge:
+    initialize fake_rtable metrics)
+    
+    ip link set mybridge mtu 1234
 
-
-- Paul
+-- 
+Best Regards
+-----
+Shan Wei
