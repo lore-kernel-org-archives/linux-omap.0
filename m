@@ -1,55 +1,52 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 02/11] PM: extend PM QoS with per-device wake-up constraints
-Date: Tue, 02 Aug 2011 10:49:39 -0700
-Message-ID: <87bow7ln4c.fsf@ti.com>
-References: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
-	<1309446685-17502-3-git-send-email-j-pihet@ti.com>
-	<201107022310.50175.rjw@sisk.pl>
+From: "Leonid Liansky" <lliansky@gmail.com>
+Subject: OpenMax issue
+Date: Tue, 2 Aug 2011 14:00:35 -0400
+Message-ID: <82F7B73BFEC84DD0A55CE2C66442BD6D@leonidlw7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed	reply-type=original
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:49794 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754330Ab1HBRto (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Aug 2011 13:49:44 -0400
-Received: by pzk5 with SMTP id 5so27577pzk.3
-        for <linux-omap@vger.kernel.org>; Tue, 02 Aug 2011 10:49:43 -0700 (PDT)
-In-Reply-To: <201107022310.50175.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Sat, 2 Jul 2011 23:10:49 +0200")
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:48142 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754799Ab1HBSAj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Aug 2011 14:00:39 -0400
+Received: by wwe5 with SMTP id 5so26607wwe.1
+        for <linux-omap@vger.kernel.org>; Tue, 02 Aug 2011 11:00:38 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: jean.pihet@newoldbits.com, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, markgross@thegnar.org, Jean Pihet <j-pihet@ti.com>
+To: linux-omap@vger.kernel.org
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+Hi,
 
-> Hi,
->
-> On Thursday, June 30, 2011, jean.pihet@newoldbits.com wrote:
->> From: Jean Pihet <j-pihet@ti.com>
->> 
->> - add a new PM QoS class PM_QOS_DEV_WAKEUP_LATENCY for device wake-up
->> constraints. Due to the per-device nature of the new class the constraints
->> list is stored inside the device dev_pm_info struct instead of the internal
->> per-class constraints lists.
->
-> I think PM_QOS_DEV_LATENCY might be a better name.
->
->> The new class is only available from kernel drivers and so is not exported
->> to user space.
->
-> It should be available to user space, however, because in many cases drivers
-> simply have no idea what values to use (after all, the use decides if he
-> wants to trade worse video playback quality for better battery life, for
-> example).
->
+I am trying to utilize H.264 encoder via OpenMax on Blaze. The problem =
+is=20
+that I am getting an error from OMX_GetHandle() while using=20
+=E2=80=9COMX.TI.DUCATI1.VIDEO.H264E=E2=80=9D as a component name.
 
-FWIW, I think it's wrong to expose the raw per-device constraints
-directly to userspace.
+I have traced the issue to syslink failing to open =E2=80=9C/dev/syslin=
+kipc/Ipc=E2=80=9D=20
+file in IpcDrv.c file, IpcDrv_open() function. I get =E2=80=931 as retu=
+rn code from=20
+open().
 
-I think it's the responsibility of the subsystems (video, audio, input,
-etc.) to expose QoS knobs to userspace as they see fit and now allow
-userspace to tinker directly with QoS constraints.
+When looking at IpcDrv.c logs, I can see that camera application is abl=
+e to=20
+open the file successfully (although in uses camera component instead o=
+f=20
+H.264 encoder). But even when trying to initialize=20
+=E2=80=9COMX.TI.DUCATI1.VIDEO.CAMERA=E2=80=9D component via OMX_GetHand=
+le() I still get the=20
+same error from open() in IpcDrv_open().
 
-Kevin
+I am running version 12 of Android (Gingerbread 2.3.3) on Blaze with=20
+standard xem3 files for syslink_daemon.
 
+Any advise will be greatly appreciated,
+Leo
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
