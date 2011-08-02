@@ -1,75 +1,99 @@
-From: =?UTF-8?B?TWlsb8WhIEd5bVJL?= <m.kloucek.m@gmail.com>
-Subject: Re: pandaboard brctl oops
-Date: Tue, 2 Aug 2011 23:18:02 +0200
-Message-ID: <CAPOFEBOnaqn_gaGNu33_JhiEtGo8R_jyjkHCTLv02KmnbhvzmQ@mail.gmail.com>
-References: <201108012325.17312.marek.vasut@gmail.com>
-	<4E375FD6.4090404@cn.fujitsu.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 02/11] PM: extend PM QoS with per-device wake-up constraints
+Date: Tue, 02 Aug 2011 14:23:35 -0700
+Message-ID: <8762mfecdk.fsf@ti.com>
+References: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
+	<201107022310.50175.rjw@sisk.pl> <87bow7ln4c.fsf@ti.com>
+	<201108022220.00019.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:39248 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755189Ab1HBVSF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Aug 2011 17:18:05 -0400
-In-Reply-To: <4E375FD6.4090404@cn.fujitsu.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:55239 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754856Ab1HBVXi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Aug 2011 17:23:38 -0400
+Received: by mail-pz0-f42.google.com with SMTP id 37so307206pzk.1
+        for <linux-omap@vger.kernel.org>; Tue, 02 Aug 2011 14:23:38 -0700 (PDT)
+In-Reply-To: <201108022220.00019.rjw@sisk.pl> (Rafael J. Wysocki's message of
+	"Tue, 2 Aug 2011 22:19:59 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shan Wei <shanwei@cn.fujitsu.com>
-Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: jean.pihet@newoldbits.com, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, markgross@thegnar.org, Jean Pihet <j-pihet@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-On 8/2/11, Shan Wei <shanwei@cn.fujitsu.com> wrote:
-> hi
->
-> Marek Vasut wrote, at 08/02/2011 05:25 AM:
->> Hi,
->>
->> recently a friend of mine sent me this backtrace. I put him in CC so
->> please any
->> subsequent questions shall be forwarded to him.
->>
->> He claims this happens on pandaboard.
->>
->> Cheers
->>
->> root@box:~# brctl addif br0 eth0
->> [   77.795776] Unable to handle kernel NULL pointer dereference at virtual
->>
->> address 00000000
->> [   77.804321] pgd = ee8d4000
->> [   77.807312] [00000000] *pgd=af8e6831, *pte=00000000, *ppte=00000000
->> [   77.813995] Internal error: Oops: 80000007 [#1] SMP
->> [   77.819122] last sysfs file: /sys/devices/virtual/net/br0/uevent
->> [   77.825439] Modules linked in: bridge stp llc wl12xx_sdio wl12xx
->> [   77.831787] CPU: 0    Not tainted  (2.6.39.2-omap4 #3)
->> [   77.837188] PC is at 0x0
->> [   77.839904] LR is at br_change_mtu+0x64/0x7c [bridge]
->
-> This one has been fixed in latest kernel.
->
-> commit 6407d74c5106bb362b4087693688afd34942b094
-> Author: Alexander Holler <holler@ahsoftware.de>
-> Date:   Tue Jun 7 00:51:35 2011 -0700
->
->     bridge: provide a cow_metrics method for fake_ops
->
->     Like in commit 0972ddb237 (provide cow_metrics() methods to blackhole
->     dst_ops), we must provide a cow_metrics for bridges fake_dst_ops as
->     well.
->
->     This fixes a regression coming from commits 62fa8a846d7d (net: Implement
->     read-only protection and COW'ing of metrics.) and 33eb9873a28 (bridge:
->     initialize fake_rtable metrics)
->
->     ip link set mybridge mtu 1234
->
-> --
-> Best Regards
-> -----
-> Shan Wei
->
+[adding Mark Brown as we discussed similar topics a couple plumbers ago]
 
-I expected something rare or architecture-dependent, because I had no
-problems when adding wlan0 to the bridge
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-Chery-picking the commit indeed fixed the problem
-thanks for such quick reply
+[...]
+
+>> >> The new class is only available from kernel drivers and so is not exported
+>> >> to user space.
+>> >
+>> > It should be available to user space, however, because in many cases drivers
+>> > simply have no idea what values to use (after all, the use decides if he
+>> > wants to trade worse video playback quality for better battery life, for
+>> > example).
+>> >
+>> 
+>> FWIW, I think it's wrong to expose the raw per-device constraints
+>> directly to userspace.
+>> 
+>> I think it's the responsibility of the subsystems (video, audio, input,
+>> etc.) to expose QoS knobs to userspace as they see fit and now allow
+>> userspace to tinker directly with QoS constraints.
+>
+> This assumes that those "subsystems" or rather "frameworks" (a bus type or
+> a device class is a subsystem in the terminology used throughout the PM
+> documentation) will (a) know about PM QoS and (b) will care to handle it.
+> Both (a) and (b) seem to be unrealistic IMHO.
+
+I disagree and think that both are quite realistic (mainly because they
+exist today, albiet mostly out of tree because no generic QoS framework
+exist.  e.g. on OMAP, we have OMAP-specific *kernel* APIs for requesting
+per-device wakeup latencies, and drivers and frameworks are using them.)
+
+Most of these frameworks already have QoS constraints/requirements but
+have no generic way to express them.  That's why we're pushing for a
+generic constraints framework.
+
+Consider video for example.  It's the kernel-side drivers, not user
+space apps, that know about the latency or throughput constraints based
+on e.g. frame rate, bytes/pixel, double/triple buffering, PIP, multiple
+displays, etc. etc.   
+
+In this case, the video framework (V4L2) might not want any knobs
+exposed to userspace because userspace simply doesn't have the knowledge
+to set appropriate constraints.  I'm less familiar with audio, but I
+believe audio would be similar (sample rate, number of channels, mixing
+with other concurrent audio streams, etc. etc. are all known by the
+kernel-side code.)
+
+On the other hand, consider touchscreen.  Touchscreens have a
+configurable sample rate which allows a trade-off between power savings
+and accuracy.  For example, low accuracy (and thus low power) would be
+fine for a UI which is only taking finger gestures, but if the
+application was doing handwriting recognition with a stylus, it would
+likely want higher accuracy (and consume more power.)
+
+In this case, the kernel driver has no way of knowing what the
+application is doing, so some way for touchscreen apps to request this
+kind of constraint would be required.
+
+My point is it should be up to each framework (audio, video,
+input/touchscreen) to expose a userspace interface to their users that
+makes sense for the *specific needs* of the framework.
+
+Using the above examples, audio and video might not need (or want) to
+expose anything to userspace, where touchscreen would.  IMO, it would be
+much more obvious for a touchscreen app to use a new API in tslib (which
+it is already using) to set its constraints rather than having to use
+tslib for most things but a sysfs file for QoS.
+
+> We already export wakeup and runtime PM knobs per device via sysfs and
+> I'm not so sure why PM QoS is different in that respect.
+
+As stated above, because for many frameworks userspace simply does not
+have all (or any) of the knowledge to set the right constraints.
+
+Kevin
