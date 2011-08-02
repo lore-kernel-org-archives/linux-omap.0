@@ -1,80 +1,153 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 05/13] PM: QoS: support the dynamic insertion and removal
- of devices
-Date: Tue, 2 Aug 2011 12:07:38 +0200
-Message-ID: <CAORVsuVrH-tL5S-yRMzauMRvpvEE9v1_ZMDDDdsHdJBGSZW+oA@mail.gmail.com>
-References: <1311841821-10252-1-git-send-email-j-pihet@ti.com>
-	<1311841821-10252-6-git-send-email-j-pihet@ti.com>
-	<201107310038.30710.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 1/4] OMAP2xxx: HWMOD: fix DSS opt clocks
+Date: Tue,  2 Aug 2011 13:33:21 +0300
+Message-ID: <1312281204-4708-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:38770 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751586Ab1HBKHj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Aug 2011 06:07:39 -0400
-Received: by qyk9 with SMTP id 9so3788841qyk.19
-        for <linux-omap@vger.kernel.org>; Tue, 02 Aug 2011 03:07:38 -0700 (PDT)
-In-Reply-To: <201107310038.30710.rjw@sisk.pl>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:41178 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752330Ab1HBKeA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Aug 2011 06:34:00 -0400
+Received: by fxg9 with SMTP id 9so7009269fxg.0
+        for <linux-omap@vger.kernel.org>; Tue, 02 Aug 2011 03:33:57 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, markgross@thegnar.org, broonie@opensource.wolfsonmicro.com, Jean Pihet <j-pihet@ti.com>
+To: paul@pwsan.com, linux-omap@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Rafael,
+Set HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core to allow DSS reset
+properly.
 
-2011/7/31 Rafael J. Wysocki <rjw@sisk.pl>:
-> On Thursday, July 28, 2011, jean.pihet@newoldbits.com wrote:
-=2E..
+Add missing ick opt-clock for rfbi. Rfbi uses the ick to calculate
+timings.
 
->> @@ -113,6 +109,8 @@ void device_pm_remove(struct device *dev)
->> =A0{
->> =A0 =A0 =A0 pr_debug("PM: Removing info for %s:%s\n",
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev->bus ? dev->bus->name : "No Bus",=
- dev_name(dev));
->> + =A0 =A0 /* Call PM QoS to de-init the per-device latency constrain=
-ts */
->> + =A0 =A0 pm_qos_dev_constraints_deinit(dev);
->
-> I'd call this function "dev_pm_qos_constraints_destroy()" (and the pr=
-evious
-> one "dev_pm_qos_constraints_init()" for consistency).
-Ok
+Fix the venc iclk and fclk.
 
-=2E..
->> +/* Called from the device PM subsystem at device init */
->> +void pm_qos_dev_constraints_init(struct device *dev)
->> +{
->> + =A0 =A0 plist_head_init(&dev->power.latency_constraints.list, &dev=
-->power.lock);
->> + =A0 =A0 dev->power.latency_constraints.target_value =3D
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 PM_QOS_DEV_LAT_DEFAULT_VALUE;
->> + =A0 =A0 dev->power.latency_constraints.default_value =3D
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 PM_QOS_DEV_LAT_DEFAULT_VALUE;
->> + =A0 =A0 dev->power.latency_constraints.type =3D PM_QOS_MIN;
->> + =A0 =A0 dev->power.latency_constraints_init =3D 1;
->
-> You could avoid adding this field if there were a PM_QOS_UNINITIALIZE=
-D
-> (or PM_QOS_UNKNOWN) type.
->
-> And if you _really_ want to have a separate field, why don't you put =
-it
-> into latency_constraints ?
-Ok I remove latency_constraints_init and use the type field instead.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   15 +++++++++++++--
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   15 +++++++++++++--
+ 2 files changed, 26 insertions(+), 4 deletions(-)
 
-=2E..
->
-> Thanks,
-> Rafael
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index a015c69..09d9395 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -874,12 +874,17 @@ static struct omap_hwmod_ocp_if *omap2420_dss_slaves[] = {
+ };
+ 
+ static struct omap_hwmod_opt_clk dss_opt_clks[] = {
++	/*
++	 * The DSS HW needs all DSS clocks enabled during reset. The dss_core
++	 * driver does not use these clocks.
++	 */
+ 	{ .role = "tv_clk", .clk = "dss_54m_fck" },
+ 	{ .role = "sys_clk", .clk = "dss2_fck" },
+ };
+ 
+ static struct omap_hwmod omap2420_dss_core_hwmod = {
+ 	.name		= "dss_core",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.class		= &omap2_dss_hwmod_class,
+ 	.main_clk	= "dss1_fck", /* instead of dss_fck */
+ 	.sdma_reqs	= omap2xxx_dss_sdma_chs,
+@@ -962,6 +967,10 @@ static struct omap_hwmod_ocp_if *omap2420_dss_rfbi_slaves[] = {
+ 	&omap2420_l4_core__dss_rfbi,
+ };
+ 
++static struct omap_hwmod_opt_clk dss_rfbi_opt_clks[] = {
++	{ .role = "ick", .clk = "dss_ick" },
++};
++
+ static struct omap_hwmod omap2420_dss_rfbi_hwmod = {
+ 	.name		= "dss_rfbi",
+ 	.class		= &omap2_rfbi_hwmod_class,
+@@ -973,6 +982,8 @@ static struct omap_hwmod omap2420_dss_rfbi_hwmod = {
+ 			.module_offs = CORE_MOD,
+ 		},
+ 	},
++	.opt_clks	= dss_rfbi_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dss_rfbi_opt_clks),
+ 	.slaves		= omap2420_dss_rfbi_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap2420_dss_rfbi_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+@@ -983,7 +994,7 @@ static struct omap_hwmod omap2420_dss_rfbi_hwmod = {
+ static struct omap_hwmod_ocp_if omap2420_l4_core__dss_venc = {
+ 	.master		= &omap2420_l4_core_hwmod,
+ 	.slave		= &omap2420_dss_venc_hwmod,
+-	.clk		= "dss_54m_fck",
++	.clk		= "dss_ick",
+ 	.addr		= omap2_dss_venc_addrs,
+ 	.fw = {
+ 		.omap2 = {
+@@ -1003,7 +1014,7 @@ static struct omap_hwmod_ocp_if *omap2420_dss_venc_slaves[] = {
+ static struct omap_hwmod omap2420_dss_venc_hwmod = {
+ 	.name		= "dss_venc",
+ 	.class		= &omap2_venc_hwmod_class,
+-	.main_clk	= "dss1_fck",
++	.main_clk	= "dss_54m_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 1,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 16743c7..67aff19 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -940,12 +940,17 @@ static struct omap_hwmod_ocp_if *omap2430_dss_slaves[] = {
+ };
+ 
+ static struct omap_hwmod_opt_clk dss_opt_clks[] = {
++	/*
++	 * The DSS HW needs all DSS clocks enabled during reset. The dss_core
++	 * driver does not use these clocks.
++	 */
+ 	{ .role = "tv_clk", .clk = "dss_54m_fck" },
+ 	{ .role = "sys_clk", .clk = "dss2_fck" },
+ };
+ 
+ static struct omap_hwmod omap2430_dss_core_hwmod = {
+ 	.name		= "dss_core",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.class		= &omap2_dss_hwmod_class,
+ 	.main_clk	= "dss1_fck", /* instead of dss_fck */
+ 	.sdma_reqs	= omap2xxx_dss_sdma_chs,
+@@ -1016,6 +1021,10 @@ static struct omap_hwmod_ocp_if *omap2430_dss_rfbi_slaves[] = {
+ 	&omap2430_l4_core__dss_rfbi,
+ };
+ 
++static struct omap_hwmod_opt_clk dss_rfbi_opt_clks[] = {
++	{ .role = "ick", .clk = "dss_ick" },
++};
++
+ static struct omap_hwmod omap2430_dss_rfbi_hwmod = {
+ 	.name		= "dss_rfbi",
+ 	.class		= &omap2_rfbi_hwmod_class,
+@@ -1027,6 +1036,8 @@ static struct omap_hwmod omap2430_dss_rfbi_hwmod = {
+ 			.module_offs = CORE_MOD,
+ 		},
+ 	},
++	.opt_clks	= dss_rfbi_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dss_rfbi_opt_clks),
+ 	.slaves		= omap2430_dss_rfbi_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap2430_dss_rfbi_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+@@ -1037,7 +1048,7 @@ static struct omap_hwmod omap2430_dss_rfbi_hwmod = {
+ static struct omap_hwmod_ocp_if omap2430_l4_core__dss_venc = {
+ 	.master		= &omap2430_l4_core_hwmod,
+ 	.slave		= &omap2430_dss_venc_hwmod,
+-	.clk		= "dss_54m_fck",
++	.clk		= "dss_ick",
+ 	.addr		= omap2_dss_venc_addrs,
+ 	.flags		= OCPIF_SWSUP_IDLE,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+@@ -1051,7 +1062,7 @@ static struct omap_hwmod_ocp_if *omap2430_dss_venc_slaves[] = {
+ static struct omap_hwmod omap2430_dss_venc_hwmod = {
+ 	.name		= "dss_venc",
+ 	.class		= &omap2_venc_hwmod_class,
+-	.main_clk	= "dss1_fck",
++	.main_clk	= "dss_54m_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 1,
+-- 
+1.7.4.1
 
-Thanks,
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
