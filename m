@@ -1,47 +1,57 @@
-From: Daniel Morsing <daniel.morsing@gmail.com>
-Subject: [PATCH] OMAP: DSS2: Don't allow moving managers away from enabled displays
-Date: Wed,  3 Aug 2011 22:10:51 +0200
-Message-ID: <1312402251-31588-1-git-send-email-daniel.morsing@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:41310 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754001Ab1HCULA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Aug 2011 16:11:00 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] I2C: OMAP: remove unneccesary use of pdev
+Date: Thu, 4 Aug 2011 01:32:19 +0300
+Message-ID: <20110803223219.GA4036@legolas.emea.dhcp.ti.com>
+References: <1312394960-21689-1-git-send-email-khilman@ti.com>
+ <1312394960-21689-2-git-send-email-khilman@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1312394960-21689-2-git-send-email-khilman-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>, linux-fbdev@vger.kernel.org
 
-If a manager is moved while attached to an enabled display, the DSS
-system will be left in an inconsistent state. This will eventually cause
-a kernel oops when the enabled display is disabled.
 
-Fix this by not allowing the user to move a manager away from an enabled
-display.
+--qMm9M+Fa2AknHoGS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Daniel Morsing <daniel.morsing@gmail.com>
----
- drivers/video/omap2/dss/manager.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+Hi,
 
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 9aeea50..d3372d1 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -502,6 +502,13 @@ static int omap_dss_unset_device(struct omap_overlay_manager *mgr)
- 		return -EINVAL;
- 	}
- 
-+	/*
-+	 * Don't allow currently enabled displays to have the overlay manager
-+	 * pulled out from underneath them
-+	 */
-+	if (mgr->device->state != OMAP_DSS_DISPLAY_DISABLED)
-+		return -EINVAL;
-+
- 	mgr->device->manager = NULL;
- 	mgr->device = NULL;
- 	mgr->device_changed = true;
--- 
-1.7.6
+On Wed, Aug 03, 2011 at 11:09:19AM -0700, Kevin Hilman wrote:
+> A pointer to the struct device associated with the i2c device is
+> already kept in the struct omap_i2c_dev, so use omap_i2c_device to
+> find the pointer to struct device.
+>=20
+> Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
 
+Definitely :-)
+
+Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+
+--=20
+balbi
+
+--qMm9M+Fa2AknHoGS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOOcxyAAoJEAv8Txj19kN19joH/irInzqjhMNpJIkIQJ+XqXmZ
+kwdQ1sjyLx3zBMr+PdS3wxkmKw+DSlSNgRykG5OHNU4pqiH7mY86ihmASOLwkYJ6
+wsWAC6n1Q4JROhWw5JcBj1jwiKiI2BbdipHzb/iMA3HyTE62O82gCGSF2Wr27wU3
+6YRAmhkk37vsG6Efuox+fUkztPSjoJYIOhFcsm73Y2Y+jD4KlwqGosgZODrzJROD
+xMZE6ifgnJgf+0vHjjCSyhVRw+FeY047nn6euy/FgpMT6Bmv3T0GugPWjPe0+HEV
+adguxeA4Bx6DiIJakCnQW642SOazK473jWVE/DQYCcjWQeAp8paXPg7SzY0pSWk=
+=4mjT
+-----END PGP SIGNATURE-----
+
+--qMm9M+Fa2AknHoGS--
