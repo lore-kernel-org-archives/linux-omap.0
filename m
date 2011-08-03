@@ -1,53 +1,51 @@
-From: MONEY GRAM CUSTOMER CARE <info@moneygram.com>
-Subject: MONEY GRAM CUSTOMER CARE
-Date: Wed, 03 Aug 2011 03:41:13 +0200
-Message-ID: <20110803034113.fojrfp3v34gkkcs0@correoweb.uvigo.es>
-Reply-To: m.gram42@yahoo.com.my
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCHv2] OMAP4: I2C: Enable the wakeup in I2C_WE
+Date: Wed, 03 Aug 2011 11:39:36 +0530
+Message-ID: <4E38E620.9000200@ti.com>
+References: <1311953092-12506-1-git-send-email-shubhrajyoti@ti.com> <877h6v8kwd.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from boletus.uvigo.es ([193.146.32.99]:55828 "EHLO boletus.uvigo.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752918Ab1HCCYS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Aug 2011 22:24:18 -0400
-Content-Disposition: inline
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40389 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751361Ab1HCGJo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Aug 2011 02:09:44 -0400
+In-Reply-To: <877h6v8kwd.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, santosh.shilimkar@ti.com
 
-MONEY GRAM CUSTOMER CARE
-21st Floor, Jalan Kampar,
-Plaza Permata, 50400, Kuala Lumpur ,
-Wilayah Persekutuan Malaysia
-
-My associate has helped me to send your first payment of $5000 USD to you
-as instructed by the Malaysian Government and Mr. David Cameron the United
-Kingdom prime minister after the last G20 meeting that was held in
-Malaysia, making you one of the beneficiaries.Here is the information
-below.
-
-MONEY TRANSFER REFERENCE: 2116-3297
-SENDER'S NAME: Patrick Lee Chun
-AMOUNT: US$5000
-
-We will keep sending you $5000 USD twice a week until the FULL payment of
-($820000.00 United State Dollars)is completed.
-
-A certificate will be made to change the Receivers Name to your name as
-stated by the Malaysian Government,reconfirm your {1}Full Names {2}address
-{3}Mobile Number
-
-via Email to: m.gram42@yahoo.com.my
-
-Note: You cannot pickup the money until the certificate is obtained by you.
-
-Money Gram Agent
-Mr. Allan Davis.
-Tel: +(60)1-6240-6207
-For more info: www.g20.org
-
-
+On Wednesday 03 August 2011 04:46 AM, Kevin Hilman wrote:
+> Shubhrajyoti D<shubhrajyoti@ti.com>  writes:
+>
+>> Currently for OMAP4 the I2C_WE is not programmed.
+>> This patch enables the programming for OMAP4.
+>>
+>> This patch fixes a bad conflict resolution.
+>> This effectively restores the following commit
+>>
+>> Commit 120bdaa47[i2c-omap: Program I2C_WE on OMAP4 to enable i2c wakeup]
+>>
+>> which got changed by
+>>
+>> Commit a3a7acbc[I2C: OMAP2+: address confused probed version naming]
+>>
+>> Reviewed-by: Felipe Balbi<balbi@ti.com>
+>> Reported-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
+>> ---
+>> TODO:
+>> Currently all the wakeup sources are enabled.
+>> There is scope of optimising the same. Will revisit it.
+>> Rebased on Kevin's wip/i2c branch
+> Actually, this is based on top of your I2C reset series.
+>
+> Please rebase this onto my for_3.1/i2c-andy branch, and I'll queue it as
+> a fix for v3.1.
+yes will rebase and send.
+> Thanks,
+>
+> Kevin
 
