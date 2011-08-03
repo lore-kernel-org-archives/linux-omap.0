@@ -1,60 +1,69 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: Shouldn't DT preserve pdev name and id to allow platform_match
-	to work?
-Date: Wed, 3 Aug 2011 18:27:04 +0200
-Message-ID: <4E3976D8.20602@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: Shouldn't DT preserve pdev name and id to allow platform_match to work?
+Date: Wed, 3 Aug 2011 17:43:55 +0100
+Message-ID: <CACxGe6vg5NTyiDZqqztjtFEfb7si+-=Y7nEy1Y+YMgA5PVXScw@mail.gmail.com>
 References: <4E396361.3060307@ti.com>
-	<CAC63_iRa1qc7pO9Eub1A+cC+R=tSkwzigVPDHqcbvOngACYWqQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CAC63_iRa1qc7pO9Eub1A+cC+R=tSkwzigVPDHqcbvOngACYWqQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
-Cc: "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:49438 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752077Ab1HCQoR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Aug 2011 12:44:17 -0400
+Received: by eyx24 with SMTP id 24so869648eyx.33
+        for <linux-omap@vger.kernel.org>; Wed, 03 Aug 2011 09:44:16 -0700 (PDT)
+In-Reply-To: <4E396361.3060307@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nayak, Rajendra" <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "G, Manjunath Kondaiah" <manjugk@linaro.org>
 
-Hi Manju,
-
-On 8/3/2011 6:17 PM, G, Manjunath Kondaiah wrote:
-> Hi Benoit,
+On Wed, Aug 3, 2011 at 4:04 PM, Cousson, Benoit <b-cousson@ti.com> wrot=
+e:
+> Hi Grant,
 >
-> On Wed, Aug 3, 2011 at 8:34 PM, Cousson, Benoit<b-cousson-l0cyMroinI0@public.gmane.org>  wrote:
->> Hi Grant,
->>
->> Going further with the usage of OF_DEV_AUXDATA_ID, I realized that this is is not doing what I was expecting. My expectation might be silly, but in order to make platform_match to work without DT matching mechanism, you need to have the driver name in the pdev->name field:
->>
->>         /* fall-back to driver name match */
->>         return (strcmp(pdev->name, drv->name) == 0);
->>
->> Except that the of_device_add function is doing that:
->>         pdev->name = dev_name(&ofdev->dev);
->>         pdev->id = -1;
+> Going further with the usage of OF_DEV_AUXDATA_ID, I realized that th=
+is is is not doing what I was expecting. My expectation might be silly,=
+ but in order to make platform_match to work without DT matching mechan=
+ism, you need to have the driver name in the pdev->name field:
 >
-> This is taken here:
-> http://git.secretlab.ca/?p=linux-2.6.git;a=commitdiff;h=04f51955dc690666467252015a931d71d5c56696
+> =A0 =A0 =A0 =A0/* fall-back to driver name match */
+> =A0 =A0 =A0 =A0return (strcmp(pdev->name, drv->name) =3D=3D 0);
 >
-> and it is pending for upstream.
->
-> With the above patch, both pdev->name and pdev->id can be set as per
-> hwmod requirement through aux_data lookup table.
+> Except that the of_device_add function is doing that:
+> =A0 =A0 =A0 =A0pdev->name =3D dev_name(&ofdev->dev);
+> =A0 =A0 =A0 =A0pdev->id =3D -1;
 
-Mmm, but I'm already using that patch, and it is only taking care of the 
-pdev->id, hence my email. Did I miss something?
+Yes, I know.  It is written that way on purpose so that it doesn't get
+used to avoid adding a match table to the device driver because
+auxdata is a stop-gap solution.  It is *not* intended to be used long
+term (with one exception for passing platform callbacks when there is
+no other solution).
 
-> we might have to append pdev->id to pdev->name so that
-> it can used for device look up in the hwmod
-> device list.
+auxdata passes platform_data and overrides the device name when there
+is no way easy way to make the driver work without it.  It handles the
+the current implementation of clocks and regulators which aren't yet
+populated from the device tree.  It will go away when clock &
+regulator bindings are implemented.
 
-I'm not sure to get your point here.
+By implementing it the way it is, it ensures that no drivers
+inadvertently depends on auxdata, and will thus break when the auxdata
+entries are removed.  Manjunath mentioned that there is a patch that
+allows the id to be set, but it still doesn't set the driver name in a
+way that will allow existing drivers to bind using the old method, and
+that is by design.
 
-Benoit
+I understand what you are asking for, but the DT matching mechanism is
+absolutely required.  Adding it to drivers is certainly not any more
+onerous that maintaining a bunch of auxdata tables for boards.
+Besides, part of the point of the move to DT is to eliminate device
+and device data tables at the board file level, which is another
+reason why auxdata is a temporary solution.
+
+g.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
