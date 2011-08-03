@@ -1,51 +1,57 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCHv2] OMAP4: I2C: Enable the wakeup in I2C_WE
-Date: Wed, 03 Aug 2011 11:39:36 +0530
-Message-ID: <4E38E620.9000200@ti.com>
-References: <1311953092-12506-1-git-send-email-shubhrajyoti@ti.com> <877h6v8kwd.fsf@ti.com>
+From: Axel Lin <axel.lin@gmail.com>
+Subject: [PATCH RESEND] omap1: select GENERIC_IRQ_CHIP for TI OMAP1
+Date: Wed, 03 Aug 2011 15:18:17 +0800
+Message-ID: <1312355897.14329.5.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40389 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751361Ab1HCGJo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Aug 2011 02:09:44 -0400
-In-Reply-To: <877h6v8kwd.fsf@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:63291 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849Ab1HCHSX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Aug 2011 03:18:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, santosh.shilimkar@ti.com
+To: linux-kernel@vger.kernel.org
+Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 03 August 2011 04:46 AM, Kevin Hilman wrote:
-> Shubhrajyoti D<shubhrajyoti@ti.com>  writes:
->
->> Currently for OMAP4 the I2C_WE is not programmed.
->> This patch enables the programming for OMAP4.
->>
->> This patch fixes a bad conflict resolution.
->> This effectively restores the following commit
->>
->> Commit 120bdaa47[i2c-omap: Program I2C_WE on OMAP4 to enable i2c wakeup]
->>
->> which got changed by
->>
->> Commit a3a7acbc[I2C: OMAP2+: address confused probed version naming]
->>
->> Reviewed-by: Felipe Balbi<balbi@ti.com>
->> Reported-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
->> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
->> ---
->> TODO:
->> Currently all the wakeup sources are enabled.
->> There is scope of optimising the same. Will revisit it.
->> Rebased on Kevin's wip/i2c branch
-> Actually, this is based on top of your I2C reset series.
->
-> Please rebase this onto my for_3.1/i2c-andy branch, and I'll queue it as
-> a fix for v3.1.
-yes will rebase and send.
-> Thanks,
->
-> Kevin
+The gpio-omap driver has been converted to use generic IRQ chip.
+Thus select GENERIC_IRQ_CHIP for TI OMAP1 to fix below build error.
+
+ LD      vmlinux
+drivers/built-in.o: In function `omap_mpuio_alloc_gc':
+drivers/gpio/gpio-omap.c:1087: undefined reference to `irq_alloc_generic_chip'
+drivers/gpio/gpio-omap.c:1100: undefined reference to `irq_setup_generic_chip'
+drivers/built-in.o: In function `omap_gpio_show_rev':
+drivers/gpio/gpio-omap.c:998: undefined reference to `irq_gc_mask_clr_bit'
+drivers/gpio/gpio-omap.c:998: undefined reference to `irq_gc_mask_set_bit'
+make: *** [vmlinux] Error 1
+
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+---
+Kevin already sent a similar patch.  http://marc.info/?l=linux-omap&m=130749135312468&w=2
+But I still have the build error with make omap1_defconfig in today's linux-next tree.
+So here is a resend.
+
+Regards,
+Axel
+ arch/arm/plat-omap/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 6e6735f..bb8f4a6 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -13,6 +13,7 @@ config ARCH_OMAP1
+ 	bool "TI OMAP1"
+ 	select CLKDEV_LOOKUP
+ 	select CLKSRC_MMIO
++	select GENERIC_IRQ_CHIP
+ 	help
+ 	  "Systems based on omap7xx, omap15xx or omap16xx"
+ 
+-- 
+1.7.4.1
+
+
 
