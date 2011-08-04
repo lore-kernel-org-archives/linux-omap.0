@@ -1,175 +1,437 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v5 00/22] gpio/omap: driver cleanup and fixes
-Date: Thu, 4 Aug 2011 16:34:31 +0530
-Message-ID: <1312455893-14922-1-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v5 01/22] gpio/omap: remove dependency on gpio_bank_count
+Date: Thu, 4 Aug 2011 16:34:32 +0530
+Message-ID: <1312455893-14922-2-git-send-email-tarun.kanti@ti.com>
+References: <1312455893-14922-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41592 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41598 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753428Ab1HDLF1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Aug 2011 07:05:27 -0400
+	id S1753081Ab1HDLFd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Aug 2011 07:05:33 -0400
+In-Reply-To: <1312455893-14922-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-This series is continuation of cleanup of OMAP GPIO driver and fixes.
-The cleanup include getting rid of cpu_is_* checks wherever possible,
-use of gpio_bank list instead of static array, use of unique platform
-specific value associated data member to OMAP platforms to avoid
-cpu_is_* checks. The series also include PM runtime support.*
+From: Charulatha V <charu@ti.com>
 
-Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-Branch: master
-Commit: 02f8c6a (Linux 3.0)
+The gpio_bank_count is the count of number of GPIO devices in a SoC. Remove this
+dependency from the driver by using list. Also remove the dependency on array of
+pointers to gpio_bank struct of all GPIO devices.
 
-The patch series was applied on the mainline on top of Kevin's gpio cleanup
-patch series taken from following location:
-git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-Branch: for_3.1/gpio-cleanup-2
+Signed-off-by: Charulatha V <charu@ti.com>
+---
+ arch/arm/mach-omap1/gpio15xx.c         |    1 -
+ arch/arm/mach-omap1/gpio16xx.c         |    2 -
+ arch/arm/mach-omap1/gpio7xx.c          |    2 -
+ arch/arm/mach-omap2/gpio.c             |    1 -
+ arch/arm/plat-omap/include/plat/gpio.h |    3 -
+ drivers/gpio/gpio-omap.c               |  163 ++++++++++++++++----------------
+ 6 files changed, 80 insertions(+), 92 deletions(-)
 
-Test Details:
-- Compile tested for omap1_defconfig and omap2plus_defconfig.
-- OMAP1710-H3: Bootup test.
-- OMAP2430/SDP, OMAP3430/SDP, OMAP4430/SDP, 4430/Blaze: Functional testing. 
-- PM Testing on OMAP3430-SDP: retention, off_mode, system_wide
-  suspend and gpio wakeup.
-
-v5:
-- Reduce runtime callback overhead when *_get/put_sync() called from probe()
-  and *_gpio_request/free().
-
-- Dynamic context save within functions where context is modified instead of
-  saving all context within a common function.
-
-- Removed call to mpuio_init() from omap_gpio_mod_init(). Both the functions are
-  called once during initialization in *_gpio_probe().
-  Call to omap_gpio_mod_init() has been removed from omap_gpio_request() on the
-  first access to gpio bank. One time initialization looks sufficient.
-
-- In *_gpio_irq_handler() use *_put_sync_suspend() instead of *_put_sync().
-
-- Removed hardcoding of OMAP16xx sysconfig register value and instead defined an
-  associated constant.
-
-- Removed *_get_sync() call from *_gpio_suspend() and *_put_sync() call from
-  *_gpio_resume(). They got wrongly slipped into the code.
-
-- Removed following redundant zero allocated initialization from mach-omap2/gpio.c
-+	pdata->regs->irqctrl = 0;
-+	pdata->regs->edgectrl1 = 0;
-+	pdata->regs->edgectrl2 = 0;
-
-- Removed following redundant code in gpio-omap.c
-  -#define bank_is_mpuio(bank)	((bank)->method == METHOD_MPUIO)
-
-v4:
-- since all accesses to registers are 4-byte aligned, removing special
-  checks and handling of 16 and 32-bit wide bank registers and instead
-  use 32-bit read/write access consistently.
-  
-- redundant usage of MOD_REG_BIT has been corrected and replaced with
-  _gpio_rmw().
-  
-- omap_gpio_mod_init() function has been simplified further using _gpio_rmw().
-
-- sysconfig register offset specific to omap16xx has been removed along
-  with its usage.
-
-- additional logic to skip from suspend/resume:
-  
-  if (!bank->regs->wkup_status || !bank->suspend_wakeup)
-  	return 0;
-  
-  if (!bank->regs->wkup_status || !bank->saved_wakeup)
-  	return 0;
-  	
-- separated mpuio related changes into a different patch from the patch where
-  wakeup status register related changes are done.
-
-- Incorrect replacement of !cpu_class_is_omap2() in gpio_irq_type()
-  corrected:
-+	if (!bank->regs->leveldetect0 &&
-+		(type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
- 		return -EINVAL;
-
-v3:
-- Avoid use of wkup_set and wkup_clear registers. Instead use wkup_status
-  register for all platforms. This is because on OMAP4 it is recommended
-  not to use them.
-
-- Remove duplicate code in omap_gpio_mod_init() for handling the same for
-  32-bit and 16-bit GPIO bank widths. This is accomplished by having two
-  functions to handle each case while assiging a common function pointer
-  during initialization.
-  
-- Remove OMAP16xx specific one time initialization from omap_gpio_mod_init().
-  Move it inside omap16xx_gpio_init().
-
-- Avoid usage of USHRT_MAX to indicate undefined values. Use 0 instead.
-
-- In omap_gpio_suspend()/resume() functions remove code that checks
-  if the feature is supported. Instead, assign these functions to
-  struct platform_driver's suspend & resume function pointers for those
-  OMAP platforms whcih support this feature.
-
-- Remove 'suspend_support' flag because it is redundant. Instead use
-  wkup_* registers to decode the same information.
-
-- Restore context also when we don't know if the context is lost.
-
-- Make omap_gpio_save_context() and omap_gpio_restore_context()
-  static.
-
-v2:
-- Do special handling of non-wakeup GPIOs only on OMAP2420. Avoid this
-  handling on OMAP3430.
-- Isolate cleanups and fixes into separate set of patches. Keep the cleanup
-  first followed by the fixes.
-- Avoid calling omap_gpio_get_context_loss() directly and instead call it
-  through function pointer in pdata initialized during init.
-- workaround_enabled flag is not longer needed and is removed.
-- Call pwrdm_post_transition() before calling omap_gpio_resume_after_idle().
-- In omap2_gpio_resume_after_idle() do context restore before handling
-  workaround.
-- Use PM runtime framework.
-- Modify register offset names to : wkup_status, wkup_clear, wkup_set.
-  Also use 'base + offset' for readibility in all relevant places.
-- Remove unwanted messages from commit section like TODO, etc.
-
-Charulatha V (12):
-  gpio/omap: remove dependency on gpio_bank_count
-  gpio/omap: use flag to identify wakeup domain
-  gpio/omap: make gpio_context part of gpio_bank structure
-  gpio/omap: fix pwrdm_post_transition call sequence
-  gpio/omap: handle save/restore ctx in GPIO driver
-  gpio/omap: make non-wakeup GPIO part of pdata
-  gpio/omap: avoid cpu checks during module ena/disable
-  gpio/omap: cleanup omap1 related macros
-  gpio/omap: use pinctrl offset instead of macro
-  gpio/omap: use readl in irq_handler for all access
-  gpio/omap: remove bank->method & METHOD_* macros
-  gpio/omap: fix bankwidth for OMAP7xx MPUIO
-
-Tarun Kanti DebBarma (10):
-  gpio/omap: further cleanup using wakeup_status register
-  gpio/omap: use level/edge detect reg offsets
-  gpio/omap: remove hardcoded offsets in ctxt save/restore
-  gpio/omap: cleanup set_gpio_triggering function
-  gpio/omap: cleanup omap_gpio_mod_init function
-  gpio/omap: use pm-runtime framework
-  gpio/omap: optimize suspend and resume functions
-  gpio/omap: cleanup prepare_for_idle and resume_after_idle
-  gpio/omap: skip operations in runtime callbacks
-  gpio/omap: remove omap_gpio_save_context overhead
-
- arch/arm/mach-omap1/gpio15xx.c         |    7 +-
- arch/arm/mach-omap1/gpio16xx.c         |   46 ++-
- arch/arm/mach-omap1/gpio7xx.c          |   14 +-
- arch/arm/mach-omap2/gpio.c             |   43 ++-
- arch/arm/mach-omap2/pm34xx.c           |   21 +-
- arch/arm/plat-omap/include/plat/gpio.h |   29 +-
- drivers/gpio/gpio-omap.c               | 1054 +++++++++++++-------------------
- 7 files changed, 521 insertions(+), 693 deletions(-)
+diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
+index 399da4c..f8c15ea 100644
+--- a/arch/arm/mach-omap1/gpio15xx.c
++++ b/arch/arm/mach-omap1/gpio15xx.c
+@@ -115,7 +115,6 @@ static int __init omap15xx_gpio_init(void)
+ 	platform_device_register(&omap15xx_mpu_gpio);
+ 	platform_device_register(&omap15xx_gpio);
+ 
+-	gpio_bank_count = 2;
+ 	return 0;
+ }
+ postcore_initcall(omap15xx_gpio_init);
+diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
+index 0f399bd..df4bb44 100644
+--- a/arch/arm/mach-omap1/gpio16xx.c
++++ b/arch/arm/mach-omap1/gpio16xx.c
+@@ -221,8 +221,6 @@ static int __init omap16xx_gpio_init(void)
+ 	for (i = 0; i < ARRAY_SIZE(omap16xx_gpio_dev); i++)
+ 		platform_device_register(omap16xx_gpio_dev[i]);
+ 
+-	gpio_bank_count = ARRAY_SIZE(omap16xx_gpio_dev);
+-
+ 	return 0;
+ }
+ postcore_initcall(omap16xx_gpio_init);
+diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio7xx.c
+index 5ab63ea..923eaa1 100644
+--- a/arch/arm/mach-omap1/gpio7xx.c
++++ b/arch/arm/mach-omap1/gpio7xx.c
+@@ -282,8 +282,6 @@ static int __init omap7xx_gpio_init(void)
+ 	for (i = 0; i < ARRAY_SIZE(omap7xx_gpio_dev); i++)
+ 		platform_device_register(omap7xx_gpio_dev[i]);
+ 
+-	gpio_bank_count = ARRAY_SIZE(omap7xx_gpio_dev);
+-
+ 	return 0;
+ }
+ postcore_initcall(omap7xx_gpio_init);
+diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+index 9a46d77..f805cda 100644
+--- a/arch/arm/mach-omap2/gpio.c
++++ b/arch/arm/mach-omap2/gpio.c
+@@ -119,7 +119,6 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
+ 		return PTR_ERR(od);
+ 	}
+ 
+-	gpio_bank_count++;
+ 	return 0;
+ }
+ 
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index 91e8de3..dd330ed 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -202,9 +202,6 @@ struct omap_gpio_platform_data {
+ 	struct omap_gpio_reg_offs *regs;
+ };
+ 
+-/* TODO: Analyze removing gpio_bank_count usage from driver code */
+-extern int gpio_bank_count;
+-
+ extern void omap2_gpio_prepare_for_idle(int off_mode);
+ extern void omap2_gpio_resume_after_idle(void);
+ extern void omap_set_gpio_debounce(int gpio, int enable);
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 34a7110..13d5ca4 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -28,7 +28,10 @@
+ #include <mach/gpio.h>
+ #include <asm/mach/irq.h>
+ 
++static LIST_HEAD(omap_gpio_list);
++
+ struct gpio_bank {
++	struct list_head node;
+ 	unsigned long pbase;
+ 	void __iomem *base;
+ 	u16 irq;
+@@ -55,6 +58,7 @@ struct gpio_bank {
+ 	bool dbck_flag;
+ 	int stride;
+ 	u32 width;
++	u16 id;
+ 
+ 	void (*set_dataout)(struct gpio_bank *bank, int gpio, int enable);
+ 
+@@ -78,15 +82,6 @@ struct omap3_gpio_regs {
+ static struct omap3_gpio_regs gpio_context[OMAP34XX_NR_GPIOS];
+ #endif
+ 
+-/*
+- * TODO: Cleanup gpio_bank usage as it is having information
+- * related to all instances of the device
+- */
+-static struct gpio_bank *gpio_bank;
+-
+-/* TODO: Analyze removing gpio_bank_count usage from driver code */
+-int gpio_bank_count;
+-
+ #define GPIO_INDEX(bank, gpio) (gpio % bank->width)
+ #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
+ 
+@@ -869,9 +864,8 @@ static struct platform_device omap_mpuio_device = {
+ 	/* could list the /proc/iomem resources */
+ };
+ 
+-static inline void mpuio_init(void)
++static inline void mpuio_init(struct gpio_bank *bank)
+ {
+-	struct gpio_bank *bank = &gpio_bank[0];
+ 	platform_set_drvdata(&omap_mpuio_device, bank);
+ 
+ 	if (platform_driver_register(&omap_mpuio_driver) == 0)
+@@ -879,13 +873,13 @@ static inline void mpuio_init(void)
+ }
+ 
+ #else
+-static inline void mpuio_init(void) {}
++static inline void mpuio_init(struct gpio_bank *bank) {}
+ #endif	/* 16xx */
+ 
+ #else
+ 
+ #define bank_is_mpuio(bank)	0
+-static inline void mpuio_init(void) {}
++static inline void mpuio_init(struct gpio_bank *bank) {}
+ 
+ #endif
+ 
+@@ -1007,20 +1001,8 @@ static void __init omap_gpio_show_rev(struct gpio_bank *bank)
+  */
+ static struct lock_class_key gpio_lock_class;
+ 
+-static inline int init_gpio_info(struct platform_device *pdev)
+-{
+-	/* TODO: Analyze removing gpio_bank_count usage from driver code */
+-	gpio_bank = kzalloc(gpio_bank_count * sizeof(struct gpio_bank),
+-				GFP_KERNEL);
+-	if (!gpio_bank) {
+-		dev_err(&pdev->dev, "Memory alloc failed for gpio_bank\n");
+-		return -ENOMEM;
+-	}
+-	return 0;
+-}
+-
+ /* TODO: Cleanup cpu_is_* checks */
+-static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
++static void omap_gpio_mod_init(struct gpio_bank *bank)
+ {
+ 	if (cpu_class_is_omap2()) {
+ 		if (cpu_is_omap44xx()) {
+@@ -1044,13 +1026,16 @@ static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
+ 			static const u32 non_wakeup_gpios[] = {
+ 				0xe203ffc0, 0x08700040
+ 			};
+-			if (id < ARRAY_SIZE(non_wakeup_gpios))
+-				bank->non_wakeup_gpios = non_wakeup_gpios[id];
++			if (bank->id < ARRAY_SIZE(non_wakeup_gpios))
++				bank->non_wakeup_gpios =
++						non_wakeup_gpios[bank->id];
+ 		}
+ 	} else if (cpu_class_is_omap1()) {
+-		if (bank_is_mpuio(bank))
++		if (bank_is_mpuio(bank)) {
+ 			__raw_writew(0xffff, bank->base +
+ 				OMAP_MPUIO_GPIO_MASKIT / bank->stride);
++			mpuio_init(bank);
++		}
+ 		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
+ 			__raw_writew(0xffff, bank->base
+ 						+ OMAP1510_GPIO_INT_MASK);
+@@ -1156,35 +1141,35 @@ static void __devinit omap_gpio_chip_init(struct gpio_bank *bank)
+ 
+ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ {
+-	static int gpio_init_done;
+ 	struct omap_gpio_platform_data *pdata;
+ 	struct resource *res;
+-	int id;
+ 	struct gpio_bank *bank;
++	int ret = 0;
+ 
+-	if (!pdev->dev.platform_data)
+-		return -EINVAL;
+-
+-	pdata = pdev->dev.platform_data;
+-
+-	if (!gpio_init_done) {
+-		int ret;
+-
+-		ret = init_gpio_info(pdev);
+-		if (ret)
+-			return ret;
++	if (!pdev->dev.platform_data) {
++		ret = -EINVAL;
++		goto err_exit;
+ 	}
+ 
+-	id = pdev->id;
+-	bank = &gpio_bank[id];
++	bank = kzalloc(sizeof(struct gpio_bank), GFP_KERNEL);
++	if (!bank) {
++		dev_err(&pdev->dev, "Memory alloc failed for gpio_bank\n");
++		ret = -ENOMEM;
++		goto err_exit;
++	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (unlikely(!res)) {
+-		dev_err(&pdev->dev, "GPIO Bank %i Invalid IRQ resource\n", id);
+-		return -ENODEV;
++		dev_err(&pdev->dev, "GPIO Bank %i Invalid IRQ resource\n",
++				pdev->id);
++		ret = -ENODEV;
++		goto err_free;
+ 	}
+ 
+ 	bank->irq = res->start;
++	bank->id = pdev->id;
++
++	pdata = pdev->dev.platform_data;
+ 	bank->virtual_irq_start = pdata->virtual_irq_start;
+ 	bank->method = pdata->bank_type;
+ 	bank->dev = &pdev->dev;
+@@ -1204,39 +1189,46 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	/* Static mapping, never released */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (unlikely(!res)) {
+-		dev_err(&pdev->dev, "GPIO Bank %i Invalid mem resource\n", id);
+-		return -ENODEV;
++		dev_err(&pdev->dev, "GPIO Bank %i Invalid mem resource\n",
++				pdev->id);
++		ret = -ENODEV;
++		goto err_free;
+ 	}
+ 
+ 	bank->base = ioremap(res->start, resource_size(res));
+ 	if (!bank->base) {
+-		dev_err(&pdev->dev, "Could not ioremap gpio bank%i\n", id);
+-		return -ENOMEM;
++		dev_err(&pdev->dev, "Could not ioremap gpio bank%i\n",
++				pdev->id);
++		ret = -ENOMEM;
++		goto err_free;
+ 	}
+ 
+ 	pm_runtime_enable(bank->dev);
+ 	pm_runtime_get_sync(bank->dev);
+ 
+-	omap_gpio_mod_init(bank, id);
++	omap_gpio_mod_init(bank);
+ 	omap_gpio_chip_init(bank);
+ 	omap_gpio_show_rev(bank);
+ 
+-	if (!gpio_init_done)
+-		gpio_init_done = 1;
++	list_add_tail(&bank->node, &omap_gpio_list);
+ 
+-	return 0;
++	return ret;
++
++err_free:
++	kfree(bank);
++err_exit:
++	return ret;
+ }
+ 
+ #if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
+ static int omap_gpio_suspend(void)
+ {
+-	int i;
++	struct gpio_bank *bank;
+ 
+ 	if (!cpu_class_is_omap2() && !cpu_is_omap16xx())
+ 		return 0;
+ 
+-	for (i = 0; i < gpio_bank_count; i++) {
+-		struct gpio_bank *bank = &gpio_bank[i];
++	list_for_each_entry(bank, &omap_gpio_list, node) {
+ 		void __iomem *wake_status;
+ 		void __iomem *wake_clear;
+ 		void __iomem *wake_set;
+@@ -1280,13 +1272,12 @@ static int omap_gpio_suspend(void)
+ 
+ static void omap_gpio_resume(void)
+ {
+-	int i;
++	struct gpio_bank *bank;
+ 
+ 	if (!cpu_class_is_omap2() && !cpu_is_omap16xx())
+ 		return;
+ 
+-	for (i = 0; i < gpio_bank_count; i++) {
+-		struct gpio_bank *bank = &gpio_bank[i];
++	list_for_each_entry(bank, &omap_gpio_list, node) {
+ 		void __iomem *wake_clear;
+ 		void __iomem *wake_set;
+ 		unsigned long flags;
+@@ -1334,17 +1325,17 @@ static int workaround_enabled;
+ 
+ void omap2_gpio_prepare_for_idle(int off_mode)
+ {
+-	int i, c = 0;
+-	int min = 0;
+-
+-	if (cpu_is_omap34xx())
+-		min = 1;
++	int c = 0;
++	struct gpio_bank *bank;
+ 
+-	for (i = min; i < gpio_bank_count; i++) {
+-		struct gpio_bank *bank = &gpio_bank[i];
++	list_for_each_entry(bank, &omap_gpio_list, node) {
+ 		u32 l1 = 0, l2 = 0;
+ 		int j;
+ 
++		/* TODO: Do not use cpu_is_omap34xx */
++		if ((cpu_is_omap34xx()) && (bank->id == 0))
++			continue;
++
+ 		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
+ 			clk_disable(bank->dbck);
+ 
+@@ -1403,16 +1394,16 @@ void omap2_gpio_prepare_for_idle(int off_mode)
+ 
+ void omap2_gpio_resume_after_idle(void)
+ {
+-	int i;
+-	int min = 0;
++	struct gpio_bank *bank;
+ 
+-	if (cpu_is_omap34xx())
+-		min = 1;
+-	for (i = min; i < gpio_bank_count; i++) {
+-		struct gpio_bank *bank = &gpio_bank[i];
++	list_for_each_entry(bank, &omap_gpio_list, node) {
+ 		u32 l = 0, gen, gen0, gen1;
+ 		int j;
+ 
++		/* TODO: Do not use cpu_is_omap34xx */
++		if ((cpu_is_omap34xx()) && (bank->id == 0))
++			continue;
++
+ 		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
+ 			clk_enable(bank->dbck);
+ 
+@@ -1501,14 +1492,17 @@ void omap2_gpio_resume_after_idle(void)
+ #endif
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+-/* save the registers of bank 2-6 */
+ void omap_gpio_save_context(void)
+ {
+-	int i;
++	struct gpio_bank *bank;
++	int i = 0;
++
++	list_for_each_entry(bank, &omap_gpio_list, node) {
++		i++;
++
++		if (bank->id == 0)
++			continue;
+ 
+-	/* saving banks from 2-6 only since GPIO1 is in WKUP */
+-	for (i = 1; i < gpio_bank_count; i++) {
+-		struct gpio_bank *bank = &gpio_bank[i];
+ 		gpio_context[i].irqenable1 =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE1);
+ 		gpio_context[i].irqenable2 =
+@@ -1532,13 +1526,17 @@ void omap_gpio_save_context(void)
+ 	}
+ }
+ 
+-/* restore the required registers of bank 2-6 */
+ void omap_gpio_restore_context(void)
+ {
+-	int i;
++	struct gpio_bank *bank;
++	int i = 0;
++
++	list_for_each_entry(bank, &omap_gpio_list, node) {
++		i++;
++
++		if (bank->id == 0)
++			continue;
+ 
+-	for (i = 1; i < gpio_bank_count; i++) {
+-		struct gpio_bank *bank = &gpio_bank[i];
+ 		__raw_writel(gpio_context[i].irqenable1,
+ 				bank->base + OMAP24XX_GPIO_IRQENABLE1);
+ 		__raw_writel(gpio_context[i].irqenable2,
+@@ -1583,7 +1581,6 @@ postcore_initcall(omap_gpio_drv_reg);
+ 
+ static int __init omap_gpio_sysinit(void)
+ {
+-	mpuio_init();
+ 
+ #if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
+ 	if (cpu_is_omap16xx() || cpu_class_is_omap2())
+-- 
+1.7.0.4
 
