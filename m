@@ -1,134 +1,111 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v5 11/22] gpio/omap: remove hardcoded offsets in ctxt save/restore
-Date: Thu, 4 Aug 2011 16:34:42 +0530
-Message-ID: <1312455893-14922-12-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v5 19/22] gpio/omap: optimize suspend and resume functions
+Date: Thu, 4 Aug 2011 16:34:50 +0530
+Message-ID: <1312455893-14922-20-git-send-email-tarun.kanti@ti.com>
 References: <1312455893-14922-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46010 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57064 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753235Ab1HDLFP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Aug 2011 07:05:15 -0400
+	id S1753288Ab1HDLFS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Aug 2011 07:05:18 -0400
 In-Reply-To: <1312455893-14922-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Charulatha V <charu@ti.com>
+Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-It is not required to use hard-coded offsets any more in context save and
-restore functions and instead use the generic offsets which have been correctly
-initialized during device registration.
+There is no need to operate on all the banks every time the function is called.
+Just operate on the current bank passed by the framework.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Signed-off-by: Charulatha V <charu@ti.com>
 ---
- arch/arm/mach-omap2/gpio.c             |    2 +
- arch/arm/plat-omap/include/plat/gpio.h |    1 +
- drivers/gpio/gpio-omap.c               |   41 ++++++++++++++-----------------
- 3 files changed, 22 insertions(+), 22 deletions(-)
+ drivers/gpio/gpio-omap.c |   54 +++++++++++++++++++++------------------------
+ 1 files changed, 25 insertions(+), 29 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-index 8745c3a..0ee9a55 100644
---- a/arch/arm/mach-omap2/gpio.c
-+++ b/arch/arm/mach-omap2/gpio.c
-@@ -103,6 +103,7 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- 		pdata->regs->irqstatus = OMAP24XX_GPIO_IRQSTATUS1;
- 		pdata->regs->irqstatus2 = OMAP24XX_GPIO_IRQSTATUS2;
- 		pdata->regs->irqenable = OMAP24XX_GPIO_IRQENABLE1;
-+		pdata->regs->irqenable2 = OMAP24XX_GPIO_IRQENABLE2;
- 		pdata->regs->set_irqenable = OMAP24XX_GPIO_SETIRQENABLE1;
- 		pdata->regs->clr_irqenable = OMAP24XX_GPIO_CLEARIRQENABLE1;
- 		pdata->regs->debounce = OMAP24XX_GPIO_DEBOUNCE_VAL;
-@@ -125,6 +126,7 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- 		pdata->regs->irqstatus = OMAP4_GPIO_IRQSTATUS0;
- 		pdata->regs->irqstatus2 = OMAP4_GPIO_IRQSTATUS1;
- 		pdata->regs->irqenable = OMAP4_GPIO_IRQSTATUSSET0;
-+		pdata->regs->irqenable2 = OMAP4_GPIO_IRQSTATUSSET1;
- 		pdata->regs->set_irqenable = OMAP4_GPIO_IRQSTATUSSET0;
- 		pdata->regs->clr_irqenable = OMAP4_GPIO_IRQSTATUSCLR0;
- 		pdata->regs->debounce = OMAP4_GPIO_DEBOUNCINGTIME;
-diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
-index 7d12fe8..0ad4f49 100644
---- a/arch/arm/plat-omap/include/plat/gpio.h
-+++ b/arch/arm/plat-omap/include/plat/gpio.h
-@@ -184,6 +184,7 @@ struct omap_gpio_reg_offs {
- 	u16 irqstatus;
- 	u16 irqstatus2;
- 	u16 irqenable;
-+	u16 irqenable2;
- 	u16 set_irqenable;
- 	u16 clr_irqenable;
- 	u16 debounce;
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index be561be..e7c9fe5 100644
+index e71cfcc..ce93898 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1348,45 +1348,42 @@ void omap2_gpio_resume_after_idle(void)
- static void omap_gpio_save_context(struct gpio_bank *bank)
+@@ -1051,6 +1051,8 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 		goto err_free;
+ 	}
+ 
++	platform_set_drvdata(pdev, bank);
++
+ 	pm_runtime_enable(bank->dev);
+ 	pm_runtime_irq_safe(bank->dev);
+ 	if (IS_ERR_VALUE(pm_runtime_get_sync(bank->dev) < 0)) {
+@@ -1088,45 +1090,39 @@ err_exit:
+ 
+ static int omap_gpio_suspend(struct device *dev)
  {
- 	bank->context.irqenable1 =
--		__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE1);
-+			__raw_readl(bank->base + bank->regs->irqenable);
- 	bank->context.irqenable2 =
--		__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE2);
-+			__raw_readl(bank->base + bank->regs->irqenable2);
- 	bank->context.wake_en =
--		__raw_readl(bank->base + OMAP24XX_GPIO_WAKE_EN);
--	bank->context.ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
--	bank->context.oe = __raw_readl(bank->base + OMAP24XX_GPIO_OE);
-+			__raw_readl(bank->base + bank->regs->wkup_status);
-+	bank->context.ctrl = __raw_readl(bank->base + bank->regs->ctrl);
-+	bank->context.oe = __raw_readl(bank->base + bank->regs->direction);
- 	bank->context.leveldetect0 =
--		__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0);
-+			__raw_readl(bank->base + bank->regs->leveldetect0);
- 	bank->context.leveldetect1 =
--		__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
-+			__raw_readl(bank->base + bank->regs->leveldetect1);
- 	bank->context.risingdetect =
--		__raw_readl(bank->base + OMAP24XX_GPIO_RISINGDETECT);
-+			__raw_readl(bank->base + bank->regs->risingdetect);
- 	bank->context.fallingdetect =
--		__raw_readl(bank->base + OMAP24XX_GPIO_FALLINGDETECT);
--	bank->context.dataout =
--		__raw_readl(bank->base + OMAP24XX_GPIO_DATAOUT);
-+	bank->context.dataout = __raw_readl(bank->base + bank->regs->dataout);
+-	struct gpio_bank *bank;
+-
+-	list_for_each_entry(bank, &omap_gpio_list, node) {
+-		void __iomem *base = bank->base;
+-		void __iomem *wake_status;
+-		unsigned long flags;
+-
+-		if (!bank->regs->wkup_status)
+-			return 0;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct gpio_bank *bank = platform_get_drvdata(pdev);
++	void __iomem *base = bank->base;
++	void __iomem *wake_status;
++	unsigned long flags;
+ 
+-		wake_status = bank->base + bank->regs->wkup_status;
++	if (!bank->regs->wkup_status || !bank->suspend_wakeup)
++		return 0;
+ 
+-		spin_lock_irqsave(&bank->lock, flags);
+-		bank->saved_wakeup = __raw_readl(wake_status);
+-		_gpio_rmw(base, bank->regs->wkup_status,
+-					bank->suspend_wakeup, 1);
+-		spin_unlock_irqrestore(&bank->lock, flags);
+-		pm_runtime_put_sync(dev);
+-	}
++	wake_status = bank->base + bank->regs->wkup_status;
+ 
++	spin_lock_irqsave(&bank->lock, flags);
++	bank->saved_wakeup = __raw_readl(wake_status);
++	_gpio_rmw(base, bank->regs->wkup_status, bank->suspend_wakeup, 1);
++	spin_unlock_irqrestore(&bank->lock, flags);
++	pm_runtime_put_sync(dev);
+ 	return 0;
  }
  
- static void omap_gpio_restore_context(struct gpio_bank *bank)
+ static int omap_gpio_resume(struct device *dev)
  {
- 	__raw_writel(bank->context.irqenable1,
--			bank->base + OMAP24XX_GPIO_IRQENABLE1);
-+				bank->base + bank->regs->irqenable);
- 	__raw_writel(bank->context.irqenable2,
--			bank->base + OMAP24XX_GPIO_IRQENABLE2);
-+				bank->base + bank->regs->irqenable2);
- 	__raw_writel(bank->context.wake_en,
--			bank->base + OMAP24XX_GPIO_WAKE_EN);
--	__raw_writel(bank->context.ctrl, bank->base + OMAP24XX_GPIO_CTRL);
--	__raw_writel(bank->context.oe, bank->base + OMAP24XX_GPIO_OE);
-+				bank->base + bank->regs->wkup_status);
-+	__raw_writel(bank->context.ctrl, bank->base + bank->regs->ctrl);
-+	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
- 	__raw_writel(bank->context.leveldetect0,
--			bank->base + OMAP24XX_GPIO_LEVELDETECT0);
-+				bank->base + bank->regs->leveldetect0);
- 	__raw_writel(bank->context.leveldetect1,
--			bank->base + OMAP24XX_GPIO_LEVELDETECT1);
-+				bank->base + bank->regs->leveldetect1);
- 	__raw_writel(bank->context.risingdetect,
--			bank->base + OMAP24XX_GPIO_RISINGDETECT);
-+				bank->base + bank->regs->risingdetect);
- 	__raw_writel(bank->context.fallingdetect,
--			bank->base + OMAP24XX_GPIO_FALLINGDETECT);
--	__raw_writel(bank->context.dataout,
--			bank->base + OMAP24XX_GPIO_DATAOUT);
-+				bank->base + bank->regs->fallingdetect);
-+	__raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
- }
- #endif
+-	struct gpio_bank *bank;
+-
+-	list_for_each_entry(bank, &omap_gpio_list, node) {
+-		void __iomem *base = bank->base;
+-		unsigned long flags;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct gpio_bank *bank = platform_get_drvdata(pdev);
++	void __iomem *base = bank->base;
++	unsigned long flags;
  
+-		if (!bank->regs->wkup_status)
+-			return 0;
++	if (!bank->regs->wkup_status || !bank->saved_wakeup)
++		return 0;
+ 
+-		pm_runtime_get_sync(dev);
+-		spin_lock_irqsave(&bank->lock, flags);
+-		_gpio_rmw(base, bank->regs->wkup_status, bank->saved_wakeup, 1);
+-		spin_unlock_irqrestore(&bank->lock, flags);
+-	}
++	pm_runtime_get_sync(dev);
++	spin_lock_irqsave(&bank->lock, flags);
++	_gpio_rmw(base, bank->regs->wkup_status, bank->saved_wakeup, 1);
++	spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
+ }
 -- 
 1.7.0.4
 
