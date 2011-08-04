@@ -1,47 +1,45 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 6/6] OMAP: McBSP: use existing macros for converting between devices
-Date: Thu,  4 Aug 2011 08:45:10 -0700
-Message-ID: <1312472710-31758-7-git-send-email-khilman@ti.com>
-References: <1312472710-31758-1-git-send-email-khilman@ti.com>
+From: Abhilash K V <abhilash.kv@ti.com>
+Subject: [PATCH 0/2] AM3517: Booting up
+Date: Thu, 4 Aug 2011 21:29:07 +0530
+Message-ID: <1312473547-1147-1-git-send-email-abhilash.kv@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:41225 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754537Ab1HDPor (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Aug 2011 11:44:47 -0400
-Received: by mail-yi0-f43.google.com with SMTP id 28so1417631yia.16
-        for <linux-omap@vger.kernel.org>; Thu, 04 Aug 2011 08:44:46 -0700 (PDT)
-In-Reply-To: <1312472710-31758-1-git-send-email-khilman@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56185 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751766Ab1HDP70 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Aug 2011 11:59:26 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Abhilash K V <abhilash.kv@ti.com>, Sanjeev Premi <premi@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-For converting from struct device to platform_device, and from
-platform_device to struct omap_device, there are existing macros.  Use
-them instead of manual use of container_of().
+This patch-set gets the kernel booting up on a AM3517 EVM.
+The board is able to boot with ramdisk after this,but the MMC and Ethernet
+drivers are not up yet. Lots of warnings remain which will be addressed in
+subsequent patches.
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
+The patches are tested on master of tmlind/linux-omap-2.6.git.
+Kernel version is 3.0.0-rc7 and last commit on top of which these patches
+were added is:
+
+	885cf6ff7d3dad4cc44be74b0577d3a554d3ab71: Linux-omap rebuilt:
+	Updated to -rc7, added new boards
+
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
- arch/arm/plat-omap/mcbsp.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 3c1fbdc..47016f7 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -260,9 +260,9 @@ EXPORT_SYMBOL(omap_mcbsp_dma_reg_params);
- #ifdef CONFIG_ARCH_OMAP3
- static struct omap_device *find_omap_device_by_dev(struct device *dev)
- {
--	struct platform_device *pdev = container_of(dev,
--					struct platform_device, dev);
--	return container_of(pdev, struct omap_device, pdev);
-+	struct platform_device *pdev = to_platform_device(dev);
-+
-+	return to_omap_device(pdev);
- }
- 
- static void omap_st_on(struct omap_mcbsp *mcbsp)
--- 
-1.7.6
+Abhilash K V (1):
+  AM35x: Using OMAP3 generic hwmods
+
+Vaibhav Hiremath (1):
+  omap_twl: Prevent SR to enable for am3517/am3505 devices
+
+ arch/arm/mach-omap2/board-am3517evm.c        |   11 +++++++++++
+ arch/arm/mach-omap2/omap_hwmod.c             |    3 ++-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |   18 ++++++++++++++++++
+ arch/arm/mach-omap2/omap_twl.c               |    8 ++++++++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    3 +++
+ 5 files changed, 42 insertions(+), 1 deletions(-)
 
