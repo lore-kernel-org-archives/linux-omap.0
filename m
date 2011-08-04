@@ -1,54 +1,183 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v5 21/22] gpio/omap: skip operations in runtime callbacks
-Date: Thu, 4 Aug 2011 16:34:52 +0530
-Message-ID: <1312455893-14922-22-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v5 13/22] gpio/omap: cleanup omap_gpio_mod_init function
+Date: Thu, 4 Aug 2011 16:34:44 +0530
+Message-ID: <1312455893-14922-14-git-send-email-tarun.kanti@ti.com>
 References: <1312455893-14922-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41596 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753196Ab1HDLFb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Aug 2011 07:05:31 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:50354 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753235Ab1HDLFT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Aug 2011 07:05:19 -0400
 In-Reply-To: <1312455893-14922-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Charulatha V <charu@ti.com>
 
-Most operations within runtime callbacks should be skipped when
-*_runtime_get_sync() and *_runtime_put_sync() are called in probe(),
-*_gpio_request() and *_gpio_free(). We just need clock enable/disable.
+With register offsets now defined for respective OMAP versions we can get rid
+of cpu_class_* checks. This function now has common initialization code for
+all OMAP versions. Initialization specific to OMAP16xx has been moved within
+omap16xx_gpio_init().
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Signed-off-by: Charulatha V <charu@ti.com>
 ---
- drivers/gpio/gpio-omap.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap1/gpio16xx.c |   34 ++++++++++++++++++-
+ drivers/gpio/gpio-omap.c       |   71 +++++++++++-----------------------------
+ 2 files changed, 52 insertions(+), 53 deletions(-)
 
+diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
+index f619805..61b1998 100644
+--- a/arch/arm/mach-omap1/gpio16xx.c
++++ b/arch/arm/mach-omap1/gpio16xx.c
+@@ -24,6 +24,8 @@
+ #define OMAP1610_GPIO4_BASE		0xfffbbc00
+ #define OMAP1_MPUIO_VBASE		OMAP1_MPUIO_BASE
+ 
++#define SYSCONFIG_WORD			0x14 /* smart idle, enable wakeup */
++
+ /* mpu gpio */
+ static struct __initdata resource omap16xx_mpu_gpio_resources[] = {
+ 	{
+@@ -218,12 +220,42 @@ static struct __initdata platform_device * omap16xx_gpio_dev[] = {
+ static int __init omap16xx_gpio_init(void)
+ {
+ 	int i;
++	void __iomem *base;
++	struct resource *res;
++	struct platform_device *pdev;
++	struct omap_gpio_platform_data *pdata;
+ 
+ 	if (!cpu_is_omap16xx())
+ 		return -EINVAL;
+ 
+-	for (i = 0; i < ARRAY_SIZE(omap16xx_gpio_dev); i++)
++	for (i = 0; i < ARRAY_SIZE(omap16xx_gpio_dev); i++) {
++		pdev = omap16xx_gpio_dev[i];
++		pdata = pdev->dev.platform_data;
++
++		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++		if (unlikely(!res)) {
++			dev_err(&pdev->dev, "Invalid mem resource.\n");
++			return -ENODEV;
++		}
++
++		base = ioremap(res->start, resource_size(res));
++		if (unlikely(!base)) {
++			dev_err(&pdev->dev, "ioremap failed.\n");
++			return -ENOMEM;
++		}
++
++		__raw_writel(SYSCONFIG_WORD, base + OMAP1610_GPIO_SYSCONFIG);
++		iounmap(base);
++
++		/*
++		 * Enable system clock for GPIO module.
++		 * The CAM_CLK_CTRL *is* really the right place.
++		 */
++		omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
++					ULPD_CAM_CLK_CTRL);
++
+ 		platform_device_register(omap16xx_gpio_dev[i]);
++	}
+ 
+ 	return 0;
+ }
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index ba743f5..eae955a 100644
+index 21cb0d4..f6855e5 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1142,6 +1142,9 @@ static int omap_gpio_runtime_suspend(struct device *dev)
- 	for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
- 		clk_disable(bank->dbck);
+@@ -875,62 +875,24 @@ static void __init omap_gpio_show_rev(struct gpio_bank *bank)
+  */
+ static struct lock_class_key gpio_lock_class;
  
-+	if (!bank->mod_usage)
-+		return 0;
-+
- 	/* If going to OFF, remove triggering for all
- 	 * non-wakeup GPIOs.  Otherwise spurious IRQs will be
- 	 * generated.  See OMAP2420 Errata item 1.101. */
-@@ -1180,6 +1183,9 @@ static int omap_gpio_runtime_resume(struct device *dev)
- 	for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
- 		clk_enable(bank->dbck);
+-/* TODO: Cleanup cpu_is_* checks */
+ static void omap_gpio_mod_init(struct gpio_bank *bank)
+ {
+-	if (cpu_class_is_omap2()) {
+-		if (cpu_is_omap44xx()) {
+-			__raw_writel(0xffffffff, bank->base +
+-					OMAP4_GPIO_IRQSTATUSCLR0);
+-			__raw_writel(0x00000000, bank->base +
+-					 OMAP4_GPIO_DEBOUNCENABLE);
+-			/* Initialize interface clk ungated, module enabled */
+-			__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
+-		} else if (cpu_is_omap34xx()) {
+-			__raw_writel(0x00000000, bank->base +
+-					OMAP24XX_GPIO_IRQENABLE1);
+-			__raw_writel(0xffffffff, bank->base +
+-					OMAP24XX_GPIO_IRQSTATUS1);
+-			__raw_writel(0x00000000, bank->base +
+-					OMAP24XX_GPIO_DEBOUNCE_EN);
+-
+-			/* Initialize interface clk ungated, module enabled */
+-			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
+-		}
+-	} else if (cpu_class_is_omap1()) {
+-		if (bank_is_mpuio(bank)) {
+-			__raw_writew(0xffff, bank->base +
+-				OMAP_MPUIO_GPIO_MASKIT / bank->stride);
+-			mpuio_init(bank);
+-		}
+-		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
+-			__raw_writew(0xffff, bank->base
+-						+ OMAP1510_GPIO_INT_MASK);
+-			__raw_writew(0x0000, bank->base
+-						+ OMAP1510_GPIO_INT_STATUS);
+-		}
+-		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
+-			__raw_writew(0x0000, bank->base
+-						+ OMAP1610_GPIO_IRQENABLE1);
+-			__raw_writew(0xffff, bank->base
+-						+ OMAP1610_GPIO_IRQSTATUS1);
+-			__raw_writew(0x0014, bank->base
+-						+ OMAP1610_GPIO_SYSCONFIG);
++	void __iomem *base = bank->base;
++	u32 l = 0xffffffff;
  
-+	if (!bank->mod_usage)
-+		return 0;
+-			/*
+-			 * Enable system clock for GPIO module.
+-			 * The CAM_CLK_CTRL *is* really the right place.
+-			 */
+-			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
+-						ULPD_CAM_CLK_CTRL);
+-		}
+-		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
+-			__raw_writel(0xffffffff, bank->base
+-						+ OMAP7XX_GPIO_INT_MASK);
+-			__raw_writel(0x00000000, bank->base
+-						+ OMAP7XX_GPIO_INT_STATUS);
+-		}
++	if (bank->width == 16)
++		l = 0xffff;
 +
- 	if (bank->get_context_loss_count) {
- 		ctx_lost_cnt_after =
- 			bank->get_context_loss_count(bank->dev);
++	if (bank_is_mpuio(bank)) {
++		__raw_writel(l, bank->base + bank->regs->irqenable);
++		return;
+ 	}
++
++	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->irqenable_inv);
++	_gpio_rmw(base, bank->regs->irqstatus, l,
++					bank->regs->irqenable_inv == false);
++	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->debounce_en != 0);
++	_gpio_rmw(base, bank->regs->irqenable, l, bank->regs->ctrl != 0);
+ }
+ 
+ static __init void
+@@ -1074,6 +1036,11 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	pm_runtime_enable(bank->dev);
+ 	pm_runtime_get_sync(bank->dev);
+ 
++	if (bank_is_mpuio(bank)) {
++		if (bank->regs->wkup_status)
++			mpuio_init(bank);
++	}
++
+ 	omap_gpio_mod_init(bank);
+ 	omap_gpio_chip_init(bank);
+ 	omap_gpio_show_rev(bank);
 -- 
 1.7.0.4
 
