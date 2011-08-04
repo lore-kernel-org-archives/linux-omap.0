@@ -1,46 +1,52 @@
-From: David Wagner <david.wagner@free-electrons.com>
-Subject: [PATCH 2/2] Use existing GPMC macros instead of bit manipulation
-Date: Thu,  4 Aug 2011 17:15:14 +0200
-Message-ID: <1312470914-20053-1-git-send-email-david.wagner@free-electrons.com>
-References: <1312470395-19672-2-git-send-email-david.wagner@free-electrons.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH 0/6] OMAP: misc. PM-related fixes for v3.1-rc
+Date: Thu,  4 Aug 2011 08:45:04 -0700
+Message-ID: <1312472710-31758-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:33142 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753870Ab1HDPMr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Aug 2011 11:12:47 -0400
-In-Reply-To: <1312470395-19672-2-git-send-email-david.wagner@free-electrons.com>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:51145 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751663Ab1HDPoi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Aug 2011 11:44:38 -0400
+Received: by mail-gx0-f171.google.com with SMTP id 22so1249348gxk.30
+        for <linux-omap@vger.kernel.org>; Thu, 04 Aug 2011 08:44:37 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: David Wagner <david.wagner@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Signed-off-by: David Wagner <david.wagner@free-electrons.com>
----
+Hi Tony,
 
-erratum: added the missing s-o-b
+Here's my current collection of PM-related fixes for the -rc cycle.
 
- arch/arm/mach-omap2/board-igep0020.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+They are based on the next/board branch of Arnd's arm-soc tree (which
+has already been merged by Linus) and are also available in the
+for_3.1/pm-fixes branch of my tree:
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 35be778..f89573a 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -175,12 +175,12 @@ static void __init igep_flash_init(void)
- 		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
- 
- 		/* Check if NAND/oneNAND is configured */
--		if ((ret & 0xC00) == 0x800)
-+		if (GPMC_CONFIG1_DEVICETYPE(ret) == GPMC_DEVICETYPE_NAND)
- 			/* NAND found */
- 			pr_err("IGEP: Unsupported NAND found\n");
- 		else {
- 			ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
--			if ((ret & 0x3F) == (ONENAND_MAP >> 24))
-+			if (GPMC_CONFIG7_BASEADDRESS(ret) == (ONENAND_MAP >> 24))
- 				/* ONENAND found */
- 				onenandcs = cs;
- 		}
+Kevin
+
+
+
+Colin Cross (1):
+  OMAP2+: PM: SmartReflex: use put_sync_suspend for IRQ-safe disabling
+
+Kevin Hilman (4):
+  OMAP2+: Kconfig: don't select PM in OMAP2PLUS_TYPICAL
+  OMAP1: enable GENERIC_IRQ_CHIP
+  OMAP3: beagle: don't touch omap_device internals
+  OMAP: McBSP: use existing macros for converting between devices
+
+Nishanth Menon (1):
+  OMAP3+: SR: ensure pm-runtime callbacks can be invoked with IRQs
+    disabled
+
+ arch/arm/mach-omap2/Kconfig             |    1 -
+ arch/arm/mach-omap2/board-omap3beagle.c |   23 ++++++++++-------------
+ arch/arm/mach-omap2/smartreflex.c       |    3 ++-
+ arch/arm/plat-omap/Kconfig              |    1 +
+ arch/arm/plat-omap/mcbsp.c              |    6 +++---
+ 5 files changed, 16 insertions(+), 18 deletions(-)
+
 -- 
-1.7.0.4
+1.7.6
 
