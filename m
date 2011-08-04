@@ -1,104 +1,33 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv5 1/3] OMAP: I2C: Reset support
-Date: Thu, 04 Aug 2011 11:55:12 +0530
-Message-ID: <4E3A3B48.2050108@ti.com>
-References: <1311935813-8481-1-git-send-email-shubhrajyoti@ti.com>	<1311935813-8481-2-git-send-email-shubhrajyoti@ti.com> <87sjpj75yq.fsf@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP: DSS2: Don't allow moving managers away from
+ enabled displays
+Date: Thu, 04 Aug 2011 11:08:43 +0300
+Message-ID: <1312445323.2143.8.camel@deskari>
+References: <1312402251-31588-1-git-send-email-daniel.morsing@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87sjpj75yq.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:58611 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751675Ab1HDIIs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Aug 2011 04:08:48 -0400
+In-Reply-To: <1312402251-31588-1-git-send-email-daniel.morsing@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Morsing <daniel.morsing@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Wednesday 03 August 2011 04:53 AM, Kevin Hilman wrote:
-> Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>  writes:
->
->>   Under some error conditions the i2c  driver may do a reset.
->    ^                                    ^
-> minor: extra whitespace
->
->>   Adding a reset field and support in the platform.
-> s/platform/device-specific code/
->
-Yes will fix these.
->> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> That being said, omap_device_shutdown() should already do a clean
-> shutdown + reset for you, and i2c-omap.h already has a pointer for
-> ->device_shutdown() so a new device_reset() should not be needed.
->
-> IOW, simply adding pdata->device_shutdown = omap_device_shutdown()
-> should work.
-i2C has a special reset sequence ie Disable -> reset -> enable -> Poll 
-on reset done.
-This function is implemented in omap_i2c_reset. The
+On Wed, 2011-08-03 at 22:10 +0200, Daniel Morsing wrote:
+> If a manager is moved while attached to an enabled display, the DSS
+> system will be left in an inconsistent state. This will eventually cause
+> a kernel oops when the enabled display is disabled.
+> 
+> Fix this by not allowing the user to move a manager away from an enabled
+> display.
 
-omap_hwmod_reset calls ->  _reset
+Thanks, applying.
 
-which calls ocp_softrest  or custom reset if it is present.The latter is 
-true for I2C.
-
-However I see that
-
-omap_device_shutdown ->  _assert_hardreset However for I2c there doesnt seem to be a HW reset line.
+ Tomi
 
 
-Am I missing something?
-
-> Kevin
->
->> ---
->>   arch/arm/plat-omap/i2c.c |   18 ++++++++++++++++++
->>   include/linux/i2c-omap.h |    1 +
->>   2 files changed, 19 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
->> index 2388b8e..be36cac 100644
->> --- a/arch/arm/plat-omap/i2c.c
->> +++ b/arch/arm/plat-omap/i2c.c
->> @@ -146,6 +146,22 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
->>   		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
->>   	},
->>   };
->> +/**
->> + * omap2_i2c_reset - reset the omap i2c module.
->> + * @dev: struct device*
->> + */
->> +
->> +static int omap2_i2c_reset(struct device *dev)
->> +{
->> +	int r = 0;
->> +	struct platform_device *pdev = to_platform_device(dev);
->> +	struct omap_device *odev = to_omap_device(pdev);
->> +	struct omap_hwmod *oh;
->> +
->> +	oh = odev->hwmods[0];
->> +	r = omap_hwmod_reset(oh);
->> +	return r;
->> +}
->>
->>   static inline int omap2_i2c_add_bus(int bus_id)
->>   {
->> @@ -187,6 +203,8 @@ static inline int omap2_i2c_add_bus(int bus_id)
->>   	 */
->>   	if (cpu_is_omap34xx())
->>   		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
->> +
->> +	pdata->device_reset = omap2_i2c_reset;
->>   	od = omap_device_build(name, bus_id, oh, pdata,
->>   			sizeof(struct omap_i2c_bus_platform_data),
->>   			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
->> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
->> index 98ae49b..8aa91b6 100644
->> --- a/include/linux/i2c-omap.h
->> +++ b/include/linux/i2c-omap.h
->> @@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
->>   	int		(*device_enable) (struct platform_device *pdev);
->>   	int		(*device_shutdown) (struct platform_device *pdev);
->>   	int		(*device_idle) (struct platform_device *pdev);
->> +	int		(*device_reset) (struct device *dev);
->>   };
->>
->>   #endif
