@@ -1,82 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAP: DSS2: DSI: Support non-dcs long read
-Date: Thu, 04 Aug 2011 15:06:51 +0300
-Message-ID: <1312459611.2143.18.camel@deskari>
-References: <1309405483-6876-1-git-send-email-arve@android.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device
+ wake-up constraints
+Date: Thu, 4 Aug 2011 14:24:26 +0100
+Message-ID: <20110804132426.GB14921@sirena.org.uk>
+References: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
+ <201108022220.00019.rjw@sisk.pl>
+ <8762mfecdk.fsf@ti.com>
+ <201108030016.18174.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:49442 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752786Ab1HDMG4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Aug 2011 08:06:56 -0400
-Received: by mail-fx0-f48.google.com with SMTP id 7so2062523fxg.7
-        for <linux-omap@vger.kernel.org>; Thu, 04 Aug 2011 05:06:55 -0700 (PDT)
-In-Reply-To: <1309405483-6876-1-git-send-email-arve@android.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:38144 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753639Ab1HDNYr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Aug 2011 09:24:47 -0400
+Content-Disposition: inline
+In-Reply-To: <201108030016.18174.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>
-Cc: linux-omap@vger.kernel.org, Dima Zavin <dima@android.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Kevin Hilman <khilman@ti.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-Hi,
+On Wed, Aug 03, 2011 at 12:16:17AM +0200, Rafael J. Wysocki wrote:
+> On Tuesday, August 02, 2011, Kevin Hilman wrote:
 
-On Wed, 2011-06-29 at 20:44 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
-> Change-Id: I18168c887e1384c07dc033a1ffc57abdacb26073
-> Signed-off-by: Arve Hj=C3=B8nnev=C3=A5g <arve@android.com>
-> ---
->  drivers/video/omap2/dss/dsi.c |    7 ++++++-
->  1 files changed, 6 insertions(+), 1 deletions(-)
+> > I disagree and think that both are quite realistic (mainly because they
+> > exist today, albiet mostly out of tree because no generic QoS framework
+> > exist.  e.g. on OMAP, we have OMAP-specific *kernel* APIs for requesting
+> > per-device wakeup latencies, and drivers and frameworks are using them.)
+> 
+> I'm sure there are frameworks using such things.  I'm also sure there
+> are frameworks that don't.  BTW, the "we have it out of the tree" argument is
+> not very useful, so I'd appreciate it if you didn't use it.
 
-This feels somehow partial... Why do you want to read generic packets i=
-f
-there are no functions to send generic packets?
+It's useful to know if people have tried things; it doesn't mean it's
+going to be OK for mainline but it is a data point.
 
-And always write a patch description.
+> > In this case, the video framework (V4L2) might not want any knobs
+> > exposed to userspace because userspace simply doesn't have the knowledge
+> > to set appropriate constraints.  I'm less familiar with audio, but I
+> > believe audio would be similar (sample rate, number of channels, mixing
+> > with other concurrent audio streams, etc. etc. are all known by the
+> > kernel-side code.)
 
- Tomi
+Yeah, that sort of stuff and also data like wakeup latencies required to
+service interrupts.
 
->=20
-> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/=
-dsi.c
-> index c16b933..6975645 100644
-> --- a/drivers/video/omap2/dss/dsi.c
-> +++ b/drivers/video/omap2/dss/dsi.c
-> @@ -206,6 +206,7 @@ struct dsi_reg { u16 idx; };
->  #define DSI_DT_DCS_LONG_WRITE		0x39
-> =20
->  #define DSI_DT_RX_ACK_WITH_ERR		0x02
-> +#define DSI_DT_RX_LONG_READ		0x1a
->  #define DSI_DT_RX_DCS_LONG_READ		0x1c
->  #define DSI_DT_RX_SHORT_READ_1		0x21
->  #define DSI_DT_RX_SHORT_READ_2		0x22
-> @@ -2943,6 +2944,10 @@ static u16 dsi_vc_flush_receive_data(struct pl=
-atform_device *dsidev,
->  		} else if (dt =3D=3D DSI_DT_RX_SHORT_READ_2) {
->  			DSSERR("\tDCS short response, 2 byte: %#x\n",
->  					FLD_GET(val, 23, 8));
-> +		} else if (dt =3D=3D DSI_DT_RX_LONG_READ) {
-> +			DSSERR("\tlong response, len %d\n",
-> +					FLD_GET(val, 23, 8));
-> +			dsi_vc_flush_long_data(dsidev, channel);
->  		} else if (dt =3D=3D DSI_DT_RX_DCS_LONG_READ) {
->  			DSSERR("\tDCS long response, len %d\n",
->  					FLD_GET(val, 23, 8));
-> @@ -3287,7 +3292,7 @@ int dsi_vc_dcs_read(struct omap_dss_device *dss=
-dev, int channel, u8 dcs_cmd,
->  		buf[1] =3D (data >> 8) & 0xff;
-> =20
->  		return 2;
-> -	} else if (dt =3D=3D DSI_DT_RX_DCS_LONG_READ) {
-> +	} else if (dt =3D=3D DSI_DT_RX_DCS_LONG_READ || dt =3D=3D DSI_DT_RX=
-_LONG_READ) {
->  		int w;
->  		int len =3D FLD_GET(val, 23, 8);
->  		if (dsi->debug_read)
+> I still don't understand what's wrong with allowing user space to _add_
+> requirements.  The will only override the drivers' or frameworks' requirements
+> if they are stronger, so the functionality shouldn't be hurt.  They may cause
+> some more energy to be used, but if user space wants that, it's pretty much
+> fine by me.
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On the one hand that's true.  On the other hand that just seems like
+going down a bad road where we have drivers that only work when run with
+a magic userspace that may or may not be published which is just going
+to make people miserable.  I'm not sure there are many people who would
+choose to use more power without wanting some functional change so
+presumably any users would be seeking to work around some kernel problem
+and adding the user interface seems to be saying that this is OK,
+expected and a natural part of power optimization.
