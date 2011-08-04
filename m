@@ -1,42 +1,70 @@
-From: David Wagner <david.wagner@free-electrons.com>
-Subject: [PATCH 2/2] Use existing GPMC macros instead of bit manipulation
-Date: Thu,  4 Aug 2011 17:06:35 +0200
-Message-ID: <1312470395-19672-2-git-send-email-david.wagner@free-electrons.com>
-References: <1312470395-19672-1-git-send-email-david.wagner@free-electrons.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:44772 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751312Ab1HDPEK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Aug 2011 11:04:10 -0400
-In-Reply-To: <1312470395-19672-1-git-send-email-david.wagner@free-electrons.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv5 1/3] OMAP: I2C: Reset support
+Date: Thu, 04 Aug 2011 08:05:20 -0700
+Message-ID: <87d3gl43pr.fsf@ti.com>
+References: <1311935813-8481-1-git-send-email-shubhrajyoti@ti.com>
+	<1311935813-8481-2-git-send-email-shubhrajyoti@ti.com>
+	<87sjpj75yq.fsf@ti.com> <4E3A3B48.2050108@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4E3A3B48.2050108@ti.com> (shubhrajyoti@ti.com's message of "Thu,
+	04 Aug 2011 11:55:12 +0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Shubhrajyoti <shubhrajyoti@ti.com>
+Cc: balajitk@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: David Wagner <david.wagner@free-electrons.com>, LKML <inux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
 
----
- arch/arm/mach-omap2/board-igep0020.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Shubhrajyoti <shubhrajyoti@ti.com> writes:
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 35be778..f89573a 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -175,12 +175,12 @@ static void __init igep_flash_init(void)
- 		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
- 
- 		/* Check if NAND/oneNAND is configured */
--		if ((ret & 0xC00) == 0x800)
-+		if (GPMC_CONFIG1_DEVICETYPE(ret) == GPMC_DEVICETYPE_NAND)
- 			/* NAND found */
- 			pr_err("IGEP: Unsupported NAND found\n");
- 		else {
- 			ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
--			if ((ret & 0x3F) == (ONENAND_MAP >> 24))
-+			if (GPMC_CONFIG7_BASEADDRESS(ret) == (ONENAND_MAP >> 24))
- 				/* ONENAND found */
- 				onenandcs = cs;
- 		}
--- 
-1.7.0.4
+> On Wednesday 03 August 2011 04:53 AM, Kevin Hilman wrote:
+>> Shubhrajyoti D<shubhrajyoti@ti.com>  writes:
+>>
+>>>   Under some error conditions the i2c  driver may do a reset.
+>>    ^                                    ^
+>> minor: extra whitespace
+>>
+>>>   Adding a reset field and support in the platform.
+>> s/platform/device-specific code/
+>>
+> Yes will fix these.
+>>> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
+>> That being said, omap_device_shutdown() should already do a clean
+>> shutdown + reset for you, and i2c-omap.h already has a pointer for
+>> ->device_shutdown() so a new device_reset() should not be needed.
+>>
+>> IOW, simply adding pdata->device_shutdown = omap_device_shutdown()
+>> should work.
+> i2C has a special reset sequence ie Disable -> reset -> enable -> Poll
+> on reset done.
+> This function is implemented in omap_i2c_reset. The
+>
+> omap_hwmod_reset calls ->  _reset
+>
+> which calls ocp_softrest  or custom reset if it is present.The latter
+> is true for I2C.
+>
+> However I see that
+>
+> omap_device_shutdown ->  _assert_hardreset However for I2c there doesnt seem to be a HW reset line.
+>
+>
+> Am I missing something?
+>
 
+No, my fault.
+
+I thought omap_device_shutdown() also did soft reset, but I see that's
+not the case.  You can ignore my comments about using
+omap_device_shutdown.
+
+Kevin
