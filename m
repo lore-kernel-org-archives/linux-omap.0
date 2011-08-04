@@ -1,48 +1,38 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPFB: make debug message more useful
-Date: Thu, 04 Aug 2011 11:09:19 +0300
-Message-ID: <1312445359.2143.9.camel@deskari>
-References: <1309972109-23778-1-git-send-email-andy.doan@linaro.org>
+From: Arno Steffen <arno.steffen@googlemail.com>
+Subject: [Q] SW-ECC to HW-ECC (OMAP3)
+Date: Thu, 4 Aug 2011 12:55:20 +0200
+Message-ID: <CAACX+R3Gve=V4+AV17WONEkXpb9NwrLbUr7E2Ym6Qu-2URyiTA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:39114 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751762Ab1HDIJZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Aug 2011 04:09:25 -0400
-In-Reply-To: <1309972109-23778-1-git-send-email-andy.doan@linaro.org>
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:40658 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752287Ab1HDKzU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Aug 2011 06:55:20 -0400
+Received: by pzk37 with SMTP id 37so1853170pzk.1
+        for <linux-omap@vger.kernel.org>; Thu, 04 Aug 2011 03:55:20 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Doan <andy.doan@linaro.org>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Wed, 2011-07-06 at 12:08 -0500, Andy Doan wrote:
-> Make the debug message useful by printing the name of the device
-> that no associated driver could be found for.
-> 
-> Signed-off-by: Andy Doan <andy.doan@linaro.org>
-> ---
->  drivers/video/omap2/omapfb/omapfb-main.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
-> index 602b71a..e5a64b3 100644
-> --- a/drivers/video/omap2/omapfb/omapfb-main.c
-> +++ b/drivers/video/omap2/omapfb/omapfb-main.c
-> @@ -2373,7 +2373,8 @@ static int omapfb_probe(struct platform_device *pdev)
->  		omap_dss_get_device(dssdev);
->  
->  		if (!dssdev->driver) {
-> -			dev_err(&pdev->dev, "no driver for display\n");
-> +			dev_err(&pdev->dev, "no driver for display: %s\n",
-> +				dssdev->name);
->  			r = -ENODEV;
->  		}
->  
+While migrating from .33 to .37 kernel I found, that HW-ECC is used by default.
+I found that this is set in omap2.c:
+	pdata->ecc_opt		= OMAP_ECC_HAMMING_CODE_HW;
+Unfortunatly setting it back to
+	pdata->ecc_opt		= OMAP_ECC_HAMMING_CODE_DEFAULT;
+doesn't prevent me from getting messages like:
 
-Thanks, applying.
+uncorrectable error :
+uncorrectable error :
+mtd->read(0xd18 bytes from 0x7eae8) returned ECC error
 
- Tomi
+So what else has to be set? I couldn't found it.
 
+Other way maybe to keep it at HW-ECC. Is this significant faster than SW-ECC?
+But howto get nandwrite (mtd-utils) or fw_setenv (uboot) to handle HW-ECC?
+Do I have to use just the --noecc option?
 
+When using the fw_setenv command I get CRC errors in environment with next boot.
+
+Thanks
+Arno
