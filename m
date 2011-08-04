@@ -1,54 +1,104 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] Revert "i2c-omap: fix static suspend vs. runtime suspend"
-Date: Thu, 4 Aug 2011 01:38:02 +0300
-Message-ID: <20110803223802.GC4036@legolas.emea.dhcp.ti.com>
-References: <1312394379-21516-1-git-send-email-khilman@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv5 1/3] OMAP: I2C: Reset support
+Date: Thu, 04 Aug 2011 11:55:12 +0530
+Message-ID: <4E3A3B48.2050108@ti.com>
+References: <1311935813-8481-1-git-send-email-shubhrajyoti@ti.com>	<1311935813-8481-2-git-send-email-shubhrajyoti@ti.com> <87sjpj75yq.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3siQDZowHQqNOShm"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1312394379-21516-1-git-send-email-khilman-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <87sjpj75yq.fsf-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Wednesday 03 August 2011 04:53 AM, Kevin Hilman wrote:
+> Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>  writes:
+>
+>>   Under some error conditions the i2c  driver may do a reset.
+>    ^                                    ^
+> minor: extra whitespace
+>
+>>   Adding a reset field and support in the platform.
+> s/platform/device-specific code/
+>
+Yes will fix these.
+>> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> That being said, omap_device_shutdown() should already do a clean
+> shutdown + reset for you, and i2c-omap.h already has a pointer for
+> ->device_shutdown() so a new device_reset() should not be needed.
+>
+> IOW, simply adding pdata->device_shutdown = omap_device_shutdown()
+> should work.
+i2C has a special reset sequence ie Disable -> reset -> enable -> Poll 
+on reset done.
+This function is implemented in omap_i2c_reset. The
 
---3siQDZowHQqNOShm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+omap_hwmod_reset calls ->  _reset
 
-On Wed, Aug 03, 2011 at 10:59:39AM -0700, Kevin Hilman wrote:
-> This reverts commit adf6e07922255937c8bfeea777d19502b4c9a2be.
->=20
-> Remove system PM methods which can race with runtime PM methods.
->=20
-> Also, as of v3.1, the PM domain level code for OMAP handles device
-> power state transistions automatically for devices, so calling them
-> from
+which calls ocp_softrest  or custom reset if it is present.The latter is 
+true for I2C.
 
-=66rom where ? I didn't quite get this ;-)
+However I see that
 
---=20
-balbi
+omap_device_shutdown ->  _assert_hardreset However for I2c there doesnt seem to be a HW reset line.
 
---3siQDZowHQqNOShm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Am I missing something?
 
-iQEcBAEBAgAGBQJOOc3KAAoJEAv8Txj19kN1dWYH/3yFfSXeVt/Sh62+DcxfOt0Q
-+NLMkWUcMDcNHOM4SzeXxdyhGMX35fNGLygn3fdUYlV0QKdR02w+Ssal+XxuTLBg
-pcwfkQUn/fXRrrttxQ+p2luyO63C6eVcb4XTkGd+EGzOIQ1QKQYoEmicenx8hBYQ
-RI0jHGt2ZNbh1oKQyGJX2YwszMMnHoZjYfpZhKoJI9nQqpdaNPhmzf944m30TV2m
-CmfQNhhsqHMy9dFqmXM8YD2CVR4l72InwQznhaf6VNLWJIVLr3nTuVcGItefTMGX
-uSgJnMP/2nHndRDu7cn2aa6wS4iBtO2mW9s84kC80c478Vm9bgR0vUQAiz+6wpw=
-=LafJ
------END PGP SIGNATURE-----
-
---3siQDZowHQqNOShm--
+> Kevin
+>
+>> ---
+>>   arch/arm/plat-omap/i2c.c |   18 ++++++++++++++++++
+>>   include/linux/i2c-omap.h |    1 +
+>>   2 files changed, 19 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+>> index 2388b8e..be36cac 100644
+>> --- a/arch/arm/plat-omap/i2c.c
+>> +++ b/arch/arm/plat-omap/i2c.c
+>> @@ -146,6 +146,22 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
+>>   		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+>>   	},
+>>   };
+>> +/**
+>> + * omap2_i2c_reset - reset the omap i2c module.
+>> + * @dev: struct device*
+>> + */
+>> +
+>> +static int omap2_i2c_reset(struct device *dev)
+>> +{
+>> +	int r = 0;
+>> +	struct platform_device *pdev = to_platform_device(dev);
+>> +	struct omap_device *odev = to_omap_device(pdev);
+>> +	struct omap_hwmod *oh;
+>> +
+>> +	oh = odev->hwmods[0];
+>> +	r = omap_hwmod_reset(oh);
+>> +	return r;
+>> +}
+>>
+>>   static inline int omap2_i2c_add_bus(int bus_id)
+>>   {
+>> @@ -187,6 +203,8 @@ static inline int omap2_i2c_add_bus(int bus_id)
+>>   	 */
+>>   	if (cpu_is_omap34xx())
+>>   		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
+>> +
+>> +	pdata->device_reset = omap2_i2c_reset;
+>>   	od = omap_device_build(name, bus_id, oh, pdata,
+>>   			sizeof(struct omap_i2c_bus_platform_data),
+>>   			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
+>> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+>> index 98ae49b..8aa91b6 100644
+>> --- a/include/linux/i2c-omap.h
+>> +++ b/include/linux/i2c-omap.h
+>> @@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
+>>   	int		(*device_enable) (struct platform_device *pdev);
+>>   	int		(*device_shutdown) (struct platform_device *pdev);
+>>   	int		(*device_idle) (struct platform_device *pdev);
+>> +	int		(*device_reset) (struct device *dev);
+>>   };
+>>
+>>   #endif
