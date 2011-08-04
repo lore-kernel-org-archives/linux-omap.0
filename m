@@ -1,63 +1,156 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 6/6] OMAP: McBSP: use existing macros for converting
- between devices
-Date: Fri, 5 Aug 2011 09:02:44 +0300
-Message-ID: <20110805090244.f6e5f65a6829138d929bd4a9@gmail.com>
-References: <1312472710-31758-1-git-send-email-khilman@ti.com>
-	<1312472710-31758-7-git-send-email-khilman@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+ Add Primview dispalys to panel-generic
+Date: Thu, 04 Aug 2011 15:18:59 +0300
+Message-ID: <1312460339.2143.23.camel@deskari>
+References: <1310122034-6561-1-git-send-email-j.weitzel@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:62146 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756335Ab1HEGCq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 02:02:46 -0400
-Received: by fxh19 with SMTP id 19so2467737fxh.19
-        for <linux-omap@vger.kernel.org>; Thu, 04 Aug 2011 23:02:45 -0700 (PDT)
-In-Reply-To: <1312472710-31758-7-git-send-email-khilman@ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:37761 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751658Ab1HEGvt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 02:51:49 -0400
+In-Reply-To: <1310122034-6561-1-git-send-email-j.weitzel@phytec.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jan Weitzel <j.weitzel@phytec.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
 
-Hi Kevin
+Hi,
 
-On Thu,  4 Aug 2011 08:45:10 -0700
-Kevin Hilman <khilman@ti.com> wrote:
+On Fri, 2011-07-08 at 12:47 +0200, Jan Weitzel wrote:
+> Add displays to panel-generic-dpi.c
+> Prime View PD035VL1 (640 x 480)
+> Prime View PD050VL1 (640 x 480)
+> Prime View PD104SLF (800 x 600)
+> Prime View PM070WL4 (800 x 480)
 
-> For converting from struct device to platform_device, and from
-> platform_device to struct omap_device, there are existing macros.  Use
-> them instead of manual use of container_of().
-> 
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+Did you copy the acb and power_on/off_delay values from the sharp panel?
+acbi and acb are not needed at all, and you should check if
+power_on/off_delay are needed and if they are, what they should be.
+
+Also, the first two panels look identical. While there's nothing wrong
+with that, I wonder if could be a more generic "family" name for the
+panels, and there would be need to define the timings only once.
+
+ Tomi
+
+> Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
 > ---
->  arch/arm/plat-omap/mcbsp.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
+>  drivers/video/omap2/displays/panel-generic-dpi.c |  100 ++++++++++++++++++++++
+>  1 files changed, 100 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-> index 3c1fbdc..47016f7 100644
-> --- a/arch/arm/plat-omap/mcbsp.c
-> +++ b/arch/arm/plat-omap/mcbsp.c
-> @@ -260,9 +260,9 @@ EXPORT_SYMBOL(omap_mcbsp_dma_reg_params);
->  #ifdef CONFIG_ARCH_OMAP3
->  static struct omap_device *find_omap_device_by_dev(struct device *dev)
->  {
-> -	struct platform_device *pdev = container_of(dev,
-> -					struct platform_device, dev);
-> -	return container_of(pdev, struct omap_device, pdev);
-> +	struct platform_device *pdev = to_platform_device(dev);
+> diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+> index 9c90f75..87d9ba1 100644
+> --- a/drivers/video/omap2/displays/panel-generic-dpi.c
+> +++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+> @@ -232,6 +232,106 @@ static struct panel_config generic_dpi_panels[] = {
+>  		.power_off_delay	= 0,
+>  		.name			= "powertip_ph480272t",
+>  	},
 > +
-> +	return to_omap_device(pdev);
->  }
+> +	/* Prime-View PD035VL1 */
+> +	{
+> +		{
+> +			.x_res		= 640,
+> +			.y_res		= 480,
+> +
+> +			.pixel_clock	= 25000,
+> +
+> +			.hsw		= 96,
+> +			.hfp		= 18,
+> +			.hbp		= 46,
+> +
+> +			.vsw		= 2,
+> +			.vfp		= 10,
+> +			.vbp		= 33,
+> +		},
+> +		.acbi			= 0x0,
+> +		.acb			= 0x28,
+> +		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
+> +					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
+> +		.power_on_delay		= 50,
+> +		.power_off_delay	= 100,
+> +		.name			= "pd035vl1",
+> +	},
+> +
+> +	/* Prime-View PD050VL1 */
+> +	{
+> +		{
+> +			.x_res		= 640,
+> +			.y_res		= 480,
+> +
+> +			.pixel_clock	= 25000,
+> +
+> +			.hsw		= 96,
+> +			.hfp		= 18,
+> +			.hbp		= 46,
+> +
+> +			.vsw		= 2,
+> +			.vfp		= 10,
+> +			.vbp		= 33,
+> +		},
+> +		.acbi			= 0x0,
+> +		.acb			= 0x28,
+> +		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
+> +					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
+> +		.power_on_delay		= 50,
+> +		.power_off_delay	= 100,
+> +		.name			= "pd050vl1",
+> +	},
+> +
+> +	/* Prime-View PM070WL4 */
+> +	{
+> +		{
+> +			.x_res		= 800,
+> +			.y_res		= 480,
+> +
+> +			.pixel_clock	= 32000,
+> +
+> +			.hsw		= 128,
+> +			.hfp		= 42,
+> +			.hbp		= 86,
+> +
+> +			.vsw		= 2,
+> +			.vfp		= 10,
+> +			.vbp		= 33,
+> +		},
+> +		.acbi			= 0x0,
+> +		.acb			= 0x28,
+> +		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
+> +					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
+> +		.power_on_delay		= 50,
+> +		.power_off_delay	= 100,
+> +		.name			= "pm070wl4",
+> +	},
+> +
+> +	/* Prime-View PD104SLF */
+> +	{
+> +		{
+> +			.x_res		= 800,
+> +			.y_res		= 600,
+> +
+> +			.pixel_clock	= 40000,
+> +
+> +			.hsw		= 128,
+> +			.hfp		= 42,
+> +			.hbp		= 86,
+> +
+> +			.vsw		= 4,
+> +			.vfp		= 1,
+> +			.vbp		= 23,
+> +		},
+> +		.acbi			= 0x0,
+> +		.acb			= 0x28,
+> +		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
+> +					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
+> +		.power_on_delay		= 50,
+> +		.power_off_delay	= 100,
+> +		.name			= "pd104slf",
+> +	},
+>  };
 >  
-I have a better alternative (that removes these unused lines) here:
+>  struct panel_drv_data {
 
-http://marc.info/?l=linux-omap&m=130951039226392&w=2
 
-I'm fine if you need to take my patch if there's urgent need to modify
-these lines or otherwise I can carry it when sending an updated version
-of my earlier McBSP cleanup set.
-
--- 
-Jarkko
