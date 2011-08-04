@@ -1,70 +1,38 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv5 1/3] OMAP: I2C: Reset support
-Date: Thu, 04 Aug 2011 08:05:20 -0700
-Message-ID: <87d3gl43pr.fsf@ti.com>
-References: <1311935813-8481-1-git-send-email-shubhrajyoti@ti.com>
-	<1311935813-8481-2-git-send-email-shubhrajyoti@ti.com>
-	<87sjpj75yq.fsf@ti.com> <4E3A3B48.2050108@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4E3A3B48.2050108@ti.com> (shubhrajyoti@ti.com's message of "Thu,
-	04 Aug 2011 11:55:12 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: balajitk@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 3/2] I2C: OMAP: remove unused function pointers from pdata
+Date: Thu,  4 Aug 2011 08:10:22 -0700
+Message-ID: <1312470622-30534-1-git-send-email-khilman@ti.com>
+References: <1312469856-13276-1-git-send-email-khilman@ti.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1312469856-13276-1-git-send-email-khilman-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Shubhrajyoti <shubhrajyoti@ti.com> writes:
+Now that this driver is using runtime PM, there is no longer a need
+for the idle/enable/shutdown function pointers in pdata.
 
-> On Wednesday 03 August 2011 04:53 AM, Kevin Hilman wrote:
->> Shubhrajyoti D<shubhrajyoti@ti.com>  writes:
->>
->>>   Under some error conditions the i2c  driver may do a reset.
->>    ^                                    ^
->> minor: extra whitespace
->>
->>>   Adding a reset field and support in the platform.
->> s/platform/device-specific code/
->>
-> Yes will fix these.
->>> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
->> That being said, omap_device_shutdown() should already do a clean
->> shutdown + reset for you, and i2c-omap.h already has a pointer for
->> ->device_shutdown() so a new device_reset() should not be needed.
->>
->> IOW, simply adding pdata->device_shutdown = omap_device_shutdown()
->> should work.
-> i2C has a special reset sequence ie Disable -> reset -> enable -> Poll
-> on reset done.
-> This function is implemented in omap_i2c_reset. The
->
-> omap_hwmod_reset calls ->  _reset
->
-> which calls ocp_softrest  or custom reset if it is present.The latter
-> is true for I2C.
->
-> However I see that
->
-> omap_device_shutdown ->  _assert_hardreset However for I2c there doesnt seem to be a HW reset line.
->
->
-> Am I missing something?
->
+Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+---
+Here's one more for the i2c-cleanup series
 
-No, my fault.
+ include/linux/i2c-omap.h |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-I thought omap_device_shutdown() also did soft reset, but I see that's
-not the case.  You can ignore my comments about using
-omap_device_shutdown.
-
-Kevin
+diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+index 56a9924..92a0dc7 100644
+--- a/include/linux/i2c-omap.h
++++ b/include/linux/i2c-omap.h
+@@ -35,9 +35,6 @@ struct omap_i2c_bus_platform_data {
+ 	u32		rev;
+ 	u32		flags;
+ 	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
+-	int		(*device_enable) (struct platform_device *pdev);
+-	int		(*device_shutdown) (struct platform_device *pdev);
+-	int		(*device_idle) (struct platform_device *pdev);
+ };
+ 
+ #endif
+-- 
+1.7.6
