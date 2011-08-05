@@ -1,63 +1,59 @@
-From: Koen Kooi <koen@beagleboard.org>
-Subject: Re: [PATCH] [media] OMAP_VOUT: Fix build break caused by update_mode removal in DSS2
-Date: Fri, 5 Aug 2011 20:08:46 +0200
-Message-ID: <8565F923-5F8F-40B1-AFA8-ADE152507223@dominion.thruhere.net>
-References: <1312528761-18241-1-git-send-email-archit@ti.com>
-Mime-Version: 1.0 (Apple Message framework v936)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [RFC/PATCH v2] PM / Runtime: allow _put_sync() from interrupts-disabled context
+Date: Fri, 5 Aug 2011 21:22:06 +0200
+Message-ID: <201108052122.06949.rjw@sisk.pl>
+References: <1311371188-28879-1-git-send-email-khilman@ti.com> <201107240102.09698.rjw@sisk.pl> <87vcuczrey.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1312528761-18241-1-git-send-email-archit@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: hvaibhav@ti.com, linux-media@vger.kernel.org, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:50281 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753200Ab1HETUh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Aug 2011 15:20:37 -0400
+In-Reply-To: <87vcuczrey.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Stern <stern@rowland.harvard.edu>, Colin Cross <ccross@android.com>
 
+On Friday, August 05, 2011, Kevin Hilman wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> 
+> > On Friday, July 22, 2011, Kevin Hilman wrote:
+> >> Currently the use of pm_runtime_put_sync() is not safe from
+> >> interrupts-disabled context because rpm_idle() will release the
+> >> spinlock and enable interrupts for the idle callbacks.  This enables
+> >> interrupts during a time where interrupts were expected to be
+> >> disabled, and can have strange side effects on drivers that expected
+> >> interrupts to be disabled.
+> >> 
+> >> This is not a bug since the documentation clearly states that only
+> >> _put_sync_suspend() is safe in IRQ-safe mode.
+> >> 
+> >> However, pm_runtime_put_sync() could be made safe when in IRQ-safe
+> >> mode by releasing the spinlock but not re-enabling interrupts, which
+> >> is what this patch aims to do.
+> >> 
+> >> Problem was found when using some buggy drivers that set
+> >> pm_runtime_irq_safe() and used _put_sync() in interrupts-disabled
+> >> context.
+> >> 
+> >> The offending drivers have been fixed to use _put_sync_suspend(),
+> >> But this patch is an RFC to see if it might make sense to allow
+> >> using _put_sync() from interrupts-disabled context.
+> >
+> > OK, I'm going to take this for 3.2.
+> 
+> Rafael, 
+> 
+> Since you're planning to merge this, maybe we should consider merging
+> this as a fix for v3.1, and possibly even for v3.0 stable.  That way,
+> any current drivers using irq_safe and the normal _put_sync() will not
+> have this problem.
 
-Op 5 aug 2011, om 09:19 heeft Archit Taneja het volgende geschreven:
+I think I can push it for 3.1, but I don't think it's stable material.
 
-> The DSS2 driver does not support the configuration of the  
-> update_mode of a
-> panel anymore. Remove the setting of update_mode done in  
-> omap_vout_probe().
-> Ignore configuration of TE since omap_vout driver doesn't support  
-> manual update
-> displays anyway.
->
-> Signed-off-by: Archit Taneja <archit@ti.com>
-
-Tested-by: Koen Kooi <koen@dominion.thruhere.net>
-
-> ---
-> drivers/media/video/omap/omap_vout.c |   13 -------------
-> 1 files changed, 0 insertions(+), 13 deletions(-)
->
-> diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/ 
-> video/omap/omap_vout.c
-> index b5ef362..b3a5ecd 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -2194,19 +2194,6 @@ static int __init omap_vout_probe(struct  
-> platform_device *pdev)
-> 					"'%s' Display already enabled\n",
-> 					def_display->name);
-> 			}
-> -			/* set the update mode */
-> -			if (def_display->caps &
-> -					OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
-> -				if (dssdrv->enable_te)
-> -					dssdrv->enable_te(def_display, 0);
-> -				if (dssdrv->set_update_mode)
-> -					dssdrv->set_update_mode(def_display,
-> -							OMAP_DSS_UPDATE_MANUAL);
-> -			} else {
-> -				if (dssdrv->set_update_mode)
-> -					dssdrv->set_update_mode(def_display,
-> -							OMAP_DSS_UPDATE_AUTO);
-> -			}
-> 		}
-> 	}
->
-> -- 
-> 1.7.1
->
+Thanks,
+Rafael
