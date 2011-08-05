@@ -1,52 +1,107 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: Shouldn't DT preserve pdev name and id to allow platform_match
-	to work?
-Date: Fri, 5 Aug 2011 14:31:16 +0200
-Message-ID: <4E3BE294.2020404@ti.com>
-References: <4E396361.3060307@ti.com>
-	<CACxGe6vg5NTyiDZqqztjtFEfb7si+-=Y7nEy1Y+YMgA5PVXScw@mail.gmail.com>
-	<CAGsJ_4x7LWRGWXsWzMG1FxZPaFYiKSUpSac2PdwH=d6vqFWRfw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAGsJ_4x7LWRGWXsWzMG1FxZPaFYiKSUpSac2PdwH=d6vqFWRfw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Barry Song <21cnbao@gmail.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G,
-	Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nayak, Rajendra" <rnayak@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Michael Jones <michael.jones@matrix-vision.de>
+Subject: [PATCH] OMAP2: PM debug: remove leftover debug code
+Date: Fri,  5 Aug 2011 15:15:58 +0200
+Message-ID: <1312550158-4553-1-git-send-email-michael.jones@matrix-vision.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail2.matrix-vision.com ([85.214.244.251]:42373 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755204Ab1HENQJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 09:16:09 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@ti.com>
 
-On 8/5/2011 12:02 PM, Barry Song wrote:
->> auxdata passes platform_data and overrides the device name when there
->> is no way easy way to make the driver work without it.  It handles the
->> the current implementation of clocks and regulators which aren't yet
->> populated from the device tree.  It will go away when clock&
->> regulator bindings are implemented.
-> Yes. As OF_DEV_AUXDATA_ID still requires hardware information like
-> 0x48000100 as below, it seems it is not
-> consistent with the origin purpose of ARM DT.
-> OF_DEV_AUXDATA_ID("ti,omap-i2c", 0x48000100, "omap-i2c.1", 1,&i2c_pdata)
-> And the information 0x48000100 is something that doesn't want to be in
-> kernel codes.it should be only in dts.
+commit 20d5d5514981f9a68832bffb27a698545ecba77a left some code
+lying around which doesn't do anything. Clean it up.
 
-FWIW, I do not care about the physical address at all. This is just used 
-by the of_dev_lookup function to get the proper instance for a device 
-compatible type.
-That's the only way for the OF_DEV_AUXDATA to work, but in theory you 
-could do the same as soon as you provide the id. So OF_DEV_AUXDATA_ID 
-could avoid it.
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+---
 
-Since OF_DEV_AUXDATA_ID seems to be already dead before it even reaches 
-the mainline, let's forget about that.
+It looks to me like if you remove the register dump, the debug if's
+don't do anything at all.
 
-Regards,
-Benoit
+ arch/arm/mach-omap2/pm24xx.c |   27 ---------------------------
+ 1 files changed, 0 insertions(+), 27 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index bf089e7..cf0c216 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -53,8 +53,6 @@
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+ 
+-static int omap2_pm_debug;
+-
+ #ifdef CONFIG_SUSPEND
+ static suspend_state_t suspend_state = PM_SUSPEND_ON;
+ static inline bool is_suspending(void)
+@@ -96,7 +94,6 @@ static int omap2_fclks_active(void)
+ static void omap2_enter_full_retention(void)
+ {
+ 	u32 l;
+-	struct timespec ts_preidle, ts_postidle, ts_idle;
+ 
+ 	/* There is 1 reference hold for all children of the oscillator
+ 	 * clock, the following will remove it. If no one else uses the
+@@ -124,10 +121,6 @@ static void omap2_enter_full_retention(void)
+ 
+ 	omap2_gpio_prepare_for_idle(0);
+ 
+-	if (omap2_pm_debug) {
+-		getnstimeofday(&ts_preidle);
+-	}
+-
+ 	/* One last check for pending IRQs to avoid extra latency due
+ 	 * to sleeping unnecessarily. */
+ 	if (omap_irq_pending())
+@@ -155,13 +148,6 @@ static void omap2_enter_full_retention(void)
+ 		console_unlock();
+ 
+ no_sleep:
+-	if (omap2_pm_debug) {
+-		unsigned long long tmp;
+-
+-		getnstimeofday(&ts_postidle);
+-		ts_idle = timespec_sub(ts_postidle, ts_preidle);
+-		tmp = timespec_to_ns(&ts_idle) * NSEC_PER_USEC;
+-	}
+ 	omap2_gpio_resume_after_idle();
+ 
+ 	clk_enable(osc_ck);
+@@ -219,7 +205,6 @@ static int omap2_allow_mpu_retention(void)
+ static void omap2_enter_mpu_retention(void)
+ {
+ 	int only_idle = 0;
+-	struct timespec ts_preidle, ts_postidle, ts_idle;
+ 
+ 	/* Putting MPU into the WFI state while a transfer is active
+ 	 * seems to cause the I2C block to timeout. Why? Good question. */
+@@ -246,19 +231,7 @@ static void omap2_enter_mpu_retention(void)
+ 		only_idle = 1;
+ 	}
+ 
+-	if (omap2_pm_debug) {
+-		getnstimeofday(&ts_preidle);
+-	}
+-
+ 	omap2_sram_idle();
+-
+-	if (omap2_pm_debug) {
+-		unsigned long long tmp;
+-
+-		getnstimeofday(&ts_postidle);
+-		ts_idle = timespec_sub(ts_postidle, ts_preidle);
+-		tmp = timespec_to_ns(&ts_idle) * NSEC_PER_USEC;
+-	}
+ }
+ 
+ static int omap2_can_sleep(void)
+-- 
+1.7.6
+
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
