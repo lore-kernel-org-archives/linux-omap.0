@@ -1,79 +1,46 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAP: DSS2: DSI: Support non-dcs long read
-Date: Fri, 05 Aug 2011 10:53:07 +0300
-Message-ID: <1312530787.1907.28.camel@deskari>
-References: <1309405483-6876-1-git-send-email-arve@android.com>
-	 <1312459611.2143.18.camel@deskari>
-	 <CAMP5XgegzAJjp8QG=Emm9TnXrn_LiVqGxTnkQ2C5_SSBbUcp7Q@mail.gmail.com>
-	 <1312528148.1907.13.camel@deskari>
-	 <CAMP5XgcQCL+enaiWYX4ZLkxfpQh9UhxC8_3i3h736OET4kEGhA@mail.gmail.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [PATCH 5/5] OMAP4: DSS2: VIDEO3 pipeline support
+Date: Fri, 5 Aug 2011 09:43:02 +0100
+Message-ID: <CAB2ybb_5saT0_DCcL5iTKaNfJfV32iQvV_mhv_uC+tt-J4CNgA@mail.gmail.com>
+References: <1312530172-24095-1-git-send-email-archit@ti.com>
+ <1312530172-24095-6-git-send-email-archit@ti.com> <CAB2ybb_fDM8bDr1CsFUHRhE9fNoSKvOoWTktQGzh+VV=efEMZw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:36863 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750881Ab1HEHxM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 03:53:12 -0400
-Received: by mail-fx0-f54.google.com with SMTP id 4so5667444fxe.27
-        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 00:53:10 -0700 (PDT)
-In-Reply-To: <CAMP5XgcQCL+enaiWYX4ZLkxfpQh9UhxC8_3i3h736OET4kEGhA@mail.gmail.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:33042 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751094Ab1HEInX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Aug 2011 04:43:23 -0400
+Received: by mail-fx0-f42.google.com with SMTP id 23so318041fxe.29
+        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 01:43:22 -0700 (PDT)
+In-Reply-To: <CAB2ybb_fDM8bDr1CsFUHRhE9fNoSKvOoWTktQGzh+VV=efEMZw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>
-Cc: linux-omap@vger.kernel.org, Dima Zavin <dima@android.com>
+To: Archit Taneja <archit@ti.com>
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 
-Hi,
-
-On Fri, 2011-08-05 at 00:17 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
-> 2011/8/5 Tomi Valkeinen <tomi.valkeinen@ti.com>:
-> > On Thu, 2011-08-04 at 18:15 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
-> >> 2011/8/4 Tomi Valkeinen <tomi.valkeinen@ti.com>:
-> >> > Hi,
-> >> >
-> >> > On Wed, 2011-06-29 at 20:44 -0700, Arve Hj=C3=B8nnev=C3=A5g wrot=
-e:
-> >> >> Change-Id: I18168c887e1384c07dc033a1ffc57abdacb26073
-> >> >> Signed-off-by: Arve Hj=C3=B8nnev=C3=A5g <arve@android.com>
-> >> >> ---
-> >> >>  drivers/video/omap2/dss/dsi.c |    7 ++++++-
-> >> >>  1 files changed, 6 insertions(+), 1 deletions(-)
-> >> >
-> >> > This feels somehow partial... Why do you want to read generic pa=
-ckets if
-> >> > there are no functions to send generic packets?
-> >> >
-> >>
-> >> The chip responds with a generic packet when reading from some
-> >> registers. This is a simple fix while adding support for sending
-> >> generic packets would probably require an api change.
-> >
-> > What command do you use to read the register? DCS? If so, sounds ra=
-ther
-> > strange HW implementation.
-> >
->=20
-> This change modifies dsi_vc_dcs_read to accept a generic response
-
-Ok, so you do send a DCS read command, and you get a generic response.
-
-> packet. If you want a separate generic read command that would also
-> work, but the it would make it a little harder to write the driver
-> since you then would need to know what type of response the chip
-> sends.
-
-Well, you do know what type of response the chip sends. According to
-MIPI DSI spec, a DCS read is answered with DCS short/long response, and
-a generic read is answered with generic short/long response.
-
-If your HW doesn't work like that, it's against the spec. If a broken
-chip like that was widely used, I guess we would have to add a hack for
-that, but until such day I want to keep the driver working as the spec
-says.
-
- Tomi
-
-
+> On Fri, Aug 5, 2011 at 8:42 AM, Archit Taneja <archit@ti.com> wrote:
+>>
+>> Add support for VIDEO3 pipeline on OMAP4:
+>> - Add VIDEO3 pipeline information in dss_features and omapdss.h
+>> - Add VIDEO3 pipeline register coefficients in dispc.h
+>> - Create a new overlay structure corresponding to VIDEO3.
+>>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
+>> ---
+<snip>
+>> - =A0 =A0 =A0 u32 =A0 =A0 fifo_size[3];
+>> + =A0 =A0 =A0 u32 =A0 =A0 fifo_size[MAX_DSS_OVERLAYS];
+>
+Do you think it makes some sense in splitting the 'generalisation'
+like this that you've done in the patch from the xxx_VIDEO3 changes?
+It might make it look a little cleaner; otherwise the changes look
+good to me; feel free to add my reviewed-by. [and to other patches in
+this series].
+>>
+<snip>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
