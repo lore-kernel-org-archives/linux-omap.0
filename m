@@ -1,113 +1,63 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 4/4] OMAP4: HWMOD: fix DSS reset
-Date: Fri, 5 Aug 2011 18:30:39 +0200
-Message-ID: <4E3C1AAF.4010608@ti.com>
-References: <1312281204-4708-1-git-send-email-tomi.valkeinen@ti.com>  <1312281204-4708-4-git-send-email-tomi.valkeinen@ti.com>  <4E3C0498.50108@ti.com> <1312559287.1735.13.camel@lappyti>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+From: Koen Kooi <koen@beagleboard.org>
+Subject: Re: [PATCH] [media] OMAP_VOUT: Fix build break caused by update_mode removal in DSS2
+Date: Fri, 5 Aug 2011 20:08:46 +0200
+Message-ID: <8565F923-5F8F-40B1-AFA8-ADE152507223@dominion.thruhere.net>
+References: <1312528761-18241-1-git-send-email-archit@ti.com>
+Mime-Version: 1.0 (Apple Message framework v936)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41109 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755570Ab1HEQan (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Aug 2011 12:30:43 -0400
-In-Reply-To: <1312559287.1735.13.camel@lappyti>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1312528761-18241-1-git-send-email-archit@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: hvaibhav@ti.com, linux-media@vger.kernel.org, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 8/5/2011 5:48 PM, Valkeinen, Tomi wrote:
-> On Fri, 2011-08-05 at 16:56 +0200, Cousson, Benoit wrote:
->> Hi Tomi,
->>
->> On 8/2/2011 12:33 PM, Valkeinen, Tomi wrote:
->>> The HWMOD code currently fails to reset dispc and rfbi modules.
->>>
->>> This patch adds all DSS clocks as opt clocks for dispc, and sets
->>> HWMOD_CONTROL_OPT_CLKS_IN_RESET. This seems to fix the issue, although
->>> this feels like a hack.
->>
->> Enabling the opt clock for a proper reset seems to be a feature in
->> several IPs. GPIO does require the same kind of trick.
->>
->>> The reason why this patch fixes the reset issue is probably because
->>> dispc is the first DSS module being reset, and by enabling all the
->>> clocks during dispc's reset we also allow the other DSS modules to
->>> finish their reset as a side effect.
->>
->> That part is a little bit unclear. Did you check that assumption with
->> the HW architect?
->
-> No. Do you know a contact we could ask this?
->
-> There's more tuning we need to do to DSS reset at some point, and while
-> we can discuss that later, during testing the custom DSS reset I noticed
-> that having a custom reset function for dss_core, which enables and
-> disables all the DSS clocks, the resets of dispc and rfbi go also
-> through fine.
->
-> So that also makes my theory sound true: there's a DSS HW reset at
-> power-on, but it's just "started", and doesn't proceed without the DSS
-> clocks. And the reset doesn't totally finish before all the DSS clocks
-> have been on.
->
-> So if we enable the hwmods individually one by one, we never get all the
-> clocks enabled at the same time, but the DSS reset has probably finished
-> after enabling/disabling all the hwmods as all clocks have been turned
-> on at some point. But, for example, dispc is being reset first, and at
-> that point only the ick and the main fck have been turned on, and the
-> DSS is still in some kind of "not-quite-reseted" state, causing dispc
-> reset fail.
->
->>> Cc: Benoit Cousson<b-cousson@ti.com>
->>> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
->>> ---
->>>    arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    9 +++++++++
->>>    1 files changed, 9 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->>> index 21f03d4..4731f6b 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->>> @@ -1349,8 +1349,15 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_dispc_slaves[] = {
->>>    	&omap44xx_l4_per__dss_dispc,
->>>    };
->>>
->>> +static struct omap_hwmod_opt_clk dss_dispc_opt_clks[] = {
->>> +	{ .role = "sys_clk", .clk = "dss_sys_clk" },
->>> +	{ .role = "tv_clk", .clk = "dss_tv_clk" },
->>> +	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
->>> +};
->>> +
->>
->> It seems that your are adding back the optional clocks your remove the
->> patch before. Is it done on purpose?
->
-> Yes. It's an extra remove/add, true, but I wanted to make the patches
-> independent. The previous patch removes the opt-clocks, because they are
-> extra in a sense that the driver doesn't use them. Then we are left with
-> the reset problem. This patch tries to fix the reset problem by adding
-> these opt-clocks back and setting the flag.
->
-> So my point was mainly to make this fourth patch easily changeable to
-> something else, if this approach is not good.
->
-> And I've been thinking that perhaps a simple custom reset function for
-> dss_core would be cleaner here. We would add the opt-clocks to dss_core
-> (instead of dss_dispc), and the custom reset function would enable all
-> DSS clocks, check the DSS reset status, and disable the clocks. Then it
-> would be somewhat similar than OMAP2/3. Or can the HWMOD fmwk do that
-> already? Is it possible to have a reset which only enables the clocks
-> and checks the reset status?
 
-The issue is still the same wrt hwmod, the DSS hierarchy is not encoded, 
-so the DSS does not have a clue about its children.
-This is the next hwmod fix that should be done for 3.2.
+Op 5 aug 2011, om 09:19 heeft Archit Taneja het volgende geschreven:
 
-> I can try that out and send a patch, if it sounds ok to you.
+> The DSS2 driver does not support the configuration of the  
+> update_mode of a
+> panel anymore. Remove the setting of update_mode done in  
+> omap_vout_probe().
+> Ignore configuration of TE since omap_vout driver doesn't support  
+> manual update
+> displays anyway.
+>
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-That sounds to be the best way for the moment.
+Tested-by: Koen Kooi <koen@dominion.thruhere.net>
 
-Thanks,
-Benoit
+> ---
+> drivers/media/video/omap/omap_vout.c |   13 -------------
+> 1 files changed, 0 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/ 
+> video/omap/omap_vout.c
+> index b5ef362..b3a5ecd 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -2194,19 +2194,6 @@ static int __init omap_vout_probe(struct  
+> platform_device *pdev)
+> 					"'%s' Display already enabled\n",
+> 					def_display->name);
+> 			}
+> -			/* set the update mode */
+> -			if (def_display->caps &
+> -					OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
+> -				if (dssdrv->enable_te)
+> -					dssdrv->enable_te(def_display, 0);
+> -				if (dssdrv->set_update_mode)
+> -					dssdrv->set_update_mode(def_display,
+> -							OMAP_DSS_UPDATE_MANUAL);
+> -			} else {
+> -				if (dssdrv->set_update_mode)
+> -					dssdrv->set_update_mode(def_display,
+> -							OMAP_DSS_UPDATE_AUTO);
+> -			}
+> 		}
+> 	}
+>
+> -- 
+> 1.7.1
+>
