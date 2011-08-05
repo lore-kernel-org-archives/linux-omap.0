@@ -1,94 +1,64 @@
-From: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
-Subject: [PATCH] AM3517: NAND: Adding NAND support and specifying NAND partitions.
-Date: Fri, 5 Aug 2011 16:55:49 +0530
-Message-ID: <1312543549-31869-1-git-send-email-hrishikesh.b@ti.com>
+From: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: timing in driver function
+Date: Fri, 05 Aug 2011 14:06:36 +0200
+Message-ID: <4E3BDCCC.3090009@matrix-vision.de>
+References: <4E36C30E.9060809@matrix-vision.de> <alpine.DEB.2.00.1108011931151.28427@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org
-Cc: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail2.matrix-vision.com ([85.214.244.251]:34943 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755569Ab1HEMMS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 08:12:18 -0400
+In-Reply-To: <alpine.DEB.2.00.1108011931151.28427@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch adds the NAND support on AM3517 platform and creates the partitions.
-Referred to file: arch/arm/mach-omap2/board-omap3beagle.c
+Hi Paul,
 
-Signed-off-by: Hrishikesh Bhandiwad <hrishikesh.b@ti.com>
----
- arch/arm/mach-omap2/board-am3517evm.c |   38 +++++++++++++++++++++++++++++++++
- 1 files changed, 38 insertions(+), 0 deletions(-)
+On 08/02/2011 03:41 AM, Paul Walmsley wrote:
+> 
+> Hi,
+> 
+> On Mon, 1 Aug 2011, Michael Jones wrote:
+> 
+>> I have a function in a driver which takes ~50ms to execute, which I've
+>> measured by reading jiffies at the beginning and end. But jiffies only
+>> counts at 128Hz on my system, so this was a very coarse measurement. Now
+>> I would like to find out more exactly where the time is going inside
+>> this function. So my basic question is, what is the best way to measure
+>> lapsed time with reasonable resolution on an OMAP?
+>>
+>> As I had done with the jiffies measurement, what I imagined was
+>> inserting lines into my function, sampling the value of some counter at
+>> various points within it. This approach is crude but simple and would
+>> suffice for my case.
+>>
+>> Since it must be a very common task, I thought I'd ask here what the
+>> recommended approach is. I see a few directions...
+>>
+>> 1. Using the OMAP's 32kHz timer, which is provided as a "struct
+>> clocksource". It seems like what I would want is to call
+>> clocksource_32k.read(), but I don't know how to retrieve clocksource_32k.
+> 
+> Consider getnstimeofday().  It's not OMAP-specific; there are several 
+> examples in the Linux codebase[1]; and if you use a higher-resolution 
+> clocksource, the resolution should also increase (try disabling 
+> CONFIG_OMAP_32K_TIMER).
+> 
+> 
+> 1. http://git.kernel.org/?p=linux%2Fkernel%2Fgit%2Ftorvalds%2Flinux-2.6.git&a=search&h=HEAD&st=grep&s=getnstimeofday
+> 
+> 
+> - Paul
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 63af417..dceb996 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -24,6 +24,8 @@
- #include <linux/i2c/pca953x.h>
- #include <linux/can/platform/ti_hecc.h>
- #include <linux/davinci_emac.h>
-+#include <linux/mtd/partitions.h>
-+#include <linux/mtd/nand.h>
- 
- #include <mach/hardware.h>
- #include <mach/am35xx.h>
-@@ -39,6 +41,7 @@
- 
- #include "mux.h"
- #include "control.h"
-+#include "common-board-devices.h"
- 
- #define AM35XX_EVM_MDIO_FREQUENCY	(1000000)
- 
-@@ -460,6 +463,37 @@ static void am3517_evm_hecc_init(struct ti_hecc_platform_data *pdata)
- static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
- };
- 
-+static struct mtd_partition am3517_nand_partitions[] = {
-+	/* All the partition sizes are listed in terms of NAND block size */
-+	{
-+		.name		= "X-Loader",
-+		.offset		= 0,
-+		.size		= 4 * NAND_BLOCK_SIZE,
-+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-+	},
-+	{
-+		.name		= "U-Boot",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
-+		.size		= 15 * NAND_BLOCK_SIZE,
-+		.mask_flags	= MTD_WRITEABLE,        /* force read-only */
-+	},
-+	{
-+		.name		= "U-Boot Env",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
-+		.size		= 1 * NAND_BLOCK_SIZE,
-+	},
-+	{
-+		.name		= "Kernel",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
-+		.size		= 32 * NAND_BLOCK_SIZE,
-+	},
-+	{
-+		.name		= "File System",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
-+		.size		= MTDPART_SIZ_FULL,
-+	},
-+};
-+
- static void __init am3517_evm_init(void)
- {
- 	omap_board_config = am3517_evm_config;
-@@ -473,6 +507,10 @@ static void __init am3517_evm_init(void)
- 	/* Configure GPIO for EHCI port */
- 	omap_mux_init_gpio(57, OMAP_PIN_OUTPUT);
- 	usbhs_init(&usbhs_bdata);
-+	/*NAND*/
-+	omap_nand_flash_init(NAND_BUSWIDTH_16, am3517_nand_partitions,
-+				ARRAY_SIZE(am3517_nand_partitions));
-+
- 	am3517_evm_hecc_init(&am3517_evm_hecc_pdata);
- 	/* DSS */
- 	am3517_evm_display_init();
--- 
-1.6.2.4
-This patch has dependency on following patchset :
-http://marc.info/?l=linux-omap&m=131247357813228&w=2
+Thanks, I took your suggestion and it served my purpose just fine.
+
+-Michael
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
