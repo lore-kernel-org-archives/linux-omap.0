@@ -1,58 +1,49 @@
-From: Michael Jones <michael.jones@matrix-vision.de>
-Subject: [PATCH] OMAP: DSS2: DSI: fix warning unused variable 'dsidev'
-Date: Fri,  5 Aug 2011 17:02:41 +0200
-Message-ID: <1312556561-27179-1-git-send-email-michael.jones@matrix-vision.de>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP2: PM debug: remove leftover debug code
+Date: Fri, 05 Aug 2011 08:11:18 -0700
+Message-ID: <87bow3uc4p.fsf@ti.com>
+References: <1312550158-4553-1-git-send-email-michael.jones@matrix-vision.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:47955 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755243Ab1HEPCz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 11:02:55 -0400
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:57439 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753817Ab1HEPLV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 11:11:21 -0400
+Received: by mail-gy0-f172.google.com with SMTP id 5so1990336gyd.31
+        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 08:11:20 -0700 (PDT)
+In-Reply-To: <1312550158-4553-1-git-send-email-michael.jones@matrix-vision.de>
+	(Michael Jones's message of "Fri, 5 Aug 2011 15:15:58 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Cc: linux-omap@vger.kernel.org
 
-  CC      drivers/video/omap2/dss/dsi.o
-drivers/video/omap2/dss/dsi.c: In function =E2=80=98omap_dsi_prepare_up=
-date=E2=80=99:
-drivers/video/omap2/dss/dsi.c:3936: warning: unused variable =E2=80=98d=
-sidev=E2=80=99
+Michael Jones <michael.jones@matrix-vision.de> writes:
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
----
- drivers/video/omap2/dss/dsi.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+> commit 20d5d5514981f9a68832bffb27a698545ecba77a left some code
+> lying around which doesn't do anything. Clean it up.
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/ds=
-i.c
-index 345757c..3ae0fd8 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -3933,7 +3933,9 @@ int omap_dsi_prepare_update(struct omap_dss_devic=
-e *dssdev,
- 				    u16 *x, u16 *y, u16 *w, u16 *h,
- 				    bool enlarge_update_area)
- {
-+#ifdef DEBUG
- 	struct platform_device *dsidev =3D dsi_get_dsidev_from_dssdev(dssdev)=
-;
-+#endif
- 	u16 dw, dh;
-=20
- 	dssdev->driver->get_resolution(dssdev, &dw, &dh);
---=20
-1.7.6
+Minor: when referencing a commit in a changelog, please also
+add the short log.  IOW, the changelog should read:
 
+   commit 20d5d5514981f9a68832bffb27a698545ecba77a (OMAP2: PM debug:
+   remove register dumping) left some code lying around which doesn't do
+   anything. Clean it up.
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erh=
-ard Meier
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+> ---
+>
+> It looks to me like if you remove the register dump, the debug if's
+> don't do anything at all.
+
+You're right.
+
+Please update the changelog and also Cc the linux-arm-kernel mailing
+list on the updated patch.
+
+After that, I'll queue it for v3.2.
+
+Thanks,
+
+Kevin
