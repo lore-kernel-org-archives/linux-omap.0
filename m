@@ -1,104 +1,100 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 3/4] OMAP4: HWMOD: fix DSS opt clocks
-Date: Fri, 5 Aug 2011 17:21:54 +0200
-Message-ID: <4E3C0A92.1000301@ti.com>
-References: <1312281204-4708-1-git-send-email-tomi.valkeinen@ti.com> <1312281204-4708-3-git-send-email-tomi.valkeinen@ti.com>
+From: mark gross <markgross@thegnar.org>
+Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device
+ wake-up constraints
+Date: Fri, 5 Aug 2011 08:29:42 -0700
+Message-ID: <20110805152942.GB27632@gvim.org>
+References: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
+ <201108030016.18174.rjw@sisk.pl>
+ <20110804132426.GB14921@sirena.org.uk>
+ <201108042115.30983.rjw@sisk.pl>
+Reply-To: markgross@thegnar.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57683 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754377Ab1HEPV6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Aug 2011 11:21:58 -0400
-In-Reply-To: <1312281204-4708-3-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:51865 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753643Ab1HEP3s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 11:29:48 -0400
+Received: by gya6 with SMTP id 6so228954gya.19
+        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 08:29:48 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <201108042115.30983.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, markgross@thegnar.org
 
-On 8/2/2011 12:33 PM, Valkeinen, Tomi wrote:
-> Remove the opt clocks for dss and dispc, as they are not needed.
+On Thu, Aug 04, 2011 at 09:15:30PM +0200, Rafael J. Wysocki wrote:
+> On Thursday, August 04, 2011, Mark Brown wrote:
+> > On Wed, Aug 03, 2011 at 12:16:17AM +0200, Rafael J. Wysocki wrote:
+> > > On Tuesday, August 02, 2011, Kevin Hilman wrote:
+> > 
+> > > > I disagree and think that both are quite realistic (mainly because they
+> > > > exist today, albiet mostly out of tree because no generic QoS framework
+> > > > exist.  e.g. on OMAP, we have OMAP-specific *kernel* APIs for requesting
+> > > > per-device wakeup latencies, and drivers and frameworks are using them.)
+> > > 
+> > > I'm sure there are frameworks using such things.  I'm also sure there
+> > > are frameworks that don't.  BTW, the "we have it out of the tree" argument is
+> > > not very useful, so I'd appreciate it if you didn't use it.
+> > 
+> > It's useful to know if people have tried things; it doesn't mean it's
+> > going to be OK for mainline but it is a data point.
+> > 
+> > > > In this case, the video framework (V4L2) might not want any knobs
+> > > > exposed to userspace because userspace simply doesn't have the knowledge
+> > > > to set appropriate constraints.  I'm less familiar with audio, but I
+> > > > believe audio would be similar (sample rate, number of channels, mixing
+> > > > with other concurrent audio streams, etc. etc. are all known by the
+> > > > kernel-side code.)
+> > 
+> > Yeah, that sort of stuff and also data like wakeup latencies required to
+> > service interrupts.
+> > 
+> > > I still don't understand what's wrong with allowing user space to _add_
+> > > requirements.  The will only override the drivers' or frameworks' requirements
+> > > if they are stronger, so the functionality shouldn't be hurt.  They may cause
+> > > some more energy to be used, but if user space wants that, it's pretty much
+> > > fine by me.
+> > 
+> > On the one hand that's true.  On the other hand that just seems like
+> > going down a bad road where we have drivers that only work when run with
+> > a magic userspace that may or may not be published which is just going
+> > to make people miserable.  I'm not sure there are many people who would
+> > choose to use more power without wanting some functional change so
+> > presumably any users would be seeking to work around some kernel problem
+> > and adding the user interface seems to be saying that this is OK,
+> > expected and a natural part of power optimization.
+> 
+> First off, we're doing this already (user space can block runtime PM, for
+> one example, because there are systems where runtime PM doesn't work
+> although it works on other systems with analogous hardware and pretty
+> much the same set of drivers).
+> 
+> Second, I think there are valid use cases in which user space _really_ knows
+> better than the kernel.  I'm opposed to the idea that users shouldn't be given
+> control of their systems, because they may not know what they're doing.
 >
-> Change the main_clk for hdmi and venc to dss_48mhz_clk and dss_tv_clk,
-> respectively.
->
-> Cc: Benoit Cousson<b-cousson@ti.com>
-> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+Ok, I can see the point.  The challenge is how do we expose ABI's and
+abstractions that result in drivers and PM implementations that are
+somewhat portable between ISA's and platforms?  Simply exporting the low
+level knobs of whatever drivers are loaded into memory, if used in user
+mode, could result in a tight coupling or even a reverse dependency on a
+proper user mode for the kernel to do the right things.
 
-That one alone is OK, but associated with the next one, it is weird.
+I'm sensitive to becoming blocked on doing kernel a update just because
+we can't update the user mode code at the same time.  Its quite
+annoying.
 
-Benoit
+IMO to make it easy reuse TI SoC drivers in Intel SoC's (and
+visa-versa) I would rather have these low level PM-QoS constraint
+details abstracted in some sane and consistent way.  Through subsystem
+API's if possible or, at a bus level if we must. 
 
-> ---
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   21 ++-------------------
->   1 files changed, 2 insertions(+), 19 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index 6201422..21f03d4 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -1254,13 +1254,6 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_slaves[] = {
->   	&omap44xx_l4_per__dss,
->   };
->
-> -static struct omap_hwmod_opt_clk dss_opt_clks[] = {
-> -	{ .role = "sys_clk", .clk = "dss_sys_clk" },
-> -	{ .role = "tv_clk", .clk = "dss_tv_clk" },
-> -	{ .role = "dss_clk", .clk = "dss_dss_clk" },
-> -	{ .role = "video_clk", .clk = "dss_48mhz_clk" },
-> -};
-> -
->   static struct omap_hwmod omap44xx_dss_hwmod = {
->   	.name		= "dss_core",
->   	.class		=&omap44xx_dss_hwmod_class,
-> @@ -1272,8 +1265,6 @@ static struct omap_hwmod omap44xx_dss_hwmod = {
->   			.context_offs = OMAP4_RM_DSS_DSS_CONTEXT_OFFSET,
->   		},
->   	},
-> -	.opt_clks	= dss_opt_clks,
-> -	.opt_clks_cnt	= ARRAY_SIZE(dss_opt_clks),
->   	.slaves		= omap44xx_dss_slaves,
->   	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_slaves),
->   	.masters	= omap44xx_dss_masters,
-> @@ -1358,12 +1349,6 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_dispc_slaves[] = {
->   	&omap44xx_l4_per__dss_dispc,
->   };
->
-> -static struct omap_hwmod_opt_clk dss_dispc_opt_clks[] = {
-> -	{ .role = "sys_clk", .clk = "dss_sys_clk" },
-> -	{ .role = "tv_clk", .clk = "dss_tv_clk" },
-> -	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
-> -};
-> -
->   static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
->   	.name		= "dss_dispc",
->   	.class		=&omap44xx_dispc_hwmod_class,
-> @@ -1377,8 +1362,6 @@ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
->   			.context_offs = OMAP4_RM_DSS_DSS_CONTEXT_OFFSET,
->   		},
->   	},
-> -	.opt_clks	= dss_dispc_opt_clks,
-> -	.opt_clks_cnt	= ARRAY_SIZE(dss_dispc_opt_clks),
->   	.slaves		= omap44xx_dss_dispc_slaves,
->   	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dispc_slaves),
->   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-> @@ -1645,7 +1628,7 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
->   	.clkdm_name	= "l3_dss_clkdm",
->   	.mpu_irqs	= omap44xx_dss_hdmi_irqs,
->   	.sdma_reqs	= omap44xx_dss_hdmi_sdma_reqs,
-> -	.main_clk	= "dss_dss_clk",
-> +	.main_clk	= "dss_48mhz_clk",
->   	.prcm = {
->   		.omap4 = {
->   			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
-> @@ -1808,7 +1791,7 @@ static struct omap_hwmod omap44xx_dss_venc_hwmod = {
->   	.name		= "dss_venc",
->   	.class		=&omap44xx_venc_hwmod_class,
->   	.clkdm_name	= "l3_dss_clkdm",
-> -	.main_clk	= "dss_dss_clk",
-> +	.main_clk	= "dss_tv_clk",
->   	.prcm = {
->   		.omap4 = {
->   			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
 
+--mark
+Ps I also am worried I'm over thinking about this an Rafael may be right
+and we would be better off just exposing the abstractions of "latency"
+and "throughput" uniformly and focus more on the missing bus and
+subsystem level governors that need to interpret and coordinate the qos
+requests.
