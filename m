@@ -1,107 +1,75 @@
-From: Michael Jones <michael.jones@matrix-vision.de>
-Subject: [PATCH] OMAP2: PM debug: remove leftover debug code
-Date: Fri,  5 Aug 2011 15:15:58 +0200
-Message-ID: <1312550158-4553-1-git-send-email-michael.jones@matrix-vision.de>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [RFCv2 2/2] TEMP: OMAP3: beagle: added dummy clock setup times
+Date: Fri, 5 Aug 2011 16:27:21 +0300
+Message-ID: <1312550842-32466-1-git-send-email-t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:42373 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755204Ab1HENQJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 09:16:09 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:41441 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751169Ab1HEN1Z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 09:27:25 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p75DRPUR028607
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 5 Aug 2011 08:27:25 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id p75DROOT029312
+	for <linux-omap@vger.kernel.org>; Fri, 5 Aug 2011 08:27:24 -0500 (CDT)
+Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p75DROvv022480
+	for <linux-omap@vger.kernel.org>; Fri, 5 Aug 2011 08:27:24 -0500 (CDT)
+Content-Class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@ti.com>
 
-commit 20d5d5514981f9a68832bffb27a698545ecba77a left some code
-lying around which doesn't do anything. Clean it up.
+This patch provided just as an example, actual time should be checked from
+the datasheet.
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
+ arch/arm/mach-omap2/board-omap3beagle.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-It looks to me like if you remove the register dump, the debug if's
-don't do anything at all.
-
- arch/arm/mach-omap2/pm24xx.c |   27 ---------------------------
- 1 files changed, 0 insertions(+), 27 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index bf089e7..cf0c216 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -53,8 +53,6 @@
- #include "powerdomain.h"
- #include "clockdomain.h"
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 34f8411..6b3b67a 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -47,6 +47,7 @@
+ #include <plat/nand.h>
+ #include <plat/usb.h>
+ #include <plat/omap_device.h>
++#include <plat/prcm.h>
  
--static int omap2_pm_debug;
--
- #ifdef CONFIG_SUSPEND
- static suspend_state_t suspend_state = PM_SUSPEND_ON;
- static inline bool is_suspending(void)
-@@ -96,7 +94,6 @@ static int omap2_fclks_active(void)
- static void omap2_enter_full_retention(void)
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -83,6 +84,11 @@ static struct gpio omap3_beagle_rev_gpios[] __initdata = {
+ 	{ 173, GPIOF_IN, "rev_id_2"    },
+ };
+ 
++struct omap_osc_data beagle_osc_data = {
++	.clk_setup_ret = 50,
++	.clk_setup_off = 5000,
++};
++
+ static void __init omap3_beagle_init_rev(void)
  {
- 	u32 l;
--	struct timespec ts_preidle, ts_postidle, ts_idle;
+ 	int ret;
+@@ -532,6 +538,8 @@ static void __init omap3_beagle_init(void)
  
- 	/* There is 1 reference hold for all children of the oscillator
- 	 * clock, the following will remove it. If no one else uses the
-@@ -124,10 +121,6 @@ static void omap2_enter_full_retention(void)
- 
- 	omap2_gpio_prepare_for_idle(0);
- 
--	if (omap2_pm_debug) {
--		getnstimeofday(&ts_preidle);
--	}
--
- 	/* One last check for pending IRQs to avoid extra latency due
- 	 * to sleeping unnecessarily. */
- 	if (omap_irq_pending())
-@@ -155,13 +148,6 @@ static void omap2_enter_full_retention(void)
- 		console_unlock();
- 
- no_sleep:
--	if (omap2_pm_debug) {
--		unsigned long long tmp;
--
--		getnstimeofday(&ts_postidle);
--		ts_idle = timespec_sub(ts_postidle, ts_preidle);
--		tmp = timespec_to_ns(&ts_idle) * NSEC_PER_USEC;
--	}
- 	omap2_gpio_resume_after_idle();
- 
- 	clk_enable(osc_ck);
-@@ -219,7 +205,6 @@ static int omap2_allow_mpu_retention(void)
- static void omap2_enter_mpu_retention(void)
- {
- 	int only_idle = 0;
--	struct timespec ts_preidle, ts_postidle, ts_idle;
- 
- 	/* Putting MPU into the WFI state while a transfer is active
- 	 * seems to cause the I2C block to timeout. Why? Good question. */
-@@ -246,19 +231,7 @@ static void omap2_enter_mpu_retention(void)
- 		only_idle = 1;
- 	}
- 
--	if (omap2_pm_debug) {
--		getnstimeofday(&ts_preidle);
--	}
--
- 	omap2_sram_idle();
--
--	if (omap2_pm_debug) {
--		unsigned long long tmp;
--
--		getnstimeofday(&ts_postidle);
--		ts_idle = timespec_sub(ts_postidle, ts_preidle);
--		tmp = timespec_to_ns(&ts_idle) * NSEC_PER_USEC;
--	}
+ 	beagle_display_init();
+ 	beagle_opp_init();
++
++	omap_osc_register(&beagle_osc_data);
  }
  
- static int omap2_can_sleep(void)
+ MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
 -- 
-1.7.6
+1.7.4.1
 
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
+
