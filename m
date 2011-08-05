@@ -1,72 +1,43 @@
-From: Arno Steffen <arno.steffen@googlemail.com>
-Subject: Re: [Q] SW-ECC to HW-ECC (OMAP3)
-Date: Fri, 5 Aug 2011 16:12:47 +0200
-Message-ID: <CAACX+R2+Lpb6dBa_QEwh1m8KSW4--2ZofCGTepdk1=S4bp-HeQ@mail.gmail.com>
-References: <CAACX+R3Gve=V4+AV17WONEkXpb9NwrLbUr7E2Ym6Qu-2URyiTA@mail.gmail.com>
-	<CANOLnON=d_eF8dvNV8K16QbKq04-dd-sv=fx+yC8VAzw=Typqg@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP: omap_device: make latency autoadjust messages debug
+Date: Fri, 05 Aug 2011 07:52:44 -0700
+Message-ID: <874o1vvrk3.fsf@ti.com>
+References: <1311599904-5981-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:44177 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753552Ab1HEOMs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 10:12:48 -0400
-Received: by gxk21 with SMTP id 21so1690709gxk.19
-        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 07:12:47 -0700 (PDT)
-In-Reply-To: <CANOLnON=d_eF8dvNV8K16QbKq04-dd-sv=fx+yC8VAzw=Typqg@mail.gmail.com>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:43820 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754495Ab1HEOws (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 10:52:48 -0400
+Received: by mail-pz0-f45.google.com with SMTP id 33so6600632pzk.32
+        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 07:52:47 -0700 (PDT)
+In-Reply-To: <1311599904-5981-1-git-send-email-notasas@gmail.com> (Grazvydas
+	Ignotas's message of "Mon, 25 Jul 2011 16:18:24 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Steve Sakoman <steve@sakoman.com>
 
-2011/8/5 Grazvydas Ignotas <notasas@gmail.com>:
-> On Thu, Aug 4, 2011 at 1:55 PM, Arno Steffen
-> <arno.steffen@googlemail.com> wrote:
->> While migrating from .33 to .37 kernel I found, that HW-ECC is used =
-by default.
->> I found that this is set in omap2.c:
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0pdata->ecc_opt =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0=3D OMAP_ECC_HAMMING_CODE_HW;
->> Unfortunatly setting it back to
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0pdata->ecc_opt =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0=3D OMAP_ECC_HAMMING_CODE_DEFAULT;
->> doesn't prevent me from getting messages like:
->>
->> uncorrectable error :
->> uncorrectable error :
->> mtd->read(0xd18 bytes from 0x7eae8) returned ECC error
->>
->> So what else has to be set? I couldn't found it.
->
-> swecc on .37 is broken (I'm not even sure hwecc works as I use swecc)=
-,
-> you need at least 2.6.39.1 to use that. It is possible to patch .37
-> but I don't have list of needed parches, but maybe could get you that
-> if you really need it (or look what changed under drivers/mtd between
-> those versions yourself).
->
->> Other way maybe to keep it at HW-ECC. Is this significant faster tha=
-n SW-ECC?
->> But howto get nandwrite (mtd-utils) or fw_setenv (uboot) to handle H=
-W-ECC?
->> Do I have to use just the --noecc option?
->>
->> When using the fw_setenv command I get CRC errors in environment wit=
-h next boot.
->
-> Never tried hwecc so can't help you here.
->
->
-> --
-> Gra=C5=BEvydas
->
+Grazvydas Ignotas <notasas@gmail.com> writes:
 
-Thanks for this advice. I will check this.
-Best regards
-Arno
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> During normal system operation warning messages similar to this
+> are appearing quite often:
+> omap_device: omap4-keypad.-1: new worst case activate latency 0: 61035
+>
+> This doesn't seem to be reporting a problem, nor is it very useful for
+> non-developers, so reduce it to debug level.
+
+Yeah, this is really only useful for PM developers, so making it debug
+is fine.
+
+> Cc: Steve Sakoman <steve@sakoman.com>
+> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> ---
+> Applies on top of git://git.pwsan.com/linux-2.6 prcm-devel-3.1
+> + Kevin's "OMAP: omap_device: replace pr_* prints with dev_*".
+
+Adding it to my omap_device queue for v3.2:
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.2/omap_device
+
+Kevin
