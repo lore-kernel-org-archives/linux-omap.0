@@ -1,80 +1,71 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 0/9] OMAP: omap_device cleanups, decouple platform_device for v3.2
-Date: Fri,  5 Aug 2011 17:19:16 -0700
-Message-ID: <1312589965-19416-1-git-send-email-khilman@ti.com>
+Subject: [PATCH 3/9] OMAP: omap_device: make latency autoadjust messages debug
+Date: Fri,  5 Aug 2011 17:19:19 -0700
+Message-ID: <1312589965-19416-4-git-send-email-khilman@ti.com>
+References: <1312589965-19416-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:49678 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755556Ab1HFAT1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 20:19:27 -0400
-Received: by iym1 with SMTP id 1so4494408iym.0
-        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 17:19:26 -0700 (PDT)
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:41114 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757363Ab1HFATc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 20:19:32 -0400
+Received: by mail-iy0-f174.google.com with SMTP id 40so4813555iyf.19
+        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 17:19:31 -0700 (PDT)
+In-Reply-To: <1312589965-19416-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
 
-Here's a series of omap_device cleanups and updates targetted for v3.2.
+From: Grazvydas Ignotas <notasas@gmail.com>
 
-Most are just minor cleanups in preparation for the last one which
-attempts to decouple the platform_device from an omap_device.  This
-version uses pdev_archdata instead of using devres as was proposed in
-the earlier RFC.
+During normal system operation warning messages similar to this
+are appearing quite often:
+omap_device: omap4-keypad.-1: new worst case activate latency 0: 61035
 
-The "decouple" patch should also be considered a pre-requisite for
-broader device-tree support where the omap_device can be "attached"
-later.
+This doesn't seem to be reporting a problem, nor is it very useful for
+non-developers, so reduce it to debug level.
 
-This series is also available in the for_3.2/omap_device branch of my
-git tree[1], and is based on Linus' master branch (as of today.)
+Acked-by: Steve Sakoman <steve@sakoman.com>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/plat-omap/omap_device.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-NOTE: This series has a dependency on my PM fixes queue posted
-      for v3.1 (branch: for_3.1/pm-fixes), specifically the beagle board
-      change which cleans up omap_device usage.
-
-P.S.  I'll also be offline for a couple weeks, so won't be responding
-      to this until I get back.  My plan however is to queue this stuff
-      for v3.2, unless there are major objections.
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-
-Grazvydas Ignotas (1):
-  OMAP: omap_device: make latency autoadjust messages debug
-
-Jarkko Nikula (1):
-  omap: mcbsp: Remove omap device API
-
-Kevin Hilman (7):
-  OMAP: omap_device: replace debug/warning/error prints with dev_*
-    macros
-  OMAP: omap_device: remove internal functions from omap_device.h
-  OMAP: omap_device: when building return platform_device instead of
-    omap_device
-  OMAP: omap_device: device register functions now take platform_device
-    pointer
-  OMAP: omap_device: _disable_idle_on_suspend() takes platform_device
-    pointer
-  ARM: platform_device: pdev_archdata: add omap_device pointer
-  OMAP: omap_device: decouple platform_device from omap_device
-
- arch/arm/include/asm/device.h                 |    5 +
- arch/arm/mach-omap2/devices.c                 |   44 +++---
- arch/arm/mach-omap2/display.c                 |    6 +-
- arch/arm/mach-omap2/dma.c                     |   16 +-
- arch/arm/mach-omap2/gpio.c                    |   10 +-
- arch/arm/mach-omap2/hsmmc.c                   |    8 +-
- arch/arm/mach-omap2/hwspinlock.c              |    8 +-
- arch/arm/mach-omap2/mcbsp.c                   |    8 +-
- arch/arm/mach-omap2/opp.c                     |    2 +-
- arch/arm/mach-omap2/pm.c                      |    8 +-
- arch/arm/mach-omap2/serial.c                  |   14 +-
- arch/arm/mach-omap2/sr_device.c               |    6 +-
- arch/arm/plat-omap/i2c.c                      |    8 +-
- arch/arm/plat-omap/include/plat/omap_device.h |   30 ++--
- arch/arm/plat-omap/mcbsp.c                    |   27 ----
- arch/arm/plat-omap/omap_device.c              |  185 +++++++++++++------------
- 16 files changed, 185 insertions(+), 200 deletions(-)
-
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 28ef0b4..14c5363 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -146,10 +146,10 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+ 			odpl->activate_lat_worst = act_lat;
+ 			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
+ 				odpl->activate_lat = act_lat;
+-				dev_warn(&od->pdev.dev,
+-					 "new worst case activate latency "
+-					 "%d: %llu\n",
+-					 od->pm_lat_level, act_lat);
++				dev_dbg(&od->pdev.dev,
++					"new worst case activate latency "
++					"%d: %llu\n",
++					od->pm_lat_level, act_lat);
+ 			} else
+ 				dev_warn(&od->pdev.dev,
+ 					 "activate latency %d "
+@@ -213,10 +213,10 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+ 			odpl->deactivate_lat_worst = deact_lat;
+ 			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
+ 				odpl->deactivate_lat = deact_lat;
+-				dev_warn(&od->pdev.dev,
+-					 "new worst case deactivate latency "
+-					 "%d: %llu\n",
+-					 od->pm_lat_level, deact_lat);
++				dev_dbg(&od->pdev.dev,
++					"new worst case deactivate latency "
++					"%d: %llu\n",
++					od->pm_lat_level, deact_lat);
+ 			} else
+ 				dev_warn(&od->pdev.dev,
+ 					 "deactivate latency %d "
 -- 
 1.7.6
 
