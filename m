@@ -1,89 +1,210 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 6/9] OMAP: omap_device: device register functions now take platform_device pointer
-Date: Fri,  5 Aug 2011 17:19:22 -0700
-Message-ID: <1312589965-19416-7-git-send-email-khilman@ti.com>
+Subject: [PATCH 2/9] OMAP: omap_device: replace debug/warning/error prints with dev_* macros
+Date: Fri,  5 Aug 2011 17:19:18 -0700
+Message-ID: <1312589965-19416-3-git-send-email-khilman@ti.com>
 References: <1312589965-19416-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:54859 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932284Ab1HFATi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 20:19:38 -0400
-Received: by mail-iy0-f169.google.com with SMTP id 1so3789483iym.14
-        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 17:19:37 -0700 (PDT)
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:48972 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757047Ab1HFATa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 20:19:30 -0400
+Received: by mail-iy0-f170.google.com with SMTP id 16so4632963iye.29
+        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 17:19:29 -0700 (PDT)
 In-Reply-To: <1312589965-19416-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>
 Cc: linux-arm-kernel@lists.infradead.org
 
-The internal device register functions do not need or use any omap_device
-internals, so pass in a platform_device pointer instead of an omap_device
-pointer.
+For consistency in kernel printk output for devices, use dev_dbg(),
+dev_warn(), dev_err() instead of pr_debug(), pr_warning() and
+pr_err(), some of which currently use direct access of name from
+platform_device and others of which use dev_name().  Using the dev_*
+versions uses the standard device naming from the driver core.
 
+Some pr_* prints were not converted with this patch since they are
+used before the platform_device and struct device are created so
+neither the dev_* prints or dev_name() is valid.
+
+Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/plat-omap/omap_device.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+ arch/arm/plat-omap/omap_device.c |   85 +++++++++++++++++++-------------------
+ 1 files changed, 42 insertions(+), 43 deletions(-)
 
 diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index ea618b8..351df31 100644
+index b6b4097..28ef0b4 100644
 --- a/arch/arm/plat-omap/omap_device.c
 +++ b/arch/arm/plat-omap/omap_device.c
-@@ -94,8 +94,8 @@
- #define USE_WAKEUP_LAT			0
- #define IGNORE_WAKEUP_LAT		1
- 
--static int omap_device_register(struct omap_device *od);
--static int omap_early_device_register(struct omap_device *od);
-+static int omap_device_register(struct platform_device *pdev);
-+static int omap_early_device_register(struct platform_device *pdev);
- 
- /* Private functions */
- 
-@@ -501,9 +501,9 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
- 	od->pm_lats_cnt = pm_lats_cnt;
- 
- 	if (is_early_device)
--		ret = omap_early_device_register(od);
-+		ret = omap_early_device_register(&od->pdev);
- 	else
--		ret = omap_device_register(od);
-+		ret = omap_device_register(&od->pdev);
- 
- 	for (i = 0; i < oh_cnt; i++) {
- 		hwmods[i]->od = od;
-@@ -538,11 +538,11 @@ odbs_exit1:
-  * platform_early_add_device() on the underlying platform_device.
-  * Returns 0 by default.
-  */
--static int omap_early_device_register(struct omap_device *od)
-+static int omap_early_device_register(struct platform_device *pdev)
+@@ -114,7 +114,7 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
  {
- 	struct platform_device *devices[1];
+ 	struct timespec a, b, c;
  
--	devices[0] = &(od->pdev);
-+	devices[0] = pdev;
- 	early_platform_add_devices(devices, 1);
- 	return 0;
- }
-@@ -634,13 +634,13 @@ static struct dev_pm_domain omap_device_pm_domain = {
-  * platform_device_register() on the underlying platform_device.
-  * Returns the return value of platform_device_register().
-  */
--static int omap_device_register(struct omap_device *od)
-+static int omap_device_register(struct platform_device *pdev)
+-	pr_debug("omap_device: %s: activating\n", od->pdev.name);
++	dev_dbg(&od->pdev.dev, "omap_device: activating\n");
+ 
+ 	while (od->pm_lat_level > 0) {
+ 		struct omap_device_pm_latency *odpl;
+@@ -138,25 +138,24 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+ 		c = timespec_sub(b, a);
+ 		act_lat = timespec_to_ns(&c);
+ 
+-		pr_debug("omap_device: %s: pm_lat %d: activate: elapsed time "
+-			 "%llu nsec\n", od->pdev.name, od->pm_lat_level,
+-			 act_lat);
++		dev_dbg(&od->pdev.dev,
++			"omap_device: pm_lat %d: activate: elapsed time "
++			"%llu nsec\n", od->pm_lat_level, act_lat);
+ 
+ 		if (act_lat > odpl->activate_lat) {
+ 			odpl->activate_lat_worst = act_lat;
+ 			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
+ 				odpl->activate_lat = act_lat;
+-				pr_warning("omap_device: %s.%d: new worst case "
+-					   "activate latency %d: %llu\n",
+-					   od->pdev.name, od->pdev.id,
+-					   od->pm_lat_level, act_lat);
++				dev_warn(&od->pdev.dev,
++					 "new worst case activate latency "
++					 "%d: %llu\n",
++					 od->pm_lat_level, act_lat);
+ 			} else
+-				pr_warning("omap_device: %s.%d: activate "
+-					   "latency %d higher than exptected. "
+-					   "(%llu > %d)\n",
+-					   od->pdev.name, od->pdev.id,
+-					   od->pm_lat_level, act_lat,
+-					   odpl->activate_lat);
++				dev_warn(&od->pdev.dev,
++					 "activate latency %d "
++					 "higher than exptected. (%llu > %d)\n",
++					 od->pm_lat_level, act_lat,
++					 odpl->activate_lat);
+ 		}
+ 
+ 		od->dev_wakeup_lat -= odpl->activate_lat;
+@@ -183,7 +182,7 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
  {
--	pr_debug("omap_device: %s: registering\n", od->pdev.name);
-+	pr_debug("omap_device: %s: registering\n", pdev->name);
+ 	struct timespec a, b, c;
  
--	od->pdev.dev.parent = &omap_device_parent;
--	od->pdev.dev.pm_domain = &omap_device_pm_domain;
--	return platform_device_register(&od->pdev);
-+	pdev->dev.parent = &omap_device_parent;
-+	pdev->dev.pm_domain = &omap_device_pm_domain;
-+	return platform_device_register(pdev);
- }
+-	pr_debug("omap_device: %s: deactivating\n", od->pdev.name);
++	dev_dbg(&od->pdev.dev, "omap_device: deactivating\n");
  
+ 	while (od->pm_lat_level < od->pm_lats_cnt) {
+ 		struct omap_device_pm_latency *odpl;
+@@ -206,28 +205,26 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+ 		c = timespec_sub(b, a);
+ 		deact_lat = timespec_to_ns(&c);
+ 
+-		pr_debug("omap_device: %s: pm_lat %d: deactivate: elapsed time "
+-			 "%llu nsec\n", od->pdev.name, od->pm_lat_level,
+-			 deact_lat);
++		dev_dbg(&od->pdev.dev,
++			"omap_device: pm_lat %d: deactivate: elapsed time "
++			"%llu nsec\n", od->pm_lat_level, deact_lat);
+ 
+ 		if (deact_lat > odpl->deactivate_lat) {
+ 			odpl->deactivate_lat_worst = deact_lat;
+ 			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
+ 				odpl->deactivate_lat = deact_lat;
+-				pr_warning("omap_device: %s.%d: new worst case "
+-					   "deactivate latency %d: %llu\n",
+-					   od->pdev.name, od->pdev.id,
+-					   od->pm_lat_level, deact_lat);
++				dev_warn(&od->pdev.dev,
++					 "new worst case deactivate latency "
++					 "%d: %llu\n",
++					 od->pm_lat_level, deact_lat);
+ 			} else
+-				pr_warning("omap_device: %s.%d: deactivate "
+-					   "latency %d higher than exptected. "
+-					   "(%llu > %d)\n",
+-					   od->pdev.name, od->pdev.id,
+-					   od->pm_lat_level, deact_lat,
+-					   odpl->deactivate_lat);
++				dev_warn(&od->pdev.dev,
++					 "deactivate latency %d "
++					 "higher than exptected. (%llu > %d)\n",
++					 od->pm_lat_level, deact_lat,
++					 odpl->deactivate_lat);
+ 		}
+ 
+-
+ 		od->dev_wakeup_lat += odpl->activate_lat;
+ 
+ 		od->pm_lat_level++;
+@@ -245,28 +242,27 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+ 	if (!clk_alias || !clk_name)
+ 		return;
+ 
+-	pr_debug("omap_device: %s: Creating %s -> %s\n",
+-		 dev_name(&od->pdev.dev), clk_alias, clk_name);
++	dev_dbg(&od->pdev.dev, "Creating %s -> %s\n", clk_alias, clk_name);
+ 
+ 	r = clk_get_sys(dev_name(&od->pdev.dev), clk_alias);
+ 	if (!IS_ERR(r)) {
+-		pr_warning("omap_device: %s: alias %s already exists\n",
+-			   dev_name(&od->pdev.dev), clk_alias);
++		dev_warn(&od->pdev.dev,
++			 "alias %s already exists\n", clk_alias);
+ 		clk_put(r);
+ 		return;
+ 	}
+ 
+ 	r = omap_clk_get_by_name(clk_name);
+ 	if (IS_ERR(r)) {
+-		pr_err("omap_device: %s: omap_clk_get_by_name for %s failed\n",
+-		       dev_name(&od->pdev.dev), clk_name);
++		dev_err(&od->pdev.dev,
++			"omap_clk_get_by_name for %s failed\n", clk_name);
+ 		return;
+ 	}
+ 
+ 	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev.dev));
+ 	if (!l) {
+-		pr_err("omap_device: %s: clkdev_alloc for %s failed\n",
+-		       dev_name(&od->pdev.dev), clk_alias);
++		dev_err(&od->pdev.dev,
++			"clkdev_alloc for %s failed\n", clk_alias);
+ 		return;
+ 	}
+ 
+@@ -667,8 +663,9 @@ int omap_device_enable(struct platform_device *pdev)
+ 	od = to_omap_device(pdev);
+ 
+ 	if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
+-		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
+-		     od->pdev.name, od->pdev.id, __func__, od->_state);
++		dev_warn(&pdev->dev,
++			 "omap_device: %s() called from invalid state %d\n",
++			 __func__, od->_state);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -706,8 +703,9 @@ int omap_device_idle(struct platform_device *pdev)
+ 	od = to_omap_device(pdev);
+ 
+ 	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
+-		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
+-		     od->pdev.name, od->pdev.id, __func__, od->_state);
++		dev_warn(&pdev->dev,
++			 "omap_device: %s() called from invalid state %d\n",
++			 __func__, od->_state);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -738,8 +736,9 @@ int omap_device_shutdown(struct platform_device *pdev)
+ 
+ 	if (od->_state != OMAP_DEVICE_STATE_ENABLED &&
+ 	    od->_state != OMAP_DEVICE_STATE_IDLE) {
+-		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
+-		     od->pdev.name, od->pdev.id, __func__, od->_state);
++		dev_warn(&pdev->dev,
++			 "omap_device: %s() called from invalid state %d\n",
++			 __func__, od->_state);
+ 		return -EINVAL;
+ 	}
  
 -- 
 1.7.6
