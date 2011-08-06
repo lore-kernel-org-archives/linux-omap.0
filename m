@@ -1,115 +1,80 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 1/9] omap: mcbsp: Remove omap device API
-Date: Fri,  5 Aug 2011 17:19:17 -0700
-Message-ID: <1312589965-19416-2-git-send-email-khilman@ti.com>
-References: <1312589965-19416-1-git-send-email-khilman@ti.com>
+Subject: [PATCH 0/9] OMAP: omap_device cleanups, decouple platform_device for v3.2
+Date: Fri,  5 Aug 2011 17:19:16 -0700
+Message-ID: <1312589965-19416-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:57522 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755767Ab1HFAT3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 20:19:29 -0400
-Received: by mail-iy0-f175.google.com with SMTP id 15so4505068iyn.34
-        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 17:19:28 -0700 (PDT)
-In-Reply-To: <1312589965-19416-1-git-send-email-khilman@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:49678 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755556Ab1HFAT1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 20:19:27 -0400
+Received: by iym1 with SMTP id 1so4494408iym.0
+        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 17:19:26 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-From: Jarkko Nikula <jhnikula@gmail.com>
+Here's a series of omap_device cleanups and updates targetted for v3.2.
 
-struct omap_device *od is only set with find_omap_device_by_dev but not used
-otherwise so remove them and references to omap device API.
+Most are just minor cleanups in preparation for the last one which
+attempts to decouple the platform_device from an omap_device.  This
+version uses pdev_archdata instead of using devres as was proposed in
+the earlier RFC.
 
-Acked-by: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
----
- arch/arm/plat-omap/mcbsp.c |   27 ---------------------------
- 1 files changed, 0 insertions(+), 27 deletions(-)
+The "decouple" patch should also be considered a pre-requisite for
+broader device-tree support where the omap_device can be "attached"
+later.
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 6c62af1..4b233e8 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -24,7 +24,6 @@
- #include <linux/slab.h>
- 
- #include <plat/mcbsp.h>
--#include <plat/omap_device.h>
- #include <linux/pm_runtime.h>
- 
- /* XXX These "sideways" includes are a sign that something is wrong */
-@@ -258,19 +257,9 @@ int omap_mcbsp_dma_reg_params(unsigned int id, unsigned int stream)
- EXPORT_SYMBOL(omap_mcbsp_dma_reg_params);
- 
- #ifdef CONFIG_ARCH_OMAP3
--static struct omap_device *find_omap_device_by_dev(struct device *dev)
--{
--	struct platform_device *pdev = container_of(dev,
--					struct platform_device, dev);
--	return container_of(pdev, struct omap_device, pdev);
--}
--
- static void omap_st_on(struct omap_mcbsp *mcbsp)
- {
- 	unsigned int w;
--	struct omap_device *od;
--
--	od = find_omap_device_by_dev(mcbsp->dev);
- 
- 	/*
- 	 * Sidetone uses McBSP ICLK - which must not idle when sidetones
-@@ -292,9 +281,6 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
- static void omap_st_off(struct omap_mcbsp *mcbsp)
- {
- 	unsigned int w;
--	struct omap_device *od;
--
--	od = find_omap_device_by_dev(mcbsp->dev);
- 
- 	w = MCBSP_ST_READ(mcbsp, SSELCR);
- 	MCBSP_ST_WRITE(mcbsp, SSELCR, w & ~(ST_SIDETONEEN));
-@@ -310,9 +296,6 @@ static void omap_st_off(struct omap_mcbsp *mcbsp)
- static void omap_st_fir_write(struct omap_mcbsp *mcbsp, s16 *fir)
- {
- 	u16 val, i;
--	struct omap_device *od;
--
--	od = find_omap_device_by_dev(mcbsp->dev);
- 
- 	val = MCBSP_ST_READ(mcbsp, SSELCR);
- 
-@@ -340,9 +323,6 @@ static void omap_st_chgain(struct omap_mcbsp *mcbsp)
- {
- 	u16 w;
- 	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
--	struct omap_device *od;
--
--	od = find_omap_device_by_dev(mcbsp->dev);
- 
- 	w = MCBSP_ST_READ(mcbsp, SSELCR);
- 
-@@ -685,9 +665,6 @@ EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
- 
- static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
- {
--	struct omap_device *od;
--
--	od = find_omap_device_by_dev(mcbsp->dev);
- 	/*
- 	 * Enable wakup behavior, smart idle and all wakeups
- 	 * REVISIT: some wakeups may be unnecessary
-@@ -699,10 +676,6 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
- 
- static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
- {
--	struct omap_device *od;
--
--	od = find_omap_device_by_dev(mcbsp->dev);
--
- 	/*
- 	 * Disable wakup behavior, smart idle and all wakeups
- 	 */
+This series is also available in the for_3.2/omap_device branch of my
+git tree[1], and is based on Linus' master branch (as of today.)
+
+NOTE: This series has a dependency on my PM fixes queue posted
+      for v3.1 (branch: for_3.1/pm-fixes), specifically the beagle board
+      change which cleans up omap_device usage.
+
+P.S.  I'll also be offline for a couple weeks, so won't be responding
+      to this until I get back.  My plan however is to queue this stuff
+      for v3.2, unless there are major objections.
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+
+Grazvydas Ignotas (1):
+  OMAP: omap_device: make latency autoadjust messages debug
+
+Jarkko Nikula (1):
+  omap: mcbsp: Remove omap device API
+
+Kevin Hilman (7):
+  OMAP: omap_device: replace debug/warning/error prints with dev_*
+    macros
+  OMAP: omap_device: remove internal functions from omap_device.h
+  OMAP: omap_device: when building return platform_device instead of
+    omap_device
+  OMAP: omap_device: device register functions now take platform_device
+    pointer
+  OMAP: omap_device: _disable_idle_on_suspend() takes platform_device
+    pointer
+  ARM: platform_device: pdev_archdata: add omap_device pointer
+  OMAP: omap_device: decouple platform_device from omap_device
+
+ arch/arm/include/asm/device.h                 |    5 +
+ arch/arm/mach-omap2/devices.c                 |   44 +++---
+ arch/arm/mach-omap2/display.c                 |    6 +-
+ arch/arm/mach-omap2/dma.c                     |   16 +-
+ arch/arm/mach-omap2/gpio.c                    |   10 +-
+ arch/arm/mach-omap2/hsmmc.c                   |    8 +-
+ arch/arm/mach-omap2/hwspinlock.c              |    8 +-
+ arch/arm/mach-omap2/mcbsp.c                   |    8 +-
+ arch/arm/mach-omap2/opp.c                     |    2 +-
+ arch/arm/mach-omap2/pm.c                      |    8 +-
+ arch/arm/mach-omap2/serial.c                  |   14 +-
+ arch/arm/mach-omap2/sr_device.c               |    6 +-
+ arch/arm/plat-omap/i2c.c                      |    8 +-
+ arch/arm/plat-omap/include/plat/omap_device.h |   30 ++--
+ arch/arm/plat-omap/mcbsp.c                    |   27 ----
+ arch/arm/plat-omap/omap_device.c              |  185 +++++++++++++------------
+ 16 files changed, 185 insertions(+), 200 deletions(-)
+
 -- 
 1.7.6
 
