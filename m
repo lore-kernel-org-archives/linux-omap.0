@@ -1,70 +1,69 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device
- wake-up constraints
-Date: Sat, 6 Aug 2011 12:37:13 +0900
-Message-ID: <20110806033711.GA18987@opensource.wolfsonmicro.com>
-References: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
- <201108042115.30983.rjw@sisk.pl>
- <20110805161147.GA3438@opensource.wolfsonmicro.com>
- <201108052137.37011.rjw@sisk.pl>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 8/9] ARM: platform_device: pdev_archdata: add omap_device pointer
+Date: Sat, 6 Aug 2011 09:31:14 +0100
+Message-ID: <CACxGe6sJsvPTS_+T9mYHVeG7GmXOq-KBqX+FdNiFrbnfaXa1pw@mail.gmail.com>
+References: <1312589965-19416-1-git-send-email-khilman@ti.com> <1312589965-19416-9-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:45626 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755300Ab1HFDhW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 23:37:22 -0400
-Content-Disposition: inline
-In-Reply-To: <201108052137.37011.rjw@sisk.pl>
+Received: from mail-vw0-f52.google.com ([209.85.212.52]:47985 "EHLO
+	mail-vw0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752129Ab1HFIbf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Aug 2011 04:31:35 -0400
+Received: by vws16 with SMTP id 16so2504598vws.11
+        for <linux-omap@vger.kernel.org>; Sat, 06 Aug 2011 01:31:34 -0700 (PDT)
+In-Reply-To: <1312589965-19416-9-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Kevin Hilman <khilman@ti.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Aug 05, 2011 at 09:37:36PM +0200, Rafael J. Wysocki wrote:
-> On Friday, August 05, 2011, Mark Brown wrote:
+On Sat, Aug 6, 2011 at 1:19 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Add omap_device pointer to the ARM-specific arch data in the
+> platform_device. =A0This will be used to attach OMAP-specific
+> device-data to the platform device with device lifetime.
+>
+> Suggested-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 
-> > Do you have any examples of this that aren't better expressed in device
-> > specific terms?
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
 
-> I'm not sure what you mean exactly, but if you take two PC-like systems
-> with similar hardware configurations, but different BIOS-es and motherboard
-> layouts, it's very likely that on one of them PCI PME won't be routed
-> correctly, for example.  In that case the kernel has no way to figure out
-> that that system is broken, the problem can only be worked around from user
-> space by diabling runtime PM on the affected PCI devices.  I expect similar
-> problems to appear for the PM QoS settings.
+> ---
+> =A0arch/arm/include/asm/device.h | =A0 =A05 +++++
+> =A01 files changed, 5 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/include/asm/device.h b/arch/arm/include/asm/dev=
+ice.h
+> index 9f390ce..b5c9f5b 100644
+> --- a/arch/arm/include/asm/device.h
+> +++ b/arch/arm/include/asm/device.h
+> @@ -12,7 +12,12 @@ struct dev_archdata {
+> =A0#endif
+> =A0};
+>
+> +struct omap_device;
+> +
+> =A0struct pdev_archdata {
+> +#ifdef CONFIG_ARCH_OMAP
+> + =A0 =A0 =A0 struct omap_device *od;
+> +#endif
+> =A0};
+>
+> =A0#endif
+> --
+> 1.7.6
+>
+>
 
-I wouldn't say we've got to rely on userspace here - it seems like we
-ought to be able to use DMI or other system data to identify the
-affected systems and activate the workarounds.
 
-> > It's not that users don't know what they're doing, it's
-> > that working around system integration and stability issues in userspace
-> > isn't really progressing things well or helping with maintainability.
 
-> No, it's not, but sometimes we simply don't have the choice.  Besides,
-> in the particular case of PM QoS, the constraints set by user space will
-> simply be added to the constraints set by kernel subsystems.  Thus they
-> won't prevent any kernel subsystem from specifying its own constraints,
-> but they will give user space the option to override the constraints
-> originating from the kernel.
-
-You're right that it doesn't stop the kernel doing anything, the concern
-is that people just won't bother making the kernel work properly and
-will just do their power management in userspace and not bother fixing
-the kernel.  Punting to userspace seems like it is creating the
-expectation that we can't make the kernel work and isn't great from a
-usability perspective since users shouldn't really be worrying about bus
-performance or so on, it's not something that's visible at the level
-applications work at.
-
-> > Generally if the user has sufficient access to be able to do anything
-> > with this stuff they've got just as much access to the kernel as to
-> > userspace.
-
-> Do you mean they may rebuild the kernel?  That isn't always possible.
-
-I'm not sure I can see a lot of cases where you'd have root access and
-not be able to do kernel updates if required?  Having stuff in debugfs
-for diagnostics doesn't strike me as a problem if that's the issue.
+--=20
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
