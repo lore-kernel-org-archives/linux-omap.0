@@ -1,39 +1,115 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv4 2/4] regulator: omap smps regulator driver
-Date: Fri, 05 Aug 2011 16:48:42 -0700
-Message-ID: <87ei0zo1wl.fsf@ti.com>
-References: <1311853739-18984-1-git-send-email-t-kristo@ti.com>
-	<1311853739-18984-3-git-send-email-t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 1/9] omap: mcbsp: Remove omap device API
+Date: Fri,  5 Aug 2011 17:19:17 -0700
+Message-ID: <1312589965-19416-2-git-send-email-khilman@ti.com>
+References: <1312589965-19416-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:38579 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753592Ab1HEXsq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 19:48:46 -0400
-Received: by mail-iy0-f182.google.com with SMTP id 1so4111364iye.27
-        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 16:48:44 -0700 (PDT)
-In-Reply-To: <1311853739-18984-3-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Thu, 28 Jul 2011 14:48:57 +0300")
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:57522 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755767Ab1HFAT3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Aug 2011 20:19:29 -0400
+Received: by mail-iy0-f175.google.com with SMTP id 15so4505068iyn.34
+        for <linux-omap@vger.kernel.org>; Fri, 05 Aug 2011 17:19:28 -0700 (PDT)
+In-Reply-To: <1312589965-19416-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Todd Poynor <toddpoynor@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Graeme Gregory <gg@slimlogic.co.uk>
+To: linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jhnikula@gmail.com>
 
-Tero Kristo <t-kristo@ti.com> writes:
+From: Jarkko Nikula <jhnikula@gmail.com>
 
-> OMAP SMPS regulator driver provides access to OMAP voltage processor
-> controlled regulators. These include VDD_MPU and VDD_CORE for OMAP3 and
-> additionally VDD_IVA for OMAP4. SMPS regulators use the OMAP voltage
-> layer for the actual voltage regulation operations.
->
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+struct omap_device *od is only set with find_omap_device_by_dev but not used
+otherwise so remove them and references to omap device API.
 
-FYI, this adds a section mismatch warning:
+Acked-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+ arch/arm/plat-omap/mcbsp.c |   27 ---------------------------
+ 1 files changed, 0 insertions(+), 27 deletions(-)
 
-WARNING: vmlinux.o(.devinit.text+0x1984): Section mismatch in reference from the function omap_smps_reg_probe() to the (unknown reference) .init.data:(unknown)
-The function __devinit omap_smps_reg_probe() references
-a (unknown reference) __initdata (unknown).
-If (unknown) is only used by omap_smps_reg_probe then
-annotate (unknown) with a matching annotation.
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 6c62af1..4b233e8 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -24,7 +24,6 @@
+ #include <linux/slab.h>
+ 
+ #include <plat/mcbsp.h>
+-#include <plat/omap_device.h>
+ #include <linux/pm_runtime.h>
+ 
+ /* XXX These "sideways" includes are a sign that something is wrong */
+@@ -258,19 +257,9 @@ int omap_mcbsp_dma_reg_params(unsigned int id, unsigned int stream)
+ EXPORT_SYMBOL(omap_mcbsp_dma_reg_params);
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+-static struct omap_device *find_omap_device_by_dev(struct device *dev)
+-{
+-	struct platform_device *pdev = container_of(dev,
+-					struct platform_device, dev);
+-	return container_of(pdev, struct omap_device, pdev);
+-}
+-
+ static void omap_st_on(struct omap_mcbsp *mcbsp)
+ {
+ 	unsigned int w;
+-	struct omap_device *od;
+-
+-	od = find_omap_device_by_dev(mcbsp->dev);
+ 
+ 	/*
+ 	 * Sidetone uses McBSP ICLK - which must not idle when sidetones
+@@ -292,9 +281,6 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
+ static void omap_st_off(struct omap_mcbsp *mcbsp)
+ {
+ 	unsigned int w;
+-	struct omap_device *od;
+-
+-	od = find_omap_device_by_dev(mcbsp->dev);
+ 
+ 	w = MCBSP_ST_READ(mcbsp, SSELCR);
+ 	MCBSP_ST_WRITE(mcbsp, SSELCR, w & ~(ST_SIDETONEEN));
+@@ -310,9 +296,6 @@ static void omap_st_off(struct omap_mcbsp *mcbsp)
+ static void omap_st_fir_write(struct omap_mcbsp *mcbsp, s16 *fir)
+ {
+ 	u16 val, i;
+-	struct omap_device *od;
+-
+-	od = find_omap_device_by_dev(mcbsp->dev);
+ 
+ 	val = MCBSP_ST_READ(mcbsp, SSELCR);
+ 
+@@ -340,9 +323,6 @@ static void omap_st_chgain(struct omap_mcbsp *mcbsp)
+ {
+ 	u16 w;
+ 	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
+-	struct omap_device *od;
+-
+-	od = find_omap_device_by_dev(mcbsp->dev);
+ 
+ 	w = MCBSP_ST_READ(mcbsp, SSELCR);
+ 
+@@ -685,9 +665,6 @@ EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
+ 
+ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+ {
+-	struct omap_device *od;
+-
+-	od = find_omap_device_by_dev(mcbsp->dev);
+ 	/*
+ 	 * Enable wakup behavior, smart idle and all wakeups
+ 	 * REVISIT: some wakeups may be unnecessary
+@@ -699,10 +676,6 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+ 
+ static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
+ {
+-	struct omap_device *od;
+-
+-	od = find_omap_device_by_dev(mcbsp->dev);
+-
+ 	/*
+ 	 * Disable wakup behavior, smart idle and all wakeups
+ 	 */
+-- 
+1.7.6
 
