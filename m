@@ -1,91 +1,61 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device
- wake-up constraints
-Date: Sun, 7 Aug 2011 11:47:14 +0900
-Message-ID: <20110807024712.GA5887@opensource.wolfsonmicro.com>
-References: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
- <201108052137.37011.rjw@sisk.pl>
- <20110806033711.GA18987@opensource.wolfsonmicro.com>
- <201108062146.20423.rjw@sisk.pl>
+From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Subject: Re: Shouldn't DT preserve pdev name and id to allow platform_match
+	to work?
+Date: Sat, 6 Aug 2011 22:13:30 -0600
+Message-ID: <20110807041330.GG7667@ponder.secretlab.ca>
+References: <4E396361.3060307@ti.com>
+	<CACxGe6vg5NTyiDZqqztjtFEfb7si+-=Y7nEy1Y+YMgA5PVXScw@mail.gmail.com>
+	<CAGsJ_4x7LWRGWXsWzMG1FxZPaFYiKSUpSac2PdwH=d6vqFWRfw@mail.gmail.com>
+	<4E3BE294.2020404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:34362 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756571Ab1HGCr1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Aug 2011 22:47:27 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <201108062146.20423.rjw@sisk.pl>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <4E3BE294.2020404-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "G,
+	Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Kevin Hilman <khilman@ti.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Sat, Aug 06, 2011 at 09:46:20PM +0200, Rafael J. Wysocki wrote:
-> On Saturday, August 06, 2011, Mark Brown wrote:
+On Fri, Aug 05, 2011 at 02:31:16PM +0200, Cousson, Benoit wrote:
+> On 8/5/2011 12:02 PM, Barry Song wrote:
+> >>auxdata passes platform_data and overrides the device name when there
+> >>is no way easy way to make the driver work without it.  It handles the
+> >>the current implementation of clocks and regulators which aren't yet
+> >>populated from the device tree.  It will go away when clock&
+> >>regulator bindings are implemented.
+> >Yes. As OF_DEV_AUXDATA_ID still requires hardware information like
+> >0x48000100 as below, it seems it is not
+> >consistent with the origin purpose of ARM DT.
+> >OF_DEV_AUXDATA_ID("ti,omap-i2c", 0x48000100, "omap-i2c.1", 1,&i2c_pdata)
+> >And the information 0x48000100 is something that doesn't want to be in
+> >kernel codes.it should be only in dts.
+> 
+> FWIW, I do not care about the physical address at all. This is just
+> used by the of_dev_lookup function to get the proper instance for a
+> device compatible type.
+> That's the only way for the OF_DEV_AUXDATA to work, but in theory
+> you could do the same as soon as you provide the id. So
+> OF_DEV_AUXDATA_ID could avoid it.
+> 
+> Since OF_DEV_AUXDATA_ID seems to be already dead before it even
+> reaches the mainline, let's forget about that.
 
-> > I wouldn't say we've got to rely on userspace here - it seems like we
-> > ought to be able to use DMI or other system data to identify the
-> > affected systems and activate the workarounds.
+Actually, I'm planning to merge OF_DEV_AUXDATA_ID().  I was hoping to
+avoid it but there was enough hard-to-solve-quickly problems that I've
+relented.
 
-> That's only practical on systems where the kernel can be rebuilt.
-> Moreover, if that affects individual devices, using DMI-based blacklists
-> is not really practical at all.
+Adding the match table is not hard-to-solve though, so I'm not
+relenting on that point.  :-)
 
-OK, so this does sound like there's probably a genuine issue on PCs due
-to limitations in the environment.  Is it possible to expose these
-things to userspace in a way that's limited to the affected platforms?
-
-> > You're right that it doesn't stop the kernel doing anything, the concern
-> > is that people just won't bother making the kernel work properly and
-> > will just do their power management in userspace and not bother fixing
-> > the kernel.
-
-> I wouldn't call it "fixing the kernel".  I'd rather say "putting workarounds
-> into the kernel", which I'm not sure is the right thing to at least in some
-> cases.
-
-That does sound like a fair characterization for PCs.  For embedded
-systems where we have a *much* better knowledge of the hardware we're
-running on you're just working with the basics of what the hardware
-needs to run - the hardware needs whatever it needs and no matter what
-you think of the quality of the hardware there's an expectation that the
-kernel is ging to be able to work.
-
-> > Punting to userspace seems like it is creating the
-> > expectation that we can't make the kernel work and isn't great from a
-> > usability perspective since users shouldn't really be worrying about bus
-> > performance or so on, it's not something that's visible at the level
-> > applications work at.
-
-> However, platform builders may want to fine tuned things and I'm not sure
-> we should require them to patch the kernel for this purpose.
-
-As I've said it's not the fine tuning that I'm worried about, it's the
-specific mechanism that's being suggested.  Being able to tune things in
-a way that's relevant to the device being tuned seems entirely sensible.
-
-> > I'm not sure I can see a lot of cases where you'd have root access and
-> > not be able to do kernel updates if required?  Having stuff in debugfs
-> > for diagnostics doesn't strike me as a problem if that's the issue.
-
-> Root access doesn't necessarily mean you have all of the requisite
-> tools (like compilers etc.) and installing them isn't always trivial
-> (think of systems like phones etc.), let alone building the kernel from
-> sources (where you don't necessarily know the original .config used for
-> building your device's kernel).
-
-Phones are exactly the sort of case I'm primarily concerned with here.
-
-Realistically if you're in a position where you need to work at this
-very low level on an embedded device you can replace the entire firmware
-on the device.  We don't want to end up in the situation where we've got
-kernel support for a device and the only way to get it to actually run
-sensibly is to install the silicon vendor's proprietary userspace, and
-we especially don't want to end up in the situation where that userspace
-is using standard and supported kernel interfaces to do its thing.
-
-> IOW, I don't buy the "you can always rebuild the kernel if necessary"
-> argument.  It simply is not true in general.
-
-You can push that argument to extremes, of course.
+g.
