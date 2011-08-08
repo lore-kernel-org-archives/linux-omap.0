@@ -1,82 +1,81 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 0/5] OMAP DSS HWMOD fixes
-Date: Mon, 08 Aug 2011 15:23:02 +0300
-Message-ID: <1312806182.1747.7.camel@lappyti>
-References: <1312794914-22894-1-git-send-email-tomi.valkeinen@ti.com>
-	 <4E3FCBDC.1080208@ti.com> <1312805027.1747.4.camel@lappyti>
-	 <4E3FD4E1.9020702@ti.com>
+From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: RE: [PATCH 2/2] omap_twl: Prevent SR to enable for am3517/am3505
+	devices
+Date: Mon, 8 Aug 2011 18:18:40 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870370A4D96E@dbde02.ent.ti.com>
+References: <1312473569-1212-1-git-send-email-abhilash.kv@ti.com>,
+	<87hb5w3kq0.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59451 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752502Ab1HHMXK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Aug 2011 08:23:10 -0400
-Received: by mail-ey0-f169.google.com with SMTP id 22so2859315eye.28
-        for <linux-omap@vger.kernel.org>; Mon, 08 Aug 2011 05:23:07 -0700 (PDT)
-In-Reply-To: <4E3FD4E1.9020702@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87hb5w3kq0.fsf@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson,
+	Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
 
-On Mon, 2011-08-08 at 17:51 +0530, Archit Taneja wrote:
-> Hi,
+Kevin Hilman wrote:
+>Abhilash K V <abhilash.kv@ti.com> writes:
 > 
-> On Monday 08 August 2011 05:33 PM, Valkeinen, Tomi wrote:
-> > On Mon, 2011-08-08 at 17:13 +0530, Archit Taneja wrote:
-> >> Hi,
-> >>
-> >> On Monday 08 August 2011 02:45 PM, Valkeinen, Tomi wrote:
-> >>> Second try with the DSS HWMODs
-> >>>
-> >>> This set fixes the DSS clocks in HWMOD data, and implements a new reset
-> >>> mechanism for dss_core.
-> >>>
-> >>> The new dss_reset function doesn't actually do a reset, it just enables all DSS
-> >>> clocks and waits for the reset to complete. This should be better approach than
-> >>> actually doing a reset, because:
-> >>>
-> >>> OMAP4 - dss_core HW doesn't contain a SW reset bit so doing a reset is
-> >>> impossible. But after power-on we need to enable all DSS clocks and wait for
-> >>> the power-on reset to complete.
-> >>>
-> >>> OMAP2/3 - dss_core does have a SW reset bit, but resetting dss_core also resets
-> >>> all the other DSS modules. This means that the other modules could be left
-> >>> uninitialized, as the hwmod code handles all modules independently, and in this
-> >>> case initializes only dss_core's registers. Thus dss_core's reset shouldn't be
-> >>> used, and we should only verify that the power-on reset has completed.
-> >>
-> >> If the bootloader enables DSS, we need to do a reset so that DSS2 driver
-> >> can start with DSS HW in a clean state. With this patch set, how do we
-> >> take care of such a scenario?
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
 > >
-> > We don't. That should be done in a future patch.
+> > In case of AM3517 & AM3505, Smart Reflex is not applicable so
+> > we must not enable it. So add check for am3517/05 cpu revision
+> > in omap3_twl_init() and return -ENODEV if true, else continue.
 > >
-> > I think we should extend this reset function, and disable the LCD
-> > outputs and reset the clock switches there.
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/omap_twl.c |    8 ++++++++
+> >  1 files changed, 8 insertions(+), 0 deletions(-)
 > >
-> > I didn't want to do that yet as I wanted to fix the current problem with
-> > the reset first and I don't have an environment where to test it. I hope
-> > you can help here =).
+> > diff --git a/arch/arm/mach-omap2/omap_twl.c
+> b/arch/arm/mach-omap2/omap_twl.c
+> > index 07d6140..92fadcb 100644
+> > --- a/arch/arm/mach-omap2/omap_twl.c
+> > +++ b/arch/arm/mach-omap2/omap_twl.c
+> > @@ -269,6 +269,14 @@ int __init omap3_twl_init(void)
+> >        if (!cpu_is_omap34xx())
+> >                return -ENODEV;
+> > 
+> > +     /*
+> > +      * In case of AM3517/AM3505 we should not be going down
+> > +      * further, since SR is not applicable there.
+> > +      */
+> > +     if (cpu_is_omap3505() || cpu_is_omap3517()) {
+> > +             return -ENODEV;
+> > +     }
+> > +
 > 
-> Yes, we can extend over this. But we would still access DISPC registers 
-> in the dss_core's custom reset function. Wouldn't this break the "HWMOD 
-> model where every DSS module is independent"?
+> Rather than using cpu_is_*, you should add a new "feature" flag for
+> SmartReflex.  We already have this for things like SGX, IVA, NEON, etc.
+> See <plat/feature.h>
+I did not find a feature.h; did you mean OMAP3_CHECK_FEATURE macro which is used by
+omap3_check_features(), which gleans for presence of L2CACHE, IVA, SGX, NEON, ISP features
+from the Control Device Status Register (0x4800 244C) ?
+There is no such bit-field to indicate the presence of smart-reflex feature in this register.
+AFAIK, there is no such global register as well which could indicate this.
 
-Yes, it won't be as neat as I'd like to, but it shouldn't break
-functionally anything.
+- Abhilash
 
-I thought of adding a new reset function for dss_dispc, but I don't
-think that would work, as we need to reset the clock switches (in
-dss_core). And if we'd reset the clock switches while dispc output is
-enabled, things could again break.
-
-So only solution I can think of is to have dss_core do all those things.
-Well, another solution would be to skip the DSS resets totally if DSS
-output is enabled. I'm not sure if that's a good solution, though.
-
- Tomi
-
-
+> Kevin
+> 
+> 
+> >        if (cpu_is_omap3630()) {
+> >                omap3_mpu_volt_info.vp_vddmin =
+> OMAP3630_VP1_VLIMITTO_VDDMIN;
+> >                omap3_mpu_volt_info.vp_vddmax =
+> OMAP3630_VP1_VLIMITTO_VDDMAX; 
+> 
+> 
