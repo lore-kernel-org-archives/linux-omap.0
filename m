@@ -1,49 +1,105 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Build failure: bisected: v3.1-rc1 with config ARCH_OMAP &&
- !ARCH_OMAP4 fails with linker error
-Date: Mon, 8 Aug 2011 14:36:47 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108081435340.4764@utopia.booyaka.com>
-References: <1312819724.14483.29.camel@morsingpad>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device wake-up constraints
+Date: Mon, 8 Aug 2011 23:31:35 +0200
+Message-ID: <201108082331.35853.rjw@sisk.pl>
+References: <1309446685-17502-1-git-send-email-j-pihet@ti.com> <201108062146.20423.rjw@sisk.pl> <20110807024712.GA5887@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38782 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753583Ab1HHUgs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Aug 2011 16:36:48 -0400
-In-Reply-To: <1312819724.14483.29.camel@morsingpad>
+Received: from ogre.sisk.pl ([217.79.144.158]:55598 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750868Ab1HHVaH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Aug 2011 17:30:07 -0400
+In-Reply-To: <20110807024712.GA5887@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Morsing <daniel.morsing@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Kevin Hilman <khilman@ti.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-Hi
-
-On Mon, 8 Aug 2011, Daniel Morsing wrote:
-
-> Building the v3.1-rc1 kernel with ARCH_OMAP && !ARCH_OMAP4 support fails
-> on linking with the following error
+On Sunday, August 07, 2011, Mark Brown wrote:
+> On Sat, Aug 06, 2011 at 09:46:20PM +0200, Rafael J. Wysocki wrote:
+> > On Saturday, August 06, 2011, Mark Brown wrote:
 > 
-> ...
->   LD      .tmp_vmlinux1
-> arch/arm/mach-omap2/built-in.o:(.data+0xf7d8): undefined reference to `omap4430_phy_init'
-> arch/arm/mach-omap2/built-in.o:(.data+0xf7dc): undefined reference to `omap4430_phy_exit'
-> arch/arm/mach-omap2/built-in.o:(.data+0xf7e0): undefined reference to `omap4430_phy_power'
-> arch/arm/mach-omap2/built-in.o:(.data+0xf7e4): undefined reference to `omap4430_phy_set_clk'
-> arch/arm/mach-omap2/built-in.o:(.data+0xf7e8): undefined reference to `omap4430_phy_suspend'
+> > > I wouldn't say we've got to rely on userspace here - it seems like we
+> > > ought to be able to use DMI or other system data to identify the
+> > > affected systems and activate the workarounds.
 > 
-> I've bisected the first bad commit to "OMAP4: Move common twl6030
-> configuration to twl-common" (commit-id
-> b22f954bae35be115a10c6426dc070f7d652b32e). The problem seems to be
-> unconditionally taking a function pointer to an omap4430 specific
-> function in arch/arm/mach-omap2/twl-common.c. The definition for
-> omap4430_phy_init and friends is in
-> arch/arm/mach-omap2/omap_phy_internal.c, which is only compiled when
-> building with support for one of the omap4430 boards.
+> > That's only practical on systems where the kernel can be rebuilt.
+> > Moreover, if that affects individual devices, using DMI-based blacklists
+> > is not really practical at all.
+> 
+> OK, so this does sound like there's probably a genuine issue on PCs due
+> to limitations in the environment.  Is it possible to expose these
+> things to userspace in a way that's limited to the affected platforms?
 
-Thanks for the bisect; this should be fixed by 
+Well, in principle we could make it depend in CONFIG_ACPI or something like
+this, but I'm not sure that will be well-received. :-)
 
-https://patchwork.kernel.org/patch/963462/
+> > > You're right that it doesn't stop the kernel doing anything, the concern
+> > > is that people just won't bother making the kernel work properly and
+> > > will just do their power management in userspace and not bother fixing
+> > > the kernel.
+> 
+> > I wouldn't call it "fixing the kernel".  I'd rather say "putting workarounds
+> > into the kernel", which I'm not sure is the right thing to at least in some
+> > cases.
+> 
+> That does sound like a fair characterization for PCs.  For embedded
+> systems where we have a *much* better knowledge of the hardware we're
+> running on you're just working with the basics of what the hardware
+> needs to run - the hardware needs whatever it needs and no matter what
+> you think of the quality of the hardware there's an expectation that the
+> kernel is ging to be able to work.
 
+In the particular case in question, though, there's some freedom.  Namely,
+the hardware will work for many different QoS constraints and it's not
+precisely known in principle and upfront which one would be optimal for
+a given workload.
 
-- Paul
+> > > Punting to userspace seems like it is creating the
+> > > expectation that we can't make the kernel work and isn't great from a
+> > > usability perspective since users shouldn't really be worrying about bus
+> > > performance or so on, it's not something that's visible at the level
+> > > applications work at.
+> 
+> > However, platform builders may want to fine tuned things and I'm not sure
+> > we should require them to patch the kernel for this purpose.
+> 
+> As I've said it's not the fine tuning that I'm worried about, it's the
+> specific mechanism that's being suggested.  Being able to tune things in
+> a way that's relevant to the device being tuned seems entirely sensible.
+
+Do you know any better mechanism consistent accross all devices?
+Please be specific. :-)
+
+> > > I'm not sure I can see a lot of cases where you'd have root access and
+> > > not be able to do kernel updates if required?  Having stuff in debugfs
+> > > for diagnostics doesn't strike me as a problem if that's the issue.
+> 
+> > Root access doesn't necessarily mean you have all of the requisite
+> > tools (like compilers etc.) and installing them isn't always trivial
+> > (think of systems like phones etc.), let alone building the kernel from
+> > sources (where you don't necessarily know the original .config used for
+> > building your device's kernel).
+> 
+> Phones are exactly the sort of case I'm primarily concerned with here.
+> 
+> Realistically if you're in a position where you need to work at this
+> very low level on an embedded device you can replace the entire firmware
+> on the device.  We don't want to end up in the situation where we've got
+> kernel support for a device and the only way to get it to actually run
+> sensibly is to install the silicon vendor's proprietary userspace, and
+> we especially don't want to end up in the situation where that userspace
+> is using standard and supported kernel interfaces to do its thing.
+
+Well, the wakelocks example shows clearly that preventing certain interfaces
+from being merged into mainline doesn't actually prevent people from using
+them in actual products.  I claim it's way better if a vendor uses its
+proprietary user space with the mainline kernel than if that vendor patches
+the kernel and _then_ uses its proprietary user space with it.  Your
+argumentation seems to suggest that we encourage the latter.
+
+Thanks,
+Rafael
