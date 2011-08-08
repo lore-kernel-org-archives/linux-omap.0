@@ -1,81 +1,52 @@
-From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Subject: RE: [PATCH 2/2] omap_twl: Prevent SR to enable for am3517/am3505
-	devices
-Date: Mon, 8 Aug 2011 18:18:40 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870370A4D96E@dbde02.ent.ti.com>
-References: <1312473569-1212-1-git-send-email-abhilash.kv@ti.com>,
-	<87hb5w3kq0.fsf@ti.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH 2/4] TI816X: clock: Add clock data
+Date: Mon, 8 Aug 2011 21:18:45 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03ABB09340@dbde02.ent.ti.com>
+References: <1301070006-8363-1-git-send-email-hemantp@ti.com>
+ <alpine.DEB.2.00.1107160201410.25013@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87hb5w3kq0.fsf@ti.com>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:59752 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752686Ab1HHPtH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Aug 2011 11:49:07 -0400
+In-Reply-To: <alpine.DEB.2.00.1107160201410.25013@utopia.booyaka.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson,
-	Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>
 
-Kevin Hilman wrote:
->Abhilash K V <abhilash.kv@ti.com> writes:
-> 
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > In case of AM3517 & AM3505, Smart Reflex is not applicable so
-> > we must not enable it. So add check for am3517/05 cpu revision
-> > in omap3_twl_init() and return -ENODEV if true, else continue.
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/omap_twl.c |    8 ++++++++
-> >  1 files changed, 8 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/omap_twl.c
-> b/arch/arm/mach-omap2/omap_twl.c
-> > index 07d6140..92fadcb 100644
-> > --- a/arch/arm/mach-omap2/omap_twl.c
-> > +++ b/arch/arm/mach-omap2/omap_twl.c
-> > @@ -269,6 +269,14 @@ int __init omap3_twl_init(void)
-> >        if (!cpu_is_omap34xx())
-> >                return -ENODEV;
-> > 
-> > +     /*
-> > +      * In case of AM3517/AM3505 we should not be going down
-> > +      * further, since SR is not applicable there.
-> > +      */
-> > +     if (cpu_is_omap3505() || cpu_is_omap3517()) {
-> > +             return -ENODEV;
-> > +     }
-> > +
-> 
-> Rather than using cpu_is_*, you should add a new "feature" flag for
-> SmartReflex.  We already have this for things like SGX, IVA, NEON, etc.
-> See <plat/feature.h>
-I did not find a feature.h; did you mean OMAP3_CHECK_FEATURE macro which is used by
-omap3_check_features(), which gleans for presence of L2CACHE, IVA, SGX, NEON, ISP features
-from the Control Device Status Register (0x4800 244C) ?
-There is no such bit-field to indicate the presence of smart-reflex feature in this register.
-AFAIK, there is no such global register as well which could indicate this.
+Hi Paul,
 
-- Abhilash
+Paul Walmsley wrote on Saturday, July 16, 2011 1:36 PM:
 
-> Kevin
+> Spot-checking this...
+> 
+> On Fri, 25 Mar 2011, Hemant Pedanekar wrote:
+> 
+>> +static struct clk uart1_fck = {
+>> +	.name		= "uart1_fck",
+>> +	.parent		= &sysclk10_ck,
+>> +	.ops		= &clkops_omap2_dflt,
+>> +	.enable_reg	= TI816X_CM_ALWON_UART_0_CLKCTRL,
+>> +	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
+>> +	.clkdm_name	= "alwon_l3_slow_clkdm",
+>> +	.recalc		= &followparent_recalc,
+>> +};
+> 
+> Is this really in the alwon_l3_slow_clkdm clockdomain?
+> Looking at SPRS680
+> section 5.2 "L4 Interconnect", these UARTs seem to be in some L4
+> clockdomain? 
 > 
 > 
-> >        if (cpu_is_omap3630()) {
-> >                omap3_mpu_volt_info.vp_vddmin =
-> OMAP3630_VP1_VLIMITTO_VDDMIN;
-> >                omap3_mpu_volt_info.vp_vddmax =
-> OMAP3630_VP1_VLIMITTO_VDDMAX; 
-> 
-> 
+> - Paul
+
+Yes UARTs are on L4 slow but the clock domain is labelled as 
+ALWON_L3_SLOW. Please refer 18.3.2 of SPRUGX8 (TRM from http://focus.ti.com/docs/prod/folders/print/tms320dm8168.html).
+
+Thanks.
+   Hemant
