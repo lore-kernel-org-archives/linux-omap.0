@@ -1,44 +1,43 @@
-From: Liam Girdwood <lrg@ti.com>
-Subject: Re: [PATCHv4 2/4] regulator: omap smps regulator driver
-Date: Mon, 8 Aug 2011 09:28:20 +0100
-Message-ID: <4E3F9E24.1040808@ti.com>
-References: <1311853739-18984-1-git-send-email-t-kristo@ti.com>	<1311853739-18984-3-git-send-email-t-kristo@ti.com>	<20110729094853.GC13218@opensource.wolfsonmicro.com> <87wrersley.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv2 4/5] OMAP2/3: HWMOD: Add SYSS_HAS_RESET_STATUS for dss
+Date: Mon,  8 Aug 2011 12:15:13 +0300
+Message-ID: <1312794914-22894-5-git-send-email-tomi.valkeinen@ti.com>
+References: <1312794914-22894-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52401 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751889Ab1HHI22 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Aug 2011 04:28:28 -0400
-In-Reply-To: <87wrersley.fsf@ti.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:60957 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751490Ab1HHJPe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Aug 2011 05:15:34 -0400
+Received: by mail-fx0-f47.google.com with SMTP id 11so4485967fxg.6
+        for <linux-omap@vger.kernel.org>; Mon, 08 Aug 2011 02:15:32 -0700 (PDT)
+In-Reply-To: <1312794914-22894-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Todd Poynor <toddpoynor@google.com>, Graeme Gregory <gg@slimlogic.co.uk>
+To: paul@pwsan.com, linux-omap@vger.kernel.org, b-cousson@ti.com
+Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On 05/08/11 20:33, Hilman, Kevin wrote:
-> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
-> 
->> On Thu, Jul 28, 2011 at 02:48:57PM +0300, Tero Kristo wrote:
->>> OMAP SMPS regulator driver provides access to OMAP voltage processor
->>> controlled regulators. These include VDD_MPU and VDD_CORE for OMAP3 and
->>> additionally VDD_IVA for OMAP4. SMPS regulators use the OMAP voltage
->>> layer for the actual voltage regulation operations.
->>>
->>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>
->> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> 
-> Do you prefer we merge this via OMAP trees (along with the
-> infrastructure) or would you like to merge it.
-> 
-> At this point, it's probably best to merge it along with the voltage
-> infrastructure, which still might change slightly at the API level.
-> 
+OMAP2/3 dss_core has a reset status flag in sysstatus register. Add
+SYSS_HAS_RESET_STATUS flag to HWMOD data so it can be used.
 
-Ok, lets merge with the voltage infrastructure.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Thanks
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
+index c451729..d78c132 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
+@@ -43,7 +43,8 @@ static struct omap_hwmod_class_sysconfig omap2_dss_sysc = {
+ 	.rev_offs	= 0x0000,
+ 	.sysc_offs	= 0x0010,
+ 	.syss_offs	= 0x0014,
+-	.sysc_flags	= (SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
++	.sysc_flags	= (SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE |
++			   SYSS_HAS_RESET_STATUS),
+ 	.sysc_fields	= &omap_hwmod_sysc_type1,
+ };
+ 
+-- 
+1.7.4.1
 
-Liam
