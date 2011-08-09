@@ -1,47 +1,45 @@
-From: "Arpad Wang" <arpadwang@fastmail.fm>
-Subject: Where to start
-Date: Tue, 09 Aug 2011 15:49:27 +0800
-Message-ID: <1312876167.365.2161060801@webmail.messagingengine.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH 00/13] Clean up mach/gpio.h headers
+Date: Tue, 9 Aug 2011 09:04:12 +0100
+Message-ID: <20110809080411.GA1831@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from new1.smtp.messagingengine.com ([66.111.4.221]:60927 "EHLO
-	new1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752347Ab1HIH4K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Aug 2011 03:56:10 -0400
-Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
-	by gateway1.messagingengine.com (Postfix) with ESMTP id BFFF620F6C
-	for <linux-omap@vger.kernel.org>; Tue,  9 Aug 2011 03:49:27 -0400 (EDT)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42574 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752614Ab1HIIEY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Aug 2011 04:04:24 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org
+Cc: Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>
 
-Hello all,
+This is a preliminary posting of my gpio patch set.
 
-sorry for asking a 'basic' question on this list. If this is indeed the
-wrong place (and even if it isn't!), please feel free to point me to a
-better forum for arm/omap specific kernel discussions.
+This patch series moves the trivial gpiolib implementations out of
+mach/gpio.h and into asm/gpio.h.
 
-My questions are:
-1. What is a good place to read up on how to write board files and
-drivers for OMAP3/4 based boards? The documentation I have found is
-scarce and often outdated.
-2. A specific problem I have is with DSS/FB/LCD panel/the like. We have
-an old board file for v2.6.32 TI PSP. Despite doing what appears to be
-equivalent to what the old board file does, there is nothing shown on
-the LCD (nor DVI, VGA, TV-out, ....). What could have changed between
-TI's 2.6.32 and 3.0-omap that causes, for instance an LCD panel, to stay
-blank in the latter but not in the former.
+As a side effect of that, most of this patch series is about fixing up
+direct includes of mach/gpio.h - this is something I've been on at
+people over the last year or more about ensuring that they use
+linux/gpio.h in preference.  While I've blindly converted all arch/arm
+to use linux/gpio.h (with the exception of mach/ includes which are
+converted to asm/gpio.h), drivers were only converted to asm/gpio.h.
+These should be reviewed and changed to linux/gpio.h.
 
-While an answer would be very appreciated, even better would be to get
-hints on how to learn to figure out the answer to #2 by myself...
-feeling that will be a handy skill... :-)
+As a result of this patch series, several mach/gpio.h end up being
+empty.
 
-Thank you,
+Many others just contain platform private GPIO APIs and definitions.
 
-Arpad
+The last thing which mach/gpio.h is used for is to provide a definition
+for ARCH_GPIO_NR to asm-generic/gpio.h.  I've not attempted to solve
+that issue yet.
 
--- 
-http://www.fastmail.fm - The professional email service
+A small number of platforms optimize the gpio accessors for on-SoC
+GPIOs.  In the interests of consolidation, these will have to be killed
+but this patch set does not do that yet.
 
+Lastly, several {mach,plat}/gpio.h needs to be looked at with a view to
+deleting the direct include of asm-generic/gpio.h.
