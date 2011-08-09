@@ -1,50 +1,68 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 06/13] ARM: gpio: davinci: convert drivers to use
-	asm/gpio.h rather than mach/gpio.h
-Date: Tue, 9 Aug 2011 20:45:53 +0100
-Message-ID: <20110809194553.GA14281@n2100.arm.linux.org.uk>
-References: <20110809080411.GA1831@n2100.arm.linux.org.uk> <E1QqhKP-0003aK-9R@rmk-PC.arm.linux.org.uk> <4E4122B6.2070706@ru.mvista.com>
+Subject: Re: How to handle named resources with DT?
+Date: Tue, 9 Aug 2011 20:51:14 +0100
+Message-ID: <20110809195114.GB14281@n2100.arm.linux.org.uk>
+References: <4E40FC88.5090403@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55130 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752690Ab1HITvo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Aug 2011 15:51:44 -0400
 Content-Disposition: inline
-In-Reply-To: <4E4122B6.2070706@ru.mvista.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+In-Reply-To: <4E40FC88.5090403@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nayak, Rajendra" <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Aug 09, 2011 at 04:06:14PM +0400, Sergei Shtylyov wrote:
-> Hello.
+On Tue, Aug 09, 2011 at 11:23:20AM +0200, Cousson, Benoit wrote:
+> Hi Grant,
 >
-> On 09-08-2011 12:06, Russell King - ARM Linux wrote:
+> Trying to bind hwmod informations with DT, I'm facing a little limitation.
+> A bunch of drivers are using the platform_get_resource_byname, so the  
+> name for the resource is needed.
 >
->    CCing linux-usb and Felipe...
+> The name is used so far for IORESOURCE_MEM, IORESOURCE_IRQ and  
+> IORESOURCE_DMA types of resources.
 >
->> Signed-off-by: Russell King<rmk+kernel@arm.linux.org.uk>
->> ---
->>   drivers/usb/musb/davinci.c |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
->
->> diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
->> index 8bdf25a..f9a3f62 100644
->> --- a/drivers/usb/musb/davinci.c
->> +++ b/drivers/usb/musb/davinci.c
->> @@ -35,7 +35,7 @@
->>
->>   #include<mach/hardware.h>
->>   #include<mach/memory.h>
->> -#include<mach/gpio.h>
->> +#include<asm/gpio.h>
->
->    Shouldn't this now be moved to the below #include group?
+> Do you have any plan to add that, or do you have any clean way to avoid  
+> that without having to use the resource index?
 
-When doing this kind of work with sed -i, that doesn't happen.  There's
-too much of this crap (and I've been telling people about this for at
-least a year) that I don't think there's that luxury anymore.
+Named resources are evil.  You only have to look at /proc/iomem to see
+why that's the case.  Here's an example:
 
-If maintainers would have paid more attention, then most of these changes
-would not be necessary.  My view is that if maintainers do care about this
-stuff _they_ should have been the ones to pick up on it long ago.  In
-other words, they've lost the right to complain about petty crap like
-the ordering of includes through their own inaction on this point.
+b7a01000-b7a01003 : set
+  b7a01000-b7a01003 : set
+b7a01004-b7a01007 : dat
+  b7a01004-b7a01007 : dat
+b7a01008-b7a0100b : dirout
+  b7a01008-b7a0100b : dirout
+b7a01020-b7a01023 : set
+  b7a01020-b7a01023 : set
+b7a01024-b7a01027 : dat
+  b7a01024-b7a01027 : dat
+b7a01028-b7a0102b : dirout
+  b7a01028-b7a0102b : dirout
+b7a01040-b7a01043 : set
+  b7a01040-b7a01043 : set
+b7a01044-b7a01047 : dat
+  b7a01044-b7a01047 : dat
+b7a01048-b7a0104b : dirout
+  b7a01048-b7a0104b : dirout
+b7a01060-b7a01063 : set
+  b7a01060-b7a01063 : set
+b7a01064-b7a01067 : dat
+  b7a01064-b7a01067 : dat
+b7a01068-b7a0106b : dirout
+  b7a01068-b7a0106b : dirout
+b7a01080-b7a01083 : set
+  b7a01080-b7a01083 : set
+b7a01084-b7a01087 : dat
+  b7a01084-b7a01087 : dat
+b7a01088-b7a0108b : dirout
+  b7a01088-b7a0108b : dirout
+
+How very informative.  Not.  So what device owns those?  Who knows,
+that's lost by the crappy named resource stuff.
