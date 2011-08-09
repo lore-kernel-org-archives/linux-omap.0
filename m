@@ -1,235 +1,185 @@
-From: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
-Subject: [RFC/PATCH 14/14] dt: omap3: enable dt support for i2c1 controller
-Date: Tue, 09 Aug 2011 19:10:32 +0500
-Message-ID: <1312897232-4792-15-git-send-email-manjugk@ti.com>
-References: <1312897232-4792-1-git-send-email-manjugk@ti.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH 3/5 v4] arm: omap: usb: register hwmods of usbhs
+Date: Tue, 9 Aug 2011 19:45:07 +0530
+Message-ID: <1312899309-24067-4-git-send-email-keshava_mgowda@ti.com>
+References: <1312899309-24067-1-git-send-email-keshava_mgowda@ti.com>
+ <1312899309-24067-2-git-send-email-keshava_mgowda@ti.com>
+ <1312899309-24067-3-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1312899309-24067-3-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+The hwmod structure of uhh, ohci, ehci and tll are
+retrived and registered with omap device
 
-Adapt dt for omap i2c1 controller and remove legacy i2c
-initilization in omap3 generic board file.
-
-Tested on omap3 beagle board for dt and non-dt builds.
-
-Signed-off-by: G, Manjunath Kondaiah <manjugk-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 ---
- arch/arm/boot/dts/omap3-soc.dtsi     |    6 ++--
- arch/arm/mach-omap2/board-omap3-dt.c |   14 +++++-----
- drivers/i2c/busses/i2c-omap.c        |   23 ++++++++++++++++--
- drivers/of/platform.c                |   41 +++++++++++++++++++++++++++++++++-
- 4 files changed, 70 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap2/usb-host.c |  114 +++++++++++++++++----------------------
+ 1 files changed, 50 insertions(+), 64 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-soc.dtsi b/arch/arm/boot/dts/omap3-soc.dtsi
-index 85de92f..bcff63b 100644
---- a/arch/arm/boot/dts/omap3-soc.dtsi
-+++ b/arch/arm/boot/dts/omap3-soc.dtsi
-@@ -31,7 +31,7 @@
- 		i2c1: i2c@70000 {
- 			#address-cells = <1>;
- 			#size-cells = <0>;
--			compatible = "ti,omap3-i2c";
-+			compatible = "ti,omap3-i2c", "ti,omap3-device";
- 			reg = <0x70000 0x100>;
- 			interrupts = < 88 >;
- 		};
-@@ -39,7 +39,7 @@
- 		i2c2: i2c@72000 {
- 			#address-cells = <1>;
- 			#size-cells = <0>;
--			compatible = "ti,omap3-i2c";
-+			compatible = "ti,omap3-i2c", "ti,omap3-device";
- 			reg = <0x72000 0x100>;
- 			interrupts = < 89 >;
- 		};
-@@ -47,7 +47,7 @@
- 		i2c3: i2c@60000 {
- 			#address-cells = <1>;
- 			#size-cells = <0>;
--			compatible = "ti,omap3-i2c";
-+			compatible = "ti,omap3-i2c", "ti,omap3-device";
- 			reg = <0x60000 0x100>;
- 			interrupts = < 93 >;
- 		};
-diff --git a/arch/arm/mach-omap2/board-omap3-dt.c b/arch/arm/mach-omap2/board-omap3-dt.c
-index 4b76e19..16cf283 100644
---- a/arch/arm/mach-omap2/board-omap3-dt.c
-+++ b/arch/arm/mach-omap2/board-omap3-dt.c
-@@ -36,11 +36,11 @@ static struct twl4030_platform_data beagle_twldata = {
- 	/* platform_data for children goes here */
- };
- 
--static int __init omap3_beagle_i2c_init(void)
--{
--	omap3_pmic_init("twl4030", &beagle_twldata);
--	return 0;
--}
-+struct of_dev_auxdata omap3_auxdata_lookup[] __initdata = {
-+	OF_DEV_AUXDATA_ID_PDSIZE("ti,omap3-i2c", 0x48070000, "i2c1", 1,\
-+				&beagle_twldata, sizeof(beagle_twldata)),
-+	{}
-+};
- 
- static void __init omap3_init_early(void)
- {
-@@ -70,11 +70,11 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
- 
- static void __init omap3_init(void)
- {
--	omap3_beagle_i2c_init();
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_serial_init();
- 
--	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
-+	of_platform_populate(NULL, omap_dt_match_table, omap3_auxdata_lookup,
-+									 NULL);
- }
- 
- static const char *omap3_dt_match[] __initdata = {
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index ae1545b..5167737 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -38,6 +38,7 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/of_i2c.h>
-+#include <linux/of_device.h>
- #include <linux/slab.h>
- #include <linux/i2c-omap.h>
- #include <linux/pm_runtime.h>
-@@ -972,6 +973,16 @@ static const struct i2c_algorithm omap_i2c_algo = {
- 	.functionality	= omap_i2c_func,
- };
- 
-+#if defined(CONFIG_OF)
-+static const struct of_device_id omap_i2c_of_match[] = {
-+	{.compatible = "ti,omap3-i2c", },
-+	{},
-+}
-+MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
-+#else
-+#define omap_i2c_of_match NULL
-+#endif
-+
- static int __devinit
- omap_i2c_probe(struct platform_device *pdev)
- {
-@@ -1008,12 +1019,17 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_release_region;
- 	}
- 
-+	speed = 100;	/* Default speed */
- 	if (pdata != NULL) {
- 		speed = pdata->clkrate;
- 		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
--	} else {
--		speed = 100;	/* Default speed */
--		dev->set_mpu_wkup_lat = NULL;
-+#if defined(CONFIG_OF)
-+	} else if (pdev->dev.of_node) {
-+		u32 prop;
-+		if (!of_property_read_u32(pdev->dev.of_node, "clock-frequency",
-+									&prop))
-+			speed = prop/100;
-+#endif
- 	}
- 
- 	dev->speed = speed;
-@@ -1178,6 +1194,7 @@ static struct platform_driver omap_i2c_driver = {
- 		.name	= "omap_i2c",
- 		.owner	= THIS_MODULE,
- 		.pm	= OMAP_I2C_PM_OPS,
-+		.of_match_table = omap_i2c_of_match,
- 	},
- };
- 
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index 4b27286..4d8a2fa 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -24,6 +24,10 @@
- #include <linux/of_platform.h>
- #include <linux/platform_device.h>
- 
-+#ifdef CONFIG_ARCH_OMAP2PLUS
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 89ae298..9c37db9 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -28,51 +28,30 @@
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+ #include <plat/usb.h>
 +#include <plat/omap_device.h>
-+#endif
-+
- const struct of_device_id of_default_bus_match_table[] = {
- 	{ .compatible = "simple-bus", },
- #ifdef CONFIG_ARM_AMBA
-@@ -544,6 +548,36 @@ static const struct of_dev_auxdata *of_dev_lookup(const struct of_dev_auxdata *l
- 	return NULL;
- }
  
-+static struct omap_device_pm_latency omap_device_latency[] = {
-+	[0] = {
-+		.deactivate_func	= omap_device_idle_hwmods,
-+		.activate_func		= omap_device_enable_hwmods,
-+		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+	},
+ #include "mux.h"
+ 
+ #ifdef CONFIG_MFD_OMAP_USB_HOST
+ 
+-#define OMAP_USBHS_DEVICE	"usbhs-omap"
+-
+-static struct resource usbhs_resources[] = {
+-	{
+-		.name	= "uhh",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "tll",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ehci",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ehci-irq",
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-	{
+-		.name	= "ohci",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ohci-irq",
+-		.flags	= IORESOURCE_IRQ,
+-	}
+-};
+-
+-static struct platform_device usbhs_device = {
+-	.name		= OMAP_USBHS_DEVICE,
+-	.id		= 0,
+-	.num_resources	= ARRAY_SIZE(usbhs_resources),
+-	.resource	= usbhs_resources,
+-};
++#define OMAP_USBHS_DEVICE	"usbhs_omap"
++#define	USBHS_UHH_HWMODNAME	"usbhs_uhh"
++#define	USBHS_OHCI_HWMODNAME	"usbhs_ohci"
++#define USBHS_EHCI_HWMODNAME	"usbhs_ehci"
++#define USBHS_TLL_HWMODNAME	"usbhs_tll"
+ 
+ static struct usbhs_omap_platform_data		usbhs_data;
+ static struct ehci_hcd_omap_platform_data	ehci_data;
+ static struct ohci_hcd_omap_platform_data	ohci_data;
+ 
++static struct omap_device_pm_latency omap_uhhtll_latency[] = {
++	  {
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func	 = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	  },
 +};
 +
-+int of_omap_device_create(struct device_node *np, const char *name, int id,
-+							void *platform_data,
-+							int pd_size)
-+{
-+	struct omap_hwmod *oh;
-+	struct platform_device *pdev;
-+
-+	oh = omap_hwmod_lookup(name);
-+	if (!oh) {
-+		pr_err("Could not look up %s\n", name);
-+		return -EEXIST;
-+	}
-+
-+	pdev = omap_device_build_dt(np, name, id, oh, platform_data,
-+				sizeof(platform_data), omap_device_latency,
-+				ARRAY_SIZE(omap_device_latency), 0);
-+	WARN(IS_ERR(pdev), "Could not build omap_device for %s\n", name);
-+
-+	pr_info("DT: omap_device build for %s is successful\n", name);
-+	return PTR_ERR(pdev);
-+}
-+
- /**
-  * of_platform_bus_create() - Create a device for a node and its children.
-  * @bus: device node of the bus to instantiate
-@@ -565,7 +599,7 @@ static int of_platform_bus_create(struct device_node *bus,
- 	struct platform_device *dev;
- 	const char *bus_id = NULL;
- 	void *platform_data = NULL;
--	int pd_size;
-+	int pd_size = 0;
- 	int id = -1;
- 	int rc = 0;
+ /* MUX settings for EHCI pins */
+ /*
+  * setup_ehci_io_mux - initialize IO pad mux for USBHOST
+@@ -508,7 +487,10 @@ static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
  
-@@ -597,6 +631,11 @@ static int of_platform_bus_create(struct device_node *bus,
- 		return 0;
+ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ {
+-	int	i;
++	struct omap_hwmod	*oh[4];
++	struct omap_device	*od;
++	int			bus_id = -1;
++	int			i;
+ 
+ 	for (i = 0; i < OMAP3_HS_USB_PORTS; i++) {
+ 		usbhs_data.port_mode[i] = pdata->port_mode[i];
+@@ -523,44 +505,48 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 	usbhs_data.ohci_data = &ohci_data;
+ 
+ 	if (cpu_is_omap34xx()) {
+-		usbhs_resources[0].start = OMAP34XX_UHH_CONFIG_BASE;
+-		usbhs_resources[0].end = OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1;
+-		usbhs_resources[1].start = OMAP34XX_USBTLL_BASE;
+-		usbhs_resources[1].end = OMAP34XX_USBTLL_BASE + SZ_4K - 1;
+-		usbhs_resources[2].start	= OMAP34XX_EHCI_BASE;
+-		usbhs_resources[2].end	= OMAP34XX_EHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[3].start = INT_34XX_EHCI_IRQ;
+-		usbhs_resources[4].start	= OMAP34XX_OHCI_BASE;
+-		usbhs_resources[4].end	= OMAP34XX_OHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[5].start = INT_34XX_OHCI_IRQ;
+ 		setup_ehci_io_mux(pdata->port_mode);
+ 		setup_ohci_io_mux(pdata->port_mode);
+ 	} else if (cpu_is_omap44xx()) {
+-		usbhs_resources[0].start = OMAP44XX_UHH_CONFIG_BASE;
+-		usbhs_resources[0].end = OMAP44XX_UHH_CONFIG_BASE + SZ_1K - 1;
+-		usbhs_resources[1].start = OMAP44XX_USBTLL_BASE;
+-		usbhs_resources[1].end = OMAP44XX_USBTLL_BASE + SZ_4K - 1;
+-		usbhs_resources[2].start = OMAP44XX_HSUSB_EHCI_BASE;
+-		usbhs_resources[2].end = OMAP44XX_HSUSB_EHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[3].start = OMAP44XX_IRQ_EHCI;
+-		usbhs_resources[4].start = OMAP44XX_HSUSB_OHCI_BASE;
+-		usbhs_resources[4].end = OMAP44XX_HSUSB_OHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[5].start = OMAP44XX_IRQ_OHCI;
+ 		setup_4430ehci_io_mux(pdata->port_mode);
+ 		setup_4430ohci_io_mux(pdata->port_mode);
  	}
  
-+	if (of_device_is_compatible(bus, "ti,omap3-device")) {
-+		of_omap_device_create(bus, bus_id, id, platform_data, pd_size);
-+		return 0;
+-	if (platform_device_add_data(&usbhs_device,
+-				&usbhs_data, sizeof(usbhs_data)) < 0) {
+-		printk(KERN_ERR "USBHS platform_device_add_data failed\n");
+-		goto init_end;
++	oh[0] = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
++	if (!oh[0]) {
++		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
++		return;
 +	}
 +
- 	dev = of_platform_device_create_pdata(bus, bus_id, platform_data, parent);
++	oh[1] = omap_hwmod_lookup(USBHS_OHCI_HWMODNAME);
++	if (!oh[1]) {
++		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
++		return;
+ 	}
  
- 	/* override the id if auxdata gives an id */
+-	if (platform_device_register(&usbhs_device) < 0)
+-		printk(KERN_ERR "USBHS platform_device_register failed\n");
++	oh[2] = omap_hwmod_lookup(USBHS_EHCI_HWMODNAME);
++	if (!oh[2]) {
++		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
++		return;
++	}
+ 
+-init_end:
+-	return;
++	oh[3] = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
++	if (!oh[3]) {
++		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
++		return;
++	}
++
++	od = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 4,
++				(void *)&usbhs_data, sizeof(usbhs_data),
++				omap_uhhtll_latency,
++				ARRAY_SIZE(omap_uhhtll_latency), false);
++
++	if (IS_ERR(od)) {
++		pr_err("Could not build hwmod devices %s, %s, %s, %s\n",
++			USBHS_UHH_HWMODNAME, USBHS_OHCI_HWMODNAME,
++			USBHS_EHCI_HWMODNAME, USBHS_TLL_HWMODNAME);
++		return;
++	}
+ }
+ 
+ #else
 -- 
-1.7.1
+1.6.0.4
