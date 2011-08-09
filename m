@@ -1,77 +1,96 @@
-From: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
-Subject: [RFC/PATCH 10/14] dt: Add pd_size to AUXDATA structure
-Date: Tue, 09 Aug 2011 19:10:28 +0500
-Message-ID: <1312897232-4792-11-git-send-email-manjugk@ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [RFC/PATCH 11/14] dt: omap3: add soc file for handling i2c controllers
+Date: Tue, 09 Aug 2011 19:10:29 +0500
+Message-ID: <1312897232-4792-12-git-send-email-manjugk@ti.com>
 References: <1312897232-4792-1-git-send-email-manjugk@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from [117.192.76.145] ([117.192.76.145]:2470 "EHLO manju-desktop"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751652Ab1HINyn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Aug 2011 09:54:43 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca
 
 
-Add pd_size in the AUXDATA structure so that device drivers which require
-platform_data size can pass along with AUXDATA.
+Add omap3 soc file for handling omap3 soc i2c controllers existing
+on l4-core bus.
 
-Signed-off-by: G, Manjunath Kondaiah <manjugk-l0cyMroinI0@public.gmane.org>
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
 ---
- drivers/of/platform.c       |    2 ++
- include/linux/of_platform.h |    5 +++++
- 2 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap3-soc.dtsi |   62 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 62 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-soc.dtsi
 
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index ebbbf42..4b27286 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -565,6 +565,7 @@ static int of_platform_bus_create(struct device_node *bus,
- 	struct platform_device *dev;
- 	const char *bus_id = NULL;
- 	void *platform_data = NULL;
-+	int pd_size;
- 	int id = -1;
- 	int rc = 0;
- 
-@@ -588,6 +589,7 @@ static int of_platform_bus_create(struct device_node *bus,
- 		bus_id = auxdata->name;
- 		id = auxdata->id;
- 		platform_data = auxdata->platform_data;
-+		pd_size = auxdata->pd_size;
- 	}
- 
- 	if (of_device_is_compatible(bus, "arm,primecell")) {
-diff --git a/include/linux/of_platform.h b/include/linux/of_platform.h
-index 252246c..a3be980 100644
---- a/include/linux/of_platform.h
-+++ b/include/linux/of_platform.h
-@@ -47,6 +47,7 @@ struct of_dev_auxdata {
- 	char *name;
- 	int id;
- 	void *platform_data;
-+	int pd_size;
- };
- 
- /* Macro to simplify populating a lookup table */
-@@ -58,6 +59,10 @@ struct of_dev_auxdata {
- 	{ .compatible = _compat, .phys_addr = _phys, .name = _name, \
- 	  .id = _id, .platform_data = _pdata }
- 
-+#define OF_DEV_AUXDATA_ID_PDSIZE(_compat,_phys,_name,_id,_pdata,_pd_size) \
-+	{ .compatible = _compat, .phys_addr = _phys, .name = _name, \
-+	  .id = _id, .platform_data = _pdata, .pd_size = _pd_size }
+diff --git a/arch/arm/boot/dts/omap3-soc.dtsi b/arch/arm/boot/dts/omap3-soc.dtsi
+new file mode 100644
+index 0000000..85de92f
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-soc.dtsi
+@@ -0,0 +1,62 @@
++/*
++ * Device Tree Source for OMAP3 SoC
++ *
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
 +
- /**
-  * of_platform_driver - Legacy of-aware driver for platform devices.
-  *
++/dts-v1/;
++/include/ "skeleton.dtsi"
++
++/ {
++	#address-cells = <1>;
++	#size-cells = <1>;
++	model = "ti,omap3";
++
++	aliases {
++		i2c1 = &i2c1;
++		i2c2 = &i2c2;
++		i2c3 = &i2c3;
++	};
++
++	l4-core {
++		compatible = "ti,omap3-l4-core";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x48000000 0x1000000>;
++
++		i2c1: i2c@70000 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			compatible = "ti,omap3-i2c";
++			reg = <0x70000 0x100>;
++			interrupts = < 88 >;
++		};
++
++		i2c2: i2c@72000 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			compatible = "ti,omap3-i2c";
++			reg = <0x72000 0x100>;
++			interrupts = < 89 >;
++		};
++
++		i2c3: i2c@60000 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			compatible = "ti,omap3-i2c";
++			reg = <0x60000 0x100>;
++			interrupts = < 93 >;
++		};
++	};
++
++	l4-per {
++		compatible = "ti,l4-per";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x49000000 0x100000>;
++	};
++};
 -- 
 1.7.1
+
