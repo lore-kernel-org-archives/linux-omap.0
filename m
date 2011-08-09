@@ -1,96 +1,62 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: How to handle named resources with DT?
-Date: Tue, 9 Aug 2011 15:49:05 -0600
-Message-ID: <20110809214905.GK11568@ponder.secretlab.ca>
-References: <4E40FC88.5090403@ti.com>
- <20110809162907.GA630@manju-WNB7PBC4801-0006>
- <4E4166F0.9050401@ti.com>
- <CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com>
- <4E4172A8.3030101@ti.com>
- <4E417BD5.8080409@freescale.com>
- <20110809205723.GE11568@ponder.secretlab.ca>
- <4E41A1B9.1060400@ti.com>
- <20110809211747.GJ11568@ponder.secretlab.ca>
- <4E41AA43.1000506@ti.com>
+Subject: Re: [PATCH 00/13] Clean up mach/gpio.h headers
+Date: Tue, 9 Aug 2011 15:50:22 -0600
+Message-ID: <20110809215022.GL11568@ponder.secretlab.ca>
+References: <20110809080411.GA1831@n2100.arm.linux.org.uk>
+ <20110809210055.GF11568@ponder.secretlab.ca>
+ <20110809213230.GC14281@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:57798 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752520Ab1HIVtJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Aug 2011 17:49:09 -0400
-Received: by gwaa12 with SMTP id a12so316191gwa.19
-        for <linux-omap@vger.kernel.org>; Tue, 09 Aug 2011 14:49:09 -0700 (PDT)
+Return-path: <linux-sh-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4E41AA43.1000506@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20110809213230.GC14281@n2100.arm.linux.org.uk>
+Sender: linux-sh-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Scott Wood <scottwood@freescale.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Aug 09, 2011 at 11:44:35PM +0200, Cousson, Benoit wrote:
-> On 8/9/2011 11:17 PM, Grant Likely wrote:
-> >On Tue, Aug 09, 2011 at 11:08:09PM +0200, Cousson, Benoit wrote:
-> >>On 8/9/2011 10:57 PM, Grant Likely wrote:
-> >>>On Tue, Aug 09, 2011 at 01:26:29PM -0500, Scott Wood wrote:
-> >>>>On 08/09/2011 12:47 PM, Cousson, Benoit wrote:
-> >>>>>On 8/9/2011 7:23 PM, Grant Likely wrote:
-> >>>>>>There is no analogous mechanism for _byname in the device tree.  The
-> >>>>>>DT binding for a device must explicitly state what order the register
-> >>>>>>ranges are in.  The driver will need to be adapted.
-> >>>>>
-> >>>>>That seems to be a small regression for my point of view. Relying on the
-> >>>>>order is not super safe. This is not very readable either. That's for
-> >>>>>that exact reason that we changed our drivers to use
-> >>>>>platform_get_resource_byname. That's probably the reason why that API is
-> >>>>>there as well.
-> >>>>>For the same IP, the number of entries can vary depending of the SoC
-> >>>>>revision.
-> >>>>>By using the _byname, we can check if the resource is there or not
-> >>>>>without having to care about the position.
-> >>>>
-> >>>>You could have a named u32 property that contains the reg index, e.g.:
-> >>>>
-> >>>>dev {
-> >>>>	reg =<0x20000 0x200 0x24000 0x200>;
-> >>>>	foo-reg =<0>;
-> >>>>	bar-reg =<1>;
-> >>>>};
-> >>>
-> >>>That's a little nasty.  A reg-names = "foo", "bar"; would probably be
-> >>>better.
-> >>
-> >>Yep, I agree.
-> >>
-> >>And what about something like that?
-> >>   reg =<0x20000 0x200>, "foo",
-> >>	<0x20000 0x200>, "bar" ;
-> >>
-> >>It is doable?
-> >
-> >Definitely not.  It would break all existing 'reg' parsing
-> >implementations quite badly.
+On Tue, Aug 09, 2011 at 10:32:30PM +0100, Russell King - ARM Linux wrote:
+> On Tue, Aug 09, 2011 at 03:00:55PM -0600, Grant Likely wrote:
+> > On Tue, Aug 09, 2011 at 09:04:12AM +0100, Russell King - ARM Linux wrote:
+> > > This is a preliminary posting of my gpio patch set.
+> > > 
+> > > This patch series moves the trivial gpiolib implementations out of
+> > > mach/gpio.h and into asm/gpio.h.
+> > > 
+> > > As a side effect of that, most of this patch series is about fixing up
+> > > direct includes of mach/gpio.h - this is something I've been on at
+> > > people over the last year or more about ensuring that they use
+> > > linux/gpio.h in preference.  While I've blindly converted all arch/arm
+> > > to use linux/gpio.h (with the exception of mach/ includes which are
+> > > converted to asm/gpio.h), drivers were only converted to asm/gpio.h.
+> > > These should be reviewed and changed to linux/gpio.h.
+> > > 
+> > > As a result of this patch series, several mach/gpio.h end up being
+> > > empty.
+> > > 
+> > > Many others just contain platform private GPIO APIs and definitions.
+> > > 
+> > > The last thing which mach/gpio.h is used for is to provide a definition
+> > > for ARCH_GPIO_NR to asm-generic/gpio.h.  I've not attempted to solve
+> > > that issue yet.
+> > > 
+> > > A small number of platforms optimize the gpio accessors for on-SoC
+> > > GPIOs.  In the interests of consolidation, these will have to be killed
+> > > but this patch set does not do that yet.
+> > > 
+> > > Lastly, several {mach,plat}/gpio.h needs to be looked at with a view to
+> > > deleting the direct include of asm-generic/gpio.h.
+> > 
+> > Looks good to me, though I haven't looked closely.  I imagine this
+> > should get merged via a branch in the arm-soc tree?
 > 
-> OK, so what about extending the reg attribute to be a reg node?
-> 
-> dev {
-> 	reg {
-> 		name = "foo_wrapper";
-> 		start = <0x10000>;
-> 		end = <0x200>;
-> 	}
-> 	reg {
-> 		name = "foo";
-> 		start = <0x20000>;
-> 		end = <0x200>;
-> 	}
-> }
-> 
-> A little bit more verbose, but at least we can add any attribute we want.
+> And this is where the existence of the arm-soc tree makes things more
+> difficult for me.  I'd normally just keep it as a separate branch in
+> my own tree.  What I do now, I've no idea.
 
-That won't work either because that also breaks the existing 'reg'
-binding.  Anything you do will need to supplement the existing
-binding without changing it in an incompatible way.
+A separate branch in your tree works too.  It could even get pulled
+into the arm-soc tree so that it gets picked up by the daily
+integration test before going on to linux-next.
 
 g.
 
