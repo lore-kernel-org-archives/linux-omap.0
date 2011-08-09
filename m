@@ -1,55 +1,45 @@
-From: "Pedanekar, Hemant" <hemantp@ti.com>
-Subject: RE: [PATCH 0/3] Add support for TI814X processor series
-Date: Tue, 9 Aug 2011 23:52:00 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03ABB099E0@dbde02.ent.ti.com>
-References: <1312479869-21948-1-git-send-email-hemantp@ti.com>
+From: Scott Wood <scottwood@freescale.com>
+Subject: Re: How to handle named resources with DT?
+Date: Tue, 9 Aug 2011 13:26:29 -0500
+Message-ID: <4E417BD5.8080409@freescale.com>
+References: <4E40FC88.5090403@ti.com>	<20110809162907.GA630@manju-WNB7PBC4801-0006>	<4E4166F0.9050401@ti.com>	<CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com> <4E4172A8.3030101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35273 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750780Ab1HISWM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Aug 2011 14:22:12 -0400
-In-Reply-To: <1312479869-21948-1-git-send-email-hemantp@ti.com>
-Content-Language: en-US
+Received: from va3ehsobe003.messaging.microsoft.com ([216.32.180.13]:38547
+	"EHLO VA3EHSOBE003.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750780Ab1HIS0m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Aug 2011 14:26:42 -0400
+In-Reply-To: <4E4172A8.3030101@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hello,
+On 08/09/2011 12:47 PM, Cousson, Benoit wrote:
+> On 8/9/2011 7:23 PM, Grant Likely wrote:
+>> There is no analogous mechanism for _byname in the device tree.  The
+>> DT binding for a device must explicitly state what order the register
+>> ranges are in.  The driver will need to be adapted.
+> 
+> That seems to be a small regression for my point of view. Relying on the
+> order is not super safe. This is not very readable either. That's for
+> that exact reason that we changed our drivers to use
+> platform_get_resource_byname. That's probably the reason why that API is
+> there as well.
+> For the same IP, the number of entries can vary depending of the SoC
+> revision.
+> By using the _byname, we can check if the resource is there or not
+> without having to care about the position.
 
-Pedanekar, Hemant wrote on Thursday, August 04, 2011 11:14 PM:
+You could have a named u32 property that contains the reg index, e.g.:
 
-> This patch set adds support for DM814x, C6A814x and AM387x
-> device series having
-> Cortex-A8 MPU.
-> 
-> The technical documents are available from following link:
-> 
-> http://focus.ti.com/docs/prod/folders/print/tms320dm8148.html
-> 
-> This series is referred in code as TI814X.
-> 
-> Since these devices share similar architecture as TI816X
-> devices, existing
-> TI816X code is updated to accomodate TI814X support. The code
-> shared across
-> TI816X and TI814X devices is updated with TI81XX/ti81xx
-> prefix as applicable,
-> while maintaining cpu_is_ti816x() and cpu_is_ti814x() to
-> distinguish specific
-> execution differences.
-> 
-> Hemant Pedanekar (3):
->   TI81XX: Prepare for addition of TI814X support
->   TI814X: Add cpu type macros and detection support
->   TI814X: Create board support and enable build for TI8148 EVM
-> 
-[...]
+dev {
+	reg = <0x20000 0x200 0x24000 0x200>;
+	foo-reg = <0>;
+	bar-reg = <1>;
+};
 
-Any comments on this patch set?
-Thanks.
+-Scott
 
-   Hemant
