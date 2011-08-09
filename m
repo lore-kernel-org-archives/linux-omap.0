@@ -1,97 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Re: Build failure: bisected: v3.1-rc1 with config ARCH_OMAP &&
- !ARCH_OMAP4 fails with linker error
-Date: Tue, 9 Aug 2011 06:39:54 -0700
-Message-ID: <20110809133954.GT1866@atomide.com>
-References: <1312819724.14483.29.camel@morsingpad>
- <alpine.DEB.2.00.1108081435340.4764@utopia.booyaka.com>
- <20110809131453.GR1866@atomide.com>
- <1789641.q69g0yHCiG@barack>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1789641.q69g0yHCiG@barack>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Daniel Morsing <daniel.morsing@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [RFC/PATCH 00/14] dt: omap hwmod-dt binding and omap3 i2c1 dt support
+Date: Tue, 09 Aug 2011 19:10:18 +0500
+Message-ID: <1312897232-4792-1-git-send-email-manjugk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from [117.192.76.145] ([117.192.76.145]:55758 "EHLO manju-desktop"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750695Ab1HINwn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Aug 2011 09:52:43 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca
 
-* P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.com> [110809 06:15]:
-> Hi Tony, Paul,
->=20
-> On Tuesday 09 August 2011 15:14:53 Tony Lindgren wrote:
-> > * Paul Walmsley <paul@pwsan.com> [110808 13:31]:
-> > > Hi
-> > >=20
-> > > On Mon, 8 Aug 2011, Daniel Morsing wrote:
-> > > > Building the v3.1-rc1 kernel with ARCH_OMAP && !ARCH_OMAP4 supp=
-ort
-> > > > fails on linking with the following error
-> > > >=20
-> > > > ...
-> > > >=20
-> > > >   LD      .tmp_vmlinux1
-> > > >=20
-> > > > arch/arm/mach-omap2/built-in.o:(.data+0xf7d8): undefined refere=
-nce
-> > > > to `omap4430_phy_init'
-> > > > arch/arm/mach-omap2/built-in.o:(.data+0xf7dc): undefined refere=
-nce
-> > > > to `omap4430_phy_exit'
-> > > > arch/arm/mach-omap2/built-in.o:(.data+0xf7e0): undefined refere=
-nce
-> > > > to `omap4430_phy_power'
-> > > > arch/arm/mach-omap2/built-in.o:(.data+0xf7e4): undefined refere=
-nce
-> > > > to `omap4430_phy_set_clk'
-> > > > arch/arm/mach-omap2/built-in.o:(.data+0xf7e8): undefined refere=
-nce
-> > > > to `omap4430_phy_suspend'
-> > > >=20
-> > > > I've bisected the first bad commit to "OMAP4: Move common twl60=
-30
-> > > > configuration to twl-common" (commit-id
-> > > > b22f954bae35be115a10c6426dc070f7d652b32e). The problem seems to=
- be
-> > > > unconditionally taking a function pointer to an omap4430 specif=
-ic
-> > > > function in arch/arm/mach-omap2/twl-common.c. The definition fo=
-r
-> > > > omap4430_phy_init and friends is in
-> > > > arch/arm/mach-omap2/omap_phy_internal.c, which is only compiled=
- when
-> > > > building with support for one of the omap4430 boards.
-> > >=20
-> > > Thanks for the bisect; this should be fixed by
-> > >=20
-> > > https://patchwork.kernel.org/patch/963462/
-> >=20
-> > Hmm, there are also these when CONFIG_ARCH_OMAP4 is not selected:
-> >=20
-> > arch/arm/mach-omap2/built-in.o: In function `_enable_module':
-> > arch/arm/mach-omap2/omap_hwmod.c:701: undefined reference to
-> > `omap4_cminst_module_enable' arch/arm/mach-omap2/built-in.o: In fun=
-ction
-> > `_disable_module':
-> > arch/arm/mach-omap2/omap_hwmod.c:726: undefined reference to
-> > `omap4_cminst_module_disable' arch/arm/mach-omap2/built-in.o: In fu=
-nction
-> > `_wait_target_disable': arch/arm/mach-omap2/omap_hwmod.c:1179: unde=
-fined
-> > reference to `omap4_cminst_wait_module_idle' distcc[27594] ERROR: c=
-ompile
-> > (null) on localhost failed
-> > make: *** [.tmp_vmlinux1] Error 1
-> >=20
-> > Care to take a look?
->=20
-> I just sent a patch fixing this:
-> http://marc.info/?l=3Dlinux-omap&m=3D131289342114258&w=3D2
 
-But that still won't fix the omap4_cminst_* errors, only the omap4430_p=
-hy_*
-errors AFAIK.
+This is in continuation of patch series posted at:
+http://lwn.net/Articles/451917/
 
-Tony=20
+Patches from Kevin Hilman and others are consolidated along with this
+series since it will be part of ongoing work of decoupling pdev from
+omap_device.
+[There is latest version posted which will be rebased later]
+
+Apart from the above, the major feature included in this series is
+dt-hwmod binding and preparing omap hwmod framework for adapting omap
+drivers to support omap dt after aligning with Grant Likely 
+<grant.likely@secretlab.ca>
+
+However, current hwmod-dt binding will be replaced with notifiers in
+generic board file and hwmod device pointer will be scanned and attached
+in notifier call.
+
+Used 3.0 stable kernel version for this patch series since latest mainline
+was broken for beagle boot last week.
+
+git://git.secretlab.ca/git/linux-2.6.git
+Branch: devicetree/test-3.0
+
+G, Manjunath Kondaiah (6):
+  dt: omap: prepare hwmod to support dt
+  dt: Add pd_size to AUXDATA structure
+  dt: omap3: add soc file for handling i2c controllers
+  dt: omap3: beagle board: set clock freq for i2c devices
+  dt: omap3: add generic board file for dt support
+  dt: omap3: enable dt support for i2c1 controller
+
+Kevin Hilman (7):
+  OMAP: omap_device: replace _find_by_pdev() with to_omap_device()
+  OMAP: omap_device: replace debug/warning/error prints with dev_*
+    macros
+  OMAP3: beagle: don't touch omap_device internals
+  OMAP: McBSP: use existing macros for converting between devices
+  OMAP: omap_device: remove internal functions from omap_device.h
+  OMAP: omap_device: when building return platform_device instead of
+    omap_device
+  ARM: platform_device: pdev_archdata: add omap_device pointer
+
+Tony Lindgren (1):
+  omap2+: Use Kconfig symbol in Makefile instead of obj-y
+
+ arch/arm/boot/dts/omap3-beagle-nunchuck.dts   |   11 +--
+ arch/arm/boot/dts/omap3-beagle.dts            |   18 +++-
+ arch/arm/boot/dts/omap3-soc.dtsi              |   62 ++++++++++
+ arch/arm/include/asm/device.h                 |    5 +
+ arch/arm/mach-omap2/Kconfig                   |   11 ++
+ arch/arm/mach-omap2/Makefile                  |   77 ++++++-------
+ arch/arm/mach-omap2/board-omap3-dt.c          |   93 +++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c       |   40 ++-----
+ arch/arm/mach-omap2/devices.c                 |   44 ++++----
+ arch/arm/mach-omap2/display.c                 |    6 +-
+ arch/arm/mach-omap2/dma.c                     |   16 ++--
+ arch/arm/mach-omap2/gpio.c                    |    8 +-
+ arch/arm/mach-omap2/hsmmc.c                   |    8 +-
+ arch/arm/mach-omap2/hwspinlock.c              |    8 +-
+ arch/arm/mach-omap2/mcbsp.c                   |    8 +-
+ arch/arm/mach-omap2/pm.c                      |    8 +-
+ arch/arm/mach-omap2/serial.c                  |   12 +-
+ arch/arm/plat-omap/i2c.c                      |    8 +-
+ arch/arm/plat-omap/include/plat/omap_device.h |   17 ++-
+ arch/arm/plat-omap/mcbsp.c                    |    6 +-
+ arch/arm/plat-omap/omap_device.c              |  150 ++++++++++++++++---------
+ drivers/i2c/busses/i2c-omap.c                 |   23 ++++-
+ drivers/of/platform.c                         |   41 +++++++
+ include/linux/of_platform.h                   |    5 +
+ 24 files changed, 469 insertions(+), 216 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-soc.dtsi
+ create mode 100644 arch/arm/mach-omap2/board-omap3-dt.c
+
