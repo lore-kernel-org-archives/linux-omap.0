@@ -1,68 +1,39 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: How to handle named resources with DT?
-Date: Tue, 9 Aug 2011 13:52:42 -0400
-Message-ID: <3AA3546C-161A-40C0-8D36-73337B528D24@ti.com>
-References: <4E40FC88.5090403@ti.com>
-	<20110809162907.GA630@manju-WNB7PBC4801-0006>
-	<4E4166F0.9050401@ti.com>
-	<CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com>
-	<4E4172A8.3030101@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4E4172A8.3030101@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G,
-	Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nayak, Rajendra" <rnayak@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: David Brown <davidb@codeaurora.org>
+Subject: Re: [PATCH 11/13] ARM: gpio: consolidate trivial gpiolib
+ implementations
+Date: Tue, 9 Aug 2011 10:59:53 -0700
+Message-ID: <20110809175953.GA22918@huya.qualcomm.com>
+References: <20110809080411.GA1831@n2100.arm.linux.org.uk>
+ <E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:6118 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754410Ab1HIR7z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Aug 2011 13:59:55 -0400
+Content-Disposition: inline
+In-Reply-To: <E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>
 
-On Aug 9, 2011, at 1:47 PM, Cousson, Benoit wrote:
-
-> On 8/9/2011 7:23 PM, Grant Likely wrote:
->> On Tue, Aug 9, 2011 at 10:57 AM, Cousson, Benoit<b-cousson@ti.com>  wrote:
->>> Hi Manju,
->>> 
->>> On 8/9/2011 6:29 PM, G, Manjunath Kondaiah wrote:
->>>> 
->>>> Hi Benoit,
->>>> 
->>>> On Tue, Aug 09, 2011 at 11:23:20AM +0200, Cousson, Benoit wrote:
->>>>> 
->>>>> Hi Grant,
->>>>> 
->>>>> Trying to bind hwmod informations with DT, I'm facing a little
->>>>> limitation.
->>>>> A bunch of drivers are using the platform_get_resource_byname, so
->>>>> the name for the resource is needed.
->>>>> 
->>>>> The name is used so far for IORESOURCE_MEM, IORESOURCE_IRQ and
->>>>> IORESOURCE_DMA types of resources.
->>>> 
->>>> IORESOURCE_MEM and IORESOURCE_IRQ's are fetched from dt blob and
->>>> it will be part of pdev.
->>> 
->>> Yes, but without the proper name in the resource structure. It will be then
->>> impossible to use the platform_get_resource_byname function that is
->>> currently used by a bunch of drivers.
->> 
->> There is no analogous mechanism for _byname in the device tree.  The
->> DT binding for a device must explicitly state what order the register
->> ranges are in.  The driver will need to be adapted.
+On Tue, Aug 09, 2011 at 09:08:01AM +0100, Russell King - ARM Linux wrote:
+> Consolidate 24 trivial gpiolib implementions out of mach/gpio.h
+> into asm/gpio.h.  This is basically the include of asm-generic/gpio.h
+> and the definition of gpio_get_value, gpio_set_value, and gpio_cansleep
+> as described in Documentation/gpio.txt
 > 
-> That seems to be a small regression for my point of view. Relying on the order is not super safe. This is not very readable either. That's for that exact reason that we changed our drivers to use platform_get_resource_byname. That's probably the reason why that API is there as well.
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  arch/arm/mach-msm/include/mach/gpio.h       |    5 +----
 
-That's exactly what the reasoning was for adding it.
+For msm (msm8660):
 
-http://linux.derkeiler.com/Mailing-Lists/Kernel/2004-12/1944.html
+Tested-by: David Brown <davidb@codeaurora.org>
+Acked-by: David Brown <davidb@codeaurora.org>
 
--Matt
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
