@@ -1,41 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: when to submit new board support
-Date: Wed, 10 Aug 2011 03:33:36 -0700
-Message-ID: <20110810103336.GE1939@atomide.com>
-References: <4E425B4A.3050808@matrix-vision.de>
+From: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Subject: Re: [PATCH 0/2] AM3517: Booting up
+Date: Tue, 09 Aug 2011 14:50:40 +0200
+Message-ID: <4E412D20.40500@visionsystems.de>
+References: <1312473547-1147-1-git-send-email-abhilash.kv@ti.com>
+Reply-To: yegor_sub1@visionsystems.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:22467 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751811Ab1HJKdj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 06:33:39 -0400
-Content-Disposition: inline
-In-Reply-To: <4E425B4A.3050808@matrix-vision.de>
+Received: from ns.visionsystems.de ([62.145.30.242]:42458 "EHLO
+	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751811Ab1HJKgH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 06:36:07 -0400
+In-Reply-To: <1312473547-1147-1-git-send-email-abhilash.kv@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: linux-omap@vger.kernel.org
+To: Abhilash K V <abhilash.kv@ti.com>
+Cc: linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-* Michael Jones <michael.jones@matrix-vision.de> [110810 03:14]:
-> I would like to submit some patches to add support for a new OMAP board...
-> 
-> Is there a right or wrong time to post such patches to this list? How
-> does the kernel merge window effect what kind of patches are expected
-> here on the OMAP list?
+Am 04.08.2011 17:59, schrieb Abhilash K V:
+> This patch-set gets the kernel booting up on a AM3517 EVM.
+> The board is able to boot with ramdisk after this,but the MMC and Ethernet
+> drivers are not up yet. Lots of warnings remain which will be addressed in
+> subsequent patches.
 
-Well this is the right time, however we're moving things to device tree
-and coalescing code. So you may need to be prepared to update the patches
-a few times before we get them to mainline.
- 
-> What should I use as the base for my patches? At
-> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git,
-> at the moment 'master' hasn't been updated for 4 weeks. Should I base it
-> on v3.1-rc1 instead (as an example, since I won't manage to submit it
-> while v3.1-rc1 is the most recent tag)?
+Are there some more patches for testing? USB OTG in host mode seems to find my cardreader and USB memory stick, but no sdx devices were allocated. 
 
-Yes v3.1-rc1 should be used as the base. I've been on vacation and
-have not updated the omap tree for a while, will updated it soonish,
-but will be just v3.1-rc1 + bug fixes.
-
-Tony
+Yegor
