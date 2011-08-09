@@ -1,68 +1,111 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+From: Grant Likely <grant.likely@secretlab.ca>
 Subject: Re: How to handle named resources with DT?
-Date: Tue, 9 Aug 2011 23:08:09 +0200
-Message-ID: <4E41A1B9.1060400@ti.com>
+Date: Tue, 9 Aug 2011 15:16:57 -0600
+Message-ID: <20110809211657.GI11568@ponder.secretlab.ca>
 References: <4E40FC88.5090403@ti.com>
-	<20110809162907.GA630@manju-WNB7PBC4801-0006>
-	<4E4166F0.9050401@ti.com>
-	<CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com>
-	<4E4172A8.3030101@ti.com> <4E417BD5.8080409@freescale.com>
-	<20110809205723.GE11568@ponder.secretlab.ca>
+ <20110809162907.GA630@manju-WNB7PBC4801-0006>
+ <4E4166F0.9050401@ti.com>
+ <CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com>
+ <4E4172A8.3030101@ti.com>
+ <20110809205542.GD11568@ponder.secretlab.ca>
+ <4E41A156.3030407@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20110809205723.GE11568-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "G,
-	Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:48830 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751314Ab1HIVRB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Aug 2011 17:17:01 -0400
+Received: by gya6 with SMTP id 6so293920gya.19
+        for <linux-omap@vger.kernel.org>; Tue, 09 Aug 2011 14:17:00 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4E41A156.3030407@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nayak, Rajendra" <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 8/9/2011 10:57 PM, Grant Likely wrote:
-> On Tue, Aug 09, 2011 at 01:26:29PM -0500, Scott Wood wrote:
->> On 08/09/2011 12:47 PM, Cousson, Benoit wrote:
->>> On 8/9/2011 7:23 PM, Grant Likely wrote:
->>>> There is no analogous mechanism for _byname in the device tree.  The
->>>> DT binding for a device must explicitly state what order the register
->>>> ranges are in.  The driver will need to be adapted.
->>>
->>> That seems to be a small regression for my point of view. Relying on the
->>> order is not super safe. This is not very readable either. That's for
->>> that exact reason that we changed our drivers to use
->>> platform_get_resource_byname. That's probably the reason why that API is
->>> there as well.
->>> For the same IP, the number of entries can vary depending of the SoC
->>> revision.
->>> By using the _byname, we can check if the resource is there or not
->>> without having to care about the position.
->>
->> You could have a named u32 property that contains the reg index, e.g.:
->>
->> dev {
->> 	reg =<0x20000 0x200 0x24000 0x200>;
->> 	foo-reg =<0>;
->> 	bar-reg =<1>;
->> };
->
-> That's a little nasty.  A reg-names = "foo", "bar"; would probably be
-> better.
+On Tue, Aug 09, 2011 at 11:06:30PM +0200, Cousson, Benoit wrote:
+> On 8/9/2011 10:55 PM, Grant Likely wrote:
+> >On Tue, Aug 09, 2011 at 07:47:20PM +0200, Cousson, Benoit wrote:
+> >>On 8/9/2011 7:23 PM, Grant Likely wrote:
+> >>>On Tue, Aug 9, 2011 at 10:57 AM, Cousson, Benoit<b-cousson@ti.com>   wrote:
+> >>>>Hi Manju,
+> >>>>
+> >>>>On 8/9/2011 6:29 PM, G, Manjunath Kondaiah wrote:
+> >>>>>
+> >>>>>Hi Benoit,
+> >>>>>
+> >>>>>On Tue, Aug 09, 2011 at 11:23:20AM +0200, Cousson, Benoit wrote:
+> >>>>>>
+> >>>>>>Hi Grant,
+> >>>>>>
+> >>>>>>Trying to bind hwmod informations with DT, I'm facing a little
+> >>>>>>limitation.
+> >>>>>>A bunch of drivers are using the platform_get_resource_byname, so
+> >>>>>>the name for the resource is needed.
+> >>>>>>
+> >>>>>>The name is used so far for IORESOURCE_MEM, IORESOURCE_IRQ and
+> >>>>>>IORESOURCE_DMA types of resources.
+> >>>>>
+> >>>>>IORESOURCE_MEM and IORESOURCE_IRQ's are fetched from dt blob and
+> >>>>>it will be part of pdev.
+> >>>>
+> >>>>Yes, but without the proper name in the resource structure. It will be then
+> >>>>impossible to use the platform_get_resource_byname function that is
+> >>>>currently used by a bunch of drivers.
+> >>>
+> >>>There is no analogous mechanism for _byname in the device tree.  The
+> >>>DT binding for a device must explicitly state what order the register
+> >>>ranges are in.  The driver will need to be adapted.
+> >>
+> >>That seems to be a small regression for my point of view. Relying on
+> >>the order is not super safe. This is not very readable either.
+> >>That's for that exact reason that we changed our drivers to use
+> >>platform_get_resource_byname. That's probably the reason why that
+> >>API is there as well.
+> >>For the same IP, the number of entries can vary depending of the SoC
+> >>revision.
+> >>By using the _byname, we can check if the resource is there or not
+> >>without having to care about the position.
+> >
+> >We've done it that way for a very long time with the device tree.  If
+> >you want to do something by name, then propose a binding that will
+> >make it work alongside the existing scheme.
+> >
+> >>
+> >>>>>For IORESOURCE_DMA, you can have property
+> >>>>>"dma-channel" in dtsi file and fetch dma-channel in driver probe
+> >>>>>through "of_property_read_u32()" api.
+> >>>>
+> >>>>That will not be enough to get the name. So maybe something like:
+> >>>>        dmas =<12>, "rx_req",<13>, "tx_req";
+> >>>>will be doable.
+> >>>>The issue is that the name is optional so managing the multiple entries
+> >>>>might be tricky.
+> >>>
+> >>>DMA channels will never show up in the resource structure anyway.
+> >>
+> >>Can you elaborate on that point? AFAIK, IORESOURCE_DMA is already
+> >>used today.
+> >
+> >IORESOURCE_DMA is a Linux construct, as is IORESOURCE_IRQ and
+> >IORESOURCE_MEM.  However, IRQ and MEM can be directly mapped from the
+> >common 'reg' and 'interrupts' bindings used by pretty much all device
+> >tree nodes.  Therefore common code can be written to translate MEM and
+> >IRQ that will always work.  There is no such common binding in place
+> >for DMA regions, so common setup code cannot do it transparently for
+> >the device driver.
+> 
+> OK, sure, I get your point now. I was thinking about a "potential"
+> dma support from the core DT, since this is very similar to IRQ.
+> 
+> Otherwise, we can do it OMAP specific if nobody else care about
+> that. But I still think it should be useful for other platforms.
 
-Yep, I agree.
+I think people care, and it will be a net win, but it does mean you
+need do the work of crafting a binding that will work for a large
+proportion of SoCs.
 
-And what about something like that?
-   reg = <0x20000 0x200>, "foo",
-	<0x20000 0x200>, "bar" ;
+g.
 
-It is doable?
-
-Regards,
-Benoit
