@@ -1,70 +1,111 @@
-From: H Hartley Sweeten <hartleys@visionengravers.com>
-Subject: RE: [PATCH 13/13] ARM: gpio: make trivial GPIOLIB implementation
- the	default
-Date: Tue, 9 Aug 2011 12:04:30 -0500
-Message-ID: <ADE657CA350FB648AAC2C43247A983F001F388389379__16011.1344223425$1312909485$gmane$org@AUSP01VMBX24.collaborationhost.net>
-References: <20110809080411.GA1831@n2100.arm.linux.org.uk>
- <E1QqhMg-0003an-GW@rmk-PC.arm.linux.org.uk>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: How to handle named resources with DT?
+Date: Tue, 9 Aug 2011 11:23:45 -0600
+Message-ID: <CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com>
+References: <4E40FC88.5090403@ti.com> <20110809162907.GA630@manju-WNB7PBC4801-0006>
+ <4E4166F0.9050401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail160.messagelabs.com ([216.82.253.99]:15966 "EHLO
-	mail160.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754011Ab1HIREf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Aug 2011 13:04:35 -0400
-In-Reply-To: <E1QqhMg-0003an-GW@rmk-PC.arm.linux.org.uk>
-Content-Language: en-US
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:35544 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753181Ab1HIRYH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Aug 2011 13:24:07 -0400
+Received: by vws1 with SMTP id 1so179933vws.19
+        for <linux-omap@vger.kernel.org>; Tue, 09 Aug 2011 10:24:06 -0700 (PDT)
+In-Reply-To: <4E4166F0.9050401@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nayak, Rajendra" <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tuesday, August 09, 2011 1:09 AM, Russell King wrote:
+On Tue, Aug 9, 2011 at 10:57 AM, Cousson, Benoit <b-cousson@ti.com> wro=
+te:
+> Hi Manju,
 >
-> Rather than marking the mach/gpio.h header files which want to use the
-> trivial GPIOLIB implementation, mark those which do not want to use it
-> instead.  This means that by default, you get the trivial implementation
-> and only have to do something extra if you need to.  This should
-> encourage the use of the trivial default implementation.
-> 
-> As an additional bonus, several gpio.h header files become empty.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  arch/arm/include/asm/gpio.h                 |    2 +-
->  arch/arm/include/asm/hardware/iop3xx-gpio.h |    2 ++
-> 
-> diff --git a/arch/arm/include/asm/gpio.h b/arch/arm/include/asm/gpio.h
-> index 5032224..11ad0bf 100644
-> --- a/arch/arm/include/asm/gpio.h
-> +++ b/arch/arm/include/asm/gpio.h
-> @@ -4,7 +4,7 @@
->  /* not all ARM platforms necessarily support this API ... */
->  #include <mach/gpio.h>
->  
-> -#ifdef __ARM_GPIOLIB_TRIVIAL
-> +#ifndef __ARM_GPIOLIB_COMPLEX
->  /* Note: this may rely upon the value of ARCH_NR_GPIOS set in mach/gpio.h */
->  #include <asm-generic/gpio.h>
->  
-> diff --git a/arch/arm/mach-ep93xx/include/mach/gpio.h b/arch/arm/mach-ep93xx/include/mach/gpio.h
-> index fbc770e..071f676 100644
-> --- a/arch/arm/mach-ep93xx/include/mach/gpio.h
-> +++ b/arch/arm/mach-ep93xx/include/mach/gpio.h
-> @@ -99,9 +99,6 @@
->  /* maximum value for irq capable line identifiers */
->  #define EP93XX_GPIO_LINE_MAX_IRQ	EP93XX_GPIO_LINE_F(7)
->  
-> -/* new generic GPIO API - see Documentation/gpio.txt */
-> -#define __ARM_GPIOLIB_TRIVIAL
-> -
->  /*
->   * Map GPIO A0..A7  (0..7)  to irq 64..71,
->   *          B0..B7  (7..15) to irq 72..79, and
+> On 8/9/2011 6:29 PM, G, Manjunath Kondaiah wrote:
+>>
+>> Hi Benoit,
+>>
+>> On Tue, Aug 09, 2011 at 11:23:20AM +0200, Cousson, Benoit wrote:
+>>>
+>>> Hi Grant,
+>>>
+>>> Trying to bind hwmod informations with DT, I'm facing a little
+>>> limitation.
+>>> A bunch of drivers are using the platform_get_resource_byname, so
+>>> the name for the resource is needed.
+>>>
+>>> The name is used so far for IORESOURCE_MEM, IORESOURCE_IRQ and
+>>> IORESOURCE_DMA types of resources.
+>>
+>> IORESOURCE_MEM and IORESOURCE_IRQ's are fetched from dt blob and
+>> it will be part of pdev.
+>
+> Yes, but without the proper name in the resource structure. It will b=
+e then
+> impossible to use the platform_get_resource_byname function that is
+> currently used by a bunch of drivers.
 
-For ep93xx:
+There is no analogous mechanism for _byname in the device tree.  The
+DT binding for a device must explicitly state what order the register
+ranges are in.  The driver will need to be adapted.
 
-Acked-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+>
+>> For IORESOURCE_DMA, you can have property
+>> "dma-channel" in dtsi file and fetch dma-channel in driver probe
+>> through "of_property_read_u32()" api.
+>
+> That will not be enough to get the name. So maybe something like:
+> =A0 =A0 =A0 =A0dmas =3D <12>, "rx_req", <13>, "tx_req";
+> will be doable.
+> The issue is that the name is optional so managing the multiple entri=
+es
+> might be tricky.
 
-Thanks!
+DMA channels will never show up in the resource structure anyway.  The
+common code only takes care of translating IRQ and register ranges.
+=46or DMA you'll need a binding for the dma channels.  You can either
+make them explicitly ordered, or use different property names for each
+of the dma channels.
+
+>
+> BTW, it's strange that a default support does not exist for dma reque=
+st (and
+> not channel).
+> The mechanism is similar to irq line, and quite standard to many SoC =
+AFAIK.
+> Or maybe I missed it.
+
+DMA channels haven't historically had the same global scope that irq
+numbers have.  There hasn't been a pressing need up to now to have
+common infrastructure, though it is probably a good idea to define a
+common binding.
+
+>> BTW, this is not required for omap since dt-hwmod binding will fetch
+>> pdev pointer from hwmod database and it will be used "as is" without
+>> any modification which inturn does not break any existing pm
+>> functionality.
+>
+> Well for the moment... but I have some long term plan as well:-)
+>
+> Thanks,
+> Benoit
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
+
+
+
+--=20
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
