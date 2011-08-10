@@ -1,110 +1,73 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: tidspbridge issue with omap_dm_timer_free
-Date: Wed, 10 Aug 2011 21:42:10 +0300
-Message-ID: <CAMP44s17O-g83Fte05=AmqBP24jqgLxiBHmO6+3fbtJjWV8Ufw@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: How to handle named resources with DT?
+Date: Wed, 10 Aug 2011 13:22:16 -0600
+Message-ID: <CACxGe6tr5OUxpiVah4s6rRG0cTOWsnohhEkZoSZgCj0xSZkmMA@mail.gmail.com>
+References: <4E4166F0.9050401@ti.com> <CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com>
+ <4E4172A8.3030101@ti.com> <4E417BD5.8080409@freescale.com>
+ <20110809205723.GE11568@ponder.secretlab.ca> <4E41A1B9.1060400@ti.com>
+ <20110809211747.GJ11568@ponder.secretlab.ca> <4E41AA43.1000506@ti.com>
+ <20110809214905.GK11568@ponder.secretlab.ca> <4E41AC5C.20301@ti.com> <20110810015214.GD23511@yookeroo.fritz.box>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:59702 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754543Ab1HJSmL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 14:42:11 -0400
-Received: by bke11 with SMTP id 11so474038bke.19
-        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 11:42:10 -0700 (PDT)
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:64228 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754790Ab1HJTWg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 15:22:36 -0400
+Received: by vxi9 with SMTP id 9so1089955vxi.19
+        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 12:22:36 -0700 (PDT)
+In-Reply-To: <20110810015214.GD23511@yookeroo.fritz.box>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
+To: David Gibson <david@gibson.dropbear.id.au>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+On Tue, Aug 9, 2011 at 7:52 PM, David Gibson
+<david@gibson.dropbear.id.au> wrote:
+> On Tue, Aug 09, 2011 at 11:53:32PM +0200, Cousson, Benoit wrote:
+>> On 8/9/2011 11:49 PM, Grant Likely wrote:
+>> >That won't work either because that also breaks the existing 'reg'
+>> >binding. =A0Anything you do will need to supplement the existing
+>> >binding without changing it in an incompatible way.
+>>
+>> OK, but can we add a new attribute then? reg2, reg_ng, reg_plusplus,
+>> reg_named...?
+>
+> He already suggested reg-names to be interpreted in parallel with the
+> existing reg property. =A0The (serious) problem with replacing the re=
+g
+> property is that it will break all existing OSes (including old Linux
+> versions) that don't understand the new property.
+>
+> Of course, the problem with reg-names is that it will be ignored by
+> older OSes, and so 'reg' must still be in the correct order. =A0In wh=
+ich
+> case you could argue it's more sensible to just have a static place t=
+o
+> name mapping in the Linux driver.
+>
+> In short, yes, named reg elements in the DT would be nice in theory,
+> but I'm not convinced it's worth a DT flag day to accomplish it.
 
-I am trying to use a more recent version of the tidspbridge code in
-the Nokia N9, but I'm stuck with this warning that is caused by using
-the dm timer framework.
+I'm inclined the same way, though I agree with the replies that point
+out it wouldn't result in a 'flag day' because existing bindings
+cannot become incompatible.  The problem I have is that adding
+reg-names or similar implies that ordering of the reg property is no
+longer defined which I absolutely do not think is a good idea.
 
-[   30.883636] BUG: sleeping function called from invalid context at
-kernel/mutex.c:287
-[   30.885925] in_atomic(): 1, irqs_disabled(): 0, pid: 305, name: mboxd/0
-[   30.892517] 3 locks held by mboxd/0/305:
-[   30.896392]  #0:  (mboxd){+.+...}, at: [<b0081778>] worker_thread+0x154/0x2bc
-[   30.903533]  #1:  (&mq->work){+.+...}, at: [<b0081778>]
-worker_thread+0x154/0x2bc
-[   30.911041]  #2:  (pwr_lock){+.....}, at: [<af12f870>]
-handle_hibernation_from_dsp+0x1c/0x158 [bridgedriver]
-[   30.920959] [<b003f75c>] (unwind_backtrace+0x0/0xd4) from
-[<b03a3ac4>] (mutex_lock_nested+0x30/0x32c)
-[   30.930175] [<b03a3ac4>] (mutex_lock_nested+0x30/0x32c) from
-[<b00568f8>] (clk_set_parent+0x34/0xf8)
-[   30.939361] [<b00568f8>] (clk_set_parent+0x34/0xf8) from
-[<b005e2e0>] (omap_dm_timer_set_source+0x34/0x58)
-[   30.949035] [<b005e2e0>] (omap_dm_timer_set_source+0x34/0x58) from
-[<b005e424>] (omap_dm_timer_reset+0x78/0xd0)
-[   30.959136] [<b005e424>] (omap_dm_timer_reset+0x78/0xd0) from
-[<b005e490>] (omap_dm_timer_free+0x14/0x48)
-[   30.968780] [<b005e490>] (omap_dm_timer_free+0x14/0x48) from
-[<af1309d4>] (dsp_clk_disable+0x98/0x15c [bridgedriver])
-[   30.979492] [<af1309d4>] (dsp_clk_disable+0x98/0x15c
-[bridgedriver]) from [<af130abc>] (dsp_clock_disable_all+0x24/0x34
-[bridgedriver])
-[   30.991668] [<af130abc>] (dsp_clock_disable_all+0x24/0x34
-[bridgedriver]) from [<af12f914>]
-(handle_hibernation_from_dsp+0xc0/0x158 [bridgedriver])
-[   31.004913] [<af12f914>] (handle_hibernation_from_dsp+0xc0/0x158
-[bridgedriver]) from [<af12c2bc>] (io_mbox_msg+0x8c/0x100
-[bridgedriver])
-[   31.017364] [<af12c2bc>] (io_mbox_msg+0x8c/0x100 [bridgedriver])
-from [<af07043c>] (mbox_rx_work+0x3c/0xa0 [mailbox])
-[   31.027954] [<af07043c>] (mbox_rx_work+0x3c/0xa0 [mailbox]) from
-[<b00817e4>] (worker_thread+0x1c0/0x2bc)
-[   31.037536] [<b00817e4>] (worker_thread+0x1c0/0x2bc) from
-[<b008513c>] (kthread+0x7c/0x84)
-[   31.045806] [<b008513c>] (kthread+0x7c/0x84) from [<b003b9d4>]
-(kernel_thread_exit+0x0/0x8)
-[   31.054290] ------------[ cut here ]------------
-[   31.058837] WARNING: at kernel/mutex.c:214 mutex_lock_nested+0xb0/0x32c()
-[   31.065643] Modules linked in: ramzswap dm_crypt omaplfb
-bridgedriver(C) dm_mod omap_aes mtdswap g_file_storage cmt_speech
-ssi_protocol hsi_char phonet pvrsrvkm omap_ssi mailbox_mach mailbox
-lis3lv02d_i2c radio_wl1273 ak8974 lis3lv02d bcm4751_gps leds_lp5523
-bhsfh rtc_twl4030 twl5031_aci twl4030_keypad twl4030_pwrbutton
-hid_twl4030_vibra hci_h4p cmt
-[   31.096649] [<b003f75c>] (unwind_backtrace+0x0/0xd4) from
-[<b00709d4>] (warn_slowpath_common+0x48/0x60)
-[   31.106079] [<b00709d4>] (warn_slowpath_common+0x48/0x60) from
-[<b03a3b44>] (mutex_lock_nested+0xb0/0x32c)
-[   31.115753] [<b03a3b44>] (mutex_lock_nested+0xb0/0x32c) from
-[<b00568f8>] (clk_set_parent+0x34/0xf8)
-[   31.124908] [<b00568f8>] (clk_set_parent+0x34/0xf8) from
-[<b005e2e0>] (omap_dm_timer_set_source+0x34/0x58)
-[   31.134613] [<b005e2e0>] (omap_dm_timer_set_source+0x34/0x58) from
-[<b005e424>] (omap_dm_timer_reset+0x78/0xd0)
-[   31.144714] [<b005e424>] (omap_dm_timer_reset+0x78/0xd0) from
-[<b005e490>] (omap_dm_timer_free+0x14/0x48)
-[   31.154357] [<b005e490>] (omap_dm_timer_free+0x14/0x48) from
-[<af1309d4>] (dsp_clk_disable+0x98/0x15c [bridgedriver])
-[   31.165039] [<af1309d4>] (dsp_clk_disable+0x98/0x15c
-[bridgedriver]) from [<af130abc>] (dsp_clock_disable_all+0x24/0x34
-[bridgedriver])
-[   31.177215] [<af130abc>] (dsp_clock_disable_all+0x24/0x34
-[bridgedriver]) from [<af12f914>]
-(handle_hibernation_from_dsp+0xc0/0x158 [bridgedriver])
-[   31.190490] [<af12f914>] (handle_hibernation_from_dsp+0xc0/0x158
-[bridgedriver]) from [<af12c2bc>] (io_mbox_msg+0x8c/0x100
-[bridgedriver])
-[   31.202911] [<af12c2bc>] (io_mbox_msg+0x8c/0x100 [bridgedriver])
-from [<af07043c>] (mbox_rx_work+0x3c/0xa0 [mailbox])
-[   31.213531] [<af07043c>] (mbox_rx_work+0x3c/0xa0 [mailbox]) from
-[<b00817e4>] (worker_thread+0x1c0/0x2bc)
-[   31.223114] [<b00817e4>] (worker_thread+0x1c0/0x2bc) from
-[<b008513c>] (kthread+0x7c/0x84)
-[   31.231414] [<b008513c>] (kthread+0x7c/0x84) from [<b003b9d4>]
-(kernel_thread_exit+0x0/0x8)
-[   31.239746] ---[ end trace e14f2f8770932c43 ]---
+Please, stick with the established convention and explicitly order
+'reg' and 'interrupts' properties.  If there is a specific use case
+where this doesn't work, then bring it up, but I haven't seen any yet.
+ The current users of _byname that I've looked seem to only use it for
+convenience, not because a register range may be optional.  ie. they
+all fail out if a reg resource isn't present.
 
->From what I can see this could be triggered in upstream by enabling PM
-and debug mutex stuff right after loading the baseimage.
+So, the original answer stands, don't use _byname for DT bindings.
 
-Any ideas?
-
--- 
-Felipe Contreras
+g.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
