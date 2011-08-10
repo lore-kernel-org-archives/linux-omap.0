@@ -1,92 +1,110 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC/PATCH 11/14] dt: omap3: add soc file for handling i2c controllers
-Date: Wed, 10 Aug 2011 14:36:50 +0200
-Message-ID: <4E427B62.1000907@ti.com>
-References: <1312897232-4792-1-git-send-email-manjugk@ti.com> <1312897232-4792-12-git-send-email-manjugk@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC PATCH 5/6] OMAP4460: Temperature sensor data
+Date: Wed, 10 Aug 2011 15:37:59 +0300
+Message-ID: <20110810123758.GH12882@legolas.emea.dhcp.ti.com>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
+ <1312979122-5896-6-git-send-email-j-keerthy@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="E69HUUNAyIJqGpVn"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38469 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753224Ab1HJMhB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Aug 2011 08:37:01 -0400
-In-Reply-To: <1312897232-4792-12-git-send-email-manjugk@ti.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:54751 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753224Ab1HJMiF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Aug 2011 08:38:05 -0400
+Received: by fxbb27 with SMTP id b27so1075297fxb.32
+        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 05:38:01 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1312979122-5896-6-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
+To: Keerthy <j-keerthy@ti.com>
+Cc: lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, rnayak@ti.com
 
-On 8/9/2011 4:10 PM, G, Manjunath Kondaiah wrote:
->
-> Add omap3 soc file for handling omap3 soc i2c controllers existing
-> on l4-core bus.
->
-> Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
+
+--E69HUUNAyIJqGpVn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Wed, Aug 10, 2011 at 05:55:21PM +0530, Keerthy wrote:
+> The register set and the
+> bit fields might vary across OMAP versions. Hence
+> creating a structure comprising of all the registers
+> and bit fields to make the driver uniform for all the
+> versions with different register sets. The data file
+> contains the structure populated with register offsets
+> and bit fields corresponding to OMAP4460 on die sensor.
+>=20
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
->   arch/arm/boot/dts/omap3-soc.dtsi |   62 ++++++++++++++++++++++++++++++++++++++
->   1 files changed, 62 insertions(+), 0 deletions(-)
->   create mode 100644 arch/arm/boot/dts/omap3-soc.dtsi
->
-> diff --git a/arch/arm/boot/dts/omap3-soc.dtsi b/arch/arm/boot/dts/omap3-soc.dtsi
+>  arch/arm/mach-omap2/temp_sensor4460_data.c |   63 ++++++++++++++++++++++=
+++++++
+>  1 files changed, 63 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/temp_sensor4460_data.c
+>=20
+> diff --git a/arch/arm/mach-omap2/temp_sensor4460_data.c b/arch/arm/mach-o=
+map2/temp_sensor4460_data.c
 > new file mode 100644
-> index 0000000..85de92f
+> index 0000000..294963d
 > --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-soc.dtsi
-> @@ -0,0 +1,62 @@
+> +++ b/arch/arm/mach-omap2/temp_sensor4460_data.c
+> @@ -0,0 +1,63 @@
 > +/*
-> + * Device Tree Source for OMAP3 SoC
+> + * OMAP4460 on die Temperature sensor data file
 > + *
 > + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+> + * Author: J Keerthy <j-keerthy@ti.com>
 > + *
-> + * This file is licensed under the terms of the GNU General Public License
-> + * version 2.  This program is licensed "as is" without any warranty of any
-> + * kind, whether express or implied.
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + *
 > + */
 > +
-> +/dts-v1/;
-> +/include/ "skeleton.dtsi"
+> +#include <linux/slab.h>
+> +#include "control.h"
+> +#include <plat/temperature_sensor.h>
 > +
-> +/ {
-> +	#address-cells =<1>;
-> +	#size-cells =<1>;
-> +	model = "ti,omap3";
-> +
-> +	aliases {
-> +		i2c1 =&i2c1;
-> +		i2c2 =&i2c2;
-> +		i2c3 =&i2c3;
-> +	};
-> +
-> +	l4-core {
+> +/*
+> + * OMAP4460 has one instance of thermal sensor for MPU
+> + * need to describe the individual bit fields
+> + */
+> +struct omap_temp_sensor_registers omap_mpu_temp_sensor_registers =3D {
 
-That comment is probably subject to discussion, but even if this 
-interconnect is there physically, I'm not sure of the added value to add it.
-It will add an extra level of indentation and that all. Moreover, it 
-will mess up the physical address that are expressed using absolute 
-value in the TRM with a less readable offset value.
-In fact, most DTS files in the ARM directory are using a purely flat 
-representation of the interconnect.
+this is used on previous patch, so you have a compilation error.
 
-> +		compatible = "ti,omap3-l4-core";
+--=20
+balbi
 
-Assuming we will keep that, you should probably add a more generic 
-compatible name after that one. Like "ti,s3220" or even "sonics,s3220", 
-assuming that this IP is generic enough for other SoC.
+--E69HUUNAyIJqGpVn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +		#address-cells =<1>;
-> +		#size-cells =<1>;
-> +		ranges =<0 0x48000000 0x1000000>;
-> +
-> +		i2c1: i2c@70000 {
-> +			#address-cells =<1>;
-> +			#size-cells =<0>;
-> +			compatible = "ti,omap3-i2c";
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-The I2C IP and thus the driver is generic across OMAP generations and is 
-even potentially used by other non-OMAP TI chips like DSP or Davinci. So 
-having an extra compatible entry with "ti,i2c" or "ti, omap-i2c" seems 
-mandatory.
+iQEcBAEBAgAGBQJOQnumAAoJEAv8Txj19kN1pBAH/2THCkRc6X/l6H7mI0ZxzkfS
+qhtkqnHkxX7CjayR7rpDeJMtC195KcjuUnSW1pYGcEqV5QS90KcaEt98LjdvvtQ3
+aFEO544YVwtKutC5aO/ZewPo1fkrc3CAW/RH0xr41BZGk1Bnm1QtUhH94BOuQRFc
+c+wgTl3qZo2dvM+MjREkzOQlmA/Guxf57JtfjGBnuVTmsPgxLuiDqFua8WrJn1va
+VKkksa+zEhRlW5SU6ZLsiGb3hRRoa7lgTLCwaHhkeN4/a6TjtVbi4b3F8m50wsQf
+Q2lCk+moTjbZCk0im6+W9wycTJPwWXL7VL5rHHOHd2qKyN9gB5+/T/HOCGDWqBA=
+=cPro
+-----END PGP SIGNATURE-----
 
-Regards,
-Benoit
+--E69HUUNAyIJqGpVn--
