@@ -1,29 +1,39 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: [PATCH 0/2] AM3517: Booting up
-Date: Tue, 09 Aug 2011 14:50:40 +0200
-Message-ID: <4E412D20.40500@visionsystems.de>
-References: <1312473547-1147-1-git-send-email-abhilash.kv@ti.com>
-Reply-To: yegor_sub1@visionsystems.de
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/6] OMAP: misc. PM-related fixes for v3.1-rc
+Date: Wed, 10 Aug 2011 03:39:44 -0700
+Message-ID: <20110810103944.GF1939@atomide.com>
+References: <1312472710-31758-1-git-send-email-khilman@ti.com>
+ <20110809111443.GQ1866@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.visionsystems.de ([62.145.30.242]:42458 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751811Ab1HJKgH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 06:36:07 -0400
-In-Reply-To: <1312473547-1147-1-git-send-email-abhilash.kv@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53275 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752361Ab1HJKjr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 06:39:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20110809111443.GQ1866@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Abhilash K V <abhilash.kv@ti.com>
-Cc: linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Am 04.08.2011 17:59, schrieb Abhilash K V:
-> This patch-set gets the kernel booting up on a AM3517 EVM.
-> The board is able to boot with ramdisk after this,but the MMC and Ethernet
-> drivers are not up yet. Lots of warnings remain which will be addressed in
-> subsequent patches.
+* Tony Lindgren <tony@atomide.com> [110809 04:09]:
+> * Kevin Hilman <khilman@ti.com> [110804 08:38]:
+> > Hi Tony,
+> > 
+> > Here's my current collection of PM-related fixes for the -rc cycle.
+> > 
+> > They are based on the next/board branch of Arnd's arm-soc tree (which
+> > has already been merged by Linus) and are also available in the
+> > for_3.1/pm-fixes branch of my tree:
+> > git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+> 
+> Thanks, based on your comment looks like you want to modify at least
+> one of them. I'll pick the ones that should get merged immediately
+> while you're on vacation.
 
-Are there some more patches for testing? USB OTG in host mode seems to find my cardreader and USB memory stick, but no sdx devices were allocated. 
+Hmm as it looks like you already dropped the last patch, I'll pull
+the first five into fixes.
 
-Yegor
+Tony
