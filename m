@@ -1,115 +1,108 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [beagleboard] EHCI softirq kernel panic
-Date: Thu, 11 Aug 2011 00:35:39 +0300
-Message-ID: <20110810213538.GB26868@legolas.emea.dhcp.ti.com>
-References: <20110809222012.GB4008@legolas.emea.dhcp.ti.com>
- <Pine.LNX.4.44L0.1108101009180.1917-100000@iolanthe.rowland.org>
+Subject: Re: [RFC PATCH 4/6] OMAP4: Temperature sensor device support
+Date: Thu, 11 Aug 2011 00:37:29 +0300
+Message-ID: <20110810213728.GC26868@legolas.emea.dhcp.ti.com>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
+ <1312979122-5896-5-git-send-email-j-keerthy@ti.com>
+ <20110810123647.GF12882@legolas.emea.dhcp.ti.com>
+ <20110810124102.GM1939@atomide.com>
+ <20110810124800.GK12882@legolas.emea.dhcp.ti.com>
+ <4E4292E1.2070504@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TakKZr9L6Hm6aLOc"
+	protocol="application/pgp-signature"; boundary="raC6veAxrt5nqIoY"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:33072 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755055Ab1HJVfn (ORCPT
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:44554 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755050Ab1HJVkP (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Aug 2011 17:35:43 -0400
+	Wed, 10 Aug 2011 17:40:15 -0400
+Received: by mail-bw0-f41.google.com with SMTP id zt4so636173bkb.0
+        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 14:40:14 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1108101009180.1917-100000@iolanthe.rowland.org>
+In-Reply-To: <4E4292E1.2070504@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Felipe Balbi <balbi@ti.com>, Jason Kridner <jkridner@beagleboard.org>, beagleboard@googlegroups.com, "Kridner, Jason" <jdk@ti.com>, "Kooi, Koen" <k-kooi@ti.com>, linux-omap@vger.kernel.org, Linux USB Mailing List <linux-usb@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, "J, KEERTHY" <j-keerthy@ti.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
 
---TakKZr9L6Hm6aLOc
+--raC6veAxrt5nqIoY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Aug 10, 2011 at 10:11:48AM -0400, Alan Stern wrote:
-> On Wed, 10 Aug 2011, Felipe Balbi wrote:
+On Wed, Aug 10, 2011 at 04:17:05PM +0200, Cousson, Benoit wrote:
+> On 8/10/2011 2:48 PM, Balbi, Felipe wrote:
+> >Hi,
+> >
+> >On Wed, Aug 10, 2011 at 05:41:02AM -0700, Tony Lindgren wrote:
+> >>* Felipe Balbi<balbi@ti.com>  [110810 05:31]:
+> >>>
+> >>>On Wed, Aug 10, 2011 at 05:55:20PM +0530, Keerthy wrote:
+> >>>>+
+> >>>>+int __init omap_devinit_temp_sensor(void)
+> >>>>+{
+> >>>>+	if (!cpu_is_omap446x())
+> >>>>+		return 0;
+> >>>>+
+> >>>>+	return omap_hwmod_for_each_by_class("temperature_sensor",
+> >>>>+			temp_sensor_dev_init, NULL);
+> >>>>+}
+> >>>>+
+> >>>>+arch_initcall(omap_devinit_temp_sensor);
+> >>>
+> >>>I really dislike people adding more and more *initcall() to their piec=
+es
+> >>>of code. But Tony is the final Judge.
+> >>
+> >>Yes how about making this just a regular device driver and have it
+> >>live under drivers/ somewhere?
+> >>
+> >>Or is there some reason why this could not be a loadable module?
+> >
+> >driver is loadable, this is just creating the platform_device, but still
+> >I don't think it deserves its own arch_initcall(), it could very well be
+> >something which is called after we know we're running at omap4, or
+> >called by each board...
 >=20
-> > Hi,
-> >=20
-> > On Tue, Aug 09, 2011 at 02:30:14PM -0400, Jason Kridner wrote:
-> > > On Tue, Aug 9, 2011 at 1:51 PM, Joel A Fernandes <agnel.joel@gmail.co=
-m> wrote:
-> > > > Anyone seen this before?
-> > >=20
-> > > A lot of the kernel developers don't frequent the beagleboard list.
-> > > If you think it is a general kernel bug, I suspect you want to copy
-> > > linux-omap.
-> >=20
-> > and linux-usb, and Alan Stern as he's the EHCI maintainer and myself for
-> > the OMAP USB part ;-)
-> >=20
-> > > > Trying to boot 3.0.0 with OE patches from an SD Card, and with a
-> > > > network cable connected results in the following traceback.
-> > > > Not connecting a network cable makes the errors go away.
+> Funny, because I thought we were trying to get rid of the ugly init
+> devices from board file to use *initcall() from a dedicated device
+> file.
+> The advantage is that you do not have anymore a central place that
+> everybody will change and that is thus subject to merge conflicts.
 >=20
-> > > > [ ? 99.084899] Unable to handle kernel NULL pointer dereference at
-> > > > virtual address 00000000
-> > > > [ ? 99.093383] pgd =3D c0004000
-> > > > [ ? 99.096191] [00000000] *pgd=3D00000000
-> > > > [ ? 99.099945] Internal error: Oops: 17 [#2]
-> > > > [ ? 99.104125] Modules linked in: ipv6
-> > > > [ ? 99.107788] CPU: 0 ? ?Tainted: G ? ? ?D ? ? ?(3.0.0+ #1)
-> > > > [ ? 99.113342] PC is at ehci_quiesce+0xc/0x94
-> > > > [ ? 99.117614] LR is at ehci_stop+0x34/0x8c
-> > > > [ ? 99.121734] pc : [<c0325ce4>] ? ?lr : [<c0328bfc>] ? ?psr: 20000=
-1d3
-> > > > [ ? 99.121734] sp : c064de70 ?ip : 00000108 ?fp : c06b8624
-> > > > [ ? 99.133728] r10: c064dec0 ?r9 : 00000000 ?r8 : dee08504
-> > > > [ ? 99.139190] r7 : c0328b94 ?r6 : 00000100 ?r5 : dee08504 ?r4 : de=
-e08608
-> > > > [ ? 99.145996] r3 : 00000000 ?r2 : dee086ec ?r1 : dee086b8 ?r0 : de=
-e08608
-> > > > [ ? 99.152832] Flags: nzCv ?IRQs off ?FIQs off ?Mode SVC_32 ?ISA ARM
-> > > > Segment kernel
-> > > > [ ? 99.160644] Control: 10c5387d ?Table: 9d804019 ?DAC: 00000015
-> > > > [ ? 99.166656] Process swapper (pid: 0, stack limit =3D 0xc064c2f0)
-> > > > [ ? 99.172760] Stack: (0xc064de70 to 0xc064e000)
+> The drawback is that you do not know where an when the devices are create=
+d.
 >=20
-> > > > [ ? 99.288482] [<c0325ce4>] (ehci_quiesce+0xc/0x94) from [<c0328bfc=
->]
-> > > > (ehci_stop+0x34/0x8c)
-> > > > [ ? 99.296936] [<c0328bfc>] (ehci_stop+0x34/0x8c) from [<c007a3d4>]
-> > > > (run_timer_softirq+0x15c/0x1f8)
-> > > > [ ? 99.306121] [<c007a3d4>] (run_timer_softirq+0x15c/0x1f8) from
-> > > > [<c064dec0>] (0xc064dec0)
-> > > > [ ? 99.314483] Code: c05d7f9a e92d4073 e1a04000 e5903004 (e5933000)
-> > > > [ ? 99.320892] ---[ end trace 4ae88755f08e391f ]---
-> > > > [ ? 99.325714] Kernel panic - not syncing: Fatal exception in inter=
-rupt
->=20
-> I'm puzzled.  Why is ehci_stop getting called in a softirq context? =20
-> That should never happen.  It should get called only when the driver is=
-=20
-> unbound from the controller.
+> That being said, device-tree will provide a nice way to build all
+> this devices without any initcall or board hacks.
+> This is just a temporary issue :-)
 
-Maybe some OpenEmbedded patch which changed the behavior and ended up
-breaking the driver ?
+Temporary or not, I would rather have this device created based on CPU
+detection as it ought to be. But since we're moving to DT anyway, I
+agree it might not be worth spending the time.
 
 --=20
 balbi
 
---TakKZr9L6Hm6aLOc
+--raC6veAxrt5nqIoY
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOQvmqAAoJEAv8Txj19kN1fKoH/jgi9A9jPBtTGniNHeg2v4c9
-cx2/o92IzP81tvseP8p9o+4bObzEqxyb8ZJ942FgocsmwtKMJb/O/55Ubxrc8k9T
-4OYGcDLz9ZuxzrhUlbblUEJXIrbY+3CZXxhqmRnpT3WvHXRZsJy2aAsOptjRY4Uh
-njiabbbfn5dKy5NiD6Z/7Vyx4i1SvezE/tjFtD02wiYAFHsxFsSrP2c6mA2xXDZ+
-irGzZ8G4wybWKGFY1ldVdWJzABE7Zv8SchNCFXj8PgGRIukpLj6KqXvTWcpXUA4E
-Nr12/htxF/X47dy61/d0bC4U7SaZLcPfNxnx8Sc0cyq07j26HYvGxf3l57rYLPA=
-=ZIgR
+iQEcBAEBAgAGBQJOQvoYAAoJEAv8Txj19kN1ul4IAKwQyH7jUC0WxCCXzxErtfIO
+dFqoL0LiObOgu2PW06aibnW9W+g51KuZwNFJm0qmSkPzCBDZBdpjEeY1zWx7hz7T
+8EXHi5PponhOBAeKkoGpYjzHuSxZl4z1Z8Z6FWBb9AXOIlCs8KebjQ4iKEeJkphd
+f0iY9cHGkkFuQ+NZeUo4ZXheixTl6sRwDt+dXw5sV/32uXPVwM7GKOxsM6LsEizl
+O6kEG9zx+Ib3vviaGVHO+srLgD8oEuMZS/0hiUZ+pVHb+RiheWKOpm7gu1L0971S
+5b8jDLdCKikiryylp+vmfeP31kR/4bnkHdwMp4lMS4lVUvFDekqo1AeTOfCrihw=
+=tP4Z
 -----END PGP SIGNATURE-----
 
---TakKZr9L6Hm6aLOc--
+--raC6veAxrt5nqIoY--
