@@ -1,117 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Build failure: bisected: v3.1-rc1 with config ARCH_OMAP &&
- !ARCH_OMAP4 fails with linker error
-Date: Wed, 10 Aug 2011 00:57:42 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108100045270.12674@utopia.booyaka.com>
-References: <1312819724.14483.29.camel@morsingpad> <alpine.DEB.2.00.1108081435340.4764@utopia.booyaka.com> <20110809131453.GR1866@atomide.com> <alpine.DEB.2.00.1108092102580.12674@utopia.booyaka.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [RFC/PATCH 04/14] OMAP: McBSP: use existing macros for
+ converting between devices
+Date: Wed, 10 Aug 2011 10:07:04 +0300
+Message-ID: <20110810100704.856fcc5c.jhnikula@gmail.com>
+References: <1312897232-4792-1-git-send-email-manjugk@ti.com>
+	<1312897232-4792-5-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1108092102580.12674@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Daniel Morsing <daniel.morsing@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:46189 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751115Ab1HJHHJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 03:07:09 -0400
+Received: by bke11 with SMTP id 11so188341bke.19
+        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 00:07:07 -0700 (PDT)
+In-Reply-To: <1312897232-4792-5-git-send-email-manjugk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca, Kevin Hilman <khilman@ti.com>
 
-On Tue, 9 Aug 2011, Paul Walmsley wrote:
+Hi
 
-> On Tue, 9 Aug 2011, Tony Lindgren wrote:
+On Tue, 09 Aug 2011 19:10:22 +0500
+"G, Manjunath Kondaiah" <manjugk@ti.com> wrote:
+
+> From: Kevin Hilman <khilman@ti.com>
 > 
-> > Hmm, there are also these when CONFIG_ARCH_OMAP4 is not selected:
-> > 
-> > arch/arm/mach-omap2/built-in.o: In function `_enable_module':
-> > arch/arm/mach-omap2/omap_hwmod.c:701: undefined reference to `omap4_cminst_module_enable'
-> > arch/arm/mach-omap2/built-in.o: In function `_disable_module':
-> > arch/arm/mach-omap2/omap_hwmod.c:726: undefined reference to `omap4_cminst_module_disable'
-> > arch/arm/mach-omap2/built-in.o: In function `_wait_target_disable':
-> > arch/arm/mach-omap2/omap_hwmod.c:1179: undefined reference to `omap4_cminst_wait_module_idle'
-> > distcc[27594] ERROR: compile (null) on localhost failed
-> > make: *** [.tmp_vmlinux1] Error 1
-> > 
-> > Care to take a look?
+> For converting from struct device to platform_device, and from
+> platform_device to struct device, there are existing macros.  Use
+> them instead of manual use of container_of().
 > 
-> Weird, those don't show up on my n800 config (below) with CodeSourcery 
-> 2010.09-50.  Looks like something isn't removing the dead code.  will post 
-> a patch for this.
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+>  arch/arm/plat-omap/mcbsp.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
 > 
-> If you post which compiler you're using, I'll add it to my build tests 
-> too...
+Kevin dropped this patch and used mine that does more cleanups:
 
-Hmmm, playing around with this further, this is probably not a
-compiler problem.  Looks like what triggers this is the MULTI_OMAP2
-preprocessor trickery in arch/arm/plat-omap/include/plat/cpu.h, which
-would cause something like cpu_is_omap24xx() to be resolved at runtime
-rather than by the preprocessor.
+http://marc.info/?l=linux-omap&m=131255627918065&w=2
 
-This should fix the immediate issue.  Will include in a 3.1-rc fixes branch.
+Worth to check also other patches since Kevin's updated set seems to
+have other differences too:
 
+http://marc.info/?l=linux-omap&m=131258997416300&w=2
 
-- Paul
-
-
-From: Paul Walmsley <paul@pwsan.com>
-Date: Tue, 9 Aug 2011 22:27:01 -0600
-Subject: [PATCH] OMAP: hwmod: fix build break on non-OMAP4 multi-OMAP2 builds
-
-Builds for multi-OMAP2 (e.g., OMAP2420 with OMAP2430) with
-CONFIG_ARCH_OMAP4=n fail with the following errors:
-
-arch/arm/mach-omap2/built-in.o: In function `_enable_module':
-arch/arm/mach-omap2/omap_hwmod.c:701: undefined reference to `omap4_cminst_module_enable'
-arch/arm/mach-omap2/built-in.o: In function `_disable_module':
-arch/arm/mach-omap2/omap_hwmod.c:726: undefined reference to `omap4_cminst_module_disable'
-arch/arm/mach-omap2/built-in.o: In function `_wait_target_disable':
-arch/arm/mach-omap2/omap_hwmod.c:1179: undefined reference to `omap4_cminst_wait_module_idle'
-
-This is probably due to the preprocessor directives in
-arch/arm/plat-omap/include/plat/cpu.h that convert some cpu_is_omap*()
-expressions from preprocessor directives into something that is only
-resolvable during runtime, if multiple OMAP2 build targets are
-selected.
-
-Thanks to Tony Lindgren <tony@atomide.com> for reporting.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/cminst44xx.h |   19 ++++++++++++++++++-
- 1 files changed, 18 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cminst44xx.h b/arch/arm/mach-omap2/cminst44xx.h
-index f2ea645..df9be67 100644
---- a/arch/arm/mach-omap2/cminst44xx.h
-+++ b/arch/arm/mach-omap2/cminst44xx.h
-@@ -18,13 +18,30 @@ extern void omap4_cminst_clkdm_force_sleep(u8 part, s16 inst, u16 cdoffs);
- extern void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs);
- 
- extern int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
--extern int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
-+
-+# ifdef CONFIG_ARCH_OMAP4
-+extern int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs,
-+					 u16 clkctrl_offs);
- 
- extern void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
- 				       u16 clkctrl_offs);
- extern void omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
- 					u16 clkctrl_offs);
- 
-+# else
-+
-+static inline int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
-+{
-+	return 0;
-+}
-+
-+static inline void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
-+				u16 clkctrl_offs) {}
-+static inline void omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
-+				 u16 clkctrl_offs) {}
-+
-+# endif
-+
- /*
-  * In an ideal world, we would not export these low-level functions,
-  * but this will probably take some time to fix properly
 -- 
-1.7.5.4
+Jarkko
