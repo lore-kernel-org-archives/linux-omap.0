@@ -1,53 +1,161 @@
-From: John Stultz <john.stultz@linaro.org>
-Subject: Re: [PATCH] rtc-twl: Switch to using threaded irq
-Date: Wed, 10 Aug 2011 15:44:11 -0700
-Message-ID: <1313016251.15198.87.camel@work-vm>
-References: <1300291634-17884-1-git-send-email-ilkka.koskinen@nokia.com>
-	 <BANLkTinp8M4nndDC5Sfm=PzCiL-vGEqELg@mail.gmail.com>
-	 <4F5287B0C366D047BF44025F9ED7BB43E9D7@008-AM1MPN1-001.mgdnok.nokia.com>
-	 <1305242664.2680.28.camel@work-vm> <4DD41BE5.4050600@kolumbus.fi>
-	 <20110531085139.GA7290@earth.universe>
-	 <20110627164506.GA10827@earth.universe>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: tidspbridge issue with omap_dm_timer_free
+Date: Thu, 11 Aug 2011 02:27:16 +0300
+Message-ID: <CAMP44s2Wou54d2UWkwebxO17=gaVoiXrB5Lk-q2g90x3ok8L7w@mail.gmail.com>
+References: <CAMP44s17O-g83Fte05=AmqBP24jqgLxiBHmO6+3fbtJjWV8Ufw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary=0015175d04585a2af504aa2f0524
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from e35.co.us.ibm.com ([32.97.110.153]:36321 "EHLO
-	e35.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751651Ab1HJWoS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 18:44:18 -0400
-Received: from d03relay02.boulder.ibm.com (d03relay02.boulder.ibm.com [9.17.195.227])
-	by e35.co.us.ibm.com (8.14.4/8.13.1) with ESMTP id p7AMOhYV002172
-	for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 16:24:43 -0600
-Received: from d03av02.boulder.ibm.com (d03av02.boulder.ibm.com [9.17.195.168])
-	by d03relay02.boulder.ibm.com (8.13.8/8.13.8/NCO v9.1) with ESMTP id p7AMiFr8115238
-	for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 16:44:15 -0600
-Received: from d03av02.boulder.ibm.com (loopback [127.0.0.1])
-	by d03av02.boulder.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id p7AGhkXe020693
-	for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 10:43:47 -0600
-In-Reply-To: <20110627164506.GA10827@earth.universe>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:38913 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755373Ab1HJX1S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 19:27:18 -0400
+Received: by bke11 with SMTP id 11so586482bke.19
+        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 16:27:16 -0700 (PDT)
+In-Reply-To: <CAMP44s17O-g83Fte05=AmqBP24jqgLxiBHmO6+3fbtJjWV8Ufw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, a.zummo@towertech.it, rtc-linux@googlegroups.com, balajitk@ti.com, Ilkka Koskinen <ilkkakos@kolumbus.fi>
+To: linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-On Mon, 2011-06-27 at 18:45 +0200, Sebastian Reichel wrote:
-> On Tue, May 31, 2011 at 10:51:39AM +0200, Sebastian Reichel wrote:
-> > > The driver is accessing to i2c bus in interrupt handler.
-> > > Therefore, it should use threaded irq.
-> > I think the patch should also remove the local_irq_enable() call in
-> > twl_rtc_interrupt, since it's no longer needed with threaded irq. At
-> > least on the Pandaboard the RTC is still working with the appended
-> > patch.
-> 
-> ping.
-> 
-> Currently the kernel prints a stacktrace for each rtc-twl interrupt,
-> because its interrupt handler enables interrupts.
+--0015175d04585a2af504aa2f0524
+Content-Type: text/plain; charset=UTF-8
 
-I've queued both changes. Thanks for the reminder.
+On Wed, Aug 10, 2011 at 9:42 PM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> I am trying to use a more recent version of the tidspbridge code in
+> the Nokia N9, but I'm stuck with this warning that is caused by using
+> the dm timer framework.
 
-thanks
--john
+Actually, the problem only happens on the 'dspbridge' branch, which
+has some unmerged patches. These patches introduce some new mutexes
+that trigger this.
 
+My proposed solution is to request the dm timers at initialization
+time, and just enable/disable them on wake/hibernate, which is a bit
+similar to what was happening before, and probably more efficient and
+proper.
 
+I'm attaching the patch.
+
+-- 
+Felipe Contreras
+
+--0015175d04585a2af504aa2f0524
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-staging-tidspbridge-split-gpt-requests.patch"
+Content-Disposition: attachment;
+	filename="0001-staging-tidspbridge-split-gpt-requests.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gr6xherm0
+
+RnJvbSBjZDdmMjQ1YmE0MmViMGQxOGJkZmMzZjI5ZTI4NTZmMDkyMjc1MjhlIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBGZWxpcGUgQ29udHJlcmFzIDxmZWxpcGUuY29udHJlcmFzQG5v
+a2lhLmNvbT4KRGF0ZTogVGh1LCAxMSBBdWcgMjAxMSAwMToyODowOCArMDMwMApTdWJqZWN0OiBb
+UEFUQ0hdIHN0YWdpbmc6IHRpZHNwYnJpZGdlOiBzcGxpdCBncHQgcmVxdWVzdHMKCk90aGVyd2lz
+ZSBJIGdldCB0aGlzOgoKIEJVRzogc2xlZXBpbmcgZnVuY3Rpb24gY2FsbGVkIGZyb20gaW52YWxp
+ZCBjb250ZXh0IGF0IGtlcm5lbC9tdXRleC5jOjI4NwogaW5fYXRvbWljKCk6IDEsIGlycXNfZGlz
+YWJsZWQoKTogMCwgcGlkOiAzMDUsIG5hbWU6IG1ib3hkLzAKIDMgbG9ja3MgaGVsZCBieSBtYm94
+ZC8wLzMwNToKICAjMDogIChtYm94ZCl7Ky4rLi4ufSwgYXQ6IFs8YjAwODE3Nzg+XSB3b3JrZXJf
+dGhyZWFkKzB4MTU0LzB4MmJjCiAgIzE6ICAoJm1xLT53b3JrKXsrLisuLi59LCBhdDogWzxiMDA4
+MTc3OD5dIHdvcmtlcl90aHJlYWQrMHgxNTQvMHgyYmMKICAjMjogIChwd3JfbG9jayl7Ky4uLi4u
+fSwgYXQ6IFs8YWYxMmY4NzA+XSBoYW5kbGVfaGliZXJuYXRpb25fZnJvbV9kc3ArMHgxYy8weDE1
+OCBbYnJpZGdlZHJpdmVyXQogWzxiMDAzZjc1Yz5dICh1bndpbmRfYmFja3RyYWNlKzB4MC8weGQ0
+KSBmcm9tIFs8YjAzYTNhYzQ+XSAobXV0ZXhfbG9ja19uZXN0ZWQrMHgzMC8weDMyYykKIFs8YjAz
+YTNhYzQ+XSAobXV0ZXhfbG9ja19uZXN0ZWQrMHgzMC8weDMyYykgZnJvbSBbPGIwMDU2OGY4Pl0g
+KGNsa19zZXRfcGFyZW50KzB4MzQvMHhmOCkKIFs8YjAwNTY4Zjg+XSAoY2xrX3NldF9wYXJlbnQr
+MHgzNC8weGY4KSBmcm9tIFs8YjAwNWUyZTA+XSAob21hcF9kbV90aW1lcl9zZXRfc291cmNlKzB4
+MzQvMHg1OCkKIFs8YjAwNWUyZTA+XSAob21hcF9kbV90aW1lcl9zZXRfc291cmNlKzB4MzQvMHg1
+OCkgZnJvbSBbPGIwMDVlNDI0Pl0gKG9tYXBfZG1fdGltZXJfcmVzZXQrMHg3OC8weGQwKQogWzxi
+MDA1ZTQyND5dIChvbWFwX2RtX3RpbWVyX3Jlc2V0KzB4NzgvMHhkMCkgZnJvbSBbPGIwMDVlNDkw
+Pl0gKG9tYXBfZG1fdGltZXJfZnJlZSsweDE0LzB4NDgpCiBbPGIwMDVlNDkwPl0gKG9tYXBfZG1f
+dGltZXJfZnJlZSsweDE0LzB4NDgpIGZyb20gWzxhZjEzMDlkND5dIChkc3BfY2xrX2Rpc2FibGUr
+MHg5OC8weDE1YyBbYnJpZGdlZHJpdmVyXSkKIFs8YWYxMzA5ZDQ+XSAoZHNwX2Nsa19kaXNhYmxl
+KzB4OTgvMHgxNWMgW2JyaWRnZWRyaXZlcl0pIGZyb20gWzxhZjEzMGFiYz5dIChkc3BfY2xvY2tf
+ZGlzYWJsZV9hbGwrMHgyNC8weDM0IFticmlkZ2Vkcml2ZXJdKQogWzxhZjEzMGFiYz5dIChkc3Bf
+Y2xvY2tfZGlzYWJsZV9hbGwrMHgyNC8weDM0IFticmlkZ2Vkcml2ZXJdKSBmcm9tIFs8YWYxMmY5
+MTQ+XSAoaGFuZGxlX2hpYmVybmF0aW9uX2Zyb21fZHNwKzB4YzAvMHgxNTggW2JyaWRnZWRyaXZl
+cl0pCiBbPGFmMTJmOTE0Pl0gKGhhbmRsZV9oaWJlcm5hdGlvbl9mcm9tX2RzcCsweGMwLzB4MTU4
+IFticmlkZ2Vkcml2ZXJdKSBmcm9tIFs8YWYxMmMyYmM+XSAoaW9fbWJveF9tc2crMHg4Yy8weDEw
+MCBbYnJpZGdlZHJpdmVyXSkKIFs8YWYxMmMyYmM+XSAoaW9fbWJveF9tc2crMHg4Yy8weDEwMCBb
+YnJpZGdlZHJpdmVyXSkgZnJvbSBbPGFmMDcwNDNjPl0gKG1ib3hfcnhfd29yaysweDNjLzB4YTAg
+W21haWxib3hdKQogWzxhZjA3MDQzYz5dIChtYm94X3J4X3dvcmsrMHgzYy8weGEwIFttYWlsYm94
+XSkgZnJvbSBbPGIwMDgxN2U0Pl0gKHdvcmtlcl90aHJlYWQrMHgxYzAvMHgyYmMpCiBbPGIwMDgx
+N2U0Pl0gKHdvcmtlcl90aHJlYWQrMHgxYzAvMHgyYmMpIGZyb20gWzxiMDA4NTEzYz5dIChrdGhy
+ZWFkKzB4N2MvMHg4NCkKIFs8YjAwODUxM2M+XSAoa3RocmVhZCsweDdjLzB4ODQpIGZyb20gWzxi
+MDAzYjlkND5dIChrZXJuZWxfdGhyZWFkX2V4aXQrMHgwLzB4OCkKIC0tLS0tLS0tLS0tLVsgY3V0
+IGhlcmUgXS0tLS0tLS0tLS0tLQogV0FSTklORzogYXQga2VybmVsL211dGV4LmM6MjE0IG11dGV4
+X2xvY2tfbmVzdGVkKzB4YjAvMHgzMmMoKQoKU2lnbmVkLW9mZi1ieTogRmVsaXBlIENvbnRyZXJh
+cyA8ZmVsaXBlLmNvbnRyZXJhc0Bub2tpYS5jb20+Ci0tLQogZHJpdmVycy9zdGFnaW5nL3RpZHNw
+YnJpZGdlL2NvcmUvZHNwLWNsb2NrLmMgICAgICAgfCAgIDQ5ICsrKysrKysrKysrKysrKysrKy0K
+IGRyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9jb3JlL3Rpb21hcDM0MzAuYyAgICAgIHwgICAg
+MyArCiAuLi4vc3RhZ2luZy90aWRzcGJyaWRnZS9pbmNsdWRlL2RzcGJyaWRnZS9jbGsuaCAgICB8
+ICAgIDQgKysKIDMgZmlsZXMgY2hhbmdlZCwgNTMgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMo
+LSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2UvY29yZS9kc3AtY2xv
+Y2suYyBiL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9jb3JlL2RzcC1jbG9jay5jCmluZGV4
+IGFhYzA2YzAuLmIwYWE4MzEgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRn
+ZS9jb3JlL2RzcC1jbG9jay5jCisrKyBiL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9jb3Jl
+L2RzcC1jbG9jay5jCkBAIC0xMTUsNiArMTE1LDcgQEAgc3RhdGljIHM4IGdldF9jbGtfdHlwZSh1
+OCBpZCkKIHZvaWQgZHNwX2Nsa19leGl0KHZvaWQpCiB7CiAJZHNwX2Nsb2NrX2Rpc2FibGVfYWxs
+KGRzcF9jbG9ja3MpOworCWRzcF9jbG9ja19yZWxlYXNlX2FsbCgpOwogCiAJY2xrX3B1dChpdmEy
+X2Nsayk7CiAJY2xrX3B1dChzc2kuc3N0X2Zjayk7CkBAIC0xNDYsNiArMTQ3LDQ1IEBAIHZvaWQg
+ZHNwX2Nsa19pbml0KHZvaWQpCiAJCQkJCXNzaS5zc3RfZmNrLCBzc2kuc3NyX2Zjaywgc3NpLmlj
+ayk7CiB9CiAKK2ludCBkc3BfY2xrX3JlcXVlc3QoZW51bSBkc3BfY2xrX2lkIGNsa19pZCkKK3sK
+KwlzdHJ1Y3Qgb21hcF9kbV90aW1lciAqdDsKKworCWlmIChnZXRfY2xrX3R5cGUoY2xrX2lkKSAh
+PSBHUFRfQ0xLKQorCQlyZXR1cm4gLUVQRVJNOworCisJdCA9IG9tYXBfZG1fdGltZXJfcmVxdWVz
+dF9zcGVjaWZpYyhETVRfSUQoY2xrX2lkKSk7CisJaWYgKCF0KQorCQlyZXR1cm4gLUVQRVJNOwor
+CXRpbWVyW2Nsa19pZCAtIDFdID0gdDsKKworCXJldHVybiAwOworfQorCitpbnQgZHNwX2Nsa19y
+ZWxlYXNlKGVudW0gZHNwX2Nsa19pZCBjbGtfaWQpCit7CisJaWYgKGdldF9jbGtfdHlwZShjbGtf
+aWQpICE9IEdQVF9DTEspCisJCXJldHVybiAtRVBFUk07CisKKwlvbWFwX2RtX3RpbWVyX2ZyZWUo
+dGltZXJbY2xrX2lkIC0gMV0pOworCXRpbWVyW2Nsa19pZCAtIDFdID0gTlVMTDsKKworCXJldHVy
+biAwOworfQorCit2b2lkIGRzcF9jbG9ja19yZWxlYXNlX2FsbCh2b2lkKQoreworCWludCBpOwor
+CisJLyogcmVsZWFzZSBkbSB0aW1lciBjbG9ja3MgKi8KKwlmb3IgKGkgPSAwOyBpIDwgQVJSQVlf
+U0laRSh0aW1lcik7IGkrKykgeworCQlpZiAoIXRpbWVyW2ldKQorCQkJY29udGludWU7CisJCW9t
+YXBfZG1fdGltZXJfZnJlZSh0aW1lcltpXSk7CisJCXRpbWVyW2ldID0gTlVMTDsKKwl9Cit9CisK
+ICNpZmRlZiBDT05GSUdfT01BUF9NQ0JTUAogc3RhdGljIHZvaWQgbWNic3BfY2xrX3ByZXBhcmUo
+Ym9vbCBmbGFnLCB1OCBpZCkKIHsKQEAgLTI1Miw4ICsyOTIsOSBAQCBpbnQgZHNwX2Nsa19lbmFi
+bGUoZW51bSBkc3BfY2xrX2lkIGNsa19pZCkKIAkJY2xrX2VuYWJsZShpdmEyX2Nsayk7CiAJCWJy
+ZWFrOwogCWNhc2UgR1BUX0NMSzoKLQkJdGltZXJbY2xrX2lkIC0gMV0gPQotCQkJCW9tYXBfZG1f
+dGltZXJfcmVxdWVzdF9zcGVjaWZpYyhETVRfSUQoY2xrX2lkKSk7CisJCWlmICghdGltZXJbY2xr
+X2lkIC0gMV0pCisJCQlyZXR1cm4gLUVJTlZBTDsKKwkJb21hcF9kbV90aW1lcl9lbmFibGUodGlt
+ZXJbY2xrX2lkIC0gMV0pOwogCQlicmVhazsKICNpZmRlZiBDT05GSUdfT01BUF9NQ0JTUAogCWNh
+c2UgTUNCU1BfQ0xLOgpAQCAtMzMwLDcgKzM3MSw5IEBAIGludCBkc3BfY2xrX2Rpc2FibGUoZW51
+bSBkc3BfY2xrX2lkIGNsa19pZCkKIAkJY2xrX2Rpc2FibGUoaXZhMl9jbGspOwogCQlicmVhazsK
+IAljYXNlIEdQVF9DTEs6Ci0JCW9tYXBfZG1fdGltZXJfZnJlZSh0aW1lcltjbGtfaWQgLSAxXSk7
+CisJCWlmICghdGltZXJbY2xrX2lkIC0gMV0pCisJCQlyZXR1cm4gLUVJTlZBTDsKKwkJb21hcF9k
+bV90aW1lcl9kaXNhYmxlKHRpbWVyW2Nsa19pZCAtIDFdKTsKIAkJYnJlYWs7CiAjaWZkZWYgQ09O
+RklHX09NQVBfTUNCU1AKIAljYXNlIE1DQlNQX0NMSzoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvc3Rh
+Z2luZy90aWRzcGJyaWRnZS9jb3JlL3Rpb21hcDM0MzAuYyBiL2RyaXZlcnMvc3RhZ2luZy90aWRz
+cGJyaWRnZS9jb3JlL3Rpb21hcDM0MzAuYwppbmRleCBlY2Q4NjViLi5mYmNlYTBiIDEwMDY0NAot
+LS0gYS9kcml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2UvY29yZS90aW9tYXAzNDMwLmMKKysrIGIv
+ZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2NvcmUvdGlvbWFwMzQzMC5jCkBAIC01MTIsNiAr
+NTEyLDcgQEAgc3RhdGljIGludCBicmlkZ2VfYnJkX3N0YXJ0KHN0cnVjdCBicmlkZ2VfZGV2X2Nv
+bnRleHQgKmRldl9jdHh0LAogCQlpZiAodWxfbG9hZF9tb25pdG9yX3RpbWVyICE9IDB4RkZGRikg
+ewogCQkJY2xrX2NtZCA9IChCUFdSX0VOQUJMRV9DTE9DSyA8PCBNQlhfUE1fQ0xLX0NNRFNISUZU
+KSB8CiAJCQkgICAgdWxfbG9hZF9tb25pdG9yX3RpbWVyOworCQkJZHNwX2Nsa19yZXF1ZXN0KHVs
+X2xvYWRfbW9uaXRvcl90aW1lciAtIEJQV1JfR1BfVElNRVI1ICsgRFNQX0NMS19HUFQ1KTsKIAkJ
+CWRzcF9wZXJpcGhlcmFsX2Nsa19jdHJsKGRldl9jb250ZXh0LCAmY2xrX2NtZCk7CiAJCX0gZWxz
+ZSB7CiAJCQlkZXZfZGJnKGJyaWRnZSwgIk5vdCBhYmxlIHRvIGdldCB0aGUgc3ltYm9sIGZvciBM
+b2FkICIKQEAgLTUyMyw2ICs1MjQsNyBAQCBzdGF0aWMgaW50IGJyaWRnZV9icmRfc3RhcnQoc3Ry
+dWN0IGJyaWRnZV9kZXZfY29udGV4dCAqZGV2X2N0eHQsCiAJCWlmICh1bF9iaW9zX2dwX3RpbWVy
+ICE9IDB4RkZGRikgewogCQkJY2xrX2NtZCA9IChCUFdSX0VOQUJMRV9DTE9DSyA8PCBNQlhfUE1f
+Q0xLX0NNRFNISUZUKSB8CiAJCQkgICAgdWxfYmlvc19ncF90aW1lcjsKKwkJCWRzcF9jbGtfcmVx
+dWVzdCh1bF9iaW9zX2dwX3RpbWVyIC0gQlBXUl9HUF9USU1FUjUgKyBEU1BfQ0xLX0dQVDUpOwog
+CQkJZHNwX3BlcmlwaGVyYWxfY2xrX2N0cmwoZGV2X2NvbnRleHQsICZjbGtfY21kKTsKIAkJfSBl
+bHNlIHsKIAkJCWRldl9kYmcoYnJpZGdlLApAQCAtNjkxLDYgKzY5Myw3IEBAIHN0YXRpYyBpbnQg
+YnJpZGdlX2JyZF9zdG9wKHN0cnVjdCBicmlkZ2VfZGV2X2NvbnRleHQgKmRldl9jdHh0KQogCQkJ
+T01BUDM0MzBfUlNUM19JVkEyLCBPTUFQMzQzMF9JVkEyX01PRCwgUk1fUlNUQ1RSTCk7CiAKIAlk
+c3BfY2xvY2tfZGlzYWJsZV9hbGwoZGV2X2NvbnRleHQtPmRzcF9wZXJfY2xrcyk7CisJZHNwX2Ns
+b2NrX3JlbGVhc2VfYWxsKCk7CiAJZHNwX2Nsa19kaXNhYmxlKERTUF9DTEtfSVZBMik7CiAKIAly
+ZXR1cm4gc3RhdHVzOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2lu
+Y2x1ZGUvZHNwYnJpZGdlL2Nsay5oIGIvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2luY2x1
+ZGUvZHNwYnJpZGdlL2Nsay5oCmluZGV4IDY4NTM0MWMuLjE0YzVkN2QgMTAwNjQ0Ci0tLSBhL2Ry
+aXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9pbmNsdWRlL2RzcGJyaWRnZS9jbGsuaAorKysgYi9k
+cml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2UvaW5jbHVkZS9kc3BicmlkZ2UvY2xrLmgKQEAgLTYy
+LDYgKzYyLDEwIEBAIGV4dGVybiB2b2lkIGRzcF9jbGtfZXhpdCh2b2lkKTsKICAqLwogZXh0ZXJu
+IHZvaWQgZHNwX2Nsa19pbml0KHZvaWQpOwogCitpbnQgZHNwX2Nsa19yZXF1ZXN0KGVudW0gZHNw
+X2Nsa19pZCBjbGtfaWQpOworaW50IGRzcF9jbGtfcmVsZWFzZShlbnVtIGRzcF9jbGtfaWQgY2xr
+X2lkKTsKK3ZvaWQgZHNwX2Nsb2NrX3JlbGVhc2VfYWxsKHZvaWQpOworCiB2b2lkIGRzcF9ncHRf
+d2FpdF9vdmVyZmxvdyhzaG9ydCBpbnQgY2xrX2lkLCB1bnNpZ25lZCBpbnQgbG9hZCk7CiAKIC8q
+Ci0tIAoxLjcuNgoK
+--0015175d04585a2af504aa2f0524--
