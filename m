@@ -1,30 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Build failure: bisected: v3.1-rc1 with config ARCH_OMAP &&
- !ARCH_OMAP4 fails with linker error
-Date: Wed, 10 Aug 2011 03:34:52 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108100333520.12674@utopia.booyaka.com>
-References: <1312819724.14483.29.camel@morsingpad> <alpine.DEB.2.00.1108081435340.4764@utopia.booyaka.com> <20110809131453.GR1866@atomide.com> <alpine.DEB.2.00.1108092102580.12674@utopia.booyaka.com> <alpine.DEB.2.00.1108100045270.12674@utopia.booyaka.com>
- <20110810092139.GD1939@atomide.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC/PATCH 04/14] OMAP: McBSP: use existing macros for converting
+ between devices
+Date: Wed, 10 Aug 2011 12:15:50 +0200
+Message-ID: <4E425A56.4000605@ti.com>
+References: <1312897232-4792-1-git-send-email-manjugk@ti.com> <1312897232-4792-5-git-send-email-manjugk@ti.com> <20110810100704.856fcc5c.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110810092139.GD1939@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Daniel Morsing <daniel.morsing@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45839 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751235Ab1HJKQD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Aug 2011 06:16:03 -0400
+In-Reply-To: <20110810100704.856fcc5c.jhnikula@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "Hilman, Kevin" <khilman@ti.com>
 
-On Wed, 10 Aug 2011, Tony Lindgren wrote:
+Manju,
 
-> Thanks yes that does the trick. I'd like to queue this immediately so we
-> have more time to look at the other fixes if you don't mind.
+On 8/10/2011 9:07 AM, Jarkko Nikula wrote:
+> Hi
+>
+> On Tue, 09 Aug 2011 19:10:22 +0500
+> "G, Manjunath Kondaiah"<manjugk@ti.com>  wrote:
+>
+>> From: Kevin Hilman<khilman@ti.com>
+>>
+>> For converting from struct device to platform_device, and from
+>> platform_device to struct device, there are existing macros.  Use
+>> them instead of manual use of container_of().
+>>
+>> Signed-off-by: Kevin Hilman<khilman@ti.com>
+>> ---
+>>   arch/arm/plat-omap/mcbsp.c |    6 +++---
+>>   1 files changed, 3 insertions(+), 3 deletions(-)
+>>
+> Kevin dropped this patch and used mine that does more cleanups:
+>
+> http://marc.info/?l=linux-omap&m=131255627918065&w=2
+>
+> Worth to check also other patches since Kevin's updated set seems to
+> have other differences too:
+>
+> http://marc.info/?l=linux-omap&m=131258997416300&w=2
 
-That's fine, feel free to send this first.  Will try to have the rest of 
-my 3.1-rc fixes ready to go in a few days.
+In fact, you'd better point to the lastest Kevin's tree and not included 
+the patches in this series.
 
-> I noticed some checkpatch warnings, updated patch below. Does that look
-> OK to you?
-
-Fine by me.
-
-- Paul
+Benoit
