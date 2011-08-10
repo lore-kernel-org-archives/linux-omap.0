@@ -1,287 +1,72 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [RFC/PATCH 09/14] dt: omap: prepare hwmod to support dt
-Date: Wed, 10 Aug 2011 21:58:46 +0530
-Message-ID: <20110810162846.GC2091@manju-desktop>
-References: <1312897232-4792-1-git-send-email-manjugk@ti.com>
- <1312897232-4792-10-git-send-email-manjugk@ti.com>
- <4E4270D3.8070807@ti.com>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [PATCH 5/5 v4] mfd: omap: usb: Runtime PM support
+Date: Wed, 10 Aug 2011 09:31:42 -0700
+Message-ID: <20110810163142.GA10156@google.com>
+References: <1312899309-24067-1-git-send-email-keshava_mgowda@ti.com>
+ <1312899309-24067-2-git-send-email-keshava_mgowda@ti.com>
+ <1312899309-24067-3-git-send-email-keshava_mgowda@ti.com>
+ <1312899309-24067-4-git-send-email-keshava_mgowda@ti.com>
+ <1312899309-24067-5-git-send-email-keshava_mgowda@ti.com>
+ <1312899309-24067-6-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:42325 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753101Ab1HJQ27 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Aug 2011 12:28:59 -0400
-Received: by mail-pz0-f47.google.com with SMTP id 2so2689201pzk.6
-        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 09:28:57 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4E4270D3.8070807@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1312899309-24067-6-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Aug 10, 2011 at 01:51:47PM +0200, Cousson, Benoit wrote:
-> Hi Manju,
+On Tue, Aug 09, 2011 at 07:45:09PM +0530, Keshava Munegowda wrote:
+> From: Keshava Munegowda <Keshava_mgowda@ti.com>
 > 
-> On 8/9/2011 4:10 PM, G, Manjunath Kondaiah wrote:
-> >
-> >The omap dt requires new omap hwmod api to be added for in order
-> >to support omap dt.
-> 
-> Both the subject and the changelog are misleading. You are not doing
-> any hwmod stuff in it.
-> You are just passing an "of_node" pointer during omap_device_build_ss.
-> 
-> The subject should start with OMAP: omap_device: because it does not
-> belong to the DT subsystem.
-> The same comment apply to most patches in that series.
+> The usbhs core driver does not enable/disable the intefrace and
 
-The goal of this patch is to make omap-hwmod ready for dt adaptation hence
-I used the title "dt: omap: prepare hwmod to support dt" and "of_node" pointer
-is passed from dt and it is required for dt build.
 
-And as you mentioned, patch does not do anything related to omap_device.
+typo: interface
 
-> 
-> >The new api is added and new parameter "np" is added for existing
-> >api.
-> 
-> I don't think np is not a super meaningful name. Some more
-> explanation are needed as well.
+> fucntional clocks; These clocks are handled by hwmod and runtime pm,
 
-ok. I can expand it.
 
-> 
-> >The users of hwmod api is changed accrodingly.
-> 
-> omap_device API + typo.
-> 
-> >Build and boot tested on omap3 beagle for both dt and not dt build.
-> >
-> >Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
-> >---
-> >  arch/arm/mach-omap2/devices.c                 |    2 +-
-> >  arch/arm/mach-omap2/mcbsp.c                   |    2 +-
-> >  arch/arm/plat-omap/include/plat/omap_device.h |   11 +++++-
-> >  arch/arm/plat-omap/omap_device.c              |   53 ++++++++++++++++++++++---
-> >  4 files changed, 59 insertions(+), 9 deletions(-)
-> >
-> >diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> >index 458f7be..d7ff1ae 100644
-> >--- a/arch/arm/mach-omap2/devices.c
-> >+++ b/arch/arm/mach-omap2/devices.c
-> >@@ -92,7 +92,7 @@ static int __init omap4_l3_init(void)
-> >  			pr_err("could not look up %s\n", oh_name);
-> >  	}
-> >
-> >-	pdev = omap_device_build_ss("omap_l3_noc", 0, oh, 3, NULL,
-> >+	pdev = omap_device_build_ss(NULL, "omap_l3_noc", 0, oh, 3, NULL,
-> >  						     0, NULL, 0, 0);
-> 
-> OK, maybe that is just me, but in order to extend an API, I'd rather
-> add the new parameter at the end.
+typo: functional
 
-I feel it's fine since node pointer is first parameter is all dt api's.
+> hence insted of the clock enable/disable, the runtime pm APIS are
+> used. however,the port clocks are handled by the usbhs core.
+> 
+> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 
-> 
-> >  	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
-> >diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-> >index 7a42f32..98eb95d 100644
-> >--- a/arch/arm/mach-omap2/mcbsp.c
-> >+++ b/arch/arm/mach-omap2/mcbsp.c
-> >@@ -144,7 +144,7 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
-> >  		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
-> >  		count++;
-> >  	}
-> >-	pdev = omap_device_build_ss(name, id, oh_device, count, pdata,
-> >+	pdev = omap_device_build_ss(NULL, name, id, oh_device, count, pdata,
-> >  				sizeof(*pdata), omap2_mcbsp_latency,
-> >  				ARRAY_SIZE(omap2_mcbsp_latency), false);
-> >  	kfree(pdata);
-> >diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-> >index 7a3ec4f..5e2424b 100644
-> >--- a/arch/arm/plat-omap/include/plat/omap_device.h
-> >+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> >@@ -33,6 +33,7 @@
-> >
-> >  #include<linux/kernel.h>
-> >  #include<linux/platform_device.h>
-> >+#include<linux/of.h>
-> >
-> >  #include<plat/omap_hwmod.h>
-> >
-> >@@ -89,12 +90,20 @@ struct platform_device *omap_device_build(const char *pdev_name, int pdev_id,
-> >  				      struct omap_device_pm_latency *pm_lats,
-> >  				      int pm_lats_cnt, int is_early_device);
-> >
-> >-struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
-> >+struct platform_device *omap_device_build_ss(struct device_node *np,
-> >+					 const char *pdev_name, int pdev_id,
-> >  					 struct omap_hwmod **oh, int oh_cnt,
-> >  					 void *pdata, int pdata_len,
-> >  					 struct omap_device_pm_latency *pm_lats,
-> >  					 int pm_lats_cnt, int is_early_device);
-> >
-> >+struct platform_device *omap_device_build_dt(struct device_node *np,
-> >+				      const char *pdev_name, int pdev_id,
-> >+				      struct omap_hwmod *oh, void *pdata,
-> >+				      int pdata_len,
-> >+				      struct omap_device_pm_latency *pm_lats,
-> >+				      int pm_lats_cnt, int is_early_device);
-> >+
-> >  void __iomem *omap_device_get_rt_va(struct omap_device *od);
-> >
-> >  /* OMAP PM interface */
-> >diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> >index 7d5e76b..fa49168 100644
-> >--- a/arch/arm/plat-omap/omap_device.c
-> >+++ b/arch/arm/plat-omap/omap_device.c
-> >@@ -85,6 +85,7 @@
-> >  #include<linux/clk.h>
-> >  #include<linux/clkdev.h>
-> >  #include<linux/pm_runtime.h>
-> >+#include<linux/of_device.h>
-> >
-> >  #include<plat/omap_device.h>
-> >  #include<plat/omap_hwmod.h>
-> >@@ -377,6 +378,7 @@ static int omap_device_fill_resources(struct omap_device *od,
-> >  /**
-> >   * omap_device_build - build and register an omap_device with one omap_hwmod
-> 
-> Need to update the kerneldoc.
-ok.
-> 
-> >   * @pdev_name: name of the platform_device driver to use
-> >+ * @np: device node pointer for attaching it to of_node pointer
-> >   * @pdev_id: this platform_device's connection ID
-> >   * @oh: ptr to the single omap_hwmod that backs this omap_device
-> >   * @pdata: platform_data ptr to associate with the platform_device
-> >@@ -391,7 +393,8 @@ static int omap_device_fill_resources(struct omap_device *od,
-> >   * information.  Returns ERR_PTR(-EINVAL) if @oh is NULL; otherwise,
-> >   * passes along the return value of omap_device_build_ss().
-> >   */
-> >-struct platform_device *omap_device_build(const char *pdev_name, int pdev_id,
-> >+struct platform_device *omap_device_build_dt(struct device_node *np,
-> >+				      const char *pdev_name, int pdev_id,
-> >  				      struct omap_hwmod *oh, void *pdata,
-> >  				      int pdata_len,
-> >  				      struct omap_device_pm_latency *pm_lats,
-> 
-> That function should not be needed. You have to export
-> omap_device_build_ss, otherwise you will not build any device with
-> multiple hwmods.
-ok.
-> 
-> >@@ -402,12 +405,44 @@ struct platform_device *omap_device_build(const char *pdev_name, int pdev_id,
-> >  	if (!oh)
-> >  		return ERR_PTR(-EINVAL);
-> >
-> >-	return omap_device_build_ss(pdev_name, pdev_id, ohs, 1, pdata,
-> >+	return omap_device_build_ss(np, pdev_name, pdev_id, ohs, 1, pdata,
-> >  				    pdata_len, pm_lats, pm_lats_cnt,
-> >  				    is_early_device);
-> >  }
-> >
-> >  /**
-> >+ * omap_device_build - build and register an omap_device with one omap_hwmod
-> >+ * @pdev_name: name of the platform_device driver to use
-> >+ * @pdev_id: this platform_device's connection ID
-> >+ * @oh: ptr to the single omap_hwmod that backs this omap_device
-> >+ * @pdata: platform_data ptr to associate with the platform_device
-> >+ * @pdata_len: amount of memory pointed to by @pdata
-> >+ * @pm_lats: pointer to a omap_device_pm_latency array for this device
-> >+ * @pm_lats_cnt: ARRAY_SIZE() of @pm_lats
-> >+ * @is_early_device: should the device be registered as an early device or not
-> >+ *
-> >+ * Convenience function for building and registering a single
-> >+ * omap_device record, which in turn builds and registers a
-> >+ * platform_device record.  See omap_device_build_ss() for more
-> >+ * information.  Returns ERR_PTR(-EINVAL) if @oh is NULL; otherwise,
-> >+ * passes along the return value of omap_device_build_ss().
-> >+ */
-> >+struct platform_device *omap_device_build(const char *pdev_name, int pdev_id,
-> >+				      struct omap_hwmod *oh, void *pdata,
-> >+				      int pdata_len,
-> >+				      struct omap_device_pm_latency *pm_lats,
-> >+				      int pm_lats_cnt, int is_early_device)
-> >+{
-> >+	struct omap_hwmod *ohs[] = { oh };
-> >+
-> >+	if (!oh)
-> >+		return ERR_PTR(-EINVAL);
-> >+
-> >+	return omap_device_build_ss(NULL, pdev_name, pdev_id, ohs, 1, pdata,
-> >+			pdata_len, pm_lats, pm_lats_cnt, is_early_device);
-> >+}
-> >+
-> >+/**
-> >   * omap_device_build_ss - build and register an omap_device with multiple hwmods
-> >   * @pdev_name: name of the platform_device driver to use
-> >   * @pdev_id: this platform_device's connection ID
-> >@@ -424,7 +459,8 @@ struct platform_device *omap_device_build(const char *pdev_name, int pdev_id,
-> >   * platform_device record.  Returns an ERR_PTR() on error, or passes
-> >   * along the return value of omap_device_register().
-> >   */
-> >-struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
-> >+struct platform_device *omap_device_build_ss(struct device_node *np,
-> >+					 const char *pdev_name, int pdev_id,
-> >  					 struct omap_hwmod **ohs, int oh_cnt,
-> >  					 void *pdata, int pdata_len,
-> >  					 struct omap_device_pm_latency *pm_lats,
-> >@@ -436,6 +472,7 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
-> >  	struct resource *res = NULL;
-> >  	int i, res_count;
-> >  	struct omap_hwmod **hwmods;
-> >+	struct platform_device *pdev;
-> >
-> >  	if (!ohs || oh_cnt == 0 || !pdev_name)
-> >  		return ERR_PTR(-EINVAL);
-> >@@ -450,6 +487,7 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
-> >  	if (!od)
-> >  		return ERR_PTR(-ENOMEM);
-> >
-> >+	pdev =&od->pdev;
-> 
-> Why do you need that? You are just adding one more user of the pdev.
+...
+> @@ -913,12 +598,15 @@ static int usbhs_enable(struct device *dev)
+>  				(pdata->ehci_data->reset_gpio_port[1], 1);
+>  	}
+>  
+> -end_count:
+> -	omap->count++;
+> +	pm_runtime_put_sync(dev);
+>  	spin_unlock_irqrestore(&omap->lock, flags);
 
-just improve readability otherwise we need to have &od->pdev at multiple places
-below.
+Is pm_runtime_irq_safe() needed (else I think runtime PM callbacks may
+re-enable IRQs... or there's the new *_suspend runtime PM calls that
+may avoid this)?
 
-> 
-> >  	od->hwmods_cnt = oh_cnt;
-> >
-> >  	hwmods = kzalloc(sizeof(struct omap_hwmod *) * oh_cnt,
-> >@@ -465,8 +503,11 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
-> >  		goto odbs_exit2;
-> >  	strcpy(pdev_name2, pdev_name);
-> >
-> >-	od->pdev.name = pdev_name2;
-> >-	od->pdev.id = pdev_id;
-> >+#ifdef CONFIG_OF_DEVICE
-> >+	pdev->dev.of_node = of_node_get(np);
-> >+#endif
-> >+	pdev->name = pdev_name2;
-> >+	pdev->id = pdev_id;
-> >
-> >  	res_count = omap_device_count_resources(od);
-> >  	if (res_count>  0) {
-> >@@ -499,7 +540,7 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
-> >  	if (ret)
-> >  		goto odbs_exit4;
-> >
-> >-	return&od->pdev;
-> >+	return pdev;
-> >
-> >  odbs_exit4:
-> >  	kfree(res);
-> 
-> Regards,
-> Benoit
-> 
-> 
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss@lists.ozlabs.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
+...
+> @@ -266,10 +261,12 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
+>  	struct usb_hcd *hcd	= dev_get_drvdata(dev);
+>  
+>  	usb_remove_hcd(hcd);
+> -	omap_usbhs_disable(dev);
+>  	disable_put_regulator(dev->platform_data);
+> -	iounmap(hcd->regs);
+>  	usb_put_hcd(hcd);
+> +	iounmap(hcd->regs);
+
+
+usb_put_hcd may release the hcd, needs to be after the deref for
+iounmap.
+
+> +	pm_runtime_put_sync(dev);
+> +	pm_runtime_disable(dev);
+
+
+Todd
