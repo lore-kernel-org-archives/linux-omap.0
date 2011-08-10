@@ -1,291 +1,127 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC/PATCH 09/14] dt: omap: prepare hwmod to support dt
-Date: Wed, 10 Aug 2011 19:11:27 +0200
-Message-ID: <4E42BBBF.9060900@ti.com>
-References: <1312897232-4792-1-git-send-email-manjugk@ti.com> <1312897232-4792-10-git-send-email-manjugk@ti.com> <4E4270D3.8070807@ti.com> <20110810162846.GC2091@manju-desktop>
+Subject: Re: [RFC/PATCH 11/14] dt: omap3: add soc file for handling i2c
+	controllers
+Date: Wed, 10 Aug 2011 19:45:42 +0200
+Message-ID: <4E42C3C6.1070806@ti.com>
+References: <1312897232-4792-1-git-send-email-manjugk@ti.com>
+	<1312897232-4792-12-git-send-email-manjugk@ti.com>
+	<4E427B62.1000907@ti.com> <20110810165745.GB2705@manju-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54466 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752409Ab1HJRLk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Aug 2011 13:11:40 -0400
-In-Reply-To: <20110810162846.GC2091@manju-desktop>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110810165745.GB2705@manju-desktop>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>
 Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
-On 8/10/2011 6:28 PM, G, Manjunath Kondaiah wrote:
-> On Wed, Aug 10, 2011 at 01:51:47PM +0200, Cousson, Benoit wrote:
->> Hi Manju,
->>
++ Tony
+
+On 8/10/2011 6:57 PM, G, Manjunath Kondaiah wrote:
+> On Wed, Aug 10, 2011 at 02:36:50PM +0200, Cousson, Benoit wrote:
 >> On 8/9/2011 4:10 PM, G, Manjunath Kondaiah wrote:
 >>>
->>> The omap dt requires new omap hwmod api to be added for in order
->>> to support omap dt.
->>
->> Both the subject and the changelog are misleading. You are not doing
->> any hwmod stuff in it.
->> You are just passing an "of_node" pointer during omap_device_build_ss.
->>
->> The subject should start with OMAP: omap_device: because it does not
->> belong to the DT subsystem.
->> The same comment apply to most patches in that series.
->
-> The goal of this patch is to make omap-hwmod ready for dt adaptation hence
-> I used the title "dt: omap: prepare hwmod to support dt" and "of_node" pointer
-> is passed from dt and it is required for dt build.
-
-I think that the goal of this patch is to update the 
-omap_device_build_ss API in order to provide a device tree node pointer 
-to pdev. For the moment there is nothing related to hwmod.
-
-> And as you mentioned, patch does not do anything related to omap_device.
-
-You meant omap_hwmod?
-
-Benoit
-
->>> The new api is added and new parameter "np" is added for existing
->>> api.
->>
->> I don't think np is not a super meaningful name. Some more
->> explanation are needed as well.
->
-> ok. I can expand it.
->
->>
->>> The users of hwmod api is changed accrodingly.
->>
->> omap_device API + typo.
->>
->>> Build and boot tested on omap3 beagle for both dt and not dt build.
+>>> Add omap3 soc file for handling omap3 soc i2c controllers existing
+>>> on l4-core bus.
 >>>
 >>> Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
 >>> ---
->>>   arch/arm/mach-omap2/devices.c                 |    2 +-
->>>   arch/arm/mach-omap2/mcbsp.c                   |    2 +-
->>>   arch/arm/plat-omap/include/plat/omap_device.h |   11 +++++-
->>>   arch/arm/plat-omap/omap_device.c              |   53 ++++++++++++++++++++++---
->>>   4 files changed, 59 insertions(+), 9 deletions(-)
+>>>   arch/arm/boot/dts/omap3-soc.dtsi |   62 ++++++++++++++++++++++++++++++++++++++
+>>>   1 files changed, 62 insertions(+), 0 deletions(-)
+>>>   create mode 100644 arch/arm/boot/dts/omap3-soc.dtsi
 >>>
->>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
->>> index 458f7be..d7ff1ae 100644
->>> --- a/arch/arm/mach-omap2/devices.c
->>> +++ b/arch/arm/mach-omap2/devices.c
->>> @@ -92,7 +92,7 @@ static int __init omap4_l3_init(void)
->>>   			pr_err("could not look up %s\n", oh_name);
->>>   	}
->>>
->>> -	pdev = omap_device_build_ss("omap_l3_noc", 0, oh, 3, NULL,
->>> +	pdev = omap_device_build_ss(NULL, "omap_l3_noc", 0, oh, 3, NULL,
->>>   						     0, NULL, 0, 0);
->>
->> OK, maybe that is just me, but in order to extend an API, I'd rather
->> add the new parameter at the end.
->
-> I feel it's fine since node pointer is first parameter is all dt api's.
->
->>
->>>   	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
->>> diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
->>> index 7a42f32..98eb95d 100644
->>> --- a/arch/arm/mach-omap2/mcbsp.c
->>> +++ b/arch/arm/mach-omap2/mcbsp.c
->>> @@ -144,7 +144,7 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
->>>   		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
->>>   		count++;
->>>   	}
->>> -	pdev = omap_device_build_ss(name, id, oh_device, count, pdata,
->>> +	pdev = omap_device_build_ss(NULL, name, id, oh_device, count, pdata,
->>>   				sizeof(*pdata), omap2_mcbsp_latency,
->>>   				ARRAY_SIZE(omap2_mcbsp_latency), false);
->>>   	kfree(pdata);
->>> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
->>> index 7a3ec4f..5e2424b 100644
->>> --- a/arch/arm/plat-omap/include/plat/omap_device.h
->>> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
->>> @@ -33,6 +33,7 @@
->>>
->>>   #include<linux/kernel.h>
->>>   #include<linux/platform_device.h>
->>> +#include<linux/of.h>
->>>
->>>   #include<plat/omap_hwmod.h>
->>>
->>> @@ -89,12 +90,20 @@ struct platform_device *omap_device_build(const char *pdev_name, int pdev_id,
->>>   				      struct omap_device_pm_latency *pm_lats,
->>>   				      int pm_lats_cnt, int is_early_device);
->>>
->>> -struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->>> +struct platform_device *omap_device_build_ss(struct device_node *np,
->>> +					 const char *pdev_name, int pdev_id,
->>>   					 struct omap_hwmod **oh, int oh_cnt,
->>>   					 void *pdata, int pdata_len,
->>>   					 struct omap_device_pm_latency *pm_lats,
->>>   					 int pm_lats_cnt, int is_early_device);
->>>
->>> +struct platform_device *omap_device_build_dt(struct device_node *np,
->>> +				      const char *pdev_name, int pdev_id,
->>> +				      struct omap_hwmod *oh, void *pdata,
->>> +				      int pdata_len,
->>> +				      struct omap_device_pm_latency *pm_lats,
->>> +				      int pm_lats_cnt, int is_early_device);
->>> +
->>>   void __iomem *omap_device_get_rt_va(struct omap_device *od);
->>>
->>>   /* OMAP PM interface */
->>> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
->>> index 7d5e76b..fa49168 100644
->>> --- a/arch/arm/plat-omap/omap_device.c
->>> +++ b/arch/arm/plat-omap/omap_device.c
->>> @@ -85,6 +85,7 @@
->>>   #include<linux/clk.h>
->>>   #include<linux/clkdev.h>
->>>   #include<linux/pm_runtime.h>
->>> +#include<linux/of_device.h>
->>>
->>>   #include<plat/omap_device.h>
->>>   #include<plat/omap_hwmod.h>
->>> @@ -377,6 +378,7 @@ static int omap_device_fill_resources(struct omap_device *od,
->>>   /**
->>>    * omap_device_build - build and register an omap_device with one omap_hwmod
->>
->> Need to update the kerneldoc.
-> ok.
->>
->>>    * @pdev_name: name of the platform_device driver to use
->>> + * @np: device node pointer for attaching it to of_node pointer
->>>    * @pdev_id: this platform_device's connection ID
->>>    * @oh: ptr to the single omap_hwmod that backs this omap_device
->>>    * @pdata: platform_data ptr to associate with the platform_device
->>> @@ -391,7 +393,8 @@ static int omap_device_fill_resources(struct omap_device *od,
->>>    * information.  Returns ERR_PTR(-EINVAL) if @oh is NULL; otherwise,
->>>    * passes along the return value of omap_device_build_ss().
->>>    */
->>> -struct platform_device *omap_device_build(const char *pdev_name, int pdev_id,
->>> +struct platform_device *omap_device_build_dt(struct device_node *np,
->>> +				      const char *pdev_name, int pdev_id,
->>>   				      struct omap_hwmod *oh, void *pdata,
->>>   				      int pdata_len,
->>>   				      struct omap_device_pm_latency *pm_lats,
->>
->> That function should not be needed. You have to export
->> omap_device_build_ss, otherwise you will not build any device with
->> multiple hwmods.
-> ok.
->>
->>> @@ -402,12 +405,44 @@ struct platform_device *omap_device_build(const char *pdev_name, int pdev_id,
->>>   	if (!oh)
->>>   		return ERR_PTR(-EINVAL);
->>>
->>> -	return omap_device_build_ss(pdev_name, pdev_id, ohs, 1, pdata,
->>> +	return omap_device_build_ss(np, pdev_name, pdev_id, ohs, 1, pdata,
->>>   				    pdata_len, pm_lats, pm_lats_cnt,
->>>   				    is_early_device);
->>>   }
->>>
->>>   /**
->>> + * omap_device_build - build and register an omap_device with one omap_hwmod
->>> + * @pdev_name: name of the platform_device driver to use
->>> + * @pdev_id: this platform_device's connection ID
->>> + * @oh: ptr to the single omap_hwmod that backs this omap_device
->>> + * @pdata: platform_data ptr to associate with the platform_device
->>> + * @pdata_len: amount of memory pointed to by @pdata
->>> + * @pm_lats: pointer to a omap_device_pm_latency array for this device
->>> + * @pm_lats_cnt: ARRAY_SIZE() of @pm_lats
->>> + * @is_early_device: should the device be registered as an early device or not
+>>> diff --git a/arch/arm/boot/dts/omap3-soc.dtsi b/arch/arm/boot/dts/omap3-soc.dtsi
+>>> new file mode 100644
+>>> index 0000000..85de92f
+>>> --- /dev/null
+>>> +++ b/arch/arm/boot/dts/omap3-soc.dtsi
+>>> @@ -0,0 +1,62 @@
+>>> +/*
+>>> + * Device Tree Source for OMAP3 SoC
 >>> + *
->>> + * Convenience function for building and registering a single
->>> + * omap_device record, which in turn builds and registers a
->>> + * platform_device record.  See omap_device_build_ss() for more
->>> + * information.  Returns ERR_PTR(-EINVAL) if @oh is NULL; otherwise,
->>> + * passes along the return value of omap_device_build_ss().
+>>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+>>> + *
+>>> + * This file is licensed under the terms of the GNU General Public License
+>>> + * version 2.  This program is licensed "as is" without any warranty of any
+>>> + * kind, whether express or implied.
 >>> + */
->>> +struct platform_device *omap_device_build(const char *pdev_name, int pdev_id,
->>> +				      struct omap_hwmod *oh, void *pdata,
->>> +				      int pdata_len,
->>> +				      struct omap_device_pm_latency *pm_lats,
->>> +				      int pm_lats_cnt, int is_early_device)
->>> +{
->>> +	struct omap_hwmod *ohs[] = { oh };
 >>> +
->>> +	if (!oh)
->>> +		return ERR_PTR(-EINVAL);
+>>> +/dts-v1/;
+>>> +/include/ "skeleton.dtsi"
 >>> +
->>> +	return omap_device_build_ss(NULL, pdev_name, pdev_id, ohs, 1, pdata,
->>> +			pdata_len, pm_lats, pm_lats_cnt, is_early_device);
->>> +}
+>>> +/ {
+>>> +	#address-cells =<1>;
+>>> +	#size-cells =<1>;
+>>> +	model = "ti,omap3";
 >>> +
->>> +/**
->>>    * omap_device_build_ss - build and register an omap_device with multiple hwmods
->>>    * @pdev_name: name of the platform_device driver to use
->>>    * @pdev_id: this platform_device's connection ID
->>> @@ -424,7 +459,8 @@ struct platform_device *omap_device_build(const char *pdev_name, int pdev_id,
->>>    * platform_device record.  Returns an ERR_PTR() on error, or passes
->>>    * along the return value of omap_device_register().
->>>    */
->>> -struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->>> +struct platform_device *omap_device_build_ss(struct device_node *np,
->>> +					 const char *pdev_name, int pdev_id,
->>>   					 struct omap_hwmod **ohs, int oh_cnt,
->>>   					 void *pdata, int pdata_len,
->>>   					 struct omap_device_pm_latency *pm_lats,
->>> @@ -436,6 +472,7 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->>>   	struct resource *res = NULL;
->>>   	int i, res_count;
->>>   	struct omap_hwmod **hwmods;
->>> +	struct platform_device *pdev;
->>>
->>>   	if (!ohs || oh_cnt == 0 || !pdev_name)
->>>   		return ERR_PTR(-EINVAL);
->>> @@ -450,6 +487,7 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->>>   	if (!od)
->>>   		return ERR_PTR(-ENOMEM);
->>>
->>> +	pdev =&od->pdev;
+>>> +	aliases {
+>>> +		i2c1 =&i2c1;
+>>> +		i2c2 =&i2c2;
+>>> +		i2c3 =&i2c3;
+>>> +	};
+>>> +
+>>> +	l4-core {
 >>
->> Why do you need that? You are just adding one more user of the pdev.
->
-> just improve readability otherwise we need to have&od->pdev at multiple places
-> below.
->
->>
->>>   	od->hwmods_cnt = oh_cnt;
->>>
->>>   	hwmods = kzalloc(sizeof(struct omap_hwmod *) * oh_cnt,
->>> @@ -465,8 +503,11 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->>>   		goto odbs_exit2;
->>>   	strcpy(pdev_name2, pdev_name);
->>>
->>> -	od->pdev.name = pdev_name2;
->>> -	od->pdev.id = pdev_id;
->>> +#ifdef CONFIG_OF_DEVICE
->>> +	pdev->dev.of_node = of_node_get(np);
->>> +#endif
->>> +	pdev->name = pdev_name2;
->>> +	pdev->id = pdev_id;
->>>
->>>   	res_count = omap_device_count_resources(od);
->>>   	if (res_count>   0) {
->>> @@ -499,7 +540,7 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->>>   	if (ret)
->>>   		goto odbs_exit4;
->>>
->>> -	return&od->pdev;
->>> +	return pdev;
->>>
->>>   odbs_exit4:
->>>   	kfree(res);
->>
->> Regards,
->> Benoit
->>
->>
->> _______________________________________________
->> devicetree-discuss mailing list
->> devicetree-discuss@lists.ozlabs.org
->> https://lists.ozlabs.org/listinfo/devicetree-discuss
+>> That comment is probably subject to discussion, but even if this
+>> interconnect is there physically, I'm not sure of the added value to
+>> add it.
+>> It will add an extra level of indentation and that all. Moreover, it
+>> will mess up the physical address that are expressed using absolute
+>> value in the TRM with a less readable offset value.
+>> In fact, most DTS files in the ARM directory are using a purely flat
+>> representation of the interconnect.
+> This is as per alignment with Tony and Grant:
+> http://permalink.gmane.org/gmane.linux.ports.arm.omap/60391
 
+So I'm asking the same question to Grant and Tony then:-)
+
+>>> +		compatible = "ti,omap3-l4-core";
+>>
+>> Assuming we will keep that, you should probably add a more generic
+>> compatible name after that one. Like "ti,s3220" or even
+>> "sonics,s3220", assuming that this IP is generic enough for other
+>> SoC.
+> will check this. I don't remember any generic names.
+>>
+>>> +		#address-cells =<1>;
+>>> +		#size-cells =<1>;
+>>> +		ranges =<0 0x48000000 0x1000000>;
+>>> +
+>>> +		i2c1: i2c@70000 {
+>>> +			#address-cells =<1>;
+>>> +			#size-cells =<0>;
+>>> +			compatible = "ti,omap3-i2c";
+>>
+>> The I2C IP and thus the driver is generic across OMAP generations
+>> and is even potentially used by other non-OMAP TI chips like DSP or
+>> Davinci. So having an extra compatible entry with "ti,i2c" or "ti,
+>> omap-i2c" seems mandatory.
+> This can be updated as and when new soc/board adaptations are done.
+> As of now, it is omap3 and when we have omap4 it will be appended with
+> "ti,omap4-i2c" etc
+
+To infinity and beyond?
+
+There is no need, and we should absolutely not update the driver each 
+time we introduce a new SoC version/revision.
+The driver should match with the generic device name in that case. Until 
+we change the IP and potentially introduce a new driver.
+
+BTW, even omap3 should not be in the name in theory. It should be 
+potentially "ti,i2c-v3" or whatever HW version the IP is using.
+But for some reason, most devices are using such convention in existing 
+DTS:-(
+This is probably due to the lack of well identified IP version in most 
+SoC... including OMAP:-)
+
+
+Benoit
