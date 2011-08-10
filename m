@@ -1,98 +1,90 @@
-From: Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH 2/2] omap3: ISP: Kernel crash when attempting suspend
-Date: Wed, 10 Aug 2011 19:33:26 +0530
-Message-ID: <1312985006-19345-1-git-send-email-deepthy.ravi@ti.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [beagleboard] EHCI softirq kernel panic
+Date: Wed, 10 Aug 2011 10:11:48 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1108101009180.1917-100000@iolanthe.rowland.org>
+References: <20110809222012.GB4008@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52556 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752371Ab1HJODg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Aug 2011 10:03:36 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110809222012.GB4008-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, "Kridner, Jason" <jdk-l0cyMroinI0@public.gmane.org>, "Kooi, Koen" <k-kooi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, mchehab@infradead.org, laurent.pinchart@ideasonboard.com
-Cc: linux-omap@vger.kernel.org, Abhilash K V <abhilash.kv@ti.com>, Deepthy Ravi <deepthy.ravi@ti.com>
 
-From: Abhilash K V <abhilash.kv@ti.com>
+On Wed, 10 Aug 2011, Felipe Balbi wrote:
 
-This patch fixes the kernel crash introduced by the previous 
-patch: 
-	omap3: ISP: Fix the failure of CCDC capture during 
-	suspend/resume.
-This null pointer exception happens when attempting suspend
-while the ISP driver is not being used. The current patch
-fixes this by deferring the code (as introduced in the
-aforementioned patch) to handle  buffer-starvation to get
-called only if the ISP reference count is non-zero.
-An additional safety check is also added to ensure that
-buffer-starvation logic kicks in for an empty dmaqueue only
-if the ISP pipeline is not in the stopped state.
+> Hi,
+>=20
+> On Tue, Aug 09, 2011 at 02:30:14PM -0400, Jason Kridner wrote:
+> > On Tue, Aug 9, 2011 at 1:51 PM, Joel A Fernandes <agnel.joel@gmail.=
+com> wrote:
+> > > Anyone seen this before?
+> >=20
+> > A lot of the kernel developers don't frequent the beagleboard list.
+> > If you think it is a general kernel bug, I suspect you want to copy
+> > linux-omap.
+>=20
+> and linux-usb, and Alan Stern as he's the EHCI maintainer and myself =
+for
+> the OMAP USB part ;-)
+>=20
+> > > Trying to boot 3.0.0 with OE patches from an SD Card, and with a
+> > > network cable connected results in the following traceback.
+> > > Not connecting a network cable makes the errors go away.
 
-Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
-Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
----
- drivers/media/video/omap3isp/isp.c      |   12 ++++++------
- drivers/media/video/omap3isp/ispvideo.c |    4 +++-
- 2 files changed, 9 insertions(+), 7 deletions(-)
+> > > [ =A0 99.084899] Unable to handle kernel NULL pointer dereference=
+ at
+> > > virtual address 00000000
+> > > [ =A0 99.093383] pgd =3D c0004000
+> > > [ =A0 99.096191] [00000000] *pgd=3D00000000
+> > > [ =A0 99.099945] Internal error: Oops: 17 [#2]
+> > > [ =A0 99.104125] Modules linked in: ipv6
+> > > [ =A0 99.107788] CPU: 0 =A0 =A0Tainted: G =A0 =A0 =A0D =A0 =A0 =A0=
+(3.0.0+ #1)
+> > > [ =A0 99.113342] PC is at ehci_quiesce+0xc/0x94
+> > > [ =A0 99.117614] LR is at ehci_stop+0x34/0x8c
+> > > [ =A0 99.121734] pc : [<c0325ce4>] =A0 =A0lr : [<c0328bfc>] =A0 =A0=
+psr: 200001d3
+> > > [ =A0 99.121734] sp : c064de70 =A0ip : 00000108 =A0fp : c06b8624
+> > > [ =A0 99.133728] r10: c064dec0 =A0r9 : 00000000 =A0r8 : dee08504
+> > > [ =A0 99.139190] r7 : c0328b94 =A0r6 : 00000100 =A0r5 : dee08504 =
+=A0r4 : dee08608
+> > > [ =A0 99.145996] r3 : 00000000 =A0r2 : dee086ec =A0r1 : dee086b8 =
+=A0r0 : dee08608
+> > > [ =A0 99.152832] Flags: nzCv =A0IRQs off =A0FIQs off =A0Mode SVC_=
+32 =A0ISA ARM
+> > > Segment kernel
+> > > [ =A0 99.160644] Control: 10c5387d =A0Table: 9d804019 =A0DAC: 000=
+00015
+> > > [ =A0 99.166656] Process swapper (pid: 0, stack limit =3D 0xc064c=
+2f0)
+> > > [ =A0 99.172760] Stack: (0xc064de70 to 0xc064e000)
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 6604fbd..6acdedc 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -1573,6 +1573,9 @@ static int isp_pm_prepare(struct device *dev)
- 	unsigned long flags;
- 
- 	WARN_ON(mutex_is_locked(&isp->isp_mutex));
-+	if (isp->ref_count == 0)
-+		return 0;
-+
- 	spin_lock_irqsave(&pipe->lock, flags);
- 	pipe->state |= ISP_PIPELINE_PREPARE_SUSPEND;
- 	spin_unlock_irqrestore(&pipe->lock, flags);
-@@ -1581,9 +1584,6 @@ static int isp_pm_prepare(struct device *dev)
- 	if (err < 0)
- 		return err;
- 
--	if (isp->ref_count == 0)
--		return 0;
--
- 	reset = isp_suspend_modules(isp);
- 	isp_disable_interrupts(isp);
- 	isp_save_ctx(isp);
-@@ -1613,13 +1613,13 @@ static int isp_pm_resume(struct device *dev)
- 	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
- 	unsigned long flags;
- 
-+	if (isp->ref_count == 0)
-+		return 0;
-+
- 	spin_lock_irqsave(&pipe->lock, flags);
- 	pipe->state &= ~ISP_PIPELINE_PREPARE_SUSPEND;
- 	spin_unlock_irqrestore(&pipe->lock, flags);
- 
--	if (isp->ref_count == 0)
--		return 0;
--
- 	return isp_enable_clocks(isp);
- }
- 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index bf149a7..ffb339c 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -726,8 +726,10 @@ int isp_video_handle_buffer_starvation(struct isp_video *video)
- 	struct isp_video_queue *queue = video->queue;
- 	struct isp_video_buffer *buf;
- 	struct list_head *head = &video->dmaqueue;
-+	struct isp_ccdc_device *ccdc = &video->isp->isp_ccdc;
- 
--	if (list_empty(&video->dmaqueue)) {
-+	if (list_empty(&video->dmaqueue)
-+		&& ccdc->state != ISP_PIPELINE_STREAM_STOPPED) {
- 		err = isp_video_deq_enq(queue);
- 	} else if (head->next->next == head) {
- 		/* only one buffer is left on dmaqueue */
--- 
-1.7.0.4
+> > > [ =A0 99.288482] [<c0325ce4>] (ehci_quiesce+0xc/0x94) from [<c032=
+8bfc>]
+> > > (ehci_stop+0x34/0x8c)
+> > > [ =A0 99.296936] [<c0328bfc>] (ehci_stop+0x34/0x8c) from [<c007a3=
+d4>]
+> > > (run_timer_softirq+0x15c/0x1f8)
+> > > [ =A0 99.306121] [<c007a3d4>] (run_timer_softirq+0x15c/0x1f8) fro=
+m
+> > > [<c064dec0>] (0xc064dec0)
+> > > [ =A0 99.314483] Code: c05d7f9a e92d4073 e1a04000 e5903004 (e5933=
+000)
+> > > [ =A0 99.320892] ---[ end trace 4ae88755f08e391f ]---
+> > > [ =A0 99.325714] Kernel panic - not syncing: Fatal exception in i=
+nterrupt
 
+I'm puzzled.  Why is ehci_stop getting called in a softirq context? =20
+That should never happen.  It should get called only when the driver is=
+=20
+unbound from the controller.
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
