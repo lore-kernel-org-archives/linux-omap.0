@@ -1,25 +1,27 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: mach-omap2: mux: use kstrdup()
-Date: Wed, 10 Aug 2011 04:54:23 -0700
-Message-ID: <20110810115423.GI1939@atomide.com>
-References: <1312622953.5589.65.camel@localhost.localdomain>
+Subject: Re: [PATCH] OMAP3: am3517crane: remove NULL board_mux from board
+ file
+Date: Wed, 10 Aug 2011 04:55:17 -0700
+Message-ID: <20110810115517.GJ1939@atomide.com>
+References: <1312907305-24134-1-git-send-email-jhovold@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:32807 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753118Ab1HJLzT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 07:55:19 -0400
 Content-Disposition: inline
-In-Reply-To: <1312622953.5589.65.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Meyer <thomas@m3y3r.de>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1312907305-24134-1-git-send-email-jhovold@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Johan Hovold <jhovold@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Thomas Meyer <thomas@m3y3r.de> [110806 02:24]:
-> From: Thomas Meyer <thomas@m3y3r.de>
-> 
->  Use kstrdup rather than duplicating its implementation
+* Johan Hovold <jhovold@gmail.com> [110809 09:23]:
+> Since 7203f8a48bb63015ebe58a6f2a38aec1cb208b9d (arm: mach-omap2: remove
+> NULL board_mux from board files) NULL board_mux is defined in mux.h.
 
 Thanks applying to fixes.
-
-Regards,
 
 Tony
