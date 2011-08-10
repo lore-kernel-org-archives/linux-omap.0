@@ -1,63 +1,53 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH 4/6] OMAP4: Temperature sensor device support
-Date: Wed, 10 Aug 2011 16:17:05 +0200
-Message-ID: <4E4292E1.2070504@ti.com>
-References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com> <1312979122-5896-5-git-send-email-j-keerthy@ti.com> <20110810123647.GF12882@legolas.emea.dhcp.ti.com> <20110810124102.GM1939@atomide.com> <20110810124800.GK12882@legolas.emea.dhcp.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] omap: timer: Set dmtimer used as clocksource in
+ autoreload mode
+Date: Wed, 10 Aug 2011 07:37:32 -0700
+Message-ID: <20110810143732.GN1939@atomide.com>
+References: <1312982375-11848-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44046 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751298Ab1HJORh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Aug 2011 10:17:37 -0400
-In-Reply-To: <20110810124800.GK12882@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1312982375-11848-1-git-send-email-hemantp@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hemant Pedanekar <hemantp@ti.com>
+Cc: linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "J, KEERTHY" <j-keerthy@ti.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On 8/10/2011 2:48 PM, Balbi, Felipe wrote:
-> Hi,
->
-> On Wed, Aug 10, 2011 at 05:41:02AM -0700, Tony Lindgren wrote:
->> * Felipe Balbi<balbi@ti.com>  [110810 05:31]:
->>>
->>> On Wed, Aug 10, 2011 at 05:55:20PM +0530, Keerthy wrote:
->>>> +
->>>> +int __init omap_devinit_temp_sensor(void)
->>>> +{
->>>> +	if (!cpu_is_omap446x())
->>>> +		return 0;
->>>> +
->>>> +	return omap_hwmod_for_each_by_class("temperature_sensor",
->>>> +			temp_sensor_dev_init, NULL);
->>>> +}
->>>> +
->>>> +arch_initcall(omap_devinit_temp_sensor);
->>>
->>> I really dislike people adding more and more *initcall() to their pieces
->>> of code. But Tony is the final Judge.
->>
->> Yes how about making this just a regular device driver and have it
->> live under drivers/ somewhere?
->>
->> Or is there some reason why this could not be a loadable module?
->
-> driver is loadable, this is just creating the platform_device, but still
-> I don't think it deserves its own arch_initcall(), it could very well be
-> something which is called after we know we're running at omap4, or
-> called by each board...
+* Hemant Pedanekar <hemantp@ti.com> [110810 06:14]:
+> If CONFIG_OMAP_32K_TIMER is not selected and dmtimer is used as clocksource, the
+> timer stops counting once overflow occurs as it was not set in autoreload mode.
+> This results into timekeeping failure: for example, 'sleep 1' at the shell after
+> the timer counter overflow would hang.
+> 
+> This patch sets up autoreload when starting the clocksource timer which fixes
+> the above issue.
 
-Funny, because I thought we were trying to get rid of the ugly init 
-devices from board file to use *initcall() from a dedicated device file.
-The advantage is that you do not have anymore a central place that 
-everybody will change and that is thus subject to merge conflicts.
+Thanks for updating this, will apply into fixes.
 
-The drawback is that you do not know where an when the devices are created.
+Tony
 
-That being said, device-tree will provide a nice way to build all this 
-devices without any initcall or board hacks.
-This is just a temporary issue :-)
 
-Benoit
+> 
+> Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
+> ---
+>  arch/arm/mach-omap2/timer.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index e964072..cf1de7d 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -293,7 +293,8 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
+>  	pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
+>  		gptimer_id, clksrc.rate);
+>  
+> -	__omap_dm_timer_load_start(clksrc.io_base, OMAP_TIMER_CTRL_ST, 0, 1);
+> +	__omap_dm_timer_load_start(clksrc.io_base,
+> +			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
+>  	init_sched_clock(&cd, dmtimer_update_sched_clock, 32, clksrc.rate);
+>  
+>  	if (clocksource_register_hz(&clocksource_gpt, clksrc.rate))
+> -- 
+> 1.7.3.5
+> 
