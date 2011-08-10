@@ -1,90 +1,63 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [beagleboard] EHCI softirq kernel panic
-Date: Wed, 10 Aug 2011 10:11:48 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1108101009180.1917-100000@iolanthe.rowland.org>
-References: <20110809222012.GB4008@legolas.emea.dhcp.ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC PATCH 4/6] OMAP4: Temperature sensor device support
+Date: Wed, 10 Aug 2011 16:17:05 +0200
+Message-ID: <4E4292E1.2070504@ti.com>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com> <1312979122-5896-5-git-send-email-j-keerthy@ti.com> <20110810123647.GF12882@legolas.emea.dhcp.ti.com> <20110810124102.GM1939@atomide.com> <20110810124800.GK12882@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110809222012.GB4008-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, "Kridner, Jason" <jdk-l0cyMroinI0@public.gmane.org>, "Kooi, Koen" <k-kooi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44046 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751298Ab1HJORh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Aug 2011 10:17:37 -0400
+In-Reply-To: <20110810124800.GK12882@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Balbi, Felipe" <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "J, KEERTHY" <j-keerthy@ti.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Wed, 10 Aug 2011, Felipe Balbi wrote:
-
+On 8/10/2011 2:48 PM, Balbi, Felipe wrote:
 > Hi,
->=20
-> On Tue, Aug 09, 2011 at 02:30:14PM -0400, Jason Kridner wrote:
-> > On Tue, Aug 9, 2011 at 1:51 PM, Joel A Fernandes <agnel.joel@gmail.=
-com> wrote:
-> > > Anyone seen this before?
-> >=20
-> > A lot of the kernel developers don't frequent the beagleboard list.
-> > If you think it is a general kernel bug, I suspect you want to copy
-> > linux-omap.
->=20
-> and linux-usb, and Alan Stern as he's the EHCI maintainer and myself =
-for
-> the OMAP USB part ;-)
->=20
-> > > Trying to boot 3.0.0 with OE patches from an SD Card, and with a
-> > > network cable connected results in the following traceback.
-> > > Not connecting a network cable makes the errors go away.
+>
+> On Wed, Aug 10, 2011 at 05:41:02AM -0700, Tony Lindgren wrote:
+>> * Felipe Balbi<balbi@ti.com>  [110810 05:31]:
+>>>
+>>> On Wed, Aug 10, 2011 at 05:55:20PM +0530, Keerthy wrote:
+>>>> +
+>>>> +int __init omap_devinit_temp_sensor(void)
+>>>> +{
+>>>> +	if (!cpu_is_omap446x())
+>>>> +		return 0;
+>>>> +
+>>>> +	return omap_hwmod_for_each_by_class("temperature_sensor",
+>>>> +			temp_sensor_dev_init, NULL);
+>>>> +}
+>>>> +
+>>>> +arch_initcall(omap_devinit_temp_sensor);
+>>>
+>>> I really dislike people adding more and more *initcall() to their pieces
+>>> of code. But Tony is the final Judge.
+>>
+>> Yes how about making this just a regular device driver and have it
+>> live under drivers/ somewhere?
+>>
+>> Or is there some reason why this could not be a loadable module?
+>
+> driver is loadable, this is just creating the platform_device, but still
+> I don't think it deserves its own arch_initcall(), it could very well be
+> something which is called after we know we're running at omap4, or
+> called by each board...
 
-> > > [ =A0 99.084899] Unable to handle kernel NULL pointer dereference=
- at
-> > > virtual address 00000000
-> > > [ =A0 99.093383] pgd =3D c0004000
-> > > [ =A0 99.096191] [00000000] *pgd=3D00000000
-> > > [ =A0 99.099945] Internal error: Oops: 17 [#2]
-> > > [ =A0 99.104125] Modules linked in: ipv6
-> > > [ =A0 99.107788] CPU: 0 =A0 =A0Tainted: G =A0 =A0 =A0D =A0 =A0 =A0=
-(3.0.0+ #1)
-> > > [ =A0 99.113342] PC is at ehci_quiesce+0xc/0x94
-> > > [ =A0 99.117614] LR is at ehci_stop+0x34/0x8c
-> > > [ =A0 99.121734] pc : [<c0325ce4>] =A0 =A0lr : [<c0328bfc>] =A0 =A0=
-psr: 200001d3
-> > > [ =A0 99.121734] sp : c064de70 =A0ip : 00000108 =A0fp : c06b8624
-> > > [ =A0 99.133728] r10: c064dec0 =A0r9 : 00000000 =A0r8 : dee08504
-> > > [ =A0 99.139190] r7 : c0328b94 =A0r6 : 00000100 =A0r5 : dee08504 =
-=A0r4 : dee08608
-> > > [ =A0 99.145996] r3 : 00000000 =A0r2 : dee086ec =A0r1 : dee086b8 =
-=A0r0 : dee08608
-> > > [ =A0 99.152832] Flags: nzCv =A0IRQs off =A0FIQs off =A0Mode SVC_=
-32 =A0ISA ARM
-> > > Segment kernel
-> > > [ =A0 99.160644] Control: 10c5387d =A0Table: 9d804019 =A0DAC: 000=
-00015
-> > > [ =A0 99.166656] Process swapper (pid: 0, stack limit =3D 0xc064c=
-2f0)
-> > > [ =A0 99.172760] Stack: (0xc064de70 to 0xc064e000)
+Funny, because I thought we were trying to get rid of the ugly init 
+devices from board file to use *initcall() from a dedicated device file.
+The advantage is that you do not have anymore a central place that 
+everybody will change and that is thus subject to merge conflicts.
 
-> > > [ =A0 99.288482] [<c0325ce4>] (ehci_quiesce+0xc/0x94) from [<c032=
-8bfc>]
-> > > (ehci_stop+0x34/0x8c)
-> > > [ =A0 99.296936] [<c0328bfc>] (ehci_stop+0x34/0x8c) from [<c007a3=
-d4>]
-> > > (run_timer_softirq+0x15c/0x1f8)
-> > > [ =A0 99.306121] [<c007a3d4>] (run_timer_softirq+0x15c/0x1f8) fro=
-m
-> > > [<c064dec0>] (0xc064dec0)
-> > > [ =A0 99.314483] Code: c05d7f9a e92d4073 e1a04000 e5903004 (e5933=
-000)
-> > > [ =A0 99.320892] ---[ end trace 4ae88755f08e391f ]---
-> > > [ =A0 99.325714] Kernel panic - not syncing: Fatal exception in i=
-nterrupt
+The drawback is that you do not know where an when the devices are created.
 
-I'm puzzled.  Why is ehci_stop getting called in a softirq context? =20
-That should never happen.  It should get called only when the driver is=
-=20
-unbound from the controller.
+That being said, device-tree will provide a nice way to build all this 
+devices without any initcall or board hacks.
+This is just a temporary issue :-)
 
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Benoit
