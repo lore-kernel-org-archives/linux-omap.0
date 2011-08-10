@@ -1,68 +1,53 @@
-From: "Pedanekar, Hemant" <hemantp@ti.com>
-Subject: RE: [PATCH] omap: timer: Set dmtimer used as clocksource in
- autoreload mode
-Date: Wed, 10 Aug 2011 17:55:41 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03ABBBFD56@dbde02.ent.ti.com>
-References: <1312948323-22823-1-git-send-email-hemantp@ti.com>
- <20110810115122.GH1939@atomide.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [RFC PATCH 0/6] OMAP4: Temperature sensor driver
+Date: Wed, 10 Aug 2011 17:55:16 +0530
+Message-ID: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41386 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737Ab1HJMZ7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 08:25:59 -0400
-In-Reply-To: <20110810115122.GH1939@atomide.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:51220 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753096Ab1HJM0I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Aug 2011 08:26:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: lm-sensors@lm-sensors.org
+Cc: vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, rnayak@ti.com, j-keerthy@ti.com
 
-Tony Lindgren wrote on Wednesday, August 10, 2011 5:21 PM:
+Hello,
 
-> * Hemant Pedanekar <hemantp@ti.com> [110809 20:46]:
->> If CONFIG_OMAP_32K_TIMER is not selected and dmtimer is used as
->> clocksource, the timer stops counting once overflow occurs as it was not
->> set in autoreload mode. This results into timekeeping failure: for
->> example, 'sleep 1' at the shell after the timer counter overflow would
->> hang. 
->> 
->> This patch sets up autoreload when starting the clocksource timer which
->> fixes the above issue. 
->> 
->> Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
->> ---
->>  arch/arm/mach-omap2/timer.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
->> index e964072..796b935 100644 --- a/arch/arm/mach-omap2/timer.c
->> +++ b/arch/arm/mach-omap2/timer.c
->> @@ -293,7 +293,7 @@ static void __init
-> omap2_gp_clocksource_init(int gptimer_id,
->>  	pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",  		gptimer_id,
->> clksrc.rate); 
->> 
->> -	__omap_dm_timer_load_start(clksrc.io_base, OMAP_TIMER_CTRL_ST, 0, 1);
->> +	omap_dm_timer_set_load_start(&clksrc, 1, 0);
->>  	init_sched_clock(&cd, dmtimer_update_sched_clock, 32, clksrc.rate);
->> 
->>  	if (clocksource_register_hz(&clocksource_gpt, clksrc.rate))
-> 
-> You should be able to just set the autoreload mode by changing to use
-> OMAP_TIMER_CTRL_POSTED | OMAP_TIMER_CTRL_AR in the
-> __omap_dm_timer_load_start
-> above.
-> 
-> This avoids calling something that might be a loadable module eventually.
-> 
-> Regards,
-> 
-> Tony
+The rfc patch series for the on die temperature sensor driver. I need
+feedback on the overall structure of the driver.
+The rfc patch set has the device file, omap4 on die temperature sensor
+hwmon driver. hwmod, clk support. The patch set compiles
+on top of LO tree Master branch.
 
-Yes, that would be better - I didn't think about loadable module option.
+This patch series is tested for boot-up on OMAP4460. The temperature
+reading and the interrupts generation on crossing the temperature
+thresholds also tested.
 
-Thanks.
-   Hemant
+Keerthy (6):
+  OMAP4: Clock: Associate clocks for OMAP temperature sensor
+  OMAP4: Adding the temperature sensor register set bit fields
+  OMAP4: Hwmod: OMAP temperature sensor
+  OMAP4: Temperature sensor device support
+  OMAP4460: Temperature sensor data
+  OMAP4: On die temperature sensor driver
+
+ arch/arm/mach-omap2/Makefile                       |    3 +-
+ arch/arm/mach-omap2/clock44xx_data.c               |    2 +-
+ .../include/mach/ctrl_module_core_44xx.h           |   70 ++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   61 ++
+ arch/arm/mach-omap2/temp_sensor4460_data.c         |   63 ++
+ arch/arm/mach-omap2/temp_sensor_device.c           |   85 ++
+ arch/arm/plat-omap/Kconfig                         |   12 +
+ .../plat-omap/include/plat/temperature_sensor.h    |   87 ++
+ drivers/hwmon/Kconfig                              |   11 +
+ drivers/hwmon/Makefile                             |    1 +
+ drivers/hwmon/omap_temp_sensor.c                   |  950 ++++++++++++++++++++
+ 11 files changed, 1330 insertions(+), 15 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/temp_sensor4460_data.c
+ create mode 100644 arch/arm/mach-omap2/temp_sensor_device.c
+ create mode 100644 arch/arm/plat-omap/include/plat/temperature_sensor.h
+ create mode 100644 drivers/hwmon/omap_temp_sensor.c
+
