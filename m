@@ -1,85 +1,107 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [RFC/PATCH 12/14] dt: omap3: beagle board: set clock freq for
- i2c devices
-Date: Wed, 10 Aug 2011 22:15:09 +0530
-Message-ID: <20110810164509.GA2705@manju-desktop>
+Subject: Re: [RFC/PATCH 11/14] dt: omap3: add soc file for handling i2c
+ controllers
+Date: Wed, 10 Aug 2011 22:27:45 +0530
+Message-ID: <20110810165745.GB2705@manju-desktop>
 References: <1312897232-4792-1-git-send-email-manjugk@ti.com>
- <1312897232-4792-13-git-send-email-manjugk@ti.com>
- <4E427CD0.7060206@ti.com>
+ <1312897232-4792-12-git-send-email-manjugk@ti.com>
+ <4E427B62.1000907@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:41889 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753238Ab1HJQp2 (ORCPT
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:33001 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752709Ab1HJQ57 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Aug 2011 12:45:28 -0400
-Received: by mail-pz0-f44.google.com with SMTP id 36so2498543pzk.17
-        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 09:45:26 -0700 (PDT)
+	Wed, 10 Aug 2011 12:57:59 -0400
+Received: by mail-pz0-f47.google.com with SMTP id 2so2944809pzk.34
+        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 09:57:56 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <4E427CD0.7060206@ti.com>
+In-Reply-To: <4E427B62.1000907@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Cousson, Benoit" <b-cousson@ti.com>
 Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 
-On Wed, Aug 10, 2011 at 02:42:56PM +0200, Cousson, Benoit wrote:
+On Wed, Aug 10, 2011 at 02:36:50PM +0200, Cousson, Benoit wrote:
 > On 8/9/2011 4:10 PM, G, Manjunath Kondaiah wrote:
 > >
-> >Update omap3 beagle dts file with required clock frequencies for the i2c
-> >client devices existing on beagle board.
-> >
-> >Beagle custom board dts file is cleaned up so that it can coexist with omap3
-> >soc dts file.
+> >Add omap3 soc file for handling omap3 soc i2c controllers existing
+> >on l4-core bus.
 > >
 > >Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
 > >---
-> >  arch/arm/boot/dts/omap3-beagle-nunchuck.dts |   11 +----------
-> >  arch/arm/boot/dts/omap3-beagle.dts          |   18 +++++++++++++++---
-> >  2 files changed, 16 insertions(+), 13 deletions(-)
+> >  arch/arm/boot/dts/omap3-soc.dtsi |   62 ++++++++++++++++++++++++++++++++++++++
+> >  1 files changed, 62 insertions(+), 0 deletions(-)
+> >  create mode 100644 arch/arm/boot/dts/omap3-soc.dtsi
 > >
-> >diff --git a/arch/arm/boot/dts/omap3-beagle-nunchuck.dts b/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
-> >index 2607be5..324ff86 100644
-> >--- a/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
-> >+++ b/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
-> >@@ -1,16 +1,7 @@
-> >  /include/ "omap3-beagle.dts"
-> >
-> >  / {
-> >-	i2c@48072000 {
-> >-		compatible = "ti,omap3-i2c";
-> >-		reg =<0x48072000 0x80>;
-> >-		#address-cells =<1>;
-> >-		#size-cells =<0>;
-> >-
-> >-		eeprom@50 {
-> >-			compatible = "at,at24c01";
-> >-			reg =<  0x50>;
-> >-		};
+> >diff --git a/arch/arm/boot/dts/omap3-soc.dtsi b/arch/arm/boot/dts/omap3-soc.dtsi
+> >new file mode 100644
+> >index 0000000..85de92f
+> >--- /dev/null
+> >+++ b/arch/arm/boot/dts/omap3-soc.dtsi
+> >@@ -0,0 +1,62 @@
+> >+/*
+> >+ * Device Tree Source for OMAP3 SoC
+> >+ *
+> >+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+> >+ *
+> >+ * This file is licensed under the terms of the GNU General Public License
+> >+ * version 2.  This program is licensed "as is" without any warranty of any
+> >+ * kind, whether express or implied.
+> >+ */
+> >+
+> >+/dts-v1/;
+> >+/include/ "skeleton.dtsi"
+> >+
+> >+/ {
+> >+	#address-cells =<1>;
+> >+	#size-cells =<1>;
+> >+	model = "ti,omap3";
+> >+
+> >+	aliases {
+> >+		i2c1 =&i2c1;
+> >+		i2c2 =&i2c2;
+> >+		i2c3 =&i2c3;
+> >+	};
+> >+
+> >+	l4-core {
 > 
-> This change should probably not be there.
-> 
-> >+	i2c@2 {
-> >  		joystick@52 {
-> >  			compatible = "sparkfun,wiichuck";
-> 
-> It looks like someone is having fun with a beagle connected to a Wii
-> nunchuck:-)
-It's custom beagle belong to grant :)
+> That comment is probably subject to discussion, but even if this
+> interconnect is there physically, I'm not sure of the added value to
+> add it.
+> It will add an extra level of indentation and that all. Moreover, it
+> will mess up the physical address that are expressed using absolute
+> value in the TRM with a less readable offset value.
+> In fact, most DTS files in the ARM directory are using a purely flat
+> representation of the interconnect.
+This is as per alignment with Tony and Grant:
+http://permalink.gmane.org/gmane.linux.ports.arm.omap/60391
 
 > 
-> >  			reg =<  0x52>;
-> >diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-> >index 4439466..49a5ac7 100644
-> >--- a/arch/arm/boot/dts/omap3-beagle.dts
-> >+++ b/arch/arm/boot/dts/omap3-beagle.dts
-> >@@ -1,7 +1,19 @@
-> >-/dts-v1/;
-> >-/include/ "skeleton.dtsi"
-> >+/include/ "omap3-soc.dtsi"
+> >+		compatible = "ti,omap3-l4-core";
 > 
-> There is no need for the "-soc" postfix, otherwise all the other
-> SoCs inside DTS directory should have it.
-ok.
+> Assuming we will keep that, you should probably add a more generic
+> compatible name after that one. Like "ti,s3220" or even
+> "sonics,s3220", assuming that this IP is generic enough for other
+> SoC.
+will check this. I don't remember any generic names.
+> 
+> >+		#address-cells =<1>;
+> >+		#size-cells =<1>;
+> >+		ranges =<0 0x48000000 0x1000000>;
+> >+
+> >+		i2c1: i2c@70000 {
+> >+			#address-cells =<1>;
+> >+			#size-cells =<0>;
+> >+			compatible = "ti,omap3-i2c";
+> 
+> The I2C IP and thus the driver is generic across OMAP generations
+> and is even potentially used by other non-OMAP TI chips like DSP or
+> Davinci. So having an extra compatible entry with "ti,i2c" or "ti,
+> omap-i2c" seems mandatory.
+This can be updated as and when new soc/board adaptations are done. 
+As of now, it is omap3 and when we have omap4 it will be appended with
+"ti,omap4-i2c" etc
 
 -M
