@@ -1,63 +1,112 @@
 From: David Gibson <david@gibson.dropbear.id.au>
 Subject: Re: How to handle named resources with DT?
-Date: Wed, 10 Aug 2011 11:29:58 +1000
-Message-ID: <20110810012958.GB23511@yookeroo.fritz.box>
-References: <4E40FC88.5090403@ti.com>
- <20110809162907.GA630@manju-WNB7PBC4801-0006>
- <4E4166F0.9050401@ti.com>
+Date: Wed, 10 Aug 2011 11:52:14 +1000
+Message-ID: <20110810015214.GD23511@yookeroo.fritz.box>
+References: <4E4166F0.9050401@ti.com>
  <CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com>
+ <4E4172A8.3030101@ti.com>
+ <4E417BD5.8080409@freescale.com>
+ <20110809205723.GE11568@ponder.secretlab.ca>
+ <4E41A1B9.1060400@ti.com>
+ <20110809211747.GJ11568@ponder.secretlab.ca>
+ <4E41AA43.1000506@ti.com>
+ <20110809214905.GK11568@ponder.secretlab.ca>
+ <4E41AC5C.20301@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:48144 "EHLO ozlabs.org"
+Received: from ozlabs.org ([203.10.76.45]:34648 "EHLO ozlabs.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751393Ab1HJBqK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Aug 2011 21:46:10 -0400
+	id S1751355Ab1HJBwY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Aug 2011 21:52:24 -0400
 Content-Disposition: inline
-In-Reply-To: <CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com>
+In-Reply-To: <4E41AC5C.20301@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Aug 09, 2011 at 11:23:45AM -0600, Grant Likely wrote:
-> On Tue, Aug 9, 2011 at 10:57 AM, Cousson, Benoit <b-cousson@ti.com> wrote:
-> > Hi Manju,
+On Tue, Aug 09, 2011 at 11:53:32PM +0200, Cousson, Benoit wrote:
+> On 8/9/2011 11:49 PM, Grant Likely wrote:
+> >On Tue, Aug 09, 2011 at 11:44:35PM +0200, Cousson, Benoit wrote:
+> >>On 8/9/2011 11:17 PM, Grant Likely wrote:
+> >>>On Tue, Aug 09, 2011 at 11:08:09PM +0200, Cousson, Benoit wrote:
+> >>>>On 8/9/2011 10:57 PM, Grant Likely wrote:
+> >>>>>On Tue, Aug 09, 2011 at 01:26:29PM -0500, Scott Wood wrote:
+> >>>>>>On 08/09/2011 12:47 PM, Cousson, Benoit wrote:
+> >>>>>>>On 8/9/2011 7:23 PM, Grant Likely wrote:
+> >>>>>>>>There is no analogous mechanism for _byname in the device tree.  The
+> >>>>>>>>DT binding for a device must explicitly state what order the register
+> >>>>>>>>ranges are in.  The driver will need to be adapted.
+> >>>>>>>
+> >>>>>>>That seems to be a small regression for my point of view. Relying on the
+> >>>>>>>order is not super safe. This is not very readable either. That's for
+> >>>>>>>that exact reason that we changed our drivers to use
+> >>>>>>>platform_get_resource_byname. That's probably the reason why that API is
+> >>>>>>>there as well.
+> >>>>>>>For the same IP, the number of entries can vary depending of the SoC
+> >>>>>>>revision.
+> >>>>>>>By using the _byname, we can check if the resource is there or not
+> >>>>>>>without having to care about the position.
+> >>>>>>
+> >>>>>>You could have a named u32 property that contains the reg index, e.g.:
+> >>>>>>
+> >>>>>>dev {
+> >>>>>>	reg =<0x20000 0x200 0x24000 0x200>;
+> >>>>>>	foo-reg =<0>;
+> >>>>>>	bar-reg =<1>;
+> >>>>>>};
+> >>>>>
+> >>>>>That's a little nasty.  A reg-names = "foo", "bar"; would probably be
+> >>>>>better.
+> >>>>
+> >>>>Yep, I agree.
+> >>>>
+> >>>>And what about something like that?
+> >>>>   reg =<0x20000 0x200>, "foo",
+> >>>>	<0x20000 0x200>, "bar" ;
+> >>>>
+> >>>>It is doable?
+> >>>
+> >>>Definitely not.  It would break all existing 'reg' parsing
+> >>>implementations quite badly.
+> >>
+> >>OK, so what about extending the reg attribute to be a reg node?
+> >>
+> >>dev {
+> >>	reg {
+> >>		name = "foo_wrapper";
+> >>		start =<0x10000>;
+> >>		end =<0x200>;
+> >>	}
+> >>	reg {
+> >>		name = "foo";
+> >>		start =<0x20000>;
+> >>		end =<0x200>;
+> >>	}
+> >>}
+> >>
+> >>A little bit more verbose, but at least we can add any attribute we want.
 > >
-> > On 8/9/2011 6:29 PM, G, Manjunath Kondaiah wrote:
-> >>
-> >> Hi Benoit,
-> >>
-> >> On Tue, Aug 09, 2011 at 11:23:20AM +0200, Cousson, Benoit wrote:
-> >>>
-> >>> Hi Grant,
-> >>>
-> >>> Trying to bind hwmod informations with DT, I'm facing a little
-> >>> limitation.
-> >>> A bunch of drivers are using the platform_get_resource_byname, so
-> >>> the name for the resource is needed.
-> >>>
-> >>> The name is used so far for IORESOURCE_MEM, IORESOURCE_IRQ and
-> >>> IORESOURCE_DMA types of resources.
-> >>
-> >> IORESOURCE_MEM and IORESOURCE_IRQ's are fetched from dt blob and
-> >> it will be part of pdev.
-> >
-> > Yes, but without the proper name in the resource structure. It will be then
-> > impossible to use the platform_get_resource_byname function that is
-> > currently used by a bunch of drivers.
+> >That won't work either because that also breaks the existing 'reg'
+> >binding.  Anything you do will need to supplement the existing
+> >binding without changing it in an incompatible way.
 > 
-> There is no analogous mechanism for _byname in the device tree.  The
-> DT binding for a device must explicitly state what order the register
-> ranges are in.  The driver will need to be adapted.
+> OK, but can we add a new attribute then? reg2, reg_ng, reg_plusplus,
+> reg_named...?
 
-Well, the driver proper shouldn't need changing.  It should be
-possible to assign the correct names in the glue which translates the
-DT reg entries into the Linux resource structures.
+He already suggested reg-names to be interpreted in parallel with the
+existing reg property.  The (serious) problem with replacing the reg
+property is that it will break all existing OSes (including old Linux
+versions) that don't understand the new property.
 
-The difficulty with adding th enames to the DT itself is that it
-exposes the essentially Linux-specific names in what's supposed to be
-an OS neutral data structure.
+Of course, the problem with reg-names is that it will be ignored by
+older OSes, and so 'reg' must still be in the correct order.  In which
+case you could argue it's more sensible to just have a static place to
+name mapping in the Linux driver.
+
+In short, yes, named reg elements in the DT would be nice in theory,
+but I'm not convinced it's worth a DT flag day to accomplish it.
 
 -- 
 David Gibson			| I'll have my music baroque, and my code
