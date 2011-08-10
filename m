@@ -1,16 +1,16 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC/PATCH 11/14] dt: omap3: add soc file for handling i2c
-	controllers
-Date: Wed, 10 Aug 2011 19:45:42 +0200
-Message-ID: <4E42C3C6.1070806@ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [RFC/PATCH 09/14] dt: omap: prepare hwmod to support dt
+Date: Wed, 10 Aug 2011 23:33:18 +0530
+Message-ID: <CAC63_iSX0cjauOj=CcTABqgSWAgYRE_G7Qio5y2BrpeRnkhEWQ@mail.gmail.com>
 References: <1312897232-4792-1-git-send-email-manjugk@ti.com>
-	<1312897232-4792-12-git-send-email-manjugk@ti.com>
-	<4E427B62.1000907@ti.com> <20110810165745.GB2705@manju-desktop>
+	<1312897232-4792-10-git-send-email-manjugk@ti.com>
+	<4E4270D3.8070807@ti.com> <20110810162846.GC2091@manju-desktop>
+	<4E42BBBF.9060900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110810165745.GB2705@manju-desktop>
+In-Reply-To: <4E42BBBF.9060900@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,108 +20,45 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
 Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-+ Tony
-
-On 8/10/2011 6:57 PM, G, Manjunath Kondaiah wrote:
-> On Wed, Aug 10, 2011 at 02:36:50PM +0200, Cousson, Benoit wrote:
->> On 8/9/2011 4:10 PM, G, Manjunath Kondaiah wrote:
+On Wed, Aug 10, 2011 at 10:41 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
+> On 8/10/2011 6:28 PM, G, Manjunath Kondaiah wrote:
+>>
+>> On Wed, Aug 10, 2011 at 01:51:47PM +0200, Cousson, Benoit wrote:
 >>>
->>> Add omap3 soc file for handling omap3 soc i2c controllers existing
->>> on l4-core bus.
+>>> Hi Manju,
 >>>
->>> Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
->>> ---
->>>   arch/arm/boot/dts/omap3-soc.dtsi |   62 ++++++++++++++++++++++++++++++++++++++
->>>   1 files changed, 62 insertions(+), 0 deletions(-)
->>>   create mode 100644 arch/arm/boot/dts/omap3-soc.dtsi
+>>> On 8/9/2011 4:10 PM, G, Manjunath Kondaiah wrote:
+>>>>
+>>>> The omap dt requires new omap hwmod api to be added for in order
+>>>> to support omap dt.
 >>>
->>> diff --git a/arch/arm/boot/dts/omap3-soc.dtsi b/arch/arm/boot/dts/omap3-soc.dtsi
->>> new file mode 100644
->>> index 0000000..85de92f
->>> --- /dev/null
->>> +++ b/arch/arm/boot/dts/omap3-soc.dtsi
->>> @@ -0,0 +1,62 @@
->>> +/*
->>> + * Device Tree Source for OMAP3 SoC
->>> + *
->>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
->>> + *
->>> + * This file is licensed under the terms of the GNU General Public License
->>> + * version 2.  This program is licensed "as is" without any warranty of any
->>> + * kind, whether express or implied.
->>> + */
->>> +
->>> +/dts-v1/;
->>> +/include/ "skeleton.dtsi"
->>> +
->>> +/ {
->>> +	#address-cells =<1>;
->>> +	#size-cells =<1>;
->>> +	model = "ti,omap3";
->>> +
->>> +	aliases {
->>> +		i2c1 =&i2c1;
->>> +		i2c2 =&i2c2;
->>> +		i2c3 =&i2c3;
->>> +	};
->>> +
->>> +	l4-core {
+>>> Both the subject and the changelog are misleading. You are not doing
+>>> any hwmod stuff in it.
+>>> You are just passing an "of_node" pointer during omap_device_build_ss.
+>>>
+>>> The subject should start with OMAP: omap_device: because it does not
+>>> belong to the DT subsystem.
+>>> The same comment apply to most patches in that series.
 >>
->> That comment is probably subject to discussion, but even if this
->> interconnect is there physically, I'm not sure of the added value to
->> add it.
->> It will add an extra level of indentation and that all. Moreover, it
->> will mess up the physical address that are expressed using absolute
->> value in the TRM with a less readable offset value.
->> In fact, most DTS files in the ARM directory are using a purely flat
->> representation of the interconnect.
-> This is as per alignment with Tony and Grant:
-> http://permalink.gmane.org/gmane.linux.ports.arm.omap/60391
+>> The goal of this patch is to make omap-hwmod ready for dt adaptation hence
+>> I used the title "dt: omap: prepare hwmod to support dt" and "of_node"
+>> pointer
+>> is passed from dt and it is required for dt build.
+>
+> I think that the goal of this patch is to update the omap_device_build_ss
+> API in order to provide a device tree node pointer to pdev. For the moment
+> there is nothing related to hwmod.
+yes. it is to update  *_ss api with device node pointer and introduce new
+api exported for dt builds.  I can update with this description.
+>
+>> And as you mentioned, patch does not do anything related to omap_device.
+>
+> You meant omap_hwmod?
 
-So I'm asking the same question to Grant and Tony then:-)
+Yes. It should be "omap: omap_hwmod: add device node pointer"
 
->>> +		compatible = "ti,omap3-l4-core";
->>
->> Assuming we will keep that, you should probably add a more generic
->> compatible name after that one. Like "ti,s3220" or even
->> "sonics,s3220", assuming that this IP is generic enough for other
->> SoC.
-> will check this. I don't remember any generic names.
->>
->>> +		#address-cells =<1>;
->>> +		#size-cells =<1>;
->>> +		ranges =<0 0x48000000 0x1000000>;
->>> +
->>> +		i2c1: i2c@70000 {
->>> +			#address-cells =<1>;
->>> +			#size-cells =<0>;
->>> +			compatible = "ti,omap3-i2c";
->>
->> The I2C IP and thus the driver is generic across OMAP generations
->> and is even potentially used by other non-OMAP TI chips like DSP or
->> Davinci. So having an extra compatible entry with "ti,i2c" or "ti,
->> omap-i2c" seems mandatory.
-> This can be updated as and when new soc/board adaptations are done.
-> As of now, it is omap3 and when we have omap4 it will be appended with
-> "ti,omap4-i2c" etc
-
-To infinity and beyond?
-
-There is no need, and we should absolutely not update the driver each 
-time we introduce a new SoC version/revision.
-The driver should match with the generic device name in that case. Until 
-we change the IP and potentially introduce a new driver.
-
-BTW, even omap3 should not be in the name in theory. It should be 
-potentially "ti,i2c-v3" or whatever HW version the IP is using.
-But for some reason, most devices are using such convention in existing 
-DTS:-(
-This is probably due to the lack of well identified IP version in most 
-SoC... including OMAP:-)
-
-
-Benoit
+-M
