@@ -1,66 +1,47 @@
-From: Linus Walleij <linus.ml.walleij@gmail.com>
-Subject: Re: [PATCH 11/13] ARM: gpio: consolidate trivial gpiolib implementations
-Date: Wed, 10 Aug 2011 09:54:52 +0200
-Message-ID: <CAKnu2Mofp+f7Khu1d0j9Pz3Pr03EawBgkRPWEqDy7mf4DzoETA@mail.gmail.com>
-References: <20110809080411.GA1831@n2100.arm.linux.org.uk>
-	<E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Build failure: bisected: v3.1-rc1 with config ARCH_OMAP &&
+ !ARCH_OMAP4 fails with linker error
+Date: Wed, 10 Aug 2011 01:37:31 -0700
+Message-ID: <20110810083731.GA1939@atomide.com>
+References: <1312819724.14483.29.camel@morsingpad>
+ <alpine.DEB.2.00.1108081435340.4764@utopia.booyaka.com>
+ <20110809131453.GR1866@atomide.com>
+ <alpine.DEB.2.00.1108092102580.12674@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk>
-Sender: linux-sh-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1108092102580.12674@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Daniel Morsing <daniel.morsing@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-2011/8/9 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+* Paul Walmsley <paul@pwsan.com> [110809 20:01]:
+> On Tue, 9 Aug 2011, Tony Lindgren wrote:
+> 
+> > Hmm, there are also these when CONFIG_ARCH_OMAP4 is not selected:
+> > 
+> > arch/arm/mach-omap2/built-in.o: In function `_enable_module':
+> > arch/arm/mach-omap2/omap_hwmod.c:701: undefined reference to `omap4_cminst_module_enable'
+> > arch/arm/mach-omap2/built-in.o: In function `_disable_module':
+> > arch/arm/mach-omap2/omap_hwmod.c:726: undefined reference to `omap4_cminst_module_disable'
+> > arch/arm/mach-omap2/built-in.o: In function `_wait_target_disable':
+> > arch/arm/mach-omap2/omap_hwmod.c:1179: undefined reference to `omap4_cminst_wait_module_idle'
+> > distcc[27594] ERROR: compile (null) on localhost failed
+> > make: *** [.tmp_vmlinux1] Error 1
+> > 
+> > Care to take a look?
+> 
+> Weird, those don't show up on my n800 config (below) with CodeSourcery 
+> 2010.09-50.  Looks like something isn't removing the dead code.  will post 
+> a patch for this.
+> 
+> If you post which compiler you're using, I'll add it to my build tests 
+> too...
 
-> Consolidate 24 trivial gpiolib implementions out of mach/gpio.h
-> into asm/gpio.h. =A0This is basically the include of asm-generic/gpio=
-=2Eh
-> and the definition of gpio_get_value, gpio_set_value, and gpio_cansle=
-ep
-> as described in Documentation/gpio.txt
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Happens at least with this one:
 
-reaks compile of plat-nomadik due to missing u32, feel free to fold in
-the below fix. With that it's
-Tested-by: Linus Walleij <linus.walleij@linaro.org>
-for Nomadik, U300 and Ux500.
+gcc version 4.3.3 (Sourcery G++ Lite 2009q1-203)
 
-=46rom 2e4496fc7643d804ccf50a8efe1a0304210176d1 Mon Sep 17 00:00:00 200=
-1
-=46rom: Linus Walleij <linus.walleij@linaro.org>
-Date: Wed, 10 Aug 2011 09:51:16 +0200
-Subject: [PATCH] plat-nomadik: small fixup for gpio.h
-
-Removing the generic gpio.h broke compilation of the Nomadik
-GPIO driver since it implicitly got u32 from it. Explicitly
-include <linux/kernel.h> so we get u32 defined.
-
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
- arch/arm/plat-nomadik/include/plat/gpio.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-nomadik/include/plat/gpio.h
-b/arch/arm/plat-nomadik/include/plat/gpio.h
-index cf0b78b..b894a53 100644
---- a/arch/arm/plat-nomadik/include/plat/gpio.h
-+++ b/arch/arm/plat-nomadik/include/plat/gpio.h
-@@ -12,6 +12,8 @@
- #ifndef __ASM_PLAT_GPIO_H
- #define __ASM_PLAT_GPIO_H
-
-+#include <linux/kernel.h>
-+
- /*
-  * "nmk_gpio" and "NMK_GPIO" stand for "Nomadik GPIO", leaving
-  * the "gpio" namespace for generic and cross-machine functions
---=20
-1.7.3.2
-
-Thanks,
-Linus Walleij
+Tony
