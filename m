@@ -1,51 +1,117 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Early prints on different UART's for same machine type
-Date: Wed, 10 Aug 2011 00:37:25 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108100034510.12674@utopia.booyaka.com>
-References: <mailman.7147.1312868034.20023.linux-arm-kernel@lists.infradead.org> <B85A65D85D7EB246BE421B3FB0FBB593024DF9E2C1@dbde02.ent.ti.com>
+Subject: Re: Build failure: bisected: v3.1-rc1 with config ARCH_OMAP &&
+ !ARCH_OMAP4 fails with linker error
+Date: Wed, 10 Aug 2011 00:57:42 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1108100045270.12674@utopia.booyaka.com>
+References: <1312819724.14483.29.camel@morsingpad> <alpine.DEB.2.00.1108081435340.4764@utopia.booyaka.com> <20110809131453.GR1866@atomide.com> <alpine.DEB.2.00.1108092102580.12674@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44792 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720Ab1HJGh0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 02:37:26 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024DF9E2C1@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1108092102580.12674@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Daniel Morsing <daniel.morsing@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "linux-arm-kernel-bounces@lists.infradead.org" <linux-arm-kernel-bounces@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
 
-Hi
+On Tue, 9 Aug 2011, Paul Walmsley wrote:
 
-On Tue, 9 Aug 2011, Mohammed, Afzal wrote:
+> On Tue, 9 Aug 2011, Tony Lindgren wrote:
+> 
+> > Hmm, there are also these when CONFIG_ARCH_OMAP4 is not selected:
+> > 
+> > arch/arm/mach-omap2/built-in.o: In function `_enable_module':
+> > arch/arm/mach-omap2/omap_hwmod.c:701: undefined reference to `omap4_cminst_module_enable'
+> > arch/arm/mach-omap2/built-in.o: In function `_disable_module':
+> > arch/arm/mach-omap2/omap_hwmod.c:726: undefined reference to `omap4_cminst_module_disable'
+> > arch/arm/mach-omap2/built-in.o: In function `_wait_target_disable':
+> > arch/arm/mach-omap2/omap_hwmod.c:1179: undefined reference to `omap4_cminst_wait_module_idle'
+> > distcc[27594] ERROR: compile (null) on localhost failed
+> > make: *** [.tmp_vmlinux1] Error 1
+> > 
+> > Care to take a look?
+> 
+> Weird, those don't show up on my n800 config (below) with CodeSourcery 
+> 2010.09-50.  Looks like something isn't removing the dead code.  will post 
+> a patch for this.
+> 
+> If you post which compiler you're using, I'll add it to my build tests 
+> too...
 
-> This is regarding board with multiple variations using an upcoming SoC from TI.
-> Variation of the board is detected by reading EEPROM using I2C after
-> init_machine gets invoked. In one of the variation UART# used is different.
-> Because of this decompressor logs (and early prints) can't be captured for the
-> board variant using this different UART#. Our solution for this problem is to
-> use different mach-id for the board using different UART#. But this solution
-> seems to be overkill as only to capture decompressor logs, we have to use
-> a new machine id.
-> 
-> As I2C will not work at the decompressor stage, I2C can't be used to detect
-> the board type.
-> 
-> As far as I know, ATAG is not parsed in decompressor stage and so ATAG cannot
-> be used to determine board variant or UART#. Otherwise we will have to add
-> capability in decompressor to parse ATAG, detect console to be used, and
-> modify uncompress.h to select proper console for capturing decompressor logs.
-> This seems a bad solution.
-> 
-> Our bootloader has the capability to detect the board variant.
-> 
-> So the best solution for us so far seems to add a new machine id, if any
-> better solutions are possible, please let us know.
+Hmmm, playing around with this further, this is probably not a
+compiler problem.  Looks like what triggers this is the MULTI_OMAP2
+preprocessor trickery in arch/arm/plat-omap/include/plat/cpu.h, which
+would cause something like cpu_is_omap24xx() to be resolved at runtime
+rather than by the preprocessor.
 
-You might get more feedback if you E-mail 
-<linux-arm-kernel@lists.infradead.org>, rather than 
-<linux-arm-kernel-bounces@lists.infradead.org>.
+This should fix the immediate issue.  Will include in a 3.1-rc fixes branch.
 
 
 - Paul
+
+
+From: Paul Walmsley <paul@pwsan.com>
+Date: Tue, 9 Aug 2011 22:27:01 -0600
+Subject: [PATCH] OMAP: hwmod: fix build break on non-OMAP4 multi-OMAP2 builds
+
+Builds for multi-OMAP2 (e.g., OMAP2420 with OMAP2430) with
+CONFIG_ARCH_OMAP4=n fail with the following errors:
+
+arch/arm/mach-omap2/built-in.o: In function `_enable_module':
+arch/arm/mach-omap2/omap_hwmod.c:701: undefined reference to `omap4_cminst_module_enable'
+arch/arm/mach-omap2/built-in.o: In function `_disable_module':
+arch/arm/mach-omap2/omap_hwmod.c:726: undefined reference to `omap4_cminst_module_disable'
+arch/arm/mach-omap2/built-in.o: In function `_wait_target_disable':
+arch/arm/mach-omap2/omap_hwmod.c:1179: undefined reference to `omap4_cminst_wait_module_idle'
+
+This is probably due to the preprocessor directives in
+arch/arm/plat-omap/include/plat/cpu.h that convert some cpu_is_omap*()
+expressions from preprocessor directives into something that is only
+resolvable during runtime, if multiple OMAP2 build targets are
+selected.
+
+Thanks to Tony Lindgren <tony@atomide.com> for reporting.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/cminst44xx.h |   19 ++++++++++++++++++-
+ 1 files changed, 18 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cminst44xx.h b/arch/arm/mach-omap2/cminst44xx.h
+index f2ea645..df9be67 100644
+--- a/arch/arm/mach-omap2/cminst44xx.h
++++ b/arch/arm/mach-omap2/cminst44xx.h
+@@ -18,13 +18,30 @@ extern void omap4_cminst_clkdm_force_sleep(u8 part, s16 inst, u16 cdoffs);
+ extern void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs);
+ 
+ extern int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
+-extern int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
++
++# ifdef CONFIG_ARCH_OMAP4
++extern int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs,
++					 u16 clkctrl_offs);
+ 
+ extern void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
+ 				       u16 clkctrl_offs);
+ extern void omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
+ 					u16 clkctrl_offs);
+ 
++# else
++
++static inline int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	return 0;
++}
++
++static inline void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
++				u16 clkctrl_offs) {}
++static inline void omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
++				 u16 clkctrl_offs) {}
++
++# endif
++
+ /*
+  * In an ideal world, we would not export these low-level functions,
+  * but this will probably take some time to fix properly
+-- 
+1.7.5.4
