@@ -1,64 +1,66 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP3 kernels fail to build
-Date: Wed, 10 Aug 2011 08:27:12 +0100
-Message-ID: <20110810072712.GD14281@n2100.arm.linux.org.uk>
-References: <20110808110056.GA15134@n2100.arm.linux.org.uk> <4E3FC3EC.2010909@ti.com> <20110808113039.GB15134@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1108092318180.12674@utopia.booyaka.com>
+From: Linus Walleij <linus.ml.walleij@gmail.com>
+Subject: Re: [PATCH 11/13] ARM: gpio: consolidate trivial gpiolib implementations
+Date: Wed, 10 Aug 2011 09:54:52 +0200
+Message-ID: <CAKnu2Mofp+f7Khu1d0j9Pz3Pr03EawBgkRPWEqDy7mf4DzoETA@mail.gmail.com>
+References: <20110809080411.GA1831@n2100.arm.linux.org.uk>
+	<E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:32993 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720Ab1HJH1e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 03:27:34 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1108092318180.12674@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk>
+Sender: linux-sh-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Felipe Balbi <balbi@ti.com>, Arnd Bergmann <arnd@arndb.de>
 
-On Tue, Aug 09, 2011 at 11:26:16PM -0600, Paul Walmsley wrote:
-> On Mon, 8 Aug 2011, Russell King - ARM Linux wrote:
-> 
-> > On Mon, Aug 08, 2011 at 04:39:32PM +0530, Santosh wrote:
-> > > On Monday 08 August 2011 04:30 PM, Russell King - ARM Linux wrote:
-> > >> With CONFIG_ARCH_OMAP3=y and CONFIG_ARCH_OMAP4=n, I'm getting this:
-> > >>
-> > >> arch/arm/mach-omap2/built-in.o:(.data+0xf99c): undefined reference to `omap4430_phy_init'
-> > >> arch/arm/mach-omap2/built-in.o:(.data+0xf9a0): undefined reference to `omap4430_phy_exit'
-> > >> arch/arm/mach-omap2/built-in.o:(.data+0xf9a4): undefined reference to `omap4430_phy_power'
-> > >> arch/arm/mach-omap2/built-in.o:(.data+0xf9a8): undefined reference to `omap4430_phy_set_clk'
-> > >> arch/arm/mach-omap2/built-in.o:(.data+0xf9ac): undefined reference to `omap4430_phy_suspend'
-> > >>
-> > > I thought below patch was suppose to fix it.
-> > > https://patchwork.kernel.org/patch/963462/
-> > 
-> > So, the problem has been known about for around a month.  Yet the broken
-> > patch still went upstream.
-> 
-> Which known "broken patch still went upstream" ?
-> 
-> The problem commits were 208466dc10083e734a8af71d10f923ee4bff950c ("usb: 
-> otg: OMAP4430: Powerdown the internal PHY when USB is disabled") and 
-> fb91cde49c327ff957c55d91805bc6abda59b311 ("usb: musb: OMAP4430: Power down 
-> the PHY during board init").  The above link makes this clear.  
+2011/8/9 Russell King - ARM Linux <linux@arm.linux.org.uk>:
 
-The fact that there are _build_ _errors_ indicate that a patch which
-introduced this crap _was_ _broken_.  The fact that it was _reported_
-as broken well before the merge window and still went in during the
-merge window indicates that the OMAP workflow with regard to patches
-is simply BROKEN.
+> Consolidate 24 trivial gpiolib implementions out of mach/gpio.h
+> into asm/gpio.h. =A0This is basically the include of asm-generic/gpio=
+=2Eh
+> and the definition of gpio_get_value, gpio_set_value, and gpio_cansle=
+ep
+> as described in Documentation/gpio.txt
+>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-And the fact that you can't recognise that makes _you_ part of the
-problem.
+reaks compile of plat-nomadik due to missing u32, feel free to fold in
+the below fix. With that it's
+Tested-by: Linus Walleij <linus.walleij@linaro.org>
+for Nomadik, U300 and Ux500.
 
-There are no excuses for this.
+=46rom 2e4496fc7643d804ccf50a8efe1a0304210176d1 Mon Sep 17 00:00:00 200=
+1
+=46rom: Linus Walleij <linus.walleij@linaro.org>
+Date: Wed, 10 Aug 2011 09:51:16 +0200
+Subject: [PATCH] plat-nomadik: small fixup for gpio.h
 
-And more - wtf those commit IDs you mention have to do with my build
-error with twl-common.c I've no idea.  The breakage was not introduced
-by either of the commits you mention, but b22f954 (OMAP4: Move common
-twl6030 configuration to twl-common).
+Removing the generic gpio.h broke compilation of the Nomadik
+GPIO driver since it implicitly got u32 from it. Explicitly
+include <linux/kernel.h> so we get u32 defined.
 
-So please, stop this disinformation right now and get more of a clue.
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ arch/arm/plat-nomadik/include/plat/gpio.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Thanks.
+diff --git a/arch/arm/plat-nomadik/include/plat/gpio.h
+b/arch/arm/plat-nomadik/include/plat/gpio.h
+index cf0b78b..b894a53 100644
+--- a/arch/arm/plat-nomadik/include/plat/gpio.h
++++ b/arch/arm/plat-nomadik/include/plat/gpio.h
+@@ -12,6 +12,8 @@
+ #ifndef __ASM_PLAT_GPIO_H
+ #define __ASM_PLAT_GPIO_H
+
++#include <linux/kernel.h>
++
+ /*
+  * "nmk_gpio" and "NMK_GPIO" stand for "Nomadik GPIO", leaving
+  * the "gpio" namespace for generic and cross-machine functions
+--=20
+1.7.3.2
+
+Thanks,
+Linus Walleij
