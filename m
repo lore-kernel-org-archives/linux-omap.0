@@ -1,125 +1,104 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: How to handle named resources with DT?
-Date: Wed, 10 Aug 2011 17:01:52 +0200
-Message-ID: <4E429D60.2000100@ti.com>
-References: <4E4166F0.9050401@ti.com>
-	<CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com>
-	<4E4172A8.3030101@ti.com> <4E417BD5.8080409@freescale.com>
-	<20110809205723.GE11568@ponder.secretlab.ca>
-	<4E41A1B9.1060400@ti.com>
-	<20110809211747.GJ11568@ponder.secretlab.ca>
-	<4E41AA43.1000506@ti.com>
-	<20110809214905.GK11568@ponder.secretlab.ca>
-	<4E41AC5C.20301@ti.com> <20110810015214.GD23511@yookeroo.fritz.box>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [RFC PATCH 5/6] OMAP4460: Temperature sensor data
+Date: Wed, 10 Aug 2011 20:38:10 +0530
+Message-ID: <CAJ6a13YD9KNDjCZbr2wL_0B_un0zxHo-s-dXb3TkHwUvgF+s_w@mail.gmail.com>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
+	<1312979122-5896-6-git-send-email-j-keerthy@ti.com>
+	<20110810123758.GH12882@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20110810015214.GD23511-787xzQ0H9iQXU02nzanrWNbf9cGiqdzd@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: David Gibson <david-xT8FGy+AXnRB3Ne2BGzF6laj5H9X9Tb+@public.gmane.org>
-Cc: "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "G,
-	Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <lm-sensors-bounces@lm-sensors.org>
+In-Reply-To: <20110810123758.GH12882@legolas.emea.dhcp.ti.com>
+List-Unsubscribe: <http://lists.lm-sensors.org/mailman/options/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
+List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors/>
+List-Post: <mailto:lm-sensors@lm-sensors.org>
+List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
+List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
+Sender: lm-sensors-bounces@lm-sensors.org
+Errors-To: lm-sensors-bounces@lm-sensors.org
+To: balbi@ti.com
+Cc: vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, rnayak@ti.com, lm-sensors@lm-sensors.org
 List-Id: linux-omap@vger.kernel.org
 
-On 8/10/2011 3:52 AM, David Gibson wrote:
-> On Tue, Aug 09, 2011 at 11:53:32PM +0200, Cousson, Benoit wrote:
->> On 8/9/2011 11:49 PM, Grant Likely wrote:
->>> On Tue, Aug 09, 2011 at 11:44:35PM +0200, Cousson, Benoit wrote:
->>>> On 8/9/2011 11:17 PM, Grant Likely wrote:
->>>>> On Tue, Aug 09, 2011 at 11:08:09PM +0200, Cousson, Benoit wrote:
->>>>>> On 8/9/2011 10:57 PM, Grant Likely wrote:
->>>>>>> On Tue, Aug 09, 2011 at 01:26:29PM -0500, Scott Wood wrote:
->>>>>>>> On 08/09/2011 12:47 PM, Cousson, Benoit wrote:
->>>>>>>>> On 8/9/2011 7:23 PM, Grant Likely wrote:
->>>>>>>>>> There is no analogous mechanism for _byname in the device tree.  The
->>>>>>>>>> DT binding for a device must explicitly state what order the register
->>>>>>>>>> ranges are in.  The driver will need to be adapted.
->>>>>>>>>
->>>>>>>>> That seems to be a small regression for my point of view. Relying on the
->>>>>>>>> order is not super safe. This is not very readable either. That's for
->>>>>>>>> that exact reason that we changed our drivers to use
->>>>>>>>> platform_get_resource_byname. That's probably the reason why that API is
->>>>>>>>> there as well.
->>>>>>>>> For the same IP, the number of entries can vary depending of the SoC
->>>>>>>>> revision.
->>>>>>>>> By using the _byname, we can check if the resource is there or not
->>>>>>>>> without having to care about the position.
->>>>>>>>
->>>>>>>> You could have a named u32 property that contains the reg index, e.g.:
->>>>>>>>
->>>>>>>> dev {
->>>>>>>> 	reg =<0x20000 0x200 0x24000 0x200>;
->>>>>>>> 	foo-reg =<0>;
->>>>>>>> 	bar-reg =<1>;
->>>>>>>> };
->>>>>>>
->>>>>>> That's a little nasty.  A reg-names = "foo", "bar"; would probably be
->>>>>>> better.
->>>>>>
->>>>>> Yep, I agree.
->>>>>>
->>>>>> And what about something like that?
->>>>>>    reg =<0x20000 0x200>, "foo",
->>>>>> 	<0x20000 0x200>, "bar" ;
->>>>>>
->>>>>> It is doable?
->>>>>
->>>>> Definitely not.  It would break all existing 'reg' parsing
->>>>> implementations quite badly.
->>>>
->>>> OK, so what about extending the reg attribute to be a reg node?
->>>>
->>>> dev {
->>>> 	reg {
->>>> 		name = "foo_wrapper";
->>>> 		start =<0x10000>;
->>>> 		end =<0x200>;
->>>> 	}
->>>> 	reg {
->>>> 		name = "foo";
->>>> 		start =<0x20000>;
->>>> 		end =<0x200>;
->>>> 	}
->>>> }
->>>>
->>>> A little bit more verbose, but at least we can add any attribute we want.
->>>
->>> That won't work either because that also breaks the existing 'reg'
->>> binding.  Anything you do will need to supplement the existing
->>> binding without changing it in an incompatible way.
+On Wed, Aug 10, 2011 at 6:07 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Wed, Aug 10, 2011 at 05:55:21PM +0530, Keerthy wrote:
+>> The register set and the
+>> bit fields might vary across OMAP versions. Hence
+>> creating a structure comprising of all the registers
+>> and bit fields to make the driver uniform for all the
+>> versions with different register sets. The data file
+>> contains the structure populated with register offsets
+>> and bit fields corresponding to OMAP4460 on die sensor.
 >>
->> OK, but can we add a new attribute then? reg2, reg_ng, reg_plusplus,
->> reg_named...?
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/temp_sensor4460_data.c | =A0 63 +++++++++++++++++=
++++++++++++
+>> =A01 files changed, 63 insertions(+), 0 deletions(-)
+>> =A0create mode 100644 arch/arm/mach-omap2/temp_sensor4460_data.c
+>>
+>> diff --git a/arch/arm/mach-omap2/temp_sensor4460_data.c b/arch/arm/mach-=
+omap2/temp_sensor4460_data.c
+>> new file mode 100644
+>> index 0000000..294963d
+>> --- /dev/null
+>> +++ b/arch/arm/mach-omap2/temp_sensor4460_data.c
+>> @@ -0,0 +1,63 @@
+>> +/*
+>> + * OMAP4460 on die Temperature sensor data file
+>> + *
+>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.co=
+m/
+>> + * Author: J Keerthy <j-keerthy@ti.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License
+>> + * version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful, but
+>> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the GNU
+>> + * General Public License for more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public License
+>> + * along with this program; if not, write to the Free Software
+>> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+>> + * 02110-1301 USA
+>> + *
+>> + */
+>> +
+>> +#include <linux/slab.h>
+>> +#include "control.h"
+>> +#include <plat/temperature_sensor.h>
+>> +
+>> +/*
+>> + * OMAP4460 has one instance of thermal sensor for MPU
+>> + * need to describe the individual bit fields
+>> + */
+>> +struct omap_temp_sensor_registers omap_mpu_temp_sensor_registers =3D {
 >
-> He already suggested reg-names to be interpreted in parallel with the
-> existing reg property.  The (serious) problem with replacing the reg
-> property is that it will break all existing OSes (including old Linux
-> versions) that don't understand the new property.
+> this is used on previous patch, so you have a compilation error.
 
-That's why I was proposing a new extended node for that. Legacy tag will 
-still be there for legacy HW.
+I will reorder the patches.
 
-Adding reg-names is doable easily, but not super nice. And the same 
-trick will be needed for IRQs and then DMAs (not yet in core DT anyway).
-Having a more scalable mechanism to allow further improvement will be good.
-
-> Of course, the problem with reg-names is that it will be ignored by
-> older OSes, and so 'reg' must still be in the correct order.  In which
-> case you could argue it's more sensible to just have a static place to
-> name mapping in the Linux driver.
 >
-> In short, yes, named reg elements in the DT would be nice in theory,
-> but I'm not convinced it's worth a DT flag day to accomplish it.
+> --
+> balbi
+>
 
-Sorry, but I'm not sure to understand the meaning of that last sentence.
 
-Benoit
+
+-- =
+
+Regards and Thanks,
+Keerthy
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
