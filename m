@@ -1,52 +1,171 @@
-From: "COCA COLA PLC" <zennaro@uniroma3.it>
-Subject: (unknown)
-Date: Wed, 10 Aug 2011 14:36:18 -0700
-Message-ID: <31186.1968519681$1312967222@news.gmane.org>
-Reply-To: <claimsgroup222@hotmail.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: Fix linking error in twl-common.c for OMAP2/3/4
+ only builds
+Date: Wed, 10 Aug 2011 02:15:19 -0700
+Message-ID: <20110810091519.GB1939@atomide.com>
+References: <20110808110056.GA15134@n2100.arm.linux.org.uk>
+ <1312893410-3968-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0042_01C2A9A6.10ADC5B2"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2.uniroma3.it ([62.241.4.211]:35680 "EHLO smtp2.uniroma3.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752607Ab1HJJGr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Aug 2011 05:06:47 -0400
-Subject: 
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:56487 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750922Ab1HJJPa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 05:15:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1312893410-3968-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [110809 05:31]:
+> Avoid compiling code for OMAP arch which is not selected by the
+> config.
+> 
+> Fixes issues like:
+> With CONFIG_ARCH_OMAP3=y and CONFIG_ARCH_OMAP4=n, I'm getting this:
+> 
+> arch/arm/mach-omap2/built-in.o:(.data+0xf99c): undefined reference to `omap4430_phy_init'
+> arch/arm/mach-omap2/built-in.o:(.data+0xf9a0): undefined reference to `omap4430_phy_exit'
+> arch/arm/mach-omap2/built-in.o:(.data+0xf9a4): undefined reference to `omap4430_phy_power'
+> arch/arm/mach-omap2/built-in.o:(.data+0xf9a8): undefined reference to `omap4430_phy_set_clk'
+> arch/arm/mach-omap2/built-in.o:(.data+0xf9ac): undefined reference to `omap4430_phy_suspend'
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> 
+> Hi Russel, Tony,
+> 
+> This patch fixes the linking error caused by the twl-common.c file,
+> when the kernel is built for OMAP2/3/4 only.
 
-------=_NextPart_000_0042_01C2A9A6.10ADC5B2
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
+Thanks, I'll queue this one as a fix with updated comments as below.
 
-PLS FIND ATTACHMENT
+Regards,
 
-------=_NextPart_000_0042_01C2A9A6.10ADC5B2
-Content-Type: application/octet-stream;
-	name="COCA COLA NOTIFICATION.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="COCA COLA NOTIFICATION.txt"
+Tony
 
-QXR0ZW50aW9uIFdpbm5lcg0KDQpUaGlzIGVtYWlsIGlzIHRvIG5vdGlmeSB5
-b3UgdGhhdCB5b3VyIGVtYWlsIGFkZHJlc3Mgd2FzDQpyYW5kb21seSBzZWxl
-Y3RlZCBhbmQgZW50ZXJlZCBpbnRvIG91ciBmcmVlIFRoaXJkIENhdGVnb3J5
-DQpkcmF3cy5Zb3UgaGF2ZSBzdWJzZXF1ZW50bHkgZW1lcmdlZCBhIHdpbm5l
-ciBhbmQgdGhlcmVmb3JlDQplbnRpdGxlZCB0byBhIHN1YnN0YW50aWFsIGFt
-b3VudCBvZiAxLDAwMCwwMDAuMDAgR3JlYXQgQnJpdGlzaA0KUG91bmRzLmtp
-bmRseSBjb25maXJtIHJlY2VpcHQgb2YgdGhpcyBlbWFpbCwgYnkgZm9yd2Fy
-ZGluZw0KWW91ciBEZXRhaWxzIHRvIHRoZSBjbGFpbXMgZGVwYXJ0bWVudC4N
-Cg0KTmFtZTogVG9tbXkgUm9nZXINCkVtYWlsOmNsYWltc2dyb3VwOTE5QGhv
-dG1haWwuY28udWsNCg0KSU1QT1JUQU5UIEZJTEwgT1VUIFRISVMgV0lOTkVS
-UyBWRVJJRklDQVRJT04gRk9STSBCRUxPVzoNCg0KRlVMTCBOQU1FUy0tLS0t
-LS0tLS0NCkRBVEUgT0YgQklSVEgtLS0tLS0tLS0NClNFWC4tLS0tLS0tLS0t
-LS0tLS0tDQpDT05UQUNUIEFERFJFU1MtLS0tLS0tLS0tDQpDT1VOVFJZLS0t
-LS0tLS0tLS0tLS0tLS0tLS0NCk1PQklMRSBOVU1CRVItLS0tLS0tLS0tLS0t
-LQ0KT0NDVVBBVElPTi0tLS0tLS0tLS0NCkUtTUFJTCBJLkQtLS0tLS0tLS0t
-LS0tLS0tLQ0KDQpDb25ncmF0dWxhdGlvbnMgb25jZSBhZ2Fpbi4NCkRyLiBJ
-YW4gSGlsbC4NCk9ubGluZSBDby1jb29yZGluYXRvcg==
 
-------=_NextPart_000_0042_01C2A9A6.10ADC5B2--
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date: Tue, 9 Aug 2011 15:36:50 +0300
+Subject: [PATCH] OMAP: Fix linking error in twl-common.c for OMAP2/3/4 only builds
+
+Commit b22f954 (OMAP4: Move common twl6030 configuration to twl-common)
+caused compile failures for code for OMAP arch which is not selected by
+the config.
+
+Fixes issues like:
+With CONFIG_ARCH_OMAP3=y and CONFIG_ARCH_OMAP4=n, I'm getting this:
+
+arch/arm/mach-omap2/built-in.o:(.data+0xf99c): undefined reference to `omap4430_phy_init'
+arch/arm/mach-omap2/built-in.o:(.data+0xf9a0): undefined reference to `omap4430_phy_exit'
+arch/arm/mach-omap2/built-in.o:(.data+0xf9a4): undefined reference to `omap4430_phy_power'
+arch/arm/mach-omap2/built-in.o:(.data+0xf9a8): undefined reference to `omap4430_phy_set_clk'
+arch/arm/mach-omap2/built-in.o:(.data+0xf9ac): undefined reference to `omap4430_phy_suspend'
+
+Fix the problem by moving the code to ifdef sections for omap3 and omap4.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+[tony@atomide.com: updated comments]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index 2543342..daa056e 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -48,14 +48,7 @@ void __init omap_pmic_init(int bus, u32 clkrate,
+ 	omap_register_i2c_bus(bus, clkrate, &pmic_i2c_board_info, 1);
+ }
+ 
+-static struct twl4030_usb_data omap4_usb_pdata = {
+-	.phy_init	= omap4430_phy_init,
+-	.phy_exit	= omap4430_phy_exit,
+-	.phy_power	= omap4430_phy_power,
+-	.phy_set_clock	= omap4430_phy_set_clk,
+-	.phy_suspend	= omap4430_phy_suspend,
+-};
+-
++#if defined(CONFIG_ARCH_OMAP3)
+ static struct twl4030_usb_data omap3_usb_pdata = {
+ 	.usb_mode	= T2_USB_MODE_ULPI,
+ };
+@@ -122,6 +115,45 @@ static struct regulator_init_data omap3_vpll2_idata = {
+ 	.consumer_supplies		= omap3_vpll2_supplies,
+ };
+ 
++void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
++				  u32 pdata_flags, u32 regulators_flags)
++{
++	if (!pmic_data->irq_base)
++		pmic_data->irq_base = TWL4030_IRQ_BASE;
++	if (!pmic_data->irq_end)
++		pmic_data->irq_end = TWL4030_IRQ_END;
++
++	/* Common platform data configurations */
++	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb)
++		pmic_data->usb = &omap3_usb_pdata;
++
++	if (pdata_flags & TWL_COMMON_PDATA_BCI && !pmic_data->bci)
++		pmic_data->bci = &omap3_bci_pdata;
++
++	if (pdata_flags & TWL_COMMON_PDATA_MADC && !pmic_data->madc)
++		pmic_data->madc = &omap3_madc_pdata;
++
++	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->audio)
++		pmic_data->audio = &omap3_audio_pdata;
++
++	/* Common regulator configurations */
++	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
++		pmic_data->vdac = &omap3_vdac_idata;
++
++	if (regulators_flags & TWL_COMMON_REGULATOR_VPLL2 && !pmic_data->vpll2)
++		pmic_data->vpll2 = &omap3_vpll2_idata;
++}
++#endif /* CONFIG_ARCH_OMAP3 */
++
++#if defined(CONFIG_ARCH_OMAP4)
++static struct twl4030_usb_data omap4_usb_pdata = {
++	.phy_init	= omap4430_phy_init,
++	.phy_exit	= omap4430_phy_exit,
++	.phy_power	= omap4430_phy_power,
++	.phy_set_clock	= omap4430_phy_set_clk,
++	.phy_suspend	= omap4430_phy_suspend,
++};
++
+ static struct regulator_init_data omap4_vdac_idata = {
+ 	.constraints = {
+ 		.min_uV			= 1800000,
+@@ -273,32 +305,4 @@ void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ 	    !pmic_data->clk32kg)
+ 		pmic_data->clk32kg = &omap4_clk32kg_idata;
+ }
+-
+-void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+-				  u32 pdata_flags, u32 regulators_flags)
+-{
+-	if (!pmic_data->irq_base)
+-		pmic_data->irq_base = TWL4030_IRQ_BASE;
+-	if (!pmic_data->irq_end)
+-		pmic_data->irq_end = TWL4030_IRQ_END;
+-
+-	/* Common platform data configurations */
+-	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb)
+-		pmic_data->usb = &omap3_usb_pdata;
+-
+-	if (pdata_flags & TWL_COMMON_PDATA_BCI && !pmic_data->bci)
+-		pmic_data->bci = &omap3_bci_pdata;
+-
+-	if (pdata_flags & TWL_COMMON_PDATA_MADC && !pmic_data->madc)
+-		pmic_data->madc = &omap3_madc_pdata;
+-
+-	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->audio)
+-		pmic_data->audio = &omap3_audio_pdata;
+-
+-	/* Common regulator configurations */
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
+-		pmic_data->vdac = &omap3_vdac_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VPLL2 && !pmic_data->vpll2)
+-		pmic_data->vpll2 = &omap3_vpll2_idata;
+-}
++#endif /* CONFIG_ARCH_OMAP4 */
