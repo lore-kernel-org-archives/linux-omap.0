@@ -1,33 +1,64 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: How to handle named resources with DT?
-Date: Wed, 10 Aug 2011 01:11:58 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108100104150.12674@utopia.booyaka.com>
-References: <4E4166F0.9050401@ti.com> <CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com> <4E4172A8.3030101@ti.com> <4E417BD5.8080409@freescale.com> <20110809205723.GE11568@ponder.secretlab.ca> <4E41A1B9.1060400@ti.com>
- <20110809211747.GJ11568@ponder.secretlab.ca> <4E41AA43.1000506@ti.com> <20110809214905.GK11568@ponder.secretlab.ca> <4E41AC5C.20301@ti.com> <20110810015214.GD23511@yookeroo.fritz.box>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP3 kernels fail to build
+Date: Wed, 10 Aug 2011 08:27:12 +0100
+Message-ID: <20110810072712.GD14281@n2100.arm.linux.org.uk>
+References: <20110808110056.GA15134@n2100.arm.linux.org.uk> <4E3FC3EC.2010909@ti.com> <20110808113039.GB15134@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1108092318180.12674@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41741 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751251Ab1HJHL7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 03:11:59 -0400
-In-Reply-To: <20110810015214.GD23511@yookeroo.fritz.box>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:32993 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750720Ab1HJH1e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 03:27:34 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1108092318180.12674@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, "Hilman, Kevin" <khilman@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Santosh <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Felipe Balbi <balbi@ti.com>, Arnd Bergmann <arnd@arndb.de>
 
-On Wed, 10 Aug 2011, David Gibson wrote:
+On Tue, Aug 09, 2011 at 11:26:16PM -0600, Paul Walmsley wrote:
+> On Mon, 8 Aug 2011, Russell King - ARM Linux wrote:
+> 
+> > On Mon, Aug 08, 2011 at 04:39:32PM +0530, Santosh wrote:
+> > > On Monday 08 August 2011 04:30 PM, Russell King - ARM Linux wrote:
+> > >> With CONFIG_ARCH_OMAP3=y and CONFIG_ARCH_OMAP4=n, I'm getting this:
+> > >>
+> > >> arch/arm/mach-omap2/built-in.o:(.data+0xf99c): undefined reference to `omap4430_phy_init'
+> > >> arch/arm/mach-omap2/built-in.o:(.data+0xf9a0): undefined reference to `omap4430_phy_exit'
+> > >> arch/arm/mach-omap2/built-in.o:(.data+0xf9a4): undefined reference to `omap4430_phy_power'
+> > >> arch/arm/mach-omap2/built-in.o:(.data+0xf9a8): undefined reference to `omap4430_phy_set_clk'
+> > >> arch/arm/mach-omap2/built-in.o:(.data+0xf9ac): undefined reference to `omap4430_phy_suspend'
+> > >>
+> > > I thought below patch was suppose to fix it.
+> > > https://patchwork.kernel.org/patch/963462/
+> > 
+> > So, the problem has been known about for around a month.  Yet the broken
+> > patch still went upstream.
+> 
+> Which known "broken patch still went upstream" ?
+> 
+> The problem commits were 208466dc10083e734a8af71d10f923ee4bff950c ("usb: 
+> otg: OMAP4430: Powerdown the internal PHY when USB is disabled") and 
+> fb91cde49c327ff957c55d91805bc6abda59b311 ("usb: musb: OMAP4430: Power down 
+> the PHY during board init").  The above link makes this clear.  
 
-> Of course, the problem with reg-names is that it will be ignored by
-> older OSes, and so 'reg' must still be in the correct order.
+The fact that there are _build_ _errors_ indicate that a patch which
+introduced this crap _was_ _broken_.  The fact that it was _reported_
+as broken well before the merge window and still went in during the
+merge window indicates that the OMAP workflow with regard to patches
+is simply BROKEN.
 
-Most ARM SoC Linux ports aren't using DT now, so there isn't really an 
-older OS case here.  Might as well try to get something implemented in a 
-clean way while there's still some chance for it.
+And the fact that you can't recognise that makes _you_ part of the
+problem.
 
-A more persuasive case could probably be made about DT bootloader-related 
-issues.  Those would have to be converted to use reg-names, also.
+There are no excuses for this.
 
+And more - wtf those commit IDs you mention have to do with my build
+error with twl-common.c I've no idea.  The breakage was not introduced
+by either of the commits you mention, but b22f954 (OMAP4: Move common
+twl6030 configuration to twl-common).
 
-- Paul
+So please, stop this disinformation right now and get more of a clue.
+
+Thanks.
