@@ -1,50 +1,33 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RFC/PATCH 04/14] OMAP: McBSP: use existing macros for
- converting between devices
-Date: Wed, 10 Aug 2011 10:07:04 +0300
-Message-ID: <20110810100704.856fcc5c.jhnikula@gmail.com>
-References: <1312897232-4792-1-git-send-email-manjugk@ti.com>
-	<1312897232-4792-5-git-send-email-manjugk@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: How to handle named resources with DT?
+Date: Wed, 10 Aug 2011 01:11:58 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1108100104150.12674@utopia.booyaka.com>
+References: <4E4166F0.9050401@ti.com> <CACxGe6tbEW1EZhqXy78EZVM_sQLH0Qbr7QOzbgbsKBRn1FtVrg@mail.gmail.com> <4E4172A8.3030101@ti.com> <4E417BD5.8080409@freescale.com> <20110809205723.GE11568@ponder.secretlab.ca> <4E41A1B9.1060400@ti.com>
+ <20110809211747.GJ11568@ponder.secretlab.ca> <4E41AA43.1000506@ti.com> <20110809214905.GK11568@ponder.secretlab.ca> <4E41AC5C.20301@ti.com> <20110810015214.GD23511@yookeroo.fritz.box>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:46189 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751115Ab1HJHHJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 03:07:09 -0400
-Received: by bke11 with SMTP id 11so188341bke.19
-        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 00:07:07 -0700 (PDT)
-In-Reply-To: <1312897232-4792-5-git-send-email-manjugk@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:41741 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751251Ab1HJHL7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 03:11:59 -0400
+In-Reply-To: <20110810015214.GD23511@yookeroo.fritz.box>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca, Kevin Hilman <khilman@ti.com>
+To: David Gibson <david@gibson.dropbear.id.au>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, "Hilman, Kevin" <khilman@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi
+On Wed, 10 Aug 2011, David Gibson wrote:
 
-On Tue, 09 Aug 2011 19:10:22 +0500
-"G, Manjunath Kondaiah" <manjugk@ti.com> wrote:
+> Of course, the problem with reg-names is that it will be ignored by
+> older OSes, and so 'reg' must still be in the correct order.
 
-> From: Kevin Hilman <khilman@ti.com>
-> 
-> For converting from struct device to platform_device, and from
-> platform_device to struct device, there are existing macros.  Use
-> them instead of manual use of container_of().
-> 
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
->  arch/arm/plat-omap/mcbsp.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-Kevin dropped this patch and used mine that does more cleanups:
+Most ARM SoC Linux ports aren't using DT now, so there isn't really an 
+older OS case here.  Might as well try to get something implemented in a 
+clean way while there's still some chance for it.
 
-http://marc.info/?l=linux-omap&m=131255627918065&w=2
+A more persuasive case could probably be made about DT bootloader-related 
+issues.  Those would have to be converted to use reg-names, also.
 
-Worth to check also other patches since Kevin's updated set seems to
-have other differences too:
 
-http://marc.info/?l=linux-omap&m=131258997416300&w=2
-
--- 
-Jarkko
+- Paul
