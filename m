@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 10/15] OMAP2+: powerdomain: control power domains next state
-Date: Thu, 11 Aug 2011 17:06:47 +0200
-Message-ID: <1313075212-8366-11-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 07/15] PM QoS: add a global notification mechanism for the device constraints
+Date: Thu, 11 Aug 2011 17:06:44 +0200
+Message-ID: <1313075212-8366-8-git-send-email-j-pihet@ti.com>
 References: <1313075212-8366-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:63057 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752419Ab1HKPHv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 11:07:51 -0400
-Received: by mail-ww0-f44.google.com with SMTP id 5so2142188wwf.1
-        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 08:07:51 -0700 (PDT)
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64959 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752419Ab1HKPHq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 11:07:46 -0400
+Received: by wyg24 with SMTP id 24so1487733wyg.19
+        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 08:07:44 -0700 (PDT)
 In-Reply-To: <1313075212-8366-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,319 +18,271 @@ Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-When a PM QoS device latency constraint is requested or removed the
-PM QoS layer notifies the underlying layer with the updated aggregated
-constraint value. The constraint is stored in the powerdomain constraints
-list and then applied to the corresponding power domain.
-The power domains get the next power state programmed directly in the
-registers via pwrdm_wakeuplat_update_pwrst.
-
-Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using
-wake-up latency constraints on MPU, CORE and PER.
+Add a global notification chain that gets called upon changes to the
+aggregated constraint value for any device.
+The notification callbacks are passing the full constraint request data
+in order for the callees to have access to it. The current use is for the
+platform low-level code to access the target device of the constraint.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |  191 +++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.h |   33 ++++++-
- 2 files changed, 222 insertions(+), 2 deletions(-)
+ drivers/base/power/qos.c |  114 ++++++++++++++++++++++++++++++++++++++++-----
+ include/linux/pm_qos.h   |   11 ++++
+ kernel/power/qos.c       |    2 +-
+ 3 files changed, 113 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 9af0847..bcf482c 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -17,8 +17,10 @@
+diff --git a/drivers/base/power/qos.c b/drivers/base/power/qos.c
+index 465e419..4b0b316 100644
+--- a/drivers/base/power/qos.c
++++ b/drivers/base/power/qos.c
+@@ -8,6 +8,12 @@
+  *
+  * This QoS design is best effort based. Dependents register their QoS needs.
+  * Watchers register to keep track of the current QoS needs of the system.
++ * Watchers can register different types of notification callbacks:
++ *  . a per-device notification callback using the dev_pm_qos_*_notifier API.
++ *    The notification chain data is stored in the per-device constraint
++ *    data struct.
++ *  . a system-wide notification callback using the dev_pm_qos_*_global_notifier
++ *    API. The notification chain data is stored in a static variable.
+  *
+  * Note about the per-device constraint data struct allocation:
+  * . The per-device constraints data struct ptr is tored into the device
+@@ -41,6 +47,7 @@
  #include <linux/kernel.h>
- #include <linux/types.h>
- #include <linux/list.h>
-+#include <linux/slab.h>
- #include <linux/errno.h>
- #include <linux/string.h>
-+#include <linux/pm_qos.h>
- #include <trace/events/power.h>
  
- #include "cm2xxx_3xxx.h"
-@@ -104,6 +106,12 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
- 	for (i = 0; i < pwrdm->banks; i++)
- 		pwrdm->ret_mem_off_counter[i] = 0;
  
-+	/* Initialize the per-od wake-up constraints list and spinlock */
-+	spin_lock_init(&pwrdm->wkup_lat_plist_lock);
-+	plist_head_init(&pwrdm->wkup_lat_plist_head,
-+			&pwrdm->wkup_lat_plist_lock);
++static BLOCKING_NOTIFIER_HEAD(dev_pm_notifiers);
+ static void dev_pm_qos_constraints_allocate(struct device *dev);
+ 
+ int dev_pm_qos_request_active(struct dev_pm_qos_request *req)
+@@ -64,6 +71,8 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_request_active);
+ void dev_pm_qos_add_request(struct dev_pm_qos_request *req, struct device *dev,
+ 			    s32 value)
+ {
++	int ret, curr_value;
 +
-+	/* Initialize the pwrdm state */
- 	pwrdm_wait_transition(pwrdm);
- 	pwrdm->state = pwrdm_read_pwrst(pwrdm);
- 	pwrdm->state_counter[pwrdm->state] = 1;
-@@ -191,6 +199,77 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
- 	return 0;
+ 	if (!req) /*guard against callers passing in null */
+ 		return;
+ 
+@@ -82,8 +91,19 @@ void dev_pm_qos_add_request(struct dev_pm_qos_request *req, struct device *dev,
+ 	if (req->dev->power.constraints_state != DEV_PM_QOS_ALLOCATED)
+ 		return;
+ 
+-	pm_qos_update_target(dev->power.constraints,
+-			     &req->node, PM_QOS_ADD_REQ, value);
++	/*
++	 * Update constraints list and call the per-device callbacks if needed
++	 */
++	ret = pm_qos_update_target(dev->power.constraints,
++				   &req->node, PM_QOS_ADD_REQ, value);
++
++	if (ret) {
++		/* Call the global callbacks if needed */
++		curr_value = pm_qos_read_value(req->dev->power.constraints);
++		blocking_notifier_call_chain(&dev_pm_notifiers,
++					     (unsigned long)curr_value,
++					     req);
++	}
  }
+ EXPORT_SYMBOL_GPL(dev_pm_qos_add_request);
+ 
+@@ -98,8 +118,10 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_add_request);
+  * Attempts are made to make this code callable on hot code paths.
+  */
+ void dev_pm_qos_update_request(struct dev_pm_qos_request *req,
+-			   s32 new_value)
++			       s32 new_value)
+ {
++	int ret, curr_value;
++
+ 	if (!req) /*guard against callers passing in null */
+ 		return;
+ 
+@@ -113,10 +135,23 @@ void dev_pm_qos_update_request(struct dev_pm_qos_request *req,
+ 	if (req->dev->power.constraints_state != DEV_PM_QOS_ALLOCATED)
+ 		return;
+ 
+-	if (new_value != req->node.prio)
+-		pm_qos_update_target(
+-			req->dev->power.constraints,
+-			&req->node, PM_QOS_UPDATE_REQ, new_value);
++	if (new_value != req->node.prio) {
++		/*
++		 * Update constraints list and call the per-device callbacks
++		 * if needed
++		 */
++		ret = pm_qos_update_target(req->dev->power.constraints,
++					   &req->node, PM_QOS_UPDATE_REQ,
++					   new_value);
++		if (ret) {
++			/* Call the global callbacks if needed */
++			curr_value = pm_qos_read_value(
++						req->dev->power.constraints);
++			blocking_notifier_call_chain(&dev_pm_notifiers,
++						     (unsigned long)curr_value,
++						     req);
++		}
++	}
+ }
+ EXPORT_SYMBOL_GPL(dev_pm_qos_update_request);
+ 
+@@ -129,6 +164,8 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_update_request);
+  */
+ void dev_pm_qos_remove_request(struct dev_pm_qos_request *req)
+ {
++	int ret, curr_value;
++
+ 	if (!req) /*guard against callers passing in null */
+ 		return;
+ 
+@@ -142,9 +179,20 @@ void dev_pm_qos_remove_request(struct dev_pm_qos_request *req)
+ 	if (req->dev->power.constraints_state != DEV_PM_QOS_ALLOCATED)
+ 		return;
+ 
+-	pm_qos_update_target(req->dev->power.constraints,
+-			     &req->node, PM_QOS_REMOVE_REQ,
+-			     PM_QOS_DEFAULT_VALUE);
++	/*
++	 * Update constraints list and call the per-device callbacks if needed
++	 */
++	ret = pm_qos_update_target(req->dev->power.constraints,
++				   &req->node, PM_QOS_REMOVE_REQ,
++				   PM_QOS_DEFAULT_VALUE);
++
++	if (ret) {
++		/* Call the global callbacks if needed */
++		curr_value = pm_qos_read_value(req->dev->power.constraints);
++		blocking_notifier_call_chain(&dev_pm_notifiers,
++					     (unsigned long)curr_value,
++					     req);
++	}
+ 	memset(req, 0, sizeof(*req));
+ }
+ EXPORT_SYMBOL_GPL(dev_pm_qos_remove_request);
+@@ -202,6 +250,36 @@ int dev_pm_qos_remove_notifier(struct device *dev,
+ }
+ EXPORT_SYMBOL_GPL(dev_pm_qos_remove_notifier);
  
 +/**
-+ * pwrdm_wakeuplat_update_pwrst - Update power domain power state if needed
-+ * @pwrdm: struct powerdomain * to which requesting device belongs to.
-+ * @min_latency: the allowed wake-up latency for the given power domain. A
-+ *  value of PM_QOS_DEV_LAT_DEFAULT_VALUE means 'no constraint' on the pwrdm.
++ * dev_pm_qos_add_global_notifier - sets notification entry for changes to
++ * target value of the PM QoS constraints for any device
 + *
-+ * Finds the power domain next power state that fulfills the constraint.
-+ * Programs a new target state if it is different from current power state.
-+ * The power domains get the next power state programmed directly in the
-+ * registers.
++ * @notifier: notifier block managed by caller.
 + *
-+ * Returns 0 upon success.
++ * Will register the notifier into a notification chain that gets called
++ * upon changes to the target value for any device.
 + */
-+static int pwrdm_wakeuplat_update_pwrst(struct powerdomain *pwrdm,
-+					long min_latency)
++int dev_pm_qos_add_global_notifier(struct notifier_block *notifier)
 +{
-+	int ret = 0, new_state = 0;
-+
-+	if (!pwrdm) {
-+		WARN(1, "powerdomain: %s: invalid parameter(s)", __func__);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Apply constraints to power domains by programming
-+	 * the pwrdm next power state.
-+	 */
-+
-+	/* Find power state with wakeup latency < minimum constraint */
-+	for (new_state = 0x0; new_state < PWRDM_MAX_PWRSTS; new_state++) {
-+		if (min_latency == PM_QOS_DEV_LAT_DEFAULT_VALUE ||
-+		    pwrdm->wakeup_lat[new_state] <= min_latency)
-+			break;
-+	}
-+
-+	switch (new_state) {
-+	case PWRDM_FUNC_PWRST_OFF:
-+		new_state = PWRDM_POWER_OFF;
-+		break;
-+	case PWRDM_FUNC_PWRST_OSWR:
-+		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_OFF);
-+		new_state = PWRDM_POWER_RET;
-+		break;
-+	case PWRDM_FUNC_PWRST_CSWR:
-+		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_RET);
-+		new_state = PWRDM_POWER_RET;
-+		break;
-+	case PWRDM_FUNC_PWRST_INACTIVE:
-+		new_state = PWRDM_POWER_INACTIVE;
-+		break;
-+	case PWRDM_FUNC_PWRST_ON:
-+		new_state = PWRDM_POWER_ON;
-+		break;
-+	default:
-+		pr_warn("powerdomain: requested latency constraint not "
-+			"supported %s set to ON state\n", pwrdm->name);
-+		new_state = PWRDM_POWER_ON;
-+		break;
-+	}
-+
-+	if (pwrdm_read_next_pwrst(pwrdm) != new_state)
-+		ret = omap_set_pwrdm_state(pwrdm, new_state);
-+
-+	pr_debug("powerdomain: %s pwrst: curr=%d, prev=%d next=%d "
-+		 "min_latency=%ld, set_state=%d\n", pwrdm->name,
-+		 pwrdm_read_pwrst(pwrdm), pwrdm_read_prev_pwrst(pwrdm),
-+		 pwrdm_read_next_pwrst(pwrdm), min_latency, new_state);
-+
-+	return ret;
++	return blocking_notifier_chain_register(&dev_pm_notifiers, notifier);
 +}
++EXPORT_SYMBOL_GPL(dev_pm_qos_add_global_notifier);
 +
- /* Public functions */
++/**
++ * dev_pm_qos_remove_global_notifier - deletes notification for changes to
++ * target value of PM QoS constraints for any device
++ *
++ * @notifier: notifier block to be removed.
++ *
++ * Will remove the notifier from the notification chain that gets called
++ * upon changes to the target value for any device.
++ */
++int dev_pm_qos_remove_global_notifier(struct notifier_block *notifier)
++{
++	return blocking_notifier_chain_unregister(&dev_pm_notifiers, notifier);
++}
++EXPORT_SYMBOL_GPL(dev_pm_qos_remove_global_notifier);
++
+ /* Called at the first call to add_request, for constraint data allocation */
+ static void dev_pm_qos_constraints_allocate(struct device *dev)
+ {
+@@ -239,6 +317,7 @@ void dev_pm_qos_constraints_destroy(struct device *dev)
+ {
+ 	struct dev_pm_qos_request *req, *tmp;
+ 	enum dev_pm_qos_state constraints_state = dev->power.constraints_state;
++	int ret = 0, curr_value;
  
- /**
-@@ -930,6 +1009,118 @@ int pwrdm_post_transition(void)
- 	return 0;
+ 	dev->power.constraints_state = DEV_PM_QOS_NO_DEVICE;
+ 	if (constraints_state == DEV_PM_QOS_ALLOCATED) {
+@@ -250,9 +329,18 @@ void dev_pm_qos_constraints_destroy(struct device *dev)
+ 			 * Update constraints list and call the per-device
+ 			 * callbacks if needed
+ 			 */
+-			pm_qos_update_target(req->dev->power.constraints,
+-					     &req->node, PM_QOS_REMOVE_REQ,
+-					     PM_QOS_DEFAULT_VALUE);
++			ret |= pm_qos_update_target(req->dev->power.constraints,
++						    &req->node,
++						    PM_QOS_REMOVE_REQ,
++						    PM_QOS_DEFAULT_VALUE);
++
++		if (ret) {
++			/* Call the global callbacks if needed */
++			curr_value = dev->power.constraints->default_value;
++			blocking_notifier_call_chain(&dev_pm_notifiers,
++						     (unsigned long)curr_value,
++						     req);
++		}
+ 
+ 		kfree(dev->power.constraints->notifiers);
+ 		kfree(dev->power.constraints);
+diff --git a/include/linux/pm_qos.h b/include/linux/pm_qos.h
+index 178eaa1..69ccd3d 100644
+--- a/include/linux/pm_qos.h
++++ b/include/linux/pm_qos.h
+@@ -70,6 +70,7 @@ int pm_qos_request(int pm_qos_class);
+ int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier);
+ int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier);
+ int pm_qos_request_active(struct pm_qos_request *req);
++s32 pm_qos_read_value(struct pm_qos_constraints *c);
+ 
+ int dev_pm_qos_request_active(struct dev_pm_qos_request *req);
+ void dev_pm_qos_add_request(struct dev_pm_qos_request *req, struct device *dev,
+@@ -80,6 +81,8 @@ int dev_pm_qos_add_notifier(struct device *dev,
+ 			    struct notifier_block *notifier);
+ int dev_pm_qos_remove_notifier(struct device *dev,
+ 			       struct notifier_block *notifier);
++int dev_pm_qos_add_global_notifier(struct notifier_block *notifier);
++int dev_pm_qos_remove_global_notifier(struct notifier_block *notifier);
+ void dev_pm_qos_constraints_init(struct device *dev);
+ void dev_pm_qos_constraints_destroy(struct device *dev);
+ #else
+@@ -107,6 +110,8 @@ static inline int pm_qos_remove_notifier(int pm_qos_class,
+ 			{ return 0; }
+ static inline int pm_qos_request_active(struct pm_qos_request *req)
+ 			{ return 0; }
++static inline s32 pm_qos_read_value(struct pm_qos_constraints *c)
++			{ return 0; }
+ 
+ static inline int dev_pm_qos_request_active(struct dev_pm_qos_request *req)
+ 			{ return 0; }
+@@ -124,6 +129,12 @@ static inline int dev_pm_qos_add_notifier(struct device *dev,
+ static inline int dev_pm_qos_remove_notifier(struct device *dev,
+ 					     struct notifier_block *notifier)
+ 			{ return 0; }
++static inline int dev_pm_qos_add_global_notifier(
++					struct notifier_block *notifier)
++			{ return 0; }
++static inline int dev_pm_qos_remove_global_notifier(
++					struct notifier_block *notifier)
++			{ return 0; }
+ static inline void dev_pm_qos_constraints_init(struct device *dev)
+ 			{ return; }
+ static inline void dev_pm_qos_constraints_destroy(struct device *dev)
+diff --git a/kernel/power/qos.c b/kernel/power/qos.c
+index fc60f96..5607acb 100644
+--- a/kernel/power/qos.c
++++ b/kernel/power/qos.c
+@@ -139,7 +139,7 @@ static inline int pm_qos_get_value(struct pm_qos_constraints *c)
+ 	}
  }
  
-+/*
-+ * pwrdm_set_wkup_lat_constraint - Set/update/remove a powerdomain wakeup
-+ *  latency constraint and apply it
-+ * @pwrdm: struct powerdomain * which the constraint applies to
-+ * @cookie: constraint identifier, used for tracking.
-+ * @min_latency: minimum wakeup latency constraint (in microseconds) for
-+ *  the given pwrdm. The value of PM_QOS_DEV_LAT_DEFAULT_VALUE removes
-+ *  the constraint.
-+ *
-+ * Tracks the constraints by @cookie.
-+ * Constraint set/update: Adds a new entry to powerdomain's wake-up latency
-+ * constraint list.
-+ * If the constraint identifier already exists in the list, the old value is
-+ * overwritten.
-+ * Constraint removal: Removes the identifier's entry from powerdomain's
-+ * wakeup latency constraint list.
-+ *
-+ * Applies the strongest constraint value for the given pwrdm by calling
-+ * pwrdm_wakeuplat_update_pwrst.
-+ *
-+ * Returns 0 upon success or a negative value in case of error.
-+ *
-+ * The caller must check the validity of the parameters.
-+ */
-+int pwrdm_set_wkup_lat_constraint(struct powerdomain *pwrdm, void *cookie,
-+				  long min_latency)
-+{
-+	struct pwrdm_wkup_constraints_entry *user = NULL;
-+	struct pwrdm_wkup_constraints_entry *tmp_user, *new_user = NULL;
-+	int ret = 0, free_new_user = 0, free_node = 0;
-+	long value = PM_QOS_DEV_LAT_DEFAULT_VALUE;
-+	unsigned long flags;
-+
-+	pr_debug("powerdomain: %s: pwrdm %s, cookie=0x%p, min_latency=%ld\n",
-+		 __func__, pwrdm->name, cookie, min_latency);
-+
-+	if (min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE) {
-+		new_user = kzalloc(sizeof(struct pwrdm_wkup_constraints_entry),
-+				   GFP_KERNEL);
-+		if (!new_user) {
-+			pr_err("%s: FATAL ERROR: kzalloc failed\n", __func__);
-+			return -ENOMEM;
-+		}
-+		free_new_user = 1;
-+	}
-+
-+	spin_lock_irqsave(&pwrdm->wkup_lat_plist_lock, flags);
-+
-+	/* Check if there already is a constraint for cookie */
-+	plist_for_each_entry(tmp_user, &pwrdm->wkup_lat_plist_head, node) {
-+		if (tmp_user->cookie == cookie) {
-+			user = tmp_user;
-+			break;
-+		}
-+	}
-+
-+	if (min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE) {
-+		/* If nothing to update, job done */
-+		if (user && (user->node.prio == min_latency))
-+			goto exit_ok;
-+
-+		if (!user) {
-+			/* Add new entry to the list */
-+			user = new_user;
-+			user->cookie = cookie;
-+			free_new_user = 0;
-+		} else {
-+			/* Update existing entry */
-+			plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
-+		}
-+
-+		plist_node_init(&user->node, min_latency);
-+		plist_add(&user->node, &pwrdm->wkup_lat_plist_head);
-+	} else {
-+		if (user) {
-+			/* Remove the constraint from the list */
-+			plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
-+			free_node = 1;
-+		} else {
-+			/* Constraint not existing or list empty, do nothing */
-+			ret = -EINVAL;
-+			goto exit_error;
-+		}
-+
-+	}
-+
-+exit_ok:
-+	/* Find the strongest constraint from the list */
-+	if (!plist_head_empty(&pwrdm->wkup_lat_plist_head))
-+		value = plist_first(&pwrdm->wkup_lat_plist_head)->prio;
-+
-+	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
-+
-+	if (free_node)
-+		kfree(user);
-+
-+	if (free_new_user)
-+		kfree(new_user);
-+
-+	/* Apply the constraint to the pwrdm */
-+	pr_debug("powerdomain: %s: pwrdm %s, value=%ld\n",
-+		 __func__, pwrdm->name, value);
-+	pwrdm_wakeuplat_update_pwrst(pwrdm, value);
-+
-+	return 0;
-+
-+exit_error:
-+	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
-+
-+	return ret;
-+}
-+
- /**
-  * pwrdm_get_context_loss_count - get powerdomain's context loss count
-  * @pwrdm: struct powerdomain * to wait for
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index d23d979..f2b0ed7 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -19,7 +19,9 @@
- 
- #include <linux/types.h>
- #include <linux/list.h>
--
-+#include <linux/plist.h>
-+#include <linux/mutex.h>
-+#include <linux/spinlock.h>
- #include <linux/atomic.h>
- 
- #include <plat/cpu.h>
-@@ -43,6 +45,16 @@
- #define PWRSTS_RET_ON		(PWRSTS_RET | PWRSTS_ON)
- #define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
- 
-+/* Powerdomain functional power states */
-+#define PWRDM_FUNC_PWRST_OFF		0x0
-+#define PWRDM_FUNC_PWRST_OSWR		0x1
-+#define PWRDM_FUNC_PWRST_CSWR		0x2
-+#define PWRDM_FUNC_PWRST_INACTIVE	0x3
-+#define PWRDM_FUNC_PWRST_ON		0x4
-+
-+#define PWRDM_MAX_FUNC_PWRSTS	5
-+
-+#define UNSUP_STATE		-1
- 
- /* Powerdomain flags */
- #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware save-and-restore support */
-@@ -93,7 +105,12 @@ struct powerdomain;
-  * @state_counter:
-  * @timer:
-  * @state_timer:
-- *
-+ * @wakeup_lat: wakeup latencies (in us) for possible powerdomain power states
-+ * Note about the wakeup latencies ordering: the values must be sorted
-+ *  in decremental order
-+ * @wkup_lat_plist_head: pwrdm wake-up latency constraints list
-+ * @wkup_lat_plist_lock: spinlock that protects the constraints lists
-+ *  domains states
-  * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
-  */
- struct powerdomain {
-@@ -118,6 +135,15 @@ struct powerdomain {
- 	s64 timer;
- 	s64 state_timer[PWRDM_MAX_PWRSTS];
- #endif
-+	const u32 wakeup_lat[PWRDM_MAX_FUNC_PWRSTS];
-+	struct plist_head wkup_lat_plist_head;
-+	spinlock_t wkup_lat_plist_lock;
-+};
-+
-+/* Linked list for the wake-up latency constraints */
-+struct pwrdm_wkup_constraints_entry {
-+	void			*cookie;
-+	struct plist_node	node;
- };
- 
- /**
-@@ -207,6 +233,9 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
- int pwrdm_pre_transition(void);
- int pwrdm_post_transition(void);
- int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
-+
-+int pwrdm_set_wkup_lat_constraint(struct powerdomain *pwrdm, void *cookie,
-+				  long min_latency);
- u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
- bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
- 
+-static inline s32 pm_qos_read_value(struct pm_qos_constraints *c)
++s32 pm_qos_read_value(struct pm_qos_constraints *c)
+ {
+ 	return c->target_value;
+ }
 -- 
 1.7.2.5
 
