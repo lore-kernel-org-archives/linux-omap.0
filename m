@@ -1,93 +1,87 @@
 From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 1/3] twl4030-madc: copy the device pointer
-Date: Thu, 11 Aug 2011 12:50:08 +0300
-Message-ID: <CANOLnOMrQ7R6X+7WPjjrSZZ_3YJ2M=aaGsz_450XE2qVV2MNzA@mail.gmail.com>
+Subject: Re: [PATCH 2/3] twl4030-madc: turn on the MADC clock
+Date: Thu, 11 Aug 2011 12:55:26 +0300
+Message-ID: <CANOLnOM8fuAuas7eWG=qUi20SW2NE_BJQwqHcZbf9SEHpxggvw@mail.gmail.com>
 References: <1313033272-16774-1-git-send-email-kyle@kylemanna.com>
-	<1313033272-16774-2-git-send-email-kyle@kylemanna.com>
+	<1313033272-16774-3-git-send-email-kyle@kylemanna.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f170.google.com ([209.85.210.170]:50569 "EHLO
+Received: from mail-iy0-f170.google.com ([209.85.210.170]:59999 "EHLO
 	mail-iy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754818Ab1HKJuJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 05:50:09 -0400
-Received: by iye16 with SMTP id 16so977432iye.1
-        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 02:50:08 -0700 (PDT)
-In-Reply-To: <1313033272-16774-2-git-send-email-kyle@kylemanna.com>
+	with ESMTP id S1754492Ab1HKJz1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 05:55:27 -0400
+Received: by iye16 with SMTP id 16so984842iye.1
+        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 02:55:27 -0700 (PDT)
+In-Reply-To: <1313033272-16774-3-git-send-email-kyle@kylemanna.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kyle Manna <kyle@kylemanna.com>
 Cc: linux-omap@vger.kernel.org
 
-You need to send this one to mfd maintainer, separate from this series
-perhaps (see MAINTAINERS or just use ./scripts/get_maintainer.pl).
+This one needs to go to mfd maintainer too.
 
 On Thu, Aug 11, 2011 at 6:27 AM, Kyle Manna <kyle@kylemanna.com> wrote:
-> Worst case this fixes the following error:
-> [ =C2=A0 72.086212] (NULL device *): conversion timeout!
+> Without turning the MADC clock on, no MADC conversions occur.
 >
-> Best case it prevents a crash
+> $ cat /sys/class/hwmon/hwmon0/device/in8_input
+> [ =A0 53.428436] twl4030_madc twl4030_madc: conversion timeout!
+> cat: read error: Resource temporarily unavailable
 >
 > Signed-off-by: Kyle Manna <kyle@kylemanna.com>
 > ---
-> =C2=A0drivers/mfd/twl4030-madc.c | =C2=A0 =C2=A05 ++++-
-> =C2=A01 files changed, 4 insertions(+), 1 deletions(-)
+> =A0drivers/mfd/twl4030-madc.c =A0 =A0 =A0 | =A0 22 ++++++++++++++++++=
+++++
+> =A0include/linux/i2c/twl4030-madc.h | =A0 =A04 ++++
+> =A02 files changed, 26 insertions(+), 0 deletions(-)
 >
 > diff --git a/drivers/mfd/twl4030-madc.c b/drivers/mfd/twl4030-madc.c
-> index b5d598c..8ef7801 100644
+> index 8ef7801..75040b4 100644
 > --- a/drivers/mfd/twl4030-madc.c
 > +++ b/drivers/mfd/twl4030-madc.c
-> @@ -706,6 +706,9 @@ static int __devinit twl4030_madc_probe(struct pl=
-atform_device *pdev)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!madc)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return -ENOMEM=
+> @@ -740,6 +740,28 @@ static int __devinit twl4030_madc_probe(struct p=
+latform_device *pdev)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0TWL4030_BCI_BCICTL1);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_i2c;
+> =A0 =A0 =A0 =A0}
+> +
+> + =A0 =A0 =A0 /* Check that MADC clock is on */
+> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &regval, =
+TWL4030_REG_GPBR1);
+> + =A0 =A0 =A0 if (ret) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "unable to read reg=
+ GPBR1 0x%X\n",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 TWL4030=
+_REG_GPBR1);
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 /* If MADC clk is not on, turn it on */
+> + =A0 =A0 =A0 if (!(regval & TWL4030_GPBR1_MADC_HFCLK_EN)) {
+
+You should check if above read failed before using regval - you might
+end up writing trash to GPBR1..
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_info(&pdev->dev, "clk disabled, ena=
+bling\n");
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 regval |=3D TWL4030_GPBR1_MADC_HFCLK_EN=
 ;
->
-> + =C2=A0 =C2=A0 =C2=A0 /* Copy the pointer to device struct */
-> + =C2=A0 =C2=A0 =C2=A0 madc->dev =3D &pdev->dev;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL4030_MODULE=
+_INTBR, regval,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0TWL4030_REG_GPBR1);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "un=
+able to write reg GPBR1 0x%X\n",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 TWL4030_REG_GPBR1);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_i2c;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> + =A0 =A0 =A0 }
+> +
 > +
 
-This comment is not useful, it's already clear you are copying a pointe=
-r.
-
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0/*
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 * Phoenix provides 2 interrupt lines. The=
- first one is connected to
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 * the OMAP. The other one can be connecte=
-d to the other processor such
-> @@ -733,7 +736,7 @@ static int __devinit twl4030_madc_probe(struct pl=
-atform_device *pdev)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0ret =3D twl_i2c_write_u8(TWL4030_MODULE_MA=
-IN_CHARGE,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 regval, TWL4030_BCI_BCICTL1);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ret) {
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 dev_err(&pdev->dev=
-, "unable to write reg BCI Ctl1 0x%X\n",
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 dev_err(&pdev->dev=
-, "unable to write reg BCI CTL1 0x%X\n",
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0TWL4030_BCI_BCICTL1);
-
-Stray change (no mention in commit message), should not be part of this=
- patch.
-
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0goto err_i2c;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
-> --
-> 1.7.4.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
-
---=20
-Gra=C5=BEvydas
+Single newline is enough.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
