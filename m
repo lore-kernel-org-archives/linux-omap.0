@@ -1,81 +1,162 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: Oops on ehci_hcd when booting 3.0.0-rc2 on panda
-Date: Thu, 11 Aug 2011 17:29:26 +0530
-Message-ID: <4E43C41E.1080808@ti.com>
-References: <1307356643.23002.413.camel@cumari> <20110606104417.GP18731@legolas.emea.dhcp.ti.com> <20110606110218.GS18731@legolas.emea.dhcp.ti.com> <1307358348.23002.419.camel@cumari> <1312889168.2407.148.camel@cumari> <CAK=WgbatbaSj=U7+SAva4Woh7uaOoCzQck5yjfLvVGLR-UCVHg@mail.gmail.com>
+From: Kukjin Kim <kgene.kim@samsung.com>
+Subject: RE: [PATCH 13/13] ARM: gpio: make trivial GPIOLIB implementation the
+	default
+Date: Thu, 11 Aug 2011 21:02:45 +0900
+Message-ID: <000501cc581e$95ecf7a0$c1c6e6e0$%kim@samsung.com>
+References: <20110809080411.GA1831@n2100.arm.linux.org.uk>
+	<E1QqhMg-0003an-GW@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:45742 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754171Ab1HKL7f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Aug 2011 07:59:35 -0400
-In-Reply-To: <CAK=WgbatbaSj=U7+SAva4Woh7uaOoCzQck5yjfLvVGLR-UCVHg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-reply-to: <E1QqhMg-0003an-GW@rmk-PC.arm.linux.org.uk>
+Content-language: ko
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Cc: 'Grant Likely' <grant.likely@secretlab.ca>, 'Nicolas Pitre' <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Luciano Coelho <coelho@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, balbi@ti.com, sameo@linux.intel.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Kevin Hilman <khilman@ti.com>
 
-On 8/11/2011 1:37 PM, Ohad Ben-Cohen wrote:
-> + Paul, Benoit, Rajendra
->
-> On Tue, Aug 9, 2011 at 2:26 PM, Luciano Coelho<coelho@ti.com>  wrote:
->> I'm again getting a very similar oops with 3.1-rc1 on my pandaboard:
->>
->> [    2.054351] usbcore: registered new interface driver cdc_ncm
->> [    2.061431] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
->> [    2.068664] Unhandled fault: imprecise external abort (0x1406) at 0x00000000
->> [    2.076110] Internal error: : 1406 [#1] SMP
->> [    2.080505] Modules linked in:
->> [    2.083709] CPU: 0    Not tainted  (3.1.0-rc1-wl+ #283)
->> [    2.089233] PC is at omap_usbhs_enable+0x148/0x590
->> [    2.094299] LR is at trace_hardirqs_off+0x14/0x18
-> ...
->> [    2.310150] [<c02a8640>] (omap_usbhs_enable+0x148/0x590) from [<c0321d60>] (ehci_hcd_omap_probe+0x1b4/0x568)
->> [    2.320526] [<c0321d60>] (ehci_hcd_omap_probe+0x1b4/0x568) from [<c0298cfc>] (platform_drv_probe+0x24/0x28)
->> [    2.330780] [<c0298cfc>] (platform_drv_probe+0x24/0x28) from [<c0297650>] (driver_probe_device+0x158/0x27c)
->> [    2.341033] [<c0297650>] (driver_probe_device+0x158/0x27c) from [<c02977ec>] (__driver_attach+0x78/0x9c)
->> [    2.351043] [<c02977ec>] (__driver_attach+0x78/0x9c) from [<c0296c00>] (bus_for_each_dev+0x5c/0x8c)
->> [    2.360565] [<c0296c00>] (bus_for_each_dev+0x5c/0x8c) from [<c0297334>] (driver_attach+0x28/0x30)
->> [    2.369903] [<c0297334>] (driver_attach+0x28/0x30) from [<c02963ec>] (bus_add_driver+0xd8/0x260)
->> [    2.379180] [<c02963ec>] (bus_add_driver+0xd8/0x260) from [<c0297f00>] (driver_register+0xb8/0x144)
->> [    2.388702] [<c0297f00>] (driver_register+0xb8/0x144) from [<c02991e0>] (platform_driver_register+0x54/0x68)
->> [    2.399047] [<c02991e0>] (platform_driver_register+0x54/0x68) from [<c069904c>] (ehci_hcd_init+0xa8/0xfc)
->> [    2.409149] [<c069904c>] (ehci_hcd_init+0xa8/0xfc) from [<c0008854>] (do_one_initcall+0xa8/0x17c)
->> [    2.418487] [<c0008854>] (do_one_initcall+0xa8/0x17c) from [<c06792d4>] (kernel_init+0x88/0x134)
->> [    2.427764] [<c06792d4>] (kernel_init+0x88/0x134) from [<c0014ba0>] (kernel_thread_exit+0x0/0x8)
->
-> I get this too.
->
->> Any clues?
+Russell King - ARM Linux wrote:
+> 
+> Rather than marking the mach/gpio.h header files which want to use the
+> trivial GPIOLIB implementation, mark those which do not want to use it
+> instead.  This means that by default, you get the trivial implementation
+> and only have to do something extra if you need to.  This should
+> encourage the use of the trivial default implementation.
+> 
+> As an additional bonus, several gpio.h header files become empty.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Its quite expected as omap_usbhs_enable() still relies on clock
-framework to enable the clocks.
-Any driver still using clock framework on OMAP4 to enable "main" clocks
-is expected to be broken. The only way to fix this is to adapt
-the driver to runtime PM.
+Looks good to me :)
 
->
-> Reverting 665d001338b494d6d62810aa99b4c0fa1a0884b9 "OMAP2+: hwmod:
-> Follow the recommended PRCM module enable sequence" fixes this for me.
->
-> More specifically, this hunk alone seems to do the trick:
->
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44x
-> index 2af0e3f..12d22a8 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -3379,7 +3379,6 @@ int __init omap4xxx_clk_init(void)
->          }
->
->          clk_init(&omap2_clk_functions);
-> -       omap2_clk_disable_clkdm_control();
->
->          for (c = omap44xx_clks; c<  omap44xx_clks + ARRAY_SIZE(omap44xx_clks);
->                                                                            c++)
->
-> I'm not suggesting this is anyway near a real fix, but hopefully it
-> will help pin-point the problem (clock44xx_data.c changes ?).
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 
+on following Samsung stuff...
+
+Thanks.
+
+Best regards,
+Kgene.
+--
+Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
+SW Solution Development Team, Samsung Electronics Co., Ltd.
+
+> ---
+>  arch/arm/include/asm/gpio.h                 |    2 +-
+
+>  arch/arm/mach-exynos4/include/mach/gpio.h   |    2 --
+
+>  arch/arm/mach-s3c2410/include/mach/gpio.h   |    2 --
+>  arch/arm/mach-s3c64xx/include/mach/gpio.h   |    2 --
+>  arch/arm/mach-s5p64x0/include/mach/gpio.h   |    2 --
+>  arch/arm/mach-s5pc100/include/mach/gpio.h   |    2 --
+>  arch/arm/mach-s5pv210/include/mach/gpio.h   |    2 --
+> 
+> diff --git a/arch/arm/include/asm/gpio.h b/arch/arm/include/asm/gpio.h
+> index 5032224..11ad0bf 100644
+> --- a/arch/arm/include/asm/gpio.h
+> +++ b/arch/arm/include/asm/gpio.h
+> @@ -4,7 +4,7 @@
+>  /* not all ARM platforms necessarily support this API ... */
+>  #include <mach/gpio.h>
+> 
+> -#ifdef __ARM_GPIOLIB_TRIVIAL
+> +#ifndef __ARM_GPIOLIB_COMPLEX
+>  /* Note: this may rely upon the value of ARCH_NR_GPIOS set in mach/gpio.h
+*/
+>  #include <asm-generic/gpio.h>
+> 
+
+> diff --git a/arch/arm/mach-exynos4/include/mach/gpio.h b/arch/arm/mach-
+> exynos4/include/mach/gpio.h
+> index b91e8b2..80523ca 100644
+> --- a/arch/arm/mach-exynos4/include/mach/gpio.h
+> +++ b/arch/arm/mach-exynos4/include/mach/gpio.h
+> @@ -146,6 +146,4 @@ enum s5p_gpio_number {
+>  #define ARCH_NR_GPIOS
+> 	(EXYNOS4_GPZ(EXYNOS4_GPIO_Z_NR) +	\
+>  				 CONFIG_SAMSUNG_GPIO_EXTRA + 1)
+> 
+> -#define __ARM_GPIOLIB_TRIVIAL
+> -
+>  #endif /* __ASM_ARCH_GPIO_H */
+
+> diff --git a/arch/arm/mach-s3c2410/include/mach/gpio.h b/arch/arm/mach-
+> s3c2410/include/mach/gpio.h
+> index d502d17..6fac70f 100644
+> --- a/arch/arm/mach-s3c2410/include/mach/gpio.h
+> +++ b/arch/arm/mach-s3c2410/include/mach/gpio.h
+> @@ -11,8 +11,6 @@
+>   * published by the Free Software Foundation.
+>  */
+> 
+> -#define __ARM_GPIOLIB_TRIVIAL
+> -
+>  /* some boards require extra gpio capacity to support external
+>   * devices that need GPIO.
+>   */
+> diff --git a/arch/arm/mach-s3c64xx/include/mach/gpio.h b/arch/arm/mach-
+> s3c64xx/include/mach/gpio.h
+> index 3a8857c..6e34c2f 100644
+> --- a/arch/arm/mach-s3c64xx/include/mach/gpio.h
+> +++ b/arch/arm/mach-s3c64xx/include/mach/gpio.h
+> @@ -12,8 +12,6 @@
+>   * published by the Free Software Foundation.
+>  */
+> 
+> -#define __ARM_GPIOLIB_TRIVIAL
+> -
+>  /* GPIO bank sizes */
+>  #define S3C64XX_GPIO_A_NR	(8)
+>  #define S3C64XX_GPIO_B_NR	(7)
+> diff --git a/arch/arm/mach-s5p64x0/include/mach/gpio.h b/arch/arm/mach-
+> s5p64x0/include/mach/gpio.h
+> index c3a6aa0..06cd3c9 100644
+> --- a/arch/arm/mach-s5p64x0/include/mach/gpio.h
+> +++ b/arch/arm/mach-s5p64x0/include/mach/gpio.h
+> @@ -13,8 +13,6 @@
+>  #ifndef __ASM_ARCH_GPIO_H
+>  #define __ASM_ARCH_GPIO_H __FILE__
+> 
+> -#define __ARM_GPIOLIB_TRIVIAL
+> -
+>  /* GPIO bank sizes */
+> 
+>  #define S5P6440_GPIO_A_NR	(6)
+> diff --git a/arch/arm/mach-s5pc100/include/mach/gpio.h b/arch/arm/mach-
+> s5pc100/include/mach/gpio.h
+> index 0e75641..5e1a924 100644
+> --- a/arch/arm/mach-s5pc100/include/mach/gpio.h
+> +++ b/arch/arm/mach-s5pc100/include/mach/gpio.h
+> @@ -15,8 +15,6 @@
+>  #ifndef __ASM_ARCH_GPIO_H
+>  #define __ASM_ARCH_GPIO_H __FILE__
+> 
+> -#define __ARM_GPIOLIB_TRIVIAL
+> -
+>  /* GPIO bank sizes */
+>  #define S5PC100_GPIO_A0_NR	(8)
+>  #define S5PC100_GPIO_A1_NR	(5)
+> diff --git a/arch/arm/mach-s5pv210/include/mach/gpio.h b/arch/arm/mach-
+> s5pv210/include/mach/gpio.h
+> index d348ee2..6c8b903 100644
+> --- a/arch/arm/mach-s5pv210/include/mach/gpio.h
+> +++ b/arch/arm/mach-s5pv210/include/mach/gpio.h
+> @@ -13,8 +13,6 @@
+>  #ifndef __ASM_ARCH_GPIO_H
+>  #define __ASM_ARCH_GPIO_H __FILE__
+> 
+> -#define __ARM_GPIOLIB_TRIVIAL
+> -
+>  /* Practically, GPIO banks up to MP03 are the configurable gpio banks */
+> 
+>  /* GPIO bank sizes */
