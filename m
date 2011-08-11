@@ -1,420 +1,79 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 02/15] PM QoS: minor clean-ups
-Date: Thu, 11 Aug 2011 17:06:39 +0200
-Message-ID: <1313075212-8366-3-git-send-email-j-pihet@ti.com>
-References: <1313075212-8366-1-git-send-email-j-pihet@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:63057 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751521Ab1HKPHe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 11:07:34 -0400
-Received: by wwf5 with SMTP id 5so2142188wwf.1
-        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 08:07:33 -0700 (PDT)
-In-Reply-To: <1313075212-8366-1-git-send-email-j-pihet@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: [PATCH] OMAP: Fix linking error in twl-common.c for OMAP2/3/4
+	only builds
+Date: Thu, 11 Aug 2011 17:07:21 +0200
+Message-ID: <4E43F029.6060208@matrix-vision.de>
+References: <20110808110056.GA15134@n2100.arm.linux.org.uk>
+	<1312893410-3968-1-git-send-email-peter.ujfalusi@ti.com>
+	<20110810091519.GB1939@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110810091519.GB1939@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Kevin Hilman <khilman@ti.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.ke
-Cc: Jean Pihet <j-pihet@ti.com>
 
-From: Jean Pihet <j-pihet@ti.com>
+Hi,
 
-- Misc fixes to improve code readability:
- . rename struct pm_qos_request_list to struct pm_qos_request,
- . rename pm_qos_req parameter to req in internal code,
-   consistenly use req in the API parameters,
- . update the in-kernel API callers to the new parameters names,
- . rename of fields names (requests, list, node, constraints)
+On 08/10/2011 11:15 AM, Tony Lindgren wrote:
+> 
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [110809 05:31]:
+>> Avoid compiling code for OMAP arch which is not selected by the
+>> config.
+>>
+>> Fixes issues like:
+>> With CONFIG_ARCH_OMAP3=y and CONFIG_ARCH_OMAP4=n, I'm getting this:
+>>
+>> arch/arm/mach-omap2/built-in.o:(.data+0xf99c): undefined reference to `omap4430_phy_init'
+>> arch/arm/mach-omap2/built-in.o:(.data+0xf9a0): undefined reference to `omap4430_phy_exit'
+>> arch/arm/mach-omap2/built-in.o:(.data+0xf9a4): undefined reference to `omap4430_phy_power'
+>> arch/arm/mach-omap2/built-in.o:(.data+0xf9a8): undefined reference to `omap4430_phy_set_clk'
+>> arch/arm/mach-omap2/built-in.o:(.data+0xf9ac): undefined reference to `omap4430_phy_suspend'
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>>
+>> Hi Russel, Tony,
+>>
+>> This patch fixes the linking error caused by the twl-common.c file,
+>> when the kernel is built for OMAP2/3/4 only.
+> 
+> Thanks, I'll queue this one as a fix with updated comments as below.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 
+> From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Date: Tue, 9 Aug 2011 15:36:50 +0300
+> Subject: [PATCH] OMAP: Fix linking error in twl-common.c for OMAP2/3/4 only builds
+> 
+[snip]
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- drivers/media/video/via-camera.c       |    2 +-
- drivers/net/wireless/ipw2x00/ipw2100.c |    2 +-
- include/linux/netdevice.h              |    2 +-
- include/linux/pm_qos.h                 |   22 ++++----
- include/sound/pcm.h                    |    2 +-
- kernel/power/qos.c                     |   90 ++++++++++++++++---------------
- 6 files changed, 61 insertions(+), 59 deletions(-)
+I still stumbled upon these linker errors when building for my OMAP3
+board, using the current linux-omap master branch. I inadvertently had
+CONFIG_ARCH_OMAP4=y (leftover from my starting point,
+omap2plus_defconfig), but didn't have any of the boards with
+omap_phy_internal.o selected (OMAP_4430SDP, OMAP4_PANDA, PCM049, PCM049,
+OMAP3517EVM). Maybe this isn't a concern anyway, since anybody building
+with CONFIG_ARCH_OMAP4 will presumably also be building one of those
+boards? I don't know if it is our goal to build successfully with every
+wacky CONFIG_ combination, but I thought I would report it here just in
+case.
 
-diff --git a/drivers/media/video/via-camera.c b/drivers/media/video/via-camera.c
-index b3ca389..fba6c64 100644
---- a/drivers/media/video/via-camera.c
-+++ b/drivers/media/video/via-camera.c
-@@ -69,7 +69,7 @@ struct via_camera {
- 	struct mutex lock;
- 	enum viacam_opstate opstate;
- 	unsigned long flags;
--	struct pm_qos_request_list qos_request;
-+	struct pm_qos_request qos_request;
- 	/*
- 	 * GPIO info for power/reset management
- 	 */
-diff --git a/drivers/net/wireless/ipw2x00/ipw2100.c b/drivers/net/wireless/ipw2x00/ipw2100.c
-index d9df575..f323ec0 100644
---- a/drivers/net/wireless/ipw2x00/ipw2100.c
-+++ b/drivers/net/wireless/ipw2x00/ipw2100.c
-@@ -174,7 +174,7 @@ that only one external action is invoked at a time.
- #define DRV_DESCRIPTION	"Intel(R) PRO/Wireless 2100 Network Driver"
- #define DRV_COPYRIGHT	"Copyright(c) 2003-2006 Intel Corporation"
- 
--static struct pm_qos_request_list ipw2100_pm_qos_req;
-+static struct pm_qos_request ipw2100_pm_qos_req;
- 
- /* Debugging stuff */
- #ifdef CONFIG_IPW2100_DEBUG
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index cc1eb9e..82f01d9 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -999,7 +999,7 @@ struct net_device {
- 	 */
- 	char			name[IFNAMSIZ];
- 
--	struct pm_qos_request_list pm_qos_req;
-+	struct pm_qos_request pm_qos_req;
- 
- 	/* device name hash chain */
- 	struct hlist_node	name_hlist;
-diff --git a/include/linux/pm_qos.h b/include/linux/pm_qos.h
-index 7ba67541..6b0968f 100644
---- a/include/linux/pm_qos.h
-+++ b/include/linux/pm_qos.h
-@@ -20,30 +20,30 @@
- #define PM_QOS_NETWORK_LAT_DEFAULT_VALUE	(2000 * USEC_PER_SEC)
- #define PM_QOS_NETWORK_THROUGHPUT_DEFAULT_VALUE	0
- 
--struct pm_qos_request_list {
--	struct plist_node list;
-+struct pm_qos_request {
-+	struct plist_node node;
- 	int pm_qos_class;
- };
- 
- #ifdef CONFIG_PM
--void pm_qos_add_request(struct pm_qos_request_list *l,
--			int pm_qos_class, s32 value);
--void pm_qos_update_request(struct pm_qos_request_list *pm_qos_req,
-+void pm_qos_add_request(struct pm_qos_request *req, int pm_qos_class,
-+			s32 value);
-+void pm_qos_update_request(struct pm_qos_request *req,
- 			   s32 new_value);
--void pm_qos_remove_request(struct pm_qos_request_list *pm_qos_req);
-+void pm_qos_remove_request(struct pm_qos_request *req);
- 
- int pm_qos_request(int pm_qos_class);
- int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier);
- int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier);
--int pm_qos_request_active(struct pm_qos_request_list *req);
-+int pm_qos_request_active(struct pm_qos_request *req);
- #else
--static inline void pm_qos_add_request(struct pm_qos_request_list *l,
-+static inline void pm_qos_add_request(struct pm_qos_request *req,
- 				      int pm_qos_class, s32 value)
- 			{ return; }
--static inline void pm_qos_update_request(struct pm_qos_request_list *pm_qos_req,
-+static inline void pm_qos_update_request(struct pm_qos_request *req,
- 					 s32 new_value)
- 			{ return; }
--static inline void pm_qos_remove_request(struct pm_qos_request_list *pm_qos_req)
-+static inline void pm_qos_remove_request(struct pm_qos_request *req)
- 			{ return; }
- 
- static inline int pm_qos_request(int pm_qos_class)
-@@ -54,7 +54,7 @@ static inline int pm_qos_add_notifier(int pm_qos_class,
- static inline int pm_qos_remove_notifier(int pm_qos_class,
- 					 struct notifier_block *notifier)
- 			{ return 0; }
--static inline int pm_qos_request_active(struct pm_qos_request_list *req)
-+static inline int pm_qos_request_active(struct pm_qos_request *req)
- 			{ return 0; }
- #endif
- 
-diff --git a/include/sound/pcm.h b/include/sound/pcm.h
-index 1204f17..d3b068f 100644
---- a/include/sound/pcm.h
-+++ b/include/sound/pcm.h
-@@ -373,7 +373,7 @@ struct snd_pcm_substream {
- 	int number;
- 	char name[32];			/* substream name */
- 	int stream;			/* stream (direction) */
--	struct pm_qos_request_list latency_pm_qos_req; /* pm_qos request */
-+	struct pm_qos_request latency_pm_qos_req; /* pm_qos request */
- 	size_t buffer_bytes_max;	/* limit ring buffer size */
- 	struct snd_dma_buffer dma_buffer;
- 	unsigned int dma_buf_id;
-diff --git a/kernel/power/qos.c b/kernel/power/qos.c
-index 3bf69f1..61275f2 100644
---- a/kernel/power/qos.c
-+++ b/kernel/power/qos.c
-@@ -45,7 +45,7 @@
- #include <linux/uaccess.h>
- 
- /*
-- * locking rule: all changes to requests or notifiers lists
-+ * locking rule: all changes to constraints or notifiers lists
-  * or pm_qos_object list and pm_qos_objects need to happen with pm_qos_lock
-  * held, taken with _irqsave.  One lock to rule them all
-  */
-@@ -60,7 +60,7 @@ enum pm_qos_type {
-  * types linux supports for 32 bit quantites
-  */
- struct pm_qos_object {
--	struct plist_head requests;
-+	struct plist_head constraints;
- 	struct blocking_notifier_head *notifiers;
- 	struct miscdevice pm_qos_power_miscdev;
- 	char *name;
-@@ -74,7 +74,7 @@ static DEFINE_SPINLOCK(pm_qos_lock);
- static struct pm_qos_object null_pm_qos;
- static BLOCKING_NOTIFIER_HEAD(cpu_dma_lat_notifier);
- static struct pm_qos_object cpu_dma_pm_qos = {
--	.requests = PLIST_HEAD_INIT(cpu_dma_pm_qos.requests, pm_qos_lock),
-+	.constraints = PLIST_HEAD_INIT(cpu_dma_pm_qos.constraints, pm_qos_lock),
- 	.notifiers = &cpu_dma_lat_notifier,
- 	.name = "cpu_dma_latency",
- 	.target_value = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE,
-@@ -84,7 +84,8 @@ static struct pm_qos_object cpu_dma_pm_qos = {
- 
- static BLOCKING_NOTIFIER_HEAD(network_lat_notifier);
- static struct pm_qos_object network_lat_pm_qos = {
--	.requests = PLIST_HEAD_INIT(network_lat_pm_qos.requests, pm_qos_lock),
-+	.constraints = PLIST_HEAD_INIT(network_lat_pm_qos.constraints,
-+				       pm_qos_lock),
- 	.notifiers = &network_lat_notifier,
- 	.name = "network_latency",
- 	.target_value = PM_QOS_NETWORK_LAT_DEFAULT_VALUE,
-@@ -95,7 +96,8 @@ static struct pm_qos_object network_lat_pm_qos = {
- 
- static BLOCKING_NOTIFIER_HEAD(network_throughput_notifier);
- static struct pm_qos_object network_throughput_pm_qos = {
--	.requests = PLIST_HEAD_INIT(network_throughput_pm_qos.requests, pm_qos_lock),
-+	.constraints = PLIST_HEAD_INIT(network_throughput_pm_qos.constraints,
-+				       pm_qos_lock),
- 	.notifiers = &network_throughput_notifier,
- 	.name = "network_throughput",
- 	.target_value = PM_QOS_NETWORK_THROUGHPUT_DEFAULT_VALUE,
-@@ -129,15 +131,15 @@ static const struct file_operations pm_qos_power_fops = {
- /* unlocked internal variant */
- static inline int pm_qos_get_value(struct pm_qos_object *o)
- {
--	if (plist_head_empty(&o->requests))
-+	if (plist_head_empty(&o->constraints))
- 		return o->default_value;
- 
- 	switch (o->type) {
- 	case PM_QOS_MIN:
--		return plist_first(&o->requests)->prio;
-+		return plist_first(&o->constraints)->prio;
- 
- 	case PM_QOS_MAX:
--		return plist_last(&o->requests)->prio;
-+		return plist_last(&o->constraints)->prio;
- 
- 	default:
- 		/* runtime check for not using enum */
-@@ -170,13 +172,13 @@ static void update_target(struct pm_qos_object *o, struct plist_node *node,
- 		 * with new value and add, then see if the extremal
- 		 * changed
- 		 */
--		plist_del(node, &o->requests);
-+		plist_del(node, &o->constraints);
- 		plist_node_init(node, value);
--		plist_add(node, &o->requests);
-+		plist_add(node, &o->constraints);
- 	} else if (del) {
--		plist_del(node, &o->requests);
-+		plist_del(node, &o->constraints);
- 	} else {
--		plist_add(node, &o->requests);
-+		plist_add(node, &o->constraints);
- 	}
- 	curr_value = pm_qos_get_value(o);
- 	pm_qos_set_value(o, curr_value);
-@@ -222,7 +224,7 @@ int pm_qos_request(int pm_qos_class)
- }
- EXPORT_SYMBOL_GPL(pm_qos_request);
- 
--int pm_qos_request_active(struct pm_qos_request_list *req)
-+int pm_qos_request_active(struct pm_qos_request *req)
- {
- 	return req->pm_qos_class != 0;
- }
-@@ -230,24 +232,24 @@ EXPORT_SYMBOL_GPL(pm_qos_request_active);
- 
- /**
-  * pm_qos_add_request - inserts new qos request into the list
-- * @dep: pointer to a preallocated handle
-+ * @req: pointer to a preallocated handle
-  * @pm_qos_class: identifies which list of qos request to use
-  * @value: defines the qos request
-  *
-  * This function inserts a new entry in the pm_qos_class list of requested qos
-  * performance characteristics.  It recomputes the aggregate QoS expectations
-- * for the pm_qos_class of parameters and initializes the pm_qos_request_list
-+ * for the pm_qos_class of parameters and initializes the pm_qos_request
-  * handle.  Caller needs to save this handle for later use in updates and
-  * removal.
-  */
- 
--void pm_qos_add_request(struct pm_qos_request_list *dep,
-+void pm_qos_add_request(struct pm_qos_request *req,
- 			int pm_qos_class, s32 value)
- {
- 	struct pm_qos_object *o =  pm_qos_array[pm_qos_class];
- 	int new_value;
- 
--	if (pm_qos_request_active(dep)) {
-+	if (pm_qos_request_active(req)) {
- 		WARN(1, KERN_ERR "pm_qos_add_request() called for already added request\n");
- 		return;
- 	}
-@@ -255,15 +257,15 @@ void pm_qos_add_request(struct pm_qos_request_list *dep,
- 		new_value = o->default_value;
- 	else
- 		new_value = value;
--	plist_node_init(&dep->list, new_value);
--	dep->pm_qos_class = pm_qos_class;
--	update_target(o, &dep->list, 0, PM_QOS_DEFAULT_VALUE);
-+	plist_node_init(&req->node, new_value);
-+	req->pm_qos_class = pm_qos_class;
-+	update_target(o, &req->node, 0, PM_QOS_DEFAULT_VALUE);
- }
- EXPORT_SYMBOL_GPL(pm_qos_add_request);
- 
- /**
-  * pm_qos_update_request - modifies an existing qos request
-- * @pm_qos_req : handle to list element holding a pm_qos request to use
-+ * @req : handle to list element holding a pm_qos request to use
-  * @value: defines the qos request
-  *
-  * Updates an existing qos request for the pm_qos_class of parameters along
-@@ -271,56 +273,56 @@ EXPORT_SYMBOL_GPL(pm_qos_add_request);
-  *
-  * Attempts are made to make this code callable on hot code paths.
-  */
--void pm_qos_update_request(struct pm_qos_request_list *pm_qos_req,
-+void pm_qos_update_request(struct pm_qos_request *req,
- 			   s32 new_value)
- {
- 	s32 temp;
- 	struct pm_qos_object *o;
- 
--	if (!pm_qos_req) /*guard against callers passing in null */
-+	if (!req) /*guard against callers passing in null */
- 		return;
- 
--	if (!pm_qos_request_active(pm_qos_req)) {
-+	if (!pm_qos_request_active(req)) {
- 		WARN(1, KERN_ERR "pm_qos_update_request() called for unknown object\n");
- 		return;
- 	}
- 
--	o = pm_qos_array[pm_qos_req->pm_qos_class];
-+	o = pm_qos_array[req->pm_qos_class];
- 
- 	if (new_value == PM_QOS_DEFAULT_VALUE)
- 		temp = o->default_value;
- 	else
- 		temp = new_value;
- 
--	if (temp != pm_qos_req->list.prio)
--		update_target(o, &pm_qos_req->list, 0, temp);
-+	if (temp != req->node.prio)
-+		update_target(o, &req->node, 0, temp);
- }
- EXPORT_SYMBOL_GPL(pm_qos_update_request);
- 
- /**
-  * pm_qos_remove_request - modifies an existing qos request
-- * @pm_qos_req: handle to request list element
-+ * @req: handle to request list element
-  *
-- * Will remove pm qos request from the list of requests and
-+ * Will remove pm qos request from the list of constraints and
-  * recompute the current target value for the pm_qos_class.  Call this
-  * on slow code paths.
-  */
--void pm_qos_remove_request(struct pm_qos_request_list *pm_qos_req)
-+void pm_qos_remove_request(struct pm_qos_request *req)
- {
- 	struct pm_qos_object *o;
- 
--	if (pm_qos_req == NULL)
-+	if (req == NULL)
- 		return;
- 		/* silent return to keep pcm code cleaner */
- 
--	if (!pm_qos_request_active(pm_qos_req)) {
-+	if (!pm_qos_request_active(req)) {
- 		WARN(1, KERN_ERR "pm_qos_remove_request() called for unknown object\n");
- 		return;
- 	}
- 
--	o = pm_qos_array[pm_qos_req->pm_qos_class];
--	update_target(o, &pm_qos_req->list, 1, PM_QOS_DEFAULT_VALUE);
--	memset(pm_qos_req, 0, sizeof(*pm_qos_req));
-+	o = pm_qos_array[req->pm_qos_class];
-+	update_target(o, &req->node, 1, PM_QOS_DEFAULT_VALUE);
-+	memset(req, 0, sizeof(*req));
- }
- EXPORT_SYMBOL_GPL(pm_qos_remove_request);
- 
-@@ -368,7 +370,7 @@ static int pm_qos_power_open(struct inode *inode, struct file *filp)
- 
- 	pm_qos_class = find_pm_qos_object_by_minor(iminor(inode));
- 	if (pm_qos_class >= 0) {
--               struct pm_qos_request_list *req = kzalloc(sizeof(*req), GFP_KERNEL);
-+		struct pm_qos_request *req = kzalloc(sizeof(*req), GFP_KERNEL);
- 		if (!req)
- 			return -ENOMEM;
- 
-@@ -383,7 +385,7 @@ static int pm_qos_power_open(struct inode *inode, struct file *filp)
- 
- static int pm_qos_power_release(struct inode *inode, struct file *filp)
- {
--	struct pm_qos_request_list *req;
-+	struct pm_qos_request *req;
- 
- 	req = filp->private_data;
- 	pm_qos_remove_request(req);
-@@ -399,14 +401,14 @@ static ssize_t pm_qos_power_read(struct file *filp, char __user *buf,
- 	s32 value;
- 	unsigned long flags;
- 	struct pm_qos_object *o;
--	struct pm_qos_request_list *pm_qos_req = filp->private_data;
-+	struct pm_qos_request *req = filp->private_data;
- 
--	if (!pm_qos_req)
-+	if (!req)
- 		return -EINVAL;
--	if (!pm_qos_request_active(pm_qos_req))
-+	if (!pm_qos_request_active(req))
- 		return -EINVAL;
- 
--	o = pm_qos_array[pm_qos_req->pm_qos_class];
-+	o = pm_qos_array[req->pm_qos_class];
- 	spin_lock_irqsave(&pm_qos_lock, flags);
- 	value = pm_qos_get_value(o);
- 	spin_unlock_irqrestore(&pm_qos_lock, flags);
-@@ -418,7 +420,7 @@ static ssize_t pm_qos_power_write(struct file *filp, const char __user *buf,
- 		size_t count, loff_t *f_pos)
- {
- 	s32 value;
--	struct pm_qos_request_list *pm_qos_req;
-+	struct pm_qos_request *req;
- 
- 	if (count == sizeof(s32)) {
- 		if (copy_from_user(&value, buf, sizeof(s32)))
-@@ -449,8 +451,8 @@ static ssize_t pm_qos_power_write(struct file *filp, const char __user *buf,
- 		return -EINVAL;
- 	}
- 
--	pm_qos_req = filp->private_data;
--	pm_qos_update_request(pm_qos_req, value);
-+	req = filp->private_data;
-+	pm_qos_update_request(req, value);
- 
- 	return count;
- }
--- 
-1.7.2.5
+-Michael
 
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
