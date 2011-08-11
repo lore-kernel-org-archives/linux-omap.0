@@ -1,78 +1,82 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH 6/6] hwmon: OMAP4: On die temperature sensor driver
-Date: Thu, 11 Aug 2011 21:55:59 +0300
-Message-ID: <20110811185558.GC15970@legolas.emea.dhcp.ti.com>
-References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
- <1312979122-5896-7-git-send-email-j-keerthy@ti.com>
- <20110810124629.GJ12882@legolas.emea.dhcp.ti.com>
- <CAJ6a13Z=u=exWUHLotw8jpHMv-hKpE+fvg_1hq7=gtMiuJKxOA@mail.gmail.com>
- <20110811103658.GG27742@legolas.emea.dhcp.ti.com>
- <CAJ6a13bxg8po-Csc10LsFH-oES4YOKkqFoTm3kG4XzS=b2boMw@mail.gmail.com>
- <20110811141248.GK28500@legolas.emea.dhcp.ti.com>
- <CAJ6a13b7qu3K4YJPTYych_NQxLuuUxZOQg6PPC_=XA+qiwn2RA@mail.gmail.com>
- <20110811185408.GB15970@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2 cache
+Date: Thu, 11 Aug 2011 14:28:39 -0500
+Message-ID: <CADysL2bp08WP798_MvUJthGi9ACySDE=Dc_BM9Vd0A=YcKpm+Q@mail.gmail.com>
+References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com>
+	<20110414223036.GA7335@n2100.arm.linux.org.uk>
+	<BANLkTin8gugnVoai6VHC7qMgK4eKRXRtHg@mail.gmail.com>
+	<20110428134055.GA19709@n2100.arm.linux.org.uk>
+	<BANLkTikKnE-9WncNCADKfZVqkP1LFPYeXA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ABTtc+pdwF7KHXCz"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:45151 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752841Ab1HKS4H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Aug 2011 14:56:07 -0400
-Received: by bkbzv3 with SMTP id zv3so1232786bkb.4
-        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 11:56:02 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110811185408.GB15970@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <BANLkTikKnE-9WncNCADKfZVqkP1LFPYeXA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: "J, KEERTHY" <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, rnayak@ti.com, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, khali@linux-fr.org, guenter.roeck@ericsson.com
+
+Hi Russel,
 
 
---ABTtc+pdwF7KHXCz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Apr 28, 2011 at 11:48 AM, Gupta, Ramesh <grgupta@ti.com> wrote:
+> Hi Russel,
+>
+> On Thu, Apr 28, 2011 at 8:40 AM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+>> On Fri, Apr 15, 2011 at 06:26:40AM -0500, Gupta, Ramesh wrote:
+>>> Russell,
+>>>
+>>> On Thu, Apr 14, 2011 at 5:30 PM, Russell King - ARM Linux
+>>> <linux@arm.linux.org.uk> wrote:
+>>> > On Thu, Apr 14, 2011 at 04:52:48PM -0500, Fernando Guzman Lugo wr=
+ote:
+>>> >> From: Ramesh Gupta <grgupta@ti.com>
+>>> >>
+>>> >> This patch is to flush the iommu page table entries from L1 and =
+L2
+>>> >> caches using dma_map_single. This also simplifies the implementa=
+tion
+>>> >> by removing the functions =A0flush_iopgd_range/flush_iopte_range=
+=2E
+>>> >
+>>> > No. =A0This usage is just wrong. =A0If you're going to use the DM=
+A API then
+>>> > unmap it, otherwise the DMA API debugging will go awol.
+>>> >
+>>>
+>>> Thank you for the comments, this particular memory is always a writ=
+e
+>>> from the A9 for MMU programming and
+>>> only read from the slave processor, that is the reason for not call=
+ing
+>>> the unmap. I can re-look into the changes to call
+>>> unmap in a proper way as this impacts the DMA API.
+>>> Are there any other ways to perform only flush the memory from L1/L=
+2 caches?
+>>
+>> We _could_ invent a new API to deal with this, which is probably goi=
+ng
+>> to be far better in the longer term for page table based iommus. =A0=
+That's
+>> going to need some thought - eg, do we need to pass a struct device
+>> argument for the iommu cache flushing so we know whether we need to =
+flush
+>> or not (eg, if we have cache coherent iommus)...
 
-Hi,
+my apologies for a late mail on this topic.
 
-On Thu, Aug 11, 2011 at 09:54:09PM +0300, Felipe Balbi wrote:
-> > > you need some other way to handle this. Why do you need to manually s=
-et
-> > > the rate rather than having hwmod handle this for you ?
-> > >
-> > > your argument that "it's a one time setting" is not enough to have th=
-is
-> > > in the driver. Drivers should not care about clocks anymore, this sho=
-uld
-> > > have been done on another layer.
-> >=20
-> > Hwmod will have no idea on the rate required.
->=20
-> does the rate need to change ? Also, I have not mentioned hwmod anytime
+do you think of any other requirements for this new API?
 
-i did mention hwmod, nevermind that part. Still I'm not sure where is
-the right place to handle this.
+Could we use the existing dmac_flush_range(), outer_flush_range()
+for this purpose instead of a new API?
 
---=20
-balbi
+I see a comment in the arch/arm/include/asm/cacheflush.h
+for  _not_ to use these APIs directly, but I am not really understand
+the reason for that.
 
---ABTtc+pdwF7KHXCz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I would appreciate any inputs on this.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJORCW+AAoJEAv8Txj19kN1CwcH+gK05kR/ep9E20LVkrDb5T/M
-dmj6mh0LTSPD2Ms7F2FxXB56x6uEN+DAGFsriQjU/q72L5hWmU2NtCYuCnTtlJna
-iHBl3boIpYcRfxpQ6El+qBQS/ssHrUcRMSzdg1uhblJrfZ60fSAVawieOnjkog9z
-41X2G2L+vBfJ0mUVfq9Yspk5oqWFa/X8ARtOQVzrdK46TbLxj9NAXTGXdDzf311Q
-sX6Djtiv2/pyeSpN88etx5M8WzM3rhzQwu2Zw/4WFMeKOlRY6HFodlarXkSbRZiW
-CHcGaMT67CuA+SA09aXH/exL9rGpB+5sog6NhGFAAF6JQRGkobyw8aINnYi3LfU=
-=N8QL
------END PGP SIGNATURE-----
-
---ABTtc+pdwF7KHXCz--
+thank you and regards
+Ramesh Gupta G
