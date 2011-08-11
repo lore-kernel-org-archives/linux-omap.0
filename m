@@ -1,14 +1,22 @@
-From: David Brown <davidb@codeaurora.org>
-Subject: Re: [PATCH] mmc: Use pr_<level>, add and use mmc_<level>
-Date: Thu, 11 Aug 2011 13:34:16 -0700
-Message-ID: <20110811203416.GA12740@huya.qualcomm.com>
-References: <1441985db03ab10b067332f7d4b75b607921441b.1313094012.git.joe@perches.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [RFC PATCH 6/6] hwmon: OMAP4: On die temperature sensor driver
+Date: Thu, 11 Aug 2011 16:37:19 -0500
+Message-ID: <4E444B8F.9060908@ti.com>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
+	<1312979122-5896-7-git-send-email-j-keerthy@ti.com>
+	<20110810124629.GJ12882@legolas.emea.dhcp.ti.com>
+	<CAJ6a13Z=u=exWUHLotw8jpHMv-hKpE+fvg_1hq7=gtMiuJKxOA@mail.gmail.com>
+	<20110811103658.GG27742@legolas.emea.dhcp.ti.com>
+	<CAJ6a13bxg8po-Csc10LsFH-oES4YOKkqFoTm3kG4XzS=b2boMw@mail.gmail.com>
+	<20110811141248.GK28500@legolas.emea.dhcp.ti.com>
+	<CAJ6a13b7qu3K4YJPTYych_NQxLuuUxZOQg6PPC_=XA+qiwn2RA@mail.gmail.com>
+	<20110811185408.GB15970@legolas.emea.dhcp.ti.com>
+	<20110811185558.GC15970@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1441985db03ab10b067332f7d4b75b607921441b.1313094012.git.joe@perches.com>
+In-Reply-To: <20110811185558.GC15970@legolas.emea.dhcp.ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,43 +26,46 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Joe Perches <joe@perches.com>
-Cc: Pavel Pisa <ppisa@pikron.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Daniel Walker <dwalker@fifo99.com>, Harald Welte <HaraldWelte@viatech.com>, Pierre Ossman <pierre@ossman.eu>, Chris Ball <cjb@laptop.org>, Alex Dubov <oakad@yahoo.com>, linux-arm-msm@vger.kernel.org, Bruce Chang <brucechang@via.com.tw>, Ian Molton <ian@mnementh.co.uk>, Ben Dooks <ben-linux@fluff.org>, Tony Olech <tony.olech@elandigitalsystems.com>, linux-omap@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>, linux-usb@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Bryan Huntsman <bryanh@codeaurora.org>, Manuel Lauss <manuel.lauss@gmail.com>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: balbi@ti.com
+Cc: Russell King <linux@arm.linux.org.uk>, b-cousson@ti.com, Tony Lindgren <tony@atomide.com>, "J,
+	KEERTHY" <j-keerthy@ti.com>, rnayak@ti.com, lm-sensors@lm-sensors.org, khali@linux-fr.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, guenter.roeck@ericsson.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 11, 2011 at 01:21:24PM -0700, Joe Perches wrote:
-> Use current logging styles.
+On 08/11/2011 01:55 PM, Felipe Balbi wrote:
+> Hi,
 > 
-> Add an mmc_printk function to reduce overall size
-> by centralizing the mmc_hostname use.
+> On Thu, Aug 11, 2011 at 09:54:09PM +0300, Felipe Balbi wrote:
+>>>> you need some other way to handle this. Why do you need to manually set
+>>>> the rate rather than having hwmod handle this for you ?
+>>>>
+>>>> your argument that "it's a one time setting" is not enough to have this
+>>>> in the driver. Drivers should not care about clocks anymore, this should
+>>>> have been done on another layer.
+>>>
+>>> Hwmod will have no idea on the rate required.
+>>
+>> does the rate need to change ? Also, I have not mentioned hwmod anytime
 > 
-> Because pr_fmt(fmt) KBUILD_MODNAME is used,
-> some logging prefixes are changed.
-> For instance from "SDIO:" to "mmc_core:"
+> i did mention hwmod, nevermind that part. Still I'm not sure where is
+> the right place to handle this.
 > 
-> Add macros for mmc_err, mmc_warn, and mmc_info.
-> Convert printks with mmc_hostname to mmc_<level>.
-> 
-> Whitespace neatening around pr_<level>.
-> Convert printk(KERN_DEBUG to pr_debug(
-> Convert direct uses of DBG macros to pr_debug.
-> Convert direct uses of DBGF to DBG.
-> Coalesce long format strings.
-> Add a few missing newlines to logging messages.
-> 
-> $ size drivers/mmc/built-in.o*
->    text	   data	    bss	    dec	    hex	filename
->   92530	   1608	    204	  94342	  17086	drivers/mmc/built-in.o.minimal.new
->   94229	   1608	    204	  96041	  17729	drivers/mmc/built-in.o.minimal.old
->  291831	   5152	  77344	 374327	  5b637	drivers/mmc/built-in.o.allyesconfig.new
->  293616	   5152	  78128	 376896	  5c040	drivers/mmc/built-in.o.allyesconfig.old
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
->  drivers/mmc/host/msm_sdcc.c     |  103 +++++++++----------
 
-Acked-by: David Brown <davidb@codeaurora.org>
+Aren't the omap_device_pm_latency callbacks the right place to do it?
 
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+e.g. in the following snippet from mach-omap2/temp_sensor_device.c
+
++static struct omap_device_pm_latency omap_temp_sensor_latency[] = {
++	{
++	 .deactivate_func = omap_device_idle_hwmods,
++	 .activate_func = omap_device_enable_hwmods,
++	 .flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	}
++};
+
+instead of directly pointing activate_func to omap_device_enable_hwmods,
+it could point to a function that sets the required clock rate and then
+enables the hwmod.
+
+
+regards,
+-roger
