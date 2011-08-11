@@ -1,175 +1,126 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH 4/6] OMAP4: Temperature sensor device support
-Date: Thu, 11 Aug 2011 13:30:06 +0300
-Message-ID: <20110811103006.GF27742@legolas.emea.dhcp.ti.com>
-References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
- <1312979122-5896-5-git-send-email-j-keerthy@ti.com>
- <20110810123647.GF12882@legolas.emea.dhcp.ti.com>
- <CAJ6a13b=Pv6i=Z53y2qLNhUNY-A3S395+9H+xg2ssGC_ZcLZyA@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: <hvaibhav@ti.com>
+Subject: [RFC: PATCH 4/4] AM335X: Add low level debugging support
+Date: Thu, 11 Aug 2011 16:00:30 +0530
+Message-ID: <1313058630-32447-5-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="O98KdSgI27dgYlM5"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:38066 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755202Ab1HKKaK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Aug 2011 06:30:10 -0400
-Received: by mail-bw0-f44.google.com with SMTP id r4so828539bka.3
-        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 03:30:08 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAJ6a13b=Pv6i=Z53y2qLNhUNY-A3S395+9H+xg2ssGC_ZcLZyA@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:41591 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755122Ab1HKKar (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Aug 2011 06:30:47 -0400
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: balbi@ti.com, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, rnayak@ti.com
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Afzal Mohammed <afzal@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
+From: Afzal Mohammed <afzal@ti.com>
 
---O98KdSgI27dgYlM5
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Add support for low level debugging on AM335X EVM. Currently only
+support for UART1 console, which is used on AM335X EVM is added.
 
-Hi,
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/include/mach/debug-macro.S |   21 +++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/serial.h       |    4 ++++
+ arch/arm/plat-omap/include/plat/uncompress.h   |    6 ++++++
+ 3 files changed, 31 insertions(+), 0 deletions(-)
 
-On Thu, Aug 11, 2011 at 08:10:07AM +0530, J, KEERTHY wrote:
-> >> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> >> index 6e6735f..8fd8e80 100644
-> >> --- a/arch/arm/plat-omap/Kconfig
-> >> +++ b/arch/arm/plat-omap/Kconfig
-> >> @@ -115,6 +115,18 @@ config OMAP_MCBSP
-> >> =A0 =A0 =A0 =A0 Say Y here if you want support for the OMAP Multichann=
-el
-> >> =A0 =A0 =A0 =A0 Buffered Serial Port.
-> >>
-> >> +config OMAP_TEMP_SENSOR
-> >> + =A0 =A0 bool "OMAP Temp Sensor Support"
-> >> + =A0 =A0 depends on ARCH_OMAP
-> >> + =A0 =A0 default n
-> >> + =A0 =A0 help
-> >> + =A0 =A0 =A0 Say Y here if you want support for the temp sensor
-> >> + =A0 =A0 =A0 on OMAP4460.
-> >> +
-> >> + =A0 =A0 =A0 This provides the temperature of the MPU
-> >> + =A0 =A0 =A0 subsystem. Only one instance of on die temperature
-> >> + =A0 =A0 =A0 sensor is present.
-> >
-> > if there's only one instance, why do you use
-> > omap_hwmod_for_each_by_class() ??
->=20
-> In case of OMAP5 there are multiple instances. Hence using
-> omap_hwmod_for_each_by_class().
+diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
+index 309e328..a99ddbd 100644
+--- a/arch/arm/mach-omap2/include/mach/debug-macro.S
++++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
+@@ -78,6 +78,8 @@ omap_uart_lsr:	.word	0
+ 		beq	82f			@ configure UART2
+ 		cmp	\rp, #TI81XXUART3	@ ti81Xx UART offsets different
+ 		beq	83f			@ configure UART3
++		cmp	\rp, #AM335XUART1	@ AM335X UART offsets different
++		beq	84f			@ configure UART1
+ 		cmp	\rp, #ZOOM_UART		@ only on zoom2/3
+ 		beq	95f			@ configure ZOOM_UART
 
-that's not a reality yet, so why don't you leave it for when OMAP5 is
-around ?
+@@ -106,6 +108,8 @@ omap_uart_lsr:	.word	0
+ 		b	98f
+ 83:		mov	\rp, #UART_OFFSET(TI81XX_UART3_BASE)
+ 		b	98f
++84:		mov	\rp, #UART_OFFSET(AM335X_UART1_BASE)
++		b	97f
+ 95:		ldr	\rp, =ZOOM_UART_BASE
+ 		mrc	p15, 0, \rv, c1, c0
+ 		tst	\rv, #1			@ MMU enabled?
+@@ -121,6 +125,23 @@ omap_uart_lsr:	.word	0
+ 		b	10b
 
-> >> diff --git a/arch/arm/plat-omap/include/plat/temperature_sensor.h b/ar=
-ch/arm/plat-omap/include/plat/temperature_sensor.h
-> >> new file mode 100644
-> >> index 0000000..692ebdc
-> >> --- /dev/null
-> >> +++ b/arch/arm/plat-omap/include/plat/temperature_sensor.h
-> >> @@ -0,0 +1,87 @@
-> >> +/*
-> >> + * OMAP Temperature sensor header file
-> >> + *
-> >> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.=
-com/
-> >> + * Author: J Keerthy <j-keerthy@ti.com>
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or
-> >> + * modify it under the terms of the GNU General Public License
-> >> + * version 2 as published by the Free Software Foundation.
-> >> + *
-> >> + * This program is distributed in the hope that it will be useful, but
-> >> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> >> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the GNU
-> >> + * General Public License for more details.
-> >> + *
-> >> + * You should have received a copy of the GNU General Public License
-> >> + * along with this program; if not, write to the Free Software
-> >> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> >> + * 02110-1301 USA
-> >> + *
-> >> + */
-> >> +
-> >> +#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
-> >> +#define __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
-> >> +
-> >> +/* Offsets from the base of temperature sensor registers */
-> >> +
-> >> +#define OMAP4460_TEMP_SENSOR_CTRL_OFFSET =A0 =A0 0x00
-> >> +#define OMAP4460_BGAP_CTRL_OFFSET =A0 =A0 =A0 =A0 =A0 =A00x4c
-> >> +#define OMAP4460_BGAP_COUNTER_OFFSET =A0 =A0 =A0 =A0 0x50
-> >> +#define OMAP4460_BGAP_THRESHOLD_OFFSET =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x=
-54
-> >> +#define OMAP4460_BGAP_TSHUT_OFFSET =A0 =A0 =A0 =A0 =A0 0x58
-> >> +#define OMAP4460_BGAP_STATUS_OFFSET =A0 =A0 =A0 =A0 =A00x5c
-> >> +#define OMAP4460_FUSE_OPP_BGAP =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 -0xcc
-> >> +
-> >> +struct omap_temp_sensor_registers {
-> >> + =A0 =A0 u32 =A0 =A0 temp_sensor_ctrl;
-> >> + =A0 =A0 u32 =A0 =A0 bgap_tempsoff_mask;
-> >> + =A0 =A0 u32 =A0 =A0 bgap_soc_mask;
-> >> + =A0 =A0 u32 =A0 =A0 bgap_eocz_mask;
-> >> + =A0 =A0 u32 =A0 =A0 bgap_dtemp_mask;
-> >> +
-> >> + =A0 =A0 u32 =A0 =A0 bgap_mask_ctrl;
-> >> + =A0 =A0 u32 =A0 =A0 mask_hot_mask;
-> >> + =A0 =A0 u32 =A0 =A0 mask_cold_mask;
-> >> +
-> >> + =A0 =A0 u32 =A0 =A0 bgap_mode_ctrl;
-> >> + =A0 =A0 u32 =A0 =A0 mode_ctrl_mask;
-> >> +
-> >> + =A0 =A0 u32 =A0 =A0 bgap_counter;
-> >> + =A0 =A0 u32 =A0 =A0 counter_mask;
-> >> +
-> >> + =A0 =A0 u32 =A0 =A0 bgap_threshold;
-> >> + =A0 =A0 u32 =A0 =A0 threshold_thot_mask;
-> >> + =A0 =A0 u32 =A0 =A0 threshold_tcold_mask;
-> >> +
-> >> + =A0 =A0 u32 =A0 =A0 thsut_threshold;
-> >> + =A0 =A0 u32 =A0 =A0 tshut_hot_mask;
-> >> + =A0 =A0 u32 =A0 =A0 tshut_cold_mask;
-> >> +
-> >> + =A0 =A0 u32 =A0 =A0 bgap_status;
-> >> + =A0 =A0 u32 =A0 =A0 status_clean_stop_mask;
-> >> + =A0 =A0 u32 =A0 =A0 status_bgap_alert_mask;
-> >> + =A0 =A0 u32 =A0 =A0 status_hot_mask;
-> >> + =A0 =A0 u32 =A0 =A0 status_cold_mask;
-> >> +
-> >> + =A0 =A0 u32 =A0 =A0 bgap_efuse;
-> >> +};
-> >
-> > I find it unnecessary to pass the register map to driver using
-> > platform_data.
->=20
-> With multiple instances the register map to individual instances will cha=
-nge.
-> So passing it via platform_data.
+ 		/* Store both phys and virt address for the uart */
++97:		add	\rp, \rp, #0x44000000	@ phys base
++		mrc	p15, 0, \rv, c1, c0
++		tst	\rv, #1			@ MMU enabled?
++		ldreq	\rv, =omap_uart_v2p(omap_uart_phys)	@ MMU disabled
++		ldrne	\rv, =omap_uart_phys	@ MMU enabled
++		str	\rp, [\rv, #0]
++		sub	\rp, \rp, #0x44000000	@ phys base
++		add	\rp, \rp, #0xf9000000	@ virt base
++		add	\rv, \rv, #4		@ omap_uart_virt
++		str	\rp, [\rv, #0]
++		mov	\rp, #(UART_LSR << OMAP_PORT_SHIFT)
++		add	\rv, \rv, #4		@ omap_uart_lsr
++		str	\rp, [\rv, #0]
++
++		b	10b
++
++		/* Store both phys and virt address for the uart */
+ 98:		add	\rp, \rp, #0x48000000	@ phys base
+ 		mrc	p15, 0, \rv, c1, c0
+ 		tst	\rv, #1			@ MMU enabled?
+diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
+index 865b13e..d7c1216 100644
+--- a/arch/arm/plat-omap/include/plat/serial.h
++++ b/arch/arm/plat-omap/include/plat/serial.h
+@@ -59,6 +59,9 @@
+ /* AM3505/3517 UART4 */
+ #define AM35XX_UART4_BASE	0x4809E000	/* Only on AM3505/3517 */
 
-what will change is the base address, the offsets should remain the
-same.
++/* AM335X serial port */
++#define AM335X_UART1_BASE	0x44E09000
++
+ /* External port on Zoom2/3 */
+ #define ZOOM_UART_BASE		0x10000000
+ #define ZOOM_UART_VIRT		0xfa400000
+@@ -92,6 +95,7 @@
+ #define TI81XXUART1		81
+ #define TI81XXUART2		82
+ #define TI81XXUART3		83
++#define AM335XUART1		84
+ #define ZOOM_UART		95		/* Only on zoom2/3 */
 
---=20
-balbi
+ /* This is only used by 8250.c for omap1510 */
+diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+index 8d052e7..3592ce4 100644
+--- a/arch/arm/plat-omap/include/plat/uncompress.h
++++ b/arch/arm/plat-omap/include/plat/uncompress.h
+@@ -97,6 +97,10 @@ static inline void flush(void)
+ 	_DEBUG_LL_ENTRY(mach, TI81XX_UART##p##_BASE, OMAP_PORT_SHIFT,	\
+ 		TI81XXUART##p)
 
---O98KdSgI27dgYlM5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
++#define DEBUG_LL_AM335X(p, mach)					\
++	_DEBUG_LL_ENTRY(mach, AM335X_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		AM335XUART##p)
++
+ static inline void __arch_decomp_setup(unsigned long arch_id)
+ {
+ 	int port = 0;
+@@ -178,6 +182,8 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
+ 		/* TI8148 base boards using UART1 */
+ 		DEBUG_LL_TI81XX(1, ti8148evm);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
++		/* AM335x base boards using UART1 */
++		DEBUG_LL_AM335X(1, am335xevm);
+ 	} while (0);
+ }
 
-iQEcBAEBAgAGBQJOQ68tAAoJEAv8Txj19kN1+q0IAKS96sAifZHcydQuh3BKnXsO
-4QUkimO66PVZ3FgTj9+DgqzuczcvmeaCXw6wk8Op1uvRQXF+diA0T5FSOwCJy78N
-AoBZVCFti2/QCVLDfgJUS/FQqdIb8JmSC5eng8mWMgkQ+a1PmI/7TJzSGP+ICabd
-uqn62r0FXazryq0o4PZMFx83ArULRapum7f03dE5Uyv78AlHrxV1PzZGFVveCfnj
-Zxd2jXzlRkdtXpHqWg/oytp9NWLKG0y4GsPRKEglUzF5pROKUNeWmQE58bIIxJxb
-6ACDcycDC6lpigETL9L925TiQZKQkCnfS5SwwPKVHJgoi1l8kmjKRtqhebOPlL4=
-=bBWz
------END PGP SIGNATURE-----
+--
+1.6.2.4
 
---O98KdSgI27dgYlM5--
