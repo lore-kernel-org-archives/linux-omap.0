@@ -1,55 +1,98 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 11/13] ARM: gpio: consolidate trivial gpiolib
-	implementations
-Date: Thu, 11 Aug 2011 16:07:18 +0100
-Message-ID: <20110811150718.GA4924@n2100.arm.linux.org.uk>
-References: <20110809080411.GA1831@n2100.arm.linux.org.uk> <E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk> <20110811141528.GL28500@legolas.emea.dhcp.ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 07/13] OMAP PM: early init of the pwrdms states
+Date: Thu, 11 Aug 2011 17:12:39 +0200
+Message-ID: <CAORVsuU-YqpPH_XY0rKjJkFuNZLF0VByFA8mCKeDPgLtMM_RJA@mail.gmail.com>
+References: <1311841821-10252-1-git-send-email-j-pihet@ti.com>
+	<1311841821-10252-8-git-send-email-j-pihet@ti.com>
+	<20110729080820.GB26959@google.com>
+	<CAORVsuUovg7px5SGC+mt7CoDcXZ8r2d09obkXqSp=g44U1G9EQ@mail.gmail.com>
+	<CAORVsuVHAvQRxPz8cCfQ0L1jN1nT5aNDVZ7fpuajAUosyvumeA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110811141528.GL28500@legolas.emea.dhcp.ti.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:32865 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751473Ab1HKPMl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 11:12:41 -0400
+Received: by qwk3 with SMTP id 3so1108840qwk.19
+        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 08:12:40 -0700 (PDT)
+In-Reply-To: <CAORVsuVHAvQRxPz8cCfQ0L1jN1nT5aNDVZ7fpuajAUosyvumeA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Todd Poynor <toddpoynor@google.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, markgross@thegnar.org, broonie@opensource.wolfsonmicro.com, Jean Pihet <j-pihet@ti.com>, rnayak@ti.com
 
-On Thu, Aug 11, 2011 at 05:15:31PM +0300, Felipe Balbi wrote:
-> On Tue, Aug 09, 2011 at 09:08:01AM +0100, Russell King - ARM Linux wrote:
-> > diff --git a/arch/arm/include/asm/gpio.h b/arch/arm/include/asm/gpio.h
-> > index 166a7a3..15e8970 100644
-> > --- a/arch/arm/include/asm/gpio.h
-> > +++ b/arch/arm/include/asm/gpio.h
-> > @@ -4,4 +4,14 @@
-> >  /* not all ARM platforms necessarily support this API ... */
-> >  #include <mach/gpio.h>
-> >  
-> > +#ifdef __ARM_GPIOLIB_TRIVIAL
-> > +/* Note: this may rely upon the value of ARCH_NR_GPIOS set in mach/gpio.h */
-> > +#include <asm-generic/gpio.h>
-> > +
-> > +/* The trivial gpiolib dispatchers */
-> > +#define gpio_get_value  __gpio_get_value
-> > +#define gpio_set_value  __gpio_set_value
-> > +#define gpio_cansleep   __gpio_cansleep
-> > +#endif
-> 
-> could that be a selectable symbol ? Something like:
-> 
-> CONFIG_HAS_ARM_TRIVIAL_GPIO
-> 
-> then on Kconfig you just:
-> 
-> select HAS_ARM_TIVIAL_GPIO or something ?
+Todd,
 
-That makes things more complicated, because that involves digging through
-a lot of platform code in a couple of places to work out exactly when we
-need this - and it crosses the boundary to arch/sh too.
+On Tue, Aug 2, 2011 at 10:57 AM, Jean Pihet <jean.pihet@newoldbits.com>=
+ wrote:
+> Todd,
+>
+> On Fri, Jul 29, 2011 at 10:50 AM, Jean Pihet <jean.pihet@newoldbits.c=
+om> wrote:
+>> On Fri, Jul 29, 2011 at 10:08 AM, Todd Poynor <toddpoynor@google.com=
+> wrote:
+>>> On Thu, Jul 28, 2011 at 10:30:14AM +0200, jean.pihet@newoldbits.com=
+ wrote:
+> ...
+>
+>>>> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-oma=
+p2/powerdomain.c
+>>>> index 9af0847..63c3e7a 100644
+>>>> --- a/arch/arm/mach-omap2/powerdomain.c
+>>>> +++ b/arch/arm/mach-omap2/powerdomain.c
+>>>> @@ -108,6 +108,9 @@ static int _pwrdm_register(struct powerdomain =
+*pwrdm)
+>>>> =A0 =A0 =A0 pwrdm->state =3D pwrdm_read_pwrst(pwrdm);
+>>>> =A0 =A0 =A0 pwrdm->state_counter[pwrdm->state] =3D 1;
+>>>>
+>>>> + =A0 =A0 /* Early init of the next power state */
+>>>> + =A0 =A0 pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_RET);
+>>>> +
+>>>
+>>> Wanted to check that it's OK to initialize the next state of a powe=
+r
+>>> domain to RETENTION early in the boot sequence. =A0I believe patche=
+s
+>>> have been previously discussed that set the state to ON to ensure t=
+he
+>>> domain doesn't go to a lower state, and possibly lose context, befo=
+re
+>>> the PM subsystem is setup to handle it? =A0Not sure, thought maybe =
+worth
+>>> a doublecheck.
+>> Indeed I need to check the behavior for OMAP3 & 4 which seem to
+>> initialize the pwrdm states differently.
+>> BTW the patch that inits all pwrdms to ON is not yet in l-o master
+>> that is why I (lazily) submitted this one for now.
+>
+> Ok I will update the patch to make it compliant with [1]. v4 will
+> include this change.
+>
+> Thanks,
+> Jean
+>
+> [1] http://marc.info/?l=3Dlinux-arm-kernel&m=3D131052762623823&w=3D2
 
-So I'd prefer to keep this simple.
+After more thinking I now realize there is a problem with the PM early
+init, PM late init and the constraints framework which all setup the
+power domains next states in a non-coherent way.
+Definitely this needs to be revisited. More to come on this!
 
-The long-term goal is to remove that symbol entirely, but in order to do
-that we need to kill of the "optimized" on-board SoC stuff in those (few)
-gpio.h which don't have the symbol selected.  This is rather necessary to
-progress towards the consolidated kernel.  (Re-inventing gpiolib by moving
-them out of line isn't a good idea...)
+There is a comment about that in [00/15] of the v4 patch set.
+
+Regards,
+Jean
+
+>
+>>
+>>>
+>>>
+>>> Todd
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
