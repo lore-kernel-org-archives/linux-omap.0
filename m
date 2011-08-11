@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 05/15] PM QoS: generalize and export the constraints management code
-Date: Thu, 11 Aug 2011 17:06:42 +0200
-Message-ID: <1313075212-8366-6-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 10/15] OMAP2+: powerdomain: control power domains next state
+Date: Thu, 11 Aug 2011 17:06:47 +0200
+Message-ID: <1313075212-8366-11-git-send-email-j-pihet@ti.com>
 References: <1313075212-8366-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ww0-f44.google.com ([74.125.82.44]:63057 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752465Ab1HKPHl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 11:07:41 -0400
+	with ESMTP id S1752419Ab1HKPHv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 11:07:51 -0400
 Received: by mail-ww0-f44.google.com with SMTP id 5so2142188wwf.1
-        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 08:07:40 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 08:07:51 -0700 (PDT)
 In-Reply-To: <1313075212-8366-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,286 +18,319 @@ Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-In preparation for the per-device constratins support:
-- rename update_target to pm_qos_update_target
-- generalize and export pm_qos_update_target for usage by the upcoming
-per-device latency constraints framework:
-   . operate on struct pm_qos_constraints for constraints management,
-   . introduce an 'action' parameter for constraints add/update/remove,
-   . the return value indicates if the aggregated constraint value has
-     changed,
-- update the internal code to operate on struct pm_qos_constraints
-- add a NULL pointer check in the API functions
+When a PM QoS device latency constraint is requested or removed the
+PM QoS layer notifies the underlying layer with the updated aggregated
+constraint value. The constraint is stored in the powerdomain constraints
+list and then applied to the corresponding power domain.
+The power domains get the next power state programmed directly in the
+registers via pwrdm_wakeuplat_update_pwrst.
+
+Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using
+wake-up latency constraints on MPU, CORE and PER.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
-
 ---
- include/linux/pm_qos.h |   14 ++++++
- kernel/power/qos.c     |  123 ++++++++++++++++++++++++++----------------------
- 2 files changed, 81 insertions(+), 56 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c |  191 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h |   33 ++++++-
+ 2 files changed, 222 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/pm_qos.h b/include/linux/pm_qos.h
-index 9772311..84aa150 100644
---- a/include/linux/pm_qos.h
-+++ b/include/linux/pm_qos.h
-@@ -44,7 +44,16 @@ struct pm_qos_constraints {
- 	struct blocking_notifier_head *notifiers;
- };
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 9af0847..bcf482c 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -17,8 +17,10 @@
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+ #include <linux/list.h>
++#include <linux/slab.h>
+ #include <linux/errno.h>
+ #include <linux/string.h>
++#include <linux/pm_qos.h>
+ #include <trace/events/power.h>
  
-+/* Action requested to pm_qos_update_target */
-+enum pm_qos_req_action {
-+	PM_QOS_ADD_REQ,		/* Add a new request */
-+	PM_QOS_UPDATE_REQ,	/* Update an existing request */
-+	PM_QOS_REMOVE_REQ	/* Remove an existing request */
-+};
+ #include "cm2xxx_3xxx.h"
+@@ -104,6 +106,12 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 	for (i = 0; i < pwrdm->banks; i++)
+ 		pwrdm->ret_mem_off_counter[i] = 0;
+ 
++	/* Initialize the per-od wake-up constraints list and spinlock */
++	spin_lock_init(&pwrdm->wkup_lat_plist_lock);
++	plist_head_init(&pwrdm->wkup_lat_plist_head,
++			&pwrdm->wkup_lat_plist_lock);
 +
- #ifdef CONFIG_PM
-+int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
-+			 enum pm_qos_req_action action, int value);
- void pm_qos_add_request(struct pm_qos_request *req, int pm_qos_class,
- 			s32 value);
- void pm_qos_update_request(struct pm_qos_request *req,
-@@ -56,6 +65,11 @@ int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier);
- int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier);
- int pm_qos_request_active(struct pm_qos_request *req);
- #else
-+static inline int pm_qos_update_target(struct pm_qos_constraints *c,
-+				       struct plist_node *node,
-+				       enum pm_qos_req_action action,
-+				       int value)
-+			{ return 0; }
- static inline void pm_qos_add_request(struct pm_qos_request *req,
- 				      int pm_qos_class, s32 value)
- 			{ return; }
-diff --git a/kernel/power/qos.c b/kernel/power/qos.c
-index 66e8d6f..fc60f96 100644
---- a/kernel/power/qos.c
-+++ b/kernel/power/qos.c
-@@ -121,17 +121,17 @@ static const struct file_operations pm_qos_power_fops = {
- };
- 
- /* unlocked internal variant */
--static inline int pm_qos_get_value(struct pm_qos_object *o)
-+static inline int pm_qos_get_value(struct pm_qos_constraints *c)
- {
--	if (plist_head_empty(&o->constraints->list))
--		return o->constraints->default_value;
-+	if (plist_head_empty(&c->list))
-+		return c->default_value;
- 
--	switch (o->constraints->type) {
-+	switch (c->type) {
- 	case PM_QOS_MIN:
--		return plist_first(&o->constraints->list)->prio;
-+		return plist_first(&c->list)->prio;
- 
- 	case PM_QOS_MAX:
--		return plist_last(&o->constraints->list)->prio;
-+		return plist_last(&c->list)->prio;
- 
- 	default:
- 		/* runtime check for not using enum */
-@@ -139,47 +139,73 @@ static inline int pm_qos_get_value(struct pm_qos_object *o)
- 	}
++	/* Initialize the pwrdm state */
+ 	pwrdm_wait_transition(pwrdm);
+ 	pwrdm->state = pwrdm_read_pwrst(pwrdm);
+ 	pwrdm->state_counter[pwrdm->state] = 1;
+@@ -191,6 +199,77 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+ 	return 0;
  }
  
--static inline s32 pm_qos_read_value(struct pm_qos_object *o)
-+static inline s32 pm_qos_read_value(struct pm_qos_constraints *c)
- {
--	return o->constraints->target_value;
-+	return c->target_value;
- }
- 
--static inline void pm_qos_set_value(struct pm_qos_object *o, s32 value)
-+static inline void pm_qos_set_value(struct pm_qos_constraints *c, s32 value)
- {
--	o->constraints->target_value = value;
-+	c->target_value = value;
- }
- 
--static void update_target(struct pm_qos_object *o, struct plist_node *node,
--			  int del, int value)
 +/**
-+ * pm_qos_update_target - manages the constraints list and calls the notifiers
-+ *  if needed
-+ * @c: constraints data struct
-+ * @node: request to add to the list, to update or to remove
-+ * @action: action to take on the constraints list
-+ * @value: value of the request to add or update
++ * pwrdm_wakeuplat_update_pwrst - Update power domain power state if needed
++ * @pwrdm: struct powerdomain * to which requesting device belongs to.
++ * @min_latency: the allowed wake-up latency for the given power domain. A
++ *  value of PM_QOS_DEV_LAT_DEFAULT_VALUE means 'no constraint' on the pwrdm.
 + *
-+ * This function returns 1 if the aggregated constraint value has changed, 0
-+ *  otherwise.
++ * Finds the power domain next power state that fulfills the constraint.
++ * Programs a new target state if it is different from current power state.
++ * The power domains get the next power state programmed directly in the
++ * registers.
++ *
++ * Returns 0 upon success.
 + */
-+int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
-+			 enum pm_qos_req_action action, int value)
- {
- 	unsigned long flags;
--	int prev_value, curr_value;
-+	int prev_value, curr_value, new_value;
- 
- 	spin_lock_irqsave(&pm_qos_lock, flags);
--	prev_value = pm_qos_get_value(o);
--	/* PM_QOS_DEFAULT_VALUE is a signal that the value is unchanged */
--	if (value != PM_QOS_DEFAULT_VALUE) {
-+	prev_value = pm_qos_get_value(c);
-+	if (value == PM_QOS_DEFAULT_VALUE)
-+		new_value = c->default_value;
-+	else
-+		new_value = value;
++static int pwrdm_wakeuplat_update_pwrst(struct powerdomain *pwrdm,
++					long min_latency)
++{
++	int ret = 0, new_state = 0;
 +
-+	switch (action) {
-+	case PM_QOS_REMOVE_REQ:
-+		plist_del(node, &c->list);
++	if (!pwrdm) {
++		WARN(1, "powerdomain: %s: invalid parameter(s)", __func__);
++		return -EINVAL;
++	}
++
++	/*
++	 * Apply constraints to power domains by programming
++	 * the pwrdm next power state.
++	 */
++
++	/* Find power state with wakeup latency < minimum constraint */
++	for (new_state = 0x0; new_state < PWRDM_MAX_PWRSTS; new_state++) {
++		if (min_latency == PM_QOS_DEV_LAT_DEFAULT_VALUE ||
++		    pwrdm->wakeup_lat[new_state] <= min_latency)
++			break;
++	}
++
++	switch (new_state) {
++	case PWRDM_FUNC_PWRST_OFF:
++		new_state = PWRDM_POWER_OFF;
 +		break;
-+	case PM_QOS_UPDATE_REQ:
- 		/*
- 		 * to change the list, we atomically remove, reinit
- 		 * with new value and add, then see if the extremal
- 		 * changed
- 		 */
--		plist_del(node, &o->constraints->list);
--		plist_node_init(node, value);
--		plist_add(node, &o->constraints->list);
--	} else if (del) {
--		plist_del(node, &o->constraints->list);
--	} else {
--		plist_add(node, &o->constraints->list);
-+		plist_del(node, &c->list);
-+	case PM_QOS_ADD_REQ:
-+		plist_node_init(node, new_value);
-+		plist_add(node, &c->list);
++	case PWRDM_FUNC_PWRST_OSWR:
++		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_OFF);
++		new_state = PWRDM_POWER_RET;
++		break;
++	case PWRDM_FUNC_PWRST_CSWR:
++		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_RET);
++		new_state = PWRDM_POWER_RET;
++		break;
++	case PWRDM_FUNC_PWRST_INACTIVE:
++		new_state = PWRDM_POWER_INACTIVE;
++		break;
++	case PWRDM_FUNC_PWRST_ON:
++		new_state = PWRDM_POWER_ON;
 +		break;
 +	default:
-+		/* no action */
-+		;
- 	}
--	curr_value = pm_qos_get_value(o);
--	pm_qos_set_value(o, curr_value);
-+
-+	curr_value = pm_qos_get_value(c);
-+	pm_qos_set_value(c, curr_value);
-+
- 	spin_unlock_irqrestore(&pm_qos_lock, flags);
- 
--	if (prev_value != curr_value)
--		blocking_notifier_call_chain(o->constraints->notifiers,
-+	if (prev_value != curr_value) {
-+		blocking_notifier_call_chain(c->notifiers,
- 					     (unsigned long)curr_value,
- 					     NULL);
-+		return 1;
-+	} else {
-+		return 0;
++		pr_warn("powerdomain: requested latency constraint not "
++			"supported %s set to ON state\n", pwrdm->name);
++		new_state = PWRDM_POWER_ON;
++		break;
 +	}
- }
++
++	if (pwrdm_read_next_pwrst(pwrdm) != new_state)
++		ret = omap_set_pwrdm_state(pwrdm, new_state);
++
++	pr_debug("powerdomain: %s pwrst: curr=%d, prev=%d next=%d "
++		 "min_latency=%ld, set_state=%d\n", pwrdm->name,
++		 pwrdm_read_pwrst(pwrdm), pwrdm_read_prev_pwrst(pwrdm),
++		 pwrdm_read_next_pwrst(pwrdm), min_latency, new_state);
++
++	return ret;
++}
++
+ /* Public functions */
  
  /**
-@@ -190,7 +216,7 @@ static void update_target(struct pm_qos_object *o, struct plist_node *node,
+@@ -930,6 +1009,118 @@ int pwrdm_post_transition(void)
+ 	return 0;
+ }
+ 
++/*
++ * pwrdm_set_wkup_lat_constraint - Set/update/remove a powerdomain wakeup
++ *  latency constraint and apply it
++ * @pwrdm: struct powerdomain * which the constraint applies to
++ * @cookie: constraint identifier, used for tracking.
++ * @min_latency: minimum wakeup latency constraint (in microseconds) for
++ *  the given pwrdm. The value of PM_QOS_DEV_LAT_DEFAULT_VALUE removes
++ *  the constraint.
++ *
++ * Tracks the constraints by @cookie.
++ * Constraint set/update: Adds a new entry to powerdomain's wake-up latency
++ * constraint list.
++ * If the constraint identifier already exists in the list, the old value is
++ * overwritten.
++ * Constraint removal: Removes the identifier's entry from powerdomain's
++ * wakeup latency constraint list.
++ *
++ * Applies the strongest constraint value for the given pwrdm by calling
++ * pwrdm_wakeuplat_update_pwrst.
++ *
++ * Returns 0 upon success or a negative value in case of error.
++ *
++ * The caller must check the validity of the parameters.
++ */
++int pwrdm_set_wkup_lat_constraint(struct powerdomain *pwrdm, void *cookie,
++				  long min_latency)
++{
++	struct pwrdm_wkup_constraints_entry *user = NULL;
++	struct pwrdm_wkup_constraints_entry *tmp_user, *new_user = NULL;
++	int ret = 0, free_new_user = 0, free_node = 0;
++	long value = PM_QOS_DEV_LAT_DEFAULT_VALUE;
++	unsigned long flags;
++
++	pr_debug("powerdomain: %s: pwrdm %s, cookie=0x%p, min_latency=%ld\n",
++		 __func__, pwrdm->name, cookie, min_latency);
++
++	if (min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE) {
++		new_user = kzalloc(sizeof(struct pwrdm_wkup_constraints_entry),
++				   GFP_KERNEL);
++		if (!new_user) {
++			pr_err("%s: FATAL ERROR: kzalloc failed\n", __func__);
++			return -ENOMEM;
++		}
++		free_new_user = 1;
++	}
++
++	spin_lock_irqsave(&pwrdm->wkup_lat_plist_lock, flags);
++
++	/* Check if there already is a constraint for cookie */
++	plist_for_each_entry(tmp_user, &pwrdm->wkup_lat_plist_head, node) {
++		if (tmp_user->cookie == cookie) {
++			user = tmp_user;
++			break;
++		}
++	}
++
++	if (min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE) {
++		/* If nothing to update, job done */
++		if (user && (user->node.prio == min_latency))
++			goto exit_ok;
++
++		if (!user) {
++			/* Add new entry to the list */
++			user = new_user;
++			user->cookie = cookie;
++			free_new_user = 0;
++		} else {
++			/* Update existing entry */
++			plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
++		}
++
++		plist_node_init(&user->node, min_latency);
++		plist_add(&user->node, &pwrdm->wkup_lat_plist_head);
++	} else {
++		if (user) {
++			/* Remove the constraint from the list */
++			plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
++			free_node = 1;
++		} else {
++			/* Constraint not existing or list empty, do nothing */
++			ret = -EINVAL;
++			goto exit_error;
++		}
++
++	}
++
++exit_ok:
++	/* Find the strongest constraint from the list */
++	if (!plist_head_empty(&pwrdm->wkup_lat_plist_head))
++		value = plist_first(&pwrdm->wkup_lat_plist_head)->prio;
++
++	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
++
++	if (free_node)
++		kfree(user);
++
++	if (free_new_user)
++		kfree(new_user);
++
++	/* Apply the constraint to the pwrdm */
++	pr_debug("powerdomain: %s: pwrdm %s, value=%ld\n",
++		 __func__, pwrdm->name, value);
++	pwrdm_wakeuplat_update_pwrst(pwrdm, value);
++
++	return 0;
++
++exit_error:
++	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
++
++	return ret;
++}
++
+ /**
+  * pwrdm_get_context_loss_count - get powerdomain's context loss count
+  * @pwrdm: struct powerdomain * to wait for
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index d23d979..f2b0ed7 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -19,7 +19,9 @@
+ 
+ #include <linux/types.h>
+ #include <linux/list.h>
+-
++#include <linux/plist.h>
++#include <linux/mutex.h>
++#include <linux/spinlock.h>
+ #include <linux/atomic.h>
+ 
+ #include <plat/cpu.h>
+@@ -43,6 +45,16 @@
+ #define PWRSTS_RET_ON		(PWRSTS_RET | PWRSTS_ON)
+ #define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
+ 
++/* Powerdomain functional power states */
++#define PWRDM_FUNC_PWRST_OFF		0x0
++#define PWRDM_FUNC_PWRST_OSWR		0x1
++#define PWRDM_FUNC_PWRST_CSWR		0x2
++#define PWRDM_FUNC_PWRST_INACTIVE	0x3
++#define PWRDM_FUNC_PWRST_ON		0x4
++
++#define PWRDM_MAX_FUNC_PWRSTS	5
++
++#define UNSUP_STATE		-1
+ 
+ /* Powerdomain flags */
+ #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware save-and-restore support */
+@@ -93,7 +105,12 @@ struct powerdomain;
+  * @state_counter:
+  * @timer:
+  * @state_timer:
+- *
++ * @wakeup_lat: wakeup latencies (in us) for possible powerdomain power states
++ * Note about the wakeup latencies ordering: the values must be sorted
++ *  in decremental order
++ * @wkup_lat_plist_head: pwrdm wake-up latency constraints list
++ * @wkup_lat_plist_lock: spinlock that protects the constraints lists
++ *  domains states
+  * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
   */
- int pm_qos_request(int pm_qos_class)
- {
--	return pm_qos_read_value(pm_qos_array[pm_qos_class]);
-+	return pm_qos_read_value(pm_qos_array[pm_qos_class]->constraints);
- }
- EXPORT_SYMBOL_GPL(pm_qos_request);
+ struct powerdomain {
+@@ -118,6 +135,15 @@ struct powerdomain {
+ 	s64 timer;
+ 	s64 state_timer[PWRDM_MAX_PWRSTS];
+ #endif
++	const u32 wakeup_lat[PWRDM_MAX_FUNC_PWRSTS];
++	struct plist_head wkup_lat_plist_head;
++	spinlock_t wkup_lat_plist_lock;
++};
++
++/* Linked list for the wake-up latency constraints */
++struct pwrdm_wkup_constraints_entry {
++	void			*cookie;
++	struct plist_node	node;
+ };
  
-@@ -216,20 +242,16 @@ EXPORT_SYMBOL_GPL(pm_qos_request_active);
- void pm_qos_add_request(struct pm_qos_request *req,
- 			int pm_qos_class, s32 value)
- {
--	struct pm_qos_object *o =  pm_qos_array[pm_qos_class];
--	int new_value;
-+	if (!req) /*guard against callers passing in null */
-+		return;
+ /**
+@@ -207,6 +233,9 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
+ int pwrdm_pre_transition(void);
+ int pwrdm_post_transition(void);
+ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
++
++int pwrdm_set_wkup_lat_constraint(struct powerdomain *pwrdm, void *cookie,
++				  long min_latency);
+ u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
  
- 	if (pm_qos_request_active(req)) {
- 		WARN(1, KERN_ERR "pm_qos_add_request() called for already added request\n");
- 		return;
- 	}
--	if (value == PM_QOS_DEFAULT_VALUE)
--		new_value = o->constraints->default_value;
--	else
--		new_value = value;
--	plist_node_init(&req->node, new_value);
- 	req->pm_qos_class = pm_qos_class;
--	update_target(o, &req->node, 0, PM_QOS_DEFAULT_VALUE);
-+	pm_qos_update_target(pm_qos_array[pm_qos_class]->constraints,
-+			     &req->node, PM_QOS_ADD_REQ, value);
- }
- EXPORT_SYMBOL_GPL(pm_qos_add_request);
- 
-@@ -246,9 +268,6 @@ EXPORT_SYMBOL_GPL(pm_qos_add_request);
- void pm_qos_update_request(struct pm_qos_request *req,
- 			   s32 new_value)
- {
--	s32 temp;
--	struct pm_qos_object *o;
--
- 	if (!req) /*guard against callers passing in null */
- 		return;
- 
-@@ -257,15 +276,10 @@ void pm_qos_update_request(struct pm_qos_request *req,
- 		return;
- 	}
- 
--	o = pm_qos_array[req->pm_qos_class];
--
--	if (new_value == PM_QOS_DEFAULT_VALUE)
--		temp = o->constraints->default_value;
--	else
--		temp = new_value;
--
--	if (temp != req->node.prio)
--		update_target(o, &req->node, 0, temp);
-+	if (new_value != req->node.prio)
-+		pm_qos_update_target(
-+			pm_qos_array[req->pm_qos_class]->constraints,
-+			&req->node, PM_QOS_UPDATE_REQ, new_value);
- }
- EXPORT_SYMBOL_GPL(pm_qos_update_request);
- 
-@@ -279,9 +293,7 @@ EXPORT_SYMBOL_GPL(pm_qos_update_request);
-  */
- void pm_qos_remove_request(struct pm_qos_request *req)
- {
--	struct pm_qos_object *o;
--
--	if (req == NULL)
-+	if (!req) /*guard against callers passing in null */
- 		return;
- 		/* silent return to keep pcm code cleaner */
- 
-@@ -290,8 +302,9 @@ void pm_qos_remove_request(struct pm_qos_request *req)
- 		return;
- 	}
- 
--	o = pm_qos_array[req->pm_qos_class];
--	update_target(o, &req->node, 1, PM_QOS_DEFAULT_VALUE);
-+	pm_qos_update_target(pm_qos_array[req->pm_qos_class]->constraints,
-+			     &req->node, PM_QOS_REMOVE_REQ,
-+			     PM_QOS_DEFAULT_VALUE);
- 	memset(req, 0, sizeof(*req));
- }
- EXPORT_SYMBOL_GPL(pm_qos_remove_request);
-@@ -395,7 +408,6 @@ static ssize_t pm_qos_power_read(struct file *filp, char __user *buf,
- {
- 	s32 value;
- 	unsigned long flags;
--	struct pm_qos_object *o;
- 	struct pm_qos_request *req = filp->private_data;
- 
- 	if (!req)
-@@ -403,9 +415,8 @@ static ssize_t pm_qos_power_read(struct file *filp, char __user *buf,
- 	if (!pm_qos_request_active(req))
- 		return -EINVAL;
- 
--	o = pm_qos_array[req->pm_qos_class];
- 	spin_lock_irqsave(&pm_qos_lock, flags);
--	value = pm_qos_get_value(o);
-+	value = pm_qos_get_value(pm_qos_array[req->pm_qos_class]->constraints);
- 	spin_unlock_irqrestore(&pm_qos_lock, flags);
- 
- 	return simple_read_from_buffer(buf, count, f_pos, &value, sizeof(s32));
 -- 
 1.7.2.5
 
