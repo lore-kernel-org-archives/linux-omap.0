@@ -1,198 +1,121 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH 4/6] OMAP4: Temperature sensor device support
-Date: Thu, 11 Aug 2011 17:05:42 +0300
-Message-ID: <20110811140541.GJ28500@legolas.emea.dhcp.ti.com>
-References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
- <1312979122-5896-5-git-send-email-j-keerthy@ti.com>
- <20110810123647.GF12882@legolas.emea.dhcp.ti.com>
- <CAJ6a13b=Pv6i=Z53y2qLNhUNY-A3S395+9H+xg2ssGC_ZcLZyA@mail.gmail.com>
- <20110811103006.GF27742@legolas.emea.dhcp.ti.com>
- <CAJ6a13ZeVacnvksrtN1zZSP3rRYz=_YAR4-XJkdo0yg1us-e+A@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] OMAP: clockdomain: Wait for powerdomain to be ON when
+ using clockdomain force wakeup
+Date: Thu, 11 Aug 2011 19:37:56 +0530
+Message-ID: <4E43E23C.2080207@ti.com>
+References: <1310527588-13022-1-git-send-email-santosh.shilimkar@ti.com> <1310527588-13022-2-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1107150159580.16606@utopia.booyaka.com> <4E214267.2090700@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NqNl6FRZtoRUn5bW"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:52611 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751343Ab1HKOFr (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:45105 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751033Ab1HKOIG (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Aug 2011 10:05:47 -0400
-Received: by bkbzs2 with SMTP id zs2so1512024bkb.11
-        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 07:05:44 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAJ6a13ZeVacnvksrtN1zZSP3rRYz=_YAR4-XJkdo0yg1us-e+A@mail.gmail.com>
+	Thu, 11 Aug 2011 10:08:06 -0400
+Received: by gyd10 with SMTP id 10so1979277gyd.27
+        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 07:08:05 -0700 (PDT)
+In-Reply-To: <4E214267.2090700@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: balbi@ti.com, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, rnayak@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, p-titiano@ti.com, b-cousson@ti.com
+
+Paul,
+
+On Saturday 16 July 2011 01:18 PM, Santosh Shilimkar wrote:
+> Hi Paul,
+>
+> On 7/15/2011 1:03 AM, Paul Walmsley wrote:
+>> cc'ing Patrick
+>>
+>> Hi Rajendra, Santosh,
+>>
+>> some comments here:
+>>
+>> On Wed, 13 Jul 2011, Santosh Shilimkar wrote:
+>>
+>>> While using clockdomain force wakeup method, not waiting for powerdomain
+>>> to be effectively ON may end up locking the clockdomain FSM until a
+>>> next wakeup event occurs.
+>>>
+>>> One such issue was seen on OMAP4430, where L4_PER was periodically
+>>> getting stuck in in-transition state when transitioning from from
+>>> OSWR to ON.
+>>>
+>>> This issue was reported and investigated by Patrick
+>>> Titiano<p-titiano@ti.com>
+>>>
+>>> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>>> Reported-by: Patrick Titiano<p-titiano@ti.com>
+>>> Cc: Kevin Hilman<khilman@ti.com>
+>>> Cc: Benoit Cousson<b-cousson@ti.com>
+>>> Cc: Paul Walmsley<paul@pwsan.com>
+>>> ---
+>>> arch/arm/mach-omap2/clockdomain.c | 7 ++++++-
+>>> 1 files changed, 6 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/clockdomain.c
+>>> b/arch/arm/mach-omap2/clockdomain.c
+>>> index b98a972..583cc3d 100644
+>>> --- a/arch/arm/mach-omap2/clockdomain.c
+>>> +++ b/arch/arm/mach-omap2/clockdomain.c
+>>> @@ -718,6 +718,8 @@ int clkdm_sleep(struct clockdomain *clkdm)
+>>> */
+>>> int clkdm_wakeup(struct clockdomain *clkdm)
+>>> {
+>>> + int ret;
+>>> +
+>>> if (!clkdm)
+>>> return -EINVAL;
+>>>
+>>> @@ -732,7 +734,10 @@ int clkdm_wakeup(struct clockdomain *clkdm)
+>>>
+>>> pr_debug("clockdomain: forcing wakeup on %s\n", clkdm->name);
+>>>
+>>> - return arch_clkdm->clkdm_wakeup(clkdm);
+>>> + ret = arch_clkdm->clkdm_wakeup(clkdm);
+>>> + ret |= pwrdm_wait_transition(clkdm->pwrdm.ptr);
+>>
+>> Seems like this should just call pwrdm_state_switch() or
+>> pwrdm_clkdm_state_switch()? (This second function looks superfluous, we
+>> should probably get rid of it.)
+>>
+> This comment was expected since initially we thought of using
+> pwrdm_clkdm_state_switch
+>
+> pwrdm_clkdm_state_switch()
+> |--> pwrdm_wait_transition()
+> |--> pwrdm_state_switch()
+>
+> What we need is only first function to ensure that we don't
+> proceed when PD is in middle of transition.
+>
+> The second function is actually just doing those debug counter
+> updates and we wanted to avoid that since it's a live path.
+> Rajendra observed some huge latencies while doing the
+> profiling and the suspect was "pwrdm_state_switch()" which
+> actually keeps adding overhead because of those counter
+> updates.
+>
+>> Shouldn't this be added to all of
+>> clkdm_{wakeup,sleep,allow_idle,deny_idle}() if it isn't there already?
+>>
+> clkdm_allow_idle() already has the power-domain wait.
+> This patch adds it for clkdm_wakeup() function.
+> clkdm_sleep(), this shouldn't be applicable since power
+> domain sleep transition is depdent on other clockdomains
+> in the PD and it's a lazy operation.
+> That leaves clkdm_deny_idle() and I guess we should
+> address this API as well.
+>
+> If you agree with above, I can update the patch to address
+> remaining clkdm_deny_idle() function.
+>
+Ping?
+
+Regards
+Santosh
 
 
---NqNl6FRZtoRUn5bW
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Thu, Aug 11, 2011 at 04:31:50PM +0530, J, KEERTHY wrote:
-> On Thu, Aug 11, 2011 at 4:00 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > Hi,
-> >
-> > On Thu, Aug 11, 2011 at 08:10:07AM +0530, J, KEERTHY wrote:
-> >> >> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> >> >> index 6e6735f..8fd8e80 100644
-> >> >> --- a/arch/arm/plat-omap/Kconfig
-> >> >> +++ b/arch/arm/plat-omap/Kconfig
-> >> >> @@ -115,6 +115,18 @@ config OMAP_MCBSP
-> >> >> =A0 =A0 =A0 =A0 Say Y here if you want support for the OMAP Multich=
-annel
-> >> >> =A0 =A0 =A0 =A0 Buffered Serial Port.
-> >> >>
-> >> >> +config OMAP_TEMP_SENSOR
-> >> >> + =A0 =A0 bool "OMAP Temp Sensor Support"
-> >> >> + =A0 =A0 depends on ARCH_OMAP
-> >> >> + =A0 =A0 default n
-> >> >> + =A0 =A0 help
-> >> >> + =A0 =A0 =A0 Say Y here if you want support for the temp sensor
-> >> >> + =A0 =A0 =A0 on OMAP4460.
-> >> >> +
-> >> >> + =A0 =A0 =A0 This provides the temperature of the MPU
-> >> >> + =A0 =A0 =A0 subsystem. Only one instance of on die temperature
-> >> >> + =A0 =A0 =A0 sensor is present.
-> >> >
-> >> > if there's only one instance, why do you use
-> >> > omap_hwmod_for_each_by_class() ??
-> >>
-> >> In case of OMAP5 there are multiple instances. Hence using
-> >> omap_hwmod_for_each_by_class().
-> >
-> > that's not a reality yet, so why don't you leave it for when OMAP5 is
-> > around ?
->=20
-> Keeping it generic so that we need not change again. We are pretty
-> close to reality i guess. Why not keep it generic? Any specific reason
-> for not keeping this loop?
-
-Other than the loop being completely unnecessary on the only OMAP
-version you're supporting ? no... not really.
-
-> >> >> diff --git a/arch/arm/plat-omap/include/plat/temperature_sensor.h b=
-/arch/arm/plat-omap/include/plat/temperature_sensor.h
-> >> >> new file mode 100644
-> >> >> index 0000000..692ebdc
-> >> >> --- /dev/null
-> >> >> +++ b/arch/arm/plat-omap/include/plat/temperature_sensor.h
-> >> >> @@ -0,0 +1,87 @@
-> >> >> +/*
-> >> >> + * OMAP Temperature sensor header file
-> >> >> + *
-> >> >> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.=
-ti.com/
-> >> >> + * Author: J Keerthy <j-keerthy@ti.com>
-> >> >> + *
-> >> >> + * This program is free software; you can redistribute it and/or
-> >> >> + * modify it under the terms of the GNU General Public License
-> >> >> + * version 2 as published by the Free Software Foundation.
-> >> >> + *
-> >> >> + * This program is distributed in the hope that it will be useful,=
- but
-> >> >> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> >> >> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the=
- GNU
-> >> >> + * General Public License for more details.
-> >> >> + *
-> >> >> + * You should have received a copy of the GNU General Public Licen=
-se
-> >> >> + * along with this program; if not, write to the Free Software
-> >> >> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> >> >> + * 02110-1301 USA
-> >> >> + *
-> >> >> + */
-> >> >> +
-> >> >> +#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
-> >> >> +#define __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
-> >> >> +
-> >> >> +/* Offsets from the base of temperature sensor registers */
-> >> >> +
-> >> >> +#define OMAP4460_TEMP_SENSOR_CTRL_OFFSET =A0 =A0 0x00
-> >> >> +#define OMAP4460_BGAP_CTRL_OFFSET =A0 =A0 =A0 =A0 =A0 =A00x4c
-> >> >> +#define OMAP4460_BGAP_COUNTER_OFFSET =A0 =A0 =A0 =A0 0x50
-> >> >> +#define OMAP4460_BGAP_THRESHOLD_OFFSET =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- 0x54
-> >> >> +#define OMAP4460_BGAP_TSHUT_OFFSET =A0 =A0 =A0 =A0 =A0 0x58
-> >> >> +#define OMAP4460_BGAP_STATUS_OFFSET =A0 =A0 =A0 =A0 =A00x5c
-> >> >> +#define OMAP4460_FUSE_OPP_BGAP =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 -0xcc
-> >> >> +
-> >> >> +struct omap_temp_sensor_registers {
-> >> >> + =A0 =A0 u32 =A0 =A0 temp_sensor_ctrl;
-> >> >> + =A0 =A0 u32 =A0 =A0 bgap_tempsoff_mask;
-> >> >> + =A0 =A0 u32 =A0 =A0 bgap_soc_mask;
-> >> >> + =A0 =A0 u32 =A0 =A0 bgap_eocz_mask;
-> >> >> + =A0 =A0 u32 =A0 =A0 bgap_dtemp_mask;
-> >> >> +
-> >> >> + =A0 =A0 u32 =A0 =A0 bgap_mask_ctrl;
-> >> >> + =A0 =A0 u32 =A0 =A0 mask_hot_mask;
-> >> >> + =A0 =A0 u32 =A0 =A0 mask_cold_mask;
-> >> >> +
-> >> >> + =A0 =A0 u32 =A0 =A0 bgap_mode_ctrl;
-> >> >> + =A0 =A0 u32 =A0 =A0 mode_ctrl_mask;
-> >> >> +
-> >> >> + =A0 =A0 u32 =A0 =A0 bgap_counter;
-> >> >> + =A0 =A0 u32 =A0 =A0 counter_mask;
-> >> >> +
-> >> >> + =A0 =A0 u32 =A0 =A0 bgap_threshold;
-> >> >> + =A0 =A0 u32 =A0 =A0 threshold_thot_mask;
-> >> >> + =A0 =A0 u32 =A0 =A0 threshold_tcold_mask;
-> >> >> +
-> >> >> + =A0 =A0 u32 =A0 =A0 thsut_threshold;
-> >> >> + =A0 =A0 u32 =A0 =A0 tshut_hot_mask;
-> >> >> + =A0 =A0 u32 =A0 =A0 tshut_cold_mask;
-> >> >> +
-> >> >> + =A0 =A0 u32 =A0 =A0 bgap_status;
-> >> >> + =A0 =A0 u32 =A0 =A0 status_clean_stop_mask;
-> >> >> + =A0 =A0 u32 =A0 =A0 status_bgap_alert_mask;
-> >> >> + =A0 =A0 u32 =A0 =A0 status_hot_mask;
-> >> >> + =A0 =A0 u32 =A0 =A0 status_cold_mask;
-> >> >> +
-> >> >> + =A0 =A0 u32 =A0 =A0 bgap_efuse;
-> >> >> +};
-> >> >
-> >> > I find it unnecessary to pass the register map to driver using
-> >> > platform_data.
-> >>
-> >> With multiple instances the register map to individual instances will =
-change.
-> >> So passing it via platform_data.
-> >
-> > what will change is the base address, the offsets should remain the
-> > same.
->=20
-> The base address offsets and even bit fields seem to be differing across
-> different OMAP versions.
-
-then a comment making that clear is necessary. But as of today, you
-support only one OMAP version, so I'm sure it's worth the trouble for a
-first version of the driver.
-
---=20
-balbi
-
---NqNl6FRZtoRUn5bW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOQ+G1AAoJEAv8Txj19kN1mM4H/39Vs+N4fpuQo6PRQmaafLGU
-d2LPOIuqOG1FTDdSCkSKIZdGKBkFyRSx4CFShb4GH+0rVcExjaRWdEUX3YjorOhq
-z7sL45ofULZ2lhX3rKpik/zha1QDoJhO3RhgrDgWnIeJSJKGBuoWcmfz5UTcWpVL
-nMysM+A5xpd97t9FahN8LifH+LbWOiP3kjoZZLmAJ578N9gvc2XLO6LI4UZnDs7S
-Z86x9bV53S/ni1xdFDmxXxKIhko+IPf+2pSOroIo8c5+Kl/CVQJNqw1E5mONQEpF
-su2jGcV+yuq4y135e7MvHSKyEmScRohe7ICgwETAdpQ03pe8FB7kon9hS2i5FeM=
-=K3Ev
------END PGP SIGNATURE-----
-
---NqNl6FRZtoRUn5bW--
