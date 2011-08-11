@@ -1,107 +1,70 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 11/13] ARM: gpio: consolidate trivial gpiolib
- implementations
-Date: Thu, 11 Aug 2011 17:15:31 +0300
-Message-ID: <20110811141528.GL28500@legolas.emea.dhcp.ti.com>
-References: <20110809080411.GA1831@n2100.arm.linux.org.uk>
- <E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk>
-Reply-To: balbi@ti.com
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [RFC PATCH 6/6] hwmon: OMAP4: On die temperature sensor driver
+Date: Thu, 11 Aug 2011 19:55:22 +0530
+Message-ID: <4E43E652.5020303@ti.com>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com> <1312979122-5896-7-git-send-email-j-keerthy@ti.com> <20110810124629.GJ12882@legolas.emea.dhcp.ti.com> <CAJ6a13Z=u=exWUHLotw8jpHMv-hKpE+fvg_1hq7=gtMiuJKxOA@mail.gmail.com> <20110811103658.GG27742@legolas.emea.dhcp.ti.com> <CAJ6a13bxg8po-Csc10LsFH-oES4YOKkqFoTm3kG4XzS=b2boMw@mail.gmail.com> <20110811141248.GK28500@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oYAXToTM8kn9Ra/9"
-Return-path: <linux-sh-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk>
-Sender: linux-sh-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:46205 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750741Ab1HKOZb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Aug 2011 10:25:31 -0400
+Received: by mail-yw0-f42.google.com with SMTP id 3so1329901ywb.15
+        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 07:25:29 -0700 (PDT)
+In-Reply-To: <20110811141248.GK28500@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: "J, KEERTHY" <j-keerthy@ti.com>, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, khali@linux-fr.org, guenter.roeck@ericsson.com
 
+On 8/11/2011 7:42 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Thu, Aug 11, 2011 at 06:30:04PM +0530, J, KEERTHY wrote:
+>>>>>> >  >>  >>  diff --git a/drivers/hwmon/omap_temp_sensor.c b/drivers/hwmon/omap_temp_sensor.c
+>>>>>> >  >>  >>  new file mode 100644
+>>>>>> >  >>  >>  index 0000000..15e2559
+>>>>>> >  >>  >>  --- /dev/null
+>>>>>> >  >>  >>  +++ b/drivers/hwmon/omap_temp_sensor.c
+>>>>>> >  >>  >>  @@ -0,0 +1,950 @@
+>>>>>> >  >>  >>  +/*
+>>>>>> >  >>  >>  + * OMAP4 Temperature sensor driver file
+>>>>>> >  >>  >>  + *
+>>>>>> >  >>  >>  + * Copyright (C) 2011 Texas Instruments Incorporated -http://www.ti.com/
+>>>>>> >  >>  >>  + * Author: J Keerthy<j-keerthy@ti.com>
+>>>>>> >  >>  >>  + * Author: Moiz Sonasath<m-sonasath@ti.com>
+>>>>>> >  >>  >>  + *
+>>>>>> >  >>  >>  + * This program is free software; you can redistribute it and/or
+>>>>>> >  >>  >>  + * modify it under the terms of the GNU General Public License
+>>>>>> >  >>  >>  + * version 2 as published by the Free Software Foundation.
+>>>>>> >  >>  >>  + *
+>>>>>> >  >>  >>  + * This program is distributed in the hope that it will be useful, but
+>>>>>> >  >>  >>  + * WITHOUT ANY WARRANTY; without even the implied warranty of
+>>>>>> >  >>  >>  + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>>>>>> >  >>  >>  + * General Public License for more details.
+>>>>>> >  >>  >>  + *
+>>>>>> >  >>  >>  + * You should have received a copy of the GNU General Public License
+>>>>>> >  >>  >>  + * along with this program; if not, write to the Free Software
+>>>>>> >  >>  >>  + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+>>>>>> >  >>  >>  + * 02110-1301 USA
+>>>>>> >  >>  >>  + *
+>>>>>> >  >>  >>  + */
+>>>>>> >  >>  >>  +
+>>>>>> >  >>  >>  +#include<linux/interrupt.h>
+>>>>>> >  >>  >>  +#include<linux/clk.h>
+>>>>> >  >>  >
+>>>>> >  >>  >  why ??
+>>>> >  >>
+>>>> >  >>  Clock rate setting functions.
+>>> >  >
+>>> >  >  you shouldn't need in drivers.
+>> >
+>> >  It is a one time setting of the rate so keeping it in drivers.
+> you need some other way to handle this. Why do you need to manually set
+> the rate rather than having hwmod handle this for you ?
 
---oYAXToTM8kn9Ra/9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Aug 09, 2011 at 09:08:01AM +0100, Russell King - ARM Linux wrote:
-> Consolidate 24 trivial gpiolib implementions out of mach/gpio.h
-> into asm/gpio.h.  This is basically the include of asm-generic/gpio.h
-> and the definition of gpio_get_value, gpio_set_value, and gpio_cansleep
-> as described in Documentation/gpio.txt
->=20
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  arch/arm/include/asm/gpio.h                 |   10 ++++++++++
->  arch/arm/mach-at91/include/mach/gpio.h      |    5 +----
->  arch/arm/mach-ep93xx/include/mach/gpio.h    |    7 +------
->  arch/arm/mach-exynos4/include/mach/gpio.h   |    5 +----
->  arch/arm/mach-gemini/include/mach/gpio.h    |    5 +----
->  arch/arm/mach-ks8695/include/mach/gpio.h    |   11 ++---------
->  arch/arm/mach-lpc32xx/include/mach/gpio.h   |   17 +----------------
->  arch/arm/mach-msm/include/mach/gpio.h       |    5 +----
->  arch/arm/mach-mxs/include/mach/gpio.h       |    6 +-----
->  arch/arm/mach-realview/include/mach/gpio.h  |    6 +-----
->  arch/arm/mach-s3c2410/include/mach/gpio.h   |    5 +----
->  arch/arm/mach-s3c64xx/include/mach/gpio.h   |    6 +-----
->  arch/arm/mach-s5p64x0/include/mach/gpio.h   |    6 +-----
->  arch/arm/mach-s5pc100/include/mach/gpio.h   |    6 +-----
->  arch/arm/mach-s5pv210/include/mach/gpio.h   |    6 +-----
->  arch/arm/mach-shmobile/include/mach/gpio.h  |   15 +--------------
->  arch/arm/mach-tegra/include/mach/gpio.h     |    6 +-----
->  arch/arm/mach-versatile/include/mach/gpio.h |    6 +-----
->  arch/arm/mach-vt8500/include/mach/gpio.h    |    6 +-----
->  arch/arm/mach-w90x900/include/mach/gpio.h   |    5 +----
->  arch/arm/plat-mxc/include/mach/gpio.h       |    5 +----
->  arch/arm/plat-nomadik/include/plat/gpio.h   |   11 +----------
->  arch/arm/plat-omap/include/plat/gpio.h      |   15 +--------------
->  arch/arm/plat-orion/include/plat/gpio.h     |    6 ++----
->  arch/arm/plat-spear/include/plat/gpio.h     |    6 +-----
->  25 files changed, 36 insertions(+), 151 deletions(-)
->=20
-> diff --git a/arch/arm/include/asm/gpio.h b/arch/arm/include/asm/gpio.h
-> index 166a7a3..15e8970 100644
-> --- a/arch/arm/include/asm/gpio.h
-> +++ b/arch/arm/include/asm/gpio.h
-> @@ -4,4 +4,14 @@
->  /* not all ARM platforms necessarily support this API ... */
->  #include <mach/gpio.h>
-> =20
-> +#ifdef __ARM_GPIOLIB_TRIVIAL
-> +/* Note: this may rely upon the value of ARCH_NR_GPIOS set in mach/gpio.=
-h */
-> +#include <asm-generic/gpio.h>
-> +
-> +/* The trivial gpiolib dispatchers */
-> +#define gpio_get_value  __gpio_get_value
-> +#define gpio_set_value  __gpio_set_value
-> +#define gpio_cansleep   __gpio_cansleep
-> +#endif
-
-could that be a selectable symbol ? Something like:
-
-CONFIG_HAS_ARM_TRIVIAL_GPIO
-
-then on Kconfig you just:
-
-select HAS_ARM_TIVIAL_GPIO or something ?
-
---=20
-balbi
-
---oYAXToTM8kn9Ra/9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOQ+QAAAoJEAv8Txj19kN1pnsH/jjIZ/l51eOlKP75j5KHaq/S
-GRTw4CVEa/c1kTf7oCmfV7gVqGb/NBM2/kI/zeVD/GfZobV29mq452AXuoLeDipd
-3g1suFowb0YSILWAdTXdzPoQbSvWDVdnsIcoJH4dJNcHE1w7MYLnp1brWV3G9g5/
-sAR3kah4pkPw9PO/XU4q2MPrgOW30i+bLST4RzTpL2Luai5dtJs+H+Bf5ORGLXFt
-g/yFIMLxXBDwtaQdxPFoeiheg+fX6d6YH32vjiKYOhnrq4vm7MeJpU0dDz+GinNJ
-gFlOU2imPOuA2tV1J+iVwNkc9G85yHSEe2pHl7CDqcwSRp9mB+HhNu3HqmIqJ9k=
-=GTxs
------END PGP SIGNATURE-----
-
---oYAXToTM8kn9Ra/9--
+Because hwmod has not idea about what rate a device needs to operate
+in any point.
