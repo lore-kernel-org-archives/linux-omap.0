@@ -1,77 +1,55 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 08/13] OMAP2+: powerdomain: control power domains next state
-Date: Thu, 11 Aug 2011 17:09:59 +0200
-Message-ID: <CAORVsuWHc=ybjTAXe7=Dqj4Pnme6q29eqN0t3AHVkZE5CL+RpA@mail.gmail.com>
-References: <1311841821-10252-1-git-send-email-j-pihet@ti.com>
-	<1311841821-10252-9-git-send-email-j-pihet@ti.com>
-	<20110729075942.GA26959@google.com>
-	<CAORVsuV68JhpV5XzXNV3Z9xxRUBbgDen7NDRG+h=in7-ZL=JhQ@mail.gmail.com>
-	<20110729180047.GA14228@google.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 11/13] ARM: gpio: consolidate trivial gpiolib
+	implementations
+Date: Thu, 11 Aug 2011 16:07:18 +0100
+Message-ID: <20110811150718.GA4924@n2100.arm.linux.org.uk>
+References: <20110809080411.GA1831@n2100.arm.linux.org.uk> <E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk> <20110811141528.GL28500@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:62947 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752562Ab1HKPKA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 11:10:00 -0400
-Received: by qyk38 with SMTP id 38so3540019qyk.19
-        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 08:09:59 -0700 (PDT)
-In-Reply-To: <20110729180047.GA14228@google.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20110811141528.GL28500@legolas.emea.dhcp.ti.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, markgross@thegnar.org, broonie@opensource.wolfsonmicro.com, Jean Pihet <j-pihet@ti.com>
 
-Hi Todd,
+On Thu, Aug 11, 2011 at 05:15:31PM +0300, Felipe Balbi wrote:
+> On Tue, Aug 09, 2011 at 09:08:01AM +0100, Russell King - ARM Linux wrote:
+> > diff --git a/arch/arm/include/asm/gpio.h b/arch/arm/include/asm/gpio.h
+> > index 166a7a3..15e8970 100644
+> > --- a/arch/arm/include/asm/gpio.h
+> > +++ b/arch/arm/include/asm/gpio.h
+> > @@ -4,4 +4,14 @@
+> >  /* not all ARM platforms necessarily support this API ... */
+> >  #include <mach/gpio.h>
+> >  
+> > +#ifdef __ARM_GPIOLIB_TRIVIAL
+> > +/* Note: this may rely upon the value of ARCH_NR_GPIOS set in mach/gpio.h */
+> > +#include <asm-generic/gpio.h>
+> > +
+> > +/* The trivial gpiolib dispatchers */
+> > +#define gpio_get_value  __gpio_get_value
+> > +#define gpio_set_value  __gpio_set_value
+> > +#define gpio_cansleep   __gpio_cansleep
+> > +#endif
+> 
+> could that be a selectable symbol ? Something like:
+> 
+> CONFIG_HAS_ARM_TRIVIAL_GPIO
+> 
+> then on Kconfig you just:
+> 
+> select HAS_ARM_TIVIAL_GPIO or something ?
 
-On Fri, Jul 29, 2011 at 8:00 PM, Todd Poynor <toddpoynor@google.com> wr=
-ote:
-> On Fri, Jul 29, 2011 at 10:47:43AM +0200, Jean Pihet wrote:
->> On Fri, Jul 29, 2011 at 9:59 AM, Todd Poynor <toddpoynor@google.com>=
- wrote:
-> ...
->> > All min_latency !=3D PM_QOS_DEV_LAT_DEFAULT_VALUE paths need
->> > free_new_user =3D 1.
->> free_new_user =3D 1 is only needed if no existing constraint has bee=
-n
->> found, i.e. user stays at NULL. This is implemented in the check for
->> an existing constraint (plist_for_each_entry(...)).
->
-> Oops, I meant to say it applies in all cases where min_latency =3D=3D
-> PM_QOS_DEV_LAT_DEFAULT_VALUE, since the new node is only used for
-> adding a constraint (and no existing constraint found). =A0I'd sugges=
-t
-> something like:
->
-> =A0 =A0 =A0 =A0if (min_latency !=3D PM_QOS_DEV_LAT_DEFAULT_VALUE) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0new_user =3D kzalloc(sizeof(struct pwr=
-dm_wkup_constraints_entry),
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0GFP_KERNEL);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0<check NULL return>
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0free_new_user =3D 1;
-> =A0 =A0 =A0 =A0}
->
-> and then set free_new_user =3D 0 only if no existing constraint is fo=
-und
-> for the add case. =A0Because it's easy to miss cases where the
-> allocated memory needs to be freed when that's not the default, and y=
-ou
-> might as well skip the allocate on a constraint removal. =A0Pretty mi=
-nor
-> point, though.
+That makes things more complicated, because that involves digging through
+a lot of platform code in a couple of places to work out exactly when we
+need this - and it crosses the boundary to arch/sh too.
 
-This has been addressed in the latest patch set (v4).
+So I'd prefer to keep this simple.
 
-Regards,
-Jean
-
->
->
-> Todd
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The long-term goal is to remove that symbol entirely, but in order to do
+that we need to kill of the "optimized" on-board SoC stuff in those (few)
+gpio.h which don't have the symbol selected.  This is rather necessary to
+progress towards the consolidated kernel.  (Re-inventing gpiolib by moving
+them out of line isn't a good idea...)
