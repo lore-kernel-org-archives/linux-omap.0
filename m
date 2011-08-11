@@ -1,57 +1,94 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Subject: Re: [RFC PATCH 6/6] hwmon: OMAP4: On die temperature sensor driver
-Date: Thu, 11 Aug 2011 09:38:22 -0700
-Message-ID: <1313080702.2214.69.camel@groeck-laptop>
-References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
-	<1312979122-5896-7-git-send-email-j-keerthy@ti.com>
-	<20110810124629.GJ12882@legolas.emea.dhcp.ti.com>
-	<CAJ6a13Z=u=exWUHLotw8jpHMv-hKpE+fvg_1hq7=gtMiuJKxOA@mail.gmail.com>
-	<20110811103658.GG27742@legolas.emea.dhcp.ti.com>
-	<CAJ6a13bxg8po-Csc10LsFH-oES4YOKkqFoTm3kG4XzS=b2boMw@mail.gmail.com>
-Reply-To: guenter.roeck@ericsson.com
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 11/13] ARM: gpio: consolidate trivial gpiolib
+ implementations
+Date: Thu, 11 Aug 2011 21:50:30 +0300
+Message-ID: <20110811185029.GA15970@legolas.emea.dhcp.ti.com>
+References: <20110809080411.GA1831@n2100.arm.linux.org.uk>
+ <E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk>
+ <20110811141528.GL28500@legolas.emea.dhcp.ti.com>
+ <20110811150718.GA4924@n2100.arm.linux.org.uk>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAJ6a13bxg8po-Csc10LsFH-oES4YOKkqFoTm3kG4XzS=b2boMw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, "b-cousson@ti.com" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "rnayak@ti.com" <rnayak@ti.com>, "balbi@ti.com" <balbi@ti.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "khali@linux-fr.org" <khali@linux-fr.org>, "vishwanath.bs@ti.com" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zhXaljGHf11kAtnf"
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20110811150718.GA4924@n2100.arm.linux.org.uk>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 2011-08-11 at 09:00 -0400, J, KEERTHY wrote:
-> On Thu, Aug 11, 2011 at 4:06 PM, Felipe Balbi <balbi@ti.com> wrote:
 
-[ ... ]
+--zhXaljGHf11kAtnf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> >> >> +     temp = omap_temp_sensor_readl(temp_sensor,
-> >> >> +                     temp_sensor->registers->bgap_counter);
-> >> >> +     temp = (temp & temp_sensor->registers->counter_mask) >>
-> >> >> +                     __ffs(temp_sensor->registers->counter_mask);
-> >> >
-> >> >        temp &= ??
-> >> >
-> >> >> +     temp = temp * 1000 / (temp_sensor->clk_rate);
-> >> >
-> >> >        temp *= ??
-> >>
-> >> Need to multiply the temp with 1000 before dividing.
-> >> temp *= evaluates the RHS first and then multiplies LHS.
-> >
-> > temp *= 1000;
-> > temp /= clk_rate;
-> >
-> 
-> Different coding style. I preferred to do it in a single line.
-> 
-Me too.
+Hi,
 
-Guenter
+On Thu, Aug 11, 2011 at 04:07:18PM +0100, Russell King - ARM Linux wrote:
+> On Thu, Aug 11, 2011 at 05:15:31PM +0300, Felipe Balbi wrote:
+> > On Tue, Aug 09, 2011 at 09:08:01AM +0100, Russell King - ARM Linux wrot=
+e:
+> > > diff --git a/arch/arm/include/asm/gpio.h b/arch/arm/include/asm/gpio.h
+> > > index 166a7a3..15e8970 100644
+> > > --- a/arch/arm/include/asm/gpio.h
+> > > +++ b/arch/arm/include/asm/gpio.h
+> > > @@ -4,4 +4,14 @@
+> > >  /* not all ARM platforms necessarily support this API ... */
+> > >  #include <mach/gpio.h>
+> > > =20
+> > > +#ifdef __ARM_GPIOLIB_TRIVIAL
+> > > +/* Note: this may rely upon the value of ARCH_NR_GPIOS set in mach/g=
+pio.h */
+> > > +#include <asm-generic/gpio.h>
+> > > +
+> > > +/* The trivial gpiolib dispatchers */
+> > > +#define gpio_get_value  __gpio_get_value
+> > > +#define gpio_set_value  __gpio_set_value
+> > > +#define gpio_cansleep   __gpio_cansleep
+> > > +#endif
+> >=20
+> > could that be a selectable symbol ? Something like:
+> >=20
+> > CONFIG_HAS_ARM_TRIVIAL_GPIO
+> >=20
+> > then on Kconfig you just:
+> >=20
+> > select HAS_ARM_TIVIAL_GPIO or something ?
+>=20
+> That makes things more complicated, because that involves digging through
+> a lot of platform code in a couple of places to work out exactly when we
+> need this - and it crosses the boundary to arch/sh too.
+>=20
+> So I'd prefer to keep this simple.
+>=20
+> The long-term goal is to remove that symbol entirely, but in order to do
+> that we need to kill of the "optimized" on-board SoC stuff in those (few)
+> gpio.h which don't have the symbol selected.  This is rather necessary to
+> progress towards the consolidated kernel.  (Re-inventing gpiolib by moving
+> them out of line isn't a good idea...)
+
+Ok, I understand.
+
+--=20
+balbi
+
+--zhXaljGHf11kAtnf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJORCR1AAoJEAv8Txj19kN1gmoH/R1WSN8sSKgid5yhSh2YUTDQ
+xFbvXeesnLzcKTQQeIb8+kbgBKoE71gmQKQqFOqQ2O+cPL1eJ3lb6UUPeB4dasvJ
+kNmWF5XSfG8ZLTeBGaJT+EloWacHEGcAxGVrSDWOtS1W3EhBYQVjNQc3R+G2w/GQ
+Io27JOt1Co7+ymzMX3JlBw5cacMxzEVxoXZ4vfmU62IILjMZwE+3cEspXz/yxtA4
+iHQt/CGWIHHSAGygnNtwePfcvC/tu3S/+0tBCzr0qfgDBh1fTXxmTsGWcyX4fmjI
+NRuJEIJ++R0uBZP4EbDtYOkPZk4EO3N3rBk8EmSjLfZns1aOHPlej3n/DfY/quc=
+=98YQ
+-----END PGP SIGNATURE-----
+
+--zhXaljGHf11kAtnf--
