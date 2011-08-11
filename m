@@ -1,118 +1,133 @@
-From: Joel A Fernandes <agnel.joel@gmail.com>
-Subject: Re: [beagleboard] EHCI softirq kernel panic
-Date: Thu, 11 Aug 2011 00:12:12 -0500
-Message-ID: <CAD=GYpYBL20ybqt3KuJTmPtDA0MDB4VCuqDnopCESw2zm1Fn+Q@mail.gmail.com>
-References: <20110809222012.GB4008@legolas.emea.dhcp.ti.com>
-	<Pine.LNX.4.44L0.1108101009180.1917-100000@iolanthe.rowland.org>
-	<20110810213538.GB26868@legolas.emea.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Michael Jones <michael.jones@matrix-vision.de>
+Subject: [PATCH] omap2+: cleanup unneeded *_init_irq functions
+Date: Thu, 11 Aug 2011 09:02:23 +0200
+Message-ID: <1313046143-24115-1-git-send-email-michael.jones@matrix-vision.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:48191 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796Ab1HKFMO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 01:12:14 -0400
-In-Reply-To: <20110810213538.GB26868@legolas.emea.dhcp.ti.com>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:47287 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468Ab1HKHDU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 03:03:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: beagleboard@googlegroups.com
-Cc: Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Jason Kridner <jkridner@beagleboard.org>, "Kridner, Jason" <jdk@ti.com>, "Kooi, Koen" <k-kooi@ti.com>, linux-omap@vger.kernel.org, Linux USB Mailing List <linux-usb@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Aug 10, 2011 at 4:35 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Wed, Aug 10, 2011 at 10:11:48AM -0400, Alan Stern wrote:
->> On Wed, 10 Aug 2011, Felipe Balbi wrote:
->>
->> > Hi,
->> >
->> > On Tue, Aug 09, 2011 at 02:30:14PM -0400, Jason Kridner wrote:
->> > > On Tue, Aug 9, 2011 at 1:51 PM, Joel A Fernandes <agnel.joel@gma=
-il.com> wrote:
->> > > > Anyone seen this before?
->> > >
->> > > A lot of the kernel developers don't frequent the beagleboard li=
-st.
->> > > If you think it is a general kernel bug, I suspect you want to c=
-opy
->> > > linux-omap.
->> >
->> > and linux-usb, and Alan Stern as he's the EHCI maintainer and myse=
-lf for
->> > the OMAP USB part ;-)
->> >
->> > > > Trying to boot 3.0.0 with OE patches from an SD Card, and with=
- a
->> > > > network cable connected results in the following traceback.
->> > > > Not connecting a network cable makes the errors go away.
->>
->> > > > [ ? 99.084899] Unable to handle kernel NULL pointer dereferenc=
-e at
->> > > > virtual address 00000000
->> > > > [ ? 99.093383] pgd =3D c0004000
->> > > > [ ? 99.096191] [00000000] *pgd=3D00000000
->> > > > [ ? 99.099945] Internal error: Oops: 17 [#2]
->> > > > [ ? 99.104125] Modules linked in: ipv6
->> > > > [ ? 99.107788] CPU: 0 ? ?Tainted: G ? ? ?D ? ? ?(3.0.0+ #1)
->> > > > [ ? 99.113342] PC is at ehci_quiesce+0xc/0x94
->> > > > [ ? 99.117614] LR is at ehci_stop+0x34/0x8c
->> > > > [ ? 99.121734] pc : [<c0325ce4>] ? ?lr : [<c0328bfc>] ? ?psr: =
-200001d3
->> > > > [ ? 99.121734] sp : c064de70 ?ip : 00000108 ?fp : c06b8624
->> > > > [ ? 99.133728] r10: c064dec0 ?r9 : 00000000 ?r8 : dee08504
->> > > > [ ? 99.139190] r7 : c0328b94 ?r6 : 00000100 ?r5 : dee08504 ?r4=
- : dee08608
->> > > > [ ? 99.145996] r3 : 00000000 ?r2 : dee086ec ?r1 : dee086b8 ?r0=
- : dee08608
->> > > > [ ? 99.152832] Flags: nzCv ?IRQs off ?FIQs off ?Mode SVC_32 ?I=
-SA ARM
->> > > > Segment kernel
->> > > > [ ? 99.160644] Control: 10c5387d ?Table: 9d804019 ?DAC: 000000=
-15
->> > > > [ ? 99.166656] Process swapper (pid: 0, stack limit =3D 0xc064=
-c2f0)
->> > > > [ ? 99.172760] Stack: (0xc064de70 to 0xc064e000)
->>
->> > > > [ ? 99.288482] [<c0325ce4>] (ehci_quiesce+0xc/0x94) from [<c03=
-28bfc>]
->> > > > (ehci_stop+0x34/0x8c)
->> > > > [ ? 99.296936] [<c0328bfc>] (ehci_stop+0x34/0x8c) from [<c007a=
-3d4>]
->> > > > (run_timer_softirq+0x15c/0x1f8)
->> > > > [ ? 99.306121] [<c007a3d4>] (run_timer_softirq+0x15c/0x1f8) fr=
-om
->> > > > [<c064dec0>] (0xc064dec0)
->> > > > [ ? 99.314483] Code: c05d7f9a e92d4073 e1a04000 e5903004 (e593=
-3000)
->> > > > [ ? 99.320892] ---[ end trace 4ae88755f08e391f ]---
->> > > > [ ? 99.325714] Kernel panic - not syncing: Fatal exception in =
-interrupt
->>
->> I'm puzzled. =A0Why is ehci_stop getting called in a softirq context=
-?
->> That should never happen. =A0It should get called only when the driv=
-er is
->> unbound from the controller.
->
-> Maybe some OpenEmbedded patch which changed the behavior and ended up
-> breaking the driver ?
->
+After 0c336dc5ec492886620d4afdc252c63f32adbd0e (omap2+: Remove
+omap2_gp_clockevent_set_gptimer) these functions didn't have much
+purpose anymore. Just pass omap3_init_irq directly with MACHINE_START.
 
-Hi Felipe,
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+---
+ arch/arm/mach-omap2/board-devkit8000.c     |    7 +------
+ arch/arm/mach-omap2/board-omap3beagle.c    |    7 +------
+ arch/arm/mach-omap2/board-omap3stalker.c   |    7 +------
+ arch/arm/mach-omap2/board-omap3touchbook.c |    7 +------
+ 4 files changed, 4 insertions(+), 24 deletions(-)
 
-Thanks for looking into this.
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index b6002ec..8fc4fd2 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -405,11 +405,6 @@ static void __init devkit8000_init_early(void)
+ 				  mt46h32m32lf6_sdrc_params);
+ }
+ 
+-static void __init devkit8000_init_irq(void)
+-{
+-	omap3_init_irq();
+-}
+-
+ #define OMAP_DM9000_BASE	0x2c000000
+ 
+ static struct resource omap_dm9000_resources[] = {
+@@ -671,7 +666,7 @@ MACHINE_START(DEVKIT8000, "OMAP3 Devkit8000")
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+ 	.init_early	= devkit8000_init_early,
+-	.init_irq	= devkit8000_init_irq,
++	.init_irq	= omap3_init_irq,
+ 	.init_machine	= devkit8000_init,
+ 	.timer		= &omap3_secure_timer,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 32f5f89..2488f01 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -451,11 +451,6 @@ static void __init omap3_beagle_init_early(void)
+ 				  mt46h32m32lf6_sdrc_params);
+ }
+ 
+-static void __init omap3_beagle_init_irq(void)
+-{
+-	omap3_init_irq();
+-}
+-
+ static struct platform_device *omap3_beagle_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&keys_gpio,
+@@ -564,7 +559,7 @@ MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+ 	.init_early	= omap3_beagle_init_early,
+-	.init_irq	= omap3_beagle_init_irq,
++	.init_irq	= omap3_init_irq,
+ 	.init_machine	= omap3_beagle_init,
+ 	.timer		= &omap3_secure_timer,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 8e10498..319bbd1 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -434,11 +434,6 @@ static void __init omap3_stalker_init_early(void)
+ 	omap2_init_common_devices(mt46h32m32lf6_sdrc_params, NULL);
+ }
+ 
+-static void __init omap3_stalker_init_irq(void)
+-{
+-	omap3_init_irq();
+-}
+-
+ static struct platform_device *omap3_stalker_devices[] __initdata = {
+ 	&keys_gpio,
+ };
+@@ -497,7 +492,7 @@ MACHINE_START(SBC3530, "OMAP3 STALKER")
+ 	.boot_params		= 0x80000100,
+ 	.map_io			= omap3_map_io,
+ 	.init_early		= omap3_stalker_init_early,
+-	.init_irq		= omap3_stalker_init_irq,
++	.init_irq		= omap3_init_irq,
+ 	.init_machine		= omap3_stalker_init,
+ 	.timer			= &omap3_secure_timer,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 852ea04..36a0f6f 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -333,11 +333,6 @@ static void __init omap3_touchbook_init_early(void)
+ 				  mt46h32m32lf6_sdrc_params);
+ }
+ 
+-static void __init omap3_touchbook_init_irq(void)
+-{
+-	omap3_init_irq();
+-}
+-
+ static struct platform_device *omap3_touchbook_devices[] __initdata = {
+ 	&omap3_touchbook_lcd_device,
+ 	&leds_gpio,
+@@ -408,7 +403,7 @@ MACHINE_START(TOUCHBOOK, "OMAP3 touchbook Board")
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+ 	.init_early	= omap3_touchbook_init_early,
+-	.init_irq	= omap3_touchbook_init_irq,
++	.init_irq	= omap3_init_irq,
+ 	.init_machine	= omap3_touchbook_init,
+ 	.timer		= &omap3_secure_timer,
+ MACHINE_END
+-- 
+1.7.6
 
-It could be the 1GHz OPP patch in OE, after reverting it [1] I haven't
-seen this issue since.
 
-Thanks,
-Joel
-
-[1] https://github.com/joelagnel/meta-texasinstruments/commit/95fc251b1=
-aeafc1ef774659a8e8654e11b620778
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
