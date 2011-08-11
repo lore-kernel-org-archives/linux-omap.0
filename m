@@ -1,161 +1,351 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: tidspbridge issue with omap_dm_timer_free
-Date: Thu, 11 Aug 2011 02:27:16 +0300
-Message-ID: <CAMP44s2Wou54d2UWkwebxO17=gaVoiXrB5Lk-q2g90x3ok8L7w@mail.gmail.com>
-References: <CAMP44s17O-g83Fte05=AmqBP24jqgLxiBHmO6+3fbtJjWV8Ufw@mail.gmail.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [RFC PATCH 4/6] OMAP4: Temperature sensor device support
+Date: Thu, 11 Aug 2011 08:10:07 +0530
+Message-ID: <CAJ6a13b=Pv6i=Z53y2qLNhUNY-A3S395+9H+xg2ssGC_ZcLZyA@mail.gmail.com>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
+	<1312979122-5896-5-git-send-email-j-keerthy@ti.com>
+	<20110810123647.GF12882@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0015175d04585a2af504aa2f0524
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:38913 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755373Ab1HJX1S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Aug 2011 19:27:18 -0400
-Received: by bke11 with SMTP id 11so586482bke.19
-        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 16:27:16 -0700 (PDT)
-In-Reply-To: <CAMP44s17O-g83Fte05=AmqBP24jqgLxiBHmO6+3fbtJjWV8Ufw@mail.gmail.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:60301 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751864Ab1HKCkS convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Aug 2011 22:40:18 -0400
+Received: by mail-iy0-f171.google.com with SMTP id 13so2521788iyf.16
+        for <linux-omap@vger.kernel.org>; Wed, 10 Aug 2011 19:40:07 -0700 (PDT)
+In-Reply-To: <20110810123647.GF12882@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: balbi@ti.com
+Cc: lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, rnayak@ti.com
 
---0015175d04585a2af504aa2f0524
-Content-Type: text/plain; charset=UTF-8
+On Wed, Aug 10, 2011 at 6:06 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> (you should Cc Tony, as he's OMAP maintainer)
+>
+> On Wed, Aug 10, 2011 at 05:55:20PM +0530, Keerthy wrote:
+>> The device file adds the device support for OMAP4
+>> on die temperature sensor.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 | =A0 =A03 +-
+>> =A0arch/arm/mach-omap2/temp_sensor_device.c =A0 =A0 =A0 =A0 =A0 | =A0=
+ 85 +++++++++++++++++++
+>> =A0arch/arm/plat-omap/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | =A0 12 +++
+>> =A0.../plat-omap/include/plat/temperature_sensor.h =A0 =A0| =A0 87 +=
++++++++++++++++++++
+>> =A04 files changed, 186 insertions(+), 1 deletions(-)
+>> =A0create mode 100644 arch/arm/mach-omap2/temp_sensor_device.c
+>> =A0create mode 100644 arch/arm/plat-omap/include/plat/temperature_se=
+nsor.h
+>>
+>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Make=
+file
+>> index fb02937..5812fb4 100644
+>> --- a/arch/arm/mach-omap2/Makefile
+>> +++ b/arch/arm/mach-omap2/Makefile
+>> @@ -18,6 +18,7 @@ obj-$(CONFIG_ARCH_OMAP4) +=3D prm44xx.o $(hwmod-co=
+mmon)
+>>
+>> =A0obj-$(CONFIG_OMAP_MCBSP) +=3D mcbsp.o
+>>
+>> +obj-$(CONFIG_OMAP_TEMP_SENSOR) =A0 =A0 =A0 =A0 =A0+=3D temp_sensor_=
+device.o
+>> =A0obj-$(CONFIG_TWL4030_CORE) +=3D omap_twl.o
+>>
+>> =A0# SMP support ONLY available for OMAP4
+>> @@ -86,7 +87,7 @@ obj-$(CONFIG_ARCH_OMAP3) =A0 =A0 =A0 =A0 =A0 =A0+=3D=
+ prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o \
+>> =A0obj-$(CONFIG_ARCH_OMAP4) =A0 =A0 =A0 =A0 =A0 =A0 +=3D prcm.o cm2x=
+xx_3xxx.o cminst44xx.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0cm44xx.o prcm_mpu44xx.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0prminst44xx.o vc44xx_data.o \
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0vp44xx_data.o
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0vp44xx_data.o temp_sensor4460_data.o
+>>
+>> =A0# OMAP voltage domains
+>> =A0ifeq ($(CONFIG_PM),y)
+>> diff --git a/arch/arm/mach-omap2/temp_sensor_device.c b/arch/arm/mac=
+h-omap2/temp_sensor_device.c
+>> new file mode 100644
+>> index 0000000..5d5e92f
+>> --- /dev/null
+>> +++ b/arch/arm/mach-omap2/temp_sensor_device.c
+>> @@ -0,0 +1,85 @@
+>> +/*
+>> + * OMAP on die Temperature sensor device file
+>> + *
+>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.t=
+i.com/
+>> + * Author: J Keerthy <j-keerthy@ti.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License
+>> + * version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful, =
+but
+>> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the =
+GNU
+>> + * General Public License for more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public Licens=
+e
+>> + * along with this program; if not, write to the Free Software
+>> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+>> + * 02110-1301 USA
+>> + *
+>> + */
+>> +
+>> +#include <linux/err.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/io.h>
+>> +#include <linux/pm_runtime.h>
+>> +#include <plat/omap_device.h>
+>> +#include "control.h"
+>> +#include "pm.h"
+>> +#include <plat/temperature_sensor.h>
+>> +
+>> +static struct omap_device_pm_latency omap_temp_sensor_latency[] =3D=
+ {
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0.deactivate_func =3D omap_device_idle_hwmods,
+>> + =A0 =A0 =A0.activate_func =3D omap_device_enable_hwmods,
+>> + =A0 =A0 =A0.flags =3D OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+>> + =A0 =A0 }
+>
+> wrong indentation.
+>
 
-On Wed, Aug 10, 2011 at 9:42 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> I am trying to use a more recent version of the tidspbridge code in
-> the Nokia N9, but I'm stuck with this warning that is caused by using
-> the dm timer framework.
+Ok. I will correct this.
 
-Actually, the problem only happens on the 'dspbridge' branch, which
-has some unmerged patches. These patches introduce some new mutexes
-that trigger this.
+>> +};
+>> +
+>> +static int temp_sensor_dev_init(struct omap_hwmod *oh, void *user)
+>> +{
+>> + =A0 =A0 struct =A0omap_temp_sensor_pdata =A0 =A0 =A0 =A0 =A0*temp_=
+sensor_pdata;
+>> + =A0 =A0 struct =A0omap_device =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 *od;
+>> + =A0 =A0 struct =A0omap_temp_sensor_dev_attr =A0 =A0 =A0 *temp_sens=
+or_dev_attr;
+>> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 ret;
+>> + =A0 =A0 static int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0device_count;
+>
+> use an IDR here (see include/linux/idr.h)
 
-My proposed solution is to request the dm timers at initialization
-time, and just enable/disable them on wake/hibernate, which is a bit
-similar to what was happening before, and probably more efficient and
-proper.
+Ok. I will check this.
 
-I'm attaching the patch.
+>
+>> + =A0 =A0 ret =3D 0;
+>
+> initialize on the declarion and you can avoid this line.
 
--- 
-Felipe Contreras
+Ok
 
---0015175d04585a2af504aa2f0524
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-staging-tidspbridge-split-gpt-requests.patch"
-Content-Disposition: attachment;
-	filename="0001-staging-tidspbridge-split-gpt-requests.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gr6xherm0
+>
+>> + =A0 =A0 temp_sensor_pdata =3D
+>> + =A0 =A0 =A0 =A0 kzalloc(sizeof(*temp_sensor_pdata), GFP_KERNEL);
+>> + =A0 =A0 if (!temp_sensor_pdata) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&oh->od->pdev.dev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Unable to allocate memory=
+ for temp sensor pdata\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 temp_sensor_dev_attr =3D oh->dev_attr;
+>> + =A0 =A0 if (!strcmp(temp_sensor_dev_attr->name, "mpu"))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 temp_sensor_pdata->registers =3D &omap_mpu=
+_temp_sensor_registers;
+>> +
+>> + =A0 =A0 od =3D omap_device_build("omap_temp_sensor", device_count+=
++,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 oh, temp_sensor_pdata, sizeof(*temp_sensor=
+_pdata),
+>> + =A0 =A0 =A0 =A0 =A0 =A0omap_temp_sensor_latency,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ARRAY_SIZE(omap_temp_senso=
+r_latency), 0);
+>> + =A0 =A0 if (IS_ERR(od)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_warn(&oh->od->pdev.dev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Could not build omap_devi=
+ce for %s\n", oh->name);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PTR_ERR(od);
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 kfree(temp_sensor_pdata);
+>> +
+>> + =A0 =A0 return ret;
+>> +}
+>> +
+>> +int __init omap_devinit_temp_sensor(void)
+>> +{
+>> + =A0 =A0 if (!cpu_is_omap446x())
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+>> +
+>> + =A0 =A0 return omap_hwmod_for_each_by_class("temperature_sensor",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 temp_sensor_dev_init, NULL=
+);
+>> +}
+>> +
+>> +arch_initcall(omap_devinit_temp_sensor);
+>
+> I really dislike people adding more and more *initcall() to their pie=
+ces
+> of code. But Tony is the final Judge.
+>
+>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+>> index 6e6735f..8fd8e80 100644
+>> --- a/arch/arm/plat-omap/Kconfig
+>> +++ b/arch/arm/plat-omap/Kconfig
+>> @@ -115,6 +115,18 @@ config OMAP_MCBSP
+>> =A0 =A0 =A0 =A0 Say Y here if you want support for the OMAP Multicha=
+nnel
+>> =A0 =A0 =A0 =A0 Buffered Serial Port.
+>>
+>> +config OMAP_TEMP_SENSOR
+>> + =A0 =A0 bool "OMAP Temp Sensor Support"
+>> + =A0 =A0 depends on ARCH_OMAP
+>> + =A0 =A0 default n
+>> + =A0 =A0 help
+>> + =A0 =A0 =A0 Say Y here if you want support for the temp sensor
+>> + =A0 =A0 =A0 on OMAP4460.
+>> +
+>> + =A0 =A0 =A0 This provides the temperature of the MPU
+>> + =A0 =A0 =A0 subsystem. Only one instance of on die temperature
+>> + =A0 =A0 =A0 sensor is present.
+>
+> if there's only one instance, why do you use
+> omap_hwmod_for_each_by_class() ??
 
-RnJvbSBjZDdmMjQ1YmE0MmViMGQxOGJkZmMzZjI5ZTI4NTZmMDkyMjc1MjhlIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBGZWxpcGUgQ29udHJlcmFzIDxmZWxpcGUuY29udHJlcmFzQG5v
-a2lhLmNvbT4KRGF0ZTogVGh1LCAxMSBBdWcgMjAxMSAwMToyODowOCArMDMwMApTdWJqZWN0OiBb
-UEFUQ0hdIHN0YWdpbmc6IHRpZHNwYnJpZGdlOiBzcGxpdCBncHQgcmVxdWVzdHMKCk90aGVyd2lz
-ZSBJIGdldCB0aGlzOgoKIEJVRzogc2xlZXBpbmcgZnVuY3Rpb24gY2FsbGVkIGZyb20gaW52YWxp
-ZCBjb250ZXh0IGF0IGtlcm5lbC9tdXRleC5jOjI4NwogaW5fYXRvbWljKCk6IDEsIGlycXNfZGlz
-YWJsZWQoKTogMCwgcGlkOiAzMDUsIG5hbWU6IG1ib3hkLzAKIDMgbG9ja3MgaGVsZCBieSBtYm94
-ZC8wLzMwNToKICAjMDogIChtYm94ZCl7Ky4rLi4ufSwgYXQ6IFs8YjAwODE3Nzg+XSB3b3JrZXJf
-dGhyZWFkKzB4MTU0LzB4MmJjCiAgIzE6ICAoJm1xLT53b3JrKXsrLisuLi59LCBhdDogWzxiMDA4
-MTc3OD5dIHdvcmtlcl90aHJlYWQrMHgxNTQvMHgyYmMKICAjMjogIChwd3JfbG9jayl7Ky4uLi4u
-fSwgYXQ6IFs8YWYxMmY4NzA+XSBoYW5kbGVfaGliZXJuYXRpb25fZnJvbV9kc3ArMHgxYy8weDE1
-OCBbYnJpZGdlZHJpdmVyXQogWzxiMDAzZjc1Yz5dICh1bndpbmRfYmFja3RyYWNlKzB4MC8weGQ0
-KSBmcm9tIFs8YjAzYTNhYzQ+XSAobXV0ZXhfbG9ja19uZXN0ZWQrMHgzMC8weDMyYykKIFs8YjAz
-YTNhYzQ+XSAobXV0ZXhfbG9ja19uZXN0ZWQrMHgzMC8weDMyYykgZnJvbSBbPGIwMDU2OGY4Pl0g
-KGNsa19zZXRfcGFyZW50KzB4MzQvMHhmOCkKIFs8YjAwNTY4Zjg+XSAoY2xrX3NldF9wYXJlbnQr
-MHgzNC8weGY4KSBmcm9tIFs8YjAwNWUyZTA+XSAob21hcF9kbV90aW1lcl9zZXRfc291cmNlKzB4
-MzQvMHg1OCkKIFs8YjAwNWUyZTA+XSAob21hcF9kbV90aW1lcl9zZXRfc291cmNlKzB4MzQvMHg1
-OCkgZnJvbSBbPGIwMDVlNDI0Pl0gKG9tYXBfZG1fdGltZXJfcmVzZXQrMHg3OC8weGQwKQogWzxi
-MDA1ZTQyND5dIChvbWFwX2RtX3RpbWVyX3Jlc2V0KzB4NzgvMHhkMCkgZnJvbSBbPGIwMDVlNDkw
-Pl0gKG9tYXBfZG1fdGltZXJfZnJlZSsweDE0LzB4NDgpCiBbPGIwMDVlNDkwPl0gKG9tYXBfZG1f
-dGltZXJfZnJlZSsweDE0LzB4NDgpIGZyb20gWzxhZjEzMDlkND5dIChkc3BfY2xrX2Rpc2FibGUr
-MHg5OC8weDE1YyBbYnJpZGdlZHJpdmVyXSkKIFs8YWYxMzA5ZDQ+XSAoZHNwX2Nsa19kaXNhYmxl
-KzB4OTgvMHgxNWMgW2JyaWRnZWRyaXZlcl0pIGZyb20gWzxhZjEzMGFiYz5dIChkc3BfY2xvY2tf
-ZGlzYWJsZV9hbGwrMHgyNC8weDM0IFticmlkZ2Vkcml2ZXJdKQogWzxhZjEzMGFiYz5dIChkc3Bf
-Y2xvY2tfZGlzYWJsZV9hbGwrMHgyNC8weDM0IFticmlkZ2Vkcml2ZXJdKSBmcm9tIFs8YWYxMmY5
-MTQ+XSAoaGFuZGxlX2hpYmVybmF0aW9uX2Zyb21fZHNwKzB4YzAvMHgxNTggW2JyaWRnZWRyaXZl
-cl0pCiBbPGFmMTJmOTE0Pl0gKGhhbmRsZV9oaWJlcm5hdGlvbl9mcm9tX2RzcCsweGMwLzB4MTU4
-IFticmlkZ2Vkcml2ZXJdKSBmcm9tIFs8YWYxMmMyYmM+XSAoaW9fbWJveF9tc2crMHg4Yy8weDEw
-MCBbYnJpZGdlZHJpdmVyXSkKIFs8YWYxMmMyYmM+XSAoaW9fbWJveF9tc2crMHg4Yy8weDEwMCBb
-YnJpZGdlZHJpdmVyXSkgZnJvbSBbPGFmMDcwNDNjPl0gKG1ib3hfcnhfd29yaysweDNjLzB4YTAg
-W21haWxib3hdKQogWzxhZjA3MDQzYz5dIChtYm94X3J4X3dvcmsrMHgzYy8weGEwIFttYWlsYm94
-XSkgZnJvbSBbPGIwMDgxN2U0Pl0gKHdvcmtlcl90aHJlYWQrMHgxYzAvMHgyYmMpCiBbPGIwMDgx
-N2U0Pl0gKHdvcmtlcl90aHJlYWQrMHgxYzAvMHgyYmMpIGZyb20gWzxiMDA4NTEzYz5dIChrdGhy
-ZWFkKzB4N2MvMHg4NCkKIFs8YjAwODUxM2M+XSAoa3RocmVhZCsweDdjLzB4ODQpIGZyb20gWzxi
-MDAzYjlkND5dIChrZXJuZWxfdGhyZWFkX2V4aXQrMHgwLzB4OCkKIC0tLS0tLS0tLS0tLVsgY3V0
-IGhlcmUgXS0tLS0tLS0tLS0tLQogV0FSTklORzogYXQga2VybmVsL211dGV4LmM6MjE0IG11dGV4
-X2xvY2tfbmVzdGVkKzB4YjAvMHgzMmMoKQoKU2lnbmVkLW9mZi1ieTogRmVsaXBlIENvbnRyZXJh
-cyA8ZmVsaXBlLmNvbnRyZXJhc0Bub2tpYS5jb20+Ci0tLQogZHJpdmVycy9zdGFnaW5nL3RpZHNw
-YnJpZGdlL2NvcmUvZHNwLWNsb2NrLmMgICAgICAgfCAgIDQ5ICsrKysrKysrKysrKysrKysrKy0K
-IGRyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9jb3JlL3Rpb21hcDM0MzAuYyAgICAgIHwgICAg
-MyArCiAuLi4vc3RhZ2luZy90aWRzcGJyaWRnZS9pbmNsdWRlL2RzcGJyaWRnZS9jbGsuaCAgICB8
-ICAgIDQgKysKIDMgZmlsZXMgY2hhbmdlZCwgNTMgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMo
-LSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2UvY29yZS9kc3AtY2xv
-Y2suYyBiL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9jb3JlL2RzcC1jbG9jay5jCmluZGV4
-IGFhYzA2YzAuLmIwYWE4MzEgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRn
-ZS9jb3JlL2RzcC1jbG9jay5jCisrKyBiL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9jb3Jl
-L2RzcC1jbG9jay5jCkBAIC0xMTUsNiArMTE1LDcgQEAgc3RhdGljIHM4IGdldF9jbGtfdHlwZSh1
-OCBpZCkKIHZvaWQgZHNwX2Nsa19leGl0KHZvaWQpCiB7CiAJZHNwX2Nsb2NrX2Rpc2FibGVfYWxs
-KGRzcF9jbG9ja3MpOworCWRzcF9jbG9ja19yZWxlYXNlX2FsbCgpOwogCiAJY2xrX3B1dChpdmEy
-X2Nsayk7CiAJY2xrX3B1dChzc2kuc3N0X2Zjayk7CkBAIC0xNDYsNiArMTQ3LDQ1IEBAIHZvaWQg
-ZHNwX2Nsa19pbml0KHZvaWQpCiAJCQkJCXNzaS5zc3RfZmNrLCBzc2kuc3NyX2Zjaywgc3NpLmlj
-ayk7CiB9CiAKK2ludCBkc3BfY2xrX3JlcXVlc3QoZW51bSBkc3BfY2xrX2lkIGNsa19pZCkKK3sK
-KwlzdHJ1Y3Qgb21hcF9kbV90aW1lciAqdDsKKworCWlmIChnZXRfY2xrX3R5cGUoY2xrX2lkKSAh
-PSBHUFRfQ0xLKQorCQlyZXR1cm4gLUVQRVJNOworCisJdCA9IG9tYXBfZG1fdGltZXJfcmVxdWVz
-dF9zcGVjaWZpYyhETVRfSUQoY2xrX2lkKSk7CisJaWYgKCF0KQorCQlyZXR1cm4gLUVQRVJNOwor
-CXRpbWVyW2Nsa19pZCAtIDFdID0gdDsKKworCXJldHVybiAwOworfQorCitpbnQgZHNwX2Nsa19y
-ZWxlYXNlKGVudW0gZHNwX2Nsa19pZCBjbGtfaWQpCit7CisJaWYgKGdldF9jbGtfdHlwZShjbGtf
-aWQpICE9IEdQVF9DTEspCisJCXJldHVybiAtRVBFUk07CisKKwlvbWFwX2RtX3RpbWVyX2ZyZWUo
-dGltZXJbY2xrX2lkIC0gMV0pOworCXRpbWVyW2Nsa19pZCAtIDFdID0gTlVMTDsKKworCXJldHVy
-biAwOworfQorCit2b2lkIGRzcF9jbG9ja19yZWxlYXNlX2FsbCh2b2lkKQoreworCWludCBpOwor
-CisJLyogcmVsZWFzZSBkbSB0aW1lciBjbG9ja3MgKi8KKwlmb3IgKGkgPSAwOyBpIDwgQVJSQVlf
-U0laRSh0aW1lcik7IGkrKykgeworCQlpZiAoIXRpbWVyW2ldKQorCQkJY29udGludWU7CisJCW9t
-YXBfZG1fdGltZXJfZnJlZSh0aW1lcltpXSk7CisJCXRpbWVyW2ldID0gTlVMTDsKKwl9Cit9CisK
-ICNpZmRlZiBDT05GSUdfT01BUF9NQ0JTUAogc3RhdGljIHZvaWQgbWNic3BfY2xrX3ByZXBhcmUo
-Ym9vbCBmbGFnLCB1OCBpZCkKIHsKQEAgLTI1Miw4ICsyOTIsOSBAQCBpbnQgZHNwX2Nsa19lbmFi
-bGUoZW51bSBkc3BfY2xrX2lkIGNsa19pZCkKIAkJY2xrX2VuYWJsZShpdmEyX2Nsayk7CiAJCWJy
-ZWFrOwogCWNhc2UgR1BUX0NMSzoKLQkJdGltZXJbY2xrX2lkIC0gMV0gPQotCQkJCW9tYXBfZG1f
-dGltZXJfcmVxdWVzdF9zcGVjaWZpYyhETVRfSUQoY2xrX2lkKSk7CisJCWlmICghdGltZXJbY2xr
-X2lkIC0gMV0pCisJCQlyZXR1cm4gLUVJTlZBTDsKKwkJb21hcF9kbV90aW1lcl9lbmFibGUodGlt
-ZXJbY2xrX2lkIC0gMV0pOwogCQlicmVhazsKICNpZmRlZiBDT05GSUdfT01BUF9NQ0JTUAogCWNh
-c2UgTUNCU1BfQ0xLOgpAQCAtMzMwLDcgKzM3MSw5IEBAIGludCBkc3BfY2xrX2Rpc2FibGUoZW51
-bSBkc3BfY2xrX2lkIGNsa19pZCkKIAkJY2xrX2Rpc2FibGUoaXZhMl9jbGspOwogCQlicmVhazsK
-IAljYXNlIEdQVF9DTEs6Ci0JCW9tYXBfZG1fdGltZXJfZnJlZSh0aW1lcltjbGtfaWQgLSAxXSk7
-CisJCWlmICghdGltZXJbY2xrX2lkIC0gMV0pCisJCQlyZXR1cm4gLUVJTlZBTDsKKwkJb21hcF9k
-bV90aW1lcl9kaXNhYmxlKHRpbWVyW2Nsa19pZCAtIDFdKTsKIAkJYnJlYWs7CiAjaWZkZWYgQ09O
-RklHX09NQVBfTUNCU1AKIAljYXNlIE1DQlNQX0NMSzoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvc3Rh
-Z2luZy90aWRzcGJyaWRnZS9jb3JlL3Rpb21hcDM0MzAuYyBiL2RyaXZlcnMvc3RhZ2luZy90aWRz
-cGJyaWRnZS9jb3JlL3Rpb21hcDM0MzAuYwppbmRleCBlY2Q4NjViLi5mYmNlYTBiIDEwMDY0NAot
-LS0gYS9kcml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2UvY29yZS90aW9tYXAzNDMwLmMKKysrIGIv
-ZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2NvcmUvdGlvbWFwMzQzMC5jCkBAIC01MTIsNiAr
-NTEyLDcgQEAgc3RhdGljIGludCBicmlkZ2VfYnJkX3N0YXJ0KHN0cnVjdCBicmlkZ2VfZGV2X2Nv
-bnRleHQgKmRldl9jdHh0LAogCQlpZiAodWxfbG9hZF9tb25pdG9yX3RpbWVyICE9IDB4RkZGRikg
-ewogCQkJY2xrX2NtZCA9IChCUFdSX0VOQUJMRV9DTE9DSyA8PCBNQlhfUE1fQ0xLX0NNRFNISUZU
-KSB8CiAJCQkgICAgdWxfbG9hZF9tb25pdG9yX3RpbWVyOworCQkJZHNwX2Nsa19yZXF1ZXN0KHVs
-X2xvYWRfbW9uaXRvcl90aW1lciAtIEJQV1JfR1BfVElNRVI1ICsgRFNQX0NMS19HUFQ1KTsKIAkJ
-CWRzcF9wZXJpcGhlcmFsX2Nsa19jdHJsKGRldl9jb250ZXh0LCAmY2xrX2NtZCk7CiAJCX0gZWxz
-ZSB7CiAJCQlkZXZfZGJnKGJyaWRnZSwgIk5vdCBhYmxlIHRvIGdldCB0aGUgc3ltYm9sIGZvciBM
-b2FkICIKQEAgLTUyMyw2ICs1MjQsNyBAQCBzdGF0aWMgaW50IGJyaWRnZV9icmRfc3RhcnQoc3Ry
-dWN0IGJyaWRnZV9kZXZfY29udGV4dCAqZGV2X2N0eHQsCiAJCWlmICh1bF9iaW9zX2dwX3RpbWVy
-ICE9IDB4RkZGRikgewogCQkJY2xrX2NtZCA9IChCUFdSX0VOQUJMRV9DTE9DSyA8PCBNQlhfUE1f
-Q0xLX0NNRFNISUZUKSB8CiAJCQkgICAgdWxfYmlvc19ncF90aW1lcjsKKwkJCWRzcF9jbGtfcmVx
-dWVzdCh1bF9iaW9zX2dwX3RpbWVyIC0gQlBXUl9HUF9USU1FUjUgKyBEU1BfQ0xLX0dQVDUpOwog
-CQkJZHNwX3BlcmlwaGVyYWxfY2xrX2N0cmwoZGV2X2NvbnRleHQsICZjbGtfY21kKTsKIAkJfSBl
-bHNlIHsKIAkJCWRldl9kYmcoYnJpZGdlLApAQCAtNjkxLDYgKzY5Myw3IEBAIHN0YXRpYyBpbnQg
-YnJpZGdlX2JyZF9zdG9wKHN0cnVjdCBicmlkZ2VfZGV2X2NvbnRleHQgKmRldl9jdHh0KQogCQkJ
-T01BUDM0MzBfUlNUM19JVkEyLCBPTUFQMzQzMF9JVkEyX01PRCwgUk1fUlNUQ1RSTCk7CiAKIAlk
-c3BfY2xvY2tfZGlzYWJsZV9hbGwoZGV2X2NvbnRleHQtPmRzcF9wZXJfY2xrcyk7CisJZHNwX2Ns
-b2NrX3JlbGVhc2VfYWxsKCk7CiAJZHNwX2Nsa19kaXNhYmxlKERTUF9DTEtfSVZBMik7CiAKIAly
-ZXR1cm4gc3RhdHVzOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2lu
-Y2x1ZGUvZHNwYnJpZGdlL2Nsay5oIGIvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL2luY2x1
-ZGUvZHNwYnJpZGdlL2Nsay5oCmluZGV4IDY4NTM0MWMuLjE0YzVkN2QgMTAwNjQ0Ci0tLSBhL2Ry
-aXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9pbmNsdWRlL2RzcGJyaWRnZS9jbGsuaAorKysgYi9k
-cml2ZXJzL3N0YWdpbmcvdGlkc3BicmlkZ2UvaW5jbHVkZS9kc3BicmlkZ2UvY2xrLmgKQEAgLTYy
-LDYgKzYyLDEwIEBAIGV4dGVybiB2b2lkIGRzcF9jbGtfZXhpdCh2b2lkKTsKICAqLwogZXh0ZXJu
-IHZvaWQgZHNwX2Nsa19pbml0KHZvaWQpOwogCitpbnQgZHNwX2Nsa19yZXF1ZXN0KGVudW0gZHNw
-X2Nsa19pZCBjbGtfaWQpOworaW50IGRzcF9jbGtfcmVsZWFzZShlbnVtIGRzcF9jbGtfaWQgY2xr
-X2lkKTsKK3ZvaWQgZHNwX2Nsb2NrX3JlbGVhc2VfYWxsKHZvaWQpOworCiB2b2lkIGRzcF9ncHRf
-d2FpdF9vdmVyZmxvdyhzaG9ydCBpbnQgY2xrX2lkLCB1bnNpZ25lZCBpbnQgbG9hZCk7CiAKIC8q
-Ci0tIAoxLjcuNgoK
---0015175d04585a2af504aa2f0524--
+In case of OMAP5 there are multiple instances. Hence using
+omap_hwmod_for_each_by_class().
+
+>
+>> diff --git a/arch/arm/plat-omap/include/plat/temperature_sensor.h b/=
+arch/arm/plat-omap/include/plat/temperature_sensor.h
+>> new file mode 100644
+>> index 0000000..692ebdc
+>> --- /dev/null
+>> +++ b/arch/arm/plat-omap/include/plat/temperature_sensor.h
+>> @@ -0,0 +1,87 @@
+>> +/*
+>> + * OMAP Temperature sensor header file
+>> + *
+>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.t=
+i.com/
+>> + * Author: J Keerthy <j-keerthy@ti.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License
+>> + * version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful, =
+but
+>> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the =
+GNU
+>> + * General Public License for more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public Licens=
+e
+>> + * along with this program; if not, write to the Free Software
+>> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+>> + * 02110-1301 USA
+>> + *
+>> + */
+>> +
+>> +#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
+>> +#define __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
+>> +
+>> +/* Offsets from the base of temperature sensor registers */
+>> +
+>> +#define OMAP4460_TEMP_SENSOR_CTRL_OFFSET =A0 =A0 0x00
+>> +#define OMAP4460_BGAP_CTRL_OFFSET =A0 =A0 =A0 =A0 =A0 =A00x4c
+>> +#define OMAP4460_BGAP_COUNTER_OFFSET =A0 =A0 =A0 =A0 0x50
+>> +#define OMAP4460_BGAP_THRESHOLD_OFFSET =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+0x54
+>> +#define OMAP4460_BGAP_TSHUT_OFFSET =A0 =A0 =A0 =A0 =A0 0x58
+>> +#define OMAP4460_BGAP_STATUS_OFFSET =A0 =A0 =A0 =A0 =A00x5c
+>> +#define OMAP4460_FUSE_OPP_BGAP =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 -0xcc
+>> +
+>> +struct omap_temp_sensor_registers {
+>> + =A0 =A0 u32 =A0 =A0 temp_sensor_ctrl;
+>> + =A0 =A0 u32 =A0 =A0 bgap_tempsoff_mask;
+>> + =A0 =A0 u32 =A0 =A0 bgap_soc_mask;
+>> + =A0 =A0 u32 =A0 =A0 bgap_eocz_mask;
+>> + =A0 =A0 u32 =A0 =A0 bgap_dtemp_mask;
+>> +
+>> + =A0 =A0 u32 =A0 =A0 bgap_mask_ctrl;
+>> + =A0 =A0 u32 =A0 =A0 mask_hot_mask;
+>> + =A0 =A0 u32 =A0 =A0 mask_cold_mask;
+>> +
+>> + =A0 =A0 u32 =A0 =A0 bgap_mode_ctrl;
+>> + =A0 =A0 u32 =A0 =A0 mode_ctrl_mask;
+>> +
+>> + =A0 =A0 u32 =A0 =A0 bgap_counter;
+>> + =A0 =A0 u32 =A0 =A0 counter_mask;
+>> +
+>> + =A0 =A0 u32 =A0 =A0 bgap_threshold;
+>> + =A0 =A0 u32 =A0 =A0 threshold_thot_mask;
+>> + =A0 =A0 u32 =A0 =A0 threshold_tcold_mask;
+>> +
+>> + =A0 =A0 u32 =A0 =A0 thsut_threshold;
+>> + =A0 =A0 u32 =A0 =A0 tshut_hot_mask;
+>> + =A0 =A0 u32 =A0 =A0 tshut_cold_mask;
+>> +
+>> + =A0 =A0 u32 =A0 =A0 bgap_status;
+>> + =A0 =A0 u32 =A0 =A0 status_clean_stop_mask;
+>> + =A0 =A0 u32 =A0 =A0 status_bgap_alert_mask;
+>> + =A0 =A0 u32 =A0 =A0 status_hot_mask;
+>> + =A0 =A0 u32 =A0 =A0 status_cold_mask;
+>> +
+>> + =A0 =A0 u32 =A0 =A0 bgap_efuse;
+>> +};
+>
+> I find it unnecessary to pass the register map to driver using
+> platform_data.
+
+With multiple instances the register map to individual instances will c=
+hange.
+So passing it via platform_data.
+
+>
+>> +/*
+>> + * @name: Name of the domain of the temperature sensor
+>> + */
+>
+> comment fits in one line.
+
+Ok
+
+>
+>
+> --
+> balbi
+>
+
+
+
+--=20
+Regards and Thanks,
+Keerthy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
