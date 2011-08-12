@@ -1,143 +1,134 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: musb crash on suspend
-Date: Fri, 12 Aug 2011 12:51:16 +0300
-Message-ID: <20110812095115.GS19467@legolas.emea.dhcp.ti.com>
-References: <CAOd_LFxPcid8rL8v_n6Q0E9u0iV9aKLmbYiVLFXQYoJfkUhB5Q@mail.gmail.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tqSMaTz1cCSspCQ4"
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: [PATCH] DMAEngine: Define generic transfer request api
+Date: Fri, 12 Aug 2011 16:44:27 +0530
+Message-ID: <1313147667-3385-1-git-send-email-jaswinder.singh@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:37188 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752029Ab1HLJvU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Aug 2011 05:51:20 -0400
-Received: by bke11 with SMTP id 11so1993226bke.5
-        for <linux-omap@vger.kernel.org>; Fri, 12 Aug 2011 02:51:18 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAOd_LFxPcid8rL8v_n6Q0E9u0iV9aKLmbYiVLFXQYoJfkUhB5Q@mail.gmail.com>
+Received: from mail-iy0-f170.google.com ([209.85.210.170]:36127 "EHLO
+	mail-iy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752593Ab1HLLOl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Aug 2011 07:14:41 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cliff Brake <cliff.brake@gmail.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: dan.j.williams@intel.com, vkoul@infradead.org, linux-kernel@vger.kernel.org
+Cc: sundaram@ti.com, linus.walleij@linaro.org, linux-omap@vger.kernel.org, rmk+kernel@arm.linux.org.uk, nsekhar@ti.com, Jassi Brar <jaswinder.singh@linaro.org>
 
+Define a new api that could be used for doing fancy data transfers
+like interleaved to contiguous copy and vice-versa.
+Traditional SG_list based transfers tend to be very inefficient in
+such cases as where the interleave and chunk are only a few bytes,
+which call for a very condensed api to convey pattern of the transfer.
 
---tqSMaTz1cCSspCQ4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This api supports all 4 variants of scatter-gather and contiguous transfer.
+Besides, it could also represent common operations like
+        device_prep_dma_{cyclic, memset, memcpy}
+and maybe some more that I am not sure of.
 
-Hi,
+Of course, neither can this api help transfers that don't lend to DMA by
+nature, i.e, scattered tiny read/writes with no periodic pattern.
 
-On Thu, Jul 28, 2011 at 05:05:13PM -0400, Cliff Brake wrote:
-> Hello, I'm running 2.6.39 on omap3530 with a number of patches and am
-> seeing the below crash on suspend.  Questions:
->=20
-> 1) does anyone have musb suspending with 2.6.39?
-> 2) are there any fixes or suggestions?
->=20
-> Thanks,
-> Cliff
->=20
-> musb-hdrc musb-hdrc: suspend
-> Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa0ab00c
-> Internal error: : 1028 [#1] PREEMPT
-> last sysfs file: /sys/power/state
-> Modules linked in: mac80211 cfg80211
-> CPU: 0    Tainted: G        W    (2.6.39+ #182)
-> PC is at musb_save_context+0x14/0x150
-> LR is at musb_suspend+0x2c/0x60
-> pc : [<c02b18c8>]    lr : [<c02b1bd8>]    psr: 20000093
-> sp : cc26de48  ip : fb020000  fp : c05c34d8
-> r10: c06124d4  r9 : 00000000  r8 : 00000002
-> r7 : 00000000  r6 : 00000000  r5 : cc8d3e08  r4 : a0000013
-> r3 : 00000003  r2 : 00000001  r1 : fa0ab000  r0 : cc9380ec
-> Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment user
-> Control: 10c5387d  Table: 8c014019  DAC: 00000015
-> Process sh (pid: 1884, stack limit =3D 0xcc26c2e8)
-> Stack: (0xcc26de48 to 0xcc26e000)
-> de40:                   a0000013 cc8d3e08 00000000 00000000 00000002 0000=
-0000
-> de60: c06124d4 c02b1bd8 cc842640 c023d948 cc842640 c0240a94 cc8d3e08 cc84=
-2640
-> de80: 00000000 00000000 cc8d3e08 00000002 00000000 cc8d3e3c c06124d4 c024=
-14cc
-> dea0: cc8d3e08 00000002 cc8d3e08 00000000 cc8d3e68 00000002 c05e00d4 c024=
-1918
-> dec0: 0bead162 00000007 0bead162 00000007 00000000 00000000 00000003 0000=
-0003
-> dee0: 00000004 c0413714 00000004 c0506ab1 000a3008 c0090ad4 c0506ab1 0000=
-0003
-> df00: 00000000 c0090d50 cc10f000 00000003 00000003 c0090364 cc812908 ccb3=
-f818
-> df20: cc26df80 c042e650 ccb3f800 00000004 cc820b00 c01e00ec cc812908 c011=
-8350
-> df40: 00000004 cc33db40 4006c000 cc26df80 00000004 cc26c000 00000000 c00c=
-4a2c
-> df60: cc33db40 4006c000 cc33db40 4006c000 00000000 00000000 00000004 c00c=
-4b60
-> df80: 00000000 00000000 00000004 00000000 00000004 4006c000 403525d0 0000=
-0004
-> dfa0: c003cf68 c003cdc0 00000004 4006c000 00000001 4006c000 00000004 0000=
-0000
-> dfc0: 00000004 4006c000 403525d0 00000004 00000004 000a33f0 00000001 000a=
-3008
-> dfe0: 00000000 beff85c0 40290028 402e332c 60000010 00000001 80000801 1000=
-0500
-> [<c02b18c8>] (musb_save_context+0x14/0x150) from [<c02b1bd8>]
-> (musb_suspend+0x2c/0x60)
-> [<c02b1bd8>] (musb_suspend+0x2c/0x60) from [<c023d948>]
-> (platform_pm_suspend+0x2c/0x54)
-> [<c023d948>] (platform_pm_suspend+0x2c/0x54) from [<c0240a94>] (pm_op+0x4=
-c/0xb4)
-> [<c0240a94>] (pm_op+0x4c/0xb4) from [<c02414cc>] (__device_suspend+0x134/=
-0x1f0)
-> [<c02414cc>] (__device_suspend+0x134/0x1f0) from [<c0241918>]
-> (dpm_suspend_start+0x34c/0x458)
-> [<c0241918>] (dpm_suspend_start+0x34c/0x458) from [<c0090ad4>]
-> (suspend_devices_and_enter+0x3c/0x1f8)
-> [<c0090ad4>] (suspend_devices_and_enter+0x3c/0x1f8) from [<c0090d50>]
-> (enter_state+0xc0/0x128)
-> [<c0090d50>] (enter_state+0xc0/0x128) from [<c0090364>] (state_store+0xa0=
-/0xb4)
-> [<c0090364>] (state_store+0xa0/0xb4) from [<c01e00ec>]
-> (kobj_attr_store+0x18/0x1c)
-> [<c01e00ec>] (kobj_attr_store+0x18/0x1c) from [<c0118350>]
-> (sysfs_write_file+0x108/0x13c)
-> [<c0118350>] (sysfs_write_file+0x108/0x13c) from [<c00c4a2c>]
-> (vfs_write+0xac/0x134)
-> [<c00c4a2c>] (vfs_write+0xac/0x134) from [<c00c4b60>] (sys_write+0x3c/0x6=
-8)
-> [<c00c4b60>] (sys_write+0x3c/0x68) from [<c003cdc0>] (ret_fast_syscall+0x=
-0/0x30)
-> Code: e92d47f0 e3530002 e5901208 0a000005 (e1d130bc)
-> ------------[ cut here ]------------
-> WARNING: at arch/arm/mach-omap2/omap_l3_smx.c:162 omap3_l3_app_irq+0xf8/0=
-x150()
-> In-band Error Error seen by MPU  at address 0
+Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
+---
+ include/linux/dmaengine.h |   73 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 73 insertions(+), 0 deletions(-)
 
-quite interesting that you got In-band Error...
-oh well, you say it's already fixed, but if you see again errors from
-omap3_l3, let us know again ;-)
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index 8fbf40e..74f3ae0 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -76,6 +76,76 @@ enum dma_transaction_type {
+ /* last transaction type for creation of the capabilities mask */
+ #define DMA_TX_TYPE_END (DMA_CYCLIC + 1)
+ 
++/**
++ * Generic Transfer Request
++ * ------------------------
++ * A chunk is collection of contiguous bytes to be transfered.
++ * The gap(in bytes) between two chunks is called inter-chunk-gap(ICG).
++ * ICGs may or maynot change between chunks.
++ * A FRAME is the smallest series of contiguous {chunk,icg} pairs,
++ *  that when repeated an integral number of times, specifies the transfer.
++ * A transfer template is specification of a Frame, the number of times
++ *  it is to be repeated and other per-transfer attributes.
++ *
++ * Practically, a client driver would have ready a template for each
++ *  type of transfer it is going to need during its lifetime and
++ *  set only 'src_start' and 'dst_start' before submitting the requests.
++ *
++ *
++ *  |      Frame-1        |       Frame-2       | ~ |       Frame-'numf'  |
++ *  |====....==.===...=...|====....==.===...=...| ~ |====....==.===...=...|
++ *
++ *    ==  Chunk size
++ *    ... ICG
++ */
++
++/**
++ * struct data_chunk - Element of scatter-gather list that makes a frame.
++ * @size: Number of bytes to read from source.
++ *	  size_dst := fn(op, size_src), so doesn't mean much for destination.
++ * @icg: Number of bytes to jump after last src/dst address of this
++ *	 chunk and before first src/dst address for next chunk.
++ *	 Ignored for dst(assumed 0), if dst_inc is true and dst_sgl is false.
++ *	 Ignored for src(assumed 0), if src_inc is true and src_sgl is false.
++ */
++struct data_chunk {
++	size_t size;
++	size_t icg;
++};
++
++/**
++ * struct xfer_template - Template to convey DMAC the transfer pattern
++ *	 and attributes.
++ * @op: The operation to perform on source data before writing it on
++ *	 to destination address.
++ * @src_start: Bus address of source for the first chunk.
++ * @dst_start: Bus address of destination for the first chunk.
++ * @src_inc: If the source address increments after reading from it.
++ * @dst_inc: If the destination address increments after writing to it.
++ * @src_sgl: If the 'icg' of sgl[] applies to Source (scattered read).
++ *		Otherwise, source is read contiguously (icg ignored).
++ *		Ignored if src_inc is false.
++ * @dst_sgl: If the 'icg' of sgl[] applies to Destination (scattered write).
++ *		Otherwise, destination is filled contiguously (icg ignored).
++ *		Ignored if dst_inc is false.
++ * @frm_irq: If the client expects DMAC driver to do callback after each frame.
++ * @numf: Number of frames in this template.
++ * @frame_size: Number of chunks in a frame i.e, size of sgl[].
++ * @sgl: Array of {chunk,icg} pairs that make up a frame.
++ */
++struct xfer_template {
++	enum dma_transaction_type op;
++	dma_addr_t src_start;
++	dma_addr_t dst_start;
++	bool src_inc;
++	bool dst_inc;
++	bool src_sgl;
++	bool dst_sgl;
++	bool frm_irq;
++	size_t numf;
++	size_t frame_size;
++	struct data_chunk sgl[0];
++};
+ 
+ /**
+  * enum dma_ctrl_flags - DMA flags to augment operation preparation,
+@@ -432,6 +502,7 @@ struct dma_tx_state {
+  * @device_prep_dma_cyclic: prepare a cyclic dma operation suitable for audio.
+  *	The function takes a buffer of size buf_len. The callback function will
+  *	be called after period_len bytes have been transferred.
++ * @device_prep_dma_genxfer: Transfer expression in a generic way.
+  * @device_control: manipulate all pending operations on a channel, returns
+  *	zero or error code
+  * @device_tx_status: poll for transaction completion, the optional
+@@ -496,6 +567,8 @@ struct dma_device {
+ 	struct dma_async_tx_descriptor *(*device_prep_dma_cyclic)(
+ 		struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+ 		size_t period_len, enum dma_data_direction direction);
++	struct dma_async_tx_descriptor *(*device_prep_dma_genxfer)(
++		struct dma_chan *chan, struct xfer_template *xt);
+ 	int (*device_control)(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
+ 		unsigned long arg);
+ 
+-- 
+1.7.4.1
 
---=20
-balbi
-
---tqSMaTz1cCSspCQ4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJORPeTAAoJEAv8Txj19kN1SogH/0IxLDYRIzNgF0lAc0wHOqq8
-7bzY8gJRSJRGJplBDO8QmrvkKSQmdtle00jzT4W8/X/ujtUzra8qGhByJb0gsRIY
-A/+ut1vBNZP6XqaB8zKduwE0NWoDFusr17Ju67P+Mh5uJs+Q2T4+SlfCCorFxZ/3
-iJq+tIuxVPQx5duX9Us0pMbTKMK41NvjkiMfuSZ1zUrHuWB6a8kAyylmU8Q7vsR0
-HeOKnD/UPMonIqeNKqAZ1si63xStJvHVtn30AsjU2zXfrt6caNQjqrRYu6pzGQWx
-n2HDQzPVcq4QCCd2lT02AozTCDFZvV3IV9u6Rp1jMMDlYArUNQu3mm78juTCcbE=
-=Ou5n
------END PGP SIGNATURE-----
-
---tqSMaTz1cCSspCQ4--
