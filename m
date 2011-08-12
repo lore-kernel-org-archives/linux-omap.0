@@ -1,104 +1,61 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: How to handle named resources with DT?
-Date: Fri, 12 Aug 2011 17:09:33 +0200
-Message-ID: <4E45422D.4050708@ti.com>
-References: <20110809205723.GE11568@ponder.secretlab.ca> <20110812030218.GP30552@yookeroo.fritz.box> <20110812084106.GC19467@legolas.emea.dhcp.ti.com> <201108121635.42953.arnd@arndb.de>
+From: "Buckley, Bryan" <bryan.buckley@ti.com>
+Subject: Re: [PATCH] OMAP4: MMC: fix power and audio issue, decouple USBC1
+ from MMC1
+Date: Fri, 12 Aug 2011 10:13:56 -0500
+Message-ID: <CAG_NtY8uCAQNOpGFYLSMTbQ-=WEmRmjFSau7a_41XEwhE0280Q@mail.gmail.com>
+References: <1311276543-9374-1-git-send-email-bryan.buckley@ti.com>
+	<CAF=Qhp0YO2zYnwo63ddhKZv-o+eXs2bQETrqF5wYU2EtKQ=Yqw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57904 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751189Ab1HLPJx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Aug 2011 11:09:53 -0400
-In-Reply-To: <201108121635.42953.arnd@arndb.de>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:54099 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752433Ab1HLPN5 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Aug 2011 11:13:57 -0400
+In-Reply-To: <CAF=Qhp0YO2zYnwo63ddhKZv-o+eXs2bQETrqF5wYU2EtKQ=Yqw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, David Gibson <david@gibson.dropbear.id.au>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Kishore Kadiyala <kishorek.kadiyala@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, Moiz Sonasath <m-sonasath@ti.com>, Viswanath Puttagunta <vishp@ti.com>, Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>
 
-On 8/12/2011 4:35 PM, Arnd Bergmann wrote:
-> On Friday 12 August 2011, Felipe Balbi wrote:
->> On Fri, Aug 12, 2011 at 01:02:18PM +1000, David Gibson wrote:
->>
->> the whole point of using *byname() is for the driver to not care about
->> the order of the resources. So if driver has to provided an ordered list
->> of names, what's the benefit ? Sounds really stupid to provide an
->> ordered list of names to an ordered list of resources, just to use
->> *byname() instead of just assuming the list of resources is already
->> ordered.
+On Fri, Jul 22, 2011 at 7:30 AM, Kishore Kadiyala
+<kishorek.kadiyala@gmail.com> wrote:
 >
-> It only make sense for drivers that support both device tree probing
-> and legacy probing of static platform devices.
+> On Fri, Jul 22, 2011 at 12:59 AM, Bryan Buckley <bryan.buckley@ti.com=
+> wrote:
+> > Remove OMAP4_USBC1_ICUSB_PWRDNZ_MASK during enable/disable PWRDNZ m=
+ode for
+> > MMC1_PBIAS and associated extended-drain MMC1 I/O cell. This is in =
+accordance
+> > with the control module programming guide. This fixes a bug where i=
+f trying to
+> > use gpio_98 or gpio_99 and MMC1 at the same time the GPIO signal wi=
+ll be
+> > affected by a changing SDMMC1_VDDS.
+> >
+> > Software must keep MMC1_PBIAS cell and MMC1_IO cell PWRDNZ signals =
+low whenever
+> > SDMMC1_VDDS ramps up/down or changes for cell protection purposes.
+> >
+> > MMC1 is based on SDMMC1_VDDS whereas USBC1 is based on SIM_VDDS the=
+refore
+> > they can operate independently.
+> >
+> > Signed-off-by: Bryan Buckley <bryan.buckley@ti.com>
 >
-> Note how almost all drivers use only platform_get_resource and not
-> platform_get_resource_byname:
+> Good catch,
 >
-> arnd@ocdc-kvm:~/linux-arm$ git grep -wl platform_get_resource | wc -l
-> 565
-> arnd@ocdc-kvm:~/linux-arm$ git grep -wl platform_get_resource_byname | wc -l
-> 41
-> arnd@ocdc-kvm:~/linux-arm$ git grep -wl platform_get_resource_byname | xargs grep -wL platform_get_resource | wc -l # both
-> 28
-> arnd@ocdc-kvm:~/linux-arm$ git grep -wl platform_get_resource_byname | xargs grep -wl platform_get_resource  | wc -l # only _byname
-> 13
+> Acked-by: =A0Kishore Kadiyala <kishore.kadiyala@ti.com>
+>
 
-That's true, but this is mainly because most of the time there is only 
-one irq, dma or mem resource, so the _byname is not useful.
-As soon as you start having multiple entries, relying on the order 
-become less readable and error prone. Then getting the resource by name 
-become useful.
-There are probably a lot of API that are less used than this one, but 
-does that mean that we have to remove them?
-
-The extreme case (soon in mainline) in OMAP is that one:
-
-static struct omap_hwmod_addr_space omap44xx_aess_addrs[] = {
-	{
-		.name		= "dmem",
-		.pa_start	= 0x40180000,
-		.pa_end		= 0x4018ffff
-	},
-	{
-		.name		= "cmem",
-		.pa_start	= 0x401a0000,
-		.pa_end		= 0x401a1fff
-	},
-	{
-		.name		= "smem",
-		.pa_start	= 0x401c0000,
-		.pa_end		= 0x401c5fff
-	},
-	{
-		.name		= "pmem",
-		.pa_start	= 0x401e0000,
-		.pa_end		= 0x401e1fff
-	},
-	{
-		.name		= "reg",
-		.pa_start	= 0x401f1000,
-		.pa_end		= 0x401f13ff,
-		.flags		= ADDR_TYPE_RT
-     }
-};
-
-In that case, the driver knows exactly where is the relevant memory 
-buffer he has to use.
-
-> I think it's much easier to change the existing users of _byname over
-> to fixed indexes than to come up with a new scheme that is better.
-
-As you said previously, since we have to support both legacy probing and 
-DT for some time, it will be easier for these drivers to rely on the 
-same API.
-
-Considering that adding that new property is not a huge effort anyway 
-and _byname API is a standard API that any driver should be able to use 
-if needed, it still worth adding the DT support for named resources for 
-my point of view.
-Moreover that seems much more consistent with the device tree format in 
-general that does rely a lot on named properties for passing parameter 
-to driver. That just my .2 cents.
-
-Regards,
-Benoit
+Any other comments from anyone else?  Noticed that this commit isn't
+in any upstream branches. This patch will fix issues with people who
+want to use GPIO 98/99 AND MMC1 at the same time.  Would be good to
+have this fix upstream.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
