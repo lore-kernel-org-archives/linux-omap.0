@@ -1,105 +1,94 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2
-	cache
-Date: Thu, 11 Aug 2011 23:29:40 +0100
-Message-ID: <20110811222940.GA26209@n2100.arm.linux.org.uk>
-References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com> <20110414223036.GA7335@n2100.arm.linux.org.uk> <BANLkTin8gugnVoai6VHC7qMgK4eKRXRtHg@mail.gmail.com> <20110428134055.GA19709@n2100.arm.linux.org.uk> <BANLkTikKnE-9WncNCADKfZVqkP1LFPYeXA@mail.gmail.com> <CADysL2bp08WP798_MvUJthGi9ACySDE=Dc_BM9Vd0A=YcKpm+Q@mail.gmail.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [RFC PATCH 6/6] hwmon: OMAP4: On die temperature sensor driver
+Date: Fri, 12 Aug 2011 06:32:28 +0530
+Message-ID: <CAJ6a13Zy3-iPoiVrzacSWizXwTRhp5+2Pt4JbGEzd6=448536g@mail.gmail.com>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
+	<1312979122-5896-7-git-send-email-j-keerthy@ti.com>
+	<20110810124629.GJ12882@legolas.emea.dhcp.ti.com>
+	<CAJ6a13Z=u=exWUHLotw8jpHMv-hKpE+fvg_1hq7=gtMiuJKxOA@mail.gmail.com>
+	<20110811103658.GG27742@legolas.emea.dhcp.ti.com>
+	<CAJ6a13bxg8po-Csc10LsFH-oES4YOKkqFoTm3kG4XzS=b2boMw@mail.gmail.com>
+	<20110811141248.GK28500@legolas.emea.dhcp.ti.com>
+	<CAJ6a13b7qu3K4YJPTYych_NQxLuuUxZOQg6PPC_=XA+qiwn2RA@mail.gmail.com>
+	<20110811185408.GB15970@legolas.emea.dhcp.ti.com>
+	<20110811185558.GC15970@legolas.emea.dhcp.ti.com>
+	<4E444B8F.9060908@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49928 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753627Ab1HKW3w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Aug 2011 18:29:52 -0400
-Content-Disposition: inline
-In-Reply-To: <CADysL2bp08WP798_MvUJthGi9ACySDE=Dc_BM9Vd0A=YcKpm+Q@mail.gmail.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:34204 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754293Ab1HLBC3 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Aug 2011 21:02:29 -0400
+Received: by mail-iy0-f171.google.com with SMTP id 13so488676iyf.16
+        for <linux-omap@vger.kernel.org>; Thu, 11 Aug 2011 18:02:28 -0700 (PDT)
+In-Reply-To: <4E444B8F.9060908@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ramesh" <grgupta@ti.com>
-Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, rnayak@ti.com, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, khali@linux-fr.org, guenter.roeck@ericsson.com
 
-On Thu, Aug 11, 2011 at 02:28:39PM -0500, Gupta, Ramesh wrote:
-> Hi Russel,
+On Fri, Aug 12, 2011 at 3:07 AM, Roger Quadros <rogerq@ti.com> wrote:
+> On 08/11/2011 01:55 PM, Felipe Balbi wrote:
+>> Hi,
+>>
+>> On Thu, Aug 11, 2011 at 09:54:09PM +0300, Felipe Balbi wrote:
+>>>>> you need some other way to handle this. Why do you need to manual=
+ly set
+>>>>> the rate rather than having hwmod handle this for you ?
+>>>>>
+>>>>> your argument that "it's a one time setting" is not enough to hav=
+e this
+>>>>> in the driver. Drivers should not care about clocks anymore, this=
+ should
+>>>>> have been done on another layer.
+>>>>
+>>>> Hwmod will have no idea on the rate required.
+>>>
+>>> does the rate need to change ? Also, I have not mentioned hwmod any=
+time
+>>
+>> i did mention hwmod, nevermind that part. Still I'm not sure where i=
+s
+>> the right place to handle this.
+>>
+>
+> Aren't the omap_device_pm_latency callbacks the right place to do it?
 
-grr.
+It is a one time setting. These callbacks get called everytime
+pm_runtime_get_sync and pm_runtime_put_sync are called.
+IMHO this is not the right place.
 
-> On Thu, Apr 28, 2011 at 11:48 AM, Gupta, Ramesh <grgupta@ti.com> wrot=
-e:
-> > Hi Russel,
-> >
-> > On Thu, Apr 28, 2011 at 8:40 AM, Russell King - ARM Linux
-> > <linux@arm.linux.org.uk> wrote:
-> >> We _could_ invent a new API to deal with this, which is probably g=
-oing
-> >> to be far better in the longer term for page table based iommus. =A0=
-That's
-> >> going to need some thought - eg, do we need to pass a struct devic=
-e
-> >> argument for the iommu cache flushing so we know whether we need t=
-o flush
-> >> or not (eg, if we have cache coherent iommus)...
->=20
-> my apologies for a late mail on this topic.
->=20
-> do you think of any other requirements for this new API?
->=20
-> Could we use the existing dmac_flush_range(), outer_flush_range()
-> for this purpose instead of a new API?
->=20
-> I see a comment in the arch/arm/include/asm/cacheflush.h
-> for  _not_ to use these APIs directly, but I am not really understand
-> the reason for that.
+>
+> e.g. in the following snippet from mach-omap2/temp_sensor_device.c
+>
+> +static struct omap_device_pm_latency omap_temp_sensor_latency[] =3D =
+{
+> + =A0 =A0 =A0 {
+> + =A0 =A0 =A0 =A0.deactivate_func =3D omap_device_idle_hwmods,
+> + =A0 =A0 =A0 =A0.activate_func =3D omap_device_enable_hwmods,
+> + =A0 =A0 =A0 =A0.flags =3D OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> + =A0 =A0 =A0 }
+> +};
+>
+> instead of directly pointing activate_func to omap_device_enable_hwmo=
+ds,
+> it could point to a function that sets the required clock rate and th=
+en
+> enables the hwmod.
+>
+>
+> regards,
+> -roger
+>
 
-When I create APIs, I create them to solve a _purpose_ to code which wa=
-nts
-to do something.  They're not created to provide some facility which ca=
-n
-be re-used for unrelated stuff.
 
-This has been proven many times to be the correct approach.  Over time,
-things change.
 
-Let's say for arguments sake that you decide to use the DMA API stuff
-to achieve your goals.  Then, lets say that ARM DMA becomes fully
-cache coherent, but your IOMMU tables still need to be flushed from
-the L1 caches.
-
-Suddenly, dmac_flush_range() starts doing absolutely nothing.  Your
-driver breaks.  I get whinged at because a previously working driver
-stops working.  In effect, that usage _prevents_ me making the changes
-necessary to keep the core architecture support moving forward as
-things develop.  Or, alternatively I just ignore your driver, make the
-changes anyway and leave it to rot.
-
-So, APIs get created to provide a purpose.  Like - handling the DMA
-issues when mapping a buffer to DMA.  Like handling the DMA issues
-when unmapping a buffer from DMA.  If you start using those _because_
-they happen to clean or invalidate the cache for you, you're really
-asking for your driver to be broken at some point in the future.
-
-What is far better to do is to ensure that we have the right APIs in
-place for the purposes for which they are to be used.  So, if we need
-an API to flush out the IOMMU page table entries, then that's what
-we need, not some bodged lets-reuse-the-dma-flushing-functions thing.
-Inside the processors implementation, yes, it may well be the same
-thing, but that's a decision for the _processor_ support code to make,
-not the IOMMU writer.
-
-As to what shape a new API should be - as I said above, maybe it should
-take a struct device argument, virtual base address and size.  Or maybe
-if we don't have any coherent IOMMUs then just ignore the device
-argument for the time being, and just pass the virtual base address and
-size.
-
-The next issue is whether it should require the virtual base address to
-be in the kernel direct mapped region.  If you're touching L2, then
-that's a yes, because we need to use virt_to_phys on it to get at the
-phys address for the L2 operations.
-
-So, I think: extend the cpu cache operations structure to have a method
-for dealing with IOMMUs.  Add an inline function to deal with calling
-that, and the L2 ops if that's what's required.
+--=20
+Regards and Thanks,
+Keerthy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
