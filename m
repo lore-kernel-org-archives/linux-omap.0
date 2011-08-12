@@ -1,55 +1,113 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: How to handle named resources with DT?
-Date: Fri, 12 Aug 2011 16:35:42 +0200
-Message-ID: <201108121635.42953.arnd@arndb.de>
-References: <20110809205723.GE11568@ponder.secretlab.ca>
-	<20110812030218.GP30552@yookeroo.fritz.box>
-	<20110812084106.GC19467@legolas.emea.dhcp.ti.com>
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH] usb: musb: fix pm_runtime calls while atomic
+Date: Fri, 12 Aug 2011 07:38:51 -0700
+Message-ID: <1313159931-22121-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20110812084106.GC19467-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
-Cc: "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "Cousson,
-	Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:40693 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752702Ab1HLOi4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Aug 2011 10:38:56 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, balbi@ti.com
+Cc: linux-omap@vger.kernel.org, axelhaslam@ti.com, ccross@google.com, Vikram Pandita <vikram.pandita@ti.com>, Moiz Sonasath <m-sonasath@ti.com>
 
-On Friday 12 August 2011, Felipe Balbi wrote:
-> On Fri, Aug 12, 2011 at 01:02:18PM +1000, David Gibson wrote:
-> 
-> the whole point of using *byname() is for the driver to not care about
-> the order of the resources. So if driver has to provided an ordered list
-> of names, what's the benefit ? Sounds really stupid to provide an
-> ordered list of names to an ordered list of resources, just to use
-> *byname() instead of just assuming the list of resources is already
-> ordered.
+From: Vikram Pandita <vikram.pandita@ti.com>
 
-It only make sense for drivers that support both device tree probing
-and legacy probing of static platform devices.
+musb pm_runtime_get_sync call happens in intrrupt context on cable attach case
+That can result in re-enabling the interrupts and cause side affects.
 
-Note how almost all drivers use only platform_get_resource and not
-platform_get_resource_byname:
+So move the code to a work queue.
 
-arnd@ocdc-kvm:~/linux-arm$ git grep -wl platform_get_resource | wc -l
-565
-arnd@ocdc-kvm:~/linux-arm$ git grep -wl platform_get_resource_byname | wc -l
-41
-arnd@ocdc-kvm:~/linux-arm$ git grep -wl platform_get_resource_byname | xargs grep -wL platform_get_resource | wc -l # both
-28
-arnd@ocdc-kvm:~/linux-arm$ git grep -wl platform_get_resource_byname | xargs grep -wl platform_get_resource  | wc -l # only _byname
-13
+Following is the error path hit on cable attach:
 
-I think it's much easier to change the existing users of _byname over
-to fixed indexes than to come up with a new scheme that is better.
+BUG: sleeping function called from invalid context at drivers/base/power/runtime.c:802
+in_atomic(): 0, irqs_disabled(): 0, pid: 18, name: irq/378-twl6030
 
-	Arnd
+Backtrace:
+[<c00520f0>] (dump_backtrace+0x0/0x110) from [<c054f454>] (dump_stack+0x18/0x1c)
+[<c054f43c>] (dump_stack+0x0/0x1c) from [<c007f59c>] (__might_sleep+0x130/0x134)
+[<c007f46c>] (__might_sleep+0x0/0x134) from [<c02c2794>] (__pm_runtime_resume+0x94/0x98)
+[<c02c2700>] (__pm_runtime_resume+0x0/0x98) from [<c033e7e4>] (musb_otg_notifications+0x9c/0x164)
+[<c033e748>] (musb_otg_notifications+0x0/0x164) from [<c00b3df0>] (notifier_call_chain+0x4c/0x8c)
+[<c00b3da4>] (notifier_call_chain+0x0/0x8c) from [<c00b44a8>] (__atomic_notifier_call_chain+0x40/0x54)
+[<c00b4468>] (__atomic_notifier_call_chain+0x0/0x54) from [<c00b44dc>] (atomic_notifier_call_chain+0x20/0x28)
+[<c00b44bc>] (atomic_notifier_call_chain+0x0/0x28) from [<c033f124>] (twl6030_usb_irq+0xc8/0xdc)
+[<c033f05c>] (twl6030_usb_irq+0x0/0xdc) from [<c00d79f8>] (irq_thread_fn+0x24/0x40)
+[<c00d79d4>] (irq_thread_fn+0x0/0x40) from [<c00d7b64>] (irq_thread+0x150/0x1d8)
+[<c00d7a14>] (irq_thread+0x0/0x1d8) from [<c00adf70>] (kthread+0x94/0x98)
+[<c00adedc>] (kthread+0x0/0x98) from [<c0094388>] (do_exit+0x0/0x720)
+
+Tested with:
+MUSB Device mode: Cold boot / Hot plug
+MUSB Host mode: Cold boot / Hot plug
+
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ drivers/usb/musb/musb_core.h |    2 ++
+ drivers/usb/musb/omap2430.c  |   14 +++++++++++++-
+ 2 files changed, 15 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 0e053b5..ff47316 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -386,6 +386,7 @@ struct musb {
+ 
+ 	irqreturn_t		(*isr)(int, void *);
+ 	struct work_struct	irq_work;
++	struct work_struct	otg_notifier_work;
+ 	u16			hwvers;
+ 
+ /* this hub status bit is reserved by USB 2.0 and not seen by usbcore */
+@@ -432,6 +433,7 @@ struct musb {
+ 	u16			int_tx;
+ 
+ 	struct otg_transceiver	*xceiv;
++	u8			xceiv_event;
+ 
+ 	int nIrq;
+ 	unsigned		irq_wake:1;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index c5d4c44..3026673 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -234,11 +234,21 @@ static int musb_otg_notifications(struct notifier_block *nb,
+ 		unsigned long event, void *unused)
+ {
+ 	struct musb	*musb = container_of(nb, struct musb, nb);
++
++	musb->xceiv_event = event;
++	schedule_work(&musb->otg_notifier_work);
++
++	return 0;
++}
++
++static void musb_otg_notifier_work(struct work_struct *data_notifier_work)
++{
++	struct musb *musb = container_of(data_notifier_work, struct musb, otg_notifier_work);
+ 	struct device *dev = musb->controller;
+ 	struct musb_hdrc_platform_data *pdata = dev->platform_data;
+ 	struct omap_musb_board_data *data = pdata->board_data;
+ 
+-	switch (event) {
++	switch (musb->xceiv_event) {
+ 	case USB_EVENT_ID:
+ 		dev_dbg(musb->controller, "ID GND\n");
+ 
+@@ -310,6 +320,8 @@ static int omap2430_musb_init(struct musb *musb)
+ 		return -ENODEV;
+ 	}
+ 
++	INIT_WORK(&musb->otg_notifier_work, musb_otg_notifier_work);
++
+ 	status = pm_runtime_get_sync(dev);
+ 	if (status < 0) {
+ 		dev_err(dev, "pm_runtime_get_sync FAILED");
+-- 
+1.7.4.1
+
