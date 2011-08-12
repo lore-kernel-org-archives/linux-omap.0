@@ -1,107 +1,74 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v4 00/15] PM QoS: add a per-device latency constraints class
-Date: Fri, 12 Aug 2011 23:56:02 +0200
-Message-ID: <201108122356.02983.rjw@sisk.pl>
-References: <1313075212-8366-1-git-send-email-j-pihet@ti.com> <201108121002.25207.rjw@sisk.pl> <CAORVsuVT8RFrE9YWzErp3dy7qeZuJ59upKd8bjDthx_622UM9g@mail.gmail.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH 5/5 v4] mfd: omap: usb: Runtime PM support
+Date: Fri, 12 Aug 2011 18:19:29 -0500
+Message-ID: <CAOMWX4dUONED8_1KyooUu3Wn8PD+jT+XLRkkUhF9U-EvdUXi1w@mail.gmail.com>
+References: <1312899309-24067-1-git-send-email-keshava_mgowda@ti.com>
+ <1312899309-24067-2-git-send-email-keshava_mgowda@ti.com> <1312899309-24067-3-git-send-email-keshava_mgowda@ti.com>
+ <1312899309-24067-4-git-send-email-keshava_mgowda@ti.com> <1312899309-24067-5-git-send-email-keshava_mgowda@ti.com>
+ <1312899309-24067-6-git-send-email-keshava_mgowda@ti.com> <20110810163142.GA10156@google.com>
+ <CAP05o4L+qn4K=jLx5Jo8WsG7LnU=VniQSR+fLc=RM5mW4kP1OQ@mail.gmail.com> <20110812213037.GA24803@google.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38034 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752248Ab1HLVyX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Aug 2011 17:54:23 -0400
-In-Reply-To: <CAORVsuVT8RFrE9YWzErp3dy7qeZuJ59upKd8bjDthx_622UM9g@mail.gmail.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:60661 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752441Ab1HLXTu convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Aug 2011 19:19:50 -0400
+In-Reply-To: <20110812213037.GA24803@google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Kevin Hilman <khilman@ti.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
+To: Todd Poynor <toddpoynor@google.com>
+Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, vikram.pandita@ti.com
 
-Hi,
+On Fri, Aug 12, 2011 at 16:30, Todd Poynor <toddpoynor@google.com> wrot=
+e:
+> On Fri, Aug 12, 2011 at 12:20:21PM +0530, Munegowda, Keshava wrote:
+>> On Wed, Aug 10, 2011 at 10:01 PM, Todd Poynor <toddpoynor@google.com=
+> wrote:
+>> >> @@ -913,12 +598,15 @@ static int usbhs_enable(struct device *dev)
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdat=
+a->ehci_data->reset_gpio_port[1], 1);
+>> >> =A0 =A0 =A0 }
+>> >>
+>> >> -end_count:
+>> >> - =A0 =A0 omap->count++;
+>> >> + =A0 =A0 pm_runtime_put_sync(dev);
+>> >> =A0 =A0 =A0 spin_unlock_irqrestore(&omap->lock, flags);
+>> >
+>> > Is pm_runtime_irq_safe() needed (else I think runtime PM callbacks=
+ may
+>> > re-enable IRQs... or there's the new *_suspend runtime PM calls th=
+at
+>> > may avoid this)?
+>>
+>> =A0pm_runtime_irq_safe() =A0is not required; usbhs does not have a p=
+arent
+>> and it is the parent driver of
+>> ehci and ohci drivers.
+>
+> But the above expects IRQs to be disabled during the
+> pm_runtime_put_sync, and synchronous calls can turn IRQs back on in
+> rpm_idle:
+>
+> =A0 =A0 =A0 =A0if (callback) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_unlock_irq(&dev->power.lock);
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0callback(dev);
+>
+> I see other folks who know this better than me are discussing USB run
+> time PM and might_sleep contexts, so I'll note this concern and let
+> others chime in if they think there's a real problem here.
 
-On Friday, August 12, 2011, Jean Pihet wrote:
-> Hi Rafael,
-> 
-> 2011/8/12 Rafael J. Wysocki <rjw@sisk.pl>:
-> > On Thursday, August 11, 2011, jean.pihet@newoldbits.com wrote:
-> >> From: Jean Pihet <j-pihet@ti.com>
-> >>
-> >> This patch set is in an RFC state, for review and comments.
-> >>
-> ...
-> >>
-> >>
-> >> Questions:
-> >> 1. the user space API is still under discussions on linux-omap and linux-pm MLs,
-> >>    cf. [1]. The idea is to add a user-space API for the devices constratins
-> >>    PM QoS, using a sysfs entry per device
-> >>
-> >> [1] http://marc.info/?l=linux-omap&m=131232344503327&w=2
-> >>
-> >> ToDo:
-> >> 1. write Documentation for the new PM QoS class, once the RFC is agreed on
-> >> 2. validate the constraints framework on OMAP4 HW (done on OMAP3)
-> >> 3. Need testing on platforms other than OMAP
-> >> 4. refine the power domains wake-up latency and the cpuidle figures
-> >> 5. re-visit the OMAP power domains states initialization procedure. Currently
-> >>    the power states that have been changed from the constraints API which were
-> >>    applied before the initialization of the power domains are lost
-> >>
-> >>
-> >> Based on the master branch of the linux-omap git tree (3.0.0-rc7). Compile
-> >> tested using OMAP and x86 generic defconfigs.
-> >>
-> >> Lightly tested on OMAP3 Beagleboard (ES2.x).
-> >> Need testing on platforms other than OMAP, because of the impact on the
-> >> device insertion/removal in device_pm_add/remove
-> >
-> > The patchset looks really good to me, I don't think I have any major
-> > complaints about this version.
-> Ok good to hear it! I tried to address all comments and concerns in
-> this release.
-> 
-> >
-> > The only thing I'd like to ask at the moment is whether or not the
-> > compilation of drivers/base/power/qos.c should depend on
-> > CONFIG_PM_RUNTIME.  Do you think it will be used by system suspend code on any
-> > platforms?
-> I would say it should only depend on CONFIG_PM because the dev PM QoS
-> API can be used from any kernel code, being runtime PM code or not.
-> I leave the decision to the PM framework experts.
-> 
-> >
-> > Also, I'd like to take the final patchset for 3.2,
-> Ok good!
-> 
-> > but I don't feel
-> > confident enough about the OMAP patches.
-> The OMAP patches have been reviewed a few times already and the
-> comments have been taken into account. Also i has been tested
-> correctly on OMAP3.
-> 
-> > If you want me to take them too,
-> > please make sure they are ACKed by the OMAP maintainers.
-> For sure I need the Acks. I guess I now need to annoy OMAP folks about it ;p
-> In the case the Acks are not gathered on time the generic patches
-> could be merged in, then the OMAP generic code. Do you think it is a
-> viable option?
+It is rather easy with the following patch applied to pull this bug out=
+!
+https://patchwork.kernel.org/patch/1001572/
 
-Yes, it is.  I can take patches [1-7/15] alone.
-
-> The only concern I have is about the on-going OMAP PM initialization
-> clean-up task, cf. ToDo list:
->   >> 5. re-visit the OMAP power domains states initialization
-> procedure. Currently
->   >>    the power states that have been changed from the constraints
-> API which were
->   >>    applied before the initialization of the power domains are lost
-> 
-> On the other hand some testing is needed on platforms other than OMAP,
-> because of the impact on the device insertion/removal in
-> device_pm_add/remove functions. I tested the SD card insertion/removal
-> on OMAP3.
-
-OK, so are you going to make any more changes to patches [1-7/15]?
-
-Rafael
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
