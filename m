@@ -1,93 +1,68 @@
-From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Subject: RE: [PATCH v2] OMAP3: powerdomains: Match silicon revision to
- select the correct "core_pwrdm" definition
-Date: Fri, 12 Aug 2011 13:11:17 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870370A4D985@dbde02.ent.ti.com>
-References: <1310730250-10920-1-git-send-email-abhilash.kv@ti.com>
+From: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: [PATCH] OMAP: DSS2: DSI: fix warning unused variable 'dsidev'
+Date: Fri, 12 Aug 2011 09:45:25 +0200
+Message-ID: <4E44DA15.7080103@matrix-vision.de>
+References: <1312556561-27179-1-git-send-email-michael.jones@matrix-vision.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38084 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752671Ab1HLHom convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Aug 2011 03:44:42 -0400
-In-Reply-To: <1310730250-10920-1-git-send-email-abhilash.kv@ti.com>
-Content-Language: en-US
+Received: from mail2.matrix-vision.com ([85.214.244.251]:43103 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752671Ab1HLHp3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Aug 2011 03:45:29 -0400
+In-Reply-To: <1312556561-27179-1-git-send-email-michael.jones@matrix-vision.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>
 
-Hi 
+Hi all,
 
-On Friday, July 15, 2011 5:14 PM +0530, Koyamangalath, Abhilash wrote:
-________________________________________
-> From: Koyamangalath, Abhilash
-> Sent: Friday, July 15, 2011 5:14 PM
-> To: linux-omap@vger.kernel.org
-> Cc: tony@atomide.com; linux@arm.linux.org.uk; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; Koyamangalath, Abhilash
-> Subject: [PATCH v2] OMAP3: powerdomains: Match silicon revision to select the correct "core_pwrdm" definition
-> 
-> powerdomains3xxx_data.c defines core_3xxx_pre_es3_1_pwrdm and
-> core_3xxx_es3_1_pwrdm to take care of differences in "core_pwrdm"
-> implementations across revisions.
-> However,_pwrdm_lookup("core_pwrdm") always matches the first definition for
-> 3630 ES 1.1 and 1.2 which is incorrect. This patch fixes this issue by adding
-> code to match silicon revision as well while looking up "core_pwrdm" in
-> _pwrdm_lookup().
-> core_3xxx_es3_1_pwrdm is different from core_3xxx_pre_es3_1_pwrdm in
-> that the former adds hardware save-restore support for USBTLL for 3430
-> ES3.1 and for 3630 ES1.1 and ES1.2.
-> 
-> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+On 08/05/2011 05:02 PM, Michael Jones wrote:
+>=20
+>   CC      drivers/video/omap2/dss/dsi.o
+> drivers/video/omap2/dss/dsi.c: In function =E2=80=98omap_dsi_prepare_=
+update=E2=80=99:
+> drivers/video/omap2/dss/dsi.c:3936: warning: unused variable =E2=80=98=
+dsidev=E2=80=99
+>=20
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
 > ---
-> v2:
-> * now tested on 3630 (ES1.2 and ES1.0) and 3530 (ES3.0 and ES3.1)
-> * fixed checkpatch errors/warnings.
-> 
->  arch/arm/mach-omap2/powerdomain.c |   19 +++++++++++++++++++
->  1 files changed, 19 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 9af0847..82a2e30 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -32,6 +32,7 @@
->  #include "powerdomain.h"
->  #include "clockdomain.h"
->  #include <plat/prcm.h>
-> +#include <plat/cpu.h>
-> 
->  #include "pm.h"
-> 
-> @@ -58,6 +59,24 @@ static struct powerdomain *_pwrdm_lookup(const char *name)
-> 
->         list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
->                 if (!strcmp(name, temp_pwrdm->name)) {
-> +                       if (!strcmp(name, "core_pwrdm") && cpu_is_omap3630()) {
-> +                               if (omap_rev() > OMAP3630_REV_ES1_0) {
-> +                                       /*
-> +                                        * match omap_chip info for OMAP3630
-> +                                        * Rev ES1.1, ES1.2 or higher
-> +                                        */
-> +                                       if (!(temp_pwrdm->omap_chip.oc
-> +                                               & CHIP_GE_OMAP3630ES1_1))
-> +                                               continue;
-> +                               } else {
-> +                                       /* match omap_chip info for OMAP3630
-> +                                        * Rev ES1.0
-> +                                        */
-> +                                       if (!(temp_pwrdm->omap_chip.oc
-> +                                                & CHIP_IS_OMAP3630ES1))
-> +                                               continue;
-> +                               }
-> +                       }
->                         pwrdm = temp_pwrdm;
->                         break;
->                 }
-> --
-> 1.7.1
-Any comments ?
+>  drivers/video/omap2/dss/dsi.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/=
+dsi.c
+> index 345757c..3ae0fd8 100644
+> --- a/drivers/video/omap2/dss/dsi.c
+> +++ b/drivers/video/omap2/dss/dsi.c
+> @@ -3933,7 +3933,9 @@ int omap_dsi_prepare_update(struct omap_dss_dev=
+ice *dssdev,
+>  				    u16 *x, u16 *y, u16 *w, u16 *h,
+>  				    bool enlarge_update_area)
+>  {
+> +#ifdef DEBUG
+>  	struct platform_device *dsidev =3D dsi_get_dsidev_from_dssdev(dssde=
+v);
+> +#endif
+>  	u16 dw, dh;
+> =20
+>  	dssdev->driver->get_resolution(dssdev, &dw, &dh);
 
--Abhilash 
+Upon a second look, this seems to fix a problem that doesn't exist and
+create one that didn't. Having reverted this patch, I don't get the
+warning I originally saw, and using the patch, I get a compiler error.
+Please disregard this submission and excuse the noise.
+
+-Michael
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erh=
+ard Meier
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
