@@ -1,70 +1,47 @@
 From: Bjarne Steinsbo <bsteinsbo@gmail.com>
-Subject: [PATCHv2 0/4] Omap-related warnings compiling current mainline 3.1-rc tree
-Date: Fri, 12 Aug 2011 17:27:17 +0200
-Message-ID: <CAFULf_yYdu1jMSxou-GPr7voXArTnm5=s0U1ZcP=FQ3VUzhs0g@mail.gmail.com>
-References: <CAFULf_yR-Z8p4CWaM6i1A9GedvRGG2omBG2TVtmma09n1jyHWw@mail.gmail.com>
+Subject: [PATCHv2 1/4] OMAP4: clockdata: Make compiler shut up about possible
+ uninitialized variable
+Date: Fri, 12 Aug 2011 17:27:35 +0200
+Message-ID: <CAFULf_wBTEVHYTPyJqWt09gNaenWHiVJCLvNdeRG204TkeBe6Q@mail.gmail.com>
+References: <CAFULf_yAOTABxF_OV2xacF2CMhNVEguwSpgDHNbkeKKZif4ncA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:43415 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750912Ab1HLP1S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Aug 2011 11:27:18 -0400
-Received: by vws1 with SMTP id 1so2527379vws.19
-        for <linux-omap@vger.kernel.org>; Fri, 12 Aug 2011 08:27:18 -0700 (PDT)
-In-Reply-To: <CAFULf_yR-Z8p4CWaM6i1A9GedvRGG2omBG2TVtmma09n1jyHWw@mail.gmail.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:35866 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750912Ab1HLP1g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Aug 2011 11:27:36 -0400
+Received: by vxi9 with SMTP id 9so2453955vxi.19
+        for <linux-omap@vger.kernel.org>; Fri, 12 Aug 2011 08:27:35 -0700 (PDT)
+In-Reply-To: <CAFULf_yAOTABxF_OV2xacF2CMhNVEguwSpgDHNbkeKKZif4ncA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
-V2:
- - Add missing sob.
- - Warnings verified to be present in 3.1-rc1 also.
+Stop `warning: 'cpu_clkflg' may be used uninitialized in this
+function' from compiler.
 
+Signed-off-by: Bjarne Steinsbo <bsteinsbo@gmail.com>
 ---
-Compiling the current mainline tree (commit
-288d5abec8314ae50fe6692f324b0444acae8486) produces some omap-related
-warnings.  Most of them are harmless, and they are simple enough to
-fix that even I can do it.  I hope..
+V2: Oops.. Add missing sob.
 
-The compiler warnings from running `make omap2plus_defconfig uImage
-CONFIG_DEBUG_SECTION_MISMATCH=1':
-...
- CC      arch/arm/mach-omap2/clock44xx_data.o
-arch/arm/mach-omap2/clock44xx_data.c: In function 'omap4xxx_clk_init':
-arch/arm/mach-omap2/clock44xx_data.c:3371: warning: 'cpu_clkflg' may
-be used uninitialized in this function
-...
- CC      arch/arm/mach-omap2/usb-musb.o
-arch/arm/mach-omap2/usb-musb.c:71: warning: 'usb_musb_mux_init'
-defined but not used
-arch/arm/mach-omap2/usb-musb.c: In function 'usb_musb_init':
-arch/arm/mach-omap2/usb-musb.c:141: warning: 'dev' may be used
-uninitialized in this function
-...
- CC      arch/arm/mach-omap2/display.o
-arch/arm/mach-omap2/display.c: In function 'omap_display_init':
-arch/arm/mach-omap2/display.c:101: warning: assignment from
-incompatible pointer type
-...
- LD      arch/arm/mach-omap2/built-in.o
-WARNING: arch/arm/mach-omap2/built-in.o(.data+0x354d0): Section
-mismatch in reference from the variable keypad_data to the (unknown
-reference) .init.data:(unknown)
-The variable keypad_data references
-the (unknown reference) __initdata (unknown)
+ arch/arm/mach-omap2/clock44xx_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-By applying the patches is this series, most of these warnings are gone.
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c
+b/arch/arm/mach-omap2/clock44xx_data.c
+index 2af0e3f..a9c19c8 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3368,7 +3368,7 @@ static struct omap_clk omap44xx_clks[] = {
+ int __init omap4xxx_clk_init(void)
+ {
+ 	struct omap_clk *c;
+-	u32 cpu_clkflg;
++	u32 cpu_clkflg = 0;
 
-The warning from omap_display has not been fixed.  I could do
-something similar to what hsmmc.c is using, but I think this is
-unnessarily complex.  I think the real fix for this warning is to make
-the type of the returned value from
-omap_pm_get_dev_context_loss_count() be the same as the prototype in
-struct omap_dss_board_info.  I can't see why one should be u32, and
-the other int.  However, I don't know which to fix..
-
-The resulting kernel has been booted on a pandaboard.
-
-Bjarne Steinsbo
+ 	if (cpu_is_omap44xx()) {
+ 		cpu_mask = RATE_IN_4430;
+-- 
+1.7.1
