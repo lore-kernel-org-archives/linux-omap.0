@@ -1,98 +1,101 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 5/5 v4] mfd: omap: usb: Runtime PM support
-Date: Fri, 12 Aug 2011 12:20:21 +0530
-Message-ID: <CAP05o4L+qn4K=jLx5Jo8WsG7LnU=VniQSR+fLc=RM5mW4kP1OQ@mail.gmail.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH 2/5 v4] arm: omap: usb: ehci and ohci hwmod structures for omap3
+Date: Fri, 12 Aug 2011 15:25:20 +0800
+Message-ID: <CACVXFVPN0dS0P4rdvAhKKaTr1yuHRE_KbMiL-1PivObt9aGLhw@mail.gmail.com>
 References: <1312899309-24067-1-git-send-email-keshava_mgowda@ti.com>
 	<1312899309-24067-2-git-send-email-keshava_mgowda@ti.com>
 	<1312899309-24067-3-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-4-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-5-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-6-git-send-email-keshava_mgowda@ti.com>
-	<20110810163142.GA10156@google.com>
+	<CACVXFVMqwzSOSvkq4q6GnR2gso8NuQD4DRumAVesQB=P_8yDaQ@mail.gmail.com>
+	<CAP05o4JDz_53k73-yUXn4S3hFNZ=ccEhaee-U53M+M6qm41Y=A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:50374 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751205Ab1HLGuX convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Aug 2011 02:50:23 -0400
-In-Reply-To: <20110810163142.GA10156@google.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAP05o4JDz_53k73-yUXn4S3hFNZ=ccEhaee-U53M+M6qm41Y=A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
 Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 10, 2011 at 10:01 PM, Todd Poynor <toddpoynor@google.com> w=
-rote:
-> On Tue, Aug 09, 2011 at 07:45:09PM +0530, Keshava Munegowda wrote:
->> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+On Fri, Aug 12, 2011 at 1:46 PM, Munegowda, Keshava
+<keshava_mgowda@ti.com> wrote:
+> On Thu, Aug 11, 2011 at 8:53 PM, Ming Lei <tom.leiming@gmail.com> wro=
+te:
+
+>>> +static struct omap_hwmod_class_sysconfig omap34xx_usb_host_hs_sysc=
+ =3D {
+>>> + =A0 =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x0000,
+>>> + =A0 =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x0010,
+>>> + =A0 =A0 =A0 .syss_offs =A0 =A0 =A0=3D 0x0014,
+>>> + =A0 =A0 =A0 .sysc_flags =A0 =A0 =3D (SYSC_HAS_MIDLEMODE | SYSC_HA=
+S_SIDLEMODE),
 >>
->> The usbhs core driver does not enable/disable the intefrace and
+>> SYSC_HAS_ENAWAKEUP is missed or not needed?
 >
->
-> typo: interface
->
->> fucntional clocks; These clocks are handled by hwmod and runtime pm,
->
->
-> typo: functional
->
->> hence insted of the clock enable/disable, the runtime pm APIS are
->> used. however,the port clocks are handled by the usbhs core.
+> not needed. wakeup will through irq-chaining mechanism.
+
+I am wondering how irq-chaining mechanism can wakeup MPU, could you
+describe it in a little detail?
+
+In fact, I have tested usb remote wakeup on rc1 plus your patches on be=
+agle
+xm, seems the usb mouse can't wakeup MPU at all.
+
 >>
->> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->
-> ...
->> @@ -913,12 +598,15 @@ static int usbhs_enable(struct device *dev)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdata->=
-ehci_data->reset_gpio_port[1], 1);
->> =A0 =A0 =A0 }
+>>> + =A0 =A0 =A0 .idlemodes =A0 =A0 =A0=3D (SIDLE_FORCE | SIDLE_NO | S=
+IDLE_SMART |
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MSTANDBY_FORCE=
+ | MSTANDBY_NO | MSTANDBY_SMART),
+>>> + =A0 =A0 =A0 .sysc_fields =A0 =A0=3D &omap_hwmod_sysc_type1,
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_class omap34xx_usb_host_hs_hwmod_class =3D=
+ {
+>>> + =A0 =A0 =A0 .name =3D "usbhs_uhh",
+>>> + =A0 =A0 =A0 .sysc =3D &omap34xx_usb_host_hs_sysc,
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_ocp_if *omap34xx_usb_host_hs_masters[] =3D=
+ {
+>>> + =A0 =A0 =A0 &omap34xx_usb_host_hs__l3_main_2,
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_addr_space omap34xx_usb_host_hs_addrs[] =3D=
+ {
+>>> + =A0 =A0 =A0 {
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "uhh",
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x48064000,
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x480643f=
+f,
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TY=
+PE_RT
+>>> + =A0 =A0 =A0 },
+>>> + =A0 =A0 =A0 {} /* Terminating Entry */
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_host_hs =3D {
+>>> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap3xxx_l4_core_hwmod,
+>>> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usb_host_hs_h=
+wmod,
+>>> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "l4_ick",
+>>> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap34xx_usb_host_hs_ad=
+drs,
+>>> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER=
+_SDMA,
+>>> +};
 >>
->> -end_count:
->> - =A0 =A0 omap->count++;
->> + =A0 =A0 pm_runtime_put_sync(dev);
->> =A0 =A0 =A0 spin_unlock_irqrestore(&omap->lock, flags);
+>> Even USBHOST_L4_ICLK is used only by USBHOST_SICLK, it is better to
+>> define a "usbhost_siclk" clk for consistence with TRM.
 >
-> Is pm_runtime_irq_safe() needed (else I think runtime PM callbacks ma=
-y
-> re-enable IRQs... or there's the new *_suspend runtime PM calls that
-> may avoid this)?
+> I dint understand, what is the change you are suggesting?
 
- pm_runtime_irq_safe()  is not required; usbhs does not have a parent
-and it is the parent driver of
-ehci and ohci drivers.
+=46rom 23.2.1 of OMAP35x TRM(Rev. M), USBHOST_SICLK inside
+'High-speed USB Host controller' is driven by L4 slave interface
+clock, so looks like l4 iclk should be parent of USBHOST_SICLK.
 
+Considered  USBHOST_L4_ICLK is used only by USBHOST_SICLK,
+you may ignore my question about it.
 
->
-> ...
->> @@ -266,10 +261,12 @@ static int ehci_hcd_omap_remove(struct platfor=
-m_device *pdev)
->> =A0 =A0 =A0 struct usb_hcd *hcd =A0 =A0 =3D dev_get_drvdata(dev);
->>
->> =A0 =A0 =A0 usb_remove_hcd(hcd);
->> - =A0 =A0 omap_usbhs_disable(dev);
->> =A0 =A0 =A0 disable_put_regulator(dev->platform_data);
->> - =A0 =A0 iounmap(hcd->regs);
->> =A0 =A0 =A0 usb_put_hcd(hcd);
->> + =A0 =A0 iounmap(hcd->regs);
-
-yes , I will do this.
-
->
->
-> usb_put_hcd may release the hcd, needs to be after the deref for
-> iounmap.
->
->> + =A0 =A0 pm_runtime_put_sync(dev);
->> + =A0 =A0 pm_runtime_disable(dev);
->
->
-> Todd
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+--=20
+Ming Lei
