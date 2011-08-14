@@ -1,71 +1,101 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 05/15] PM QoS: generalize and export the constraints management code
-Date: Sun, 14 Aug 2011 15:37:43 +0200
-Message-ID: <201108141537.43752.rjw@sisk.pl>
-References: <1313075212-8366-1-git-send-email-j-pihet@ti.com> <201108132234.17377.rjw@sisk.pl> <CAORVsuUz9qXFvUTsYOs4Z7rLQFXROKOcWVi=bZWTKJuA2Xu1Og@mail.gmail.com>
+Subject: Re: [PATCH 06/15] PM QoS: implement the per-device PM QoS constraints
+Date: Sun, 14 Aug 2011 15:51:21 +0200
+Message-ID: <201108141551.21449.rjw@sisk.pl>
+References: <1313075212-8366-1-git-send-email-j-pihet@ti.com> <201108132308.26265.rjw@sisk.pl> <CAORVsuVZjrqY0qhEvCpRRvt5RDcG-YT5SJo6Ejhyr-_fTyk9HQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40039 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:40056 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753130Ab1HNNgD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 14 Aug 2011 09:36:03 -0400
-In-Reply-To: <CAORVsuUz9qXFvUTsYOs4Z7rLQFXROKOcWVi=bZWTKJuA2Xu1Og@mail.gmail.com>
+	id S1753252Ab1HNNtl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 14 Aug 2011 09:49:41 -0400
+In-Reply-To: <CAORVsuVZjrqY0qhEvCpRRvt5RDcG-YT5SJo6Ejhyr-_fTyk9HQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: markgross@thegnar.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Kevin Hilman <khilman@ti.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
+
+Hi,
 
 On Sunday, August 14, 2011, Jean Pihet wrote:
-> Hi Rafael, Mark,
+...
+> >> +
+> >> +     if (dev_pm_qos_request_active(req)) {
+> >> +             WARN(1, KERN_ERR "dev_pm_qos_add_request() called for already "
+> >> +                     "added request\n");
+> >> +             return;
+> >> +     }
+> >> +     req->dev = dev;
+> >> +
+> >> +     /* Allocate the constraints struct on the first call to add_request */
+> >> +     if (req->dev->power.constraints_state == DEV_PM_QOS_DEVICE_PRESENT)
+> >> +             dev_pm_qos_constraints_allocate(dev);
+> >
+> > Why not to do
+> >
+> > +       if (!req->dev->power.constraints)
+> > +               dev_pm_qos_constraints_allocate(dev);
 > 
-> On Sat, Aug 13, 2011 at 10:34 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Saturday, August 13, 2011, mark gross wrote:
-> >> On Thu, Aug 11, 2011 at 05:06:42PM +0200, jean.pihet@newoldbits.com wrote:
-> >> > From: Jean Pihet <j-pihet@ti.com>
-> >> >
-> >> > In preparation for the per-device constratins support:
-> >> > - rename update_target to pm_qos_update_target
-> >> > - generalize and export pm_qos_update_target for usage by the upcoming
-> >> > per-device latency constraints framework:
-> >> >    . operate on struct pm_qos_constraints for constraints management,
-> >> >    . introduce an 'action' parameter for constraints add/update/remove,
-> >> >    . the return value indicates if the aggregated constraint value has
-> >> >      changed,
-> >> > - update the internal code to operate on struct pm_qos_constraints
-> >> > - add a NULL pointer check in the API functions
-> >> >
-> >> > Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> ...
-> >> > +/* Action requested to pm_qos_update_target */
-> >> > +enum pm_qos_req_action {
-> >> > +   PM_QOS_ADD_REQ,         /* Add a new request */
-> >> > +   PM_QOS_UPDATE_REQ,      /* Update an existing request */
-> >> > +   PM_QOS_REMOVE_REQ       /* Remove an existing request */
-> >> > +};
-> >> > +
-> >>
-> >> What do you need this enum for?  The function names *_update_*, *_add_*,
-> >> and  *_remove_* seem to be pretty redundant if you have to pass an enum
-> >> that could possibly conflict with the function name.
-> >>
-> >> >  #ifdef CONFIG_PM
-> >> > +int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
-> >> > +                    enum pm_qos_req_action action, int value);
-> >> The action for update_target better damn well be "PM_QOS_UPDATE_REQ" or
-> >> there is something strange going on....  BTW what shold this function do
-> >> if the pm_qos_req_action was *not* the UPDATE one?
+> Cf. my comments at the end of this message for the data structs
+> alloc/free and the locking.
 > 
-> The meaning of pm_qos_update_target is 'update the PM QoS target
-> constraints lists'. As described in the changelog the intention of
-> this patch is to implement the constraints lists management logic in
-> update_target and simplify the API functions (add/update/remove). It
-> is also exported for the upcoming (patch 06/15]) to use it as well.
+> >
+> >> +
+> >> +     /* Silently return if the device has been removed */
+> >> +     if (req->dev->power.constraints_state != DEV_PM_QOS_ALLOCATED)
+> >> +             return;
+> >> +
+> >
+> > Hmm.  What will happen if two callers run dev_pm_qos_add_request()
+> > concurrently for the same device?
+> update_target is using the power.lock to protect the constraints lists changes.
 
-The enums are fine by me and they allow us to simplify the code
-quite a bit.
+I was referring to the scenario in particular:
+
+Suppose that there are no constraits for dev initially.
+A -> calls dev_pm_qos_add_request(dev)
+B -> calls dev_pm_qos_add_request(dev)
+A -> sees power.constraints_state == DEV_PM_QOS_DEVICE_PRESENT
+     and calls dev_pm_qos_constraints_allocate(dev)
+B -> sees power.constraints_state == DEV_PM_QOS_DEVICE_PRESENT
+     and calls dev_pm_qos_constraints_allocate(dev)
+
+As a result, the structure allocated by A is leaked.
+
+...
+> 
+> Your remarks are inline with the concerns I had about the adata
+> structs alloc/free and the locking.
+> 
+> 1) data structs alloc/free
+> As described in the changelog:
+> >> To minimize the data usage by the per-device constraints, the data struct
+> >> is only allocated at the first call to dev_pm_qos_add_request.
+> >> The data is later free'd when the device is removed from the system.
+> A basic state machine is needed in order to allocate the data at the
+> first call to add_request and free it when the device is removed.
+> Another option is to allocate the data when the device is added to the
+> system and free it when the device is removed. That would make the
+> code simpler but it is using a lot of memory for unneeded data.
+
+That's fine.  You simply need to be more careful about the possible
+race conditions when the constraints objects are created and destroyed.
+
+> 2) Race conditions
+> I will add a lock to isolate the API callers from
+> dev_pm_qos_constraints_destroy().
+> The power.lock is already used by update_target so another lock is
+> needed to protect the data allocation/free.
+
+OK
+
+> I will rework this tomorrow and re-submit asap when it is ready.
+> Is that OK?
+
+Yes, it is.
 
 Thanks,
 Rafael
