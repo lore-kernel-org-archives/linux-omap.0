@@ -1,61 +1,108 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/4] ASoC: OMAP4: McPDM: Fix legacy support
-Date: Mon, 15 Aug 2011 14:28:53 +0300
-Message-ID: <2097801.ze7cveM5xx@barack>
-References: <1312284857-1774-1-git-send-email-peter.ujfalusi@ti.com>
-	<1454327.U3ERne0amE@barack>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/2] omap3: ISP: Kernel crash when attempting suspend
+Date: Mon, 15 Aug 2011 15:02:06 +0200
+Message-ID: <201108151502.07234.laurent.pinchart@ideasonboard.com>
+References: <1312985006-19345-1-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1454327.U3ERne0amE@barack>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Brown <broonie@opensource.wolfsonmicro.com>, "Guiriec,
-	Sebastien" <s-guiriec@ti.com>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1312985006-19345-1-git-send-email-deepthy.ravi@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Deepthy Ravi <deepthy.ravi@ti.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, mchehab@infradead.org, linux-omap@vger.kernel.org, Abhilash K V <abhilash.kv@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi,
 
-On Tuesday 09 August 2011 09:27:17 Ujfalusi, Peter wrote:
-> Hi Tony,
-> =
+On Wednesday 10 August 2011 16:03:26 Deepthy Ravi wrote:
+> From: Abhilash K V <abhilash.kv@ti.com>
+> 
+> This patch fixes the kernel crash introduced by the previous
+> patch:
+> 	omap3: ISP: Fix the failure of CCDC capture during
+> 	suspend/resume.
+> This null pointer exception happens when attempting suspend
+> while the ISP driver is not being used. The current patch
+> fixes this by deferring the code (as introduced in the
+> aforementioned patch) to handle  buffer-starvation to get
+> called only if the ISP reference count is non-zero.
+> An additional safety check is also added to ensure that
+> buffer-starvation logic kicks in for an empty dmaqueue only
+> if the ISP pipeline is not in the stopped state.
 
-> On Tuesday 02 August 2011 13:34:13 Ujfalusi, Peter wrote:
-> > Hello,
-> > =
+What about squashing this with the previous patch then ?
 
-> > The OMAP4 McPDM driver in upstream has been broken for some time...
-> > This series fixes that, and enables basic audio playback/capture over
-> > the
-> > mcpdm interface.
-> =
+I'll review patch 1/2, just give me a bit more time. The race condition is 
+tricky so I need to rest a bit before attacking it :-)
 
-> Would you have time to look at this series?
-> Specially patch 1 (maybe 2 as well).
-> We are planning to send this series through audio for 3.1.
+> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> ---
+>  drivers/media/video/omap3isp/isp.c      |   12 ++++++------
+>  drivers/media/video/omap3isp/ispvideo.c |    4 +++-
+>  2 files changed, 9 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/isp.c
+> b/drivers/media/video/omap3isp/isp.c index 6604fbd..6acdedc 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -1573,6 +1573,9 @@ static int isp_pm_prepare(struct device *dev)
+>  	unsigned long flags;
+> 
+>  	WARN_ON(mutex_is_locked(&isp->isp_mutex));
+> +	if (isp->ref_count == 0)
+> +		return 0;
+> +
+>  	spin_lock_irqsave(&pipe->lock, flags);
+>  	pipe->state |= ISP_PIPELINE_PREPARE_SUSPEND;
+>  	spin_unlock_irqrestore(&pipe->lock, flags);
+> @@ -1581,9 +1584,6 @@ static int isp_pm_prepare(struct device *dev)
+>  	if (err < 0)
+>  		return err;
+> 
+> -	if (isp->ref_count == 0)
+> -		return 0;
+> -
+>  	reset = isp_suspend_modules(isp);
+>  	isp_disable_interrupts(isp);
+>  	isp_save_ctx(isp);
+> @@ -1613,13 +1613,13 @@ static int isp_pm_resume(struct device *dev)
+>  	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
+>  	unsigned long flags;
+> 
+> +	if (isp->ref_count == 0)
+> +		return 0;
+> +
+>  	spin_lock_irqsave(&pipe->lock, flags);
+>  	pipe->state &= ~ISP_PIPELINE_PREPARE_SUSPEND;
+>  	spin_unlock_irqrestore(&pipe->lock, flags);
+> 
+> -	if (isp->ref_count == 0)
+> -		return 0;
+> -
+>  	return isp_enable_clocks(isp);
+>  }
+> 
+> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> b/drivers/media/video/omap3isp/ispvideo.c index bf149a7..ffb339c 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.c
+> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> @@ -726,8 +726,10 @@ int isp_video_handle_buffer_starvation(struct
+> isp_video *video) struct isp_video_queue *queue = video->queue;
+>  	struct isp_video_buffer *buf;
+>  	struct list_head *head = &video->dmaqueue;
+> +	struct isp_ccdc_device *ccdc = &video->isp->isp_ccdc;
+> 
+> -	if (list_empty(&video->dmaqueue)) {
+> +	if (list_empty(&video->dmaqueue)
+> +		&& ccdc->state != ISP_PIPELINE_STREAM_STOPPED) {
+>  		err = isp_video_deq_enq(queue);
+>  	} else if (head->next->next == head) {
+>  		/* only one buffer is left on dmaqueue */
 
-Do you have time to look at this series.
-Currently the mcpdm (omap4 audio) is broken in upstream without this series=
-, =
+-- 
+Regards,
 
-and I'd like to have it fixed in time for 3.1.
- =
-
-> > Two patch in this series has been taken from the "OMAP4/ASoC: New McPDM
-> > driver" series (patch 1, and 2) [1]. Since I was on holiday, I did not
-> > had time to rewrite the driver rewrite patch, but I feel that fixing
-> > the basic audio support for OMAP4 is needed.
-> > The aim here is to have working audio in upstream kernel for 3.1, and
-> > have the new McPDM driver stack up for the 3.2 release.
-
-Thank you,
-P=E9ter
+Laurent Pinchart
