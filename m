@@ -1,69 +1,67 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: OMAP2-only kernel compile broken
-Date: Mon, 15 Aug 2011 19:02:13 +0300
-Message-ID: <20110815160212.GE32750@legolas.emea.dhcp.ti.com>
-References: <alpine.DEB.2.00.1107091955040.15984@utopia.booyaka.com>
- <20110710095216.GN31978@legolas.emea.dhcp.ti.com>
- <alpine.DEB.2.00.1107100541110.15984@utopia.booyaka.com>
- <20110711062112.GA2680@legolas.emea.dhcp.ti.com>
- <alpine.DEB.2.00.1107110030120.18599@utopia.booyaka.com>
- <20110711064341.GF2680@legolas.emea.dhcp.ti.com>
- <20110711082650.GN5783@atomide.com>
- <20110711092447.GP2680@legolas.emea.dhcp.ti.com>
- <alpine.DEB.2.00.1108150941240.21755@utopia.booyaka.com>
+Subject: Re: [RFC/PATCH 1/4] arm: omap: use hwmod to create a dwc3 device
+Date: Mon, 15 Aug 2011 19:12:13 +0300
+Message-ID: <20110815161212.GJ32750@legolas.emea.dhcp.ti.com>
+References: <1313423845-2288-1-git-send-email-balbi@ti.com>
+ <1313423845-2288-2-git-send-email-balbi@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oIK88BWnNPSddvdK"
+	protocol="application/pgp-signature"; boundary="/Q7FmPuhIbtiu4EM"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:41861 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751404Ab1HOQJT (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:45014 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750790Ab1HOQMQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Aug 2011 12:09:19 -0400
-Received: by mail-bw0-f44.google.com with SMTP id r4so5371149bka.17
-        for <linux-omap@vger.kernel.org>; Mon, 15 Aug 2011 09:09:18 -0700 (PDT)
+	Mon, 15 Aug 2011 12:12:16 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1108150941240.21755@utopia.booyaka.com>
+In-Reply-To: <1313423845-2288-2-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: hemahk@ti.com, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
 
---oIK88BWnNPSddvdK
-Content-Type: text/plain; charset=iso-8859-1
+--/Q7FmPuhIbtiu4EM
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Aug 15, 2011 at 09:44:25AM -0600, Paul Walmsley wrote:
-> just wanted to send a quick note - sorry to misidentify your patches as=
-=20
-> the proximate cause of the compile breakage described in this thread.  As=
-=20
-> RMK mentioned, I should have nagged P=E9ter instead :-)
+On Mon, Aug 15, 2011 at 06:57:22PM +0300, Felipe Balbi wrote:
+> From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+>=20
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  arch/arm/mach-omap2/Makefile          |    3 ++
+>  arch/arm/mach-omap2/usb-dwc3.c        |   49 +++++++++++++++++++++++++++=
+++++++
+>  arch/arm/plat-omap/include/plat/usb.h |    6 ++++
+>  3 files changed, 58 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/usb-dwc3.c
 
-np
+this won't be merged ever. It's just for testing purposes. Since we're
+moving to DT, all of this will be achieved via DT.
 
 --=20
 balbi
 
---oIK88BWnNPSddvdK
+--/Q7FmPuhIbtiu4EM
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOSUMEAAoJEAv8Txj19kN1+MAH/iH3+k3s329JvQImd0y6Cdy6
-RORM2cAjXcYt3OzctApXZj9jU8Sj6mCu3J0apAz/hLEanHIXrrTrmk01dHTvFRug
-0XT8GgoTiEvvy2RHtfTmfEpe+gNXPbU9A3f/cGnJraKspQRGNSHICouYrIX/LjBf
-4vBjRYSibtCVtz/Th+4V77S8sN5M4ByJWB6ED4l1d5dtMxeo/jwiWCHZGMlHG6kw
-fGxcHO9J/gfCIwBK6VuHJJfQKWECTf3rF0rQ0g1AGryxdCicJi8ohfdxX/MhXEan
-10VLz0xYFj70sHeIsd3mklj6K9w4VUPiqTGZvjvrlINHn+HO90qXyVtUrkFqEbw=
-=UXmJ
+iQEcBAEBAgAGBQJOSUVcAAoJEAv8Txj19kN1fpcH/2qOXrOFow++7FAWPWYdWmw0
+02/aUPloRt40JyzMi+Hd2MtphfO0dmVvzksMRktVVdAhA7jFrvQ4Bs3RwsfutYHM
+YpjHjvunAJXFRL6F0V0rSPBRfP1tVcE7fddP/K3+f//+IGspv7DIth6gsGF4LrVu
+MdruPc2AoKRtUwvilKwLMmekj/ECeS4ycVBt2GJngvRBRgYvtMhC+s2VRqzNu4Dz
+0JDGYlfeM0zsx0N6OaKzJmjYWvZZ4y5SnhagmiIVihOZ2OA4ZVvL2Rv+4FvLTct5
+5nYnnAQYU4Vq0N2KXihZm6P3iS8ckxCHe12+E4ymmghhPkyecwgu1WJ4saUkkNM=
+=D/7K
 -----END PGP SIGNATURE-----
 
---oIK88BWnNPSddvdK--
+--/Q7FmPuhIbtiu4EM--
