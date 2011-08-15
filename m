@@ -1,48 +1,46 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [RFC/PATCH 3/4] usb: gadget: introduce gadget_is_dwc3()
-Date: Mon, 15 Aug 2011 18:57:24 +0300
-Message-ID: <1313423845-2288-4-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH 2/4] usb: ch9: add function defines from ch9, USB 3.0 spec
+Date: Mon, 15 Aug 2011 18:57:23 +0300
+Message-ID: <1313423845-2288-3-git-send-email-balbi@ti.com>
 References: <1313423845-2288-1-git-send-email-balbi@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1313423845-2288-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:51300 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753031Ab1HOP5f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Aug 2011 11:57:35 -0400
+In-Reply-To: <1313423845-2288-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>
 
-... to check whether we're running on DesignWare
-USB3 DRD Controller.
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+not to confuse with Table 9-7 in USB 2.0 spec
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/gadget/gadget_chips.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ include/linux/usb/ch9.h |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/gadget/gadget_chips.h b/drivers/usb/gadget/gadget_chips.h
-index f3a83cd..a8855d0 100644
---- a/drivers/usb/gadget/gadget_chips.h
-+++ b/drivers/usb/gadget/gadget_chips.h
-@@ -31,6 +31,7 @@
- #define gadget_is_ci13xxx_msm(g)	(!strcmp("ci13xxx_msm", (g)->name))
- #define gadget_is_ci13xxx_pci(g)	(!strcmp("ci13xxx_pci", (g)->name))
- #define gadget_is_dummy(g)		(!strcmp("dummy_udc", (g)->name))
-+#define gadget_is_dwc3(g)		(!strcmp("dwc3-gadget", (g)->name))
- #define gadget_is_fsl_qe(g)		(!strcmp("fsl_qe_udc", (g)->name))
- #define gadget_is_fsl_usb2(g)		(!strcmp("fsl-usb2-udc", (g)->name))
- #define gadget_is_goku(g)		(!strcmp("goku_udc", (g)->name))
-@@ -115,6 +116,8 @@ static inline int usb_gadget_controller_number(struct usb_gadget *gadget)
- 		return 0x30;
- 	else if (gadget_is_net2272(gadget))
- 		return 0x31;
-+	else if (gadget_is_dwc3(gadget))
-+		return 0x32;
+diff --git a/include/linux/usb/ch9.h b/include/linux/usb/ch9.h
+index 0fd3fbd..b777e24 100644
+--- a/include/linux/usb/ch9.h
++++ b/include/linux/usb/ch9.h
+@@ -143,6 +143,11 @@
+ #define USB_INTRF_FUNC_SUSPEND	0	/* function suspend */
  
- 	return -ENOENT;
- }
+ #define USB_INTR_FUNC_SUSPEND_OPT_MASK	0xFF00
++/*
++ * Suspend Options, Table 9-7 USB 3.0 spec
++ */
++#define USB_INTRF_FUNC_SUSPEND_LP	(1 << (8 + 0))
++#define USB_INTRF_FUNC_SUSPEND_RW	(1 << (8 + 1))
+ 
+ #define USB_ENDPOINT_HALT		0	/* IN/OUT will STALL */
+ 
 -- 
 1.7.6.396.ge0613
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
