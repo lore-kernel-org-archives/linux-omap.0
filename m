@@ -1,61 +1,95 @@
-From: Bjarne Steinsbo <bsteinsbo@gmail.com>
-Subject: [PATCH] ARM: OMAP: Pointers to __devexit should be __devexit_p
-Date: Tue, 16 Aug 2011 16:33:32 +0200
-Message-ID: <CAFULf_wXK_2XkjUaDuZc+Ap8YiaesrdmHjErNvwyzV5CizLYYQ@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 11/15] OMAP3: powerdomain data: add wake-up latency figures
+Date: Tue, 16 Aug 2011 16:34:07 +0200
+Message-ID: <CAORVsuWPp2SWi-SqHe8Pjoi3MgRriA74TwhsNEUS2L4s9iiqDg@mail.gmail.com>
+References: <1313502198-9298-1-git-send-email-j-pihet@ti.com>
+	<1313502198-9298-12-git-send-email-j-pihet@ti.com>
+	<4E4A7DC9.1040500@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:47409 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753072Ab1HPOdd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Aug 2011 10:33:33 -0400
-Received: by vxi9 with SMTP id 9so4695252vxi.19
-        for <linux-omap@vger.kernel.org>; Tue, 16 Aug 2011 07:33:32 -0700 (PDT)
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:45035 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752903Ab1HPOeH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Aug 2011 10:34:07 -0400
+Received: by vws1 with SMTP id 1so4775983vws.19
+        for <linux-omap@vger.kernel.org>; Tue, 16 Aug 2011 07:34:07 -0700 (PDT)
+In-Reply-To: <4E4A7DC9.1040500@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Santosh <santosh.shilimkar@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Kevin Hilman <khilman@ti.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
 
-Pointers to functions that are annotated as __devexit should be
-protected by the __devexit_p() macro.
+On Tue, Aug 16, 2011 at 4:25 PM, Santosh <santosh.shilimkar@ti.com> wro=
+te:
+> On Tuesday 16 August 2011 07:13 PM, jean.pihet@newoldbits.com wrote:
+>>
+>> From: Jean Pihet<j-pihet@ti.com>
+>>
+>> Figures are added to the power domains structs.
+>>
+>> Note: the figures are preliminary figures. More accurate measurement=
+s
+>> are needed. Also the conditions of measurements shall be investigate=
+d
+>> and described.
+>>
+>> Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constra=
+ints
+>> on MPU, CORE and PER.
+>>
+>> Signed-off-by: Jean Pihet<j-pihet@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/powerdomains3xxx_data.c | =A0 77
+>> +++++++++++++++++++++++++++
+>> =A01 files changed, 77 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> index 469a920..64446e7 100644
+>> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> @@ -31,6 +31,13 @@
+>>
+>> =A0/*
+>> =A0 * Powerdomains
+>> + *
+>> + * The wakeup_lat values are derived from measurements on
+>> + * the actual target.
+>> + *
+>> + * Note: the latency figures are preliminary and only used
+>> + * for the constraints framework validation.
+>> + * Actual figures and measurements conditions shall be added.
+>> =A0 */
+>>
+>> =A0static struct powerdomain iva2_pwrdm =3D {
+>> @@ -52,6 +59,13 @@ static struct powerdomain iva2_pwrdm =3D {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0[2] =3D PWRSTS_OFF_ON,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0[3] =3D PWRSTS_ON,
+>> =A0 =A0 =A0 =A0},
+>> + =A0 =A0 =A0 .wakeup_lat =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 1100,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STAT=
+E,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 350,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_INACTIVE] =3D UNSUP_=
+STATE,
+>
+> This can easily derived from the PWRST flag instead of hardcoding
+> it this way. Also note that INACTIVE PD isn't supported in mainline
+> yet because of voltage-domain dependency planned changes.
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>
+> All of the PD structures are manually coded. This whole file is
+> auto-generated and even these field generation needs to follow
+> that path.
+Ok I need to check that. Any pointer on how to generate those?
 
-This fixes a build failure for OMAP when defined(CONFIG_SMP_ON_UP) &&
-!defined(CONFIG_DEBUG_SPINLOCK)
-
-Signed-off-by: Bjarne Steinsbo <bsteinsbo@gmail.com>
----
- arch/arm/mach-omap2/smartreflex.c |    2 +-
- arch/arm/plat-omap/dma.c          |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/smartreflex.c
-b/arch/arm/mach-omap2/smartreflex.c
-index 34c01a7..67bc6ce 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -1002,7 +1002,7 @@ static int __devexit omap_sr_remove(struct
-platform_device *pdev)
- }
-
- static struct platform_driver smartreflex_driver = {
--	.remove         = omap_sr_remove,
-+	.remove         = __devexit_p(omap_sr_remove),
- 	.driver		= {
- 		.name	= "smartreflex",
- 	},
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index c22217c..f7150ba 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -2105,7 +2105,7 @@ static int __devexit
-omap_system_dma_remove(struct platform_device *pdev)
-
- static struct platform_driver omap_system_dma_driver = {
- 	.probe		= omap_system_dma_probe,
--	.remove		= omap_system_dma_remove,
-+	.remove		= __devexit_p(omap_system_dma_remove),
- 	.driver		= {
- 		.name	= "omap_dma_system"
- 	},
--- 
-1.7.1
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
