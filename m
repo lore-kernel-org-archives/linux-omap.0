@@ -1,135 +1,113 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [RFC/PATCH 11/14] dt: omap3: add soc file for handling i2c
- controllers
-Date: Tue, 16 Aug 2011 12:02:27 +0530
-Message-ID: <20110816063227.GA17165@manju-desktop>
-References: <1312897232-4792-1-git-send-email-manjugk@ti.com>
- <1312897232-4792-12-git-send-email-manjugk@ti.com>
- <4E427B62.1000907@ti.com>
- <20110810165745.GB2705@manju-desktop>
- <4E42C3C6.1070806@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 05/15] PM QoS: generalize and export the constraints
+ management code
+Date: Tue, 16 Aug 2011 08:44:19 +0200
+Message-ID: <CAORVsuXDp4vYGg9BCLkJm6iMPobSCtE9s_1j4zNV5frKjQY1jg@mail.gmail.com>
+References: <1313075212-8366-1-git-send-email-j-pihet@ti.com>
+	<201108132234.17377.rjw@sisk.pl>
+	<CAORVsuUz9qXFvUTsYOs4Z7rLQFXROKOcWVi=bZWTKJuA2Xu1Og@mail.gmail.com>
+	<201108141537.43752.rjw@sisk.pl>
+	<20110816040809.GA11921@gvim.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:45047 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751143Ab1HPGdn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Aug 2011 02:33:43 -0400
-Received: by mail-gw0-f49.google.com with SMTP id 1so3856757gwb.36
-        for <linux-omap@vger.kernel.org>; Mon, 15 Aug 2011 23:33:41 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <4E42C3C6.1070806@ti.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:40451 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751135Ab1HPGoU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Aug 2011 02:44:20 -0400
+Received: by qyk34 with SMTP id 34so3198899qyk.19
+        for <linux-omap@vger.kernel.org>; Mon, 15 Aug 2011 23:44:19 -0700 (PDT)
+In-Reply-To: <20110816040809.GA11921@gvim.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: markgross@thegnar.org
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
 
-On Wed, Aug 10, 2011 at 07:45:42PM +0200, Cousson, Benoit wrote:
-> + Tony
-> 
-> On 8/10/2011 6:57 PM, G, Manjunath Kondaiah wrote:
-> >On Wed, Aug 10, 2011 at 02:36:50PM +0200, Cousson, Benoit wrote:
-> >>On 8/9/2011 4:10 PM, G, Manjunath Kondaiah wrote:
-> >>>
-> >>>Add omap3 soc file for handling omap3 soc i2c controllers existing
-> >>>on l4-core bus.
-> >>>
-> >>>Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
-> >>>---
-> >>>  arch/arm/boot/dts/omap3-soc.dtsi |   62 ++++++++++++++++++++++++++++++++++++++
-> >>>  1 files changed, 62 insertions(+), 0 deletions(-)
-> >>>  create mode 100644 arch/arm/boot/dts/omap3-soc.dtsi
-> >>>
-> >>>diff --git a/arch/arm/boot/dts/omap3-soc.dtsi b/arch/arm/boot/dts/omap3-soc.dtsi
-> >>>new file mode 100644
-> >>>index 0000000..85de92f
-> >>>--- /dev/null
-> >>>+++ b/arch/arm/boot/dts/omap3-soc.dtsi
-> >>>@@ -0,0 +1,62 @@
-> >>>+/*
-> >>>+ * Device Tree Source for OMAP3 SoC
-> >>>+ *
-> >>>+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-> >>>+ *
-> >>>+ * This file is licensed under the terms of the GNU General Public License
-> >>>+ * version 2.  This program is licensed "as is" without any warranty of any
-> >>>+ * kind, whether express or implied.
-> >>>+ */
-> >>>+
-> >>>+/dts-v1/;
-> >>>+/include/ "skeleton.dtsi"
-> >>>+
-> >>>+/ {
-> >>>+	#address-cells =<1>;
-> >>>+	#size-cells =<1>;
-> >>>+	model = "ti,omap3";
-> >>>+
-> >>>+	aliases {
-> >>>+		i2c1 =&i2c1;
-> >>>+		i2c2 =&i2c2;
-> >>>+		i2c3 =&i2c3;
-> >>>+	};
-> >>>+
-> >>>+	l4-core {
-> >>
-> >>That comment is probably subject to discussion, but even if this
-> >>interconnect is there physically, I'm not sure of the added value to
-> >>add it.
-> >>It will add an extra level of indentation and that all. Moreover, it
-> >>will mess up the physical address that are expressed using absolute
-> >>value in the TRM with a less readable offset value.
-> >>In fact, most DTS files in the ARM directory are using a purely flat
-> >>representation of the interconnect.
-> >This is as per alignment with Tony and Grant:
-> >http://permalink.gmane.org/gmane.linux.ports.arm.omap/60391
-> 
-> So I'm asking the same question to Grant and Tony then:-)
+On Tue, Aug 16, 2011 at 6:08 AM, mark gross <markgross@thegnar.org> wro=
+te:
+> On Sun, Aug 14, 2011 at 03:37:43PM +0200, Rafael J. Wysocki wrote:
+>> On Sunday, August 14, 2011, Jean Pihet wrote:
+>> > Hi Rafael, Mark,
+>> >
+>> > On Sat, Aug 13, 2011 at 10:34 PM, Rafael J. Wysocki <rjw@sisk.pl> =
+wrote:
+>> > > On Saturday, August 13, 2011, mark gross wrote:
+>> > >> On Thu, Aug 11, 2011 at 05:06:42PM +0200, jean.pihet@newoldbits=
+=2Ecom wrote:
+>> > >> > From: Jean Pihet <j-pihet@ti.com>
+>> > >> >
+>> > >> > In preparation for the per-device constratins support:
+>> > >> > - rename update_target to pm_qos_update_target
+>> > >> > - generalize and export pm_qos_update_target for usage by the=
+ upcoming
+>> > >> > per-device latency constraints framework:
+>> > >> > =A0 =A0. operate on struct pm_qos_constraints for constraints=
+ management,
+>> > >> > =A0 =A0. introduce an 'action' parameter for constraints add/=
+update/remove,
+>> > >> > =A0 =A0. the return value indicates if the aggregated constra=
+int value has
+>> > >> > =A0 =A0 =A0changed,
+>> > >> > - update the internal code to operate on struct pm_qos_constr=
+aints
+>> > >> > - add a NULL pointer check in the API functions
+>> > >> >
+>> > >> > Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> > ...
+>> > >> > +/* Action requested to pm_qos_update_target */
+>> > >> > +enum pm_qos_req_action {
+>> > >> > + =A0 PM_QOS_ADD_REQ, =A0 =A0 =A0 =A0 /* Add a new request */
+>> > >> > + =A0 PM_QOS_UPDATE_REQ, =A0 =A0 =A0/* Update an existing req=
+uest */
+>> > >> > + =A0 PM_QOS_REMOVE_REQ =A0 =A0 =A0 /* Remove an existing req=
+uest */
+>> > >> > +};
+>> > >> > +
+>> > >>
+>> > >> What do you need this enum for? =A0The function names *_update_=
+*, *_add_*,
+>> > >> and =A0*_remove_* seem to be pretty redundant if you have to pa=
+ss an enum
+>> > >> that could possibly conflict with the function name.
+>> > >>
+>> > >> > =A0#ifdef CONFIG_PM
+>> > >> > +int pm_qos_update_target(struct pm_qos_constraints *c, struc=
+t plist_node *node,
+>> > >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0enum pm_qos_req_acti=
+on action, int value);
+>> > >> The action for update_target better damn well be "PM_QOS_UPDATE=
+_REQ" or
+>> > >> there is something strange going on.... =A0BTW what shold this =
+function do
+>> > >> if the pm_qos_req_action was *not* the UPDATE one?
+>> >
+>> > The meaning of pm_qos_update_target is 'update the PM QoS target
+>> > constraints lists'. As described in the changelog the intention of
+>> > this patch is to implement the constraints lists management logic =
+in
+>> > update_target and simplify the API functions (add/update/remove). =
+It
+>> > is also exported for the upcoming (patch 06/15]) to use it as well=
+=2E
+>>
+>> The enums are fine by me and they allow us to simplify the code
+>> quite a bit.
+>>
+> Ok, but they look a bit sloppy to me as we now have an API that says
+> "add" we can actually pass in an enum that says "remove".
+We have an API that says 'update target' that we pass in a parameter
+that says 'add request', 'update request' or 'remove request'.
+If it is required I could just rename the internal function
+update_target, in a later patch.
 
-What is the conclusion here? I will go ahead with current approach since
-tony and grant has voted for it.
+>
+> --mark
+>
 
--M
-
-> 
-> >>>+		compatible = "ti,omap3-l4-core";
-> >>
-> >>Assuming we will keep that, you should probably add a more generic
-> >>compatible name after that one. Like "ti,s3220" or even
-> >>"sonics,s3220", assuming that this IP is generic enough for other
-> >>SoC.
-> >will check this. I don't remember any generic names.
-> >>
-> >>>+		#address-cells =<1>;
-> >>>+		#size-cells =<1>;
-> >>>+		ranges =<0 0x48000000 0x1000000>;
-> >>>+
-> >>>+		i2c1: i2c@70000 {
-> >>>+			#address-cells =<1>;
-> >>>+			#size-cells =<0>;
-> >>>+			compatible = "ti,omap3-i2c";
-> >>
-> >>The I2C IP and thus the driver is generic across OMAP generations
-> >>and is even potentially used by other non-OMAP TI chips like DSP or
-> >>Davinci. So having an extra compatible entry with "ti,i2c" or "ti,
-> >>omap-i2c" seems mandatory.
-> >This can be updated as and when new soc/board adaptations are done.
-> >As of now, it is omap3 and when we have omap4 it will be appended with
-> >"ti,omap4-i2c" etc
-> 
-> To infinity and beyond?
-> 
-> There is no need, and we should absolutely not update the driver
-> each time we introduce a new SoC version/revision.
-> The driver should match with the generic device name in that case.
-> Until we change the IP and potentially introduce a new driver.
-> 
-> BTW, even omap3 should not be in the name in theory. It should be
-> potentially "ti,i2c-v3" or whatever HW version the IP is using.
-> But for some reason, most devices are using such convention in
-> existing DTS:-(
-> This is probably due to the lack of well identified IP version in
-> most SoC... including OMAP:-)
-> 
-> 
-> Benoit
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
