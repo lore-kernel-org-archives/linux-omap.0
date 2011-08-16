@@ -1,259 +1,188 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [RFC/PATCH 14/14] dt: omap3: enable dt support for i2c1
- controller
-Date: Wed, 17 Aug 2011 00:14:26 +0530
-Message-ID: <20110816184426.GA23980@manju-desktop>
-References: <1312897232-4792-1-git-send-email-manjugk@ti.com>
- <1312897232-4792-15-git-send-email-manjugk@ti.com>
- <4E428031.8070600@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 06/15] PM QoS: implement the per-device PM QoS constraints
+Date: Tue, 16 Aug 2011 23:40:32 +0200
+Message-ID: <201108162340.32357.rjw@sisk.pl>
+References: <1313502198-9298-1-git-send-email-j-pihet@ti.com> <1313502198-9298-7-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:50412 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753080Ab1HPSon (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Aug 2011 14:44:43 -0400
-Received: by mail-gx0-f169.google.com with SMTP id 23so162924gxk.28
-        for <linux-omap@vger.kernel.org>; Tue, 16 Aug 2011 11:44:41 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <4E428031.8070600@ti.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:45857 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753054Ab1HPVjC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Aug 2011 17:39:02 -0400
+In-Reply-To: <1313502198-9298-7-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
+To: jean.pihet@newoldbits.com
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Kevin Hilman <khilman@ti.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
 
-On Wed, Aug 10, 2011 at 02:57:21PM +0200, Cousson, Benoit wrote:
-> On 8/9/2011 4:10 PM, G, Manjunath Kondaiah wrote:
-> >
-> >Adapt dt for omap i2c1 controller and remove legacy i2c
-> >initilization in omap3 generic board file.
-> >
-> >Tested on omap3 beagle board for dt and non-dt builds.
-> >
-> >Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
-> >---
-> >  arch/arm/boot/dts/omap3-soc.dtsi     |    6 ++--
-> >  arch/arm/mach-omap2/board-omap3-dt.c |   14 +++++-----
-> >  drivers/i2c/busses/i2c-omap.c        |   23 ++++++++++++++++--
-> >  drivers/of/platform.c                |   41 +++++++++++++++++++++++++++++++++-
-> 
-> It looks like this patch is doing a lot of things. You should
-> probably hack the DT core first and then update the driver and the
-> DTS.
-> 
-> >  4 files changed, 70 insertions(+), 14 deletions(-)
-> >
-> >diff --git a/arch/arm/boot/dts/omap3-soc.dtsi b/arch/arm/boot/dts/omap3-soc.dtsi
-> >index 85de92f..bcff63b 100644
-> >--- a/arch/arm/boot/dts/omap3-soc.dtsi
-> >+++ b/arch/arm/boot/dts/omap3-soc.dtsi
-> >@@ -31,7 +31,7 @@
-> >  		i2c1: i2c@70000 {
-> >  			#address-cells =<1>;
-> >  			#size-cells =<0>;
-> >-			compatible = "ti,omap3-i2c";
-> >+			compatible = "ti,omap3-i2c", "ti,omap3-device";
-> 
-> In that case the compatible is just a tagto identify an OMAP type of
-> devices. You should use a more generic "ti,omap-device" entry.
-> This is similar to the "arm,primecell" used to tag the primecell IPs.
-> 
-> >  			reg =<0x70000 0x100>;
-> >  			interrupts =<  88>;
-> >  		};
-> >@@ -39,7 +39,7 @@
-> >  		i2c2: i2c@72000 {
-> >  			#address-cells =<1>;
-> >  			#size-cells =<0>;
-> >-			compatible = "ti,omap3-i2c";
-> >+			compatible = "ti,omap3-i2c", "ti,omap3-device";
-> >  			reg =<0x72000 0x100>;
-> >  			interrupts =<  89>;
-> >  		};
-> >@@ -47,7 +47,7 @@
-> >  		i2c3: i2c@60000 {
-> >  			#address-cells =<1>;
-> >  			#size-cells =<0>;
-> >-			compatible = "ti,omap3-i2c";
-> >+			compatible = "ti,omap3-i2c", "ti,omap3-device";
-> >  			reg =<0x60000 0x100>;
-> >  			interrupts =<  93>;
-> >  		};
-> >diff --git a/arch/arm/mach-omap2/board-omap3-dt.c b/arch/arm/mach-omap2/board-omap3-dt.c
-> >index 4b76e19..16cf283 100644
-> >--- a/arch/arm/mach-omap2/board-omap3-dt.c
-> >+++ b/arch/arm/mach-omap2/board-omap3-dt.c
-> >@@ -36,11 +36,11 @@ static struct twl4030_platform_data beagle_twldata = {
-> >  	/* platform_data for children goes here */
-> >  };
-> >
-> >-static int __init omap3_beagle_i2c_init(void)
-> >-{
-> >-	omap3_pmic_init("twl4030",&beagle_twldata);
-> >-	return 0;
-> >-}
-> >+struct of_dev_auxdata omap3_auxdata_lookup[] __initdata = {
-> >+	OF_DEV_AUXDATA_ID_PDSIZE("ti,omap3-i2c", 0x48070000, "i2c1", 1,\
-> >+				&beagle_twldata, sizeof(beagle_twldata)),
-> >+	{}
-> >+};
-> >
-> >  static void __init omap3_init_early(void)
-> >  {
-> >@@ -70,11 +70,11 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
-> >
-> >  static void __init omap3_init(void)
-> >  {
-> >-	omap3_beagle_i2c_init();
-> >  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> >  	omap_serial_init();
-> >
-> >-	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
-> >+	of_platform_populate(NULL, omap_dt_match_table, omap3_auxdata_lookup,
-> >+									 NULL);
-> >  }
-> >
-> >  static const char *omap3_dt_match[] __initdata = {
-> >diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> >index ae1545b..5167737 100644
-> >--- a/drivers/i2c/busses/i2c-omap.c
-> >+++ b/drivers/i2c/busses/i2c-omap.c
-> >@@ -38,6 +38,7 @@
-> >  #include<linux/clk.h>
-> >  #include<linux/io.h>
-> >  #include<linux/of_i2c.h>
-> >+#include<linux/of_device.h>
-> >  #include<linux/slab.h>
-> >  #include<linux/i2c-omap.h>
-> >  #include<linux/pm_runtime.h>
-> >@@ -972,6 +973,16 @@ static const struct i2c_algorithm omap_i2c_algo = {
-> >  	.functionality	= omap_i2c_func,
-> >  };
-> >
-> >+#if defined(CONFIG_OF)
-> >+static const struct of_device_id omap_i2c_of_match[] = {
-> >+	{.compatible = "ti,omap3-i2c", },.
-> 
-> This is a generic OMAP driver, so a "ti,omap-i2c" is probably much
-> more appropriate. We should always avoid adding OMAP version
-> information into a generic driver. Only the IP version should matter
-> for a driver.
-> 
-> >+	{},
-> >+}
-> >+MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
-> >+#else
-> >+#define omap_i2c_of_match NULL
-> >+#endif
-> >+
-> >  static int __devinit
-> >  omap_i2c_probe(struct platform_device *pdev)
-> >  {
-> >@@ -1008,12 +1019,17 @@ omap_i2c_probe(struct platform_device *pdev)
-> >  		goto err_release_region;
-> >  	}
-> >
-> >+	speed = 100;	/* Default speed */
-> >  	if (pdata != NULL) {
-> >  		speed = pdata->clkrate;
-> >  		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
-> >-	} else {
-> >-		speed = 100;	/* Default speed */
-> >-		dev->set_mpu_wkup_lat = NULL;
-> >+#if defined(CONFIG_OF)
-> >+	} else if (pdev->dev.of_node) {
-> >+		u32 prop;
-> >+		if (!of_property_read_u32(pdev->dev.of_node, "clock-frequency",
-> >+									&prop))
-> >+			speed = prop/100;
-> >+#endif
-> >  	}
-> >
-> >  	dev->speed = speed;
-> >@@ -1178,6 +1194,7 @@ static struct platform_driver omap_i2c_driver = {
-> >  		.name	= "omap_i2c",
-> >  		.owner	= THIS_MODULE,
-> >  		.pm	= OMAP_I2C_PM_OPS,
-> >+		.of_match_table = omap_i2c_of_match,
-> >  	},
-> >  };
-> >
-> >diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-> >index 4b27286..4d8a2fa 100644
-> >--- a/drivers/of/platform.c
-> >+++ b/drivers/of/platform.c
-> >@@ -24,6 +24,10 @@
-> >  #include<linux/of_platform.h>
-> >  #include<linux/platform_device.h>
-> >
-> >+#ifdef CONFIG_ARCH_OMAP2PLUS
-> >+#include<plat/omap_device.h>
-> >+#endif
-> >+
-> >  const struct of_device_id of_default_bus_match_table[] = {
-> >  	{ .compatible = "simple-bus", },
-> >  #ifdef CONFIG_ARM_AMBA
-> >@@ -544,6 +548,36 @@ static const struct of_dev_auxdata *of_dev_lookup(const struct of_dev_auxdata *l
-> >  	return NULL;
-> >  }
-> >
-> >+static struct omap_device_pm_latency omap_device_latency[] = {
-> >+	[0] = {
-> >+		.deactivate_func	= omap_device_idle_hwmods,
-> >+		.activate_func		= omap_device_enable_hwmods,
-> >+		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-> >+	},
-> >+};
-> >+
-> >+int of_omap_device_create(struct device_node *np, const char *name, int id,
-> >+							void *platform_data,
-> >+							int pd_size)
-> >+{
-> >+	struct omap_hwmod *oh;
-> >+	struct platform_device *pdev;
-> >+
-> >+	oh = omap_hwmod_lookup(name);
-> 
-> This is not enough to handle multiple hwmod entries. Moreover you
-> will force the device to be named like the hwmod. This is not
-> necessarily bad, but we should be able to have a distinct name if
-> needed.
+Hi,
 
-I agree it supports only single hwmod entries. As of now, only mcbsp uses
-multiple hwmod entries. With dt enabled, most of the drivers can use single
-hwmod entry for omap device creation and we can upgrade this api for handling
-mutiple hwmod entries.
+On Tuesday, August 16, 2011, jean.pihet@newoldbits.com wrote:
+> From: Jean Pihet <j-pihet@ti.com>
+> 
+> Implement the per-device PM QoS constraints by creating a device
+> PM QoS API, which calls the PM QoS constraints management core code.
+> 
+> The per-device latency constraints data strctures are stored
+> in the device dev_pm_info struct.
+> 
+> The device PM code calls the init and destroy of the per-device constraints
+> data struct in order to support the dynamic insertion and removal of the
+> devices in the system.
+> 
+> To minimize the data usage by the per-device constraints, the data struct
+> is only allocated at the first call to dev_pm_qos_add_request.
+> The data is later free'd when the device is removed from the system.
+> A global mutex protects the constraints users from the data being
+> allocated and free'd.
+> 
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> ---
+>  drivers/base/power/Makefile |    4 +-
+>  drivers/base/power/main.c   |    3 +
+>  drivers/base/power/qos.c    |  291 +++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/pm.h          |    9 ++
+>  include/linux/pm_qos.h      |   42 ++++++
+>  5 files changed, 347 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/base/power/qos.c
+> 
+> diff --git a/drivers/base/power/Makefile b/drivers/base/power/Makefile
+> index 2639ae7..b707447 100644
+> --- a/drivers/base/power/Makefile
+> +++ b/drivers/base/power/Makefile
+> @@ -1,4 +1,4 @@
+> -obj-$(CONFIG_PM)	+= sysfs.o generic_ops.o
+> +obj-$(CONFIG_PM)	+= sysfs.o generic_ops.o qos.o
+>  obj-$(CONFIG_PM_SLEEP)	+= main.o wakeup.o
+>  obj-$(CONFIG_PM_RUNTIME)	+= runtime.o
+>  obj-$(CONFIG_PM_TRACE_RTC)	+= trace.o
+> @@ -6,4 +6,4 @@ obj-$(CONFIG_PM_OPP)	+= opp.o
+>  obj-$(CONFIG_PM_GENERIC_DOMAINS)	+=  domain.o
+>  obj-$(CONFIG_HAVE_CLK)	+= clock_ops.o
+>  
+> -ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
+> \ No newline at end of file
+> +ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
+> diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+> index a854591..956443f 100644
+> --- a/drivers/base/power/main.c
+> +++ b/drivers/base/power/main.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/mutex.h>
+>  #include <linux/pm.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pm_qos.h>
+>  #include <linux/resume-trace.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/sched.h>
+> @@ -97,6 +98,7 @@ void device_pm_add(struct device *dev)
+>  			dev_name(dev->parent));
+>  	list_add_tail(&dev->power.entry, &dpm_list);
+>  	mutex_unlock(&dpm_list_mtx);
+> +	dev_pm_qos_constraints_init(dev);
+>  }
+>  
+>  /**
+> @@ -107,6 +109,7 @@ void device_pm_remove(struct device *dev)
+>  {
+>  	pr_debug("PM: Removing info for %s:%s\n",
+>  		 dev->bus ? dev->bus->name : "No Bus", dev_name(dev));
+> +	dev_pm_qos_constraints_destroy(dev);
+>  	complete_all(&dev->power.completion);
+>  	mutex_lock(&dpm_list_mtx);
+>  	list_del_init(&dev->power.entry);
+> diff --git a/drivers/base/power/qos.c b/drivers/base/power/qos.c
+> new file mode 100644
+> index 0000000..304d68d
+> --- /dev/null
+> +++ b/drivers/base/power/qos.c
+> @@ -0,0 +1,291 @@
+> +/*
 
-#>git grep omap_device_build_ss
-arch/arm/mach-omap2/devices.c:  pdev = omap_device_build_ss(NULL, "omap_l3_noc",
-0, oh, 3, NULL,
-arch/arm/mach-omap2/mcbsp.c:    pdev = omap_device_build_ss(NULL, name, id,
-oh_device, count, pdata,
-arch/arm/plat-omap/include/plat/omap_device.h:struct platform_device
-*omap_device_build_ss(struct device_node *np,
-arch/arm/plat-omap/omap_device.c: * The function is called from inside
-omap_device_build_ss(), after
-arch/arm/plat-omap/omap_device.c: * omap_device @od.  Used by
-omap_device_build_ss() to determine how
-arch/arm/plat-omap/omap_device.c: * omap_device_build_ss() after calling
-omap_device_count_resources().
-arch/arm/plat-omap/omap_device.c: * platform_device record.  See
-omap_device_build_ss() for more
-arch/arm/plat-omap/omap_device.c: * passes along the return value of
-omap_device_build_ss().
-arch/arm/plat-omap/omap_device.c:       return omap_device_build_ss(np,
-pdev_name, pdev_id, ohs, 1, pdata,
-arch/arm/plat-omap/omap_device.c: * platform_device record.  See
-omap_device_build_ss() for more
-arch/arm/plat-omap/omap_device.c: * passes along the return value of
-omap_device_build_ss().
-arch/arm/plat-omap/omap_device.c:       return omap_device_build_ss(NULL,
-pdev_name, pdev_id, ohs, 1, pdata,
-arch/arm/plat-omap/omap_device.c: * omap_device_build_ss - build and register an
-omap_device with multiple hwmods
-arch/arm/plat-omap/omap_device.c:struct platform_device
-*omap_device_build_ss(struct device_node *np,
-#>
+Please add a copyright notice.
 
--M
+> + * This module exposes the interface to kernel space for specifying
+> + * per-device PM QoS dependencies. It provides infrastructure for registration
+> + * of:
+> + *
+> + * Dependents on a QoS value : register requests
+> + * Watchers of QoS value : get notified when target QoS value changes
+> + *
+> + * This QoS design is best effort based. Dependents register their QoS needs.
+> + * Watchers register to keep track of the current QoS needs of the system.
+> + *
+> + * Note about the per-device constraint data struct allocation:
+> + * . The per-device constraints data struct ptr is tored into the device
+> + *    dev_pm_info.
+> + * . To minimize the data usage by the per-device constraints, the data struct
+> + *   is only allocated at the first call to dev_pm_qos_add_request.
+> + * . The data is later free'd when the device is removed from the system.
+> + * . The constraints_state variable from dev_pm_info tracks the data struct
+> + *    allocation state:
+> + *    DEV_PM_QOS_NO_DEVICE: No device present or device removed, no data
+> + *     allocated,
+> + *    DEV_PM_QOS_DEVICE_PRESENT: Device present, data not allocated and will be
+> + *     allocated at the first call to dev_pm_qos_add_request,
+> + *    DEV_PM_QOS_ALLOCATED: Device present, data allocated. The per-device
+> + *     PM QoS constraints framework is operational and constraints can be
+> + *     added, updated or removed using the dev_pm_qos_* API.
+> + *  . A global mutex protects the constraints users from the data being
+> + *     allocated and free'd.
+> + */
+> +
+> +#include <linux/pm_qos.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/slab.h>
+> +#include <linux/device.h>
+> +#include <linux/mutex.h>
+> +
+> +
+> +static DEFINE_MUTEX(dev_pm_qos_mtx);
+> +static void dev_pm_qos_constraints_allocate(struct device *dev);
+
+This header wouldn't be necessary if you put the definition of
+dev_pm_qos_constraints_allocate() before dev_pm_qos_add_request().
+
+> +
+> +/**
+> + * dev_pm_qos_add_request - inserts new qos request into the list
+> + * @dev: target device for the constraint
+> + * @req: pointer to a preallocated handle
+> + * @value: defines the qos request
+> + *
+> + * This function inserts a new entry in the device constraints list of
+> + * requested qos performance characteristics. It recomputes the aggregate
+> + * QoS expectations of parameters and initializes the dev_pm_qos_request
+> + * handle.  Caller needs to save this handle for later use in updates and
+> + * removal.
+> + */
+> +void dev_pm_qos_add_request(struct device *dev, struct dev_pm_qos_request *req,
+> +			    s32 value)
+> +{
+> +	if (!dev || !req) /*guard against callers passing in null */
+> +		return;
+> +
+> +	if (dev_pm_qos_request_active(req)) {
+> +		WARN(1, KERN_ERR "dev_pm_qos_add_request() called for already "
+> +			"added request\n");
+> +		return;
+> +	}
+> +
+> +	/* Allocate the constraints struct on the first call to add_request */
+> +	dev_pm_qos_constraints_allocate(dev);
+
+I would remove the locking from dev_pm_qos_constraints_allocate() and
+put it under the lock below.  The code would be cleaner this way.
+
+Also, the name is slightly misleading, because it suggests that the
+allocation happens every time, so I'd move the condition from there
+into the caller too.
+
+The remaning part of the patch looks OK to me, but I'll have another
+look at it tomorrow, when I'm less tired.
+
+Thanks,
+Rafael
