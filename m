@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 15/15] OMAP2+: cpuidle only influences the MPU state
-Date: Tue, 16 Aug 2011 15:43:18 +0200
-Message-ID: <1313502198-9298-16-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 06/15] PM QoS: implement the per-device PM QoS constraints
+Date: Tue, 16 Aug 2011 15:43:09 +0200
+Message-ID: <1313502198-9298-7-git-send-email-j-pihet@ti.com>
 References: <1313502198-9298-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:37270 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752732Ab1HPNoQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Aug 2011 09:44:16 -0400
-Received: by mail-ww0-f42.google.com with SMTP id 5so2232718wwe.1
-        for <linux-omap@vger.kernel.org>; Tue, 16 Aug 2011 06:44:16 -0700 (PDT)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:56049 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752752Ab1HPNry (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Aug 2011 09:47:54 -0400
+Received: by wwf5 with SMTP id 5so5893892wwf.1
+        for <linux-omap@vger.kernel.org>; Tue, 16 Aug 2011 06:47:53 -0700 (PDT)
 In-Reply-To: <1313502198-9298-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,211 +18,481 @@ Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Since cpuidle is a CPU centric framework it decides the MPU
-next power state based on the MPU exit_latency and target_residency
-figures.
+Implement the per-device PM QoS constraints by creating a device
+PM QoS API, which calls the PM QoS constraints management core code.
 
-The rest of the power domains get their next power state programmed
-from the devices PM QoS framework, via the devices wake-up latency
-constraints.
+The per-device latency constraints data strctures are stored
+in the device dev_pm_info struct.
 
-Note: the exit_latency and target_residency figures of the MPU
-include the MPU itself and the peripherals needed for the MPU to
-execute instructions (e.g. main memory, caches, IRQ controller,
-MMU etc). Some of those peripherals can belong to other power domains
-than the MPU subsystem and so the corresponding latencies must be
-included in this figure.
+The device PM code calls the init and destroy of the per-device constraints
+data struct in order to support the dynamic insertion and removal of the
+devices in the system.
 
-Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
-on MPU, CORE and PER.
+To minimize the data usage by the per-device constraints, the data struct
+is only allocated at the first call to dev_pm_qos_add_request.
+The data is later free'd when the device is removed from the system.
+A global mutex protects the constraints users from the data being
+allocated and free'd.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   42 +++++++++++-------------------------
- arch/arm/mach-omap2/pm.h          |   17 +++++++++++++-
- 2 files changed, 28 insertions(+), 31 deletions(-)
+ drivers/base/power/Makefile |    4 +-
+ drivers/base/power/main.c   |    3 +
+ drivers/base/power/qos.c    |  291 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pm.h          |    9 ++
+ include/linux/pm_qos.h      |   42 ++++++
+ 5 files changed, 347 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/base/power/qos.c
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 4bf6e6e..b43d1d2 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -37,26 +37,26 @@
- #ifdef CONFIG_CPU_IDLE
+diff --git a/drivers/base/power/Makefile b/drivers/base/power/Makefile
+index 2639ae7..b707447 100644
+--- a/drivers/base/power/Makefile
++++ b/drivers/base/power/Makefile
+@@ -1,4 +1,4 @@
+-obj-$(CONFIG_PM)	+= sysfs.o generic_ops.o
++obj-$(CONFIG_PM)	+= sysfs.o generic_ops.o qos.o
+ obj-$(CONFIG_PM_SLEEP)	+= main.o wakeup.o
+ obj-$(CONFIG_PM_RUNTIME)	+= runtime.o
+ obj-$(CONFIG_PM_TRACE_RTC)	+= trace.o
+@@ -6,4 +6,4 @@ obj-$(CONFIG_PM_OPP)	+= opp.o
+ obj-$(CONFIG_PM_GENERIC_DOMAINS)	+=  domain.o
+ obj-$(CONFIG_HAVE_CLK)	+= clock_ops.o
  
- /*
-- * The latencies/thresholds for various C states have
-+ * The MPU latencies/thresholds for various C states have
-  * to be configured from the respective board files.
-  * These are some default values (which might not provide
-  * the best power savings) used on boards which do not
-  * pass these details from the board file.
-  */
- static struct cpuidle_params cpuidle_params_table[] = {
--	/* C1 */
-+	/* C1 . MPU WFI + Core active */
- 	{2 + 2, 5, 1},
--	/* C2 */
-+	/* C2 . MPU WFI + Core inactive */
- 	{10 + 10, 30, 1},
--	/* C3 */
-+	/* C3 . MPU CSWR + Core inactive */
- 	{50 + 50, 300, 1},
--	/* C4 */
-+	/* C4 . MPU OFF + Core inactive */
- 	{1500 + 1800, 4000, 1},
--	/* C5 */
-+	/* C5 . MPU RET + Core RET */
- 	{2500 + 7500, 12000, 1},
--	/* C6 */
-+	/* C6 . MPU OFF + Core RET */
- 	{3000 + 8500, 15000, 1},
--	/* C7 */
-+	/* C7 . MPU OFF + Core OFF */
- 	{10000 + 30000, 300000, 1},
- };
- #define OMAP3_NUM_STATES ARRAY_SIZE(cpuidle_params_table)
-@@ -64,7 +64,6 @@ static struct cpuidle_params cpuidle_params_table[] = {
- /* Mach specific information to be recorded in the C-state driver_data */
- struct omap3_idle_statedata {
- 	u32 mpu_state;
--	u32 core_state;
- 	u8 valid;
- };
- struct omap3_idle_statedata omap3_idle_data[OMAP3_NUM_STATES];
-@@ -98,7 +97,7 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+-ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
+\ No newline at end of file
++ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
+diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+index a854591..956443f 100644
+--- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -22,6 +22,7 @@
+ #include <linux/mutex.h>
+ #include <linux/pm.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pm_qos.h>
+ #include <linux/resume-trace.h>
+ #include <linux/interrupt.h>
+ #include <linux/sched.h>
+@@ -97,6 +98,7 @@ void device_pm_add(struct device *dev)
+ 			dev_name(dev->parent));
+ 	list_add_tail(&dev->power.entry, &dpm_list);
+ 	mutex_unlock(&dpm_list_mtx);
++	dev_pm_qos_constraints_init(dev);
+ }
+ 
+ /**
+@@ -107,6 +109,7 @@ void device_pm_remove(struct device *dev)
  {
- 	struct omap3_idle_statedata *cx = cpuidle_get_statedata(state);
- 	struct timespec ts_preidle, ts_postidle, ts_idle;
--	u32 mpu_state = cx->mpu_state, core_state = cx->core_state;
-+	u32 mpu_state = cx->mpu_state;
- 
- 	/* Used to keep track of the total time in idle */
- 	getnstimeofday(&ts_preidle);
-@@ -107,7 +106,6 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	local_fiq_disable();
- 
- 	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
--	pwrdm_set_next_pwrst(core_pd, core_state);
- 
- 	if (omap_irq_pending() || need_resched())
- 		goto return_sleep_time;
-@@ -156,6 +154,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
- 	struct omap3_idle_statedata *cx = cpuidle_get_statedata(curr);
- 	u32 mpu_deepest_state = PWRDM_POWER_RET;
- 	u32 core_deepest_state = PWRDM_POWER_RET;
-+	u32 core_next_state = pwrdm_read_next_pwrst(core_pd);
- 
- 	if (enable_off_mode) {
- 		mpu_deepest_state = PWRDM_POWER_OFF;
-@@ -171,7 +170,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
- 	/* Check if current state is valid */
- 	if ((cx->valid) &&
- 	    (cx->mpu_state >= mpu_deepest_state) &&
--	    (cx->core_state >= core_deepest_state)) {
-+	    (core_next_state >= core_deepest_state)) {
- 		return curr;
- 	} else {
- 		int idx = OMAP3_NUM_STATES - 1;
-@@ -196,7 +195,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
- 			cx = cpuidle_get_statedata(&dev->states[idx]);
- 			if ((cx->valid) &&
- 			    (cx->mpu_state >= mpu_deepest_state) &&
--			    (cx->core_state >= core_deepest_state)) {
-+			    (core_next_state >= core_deepest_state)) {
- 				next = &dev->states[idx];
- 				break;
- 			}
-@@ -242,19 +241,11 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 	}
- 
- 	/*
--	 * FIXME: we currently manage device-specific idle states
--	 *        for PER and CORE in combination with CPU-specific
--	 *        idle states.  This is wrong, and device-specific
--	 *        idle management needs to be separated out into
--	 *        its own code.
--	 */
--
--	/*
- 	 * Prevent PER off if CORE is not in retention or off as this
- 	 * would disable PER wakeups completely.
- 	 */
- 	cx = cpuidle_get_statedata(state);
--	core_next_state = cx->core_state;
-+	core_next_state = pwrdm_read_next_pwrst(core_pd);
- 	per_next_state = per_saved_state = pwrdm_read_next_pwrst(per_pd);
- 	if ((per_next_state == PWRDM_POWER_OFF) &&
- 	    (core_next_state > PWRDM_POWER_RET))
-@@ -346,32 +337,26 @@ int __init omap3_idle_init(void)
- 	dev->safe_state = &dev->states[0];
- 	cx->valid = 1;	/* C1 is always valid */
- 	cx->mpu_state = PWRDM_POWER_ON;
--	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C2 . MPU WFI + Core inactive */
- 	cx = _fill_cstate(dev, 1, "MPU ON + CORE ON");
- 	cx->mpu_state = PWRDM_POWER_ON;
--	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C3 . MPU CSWR + Core inactive */
- 	cx = _fill_cstate(dev, 2, "MPU RET + CORE ON");
- 	cx->mpu_state = PWRDM_POWER_RET;
--	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C4 . MPU OFF + Core inactive */
- 	cx = _fill_cstate(dev, 3, "MPU OFF + CORE ON");
- 	cx->mpu_state = PWRDM_POWER_OFF;
--	cx->core_state = PWRDM_POWER_ON;
- 
- 	/* C5 . MPU RET + Core RET */
- 	cx = _fill_cstate(dev, 4, "MPU RET + CORE RET");
- 	cx->mpu_state = PWRDM_POWER_RET;
--	cx->core_state = PWRDM_POWER_RET;
- 
- 	/* C6 . MPU OFF + Core RET */
- 	cx = _fill_cstate(dev, 5, "MPU OFF + CORE RET");
- 	cx->mpu_state = PWRDM_POWER_OFF;
--	cx->core_state = PWRDM_POWER_RET;
- 
- 	/* C7 . MPU OFF + Core OFF */
- 	cx = _fill_cstate(dev, 6, "MPU OFF + CORE OFF");
-@@ -386,7 +371,6 @@ int __init omap3_idle_init(void)
- 			__func__);
- 	}
- 	cx->mpu_state = PWRDM_POWER_OFF;
--	cx->core_state = PWRDM_POWER_OFF;
- 
- 	dev->state_count = OMAP3_NUM_STATES;
- 	if (cpuidle_register_device(dev)) {
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 4e166ad..aca3b6c 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -43,9 +43,22 @@ static inline int omap4_opp_init(void)
-  * omap3_pm_init_cpuidle
-  */
- struct cpuidle_params {
--	u32 exit_latency;	/* exit_latency = sleep + wake-up latencies */
+ 	pr_debug("PM: Removing info for %s:%s\n",
+ 		 dev->bus ? dev->bus->name : "No Bus", dev_name(dev));
++	dev_pm_qos_constraints_destroy(dev);
+ 	complete_all(&dev->power.completion);
+ 	mutex_lock(&dpm_list_mtx);
+ 	list_del_init(&dev->power.entry);
+diff --git a/drivers/base/power/qos.c b/drivers/base/power/qos.c
+new file mode 100644
+index 0000000..304d68d
+--- /dev/null
++++ b/drivers/base/power/qos.c
+@@ -0,0 +1,291 @@
++/*
++ * This module exposes the interface to kernel space for specifying
++ * per-device PM QoS dependencies. It provides infrastructure for registration
++ * of:
++ *
++ * Dependents on a QoS value : register requests
++ * Watchers of QoS value : get notified when target QoS value changes
++ *
++ * This QoS design is best effort based. Dependents register their QoS needs.
++ * Watchers register to keep track of the current QoS needs of the system.
++ *
++ * Note about the per-device constraint data struct allocation:
++ * . The per-device constraints data struct ptr is tored into the device
++ *    dev_pm_info.
++ * . To minimize the data usage by the per-device constraints, the data struct
++ *   is only allocated at the first call to dev_pm_qos_add_request.
++ * . The data is later free'd when the device is removed from the system.
++ * . The constraints_state variable from dev_pm_info tracks the data struct
++ *    allocation state:
++ *    DEV_PM_QOS_NO_DEVICE: No device present or device removed, no data
++ *     allocated,
++ *    DEV_PM_QOS_DEVICE_PRESENT: Device present, data not allocated and will be
++ *     allocated at the first call to dev_pm_qos_add_request,
++ *    DEV_PM_QOS_ALLOCATED: Device present, data allocated. The per-device
++ *     PM QoS constraints framework is operational and constraints can be
++ *     added, updated or removed using the dev_pm_qos_* API.
++ *  . A global mutex protects the constraints users from the data being
++ *     allocated and free'd.
++ */
++
++#include <linux/pm_qos.h>
++#include <linux/spinlock.h>
++#include <linux/slab.h>
++#include <linux/device.h>
++#include <linux/mutex.h>
++
++
++static DEFINE_MUTEX(dev_pm_qos_mtx);
++static void dev_pm_qos_constraints_allocate(struct device *dev);
++
++/**
++ * dev_pm_qos_add_request - inserts new qos request into the list
++ * @dev: target device for the constraint
++ * @req: pointer to a preallocated handle
++ * @value: defines the qos request
++ *
++ * This function inserts a new entry in the device constraints list of
++ * requested qos performance characteristics. It recomputes the aggregate
++ * QoS expectations of parameters and initializes the dev_pm_qos_request
++ * handle.  Caller needs to save this handle for later use in updates and
++ * removal.
++ */
++void dev_pm_qos_add_request(struct device *dev, struct dev_pm_qos_request *req,
++			    s32 value)
++{
++	if (!dev || !req) /*guard against callers passing in null */
++		return;
++
++	if (dev_pm_qos_request_active(req)) {
++		WARN(1, KERN_ERR "dev_pm_qos_add_request() called for already "
++			"added request\n");
++		return;
++	}
++
++	/* Allocate the constraints struct on the first call to add_request */
++	dev_pm_qos_constraints_allocate(dev);
++
++	mutex_lock(&dev_pm_qos_mtx);
++
++	req->dev = dev;
++
++	/* Silently return if the device has been removed */
++	if (req->dev->power.constraints_state != DEV_PM_QOS_ALLOCATED)
++		goto out;
++
++	pm_qos_update_target(dev->power.constraints,
++			     &req->node, PM_QOS_ADD_REQ, value);
++
++out:
++	mutex_unlock(&dev_pm_qos_mtx);
++}
++EXPORT_SYMBOL_GPL(dev_pm_qos_add_request);
++
++/**
++ * dev_pm_qos_update_request - modifies an existing qos request
++ * @req : handle to list element holding a dev_pm_qos request to use
++ * @value: defines the qos request
++ *
++ * Updates an existing dev PM qos request along with updating the
++ * target value.
++ *
++ * Attempts are made to make this code callable on hot code paths.
++ */
++void dev_pm_qos_update_request(struct dev_pm_qos_request *req,
++			   s32 new_value)
++{
++	if (!req) /*guard against callers passing in null */
++		return;
++
++	if (!dev_pm_qos_request_active(req)) {
++		WARN(1, KERN_ERR "dev_pm_qos_update_request() called for "
++			"unknown object\n");
++		return;
++	}
++
++	mutex_lock(&dev_pm_qos_mtx);
++
++	/* Silently return if the device has been removed */
++	if (req->dev->power.constraints_state != DEV_PM_QOS_ALLOCATED)
++		goto out;
++
++	if (new_value != req->node.prio)
++		pm_qos_update_target(
++			req->dev->power.constraints,
++			&req->node, PM_QOS_UPDATE_REQ, new_value);
++
++out:
++	mutex_unlock(&dev_pm_qos_mtx);
++}
++EXPORT_SYMBOL_GPL(dev_pm_qos_update_request);
++
++/**
++ * dev_pm_qos_remove_request - modifies an existing qos request
++ * @req: handle to request list element
++ *
++ * Will remove pm qos request from the list of constraints and
++ * recompute the current target value. Call this on slow code paths.
++ */
++void dev_pm_qos_remove_request(struct dev_pm_qos_request *req)
++{
++	if (!req) /*guard against callers passing in null */
++		return;
++
++	if (!dev_pm_qos_request_active(req)) {
++		WARN(1, KERN_ERR "dev_pm_qos_remove_request() called for "
++			"unknown object\n");
++		return;
++	}
++
++	mutex_lock(&dev_pm_qos_mtx);
++
++	/* Silently return if the device has been removed */
++	if (req->dev->power.constraints_state != DEV_PM_QOS_ALLOCATED)
++		goto out;
++
++	pm_qos_update_target(req->dev->power.constraints,
++			     &req->node, PM_QOS_REMOVE_REQ,
++			     PM_QOS_DEFAULT_VALUE);
++	memset(req, 0, sizeof(*req));
++
++out:
++	mutex_unlock(&dev_pm_qos_mtx);
++}
++EXPORT_SYMBOL_GPL(dev_pm_qos_remove_request);
++
++/**
++ * dev_pm_qos_add_notifier - sets notification entry for changes to target value
++ * of per-device PM QoS constraints
++ *
++ * @dev: target device for the constraint
++ * @notifier: notifier block managed by caller.
++ *
++ * Will register the notifier into a notification chain that gets called
++ * upon changes to the target value for the device.
++ */
++int dev_pm_qos_add_notifier(struct device *dev, struct notifier_block *notifier)
++{
++	int retval = 0;
++
++	mutex_lock(&dev_pm_qos_mtx);
++
++	/* Silently return if the device has been removed */
++	if (dev->power.constraints_state != DEV_PM_QOS_ALLOCATED)
++		goto out;
++
++	retval = blocking_notifier_chain_register(
++			dev->power.constraints->notifiers,
++			notifier);
++
++out:
++	mutex_unlock(&dev_pm_qos_mtx);
++	return retval;
++}
++EXPORT_SYMBOL_GPL(dev_pm_qos_add_notifier);
++
++/**
++ * dev_pm_qos_remove_notifier - deletes notification for changes to target value
++ * of per-device PM QoS constraints
++ *
++ * @dev: target device for the constraint
++ * @notifier: notifier block to be removed.
++ *
++ * Will remove the notifier from the notification chain that gets called
++ * upon changes to the target value.
++ */
++int dev_pm_qos_remove_notifier(struct device *dev,
++			       struct notifier_block *notifier)
++{
++	int retval = 0;
++
++	mutex_lock(&dev_pm_qos_mtx);
++
++	/* Silently return if the device has been removed */
++	if (dev->power.constraints_state != DEV_PM_QOS_ALLOCATED)
++		goto out;
++
++	retval = blocking_notifier_chain_unregister(
++			dev->power.constraints->notifiers,
++			notifier);
++
++out:
++	mutex_unlock(&dev_pm_qos_mtx);
++	return retval;
++}
++EXPORT_SYMBOL_GPL(dev_pm_qos_remove_notifier);
++
++/* Called at the first call to add_request, for constraint data allocation */
++static void dev_pm_qos_constraints_allocate(struct device *dev)
++{
++	struct pm_qos_constraints *c;
++	struct blocking_notifier_head *n;
++
++	mutex_lock(&dev_pm_qos_mtx);
++
 +	/*
-+	 * exit_latency = sleep + wake-up latencies of the MPU,
-+	 * which include the MPU itself and the peripherals needed
-+	 * for the MPU to execute instructions (e.g. main memory,
-+	 * caches, IRQ controller, MMU etc). Some of those peripherals
-+	 * can belong to other power domains than the MPU subsystem and so
-+	 * the corresponding latencies must be included in this figure.
++	 * Return if the data is already allocated or
++	 * if the device has been removed
 +	 */
-+	u32 exit_latency;
-+	/*
-+	 * target_residency: required amount of time in the C state
-+	 * to break even on energy cost
-+	 */
- 	u32 target_residency;
--	u8 valid;		/* validates the C-state */
-+	/* validates the C-state on the given board */
-+	u8 valid;
++	if (dev->power.constraints_state != DEV_PM_QOS_DEVICE_PRESENT)
++		goto out;
++
++	c = kzalloc(sizeof(*c), GFP_KERNEL);
++	if (!c)
++		goto out;
++
++	n = kzalloc(sizeof(*n), GFP_KERNEL);
++	if (!n) {
++		kfree(c);
++		goto out;
++	}
++	BLOCKING_INIT_NOTIFIER_HEAD(n);
++
++	dev->power.constraints = c;
++	plist_head_init(&dev->power.constraints->list);
++	dev->power.constraints->target_value = PM_QOS_DEV_LAT_DEFAULT_VALUE;
++	dev->power.constraints->default_value =	PM_QOS_DEV_LAT_DEFAULT_VALUE;
++	dev->power.constraints->type = PM_QOS_MIN;
++	dev->power.constraints->notifiers = n;
++	dev->power.constraints_state = DEV_PM_QOS_ALLOCATED;
++
++out:
++	mutex_unlock(&dev_pm_qos_mtx);
++}
++
++/* Called from the device PM subsystem at device insertion */
++void dev_pm_qos_constraints_init(struct device *dev)
++{
++	mutex_lock(&dev_pm_qos_mtx);
++	dev->power.constraints_state = DEV_PM_QOS_DEVICE_PRESENT;
++	mutex_unlock(&dev_pm_qos_mtx);
++}
++
++/* Called from the device PM subsystem at device removal */
++void dev_pm_qos_constraints_destroy(struct device *dev)
++{
++	struct dev_pm_qos_request *req, *tmp;
++
++	mutex_lock(&dev_pm_qos_mtx);
++
++	if (dev->power.constraints_state == DEV_PM_QOS_ALLOCATED) {
++		/* Flush the constraints list for the device */
++		plist_for_each_entry_safe(req, tmp,
++					  &dev->power.constraints->list,
++					  node)
++			/*
++			 * Update constraints list and call the per-device
++			 * callbacks if needed
++			 */
++			pm_qos_update_target(req->dev->power.constraints,
++					     &req->node, PM_QOS_REMOVE_REQ,
++					     PM_QOS_DEFAULT_VALUE);
++
++		kfree(dev->power.constraints->notifiers);
++		kfree(dev->power.constraints);
++		dev->power.constraints = NULL;
++	}
++	dev->power.constraints_state = DEV_PM_QOS_NO_DEVICE;
++
++	mutex_unlock(&dev_pm_qos_mtx);
++}
++
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index f7c84c9..7a48951 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -421,6 +421,13 @@ enum rpm_request {
+ 
+ struct wakeup_source;
+ 
++/* Per-device PM QoS constraints data struct state */
++enum dev_pm_qos_state {
++	DEV_PM_QOS_NO_DEVICE,		/* No device present */
++	DEV_PM_QOS_DEVICE_PRESENT,	/* Device present, data not allocated */
++	DEV_PM_QOS_ALLOCATED,		/* Device present, data allocated */
++};
++
+ struct dev_pm_info {
+ 	pm_message_t		power_state;
+ 	unsigned int		can_wakeup:1;
+@@ -463,6 +470,8 @@ struct dev_pm_info {
+ 	unsigned long		accounting_timestamp;
+ #endif
+ 	void			*subsys_data;  /* Owned by the subsystem. */
++	struct pm_qos_constraints *constraints;
++	enum dev_pm_qos_state	constraints_state;
  };
  
- #if defined(CONFIG_PM) && defined(CONFIG_CPU_IDLE)
+ extern void update_pm_runtime_accounting(struct device *dev);
+diff --git a/include/linux/pm_qos.h b/include/linux/pm_qos.h
+index 84aa150..d3e2d80 100644
+--- a/include/linux/pm_qos.h
++++ b/include/linux/pm_qos.h
+@@ -19,12 +19,18 @@
+ #define PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE	(2000 * USEC_PER_SEC)
+ #define PM_QOS_NETWORK_LAT_DEFAULT_VALUE	(2000 * USEC_PER_SEC)
+ #define PM_QOS_NETWORK_THROUGHPUT_DEFAULT_VALUE	0
++#define PM_QOS_DEV_LAT_DEFAULT_VALUE		0
+ 
+ struct pm_qos_request {
+ 	struct plist_node node;
+ 	int pm_qos_class;
+ };
+ 
++struct dev_pm_qos_request {
++	struct plist_node node;
++	struct device *dev;
++};
++
+ enum pm_qos_type {
+ 	PM_QOS_UNITIALIZED,
+ 	PM_QOS_MAX,		/* return the largest value */
+@@ -51,6 +57,11 @@ enum pm_qos_req_action {
+ 	PM_QOS_REMOVE_REQ	/* Remove an existing request */
+ };
+ 
++static inline int dev_pm_qos_request_active(struct dev_pm_qos_request *req)
++{
++	return req->dev != 0;
++}
++
+ #ifdef CONFIG_PM
+ int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
+ 			 enum pm_qos_req_action action, int value);
+@@ -64,6 +75,17 @@ int pm_qos_request(int pm_qos_class);
+ int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier);
+ int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier);
+ int pm_qos_request_active(struct pm_qos_request *req);
++
++void dev_pm_qos_add_request(struct device *dev, struct dev_pm_qos_request *req,
++			    s32 value);
++void dev_pm_qos_update_request(struct dev_pm_qos_request *req, s32 new_value);
++void dev_pm_qos_remove_request(struct dev_pm_qos_request *req);
++int dev_pm_qos_add_notifier(struct device *dev,
++			    struct notifier_block *notifier);
++int dev_pm_qos_remove_notifier(struct device *dev,
++			       struct notifier_block *notifier);
++void dev_pm_qos_constraints_init(struct device *dev);
++void dev_pm_qos_constraints_destroy(struct device *dev);
+ #else
+ static inline int pm_qos_update_target(struct pm_qos_constraints *c,
+ 				       struct plist_node *node,
+@@ -89,6 +111,26 @@ static inline int pm_qos_remove_notifier(int pm_qos_class,
+ 			{ return 0; }
+ static inline int pm_qos_request_active(struct pm_qos_request *req)
+ 			{ return 0; }
++
++static inline void dev_pm_qos_add_request(struct device *dev,
++					  struct dev_pm_qos_request *req,
++					  s32 value)
++			{ return; }
++static inline void dev_pm_qos_update_request(struct dev_pm_qos_request *req,
++					     s32 new_value)
++			{ return; }
++static inline void dev_pm_qos_remove_request(struct dev_pm_qos_request *req)
++			{ return; }
++static inline int dev_pm_qos_add_notifier(struct device *dev,
++					  struct notifier_block *notifier)
++			{ return 0; }
++static inline int dev_pm_qos_remove_notifier(struct device *dev,
++					     struct notifier_block *notifier)
++			{ return 0; }
++static inline void dev_pm_qos_constraints_init(struct device *dev)
++			{ return; }
++static inline void dev_pm_qos_constraints_destroy(struct device *dev)
++			{ return; }
+ #endif
+ 
+ #endif
 -- 
 1.7.4.1
 
