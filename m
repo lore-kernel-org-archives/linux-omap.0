@@ -1,237 +1,141 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 5/7] omap: iovmm: remove unused functionality
-Date: Thu, 18 Aug 2011 02:10:06 +0300
-Message-ID: <1313622608-30397-6-git-send-email-ohad@wizery.com>
+Subject: [PATCH 6/7] omap: iommu: remove unused exported API
+Date: Thu, 18 Aug 2011 02:10:07 +0300
+Message-ID: <1313622608-30397-7-git-send-email-ohad@wizery.com>
 References: <1313622608-30397-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:63009 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754782Ab1HQXKt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Aug 2011 19:10:49 -0400
-Received: by mail-wy0-f174.google.com with SMTP id 24so1018589wyg.19
-        for <linux-omap@vger.kernel.org>; Wed, 17 Aug 2011 16:10:49 -0700 (PDT)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:63099 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754782Ab1HQXKw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Aug 2011 19:10:52 -0400
+Received: by mail-ww0-f44.google.com with SMTP id 5so1482308wwf.1
+        for <linux-omap@vger.kernel.org>; Wed, 17 Aug 2011 16:10:51 -0700 (PDT)
 In-Reply-To: <1313622608-30397-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, Arnd Bergmann <arnd@arndb.de>, iommu@lists.linux-foundation.org, Ohad Ben-Cohen <ohad@wizery.com>
 
-Remove unused functionality from OMAP's iovmm module.
+Remove unused public APIs from OMAP's iommu driver.
 
-The intention is to eventually completely replace iovmm with the
-generic DMA-API, so new code that'd need this iovmm functionality
-will have to extend the DMA-API instead.
+IOMMU functionality should be exposed only via the generic IOMMU API;
+this way drivers stay generic, and different IOMMU drivers
+don't need to duplicate similar functionalities.
+
+The rest of the API still exposed by OMAP's iommu will be evaluated
+and eventually either added to the generic IOMMU API (if relevant),
+or completely removed.
+
+The intention is that OMAP's iommu driver will eventually not expose
+any public API.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
- arch/arm/plat-omap/include/plat/iovmm.h |    8 --
- drivers/iommu/omap-iovmm.c              |  167 -------------------------------
- 2 files changed, 0 insertions(+), 175 deletions(-)
+ arch/arm/plat-omap/include/plat/iommu.h |    3 --
+ drivers/iommu/omap-iommu.c              |   59 -------------------------------
+ 2 files changed, 0 insertions(+), 62 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/iovmm.h b/arch/arm/plat-omap/include/plat/iovmm.h
-index e2f0b38..fc9aa6f 100644
---- a/arch/arm/plat-omap/include/plat/iovmm.h
-+++ b/arch/arm/plat-omap/include/plat/iovmm.h
-@@ -81,14 +81,6 @@ extern u32 iommu_vmalloc(struct iommu_domain *domain, struct iommu *obj,
- 				u32 da, size_t bytes, u32 flags);
- extern void iommu_vfree(struct iommu_domain *domain, struct iommu *obj,
- 				const u32 da);
--extern u32 iommu_kmap(struct iommu_domain *domain, struct iommu *obj, u32 da,
--				u32 pa, size_t bytes, u32 flags);
--extern void iommu_kunmap(struct iommu_domain *domain, struct iommu *obj,
--				u32 da);
--extern u32 iommu_kmalloc(struct iommu_domain *domain, struct iommu *obj,
--				u32 da, size_t bytes, u32 flags);
--extern void iommu_kfree(struct iommu_domain *domain, struct iommu *obj, u32 da);
--
- extern void *da_to_va(struct iommu *obj, u32 da);
+diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
+index 961b64f..eed5bdc 100644
+--- a/arch/arm/plat-omap/include/plat/iommu.h
++++ b/arch/arm/plat-omap/include/plat/iommu.h
+@@ -153,12 +153,9 @@ struct iommu_platform_data {
+ extern u32 iommu_arch_version(void);
  
- #endif /* __IOMMU_MMAP_H */
-diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
-index 809ca12..d5cf3cf 100644
---- a/drivers/iommu/omap-iovmm.c
-+++ b/drivers/iommu/omap-iovmm.c
-@@ -419,40 +419,6 @@ static inline void sgtable_drain_vmalloc(struct sg_table *sgt)
- 	BUG_ON(!sgt);
+ extern void iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e);
+-extern void iommu_set_twl(struct iommu *obj, bool on);
+-extern void flush_iotlb_range(struct iommu *obj, u32 start, u32 end);
+ 
+ extern int iopgtable_store_entry(struct iommu *obj, struct iotlb_entry *e);
+ 
+-extern int iommu_set_da_range(struct iommu *obj, u32 start, u32 end);
+ extern int iommu_set_isr(const char *name,
+ 			 int (*isr)(struct iommu *obj, u32 da, u32 iommu_errs,
+ 				    void *priv),
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index 7280e5b..d6b77c4 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -357,26 +357,6 @@ static void flush_iotlb_page(struct iommu *obj, u32 da)
  }
  
--static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, u32 da,
--								size_t len)
+ /**
+- * flush_iotlb_range - Clear an iommu tlb entries
+- * @obj:	target iommu
+- * @start:	iommu device virtual address(start)
+- * @end:	iommu device virtual address(end)
+- *
+- * Clear an iommu tlb entry which includes 'da' address.
+- **/
+-void flush_iotlb_range(struct iommu *obj, u32 start, u32 end)
 -{
--	unsigned int i;
--	struct scatterlist *sg;
+-	u32 da = start;
 -
--	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
--		unsigned bytes;
--
--		bytes = max_alignment(da | pa);
--		bytes = min_t(unsigned, bytes, iopgsz_max(len));
--
--		BUG_ON(!iopgsz_ok(bytes));
--
--		sg_set_buf(sg, phys_to_virt(pa), bytes);
--		/*
--		 * 'pa' is cotinuous(linear).
--		 */
--		pa += bytes;
--		da += bytes;
--		len -= bytes;
+-	while (da < end) {
+-		flush_iotlb_page(obj, da);
+-		/* FIXME: Optimize for multiple page size */
+-		da += IOPTE_SIZE;
 -	}
--	BUG_ON(len);
 -}
+-EXPORT_SYMBOL_GPL(flush_iotlb_range);
 -
--static inline void sgtable_drain_kmalloc(struct sg_table *sgt)
--{
--	/*
--	 * Actually this is not necessary at all, just exists for
--	 * consistency of the code readability
--	 */
--	BUG_ON(!sgt);
--}
--
- /* create 'da' <-> 'pa' mapping from 'sgt' */
- static int map_iovm_area(struct iommu_domain *domain, struct iovm_struct *new,
- 			const struct sg_table *sgt, u32 flags)
-@@ -764,139 +730,6 @@ void iommu_vfree(struct iommu_domain *domain, struct iommu *obj, const u32 da)
+-/**
+  * flush_iotlb_all - Clear all iommu tlb entries
+  * @obj:	target iommu
+  **/
+@@ -395,23 +375,6 @@ static void flush_iotlb_all(struct iommu *obj)
+ 	clk_disable(obj->clk);
  }
- EXPORT_SYMBOL_GPL(iommu_vfree);
  
--static u32 __iommu_kmap(struct iommu_domain *domain, struct iommu *obj,
--			u32 da, u32 pa, void *va, size_t bytes, u32 flags)
--{
--	struct sg_table *sgt;
--
--	sgt = sgtable_alloc(bytes, flags, da, pa);
--	if (IS_ERR(sgt))
--		return PTR_ERR(sgt);
--
--	sgtable_fill_kmalloc(sgt, pa, da, bytes);
--
--	da = map_iommu_region(domain, obj, da, sgt, va, bytes, flags);
--	if (IS_ERR_VALUE(da)) {
--		sgtable_drain_kmalloc(sgt);
--		sgtable_free(sgt);
--	}
--
--	return da;
--}
--
 -/**
-- * iommu_kmap  -  (d)-(p)-(v) address mapper
-- * @obj:	objective iommu
-- * @da:		contiguous iommu virtual memory
-- * @pa:		contiguous physical memory
-- * @flags:	iovma and page property
+- * iommu_set_twl - enable/disable table walking logic
+- * @obj:	target iommu
+- * @on:		enable/disable
 - *
-- * Creates 1-1-1 mapping and returns @da again, which can be
-- * adjusted if 'IOVMF_DA_FIXED' is not set.
+- * Function used to enable/disable TWL. If one wants to work
+- * exclusively with locked TLB entries and receive notifications
+- * for TLB miss then call this function to disable TWL.
 - */
--u32 iommu_kmap(struct iommu_domain *domain, struct iommu *obj, u32 da, u32 pa,
--						size_t bytes, u32 flags)
+-void iommu_set_twl(struct iommu *obj, bool on)
 -{
--	void *va;
+-	clk_enable(obj->clk);
+-	arch_iommu->set_twl(obj, on);
+-	clk_disable(obj->clk);
+-}
+-EXPORT_SYMBOL_GPL(iommu_set_twl);
 -
--	if (!obj || !obj->dev || !bytes)
+ #if defined(CONFIG_OMAP_IOMMU_DEBUG_MODULE)
+ 
+ ssize_t iommu_dump_ctx(struct iommu *obj, char *buf, ssize_t bytes)
+@@ -848,28 +811,6 @@ static int device_match_by_alias(struct device *dev, void *data)
+ }
+ 
+ /**
+- * iommu_set_da_range - Set a valid device address range
+- * @obj:		target iommu
+- * @start		Start of valid range
+- * @end			End of valid range
+- **/
+-int iommu_set_da_range(struct iommu *obj, u32 start, u32 end)
+-{
+-
+-	if (!obj)
+-		return -EFAULT;
+-
+-	if (end < start || !PAGE_ALIGN(start | end))
 -		return -EINVAL;
 -
--	bytes = PAGE_ALIGN(bytes);
+-	obj->da_start = start;
+-	obj->da_end = end;
 -
--	va = ioremap(pa, bytes);
--	if (!va)
--		return -ENOMEM;
--
--	flags |= IOVMF_LINEAR;
--	flags |= IOVMF_MMIO;
--
--	da = __iommu_kmap(domain, obj, da, pa, va, bytes, flags);
--	if (IS_ERR_VALUE(da))
--		iounmap(va);
--
--	return da;
+-	return 0;
 -}
--EXPORT_SYMBOL_GPL(iommu_kmap);
+-EXPORT_SYMBOL_GPL(iommu_set_da_range);
 -
 -/**
-- * iommu_kunmap  -  release virtual mapping obtained by 'iommu_kmap()'
-- * @obj:	objective iommu
-- * @da:		iommu device virtual address
-- *
-- * Frees the iommu virtually contiguous memory area starting at
-- * @da, which was passed to and was returned by'iommu_kmap()'.
-- */
--void iommu_kunmap(struct iommu_domain *domain, struct iommu *obj, u32 da)
--{
--	struct sg_table *sgt;
--	typedef void (*func_t)(const void *);
--
--	sgt = unmap_vm_area(domain, obj, da, (func_t)iounmap,
--			    IOVMF_LINEAR | IOVMF_MMIO);
--	if (!sgt)
--		dev_dbg(obj->dev, "%s: No sgt\n", __func__);
--	sgtable_free(sgt);
--}
--EXPORT_SYMBOL_GPL(iommu_kunmap);
--
--/**
-- * iommu_kmalloc  -  (d)-(p)-(v) address allocator and mapper
-- * @obj:	objective iommu
-- * @da:		contiguous iommu virtual memory
-- * @bytes:	bytes for allocation
-- * @flags:	iovma and page property
-- *
-- * Allocate @bytes linearly and creates 1-1-1 mapping and returns
-- * @da again, which might be adjusted if 'IOVMF_DA_FIXED' is not set.
-- */
--u32 iommu_kmalloc(struct iommu_domain *domain, struct iommu *obj, u32 da,
--						size_t bytes, u32 flags)
--{
--	void *va;
--	u32 pa;
--
--	if (!obj || !obj->dev || !bytes)
--		return -EINVAL;
--
--	bytes = PAGE_ALIGN(bytes);
--
--	va = kmalloc(bytes, GFP_KERNEL | GFP_DMA);
--	if (!va)
--		return -ENOMEM;
--	pa = virt_to_phys(va);
--
--	flags |= IOVMF_LINEAR;
--	flags |= IOVMF_ALLOC;
--
--	da = __iommu_kmap(domain, obj, da, pa, va, bytes, flags);
--	if (IS_ERR_VALUE(da))
--		kfree(va);
--
--	return da;
--}
--EXPORT_SYMBOL_GPL(iommu_kmalloc);
--
--/**
-- * iommu_kfree  -  release virtual mapping obtained by 'iommu_kmalloc()'
-- * @obj:	objective iommu
-- * @da:		iommu device virtual address
-- *
-- * Frees the iommu virtually contiguous memory area starting at
-- * @da, which was passed to and was returned by'iommu_kmalloc()'.
-- */
--void iommu_kfree(struct iommu_domain *domain, struct iommu *obj, u32 da)
--{
--	struct sg_table *sgt;
--
--	sgt = unmap_vm_area(domain, obj, da, kfree, IOVMF_LINEAR | IOVMF_ALLOC);
--	if (!sgt)
--		dev_dbg(obj->dev, "%s: No sgt\n", __func__);
--	sgtable_free(sgt);
--}
--EXPORT_SYMBOL_GPL(iommu_kfree);
--
--
- static int __init iovmm_init(void)
- {
- 	const unsigned long flags = SLAB_HWCACHE_ALIGN;
+  * omap_find_iommu_device() - find an omap iommu device by name
+  * @name:	name of the iommu device
+  *
 -- 
 1.7.4.1
 
