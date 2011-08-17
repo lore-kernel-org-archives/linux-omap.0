@@ -1,53 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP: powerdomains: Make all powerdomain target states
- as ON at init
-Date: Tue, 16 Aug 2011 19:56:46 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108161952000.9948@utopia.booyaka.com>
-References: <1310527588-13022-1-git-send-email-santosh.shilimkar@ti.com> <20110715080315.GC2611@legolas.emea.dhcp.ti.com> <alpine.DEB.2.00.1107150204510.16606@utopia.booyaka.com> <20110715081725.GE2611@legolas.emea.dhcp.ti.com> <alpine.DEB.2.00.1107150222400.16606@utopia.booyaka.com>
- <20110715083753.GG2611@legolas.emea.dhcp.ti.com>
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] OMAP: clockdomain: Wait for powerdomain to be ON when
+ using clockdomain force wakeup
+Date: Wed, 17 Aug 2011 10:41:44 +0530
+Message-ID: <4E4B4D90.9040103@ti.com>
+References: <1310527588-13022-1-git-send-email-santosh.shilimkar@ti.com> <1310527588-13022-2-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1107150159580.16606@utopia.booyaka.com> <4E214267.2090700@ti.com> <4E43E23C.2080207@ti.com> <alpine.DEB.2.00.1108120730220.10963@utopia.booyaka.com> <alpine.DEB.2.00.1108161946550.9948@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42591 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730Ab1HQB4r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Aug 2011 21:56:47 -0400
-In-Reply-To: <20110715083753.GG2611@legolas.emea.dhcp.ti.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:35155 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751978Ab1HQFMA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Aug 2011 01:12:00 -0400
+Received: by mail-yw0-f41.google.com with SMTP id 13so500637ywm.28
+        for <linux-omap@vger.kernel.org>; Tue, 16 Aug 2011 22:11:59 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1108161946550.9948@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, khilman@ti.com, p-titiano@ti.com, b-cousson@ti.com
 
-Hi,
+On Wednesday 17 August 2011 07:17 AM, Paul Walmsley wrote:
+>
+> Hi everyone
+>
+> I've updated this patch per my earlier comments and also to apply.
+> Please let me know if you have any issues with it ASAP.
+>
+>
+> - Paul
+>
+> From: Santosh Shilimkar<santosh.shilimkar@ti.com>
+> Date: Sat, 13 Aug 2011 08:56:28 +0530
+> Subject: [PATCH] [PATCH] OMAP: clockdomain: Wait for powerdomain to be ON
+>   when using clockdomain force wakeup
+>
+> While using clockdomain force wakeup method, not waiting for powerdomain
+> to be effectively ON may end up locking the clockdomain FSM until a
+> next wakeup event occurs.
+>
+> One such issue was seen on OMAP4430, where L4_PER was periodically
+> getting stuck in in-transition state when transitioning from from OSWR to ON.
+>
+> This issue was reported and investigated by Patrick Titiano<p-titiano@ti.com>
+>
+> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+> Reported-by: Patrick Titiano<p-titiano@ti.com>
+> Cc: Kevin Hilman<khilman@ti.com>
+> Cc: Benoit Cousson<b-cousson@ti.com>
+> Cc: Paul Walmsley<paul@pwsan.com>
+> [paul@pwsan.com: updated to apply; added transition wait on clkdm_deny_idle();
+>   remove two superfluous pwrdm_wait_transition() calls]
+> Signed-off-by: Paul Walmsley<paul@pwsan.com>
+> ---
+Thanks Paul. Patch looks good to me.
 
-On Fri, 15 Jul 2011, Felipe Balbi wrote:
-
-> How about something like:
-> 
-> /*
->  * Program target state of all power domains to ON. This is to prevent
->  * power domains from hitting low power states during boot up and
->  * potentially causing accesses to the address space of an IP while it
->  * is disabled.
->  *
->  * PM late init code will make sure of disabling all unused IPs later.
->  */
-> 
-> not sure if it's a lot better though.
-
-It's not directly related to accesses to the IP block's address space.  
-The problem happens when the driver (or the hwmod code) for a particular 
-device causes the last clock in a clockdomain to be disabled.  This allows 
-the clockdomain to go INACTIVE.
-
-At that point, if all of the clockdomains in the powerdomain are INACTIVE, 
-the powerdomain itself will switch to its "next power state". If the 
-bootloader had programmed the next power state to be OFF, for example, 
-then all devices in that powerdomain will lose context. 
-
-If this happens before the PM code initializes, or if the PM code is not 
-compiled in, then this will cause some strange behavior or crashes, since 
-the kernel won't be expecting devices to lose their context at that point.
-
-
-- Paul
+Regards
+Santosh
