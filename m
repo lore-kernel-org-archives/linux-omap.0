@@ -1,55 +1,71 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [lm-sensors] [RFC PATCH 6/6] hwmon: OMAP4: On die temperature
- sensor driver
-Date: Wed, 17 Aug 2011 20:33:42 +0530
-Message-ID: <CAJ6a13bEqxE0UZZVdthLYrc=dSHZ7-aEnOcF2ud0c_vxaaNWTQ@mail.gmail.com>
-References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
-	<1312979122-5896-7-git-send-email-j-keerthy@ti.com>
-	<D6D887BA8C9DFF48B5233887EF04654109E894BB3C@bgsmsx502.gar.corp.intel.com>
-	<CAJ6a13Z3JKCqd_WX4YjqG3e04n0mayD1f7K3MWyCSn=uhKzYMQ@mail.gmail.com>
-	<CAJ6a13Z-nfEfGUkpKAjwmHonqmAzhQYY_L=_b+ti9aOdwBFUKA@mail.gmail.com>
-	<20110817134504.GB12113@ericsson.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] Media controller: Define media_entity_init() and
+ media_entity_cleanup() conditionally
+Date: Wed, 17 Aug 2011 21:00:28 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404E3CDE6D9@dbde02.ent.ti.com>
+References: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:47135 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753077Ab1HQPDp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Aug 2011 11:03:45 -0400
-Received: by mail-iy0-f171.google.com with SMTP id 13so2115163iyf.30
-        for <linux-omap@vger.kernel.org>; Wed, 17 Aug 2011 08:03:43 -0700 (PDT)
-In-Reply-To: <20110817134504.GB12113@ericsson.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: "Ravi, Deepthy" <deepthy.ravi@ti.com>, "mchehab@infradead.org" <mchehab@infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "vishwanath.bs@ti.com" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "b-cousson@ti.com" <b-cousson@ti.com>, "rnayak@ti.com" <rnayak@ti.com>, "R, Durgadoss" <durgadoss.r@intel.com>
-
-On Wed, Aug 17, 2011 at 7:15 PM, Guenter Roeck
-<guenter.roeck@ericsson.com> wrote:
-> On Wed, Aug 17, 2011 at 06:37:10AM -0400, J, KEERTHY wrote:
-> [ ... ]
->>
->> Hi Guenter,
->>
->> Any inputs on the driver?
->>
-> Hi Keerthy.
->
-> I think there was so much feedback that I would just add noise
-> at this time, and stumble over the same issues.
-> I'll look into it after the feedback has been applied.
->
-Hi Guenter,
-
-Thanks for the response. I will resend with the comments incorporated.
-
-> Thanks,
-> Guenter
->
 
 
+> -----Original Message-----
+> From: Ravi, Deepthy
+> Sent: Wednesday, August 17, 2011 4:05 PM
+> To: mchehab@infradead.org; linux-media@vger.kernel.org; linux-
+> kernel@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org; Hiremath, Vaibhav; Ravi, Deepthy
+> Subject: [PATCH] Media controller: Define media_entity_init() and
+> media_entity_cleanup() conditionally
+> 
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Defines the two functions only when CONFIG_MEDIA_CONTROLLER
+> is enabled.
+[Hiremath, Vaibhav] Deepthy,
 
--- 
-Regards and Thanks,
-Keerthy
+You may want to mention about build failure without MEDIA_CONTROLLER option being enabled, especially if any sensor driver is being used between MC and non-MC framework compatible devices.
+For example, OMAP3 and AM3517, where TVP5146 is being used but OMAP3 is based on MC framework and AM3517 is based on simple sub-dev based interface.
+
+Thanks,
+Vaibhav
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> ---
+>  include/media/media-entity.h |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index cd8bca6..c90916e 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -121,9 +121,18 @@ struct media_entity_graph {
+>  	int top;
+>  };
+> 
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+>  int media_entity_init(struct media_entity *entity, u16 num_pads,
+>  		struct media_pad *pads, u16 extra_links);
+>  void media_entity_cleanup(struct media_entity *entity);
+> +#else
+> +static inline int media_entity_init(struct media_entity *entity, u16
+> num_pads,
+> +		struct media_pad *pads, u16 extra_links)
+> +{
+> +	return 0;
+> +}
+> +static inline void media_entity_cleanup(struct media_entity *entity) {}
+> +#endif
+> 
+>  int media_entity_create_link(struct media_entity *source, u16 source_pad,
+>  		struct media_entity *sink, u16 sink_pad, u32 flags);
+> --
+> 1.7.0.4
