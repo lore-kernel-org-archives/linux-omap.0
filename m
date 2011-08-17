@@ -1,159 +1,82 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 3/7] omap: iommu: stop exporting local functions
-Date: Thu, 18 Aug 2011 02:10:04 +0300
-Message-ID: <1313622608-30397-4-git-send-email-ohad@wizery.com>
+Subject: [PATCH 4/7] omap: iommu: PREFETCH_IOTLB cleanup
+Date: Thu, 18 Aug 2011 02:10:05 +0300
+Message-ID: <1313622608-30397-5-git-send-email-ohad@wizery.com>
 References: <1313622608-30397-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ww0-f44.google.com ([74.125.82.44]:63099 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754782Ab1HQXKo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Aug 2011 19:10:44 -0400
+	with ESMTP id S1754782Ab1HQXKr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Aug 2011 19:10:47 -0400
 Received: by mail-ww0-f44.google.com with SMTP id 5so1482308wwf.1
-        for <linux-omap@vger.kernel.org>; Wed, 17 Aug 2011 16:10:43 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Wed, 17 Aug 2011 16:10:46 -0700 (PDT)
 In-Reply-To: <1313622608-30397-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, Arnd Bergmann <arnd@arndb.de>, iommu@lists.linux-foundation.org, Ohad Ben-Cohen <ohad@wizery.com>
 
-Stop exporting functions that are used only within the iommu
-driver itself.
+Use PREFETCH_IOTLB to control the content of the called function,
+instead of inlining it in the code.
 
-Eventually OMAP's iommu driver should only expose API via the generic
-IOMMU framework.
+This improves readability of the code, and also prevents an "unused
+function" warning to show up when PREFETCH_IOTLB isn't set.
+
+While we're at it, rename load_iotlb_entry to prefetch_iotlb_entry
+to better reflect the purpose of that function.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
- arch/arm/plat-omap/include/plat/iommu.h |    8 --------
- drivers/iommu/omap-iommu.c              |   19 +++++++------------
- 2 files changed, 7 insertions(+), 20 deletions(-)
+ drivers/iommu/omap-iommu.c |   18 +++++++++++++-----
+ 1 files changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
-index db1c492..961b64f 100644
---- a/arch/arm/plat-omap/include/plat/iommu.h
-+++ b/arch/arm/plat-omap/include/plat/iommu.h
-@@ -153,18 +153,10 @@ struct iommu_platform_data {
- extern u32 iommu_arch_version(void);
- 
- extern void iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e);
--extern u32 iotlb_cr_to_virt(struct cr_regs *cr);
--
--extern int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e);
- extern void iommu_set_twl(struct iommu *obj, bool on);
--extern void flush_iotlb_page(struct iommu *obj, u32 da);
- extern void flush_iotlb_range(struct iommu *obj, u32 start, u32 end);
--extern void flush_iotlb_all(struct iommu *obj);
- 
- extern int iopgtable_store_entry(struct iommu *obj, struct iotlb_entry *e);
--extern void iopgtable_lookup_entry(struct iommu *obj, u32 da, u32 **ppgd,
--				   u32 **ppte);
--extern size_t iopgtable_clear_entry(struct iommu *obj, u32 iova);
- 
- extern int iommu_set_da_range(struct iommu *obj, u32 start, u32 end);
- extern int iommu_set_isr(const char *name,
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index ffd1b27..ed81977 100644
+index ed81977..7280e5b 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -170,11 +170,10 @@ static inline struct cr_regs *iotlb_alloc_cr(struct iommu *obj,
- 	return arch_iommu->alloc_cr(obj, e);
+@@ -248,11 +248,12 @@ static struct cr_regs __iotlb_read_cr(struct iommu *obj, int n)
  }
  
--u32 iotlb_cr_to_virt(struct cr_regs *cr)
-+static u32 iotlb_cr_to_virt(struct cr_regs *cr)
- {
- 	return arch_iommu->cr_to_virt(cr);
- }
--EXPORT_SYMBOL_GPL(iotlb_cr_to_virt);
- 
- static u32 get_iopte_attr(struct iotlb_entry *e)
- {
-@@ -253,7 +252,7 @@ static struct cr_regs __iotlb_read_cr(struct iommu *obj, int n)
+ /**
+- * load_iotlb_entry - Set an iommu tlb entry
++ * prefetch_iotlb_entry - Set an iommu tlb entry
   * @obj:	target iommu
   * @e:		an iommu tlb entry info
   **/
--int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
-+static int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
+-static int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
++#ifdef PREFETCH_IOTLB
++static int prefetch_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
  {
  	int err = 0;
  	struct iotlb_lock l;
-@@ -309,7 +308,6 @@ out:
- 	clk_disable(obj->clk);
+@@ -309,6 +310,15 @@ out:
  	return err;
  }
--EXPORT_SYMBOL_GPL(load_iotlb_entry);
  
++#else /* !PREFETCH_IOTLB */
++
++static int prefetch_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
++{
++	return 0;
++}
++
++#endif /* !PREFETCH_IOTLB */
++
  /**
   * flush_iotlb_page - Clear an iommu tlb entry
-@@ -318,7 +316,7 @@ EXPORT_SYMBOL_GPL(load_iotlb_entry);
-  *
-  * Clear an iommu tlb entry which includes 'da' address.
-  **/
--void flush_iotlb_page(struct iommu *obj, u32 da)
-+static void flush_iotlb_page(struct iommu *obj, u32 da)
- {
- 	int i;
- 	struct cr_regs cr;
-@@ -347,7 +345,6 @@ void flush_iotlb_page(struct iommu *obj, u32 da)
- 	if (i == obj->nr_tlb_entries)
- 		dev_dbg(obj->dev, "%s: no page for %08x\n", __func__, da);
- }
--EXPORT_SYMBOL_GPL(flush_iotlb_page);
- 
- /**
-  * flush_iotlb_range - Clear an iommu tlb entries
-@@ -373,7 +370,7 @@ EXPORT_SYMBOL_GPL(flush_iotlb_range);
-  * flush_iotlb_all - Clear all iommu tlb entries
   * @obj:	target iommu
-  **/
--void flush_iotlb_all(struct iommu *obj)
-+static void flush_iotlb_all(struct iommu *obj)
- {
- 	struct iotlb_lock l;
+@@ -662,10 +672,8 @@ int iopgtable_store_entry(struct iommu *obj, struct iotlb_entry *e)
  
-@@ -387,7 +384,6 @@ void flush_iotlb_all(struct iommu *obj)
- 
- 	clk_disable(obj->clk);
+ 	flush_iotlb_page(obj, e->da);
+ 	err = iopgtable_store_entry_core(obj, e);
+-#ifdef PREFETCH_IOTLB
+ 	if (!err)
+-		load_iotlb_entry(obj, e);
+-#endif
++		prefetch_iotlb_entry(obj, e);
+ 	return err;
  }
--EXPORT_SYMBOL_GPL(flush_iotlb_all);
- 
- /**
-  * iommu_set_twl - enable/disable table walking logic
-@@ -681,7 +677,8 @@ EXPORT_SYMBOL_GPL(iopgtable_store_entry);
-  * @ppgd:	iommu pgd entry pointer to be returned
-  * @ppte:	iommu pte entry pointer to be returned
-  **/
--void iopgtable_lookup_entry(struct iommu *obj, u32 da, u32 **ppgd, u32 **ppte)
-+static void
-+iopgtable_lookup_entry(struct omap_iommu *obj, u32 da, u32 **ppgd, u32 **ppte)
- {
- 	u32 *iopgd, *iopte = NULL;
- 
-@@ -695,7 +692,6 @@ out:
- 	*ppgd = iopgd;
- 	*ppte = iopte;
- }
--EXPORT_SYMBOL_GPL(iopgtable_lookup_entry);
- 
- static size_t iopgtable_clear_entry_core(struct iommu *obj, u32 da)
- {
-@@ -750,7 +746,7 @@ out:
-  * @obj:	target iommu
-  * @da:		iommu device virtual address
-  **/
--size_t iopgtable_clear_entry(struct iommu *obj, u32 da)
-+static size_t iopgtable_clear_entry(struct iommu *obj, u32 da)
- {
- 	size_t bytes;
- 
-@@ -763,7 +759,6 @@ size_t iopgtable_clear_entry(struct iommu *obj, u32 da)
- 
- 	return bytes;
- }
--EXPORT_SYMBOL_GPL(iopgtable_clear_entry);
- 
- static void iopgtable_clear_entry_all(struct iommu *obj)
- {
+ EXPORT_SYMBOL_GPL(iopgtable_store_entry);
 -- 
 1.7.4.1
 
