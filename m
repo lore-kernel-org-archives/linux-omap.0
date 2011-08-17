@@ -1,61 +1,85 @@
-From: Santosh <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] OMAP: clockdomain: Wait for powerdomain to be ON when
- using clockdomain force wakeup
-Date: Wed, 17 Aug 2011 10:41:44 +0530
-Message-ID: <4E4B4D90.9040103@ti.com>
-References: <1310527588-13022-1-git-send-email-santosh.shilimkar@ti.com> <1310527588-13022-2-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1107150159580.16606@utopia.booyaka.com> <4E214267.2090700@ti.com> <4E43E23C.2080207@ti.com> <alpine.DEB.2.00.1108120730220.10963@utopia.booyaka.com> <alpine.DEB.2.00.1108161946550.9948@utopia.booyaka.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [RFC: PATCH 0/4] Introducing TI's New SoC/board AM335XEVM
+Date: Wed, 17 Aug 2011 11:28:12 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404E3BC9690@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1313058630-32447-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:35155 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751978Ab1HQFMA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Aug 2011 01:12:00 -0400
-Received: by mail-yw0-f41.google.com with SMTP id 13so500637ywm.28
-        for <linux-omap@vger.kernel.org>; Tue, 16 Aug 2011 22:11:59 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1108161946550.9948@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43303 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750813Ab1HQF6W convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Aug 2011 01:58:22 -0400
+In-Reply-To: <1313058630-32447-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, khilman@ti.com, p-titiano@ti.com, b-cousson@ti.com
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wednesday 17 August 2011 07:17 AM, Paul Walmsley wrote:
->
-> Hi everyone
->
-> I've updated this patch per my earlier comments and also to apply.
-> Please let me know if you have any issues with it ASAP.
->
->
-> - Paul
->
-> From: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> Date: Sat, 13 Aug 2011 08:56:28 +0530
-> Subject: [PATCH] [PATCH] OMAP: clockdomain: Wait for powerdomain to be ON
->   when using clockdomain force wakeup
->
-> While using clockdomain force wakeup method, not waiting for powerdomain
-> to be effectively ON may end up locking the clockdomain FSM until a
-> next wakeup event occurs.
->
-> One such issue was seen on OMAP4430, where L4_PER was periodically
-> getting stuck in in-transition state when transitioning from from OSWR to ON.
->
-> This issue was reported and investigated by Patrick Titiano<p-titiano@ti.com>
->
-> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
-> Reported-by: Patrick Titiano<p-titiano@ti.com>
-> Cc: Kevin Hilman<khilman@ti.com>
-> Cc: Benoit Cousson<b-cousson@ti.com>
-> Cc: Paul Walmsley<paul@pwsan.com>
-> [paul@pwsan.com: updated to apply; added transition wait on clkdm_deny_idle();
->   remove two superfluous pwrdm_wait_transition() calls]
-> Signed-off-by: Paul Walmsley<paul@pwsan.com>
-> ---
-Thanks Paul. Patch looks good to me.
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Thursday, August 11, 2011 4:00 PM
+> To: linux-omap@vger.kernel.org
+> Cc: tony@atomide.com; Hilman, Kevin; paul@pwsan.com; linux-arm-
+> kernel@lists.infradead.org; Hiremath, Vaibhav
+> Subject: [RFC: PATCH 0/4] Introducing TI's New SoC/board AM335XEVM
+> 
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> This patch set adds support for AM335x device having
+> Cortex-A8 MPU.
+> 
+> AM335X is treated as another OMAP3 variant where the
+> cpu class is considered as OMAP34XX and the type is AM335X.
+> Also, AM335X devices shares similar architecture as TI81XX devices;
+> this means, cpu_is_omap34xx(), cpu_is_ti81xx() and
+> cpu_is_am335x() checks return success for AM335X.
+> 
+> Currently submitting this patch series as a RFC, to initiate the
+> discussion on the approach we have chosen for AM335x device support.
+> Based on the feedback, will submit the final version of patch series
+> immediately.
+[Hiremath, Vaibhav] Tony/Kevin/Paul and others,
 
-Regards
-Santosh
+Any comments/inputs/suggestions on this patch series?
+
+Thanks,
+Vaibhav
+
+
+> 
+> This patch series is created on top of linux-omap/master and
+> Hemant's TI814X patches submitted recently.
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53457.html
+> 
+> Also, I have validated OMAP3 boot test with this patch-series on OMAP3EVM.
+> 
+> Afzal Mohammed (4):
+>   AM335X: Update common omap platform files
+>   AM335X: Update common OMAP machine specific sources
+>   AM335X: Create board support and enable build for AM335XEVM
+>   AM335X: Add low level debugging support
+> 
+>  arch/arm/mach-omap2/Kconfig                    |    7 +++-
+>  arch/arm/mach-omap2/Makefile                   |    2 +
+>  arch/arm/mach-omap2/board-am335xevm.c          |   57
+> ++++++++++++++++++++++++
+>  arch/arm/mach-omap2/clock3xxx_data.c           |    3 +
+>  arch/arm/mach-omap2/common.c                   |   16 +++++++
+>  arch/arm/mach-omap2/id.c                       |    6 +++
+>  arch/arm/mach-omap2/include/mach/debug-macro.S |   21 +++++++++
+>  arch/arm/plat-omap/include/plat/clkdev_omap.h  |    1 +
+>  arch/arm/plat-omap/include/plat/clock.h        |    1 +
+>  arch/arm/plat-omap/include/plat/cpu.h          |   14 ++++++
+>  arch/arm/plat-omap/include/plat/io.h           |   12 +++++
+>  arch/arm/plat-omap/include/plat/omap34xx.h     |    2 +
+>  arch/arm/plat-omap/include/plat/serial.h       |    4 ++
+>  arch/arm/plat-omap/include/plat/ti81xx.h       |    4 ++
+>  arch/arm/plat-omap/include/plat/uncompress.h   |    6 +++
+>  15 files changed, 155 insertions(+), 1 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-am335xevm.c
+
