@@ -1,66 +1,69 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 0/7] omap: iommu migration, relocation and cleanups
-Date: Thu, 18 Aug 2011 13:50:46 +0300 (EEST)
-Message-ID: <20110818.135046.3757848928175252.Hiroshi.DOYU@nokia.com>
-References: <1313622608-30397-1-git-send-email-ohad@wizery.com>
-	<201108181112.55592.laurent.pinchart@ideasonboard.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [RFC PATCH 0/6 V2] OMAP4: Temperature sensor driver
+Date: Thu, 18 Aug 2011 16:22:09 +0530
+Message-ID: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201108181112.55592.laurent.pinchart@ideasonboard.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ohad@wizery.com
-Cc: arnd@arndb.de, tony@atomide.com, Joerg.Roedel@amd.com, iommu@lists.linux-foundation.org, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49810 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753228Ab1HRKw0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Aug 2011 06:52:26 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7IAqMxZ017442
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 18 Aug 2011 05:52:25 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7IAqMBu027116
+	for <linux-omap@vger.kernel.org>; Thu, 18 Aug 2011 16:22:22 +0530 (IST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>
 
-Hi Ohad,
+Hello,
 
-From: ext Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/7] omap: iommu migration, relocation and cleanups
-Date: Thu, 18 Aug 2011 11:12:55 +0200
+The rfc patch series for the on die temperature sensor driver. I need
+feedback on the overall structure of the driver.
+The rfc patch set has the device file, omap4 on die temperature sensor
+hwmon driver. hwmod, clk support. The patch set compiles
+on top of LO tree Master branch.
 
-> Hi Ohad,
-> 
-> On Thursday 18 August 2011 01:10:01 Ohad Ben-Cohen wrote:
->> 1. Migrate OMAP's iommu driver to the generic IOMMU API, and move it
->> to the dedicated iommu folder.
->> 
->> 2. Fix omap3isp appropriately so it doesn't break.
->> 
->> 3. Adapt OMAP's iovmm appropriately as well, because omap3isp still relies
->> on it. The plan is eventually to remove iovmm and replace it with the
->> upcoming IOMMU-based generic DMA-API. Move iovmm to the iommu folder too;
->> it belongs there more than it belongs in the OMAP folders.
->> 
->> 4. Start cleaning up OMAP's iommu components towards the end goal, where
->>     1) omap-iommu no longer exports public API (and instead provides its
->>        entire functionality via the generic IOMMU API).
->>     2) omap-iovmm is removed.
+This patch series is tested for boot-up on OMAP4460. The temperature
+reading and the interrupts generation on crossing the temperature
+thresholds also tested.
 
-Good migration path!
+V2:
+(1) Fixed comments on return values in the driver.
+(2) Moved the TEMPSOFF setting code to the activate/deactivate hooks.
+(3) Used idr to pass for the device id.
 
->> Changes:
->> 1. Migrate iommu, iovmm and omap3isp in a single patch for bisectibility
->> sake.
->> 2. Apply Laurent Pinchart's comments (thanks Laurent!)
-> 
-> You're welcome.
-> 
->> 3. Rebase to 3.1-rc2
-> 
-> For the OMAP3 ISP driver changes,
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Benoit Cousson (1):
+  OMAP4: Hwmod: OMAP temperature sensor
 
-For the rest of omap iommu/iovmm patches, they look good:
+Keerthy (5):
+  OMAP4: Clock: Associate clocks for OMAP temperature sensor
+  OMAP4: Adding the temperature sensor register set bit fields
+  OMAP4460: Temperature sensor data
+  OMAP4: Temperature sensor device support
+  hwmon: OMAP4: On die temperature sensor driver
 
-Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+ Documentation/hwmon/omap_temp_sensor               |   27 +
+ arch/arm/mach-omap2/Makefile                       |    3 +-
+ arch/arm/mach-omap2/clock44xx_data.c               |    2 +-
+ .../include/mach/ctrl_module_core_44xx.h           |   70 ++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   61 ++
+ arch/arm/mach-omap2/temp_sensor4460_data.c         |   63 ++
+ arch/arm/mach-omap2/temp_sensor_device.c           |  178 ++++
+ arch/arm/plat-omap/Kconfig                         |   12 +
+ .../plat-omap/include/plat/temperature_sensor.h    |   89 ++
+ drivers/hwmon/Kconfig                              |   11 +
+ drivers/hwmon/Makefile                             |    1 +
+ drivers/hwmon/omap_temp_sensor.c                   |  918 ++++++++++++++++++++
+ 12 files changed, 1420 insertions(+), 15 deletions(-)
+ create mode 100644 Documentation/hwmon/omap_temp_sensor
+ create mode 100644 arch/arm/mach-omap2/temp_sensor4460_data.c
+ create mode 100644 arch/arm/mach-omap2/temp_sensor_device.c
+ create mode 100644 arch/arm/plat-omap/include/plat/temperature_sensor.h
+ create mode 100644 drivers/hwmon/omap_temp_sensor.c
+
