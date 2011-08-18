@@ -1,60 +1,53 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [RFC PATCH 3/6 V2] OMAP4460: Temperature sensor data
-Date: Thu, 18 Aug 2011 16:22:12 +0530
-Message-ID: <1313664735-8917-4-git-send-email-j-keerthy@ti.com>
+Subject: [RFC PATCH 5/6 V2] OMAP4: Temperature sensor device support
+Date: Thu, 18 Aug 2011 16:22:14 +0530
+Message-ID: <1313664735-8917-6-git-send-email-j-keerthy@ti.com>
 References: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46639 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45547 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755508Ab1HRKwd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Aug 2011 06:52:33 -0400
+	id S1755508Ab1HRKwf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Aug 2011 06:52:35 -0400
 In-Reply-To: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Keerthy <j-keerthy@ti.com>, tony@atomide.com
 
-The register set and the
-bit fields might vary across OMAP versions. Hence
-creating a structure comprising of all the registers
-and bit fields to make the driver uniform for all the
-versions with different register sets. The data file
-contains the structure populated with register offsets
-and bit fields corresponding to OMAP4460 on die sensor.
+The device file adds the device support for OMAP4
+on die temperature sensor.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 Cc: tony@atomide.com
 ---
- arch/arm/mach-omap2/Makefile                       |    2 +-
- arch/arm/mach-omap2/temp_sensor4460_data.c         |   63 ++++++++++++++
- .../plat-omap/include/plat/temperature_sensor.h    |   89 ++++++++++++++++++++
- 3 files changed, 153 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/temp_sensor4460_data.c
- create mode 100644 arch/arm/plat-omap/include/plat/temperature_sensor.h
+ arch/arm/mach-omap2/Makefile             |    1 +
+ arch/arm/mach-omap2/temp_sensor_device.c |  178 ++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/Kconfig               |   12 ++
+ 3 files changed, 191 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/temp_sensor_device.c
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index fb02937..2d5d981 100644
+index 2d5d981..5812fb4 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -86,7 +86,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o \
- obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
- 					   cm44xx.o prcm_mpu44xx.o \
- 					   prminst44xx.o vc44xx_data.o \
--					   vp44xx_data.o
-+					   vp44xx_data.o temp_sensor4460_data.o
+@@ -18,6 +18,7 @@ obj-$(CONFIG_ARCH_OMAP4) += prm44xx.o $(hwmod-common)
  
- # OMAP voltage domains
- ifeq ($(CONFIG_PM),y)
-diff --git a/arch/arm/mach-omap2/temp_sensor4460_data.c b/arch/arm/mach-omap2/temp_sensor4460_data.c
+ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+ 
++obj-$(CONFIG_OMAP_TEMP_SENSOR)          += temp_sensor_device.o
+ obj-$(CONFIG_TWL4030_CORE) += omap_twl.o
+ 
+ # SMP support ONLY available for OMAP4
+diff --git a/arch/arm/mach-omap2/temp_sensor_device.c b/arch/arm/mach-omap2/temp_sensor_device.c
 new file mode 100644
-index 0000000..294963d
+index 0000000..083f267
 --- /dev/null
-+++ b/arch/arm/mach-omap2/temp_sensor4460_data.c
-@@ -0,0 +1,63 @@
++++ b/arch/arm/mach-omap2/temp_sensor_device.c
+@@ -0,0 +1,178 @@
 +/*
-+ * OMAP4460 on die Temperature sensor data file
++ * OMAP on die Temperature sensor device file
 + *
 + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
 + * Author: J Keerthy <j-keerthy@ti.com>
@@ -75,142 +68,185 @@ index 0000000..294963d
 + *
 + */
 +
++#include <linux/delay.h>
 +#include <linux/slab.h>
-+#include "control.h"
++#include <linux/io.h>
++#include <linux/mutex.h>
++#include <linux/idr.h>
++#include <plat/omap_device.h>
++#include "pm.h"
 +#include <plat/temperature_sensor.h>
 +
-+/*
-+ * OMAP4460 has one instance of thermal sensor for MPU
-+ * need to describe the individual bit fields
-+ */
-+struct omap_temp_sensor_registers omap_mpu_temp_sensor_registers = {
-+	.temp_sensor_ctrl		= OMAP4460_TEMP_SENSOR_CTRL_OFFSET,
-+	.bgap_tempsoff_mask		= OMAP4460_BGAP_TEMPSOFF_MASK,
-+	.bgap_soc_mask			= OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK,
-+	.bgap_eocz_mask			= OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK,
-+	.bgap_dtemp_mask		= OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK,
 +
-+	.bgap_mask_ctrl			= OMAP4460_BGAP_CTRL_OFFSET,
-+	.mask_hot_mask			= OMAP4460_MASK_HOT_MASK,
-+	.mask_cold_mask			= OMAP4460_MASK_COLD_MASK,
++int omap_temp_sensor_device_idle(struct omap_device *od)
++{
++	struct	omap_temp_sensor_registers	*registers;
++	struct	resource			*mem;
++	void	__iomem				*phy_base;
++	unsigned long				timeout;
++	u32					ret = 0, temp;
 +
-+	.bgap_mode_ctrl			= OMAP4460_BGAP_CTRL_OFFSET,
-+	.mode_ctrl_mask			= OMAP4460_SINGLE_MODE_MASK,
++	mem = platform_get_resource(&od->pdev, IORESOURCE_MEM, 0);
++	if (!mem) {
++		dev_err(&od->pdev.dev, "no mem resource\n");
++		ret = -EINVAL;
++		goto plat_res_err;
++	}
 +
-+	.bgap_counter			= OMAP4460_BGAP_COUNTER_OFFSET,
-+	.counter_mask			= OMAP4460_COUNTER_MASK,
++	phy_base = ioremap(mem->start, resource_size(mem));
 +
-+	.bgap_threshold			= OMAP4460_BGAP_THRESHOLD_OFFSET,
-+	.threshold_thot_mask		= OMAP4460_T_HOT_MASK,
-+	.threshold_tcold_mask		= OMAP4460_T_COLD_MASK,
++	if (!strcmp(od->hwmods[0]->dev_attr, "mpu"))
++		registers = &omap_mpu_temp_sensor_registers;
 +
-+	.thsut_threshold		= OMAP4460_BGAP_TSHUT_OFFSET,
-+	.tshut_hot_mask			= OMAP4460_TSHUT_HOT_MASK,
-+	.tshut_cold_mask		= OMAP4460_TSHUT_COLD_MASK,
++	temp = __raw_readl(phy_base + registers->temp_sensor_ctrl);
++	temp |= registers->bgap_tempsoff_mask;
 +
-+	.bgap_status			= OMAP4460_BGAP_STATUS_OFFSET,
-+	.status_clean_stop_mask		= OMAP4460_CLEAN_STOP_MASK,
-+	.status_bgap_alert_mask		= OMAP4460_BGAP_ALERT_MASK,
-+	.status_hot_mask		= OMAP4460_HOT_FLAG_MASK,
-+	.status_cold_mask		= OMAP4460_COLD_FLAG_MASK,
++	/* BGAP_TEMPSOFF should be set to 1 before gating clock */
++	__raw_writel(temp, phy_base + registers->temp_sensor_ctrl);
++	temp = __raw_readl(phy_base + registers->bgap_status);
++	timeout = jiffies + msecs_to_jiffies(5);
 +
-+	.bgap_efuse			= OMAP4460_FUSE_OPP_BGAP,
-+};
-diff --git a/arch/arm/plat-omap/include/plat/temperature_sensor.h b/arch/arm/plat-omap/include/plat/temperature_sensor.h
-new file mode 100644
-index 0000000..a3186f9
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/temperature_sensor.h
-@@ -0,0 +1,89 @@
-+/*
-+ * OMAP Temperature sensor header file
-+ *
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-+ * Author: J Keerthy <j-keerthy@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
++	/* wait till the clean stop bit is set or till the timeout expires */
++	while (!(temp | registers->status_clean_stop_mask) &&
++			!(time_after(jiffies, timeout))) {
++		temp = __raw_readl(phy_base + registers->bgap_status);
++		usleep_range(500, 2000);
++	}
 +
-+#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
-+#define __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
++	if (time_after(jiffies, timeout))
++		dev_err(&od->pdev.dev, "Clean stop bit not set\n");
 +
-+/* Offsets from the base of temperature sensor registers */
++	ret = omap_device_idle_hwmods(od);
 +
-+#define OMAP4460_TEMP_SENSOR_CTRL_OFFSET	0x00
-+#define OMAP4460_BGAP_CTRL_OFFSET		0x4c
-+#define OMAP4460_BGAP_COUNTER_OFFSET		0x50
-+#define OMAP4460_BGAP_THRESHOLD_OFFSET		0x54
-+#define OMAP4460_BGAP_TSHUT_OFFSET		0x58
-+#define OMAP4460_BGAP_STATUS_OFFSET		0x5c
-+#define OMAP4460_FUSE_OPP_BGAP			-0xcc
++plat_res_err:
++	return ret;
++}
 +
-+/*
-+ * The register offsets and but fields might change across
-+ * OMAP versions hence populating them in this structure.
-+ */
-+struct omap_temp_sensor_registers {
-+	u32	temp_sensor_ctrl;
-+	u32	bgap_tempsoff_mask;
-+	u32	bgap_soc_mask;
-+	u32	bgap_eocz_mask;
-+	u32	bgap_dtemp_mask;
++int omap_temp_sensor_device_activate(struct omap_device *od)
++{
++	struct	omap_temp_sensor_registers	*registers;
++	struct	resource			*mem;
++	void	__iomem				*phy_base;
++	u32					ret = 0, temp;
 +
-+	u32	bgap_mask_ctrl;
-+	u32	mask_hot_mask;
-+	u32	mask_cold_mask;
++	ret = omap_device_enable_hwmods(od);
++	if (ret < 0)
++		return ret;
++	mem = platform_get_resource(&od->pdev, IORESOURCE_MEM, 0);
++	if (!mem) {
++		dev_err(&od->pdev.dev, "no mem resource\n");
++		return -EINVAL;
++	}
 +
-+	u32	bgap_mode_ctrl;
-+	u32	mode_ctrl_mask;
++	phy_base = ioremap(mem->start, resource_size(mem));
 +
-+	u32	bgap_counter;
-+	u32	counter_mask;
++	if (!strcmp(od->hwmods[0]->dev_attr, "mpu"))
++		registers = &omap_mpu_temp_sensor_registers;
 +
-+	u32	bgap_threshold;
-+	u32	threshold_thot_mask;
-+	u32	threshold_tcold_mask;
++	temp = __raw_readl(phy_base + registers->temp_sensor_ctrl);
++	temp &= ~(registers->bgap_tempsoff_mask);
++	/* BGAP_TEMPSOFF should be reset to 0 */
++	__raw_writel(temp,
++			phy_base + registers->temp_sensor_ctrl);
 +
-+	u32	thsut_threshold;
-+	u32	tshut_hot_mask;
-+	u32	tshut_cold_mask;
++	return 0;
++}
 +
-+	u32	bgap_status;
-+	u32	status_clean_stop_mask;
-+	u32	status_bgap_alert_mask;
-+	u32	status_hot_mask;
-+	u32	status_cold_mask;
-+
-+	u32	bgap_efuse;
++static struct omap_device_pm_latency omap_temp_sensor_latency[] = {
++	{
++		.deactivate_func = omap_temp_sensor_device_idle,
++		.activate_func =  omap_temp_sensor_device_activate,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	}
 +};
 +
-+/* @name: Name of the domain of the temperature sensor */
-+struct omap_temp_sensor_dev_attr {
-+	const char *name;
-+};
++static DEFINE_IDR(temp_sensor_device_idr);
 +
-+extern struct omap_temp_sensor_registers omap_mpu_temp_sensor_registers;
++static int temp_sensor_dev_init(struct omap_hwmod *oh, void *user)
++{
++	struct	omap_temp_sensor_pdata		*temp_sensor_pdata;
++	struct	omap_device			*od;
++	struct	omap_temp_sensor_dev_attr	*temp_sensor_dev_attr;
++	int					ret = 0;
++	int					num;
++	struct	mutex			sensor_mutex;	/* sensor mutex */
 +
-+/*
-+ * omap_temp_sensor platform data
-+ * @registers - pointer to register set and thier bit fields information
-+ */
-+struct omap_temp_sensor_pdata {
-+	struct omap_temp_sensor_registers *registers;
-+};
++	mutex_init(&sensor_mutex);
 +
-+#endif
++	temp_sensor_pdata =
++	    kzalloc(sizeof(*temp_sensor_pdata), GFP_KERNEL);
++	if (!temp_sensor_pdata) {
++		dev_err(&oh->od->pdev.dev,
++			"Unable to allocate memory for temp sensor pdata\n");
++		return -ENOMEM;
++	}
++
++	mutex_lock(&sensor_mutex);
++	ret = idr_pre_get(&temp_sensor_device_idr, GFP_KERNEL);
++	if (ret < 0) {
++		mutex_unlock(&sensor_mutex);
++		goto fail_id;
++	}
++	ret = idr_get_new(&temp_sensor_device_idr, temp_sensor_pdata, &num);
++	if (ret < 0) {
++		mutex_unlock(&sensor_mutex);
++		goto fail_id;
++	}
++	mutex_unlock(&sensor_mutex);
++
++	temp_sensor_dev_attr = oh->dev_attr;
++	if (!strcmp(temp_sensor_dev_attr->name, "mpu"))
++		temp_sensor_pdata->registers = &omap_mpu_temp_sensor_registers;
++
++	od = omap_device_build("omap_temp_sensor", num,
++		oh, temp_sensor_pdata, sizeof(*temp_sensor_pdata),
++	       omap_temp_sensor_latency,
++			ARRAY_SIZE(omap_temp_sensor_latency), 0);
++	if (IS_ERR(od)) {
++		dev_warn(&oh->od->pdev.dev,
++			"Could not build omap_device for %s\n", oh->name);
++		ret = PTR_ERR(od);
++	}
++
++fail_id:
++	kfree(temp_sensor_pdata);
++
++	return ret;
++}
++
++int __init omap_devinit_temp_sensor(void)
++{
++	if (!cpu_is_omap446x())
++		return 0;
++
++	return omap_hwmod_for_each_by_class("temperature_sensor",
++			temp_sensor_dev_init, NULL);
++}
++
++arch_initcall(omap_devinit_temp_sensor);
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 6e6735f..8fd8e80 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -115,6 +115,18 @@ config OMAP_MCBSP
+ 	  Say Y here if you want support for the OMAP Multichannel
+ 	  Buffered Serial Port.
+ 
++config OMAP_TEMP_SENSOR
++	bool "OMAP Temp Sensor Support"
++	depends on ARCH_OMAP
++	default n
++	help
++	  Say Y here if you want support for the temp sensor
++	  on OMAP4460.
++
++	  This provides the temperature of the MPU
++	  subsystem. Only one instance of on die temperature
++	  sensor is present.
++
+ config OMAP_MBOX_FWK
+ 	tristate "Mailbox framework support"
+ 	depends on ARCH_OMAP
 -- 
 1.7.0.4
 
