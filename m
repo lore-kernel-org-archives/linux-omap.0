@@ -1,55 +1,82 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/7] omap: iommu migration, relocation and cleanups
-Date: Thu, 18 Aug 2011 11:12:55 +0200
-Message-ID: <201108181112.55592.laurent.pinchart@ideasonboard.com>
-References: <1313622608-30397-1-git-send-email-ohad@wizery.com>
+From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Subject: RE: [PATCH] Media controller: Define media_entity_init() and
+ media_entity_cleanup() conditionally
+Date: Thu, 18 Aug 2011 15:39:07 +0530
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907DB@dbde03.ent.ti.com>
+References: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>,<19F8576C6E063C45BE387C64729E739404E3CDE6D9@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42077 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755405Ab1HRJMy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Aug 2011 05:12:54 -0400
-In-Reply-To: <1313622608-30397-1-git-send-email-ohad@wizery.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E3CDE6D9@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "mchehab@infradead.org" <mchehab@infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Joerg Roedel <Joerg.Roedel@amd.com>, Arnd Bergmann <arnd@arndb.de>, iommu@lists.linux-foundation.org
 
-Hi Ohad,
 
-On Thursday 18 August 2011 01:10:01 Ohad Ben-Cohen wrote:
-> 1. Migrate OMAP's iommu driver to the generic IOMMU API, and move it
-> to the dedicated iommu folder.
-> 
-> 2. Fix omap3isp appropriately so it doesn't break.
-> 
-> 3. Adapt OMAP's iovmm appropriately as well, because omap3isp still relies
-> on it. The plan is eventually to remove iovmm and replace it with the
-> upcoming IOMMU-based generic DMA-API. Move iovmm to the iommu folder too;
-> it belongs there more than it belongs in the OMAP folders.
-> 
-> 4. Start cleaning up OMAP's iommu components towards the end goal, where
->     1) omap-iommu no longer exports public API (and instead provides its
->        entire functionality via the generic IOMMU API).
->     2) omap-iovmm is removed.
-> 
-> Changes:
-> 1. Migrate iommu, iovmm and omap3isp in a single patch for bisectibility
-> sake.
-> 2. Apply Laurent Pinchart's comments (thanks Laurent!)
+Thanks,
+Deepthy Ravi.
+________________________________________
+From: Hiremath, Vaibhav
+Sent: Wednesday, August 17, 2011 9:00 PM
+To: Ravi, Deepthy; mchehab@infradead.org; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Subject: RE: [PATCH] Media controller: Define media_entity_init() and media_entity_cleanup() conditionally
 
-You're welcome.
+> -----Original Message-----
+> From: Ravi, Deepthy
+> Sent: Wednesday, August 17, 2011 4:05 PM
+> To: mchehab@infradead.org; linux-media@vger.kernel.org; linux-
+> kernel@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org; Hiremath, Vaibhav; Ravi, Deepthy
+> Subject: [PATCH] Media controller: Define media_entity_init() and
+> media_entity_cleanup() conditionally
+>
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+> Defines the two functions only when CONFIG_MEDIA_CONTROLLER
+> is enabled.
+[Hiremath, Vaibhav] Deepthy,
 
-> 3. Rebase to 3.1-rc2
+You may want to mention about build failure without MEDIA_CONTROLLER option being enabled, especially if any sensor driver is being used between MC and non-MC framework compatible devices.
+For example, OMAP3 and AM3517, where TVP5146 is being used but OMAP3 is based on MC framework and AM3517 is based on simple sub-dev based interface.
 
-For the OMAP3 ISP driver changes,
+[Deepthy Ravi] Ok. I will change description to include that.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks,
+Vaibhav
+>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> ---
+>  include/media/media-entity.h |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index cd8bca6..c90916e 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -121,9 +121,18 @@ struct media_entity_graph {
+>       int top;
+>  };
+>
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+>  int media_entity_init(struct media_entity *entity, u16 num_pads,
+>               struct media_pad *pads, u16 extra_links);
+>  void media_entity_cleanup(struct media_entity *entity);
+> +#else
+> +static inline int media_entity_init(struct media_entity *entity, u16
+> num_pads,
+> +             struct media_pad *pads, u16 extra_links)
+> +{
+> +     return 0;
+> +}
+> +static inline void media_entity_cleanup(struct media_entity *entity) {}
+> +#endif
+>
+>  int media_entity_create_link(struct media_entity *source, u16 source_pad,
+>               struct media_entity *sink, u16 sink_pad, u32 flags);
+> --
+> 1.7.0.4
