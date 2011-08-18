@@ -1,43 +1,68 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] MAINTAINERS: add myself as co-maintainer for OMAP USB
-Date: Thu, 18 Aug 2011 07:55:07 -0700
-Message-ID: <20110818145507.GA7012@kroah.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] MAINTAINERS: add myself as co-maintainer for OMAP USB
+Date: Thu, 18 Aug 2011 21:00:55 +0530
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D3ADEE8@dbde03.ent.ti.com>
 References: <1313664504-956-1-git-send-email-gadiyar@ti.com>
+ <20110818145507.GA7012@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1313664504-956-1-git-send-email-gadiyar-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44184 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755057Ab1HRPby convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Aug 2011 11:31:54 -0400
+In-Reply-To: <20110818145507.GA7012@kroah.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@suse.de>
 
-On Thu, Aug 18, 2011 at 04:18:24PM +0530, Anand Gadiyar wrote:
-> I'd like to help co-maintain OMAP USB support. I've helped
-> out in the past when Felipe was away and would like make
-> it official.
+Greg KH wrote:
+> On Thu, Aug 18, 2011 at 04:18:24PM +0530, Anand Gadiyar wrote:
+> > I'd like to help co-maintain OMAP USB support. I've helped
+> > out in the past when Felipe was away and would like make
+> > it official.
+> 
+> Traditionally people are asked to be a maintainer, or they volunteer to
+> take over unmaintained projects.  The only time I've see co-maintainers,
+> is for larger projects, and then, it was a group decision.
+> 
 
-Traditionally people are asked to be a maintainer, or they volunteer to
-take over unmaintained projects.  The only time I've see co-maintainers,
-is for larger projects, and then, it was a group decision.
+I was asked, by Felipe among others, to help maintain OMAP USB
+support. The reason was to take some load off Felipe - I did not
+take this up at that time due to other product pressures. I do
+have more time on my hands now and would like to get back to
+being more active in the community - I felt helping maintain
+a driver was a good start.
 
-For something as "small" as musb, what is the benefit to anyone to have
-more than one maintainer?
+Within TI, I've worked on debugging the EHCI, OHCI and
+MUSB hardware for close to three years now and know more about
+the controllers on OMAP than anyone else. I've acquired boards which
+stress the several possible combinations of configurations possible
+and usually help out with testing those corner cases.
 
-It seems to me that things are finally settling down with the recent
-musb mess, and I've been extremely happy with how Felipe has been
-handling things, and I honestly don't want to see that change at the
-moment.
+> For something as "small" as musb, what is the benefit to anyone to have
+> more than one maintainer?
+>
+> It seems to me that things are finally settling down with the recent
+> musb mess, and I've been extremely happy with how Felipe has been
+> handling things, and I honestly don't want to see that change at the
+> moment.
 
-So I'd stick with what we have now, unless you feel there are issues
-with how Felipe is handling things, and if so, you should take that up
-directly with him and only if that doesn't work out, me.
+It's less of MUSB, and more of the EHCI/OHCI - I don't believe
+Felipe's familiar enough with the hardware to look after that.
+Most contributions to the wrappers for those controllers have come
+from Ajay Gupta, Keshava and me.
 
-thanks,
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> So I'd stick with what we have now, unless you feel there are issues
+> with how Felipe is handling things, and if so, you should take that up
+> directly with him and only if that doesn't work out, me.
+
+Nope - I'm happy with the way things are currently. So if Felipe no
+longer feels the need to offload some of his maintainership work,
+that's okay with me.
+
+- Anand
