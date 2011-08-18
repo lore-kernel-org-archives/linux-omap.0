@@ -1,85 +1,58 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] MAINTAINERS: add myself as co-maintainer for OMAP USB
-Date: Thu, 18 Aug 2011 14:04:31 +0300
-Message-ID: <20110818110430.GP14514@legolas.emea.dhcp.ti.com>
-References: <1313664504-956-1-git-send-email-gadiyar@ti.com>
- <20110818105511.GN14514@legolas.emea.dhcp.ti.com>
- <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D3ADE2B@dbde03.ent.ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH] mfd: omap-usb-host: Make TLL mode work again
+Date: Thu, 18 Aug 2011 16:52:22 +0530
+Message-ID: <CAP05o4J01FpphHgV5tpkFGNfTBbjhtScKjWZm4iLi3H1V=EKDQ@mail.gmail.com>
+References: <1313664271-694-1-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5/6IVfYouxg+lu1D"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D3ADE2B-tzSpAVkrWRmIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1313664271-694-1-git-send-email-gadiyar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anand Gadiyar <gadiyar@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, Aug 18, 2011 at 4:14 PM, Anand Gadiyar <gadiyar@ti.com> wrote:
+> This code section seems to have been accidentally copy pasted.
+> It causes incorrect bits to be set up in the TLL_CHANNEL_CONF
+> register and prevents the TLL mode from working correctly.
+>
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> Cc: Keshava Munegowda <keshava_mgowda@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> ---
+> Against v3.1-rc2; tested against linux-next as of 20110817 as well.
+>
+> This probably needs to go to -stable as well. The original code
+> by me worked fine but this was broken during the code reorganization
+> Keshava did.
+>
+> =A0drivers/mfd/omap-usb-host.c | =A0 =A01 -
+> =A01 file changed, 1 deletion(-)
+>
+> Index: linux-2.6/drivers/mfd/omap-usb-host.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-2.6.orig/drivers/mfd/omap-usb-host.c
+> +++ linux-2.6/drivers/mfd/omap-usb-host.c
+> @@ -676,7 +676,6 @@ static void usbhs_omap_tll_init(struct d
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| OMAP=
+_TLL_CHANNEL_CONF_ULPINOBITSTUFF
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| OMAP=
+_TLL_CHANNEL_CONF_ULPIDDRMODE);
+>
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg |=3D (1 << (i + 1))=
+;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0} else
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0continue;
 
---5/6IVfYouxg+lu1D
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Samuel Ortiz and balbi
+please ack this patch
 
-Hi,
+I am going to re-base runtime pm patches on top of this patch.
 
-On Thu, Aug 18, 2011 at 04:31:34PM +0530, Gadiyar, Anand wrote:
-> Balbi, Felipe wrote:
-> > Hi,
-> >=20
-> > On Thu, Aug 18, 2011 at 04:18:24PM +0530, Anand Gadiyar wrote:
-> > > I'd like to help co-maintain OMAP USB support. I've helped
-> > > out in the past when Felipe was away and would like make
-> > > it official.
->=20
-> ...
->=20
-> > I'm concerned you will just vanish again. Last time we tried, I even
-> > dropped a mail to Greg explaining how we would work and you just
-> > vanished.
-> >=20
-> > I'm not confortable accepting this patch now. Let's first see how this
-> > will play off, so start helping reviewing the patches that=20
-> > are pending.
->=20
-> It's happened with you too - and I've had to step in for you when
-> you disappeared due to product pressures.
->=20
-> I'm back now and for sure I'll help with reviews. But it would be
-> nice if you'd ack this one. Okay with me if you'd like to wait
-> and see some actual work, but I think I've been active enough in
-> the past - that ought to count for something.
 
-you sure have been active in the past, but the fact that when we
-discussed with Greg you just vanished with no reason was a bit worrying
-to me.
-
-So, let's clean up the pending patches and by the merge window we'll
-decide. This patch will probably be there.
-
---=20
-balbi
-
---5/6IVfYouxg+lu1D
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOTPG+AAoJEAv8Txj19kN1floH/0L6gVNKbdQoAav90YBRPWzu
-xzuNinUb3j+lsoKGEKzhTmel0pknyE8HqtvOrbeS8oK/zoZCyFP3PtcfPIHgEQZD
-vouDoQpo7GjryYOWi220E04YMRs5qDmCOyfTitQdMWIQXLvLVAWLoaLBgX3eYDeQ
-E4e1bZ34qlVR48PK8O4SBTKbIdvkZELDbaEGQ4IYmRUYLBYI0ljYxxarL25R3XwV
-rWgpyXb0Up9J8izKRciy/hT0PSABJyLSRaLPjsKyDVrBgb3qAhHqH5z92lVL/gqI
-TI8q9DnAL5bNE7MbfZSzVOchAhXaeoIoth/I92+KKr6NKMIpxsSVWFLU7yQKkr8=
-=DYI3
------END PGP SIGNATURE-----
-
---5/6IVfYouxg+lu1D--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+keshava
