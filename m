@@ -1,44 +1,47 @@
 From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] mfd: omap-usb-host: Make TLL mode work again
-Date: Thu, 18 Aug 2011 16:14:31 +0530
-Message-ID: <1313664271-694-1-git-send-email-gadiyar@ti.com>
+Subject: [PATCH] MAINTAINERS: add myself as co-maintainer for OMAP USB
+Date: Thu, 18 Aug 2011 16:18:24 +0530
+Message-ID: <1313664504-956-1-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This code section seems to have been accidentally copy pasted.
-It causes incorrect bits to be set up in the TLL_CHANNEL_CONF
-register and prevents the TLL mode from working correctly.
+I'd like to help co-maintain OMAP USB support. I've helped
+out in the past when Felipe was away and would like make
+it official.
 
 Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
 ---
-Against v3.1-rc2; tested against linux-next as of 20110817 as well.
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
-This probably needs to go to -stable as well. The original code
-by me worked fine but this was broken during the code reorganization
-Keshava did.
-
- drivers/mfd/omap-usb-host.c |    1 -
- 1 file changed, 1 deletion(-)
-
-Index: linux-2.6/drivers/mfd/omap-usb-host.c
+Index: linux-2.6/MAINTAINERS
 ===================================================================
---- linux-2.6.orig/drivers/mfd/omap-usb-host.c
-+++ linux-2.6/drivers/mfd/omap-usb-host.c
-@@ -676,7 +676,6 @@ static void usbhs_omap_tll_init(struct d
- 				| OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF
- 				| OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE);
+--- linux-2.6.orig/MAINTAINERS
++++ linux-2.6/MAINTAINERS
+@@ -4326,6 +4326,7 @@ F:	include/linux/isicom.h
  
--			reg |= (1 << (i + 1));
- 		} else
- 			continue;
+ MUSB MULTIPOINT HIGH SPEED DUAL-ROLE CONTROLLER
+ M:	Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
++M:	Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+ L:	linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git
+ S:	Maintained
+@@ -4656,6 +4657,7 @@ F:	drivers/media/video/omap3isp/*
  
+ OMAP USB SUPPORT
+ M:	Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
++M:	Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+ L:	linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ L:	linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
