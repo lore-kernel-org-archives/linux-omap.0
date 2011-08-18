@@ -1,110 +1,48 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [RFC PATCH 2/6 V2] OMAP4: Adding the temperature sensor register set bit fields
-Date: Thu, 18 Aug 2011 16:22:11 +0530
-Message-ID: <1313664735-8917-3-git-send-email-j-keerthy@ti.com>
+Subject: [RFC PATCH 1/6 V2] OMAP4: Clock: Associate clocks for OMAP temperature sensor
+Date: Thu, 18 Aug 2011 16:22:10 +0530
+Message-ID: <1313664735-8917-2-git-send-email-j-keerthy@ti.com>
 References: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46636 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58344 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755508Ab1HRKwc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Aug 2011 06:52:32 -0400
+	id S1755478Ab1HRKwa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Aug 2011 06:52:30 -0400
 In-Reply-To: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Keerthy <j-keerthy@ti.com>, tony@atomide.com
+Cc: Keerthy <j-keerthy@ti.com>, tony@atomide.com, rnayak@ti.com
 
-OMAP4460 specific temperature sensor register bit fields are added.
+div_ts_ck feeds only the temperature sensor functional clock
+and also has a clksel associated (for divider selection). Mapping this
+as the functional clock for the temperature sensor in clkdev table,
+so a clk_set_rate() in the driver would have the effect of changing the
+temperature sensor clock rate indirectly.
 
+Reviewd-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 Cc: tony@atomide.com
+Cc: rnayak@ti.com
 ---
- .../include/mach/ctrl_module_core_44xx.h           |   70 ++++++++++++++++----
- 1 files changed, 57 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/clock44xx_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-index 2f7ac70..725c1e1 100644
---- a/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-+++ b/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-@@ -256,19 +256,63 @@
- #define OMAP4_LDOSRAMCORE_ACTMODE_VSET_OUT_SHIFT	0
- #define OMAP4_LDOSRAMCORE_ACTMODE_VSET_OUT_MASK		(0x1f << 0)
- 
--/* TEMP_SENSOR */
--#define OMAP4_BGAP_TEMPSOFF_SHIFT			12
--#define OMAP4_BGAP_TEMPSOFF_MASK			(1 << 12)
--#define OMAP4_BGAP_TSHUT_SHIFT				11
--#define OMAP4_BGAP_TSHUT_MASK				(1 << 11)
--#define OMAP4_BGAP_TEMP_SENSOR_CONTCONV_SHIFT		10
--#define OMAP4_BGAP_TEMP_SENSOR_CONTCONV_MASK		(1 << 10)
--#define OMAP4_BGAP_TEMP_SENSOR_SOC_SHIFT		9
--#define OMAP4_BGAP_TEMP_SENSOR_SOC_MASK			(1 << 9)
--#define OMAP4_BGAP_TEMP_SENSOR_EOCZ_SHIFT		8
--#define OMAP4_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 8)
--#define OMAP4_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
--#define OMAP4_BGAP_TEMP_SENSOR_DTEMP_MASK		(0xff << 0)
-+/* TEMP_SENSOR OMAP4430 */
-+#define OMAP4430_BGAP_TEMPSOFF_SHIFT			12
-+#define OMAP4430_BGAP_TEMPSOFF_MASK			(1 << 12)
-+#define OMAP4430_BGAP_TSHUT_SHIFT				11
-+#define OMAP4430_BGAP_TSHUT_MASK				(1 << 11)
-+#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_SHIFT		10
-+#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_MASK		(1 << 10)
-+#define OMAP4430_BGAP_TEMP_SENSOR_SOC_SHIFT		9
-+#define OMAP4430_BGAP_TEMP_SENSOR_SOC_MASK			(1 << 9)
-+#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_SHIFT		8
-+#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 8)
-+#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
-+#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
-+
-+/* TEMP_SENSOR OMAP4460 */
-+#define OMAP4460_BGAP_TEMPSOFF_SHIFT			13
-+#define OMAP4460_BGAP_TEMPSOFF_MASK			(1 << 13)
-+#define OMAP4460_BGAP_TEMP_SENSOR_SOC_SHIFT		11
-+#define OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK		(1 << 11)
-+#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_SHIFT		10
-+#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 10)
-+#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
-+#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
-+
-+/* BANDGAP_CTRL */
-+#define OMAP4460_SINGLE_MODE_SHIFT			31
-+#define OMAP4460_SINGLE_MODE_MASK			(1 << 31)
-+#define OMAP4460_MASK_HOT_SHIFT				1
-+#define OMAP4460_MASK_HOT_MASK				(1 << 1)
-+#define OMAP4460_MASK_COLD_SHIFT			0
-+#define OMAP4460_MASK_COLD_MASK				(1 << 0)
-+
-+/* BANDGAP_COUNTER */
-+#define OMAP4460_COUNTER_SHIFT				0
-+#define OMAP4460_COUNTER_MASK				(0xffffff << 0)
-+
-+/* BANDGAP_THRESHOLD */
-+#define OMAP4460_T_HOT_SHIFT				16
-+#define OMAP4460_T_HOT_MASK				(0x3ff << 16)
-+#define OMAP4460_T_COLD_SHIFT				0
-+#define OMAP4460_T_COLD_MASK				(0x3ff << 0)
-+
-+/* TSHUT_THRESHOLD */
-+#define OMAP4460_TSHUT_HOT_SHIFT			16
-+#define OMAP4460_TSHUT_HOT_MASK				(0x3ff << 16)
-+#define OMAP4460_TSHUT_COLD_SHIFT			0
-+#define OMAP4460_TSHUT_COLD_MASK			(0x3ff << 0)
-+
-+/* BANDGAP_STATUS */
-+#define OMAP4460_CLEAN_STOP_SHIFT			3
-+#define OMAP4460_CLEAN_STOP_MASK			(1 << 3)
-+#define OMAP4460_BGAP_ALERT_SHIFT			2
-+#define OMAP4460_BGAP_ALERT_MASK			(1 << 2)
-+#define OMAP4460_HOT_FLAG_SHIFT				1
-+#define OMAP4460_HOT_FLAG_MASK				(1 << 1)
-+#define OMAP4460_COLD_FLAG_SHIFT			0
-+#define OMAP4460_COLD_FLAG_MASK				(1 << 0)
- 
- /* DPLL_NWELL_TRIM_0 */
- #define OMAP4_DPLL_ABE_NWELL_TRIM_MUX_CTRL_SHIFT	29
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 2af0e3f..4a788f4 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3187,7 +3187,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"bandgap_fclk",			&bandgap_fclk,	CK_443X),
+ 	CLK(NULL,	"bandgap_ts_fclk",		&bandgap_ts_fclk,	CK_446X),
+ 	CLK(NULL,	"des3des_fck",			&des3des_fck,	CK_443X),
+-	CLK(NULL,	"div_ts_ck",			&div_ts_ck,	CK_446X),
++	CLK("omap_temp_sensor.0",	"fck",			&div_ts_ck,	CK_446X),
+ 	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
+ 	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
+ 	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
 -- 
 1.7.0.4
 
