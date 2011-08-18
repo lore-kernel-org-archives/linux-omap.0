@@ -1,45 +1,38 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 5/7] omap: iovmm: remove unused functionality
-Date: Thu, 18 Aug 2011 15:45:23 +0300 (EEST)
-Message-ID: <20110818.154523.790417647763498100.Hiroshi.DOYU@nokia.com>
-References: <1313622608-30397-6-git-send-email-ohad@wizery.com>
-	<20110818.131928.751866371806910622.Hiroshi.DOYU@nokia.com>
-	<CAK=WgbYr+pRqZPLSigyN0SNq9g0NPU2WkdWfVOW931hhQwGmiw@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/7] omap: iommu: migrate to the generic IOMMU API
+Date: Thu, 18 Aug 2011 15:35:42 +0200
+Message-ID: <201108181535.42339.arnd@arndb.de>
+References: <1313622608-30397-1-git-send-email-ohad@wizery.com> <1313622608-30397-2-git-send-email-ohad@wizery.com> <201108181101.57882.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:64828 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754840Ab1HRMpj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Aug 2011 08:45:39 -0400
-In-Reply-To: <CAK=WgbYr+pRqZPLSigyN0SNq9g0NPU2WkdWfVOW931hhQwGmiw@mail.gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:56165 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752081Ab1HRNfw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Aug 2011 09:35:52 -0400
+In-Reply-To: <201108181101.57882.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ohad@wizery.com
-Cc: arnd@arndb.de, tony@atomide.com, Joerg.Roedel@amd.com, iommu@lists.linux-foundation.org, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org
 
-From: ext Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 5/7] omap: iovmm: remove unused functionality
-Date: Thu, 18 Aug 2011 13:23:44 +0300
+On Thursday 18 August 2011, Laurent Pinchart wrote:
+> > +static int omap_iommu_domain_init(struct iommu_domain *domain)
+> > +{
+> > +     struct omap_iommu_domain *omap_domain;
+> > +
+> > +     omap_domain = kzalloc(sizeof(*omap_domain), GFP_KERNEL);
+> > +     if (!omap_domain) {
+> > +             pr_err("kzalloc failed\n");
+> > +             goto out;
+> 
+> You can directly return -ENOMEM here, and remove the "out:" label.
 
-> On Thu, Aug 18, 2011 at 1:19 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
->> Maybe it's better to remove the comments explaining unnecessary
->> functions too. Now the function comparison table doesn't make sense....
-> 
-> Sure, will do.
-> 
->> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
->> Date: Thu, 18 Aug 2011 13:13:53 +0300
->> Subject: [PATCH 1/1] omap: iommu: remove obsolete comments
->>
->> Remove ones referring to non-existing functions.
-> 
-> I think it might be better to squash it with the original patch though
-> - are you ok with it ?
+Risking to get into bike-shedding here, I would comment that the current
+code is actually better. I would not mix the two methods of error handling
+in one function. If you use goto labels, better use them consistenly and
+have only one 'return' statement.
 
-Sure.
-
-> 
-> Thanks,
-> Ohad.
+	Arnd
