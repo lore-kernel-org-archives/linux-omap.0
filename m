@@ -1,93 +1,51 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] MAINTAINERS: add myself as co-maintainer for OMAP USB
-Date: Thu, 18 Aug 2011 13:55:11 +0300
-Message-ID: <20110818105511.GN14514@legolas.emea.dhcp.ti.com>
-References: <1313664504-956-1-git-send-email-gadiyar@ti.com>
-Reply-To: balbi@ti.com
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 6/7] omap: iommu: remove unused exported API
+Date: Thu, 18 Aug 2011 14:01:19 +0300
+Message-ID: <CAK=Wgba0_4W=vODss4+ZKE=PQL266+W0+vb3MiwsTqQH4_1_LQ@mail.gmail.com>
+References: <1313622608-30397-1-git-send-email-ohad@wizery.com>
+ <1313622608-30397-7-git-send-email-ohad@wizery.com> <20110818.134947.522985871882962246.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yAzUYvkKIfeS0jQX"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:38649 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755213Ab1HRKzQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Aug 2011 06:55:16 -0400
-Content-Disposition: inline
-In-Reply-To: <1313664504-956-1-git-send-email-gadiyar@ti.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:64247 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753228Ab1HRLBk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Aug 2011 07:01:40 -0400
+Received: by wwf5 with SMTP id 5so1953794wwf.1
+        for <linux-omap@vger.kernel.org>; Thu, 18 Aug 2011 04:01:39 -0700 (PDT)
+In-Reply-To: <20110818.134947.522985871882962246.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@suse.de>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: arnd@arndb.de, tony@atomide.com, Joerg.Roedel@amd.com, iommu@lists.linux-foundation.org, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Hi Hiroshi,
 
---yAzUYvkKIfeS0jQX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Aug 18, 2011 at 1:49 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+>> -extern void iommu_set_twl(struct iommu *obj, bool on);
+>
+> This function was introduced by "Hari Kanigeri" for some OMAP4 case,
+> which is only using TLB, not H/W table walk.
 
-Hi,
+We discussed that internally, and concluded it's not needed anymore. I
+still kept the underlying plumbing mechanism, just in case it'd still
+be needed for some hw quirks in the future, but removed the interface
+(in case a future hw revision will seem to need it, it would probably
+make more sense to invoke the relevant mechanism from the underlying
+layers rather than from a higher layer).
 
-On Thu, Aug 18, 2011 at 04:18:24PM +0530, Anand Gadiyar wrote:
-> I'd like to help co-maintain OMAP USB support. I've helped
-> out in the past when Felipe was away and would like make
-> it official.
->=20
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Greg Kroah-Hartman <gregkh@suse.de>
-> ---
->  MAINTAINERS |    2 ++
->  1 file changed, 2 insertions(+)
->=20
-> Index: linux-2.6/MAINTAINERS
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.orig/MAINTAINERS
-> +++ linux-2.6/MAINTAINERS
-> @@ -4326,6 +4326,7 @@ F:	include/linux/isicom.h
-> =20
->  MUSB MULTIPOINT HIGH SPEED DUAL-ROLE CONTROLLER
->  M:	Felipe Balbi <balbi@ti.com>
-> +M:	Anand Gadiyar <gadiyar@ti.com>
->  L:	linux-usb@vger.kernel.org
->  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git
->  S:	Maintained
-> @@ -4656,6 +4657,7 @@ F:	drivers/media/video/omap3isp/*
-> =20
->  OMAP USB SUPPORT
->  M:	Felipe Balbi <balbi@ti.com>
-> +M:	Anand Gadiyar <gadiyar@ti.com>
->  L:	linux-usb@vger.kernel.org
->  L:	linux-omap@vger.kernel.org
->  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git
+>> -extern int iommu_set_da_range(struct iommu *obj, u32 start, u32 end);
+>
+> This function was introduced by "David Cohen" to specify the available
+> ISP virtual address range.
 
-I'm concerned you will just vanish again. Last time we tried, I even
-dropped a mail to Greg explaining how we would work and you just
-vanished.
+Not sure if David or anyone is using this, but if someone is, it must
+be out-of-tree.
 
-I'm not confortable accepting this patch now. Let's first see how this
-will play off, so start helping reviewing the patches that are pending.
+In that case, even if it is needed, adding a mainline user for this
+function at this point will most likely not be accepted anymore, and
+instead, one will be suggested to use (and extend as necessary) the
+DMA-API.
 
---=20
-balbi
-
---yAzUYvkKIfeS0jQX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOTO+PAAoJEAv8Txj19kN1PHMH/jxYO71vXvng8kqnox9ox67I
-N5ulHvVTIW2y8/uLYRejFvWbUz9HASfJZiKB/BTs1E/N32q7bEb9eGtUqj0BB7LR
-M/nv7nff9UEmHOCeOD2Ju1ww804SU3hh7qVYYqUq/N1rqb4SPcLrXSb7Fg7zxBME
-VGDLBAmUlrMe8GivOXO4IpRyp6oLVesi2swit0hEGkFJiRYn2tTSBJ5omuGQaRch
-8cqPQkrpU3eruX99DDwbnNjcfbbaBlMS6u3H6/xp9VODciY1OG8noO22uZcy8jTk
-VvA3ujiPH5OwTAsa9ghvmEYqQ0/U/OLm6k38LteYxYagKLkAst3MUW1spgDWVYY=
-=Rpz9
------END PGP SIGNATURE-----
-
---yAzUYvkKIfeS0jQX--
+Thanks,
+Ohad.
