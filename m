@@ -1,34 +1,61 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 1/7] omap: iommu: migrate to the generic IOMMU API
-Date: Thu, 18 Aug 2011 12:05:01 +0300
-Message-ID: <CAK=Wgbb6EWBr9ndCEGK2C6kK74B8vNFpezw-=ndEQ4bANhOB4g@mail.gmail.com>
-References: <1313622608-30397-1-git-send-email-ohad@wizery.com>
- <1313622608-30397-2-git-send-email-ohad@wizery.com> <201108181101.57882.laurent.pinchart@ideasonboard.com>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH] omap: musb: remove unneeded init code
+Date: Thu, 18 Aug 2011 14:42:44 +0530
+Message-ID: <1313658764-28907-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:48082 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750731Ab1HRJFX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Aug 2011 05:05:23 -0400
-Received: by wwf5 with SMTP id 5so1857624wwf.1
-        for <linux-omap@vger.kernel.org>; Thu, 18 Aug 2011 02:05:22 -0700 (PDT)
-In-Reply-To: <201108181101.57882.laurent.pinchart@ideasonboard.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42655 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751684Ab1HRJMu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Aug 2011 05:12:50 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7I9CkXa024549
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 18 Aug 2011 04:12:49 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7I9Ck9s001487
+	for <linux-omap@vger.kernel.org>; Thu, 18 Aug 2011 14:42:46 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Joerg Roedel <Joerg.Roedel@amd.com>, Arnd Bergmann <arnd@arndb.de>, iommu@lists.linux-foundation.org
+To: linux-omap@vger.kernel.org
+Cc: balbi@ti.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Hi Laurent,
+The .power and .mode parameter of 'musb_plat' is also now set dynamically
+in usb_musb_init() so remove them.
 
-On Thu, Aug 18, 2011 at 12:01 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Just one small comment in case you resubmit the whole series for another
-> reason.
-..
-> You can directly return -ENOMEM here, and remove the "out:" label.
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ arch/arm/mach-omap2/usb-musb.c |   15 +--------------
+ 1 files changed, 1 insertions(+), 14 deletions(-)
 
-Sure thing,
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index a65145b..de48106 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -41,21 +41,8 @@ static struct musb_hdrc_config musb_config = {
+ };
+ 
+ static struct musb_hdrc_platform_data musb_plat = {
+-#ifdef CONFIG_USB_MUSB_OTG
+-	.mode		= MUSB_OTG,
+-#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
+-	.mode		= MUSB_HOST,
+-#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
+-	.mode		= MUSB_PERIPHERAL,
+-#endif
+-	/* .clock is set dynamically */
++	/* .clock, .mode and .power is set dynamically */
+ 	.config		= &musb_config,
+-
+-	/* REVISIT charge pump on TWL4030 can supply up to
+-	 * 100 mA ... but this value is board-specific, like
+-	 * "mode", and should be passed to usb_musb_init().
+-	 */
+-	.power		= 50,			/* up to 100 mA */
+ };
+ 
+ static u64 musb_dmamask = DMA_BIT_MASK(32);
+-- 
+1.6.2.4
 
-Thanks,
-Ohad.
