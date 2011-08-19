@@ -1,48 +1,62 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] mfd: omap-usb-host: Make TLL mode work again
-Date: Thu, 18 Aug 2011 11:26:15 -0700
-Message-ID: <20110818182615.GA18567@kroah.com>
-References: <1313664271-694-1-git-send-email-gadiyar@ti.com>
- <CAP05o4J01FpphHgV5tpkFGNfTBbjhtScKjWZm4iLi3H1V=EKDQ@mail.gmail.com>
- <20110818112454.GS14514@legolas.emea.dhcp.ti.com>
- <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D3ADE54@dbde03.ent.ti.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH 0/3] Add support for TI814X processor series
+Date: Fri, 19 Aug 2011 05:50:44 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03ABD26CF7@dbde02.ent.ti.com>
+References: <1312479869-21948-1-git-send-email-hemantp@ti.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B03ABB099E0@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D3ADE54@dbde03.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "Munegowda, Keshava" <keshava_mgowda@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44705 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751458Ab1HSAU5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Aug 2011 20:20:57 -0400
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B03ABB099E0@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Aug 18, 2011 at 05:14:17PM +0530, Gadiyar, Anand wrote:
-> Balbi, Felipe wrote:
-> > HI,
-> > 
-> > On Thu, Aug 18, 2011 at 04:52:22PM +0530, Munegowda, Keshava wrote:
-> > > On Thu, Aug 18, 2011 at 4:14 PM, Anand Gadiyar <gadiyar@ti.com> wrote:
-> > > > This code section seems to have been accidentally copy pasted.
-> > > > It causes incorrect bits to be set up in the TLL_CHANNEL_CONF
-> > > > register and prevents the TLL mode from working correctly.
-> > > >
-> > > > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> > > > Cc: Keshava Munegowda <keshava_mgowda@ti.com>
-> > > > Cc: Samuel Ortiz <sameo@linux.intel.com>
-> > 
-> > Sam, you can apply this one:
-> > 
-> > Acked-by: Felipe Balbi <balbi@ti.com>
-> > 
-> > But I think it needs to be resent with Cc: stable@kernel.org
+linux-arm-kernel-bounces@lists.infradead.org wrote on :
+
+> Hello,
 > 
-> I'm trying to avoid "Cc: stable@kernel.org" since RMK complained about
-> this on the Linux ARM kernel list. [1]
+> Pedanekar, Hemant wrote on Thursday, August 04, 2011 11:14 PM:
+> 
+>> This patch set adds support for DM814x, C6A814x and AM387x device series
+>> having Cortex-A8 MPU.
+>> 
+>> The technical documents are available from following link:
+>> 
+>> http://focus.ti.com/docs/prod/folders/print/tms320dm8148.html
+>> 
+>> This series is referred in code as TI814X.
+>> 
+>> Since these devices share similar architecture as TI816X devices, existing
+>> TI816X code is updated to accomodate TI814X support. The code shared across
+>> TI816X and TI814X devices is updated with TI81XX/ti81xx prefix as
+>> applicable, while maintaining cpu_is_ti816x() and cpu_is_ti814x() to
+>> distinguish specific execution differences.
+>> 
+>> Hemant Pedanekar (3):
+>>   TI81XX: Prepare for addition of TI814X support
+>>   TI814X: Add cpu type macros and detection support
+>>   TI814X: Create board support and enable build for TI8148 EVM
+>> 
+> [...]
+> 
+> Any comments on this patch set?
+> Thanks.
+> 
+>    Hemant
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-Why would he do that?  You need to put the Cc: in the signed off by
-area, and all will be fine.  If you just put it in your email, you will
-get an automated email from me telling you to go read
-Documentation/stable_kernel_rules.txt which tells you exactly how to do
-this properly.
-
-greg k-h
+Hello,
+Can you please provide comments on these patches?
+Thanks.
+   Hemant
