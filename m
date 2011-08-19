@@ -1,109 +1,145 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [RFC PATCH 6/6 V2] hwmon: OMAP4: On die temperature sensor driver
-Date: Fri, 19 Aug 2011 18:31:53 +0530
-Message-ID: <CAJ6a13b17aAyQeumdqjAVR9Fs7mP6J-b9f+bJe+B6Dk0SXw3qg@mail.gmail.com>
-References: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
-	<1313664735-8917-7-git-send-email-j-keerthy@ti.com>
-	<20110819021333.GA27544@ericsson.com>
-	<CAJ6a13b6EQNhkQ+i5vf0kxKJ3RadY7iSCSJwZ5_sd3Y0BydUow@mail.gmail.com>
-	<20110819061745.GA28832@ericsson.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] OMAP: McPDM: Convert McPDM device to omap_device
+Date: Fri, 19 Aug 2011 16:02:01 +0300
+Message-ID: <20110819130200.GD4996@atomide.com>
+References: <1312284857-1774-1-git-send-email-peter.ujfalusi@ti.com>
+ <1312284857-1774-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:45186 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751279Ab1HSNBz convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Aug 2011 09:01:55 -0400
-Received: by mail-yi0-f42.google.com with SMTP id 19so2580778yie.29
-        for <linux-omap@vger.kernel.org>; Fri, 19 Aug 2011 06:01:54 -0700 (PDT)
-In-Reply-To: <20110819061745.GA28832@ericsson.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:39870 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751279Ab1HSNCI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Aug 2011 09:02:08 -0400
+Content-Disposition: inline
+In-Reply-To: <1312284857-1774-2-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Misael Lopez Cruz <misael.lopez@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sebastien Guiriec <s-guiriec@ti.com>
 
-On Fri, Aug 19, 2011 at 11:47 AM, Guenter Roeck
-<guenter.roeck@ericsson.com> wrote:
-> On Fri, Aug 19, 2011 at 02:04:58AM -0400, J, KEERTHY wrote:
->> On Fri, Aug 19, 2011 at 7:43 AM, Guenter Roeck
->> <guenter.roeck@ericsson.com> wrote:
->> > On Thu, Aug 18, 2011 at 06:52:15AM -0400, Keerthy wrote:
->> >> On chip temperature sensor driver. The driver monitors the temper=
-ature of
->> >> the MPU subsystem of the OMAP4. It sends notifications to the use=
-r space if
->> >> the temperature crosses user defined thresholds via kobject_ueven=
-t interface.
->> >> The user is allowed to configure the temperature thresholds vis s=
-ysfs nodes
->> >> exposed using hwmon interface.
->> >>
->> >> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> >> Cc: Jean Delvare <khali@linux-fr.org>
->> >> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
->> >> Cc: lm-sensors@lm-sensors.org
->> >
->> > High level review:
->> >
->> > - too much and too broad mutex locking. show functions should not =
-need locks at all,
->> > =A0set functions only while data is written into registers and int=
-o platform data.
->>
->> Ok. I will clean this.
->>
->> > - driver is quite noisy. There should definitely not be any log me=
-ssages
->> > =A0if a set parameter is wrong. Show functions already return an e=
-rror value
->> > =A0to the user; a log message indicating the error again just crea=
-tes noise.
->> > =A0For one boolean set during probe (is_efuse_valid), each subsequ=
-ent show results
->> > =A0in a log message if it is false. Some errors result in multiple=
- log messages.
->>
->> A user tries to set an invalid temperature threshold. The user shoul=
-d
->> be notified about this. The invalid temperature will not be set. The=
- user
->> should not be allowed to set an invalid temperature. It is to inform
->> the user about precisely the problem with the parameter.
->>
-> User is notified with -EINVAL. Unless on the console, which is unlike=
-ly,
-> the user will likely not notice a message in the kernel log.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [110802 14:28]:
+> McPDM device is converted to omap device.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Signed-off-by: Jorge Eduardo Candelaria
+> Signed-off-by: Margarita Olaya Cabrera
+> Signed-off-by: Liam Girdwood <lrg@ti.com>
+> Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
+> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-These messages on console are useful for debug purpose
-so can i place it under dev_dbg? Only on explicit enabling
-these messages can be seen.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
->
->> In some of the samples the bandgap is not trimmed and hence
->> temperature reported will be wrong. So every time a user tries to re=
-ad
->> he is alerted that the temperatures are not accurate.
->>
-> In the kernel log ? Sorry, that doesn't make sense. You alert the sys=
-tem administrator,
-> not the user.
-
-Ok. Can this be a dev_dbg message? Only for debug purpose
-this can be useful.
-
->
-> Guenter
->
-
-
-
---=20
-Regards and Thanks,
-Keerthy
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  arch/arm/mach-omap2/devices.c |   33 +++++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/devices.c  |   36 ------------------------------------
+>  2 files changed, 33 insertions(+), 36 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 5b8ca68..d94e845 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -329,6 +329,38 @@ static void omap_init_audio(void)
+>  static inline void omap_init_audio(void) {}
+>  #endif
+>  
+> +#if defined(CONFIG_SND_OMAP_SOC_MCPDM) || \
+> +		defined(CONFIG_SND_OMAP_SOC_MCPDM_MODULE)
+> +
+> +static struct omap_device_pm_latency omap_mcpdm_latency[] = {
+> +	{
+> +		.deactivate_func = omap_device_idle_hwmods,
+> +		.activate_func = omap_device_enable_hwmods,
+> +		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> +	},
+> +};
+> +
+> +static void omap_init_mcpdm(void)
+> +{
+> +	struct omap_hwmod *oh;
+> +	struct omap_device *od;
+> +
+> +	oh = omap_hwmod_lookup("mcpdm");
+> +	if (!oh) {
+> +		printk(KERN_ERR "Could not look up mcpdm hw_mod\n");
+> +		return;
+> +	}
+> +
+> +	od = omap_device_build("omap-mcpdm", -1, oh, NULL, 0,
+> +				omap_mcpdm_latency,
+> +				ARRAY_SIZE(omap_mcpdm_latency), 0);
+> +	if (IS_ERR(od))
+> +		printk(KERN_ERR "Could not build omap_device for omap-mcpdm-dai\n");
+> +}
+> +#else
+> +static inline void omap_init_mcpdm(void) {}
+> +#endif
+> +
+>  #if defined(CONFIG_SPI_OMAP24XX) || defined(CONFIG_SPI_OMAP24XX_MODULE)
+>  
+>  #include <plat/mcspi.h>
+> @@ -682,6 +714,7 @@ static int __init omap2_init_devices(void)
+>  	 * in alphabetical order so they're easier to sort through.
+>  	 */
+>  	omap_init_audio();
+> +	omap_init_mcpdm();
+>  	omap_init_camera();
+>  	omap_init_mbox();
+>  	omap_init_mcspi();
+> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+> index ea28f98..40eca9b 100644
+> --- a/arch/arm/plat-omap/devices.c
+> +++ b/arch/arm/plat-omap/devices.c
+> @@ -74,41 +74,6 @@ void omap_mcbsp_register_board_cfg(struct resource *res, int res_count,
+>  
+>  /*-------------------------------------------------------------------------*/
+>  
+> -#if defined(CONFIG_SND_OMAP_SOC_MCPDM) || \
+> -		defined(CONFIG_SND_OMAP_SOC_MCPDM_MODULE)
+> -
+> -static struct resource mcpdm_resources[] = {
+> -	{
+> -		.name		= "mcpdm_mem",
+> -		.start		= OMAP44XX_MCPDM_BASE,
+> -		.end		= OMAP44XX_MCPDM_BASE + SZ_4K,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.name		= "mcpdm_irq",
+> -		.start		= OMAP44XX_IRQ_MCPDM,
+> -		.end		= OMAP44XX_IRQ_MCPDM,
+> -		.flags		= IORESOURCE_IRQ,
+> -	},
+> -};
+> -
+> -static struct platform_device omap_mcpdm_device = {
+> -	.name		= "omap-mcpdm",
+> -	.id		= -1,
+> -	.num_resources	= ARRAY_SIZE(mcpdm_resources),
+> -	.resource	= mcpdm_resources,
+> -};
+> -
+> -static void omap_init_mcpdm(void)
+> -{
+> -	(void) platform_device_register(&omap_mcpdm_device);
+> -}
+> -#else
+> -static inline void omap_init_mcpdm(void) {}
+> -#endif
+> -
+> -/*-------------------------------------------------------------------------*/
+> -
+>  #if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) || \
+>  	defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
+>  
+> @@ -291,7 +256,6 @@ static int __init omap_init_devices(void)
+>  	 * in alphabetical order so they're easier to sort through.
+>  	 */
+>  	omap_init_rng();
+> -	omap_init_mcpdm();
+>  	omap_init_uwire();
+>  	return 0;
+>  }
+> -- 
+> 1.7.6
+> 
