@@ -1,117 +1,101 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: [RFC] OMAP3+: boards: Fix the __initconst build error for devicetree/test
- branch
-Date: Fri, 19 Aug 2011 16:24:00 +0200
-Message-ID: <4E4E7200.6080202@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC] OMAP3+: boards: Fix the __initconst build error for
+ devicetree/test branch
+Date: Fri, 19 Aug 2011 17:40:15 +0300
+Message-ID: <20110819144014.GU23101@legolas.emea.dhcp.ti.com>
+References: <4E4E7200.6080202@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yC91f7qSViS67v3c"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38150 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754167Ab1HSOYM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Aug 2011 10:24:12 -0400
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:32974 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754161Ab1HSOkT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Aug 2011 10:40:19 -0400
+Received: by mail-bw0-f50.google.com with SMTP id zu5so2252017bkb.9
+        for <linux-omap@vger.kernel.org>; Fri, 19 Aug 2011 07:40:18 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4E4E7200.6080202@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>
-
-Hi Grant,
-
-The current devicetree/test branch is broken due to the introduction of the __initconst for dt_compat table.
-
-My original basic fix is the following one, but Felipe figured out the root cause. So it can be fixed by adding an extra const to make the whole table const:
--	const char		**dt_compat;	/* array of device tree
-+	const char		* const *dt_compat; /* array of device tree
-
-That fix will require fixing all the current users of dt_compat with something like that:
-
--static const char *omap3_beagle_dt_match[] __initconst = {
-+static const char * const omap3_beagle_dt_match[] __initconst = {
-
-A couple of of_XXX APIs will have to updated as well, that's why I was wondering if you wanted to go that way.
-
-Any thought?
-
-Regards,
-Benoit
-
----
->From fcee9dbfeb44dc5c5b79f002e63be6e00d8f82b6 Mon Sep 17 00:00:00 2001
-From: Benoit Cousson <b-cousson@ti.com>
-Date: Mon, 8 Aug 2011 11:30:45 +0200
-Subject: [PATCH] OMAP3+: boards: Fix the __initconst build error
-
-The __initconst introduced some build errors with the following
-compiler version:
- arm-none-linux-gnueabi-gcc (Sourcery G++ Lite 2010.09-50) 4.5.1
-
-arch/arm/mach-omap2/board-omap3beagle.c:566:20: error:
-omap3_beagle_dt_match causes a section type conflict
-
-Replace them by __initdata.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
----
- arch/arm/mach-omap2/board-igep0020.c    |    2 +-
- arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
- arch/arm/mach-omap2/board-omap4panda.c  |    2 +-
- arch/arm/mach-omap2/board-overo.c       |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 249165a..2521823 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -671,7 +671,7 @@ static void __init igep_init(void)
- 	}
- }
- 
--static const char *igep2_dt_compat[] __initconst = {
-+static const char *igep2_dt_compat[] __initdata = {
- 	"ISEE,igep-v2",
- 	NULL
- };
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index b3b9cbc..a7923ca 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -563,7 +563,7 @@ static void __init omap3_beagle_init(void)
- 	beagle_opp_init();
- }
- 
--static const char *omap3_beagle_dt_match[] __initconst = {
-+static const char *omap3_beagle_dt_match[] __initdata = {
- 	"ti,omap3-beagle",
- 	NULL
- };
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index b526aa9..1c583c7 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -581,7 +581,7 @@ static void __init omap4_panda_map_io(void)
- 	omap44xx_map_common_io();
- }
- 
--static const char *omap4_panda_match[] __initconst = {
-+static const char *omap4_panda_match[] __initdata = {
- 	"ti,omap4-panda",
- 	NULL,
- };
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 18ae2c2..f0b8489 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -560,7 +560,7 @@ static void __init overo_init(void)
- 					"OVERO_GPIO_USBH_CPEN\n");
- }
- 
--static const char *omap3_overo_dt_match[] __initconst = {
-+static const char *omap3_overo_dt_match[] __initdata = {
- 	"gumstix,omap3-overo",
- 	NULL
- };
--- 
-1.7.0.4
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>
 
 
+--yC91f7qSViS67v3c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+HI,
+
+On Fri, Aug 19, 2011 at 04:24:00PM +0200, Cousson, Benoit wrote:
+> Hi Grant,
+>=20
+> The current devicetree/test branch is broken due to the introduction
+> of the __initconst for dt_compat table.
+>=20
+> My original basic fix is the following one, but Felipe figured out the
+> root cause. So it can be fixed by adding an extra const to make the
+> whole table const:
+> -	const char		**dt_compat;	/* array of device tree
+> +	const char		* const *dt_compat; /* array of device tree
+>=20
+> That fix will require fixing all the current users of dt_compat with
+> something like that:
+>=20
+> -static const char *omap3_beagle_dt_match[] __initconst =3D {
+> +static const char * const omap3_beagle_dt_match[] __initconst =3D {
+>=20
+> A couple of of_XXX APIs will have to updated as well, that's why I was
+> wondering if you wanted to go that way.
+>=20
+> Any thought?
+
+the funny thing is that this was not happening with CodeSourcery 2011.03
+when I sent the patch.
+
+Maybe it's either a compiler bug on one of the toolchains or newer GCCs
+are smart enough to create another section ??
+
+But then again, 2011.03 isn't compiling sleep34xx.S:
+
+arch/arm/mach-omap2/sleep34xx.S: Assembler messages:
+arch/arm/mach-omap2/sleep34xx.S:150: Error: selected processor does not sup=
+port ARM mode `smc #1'
+arch/arm/mach-omap2/sleep34xx.S:418: Error: selected processor does not sup=
+port ARM mode `smc #1'
+arch/arm/mach-omap2/sleep34xx.S:429: Error: selected processor does not sup=
+port ARM mode `smc #1'
+arch/arm/mach-omap2/sleep34xx.S:454: Error: selected processor does not sup=
+port ARM mode `smc #0'
+arch/arm/mach-omap2/sleep34xx.S:460: Error: selected processor does not sup=
+port ARM mode `smc #0'
+arch/arm/mach-omap2/sleep34xx.S:465: Error: selected processor does not sup=
+port ARM mode `smc #0'
+make[1]: *** [arch/arm/mach-omap2/sleep34xx.o] Error 1
+
+so it might be better to keep 2010.09 working.
+
+--=20
+balbi
+
+--yC91f7qSViS67v3c
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOTnXOAAoJEAv8Txj19kN1dUIH/1O2q0txu/5aZJjEL7rDwBq1
+lgYPrSgyJ+XUZWbzH8jZxnBsCpuuL21aEasH2iJokstBV9GpQfnWlPx3BA77lQpG
+TMJtYeORrCTzorbNcMJczWp4OwwnL4DGdvJID/Puwdnn3YoiZrSqRra3IpeSOy8Y
+am0gFsvlaQqXIuj5agqERbW3TOGmEgala5GBedKxR8kpfwRp2FgR27hGPZFIfcf3
+Ct9pl97BGzP72Infcymux7M7baiuZC/y/NpCcSx+kIH6ekRzkDvTld3cjXSoTX2x
+MgsHzhwt5O7qxuYE3PN2p0Vl+oqmIAXOtDDLSWlCQ35bgoYlke3KGQErxBuwhz0=
+=O8mC
+-----END PGP SIGNATURE-----
+
+--yC91f7qSViS67v3c--
