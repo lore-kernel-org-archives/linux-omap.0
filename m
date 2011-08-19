@@ -1,59 +1,30 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 3/3] trace points: power: remove 'cpu_id' from trace_cpu_idle
-Date: Fri, 19 Aug 2011 22:31:01 +0200
-Message-ID: <201108192231.02665.trenn@suse.de>
-References: <1313766244-22313-1-git-send-email-tom.leiming@gmail.com> <1313766244-22313-3-git-send-email-tom.leiming@gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device wake-up constraints
+Date: Fri, 19 Aug 2011 22:42:20 +0200
+Message-ID: <201108192242.20471.rjw@sisk.pl>
+References: <1309446685-17502-1-git-send-email-j-pihet@ti.com> <201108082331.35853.rjw@sisk.pl> <1313723464.19990.124.camel@finisterre.wolfsonmicro.main>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-6"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:56781 "EHLO mx2.suse.de"
+Received: from ogre.sisk.pl ([217.79.144.158]:53568 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752187Ab1HSUbD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Aug 2011 16:31:03 -0400
-In-Reply-To: <1313766244-22313-3-git-send-email-tom.leiming@gmail.com>
+	id S1756682Ab1HSUkj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Aug 2011 16:40:39 -0400
+In-Reply-To: <1313723464.19990.124.camel@finisterre.wolfsonmicro.main>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tom.leiming@gmail.com
-Cc: rostedt@goodmis.org, fweisbec@gmail.com, jean.pihet@newoldbits.com, mingo@redhat.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Kevin Hilman <khilman@ti.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Friday, August 19, 2011 05:04:04 PM tom.leiming@gmail.com wrote:
-> From: Ming Lei <tom.leiming@gmail.com>
-> 
-> This patch removes the 'cpu_id' parameter of the cpu_idle
-> trace point, based on the ideas below:
-> 
-> - the cpu_id which is passed to trace point is always the current
->   cpu
-Are you sure this will always be true?
+Hi,
 
-> - the current cpu info has been included into the trace result
->   already
-> - smp_processor_id() can't be used safely in preemptible context.
+I really wouldn't like the discussion to go in circles.
 
-The cpuid has been added to idle events on purpose for example to be 
-able to pass C-state dependencies.
-2 cores may only enter a deeper sleep state if the 2nd core enters it
-as well.
-There may be architectures where you could trigger a sleep state on
-a foreign cpu.
+First, please tell me what in particular you are objecting to,
+because I don't think that's any of the patches that have been
+sent to the linux-pm list to date.
 
-This may not be used now, but if the kernel does want to use it, you do
-not want to adjust a dozen userspace apps.
-
-Not sure how to quickly solve the:
-"smp_processor_id() can't be used safely in preemptible context."
-problem, though.
-A convention could be declared that if -1 is passed, it's the same cpu
-entering the sleep state as the running one. This will probably
-break userspace apps as well...
-
-Best would be to clean up x86 and let idle routines always be entered
-from cpuidle subsystem which knows the cpu id already and eliminate
-all idle functions in arch/x86/kernel/process.c.
-
-   Thomas
-
-PS: I do not care about patch 1 and 2 as these events are ARM specific
-afaik. But I vote against this one.
+Thanks,
+Rafael
