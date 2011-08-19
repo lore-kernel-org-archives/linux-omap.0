@@ -1,101 +1,142 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC] OMAP3+: boards: Fix the __initconst build error for
- devicetree/test branch
-Date: Fri, 19 Aug 2011 17:40:15 +0300
-Message-ID: <20110819144014.GU23101@legolas.emea.dhcp.ti.com>
-References: <4E4E7200.6080202@ti.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yC91f7qSViS67v3c"
+From: tom.leiming@gmail.com
+Subject: [PATCH 1/3] trace points: power: remove 'cpu_id' from trace_clock_*
+Date: Fri, 19 Aug 2011 23:04:02 +0800
+Message-ID: <1313766244-22313-1-git-send-email-tom.leiming@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:32974 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754161Ab1HSOkT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Aug 2011 10:40:19 -0400
-Received: by mail-bw0-f50.google.com with SMTP id zu5so2252017bkb.9
-        for <linux-omap@vger.kernel.org>; Fri, 19 Aug 2011 07:40:18 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <4E4E7200.6080202@ti.com>
+Received: from mail-iy0-f170.google.com ([209.85.210.170]:62474 "EHLO
+	mail-iy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751832Ab1HSPEV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Aug 2011 11:04:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>
+To: rostedt@goodmis.org, fweisbec@gmail.com, jean.pihet@newoldbits.com, mingo@redhat.com, trenn@suse.de
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ming Lei <tom.leiming@gmail.com>
 
+From: Ming Lei <tom.leiming@gmail.com>
 
---yC91f7qSViS67v3c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch removes the 'cpu_id' parameter of the clock_*
+trace point, based on the ideas below:
 
-HI,
+- the cpu_id which is passed to trace point is always the current
+  cpu
+- the current cpu info has been included into the trace result already
+- smp_processor_id() can't be used safely in preemptible context.
 
-On Fri, Aug 19, 2011 at 04:24:00PM +0200, Cousson, Benoit wrote:
-> Hi Grant,
->=20
-> The current devicetree/test branch is broken due to the introduction
-> of the __initconst for dt_compat table.
->=20
-> My original basic fix is the following one, but Felipe figured out the
-> root cause. So it can be fixed by adding an extra const to make the
-> whole table const:
-> -	const char		**dt_compat;	/* array of device tree
-> +	const char		* const *dt_compat; /* array of device tree
->=20
-> That fix will require fixing all the current users of dt_compat with
-> something like that:
->=20
-> -static const char *omap3_beagle_dt_match[] __initconst =3D {
-> +static const char * const omap3_beagle_dt_match[] __initconst =3D {
->=20
-> A couple of of_XXX APIs will have to updated as well, that's why I was
-> wondering if you wanted to go that way.
->=20
-> Any thought?
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+---
+ Documentation/trace/events-power.txt |    6 +++---
+ arch/arm/mach-omap2/clock.c          |    6 +++---
+ include/trace/events/power.h         |   22 ++++++++++------------
+ 3 files changed, 16 insertions(+), 18 deletions(-)
 
-the funny thing is that this was not happening with CodeSourcery 2011.03
-when I sent the patch.
+diff --git a/Documentation/trace/events-power.txt b/Documentation/trace/events-power.txt
+index 96d87b6..3726ba5 100644
+--- a/Documentation/trace/events-power.txt
++++ b/Documentation/trace/events-power.txt
+@@ -71,9 +71,9 @@ power_start event.
+ The clock events are used for clock enable/disable and for
+ clock rate change.
+ 
+-clock_enable		"%s state=%lu cpu_id=%lu"
+-clock_disable		"%s state=%lu cpu_id=%lu"
+-clock_set_rate		"%s state=%lu cpu_id=%lu"
++clock_enable		"%s state=%lu"
++clock_disable		"%s state=%lu"
++clock_set_rate		"%s state=%lu"
+ 
+ The first parameter gives the clock name (e.g. "gpio1_iclk").
+ The second parameter is '1' for enable, '0' for disable, the target
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 1f3481f..05111b1 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -285,7 +285,7 @@ void omap2_clk_disable(struct clk *clk)
+ 	pr_debug("clock: %s: disabling in hardware\n", clk->name);
+ 
+ 	if (clk->ops && clk->ops->disable) {
+-		trace_clock_disable(clk->name, 0, smp_processor_id());
++		trace_clock_disable(clk->name, 0);
+ 		clk->ops->disable(clk);
+ 	}
+ 
+@@ -339,7 +339,7 @@ int omap2_clk_enable(struct clk *clk)
+ 	}
+ 
+ 	if (clk->ops && clk->ops->enable) {
+-		trace_clock_enable(clk->name, 1, smp_processor_id());
++		trace_clock_enable(clk->name, 1);
+ 		ret = clk->ops->enable(clk);
+ 		if (ret) {
+ 			WARN(1, "clock: %s: could not enable: %d\n",
+@@ -380,7 +380,7 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+ 
+ 	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
+ 	if (clk->set_rate) {
+-		trace_clock_set_rate(clk->name, rate, smp_processor_id());
++		trace_clock_set_rate(clk->name, rate);
+ 		ret = clk->set_rate(clk, rate);
+ 	}
+ 
+diff --git a/include/trace/events/power.h b/include/trace/events/power.h
+index 1bcc2a8..e315e68 100644
+--- a/include/trace/events/power.h
++++ b/include/trace/events/power.h
+@@ -162,45 +162,43 @@ static inline void trace_power_frequency(u64 type, u64 state, u64 cpuid) {};
+  */
+ DECLARE_EVENT_CLASS(clock,
+ 
+-	TP_PROTO(const char *name, unsigned int state, unsigned int cpu_id),
++	TP_PROTO(const char *name, unsigned int state),
+ 
+-	TP_ARGS(name, state, cpu_id),
++	TP_ARGS(name, state),
+ 
+ 	TP_STRUCT__entry(
+ 		__string(       name,           name            )
+ 		__field(        u64,            state           )
+-		__field(        u64,            cpu_id          )
+ 	),
+ 
+ 	TP_fast_assign(
+ 		__assign_str(name, name);
+ 		__entry->state = state;
+-		__entry->cpu_id = cpu_id;
+ 	),
+ 
+-	TP_printk("%s state=%lu cpu_id=%lu", __get_str(name),
+-		(unsigned long)__entry->state, (unsigned long)__entry->cpu_id)
++	TP_printk("%s state=%lu", __get_str(name),
++		(unsigned long)__entry->state)
+ );
+ 
+ DEFINE_EVENT(clock, clock_enable,
+ 
+-	TP_PROTO(const char *name, unsigned int state, unsigned int cpu_id),
++	TP_PROTO(const char *name, unsigned int state),
+ 
+-	TP_ARGS(name, state, cpu_id)
++	TP_ARGS(name, state)
+ );
+ 
+ DEFINE_EVENT(clock, clock_disable,
+ 
+-	TP_PROTO(const char *name, unsigned int state, unsigned int cpu_id),
++	TP_PROTO(const char *name, unsigned int state),
+ 
+-	TP_ARGS(name, state, cpu_id)
++	TP_ARGS(name, state)
+ );
+ 
+ DEFINE_EVENT(clock, clock_set_rate,
+ 
+-	TP_PROTO(const char *name, unsigned int state, unsigned int cpu_id),
++	TP_PROTO(const char *name, unsigned int state),
+ 
+-	TP_ARGS(name, state, cpu_id)
++	TP_ARGS(name, state)
+ );
+ 
+ /*
+-- 
+1.7.4.1
 
-Maybe it's either a compiler bug on one of the toolchains or newer GCCs
-are smart enough to create another section ??
-
-But then again, 2011.03 isn't compiling sleep34xx.S:
-
-arch/arm/mach-omap2/sleep34xx.S: Assembler messages:
-arch/arm/mach-omap2/sleep34xx.S:150: Error: selected processor does not sup=
-port ARM mode `smc #1'
-arch/arm/mach-omap2/sleep34xx.S:418: Error: selected processor does not sup=
-port ARM mode `smc #1'
-arch/arm/mach-omap2/sleep34xx.S:429: Error: selected processor does not sup=
-port ARM mode `smc #1'
-arch/arm/mach-omap2/sleep34xx.S:454: Error: selected processor does not sup=
-port ARM mode `smc #0'
-arch/arm/mach-omap2/sleep34xx.S:460: Error: selected processor does not sup=
-port ARM mode `smc #0'
-arch/arm/mach-omap2/sleep34xx.S:465: Error: selected processor does not sup=
-port ARM mode `smc #0'
-make[1]: *** [arch/arm/mach-omap2/sleep34xx.o] Error 1
-
-so it might be better to keep 2010.09 working.
-
---=20
-balbi
-
---yC91f7qSViS67v3c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOTnXOAAoJEAv8Txj19kN1dUIH/1O2q0txu/5aZJjEL7rDwBq1
-lgYPrSgyJ+XUZWbzH8jZxnBsCpuuL21aEasH2iJokstBV9GpQfnWlPx3BA77lQpG
-TMJtYeORrCTzorbNcMJczWp4OwwnL4DGdvJID/Puwdnn3YoiZrSqRra3IpeSOy8Y
-am0gFsvlaQqXIuj5agqERbW3TOGmEgala5GBedKxR8kpfwRp2FgR27hGPZFIfcf3
-Ct9pl97BGzP72Infcymux7M7baiuZC/y/NpCcSx+kIH6ekRzkDvTld3cjXSoTX2x
-MgsHzhwt5O7qxuYE3PN2p0Vl+oqmIAXOtDDLSWlCQ35bgoYlke3KGQErxBuwhz0=
-=O8mC
------END PGP SIGNATURE-----
-
---yC91f7qSViS67v3c--
