@@ -1,60 +1,87 @@
 From: Abhilash K V <abhilash.kv@ti.com>
-Subject: [PATCH 2/2] AM3517: Support for MMC1
-Date: Fri, 19 Aug 2011 17:22:31 +0530
-Message-ID: <1313754751-11752-3-git-send-email-abhilash.kv@ti.com>
+Subject: [PATCH 1/2] AM3517EVM: Add support for base-board MMC slot
+Date: Fri, 19 Aug 2011 17:22:30 +0530
+Message-ID: <1313754751-11752-2-git-send-email-abhilash.kv@ti.com>
 References: <1313754751-11752-1-git-send-email-abhilash.kv@ti.com>
- <1313754751-11752-2-git-send-email-abhilash.kv@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59023 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751685Ab1HSLwp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Aug 2011 07:52:45 -0400
-In-Reply-To: <1313754751-11752-2-git-send-email-abhilash.kv@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1313754751-11752-1-git-send-email-abhilash.kv@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, linux@arm.linux.org.uk, Abhilash K V <abhilash.kv@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: tony@atomide.com, Abhilash K V <abhilash.kv@ti.com>, linux@arm.linux.org.uk, Vaibhav Hiremath <hvaibhav@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-This patch fixes the following error message which appears
-while intializing MMC1 on the AM3517 EVM base-board:
-    mmc0: host doesn't support card's voltages
-    mmc0: error -22 whilst initialising SD card
-The ocr_mask, which enumerates the volatges supported by the
-MMC card was not being indicated before, assuming that a separate
-Vcc regulator maybe another controllable regulator driver would be
-doing this. This patch statically specifies a subset of the voltages
-supported by the MMC driver, which are provided by the current fixed
-voltage regulator on AM3517 EVM.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
 ---
- arch/arm/mach-omap2/hsmmc.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-am3517evm.c |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index a9b45c7..9dee2e1 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -350,7 +350,15 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
- 	 *
- 	 * temporary HACK: ocr_mask instead of fixed supply
- 	 */
--	mmc->slots[0].ocr_mask = c->ocr_mask;
-+	if (cpu_is_omap3505() || cpu_is_omap3517())
-+		mmc->slots[0].ocr_mask = MMC_VDD_165_195 |
-+					 MMC_VDD_26_27 |
-+					 MMC_VDD_27_28 |
-+					 MMC_VDD_29_30 |
-+					 MMC_VDD_30_31 |
-+					 MMC_VDD_31_32;
-+	else
-+		mmc->slots[0].ocr_mask = c->ocr_mask;
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index f3006c3..bea6da0 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -24,6 +24,7 @@
+ #include <linux/i2c/pca953x.h>
+ #include <linux/can/platform/ti_hecc.h>
+ #include <linux/davinci_emac.h>
++#include <linux/mmc/host.h>
  
- 	if (cpu_is_omap3517() || cpu_is_omap3505())
- 		mmc->slots[0].set_power = nop_mmc_set_power;
+ #include <mach/hardware.h>
+ #include <mach/am35xx.h>
+@@ -39,6 +40,7 @@
+ 
+ #include "mux.h"
+ #include "control.h"
++#include "hsmmc.h"
+ 
+ #define AM35XX_EVM_MDIO_FREQUENCY	(1000000)
+ 
+@@ -460,6 +462,23 @@ static void am3517_evm_hecc_init(struct ti_hecc_platform_data *pdata)
+ static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
+ };
+ 
++static struct omap2_hsmmc_info mmc[] = {
++	{
++		.mmc		= 1,
++		.caps		= MMC_CAP_4_BIT_DATA,
++		.gpio_cd	= 127,
++		.gpio_wp	= 126,
++	},
++	{
++		.mmc		= 2,
++		.caps		= MMC_CAP_4_BIT_DATA,
++		.gpio_cd	= 128,
++		.gpio_wp	= 129,
++	},
++	{}      /* Terminator */
++};
++
++
+ static void __init am3517_evm_init(void)
+ {
+ 	omap_board_config = am3517_evm_config;
+@@ -487,6 +506,9 @@ static void __init am3517_evm_init(void)
+ 
+ 	/* MUSB */
+ 	am3517_evm_musb_init();
++
++	/* MMC init function */
++	omap2_hsmmc_init(mmc);
+ }
+ 
+ MACHINE_START(OMAP3517EVM, "OMAP3517/AM3517 EVM")
 -- 
 1.7.1
-
