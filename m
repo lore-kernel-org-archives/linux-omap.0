@@ -1,57 +1,50 @@
 From: Abhilash K V <abhilash.kv@ti.com>
-Subject: [PATCH 3/4] pm34xx: Warning FIX related to ambiguous else loop
-Date: Fri, 19 Aug 2011 17:25:26 +0530
-Message-ID: <1313754927-11992-4-git-send-email-abhilash.kv@ti.com>
-References: <1313754927-11992-1-git-send-email-abhilash.kv@ti.com>
- <1313754927-11992-2-git-send-email-abhilash.kv@ti.com>
- <1313754927-11992-3-git-send-email-abhilash.kv@ti.com>
+Subject: [PATCH 0/4] AM3517: Adding support for suspend/resume
+Date: Fri, 19 Aug 2011 17:25:23 +0530
+Message-ID: <1313754927-11992-1-git-send-email-abhilash.kv@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59166 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59167 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753748Ab1HSLzp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Aug 2011 07:55:45 -0400
-In-Reply-To: <1313754927-11992-3-git-send-email-abhilash.kv@ti.com>
+	id S1753779Ab1HSLzq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Aug 2011 07:55:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>, Abhilash K V <abhilash.kv@ti.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, Abhilash K V <abhilash.kv@ti.com>, Sanjeev Premi <premi@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+This patch-set adds support for suspension to RAM and
+resumption on the AM3517.
+These patches are dependent on the following patch-set
+http://marc.info/?l=linux-omap&m=131247357813228&w=2
+which gets the AM3517 EVM booting.
+They are also dependent on the PM initialization patches which
+are still to be submitted.
+The patches are tested on master of tmlind/linux-omap-2.6.git.
+Kernel version is 3.0.0-rc7 and last commit on top of which these patches
+were added is:
 
-Fixes below warning -
+        885cf6ff7d3dad4cc44be74b0577d3a554d3ab71: Linux-omap rebuilt:
+        Updated to -rc7, added new boards
 
-arch/arm/mach-omap2/pm34xx.c:1041: warning:
-        suggest explicit braces to avoid ambiguous 'else
-
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com> 
 ---
- arch/arm/mach-omap2/pm34xx.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Abhilash K V (2):
+  AM3517 : support for suspend/resume
+  AM3517: Fix suspend-resume sequence
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 12af5b9..ab3822b 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -856,7 +856,7 @@ void omap_push_sram_idle(void)
- 	else
- 		_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
- 					omap34xx_cpu_suspend_sz);
--	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
-+	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
- 		if (cpu_is_omap3505() || cpu_is_omap3517())
- 			_omap_save_secure_sram = omap_sram_push(
- 					omap3517_save_secure_ram_context,
-@@ -865,6 +865,7 @@ void omap_push_sram_idle(void)
- 			_omap_save_secure_sram = omap_sram_push(
- 					save_secure_ram_context,
- 					save_secure_ram_context_sz);
-+	}
- }
- 
- static void __init pm_errata_configure(void)
--- 
-1.7.1
+Vaibhav Hiremath (2):
+  AM3517: Add armv7-a flag for sleepam3517.S
+  pm34xx: Warning FIX related to ambiguous else loop
+
+ arch/arm/mach-omap2/Makefile    |    3 +-
+ arch/arm/mach-omap2/control.c   |    7 ++-
+ arch/arm/mach-omap2/control.h   |    1 +
+ arch/arm/mach-omap2/pm.h        |    4 +
+ arch/arm/mach-omap2/pm34xx.c    |   21 +++++-
+ arch/arm/mach-omap2/sleep3517.S |  147 +++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 176 insertions(+), 7 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/sleep3517.S
 
