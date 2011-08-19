@@ -1,50 +1,50 @@
-From: Abhilash K V <abhilash.kv@ti.com>
-Subject: [PATCH 2/4] AM3517: Add armv7-a flag for sleepam3517.S
-Date: Fri, 19 Aug 2011 17:25:25 +0530
-Message-ID: <1313754927-11992-3-git-send-email-abhilash.kv@ti.com>
-References: <1313754927-11992-1-git-send-email-abhilash.kv@ti.com>
- <1313754927-11992-2-git-send-email-abhilash.kv@ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 0/5 v6] mfd: omap: usb: Runtime PM support for EHCI and
+ OHCI drivers
+Date: Fri, 19 Aug 2011 18:01:53 +0530
+Message-ID: <CAP05o4KFJ984KTxKu=aNd4OdSkTdCvT_RgFQ6pw8yRDFyprB_A@mail.gmail.com>
+References: <1313753646-29089-1-git-send-email-keshava_mgowda@ti.com>
+	<20110819113953.GM23101@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36708 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753844Ab1HSLzr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Aug 2011 07:55:47 -0400
-In-Reply-To: <1313754927-11992-2-git-send-email-abhilash.kv@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110819113953.GM23101@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, tom.leiming@gmail.com, toddpoynor@google.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>, Abhilash K V <abhilash.kv@ti.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Fri, Aug 19, 2011 at 5:10 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Fri, Aug 19, 2011 at 05:04:01PM +0530, Keshava Munegowda wrote:
+>> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>>
+>> The Hwmod structures and Runtime PM features are implemented
+>> For EHCI and OHCI drivers of OMAP3 and OMAP4.
+>> The global suspend/resume of EHCI and OHCI
+>> is validated on OMAP3430 sdp board with these patches.
+>>
+>> these patches are rebased to kevin's pm branch and
+>> usbhs latest mainline kernel patches
+>>
+>> TODO:
+>> =A0 =A0 =A0- Aggressive clock cutting in usb bus suspends
+>> =A0 =A0 =A0- Remote Wakeup implementation using irq-chaining
+>
+> what happened with V5 ? I didn't see any comments to that one. Please
+> start adding your changes here too.
 
-Without "armv7-a" this flag build fails with following error -
+I rebased (trival) on anand gadiyar's TLL patch, covered typos and re t=
+ested on
+omap3 and omap4 again.
+I know its simple thing to do, but I don't want to see any merge
+conflicts by sameo or anybody.
+I request, if you have any comments please let me know so that we can
+freeze this patch series
+before I complete the development of  aggressive clock cutting/remote
+wakeup other wise
+I am requesting you ack-by :-)
 
-	arch/arm/mach-omap2/sleep3517.S: Assembler messages:
-	arch/arm/mach-omap2/sleep3517.S:80: Error: selected processor does not
-	support `wfi'
-	make[1]: *** [arch/arm/mach-omap2/sleep3517.o] Error 1
-	make: *** [arch/arm/mach-omap2] Error 2
-
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
----
- arch/arm/mach-omap2/Makefile |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 3fdf086..0e626da 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -70,6 +70,7 @@ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
- 
- AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
- AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a$(plus_sec)
-+AFLAGS_sleep3517.o			:=-Wa,-march=armv7-a$(plus_sec)
- 
- ifeq ($(CONFIG_PM_VERBOSE),y)
- CFLAGS_pm_bus.o				+= -DDEBUG
--- 
-1.7.1
-
+keshava
