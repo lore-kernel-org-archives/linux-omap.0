@@ -1,66 +1,85 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Subject: Re: [RFC PATCH 6/6 V2] hwmon: OMAP4: On die temperature sensor driver
-Date: Thu, 18 Aug 2011 23:17:45 -0700
-Message-ID: <20110819061745.GA28832@ericsson.com>
-References: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
- <1313664735-8917-7-git-send-email-j-keerthy@ti.com>
- <20110819021333.GA27544@ericsson.com>
- <CAJ6a13b6EQNhkQ+i5vf0kxKJ3RadY7iSCSJwZ5_sd3Y0BydUow@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from imr4.ericy.com ([198.24.6.9]:52173 "EHLO imr4.ericy.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751681Ab1HSGSo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Aug 2011 02:18:44 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJ6a13b6EQNhkQ+i5vf0kxKJ3RadY7iSCSJwZ5_sd3Y0BydUow@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: tom.leiming@gmail.com
+Subject: [PATCH] mfd: omap-usb-host: fix build failure
+Date: Fri, 19 Aug 2011 16:57:54 +0800
+Message-ID: <1313744274-5031-1-git-send-email-tom.leiming@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: sameo@linux.intel.com
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ming Lei <tom.leiming@gmail.com>, Ming Lei <ming.lei@canonical.com>
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On Fri, Aug 19, 2011 at 02:04:58AM -0400, J, KEERTHY wrote:
-> On Fri, Aug 19, 2011 at 7:43 AM, Guenter Roeck
-> <guenter.roeck@ericsson.com> wrote:
-> > On Thu, Aug 18, 2011 at 06:52:15AM -0400, Keerthy wrote:
-> >> On chip temperature sensor driver. The driver monitors the temperature of
-> >> the MPU subsystem of the OMAP4. It sends notifications to the user space if
-> >> the temperature crosses user defined thresholds via kobject_uevent interface.
-> >> The user is allowed to configure the temperature thresholds vis sysfs nodes
-> >> exposed using hwmon interface.
-> >>
-> >> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> >> Cc: Jean Delvare <khali@linux-fr.org>
-> >> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-> >> Cc: lm-sensors@lm-sensors.org
-> >
-> > High level review:
-> >
-> > - too much and too broad mutex locking. show functions should not need locks at all,
-> >  set functions only while data is written into registers and into platform data.
-> 
-> Ok. I will clean this.
-> 
-> > - driver is quite noisy. There should definitely not be any log messages
-> >  if a set parameter is wrong. Show functions already return an error value
-> >  to the user; a log message indicating the error again just creates noise.
-> >  For one boolean set during probe (is_efuse_valid), each subsequent show results
-> >  in a log message if it is false. Some errors result in multiple log messages.
-> 
-> A user tries to set an invalid temperature threshold. The user should
-> be notified about this. The invalid temperature will not be set. The user
-> should not be allowed to set an invalid temperature. It is to inform
-> the user about precisely the problem with the parameter.
-> 
-User is notified with -EINVAL. Unless on the console, which is unlikely,
-the user will likely not notice a message in the kernel log.
+From: Ming Lei <tom.leiming@gmail.com>
 
-> In some of the samples the bandgap is not trimmed and hence
-> temperature reported will be wrong. So every time a user tries to read
-> he is alerted that the temperatures are not accurate.
-> 
-In the kernel log ? Sorry, that doesn't make sense. You alert the system administrator, 
-not the user.
+The patch fixes the build failure:
 
-Guenter
+drivers/mfd/omap-usb-host.c:1034:1: warning: data definition has no type
+or storage class
+drivers/mfd/omap-usb-host.c:1034:1: warning: type defaults to 'int' in
+declaration of 'EXPORT_SYMBOL_GPL'
+drivers/mfd/omap-usb-host.c:1034:1: warning: parameter names (without
+types) in function declaration
+drivers/mfd/omap-usb-host.c:1040:1: warning: data definition has no type
+or storage class
+drivers/mfd/omap-usb-host.c:1040:1: warning: type defaults to 'int' in
+declaration of 'EXPORT_SYMBOL_GPL'
+drivers/mfd/omap-usb-host.c:1040:1: warning: parameter names (without
+types) in function declaration
+drivers/mfd/omap-usb-host.c:1045:13: error: 'THIS_MODULE' undeclared
+here (not in a function)
+drivers/mfd/omap-usb-host.c:1050:15: error: expected declaration
+specifiers or '...' before string constant
+drivers/mfd/omap-usb-host.c:1050:1: warning: data definition has no type
+or storage class
+drivers/mfd/omap-usb-host.c:1050:1: warning: type defaults to 'int' in
+declaration of 'MODULE_AUTHOR'
+drivers/mfd/omap-usb-host.c:1050:15: warning: function declaration isn't
+a prototype
+drivers/mfd/omap-usb-host.c:1051:14: error: expected declaration
+specifiers or '...' before string constant
+drivers/mfd/omap-usb-host.c:1051:1: warning: data definition has no type
+or storage class
+drivers/mfd/omap-usb-host.c:1051:1: warning: type defaults to 'int' in
+declaration of 'MODULE_ALIAS'
+drivers/mfd/omap-usb-host.c:1051:14: warning: function declaration isn't
+a prototype
+drivers/mfd/omap-usb-host.c:1052:16: error: expected declaration
+specifiers or '...' before string constant
+drivers/mfd/omap-usb-host.c:1052:1: warning: data definition has no type
+or storage class
+drivers/mfd/omap-usb-host.c:1052:1: warning: type defaults to 'int' in
+declaration of 'MODULE_LICENSE'
+drivers/mfd/omap-usb-host.c:1052:16: warning: function declaration isn't
+a prototype
+drivers/mfd/omap-usb-host.c:1053:20: error: expected declaration
+specifiers or '...' before string constant
+drivers/mfd/omap-usb-host.c:1053:1: warning: data definition has no type
+or storage class
+drivers/mfd/omap-usb-host.c:1053:1: warning: type defaults to 'int' in
+declaration of 'MODULE_DESCRIPTION'
+drivers/mfd/omap-usb-host.c:1053:20: warning: function declaration isn't
+a prototype
+make[2]: *** [drivers/mfd/omap-usb-host.o] Error 1
+  CC      fs/proc/namespaces.o
+make[1]: *** [drivers/mfd] Error 2
+make: *** [drivers] Error 2
+make: *** Waiting for unfinished jobs....
+
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/mfd/omap-usb-host.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 29601e7..03debe8 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -17,6 +17,7 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ #include <linux/kernel.h>
++#include <linux/module.h>
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+-- 
+1.7.4.1
