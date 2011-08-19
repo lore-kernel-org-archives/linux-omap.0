@@ -1,31 +1,59 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/4] AM3517 : support for suspend/resume
-Date: Fri, 19 Aug 2011 20:56:49 +0100
-Message-ID: <20110819195649.GB18947@n2100.arm.linux.org.uk>
-References: <1313754927-11992-1-git-send-email-abhilash.kv@ti.com> <1313754927-11992-2-git-send-email-abhilash.kv@ti.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 3/3] trace points: power: remove 'cpu_id' from trace_cpu_idle
+Date: Fri, 19 Aug 2011 22:31:01 +0200
+Message-ID: <201108192231.02665.trenn@suse.de>
+References: <1313766244-22313-1-git-send-email-tom.leiming@gmail.com> <1313766244-22313-3-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38993 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756153Ab1HST47 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Aug 2011 15:56:59 -0400
-Content-Disposition: inline
-In-Reply-To: <1313754927-11992-2-git-send-email-abhilash.kv@ti.com>
+Received: from cantor2.suse.de ([195.135.220.15]:56781 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752187Ab1HSUbD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Aug 2011 16:31:03 -0400
+In-Reply-To: <1313766244-22313-3-git-send-email-tom.leiming@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Abhilash K V <abhilash.kv@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, khilman@ti.com, Ranjith Lohithakshan <ranjithl@ti.com>
+To: tom.leiming@gmail.com
+Cc: rostedt@goodmis.org, fweisbec@gmail.com, jean.pihet@newoldbits.com, mingo@redhat.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Fri, Aug 19, 2011 at 05:25:24PM +0530, Abhilash K V wrote:
-> 1. Patch to disable dynamic sleep (as it is not supported
->    on AM35xx).
-> 2. Imported the unique suspend/resume sequence for AM3517,
->    contained in the new file arch/arm/mach-omap2/sleep3517.S.
-> 3. Added omap3517_ to symbol-names in sleep3517.S which are common
->    with sleep34xx.S, and added appropriate checks.
+On Friday, August 19, 2011 05:04:04 PM tom.leiming@gmail.com wrote:
+> From: Ming Lei <tom.leiming@gmail.com>
+> 
+> This patch removes the 'cpu_id' parameter of the cpu_idle
+> trace point, based on the ideas below:
+> 
+> - the cpu_id which is passed to trace point is always the current
+>   cpu
+Are you sure this will always be true?
 
-You don't say what kernel these are against, it looks like it is not the
-latest mainline kernel, as I cleaned up OMAP3 suspend/resume significantly
-recently.  I think you need to update these patches against the latest
-kernel and repost them.
+> - the current cpu info has been included into the trace result
+>   already
+> - smp_processor_id() can't be used safely in preemptible context.
+
+The cpuid has been added to idle events on purpose for example to be 
+able to pass C-state dependencies.
+2 cores may only enter a deeper sleep state if the 2nd core enters it
+as well.
+There may be architectures where you could trigger a sleep state on
+a foreign cpu.
+
+This may not be used now, but if the kernel does want to use it, you do
+not want to adjust a dozen userspace apps.
+
+Not sure how to quickly solve the:
+"smp_processor_id() can't be used safely in preemptible context."
+problem, though.
+A convention could be declared that if -1 is passed, it's the same cpu
+entering the sleep state as the running one. This will probably
+break userspace apps as well...
+
+Best would be to clean up x86 and let idle routines always be entered
+from cpuidle subsystem which knows the cpu id already and eliminate
+all idle functions in arch/x86/kernel/process.c.
+
+   Thomas
+
+PS: I do not care about patch 1 and 2 as these events are ARM specific
+afaik. But I vote against this one.
