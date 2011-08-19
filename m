@@ -1,228 +1,186 @@
 From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [RFC PATCH 6/6 V2] hwmon: OMAP4: On die temperature sensor
- driver
-Date: Thu, 18 Aug 2011 22:34:38 -0700
-Message-ID: <20110819053438.GA2901@google.com>
+Subject: Re: [RFC PATCH 5/6 V2] OMAP4: Temperature sensor device support
+Date: Thu, 18 Aug 2011 22:47:05 -0700
+Message-ID: <20110819054705.GB2901@google.com>
 References: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
- <1313664735-8917-7-git-send-email-j-keerthy@ti.com>
+ <1313664735-8917-6-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:59231 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:63486 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751297Ab1HSFfQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Aug 2011 01:35:16 -0400
+	with ESMTP id S1751053Ab1HSFrK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Aug 2011 01:47:10 -0400
 Content-Disposition: inline
-In-Reply-To: <1313664735-8917-7-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1313664735-8917-6-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
-Cc: linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com
 
-On Thu, Aug 18, 2011 at 04:22:15PM +0530, Keerthy wrote:
+On Thu, Aug 18, 2011 at 04:22:14PM +0530, Keerthy wrote:
 ...
-> +static int omap_temp_sensor_clk_enable(struct omap_temp_sensor *temp_sensor)
+> +int omap_temp_sensor_device_idle(struct omap_device *od)
 > +{
-> +	u32 ret = 0;
+> +	struct	omap_temp_sensor_registers	*registers;
+> +	struct	resource			*mem;
+> +	void	__iomem				*phy_base;
+> +	unsigned long				timeout;
+> +	u32					ret = 0, temp;
 > +
-> +	if (temp_sensor->clk_on) {
-> +		dev_err(temp_sensor->hwmon_dev, "clock already on\n");
-> +		goto out;
+> +	mem = platform_get_resource(&od->pdev, IORESOURCE_MEM, 0);
+> +	if (!mem) {
+> +		dev_err(&od->pdev.dev, "no mem resource\n");
+> +		ret = -EINVAL;
+> +		goto plat_res_err;
 > +	}
 > +
-> +	ret = pm_runtime_get_sync(temp_sensor->hwmon_dev);
-> +	if (ret < 0) {
-> +		dev_err(temp_sensor->hwmon_dev, "get sync failed\n");
-> +		goto out;
+> +	phy_base = ioremap(mem->start, resource_size(mem));
+
+Check NULL return.
+
+> +
+> +	if (!strcmp(od->hwmods[0]->dev_attr, "mpu"))
+> +		registers = &omap_mpu_temp_sensor_registers;
+> +
+> +	temp = __raw_readl(phy_base + registers->temp_sensor_ctrl);
+
+Compile warning on possible use of uninitialized value?
+
+Suggest return error if string comparison (ugh) does not match.
+
+> +	temp |= registers->bgap_tempsoff_mask;
+> +
+> +	/* BGAP_TEMPSOFF should be set to 1 before gating clock */
+> +	__raw_writel(temp, phy_base + registers->temp_sensor_ctrl);
+> +	temp = __raw_readl(phy_base + registers->bgap_status);
+> +	timeout = jiffies + msecs_to_jiffies(5);
+> +
+> +	/* wait till the clean stop bit is set or till the timeout expires */
+> +	while (!(temp | registers->status_clean_stop_mask) &&
+> +			!(time_after(jiffies, timeout))) {
+> +		temp = __raw_readl(phy_base + registers->bgap_status);
+> +		usleep_range(500, 2000);
 > +	}
 > +
-> +	temp_sensor->clk_on = 1;
-
-
-Probably should hold the mutex around this to keep clk_on consistent
-with runtime PM state (and in disable method).
-
-...
-> +static int __devinit omap_temp_sensor_probe(struct platform_device *pdev)
-> +{
-> +	struct omap_temp_sensor_pdata	*pdata	= pdev->dev.platform_data;
-> +	struct omap_temp_sensor		*temp_sensor;
-> +	struct resource			*mem;
-> +	int				ret = 0;
-> +	int				val, clk_rate;
+> +	if (time_after(jiffies, timeout))
+> +		dev_err(&od->pdev.dev, "Clean stop bit not set\n");
 > +
-> +	if (!pdata) {
-> +		dev_err(&pdev->dev, "platform data missing\n");
+> +	ret = omap_device_idle_hwmods(od);
+> +
+> +plat_res_err:
+> +	return ret;
+
+phy_base not saved anywhere, VM leak.  Need iounmap(phy_base).
+
+> +}
+> +
+> +int omap_temp_sensor_device_activate(struct omap_device *od)
+> +{
+> +	struct	omap_temp_sensor_registers	*registers;
+> +	struct	resource			*mem;
+> +	void	__iomem				*phy_base;
+> +	u32					ret = 0, temp;
+> +
+> +	ret = omap_device_enable_hwmods(od);
+> +	if (ret < 0)
+> +		return ret;
+> +	mem = platform_get_resource(&od->pdev, IORESOURCE_MEM, 0);
+> +	if (!mem) {
+> +		dev_err(&od->pdev.dev, "no mem resource\n");
 > +		return -EINVAL;
 > +	}
 > +
-> +	temp_sensor = kzalloc(sizeof(*temp_sensor), GFP_KERNEL);
-> +	if (!temp_sensor)
-> +		return -ENOMEM;
+> +	phy_base = ioremap(mem->start, resource_size(mem));
+
+Check NULL return.
+
 > +
-> +	mutex_init(&temp_sensor->sensor_mutex);
+> +	if (!strcmp(od->hwmods[0]->dev_attr, "mpu"))
+> +		registers = &omap_mpu_temp_sensor_registers;
 > +
-> +	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (!mem) {
-> +		dev_err(&pdev->dev, "no mem resource\n");
-> +		ret = -ENOMEM;
-> +		goto plat_res_err;
-> +	}
-> +
-> +	temp_sensor->irq = platform_get_irq_byname(pdev, "thermal_alert");
-> +	if (temp_sensor->irq < 0) {
-> +		dev_err(&pdev->dev, "get_irq_byname failed\n");
-> +		ret = temp_sensor->irq;
-> +		goto plat_res_err;
-> +	}
-> +
-> +	temp_sensor->phy_base = ioremap(mem->start, resource_size(mem));
-> +	temp_sensor->clock = NULL;
-> +	temp_sensor->registers = pdata->registers;
-> +	temp_sensor->hwmon_dev = &pdev->dev;
-> +
-> +	pm_runtime_enable(&pdev->dev);
-> +	pm_runtime_irq_safe(&pdev->dev);
-> +
-> +	/*
-> +	 * check if the efuse has a non-zero value if not
-> +	 * it is an untrimmed sample and the temperatures
-> +	 * may not be accurate
-> +	 */
-> +
-> +	if (omap_temp_sensor_readl(temp_sensor,
-> +			temp_sensor->registers->bgap_efuse))
-> +		temp_sensor->is_efuse_valid = 1;
-> +
-> +	platform_set_drvdata(pdev, temp_sensor);
-> +	dev_set_drvdata(&pdev->dev, temp_sensor);
-> +	temp_sensor->clock = clk_get(temp_sensor->hwmon_dev, "fck");
-> +	if (IS_ERR(temp_sensor->clock)) {
-> +		ret = PTR_ERR(temp_sensor->clock);
-> +		dev_err(temp_sensor->hwmon_dev,
-> +			"unable to get fclk: %d\n", ret);
-> +		ret = -EINVAL;
-> +		goto plat_res_err;
-> +	}
-> +
-> +	ret = omap_temp_sensor_clk_enable(temp_sensor);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "Cannot enable temp sensor\n");
-> +		goto clken_err;
-> +	}
-> +
-> +	clk_rate = clk_round_rate(temp_sensor->clock, 2000000);
-> +	if (clk_rate < 1000000 || clk_rate == 0xffffffff) {
-> +		dev_err(&pdev->dev, "Error round rate\n");
-> +		ret = -EINVAL;
-> +		goto clken_err;
-> +	}
-> +
-> +	ret = clk_set_rate(temp_sensor->clock, clk_rate);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "Cannot set clock rate\n");
-> +		goto clken_err;
-> +	}
-> +
-> +	temp_sensor->clk_rate = clk_rate;
-> +	omap_enable_continuous_mode(temp_sensor, 1);
-> +	omap_configure_temp_sensor_thresholds(temp_sensor);
-> +	/* 1 ms */
-> +	omap_configure_temp_sensor_counter(temp_sensor, 1);
-> +
-> +	/* Wait till the first conversion is done wait for at least 1ms */
-> +	usleep_range(1000, 2000);
-> +
-> +	/* Read the temperature once due to hw issue*/
-> +	omap_temp_sensor_readl(temp_sensor,
-> +			temp_sensor->registers->temp_sensor_ctrl);
-> +
-> +	/* Set 2 seconds time as default counter */
-> +	omap_configure_temp_sensor_counter(temp_sensor,
-> +						temp_sensor->clk_rate * 2);
-> +
-> +	temp_sensor->hwmon_dev = hwmon_device_register(&pdev->dev);
-> +	if (IS_ERR(temp_sensor->hwmon_dev)) {
-> +		dev_err(&pdev->dev, "hwmon_device_register failed.\n");
-> +		ret = PTR_ERR(temp_sensor->hwmon_dev);
-> +		goto hwmon_reg_err;
-> +	}
-> +
-> +	ret = sysfs_create_group(&pdev->dev.kobj,
-> +				 &omap_temp_sensor_group);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "could not create sysfs files\n");
-> +		goto sysfs_create_err;
-> +	}
-> +
-> +	kobject_uevent(&temp_sensor->hwmon_dev->kobj, KOBJ_ADD);
-> +
-> +	ret = request_threaded_irq(temp_sensor->irq, NULL,
-> +		omap_talert_irq_handler, IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-> +			"temp_sensor", temp_sensor);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "Request threaded irq failed.\n");
-> +		goto req_irq_err;
-> +	}
-> +
-> +	/* unmask the T_COLD and unmask T_HOT at init */
-> +	val = omap_temp_sensor_readl(temp_sensor,
-> +		temp_sensor->registers->bgap_mask_ctrl);
-> +	val |= temp_sensor->registers->mask_cold_mask
-> +		| temp_sensor->registers->mask_hot_mask;
-> +
-> +	omap_temp_sensor_writel(temp_sensor, val,
-> +		temp_sensor->registers->bgap_mask_ctrl);
+> +	temp = __raw_readl(phy_base + registers->temp_sensor_ctrl);
+
+Error out if not "mpu".
+
+> +	temp &= ~(registers->bgap_tempsoff_mask);
+> +	/* BGAP_TEMPSOFF should be reset to 0 */
+> +	__raw_writel(temp,
+> +			phy_base + registers->temp_sensor_ctrl);
 > +
 > +	return 0;
-> +
-> +req_irq_err:
-> +	kobject_uevent(&temp_sensor->hwmon_dev->kobj, KOBJ_REMOVE);
-> +	sysfs_remove_group(&temp_sensor->hwmon_dev->kobj,
-> +				&omap_temp_sensor_group);
-> +sysfs_create_err:
-> +	hwmon_device_unregister(&pdev->dev);
-> +hwmon_reg_err:
-> +	omap_temp_sensor_clk_disable(temp_sensor);
-> +clken_err:
-> +	clk_put(temp_sensor->clock);
-> +plat_res_err:
-> +	mutex_destroy(&temp_sensor->sensor_mutex);
-> +	kfree(temp_sensor);
 
-Should also:
-        platform_set_drvdata(pdev, NULL);
-        dev_set_drvdata(&pdev->dev, NULL);
+iounmap(phy_base)
 
-
-> +	return ret;
 > +}
 > +
-> +static int __devexit omap_temp_sensor_remove(struct platform_device *pdev)
+> +static struct omap_device_pm_latency omap_temp_sensor_latency[] = {
+> +	{
+> +		.deactivate_func = omap_temp_sensor_device_idle,
+> +		.activate_func =  omap_temp_sensor_device_activate,
+> +		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> +	}
+> +};
+> +
+> +static DEFINE_IDR(temp_sensor_device_idr);
+> +
+> +static int temp_sensor_dev_init(struct omap_hwmod *oh, void *user)
 > +{
-> +	struct omap_temp_sensor *temp_sensor = platform_get_drvdata(pdev);
+> +	struct	omap_temp_sensor_pdata		*temp_sensor_pdata;
+> +	struct	omap_device			*od;
+> +	struct	omap_temp_sensor_dev_attr	*temp_sensor_dev_attr;
+> +	int					ret = 0;
+> +	int					num;
+> +	struct	mutex			sensor_mutex;	/* sensor mutex */
 > +
-> +	hwmon_device_unregister(&pdev->dev);
-> +	kobject_uevent(&temp_sensor->hwmon_dev->kobj, KOBJ_REMOVE);
-> +	sysfs_remove_group(&temp_sensor->hwmon_dev->kobj,
-> +			&omap_temp_sensor_group);
-> +	omap_temp_sensor_clk_disable(temp_sensor);
-> +	clk_put(temp_sensor->clock);
-> +	platform_set_drvdata(pdev, NULL);
-
-And:
-       dev_set_drvdata(&pdev->dev, NULL);
-
-> +	free_irq(temp_sensor->irq, temp_sensor);
-
-Need to free IRQ before clock is disabled (else ISR may access while
-clock stopped, possible L3 interconnect error and ARM imprecise
-external abort)?
-
-> +	mutex_destroy(&temp_sensor->sensor_mutex);
-> +	kfree(temp_sensor);
+> +	mutex_init(&sensor_mutex);
 > +
-> +	return 0;
+> +	temp_sensor_pdata =
+> +	    kzalloc(sizeof(*temp_sensor_pdata), GFP_KERNEL);
+> +	if (!temp_sensor_pdata) {
+> +		dev_err(&oh->od->pdev.dev,
+> +			"Unable to allocate memory for temp sensor pdata\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	mutex_lock(&sensor_mutex);
+
+Mutex just init'ed above, this code can't run concurrent with any
+other accessors.
+
+> +	ret = idr_pre_get(&temp_sensor_device_idr, GFP_KERNEL);
+> +	if (ret < 0) {
+> +		mutex_unlock(&sensor_mutex);
+> +		goto fail_id;
+> +	}
+> +	ret = idr_get_new(&temp_sensor_device_idr, temp_sensor_pdata, &num);
+> +	if (ret < 0) {
+> +		mutex_unlock(&sensor_mutex);
+> +		goto fail_id;
+> +	}
+> +	mutex_unlock(&sensor_mutex);
+> +
+> +	temp_sensor_dev_attr = oh->dev_attr;
+> +	if (!strcmp(temp_sensor_dev_attr->name, "mpu"))
+> +		temp_sensor_pdata->registers = &omap_mpu_temp_sensor_registers;
+> +
+> +	od = omap_device_build("omap_temp_sensor", num,
+> +		oh, temp_sensor_pdata, sizeof(*temp_sensor_pdata),
+> +	       omap_temp_sensor_latency,
+> +			ARRAY_SIZE(omap_temp_sensor_latency), 0);
+
+Inconsistent tabbing.
+
+> +	if (IS_ERR(od)) {
+> +		dev_warn(&oh->od->pdev.dev,
+> +			"Could not build omap_device for %s\n", oh->name);
+> +		ret = PTR_ERR(od);
+> +	}
+> +
+> +fail_id:
+> +	kfree(temp_sensor_pdata);
+> +
+> +	return ret;
 > +}
 
 
