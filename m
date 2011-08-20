@@ -1,218 +1,85 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv2 5/5] OMAP: HWMOD: Unify DSS resets for all OMAPs
-Date: Sat, 20 Aug 2011 00:26:01 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108200018590.24016@utopia.booyaka.com>
-References: <1312794914-22894-1-git-send-email-tomi.valkeinen@ti.com> <1312794914-22894-6-git-send-email-tomi.valkeinen@ti.com> <alpine.DEB.2.00.1108192327470.24016@utopia.booyaka.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device wake-up constraints
+Date: Sat, 20 Aug 2011 11:35:58 +0200
+Message-ID: <201108201135.58886.rjw@sisk.pl>
+References: <1309446685-17502-1-git-send-email-j-pihet@ti.com> <201108192242.20471.rjw@sisk.pl> <20110819231419.GA3981@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42275 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751700Ab1HTG0C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Aug 2011 02:26:02 -0400
-In-Reply-To: <alpine.DEB.2.00.1108192327470.24016@utopia.booyaka.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:54288 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751761Ab1HTJeP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 20 Aug 2011 05:34:15 -0400
+In-Reply-To: <20110819231419.GA3981@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, archit@ti.com
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, markgross@thegnar.org
 
-On Fri, 19 Aug 2011, Paul Walmsley wrote:
+On Saturday, August 20, 2011, Mark Brown wrote:
+> On Fri, Aug 19, 2011 at 10:42:20PM +0200, Rafael J. Wysocki wrote:
+> 
+> > I really wouldn't like the discussion to go in circles.
+> 
+> > First, please tell me what in particular you are objecting to,
+> > because I don't think that's any of the patches that have been
+> > sent to the linux-pm list to date.
+> 
+> The original issue that Kevin raised and CCed me in on was the idea of
+> exposing raw per-device wakeup latency constraints to userspace; it
+> seems much better to expose user level requirements via subsystem
+> interfaces and let the subsystem and driver translate these into actual
+> wakeup latency constraints:
+> 
+>   https://lists.linux-foundation.org/pipermail/linux-pm/2011-August/032422.html
+>   https://lists.linux-foundation.org/pipermail/linux-pm/2011-August/032428.html
 
-> This one doesn't build when !CONFIG_OMAP2_DSS - the following is the 
-> updated patch.
+OK, so let's clarify things.
 
-Looks like my previous update missed a warning.  This also moves the 
-omap_dss_reset() prototype from arch/arm/mach-omap2/common-board-devices.h 
-to arch/arm/plat-omap/include/plat/common.h.
+I'm not sure what you mean by "exposing per-device wakeup latency constraints
+to user space".  I simply thought it might be useful to allow user space to
+add and remove those, in analogy to what it can do with the currently available
+PM QoS constraints.
 
+My point is that this won't prevent kernel subsystems from adding their
+own PM QoS constraints to devices and the constraints added by user space
+will only have effect if they make the devices stay active for longer
+times.  In consequence, they may only increase the energy usage of the system
+and shouldn't affect functionality.
 
-- Paul
+The reason why I think this may be useful is that I can readily imagine
+scenarios in which user space (think a distribution or system vendor) will
+want to do something that hasn't been anticipated by kernel developers
+and the ability to add per-device PM QoS constraints will allow it to do that
+without modifying the kernel.  Also, it will help to test and debug new drivers
+and subsystems.
 
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date: Fri, 19 Aug 2011 17:00:46 -0600
-Subject: [PATCH] OMAP: HWMOD: Unify DSS resets for all OMAPs
+I don't want to prevent kernel subsystems from using their own interfaces to
+acquire user-level input that translates into PM QoS constraints.  I simply
+think it won't _hurt_ to provide user space with an additional level of
+control over per-device PM QoS constraints.
 
-This patch adds a custom DSS reset function used on all OMAP's.
+> This is much easier for users as it translates into something they're
+> actually doing (and in most cases the driver can make it Just Work) and
+> it means that off the shelf applications will end up tuning the system
+> appropriately by themselves.
 
-The function doesn't actually do a reset, it only waits for the reset to
-complete. The reason for this is that on OMAP4 there is no possibility
-to do a SW reset, and on OMAP2/3 doing a SW reset for dss_core resets
-all the other DSS modules also, thus breaking the HWMOD model where
-every DSS module is independent.
+The _end_ users really don't care.  They'll use whatever settings the user
+interface exposes to them.  Moreover, even if there is an interface for
+user space to add per-device PM QoS constraints, that doesn't mean the
+user space is _required_ to use it.  If it doesn't, everything will work
+as you describe.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-[paul@pwsan.com: modified to build arch/arm/mach-omap2/display.o
- unconditionally to avoid an error when !CONFIG_OMAP2_DSS]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/Makefile                       |    5 +--
- arch/arm/mach-omap2/display.c                      |   35 ++++++++++++++++++++
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    2 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    3 ++
- arch/arm/plat-omap/include/plat/common.h           |    3 ++
- include/video/omapdss.h                            |    7 ----
- 6 files changed, 44 insertions(+), 11 deletions(-)
+> I'm additionally concerned that if we expose this stuff directly to userspace
+> that's an open invitation to driver authors to not even bother trying to make
+> the kernel figure this stuff out by itself and to instead tie the system
+> together with magic userspace.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index f343365..bf85539 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -4,7 +4,7 @@
- 
- # Common support
- obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer.o pm.o \
--	 common.o gpio.o dma.o wd_timer.o
-+	 common.o gpio.o dma.o wd_timer.o display.o
- 
- omap-2-3-common				= irq.o sdrc.o
- hwmod-common				= omap_hwmod.o \
-@@ -276,7 +276,4 @@ smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
- obj-y					+= $(smsc911x-m) $(smsc911x-y)
- obj-$(CONFIG_ARCH_OMAP4)		+= hwspinlock.o
- 
--disp-$(CONFIG_OMAP2_DSS)		:= display.o
--obj-y					+= $(disp-m) $(disp-y)
--
- obj-y					+= common-board-devices.o twl-common.o
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index a5b7a23..cdb675a 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -26,6 +26,7 @@
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
- #include <plat/omap-pm.h>
-+#include <plat/common.h>
- 
- static struct platform_device omap_display_device = {
- 	.name          = "omapdss",
-@@ -126,3 +127,37 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
- 
- 	return r;
- }
-+
-+#define MAX_MODULE_SOFTRESET_WAIT	10000
-+int omap_dss_reset(struct omap_hwmod *oh)
-+{
-+	struct omap_hwmod_opt_clk *oc;
-+	int c = 0;
-+	int i, r;
-+
-+	if (!(oh->class->sysc->sysc_flags & SYSS_HAS_RESET_STATUS)) {
-+		pr_err("dss_core: hwmod data doesn't contain reset data\n");
-+		return -EINVAL;
-+	}
-+
-+	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
-+		if (oc->_clk)
-+			clk_enable(oc->_clk);
-+
-+	omap_test_timeout((omap_hwmod_read(oh, oh->class->sysc->syss_offs)
-+				& SYSS_RESETDONE_MASK),
-+			MAX_MODULE_SOFTRESET_WAIT, c);
-+
-+	if (c == MAX_MODULE_SOFTRESET_WAIT)
-+		pr_warning("dss_core: waiting for reset to finish failed\n");
-+	else
-+		pr_debug("dss_core: softreset done\n");
-+
-+	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
-+		if (oc->_clk)
-+			clk_disable(oc->_clk);
-+
-+	r = (c == MAX_MODULE_SOFTRESET_WAIT) ? -ETIMEDOUT : 0;
-+
-+	return r;
-+}
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-index d78c132..c11273d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-@@ -11,6 +11,7 @@
- #include <plat/omap_hwmod.h>
- #include <plat/serial.h>
- #include <plat/dma.h>
-+#include <plat/common.h>
- 
- #include <mach/irqs.h>
- 
-@@ -51,6 +52,7 @@ static struct omap_hwmod_class_sysconfig omap2_dss_sysc = {
- struct omap_hwmod_class omap2_dss_hwmod_class = {
- 	.name	= "dss",
- 	.sysc	= &omap2_dss_sysc,
-+	.reset	= omap_dss_reset,
- };
- 
- /*
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 8b74058..3b80f82 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -29,6 +29,7 @@
- #include <plat/mcbsp.h>
- #include <plat/mmc.h>
- #include <plat/i2c.h>
-+#include <plat/common.h>
- 
- #include "omap_hwmod_common_data.h"
- 
-@@ -37,6 +38,7 @@
- #include "prm44xx.h"
- #include "prm-regbits-44xx.h"
- #include "wd_timer.h"
-+#include "common-board-devices.h"
- 
- /* Base offset for all OMAP4 interrupts external to MPUSS */
- #define OMAP44XX_IRQ_GIC_START	32
-@@ -1204,6 +1206,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_dss_sysc = {
- static struct omap_hwmod_class omap44xx_dss_hwmod_class = {
- 	.name	= "dss",
- 	.sysc	= &omap44xx_dss_sysc,
-+	.reset	= omap_dss_reset,
- };
- 
- /* dss */
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index 4564cc6..a822685 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -30,6 +30,7 @@
- #include <linux/delay.h>
- 
- #include <plat/i2c.h>
-+#include <plat/omap_hwmod.h>
- 
- struct sys_timer;
- 
-@@ -45,6 +46,8 @@ extern unsigned long long notrace omap_32k_sched_clock(void);
- 
- extern void omap_reserve(void);
- 
-+extern int omap_dss_reset(struct omap_hwmod *);
-+
- /*
-  * IO bases for various OMAP processors
-  * Except the tap base, rest all the io bases
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 3b55ef2..105b05d 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -245,15 +245,8 @@ struct omap_dss_board_info {
- 	void (*dsi_mux_pads)(bool enable);
- };
- 
--#if defined(CONFIG_OMAP2_DSS_MODULE) || defined(CONFIG_OMAP2_DSS)
- /* Init with the board info */
- extern int omap_display_init(struct omap_dss_board_info *board_data);
--#else
--static inline int omap_display_init(struct omap_dss_board_info *board_data)
--{
--	return 0;
--}
--#endif
- 
- struct omap_display_platform_data {
- 	struct omap_dss_board_info *board_data;
--- 
-1.7.5.4
+As I said, I don't think we can prevent that from happening anyway.
+Worst case people will add strange interfaces to drivers making them
+incompatible with anything except for their crazy user space.
 
+Thanks,
+Rafael
