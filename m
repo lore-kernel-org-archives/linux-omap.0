@@ -1,217 +1,151 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv2 5/5] OMAP: HWMOD: Unify DSS resets for all OMAPs
-Date: Fri, 19 Aug 2011 23:30:10 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108192327470.24016@utopia.booyaka.com>
-References: <1312794914-22894-1-git-send-email-tomi.valkeinen@ti.com> <1312794914-22894-6-git-send-email-tomi.valkeinen@ti.com>
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] OMAP4: clock: re-enable previous clockdomain enable/disable
+ sequence (was Re: Oops on ehci_hcd when booting 3.0.0-rc2 on panda)
+Date: Sat, 20 Aug 2011 11:45:18 +0530
+Message-ID: <4E4F50F6.9040900@ti.com>
+References: <1307356643.23002.413.camel@cumari>	<20110606104417.GP18731@legolas.emea.dhcp.ti.com>	<20110606110218.GS18731@legolas.emea.dhcp.ti.com>	<1307358348.23002.419.camel@cumari>	<1312889168.2407.148.camel@cumari>	<CAK=WgbatbaSj=U7+SAva4Woh7uaOoCzQck5yjfLvVGLR-UCVHg@mail.gmail.com>	<4E43C41E.1080808@ti.com> <1313065224.2407.857.camel@cumari>	<CAP05o4+sBa_DO-ReoF20L=v5kbt5936_1vAGTQ10E4Lh+YXdNQ@mail.gmail.com>	<alpine.DEB.2.00.1108191647430.9948@utopia.booyaka.com>	<20110819230805.GA13317@legolas.emea.dhcp.ti.com> <alpine.DEB.2.00.1108192131170.24016@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60908 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751332Ab1HTFaL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Aug 2011 01:30:11 -0400
-In-Reply-To: <1312794914-22894-6-git-send-email-tomi.valkeinen@ti.com>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:58897 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751462Ab1HTGP3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 20 Aug 2011 02:15:29 -0400
+In-Reply-To: <alpine.DEB.2.00.1108192131170.24016@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, archit@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Felipe Balbi <balbi@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@ti.com>, Luciano Coelho <coelho@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-usb@vger.kernel.org, "Munegowda, Keshava" <keshava_mgowda@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sameo@linux.intel.com
 
-Hi Tomi,
+> From: Paul Walmsley<paul@pwsan.com>
+> Date: Fri, 19 Aug 2011 16:59:56 -0600
+> Subject: [PATCH] OMAP4: clock: re-enable previous clockdomain enable/=
+disable
+>   sequence
+> MIME-Version: 1.0
+> Content-Type: text/plain; charset=3DUTF-8
+> Content-Transfer-Encoding: 8bit
+>
+> After commit 665d001338b494d6d62810aa99b4c0fa1a0884b9 ("OMAP2+: hwmod=
+:
+> Follow the recommended PRCM module enable sequence"), device drivers
+> for OMAP IP blocks that do not use runtime PM can cause oopses or
+> kernel instability[1][2].
+>
+> This is because those non-runtime PM drivers do not use the hwmod
+> code, which implements the correct IP block enable and disable
+> sequence.
+>
+> Several options for dealing with this problem have been proposed:
+>
+> 1. Add a new field to the OMAP struct clk to mark clocks that are
+>     currently used by non-runtime PM drivers.  Modify the clock code =
+to
+>     use the old clockdomain sequence for these marked clocks.  As
+>     drivers are converted to use runtime PM, remove the annotation fr=
+om
+>     the clocks.
+>
+> 2. Similar to #1, but associate the flag with the struct omap_clk
+>     instead.
+>
+> 3. Add IDLEST wait support to the OMAP4 clock code, similar to the wa=
+y
+>     it is implemented for OMAP2/3, and enable it in each struct clk
+>     currently used by non-runtime PM drivers.  As drivers are convert=
+ed
+>     to use runtime PM, remove the annotation from the clocks.
+>
+> 4. Do nothing; leave the problem to those responsible for the
+>     unconverted drivers.
+>
+> 5. Re-enable clock-based clockdomain control in the OMAP4 clock code.
+>     This would revert back to the behavior of Linux 3.0, simply with =
+a
+>     slightly longer module enable/disable latency.
+>
+> Unfortunately, no approach seemed particularly good.  Options 1
+> through 3 seemed unwise due to the following reasons:
+>
+> A. The OMAP struct clks are intended primarily to describe hardware
+>     clock nodes, and the intention is that no driver-specific data
+>     should be stored there (applies to #1)
+>
+> B. The resulting patch would have been quite large for the -rc series
+>     (applies to #1, #2, #3)
+>
+> C. The patch would have been a new, yet temporary hack; and similar f=
+ixes
+>     have drawn negative comments in the recent past (see for example =
+[3])
+>
+> Option 4 is undesirable because commit
+> 665d001338b494d6d62810aa99b4c0fa1a0884b9 ("OMAP2+: hwmod: Follow the
+> recommended PRCM module enable sequence") has resulted in a less
+> stable kernel; and kernel stability is more important than OMAP4 powe=
+r
+> management.
+>
+> Option 5 is the approach taken in this patch.  This seemed to be the
+> least intrusive approach for 3.1-rc.
+>
+> The approach in this patch was originally proposed by Ohad Ben-Cohen
+> <ohad@wizery.com>.  I'm simply writing the commit message and passing
+> it along.
+>
+> ...
+>
+> Thanks to Luciano Coelho<coelho@ti.com>  for reporting the problem.
+> Thanks to Ohad Ben-Cohen<ohad@wizery.com>  for tracking the problem
+> down, generating a temporary workaround, and proposing a patch to dea=
+l
+> with the problem.  Thanks to Rajendra Nayak<rnayak@ti.com>  for
+> proposing another patch to deal with the problem.  Thanks to Felipe
+> Balbi<balbi@ti.com>  for comments.
+>
+> 1. Coelho, Luciano<coelho@ti.com>.  _Re: Oops on ehci_hcd when
+>     booting 3.0.0-rc2 on panda_.  Tue, 09 Aug 2011 14:26:08 +0300.
+>     Posted to the<linux-omap@vger.kernel.org>  mailing list.  Availab=
+le
+>     from (among others)
+>     http://www.spinics.net/linux/lists/linux-omap/msg55213.html
+>
+> 2. Munegowda, Keshava<keshava_mgowda@ti.com>. _Re: Oops on ehci_hcd
+>     when booting 3.0.0-rc2 on panda_.  Thu, 11 Aug 2011 13:51:05 +053=
+0.
+>     Posted to the<linux-omap@vger.kernel.org>  mailing list.  Availab=
+le
+>     from (among others)
+>     http://www.spinics.net/linux/lists/linux-omap/msg55371.html
+>
+> 3. King, Russell<linux@arm.linux.org.uk>.  _Re: [PATCH 5/8] OMAP4:
+>     PM: TEMP: Prevent l3init from idling/force sleep_.  Thu, 23 Jun
+>     2011 16:22:49 +0100.  Posted to the<linux-omap@vger.kernel.org>
+>     mailing list.  Available from (among others)
+>     http://www.mail-archive.com/linux-omap@vger.kernel.org/msg51392.h=
+tml
+>
+> Signed-off-by: Paul Walmsley<paul@pwsan.com>
+> Cc: Luciano Coelho<coelho@ti.com>
+> Cc: Ohad Ben-Cohen<ohad@wizery.com>
+> Cc: Rajendra Nayak<rnayak@ti.com>
+> Cc: Beno=EEt Cousson<b-cousson@ti.com>
+> ---
+Thanks for the change log.
+Here is my ack if you need one.
 
-On Mon, 8 Aug 2011, Tomi Valkeinen wrote:
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-> This patch adds a custom DSS reset function used on all OMAP's.
-> 
-> The function doesn't actually do a reset, it only waits for the reset to
-> complete. The reason for this is that on OMAP4 there is no possibility
-> to do a SW reset, and on OMAP2/3 doing a SW reset for dss_core resets
-> all the other DSS modules also, thus breaking the HWMOD model where
-> every DSS module is independent.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-
-This one doesn't build when !CONFIG_OMAP2_DSS - the following is the 
-updated patch.
+Regards
+santosh
 
 
-- Paul
 
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date: Fri, 19 Aug 2011 17:00:46 -0600
-Subject: [PATCH] OMAP: HWMOD: Unify DSS resets for all OMAPs
-
-This patch adds a custom DSS reset function used on all OMAP's.
-
-The function doesn't actually do a reset, it only waits for the reset to
-complete. The reason for this is that on OMAP4 there is no possibility
-to do a SW reset, and on OMAP2/3 doing a SW reset for dss_core resets
-all the other DSS modules also, thus breaking the HWMOD model where
-every DSS module is independent.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-[paul@pwsan.com: modified to build arch/arm/mach-omap2/display.o
- unconditionally to avoid an error when !CONFIG_OMAP2_DSS]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/Makefile                       |    5 +--
- arch/arm/mach-omap2/common-board-devices.h         |    4 ++
- arch/arm/mach-omap2/display.c                      |   35 ++++++++++++++++++++
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    2 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    2 +
- include/video/omapdss.h                            |    7 ----
- 6 files changed, 44 insertions(+), 11 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index f343365..bf85539 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -4,7 +4,7 @@
- 
- # Common support
- obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer.o pm.o \
--	 common.o gpio.o dma.o wd_timer.o
-+	 common.o gpio.o dma.o wd_timer.o display.o
- 
- omap-2-3-common				= irq.o sdrc.o
- hwmod-common				= omap_hwmod.o \
-@@ -276,7 +276,4 @@ smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
- obj-y					+= $(smsc911x-m) $(smsc911x-y)
- obj-$(CONFIG_ARCH_OMAP4)		+= hwspinlock.o
- 
--disp-$(CONFIG_OMAP2_DSS)		:= display.o
--obj-y					+= $(disp-m) $(disp-y)
--
- obj-y					+= common-board-devices.o twl-common.o
-diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
-index a0b4a428..0aeb74f 100644
---- a/arch/arm/mach-omap2/common-board-devices.h
-+++ b/arch/arm/mach-omap2/common-board-devices.h
-@@ -5,6 +5,8 @@
- 
- #define NAND_BLOCK_SIZE	SZ_128K
- 
-+struct omap_hwmod;
-+
- struct mtd_partition;
- struct ads7846_platform_data;
- 
-@@ -12,4 +14,6 @@ void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
- 		       struct ads7846_platform_data *board_pdata);
- void omap_nand_flash_init(int opts, struct mtd_partition *parts, int n_parts);
- 
-+int omap_dss_reset(struct omap_hwmod *);
-+
- #endif /* __OMAP_COMMON_BOARD_DEVICES__ */
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index a5b7a23..cdb675a 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -26,6 +26,7 @@
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
- #include <plat/omap-pm.h>
-+#include <plat/common.h>
- 
- static struct platform_device omap_display_device = {
- 	.name          = "omapdss",
-@@ -126,3 +127,37 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
- 
- 	return r;
- }
-+
-+#define MAX_MODULE_SOFTRESET_WAIT	10000
-+int omap_dss_reset(struct omap_hwmod *oh)
-+{
-+	struct omap_hwmod_opt_clk *oc;
-+	int c = 0;
-+	int i, r;
-+
-+	if (!(oh->class->sysc->sysc_flags & SYSS_HAS_RESET_STATUS)) {
-+		pr_err("dss_core: hwmod data doesn't contain reset data\n");
-+		return -EINVAL;
-+	}
-+
-+	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
-+		if (oc->_clk)
-+			clk_enable(oc->_clk);
-+
-+	omap_test_timeout((omap_hwmod_read(oh, oh->class->sysc->syss_offs)
-+				& SYSS_RESETDONE_MASK),
-+			MAX_MODULE_SOFTRESET_WAIT, c);
-+
-+	if (c == MAX_MODULE_SOFTRESET_WAIT)
-+		pr_warning("dss_core: waiting for reset to finish failed\n");
-+	else
-+		pr_debug("dss_core: softreset done\n");
-+
-+	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
-+		if (oc->_clk)
-+			clk_disable(oc->_clk);
-+
-+	r = (c == MAX_MODULE_SOFTRESET_WAIT) ? -ETIMEDOUT : 0;
-+
-+	return r;
-+}
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-index d78c132..c696420 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-@@ -15,6 +15,7 @@
- #include <mach/irqs.h>
- 
- #include "omap_hwmod_common_data.h"
-+#include "common-board-devices.h"
- 
- /* UART */
- 
-@@ -51,6 +52,7 @@ static struct omap_hwmod_class_sysconfig omap2_dss_sysc = {
- struct omap_hwmod_class omap2_dss_hwmod_class = {
- 	.name	= "dss",
- 	.sysc	= &omap2_dss_sysc,
-+	.reset	= omap_dss_reset,
- };
- 
- /*
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 8b74058..27969e6 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -37,6 +37,7 @@
- #include "prm44xx.h"
- #include "prm-regbits-44xx.h"
- #include "wd_timer.h"
-+#include "common-board-devices.h"
- 
- /* Base offset for all OMAP4 interrupts external to MPUSS */
- #define OMAP44XX_IRQ_GIC_START	32
-@@ -1204,6 +1205,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_dss_sysc = {
- static struct omap_hwmod_class omap44xx_dss_hwmod_class = {
- 	.name	= "dss",
- 	.sysc	= &omap44xx_dss_sysc,
-+	.reset	= omap_dss_reset,
- };
- 
- /* dss */
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 3b55ef2..105b05d 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -245,15 +245,8 @@ struct omap_dss_board_info {
- 	void (*dsi_mux_pads)(bool enable);
- };
- 
--#if defined(CONFIG_OMAP2_DSS_MODULE) || defined(CONFIG_OMAP2_DSS)
- /* Init with the board info */
- extern int omap_display_init(struct omap_dss_board_info *board_data);
--#else
--static inline int omap_display_init(struct omap_dss_board_info *board_data)
--{
--	return 0;
--}
--#endif
- 
- struct omap_display_platform_data {
- 	struct omap_dss_board_info *board_data;
--- 
-1.7.5.4
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
