@@ -1,44 +1,84 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device
- wake-up constraints
-Date: Fri, 19 Aug 2011 22:24:19 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1108192223230.18944-100000@netrider.rowland.org>
-References: <20110819231419.GA3981@sirena.org.uk>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH 3/3] trace points: power: remove 'cpu_id' from trace_cpu_idle
+Date: Sat, 20 Aug 2011 10:40:09 +0800
+Message-ID: <CACVXFVPeFyg7YoAsY63Mpy9HVR1y3ibg9R8HnUfLVe=hKf3ApA@mail.gmail.com>
+References: <1313766244-22313-1-git-send-email-tom.leiming@gmail.com>
+	<1313766244-22313-3-git-send-email-tom.leiming@gmail.com>
+	<201108192231.02665.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:48110 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751332Ab1HTCYU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Aug 2011 22:24:20 -0400
-In-Reply-To: <20110819231419.GA3981@sirena.org.uk>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:37380 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751289Ab1HTCkL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Aug 2011 22:40:11 -0400
+In-Reply-To: <201108192231.02665.trenn@suse.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, markgross@thegnar.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: rostedt@goodmis.org, fweisbec@gmail.com, jean.pihet@newoldbits.com, mingo@redhat.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Sat, 20 Aug 2011, Mark Brown wrote:
+Hi,
 
-> The original issue that Kevin raised and CCed me in on was the idea of
-> exposing raw per-device wakeup latency constraints to userspace; it
-> seems much better to expose user level requirements via subsystem
-> interfaces and let the subsystem and driver translate these into actual
-> wakeup latency constraints:
-> 
->   https://lists.linux-foundation.org/pipermail/linux-pm/2011-August/032422.html
->   https://lists.linux-foundation.org/pipermail/linux-pm/2011-August/032428.html
-> 
-> This is much easier for users as it translates into something they're
-> actually doing (and in most cases the driver can make it Just Work) and
-> it means that off the shelf applications will end up tuning the system
-> appropriately by themselves.  I'm additionally concerned that if we
-> expose this stuff directly to userspace that's an open invitation to
-> driver authors to not even bother trying to make the kernel figure this
-> stuff out by itself and to instead tie the system together with magic
-> userspace.
+2011/8/20 Thomas Renninger <trenn@suse.de>:
+> On Friday, August 19, 2011 05:04:04 PM tom.leiming@gmail.com wrote:
+>> From: Ming Lei <tom.leiming@gmail.com>
+>>
+>> This patch removes the 'cpu_id' parameter of the cpu_idle
+>> trace point, based on the ideas below:
+>>
+>> - the cpu_id which is passed to trace point is always the current
+>> =A0 cpu
+> Are you sure this will always be true?
 
-Can you give a couple of examples to illustrate these points?  I think
-it would help a lot to make the conversation more concrete.
+It is sure at least now,  the only place to pass 'dev->cpu' is inside
+cpuidle_idle_call,
+but the cpuidle_device is got from __this_cpu_read(cpuidle_devices),
+so it should
+be true for such case.
 
-Alan Stern
+>
+>> - the current cpu info has been included into the trace result
+>> =A0 already
+>> - smp_processor_id() can't be used safely in preemptible context.
+>
+> The cpuid has been added to idle events on purpose for example to be
+> able to pass C-state dependencies.
+> 2 cores may only enter a deeper sleep state if the 2nd core enters it
+> as well.
+> There may be architectures where you could trigger a sleep state on
+> a foreign cpu.
+>
+> This may not be used now, but if the kernel does want to use it, you =
+do
+> not want to adjust a dozen userspace apps.
+>
+> Not sure how to quickly solve the:
+> "smp_processor_id() can't be used safely in preemptible context."
+> problem, though.
+> A convention could be declared that if -1 is passed, it's the same cp=
+u
+> entering the sleep state as the running one. This will probably
+> break userspace apps as well...
+>
+> Best would be to clean up x86 and let idle routines always be entered
+> from cpuidle subsystem which knows the cpu id already and eliminate
+> all idle functions in arch/x86/kernel/process.c.
+>
+> =A0 Thomas
+>
+> PS: I do not care about patch 1 and 2 as these events are ARM specifi=
+c
+> afaik. But I vote against this one.
+>
 
+
+thanks,
+--=20
+Ming Lei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
