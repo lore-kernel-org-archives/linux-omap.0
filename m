@@ -1,83 +1,75 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device wake-up constraints
-Date: Sat, 20 Aug 2011 21:18:33 +0200
-Message-ID: <201108202118.33433.rjw@sisk.pl>
-References: <1309446685-17502-1-git-send-email-j-pihet@ti.com> <201108201851.42839.rjw@sisk.pl> <20110820172237.GB27040@opensource.wolfsonmicro.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCHv3 0/5] OMAP DSS HWMOD fixes
+Date: Sat, 20 Aug 2011 23:42:27 -0600
+Message-ID: <20110821053355.20198.23847.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54763 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754718Ab1HTTQs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 20 Aug 2011 15:16:48 -0400
-In-Reply-To: <20110820172237.GB27040@opensource.wolfsonmicro.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:49111 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750901Ab1HUFnu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Aug 2011 01:43:50 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, markgross@thegnar.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Saturday, August 20, 2011, Mark Brown wrote:
-> On Sat, Aug 20, 2011 at 06:51:42PM +0200, Rafael J. Wysocki wrote:
-> > On Saturday, August 20, 2011, Mark Brown wrote:
-> 
-> > > Coming at this from the embedded perspective modifying the kernel just
-> > > isn't an issue.  It's quite depressing in other cases too but some of
-> > > the circumstances you mentioned in previous messages are sensible do
-> > > make sense to me.  It does seem like this is a system specific problem
-> > > which we should be able to enable as part of the support for those
-> > > systems.
-> 
-> > I don't think that's platform-specific in general.  For example, there are
-> > devices that don't really belong to any media-streaming-alike framework
-> > and we may (and probably will) want to use PM QoS with them, because they
-> > may be included in PM domains and influence power management of other
-> > devices.  Think of a serial console.
-> 
-> Using PM QoS doesn't seem platform specific of course.  Having userspace
-> need to go in and do per-device overrides in order to get things working
-> does.
-> 
-> > > > without modifying the kernel.  Also, it will help to test and debug new drivers
-> > > > and subsystems.
-> 
-> > > If it were a debugfs facility I'd not be concerned.
-> 
-> > If that's going to be per-device, it really is much easier to put it into
-> > sysfs (we already have per-device PM debug interfaces in there).  It may
-> > depend on CONFIG_PM_ADVANCED_DEBUG or something like this, though, at least
-> > to start with.
-> 
-> Yeah, the debugfs device attachment stuff is slightly annoying but it's
-> fairly straightforward to create an appropriate heirachy - there's
-> several subsystems doing that sort of stuff by using dev_name().
+Just ensuring that this series is copied to lakml.  The fifth patch has
+been revised slightly from Tomi's original posting.  This series is targeted
+for 3.1-rc.
 
-I'm not a big fan of that, sorry.  Besides, as I said, we already have
-debug PM interfaces in sysfs, so I don't see the reason not to add
-another one.
 
-> > > That's not really a problem - if people are adding their own crazy
-> > > interfaces it's clear that they've done that.  It'll show up as a red
-> > > flag to anyone looking at their stuff and this will create pressure on
-> > > them to fix their code or at least do a better job for the next thing.
-> 
-> > > The goal isn't to tie people's hands to stop them doing silly things,
-> > > it's to make it clear that that is what they're doing.
-> 
-> > The same applies to using kernel interfaces.  If someone uses a sane
-> > interface for doing crazy stuff, that's their problem and should show
-> > up as a red flag just as well.
-> 
-> The big problem I'm seeing here is that there's nothing about having
-> userspace do all the knob twiddling that looks crazy just from looking
-> at the system.  The controls are there and in the standard kernel
-> interface, it's not like there's any ABIs or large piles of in kernel
-> code that need to be added (if anything the in kernel code should look
-> simpler as there's less going on).
+- Paul
 
-Well, I'm kind of not seeing that as a big problem.  At least, this is not
-a technical issue, but a social one.
+Date: Mon, 8 Aug 2011 12:15:09 +0300
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: paul@pwsan.com, linux-omap@vger.kernel.org, b-cousson@ti.com
+Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv2 0/5] OMAP DSS HWMOD fixes
 
-Thanks,
-Rafael
+Second try with the DSS HWMODs
+
+This set fixes the DSS clocks in HWMOD data, and implements a new reset
+mechanism for dss_core.
+
+The new dss_reset function doesn't actually do a reset, it just enables all DSS
+clocks and waits for the reset to complete. This should be better approach than
+actually doing a reset, because:
+
+OMAP4 - dss_core HW doesn't contain a SW reset bit so doing a reset is
+impossible. But after power-on we need to enable all DSS clocks and wait for
+the power-on reset to complete.
+
+OMAP2/3 - dss_core does have a SW reset bit, but resetting dss_core also resets
+all the other DSS modules. This means that the other modules could be left
+uninitialized, as the hwmod code handles all modules independently, and in this
+case initializes only dss_core's registers. Thus dss_core's reset shouldn't be
+used, and we should only verify that the power-on reset has completed.
+
+Tested on OMAP4 and OMAP3.
+
+The first two HWMOD patches (for OMAP2/3) are not changed since v1.
+
+ Tomi
+
+---
+
+Tomi Valkeinen (5):
+      OMAP2xxx: HWMOD: fix DSS opt clocks
+      OMAP3: HWMOD: fix DSS opt clocks
+      OMAP4: HWMOD: fix DSS opt clocks
+      OMAP2/3: HWMOD: Add SYSS_HAS_RESET_STATUS for dss
+      OMAP: HWMOD: Unify DSS resets for all OMAPs
+
+
+ arch/arm/mach-omap2/Makefile                       |    5 +--
+ arch/arm/mach-omap2/display.c                      |   35 ++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   15 +++++++--
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   15 +++++++--
+ .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    5 ++-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   35 ++++++++++++++++++--
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   18 +++-------
+ arch/arm/plat-omap/include/plat/common.h           |    3 ++
+ include/video/omapdss.h                            |    7 ----
+ 9 files changed, 106 insertions(+), 32 deletions(-)
+
