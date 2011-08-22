@@ -1,63 +1,74 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v6 0/7] PM QoS: add a per-device latency constraints framework
-Date: Mon, 22 Aug 2011 10:56:32 -0700
-Message-ID: <87mxf1wcrz.fsf@ti.com>
-References: <1313609965-6568-1-git-send-email-j-pihet@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/7] twl4030: finish threaded IRQ conversion
+Date: Mon, 22 Aug 2011 21:04:22 +0300
+Message-ID: <20110822180421.GB32342@legolas.emea.dhcp.ti.com>
+References: <1309427470-605-1-git-send-email-balbi@ti.com>
+ <20110709040900.GI26900@sirena.org.uk>
+ <20110818213614.GB20509@legolas.emea.dhcp.ti.com>
+ <20110822145436.GW4607@sortiz-mobl>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:57228 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751174Ab1HVR4i (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:40532 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752617Ab1HVSE1 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Aug 2011 13:56:38 -0400
-Received: by mail-yx0-f172.google.com with SMTP id 17so3338665yxj.17
-        for <linux-omap@vger.kernel.org>; Mon, 22 Aug 2011 10:56:37 -0700 (PDT)
-In-Reply-To: <1313609965-6568-1-git-send-email-j-pihet@ti.com> (jean pihet's
-	message of "Wed, 17 Aug 2011 21:39:18 +0200")
+	Mon, 22 Aug 2011 14:04:27 -0400
+Content-Disposition: inline
+In-Reply-To: <20110822145436.GW4607@sortiz-mobl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Felipe Balbi <balbi@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
 
-jean.pihet@newoldbits.com writes:
 
-> From: Jean Pihet <j-pihet@ti.com>
->
-> High level implementation:
->
-> 1. Preparation of the PM QoS for the addition of a device PM QoS constraints
->    framework:
->   . rename and move of the PM QoS implementation files to kernel/power/qos.c
->     and include/linux/pm_qos.h
->   . rename of API parameters and internal fields names
->   . Move around the PM QoS misc devices management code for better readability
->   . re-organize the internal data structs
->   . generalize and export the constraints management core code
->
-> 2. Implementation of the per-device PM QoS constraints:
->   . create drivers/base/power/qos.c for the implementation
->   . create a device PM QoS API, which calls the PM QoS constraints management
->     core code
->   . the per-device latency constraints data strctures are stored in the device
->     dev_pm_info struct
->   . the device PM code calls the init and destroy of the per-device constraints
->     data struct in order to support the dynamic insertion and removal of the
->     devices in the system.
->   . to minimize the data usage by the per-device constraints, the data struct
->     is only allocated at the first call to dev_pm_qos_add_request. The data
->     is later free'd when the device is removed from the system
->   . per-device notification callbacks can be registered and called upon a
->     change to the aggregated constraint value
->   . a global mutex protects the constraints users from the data being
->     allocated and free'd.
->
-> 3. add a global notification mechanism for the device constraints
->   . add a global notification chain that gets called upon changes to the
->     aggregated constraint value for any device.
->   . the notification callbacks are passing the full constraint request data
->     in order for the callees to have access to it. The current use is for the
->     platform low-level code to access the target device of the constraint
+--jho1yZJdad60DJr+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Reviewed-by: Kevin Hilman <khilman@ti.com>
+Hi,
 
+On Mon, Aug 22, 2011 at 04:54:36PM +0200, Samuel Ortiz wrote:
+> On Fri, Aug 19, 2011 at 12:36:15AM +0300, Felipe Balbi wrote:
+> > Hi,
+> >=20
+> > On Sat, Jul 09, 2011 at 05:09:00AM +0100, Mark Brown wrote:
+> > > On Thu, Jun 30, 2011 at 12:51:03PM +0300, Felipe Balbi wrote:
+> > >=20
+> > > > the following patches where boot-tested on beagle xM
+> > > > and everything seems fine. MMC root filesystem still
+> > > > mounts, /proc/interrupts looks like ps aux | grep irq
+> > > > shows our threads, etc.
+> > >=20
+> > > Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> >=20
+> > It has been a long time and nobody complained. Samuel, can you take
+> > these patches in for 3.2 merge window ?
+> Yes, that sounds like the right time now.
+> All 7 patches applied, many thanks.
+
+thanks ;-)
+
+--=20
+balbi
+
+--jho1yZJdad60DJr+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOUpolAAoJEAv8Txj19kN1OiAH/2JmNBBya7ozGPpGkuAqBnBA
+PpIxghKpgqevhuzBLiN5hDwgt93kS8Rf0aqdk0g7k9Enwq7bMm3ViK/SUJZl5ApK
+uBe+LJSe6J9ERPDC7hAJK3twUtagcACEkrHPjqovoSApJYesKHQnfvQK7cRW9RUg
+tvMtryl5LA+7mpT0ogOm62uLR42fzOrW3GY3/jnx2vRmuiliR9qw/ckbGIp0OphQ
+qyotVhod2S2uwVMkYWg4FUTNjzOPOElNOxQAIu+xKLujmYsMBNGE8BjGZmY6cUpw
+SIullm121QSZkyTGa9t0obS2Bh57F6bgYogHeSth8J9yP304t3GMd89qWf9oLh0=
+=GQNE
+-----END PGP SIGNATURE-----
+
+--jho1yZJdad60DJr+--
