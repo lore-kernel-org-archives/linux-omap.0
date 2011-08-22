@@ -1,47 +1,47 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] irq: always set IRQF_ONESHOT if no primary handler is
- specified
-Date: Mon, 22 Aug 2011 17:45:06 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108221742130.10315@utopia.booyaka.com>
-References: <1310070737-18514-1-git-send-email-bigeasy@linutronix.de> <C5991460-2092-4E65-99EE-091F8DAA0AC3@gmail.com> <4E4D4A5F.202@linutronix.de> <20110818213418.GA20509@legolas.emea.dhcp.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [RFC PATCH 6/6] hwmon: OMAP4: On die temperature sensor driver
+Date: Mon, 22 Aug 2011 16:58:32 -0700
+Message-ID: <874o19gfrr.fsf@ti.com>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
+	<1312979122-5896-7-git-send-email-j-keerthy@ti.com>
+	<20110810124629.GJ12882@legolas.emea.dhcp.ti.com>
+	<CAJ6a13Z=u=exWUHLotw8jpHMv-hKpE+fvg_1hq7=gtMiuJKxOA@mail.gmail.com>
+	<20110811103658.GG27742@legolas.emea.dhcp.ti.com>
+	<CAJ6a13bxg8po-Csc10LsFH-oES4YOKkqFoTm3kG4XzS=b2boMw@mail.gmail.com>
+	<20110811141248.GK28500@legolas.emea.dhcp.ti.com>
+	<CAJ6a13b7qu3K4YJPTYych_NQxLuuUxZOQg6PPC_=XA+qiwn2RA@mail.gmail.com>
+	<20110811185408.GB15970@legolas.emea.dhcp.ti.com>
+	<20110811185558.GC15970@legolas.emea.dhcp.ti.com>
+	<4E444B8F.9060908@ti.com> <4E449D65.9000004@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52828 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752183Ab1HVXpH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Aug 2011 19:45:07 -0400
-In-Reply-To: <20110818213418.GA20509@legolas.emea.dhcp.ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:33575 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752183Ab1HVX6i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Aug 2011 19:58:38 -0400
+Received: by mail-gx0-f181.google.com with SMTP id 9so5749931gxk.12
+        for <linux-omap@vger.kernel.org>; Mon, 22 Aug 2011 16:58:37 -0700 (PDT)
+In-Reply-To: <4E449D65.9000004@ti.com> (Rajendra Nayak's message of "Fri, 12
+	Aug 2011 08:56:29 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>
-Cc: Pantelis Antoniou <pantelis.antoniou@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, torvalds@linux-foundation.org, mporter@ti.com
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, "J, KEERTHY" <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, khali@linux-fr.org, guenter.roeck@ericsson.com
 
-On Fri, 19 Aug 2011, Felipe Balbi wrote:
+Rajendra Nayak <rnayak@ti.com> writes:
 
-> On Thu, Aug 18, 2011 at 07:22:39PM +0200, Sebastian Andrzej Siewior wrote:
-> > Pantelis Antoniou wrote:
-> > 
-> > >Let me report that with this change Beagle board fails to boot,
-> > >hangs right on rootfs mount.
-> > 
-> > Can you provide some more information about the kind of the failure and
-> > used drivers?
-> > 
-> > >Users of BB should revert this until the offending driver(s) are fixed.
-> > Which is the offending driver?
-> 
-> I would guess it's the lack of threaded IRQ conversion on the
-> twl4030 driver. I have converted it but noone actually picked the series
-> [1].
-> 
-> http://marc.info/?i=1309427470-605-1-git-send-email-balbi@ti.com
+[...]
 
-Just a data point: applying this series doesn't seem to fix the hang.
+> FWIK, its a one time requirement to set the clock rate to the
+> right rate the device can operate in based on what a platform
+> supports. 
 
-Sebastian, Thomas, does commit f3637a5f2e2eb391ff5757bc83fb5de8f9726464 
-("irq: Always set IRQF_ONESHOT if no primary handler is specified") fix 
-anything, aside from a driver in staging?
+Except $SUBJECT patch hard-codes the clock rate for all platforms in the
+driver.
 
+If the clock rate is to be platform-specific, it should be done in
+platform-specific code.
 
-- Paul
+Kevin
