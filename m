@@ -1,49 +1,37 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 5/5] OMAP: HWMOD: Unify DSS resets for all OMAPs
-Date: Mon, 22 Aug 2011 10:00:53 +0300
-Message-ID: <1313996453.2168.9.camel@deskari>
-References: <1312794914-22894-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1312794914-22894-6-git-send-email-tomi.valkeinen@ti.com>
-	 <alpine.DEB.2.00.1108192327470.24016@utopia.booyaka.com>
-	 <alpine.DEB.2.00.1108200018590.24016@utopia.booyaka.com>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: Re: Re: [alsa-devel] [PATCH 0/4] ASoC: OMAP4: McPDM: Fix legacy support
+Date: Mon, 22 Aug 2011 10:13:42 +0300
+Message-ID: <16027879.L0TXnUXE5z@barack>
+References: <1312284857-1774-1-git-send-email-peter.ujfalusi@ti.com> <2097801.ze7cveM5xx@barack> <20110819130420.GF4996@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:51470 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750806Ab1HVHA7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Aug 2011 03:00:59 -0400
-Received: by mail-bw0-f48.google.com with SMTP id t2so3405039bka.7
-        for <linux-omap@vger.kernel.org>; Mon, 22 Aug 2011 00:00:57 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1108200018590.24016@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46882 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751794Ab1HVHNx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Aug 2011 03:13:53 -0400
+In-Reply-To: <20110819130420.GF4996@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, archit@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Cousson, Benoit" <b-cousson@ti.com>, Brown <broonie@opensource.wolfsonmicro.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 
-Hi Paul,
+On Friday 19 August 2011 15:04:20 Tony Lindgren wrote:
+> It seems OK to me.
 
-On Sat, 2011-08-20 at 00:26 -0600, Paul Walmsley wrote:
-> On Fri, 19 Aug 2011, Paul Walmsley wrote:
-> 
-> > This one doesn't build when !CONFIG_OMAP2_DSS - the following is the 
-> > updated patch.
-> 
-> Looks like my previous update missed a warning.  This also moves the 
-> omap_dss_reset() prototype from arch/arm/mach-omap2/common-board-devices.h 
-> to arch/arm/plat-omap/include/plat/common.h.
+Thanks!
 
-Related to this, there's also omap_display_init() function in display.c,
-called by the board files, which I would like to move elsewhere from
-include/video/omapdss.h.
+> But for the -rc cycle it has potential for
+> "fixes for features that never worked" flame bait. If you guys
+> are OK to deal with that then go ahead.
 
-I was thinking of moving it to
-arch/arm/mach-omap2/common-board-devices.h but should I move it to
-arch/arm/plat-omap/include/plat/common.h so that it's in the same place
-with omap_dss_reset() (also from display.c)?
+Hrm, I have not thought about this. Not sure, if we want to go there...
 
- Tomi
-
-
+--=20
+P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
