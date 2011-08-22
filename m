@@ -1,29 +1,35 @@
 From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] mfd: omap-usb-host: fix build failure
-Date: Mon, 22 Aug 2011 16:57:17 +0200
-Message-ID: <20110822145717.GX4607@sortiz-mobl>
-References: <1313744274-5031-1-git-send-email-tom.leiming@gmail.com>
+Subject: Re: [PATCH 3/3] OMAP3: Remove auto-selection of PMICs
+Date: Mon, 22 Aug 2011 17:03:01 +0200
+Message-ID: <20110822150301.GY4607@sortiz-mobl>
+References: <1313754573-11498-1-git-send-email-abhilash.kv@ti.com>
+ <1313754573-11498-2-git-send-email-abhilash.kv@ti.com>
+ <1313754573-11498-3-git-send-email-abhilash.kv@ti.com>
+ <1313754573-11498-4-git-send-email-abhilash.kv@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:38859 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:25256 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751048Ab1HVOzQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Aug 2011 10:55:16 -0400
+	id S1750759Ab1HVPBJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Aug 2011 11:01:09 -0400
 Content-Disposition: inline
-In-Reply-To: <1313744274-5031-1-git-send-email-tom.leiming@gmail.com>
+In-Reply-To: <1313754573-11498-4-git-send-email-abhilash.kv@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tom.leiming@gmail.com
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ming Lei <ming.lei@canonical.com>
+To: Abhilash K V <abhilash.kv@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, santosh.shilimkar@ti.com, premi@ti.com, david.woodhouse@intel.com
 
-Hi Tom,
+Hi Anhilash,
 
-On Fri, Aug 19, 2011 at 04:57:54PM +0800, tom.leiming@gmail.com wrote:
-> From: Ming Lei <tom.leiming@gmail.com>
-> 
-> The patch fixes the build failure:
-Patch applied, thanks.
+On Fri, Aug 19, 2011 at 05:19:33PM +0530, Abhilash K V wrote:
+> The current implementation almost assumes that only
+> TWL4030/TWL5030/TWl6030 are (or can be) used with the
+> OMAP processors. This is, however, not true.
+
+I don't like the mfd/Kconfig change. Why would those drivers be only buildable
+on OMAP processors ?
+Unless there is a real reason for this, you should fix the drivers instead.
 
 Cheers,
 Samuel.
