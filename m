@@ -1,60 +1,65 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: DSS : DSI checksum error
-Date: Mon, 22 Aug 2011 13:13:16 +0300
-Message-ID: <1314007996.2168.39.camel@deskari>
-References: <CAHzTB4vN4UK2FwPKNf-nKdbUfgF6KAidu-twZidCeE_huVmsxA@mail.gmail.com>
-	 <CAHzTB4vGdCr-ps0gcNdCvKz7Q-CeOUZf9PCcUW=xsCvrSP9V0w@mail.gmail.com>
+Subject: Re: [PATCH 05/10] OMAP: DSS2: string parsing cleanups
+Date: Mon, 22 Aug 2011 15:22:25 +0300
+Message-ID: <1314015745.2168.41.camel@deskari>
+References: <1314001671-18123-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1314001671-18123-6-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:40007 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753084Ab1HVKNV (ORCPT
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:56246 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751635Ab1HVMWe (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Aug 2011 06:13:21 -0400
-Received: by mail-bw0-f52.google.com with SMTP id zs2so5591111bkb.11
-        for <linux-omap@vger.kernel.org>; Mon, 22 Aug 2011 03:13:19 -0700 (PDT)
-In-Reply-To: <CAHzTB4vGdCr-ps0gcNdCvKz7Q-CeOUZf9PCcUW=xsCvrSP9V0w@mail.gmail.com>
+	Mon, 22 Aug 2011 08:22:34 -0400
+In-Reply-To: <1314001671-18123-6-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sudipta GHOSH <sudipta.in@gmail.com>
-Cc: linux-omap@vger.kernel.org, archit@ti.com
+To: linux-omap@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org
 
-Hi,
+On Mon, 2011-08-22 at 11:27 +0300, Tomi Valkeinen wrote:
+> Use strtobool and kstrto* functions when parsing sysfs inputs.
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  drivers/video/omap2/dss/display.c |   21 +++++++++------------
+>  drivers/video/omap2/dss/manager.c |   37 +++++++++++++++++++------------------
+>  drivers/video/omap2/dss/overlay.c |    7 +++----
+>  3 files changed, 31 insertions(+), 34 deletions(-)
 
-Most likely it is caused by electrical interference with the transfer.
-Or, while very unlikely if it happens only rarely, a HW bug in the panel
-(or even in OMAP).
+<snip>
+
+> diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
+> index a95f25e..b2a5685 100644
+> --- a/drivers/video/omap2/dss/overlay.c
+> +++ b/drivers/video/omap2/dss/overlay.c
+> @@ -211,17 +211,16 @@ static ssize_t overlay_enabled_show(struct omap_overlay *ovl, char *buf)
+>  static ssize_t overlay_enabled_store(struct omap_overlay *ovl, const char *buf,
+>  		size_t size)
+>  {
+> -	int r, enable;
+> +	int r;
+> +	bool enable;
+>  	struct omap_overlay_info info;
+>  
+>  	ovl->get_overlay_info(ovl, &info);
+>  
+> -	r = kstrtoint(buf, 0, &enable);
+> +	r = strtobool(buf, &enable);
+>  	if (r)
+>  		return r;
+>  
+> -	info.enabled = !!enable;
+> -
+>  	r = ovl->set_overlay_info(ovl, &info);
+>  	if (r)
+>  		return r;
+
+Oops. This removes the lines that write the new value to overlay_info,
+thus making it impossible to change the enable-status. I'll fix this.
 
  Tomi
-
-On Mon, 2011-08-22 at 13:05 +0300, Sudipta GHOSH wrote:
-> Moi Tomi,
-> 
-> Have you ever encounter this error.
-> 
-> Looking some pointer what can cause checksum error.
-> 
-> Regards,
-> Sudipta
-> 
-> On 18 August 2011 17:35, Sudipta GHOSH <sudipta.in@gmail.com> wrote:
-> > Hi,
-> >
-> > Working DSS & Panel driver.
-> >
-> > Sometime I am getting checksum error from DSI when framebuffers are
-> > sent to panel via DSI.
-> >
-> > omapdss DSI error:       ACK with ERROR (0x400):
-> >
-> > Wanted to know if some one has encounter similar error.
-> >
-> > When / what can cause this error?
-> >
-> > Regards,
-> > Sudipta
-> >
 
 
