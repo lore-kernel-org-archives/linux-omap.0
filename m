@@ -1,24 +1,18 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [RFC PATCH 0/3] OMAP: omap_device: Add a method to build an
-	omap_device from a DT node
-Date: Mon, 22 Aug 2011 20:20:58 +0200
-Message-ID: <1314037261-19606-1-git-send-email-b-cousson@ti.com>
+Subject: [RFC PATCH 0/3] OMAP: omap_device: Add a method to build an omap_device from a DT node
+Date: Mon, 22 Aug 2011 20:22:20 +0200
+Message-ID: <1314037343-19783-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: khilman@ti.com
-Cc: grant.likely@secretlab.ca, paul@pwsan.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38162 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751174Ab1HVSWi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Aug 2011 14:22:38 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, grant.likely@secretlab.ca, Benoit Cousson <b-cousson@ti.com>
 
 Hi Kevin,
 
@@ -50,3 +44,4 @@ Benoit Cousson (3):
 
  arch/arm/plat-omap/omap_device.c |  309 +++++++++++++++++++++++++++++++-------
  1 files changed, 255 insertions(+), 54 deletions(-)
+
