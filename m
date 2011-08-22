@@ -1,52 +1,50 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 3/3] trace points: power: remove 'cpu_id' from trace_cpu_idle
-Date: Mon, 22 Aug 2011 10:27:34 +0200
-Message-ID: <201108221027.34441.trenn@suse.de>
-References: <1313766244-22313-1-git-send-email-tom.leiming@gmail.com> <201108192231.02665.trenn@suse.de> <CACVXFVPeFyg7YoAsY63Mpy9HVR1y3ibg9R8HnUfLVe=hKf3ApA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 00/10] OMAPDSS: code cleanups
+Date: Mon, 22 Aug 2011 11:27:41 +0300
+Message-ID: <1314001671-18123-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:47968 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756593Ab1HVI1i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Aug 2011 04:27:38 -0400
-In-Reply-To: <CACVXFVPeFyg7YoAsY63Mpy9HVR1y3ibg9R8HnUfLVe=hKf3ApA@mail.gmail.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:58657 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756689Ab1HVI2B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Aug 2011 04:28:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: rostedt@goodmis.org, fweisbec@gmail.com, jean.pihet@newoldbits.com, mingo@redhat.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Saturday, August 20, 2011 04:40:09 AM Ming Lei wrote:
-> Hi,
-> 
-> 2011/8/20 Thomas Renninger <trenn@suse.de>:
-> > On Friday, August 19, 2011 05:04:04 PM tom.leiming@gmail.com wrote:
-> >> From: Ming Lei <tom.leiming@gmail.com>
-> >>
-> >> This patch removes the 'cpu_id' parameter of the cpu_idle
-> >> trace point, based on the ideas below:
-> >>
-> >> - the cpu_id which is passed to trace point is always the current
-> >>   cpu
-> > Are you sure this will always be true?
-> 
-> It is sure at least now,  the only place to pass 'dev->cpu' is inside
-> cpuidle_idle_call,
-It was known that cpu_id is always the current cpu with current 
-implementation when this got introduced.
-But the perf events API must not change back and forth for userspace 
-compatibility. Therefore the cpu_id was added in case
-that future implementations want to pass info where the current cpu
-is not the cpu which is sent to the sleep state.
+Cleanups for DSS driver, no functionality changed.
 
-> smp_processor_id() can't be used safely in preemptible context.
-I expect the only side effect that could happen is that if smp_process_id
-is interrupted you get the wrong core id on a cpu idle trace event.
-This only happens if cpuidle is not used and even then should happen
-very rarely, nothing to worry for a debug tool like that.
-And it should get fixed if these idle functions get fully integrated into
-cpuidle at some point of time.
+ Tomi
 
-   Thomas
+Tomi Valkeinen (10):
+  OMAP: DSS2: Remove support for non-DISPC overlays
+  OMAP: DSS2: DISPC: use lookup tables for bit shifts
+  OMAP: DSS2: Add overlay caps to DSS features
+  OMAP: DSS2: Add GLOBAL_ALPHA & PRE_MULT_ALPHA to ovl caps
+  OMAP: DSS2: string parsing cleanups
+  OMAP: OMAPFB: string parsing cleanups
+  OMAP: DSS2: DISPC: remove non-existing func prototypes
+  OMAP: DSS2: DISPC: rename overlay related funcs
+  OMAP: DSS2: DISPC: rename manager related funcs
+  OMAP: DSS2: reorganize functions in dss.h
+
+ drivers/video/omap2/dss/dispc.c           |  478 +++++++++++------------------
+ drivers/video/omap2/dss/display.c         |   21 +-
+ drivers/video/omap2/dss/dpi.c             |   16 +-
+ drivers/video/omap2/dss/dsi.c             |  205 ++-----------
+ drivers/video/omap2/dss/dss.h             |   93 +++---
+ drivers/video/omap2/dss/dss_features.c    |   68 ++++-
+ drivers/video/omap2/dss/dss_features.h    |    3 +-
+ drivers/video/omap2/dss/hdmi.c            |    6 +-
+ drivers/video/omap2/dss/manager.c         |  126 +++-----
+ drivers/video/omap2/dss/overlay.c         |   38 +--
+ drivers/video/omap2/dss/rfbi.c            |   33 +--
+ drivers/video/omap2/dss/sdi.c             |   12 +-
+ drivers/video/omap2/omapfb/omapfb-sysfs.c |    6 +-
+ include/video/omapdss.h                   |    9 +-
+ 14 files changed, 396 insertions(+), 718 deletions(-)
+
+-- 
+1.7.4.1
+
