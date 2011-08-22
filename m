@@ -1,74 +1,52 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/7] twl4030: finish threaded IRQ conversion
-Date: Mon, 22 Aug 2011 21:04:22 +0300
-Message-ID: <20110822180421.GB32342@legolas.emea.dhcp.ti.com>
-References: <1309427470-605-1-git-send-email-balbi@ti.com>
- <20110709040900.GI26900@sirena.org.uk>
- <20110818213614.GB20509@legolas.emea.dhcp.ti.com>
- <20110822145436.GW4607@sortiz-mobl>
-Reply-To: balbi@ti.com
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [RFC PATCH 0/3] OMAP: omap_device: Add a method to build an
+	omap_device from a DT node
+Date: Mon, 22 Aug 2011 20:20:58 +0200
+Message-ID: <1314037261-19606-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:40532 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752617Ab1HVSE1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Aug 2011 14:04:27 -0400
-Content-Disposition: inline
-In-Reply-To: <20110822145436.GW4607@sortiz-mobl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: khilman@ti.com
+Cc: grant.likely@secretlab.ca, paul@pwsan.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
+
+Hi Kevin,
+
+This is an initial attempt to use a notifier in order to create an
+omap_device from a platform_device bound to DT node as suggested by Grant.
+For the moment, the informations are all extracted from the hwmod data.
+The idea is to focus first on the devices / board static init removal.
+The other issue is that some bindings, like dma, are still not present
+in the DT core code. The reg and irq bindings are there, but cannot
+be used by some drivers due to the lack of named ressources in DT.
+Since the DT core cannot change, the drivers will have to be modified
+first.
+In a second phase these informations will be moved from hwmod to DT.
+
+Patches are based on my for_3.2/1_omap_device_cleanup branch and are
+available here:
+git://gitorious.org/omap-pm/linux.git for_3.2/2_omap_device_dt
+
+It is tested on OMAP4 SDP and Panda.
+
+Regards,
+Benoit
 
 
---jho1yZJdad60DJr+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Benoit Cousson (3):
+  OMAP: omap_device: Add omap_device_[alloc|delete] for DT integration
+  OMAP: omap_device: Add a DT parser for multiple strings
+  OMAP: omap_device: Add a method to build an omap_device from a DT node
 
-Hi,
-
-On Mon, Aug 22, 2011 at 04:54:36PM +0200, Samuel Ortiz wrote:
-> On Fri, Aug 19, 2011 at 12:36:15AM +0300, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Sat, Jul 09, 2011 at 05:09:00AM +0100, Mark Brown wrote:
-> > > On Thu, Jun 30, 2011 at 12:51:03PM +0300, Felipe Balbi wrote:
-> > >=20
-> > > > the following patches where boot-tested on beagle xM
-> > > > and everything seems fine. MMC root filesystem still
-> > > > mounts, /proc/interrupts looks like ps aux | grep irq
-> > > > shows our threads, etc.
-> > >=20
-> > > Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> >=20
-> > It has been a long time and nobody complained. Samuel, can you take
-> > these patches in for 3.2 merge window ?
-> Yes, that sounds like the right time now.
-> All 7 patches applied, many thanks.
-
-thanks ;-)
-
---=20
-balbi
-
---jho1yZJdad60DJr+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOUpolAAoJEAv8Txj19kN1OiAH/2JmNBBya7ozGPpGkuAqBnBA
-PpIxghKpgqevhuzBLiN5hDwgt93kS8Rf0aqdk0g7k9Enwq7bMm3ViK/SUJZl5ApK
-uBe+LJSe6J9ERPDC7hAJK3twUtagcACEkrHPjqovoSApJYesKHQnfvQK7cRW9RUg
-tvMtryl5LA+7mpT0ogOm62uLR42fzOrW3GY3/jnx2vRmuiliR9qw/ckbGIp0OphQ
-qyotVhod2S2uwVMkYWg4FUTNjzOPOElNOxQAIu+xKLujmYsMBNGE8BjGZmY6cUpw
-SIullm121QSZkyTGa9t0obS2Bh57F6bgYogHeSth8J9yP304t3GMd89qWf9oLh0=
-=GQNE
------END PGP SIGNATURE-----
-
---jho1yZJdad60DJr+--
+ arch/arm/plat-omap/omap_device.c |  309 +++++++++++++++++++++++++++++++-------
+ 1 files changed, 255 insertions(+), 54 deletions(-)
