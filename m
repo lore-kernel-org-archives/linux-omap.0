@@ -1,51 +1,52 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 4/4] OMAP: DSS2: Remove "EXPERIMENTAL" from Kconfig
-Date: Mon, 22 Aug 2011 11:27:16 +0300
-Message-ID: <1314001636-18036-5-git-send-email-tomi.valkeinen@ti.com>
-References: <1314001636-18036-1-git-send-email-tomi.valkeinen@ti.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 3/3] trace points: power: remove 'cpu_id' from trace_cpu_idle
+Date: Mon, 22 Aug 2011 10:27:34 +0200
+Message-ID: <201108221027.34441.trenn@suse.de>
+References: <1313766244-22313-1-git-send-email-tom.leiming@gmail.com> <201108192231.02665.trenn@suse.de> <CACVXFVPeFyg7YoAsY63Mpy9HVR1y3ibg9R8HnUfLVe=hKf3ApA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:32877 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755573Ab1HVI1i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
+Received: from cantor2.suse.de ([195.135.220.15]:47968 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756593Ab1HVI1i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 22 Aug 2011 04:27:38 -0400
-In-Reply-To: <1314001636-18036-1-git-send-email-tomi.valkeinen@ti.com>
+In-Reply-To: <CACVXFVPeFyg7YoAsY63Mpy9HVR1y3ibg9R8HnUfLVe=hKf3ApA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: rostedt@goodmis.org, fweisbec@gmail.com, jean.pihet@newoldbits.com, mingo@redhat.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-DSS driver has not been "experimental" for many years now, so perhaps
-it's time to remove the text from Kconfig titles.
+On Saturday, August 20, 2011 04:40:09 AM Ming Lei wrote:
+> Hi,
+> 
+> 2011/8/20 Thomas Renninger <trenn@suse.de>:
+> > On Friday, August 19, 2011 05:04:04 PM tom.leiming@gmail.com wrote:
+> >> From: Ming Lei <tom.leiming@gmail.com>
+> >>
+> >> This patch removes the 'cpu_id' parameter of the cpu_idle
+> >> trace point, based on the ideas below:
+> >>
+> >> - the cpu_id which is passed to trace point is always the current
+> >>   cpu
+> > Are you sure this will always be true?
+> 
+> It is sure at least now,  the only place to pass 'dev->cpu' is inside
+> cpuidle_idle_call,
+It was known that cpu_id is always the current cpu with current 
+implementation when this got introduced.
+But the perf events API must not change back and forth for userspace 
+compatibility. Therefore the cpu_id was added in case
+that future implementations want to pass info where the current cpu
+is not the cpu which is sent to the sleep state.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/dss/Kconfig    |    2 +-
- drivers/video/omap2/omapfb/Kconfig |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+> smp_processor_id() can't be used safely in preemptible context.
+I expect the only side effect that could happen is that if smp_process_id
+is interrupted you get the wrong core id on a cpu idle trace event.
+This only happens if cpuidle is not used and even then should happen
+very rarely, nothing to worry for a debug tool like that.
+And it should get fixed if these idle functions get fully integrated into
+cpuidle at some point of time.
 
-diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
-index 0d12524..7be7c06 100644
---- a/drivers/video/omap2/dss/Kconfig
-+++ b/drivers/video/omap2/dss/Kconfig
-@@ -1,5 +1,5 @@
- menuconfig OMAP2_DSS
--        tristate "OMAP2+ Display Subsystem support (EXPERIMENTAL)"
-+        tristate "OMAP2+ Display Subsystem support"
-         depends on ARCH_OMAP2PLUS
-         help
- 	  OMAP2+ Display Subsystem support.
-diff --git a/drivers/video/omap2/omapfb/Kconfig b/drivers/video/omap2/omapfb/Kconfig
-index aa33386..83d3fe7 100644
---- a/drivers/video/omap2/omapfb/Kconfig
-+++ b/drivers/video/omap2/omapfb/Kconfig
-@@ -1,5 +1,5 @@
- menuconfig FB_OMAP2
--        tristate "OMAP2+ frame buffer support (EXPERIMENTAL)"
-+        tristate "OMAP2+ frame buffer support"
-         depends on FB && OMAP2_DSS
- 
- 	select OMAP2_VRAM
--- 
-1.7.4.1
-
+   Thomas
