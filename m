@@ -1,47 +1,52 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH v2 0/4] Fixes to twl4030-madc and add BeagleBoard support
-Date: Mon, 22 Aug 2011 15:55:30 +0200
-Message-ID: <20110822135530.GR4607@sortiz-mobl>
-References: <CANOLnOPB=wFMPwqGbu9ufh__iM7TquUx3-o95R=gyJcae+gENg@mail.gmail.com>
-	<1313119995-15382-1-git-send-email-kyle@kylemanna.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1313119995-15382-1-git-send-email-kyle@kylemanna.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kyle Manna <kyle@kylemanna.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH 3/4] drivers/usb/host/ohci-omap3.c: test the just-initialized value
+Date: Mon, 22 Aug 2011 16:00:35 +0200
+Message-ID: <1314021636-11528-3-git-send-email-julia@diku.dk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: kernel-janitors@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kyle,
+From: Julia Lawall <julia@diku.dk>
 
-On Thu, Aug 11, 2011 at 10:33:11PM -0500, Kyle Manna wrote:
-> These patches add basic functionality to the twl4030-madc driver to make
-> it work on the BeagleBoard xM.
-> 
-> Version 2 adds fixes per Grazvydas Ignotas and the check for NULL pointer patch.
-> 
-> Kyle Manna (4):
->   mfd: twl4030-madc: copy the device pointer
->   mfd: twl4030-madc: turn on the MADC clock
->   mfd: twl4030-madc: check for NULL pointer
->   arm: BeagleBoard: add support for the twl4030-madc
-Tony, are you ok with the BeagleBoard changes ?
-The MFD ones look fine to me, I'd like to apply them.
+Test the just-initialized value rather than some other one.
 
-Cheers,
-Samuel.
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+// <smpl>
+@r@
+identifier x,y,f!={PTR_ERR,ERR_PTR,ERR_CAST};
+statement S;
+@@
+
+x = f(...);
+(
+if (\(x == NULL\|IS_ERR(x)\)) S
+|
+*if (\(y == NULL\|IS_ERR(y)\))
+ { ... when != x
+   return ...; }
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/usb/host/ohci-omap3.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
+index 6048f2f..853ad8d 100644
+--- a/drivers/usb/host/ohci-omap3.c
++++ b/drivers/usb/host/ohci-omap3.c
+@@ -149,7 +149,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
+ 
+ 	res = platform_get_resource_byname(pdev,
+ 				IORESOURCE_MEM, "ohci");
+-	if (!ret) {
++	if (!res) {
+ 		dev_err(dev, "UHH OHCI get resource failed\n");
+ 		return -ENOMEM;
+ 	}
