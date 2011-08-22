@@ -1,170 +1,65 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [RFC PATCH 3/3] OMAP: omap_device: Add a method to build an omap_device from a DT node
-Date: Mon, 22 Aug 2011 20:22:23 +0200
-Message-ID: <1314037343-19783-4-git-send-email-b-cousson@ti.com>
-References: <1314037343-19783-1-git-send-email-b-cousson@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v6 0/7] PM QoS: add a per-device latency constraints framework
+Date: Mon, 22 Aug 2011 20:53:01 +0200
+Message-ID: <201108222053.01639.rjw@sisk.pl>
+References: <1313609965-6568-1-git-send-email-j-pihet@ti.com> <87mxf1wcrz.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38244 "EHLO comal.ext.ti.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:57871 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752463Ab1HVSXw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Aug 2011 14:23:52 -0400
-In-Reply-To: <1314037343-19783-1-git-send-email-b-cousson@ti.com>
+	id S1751275Ab1HVSvP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Aug 2011 14:51:15 -0400
+In-Reply-To: <87mxf1wcrz.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, grant.likely@secretlab.ca, Benoit Cousson <b-cousson@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: jean.pihet@newoldbits.com, Mark Brown <broonie@opensource.wolfsonmicro.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
 
-Add a notifier called during device_add phase. If a of_node is present,
-retrieve the hwmod entry in order to populate propely the omap_device
-structure.
-For the moment the resource from the device-tree are overloaded.
-DT does not support named resource yet, and thus, most driver
-will not work without that information.
+On Monday, August 22, 2011, Kevin Hilman wrote:
+> jean.pihet@newoldbits.com writes:
+> 
+> > From: Jean Pihet <j-pihet@ti.com>
+> >
+> > High level implementation:
+> >
+> > 1. Preparation of the PM QoS for the addition of a device PM QoS constraints
+> >    framework:
+> >   . rename and move of the PM QoS implementation files to kernel/power/qos.c
+> >     and include/linux/pm_qos.h
+> >   . rename of API parameters and internal fields names
+> >   . Move around the PM QoS misc devices management code for better readability
+> >   . re-organize the internal data structs
+> >   . generalize and export the constraints management core code
+> >
+> > 2. Implementation of the per-device PM QoS constraints:
+> >   . create drivers/base/power/qos.c for the implementation
+> >   . create a device PM QoS API, which calls the PM QoS constraints management
+> >     core code
+> >   . the per-device latency constraints data strctures are stored in the device
+> >     dev_pm_info struct
+> >   . the device PM code calls the init and destroy of the per-device constraints
+> >     data struct in order to support the dynamic insertion and removal of the
+> >     devices in the system.
+> >   . to minimize the data usage by the per-device constraints, the data struct
+> >     is only allocated at the first call to dev_pm_qos_add_request. The data
+> >     is later free'd when the device is removed from the system
+> >   . per-device notification callbacks can be registered and called upon a
+> >     change to the aggregated constraint value
+> >   . a global mutex protects the constraints users from the data being
+> >     allocated and free'd.
+> >
+> > 3. add a global notification mechanism for the device constraints
+> >   . add a global notification chain that gets called upon changes to the
+> >     aggregated constraint value for any device.
+> >   . the notification callbacks are passing the full constraint request data
+> >     in order for the callees to have access to it. The current use is for the
+> >     platform low-level code to access the target device of the constraint
+> 
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
- arch/arm/plat-omap/omap_device.c |  102 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 102 insertions(+), 0 deletions(-)
+I guess that applies to the entire patchset?
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 70361f8..0ae9e7f 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -85,6 +85,8 @@
- #include <linux/clk.h>
- #include <linux/clkdev.h>
- #include <linux/pm_runtime.h>
-+#include <linux/of_platform.h>
-+#include <linux/notifier.h>
- 
- #include <plat/omap_device.h>
- #include <plat/omap_hwmod.h>
-@@ -94,6 +96,8 @@
- #define USE_WAKEUP_LAT			0
- #define IGNORE_WAKEUP_LAT		1
- 
-+#define MAX_HWMOD_NAME_SIZE		32
-+
- static int omap_device_register(struct platform_device *pdev);
- static int omap_early_device_register(struct platform_device *pdev);
- static struct omap_device *omap_device_alloc(struct platform_device *pdev,
-@@ -354,6 +358,100 @@ static int _dt_get_property(const char *prop, int len, int index, char *output,
- 	return -ENODEV;
- }
- 
-+static struct dev_pm_domain omap_device_pm_domain;
-+
-+/**
-+ * omap_device_build_from_dt - build an omap_device with multiple hwmods
-+ * @pdev_name: name of the platform_device driver to use
-+ * @pdev_id: this platform_device's connection ID
-+ * @oh: ptr to the single omap_hwmod that backs this omap_device
-+ * @pdata: platform_data ptr to associate with the platform_device
-+ * @pdata_len: amount of memory pointed to by @pdata
-+ * @pm_lats: pointer to a omap_device_pm_latency array for this device
-+ * @pm_lats_cnt: ARRAY_SIZE() of @pm_lats
-+ * @is_early_device: should the device be registered as an early device or not
-+ *
-+ * Function for building an omap_device already registered from device-tree
-+ *
-+ * Returns 0 or PTR_ERR() on error.
-+ */
-+static int omap_device_build_from_dt(struct platform_device *pdev)
-+{
-+	struct omap_hwmod **hwmods;
-+	struct omap_device *od;
-+	struct omap_hwmod *oh;
-+	char oh_name[MAX_HWMOD_NAME_SIZE];
-+	const char *prop;
-+	int oh_cnt, i, prop_len;
-+	int ret = 0;
-+
-+	prop = of_get_property(pdev->dev.of_node, "hwmods", &prop_len);
-+	oh_cnt = _dt_count_property_string(prop, prop_len);
-+	if (!oh_cnt || IS_ERR_VALUE(oh_cnt)) {
-+		dev_warn(&pdev->dev, "No 'hwmods' to build omap_device\n");
-+		return -ENODEV;
-+	}
-+
-+	hwmods = kzalloc(sizeof(struct omap_hwmod *) * oh_cnt, GFP_KERNEL);
-+	if (!hwmods) {
-+		ret = -ENOMEM;
-+		goto odbfd_exit;
-+	}
-+
-+	for (i = 0; i < oh_cnt; i++) {
-+		_dt_get_property(prop, prop_len, i, oh_name,
-+				 MAX_HWMOD_NAME_SIZE);
-+
-+		oh = omap_hwmod_lookup(oh_name);
-+		if (!oh) {
-+			dev_err(&pdev->dev, "Cannot lookup hwmod '%s'\n",
-+				oh_name);
-+			ret = -EINVAL;
-+			goto odbfd_exit1;
-+		}
-+		hwmods[i] = oh;
-+	}
-+
-+	od = omap_device_alloc(pdev, hwmods, oh_cnt, NULL, 0);
-+	if (!od) {
-+		dev_err(&pdev->dev, "Cannot allocate omap_device for :%s\n",
-+			oh_name);
-+		ret = PTR_ERR(od);
-+		goto odbfd_exit1;
-+	}
-+
-+	if (of_get_property(pdev->dev.of_node, "no_idle_on_suspend", NULL))
-+		omap_device_disable_idle_on_suspend(pdev);
-+
-+	pdev->dev.pm_domain = &omap_device_pm_domain;
-+
-+odbfd_exit1:
-+	kfree(hwmods);
-+odbfd_exit:
-+	return ret;
-+}
-+
-+static int _omap_device_notifier_call(struct notifier_block *nb,
-+				      unsigned long event, void *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+
-+	switch (event) {
-+	case BUS_NOTIFY_ADD_DEVICE:
-+		if (pdev->dev.of_node) {
-+			dev_dbg(&pdev->dev, "add_device with DT bindings\n");
-+			omap_device_build_from_dt(pdev);
-+		}
-+		break;
-+
-+	case BUS_NOTIFY_DEL_DEVICE:
-+		dev_dbg(&pdev->dev, "del_device\n");
-+		break;
-+	}
-+
-+	return NOTIFY_DONE;
-+}
-+
- 
- /* Public functions for use by core code */
- 
-@@ -1064,8 +1162,12 @@ struct device omap_device_parent = {
- 	.parent         = &platform_bus,
- };
- 
-+static struct notifier_block platform_nb;
-+
- static int __init omap_device_init(void)
- {
-+	platform_nb.notifier_call = _omap_device_notifier_call;
-+	bus_register_notifier(&platform_bus_type, &platform_nb);
- 	return device_register(&omap_device_parent);
- }
- core_initcall(omap_device_init);
--- 
-1.7.0.4
-
+Rafael
