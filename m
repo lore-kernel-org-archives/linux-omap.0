@@ -1,65 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v6 0/7] PM QoS: add a per-device latency constraints framework
-Date: Mon, 22 Aug 2011 20:53:01 +0200
-Message-ID: <201108222053.01639.rjw@sisk.pl>
-References: <1313609965-6568-1-git-send-email-j-pihet@ti.com> <87mxf1wcrz.fsf@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv2 5/5] OMAP: HWMOD: Unify DSS resets for all OMAPs
+Date: Mon, 22 Aug 2011 13:10:13 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1108221308380.10315@utopia.booyaka.com>
+References: <1312794914-22894-1-git-send-email-tomi.valkeinen@ti.com>  <1312794914-22894-6-git-send-email-tomi.valkeinen@ti.com>  <alpine.DEB.2.00.1108192327470.24016@utopia.booyaka.com>  <alpine.DEB.2.00.1108200018590.24016@utopia.booyaka.com>
+ <1313996453.2168.9.camel@deskari>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57871 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751275Ab1HVSvP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Aug 2011 14:51:15 -0400
-In-Reply-To: <87mxf1wcrz.fsf@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:47740 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753404Ab1HVTKO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Aug 2011 15:10:14 -0400
+In-Reply-To: <1313996453.2168.9.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: jean.pihet@newoldbits.com, Mark Brown <broonie@opensource.wolfsonmicro.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, archit@ti.com
 
-On Monday, August 22, 2011, Kevin Hilman wrote:
-> jean.pihet@newoldbits.com writes:
+Hello Tomi,
+
+On Mon, 22 Aug 2011, Tomi Valkeinen wrote:
+
+> On Sat, 2011-08-20 at 00:26 -0600, Paul Walmsley wrote:
+> > On Fri, 19 Aug 2011, Paul Walmsley wrote:
+> > 
+> > > This one doesn't build when !CONFIG_OMAP2_DSS - the following is the 
+> > > updated patch.
+> > 
+> > Looks like my previous update missed a warning.  This also moves the 
+> > omap_dss_reset() prototype from arch/arm/mach-omap2/common-board-devices.h 
+> > to arch/arm/plat-omap/include/plat/common.h.
 > 
-> > From: Jean Pihet <j-pihet@ti.com>
-> >
-> > High level implementation:
-> >
-> > 1. Preparation of the PM QoS for the addition of a device PM QoS constraints
-> >    framework:
-> >   . rename and move of the PM QoS implementation files to kernel/power/qos.c
-> >     and include/linux/pm_qos.h
-> >   . rename of API parameters and internal fields names
-> >   . Move around the PM QoS misc devices management code for better readability
-> >   . re-organize the internal data structs
-> >   . generalize and export the constraints management core code
-> >
-> > 2. Implementation of the per-device PM QoS constraints:
-> >   . create drivers/base/power/qos.c for the implementation
-> >   . create a device PM QoS API, which calls the PM QoS constraints management
-> >     core code
-> >   . the per-device latency constraints data strctures are stored in the device
-> >     dev_pm_info struct
-> >   . the device PM code calls the init and destroy of the per-device constraints
-> >     data struct in order to support the dynamic insertion and removal of the
-> >     devices in the system.
-> >   . to minimize the data usage by the per-device constraints, the data struct
-> >     is only allocated at the first call to dev_pm_qos_add_request. The data
-> >     is later free'd when the device is removed from the system
-> >   . per-device notification callbacks can be registered and called upon a
-> >     change to the aggregated constraint value
-> >   . a global mutex protects the constraints users from the data being
-> >     allocated and free'd.
-> >
-> > 3. add a global notification mechanism for the device constraints
-> >   . add a global notification chain that gets called upon changes to the
-> >     aggregated constraint value for any device.
-> >   . the notification callbacks are passing the full constraint request data
-> >     in order for the callees to have access to it. The current use is for the
-> >     platform low-level code to access the target device of the constraint
+> Related to this, there's also omap_display_init() function in display.c,
+> called by the board files, which I would like to move elsewhere from
+> include/video/omapdss.h.
 > 
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> I was thinking of moving it to
+> arch/arm/mach-omap2/common-board-devices.h but should I move it to
+> arch/arm/plat-omap/include/plat/common.h so that it's in the same place
+> with omap_dss_reset() (also from display.c)?
 
-I guess that applies to the entire patchset?
+In the long run, it seems good to get rid of 
+arch/arm/plat-omap/include/plat/common.h.  What I'd suggest is to move all 
+of the OMAP2+-specific integration structures and macros into 
+arch/arm/mach-omap2/omapdss.h or something similar.  I would have done 
+this in the 3.1-rc patch, but the change seemed too intrusive for the -rc 
+series.
 
-Rafael
+
+- Paul
