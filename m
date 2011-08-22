@@ -1,42 +1,63 @@
-From: Koen Kooi <koen@beagleboard.org>
-Subject: Re: Passing camera module type using "camera" argument.
-Date: Mon, 22 Aug 2011 18:15:23 +0200
-Message-ID: <15E409B0-1DC8-4139-8757-6C5593396E36@beagleboard.org>
-References: <CACKLOr03ZzpytdYrnk-bJv2A7sbTTa_y_Dj+JspyiYJKgX8wog@mail.gmail.com> <28378F63-781A-412C-A18A-5007E48A98A3@beagleboard.org> <CACKLOr1m9EgzO-P+4yPVVj6tNgmOFPS4_LJAxOY03H73oLHqqg@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1244.3)
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v6 0/7] PM QoS: add a per-device latency constraints framework
+Date: Mon, 22 Aug 2011 10:56:32 -0700
+Message-ID: <87mxf1wcrz.fsf@ti.com>
+References: <1313609965-6568-1-git-send-email-j-pihet@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:60361 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751537Ab1HVQP2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Aug 2011 12:15:28 -0400
-Received: by wwe5 with SMTP id 5so2308257wwe.1
-        for <linux-omap@vger.kernel.org>; Mon, 22 Aug 2011 09:15:27 -0700 (PDT)
-In-Reply-To: <CACKLOr1m9EgzO-P+4yPVVj6tNgmOFPS4_LJAxOY03H73oLHqqg@mail.gmail.com>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:57228 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751174Ab1HVR4i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Aug 2011 13:56:38 -0400
+Received: by mail-yx0-f172.google.com with SMTP id 17so3338665yxj.17
+        for <linux-omap@vger.kernel.org>; Mon, 22 Aug 2011 10:56:37 -0700 (PDT)
+In-Reply-To: <1313609965-6568-1-git-send-email-j-pihet@ti.com> (jean pihet's
+	message of "Wed, 17 Aug 2011 21:39:18 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: jean.pihet@newoldbits.com
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, markgross@thegnar.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
 
+jean.pihet@newoldbits.com writes:
 
-Op 22 aug. 2011, om 08:42 heeft javier Martin het volgende geschreven:
+> From: Jean Pihet <j-pihet@ti.com>
+>
+> High level implementation:
+>
+> 1. Preparation of the PM QoS for the addition of a device PM QoS constraints
+>    framework:
+>   . rename and move of the PM QoS implementation files to kernel/power/qos.c
+>     and include/linux/pm_qos.h
+>   . rename of API parameters and internal fields names
+>   . Move around the PM QoS misc devices management code for better readability
+>   . re-organize the internal data structs
+>   . generalize and export the constraints management core code
+>
+> 2. Implementation of the per-device PM QoS constraints:
+>   . create drivers/base/power/qos.c for the implementation
+>   . create a device PM QoS API, which calls the PM QoS constraints management
+>     core code
+>   . the per-device latency constraints data strctures are stored in the device
+>     dev_pm_info struct
+>   . the device PM code calls the init and destroy of the per-device constraints
+>     data struct in order to support the dynamic insertion and removal of the
+>     devices in the system.
+>   . to minimize the data usage by the per-device constraints, the data struct
+>     is only allocated at the first call to dev_pm_qos_add_request. The data
+>     is later free'd when the device is removed from the system
+>   . per-device notification callbacks can be registered and called upon a
+>     change to the aggregated constraint value
+>   . a global mutex protects the constraints users from the data being
+>     allocated and free'd.
+>
+> 3. add a global notification mechanism for the device constraints
+>   . add a global notification chain that gets called upon changes to the
+>     aggregated constraint value for any device.
+>   . the notification callbacks are passing the full constraint request data
+>     in order for the callees to have access to it. The current use is for the
+>     platform low-level code to access the target device of the constraint
 
-> 
-> Hi Koen,
-> 
-> On 19 August 2011 17:07, Koen Kooi <koen@beagleboard.org> wrote:
-> 
-> 
-> Op 19 aug. 2011 om 14:39 heeft javier Martin <javier.martin@vista-silicon.com> het volgende geschreven:
-> 
->> Hi,
->> I've been digging into the code of linux-omap kernel in Angstrom for Beagleboard and I've noticed there is an argument called "camera" which can be passed to the kernel. This allows telling the linux kernel what camera module is actually connected to the platform.
->> 
->> However, when I look the mainline kernel 3.0 I see those changed have not yet made into it. Is this mechanism accepted by the community?
-> 
-> When I asked a few months ago the consensus was that there currently is no better way. DT might solve it, but that's still some time away
-> 
-> So, as I understand, using a command line argument for this purpose is the preferred way by the community but, at the same time, they won't accept patches that implement this approach.
+Reviewed-by: Kevin Hilman <khilman@ti.com>
 
->From what I understood a patch doing that wouldn't be rejected, but Laurent/Tony would have to chime in to confirm that.
