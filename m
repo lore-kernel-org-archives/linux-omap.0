@@ -1,97 +1,95 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/2] omap_twl: Prevent SR to enable for am3517/am3505
-	devices
-Date: Mon, 22 Aug 2011 15:48:40 -0700
-Message-ID: <87obzhgj07.fsf@ti.com>
-References: <1312473569-1212-1-git-send-email-abhilash.kv@ti.com>
-	<87hb5w3kq0.fsf@ti.com>
-	<FCCFB4CDC6E5564B9182F639FC3560870370A4D96E@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] irq: always set IRQF_ONESHOT if no primary handler is
+ specified
+Date: Mon, 22 Aug 2011 17:26:33 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1108221723010.10315@utopia.booyaka.com>
+References: <1310070737-18514-1-git-send-email-bigeasy@linutronix.de> <C5991460-2092-4E65-99EE-091F8DAA0AC3@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870370A4D96E@dbde02.ent.ti.com>
-	(Abhilash Koyamangalath's message of "Mon, 8 Aug 2011 18:18:40 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson,
-	Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:42335 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751589Ab1HVX0e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Aug 2011 19:26:34 -0400
+In-Reply-To: <C5991460-2092-4E65-99EE-091F8DAA0AC3@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pantelis Antoniou <pantelis.antoniou@gmail.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, torvalds@linux-foundation.org, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, mporter@ti.com
 
-"Koyamangalath, Abhilash" <abhilash.kv@ti.com> writes:
+On Thu, 18 Aug 2011, Pantelis Antoniou wrote:
 
-> Kevin Hilman wrote:
->>Abhilash K V <abhilash.kv@ti.com> writes:
->> 
->> > From: Vaibhav Hiremath <hvaibhav@ti.com>
->> >
->> > In case of AM3517 & AM3505, Smart Reflex is not applicable so
->> > we must not enable it. So add check for am3517/05 cpu revision
->> > in omap3_twl_init() and return -ENODEV if true, else continue.
->> >
->> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> > Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
->> > ---
->> >  arch/arm/mach-omap2/omap_twl.c |    8 ++++++++
->> >  1 files changed, 8 insertions(+), 0 deletions(-)
->> >
->> > diff --git a/arch/arm/mach-omap2/omap_twl.c
->> b/arch/arm/mach-omap2/omap_twl.c
->> > index 07d6140..92fadcb 100644
->> > --- a/arch/arm/mach-omap2/omap_twl.c
->> > +++ b/arch/arm/mach-omap2/omap_twl.c
->> > @@ -269,6 +269,14 @@ int __init omap3_twl_init(void)
->> >        if (!cpu_is_omap34xx())
->> >                return -ENODEV;
->> > 
->> > +     /*
->> > +      * In case of AM3517/AM3505 we should not be going down
->> > +      * further, since SR is not applicable there.
->> > +      */
->> > +     if (cpu_is_omap3505() || cpu_is_omap3517()) {
->> > +             return -ENODEV;
->> > +     }
->> > +
->> 
->> Rather than using cpu_is_*, you should add a new "feature" flag for
->> SmartReflex.  We already have this for things like SGX, IVA, NEON, etc.
->> See <plat/feature.h>
-> I did not find a feature.h; 
+> Let me report that with this change Beagle board fails to boot,
+> hangs right on rootfs mount.
 
-sorry, I meant <plat/cpu.yh>
+Confirmed here.
 
-> did you mean OMAP3_CHECK_FEATURE macro which is used by
-> omap3_check_features(), which gleans for presence of L2CACHE, IVA, SGX, NEON, ISP features
-> from the Control Device Status Register (0x4800 244C) ?
-
-yes, OMAP3_HAS_FEATURE()
-
-> There is no such bit-field to indicate the presence of smart-reflex feature in this register.
-> AFAIK, there is no such global register as well which could indicate this.
-
-There doesn't have to be a register read to indicate this.  See for
-example the HAS_IO_WAKEUP feature.
-
-Kevin
+Commit f3637a5f2e2eb391ff5757bc83fb5de8f9726464 ("irq: Always set 
+IRQF_ONESHOT if no primary handler is specified"), merged as part of 
+v3.1-rc3, won't boot into userspace via MMC on either OMAP4 Panda or 
+OMAP3530 BeagleBoard.  v3.1-rc2 works.
 
 
-> - Abhilash
->
->> Kevin
->> 
->> 
->> >        if (cpu_is_omap3630()) {
->> >                omap3_mpu_volt_info.vp_vddmin =
->> OMAP3630_VP1_VLIMITTO_VDDMIN;
->> >                omap3_mpu_volt_info.vp_vddmax =
->> OMAP3630_VP1_VLIMITTO_VDDMAX; 
->> 
->> 
+- Paul
+
+> Users of BB should revert this until the offending driver(s) are fixed.
+> 
+> Regards
+> 
+> -- Pantelis
+> 
+> On Jul 7, 2011, at 11:32 PM, Sebastian Andrzej Siewior wrote:
+> 
+> > If no primary handler is specified then a default one is assigned which
+> > always returns IRQ_WAKE_THREAD. This handler requires the IRQF_ONESHOT
+> > flag on LEVEL / EIO typed irqs because the source of interrupt is not
+> > disabled.
+> > Since it is required for those users and there is no difference for others
+> > it makes sense to add this flag unconditionally.
+> > 
+> > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> > ---
+> > A quick grep shows that drivers/staging/iio/adc/ad7816.c is the only
+> > driver in tree doing it wrong i.e. request_threaded_irq with
+> > IRQF_TRIGGER_{LOW|HIGH} but without ONEHOST.
+> > 
+> > There are 59 users in tree which request an edge typed interrupt. 24 of
+> > them specify the ONEHOST flag the others don't. Both variants are valid
+> > and identical but a consistent behavior would be nice.
+> > 
+> > There is a total of 134 users and 87 specify the irq type directly. For
+> > the remaining 47 the type depends on initial configuration of the irq chip
+> > or it might be specified via the device tree, dunno. 
+> > Should that patch be accepted I suggest to remove the ONESHOT flag from
+> > every request_th.* which uses NULL as the primary handler so we have a
+> > consistent behavior here.
+> > 
+> > kernel/irq/manage.c |    1 +
+> > 1 files changed, 1 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+> > index 0a7840ae..3f9cd47 100644
+> > --- a/kernel/irq/manage.c
+> > +++ b/kernel/irq/manage.c
+> > @@ -1322,6 +1322,7 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
+> > 		if (!thread_fn)
+> > 			return -EINVAL;
+> > 		handler = irq_default_primary_handler;
+> > +		irqflags |= IRQF_ONESHOT;
+> > 	}
+> > 
+> > 	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
+> > -- 
+> > 1.7.4.4
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
