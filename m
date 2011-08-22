@@ -1,52 +1,33 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 3/4] drivers/usb/host/ohci-omap3.c: test the just-initialized value
-Date: Mon, 22 Aug 2011 16:00:35 +0200
-Message-ID: <1314021636-11528-3-git-send-email-julia@diku.dk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: kernel-janitors@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH] mfd: omap-usb-host: Make TLL mode work again
+Date: Mon, 22 Aug 2011 16:45:24 +0200
+Message-ID: <20110822144524.GV4607@sortiz-mobl>
+References: <1313664271-694-1-git-send-email-gadiyar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1313664271-694-1-git-send-email-gadiyar-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
+Hi Anand,
 
-Test the just-initialized value rather than some other one.
+On Thu, Aug 18, 2011 at 04:14:31PM +0530, Anand Gadiyar wrote:
+> This code section seems to have been accidentally copy pasted.
+> It causes incorrect bits to be set up in the TLL_CHANNEL_CONF
+> register and prevents the TLL mode from working correctly.
+Patch applied, with Felipe's ACK and stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org Cc'ed.
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+Cheers,
+Samuel.
 
-// <smpl>
-@r@
-identifier x,y,f!={PTR_ERR,ERR_PTR,ERR_CAST};
-statement S;
-@@
-
-x = f(...);
-(
-if (\(x == NULL\|IS_ERR(x)\)) S
-|
-*if (\(y == NULL\|IS_ERR(y)\))
- { ... when != x
-   return ...; }
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- drivers/usb/host/ohci-omap3.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
-index 6048f2f..853ad8d 100644
---- a/drivers/usb/host/ohci-omap3.c
-+++ b/drivers/usb/host/ohci-omap3.c
-@@ -149,7 +149,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
- 
- 	res = platform_get_resource_byname(pdev,
- 				IORESOURCE_MEM, "ohci");
--	if (!ret) {
-+	if (!res) {
- 		dev_err(dev, "UHH OHCI get resource failed\n");
- 		return -ENOMEM;
- 	}
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
