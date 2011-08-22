@@ -1,67 +1,42 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 3/3] OMAP3: Remove auto-selection of PMICs
-Date: Mon, 22 Aug 2011 21:29:10 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930256DE2CDE@dbde02.ent.ti.com>
-References: <1313754573-11498-1-git-send-email-abhilash.kv@ti.com>
- <1313754573-11498-2-git-send-email-abhilash.kv@ti.com>
- <1313754573-11498-3-git-send-email-abhilash.kv@ti.com>
- <1313754573-11498-4-git-send-email-abhilash.kv@ti.com>,<20110822150301.GY4607@sortiz-mobl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Koen Kooi <koen@beagleboard.org>
+Subject: Re: Passing camera module type using "camera" argument.
+Date: Mon, 22 Aug 2011 18:15:23 +0200
+Message-ID: <15E409B0-1DC8-4139-8757-6C5593396E36@beagleboard.org>
+References: <CACKLOr03ZzpytdYrnk-bJv2A7sbTTa_y_Dj+JspyiYJKgX8wog@mail.gmail.com> <28378F63-781A-412C-A18A-5007E48A98A3@beagleboard.org> <CACKLOr1m9EgzO-P+4yPVVj6tNgmOFPS4_LJAxOY03H73oLHqqg@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1244.3)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39943 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751537Ab1HVP71 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Aug 2011 11:59:27 -0400
-In-Reply-To: <20110822150301.GY4607@sortiz-mobl>
-Content-Language: en-US
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:60361 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751537Ab1HVQP2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Aug 2011 12:15:28 -0400
+Received: by wwe5 with SMTP id 5so2308257wwe.1
+        for <linux-omap@vger.kernel.org>; Mon, 22 Aug 2011 09:15:27 -0700 (PDT)
+In-Reply-To: <CACKLOr1m9EgzO-P+4yPVVj6tNgmOFPS4_LJAxOY03H73oLHqqg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "david.woodhouse@intel.com" <david.woodhouse@intel.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-> From: Samuel Ortiz [sameo@linux.intel.com]
-> Sent: Monday, August 22, 2011 8:33 PM
-> To: Koyamangalath, Abhilash
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org;
->  tony@atomide.com; linux@arm.linux.org.uk; Hilman, Kevin; Shilimkar, Santosh; Premi, Sanjeev;
->  david.woodhouse@intel.com
-> Subject: Re: [PATCH 3/3] OMAP3: Remove auto-selection of PMICs
-> 
-> Hi Anhilash,
-> 
-> On Fri, Aug 19, 2011 at 05:19:33PM +0530, Abhilash K V wrote:
-> > The current implementation almost assumes that only
-> > TWL4030/TWL5030/TWl6030 are (or can be) used with the
-> > OMAP processors. This is, however, not true.
-> 
-> I don't like the mfd/Kconfig change. Why would those drivers be only buildable
-> on OMAP processors ?
-> Unless there is a real reason for this, you should fix the drivers instead.
 
-You are right. The change for config item TWL4030_CORE should be removed.
-> -	depends on I2C=y && GENERIC_HARDIRQS
-> +	depends on I2C=y && GENERIC_HARDIRQS && (ARCH_OMAP3 || ARCH_OMAP4)
-
-In fact, change for TWL4030_POWER should be 
--	depends on TWL4030_CORE && ARM
-+	depends on TWL4030_CORE
-
-This would allow these PMICs to be used with other processors as well. There may
-be issues run-time issues; but they would most likely surface only when there is
-a combination without any of the OMAPs. (We would try a dummy build for another
-processor with TWL4030 selected.)
-
-The original idea was to ensure that nothing else breaks when the auto selection
-of the PMICs is removed.
-
-~sanjeev
+Op 22 aug. 2011, om 08:42 heeft javier Martin het volgende geschreven:
 
 > 
-> Cheers,
-> Samuel.
+> Hi Koen,
 > 
-> --
-> Intel Open Source Technology Centre
-> http://oss.intel.com/
+> On 19 August 2011 17:07, Koen Kooi <koen@beagleboard.org> wrote:
+> 
+> 
+> Op 19 aug. 2011 om 14:39 heeft javier Martin <javier.martin@vista-silicon.com> het volgende geschreven:
+> 
+>> Hi,
+>> I've been digging into the code of linux-omap kernel in Angstrom for Beagleboard and I've noticed there is an argument called "camera" which can be passed to the kernel. This allows telling the linux kernel what camera module is actually connected to the platform.
+>> 
+>> However, when I look the mainline kernel 3.0 I see those changed have not yet made into it. Is this mechanism accepted by the community?
+> 
+> When I asked a few months ago the consensus was that there currently is no better way. DT might solve it, but that's still some time away
+> 
+> So, as I understand, using a command line argument for this purpose is the preferred way by the community but, at the same time, they won't accept patches that implement this approach.
+
+>From what I understood a patch doing that wouldn't be rejected, but Laurent/Tony would have to chime in to confirm that.
