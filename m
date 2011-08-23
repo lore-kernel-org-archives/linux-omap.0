@@ -1,47 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device wake-up constraints
-Date: Tue, 23 Aug 2011 23:31:54 +0200
-Message-ID: <201108232331.54844.rjw@sisk.pl>
-References: <20110820062543.GA5011@opensource.wolfsonmicro.com> <201108212005.53898.rjw@sisk.pl> <20110823092155.GJ9232@opensource.wolfsonmicro.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: tidspbridge issue with omap_dm_timer_free
+Date: Tue, 23 Aug 2011 18:03:50 -0500
+Message-ID: <CAB-zwWjtO1-cU+TYJ=z-s3qFUen62-dDOomdZEh1ou953ebp9A@mail.gmail.com>
+References: <CAMP44s17O-g83Fte05=AmqBP24jqgLxiBHmO6+3fbtJjWV8Ufw@mail.gmail.com>
+	<CAMP44s2Wou54d2UWkwebxO17=gaVoiXrB5Lk-q2g90x3ok8L7w@mail.gmail.com>
+	<CAB-zwWhRxhdrtzNy6MK=xyj25J_1adWBELVi+X=32k76owuyRw@mail.gmail.com>
+	<CAMP44s2MpAE09sa-ow0k6qUjUwd-4+z-czzNaO7mv+fu0zipeA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:32826 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752183Ab1HWVaJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Aug 2011 17:30:09 -0400
-In-Reply-To: <20110823092155.GJ9232@opensource.wolfsonmicro.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:36916 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754221Ab1HWXDv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Aug 2011 19:03:51 -0400
+Received: by mail-vx0-f172.google.com with SMTP id 29so531051vxi.3
+        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 16:03:50 -0700 (PDT)
+In-Reply-To: <CAMP44s2MpAE09sa-ow0k6qUjUwd-4+z-czzNaO7mv+fu0zipeA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, markgross@thegnar.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-On Tuesday, August 23, 2011, Mark Brown wrote:
-> On Sun, Aug 21, 2011 at 08:05:53PM +0200, Rafael J. Wysocki wrote:
-> > On Sunday, August 21, 2011, Mark Brown wrote:
-> 
-> > > I don't understand why the driver would need to know what situation it's
-> > > in.  I'd been working on the basis that the idea was that the driver
-> > > said what the constraints it has are and then some code with a more
-> > > system wide view would make the actual decisions for things outside the
-> > > driver domian.
-> 
-> > That's correct, but in order to figure out a "sensible default"
-> > the driver generally would need to know what the expectations with
-> > respect to it are.  Otherwise it can very well generate a random
-> > number and use that.
-> 
-> Right, but I'd expect that should be something that the driver can
-> generally do based on knowledge of what it needs to deliver to its
-> users.  It doesn't need to be tunable to that - for example, input
-> devices will have a reasonable idea of the response time needed to
-> deliver interactive performance.  If it's really got no idea then
-> hopefully not providng any constraints will do something sensible.
+Hi,
 
-Perhaps.  Still, that requires some policy to be put into drivers,
-which I don't think is entirely correct.
+On Sun, Aug 14, 2011 at 2:44 AM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> Yeah, but with the current approach it would be possible that
+> everything works fine, and then the DSP goes to hibernation, a module
+> is loaded that uses one dm timer, and then when the DSP wakes up, that
+> timer would fail, there isn't even a check for that. If I follow the
+> code correctly, when the DSP goes back to hibernation, there would be
+> a crash, as a NULL timer would be freed. I think that's too error
+> prone.
 
-Thanks,
-Rafael
+Yes, this scenario could trigger such error condition. So, FWIW, I'm
+fine with just a check or your approach. If possible to apply the same
+mechanism for the other clocks, so in the enable/disable functions all
+the clocks are then enabled/disabled avoiding mixed behavior of
+enable/request, disable/free between gpt and mcbsp clocks.
+
+Regards,
+
+Omar
