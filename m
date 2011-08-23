@@ -1,74 +1,28 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC PATCH 6/6] hwmon: OMAP4: On die temperature sensor driver
-Date: Tue, 23 Aug 2011 10:15:08 -0700
-Message-ID: <87ei0chwwz.fsf@ti.com>
-References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
-	<1312979122-5896-7-git-send-email-j-keerthy@ti.com>
-	<20110810124629.GJ12882@legolas.emea.dhcp.ti.com>
-	<CAJ6a13Z=u=exWUHLotw8jpHMv-hKpE+fvg_1hq7=gtMiuJKxOA@mail.gmail.com>
-	<20110811103658.GG27742@legolas.emea.dhcp.ti.com>
-	<CAJ6a13bxg8po-Csc10LsFH-oES4YOKkqFoTm3kG4XzS=b2boMw@mail.gmail.com>
-	<20110811141248.GK28500@legolas.emea.dhcp.ti.com>
-	<CAJ6a13b7qu3K4YJPTYych_NQxLuuUxZOQg6PPC_=XA+qiwn2RA@mail.gmail.com>
-	<20110811185408.GB15970@legolas.emea.dhcp.ti.com>
-	<20110811185558.GC15970@legolas.emea.dhcp.ti.com>
-	<4E444B8F.9060908@ti.com> <4E449D65.9000004@ti.com>
-	<874o19gfrr.fsf@ti.com> <4E532A28.60103@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] tty: omap-serial: fix boot hang by converting to use a
+ threaded IRQ handler (was Re: [PATCH] irq: always set IRQF_ONESHOT if no
+ primary handler is specified)
+Date: Tue, 23 Aug 2011 11:21:14 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1108231120110.17575@utopia.booyaka.com>
+References: <1310070737-18514-1-git-send-email-bigeasy@linutronix.de> <C5991460-2092-4E65-99EE-091F8DAA0AC3@gmail.com> <4E4D4A5F.202@linutronix.de> <20110818213418.GA20509@legolas.emea.dhcp.ti.com> <alpine.DEB.2.00.1108221742130.10315@utopia.booyaka.com>
+ <alpine.DEB.2.00.1108222306300.28226@utopia.booyaka.com> <20110823091257.GE1341@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:51775 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755460Ab1HWRPT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Aug 2011 13:15:19 -0400
-Received: by mail-gy0-f174.google.com with SMTP id 6so248231gya.19
-        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 10:15:16 -0700 (PDT)
-In-Reply-To: <4E532A28.60103@ti.com> (Rajendra Nayak's message of "Tue, 23 Aug
-	2011 09:48:48 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20110823091257.GE1341@legolas.emea.dhcp.ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-serial@vger.kernel.org, Alan Cox <alan@linux.intel.com>, Pantelis Antoniou <pantelis.antoniou@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, torvalds@linux-foundation.org, mporter@ti.com, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, "J, KEERTHY" <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, khali@linux-fr.org, guenter.roeck@ericsson.com
 
-Rajendra Nayak <rnayak@ti.com> writes:
+On Tue, 23 Aug 2011, Felipe Balbi wrote:
 
-> On 8/23/2011 5:28 AM, Kevin Hilman wrote:
->> Rajendra Nayak<rnayak@ti.com>  writes:
->>
->> [...]
->>
->>> FWIK, its a one time requirement to set the clock rate to the
->>> right rate the device can operate in based on what a platform
->>> supports.
->>
->> Except $SUBJECT patch hard-codes the clock rate for all platforms in the
->> driver.
->
-> The device has a requirement to operate in a 1Mhz to 2Mhz range. 
+> if you're not running on a slow bus, you should use top half to check if
+> IRQs are really from this device.
 
-You mean the device on OMAP4 has this requirement.   
+I don't think this applies in this case, since the IRQ isn't shared 
+between different hardware devices - it's shared for the purposes of a 
+software hack.
 
-Will this requirement exist on every platform that uses any version of
-this IP (or future similar IPs)?  I suspect not.
 
-> So the driver is using a clk_round_rate() to get the closest rate
-> supported and sets it using a clk_set_rate().
->
->>
->> If the clock rate is to be platform-specific, it should be done in
->> platform-specific code.
->
-> I am fine if this needs to be moved to platform-specific code, but I
-> wasn't quite sure this needs to be done in clock framework as was
-> suggested.
-
-No, it should't be in clock framework.  But since the frequency range is
-platform-specific, it should be initialized in platform-specific code.
-Having min/max parameters passed by platform data as suggested by
-J. Keerthy is fine.
-
-Probably even better is to have the driver have a default min/max rang
-which can be overridden by platform_data only if needed.
-
-Kevin
+- Paul
