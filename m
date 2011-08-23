@@ -1,14 +1,15 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH v2 2/2] omap_twl: Prevent SR to enable for
-	am3517/am3505devices
-Date: Tue, 23 Aug 2011 19:14:03 +0530
-Message-ID: <24b1eaea368d2a7a692dc5455aa8b255@mail.gmail.com>
-References: <1314105680-17426-1-git-send-email-abhilash.kv@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: Fwd: [RFC/PATCH v2 09/13] dt: omap4: add soc file for handling
+	i2c controllers
+Date: Tue, 23 Aug 2011 15:48:15 +0200
+Message-ID: <4E53AF9F.8070607@ti.com>
+References: <1314074021-25186-10-git-send-email-manjugk@ti.com>
+	<4E537FA7.3050609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-reply-to: <1314105680-17426-1-git-send-email-abhilash.kv@ti.com>
+In-Reply-To: <4E537FA7.3050609@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,102 +19,132 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Abhilash Koyamangalath <abhilash.kv@ti.com>, linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, linux@arm.linux.org.uk, Benoit Cousson <b-cousson@ti.com>, tony@atomide.com, linux-kernel@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-
-> arm-kernel-bounces@lists.infradead.org] On Behalf Of Abhilash K V
-> Sent: Tuesday, August 23, 2011 6:51 PM
-> To: linux-omap@vger.kernel.org
-> Cc: paul@pwsan.com; linux@arm.linux.org.uk; b-cousson@ti.com;
-> tony@atomide.com; linux-kernel@vger.kernel.org; Vaibhav Hiremath;
-> Abhilash K V; linux-arm-kernel@lists.infradead.org
-> Subject: [PATCH v2 2/2] omap_twl: Prevent SR to enable for
-> am3517/am3505devices
+From: G, Manjunath Kondaiah<manjugk@ti.com>
+> To: devicetree-discuss@lists.ozlabs.org
+> CC: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 >
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
 >
-> In case of AM3517 & AM3505, Smart Reflex is not applicable so
-> we must not enable it. So add check for absence of SR feature
-> in omap3_twl_init() and return -ENODEV if absence, else continue.
->
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
-> ---
->  arch/arm/mach-omap2/id.c              |    2 +-
->  arch/arm/mach-omap2/omap_twl.c        |    8 ++++++++
->  arch/arm/plat-omap/include/plat/cpu.h |    2 ++
->  3 files changed, 11 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 37efb86..da71098 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -202,7 +202,7 @@ static void __init omap3_check_features(void)
->  	if (cpu_is_omap3630())
->  		omap_features |= OMAP3_HAS_192MHZ_CLK;
->  	if (!cpu_is_omap3505() && !cpu_is_omap3517())
-> -		omap_features |= OMAP3_HAS_IO_WAKEUP;
-> +		omap_features |= (OMAP3_HAS_IO_WAKEUP | OMAP3_HAS_SR);
->
->  	omap_features |= OMAP3_HAS_SDRC;
->
-> diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-
-> omap2/omap_twl.c
-> index 07d6140..47e27b5 100644
-> --- a/arch/arm/mach-omap2/omap_twl.c
-> +++ b/arch/arm/mach-omap2/omap_twl.c
-> @@ -269,6 +269,14 @@ int __init omap3_twl_init(void)
->  	if (!cpu_is_omap34xx())
->  		return -ENODEV;
->
-> +	/*
-> +	 * In case of AM3517/AM3505 we should not be going down
-> +	 * further, since SR is not applicable there.
-> +	 */
-> +	if (!omap3_has_sr()) {
-> +		return -ENODEV;
-> +	}
-I do not understand what has vp_max and vp_min configuration to do with
-SR. This parameter indicates the maximum and minimum voltage supported by
-respective PM IC.
+> Add omap4 soc dts file for handling omap4 soc i2c
+> controllers existing on l4-core bus.
 
-Vishwa
+The subject and changelog is not accurate. You are doing at least 3 things:
+Moving the OMAP4 SoC data from panda board file to a SoC specific 
+omap4.dtsi file.
+Including the omap4.dtsi into panda.
+Adding some i2c nodes.
+
+You should use at least two or three separated patches to avoid 
+in-accurate subject.
+
+Benoit
+
+
+>
+> Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
+> ---
+>    arch/arm/boot/dts/omap4-panda.dts |    7 +---
+>    arch/arm/boot/dts/omap4.dtsi      |   68
+> +++++++++++++++++++++++++++++++++++++
+>    2 files changed, 69 insertions(+), 6 deletions(-)
+>    create mode 100644 arch/arm/boot/dts/omap4.dtsi
+>
+> diff --git a/arch/arm/boot/dts/omap4-panda.dts
+> b/arch/arm/boot/dts/omap4-panda.dts
+> index 58909e9..c28aa95 100644
+> --- a/arch/arm/boot/dts/omap4-panda.dts
+> +++ b/arch/arm/boot/dts/omap4-panda.dts
+> @@ -1,9 +1,4 @@
+> -/dts-v1/;
+> -
+> -/memreserve/ 0x9D000000 0x03000000; /* Frame buffer */
+> -/memreserve/ 0xB0000000 0x10000000; /* Top 256MB is unaccessable */
+> -
+> -/include/ "skeleton.dtsi"
+> +/include/ "omap4.dtsi"
+>
+>    / {
+>    	model = "TI OMAP4 PandaBoard";
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> new file mode 100644
+> index 0000000..cb055f5
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -0,0 +1,68 @@
+> +/*
+> + * Device Tree Source for OMAP4 SoC
+> + *
+> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This file is licensed under the terms of the GNU General Public License
+> + * version 2.  This program is licensed "as is" without any warranty of any
+> + * kind, whether express or implied.
+> + */
+> +
+> +/dts-v1/;
+> +
+> +/memreserve/ 0x9D000000 0x03000000; /* Frame buffer */
+> +/memreserve/ 0xB0000000 0x10000000; /* Top 256MB is unaccessable */
+
+That information was already there previously but where does it come from?
+48 MB is clearly not for the FB, and the top 256 MB should be accessible 
+with highmem.
+
+Benoit
 
 > +
->  	if (cpu_is_omap3630()) {
->  		omap3_mpu_volt_info.vp_vddmin =
-> OMAP3630_VP1_VLIMITTO_VDDMIN;
->  		omap3_mpu_volt_info.vp_vddmax =
-> OMAP3630_VP1_VLIMITTO_VDDMAX;
-> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-
-> omap/include/plat/cpu.h
-> index 67b3d75..294e015 100644
-> --- a/arch/arm/plat-omap/include/plat/cpu.h
-> +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> @@ -491,6 +491,7 @@ extern u32 omap_features;
->  #define OMAP4_HAS_MPU_1GHZ		BIT(8)
->  #define OMAP4_HAS_MPU_1_2GHZ		BIT(9)
->  #define OMAP4_HAS_MPU_1_5GHZ		BIT(10)
-> +#define OMAP3_HAS_SR			BIT(11)
->
->
->  #define OMAP3_HAS_FEATURE(feat,flag)			\
-> @@ -507,6 +508,7 @@ OMAP3_HAS_FEATURE(isp, ISP)
->  OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
->  OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
->  OMAP3_HAS_FEATURE(sdrc, SDRC)
-> +OMAP3_HAS_FEATURE(sr, SR)
->
->  /*
->   * Runtime detection of OMAP4 features
-> --
-> 1.7.1
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> +/include/ "skeleton.dtsi"
+> +
+> +/ {
+> +	#address-cells =<1>;
+> +	#size-cells =<1>;
+> +	model = "ti,omap4";
+> +
+> +	aliases {
+> +		i2c1 =&i2c1;
+> +		i2c2 =&i2c2;
+> +		i2c3 =&i2c3;
+> +		i2c4 =&i2c4;
+> +	};
+> +
+> +	l4-core {
+> +		compatible = "ti,omap4-l4-core", "sonics,s3220";
+> +		#address-cells =<1>;
+> +		#size-cells =<1>;
+> +		ranges =<0 0x48000000 0x1000000>;
+> +
+> +		i2c1: i2c@70000 {
+> +			#address-cells =<1>;
+> +			#size-cells =<0>;
+> +			compatible = "ti,omap-i2c", "ti,omap-device";
+> +			reg =<0x70000 0x100>;
+> +			interrupts =<  88>;
+> +		};
+> +
+> +		i2c2: i2c@72000 {
+> +			#address-cells =<1>;
+> +			#size-cells =<0>;
+> +			compatible = "ti,omap-i2c", "ti,omap-device";
+> +			reg =<0x72000 0x100>;
+> +			interrupts =<  89>;
+> +		};
+> +
+> +		i2c3: i2c@60000 {
+> +			#address-cells =<1>;
+> +			#size-cells =<0>;
+> +			compatible = "ti,omap-i2c", "ti,omap-device";
+> +			reg =<0x60000 0x100>;
+> +			interrupts =<  93>;
+> +		};
+> +
+> +		i2c4: i2c@350000 {
+> +			#address-cells =<1>;
+> +			#size-cells =<0>;
+> +			compatible = "ti,omap-i2c", "ti,omap-device";
+> +			reg =<0x350000 0x100>;
+> +			interrupts =<  94>;
+> +		};
+> +	};
+> +};
