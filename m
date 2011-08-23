@@ -1,49 +1,87 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [RFC PATCH 6/6] hwmon: OMAP4: On die temperature sensor driver
-Date: Tue, 23 Aug 2011 09:48:48 +0530
-Message-ID: <4E532A28.60103@ti.com>
-References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com> <1312979122-5896-7-git-send-email-j-keerthy@ti.com> <20110810124629.GJ12882@legolas.emea.dhcp.ti.com> <CAJ6a13Z=u=exWUHLotw8jpHMv-hKpE+fvg_1hq7=gtMiuJKxOA@mail.gmail.com> <20110811103658.GG27742@legolas.emea.dhcp.ti.com> <CAJ6a13bxg8po-Csc10LsFH-oES4YOKkqFoTm3kG4XzS=b2boMw@mail.gmail.com> <20110811141248.GK28500@legolas.emea.dhcp.ti.com> <CAJ6a13b7qu3K4YJPTYych_NQxLuuUxZOQg6PPC_=XA+qiwn2RA@mail.gmail.com> <20110811185408.GB15970@legolas.emea.dhcp.ti.com> <20110811185558.GC15970@legolas.emea.dhcp.ti.com> <4E444B8F.9060908@ti.com> <4E449D65.9000004@ti.com> <874o19gfrr.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [RFC/PATCH v2 00/13] dt: omap: dt binding with omap_device and support for i2c1
+Date: Tue, 23 Aug 2011 10:03:28 +0500
+Message-ID: <1314074021-25186-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:59933 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750698Ab1HWETF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Aug 2011 00:19:05 -0400
-Received: by mail-gw0-f54.google.com with SMTP id 15so5530168gwb.27
-        for <linux-omap@vger.kernel.org>; Mon, 22 Aug 2011 21:19:03 -0700 (PDT)
-In-Reply-To: <874o19gfrr.fsf@ti.com>
+Received: from [117.192.64.96] ([117.192.64.96]:39664 "EHLO manju-desktop"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750945Ab1HWEp2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Aug 2011 00:45:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, "J, KEERTHY" <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, khali@linux-fr.org, guenter.roeck@ericsson.com
+To: devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca
 
-On 8/23/2011 5:28 AM, Kevin Hilman wrote:
-> Rajendra Nayak<rnayak@ti.com>  writes:
->
-> [...]
->
->> FWIK, its a one time requirement to set the clock rate to the
->> right rate the device can operate in based on what a platform
->> supports.
->
-> Except $SUBJECT patch hard-codes the clock rate for all platforms in the
-> driver.
 
-The device has a requirement to operate in a 1Mhz to 2Mhz range. So the
-driver is using a clk_round_rate() to get the closest rate supported and
-sets it using a clk_set_rate().
+Patch series reworked from:
+http://permalink.gmane.org/gmane.linux.ports.arm.omap/61674
+Also added support for i2c1 controller on omap4 based panda
+board.
 
->
-> If the clock rate is to be platform-specific, it should be done in
-> platform-specific code.
+Baseline:
+=========
+git://git.secretlab.ca/git/linux-2.6.git
+Branch: devicetree/test
+The above branch is rebased with v3.1-rc2 mainline.
++
+pdev decoupling patches from kevin hilman
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53534.html
 
-I am fine if this needs to be moved to platform-specific code, but I
-wasn't quite sure this needs to be done in clock framework as was
-suggested.
+The patch series is also available at:
+https://gitorious.org/devicetree/dt_omap/commits/devicetree/dt_rfcv2
 
->
-> Kevin
+Testing:
+========
+Build : dt and not dt build for omap2plus_defconfig
+Boot: OMAP3530 Beagle Board and OMAP4430 Panda board
+
+Limitation:
+===========
+The current implementation of omap-device build through
+device tree supports only single instance of hwmod and 
+multiple instances are not supported.
+
+G, Manjunath Kondaiah (13):
+  OMAP: omap_device: Add device tree node pointer
+  dt: Add pd_size to AUXDATA structure
+  dt: omap3: add soc file for handling i2c controllers
+  dt: omap3: beagle board: set clock freq for i2c devices
+  dt: omap3: add generic board file for dt support
+  dt: omap3: add omap-device compatible property
+  dt: omap: create platform bus for omap devices
+  dt: omap: i2c: add dt support for i2c1 controller
+  dt: omap4: add soc file for handling i2c controllers
+  dt: omap4: panda board: set clock freq for i2c devices
+  dt: omap4: add generic board file for dt support
+  dt: omap4: enable dt support for i2c1 controller
+  dt: omap: i2c: dt usage model documentation
+
+ Documentation/devicetree/bindings/i2c/omap-i2c.txt |   57 +++++++++++++
+ arch/arm/boot/dts/omap3-beagle-nunchuck.dts        |   13 +---
+ arch/arm/boot/dts/omap3-beagle.dts                 |   18 ++++-
+ arch/arm/boot/dts/omap3.dtsi                       |   62 ++++++++++++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   25 ++++--
+ arch/arm/boot/dts/omap4.dtsi                       |   68 ++++++++++++++++
+ arch/arm/mach-omap2/Kconfig                        |   22 +++++
+ arch/arm/mach-omap2/Makefile                       |    2 +
+ arch/arm/mach-omap2/board-omap3-dt.c               |   84 ++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c            |   13 ---
+ arch/arm/mach-omap2/board-omap4-dt.c               |   75 +++++++++++++++++
+ arch/arm/mach-omap2/board-omap4panda.c             |    6 --
+ arch/arm/mach-omap2/devices.c                      |    2 +-
+ arch/arm/mach-omap2/mcbsp.c                        |    2 +-
+ arch/arm/plat-omap/include/plat/omap_device.h      |   11 +++-
+ arch/arm/plat-omap/omap_device.c                   |   46 ++++++++++-
+ drivers/i2c/busses/i2c-omap.c                      |   23 +++++-
+ drivers/of/platform.c                              |   41 ++++++++++
+ include/linux/of_platform.h                        |    5 +
+ 19 files changed, 526 insertions(+), 49 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
+ create mode 100644 arch/arm/boot/dts/omap3.dtsi
+ create mode 100644 arch/arm/boot/dts/omap4.dtsi
+ create mode 100644 arch/arm/mach-omap2/board-omap3-dt.c
+ create mode 100644 arch/arm/mach-omap2/board-omap4-dt.c
+
+-- 
+1.7.4.1
 
