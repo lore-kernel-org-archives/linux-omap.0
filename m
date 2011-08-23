@@ -1,200 +1,36 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: Fwd: [RFC/PATCH v2 11/13] dt: omap4: add generic board file for
-	dt support
-Date: Tue, 23 Aug 2011 15:05:01 +0200
-Message-ID: <4E53A57D.7060905@ti.com>
-References: <1314074021-25186-12-git-send-email-manjugk@ti.com>
-	<4E537F80.1060001@ti.com>
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v5 10/22] gpio/omap: use level/edge detect reg offsets
+Date: Tue, 23 Aug 2011 18:38:25 +0530
+Message-ID: <4E53A649.6060106@ti.com>
+References: <1312455893-14922-1-git-send-email-tarun.kanti@ti.com> <1312455893-14922-11-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <4E537F80.1060001-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:37711 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752890Ab1HWNId (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Aug 2011 09:08:33 -0400
+Received: by mail-yi0-f48.google.com with SMTP id 17so77725yib.35
+        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 06:08:32 -0700 (PDT)
+In-Reply-To: <1312455893-14922-11-git-send-email-tarun.kanti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-From: G, Manjunath Kondaiah<manjugk-l0cyMroinI0@public.gmane.org>
-> The generic board file is created and derived from omap4 panda board file.
+On Thursday 04 August 2011 04:34 PM, Tarun Kanti DebBarma wrote:
+> By adding level and edge detection register offsets and then initializing them
+> correctly according to OMAP versions during device registrations we can now remove
+> lot of revision checks in these functions.
 >
-> The changes here focus on minimal configuration to boot panda board with
-> dt enabled which provides basic platform for converting device drivers for
-> using dt.
->
-> Signed-off-by: G, Manjunath Kondaiah<manjugk-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> Signed-off-by: Charulatha V<charu@ti.com>
 > ---
->    arch/arm/boot/dts/omap4-panda.dts      |    2 +-
->    arch/arm/mach-omap2/Kconfig            |   11 +++++
->    arch/arm/mach-omap2/Makefile           |    1 +
->    arch/arm/mach-omap2/board-omap4-dt.c   |   66
-> ++++++++++++++++++++++++++++++++
->    arch/arm/mach-omap2/board-omap4panda.c |    6 ---
->    5 files changed, 79 insertions(+), 7 deletions(-)
->    create mode 100644 arch/arm/mach-omap2/board-omap4-dt.c
->
-> diff --git a/arch/arm/boot/dts/omap4-panda.dts
-> b/arch/arm/boot/dts/omap4-panda.dts
-> index 6b831ca..9d1b17c 100644
-> --- a/arch/arm/boot/dts/omap4-panda.dts
-> +++ b/arch/arm/boot/dts/omap4-panda.dts
-> @@ -2,7 +2,7 @@
->
->    / {
->    	model = "TI OMAP4 PandaBoard";
-> -	compatible = "ti,omap4-panda", "ti,omap4430";
-> +	compatible = "ti,omap4-panda", "ti,omap4";
+Looks good.
 
-That change does not belong here, or at least should be listed in the 
-changelog. Potentially you should keep the ti,omap4430 and just add the 
-ti,omap4 to have the most generic compatible value.
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
->
->    	i2c1 {
->    		clock-frequency =<400000>;
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 4fbb54d..853b14c 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -337,6 +337,17 @@ config MACH_OMAP4_PANDA
->    	select OMAP_PACKAGE_CBS
->    	select REGULATOR_FIXED_VOLTAGE
->
-> +config MACH_OMAP4_DT
-> +	bool "Generic OMAP4 board(FDT support)"
-> +	depends on ARCH_OMAP4
-> +	select OMAP_PACKAGE_CBB
-
-Wrong package... it looks like some OMAP3 copy/paste.
-
-> +	select USE_OF
-> +
-> +	help
-> +	  Support for generic TI OMAP4 boards using Flattened Device Tree.
-> +	  Say Y here to enable OMAP3 device tree support
-
-Some more copy/paste evidence:-)
-
-> +	  More information at Documentation/devicetree
-> +
->    config OMAP3_EMU
->    	bool "OMAP3 debugging peripherals"
->    	depends on ARCH_OMAP3
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index e702e47..8b8c29c 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -198,6 +198,7 @@ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
->    obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
->    obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
->    obj-$(CONFIG_MACH_OMAP3_DT)		+= board-omap3-dt.o
-> +obj-$(CONFIG_MACH_OMAP4_DT)		+= board-omap4-dt.o
-
-Boards are grouped by SoC version.
-
->    obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
->    obj-$(CONFIG_MACH_NOKIA_RM680)		+= board-rm680.o \
->    					   sdram-nokia.o
-> diff --git a/arch/arm/mach-omap2/board-omap4-dt.c
-> b/arch/arm/mach-omap2/board-omap4-dt.c
-> new file mode 100644
-> index 0000000..a4d296c
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-omap4-dt.c
-> @@ -0,0 +1,66 @@
-> +/*
-> + * TI OMAP3 device tree board support
-
-One more C&P.
-
-> + *
-> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include<linux/kernel.h>
-> +#include<linux/init.h>
-> +#include<linux/i2c/twl.h>
-> +
-> +#include<mach/omap4-common.h>
-
-nitpicking, but it should go after <plat/common.h>.
-
-> +#include<asm/mach/arch.h>
-> +#include<asm/mach/map.h>
-> +
-> +#include<plat/common.h>
-> +
-> +#include "common-board-devices.h"
-> +
-> +static void __init omap4_init_early(void)
-> +{
-> +	omap2_init_common_infrastructure();
-> +	omap2_init_common_devices(NULL, NULL);
-> +}
-> +
-> +static struct twl4030_platform_data omap4_twldata = {
-> +	.irq_base	= TWL6030_IRQ_BASE,
-> +	.irq_end	= TWL6030_IRQ_END,
-> +};
-> +
-> +static int __init omap4_i2c_init(void)
-> +{
-> +	omap4_pmic_init("twl6030",&omap4_twldata);
-> +	return 0;
-> +}
-> +
-> +static void __init omap4_init(void)
-> +{
-> +	omap4_i2c_init();
-> +	omap_serial_init();
-> +}
-> +
-> +static void __init omap4_map_io(void)
-> +{
-> +	omap2_set_globals_443x();
-> +	omap44xx_map_common_io();
-> +}
-> +
-> +static const char *omap4_match[] __initdata = {
-> +	"ti,omap4",
-> +	NULL,
-> +};
-> +
-> +DT_MACHINE_START(OMAP4_DT, "TI OMAP4 (Flattened Device Tree)")
-> +	.boot_params	= 0x80000100,
-
-Not needed anymore with DT.
-
-> +	.reserve	= omap_reserve,
-> +	.map_io		= omap4_map_io,
-> +	.init_early	= omap4_init_early,
-> +	.init_irq	= gic_init_irq,
-> +	.init_machine	= omap4_init,
-> +	.timer		=&omap4_timer,
-> +	.dt_compat	= omap4_match,
-> +MACHINE_END
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c
-> b/arch/arm/mach-omap2/board-omap4panda.c
-> index 1c583c7..9aaa960 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-
-That change does not really belong here or the changelog is not correct.
-You can potentially do it in an other patch before. It will not really 
-introduce any regression if you do it before adding any information into 
-panda DT.
-
-Regards,
-Benoit
+Regards
+Santosh
