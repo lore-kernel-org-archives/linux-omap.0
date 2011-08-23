@@ -1,107 +1,150 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [RFC/PATCH v2 00/13] dt: omap: dt binding with omap_device and
- support for i2c1
-Date: Tue, 23 Aug 2011 21:11:19 +0530
-Message-ID: <20110823154119.GE32698@manju-desktop>
+Subject: Re: [RFC/PATCH v2 08/13] dt: omap: i2c: add dt support for i2c1
+ controller
+Date: Tue, 23 Aug 2011 21:16:49 +0530
+Message-ID: <20110823154649.GF32698@manju-desktop>
 References: <1314074021-25186-1-git-send-email-manjugk@ti.com>
+ <1314074021-25186-9-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:38233 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754934Ab1HWPla (ORCPT
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:36660 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751997Ab1HWPq6 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Aug 2011 11:41:30 -0400
-Received: by iyk2 with SMTP id 2so262245iyk.18
-        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 08:41:27 -0700 (PDT)
+	Tue, 23 Aug 2011 11:46:58 -0400
+Received: by mail-iy0-f177.google.com with SMTP id 5so344665iym.36
+        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 08:46:58 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1314074021-25186-1-git-send-email-manjugk@ti.com>
+In-Reply-To: <1314074021-25186-9-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: devicetree-discuss@lists.ozlabs.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Aug 23, 2011 at 10:03:28AM +0500, G, Manjunath Kondaiah wrote:
+Hi Grant,
+
+On Tue, Aug 23, 2011 at 10:03:36AM +0500, G, Manjunath Kondaiah wrote:
 > 
-> Patch series reworked from:
-> http://permalink.gmane.org/gmane.linux.ports.arm.omap/61674
-> Also added support for i2c1 controller on omap4 based panda
-> board.
+> The device tree support has been added to i2c1 controller and
+> corresponding i2c initilization in generic board file is cleaned
+> up so that platfom device is registered through dt and omap device
+> and not through board i2c initilization.
 > 
-> Baseline:
-> =========
-> git://git.secretlab.ca/git/linux-2.6.git
-> Branch: devicetree/test
-> The above branch is rebased with v3.1-rc2 mainline.
+> These changes will not affect non dt builds and existing functionality
+> is retained.
+> 
+> Tested with dt and non dt builds and boot tested on beagle board.
+> 
+> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3-dt.c |   14 +++++++-------
+>  drivers/i2c/busses/i2c-omap.c        |   23 ++++++++++++++++++++---
+>  2 files changed, 27 insertions(+), 10 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3-dt.c b/arch/arm/mach-omap2/board-omap3-dt.c
+> index 72c59a4..cd11224 100644
+> --- a/arch/arm/mach-omap2/board-omap3-dt.c
+> +++ b/arch/arm/mach-omap2/board-omap3-dt.c
+> @@ -35,11 +35,11 @@ static struct twl4030_platform_data beagle_twldata = {
+>  	/* platform_data for children goes here */
+>  };
+>  
+> -static int __init omap3_beagle_i2c_init(void)
+> -{
+> -	omap3_pmic_init("twl4030", &beagle_twldata);
+> -	return 0;
+> -}
+> +struct of_dev_auxdata omap3_auxdata_lookup[] __initdata = {
+> +	OF_DEV_AUXDATA_ID_PDSIZE("ti,omap-i2c", 0x48070000, "i2c1", 1,\
+> +				&beagle_twldata, sizeof(beagle_twldata)),
+> +	{}
+> +};
+>  
+>  static void __init omap3_init_early(void)
+>  {
+> @@ -61,11 +61,11 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
+>  
+>  static void __init omap3_init(void)
+>  {
+> -	omap3_beagle_i2c_init();
+>  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+>  	omap_serial_init();
+>  
+> -	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+> +	of_platform_populate(NULL, omap_dt_match_table, omap3_auxdata_lookup,
+> +									 NULL);
+>  }
+>  
+>  static const char *omap3_dt_match[] __initdata = {
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 2a072ff..9e98014 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -38,6 +38,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+>  #include <linux/of_i2c.h>
+> +#include <linux/of_device.h>
+>  #include <linux/slab.h>
+>  #include <linux/i2c-omap.h>
+>  #include <linux/pm_runtime.h>
+> @@ -972,6 +973,16 @@ static const struct i2c_algorithm omap_i2c_algo = {
+>  	.functionality	= omap_i2c_func,
+>  };
+>  
+> +#if defined(CONFIG_OF)
+> +static const struct of_device_id omap_i2c_of_match[] = {
+> +	{.compatible = "ti,omap-i2c", },
+> +	{},
+> +}
+> +MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
+> +#else
+> +#define omap_i2c_of_match NULL
+> +#endif
 > +
-> pdev decoupling patches from kevin hilman
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53534.html
-> 
-> The patch series is also available at:
-> https://gitorious.org/devicetree/dt_omap/commits/devicetree/dt_rfcv2
-> 
-> Testing:
-> ========
-> Build : dt and not dt build for omap2plus_defconfig
-> Boot: OMAP3530 Beagle Board and OMAP4430 Panda board
+>  static int __devinit
+>  omap_i2c_probe(struct platform_device *pdev)
+>  {
+> @@ -1008,12 +1019,17 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		goto err_release_region;
+>  	}
+>  
+> +	speed = 100;	/* Default speed */
+>  	if (pdata != NULL) {
+>  		speed = pdata->clkrate;
+>  		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+> -	} else {
+> -		speed = 100;	/* Default speed */
+> -		dev->set_mpu_wkup_lat = NULL;
+> +#if defined(CONFIG_OF)
+> +	} else if (pdev->dev.of_node) {
+> +		u32 prop;
+> +		if (!of_property_read_u32(pdev->dev.of_node, "clock-frequency",
+> +									&prop))
+> +			speed = prop/100;
+> +#endif
 
-Correction: This series will support only i2c1 controller and it will not
-handle i2c1 child devices such as twlxxxx pmic. Due to which, twl read/write's
-might fail during boot.
+This function calls of_i2c_register_devices which attaches all the required
+parameters reg, irq, archdata etc into i2c adapter. But it will not attach 
+platform_data which results empty pdata pointer in i2c child devices.
 
-I am facing issues in getting platform_data in i2c child device probe function.
-The issue is reported to grant in patch 08/13 of this series.
+Is this done purposefully? If so, how do we get pdata pointer in i2c child 
+device.
 
 -M
 
-> 
-> Limitation:
-> ===========
-> The current implementation of omap-device build through
-> device tree supports only single instance of hwmod and 
-> multiple instances are not supported.
-> 
-> G, Manjunath Kondaiah (13):
->   OMAP: omap_device: Add device tree node pointer
->   dt: Add pd_size to AUXDATA structure
->   dt: omap3: add soc file for handling i2c controllers
->   dt: omap3: beagle board: set clock freq for i2c devices
->   dt: omap3: add generic board file for dt support
->   dt: omap3: add omap-device compatible property
->   dt: omap: create platform bus for omap devices
->   dt: omap: i2c: add dt support for i2c1 controller
->   dt: omap4: add soc file for handling i2c controllers
->   dt: omap4: panda board: set clock freq for i2c devices
->   dt: omap4: add generic board file for dt support
->   dt: omap4: enable dt support for i2c1 controller
->   dt: omap: i2c: dt usage model documentation
-> 
->  Documentation/devicetree/bindings/i2c/omap-i2c.txt |   57 +++++++++++++
->  arch/arm/boot/dts/omap3-beagle-nunchuck.dts        |   13 +---
->  arch/arm/boot/dts/omap3-beagle.dts                 |   18 ++++-
->  arch/arm/boot/dts/omap3.dtsi                       |   62 ++++++++++++++
->  arch/arm/boot/dts/omap4-panda.dts                  |   25 ++++--
->  arch/arm/boot/dts/omap4.dtsi                       |   68 ++++++++++++++++
->  arch/arm/mach-omap2/Kconfig                        |   22 +++++
->  arch/arm/mach-omap2/Makefile                       |    2 +
->  arch/arm/mach-omap2/board-omap3-dt.c               |   84 ++++++++++++++++++++
->  arch/arm/mach-omap2/board-omap3beagle.c            |   13 ---
->  arch/arm/mach-omap2/board-omap4-dt.c               |   75 +++++++++++++++++
->  arch/arm/mach-omap2/board-omap4panda.c             |    6 --
->  arch/arm/mach-omap2/devices.c                      |    2 +-
->  arch/arm/mach-omap2/mcbsp.c                        |    2 +-
->  arch/arm/plat-omap/include/plat/omap_device.h      |   11 +++-
->  arch/arm/plat-omap/omap_device.c                   |   46 ++++++++++-
->  drivers/i2c/busses/i2c-omap.c                      |   23 +++++-
->  drivers/of/platform.c                              |   41 ++++++++++
->  include/linux/of_platform.h                        |    5 +
->  19 files changed, 526 insertions(+), 49 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
->  create mode 100644 arch/arm/boot/dts/omap3.dtsi
->  create mode 100644 arch/arm/boot/dts/omap4.dtsi
->  create mode 100644 arch/arm/mach-omap2/board-omap3-dt.c
->  create mode 100644 arch/arm/mach-omap2/board-omap4-dt.c
-> 
+>  	}
+>  
+>  	dev->speed = speed;
+> @@ -1178,6 +1194,7 @@ static struct platform_driver omap_i2c_driver = {
+>  		.name	= "omap_i2c",
+>  		.owner	= THIS_MODULE,
+>  		.pm	= OMAP_I2C_PM_OPS,
+> +		.of_match_table = omap_i2c_of_match,
+>  	},
+>  };
+>  
 > -- 
 > 1.7.4.1
 > 
