@@ -1,91 +1,100 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [RFC/PATCH v2 13/13] dt: omap: i2c: dt usage model documentation
-Date: Tue, 23 Aug 2011 10:03:41 +0500
-Message-ID: <1314074021-25186-14-git-send-email-manjugk@ti.com>
-References: <1314074021-25186-1-git-send-email-manjugk@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] tty: omap-serial: fix boot hang by converting to use a
+ threaded IRQ handler (was Re: [PATCH] irq: always set IRQF_ONESHOT if no
+ primary handler is specified)
+Date: Mon, 22 Aug 2011 23:10:21 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1108222306300.28226@utopia.booyaka.com>
+References: <1310070737-18514-1-git-send-email-bigeasy@linutronix.de> <C5991460-2092-4E65-99EE-091F8DAA0AC3@gmail.com> <4E4D4A5F.202@linutronix.de> <20110818213418.GA20509@legolas.emea.dhcp.ti.com> <alpine.DEB.2.00.1108221742130.10315@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [117.192.64.96] ([117.192.64.96]:2424 "EHLO manju-desktop"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751502Ab1HWErx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Aug 2011 00:47:53 -0400
+Received: from utopia.booyaka.com ([72.9.107.138]:54562 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750908Ab1HWFKW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Aug 2011 01:10:22 -0400
+In-Reply-To: <alpine.DEB.2.00.1108221742130.10315@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca
+To: linux-serial@vger.kernel.org, Alan Cox <alan@linux.intel.com>
+Cc: Pantelis Antoniou <pantelis.antoniou@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, torvalds@linux-foundation.org, mporter@ti.com, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
 
-Add documentation for using omap i2c controller with device
-tree support enabled.
+Convert the omap-serial hardirq handler to a threaded IRQ handler. Without 
+this patch, OMAP boards which use the on-board OMAP UARTs and the 
+omap-serial driver will not boot to userspace after commit 
+f3637a5f2e2eb391ff5757bc83fb5de8f9726464 ("irq: Always set IRQF_ONESHOT if 
+no primary handler is specified").  Enabling CONFIG_DEBUG_SHIRQ reveals 
+'IRQ handler type mismatch' errors:
 
-Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+IRQ handler type mismatch for IRQ 74
+current handler: serial idle
+[<c001b124>] (unwind_backtrace+0x0/0xf0) from [<c009c900>] (__setup_irq+0x42c/0x464)
+[<c009c900>] (__setup_irq+0x42c/0x464) from [<c009ca08>] (request_threaded_irq+0xd0/0x148)
+[<c009ca08>] (request_threaded_irq+0xd0/0x148) from [<c029d398>] (serial_omap_startup+0x30/0x2dc)
+[<c029d398>] (serial_omap_startup+0x30/0x2dc) from [<c0295a38>] (uart_startup+0x5c/0x1ac)
+
+(etc.)
+
+It turns out that the omap-serial code used one threaded IRQ
+handler[1][2] and one non-threaded IRQ handler[3] that shared the same
+IRQ.  During the 3.1-rc series, a patch was merged[4] that caused
+IRQF_ONESHOT to be set on the threaded handler, but the non-threaded
+handler did not have IRQF_ONESHOT set.  Since interrupt handlers
+that share the same IRQ must also share the presence or absence of
+IRQF_ONESHOT[5], this new commit caused a mismatch that prevented the
+non-threaded IRQ from registering.
+
+Fix by converting the non-threaded IRQ handler in omap-serial.c to a
+threaded IRQ handler.  Ideally we would not have to make this type of
+change during the -rc series, but the commit that caused this behavior
+was itself merged between v3.1-rc2 and v3.1-rc3.  In the long term, it
+would be good to get rid of the shared IRQ handler hack in
+arch/arm/mach-omap2/serial.c.
+
+This change has been boot-tested on OMAP3530 BeagleBoard and
+OMAP4430ES2 PandaBoard, and static suspend has been lightly tested on
+the BeagleBoard.
+
+Pantelis Antoniou <pantelis.antoniou@gmail.com> originally reported
+the boot failure.
+
+1. arch/arm/mach-omap2/serial.c line 550, as of Linux v3.1-rc3.  http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/arm/mach-omap2/serial.c;h=466fc722fa0f39f03b8d93cf84e4dae4f57fd029;hb=fcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c#l550
+
+2. arch/arm/mach-omap2/serial.c line 563, as of Linux v3.1-rc3.  http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/arm/mach-omap2/serial.c;h=466fc722fa0f39f03b8d93cf84e4dae4f57fd029;hb=fcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c#l563
+
+3. drivers/tty/serial/omap-serial.c line 464, as of Linux v3.1-rc3.  http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=drivers/tty/serial/omap-serial.c;h=c37df8d0fa2819261dffccc5bc4d0180b9531f49;hb=fcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c#l464
+
+4. Commit f3637a5f2e2eb391ff5757bc83fb5de8f9726464 ("irq: Always set
+   IRQF_ONESHOT if no primary handler is specified")
+
+5. Gleixner, Thomas. _[patch 2/5] genirq: Allow shared oneshot
+   interrupts_.  http://lkml.org/lkml/2011/2/23/511
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Pantelis Antoniou <pantelis.antoniou@gmail.com>
+Cc: Govindraj.R <govindraj.raja@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- Documentation/devicetree/bindings/i2c/omap-i2c.txt |   57 ++++++++++++++++++++
- 1 files changed, 57 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
+ drivers/tty/serial/omap-serial.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/i2c/omap-i2c.txt b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
-new file mode 100644
-index 0000000..f427445
---- /dev/null
-+++ b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
-@@ -0,0 +1,57 @@
-+* OMAP I2C
-+----------
-+
-+The OMAP SoC's has multiple I2C controllers and each controller can
-+have I2C child devices.
-+
-+Required properties :
-+
-+ - clock-frequency : desired I2C bus clock frequency in Hz.
-+ - compatible : should be "ti,omap-i2c"
-+
-+Recommended properties :
-+
-+ - reg : Offset and length of the register set for the device
-+ - interrupts : <a b> where a is the interrupt number and b is a
-+   field that represents an encoding of the sense and level
-+   information for the interrupt.  This should be encoded based on
-+   the information in section 2) depending on the type of interrupt
-+   controller you have.
-+ - interrupt-parent : the phandle for the interrupt controller that
-+   services interrupts for this device.
-+
-+Optional:
-+The driver platform data can not be passed through device tree as of
-+now hence aux data structure can be used in board files. The aux data
-+is temparory solution and plan is to move it to device tree dts file.
-+
-+Note: Current implementation uses only clock-frequency field from
-+device tree blob and all other data will be fetched from omap hwmod
-+data base during device registration. Future plan is to migrate hwmod
-+data base contents into device tree blob so that, all the required
-+data will be used from device tree dts file.
-+
-+Examples :
-+
-+	/* OMAP4 based board */
-+	#address-cells = <1>;
-+	#size-cells = <1>;
-+	ranges = <0 0x48000000 0x1000000>;
-+
-+	i2c1: i2c@70000 {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		compatible = "ti,omap-i2c", "ti,omap-device";
-+		reg = <0x70000 0x100>;
-+		interrupts = < 88 >;
-+		clock-frequency = <400000>;
-+	};
-+
-+	i2c2: i2c@72000 {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		compatible = "ti,omap-i2c", "ti,omap-device";
-+		reg = <0x72000 0x100>;
-+		interrupts = < 89 >;
-+		clock-frequency = <400000>;
-+	};
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index c37df8d..e83a769 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -461,8 +461,8 @@ static int serial_omap_startup(struct uart_port *port)
+ 	/*
+ 	 * Allocate the IRQ
+ 	 */
+-	retval = request_irq(up->port.irq, serial_omap_irq, up->port.irqflags,
+-				up->name, up);
++	retval = request_threaded_irq(up->port.irq, NULL, serial_omap_irq,
++				      up->port.irqflags, up->name, up);
+ 	if (retval)
+ 		return retval;
+ 
 -- 
-1.7.4.1
+1.7.5.4
 
