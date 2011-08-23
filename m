@@ -1,40 +1,85 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH] DMAEngine: Define generic transfer request api
-Date: Tue, 23 Aug 2011 10:43:05 -0400
-Message-ID: <DD211C52-97D7-4E55-A2F8-3C88A6D45A75@ti.com>
-References: <1313147667-3385-1-git-send-email-jaswinder.singh@linaro.org>  <1313499399.1603.92.camel@vkoul-udesk3>  <CACRpkdaY_wuz+zS-iKCPT-M7EpvtxCNX+OJ6NROSaQtZ6XoNMg@mail.gmail.com> <1313761404.18591.1.camel@vkoul-udesk3>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset="us-ascii"
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v5 05/22] gpio/omap: handle save/restore ctx in GPIO driver
+Date: Tue, 23 Aug 2011 20:17:29 +0530
+Message-ID: <4E53BD81.4050606@ti.com>
+References: <1312455893-14922-1-git-send-email-tarun.kanti@ti.com> <1312455893-14922-6-git-send-email-tarun.kanti@ti.com> <4E53A2D4.90109@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40161 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751934Ab1HWOnO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Aug 2011 10:43:14 -0400
-In-Reply-To: <1313761404.18591.1.camel@vkoul-udesk3>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:44044 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751934Ab1HWOrj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Aug 2011 10:47:39 -0400
+Received: by mail-yw0-f52.google.com with SMTP id 7so192861ywo.11
+        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 07:47:38 -0700 (PDT)
+In-Reply-To: <4E53A2D4.90109@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Koul, Vinod" <vinod.koul@intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Jassi Brar <jaswinder.singh@linaro.org>, sundaram@ti.com, dan.j.williams@intel.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, rmk+kernel@arm.linux.org.uk, nsekhar@ti.com
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-On Aug 19, 2011, at 9:43 AM, Koul, Vinod wrote:
+On Tuesday 23 August 2011 06:23 PM, Santosh wrote:
+> On Thursday 04 August 2011 04:34 PM, Tarun Kanti DebBarma wrote:
+>> From: Charulatha V<charu@ti.com>
+>>
+>> Modify omap_gpio_prepare_for_idle()& omap_gpio_resume_after_idle()
+>> functions
+>> to handle save context& restore context respectively in the OMAP GPIO
+>> driver
+>> itself instead of calling these functions from pm specific files.
+>> For this, in gpio_prepare_for_idle(), call *_get_context_loss_count()
+>> and in
+>> gpio_resume_after_idle() call it again. If the count is different, do
+>> restore
+>> context. The workaround_enabled flag is no more required and is removed.
+>>
+>> Signed-off-by: Charulatha V<charu@ti.com>
+>> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+>> ---
+>
+> "ctx" ?
+> Please change it to 'context' is subject and rest of the code.
+>
+>
+>> arch/arm/mach-omap2/gpio.c | 12 +++
+>> arch/arm/mach-omap2/pm34xx.c | 14 ----
+>> arch/arm/plat-omap/include/plat/gpio.h | 5 +-
+>> drivers/gpio/gpio-omap.c | 131 ++++++++++++++------------------
+>> 4 files changed, 73 insertions(+), 89 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+>> index 95195a8..2e65377 100644
+>> --- a/arch/arm/mach-omap2/gpio.c
+>> +++ b/arch/arm/mach-omap2/gpio.c
+>> @@ -23,6 +23,7 @@
+>>
+>> #include<plat/omap_hwmod.h>
+>> #include<plat/omap_device.h>
+>> +#include<plat/omap-pm.h>
+>>
+>> #include "powerdomain.h"
+>>
+>> @@ -34,6 +35,16 @@ static struct omap_device_pm_latency
+>> omap_gpio_latency[] = {
+>> },
+>> };
+>>
+>> +#ifdef CONFIG_PM
+>> +static int omap_gpio_get_context_loss(struct device *dev)
+>> +{
+>> + return omap_pm_get_dev_context_loss_count(dev);
+>> +}
+> Do you really need this wrapper. Use the funtion directly instead.
+>
+> Rest looks fine to me
 
-> On Tue, 2011-08-16 at 15:06 +0200, Linus Walleij wrote:
->> On Tue, Aug 16, 2011 at 2:56 PM, Koul, Vinod <vinod.koul@intel.com> wrote:
->> 
->>> Currently we have two approaches to solve this problem first being the
->>> DMA_STRIDE_CONFIG proposed by Linus W, I feel this one is better
->>> approach as this can give client ability to configure each transfer
->>> rather than set for the channel. Linus W, do you agree?
->> 
->> I think Sundaram is in the position of doing some heavy work on
->> using one or the other of the API:s, and I think he is better
->> suited than anyone else of us to select what scheme to use,
->> in the end he's going to write the first code using the API.
-> And Unfortunately TI folks don't seem to care about this discussion :(
-> Haven't seen anything on this from them, or on previous RFC by Jassi
+One more thing I missed is, the dataout register save/restore
+As per your patches, it's OMAP version dependent to use set_dataout
+vs dataout. Please handle it as part of save/restore code.
 
-IIRC, Sundaram went on holiday. I suspect he cares a lot about this
-discussion as he has a session on the topic at LPC.
+Regards
+Santosh
 
--Matt
+
