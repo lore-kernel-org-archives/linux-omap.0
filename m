@@ -1,66 +1,60 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 5/9] OMAP4: HWMOD: remove extra clocks
-Date: Tue, 23 Aug 2011 15:28:15 +0300
-Message-ID: <1314102499-30407-6-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 6/9] OMAP4: HWMOD: Add HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core
+Date: Tue, 23 Aug 2011 15:28:16 +0300
+Message-ID: <1314102499-30407-7-git-send-email-tomi.valkeinen@ti.com>
 References: <1314102499-30407-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:50870 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753191Ab1HWM2p (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:33604 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754193Ab1HWM2s (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Aug 2011 08:28:45 -0400
-Received: by mail-bw0-f54.google.com with SMTP id t8so42574bka.41
-        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 05:28:44 -0700 (PDT)
+	Tue, 23 Aug 2011 08:28:48 -0400
+Received: by mail-bw0-f52.google.com with SMTP id zs2so41928bkb.25
+        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 05:28:47 -0700 (PDT)
 In-Reply-To: <1314102499-30407-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Remove the dss_dss_clk from dss_core's opt-clocks. dss_dss_clk already
-defined as the dss main_clk, and thus is not needed as an opt-clock.
+DSS needs all DSS clocks to be enabled to be able to finish reset
+properly. Before v3.1-rc1 the omapdss driver was managing clocks and
+resets correctly. However, when omapdss started using runtime PM at
+v3.1-rc1, the responsibility for the reset moved to HWMOD framework.
 
-Remove opt-clocks for dss_dispc, as dispc only uses the main_clk.
+HWMOD framework does not currently enable all the DSS clocks when
+resetting the DSS hardware. This causes the HWMOD frameworks boot-time
+reset to fail, possibly leaving the DSS hardware in undefined state.
+
+This patch sets HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core. The flag
+is actually not used on OMAP4, because dss_core hardware does not have
+soft-reset functionality and thus the HWMOD framework never resets nor
+waits for the reset to finish.
+
+However, while the flag is not strictly needed currently, I think it
+represents the HW correctly: all the DSS clocks should be enabled after
+power-on to allow DSS hardware to finish its reset.
+
+A custom reset function will be added in the following patches which
+manages this correctly for OMAP4.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    9 ---------
- 1 files changed, 0 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 6201422..48c0458 100644
+index 48c0458..4c2ac7e 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1257,7 +1257,6 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_slaves[] = {
- static struct omap_hwmod_opt_clk dss_opt_clks[] = {
- 	{ .role = "sys_clk", .clk = "dss_sys_clk" },
- 	{ .role = "tv_clk", .clk = "dss_tv_clk" },
--	{ .role = "dss_clk", .clk = "dss_dss_clk" },
- 	{ .role = "video_clk", .clk = "dss_48mhz_clk" },
- };
+@@ -1262,6 +1262,7 @@ static struct omap_hwmod_opt_clk dss_opt_clks[] = {
  
-@@ -1358,12 +1357,6 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_dispc_slaves[] = {
- 	&omap44xx_l4_per__dss_dispc,
- };
- 
--static struct omap_hwmod_opt_clk dss_dispc_opt_clks[] = {
--	{ .role = "sys_clk", .clk = "dss_sys_clk" },
--	{ .role = "tv_clk", .clk = "dss_tv_clk" },
--	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
--};
--
- static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
- 	.name		= "dss_dispc",
- 	.class		= &omap44xx_dispc_hwmod_class,
-@@ -1377,8 +1370,6 @@ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
- 			.context_offs = OMAP4_RM_DSS_DSS_CONTEXT_OFFSET,
- 		},
- 	},
--	.opt_clks	= dss_dispc_opt_clks,
--	.opt_clks_cnt	= ARRAY_SIZE(dss_dispc_opt_clks),
- 	.slaves		= omap44xx_dss_dispc_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dispc_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ static struct omap_hwmod omap44xx_dss_hwmod = {
+ 	.name		= "dss_core",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.class		= &omap44xx_dss_hwmod_class,
+ 	.clkdm_name	= "l3_dss_clkdm",
+ 	.main_clk	= "dss_dss_clk",
 -- 
 1.7.4.1
 
