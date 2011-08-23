@@ -1,85 +1,69 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH -next] usb: fix dwc3 build when USB_GADGET_DWC3 is not
- enabled
-Date: Tue, 23 Aug 2011 21:52:36 +0300
-Message-ID: <20110823185235.GA11299@legolas.emea.dhcp.ti.com>
-References: <20110823160432.d24f8cad00951286bc18461e@canb.auug.org.au>
- <20110823110702.f5ea377c.rdunlap@xenotime.net>
-Reply-To: balbi@ti.com
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC/PATCH v2 10/13] dt: omap4: panda board: set clock freq for
+ i2c devices
+Date: Tue, 23 Aug 2011 21:03:55 +0200
+Message-ID: <4E53F99B.3060308@ti.com>
+References: <1314074021-25186-11-git-send-email-manjugk@ti.com> <4E537F6B.4060608@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110823110702.f5ea377c.rdunlap@xenotime.net>
-Sender: linux-next-owner@vger.kernel.org
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, akpm <akpm@linux-foundation.org>, gregkh@suse.de, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32817 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754873Ab1HWTEJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Aug 2011 15:04:09 -0400
+In-Reply-To: <4E537F6B.4060608@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lis
 
-
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Tue, Aug 23, 2011 at 11:07:02AM -0700, Randy Dunlap wrote:
-> From: Randy Dunlap <rdunlap@xenotime.net>
->=20
-> Fix build error when CONFIG_USB_GADGET_DWC3 is not enabled:
->=20
-> ERROR: "dwc3_send_gadget_ep_cmd" [drivers/usb/dwc3/dwc3.ko] undefined!
->=20
-> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> From: G, Manjunath Kondaiah<manjugk@ti.com>
+> To: devicetree-discuss@lists.ozlabs.org
+> CC: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+>
+>
+> Update omap4 panda dts file with required clock frequencies
+> for the i2c client devices existing on panda board.
+>
+> Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
 > ---
->  drivers/usb/dwc3/debugfs.c |    4 ++++
->  1 file changed, 4 insertions(+)
->=20
-> --- linux-next-20110823.orig/drivers/usb/dwc3/debugfs.c
-> +++ linux-next-20110823/drivers/usb/dwc3/debugfs.c
-> @@ -437,7 +437,9 @@ static int dwc3_testmode_open(struct ino
->  	struct dwc3_gadget_ep_cmd_params par0;
->  	struct dwc3_gadget_ep_cmd_params par1;
->  	struct dwc3_trb         trb;
-> +#ifdef CONFIG_USB_GADGET_DWC3
->  	int ret;
-> +#endif
->  	u8 *buf0;
->  	u8 *buf1;
-> =20
-> @@ -478,8 +480,10 @@ static int dwc3_testmode_open(struct ino
-> =20
->  	dwc3_send_testmode_cmd(dwc, 1);
-> =20
-> +#ifdef CONFIG_USB_GADGET_DWC3
->  	ret =3D dwc3_send_gadget_ep_cmd(dwc, 0, DWC3_DEPCMD_STARTTRANSFER, &par=
-0);
->  	ret =3D dwc3_send_gadget_ep_cmd(dwc, 1, DWC3_DEPCMD_STARTTRANSFER, &par=
-1);
-> +#endif
+>    arch/arm/boot/dts/omap4-panda.dts |   16 ++++++++++++++++
+>    1 files changed, 16 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/omap4-panda.dts
+> b/arch/arm/boot/dts/omap4-panda.dts
+> index c28aa95..6b831ca 100644
+> --- a/arch/arm/boot/dts/omap4-panda.dts
+> +++ b/arch/arm/boot/dts/omap4-panda.dts
+> @@ -3,4 +3,20 @@
+>    / {
+>    	model = "TI OMAP4 PandaBoard";
+>    	compatible = "ti,omap4-panda", "ti,omap4430";
+> +
+> +	i2c1 {
+> +		clock-frequency =<400000>;
+> +	};
+> +
+> +	i2c2 {
+> +		clock-frequency =<400000>;
+> +	};
+> +
+> +	i2c3 {
+> +		clock-frequency =<400000>;
+> +	};
+> +
+> +	i2c4 {
+> +		clock-frequency =<400000>;
+> +	};
+>    };
 
-instead of adding the ifdef here, would you add it gadget.h and provide
-a nop when we're not building the gadget side ?
+Are you sure that this patch is setting the expected frequency?
+I see 100kHz in the boot log even with that patch.
 
---=20
-balbi
+I took me some time to find the proper syntax, but in order to reference 
+an existing node, you have to use &i2c1 at the top level of the file. If 
+you check the output of the DTC compiler, you will see the property at 
+the proper node.
 
---DocE+STaALJfprDB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Benoit
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOU/bzAAoJEAv8Txj19kN1YIkH/jEXWjTDCYfGZ4I7JvJkFsPV
-T3Gp9V8ceaSdDpB1F9NG4cW0rESwvaY6z133u+Elar23Y7pmvb9BaohVIfU3mAnn
-yLzPiCJq3dLg7Qp+EaAnDVVTLhaPDlGDVYMEjT3VU5XoM67kl6O/iOGVJqoCNrBi
-BaGqFtQLof80NiEIRkeAJX0i7Zcz0uB4dva9OacC/rmX2qC5ZB+10okQHNfHehQ1
-A+z6g823v4S9CROcbroRNgnAOW09HpXXvqNJQEQy5gXfdWxHhn5NLJiGhd5QdaEt
-ZUz+RKgwfSuAm1DX+n7SoxVCjrMns6wAf7nuSVSLGVJCGl27t1ZMR1EQ/O1AH4M=
-=YXNh
------END PGP SIGNATURE-----
-
---DocE+STaALJfprDB--
