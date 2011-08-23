@@ -1,135 +1,83 @@
-From: Jamie Iles <jamie@jamieiles.com>
-Subject: Re: [RFC/PATCH v2 07/13] dt: omap: create platform bus for omap
- devices
-Date: Tue, 23 Aug 2011 10:07:05 +0100
-Message-ID: <20110823090705.GI2796@pulham.picochip.com>
-References: <1314074021-25186-1-git-send-email-manjugk@ti.com>
- <1314074021-25186-8-git-send-email-manjugk@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] irq: always set IRQF_ONESHOT if no primary handler is
+ specified
+Date: Tue, 23 Aug 2011 12:09:39 +0300
+Message-ID: <20110823090938.GD1341@legolas.emea.dhcp.ti.com>
+References: <1310070737-18514-1-git-send-email-bigeasy@linutronix.de>
+ <C5991460-2092-4E65-99EE-091F8DAA0AC3@gmail.com>
+ <4E4D4A5F.202@linutronix.de>
+ <20110818213418.GA20509@legolas.emea.dhcp.ti.com>
+ <alpine.DEB.2.00.1108221742130.10315@utopia.booyaka.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Ycz6tD7Th1CMF4v7"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:40946 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576Ab1HWJHO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Aug 2011 05:07:14 -0400
-Received: by wwf5 with SMTP id 5so6027628wwf.1
-        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 02:07:12 -0700 (PDT)
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:40877 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754958Ab1HWJJo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Aug 2011 05:09:44 -0400
 Content-Disposition: inline
-In-Reply-To: <1314074021-25186-8-git-send-email-manjugk@ti.com>
+In-Reply-To: <alpine.DEB.2.00.1108221742130.10315@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, Pantelis Antoniou <pantelis.antoniou@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, torvalds@linux-foundation.org, mporter@ti.com
+
+
+--Ycz6tD7Th1CMF4v7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-This creates a build failure for non-omap platforms as they don't know 
-about struct omap_device_pm_latency, struct omap_hwmod etc.
+On Mon, Aug 22, 2011 at 05:45:06PM -0600, Paul Walmsley wrote:
+> On Fri, 19 Aug 2011, Felipe Balbi wrote:
+>=20
+> > On Thu, Aug 18, 2011 at 07:22:39PM +0200, Sebastian Andrzej Siewior wro=
+te:
+> > > Pantelis Antoniou wrote:
+> > >=20
+> > > >Let me report that with this change Beagle board fails to boot,
+> > > >hangs right on rootfs mount.
+> > >=20
+> > > Can you provide some more information about the kind of the failure a=
+nd
+> > > used drivers?
+> > >=20
+> > > >Users of BB should revert this until the offending driver(s) are fix=
+ed.
+> > > Which is the offending driver?
+> >=20
+> > I would guess it's the lack of threaded IRQ conversion on the
+> > twl4030 driver. I have converted it but noone actually picked the series
+> > [1].
+> >=20
+> > http://marc.info/?i=3D1309427470-605-1-git-send-email-balbi@ti.com
+>=20
+> Just a data point: applying this series doesn't seem to fix the hang.
 
-An empty of_omap_device_create() as inline should do the trick.
+a wild guess which wasn't right :-p
 
-Jamie
+--=20
+balbi
 
-On Tue, Aug 23, 2011 at 10:03:35AM +0500, G, Manjunath Kondaiah wrote:
-> 
-> The omap devices will use HWMOD for fetching device information
-> hence it needs to be handled seperately during platform bus
-> creation during dt build.
-> 
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> ---
->  drivers/of/platform.c |   41 ++++++++++++++++++++++++++++++++++++++++-
->  1 files changed, 40 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-> index e50ffcb..bd2c089 100644
-> --- a/drivers/of/platform.c
-> +++ b/drivers/of/platform.c
-> @@ -24,6 +24,10 @@
->  #include <linux/of_platform.h>
->  #include <linux/platform_device.h>
->  
-> +#ifdef CONFIG_ARCH_OMAP2PLUS
-> +#include <plat/omap_device.h>
-> +#endif
-> +
->  const struct of_device_id of_default_bus_match_table[] = {
->  	{ .compatible = "simple-bus", },
->  #ifdef CONFIG_ARM_AMBA
-> @@ -544,6 +548,36 @@ static const struct of_dev_auxdata *of_dev_lookup(const struct of_dev_auxdata *l
->  	return NULL;
->  }
+--Ycz6tD7Th1CMF4v7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-#ifdef ARCH_OMAP
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-> +static struct omap_device_pm_latency omap_device_latency[] = {
-> +	[0] = {
-> +		.deactivate_func	= omap_device_idle_hwmods,
-> +		.activate_func		= omap_device_enable_hwmods,
-> +		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-> +	},
-> +};
-> +
-> +int of_omap_device_create(struct device_node *np, const char *name, int id,
-> +							void *platform_data,
-> +							int pd_size)
-> +{
-> +	struct omap_hwmod *oh;
-> +	struct platform_device *pdev;
-> +
-> +	oh = omap_hwmod_lookup(name);
-> +	if (!oh) {
-> +		pr_err("Could not look up %s\n", name);
-> +		return -EEXIST;
-> +	}
-> +
-> +	pdev = omap_device_build_dt(np, name, id, oh, platform_data,
-> +				sizeof(platform_data), omap_device_latency,
-> +				ARRAY_SIZE(omap_device_latency), 0);
-> +	WARN(IS_ERR(pdev), "Could not build omap_device for %s\n", name);
-> +
-> +	pr_info("DT: omap_device build for %s is successful\n", name);
-> +	return PTR_ERR(pdev);
-> +}
+iQEcBAEBAgAGBQJOU25SAAoJEAv8Txj19kN1gtgIAKs0tTCodGG6DDRBgVVw6HS3
+fsJnQsmkzFcCgv5Af1n9ukXrH5h4fvTnFbb0fle9JRPE+iSU7hTWJ+QPI0qqqviI
+xykSD8XZPaRMpVY0eiK1jcCaMnSEbATZQt3JQo51dG4t9TOj5fxMN3seyJvqDZAA
+nRPso3gRXCQxLL1jP2WxRdyDaLw0yzJpO7eVV20aaKUow3tx1lLW4TR7wxgDWm4P
+SmlmXI3Rb89PpLGRUFR3KzRklHYFEKpECWmds7A+b/7vI23Z2AFNHkW4tWLgaFkZ
+QTMDXfpPO8uSEoP9S/rnokzJx3THjOwq+5BBvcpUW58DJ2RIZ5gW3D6erLDELrk=
+=Rd3R
+-----END PGP SIGNATURE-----
 
-#else /* ARCH_OMAP */
-static inline int of_omap_device_create(struct device_node *np,
-					const char *name, int id,
-					void *platform_data, int pd_size)
-{
-	return -ENODEV;
-}
-#endif /* ARCH_OMAP */
-
-> +
->  /**
->   * of_platform_bus_create() - Create a device for a node and its children.
->   * @bus: device node of the bus to instantiate
-> @@ -565,7 +599,7 @@ static int of_platform_bus_create(struct device_node *bus,
->  	struct platform_device *dev;
->  	const char *bus_id = NULL;
->  	void *platform_data = NULL;
-> -	int pd_size;
-> +	int pd_size = 0;
->  	int id = -1;
->  	int rc = 0;
->  
-> @@ -597,6 +631,11 @@ static int of_platform_bus_create(struct device_node *bus,
->  		return 0;
->  	}
->  
-> +	if (of_device_is_compatible(bus, "ti,omap-device")) {
-> +		of_omap_device_create(bus, bus_id, id, platform_data, pd_size);
-> +		return 0;
-> +	}
-> +
->  	dev = of_platform_device_create_pdata(bus, bus_id, platform_data, parent);
->  
->  	/* override the id if auxdata gives an id */
-> -- 
-> 1.7.4.1
-> 
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss@lists.ozlabs.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
+--Ycz6tD7Th1CMF4v7--
