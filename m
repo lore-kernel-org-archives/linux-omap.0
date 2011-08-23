@@ -1,70 +1,91 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [RFC/PATCH v2 12/13] dt: omap4: enable dt support for i2c1 controller
-Date: Tue, 23 Aug 2011 10:03:40 +0500
-Message-ID: <1314074021-25186-13-git-send-email-manjugk@ti.com>
+Subject: [RFC/PATCH v2 13/13] dt: omap: i2c: dt usage model documentation
+Date: Tue, 23 Aug 2011 10:03:41 +0500
+Message-ID: <1314074021-25186-14-git-send-email-manjugk@ti.com>
 References: <1314074021-25186-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [117.192.64.96] ([117.192.64.96]:40465 "EHLO manju-desktop"
+Received: from [117.192.64.96] ([117.192.64.96]:2424 "EHLO manju-desktop"
 	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751502Ab1HWErn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Aug 2011 00:47:43 -0400
+	id S1751502Ab1HWErx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Aug 2011 00:47:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: devicetree-discuss@lists.ozlabs.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca
 
 
-Enable dt support for omap4 i2c1 controller and cleanup
-legacy i2c device registration in omap4 generic board file.
+Add documentation for using omap i2c controller with device
+tree support enabled.
 
 Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
 ---
- arch/arm/mach-omap2/board-omap4-dt.c |   21 +++++++++++++++------
- 1 files changed, 15 insertions(+), 6 deletions(-)
+ Documentation/devicetree/bindings/i2c/omap-i2c.txt |   57 ++++++++++++++++++++
+ 1 files changed, 57 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
 
-diff --git a/arch/arm/mach-omap2/board-omap4-dt.c b/arch/arm/mach-omap2/board-omap4-dt.c
-index a4d296c..9ade238 100644
---- a/arch/arm/mach-omap2/board-omap4-dt.c
-+++ b/arch/arm/mach-omap2/board-omap4-dt.c
-@@ -11,6 +11,8 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/i2c/twl.h>
-+#include <linux/of_platform.h>
-+#include <linux/of_address.h>
- 
- #include <mach/omap4-common.h>
- #include <asm/mach/arch.h>
-@@ -31,16 +33,23 @@ static struct twl4030_platform_data omap4_twldata = {
- 	.irq_end	= TWL6030_IRQ_END,
- };
- 
--static int __init omap4_i2c_init(void)
--{
--	omap4_pmic_init("twl6030", &omap4_twldata);
--	return 0;
--}
-+struct of_dev_auxdata omap4_auxdata_lookup[] __initdata = {
-+	OF_DEV_AUXDATA_ID_PDSIZE("ti,omap-i2c", 0x48070000, "i2c1", 1,\
-+				&omap4_twldata, sizeof(omap4_twldata)),
-+	{}
-+};
+diff --git a/Documentation/devicetree/bindings/i2c/omap-i2c.txt b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
+new file mode 100644
+index 0000000..f427445
+--- /dev/null
++++ b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
+@@ -0,0 +1,57 @@
++* OMAP I2C
++----------
 +
-+static struct of_device_id omap_dt_match_table[] __initdata = {
-+	{ .compatible = "ti,omap4-l4-core", },
-+	{}
-+};
- 
- static void __init omap4_init(void)
- {
--	omap4_i2c_init();
- 	omap_serial_init();
++The OMAP SoC's has multiple I2C controllers and each controller can
++have I2C child devices.
 +
-+	of_platform_populate(NULL, omap_dt_match_table, omap4_auxdata_lookup,
-+									 NULL);
- }
- 
- static void __init omap4_map_io(void)
++Required properties :
++
++ - clock-frequency : desired I2C bus clock frequency in Hz.
++ - compatible : should be "ti,omap-i2c"
++
++Recommended properties :
++
++ - reg : Offset and length of the register set for the device
++ - interrupts : <a b> where a is the interrupt number and b is a
++   field that represents an encoding of the sense and level
++   information for the interrupt.  This should be encoded based on
++   the information in section 2) depending on the type of interrupt
++   controller you have.
++ - interrupt-parent : the phandle for the interrupt controller that
++   services interrupts for this device.
++
++Optional:
++The driver platform data can not be passed through device tree as of
++now hence aux data structure can be used in board files. The aux data
++is temparory solution and plan is to move it to device tree dts file.
++
++Note: Current implementation uses only clock-frequency field from
++device tree blob and all other data will be fetched from omap hwmod
++data base during device registration. Future plan is to migrate hwmod
++data base contents into device tree blob so that, all the required
++data will be used from device tree dts file.
++
++Examples :
++
++	/* OMAP4 based board */
++	#address-cells = <1>;
++	#size-cells = <1>;
++	ranges = <0 0x48000000 0x1000000>;
++
++	i2c1: i2c@70000 {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		compatible = "ti,omap-i2c", "ti,omap-device";
++		reg = <0x70000 0x100>;
++		interrupts = < 88 >;
++		clock-frequency = <400000>;
++	};
++
++	i2c2: i2c@72000 {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		compatible = "ti,omap-i2c", "ti,omap-device";
++		reg = <0x72000 0x100>;
++		interrupts = < 89 >;
++		clock-frequency = <400000>;
++	};
 -- 
 1.7.4.1
 
