@@ -1,69 +1,86 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] OMAP: clock/powerdomain/clockdomain/hwmod: fixes for
- 3.1-rc
-Date: Mon, 22 Aug 2011 23:35:53 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108222319310.28226@utopia.booyaka.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [RFC PATCH 6/6] hwmon: OMAP4: On die temperature sensor driver
+Date: Tue, 23 Aug 2011 12:12:49 +0530
+Message-ID: <CAJ6a13ZbstOQ6n76i7+tUEmAvVDpeOOweQUN5irr_AUbcn9S0A@mail.gmail.com>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
+	<1312979122-5896-7-git-send-email-j-keerthy@ti.com>
+	<20110810124629.GJ12882@legolas.emea.dhcp.ti.com>
+	<CAJ6a13Z=u=exWUHLotw8jpHMv-hKpE+fvg_1hq7=gtMiuJKxOA@mail.gmail.com>
+	<20110811103658.GG27742@legolas.emea.dhcp.ti.com>
+	<CAJ6a13bxg8po-Csc10LsFH-oES4YOKkqFoTm3kG4XzS=b2boMw@mail.gmail.com>
+	<20110811141248.GK28500@legolas.emea.dhcp.ti.com>
+	<CAJ6a13b7qu3K4YJPTYych_NQxLuuUxZOQg6PPC_=XA+qiwn2RA@mail.gmail.com>
+	<20110811185408.GB15970@legolas.emea.dhcp.ti.com>
+	<20110811185558.GC15970@legolas.emea.dhcp.ti.com>
+	<4E444B8F.9060908@ti.com>
+	<4E449D65.9000004@ti.com>
+	<874o19gfrr.fsf@ti.com>
+	<4E532A28.60103@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43225 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751094Ab1HWFfy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Aug 2011 01:35:54 -0400
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:35185 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751427Ab1HWGmu convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Aug 2011 02:42:50 -0400
+Received: by mail-iy0-f173.google.com with SMTP id 2so11502868iyk.32
+        for <linux-omap@vger.kernel.org>; Mon, 22 Aug 2011 23:42:49 -0700 (PDT)
+In-Reply-To: <4E532A28.60103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, santosh.shilimkar@ti.com, tomi.valkeinen@ti.com
+To: Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, Tony Lindgren <tony@atomide.com>, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, khali@linux-fr.org, guenter.roeck@ericsson.com
 
-Hi Tony,
+On Tue, Aug 23, 2011 at 9:48 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+> On 8/23/2011 5:28 AM, Kevin Hilman wrote:
+>>
+>> Rajendra Nayak<rnayak@ti.com> =A0writes:
+>>
+>> [...]
+>>
+>>> FWIK, its a one time requirement to set the clock rate to the
+>>> right rate the device can operate in based on what a platform
+>>> supports.
+>>
+>> Except $SUBJECT patch hard-codes the clock rate for all platforms in=
+ the
+>> driver.
+>
+> The device has a requirement to operate in a 1Mhz to 2Mhz range. So t=
+he
+> driver is using a clk_round_rate() to get the closest rate supported =
+and
+> sets it using a clk_set_rate().
+>
+>>
+>> If the clock rate is to be platform-specific, it should be done in
+>> platform-specific code.
+>
+> I am fine if this needs to be moved to platform-specific code, but I
+> wasn't quite sure this needs to be done in clock framework as was
+> suggested.
 
-The following changes since commit fcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c:
+The range can be (ex: 1MHz to 2Mhz) can be sent via pdata
+as max and min frequencies and the driver can round the rate
+to get the appropriate rate inside the specified range? Is this approac=
+h
+=46ine?
 
-  Linux 3.1-rc3 (2011-08-22 11:42:53 -0700)
+>
+>>
+>> Kevin
+>
+>
 
-are available in the git repository at:
-  git://git.pwsan.com/linux-2.6 prcm-fixes-a-3.1rc
 
-Note that for these changes to boot successfully on 3.1-rc3, the following 
-patch is needed:
 
-  http://marc.info/?l=linux-omap&m=131407622527432&w=2
-
-The changes have been boot-tested on N800, OMAP3530 Beagle, and 
-OMAP4430ES2 Panda.  They've also passed compile tests with a few different 
-configs here.
-
-Paul Walmsley (4):
-      OMAP4: clock: re-enable previous clockdomain enable/disable sequence
-      OMAP4: clock: fix compile warning
-      OMAP3: clock: indicate that gpt12_fck and wdt1_fck are in the WKUP clockdomain
-      Merge branches 'pwrdm_clkdm_fixes_3.1rc', 'omap2_3_hwmod_dss_fixes_3.1rc', 'non_hwmod_compliant_fix_3.1rc', 'omap4_clock_fixes_3.1rc' and 'omap3_clock_fixes_3.1rc' into prcm-fixes-a-3.1rc
-
-Rajendra Nayak (1):
-      OMAP: powerdomains: Make all powerdomain target states as ON at init
-
-Santosh Shilimkar (1):
-      OMAP: clockdomain: Wait for powerdomain to be ON when using clockdomain force wakeup
-
-Tomi Valkeinen (5):
-      OMAP2xxx: HWMOD: fix DSS opt clocks
-      OMAP3: HWMOD: fix DSS opt clocks
-      OMAP4: HWMOD: fix DSS opt clocks
-      OMAP2/3: HWMOD: Add SYSS_HAS_RESET_STATUS for dss
-      OMAP: HWMOD: Unify DSS resets for all OMAPs
-
- arch/arm/mach-omap2/Makefile                       |    5 +--
- arch/arm/mach-omap2/clock3xxx_data.c               |    2 +
- arch/arm/mach-omap2/clock44xx_data.c               |   10 +++++-
- arch/arm/mach-omap2/clockdomain.c                  |    2 +
- arch/arm/mach-omap2/display.c                      |   35 ++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   15 +++++++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   15 +++++++-
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    5 ++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   35 +++++++++++++++++--
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   19 ++++-------
- arch/arm/mach-omap2/pm.c                           |    2 -
- arch/arm/mach-omap2/powerdomain.c                  |   25 +++++++++-----
- arch/arm/plat-omap/include/plat/common.h           |    3 ++
- include/video/omapdss.h                            |    7 ----
- 14 files changed, 136 insertions(+), 44 deletions(-)
+--=20
+Regards and Thanks,
+Keerthy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
