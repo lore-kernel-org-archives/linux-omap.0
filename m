@@ -1,103 +1,81 @@
-From: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
-Subject: [RFC/PATCH v2 03/13] dt: omap3: add soc file for handling i2c
-	controllers
-Date: Tue, 23 Aug 2011 10:03:31 +0500
-Message-ID: <1314074021-25186-4-git-send-email-manjugk@ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [RFC/PATCH v2 04/13] dt: omap3: beagle board: set clock freq for i2c devices
+Date: Tue, 23 Aug 2011 10:03:32 +0500
+Message-ID: <1314074021-25186-5-git-send-email-manjugk@ti.com>
 References: <1314074021-25186-1-git-send-email-manjugk@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from [117.192.64.96] ([117.192.64.96]:48090 "EHLO manju-desktop"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750945Ab1HWEqO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Aug 2011 00:46:14 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca
 
 
-Add omap3 soc file for handling omap3 soc i2c controllers existing
-on l4-core bus.
+Update omap3 beagle dts file with required clock frequencies for the i2c
+client devices existing on beagle board.
 
-Signed-off-by: G, Manjunath Kondaiah <manjugk-l0cyMroinI0@public.gmane.org>
+Beagle custom board dts file is cleaned up so that it can coexist with omap3
+soc dts file.
+
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
 ---
- arch/arm/boot/dts/omap3.dtsi |   62 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 62 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3.dtsi
+ arch/arm/boot/dts/omap3-beagle-nunchuck.dts |   13 ++-----------
+ arch/arm/boot/dts/omap3-beagle.dts          |   18 +++++++++++++++---
+ 2 files changed, 17 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-new file mode 100644
-index 0000000..9ea8257
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -0,0 +1,62 @@
-+/*
-+ * Device Tree Source for OMAP3 SoC
-+ *
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
+diff --git a/arch/arm/boot/dts/omap3-beagle-nunchuck.dts b/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
+index 2607be5..c693163 100644
+--- a/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
++++ b/arch/arm/boot/dts/omap3-beagle-nunchuck.dts
+@@ -1,16 +1,7 @@
+-/include/ "omap3-beagle.dts"
++/include/ "omap3.dtsi"
+ 
+ / {
+-	i2c@48072000 {
+-		compatible = "ti,omap3-i2c";
+-		reg = <0x48072000 0x80>;
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-
+-		eeprom@50 {
+-			compatible = "at,at24c01";
+-			reg = < 0x50 >;
+-		};
++	i2c@2 {
+ 		joystick@52 {
+ 			compatible = "sparkfun,wiichuck";
+ 			reg = < 0x52 >;
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index 4439466..c232c52 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -1,7 +1,19 @@
+-/dts-v1/;
+-/include/ "skeleton.dtsi"
++/include/ "omap3.dtsi"
+ 
+ / {
+ 	model = "TI OMAP3 BeagleBoard";
+-	compatible = "ti,omap3-beagle";
++	compatible = "ti,omap3-beagle", "ti,omap3";
 +
-+/dts-v1/;
-+/include/ "skeleton.dtsi"
 +
-+/ {
-+	#address-cells = <1>;
-+	#size-cells = <1>;
-+	model = "ti,omap3";
-+
-+	aliases {
-+		i2c1 = &i2c1;
-+		i2c2 = &i2c2;
-+		i2c3 = &i2c3;
++	i2c1 {
++		clock-frequency = <2600000>;
 +	};
 +
-+	l4-core {
-+		compatible = "ti,omap3-l4-core", "sonics,s3220";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x48000000 0x1000000>;
-+
-+		i2c1: i2c@70000 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			compatible = "ti,omap-i2c";
-+			reg = <0x70000 0x100>;
-+			interrupts = < 88 >;
-+		};
-+
-+		i2c2: i2c@72000 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			compatible = "ti,omap-i2c";
-+			reg = <0x72000 0x100>;
-+			interrupts = < 89 >;
-+		};
-+
-+		i2c3: i2c@60000 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			compatible = "ti,omap-i2c";
-+			reg = <0x60000 0x100>;
-+			interrupts = < 93 >;
-+		};
++	i2c2 {
++		clock-frequency = <400000>;
 +	};
 +
-+	l4-per {
-+		compatible = "ti,l4-per";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x49000000 0x100000>;
++	i2c3 {
++		clock-frequency = <400000>;
 +	};
-+};
+ };
 -- 
 1.7.4.1
+
