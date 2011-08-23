@@ -1,154 +1,85 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [RFC/PATCH v2 08/13] dt: omap: i2c: add dt support for i2c1
- controller
-Date: Tue, 23 Aug 2011 21:16:49 +0530
-Message-ID: <20110823154649.GF32698@manju-desktop>
-References: <1314074021-25186-1-git-send-email-manjugk@ti.com>
- <1314074021-25186-9-git-send-email-manjugk@ti.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] tty: omap-serial: fix boot hang by converting to use a
+ threaded IRQ handler (was Re: [PATCH] irq: always set IRQF_ONESHOT if no
+ primary handler is specified)
+Date: Tue, 23 Aug 2011 09:13:55 -0700
+Message-ID: <CA+55aFyFzzd2GBbwFYrXMK353UE4tdrdZ5Lt8=qEwaaMJvStnA@mail.gmail.com>
+References: <1310070737-18514-1-git-send-email-bigeasy@linutronix.de>
+ <C5991460-2092-4E65-99EE-091F8DAA0AC3@gmail.com> <4E4D4A5F.202@linutronix.de>
+ <20110818213418.GA20509@legolas.emea.dhcp.ti.com> <alpine.DEB.2.00.1108221742130.10315@utopia.booyaka.com>
+ <alpine.DEB.2.00.1108222306300.28226@utopia.booyaka.com> <20110823095711.058d9cf4@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:36660 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751997Ab1HWPq6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Aug 2011 11:46:58 -0400
-Received: by mail-iy0-f177.google.com with SMTP id 5so344665iym.36
-        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 08:46:58 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1314074021-25186-9-git-send-email-manjugk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20110823095711.058d9cf4@lxorguk.ukuu.org.uk>
+Sender: linux-serial-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-serial@vger.kernel.org, Alan Cox <alan@linux.intel.com>, Pantelis Antoniou <pantelis.antoniou@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, mporter@ti.com, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Grant,
+On Tue, Aug 23, 2011 at 1:57 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wr=
+ote:
+> On Mon, 22 Aug 2011 23:10:21 -0600 (MDT)
+> Paul Walmsley <paul@pwsan.com> wrote:
+>
+>>
+>> Convert the omap-serial hardirq handler to a threaded IRQ handler. W=
+ithout
+>> this patch, OMAP boards which use the on-board OMAP UARTs and the
+>> omap-serial driver will not boot to userspace after commit
+>> f3637a5f2e2eb391ff5757bc83fb5de8f9726464 ("irq: Always set IRQF_ONES=
+HOT if
+>> no primary handler is specified"). =A0Enabling CONFIG_DEBUG_SHIRQ re=
+veals
+>> 'IRQ handler type mismatch' errors:
+>
+> There are multiple other drivers reporting all these problems - the
+> faulty irq change should be reverted at this point not the drivers
+> fiddled with.
 
-On Tue, Aug 23, 2011 at 10:03:36AM +0500, G, Manjunath Kondaiah wrote:
-> 
-> The device tree support has been added to i2c1 controller and
-> corresponding i2c initilization in generic board file is cleaned
-> up so that platfom device is registered through dt and omap device
-> and not through board i2c initilization.
-> 
-> These changes will not affect non dt builds and existing functionality
-> is retained.
-> 
-> Tested with dt and non dt builds and boot tested on beagle board.
-> 
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap3-dt.c |   14 +++++++-------
->  drivers/i2c/busses/i2c-omap.c        |   23 ++++++++++++++++++++---
->  2 files changed, 27 insertions(+), 10 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3-dt.c b/arch/arm/mach-omap2/board-omap3-dt.c
-> index 72c59a4..cd11224 100644
-> --- a/arch/arm/mach-omap2/board-omap3-dt.c
-> +++ b/arch/arm/mach-omap2/board-omap3-dt.c
-> @@ -35,11 +35,11 @@ static struct twl4030_platform_data beagle_twldata = {
->  	/* platform_data for children goes here */
->  };
->  
-> -static int __init omap3_beagle_i2c_init(void)
-> -{
-> -	omap3_pmic_init("twl4030", &beagle_twldata);
-> -	return 0;
-> -}
-> +struct of_dev_auxdata omap3_auxdata_lookup[] __initdata = {
-> +	OF_DEV_AUXDATA_ID_PDSIZE("ti,omap-i2c", 0x48070000, "i2c1", 1,\
-> +				&beagle_twldata, sizeof(beagle_twldata)),
-> +	{}
-> +};
->  
->  static void __init omap3_init_early(void)
->  {
-> @@ -61,11 +61,11 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
->  
->  static void __init omap3_init(void)
->  {
-> -	omap3_beagle_i2c_init();
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->  	omap_serial_init();
->  
-> -	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
-> +	of_platform_populate(NULL, omap_dt_match_table, omap3_auxdata_lookup,
-> +									 NULL);
->  }
->  
->  static const char *omap3_dt_match[] __initdata = {
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 2a072ff..9e98014 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -38,6 +38,7 @@
->  #include <linux/clk.h>
->  #include <linux/io.h>
->  #include <linux/of_i2c.h>
-> +#include <linux/of_device.h>
->  #include <linux/slab.h>
->  #include <linux/i2c-omap.h>
->  #include <linux/pm_runtime.h>
-> @@ -972,6 +973,16 @@ static const struct i2c_algorithm omap_i2c_algo = {
->  	.functionality	= omap_i2c_func,
->  };
->  
-> +#if defined(CONFIG_OF)
-> +static const struct of_device_id omap_i2c_of_match[] = {
-> +	{.compatible = "ti,omap-i2c", },
-> +	{},
-> +}
-> +MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
-> +#else
-> +#define omap_i2c_of_match NULL
-> +#endif
-> +
->  static int __devinit
->  omap_i2c_probe(struct platform_device *pdev)
->  {
-> @@ -1008,12 +1019,17 @@ omap_i2c_probe(struct platform_device *pdev)
->  		goto err_release_region;
->  	}
->  
-> +	speed = 100;	/* Default speed */
->  	if (pdata != NULL) {
->  		speed = pdata->clkrate;
->  		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
-> -	} else {
-> -		speed = 100;	/* Default speed */
-> -		dev->set_mpu_wkup_lat = NULL;
-> +#if defined(CONFIG_OF)
-> +	} else if (pdev->dev.of_node) {
-> +		u32 prop;
-> +		if (!of_property_read_u32(pdev->dev.of_node, "clock-frequency",
-> +									&prop))
-> +			speed = prop/100;
-> +#endif
+Agreed. It's too late to try to fix random drivers.
 
-This function calls of_i2c_register_devices which attaches all the required
-parameters reg, irq, archdata etc into i2c adapter. But it will not attach 
-platform_data which results empty pdata pointer in i2c child devices.
+The real issue seems to be that clue:
 
-Is this done purposefully? If so, how do we get pdata pointer in i2c child 
-device.
+    "Enabling CONFIG_DEBUG_SHIRQ reveals 'IRQ handler type mismatch' er=
+rors"
 
--M
+iow, we have a shared irq, and forcing the IRQF_ONESHOT bit is
+resulting in those shared interrupts now having different values of
+IRQF_ONESHOT, so this test triggers:
 
->  	}
->  
->  	dev->speed = speed;
-> @@ -1178,6 +1194,7 @@ static struct platform_driver omap_i2c_driver = {
->  		.name	= "omap_i2c",
->  		.owner	= THIS_MODULE,
->  		.pm	= OMAP_I2C_PM_OPS,
-> +		.of_match_table = omap_i2c_of_match,
->  	},
->  };
->  
-> -- 
-> 1.7.4.1
-> 
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss@lists.ozlabs.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
+                /*
+                 * Can't share interrupts unless both agree to and are
+                 * the same type (level, edge, polarity). So both flag
+                 * fields must have IRQF_SHARED set and the bits which
+                 * set the trigger type must match. Also all must
+                 * agree on ONESHOT.
+                 */
+                if (!((old->flags & new->flags) & IRQF_SHARED) ||
+                    ((old->flags ^ new->flags) & IRQF_TRIGGER_MASK) ||
+                    ((old->flags ^ new->flags) & IRQF_ONESHOT)) {
+                        old_name =3D old->name;
+                        goto mismatch;
+                }
+
+and the irq isn't installed at all (setup_irq returns with EBUSY).
+
+So the commit that caused this problem was simply bogus. The commit log=
+ says
+
+                       "Since it is required for those users and
+    there is no difference for others it makes sense to add this flag
+    unconditionally."
+
+but the "there is no difference for others" seems to be total crap,
+exactly because it results in this IRQF mismatch.
+
+So I think that commit should just be reverted. Thomas?
+
+                           Linus
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
