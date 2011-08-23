@@ -1,43 +1,47 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: [PATCH -next v2] usb: fix dwc3 build when USB_GADGET_DWC3 is not
- enabled
-Date: Tue, 23 Aug 2011 12:52:47 -0700
-Message-ID: <20110823125247.fbbf9636.rdunlap@xenotime.net>
-References: <20110823160432.d24f8cad00951286bc18461e@canb.auug.org.au>
-	<20110823110702.f5ea377c.rdunlap@xenotime.net>
-	<20110823185235.GA11299@legolas.emea.dhcp.ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device wake-up constraints
+Date: Tue, 23 Aug 2011 23:31:54 +0200
+Message-ID: <201108232331.54844.rjw@sisk.pl>
+References: <20110820062543.GA5011@opensource.wolfsonmicro.com> <201108212005.53898.rjw@sisk.pl> <20110823092155.GJ9232@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110823185235.GA11299@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, akpm <akpm@linux-foundation.org>, gregkh@suse.de, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:32826 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752183Ab1HWVaJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Aug 2011 17:30:09 -0400
+In-Reply-To: <20110823092155.GJ9232@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, markgross@thegnar.org
 
-From: Randy Dunlap <rdunlap@xenotime.net>
+On Tuesday, August 23, 2011, Mark Brown wrote:
+> On Sun, Aug 21, 2011 at 08:05:53PM +0200, Rafael J. Wysocki wrote:
+> > On Sunday, August 21, 2011, Mark Brown wrote:
+> 
+> > > I don't understand why the driver would need to know what situation it's
+> > > in.  I'd been working on the basis that the idea was that the driver
+> > > said what the constraints it has are and then some code with a more
+> > > system wide view would make the actual decisions for things outside the
+> > > driver domian.
+> 
+> > That's correct, but in order to figure out a "sensible default"
+> > the driver generally would need to know what the expectations with
+> > respect to it are.  Otherwise it can very well generate a random
+> > number and use that.
+> 
+> Right, but I'd expect that should be something that the driver can
+> generally do based on knowledge of what it needs to deliver to its
+> users.  It doesn't need to be tunable to that - for example, input
+> devices will have a reasonable idea of the response time needed to
+> deliver interactive performance.  If it's really got no idea then
+> hopefully not providng any constraints will do something sensible.
 
-Fix build error when CONFIG_USB_GADGET_DWC3 is not enabled:
+Perhaps.  Still, that requires some policy to be put into drivers,
+which I don't think is entirely correct.
 
-ERROR: "dwc3_send_gadget_ep_cmd" [drivers/usb/dwc3/dwc3.ko] undefined!
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
----
- drivers/usb/dwc3/gadget.h |    5 +++++
- 1 file changed, 5 insertions(+)
-
---- linux-next-20110823.orig/drivers/usb/dwc3/gadget.h
-+++ linux-next-20110823/drivers/usb/dwc3/gadget.h
-@@ -202,6 +202,11 @@ void dwc3_gadget_exit(struct dwc3 *dwc);
- #else
- static inline int dwc3_gadget_init(struct dwc3 *dwc) { return 0; }
- static inline void dwc3_gadget_exit(struct dwc3 *dwc) { }
-+static inline int dwc3_send_gadget_ep_cmd(struct dwc3 *dwc, unsigned ep,
-+		unsigned cmd, struct dwc3_gadget_ep_cmd_params *params)
-+{
-+	return 0;
-+}
- #endif
- 
- void dwc3_gadget_giveback(struct dwc3_ep *dep, struct dwc3_request *req,
+Thanks,
+Rafael
