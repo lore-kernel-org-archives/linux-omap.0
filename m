@@ -1,83 +1,148 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] irq: always set IRQF_ONESHOT if no primary handler is
- specified
-Date: Tue, 23 Aug 2011 12:09:39 +0300
-Message-ID: <20110823090938.GD1341@legolas.emea.dhcp.ti.com>
+Subject: Re: [PATCH] tty: omap-serial: fix boot hang by converting to use a
+ threaded IRQ handler (was Re: [PATCH] irq: always set IRQF_ONESHOT if no
+ primary handler is specified)
+Date: Tue, 23 Aug 2011 12:12:58 +0300
+Message-ID: <20110823091257.GE1341@legolas.emea.dhcp.ti.com>
 References: <1310070737-18514-1-git-send-email-bigeasy@linutronix.de>
  <C5991460-2092-4E65-99EE-091F8DAA0AC3@gmail.com>
  <4E4D4A5F.202@linutronix.de>
  <20110818213418.GA20509@legolas.emea.dhcp.ti.com>
  <alpine.DEB.2.00.1108221742130.10315@utopia.booyaka.com>
+ <alpine.DEB.2.00.1108222306300.28226@utopia.booyaka.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Ycz6tD7Th1CMF4v7"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:40877 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754958Ab1HWJJo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Aug 2011 05:09:44 -0400
+	protocol="application/pgp-signature"; boundary="HnQK338I3UIa/qiP"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1108221742130.10315@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <alpine.DEB.2.00.1108222306300.28226@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, Pantelis Antoniou <pantelis.antoniou@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, torvalds@linux-foundation.org, mporter@ti.com
+Cc: linux-serial@vger.kernel.org, Alan Cox <alan@linux.intel.com>, Pantelis Antoniou <pantelis.antoniou@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, torvalds@linux-foundation.org, mporter@ti.com, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
 
---Ycz6tD7Th1CMF4v7
+--HnQK338I3UIa/qiP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Aug 22, 2011 at 05:45:06PM -0600, Paul Walmsley wrote:
-> On Fri, 19 Aug 2011, Felipe Balbi wrote:
+On Mon, Aug 22, 2011 at 11:10:21PM -0600, Paul Walmsley wrote:
 >=20
-> > On Thu, Aug 18, 2011 at 07:22:39PM +0200, Sebastian Andrzej Siewior wro=
-te:
-> > > Pantelis Antoniou wrote:
-> > >=20
-> > > >Let me report that with this change Beagle board fails to boot,
-> > > >hangs right on rootfs mount.
-> > >=20
-> > > Can you provide some more information about the kind of the failure a=
-nd
-> > > used drivers?
-> > >=20
-> > > >Users of BB should revert this until the offending driver(s) are fix=
-ed.
-> > > Which is the offending driver?
-> >=20
-> > I would guess it's the lack of threaded IRQ conversion on the
-> > twl4030 driver. I have converted it but noone actually picked the series
-> > [1].
-> >=20
-> > http://marc.info/?i=3D1309427470-605-1-git-send-email-balbi@ti.com
+> Convert the omap-serial hardirq handler to a threaded IRQ handler. Withou=
+t=20
+> this patch, OMAP boards which use the on-board OMAP UARTs and the=20
+> omap-serial driver will not boot to userspace after commit=20
+> f3637a5f2e2eb391ff5757bc83fb5de8f9726464 ("irq: Always set IRQF_ONESHOT i=
+f=20
+> no primary handler is specified").  Enabling CONFIG_DEBUG_SHIRQ reveals=
+=20
+> 'IRQ handler type mismatch' errors:
 >=20
-> Just a data point: applying this series doesn't seem to fix the hang.
+> IRQ handler type mismatch for IRQ 74
+> current handler: serial idle
+> [<c001b124>] (unwind_backtrace+0x0/0xf0) from [<c009c900>] (__setup_irq+0=
+x42c/0x464)
+> [<c009c900>] (__setup_irq+0x42c/0x464) from [<c009ca08>] (request_threade=
+d_irq+0xd0/0x148)
+> [<c009ca08>] (request_threaded_irq+0xd0/0x148) from [<c029d398>] (serial_=
+omap_startup+0x30/0x2dc)
+> [<c029d398>] (serial_omap_startup+0x30/0x2dc) from [<c0295a38>] (uart_sta=
+rtup+0x5c/0x1ac)
+>=20
+> (etc.)
+>=20
+> It turns out that the omap-serial code used one threaded IRQ
+> handler[1][2] and one non-threaded IRQ handler[3] that shared the same
+> IRQ.  During the 3.1-rc series, a patch was merged[4] that caused
+> IRQF_ONESHOT to be set on the threaded handler, but the non-threaded
+> handler did not have IRQF_ONESHOT set.  Since interrupt handlers
+> that share the same IRQ must also share the presence or absence of
+> IRQF_ONESHOT[5], this new commit caused a mismatch that prevented the
+> non-threaded IRQ from registering.
+>=20
+> Fix by converting the non-threaded IRQ handler in omap-serial.c to a
+> threaded IRQ handler.  Ideally we would not have to make this type of
+> change during the -rc series, but the commit that caused this behavior
+> was itself merged between v3.1-rc2 and v3.1-rc3.  In the long term, it
+> would be good to get rid of the shared IRQ handler hack in
+> arch/arm/mach-omap2/serial.c.
+>=20
+> This change has been boot-tested on OMAP3530 BeagleBoard and
+> OMAP4430ES2 PandaBoard, and static suspend has been lightly tested on
+> the BeagleBoard.
+>=20
+> Pantelis Antoniou <pantelis.antoniou@gmail.com> originally reported
+> the boot failure.
+>=20
+> 1. arch/arm/mach-omap2/serial.c line 550, as of Linux v3.1-rc3.  http://g=
+it.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dblob;f=3Darc=
+h/arm/mach-omap2/serial.c;h=3D466fc722fa0f39f03b8d93cf84e4dae4f57fd029;hb=
+=3Dfcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c#l550
+>=20
+> 2. arch/arm/mach-omap2/serial.c line 563, as of Linux v3.1-rc3.  http://g=
+it.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dblob;f=3Darc=
+h/arm/mach-omap2/serial.c;h=3D466fc722fa0f39f03b8d93cf84e4dae4f57fd029;hb=
+=3Dfcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c#l563
+>=20
+> 3. drivers/tty/serial/omap-serial.c line 464, as of Linux v3.1-rc3.  http=
+://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dblob;f=
+=3Ddrivers/tty/serial/omap-serial.c;h=3Dc37df8d0fa2819261dffccc5bc4d0180b95=
+31f49;hb=3Dfcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c#l464
+>=20
+> 4. Commit f3637a5f2e2eb391ff5757bc83fb5de8f9726464 ("irq: Always set
+>    IRQF_ONESHOT if no primary handler is specified")
+>=20
+> 5. Gleixner, Thomas. _[patch 2/5] genirq: Allow shared oneshot
+>    interrupts_.  http://lkml.org/lkml/2011/2/23/511
+>=20
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Pantelis Antoniou <pantelis.antoniou@gmail.com>
+> Cc: Govindraj.R <govindraj.raja@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> ---
+>  drivers/tty/serial/omap-serial.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-s=
+erial.c
+> index c37df8d..e83a769 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -461,8 +461,8 @@ static int serial_omap_startup(struct uart_port *port)
+>  	/*
+>  	 * Allocate the IRQ
+>  	 */
+> -	retval =3D request_irq(up->port.irq, serial_omap_irq, up->port.irqflags,
+> -				up->name, up);
+> +	retval =3D request_threaded_irq(up->port.irq, NULL, serial_omap_irq,
+> +				      up->port.irqflags, up->name, up);
 
-a wild guess which wasn't right :-p
+if you're not running on a slow bus, you should use top half to check if
+IRQs are really from this device.
 
 --=20
 balbi
 
---Ycz6tD7Th1CMF4v7
+--HnQK338I3UIa/qiP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOU25SAAoJEAv8Txj19kN1gtgIAKs0tTCodGG6DDRBgVVw6HS3
-fsJnQsmkzFcCgv5Af1n9ukXrH5h4fvTnFbb0fle9JRPE+iSU7hTWJ+QPI0qqqviI
-xykSD8XZPaRMpVY0eiK1jcCaMnSEbATZQt3JQo51dG4t9TOj5fxMN3seyJvqDZAA
-nRPso3gRXCQxLL1jP2WxRdyDaLw0yzJpO7eVV20aaKUow3tx1lLW4TR7wxgDWm4P
-SmlmXI3Rb89PpLGRUFR3KzRklHYFEKpECWmds7A+b/7vI23Z2AFNHkW4tWLgaFkZ
-QTMDXfpPO8uSEoP9S/rnokzJx3THjOwq+5BBvcpUW58DJ2RIZ5gW3D6erLDELrk=
-=Rd3R
+iQEcBAEBAgAGBQJOU28ZAAoJEAv8Txj19kN1rkEH/iUvextOJdIXajoe2tRiz0TX
+EOKKh6gcYHRh8zS9f0gI/xxEhECYMX8GJS3+u4kZDn8wRtBQ1R6oTDmxaFP/ut/+
+bpD1v6BgorIrJQxcM6RPfPAMU51J+q2mR9JnYcn7r13801BPt4GwpQYKm1tRz56P
+6rXitFWmIWeOhIr5UzlI5cvIYCa9Rv6Xw4Ra+xTkVUf0FyC3+9+1FN4xm96l858g
+kC6WqVkg8kox9Ye3lL75ffuw4zv9Ezg4G+T6kAtoL5UtVpAO5lWskC5lw5lCZDsw
+RS8gDfPNtmL3dJdm3H6RXcQmVCGewLodMVF5fTJ5Lf3dYaqwvR5zvm8Ux5uQ82Q=
+=9R/R
 -----END PGP SIGNATURE-----
 
---Ycz6tD7Th1CMF4v7--
+--HnQK338I3UIa/qiP--
