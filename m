@@ -1,41 +1,72 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 3.1-rc3] gpio/omap: fix build error with certain OMAP1 configs
-Date: Tue, 23 Aug 2011 10:11:47 -0700
-Message-ID: <87sjoshx2k.fsf@ti.com>
-References: <201108231342.25101.jkrzyszt@tis.icnet.pl>
+From: Hemant Pedanekar <hemantp@ti.com>
+Subject: [RFC PATCH v2 0/6] TI81XX: Add clock and hwmod data
+Date: Tue, 23 Aug 2011 22:43:14 +0530
+Message-ID: <1314119594-22647-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201108231342.25101.jkrzyszt@tis.icnet.pl> (Janusz Krzysztofik's
-	message of "Tue, 23 Aug 2011 13:42:24 +0200")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49788 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751959Ab1HWRNa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Aug 2011 13:13:30 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Hemant Pedanekar <hemantp@ti.com>
 
-Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> writes:
+This patch set is the v2 of TI816X clock and hwmods patches sent earlier.
 
-> With commit f64ad1a0e21a, "gpio/omap: cleanup _set_gpio_wakeup(), remove 
-> ifdefs", access to build time conditionally omitted 'suspend_wakeup' 
-> member of the 'gpio_bank' structure has been placed unconditionally in 
-> function _set_gpio_wakeup(), which is always built. This resulted in the 
-> driver compilation broken for certain OMAP1, i.e., non-OMAP16xx, 
-> configurations.
->
-> Really required or not in previously excluded cases, define this 
-> structure member unconditionally as a fix.
->
-> Tested with a custom OMAP1510 only configuration.
->
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+The clock data is currently added only for TI816X, while minimal hwmod data
+common for TI816X and TI814X is added.
 
-Verified that this fixes a build problem when building for OMAP1
-(730/850 only)
+This patch set depends on following patches:
+	TI81XX: Prepare for addition of TI814X support
+	TI814X: Add cpu type macros and detection support
+	TI814X: Create board support and enable build for TI8148 EVM
 
-Acked-by: Kevin Hilman <khilman@ti.com>
+Please note that CHIP_IS_TI816X/CHIP_IS_TI814X are still being used and I will
+send update once SoC list usage is available.	
 
-Grant, can you queue this as a fix for 3.1-rc?
+Hemant Pedanekar (6):
+  TI816X: prcm: Add module and register offsets
+  TI816X: clock: Add clock data
+  TI816X: clock: Add clockdomains and powerdomains data
+  clock: Integrate TI816X clock data into OMAP clock framework
+  TI81XX: Add minimal hwmod data
+  hwmods: Integrate TI81XX hwmods
 
-Thanks,
+ arch/arm/mach-omap2/Makefile                     |    5 +
+ arch/arm/mach-omap2/clock3xxx_data.c             |    5 +-
+ arch/arm/mach-omap2/clock816x.h                  |   21 +
+ arch/arm/mach-omap2/clock816x_data.c             | 1108 ++++++++++++++++++++++
+ arch/arm/mach-omap2/clockdomain.h                |    1 +
+ arch/arm/mach-omap2/clockdomain2xxx_3xxx.c       |   18 +-
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    1 +
+ arch/arm/mach-omap2/clockdomains816x_data.c      |  196 ++++
+ arch/arm/mach-omap2/cm-regbits-816x.h            |   44 +
+ arch/arm/mach-omap2/cm2xxx_3xxx.c                |   35 +
+ arch/arm/mach-omap2/cm2xxx_3xxx.h                |    6 +
+ arch/arm/mach-omap2/cm816x.h                     |  368 +++++++
+ arch/arm/mach-omap2/cm81xx.c                     |   54 ++
+ arch/arm/mach-omap2/io.c                         |    3 +
+ arch/arm/mach-omap2/omap_hwmod.c                 |   13 +-
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c       |  677 +++++++++++++
+ arch/arm/mach-omap2/powerdomain.h                |    2 +
+ arch/arm/mach-omap2/powerdomain2xxx_3xxx.c       |   27 +-
+ arch/arm/mach-omap2/powerdomains3xxx_data.c      |    4 +-
+ arch/arm/mach-omap2/powerdomains816x_data.c      |   84 ++
+ arch/arm/mach-omap2/prm2xxx_3xxx.h               |   21 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h     |    1 +
+ 22 files changed, 2682 insertions(+), 12 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clock816x.h
+ create mode 100644 arch/arm/mach-omap2/clock816x_data.c
+ create mode 100644 arch/arm/mach-omap2/clockdomains816x_data.c
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-816x.h
+ create mode 100644 arch/arm/mach-omap2/cm816x.h
+ create mode 100644 arch/arm/mach-omap2/cm81xx.c
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+ create mode 100644 arch/arm/mach-omap2/powerdomains816x_data.c
 
-Kevin
+-- 
+1.7.3.5
+
