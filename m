@@ -1,53 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL v2] OMAP: clock/powerdomain/clockdomain/hwmod: fixes for
- 3.1-rc
-Date: Tue, 23 Aug 2011 01:36:48 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108230105180.28226@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1108222319310.28226@utopia.booyaka.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH] tty: omap-serial: fix boot hang by converting to use a
+ threaded IRQ handler (was Re: [PATCH] irq: always set IRQF_ONESHOT if no
+ primary handler is specified)
+Date: Tue, 23 Aug 2011 10:14:50 +0200
+Message-ID: <20110823081450.GA20979@linutronix.de>
+References: <1310070737-18514-1-git-send-email-bigeasy@linutronix.de>
+ <C5991460-2092-4E65-99EE-091F8DAA0AC3@gmail.com>
+ <4E4D4A5F.202@linutronix.de>
+ <20110818213418.GA20509@legolas.emea.dhcp.ti.com>
+ <alpine.DEB.2.00.1108221742130.10315@utopia.booyaka.com>
+ <alpine.DEB.2.00.1108222306300.28226@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59853 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753944Ab1HWHgt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Aug 2011 03:36:49 -0400
-In-Reply-To: <alpine.DEB.2.00.1108222319310.28226@utopia.booyaka.com>
+Received: from www.linutronix.de ([62.245.132.108]:50269 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752587Ab1HWIOy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Aug 2011 04:14:54 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1108222306300.28226@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, santosh.shilimkar@ti.com, tomi.valkeinen@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-serial@vger.kernel.org, Alan Cox <alan@linux.intel.com>, Pantelis Antoniou <pantelis.antoniou@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <balbi@ti.com>, torvalds@linux-foundation.org, mporter@ti.com, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-Hi Tony,
+* Paul Walmsley | 2011-08-22 23:10:21 [-0600]:
 
-The following changes since commit fcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c:
+>IRQ handler type mismatch for IRQ 74
 
-  Linux 3.1-rc3 (2011-08-22 11:42:53 -0700)
+>It turns out that the omap-serial code used one threaded IRQ
+>handler[1][2] and one non-threaded IRQ handler[3] that shared the same
+>IRQ.  During the 3.1-rc series, a patch was merged[4] that caused
+>IRQF_ONESHOT to be set on the threaded handler, but the non-threaded
+>handler did not have IRQF_ONESHOT set.  Since interrupt handlers
 
-are available in the git repository at:
-  git://git.pwsan.com/linux-2.6 prcm-fixes-a-3.1rc
+Is the type of IRQ74 edge or line/eoi?
+Since you registered the serial handler as threaded and the primary
+handler did _not_ disable the irq source (due to the absence of the
+IRQF_ONESHOT flag or a custom primary handler which does this by
+changing a bit in the hardware) it is more or less luck that you did not
+hang forever on the first serial interrupt. Well, it does not happen
+with edge typed interrupt lines.
 
-I've dropped Tomi's patches until the changelogs for those are fixed.
+>that share the same IRQ must also share the presence or absence of
+>IRQF_ONESHOT[5], this new commit caused a mismatch that prevented the
+>non-threaded IRQ from registering.
 
-Note that for these changes to boot successfully on 3.1-rc3, the following 
-patch is needed:
+In theory it should be okay if the handler without ONESHOT is either
+primary only or primary + threaded and the primary disables the irq
+source.
 
-  http://marc.info/?l=linux-omap&m=131407622527432&w=2
-
-Paul Walmsley (4):
-      OMAP4: clock: re-enable previous clockdomain enable/disable sequence
-      OMAP4: clock: fix compile warning
-      OMAP3: clock: indicate that gpt12_fck and wdt1_fck are in the WKUP clockdomain
-      Merge branches 'pwrdm_clkdm_fixes_3.1rc', 'non_hwmod_compliant_fix_3.1rc', 'omap4_clock_fixes_3.1rc' and 'omap3_clock_fixes_3.1rc' into prcm-fixes-a-3.1rc
-
-Rajendra Nayak (1):
-      OMAP: powerdomains: Make all powerdomain target states as ON at init
-
-Santosh Shilimkar (1):
-      OMAP: clockdomain: Wait for powerdomain to be ON when using clockdomain force wakeup
-
- arch/arm/mach-omap2/clock3xxx_data.c |    2 ++
- arch/arm/mach-omap2/clock44xx_data.c |   10 +++++++++-
- arch/arm/mach-omap2/clockdomain.c    |    2 ++
- arch/arm/mach-omap2/pm.c             |    2 --
- arch/arm/mach-omap2/powerdomain.c    |   25 ++++++++++++++++---------
- 5 files changed, 29 insertions(+), 12 deletions(-)
+Sebastian
