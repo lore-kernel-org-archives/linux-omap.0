@@ -1,58 +1,74 @@
-From: Santosh <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP: Move omap2_init_common_devices out of
- init_early
-Date: Wed, 24 Aug 2011 17:48:27 +0530
-Message-ID: <4E54EC13.6040509@ti.com>
-References: <20110824115048.2985.24230.stgit@kaulin> <20110824115433.2985.98712.stgit@kaulin> <4E54EA5E.8010603@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+Date: Wed, 24 Aug 2011 17:49:01 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC007BE3@dbde02.ent.ti.com>
+References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com>
+ <201108241217.11430.laurent.pinchart@ideasonboard.com>
+ <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907F6@dbde03.ent.ti.com>
+ <201108241329.48147.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:54300 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752028Ab1HXMSf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Aug 2011 08:18:35 -0400
-Received: by mail-gw0-f44.google.com with SMTP id 20so1089186gwb.17
-        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 05:18:34 -0700 (PDT)
-In-Reply-To: <4E54EA5E.8010603@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201108241329.48147.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Cc: "mchehab@infradead.org" <mchehab@infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wednesday 24 August 2011 05:41 PM, Cousson, Benoit wrote:
-> Hi Tony,
->
-> On 8/24/2011 1:54 PM, Tony Lindgren wrote:
->> There's no need to call omap2_init_common_devices from init_early.
->> It reprograms the memory timings for some boards, so it's better to
->> do it later so we have a chance to get console messages if something
->> goes wrong.
->
-> BTW, I did some comment on that function in my OMAP4 device-tree series,
-> because the name is misleading.
-> That function is just initializing the SDRC controller present in OMAP2
-> & 3. OMAP4 platform should not even call it.
-> In fact, I'm now wondering were the OMAP4 EMIF is configured?
->
-In the boot-loader at this point of time. EMIF driver should
-make the configuration in kernel which is work in progress.
 
-> void __init omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs0,
-> struct omap_sdrc_params *sdrc_cs1)
-> {
-> if (cpu_is_omap24xx() || omap3_has_sdrc()) {
-> omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
-> _omap2_init_reprogram_sdrc();
-> }
-> }
->
-> I guess it used to do much more than that in the past.
->
-> Shouldn't we rename it to clarify its purpose?
->
-I agree.
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Wednesday, August 24, 2011 5:00 PM
+> To: Ravi, Deepthy
+> Cc: mchehab@infradead.org; linux-media@vger.kernel.org; linux-
+> kernel@vger.kernel.org; linux-omap@vger.kernel.org; Hiremath, Vaibhav
+> Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+> 
+> Hi,
+> 
+> On Wednesday 24 August 2011 13:21:27 Ravi, Deepthy wrote:
+> > On Wed, Aug 24, 2011 at 4:47 PM, Laurent Pinchart wrote:
+> > > On Friday 19 August 2011 15:48:45 Deepthy Ravi wrote:
+> > >> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > >>
+> > >> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
+> > >> option is disabled and if any sensor driver has to be used
+> > >> between MC and non MC framework compatible devices.
+> > >>
+> > >> For example,if tvp514x video decoder driver migrated to
+> > >> MC framework is being built without CONFIG_MEDIA_CONTROLLER
+> > >> option enabled, the following error messages will result.
+> > >> drivers/built-in.o: In function `tvp514x_remove':
+> > >> drivers/media/video/tvp514x.c:1285: undefined reference to
+> > >> `media_entity_cleanup'
+> > >> drivers/built-in.o: In function `tvp514x_probe':
+> > >> drivers/media/video/tvp514x.c:1237: undefined reference to
+> > >> `media_entity_init'
+> > >
+> > > If the tvp514x is migrated to the MC framework, its Kconfig option
+> should
+> > > depend on MEDIA_CONTROLLER.
+> >
+> > The same TVP514x driver is being used for both MC and non MC compatible
+> > devices, for example OMAP3 and AM35x. So if it is made dependent on
+> MEDIA
+> > CONTROLLER, we cannot enable the driver for MC independent devices.
+> 
+> Then you should use conditional compilation in the tvp514x driver itself.
+> Or
+[Hiremath, Vaibhav] No. I am not in favor of conditional compilation in driver code. 
 
-Regards
-Santosh
+> better, port the AM35x driver to the MC API.
+> 
+[Hiremath, Vaibhav] 
+Why should we use MC if I have very simple device (like AM35x) which only supports single path? I can very well use simple V4L2 sub-dev based approach (master - slave), isn't it?
+
+Thanks,
+Vaibhav
+
+> --
+> Regards,
+> 
+> Laurent Pinchart
