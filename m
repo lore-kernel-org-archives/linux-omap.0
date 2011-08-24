@@ -1,90 +1,46 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [RFC PATCH 1/7] OMAP3+: boards: Fix the __initconst build error
-Date: Wed, 24 Aug 2011 12:17:14 +0200
-Message-ID: <1314181040-22807-2-git-send-email-b-cousson@ti.com>
-References: <1314181040-22807-1-git-send-email-b-cousson@ti.com>
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4] OMAP4: hwmod data: I2C: add flag for context restore
+Date: Wed, 24 Aug 2011 15:48:58 +0530
+Message-ID: <4E54D012.6050708@ti.com>
+References: <1310906603-2673-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58821 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755946Ab1HXKTF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 06:19:05 -0400
-In-Reply-To: <1314181040-22807-1-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1310906603-2673-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: grant.likely@secretlab.ca
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, manjugk@ti.com, Benoit Cousson <b-cousson@ti.com>
 
-The __initconst introduced some build errors with the following
-compiler version:
- arm-none-linux-gnueabi-gcc (Sourcery G++ Lite 2010.09-50) 4.5.1
-
-arch/arm/mach-omap2/board-omap3beagle.c:566:20: error:
-omap3_beagle_dt_match causes a section type conflict
-
-Replace them by __initdata.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
----
- arch/arm/mach-omap2/board-igep0020.c    |    2 +-
- arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
- arch/arm/mach-omap2/board-omap4panda.c  |    2 +-
- arch/arm/mach-omap2/board-overo.c       |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 249165a..2521823 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -671,7 +671,7 @@ static void __init igep_init(void)
- 	}
- }
- 
--static const char *igep2_dt_compat[] __initconst = {
-+static const char *igep2_dt_compat[] __initdata = {
- 	"ISEE,igep-v2",
- 	NULL
- };
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index b3b9cbc..a7923ca 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -563,7 +563,7 @@ static void __init omap3_beagle_init(void)
- 	beagle_opp_init();
- }
- 
--static const char *omap3_beagle_dt_match[] __initconst = {
-+static const char *omap3_beagle_dt_match[] __initdata = {
- 	"ti,omap3-beagle",
- 	NULL
- };
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index b526aa9..1c583c7 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -581,7 +581,7 @@ static void __init omap4_panda_map_io(void)
- 	omap44xx_map_common_io();
- }
- 
--static const char *omap4_panda_match[] __initconst = {
-+static const char *omap4_panda_match[] __initdata = {
- 	"ti,omap4-panda",
- 	NULL,
- };
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 18ae2c2..f0b8489 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -560,7 +560,7 @@ static void __init overo_init(void)
- 					"OVERO_GPIO_USBH_CPEN\n");
- }
- 
--static const char *omap3_overo_dt_match[] __initconst = {
-+static const char *omap3_overo_dt_match[] __initdata = {
- 	"gumstix,omap3-overo",
- 	NULL
- };
--- 
-1.7.0.4
-
+On Sunday 17 July 2011 06:13 PM, Shubhrajyoti D wrote:
+> Restore of context is not done for OMAP4. This patch
+> adds the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE in the OMAP4
+> hwmod data which activates the restore for OMAP4.
+> Currently the OMAP4 does not hit device off still the
+> driver may have support for it.
+Could this patch be queued as well?
+> Reviewed-by: Kevin Hilman<khilman-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> ---
+> Applies on top of patches from Andy Green
+> http://www.spinics.net/lists/linux-i2c/msg05632.html
+> Tested on OMAP4430
+>
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
+>   1 files changed, 2 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index 0fe9556..5e2c748 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -2130,7 +2130,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
+>   };
+>
+>   static struct omap_i2c_dev_attr i2c_dev_attr = {
+> -	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
+> +	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE |
+> +			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
+>   };
+>
+>   /* i2c1 */
