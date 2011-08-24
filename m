@@ -1,70 +1,34 @@
-From: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-Subject: RE: [PATCH v2] OMAP3EVM: ehci: Fix EHCI support
-Date: Wed, 24 Aug 2011 14:42:07 +0200
-Message-ID: <1314189727.2320.16.camel@bryan-HUTIA>
-References: <1314174902-12797-1-git-send-email-bdefaria@adeneo-embedded.com>
-	<19F8576C6E063C45BE387C64729E739404EC007BC0@dbde02.ent.ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 1/7] omap: iommu: migrate to the generic IOMMU API
+Date: Wed, 24 Aug 2011 15:46:13 +0300
+Message-ID: <CAK=WgbZAMbPhDuXZ2NwTTSDv2doT6WBSzCCaD0F02mybNEZyeA@mail.gmail.com>
+References: <1313622608-30397-1-git-send-email-ohad@wizery.com>
+ <1313622608-30397-2-git-send-email-ohad@wizery.com> <20110823140746.GP2079@amd.com>
+ <CAK=WgbZYuuKHUu6P+nfNzPgF4QmoL=T9+yquc=rMXRh4QE9grg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC007BC0@dbde02.ent.ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:52680 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752565Ab1HXMqf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 08:46:35 -0400
+Received: by wyg24 with SMTP id 24so801880wyg.19
+        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 05:46:34 -0700 (PDT)
+In-Reply-To: <CAK=WgbZYuuKHUu6P+nfNzPgF4QmoL=T9+yquc=rMXRh4QE9grg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Arnd Bergmann <arnd@arndb.de>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
 
-Hi Ajay,
+On Tue, Aug 23, 2011 at 5:59 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> On Tue, Aug 23, 2011 at 5:07 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+>> Can this be easily converted to a spin_lock?
+>
+> Sure, thanks for reviewing.
 
-TPS65950 GPIO2 is to choose through u131 if we drive the lines to the
-evm mother board or to the expansion connector p18. Should not it be
-default to the mother board?
-The EHCI port on the mother board works with this patch.
+Taking a second look, I don't think it's necessary - the mutex isn't
+used to protect the page table. The page table is protected by a spin
+lock, so map/unmap operations can be called from an atomic context.
 
-Bryan
-
-> Hi,
-> > Set the VAUX2 regulator supply to 1.8V for the HSUSB host interface.
-> > Gpio 2 of the TPS65950 has to be set to zero in order to enable the
-> > HSUBS2 clock.
-> 
-> TPS65950 GPIO2 is not to enable HSUSB2 clock but to enable chip u131
-> On omap3evm (rev-G) which latches USB, camera and audio lines.
-> 
-> > 
-> > Signed-off-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-> > ---
-> >  arch/arm/mach-omap2/board-omap3evm.c |   25 +++++++++++++++++++++++++
-> >  1 files changed, 25 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
-> > omap2/board-omap3evm.c
-> > index c452b3f..13a2b71 100644
-> > --- a/arch/arm/mach-omap2/board-omap3evm.c
-> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> > @@ -377,6 +377,10 @@ static int omap3evm_twl_gpio_setup(struct device
-> > *dev,
-> >  	if (r)
-> >  		printk(KERN_ERR "failed to get/set lcd_bkl gpio\n");
-> > 
-> > +	/* gpio + 2 == HSUSB2 Clock Enable */
-> > +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
-> > +		gpio_request_one(gpio + 2, GPIOF_OUT_INIT_LOW,
-> > "EN_HSUSB2_CLK");
-> > +
-> 
-> Did you test EHCI port with this change ?
-> 
-> Ajay
-> >  	/* gpio + 7 == DVI Enable */
-> >  	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
-> [...]
-> rm-kernel
+The mutex is only part of the attach/deattach operations, which are
+already used today in process context, so I guess it's safe.
