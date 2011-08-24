@@ -1,144 +1,77 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH v2 2/2] omap_twl: Prevent SR to enable for
- am3517/am3505devices
-Date: Wed, 24 Aug 2011 14:03:22 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930256C4F095@dbde02.ent.ti.com>
-References: <1314105680-17426-1-git-send-email-abhilash.kv@ti.com>
- <24b1eaea368d2a7a692dc5455aa8b255@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
+Subject: [PATCH v2] OMAP3EVM: ehci: Fix EHCI support
+Date: Wed, 24 Aug 2011 10:35:02 +0200
+Message-ID: <1314174902-12797-1-git-send-email-bdefaria@adeneo-embedded.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39347 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752104Ab1HXIdn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 04:33:43 -0400
-In-Reply-To: <24b1eaea368d2a7a692dc5455aa8b255@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:50356 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756435Ab1HXIf0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 04:35:26 -0400
+Received: by bke11 with SMTP id 11so709566bke.19
+        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 01:35:24 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: tony@atomide.com
+Cc: Bryan DE FARIA <bdefaria@adeneo-embedded.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Sripathy, Vishwanath
-> Sent: Tuesday, August 23, 2011 7:14 PM
-> To: Koyamangalath, Abhilash; linux-omap@vger.kernel.org
-> Cc: paul@pwsan.com; linux@arm.linux.org.uk; Cousson, Benoit; 
-> tony@atomide.com; linux-kernel@vger.kernel.org; Hiremath, 
-> Vaibhav; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [PATCH v2 2/2] omap_twl: Prevent SR to enable 
-> for am3517/am3505devices
-> 
-> > -----Original Message-----
-> > From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-
-> > arm-kernel-bounces@lists.infradead.org] On Behalf Of Abhilash K V
-> > Sent: Tuesday, August 23, 2011 6:51 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: paul@pwsan.com; linux@arm.linux.org.uk; b-cousson@ti.com;
-> > tony@atomide.com; linux-kernel@vger.kernel.org; Vaibhav Hiremath;
-> > Abhilash K V; linux-arm-kernel@lists.infradead.org
-> > Subject: [PATCH v2 2/2] omap_twl: Prevent SR to enable for
-> > am3517/am3505devices
-> >
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > In case of AM3517 & AM3505, Smart Reflex is not applicable so
-> > we must not enable it. So add check for absence of SR feature
-> > in omap3_twl_init() and return -ENODEV if absence, else continue.
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/id.c              |    2 +-
-> >  arch/arm/mach-omap2/omap_twl.c        |    8 ++++++++
-> >  arch/arm/plat-omap/include/plat/cpu.h |    2 ++
-> >  3 files changed, 11 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > index 37efb86..da71098 100644
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -202,7 +202,7 @@ static void __init omap3_check_features(void)
-> >  	if (cpu_is_omap3630())
-> >  		omap_features |= OMAP3_HAS_192MHZ_CLK;
-> >  	if (!cpu_is_omap3505() && !cpu_is_omap3517())
-> > -		omap_features |= OMAP3_HAS_IO_WAKEUP;
-> > +		omap_features |= (OMAP3_HAS_IO_WAKEUP | OMAP3_HAS_SR);
-> >
-> >  	omap_features |= OMAP3_HAS_SDRC;
-> >
-> > diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-
-> > omap2/omap_twl.c
-> > index 07d6140..47e27b5 100644
-> > --- a/arch/arm/mach-omap2/omap_twl.c
-> > +++ b/arch/arm/mach-omap2/omap_twl.c
-> > @@ -269,6 +269,14 @@ int __init omap3_twl_init(void)
-> >  	if (!cpu_is_omap34xx())
-> >  		return -ENODEV;
-> >
-> > +	/*
-> > +	 * In case of AM3517/AM3505 we should not be going down
-> > +	 * further, since SR is not applicable there.
-> > +	 */
-> > +	if (!omap3_has_sr()) {
-> > +		return -ENODEV;
-> > +	}
-> I do not understand what has vp_max and vp_min configuration 
-> to do with
-> SR. This parameter indicates the maximum and minimum voltage 
-> supported by
-> respective PM IC.
+Set the VAUX2 regulator supply to 1.8V for the HSUSB host interface.
+Gpio 2 of the TPS65950 has to be set to zero in order to enable the HSUBS2 clock.
 
-[sp] omap3_twl_init() shouldn't be executed for AM35x.
-     Considering that we are using "SR" as feature, the check
-     should be "PMIC" centric not "SR" centric.
+Signed-off-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
-~sanjeev
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index c452b3f..13a2b71 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -377,6 +377,10 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
+ 	if (r)
+ 		printk(KERN_ERR "failed to get/set lcd_bkl gpio\n");
+ 
++	/* gpio + 2 == HSUSB2 Clock Enable */
++	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
++		gpio_request_one(gpio + 2, GPIOF_OUT_INIT_LOW, "EN_HSUSB2_CLK");
++
+ 	/* gpio + 7 == DVI Enable */
+ 	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
+ 
+@@ -450,6 +454,25 @@ static struct regulator_init_data omap3evm_vio = {
+ 	.consumer_supplies	= omap3evm_vio_supply,
+ };
+ 
++/* VAUX2 for EHCI */
++static struct regulator_consumer_supply omap3evm_vaux2_supplies[] = {
++	REGULATOR_SUPPLY("hsusb1", "ehci-omap.0"),
++};
++
++static struct regulator_init_data omap3evm_vaux2 = {
++	.constraints = {
++		.min_uV      		= 1800000,
++		.max_uV      		= 1800000,
++		.apply_uV    		= true,
++		.valid_modes_mask  	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask  	= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = ARRAY_SIZE(omap3evm_vaux2_supplies),
++	.consumer_supplies   	= omap3evm_vaux2_supplies,
++};
++
+ #ifdef CONFIG_WL12XX_PLATFORM_DATA
+ 
+ #define OMAP3EVM_WLAN_PMENA_GPIO	(150)
+@@ -510,6 +533,8 @@ static int __init omap3_evm_i2c_init(void)
+ 
+ 	omap3evm_twldata.vdac->constraints.apply_uV = true;
+ 	omap3evm_twldata.vpll2->constraints.apply_uV = true;
++	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
++		omap3evm_twldata.vaux2 = &omap3evm_vaux2;
+ 
+ 	omap3_pmic_init("twl4030", &omap3evm_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+-- 
+1.7.4.1
 
-> 
-> Vishwa
-> 
-> > +
-> >  	if (cpu_is_omap3630()) {
-> >  		omap3_mpu_volt_info.vp_vddmin =
-> > OMAP3630_VP1_VLIMITTO_VDDMIN;
-> >  		omap3_mpu_volt_info.vp_vddmax =
-> > OMAP3630_VP1_VLIMITTO_VDDMAX;
-> > diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-
-> > omap/include/plat/cpu.h
-> > index 67b3d75..294e015 100644
-> > --- a/arch/arm/plat-omap/include/plat/cpu.h
-> > +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> > @@ -491,6 +491,7 @@ extern u32 omap_features;
-> >  #define OMAP4_HAS_MPU_1GHZ		BIT(8)
-> >  #define OMAP4_HAS_MPU_1_2GHZ		BIT(9)
-> >  #define OMAP4_HAS_MPU_1_5GHZ		BIT(10)
-> > +#define OMAP3_HAS_SR			BIT(11)
-> >
-> >
-> >  #define OMAP3_HAS_FEATURE(feat,flag)			\
-> > @@ -507,6 +508,7 @@ OMAP3_HAS_FEATURE(isp, ISP)
-> >  OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-> >  OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
-> >  OMAP3_HAS_FEATURE(sdrc, SDRC)
-> > +OMAP3_HAS_FEATURE(sr, SR)
-> >
-> >  /*
-> >   * Runtime detection of OMAP4 features
-> > --
-> > 1.7.1
-> >
-> >
-> > _______________________________________________
-> > linux-arm-kernel mailing list
-> > linux-arm-kernel@lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
