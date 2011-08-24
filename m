@@ -1,750 +1,813 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP: Move omap2_init_common_devices out of
- init_early
-Date: Wed, 24 Aug 2011 06:32:53 -0700
-Message-ID: <20110824133253.GB2963@atomide.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: Introduce SoC specific early_init
+Date: Wed, 24 Aug 2011 06:35:29 -0700
+Message-ID: <20110824133528.GC2963@atomide.com>
 References: <20110824115048.2985.24230.stgit@kaulin>
- <20110824115433.2985.98712.stgit@kaulin>
- <4E54EA5E.8010603@ti.com>
- <20110824122049.GA2963@atomide.com>
+ <20110824115436.2985.14338.stgit@kaulin>
+ <4E54F300.308@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:45326 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751129Ab1HXNc7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 09:32:59 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62019 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751087Ab1HXNfg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 09:35:36 -0400
 Content-Disposition: inline
-In-Reply-To: <20110824122049.GA2963@atomide.com>
+In-Reply-To: <4E54F300.308@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [110824 04:48]:
-> * Cousson, Benoit <b-cousson@ti.com> [110824 04:38]:
-> =20
-> > void __init omap2_init_common_devices(struct omap_sdrc_params *sdrc=
-_cs0,
-> >                                       struct omap_sdrc_params *sdrc=
-_cs1)
-> > {
-> >         if (cpu_is_omap24xx() || omap3_has_sdrc()) {
-> >                 omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
-> >                 _omap2_init_reprogram_sdrc();
-> >         }
-> > }
-> >=20
-> > I guess it used to do much more than that in the past.
-> >=20
-> > Shouldn't we rename it to clarify its purpose?
->=20
-> Yeah we might as well rename it to omap_init_sdrc since we're
-> patching it. Will post an updated patch.
+* Igor Grinberg <grinberg@compulab.co.il> [110824 05:15]:
+> 
+> On 08/24/11 14:54, Tony Lindgren wrote:
+> > @@ -637,7 +632,7 @@ MACHINE_START(CM_T35, "Compulab CM-T35")
+> >  	.boot_params	= 0x80000100,
+> >  	.reserve	= omap_reserve,
+> >  	.map_io		= omap3_map_io,
+> > -	.init_early	= cm_t35_init_early,
+> > +	.init_early	= omap35xx_init_early,
+> >  	.init_irq	= omap3_init_irq,
+> >  	.init_machine	= cm_t35_init,
+> >  	.timer		= &omap3_timer,
+> > @@ -647,7 +642,7 @@ MACHINE_START(CM_T3730, "Compulab CM-T3730")
+> >  	.boot_params    = 0x80000100,
+> >  	.reserve        = omap_reserve,
+> >  	.map_io         = omap3_map_io,
+> > -	.init_early     = cm_t35_init_early,
+> > +	.init_early     = am35xx_init_early,
+> 
+> Although this does not meter with the current implementation,
+> but for the sake of completeness, this should be omap3630_init_early.
 
-Here's an updated patch.
+Updated patch below, can you please check?
 
-=CE=A4ony
+Regards,
+
+Tony
 
 
-=46rom: Tony Lindgren <tony@atomide.com>
-Date: Mon, 22 Aug 2011 23:57:23 -0700
-Subject: [PATCH] ARM: OMAP: Move omap2_init_common_devices out of init_=
-early
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 22 Aug 2011 23:57:24 -0700
+Subject: [PATCH] ARM: OMAP: Introduce SoC specific early_init
 
-There's no need to call omap2_init_common_devices from init_early.
+Introduce them for each omap variant and just make them all call
+omap2_init_common_infrastructure for now. Do this for each board-*.c
+file except for board-generic and board-omap3beagle as they use
+the same machine ID for multiple SoCs.
 
-It no longer does anything else except reprogram the memory timings
-for some boards, so it's better to do it later so we have a chance
-to get console messages if something goes wrong.
-
-Move it to happen after omap_serial_init gets called. And while
-patching it anyways, rename it to omap_sdrc_init as suggested by
-Benoit Cousson <b-cousson@ti.com>.
+No functional changes.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/=
-board-2430sdp.c
-index 2028464..a4f43ee 100644
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index a4f43ee..618216c 100644
 --- a/arch/arm/mach-omap2/board-2430sdp.c
 +++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -144,7 +144,6 @@ static struct omap_board_config_kernel sdp2430_conf=
-ig[] __initdata =3D {
- static void __init omap_2430sdp_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
- }
-=20
- static struct regulator_consumer_supply sdp2430_vmmc1_supplies[] =3D {
-@@ -235,6 +234,7 @@ static void __init omap_2430sdp_init(void)
-=20
- 	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
- 	omap_serial_init();
-+	omap_sdrc_init(NULL, NULL);
- 	omap2_hsmmc_init(mmc);
- 	omap2_usbfs_init(&sdp2430_usb_config);
-=20
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/=
-board-3430sdp.c
-index bd600cf..cc8e148 100644
+@@ -141,11 +141,6 @@ static struct omap_board_config_kernel sdp2430_config[] __initdata = {
+ 	{OMAP_TAG_LCD, &sdp2430_lcd_config},
+ };
+ 
+-static void __init omap_2430sdp_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
+ static struct regulator_consumer_supply sdp2430_vmmc1_supplies[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+ };
+@@ -259,7 +254,7 @@ MACHINE_START(OMAP_2430SDP, "OMAP2430 sdp2430 board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap_2430sdp_map_io,
+-	.init_early	= omap_2430sdp_init_early,
++	.init_early	= omap2430_init_early,
+ 	.init_irq	= omap2_init_irq,
+ 	.init_machine	= omap_2430sdp_init,
+ 	.timer		= &omap2_timer,
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index cc8e148..9bb48ea 100644
 --- a/arch/arm/mach-omap2/board-3430sdp.c
 +++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -228,7 +228,6 @@ static struct omap_board_config_kernel sdp3430_conf=
-ig[] __initdata =3D {
- static void __init omap_3430sdp_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(hyb18m512160af6_sdrc_params, NULL);
- }
-=20
- static struct omap2_hsmmc_info mmc[] =3D {
-@@ -719,6 +718,7 @@ static void __init omap_3430sdp_init(void)
- 		gpio_pendown =3D SDP3430_TS_GPIO_IRQ_SDPV1;
- 	omap_ads7846_init(1, gpio_pendown, 310, NULL);
- 	board_serial_init();
-+	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
- 	usb_musb_init(NULL);
- 	board_smc91x_init();
- 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/=
-board-3630sdp.c
-index e4f37b5..96766e9 100644
+@@ -225,11 +225,6 @@ static struct omap_dss_board_info sdp3430_dss_data = {
+ static struct omap_board_config_kernel sdp3430_config[] __initdata = {
+ };
+ 
+-static void __init omap_3430sdp_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+@@ -732,7 +727,7 @@ MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= omap_3430sdp_init_early,
++	.init_early	= omap3430_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= omap_3430sdp_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+index 96766e9..94febc8 100644
 --- a/arch/arm/mach-omap2/board-3630sdp.c
 +++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -73,8 +73,6 @@ static struct omap_board_config_kernel sdp_config[] _=
-_initdata =3D {
- static void __init omap_sdp_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(h8mbx00u0mer0em_sdrc_params,
--				  h8mbx00u0mer0em_sdrc_params);
- }
-=20
+@@ -70,11 +70,6 @@ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+ static struct omap_board_config_kernel sdp_config[] __initdata = {
+ };
+ 
+-static void __init omap_sdp_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  #ifdef CONFIG_OMAP_MUX
-@@ -207,6 +205,8 @@ static void __init omap_sdp_init(void)
- 	omap_board_config =3D sdp_config;
- 	omap_board_config_size =3D ARRAY_SIZE(sdp_config);
- 	zoom_peripherals_init();
-+	omap_sdrc_init(h8mbx00u0mer0em_sdrc_params,
-+				  h8mbx00u0mer0em_sdrc_params);
- 	zoom_display_init();
- 	board_smc91x_init();
- 	board_flash_init(sdp_flash_partitions, chip_sel_sdp, NAND_BUSWIDTH_16=
-);
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/=
-board-4430sdp.c
-index c7cef44..bbe3735 100644
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+@@ -218,7 +213,7 @@ MACHINE_START(OMAP_3630SDP, "OMAP 3630SDP board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= omap_sdp_init_early,
++	.init_early	= omap3630_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= omap_sdp_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index bbe3735..ab19d30 100644
 --- a/arch/arm/mach-omap2/board-4430sdp.c
 +++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -392,7 +392,6 @@ static struct omap_board_config_kernel sdp4430_conf=
-ig[] __initdata =3D {
- static void __init omap_4430sdp_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
- }
-=20
- static struct omap_musb_board_data musb_board_data =3D {
-@@ -809,6 +808,7 @@ static void __init omap_4430sdp_init(void)
- 	omap_sfh7741prox_init();
- 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
- 	board_serial_init();
-+	omap_sdrc_init(NULL, NULL);
- 	omap4_sdp4430_wifi_init();
- 	omap4_twl6030_hsmmc_init(mmc);
-=20
-diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-om=
-ap2/board-am3517crane.c
-index 933e935..4701e8c 100644
+@@ -389,11 +389,6 @@ static struct omap_board_config_kernel sdp4430_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&sdp4430_lcd_config },
+ };
+ 
+-static void __init omap_4430sdp_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_UTMI,
+ 	.mode			= MUSB_OTG,
+@@ -841,7 +836,7 @@ MACHINE_START(OMAP_4430SDP, "OMAP4430 4430SDP board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap_4430sdp_map_io,
+-	.init_early	= omap_4430sdp_init_early,
++	.init_early	= omap4430_init_early,
+ 	.init_irq	= gic_init_irq,
+ 	.init_machine	= omap_4430sdp_init,
+ 	.timer		= &omap4_timer,
+diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
+index 4701e8c..9e1b2c2 100644
 --- a/arch/arm/mach-omap2/board-am3517crane.c
 +++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -50,7 +50,6 @@ static struct omap_board_mux board_mux[] __initdata =3D=
- {
- static void __init am3517_crane_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
- }
-=20
- static struct usbhs_omap_board_data usbhs_bdata __initdata =3D {
-@@ -70,6 +69,7 @@ static void __init am3517_crane_init(void)
-=20
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_serial_init();
-+	omap_sdrc_init(NULL, NULL);
-=20
- 	omap_board_config =3D am3517_crane_config;
- 	omap_board_config_size =3D ARRAY_SIZE(am3517_crane_config);
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap=
-2/board-am3517evm.c
-index f3006c3..b5391a1 100644
+@@ -47,11 +47,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
+ #endif
+ 
+-static void __init am3517_crane_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
+ static struct usbhs_omap_board_data usbhs_bdata __initdata = {
+ 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
+ 	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
+@@ -101,7 +96,7 @@ MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= am3517_crane_init_early,
++	.init_early	= am35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= am3517_crane_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index b5391a1..7d84294 100644
 --- a/arch/arm/mach-omap2/board-am3517evm.c
 +++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -365,7 +365,6 @@ static struct omap_dss_board_info am3517_evm_dss_da=
-ta =3D {
- static void __init am3517_evm_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
- }
-=20
- static struct omap_musb_board_data musb_board_data =3D {
-@@ -469,6 +468,7 @@ static void __init am3517_evm_init(void)
- 	am3517_evm_i2c_init();
- 	omap_display_init(&am3517_evm_dss_data);
- 	omap_serial_init();
-+	omap_sdrc_init(NULL, NULL);
-=20
- 	/* Configure GPIO for EHCI port */
- 	omap_mux_init_gpio(57, OMAP_PIN_OUTPUT);
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/=
-board-apollon.c
-index 7021170..6d88ffa 100644
+@@ -362,10 +362,6 @@ static struct omap_dss_board_info am3517_evm_dss_data = {
+ /*
+  * Board initialization
+  */
+-static void __init am3517_evm_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type         = MUSB_INTERFACE_ULPI,
+@@ -493,7 +489,7 @@ MACHINE_START(OMAP3517EVM, "OMAP3517/AM3517 EVM")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= am3517_evm_init_early,
++	.init_early	= am35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= am3517_evm_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index 6d88ffa..cf546f8 100644
 --- a/arch/arm/mach-omap2/board-apollon.c
 +++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -276,7 +276,6 @@ static struct omap_board_config_kernel apollon_conf=
-ig[] __initdata =3D {
- static void __init omap_apollon_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
- }
-=20
- static struct gpio apollon_gpio_leds[] __initdata =3D {
-@@ -340,6 +339,7 @@ static void __init omap_apollon_init(void)
- 	 */
- 	platform_add_devices(apollon_devices, ARRAY_SIZE(apollon_devices));
- 	omap_serial_init();
-+	omap_sdrc_init(NULL, NULL);
- }
-=20
- static void __init omap_apollon_map_io(void)
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/b=
-oard-cm-t35.c
-index 3af8aab..0f25496 100644
+@@ -273,11 +273,6 @@ static struct omap_board_config_kernel apollon_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&apollon_lcd_config },
+ };
+ 
+-static void __init omap_apollon_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
+ static struct gpio apollon_gpio_leds[] __initdata = {
+ 	{ LED0_GPIO13, GPIOF_OUT_INIT_LOW, "LED0" }, /* LED0 - AA10 */
+ 	{ LED1_GPIO14, GPIOF_OUT_INIT_LOW, "LED1" }, /* LED1 - AA6  */
+@@ -353,7 +348,7 @@ MACHINE_START(OMAP_APOLLON, "OMAP24xx Apollon")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap_apollon_map_io,
+-	.init_early	= omap_apollon_init_early,
++	.init_early	= omap2420_init_early,
+ 	.init_irq	= omap2_init_irq,
+ 	.init_machine	= omap_apollon_init,
+ 	.timer		= &omap2_timer,
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 0f25496..e15d39b 100644
 --- a/arch/arm/mach-omap2/board-cm-t35.c
 +++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -474,8 +474,6 @@ static void __init cm_t35_init_i2c(void)
- static void __init cm_t35_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
--			     mt46h32m32lf6_sdrc_params);
+@@ -471,11 +471,6 @@ static void __init cm_t35_init_i2c(void)
+ 	omap3_pmic_init("tps65930", &cm_t35_twldata);
  }
-=20
+ 
+-static void __init cm_t35_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  #ifdef CONFIG_OMAP_MUX
-@@ -610,6 +608,8 @@ static void __init cm_t3x_common_init(void)
- 	omap_board_config_size =3D ARRAY_SIZE(cm_t35_config);
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CUS);
- 	omap_serial_init();
-+	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
-+			     mt46h32m32lf6_sdrc_params);
- 	cm_t35_init_i2c();
- 	omap_ads7846_init(1, CM_T35_GPIO_PENDOWN, 0, NULL);
- 	cm_t35_init_ethernet();
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2=
-/board-cm-t3517.c
-index 05c72f4..88e1f74 100644
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	/* nCS and IRQ for CM-T35 ethernet */
+@@ -637,7 +632,7 @@ MACHINE_START(CM_T35, "Compulab CM-T35")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= cm_t35_init_early,
++	.init_early	= omap35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= cm_t35_init,
+ 	.timer		= &omap3_timer,
+@@ -647,7 +642,7 @@ MACHINE_START(CM_T3730, "Compulab CM-T3730")
+ 	.boot_params    = 0x80000100,
+ 	.reserve        = omap_reserve,
+ 	.map_io         = omap3_map_io,
+-	.init_early     = cm_t35_init_early,
++	.init_early     = omap3630_init_early,
+ 	.init_irq       = omap3_init_irq,
+ 	.init_machine   = cm_t3730_init,
+ 	.timer          = &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
+index 88e1f74..867bf67 100644
 --- a/arch/arm/mach-omap2/board-cm-t3517.c
 +++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -254,7 +254,6 @@ static struct omap_board_config_kernel cm_t3517_con=
-fig[] __initdata =3D {
- static void __init cm_t3517_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
- }
-=20
+@@ -251,11 +251,6 @@ static inline void cm_t3517_init_nand(void) {}
+ static struct omap_board_config_kernel cm_t3517_config[] __initdata = {
+ };
+ 
+-static void __init cm_t3517_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  #ifdef CONFIG_OMAP_MUX
-@@ -289,6 +288,7 @@ static void __init cm_t3517_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_serial_init();
-+	omap_sdrc_init(NULL, NULL);
- 	omap_board_config =3D cm_t3517_config;
- 	omap_board_config_size =3D ARRAY_SIZE(cm_t3517_config);
- 	cm_t3517_init_leds();
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-oma=
-p2/board-devkit8000.c
-index b6002ec..631dc58 100644
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	/* GPIO186 - Green LED */
+@@ -302,7 +297,7 @@ MACHINE_START(CM_T3517, "Compulab CM-T3517")
+ 	.boot_params	= 0x80000100,
+ 	.reserve        = omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= cm_t3517_init_early,
++	.init_early	= am35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= cm_t3517_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 631dc58..4b1f6c6 100644
 --- a/arch/arm/mach-omap2/board-devkit8000.c
 +++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -401,8 +401,6 @@ static struct platform_device keys_gpio =3D {
- static void __init devkit8000_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
--				  mt46h32m32lf6_sdrc_params);
- }
-=20
+@@ -397,12 +397,6 @@ static struct platform_device keys_gpio = {
+ 	},
+ };
+ 
+-
+-static void __init devkit8000_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  static void __init devkit8000_init_irq(void)
-@@ -645,6 +643,8 @@ static void __init devkit8000_init(void)
  {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CUS);
- 	omap_serial_init();
-+	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
-+				  mt46h32m32lf6_sdrc_params);
-=20
- 	omap_dm9000_init();
-=20
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/=
-board-generic.c
-index 54db41a..5223898 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -36,12 +36,12 @@ static struct omap_board_config_kernel generic_conf=
-ig[] =3D {
- static void __init omap_generic_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
- }
-=20
- static void __init omap_generic_init(void)
- {
- 	omap_serial_init();
-+	omap_sdrc_init(NULL, NULL);
- 	omap_board_config =3D generic_config;
- 	omap_board_config_size =3D ARRAY_SIZE(generic_config);
- }
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board=
--h4.c
-index 45de2b3..84ca5c0 100644
+ 	omap3_init_irq();
+@@ -670,7 +664,7 @@ MACHINE_START(DEVKIT8000, "OMAP3 Devkit8000")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= devkit8000_init_early,
++	.init_early	= omap35xx_init_early,
+ 	.init_irq	= devkit8000_init_irq,
+ 	.init_machine	= devkit8000_init,
+ 	.timer		= &omap3_secure_timer,
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 84ca5c0..948fde0 100644
 --- a/arch/arm/mach-omap2/board-h4.c
 +++ b/arch/arm/mach-omap2/board-h4.c
-@@ -293,7 +293,6 @@ static struct omap_board_config_kernel h4_config[] =
-__initdata =3D {
- static void __init omap_h4_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
- }
-=20
+@@ -290,11 +290,6 @@ static struct omap_board_config_kernel h4_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&h4_lcd_config },
+ };
+ 
+-static void __init omap_h4_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  static void __init omap_h4_init_irq(void)
-@@ -371,6 +370,7 @@ static void __init omap_h4_init(void)
- 	platform_add_devices(h4_devices, ARRAY_SIZE(h4_devices));
- 	omap2_usbfs_init(&h4_usb_config);
- 	omap_serial_init();
-+	omap_sdrc_init(NULL, NULL);
- 	h4_init_flash();
- }
-=20
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2=
-/board-igep0020.c
-index 35be778..1b2309f 100644
+ {
+ 	omap2_init_irq();
+@@ -385,7 +380,7 @@ MACHINE_START(OMAP_H4, "OMAP2420 H4 board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap_h4_map_io,
+-	.init_early	= omap_h4_init_early,
++	.init_early	= omap2420_init_early,
+ 	.init_irq	= omap_h4_init_irq,
+ 	.init_machine	= omap_h4_init,
+ 	.timer		= &omap2_timer,
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 1b2309f..7b66338 100644
 --- a/arch/arm/mach-omap2/board-igep0020.c
 +++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -494,8 +494,6 @@ static struct platform_device *igep_devices[] __ini=
-tdata =3D {
- static void __init igep_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(m65kxxxxam_sdrc_params,
--				  m65kxxxxam_sdrc_params);
- }
-=20
- static int igep2_keymap[] =3D {
-@@ -650,6 +648,8 @@ static void __init igep_init(void)
- 	igep_i2c_init();
- 	platform_add_devices(igep_devices, ARRAY_SIZE(igep_devices));
- 	omap_serial_init();
-+	omap_sdrc_init(m65kxxxxam_sdrc_params,
-+				  m65kxxxxam_sdrc_params);
- 	usb_musb_init(NULL);
-=20
- 	igep_flash_init();
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/boar=
-d-ldp.c
-index 218764c..c45a0f4 100644
+@@ -491,11 +491,6 @@ static struct platform_device *igep_devices[] __initdata = {
+ 	&igep_vwlan_device,
+ };
+ 
+-static void __init igep_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
+ static int igep2_keymap[] = {
+ 	KEY(0, 0, KEY_LEFT),
+ 	KEY(0, 1, KEY_RIGHT),
+@@ -675,7 +670,7 @@ MACHINE_START(IGEP0020, "IGEP v2 board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= igep_init_early,
++	.init_early	= omap35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= igep_init,
+ 	.timer		= &omap3_timer,
+@@ -685,7 +680,7 @@ MACHINE_START(IGEP0030, "IGEP OMAP3 module")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= igep_init_early,
++	.init_early	= omap35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= igep_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index c45a0f4..401b944 100644
 --- a/arch/arm/mach-omap2/board-ldp.c
 +++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -196,7 +196,6 @@ static struct omap_board_config_kernel ldp_config[]=
- __initdata =3D {
- static void __init omap_ldp_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
- }
-=20
- static struct twl4030_gpio_platform_data ldp_gpio_data =3D {
-@@ -325,6 +324,7 @@ static void __init omap_ldp_init(void)
- 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
- 	omap_ads7846_init(1, 54, 310, NULL);
- 	omap_serial_init();
-+	omap_sdrc_init(NULL, NULL);
- 	usb_musb_init(NULL);
- 	board_nand_init(ldp_nand_partitions,
- 		ARRAY_SIZE(ldp_nand_partitions), ZOOM_NAND_CS, 0);
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/boa=
-rd-n8x0.c
-index e11f0c5..2545a4a 100644
+@@ -193,11 +193,6 @@ static struct omap_board_config_kernel ldp_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&ldp_lcd_config },
+ };
+ 
+-static void __init omap_ldp_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
+ static struct twl4030_gpio_platform_data ldp_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+@@ -336,7 +331,7 @@ MACHINE_START(OMAP_LDP, "OMAP LDP board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= omap_ldp_init_early,
++	.init_early	= omap3430_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= omap_ldp_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index 2545a4a..77a4e19 100644
 --- a/arch/arm/mach-omap2/board-n8x0.c
 +++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -625,7 +625,6 @@ static void __init n8x0_map_io(void)
- static void __init n8x0_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
+@@ -622,11 +622,6 @@ static void __init n8x0_map_io(void)
+ 	omap242x_map_common_io();
  }
-=20
+ 
+-static void __init n8x0_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  #ifdef CONFIG_OMAP_MUX
-@@ -689,6 +688,7 @@ static void __init n8x0_init_machine(void)
- 		i2c_register_board_info(2, n810_i2c_board_info_2,
- 					ARRAY_SIZE(n810_i2c_board_info_2));
- 	board_serial_init();
-+	omap_sdrc_init(NULL, NULL);
- 	gpmc_onenand_init(board_onenand_data);
- 	n8x0_mmc_init();
- 	n8x0_usb_init();
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-om=
-ap2/board-omap3beagle.c
-index 3ae16b4..ce3234d 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -447,8 +447,6 @@ static struct platform_device keys_gpio =3D {
- static void __init omap3_beagle_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
--				  mt46h32m32lf6_sdrc_params);
- }
-=20
- static void __init omap3_beagle_init_irq(void)
-@@ -534,6 +532,8 @@ static void __init omap3_beagle_init(void)
- 			ARRAY_SIZE(omap3_beagle_devices));
- 	omap_display_init(&beagle_dss_data);
- 	omap_serial_init();
-+	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
-+				  mt46h32m32lf6_sdrc_params);
-=20
- 	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
- 	/* REVISIT leave DVI powered down until it's needed ... */
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2=
-/board-omap3evm.c
-index c452b3f..0735bca 100644
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	/* I2S codec port pins for McBSP block */
+@@ -698,7 +693,7 @@ MACHINE_START(NOKIA_N800, "Nokia N800")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= n8x0_map_io,
+-	.init_early	= n8x0_init_early,
++	.init_early	= omap2420_init_early,
+ 	.init_irq	= omap2_init_irq,
+ 	.init_machine	= n8x0_init_machine,
+ 	.timer		= &omap2_timer,
+@@ -708,7 +703,7 @@ MACHINE_START(NOKIA_N810, "Nokia N810")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= n8x0_map_io,
+-	.init_early	= n8x0_init_early,
++	.init_early	= omap2420_init_early,
+ 	.init_irq	= omap2_init_irq,
+ 	.init_machine	= n8x0_init_machine,
+ 	.timer		= &omap2_timer,
+@@ -718,7 +713,7 @@ MACHINE_START(NOKIA_N810_WIMAX, "Nokia N810 WiMAX")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= n8x0_map_io,
+-	.init_early	= n8x0_init_early,
++	.init_early	= omap2420_init_early,
+ 	.init_irq	= omap2_init_irq,
+ 	.init_machine	= n8x0_init_machine,
+ 	.timer		= &omap2_timer,
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 0735bca..a1184b3 100644
 --- a/arch/arm/mach-omap2/board-omap3evm.c
 +++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -523,7 +523,6 @@ static struct omap_board_config_kernel omap3_evm_co=
-nfig[] __initdata =3D {
- static void __init omap3_evm_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(mt46h32m32lf6_sdrc_params, NULL);
- }
-=20
- static struct usbhs_omap_board_data usbhs_bdata __initdata =3D {
-@@ -640,6 +639,7 @@ static void __init omap3_evm_init(void)
- 	omap_display_init(&omap3_evm_dss_data);
-=20
- 	omap_serial_init();
-+	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
-=20
- 	/* OMAP3EVM uses ISP1504 phy and so register nop transceiver */
- 	usb_nop_xceiv_register();
-diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-oma=
-p2/board-omap3logic.c
-index 703aeb5..2e0b011 100644
+@@ -520,11 +520,6 @@ static int __init omap3_evm_i2c_init(void)
+ static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
+ };
+ 
+-static void __init omap3_evm_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
+ static struct usbhs_omap_board_data usbhs_bdata __initdata = {
+ 
+ 	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
+@@ -684,7 +679,7 @@ MACHINE_START(OMAP3EVM, "OMAP3 EVM")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= omap3_evm_init_early,
++	.init_early	= omap35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= omap3_evm_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index 2e0b011..3a1dd84 100644
 --- a/arch/arm/mach-omap2/board-omap3logic.c
 +++ b/arch/arm/mach-omap2/board-omap3logic.c
-@@ -185,7 +185,6 @@ static inline void __init board_smsc911x_init(void)
- static void __init omap3logic_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
+@@ -182,11 +182,6 @@ static inline void __init board_smsc911x_init(void)
+ 	gpmc_smsc911x_init(&board_smsc911x_data);
  }
-=20
+ 
+-static void __init omap3logic_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  #ifdef CONFIG_OMAP_MUX
-@@ -200,6 +199,7 @@ static void __init omap3logic_init(void)
- 	omap3torpedo_fix_pbias_voltage();
- 	omap3logic_i2c_init();
- 	omap_serial_init();
-+	omap_sdrc_init(NULL, NULL);
- 	board_mmc_init();
- 	board_smsc911x_init();
-=20
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-o=
-map2/board-omap3pandora.c
-index 080d7bd..0f70566 100644
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+@@ -211,7 +206,7 @@ static void __init omap3logic_init(void)
+ MACHINE_START(OMAP3_TORPEDO, "Logic OMAP3 Torpedo board")
+ 	.boot_params	= 0x80000100,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= omap3logic_init_early,
++	.init_early	= omap35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= omap3logic_init,
+ 	.timer		= &omap3_timer,
+@@ -220,7 +215,7 @@ MACHINE_END
+ MACHINE_START(OMAP3530_LV_SOM, "OMAP Logic 3530 LV SOM board")
+ 	.boot_params	= 0x80000100,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= omap3logic_init_early,
++	.init_early	= omap35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= omap3logic_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 0f70566..e46bf52 100644
 --- a/arch/arm/mach-omap2/board-omap3pandora.c
 +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -528,8 +528,6 @@ static struct spi_board_info omap3pandora_spi_board=
-_info[] __initdata =3D {
- static void __init omap3pandora_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
--				  mt46h32m32lf6_sdrc_params);
- }
-=20
+@@ -525,11 +525,6 @@ static struct spi_board_info omap3pandora_spi_board_info[] __initdata = {
+ 	}
+ };
+ 
+-static void __init omap3pandora_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  static void __init pandora_wl1251_init(void)
-@@ -593,6 +591,8 @@ static void __init omap3pandora_init(void)
- 			ARRAY_SIZE(omap3pandora_devices));
- 	omap_display_init(&pandora_dss_data);
- 	omap_serial_init();
-+	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
-+				  mt46h32m32lf6_sdrc_params);
- 	spi_register_board_info(omap3pandora_spi_board_info,
- 			ARRAY_SIZE(omap3pandora_spi_board_info));
- 	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-o=
-map2/board-omap3stalker.c
-index 8e10498..04981f9 100644
+ {
+ 	struct wl12xx_platform_data pandora_wl1251_pdata;
+@@ -609,7 +604,7 @@ MACHINE_START(OMAP3_PANDORA, "Pandora Handheld Console")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= omap3pandora_init_early,
++	.init_early	= omap35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= omap3pandora_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 04981f9..807c274 100644
 --- a/arch/arm/mach-omap2/board-omap3stalker.c
 +++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -431,7 +431,6 @@ static struct omap_board_config_kernel omap3_stalke=
-r_config[] __initdata =3D {
- static void __init omap3_stalker_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(mt46h32m32lf6_sdrc_params, NULL);
- }
-=20
+@@ -428,11 +428,6 @@ static int __init omap3_stalker_i2c_init(void)
+ static struct omap_board_config_kernel omap3_stalker_config[] __initdata = {
+ };
+ 
+-static void __init omap3_stalker_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  static void __init omap3_stalker_init_irq(void)
-@@ -478,6 +477,7 @@ static void __init omap3_stalker_init(void)
- 	omap_display_init(&omap3_stalker_dss_data);
-=20
- 	omap_serial_init();
-+	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	omap_ads7846_init(1, OMAP3_STALKER_TS_GPIO, 310, NULL);
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach=
--omap2/board-omap3touchbook.c
-index 852ea04..b3fe7ad 100644
+ {
+ 	omap3_init_irq();
+@@ -496,7 +491,7 @@ MACHINE_START(SBC3530, "OMAP3 STALKER")
+ 	/* Maintainer: Jason Lam -lzg@ema-tech.com */
+ 	.boot_params		= 0x80000100,
+ 	.map_io			= omap3_map_io,
+-	.init_early		= omap3_stalker_init_early,
++	.init_early		= omap35xx_init_early,
+ 	.init_irq		= omap3_stalker_init_irq,
+ 	.init_machine		= omap3_stalker_init,
+ 	.timer			= &omap3_secure_timer,
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index b3fe7ad..f7f1809 100644
 --- a/arch/arm/mach-omap2/board-omap3touchbook.c
 +++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -329,8 +329,6 @@ static struct omap_board_mux board_mux[] __initdata=
- =3D {
- static void __init omap3_touchbook_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
--				  mt46h32m32lf6_sdrc_params);
- }
-=20
+@@ -326,11 +326,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
+ #endif
+ 
+-static void __init omap3_touchbook_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  static void __init omap3_touchbook_init_irq(void)
-@@ -385,6 +383,8 @@ static void __init omap3_touchbook_init(void)
- 	platform_add_devices(omap3_touchbook_devices,
- 			ARRAY_SIZE(omap3_touchbook_devices));
- 	omap_serial_init();
-+	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
-+				  mt46h32m32lf6_sdrc_params);
-=20
- 	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
- 	/* REVISIT leave DVI powered down until it's needed ... */
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-oma=
-p2/board-omap4panda.c
-index 9aaa960..b730ca5 100644
+ {
+ 	omap3_init_irq();
+@@ -407,7 +402,7 @@ MACHINE_START(TOUCHBOOK, "OMAP3 touchbook Board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= omap3_touchbook_init_early,
++	.init_early	= omap3430_init_early,
+ 	.init_irq	= omap3_touchbook_init_irq,
+ 	.init_machine	= omap3_touchbook_init,
+ 	.timer		= &omap3_secure_timer,
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b730ca5..1bce765 100644
 --- a/arch/arm/mach-omap2/board-omap4panda.c
 +++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -98,7 +98,6 @@ static struct platform_device *panda_devices[] __init=
-data =3D {
- static void __init omap4_panda_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
- }
-=20
- static const struct usbhs_omap_board_data usbhs_bdata __initconst =3D =
-{
-@@ -569,6 +568,7 @@ static void __init omap4_panda_init(void)
- 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
- 	platform_device_register(&omap_vwlan_device);
- 	board_serial_init();
-+	omap_sdrc_init(NULL, NULL);
- 	omap4_twl6030_hsmmc_init(mmc);
- 	omap4_ehci_init();
- 	usb_musb_init(&musb_board_data);
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/bo=
-ard-overo.c
-index f949a99..c3bd1af 100644
+@@ -95,11 +95,6 @@ static struct platform_device *panda_devices[] __initdata = {
+ 	&wl1271_device,
+ };
+ 
+-static void __init omap4_panda_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
+ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+ 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
+ 	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
+@@ -586,7 +581,7 @@ MACHINE_START(OMAP4_PANDA, "OMAP4 Panda board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap4_panda_map_io,
+-	.init_early	= omap4_panda_init_early,
++	.init_early	= omap4430_init_early,
+ 	.init_irq	= gic_init_irq,
+ 	.init_machine	= omap4_panda_init,
+ 	.timer		= &omap4_timer,
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index c3bd1af..7228ae5 100644
 --- a/arch/arm/mach-omap2/board-overo.c
 +++ b/arch/arm/mach-omap2/board-overo.c
-@@ -481,8 +481,6 @@ static int __init overo_spi_init(void)
- static void __init overo_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
--				  mt46h32m32lf6_sdrc_params);
+@@ -478,11 +478,6 @@ static int __init overo_spi_init(void)
+ 	return 0;
  }
-=20
- static const struct usbhs_omap_board_data usbhs_bdata __initconst =3D =
-{
-@@ -514,6 +512,8 @@ static void __init overo_init(void)
- 	overo_i2c_init();
- 	omap_display_init(&overo_dss_data);
- 	omap_serial_init();
-+	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
-+				  mt46h32m32lf6_sdrc_params);
- 	omap_nand_flash_init(0, overo_nand_partitions,
- 			     ARRAY_SIZE(overo_nand_partitions));
- 	usb_musb_init(NULL);
-diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/bo=
-ard-rm680.c
-index 7dfed24..a6f76e1 100644
+ 
+-static void __init overo_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
+ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+ 	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
+ 	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
+@@ -564,7 +559,7 @@ MACHINE_START(OVERO, "Gumstix Overo")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= overo_init_early,
++	.init_early	= omap35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= overo_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index a6f76e1..a3182e8 100644
 --- a/arch/arm/mach-omap2/board-rm680.c
 +++ b/arch/arm/mach-omap2/board-rm680.c
-@@ -125,11 +125,7 @@ static void __init rm680_peripherals_init(void)
-=20
- static void __init rm680_init_early(void)
- {
--	struct omap_sdrc_params *sdrc_params;
+@@ -123,11 +123,6 @@ static void __init rm680_peripherals_init(void)
+ 	omap2_hsmmc_init(mmc);
+ }
+ 
+-static void __init rm680_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
 -
- 	omap2_init_common_infrastructure();
--	sdrc_params =3D nokia_get_sdram_timings();
--	omap2_init_common_devices(sdrc_params, sdrc_params);
- }
-=20
  #ifdef CONFIG_OMAP_MUX
-@@ -140,8 +136,14 @@ static struct omap_board_mux board_mux[] __initdat=
-a =3D {
-=20
- static void __init rm680_init(void)
- {
-+	struct omap_sdrc_params *sdrc_params;
-+
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_serial_init();
-+
-+	sdrc_params =3D nokia_get_sdram_timings();
-+	omap_sdrc_init(sdrc_params, sdrc_params);
-+
- 	usb_musb_init(NULL);
- 	rm680_peripherals_init();
- }
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/boa=
-rd-rx51.c
-index 5ea142f..656a8b5 100644
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+@@ -158,7 +153,7 @@ MACHINE_START(NOKIA_RM680, "Nokia RM-680 board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= rm680_map_io,
+-	.init_early	= rm680_init_early,
++	.init_early	= omap3630_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= rm680_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 656a8b5..32a79e2 100644
 --- a/arch/arm/mach-omap2/board-rx51.c
 +++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -104,11 +104,7 @@ static struct omap_board_config_kernel rx51_config=
-[] =3D {
-=20
- static void __init rx51_init_early(void)
- {
--	struct omap_sdrc_params *sdrc_params;
+@@ -102,11 +102,6 @@ static struct omap_board_config_kernel rx51_config[] = {
+ 	{ OMAP_TAG_LCD,		&rx51_lcd_config },
+ };
+ 
+-static void __init rx51_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
 -
- 	omap2_init_common_infrastructure();
--	sdrc_params =3D nokia_get_sdram_timings();
--	omap2_init_common_devices(sdrc_params, sdrc_params);
- }
-=20
  extern void __init rx51_peripherals_init(void);
-@@ -127,11 +123,17 @@ static struct omap_musb_board_data musb_board_dat=
-a =3D {
-=20
- static void __init rx51_init(void)
- {
-+	struct omap_sdrc_params *sdrc_params;
-+
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_board_config =3D rx51_config;
- 	omap_board_config_size =3D ARRAY_SIZE(rx51_config);
- 	omap3_pm_init_cpuidle(rx51_cpuidle_params);
- 	omap_serial_init();
-+
-+	sdrc_params =3D nokia_get_sdram_timings();
-+	omap_sdrc_init(sdrc_params, sdrc_params);
-+
- 	usb_musb_init(&musb_board_data);
- 	rx51_peripherals_init();
-=20
-diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap=
-2/board-ti8168evm.c
-index a85d5b0..e249c3d 100644
+ 
+ #ifdef CONFIG_OMAP_MUX
+@@ -161,7 +156,7 @@ MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= rx51_reserve,
+ 	.map_io		= rx51_map_io,
+-	.init_early	= rx51_init_early,
++	.init_early	= omap3430_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= rx51_init,
+ 	.timer		= &omap3_timer,
+diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
+index e249c3d..981ca00 100644
 --- a/arch/arm/mach-omap2/board-ti8168evm.c
 +++ b/arch/arm/mach-omap2/board-ti8168evm.c
-@@ -30,12 +30,12 @@ static struct omap_board_config_kernel ti8168_evm_c=
-onfig[] __initdata =3D {
- static void __init ti8168_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	omap2_init_common_devices(NULL, NULL);
- }
-=20
+@@ -27,11 +27,6 @@
+ static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
+ };
+ 
+-static void __init ti8168_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  static void __init ti8168_evm_init(void)
  {
  	omap_serial_init();
-+	omap_sdrc_init(NULL, NULL);
- 	omap_board_config =3D ti8168_evm_config;
- 	omap_board_config_size =3D ARRAY_SIZE(ti8168_evm_config);
- }
-diff --git a/arch/arm/mach-omap2/board-zoom.c b/arch/arm/mach-omap2/boa=
-rd-zoom.c
-index 8a98c3c..5695264 100644
+@@ -50,7 +45,7 @@ MACHINE_START(TI8168EVM, "ti8168evm")
+ 	/* Maintainer: Texas Instruments */
+ 	.boot_params	= 0x80000100,
+ 	.map_io		= ti8168_evm_map_io,
+-	.init_early	= ti8168_init_early,
++	.init_early	= ti816x_init_early,
+ 	.init_irq	= ti816x_init_irq,
+ 	.timer		= &omap3_timer,
+ 	.init_machine	= ti8168_evm_init,
+diff --git a/arch/arm/mach-omap2/board-zoom.c b/arch/arm/mach-omap2/board-zoom.c
+index 5695264..d56c796 100644
 --- a/arch/arm/mach-omap2/board-zoom.c
 +++ b/arch/arm/mach-omap2/board-zoom.c
-@@ -37,12 +37,6 @@
- static void __init omap_zoom_init_early(void)
- {
- 	omap2_init_common_infrastructure();
--	if (machine_is_omap_zoom2())
--		omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
--					  mt46h32m32lf6_sdrc_params);
--	else if (machine_is_omap_zoom3())
--		omap2_init_common_devices(h8mbx00u0mer0em_sdrc_params,
--					  h8mbx00u0mer0em_sdrc_params);
- }
-=20
+@@ -34,11 +34,6 @@
+ 
+ #define ZOOM3_EHCI_RESET_GPIO		64
+ 
+-static void __init omap_zoom_init_early(void)
+-{
+-	omap2_init_common_infrastructure();
+-}
+-
  #ifdef CONFIG_OMAP_MUX
-@@ -129,6 +123,14 @@ static void __init omap_zoom_init(void)
- 						ZOOM_NAND_CS, NAND_BUSWIDTH_16);
- 	zoom_debugboard_init();
- 	zoom_peripherals_init();
-+
-+	if (machine_is_omap_zoom2())
-+		omap_sdrc_init(mt46h32m32lf6_sdrc_params,
-+					  mt46h32m32lf6_sdrc_params);
-+	else if (machine_is_omap_zoom3())
-+		omap_sdrc_init(h8mbx00u0mer0em_sdrc_params,
-+					  h8mbx00u0mer0em_sdrc_params);
-+
- 	zoom_display_init();
- }
-=20
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	/* WLAN IRQ - GPIO 162 */
+@@ -138,7 +133,7 @@ MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= omap_zoom_init_early,
++	.init_early	= omap3430_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= omap_zoom_init,
+ 	.timer		= &omap3_timer,
+@@ -148,7 +143,7 @@ MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= omap_zoom_init_early,
++	.init_early	= omap3630_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= omap_zoom_init,
+ 	.timer		= &omap3_timer,
 diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 2ce1ce6..9258a5c 100644
+index 9258a5c..132724c 100644
 --- a/arch/arm/mach-omap2/io.c
 +++ b/arch/arm/mach-omap2/io.c
-@@ -376,7 +376,7 @@ void __init omap2_init_common_infrastructure(void)
- 	 * omap_hwmod_late_init(), so boards that desire full watchdog
- 	 * coverage of kernel initialization can reprogram the
- 	 * postsetup_state between the calls to
--	 * omap2_init_common_infra() and omap2_init_common_devices().
-+	 * omap2_init_common_infra() and omap_sdrc_init().
- 	 *
- 	 * XXX ideally we could detect whether the MPU WDT was currently
- 	 * enabled here and make this conditional
-@@ -400,7 +400,7 @@ void __init omap2_init_common_infrastructure(void)
+@@ -400,6 +400,46 @@ void __init omap2_init_common_infrastructure(void)
  		pr_err("Could not init clock framework - unknown SoC\n");
  }
-=20
--void __init omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs=
-0,
-+void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 
++void __init omap2420_init_early(void)
++{
++	omap2_init_common_infrastructure();
++}
++
++void __init omap2430_init_early(void)
++{
++	omap2_init_common_infrastructure();
++}
++
++void __init omap3430_init_early(void)
++{
++	omap2_init_common_infrastructure();
++}
++
++void __init omap35xx_init_early(void)
++{
++	omap2_init_common_infrastructure();
++}
++
++void __init omap3630_init_early(void)
++{
++	omap2_init_common_infrastructure();
++}
++
++void __init am35xx_init_early(void)
++{
++	omap2_init_common_infrastructure();
++}
++
++void __init ti816x_init_early(void)
++{
++	omap2_init_common_infrastructure();
++}
++
++void __init omap4430_init_early(void)
++{
++	omap2_init_common_infrastructure();
++}
++
+ void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
  				      struct omap_sdrc_params *sdrc_cs1)
  {
- 	if (cpu_is_omap24xx() || omap3_has_sdrc()) {
-diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/=
-include/plat/io.h
-index d72ec85..75311fc 100644
---- a/arch/arm/plat-omap/include/plat/io.h
-+++ b/arch/arm/plat-omap/include/plat/io.h
-@@ -300,7 +300,7 @@ static inline void omap44xx_map_common_io(void)
- #endif
-=20
- extern void omap2_init_common_infrastructure(void);
--extern void omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs=
-0,
-+extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
- 				      struct omap_sdrc_params *sdrc_cs1);
-=20
- #define __arch_ioremap	omap_ioremap
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+index 4564cc6..5cac97e 100644
+--- a/arch/arm/plat-omap/include/plat/common.h
++++ b/arch/arm/plat-omap/include/plat/common.h
+@@ -45,6 +45,15 @@ extern unsigned long long notrace omap_32k_sched_clock(void);
+ 
+ extern void omap_reserve(void);
+ 
++void omap2420_init_early(void);
++void omap2430_init_early(void);
++void omap3430_init_early(void);
++void omap35xx_init_early(void);
++void omap3630_init_early(void);
++void am35xx_init_early(void);
++void ti816x_init_early(void);
++void omap4430_init_early(void);
++
+ /*
+  * IO bases for various OMAP processors
+  * Except the tap base, rest all the io bases
