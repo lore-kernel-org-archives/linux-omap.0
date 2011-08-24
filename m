@@ -1,166 +1,85 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC: PATCH 4/4] AM335X: Add low level debugging support
-Date: Wed, 24 Aug 2011 22:12:03 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC007CB7@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1313058630-32447-5-git-send-email-hvaibhav@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH v2 0/7] omap: iommu migration, relocation and cleanups
+Date: Wed, 24 Aug 2011 20:08:07 +0300
+Message-ID: <1314205694-28935-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38618 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751486Ab1HXQmN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 12:42:13 -0400
-In-Reply-To: <1313058630-32447-5-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, iommu@lists.linux-foundation.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Thursday, August 11, 2011 4:01 PM
-> To: linux-omap@vger.kernel.org
-> Cc: tony@atomide.com; Hilman, Kevin; paul@pwsan.com; linux-arm-
-> kernel@lists.infradead.org; Mohammed, Afzal; Hiremath, Vaibhav
-> Subject: [RFC: PATCH 4/4] AM335X: Add low level debugging support
-> 
-> From: Afzal Mohammed <afzal@ti.com>
-> 
-> Add support for low level debugging on AM335X EVM. Currently only
-> support for UART1 console, which is used on AM335X EVM is added.
-> 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/mach-omap2/include/mach/debug-macro.S |   21
-> +++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/serial.h       |    4 ++++
->  arch/arm/plat-omap/include/plat/uncompress.h   |    6 ++++++
->  3 files changed, 31 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S
-> b/arch/arm/mach-omap2/include/mach/debug-macro.S
-> index 309e328..a99ddbd 100644
-> --- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-> +++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-> @@ -78,6 +78,8 @@ omap_uart_lsr:	.word	0
->  		beq	82f			@ configure UART2
->  		cmp	\rp, #TI81XXUART3	@ ti81Xx UART offsets different
->  		beq	83f			@ configure UART3
-> +		cmp	\rp, #AM335XUART1	@ AM335X UART offsets different
-> +		beq	84f			@ configure UART1
->  		cmp	\rp, #ZOOM_UART		@ only on zoom2/3
->  		beq	95f			@ configure ZOOM_UART
-> 
-> @@ -106,6 +108,8 @@ omap_uart_lsr:	.word	0
->  		b	98f
->  83:		mov	\rp, #UART_OFFSET(TI81XX_UART3_BASE)
->  		b	98f
-> +84:		mov	\rp, #UART_OFFSET(AM335X_UART1_BASE)
-[Hiremath, Vaibhav] My bad, the above line results into build failure when you enable DEBUG_LL option,
+1. Migrate OMAP's iommu driver to the generic IOMMU API, and move it
+to the dedicated iommu folder.
 
-    arch/arm/kernel/debug.S: Assembler messages:
-    arch/arm/kernel/debug.S:138: Error: invalid constant (408) after fixup
-    arch/arm/kernel/debug.S:157: Error: invalid constant (e09000) after fixup
-    arch/arm/kernel/debug.S:173: Error: invalid constant (e09000) after fixup
-    make[1]: *** [arch/arm/kernel/debug.o] Error 1
-    make: *** [arch/arm/kernel] Error 2
+2. Fix omap3isp appropriately so it doesn't break.
 
+3. Adapt OMAP's iovmm appropriately as well, because omap3isp still relies
+on it. The plan is eventually to remove iovmm and replace it with the
+upcoming IOMMU-based generic DMA-API. Move iovmm to the iommu folder too;
+it belongs there more than it belongs in the OMAP folders.
 
-When I submitted the patch, I only tried building it with omap2plus_defconfig and missed to enable DEBUG_LL option. 
+4. Start cleaning up OMAP's iommu components towards the end goal, where
+    1) omap-iommu no longer exports public API (and instead provides its
+       entire functionality via the generic IOMMU API).
+    2) omap-iovmm is removed.
 
-I have fixed it with following change,
+Tested on OMAP3 (with omap3isp) and OMAP4 (with rpmsg/remoteproc).
 
--84:            mov     \rp, #UART_OFFSET(AM335X_UART1_BASE)
-+84:            ldr     \rp, =AM335X_UART1_BASE
-+               and     \rp, \rp, #0x00ffffff
+v1->v2:
+1. Added Laurent's and Hiroshi's Acked-by
+2. iommu: use spinlock instead of mutex so attach/deattach can stay atomic (Joerg)
+3. iovmm: remove obsolete comment (Hiroshi)
+4. iommu: don't rename load_iotlb_entry directly (Hiroshi)
+5. Rebase to 3.1-rc3
 
-This will get merged in next patch version.
+rfc->v1:
+1. Migrate iommu, iovmm and omap3isp in a single patch for bisectibility sake.
+2. Apply Laurent Pinchart's comments (thanks Laurent!)
+3. Rebase to 3.1-rc2
 
-Thanks,
-Vaibhav
+Ohad Ben-Cohen (7):
+  omap: iommu: migrate to the generic IOMMU API
+  omap: iommu/iovmm: move to dedicated iommu folder
+  omap: iommu: stop exporting local functions
+  omap: iommu: PREFETCH_IOTLB cleanup
+  omap: iovmm: remove unused functionality
+  omap: iommu: remove unused exported API
+  omap: iommu: omapify 'struct iommu' and exposed API
 
+ arch/arm/mach-omap2/iommu2.c                       |   31 +-
+ arch/arm/plat-omap/Kconfig                         |   12 -
+ arch/arm/plat-omap/Makefile                        |    2 -
+ arch/arm/plat-omap/include/plat/iommu.h            |   77 ++--
+ arch/arm/plat-omap/include/plat/iommu2.h           |    4 +-
+ arch/arm/plat-omap/{ => include/plat}/iopgtable.h  |   20 +-
+ arch/arm/plat-omap/include/plat/iovmm.h            |   30 +-
+ drivers/iommu/Kconfig                              |   18 +
+ drivers/iommu/Makefile                             |    3 +
+ .../iommu/omap-iommu-debug.c                       |   36 +-
+ .../iommu.c => drivers/iommu/omap-iommu.c          |  511 +++++++++++++-------
+ .../iovmm.c => drivers/iommu/omap-iovmm.c          |  338 +++----------
+ drivers/media/video/Kconfig                        |    2 +-
+ drivers/media/video/omap3isp/isp.c                 |   45 ++-
+ drivers/media/video/omap3isp/isp.h                 |    5 +-
+ drivers/media/video/omap3isp/ispccdc.c             |   25 +-
+ drivers/media/video/omap3isp/ispstat.c             |   11 +-
+ drivers/media/video/omap3isp/ispvideo.c            |    4 +-
+ 18 files changed, 612 insertions(+), 562 deletions(-)
+ rename arch/arm/plat-omap/{ => include/plat}/iopgtable.h (82%)
+ rename arch/arm/plat-omap/iommu-debug.c => drivers/iommu/omap-iommu-debug.c (91%)
+ rename arch/arm/plat-omap/iommu.c => drivers/iommu/omap-iommu.c (61%)
+ rename arch/arm/plat-omap/iovmm.c => drivers/iommu/omap-iovmm.c (63%)
 
-> +		b	97f
->  95:		ldr	\rp, =ZOOM_UART_BASE
->  		mrc	p15, 0, \rv, c1, c0
->  		tst	\rv, #1			@ MMU enabled?
-> @@ -121,6 +125,23 @@ omap_uart_lsr:	.word	0
->  		b	10b
-> 
->  		/* Store both phys and virt address for the uart */
-> +97:		add	\rp, \rp, #0x44000000	@ phys base
-> +		mrc	p15, 0, \rv, c1, c0
-> +		tst	\rv, #1			@ MMU enabled?
-> +		ldreq	\rv, =omap_uart_v2p(omap_uart_phys)	@ MMU disabled
-> +		ldrne	\rv, =omap_uart_phys	@ MMU enabled
-> +		str	\rp, [\rv, #0]
-> +		sub	\rp, \rp, #0x44000000	@ phys base
-> +		add	\rp, \rp, #0xf9000000	@ virt base
-> +		add	\rv, \rv, #4		@ omap_uart_virt
-> +		str	\rp, [\rv, #0]
-> +		mov	\rp, #(UART_LSR << OMAP_PORT_SHIFT)
-> +		add	\rv, \rv, #4		@ omap_uart_lsr
-> +		str	\rp, [\rv, #0]
-> +
-> +		b	10b
-> +
-> +		/* Store both phys and virt address for the uart */
->  98:		add	\rp, \rp, #0x48000000	@ phys base
->  		mrc	p15, 0, \rv, c1, c0
->  		tst	\rv, #1			@ MMU enabled?
-> diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-
-> omap/include/plat/serial.h
-> index 865b13e..d7c1216 100644
-> --- a/arch/arm/plat-omap/include/plat/serial.h
-> +++ b/arch/arm/plat-omap/include/plat/serial.h
-> @@ -59,6 +59,9 @@
->  /* AM3505/3517 UART4 */
->  #define AM35XX_UART4_BASE	0x4809E000	/* Only on AM3505/3517 */
-> 
-> +/* AM335X serial port */
-> +#define AM335X_UART1_BASE	0x44E09000
-> +
->  /* External port on Zoom2/3 */
->  #define ZOOM_UART_BASE		0x10000000
->  #define ZOOM_UART_VIRT		0xfa400000
-> @@ -92,6 +95,7 @@
->  #define TI81XXUART1		81
->  #define TI81XXUART2		82
->  #define TI81XXUART3		83
-> +#define AM335XUART1		84
->  #define ZOOM_UART		95		/* Only on zoom2/3 */
-> 
->  /* This is only used by 8250.c for omap1510 */
-> diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-
-> omap/include/plat/uncompress.h
-> index 8d052e7..3592ce4 100644
-> --- a/arch/arm/plat-omap/include/plat/uncompress.h
-> +++ b/arch/arm/plat-omap/include/plat/uncompress.h
-> @@ -97,6 +97,10 @@ static inline void flush(void)
->  	_DEBUG_LL_ENTRY(mach, TI81XX_UART##p##_BASE, OMAP_PORT_SHIFT,	\
->  		TI81XXUART##p)
-> 
-> +#define DEBUG_LL_AM335X(p, mach)					\
-> +	_DEBUG_LL_ENTRY(mach, AM335X_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-> +		AM335XUART##p)
-> +
->  static inline void __arch_decomp_setup(unsigned long arch_id)
->  {
->  	int port = 0;
-> @@ -178,6 +182,8 @@ static inline void __arch_decomp_setup(unsigned long
-> arch_id)
->  		/* TI8148 base boards using UART1 */
->  		DEBUG_LL_TI81XX(1, ti8148evm);
-> 
-> +		/* AM335x base boards using UART1 */
-> +		DEBUG_LL_AM335X(1, am335xevm);
->  	} while (0);
->  }
-> 
-> --
-> 1.6.2.4
-
+-- 
+1.7.4.1
