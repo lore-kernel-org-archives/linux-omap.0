@@ -1,60 +1,42 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v4] OMAP4: hwmod data: I2C: add flag for context restore
-Date: Wed, 24 Aug 2011 07:44:09 -0700
-Message-ID: <87mxeyg98m.fsf@ti.com>
-References: <1310906603-2673-1-git-send-email-shubhrajyoti@ti.com>
-	<4E54D012.6050708@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 1/7] omap: iommu: migrate to the generic IOMMU API
+Date: Wed, 24 Aug 2011 17:46:37 +0300
+Message-ID: <CAK=WgbYtTvCi4yLBJphvni4XiZLwm_Rj9aZFXaTwg44J1BDGsw@mail.gmail.com>
+References: <1313622608-30397-1-git-send-email-ohad@wizery.com>
+ <1313622608-30397-2-git-send-email-ohad@wizery.com> <20110823140746.GP2079@amd.com>
+ <CAK=WgbZYuuKHUu6P+nfNzPgF4QmoL=T9+yquc=rMXRh4QE9grg@mail.gmail.com>
+ <CAK=WgbZAMbPhDuXZ2NwTTSDv2doT6WBSzCCaD0F02mybNEZyeA@mail.gmail.com> <20110824131527.GI2079@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:49659 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751486Ab1HXOoO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Aug 2011 10:44:14 -0400
-In-Reply-To: <4E54D012.6050708@ti.com> (shubhrajyoti@ti.com's message of "Wed,
-	24 Aug 2011 15:48:58 +0530")
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:63080 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752382Ab1HXOq6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 10:46:58 -0400
+Received: by wwf5 with SMTP id 5so1293112wwf.1
+        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 07:46:57 -0700 (PDT)
+In-Reply-To: <20110824131527.GI2079@amd.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Arnd Bergmann <arnd@arndb.de>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
 
-Shubhrajyoti <shubhrajyoti@ti.com> writes:
+On Wed, Aug 24, 2011 at 4:15 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> Yes, it should be safe in your context. But the iommu-api is generic and
+> I would prefer that all functions it provides can be called from any
+> context.
 
-> On Sunday 17 July 2011 06:13 PM, Shubhrajyoti D wrote:
->> Restore of context is not done for OMAP4. This patch
->> adds the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE in the OMAP4
->> hwmod data which activates the restore for OMAP4.
->> Currently the OMAP4 does not hit device off still the
->> driver may have support for it.
-> Could this patch be queued as well?
+Not a problem.
 
-Paul is the maintainer for the hwmod data.   It is usually helpful to
-ensure the maintainer is specifically added to the To line.
+I thought you only cared about map/unmap, but if you prefer
+attach/deattach to be atomic too, I'll migrate the driver to use a
+spin lock.
 
-Kevin
+> Or is the time required for attaching/detaching too long so that it
+> makes sense to put secondary threads to sleep?
 
->> Reviewed-by: Kevin Hilman<khilman@ti.com>
->> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
->> ---
->> Applies on top of patches from Andy Green
->> http://www.spinics.net/lists/linux-i2c/msg05632.html
->> Tested on OMAP4430
->>
->>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
->>   1 files changed, 2 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> index 0fe9556..5e2c748 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> @@ -2130,7 +2130,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
->>   };
->>
->>   static struct omap_i2c_dev_attr i2c_dev_attr = {
->> -	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
->> +	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE |
->> +			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
->>   };
->>
->>   /* i2c1 */
+It doesn't look like it. I think a mutex was originally chosen at that
+point because those functions were used in a process context.
+
+Thanks,
+Ohad.
