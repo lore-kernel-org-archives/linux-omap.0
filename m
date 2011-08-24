@@ -1,58 +1,119 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH 03/10] documentation/dt: Add l3-noc bindings
-Date: Wed, 24 Aug 2011 15:09:09 +0200
-Message-ID: <1314191356-10963-4-git-send-email-b-cousson@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [RFC PATCH 05/10] documentation/dt: Add mpu, dsp and iva bindings
+Date: Wed, 24 Aug 2011 15:09:11 +0200
+Message-ID: <1314191356-10963-6-git-send-email-b-cousson@ti.com>
 References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1314191356-10963-1-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: khilman-l0cyMroinI0@public.gmane.org, manjugk-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51994 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751341Ab1HXNLQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Aug 2011 09:11:16 -0400
+In-Reply-To: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: grant.likely@secretlab.ca, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, manjugk@ti.com, Benoit Cousson <b-cousson@ti.com>, Randy Dunlap <rdunlap@xenotime.net>
 
-Add documentation for the l3-noc bindings.
+Add documentation for the OMAP4 processors bindings.
 
-Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 ---
- .../devicetree/bindings/arm/omap/l3-noc.txt        |   18 ++++++++++++++++++
- 1 files changed, 18 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/l3-noc.txt
+ Documentation/devicetree/bindings/arm/omap/dsp.txt |   14 ++++++++
+ Documentation/devicetree/bindings/arm/omap/iva.txt |   18 ++++++++++
+ Documentation/devicetree/bindings/arm/omap/mpu.txt |   35 ++++++++++++++++++++
+ 3 files changed, 67 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/dsp.txt
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/iva.txt
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/mpu.txt
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
+diff --git a/Documentation/devicetree/bindings/arm/omap/dsp.txt b/Documentation/devicetree/bindings/arm/omap/dsp.txt
 new file mode 100644
-index 0000000..dbfa878
+index 0000000..8fcd82c
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
-@@ -0,0 +1,18 @@
-+* TI - L3 Network On Chip (NoC)
++++ b/Documentation/devicetree/bindings/arm/omap/dsp.txt
+@@ -0,0 +1,14 @@
++* TI - DSP (Digital Signal Processor)
 +
-+This version is an implementation of the generic NoC IP
-+provided by Arteris.
++TI DSP included in OMAP SoC
 +
 +Required properties:
-+- compatible : Should be "ti,l3-noc", "arteris,noc"
-+- hwmods: "l3_main_1", ... One hwmod for each noc domain.
++- compatible : Should be "ti,c64" for OMAP3 & 4
++- hwmods: "dsp"
 +
 +Examples:
 +
-+ocp {
-+	compatible = "ti,l3-noc", "arteris,noc", "simple-bus";
-+	#address-cells = <1>;
-+	#size-cells = <1>;
-+	ranges;
-+	hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
++dsp {
++    compatible = "ti,omap4-c64", "ti,c64";
++    hwmods = "dsp";
++};
+diff --git a/Documentation/devicetree/bindings/arm/omap/iva.txt b/Documentation/devicetree/bindings/arm/omap/iva.txt
+new file mode 100644
+index 0000000..f428e88
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/omap/iva.txt
+@@ -0,0 +1,18 @@
++* TI - IVA (Imaging and Video Accelerator) subsystem
++
++The IVA contain various audio, video or imaging HW accelerator
++depending of the version.
++
++Required properties:
++- compatible : Should be:
++  - "ti,ivahd", "ti,iva" for OMAP4
++  - "ti,iva2", "ti,iva" for OMAP3
++  - "ti,iva1", "ti,iva" for OMAP2
++- hwmods: "iva"
++
++Examples:
++
++iva {
++    compatible = "ti,ivahd", "ti,iva";
++    hwmods = "iva";
++};
+diff --git a/Documentation/devicetree/bindings/arm/omap/mpu.txt b/Documentation/devicetree/bindings/arm/omap/mpu.txt
+new file mode 100644
+index 0000000..eadab5a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/omap/mpu.txt
+@@ -0,0 +1,35 @@
++* TI - MPU (Main Processor Unit) subsystem
++
++The MPU subsystem contain one or several ARM cores
++depending of the version.
++The MPU contain CPUs, GIC, L2 cache and a local PRCM.
++
++Required properties:
++- compatible : Should be "ti,omap4-mpu" for OMAP4
++- hwmods: "mpu"
++
++Examples:
++
++- For an OMAP4 SMP system:
++
++mpu {
++    compatible = "ti,omap4-mpu";
++    hwmods = "mpu";
++    cpu@0 {
++        compatible = "arm,cortex-a9";
++    };
++    cpu@1 {
++        compatible = "arm,cortex-a9";
++    };
++};
++
++
++- For an OMAP3 monocore system:
++
++mpu {
++    compatible = "ti,omap3-mpu";
++    hwmods = "mpu";
++    cpu@0 {
++        compatible = "arm,cortex-a8";
++    };
 +};
 -- 
 1.7.0.4
+
