@@ -1,177 +1,108 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC: PATCH 1/4] AM335X: Update common omap platform files
-Date: Wed, 24 Aug 2011 23:49:01 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC007CE3@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1313058630-32447-2-git-send-email-hvaibhav@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: How to handle named resources with DT?
+Date: Wed, 24 Aug 2011 12:15:03 -0700
+Message-ID: <87r54a1v0o.fsf@ti.com>
+References: <20110809205723.GE11568@ponder.secretlab.ca>
+	<20110812030218.GP30552@yookeroo.fritz.box>
+	<20110812084106.GC19467@legolas.emea.dhcp.ti.com>
+	<201108121635.42953.arnd@arndb.de> <4E45422D.4050708@ti.com>
+	<CACxGe6s-2EAuvSqzn6yzDvCyVXa8vVVqG2X=1XFrUBnB=jsdxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33784 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752942Ab1HXSTN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 14:19:13 -0400
-In-Reply-To: <1313058630-32447-2-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:41758 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753796Ab1HXTPJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Aug 2011 15:15:09 -0400
+Received: by mail-gy0-f182.google.com with SMTP id 10so1301729gyd.41
+        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 12:15:08 -0700 (PDT)
+In-Reply-To: <CACxGe6s-2EAuvSqzn6yzDvCyVXa8vVVqG2X=1XFrUBnB=jsdxQ@mail.gmail.com>
+	(Grant Likely's message of "Fri, 12 Aug 2011 11:21:43 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, David Gibson <david@gibson.dropbear.id.au>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>
 
+Grant Likely <grant.likely@secretlab.ca> writes:
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Thursday, August 11, 2011 4:00 PM
-> To: linux-omap@vger.kernel.org
-> Cc: tony@atomide.com; Hilman, Kevin; paul@pwsan.com; linux-arm-
-> kernel@lists.infradead.org; Mohammed, Afzal; Hiremath, Vaibhav
-> Subject: [RFC: PATCH 1/4] AM335X: Update common omap platform files
-> 
-> From: Afzal Mohammed <afzal@ti.com>
-> 
-> This patch updates the common platform files with AM335X device
-> support, which is closer to TI81XX family of devices and will be
-> considered variant of TI81XX SoC.
-> 
-> Similar to TI81XX device, AM335X is treated as OMAP3 variant,
-> where the cpu class is considered as OMAP34XX and the type is AM335X.
-> This means, cpu_is_omap34xx(), cpu_is_ti81xx() and
-> cpu_is_am335x() checks return success on AM335X.
-> 
-> The TI81XX kernel config option CONFIG_SOC_OMAPTI8XX is used
-> to include support for AM335X build.
-> 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/mach-omap2/Kconfig                   |    2 +-
->  arch/arm/plat-omap/include/plat/clkdev_omap.h |    1 +
->  arch/arm/plat-omap/include/plat/clock.h       |    1 +
->  arch/arm/plat-omap/include/plat/cpu.h         |   14 ++++++++++++++
->  4 files changed, 17 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 4dacb8e..f9f5776 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -75,7 +75,7 @@ config SOC_OMAP3430
->  	select ARCH_OMAP_OTG
-> 
->  config SOC_OMAPTI81XX
-> -	bool "TI81XX support"
-> +	bool "TI81XX/AM335x support"
->  	depends on ARCH_OMAP3
->  	default y
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h
-> b/arch/arm/plat-omap/include/plat/clkdev_omap.h
-> index 3c50ec8..991e72c 100644
-> --- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
-> +++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
-> @@ -41,6 +41,7 @@ struct omap_clk {
->  #define CK_TI816X	(1 << 12)
->  #define CK_446X		(1 << 13)
->  #define CK_TI814X	(1 << 14)
-> +#define CK_AM335X	(1 << 15)	/* AM335x specific clocks */
-> 
-> 
->  #define CK_34XX		(CK_3430ES1 | CK_3430ES2PLUS)
-> diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-
-> omap/include/plat/clock.h
-> index 1c41292..b5d7447 100644
-> --- a/arch/arm/plat-omap/include/plat/clock.h
-> +++ b/arch/arm/plat-omap/include/plat/clock.h
-> @@ -60,6 +60,7 @@ struct clkops {
->  #define RATE_IN_TI816X		(1 << 6)
->  #define RATE_IN_4460		(1 << 7)
->  #define RATE_IN_TI814X		(1 << 8)
-> +#define RATE_IN_AM335X		(1 << 9)
-> 
->  #define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
->  #define RATE_IN_34XX		(RATE_IN_3430ES1 | RATE_IN_3430ES2PLUS)
-> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-
-> omap/include/plat/cpu.h
-> index f4ebbae..5a831be 100644
-> --- a/arch/arm/plat-omap/include/plat/cpu.h
-> +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> @@ -120,6 +120,12 @@ static inline int is_ti ##subclass (void)		\
->  	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
->  }
-> 
-> +#define IS_AM_SUBCLASS(subclass, id)			\
-> +static inline int is_am ##subclass (void)		\
-> +{							\
-> +	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
-> +}
-> +
->  IS_OMAP_CLASS(7xx, 0x07)
->  IS_OMAP_CLASS(15xx, 0x15)
->  IS_OMAP_CLASS(16xx, 0x16)
-> @@ -138,6 +144,7 @@ IS_OMAP_SUBCLASS(446x, 0x446)
-> 
->  IS_TI_SUBCLASS(816x, 0x816)
->  IS_TI_SUBCLASS(814x, 0x814)
-> +IS_AM_SUBCLASS(335x, 0x335)
-> 
-[Hiremath, Vaibhav] During validation and testing on actual silicon/board,
-I have realized that, it would not make much sense to follow cpu_is_ti81xx() for AM335x. We may end up polluting code like 
+> On Fri, Aug 12, 2011 at 9:09 AM, Cousson, Benoit <b-cousson@ti.com> wrote:
+>> On 8/12/2011 4:35 PM, Arnd Bergmann wrote:
+ 
+[...]
 
-If (cpu_is_ti81xx() && !cpu_is_am335x()) 
+>>
+>>> I think it's much easier to change the existing users of _byname over
+>>> to fixed indexes than to come up with a new scheme that is better.
 
-And also, in the future we might see multiple devices coming under AM33xx family. There is some IP's being reused between TI814X and AM335x, so as between OMAPx.
+I disagree.  It's not only about ordering.  More on that below.
 
-So, we should create separate SoC family for AM33xx family of devices, like OMAP4 and TI81xx and stick to only cpu_is_omap34xx(), cpu_is_am33xx() and cpu_is_am335x().
+>> As you said previously, since we have to support both legacy probing and DT
+>> for some time, it will be easier for these drivers to rely on the same API.
+>>
+>> Considering that adding that new property is not a huge effort anyway and
+>> _byname API is a standard API that any driver should be able to use if
+>> needed, it still worth adding the DT support for named resources for my
+>> point of view.
+>
+> The assumption being made here is that the current Linux
+> implementation detail dictates the binding design, but it does not.
+>
+> Binding authors should certainly look at the Linux implementation for
+> inspiration, but established DT patterns still prevail if they are
+> suitable for describing the hardware. In this case the pattern is that
+> tuples in the reg property are strongly ordered and specified by the
+> driver binding.
+>
+> So, I remain unconvinced that the 'reg' property binding is
+> insufficient.  
 
-I will be posting updated version of patch shortly (for review).
+If significant, in-tree usages of the feature for platform_devices is
+not enough, What are you looking for as convincing arguments? 
 
-Thanks,
-Vaibhav
+> I have no plans to merge support for fetching _byname values from the
+> device tree.
 
->  #define cpu_is_omap7xx()		0
->  #define cpu_is_omap15xx()		0
-> @@ -150,6 +157,7 @@ IS_TI_SUBCLASS(814x, 0x814)
->  #define cpu_is_ti81xx()			0
->  #define cpu_is_ti816x()			0
->  #define cpu_is_ti814x()			0
-> +#define cpu_is_am335x()			0
->  #define cpu_is_omap44xx()		0
->  #define cpu_is_omap443x()		0
->  #define cpu_is_omap446x()		0
-> @@ -358,6 +366,7 @@ IS_OMAP_TYPE(3517, 0x3517)
->  # undef cpu_is_ti81xx
->  # undef cpu_is_ti816x
->  # undef cpu_is_ti814x
-> +# undef cpu_is_am335x
->  # define cpu_is_omap3430()		is_omap3430()
->  # define cpu_is_omap3503()		(cpu_is_omap3430() &&		\
->  						(!omap3_has_iva()) &&	\
-> @@ -376,6 +385,7 @@ IS_OMAP_TYPE(3517, 0x3517)
->  # define cpu_is_ti81xx()		is_ti81xx()
->  # define cpu_is_ti816x()		is_ti816x()
->  # define cpu_is_ti814x()		is_ti814x()
-> +# define cpu_is_am335x()		is_am335x()
->  #endif
-> 
->  # if defined(CONFIG_ARCH_OMAP4)
-> @@ -431,6 +441,9 @@ IS_OMAP_TYPE(3517, 0x3517)
->  #define TI8148_REV_ES2_0	(TI814X_CLASS | (OMAP_REVBITS_01 << 8))
->  #define TI8148_REV_ES2_1	(TI814X_CLASS | (OMAP_REVBITS_02 << 8))
-> 
-> +#define AM335X_CLASS		0x33500034
-> +#define AM335X_REV_ES1_0	AM335X_CLASS
-> +
->  #define OMAP443X_CLASS		0x44300044
->  #define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
->  #define OMAP4430_REV_ES2_0	(OMAP443X_CLASS | (0x20 << 8))
-> @@ -471,6 +484,7 @@ IS_OMAP_TYPE(3517, 0x3517)
->  #define CHIP_IS_TI816X			(1 << 14)
->  #define CHIP_IS_OMAP4460ES1_0		(1 << 15)
->  #define CHIP_IS_TI814X			(1 << 16)
-> +#define CHIP_IS_AM335X			(1 << 17)
-> 
->  #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
-> 
-> --
-> 1.6.2.4
+I find this an unfortunate position to hold to in this climate of
+consolidation.
 
+One of the goals of consolidation is to have core features handled by
+core code.  To me this is a classic trade-off.  Either we implement it
+in core code, or we force all the users (drivers, in this case) to
+implement it themselves.  IMO, consolidation should be pointing us to
+solving these kinds of problems in core code, rather than spreading it
+across a bunch of drivers (and device code where the data lives.)
+Especially so in this case since there are existing, in-tree users
+demonstrating the usefulness of _byname.
+
+Not implementing this in core code means all drivers using _byname have
+to be converted, adding multiple lines of (IMHO ugly) code when it could
+be implemented cleanly by core code, keeping drivers much more readable.
+To me, the fact that there would also be an API difference compared to
+the existing platform_device probing (which will stay for the forseeable
+future) would be a major eye-sore in the drivers.
+
+In addition, converting all the drivers away from _byname is not just a
+matter of changing the drivers.  It also means of course you have to
+make sure that all of the data is in order.  On OMAP, that means
+reworking and/or regenerating all of the hwmod data to ensure it is in
+the right order.  Sounds like the kind of churn that would get us
+flamed.
+
+But that's not all...
+
+It's not just about data ordering.  As already pointed out, use of
+_byname is also used to differentiate between different
+versions/capabilities of the IP.  The driver can determine based on the
+availability of a named resource the capabilities of the device.
+Forcing resource ordering means some other mechanism also has to be
+added for detection of the IP version and/or capabilities.
+
+In summary, with the push towards consolidation, we're also trying to
+have common drivers that support multiple versions of an IP across
+differnet SoCs with varying capabilities.  Having named resources on the
+platform_device is an established way of handling this cleanly in the
+driver without the driver having to check SoC-specific or IP-version
+specific registers.
+
+Kevin
