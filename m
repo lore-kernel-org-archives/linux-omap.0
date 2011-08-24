@@ -1,57 +1,72 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v2] OMAP3EVM: ehci: Fix EHCI support
-Date: Wed, 24 Aug 2011 17:23:04 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC007BC0@dbde02.ent.ti.com>
-References: <1314174902-12797-1-git-send-email-bdefaria@adeneo-embedded.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/3] omap cleanup for makefile and init_early
+Date: Wed, 24 Aug 2011 04:54:28 -0700
+Message-ID: <20110824115048.2985.24230.stgit@kaulin>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50165 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752570Ab1HXLxY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 07:53:24 -0400
-In-Reply-To: <1314174902-12797-1-git-send-email-bdefaria@adeneo-embedded.com>
-Content-Language: en-US
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45877 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752725Ab1HXLya (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 07:54:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan DE FARIA <bdefaria@adeneo-embedded.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-Hi,
-> Set the VAUX2 regulator supply to 1.8V for the HSUSB host interface.
-> Gpio 2 of the TPS65950 has to be set to zero in order to enable the
-> HSUBS2 clock.
+Hi all,
 
-TPS65950 GPIO2 is not to enable HSUSB2 clock but to enable chip u131
-On omap3evm (rev-G) which latches USB, camera and audio lines.
+Here are few patches for review to cleanup mach-omap2 for
+Makefile and init_early.
 
-> 
-> Signed-off-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-> ---
->  arch/arm/mach-omap2/board-omap3evm.c |   25 +++++++++++++++++++++++++
->  1 files changed, 25 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
-> omap2/board-omap3evm.c
-> index c452b3f..13a2b71 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -377,6 +377,10 @@ static int omap3evm_twl_gpio_setup(struct device
-> *dev,
->  	if (r)
->  		printk(KERN_ERR "failed to get/set lcd_bkl gpio\n");
-> 
-> +	/* gpio + 2 == HSUSB2 Clock Enable */
-> +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
-> +		gpio_request_one(gpio + 2, GPIOF_OUT_INIT_LOW,
-> "EN_HSUSB2_CLK");
-> +
+The init_early changes will continue the earlier cleanup
+efforts of initializing things later on during the boot
+and cutting down dependencies.
 
-Did you test EHCI port with this change ?
+Regards,
 
-Ajay
->  	/* gpio + 7 == DVI Enable */
->  	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
-[...]
-rm-kernel
+Tony
+
+---
+
+Tony Lindgren (3):
+      omap2+: Use Kconfig symbol in Makefile instead of obj-y
+      ARM: OMAP: Move omap2_init_common_devices out of init_early
+      ARM: OMAP: Introduce SoC specific early_init
+
+
+ arch/arm/mach-omap2/Makefile               |   76 ++++++++++++----------------
+ arch/arm/mach-omap2/board-2430sdp.c        |    9 +--
+ arch/arm/mach-omap2/board-3430sdp.c        |    9 +--
+ arch/arm/mach-omap2/board-3630sdp.c        |   11 +---
+ arch/arm/mach-omap2/board-4430sdp.c        |    9 +--
+ arch/arm/mach-omap2/board-am3517crane.c    |    9 +--
+ arch/arm/mach-omap2/board-am3517evm.c      |    8 +--
+ arch/arm/mach-omap2/board-apollon.c        |    9 +--
+ arch/arm/mach-omap2/board-cm-t35.c         |   13 +----
+ arch/arm/mach-omap2/board-cm-t3517.c       |    9 +--
+ arch/arm/mach-omap2/board-devkit8000.c     |   12 +---
+ arch/arm/mach-omap2/board-generic.c        |    2 -
+ arch/arm/mach-omap2/board-h4.c             |    9 +--
+ arch/arm/mach-omap2/board-igep0020.c       |   13 +----
+ arch/arm/mach-omap2/board-ldp.c            |    9 +--
+ arch/arm/mach-omap2/board-n8x0.c           |   13 +----
+ arch/arm/mach-omap2/board-omap3beagle.c    |    4 +
+ arch/arm/mach-omap2/board-omap3evm.c       |    9 +--
+ arch/arm/mach-omap2/board-omap3logic.c     |   11 +---
+ arch/arm/mach-omap2/board-omap3pandora.c   |   11 +---
+ arch/arm/mach-omap2/board-omap3stalker.c   |    9 +--
+ arch/arm/mach-omap2/board-omap3touchbook.c |   11 +---
+ arch/arm/mach-omap2/board-omap4panda.c     |    9 +--
+ arch/arm/mach-omap2/board-overo.c          |   11 +---
+ arch/arm/mach-omap2/board-rm680.c          |   17 +++---
+ arch/arm/mach-omap2/board-rx51.c           |   17 +++---
+ arch/arm/mach-omap2/board-ti8168evm.c      |    9 +--
+ arch/arm/mach-omap2/board-zoom.c           |   23 ++++----
+ arch/arm/mach-omap2/io.c                   |   40 +++++++++++++++
+ arch/arm/plat-omap/include/plat/common.h   |    9 +++
+ 30 files changed, 164 insertions(+), 246 deletions(-)
+
+-- 
+Signature
