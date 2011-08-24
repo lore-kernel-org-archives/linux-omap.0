@@ -1,77 +1,62 @@
-From: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-Subject: [PATCH v2] OMAP3EVM: ehci: Fix EHCI support
-Date: Wed, 24 Aug 2011 10:35:02 +0200
-Message-ID: <1314174902-12797-1-git-send-email-bdefaria@adeneo-embedded.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:50356 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756435Ab1HXIf0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 04:35:26 -0400
-Received: by bke11 with SMTP id 11so709566bke.19
-        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 01:35:24 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH -next v2] usb: fix dwc3 build when USB_GADGET_DWC3 is not
+ enabled
+Date: Wed, 24 Aug 2011 11:51:14 +0300
+Message-ID: <20110824085113.GC12549@legolas.emea.dhcp.ti.com>
+References: <20110823160432.d24f8cad00951286bc18461e@canb.auug.org.au>
+ <20110823110702.f5ea377c.rdunlap@xenotime.net>
+ <20110823185235.GA11299@legolas.emea.dhcp.ti.com>
+ <20110823125247.fbbf9636.rdunlap@xenotime.net>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4ZLFUWh1odzi/v6L"
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20110823125247.fbbf9636.rdunlap@xenotime.net>
+Sender: linux-next-owner@vger.kernel.org
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: balbi@ti.com, Stephen Rothwell <sfr@canb.auug.org.au>, akpm <akpm@linux-foundation.org>, gregkh@suse.de, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: Bryan DE FARIA <bdefaria@adeneo-embedded.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il
 
-Set the VAUX2 regulator supply to 1.8V for the HSUSB host interface.
-Gpio 2 of the TPS65950 has to be set to zero in order to enable the HSUBS2 clock.
 
-Signed-off-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+), 0 deletions(-)
+--4ZLFUWh1odzi/v6L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index c452b3f..13a2b71 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -377,6 +377,10 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
- 	if (r)
- 		printk(KERN_ERR "failed to get/set lcd_bkl gpio\n");
- 
-+	/* gpio + 2 == HSUSB2 Clock Enable */
-+	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
-+		gpio_request_one(gpio + 2, GPIOF_OUT_INIT_LOW, "EN_HSUSB2_CLK");
-+
- 	/* gpio + 7 == DVI Enable */
- 	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
- 
-@@ -450,6 +454,25 @@ static struct regulator_init_data omap3evm_vio = {
- 	.consumer_supplies	= omap3evm_vio_supply,
- };
- 
-+/* VAUX2 for EHCI */
-+static struct regulator_consumer_supply omap3evm_vaux2_supplies[] = {
-+	REGULATOR_SUPPLY("hsusb1", "ehci-omap.0"),
-+};
-+
-+static struct regulator_init_data omap3evm_vaux2 = {
-+	.constraints = {
-+		.min_uV      		= 1800000,
-+		.max_uV      		= 1800000,
-+		.apply_uV    		= true,
-+		.valid_modes_mask  	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask  	= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = ARRAY_SIZE(omap3evm_vaux2_supplies),
-+	.consumer_supplies   	= omap3evm_vaux2_supplies,
-+};
-+
- #ifdef CONFIG_WL12XX_PLATFORM_DATA
- 
- #define OMAP3EVM_WLAN_PMENA_GPIO	(150)
-@@ -510,6 +533,8 @@ static int __init omap3_evm_i2c_init(void)
- 
- 	omap3evm_twldata.vdac->constraints.apply_uV = true;
- 	omap3evm_twldata.vpll2->constraints.apply_uV = true;
-+	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
-+		omap3evm_twldata.vaux2 = &omap3evm_vaux2;
- 
- 	omap3_pmic_init("twl4030", &omap3evm_twldata);
- 	omap_register_i2c_bus(2, 400, NULL, 0);
--- 
-1.7.4.1
+Hi,
 
+On Tue, Aug 23, 2011 at 12:52:47PM -0700, Randy Dunlap wrote:
+> From: Randy Dunlap <rdunlap@xenotime.net>
+>=20
+> Fix build error when CONFIG_USB_GADGET_DWC3 is not enabled:
+>=20
+> ERROR: "dwc3_send_gadget_ep_cmd" [drivers/usb/dwc3/dwc3.ko] undefined!
+>=20
+> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+
+Thanks Randy
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+--=20
+balbi
+
+--4ZLFUWh1odzi/v6L
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOVLuBAAoJEAv8Txj19kN1LLAH/0PAiAm4OYhVrSddeA8pGVAl
+2jqb6fCMTHPqfXsYJs5NJc76SL6sOSFNNwzNk6+vowuIb06VsVewVwXA8UPvJr5O
+qs3mLL9b5QoIilbGdsIGDtAWmZAzQtXO/CGsffpc/Zn8q3ecBHVMNlDcwzbQIkYW
+DiEV9zR//ZxeXqY6gW7KX/FGAi45f3RxIXcD242wzudO6k020YOAvqpyBkqCNOnq
+5zLBuvO/RQMMCnaPIcE7VIJNnvEHAN84d5WH5pr2OTrkix5GphRbM3/8rydLdCua
+RCCsBdKzFd7IO3ghO/8MPLw/OXQz4ZNcrwPUp1KilwSuaLkL+mRWVFaQ18Vo0ZM=
+=mAhB
+-----END PGP SIGNATURE-----
+
+--4ZLFUWh1odzi/v6L--
