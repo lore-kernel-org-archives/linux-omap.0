@@ -1,69 +1,56 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [RFC PATCH 10/10] documentation/dt: Add OMAP GPIO properties
-Date: Wed, 24 Aug 2011 15:09:16 +0200
-Message-ID: <1314191356-10963-11-git-send-email-b-cousson@ti.com>
-References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH 1/7] omap: iommu: migrate to the generic IOMMU API
+Date: Wed, 24 Aug 2011 15:15:27 +0200
+Message-ID: <20110824131527.GI2079@amd.com>
+References: <1313622608-30397-1-git-send-email-ohad@wizery.com>
+	<1313622608-30397-2-git-send-email-ohad@wizery.com>
+	<20110823140746.GP2079@amd.com>
+	<CAK=WgbZYuuKHUu6P+nfNzPgF4QmoL=T9+yquc=rMXRh4QE9grg@mail.gmail.com>
+	<CAK=WgbZAMbPhDuXZ2NwTTSDv2doT6WBSzCCaD0F02mybNEZyeA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52021 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751550Ab1HXNL0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Aug 2011 09:11:26 -0400
-In-Reply-To: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CAK=WgbZAMbPhDuXZ2NwTTSDv2doT6WBSzCCaD0F02mybNEZyeA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: grant.likely@secretlab.ca, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, manjugk@ti.com, Benoit Cousson <b-cousson@ti.com>, Randy Dunlap <rdunlap@xenotime.net>
 
-Add documentation for GPIO properties specific to OMAP.
+On Wed, Aug 24, 2011 at 08:46:13AM -0400, Ohad Ben-Cohen wrote:
+> On Tue, Aug 23, 2011 at 5:59 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> > On Tue, Aug 23, 2011 at 5:07 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> >> Can this be easily converted to a spin_lock?
+> >
+> > Sure, thanks for reviewing.
+> 
+> Taking a second look, I don't think it's necessary - the mutex isn't
+> used to protect the page table. The page table is protected by a spin
+> lock, so map/unmap operations can be called from an atomic context.
+> 
+> The mutex is only part of the attach/deattach operations, which are
+> already used today in process context, so I guess it's safe.
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
----
- .../devicetree/bindings/gpio/gpio-omap.txt         |   33 ++++++++++++++++++++
- 1 files changed, 33 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/gpio/gpio-omap.txt
+Yes, it should be safe in your context. But the iommu-api is generic and
+I would prefer that all functions it provides can be called from any
+context.
+Or is the time required for attaching/detaching too long so that it
+makes sense to put secondary threads to sleep?
 
-diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-new file mode 100644
-index 0000000..692b1c7
---- /dev/null
-+++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-@@ -0,0 +1,33 @@
-+OMAP GPIO controller
-+
-+Required properties:
-+- compatible:
-+  - "ti,omap2-gpio" for OMAP2 and OMAP3 controllers
-+  - "ti,omap4-gpio" for OMAP4 controller
-+- #gpio-cells : Should be two.
-+  - first cell is the pin number
-+  - second cell is used to specify optional parameters (unused)
-+- gpio-controller : Marks the device node as a GPIO controller.
-+
-+OMAP specific properties:
-+- hwmods: Name of the hwmod associated to the GPIO
-+- id: 32 bits to identify the id (1 based index)
-+- bank_width: number of pin supported by the controller (16 or 32)
-+- debounce: set if the controller support the debouce funtionnality
-+- bank_count: number of controller support by the SoC. This is a temporary
-+  hack until the bank_count is removed from the driver.
-+
-+
-+Example:
-+
-+gpio4: gpio4 {
-+    compatible = "ti,omap4-gpio", "ti,omap-gpio";
-+    hwmods = "gpio4";
-+    id = <4>;
-+    bank_width = <32>;
-+    debounce;
-+    no_idle_on_suspend;
-+    #gpio-cells = <2>;
-+    gpio-controller;
-+};
-+
+	Joerg
+
 -- 
-1.7.0.4
+AMD Operating System Research Center
 
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
