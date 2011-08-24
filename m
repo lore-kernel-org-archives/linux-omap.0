@@ -1,93 +1,63 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] OMAP3EVM: ehci: Fix EHCI support
-Date: Wed, 24 Aug 2011 11:07:32 +0300
-Message-ID: <4E54B144.8010702@compulab.co.il>
-References: <1314112595-14849-1-git-send-email-bdefaria@adeneo-embedded.com>
+From: Ben Dooks <ben-SMNkleLxa3Z6Wcw2j4pizdi2O/JbrIOy@public.gmane.org>
+Subject: Re: [GIT PULL] I2C: OMAP: major cleanup for v3.2 (was for v3.1)
+Date: Wed, 24 Aug 2011 09:32:39 +0100
+Message-ID: <20110824083239.GD27653@trinity.fluff.org>
+References: <87sjorhepe.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1314112595-14849-1-git-send-email-bdefaria@adeneo-embedded.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <87sjorhepe.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Once again my mailer played me... sending for the second time... sorry
 
-Hi Bryan,
-
-Please, CC linux-arm-kernel@lists.infradead.org for patches like this.
-One question below
-
-On 08/23/11 18:16, Bryan DE FARIA wrote:
-> Set the VAUX2 regulator supply to 1.8V for the HSUSB host interface.
-> Gpio 2 of the TPS65950 has to be set to zero in order to enable the HSUBS2 clock.
+On Tue, Aug 23, 2011 at 04:48:29PM -0700, Kevin Hilman wrote:
+> Ben,
 > 
-> Signed-off-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-> ---
->  arch/arm/mach-omap2/board-omap3evm.c |   24 ++++++++++++++++++++++++
->  1 files changed, 24 insertions(+), 0 deletions(-)
+> This series fell through the cracks for v3.1, so I've now rebased it
+> onto v3.1-rc3 and am submitting it for v3.2.  It no longer has any
+> dependencies on OMAP trees, so could you please pull this into your tree
+> for linux-next?   
 > 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> index c452b3f..ce09e9e 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -377,6 +377,10 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
->  	if (r)
->  		printk(KERN_ERR "failed to get/set lcd_bkl gpio\n");
->  
-> +	/* gpio + 2 == HSUSB2 Clock Enable */
-> +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
-> +		gpio_request_one(gpio + 2, GPIOF_OUT_INIT_LOW, "EN_HSUSB2_CLK");
-> +
->  	/* gpio + 7 == DVI Enable */
->  	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
->  
-> @@ -450,6 +454,25 @@ static struct regulator_init_data omap3evm_vio = {
->  	.consumer_supplies	= omap3evm_vio_supply,
->  };
->  
-> +/* VAUX2 for EHCI */
-> +static struct regulator_consumer_supply omap3evm_vaux2_supplies[] = {
-> +	REGULATOR_SUPPLY("hsusb1", "ehci-omap.0"),
-> +};
-> +
-> +static struct regulator_init_data omap3evm_vaux2 = {
-> +	.constraints = {
-> +		.min_uV      		= 1800000,
-> +		.max_uV      		= 1800000,
-> +		.apply_uV    		= true,
-> +		.valid_modes_mask  	= REGULATOR_MODE_NORMAL
-> +					| REGULATOR_MODE_STANDBY,
-> +		.valid_ops_mask  	= REGULATOR_CHANGE_MODE
-> +					| REGULATOR_CHANGE_STATUS,
-> +	},
-> +	.num_consumer_supplies  = ARRAY_SIZE(omap3evm_vaux2_supplies),
-> +	.consumer_supplies   	= omap3evm_vaux2_supplies,
-> +};
-> +
->  #ifdef CONFIG_WL12XX_PLATFORM_DATA
->  
->  #define OMAP3EVM_WLAN_PMENA_GPIO	(150)
-> @@ -645,6 +668,7 @@ static void __init omap3_evm_init(void)
->  	usb_nop_xceiv_register();
->  
->  	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2) {
-> +		omap3evm_twldata.vaux2 = &omap3evm_vaux2;
+> A few more OMAP I2C series will be coming on top of this one.
 
-Wouldn't it be better to put this inside the omap3_evm_i2c_init() function
-so all the initialization of that type be close to each other
-and done before the omap3_pmic_init() call?
+Thanks, will do that tonight when preparing new -next.
+ 
+> Thanks,
+> 
+> Kevin
+> 
+> 
+> The following changes since commit fcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c:
+> 
+>   Linux 3.1-rc3 (2011-08-22 11:42:53 -0700)
+> 
+> are available in the git repository at:
+>   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.2/i2c-andy
+> 
+> Andy Green (12):
+>       I2C: OMAP2+: Name registers in I2C IP V2 only accordingly
+>       I2C: OMAP: add rev to omap i2c platform data
+>       I2C: OMAP1: set IP revision in platform data
+>       I2C: OMAP2+: Pass hwmod rev knowledge via platform_data when i2c bus added
+>       I2C: OMAP2+: use platform_data ip revision to select register map
+>       I2C: OMAP2+: Solve array bounds overflow error on i2c idle
+>       I2C: OMAP2+: address confused probed version naming
+>       I2C: OMAP1/OMAP2+: add flags field to omap i2c platform data
+>       I2C: OMAP2+: Pass flags up to omap i2c platform_data as well
+>       I2C: OMAP1: set i2c unit feature implementation flags in platform data
+>       I2C: OMAP2+: Convert omap I2C driver to use feature implementation flags from platform data
+>       I2C: OMAP1/OMAP2+: prepend I2C IP version to probed version shown in dev_info
+> 
+>  arch/arm/plat-omap/i2c.c      |   27 +++++++++++
+>  drivers/i2c/busses/i2c-omap.c |  100 ++++++++++++++++++++++------------------
+>  include/linux/i2c-omap.h      |    2 +
+>  3 files changed, 84 insertions(+), 45 deletions(-)
 
 -- 
-Regards,
-Igor.
+Ben Dooks, ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/ben/
+
+Large Hadron Colada: A large Pina Colada that makes the universe disappear.
