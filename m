@@ -1,56 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP: Move omap2_init_common_devices out of
- init_early
-Date: Wed, 24 Aug 2011 05:20:50 -0700
-Message-ID: <20110824122049.GA2963@atomide.com>
-References: <20110824115048.2985.24230.stgit@kaulin>
- <20110824115433.2985.98712.stgit@kaulin>
- <4E54EA5E.8010603@ti.com>
+From: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
+Subject: RE: [PATCH v2] OMAP3EVM: ehci: Fix EHCI support
+Date: Wed, 24 Aug 2011 14:42:07 +0200
+Message-ID: <1314189727.2320.16.camel@bryan-HUTIA>
+References: <1314174902-12797-1-git-send-email-bdefaria@adeneo-embedded.com>
+	<19F8576C6E063C45BE387C64729E739404EC007BC0@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61928 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752510Ab1HXMUy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 08:20:54 -0400
-Content-Disposition: inline
-In-Reply-To: <4E54EA5E.8010603@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC007BC0@dbde02.ent.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* Cousson, Benoit <b-cousson@ti.com> [110824 04:38]:
-> Hi Tony,
-> 
-> On 8/24/2011 1:54 PM, Tony Lindgren wrote:
-> >There's no need to call omap2_init_common_devices from init_early.
-> >It reprograms the memory timings for some boards, so it's better to
-> >do it later so we have a chance to get console messages if something
-> >goes wrong.
-> 
-> BTW, I did some comment on that function in my OMAP4 device-tree
-> series, because the name is misleading.
-> That function is just initializing the SDRC controller present in
-> OMAP2 & 3. OMAP4 platform should not even call it.
-> In fact, I'm now wondering were the OMAP4 EMIF is configured?
+Hi Ajay,
 
-Probably nowhere currently?
- 
-> void __init omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs0,
->                                       struct omap_sdrc_params *sdrc_cs1)
-> {
->         if (cpu_is_omap24xx() || omap3_has_sdrc()) {
->                 omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
->                 _omap2_init_reprogram_sdrc();
->         }
-> }
-> 
-> I guess it used to do much more than that in the past.
-> 
-> Shouldn't we rename it to clarify its purpose?
+TPS65950 GPIO2 is to choose through u131 if we drive the lines to the
+evm mother board or to the expansion connector p18. Should not it be
+default to the mother board?
+The EHCI port on the mother board works with this patch.
 
-Yeah we might as well rename it to omap_init_sdrc since we're
-patching it. Will post an updated patch.
+Bryan
 
-Tony
+> Hi,
+> > Set the VAUX2 regulator supply to 1.8V for the HSUSB host interface.
+> > Gpio 2 of the TPS65950 has to be set to zero in order to enable the
+> > HSUBS2 clock.
+> 
+> TPS65950 GPIO2 is not to enable HSUSB2 clock but to enable chip u131
+> On omap3evm (rev-G) which latches USB, camera and audio lines.
+> 
+> > 
+> > Signed-off-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
+> > ---
+> >  arch/arm/mach-omap2/board-omap3evm.c |   25 +++++++++++++++++++++++++
+> >  1 files changed, 25 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> > omap2/board-omap3evm.c
+> > index c452b3f..13a2b71 100644
+> > --- a/arch/arm/mach-omap2/board-omap3evm.c
+> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> > @@ -377,6 +377,10 @@ static int omap3evm_twl_gpio_setup(struct device
+> > *dev,
+> >  	if (r)
+> >  		printk(KERN_ERR "failed to get/set lcd_bkl gpio\n");
+> > 
+> > +	/* gpio + 2 == HSUSB2 Clock Enable */
+> > +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
+> > +		gpio_request_one(gpio + 2, GPIOF_OUT_INIT_LOW,
+> > "EN_HSUSB2_CLK");
+> > +
+> 
+> Did you test EHCI port with this change ?
+> 
+> Ajay
+> >  	/* gpio + 7 == DVI Enable */
+> >  	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
+> [...]
+> rm-kernel
