@@ -1,132 +1,101 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [RFC PATCH 09/10] arm/dts: OMAP4: Add gpio nodes
-Date: Wed, 24 Aug 2011 15:09:15 +0200
-Message-ID: <1314191356-10963-10-git-send-email-b-cousson@ti.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH 06/10] hwspinlock: OMAP4: Add spinlock support in DT
+Date: Wed, 24 Aug 2011 15:09:12 +0200
+Message-ID: <1314191356-10963-7-git-send-email-b-cousson@ti.com>
 References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53861 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751266Ab1HXNLY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Aug 2011 09:11:24 -0400
-In-Reply-To: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1314191356-10963-1-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: khilman-l0cyMroinI0@public.gmane.org, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, manjugk-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: grant.likely@secretlab.ca, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, manjugk@ti.com, Benoit Cousson <b-cousson@ti.com>, Charulatha V <charu@ti.com>
 
-Add the 6 GPIOs controller nodes.
-Since the GPIO driver is still under cleanup, a couple of temp
-hacks are needed. They will be removed as soon as the driver will
-be cleaned.
+Add a device-tree node for the spinlock.
+Remove the static device build code if CONFIG_OF
+is set.
+Update the hwspinlock driver to use the of_match method.
+Add the information in Documentation/devicetree.
 
-Remove gpio static device initialisation if CONFIG_OF is defined.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Charulatha V <charu@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4.dtsi |   69 ++++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/gpio.c   |    2 +
- 2 files changed, 71 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi         |    5 +++++
+ arch/arm/mach-omap2/Makefile         |    6 +++++-
+ drivers/hwspinlock/omap_hwspinlock.c |   11 +++++++++++
+ 3 files changed, 21 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 231d7b4..f672927 100644
+index a3efe76..231d7b4 100644
 --- a/arch/arm/boot/dts/omap4.dtsi
 +++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -110,5 +110,74 @@
- 			compatible = "ti,omap-spinlock";
- 			hwmods = "spinlock";
+@@ -105,5 +105,10 @@
+ 			reg = <0x48241000 0x1000>,
+ 			      <0x48240100 0x0200>;
  		};
 +
-+		gpio1: gpio@1 {
-+			compatible = "ti,omap4-gpio", "ti,omap-gpio";
-+			hwmods = "gpio1";
-+			/* id should not be needed with a global GPIO parent */
-+			id = <1>;
-+			bank_width = <32>;
-+			debounce;
-+			/* XXX: big hack until the bank_count is removed */
-+			bank_count = <6>;
-+			no_idle_on_suspend;
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+		};
-+
-+		gpio2: gpio@2 {
-+			compatible = "ti,omap4-gpio", "ti,omap-gpio";
-+			hwmods = "gpio2";
-+			id = <2>;
-+			bank_width = <32>;
-+			debounce;
-+			no_idle_on_suspend;
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+		};
-+
-+		gpio3: gpio@3 {
-+			compatible = "ti,omap4-gpio", "ti,omap-gpio";
-+			hwmods = "gpio3";
-+			id = <3>;
-+			bank_width = <32>;
-+			debounce;
-+			no_idle_on_suspend;
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+		};
-+
-+		gpio4: gpio@4 {
-+			compatible = "ti,omap4-gpio", "ti,omap-gpio";
-+			hwmods = "gpio4";
-+			id = <4>;
-+			bank_width = <32>;
-+			debounce;
-+			no_idle_on_suspend;
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+		};
-+
-+		gpio5: gpio@5 {
-+			compatible = "ti,omap4-gpio", "ti,omap-gpio";
-+			hwmods = "gpio5";
-+			id = <5>;
-+			bank_width = <32>;
-+			debounce;
-+			no_idle_on_suspend;
-+			#gpio-cells = <2>;
-+			gpio-controller;
-+		};
-+
-+		gpio6: gpio@6 {
-+			compatible = "ti,omap4-gpio", "ti,omap-gpio";
-+			hwmods = "gpio6";
-+			id = <6>;
-+			bank_width = <32>;
-+			debounce;
-+			no_idle_on_suspend;
-+			#gpio-cells = <2>;
-+			gpio-controller;
++		spinlock {
++			compatible = "ti,omap-spinlock";
++			hwmods = "spinlock";
 +		};
  	};
  };
-diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-index 8cbfbc2..c51e952 100644
---- a/arch/arm/mach-omap2/gpio.c
-+++ b/arch/arm/mach-omap2/gpio.c
-@@ -16,6 +16,7 @@
-  * GNU General Public License for more details.
-  */
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 79e42a1..6ab9116 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -263,9 +263,13 @@ obj-y					+= $(smc91x-m) $(smc91x-y)
  
-+#ifndef CONFIG_OF
- #include <linux/gpio.h>
- #include <linux/err.h>
- #include <linux/slab.h>
-@@ -126,3 +127,4 @@ static int __init omap2_gpio_init(void)
- 						NULL);
+ smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
+ obj-y					+= $(smsc911x-m) $(smsc911x-y)
+-obj-$(CONFIG_ARCH_OMAP4)		+= hwspinlock.o
+ 
+ disp-$(CONFIG_OMAP2_DSS)		:= display.o
+ obj-y					+= $(disp-m) $(disp-y)
+ 
+ obj-y					+= common-board-devices.o twl-common.o
++
++# Do not build static device init code in case of DT build
++ifneq ($(CONFIG_OF),y)
++obj-$(CONFIG_ARCH_OMAP4)		+= hwspinlock.o
++endif
+diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
+index a8f0273..09dd132 100644
+--- a/drivers/hwspinlock/omap_hwspinlock.c
++++ b/drivers/hwspinlock/omap_hwspinlock.c
+@@ -203,11 +203,22 @@ static int omap_hwspinlock_remove(struct platform_device *pdev)
+ 	return 0;
  }
- postcore_initcall(omap2_gpio_init);
+ 
++#if defined(CONFIG_OF)
++static const struct of_device_id spinlock_match[] = {
++	{.compatible = "ti,omap-spinlock", },
++	{},
++}
++MODULE_DEVICE_TABLE(of, spinlock_match);
++#else
++#define spinlock_match NULL
 +#endif
++
+ static struct platform_driver omap_hwspinlock_driver = {
+ 	.probe		= omap_hwspinlock_probe,
+ 	.remove		= omap_hwspinlock_remove,
+ 	.driver		= {
+ 		.name	= "omap_hwspinlock",
++		.of_match_table = spinlock_match,
+ 	},
+ };
+ 
 -- 
 1.7.0.4
-
