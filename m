@@ -1,69 +1,33 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [POWER DOMAIN suspend callbacks] Observation.
-Date: Wed, 24 Aug 2011 16:38:01 -0700
-Message-ID: <874o167546.fsf@ti.com>
-References: <4E53B6FC.8030507@ti.com> <871uwcjbwi.fsf@ti.com>
-	<4E549769.2030800@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 0/1] PM: omap_device fix for v3.1-rc
+Date: Wed, 24 Aug 2011 16:43:56 -0700
+Message-ID: <1314229437-31836-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:59035 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751054Ab1HXXiG (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:33772 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750803Ab1HXXnf (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Aug 2011 19:38:06 -0400
-Received: by mail-yi0-f48.google.com with SMTP id 17so1612807yib.21
-        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 16:38:05 -0700 (PDT)
-In-Reply-To: <4E549769.2030800@ti.com> (Santosh's message of "Wed, 24 Aug 2011
-	11:47:13 +0530")
+	Wed, 24 Aug 2011 19:43:35 -0400
+Received: by mail-pz0-f45.google.com with SMTP id 33so3569185pzk.18
+        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 16:43:33 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh <santosh.shilimkar@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Govindraj R <govindraj.raja@ti.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org
 
-Santosh <santosh.shilimkar@ti.com> writes:
+While this fix could go via the OMAP tree, since the original patch
+causing the problem went via Rafael's tree (due to dependencies) I'm
+submitting the fix to go via Rafael's tree as well.
 
-> On Tuesday 23 August 2011 10:36 PM, Kevin Hilman wrote:
->> Hi Santosh,
->>
->> Santosh<santosh.shilimkar@ti.com>  writes:
->>
->>> Rafael, Kevin,
->>>
->>> On latest kernel( V3.1-rc1+), the subsystem(driver) suspend
->>> callbacks are not getting called because power domain callbcaks
->>> are populated.
->>>
->>> And as per commit 4d27e9dc{PM: Make power domain callbacks take
->>> precedence over subsystem ones}, it's expected bahavior.
->>
->> Correct.
->>
->>> Who is suppose to call the driver suspend callback?
->>
->> If populated, the PM domain callbacks should call the driver callbacks.
->> If there are no PM domain callbacks, then the subsystem (in this case,
->> the platform_bus) should be calling the driver callbacks.
->>
->>> Some drivers/subsystem would have state machine which needs to
->>> be suspended.
->>>
->>> Is the power domain suspend callback, suppose to take care of
->>> it ? If yes, then that seems to be missing for OMAP.
->>
->> Yup, there's a bug.    They're not missing, just misplaced. ;)
->>
->> When adding the noirq callbacks to ensure devices are idled late in
->> suspend by omap_device, I the patch commited mistakenly uses
->> SET_SYSTEM_SLEEP_PM_OPS(), which sets the "normal" suspend/resume
->> handlers and not the noirq handlers.
->>
->> Can you try the patch below?  I only briefly tested it on omap3/n900 so
->> far.
->>
-> The patch works like charm.
+Applies on v3.1-rc3.
 
-Thanks, I'll add a tested-by for you.
+Kevin Hilman (1):
+  OMAP: omap_device: only override _noirq methods, not normal
+    suspend/resume
 
-Kevin
+ arch/arm/plat-omap/omap_device.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+-- 
+1.7.6
 
