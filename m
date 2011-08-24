@@ -1,110 +1,185 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/6 V3] OMAP4: Adding the temperature sensor register set bit fields
-Date: Wed, 24 Aug 2011 20:07:08 +0530
-Message-ID: <1314196632-8207-3-git-send-email-j-keerthy@ti.com>
-References: <1314196632-8207-1-git-send-email-j-keerthy@ti.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH 3/5 v7] arm: omap: usb: register hwmods of usbhs
+Date: Wed, 24 Aug 2011 20:00:58 +0530
+Message-ID: <1314196260-9578-4-git-send-email-keshava_mgowda@ti.com>
+References: <1314196260-9578-1-git-send-email-keshava_mgowda@ti.com>
+ <1314196260-9578-2-git-send-email-keshava_mgowda@ti.com>
+ <1314196260-9578-3-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43537 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752667Ab1HXOh2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 10:37:28 -0400
-In-Reply-To: <1314196632-8207-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1314196260-9578-3-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Keerthy <j-keerthy@ti.com>, tony@atomide.com
 
-OMAP4460 specific temperature sensor register bit fields are added.
+The hwmod structure of uhh, ohci, ehci and tll are
+retrieved and registered with omap device
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Cc: tony@atomide.com
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 ---
- .../include/mach/ctrl_module_core_44xx.h           |   70 ++++++++++++++++----
- 1 files changed, 57 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/usb-host.c |  114 +++++++++++++++++----------------------
+ 1 files changed, 50 insertions(+), 64 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-index 2f7ac70..725c1e1 100644
---- a/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-+++ b/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-@@ -256,19 +256,63 @@
- #define OMAP4_LDOSRAMCORE_ACTMODE_VSET_OUT_SHIFT	0
- #define OMAP4_LDOSRAMCORE_ACTMODE_VSET_OUT_MASK		(0x1f << 0)
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 89ae298..9c37db9 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -28,51 +28,30 @@
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+ #include <plat/usb.h>
++#include <plat/omap_device.h>
  
--/* TEMP_SENSOR */
--#define OMAP4_BGAP_TEMPSOFF_SHIFT			12
--#define OMAP4_BGAP_TEMPSOFF_MASK			(1 << 12)
--#define OMAP4_BGAP_TSHUT_SHIFT				11
--#define OMAP4_BGAP_TSHUT_MASK				(1 << 11)
--#define OMAP4_BGAP_TEMP_SENSOR_CONTCONV_SHIFT		10
--#define OMAP4_BGAP_TEMP_SENSOR_CONTCONV_MASK		(1 << 10)
--#define OMAP4_BGAP_TEMP_SENSOR_SOC_SHIFT		9
--#define OMAP4_BGAP_TEMP_SENSOR_SOC_MASK			(1 << 9)
--#define OMAP4_BGAP_TEMP_SENSOR_EOCZ_SHIFT		8
--#define OMAP4_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 8)
--#define OMAP4_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
--#define OMAP4_BGAP_TEMP_SENSOR_DTEMP_MASK		(0xff << 0)
-+/* TEMP_SENSOR OMAP4430 */
-+#define OMAP4430_BGAP_TEMPSOFF_SHIFT			12
-+#define OMAP4430_BGAP_TEMPSOFF_MASK			(1 << 12)
-+#define OMAP4430_BGAP_TSHUT_SHIFT				11
-+#define OMAP4430_BGAP_TSHUT_MASK				(1 << 11)
-+#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_SHIFT		10
-+#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_MASK		(1 << 10)
-+#define OMAP4430_BGAP_TEMP_SENSOR_SOC_SHIFT		9
-+#define OMAP4430_BGAP_TEMP_SENSOR_SOC_MASK			(1 << 9)
-+#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_SHIFT		8
-+#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 8)
-+#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
-+#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
-+
-+/* TEMP_SENSOR OMAP4460 */
-+#define OMAP4460_BGAP_TEMPSOFF_SHIFT			13
-+#define OMAP4460_BGAP_TEMPSOFF_MASK			(1 << 13)
-+#define OMAP4460_BGAP_TEMP_SENSOR_SOC_SHIFT		11
-+#define OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK		(1 << 11)
-+#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_SHIFT		10
-+#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 10)
-+#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
-+#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
-+
-+/* BANDGAP_CTRL */
-+#define OMAP4460_SINGLE_MODE_SHIFT			31
-+#define OMAP4460_SINGLE_MODE_MASK			(1 << 31)
-+#define OMAP4460_MASK_HOT_SHIFT				1
-+#define OMAP4460_MASK_HOT_MASK				(1 << 1)
-+#define OMAP4460_MASK_COLD_SHIFT			0
-+#define OMAP4460_MASK_COLD_MASK				(1 << 0)
-+
-+/* BANDGAP_COUNTER */
-+#define OMAP4460_COUNTER_SHIFT				0
-+#define OMAP4460_COUNTER_MASK				(0xffffff << 0)
-+
-+/* BANDGAP_THRESHOLD */
-+#define OMAP4460_T_HOT_SHIFT				16
-+#define OMAP4460_T_HOT_MASK				(0x3ff << 16)
-+#define OMAP4460_T_COLD_SHIFT				0
-+#define OMAP4460_T_COLD_MASK				(0x3ff << 0)
-+
-+/* TSHUT_THRESHOLD */
-+#define OMAP4460_TSHUT_HOT_SHIFT			16
-+#define OMAP4460_TSHUT_HOT_MASK				(0x3ff << 16)
-+#define OMAP4460_TSHUT_COLD_SHIFT			0
-+#define OMAP4460_TSHUT_COLD_MASK			(0x3ff << 0)
-+
-+/* BANDGAP_STATUS */
-+#define OMAP4460_CLEAN_STOP_SHIFT			3
-+#define OMAP4460_CLEAN_STOP_MASK			(1 << 3)
-+#define OMAP4460_BGAP_ALERT_SHIFT			2
-+#define OMAP4460_BGAP_ALERT_MASK			(1 << 2)
-+#define OMAP4460_HOT_FLAG_SHIFT				1
-+#define OMAP4460_HOT_FLAG_MASK				(1 << 1)
-+#define OMAP4460_COLD_FLAG_SHIFT			0
-+#define OMAP4460_COLD_FLAG_MASK				(1 << 0)
+ #include "mux.h"
  
- /* DPLL_NWELL_TRIM_0 */
- #define OMAP4_DPLL_ABE_NWELL_TRIM_MUX_CTRL_SHIFT	29
+ #ifdef CONFIG_MFD_OMAP_USB_HOST
+ 
+-#define OMAP_USBHS_DEVICE	"usbhs-omap"
+-
+-static struct resource usbhs_resources[] = {
+-	{
+-		.name	= "uhh",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "tll",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ehci",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ehci-irq",
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-	{
+-		.name	= "ohci",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ohci-irq",
+-		.flags	= IORESOURCE_IRQ,
+-	}
+-};
+-
+-static struct platform_device usbhs_device = {
+-	.name		= OMAP_USBHS_DEVICE,
+-	.id		= 0,
+-	.num_resources	= ARRAY_SIZE(usbhs_resources),
+-	.resource	= usbhs_resources,
+-};
++#define OMAP_USBHS_DEVICE	"usbhs_omap"
++#define	USBHS_UHH_HWMODNAME	"usbhs_uhh"
++#define	USBHS_OHCI_HWMODNAME	"usbhs_ohci"
++#define USBHS_EHCI_HWMODNAME	"usbhs_ehci"
++#define USBHS_TLL_HWMODNAME	"usbhs_tll"
+ 
+ static struct usbhs_omap_platform_data		usbhs_data;
+ static struct ehci_hcd_omap_platform_data	ehci_data;
+ static struct ohci_hcd_omap_platform_data	ohci_data;
+ 
++static struct omap_device_pm_latency omap_uhhtll_latency[] = {
++	  {
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func	 = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	  },
++};
++
+ /* MUX settings for EHCI pins */
+ /*
+  * setup_ehci_io_mux - initialize IO pad mux for USBHOST
+@@ -508,7 +487,10 @@ static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 
+ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ {
+-	int	i;
++	struct omap_hwmod	*oh[4];
++	struct omap_device	*od;
++	int			bus_id = -1;
++	int			i;
+ 
+ 	for (i = 0; i < OMAP3_HS_USB_PORTS; i++) {
+ 		usbhs_data.port_mode[i] = pdata->port_mode[i];
+@@ -523,44 +505,48 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 	usbhs_data.ohci_data = &ohci_data;
+ 
+ 	if (cpu_is_omap34xx()) {
+-		usbhs_resources[0].start = OMAP34XX_UHH_CONFIG_BASE;
+-		usbhs_resources[0].end = OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1;
+-		usbhs_resources[1].start = OMAP34XX_USBTLL_BASE;
+-		usbhs_resources[1].end = OMAP34XX_USBTLL_BASE + SZ_4K - 1;
+-		usbhs_resources[2].start	= OMAP34XX_EHCI_BASE;
+-		usbhs_resources[2].end	= OMAP34XX_EHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[3].start = INT_34XX_EHCI_IRQ;
+-		usbhs_resources[4].start	= OMAP34XX_OHCI_BASE;
+-		usbhs_resources[4].end	= OMAP34XX_OHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[5].start = INT_34XX_OHCI_IRQ;
+ 		setup_ehci_io_mux(pdata->port_mode);
+ 		setup_ohci_io_mux(pdata->port_mode);
+ 	} else if (cpu_is_omap44xx()) {
+-		usbhs_resources[0].start = OMAP44XX_UHH_CONFIG_BASE;
+-		usbhs_resources[0].end = OMAP44XX_UHH_CONFIG_BASE + SZ_1K - 1;
+-		usbhs_resources[1].start = OMAP44XX_USBTLL_BASE;
+-		usbhs_resources[1].end = OMAP44XX_USBTLL_BASE + SZ_4K - 1;
+-		usbhs_resources[2].start = OMAP44XX_HSUSB_EHCI_BASE;
+-		usbhs_resources[2].end = OMAP44XX_HSUSB_EHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[3].start = OMAP44XX_IRQ_EHCI;
+-		usbhs_resources[4].start = OMAP44XX_HSUSB_OHCI_BASE;
+-		usbhs_resources[4].end = OMAP44XX_HSUSB_OHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[5].start = OMAP44XX_IRQ_OHCI;
+ 		setup_4430ehci_io_mux(pdata->port_mode);
+ 		setup_4430ohci_io_mux(pdata->port_mode);
+ 	}
+ 
+-	if (platform_device_add_data(&usbhs_device,
+-				&usbhs_data, sizeof(usbhs_data)) < 0) {
+-		printk(KERN_ERR "USBHS platform_device_add_data failed\n");
+-		goto init_end;
++	oh[0] = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
++	if (!oh[0]) {
++		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
++		return;
++	}
++
++	oh[1] = omap_hwmod_lookup(USBHS_OHCI_HWMODNAME);
++	if (!oh[1]) {
++		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
++		return;
+ 	}
+ 
+-	if (platform_device_register(&usbhs_device) < 0)
+-		printk(KERN_ERR "USBHS platform_device_register failed\n");
++	oh[2] = omap_hwmod_lookup(USBHS_EHCI_HWMODNAME);
++	if (!oh[2]) {
++		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
++		return;
++	}
+ 
+-init_end:
+-	return;
++	oh[3] = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
++	if (!oh[3]) {
++		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
++		return;
++	}
++
++	od = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 4,
++				(void *)&usbhs_data, sizeof(usbhs_data),
++				omap_uhhtll_latency,
++				ARRAY_SIZE(omap_uhhtll_latency), false);
++
++	if (IS_ERR(od)) {
++		pr_err("Could not build hwmod devices %s, %s, %s, %s\n",
++			USBHS_UHH_HWMODNAME, USBHS_OHCI_HWMODNAME,
++			USBHS_EHCI_HWMODNAME, USBHS_TLL_HWMODNAME);
++		return;
++	}
+ }
+ 
+ #else
 -- 
-1.7.0.4
-
+1.6.0.4
