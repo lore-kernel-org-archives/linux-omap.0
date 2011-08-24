@@ -1,104 +1,141 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
-Date: Wed, 24 Aug 2011 19:56:03 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC007C68@dbde02.ent.ti.com>
-References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com>
- <201108241329.48147.laurent.pinchart@ideasonboard.com>
- <19F8576C6E063C45BE387C64729E739404EC007BE3@dbde02.ent.ti.com>
- <201108241525.47332.laurent.pinchart@ideasonboard.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH 4/5 v7] arm: omap: usb: device name change for the clk names of usbhs
+Date: Wed, 24 Aug 2011 20:00:59 +0530
+Message-ID: <1314196260-9578-5-git-send-email-keshava_mgowda@ti.com>
+References: <1314196260-9578-1-git-send-email-keshava_mgowda@ti.com>
+ <1314196260-9578-2-git-send-email-keshava_mgowda@ti.com>
+ <1314196260-9578-3-git-send-email-keshava_mgowda@ti.com>
+ <1314196260-9578-4-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42816 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751305Ab1HXO0Q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 10:26:16 -0400
-In-Reply-To: <201108241525.47332.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1314196260-9578-4-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, rogerq@ti.com, Keshava Munegowda <Keshava_mgowda@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "Ravi, Deepthy" <deepthy.ravi@ti.com>, "mchehab@infradead.org" <mchehab@infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+From: Keshava Munegowda <Keshava_mgowda@ti.com>
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Wednesday, August 24, 2011 6:56 PM
-> To: Hiremath, Vaibhav
-> Cc: Ravi, Deepthy; mchehab@infradead.org; linux-media@vger.kernel.org;
-> linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
-> Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
-> 
-> Hi Vaibhav,
-> 
-> On Wednesday 24 August 2011 14:19:01 Hiremath, Vaibhav wrote:
-> > On Wednesday, August 24, 2011 5:00 PM Laurent Pinchart wrote:
-> > > On Wednesday 24 August 2011 13:21:27 Ravi, Deepthy wrote:
-> > > > On Wed, Aug 24, 2011 at 4:47 PM, Laurent Pinchart wrote:
-> > > > > On Friday 19 August 2011 15:48:45 Deepthy Ravi wrote:
-> > > > >> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > > >>
-> > > > >> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
-> > > > >> option is disabled and if any sensor driver has to be used
-> > > > >> between MC and non MC framework compatible devices.
-> > > > >>
-> > > > >> For example,if tvp514x video decoder driver migrated to
-> > > > >> MC framework is being built without CONFIG_MEDIA_CONTROLLER
-> > > > >> option enabled, the following error messages will result.
-> > > > >> drivers/built-in.o: In function `tvp514x_remove':
-> > > > >> drivers/media/video/tvp514x.c:1285: undefined reference to
-> > > > >> `media_entity_cleanup'
-> > > > >> drivers/built-in.o: In function `tvp514x_probe':
-> > > > >> drivers/media/video/tvp514x.c:1237: undefined reference to
-> > > > >> `media_entity_init'
-> > > > >
-> > > > > If the tvp514x is migrated to the MC framework, its Kconfig option
-> > > > > should depend on MEDIA_CONTROLLER.
-> > > >
-> > > > The same TVP514x driver is being used for both MC and non MC
-> compatible
-> > > > devices, for example OMAP3 and AM35x. So if it is made dependent on
-> > > > MEDIA CONTROLLER, we cannot enable the driver for MC independent
-> > > > devices.
-> > >
-> > > Then you should use conditional compilation in the tvp514x driver
-> itself.
-> > > Or
-> >
-> > No. I am not in favor of conditional compilation in driver code.
-> 
-> Actually, thinking some more about this, you should make the tvp514x
-> driver
-> depend on CONFIG_MEDIA_CONTROLLER unconditionally. This doesn't mean that
-> the
-> driver will become unusable by applications that are not MC-aware.
-[Hiremath, Vaibhav] I am not referring to application here, there is no doubt that application must support non-MC devices. 
-I should be able to use standard V4L2 streaming application and use it on streaming device node, the only change would be, for MC aware device, links need to be set before and for non-MC aware devices its default thing. 
+device name usbhs clocks are changed from
+usbhs-omap.0 to usbhs_omap; this is because
+in the hwmod registration the device name is set
+as usbhs_omap; The redudant clock nodes are removed.
 
-> Hosts/bridges don't have to export subdev nodes, they can just call subdev
-> pad-level operations internally and let applications control the whole
-> device
-> through a single V4L2 video node.
-> 
-[Hiremath, Vaibhav] Agreed. That's what I thought.
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+---
+ arch/arm/mach-omap2/clock3xxx_data.c |   26 ++++++++++++--------------
+ arch/arm/mach-omap2/clock44xx_data.c |   10 +++++-----
+ drivers/mfd/omap-usb-host.c          |    2 +-
+ 3 files changed, 18 insertions(+), 20 deletions(-)
 
-> > > better, port the AM35x driver to the MC API.
-> >
-> > Why should we use MC if I have very simple device (like AM35x) which
-> only
-> > supports single path? I can very well use simple V4L2 sub-dev based
-> > approach (master - slave), isn't it?
-> 
-> The AM35x driver should use the in-kernel MC and V4L2 subdev APIs, but it
-> doesn't have to expose them to userspace.
-> 
-[Hiremath, Vaibhav] Let me digest this.
-
-Thanks,
-Vaibhav
-
-> --
-> Regards,
-> 
-> Laurent Pinchart
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index ffd55b1..63a822f 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3285,7 +3285,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"cpefuse_fck",	&cpefuse_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK(NULL,	"ts_fck",	&ts_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK(NULL,	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+-	CLK("usbhs-omap.0",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
++	CLK("usbhs_omap",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK("omap-mcbsp.1",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
+ 	CLK("omap-mcbsp.5",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
+ 	CLK(NULL,	"core_96m_fck",	&core_96m_fck,	CK_3XXX),
+@@ -3321,7 +3321,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_34XX | CK_36XX),
+ 	CLK(NULL,	"core_l4_ick",	&core_l4_ick,	CK_3XXX),
+ 	CLK(NULL,	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+-	CLK("usbhs-omap.0",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
++	CLK("usbhs_omap",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK("omap_hsmmc.2",	"ick",	&mmchs3_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK(NULL,	"icr_ick",	&icr_ick,	CK_34XX | CK_36XX),
+ 	CLK("omap-aes",	"ick",	&aes2_ick,	CK_34XX | CK_36XX),
+@@ -3367,20 +3367,18 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"cam_ick",	&cam_ick,	CK_34XX | CK_36XX),
+ 	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck,	CK_34XX | CK_36XX),
+ 	CLK(NULL,	"usbhost_120m_fck", &usbhost_120m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+-	CLK("usbhs-omap.0",	"hs_fck", &usbhost_120m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+-	CLK("usbhs-omap.0",	"fs_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+-	CLK("usbhs-omap.0",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+-	CLK("usbhs-omap.0",	"utmi_p1_gfclk",	&dummy_ck,	CK_3XXX),
+-	CLK("usbhs-omap.0",	"utmi_p2_gfclk",	&dummy_ck,	CK_3XXX),
+-	CLK("usbhs-omap.0",	"xclk60mhsp1_ck",	&dummy_ck,	CK_3XXX),
+-	CLK("usbhs-omap.0",	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
+-	CLK("usbhs-omap.0",	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
+-	CLK("usbhs-omap.0",	"usb_host_hs_utmi_p2_clk",	&dummy_ck,	CK_3XXX),
+-	CLK("usbhs-omap.0",	"usb_tll_hs_usb_ch0_clk",	&dummy_ck,	CK_3XXX),
+-	CLK("usbhs-omap.0",	"usb_tll_hs_usb_ch1_clk",	&dummy_ck,	CK_3XXX),
+-	CLK("usbhs-omap.0",	"init_60m_fclk",	&dummy_ck,	CK_3XXX),
++	CLK("usbhs_omap",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
++	CLK("usbhs_omap",	"utmi_p1_gfclk",	&dummy_ck,	CK_3XXX),
++	CLK("usbhs_omap",	"utmi_p2_gfclk",	&dummy_ck,	CK_3XXX),
++	CLK("usbhs_omap",	"xclk60mhsp1_ck",	&dummy_ck,	CK_3XXX),
++	CLK("usbhs_omap",	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
++	CLK("usbhs_omap",	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
++	CLK("usbhs_omap",	"usb_host_hs_utmi_p2_clk",	&dummy_ck,	CK_3XXX),
++	CLK("usbhs_omap",	"usb_tll_hs_usb_ch0_clk",	&dummy_ck,	CK_3XXX),
++	CLK("usbhs_omap",	"usb_tll_hs_usb_ch1_clk",	&dummy_ck,	CK_3XXX),
++	CLK("usbhs_omap",	"init_60m_fclk",	&dummy_ck,	CK_3XXX),
+ 	CLK(NULL,	"usim_fck",	&usim_fck,	CK_3430ES2PLUS | CK_36XX),
+ 	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_3XXX),
+ 	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_3XXX),
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 2af0e3f..088977a 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3281,7 +3281,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"uart2_fck",			&uart2_fck,	CK_443X),
+ 	CLK(NULL,	"uart3_fck",			&uart3_fck,	CK_443X),
+ 	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_443X),
+-	CLK("usbhs-omap.0",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
++	CLK("usbhs_omap",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
+ 	CLK(NULL,	"utmi_p1_gfclk",		&utmi_p1_gfclk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&usb_host_hs_utmi_p1_clk,	CK_443X),
+ 	CLK(NULL,	"utmi_p2_gfclk",		&utmi_p2_gfclk,	CK_443X),
+@@ -3292,7 +3292,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"usb_host_hs_hsic60m_p2_clk",	&usb_host_hs_hsic60m_p2_clk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_hsic480m_p2_clk",	&usb_host_hs_hsic480m_p2_clk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_func48mclk",	&usb_host_hs_func48mclk,	CK_443X),
+-	CLK("usbhs-omap.0",	"hs_fck",		&usb_host_hs_fck,	CK_443X),
++	CLK("usbhs_omap",	"hs_fck",		&usb_host_hs_fck,	CK_443X),
+ 	CLK(NULL,	"otg_60m_gfclk",		&otg_60m_gfclk,	CK_443X),
+ 	CLK(NULL,	"usb_otg_hs_xclk",		&usb_otg_hs_xclk,	CK_443X),
+ 	CLK("musb-omap2430",	"ick",				&usb_otg_hs_ick,	CK_443X),
+@@ -3300,7 +3300,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"usb_tll_hs_usb_ch2_clk",	&usb_tll_hs_usb_ch2_clk,	CK_443X),
+ 	CLK(NULL,	"usb_tll_hs_usb_ch0_clk",	&usb_tll_hs_usb_ch0_clk,	CK_443X),
+ 	CLK(NULL,	"usb_tll_hs_usb_ch1_clk",	&usb_tll_hs_usb_ch1_clk,	CK_443X),
+-	CLK("usbhs-omap.0",	"usbtll_ick",		&usb_tll_hs_ick,	CK_443X),
++	CLK("usbhs_omap",	"usbtll_ick",		&usb_tll_hs_ick,	CK_443X),
+ 	CLK(NULL,	"usim_ck",			&usim_ck,	CK_443X),
+ 	CLK(NULL,	"usim_fclk",			&usim_fclk,	CK_443X),
+ 	CLK(NULL,	"usim_fck",			&usim_fck,	CK_443X),
+@@ -3360,8 +3360,8 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"uart2_ick",			&dummy_ck,	CK_443X),
+ 	CLK(NULL,	"uart3_ick",			&dummy_ck,	CK_443X),
+ 	CLK(NULL,	"uart4_ick",			&dummy_ck,	CK_443X),
+-	CLK("usbhs-omap.0",	"usbhost_ick",		&dummy_ck,		CK_443X),
+-	CLK("usbhs-omap.0",	"usbtll_fck",		&dummy_ck,	CK_443X),
++	CLK("usbhs_omap",	"usbhost_ick",		&dummy_ck,		CK_443X),
++	CLK("usbhs_omap",	"usbtll_fck",		&dummy_ck,	CK_443X),
+ 	CLK("omap_wdt",	"ick",				&dummy_ck,	CK_443X),
+ };
+ 
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 8db205e..9c2da29 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -27,7 +27,7 @@
+ #include <linux/gpio.h>
+ #include <plat/usb.h>
+ 
+-#define USBHS_DRIVER_NAME	"usbhs-omap"
++#define USBHS_DRIVER_NAME	"usbhs_omap"
+ #define OMAP_EHCI_DEVICE	"ehci-omap"
+ #define OMAP_OHCI_DEVICE	"ohci-omap3"
+ 
+-- 
+1.6.0.4
