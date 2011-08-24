@@ -1,57 +1,60 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v2] OMAP3EVM: ehci: Fix EHCI support
-Date: Wed, 24 Aug 2011 20:09:14 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC007C71@dbde02.ent.ti.com>
-References: <1314174902-12797-1-git-send-email-bdefaria@adeneo-embedded.com>
-	 <19F8576C6E063C45BE387C64729E739404EC007BC0@dbde02.ent.ti.com>
- <1314189727.2320.16.camel@bryan-HUTIA>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v4] OMAP4: hwmod data: I2C: add flag for context restore
+Date: Wed, 24 Aug 2011 07:44:09 -0700
+Message-ID: <87mxeyg98m.fsf@ti.com>
+References: <1310906603-2673-1-git-send-email-shubhrajyoti@ti.com>
+	<4E54D012.6050708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43658 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477Ab1HXOje (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 10:39:34 -0400
-In-Reply-To: <1314189727.2320.16.camel@bryan-HUTIA>
-Content-Language: en-US
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:49659 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751486Ab1HXOoO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Aug 2011 10:44:14 -0400
+In-Reply-To: <4E54D012.6050708@ti.com> (shubhrajyoti@ti.com's message of "Wed,
+	24 Aug 2011 15:48:58 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Shubhrajyoti <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-SGksDQo+IFRQUzY1OTUwIEdQSU8yIGlzIHRvIGNob29zZSB0aHJvdWdoIHUxMzEgaWYgd2UgZHJp
-dmUgdGhlIGxpbmVzIHRvIHRoZQ0KPiBldm0gbW90aGVyIGJvYXJkIG9yIHRvIHRoZSBleHBhbnNp
-b24gY29ubmVjdG9yIHAxOC4gU2hvdWxkIG5vdCBpdCBiZQ0KPiBkZWZhdWx0IHRvIHRoZSBtb3Ro
-ZXIgYm9hcmQ/DQpJdCdzIG5vdCBlbmFibGVkIGJ5IGRlZmF1bHQgYW5kIHRoYXTigJlzIHdoeSB3
-ZSBuZWVkIHRvIGVuYWJsZSBpdCB0aHJvdWdoDQpUcHM2NTk1MCBHUElPMi4NCg0KWW91ciBwYXRj
-aCBsb29rcyBmaW5lIGJ1dCB0aGUgY29tbWVudCBhbmQgbmFtZSBuZWVkcyB0byBiZSBjaGFuZ2Vk
-IGFzDQpUaGVyZSBpcyBubyBjbG9jayB3aGljaCBnZXRzIGVuYWJsZWQgdXNpbmcgZ3BpbzIuIEFs
-bCB0aGUgSFNVU0IgY2xvY2tzDQpBcmUgaGFuZGxlZCBpbnNpZGUgZHJpdmVyIGF0IGRyaXZlcnMv
-dXNiL2hvc3QvZWhjaS1vbWFwLmMNCg0KQWpheQ0KDQo+IFRoZSBFSENJIHBvcnQgb24gdGhlIG1v
-dGhlciBib2FyZCB3b3JrcyB3aXRoIHRoaXMgcGF0Y2guDQo+IA0KPiBCcnlhbg0KPiANCj4gPiBI
-aSwNCj4gPiA+IFNldCB0aGUgVkFVWDIgcmVndWxhdG9yIHN1cHBseSB0byAxLjhWIGZvciB0aGUg
-SFNVU0IgaG9zdA0KPiBpbnRlcmZhY2UuDQo+ID4gPiBHcGlvIDIgb2YgdGhlIFRQUzY1OTUwIGhh
-cyB0byBiZSBzZXQgdG8gemVybyBpbiBvcmRlciB0byBlbmFibGUgdGhlDQo+ID4gPiBIU1VCUzIg
-Y2xvY2suDQo+ID4NCj4gPiBUUFM2NTk1MCBHUElPMiBpcyBub3QgdG8gZW5hYmxlIEhTVVNCMiBj
-bG9jayBidXQgdG8gZW5hYmxlIGNoaXAgdTEzMQ0KPiA+IE9uIG9tYXAzZXZtIChyZXYtRykgd2hp
-Y2ggbGF0Y2hlcyBVU0IsIGNhbWVyYSBhbmQgYXVkaW8gbGluZXMuDQo+ID4NCj4gPiA+DQo+ID4g
-PiBTaWduZWQtb2ZmLWJ5OiBCcnlhbiBERSBGQVJJQSA8YmRlZmFyaWFAYWRlbmVvLWVtYmVkZGVk
-LmNvbT4NCj4gPiA+IC0tLQ0KPiA+ID4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNl
-dm0uYyB8ICAgMjUNCj4gKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+ID4gIDEgZmlsZXMg
-Y2hhbmdlZCwgMjUgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkNCj4gPiA+DQo+ID4gPiBk
-aWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vbWFwM2V2bS5jIGIvYXJjaC9h
-cm0vbWFjaC0NCj4gPiA+IG9tYXAyL2JvYXJkLW9tYXAzZXZtLmMNCj4gPiA+IGluZGV4IGM0NTJi
-M2YuLjEzYTJiNzEgMTAwNjQ0DQo+ID4gPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJk
-LW9tYXAzZXZtLmMNCj4gPiA+ICsrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNl
-dm0uYw0KPiA+ID4gQEAgLTM3Nyw2ICszNzcsMTAgQEAgc3RhdGljIGludCBvbWFwM2V2bV90d2xf
-Z3Bpb19zZXR1cChzdHJ1Y3QNCj4gZGV2aWNlDQo+ID4gPiAqZGV2LA0KPiA+ID4gIAlpZiAocikN
-Cj4gPiA+ICAJCXByaW50ayhLRVJOX0VSUiAiZmFpbGVkIHRvIGdldC9zZXQgbGNkX2JrbCBncGlv
-XG4iKTsNCj4gPiA+DQo+ID4gPiArCS8qIGdwaW8gKyAyID09IEhTVVNCMiBDbG9jayBFbmFibGUg
-Ki8NCj4gPiA+ICsJaWYgKGdldF9vbWFwM19ldm1fcmV2KCkgPj0gT01BUDNFVk1fQk9BUkRfR0VO
-XzIpDQo+ID4gPiArCQlncGlvX3JlcXVlc3Rfb25lKGdwaW8gKyAyLCBHUElPRl9PVVRfSU5JVF9M
-T1csDQo+ID4gPiAiRU5fSFNVU0IyX0NMSyIpOw0KPiA+ID4gKw0KPiA+DQo+ID4gRGlkIHlvdSB0
-ZXN0IEVIQ0kgcG9ydCB3aXRoIHRoaXMgY2hhbmdlID8NCj4gPg0KPiA+IEFqYXkNCj4gPiA+ICAJ
-LyogZ3BpbyArIDcgPT0gRFZJIEVuYWJsZSAqLw0KPiA+ID4gIAlncGlvX3JlcXVlc3Rfb25lKGdw
-aW8gKyA3LCBHUElPRl9PVVRfSU5JVF9MT1csICJFTl9EVkkiKTsNCj4gPiBbLi4uXQ0KPiA+IHJt
-LWtlcm5lbA0KDQo=
+Shubhrajyoti <shubhrajyoti@ti.com> writes:
+
+> On Sunday 17 July 2011 06:13 PM, Shubhrajyoti D wrote:
+>> Restore of context is not done for OMAP4. This patch
+>> adds the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE in the OMAP4
+>> hwmod data which activates the restore for OMAP4.
+>> Currently the OMAP4 does not hit device off still the
+>> driver may have support for it.
+> Could this patch be queued as well?
+
+Paul is the maintainer for the hwmod data.   It is usually helpful to
+ensure the maintainer is specifically added to the To line.
+
+Kevin
+
+>> Reviewed-by: Kevin Hilman<khilman@ti.com>
+>> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
+>> ---
+>> Applies on top of patches from Andy Green
+>> http://www.spinics.net/lists/linux-i2c/msg05632.html
+>> Tested on OMAP4430
+>>
+>>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
+>>   1 files changed, 2 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> index 0fe9556..5e2c748 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> @@ -2130,7 +2130,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
+>>   };
+>>
+>>   static struct omap_i2c_dev_attr i2c_dev_attr = {
+>> -	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
+>> +	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE |
+>> +			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
+>>   };
+>>
+>>   /* i2c1 */
