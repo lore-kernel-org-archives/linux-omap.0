@@ -1,229 +1,75 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v5 18/22] gpio/omap: use pm-runtime framework
-Date: Wed, 24 Aug 2011 09:32:24 +0530
-Message-ID: <4E5477D0.9090301@ti.com>
-References: <1312455893-14922-1-git-send-email-tarun.kanti@ti.com> <1312455893-14922-19-git-send-email-tarun.kanti@ti.com> <4E53BA80.7030200@ti.com>
+Subject: Re: [RFC PATCH 6/6] hwmon: OMAP4: On die temperature sensor driver
+Date: Wed, 24 Aug 2011 09:37:50 +0530
+Message-ID: <4E547916.9090106@ti.com>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com> <1312979122-5896-7-git-send-email-j-keerthy@ti.com> <20110810124629.GJ12882@legolas.emea.dhcp.ti.com> <CAJ6a13Z=u=exWUHLotw8jpHMv-hKpE+fvg_1hq7=gtMiuJKxOA@mail.gmail.com> <20110811103658.GG27742@legolas.emea.dhcp.ti.com> <CAJ6a13bxg8po-Csc10LsFH-oES4YOKkqFoTm3kG4XzS=b2boMw@mail.gmail.com> <20110811141248.GK28500@legolas.emea.dhcp.ti.com> <CAJ6a13b7qu3K4YJPTYych_NQxLuuUxZOQg6PPC_=XA+qiwn2RA@mail.gmail.com> <20110811185408.GB15970@legolas.emea.dhcp.ti.com> <20110811185558.GC15970@legolas.emea.dhcp.ti.com> <4E444B8F.9060908@ti.com> <4E449D65.9000004@ti.com> <874o19gfrr.fsf@ti.com> <4E532A28.60103@ti.com> <87ei0chwwz.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:54101 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750788Ab1HXECe (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:48171 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750788Ab1HXEIB (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Aug 2011 00:02:34 -0400
-Received: by gxk27 with SMTP id 27so648063gxk.15
-        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 21:02:32 -0700 (PDT)
-In-Reply-To: <4E53BA80.7030200@ti.com>
+	Wed, 24 Aug 2011 00:08:01 -0400
+Received: by mail-gx0-f173.google.com with SMTP id 26so696854gxk.18
+        for <linux-omap@vger.kernel.org>; Tue, 23 Aug 2011 21:07:59 -0700 (PDT)
+In-Reply-To: <87ei0chwwz.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh <santosh.shilimkar@ti.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>, Benoit Cousson <b-cousson@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, "J, KEERTHY" <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, khali@linux-fr.org, guenter.roeck@ericsson.com
 
-On 8/23/2011 8:04 PM, Santosh wrote:
-> + Rajendra and Benoit to comment on optional clock
-> handling.
+On 8/23/2011 10:45 PM, Kevin Hilman wrote:
+> Rajendra Nayak<rnayak@ti.com>  writes:
 >
-> On Thursday 04 August 2011 04:34 PM, Tarun Kanti DebBarma wrote:
->> Call runtime pm APIs pm_runtime_get_sync() and pm_runtime_put_sync()
->> for enabling/disabling clocks appropriately. Remove syscore_ops and
->> instead use dev_pm_ops now.
+>> On 8/23/2011 5:28 AM, Kevin Hilman wrote:
+>>> Rajendra Nayak<rnayak@ti.com>   writes:
+>>>
+>>> [...]
+>>>
+>>>> FWIK, its a one time requirement to set the clock rate to the
+>>>> right rate the device can operate in based on what a platform
+>>>> supports.
+>>>
+>>> Except $SUBJECT patch hard-codes the clock rate for all platforms in the
+>>> driver.
 >>
->> Signed-off-by: Charulatha V<charu@ti.com>
->> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
->> ---
->> drivers/gpio/gpio-omap.c | 89
->> ++++++++++++++++++++++++++++++++++-----------
->> 1 files changed, 67 insertions(+), 22 deletions(-)
->>
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index 0545d8f..bca6dcd 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -79,6 +79,8 @@ struct gpio_bank {
->> struct omap_gpio_reg_offs *regs;
->> };
->>
->> +static void omap_gpio_mod_init(struct gpio_bank *bank);
->> +
->> #define GPIO_INDEX(bank, gpio) (gpio % bank->width)
->> #define GPIO_BIT(bank, gpio) (1<< GPIO_INDEX(bank, gpio))
->> #define GPIO_MOD_CTRL_BIT BIT(0)
->> @@ -481,6 +483,19 @@ static int omap_gpio_request(struct gpio_chip
->> *chip, unsigned offset)
->>
->> spin_lock_irqsave(&bank->lock, flags);
->>
->> + /*
->> + * If this is the first gpio_request for the bank,
->> + * enable the bank module.
->> + */
->> + if (!bank->mod_usage)
->> + if (IS_ERR_VALUE(pm_runtime_get_sync(bank->dev)< 0)) {
->> + dev_err(bank->dev, "%s: GPIO bank %d "
->> + "pm_runtime_get_sync failed\n",
->> + __func__, bank->id);
->> + spin_unlock_irqrestore(&bank->lock, flags);
->> + return -EINVAL;
->> + }
->> +
->> /* Set trigger to none. You need to enable the desired trigger with
->> * request_irq() or set_irq_type().
->> */
->> @@ -535,6 +550,19 @@ static void omap_gpio_free(struct gpio_chip
->> *chip, unsigned offset)
->> }
->>
->> _reset_gpio(bank, bank->chip.base + offset);
->> +
->> + /*
->> + * If this is the last gpio to be freed in the bank,
->> + * disable the bank module.
->> + */
->> + if (!bank->mod_usage) {
->> + if (IS_ERR_VALUE(pm_runtime_put_sync(bank->dev)< 0)) {
->> + dev_err(bank->dev, "%s: GPIO bank %d "
->> + "pm_runtime_put_sync failed\n",
->> + __func__, bank->id);
->> + }
->> + }
->> +
->> spin_unlock_irqrestore(&bank->lock, flags);
->> }
->>
->> @@ -561,6 +589,7 @@ static void gpio_irq_handler(unsigned int irq,
->> struct irq_desc *desc)
->>
->> bank = irq_get_handler_data(irq);
->> isr_reg = bank->base + bank->regs->irqstatus;
->> + pm_runtime_get_sync(bank->dev);
->>
->> if (WARN_ON(!isr_reg))
->> goto exit;
->> @@ -622,6 +651,7 @@ static void gpio_irq_handler(unsigned int irq,
->> struct irq_desc *desc)
->> exit:
->> if (!unmasked)
->> chained_irq_exit(chip, desc);
->> + pm_runtime_put_sync_suspend(bank->dev);
->> }
->>
->> static void gpio_irq_shutdown(struct irq_data *d)
->> @@ -1023,7 +1053,13 @@ static int __devinit omap_gpio_probe(struct
->> platform_device *pdev)
->> }
->>
->> pm_runtime_enable(bank->dev);
->> - pm_runtime_get_sync(bank->dev);
->> + pm_runtime_irq_safe(bank->dev);
->> + if (IS_ERR_VALUE(pm_runtime_get_sync(bank->dev)< 0)) {
->> + dev_err(bank->dev, "%s: GPIO bank %d pm_runtime_get_sync "
->> + "failed\n", __func__, bank->id);
->> + iounmap(bank->base);
->> + return -EINVAL;
->> + }
->>
->> if (bank->is_mpuio) {
->> if (bank->regs->wkup_status)
->> @@ -1034,6 +1070,13 @@ static int __devinit omap_gpio_probe(struct
->> platform_device *pdev)
->> omap_gpio_chip_init(bank);
->> omap_gpio_show_rev(bank);
->>
->> + if (IS_ERR_VALUE(pm_runtime_put_sync(bank->dev)< 0)) {
->> + dev_err(bank->dev, "%s: GPIO bank %d pm_runtime_put_sync "
->> + "failed\n", __func__, bank->id);
->> + iounmap(bank->base);
->> + return -EINVAL;
->> + }
->> +
->> list_add_tail(&bank->node,&omap_gpio_list);
->>
->> return ret;
->> @@ -1044,7 +1087,7 @@ err_exit:
->> return ret;
->> }
->>
->> -static int omap_gpio_suspend(void)
->> +static int omap_gpio_suspend(struct device *dev)
->> {
->> struct gpio_bank *bank;
->>
->> @@ -1063,12 +1106,13 @@ static int omap_gpio_suspend(void)
->> _gpio_rmw(base, bank->regs->wkup_status,
->> bank->suspend_wakeup, 1);
->> spin_unlock_irqrestore(&bank->lock, flags);
->> + pm_runtime_put_sync(dev);
->> }
->>
->> return 0;
->> }
->>
->> -static void omap_gpio_resume(void)
->> +static int omap_gpio_resume(struct device *dev)
->> {
->> struct gpio_bank *bank;
->>
->> @@ -1077,18 +1121,16 @@ static void omap_gpio_resume(void)
->> unsigned long flags;
->>
->> if (!bank->regs->wkup_status)
->> - return;
->> + return 0;
->>
->> + pm_runtime_get_sync(dev);
->> spin_lock_irqsave(&bank->lock, flags);
->> _gpio_rmw(base, bank->regs->wkup_status, bank->saved_wakeup, 1);
->> spin_unlock_irqrestore(&bank->lock, flags);
->> }
->> -}
->>
->> -static struct syscore_ops omap_gpio_syscore_ops = {
->> - .suspend = omap_gpio_suspend,
->> - .resume = omap_gpio_resume,
->> -};
->> + return 0;
->> +}
->>
->> #ifdef CONFIG_ARCH_OMAP2PLUS
->>
->> @@ -1112,6 +1154,11 @@ void omap2_gpio_prepare_for_idle(int off_mode)
->> if (!off_mode)
->> continue;
->>
->> + if (IS_ERR_VALUE(pm_runtime_put_sync(bank->dev)< 0))
->> + dev_err(bank->dev, "%s: GPIO bank %d "
->> + "pm_runtime_put_sync failed\n",
->> + __func__, bank->id);
->> +
->> /* If going to OFF, remove triggering for all
->> * non-wakeup GPIOs. Otherwise spurious IRQs will be
->> * generated. See OMAP2420 Errata item 1.101. */
->> @@ -1152,6 +1199,11 @@ void omap2_gpio_resume_after_idle(void)
->> if (!bank->loses_context)
->> continue;
->>
->> + if (IS_ERR_VALUE(pm_runtime_get_sync(bank->dev)< 0))
->> + dev_err(bank->dev, "%s: GPIO bank %d "
->> + "pm_runtime_get_sync failed\n",
->> + __func__, bank->id);
->> +
->> for (j = 0; j< hweight_long(bank->dbck_enable_mask); j++)
->> clk_enable(bank->dbck);
-> Optional clock handling also should been addressed using runtime hooks,
-> isn't it ?
+>> The device has a requirement to operate in a 1Mhz to 2Mhz range.
+>
+> You mean the device on OMAP4 has this requirement.
+>
+> Will this requirement exist on every platform that uses any version of
+> this IP (or future similar IPs)?  I suspect not.
 
-Whats handled by runtime hooks is the device;s *main* clocks, which are
-needed for the device to become accessible.
-Anything else *optional* which the device would need optionally based on
-the various modes it can operate etc are still controlled by the driver
-by enabling/disabling them as and when needed using the clock framework.
+I agree, the current limitation is specific to the IP rev used, and
+might change for a never version of the IP.
 
 >
-> We still seems to use clock framework here?
+>> So the driver is using a clk_round_rate() to get the closest rate
+>> supported and sets it using a clk_set_rate().
+>>
+>>>
+>>> If the clock rate is to be platform-specific, it should be done in
+>>> platform-specific code.
+>>
+>> I am fine if this needs to be moved to platform-specific code, but I
+>> wasn't quite sure this needs to be done in clock framework as was
+>> suggested.
 >
-> Regards
-> Santosh
+> No, it should't be in clock framework.  But since the frequency range is
+> platform-specific, it should be initialized in platform-specific code.
+> Having min/max parameters passed by platform data as suggested by
+> J. Keerthy is fine.
 >
+> Probably even better is to have the driver have a default min/max rang
+> which can be overridden by platform_data only if needed.
+
+This sounds better since if the same IP rev is used on other platforms
+which does not change the min/max, the driver can do with the default
+and that would avoid duplications of same min/max having to be passed
+for multiple platforms.
+
 >
+> Kevin
 
