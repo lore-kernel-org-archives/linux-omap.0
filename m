@@ -1,85 +1,160 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v2 0/7] omap: iommu migration, relocation and cleanups
-Date: Wed, 24 Aug 2011 20:08:07 +0300
-Message-ID: <1314205694-28935-1-git-send-email-ohad@wizery.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, iommu@lists.linux-foundation.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v2 3/7] omap: iommu: stop exporting local functions
+Date: Wed, 24 Aug 2011 20:08:10 +0300
+Message-ID: <1314205694-28935-4-git-send-email-ohad@wizery.com>
+References: <1314205694-28935-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:39540 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752725Ab1HXRJG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 13:09:06 -0400
+Received: by mail-wy0-f174.google.com with SMTP id 24so1002345wyg.19
+        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 10:09:05 -0700 (PDT)
+In-Reply-To: <1314205694-28935-1-git-send-email-ohad@wizery.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, Arnd Bergmann <arnd@arndb.de>, iommu@lists.linux-foundation.org, Ohad Ben-Cohen <ohad@wizery.com>
 
-1. Migrate OMAP's iommu driver to the generic IOMMU API, and move it
-to the dedicated iommu folder.
+Stop exporting functions that are used only within the iommu
+driver itself.
 
-2. Fix omap3isp appropriately so it doesn't break.
+Eventually OMAP's iommu driver should only expose API via the generic
+IOMMU framework.
 
-3. Adapt OMAP's iovmm appropriately as well, because omap3isp still relies
-on it. The plan is eventually to remove iovmm and replace it with the
-upcoming IOMMU-based generic DMA-API. Move iovmm to the iommu folder too;
-it belongs there more than it belongs in the OMAP folders.
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ arch/arm/plat-omap/include/plat/iommu.h |    8 --------
+ drivers/iommu/omap-iommu.c              |   19 +++++++------------
+ 2 files changed, 7 insertions(+), 20 deletions(-)
 
-4. Start cleaning up OMAP's iommu components towards the end goal, where
-    1) omap-iommu no longer exports public API (and instead provides its
-       entire functionality via the generic IOMMU API).
-    2) omap-iovmm is removed.
-
-Tested on OMAP3 (with omap3isp) and OMAP4 (with rpmsg/remoteproc).
-
-v1->v2:
-1. Added Laurent's and Hiroshi's Acked-by
-2. iommu: use spinlock instead of mutex so attach/deattach can stay atomic (Joerg)
-3. iovmm: remove obsolete comment (Hiroshi)
-4. iommu: don't rename load_iotlb_entry directly (Hiroshi)
-5. Rebase to 3.1-rc3
-
-rfc->v1:
-1. Migrate iommu, iovmm and omap3isp in a single patch for bisectibility sake.
-2. Apply Laurent Pinchart's comments (thanks Laurent!)
-3. Rebase to 3.1-rc2
-
-Ohad Ben-Cohen (7):
-  omap: iommu: migrate to the generic IOMMU API
-  omap: iommu/iovmm: move to dedicated iommu folder
-  omap: iommu: stop exporting local functions
-  omap: iommu: PREFETCH_IOTLB cleanup
-  omap: iovmm: remove unused functionality
-  omap: iommu: remove unused exported API
-  omap: iommu: omapify 'struct iommu' and exposed API
-
- arch/arm/mach-omap2/iommu2.c                       |   31 +-
- arch/arm/plat-omap/Kconfig                         |   12 -
- arch/arm/plat-omap/Makefile                        |    2 -
- arch/arm/plat-omap/include/plat/iommu.h            |   77 ++--
- arch/arm/plat-omap/include/plat/iommu2.h           |    4 +-
- arch/arm/plat-omap/{ => include/plat}/iopgtable.h  |   20 +-
- arch/arm/plat-omap/include/plat/iovmm.h            |   30 +-
- drivers/iommu/Kconfig                              |   18 +
- drivers/iommu/Makefile                             |    3 +
- .../iommu/omap-iommu-debug.c                       |   36 +-
- .../iommu.c => drivers/iommu/omap-iommu.c          |  511 +++++++++++++-------
- .../iovmm.c => drivers/iommu/omap-iovmm.c          |  338 +++----------
- drivers/media/video/Kconfig                        |    2 +-
- drivers/media/video/omap3isp/isp.c                 |   45 ++-
- drivers/media/video/omap3isp/isp.h                 |    5 +-
- drivers/media/video/omap3isp/ispccdc.c             |   25 +-
- drivers/media/video/omap3isp/ispstat.c             |   11 +-
- drivers/media/video/omap3isp/ispvideo.c            |    4 +-
- 18 files changed, 612 insertions(+), 562 deletions(-)
- rename arch/arm/plat-omap/{ => include/plat}/iopgtable.h (82%)
- rename arch/arm/plat-omap/iommu-debug.c => drivers/iommu/omap-iommu-debug.c (91%)
- rename arch/arm/plat-omap/iommu.c => drivers/iommu/omap-iommu.c (61%)
- rename arch/arm/plat-omap/iovmm.c => drivers/iommu/omap-iovmm.c (63%)
-
+diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
+index dcb757b..4e9c05c 100644
+--- a/arch/arm/plat-omap/include/plat/iommu.h
++++ b/arch/arm/plat-omap/include/plat/iommu.h
+@@ -153,18 +153,10 @@ struct iommu_platform_data {
+ extern u32 iommu_arch_version(void);
+ 
+ extern void iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e);
+-extern u32 iotlb_cr_to_virt(struct cr_regs *cr);
+-
+-extern int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e);
+ extern void iommu_set_twl(struct iommu *obj, bool on);
+-extern void flush_iotlb_page(struct iommu *obj, u32 da);
+ extern void flush_iotlb_range(struct iommu *obj, u32 start, u32 end);
+-extern void flush_iotlb_all(struct iommu *obj);
+ 
+ extern int iopgtable_store_entry(struct iommu *obj, struct iotlb_entry *e);
+-extern void iopgtable_lookup_entry(struct iommu *obj, u32 da, u32 **ppgd,
+-				   u32 **ppte);
+-extern size_t iopgtable_clear_entry(struct iommu *obj, u32 iova);
+ 
+ extern int iommu_set_da_range(struct iommu *obj, u32 start, u32 end);
+ extern int iommu_set_isr(const char *name,
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index bf8de64..3aad2e3 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -171,11 +171,10 @@ static inline struct cr_regs *iotlb_alloc_cr(struct iommu *obj,
+ 	return arch_iommu->alloc_cr(obj, e);
+ }
+ 
+-u32 iotlb_cr_to_virt(struct cr_regs *cr)
++static u32 iotlb_cr_to_virt(struct cr_regs *cr)
+ {
+ 	return arch_iommu->cr_to_virt(cr);
+ }
+-EXPORT_SYMBOL_GPL(iotlb_cr_to_virt);
+ 
+ static u32 get_iopte_attr(struct iotlb_entry *e)
+ {
+@@ -254,7 +253,7 @@ static struct cr_regs __iotlb_read_cr(struct iommu *obj, int n)
+  * @obj:	target iommu
+  * @e:		an iommu tlb entry info
+  **/
+-int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
++static int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
+ {
+ 	int err = 0;
+ 	struct iotlb_lock l;
+@@ -310,7 +309,6 @@ out:
+ 	clk_disable(obj->clk);
+ 	return err;
+ }
+-EXPORT_SYMBOL_GPL(load_iotlb_entry);
+ 
+ /**
+  * flush_iotlb_page - Clear an iommu tlb entry
+@@ -319,7 +317,7 @@ EXPORT_SYMBOL_GPL(load_iotlb_entry);
+  *
+  * Clear an iommu tlb entry which includes 'da' address.
+  **/
+-void flush_iotlb_page(struct iommu *obj, u32 da)
++static void flush_iotlb_page(struct iommu *obj, u32 da)
+ {
+ 	int i;
+ 	struct cr_regs cr;
+@@ -348,7 +346,6 @@ void flush_iotlb_page(struct iommu *obj, u32 da)
+ 	if (i == obj->nr_tlb_entries)
+ 		dev_dbg(obj->dev, "%s: no page for %08x\n", __func__, da);
+ }
+-EXPORT_SYMBOL_GPL(flush_iotlb_page);
+ 
+ /**
+  * flush_iotlb_range - Clear an iommu tlb entries
+@@ -374,7 +371,7 @@ EXPORT_SYMBOL_GPL(flush_iotlb_range);
+  * flush_iotlb_all - Clear all iommu tlb entries
+  * @obj:	target iommu
+  **/
+-void flush_iotlb_all(struct iommu *obj)
++static void flush_iotlb_all(struct iommu *obj)
+ {
+ 	struct iotlb_lock l;
+ 
+@@ -388,7 +385,6 @@ void flush_iotlb_all(struct iommu *obj)
+ 
+ 	clk_disable(obj->clk);
+ }
+-EXPORT_SYMBOL_GPL(flush_iotlb_all);
+ 
+ /**
+  * iommu_set_twl - enable/disable table walking logic
+@@ -682,7 +678,8 @@ EXPORT_SYMBOL_GPL(iopgtable_store_entry);
+  * @ppgd:	iommu pgd entry pointer to be returned
+  * @ppte:	iommu pte entry pointer to be returned
+  **/
+-void iopgtable_lookup_entry(struct iommu *obj, u32 da, u32 **ppgd, u32 **ppte)
++static void
++iopgtable_lookup_entry(struct omap_iommu *obj, u32 da, u32 **ppgd, u32 **ppte)
+ {
+ 	u32 *iopgd, *iopte = NULL;
+ 
+@@ -696,7 +693,6 @@ out:
+ 	*ppgd = iopgd;
+ 	*ppte = iopte;
+ }
+-EXPORT_SYMBOL_GPL(iopgtable_lookup_entry);
+ 
+ static size_t iopgtable_clear_entry_core(struct iommu *obj, u32 da)
+ {
+@@ -751,7 +747,7 @@ out:
+  * @obj:	target iommu
+  * @da:		iommu device virtual address
+  **/
+-size_t iopgtable_clear_entry(struct iommu *obj, u32 da)
++static size_t iopgtable_clear_entry(struct iommu *obj, u32 da)
+ {
+ 	size_t bytes;
+ 
+@@ -764,7 +760,6 @@ size_t iopgtable_clear_entry(struct iommu *obj, u32 da)
+ 
+ 	return bytes;
+ }
+-EXPORT_SYMBOL_GPL(iopgtable_clear_entry);
+ 
+ static void iopgtable_clear_entry_all(struct iommu *obj)
+ {
 -- 
 1.7.4.1
+
