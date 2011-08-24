@@ -1,69 +1,77 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v2] OMAP3EVM: ehci: Fix EHCI support
-Date: Wed, 24 Aug 2011 21:52:44 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC007CB2@dbde02.ent.ti.com>
-References: <1314174902-12797-1-git-send-email-bdefaria@adeneo-embedded.com>
-	 <19F8576C6E063C45BE387C64729E739404EC007BC0@dbde02.ent.ti.com>
-	 <1314189727.2320.16.camel@bryan-HUTIA>
-	 <19F8576C6E063C45BE387C64729E739404EC007C71@dbde02.ent.ti.com>
- <1314201821.2320.50.camel@bryan-HUTIA>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
+Subject: [PATCH v3] OMAP3EVM: ehci: Fix EHCI support
+Date: Wed, 24 Aug 2011 18:37:16 +0200
+Message-ID: <1314203836-3799-1-git-send-email-bdefaria@adeneo-embedded.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51161 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751305Ab1HXQXQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 12:23:16 -0400
-In-Reply-To: <1314201821.2320.50.camel@bryan-HUTIA>
-Content-Language: en-US
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:49339 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305Ab1HXQhc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 12:37:32 -0400
+Received: by fxh19 with SMTP id 19so1104881fxh.19
+        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 09:37:31 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: tony@atomide.com
+Cc: Bryan DE FARIA <bdefaria@adeneo-embedded.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-SGksDQo+IEZvciB0aGUgY29tbWVudCB3aGF0IGFib3V0Og0KPiBTZXQgdGhlIFZBVVgyIHJlZ3Vs
-YXRvciBzdXBwbHkgdG8gMS44ViBmb3IgdGhlIEhTVVNCIGhvc3QgaW50ZXJmYWNlLg0KPiBUcHM2
-NTk1MCBHUElPMiBoYXMgdG8gYmUgc2V0IHRvIHplcm8gaW4gb3JkZXIgdG8gZW5hYmxlIHRoZSBF
-SENJIHNlbGVjdA0KPiBsaW5lLg0KDQpMb29rcyBmaW5lLg0KDQo+IA0KPiBJIHNlZSB0aGlzIHBh
-dGNoIGFzIGEgZml4IGZvciB0aGUgRUhDSSBzdXBwb3J0LCB3aGF0IHdvdWxkIHlvdSBzdWdnZXN0
-DQo+IGZvciB0aGUgcGF0Y2ggbmFtZT8NCg0KVGhpcyBpcyBhbHNvIGZpbmUuDQoNCkFqYXkNCj4g
-DQo+IEJyeWFuDQo+ID4gSGksDQo+ID4gPiBUUFM2NTk1MCBHUElPMiBpcyB0byBjaG9vc2UgdGhy
-b3VnaCB1MTMxIGlmIHdlIGRyaXZlIHRoZSBsaW5lcyB0bw0KPiB0aGUNCj4gPiA+IGV2bSBtb3Ro
-ZXIgYm9hcmQgb3IgdG8gdGhlIGV4cGFuc2lvbiBjb25uZWN0b3IgcDE4LiBTaG91bGQgbm90IGl0
-DQo+IGJlDQo+ID4gPiBkZWZhdWx0IHRvIHRoZSBtb3RoZXIgYm9hcmQ/DQo+ID4gSXQncyBub3Qg
-ZW5hYmxlZCBieSBkZWZhdWx0IGFuZCB0aGF04oCZcyB3aHkgd2UgbmVlZCB0byBlbmFibGUgaXQN
-Cj4gdGhyb3VnaA0KPiA+IFRwczY1OTUwIEdQSU8yLg0KPiA+DQo+ID4gWW91ciBwYXRjaCBsb29r
-cyBmaW5lIGJ1dCB0aGUgY29tbWVudCBhbmQgbmFtZSBuZWVkcyB0byBiZSBjaGFuZ2VkIGFzDQo+
-ID4gVGhlcmUgaXMgbm8gY2xvY2sgd2hpY2ggZ2V0cyBlbmFibGVkIHVzaW5nIGdwaW8yLiBBbGwg
-dGhlIEhTVVNCDQo+IGNsb2Nrcw0KPiA+IEFyZSBoYW5kbGVkIGluc2lkZSBkcml2ZXIgYXQgZHJp
-dmVycy91c2IvaG9zdC9laGNpLW9tYXAuYw0KPiA+DQo+ID4gQWpheQ0KPiA+DQo+ID4gPiBUaGUg
-RUhDSSBwb3J0IG9uIHRoZSBtb3RoZXIgYm9hcmQgd29ya3Mgd2l0aCB0aGlzIHBhdGNoLg0KPiA+
-ID4NCj4gPiA+IEJyeWFuDQo+ID4gPg0KPiA+ID4gPiBIaSwNCj4gPiA+ID4gPiBTZXQgdGhlIFZB
-VVgyIHJlZ3VsYXRvciBzdXBwbHkgdG8gMS44ViBmb3IgdGhlIEhTVVNCIGhvc3QNCj4gPiA+IGlu
-dGVyZmFjZS4NCj4gPiA+ID4gPiBHcGlvIDIgb2YgdGhlIFRQUzY1OTUwIGhhcyB0byBiZSBzZXQg
-dG8gemVybyBpbiBvcmRlciB0byBlbmFibGUNCj4gdGhlDQo+ID4gPiA+ID4gSFNVQlMyIGNsb2Nr
-Lg0KPiA+ID4gPg0KPiA+ID4gPiBUUFM2NTk1MCBHUElPMiBpcyBub3QgdG8gZW5hYmxlIEhTVVNC
-MiBjbG9jayBidXQgdG8gZW5hYmxlIGNoaXANCj4gdTEzMQ0KPiA+ID4gPiBPbiBvbWFwM2V2bSAo
-cmV2LUcpIHdoaWNoIGxhdGNoZXMgVVNCLCBjYW1lcmEgYW5kIGF1ZGlvIGxpbmVzLg0KPiA+ID4g
-Pg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gU2lnbmVkLW9mZi1ieTogQnJ5YW4gREUgRkFSSUEgPGJk
-ZWZhcmlhQGFkZW5lby1lbWJlZGRlZC5jb20+DQo+ID4gPiA+ID4gLS0tDQo+ID4gPiA+ID4gIGFy
-Y2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNldm0uYyB8ICAgMjUNCj4gPiA+ICsrKysrKysr
-KysrKysrKysrKysrKysrKysNCj4gPiA+ID4gPiAgMSBmaWxlcyBjaGFuZ2VkLCAyNSBpbnNlcnRp
-b25zKCspLCAwIGRlbGV0aW9ucygtKQ0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gZGlmZiAtLWdpdCBh
-L2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNldm0uYw0KPiBiL2FyY2gvYXJtL21hY2gt
-DQo+ID4gPiA+ID4gb21hcDIvYm9hcmQtb21hcDNldm0uYw0KPiA+ID4gPiA+IGluZGV4IGM0NTJi
-M2YuLjEzYTJiNzEgMTAwNjQ0DQo+ID4gPiA+ID4gLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9i
-b2FyZC1vbWFwM2V2bS5jDQo+ID4gPiA+ID4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2Fy
-ZC1vbWFwM2V2bS5jDQo+ID4gPiA+ID4gQEAgLTM3Nyw2ICszNzcsMTAgQEAgc3RhdGljIGludCBv
-bWFwM2V2bV90d2xfZ3Bpb19zZXR1cChzdHJ1Y3QNCj4gPiA+IGRldmljZQ0KPiA+ID4gPiA+ICpk
-ZXYsDQo+ID4gPiA+ID4gIAlpZiAocikNCj4gPiA+ID4gPiAgCQlwcmludGsoS0VSTl9FUlIgImZh
-aWxlZCB0byBnZXQvc2V0IGxjZF9ia2wgZ3Bpb1xuIik7DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiAr
-CS8qIGdwaW8gKyAyID09IEhTVVNCMiBDbG9jayBFbmFibGUgKi8NCj4gPiA+ID4gPiArCWlmIChn
-ZXRfb21hcDNfZXZtX3JldigpID49IE9NQVAzRVZNX0JPQVJEX0dFTl8yKQ0KPiA+ID4gPiA+ICsJ
-CWdwaW9fcmVxdWVzdF9vbmUoZ3BpbyArIDIsIEdQSU9GX09VVF9JTklUX0xPVywNCj4gPiA+ID4g
-PiAiRU5fSFNVU0IyX0NMSyIpOw0KPiA+ID4gPiA+ICsNCj4gPiA+ID4NCj4gPiA+ID4gRGlkIHlv
-dSB0ZXN0IEVIQ0kgcG9ydCB3aXRoIHRoaXMgY2hhbmdlID8NCj4gPiA+ID4NCj4gPiA+ID4gQWph
-eQ0KPiA+ID4gPiA+ICAJLyogZ3BpbyArIDcgPT0gRFZJIEVuYWJsZSAqLw0KPiA+ID4gPiA+ICAJ
-Z3Bpb19yZXF1ZXN0X29uZShncGlvICsgNywgR1BJT0ZfT1VUX0lOSVRfTE9XLCAiRU5fRFZJIik7
-DQo+ID4gPiA+IFsuLi5dDQo+ID4gPiA+IHJtLWtlcm5lbA0KPiA+DQoNCg==
+Set the VAUX2 regulator supply to 1.8V for the HSUSB host interface.
+Tps65950 GPIO2 has to be set to zero in order to enable the EHCI select line.
+
+Signed-off-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index c452b3f..13a2b71 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -377,6 +377,10 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
+ 	if (r)
+ 		printk(KERN_ERR "failed to get/set lcd_bkl gpio\n");
+ 
++	/* gpio + 2 == HSUSB2 Clock Enable */
++	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
++		gpio_request_one(gpio + 2, GPIOF_OUT_INIT_LOW, "EN_HSUSB2_CLK");
++
+ 	/* gpio + 7 == DVI Enable */
+ 	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
+ 
+@@ -450,6 +454,25 @@ static struct regulator_init_data omap3evm_vio = {
+ 	.consumer_supplies	= omap3evm_vio_supply,
+ };
+ 
++/* VAUX2 for EHCI */
++static struct regulator_consumer_supply omap3evm_vaux2_supplies[] = {
++	REGULATOR_SUPPLY("hsusb1", "ehci-omap.0"),
++};
++
++static struct regulator_init_data omap3evm_vaux2 = {
++	.constraints = {
++		.min_uV      		= 1800000,
++		.max_uV      		= 1800000,
++		.apply_uV    		= true,
++		.valid_modes_mask  	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask  	= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = ARRAY_SIZE(omap3evm_vaux2_supplies),
++	.consumer_supplies   	= omap3evm_vaux2_supplies,
++};
++
+ #ifdef CONFIG_WL12XX_PLATFORM_DATA
+ 
+ #define OMAP3EVM_WLAN_PMENA_GPIO	(150)
+@@ -510,6 +533,8 @@ static int __init omap3_evm_i2c_init(void)
+ 
+ 	omap3evm_twldata.vdac->constraints.apply_uV = true;
+ 	omap3evm_twldata.vpll2->constraints.apply_uV = true;
++	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
++		omap3evm_twldata.vaux2 = &omap3evm_vaux2;
+ 
+ 	omap3_pmic_init("twl4030", &omap3evm_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+-- 
+1.7.4.1
+
