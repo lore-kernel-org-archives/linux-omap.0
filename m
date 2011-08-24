@@ -1,74 +1,72 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [RFC PATCH 00/10] OMAP: Add DT support for early init OMAP4 devices
-Date: Wed, 24 Aug 2011 15:09:06 +0200
-Message-ID: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH 01/10] OMAP2+: l3-noc: Add support for device-tree
+Date: Wed, 24 Aug 2011 15:09:07 +0200
+Message-ID: <1314191356-10963-2-git-send-email-b-cousson@ti.com>
+References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: grant.likely@secretlab.ca, tony@atomide.com
-Cc: khilman@ti.com, Benoit Cousson <b-cousson@ti.com>, manjugk@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1314191356-10963-1-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: khilman-l0cyMroinI0@public.gmane.org, manjugk-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grant, Tony,
+Add device-tree support for the l3-noc driver.
 
-Here are a couple of drivers / devices adaptated to DT on OMAP4.
-I focused first on devices that used to be initialized before machine_init
-time (postcore_initcall most of the time).
+Use platform_driver_register to defer the probing at device init
+time.
 
-The GPIO adaptation is not taking into account the current cleanup done
-by Charu / Tarun. It will have to be revisited when the cleanup will
-be completed.
+Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/mach-omap2/omap_l3_noc.c |   16 ++++++++++++++--
+ 1 files changed, 14 insertions(+), 2 deletions(-)
 
-Patches are based on for_3.2/3_omap4_dt_base + devicetree/test
-and are available here:
-git://gitorious.org/omap-pm/linux.git for_3.2/4_omap4_dt_early_devices
-
-Comments are welcome.
-
-Regards,
-Benoit
-
-
-Benoit Cousson (10):
-  OMAP2+: l3-noc: Add support for device-tree
-  arm/dts: OMAP4: Add a main ocp entry bound to l3-noc driver
-  documentation/dt: Add l3-noc bindings
-  arm/dts: OMAP4: Add mpu, dsp and iva nodes
-  documentation/dt: Add mpu, dsp and iva bindings
-  hwspinlock: OMAP4: Add spinlock support in DT
-  documentation/dt: Add spinlock bindings
-  gpio/omap: Adapt GPIO driver to DT
-  arm/dts: OMAP4: Add gpio nodes
-  documentation/dt: Add OMAP GPIO properties
-
- Documentation/devicetree/bindings/arm/omap/dsp.txt |   14 +++
- Documentation/devicetree/bindings/arm/omap/iva.txt |   18 ++++
- .../devicetree/bindings/arm/omap/l3-noc.txt        |   18 ++++
- Documentation/devicetree/bindings/arm/omap/mpu.txt |   35 +++++++
- .../devicetree/bindings/gpio/gpio-omap.txt         |   33 ++++++
- .../bindings/hwspinlock/omap-spinlock.txt          |    5 +
- arch/arm/boot/dts/omap4.dtsi                       |  105 +++++++++++++++++++-
- arch/arm/mach-omap2/Makefile                       |    6 +-
- arch/arm/mach-omap2/devices.c                      |    2 +
- arch/arm/mach-omap2/gpio.c                         |    2 +
- arch/arm/mach-omap2/omap_l3_noc.c                  |   16 +++-
- arch/arm/mach-omap2/pm.c                           |    5 +-
- drivers/gpio/gpio-omap.c                           |  103 +++++++++++++++++--
- drivers/hwspinlock/omap_hwspinlock.c               |   11 ++
- 14 files changed, 359 insertions(+), 14 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/dsp.txt
- create mode 100644 Documentation/devicetree/bindings/arm/omap/iva.txt
- create mode 100644 Documentation/devicetree/bindings/arm/omap/l3-noc.txt
- create mode 100644 Documentation/devicetree/bindings/arm/omap/mpu.txt
- create mode 100644 Documentation/devicetree/bindings/gpio/gpio-omap.txt
- create mode 100644 Documentation/devicetree/bindings/hwspinlock/omap-spinlock.txt
+diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/arch/arm/mach-omap2/omap_l3_noc.c
+index 7b9f190..4630703 100644
+--- a/arch/arm/mach-omap2/omap_l3_noc.c
++++ b/arch/arm/mach-omap2/omap_l3_noc.c
+@@ -228,16 +228,28 @@ static int __exit omap4_l3_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(CONFIG_OF)
++static const struct of_device_id l3_noc_match[] = {
++	{.compatible = "arteris,noc", },
++	{},
++}
++MODULE_DEVICE_TABLE(of, l3_noc_match);
++#else
++#define l3_noc_match NULL
++#endif
++
+ static struct platform_driver omap4_l3_driver = {
++	.probe		= omap4_l3_probe,
+ 	.remove		= __exit_p(omap4_l3_remove),
+ 	.driver		= {
+-	.name		= "omap_l3_noc",
++		.name		= "omap_l3_noc",
++		.of_match_table = l3_noc_match,
+ 	},
+ };
+ 
+ static int __init omap4_l3_init(void)
+ {
+-	return platform_driver_probe(&omap4_l3_driver, omap4_l3_probe);
++	return platform_driver_register(&omap4_l3_driver);
+ }
+ postcore_initcall_sync(omap4_l3_init);
+ 
+-- 
+1.7.0.4
