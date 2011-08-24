@@ -1,69 +1,90 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [RFC PATCH 0/7] OMAP: Add initial support for DT on OMAP4
-Date: Wed, 24 Aug 2011 12:17:13 +0200
-Message-ID: <1314181040-22807-1-git-send-email-b-cousson@ti.com>
+Subject: [RFC PATCH 1/7] OMAP3+: boards: Fix the __initconst build error
+Date: Wed, 24 Aug 2011 12:17:14 +0200
+Message-ID: <1314181040-22807-2-git-send-email-b-cousson@ti.com>
+References: <1314181040-22807-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58782 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:58821 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751657Ab1HXKSW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 06:18:22 -0400
+	with ESMTP id S1755946Ab1HXKTF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 06:19:05 -0400
+In-Reply-To: <1314181040-22807-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: grant.likely@secretlab.ca
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, manjugk@ti.com, Benoit Cousson <b-cousson@ti.com>
 
-Hi Grant,
+The __initconst introduced some build errors with the following
+compiler version:
+ arm-none-linux-gnueabi-gcc (Sourcery G++ Lite 2010.09-50) 4.5.1
 
-Here is the first part of patches to add device-tree support for OMAP4
-platforms. It is partially based on initial works done by Manju for i2c.
-The main difference is the usage of the notifier to create omap_device and
-the addition of the hwmods bindings.
-That series mainly clean the existing DT file and add an empty skeleton for
-OMAP4 soc.
-It adds as well a minimal OMAP4 board file for basic DT support. The goal
-being to remove even the minimal static devices init in order to have a
-fully generic OMAP board file.
-The next one will start adding some real devices.
+arch/arm/mach-omap2/board-omap3beagle.c:566:20: error:
+omap3_beagle_dt_match causes a section type conflict
 
-Patches are based on for_3.2/2_omap_device_dt + devicetree/test
-and are available here:
-git://gitorious.org/omap-pm/linux.git for_3.2/3_omap4_dt_base
+Replace them by __initdata.
 
-Thanks to your latest hack, for people who want to play with appended dtb:
- make uImage-dtb.omap4-panda
- make uImage-dtb.omap4-sdp
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/mach-omap2/board-igep0020.c    |    2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
+ arch/arm/mach-omap2/board-omap4panda.c  |    2 +-
+ arch/arm/mach-omap2/board-overo.c       |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-Comments are welcome.
-
-Regards,
-Benoit
-
-
-Benoit Cousson (7):
-  OMAP3+: boards: Fix the __initconst build error
-  arm/dts: Add initial device tree support for OMAP4 SoC
-  arm/dts: Update OMAP4 Panda to include common omap4.dtsi
-  arm/dts: Add support for OMAP4 SDP board
-  OMAP4: board-panda: Remove DT support from regular board
-  OMAP4: board-dt: Add generic board with DT support
-  documentation/dt: Add OMAP bindings
-
- .../devicetree/bindings/arm/omap/omap.txt          |   38 +++++++
- arch/arm/boot/dts/omap4-panda.dts                  |   28 ++++-
- arch/arm/boot/dts/omap4-sdp.dts                    |   29 +++++
- arch/arm/boot/dts/omap4.dtsi                       |   80 ++++++++++++++
- arch/arm/mach-omap2/Kconfig                        |    9 ++
- arch/arm/mach-omap2/Makefile                       |    1 +
- arch/arm/mach-omap2/board-igep0020.c               |    2 +-
- arch/arm/mach-omap2/board-omap3beagle.c            |    2 +-
- arch/arm/mach-omap2/board-omap4-dt.c               |  110 ++++++++++++++++++++
- arch/arm/mach-omap2/board-omap4panda.c             |    6 -
- arch/arm/mach-omap2/board-overo.c                  |    2 +-
- 11 files changed, 293 insertions(+), 14 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/omap.txt
- create mode 100644 arch/arm/boot/dts/omap4-sdp.dts
- create mode 100644 arch/arm/boot/dts/omap4.dtsi
- create mode 100644 arch/arm/mach-omap2/board-omap4-dt.c
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 249165a..2521823 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -671,7 +671,7 @@ static void __init igep_init(void)
+ 	}
+ }
+ 
+-static const char *igep2_dt_compat[] __initconst = {
++static const char *igep2_dt_compat[] __initdata = {
+ 	"ISEE,igep-v2",
+ 	NULL
+ };
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index b3b9cbc..a7923ca 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -563,7 +563,7 @@ static void __init omap3_beagle_init(void)
+ 	beagle_opp_init();
+ }
+ 
+-static const char *omap3_beagle_dt_match[] __initconst = {
++static const char *omap3_beagle_dt_match[] __initdata = {
+ 	"ti,omap3-beagle",
+ 	NULL
+ };
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b526aa9..1c583c7 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -581,7 +581,7 @@ static void __init omap4_panda_map_io(void)
+ 	omap44xx_map_common_io();
+ }
+ 
+-static const char *omap4_panda_match[] __initconst = {
++static const char *omap4_panda_match[] __initdata = {
+ 	"ti,omap4-panda",
+ 	NULL,
+ };
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 18ae2c2..f0b8489 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -560,7 +560,7 @@ static void __init overo_init(void)
+ 					"OVERO_GPIO_USBH_CPEN\n");
+ }
+ 
+-static const char *omap3_overo_dt_match[] __initconst = {
++static const char *omap3_overo_dt_match[] __initdata = {
+ 	"gumstix,omap3-overo",
+ 	NULL
+ };
+-- 
+1.7.0.4
 
