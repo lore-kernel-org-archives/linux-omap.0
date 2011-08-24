@@ -1,180 +1,335 @@
-From: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
-Subject: Re: USB DMA on Beagleboard xM (DM37x)
-Date: Wed, 24 Aug 2011 07:35:43 -0700 (PDT)
-Message-ID: <30852752.1245.1314196543737.JavaMail.geo-discussion-forums@yqlo5>
-References: <4f8e974b-a67d-4020-b39d-a3d7ca90fe42@w22g2000prj.googlegroups.com>
-Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH 2/5 v7] arm: omap: usb: ehci and ohci hwmod structures for omap3
+Date: Wed, 24 Aug 2011 20:00:57 +0530
+Message-ID: <1314196260-9578-3-git-send-email-keshava_mgowda@ti.com>
+References: <1314196260-9578-1-git-send-email-keshava_mgowda@ti.com>
+ <1314196260-9578-2-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_Part_1244_10587044.1314196543735"
-Return-path: <beagleboard+bncCKmZx5vdGRDCmNTyBBoESM7PKw-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <4f8e974b-a67d-4020-b39d-a3d7ca90fe42-3/KZq9SnIEE2swWmpKVAvmB/v6IoIuQBVpNB7YpNyf8@public.gmane.org>
-List-Post: <http://groups.google.com/group/beagleboard/post?hl=en_US>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/beagleboard?hl=en_US>
-Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=en_US>,
- <mailto:beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1314196260-9578-2-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_1244_10587044.1314196543735
-Content-Type: text/plain; charset=ISO-8859-1
+Following 4 hwmod structure are added:
+UHH hwmod of usbhs with uhh base address and functional clock,
+EHCI hwmod with irq and base address,
+OHCI hwmod with irq and base address,
+TLL hwmod of usbhs with the TLL base address and irq.
 
->On Tuesday, August 23, 2011 1:33:43 PM UTC-4, Esaias wrote:
->Hello, 
->
->I have written a USB driver for the OTG controller (just to be used as 
->peripheral) for a USB Stack (Not using Linux). 
->The driver is able to Tx/Rx at High Speed but I am only getting a 
->throughput of 3MB/s. I think I need DMA to get a higher throughput, 
->however I can't find the documentation for the DMA in the USB 
->controller. I need to know where the registers are located. 
->
->So my questions: 
->1. Does BB xM uses CPPI 4.1 DMA? 
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  282 ++++++++++++++++++++++++++++
+ 1 files changed, 282 insertions(+), 0 deletions(-)
 
-Depends on which kernel you are talking about, but my understanding is that 
-it is *NOT* enabled in the mainline. There have been a few candidate patches 
-floated, but nothing accepted yet. You can google for it. There was an issue 
-that prevents you from using the DMA in both directions and thus there was a 
-desire to use the sDMA (system DMA) for transfers in one of the directions.
-
-My impression might be quite wrong based on [1].
-
->2. Where can I find the registers offsets for the DMA in the USB 
->controller? 
->
-
-Here's the TI answer I got (yes, I work for TI, but I go through the typical 
-support channels to get answers for the BeagleBoard community):
-
-      You can refer to linux code for Mentor DMA implementation. For 
-document you should Contact local TI team and get it after signing NDA 
-needed for this document.
-
-
-I see you got a bit of an answer from the TI e2e forums [1].  It would be 
-great if you could reply back here as well with whatever you learn.
-
-The individual registers seem to be defined in [4] or [5]. I wanted to find 
-where the base was introduced to see if the whole driver was introduced 
-together, but it doesn't look like it to me [3].
-
-When lost in the code, it is time to revert to the TRM [7].  In the L4-Core 
-Memory Space Mapping table, you can find the USB OTG controller base at 
-0x480AB000, but that doesn't match the 0x4805e300 found in [3], which is 
-just shown as RESERVED in the memory mapping table. :( 
-
-[1] 
-http://e2e.ti.com/support/dsp/davinci_digital_media_processors/f/537/p/129614/464698.aspx
-[2] 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/usb/musb/cppi_dma.c;h=149f3f310a0a1f9903793ca5f56daaf1038a4024;hb=HEAD
-[3] 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commitdiff;h=f4e4c324a5f81f18156499d1ade3732ba1f5b523
-[4] 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/usb/musb/musb_regs.h;h=82410703dcd3c1d87e688007c52cd737675d03d6;hb=HEAD
-[5] 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/usb/musb/cppi_dma.h;h=59bf949e589b85a086be064ffb037a77bedc7e24;hb=HEAD
-[6] 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/usb/musb/musbhsdma.h;h=320fd4afb93f7cd31b05e26e125819ae03af95c2;hb=HEAD
-[7] http://focus.ti.com/docs/prod/folders/print/dm3730.html (search for 
-"technical reference manual")
-
->Any other information that might be helpful when adding this 
->functionality to my USB driver? 
->
-
-If it is a Linux driver, include linux-omap (added to the CC) to the 
-discussion. There are some USB experts there who might chime in if you are 
-working on advancing the state of the mainline driver to include DMA 
-support.  If you have sufficient time to devote to improving the performance 
-of the driver for the community, I can be a contact to enable the NDA.
-
-
->Thanks, 
->
->- Esaias
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 59fdb9f..a5531f7 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -84,6 +84,10 @@ static struct omap_hwmod omap3xxx_mcbsp4_hwmod;
+ static struct omap_hwmod omap3xxx_mcbsp5_hwmod;
+ static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwmod;
+ static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwmod;
++static struct omap_hwmod omap34xx_usb_host_hs_hwmod;
++static struct omap_hwmod omap34xx_usbhs_ohci_hwmod;
++static struct omap_hwmod omap34xx_usbhs_ehci_hwmod;
++static struct omap_hwmod omap34xx_usb_tll_hs_hwmod;
+ 
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
+@@ -3196,6 +3200,279 @@ static struct omap_hwmod omap3xxx_mmc3_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+ 
++/*
++ * 'usb_host_hs' class
++ * high-speed multi-port usb host controller
++ */
++static struct omap_hwmod_ocp_if omap34xx_usb_host_hs__l3_main_2 = {
++	.master		= &omap34xx_usb_host_hs_hwmod,
++	.slave		= &omap3xxx_l3_main_hwmod,
++	.clk		= "core_l3_ick",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_class_sysconfig omap34xx_usb_host_hs_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
++				SYSC_HAS_SOFTRESET),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap34xx_usb_host_hs_hwmod_class = {
++	.name = "usbhs_uhh",
++	.sysc = &omap34xx_usb_host_hs_sysc,
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usb_host_hs_masters[] = {
++	&omap34xx_usb_host_hs__l3_main_2,
++};
++
++static struct omap_hwmod_addr_space omap34xx_usb_host_hs_addrs[] = {
++	{
++		.name		= "uhh",
++		.pa_start	= 0x48064000,
++		.pa_end		= 0x480643ff,
++		.flags		= ADDR_TYPE_RT
++	},
++	{} /* Terminating Entry */
++};
++
++static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_host_hs = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_usb_host_hs_hwmod,
++	.clk		= "l4_ick",
++	.addr		= omap34xx_usb_host_hs_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if omap34xx_f128m_cfg__usb_host_hs = {
++	.clk		= "usbhost_120m_fck",
++	.user		= OCP_USER_MPU,
++	.flags		= OCPIF_SWSUP_IDLE,
++};
++
++static struct omap_hwmod_ocp_if omap34xx_f48m_cfg__usb_host_hs = {
++	.clk		= "usbhost_48m_fck",
++	.user		= OCP_USER_MPU,
++	.flags		= OCPIF_SWSUP_IDLE,
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usb_host_hs_slaves[] = {
++	&omap34xx_l4_cfg__usb_host_hs,
++	&omap34xx_f128m_cfg__usb_host_hs,
++	&omap34xx_f48m_cfg__usb_host_hs,
++};
++
++static struct omap_hwmod omap34xx_usb_host_hs_hwmod = {
++	.name		= "usbhs_uhh",
++	.class		= &omap34xx_usb_host_hs_hwmod_class,
++	.main_clk	= "usbhost_ick",
++	.prcm = {
++		.omap2 = {
++			.module_offs = OMAP3430ES2_USBHOST_MOD,
++			.prcm_reg_id = 1,
++			.module_bit = 0,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = 1,
++			.idlest_stdby_bit = 0,
++		},
++	},
++	.slaves		= omap34xx_usb_host_hs_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_usb_host_hs_slaves),
++	.masters	= omap34xx_usb_host_hs_masters,
++	.masters_cnt	= ARRAY_SIZE(omap34xx_usb_host_hs_masters),
++	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* 'usbhs_ohci' class  */
++static struct omap_hwmod_ocp_if omap34xx_usbhs_ohci__l3_main_2 = {
++	.master		= &omap34xx_usbhs_ohci_hwmod,
++	.slave		= &omap3xxx_l3_main_hwmod,
++	.clk		= "core_l3_ick",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_class omap34xx_usbhs_ohci_hwmod_class = {
++	.name = "usbhs_ohci",
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usbhs_ohci_masters[] = {
++	&omap34xx_usbhs_ohci__l3_main_2,
++};
++
++static struct omap_hwmod_irq_info omap34xx_usbhs_ohci_irqs[] = {
++	{ .name = "ohci-irq", .irq = 76 },
++	{ .irq = -1 } /* Terminating IRQ */
++};
++
++static struct omap_hwmod_addr_space omap34xx_usbhs_ohci_addrs[] = {
++	{
++		.name		= "ohci",
++		.pa_start	= 0x48064400,
++		.pa_end		= 0x480647FF,
++		.flags		= ADDR_MAP_ON_INIT
++	},
++	{} /* Terminating Entry */
++};
++
++static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usbhs_ohci = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_usbhs_ohci_hwmod,
++	.clk		= "l4_ick",
++	.addr		= omap34xx_usbhs_ohci_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usbhs_ohci_slaves[] = {
++	&omap34xx_l4_cfg__usbhs_ohci,
++};
++
++static struct omap_hwmod omap34xx_usbhs_ohci_hwmod = {
++	.name		= "usbhs_ohci",
++	.class		= &omap34xx_usbhs_ohci_hwmod_class,
++	.mpu_irqs	= omap34xx_usbhs_ohci_irqs,
++	.slaves		= omap34xx_usbhs_ohci_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_usbhs_ohci_slaves),
++	.masters	= omap34xx_usbhs_ohci_masters,
++	.masters_cnt	= ARRAY_SIZE(omap34xx_usbhs_ohci_masters),
++	.flags		= HWMOD_INIT_NO_RESET | HWMOD_NO_IDLEST,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* 'usbhs_ehci' class  */
++static struct omap_hwmod_ocp_if omap34xx_usbhs_ehci__l3_main_2 = {
++	.master		= &omap34xx_usbhs_ehci_hwmod,
++	.slave		= &omap3xxx_l3_main_hwmod,
++	.clk		= "core_l3_ick",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_class omap34xx_usbhs_ehci_hwmod_class = {
++	.name = "usbhs_ehci",
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usbhs_ehci_masters[] = {
++	&omap34xx_usbhs_ehci__l3_main_2,
++};
++
++static struct omap_hwmod_irq_info omap34xx_usbhs_ehci_irqs[] = {
++	{ .name = "ehci-irq", .irq = 77 },
++	{ .irq = -1 } /* Terminating IRQ */
++};
++
++static struct omap_hwmod_addr_space omap34xx_usbhs_ehci_addrs[] = {
++	{
++		.name		= "ehci",
++		.pa_start	= 0x48064800,
++		.pa_end		= 0x48064CFF,
++		.flags		= ADDR_MAP_ON_INIT
++	},
++	{} /* Terminating Entry */
++};
++
++static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usbhs_ehci = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_usbhs_ehci_hwmod,
++	.clk		= "l4_ick",
++	.addr		= omap34xx_usbhs_ehci_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usbhs_ehci_slaves[] = {
++	&omap34xx_l4_cfg__usbhs_ehci,
++};
++
++static struct omap_hwmod omap34xx_usbhs_ehci_hwmod = {
++	.name		= "usbhs_ehci",
++	.class		= &omap34xx_usbhs_ehci_hwmod_class,
++	.mpu_irqs	= omap34xx_usbhs_ehci_irqs,
++	.slaves		= omap34xx_usbhs_ehci_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_usbhs_ehci_slaves),
++	.masters	= omap34xx_usbhs_ehci_masters,
++	.masters_cnt	= ARRAY_SIZE(omap34xx_usbhs_ehci_masters),
++	.flags		= HWMOD_INIT_NO_RESET | HWMOD_NO_IDLEST,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/*
++ * 'usb_tll_hs' class
++ * usb_tll_hs module is the adapter on the usb_host_hs ports
++ */
++static struct omap_hwmod_class_sysconfig omap34xx_usb_tll_hs_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
++				SYSC_HAS_SOFTRESET | SYSC_HAS_ENAWAKEUP	|
++				SYSC_HAS_CLOCKACTIVITY),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap34xx_usb_tll_hs_hwmod_class = {
++	.name = "usbhs_tll",
++	.sysc = &omap34xx_usb_tll_hs_sysc,
++};
++
++static struct omap_hwmod_irq_info omap34xx_usb_tll_hs_irqs[] = {
++	{ .name = "tll-irq", .irq = 78 },
++	{ .irq = -1 } /* Terminating IRQ */
++};
++
++static struct omap_hwmod_addr_space omap34xx_usb_tll_hs_addrs[] = {
++	{
++		.name		= "tll",
++		.pa_start	= 0x48062000,
++		.pa_end		= 0x48062fff,
++		.flags		= ADDR_TYPE_RT
++	},
++	{} /* Terminating Entry */
++};
++
++static struct omap_hwmod_ocp_if omap34xx_f_cfg__usb_tll_hs = {
++	.clk		= "usbtll_fck",
++	.user		= OCP_USER_MPU,
++	.flags		= OCPIF_SWSUP_IDLE,
++};
++
++static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_tll_hs = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_usb_tll_hs_hwmod,
++	.clk		= "l4_ick",
++	.addr		= omap34xx_usb_tll_hs_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usb_tll_hs_slaves[] = {
++	&omap34xx_l4_cfg__usb_tll_hs,
++	&omap34xx_f_cfg__usb_tll_hs,
++};
++
++static struct omap_hwmod omap34xx_usb_tll_hs_hwmod = {
++	.name		= "usbhs_tll",
++	.class		= &omap34xx_usb_tll_hs_hwmod_class,
++	.mpu_irqs	= omap34xx_usb_tll_hs_irqs,
++	.main_clk	= "usbtll_ick",
++	.prcm = {
++		.omap2 = {
++			.module_offs = CORE_MOD,
++			.prcm_reg_id = 3,
++			.module_bit = 2,
++			.idlest_reg_id = 3,
++			.idlest_idle_bit = 2,
++		},
++	},
++	.slaves		= omap34xx_usb_tll_hs_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_usb_tll_hs_slaves),
++	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_main_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+@@ -3278,6 +3555,11 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	/* usbotg for am35x */
+ 	&am35xx_usbhsotg_hwmod,
+ 
++	&omap34xx_usb_host_hs_hwmod,
++	&omap34xx_usbhs_ohci_hwmod,
++	&omap34xx_usbhs_ehci_hwmod,
++	&omap34xx_usb_tll_hs_hwmod,
++
+ 	NULL,
+ };
+ 
 -- 
-You received this message because you are subscribed to the Google Groups "Beagle Board" group.
-To view this discussion on the web visit https://groups.google.com/d/msg/beagleboard/-/JwWCwpQemOQJ.
-To post to this group, send email to beagleboard-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-To unsubscribe from this group, send email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit this group at http://groups.google.com/group/beagleboard?hl=en.
-
-
-------=_Part_1244_10587044.1314196543735
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-&gt;On Tuesday, August 23, 2011 1:33:43 PM UTC-4, Esaias wrote:<br>&gt;Hell=
-o, <br> &gt;<br>&gt;I have written a USB driver for the OTG controller (jus=
-t to be used as <br>&gt;peripheral) for a USB Stack (Not using Linux). <br>=
-&gt;The driver is able to Tx/Rx at High Speed but I am only getting a <br>&=
-gt;throughput of 3MB/s. I think I need DMA to get a higher throughput, <br>=
-&gt;however I can't find the documentation for the DMA in the USB <br>&gt;c=
-ontroller. I need to know where the registers are located. <br> &gt;<br>&gt=
-;So my questions: <br>&gt;1. Does BB xM uses CPPI 4.1 DMA? <br><br>Depends =
-on which kernel you are talking about, but my understanding is that it is *=
-NOT* enabled in the mainline.  There have been a few candidate patches floa=
-ted, but nothing accepted yet.  You can google for it.  There was an issue =
-that prevents you from using the DMA in both directions and thus there was =
-a desire to use the sDMA (system DMA) for transfers in one of the direction=
-s.<br><br>My impression might be quite wrong based on [1].<br> <br>&gt;2. W=
-here can I find the registers offsets for the DMA in the USB <br>&gt;contro=
-ller? <br>&gt;<br><br>Here's the TI answer I got (yes, I work for TI, but I=
- go through the typical support channels to get answers for the BeagleBoard=
- community):<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; You can refer to linux c=
-ode for Mentor DMA implementation. For document you should Contact local TI=
- team and get it after signing NDA needed for this document.<br> <br><br>I =
-see you got a bit of an answer from the TI e2e forums [1].&nbsp; It would b=
-e great if you could reply back here as well with whatever you learn.<br><b=
-r>The individual registers seem to be defined in [4] or [5].  I wanted to f=
-ind where the base was introduced to see if the whole driver was introduced=
- together, but it doesn't look like it to me [3].<br><br>When lost in the c=
-ode, it is time to revert to the TRM [7].&nbsp; In the L4-Core Memory Space=
- Mapping table, you can find the USB OTG controller base at 0x480AB000, but=
- that doesn't match the 0x4805e300 found in [3], which is just shown as RES=
-ERVED in the memory mapping table. :( <br><br>[1] http://e2e.ti.com/support=
-/dsp/davinci_digital_media_processors/f/537/p/129614/464698.aspx<br>[2] htt=
-p://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dblob;f=3Ddr=
-ivers/usb/musb/cppi_dma.c;h=3D149f3f310a0a1f9903793ca5f56daaf1038a4024;hb=
-=3DHEAD<br>[3] http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.g=
-it;a=3Dcommitdiff;h=3Df4e4c324a5f81f18156499d1ade3732ba1f5b523<br>[4] http:=
-//git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dblob;f=3Ddriv=
-ers/usb/musb/musb_regs.h;h=3D82410703dcd3c1d87e688007c52cd737675d03d6;hb=3D=
-HEAD<br>[5] http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;=
-a=3Dblob;f=3Ddrivers/usb/musb/cppi_dma.h;h=3D59bf949e589b85a086be064ffb037a=
-77bedc7e24;hb=3DHEAD<br>[6] http://git.kernel.org/?p=3Dlinux/kernel/git/tor=
-valds/linux.git;a=3Dblob;f=3Ddrivers/usb/musb/musbhsdma.h;h=3D320fd4afb93f7=
-cd31b05e26e125819ae03af95c2;hb=3DHEAD<br>[7] http://focus.ti.com/docs/prod/=
-folders/print/dm3730.html (search for "technical reference manual")<br> <br=
->&gt;Any other information that might be helpful when adding this <br>&gt;f=
-unctionality to my USB driver? <br>&gt;<br><br>If it is a Linux driver, inc=
-lude linux-omap (added to the CC) to the discussion.  There are some USB ex=
-perts there who might chime in if you are working on advancing the state of=
- the mainline driver to include DMA support.&nbsp; If you have sufficient t=
-ime to devote to improving the performance of the driver for the community,=
- I can be a contact to enable the NDA.<br> <br> <br>&gt;Thanks, <br> &gt;<b=
-r>&gt;- Esaias<br><br>
-
-<p></p>
-
--- <br />
-You received this message because you are subscribed to the Google Groups "=
-Beagle Board" group.<br />
-To view this discussion on the web visit <a href=3D"https://groups.google.c=
-om/d/msg/beagleboard/-/JwWCwpQemOQJ">https://groups.google.com/d/msg/beagle=
-board/-/JwWCwpQemOQJ</a>.<br />=20
-To post to this group, send email to beagleboard-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org<br />
-To unsubscribe from this group, send email to beagleboard+unsubscribe@googl=
-egroups.com.<br />
-
-For more options, visit this group at http://groups.google.com/group/beagle=
-board?hl=3Den.<br />
-
-
-
-------=_Part_1244_10587044.1314196543735--
+1.6.0.4
