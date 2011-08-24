@@ -1,185 +1,220 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH 3/5 v7] arm: omap: usb: register hwmods of usbhs
-Date: Wed, 24 Aug 2011 20:00:58 +0530
-Message-ID: <1314196260-9578-4-git-send-email-keshava_mgowda@ti.com>
-References: <1314196260-9578-1-git-send-email-keshava_mgowda@ti.com>
- <1314196260-9578-2-git-send-email-keshava_mgowda@ti.com>
- <1314196260-9578-3-git-send-email-keshava_mgowda@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 3/6 V3] OMAP4460: Temperature sensor data
+Date: Wed, 24 Aug 2011 20:07:09 +0530
+Message-ID: <1314196632-8207-4-git-send-email-j-keerthy@ti.com>
+References: <1314196632-8207-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1314196260-9578-3-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, rogerq@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48362 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752602Ab1HXOh3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Aug 2011 10:37:29 -0400
+In-Reply-To: <1314196632-8207-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>, tony@atomide.com
 
-The hwmod structure of uhh, ohci, ehci and tll are
-retrieved and registered with omap device
+The register set and the
+bit fields might vary across OMAP versions. Hence
+creating a structure comprising of all the registers
+and bit fields to make the driver uniform for all the
+versions with different register sets. The data file
+contains the structure populated with register offsets
+and bit fields corresponding to OMAP4460 on die sensor.
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Cc: tony@atomide.com
 ---
- arch/arm/mach-omap2/usb-host.c |  114 +++++++++++++++++----------------------
- 1 files changed, 50 insertions(+), 64 deletions(-)
+ arch/arm/mach-omap2/Makefile                       |    2 +-
+ arch/arm/mach-omap2/temp_sensor4460_data.c         |   63 +++++++++++++
+ .../plat-omap/include/plat/temperature_sensor.h    |   93 ++++++++++++++++++++
+ 3 files changed, 157 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/temp_sensor4460_data.c
+ create mode 100644 arch/arm/plat-omap/include/plat/temperature_sensor.h
 
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-index 89ae298..9c37db9 100644
---- a/arch/arm/mach-omap2/usb-host.c
-+++ b/arch/arm/mach-omap2/usb-host.c
-@@ -28,51 +28,30 @@
- #include <mach/hardware.h>
- #include <mach/irqs.h>
- #include <plat/usb.h>
-+#include <plat/omap_device.h>
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index fb02937..2d5d981 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -86,7 +86,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o \
+ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
+ 					   cm44xx.o prcm_mpu44xx.o \
+ 					   prminst44xx.o vc44xx_data.o \
+-					   vp44xx_data.o
++					   vp44xx_data.o temp_sensor4460_data.o
  
- #include "mux.h"
- 
- #ifdef CONFIG_MFD_OMAP_USB_HOST
- 
--#define OMAP_USBHS_DEVICE	"usbhs-omap"
--
--static struct resource usbhs_resources[] = {
--	{
--		.name	= "uhh",
--		.flags	= IORESOURCE_MEM,
--	},
--	{
--		.name	= "tll",
--		.flags	= IORESOURCE_MEM,
--	},
--	{
--		.name	= "ehci",
--		.flags	= IORESOURCE_MEM,
--	},
--	{
--		.name	= "ehci-irq",
--		.flags	= IORESOURCE_IRQ,
--	},
--	{
--		.name	= "ohci",
--		.flags	= IORESOURCE_MEM,
--	},
--	{
--		.name	= "ohci-irq",
--		.flags	= IORESOURCE_IRQ,
--	}
--};
--
--static struct platform_device usbhs_device = {
--	.name		= OMAP_USBHS_DEVICE,
--	.id		= 0,
--	.num_resources	= ARRAY_SIZE(usbhs_resources),
--	.resource	= usbhs_resources,
--};
-+#define OMAP_USBHS_DEVICE	"usbhs_omap"
-+#define	USBHS_UHH_HWMODNAME	"usbhs_uhh"
-+#define	USBHS_OHCI_HWMODNAME	"usbhs_ohci"
-+#define USBHS_EHCI_HWMODNAME	"usbhs_ehci"
-+#define USBHS_TLL_HWMODNAME	"usbhs_tll"
- 
- static struct usbhs_omap_platform_data		usbhs_data;
- static struct ehci_hcd_omap_platform_data	ehci_data;
- static struct ohci_hcd_omap_platform_data	ohci_data;
- 
-+static struct omap_device_pm_latency omap_uhhtll_latency[] = {
-+	  {
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func	 = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+	  },
+ # OMAP voltage domains
+ ifeq ($(CONFIG_PM),y)
+diff --git a/arch/arm/mach-omap2/temp_sensor4460_data.c b/arch/arm/mach-omap2/temp_sensor4460_data.c
+new file mode 100644
+index 0000000..294963d
+--- /dev/null
++++ b/arch/arm/mach-omap2/temp_sensor4460_data.c
+@@ -0,0 +1,63 @@
++/*
++ * OMAP4460 on die Temperature sensor data file
++ *
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ * Author: J Keerthy <j-keerthy@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/slab.h>
++#include "control.h"
++#include <plat/temperature_sensor.h>
++
++/*
++ * OMAP4460 has one instance of thermal sensor for MPU
++ * need to describe the individual bit fields
++ */
++struct omap_temp_sensor_registers omap_mpu_temp_sensor_registers = {
++	.temp_sensor_ctrl		= OMAP4460_TEMP_SENSOR_CTRL_OFFSET,
++	.bgap_tempsoff_mask		= OMAP4460_BGAP_TEMPSOFF_MASK,
++	.bgap_soc_mask			= OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK,
++	.bgap_eocz_mask			= OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK,
++	.bgap_dtemp_mask		= OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK,
++
++	.bgap_mask_ctrl			= OMAP4460_BGAP_CTRL_OFFSET,
++	.mask_hot_mask			= OMAP4460_MASK_HOT_MASK,
++	.mask_cold_mask			= OMAP4460_MASK_COLD_MASK,
++
++	.bgap_mode_ctrl			= OMAP4460_BGAP_CTRL_OFFSET,
++	.mode_ctrl_mask			= OMAP4460_SINGLE_MODE_MASK,
++
++	.bgap_counter			= OMAP4460_BGAP_COUNTER_OFFSET,
++	.counter_mask			= OMAP4460_COUNTER_MASK,
++
++	.bgap_threshold			= OMAP4460_BGAP_THRESHOLD_OFFSET,
++	.threshold_thot_mask		= OMAP4460_T_HOT_MASK,
++	.threshold_tcold_mask		= OMAP4460_T_COLD_MASK,
++
++	.thsut_threshold		= OMAP4460_BGAP_TSHUT_OFFSET,
++	.tshut_hot_mask			= OMAP4460_TSHUT_HOT_MASK,
++	.tshut_cold_mask		= OMAP4460_TSHUT_COLD_MASK,
++
++	.bgap_status			= OMAP4460_BGAP_STATUS_OFFSET,
++	.status_clean_stop_mask		= OMAP4460_CLEAN_STOP_MASK,
++	.status_bgap_alert_mask		= OMAP4460_BGAP_ALERT_MASK,
++	.status_hot_mask		= OMAP4460_HOT_FLAG_MASK,
++	.status_cold_mask		= OMAP4460_COLD_FLAG_MASK,
++
++	.bgap_efuse			= OMAP4460_FUSE_OPP_BGAP,
++};
+diff --git a/arch/arm/plat-omap/include/plat/temperature_sensor.h b/arch/arm/plat-omap/include/plat/temperature_sensor.h
+new file mode 100644
+index 0000000..9302ea8
+--- /dev/null
++++ b/arch/arm/plat-omap/include/plat/temperature_sensor.h
+@@ -0,0 +1,93 @@
++/*
++ * OMAP Temperature sensor header file
++ *
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ * Author: J Keerthy <j-keerthy@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
++#define __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
++
++/* Offsets from the base of temperature sensor registers */
++
++#define OMAP4460_TEMP_SENSOR_CTRL_OFFSET	0x00
++#define OMAP4460_BGAP_CTRL_OFFSET		0x4c
++#define OMAP4460_BGAP_COUNTER_OFFSET		0x50
++#define OMAP4460_BGAP_THRESHOLD_OFFSET		0x54
++#define OMAP4460_BGAP_TSHUT_OFFSET		0x58
++#define OMAP4460_BGAP_STATUS_OFFSET		0x5c
++#define OMAP4460_FUSE_OPP_BGAP			-0xcc
++
++/*
++ * The register offsets and but fields might change across
++ * OMAP versions hence populating them in this structure.
++ */
++struct omap_temp_sensor_registers {
++	u32	temp_sensor_ctrl;
++	u32	bgap_tempsoff_mask;
++	u32	bgap_soc_mask;
++	u32	bgap_eocz_mask;
++	u32	bgap_dtemp_mask;
++
++	u32	bgap_mask_ctrl;
++	u32	mask_hot_mask;
++	u32	mask_cold_mask;
++
++	u32	bgap_mode_ctrl;
++	u32	mode_ctrl_mask;
++
++	u32	bgap_counter;
++	u32	counter_mask;
++
++	u32	bgap_threshold;
++	u32	threshold_thot_mask;
++	u32	threshold_tcold_mask;
++
++	u32	thsut_threshold;
++	u32	tshut_hot_mask;
++	u32	tshut_cold_mask;
++
++	u32	bgap_status;
++	u32	status_clean_stop_mask;
++	u32	status_bgap_alert_mask;
++	u32	status_hot_mask;
++	u32	status_cold_mask;
++
++	u32	bgap_efuse;
 +};
 +
- /* MUX settings for EHCI pins */
- /*
-  * setup_ehci_io_mux - initialize IO pad mux for USBHOST
-@@ -508,7 +487,10 @@ static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
- 
- void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
- {
--	int	i;
-+	struct omap_hwmod	*oh[4];
-+	struct omap_device	*od;
-+	int			bus_id = -1;
-+	int			i;
- 
- 	for (i = 0; i < OMAP3_HS_USB_PORTS; i++) {
- 		usbhs_data.port_mode[i] = pdata->port_mode[i];
-@@ -523,44 +505,48 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
- 	usbhs_data.ohci_data = &ohci_data;
- 
- 	if (cpu_is_omap34xx()) {
--		usbhs_resources[0].start = OMAP34XX_UHH_CONFIG_BASE;
--		usbhs_resources[0].end = OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1;
--		usbhs_resources[1].start = OMAP34XX_USBTLL_BASE;
--		usbhs_resources[1].end = OMAP34XX_USBTLL_BASE + SZ_4K - 1;
--		usbhs_resources[2].start	= OMAP34XX_EHCI_BASE;
--		usbhs_resources[2].end	= OMAP34XX_EHCI_BASE + SZ_1K - 1;
--		usbhs_resources[3].start = INT_34XX_EHCI_IRQ;
--		usbhs_resources[4].start	= OMAP34XX_OHCI_BASE;
--		usbhs_resources[4].end	= OMAP34XX_OHCI_BASE + SZ_1K - 1;
--		usbhs_resources[5].start = INT_34XX_OHCI_IRQ;
- 		setup_ehci_io_mux(pdata->port_mode);
- 		setup_ohci_io_mux(pdata->port_mode);
- 	} else if (cpu_is_omap44xx()) {
--		usbhs_resources[0].start = OMAP44XX_UHH_CONFIG_BASE;
--		usbhs_resources[0].end = OMAP44XX_UHH_CONFIG_BASE + SZ_1K - 1;
--		usbhs_resources[1].start = OMAP44XX_USBTLL_BASE;
--		usbhs_resources[1].end = OMAP44XX_USBTLL_BASE + SZ_4K - 1;
--		usbhs_resources[2].start = OMAP44XX_HSUSB_EHCI_BASE;
--		usbhs_resources[2].end = OMAP44XX_HSUSB_EHCI_BASE + SZ_1K - 1;
--		usbhs_resources[3].start = OMAP44XX_IRQ_EHCI;
--		usbhs_resources[4].start = OMAP44XX_HSUSB_OHCI_BASE;
--		usbhs_resources[4].end = OMAP44XX_HSUSB_OHCI_BASE + SZ_1K - 1;
--		usbhs_resources[5].start = OMAP44XX_IRQ_OHCI;
- 		setup_4430ehci_io_mux(pdata->port_mode);
- 		setup_4430ohci_io_mux(pdata->port_mode);
- 	}
- 
--	if (platform_device_add_data(&usbhs_device,
--				&usbhs_data, sizeof(usbhs_data)) < 0) {
--		printk(KERN_ERR "USBHS platform_device_add_data failed\n");
--		goto init_end;
-+	oh[0] = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
-+	if (!oh[0]) {
-+		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
-+		return;
-+	}
++/* @name: Name of the domain of the temperature sensor */
++struct omap_temp_sensor_dev_attr {
++	const char *name;
++};
 +
-+	oh[1] = omap_hwmod_lookup(USBHS_OHCI_HWMODNAME);
-+	if (!oh[1]) {
-+		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
-+		return;
- 	}
- 
--	if (platform_device_register(&usbhs_device) < 0)
--		printk(KERN_ERR "USBHS platform_device_register failed\n");
-+	oh[2] = omap_hwmod_lookup(USBHS_EHCI_HWMODNAME);
-+	if (!oh[2]) {
-+		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
-+		return;
-+	}
- 
--init_end:
--	return;
-+	oh[3] = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
-+	if (!oh[3]) {
-+		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
-+		return;
-+	}
++extern struct omap_temp_sensor_registers omap_mpu_temp_sensor_registers;
 +
-+	od = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 4,
-+				(void *)&usbhs_data, sizeof(usbhs_data),
-+				omap_uhhtll_latency,
-+				ARRAY_SIZE(omap_uhhtll_latency), false);
++/*
++ * omap_temp_sensor platform data
++ * @registers - pointer to register set and thier bit fields information
++ * @min_freq - The minimum frequency for temp sensor to be operational
++ * @max_freq - The maximum frequency at which temp sensor is operational
++ */
++struct omap_temp_sensor_pdata {
++	struct omap_temp_sensor_registers *registers;
++	u32 min_freq;
++	u32 max_freq;
++};
 +
-+	if (IS_ERR(od)) {
-+		pr_err("Could not build hwmod devices %s, %s, %s, %s\n",
-+			USBHS_UHH_HWMODNAME, USBHS_OHCI_HWMODNAME,
-+			USBHS_EHCI_HWMODNAME, USBHS_TLL_HWMODNAME);
-+		return;
-+	}
- }
- 
- #else
++#endif
 -- 
-1.6.0.4
+1.7.0.4
+
