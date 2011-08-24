@@ -1,56 +1,79 @@
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [PATCH 1/7] omap: iommu: migrate to the generic IOMMU API
-Date: Wed, 24 Aug 2011 15:15:27 +0200
-Message-ID: <20110824131527.GI2079@amd.com>
-References: <1313622608-30397-1-git-send-email-ohad@wizery.com>
-	<1313622608-30397-2-git-send-email-ohad@wizery.com>
-	<20110823140746.GP2079@amd.com>
-	<CAK=WgbZYuuKHUu6P+nfNzPgF4QmoL=T9+yquc=rMXRh4QE9grg@mail.gmail.com>
-	<CAK=WgbZAMbPhDuXZ2NwTTSDv2doT6WBSzCCaD0F02mybNEZyeA@mail.gmail.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+Date: Wed, 24 Aug 2011 18:49:46 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC007C25@dbde02.ent.ti.com>
+References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com>
+	 <201108241217.11430.laurent.pinchart@ideasonboard.com>
+	 <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907F6@dbde03.ent.ti.com>
+	 <201108241329.48147.laurent.pinchart@ideasonboard.com>
+	 <19F8576C6E063C45BE387C64729E739404EC007BE3@dbde02.ent.ti.com>
+ <1314190538.9124.29.camel@smile>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAK=WgbZAMbPhDuXZ2NwTTSDv2doT6WBSzCCaD0F02mybNEZyeA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1314190538.9124.29.camel@smile>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Ravi, Deepthy" <deepthy.ravi@ti.com>, "mchehab@infradead.org" <mchehab@infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 24, 2011 at 08:46:13AM -0400, Ohad Ben-Cohen wrote:
-> On Tue, Aug 23, 2011 at 5:59 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> > On Tue, Aug 23, 2011 at 5:07 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
-> >> Can this be easily converted to a spin_lock?
+
+> -----Original Message-----
+> From: Andy Shevchenko [mailto:andriy.shevchenko@linux.intel.com]
+> Sent: Wednesday, August 24, 2011 6:26 PM
+> To: Hiremath, Vaibhav
+> Cc: Laurent Pinchart; Ravi, Deepthy; mchehab@infradead.org; linux-
+> media@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
+> omap@vger.kernel.org
+> Subject: RE: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+> 
+> > > > >> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
+> > > > >> option is disabled and if any sensor driver has to be used
+> > > > >> between MC and non MC framework compatible devices.
+> > > > >>
+> > > > >> For example,if tvp514x video decoder driver migrated to
+> > > > >> MC framework is being built without CONFIG_MEDIA_CONTROLLER
+> > > > >> option enabled, the following error messages will result.
+> > > > >> drivers/built-in.o: In function `tvp514x_remove':
+> > > > >> drivers/media/video/tvp514x.c:1285: undefined reference to
+> > > > >> `media_entity_cleanup'
+> > > > >> drivers/built-in.o: In function `tvp514x_probe':
+> > > > >> drivers/media/video/tvp514x.c:1237: undefined reference to
+> > > > >> `media_entity_init'
+> > > > >
+> > > > > If the tvp514x is migrated to the MC framework, its Kconfig option
+> > > should
+> > > > > depend on MEDIA_CONTROLLER.
+> > > >
+> > > > The same TVP514x driver is being used for both MC and non MC
+> compatible
+> > > > devices, for example OMAP3 and AM35x. So if it is made dependent on
+> > > MEDIA
+> > > > CONTROLLER, we cannot enable the driver for MC independent devices.
+> > >
+> > > Then you should use conditional compilation in the tvp514x driver
+> itself.
+> > > Or
+> > [Hiremath, Vaibhav] No. I am not in favor of conditional compilation in
+> driver code.
 > >
-> > Sure, thanks for reviewing.
+> > > better, port the AM35x driver to the MC API.
+> > >
+> > [Hiremath, Vaibhav]
+> > Why should we use MC if I have very simple device (like AM35x) which
+> only supports single path? I can very well use simple V4L2 sub-dev based
+> approach (master - slave), isn't it?
+> Why should you break the API in unappropriated way?
+[Hiremath, Vaibhav] Can you explain? 
+
+Thanks,
+Vaibhav
+
 > 
-> Taking a second look, I don't think it's necessary - the mutex isn't
-> used to protect the page table. The page table is protected by a spin
-> lock, so map/unmap operations can be called from an atomic context.
+> The patch is NACK, obviously.
 > 
-> The mutex is only part of the attach/deattach operations, which are
-> already used today in process context, so I guess it's safe.
-
-Yes, it should be safe in your context. But the iommu-api is generic and
-I would prefer that all functions it provides can be called from any
-context.
-Or is the time required for attaching/detaching too long so that it
-makes sense to put secondary threads to sleep?
-
-	Joerg
-
--- 
-AMD Operating System Research Center
-
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+> --
+> Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Intel Finland Oy
