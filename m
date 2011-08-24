@@ -1,63 +1,144 @@
-From: Ben Dooks <ben-SMNkleLxa3Z6Wcw2j4pizdi2O/JbrIOy@public.gmane.org>
-Subject: Re: [GIT PULL] I2C: OMAP: major cleanup for v3.2 (was for v3.1)
-Date: Wed, 24 Aug 2011 09:32:39 +0100
-Message-ID: <20110824083239.GD27653@trinity.fluff.org>
-References: <87sjorhepe.fsf@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH v2 2/2] omap_twl: Prevent SR to enable for
+ am3517/am3505devices
+Date: Wed, 24 Aug 2011 14:03:22 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930256C4F095@dbde02.ent.ti.com>
+References: <1314105680-17426-1-git-send-email-abhilash.kv@ti.com>
+ <24b1eaea368d2a7a692dc5455aa8b255@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87sjorhepe.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39347 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752104Ab1HXIdn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 04:33:43 -0400
+In-Reply-To: <24b1eaea368d2a7a692dc5455aa8b255@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Sripathy, Vishwanath
+> Sent: Tuesday, August 23, 2011 7:14 PM
+> To: Koyamangalath, Abhilash; linux-omap@vger.kernel.org
+> Cc: paul@pwsan.com; linux@arm.linux.org.uk; Cousson, Benoit; 
+> tony@atomide.com; linux-kernel@vger.kernel.org; Hiremath, 
+> Vaibhav; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [PATCH v2 2/2] omap_twl: Prevent SR to enable 
+> for am3517/am3505devices
+> 
+> > -----Original Message-----
+> > From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-
+> > arm-kernel-bounces@lists.infradead.org] On Behalf Of Abhilash K V
+> > Sent: Tuesday, August 23, 2011 6:51 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: paul@pwsan.com; linux@arm.linux.org.uk; b-cousson@ti.com;
+> > tony@atomide.com; linux-kernel@vger.kernel.org; Vaibhav Hiremath;
+> > Abhilash K V; linux-arm-kernel@lists.infradead.org
+> > Subject: [PATCH v2 2/2] omap_twl: Prevent SR to enable for
+> > am3517/am3505devices
+> >
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> > In case of AM3517 & AM3505, Smart Reflex is not applicable so
+> > we must not enable it. So add check for absence of SR feature
+> > in omap3_twl_init() and return -ENODEV if absence, else continue.
+> >
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/id.c              |    2 +-
+> >  arch/arm/mach-omap2/omap_twl.c        |    8 ++++++++
+> >  arch/arm/plat-omap/include/plat/cpu.h |    2 ++
+> >  3 files changed, 11 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > index 37efb86..da71098 100644
+> > --- a/arch/arm/mach-omap2/id.c
+> > +++ b/arch/arm/mach-omap2/id.c
+> > @@ -202,7 +202,7 @@ static void __init omap3_check_features(void)
+> >  	if (cpu_is_omap3630())
+> >  		omap_features |= OMAP3_HAS_192MHZ_CLK;
+> >  	if (!cpu_is_omap3505() && !cpu_is_omap3517())
+> > -		omap_features |= OMAP3_HAS_IO_WAKEUP;
+> > +		omap_features |= (OMAP3_HAS_IO_WAKEUP | OMAP3_HAS_SR);
+> >
+> >  	omap_features |= OMAP3_HAS_SDRC;
+> >
+> > diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-
+> > omap2/omap_twl.c
+> > index 07d6140..47e27b5 100644
+> > --- a/arch/arm/mach-omap2/omap_twl.c
+> > +++ b/arch/arm/mach-omap2/omap_twl.c
+> > @@ -269,6 +269,14 @@ int __init omap3_twl_init(void)
+> >  	if (!cpu_is_omap34xx())
+> >  		return -ENODEV;
+> >
+> > +	/*
+> > +	 * In case of AM3517/AM3505 we should not be going down
+> > +	 * further, since SR is not applicable there.
+> > +	 */
+> > +	if (!omap3_has_sr()) {
+> > +		return -ENODEV;
+> > +	}
+> I do not understand what has vp_max and vp_min configuration 
+> to do with
+> SR. This parameter indicates the maximum and minimum voltage 
+> supported by
+> respective PM IC.
 
-On Tue, Aug 23, 2011 at 04:48:29PM -0700, Kevin Hilman wrote:
-> Ben,
-> 
-> This series fell through the cracks for v3.1, so I've now rebased it
-> onto v3.1-rc3 and am submitting it for v3.2.  It no longer has any
-> dependencies on OMAP trees, so could you please pull this into your tree
-> for linux-next?   
-> 
-> A few more OMAP I2C series will be coming on top of this one.
+[sp] omap3_twl_init() shouldn't be executed for AM35x.
+     Considering that we are using "SR" as feature, the check
+     should be "PMIC" centric not "SR" centric.
 
-Thanks, will do that tonight when preparing new -next.
- 
-> Thanks,
-> 
-> Kevin
-> 
-> 
-> The following changes since commit fcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c:
-> 
->   Linux 3.1-rc3 (2011-08-22 11:42:53 -0700)
-> 
-> are available in the git repository at:
->   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.2/i2c-andy
-> 
-> Andy Green (12):
->       I2C: OMAP2+: Name registers in I2C IP V2 only accordingly
->       I2C: OMAP: add rev to omap i2c platform data
->       I2C: OMAP1: set IP revision in platform data
->       I2C: OMAP2+: Pass hwmod rev knowledge via platform_data when i2c bus added
->       I2C: OMAP2+: use platform_data ip revision to select register map
->       I2C: OMAP2+: Solve array bounds overflow error on i2c idle
->       I2C: OMAP2+: address confused probed version naming
->       I2C: OMAP1/OMAP2+: add flags field to omap i2c platform data
->       I2C: OMAP2+: Pass flags up to omap i2c platform_data as well
->       I2C: OMAP1: set i2c unit feature implementation flags in platform data
->       I2C: OMAP2+: Convert omap I2C driver to use feature implementation flags from platform data
->       I2C: OMAP1/OMAP2+: prepend I2C IP version to probed version shown in dev_info
-> 
->  arch/arm/plat-omap/i2c.c      |   27 +++++++++++
->  drivers/i2c/busses/i2c-omap.c |  100 ++++++++++++++++++++++------------------
->  include/linux/i2c-omap.h      |    2 +
->  3 files changed, 84 insertions(+), 45 deletions(-)
+~sanjeev
 
--- 
-Ben Dooks, ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/ben/
-
-Large Hadron Colada: A large Pina Colada that makes the universe disappear.
+> 
+> Vishwa
+> 
+> > +
+> >  	if (cpu_is_omap3630()) {
+> >  		omap3_mpu_volt_info.vp_vddmin =
+> > OMAP3630_VP1_VLIMITTO_VDDMIN;
+> >  		omap3_mpu_volt_info.vp_vddmax =
+> > OMAP3630_VP1_VLIMITTO_VDDMAX;
+> > diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-
+> > omap/include/plat/cpu.h
+> > index 67b3d75..294e015 100644
+> > --- a/arch/arm/plat-omap/include/plat/cpu.h
+> > +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> > @@ -491,6 +491,7 @@ extern u32 omap_features;
+> >  #define OMAP4_HAS_MPU_1GHZ		BIT(8)
+> >  #define OMAP4_HAS_MPU_1_2GHZ		BIT(9)
+> >  #define OMAP4_HAS_MPU_1_5GHZ		BIT(10)
+> > +#define OMAP3_HAS_SR			BIT(11)
+> >
+> >
+> >  #define OMAP3_HAS_FEATURE(feat,flag)			\
+> > @@ -507,6 +508,7 @@ OMAP3_HAS_FEATURE(isp, ISP)
+> >  OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+> >  OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
+> >  OMAP3_HAS_FEATURE(sdrc, SDRC)
+> > +OMAP3_HAS_FEATURE(sr, SR)
+> >
+> >  /*
+> >   * Runtime detection of OMAP4 features
+> > --
+> > 1.7.1
+> >
+> >
+> > _______________________________________________
+> > linux-arm-kernel mailing list
+> > linux-arm-kernel@lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
