@@ -1,110 +1,90 @@
-From: Luciano Coelho <coelho@ti.com>
+From: Govindraj <govindraj.ti@gmail.com>
 Subject: Re: 3.1-rc3 fails to boot on my pandaboard
-Date: Thu, 25 Aug 2011 14:24:34 +0300
-Message-ID: <1314271474.2296.295.camel@cumari>
+Date: Thu, 25 Aug 2011 17:05:10 +0530
+Message-ID: <CAAL8m4whQJSXQw+E52qF2vLSBrt=RsA-r-B2q2gaW3XGiR4tYg@mail.gmail.com>
 References: <1314268769.2296.283.camel@cumari>
-	 <20110825110423.GA12911@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:48805 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752204Ab1HYLYk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Aug 2011 07:24:40 -0400
-In-Reply-To: <20110825110423.GA12911@linutronix.de>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:48227 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752365Ab1HYLfb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Aug 2011 07:35:31 -0400
+In-Reply-To: <1314268769.2296.283.camel@cumari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+To: Luciano Coelho <coelho@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-On Thu, 2011-08-25 at 13:04 +0200, Sebastian Andrzej Siewior wrote: 
-> * Luciano Coelho | 2011-08-25 13:39:29 [+0300]:
-> >Any ideas what may be going wrong?
-> 
-> I think my commit was identified as bogus and tglx is going to revert 
-> it. The problem is that I force ONESHOT mode for all threaded IRQs but
-> there are also others without the flag which is not allowed.
-> 
-> I was trying to check something but I don't get my board to boot. Could
-> you please try to boot with the patch reverted and paste me the
-> the output of 
->  cat /proc/interrupts | grep 74 ?
+On Thu, Aug 25, 2011 at 4:09 PM, Luciano Coelho <coelho@ti.com> wrote:
+> Hi,
+>
+> There seems to be a problem with 3.1-rc3, which prevents it from boot=
+ing
+> on my PandaBoard (ARM OMAP4).
+>
+> 3.1-rc2 works fine, so I have bisected the problem and it turns out t=
+o
+> be caused by this:
+>
+> commit f3637a5f2e2eb391ff5757bc83fb5de8f9726464
+> Author: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Date: =A0 Thu Jul 7 22:32:17 2011 +0200
+>
+> =A0 =A0irq: Always set IRQF_ONESHOT if no primary handler is specifie=
+d
+>
+> After reverting this commit, -rc3 boots fine. =A0I'm not sure where
+> exactly the problem is. =A0Maybe it's something in the omap code whic=
+h is
+> broken and this patch causes the bug to show up?
+>
+> What happens is that the booting process hangs after printing out thi=
+s:
+>
 
-Hmmm... There doesn't seem to be an irq 74.  The only thing I get is
-this:
+fyi,
 
-root@xiru:~# cat /proc/interrupts | grep 74
-IPI1:       2667       3743  Rescheduling interrupts
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
+commitdiff;h=3D69dd3d8e29e294caaf63eb5e8a72d250279f9e5f;hp=3Dfcb8ce5cfe=
+30ca9ca5c9a79cdfe26d1993e65e0c
 
-Which is probably not what you wanted. ;)
-
-
-> I *think* that the flow handler is level (I can't find evidence of it
-> beeing edge, and omap_alloc_gc() is the place installing it).
-> 
-> So could you please gather additional debug info with this patch?
-> 
-> diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
-> index 2e94258..eda25a0 100644
-> --- a/kernel/irq/manage.c
-> +++ b/kernel/irq/manage.c
-> @@ -1327,6 +1327,9 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
->  	if (!irq_settings_can_request(desc))
->  		return -EINVAL;
->  
-> +	if (irq == 74)
-> +		printk(KERN_ERR "%s() h %pS th %pS f %lx dev %s flow %pS\n", __func__,
-> +				handler, thread_fn, irqflags, devname, desc->handle_irq);
->  	if (!handler) {
->  		if (!thread_fn)
->  			return -EINVAL;
-> 
-> 
-> %pS should resolve the function names.
-
-As I mentioned above, there doesn't seem to be irq 74, so this code
-doesn't hit.
-
-These are the interrupts reported in /proc/interrupts on my board:
-
-root@xiru:~# cat /proc/interrupts
-           CPU0       CPU1       
-39:          0          0       GIC  TWL6030-PIH
-41:          0          0       GIC  l3-dbg-irq
-42:          0          0       GIC  l3-app-irq
-44:       5397          0       GIC  DMA
-52:          0          0       GIC  gpmc
-69:         16          0       GIC  gp timer
-88:        270          0       GIC  omap_i2c
-89:          0          0       GIC  omap_i2c
-91:        183          0       GIC  mmc1
-93:          0          0       GIC  omap_i2c
-94:          0          0       GIC  omap_i2c
-102:          0          0       GIC  serial idle
-104:          0          0       GIC  serial idle
-105:          0          0       GIC  serial idle
-106:        290          0       GIC  serial idle, OMAP UART2
-108:          1          0       GIC  ohci_hcd:usb3
-109:        493          0       GIC  ehci_hcd:usb1
-115:       6260          0       GIC  mmc0
-124:          1          0       GIC  musb-hdrc
-125:          0          0       GIC  musb-hdrc
-213:          0          0      GPIO  wl1271
-372:          0          0   twl6030  twl6030_usb
-378:          0          0   twl6030  twl6030_usb
-379:          0          0   twl6030  rtc0
-IPI0:          0          0  Timer broadcast interrupts
-IPI1:       2995       3606  Rescheduling interrupts
-IPI2:          0          0  Function call interrupts
-IPI3:         57         61  Single function call interrupts
-IPI4:          0          0  CPU stop interrupts
-LOC:       8879       5844  Local timer interrupts
-Err:          0
+--
+Thanks,
+Govindraj.R
 
 
--- 
-Cheers,
-Luca.
-
+> [...]
+> [ =A0 =A07.408477] EXT3-fs: barriers not enabled
+> [ =A0 =A07.415008] kjournald starting. =A0Commit interval 5 seconds
+> [ =A0 =A07.446228] EXT3-fs (mmcblk0p5): using internal journal
+> [ =A0 =A07.452087] EXT3-fs (mmcblk0p5): mounted filesystem with order=
+ed data mode
+> [ =A0 =A07.459625] VFS: Mounted root (ext3 filesystem) on device 179:=
+5.
+> [ =A0 =A07.466094] Freeing init memory: 312K
+> [ =A0 =A07.471710] Failed to execute /init. =A0Attempting defaults...
+> [ =A0 10.254333] EXT3-fs (mmcblk0p5): using internal journal
+>
+> The full boot logs can be found here:
+>
+> http://pastebin.pandaboard.org/index.php/view/88995306
+>
+> Any ideas what may be going wrong?
+>
+> --
+> Cheers,
+> Luca.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
