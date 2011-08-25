@@ -1,44 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device wake-up constraints
-Date: Thu, 25 Aug 2011 16:49:06 +0200
-Message-ID: <201108251649.06308.rjw@sisk.pl>
-References: <20110820062543.GA5011@opensource.wolfsonmicro.com> <201108251617.31959.rjw@sisk.pl> <CAORVsuW7M_i6s85X5NFWv=DEeoARqFo47cyrrqq87djJ3nUFDQ@mail.gmail.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH 0/2] OMAP: Update nr_irqs field in machine descriptors
+Date: Thu, 25 Aug 2011 20:25:13 +0530
+Message-ID: <CANfBPZ-AAZx9TxO88EgxCtOUsWrsYzbK+M2d6cVSS7Kf-LwS3w@mail.gmail.com>
+References: <1314215215-18683-1-git-send-email-svenkatr@ti.com> <4E5636CD.4080302@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37658 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751065Ab1HYOrS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Aug 2011 10:47:18 -0400
-In-Reply-To: <CAORVsuW7M_i6s85X5NFWv=DEeoARqFo47cyrrqq87djJ3nUFDQ@mail.gmail.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:57104 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752414Ab1HYOze convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Aug 2011 10:55:34 -0400
+Received: by vxj14 with SMTP id 14so1915873vxj.20
+        for <linux-omap@vger.kernel.org>; Thu, 25 Aug 2011 07:55:33 -0700 (PDT)
+In-Reply-To: <4E5636CD.4080302@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Alan Stern <stern@rowland.harvard.edu>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, markgross@thegnar.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thursday, August 25, 2011, Jean Pihet wrote:
-> On Thu, Aug 25, 2011 at 4:17 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Thursday, August 25, 2011, Mark Brown wrote:
-> >> On Tue, Aug 23, 2011 at 11:31:54PM +0200, Rafael J. Wysocki wrote:
-> >>
-> >> > Perhaps.  Still, that requires some policy to be put into drivers,
-> >> > which I don't think is entirely correct.
-> >>
-> >> So, I don't really have the bandwidth to discuss this properly for at
-> >> least the next week or so - is it possible to find some time in the
-> >> power track at LPC for this?
-> >
-> > I think so, I'm going to add PM QoS to the agenda anyway.
-> Unfortunately I cannot attend the conference this time.
+On Thu, Aug 25, 2011 at 5:19 PM, Cousson, Benoit <b-cousson@ti.com> wro=
+te:
+> Hi Venkat,
+>
+> On 8/24/2011 9:46 PM, S, Venkatraman wrote:
+>>
+>> As part of an effort to get single ARM kernel binary [1],
+>> multiple =A0definitions of NR_IRQS under various platforms
+>> have to be reconciled and abstracted away from common code.
+>>
+>> This patch series takes the small step of populating the
+>> machine descriptors with the pre-existing nr_irqs field.
+>> Eventually, the common irq handler code will only look at this
+>> field and not the compile time constant.
+>
+> Not related to this patch, but still on that topic. The current NR_IR=
+QS
+> depends as well on board stuff, like for example : the Phoenix
+> IRQs:TWL6030_IRQ_BASE, TWL6040_CODEC_IRQ_BASE.
+> Is there a plan to get rid of this static defines?
+>
 
-Sorry to hear that.
+Currently, the goal is to get rid of the singleton nature
+of NR_IRQS. Then it just becomes a property of the
+platform, and the arm common code should not see this define.
+This cleanup has to be done across multiple SoCs, not just OMAP.
 
-> Can you please keep me in the loop of the discussions?
+After I get to complete some meaningful cleanup of NR_IRQS,
+I can look into the static defines that you mention.
 
-Sure, we will.
-
-> I am glad to help implementing the code for the user space API.
-
-Great, thanks!
+Best regards,
+Venkat.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
