@@ -1,93 +1,67 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v3] OMAP3EVM: ehci: Fix EHCI support
-Date: Thu, 25 Aug 2011 07:33:39 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC007D18@dbde02.ent.ti.com>
-References: <1314203836-3799-1-git-send-email-bdefaria@adeneo-embedded.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: Question on virtual memory layout: lowmem with memory hole
+Date: Thu, 25 Aug 2011 09:35:07 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B47E23FC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50499 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752217Ab1HYCEC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 22:04:02 -0400
-In-Reply-To: <1314203836-3799-1-git-send-email-bdefaria@adeneo-embedded.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39384 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750728Ab1HYEFQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Aug 2011 00:05:16 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan DE FARIA <bdefaria@adeneo-embedded.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Pedanekar, Hemant" <hemantp@ti.com>
 
-Hi,
-[...]
->  arch/arm/mach-omap2/board-omap3evm.c |   25 +++++++++++++++++++++++++
->  1 files changed, 25 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
-> omap2/board-omap3evm.c
-> index c452b3f..13a2b71 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -377,6 +377,10 @@ static int omap3evm_twl_gpio_setup(struct device
-> *dev,
->  	if (r)
->  		printk(KERN_ERR "failed to get/set lcd_bkl gpio\n");
-> 
-> +	/* gpio + 2 == HSUSB2 Clock Enable */
-This comment should be modified. gpio+2 not only enables EHCI but also camera and
-Audio lines.
+Hello,
 
-> +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
-> +		gpio_request_one(gpio + 2, GPIOF_OUT_INIT_LOW,
-> "EN_HSUSB2_CLK");
-This name "EN_HSUSB2_CLK" should also be changed.
+While checking with memory hole configuration on OMAP3/TI816X (passing mem=x@y),
+I see that the whole range from memory start till last bank including the hole
+is labelled as 'lowmem' when kernel prints "Virtual kernel memory layout" during
+boot.
 
-Ajay
+E.g., on OMAP3 with mem=32M@0x80000000 mem=8M@0x87800000
 
-> +
->  	/* gpio + 7 == DVI Enable */
->  	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
-> 
-> @@ -450,6 +454,25 @@ static struct regulator_init_data omap3evm_vio = {
->  	.consumer_supplies	= omap3evm_vio_supply,
->  };
-> 
-> +/* VAUX2 for EHCI */
-> +static struct regulator_consumer_supply omap3evm_vaux2_supplies[] = {
-> +	REGULATOR_SUPPLY("hsusb1", "ehci-omap.0"),
-> +};
-> +
-> +static struct regulator_init_data omap3evm_vaux2 = {
-> +	.constraints = {
-> +		.min_uV      		= 1800000,
-> +		.max_uV      		= 1800000,
-> +		.apply_uV    		= true,
-> +		.valid_modes_mask  	= REGULATOR_MODE_NORMAL
-> +					| REGULATOR_MODE_STANDBY,
-> +		.valid_ops_mask  	= REGULATOR_CHANGE_MODE
-> +					| REGULATOR_CHANGE_STATUS,
-> +	},
-> +	.num_consumer_supplies  = ARRAY_SIZE(omap3evm_vaux2_supplies),
-> +	.consumer_supplies   	= omap3evm_vaux2_supplies,
-> +};
-> +
->  #ifdef CONFIG_WL12XX_PLATFORM_DATA
-> 
->  #define OMAP3EVM_WLAN_PMENA_GPIO	(150)
-> @@ -510,6 +533,8 @@ static int __init omap3_evm_i2c_init(void)
-> 
->  	omap3evm_twldata.vdac->constraints.apply_uV = true;
->  	omap3evm_twldata.vpll2->constraints.apply_uV = true;
-> +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
-> +		omap3evm_twldata.vaux2 = &omap3evm_vaux2;
-> 
->  	omap3_pmic_init("twl4030", &omap3evm_twldata);
->  	omap_register_i2c_bus(2, 400, NULL, 0);
-> --
-> 1.7.4.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+(CASE 1)
+ Memory: 32MB 8MB = 40MB total
+ Memory: 28408k/28408k available, 12552k reserved, 0K highmem
+ Virtual kernel memory layout:
+     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+     fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
+     DMA     : 0xffc00000 - 0xffe00000   (   2 MB)
+     vmalloc : 0xc8800000 - 0xf8000000   ( 760 MB)
+     lowmem  : 0xc0000000 - 0xc8000000   ( 128 MB)
+     modules : 0xbf000000 - 0xc0000000   (  16 MB)
+       .text : 0xc0008000 - 0xc05ac2c8   (5777 kB)
+       .init : 0xc05ad000 - 0xc05f8780   ( 302 kB)
+       .data : 0xc05fa000 - 0xc06838d0   ( 551 kB)
+        .bss : 0xc06838f4 - 0xc0bd8a14   (5461 kB)
+
+Is this expected? 88MB space between two 'mem's seems to have lost. This also
+means vmalloc space is lower compared to when a single mem=40M is passed.
+
+E.g., with mem=40M
+
+(CASE 2)
+ Memory: 40MB = 40MB total
+ Memory: 28412k/28412k available, 12548k reserved, 0K highmem
+ Virtual kernel memory layout:
+     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+     fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
+     DMA     : 0xffc00000 - 0xffe00000   (   2 MB)
+     vmalloc : 0xc3000000 - 0xf8000000   ( 848 MB)
+     lowmem  : 0xc0000000 - 0xc2800000   (  40 MB)
+     modules : 0xbf000000 - 0xc0000000   (  16 MB)
+       .text : 0xc0008000 - 0xc05ac2c8   (5777 kB)
+       .init : 0xc05ad000 - 0xc05f8780   ( 302 kB)
+       .data : 0xc05fa000 - 0xc06838d0   ( 551 kB)
+        .bss : 0xc06838f4 - 0xc0bd8a14   (5461 kB)
+
+Any way we can get virtual layout same in CASE 1 as in CASE 2?
+
+Thanks.
+
+   Hemant
