@@ -1,73 +1,93 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH 6/6 V3] hwmon: OMAP4: On die temperature sensor driver
-Date: Thu, 25 Aug 2011 06:09:44 +0530
-Message-ID: <CAJ6a13amVkPxXvjAQ+h63_ypgip04gSOt7q4j_AF4Vsf7rdHzg@mail.gmail.com>
-References: <1314196632-8207-1-git-send-email-j-keerthy@ti.com>
-	<1314196632-8207-7-git-send-email-j-keerthy@ti.com>
-	<CACqS6krvH985gDwrD5kVEvbybC80wcYZN2AwV9pZ9=-x8hZAUg@mail.gmail.com>
-	<CAJ6a13a1dDQ5Axv2MX1hf1dNH3BeEBjrkEibW8WpxMrJGhmO3g@mail.gmail.com>
-	<CACqS6kqt93eMrM5cy7VAZ=zHKUHjODnB1SDWpiEwVm57d0e6vQ@mail.gmail.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH v3] OMAP3EVM: ehci: Fix EHCI support
+Date: Thu, 25 Aug 2011 07:33:39 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC007D18@dbde02.ent.ti.com>
+References: <1314203836-3799-1-git-send-email-bdefaria@adeneo-embedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:37255 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752179Ab1HYAjq convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Aug 2011 20:39:46 -0400
-Received: by mail-yw0-f43.google.com with SMTP id 3so1799858ywm.16
-        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 17:39:45 -0700 (PDT)
-In-Reply-To: <CACqS6kqt93eMrM5cy7VAZ=zHKUHjODnB1SDWpiEwVm57d0e6vQ@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50499 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752217Ab1HYCEC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Aug 2011 22:04:02 -0400
+In-Reply-To: <1314203836-3799-1-git-send-email-bdefaria@adeneo-embedded.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janakiram Sistla <janakiram.sistla@gmail.com>
-Cc: linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
+To: Bryan DE FARIA <bdefaria@adeneo-embedded.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Aug 25, 2011 at 1:22 AM, Janakiram Sistla
-<janakiram.sistla@gmail.com> wrote:
->
->
-> On Wed, Aug 24, 2011 at 1:18 PM, J, KEERTHY <j-keerthy@ti.com> wrote:
->>
->> On Wed, Aug 24, 2011 at 10:06 PM, Janakiram Sistla
->> <janakiram.sistla@gmail.com> wrote:
->> > Hi Keerthy,
->> >
->> > Can you please point me the TRM of 4430 or 4460 where it reads the=
- on
->> > die
->> > temperature sensor used is TMP103. I am referring to public TRM on=
- TI
->> > site.
->>
->> Sorry my bad! I shall remove that.
->>
->> >
->> > Regards,
->> > Sistla.
->> >
->> > On Wed, Aug 24, 2011 at 9:37 AM, Keerthy <j-keerthy@ti.com> wrote:
->
-> So if my understanding is correct this patch set refers to Band gap V=
-oltage
-> and Temperature sensor module.
-> If true can it be mentioned in=A0 the patch.
+Hi,
+[...]
+>  arch/arm/mach-omap2/board-omap3evm.c |   25 +++++++++++++++++++++++++
+>  1 files changed, 25 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> omap2/board-omap3evm.c
+> index c452b3f..13a2b71 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -377,6 +377,10 @@ static int omap3evm_twl_gpio_setup(struct device
+> *dev,
+>  	if (r)
+>  		printk(KERN_ERR "failed to get/set lcd_bkl gpio\n");
+> 
+> +	/* gpio + 2 == HSUSB2 Clock Enable */
+This comment should be modified. gpio+2 not only enables EHCI but also camera and
+Audio lines.
 
-Yes. I will mention that.
+> +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
+> +		gpio_request_one(gpio + 2, GPIOF_OUT_INIT_LOW,
+> "EN_HSUSB2_CLK");
+This name "EN_HSUSB2_CLK" should also be changed.
 
->
-> Regards,
-> Sistla.
->
+Ajay
 
-
-
---=20
-Regards and Thanks,
-Keerthy
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +
+>  	/* gpio + 7 == DVI Enable */
+>  	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
+> 
+> @@ -450,6 +454,25 @@ static struct regulator_init_data omap3evm_vio = {
+>  	.consumer_supplies	= omap3evm_vio_supply,
+>  };
+> 
+> +/* VAUX2 for EHCI */
+> +static struct regulator_consumer_supply omap3evm_vaux2_supplies[] = {
+> +	REGULATOR_SUPPLY("hsusb1", "ehci-omap.0"),
+> +};
+> +
+> +static struct regulator_init_data omap3evm_vaux2 = {
+> +	.constraints = {
+> +		.min_uV      		= 1800000,
+> +		.max_uV      		= 1800000,
+> +		.apply_uV    		= true,
+> +		.valid_modes_mask  	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask  	= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies  = ARRAY_SIZE(omap3evm_vaux2_supplies),
+> +	.consumer_supplies   	= omap3evm_vaux2_supplies,
+> +};
+> +
+>  #ifdef CONFIG_WL12XX_PLATFORM_DATA
+> 
+>  #define OMAP3EVM_WLAN_PMENA_GPIO	(150)
+> @@ -510,6 +533,8 @@ static int __init omap3_evm_i2c_init(void)
+> 
+>  	omap3evm_twldata.vdac->constraints.apply_uV = true;
+>  	omap3evm_twldata.vpll2->constraints.apply_uV = true;
+> +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
+> +		omap3evm_twldata.vaux2 = &omap3evm_vaux2;
+> 
+>  	omap3_pmic_init("twl4030", &omap3evm_twldata);
+>  	omap_register_i2c_bus(2, 400, NULL, 0);
+> --
+> 1.7.4.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
