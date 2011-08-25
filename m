@@ -1,32 +1,58 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device
- wake-up constraints
-Date: Thu, 25 Aug 2011 11:38:48 +0100
-Message-ID: <20110825103847.GD31154@opensource.wolfsonmicro.com>
-References: <20110820062543.GA5011@opensource.wolfsonmicro.com>
- <201108212005.53898.rjw@sisk.pl>
- <20110823092155.GJ9232@opensource.wolfsonmicro.com>
- <201108232331.54844.rjw@sisk.pl>
+From: Luciano Coelho <coelho@ti.com>
+Subject: 3.1-rc3 fails to boot on my pandaboard
+Date: Thu, 25 Aug 2011 13:39:29 +0300
+Message-ID: <1314268769.2296.283.camel@cumari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38502 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752414Ab1HYKiu (ORCPT
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:52325 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752414Ab1HYKjf (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Aug 2011 06:38:50 -0400
-Content-Disposition: inline
-In-Reply-To: <201108232331.54844.rjw@sisk.pl>
+	Thu, 25 Aug 2011 06:39:35 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, markgross@thegnar.org
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-On Tue, Aug 23, 2011 at 11:31:54PM +0200, Rafael J. Wysocki wrote:
+Hi,
 
-> Perhaps.  Still, that requires some policy to be put into drivers,
-> which I don't think is entirely correct.
+There seems to be a problem with 3.1-rc3, which prevents it from booting
+on my PandaBoard (ARM OMAP4).
 
-So, I don't really have the bandwidth to discuss this properly for at
-least the next week or so - is it possible to find some time in the
-power track at LPC for this?
+3.1-rc2 works fine, so I have bisected the problem and it turns out to
+be caused by this:
+
+commit f3637a5f2e2eb391ff5757bc83fb5de8f9726464
+Author: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date:   Thu Jul 7 22:32:17 2011 +0200
+
+    irq: Always set IRQF_ONESHOT if no primary handler is specified
+
+After reverting this commit, -rc3 boots fine.  I'm not sure where
+exactly the problem is.  Maybe it's something in the omap code which is
+broken and this patch causes the bug to show up?
+
+What happens is that the booting process hangs after printing out this:
+
+[...] 
+[    7.408477] EXT3-fs: barriers not enabled
+[    7.415008] kjournald starting.  Commit interval 5 seconds
+[    7.446228] EXT3-fs (mmcblk0p5): using internal journal
+[    7.452087] EXT3-fs (mmcblk0p5): mounted filesystem with ordered data mode
+[    7.459625] VFS: Mounted root (ext3 filesystem) on device 179:5.
+[    7.466094] Freeing init memory: 312K
+[    7.471710] Failed to execute /init.  Attempting defaults...
+[   10.254333] EXT3-fs (mmcblk0p5): using internal journal
+
+The full boot logs can be found here:
+
+http://pastebin.pandaboard.org/index.php/view/88995306
+
+Any ideas what may be going wrong?
+
+-- 
+Cheers,
+Luca.
+
