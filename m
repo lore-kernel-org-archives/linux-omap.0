@@ -1,54 +1,73 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 1/1] OMAP: omap_device: only override _noirq methods, not normal suspend/resume
-Date: Wed, 24 Aug 2011 16:43:57 -0700
-Message-ID: <1314229437-31836-2-git-send-email-khilman@ti.com>
-References: <1314229437-31836-1-git-send-email-khilman@ti.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH 6/6 V3] hwmon: OMAP4: On die temperature sensor driver
+Date: Thu, 25 Aug 2011 06:09:44 +0530
+Message-ID: <CAJ6a13amVkPxXvjAQ+h63_ypgip04gSOt7q4j_AF4Vsf7rdHzg@mail.gmail.com>
+References: <1314196632-8207-1-git-send-email-j-keerthy@ti.com>
+	<1314196632-8207-7-git-send-email-j-keerthy@ti.com>
+	<CACqS6krvH985gDwrD5kVEvbybC80wcYZN2AwV9pZ9=-x8hZAUg@mail.gmail.com>
+	<CAJ6a13a1dDQ5Axv2MX1hf1dNH3BeEBjrkEibW8WpxMrJGhmO3g@mail.gmail.com>
+	<CACqS6kqt93eMrM5cy7VAZ=zHKUHjODnB1SDWpiEwVm57d0e6vQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:60851 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750803Ab1HXXng (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Aug 2011 19:43:36 -0400
-Received: by mail-pz0-f42.google.com with SMTP id 37so1825789pzk.29
-        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 16:43:35 -0700 (PDT)
-In-Reply-To: <1314229437-31836-1-git-send-email-khilman@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:37255 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752179Ab1HYAjq convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Aug 2011 20:39:46 -0400
+Received: by mail-yw0-f43.google.com with SMTP id 3so1799858ywm.16
+        for <linux-omap@vger.kernel.org>; Wed, 24 Aug 2011 17:39:45 -0700 (PDT)
+In-Reply-To: <CACqS6kqt93eMrM5cy7VAZ=zHKUHjODnB1SDWpiEwVm57d0e6vQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org
+To: Janakiram Sistla <janakiram.sistla@gmail.com>
+Cc: linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
 
-commit c03f007a8bf0e092caeb6856a5c8a850df10b974 (OMAP: PM:
-omap_device: add system PM methods for PM domain handling) mistakenly
-used SET_SYSTEM_SLEEP_PM_OPS() when trying to configure custom methods
-for the PM domains noirq methods.  Fix that by setting only the
-suspend_noirq and resume_noirq methods with custom versions.
+On Thu, Aug 25, 2011 at 1:22 AM, Janakiram Sistla
+<janakiram.sistla@gmail.com> wrote:
+>
+>
+> On Wed, Aug 24, 2011 at 1:18 PM, J, KEERTHY <j-keerthy@ti.com> wrote:
+>>
+>> On Wed, Aug 24, 2011 at 10:06 PM, Janakiram Sistla
+>> <janakiram.sistla@gmail.com> wrote:
+>> > Hi Keerthy,
+>> >
+>> > Can you please point me the TRM of 4430 or 4460 where it reads the=
+ on
+>> > die
+>> > temperature sensor used is TMP103. I am referring to public TRM on=
+ TI
+>> > site.
+>>
+>> Sorry my bad! I shall remove that.
+>>
+>> >
+>> > Regards,
+>> > Sistla.
+>> >
+>> > On Wed, Aug 24, 2011 at 9:37 AM, Keerthy <j-keerthy@ti.com> wrote:
+>
+> So if my understanding is correct this patch set refers to Band gap V=
+oltage
+> and Temperature sensor module.
+> If true can it be mentioned in=A0 the patch.
 
-Note that all other PM domain methods (including the "normal"
-suspend/resume methods) are populated using USE_PLATFORM_PM_SLEEP_OPS,
-which configures them all to the default subsystem (platform_bus)
-methods.
+Yes. I will mention that.
 
-Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/plat-omap/omap_device.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+>
+> Regards,
+> Sistla.
+>
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index b6b4097..9a6a538 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -622,7 +622,8 @@ static struct dev_pm_domain omap_device_pm_domain = {
- 		SET_RUNTIME_PM_OPS(_od_runtime_suspend, _od_runtime_resume,
- 				   _od_runtime_idle)
- 		USE_PLATFORM_PM_SLEEP_OPS
--		SET_SYSTEM_SLEEP_PM_OPS(_od_suspend_noirq, _od_resume_noirq)
-+		.suspend_noirq = _od_suspend_noirq,
-+		.resume_noirq = _od_resume_noirq,
- 	}
- };
- 
--- 
-1.7.6
 
+
+--=20
+Regards and Thanks,
+Keerthy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
