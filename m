@@ -1,87 +1,73 @@
-From: "Leonid Liansky" <lliansky@gmail.com>
-Subject: OMAP4 tiler memory issue
-Date: Thu, 25 Aug 2011 15:48:33 -0400
-Message-ID: <2F13A83129B34161BB666DC7D1B77455@leonidlw7>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v5 03/22] gpio/omap: make gpio_context part of gpio_bank structure
+Date: Thu, 25 Aug 2011 13:23:53 -0700
+Message-ID: <87sjop5jfq.fsf@ti.com>
+References: <1312455893-14922-1-git-send-email-tarun.kanti@ti.com>
+	<1312455893-14922-4-git-send-email-tarun.kanti@ti.com>
+	<4E53A0EE.5000703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed	reply-type=original
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:63846 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543Ab1HYTsj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Aug 2011 15:48:39 -0400
-Received: by fxh19 with SMTP id 19so2016408fxh.19
-        for <linux-omap@vger.kernel.org>; Thu, 25 Aug 2011 12:48:37 -0700 (PDT)
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:60682 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753845Ab1HYUX6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Aug 2011 16:23:58 -0400
+Received: by mail-gx0-f173.google.com with SMTP id 26so2488829gxk.18
+        for <linux-omap@vger.kernel.org>; Thu, 25 Aug 2011 13:23:57 -0700 (PDT)
+In-Reply-To: <4E53A0EE.5000703@ti.com> (Santosh's message of "Tue, 23 Aug 2011
+	18:15:34 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Santosh <santosh.shilimkar@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-Hi,
+Santosh <santosh.shilimkar@ti.com> writes:
 
-I have 2 questions related to tiler memory space 2D buffers.
+> On Thursday 04 August 2011 04:34 PM, Tarun Kanti DebBarma wrote:
+>> From: Charulatha V<charu@ti.com>
+>>
+>> Currently gpio_context array used to save gpio bank's context, is used only for
+>> OMAP3 architecture. Move gpio_context as part of gpio_bank structure so that it
+>> can be specific to each gpio bank and can be used for any OMAP architecture
+>>
+>> Signed-off-by: Charulatha V<charu@ti.com>
+>> ---
+> Few comments.
+>
 
-I am working on a project that utilizes video encoder on OMAP4 (H.264) =
-using=20
-OpenMax API.
+[...]
 
-In general, the encoder works as expected except that I am seeing a ver=
-y=20
-slow memcpy operation that copies input frame data to encoder=E2=80=99s=
- buffers=20
-(takes almost 100ms to copy 720p frame). I am relying on OpenMax to all=
-ocate=20
-the input buffers (using OMX_AllocateBuffer). The same memcpy routine w=
-orks=20
-much faster when copying the same data into regular user-space allocate=
-d=20
-buffers (malloc based). Considering that the encoder is supposed to wor=
-k at=20
-the rate of 30fps, spending 100ms on each frame is too much.
+>> @@ -1494,33 +1490,31 @@ void omap2_gpio_resume_after_idle(void)
+>>   void omap_gpio_save_context(void)
+>>   {
+>>   	struct gpio_bank *bank;
+>> -	int i = 0;
+>>
+>>   	list_for_each_entry(bank,&omap_gpio_list, node) {
+>> -		i++;
+>>
+>>   		if (!bank->loses_context)
+>>   			continue;
+>>
+>> -		gpio_context[i].irqenable1 =
+>> +		bank->context.irqenable1 =
+>>   			__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE1);
+>> -		gpio_context[i].irqenable2 =
+>> +		bank->context.irqenable2 =
+>>   			__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE2);
+>
+> The context restore procedure should be done carefully. For instance
+> IRQ enabled register should be restored last to avoid any spurious
+> interrupts.
 
-I understand that OpenMax allocates tiler 2D buffers using memory manag=
-er=20
-and it appears that those buffers are non-cachable.
+For the sake of clean, easy-to-review patches, this kind of functional
+change should be a separate patch.
 
-I have tried to map user-space allocated buffer into tiler memory space=
-=20
-(using MemMgr_Map) and then to copy frame data into the user-space memo=
-ry=20
-pointer. In this case memcpy works indeed faster (although still not as=
- fast=20
-as I would have hoped for), but I am seeing lots of artifacts in the en=
-coder=E2=80=99s=20
-output. I am assuming this could be related to caching issues with the=20
-mapping.
+The goal of $SUBJECT patch is simply to move the context struct into the
+bank struct, not change the order of the save restore.
 
-My first question is: is there a way to be able to copy encoder input d=
-ata=20
-in a fast way =E2=80=93 maybe there are specific requirements for alloc=
-ating/mapping=20
-encoder input buffers?
+Any changing of the order of save/restore should be in a dedicated patch
+with a descriptive changelog since that is changing behavior of the code.
 
-My second question is about tiler image rotation: what is the correct w=
-ay=20
-(if any) to be able to utilize tiler-based rotation on encoder=E2=80=99=
-s input=20
-buffers from user-space (only interested in right-angle rotations). I=20
-understand that I need to calculate the correct tiler memory space offs=
-et=20
-for the specific rotation degree that is required. Would I be able to a=
-ccess=20
-the address from user-space and maybe even somehow ask the encoder to u=
-se=20
-the rotated image instead of the original one?
-
-Any information/hints will be greatly appreciated (or a sample test sou=
-rce=20
-code).
-
-Thank you,
-Leo
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
