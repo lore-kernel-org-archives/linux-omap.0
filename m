@@ -1,82 +1,69 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: How to handle named resources with DT?
-Date: Thu, 25 Aug 2011 17:05:42 +0200
-Message-ID: <201108251705.43168.arnd@arndb.de>
-References: <20110809205723.GE11568@ponder.secretlab.ca>
-	<20110824231613.GC19890@legolas.emea.dhcp.ti.com>
-	<20110825102824.GB10405@n2100.arm.linux.org.uk>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Subject: Re: [PATCH 6/6 V3] hwmon: OMAP4: On die temperature sensor driver
+Date: Thu, 25 Aug 2011 08:54:57 -0700
+Message-ID: <1314287697.2796.38.camel@groeck-laptop>
+References: <1314196632-8207-1-git-send-email-j-keerthy@ti.com>
+	 <1314196632-8207-7-git-send-email-j-keerthy@ti.com>
+	 <20110825072419.GA12528@google.com>
+Reply-To: guenter.roeck@ericsson.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20110825102824.GB10405-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "G,
-	Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from imr3.ericy.com ([198.24.6.13]:53510 "EHLO imr3.ericy.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750897Ab1HYPzu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Aug 2011 11:55:50 -0400
+In-Reply-To: <20110825072419.GA12528@google.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Todd Poynor <toddpoynor@google.com>
+Cc: Keerthy <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On Thursday 25 August 2011, Russell King - ARM Linux wrote:
+On Thu, 2011-08-25 at 03:24 -0400, Todd Poynor wrote:
+> On Wed, Aug 24, 2011 at 08:07:12PM +0530, Keerthy wrote:
+> ...
+> > +	temp_sensor->phy_base = ioremap(mem->start, resource_size(mem));
 > 
-> On Thu, Aug 25, 2011 at 02:16:14AM +0300, Felipe Balbi wrote:
-> > on top of all that, for IPs which are used on many SoCs (such as MUSB)
-> > it's quite silly to force all users to provide resources in a certain
-> > order. It sounds to me that this will be prone to error in many ways
-> > until everything is synced up and on the correct order.
-> > 
-> > Ditching _byname is a very bad idea.
+> Check NULL return.
 > 
-> I continue to disagree.  The current _byname is an abonimation and hack
-> to try to "fix" this problem.
+> temp_sensor->phy_base is never iounmapped in error paths or _remove
+> function.
 > 
-> _byname should have been implemented differently - rather than overriding
-> the resources name field (which is normally specified to be the device
-> or driver name), a new field should have been introduced in struct resource
-> to carry the resource sub-name (which is really what it is.)
+> ...
+> > +static int __devexit omap_temp_sensor_remove(struct platform_device *pdev)
+> > +{
+> > +	struct omap_temp_sensor *temp_sensor = platform_get_drvdata(pdev);
+> > +
+> > +	hwmon_device_unregister(&pdev->dev);
+
+Should be 
+	hwmon_device_unregister(temp_sensor->hwmon_dev);
+since that is what was registered, but then the following accesses using
+temp_sensor->hwmon_dev won't work anymore and should probably use
+&pdev->dev.kobj as parameter instead. Overall the use of
+temp_sensor->hwmon_dev vs. &pdev->dev looks questionable to me.
+
+> > +	kobject_uevent(&temp_sensor->hwmon_dev->kobj, KOBJ_REMOVE);
+> > +	sysfs_remove_group(&temp_sensor->hwmon_dev->kobj,
+> > +			&omap_temp_sensor_group);
+> > +	omap_temp_sensor_clk_disable(temp_sensor);
+> > +	free_irq(temp_sensor->irq, temp_sensor);
 > 
-> That would have avoided making /proc/iomem completely illegible with
-> multiple devices using this feature.
+> free_irq before omap_temp_sensor_clk_disable, to avoid ISR attempting
+> to access hardware while unclocked.
+> 
+Also, t_cold and t_hot interrupts should be disabled before calling
+free_irq (and actually before anything is unregistered).
 
-I agree 100%.
+> > +	clk_put(temp_sensor->clock);
+> > +	dev_set_drvdata(&pdev->dev, NULL);
+> > +	mutex_destroy(&temp_sensor->sensor_mutex);
+> > +	kfree(temp_sensor);
+> > +
+> > +	return 0;
+> > +}
+> 
+> Todd
 
-I'm also sure that the danger of breaking something by removing the
-_byname resource resolution for each driver that we convert to DT
-based probing is very small: We already need to change all static
-platform_device definitions along with changing the driver, and
-identifying them by index is no more ambiguous than accessing an
-individual MMIO register by its index. You can even use an enum
-or macro to name the indexes like:
 
-enum {
-	FOO_RESOURCE_SETUP,
-	FOO_RESOURCE_POWER,
-	FOO_RESOURCE_BUFFER,
-};
-
-static struct resource foo_res[] = {
-	[FOO_RESOURCE_SETUP] = {
-		.start = FOO_SETUP_BASE,
-		.end   = FOO_SETUP_BASE + FOO_SETUP_LEN -1,
-		.flags = IORESOURCE_MEM,
-	},
-	[FOO_RESOURCE_POWER] = {
-		.start = FOO_POWER_BASE,
-		.end   = FOO_POWER_BASE + FOO_POWER_LEN -1,
-		.flags = IORESOURCE_MEM,
-	},
-	[FOO_RESOURCE_BUFFER] = {
-		.start = FOO_BUFFER_BASE,
-		.end   = FOO_BUFFER_BASE + FOO_BUFFER_LEN -1,
-		.flags = IORESOURCE_MEM,
-	},
-};
-
-	Arnd
