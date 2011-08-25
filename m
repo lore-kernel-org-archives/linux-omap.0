@@ -1,61 +1,34 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/1] OMAP: omap_device: only override _noirq methods, not normal suspend/resume
-Date: Thu, 25 Aug 2011 16:12:42 +0200
-Message-ID: <201108251612.42237.rjw@sisk.pl>
-References: <1314229437-31836-1-git-send-email-khilman@ti.com> <1314229437-31836-2-git-send-email-khilman@ti.com>
+Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device wake-up constraints
+Date: Thu, 25 Aug 2011 16:17:31 +0200
+Message-ID: <201108251617.31959.rjw@sisk.pl>
+References: <20110820062543.GA5011@opensource.wolfsonmicro.com> <201108232331.54844.rjw@sisk.pl> <20110825103847.GD31154@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-2"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37517 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:37540 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751038Ab1HYOKx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Aug 2011 10:10:53 -0400
-In-Reply-To: <1314229437-31836-2-git-send-email-khilman@ti.com>
+	id S1750910Ab1HYOPo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Aug 2011 10:15:44 -0400
+In-Reply-To: <20110825103847.GD31154@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, markgross@thegnar.org
 
-On Thursday, August 25, 2011, Kevin Hilman wrote:
-> commit c03f007a8bf0e092caeb6856a5c8a850df10b974 (OMAP: PM:
-> omap_device: add system PM methods for PM domain handling) mistakenly
-> used SET_SYSTEM_SLEEP_PM_OPS() when trying to configure custom methods
-> for the PM domains noirq methods.  Fix that by setting only the
-> suspend_noirq and resume_noirq methods with custom versions.
+On Thursday, August 25, 2011, Mark Brown wrote:
+> On Tue, Aug 23, 2011 at 11:31:54PM +0200, Rafael J. Wysocki wrote:
 > 
-> Note that all other PM domain methods (including the "normal"
-> suspend/resume methods) are populated using USE_PLATFORM_PM_SLEEP_OPS,
-> which configures them all to the default subsystem (platform_bus)
-> methods.
+> > Perhaps.  Still, that requires some policy to be put into drivers,
+> > which I don't think is entirely correct.
 > 
-> Reported-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> So, I don't really have the bandwidth to discuss this properly for at
+> least the next week or so - is it possible to find some time in the
+> power track at LPC for this?
 
-Applied to linux-pm/pm-fixes, will be pushed for 3.1, thanks!
+I think so, I'm going to add PM QoS to the agenda anyway.
 
+Thanks,
 Rafael
-
-
-> ---
->  arch/arm/plat-omap/omap_device.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index b6b4097..9a6a538 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -622,7 +622,8 @@ static struct dev_pm_domain omap_device_pm_domain = {
->  		SET_RUNTIME_PM_OPS(_od_runtime_suspend, _od_runtime_resume,
->  				   _od_runtime_idle)
->  		USE_PLATFORM_PM_SLEEP_OPS
-> -		SET_SYSTEM_SLEEP_PM_OPS(_od_suspend_noirq, _od_resume_noirq)
-> +		.suspend_noirq = _od_suspend_noirq,
-> +		.resume_noirq = _od_resume_noirq,
->  	}
->  };
->  
-> 
-
