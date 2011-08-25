@@ -1,414 +1,110 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/5 v5] arm: omap: usb: ehci and ohci hwmod structures for omap3
-Date: Thu, 25 Aug 2011 16:47:33 +0530
-Message-ID: <CAAe_U6+KvLuijgaqLGNVxgto917ZA8mQOmkadTtrGaFf5-JVeg@mail.gmail.com>
-References: <1313581439-4279-1-git-send-email-keshava_mgowda@ti.com>
-	<1313581439-4279-2-git-send-email-keshava_mgowda@ti.com>
-	<1313581439-4279-3-git-send-email-keshava_mgowda@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: 3.1-rc3 fails to boot on my pandaboard
+Date: Thu, 25 Aug 2011 14:24:34 +0300
+Message-ID: <1314271474.2296.295.camel@cumari>
+References: <1314268769.2296.283.camel@cumari>
+	 <20110825110423.GA12911@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1313581439-4279-3-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org, tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, toddpoynor-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:48805 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752204Ab1HYLYk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Aug 2011 07:24:40 -0400
+In-Reply-To: <20110825110423.GA12911@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
 
-On Wed, Aug 17, 2011 at 5:13 PM, Keshava Munegowda
-<keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
-> Following 4 hwmod strcuture are added:
-> UHH hwmod of usbhs with uhh base address and functional clock,
-> EHCI hwmod with irq and base address,
-> OHCI hwmod with irq and base address,
-> TLL hwmod of usbhs with the TLL base address and irq.
->
-> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-> ---
-> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0279 ++++++++++++++=
-++++++++++++++
-> =A01 files changed, 279 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/ma=
-ch-omap2/omap_hwmod_3xxx_data.c
-> index 59fdb9f..d7316b3 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -84,6 +84,10 @@ static struct omap_hwmod omap3xxx_mcbsp4_hwmod;
-> =A0static struct omap_hwmod omap3xxx_mcbsp5_hwmod;
-> =A0static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwmod;
-> =A0static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwmod;
-> +static struct omap_hwmod omap34xx_usb_host_hs_hwmod;
-> +static struct omap_hwmod omap34xx_usbhs_ohci_hwmod;
-> +static struct omap_hwmod omap34xx_usbhs_ehci_hwmod;
-> +static struct omap_hwmod omap34xx_usb_tll_hs_hwmod;
->
-> =A0/* L3 -> L4_CORE interface */
-> =A0static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core =3D {
-> @@ -3196,6 +3200,276 @@ static struct omap_hwmod omap3xxx_mmc3_hwmod =
-=3D {
-> =A0 =A0 =A0 =A0.omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3=
-430),
-> =A0};
->
-> +/*
-> + * 'usb_host_hs' class
-> + * high-speed multi-port usb host controller
-> + */
-> +static struct omap_hwmod_ocp_if omap34xx_usb_host_hs__l3_main_2 =3D =
-{
-> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap34xx_usb_host_hs_hwmod=
-,
-> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap3xxx_l3_main_hwmod,
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "core_l3_ick",
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
-> +};
-> +
-> +static struct omap_hwmod_class_sysconfig omap34xx_usb_host_hs_sysc =3D=
- {
-> + =A0 =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x0000,
-> + =A0 =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x0010,
-> + =A0 =A0 =A0 .syss_offs =A0 =A0 =A0=3D 0x0014,
-> + =A0 =A0 =A0 .sysc_flags =A0 =A0 =3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_=
-SIDLEMODE),
-> + =A0 =A0 =A0 .idlemodes =A0 =A0 =A0=3D (SIDLE_FORCE | SIDLE_NO | SID=
-LE_SMART |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MSTANDBY_FORCE |=
- MSTANDBY_NO | MSTANDBY_SMART),
-> + =A0 =A0 =A0 .sysc_fields =A0 =A0=3D &omap_hwmod_sysc_type1,
-> +};
-> +
-> +static struct omap_hwmod_class omap34xx_usb_host_hs_hwmod_class =3D =
-{
-> + =A0 =A0 =A0 .name =3D "usbhs_uhh",
-> + =A0 =A0 =A0 .sysc =3D &omap34xx_usb_host_hs_sysc,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap34xx_usb_host_hs_masters[] =3D =
-{
-> + =A0 =A0 =A0 &omap34xx_usb_host_hs__l3_main_2,
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap34xx_usb_host_hs_addrs[] =3D=
- {
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "uhh",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x48064000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x480643ff,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE=
-_RT
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {} /* Terminating Entry */
-why do we need this terminating entry?
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_host_hs =3D {
-> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap3xxx_l4_core_hwmod,
-> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usb_host_hs_hwm=
-od,
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "l4_ick",
-> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap34xx_usb_host_hs_addr=
-s,
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_S=
-DMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap34xx_f128m_cfg__usb_host_hs =3D =
-{
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbhost_120m_fck",
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
-> + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D OCPIF_SWSUP_IDLE,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap34xx_f48m_cfg__usb_host_hs =3D {
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbhost_48m_fck",
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
-> + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D OCPIF_SWSUP_IDLE,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap34xx_usb_host_hs_slaves[] =3D {
-> + =A0 =A0 =A0 &omap34xx_l4_cfg__usb_host_hs,
-> + =A0 =A0 =A0 &omap34xx_f128m_cfg__usb_host_hs,
-> + =A0 =A0 =A0 &omap34xx_f48m_cfg__usb_host_hs,
-> +};
-> +
-> +static struct omap_hwmod omap34xx_usb_host_hs_hwmod =3D {
-> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usbhs_uhh",
-> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usb_host_hs_hwm=
-od_class,
-> + =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "usbhost_ick",
-> + =A0 =A0 =A0 .prcm =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .omap2 =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_offs =3D OMAP34=
-30ES2_USBHOST_MOD,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .prcm_reg_id =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_bit =3D 0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_reg_id =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_idle_bit =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_stdby_bit =3D 0=
-,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D omap34xx_usb_host_hs_slaves=
-,
-> + =A0 =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap34xx_usb_host_hs=
-_slaves),
-> + =A0 =A0 =A0 .masters =A0 =A0 =A0 =A0=3D omap34xx_usb_host_hs_master=
-s,
-> + =A0 =A0 =A0 .masters_cnt =A0 =A0=3D ARRAY_SIZE(omap34xx_usb_host_hs=
-_masters),
-> + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D HWMOD_SWSUP_SIDLE | HWMOD=
-_SWSUP_MSTANDBY,
-> + =A0 =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP34=
-30),
-> +};
-> +
-> +/* 'usbhs_ohci' class =A0*/
-> +static struct omap_hwmod_ocp_if omap34xx_usbhs_ohci__l3_main_2 =3D {
-> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap34xx_usbhs_ohci_hwmod,
-> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap3xxx_l3_main_hwmod,
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "core_l3_ick",
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
-> +};
-> +
-> +static struct omap_hwmod_class omap34xx_usbhs_ohci_hwmod_class =3D {
-> + =A0 =A0 =A0 .name =3D "usbhs_ohci",
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap34xx_usbhs_ohci_masters[] =3D {
-> + =A0 =A0 =A0 &omap34xx_usbhs_ohci__l3_main_2,
-> +};
-> +
-> +static struct omap_hwmod_irq_info omap34xx_usbhs_ohci_irqs[] =3D {
-> + =A0 =A0 =A0 { .name =3D "ohci-irq", .irq =3D 76 },
-> + =A0 =A0 =A0 { .irq =3D -1 } /* Terminating IRQ */
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap34xx_usbhs_ohci_addrs[] =3D =
-{
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "ohci",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x48064400,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x480647FF,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_MAP_=
-ON_INIT
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {} /* Terminating Entry */
-same question..
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usbhs_ohci =3D {
-> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap3xxx_l4_core_hwmod,
-> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usbhs_ohci_hwmo=
-d,
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "l4_ick",
-> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap34xx_usbhs_ohci_addrs=
-,
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_S=
-DMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap34xx_usbhs_ohci_slaves[] =3D {
-> + =A0 =A0 =A0 &omap34xx_l4_cfg__usbhs_ohci,
-> +};
-> +
-> +static struct omap_hwmod omap34xx_usbhs_ohci_hwmod =3D {
-> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usbhs_ohci",
-> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usbhs_ohci_hwmo=
-d_class,
-> + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap34xx_usbhs_ohci_irqs,
-> + =A0 =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D omap34xx_usbhs_ohci_slaves,
-> + =A0 =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap34xx_usbhs_ohci_=
-slaves),
-> + =A0 =A0 =A0 .masters =A0 =A0 =A0 =A0=3D omap34xx_usbhs_ohci_masters=
-,
-> + =A0 =A0 =A0 .masters_cnt =A0 =A0=3D ARRAY_SIZE(omap34xx_usbhs_ohci_=
-masters),
-> + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D HWMOD_INIT_NO_RESET | HWM=
-OD_NO_IDLEST,
-> + =A0 =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP34=
-30),
-> +};
-> +
-> +/* 'usbhs_ehci' class =A0*/
-> +static struct omap_hwmod_ocp_if omap34xx_usbhs_ehci__l3_main_2 =3D {
-> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap34xx_usbhs_ehci_hwmod,
-> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap3xxx_l3_main_hwmod,
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "core_l3_ick",
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
-> +};
-> +
-> +static struct omap_hwmod_class omap34xx_usbhs_ehci_hwmod_class =3D {
-> + =A0 =A0 =A0 .name =3D "usbhs_ehci",
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap34xx_usbhs_ehci_masters[] =3D {
-> + =A0 =A0 =A0 &omap34xx_usbhs_ehci__l3_main_2,
-> +};
-> +
-> +static struct omap_hwmod_irq_info omap34xx_usbhs_ehci_irqs[] =3D {
-> + =A0 =A0 =A0 { .name =3D "ehci-irq", .irq =3D 77 },
-> + =A0 =A0 =A0 { .irq =3D -1 } /* Terminating IRQ */
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap34xx_usbhs_ehci_addrs[] =3D =
-{
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "ehci",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x48064800,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x48064CFF,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_MAP_=
-ON_INIT
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {} /* Terminating Entry */
-same question..
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usbhs_ehci =3D {
-> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap3xxx_l4_core_hwmod,
-> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usbhs_ehci_hwmo=
-d,
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "l4_ick",
-> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap34xx_usbhs_ehci_addrs=
-,
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_S=
-DMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap34xx_usbhs_ehci_slaves[] =3D {
-> + =A0 =A0 =A0 &omap34xx_l4_cfg__usbhs_ehci,
-> +};
-> +
-> +static struct omap_hwmod omap34xx_usbhs_ehci_hwmod =3D {
-> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usbhs_ehci",
-> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usbhs_ehci_hwmo=
-d_class,
-> + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap34xx_usbhs_ehci_irqs,
-> + =A0 =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D omap34xx_usbhs_ehci_slaves,
-> + =A0 =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap34xx_usbhs_ehci_=
-slaves),
-> + =A0 =A0 =A0 .masters =A0 =A0 =A0 =A0=3D omap34xx_usbhs_ehci_masters=
-,
-> + =A0 =A0 =A0 .masters_cnt =A0 =A0=3D ARRAY_SIZE(omap34xx_usbhs_ehci_=
-masters),
-> + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D HWMOD_INIT_NO_RESET | HWM=
-OD_NO_IDLEST,
-> + =A0 =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP34=
-30),
-> +};
-> +
-> +/*
-> + * 'usb_tll_hs' class
-> + * usb_tll_hs module is the adapter on the usb_host_hs ports
-> + */
-> +static struct omap_hwmod_class_sysconfig omap34xx_usb_tll_hs_sysc =3D=
- {
-> + =A0 =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x0000,
-> + =A0 =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x0010,
-> + =A0 =A0 =A0 .syss_offs =A0 =A0 =A0=3D 0x0014,
-> + =A0 =A0 =A0 .sysc_flags =A0 =A0 =3D (SYSC_HAS_AUTOIDLE | SYSC_HAS_S=
-IDLEMODE),
-> + =A0 =A0 =A0 .idlemodes =A0 =A0 =A0=3D (SIDLE_FORCE | SIDLE_NO | SID=
-LE_SMART),
-> + =A0 =A0 =A0 .sysc_fields =A0 =A0=3D &omap_hwmod_sysc_type1,
-> +};
-> +
-> +static struct omap_hwmod_class omap34xx_usb_tll_hs_hwmod_class =3D {
-> + =A0 =A0 =A0 .name =3D "usbhs_tll",
-> + =A0 =A0 =A0 .sysc =3D &omap34xx_usb_tll_hs_sysc,
-> +};
-> +
-> +static struct omap_hwmod_irq_info omap34xx_usb_tll_hs_irqs[] =3D {
-> + =A0 =A0 =A0 { .name =3D "tll-irq", .irq =3D 78 },
-> + =A0 =A0 =A0 { .irq =3D -1 } /* Terminating IRQ */
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap34xx_usb_tll_hs_addrs[] =3D =
-{
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "tll",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x48062000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x48062fff,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE=
-_RT
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {} /* Terminating Entry */
-same question..
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap34xx_f_cfg__usb_tll_hs =3D {
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbtll_fck",
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
-> + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D OCPIF_SWSUP_IDLE,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_tll_hs =3D {
-> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap3xxx_l4_core_hwmod,
-> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usb_tll_hs_hwmo=
-d,
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "l4_ick",
-> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap34xx_usb_tll_hs_addrs=
-,
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_S=
-DMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap34xx_usb_tll_hs_slaves[] =3D {
-> + =A0 =A0 =A0 &omap34xx_l4_cfg__usb_tll_hs,
-> + =A0 =A0 =A0 &omap34xx_f_cfg__usb_tll_hs,
-> +};
-> +
-> +static struct omap_hwmod omap34xx_usb_tll_hs_hwmod =3D {
-> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usbhs_tll",
-> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usb_tll_hs_hwmo=
-d_class,
-> + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap34xx_usb_tll_hs_irqs,
-> + =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "usbtll_ick",
-> + =A0 =A0 =A0 .prcm =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .omap2 =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_offs =3D CORE_M=
-OD,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .prcm_reg_id =3D 3,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_bit =3D 2,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_reg_id =3D 3,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_idle_bit =3D 2,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D omap34xx_usb_tll_hs_slaves,
-> + =A0 =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap34xx_usb_tll_hs_=
-slaves),
-> + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D HWMOD_SWSUP_SIDLE | HWMOD=
-_SWSUP_MSTANDBY,
-> + =A0 =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP34=
-30),
-> +};
-> +
-> =A0static __initdata struct omap_hwmod *omap3xxx_hwmods[] =3D {
-> =A0 =A0 =A0 =A0&omap3xxx_l3_main_hwmod,
-> =A0 =A0 =A0 =A0&omap3xxx_l4_core_hwmod,
-> @@ -3278,6 +3552,11 @@ static __initdata struct omap_hwmod *omap3xxx_=
-hwmods[] =3D {
-> =A0 =A0 =A0 =A0/* usbotg for am35x */
-> =A0 =A0 =A0 =A0&am35xx_usbhsotg_hwmod,
->
-> + =A0 =A0 =A0 &omap34xx_usb_host_hs_hwmod,
-> + =A0 =A0 =A0 &omap34xx_usbhs_ohci_hwmod,
-> + =A0 =A0 =A0 &omap34xx_usbhs_ehci_hwmod,
-> + =A0 =A0 =A0 &omap34xx_usb_tll_hs_hwmod,
-> +
-> =A0 =A0 =A0 =A0NULL,
-> =A0};
->
-> --
-> 1.6.0.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" =
-in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, 2011-08-25 at 13:04 +0200, Sebastian Andrzej Siewior wrote: 
+> * Luciano Coelho | 2011-08-25 13:39:29 [+0300]:
+> >Any ideas what may be going wrong?
+> 
+> I think my commit was identified as bogus and tglx is going to revert 
+> it. The problem is that I force ONESHOT mode for all threaded IRQs but
+> there are also others without the flag which is not allowed.
+> 
+> I was trying to check something but I don't get my board to boot. Could
+> you please try to boot with the patch reverted and paste me the
+> the output of 
+>  cat /proc/interrupts | grep 74 ?
+
+Hmmm... There doesn't seem to be an irq 74.  The only thing I get is
+this:
+
+root@xiru:~# cat /proc/interrupts | grep 74
+IPI1:       2667       3743  Rescheduling interrupts
+
+Which is probably not what you wanted. ;)
+
+
+> I *think* that the flow handler is level (I can't find evidence of it
+> beeing edge, and omap_alloc_gc() is the place installing it).
+> 
+> So could you please gather additional debug info with this patch?
+> 
+> diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+> index 2e94258..eda25a0 100644
+> --- a/kernel/irq/manage.c
+> +++ b/kernel/irq/manage.c
+> @@ -1327,6 +1327,9 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
+>  	if (!irq_settings_can_request(desc))
+>  		return -EINVAL;
+>  
+> +	if (irq == 74)
+> +		printk(KERN_ERR "%s() h %pS th %pS f %lx dev %s flow %pS\n", __func__,
+> +				handler, thread_fn, irqflags, devname, desc->handle_irq);
+>  	if (!handler) {
+>  		if (!thread_fn)
+>  			return -EINVAL;
+> 
+> 
+> %pS should resolve the function names.
+
+As I mentioned above, there doesn't seem to be irq 74, so this code
+doesn't hit.
+
+These are the interrupts reported in /proc/interrupts on my board:
+
+root@xiru:~# cat /proc/interrupts
+           CPU0       CPU1       
+39:          0          0       GIC  TWL6030-PIH
+41:          0          0       GIC  l3-dbg-irq
+42:          0          0       GIC  l3-app-irq
+44:       5397          0       GIC  DMA
+52:          0          0       GIC  gpmc
+69:         16          0       GIC  gp timer
+88:        270          0       GIC  omap_i2c
+89:          0          0       GIC  omap_i2c
+91:        183          0       GIC  mmc1
+93:          0          0       GIC  omap_i2c
+94:          0          0       GIC  omap_i2c
+102:          0          0       GIC  serial idle
+104:          0          0       GIC  serial idle
+105:          0          0       GIC  serial idle
+106:        290          0       GIC  serial idle, OMAP UART2
+108:          1          0       GIC  ohci_hcd:usb3
+109:        493          0       GIC  ehci_hcd:usb1
+115:       6260          0       GIC  mmc0
+124:          1          0       GIC  musb-hdrc
+125:          0          0       GIC  musb-hdrc
+213:          0          0      GPIO  wl1271
+372:          0          0   twl6030  twl6030_usb
+378:          0          0   twl6030  twl6030_usb
+379:          0          0   twl6030  rtc0
+IPI0:          0          0  Timer broadcast interrupts
+IPI1:       2995       3606  Rescheduling interrupts
+IPI2:          0          0  Function call interrupts
+IPI3:         57         61  Single function call interrupts
+IPI4:          0          0  CPU stop interrupts
+LOC:       8879       5844  Local timer interrupts
+Err:          0
+
+
+-- 
+Cheers,
+Luca.
+
