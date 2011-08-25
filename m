@@ -1,63 +1,53 @@
-From: Paul Zimmerman <Paul.Zimmerman-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH 3/4] usb: Introduce DesignWare USB3 DRD Driver
-Date: Thu, 25 Aug 2011 13:48:09 -0700
-Message-ID: <F6C4814A9B336243ABC3D1FB44E08AE801D21CC66D@US01WXMBX1.internal.synopsys.com>
-References: <1313766659-28360-1-git-send-email-balbi@ti.com>
- <1313766659-28360-4-git-send-email-balbi@ti.com>
- <20110825191509.GB8030@xanatos>
- <20110825203606.GA27161@legolas.emea.dhcp.ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: How to handle named resources with DT?
+Date: Thu, 25 Aug 2011 23:02:50 +0200
+Message-ID: <32081673.hbCQs4qpyo@wuerfel>
+References: <20110809205723.GE11568@ponder.secretlab.ca> <201108251705.43168.arnd@arndb.de> <877h6173wm.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110825203606.GA27161-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.8]:57913 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754577Ab1HYVDo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Aug 2011 17:03:44 -0400
+In-Reply-To: <877h6173wm.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Gibson <david@gibson.dropbear.id.au>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBGZWxpcGUgQmFsYmkgW21haWx0
-bzpiYWxiaUB0aS5jb21dDQo+IFNlbnQ6IFRodXJzZGF5LCBBdWd1c3QgMjUsIDIwMTEgMTozNiBQ
-TQ0KPiBUbzogU2FyYWggU2hhcnANCj4gQ2M6IEZlbGlwZSBCYWxiaTsgR3JlZyBLSDsgTGludXgg
-VVNCIE1haWxpbmcgTGlzdDsgTGludXggT01BUCBNYWlsaW5nIExpc3Q7IFBhdWwgWmltbWVybWFu
-DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMy80XSB1c2I6IEludHJvZHVjZSBEZXNpZ25XYXJlIFVT
-QjMgRFJEIERyaXZlcg0KPiANCj4gSGksDQo+IA0KPiBPbiBUaHUsIEF1ZyAyNSwgMjAxMSBhdCAx
-MjoxNTowOVBNIC0wNzAwLCBTYXJhaCBTaGFycCB3cm90ZToNCj4gPiBPbiBGcmksIEF1ZyAxOSwg
-MjAxMSBhdCAwNjoxMDo1OFBNICswMzAwLCBGZWxpcGUgQmFsYmkgd3JvdGU6DQo+ID4gPiArZW51
-bSBkd2MzX2xpbmtfc3RhdGUgew0KPiA+ID4gKwkvKiBJbiBTdXBlclNwZWVkICovDQo+ID4gPiAr
-CURXQzNfTElOS19TVEFURV9VMAkJPSAweDAwLCAvKiBpbiBIUywgbWVhbnMgT04gKi8NCj4gPiA+
-ICsJRFdDM19MSU5LX1NUQVRFX1UxCQk9IDB4MDEsDQo+ID4gPiArCURXQzNfTElOS19TVEFURV9V
-MgkJPSAweDAyLCAvKiBpbiBIUywgbWVhbnMgU0xFRVAgKi8NCj4gPiA+ICsJRFdDM19MSU5LX1NU
-QVRFX1UzCQk9IDB4MDMsIC8qIGluIEhTLCBtZWFucyBTVVNQRU5EICovDQo+ID4gPiArCURXQzNf
-TElOS19TVEFURV9TU19ESVMJCT0gMHgwNCwNCj4gPiA+ICsJRFdDM19MSU5LX1NUQVRFX1JYX0RF
-VAkJPSAweDA1LCAvKiBpbiBIUywgbWVhbnMgRWFybHkgU3VzcGVuZCAqLw0KPiA+ID4gKwlEV0Mz
-X0xJTktfU1RBVEVfU1NfSU5BQ1QJPSAweDA2LA0KPiA+ID4gKwlEV0MzX0xJTktfU1RBVEVfUE9M
-TAkJPSAweDA3LA0KPiA+ID4gKwlEV0MzX0xJTktfU1RBVEVfUkVDT1YJCT0gMHgwOCwNCj4gPiA+
-ICsJRFdDM19MSU5LX1NUQVRFX0hSRVNFVAkJPSAweDA5LA0KPiA+ID4gKwlEV0MzX0xJTktfU1RB
-VEVfQ01QTFkJCT0gMHgwYSwNCj4gPiA+ICsJRFdDM19MSU5LX1NUQVRFX0xQQksJCT0gMHgwYiwN
-Cj4gPiA+ICsJRFdDM19MSU5LX1NUQVRFX01BU0sJCT0gMHgwZiwNCj4gPiA+ICt9Ow0KPiA+DQo+
-ID4gQUZBSUNULCB0aGUgbGluayBzdGF0ZSB2YWx1ZXMgYXJlIGV4YWN0bHkgdGhlIHNhbWUgYXMg
-dGhlIHhIQ0kgbGluaw0KPiA+IHN0YXRlIHZhbHVlcyBpbiB0aGUgUG9ydCBMaW5rIFN0YXRlIGZp
-ZWxkIGluIHRoZSBQT1JUU0MgcmVnaXN0ZXIuICBJcw0KPiA+IHRoZSBnYWRnZXQgc2lkZSAoeERD
-SSBzaWRlKSBtZWFudCB0byBiZSBzb21ld2hhdCBjb21wYXRpYmxlIHdpdGggdGhlDQo+ID4geEhD
-SSBob3N0IGNvbnRyb2xsZXIgc3BlYz8NCj4gDQo+IEkgZ3Vlc3MgU3lub3BzeXMgd291bGQgYmUg
-YmVzdCB0byBhbnN3ZXIgdGhpcyBxdWVzdGlvbi4gUGF1bCwgZG8geW91DQo+IGhhcHBlbiB0byBr
-bm93IHRoZSBhbnN3ZXIgPw0KPiANCj4gPiBXb3VsZCBpdCBtYWtlIHNlbnNlIHRvIHNoYXJlIHRo
-ZXNlIGxpbmsgc3RhdGUgbWFjcm9zIChhbmQgYW55IG90aGVyDQo+ID4gc2ltaWxhciAjZGVmaW5l
-cykgd2l0aCB0aGUgeEhDSSBkcml2ZXI/ICBXZSBjb3VsZCBtb3ZlIHRoZW0gaW50bw0KPiA+IGlu
-Y2x1ZGUvbGludXgvY2gxMS5oLg0KPiANCj4gSSdtIG5vdCBzdXJlIGl0IG1ha2VzIHNlbnNlIHRv
-IG1ha2UgZ2FkZ2V0IHNpZGUgdXNlIGNoMTEgZGVmaW5pdGlvbnMsDQo+IGJ1dCB3ZSBjb3VsZCBt
-b3ZlIHRoZW0gdG8gc29tZSBvdGhlciBjb21tb24gaGVhZGVyLCBtYXliZSA/DQoNCk91ciBVU0Iz
-IGNvcmUgaXMgYSBkdWFsLXJvbGUgZGV2aWNlLCBhbmQgc29tZSBvZiB0aGUgbG9naWMgaXMgc2hh
-cmVkDQpiZXR3ZWVuIHhIQ0kgbW9kZSBhbmQgRGV2aWNlIG1vZGUuIFNvIGl0J3Mgbm90IGEgY29p
-bmNpZGVuY2UgdGhhdCB0aGUNCmxpbmsgc3RhdGUgdmFsdWVzIGFyZSB0aGUgc2FtZS4NCg0KSG93
-ZXZlciwgaW4gZnV0dXJlIHRoZSBkZXZpY2UgbW9kZSB3aWxsIGhhdmUgYWRkaXRpb25hbCBzdGF0
-ZXMgYmV5b25kDQp0aG9zZSBkZWZpbmVkIGZvciB4SENJLiBTbyBhIGNvbXBsZXRlbHkgY29tbW9u
-IGhlYWRlciBmaWxlIGlzIG5vdA0KcG9zc2libGUsIHVubGVzcyBwZW9wbGUgZG9uJ3QgbWluZCBo
-YXZpbmcgU3lub3BzeXMtc3BlY2lmaWMgZGVmaW5lcw0KaW5zaWRlIGl0Lg0KDQotLSANClBhdWwN
-Cg0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thursday 25 August 2011 11:16:25 Kevin Hilman wrote:
+> Please clarify. 
+> 
+> What I hear Russell saying is a problem with the implementation of the
+> _byname API.  
+> 
+> What I hear you sating is that since DT doesn't support this, we need to
+> remove it's usage completely from platform_devices also.
+> 
+> These are two very different approaches.
+> 
+> Fixing the implementation as Russell suggested seems relatively easy,
+> and conceptually similar to adding it to the DT.  Removing _byname all
+> together seems like significant work just to avoid adding a feature to
+> the DT core.
+
+It's not at all about whether the Linux codein drivers/of supports this
+or not, adding it would be trivial. The point is that it would be
+*wrong* to add it because there already exists a way to identify every
+resource in the device tree and we should not extend that interface
+to have multiple ways to do the same thing just for convenience of
+a few device drivers! One of the important advantages of using the
+IEEE device tree bindings is that we can define device trees that
+are to a large degree compatible with how AIX, Solaris, MacOS, FreeBSD
+and probably many more (lesser known) operating systems probe
+their systems.
+
+Changing the resource interface in Linux to have two 'name' fields
+would also be terribly confusing and is not a good interface, it would
+just solve another problem (silly entries in /proc/iomem) that we don't
+need to have in the first place when we do the obvious conversion
+of the drivers to the IEEE standard way of doing this.
+
+	Arnd
