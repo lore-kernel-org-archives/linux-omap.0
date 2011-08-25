@@ -1,63 +1,49 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Question on virtual memory layout: lowmem with memory hole
-Date: Thu, 25 Aug 2011 11:22:45 +0100
-Message-ID: <20110825102245.GA10405@n2100.arm.linux.org.uk>
-References: <2A3DCF3DA181AD40BDE86A3150B27B6B03B47E23FC@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: How to handle named resources with DT?
+Date: Thu, 25 Aug 2011 11:28:24 +0100
+Message-ID: <20110825102824.GB10405@n2100.arm.linux.org.uk>
+References: <20110809205723.GE11568@ponder.secretlab.ca>
+	<20110812030218.GP30552@yookeroo.fritz.box>
+	<20110812084106.GC19467@legolas.emea.dhcp.ti.com>
+	<201108121635.42953.arnd@arndb.de> <4E45422D.4050708@ti.com>
+	<CACxGe6s-2EAuvSqzn6yzDvCyVXa8vVVqG2X=1XFrUBnB=jsdxQ@mail.gmail.com>
+	<87r54a1v0o.fsf@ti.com>
+	<20110824231613.GC19890@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B03B47E23FC@dbde02.ent.ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Pedanekar, Hemant" <hemantp@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20110824231613.GC19890-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "G,
+	Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 25, 2011 at 09:35:07AM +0530, Pedanekar, Hemant wrote:
-> E.g., on OMAP3 with mem=32M@0x80000000 mem=8M@0x87800000
+On Thu, Aug 25, 2011 at 02:16:14AM +0300, Felipe Balbi wrote:
+> on top of all that, for IPs which are used on many SoCs (such as MUSB)
+> it's quite silly to force all users to provide resources in a certain
+> order. It sounds to me that this will be prone to error in many ways
+> until everything is synced up and on the correct order.
 > 
-> (CASE 1)
->  Memory: 32MB 8MB = 40MB total
->  Memory: 28408k/28408k available, 12552k reserved, 0K highmem
->  Virtual kernel memory layout:
->      vector  : 0xffff0000 - 0xffff1000   (   4 kB)
->      fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
->      DMA     : 0xffc00000 - 0xffe00000   (   2 MB)
->      vmalloc : 0xc8800000 - 0xf8000000   ( 760 MB)
->      lowmem  : 0xc0000000 - 0xc8000000   ( 128 MB)
->      modules : 0xbf000000 - 0xc0000000   (  16 MB)
->        .text : 0xc0008000 - 0xc05ac2c8   (5777 kB)
->        .init : 0xc05ad000 - 0xc05f8780   ( 302 kB)
->        .data : 0xc05fa000 - 0xc06838d0   ( 551 kB)
->         .bss : 0xc06838f4 - 0xc0bd8a14   (5461 kB)
-> 
-> Is this expected? 88MB space between two 'mem's seems to have lost.
+> Ditching _byname is a very bad idea.
 
-Yes.  The memory layout lines gives an overview of the virtual memory
-address space _regions_.
+I continue to disagree.  The current _byname is an abonimation and hack
+to try to "fix" this problem.
 
-What it's saying is that the virtual addresses from 0xc0000000 - 0xc8000000
-are used for lowmem.  That may not be fully populated, but that's what
-the address range is reserved for.
+_byname should have been implemented differently - rather than overriding
+the resources name field (which is _normally_ specified to be the device
+or driver name), a new field should have been introduced in struct resource
+to carry the resource sub-name (which is really what it is.)
 
-> This also
-> means vmalloc space is lower compared to when a single mem=40M is passed.
-
-Huh.  Either your maths is wrong or...
-
-Here's case 1:
->      vmalloc : 0xc8800000 - 0xf8000000   ( 760 MB)
-And case 2:
->      vmalloc : 0xc3000000 - 0xf8000000   ( 848 MB)
-
-Looks to me like case 1, vmalloc space is _higher_ not _lower_.  That's
-expected because you told the kernel it had more memory in case 1.
+That would have avoided making /proc/iomem completely illegible with
+multiple devices using this feature.
