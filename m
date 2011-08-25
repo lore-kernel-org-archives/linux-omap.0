@@ -1,53 +1,110 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: How to handle named resources with DT?
-Date: Thu, 25 Aug 2011 23:02:50 +0200
-Message-ID: <32081673.hbCQs4qpyo@wuerfel>
-References: <20110809205723.GE11568@ponder.secretlab.ca> <201108251705.43168.arnd@arndb.de> <877h6173wm.fsf@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 3/4] usb: Introduce DesignWare USB3 DRD Driver
+Date: Fri, 26 Aug 2011 00:03:42 +0300
+Message-ID: <20110825210341.GA27228@legolas.emea.dhcp.ti.com>
+References: <1313766659-28360-1-git-send-email-balbi@ti.com>
+ <1313766659-28360-4-git-send-email-balbi@ti.com>
+ <20110825191509.GB8030@xanatos>
+ <20110825203606.GA27161@legolas.emea.dhcp.ti.com>
+ <F6C4814A9B336243ABC3D1FB44E08AE801D21CC66D@US01WXMBX1.internal.synopsys.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:57913 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754577Ab1HYVDo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Aug 2011 17:03:44 -0400
-In-Reply-To: <877h6173wm.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F6C4814A9B336243ABC3D1FB44E08AE801D21CC66D-uiPIUNf6hlr3OT/vyeh27fufCSb+aD3WLzEdoUbNIic@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Zimmerman <Paul.Zimmerman-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Cc: "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Gibson <david@gibson.dropbear.id.au>
 
-On Thursday 25 August 2011 11:16:25 Kevin Hilman wrote:
-> Please clarify. 
-> 
-> What I hear Russell saying is a problem with the implementation of the
-> _byname API.  
-> 
-> What I hear you sating is that since DT doesn't support this, we need to
-> remove it's usage completely from platform_devices also.
-> 
-> These are two very different approaches.
-> 
-> Fixing the implementation as Russell suggested seems relatively easy,
-> and conceptually similar to adding it to the DT.  Removing _byname all
-> together seems like significant work just to avoid adding a feature to
-> the DT core.
 
-It's not at all about whether the Linux codein drivers/of supports this
-or not, adding it would be trivial. The point is that it would be
-*wrong* to add it because there already exists a way to identify every
-resource in the device tree and we should not extend that interface
-to have multiple ways to do the same thing just for convenience of
-a few device drivers! One of the important advantages of using the
-IEEE device tree bindings is that we can define device trees that
-are to a large degree compatible with how AIX, Solaris, MacOS, FreeBSD
-and probably many more (lesser known) operating systems probe
-their systems.
+--Nq2Wo0NMKNjxTN9z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Changing the resource interface in Linux to have two 'name' fields
-would also be terribly confusing and is not a good interface, it would
-just solve another problem (silly entries in /proc/iomem) that we don't
-need to have in the first place when we do the obvious conversion
-of the drivers to the IEEE standard way of doing this.
+Hi,
 
-	Arnd
+On Thu, Aug 25, 2011 at 01:48:09PM -0700, Paul Zimmerman wrote:
+> > -----Original Message-----
+> > From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
+> > Sent: Thursday, August 25, 2011 1:36 PM
+> > To: Sarah Sharp
+> > Cc: Felipe Balbi; Greg KH; Linux USB Mailing List; Linux OMAP Mailing L=
+ist; Paul Zimmerman
+> > Subject: Re: [PATCH 3/4] usb: Introduce DesignWare USB3 DRD Driver
+> >=20
+> > Hi,
+> >=20
+> > On Thu, Aug 25, 2011 at 12:15:09PM -0700, Sarah Sharp wrote:
+> > > On Fri, Aug 19, 2011 at 06:10:58PM +0300, Felipe Balbi wrote:
+> > > > +enum dwc3_link_state {
+> > > > +	/* In SuperSpeed */
+> > > > +	DWC3_LINK_STATE_U0		=3D 0x00, /* in HS, means ON */
+> > > > +	DWC3_LINK_STATE_U1		=3D 0x01,
+> > > > +	DWC3_LINK_STATE_U2		=3D 0x02, /* in HS, means SLEEP */
+> > > > +	DWC3_LINK_STATE_U3		=3D 0x03, /* in HS, means SUSPEND */
+> > > > +	DWC3_LINK_STATE_SS_DIS		=3D 0x04,
+> > > > +	DWC3_LINK_STATE_RX_DET		=3D 0x05, /* in HS, means Early Suspend */
+> > > > +	DWC3_LINK_STATE_SS_INACT	=3D 0x06,
+> > > > +	DWC3_LINK_STATE_POLL		=3D 0x07,
+> > > > +	DWC3_LINK_STATE_RECOV		=3D 0x08,
+> > > > +	DWC3_LINK_STATE_HRESET		=3D 0x09,
+> > > > +	DWC3_LINK_STATE_CMPLY		=3D 0x0a,
+> > > > +	DWC3_LINK_STATE_LPBK		=3D 0x0b,
+> > > > +	DWC3_LINK_STATE_MASK		=3D 0x0f,
+> > > > +};
+> > >
+> > > AFAICT, the link state values are exactly the same as the xHCI link
+> > > state values in the Port Link State field in the PORTSC register.  Is
+> > > the gadget side (xDCI side) meant to be somewhat compatible with the
+> > > xHCI host controller spec?
+> >=20
+> > I guess Synopsys would be best to answer this question. Paul, do you
+> > happen to know the answer ?
+> >=20
+> > > Would it make sense to share these link state macros (and any other
+> > > similar #defines) with the xHCI driver?  We could move them into
+> > > include/linux/ch11.h.
+> >=20
+> > I'm not sure it makes sense to make gadget side use ch11 definitions,
+> > but we could move them to some other common header, maybe ?
+>=20
+> Our USB3 core is a dual-role device, and some of the logic is shared
+> between xHCI mode and Device mode. So it's not a coincidence that the
+> link state values are the same.
+>=20
+> However, in future the device mode will have additional states beyond
+> those defined for xHCI. So a completely common header file is not
+> possible, unless people don't mind having Synopsys-specific defines
+> inside it.
+
+Thanks for the reply Paul :-) I believe this is strong enough argument
+to keep things as they are.
+
+--=20
+balbi
+
+--Nq2Wo0NMKNjxTN9z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOVritAAoJEAv8Txj19kN1ImkIAJ8DoW8ipWj6Zw096Jy5r410
+GU4AHiDNJgVANLZp6cVjmdwApo6W9MPSYVMdtQzRs0mhY8pvowqwkvyWFr30vOdU
+ZsH8VJhHaqlxx6t3rTEN6g+ZsqEDEpH05rs4XaAAyDsSSRpGMpd/wvlt/HB05RoV
+Ifn+UfPdWSuk0SJqj9yNpRN6PceG6cGcAP3cd01P0hz7OtcDUxzJNbF2T+JG43h1
+sYLdX29D85f9n/YeAGunLdxqc4QMNsOWOQVTsGbBVhLCL7oV3D/QYgi+CQwIwQfa
+VeboVWenNeDjThxVu/WZe1gabIb6CWAOqTukV+nTqH984z+YpG1mOzSGeOofOc8=
+=pTmN
+-----END PGP SIGNATURE-----
+
+--Nq2Wo0NMKNjxTN9z--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
