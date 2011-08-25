@@ -1,58 +1,55 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: 3.1-rc3 fails to boot on my pandaboard
-Date: Thu, 25 Aug 2011 13:39:29 +0300
-Message-ID: <1314268769.2296.283.camel@cumari>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: 3.1-rc3 fails to boot on my pandaboard
+Date: Thu, 25 Aug 2011 13:04:23 +0200
+Message-ID: <20110825110423.GA12911@linutronix.de>
+References: <1314268769.2296.283.camel@cumari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:52325 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752414Ab1HYKjf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Aug 2011 06:39:35 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-15
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1314268769.2296.283.camel@cumari>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
+* Luciano Coelho | 2011-08-25 13:39:29 [+0300]:
+
+>Hi,
 Hi,
 
-There seems to be a problem with 3.1-rc3, which prevents it from booting
-on my PandaBoard (ARM OMAP4).
+>Any ideas what may be going wrong?
 
-3.1-rc2 works fine, so I have bisected the problem and it turns out to
-be caused by this:
+I think my commit was identified as bogus and tglx is going to revert 
+it. The problem is that I force ONESHOT mode for all threaded IRQs but
+there are also others without the flag which is not allowed.
 
-commit f3637a5f2e2eb391ff5757bc83fb5de8f9726464
-Author: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Date:   Thu Jul 7 22:32:17 2011 +0200
+I was trying to check something but I don't get my board to boot. Could
+you please try to boot with the patch reverted and paste me the
+the output of 
+ cat /proc/interrupts | grep 74 ?
 
-    irq: Always set IRQF_ONESHOT if no primary handler is specified
+I *think* that the flow handler is level (I can't find evidence of it
+beeing edge, and omap_alloc_gc() is the place installing it).
 
-After reverting this commit, -rc3 boots fine.  I'm not sure where
-exactly the problem is.  Maybe it's something in the omap code which is
-broken and this patch causes the bug to show up?
+So could you please gather additional debug info with this patch?
 
-What happens is that the booting process hangs after printing out this:
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index 2e94258..eda25a0 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -1327,6 +1327,9 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
+ 	if (!irq_settings_can_request(desc))
+ 		return -EINVAL;
+ 
++	if (irq == 74)
++		printk(KERN_ERR "%s() h %pS th %pS f %lx dev %s flow %pS\n", __func__,
++				handler, thread_fn, irqflags, devname, desc->handle_irq);
+ 	if (!handler) {
+ 		if (!thread_fn)
+ 			return -EINVAL;
 
-[...] 
-[    7.408477] EXT3-fs: barriers not enabled
-[    7.415008] kjournald starting.  Commit interval 5 seconds
-[    7.446228] EXT3-fs (mmcblk0p5): using internal journal
-[    7.452087] EXT3-fs (mmcblk0p5): mounted filesystem with ordered data mode
-[    7.459625] VFS: Mounted root (ext3 filesystem) on device 179:5.
-[    7.466094] Freeing init memory: 312K
-[    7.471710] Failed to execute /init.  Attempting defaults...
-[   10.254333] EXT3-fs (mmcblk0p5): using internal journal
 
-The full boot logs can be found here:
+%pS should resolve the function names.
 
-http://pastebin.pandaboard.org/index.php/view/88995306
-
-Any ideas what may be going wrong?
-
--- 
-Cheers,
-Luca.
-
+Sebastian
