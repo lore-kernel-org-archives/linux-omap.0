@@ -1,48 +1,36 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v2 0/7] omap: iommu migration, relocation and cleanups
-Date: Fri, 26 Aug 2011 15:21:14 +0300
-Message-ID: <CAK=WgbbvOf-3C8HtoZwV9nDomjPHVsEr+ztcMxf4tV=4KDXZ7g@mail.gmail.com>
-References: <1314205694-28935-1-git-send-email-ohad@wizery.com> <20110826112531.GQ1923@amd.com>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: Issue: Runtime API usage in wake-up device irq_handler during wakeup from system-wide-suspend.
+Date: Fri, 26 Aug 2011 18:31:33 +0530
+Message-ID: <1314363693-20831-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:39539 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751046Ab1HZMW2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Aug 2011 08:22:28 -0400
-Received: by wwe5 with SMTP id 5so424009wwe.1
-        for <linux-omap@vger.kernel.org>; Fri, 26 Aug 2011 05:22:27 -0700 (PDT)
-In-Reply-To: <20110826112531.GQ1923@amd.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60200 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752789Ab1HZNB4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Aug 2011 09:01:56 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Arnd Bergmann <arnd@arndb.de>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, Partha Basak <p-basak2@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>, Govindraj R <govindraj.raja@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>
 
-On Fri, Aug 26, 2011 at 2:25 PM, Roedel, Joerg <Joerg.Roedel@amd.com> w=
-rote:
-> Applied all to arm/omap, thanks Ohad. I also put a commit on-top whic=
-h
-> finished the mutex->spin_lock conversion. Looks like one call-place w=
-as
-> missed. See attached patch.
->
-> commit 4234541f1a64d9dc6d489cf8f614dc01c62360f6
-> Author: Joerg Roedel <joerg.roedel@amd.com>
-> Date: =A0 Fri Aug 26 13:20:06 2011 +0200
->
-> =A0 =A0omap: iommu: Fix up mutex->spin_lock conversion of iommu_lock
->
-> =A0 =A0The omap_iommu_set_isr() was still using the mutex functions
+Hello,
 
-Thanks, Joerg.
+During system_wide_suspend pm runtime is disabled.
+I.e. __pm_runtime_disable is called from __device_suspend.
+Now, if a wakeup interrupt is triggered and the wakeup device irq handler
+is called even before device_resume and pm_runtime_enable happens,
+the device irq_handler proceeds to enable clock with runtime API to
+handle wakeup event.
+ 
+Wouldn't this result in system wide abort since the pm_runtime is not enabled
+yet from dpm_resume?
+As we end up accessing regs after doing runtime get_sync.
+ 
+Looks like this scenario is not handled currently.
+Or Am I missing something here?
 
-(I am already working on removing omap_iommu_set_isr() and providing
-that functionality via the IOMMU API, so the s/mutex/spinlock/ patch I
-squashed with the original patch set accidentally didn't cover that
-function).
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Govindraj.R
+
