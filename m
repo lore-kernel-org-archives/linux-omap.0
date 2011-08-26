@@ -1,145 +1,63 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v14 REPOST 07/12] OMAP: dmtimer: pm_runtime support
-Date: Fri, 26 Aug 2011 09:23:43 -0700
-Message-ID: <87liug3zw0.fsf@ti.com>
-References: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com>
-	<1310731501-13078-8-git-send-email-tarun.kanti@ti.com>
-	<4E57BB61.2010804@ti.com>
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v9 00/12] use nonblock mmc requests to minimize latency
+Date: Fri, 26 Aug 2011 21:58:19 +0530
+Message-ID: <4E57C9A3.8000208@ti.com>
+References: <1309539333-2606-1-git-send-email-per.forlin@linaro.org> <20110826161951.GA26197@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4E57BB61.2010804@ti.com> (Santosh's message of "Fri, 26 Aug 2011
-	20:57:29 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20110826161951.GA26197@n2100.arm.linux.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Per Forlin <per.forlin@linaro.org>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, Chris Ball <cjb@laptop.org>, linaro-dev@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Kyungmin Park <kyungmin.park@samsung.com>, Sourav Poddar <sourav.poddar@ti.com>, linux-arm-kernel@lists.infradead.org, Balaji T Krishnamoorthy <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Santosh <santosh.shilimkar@ti.com> writes:
++ Balaji,
 
-> On Friday 15 July 2011 05:34 PM, Tarun Kanti DebBarma wrote:
->> Add pm_runtime feature to dmtimer whereby _get_sync() is called within
->> omap_dm_timer_enable(), _put_sync() is called in omap_dm_timer_disable().
->>
->> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
->> [p-basak2@ti.com: added pm_runtime logic in probe()]
->> Signed-off-by: Partha Basak<p-basak2@ti.com>
->> Reviewed-by: Varadarajan, Charulatha<charu@ti.com>
->> Acked-by: Cousson, Benoit<b-cousson@ti.com>
->> ---
->>   arch/arm/plat-omap/dmtimer.c              |   31 +++++++---------------------
->>   arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
->>   2 files changed, 8 insertions(+), 24 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
->> index 54564e9..0560248 100644
->> --- a/arch/arm/plat-omap/dmtimer.c
->> +++ b/arch/arm/plat-omap/dmtimer.c
->> @@ -38,6 +38,7 @@
->>   #include<linux/io.h>
->>   #include<linux/slab.h>
->>   #include<linux/err.h>
->> +#include<linux/pm_runtime.h>
->>
->>   #include<plat/dmtimer.h>
->>
->> @@ -193,33 +194,13 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_free);
->>
->>   void omap_dm_timer_enable(struct omap_dm_timer *timer)
->>   {
->> -	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
->> -
->> -	if (timer->enabled)
->> -		return;
->> -
->> -	if (!pdata->needs_manual_reset) {
->> -		clk_enable(timer->fclk);
->> -		clk_enable(timer->iclk);
->> -	}
->> -
->> -	timer->enabled = 1;
->> +	pm_runtime_get_sync(&timer->pdev->dev);
->>   }
->>   EXPORT_SYMBOL_GPL(omap_dm_timer_enable);
->>
->>   void omap_dm_timer_disable(struct omap_dm_timer *timer)
->>   {
->> -	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
->> -
->> -	if (!timer->enabled)
->> -		return;
->> -
->> -	if (!pdata->needs_manual_reset) {
->> -		clk_disable(timer->iclk);
->> -		clk_disable(timer->fclk);
->> -	}
->> -
->> -	timer->enabled = 0;
->> +	pm_runtime_put_sync(&timer->pdev->dev);
-> Better to use pm_runtime_put_sync_suspend() to make
-> it irq safe.
-
-Actually, better to just use the async version: pm_runtime_put()
-
-Why does it need to be IRQ safe?
-
->>   }
->>   EXPORT_SYMBOL_GPL(omap_dm_timer_disable);
->>
->> @@ -461,7 +442,7 @@ int omap_dm_timers_active(void)
->>   	struct omap_dm_timer *timer;
->>
->>   	list_for_each_entry(timer,&omap_timer_list, node) {
->> -		if (!timer->enabled)
->> +		if (!timer->reserved)
->>   			continue;
->>
->>   		if (omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG)&
->> @@ -536,6 +517,10 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
->>   	timer->irq = irq->start;
->>   	timer->pdev = pdev;
->>
->> +	/* Skip pm_runtime_enable for OMAP1 */
->> +	if (!pdata->needs_manual_reset)
->> +		pm_runtime_enable(&pdev->dev);
->> +
-> Here too.
-> /s /pm_runtime_enable /pm_runtime_irq_safe
-
-I think you mean adding _irq_safe, not removing the _enable?
-
-I disagree with the IRQ-safe part.  Let's avoid using IRQ-safe unless
-*really* needed, and justified.
-
-Kevin
-
->>   	/* add the timer element to the list */
->>   	spin_lock_irqsave(&dm_timer_lock, flags);
->>   	list_add_tail(&timer->node,&omap_timer_list);
->> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
->> index 90a504a..53d5da6 100644
->> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
->> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
->> @@ -238,7 +238,6 @@ struct omap_dm_timer {
->>   	void __iomem *io_base;
->>   	unsigned long rate;
->>   	unsigned reserved:1;
->> -	unsigned enabled:1;
->>   	unsigned posted:1;
->>   	u8 func_offset;
->>   	u8 intr_offset;
+On Friday 26 August 2011 09:49 PM, Russell King - ARM Linux wrote:
+> I'm not sure who's responsible for this, but the nonblocking MMC stuff is
+> broken on OMAPs HSMMC:
 >
-> With above fixed, you can add,
+> mmcblk0: error -84 transferring data, sector 149201, nr 64, cmd response 0x900, card status 0xb00
+> mmcblk0: retrying using single block read
+> ------------[ cut here ]------------
+> WARNING: at /home/rmk/git/linux-2.6-rmk/lib/dma-debug.c:811 check_unmap+0x1ac/0x764()
+> omap_hsmmc omap_hsmmc.0: DMA-API: device driver tries to free DMA memory it has not allocated [device address=0x0000000080933000] [size=20480 bytes]
+> Modules linked in:
+> Backtrace:
+> [<c0017874>] (dump_backtrace+0x0/0x10c) from [<c02ce8ac>] (dump_stack+0x18/0x1c)
+>   r7:c1abfcb8 r6:c0186248 r5:c037de51 r4:0000032b
+> [<c02ce894>] (dump_stack+0x0/0x1c) from [<c0039ed4>] (warn_slowpath_common+0x58/0x70)
+> [<c0039e7c>] (warn_slowpath_common+0x0/0x70) from [<c0039f90>] (warn_slowpath_fmt+0x38/0x40)
+>   r8:c1abfd50 r7:00000000 r6:00005000 r5:00000000 r4:80933000
+> [<c0039f58>] (warn_slowpath_fmt+0x0/0x40) from [<c0186248>] (check_unmap+0x1ac/0x764)
+>   r3:c0367d55 r2:c037e24d
+> [<c018609c>] (check_unmap+0x0/0x764) from [<c0186978>] (debug_dma_unmap_sg+0x100/0x134)
+> [<c0186878>] (debug_dma_unmap_sg+0x0/0x134) from [<c0019770>] (dma_unmap_sg+0x24/0x7c)
+> [<c001974c>] (dma_unmap_sg+0x0/0x7c) from [<c0207220>] (omap_hsmmc_post_req+0x48/0x54)
+> [<c02071d8>] (omap_hsmmc_post_req+0x0/0x54) from [<c01fb644>] (mmc_start_req+0x9c/0x128)
+>   r4:c1a76000
+> [<c01fb5a8>] (mmc_start_req+0x0/0x128) from [<c02049fc>] (mmc_blk_issue_rw_rq+0x80/0x460)
+>   r8:c1ab5c00 r7:00000001 r6:c1ab5824 r5:c1ab5824 r4:c1ab5c00
+> [<c020497c>] (mmc_blk_issue_rw_rq+0x0/0x460) from [<c02050a8>] (mmc_blk_issue_rq+0x2cc/0x2fc)
+> [<c0204ddc>] (mmc_blk_issue_rq+0x0/0x2fc) from [<c02056c4>] (mmc_queue_thread+0xa0/0x104)
+> [<c0205624>] (mmc_queue_thread+0x0/0x104) from [<c0054f8c>] (kthread+0x88/0x90)
+> [<c0054f04>] (kthread+0x0/0x90) from [<c003d9a4>] (do_exit+0x0/0x618)
+>   r7:00000013 r6:c003d9a4 r5:c0054f04 r4:c1a7bc7c
+> ---[ end trace 3314ad56daf5d14f ]---
 >
-> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Regards
-> Santosh
+> Luckily thinks continue to work, but clearly releasing DMA mappings which
+> drivers don't own is bad news.  Unfortunately, I don't have the bandwidth
+> to be able to investigate this at present - well, I could do but then I'd
+> have to drop working on the OMAP4 vs generic suspend/resume code and learn
+> about something I've no current clue about.
+>
+Please continue your help on generic suspend.
+
+> Can someone please investigate and fix whatever is broken.
+>
+Will find somebody to look at this issue.
+
+Regards
+Santosh
