@@ -1,114 +1,57 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Subject: Re: [lm-sensors] [PATCH 6/6 V3] hwmon: OMAP4: On die temperature
- sensor driver
-Date: Fri, 26 Aug 2011 09:16:35 -0700
-Message-ID: <1314375395.2796.82.camel@groeck-laptop>
-References: <20110824171612.GA8160@ericsson.com>
-	 <CAJ6a13b-0TPwqRku5_72B3Sa0gRyZOrYp-qAOuTvB5Q+G-x3Bg@mail.gmail.com>
-	 <20110825140630.GB8684@ericsson.com>
-	 <1314287771.2796.40.camel@groeck-laptop>
-	 <CAJ6a13YcmJCHPOVvgUfV6-LB3+MCGjgbGv=9Ks3Rv5gRvr=r1A@mail.gmail.com>
-Reply-To: guenter.roeck@ericsson.com
+From: Chase Maupin <Chase.Maupin@ti.com>
+Subject: [PATCH] omap_vout: fix section mismatch in probe function
+Date: Fri, 26 Aug 2011 11:10:15 -0500
+Message-ID: <1314375015-15732-1-git-send-email-Chase.Maupin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from imr4.ericy.com ([198.24.6.9]:40916 "EHLO imr4.ericy.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58262 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754759Ab1HZQRT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Aug 2011 12:17:19 -0400
-In-Reply-To: <CAJ6a13YcmJCHPOVvgUfV6-LB3+MCGjgbGv=9Ks3Rv5gRvr=r1A@mail.gmail.com>
+	id S1754724Ab1HZQTS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Aug 2011 12:19:18 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7QGJFcW008039
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 26 Aug 2011 11:19:18 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7QGJF5K005100
+	for <linux-omap@vger.kernel.org>; Fri, 26 Aug 2011 21:49:15 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: linux-omap@vger.kernel.org
+Cc: Chase Maupin <Chase.Maupin@ti.com>
 
-On Fri, 2011-08-26 at 07:17 -0400, J, KEERTHY wrote:
-> On Thu, Aug 25, 2011 at 9:26 PM, Guenter Roeck
-> <guenter.roeck@ericsson.com> wrote:
-> > On Thu, 2011-08-25 at 10:06 -0400, Guenter Roeck wrote:
-> >> On Thu, Aug 25, 2011 at 06:30:07AM -0400, J, KEERTHY wrote:
-> >> > On Wed, Aug 24, 2011 at 10:46 PM, Guenter Roeck
-> >> > <guenter.roeck@ericsson.com> wrote:
-> >> > > On Wed, Aug 24, 2011 at 10:37:12AM -0400, Keerthy wrote:
-> >> > >> On chip temperature sensor driver. The driver monitors the temperature of
-> >> > >> the MPU subsystem of the OMAP4. It sends notifications to the user space if
-> >> > >> the temperature crosses user defined thresholds via kobject_uevent interface.
-> >> > >> The user is allowed to configure the temperature thresholds vis sysfs nodes
-> >> > >> exposed using hwmon interface.
-> >> > >>
-> >> > >> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> >> > >> Cc: Jean Delvare <khali@linux-fr.org>
-> >> > >> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-> >> > >> Cc: lm-sensors@lm-sensors.org
-> >> > >
-> >
-> > [ ... ]
-> >
-> >
-> >> >
-> >> > >
-> >> > >> +       }
-> >> > >> +
-> >> > >> +       mutex_lock(&temp_sensor->sensor_mutex);
-> >> > >> +       /* obtain the T cold value */
-> >> > >> +       t_cold = omap_temp_sensor_readl(temp_sensor,
-> >> > >> +                       temp_sensor->registers->bgap_threshold);
-> >> > >> +       t_cold = (t_cold & temp_sensor->registers->threshold_tcold_mask) >>
-> >> > >> +                       __ffs(temp_sensor->registers->threshold_tcold_mask);
-> >> > >> +
-> >> > >> +       if (t_hot < t_cold) {
-> >> > >> +               count = -EINVAL;
-> >> > >> +               goto out;
-> >> > >
-> >> > > Context specific limitations like this one are not a good idea, since it assumes an order of changing max
-> >> > > and max_hysteresis which is not necessarily guaranteed by the application making the change, nor is a
-> >> > > change order order well defined or even possible. Applications should not have to bother about this.
-> >> >
-> >> > The hardware behavior is like this. As long as the temperature is below
-> >> > t_hot no interrupts are fired. Once the temperature increases above
-> >> > t_hot we get an
-> >> > interrupt. In order to avoid repeated interrupts we mask the t_hot interrupt
-> >> > in the interrupt handler and enable the t_cold interrupts. So we get a t_cold
-> >> > interrupt only when the temperature drops below the t_cold value. Hence
-> >> > setting the t_cold higher than t_hot will mess up the state machine.
-> >> >
-> >> > t_hot value should be greater than t_cold value.
-> >> >
-> >> One option would be to update t_cold (max_hyst) automatically in that case.
-> >>
-> >> Problem here is that you expect the application to know, depending on the current
-> >> values of (max, max_hyst), how to update both limits in order. That is not a reasonable
-> >> expectation.
-> >>
-> > One possible solution would be to have a single function to set both
-> > t_cold and t_hot, and call it from both initialization code and from the
-> > set functions. That would unify all the register setting and interrupt
-> > enable code.
-> >
-> > Regarding the actual values to set, you can (as an example) use the
-> > following approach:
-> >
-> > - If max is set, and t_hot < t_cold, adjust t_cold to the new value of
-> > t_hot.
-> >
-> > - if max_hyst is set, and t_cold > t_hot, set t_cold to the new value of
-> > t_hot.
-> >
-> > So, in other words, your new unified function would only need the
-> > following simple validation:
-> >
-> >        if (t_cold > t_hot)
-> >                t_cold = t_hot;
-> 
-> One concern here. There should be a hysteresis
-> difference between the two and can not be equal.
-> I need to add a hysteresis value to t_hot so as
-> to maintain t_hot > t_cold condition.
-> 
-Sure, makes sense. Was that in your original patch ? Just wondering.
+Building the OMAP vout driver resulted in the following message:
 
-Thanks,
-Guenter
+    WARNING: vmlinux.o(.data+0x38084): Section mismatch in reference
+             from the variable omap_vout_driver to the function
+             .init.text:omap_vout_probe()
+    The variable omap_vout_driver references
+    the function __init omap_vout_probe()
+    If the reference is valid then annotate the
+    variable with __init* or __refdata (see linux/init.h) or name
+    the variable:
+    *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one,
+    *_console
 
+Signed-off-by: Chase Maupin <Chase.Maupin@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index b3a5ecd..9b5dad5 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -2133,7 +2133,7 @@ static int omap_vout_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int __init omap_vout_probe(struct platform_device *pdev)
++static int omap_vout_probe(struct platform_device *pdev)
+ {
+ 	int ret = 0, i;
+ 	struct omap_overlay *ovl;
+-- 
+1.7.0.4
 
