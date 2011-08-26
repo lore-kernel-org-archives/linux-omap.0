@@ -1,96 +1,88 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC 1/2] OMAP3+: voltage / oscillator parameter segregation
-Date: Fri, 26 Aug 2011 16:24:44 -0700
-Message-ID: <87zkivwybn.fsf@ti.com>
-References: <1312385355-17029-1-git-send-email-t-kristo@ti.com>
-	<1312385355-17029-2-git-send-email-t-kristo@ti.com>
-	<CAOMWX4cTsoK_ejOq861wNMiUDJYjcvPtc+jLo3z398D-Y2e39w@mail.gmail.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 6/6] usb: musb: Add support for ti81xx platform
+Date: Sat, 27 Aug 2011 02:52:27 +0300
+Message-ID: <20110826235226.GD4829@legolas.emea.dhcp.ti.com>
+References: <1314357108-2279-1-git-send-email-ajay.gupta@ti.com>
+ <1314357108-2279-7-git-send-email-ajay.gupta@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:34128 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752936Ab1HZXYt convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Aug 2011 19:24:49 -0400
-Received: by mail-gy0-f169.google.com with SMTP id 10so3256314gyg.28
-        for <linux-omap@vger.kernel.org>; Fri, 26 Aug 2011 16:24:48 -0700 (PDT)
-In-Reply-To: <CAOMWX4cTsoK_ejOq861wNMiUDJYjcvPtc+jLo3z398D-Y2e39w@mail.gmail.com>
-	(Nishanth Menon's message of "Sun, 7 Aug 2011 11:30:21 -0500")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yudcn1FV7Hsu/q59"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1314357108-2279-7-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ravi B <ravibabu-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-Hi Nishanth,
 
-"Menon, Nishanth" <nm@ti.com> writes:
+--yudcn1FV7Hsu/q59
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> here is my quick feedback:
->
->
-> On Wed, Aug 3, 2011 at 10:29, Tero Kristo <t-kristo@ti.com> wrote:
->>
->> This patch separates board specific voltage and oscillator ramp / se=
-tup
->> times from the core code. Things changed:
->>
->> - on/sleep/ret/off voltage setup moved from common twl code to
->> =C2=A0VC / VP data (oppxxxx_data.c files)
->> - added board support for vdd ramp up / down times
->> - added board support for oscillator setup time declaration
->>
->> Todo: split patch into more easily manageable parts.
->>
->> Applies on top of pm/wip/voltdm branch, based on work done by Vishwa=
-nath
->> Sripathy.
->>
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Hi,
 
-[...]
+On Fri, Aug 26, 2011 at 04:41:48PM +0530, Ajay Kumar Gupta wrote:
+> @@ -57,6 +58,10 @@ config USB_MUSB_AM35X
+>  	tristate "AM35x"
+>  	depends on ARCH_OMAP
+> =20
+> +config USB_MUSB_TI81XX
+> +	bool "TI81XX"
+> +	depends on SOC_OMAPTI81XX
 
->> diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap=
-2/opp3xxx_data.c
->> index d95f3f9..b5d8294 100644
->> --- a/arch/arm/mach-omap2/opp3xxx_data.c
->> +++ b/arch/arm/mach-omap2/opp3xxx_data.c
->> @@ -26,6 +26,16 @@
->> =C2=A0#include "pm.h"
->>
->> =C2=A0/* 34xx */
->> +/* OMAP VP parameter values */
->> +#define OMAP3430_VP1_VLIMITTO_VDDMIN =C2=A0 0x14
->> +#define OMAP3430_VP1_VLIMITTO_VDDMAX =C2=A0 0x42
->> +#define OMAP3430_VP2_VLIMITTO_VDDMIN =C2=A0 0x18
->> +#define OMAP3430_VP2_VLIMITTO_VDDMAX =C2=A0 0x2c
-> NAK -> we should be using voltages here -> depending on the PMIC used=
-,
-> the rounding factor may not map to TWL4030.
+this *must* be tristate. I can't emphasize enough how important this is.
 
-Agreed.
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 20a2873..07f3faf 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1014,7 +1014,9 @@ static void musb_shutdown(struct platform_device *p=
+dev)
+>  	|| defined(CONFIG_USB_MUSB_OMAP2PLUS)		\
+>  	|| defined(CONFIG_USB_MUSB_OMAP2PLUS_MODULE)	\
+>  	|| defined(CONFIG_USB_MUSB_AM35X)		\
+> -	|| defined(CONFIG_USB_MUSB_AM35X_MODULE)
+> +	|| defined(CONFIG_USB_MUSB_AM35X_MODULE)	\
+> +	|| defined(CONFIG_USB_MUSB_TI81XX)		\
+> +	|| defined(CONFIG_USB_MUSB_TI81XX_MODULE)
 
-> I had posted patch for this earlier I believe in series
-> http://marc.info/?l=3Dlinux-omap&m=3D130741297821372&w=3D2
+we really need to find a better way to handle this :-(
 
-I know you're a bit distracted currently ;) but is there any chance you
-can refresh at least this patch:
+> diff --git a/drivers/usb/musb/ti81xx.c b/drivers/usb/musb/ti81xx.c
+> new file mode 100644
+> index 0000000..f95774e
+> --- /dev/null
+> +++ b/drivers/usb/musb/ti81xx.c
 
-    OMAP3+: PM: VP: use uV for max and min voltage limits
+I still think this should be part of am35x.c It really look like they
+are very similar.
 
-from your series on top of my current pm-wip/voltdm branch?
+on monday I'll read the rest of the file.
 
-If not, maybe point us to an archived version and Tero can pick it up
-and add it to this series.  After a quick search, I couldn't find it in
-the marc.info archives.
+--=20
+balbi
 
-Thanks,
+--yudcn1FV7Hsu/q59
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Kevin
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOWDG6AAoJEAv8Txj19kN141YH/3YkDSzEtnnB68h9k9TequF/
+Hwsa0SDNCxXgJHAkaj7dEybXmr2AHuAfyT4BAYSVbsvtjVEkPvUAV+YEoiFBClz2
+mIpwyPPCWRCLSqWftPV6cErecfai2/G7oe85V+uw1t9H00xdgHiyASssraujt79k
+JXPGVaRfjIPiKbhyZpqtq+B7Hndzcvqk7wdj57i2ifjF5aXFMdV2/iBOx8nAKWoN
+pgUPZKHqSmLdRpXTDpIVlPzOP3UrmbaPUZa+NsCi3f0s03Uba0NUidTvoZVu7q3s
+uweduS9yioA5r0HSzI9n0rrC9YUnbjwdoEICXTY/SMBBRYuUAe4av2RoTzDxf3U=
+=wgb8
+-----END PGP SIGNATURE-----
+
+--yudcn1FV7Hsu/q59--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
