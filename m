@@ -1,119 +1,40 @@
-From: "Maupin, Chase" <chase.maupin@ti.com>
-Subject: RE: 3.1-rc3 fails to boot on my pandaboard
-Date: Fri, 26 Aug 2011 19:05:39 +0000
-Message-ID: <7D46E86EC0A8354091174257B2FED1010346F40B@DLEE12.ent.ti.com>
-References: <1314268769.2296.283.camel@cumari>
- <CAAL8m4whQJSXQw+E52qF2vLSBrt=RsA-r-B2q2gaW3XGiR4tYg@mail.gmail.com>
- <1314272358.2296.296.camel@cumari>
- <CAAL8m4x18v+QWFHsxhYDGRq3WmzmA+Ur7JGRrTabHrKDuvAjvw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Issue: Runtime API usage in wake-up device irq_handler during wakeup from system-wide-suspend.
+Date: Fri, 26 Aug 2011 22:52:40 +0200
+Message-ID: <201108262252.40366.rjw@sisk.pl>
+References: <1314363693-20831-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59144 "EHLO arroyo.ext.ti.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:41191 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753605Ab1HZTFv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Aug 2011 15:05:51 -0400
-In-Reply-To: <CAAL8m4x18v+QWFHsxhYDGRq3WmzmA+Ur7JGRrTabHrKDuvAjvw@mail.gmail.com>
-Content-Language: en-US
+	id S1754576Ab1HZUuw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Aug 2011 16:50:52 -0400
+In-Reply-To: <1314363693-20831-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>, "Coelho, Luciano" <coelho@ti.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, Partha Basak <p-basak2@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>
 
+On Friday, August 26, 2011, Govindraj.R wrote:
+> Hello,
+> 
+> During system_wide_suspend pm runtime is disabled.
+> I.e. __pm_runtime_disable is called from __device_suspend.
+> Now, if a wakeup interrupt is triggered and the wakeup device irq handler
+> is called even before device_resume and pm_runtime_enable happens,
+> the device irq_handler proceeds to enable clock with runtime API to
+> handle wakeup event.
+>  
+> Wouldn't this result in system wide abort since the pm_runtime is not enabled
+> yet from dpm_resume?
+> As we end up accessing regs after doing runtime get_sync.
+>  
+> Looks like this scenario is not handled currently.
+> Or Am I missing something here?
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Govindraj
-> Sent: Thursday, August 25, 2011 6:46 AM
-> To: Coelho, Luciano
-> Cc: linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org; Thomas
-> Gleixner; Sebastian Andrzej Siewior
-> Subject: Re: 3.1-rc3 fails to boot on my pandaboard
->=20
-> On Thu, Aug 25, 2011 at 5:09 PM, Luciano Coelho <coelho@ti.com> wrote=
-:
-> > On Thu, 2011-08-25 at 17:05 +0530, Govindraj wrote:
-> >> On Thu, Aug 25, 2011 at 4:09 PM, Luciano Coelho <coelho@ti.com>
-> wrote:
-> >> > Hi,
-> >> >
-> >> > There seems to be a problem with 3.1-rc3, which prevents it from
-> booting
-> >> > on my PandaBoard (ARM OMAP4).
-> >> >
-> >> > 3.1-rc2 works fine, so I have bisected the problem and it turns
-> out to
-> >> > be caused by this:
-> >> >
-> >> > commit f3637a5f2e2eb391ff5757bc83fb5de8f9726464
-> >> > Author: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> >> > Date: =A0 Thu Jul 7 22:32:17 2011 +0200
-> >> >
-> >> > =A0 =A0irq: Always set IRQF_ONESHOT if no primary handler is spe=
-cified
-> >> >
-> >> > After reverting this commit, -rc3 boots fine. =A0I'm not sure wh=
-ere
-> >> > exactly the problem is. =A0Maybe it's something in the omap code
-> which is
-> >> > broken and this patch causes the bug to show up?
-> >> >
-> >> > What happens is that the booting process hangs after printing ou=
-t
-> this:
-> >> >
-> >>
-> >> fyi,
-> >>
-> >> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-
-> 2.6.git;a=3Dcommitdiff;h=3D69dd3d8e29e294caaf63eb5e8a72d250279f9e5f;h=
-p=3Dfcb8
-> ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c
-> >
-> > Ah, thanks. =A0Now I see where the irq =3D=3D 74 comes from. :) Sti=
-ll, I
-> don't
-> > see that on my system.
-> >
+To be precise, what do you mean by "wakeup interrupt"?
 
-=46YI, I also saw this same issue on an AM37x-evm and beagleboard.  Rev=
-erting the above commit works for me to be able to see the boot message=
-s from the file system after the kernel boots.
-
->=20
-> 69dd3d8 Revert "irq: Always set IRQF_ONESHOT if no primary handler is
-> specified"
-> f2b6071 drm/radeon: Extended DDC Probing for Toshiba L300D Radeon
-> Mobility X1100 HDMI-A Connector
-> c87019e HID: wiimote: Add status and return request handlers
-> 2cb5e4b HID: wiimote: Add drm request
-> 23a5a4a HID: wiimote: Register led class devices
-> 26af174 HID: wiimote: Correctly call HID open/close callbacks
-> 3989ef6 HID: wiimote: Simplify synchronization
-> 8d3bb23 drm/ttm: ensure ttm for new node is bound before calling
-> move_notify()
-> eac2095 drm/ttm: unbind ttm before destroying node in accel move
-> cleanup
-> 7c4c396 drm/ttm: fix ttm_bo_add_ttm(user) failure path
-> f5e4282 HID: usbhid: Add support for SiGma Micro chip
-> 11f3a6b bridge: fix a possible net_device leak
-> b6bede3 xfs: fix tracing builds inside the source tree
-> 832d80a Merge branch 'for-davem' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/linville/wireless
-> fcb8ce5 Linux 3.1-rc3
->=20
->=20
-> --
-> Thanks,
-> Govindraj.R
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
