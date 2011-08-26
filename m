@@ -1,76 +1,62 @@
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [PATCH v2 0/7] omap: iommu migration, relocation and cleanups
-Date: Fri, 26 Aug 2011 13:25:31 +0200
-Message-ID: <20110826112531.GQ1923@amd.com>
-References: <1314205694-28935-1-git-send-email-ohad@wizery.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 4/6] ti816evm: Add support for musb interface
+Date: Fri, 26 Aug 2011 15:32:54 +0400
+Message-ID: <4E578466.1040405@ru.mvista.com>
+References: <1314357108-2279-1-git-send-email-ajay.gupta@ti.com> <1314357108-2279-5-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ch1ehsobe006.messaging.microsoft.com ([216.32.181.186]:43203
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750983Ab1HZLZk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Aug 2011 07:25:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1314205694-28935-1-git-send-email-ohad@wizery.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:63663 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750843Ab1HZLdi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Aug 2011 07:33:38 -0400
+In-Reply-To: <1314357108-2279-5-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Arnd Bergmann <arnd@arndb.de>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, tony@atomide.com, Ravi B <ravibabu@ti.com>
 
-On Wed, Aug 24, 2011 at 01:08:07PM -0400, Ohad Ben-Cohen wrote:
-> Ohad Ben-Cohen (7):
->   omap: iommu: migrate to the generic IOMMU API
->   omap: iommu/iovmm: move to dedicated iommu folder
->   omap: iommu: stop exporting local functions
->   omap: iommu: PREFETCH_IOTLB cleanup
->   omap: iovmm: remove unused functionality
->   omap: iommu: remove unused exported API
->   omap: iommu: omapify 'struct iommu' and exposed API
+Hello.
 
-Applied all to arm/omap, thanks Ohad. I also put a commit on-top which
-finished the mutex->spin_lock conversion. Looks like one call-place was
-missed. See attached patch.
+On 26-08-2011 15:11, Ajay Kumar Gupta wrote:
 
-commit 4234541f1a64d9dc6d489cf8f614dc01c62360f6
-Author: Joerg Roedel <joerg.roedel@amd.com>
-Date:   Fri Aug 26 13:20:06 2011 +0200
+> From: Ravi B <ravibabu@ti.com>
 
-    omap: iommu: Fix up mutex->spin_lock conversion of iommu_lock
-    
-    The omap_iommu_set_isr() was still using the mutex functions
-    but the iommu_lock was converted to a spin_lock. Fix that
-    up.
-    
-    Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+> Adding musb support in ti816 EVM board file.
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index dad45ab..90744af 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -918,14 +918,14 @@ int omap_iommu_set_isr(const char *name,
- 		return -ENODEV;
- 
- 	obj = to_iommu(dev);
--	mutex_lock(&obj->iommu_lock);
-+	spin_lock(&obj->iommu_lock);
- 	if (obj->refcount != 0) {
--		mutex_unlock(&obj->iommu_lock);
-+		spin_unlock(&obj->iommu_lock);
- 		return -EBUSY;
- 	}
- 	obj->isr = isr;
- 	obj->isr_priv = isr_priv;
--	mutex_unlock(&obj->iommu_lock);
-+	spin_unlock(&obj->iommu_lock);
- 
- 	return 0;
- }
+> Signed-off-by: Ajay Kumar Gupta<ajay.gupta@ti.com>
+> Signed-off-by: Ravi B<ravibabu@ti.com>
 
--- 
-AMD Operating System Research Center
+    As far as I know, full name is required in signoff.
 
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+> ---
+>   arch/arm/mach-omap2/board-ti8168evm.c |   15 +++++++++++++++
+>   1 files changed, 15 insertions(+), 0 deletions(-)
 
+> diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
+> index e516a04..77200d4 100644
+> --- a/arch/arm/mach-omap2/board-ti8168evm.c
+> +++ b/arch/arm/mach-omap2/board-ti8168evm.c
+> @@ -23,6 +23,20 @@
+>  #include<plat/irqs.h>
+>  #include<plat/board.h>
+>  #include<plat/common.h>
+> +#include<plat/usb.h>
+> +
+> +static struct omap_musb_board_data musb_board_data = {
+> +	.set_phy_power	= ti81xx_musb_phy_power,
+> +	.interface_type	= MUSB_INTERFACE_ULPI,
+> +#ifdef CONFIG_USB_MUSB_OTG
+> +	.mode           = MUSB_OTG,
+> +#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
+> +	.mode           = MUSB_HOST,
+> +#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
+> +	.mode           = MUSB_PERIPHERAL,
+> +#endif
+
+    This #ifdef'ery is not longer necessary afetr this patch:
+
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=75a14b1434a0ca409bcc8ab9b6b2e680796c487e
+
+WBR, Sergei
