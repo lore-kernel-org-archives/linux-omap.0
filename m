@@ -1,86 +1,84 @@
-From: David Gibson <david@gibson.dropbear.id.au>
-Subject: Re: How to handle named resources with DT?
-Date: Fri, 26 Aug 2011 14:12:00 +1000
-Message-ID: <20110826041200.GD2308@yookeroo.fritz.box>
-References: <20110809205723.GE11568@ponder.secretlab.ca>
- <20110824231613.GC19890@legolas.emea.dhcp.ti.com>
- <20110825102824.GB10405@n2100.arm.linux.org.uk>
- <201108251705.43168.arnd@arndb.de>
- <877h6173wm.fsf@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv6 01/11] omap: prcm: switch to a chained IRQ handler
+ mechanism
+Date: Fri, 26 Aug 2011 03:12:25 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1108260257410.9743@utopia.booyaka.com>
+References: <1311611771-15093-1-git-send-email-t-kristo@ti.com> <1311611771-15093-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:50575 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750771Ab1HZEY1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Aug 2011 00:24:27 -0400
-Content-Disposition: inline
-In-Reply-To: <877h6173wm.fsf@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:39751 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753674Ab1HZJM0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Aug 2011 05:12:26 -0400
+In-Reply-To: <1311611771-15093-2-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Avinash.H.M" <avinashhm@ti.com>, Kevin Hilman <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On Thu, Aug 25, 2011 at 11:16:25AM -0700, Kevin Hilman wrote:
-> Arnd Bergmann <arnd@arndb.de> writes:
-> > On Thursday 25 August 2011, Russell King - ARM Linux wrote:
-> >> On Thu, Aug 25, 2011 at 02:16:14AM +0300, Felipe Balbi wrote:
-> >> > on top of all that, for IPs which are used on many SoCs (such as MUSB)
-> >> > it's quite silly to force all users to provide resources in a certain
-> >> > order. It sounds to me that this will be prone to error in many ways
-> >> > until everything is synced up and on the correct order.
-> >> > 
-> >> > Ditching _byname is a very bad idea.
-> >> 
-> >> I continue to disagree.  The current _byname is an abonimation and hack
-> >> to try to "fix" this problem.
-> >> 
-> >> _byname should have been implemented differently - rather than overriding
-> >> the resources name field (which is normally specified to be the device
-> >> or driver name), a new field should have been introduced in struct resource
-> >> to carry the resource sub-name (which is really what it is.)
-> >> 
-> >> That would have avoided making /proc/iomem completely illegible with
-> >> multiple devices using this feature.
-> >
-> > I agree 100%.
+Hello Tero,
+
+a few comments on this patch:
+
+On Mon, 25 Jul 2011, Tero Kristo wrote:
+
+> Introduce a chained interrupt handler mechanism for the PRCM
+> interrupt, so that individual PRCM event can cleanly be handled by
+> handlers in separate drivers. We do this by introducing PRCM event
+> names, which are then matched to the particular PRCM interrupt bit
+> depending on the specific OMAP SoC being used.
 > 
-> Please clarify. 
-> 
-> What I hear Russell saying is a problem with the *implementation* of the
-> _byname API.  
-> 
-> What I hear you sating is that since DT doesn't support this, we need to
-> remove it's usage completely from platform_devices also.
-> 
-> These are two very different approaches.
-> 
-> Fixing the implementation as Russell suggested seems relatively easy,
-> and conceptually similar to adding it to the DT.  Removing _byname all
-> together seems like significant work just to avoid adding a feature to
-> the DT core.
+> arch/arm/mach-omap2/prcm.c implements the chained interrupt mechanism
+> itself, with SoC specific support / init structure defined in
+> arch/arm/mach-omap2/prm2xxx_3xxx.c and arch/arm/mach-omap2/prm4xxx.c
+> respectively. At initialization time, the set of PRCM events is filtered
+> against the SoC on which we are running, keeping only the ones that are
+> actually useful. All the logic is written to be generic with regard to
+> OMAP3/OMAP4, even though OMAP3 has single PRCM event registers and OMAP4
+> has two PRCM event registers.
 
-Seriously, how many times do I have to say it?
+Looking over this patch, it seems that this functionality should be
+part of a PRM device driver.  That would allow the separation of the
+SoC-specific data from the code, so there wouldn't be a need to embed
+the OMAP_PRCM_IRQ data in the driver code.  Rather, that data could go
+into the dev_attr data for the PRM hwmod.  That avoids putting
+SoC-specific data in driver code, allows the removal of
+omap[34]_prcm_irq_setup(), and should also remove the dependency on
+omap_chip.
+
+Similarly, OMAP_PRCM_MAX_NR_PENDING_REG and OMAP_PRCM_NR_IRQS should
+be defined somewhere SoC-specific.  I'd suggest defining those in the
+hwmod dev_attr data.  That way that file won't need to be patched if
+those constants need change in the future.  Unfortunately, doing this
+in a clean way will probably mean that the variables that are
+allocated via these constants will need to be allocated and freed
+dynamically.
+
+What I'd suggest is to create a short series that:
+
+1. adds PRM hwmod data for OMAP2430+ platforms
+
+2. adds a basic PRM device driver skeleton in a directory such as
+   drivers/power -- (I'm not convinced that this is the right place,
+   in the end; but seems like a good place to start)
+
+3. creates the chained interrupt handler in the PRM device driver,
+   and removes the old PRCM interrupt handler from pm34xx.c 
+
+...
+
+A few other relatively minor comments:
+
+- Probably omap_prcm_irq_cleanup() shouldn't be called from pm34xx.c,
+  since other code outside of pm34xx.c might wish to use the PRCM
+  interrupt, even in the (admittedly unlikely) circumstance that some
+  of the code in pm34xx.c fails?
+
+- It would be good to document struct omap_prcm_irq via KernelDoc,
+  rather than inline comments
+  (Documentation/kernel-doc-nano-HOWTO.txt).  It would be ideal if the
+  patch's function documentation followed the same standard.
 
 
-Using _byname in drivers DOES NOT require adding names to the DT.
-
-
-All it needs is some glue logic to attach names as the device tree is
-read.  This is properly thought of as part of the code which
-translates the device tree into struct platform_device, not as part of
-drivers proper.
-
-FURTHERMORE, even if there were names in the DT, you'd *still* need
-this glue logic, so that drivers converted to _byname could still use
-old device trees.
-
-Insisting that the names come from the DT is to mistakenly think of
-the DT as an extension of the kernel's internal interfaces, instead of
-as the external and OS neutral data structure it actually is.
-
--- 
-David Gibson			| I'll have my music baroque, and my code
-david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
-				| _way_ _around_!
-http://www.ozlabs.org/~dgibson
+- Paul
