@@ -1,110 +1,81 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 3/4] usb: Introduce DesignWare USB3 DRD Driver
-Date: Fri, 26 Aug 2011 00:03:42 +0300
-Message-ID: <20110825210341.GA27228@legolas.emea.dhcp.ti.com>
-References: <1313766659-28360-1-git-send-email-balbi@ti.com>
- <1313766659-28360-4-git-send-email-balbi@ti.com>
- <20110825191509.GB8030@xanatos>
- <20110825203606.GA27161@legolas.emea.dhcp.ti.com>
- <F6C4814A9B336243ABC3D1FB44E08AE801D21CC66D@US01WXMBX1.internal.synopsys.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: MyungJoo Ham <myungjoo.ham@gmail.com>
+Subject: Re: [linux-pm] [PATCH 02/11] PM: extend PM QoS with per-device
+ wake-up constraints
+Date: Fri, 26 Aug 2011 11:25:13 +0900
+Message-ID: <CAJ0PZbRCvoh8-rJAR92Ak_JPk4FyR0dp_OeKOUkWtD5AdFsPCw@mail.gmail.com>
+References: <1309446685-17502-1-git-send-email-j-pihet@ti.com>
+	<1309446685-17502-3-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F6C4814A9B336243ABC3D1FB44E08AE801D21CC66D-uiPIUNf6hlr3OT/vyeh27fufCSb+aD3WLzEdoUbNIic@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Zimmerman <Paul.Zimmerman-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Cc: "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:35895 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850Ab1HZCZP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Aug 2011 22:25:15 -0400
+Received: by bke11 with SMTP id 11so2185476bke.19
+        for <linux-omap@vger.kernel.org>; Thu, 25 Aug 2011 19:25:13 -0700 (PDT)
+In-Reply-To: <1309446685-17502-3-git-send-email-j-pihet@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: jean.pihet@newoldbits.com
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, markgross@thegnar.org, Jean Pihet <j-pihet@ti.com>
+
+On Fri, Jul 1, 2011 at 12:11 AM,  <jean.pihet@newoldbits.com> wrote:
+> @@ -129,19 +146,19 @@ static const struct file_operations pm_qos_powe=
+r_fops =3D {
+> =A0/* unlocked internal variant */
+> =A0static inline int pm_qos_get_value(struct pm_qos_object *o)
+> =A0{
+> - =A0 =A0 =A0 if (plist_head_empty(&o->requests))
+> + =A0 =A0 =A0 if (plist_head_empty(o->requests))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return o->default_value;
+>
+> =A0 =A0 =A0 =A0switch (o->type) {
+> - =A0 =A0 =A0 case PM_QOS_MIN:
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return plist_first(&o->requests)->prio;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case PM_QOS_MIN:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return plist_first(o->r=
+equests)->prio;
+>
+> - =A0 =A0 =A0 case PM_QOS_MAX:
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return plist_last(&o->requests)->prio;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case PM_QOS_MAX:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return plist_last(o->re=
+quests)->prio;
+>
+> - =A0 =A0 =A0 default:
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* runtime check for not using enum */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 BUG();
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 default:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* runtime check for no=
+t using enum */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 BUG();
+> =A0 =A0 =A0 =A0}
+> =A0}
+
+Hello,
 
 
---Nq2Wo0NMKNjxTN9z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sorry to jump in this late, but, I've got a question in choosing QoS
+value from the list with pm_qos_get_value function and pm_qos_type.
 
-Hi,
+=46or QoS objects such as network throughput, wouldn't "PM_QOS_ADD" be
+more appropriate than PM_QOS_MAX?
+If A is requesting 10MB/s on NIC-X and B is requesting 5MB/s on NIC-X,
+I guess PM QOS should say NIC-X that it needs to provide 15MB/s, not
+10MB/s. Or, are we assuming that A and B will never put streams at the
+same time?
 
-On Thu, Aug 25, 2011 at 01:48:09PM -0700, Paul Zimmerman wrote:
-> > -----Original Message-----
-> > From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
-> > Sent: Thursday, August 25, 2011 1:36 PM
-> > To: Sarah Sharp
-> > Cc: Felipe Balbi; Greg KH; Linux USB Mailing List; Linux OMAP Mailing L=
-ist; Paul Zimmerman
-> > Subject: Re: [PATCH 3/4] usb: Introduce DesignWare USB3 DRD Driver
-> >=20
-> > Hi,
-> >=20
-> > On Thu, Aug 25, 2011 at 12:15:09PM -0700, Sarah Sharp wrote:
-> > > On Fri, Aug 19, 2011 at 06:10:58PM +0300, Felipe Balbi wrote:
-> > > > +enum dwc3_link_state {
-> > > > +	/* In SuperSpeed */
-> > > > +	DWC3_LINK_STATE_U0		=3D 0x00, /* in HS, means ON */
-> > > > +	DWC3_LINK_STATE_U1		=3D 0x01,
-> > > > +	DWC3_LINK_STATE_U2		=3D 0x02, /* in HS, means SLEEP */
-> > > > +	DWC3_LINK_STATE_U3		=3D 0x03, /* in HS, means SUSPEND */
-> > > > +	DWC3_LINK_STATE_SS_DIS		=3D 0x04,
-> > > > +	DWC3_LINK_STATE_RX_DET		=3D 0x05, /* in HS, means Early Suspend */
-> > > > +	DWC3_LINK_STATE_SS_INACT	=3D 0x06,
-> > > > +	DWC3_LINK_STATE_POLL		=3D 0x07,
-> > > > +	DWC3_LINK_STATE_RECOV		=3D 0x08,
-> > > > +	DWC3_LINK_STATE_HRESET		=3D 0x09,
-> > > > +	DWC3_LINK_STATE_CMPLY		=3D 0x0a,
-> > > > +	DWC3_LINK_STATE_LPBK		=3D 0x0b,
-> > > > +	DWC3_LINK_STATE_MASK		=3D 0x0f,
-> > > > +};
-> > >
-> > > AFAICT, the link state values are exactly the same as the xHCI link
-> > > state values in the Port Link State field in the PORTSC register.  Is
-> > > the gadget side (xDCI side) meant to be somewhat compatible with the
-> > > xHCI host controller spec?
-> >=20
-> > I guess Synopsys would be best to answer this question. Paul, do you
-> > happen to know the answer ?
-> >=20
-> > > Would it make sense to share these link state macros (and any other
-> > > similar #defines) with the xHCI driver?  We could move them into
-> > > include/linux/ch11.h.
-> >=20
-> > I'm not sure it makes sense to make gadget side use ch11 definitions,
-> > but we could move them to some other common header, maybe ?
->=20
-> Our USB3 core is a dual-role device, and some of the logic is shared
-> between xHCI mode and Device mode. So it's not a coincidence that the
-> link state values are the same.
->=20
-> However, in future the device mode will have additional states beyond
-> those defined for xHCI. So a completely common header file is not
-> possible, unless people don't mind having Synopsys-specific defines
-> inside it.
 
-Thanks for the reply Paul :-) I believe this is strong enough argument
-to keep things as they are.
+Thanks,
+MyungJoo
 
 --=20
-balbi
-
---Nq2Wo0NMKNjxTN9z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOVritAAoJEAv8Txj19kN1ImkIAJ8DoW8ipWj6Zw096Jy5r410
-GU4AHiDNJgVANLZp6cVjmdwApo6W9MPSYVMdtQzRs0mhY8pvowqwkvyWFr30vOdU
-ZsH8VJhHaqlxx6t3rTEN6g+ZsqEDEpH05rs4XaAAyDsSSRpGMpd/wvlt/HB05RoV
-Ifn+UfPdWSuk0SJqj9yNpRN6PceG6cGcAP3cd01P0hz7OtcDUxzJNbF2T+JG43h1
-sYLdX29D85f9n/YeAGunLdxqc4QMNsOWOQVTsGbBVhLCL7oV3D/QYgi+CQwIwQfa
-VeboVWenNeDjThxVu/WZe1gabIb6CWAOqTukV+nTqH984z+YpG1mOzSGeOofOc8=
-=pTmN
------END PGP SIGNATURE-----
-
---Nq2Wo0NMKNjxTN9z--
+MyungJoo Ham, Ph.D.
+Mobile Software Platform Lab, DMC Business, Samsung Electronics
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
