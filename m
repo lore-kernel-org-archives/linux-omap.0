@@ -1,37 +1,42 @@
-From: Santosh <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v14 REPOST 09/12] OMAP: dmtimer: use mutex instead of
- spinlock
-Date: Fri, 26 Aug 2011 21:04:12 +0530
-Message-ID: <4E57BCF4.8030709@ti.com>
-References: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com> <1310731501-13078-10-git-send-email-tarun.kanti@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: How to handle named resources with DT?
+Date: Fri, 26 Aug 2011 17:35:55 +0200
+Message-ID: <201108261735.55412.arnd@arndb.de>
+References: <20110809205723.GE11568@ponder.secretlab.ca>
+	<201108261258.32880.arnd@arndb.de>
+	<20110826130644.GN2308@yookeroo.fritz.box>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:35606 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753787Ab1HZPeU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Aug 2011 11:34:20 -0400
-Received: by mail-gx0-f179.google.com with SMTP id 1so2593988gxk.10
-        for <linux-omap@vger.kernel.org>; Fri, 26 Aug 2011 08:34:19 -0700 (PDT)
-In-Reply-To: <1310731501-13078-10-git-send-email-tarun.kanti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110826130644.GN2308@yookeroo.fritz.box>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: David Gibson <david@gibson.dropbear.id.au>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Cousson,
+	Benoit" <b-cousson@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Felipe Balbi <balbi@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-On Friday 15 July 2011 05:34 PM, Tarun Kanti DebBarma wrote:
-> Since the spinlock is not used in any interrupt context we can
-> replace it with mutex instead.
->
-> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
-> ---
-Patch looks good but change log doesn't reflect it.
-Do you want to say that below API's are not used from
-interrupt context, so mutex should be good enough ?
+On Friday 26 August 2011, David Gibson wrote:
+> If you open code it this way then yes, it's silly.  But what about
+> something like this:
+> 
+> static struct of_device_id foodevice_of_match[] __devinitdata = {
+>         { .compatible = "foocorp,foodevice1234",
+>           .resource_names = {"base_regs", "extra_regs", }, },
+>         { .compatible = "foocorp,foodevice1239",
+>           .resource_names = {"base_regs", "extra_regs", "more_regs", }, }, 
+>         { },
+> };
 
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Regards
-Santosh
+Hmm, I hadn't thought of that. This looks quite nice indeed. No objections
+to this from my side.
 
+	Arnd
