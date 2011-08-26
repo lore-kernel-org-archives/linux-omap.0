@@ -1,40 +1,114 @@
-From: Santosh <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v14 REPOST 09/12] OMAP: dmtimer: use mutex instead of
- spinlock
-Date: Fri, 26 Aug 2011 21:39:29 +0530
-Message-ID: <4E57C539.6020201@ti.com>
-References: <1310731501-13078-1-git-send-email-tarun.kanti@ti.com> <1310731501-13078-10-git-send-email-tarun.kanti@ti.com> <4E57BCF4.8030709@ti.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Subject: Re: [lm-sensors] [PATCH 6/6 V3] hwmon: OMAP4: On die temperature
+ sensor driver
+Date: Fri, 26 Aug 2011 09:16:35 -0700
+Message-ID: <1314375395.2796.82.camel@groeck-laptop>
+References: <20110824171612.GA8160@ericsson.com>
+	 <CAJ6a13b-0TPwqRku5_72B3Sa0gRyZOrYp-qAOuTvB5Q+G-x3Bg@mail.gmail.com>
+	 <20110825140630.GB8684@ericsson.com>
+	 <1314287771.2796.40.camel@groeck-laptop>
+	 <CAJ6a13YcmJCHPOVvgUfV6-LB3+MCGjgbGv=9Ks3Rv5gRvr=r1A@mail.gmail.com>
+Reply-To: guenter.roeck@ericsson.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:50514 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753978Ab1HZQJg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Aug 2011 12:09:36 -0400
-Received: by mail-gy0-f182.google.com with SMTP id 10so3389980gyd.41
-        for <linux-omap@vger.kernel.org>; Fri, 26 Aug 2011 09:09:35 -0700 (PDT)
-In-Reply-To: <4E57BCF4.8030709@ti.com>
+Received: from imr4.ericy.com ([198.24.6.9]:40916 "EHLO imr4.ericy.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754759Ab1HZQRT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Aug 2011 12:17:19 -0400
+In-Reply-To: <CAJ6a13YcmJCHPOVvgUfV6-LB3+MCGjgbGv=9Ks3Rv5gRvr=r1A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On Friday 26 August 2011 09:04 PM, Santosh wrote:
-> On Friday 15 July 2011 05:34 PM, Tarun Kanti DebBarma wrote:
->> Since the spinlock is not used in any interrupt context we can
->> replace it with mutex instead.
->>
->> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
->> ---
-> Patch looks good but change log doesn't reflect it.
-> Do you want to say that below API's are not used from
-> interrupt context, so mutex should be good enough ?
->
-This assumption is really not true. Time APIs can get called
-from IRQ context from client drivers. You can just drop
-this patch.
+On Fri, 2011-08-26 at 07:17 -0400, J, KEERTHY wrote:
+> On Thu, Aug 25, 2011 at 9:26 PM, Guenter Roeck
+> <guenter.roeck@ericsson.com> wrote:
+> > On Thu, 2011-08-25 at 10:06 -0400, Guenter Roeck wrote:
+> >> On Thu, Aug 25, 2011 at 06:30:07AM -0400, J, KEERTHY wrote:
+> >> > On Wed, Aug 24, 2011 at 10:46 PM, Guenter Roeck
+> >> > <guenter.roeck@ericsson.com> wrote:
+> >> > > On Wed, Aug 24, 2011 at 10:37:12AM -0400, Keerthy wrote:
+> >> > >> On chip temperature sensor driver. The driver monitors the temperature of
+> >> > >> the MPU subsystem of the OMAP4. It sends notifications to the user space if
+> >> > >> the temperature crosses user defined thresholds via kobject_uevent interface.
+> >> > >> The user is allowed to configure the temperature thresholds vis sysfs nodes
+> >> > >> exposed using hwmon interface.
+> >> > >>
+> >> > >> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> >> > >> Cc: Jean Delvare <khali@linux-fr.org>
+> >> > >> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+> >> > >> Cc: lm-sensors@lm-sensors.org
+> >> > >
+> >
+> > [ ... ]
+> >
+> >
+> >> >
+> >> > >
+> >> > >> +       }
+> >> > >> +
+> >> > >> +       mutex_lock(&temp_sensor->sensor_mutex);
+> >> > >> +       /* obtain the T cold value */
+> >> > >> +       t_cold = omap_temp_sensor_readl(temp_sensor,
+> >> > >> +                       temp_sensor->registers->bgap_threshold);
+> >> > >> +       t_cold = (t_cold & temp_sensor->registers->threshold_tcold_mask) >>
+> >> > >> +                       __ffs(temp_sensor->registers->threshold_tcold_mask);
+> >> > >> +
+> >> > >> +       if (t_hot < t_cold) {
+> >> > >> +               count = -EINVAL;
+> >> > >> +               goto out;
+> >> > >
+> >> > > Context specific limitations like this one are not a good idea, since it assumes an order of changing max
+> >> > > and max_hysteresis which is not necessarily guaranteed by the application making the change, nor is a
+> >> > > change order order well defined or even possible. Applications should not have to bother about this.
+> >> >
+> >> > The hardware behavior is like this. As long as the temperature is below
+> >> > t_hot no interrupts are fired. Once the temperature increases above
+> >> > t_hot we get an
+> >> > interrupt. In order to avoid repeated interrupts we mask the t_hot interrupt
+> >> > in the interrupt handler and enable the t_cold interrupts. So we get a t_cold
+> >> > interrupt only when the temperature drops below the t_cold value. Hence
+> >> > setting the t_cold higher than t_hot will mess up the state machine.
+> >> >
+> >> > t_hot value should be greater than t_cold value.
+> >> >
+> >> One option would be to update t_cold (max_hyst) automatically in that case.
+> >>
+> >> Problem here is that you expect the application to know, depending on the current
+> >> values of (max, max_hyst), how to update both limits in order. That is not a reasonable
+> >> expectation.
+> >>
+> > One possible solution would be to have a single function to set both
+> > t_cold and t_hot, and call it from both initialization code and from the
+> > set functions. That would unify all the register setting and interrupt
+> > enable code.
+> >
+> > Regarding the actual values to set, you can (as an example) use the
+> > following approach:
+> >
+> > - If max is set, and t_hot < t_cold, adjust t_cold to the new value of
+> > t_hot.
+> >
+> > - if max_hyst is set, and t_cold > t_hot, set t_cold to the new value of
+> > t_hot.
+> >
+> > So, in other words, your new unified function would only need the
+> > following simple validation:
+> >
+> >        if (t_cold > t_hot)
+> >                t_cold = t_hot;
+> 
+> One concern here. There should be a hysteresis
+> difference between the two and can not be equal.
+> I need to add a hysteresis value to t_hot so as
+> to maintain t_hot > t_cold condition.
+> 
+Sure, makes sense. Was that in your original patch ? Just wondering.
 
-Regards
-Santosh
+Thanks,
+Guenter
+
+
