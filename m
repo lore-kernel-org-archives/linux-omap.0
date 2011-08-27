@@ -1,45 +1,61 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] Issue: Runtime API usage in wake-up device irq_handler
- during wakeup from system-wide-suspend.
-Date: Sat, 27 Aug 2011 10:01:52 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1108270958320.17264-100000@netrider.rowland.org>
-References: <4E588EEA.7090004@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:34565 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751904Ab1H0OBx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Aug 2011 10:01:53 -0400
-In-Reply-To: <4E588EEA.7090004@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
+Subject: [PATCH] usb: ehci: fix update qtd->token in qh_append_tds
+Date: Sat, 27 Aug 2011 22:46:25 +0800
+Message-ID: <1314456385-16378-1-git-send-email-ming.lei@canonical.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XWe1ixc4/HljEvhb3Hwu1Ks@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh <santosh.shilimkar@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, Partha Basak <p-basak2@ti.com>, Tero Kristo <t-kristo@ti.com>, Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-On Sat, 27 Aug 2011, Santosh wrote:
+From: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 
-> I might be wrong here, but after discussion with Govindraj on this
-> issue, it seems there is a flaw in the way OMAP chain handler
-> handling the child interrupts.
-> 
-> On OMAP, we have special interrupt wakeup source at PRCM level and
-> many devices can trigger wakeup from low power via this common
-> interrupt source. The common interrupt source upon wakeup from low
-> power state, decodes the source of interrupt and based on that
-> source, calls the respective device ISR directly.
-> 
-> The issue I see here is, the ISR on _a_ device (UART in this case)
-> is happening even before UART resume and DPM resume has been completed.
-> If this is the case, then it is surely asking for trouble. Because not
-> just clocks, but even driver state machine is already in suspend state
-> when the ISR is called.
+This patch fixs one performance bug on ARM Cortex A9 dual core platform,
+which has been reported on quite a few ARM machines(OMAP4, Tegra 2, snowball...),
+see details from link of https://bugs.launchpad.net/bugs/709245.
 
-If the driver state machine is in the suspend state when the ISR is
-called, then the ISR should realize it is handling a wakeup event
-instead of a normal I/O event.  All it needs to do is turn off the
-interrupt source; the event itself will be taken care of during the
-device's resume callback.
+In fact, one mb() on ARM is enough to flush L2 cache, but
+'dummy->hw_token = token;' after mb() is added just for obeying
+correct mb() usage.
 
-Alan Stern
+The patch has been tested ok on OMAP4 panda A1 board, the performance
+of 'dd' over usb mass storage can be increased from 4~5MB/sec to
+14~16MB/sec after applying this patch.
 
+Signed-off-by: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+---
+ drivers/usb/host/ehci-q.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/usb/host/ehci-q.c b/drivers/usb/host/ehci-q.c
+index 0917e3a..65b5021 100644
+--- a/drivers/usb/host/ehci-q.c
++++ b/drivers/usb/host/ehci-q.c
+@@ -1082,6 +1082,20 @@ static struct ehci_qh *qh_append_tds (
+ 			wmb ();
+ 			dummy->hw_token = token;
+ 
++			/* The mb() below is added to make sure that
++			 * 'token' can be writen into qtd, so that ehci
++			 * HC can see the up-to-date qtd descriptor. On
++			 * some archs(at least on ARM Cortex A9 dual core),
++			 * writing into coherenet memory doesn't mean the
++			 * value written can reach physical memory
++			 * immediately, and the value may be buffered
++			 * inside L2 cache. 'dummy->hw_token = token;'
++			 * after mb() is added for obeying correct mb()
++			 * usage.
++			 * */
++			mb();
++			token = dummy->hw_token;
++
+ 			urb->hcpriv = qh_get (qh);
+ 		}
+ 	}
+-- 
+1.7.4.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
