@@ -1,77 +1,45 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH] [media] OMAP_VOUT: Fix check in reqbuf & mmap for buf_size allocation
-Date: Sat, 27 Aug 2011 18:13:15 +0530
-Message-ID: <1314448995-14930-1-git-send-email-archit@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] Issue: Runtime API usage in wake-up device irq_handler
+ during wakeup from system-wide-suspend.
+Date: Sat, 27 Aug 2011 10:01:52 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1108270958320.17264-100000@netrider.rowland.org>
+References: <4E588EEA.7090004@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-media-owner@vger.kernel.org>
-Sender: linux-media-owner@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from netrider.rowland.org ([192.131.102.5]:34565 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751904Ab1H0OBx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Aug 2011 10:01:53 -0400
+In-Reply-To: <4E588EEA.7090004@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh <santosh.shilimkar@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, Partha Basak <p-basak2@ti.com>, Tero Kristo <t-kristo@ti.com>, Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-The commit 383e4f69879d11c86ebdd38b3356f6d0690fb4cc makes reqbuf and mmap prevent
-requesting a larger size buffer than what is allocated at kernel boot during
-omap_vout_probe.
+On Sat, 27 Aug 2011, Santosh wrote:
 
-The requested size is comapred with vout->buffer_size, this isn't correct as
-vout->buffer_size is later set to the size requested in reqbuf. When the video
-device is opened the next time, this check will prevent us to allocate a buffer
-which is larger than what we requested the last time.
+> I might be wrong here, but after discussion with Govindraj on this
+> issue, it seems there is a flaw in the way OMAP chain handler
+> handling the child interrupts.
+> 
+> On OMAP, we have special interrupt wakeup source at PRCM level and
+> many devices can trigger wakeup from low power via this common
+> interrupt source. The common interrupt source upon wakeup from low
+> power state, decodes the source of interrupt and based on that
+> source, calls the respective device ISR directly.
+> 
+> The issue I see here is, the ISR on _a_ device (UART in this case)
+> is happening even before UART resume and DPM resume has been completed.
+> If this is the case, then it is surely asking for trouble. Because not
+> just clocks, but even driver state machine is already in suspend state
+> when the ISR is called.
 
-Don't use vout->buffer_size, always check with the parameters video1_bufsize
-or video2_bufsize.
+If the driver state machine is in the suspend state when the ISR is
+called, then the ISR should realize it is handling a wakeup event
+instead of a normal I/O event.  All it needs to do is turn off the
+interrupt source; the event itself will be taken care of during the
+device's resume callback.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/video/omap/omap_vout.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+Alan Stern
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index b3a5ecd..b33166a 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -664,10 +664,14 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
- 	u32 phy_addr = 0, virt_addr = 0;
- 	struct omap_vout_device *vout = q->priv_data;
- 	struct omapvideo_info *ovid = &vout->vid_info;
-+	int vid_max_buf_size;
- 
- 	if (!vout)
- 		return -EINVAL;
- 
-+	vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
-+		video2_bufsize;
-+
- 	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
- 		return -EINVAL;
- 
-@@ -690,7 +694,7 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
- 		video1_numbuffers : video2_numbuffers;
- 
- 	/* Check the size of the buffer */
--	if (*size > vout->buffer_size) {
-+	if (*size > vid_max_buf_size) {
- 		v4l2_err(&vout->vid_dev->v4l2_dev,
- 				"buffer allocation mismatch [%u] [%u]\n",
- 				*size, vout->buffer_size);
-@@ -865,6 +869,8 @@ static int omap_vout_mmap(struct file *file, struct vm_area_struct *vma)
- 	unsigned long size = (vma->vm_end - vma->vm_start);
- 	struct omap_vout_device *vout = file->private_data;
- 	struct videobuf_queue *q = &vout->vbq;
-+	int vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
-+		video2_bufsize;
- 
- 	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
- 			" %s pgoff=0x%lx, start=0x%lx, end=0x%lx\n", __func__,
-@@ -887,7 +893,7 @@ static int omap_vout_mmap(struct file *file, struct vm_area_struct *vma)
- 		return -EINVAL;
- 	}
- 	/* Check the size of the buffer */
--	if (size > vout->buffer_size) {
-+	if (size > vid_max_buf_size) {
- 		v4l2_err(&vout->vid_dev->v4l2_dev,
- 				"insufficient memory [%lu] [%u]\n",
- 				size, vout->buffer_size);
--- 
-1.7.1
