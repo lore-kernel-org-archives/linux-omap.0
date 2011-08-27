@@ -1,88 +1,75 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 6/6] usb: musb: Add support for ti81xx platform
-Date: Sat, 27 Aug 2011 02:52:27 +0300
-Message-ID: <20110826235226.GD4829@legolas.emea.dhcp.ti.com>
-References: <1314357108-2279-1-git-send-email-ajay.gupta@ti.com>
- <1314357108-2279-7-git-send-email-ajay.gupta@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [linux-pm] Issue: Runtime API usage in wake-up device irq_handler
+ during wakeup from system-wide-suspend.
+Date: Sat, 27 Aug 2011 12:00:02 +0530
+Message-ID: <4E588EEA.7090004@ti.com>
+References: <Pine.LNX.4.44L0.1108261429340.2275-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yudcn1FV7Hsu/q59"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1314357108-2279-7-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ravi B <ravibabu-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:59534 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750865Ab1H0GaL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 27 Aug 2011 02:30:11 -0400
+Received: by pzk2 with SMTP id 2so7012418pzk.6
+        for <linux-omap@vger.kernel.org>; Fri, 26 Aug 2011 23:30:10 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.44L0.1108261429340.2275-100000@netrider.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, Partha Basak <p-basak2@ti.com>, Tero Kristo <t-kristo@ti.com>, Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
+Alen,
 
---yudcn1FV7Hsu/q59
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Saturday 27 August 2011 12:06 AM, Alan Stern wrote:
+> On Fri, 26 Aug 2011, Govindraj.R wrote:
+>
+>> Hello,
+>>
+>> During system_wide_suspend pm runtime is disabled.
+>> I.e. __pm_runtime_disable is called from __device_suspend.
+>> Now, if a wakeup interrupt is triggered and the wakeup device irq handler
+>> is called even before device_resume and pm_runtime_enable happens,
+>> the device irq_handler proceeds to enable clock with runtime API to
+>> handle wakeup event.
+>>
+>> Wouldn't this result in system wide abort since the pm_runtime is not enabled
+>> yet from dpm_resume?
+>> As we end up accessing regs after doing runtime get_sync.
+>>
+>> Looks like this scenario is not handled currently.
+>> Or Am I missing something here?
+>
+> I don't have the complete picture, but it seems that the IRQ handler
+> needs to check the return code from pm_runtime_get_sync().  If the call
+> fails then the handler shouldn't try to access the device registers.
+>
+> In the case of a genuine wakeup event, the event should be handled
+> later on as part of the resume or resume_noirq processing.
+>
+> However, this does raise a potential problem.  What happens if the
+> clocks are needed in order to turn off the IRQ source?  Runtime PM
+> won't allow the clocks to be enabled until after interrupts have been
+> enabled, and by then it will be too late -- the source will have caused
+> an interrupt storm.
+>
+I might be wrong here, but after discussion with Govindraj on this
+issue, it seems there is a flaw in the way OMAP chain handler
+handling the child interrupts.
 
-Hi,
+On OMAP, we have special interrupt wakeup source at PRCM level and
+many devices can trigger wakeup from low power via this common
+interrupt source. The common interrupt source upon wakeup from low
+power state, decodes the source of interrupt and based on that
+source, calls the respective device ISR directly.
 
-On Fri, Aug 26, 2011 at 04:41:48PM +0530, Ajay Kumar Gupta wrote:
-> @@ -57,6 +58,10 @@ config USB_MUSB_AM35X
->  	tristate "AM35x"
->  	depends on ARCH_OMAP
-> =20
-> +config USB_MUSB_TI81XX
-> +	bool "TI81XX"
-> +	depends on SOC_OMAPTI81XX
+The issue I see here is, the ISR on _a_ device (UART in this case)
+is happening even before UART resume and DPM resume has been completed.
+If this is the case, then it is surely asking for trouble. Because not
+just clocks, but even driver state machine is already in suspend state
+when the ISR is called.
 
-this *must* be tristate. I can't emphasize enough how important this is.
-
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 20a2873..07f3faf 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -1014,7 +1014,9 @@ static void musb_shutdown(struct platform_device *p=
-dev)
->  	|| defined(CONFIG_USB_MUSB_OMAP2PLUS)		\
->  	|| defined(CONFIG_USB_MUSB_OMAP2PLUS_MODULE)	\
->  	|| defined(CONFIG_USB_MUSB_AM35X)		\
-> -	|| defined(CONFIG_USB_MUSB_AM35X_MODULE)
-> +	|| defined(CONFIG_USB_MUSB_AM35X_MODULE)	\
-> +	|| defined(CONFIG_USB_MUSB_TI81XX)		\
-> +	|| defined(CONFIG_USB_MUSB_TI81XX_MODULE)
-
-we really need to find a better way to handle this :-(
-
-> diff --git a/drivers/usb/musb/ti81xx.c b/drivers/usb/musb/ti81xx.c
-> new file mode 100644
-> index 0000000..f95774e
-> --- /dev/null
-> +++ b/drivers/usb/musb/ti81xx.c
-
-I still think this should be part of am35x.c It really look like they
-are very similar.
-
-on monday I'll read the rest of the file.
-
---=20
-balbi
-
---yudcn1FV7Hsu/q59
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOWDG6AAoJEAv8Txj19kN141YH/3YkDSzEtnnB68h9k9TequF/
-Hwsa0SDNCxXgJHAkaj7dEybXmr2AHuAfyT4BAYSVbsvtjVEkPvUAV+YEoiFBClz2
-mIpwyPPCWRCLSqWftPV6cErecfai2/G7oe85V+uw1t9H00xdgHiyASssraujt79k
-JXPGVaRfjIPiKbhyZpqtq+B7Hndzcvqk7wdj57i2ifjF5aXFMdV2/iBOx8nAKWoN
-pgUPZKHqSmLdRpXTDpIVlPzOP3UrmbaPUZa+NsCi3f0s03Uba0NUidTvoZVu7q3s
-uweduS9yioA5r0HSzI9n0rrC9YUnbjwdoEICXTY/SMBBRYuUAe4av2RoTzDxf3U=
-=wgb8
------END PGP SIGNATURE-----
-
---yudcn1FV7Hsu/q59--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Santosh
