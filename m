@@ -1,60 +1,139 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: How to handle named resources with DT?
-Date: Sat, 27 Aug 2011 15:47:55 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108271444240.23968@utopia.booyaka.com>
-References: <20110809205723.GE11568@ponder.secretlab.ca> <877h6173wm.fsf@ti.com> <20110826041200.GD2308@yookeroo.fritz.box> <201108261258.32880.arnd@arndb.de> <20110826130644.GN2308@yookeroo.fritz.box>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: [PATCH] usb: ehci: fix update qtd->token in qh_append_tds
+Date: Sun, 28 Aug 2011 11:13:53 +0800
+Message-ID: <CACVXFVP8Lr=ggH4FjvMQd6r9poLAT1r+_S3Z-NimP0i08DsQ8g@mail.gmail.com>
+References: <CACVXFVNz_ic_PPM_vNn1Dz85A2z94kRFso4rcqrvJfuLSqRSCg@mail.gmail.com>
+	<Pine.LNX.4.44L0.1108271548110.21403-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49038 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603Ab1H0Vr4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Aug 2011 17:47:56 -0400
-In-Reply-To: <20110826130644.GN2308@yookeroo.fritz.box>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <Pine.LNX.4.44L0.1108271548110.21403-100000@netrider.rowland.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, Santosh <santosh.shilimkar@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, 26 Aug 2011, David Gibson wrote:
+Hi,
 
-> static struct of_device_id foodevice_of_match[] __devinitdata = {
-> 	{ .compatible = "foocorp,foodevice1234",
-> 	  .resource_names = {"base_regs", "extra_regs", }, },
-> 	{ .compatible = "foocorp,foodevice1239",
-> 	  .resource_names = {"base_regs", "extra_regs", "more_regs", }, }, 
-> 	{ },
-> };
+Thanks for your comment.
 
-This preserves platform_device_get_byname(), which is good.  It also 
-facilitates debugging: like naming resources in the device tree data, it 
-provides something human-readable to output to /proc/iomem and similar 
-mechanisms.
+On Sun, Aug 28, 2011 at 4:06 AM, Alan Stern <stern@rowland.harvard.edu> wro=
+te:
+> On Sun, 28 Aug 2011, Ming Lei wrote:
+>
+>> I read the doc again, :-), and it mentions few about mb/wmb/rmb, I think
+>> my above description is still not correct. Generally speaking, mb only
+>> means there is a order between two accesses.
+>>
+>> Now I think only one mb() after 'dummy->hw_token =3D token;' is enough:
+>> HC will read the up-to-date value of qtd->hw_token after mb() is executed
+>> because of the effect of the mb(), which should be guaranteed by mb.
+>
+> I've been following this whole discussion. =A0I didn't understand the
+> idea behind the original patch, and I don't understand this. =A0What
+> reason is there for adding a memory barrier after the "dummy->hw_token
+> =3D token" line? =A0Such a barrier would not accomplish anything useful,
+> because there are no later memory accesses which need to be ordered
+> with respect to that line.
 
-But it doesn't resolve the problem on the DT generation side.
+Here, mb is used to synchronize  between writing of CPU and reading of
+ehci HC, see below:
 
-When someone at a hardware vendor writes the DT generator code, they'll 
-have to implement a similar table to yours for each IP block with multiple 
-resources of the same type.
+	CPU								EHCI
+	dummy->hw_token =3D token;
+	mb
+									read  dummy->hw_token
 
-IP blocks with multiple resources of the same type are not isolated cases.  
-For example, of the 82 IP block instances on the OMAP4 that have hwmod 
-data currently upstream (a subset of what's actually on the chip), at 
-least 68 of them (83%) have multiple resources of the same type[1][2].
+The mb() introduced  was supposed to be used to make sure that EHCI
+can see the correct value of  dummy->hw_token. If EHCI can't get the correct
+hw_token in time, it will work badly, such as irq delay or irq lost which m=
+ay be
+caused by mistaken 'IOC' or 'total bytes to transfer' in hw_token. This is =
+just
+what the patch is to fix.
 
-Certainly, from a kernel development perspective, one can decide to just 
-dump this kind of DT generation problem back on the hardware vendors.  
-But it seems more efficient and less error-prone to simply remove both 
-mapping tables, and to export names directly from the IP block data into 
-the device data format.
+But I think the above is still not correct, and the correct way may be
+like below:
 
+	CPU								EHCI
+	dummy->hw_token =3D token;
+	wmb
+	qh->hw->hw_qtd_next =3D QTD_NEXT(ehci, dummy->qtd_dma);
+									fetch next qtd from qh->hw->hw_qtd_next
+									read  qtd->hw_token
 
-- Paul
+The problem is that qh has already linked dummy into its queue before(as di=
+d in
+qh_update), so even after 'dummy->hw_token =3D token;' is executed on CPU, =
+EHCI
+still may not fetch the up-to-date value of the qtd(dummy in here),
+and this should
+be the root cause, IMO.
 
-1. The number is actually higher than this.  This count doesn't
-   include IP blocks with multiple address ranges on different 
-   interconnects.
+I will figure out a elegant way to handle this race.
 
-2. Data from arch/arm/mach-omap2/omap_hwmod_44xx_data.c, as of Linux 
-   v3.1-rc3.
-   Available from http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/arm/mach-omap2/omap_hwmod_44xx_data.c;h=6201422c0606b5103c01e563f67060134658774d;hb=HEAD
+> (By the way, Santosh appears to be right about the earlier wmb() in
+> this routine. =A0As far as I can see, it isn't needed. =A0David Brownell
+> probably wrote it just as a precaution.)
+>
+>> > I mean others, please read the the last 3 lines of the comment and
+>> > compare that to the code lines you added.
+>>
+>> I see now, the comment of the last 3 lines is wrong, should be
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * inside L2 cache. 'toke=
+n =3D dummy->hw_token'
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* after mb() is added=
+ for obeying correct mb()
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* usage.
+>>
+>> But the 'token =3D dummy->hw_token' after mb() isn't needed any
+>> more as described above, =A0is it?
+>
+> I don't see why it was ever needed at all. =A0The compiler will realize
+> that token is a dead variable at that point in the routine and will
+> optimize the new line away.
+
+Yes, it is wrong, as I said before.
+
+>
+>> The patch can make ehci HC see the up-to-date qtd, so make usb transacti=
+on
+>> executed correctly. If a qtd->token is not updated, maybe IOC is not set=
+ or set very
+>> late, so interrupt can't be triggered in time, also mistaken 'total byte=
+s to transfer'
+>> can make HC work badly.
+>
+> This doesn't make any sense. =A0qtd becomes the new dummy; by the time
+> the HC sees qtd the only important bit set in qtd->hw_token is the HALT
+> bit.
+
+Here, I mean the 'qtd' is the 'dummy' in code, and I described it in such w=
+ay
+because 'dummy' has been scheduled into qh queue, so qtd should  be its
+new identity, a little confusion about the description, :-)
+
+>
+>> In fact, I have traced the problem and found ehci irq is often delayed b=
+y ehci HC.
+>> also sometimes ehci irq is lost, so I start to trace ehci driver and fin=
+d the problem here.
+>
+> I don't think you have identified the underlying cause correctly.
+> Something else must be responsible.
+
+I have explained above, so please point it out if anything is still wrong.
+
+thanks,
+--
+Ming Lei
