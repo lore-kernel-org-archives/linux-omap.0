@@ -1,107 +1,167 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH] usb: ehci: fix update qtd->token in qh_append_tds
-Date: Sun, 28 Aug 2011 13:00:07 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1108281233270.3742-100000@netrider.rowland.org>
-References: <CACVXFVP8Lr=ggH4FjvMQd6r9poLAT1r+_S3Z-NimP0i08DsQ8g@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: How to handle named resources with DT?
+Date: Sun, 28 Aug 2011 17:06:43 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1108281100150.23968@utopia.booyaka.com>
+References: <20110809205723.GE11568@ponder.secretlab.ca> <201108261741.29850.arnd@arndb.de> <20110827143736.GA10182@yookeroo.fritz.box> <5595208.OB5dBohxQP@wuerfel> <20110828083934.GA4254@yookeroo.fritz.box>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACVXFVP8Lr=ggH4FjvMQd6r9poLAT1r+_S3Z-NimP0i08DsQ8g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Santosh <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:42757 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751501Ab1H1XGp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Aug 2011 19:06:45 -0400
+In-Reply-To: <20110828083934.GA4254@yookeroo.fritz.box>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Gibson <david@gibson.dropbear.id.au>
+Cc: Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Sun, 28 Aug 2011, Ming Lei wrote:
+On Sun, 28 Aug 2011, David Gibson wrote:
 
-> > I've been following this whole discussion. =A0I didn't understand t=
-he
-> > idea behind the original patch, and I don't understand this. =A0Wha=
-t
-> > reason is there for adding a memory barrier after the "dummy->hw_to=
-ken
-> > =3D token" line? =A0Such a barrier would not accomplish anything us=
-eful,
-> > because there are no later memory accesses which need to be ordered
-> > with respect to that line.
->=20
-> Here, mb is used to synchronize  between writing of CPU and reading o=
-f
-> ehci HC, see below:
+> I've never been very clear on what exactly DMA resources cover,
 
-A memory barrier never synchronizes events between two processors (for
-example, between the CPU and HC).  It only affects ordering for the
-processor it executes on.  That's why you always have to use memory
-barriers in pairs for inter-CPU synchronization: one memory barrier=20
-instruction for each CPU.
+DMA resource data are usually DMA request line ID numbers.
 
-> 	CPU								EHCI
-> 	dummy->hw_token =3D token;
-> 	mb
-> 									read  dummy->hw_token
->=20
-> The mb() introduced  was supposed to be used to make sure that EHCI
-> can see the correct value of  dummy->hw_token.
+DMA request lines are dedicated, unidirectional hardware signals from I/O 
+devices to one or more independent DMA controllers[1][2][3].  Request 
+lines indicate when the device is ready to accept data from the DMA 
+controller, or, when the device has data ready for the DMA controller to 
+fetch.  On a given DMA controller, each request line has its own unique ID 
+number[4][5][6].
 
-It won't do that.  All it will do is guarantee that the CPU writes out=20
-dumy->hw_token before it writes out or reads in any values executed=20
-after the mb.
+During a DMA transfer, the I/O device asserts or deasserts its DMA request 
+lines as its FIFOs fill or drain[7][8].  This will pause or resume the DMA 
+transfer, if the DMA controller is programmed with the correct DMA request 
+line IDs[9][10][11][12].  In a hardware-synchronized DMA transfer, the DMA 
+controller must be controlled by the device because it is not good to read 
+from an empty device FIFO, or to write to a full device FIFO.  There 
+aren't many sane courses of action in those circumstances with most 
+interconnects and DMA controllers.
 
->  If EHCI can't get the correct
-> hw_token in time, it will work badly, such as irq delay or irq lost w=
-hich may be
-> caused by mistaken 'IOC' or 'total bytes to transfer' in hw_token.
+So in terms of Linux kernel code, the driver needs the DMA request line ID 
+numbers so it and the DMA code can program the DMA controller to 
+synchronize DMA transfers with the I/O device(s).
 
-No.  All that will happen is that the HC will execute the qTD a little=20
-later, when it does read the correct hw_token.  No IRQs will be lost,=20
-and there will be no mistaken IOC or "total bytes to transfer" values.
+Like hardware IRQ IDs, these DMA request line IDs are properties of a DMA 
+controller itself, but are associated with individual I/O devices.  And 
+like IRQ IDs, these DMA request line ID mappings may change from chip 
+version to chip version[13], even for the same IP block.  So it is useful 
+for device data formats to provide DMA request line IDs dynamically.
 
->  This is just
-> what the patch is to fix.
+Several upstream device drivers get their DMA request line IDs from the 
+device data format[14][15][16].  But more drivers should be doing this 
+than currently are[17]:
 
-The patch won't fix this.  You're trying to force the CPU to write out=20
-dummy->hw_token more quickly.  A memory barrier won't do that.  And=20
-even if the CPU does write out the value more quickly, that doesn't=20
-guarantee it will be in time for the HC to see the new value right=20
-away.
+- the device driver author may have hardcoded the DMA request line ID, 
+  assuming it would never change
 
-> But I think the above is still not correct, and the correct way may b=
-e
-> like below:
->=20
-> 	CPU								EHCI
-> 	dummy->hw_token =3D token;
-> 	wmb
-> 	qh->hw->hw_qtd_next =3D QTD_NEXT(ehci, dummy->qtd_dma);
+- DMA could be broken on the device due to hardware bugs, so it is unused
 
-If you do this write, you will corrupt the hardware list.  You _must_
-_not_ modify the hardware fields of an active QH.
+- the driver author may just never have gotten around to implementing DMA, 
+  or was reassigned to another project, or couldn't figure it out
 
-Besides, qh_link_async() calls qh_refresh() -> qh_update(), which does=20
-this already.  And it does this correctly, with the appropriate checks=20
-to make sure the QH isn't active.
+- the device may have its own internal DMA controller logic, so support 
+  for an external DMA controller was simply never added
 
-> 									fetch next qtd from qh->hw->hw_qtd_next
-> 									read  qtd->hw_token
->=20
-> The problem is that qh has already linked dummy into its queue before=
-(as did in
-> qh_update), so even after 'dummy->hw_token =3D token;' is executed on=
- CPU, EHCI
-> still may not fetch the up-to-date value of the qtd(dummy in here),
-> and this should
-> be the root cause, IMO.
+When looking at a driver, it may not be obvious which of the cases 
+apply.
 
-There's no way to fix this.  The CPU and the HC are independent.  The=20
-HC is allowed to cache values whenever it likes (within certain=20
-limits).  If it has already cached an old value from the qTD, there's=20
-no way to force it to use a new value.  You just have to wait until it=20
-refreshes its cache.
+(N.B., I/O device IP blocks that contain their own dedicated DMA 
+controllers that are specialized to transfer only to memory don't need DMA 
+request lines.)
 
-Alan Stern
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
+
+
+All code citations below are of Linux v3.1-rc3.
+
+1. A DMA controller's view of DMA request lines.  Figure 9-4, "SDMA 
+   Controller Integration".  _OMAP34xx Multimedia Device Silicon Revision 
+   3.1.x Version R (SWPU223R)_ (public version).
+   http://focus.ti.com/pdfs/wtbu/OMAP34xx_ES3.1.x_PUBLIC_TRM_vZR.zip
+
+2. A simple device's view of DMA request lines, only connected to one
+   DMA controller.  Figure 22-17, "MMC/SD/SDIO1 Integration". _OMAP34xx 
+   Multimedia Device Silicon Revision 3.1.x Version R (SWPU223R)_ (public 
+   version).
+   http://focus.ti.com/pdfs/wtbu/OMAP34xx_ES3.1.x_PUBLIC_TRM_vZR.zip
+
+3. A device's view of its DMA request lines connected to two separate DMA
+   controllers, and thus with distinct numbering.  Note also that the 
+   device refers to its signals with strings, while the DMA controllers
+   refer to the same signals with ID numbers.  Figure 21-16, "McBSP1 
+   Integration". _OMAP34xx Multimedia Device Silicon Revision 3.1.x 
+   Version R (SWPU223R)_ (public version).
+   http://focus.ti.com/pdfs/wtbu/OMAP34xx_ES3.1.x_PUBLIC_TRM_vZR.zip
+
+4. Table 5-1 "Peripheral Addresses and Selectors". _RMI Alchemy Au1550 
+   Security Network Processor Data Book Revision E_.  May 2007.
+   Available from 
+   http://www.poeticmonkey.com/ebay/semiconductors/cpus/au1550/au1550_db_0507e.pdf
+
+5. Table 6-7 "Priority and Default Mapping of Peripheral to DMA". 
+   _ADSP-BF51x Blackfin Processor Hardware Reference Preliminary Revision 
+   0.1_ (January 2009).  Available from 
+   http://www.analog.com/static/imported-files/processor_manuals/bf51x_hwr_rev_0-1.pdf
+
+6. Table 16-5 "sDMA Controller Request Mapping". _OMAP4460 Multimedia 
+   Device Silicon Revision 1.x Version H (Public Version) (SWPU235H)_.
+   Available from 
+   http://focus.ti.com/pdfs/wtbu/OMAP4460_ES1.x_PUBLIC_TRM_vH.zip
+
+7. A really nice illustration of the interaction between a FIFO and
+   DMA request line during DMA receive.  Figure 17-25
+   "Receive FIFO DMA Request Generation (32 Characters)".  _OMAP34xx 
+   Multimedia Device Silicon Revision 3.1.x Version R (SWPU223R)_ (public 
+   version).
+   http://focus.ti.com/pdfs/wtbu/OMAP34xx_ES3.1.x_PUBLIC_TRM_vZR.zip
+
+8. A similarly good illustration of the interaction between a FIFO and 
+   DMA request line during DMA transmit.  Figure 17-26
+   "Transmit FIFO DMA Request Generation (56 Spaces)".  _OMAP34xx
+   Multimedia Device Silicon Revision 3.1.x Version R (SWPU223R)_ (public 
+   version).
+   http://focus.ti.com/pdfs/wtbu/OMAP34xx_ES3.1.x_PUBLIC_TRM_vZR.zip
+
+9. Table 3-23 "DMACCxConfiguration Register bit assignments".  _PrimeCell 
+   DMA Controller (PL080) Technical Reference Manual (DDI0196G)_.
+   http://infocenter.arm.com/help/topic/com.arm.doc.ddi0196g/DDI0196.pdf
+
+10. Section 16.4.9.2 "Hardware Synchronization".  _OMAP4460 Multimedia
+    Device Silicon Revision 1.x Version H (Public Version) (SWPU235H)_.
+    Available from
+    http://focus.ti.com/pdfs/wtbu/OMAP4460_ES1.x_PUBLIC_TRM_vH.zip
+
+11. Page 6-5 "Peripheral DMA". _ADSP-BF51x Blackfin Processor Hardware 
+    Reference Preliminary Revision 0.1_ (January 2009).  Available from   
+    http://www.analog.com/static/imported-files/processor_manuals/bf51x_hwr_rev_0-1.pdf
+
+12. Section 5.3.1.1 "Command 0". _RMI Alchemy Au1550
+    Security Network Processor Data Book Revision E_.  May 2007.
+    Available from
+    http://www.poeticmonkey.com/ebay/semiconductors/cpus/au1550/au1550_db_0507e.pdf
+
+13. For example, consider what happens to the EXT_DMAREQ3 request line ID
+    on the SDMA controller:
+    ... from the OMAP2420:
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/arm/plat-omap/include/plat/dma.h;h=dc562a5c0a8ad2c7117b0b02e43b85cabe7b9aa5;hb=c11a7e26f8ee60bda0e64983291113ce5d04df55#l113
+    ... to the OMAP2430:
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/arm/plat-omap/include/plat/dma.h;h=dc562a5c0a8ad2c7117b0b02e43b85cabe7b9aa5;hb=c11a7e26f8ee60bda0e64983291113ce5d04df55#l125
+    ... to the OMAP3430:
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/arm/plat-omap/include/plat/dma.h;h=dc562a5c0a8ad2c7117b0b02e43b85cabe7b9aa5;hb=c11a7e26f8ee60bda0e64983291113ce5d04df55#l179
+
+14. An OMAP2+ driver example is: drivers/tty/serial/omap-serial.c lines 
+    1249 and 1255:
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=drivers/tty/serial/omap-serial.c#l1249
+
+15. An Alchemy AU1xxx example is: sound/soc/au1x/dbdma2.c lines 173 and 
+    177:
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=sound/soc/au1x/dbdma2.c#l173
+
+16. A Blackfin BF51x example is: drivers/spi/spi-bfin5xx.c line 1323:
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=drivers/spi/spi-bfin5xx.c#l1323
+
+17. First Law of Kernel Hacking: the bodies are always buried in the 
+    device driver code.
+
