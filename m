@@ -1,103 +1,63 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 6/6] usb: musb: Add support for ti81xx platform
-Date: Mon, 29 Aug 2011 11:37:59 +0300
-Message-ID: <20110829083757.GD13925@legolas.emea.dhcp.ti.com>
-References: <1314357108-2279-1-git-send-email-ajay.gupta@ti.com>
- <1314357108-2279-7-git-send-email-ajay.gupta@ti.com>
- <20110826235226.GD4829@legolas.emea.dhcp.ti.com>
- <19F8576C6E063C45BE387C64729E739404EC4CBA8E@dbde02.ent.ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] usb: ehci: fix update qtd->token in qh_append_tds
+Date: Mon, 29 Aug 2011 09:52:09 +0100
+Message-ID: <20110829085209.GB26917@n2100.arm.linux.org.uk>
+References: <20110828233648.GA14560@n2100.arm.linux.org.uk> <Pine.LNX.4.44L0.1108282137270.10614-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1Ow488MNN9B9o/ov"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC4CBA8E-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>
-List-Id: linux-omap@vger.kernel.org
-
-
---1Ow488MNN9B9o/ov
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43926 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753351Ab1H2Iwh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Aug 2011 04:52:37 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <Pine.LNX.4.44L0.1108282137270.10614-100000@netrider.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Ming Lei <ming.lei@canonical.com>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, Santosh <santosh.shilimkar@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On Sun, Aug 28, 2011 at 09:51:10PM -0400, Alan Stern wrote:
+> Hmmm.  Although the semantics of the various mb() macros were
+> originally defined only for inter-CPU synchronization, I believe they
+> are also supposed to work for guaranteeing the order of accesses to
+> DMA-coherent memory.  If that's not the case with ARM, something is
+> seriously wrong.  (Maybe I'm wrong about this, but if I am then there's
+> currently _no_ way for the kernel to order DMA-coherent accesses on
+> ARM.)
 
-On Mon, Aug 29, 2011 at 11:01:54AM +0530, Gupta, Ajay Kumar wrote:
-> > > diff --git a/drivers/usb/musb/musb_core.c
-> > > b/drivers/usb/musb/musb_core.c index 20a2873..07f3faf 100644
-> > > --- a/drivers/usb/musb/musb_core.c
-> > > +++ b/drivers/usb/musb/musb_core.c
-> > > @@ -1014,7 +1014,9 @@ static void musb_shutdown(struct
-> > platform_device *pdev)
-> > >  	|| defined(CONFIG_USB_MUSB_OMAP2PLUS)		\
-> > >  	|| defined(CONFIG_USB_MUSB_OMAP2PLUS_MODULE)	\
-> > >  	|| defined(CONFIG_USB_MUSB_AM35X)		\
-> > > -	|| defined(CONFIG_USB_MUSB_AM35X_MODULE)
-> > > +	|| defined(CONFIG_USB_MUSB_AM35X_MODULE)	\
-> > > +	|| defined(CONFIG_USB_MUSB_TI81XX)		\
-> > > +	|| defined(CONFIG_USB_MUSB_TI81XX_MODULE)
-> >=20
-> > we really need to find a better way to handle this :-(
->=20
-> How about passing the mode info from musb_config (musb->config->fifo_mode=
-),
-> same way as musb->config->fifo_cfg=20
+That is the case with ARM - mb() and wmb() does everything that's
+required.  rmb() is weaker than the other two.
 
-not sure... Ideally we wouldn't really need those fifo tables, but I'm
-still thinking how to properly do that.
+> You know better than I do what is needed to resolve the ordering issue.  
+> However, contrary to what the original patch description said, this
+> isn't entirely a matter of making the write visible to the host
+> controller: No doubt in time the write will eventually become visible
+> anyway.  It's a matter of making the write become visible reasonably
+> quickly and in the correct order with respect to other writes.
 
-> Infact I think, we can kill musb->config->fifo_cfg and have only
-> musb->config->mode as in this way all the fifo tables will be at one
-> place and should help in maintenance.
+I'm not entirely sure what the problem is - I think its about a write
+by the CPU to dma coherent memory being delayed and not being visible
+to the HC in a timely manner.  Either mb() or wmb() placed after the
+write on ARM will do that - and ARM has no requirement to do a read-
+back after the barrier.
 
-The idea of musb->config->fifo_cfg was to allow boards to pass their
-optimal fifo table. If a certain product, knows it will only support
-mass storage, why not letting them enable only those needed endpoints in
-an optimized way (with double buffering, bulk combine/split, etc).
+> Is this extra L2-cache "poke" needed for proper ordering, or is it 
+> needed merely to flush the write out to memory in a timely manner?
 
-> > > diff --git a/drivers/usb/musb/ti81xx.c b/drivers/usb/musb/ti81xx.c
-> > new
-> > > file mode 100644 index 0000000..f95774e
-> > > --- /dev/null
-> > > +++ b/drivers/usb/musb/ti81xx.c
-> >=20
-> > I still think this should be part of am35x.c It really look like they
-> > are very similar.
->=20
-> Wrapper registers are different but I will see on this and provide you de=
-tails
-> On how the merged file would look like. I am afraid that we may have to u=
-se
-> Either #ifdef or cpu_is_xxx().
+Both, though primerily it's about ensuring correct ordering.  A side
+effect of it is that it will flush all pending writes in L2 before
+completing.
 
-we can use platform_device_id to cope with the differences :-) See how
-I'm using it on dwc3 driver (Greg's usb-next branch).
+>From the theoretical viewpoint, I think I'm right to say that mb()
+doesn't need to provide that level of ordering as its supposed to be
+an inter-CPU barrier - which probably means we need to invent a new
+barrier to deal with DMA memory ordering.  However, given the
+difficulty of getting the existing barriers placed correctly, I don't
+think inventing new barriers is a very good idea.
 
---=20
-balbi
-
---1Ow488MNN9B9o/ov
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOW0/lAAoJEAv8Txj19kN13VEIAIyf/ZDpYyWSwLIfn+ONdpn/
-dpgRvdpB3vYx3bFCjAxBQImKU9+K4U0rrrQ2zNn0pafRDbEjLQGAe+smV8gyFlN9
-W/IYrv6JPwEAhb0Ty/o+6/6S9f6xK0jZGpnWG+ZMcoRBAggD7YmArNDB137q3lx7
-4JMnsnaCKze0PfUv8llsT4uIFIiFXzHJhHMfyiTne7RrUjLfInn1VmKLYscxeWdk
-67yWeW2jc2hpOxFg7s5lFkKlUafE8BBqr2vVT9QyYazfAHqs13UEorYtn/q5yoJv
-SF9mFktPR00Qh8IVvbHrxwi3Kkbdhq/SWefFBbgPZ34Sjpn0VjrDEXVWkyhsR8Y=
-=edql
------END PGP SIGNATURE-----
-
---1Ow488MNN9B9o/ov--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What we can do is view devices which perform DMA as being strongly
+ordered with respect to their memory accesses - iow, they have an
+implicit memory barrier before and after their accesses to memory.
+This would make the CPUs use of mb() have a conceptual pairing with
+the DMA agents.
