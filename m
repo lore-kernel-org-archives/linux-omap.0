@@ -1,108 +1,121 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 05/12] OMAP3+: VP: move timing calculation/config into VP init
-Date: Mon, 29 Aug 2011 10:58:05 -0700
-Message-ID: <1314640692-3386-6-git-send-email-khilman@ti.com>
+Subject: [PATCH 06/12] OMAP3+: VP: create VP helper function for updating error gain
+Date: Mon, 29 Aug 2011 10:58:06 -0700
+Message-ID: <1314640692-3386-7-git-send-email-khilman@ti.com>
 References: <1314640692-3386-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:38626 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754457Ab1H2R5x (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:53487 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754383Ab1H2R5y (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:57:53 -0400
-Received: by mail-iy0-f173.google.com with SMTP id z25so935975iab.32
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:57:52 -0700 (PDT)
+	Mon, 29 Aug 2011 13:57:54 -0400
+Received: by mail-yi0-f52.google.com with SMTP id 13so8740312yie.25
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:57:54 -0700 (PDT)
 In-Reply-To: <1314640692-3386-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Move VP timing calcluation (based on sys clock) and register programming
-into VP init.
+Create new helper function in VP layer for updating VP error gain.
+Currently used during pre-scale for VP force update and VC bypass.
+
+TODO: determine if this can be removed from the pre-scale path and
+moved to VP enable path.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/voltage.c |   22 ----------------------
- arch/arm/mach-omap2/vp.c      |   23 ++++++++++++++++++++++-
- 2 files changed, 22 insertions(+), 23 deletions(-)
+ arch/arm/mach-omap2/vc.c |   19 ++-----------------
+ arch/arm/mach-omap2/vp.c |   19 +++++++++++++++++++
+ arch/arm/mach-omap2/vp.h |    2 ++
+ 3 files changed, 23 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 533ea38..4a15668 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -46,31 +46,9 @@ static LIST_HEAD(voltdm_list);
- static int __init _config_common_vdd_data(struct voltagedomain *voltdm)
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index d615a0d..38ba13b 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -96,9 +96,7 @@ int omap_vc_pre_scale(struct voltagedomain *voltdm,
+ 		      u8 *target_vsel, u8 *current_vsel)
  {
- 	struct omap_vdd_info *vdd = voltdm->vdd;
--	u32 sys_clk_rate, timeout_val, waittime;
--
--	/* Divide to avoid overflow */
--	sys_clk_rate = voltdm->sys_clk.rate / 1000;
--	WARN_ON(!sys_clk_rate);
+ 	struct omap_vc_channel *vc = voltdm->vc;
+-	struct omap_vdd_info *vdd = voltdm->vdd;
+-	struct omap_volt_data *volt_data;
+-	u32 vc_cmdval, vp_errgain_val;
++	u32 vc_cmdval;
  
- 	/* Generic voltage parameters */
- 	vdd->volt_scale = omap_vp_forceupdate_scale;
--	voltdm->vp->enabled = false;
+ 	/* Check if sufficient pmic info is available for this vdd */
+ 	if (!voltdm->pmic) {
+@@ -120,11 +118,6 @@ int omap_vc_pre_scale(struct voltagedomain *voltdm,
+ 		return -EINVAL;
+ 	}
+ 
+-	/* Get volt_data corresponding to target_volt */
+-	volt_data = omap_voltage_get_voltdata(voltdm, target_volt);
+-	if (IS_ERR(volt_data))
+-		volt_data = NULL;
 -
--	vdd->vp_rt_data.vpconfig_erroroffset =
--		(voltdm->pmic->vp_erroroffset <<
--		 __ffs(voltdm->vp->common->vpconfig_erroroffset_mask));
--
--	timeout_val = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
--	vdd->vp_rt_data.vlimitto_timeout = timeout_val;
--	vdd->vp_rt_data.vlimitto_vddmin = voltdm->pmic->vp_vddmin;
--	vdd->vp_rt_data.vlimitto_vddmax = voltdm->pmic->vp_vddmax;
--
--	waittime = ((voltdm->pmic->step_size / voltdm->pmic->slew_rate) *
--		    sys_clk_rate) / 1000;
--	vdd->vp_rt_data.vstepmin_smpswaittimemin = waittime;
--	vdd->vp_rt_data.vstepmax_smpswaittimemax = waittime;
--	vdd->vp_rt_data.vstepmin_stepmin = voltdm->pmic->vp_vstepmin;
--	vdd->vp_rt_data.vstepmax_stepmax = voltdm->pmic->vp_vstepmax;
+ 	*target_vsel = voltdm->pmic->uv_to_vsel(target_volt);
+ 	*current_vsel = voltdm->pmic->uv_to_vsel(vdd->curr_volt);
+ 
+@@ -134,15 +127,7 @@ int omap_vc_pre_scale(struct voltagedomain *voltdm,
+ 	vc_cmdval |= (*target_vsel << vc->common->cmd_on_shift);
+ 	voltdm->write(vc_cmdval, vc->cmdval_reg);
+ 
+-	/* Setting vp errorgain based on the voltage */
+-	if (volt_data) {
+-		vp_errgain_val = voltdm->read(voltdm->vp->vpconfig);
+-		vdd->vp_rt_data.vpconfig_errorgain = volt_data->vp_errgain;
+-		vp_errgain_val &= voltdm->vp->common->vpconfig_errorgain_mask;
+-		vp_errgain_val |= vdd->vp_rt_data.vpconfig_errorgain <<
+-			__ffs(voltdm->vp->common->vpconfig_errorgain_mask);
+-		voltdm->write(vp_errgain_val, voltdm->vp->vpconfig);
+-	}
++	omap_vp_update_errorgain(voltdm, target_volt);
  
  	return 0;
  }
 diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-index 297d094..ea61a47 100644
+index ea61a47..f68a6db 100644
 --- a/arch/arm/mach-omap2/vp.c
 +++ b/arch/arm/mach-omap2/vp.c
-@@ -50,7 +50,7 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
- {
- 	struct omap_vp_instance *vp = voltdm->vp;
- 	struct omap_vdd_info *vdd = voltdm->vdd;
--	u32 vp_val;
-+	u32 vp_val, sys_clk_rate, timeout_val, waittime;
+@@ -106,6 +106,25 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ 	voltdm->write(vp_val, vp->vlimitto);
+ }
  
- 	if (!voltdm->read || !voltdm->write) {
- 		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
-@@ -58,6 +58,27 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
- 		return;
- 	}
++int omap_vp_update_errorgain(struct voltagedomain *voltdm,
++			     unsigned long target_volt)
++{
++	struct omap_volt_data *volt_data;
++
++	/* Get volt_data corresponding to target_volt */
++	volt_data = omap_voltage_get_voltdata(voltdm, target_volt);
++	if (IS_ERR(volt_data))
++		return -EINVAL;
++
++	/* Setting vp errorgain based on the voltage */
++	voltdm->rmw(voltdm->vp->common->vpconfig_errorgain_mask,
++		    volt_data->vp_errgain <<
++		    __ffs(voltdm->vp->common->vpconfig_errorgain_mask),
++		    voltdm->vp->vpconfig);
++
++	return 0;
++}
++
+ /* VP force update method of voltage scaling */
+ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 			      unsigned long target_volt)
+diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+index 2afe11d..71ac738 100644
+--- a/arch/arm/mach-omap2/vp.h
++++ b/arch/arm/mach-omap2/vp.h
+@@ -148,5 +148,7 @@ void omap_vp_disable(struct voltagedomain *voltdm);
+ unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm);
+ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 			      unsigned long target_volt);
++int omap_vp_update_errorgain(struct voltagedomain *voltdm,
++			     unsigned long target_volt);
  
-+	vp->enabled = false;
-+
-+	/* Divide to avoid overflow */
-+	sys_clk_rate = voltdm->sys_clk.rate / 1000;
-+
-+	vdd->vp_rt_data.vpconfig_erroroffset =
-+		(voltdm->pmic->vp_erroroffset <<
-+		 __ffs(voltdm->vp->common->vpconfig_erroroffset_mask));
-+
-+	timeout_val = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
-+	vdd->vp_rt_data.vlimitto_timeout = timeout_val;
-+	vdd->vp_rt_data.vlimitto_vddmin = voltdm->pmic->vp_vddmin;
-+	vdd->vp_rt_data.vlimitto_vddmax = voltdm->pmic->vp_vddmax;
-+
-+	waittime = ((voltdm->pmic->step_size / voltdm->pmic->slew_rate) *
-+		    sys_clk_rate) / 1000;
-+	vdd->vp_rt_data.vstepmin_smpswaittimemin = waittime;
-+	vdd->vp_rt_data.vstepmax_smpswaittimemax = waittime;
-+	vdd->vp_rt_data.vstepmin_stepmin = voltdm->pmic->vp_vstepmin;
-+	vdd->vp_rt_data.vstepmax_stepmax = voltdm->pmic->vp_vstepmax;
-+
- 	vp_val = vdd->vp_rt_data.vpconfig_erroroffset |
- 		(vdd->vp_rt_data.vpconfig_errorgain <<
- 		 __ffs(vp->common->vpconfig_errorgain_mask)) |
+ #endif
 -- 
 1.7.6
 
