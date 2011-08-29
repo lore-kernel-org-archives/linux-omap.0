@@ -1,159 +1,58 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 01/10] OMAP3+: VC: cleanup i2c slave address configuration
-Date: Mon, 29 Aug 2011 10:49:43 -0700
-Message-ID: <1314640192-2518-2-git-send-email-khilman@ti.com>
-References: <1314640192-2518-1-git-send-email-khilman@ti.com>
+Subject: [PATCH 00/10] OMAP: voltage cleanup part B: VC cleanup
+Date: Mon, 29 Aug 2011 10:49:42 -0700
+Message-ID: <1314640192-2518-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:51817 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753643Ab1H2Rt1 (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:34923 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753643Ab1H2RtZ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:49:27 -0400
-Received: by mail-iy0-f182.google.com with SMTP id x2so923513iad.13
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:49:26 -0700 (PDT)
-In-Reply-To: <1314640192-2518-1-git-send-email-khilman@ti.com>
+	Mon, 29 Aug 2011 13:49:25 -0400
+Received: by mail-gw0-f53.google.com with SMTP id 20so7017690gwj.40
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:49:25 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-- Add an i2c_slave_address field to the omap_vc_channel
-- use VC/VP read/modify/write helper instead of open-coding
-- remove smps_sa_shift, use __ffs(mask) for shift value
-- I2C addresses 10-bit, change size to u16
+This series focuses on cleanup and better abstraction in the voltage
+controller (VC) layer.
 
-Special thanks to Shweta Gulati <shweta.gulati@ti.com> for suggesting
-the use of __ffs(x) instead of ffs(x) - 1.
+Available in the pm-wip/voltdm_b branch of my linux-omap-pm tree
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/vc.c          |   12 +++++++-----
- arch/arm/mach-omap2/vc.h          |    8 +++++---
- arch/arm/mach-omap2/vc3xxx_data.c |    2 --
- arch/arm/mach-omap2/vc44xx_data.c |    3 ---
- arch/arm/mach-omap2/voltage.h     |    2 +-
- 5 files changed, 13 insertions(+), 14 deletions(-)
+Applies on v3.1-rc3 + the part A series (pm-wip/voltdm_a branch)
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index 9c2706c..ca6165d 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -232,11 +232,13 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
- 		return;
- 	}
- 
--	/* Set up the SMPS_SA(i2c slave address in VC */
--	vc_val = voltdm->read(vc->common->smps_sa_reg);
--	vc_val &= ~vc->smps_sa_mask;
--	vc_val |= vdd->pmic_info->i2c_slave_addr << vc->smps_sa_shift;
--	voltdm->write(vc_val, vc->common->smps_sa_reg);
-+	/* get PMIC/board specific settings */
-+	vc->i2c_slave_addr = vdd->pmic_info->i2c_slave_addr;
-+
-+	/* Configure the i2c slave address for this VC */
-+	voltdm->rmw(vc->smps_sa_mask,
-+		    vc->i2c_slave_addr << __ffs(vc->smps_sa_mask),
-+		    vc->common->smps_sa_reg);
- 
- 	/* Setup the VOLRA(pmic reg addr) in VC */
- 	vc_val = voltdm->read(vc->common->smps_volra_reg);
-diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
-index d0050f0..165fc74 100644
---- a/arch/arm/mach-omap2/vc.h
-+++ b/arch/arm/mach-omap2/vc.h
-@@ -57,20 +57,22 @@ struct omap_vc_common {
- /**
-  * struct omap_vc_channel - VC per-instance data
-  * @common: pointer to VC common data for this platform
-- * @smps_sa_mask: SA* bitmask in the PRM_VC_SMPS_SA register
-+ * @smps_sa_mask: i2c slave address bitmask in the PRM_VC_SMPS_SA register
-  * @smps_volra_mask: VOLRA* bitmask in the PRM_VC_VOL_RA register
-- * @smps_sa_shift: SA* field shift in the PRM_VC_SMPS_SA register
-  * @smps_volra_shift: VOLRA* field shift in the PRM_VC_VOL_RA register
-  *
-  * XXX It is not necessary to have both a *_mask and a *_shift -
-  *     remove one
-  */
- struct omap_vc_channel {
-+	/* channel state */
-+	u16 i2c_slave_addr;
-+
-+	/* register access data */
- 	const struct omap_vc_common *common;
- 	u32 smps_sa_mask;
- 	u32 smps_volra_mask;
- 	u8 cmdval_reg;
--	u8 smps_sa_shift;
- 	u8 smps_volra_shift;
- };
- 
-diff --git a/arch/arm/mach-omap2/vc3xxx_data.c b/arch/arm/mach-omap2/vc3xxx_data.c
-index 6b67203..86be50c 100644
---- a/arch/arm/mach-omap2/vc3xxx_data.c
-+++ b/arch/arm/mach-omap2/vc3xxx_data.c
-@@ -47,7 +47,6 @@ static struct omap_vc_common omap3_vc_common = {
- struct omap_vc_channel omap3_vc_mpu = {
- 	.common = &omap3_vc_common,
- 	.cmdval_reg = OMAP3_PRM_VC_CMD_VAL_0_OFFSET,
--	.smps_sa_shift = OMAP3430_PRM_VC_SMPS_SA_SA0_SHIFT,
- 	.smps_sa_mask = OMAP3430_PRM_VC_SMPS_SA_SA0_MASK,
- 	.smps_volra_shift = OMAP3430_VOLRA0_SHIFT,
- 	.smps_volra_mask = OMAP3430_VOLRA0_MASK,
-@@ -56,7 +55,6 @@ struct omap_vc_channel omap3_vc_mpu = {
- struct omap_vc_channel omap3_vc_core = {
- 	.common = &omap3_vc_common,
- 	.cmdval_reg = OMAP3_PRM_VC_CMD_VAL_1_OFFSET,
--	.smps_sa_shift = OMAP3430_PRM_VC_SMPS_SA_SA1_SHIFT,
- 	.smps_sa_mask = OMAP3430_PRM_VC_SMPS_SA_SA1_MASK,
- 	.smps_volra_shift = OMAP3430_VOLRA1_SHIFT,
- 	.smps_volra_mask = OMAP3430_VOLRA1_MASK,
-diff --git a/arch/arm/mach-omap2/vc44xx_data.c b/arch/arm/mach-omap2/vc44xx_data.c
-index e3125a3..af922b4 100644
---- a/arch/arm/mach-omap2/vc44xx_data.c
-+++ b/arch/arm/mach-omap2/vc44xx_data.c
-@@ -49,7 +49,6 @@ static const struct omap_vc_common omap4_vc_common = {
- struct omap_vc_channel omap4_vc_mpu = {
- 	.common = &omap4_vc_common,
- 	.cmdval_reg = OMAP4_PRM_VC_VAL_CMD_VDD_MPU_L_OFFSET,
--	.smps_sa_shift = OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_SHIFT,
- 	.smps_sa_mask = OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_MASK,
- 	.smps_volra_shift = OMAP4430_VOLRA_VDD_MPU_L_SHIFT,
- 	.smps_volra_mask = OMAP4430_VOLRA_VDD_MPU_L_MASK,
-@@ -58,7 +57,6 @@ struct omap_vc_channel omap4_vc_mpu = {
- struct omap_vc_channel omap4_vc_iva = {
- 	.common = &omap4_vc_common,
- 	.cmdval_reg = OMAP4_PRM_VC_VAL_CMD_VDD_IVA_L_OFFSET,
--	.smps_sa_shift = OMAP4430_SA_VDD_IVA_L_PRM_VC_SMPS_SA_SHIFT,
- 	.smps_sa_mask = OMAP4430_SA_VDD_IVA_L_PRM_VC_SMPS_SA_MASK,
- 	.smps_volra_shift = OMAP4430_VOLRA_VDD_IVA_L_SHIFT,
- 	.smps_volra_mask = OMAP4430_VOLRA_VDD_IVA_L_MASK,
-@@ -67,7 +65,6 @@ struct omap_vc_channel omap4_vc_iva = {
- struct omap_vc_channel omap4_vc_core = {
- 	.common = &omap4_vc_common,
- 	.cmdval_reg = OMAP4_PRM_VC_VAL_CMD_VDD_CORE_L_OFFSET,
--	.smps_sa_shift = OMAP4430_SA_VDD_CORE_L_0_6_SHIFT,
- 	.smps_sa_mask = OMAP4430_SA_VDD_CORE_L_0_6_MASK,
- 	.smps_volra_shift = OMAP4430_VOLRA_VDD_CORE_L_SHIFT,
- 	.smps_volra_mask = OMAP4430_VOLRA_VDD_CORE_L_MASK,
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index f4198aa..639e85c 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -110,13 +110,13 @@ struct omap_volt_pmic_info {
- 	u32 ret_volt;
- 	u32 off_volt;
- 	u16 volt_setup_time;
-+	u16 i2c_slave_addr;
- 	u8 vp_erroroffset;
- 	u8 vp_vstepmin;
- 	u8 vp_vstepmax;
- 	u8 vp_vddmin;
- 	u8 vp_vddmax;
- 	u8 vp_timeout_us;
--	u8 i2c_slave_addr;
- 	u8 volt_reg_addr;
- 	u8 cmd_reg_addr;
- 	unsigned long (*vsel_to_uv) (const u8 vsel);
+Kevin
+
+
+
+Kevin Hilman (10):
+  OMAP3+: VC: cleanup i2c slave address configuration
+  OMAP3+: VC: cleanup PMIC register address configuration
+  OMAP3+: VC bypass: use fields from VC struct instead of PMIC info
+  OMAP3+: VC: cleanup voltage setup time configuration
+  OMAP3+: VC: move on/onlp/ret/off command configuration into common
+    init
+  OMAP3+: VC: abstract out channel configuration
+  OMAP3+: voltage domain: move PMIC struct from vdd_info into struct
+    voltagedomain
+  OMAP3+: VC: make I2C config programmable with PMIC-specific settings
+  OMAP3+: PM: VC: handle mutant channel config for OMAP4 MPU channel
+  OMAP3+: VC: use last nominal voltage setting to get current_vsel
+
+ arch/arm/mach-omap2/omap_twl.c                |   32 ++--
+ arch/arm/mach-omap2/vc.c                      |  248 ++++++++++++++++++-------
+ arch/arm/mach-omap2/vc.h                      |   35 +++-
+ arch/arm/mach-omap2/vc3xxx_data.c             |   13 +-
+ arch/arm/mach-omap2/vc44xx_data.c             |   18 ++-
+ arch/arm/mach-omap2/voltage.c                 |   29 ++--
+ arch/arm/mach-omap2/voltage.h                 |   29 ++--
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |    8 +-
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |   12 +-
+ arch/arm/mach-omap2/vp.c                      |   13 +-
+ 10 files changed, 293 insertions(+), 144 deletions(-)
+
 -- 
 1.7.6
 
