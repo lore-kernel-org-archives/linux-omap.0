@@ -1,47 +1,51 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCHv6 1/3] OMAP: I2C: Reset support
-Date: Mon, 29 Aug 2011 15:01:54 +0530
-Message-ID: <4E5B5C8A.8090800@ti.com>
-References: <1312524035-5549-1-git-send-email-shubhrajyoti@ti.com> <87bovbzsay.fsf@ti.com>
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv6 2/3] OMAP: I2C: Remove the reset in the init path
+Date: Mon, 29 Aug 2011 15:04:29 +0530
+Message-ID: <4E5B5D25.3000903@ti.com>
+References: <1312524035-5549-1-git-send-email-shubhrajyoti@ti.com>	<1312524035-5549-2-git-send-email-shubhrajyoti@ti.com> <87pqjrydih.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:37084 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753358Ab1H2JcE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 05:32:04 -0400
-In-Reply-To: <87bovbzsay.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87pqjrydih.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, balajitk@ti.com, santosh.shilimkar@ti.com
 
-On Saturday 27 August 2011 04:36 AM, Kevin Hilman wrote:
-> Shubhrajyoti D<shubhrajyoti@ti.com>  writes:
+On Saturday 27 August 2011 04:41 AM, Kevin Hilman wrote:
+> Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>  writes:
 >
->> Under some error conditions the i2c driver may do a reset.
->> Adding a reset field and support in the device-specific code.
+>> -  The reset in the driver at init is not needed anymore as the
+>>     hwmod framework takes care of reseting it.
+>> -  Reset is removed from omap_i2c_init, which was called
+>>     not only during probe, but also after time out and error handling.
+>>     device_reset were added in those places to effect the reset.
+>> -  Earlier the hwmod SYSC settings were over-written in the driver.
+>>     Removing the same and letting the hwmod take care of the settings.
+>> -  Clean up the SYSS_RESETDONE_MASK macro as it is no longer needed.
+>> -  Clean up the SYSCONFIG SYSC bit defination macros.
+>> -  Fix the typos in wakeup.
 >>
->> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
-> Needs update/rebase to apply against my for_3.2/i2c-cleanup branch...
+>> Signed-off-by: Shubhrajyoti D<shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> I asked this in an earlier version, but here it is again.
 >
-> [...]
-Will rebase and send.
->> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
->> index 98ae49b..8aa91b6 100644
->> --- a/include/linux/i2c-omap.h
->> +++ b/include/linux/i2c-omap.h
->> @@ -38,6 +38,7 @@ struct omap_i2c_bus_platform_data {
->>   	int		(*device_enable) (struct platform_device *pdev);
->>   	int		(*device_shutdown) (struct platform_device *pdev);
->>   	int		(*device_idle) (struct platform_device *pdev);
-> The above functions no longer exist in the platform_data struct.
+> Are you sure a full IP reset is needed on the timeout and error
+> conditions and not just the module-level one done by:
 >
->> +	int		(*device_reset) (struct device *dev);
->>   };
->>
->>   #endif
+> 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>
+>          [ and later... ]
+>
+> 	/* Take the I2C module out of reset: */
+> 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+>
+> I kind of suspect that the IP rese was done because the omap_i2c_init()
+> function was callled under the timeout/error conditions, but that a full
+> IP SW reset is a bit heavy handed.
+My idea is that case of lockup  in error path it could be helpful.
+
+We internally had a discussion on this
+https://gforge01.dal.design.ti.com/gf/project/opbu_mail_arcv/mailman/?action=ListThreads&mailman_id=218&_forum_action=ForumMessageBrowse&thread_id=12483
+
 > Kevin
-
