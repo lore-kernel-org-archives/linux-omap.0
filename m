@@ -1,43 +1,53 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 0/5] OMAP: voltage cleanup part E: TWL6030 PMIC fixes
-Date: Mon, 29 Aug 2011 11:15:16 -0700
-Message-ID: <1314641721-5172-1-git-send-email-khilman@ti.com>
+Subject: [PATCH 2/5] OMAP4: PM: TWL6030: fix uv to voltage for >0x39
+Date: Mon, 29 Aug 2011 11:15:18 -0700
+Message-ID: <1314641721-5172-3-git-send-email-khilman@ti.com>
+References: <1314641721-5172-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:40568 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753808Ab1H2SOy (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:56123 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754416Ab1H2SO5 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 14:14:54 -0400
-Received: by pzk4 with SMTP id 4so9590916pzk.0
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 11:14:53 -0700 (PDT)
+	Mon, 29 Aug 2011 14:14:57 -0400
+Received: by mail-pz0-f44.google.com with SMTP id 36so10337935pzk.17
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 11:14:56 -0700 (PDT)
+In-Reply-To: <1314641721-5172-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-This series focuses on cleanups and fixes in support of the TWL6030 PMIC.
+From: Nishanth Menon <nm@ti.com>
 
-Available in the pm-wip/voltdm_e branch of my linux-omap-pm tree
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+using 1.35V as a check is not correct, we know that beyond 0x39,
+voltages are non linear - hence use the conversion iff uV greater
+than that for 0x39. For example, with  709mV as the smps offset,
+the max linear is actually 1.41V(0x39vsel)!
 
-Applies on v3.1-rc3 + the part A, B, C & D series.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/omap_twl.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-Kevin
-
-
-
-Nishanth Menon (3):
-  OMAP4: PM: TWL6030: fix uv to voltage for >0x39
-  OMAP4: PM: TWL6030: address 0V conversions
-  OMAP4: PM: TWL6030: add cmd register
-
-Patrick Titiano (2):
-  OMAP4: PM: TWL6030: fix voltage conversion formula
-  OMAP4: PM: TWL6030: fix ON/RET/OFF voltages
-
- arch/arm/mach-omap2/omap_twl.c |   55 +++++++++++++++++++++++++--------------
- 1 files changed, 35 insertions(+), 20 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index a66bf6b..5def7c2 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -134,8 +134,13 @@ static u8 twl6030_uv_to_vsel(unsigned long uv)
+ 	 * hardcoding only for 1.35 V which is used for 1GH OPP for
+ 	 * OMAP4430.
+ 	 */
+-	if (uv == 1350000)
++	if (uv > twl6030_vsel_to_uv(0x39)) {
++		if (uv == 1350000)
++			return 0x3A;
++		pr_err("%s:OUT OF RANGE! non mapped vsel for %ld Vs max %ld\n",
++			__func__, uv, twl6030_vsel_to_uv(0x39));
+ 		return 0x3A;
++	}
+ 
+ 	if (smps_offset & 0x8)
+ 		return DIV_ROUND_UP(uv - 709000, 12660) + 1;
 -- 
 1.7.6
 
