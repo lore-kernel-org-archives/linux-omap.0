@@ -1,102 +1,79 @@
-From: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: Re: [PATCH] usb: ehci: fix update qtd->token in qh_append_tds
-Date: Mon, 29 Aug 2011 23:55:29 +0800
-Message-ID: <CACVXFVNTGsaw2jLosqrTOdnZX399VfE7dWuVYvLcN50_bsa+tQ@mail.gmail.com>
-References: <20110829085209.GB26917@n2100.arm.linux.org.uk>
-	<Pine.LNX.4.44L0.1108290951250.2525-100000@iolanthe.rowland.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [RFC 1/2] OMAP3+: voltage / oscillator parameter segregation
+Date: Mon, 29 Aug 2011 09:07:36 -0700
+Message-ID: <87liucw69j.fsf@ti.com>
+References: <1312385355-17029-1-git-send-email-t-kristo@ti.com>
+	<1312385355-17029-2-git-send-email-t-kristo@ti.com>
+	<CAOMWX4cTsoK_ejOq861wNMiUDJYjcvPtc+jLo3z398D-Y2e39w@mail.gmail.com>
+	<87zkivwybn.fsf@ti.com>
+	<d74484cd55c8314a364af834fbbede0f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1108290951250.2525-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Santosh <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:49195 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752793Ab1H2QHm convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Aug 2011 12:07:42 -0400
+Received: by mail-gy0-f177.google.com with SMTP id 20so5236292gyh.8
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 09:07:41 -0700 (PDT)
+In-Reply-To: <d74484cd55c8314a364af834fbbede0f@mail.gmail.com> (Vishwanath
+	Sripathy's message of "Sat, 27 Aug 2011 14:59:22 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
 
-Hi,
+Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
 
-On Mon, Aug 29, 2011 at 9:57 PM, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>=
- wrote:
-> On Mon, 29 Aug 2011, Russell King - ARM Linux wrote:
->
->> > You know better than I do what is needed to resolve the ordering i=
-ssue.
->> > However, contrary to what the original patch description said, thi=
-s
->> > isn't entirely a matter of making the write visible to the host
->> > controller: No doubt in time the write will eventually become visi=
-ble
->> > anyway. =A0It's a matter of making the write become visible reason=
-ably
->> > quickly and in the correct order with respect to other writes.
+[...]
+
+>> >> diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-
+>> omap2/opp3xxx_data.c
+>> >> index d95f3f9..b5d8294 100644
+>> >> --- a/arch/arm/mach-omap2/opp3xxx_data.c
+>> >> +++ b/arch/arm/mach-omap2/opp3xxx_data.c
+>> >> @@ -26,6 +26,16 @@
+>> >> =C2=A0#include "pm.h"
+>> >>
+>> >> =C2=A0/* 34xx */
+>> >> +/* OMAP VP parameter values */
+>> >> +#define OMAP3430_VP1_VLIMITTO_VDDMIN =C2=A0 0x14
+>> >> +#define OMAP3430_VP1_VLIMITTO_VDDMAX =C2=A0 0x42
+>> >> +#define OMAP3430_VP2_VLIMITTO_VDDMIN =C2=A0 0x18
+>> >> +#define OMAP3430_VP2_VLIMITTO_VDDMAX =C2=A0 0x2c
+
+>>> NAK -> we should be using voltages here -> depending on the PMIC
+>>> used, the rounding factor may not map to TWL4030.
 >>
->> I'm not entirely sure what the problem is - I think its about a writ=
-e
->> by the CPU to dma coherent memory being delayed and not being visibl=
-e
->> to the HC in a timely manner. =A0Either mb() or wmb() placed after t=
-he
->> write on ARM will do that - and ARM has no requirement to do a read-
->> back after the barrier.
->
-> Okay, then this needs to be done in a way that won't slow down other
-> architectures with an unnecessary memory barrier. =A0And there needs =
-to
-> be a comment in the code explaining that the new mb() instruction isn=
-'t
-> being used as a memory barrier but rather to expedite writeback of th=
-e
-> L2 cache.
-
-If writing to coherent memory can't reach physical memory immediately o=
-n
-other ARCHs,  the problem can still happen on these ARCHs. But I am
-not sure if there are these kind of ARCHs except for ARM.
-
-Anyway, current memory barriers in qh_append_tds() can't prevent the pr=
-oblem
-from happening on ARM.
-
-If no better solutions, maybe we have to use 'mb()' after
-'dummy->hw_token =3D token'
-to fix the problem:
-
->
-> This certainly is starting to sound like something that needs to be
-> addressed in the arch-specific #include files...
->
->> > Is this extra L2-cache "poke" needed for proper ordering, or is it
->> > needed merely to flush the write out to memory in a timely manner?
+>> Agreed.
 >>
->> Both, though primerily it's about ensuring correct ordering. =A0A si=
-de
->> effect of it is that it will flush all pending writes in L2 before
->> completing.
+>> > I had posted patch for this earlier I believe in series
+>> > http://marc.info/?l=3Dlinux-omap&m=3D130741297821372&w=3D2
 >>
->> From the theoretical viewpoint, I think I'm right to say that mb()
->> doesn't need to provide that level of ordering as its supposed to be
->> an inter-CPU barrier - which probably means we need to invent a new
->> barrier to deal with DMA memory ordering. =A0However, given the
->> difficulty of getting the existing barriers placed correctly, I don'=
-t
->> think inventing new barriers is a very good idea.
+>> I know you're a bit distracted currently ;) but is there any chance
+>> you can refresh at least this patch:
 >>
->> What we can do is view devices which perform DMA as being strongly
->> ordered with respect to their memory accesses - iow, they have an
->> implicit memory barrier before and after their accesses to memory.
->> This would make the CPUs use of mb() have a conceptual pairing with
->> the DMA agents.
+>>     OMAP3+: PM: VP: use uV for max and min voltage limits
+>>
+>> from your series on top of my current pm-wip/voltdm branch?
+>>
+>> If not, maybe point us to an archived version and Tero can pick it u=
+p
+>> and add it to this series.  After a quick search, I couldn't find it
+>> in the marc.info archives.
 >
-> Yes, that's the model I have been using all along. =A0After all, if a=
- DMA
-> master carries out its memory accesses in some random order then it's
-> impossible for the CPU to make any guarantees.
+> Below link should help I suppose.
+> https://patchwork.kernel.org/patch/855172/
 >
-> Alan Stern
->
->
+
+Yes, Tero should pick this one up and add it to his series to address
+Nishanth's concerns.
+
+Kevin
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
