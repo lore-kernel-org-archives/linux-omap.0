@@ -1,42 +1,40 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC PATCH 2/6 V2] OMAP4: Adding the temperature sensor register set bit fields
-Date: Mon, 29 Aug 2011 14:52:38 -0700
-Message-ID: <87zkirq40p.fsf@ti.com>
-References: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
-	<1313664735-8917-3-git-send-email-j-keerthy@ti.com>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: How to handle named resources with DT?
+Date: Mon, 29 Aug 2011 22:54:04 +0100
+Message-ID: <20110829215404.GA26846@sirena.org.uk>
+References: <20110809205723.GE11568@ponder.secretlab.ca>
+	<877h6173wm.fsf@ti.com> <20110826041200.GD2308@yookeroo.fritz.box>
+	<201108261258.32880.arnd@arndb.de>
+	<20110826130644.GN2308@yookeroo.fritz.box>
+	<alpine.DEB.2.00.1108271444240.23968@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:39887 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755235Ab1H2Vwn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 17:52:43 -0400
-Received: by mail-yw0-f49.google.com with SMTP id 17so7586968ywp.22
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 14:52:42 -0700 (PDT)
-In-Reply-To: <1313664735-8917-3-git-send-email-j-keerthy@ti.com> (Keerthy's
-	message of "Thu, 18 Aug 2011 16:22:11 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1108271444240.23968-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "G,
+	Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
 
-+Benoit
+On Sat, Aug 27, 2011 at 03:47:55PM -0600, Paul Walmsley wrote:
 
-Keerthy <j-keerthy@ti.com> writes:
+> Certainly, from a kernel development perspective, one can decide to just 
+> dump this kind of DT generation problem back on the hardware vendors.  
+> But it seems more efficient and less error-prone to simply remove both 
+> mapping tables, and to export names directly from the IP block data into 
+> the device data format.
 
-> OMAP4460 specific temperature sensor register bit fields are added.
-
-...and existing OMAP4 entries are renamed to OMAP4430.
-
-Please be sure to describe thoroughly *all* the changes that are being
-done in the changelog.
-
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> Cc: tony@atomide.com
-
-The script that auto-generates this data needs to be updated.
-
-Please coordinate with Benoit to ensure the scripts are updated as well.
-
-Kevin
+That seems sensible, though we'd probably want to keep the option to
+remap in there at least on the generation side in case some integrators
+end up renaming the ports on the IP block for some reason.
