@@ -1,133 +1,175 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 21/22] OMAP2+: PRM: add register access functions for VC/VP
-Date: Mon, 29 Aug 2011 10:35:54 -0700
-Message-ID: <1314639355-12713-22-git-send-email-khilman@ti.com>
+Subject: [PATCH 10/22] OMAP3: powerdomain data: add voltage domains
+Date: Mon, 29 Aug 2011 10:35:43 -0700
+Message-ID: <1314639355-12713-11-git-send-email-khilman@ti.com>
 References: <1314639355-12713-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:60768 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754316Ab1H2RgJ (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:49483 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754535Ab1H2Rft (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:36:09 -0400
-Received: by gwb20 with SMTP id 20so5828871gwb.31
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:36:06 -0700 (PDT)
+	Mon, 29 Aug 2011 13:35:49 -0400
+Received: by mail-pz0-f43.google.com with SMTP id 1so12732490pzk.30
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:35:48 -0700 (PDT)
 In-Reply-To: <1314639355-12713-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-On OMAP3+, the voltage controller (VC) and voltage processor (VP) are
-inside the PRM.  Add some PRM helper functions for register access to
-these module registers.
+Add voltage domain name to indicate which voltagedomain each
+powerdomain is in.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/prm2xxx_3xxx.c |   15 +++++++++++++++
- arch/arm/mach-omap2/prm2xxx_3xxx.h |    8 ++++++++
- arch/arm/mach-omap2/prm44xx.c      |   22 ++++++++++++++++++++++
- arch/arm/mach-omap2/prm44xx.h      |    8 ++++++++
- 4 files changed, 53 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c |    2 ++
+ arch/arm/mach-omap2/powerdomains3xxx_data.c      |   16 ++++++++++++++++
+ 2 files changed, 18 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index 58c5c87..3b83763 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -197,3 +197,18 @@ void omap3_prm_vp_clear_txdone(u8 vp_id)
- 	omap2_prm_write_mod_reg(vp->tranxdone_status,
- 				OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
- }
-+
-+u32 omap3_prm_vcvp_read(u8 offset)
-+{
-+	return omap2_prm_read_mod_reg(OMAP3430_GR_MOD, offset);
-+}
-+
-+void omap3_prm_vcvp_write(u32 val, u8 offset)
-+{
-+	omap2_prm_write_mod_reg(val, OMAP3430_GR_MOD, offset);
-+}
-+
-+u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset)
-+{
-+	return omap2_prm_rmw_mod_reg_bits(mask, bits, OMAP3430_GR_MOD, offset);
-+}
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index 5112526..cef533d 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -307,7 +307,15 @@ extern int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift, u8 st_shift);
- u32 omap3_prm_vp_check_txdone(u8 vp_id);
- void omap3_prm_vp_clear_txdone(u8 vp_id);
+diff --git a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
+index 4210c33..2242c8e 100644
+--- a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
+@@ -70,6 +70,7 @@ struct powerdomain gfx_omap2_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
  
-+/*
-+ * OMAP3 access functions for voltage controller (VC) and
-+ * voltage proccessor (VP) in the PRM.
-+ */
-+extern u32 omap3_prm_vcvp_read(u8 offset);
-+extern void omap3_prm_vcvp_write(u32 val, u8 offset);
-+extern u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
- #endif	/* CONFIG_ARCH_OMAP4 */
-+
- #endif
+ struct powerdomain wkup_omap2_pwrdm = {
+@@ -77,4 +78,5 @@ struct powerdomain wkup_omap2_pwrdm = {
+ 	.prcm_offs	= WKUP_MOD,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
+ 	.pwrsts		= PWRSTS_ON,
++	.voltdm         = { .name = "wakeup" },
+ };
+diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+index 469a920..1f37c0c 100644
+--- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+@@ -52,6 +52,7 @@ static struct powerdomain iva2_pwrdm = {
+ 		[2] = PWRSTS_OFF_ON,
+ 		[3] = PWRSTS_ON,
+ 	},
++	.voltdm           = { .name = "mpu_iva" },
+ };
+ 
+ static struct powerdomain mpu_3xxx_pwrdm = {
+@@ -68,6 +69,7 @@ static struct powerdomain mpu_3xxx_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_OFF_ON,
+ 	},
++	.voltdm           = { .name = "mpu_iva" },
+ };
  
  /*
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 390e32c..495a31a 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -24,6 +24,8 @@
- #include "vp.h"
- #include "prm44xx.h"
- #include "prm-regbits-44xx.h"
-+#include "prcm44xx.h"
-+#include "prminst44xx.h"
- 
- /* PRM low-level functions */
- 
-@@ -99,3 +101,23 @@ void omap4_prm_vp_clear_txdone(u8 vp_id)
- 				     OMAP4430_PRM_OCP_SOCKET_INST,
- 				     vp->irqstatus_mpu);
+@@ -98,6 +100,7 @@ static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
+ 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
+ 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
  };
-+
-+u32 omap4_prm_vcvp_read(u8 offset)
-+{
-+	return omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-+					   OMAP4430_PRM_DEVICE_INST, offset);
-+}
-+
-+void omap4_prm_vcvp_write(u32 val, u8 offset)
-+{
-+	omap4_prminst_write_inst_reg(val, OMAP4430_PRM_PARTITION,
-+				     OMAP4430_PRM_DEVICE_INST, offset);
-+}
-+
-+u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset)
-+{
-+	return omap4_prminst_rmw_inst_reg_bits(mask, bits,
-+					       OMAP4430_PRM_PARTITION,
-+					       OMAP4430_PRM_DEVICE_INST,
-+					       offset);
-+}
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index b28c87d..3d66ccd 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -755,6 +755,14 @@ extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
- u32 omap4_prm_vp_check_txdone(u8 vp_id);
- void omap4_prm_vp_clear_txdone(u8 vp_id);
  
-+/*
-+ * OMAP4 access functions for voltage controller (VC) and
-+ * voltage proccessor (VP) in the PRM.
-+ */
-+extern u32 omap4_prm_vcvp_read(u8 offset);
-+extern void omap4_prm_vcvp_write(u32 val, u8 offset);
-+extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
-+
- # endif
+ static struct powerdomain core_3xxx_es3_1_pwrdm = {
+@@ -121,6 +124,7 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
+ 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
+ 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
  
- #endif
+ static struct powerdomain dss_pwrdm = {
+@@ -136,6 +140,7 @@ static struct powerdomain dss_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
+ 
+ /*
+@@ -157,6 +162,7 @@ static struct powerdomain sgx_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
+ 
+ static struct powerdomain cam_pwrdm = {
+@@ -172,6 +178,7 @@ static struct powerdomain cam_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
+ 
+ static struct powerdomain per_pwrdm = {
+@@ -187,12 +194,14 @@ static struct powerdomain per_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
+ 
+ static struct powerdomain emu_pwrdm = {
+ 	.name		= "emu_pwrdm",
+ 	.prcm_offs	= OMAP3430_EMU_MOD,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.voltdm           = { .name = "core" },
+ };
+ 
+ static struct powerdomain neon_pwrdm = {
+@@ -201,6 +210,7 @@ static struct powerdomain neon_pwrdm = {
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_RET,
++	.voltdm           = { .name = "mpu_iva" },
+ };
+ 
+ static struct powerdomain usbhost_pwrdm = {
+@@ -223,36 +233,42 @@ static struct powerdomain usbhost_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
+ 
+ static struct powerdomain dpll1_pwrdm = {
+ 	.name		= "dpll1_pwrdm",
+ 	.prcm_offs	= MPU_MOD,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.voltdm           = { .name = "mpu_iva" },
+ };
+ 
+ static struct powerdomain dpll2_pwrdm = {
+ 	.name		= "dpll2_pwrdm",
+ 	.prcm_offs	= OMAP3430_IVA2_MOD,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.voltdm           = { .name = "mpu_iva" },
+ };
+ 
+ static struct powerdomain dpll3_pwrdm = {
+ 	.name		= "dpll3_pwrdm",
+ 	.prcm_offs	= PLL_MOD,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.voltdm           = { .name = "core" },
+ };
+ 
+ static struct powerdomain dpll4_pwrdm = {
+ 	.name		= "dpll4_pwrdm",
+ 	.prcm_offs	= PLL_MOD,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.voltdm           = { .name = "core" },
+ };
+ 
+ static struct powerdomain dpll5_pwrdm = {
+ 	.name		= "dpll5_pwrdm",
+ 	.prcm_offs	= PLL_MOD,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
++	.voltdm           = { .name = "core" },
+ };
+ 
+ /* As powerdomains are added or removed above, this list must also be changed */
 -- 
 1.7.6
 
