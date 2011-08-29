@@ -1,69 +1,87 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] usb: ehci: fix update qtd->token in qh_append_tds
-Date: Mon, 29 Aug 2011 12:33:43 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1108291218040.2525-100000@iolanthe.rowland.org>
-References: <CACVXFVNFXh33tsvkM=jdnc8OocVhjkzpt6LK59zKa9L2F7HxpQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH 00/22] OMAP: voltage cleanup part A
+Date: Mon, 29 Aug 2011 10:13:58 -0700
+Message-ID: <1314638060-4689-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:40193 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753866Ab1H2Qdo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Aug 2011 12:33:44 -0400
-In-Reply-To: <CACVXFVNFXh33tsvkM=jdnc8OocVhjkzpt6LK59zKa9L2F7HxpQ@mail.gmail.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:54259 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754380Ab1H2RNw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Aug 2011 13:13:52 -0400
+Received: by mail-yi0-f50.google.com with SMTP id 18so4605311yib.23
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:13:51 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <ming.lei@canonical.com>
-Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, Santosh <santosh.shilimkar@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Mon, 29 Aug 2011, Ming Lei wrote:
+This is the first phase of the OMAP voltage layer cleanup.  The
+primary goal is to cleanup/reorganize data structures to facilitate
+splitting apart the voltage processor (VP) and voltage controller (VC)
+into separate layers.
 
-> Suppose HC can see the old value in hw_token, which has the ACTIVE bit clear.
-> 
-> The qtd transaction will not be executed until the new token is
-> flushed into memory.
-> From view of CPU, the irq is still be delayed because ioc irq is generated
-> after the qtd transaction is executed when new token is flushed into
-> memory. The delay
-> depends on how long the token will be flushed into memory.
+Benoit Cousson (1):
+  OMAP4: powerdomain data: add voltage domains
 
-That's right.
+Kevin Hilman (21):
+  OMAP2+: hwmod: remove unused voltagedomain pointer
+  OMAP2+: voltage: move PRCM mod offets into VC/VP structures
+  OMAP2+: voltage: move prm_irqst_reg from VP into voltage domain
+  OMAP2+: voltage: start towards a new voltagedomain layer
+  OMAP3: voltage: rename "mpu" voltagedomain to "mpu_iva"
+  OMAP3: voltagedomain data: add wakeup domain
+  OMAP3+: voltage: add scalable flag to voltagedomain
+  OMAP2+: powerdomain: add voltagedomain to struct powerdomain
+  OMAP2: add voltage domains and connect to powerdomains
+  OMAP3: powerdomain data: add voltage domains
+  OMAP2+: powerdomain: add voltage domain lookup during register
+  OMAP2+: voltage: keep track of powerdomains in each voltagedomain
+  OMAP2+: voltage: split voltage controller (VC) code into dedicated
+    layer
+  OMAP2+: voltage: move VC into struct voltagedomain, misc. renames
+  OMAP2+: voltage: enable VC bypass scale method when VC is initialized
+  OMAP2+: voltage: split out voltage processor (VP) code into new layer
+  OMAP2+: VC: support PMICs with separate voltage and command registers
+  OMAP2+: add PRM VP functions for checking/clearing VP TX done status
+  OMAP3+ VP: replace transaction done check/clear with VP ops
+  OMAP2+: PRM: add register access functions for VC/VP
+  OMAP3+: voltage: convert to PRM register access functions
 
-> From my observation, the delay is commonly over 5ms for CSW, sometimes the delay
-> is more than 20ms, so caused the bad performance.
+ arch/arm/mach-omap2/Makefile                     |    5 +-
+ arch/arm/mach-omap2/io.c                         |    5 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c       |    4 +-
+ arch/arm/mach-omap2/omap_twl.c                   |   20 +-
+ arch/arm/mach-omap2/pm.c                         |    4 +-
+ arch/arm/mach-omap2/powerdomain.c                |   23 +
+ arch/arm/mach-omap2/powerdomain.h                |   10 +
+ arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c |    2 +
+ arch/arm/mach-omap2/powerdomains2xxx_data.c      |    4 +
+ arch/arm/mach-omap2/powerdomains3xxx_data.c      |   16 +
+ arch/arm/mach-omap2/powerdomains44xx_data.c      |   16 +
+ arch/arm/mach-omap2/prm2xxx_3xxx.c               |   56 ++
+ arch/arm/mach-omap2/prm2xxx_3xxx.h               |   12 +
+ arch/arm/mach-omap2/prm44xx.c                    |   71 ++
+ arch/arm/mach-omap2/prm44xx.h                    |   12 +
+ arch/arm/mach-omap2/sr_device.c                  |    2 +-
+ arch/arm/mach-omap2/vc.c                         |  259 +++++++
+ arch/arm/mach-omap2/vc.h                         |   34 +-
+ arch/arm/mach-omap2/vc3xxx_data.c                |   10 +-
+ arch/arm/mach-omap2/vc44xx_data.c                |   14 +-
+ arch/arm/mach-omap2/voltage.c                    |  889 +++++-----------------
+ arch/arm/mach-omap2/voltage.h                    |   61 +-
+ arch/arm/mach-omap2/voltagedomains2xxx_data.c    |   32 +
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c    |   53 +-
+ arch/arm/mach-omap2/voltagedomains44xx_data.c    |   69 +-
+ arch/arm/mach-omap2/vp.c                         |  367 +++++++++
+ arch/arm/mach-omap2/vp.h                         |   45 +-
+ arch/arm/mach-omap2/vp3xxx_data.c                |   21 +-
+ arch/arm/mach-omap2/vp44xx_data.c                |   28 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h     |    1 -
+ 30 files changed, 1281 insertions(+), 864 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/vc.c
+ create mode 100644 arch/arm/mach-omap2/voltagedomains2xxx_data.c
+ create mode 100644 arch/arm/mach-omap2/vp.c
 
-No wonder!  Do you see the same sort of performance degradation when 
-using shared memory to communicate between two CPUs?
-
-Regardless, this is not quite the same as what you were talking about
-earlier.  You specifically mentioned
-
-	... so ehci may fetch a inconsistent qtd and execute it, then
-	mistaken IOC or "total bytes to transfer" are read by EHCI and
-	cause delayed irq or lost irq.
-
-Bad performance is different from inconsistencies and lost IRQs.
-
-> Also I am not sure if EHCI can read the old hw_token correctly in this kind of
-> inconsistent memory state.
-
-The memory state is NOT inconsistent!  It is consistent at all times, 
-both before and after the new hw_token value is stored.  The memory 
-state is just slow to update, that's all.  This is a speed issue, not a 
-correctness issue.
-
-Nevertheless, it remains true that you want to add a memory barrier
-instruction simply in order to speed up a cache writeback, not to force
-any sort of ordering.  This needs to be explained carefully in the code
-(not just in the patch description!) and it needs to be done in a way
-that won't affect other architectures.
-
-Also, as you mentioned before, you may want to do the same thing in 
-qh_link_async() just after the
-
-	head->hw->hw_next = dma;
-
-line.  Delays in flushing that write would also slow down performance.
-
-Alan Stern
+-- 
+1.7.6
 
