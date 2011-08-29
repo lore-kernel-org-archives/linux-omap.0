@@ -1,66 +1,69 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 5/5 v4] mfd: omap: usb: Runtime PM support
-Date: Mon, 29 Aug 2011 13:47:39 -0700
-Message-ID: <8739gkrllg.fsf@ti.com>
-References: <1312899309-24067-1-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-2-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-3-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-4-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-5-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-6-git-send-email-keshava_mgowda@ti.com>
-	<87mxesrr1g.fsf@ti.com>
+Subject: Re: [PATCH 1/3] OMAP2+: pm: fix typos
+Date: Mon, 29 Aug 2011 14:13:59 -0700
+Message-ID: <87r543rkdk.fsf@ti.com>
+References: <1312907661-24436-1-git-send-email-jhovold@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:48896 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754684Ab1H2Urn (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:35946 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754380Ab1H2VOI (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 16:47:43 -0400
-In-Reply-To: <87mxesrr1g.fsf@ti.com> (Kevin Hilman's message of "Mon, 29 Aug
-	2011 11:50:03 -0700")
+	Mon, 29 Aug 2011 17:14:08 -0400
+Received: by pzk4 with SMTP id 4so9842124pzk.0
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 14:14:03 -0700 (PDT)
+In-Reply-To: <1312907661-24436-1-git-send-email-jhovold@gmail.com> (Johan
+	Hovold's message of "Tue, 9 Aug 2011 18:34:19 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, Jassi Brar <jaswinder.singh@linaro.org>
+To: Johan Hovold <jhovold@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Kevin Hilman <khilman@ti.com> writes:
+Hi Johan,
 
-> Keshava Munegowda <keshava_mgowda@ti.com> writes:
->
->> From: Keshava Munegowda <Keshava_mgowda@ti.com>
->>
->> The usbhs core driver does not enable/disable the intefrace and
->> fucntional clocks; These clocks are handled by hwmod and runtime pm,
->> hence insted of the clock enable/disable, the runtime pm APIS are
->> used. however,the port clocks are handled by the usbhs core.
->>
->> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->
-> General comment: all usage of pm_runtime_put_sync() can likely be
-> replaced by the asynchronous versions.  I don't currently see why the
-> synchronous verions are needed here.
->
-> Other than that, the runtime PM parts of this look OK to me.  After
-> changing to asynchonous puts, feel free to add:
->
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
+Johan Hovold <jhovold@gmail.com> writes:
 
-oops, this should've been in response to your v8 version.
+> Fix typos in comment and error message.
+>
+> Signed-off-by: Johan Hovold <jhovold@gmail.com>
+
+Thanks for these PM-related cleanups.  They're much appreciated.
+
+Patches 1 & 2 look fine.  However, can you please repost with the
+linux-arm-kernel mailing list in Cc?    All patches for upstream should
+also Cc that list: linux-arm-kernel@lists.infradead.org
 
 Kevin
 
+> ---
+>  arch/arm/mach-omap2/pm.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
 >
-> Also, after a quick glance, it looks like this version of the series
-> addresses the problems seen by Jassi Brar with the TLL reset[1].  Please
-> confirm.
->
-> Speaking of which, it's helpful to Cc folks who have had comments on
-> previous versions of your series so they are sure they're previous
-> issues are addressed.   I've Cc'd Jassi Brar.
->
-> Thanks,
->
-> Kevin
->
-> [1] http://marc.info/?l=linux-omap&m=130921260703865&w=2
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 3feb359..fd77cf4 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -163,11 +163,11 @@ err:
+>  }
+>  
+>  /*
+> - * This API is to be called during init to put the various voltage
+> + * This API is to be called during init to set the various voltage
+>   * domains to the voltage as per the opp table. Typically we boot up
+>   * at the nominal voltage. So this function finds out the rate of
+>   * the clock associated with the voltage domain, finds out the correct
+> - * opp entry and puts the voltage domain to the voltage specifies
+> + * opp entry and sets the voltage domain to the voltage specified
+>   * in the opp entry
+>   */
+>  static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+> @@ -218,7 +218,7 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+>  	return 0;
+>  
+>  exit:
+> -	printk(KERN_ERR "%s: Unable to put vdd_%s to its init voltage\n\n",
+> +	printk(KERN_ERR "%s: Unable to set vdd_%s to its init voltage\n\n",
+>  		__func__, vdd_name);
+>  	return -EINVAL;
+>  }
