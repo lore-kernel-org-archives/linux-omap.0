@@ -1,198 +1,108 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 04/12] OMAP3+: VP: move SoC-specific sys clock rate retreival late init
-Date: Mon, 29 Aug 2011 10:58:04 -0700
-Message-ID: <1314640692-3386-5-git-send-email-khilman@ti.com>
+Subject: [PATCH 05/12] OMAP3+: VP: move timing calculation/config into VP init
+Date: Mon, 29 Aug 2011 10:58:05 -0700
+Message-ID: <1314640692-3386-6-git-send-email-khilman@ti.com>
 References: <1314640692-3386-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:53675 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754386Ab1H2R5w (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:38626 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754457Ab1H2R5x (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:57:52 -0400
-Received: by mail-iy0-f177.google.com with SMTP id b35so1120973iac.22
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:57:50 -0700 (PDT)
+	Mon, 29 Aug 2011 13:57:53 -0400
+Received: by mail-iy0-f173.google.com with SMTP id z25so935975iab.32
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:57:52 -0700 (PDT)
 In-Reply-To: <1314640692-3386-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Add sys clock name and rate to struct voltage domain.  SoC specific
-voltagedomain init code initializes sys clock name.  After clock
-framework is initialized, voltage late init will then use use the
-sys_clk rate to calculate the various timing that depend on that rate.
+Move VP timing calcluation (based on sys clock) and register programming
+into VP init.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/voltage.c                 |   47 +++++++++----------------
- arch/arm/mach-omap2/voltage.h                 |    5 +++
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |    8 ++++
- arch/arm/mach-omap2/voltagedomains44xx_data.c |    8 ++++
- 4 files changed, 38 insertions(+), 30 deletions(-)
+ arch/arm/mach-omap2/voltage.c |   22 ----------------------
+ arch/arm/mach-omap2/vp.c      |   23 ++++++++++++++++++++++-
+ 2 files changed, 22 insertions(+), 23 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 5b16fd1..533ea38 100644
+index 533ea38..4a15668 100644
 --- a/arch/arm/mach-omap2/voltage.c
 +++ b/arch/arm/mach-omap2/voltage.c
-@@ -21,10 +21,10 @@
- 
- #include <linux/delay.h>
- #include <linux/io.h>
--#include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/debugfs.h>
- #include <linux/slab.h>
-+#include <linux/clk.h>
- 
- #include <plat/common.h>
- 
-@@ -45,36 +45,12 @@ static LIST_HEAD(voltdm_list);
- 
+@@ -46,31 +46,9 @@ static LIST_HEAD(voltdm_list);
  static int __init _config_common_vdd_data(struct voltagedomain *voltdm)
  {
--	char *sys_ck_name;
--	struct clk *sys_ck;
--	u32 sys_clk_speed, timeout_val, waittime;
  	struct omap_vdd_info *vdd = voltdm->vdd;
-+	u32 sys_clk_rate, timeout_val, waittime;
- 
--	/*
--	 * XXX Clockfw should handle this, or this should be in a
--	 * struct record
--	 */
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())
--		sys_ck_name = "sys_ck";
--	else if (cpu_is_omap44xx())
--		sys_ck_name = "sys_clkin_ck";
--	else
--		return -EINVAL;
+-	u32 sys_clk_rate, timeout_val, waittime;
 -
--	/*
--	 * Sys clk rate is require to calculate vp timeout value and
--	 * smpswaittimemin and smpswaittimemax.
--	 */
--	sys_ck = clk_get(NULL, sys_ck_name);
--	if (IS_ERR(sys_ck)) {
--		pr_warning("%s: Could not get the sys clk to calculate"
--			"various vdd_%s params\n", __func__, voltdm->name);
--		return -EINVAL;
--	}
--	sys_clk_speed = clk_get_rate(sys_ck);
--	clk_put(sys_ck);
- 	/* Divide to avoid overflow */
--	sys_clk_speed /= 1000;
-+	sys_clk_rate = voltdm->sys_clk.rate / 1000;
-+	WARN_ON(!sys_clk_rate);
+-	/* Divide to avoid overflow */
+-	sys_clk_rate = voltdm->sys_clk.rate / 1000;
+-	WARN_ON(!sys_clk_rate);
  
  	/* Generic voltage parameters */
  	vdd->volt_scale = omap_vp_forceupdate_scale;
-@@ -84,13 +60,13 @@ static int __init _config_common_vdd_data(struct voltagedomain *voltdm)
- 		(voltdm->pmic->vp_erroroffset <<
- 		 __ffs(voltdm->vp->common->vpconfig_erroroffset_mask));
+-	voltdm->vp->enabled = false;
+-
+-	vdd->vp_rt_data.vpconfig_erroroffset =
+-		(voltdm->pmic->vp_erroroffset <<
+-		 __ffs(voltdm->vp->common->vpconfig_erroroffset_mask));
+-
+-	timeout_val = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
+-	vdd->vp_rt_data.vlimitto_timeout = timeout_val;
+-	vdd->vp_rt_data.vlimitto_vddmin = voltdm->pmic->vp_vddmin;
+-	vdd->vp_rt_data.vlimitto_vddmax = voltdm->pmic->vp_vddmax;
+-
+-	waittime = ((voltdm->pmic->step_size / voltdm->pmic->slew_rate) *
+-		    sys_clk_rate) / 1000;
+-	vdd->vp_rt_data.vstepmin_smpswaittimemin = waittime;
+-	vdd->vp_rt_data.vstepmax_smpswaittimemax = waittime;
+-	vdd->vp_rt_data.vstepmin_stepmin = voltdm->pmic->vp_vstepmin;
+-	vdd->vp_rt_data.vstepmax_stepmax = voltdm->pmic->vp_vstepmax;
  
--	timeout_val = (sys_clk_speed * voltdm->pmic->vp_timeout_us) / 1000;
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index 297d094..ea61a47 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -50,7 +50,7 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ {
+ 	struct omap_vp_instance *vp = voltdm->vp;
+ 	struct omap_vdd_info *vdd = voltdm->vdd;
+-	u32 vp_val;
++	u32 vp_val, sys_clk_rate, timeout_val, waittime;
+ 
+ 	if (!voltdm->read || !voltdm->write) {
+ 		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
+@@ -58,6 +58,27 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ 		return;
+ 	}
+ 
++	vp->enabled = false;
++
++	/* Divide to avoid overflow */
++	sys_clk_rate = voltdm->sys_clk.rate / 1000;
++
++	vdd->vp_rt_data.vpconfig_erroroffset =
++		(voltdm->pmic->vp_erroroffset <<
++		 __ffs(voltdm->vp->common->vpconfig_erroroffset_mask));
++
 +	timeout_val = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
- 	vdd->vp_rt_data.vlimitto_timeout = timeout_val;
- 	vdd->vp_rt_data.vlimitto_vddmin = voltdm->pmic->vp_vddmin;
- 	vdd->vp_rt_data.vlimitto_vddmax = voltdm->pmic->vp_vddmax;
- 
- 	waittime = ((voltdm->pmic->step_size / voltdm->pmic->slew_rate) *
--				sys_clk_speed) / 1000;
++	vdd->vp_rt_data.vlimitto_timeout = timeout_val;
++	vdd->vp_rt_data.vlimitto_vddmin = voltdm->pmic->vp_vddmin;
++	vdd->vp_rt_data.vlimitto_vddmax = voltdm->pmic->vp_vddmax;
++
++	waittime = ((voltdm->pmic->step_size / voltdm->pmic->slew_rate) *
 +		    sys_clk_rate) / 1000;
- 	vdd->vp_rt_data.vstepmin_smpswaittimemin = waittime;
- 	vdd->vp_rt_data.vstepmax_smpswaittimemax = waittime;
- 	vdd->vp_rt_data.vstepmin_stepmin = voltdm->pmic->vp_vstepmin;
-@@ -346,9 +322,20 @@ int __init omap_voltage_late_init(void)
- 	}
- 
- 	list_for_each_entry(voltdm, &voltdm_list, node) {
-+		struct clk *sys_ck;
++	vdd->vp_rt_data.vstepmin_smpswaittimemin = waittime;
++	vdd->vp_rt_data.vstepmax_smpswaittimemax = waittime;
++	vdd->vp_rt_data.vstepmin_stepmin = voltdm->pmic->vp_vstepmin;
++	vdd->vp_rt_data.vstepmax_stepmax = voltdm->pmic->vp_vstepmax;
 +
- 		if (!voltdm->scalable)
- 			continue;
- 
-+		sys_ck = clk_get(NULL, voltdm->sys_clk.name);
-+		if (IS_ERR(sys_ck)) {
-+			pr_warning("%s: Could not get sys clk.\n", __func__);
-+			return -EINVAL;
-+		}
-+		voltdm->sys_clk.rate = clk_get_rate(sys_ck);
-+		WARN_ON(!voltdm->sys_clk.rate);
-+		clk_put(sys_ck);
-+
- 		if (voltdm->vc) {
- 			voltdm->vdd->volt_scale = omap_vc_bypass_scale;
- 			omap_vc_init_channel(voltdm);
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 5261703..d73c956 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -76,6 +76,11 @@ struct voltagedomain {
- 	void (*write) (u32 val, u8 offset);
- 	u32 (*rmw)(u32 mask, u32 bits, u8 offset);
- 
-+	union {
-+		const char *name;
-+		u32 rate;
-+	} sys_clk;
-+
- 	struct omap_vdd_info *vdd;
- };
- 
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index 4db2c6c..e7a0be1 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -82,8 +82,13 @@ static struct voltagedomain *voltagedomains_omap3[] __initdata = {
- 	NULL,
- };
- 
-+static const char *sys_clk_name __initdata = "sys_ck";
-+
- void __init omap3xxx_voltagedomains_init(void)
- {
-+	struct voltagedomain *voltdm;
-+	int i;
-+
- 	/*
- 	 * XXX Will depend on the process, validation, and binning
- 	 * for the currently-running IC
-@@ -96,5 +101,8 @@ void __init omap3xxx_voltagedomains_init(void)
- 		omap3_vdd2_info.volt_data = omap34xx_vddcore_volt_data;
- 	}
- 
-+	for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++)
-+		voltdm->sys_clk.name = sys_clk_name;
-+
- 	voltdm_init(voltagedomains_omap3);
- };
-diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-index 3e7cb4e..9c20fbb 100644
---- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-@@ -98,8 +98,13 @@ static struct voltagedomain *voltagedomains_omap4[] __initdata = {
- 	NULL,
- };
- 
-+static const char *sys_clk_name __initdata = "sys_clkin_ck";
-+
- void __init omap44xx_voltagedomains_init(void)
- {
-+	struct voltagedomain *voltdm;
-+	int i;
-+
- 	/*
- 	 * XXX Will depend on the process, validation, and binning
- 	 * for the currently-running IC
-@@ -108,5 +113,8 @@ void __init omap44xx_voltagedomains_init(void)
- 	omap4_vdd_iva_info.volt_data = omap44xx_vdd_iva_volt_data;
- 	omap4_vdd_core_info.volt_data = omap44xx_vdd_core_volt_data;
- 
-+	for (i = 0; voltdm = voltagedomains_omap4[i], voltdm; i++)
-+		voltdm->sys_clk.name = sys_clk_name;
-+
- 	voltdm_init(voltagedomains_omap4);
- };
+ 	vp_val = vdd->vp_rt_data.vpconfig_erroroffset |
+ 		(vdd->vp_rt_data.vpconfig_errorgain <<
+ 		 __ffs(vp->common->vpconfig_errorgain_mask)) |
 -- 
 1.7.6
 
