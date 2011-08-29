@@ -1,72 +1,101 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 5/5] OMAP4: PM: TWL6030: add cmd register
-Date: Mon, 29 Aug 2011 11:15:21 -0700
-Message-ID: <1314641721-5172-6-git-send-email-khilman@ti.com>
+Subject: [PATCH 1/5] OMAP4: PM: TWL6030: fix voltage conversion formula
+Date: Mon, 29 Aug 2011 11:15:17 -0700
+Message-ID: <1314641721-5172-2-git-send-email-khilman@ti.com>
 References: <1314641721-5172-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:57694 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754416Ab1H2SPC (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:53491 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754675Ab1H2SPQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 14:15:02 -0400
-Received: by mail-pz0-f46.google.com with SMTP id 32so9738599pzk.19
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 11:15:01 -0700 (PDT)
+	Mon, 29 Aug 2011 14:15:16 -0400
+Received: by mail-yi0-f51.google.com with SMTP id 12so3818596yib.38
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 11:15:15 -0700 (PDT)
 In-Reply-To: <1314641721-5172-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-From: Nishanth Menon <nm@ti.com>
+From: Patrick Titiano <p-titiano@ti.com>
 
-Without the command register, ON/ONLP/RET/OFF voltages are
-useless. and TWL will be unable to use these
+omap_twl_vsel_to_uv() and omap_twl_uv_to_vsel() functions used to convert
+voltages to TWL6030 SMPS commands (a.k.a "vsel") implement incorrect conversion
+formula.
+It uses legacy OMAP3 formula, but OMAP4 Power IC has different offset and
+voltage step:
+ - Voltage Step is now 12.66mV (instead of 12.5mV)
+ - Offset is either 607.7mV or 709mV depending on TWL6030 chip revision
+   (instead of 600mV)
+This leads to setting voltages potentially higher than expected, and so
+potentially some (limited) power overconsumption.
 
+For reference, see formula and tables in section 8.5.2.3
+"Output Voltage Selection (Standard Mode / Extended Mode with or without offset)"
+ in TWL6030 functional specifications document.
+
+[nm@ti.com: ported to voltdm_c]
 Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Patrick Titiano <p-titiano@ti.com>
 ---
- arch/arm/mach-omap2/omap_twl.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_twl.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index 4bc99fb..f515a1a 100644
+index 6b247d1..a66bf6b 100644
 --- a/arch/arm/mach-omap2/omap_twl.c
 +++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -42,8 +42,11 @@
+@@ -106,9 +106,9 @@ static unsigned long twl6030_vsel_to_uv(const u8 vsel)
+ 		return 1350000;
  
- #define OMAP4_SRI2C_SLAVE_ADDR		0x12
- #define OMAP4_VDD_MPU_SR_VOLT_REG	0x55
-+#define OMAP4_VDD_MPU_SR_CMD_REG	0x56
- #define OMAP4_VDD_IVA_SR_VOLT_REG	0x5B
-+#define OMAP4_VDD_IVA_SR_CMD_REG	0x5C
- #define OMAP4_VDD_CORE_SR_VOLT_REG	0x61
-+#define OMAP4_VDD_CORE_SR_CMD_REG	0x62
+ 	if (smps_offset & 0x8)
+-		return ((((vsel - 1) * 125) + 7000)) * 100;
++		return ((((vsel - 1) * 1266) + 70900)) * 10;
+ 	else
+-		return ((((vsel - 1) * 125) + 6000)) * 100;
++		return ((((vsel - 1) * 1266) + 60770)) * 10;
+ }
  
- #define OMAP4_VP_CONFIG_ERROROFFSET	0x00
- #define OMAP4_VP_VSTEPMIN_VSTEPMIN	0x01
-@@ -210,6 +213,7 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_MPU_SR_VOLT_REG,
-+	.cmd_reg_addr		= OMAP4_VDD_MPU_SR_CMD_REG,
- 	.i2c_high_speed		= true,
- 	.vsel_to_uv		= twl6030_vsel_to_uv,
- 	.uv_to_vsel		= twl6030_uv_to_vsel,
-@@ -231,6 +235,7 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_IVA_SR_VOLT_REG,
-+	.cmd_reg_addr		= OMAP4_VDD_IVA_SR_CMD_REG,
- 	.i2c_high_speed		= true,
- 	.vsel_to_uv		= twl6030_vsel_to_uv,
- 	.uv_to_vsel		= twl6030_uv_to_vsel,
-@@ -252,6 +257,7 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_CORE_SR_VOLT_REG,
-+	.cmd_reg_addr		= OMAP4_VDD_CORE_SR_CMD_REG,
- 	.vsel_to_uv		= twl6030_vsel_to_uv,
- 	.uv_to_vsel		= twl6030_uv_to_vsel,
- };
+ static u8 twl6030_uv_to_vsel(unsigned long uv)
+@@ -138,9 +138,9 @@ static u8 twl6030_uv_to_vsel(unsigned long uv)
+ 		return 0x3A;
+ 
+ 	if (smps_offset & 0x8)
+-		return DIV_ROUND_UP(uv - 700000, 12500) + 1;
++		return DIV_ROUND_UP(uv - 709000, 12660) + 1;
+ 	else
+-		return DIV_ROUND_UP(uv - 600000, 12500) + 1;
++		return DIV_ROUND_UP(uv - 607700, 12660) + 1;
+ }
+ 
+ static struct omap_voltdm_pmic omap3_mpu_pmic = {
+@@ -187,7 +187,7 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
+ 
+ static struct omap_voltdm_pmic omap4_mpu_pmic = {
+ 	.slew_rate		= 4000,
+-	.step_size		= 12500,
++	.step_size		= 12660,
+ 	.on_volt		= 1350000,
+ 	.onlp_volt		= 1350000,
+ 	.ret_volt		= 837500,
+@@ -208,7 +208,7 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
+ 
+ static struct omap_voltdm_pmic omap4_iva_pmic = {
+ 	.slew_rate		= 4000,
+-	.step_size		= 12500,
++	.step_size		= 12660,
+ 	.on_volt		= 1100000,
+ 	.onlp_volt		= 1100000,
+ 	.ret_volt		= 837500,
+@@ -229,7 +229,7 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
+ 
+ static struct omap_voltdm_pmic omap4_core_pmic = {
+ 	.slew_rate		= 4000,
+-	.step_size		= 12500,
++	.step_size		= 12660,
+ 	.on_volt		= 1100000,
+ 	.onlp_volt		= 1100000,
+ 	.ret_volt		= 837500,
 -- 
 1.7.6
 
