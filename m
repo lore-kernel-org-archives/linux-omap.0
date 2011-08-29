@@ -1,36 +1,44 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: How to handle named resources with DT?
-Date: Mon, 29 Aug 2011 19:18:53 +0200
-Message-ID: <201108291918.53745.arnd@arndb.de>
-References: <20110809205723.GE11568@ponder.secretlab.ca> <5595208.OB5dBohxQP@wuerfel> <20110828083934.GA4254@yookeroo.fritz.box>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH 01/22] OMAP2+: hwmod: remove unused voltagedomain pointer
+Date: Mon, 29 Aug 2011 10:35:34 -0700
+Message-ID: <1314639355-12713-2-git-send-email-khilman@ti.com>
+References: <1314639355-12713-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:61650 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754464Ab1H2RTH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Aug 2011 13:19:07 -0400
-In-Reply-To: <20110828083934.GA4254@yookeroo.fritz.box>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:47223 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751250Ab1H2Rfe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Aug 2011 13:35:34 -0400
+Received: by mail-pz0-f46.google.com with SMTP id 32so10235194pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:35:33 -0700 (PDT)
+In-Reply-To: <1314639355-12713-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: Kevin Hilman <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Sunday 28 August 2011, David Gibson wrote:
-> > Right, and I guess we can simply ignore DMA and ioport resources because they
-> > are extremely rare, right?
-> 
-> Well, remember it's where resources can appear in the DT node that
-> matters, not what the types are in the platform device.  ioports will
-> typically appear suitably encoded in 'reg', so that's covered.  I've
-> never been very clear on what exactly DMA resources cover, but yeah,
-> you might need something for dma-reg or other device tree properties.
+The voltage domain pointer currently in struct omap_hwmod is not used
+and does not belong here.  Instead, voltage domains will be associated
+with powerdomains in forthcoming patches.
 
-DMA resources are only meaningful with the legacy ISA dma API, all
-other uses are basically ad-hoc and I think we can ignore them or
-replace them with proper bindings when converting the drivers to
-device-tree based probing.
+Acked-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-	Arnd
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 0e329ca..38ac4af 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -526,7 +526,6 @@ struct omap_hwmod {
+ 	char				*clkdm_name;
+ 	struct clockdomain		*clkdm;
+ 	char				*vdd_name;
+-	struct voltagedomain		*voltdm;
+ 	struct omap_hwmod_ocp_if	**masters; /* connect to *_IA */
+ 	struct omap_hwmod_ocp_if	**slaves;  /* connect to *_TA */
+ 	void				*dev_attr;
+-- 
+1.7.6
+
