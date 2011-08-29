@@ -1,21 +1,33 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 03/13] ARM: gpio: omap: convert drivers to use asm/gpio.h rather than mach/gpio.h
-Date: Mon, 29 Aug 2011 11:20:22 -0700
-Message-ID: <87k49wt6zd.fsf@ti.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 11/13] ARM: gpio: consolidate trivial gpiolib implementations
+Date: Mon, 29 Aug 2011 11:23:34 -0700
+Message-ID: <87bov8t6u1.fsf@ti.com>
 References: <20110809080411.GA1831@n2100.arm.linux.org.uk>
-	<E1QqhJQ-0003a8-T9@rmk-PC.arm.linux.org.uk>
+	<E1QqhM1-0003af-U5@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <E1QqhJQ-0003a8-T9@rmk-PC.arm.linux.org.uk> (Russell King's
-	message of "Tue, 09 Aug 2011 09:05:20 +0100")
-Sender: linux-sh-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <E1QqhM1-0003af-U5-eh5Bv4kxaXIANfyc6IWni62ZND6+EDdj@public.gmane.org> (Russell King's
+	message of "Tue, 09 Aug 2011 09:08:01 +0100")
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> writes:
 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Consolidate 24 trivial gpiolib implementions out of mach/gpio.h
+> into asm/gpio.h.  This is basically the include of asm-generic/gpio.h
+> and the definition of gpio_get_value, gpio_set_value, and gpio_cansleep
+> as described in Documentation/gpio.txt
+>
+> Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
 
-Acked-by: Kevin Hilman <khilman@ti.com>
+For OMAP:
+
+Tested-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+
+Also goes for patches 12 & 13 also.
+
+Kevin
