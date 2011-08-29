@@ -1,156 +1,133 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 20/22] OMAP3+ VP: replace transaction done check/clear with VP ops
-Date: Mon, 29 Aug 2011 10:35:53 -0700
-Message-ID: <1314639355-12713-21-git-send-email-khilman@ti.com>
+Subject: [PATCH 21/22] OMAP2+: PRM: add register access functions for VC/VP
+Date: Mon, 29 Aug 2011 10:35:54 -0700
+Message-ID: <1314639355-12713-22-git-send-email-khilman@ti.com>
 References: <1314639355-12713-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:55912 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754316Ab1H2RgG (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:60768 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754316Ab1H2RgJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:36:06 -0400
-Received: by gwb17 with SMTP id 17so4784625gwb.15
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:36:05 -0700 (PDT)
+	Mon, 29 Aug 2011 13:36:09 -0400
+Received: by gwb20 with SMTP id 20so5828871gwb.31
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:36:06 -0700 (PDT)
 In-Reply-To: <1314639355-12713-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Replace the VP tranxdone check/clear with helper functions from the
-PRM layer.
-
-In the process, remove prm_irqst_* voltage structure fields for IRQ
-status checking which are no longer needed.
-
-Since these reads/writes of the IRQ status bits were the only PRM
-accesses that were not to VC/VP registers, this allows the rest of the
-register accesses in the VC/VP code to use VC/VP specific register
-access functions (done in the following patch.)
+On OMAP3+, the voltage controller (VC) and voltage processor (VP) are
+inside the PRM.  Add some PRM helper functions for register access to
+these module registers.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/voltage.h                 |    3 ---
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |    4 ----
- arch/arm/mach-omap2/voltagedomains44xx_data.c |    6 ------
- arch/arm/mach-omap2/vp.c                      |   16 +++++-----------
- 4 files changed, 5 insertions(+), 24 deletions(-)
+ arch/arm/mach-omap2/prm2xxx_3xxx.c |   15 +++++++++++++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.h |    8 ++++++++
+ arch/arm/mach-omap2/prm44xx.c      |   22 ++++++++++++++++++++++
+ arch/arm/mach-omap2/prm44xx.h      |    8 ++++++++
+ 4 files changed, 53 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 641597c..363eee4 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -131,7 +131,6 @@ struct omap_volt_pmic_info {
-  * @vfsm                : voltage manager FSM data
-  * @debug_dir		: debug directory for this voltage domain.
-  * @curr_volt		: current voltage for this vdd.
-- * @prm_irqst_mod       : PRM module id used for PRM IRQ status register access
-  * @vp_enabled		: flag to keep track of whether vp is enabled or not
-  * @volt_scale		: API to scale the voltage of the vdd.
-  */
-@@ -145,8 +144,6 @@ struct omap_vdd_info {
- 	u32 curr_volt;
- 	bool vp_enabled;
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+index 58c5c87..3b83763 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+@@ -197,3 +197,18 @@ void omap3_prm_vp_clear_txdone(u8 vp_id)
+ 	omap2_prm_write_mod_reg(vp->tranxdone_status,
+ 				OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+ }
++
++u32 omap3_prm_vcvp_read(u8 offset)
++{
++	return omap2_prm_read_mod_reg(OMAP3430_GR_MOD, offset);
++}
++
++void omap3_prm_vcvp_write(u32 val, u8 offset)
++{
++	omap2_prm_write_mod_reg(val, OMAP3430_GR_MOD, offset);
++}
++
++u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset)
++{
++	return omap2_prm_rmw_mod_reg_bits(mask, bits, OMAP3430_GR_MOD, offset);
++}
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+index 5112526..cef533d 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+@@ -307,7 +307,15 @@ extern int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift, u8 st_shift);
+ u32 omap3_prm_vp_check_txdone(u8 vp_id);
+ void omap3_prm_vp_clear_txdone(u8 vp_id);
  
--	s16 prm_irqst_mod;
--	u8 prm_irqst_reg;
- 	u32 (*read_reg) (u16 mod, u8 offset);
- 	void (*write_reg) (u32 val, u16 mod, u8 offset);
- 	int (*volt_scale) (struct voltagedomain *voltdm,
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index 7cb27ec..ad8f05b 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -38,8 +38,6 @@ static const struct omap_vfsm_instance_data omap3_vdd1_vfsm_data = {
- };
++/*
++ * OMAP3 access functions for voltage controller (VC) and
++ * voltage proccessor (VP) in the PRM.
++ */
++extern u32 omap3_prm_vcvp_read(u8 offset);
++extern void omap3_prm_vcvp_write(u32 val, u8 offset);
++extern u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
+ #endif	/* CONFIG_ARCH_OMAP4 */
++
+ #endif
  
- static struct omap_vdd_info omap3_vdd1_info = {
--	.prm_irqst_mod = OCP_MOD,
--	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap3_vp1_data,
- 	.vfsm = &omap3_vdd1_vfsm_data,
- };
-@@ -51,8 +49,6 @@ static const struct omap_vfsm_instance_data omap3_vdd2_vfsm_data = {
- };
+ /*
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 390e32c..495a31a 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -24,6 +24,8 @@
+ #include "vp.h"
+ #include "prm44xx.h"
+ #include "prm-regbits-44xx.h"
++#include "prcm44xx.h"
++#include "prminst44xx.h"
  
- static struct omap_vdd_info omap3_vdd2_info = {
--	.prm_irqst_mod = OCP_MOD,
--	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap3_vp2_data,
- 	.vfsm = &omap3_vdd2_vfsm_data,
- };
-diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-index a05d90a..43e1d38 100644
---- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-@@ -37,8 +37,6 @@ static const struct omap_vfsm_instance_data omap4_vdd_mpu_vfsm_data = {
- };
+ /* PRM low-level functions */
  
- static struct omap_vdd_info omap4_vdd_mpu_info = {
--	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
--	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
- 	.vp_data = &omap4_vp_mpu_data,
- 	.vfsm = &omap4_vdd_mpu_vfsm_data,
+@@ -99,3 +101,23 @@ void omap4_prm_vp_clear_txdone(u8 vp_id)
+ 				     OMAP4430_PRM_OCP_SOCKET_INST,
+ 				     vp->irqstatus_mpu);
  };
-@@ -48,8 +46,6 @@ static const struct omap_vfsm_instance_data omap4_vdd_iva_vfsm_data = {
- };
++
++u32 omap4_prm_vcvp_read(u8 offset)
++{
++	return omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
++					   OMAP4430_PRM_DEVICE_INST, offset);
++}
++
++void omap4_prm_vcvp_write(u32 val, u8 offset)
++{
++	omap4_prminst_write_inst_reg(val, OMAP4430_PRM_PARTITION,
++				     OMAP4430_PRM_DEVICE_INST, offset);
++}
++
++u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset)
++{
++	return omap4_prminst_rmw_inst_reg_bits(mask, bits,
++					       OMAP4430_PRM_PARTITION,
++					       OMAP4430_PRM_DEVICE_INST,
++					       offset);
++}
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index b28c87d..3d66ccd 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -755,6 +755,14 @@ extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
+ u32 omap4_prm_vp_check_txdone(u8 vp_id);
+ void omap4_prm_vp_clear_txdone(u8 vp_id);
  
- static struct omap_vdd_info omap4_vdd_iva_info = {
--	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
--	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap4_vp_iva_data,
- 	.vfsm = &omap4_vdd_iva_vfsm_data,
- };
-@@ -59,8 +55,6 @@ static const struct omap_vfsm_instance_data omap4_vdd_core_vfsm_data = {
- };
++/*
++ * OMAP4 access functions for voltage controller (VC) and
++ * voltage proccessor (VP) in the PRM.
++ */
++extern u32 omap4_prm_vcvp_read(u8 offset);
++extern void omap4_prm_vcvp_write(u32 val, u8 offset);
++extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
++
+ # endif
  
- static struct omap_vdd_info omap4_vdd_core_info = {
--	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
--	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap4_vp_core_data,
- 	.vfsm = &omap4_vdd_core_vfsm_data,
- };
-diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-index f3503de..113c839 100644
---- a/arch/arm/mach-omap2/vp.c
-+++ b/arch/arm/mach-omap2/vp.c
-@@ -111,10 +111,8 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
- 	 * is <3us
- 	 */
- 	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
--		vdd->write_reg(vp->prm_irqst_data->tranxdone_status,
--			       vdd->prm_irqst_mod, vdd->prm_irqst_reg);
--		if (!(vdd->read_reg(vdd->prm_irqst_mod, vdd->prm_irqst_reg) &
--		      vp->prm_irqst_data->tranxdone_status))
-+		vp->vp_common->ops->clear_txdone(vp->id);
-+		if (!vp->vp_common->ops->check_txdone(vp->id))
- 			break;
- 		udelay(1);
- 	}
-@@ -146,9 +144,7 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
- 	 * Depends on SMPSWAITTIMEMIN/MAX and voltage change
- 	 */
- 	timeout = 0;
--	omap_test_timeout((vdd->read_reg(vdd->prm_irqst_mod,
--					 vdd->prm_irqst_reg) &
--			   vp->prm_irqst_data->tranxdone_status),
-+	omap_test_timeout(vp->vp_common->ops->check_txdone(vp->id),
- 			  VP_TRANXDONE_TIMEOUT, timeout);
- 	if (timeout >= VP_TRANXDONE_TIMEOUT)
- 		pr_err("%s: vdd_%s TRANXDONE timeout exceeded."
-@@ -163,10 +159,8 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
- 	 */
- 	timeout = 0;
- 	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
--		vdd->write_reg(vp->prm_irqst_data->tranxdone_status,
--			       vdd->prm_irqst_mod, vdd->prm_irqst_reg);
--		if (!(vdd->read_reg(vdd->prm_irqst_mod, vdd->prm_irqst_reg) &
--		      vp->prm_irqst_data->tranxdone_status))
-+		vp->vp_common->ops->clear_txdone(vp->id);
-+		if (!vp->vp_common->ops->check_txdone(vp->id))
- 			break;
- 		udelay(1);
- 	}
+ #endif
 -- 
 1.7.6
 
