@@ -1,87 +1,58 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 00/22] OMAP: voltage cleanup part A
-Date: Mon, 29 Aug 2011 10:13:58 -0700
-Message-ID: <1314638060-4689-1-git-send-email-khilman@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: How to handle named resources with DT?
+Date: Mon, 29 Aug 2011 19:16:52 +0200
+Message-ID: <201108291916.52571.arnd@arndb.de>
+References: <20110809205723.GE11568@ponder.secretlab.ca> <5595208.OB5dBohxQP@wuerfel> <alpine.DEB.2.00.1108271306500.23968@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:54259 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754380Ab1H2RNw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:13:52 -0400
-Received: by mail-yi0-f50.google.com with SMTP id 18so4605311yib.23
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:13:51 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.126.186]:54432 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754454Ab1H2RQ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Aug 2011 13:16:59 -0400
+In-Reply-To: <alpine.DEB.2.00.1108271306500.23968@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>, Kevin Hilman <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Amit Kucheria <amit.kucheria@canonical.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-This is the first phase of the OMAP voltage layer cleanup.  The
-primary goal is to cleanup/reorganize data structures to facilitate
-splitting apart the voltage processor (VP) and voltage controller (VC)
-into separate layers.
+On Saturday 27 August 2011, Paul Walmsley wrote:
+> On Sat, 27 Aug 2011, Arnd Bergmann wrote:
+> 
+> > Right, and I guess we can simply ignore DMA and ioport resources because 
+> > they are extremely rare, right?
+> 
+> DMA resources are quite widely used.
+> 
+> For example, looking at the SoCs with some publicly-available 
+> documentation, the Motorola i.MX51 reference manual lists 47 SDMA request 
+> lines across about 17 different IP block types[1], and to pick a 
+> representative OMAP, the OMAP3430 technical reference manual lists 77 SDMA 
+> request lines, used by at least 9 different IP block types[2].
+> 
+> Also, many IP blocks have multiple DMA resources.  For example, the above 
+> references list UART, MCSPI, PATA, I2C, FIRI, MCBSP, SSI, CTI, CSPI, 
+> eCSPI, EMI, eSDHC, SPI, and DSS.
 
-Benoit Cousson (1):
-  OMAP4: powerdomain data: add voltage domains
+I don't doubt that many devices have a DMA controllers with multiple
+channels, but I think the last time we discussed those, the conclusion
+was that they should not actually be represented as DMA resources.
 
-Kevin Hilman (21):
-  OMAP2+: hwmod: remove unused voltagedomain pointer
-  OMAP2+: voltage: move PRCM mod offets into VC/VP structures
-  OMAP2+: voltage: move prm_irqst_reg from VP into voltage domain
-  OMAP2+: voltage: start towards a new voltagedomain layer
-  OMAP3: voltage: rename "mpu" voltagedomain to "mpu_iva"
-  OMAP3: voltagedomain data: add wakeup domain
-  OMAP3+: voltage: add scalable flag to voltagedomain
-  OMAP2+: powerdomain: add voltagedomain to struct powerdomain
-  OMAP2: add voltage domains and connect to powerdomains
-  OMAP3: powerdomain data: add voltage domains
-  OMAP2+: powerdomain: add voltage domain lookup during register
-  OMAP2+: voltage: keep track of powerdomains in each voltagedomain
-  OMAP2+: voltage: split voltage controller (VC) code into dedicated
-    layer
-  OMAP2+: voltage: move VC into struct voltagedomain, misc. renames
-  OMAP2+: voltage: enable VC bypass scale method when VC is initialized
-  OMAP2+: voltage: split out voltage processor (VP) code into new layer
-  OMAP2+: VC: support PMICs with separate voltage and command registers
-  OMAP2+: add PRM VP functions for checking/clearing VP TX done status
-  OMAP3+ VP: replace transaction done check/clear with VP ops
-  OMAP2+: PRM: add register access functions for VC/VP
-  OMAP3+: voltage: convert to PRM register access functions
+The problem with DMA resources is that they assume the presence of
+a global number space for DMA channel numbers, while in reality a
+lot of devices have multiple DMA controllers that have independent
+channel numbers.
 
- arch/arm/mach-omap2/Makefile                     |    5 +-
- arch/arm/mach-omap2/io.c                         |    5 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c       |    4 +-
- arch/arm/mach-omap2/omap_twl.c                   |   20 +-
- arch/arm/mach-omap2/pm.c                         |    4 +-
- arch/arm/mach-omap2/powerdomain.c                |   23 +
- arch/arm/mach-omap2/powerdomain.h                |   10 +
- arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c |    2 +
- arch/arm/mach-omap2/powerdomains2xxx_data.c      |    4 +
- arch/arm/mach-omap2/powerdomains3xxx_data.c      |   16 +
- arch/arm/mach-omap2/powerdomains44xx_data.c      |   16 +
- arch/arm/mach-omap2/prm2xxx_3xxx.c               |   56 ++
- arch/arm/mach-omap2/prm2xxx_3xxx.h               |   12 +
- arch/arm/mach-omap2/prm44xx.c                    |   71 ++
- arch/arm/mach-omap2/prm44xx.h                    |   12 +
- arch/arm/mach-omap2/sr_device.c                  |    2 +-
- arch/arm/mach-omap2/vc.c                         |  259 +++++++
- arch/arm/mach-omap2/vc.h                         |   34 +-
- arch/arm/mach-omap2/vc3xxx_data.c                |   10 +-
- arch/arm/mach-omap2/vc44xx_data.c                |   14 +-
- arch/arm/mach-omap2/voltage.c                    |  889 +++++-----------------
- arch/arm/mach-omap2/voltage.h                    |   61 +-
- arch/arm/mach-omap2/voltagedomains2xxx_data.c    |   32 +
- arch/arm/mach-omap2/voltagedomains3xxx_data.c    |   53 +-
- arch/arm/mach-omap2/voltagedomains44xx_data.c    |   69 +-
- arch/arm/mach-omap2/vp.c                         |  367 +++++++++
- arch/arm/mach-omap2/vp.h                         |   45 +-
- arch/arm/mach-omap2/vp3xxx_data.c                |   21 +-
- arch/arm/mach-omap2/vp44xx_data.c                |   28 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h     |    1 -
- 30 files changed, 1281 insertions(+), 864 deletions(-)
- create mode 100644 arch/arm/mach-omap2/vc.c
- create mode 100644 arch/arm/mach-omap2/voltagedomains2xxx_data.c
- create mode 100644 arch/arm/mach-omap2/vp.c
+We should have a proper device tree binding for dma-controllers that
+enables us to find both the channel and the controller in a simple
+dma-controller API call without having to resort to global numbers.
 
--- 
-1.7.6
+In a way that is the same with IRQ numbers, however the concept of
+a global number space for interrupt lines is used in so many places
+in the kernel that we can't reasonably move away from that. For
+dma-engine drivers, the concept does not exist in a driver-independent
+way and we should not introduce it.
 
+	Arnd
