@@ -1,21 +1,29 @@
 From: <mythripk@ti.com>
-Subject: [PATCH v2 00/10]HDMI: Split hdmi.c in DSS to seperate OMAP dependent
-Date: Mon, 29 Aug 2011 11:44:50 +0530
-Message-ID: <1314598500-24005-1-git-send-email-mythripk@ti.com>
+Subject: [PATCH v2 07/10] OMAP4: DSS2: HDMI: Provide a wrapper API to configure
+Date: Mon, 29 Aug 2011 11:44:57 +0530
+Message-ID: <1314598500-24005-8-git-send-email-mythripk@ti.com>
+References: <1314598500-24005-1-git-send-email-mythripk@ti.com>
+ <1314598500-24005-2-git-send-email-mythripk@ti.com>
+ <1314598500-24005-3-git-send-email-mythripk@ti.com>
+ <1314598500-24005-4-git-send-email-mythripk@ti.com>
+ <1314598500-24005-5-git-send-email-mythripk@ti.com>
+ <1314598500-24005-6-git-send-email-mythripk@ti.com>
+ <1314598500-24005-7-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44196 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752810Ab1H2GXM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Aug 2011 02:23:12 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:44537 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752834Ab1H2GXN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Aug 2011 02:23:13 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7T6N9js002998
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7T6N9PF014865
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 01:23:11 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7T6N8bR021125
-	for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 11:53:08 +0530 (IST)
+	for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 01:23:12 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7T6N9Ok021152
+	for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 11:53:09 +0530 (IST)
+In-Reply-To: <1314598500-24005-7-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
@@ -23,61 +31,103 @@ Cc: Mythri P K <mythripk@ti.com>
 
 From: Mythri P K <mythripk@ti.com>
 
-HDMI IP block is common between TI OMAP4 Procerssor and Netra processor although
-the Display subsytem is different.Also the IP block in future OMAP may differ
-from the one existing in OMAP4. Thus to reuse the code between these two
-processors , and maintain the multi omap build functionality in DSS.
-HDMI IP dependant code is seperated out from hdmi.c and moved to
-new library file hdmi_ti_4xxx_ip.c.From the DSS dependent HDMI code only the
-function pointer to functionality/features offered by HDMI is called.
+Instead of DSS knowing of the interior IP driver function provide
+a wrapper API to configure.
 
-This patch series does the split and also renames hdmi_omap4_panel.c to
-hdmi_panel.c as that file has nothing specific to OMAP4 and can be reused for
-other OMAP family of processors as well.
+Signed-off-by: Mythri P K <mythripk@ti.com>
+---
+ drivers/video/omap2/dss/hdmi.c            |    8 ++++----
+ drivers/video/omap2/dss/hdmi_ti_4xxx_ip.c |   11 ++++++++---
+ include/video/omaphdmi.h                  |    8 ++++----
+ 3 files changed, 16 insertions(+), 11 deletions(-)
 
-This patch series is based on Tomi's LO-DSS2 master branch.
-
-changes since V1: Function pointer approach to call the HDMI IP functions from
-DSS HDMI
-
-Mythri P K (10):
-  OMAP4: DSS: HDMI: HDMI clean up to pass base_address      dynamically
-    to IP dependant functions of HDMI
-  OMAP4: DSS: HDMI: Move pll and video configuration info to ip_data
-    structure
-  OMAP4: DSS: HDMI: Use specific HDMI timings structure instead of OMAP
-    DSS timings
-  OMAP4: DSS: HDMI: Move the common header file definition to
-    Include/video
-  OMAP4 : DSS : HDMI : Move the EDID portion from HDMI IP header
-  OMAP4: DSS2: HDMI: Split the HDMI driver to DSS and IP        
-    specific portion.
-  OMAP4: DSS2: HDMI: Provide a wrapper API to configure      PLL and
-    PHY configuration
-  OMAP4: DSS2: HDMI: Function pointer approach to call      HDMI IP
-    driver function from DSS
-  MAP4: DSS: HDMI: Rename the functions in HDMI IP      library to IP
-    specific name
-  OMAP4: DSS: Rename hdmi_omap4_panel.c to hdmi_panel.c
-
- drivers/video/omap2/dss/Makefile                   |    2 +-
- drivers/video/omap2/dss/dss.h                      |   10 -
- drivers/video/omap2/dss/dss_features.c             |   24 +-
- drivers/video/omap2/dss/dss_features.h             |    1 +
- drivers/video/omap2/dss/hdmi.c                     |  925 +++-----------------
- drivers/video/omap2/dss/hdmi.h                     |  631 -------------
- .../omap2/dss/{hdmi_omap4_panel.c => hdmi_panel.c} |    0
- drivers/video/omap2/dss/hdmi_ti_4xxx_ip.c          |  776 ++++++++++++++++
- drivers/video/omap2/dss/hdmi_ti_4xxx_ip.h          |  582 ++++++++++++
- include/video/omapdss.h                            |   19 +
- include/video/omaphdmi.h                           |   95 ++
- 11 files changed, 1642 insertions(+), 1423 deletions(-)
- delete mode 100644 drivers/video/omap2/dss/hdmi.h
- rename drivers/video/omap2/dss/{hdmi_omap4_panel.c => hdmi_panel.c} (100%)
- create mode 100644 drivers/video/omap2/dss/hdmi_ti_4xxx_ip.c
- create mode 100644 drivers/video/omap2/dss/hdmi_ti_4xxx_ip.h
- create mode 100644 include/video/omaphdmi.h
-
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 8baf4cf..fb7d66f 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -478,13 +478,13 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
+ 	hdmi_wp_video_start(&hdmi.hdmi_data, 0);
+ 
+ 	/* config the PLL and PHY hdmi_set_pll_pwrfirst */
+-	r = hdmi_pll_program(&hdmi.hdmi_data);
++	r = hdmi_pll_enable(&hdmi.hdmi_data);
+ 	if (r) {
+ 		DSSDBG("Failed to lock PLL\n");
+ 		goto err;
+ 	}
+ 
+-	r = hdmi_phy_init(&hdmi.hdmi_data);
++	r = hdmi_phy_enable(&hdmi.hdmi_data);
+ 	if (r) {
+ 		DSSDBG("Failed to start PHY\n");
+ 		goto err;
+@@ -527,8 +527,8 @@ static void hdmi_power_off(struct omap_dss_device *dssdev)
+ 	dispc_mgr_enable(OMAP_DSS_CHANNEL_DIGIT, 0);
+ 
+ 	hdmi_wp_video_start(&hdmi.hdmi_data, 0);
+-	hdmi_phy_off(&hdmi.hdmi_data);
+-	hdmi_set_pll_pwr(&hdmi.hdmi_data, HDMI_PLLPWRCMD_ALLOFF);
++	hdmi_phy_disable(&hdmi.hdmi_data);
++	hdmi_pll_disable(&hdmi.hdmi_data);
+ 	hdmi_runtime_put();
+ 
+ 	hdmi.edid_set = 0;
+diff --git a/drivers/video/omap2/dss/hdmi_ti_4xxx_ip.c b/drivers/video/omap2/dss/hdmi_ti_4xxx_ip.c
+index a582522..f64e06c 100644
+--- a/drivers/video/omap2/dss/hdmi_ti_4xxx_ip.c
++++ b/drivers/video/omap2/dss/hdmi_ti_4xxx_ip.c
+@@ -194,7 +194,7 @@ static int hdmi_pll_reset(struct hdmi_ip_data *ip_data)
+ 	return 0;
+ }
+ 
+-int hdmi_pll_program(struct hdmi_ip_data *ip_data)
++int hdmi_pll_enable(struct hdmi_ip_data *ip_data)
+ {
+ 	u16 r = 0;
+ 	enum hdmi_clk_refsel refsel;
+@@ -220,7 +220,12 @@ int hdmi_pll_program(struct hdmi_ip_data *ip_data)
+ 	return 0;
+ }
+ 
+-int hdmi_phy_init(struct hdmi_ip_data *ip_data)
++void hdmi_pll_disable(struct hdmi_ip_data *ip_data)
++{
++	hdmi_set_pll_pwr(ip_data, HDMI_PLLPWRCMD_ALLOFF);
++}
++
++int hdmi_phy_enable(struct hdmi_ip_data *ip_data)
+ {
+ 	u16 r = 0;
+ 	void __iomem *phy_base = hdmi_phy_base(ip_data);
+@@ -257,7 +262,7 @@ int hdmi_phy_init(struct hdmi_ip_data *ip_data)
+ 	return 0;
+ }
+ 
+-void hdmi_phy_off(struct hdmi_ip_data *ip_data)
++void hdmi_phy_disable(struct hdmi_ip_data *ip_data)
+ {
+ 	hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
+ }
+diff --git a/include/video/omaphdmi.h b/include/video/omaphdmi.h
+index 9d4bc36..88b1ccb 100644
+--- a/include/video/omaphdmi.h
++++ b/include/video/omaphdmi.h
+@@ -83,11 +83,11 @@ struct hdmi_ip_data {
+ 	struct hdmi_config cfg;
+ 	struct hdmi_pll_info pll_data;
+ };
+-int hdmi_phy_init(struct hdmi_ip_data *ip_data);
+-void hdmi_phy_off(struct hdmi_ip_data *ip_data);
++int hdmi_phy_enable(struct hdmi_ip_data *ip_data);
++void hdmi_phy_disable(struct hdmi_ip_data *ip_data);
+ int read_edid(struct hdmi_ip_data *ip_data, u8 *pedid, u16 max_length);
+ void hdmi_wp_video_start(struct hdmi_ip_data *ip_data, bool start);
+-int hdmi_pll_program(struct hdmi_ip_data *ip_data);
+-int hdmi_set_pll_pwr(struct hdmi_ip_data *ip_data, enum hdmi_pll_pwr val);
++int hdmi_pll_enable(struct hdmi_ip_data *ip_data);
++void hdmi_pll_disable(struct hdmi_ip_data *ip_data);
+ void hdmi_basic_configure(struct hdmi_ip_data *ip_data);
+ #endif
 -- 
 1.7.5.4
 
