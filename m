@@ -1,155 +1,64 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 1/7] OMAP3+: voltage: rename scale and reset functions using voltdm_ prefix
-Date: Mon, 29 Aug 2011 11:10:43 -0700
-Message-ID: <1314641449-5089-2-git-send-email-khilman@ti.com>
-References: <1314641449-5089-1-git-send-email-khilman@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58886 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754665Ab1H2SKY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 14:10:24 -0400
-Received: by mail-gy0-f171.google.com with SMTP id 5so7067658gye.30
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 11:10:23 -0700 (PDT)
-In-Reply-To: <1314641449-5089-1-git-send-email-khilman@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Subject: [PATCH 0/7] OMAP: voltage cleanup part D: voltage domain
+Date: Mon, 29 Aug 2011 11:10:42 -0700
+Message-ID: <1314641449-5089-1-git-send-email-khilman@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-Rename voltage scaling related functions to use voltdm_ prefix intead
-of omap_voltage_, and cleanup kerneldoc comments in the process.
+This series focuses on cleanup of the remaining voltage domain layer
+(non-VC/VP code)
 
-s/omap_voltage_scale_vdd/voltdm_scale/
-s/omap_voltage_reset/voltdm_reset/
+Available in the pm-wip/voltdm_d branch of my linux-omap-pm tree
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
 
-Also, in voltdm_reset() s/target_uvdc/target_volt/ to be consistent with
-naming throughout the file.
+Applies on v3.1-rc3 + the part A, B & C series.
 
-No functional changes.
+Kevin
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/pm.c                 |    2 +-
- arch/arm/mach-omap2/smartreflex-class3.c |    2 +-
- arch/arm/mach-omap2/voltage.c            |   29 ++++++++++++++---------------
- arch/arm/mach-omap2/voltage.h            |    5 ++---
- 4 files changed, 18 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index f81340e..659e400 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -214,7 +214,7 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
- 		goto exit;
- 	}
- 
--	omap_voltage_scale_vdd(voltdm, bootup_volt);
-+	voltdm_scale(voltdm, bootup_volt);
- 	return 0;
- 
- exit:
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index f438cf4..4eac1bc 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -32,7 +32,7 @@ static int sr_class3_disable(struct voltagedomain *voltdm, int is_volt_reset)
- 	omap_vp_disable(voltdm);
- 	sr_disable(voltdm);
- 	if (is_volt_reset)
--		omap_voltage_reset(voltdm);
-+		voltdm_reset(voltdm);
- 
- 	return 0;
- }
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 32f0873..4afb368 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -94,16 +94,15 @@ unsigned long omap_voltage_get_nom_volt(struct voltagedomain *voltdm)
- }
- 
- /**
-- * omap_voltage_scale_vdd() - API to scale voltage of a particular
-- *				voltage domain.
-- * @voltdm:	pointer to the VDD which is to be scaled.
-- * @target_volt:	The target voltage of the voltage domain
-+ * voltdm_scale() - API to scale voltage of a particular voltage domain.
-+ * @voltdm: pointer to the voltage domain which is to be scaled.
-+ * @target_volt: The target voltage of the voltage domain
-  *
-  * This API should be called by the kernel to do the voltage scaling
-- * for a particular voltage domain during dvfs or any other situation.
-+ * for a particular voltage domain during DVFS.
-  */
--int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
--		unsigned long target_volt)
-+int voltdm_scale(struct voltagedomain *voltdm,
-+		 unsigned long target_volt)
- {
- 	if (!voltdm || IS_ERR(voltdm)) {
- 		pr_warning("%s: VDD specified does not exist!\n", __func__);
-@@ -120,31 +119,31 @@ int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
- }
- 
- /**
-- * omap_voltage_reset() - Resets the voltage of a particular voltage domain
-- *			to that of the current OPP.
-- * @voltdm:	pointer to the VDD whose voltage is to be reset.
-+ * voltdm_reset() - Resets the voltage of a particular voltage domain
-+ *		    to that of the current OPP.
-+ * @voltdm: pointer to the voltage domain whose voltage is to be reset.
-  *
-  * This API finds out the correct voltage the voltage domain is supposed
-  * to be at and resets the voltage to that level. Should be used especially
-  * while disabling any voltage compensation modules.
-  */
--void omap_voltage_reset(struct voltagedomain *voltdm)
-+void voltdm_reset(struct voltagedomain *voltdm)
- {
--	unsigned long target_uvdc;
-+	unsigned long target_volt;
- 
- 	if (!voltdm || IS_ERR(voltdm)) {
- 		pr_warning("%s: VDD specified does not exist!\n", __func__);
- 		return;
- 	}
- 
--	target_uvdc = omap_voltage_get_nom_volt(voltdm);
--	if (!target_uvdc) {
-+	target_volt = omap_voltage_get_nom_volt(voltdm);
-+	if (!target_volt) {
- 		pr_err("%s: unable to find current voltage for vdd_%s\n",
- 			__func__, voltdm->name);
- 		return;
- 	}
- 
--	omap_voltage_scale_vdd(voltdm, target_uvdc);
-+	voltdm_scale(voltdm, target_volt);
- }
- 
- /**
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index d2a0c24..e3efbf9 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -151,9 +151,6 @@ struct omap_vdd_info {
- 	u32 curr_volt;
- };
- 
--int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
--		unsigned long target_volt);
--void omap_voltage_reset(struct voltagedomain *voltdm);
- void omap_voltage_get_volttable(struct voltagedomain *voltdm,
- 		struct omap_volt_data **volt_data);
- struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
-@@ -191,4 +188,6 @@ int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
- int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
- 			  int (*fn)(struct voltagedomain *voltdm,
- 				    struct powerdomain *pwrdm));
-+int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
-+void voltdm_reset(struct voltagedomain *voltdm);
- #endif
+
+Kevin Hilman (6):
+  OMAP3+: voltage: rename scale and reset functions using voltdm_
+    prefix
+  OMAP3+: voltage: move/rename curr_volt from vdd_info into struct
+    voltagedomain
+  OMAP3+: voltdm: final removal of omap_vdd_info
+  OMAP3+: voltage: rename omap_voltage_get_nom_volt ->
+    voltdm_get_voltage
+  OMAP3+: voltage: update nominal voltage in voltdm_scale() not VC
+    post-scale
+  OMAP2+: VC: more registers are per-channel starting with OMAP5
+
+Tero Kristo (1):
+  omap: voltage: add a stub header file for external/regulator use
+
+ arch/arm/mach-omap2/pm.c                      |    2 +-
+ arch/arm/mach-omap2/smartreflex-class3.c      |    4 +-
+ arch/arm/mach-omap2/vc.c                      |   13 +--
+ arch/arm/mach-omap2/vc.h                      |   14 ++--
+ arch/arm/mach-omap2/vc3xxx_data.c             |   12 ++-
+ arch/arm/mach-omap2/vc44xx_data.c             |   16 +++-
+ arch/arm/mach-omap2/voltage.c                 |  107 ++++++++----------------
+ arch/arm/mach-omap2/voltage.h                 |   25 ++-----
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |   14 +---
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |   15 +---
+ arch/arm/plat-omap/include/plat/voltage.h     |   20 +++++
+ 11 files changed, 104 insertions(+), 138 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/plat/voltage.h
+
 -- 
 1.7.6
-
