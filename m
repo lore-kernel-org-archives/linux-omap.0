@@ -1,64 +1,47 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] usb: ehci: fix update qtd->token in qh_append_tds
-Date: Sun, 28 Aug 2011 21:51:10 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1108282137270.10614-100000@netrider.rowland.org>
-References: <20110828233648.GA14560@n2100.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: How to handle named resources with DT?
+Date: Sun, 28 Aug 2011 19:57:35 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1108281952400.18667@utopia.booyaka.com>
+References: <20110809205723.GE11568@ponder.secretlab.ca> <201108261741.29850.arnd@arndb.de> <20110827143736.GA10182@yookeroo.fritz.box> <5595208.OB5dBohxQP@wuerfel> <20110828083934.GA4254@yookeroo.fritz.box>
+ <alpine.DEB.2.00.1108281100150.23968@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:54581 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751961Ab1H2BvL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Aug 2011 21:51:11 -0400
-In-Reply-To: <20110828233648.GA14560@n2100.arm.linux.org.uk>
+Received: from utopia.booyaka.com ([72.9.107.138]:46017 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751953Ab1H2B5g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Aug 2011 21:57:36 -0400
+In-Reply-To: <alpine.DEB.2.00.1108281100150.23968@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Ming Lei <ming.lei@canonical.com>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, Santosh <santosh.shilimkar@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: David Gibson <david@gibson.dropbear.id.au>
+Cc: Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, 29 Aug 2011, Russell King - ARM Linux wrote:
+Hi,
 
-> On Sun, Aug 28, 2011 at 01:00:07PM -0400, Alan Stern wrote:
-> > It won't do that.  All it will do is guarantee that the CPU writes out 
-> > dumy->hw_token before it writes out or reads in any values executed 
-> > after the mb.
+one case that I forgot to mention:
+
+On Sun, 28 Aug 2011, Paul Walmsley wrote:
+
+> Several upstream device drivers get their DMA request line IDs from the 
+> device data format[14][15][16].  But more drivers should be doing this 
+> than currently are[17]:
 > 
-> You're right from the perspective of how things are defined today.  However,
-> that isn't how things work on ARM.
+> - the device driver author may have hardcoded the DMA request line ID, 
+>   assuming it would never change
 > 
-> With ARMv6 and ARMv7, we have weak memory ordering.  This includes so
-> called "DMA coherent" memory.  This means that the architecture does not
-> guarantee the order of writes to DMA coherent memory (which is non-
-> cacheable normal memory) without an intervening 'data synchronization
-> barrier' (dsb).  Even that may not be sufficient without also poking
-> at the L2 cache controller.
+> - DMA could be broken on the device due to hardware bugs, so it is unused
 > 
-> We get around some of that by ensuring that our MMIO read/write macros
-> contain the necessary barriers to ensure that DMA memory is up to date
-> before the DMA agent is programmed.  However, this doesn't cater for
-> agents which continue to run in the background.
+> - the driver author may just never have gotten around to implementing DMA, 
+>   or was reassigned to another project, or couldn't figure it out
 > 
-> These agents will need some kind of barrier to ensure that the write
-> becomes visible - there's no way to get around that.  Maybe we need
-> yet another new barrier macro...
+> - the device may have its own internal DMA controller logic, so support 
+>   for an external DMA controller was simply never added
 
-Hmmm.  Although the semantics of the various mb() macros were
-originally defined only for inter-CPU synchronization, I believe they
-are also supposed to work for guaranteeing the order of accesses to
-DMA-coherent memory.  If that's not the case with ARM, something is
-seriously wrong.  (Maybe I'm wrong about this, but if I am then there's
-currently _no_ way for the kernel to order DMA-coherent accesses on
-ARM.)
+- the driver may be using software-initiated DMA, which doesn't use a 
+  DMA request line, nor does it rely on the device to start or stop DMA.
+  Instead, the CPU reprograms the DMA controller when the driver receives 
+  an interrupt
 
-You know better than I do what is needed to resolve the ordering issue.  
-However, contrary to what the original patch description said, this
-isn't entirely a matter of making the write visible to the host
-controller: No doubt in time the write will eventually become visible
-anyway.  It's a matter of making the write become visible reasonably
-quickly and in the correct order with respect to other writes.
 
-Is this extra L2-cache "poke" needed for proper ordering, or is it 
-needed merely to flush the write out to memory in a timely manner?
-
-Alan Stern
-
+- Paul
