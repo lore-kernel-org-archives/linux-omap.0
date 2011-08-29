@@ -1,296 +1,63 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 3/7] OMAP3+: voltdm: final removal of omap_vdd_info
-Date: Mon, 29 Aug 2011 11:10:45 -0700
-Message-ID: <1314641449-5089-4-git-send-email-khilman@ti.com>
+Subject: [PATCH 5/7] OMAP3+: voltage: update nominal voltage in voltdm_scale() not VC post-scale
+Date: Mon, 29 Aug 2011 11:10:47 -0700
+Message-ID: <1314641449-5089-6-git-send-email-khilman@ti.com>
 References: <1314641449-5089-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:58480 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754295Ab1H2SK1 (ORCPT
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:43738 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754680Ab1H2SKa (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 14:10:27 -0400
-Received: by mail-pz0-f46.google.com with SMTP id 32so9961805pzk.5
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 11:10:26 -0700 (PDT)
+	Mon, 29 Aug 2011 14:10:30 -0400
+Received: by mail-pz0-f46.google.com with SMTP id 32so10284581pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 11:10:29 -0700 (PDT)
 In-Reply-To: <1314641449-5089-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Remove last remaining member (volt_data) from omap_vdd_info into
-struct voltagedomain and removal remaining usage and reference to
-omap_vdd_info.
+Currently, the nominal voltage is updated in the VC post-scale function
+which is common to both scaling methods.  However, this has readabiliy
+problems as this update is not where it might be expected.  Instead, move
+the updated into voltdm_scale() upon a successful return of voltdm->scale()
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/voltage.c                 |   54 ++++--------------------
- arch/arm/mach-omap2/voltage.h                 |   16 +------
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |   14 ++-----
- arch/arm/mach-omap2/voltagedomains44xx_data.c |   15 +-----
- 4 files changed, 18 insertions(+), 81 deletions(-)
+ arch/arm/mach-omap2/vc.c      |    2 --
+ arch/arm/mach-omap2/voltage.c |    6 +++++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index 130df29..1c2bb9c 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -143,8 +143,6 @@ void omap_vc_post_scale(struct voltagedomain *voltdm,
+ 	smps_delay = ((smps_steps * voltdm->pmic->step_size) /
+ 			voltdm->pmic->slew_rate) + 2;
+ 	udelay(smps_delay);
+-
+-	voltdm->nominal_volt = target_volt;
+ }
+ 
+ /* vc_bypass_scale - VC bypass method of voltage scaling */
 diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 1b39e68..2ba276f 100644
+index 441c2d9..64070ac 100644
 --- a/arch/arm/mach-omap2/voltage.c
 +++ b/arch/arm/mach-omap2/voltage.c
-@@ -43,34 +43,6 @@
- 
- static LIST_HEAD(voltdm_list);
- 
--static int __init _config_common_vdd_data(struct voltagedomain *voltdm)
--{
--	/* Generic voltage parameters */
--	voltdm->scale = omap_vp_forceupdate_scale;
--
--	return 0;
--}
--
--static int __init omap_vdd_data_configure(struct voltagedomain *voltdm)
--{
--	int ret = -EINVAL;
--
--	if (!voltdm->pmic) {
--		pr_err("%s: PMIC info requried to configure vdd_%s not"
--			"populated.Hence cannot initialize vdd_%s\n",
--			__func__, voltdm->name, voltdm->name);
--		goto ovdc_out;
--	}
--
--	if (IS_ERR_VALUE(_config_common_vdd_data(voltdm)))
--		goto ovdc_out;
--
--	ret = 0;
--
--ovdc_out:
--	return ret;
--}
--
- /* Public functions */
- /**
-  * omap_voltage_get_nom_volt() - Gets the current non-auto-compensated voltage
-@@ -155,18 +127,14 @@ void voltdm_reset(struct voltagedomain *voltdm)
-  *
-  */
- void omap_voltage_get_volttable(struct voltagedomain *voltdm,
--		struct omap_volt_data **volt_data)
-+				struct omap_volt_data **volt_data)
- {
--	struct omap_vdd_info *vdd;
--
- 	if (!voltdm || IS_ERR(voltdm)) {
- 		pr_warning("%s: VDD specified does not exist!\n", __func__);
- 		return;
+@@ -85,7 +85,11 @@ int voltdm_scale(struct voltagedomain *voltdm,
+ 		return -ENODATA;
  	}
  
--	vdd = voltdm->vdd;
--
--	*volt_data = vdd->volt_data;
-+	*volt_data = voltdm->volt_data;
+-	return voltdm->scale(voltdm, target_volt);
++	ret = voltdm->scale(voltdm, target_volt);
++	if (!ret)
++		voltdm->nominal_volt = target_volt;
++
++	return ret;
  }
  
  /**
-@@ -185,9 +153,8 @@ void omap_voltage_get_volttable(struct voltagedomain *voltdm,
-  * domain or if there is no matching entry.
-  */
- struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
--		unsigned long volt)
-+						 unsigned long volt)
- {
--	struct omap_vdd_info *vdd;
- 	int i;
- 
- 	if (!voltdm || IS_ERR(voltdm)) {
-@@ -195,17 +162,15 @@ struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
- 		return ERR_PTR(-EINVAL);
- 	}
- 
--	vdd = voltdm->vdd;
--
--	if (!vdd->volt_data) {
-+	if (!voltdm->volt_data) {
- 		pr_warning("%s: voltage table does not exist for vdd_%s\n",
- 			__func__, voltdm->name);
- 		return ERR_PTR(-ENODATA);
- 	}
- 
--	for (i = 0; vdd->volt_data[i].volt_nominal != 0; i++) {
--		if (vdd->volt_data[i].volt_nominal == volt)
--			return &vdd->volt_data[i];
-+	for (i = 0; voltdm->volt_data[i].volt_nominal != 0; i++) {
-+		if (voltdm->volt_data[i].volt_nominal == volt)
-+			return &voltdm->volt_data[i];
- 	}
- 
- 	pr_notice("%s: Unable to match the current voltage with the voltage"
-@@ -304,9 +269,8 @@ int __init omap_voltage_late_init(void)
- 			omap_vc_init_channel(voltdm);
- 		}
- 
--		if (voltdm->vdd) {
--			if (omap_vdd_data_configure(voltdm))
--				continue;
-+		if (voltdm->vp) {
-+			voltdm->scale = omap_vp_forceupdate_scale;
- 			omap_vp_init(voltdm);
- 		}
- 	}
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 3e32eda..68b1ed5 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -33,8 +33,6 @@ struct powerdomain;
- #define OMAP3_VOLTOFFSET	0xff
- #define OMAP3_VOLTSETUP2	0xff
- 
--struct omap_vdd_info;
--
- /**
-  * struct omap_vfsm_instance - per-voltage manager FSM register/bitfield
-  * data
-@@ -85,9 +83,9 @@ struct voltagedomain {
- 
- 	int (*scale) (struct voltagedomain *voltdm,
- 		      unsigned long target_volt);
--	u32 nominal_volt;
- 
--	struct omap_vdd_info *vdd;
-+	u32 nominal_volt;
-+	struct omap_volt_data *volt_data;
- };
- 
- /**
-@@ -141,16 +139,6 @@ struct omap_voltdm_pmic {
- 	u8 (*uv_to_vsel) (unsigned long uV);
- };
- 
--/**
-- * omap_vdd_info - Per Voltage Domain info
-- *
-- * @volt_data		: voltage table having the distinct voltages supported
-- *			  by the domain and other associated per voltage data.
-- */
--struct omap_vdd_info {
--	struct omap_volt_data *volt_data;
--};
--
- void omap_voltage_get_volttable(struct voltagedomain *voltdm,
- 		struct omap_volt_data **volt_data);
- struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index e7a0be1..b0d0ae1 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -37,16 +37,12 @@ static const struct omap_vfsm_instance omap3_vdd1_vfsm = {
- 	.voltsetup_mask = OMAP3430_SETUP_TIME1_MASK,
- };
- 
--static struct omap_vdd_info omap3_vdd1_info;
--
- static const struct omap_vfsm_instance omap3_vdd2_vfsm = {
- 	.voltsetup_reg = OMAP3_PRM_VOLTSETUP1_OFFSET,
- 	.voltsetup_shift = OMAP3430_SETUP_TIME2_SHIFT,
- 	.voltsetup_mask = OMAP3430_SETUP_TIME2_MASK,
- };
- 
--static struct omap_vdd_info omap3_vdd2_info;
--
- static struct voltagedomain omap3_voltdm_mpu = {
- 	.name = "mpu_iva",
- 	.scalable = true,
-@@ -56,7 +52,6 @@ static struct voltagedomain omap3_voltdm_mpu = {
- 	.vc = &omap3_vc_mpu,
- 	.vfsm = &omap3_vdd1_vfsm,
- 	.vp = &omap3_vp_mpu,
--	.vdd = &omap3_vdd1_info,
- };
- 
- static struct voltagedomain omap3_voltdm_core = {
-@@ -68,7 +63,6 @@ static struct voltagedomain omap3_voltdm_core = {
- 	.vc = &omap3_vc_core,
- 	.vfsm = &omap3_vdd2_vfsm,
- 	.vp = &omap3_vp_core,
--	.vdd = &omap3_vdd2_info,
- };
- 
- static struct voltagedomain omap3_voltdm_wkup = {
-@@ -94,11 +88,11 @@ void __init omap3xxx_voltagedomains_init(void)
- 	 * for the currently-running IC
- 	 */
- 	if (cpu_is_omap3630()) {
--		omap3_vdd1_info.volt_data = omap36xx_vddmpu_volt_data;
--		omap3_vdd2_info.volt_data = omap36xx_vddcore_volt_data;
-+		omap3_voltdm_mpu.volt_data = omap36xx_vddmpu_volt_data;
-+		omap3_voltdm_core.volt_data = omap36xx_vddcore_volt_data;
- 	} else {
--		omap3_vdd1_info.volt_data = omap34xx_vddmpu_volt_data;
--		omap3_vdd2_info.volt_data = omap34xx_vddcore_volt_data;
-+		omap3_voltdm_mpu.volt_data = omap34xx_vddmpu_volt_data;
-+		omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
- 	}
- 
- 	for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++)
-diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-index 9c20fbb..c4584e9 100644
---- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-@@ -36,20 +36,14 @@ static const struct omap_vfsm_instance omap4_vdd_mpu_vfsm = {
- 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET,
- };
- 
--static struct omap_vdd_info omap4_vdd_mpu_info;
--
- static const struct omap_vfsm_instance omap4_vdd_iva_vfsm = {
- 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_IVA_RET_SLEEP_OFFSET,
- };
- 
--static struct omap_vdd_info omap4_vdd_iva_info;
--
- static const struct omap_vfsm_instance omap4_vdd_core_vfsm = {
- 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET,
- };
- 
--static struct omap_vdd_info omap4_vdd_core_info;
--
- static struct voltagedomain omap4_voltdm_mpu = {
- 	.name = "mpu",
- 	.scalable = true,
-@@ -59,7 +53,6 @@ static struct voltagedomain omap4_voltdm_mpu = {
- 	.vc = &omap4_vc_mpu,
- 	.vfsm = &omap4_vdd_mpu_vfsm,
- 	.vp = &omap4_vp_mpu,
--	.vdd = &omap4_vdd_mpu_info,
- };
- 
- static struct voltagedomain omap4_voltdm_iva = {
-@@ -71,7 +64,6 @@ static struct voltagedomain omap4_voltdm_iva = {
- 	.vc = &omap4_vc_iva,
- 	.vfsm = &omap4_vdd_iva_vfsm,
- 	.vp = &omap4_vp_iva,
--	.vdd = &omap4_vdd_iva_info,
- };
- 
- static struct voltagedomain omap4_voltdm_core = {
-@@ -83,7 +75,6 @@ static struct voltagedomain omap4_voltdm_core = {
- 	.vc = &omap4_vc_core,
- 	.vfsm = &omap4_vdd_core_vfsm,
- 	.vp = &omap4_vp_core,
--	.vdd = &omap4_vdd_core_info,
- };
- 
- static struct voltagedomain omap4_voltdm_wkup = {
-@@ -109,9 +100,9 @@ void __init omap44xx_voltagedomains_init(void)
- 	 * XXX Will depend on the process, validation, and binning
- 	 * for the currently-running IC
- 	 */
--	omap4_vdd_mpu_info.volt_data = omap44xx_vdd_mpu_volt_data;
--	omap4_vdd_iva_info.volt_data = omap44xx_vdd_iva_volt_data;
--	omap4_vdd_core_info.volt_data = omap44xx_vdd_core_volt_data;
-+	omap4_voltdm_mpu.volt_data = omap44xx_vdd_mpu_volt_data;
-+	omap4_voltdm_iva.volt_data = omap44xx_vdd_iva_volt_data;
-+	omap4_voltdm_core.volt_data = omap44xx_vdd_core_volt_data;
- 
- 	for (i = 0; voltdm = voltagedomains_omap4[i], voltdm; i++)
- 		voltdm->sys_clk.name = sys_clk_name;
 -- 
 1.7.6
 
