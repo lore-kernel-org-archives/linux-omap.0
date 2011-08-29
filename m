@@ -1,85 +1,155 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 11/12] OMAP3+: VP: remove unused omap_vp_get_curr_volt()
-Date: Mon, 29 Aug 2011 10:58:11 -0700
-Message-ID: <1314640692-3386-12-git-send-email-khilman@ti.com>
-References: <1314640692-3386-1-git-send-email-khilman@ti.com>
+Subject: [PATCH 1/7] OMAP3+: voltage: rename scale and reset functions using voltdm_ prefix
+Date: Mon, 29 Aug 2011 11:10:43 -0700
+Message-ID: <1314641449-5089-2-git-send-email-khilman@ti.com>
+References: <1314641449-5089-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:56603 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754486Ab1H2R6F (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58886 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754665Ab1H2SKY (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:58:05 -0400
-Received: by yie30 with SMTP id 30so4182980yie.5
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:58:01 -0700 (PDT)
-In-Reply-To: <1314640692-3386-1-git-send-email-khilman@ti.com>
+	Mon, 29 Aug 2011 14:10:24 -0400
+Received: by mail-gy0-f171.google.com with SMTP id 5so7067658gye.30
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 11:10:23 -0700 (PDT)
+In-Reply-To: <1314641449-5089-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
+Rename voltage scaling related functions to use voltdm_ prefix intead
+of omap_voltage_, and cleanup kerneldoc comments in the process.
+
+s/omap_voltage_scale_vdd/voltdm_scale/
+s/omap_voltage_reset/voltdm_reset/
+
+Also, in voltdm_reset() s/target_uvdc/target_volt/ to be consistent with
+naming throughout the file.
+
+No functional changes.
+
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/vp.c |   34 ----------------------------------
- arch/arm/mach-omap2/vp.h |    1 -
- 2 files changed, 0 insertions(+), 35 deletions(-)
+ arch/arm/mach-omap2/pm.c                 |    2 +-
+ arch/arm/mach-omap2/smartreflex-class3.c |    2 +-
+ arch/arm/mach-omap2/voltage.c            |   29 ++++++++++++++---------------
+ arch/arm/mach-omap2/voltage.h            |    5 ++---
+ 4 files changed, 18 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-index 29698ac..24020ea 100644
---- a/arch/arm/mach-omap2/vp.c
-+++ b/arch/arm/mach-omap2/vp.c
-@@ -209,40 +209,6 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index f81340e..659e400 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -214,7 +214,7 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+ 		goto exit;
+ 	}
+ 
+-	omap_voltage_scale_vdd(voltdm, bootup_volt);
++	voltdm_scale(voltdm, bootup_volt);
+ 	return 0;
+ 
+ exit:
+diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+index f438cf4..4eac1bc 100644
+--- a/arch/arm/mach-omap2/smartreflex-class3.c
++++ b/arch/arm/mach-omap2/smartreflex-class3.c
+@@ -32,7 +32,7 @@ static int sr_class3_disable(struct voltagedomain *voltdm, int is_volt_reset)
+ 	omap_vp_disable(voltdm);
+ 	sr_disable(voltdm);
+ 	if (is_volt_reset)
+-		omap_voltage_reset(voltdm);
++		voltdm_reset(voltdm);
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 32f0873..4afb368 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -94,16 +94,15 @@ unsigned long omap_voltage_get_nom_volt(struct voltagedomain *voltdm)
  }
  
  /**
-- * omap_vp_get_curr_volt() - API to get the current vp voltage.
-- * @voltdm:	pointer to the VDD.
-- *
-- * This API returns the current voltage for the specified voltage processor
-- */
--unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm)
--{
--	struct omap_vp_instance *vp = voltdm->vp;
--	u8 curr_vsel;
--
--	if (!voltdm || IS_ERR(voltdm)) {
--		pr_warning("%s: VDD specified does not exist!\n", __func__);
--		return 0;
--	}
--
--	if (!voltdm->read) {
--		pr_err("%s: No read API for reading vdd_%s regs\n",
--			__func__, voltdm->name);
--		return 0;
--	}
--
--	curr_vsel = (voltdm->read(vp->voltage) & vp->common->vpvoltage_mask)
--		>> __ffs(vp->common->vpvoltage_mask);
--
--	if (!voltdm->pmic || !voltdm->pmic->vsel_to_uv) {
--		pr_warning("%s: PMIC function to convert vsel to voltage"
--			"in uV not registerd\n", __func__);
--		return 0;
--	}
--
--	return voltdm->pmic->vsel_to_uv(curr_vsel);
--}
--
--/**
-  * omap_vp_enable() - API to enable a particular VP
-  * @voltdm:	pointer to the VDD whose VP is to be enabled.
+- * omap_voltage_scale_vdd() - API to scale voltage of a particular
+- *				voltage domain.
+- * @voltdm:	pointer to the VDD which is to be scaled.
+- * @target_volt:	The target voltage of the voltage domain
++ * voltdm_scale() - API to scale voltage of a particular voltage domain.
++ * @voltdm: pointer to the voltage domain which is to be scaled.
++ * @target_volt: The target voltage of the voltage domain
   *
-diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
-index f78752b..d9bc4f1 100644
---- a/arch/arm/mach-omap2/vp.h
-+++ b/arch/arm/mach-omap2/vp.h
-@@ -119,7 +119,6 @@ extern struct omap_vp_instance omap4_vp_core;
- void omap_vp_init(struct voltagedomain *voltdm);
- void omap_vp_enable(struct voltagedomain *voltdm);
- void omap_vp_disable(struct voltagedomain *voltdm);
--unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm);
- int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
- 			      unsigned long target_volt);
- int omap_vp_update_errorgain(struct voltagedomain *voltdm,
+  * This API should be called by the kernel to do the voltage scaling
+- * for a particular voltage domain during dvfs or any other situation.
++ * for a particular voltage domain during DVFS.
+  */
+-int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
+-		unsigned long target_volt)
++int voltdm_scale(struct voltagedomain *voltdm,
++		 unsigned long target_volt)
+ {
+ 	if (!voltdm || IS_ERR(voltdm)) {
+ 		pr_warning("%s: VDD specified does not exist!\n", __func__);
+@@ -120,31 +119,31 @@ int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
+ }
+ 
+ /**
+- * omap_voltage_reset() - Resets the voltage of a particular voltage domain
+- *			to that of the current OPP.
+- * @voltdm:	pointer to the VDD whose voltage is to be reset.
++ * voltdm_reset() - Resets the voltage of a particular voltage domain
++ *		    to that of the current OPP.
++ * @voltdm: pointer to the voltage domain whose voltage is to be reset.
+  *
+  * This API finds out the correct voltage the voltage domain is supposed
+  * to be at and resets the voltage to that level. Should be used especially
+  * while disabling any voltage compensation modules.
+  */
+-void omap_voltage_reset(struct voltagedomain *voltdm)
++void voltdm_reset(struct voltagedomain *voltdm)
+ {
+-	unsigned long target_uvdc;
++	unsigned long target_volt;
+ 
+ 	if (!voltdm || IS_ERR(voltdm)) {
+ 		pr_warning("%s: VDD specified does not exist!\n", __func__);
+ 		return;
+ 	}
+ 
+-	target_uvdc = omap_voltage_get_nom_volt(voltdm);
+-	if (!target_uvdc) {
++	target_volt = omap_voltage_get_nom_volt(voltdm);
++	if (!target_volt) {
+ 		pr_err("%s: unable to find current voltage for vdd_%s\n",
+ 			__func__, voltdm->name);
+ 		return;
+ 	}
+ 
+-	omap_voltage_scale_vdd(voltdm, target_uvdc);
++	voltdm_scale(voltdm, target_volt);
+ }
+ 
+ /**
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index d2a0c24..e3efbf9 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -151,9 +151,6 @@ struct omap_vdd_info {
+ 	u32 curr_volt;
+ };
+ 
+-int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
+-		unsigned long target_volt);
+-void omap_voltage_reset(struct voltagedomain *voltdm);
+ void omap_voltage_get_volttable(struct voltagedomain *voltdm,
+ 		struct omap_volt_data **volt_data);
+ struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
+@@ -191,4 +188,6 @@ int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
+ int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+ 			  int (*fn)(struct voltagedomain *voltdm,
+ 				    struct powerdomain *pwrdm));
++int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
++void voltdm_reset(struct voltagedomain *voltdm);
+ #endif
 -- 
 1.7.6
 
