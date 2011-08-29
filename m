@@ -1,124 +1,107 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH] iommu: omap_iovmm: support non page-aligned buffers in iommu_vmap
-Date: Mon, 29 Aug 2011 22:36:09 +0300
-Message-ID: <1314646569-16738-1-git-send-email-ohad@wizery.com>
+From: Sankara Muthukrishnan <sankara.m@gmail.com>
+Subject: Re: Issue with clock_gettime / clock_nanosleep APIs with high
+ resolution timer on panda board
+Date: Mon, 29 Aug 2011 15:08:21 -0500
+Message-ID: <CAFQPvXcCViEWNbYaWbVynFVJh3U6RUtq=2VqG+tg=u+DdezYDQ@mail.gmail.com>
+References: <CAFQPvXcv=X0tNGPqB6srYup6EdhTKbw4jrkW3CVNx4pbZrC9GA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:43317 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754797Ab1H2Tgs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Aug 2011 15:36:48 -0400
-Received: by wwf5 with SMTP id 5so6075111wwf.1
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 12:36:47 -0700 (PDT)
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:50924 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754885Ab1H2UIY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Aug 2011 16:08:24 -0400
+Received: by vws1 with SMTP id 1so4851755vws.19
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 13:08:24 -0700 (PDT)
+In-Reply-To: <CAFQPvXcv=X0tNGPqB6srYup6EdhTKbw4jrkW3CVNx4pbZrC9GA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org
-Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: linux-omap@vger.kernel.org
+Cc: Hemant Pedanekar <hemantp@ti.com>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+One thing I forgot to mention: For my tests, I did modify the original
+cyclictest to check for return codes for the APIs (and errno's on
+failure and print them at the end) and both clock_gettime and
+clock_nanosleep returned 0 (success), when the actual failure
+happened. So, the APIs did not fail and particularly clock_nanosleep
+was not interrupted by a signal.
 
-omap_iovmm requires page-aligned buffers, and that sometimes causes
-omap3isp failures (i.e. whenever the buffer passed from userspace is not
-page-aligned).
-
-Remove this limitation by rounding the address of the first page entry
-down, and adding the offset back to the device address.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-[ohad@wizery.com: slightly edited the commit log]
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
-A fix by Laurent that was waiting until omap's iommu lands in drivers/.
-
-Generally we're not extending omap-iovmm anymore, but this fixes a real
-breakage for omap3isp users, so there's no point in delaying it until
-the generic DMA API is ready and we've migrated.
-
-Thanks Laurent!
-
- drivers/iommu/omap-iovmm.c |   32 ++++++++++++++++++++++++--------
- 1 files changed, 24 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
-index 5e7f97d..d28a256 100644
---- a/drivers/iommu/omap-iovmm.c
-+++ b/drivers/iommu/omap-iovmm.c
-@@ -27,6 +27,15 @@
- 
- static struct kmem_cache *iovm_area_cachep;
- 
-+/* return the offset of the first scatterlist entry in a sg table */
-+static unsigned int sgtable_offset(const struct sg_table *sgt)
-+{
-+	if (!sgt || !sgt->nents)
-+		return 0;
-+
-+	return sgt->sgl->offset;
-+}
-+
- /* return total bytes of sg buffers */
- static size_t sgtable_len(const struct sg_table *sgt)
- {
-@@ -39,11 +48,17 @@ static size_t sgtable_len(const struct sg_table *sgt)
- 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
- 		size_t bytes;
- 
--		bytes = sg->length;
-+		bytes = sg->length + sg->offset;
- 
- 		if (!iopgsz_ok(bytes)) {
--			pr_err("%s: sg[%d] not iommu pagesize(%x)\n",
--			       __func__, i, bytes);
-+			pr_err("%s: sg[%d] not iommu pagesize(%u %u)\n",
-+			       __func__, i, bytes, sg->offset);
-+			return 0;
-+		}
-+
-+		if (i && sg->offset) {
-+			pr_err("%s: sg[%d] offset not allowed in internal "
-+					"entries\n", __func__, i);
- 			return 0;
- 		}
- 
-@@ -164,8 +179,8 @@ static void *vmap_sg(const struct sg_table *sgt)
- 		u32 pa;
- 		int err;
- 
--		pa = sg_phys(sg);
--		bytes = sg->length;
-+		pa = sg_phys(sg) - sg->offset;
-+		bytes = sg->length + sg->offset;
- 
- 		BUG_ON(bytes != PAGE_SIZE);
- 
-@@ -405,8 +420,8 @@ static int map_iovm_area(struct iommu_domain *domain, struct iovm_struct *new,
- 		u32 pa;
- 		size_t bytes;
- 
--		pa = sg_phys(sg);
--		bytes = sg->length;
-+		pa = sg_phys(sg) - sg->offset;
-+		bytes = sg->length + sg->offset;
- 
- 		flags &= ~IOVMF_PGSZ_MASK;
- 
-@@ -600,7 +615,7 @@ u32 omap_iommu_vmap(struct iommu_domain *domain, struct omap_iommu *obj, u32 da,
- 	if (IS_ERR_VALUE(da))
- 		vunmap_sg(va);
- 
--	return da;
-+	return da + sgtable_offset(sgt);
- }
- EXPORT_SYMBOL_GPL(omap_iommu_vmap);
- 
-@@ -620,6 +635,7 @@ omap_iommu_vunmap(struct iommu_domain *domain, struct omap_iommu *obj, u32 da)
- 	 * 'sgt' is allocated before 'omap_iommu_vmalloc()' is called.
- 	 * Just returns 'sgt' to the caller to free
- 	 */
-+	da &= PAGE_MASK;
- 	sgt = unmap_vm_area(domain, obj, da, vunmap_sg,
- 					IOVMF_DISCONT | IOVMF_MMIO);
- 	if (!sgt)
--- 
-1.7.4.1
-
+On Mon, Aug 29, 2011 at 1:12 PM, Sankara Muthukrishnan
+<sankara.m@gmail.com> wrote:
+> Hello everyone,
+>
+> Greetings. I have tried the following kernels and found "the problem"
+> to occur on all of them with high resolution timer enabled
+>
+> (1) mainline stable 3.0.1 kernel but with Hemant Pedanekar's patch
+> (http://www.spinics.net/lists/linux-omap/msg50742.html) and by
+> disabling 32KHz Timer ("System Type -> TI OMAP Common Features -> =A0=
+Use
+> 32KHz timer")
+> (2) Same as (1) with RT patch (3.0.1-rt11)
+> (3) OMAP kernel version v3.1-rc2 (
+> http://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.=
+git
+> )
+>
+> Problem:
+> *********
+> On panda baord, I ran the v0.74 of cyclictest
+> (git://git.kernel.org/pub/scm/linux/kernel/git/clrkwllms/rt-tests.git=
+)
+> to measure the latency (./cyclictest -l4000000000 -m -S -p99 -i70 -h6=
+0
+> -q -n). These arguments make the test to use TIMER_ABSTIME for
+> clock_nanosleep and CPU affinity (using sched_setaffinity) for the 2
+> threads to be set to each CPU. =A0It is expected to see large latenci=
+es
+> without the RT patch. However, when I ran the tests overnight, I
+> observed maximum latency of 4294967103 us (weird but it is close to
+> unsigned int max). So, I instrumented the test to print some
+> additional information and exit as soon as it finds such a weird
+> latency. I was also trying to stress ethernet/network/interrupts of
+> the system with SFTP but I think (not very sure) I could reproduce th=
+e
+> issue without that. clock_nanosleep was called to sleep until
+> 27608:739311172 (sec:nsec), but after clock_nanosleep returned,
+> clock_gettime returned the time as 27608:739117429 (sec:nsec) which i=
+s
+> roughly 193 usec earlier than the value passed to clock_nanosleep and
+> that is the bug. I ran the test with just one thread ( remove "-S" an=
+d
+> add "-t1 -a1 -n" ) and saw the weird latency of 4294967294 usec.
+>
+> Questions
+> *************
+> (1) Is this a known bug? If so, do we already have a fix?
+> (2) Does anyone have suggestions for narrowing this down further
+> (timer driver issue vs scheduler/kernel issue)?
+> (3) I am not too familiar with OMAP and Linux kernel. Which timer get=
+s
+> used when I use high-resolution timer and disable the 32 KHz timer? I=
+s
+> it part of "MP core"? Is this timer per CPU? Pointers to source code
+> for the high-res timer driver?
+> (4) If the timer is per CPU, are they synchronized in the hardware?
+> (5) In the same process/task, if a thread (created with
+> pthread_create) is assigned CPU affinity to a particular core
+> (sched_setaffinity), is it a soft-request to the scheduler or is it
+> guaranteed that the thread will not be scheduled on other CPUs at
+> all?The reason I am asking this is to rule out the possibility of the
+> thread jumping to different CPU and the timers are off by quite a bit
+> for different CPUs.
+> (6) Is it ok to call sched_setaffinity with the first argument 0 to
+> set a the affinity for a particular pthread in the process? Or, shoul=
+d
+> the value returned by gettid() should be passed instead?
+> (7) Should I post it to any other mailing list also?
+>
+> Thanks,
+> Sankara
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
