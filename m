@@ -1,148 +1,97 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 08/12] OMAP3+: VP: move voltage scale function pointer into struct voltagedomain
-Date: Mon, 29 Aug 2011 10:58:08 -0700
-Message-ID: <1314640692-3386-9-git-send-email-khilman@ti.com>
+Subject: [PATCH 09/12] OMAP: VP: Explicitly mask VPVOLTAGE field
+Date: Mon, 29 Aug 2011 10:58:09 -0700
+Message-ID: <1314640692-3386-10-git-send-email-khilman@ti.com>
 References: <1314640692-3386-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:43599 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754486Ab1H2R6A (ORCPT
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:49825 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754430Ab1H2R57 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:58:00 -0400
-Received: by mail-gw0-f46.google.com with SMTP id a12so4996360gwa.19
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:57:57 -0700 (PDT)
+	Mon, 29 Aug 2011 13:57:59 -0400
+Received: by iabu26 with SMTP id u26so828289iab.5
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:57:58 -0700 (PDT)
 In-Reply-To: <1314640692-3386-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Function pointer used for actual voltage scaling (e.g. VP force update
-or VC bypass) is moved from omap_vdd_info into struct voltagedomain,
-resulting in renames s/vdd->volt_scale/voltdm->scale/
+From: Todd Poynor <toddpoynor@google.com>
 
-No functional changes.
+Reading the VPVOLTAGE field of PRM_VP_*_VOLTAGE registers currently
+relies on a u32 -> u8 conversion to mask off the FORCEUPDATEWAIT field
+in the upper bits.  Make this explicit using the mask symbol
+already defined, added as a new field in struct omap_vp_common.
 
+Signed-off-by: Todd Poynor <toddpoynor@google.com>
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/voltage.c |   24 +++++++-----------------
- arch/arm/mach-omap2/voltage.h |    8 ++++----
- 2 files changed, 11 insertions(+), 21 deletions(-)
+ arch/arm/mach-omap2/vp.c          |    3 ++-
+ arch/arm/mach-omap2/vp.h          |    2 ++
+ arch/arm/mach-omap2/vp3xxx_data.c |    2 ++
+ arch/arm/mach-omap2/vp44xx_data.c |    1 +
+ 4 files changed, 7 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 4a15668..32f0873 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -45,10 +45,8 @@ static LIST_HEAD(voltdm_list);
- 
- static int __init _config_common_vdd_data(struct voltagedomain *voltdm)
- {
--	struct omap_vdd_info *vdd = voltdm->vdd;
--
- 	/* Generic voltage parameters */
--	vdd->volt_scale = omap_vp_forceupdate_scale;
-+	voltdm->scale = omap_vp_forceupdate_scale;
- 
- 	return 0;
- }
-@@ -107,22 +105,18 @@ unsigned long omap_voltage_get_nom_volt(struct voltagedomain *voltdm)
- int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
- 		unsigned long target_volt)
- {
--	struct omap_vdd_info *vdd;
--
- 	if (!voltdm || IS_ERR(voltdm)) {
- 		pr_warning("%s: VDD specified does not exist!\n", __func__);
- 		return -EINVAL;
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index e7d38f6..3807620 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -227,7 +227,8 @@ unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm)
+ 		return 0;
  	}
  
--	vdd = voltdm->vdd;
--
--	if (!vdd->volt_scale) {
-+	if (!voltdm->scale) {
- 		pr_err("%s: No voltage scale API registered for vdd_%s\n",
- 			__func__, voltdm->name);
- 		return -ENODATA;
- 	}
+-	curr_vsel = voltdm->read(vp->voltage);
++	curr_vsel = (voltdm->read(vp->voltage) & vp->common->vpvoltage_mask)
++		>> __ffs(vp->common->vpvoltage_mask);
  
--	return vdd->volt_scale(voltdm, target_volt);
-+	return voltdm->scale(voltdm, target_volt);
- }
- 
- /**
-@@ -258,23 +252,19 @@ int omap_voltage_register_pmic(struct voltagedomain *voltdm,
-  * defined in voltage.h
+ 	if (!voltdm->pmic || !voltdm->pmic->vsel_to_uv) {
+ 		pr_warning("%s: PMIC function to convert vsel to voltage"
+diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+index 0d63267..f78752b 100644
+--- a/arch/arm/mach-omap2/vp.h
++++ b/arch/arm/mach-omap2/vp.h
+@@ -63,6 +63,7 @@ struct omap_vp_ops {
+  * @vlimitto_vddmin_shift: VDDMIN field shift in PRM_VP*_VLIMITTO reg
+  * @vlimitto_vddmax_shift: VDDMAX field shift in PRM_VP*_VLIMITTO reg
+  * @vlimitto_timeout_shift: TIMEOUT field shift in PRM_VP*_VLIMITTO reg
++ * @vpvoltage_mask: VPVOLTAGE field mask in PRM_VP*_VOLTAGE reg
   */
- void omap_change_voltscale_method(struct voltagedomain *voltdm,
--		int voltscale_method)
-+				  int voltscale_method)
- {
--	struct omap_vdd_info *vdd;
--
- 	if (!voltdm || IS_ERR(voltdm)) {
- 		pr_warning("%s: VDD specified does not exist!\n", __func__);
- 		return;
- 	}
+ struct omap_vp_common {
+ 	u32 vpconfig_erroroffset_mask;
+@@ -79,6 +80,7 @@ struct omap_vp_common {
+ 	u8 vlimitto_vddmin_shift;
+ 	u8 vlimitto_vddmax_shift;
+ 	u8 vlimitto_timeout_shift;
++	u8 vpvoltage_mask;
  
--	vdd = voltdm->vdd;
--
- 	switch (voltscale_method) {
- 	case VOLTSCALE_VPFORCEUPDATE:
--		vdd->volt_scale = omap_vp_forceupdate_scale;
-+		voltdm->scale = omap_vp_forceupdate_scale;
- 		return;
- 	case VOLTSCALE_VCBYPASS:
--		vdd->volt_scale = omap_vc_bypass_scale;
-+		voltdm->scale = omap_vc_bypass_scale;
- 		return;
- 	default:
- 		pr_warning("%s: Trying to change the method of voltage scaling"
-@@ -315,7 +305,7 @@ int __init omap_voltage_late_init(void)
- 		clk_put(sys_ck);
- 
- 		if (voltdm->vc) {
--			voltdm->vdd->volt_scale = omap_vc_bypass_scale;
-+			voltdm->scale = omap_vc_bypass_scale;
- 			omap_vc_init_channel(voltdm);
- 		}
- 
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 5235eec..d2a0c24 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -60,6 +60,7 @@ struct omap_vfsm_instance {
-  * @pwrdm_node: list_head linking all powerdomains in this voltagedomain
-  * @vdd: to be removed
-  * @pwrdms: powerdomains in this voltagedomain
-+ * @scale: function used to scale the voltage of the voltagedomain
-  */
- struct voltagedomain {
- 	char *name;
-@@ -81,6 +82,9 @@ struct voltagedomain {
- 		u32 rate;
- 	} sys_clk;
- 
-+	int (*scale) (struct voltagedomain *voltdm,
-+		      unsigned long target_volt);
+ 	const struct omap_vp_ops *ops;
+ };
+diff --git a/arch/arm/mach-omap2/vp3xxx_data.c b/arch/arm/mach-omap2/vp3xxx_data.c
+index d429c44..260c554 100644
+--- a/arch/arm/mach-omap2/vp3xxx_data.c
++++ b/arch/arm/mach-omap2/vp3xxx_data.c
+@@ -51,6 +51,8 @@ static const struct omap_vp_common omap3_vp_common = {
+ 	.vlimitto_vddmin_shift = OMAP3430_VDDMIN_SHIFT,
+ 	.vlimitto_vddmax_shift = OMAP3430_VDDMAX_SHIFT,
+ 	.vlimitto_timeout_shift = OMAP3430_TIMEOUT_SHIFT,
++	.vpvoltage_mask = OMAP3430_VPVOLTAGE_MASK,
 +
- 	struct omap_vdd_info *vdd;
+ 	.ops = &omap3_vp_ops,
  };
  
-@@ -141,14 +145,10 @@ struct omap_voltdm_pmic {
-  * @volt_data		: voltage table having the distinct voltages supported
-  *			  by the domain and other associated per voltage data.
-  * @curr_volt		: current voltage for this vdd.
-- * @volt_scale		: API to scale the voltage of the vdd.
-  */
- struct omap_vdd_info {
- 	struct omap_volt_data *volt_data;
- 	u32 curr_volt;
--
--	int (*volt_scale) (struct voltagedomain *voltdm,
--		unsigned long target_volt);
+diff --git a/arch/arm/mach-omap2/vp44xx_data.c b/arch/arm/mach-omap2/vp44xx_data.c
+index 0daf2a4..b4e7704 100644
+--- a/arch/arm/mach-omap2/vp44xx_data.c
++++ b/arch/arm/mach-omap2/vp44xx_data.c
+@@ -51,6 +51,7 @@ static const struct omap_vp_common omap4_vp_common = {
+ 	.vlimitto_vddmin_shift = OMAP4430_VDDMIN_SHIFT,
+ 	.vlimitto_vddmax_shift = OMAP4430_VDDMAX_SHIFT,
+ 	.vlimitto_timeout_shift = OMAP4430_TIMEOUT_SHIFT,
++	.vpvoltage_mask = OMAP4430_VPVOLTAGE_MASK,
+ 	.ops = &omap4_vp_ops,
  };
  
- int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
 -- 
 1.7.6
 
