@@ -1,42 +1,34 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 3/3] OMAP2+: voltage: clean up error messages
-Date: Mon, 29 Aug 2011 14:15:49 -0700
-Message-ID: <87fwkjrkai.fsf@ti.com>
-References: <1312907661-24436-1-git-send-email-jhovold@gmail.com>
-	<1312907661-24436-3-git-send-email-jhovold@gmail.com>
+Subject: Re: [RFC PATCH 1/6 V2] OMAP4: Clock: Associate clocks for OMAP temperature sensor
+Date: Mon, 29 Aug 2011 14:47:21 -0700
+Message-ID: <87bov7rity.fsf@ti.com>
+References: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
+	<1313664735-8917-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:52051 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754103Ab1H2VPw (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:56872 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754480Ab1H2VrZ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 17:15:52 -0400
-Received: by mail-pz0-f49.google.com with SMTP id 6so13924155pzk.36
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 14:15:52 -0700 (PDT)
-In-Reply-To: <1312907661-24436-3-git-send-email-jhovold@gmail.com> (Johan
-	Hovold's message of "Tue, 9 Aug 2011 18:34:21 +0200")
+	Mon, 29 Aug 2011 17:47:25 -0400
+Received: by mail-pz0-f45.google.com with SMTP id 33so11247551pzk.4
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 14:47:24 -0700 (PDT)
+In-Reply-To: <1313664735-8917-2-git-send-email-j-keerthy@ti.com> (Keerthy's
+	message of "Thu, 18 Aug 2011 16:22:10 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Johan Hovold <jhovold@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, rnayak@ti.com
 
-Hi Johan,
+Keerthy <j-keerthy@ti.com> writes:
 
-Johan Hovold <jhovold@gmail.com> writes:
-
-> Clean up error messages by adding missing whitespace, reducing excessive
-> verbosity, and fixing a few language issues.
+> div_ts_ck feeds only the temperature sensor functional clock
+> and also has a clksel associated (for divider selection). Mapping this
+> as the functional clock for the temperature sensor in clkdev table,
+> so a clk_set_rate() in the driver would have the effect of changing the
+> temperature sensor clock rate indirectly.
 >
-> Signed-off-by: Johan Hovold <jhovold@gmail.com>
+> Reviewd-by: Rajendra Nayak <rnayak@ti.com>
 
-I've got a major voltage layer cleanup series in progess (and just
-posted a few series.)  Would you care to rebase this on top my
-pm-wip/voldtm branch[1] where those cleanups are being done?
-
-Thanks,
-
-Kevin
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-wip/voltdm
-
+s/Reviewd/Reviewed/
