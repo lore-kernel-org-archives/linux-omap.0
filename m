@@ -1,439 +1,298 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: Booting hangs with updated linux-omap kernel on OMAP3EVM
-Date: Mon, 29 Aug 2011 16:59:04 +0530
-Message-ID: <CAAL8m4znh8KVbSiP4mpN73TcUdRBobo3N0h-Rg7aROcg56FArA@mail.gmail.com>
-References: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090808@dbde03.ent.ti.com>
+From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Subject: RE: Booting hangs with updated linux-omap kernel on OMAP3EVM
+Date: Mon, 29 Aug 2011 17:25:13 +0530
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09080B@dbde03.ent.ti.com>
+References: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090808@dbde03.ent.ti.com>,<CAAL8m4znh8KVbSiP4mpN73TcUdRBobo3N0h-Rg7aROcg56FArA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:57735 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752615Ab1H2L30 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Aug 2011 07:29:26 -0400
-Received: by bke11 with SMTP id 11so4069433bke.19
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 04:29:25 -0700 (PDT)
-In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090808@dbde03.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:57667 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753290Ab1H2LzW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Aug 2011 07:55:22 -0400
+In-Reply-To: <CAAL8m4znh8KVbSiP4mpN73TcUdRBobo3N0h-Rg7aROcg56FArA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+To: Govindraj <govindraj.ti@gmail.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Aug 29, 2011 at 4:18 PM, Ravi, Deepthy <deepthy.ravi@ti.com> wr=
-ote:
-> Hi,
-> I tried booting OMAP3EVM with the updated linux-omap kernel .
-> The last commit details on the kernel are :
-> Author: Tony Lindgren <tony@atomide.com>
-> commit b148d763841161894ed6629794064065a834aa2b
-> Linux-omap rebuilt: Updated to use omap_sdrc_init
->
-
-probably missing below commit from mainline,
-
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
-commit;h=3D69dd3d8e29e294caaf63eb5e8a72d250279f9e5f
-
-Try,
-
-git revert f3637a5f2e2eb391ff5757bc83fb5de8f9726464
-
---
-Thanks,
-Govindraj.R
-
-
-> It hangs at one point.
->
-> Following is the boot log,
->
-> Texas Instruments X-Loader 1.51 (May =C2=A03 2011 - 19:22:23)
-> Starting X-loader on MMC
-> Reading boot sector
->
-> 220008 Bytes Read from MMC
-> Starting OS Bootloader from MMC...
-> Starting OS Bootloader...
->
->
-> U-Boot 2010.06 (May 03 2011 - 19:23:34)
->
-> OMAP3430/3530-GP ES3.1, CPU-OPP2 L3-165MHz
-> OMAP3 EVM board + LPDDR/NAND
-> I2C: =C2=A0 ready
-> DRAM: =C2=A0128 MiB
-> NAND: =C2=A0HW ECC [Kernel/FS layout] selected
-> 256 MiB
-> In: =C2=A0 =C2=A0serial
-> Out: =C2=A0 serial
-> Err: =C2=A0 serial
-> Read back SMSC id 0x92200000
-> Die ID #46a400040000000004032d460d01d014
-> Net: =C2=A0 smc911x-0
-> Hit any key to stop autoboot: =C2=A00
-> OMAP3_EVM #
-> OMAP3_EVM #
-> OMAP3_EVM # run myboot
-> smc911x: detected LAN9220 controller
-> smc911x: phy initialized
-> smc911x: MAC 00:50:c2:7e:93:73
-> Using smc911x-0 device
-> TFTP from server 192.168.1.79; our IP address is 192.168.1.123
-> Filename 'uImage'.
-> Load address: 0x80000000
-> Loading: ############################################################=
-#####
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 #########################################=
-########################
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 #########################################=
-########################
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 #########################################=
-########################
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 #########################################=
-########################
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 #########################################=
-########################
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 #########################################=
-########################
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 #########################################=
-########################
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 #########################################=
-########################
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 #########################################=
-#################
-> done
-> Bytes transferred =3D 3287400 (322968 hex)
-> mmc1 is available
-> reading ramdisk.gz
->
-> 2013059 bytes read
-> ## Booting kernel from Legacy Image at 80000000 ...
-> =C2=A0 Image Name: =C2=A0 Linux-3.1.0-rc3-11176-g2e5a5f9-d
-> =C2=A0 Image Type: =C2=A0 ARM Linux Kernel Image (uncompressed)
-> =C2=A0 Data Size: =C2=A0 =C2=A03287336 Bytes =3D 3.1 MiB
-> =C2=A0 Load Address: 80008000
-> =C2=A0 Entry Point: =C2=A080008000
-> =C2=A0 Verifying Checksum ... OK
-> =C2=A0 Loading Kernel Image ... OK
-> OK
->
-> Starting kernel ...
->
-> Uncompressing Linux... done, booting the kernel.
-> [ =C2=A0 =C2=A00.000000] Linux version 3.1.0-rc3-11176-g2e5a5f9-dirty=
- (x0157478@psplinux060) (gcc version 4.3.3 (GCC) ) #4 SMP Mon Aug 29 15=
-:37:16 IST 2011
-> [ =C2=A0 =C2=A00.000000] CPU: ARMv7 Processor [411fc083] revision 3 (=
-ARMv7), cr=3D10c53c7f
-> [ =C2=A0 =C2=A00.000000] CPU: VIPT nonaliasing data cache, VIPT nonal=
-iasing instruction cache
-> [ =C2=A0 =C2=A00.000000] Machine: OMAP3 EVM
-> [ =C2=A0 =C2=A00.000000] Memory policy: ECC disabled, Data cache writ=
-eback
-> [ =C2=A0 =C2=A00.000000] OMAP3430/3530 ES3.1 (l2cache iva sgx neon is=
-p )
-> [ =C2=A0 =C2=A00.000000] SRAM: Mapped pa 0x40200000 to va 0xfe400000 =
-size: 0x10000
-> [ =C2=A0 =C2=A00.000000] Clocking rate (Crystal/Core/MPU): 26.0/332/5=
-00 MHz
-> [ =C2=A0 =C2=A00.000000] PERCPU: Embedded 8 pages/cpu @c0cef000 s1011=
-2 r8192 d14464 u32768
-> [ =C2=A0 =C2=A00.000000] Built 1 zonelists in Zone order, mobility gr=
-ouping on. =C2=A0Total pages: 32512
-> [ =C2=A0 =C2=A00.000000] Kernel command line: mem=3D128M console=3Dtt=
-yO0,115200n8 root=3D/dev/ram0 initrd=3D0x82000000,40M ramdisk_size=3D32=
-768 ip=3Ddhcp
-> [ =C2=A0 =C2=A00.000000] PID hash table entries: 512 (order: -1, 2048=
- bytes)
-> [ =C2=A0 =C2=A00.000000] Dentry cache hash table entries: 16384 (orde=
-r: 4, 65536 bytes)
-> [ =C2=A0 =C2=A00.000000] Inode-cache hash table entries: 8192 (order:=
- 3, 32768 bytes)
-> [ =C2=A0 =C2=A00.000000] Memory: 128MB =3D 128MB total
-> [ =C2=A0 =C2=A00.000000] Memory: 76736k/76736k available, 54336k rese=
-rved, 0K highmem
-> [ =C2=A0 =C2=A00.000000] Virtual kernel memory layout:
-> [ =C2=A0 =C2=A00.000000] =C2=A0 =C2=A0 vector =C2=A0: 0xffff0000 - 0x=
-ffff1000 =C2=A0 ( =C2=A0 4 kB)
-> [ =C2=A0 =C2=A00.000000] =C2=A0 =C2=A0 fixmap =C2=A0: 0xfff00000 - 0x=
-fffe0000 =C2=A0 ( 896 kB)
-> [ =C2=A0 =C2=A00.000000] =C2=A0 =C2=A0 DMA =C2=A0 =C2=A0 : 0xffc00000=
- - 0xffe00000 =C2=A0 ( =C2=A0 2 MB)
-> [ =C2=A0 =C2=A00.000000] =C2=A0 =C2=A0 vmalloc : 0xc8800000 - 0xf8000=
-000 =C2=A0 ( 760 MB)
-> [ =C2=A0 =C2=A00.000000] =C2=A0 =C2=A0 lowmem =C2=A0: 0xc0000000 - 0x=
-c8000000 =C2=A0 ( 128 MB)
-> [ =C2=A0 =C2=A00.000000] =C2=A0 =C2=A0 modules : 0xbf000000 - 0xc0000=
-000 =C2=A0 ( =C2=A016 MB)
-> [ =C2=A0 =C2=A00.000000] =C2=A0 =C2=A0 =C2=A0 .text : 0xc0008000 - 0x=
-c05c0d30 =C2=A0 (5860 kB)
-> [ =C2=A0 =C2=A00.000000] =C2=A0 =C2=A0 =C2=A0 .init : 0xc05c1000 - 0x=
-c060e780 =C2=A0 ( 310 kB)
-> [ =C2=A0 =C2=A00.000000] =C2=A0 =C2=A0 =C2=A0 .data : 0xc0610000 - 0x=
-c0695490 =C2=A0 ( 534 kB)
-> [ =C2=A0 =C2=A00.000000] =C2=A0 =C2=A0 =C2=A0 =C2=A0.bss : 0xc06954b4=
- - 0xc0bea4f4 =C2=A0 (5461 kB)
-> [ =C2=A0 =C2=A00.000000] Hierarchical RCU implementation.
-> [ =C2=A0 =C2=A00.000000] NR_IRQS:410
-> [ =C2=A0 =C2=A00.000000] IRQ: Found an INTC at 0xfa200000 (revision 4=
-=2E0) with 96 interrupts
-> [ =C2=A0 =C2=A00.000000] Total of 96 interrupts on 1 active controlle=
-r
-> [ =C2=A0 =C2=A00.000000] OMAP clockevent source: GPTIMER1 at 32768 Hz
-> [ =C2=A0 =C2=A00.000000] sched_clock: 32 bits at 32kHz, resolution 30=
-517ns, wraps every 131071999ms
-> [ =C2=A0 =C2=A00.000000] Console: colour dummy device 80x30
-> [ =C2=A0 =C2=A00.000000] Lock dependency validator: Copyright (c) 200=
-6 Red Hat, Inc., Ingo Molnar
-> [ =C2=A0 =C2=A00.000000] ... MAX_LOCKDEP_SUBCLASSES: =C2=A08
-> [ =C2=A0 =C2=A00.000000] ... MAX_LOCK_DEPTH: =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A048
-> [ =C2=A0 =C2=A00.000000] ... MAX_LOCKDEP_KEYS: =C2=A0 =C2=A0 =C2=A0 =C2=
-=A08191
-> [ =C2=A0 =C2=A00.000000] ... CLASSHASH_SIZE: =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A04096
-> [ =C2=A0 =C2=A00.000000] ... MAX_LOCKDEP_ENTRIES: =C2=A0 =C2=A0 16384
-> [ =C2=A0 =C2=A00.000000] ... MAX_LOCKDEP_CHAINS: =C2=A0 =C2=A0 =C2=A0=
-32768
-> [ =C2=A0 =C2=A00.000000] ... CHAINHASH_SIZE: =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A016384
-> [ =C2=A0 =C2=A00.000000] =C2=A0memory used by lock dependency info: 3=
-695 kB
-> [ =C2=A0 =C2=A00.000000] =C2=A0per task-struct memory footprint: 1152=
- bytes
-> [ =C2=A0 =C2=A00.001159] Calibrating delay loop... 497.82 BogoMIPS (l=
-pj=3D1941504)
-> [ =C2=A0 =C2=A00.093749] pid_max: default: 32768 minimum: 301
-> [ =C2=A0 =C2=A00.094696] Security Framework initialized
-> [ =C2=A0 =C2=A00.095092] Mount-cache hash table entries: 512
-> [ =C2=A0 =C2=A00.100982] CPU: Testing write buffer coherency: ok
-> [ =C2=A0 =C2=A00.104583] Brought up 1 CPUs
-> [ =C2=A0 =C2=A00.104583] SMP: Total of 1 processors activated (497.82=
- BogoMIPS).
-> [ =C2=A0 =C2=A00.119812] omap_hwmod: gpt12_fck: missing clockdomain f=
-or gpt12_fck.
-> [ =C2=A0 =C2=A00.122406] omap_hwmod: am35x_otg_hs: cannot be enabled =
-(3)
-> [ =C2=A0 =C2=A00.126739] print_constraints: dummy:
-> [ =C2=A0 =C2=A00.128570] NET: Registered protocol family 16
-> [ =C2=A0 =C2=A00.129302] GPMC revision 5.0
-> [ =C2=A0 =C2=A00.133789] omap_device: omap_gpio.0: new worst case act=
-ivate latency 0: 61035
-> [ =C2=A0 =C2=A00.135772] OMAP GPIO hardware version 2.5
-> [ =C2=A0 =C2=A00.144104] omap_mux_init: Add partition: #1: core, flag=
-s: 0
-> [ =C2=A0 =C2=A00.151336] omap_device: omap_uart.0: new worst case act=
-ivate latency 0: 30517
-> [ =C2=A0 =C2=A00.151824] omap_device: omap_uart.0: new worst case dea=
-ctivate latency 0: 30517
-> [ =C2=A0 =C2=A00.154479] Reprogramming SDRC clock to 332000000 Hz
-> [ =C2=A0 =C2=A00.261108] hw-breakpoint: debug architecture 0x4 unsupp=
-orted.
-> [ =C2=A0 =C2=A00.275268] omap_device: omap-mcbsp.2: alias fck already=
- exists
-> [ =C2=A0 =C2=A00.276336] omap_device: omap-mcbsp.3: alias fck already=
- exists
-> [ =C2=A0 =C2=A00.283660] OMAP DMA hardware revision 4.0
-> [ =C2=A0 =C2=A00.369995] bio: create slab <bio-0> at 0
-> [ =C2=A0 =C2=A00.381835] SCSI subsystem initialized
-> [ =C2=A0 =C2=A00.382568] omap_device: omap2_mcspi.1: new worst case a=
-ctivate latency 0: 30517
-> [ =C2=A0 =C2=A00.386871] omap_device: omap2_mcspi.1: new worst case d=
-eactivate latency 0: 30517
-> [ =C2=A0 =C2=A00.395294] usbcore: registered new interface driver usb=
-fs
-> [ =C2=A0 =C2=A00.396789] usbcore: registered new interface driver hub
-> [ =C2=A0 =C2=A00.397979] usbcore: registered new device driver usb
-> [ =C2=A0 =C2=A00.401397] omap_device: omap_i2c.1: new worst case acti=
-vate latency 0: 61035
-> [ =C2=A0 =C2=A00.414520] omap_i2c omap_i2c.1: bus 1 rev3.12 at 2600 k=
-Hz
-> [ =C2=A0 =C2=A00.427642] twl4030: PIH (irq 7) chaining IRQs 368..375
-> [ =C2=A0 =C2=A00.427917] twl4030: power (irq 373) chaining IRQs 376..=
-383
-> [ =C2=A0 =C2=A00.430664] twl4030: gpio (irq 368) chaining IRQs 384..4=
-01
-> [ =C2=A0 =C2=A00.432861] _omap_mux_init_gpio: Could not set gpio192
-> [ =C2=A0 =C2=A00.447387] print_constraints: VIO: 1800 mV normal stand=
-by
-> [ =C2=A0 =C2=A00.450561] print_constraints: VMMC1: 1850 <--> 3150 mV =
-at 3000 mV normal standby
-> [ =C2=A0 =C2=A00.453948] print_constraints: VDAC: 1800 mV normal stan=
-dby
-> [ =C2=A0 =C2=A00.456970] print_constraints: VPLL2: 1800 mV normal sta=
-ndby
-> [ =C2=A0 =C2=A00.459869] print_constraints: VSIM: 1800 <--> 3000 mV a=
-t 1800 mV normal standby
-> [ =C2=A0 =C2=A00.460601] omap_device: omap_i2c.1: new worst case deac=
-tivate latency 0: 30517
-> [ =C2=A0 =C2=A00.469146] omap_i2c omap_i2c.2: bus 2 rev3.12 at 400 kH=
-z
-> [ =C2=A0 =C2=A00.484619] omap_i2c omap_i2c.3: bus 3 rev3.12 at 400 kH=
-z
-> [ =C2=A0 =C2=A00.496002] Switching to clocksource 32k_counter
-> [ =C2=A0 =C2=A00.500366] Switched to NOHz mode on CPU #0
-> [ =C2=A0 =C2=A00.648468] NET: Registered protocol family 2
-> [ =C2=A0 =C2=A00.649505] IP route cache hash table entries: 1024 (ord=
-er: 0, 4096 bytes)
-> [ =C2=A0 =C2=A00.651916] TCP established hash table entries: 4096 (or=
-der: 3, 32768 bytes)
-> [ =C2=A0 =C2=A00.652313] TCP bind hash table entries: 4096 (order: 5,=
- 147456 bytes)
-> [ =C2=A0 =C2=A00.655578] TCP: Hash tables configured (established 409=
-6 bind 4096)
-> [ =C2=A0 =C2=A00.655731] TCP reno registered
-> [ =C2=A0 =C2=A00.655792] UDP hash table entries: 64 (order: 0, 5120 b=
-ytes)
-> [ =C2=A0 =C2=A00.656188] UDP-Lite hash table entries: 64 (order: 0, 5=
-120 bytes)
-> [ =C2=A0 =C2=A00.657409] NET: Registered protocol family 1
-> [ =C2=A0 =C2=A00.659240] RPC: Registered named UNIX socket transport =
-module.
-> [ =C2=A0 =C2=A00.659271] RPC: Registered udp transport module.
-> [ =C2=A0 =C2=A00.659301] RPC: Registered tcp transport module.
-> [ =C2=A0 =C2=A00.659301] RPC: Registered tcp NFSv4.1 backchannel tran=
-sport module.
-> [ =C2=A0 =C2=A00.660522] Trying to unpack rootfs image as initramfs..=
-=2E
-> [ =C2=A0 =C2=A00.663604] rootfs image is not initramfs (no cpio magic=
-); looks like an initrd
-> [ =C2=A0 =C2=A01.100158] Freeing initrd memory: 40960K
-> [ =C2=A0 =C2=A01.100189] NetWinder Floating Point Emulator V0.97 (dou=
-ble precision)
-> [ =C2=A0 =C2=A01.293945] VFS: Disk quotas dquot_6.5.2
-> [ =C2=A0 =C2=A01.294403] Dquot-cache hash table entries: 1024 (order =
-0, 4096 bytes)
-> [ =C2=A0 =C2=A01.298278] JFFS2 version 2.2. (NAND) (SUMMARY) =C2=A0=EF=
-=BF=BD=C2=A9 2001-2006 Red Hat, Inc.
-> [ =C2=A0 =C2=A01.299865] msgmni has been set to 229
-> [ =C2=A0 =C2=A01.305603] io scheduler noop registered
-> [ =C2=A0 =C2=A01.305633] io scheduler deadline registered
-> [ =C2=A0 =C2=A01.305938] io scheduler cfq registered (default)
-> [ =C2=A0 =C2=A01.311401] Serial: 8250/16550 driver, 4 ports, IRQ shar=
-ing enabled
-> [ =C2=A0 =C2=A01.321380] omap_uart.0: ttyO0 at MMIO 0x4806a000 (irq =3D=
- 72) is a OMAP UART0
-> [ =C2=A0 =C2=A02.004119] console [ttyO0] enabled
-> [ =C2=A0 =C2=A02.009979] omap_uart.1: ttyO1 at MMIO 0x4806c000 (irq =3D=
- 73) is a OMAP UART1
-> [ =C2=A0 =C2=A02.019348] omap_uart.2: ttyO2 at MMIO 0x49020000 (irq =3D=
- 74) is a OMAP UART2
-> [ =C2=A0 =C2=A02.073333] brd: module loaded
-> [ =C2=A0 =C2=A02.104248] loop: module loaded
-> [ =C2=A0 =C2=A02.117248] mtdoops: mtd device (mtddev=3Dname/number) m=
-ust be supplied
-> [ =C2=A0 =C2=A02.124542] omap2-nand driver initializing
-> [ =C2=A0 =C2=A02.130157] OneNAND driver initializing
-> [ =C2=A0 =C2=A02.143341] smsc911x: Driver version 2008-10-21
-> [ =C2=A0 =C2=A02.157897] smsc911x-mdio: probed
-> [ =C2=A0 =C2=A02.162200] smsc911x smsc911x.0: eth0: attached PHY driv=
-er [SMSC LAN8700] (mii_bus:phy_addr=3D0:01, irq=3D-1)
-> [ =C2=A0 =C2=A02.172760] smsc911x smsc911x.0: eth0: MAC Address: 00:5=
-0:c2:7e:93:73
-> [ =C2=A0 =C2=A02.181335] usbcore: registered new interface driver asi=
-x
-> [ =C2=A0 =C2=A02.188140] usbcore: registered new interface driver cdc=
-_ether
-> [ =C2=A0 =C2=A02.195220] usbcore: registered new interface driver net=
-1080
-> [ =C2=A0 =C2=A02.202087] usbcore: registered new interface driver cdc=
-_subset
-> [ =C2=A0 =C2=A02.209228] usbcore: registered new interface driver zau=
-rus
-> [ =C2=A0 =C2=A02.215179] cdc_ncm: 04-Aug-2011
-> [ =C2=A0 =C2=A02.219482] usbcore: registered new interface driver cdc=
-_ncm
-> [ =C2=A0 =C2=A02.228881] usbcore: registered new interface driver cdc=
-_wdm
-> [ =C2=A0 =C2=A02.235046] Initializing USB Mass Storage driver...
-> [ =C2=A0 =C2=A02.241119] usbcore: registered new interface driver usb=
--storage
-> [ =C2=A0 =C2=A02.247680] USB Mass Storage support registered.
-> [ =C2=A0 =C2=A02.254272] usbcore: registered new interface driver lib=
-usual
-> [ =C2=A0 =C2=A02.261352] usbcore: registered new interface driver usb=
-test
-> [ =C2=A0 =C2=A02.269836] mousedev: PS/2 mouse device common for all m=
-ice
-> [ =C2=A0 =C2=A02.279449] input: TWL4030 Keypad as /devices/platform/o=
-map/omap_i2c.1/i2c-1/1-004a/twl4030_keypad/input/input0
-> [ =C2=A0 =C2=A02.292724] omap_device: omap_i2c.1: new worst case acti=
-vate latency 0: 122070
-> [ =C2=A0 =C2=A02.309844] ads7846 spi1.0: touchscreen, irq 335
-> [ =C2=A0 =C2=A02.316070] omap_device: omap2_mcspi.1: new worst case a=
-ctivate latency 0: 61035
-> [ =C2=A0 =C2=A02.326538] input: ADS7846 Touchscreen as /devices/platf=
-orm/omap/omap2_mcspi.1/spi1.0/input/input1
-> [ =C2=A0 =C2=A02.344512] input: twl4030_pwrbutton as /devices/platfor=
-m/omap/omap_i2c.1/i2c-1/1-0049/twl4030_pwrbutton/input/input2
-> [ =C2=A0 =C2=A02.362396] twl_rtc twl_rtc: rtc core: registered twl_rt=
-c as rtc0
-> [ =C2=A0 =C2=A02.369415] twl_rtc twl_rtc: Power up reset detected.
-> [ =C2=A0 =C2=A02.375915] twl_rtc twl_rtc: Enabling TWL-RTC.
-> [ =C2=A0 =C2=A02.382354] i2c /dev entries driver
-> [ =C2=A0 =C2=A02.392242] Driver for 1-wire Dallas network protocol.
-> [ =C2=A0 =C2=A02.400451] omap_device: omap_wdt.-1: new worst case act=
-ivate latency 0: 30517
-> [ =C2=A0 =C2=A02.410400] OMAP Watchdog Timer Rev 0x31: initial timeou=
-t 60 sec
-> [ =C2=A0 =C2=A02.417083] omap_device: omap_wdt.-1: new worst case dea=
-ctivate latency 0: 30517
-> [ =C2=A0 =C2=A02.426544] twl4030_wdt twl4030_wdt: Failed to register =
-misc device
-> [ =C2=A0 =C2=A02.433471] twl4030_wdt: probe of twl4030_wdt failed wit=
-h error -16
-> [ =C2=A0 =C2=A02.446990] omap_device: omap_hsmmc.0: new worst case ac=
-tivate latency 0: 213623
-> [ =C2=A0 =C2=A02.460815] omap_device: omap_hsmmc.0: new worst case de=
-activate latency 0: 30517
-> [ =C2=A0 =C2=A02.474273] omap_device: omap_hsmmc.0: new worst case ac=
-tivate latency 0: 274658
-> [ =C2=A0 =C2=A02.483215] usbcore: registered new interface driver usb=
-hid
-> [ =C2=A0 =C2=A02.489227] usbhid: USB HID core driver
-> [ =C2=A0 =C2=A02.493286] oprofile: hardware counters not available
-> [ =C2=A0 =C2=A02.498687] oprofile: using timer interrupt.
-> [ =C2=A0 =C2=A02.503967] TCP cubic registered
-> [ =C2=A0 =C2=A02.507507] Initializing XFRM netlink socket
-> [ =C2=A0 =C2=A02.512207] NET: Registered protocol family 17
-> [ =C2=A0 =C2=A02.517120] NET: Registered protocol family 15
-> [ =C2=A0 =C2=A02.522277] Registering the dns_resolver key type
-> [ =C2=A0 =C2=A02.528106] VFP support v0.3: implementor 41 architectur=
-e 3 part 30 variant c rev 1
-> [ =C2=A0 =C2=A02.536346] ThumbEE CPU extension supported.
-> [ =C2=A0 =C2=A02.602478] clock: disabling unused clocks to save power
-> [ =C2=A0 =C2=A02.617614] twl_rtc twl_rtc: setting system clock to 200=
-0-01-01 00:00:00 UTC (946684800)
-> [ =C2=A0 =C2=A02.629364] smsc911x smsc911x.0: eth0: SMSC911x/921x ide=
-ntified at 0xc8878000, IRQ: 336
-> [ =C2=A0 =C2=A02.660919] Sending DHCP requests .
-> [ =C2=A0 =C2=A03.008392] mmc0: new high speed SD card at address b368
-> [ =C2=A0 =C2=A03.018829] mmcblk0: mmc0:b368 SDC =C2=A0 958 MiB
-> [ =C2=A0 =C2=A03.034332] =C2=A0mmcblk0: p1 p2
-> [ =C2=A0 =C2=A03.138000] omap_device: omap_hsmmc.0: new worst case de=
-activate latency 0: 91552
-> [ =C2=A0 =C2=A05.645111] ., OK
-> [ =C2=A0 =C2=A06.387817] IP-Config: Got DHCP answer from 0.0.0.0, my =
-address is 192.168.1.57
-> [ =C2=A0 =C2=A06.396301] IP-Config: Complete:
-> [ =C2=A0 =C2=A06.399719] =C2=A0 =C2=A0 =C2=A0device=3Deth0, addr=3D19=
-2.168.1.57, mask=3D255.255.255.0, gw=3D192.168.1.1,
-> [ =C2=A0 =C2=A06.407775] =C2=A0 =C2=A0 =C2=A0host=3D192.168.1.57, dom=
-ain=3Dpathpartner.com, nis-domain=3D(none),
-> [ =C2=A0 =C2=A06.415496] =C2=A0 =C2=A0 =C2=A0bootserver=3D0.0.0.0, ro=
-otserver=3D0.0.0.0, rootpath=3D
-> [ =C2=A0 =C2=A06.426513] RAMDISK: gzip image found at block 0
-> [ =C2=A0 =C2=A07.078247] VFS: Mounted root (ext2 filesystem) on devic=
-e 1:0.
-> [ =C2=A0 =C2=A07.085693] Freeing init memory: 308K
->
-> It hangs after this. Did anyone face this issue?
->
->
-> Thanks,
-> Deepthy Ravi.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgR292aW5kcmFqLA0KV2l0aCB0aGlzIGNvbW1pdCBhZGRlZCwgaXQgaXMgYm9vdGluZyB1cC5U
+aGFua3MgZm9yIHRoZSBpbmZvLg0KDQpUaGFua3MsDQpEZWVwdGh5IFJhdmkuDQpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQpGcm9tOiBHb3ZpbmRyYWogW2dvdmluZHJh
+ai50aUBnbWFpbC5jb21dDQpTZW50OiBNb25kYXksIEF1Z3VzdCAyOSwgMjAxMSA0OjU5IFBNDQpU
+bzogUmF2aSwgRGVlcHRoeQ0KQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0
+OiBSZTogQm9vdGluZyBoYW5ncyB3aXRoIHVwZGF0ZWQgbGludXgtb21hcCBrZXJuZWwgb24gT01B
+UDNFVk0NCg0KT24gTW9uLCBBdWcgMjksIDIwMTEgYXQgNDoxOCBQTSwgUmF2aSwgRGVlcHRoeSA8
+ZGVlcHRoeS5yYXZpQHRpLmNvbT4gd3JvdGU6DQo+IEhpLA0KPiBJIHRyaWVkIGJvb3RpbmcgT01B
+UDNFVk0gd2l0aCB0aGUgdXBkYXRlZCBsaW51eC1vbWFwIGtlcm5lbCAuDQo+IFRoZSBsYXN0IGNv
+bW1pdCBkZXRhaWxzIG9uIHRoZSBrZXJuZWwgYXJlIDoNCj4gQXV0aG9yOiBUb255IExpbmRncmVu
+IDx0b255QGF0b21pZGUuY29tPg0KPiBjb21taXQgYjE0OGQ3NjM4NDExNjE4OTRlZDY2Mjk3OTQw
+NjQwNjVhODM0YWEyYg0KPiBMaW51eC1vbWFwIHJlYnVpbHQ6IFVwZGF0ZWQgdG8gdXNlIG9tYXBf
+c2RyY19pbml0DQo+DQoNCnByb2JhYmx5IG1pc3NpbmcgYmVsb3cgY29tbWl0IGZyb20gbWFpbmxp
+bmUsDQoNCmh0dHA6Ly9naXQua2VybmVsLm9yZy8/cD1saW51eC9rZXJuZWwvZ2l0L3RvcnZhbGRz
+L2xpbnV4LTIuNi5naXQ7YT1jb21taXQ7aD02OWRkM2Q4ZTI5ZTI5NGNhYWY2M2ViNWU4YTcyZDI1
+MDI3OWY5ZTVmDQoNClRyeSwNCg0KZ2l0IHJldmVydCBmMzYzN2E1ZjJlMmViMzkxZmY1NzU3YmM4
+M2ZiNWRlOGY5NzI2NDY0DQoNCi0tDQpUaGFua3MsDQpHb3ZpbmRyYWouUg0KDQoNCj4gSXQgaGFu
+Z3MgYXQgb25lIHBvaW50Lg0KPg0KPiBGb2xsb3dpbmcgaXMgdGhlIGJvb3QgbG9nLA0KPg0KPiBU
+ZXhhcyBJbnN0cnVtZW50cyBYLUxvYWRlciAxLjUxIChNYXkgIDMgMjAxMSAtIDE5OjIyOjIzKQ0K
+PiBTdGFydGluZyBYLWxvYWRlciBvbiBNTUMNCj4gUmVhZGluZyBib290IHNlY3Rvcg0KPg0KPiAy
+MjAwMDggQnl0ZXMgUmVhZCBmcm9tIE1NQw0KPiBTdGFydGluZyBPUyBCb290bG9hZGVyIGZyb20g
+TU1DLi4uDQo+IFN0YXJ0aW5nIE9TIEJvb3Rsb2FkZXIuLi4NCj4NCj4NCj4gVS1Cb290IDIwMTAu
+MDYgKE1heSAwMyAyMDExIC0gMTk6MjM6MzQpDQo+DQo+IE9NQVAzNDMwLzM1MzAtR1AgRVMzLjEs
+IENQVS1PUFAyIEwzLTE2NU1Ieg0KPiBPTUFQMyBFVk0gYm9hcmQgKyBMUEREUi9OQU5EDQo+IEky
+QzogICByZWFkeQ0KPiBEUkFNOiAgMTI4IE1pQg0KPiBOQU5EOiAgSFcgRUNDIFtLZXJuZWwvRlMg
+bGF5b3V0XSBzZWxlY3RlZA0KPiAyNTYgTWlCDQo+IEluOiAgICBzZXJpYWwNCj4gT3V0OiAgIHNl
+cmlhbA0KPiBFcnI6ICAgc2VyaWFsDQo+IFJlYWQgYmFjayBTTVNDIGlkIDB4OTIyMDAwMDANCj4g
+RGllIElEICM0NmE0MDAwNDAwMDAwMDAwMDQwMzJkNDYwZDAxZDAxNA0KPiBOZXQ6ICAgc21jOTEx
+eC0wDQo+IEhpdCBhbnkga2V5IHRvIHN0b3AgYXV0b2Jvb3Q6ICAwDQo+IE9NQVAzX0VWTSAjDQo+
+IE9NQVAzX0VWTSAjDQo+IE9NQVAzX0VWTSAjIHJ1biBteWJvb3QNCj4gc21jOTExeDogZGV0ZWN0
+ZWQgTEFOOTIyMCBjb250cm9sbGVyDQo+IHNtYzkxMXg6IHBoeSBpbml0aWFsaXplZA0KPiBzbWM5
+MTF4OiBNQUMgMDA6NTA6YzI6N2U6OTM6NzMNCj4gVXNpbmcgc21jOTExeC0wIGRldmljZQ0KPiBU
+RlRQIGZyb20gc2VydmVyIDE5Mi4xNjguMS43OTsgb3VyIElQIGFkZHJlc3MgaXMgMTkyLjE2OC4x
+LjEyMw0KPiBGaWxlbmFtZSAndUltYWdlJy4NCj4gTG9hZCBhZGRyZXNzOiAweDgwMDAwMDAwDQo+
+IExvYWRpbmc6ICMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjDQo+ICAgICAgICAgIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMNCj4gICAgICAgICAjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+Iw0KPiAgICAgICAgICMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjDQo+ICAgICAgICAgIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMNCj4gICAgICAgICAjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIw0KPiAgICAgICAgICMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjDQo+ICAgICAgICAgIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMNCj4gICAgICAgICAj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIw0KPiAgICAgICAgICMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMNCj4gZG9uZQ0KPiBCeXRlcyB0cmFuc2ZlcnJlZCA9IDMyODc0
+MDAgKDMyMjk2OCBoZXgpDQo+IG1tYzEgaXMgYXZhaWxhYmxlDQo+IHJlYWRpbmcgcmFtZGlzay5n
+eg0KPg0KPiAyMDEzMDU5IGJ5dGVzIHJlYWQNCj4gIyMgQm9vdGluZyBrZXJuZWwgZnJvbSBMZWdh
+Y3kgSW1hZ2UgYXQgODAwMDAwMDAgLi4uDQo+ICAgSW1hZ2UgTmFtZTogICBMaW51eC0zLjEuMC1y
+YzMtMTExNzYtZzJlNWE1ZjktZA0KPiAgIEltYWdlIFR5cGU6ICAgQVJNIExpbnV4IEtlcm5lbCBJ
+bWFnZSAodW5jb21wcmVzc2VkKQ0KPiAgIERhdGEgU2l6ZTogICAgMzI4NzMzNiBCeXRlcyA9IDMu
+MSBNaUINCj4gICBMb2FkIEFkZHJlc3M6IDgwMDA4MDAwDQo+ICAgRW50cnkgUG9pbnQ6ICA4MDAw
+ODAwMA0KPiAgIFZlcmlmeWluZyBDaGVja3N1bSAuLi4gT0sNCj4gICBMb2FkaW5nIEtlcm5lbCBJ
+bWFnZSAuLi4gT0sNCj4gT0sNCj4NCj4gU3RhcnRpbmcga2VybmVsIC4uLg0KPg0KPiBVbmNvbXBy
+ZXNzaW5nIExpbnV4Li4uIGRvbmUsIGJvb3RpbmcgdGhlIGtlcm5lbC4NCj4gWyAgICAwLjAwMDAw
+MF0gTGludXggdmVyc2lvbiAzLjEuMC1yYzMtMTExNzYtZzJlNWE1ZjktZGlydHkgKHgwMTU3NDc4
+QHBzcGxpbnV4MDYwKSAoZ2NjIHZlcnNpb24gNC4zLjMgKEdDQykgKSAjNCBTTVAgTW9uIEF1ZyAy
+OSAxNTozNzoxNiBJU1QgMjAxMQ0KPiBbICAgIDAuMDAwMDAwXSBDUFU6IEFSTXY3IFByb2Nlc3Nv
+ciBbNDExZmMwODNdIHJldmlzaW9uIDMgKEFSTXY3KSwgY3I9MTBjNTNjN2YNCj4gWyAgICAwLjAw
+MDAwMF0gQ1BVOiBWSVBUIG5vbmFsaWFzaW5nIGRhdGEgY2FjaGUsIFZJUFQgbm9uYWxpYXNpbmcg
+aW5zdHJ1Y3Rpb24gY2FjaGUNCj4gWyAgICAwLjAwMDAwMF0gTWFjaGluZTogT01BUDMgRVZNDQo+
+IFsgICAgMC4wMDAwMDBdIE1lbW9yeSBwb2xpY3k6IEVDQyBkaXNhYmxlZCwgRGF0YSBjYWNoZSB3
+cml0ZWJhY2sNCj4gWyAgICAwLjAwMDAwMF0gT01BUDM0MzAvMzUzMCBFUzMuMSAobDJjYWNoZSBp
+dmEgc2d4IG5lb24gaXNwICkNCj4gWyAgICAwLjAwMDAwMF0gU1JBTTogTWFwcGVkIHBhIDB4NDAy
+MDAwMDAgdG8gdmEgMHhmZTQwMDAwMCBzaXplOiAweDEwMDAwDQo+IFsgICAgMC4wMDAwMDBdIENs
+b2NraW5nIHJhdGUgKENyeXN0YWwvQ29yZS9NUFUpOiAyNi4wLzMzMi81MDAgTUh6DQo+IFsgICAg
+MC4wMDAwMDBdIFBFUkNQVTogRW1iZWRkZWQgOCBwYWdlcy9jcHUgQGMwY2VmMDAwIHMxMDExMiBy
+ODE5MiBkMTQ0NjQgdTMyNzY4DQo+IFsgICAgMC4wMDAwMDBdIEJ1aWx0IDEgem9uZWxpc3RzIGlu
+IFpvbmUgb3JkZXIsIG1vYmlsaXR5IGdyb3VwaW5nIG9uLiAgVG90YWwgcGFnZXM6IDMyNTEyDQo+
+IFsgICAgMC4wMDAwMDBdIEtlcm5lbCBjb21tYW5kIGxpbmU6IG1lbT0xMjhNIGNvbnNvbGU9dHR5
+TzAsMTE1MjAwbjggcm9vdD0vZGV2L3JhbTAgaW5pdHJkPTB4ODIwMDAwMDAsNDBNIHJhbWRpc2tf
+c2l6ZT0zMjc2OCBpcD1kaGNwDQo+IFsgICAgMC4wMDAwMDBdIFBJRCBoYXNoIHRhYmxlIGVudHJp
+ZXM6IDUxMiAob3JkZXI6IC0xLCAyMDQ4IGJ5dGVzKQ0KPiBbICAgIDAuMDAwMDAwXSBEZW50cnkg
+Y2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAxNjM4NCAob3JkZXI6IDQsIDY1NTM2IGJ5dGVzKQ0K
+PiBbICAgIDAuMDAwMDAwXSBJbm9kZS1jYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDgxOTIgKG9y
+ZGVyOiAzLCAzMjc2OCBieXRlcykNCj4gWyAgICAwLjAwMDAwMF0gTWVtb3J5OiAxMjhNQiA9IDEy
+OE1CIHRvdGFsDQo+IFsgICAgMC4wMDAwMDBdIE1lbW9yeTogNzY3MzZrLzc2NzM2ayBhdmFpbGFi
+bGUsIDU0MzM2ayByZXNlcnZlZCwgMEsgaGlnaG1lbQ0KPiBbICAgIDAuMDAwMDAwXSBWaXJ0dWFs
+IGtlcm5lbCBtZW1vcnkgbGF5b3V0Og0KPiBbICAgIDAuMDAwMDAwXSAgICAgdmVjdG9yICA6IDB4
+ZmZmZjAwMDAgLSAweGZmZmYxMDAwICAgKCAgIDQga0IpDQo+IFsgICAgMC4wMDAwMDBdICAgICBm
+aXhtYXAgIDogMHhmZmYwMDAwMCAtIDB4ZmZmZTAwMDAgICAoIDg5NiBrQikNCj4gWyAgICAwLjAw
+MDAwMF0gICAgIERNQSAgICAgOiAweGZmYzAwMDAwIC0gMHhmZmUwMDAwMCAgICggICAyIE1CKQ0K
+PiBbICAgIDAuMDAwMDAwXSAgICAgdm1hbGxvYyA6IDB4Yzg4MDAwMDAgLSAweGY4MDAwMDAwICAg
+KCA3NjAgTUIpDQo+IFsgICAgMC4wMDAwMDBdICAgICBsb3dtZW0gIDogMHhjMDAwMDAwMCAtIDB4
+YzgwMDAwMDAgICAoIDEyOCBNQikNCj4gWyAgICAwLjAwMDAwMF0gICAgIG1vZHVsZXMgOiAweGJm
+MDAwMDAwIC0gMHhjMDAwMDAwMCAgICggIDE2IE1CKQ0KPiBbICAgIDAuMDAwMDAwXSAgICAgICAu
+dGV4dCA6IDB4YzAwMDgwMDAgLSAweGMwNWMwZDMwICAgKDU4NjAga0IpDQo+IFsgICAgMC4wMDAw
+MDBdICAgICAgIC5pbml0IDogMHhjMDVjMTAwMCAtIDB4YzA2MGU3ODAgICAoIDMxMCBrQikNCj4g
+WyAgICAwLjAwMDAwMF0gICAgICAgLmRhdGEgOiAweGMwNjEwMDAwIC0gMHhjMDY5NTQ5MCAgICgg
+NTM0IGtCKQ0KPiBbICAgIDAuMDAwMDAwXSAgICAgICAgLmJzcyA6IDB4YzA2OTU0YjQgLSAweGMw
+YmVhNGY0ICAgKDU0NjEga0IpDQo+IFsgICAgMC4wMDAwMDBdIEhpZXJhcmNoaWNhbCBSQ1UgaW1w
+bGVtZW50YXRpb24uDQo+IFsgICAgMC4wMDAwMDBdIE5SX0lSUVM6NDEwDQo+IFsgICAgMC4wMDAw
+MDBdIElSUTogRm91bmQgYW4gSU5UQyBhdCAweGZhMjAwMDAwIChyZXZpc2lvbiA0LjApIHdpdGgg
+OTYgaW50ZXJydXB0cw0KPiBbICAgIDAuMDAwMDAwXSBUb3RhbCBvZiA5NiBpbnRlcnJ1cHRzIG9u
+IDEgYWN0aXZlIGNvbnRyb2xsZXINCj4gWyAgICAwLjAwMDAwMF0gT01BUCBjbG9ja2V2ZW50IHNv
+dXJjZTogR1BUSU1FUjEgYXQgMzI3NjggSHoNCj4gWyAgICAwLjAwMDAwMF0gc2NoZWRfY2xvY2s6
+IDMyIGJpdHMgYXQgMzJrSHosIHJlc29sdXRpb24gMzA1MTducywgd3JhcHMgZXZlcnkgMTMxMDcx
+OTk5bXMNCj4gWyAgICAwLjAwMDAwMF0gQ29uc29sZTogY29sb3VyIGR1bW15IGRldmljZSA4MHgz
+MA0KPiBbICAgIDAuMDAwMDAwXSBMb2NrIGRlcGVuZGVuY3kgdmFsaWRhdG9yOiBDb3B5cmlnaHQg
+KGMpIDIwMDYgUmVkIEhhdCwgSW5jLiwgSW5nbyBNb2xuYXINCj4gWyAgICAwLjAwMDAwMF0gLi4u
+IE1BWF9MT0NLREVQX1NVQkNMQVNTRVM6ICA4DQo+IFsgICAgMC4wMDAwMDBdIC4uLiBNQVhfTE9D
+S19ERVBUSDogICAgICAgICAgNDgNCj4gWyAgICAwLjAwMDAwMF0gLi4uIE1BWF9MT0NLREVQX0tF
+WVM6ICAgICAgICA4MTkxDQo+IFsgICAgMC4wMDAwMDBdIC4uLiBDTEFTU0hBU0hfU0laRTogICAg
+ICAgICAgNDA5Ng0KPiBbICAgIDAuMDAwMDAwXSAuLi4gTUFYX0xPQ0tERVBfRU5UUklFUzogICAg
+IDE2Mzg0DQo+IFsgICAgMC4wMDAwMDBdIC4uLiBNQVhfTE9DS0RFUF9DSEFJTlM6ICAgICAgMzI3
+NjgNCj4gWyAgICAwLjAwMDAwMF0gLi4uIENIQUlOSEFTSF9TSVpFOiAgICAgICAgICAxNjM4NA0K
+PiBbICAgIDAuMDAwMDAwXSAgbWVtb3J5IHVzZWQgYnkgbG9jayBkZXBlbmRlbmN5IGluZm86IDM2
+OTUga0INCj4gWyAgICAwLjAwMDAwMF0gIHBlciB0YXNrLXN0cnVjdCBtZW1vcnkgZm9vdHByaW50
+OiAxMTUyIGJ5dGVzDQo+IFsgICAgMC4wMDExNTldIENhbGlicmF0aW5nIGRlbGF5IGxvb3AuLi4g
+NDk3LjgyIEJvZ29NSVBTIChscGo9MTk0MTUwNCkNCj4gWyAgICAwLjA5Mzc0OV0gcGlkX21heDog
+ZGVmYXVsdDogMzI3NjggbWluaW11bTogMzAxDQo+IFsgICAgMC4wOTQ2OTZdIFNlY3VyaXR5IEZy
+YW1ld29yayBpbml0aWFsaXplZA0KPiBbICAgIDAuMDk1MDkyXSBNb3VudC1jYWNoZSBoYXNoIHRh
+YmxlIGVudHJpZXM6IDUxMg0KPiBbICAgIDAuMTAwOTgyXSBDUFU6IFRlc3Rpbmcgd3JpdGUgYnVm
+ZmVyIGNvaGVyZW5jeTogb2sNCj4gWyAgICAwLjEwNDU4M10gQnJvdWdodCB1cCAxIENQVXMNCj4g
+WyAgICAwLjEwNDU4M10gU01QOiBUb3RhbCBvZiAxIHByb2Nlc3NvcnMgYWN0aXZhdGVkICg0OTcu
+ODIgQm9nb01JUFMpLg0KPiBbICAgIDAuMTE5ODEyXSBvbWFwX2h3bW9kOiBncHQxMl9mY2s6IG1p
+c3NpbmcgY2xvY2tkb21haW4gZm9yIGdwdDEyX2Zjay4NCj4gWyAgICAwLjEyMjQwNl0gb21hcF9o
+d21vZDogYW0zNXhfb3RnX2hzOiBjYW5ub3QgYmUgZW5hYmxlZCAoMykNCj4gWyAgICAwLjEyNjcz
+OV0gcHJpbnRfY29uc3RyYWludHM6IGR1bW15Og0KPiBbICAgIDAuMTI4NTcwXSBORVQ6IFJlZ2lz
+dGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE2DQo+IFsgICAgMC4xMjkzMDJdIEdQTUMgcmV2aXNpb24g
+NS4wDQo+IFsgICAgMC4xMzM3ODldIG9tYXBfZGV2aWNlOiBvbWFwX2dwaW8uMDogbmV3IHdvcnN0
+IGNhc2UgYWN0aXZhdGUgbGF0ZW5jeSAwOiA2MTAzNQ0KPiBbICAgIDAuMTM1NzcyXSBPTUFQIEdQ
+SU8gaGFyZHdhcmUgdmVyc2lvbiAyLjUNCj4gWyAgICAwLjE0NDEwNF0gb21hcF9tdXhfaW5pdDog
+QWRkIHBhcnRpdGlvbjogIzE6IGNvcmUsIGZsYWdzOiAwDQo+IFsgICAgMC4xNTEzMzZdIG9tYXBf
+ZGV2aWNlOiBvbWFwX3VhcnQuMDogbmV3IHdvcnN0IGNhc2UgYWN0aXZhdGUgbGF0ZW5jeSAwOiAz
+MDUxNw0KPiBbICAgIDAuMTUxODI0XSBvbWFwX2RldmljZTogb21hcF91YXJ0LjA6IG5ldyB3b3Jz
+dCBjYXNlIGRlYWN0aXZhdGUgbGF0ZW5jeSAwOiAzMDUxNw0KPiBbICAgIDAuMTU0NDc5XSBSZXBy
+b2dyYW1taW5nIFNEUkMgY2xvY2sgdG8gMzMyMDAwMDAwIEh6DQo+IFsgICAgMC4yNjExMDhdIGh3
+LWJyZWFrcG9pbnQ6IGRlYnVnIGFyY2hpdGVjdHVyZSAweDQgdW5zdXBwb3J0ZWQuDQo+IFsgICAg
+MC4yNzUyNjhdIG9tYXBfZGV2aWNlOiBvbWFwLW1jYnNwLjI6IGFsaWFzIGZjayBhbHJlYWR5IGV4
+aXN0cw0KPiBbICAgIDAuMjc2MzM2XSBvbWFwX2RldmljZTogb21hcC1tY2JzcC4zOiBhbGlhcyBm
+Y2sgYWxyZWFkeSBleGlzdHMNCj4gWyAgICAwLjI4MzY2MF0gT01BUCBETUEgaGFyZHdhcmUgcmV2
+aXNpb24gNC4wDQo+IFsgICAgMC4zNjk5OTVdIGJpbzogY3JlYXRlIHNsYWIgPGJpby0wPiBhdCAw
+DQo+IFsgICAgMC4zODE4MzVdIFNDU0kgc3Vic3lzdGVtIGluaXRpYWxpemVkDQo+IFsgICAgMC4z
+ODI1NjhdIG9tYXBfZGV2aWNlOiBvbWFwMl9tY3NwaS4xOiBuZXcgd29yc3QgY2FzZSBhY3RpdmF0
+ZSBsYXRlbmN5IDA6IDMwNTE3DQo+IFsgICAgMC4zODY4NzFdIG9tYXBfZGV2aWNlOiBvbWFwMl9t
+Y3NwaS4xOiBuZXcgd29yc3QgY2FzZSBkZWFjdGl2YXRlIGxhdGVuY3kgMDogMzA1MTcNCj4gWyAg
+ICAwLjM5NTI5NF0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciB1c2Jm
+cw0KPiBbICAgIDAuMzk2Nzg5XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJp
+dmVyIGh1Yg0KPiBbICAgIDAuMzk3OTc5XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBkZXZpY2Ug
+ZHJpdmVyIHVzYg0KPiBbICAgIDAuNDAxMzk3XSBvbWFwX2RldmljZTogb21hcF9pMmMuMTogbmV3
+IHdvcnN0IGNhc2UgYWN0aXZhdGUgbGF0ZW5jeSAwOiA2MTAzNQ0KPiBbICAgIDAuNDE0NTIwXSBv
+bWFwX2kyYyBvbWFwX2kyYy4xOiBidXMgMSByZXYzLjEyIGF0IDI2MDAga0h6DQo+IFsgICAgMC40
+Mjc2NDJdIHR3bDQwMzA6IFBJSCAoaXJxIDcpIGNoYWluaW5nIElSUXMgMzY4Li4zNzUNCj4gWyAg
+ICAwLjQyNzkxN10gdHdsNDAzMDogcG93ZXIgKGlycSAzNzMpIGNoYWluaW5nIElSUXMgMzc2Li4z
+ODMNCj4gWyAgICAwLjQzMDY2NF0gdHdsNDAzMDogZ3BpbyAoaXJxIDM2OCkgY2hhaW5pbmcgSVJR
+cyAzODQuLjQwMQ0KPiBbICAgIDAuNDMyODYxXSBfb21hcF9tdXhfaW5pdF9ncGlvOiBDb3VsZCBu
+b3Qgc2V0IGdwaW8xOTINCj4gWyAgICAwLjQ0NzM4N10gcHJpbnRfY29uc3RyYWludHM6IFZJTzog
+MTgwMCBtViBub3JtYWwgc3RhbmRieQ0KPiBbICAgIDAuNDUwNTYxXSBwcmludF9jb25zdHJhaW50
+czogVk1NQzE6IDE4NTAgPC0tPiAzMTUwIG1WIGF0IDMwMDAgbVYgbm9ybWFsIHN0YW5kYnkNCj4g
+WyAgICAwLjQ1Mzk0OF0gcHJpbnRfY29uc3RyYWludHM6IFZEQUM6IDE4MDAgbVYgbm9ybWFsIHN0
+YW5kYnkNCj4gWyAgICAwLjQ1Njk3MF0gcHJpbnRfY29uc3RyYWludHM6IFZQTEwyOiAxODAwIG1W
+IG5vcm1hbCBzdGFuZGJ5DQo+IFsgICAgMC40NTk4NjldIHByaW50X2NvbnN0cmFpbnRzOiBWU0lN
+OiAxODAwIDwtLT4gMzAwMCBtViBhdCAxODAwIG1WIG5vcm1hbCBzdGFuZGJ5DQo+IFsgICAgMC40
+NjA2MDFdIG9tYXBfZGV2aWNlOiBvbWFwX2kyYy4xOiBuZXcgd29yc3QgY2FzZSBkZWFjdGl2YXRl
+IGxhdGVuY3kgMDogMzA1MTcNCj4gWyAgICAwLjQ2OTE0Nl0gb21hcF9pMmMgb21hcF9pMmMuMjog
+YnVzIDIgcmV2My4xMiBhdCA0MDAga0h6DQo+IFsgICAgMC40ODQ2MTldIG9tYXBfaTJjIG9tYXBf
+aTJjLjM6IGJ1cyAzIHJldjMuMTIgYXQgNDAwIGtIeg0KPiBbICAgIDAuNDk2MDAyXSBTd2l0Y2hp
+bmcgdG8gY2xvY2tzb3VyY2UgMzJrX2NvdW50ZXINCj4gWyAgICAwLjUwMDM2Nl0gU3dpdGNoZWQg
+dG8gTk9IeiBtb2RlIG9uIENQVSAjMA0KPiBbICAgIDAuNjQ4NDY4XSBORVQ6IFJlZ2lzdGVyZWQg
+cHJvdG9jb2wgZmFtaWx5IDINCj4gWyAgICAwLjY0OTUwNV0gSVAgcm91dGUgY2FjaGUgaGFzaCB0
+YWJsZSBlbnRyaWVzOiAxMDI0IChvcmRlcjogMCwgNDA5NiBieXRlcykNCj4gWyAgICAwLjY1MTkx
+Nl0gVENQIGVzdGFibGlzaGVkIGhhc2ggdGFibGUgZW50cmllczogNDA5NiAob3JkZXI6IDMsIDMy
+NzY4IGJ5dGVzKQ0KPiBbICAgIDAuNjUyMzEzXSBUQ1AgYmluZCBoYXNoIHRhYmxlIGVudHJpZXM6
+IDQwOTYgKG9yZGVyOiA1LCAxNDc0NTYgYnl0ZXMpDQo+IFsgICAgMC42NTU1NzhdIFRDUDogSGFz
+aCB0YWJsZXMgY29uZmlndXJlZCAoZXN0YWJsaXNoZWQgNDA5NiBiaW5kIDQwOTYpDQo+IFsgICAg
+MC42NTU3MzFdIFRDUCByZW5vIHJlZ2lzdGVyZWQNCj4gWyAgICAwLjY1NTc5Ml0gVURQIGhhc2gg
+dGFibGUgZW50cmllczogNjQgKG9yZGVyOiAwLCA1MTIwIGJ5dGVzKQ0KPiBbICAgIDAuNjU2MTg4
+XSBVRFAtTGl0ZSBoYXNoIHRhYmxlIGVudHJpZXM6IDY0IChvcmRlcjogMCwgNTEyMCBieXRlcykN
+Cj4gWyAgICAwLjY1NzQwOV0gTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAxDQo+IFsg
+ICAgMC42NTkyNDBdIFJQQzogUmVnaXN0ZXJlZCBuYW1lZCBVTklYIHNvY2tldCB0cmFuc3BvcnQg
+bW9kdWxlLg0KPiBbICAgIDAuNjU5MjcxXSBSUEM6IFJlZ2lzdGVyZWQgdWRwIHRyYW5zcG9ydCBt
+b2R1bGUuDQo+IFsgICAgMC42NTkzMDFdIFJQQzogUmVnaXN0ZXJlZCB0Y3AgdHJhbnNwb3J0IG1v
+ZHVsZS4NCj4gWyAgICAwLjY1OTMwMV0gUlBDOiBSZWdpc3RlcmVkIHRjcCBORlN2NC4xIGJhY2tj
+aGFubmVsIHRyYW5zcG9ydCBtb2R1bGUuDQo+IFsgICAgMC42NjA1MjJdIFRyeWluZyB0byB1bnBh
+Y2sgcm9vdGZzIGltYWdlIGFzIGluaXRyYW1mcy4uLg0KPiBbICAgIDAuNjYzNjA0XSByb290ZnMg
+aW1hZ2UgaXMgbm90IGluaXRyYW1mcyAobm8gY3BpbyBtYWdpYyk7IGxvb2tzIGxpa2UgYW4gaW5p
+dHJkDQo+IFsgICAgMS4xMDAxNThdIEZyZWVpbmcgaW5pdHJkIG1lbW9yeTogNDA5NjBLDQo+IFsg
+ICAgMS4xMDAxODldIE5ldFdpbmRlciBGbG9hdGluZyBQb2ludCBFbXVsYXRvciBWMC45NyAoZG91
+YmxlIHByZWNpc2lvbikNCj4gWyAgICAxLjI5Mzk0NV0gVkZTOiBEaXNrIHF1b3RhcyBkcXVvdF82
+LjUuMg0KPiBbICAgIDEuMjk0NDAzXSBEcXVvdC1jYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDEw
+MjQgKG9yZGVyIDAsIDQwOTYgYnl0ZXMpDQo+IFsgICAgMS4yOTgyNzhdIEpGRlMyIHZlcnNpb24g
+Mi4yLiAoTkFORCkgKFNVTU1BUlkpICDvv73CqSAyMDAxLTIwMDYgUmVkIEhhdCwgSW5jLg0KPiBb
+ICAgIDEuMjk5ODY1XSBtc2dtbmkgaGFzIGJlZW4gc2V0IHRvIDIyOQ0KPiBbICAgIDEuMzA1NjAz
+XSBpbyBzY2hlZHVsZXIgbm9vcCByZWdpc3RlcmVkDQo+IFsgICAgMS4zMDU2MzNdIGlvIHNjaGVk
+dWxlciBkZWFkbGluZSByZWdpc3RlcmVkDQo+IFsgICAgMS4zMDU5MzhdIGlvIHNjaGVkdWxlciBj
+ZnEgcmVnaXN0ZXJlZCAoZGVmYXVsdCkNCj4gWyAgICAxLjMxMTQwMV0gU2VyaWFsOiA4MjUwLzE2
+NTUwIGRyaXZlciwgNCBwb3J0cywgSVJRIHNoYXJpbmcgZW5hYmxlZA0KPiBbICAgIDEuMzIxMzgw
+XSBvbWFwX3VhcnQuMDogdHR5TzAgYXQgTU1JTyAweDQ4MDZhMDAwIChpcnEgPSA3MikgaXMgYSBP
+TUFQIFVBUlQwDQo+IFsgICAgMi4wMDQxMTldIGNvbnNvbGUgW3R0eU8wXSBlbmFibGVkDQo+IFsg
+ICAgMi4wMDk5NzldIG9tYXBfdWFydC4xOiB0dHlPMSBhdCBNTUlPIDB4NDgwNmMwMDAgKGlycSA9
+IDczKSBpcyBhIE9NQVAgVUFSVDENCj4gWyAgICAyLjAxOTM0OF0gb21hcF91YXJ0LjI6IHR0eU8y
+IGF0IE1NSU8gMHg0OTAyMDAwMCAoaXJxID0gNzQpIGlzIGEgT01BUCBVQVJUMg0KPiBbICAgIDIu
+MDczMzMzXSBicmQ6IG1vZHVsZSBsb2FkZWQNCj4gWyAgICAyLjEwNDI0OF0gbG9vcDogbW9kdWxl
+IGxvYWRlZA0KPiBbICAgIDIuMTE3MjQ4XSBtdGRvb3BzOiBtdGQgZGV2aWNlIChtdGRkZXY9bmFt
+ZS9udW1iZXIpIG11c3QgYmUgc3VwcGxpZWQNCj4gWyAgICAyLjEyNDU0Ml0gb21hcDItbmFuZCBk
+cml2ZXIgaW5pdGlhbGl6aW5nDQo+IFsgICAgMi4xMzAxNTddIE9uZU5BTkQgZHJpdmVyIGluaXRp
+YWxpemluZw0KPiBbICAgIDIuMTQzMzQxXSBzbXNjOTExeDogRHJpdmVyIHZlcnNpb24gMjAwOC0x
+MC0yMQ0KPiBbICAgIDIuMTU3ODk3XSBzbXNjOTExeC1tZGlvOiBwcm9iZWQNCj4gWyAgICAyLjE2
+MjIwMF0gc21zYzkxMXggc21zYzkxMXguMDogZXRoMDogYXR0YWNoZWQgUEhZIGRyaXZlciBbU01T
+QyBMQU44NzAwXSAobWlpX2J1czpwaHlfYWRkcj0wOjAxLCBpcnE9LTEpDQo+IFsgICAgMi4xNzI3
+NjBdIHNtc2M5MTF4IHNtc2M5MTF4LjA6IGV0aDA6IE1BQyBBZGRyZXNzOiAwMDo1MDpjMjo3ZTo5
+Mzo3Mw0KPiBbICAgIDIuMTgxMzM1XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2Ug
+ZHJpdmVyIGFzaXgNCj4gWyAgICAyLjE4ODE0MF0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50
+ZXJmYWNlIGRyaXZlciBjZGNfZXRoZXINCj4gWyAgICAyLjE5NTIyMF0gdXNiY29yZTogcmVnaXN0
+ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBuZXQxMDgwDQo+IFsgICAgMi4yMDIwODddIHVzYmNv
+cmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgY2RjX3N1YnNldA0KPiBbICAgIDIu
+MjA5MjI4XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHphdXJ1cw0K
+PiBbICAgIDIuMjE1MTc5XSBjZGNfbmNtOiAwNC1BdWctMjAxMQ0KPiBbICAgIDIuMjE5NDgyXSB1
+c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGNkY19uY20NCj4gWyAgICAy
+LjIyODg4MV0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBjZGNfd2Rt
+DQo+IFsgICAgMi4yMzUwNDZdIEluaXRpYWxpemluZyBVU0IgTWFzcyBTdG9yYWdlIGRyaXZlci4u
+Lg0KPiBbICAgIDIuMjQxMTE5XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJp
+dmVyIHVzYi1zdG9yYWdlDQo+IFsgICAgMi4yNDc2ODBdIFVTQiBNYXNzIFN0b3JhZ2Ugc3VwcG9y
+dCByZWdpc3RlcmVkLg0KPiBbICAgIDIuMjU0MjcyXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBp
+bnRlcmZhY2UgZHJpdmVyIGxpYnVzdWFsDQo+IFsgICAgMi4yNjEzNTJdIHVzYmNvcmU6IHJlZ2lz
+dGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgdXNidGVzdA0KPiBbICAgIDIuMjY5ODM2XSBtb3Vz
+ZWRldjogUFMvMiBtb3VzZSBkZXZpY2UgY29tbW9uIGZvciBhbGwgbWljZQ0KPiBbICAgIDIuMjc5
+NDQ5XSBpbnB1dDogVFdMNDAzMCBLZXlwYWQgYXMgL2RldmljZXMvcGxhdGZvcm0vb21hcC9vbWFw
+X2kyYy4xL2kyYy0xLzEtMDA0YS90d2w0MDMwX2tleXBhZC9pbnB1dC9pbnB1dDANCj4gWyAgICAy
+LjI5MjcyNF0gb21hcF9kZXZpY2U6IG9tYXBfaTJjLjE6IG5ldyB3b3JzdCBjYXNlIGFjdGl2YXRl
+IGxhdGVuY3kgMDogMTIyMDcwDQo+IFsgICAgMi4zMDk4NDRdIGFkczc4NDYgc3BpMS4wOiB0b3Vj
+aHNjcmVlbiwgaXJxIDMzNQ0KPiBbICAgIDIuMzE2MDcwXSBvbWFwX2RldmljZTogb21hcDJfbWNz
+cGkuMTogbmV3IHdvcnN0IGNhc2UgYWN0aXZhdGUgbGF0ZW5jeSAwOiA2MTAzNQ0KPiBbICAgIDIu
+MzI2NTM4XSBpbnB1dDogQURTNzg0NiBUb3VjaHNjcmVlbiBhcyAvZGV2aWNlcy9wbGF0Zm9ybS9v
+bWFwL29tYXAyX21jc3BpLjEvc3BpMS4wL2lucHV0L2lucHV0MQ0KPiBbICAgIDIuMzQ0NTEyXSBp
+bnB1dDogdHdsNDAzMF9wd3JidXR0b24gYXMgL2RldmljZXMvcGxhdGZvcm0vb21hcC9vbWFwX2ky
+Yy4xL2kyYy0xLzEtMDA0OS90d2w0MDMwX3B3cmJ1dHRvbi9pbnB1dC9pbnB1dDINCj4gWyAgICAy
+LjM2MjM5Nl0gdHdsX3J0YyB0d2xfcnRjOiBydGMgY29yZTogcmVnaXN0ZXJlZCB0d2xfcnRjIGFz
+IHJ0YzANCj4gWyAgICAyLjM2OTQxNV0gdHdsX3J0YyB0d2xfcnRjOiBQb3dlciB1cCByZXNldCBk
+ZXRlY3RlZC4NCj4gWyAgICAyLjM3NTkxNV0gdHdsX3J0YyB0d2xfcnRjOiBFbmFibGluZyBUV0wt
+UlRDLg0KPiBbICAgIDIuMzgyMzU0XSBpMmMgL2RldiBlbnRyaWVzIGRyaXZlcg0KPiBbICAgIDIu
+MzkyMjQyXSBEcml2ZXIgZm9yIDEtd2lyZSBEYWxsYXMgbmV0d29yayBwcm90b2NvbC4NCj4gWyAg
+ICAyLjQwMDQ1MV0gb21hcF9kZXZpY2U6IG9tYXBfd2R0Li0xOiBuZXcgd29yc3QgY2FzZSBhY3Rp
+dmF0ZSBsYXRlbmN5IDA6IDMwNTE3DQo+IFsgICAgMi40MTA0MDBdIE9NQVAgV2F0Y2hkb2cgVGlt
+ZXIgUmV2IDB4MzE6IGluaXRpYWwgdGltZW91dCA2MCBzZWMNCj4gWyAgICAyLjQxNzA4M10gb21h
+cF9kZXZpY2U6IG9tYXBfd2R0Li0xOiBuZXcgd29yc3QgY2FzZSBkZWFjdGl2YXRlIGxhdGVuY3kg
+MDogMzA1MTcNCj4gWyAgICAyLjQyNjU0NF0gdHdsNDAzMF93ZHQgdHdsNDAzMF93ZHQ6IEZhaWxl
+ZCB0byByZWdpc3RlciBtaXNjIGRldmljZQ0KPiBbICAgIDIuNDMzNDcxXSB0d2w0MDMwX3dkdDog
+cHJvYmUgb2YgdHdsNDAzMF93ZHQgZmFpbGVkIHdpdGggZXJyb3IgLTE2DQo+IFsgICAgMi40NDY5
+OTBdIG9tYXBfZGV2aWNlOiBvbWFwX2hzbW1jLjA6IG5ldyB3b3JzdCBjYXNlIGFjdGl2YXRlIGxh
+dGVuY3kgMDogMjEzNjIzDQo+IFsgICAgMi40NjA4MTVdIG9tYXBfZGV2aWNlOiBvbWFwX2hzbW1j
+LjA6IG5ldyB3b3JzdCBjYXNlIGRlYWN0aXZhdGUgbGF0ZW5jeSAwOiAzMDUxNw0KPiBbICAgIDIu
+NDc0MjczXSBvbWFwX2RldmljZTogb21hcF9oc21tYy4wOiBuZXcgd29yc3QgY2FzZSBhY3RpdmF0
+ZSBsYXRlbmN5IDA6IDI3NDY1OA0KPiBbICAgIDIuNDgzMjE1XSB1c2Jjb3JlOiByZWdpc3RlcmVk
+IG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYmhpZA0KPiBbICAgIDIuNDg5MjI3XSB1c2JoaWQ6IFVT
+QiBISUQgY29yZSBkcml2ZXINCj4gWyAgICAyLjQ5MzI4Nl0gb3Byb2ZpbGU6IGhhcmR3YXJlIGNv
+dW50ZXJzIG5vdCBhdmFpbGFibGUNCj4gWyAgICAyLjQ5ODY4N10gb3Byb2ZpbGU6IHVzaW5nIHRp
+bWVyIGludGVycnVwdC4NCj4gWyAgICAyLjUwMzk2N10gVENQIGN1YmljIHJlZ2lzdGVyZWQNCj4g
+WyAgICAyLjUwNzUwN10gSW5pdGlhbGl6aW5nIFhGUk0gbmV0bGluayBzb2NrZXQNCj4gWyAgICAy
+LjUxMjIwN10gTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAxNw0KPiBbICAgIDIuNTE3
+MTIwXSBORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE1DQo+IFsgICAgMi41MjIyNzdd
+IFJlZ2lzdGVyaW5nIHRoZSBkbnNfcmVzb2x2ZXIga2V5IHR5cGUNCj4gWyAgICAyLjUyODEwNl0g
+VkZQIHN1cHBvcnQgdjAuMzogaW1wbGVtZW50b3IgNDEgYXJjaGl0ZWN0dXJlIDMgcGFydCAzMCB2
+YXJpYW50IGMgcmV2IDENCj4gWyAgICAyLjUzNjM0Nl0gVGh1bWJFRSBDUFUgZXh0ZW5zaW9uIHN1
+cHBvcnRlZC4NCj4gWyAgICAyLjYwMjQ3OF0gY2xvY2s6IGRpc2FibGluZyB1bnVzZWQgY2xvY2tz
+IHRvIHNhdmUgcG93ZXINCj4gWyAgICAyLjYxNzYxNF0gdHdsX3J0YyB0d2xfcnRjOiBzZXR0aW5n
+IHN5c3RlbSBjbG9jayB0byAyMDAwLTAxLTAxIDAwOjAwOjAwIFVUQyAoOTQ2Njg0ODAwKQ0KPiBb
+ICAgIDIuNjI5MzY0XSBzbXNjOTExeCBzbXNjOTExeC4wOiBldGgwOiBTTVNDOTExeC85MjF4IGlk
+ZW50aWZpZWQgYXQgMHhjODg3ODAwMCwgSVJROiAzMzYNCj4gWyAgICAyLjY2MDkxOV0gU2VuZGlu
+ZyBESENQIHJlcXVlc3RzIC4NCj4gWyAgICAzLjAwODM5Ml0gbW1jMDogbmV3IGhpZ2ggc3BlZWQg
+U0QgY2FyZCBhdCBhZGRyZXNzIGIzNjgNCj4gWyAgICAzLjAxODgyOV0gbW1jYmxrMDogbW1jMDpi
+MzY4IFNEQyAgIDk1OCBNaUINCj4gWyAgICAzLjAzNDMzMl0gIG1tY2JsazA6IHAxIHAyDQo+IFsg
+ICAgMy4xMzgwMDBdIG9tYXBfZGV2aWNlOiBvbWFwX2hzbW1jLjA6IG5ldyB3b3JzdCBjYXNlIGRl
+YWN0aXZhdGUgbGF0ZW5jeSAwOiA5MTU1Mg0KPiBbICAgIDUuNjQ1MTExXSAuLCBPSw0KPiBbICAg
+IDYuMzg3ODE3XSBJUC1Db25maWc6IEdvdCBESENQIGFuc3dlciBmcm9tIDAuMC4wLjAsIG15IGFk
+ZHJlc3MgaXMgMTkyLjE2OC4xLjU3DQo+IFsgICAgNi4zOTYzMDFdIElQLUNvbmZpZzogQ29tcGxl
+dGU6DQo+IFsgICAgNi4zOTk3MTldICAgICAgZGV2aWNlPWV0aDAsIGFkZHI9MTkyLjE2OC4xLjU3
+LCBtYXNrPTI1NS4yNTUuMjU1LjAsIGd3PTE5Mi4xNjguMS4xLA0KPiBbICAgIDYuNDA3Nzc1XSAg
+ICAgIGhvc3Q9MTkyLjE2OC4xLjU3LCBkb21haW49cGF0aHBhcnRuZXIuY29tLCBuaXMtZG9tYWlu
+PShub25lKSwNCj4gWyAgICA2LjQxNTQ5Nl0gICAgICBib290c2VydmVyPTAuMC4wLjAsIHJvb3Rz
+ZXJ2ZXI9MC4wLjAuMCwgcm9vdHBhdGg9DQo+IFsgICAgNi40MjY1MTNdIFJBTURJU0s6IGd6aXAg
+aW1hZ2UgZm91bmQgYXQgYmxvY2sgMA0KPiBbICAgIDcuMDc4MjQ3XSBWRlM6IE1vdW50ZWQgcm9v
+dCAoZXh0MiBmaWxlc3lzdGVtKSBvbiBkZXZpY2UgMTowLg0KPiBbICAgIDcuMDg1NjkzXSBGcmVl
+aW5nIGluaXQgbWVtb3J5OiAzMDhLDQo+DQo+IEl0IGhhbmdzIGFmdGVyIHRoaXMuIERpZCBhbnlv
+bmUgZmFjZSB0aGlzIGlzc3VlPw0KPg0KPg0KPiBUaGFua3MsDQo+IERlZXB0aHkgUmF2aS4NCg==
