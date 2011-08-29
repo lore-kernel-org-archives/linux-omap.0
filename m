@@ -1,184 +1,148 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 07/12] OMAP3+: VP: remove omap_vp_runtime_data
-Date: Mon, 29 Aug 2011 10:58:07 -0700
-Message-ID: <1314640692-3386-8-git-send-email-khilman@ti.com>
+Subject: [PATCH 08/12] OMAP3+: VP: move voltage scale function pointer into struct voltagedomain
+Date: Mon, 29 Aug 2011 10:58:08 -0700
+Message-ID: <1314640692-3386-9-git-send-email-khilman@ti.com>
 References: <1314640692-3386-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:50621 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754383Ab1H2R54 (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:43599 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754486Ab1H2R6A (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:57:56 -0400
-Received: by mail-yi0-f53.google.com with SMTP id 13so5273506yia.40
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:57:55 -0700 (PDT)
+	Mon, 29 Aug 2011 13:58:00 -0400
+Received: by mail-gw0-f46.google.com with SMTP id a12so4996360gwa.19
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:57:57 -0700 (PDT)
 In-Reply-To: <1314640692-3386-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Remove the "runtime" VP data in favor of direct programming of VP registers.
-The VP is in the PRM, which is in the wakeup powerdomain, so there is no
-need to keep the state dynamically.
+Function pointer used for actual voltage scaling (e.g. VP force update
+or VC bypass) is moved from omap_vdd_info into struct voltagedomain,
+resulting in renames s/vdd->volt_scale/voltdm->scale/
 
-Fixes to original version from Nishanth Menon <nm@ti.com>
+No functional changes.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/voltage.h |    2 -
- arch/arm/mach-omap2/vp.c      |   70 ++++++++++++++++++-----------------------
- arch/arm/mach-omap2/vp.h      |   28 ----------------
- 3 files changed, 31 insertions(+), 69 deletions(-)
+ arch/arm/mach-omap2/voltage.c |   24 +++++++-----------------
+ arch/arm/mach-omap2/voltage.h |    8 ++++----
+ 2 files changed, 11 insertions(+), 21 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 4a15668..32f0873 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -45,10 +45,8 @@ static LIST_HEAD(voltdm_list);
+ 
+ static int __init _config_common_vdd_data(struct voltagedomain *voltdm)
+ {
+-	struct omap_vdd_info *vdd = voltdm->vdd;
+-
+ 	/* Generic voltage parameters */
+-	vdd->volt_scale = omap_vp_forceupdate_scale;
++	voltdm->scale = omap_vp_forceupdate_scale;
+ 
+ 	return 0;
+ }
+@@ -107,22 +105,18 @@ unsigned long omap_voltage_get_nom_volt(struct voltagedomain *voltdm)
+ int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
+ 		unsigned long target_volt)
+ {
+-	struct omap_vdd_info *vdd;
+-
+ 	if (!voltdm || IS_ERR(voltdm)) {
+ 		pr_warning("%s: VDD specified does not exist!\n", __func__);
+ 		return -EINVAL;
+ 	}
+ 
+-	vdd = voltdm->vdd;
+-
+-	if (!vdd->volt_scale) {
++	if (!voltdm->scale) {
+ 		pr_err("%s: No voltage scale API registered for vdd_%s\n",
+ 			__func__, voltdm->name);
+ 		return -ENODATA;
+ 	}
+ 
+-	return vdd->volt_scale(voltdm, target_volt);
++	return voltdm->scale(voltdm, target_volt);
+ }
+ 
+ /**
+@@ -258,23 +252,19 @@ int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+  * defined in voltage.h
+  */
+ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+-		int voltscale_method)
++				  int voltscale_method)
+ {
+-	struct omap_vdd_info *vdd;
+-
+ 	if (!voltdm || IS_ERR(voltdm)) {
+ 		pr_warning("%s: VDD specified does not exist!\n", __func__);
+ 		return;
+ 	}
+ 
+-	vdd = voltdm->vdd;
+-
+ 	switch (voltscale_method) {
+ 	case VOLTSCALE_VPFORCEUPDATE:
+-		vdd->volt_scale = omap_vp_forceupdate_scale;
++		voltdm->scale = omap_vp_forceupdate_scale;
+ 		return;
+ 	case VOLTSCALE_VCBYPASS:
+-		vdd->volt_scale = omap_vc_bypass_scale;
++		voltdm->scale = omap_vc_bypass_scale;
+ 		return;
+ 	default:
+ 		pr_warning("%s: Trying to change the method of voltage scaling"
+@@ -315,7 +305,7 @@ int __init omap_voltage_late_init(void)
+ 		clk_put(sys_ck);
+ 
+ 		if (voltdm->vc) {
+-			voltdm->vdd->volt_scale = omap_vc_bypass_scale;
++			voltdm->scale = omap_vc_bypass_scale;
+ 			omap_vc_init_channel(voltdm);
+ 		}
+ 
 diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index d73c956..5235eec 100644
+index 5235eec..d2a0c24 100644
 --- a/arch/arm/mach-omap2/voltage.h
 +++ b/arch/arm/mach-omap2/voltage.h
-@@ -140,13 +140,11 @@ struct omap_voltdm_pmic {
-  *
+@@ -60,6 +60,7 @@ struct omap_vfsm_instance {
+  * @pwrdm_node: list_head linking all powerdomains in this voltagedomain
+  * @vdd: to be removed
+  * @pwrdms: powerdomains in this voltagedomain
++ * @scale: function used to scale the voltage of the voltagedomain
+  */
+ struct voltagedomain {
+ 	char *name;
+@@ -81,6 +82,9 @@ struct voltagedomain {
+ 		u32 rate;
+ 	} sys_clk;
+ 
++	int (*scale) (struct voltagedomain *voltdm,
++		      unsigned long target_volt);
++
+ 	struct omap_vdd_info *vdd;
+ };
+ 
+@@ -141,14 +145,10 @@ struct omap_voltdm_pmic {
   * @volt_data		: voltage table having the distinct voltages supported
   *			  by the domain and other associated per voltage data.
-- * @vp_rt_data          : VP data derived at runtime, not predefined
   * @curr_volt		: current voltage for this vdd.
-  * @volt_scale		: API to scale the voltage of the vdd.
+- * @volt_scale		: API to scale the voltage of the vdd.
   */
  struct omap_vdd_info {
  	struct omap_volt_data *volt_data;
--	struct omap_vp_runtime_data vp_rt_data;
  	u32 curr_volt;
- 
- 	int (*volt_scale) (struct voltagedomain *voltdm,
-diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-index f68a6db..e7d38f6 100644
---- a/arch/arm/mach-omap2/vp.c
-+++ b/arch/arm/mach-omap2/vp.c
-@@ -49,8 +49,8 @@ static void vp_latch_vsel(struct voltagedomain *voltdm)
- void __init omap_vp_init(struct voltagedomain *voltdm)
- {
- 	struct omap_vp_instance *vp = voltdm->vp;
--	struct omap_vdd_info *vdd = voltdm->vdd;
--	u32 vp_val, sys_clk_rate, timeout_val, waittime;
-+	u32 val, sys_clk_rate, timeout, waittime;
-+	u32 vddmin, vddmax, vstepmin, vstepmax;
- 
- 	if (!voltdm->read || !voltdm->write) {
- 		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
-@@ -63,47 +63,39 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
- 	/* Divide to avoid overflow */
- 	sys_clk_rate = voltdm->sys_clk.rate / 1000;
- 
--	vdd->vp_rt_data.vpconfig_erroroffset =
--		(voltdm->pmic->vp_erroroffset <<
--		 __ffs(voltdm->vp->common->vpconfig_erroroffset_mask));
 -
--	timeout_val = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
--	vdd->vp_rt_data.vlimitto_timeout = timeout_val;
--	vdd->vp_rt_data.vlimitto_vddmin = voltdm->pmic->vp_vddmin;
--	vdd->vp_rt_data.vlimitto_vddmax = voltdm->pmic->vp_vddmax;
-+	timeout = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
-+	vddmin = voltdm->pmic->vp_vddmin;
-+	vddmax = voltdm->pmic->vp_vddmax;
- 
- 	waittime = ((voltdm->pmic->step_size / voltdm->pmic->slew_rate) *
- 		    sys_clk_rate) / 1000;
--	vdd->vp_rt_data.vstepmin_smpswaittimemin = waittime;
--	vdd->vp_rt_data.vstepmax_smpswaittimemax = waittime;
--	vdd->vp_rt_data.vstepmin_stepmin = voltdm->pmic->vp_vstepmin;
--	vdd->vp_rt_data.vstepmax_stepmax = voltdm->pmic->vp_vstepmax;
--
--	vp_val = vdd->vp_rt_data.vpconfig_erroroffset |
--		(vdd->vp_rt_data.vpconfig_errorgain <<
--		 __ffs(vp->common->vpconfig_errorgain_mask)) |
-+	vstepmin = voltdm->pmic->vp_vstepmin;
-+	vstepmax = voltdm->pmic->vp_vstepmax;
-+
-+	/*
-+	 * VP_CONFIG: error gain is not set here, it will be updated
-+	 * on each scale, based on OPP.
-+	 */
-+	val = (voltdm->pmic->vp_erroroffset <<
-+	       __ffs(voltdm->vp->common->vpconfig_erroroffset_mask)) |
- 		vp->common->vpconfig_timeouten;
--	voltdm->write(vp_val, vp->vpconfig);
--
--	vp_val = ((vdd->vp_rt_data.vstepmin_smpswaittimemin <<
--		   vp->common->vstepmin_smpswaittimemin_shift) |
--		  (vdd->vp_rt_data.vstepmin_stepmin <<
--		   vp->common->vstepmin_stepmin_shift));
--	voltdm->write(vp_val, vp->vstepmin);
--
--	vp_val = ((vdd->vp_rt_data.vstepmax_smpswaittimemax <<
--		   vp->common->vstepmax_smpswaittimemax_shift) |
--		  (vdd->vp_rt_data.vstepmax_stepmax <<
--		   vp->common->vstepmax_stepmax_shift));
--	voltdm->write(vp_val, vp->vstepmax);
--
--	vp_val = ((vdd->vp_rt_data.vlimitto_vddmax <<
--		   vp->common->vlimitto_vddmax_shift) |
--		  (vdd->vp_rt_data.vlimitto_vddmin <<
--		   vp->common->vlimitto_vddmin_shift) |
--		  (vdd->vp_rt_data.vlimitto_timeout <<
--		   vp->common->vlimitto_timeout_shift));
--	voltdm->write(vp_val, vp->vlimitto);
-+	voltdm->write(val, vp->vpconfig);
-+
-+	/* VSTEPMIN */
-+	val = (waittime << vp->common->vstepmin_smpswaittimemin_shift) |
-+		(vstepmin <<  vp->common->vstepmin_stepmin_shift);
-+	voltdm->write(val, vp->vstepmin);
-+
-+	/* VSTEPMAX */
-+	val = (vstepmax << vp->common->vstepmax_stepmax_shift) |
-+		(waittime << vp->common->vstepmax_smpswaittimemax_shift);
-+	voltdm->write(val, vp->vstepmax);
-+
-+	/* VLIMITTO */
-+	val = (vddmax << vp->common->vlimitto_vddmax_shift) |
-+		(vddmin << vp->common->vlimitto_vddmin_shift) |
-+		(timeout <<  vp->common->vlimitto_timeout_shift);
-+	voltdm->write(val, vp->vlimitto);
- }
- 
- int omap_vp_update_errorgain(struct voltagedomain *voltdm,
-diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
-index 71ac738..0d63267 100644
---- a/arch/arm/mach-omap2/vp.h
-+++ b/arch/arm/mach-omap2/vp.h
-@@ -107,34 +107,6 @@ struct omap_vp_instance {
- 	bool enabled;
+-	int (*volt_scale) (struct voltagedomain *voltdm,
+-		unsigned long target_volt);
  };
  
--/**
-- * struct omap_vp_runtime_data - VP data populated at runtime by code
-- * @vpconfig_erroroffset: value of ERROROFFSET bitfield in PRM_VP*_CONFIG
-- * @vpconfig_errorgain: value of ERRORGAIN bitfield in PRM_VP*_CONFIG
-- * @vstepmin_smpswaittimemin: value of SMPSWAITTIMEMIN bitfield in PRM_VP*_VSTEPMIN
-- * @vstepmax_smpswaittimemax: value of SMPSWAITTIMEMAX bitfield in PRM_VP*_VSTEPMAX
-- * @vlimitto_timeout: value of TIMEOUT bitfield in PRM_VP*_VLIMITTO
-- * @vstepmin_stepmin: value of VSTEPMIN bitfield in PRM_VP*_VSTEPMIN
-- * @vstepmax_stepmax: value of VSTEPMAX bitfield in PRM_VP*_VSTEPMAX
-- * @vlimitto_vddmin: value of VDDMIN bitfield in PRM_VP*_VLIMITTO
-- * @vlimitto_vddmax: value of VDDMAX bitfield in PRM_VP*_VLIMITTO
-- *
-- * XXX Is this structure really needed?  Why not just program the
-- * device directly?  They are in PRM space, therefore in the WKUP
-- * powerdomain, so register contents should not be lost in off-mode.
-- */
--struct omap_vp_runtime_data {
--	u32 vpconfig_erroroffset;
--	u16 vpconfig_errorgain;
--	u16 vstepmin_smpswaittimemin;
--	u16 vstepmax_smpswaittimemax;
--	u16 vlimitto_timeout;
--	u8 vstepmin_stepmin;
--	u8 vstepmax_stepmax;
--	u8 vlimitto_vddmin;
--	u8 vlimitto_vddmax;
--};
--
- extern struct omap_vp_instance omap3_vp_mpu;
- extern struct omap_vp_instance omap3_vp_core;
- 
+ int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
 -- 
 1.7.6
 
