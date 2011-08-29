@@ -1,60 +1,331 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 00/12] OMAP: voltage cleanup part C: VP cleanup
-Date: Mon, 29 Aug 2011 10:58:00 -0700
-Message-ID: <1314640692-3386-1-git-send-email-khilman@ti.com>
+Subject: [PATCH 02/12] OMAP3+: voltage: remove unneeded debugfs interface
+Date: Mon, 29 Aug 2011 10:58:02 -0700
+Message-ID: <1314640692-3386-3-git-send-email-khilman@ti.com>
+References: <1314640692-3386-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:42795 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754085Ab1H2R5p (ORCPT
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:50786 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754182Ab1H2R5s (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:57:45 -0400
-Received: by gyf3 with SMTP id 3so6676245gyf.17
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:57:44 -0700 (PDT)
+	Mon, 29 Aug 2011 13:57:48 -0400
+Received: by mail-iy0-f181.google.com with SMTP id z21so1039038iab.40
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 10:57:48 -0700 (PDT)
+In-Reply-To: <1314640692-3386-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-This series focuses on cleanup and better abstraction in the voltage
-processor (VP) layer.
+Remove read-only debugfs interface to VP values.  Most of the values
+are init-time only and never change.  Current voltage value should be
+retreived from the (eventual) regulator framework interface to the
+voltage domain.
 
-Available in the pm-wip/voltdm_c branch of my linux-omap-pm tree
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+Fixes to original version provided by Nishanth Menon <nm@ti.com>
 
-Applies on v3.1-rc3 + the part A & B series.
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |   29 +++++++++-----
+ arch/arm/mach-omap2/voltage.c     |   78 -------------------------------------
+ arch/arm/mach-omap2/voltage.h     |    3 -
+ arch/arm/mach-omap2/vp.c          |   63 -----------------------------
+ 4 files changed, 19 insertions(+), 154 deletions(-)
 
-Kevin
-
-
-Kevin Hilman (11):
-  OMAP3+: VP: cleanup: move VP instance into voltdm, misc. renames
-  OMAP3+: voltage: remove unneeded debugfs interface
-  OMAP3+: VP: struct omap_vp_common: replace shift with __ffs(mask)
-  OMAP3+: VP: move SoC-specific sys clock rate retreival late init
-  OMAP3+: VP: move timing calculation/config into VP init
-  OMAP3+: VP: create VP helper function for updating error gain
-  OMAP3+: VP: remove omap_vp_runtime_data
-  OMAP3+: VP: move voltage scale function pointer into struct
-    voltagedomain
-  OMAP3+: VP: update_errorgain(): return error if VP
-  OMAP3+: VP: remove unused omap_vp_get_curr_volt()
-  OMAP3+: VP: combine setting init voltage into common function
-
-Todd Poynor (1):
-  OMAP: VP: Explicitly mask VPVOLTAGE field
-
- arch/arm/mach-omap2/smartreflex.c             |   29 ++-
- arch/arm/mach-omap2/vc.c                      |   22 +--
- arch/arm/mach-omap2/voltage.c                 |  161 ++------------
- arch/arm/mach-omap2/voltage.h                 |   24 +--
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |   18 +-
- arch/arm/mach-omap2/voltagedomains44xx_data.c |   23 ++-
- arch/arm/mach-omap2/vp.c                      |  292 +++++++++----------------
- arch/arm/mach-omap2/vp.h                      |   91 +++-----
- arch/arm/mach-omap2/vp3xxx_data.c             |   16 +-
- arch/arm/mach-omap2/vp44xx_data.c             |   19 +-
- 10 files changed, 226 insertions(+), 469 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 34c01a7..bb606c9 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -62,6 +62,7 @@ static LIST_HEAD(sr_list);
+ 
+ static struct omap_sr_class_data *sr_class;
+ static struct omap_sr_pmic_data *sr_pmic_data;
++static struct dentry		*sr_dbg_dir;
+ 
+ static inline void sr_write_reg(struct omap_sr *sr, unsigned offset, u32 value)
+ {
+@@ -826,9 +827,10 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
+ 	struct omap_sr_data *pdata = pdev->dev.platform_data;
+ 	struct resource *mem, *irq;
+-	struct dentry *vdd_dbg_dir, *nvalue_dir;
++	struct dentry *nvalue_dir;
+ 	struct omap_volt_data *volt_data;
+ 	int i, ret = 0;
++	char *name;
+ 
+ 	if (!sr_info) {
+ 		dev_err(&pdev->dev, "%s: unable to allocate sr_info\n",
+@@ -899,18 +901,25 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	dev_info(&pdev->dev, "%s: SmartReflex driver initialized\n", __func__);
++	if (!sr_dbg_dir) {
++		sr_dbg_dir = debugfs_create_dir("smartreflex", NULL);
++		if (!sr_dbg_dir) {
++			ret = PTR_ERR(sr_dbg_dir);
++			pr_err("%s:sr debugfs dir creation failed(%d)\n",
++				__func__, ret);
++			goto err_iounmap;
++		}
++	}
+ 
+-	/*
+-	 * If the voltage domain debugfs directory is not created, do
+-	 * not try to create rest of the debugfs entries.
+-	 */
+-	vdd_dbg_dir = omap_voltage_get_dbgdir(sr_info->voltdm);
+-	if (!vdd_dbg_dir) {
+-		ret = -EINVAL;
++	name = kasprintf(GFP_KERNEL, "sr_%s", sr_info->voltdm->name);
++	if (!name) {
++		dev_err(&pdev->dev, "%s: Unable to alloc debugfs name\n",
++			__func__);
++		ret = -ENOMEM;
+ 		goto err_iounmap;
+ 	}
+-
+-	sr_info->dbg_dir = debugfs_create_dir("smartreflex", vdd_dbg_dir);
++	sr_info->dbg_dir = debugfs_create_dir(name, sr_dbg_dir);
++	kfree(name);
+ 	if (IS_ERR(sr_info->dbg_dir)) {
+ 		dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
+ 			__func__);
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index c22b53c..eaa5f93 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -43,9 +43,6 @@
+ 
+ static LIST_HEAD(voltdm_list);
+ 
+-#define VOLTAGE_DIR_SIZE	16
+-static struct dentry *voltage_dir;
+-
+ static int __init _config_common_vdd_data(struct voltagedomain *voltdm)
+ {
+ 	char *sys_ck_name;
+@@ -102,51 +99,6 @@ static int __init _config_common_vdd_data(struct voltagedomain *voltdm)
+ 	return 0;
+ }
+ 
+-static int nom_volt_debug_get(void *data, u64 *val)
+-{
+-	struct voltagedomain *voltdm = (struct voltagedomain *)data;
+-
+-	if (!voltdm) {
+-		pr_warning("Wrong paramater passed\n");
+-		return -EINVAL;
+-	}
+-
+-	*val = omap_voltage_get_nom_volt(voltdm);
+-
+-	return 0;
+-}
+-
+-DEFINE_SIMPLE_ATTRIBUTE(nom_volt_debug_fops, nom_volt_debug_get, NULL,
+-								"%llu\n");
+-static void __init vdd_debugfs_init(struct voltagedomain *voltdm)
+-{
+-	char *name;
+-	struct omap_vdd_info *vdd = voltdm->vdd;
+-
+-	name = kzalloc(VOLTAGE_DIR_SIZE, GFP_KERNEL);
+-	if (!name) {
+-		pr_warning("%s: Unable to allocate memory for debugfs"
+-			" directory name for vdd_%s",
+-			__func__, voltdm->name);
+-		return;
+-	}
+-	strcpy(name, "vdd_");
+-	strcat(name, voltdm->name);
+-
+-	vdd->debug_dir = debugfs_create_dir(name, voltage_dir);
+-	kfree(name);
+-	if (IS_ERR(vdd->debug_dir)) {
+-		pr_warning("%s: Unable to create debugfs directory for"
+-			" vdd_%s\n", __func__, voltdm->name);
+-		vdd->debug_dir = NULL;
+-		return;
+-	}
+-
+-	(void) debugfs_create_file("curr_nominal_volt", S_IRUGO,
+-				vdd->debug_dir, (void *) voltdm,
+-				&nom_volt_debug_fops);
+-}
+-
+ static int __init omap_vdd_data_configure(struct voltagedomain *voltdm)
+ {
+ 	int ret = -EINVAL;
+@@ -342,31 +294,6 @@ int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+ }
+ 
+ /**
+- * omap_voltage_get_dbgdir() - API to get pointer to the debugfs directory
+- *				corresponding to a voltage domain.
+- *
+- * @voltdm:	pointer to the VDD whose debug directory is required.
+- *
+- * This API returns pointer to the debugfs directory corresponding
+- * to the voltage domain. Should be used by drivers requiring to
+- * add any debug entry for a particular voltage domain. Returns NULL
+- * in case of error.
+- */
+-struct dentry *omap_voltage_get_dbgdir(struct voltagedomain *voltdm)
+-{
+-	struct omap_vdd_info *vdd;
+-
+-	if (!voltdm || IS_ERR(voltdm)) {
+-		pr_warning("%s: VDD specified does not exist!\n", __func__);
+-		return NULL;
+-	}
+-
+-	vdd = voltdm->vdd;
+-
+-	return vdd->debug_dir;
+-}
+-
+-/**
+  * omap_change_voltscale_method() - API to change the voltage scaling method.
+  * @voltdm:	pointer to the VDD whose voltage scaling method
+  *		has to be changed.
+@@ -418,10 +345,6 @@ int __init omap_voltage_late_init(void)
+ 		return -EINVAL;
+ 	}
+ 
+-	voltage_dir = debugfs_create_dir("voltage", NULL);
+-	if (IS_ERR(voltage_dir))
+-		pr_err("%s: Unable to create voltage debugfs main dir\n",
+-			__func__);
+ 	list_for_each_entry(voltdm, &voltdm_list, node) {
+ 		if (!voltdm->scalable)
+ 			continue;
+@@ -434,7 +357,6 @@ int __init omap_voltage_late_init(void)
+ 		if (voltdm->vdd) {
+ 			if (omap_vdd_data_configure(voltdm))
+ 				continue;
+-			vdd_debugfs_init(voltdm);
+ 			omap_vp_init(voltdm);
+ 		}
+ 	}
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 65f94c7..5261703 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -136,14 +136,12 @@ struct omap_voltdm_pmic {
+  * @volt_data		: voltage table having the distinct voltages supported
+  *			  by the domain and other associated per voltage data.
+  * @vp_rt_data          : VP data derived at runtime, not predefined
+- * @debug_dir		: debug directory for this voltage domain.
+  * @curr_volt		: current voltage for this vdd.
+  * @volt_scale		: API to scale the voltage of the vdd.
+  */
+ struct omap_vdd_info {
+ 	struct omap_volt_data *volt_data;
+ 	struct omap_vp_runtime_data vp_rt_data;
+-	struct dentry *debug_dir;
+ 	u32 curr_volt;
+ 
+ 	int (*volt_scale) (struct voltagedomain *voltdm,
+@@ -158,7 +156,6 @@ void omap_voltage_get_volttable(struct voltagedomain *voltdm,
+ struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
+ 		unsigned long volt);
+ unsigned long omap_voltage_get_nom_volt(struct voltagedomain *voltdm);
+-struct dentry *omap_voltage_get_dbgdir(struct voltagedomain *voltdm);
+ #ifdef CONFIG_PM
+ int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+ 			       struct omap_voltdm_pmic *pmic);
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index 53d6018..c9a315f 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -1,6 +1,5 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+-#include <linux/debugfs.h>
+ 
+ #include <plat/common.h>
+ 
+@@ -10,8 +9,6 @@
+ #include "prm-regbits-44xx.h"
+ #include "prm44xx.h"
+ 
+-static void __init vp_debugfs_init(struct voltagedomain *voltdm);
+-
+ static void vp_latch_vsel(struct voltagedomain *voltdm)
+ {
+ 	struct omap_vp_instance *vp = voltdm->vp;
+@@ -87,8 +84,6 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ 		(vdd->vp_rt_data.vlimitto_timeout <<
+ 		vp->common->vlimitto_timeout_shift));
+ 	voltdm->write(vp_val, vp->vlimitto);
+-
+-	vp_debugfs_init(voltdm);
+ }
+ 
+ /* VP force update method of voltage scaling */
+@@ -300,61 +295,3 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+ 
+ 	return;
+ }
+-
+-/* Voltage debugfs support */
+-static int vp_volt_debug_get(void *data, u64 *val)
+-{
+-	struct voltagedomain *voltdm = (struct voltagedomain *)data;
+-	struct omap_vp_instance *vp = voltdm->vp;
+-	struct omap_vdd_info *vdd = voltdm->vdd;
+-	u8 vsel;
+-
+-	if (!vdd) {
+-		pr_warning("Wrong paramater passed\n");
+-		return -EINVAL;
+-	}
+-
+-	vsel = voltdm->read(vp->voltage);
+-
+-	if (!voltdm->pmic->vsel_to_uv) {
+-		pr_warning("PMIC function to convert vsel to voltage"
+-			"in uV not registerd\n");
+-		return -EINVAL;
+-	}
+-
+-	*val = voltdm->pmic->vsel_to_uv(vsel);
+-	return 0;
+-}
+-
+-DEFINE_SIMPLE_ATTRIBUTE(vp_volt_debug_fops, vp_volt_debug_get, NULL, "%llu\n");
+-
+-static void __init vp_debugfs_init(struct voltagedomain *voltdm)
+-{
+-	struct omap_vdd_info *vdd = voltdm->vdd;
+-	struct dentry *debug_dir;
+-
+-	debug_dir = debugfs_create_dir("vp", vdd->debug_dir);
+-	if (IS_ERR(debug_dir))
+-		pr_err("%s: Unable to create VP debugfs dir dir\n", __func__);
+-
+-	(void) debugfs_create_x16("errorgain", S_IRUGO, debug_dir,
+-				&(vdd->vp_rt_data.vpconfig_errorgain));
+-	(void) debugfs_create_x16("smpswaittimemin", S_IRUGO,
+-				debug_dir,
+-				&(vdd->vp_rt_data.vstepmin_smpswaittimemin));
+-	(void) debugfs_create_x8("stepmin", S_IRUGO, debug_dir,
+-				&(vdd->vp_rt_data.vstepmin_stepmin));
+-	(void) debugfs_create_x16("smpswaittimemax", S_IRUGO,
+-				debug_dir,
+-				&(vdd->vp_rt_data.vstepmax_smpswaittimemax));
+-	(void) debugfs_create_x8("stepmax", S_IRUGO, debug_dir,
+-				&(vdd->vp_rt_data.vstepmax_stepmax));
+-	(void) debugfs_create_x8("vddmax", S_IRUGO, debug_dir,
+-				&(vdd->vp_rt_data.vlimitto_vddmax));
+-	(void) debugfs_create_x8("vddmin", S_IRUGO, debug_dir,
+-				&(vdd->vp_rt_data.vlimitto_vddmin));
+-	(void) debugfs_create_x16("timeout", S_IRUGO, debug_dir,
+-				&(vdd->vp_rt_data.vlimitto_timeout));
+-	(void) debugfs_create_file("curr_volt", S_IRUGO, debug_dir,
+-				(void *) voltdm, &vp_volt_debug_fops);
+-}
 -- 
 1.7.6
 
