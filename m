@@ -1,18 +1,18 @@
-From: Kishore Kadiyala <kishorek.kadiyala@gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
 Subject: Re: Booting hangs with updated linux-omap kernel on OMAP3EVM
-Date: Mon, 29 Aug 2011 16:28:53 +0530
-Message-ID: <CAF=Qhp0X64wNaqsFQGLzZG2quF-vHOafeHa=LdjNQCa4v5s4tw@mail.gmail.com>
+Date: Mon, 29 Aug 2011 16:59:04 +0530
+Message-ID: <CAAL8m4znh8KVbSiP4mpN73TcUdRBobo3N0h-Rg7aROcg56FArA@mail.gmail.com>
 References: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090808@dbde03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:44219 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752988Ab1H2K7P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Aug 2011 06:59:15 -0400
-Received: by gya6 with SMTP id 6so4653124gya.19
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 03:59:14 -0700 (PDT)
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:57735 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752615Ab1H2L30 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Aug 2011 07:29:26 -0400
+Received: by bke11 with SMTP id 11so4069433bke.19
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 04:29:25 -0700 (PDT)
 In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090808@dbde03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -28,6 +28,21 @@ ote:
 > commit b148d763841161894ed6629794064065a834aa2b
 > Linux-omap rebuilt: Updated to use omap_sdrc_init
 >
+
+probably missing below commit from mainline,
+
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
+commit;h=3D69dd3d8e29e294caaf63eb5e8a72d250279f9e5f
+
+Try,
+
+git revert f3637a5f2e2eb391ff5757bc83fb5de8f9726464
+
+--
+Thanks,
+Govindraj.R
+
+
 > It hangs at one point.
 >
 > Following is the boot log,
@@ -413,11 +428,6 @@ e 1:0.
 > [ =C2=A0 =C2=A07.085693] Freeing init memory: 308K
 >
 > It hangs after this. Did anyone face this issue?
-
-Can you check the serial port parameter in inittab of your filesystem.
-
-Regards,
-Kishore
 >
 >
 > Thanks,
