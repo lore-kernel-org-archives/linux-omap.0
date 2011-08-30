@@ -1,23 +1,29 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Will Deacon <will.deacon@arm.com>
 Subject: Re: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
-Date: Tue, 30 Aug 2011 13:15:42 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1108301312020.2109-100000@iolanthe.rowland.org>
-References: <1314722311.2344.64.camel@deneb.redhat.com>
+Date: Tue, 30 Aug 2011 18:26:42 +0100
+Message-ID: <20110830172642.GE3464@e102144-lin.cambridge.arm.com>
+References: <1314720193-26577-1-git-send-email-ming.lei@canonical.com>
+	<1314722311.2344.64.camel@deneb.redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:36095 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754721Ab1H3RPm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Aug 2011 13:15:42 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
 In-Reply-To: <1314722311.2344.64.camel@deneb.redhat.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Mark Salter <msalter@redhat.com>
-Cc: ming.lei@canonical.com, greg@kroah.com, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>
+Cc: Russell King <linux@arm.linux.org.uk>, "greg@kroah.com" <greg@kroah.com>, "ming.lei@canonical.com" <ming.lei@canonical.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
-On Tue, 30 Aug 2011, Mark Salter wrote:
-
+On Tue, Aug 30, 2011 at 05:38:30PM +0100, Mark Salter wrote:
 > On Wed, 2011-08-31 at 00:03 +0800, ming.lei@canonical.com wrote:
 > > +/*
 > > + * Writing to dma coherent memory on ARM may be delayed via L2
@@ -47,11 +53,14 @@ On Tue, 30 Aug 2011, Mark Salter wrote:
 > memory. Other hardware which polls shared memory like that will likely
 > have the same problem and could use buffer drain helpers as well.
 
-This would be a good thing to define centrally.  Would you like to 
-post an RFC on LKML?
+Right. In this case the buffering is happening at L2 which becomes
+noticeable when measuring performance. We also buffer stores at the
+CPU (regardless of memory type) but because these tend to become visible
+fairly quickly, there isn't a comparable performance problem.
 
-Do you know of any other examples of hardware that polls shared DMA 
-memory?
+Given that I would expect other architectures to buffer writes at the CPU,
+would it not be worth having an API for flushing to L3 (devices)? It seems
+like this would be a useful addition to the coherent DMA API on platforms
+that handle coherency with non-cacheable memory attributes.
 
-Alan Stern
-
+Will
