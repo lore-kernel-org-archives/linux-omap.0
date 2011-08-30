@@ -1,37 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC PATCH v2 0/6] TI81XX: Add clock and hwmod data
-Date: Tue, 30 Aug 2011 12:46:35 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108301246170.26173@utopia.booyaka.com>
-References: <1314119594-22647-1-git-send-email-hemantp@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/2] omap3: ISP: Fix the failure of CCDC capture during suspend/resume
+Date: Tue, 30 Aug 2011 23:07:47 +0200
+Message-ID: <201108302307.47564.laurent.pinchart@ideasonboard.com>
+References: <1312984992-19315-1-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51830 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755789Ab1H3Sqg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Aug 2011 14:46:36 -0400
-In-Reply-To: <1314119594-22647-1-git-send-email-hemantp@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1312984992-19315-1-git-send-email-deepthy.ravi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Deepthy Ravi <deepthy.ravi@ti.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, mchehab@infradead.org, linux-omap@vger.kernel.org, Abhilash K V <abhilash.kv@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Hemant Pedanekar <hemantp@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
 
-On Tue, 23 Aug 2011, Hemant Pedanekar wrote:
+Hi,
 
-> This patch set is the v2 of TI816X clock and hwmods patches sent earlier.
+On Wednesday 10 August 2011 16:03:12 Deepthy Ravi wrote:
+> From: Abhilash K V <abhilash.kv@ti.com>
 > 
-> The clock data is currently added only for TI816X, while minimal hwmod data
-> common for TI816X and TI814X is added.
-> 
-> This patch set depends on following patches:
-> 	TI81XX: Prepare for addition of TI814X support
-> 	TI814X: Add cpu type macros and detection support
-> 	TI814X: Create board support and enable build for TI8148 EVM
-> 
-> Please note that CHIP_IS_TI816X/CHIP_IS_TI814X are still being used and I will
-> send update once SoC list usage is available.	
+> While resuming from the "suspended to memory" state,
+> occasionally CCDC fails to get enabled and thus fails
+> to capture frames any more till the next suspend/resume
+> is issued.
+> This is a race condition which happens only when a CCDC
+> frame-completion ISR is pending even as ISP device's
+> isp_pm_prepare() is getting called and only one buffer
+> is left on the DMA queue.
+> The DMA queue buffers are thus depleted which results in
+> its underrun.So when ISP resumes there are no buffers on
+> the queue (as the application which can issue buffers is
+> yet to resume) to start video capture.
+> This fix addresses this issue by dequeuing and enqueing
+> the last buffer in isp_pm_prepare() after its DMA gets
+> completed. Thus,when ISP resumes it always finds atleast
+> one buffer on the DMA queue - this is true if application
+> uses only 3 buffers.
 
-Thanks - am working away on these patches & hope to have them out soon.
+How is that problem specific to the CCDC ? Can't it be reproduce at the 
+preview engine or resizer output as well ?
 
+-- 
+Regards,
 
-- Paul
+Laurent Pinchart
