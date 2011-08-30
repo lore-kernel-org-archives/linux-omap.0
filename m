@@ -1,71 +1,115 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: How to handle named resources with DT?
-Date: Tue, 30 Aug 2011 12:27:24 +0300
-Message-ID: <20110830092722.GG23907@legolas.emea.dhcp.ti.com>
-References: <20110809205723.GE11568@ponder.secretlab.ca>
- <877h6173wm.fsf@ti.com>
- <20110826041200.GD2308@yookeroo.fritz.box>
- <201108261258.32880.arnd@arndb.de>
- <4E57A9FB.5030404@ti.com>
- <20110830022912.GE4254@yookeroo.fritz.box>
-Reply-To: balbi@ti.com
+From: Raju Sana <venkat.rajuece-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: McSPI questions pertaining to GPIO chip select support
+Date: Tue, 30 Aug 2011 15:44:22 +0530
+Message-ID: <CA+dZkakw9COsETWZkvMzp2v-ymfQdDEqp3jJuhWbrRTTTjpbGQ@mail.gmail.com>
+References: <1264016711-sup-309@ben-laptop>
+	<1264651770-sup-5197@ben-laptop>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JbKQpFqZXJ2T76Sg"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:37812 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751362Ab1H3J13 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Aug 2011 05:27:29 -0400
-Received: by mail-bw0-f51.google.com with SMTP id r19so4273262bka.10
-        for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 02:27:28 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110830022912.GE4254@yookeroo.fritz.box>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1264651770-sup-5197@ben-laptop>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Michael Hennerich <michael.hennerich-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>, beagleboard <beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, Eric Miao <eric.miao-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>, spi-devel-general <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, "Hilman, Kevin" <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Balbi, Felipe" <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+
+Hi Ben,
+
+Could you please post your patch as I am also working the similar design.
+I need to modify the existing McSPI driver to support 3 codec chips.
+
+Thanks.
+Venkat Raju.
 
 
---JbKQpFqZXJ2T76Sg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Jan 28, 2010 at 9:40 AM, Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-Hi,
-
-On Tue, Aug 30, 2011 at 12:29:12PM +1000, David Gibson wrote:
-> So, I actually agree that in the long term getting resource names in
-> the DT would be a generally good thing.
->=20
-> But doing so is a *huge* change in one of the very core semantics of
-> all the DT bindings.  It's not something that should be done lightly
-> or quickly.  It absolutely should not be tied to how this is handled
-
-the longer you take to change, the more complex will it be to change.
-The longer we spend discussing the validity of _byname(), more
-boards/archs/whatnot will be converted to DT without _byname() and after
-a certain amount of them are converted, noone will be willing to change
-and validate everything again.
-
---=20
-balbi
-
---JbKQpFqZXJ2T76Sg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOXKz6AAoJEAv8Txj19kN17WsIAKh7VOVm2dBaU78Gz2aRs8fP
-4QfdXL4GfvTAIavY3vac6S0AgyOo1sSt7ugKPS5+B1XFt8AB/LkcKSMGydn47aKc
-ap+l4z3wfzCooFFXxXMWMtzPUC5FcxRXDsPz68t2Uu8ELruoh0MA0vmQScUSy8JF
-TXf6ESGBrZj1vAMVmlqjplmuZShKJGRh1mtHE/Qza5rLKt8gFf8IAzkDykk7Cwol
-3USODs6QWwej5glv4978Y0ZED+LWhAg/h3Fdd6e+IgXHJBkkJFdG/D+GcsWqsYWP
-iH/amZaZAYO5V/iaHPWk553+XL+fskZFCK4DD569DB9ecT63Aux6Nz5g78Np4Qg=
-=XR4n
------END PGP SIGNATURE-----
-
---JbKQpFqZXJ2T76Sg--
+> Hey all!
+>
+> Recently I've been thinking about adding support to the McSPI driver for
+> using GPIO pins as chip selects. As a starting point, I've browsed the
+> driver source trying to identify what changes would be necessary to add
+> this support. It seems like the rough idea is,
+>
+>  a) add a cs_gpio field to the device struct (omap2_mcspi)
+>  b) modify omap2_mcspi_force_cs() to use cs_gpio instead of the
+>     CHxCONF[FORCE] bit if cs_gpio is valid
+>
+> Unfortunately, I'm having a bit of difficulty seeing how the existing
+> configuration works. In master mode, it seems that the controller is
+> configured in single forced channel mode (MCSPI_MODULECTRL_SINGLE).  As
+> far as I can tell, this means that the driver is responsible for
+> managing the chip selects through the MCSPI_CHxCONF[FORCE] bits. It
+> seems that this is ideal as little will need to be changed to
+> incorporate GPIO CS support.
+>
+> Nevertheless, the timing of the various operations isn't making sense to
+> me. As far as I understand it, the callgraph is as follows,
+>
+>
+> omap2_mcspi_work():
+>  loop over messages
+>    omap2_mcspi_set_enable(1)
+>    loop over transfers:
+>      configure bus parameters
+>      if (!cs_active) cs = 1
+>      if (dma):
+>        omap2_mcspi_txrx_dma()
+>      else:
+>        omap2_mcspi_txrx_pio()
+>      if (cs_change) cs = 0
+>    end loop
+>
+>    if (cs_active) cs = 0
+>    omap2_mcspi_set_enable(0)
+>  end loop
+>
+>
+> It seems that omap2_mcspi_set_enable() is called to enable the channel
+> (MCSPI_CHCTRLx[EN] is set) before force_cs() is called. If I'm
+> interpreting the hardware documentation correctly, the enable bit (among
+> other things) starts the SPI clock, meaning that the chip will begin
+> clocking out zeros to the device before CS is brought high.
+> Furthermore, even after CS is brought high, it seems there could be a
+> fair amount of time before the chip begins actually clocking out valid
+> data.
+>
+> As I am writing this, it now occurs to me that perhaps the chip doesn't
+> start SPI_CLK until it has data to send. It seems that if this were the
+> case my concerns would be resolved. However, it is not at all clear that
+> this is the case from the documentation. When exactly does the
+> controller start the bus clock? Is this stated explicitly anywhere in
+> the documentation?
+>
+> Any input you could offer would be greatly appreciated.
+> Thanks for your time.
+>
+> - Ben
+>
+>
+> P.S. The more and more I think about it, it seems like my hypothesis is
+> the only logical behavior. It would be great if someone could confirm my
+> suspicions, however. It really seems like this should be in the
+> documentation either way.
+>
+> P.P.S. I apologize if this is something someone familiar with SPI should
+> just know. My knowledge is a little spotty on this sort of thing.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+------------------------------------------------------------------------------
+Special Offer -- Download ArcSight Logger for FREE!
+Finally, a world-class log management solution at an even better 
+price-free! And you'll get a free "Love Thy Logs" t-shirt when you
+download Logger. Secure your free ArcSight Logger TODAY!
+http://p.sf.net/sfu/arcsisghtdev2dev
