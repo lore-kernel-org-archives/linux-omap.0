@@ -1,56 +1,85 @@
-From: Bob Liu <lliubbo@gmail.com>
-Subject: musb power issue on beagleboard-xM
-Date: Tue, 30 Aug 2011 12:24:07 +0800
-Message-ID: <CAA_GA1d_Em44nHc_jzZ_FcSbm8x+zsu160o+MgBd1q-K1LBuMQ@mail.gmail.com>
+From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 5/5 v4] mfd: omap: usb: Runtime PM support
+Date: Tue, 30 Aug 2011 11:47:08 +0530
+Message-ID: <CAP05o4+cmLWu6e36mkzED1X2f=seS9urXva2dRk5dTLWCBZ9FQ@mail.gmail.com>
+References: <1312899309-24067-1-git-send-email-keshava_mgowda@ti.com>
+	<1312899309-24067-2-git-send-email-keshava_mgowda@ti.com>
+	<1312899309-24067-3-git-send-email-keshava_mgowda@ti.com>
+	<1312899309-24067-4-git-send-email-keshava_mgowda@ti.com>
+	<1312899309-24067-5-git-send-email-keshava_mgowda@ti.com>
+	<1312899309-24067-6-git-send-email-keshava_mgowda@ti.com>
+	<87mxesrr1g.fsf@ti.com>
+	<8739gkrllg.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:48947 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987Ab1H3EYI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Aug 2011 00:24:08 -0400
-Received: by qyk34 with SMTP id 34so4250942qyk.19
-        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 21:24:07 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <8739gkrllg.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org, Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hi, folks
+On Tue, Aug 30, 2011 at 2:17 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
+> Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> writes:
+>
+>> Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
+>>
+>>> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>>>
+>>> The usbhs core driver does not enable/disable the intefrace and
+>>> fucntional clocks; These clocks are handled by hwmod and runtime pm=
+,
+>>> hence insted of the clock enable/disable, the runtime pm APIS are
+>>> used. however,the port clocks are handled by the usbhs core.
+>>>
+>>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>>
+>> General comment: all usage of pm_runtime_put_sync() can likely be
+>> replaced by the asynchronous versions. =A0I don't currently see why =
+the
+>> synchronous verions are needed here.
+>>
+>> Other than that, the runtime PM parts of this look OK to me. =A0Afte=
+r
+>> changing to asynchonous puts, feel free to add:
+>>
+>> Reviewed-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+>
+> oops, this should've been in response to your v8 version.
+>
+> Kevin
+>
+>>
+>> Also, after a quick glance, it looks like this version of the series
+>> addresses the problems seen by Jassi Brar with the TLL reset[1]. =A0=
+Please
+>> confirm.
+>>
+>> Speaking of which, it's helpful to Cc folks who have had comments on
+>> previous versions of your series so they are sure they're previous
+>> issues are addressed. =A0 I've Cc'd Jassi Brar.
+>>
+>> Thanks,
+>>
+>> Kevin
+>>
+>> [1] http://marc.info/?l=3Dlinux-omap&m=3D130921260703865&w=3D2
+>
 
-I tried to enable musb on beagleboard-xM. But it always failed with
-"insufficient available bus power".
+Thanks for review;  yes, its reworks of complete runtime pm of usbhs as
+suggested by Jassi Brar.
 
-I am using linux-3.0 from linus git tree.
-Do i need to use a hub?  But i heard that musb doesn't support hub.
+balbi, sameo
+         this patch series available at
 
-Thanks.
+the branch kmg-usbhs-pm
 
+of code repository : git://gitorious.org/~kmg/mirrors/kmg-usbhs-pm.git
 
-# dmesg | grep 'musb'
-musb-hdrc: version 6.0, pio, host
-omap_device: musb-omap2430.-1: new worst case activate latency 0: 30517
-musb-hdrc: ConfigData=0xde (UTMI-8, dyn FIFOs, bulk combine, bulk
-split, HB-ISO Rx, HB-ISO Tx, SoftConn)
-musb-hdrc: MHDRC RTL version 1.800
-musb-hdrc: setup fifo_mode 4
-musb-hdrc: 28/31 max ep, 16384/16384 memory
-musb-hdrc musb-hdrc: MUSB HDRC host driver
-musb-hdrc musb-hdrc: new USB bus registered, assigned bus number 1
-usb usb1: Manufacturer:  musb-hcd
-usb usb1: SerialNumber: musb-hdrc
-musb-hdrc musb-hdrc: USB OTG mode controller at fa0ab000 using PIO, IRQ 92
-#
-#
-# usb 1-1: new high speed USB device number 2 using musb-hdrc
-usb 1-1: New USB device found, idVendor=0781, idProduct=5406
-usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 1-1: Product: U3 Cruzer Micro
-usb 1-1: Manufacturer: SanDisk Corporation
-usb 1-1: SerialNumber: 0000188A1671738F
-usb 1-1: rejected 1 configuration due to insufficient available bus power
-usb 1-1: no configuration chosen from 1 choice
-#
-
--- 
-Regards,
---Bob
+Regards
+Keshava
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
