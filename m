@@ -1,107 +1,68 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/2 RESEND] OMAP2+: pm: clean up error messages
-Date: Tue, 30 Aug 2011 14:15:07 -0700
-Message-ID: <87ty8ymwis.fsf@ti.com>
-References: <87r543rkdk.fsf@ti.com>
-	<1314722897-25040-1-git-send-email-jhovold@gmail.com>
-	<1314722897-25040-2-git-send-email-jhovold@gmail.com>
+Subject: Re: [PATCH 1/3] AM35x: voltage: Basic initialization
+Date: Tue, 30 Aug 2011 15:26:28 -0700
+Message-ID: <87aaaqmt7v.fsf@ti.com>
+References: <1313754573-11498-1-git-send-email-abhilash.kv@ti.com>
+	<1313754573-11498-2-git-send-email-abhilash.kv@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:33928 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756672Ab1H3VPL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Aug 2011 17:15:11 -0400
-Received: by mail-gx0-f175.google.com with SMTP id 3so30170gxk.20
-        for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 14:15:10 -0700 (PDT)
-In-Reply-To: <1314722897-25040-2-git-send-email-jhovold@gmail.com> (Johan
-	Hovold's message of "Tue, 30 Aug 2011 18:48:17 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1313754573-11498-2-git-send-email-abhilash.kv@ti.com> (Abhilash
+	K. V.'s message of "Fri, 19 Aug 2011 17:19:31 +0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Abhilash K V <abhilash.kv@ti.com>
+Cc: premi@ti.com, linux@arm.linux.org.uk, sameo@linux.intel.com, tony@atomide.com, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, david.woodhouse@intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Johan Hovold <jhovold@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Johan Hovold <jhovold@gmail.com> writes:
+Abhilash K V <abhilash.kv@ti.com> writes:
 
-> Replace all printks with pr_err.
+> From: Sanjeev Premi <premi@ti.com>
 >
-> Clean up error messages by adding missing whitespace, fixing
-> capitalisations, removing double newlines, and reducing verbosity.
+> This patch adds the basic initialization of voltage layer
+> for AM35x. Since AM35x doesn't support voltage scaling,
+> Many functions have been defined to plug into existing
+> voltage layer.
 >
-> Signed-off-by: Johan Hovold <jhovold@gmail.com>
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
 
-Thanks, queuing for v3.2 (branch: for_3.2/pm-cleanup)
+[...]
+
+> diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> index def230f..b45d145 100644
+> --- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> +++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> @@ -67,6 +67,38 @@ static struct omap_vdd_info *omap3_vdd_info[] = {
+>  	&omap3_vdd2_info,
+>  };
+>  
+> +/*
+> + * AM35x VDD structures
+> + *
+> + * In AM35x there neither scalable voltage domain nor any hook-up with
+> + * voltage controller/processor. However, when trying to re-use the hwmod
+> + * database for OMAP3, definition of "core" voltage domain is necessary.
+> + * Else, changes in hwmod data structures grow spirally.
+> + *
+> + * As a workaround, "core" voltage domain is defined below. The definition
+> + * doesn't lead to any side-effects.
+
+Except the side-effect of a bunch of unused data, and nop functions that
+just clutter things up in a not-very-maintainable way.
+
+For SoCs without scalable voltage domains, we need to fix the underlying
+problems in the core code for how to cleanly re-use hwmods.
+
+Fortunately, this core code cleanup is now in progress, so it shouldn't
+be long now where we can do this cleanly.
 
 Kevin
-
-> ---
->  arch/arm/mach-omap2/pm.c |   18 ++++++++----------
->  1 files changed, 8 insertions(+), 10 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index fd77cf4..3837818 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -137,8 +137,8 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
->  
->  	ret = pwrdm_set_next_pwrst(pwrdm, state);
->  	if (ret) {
-> -		printk(KERN_ERR "Unable to set state of powerdomain: %s\n",
-> -		       pwrdm->name);
-> +		pr_err("%s: unable to set state of powerdomain: %s\n",
-> +		       __func__, pwrdm->name);
->  		goto err;
->  	}
->  
-> @@ -179,21 +179,20 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
->  	unsigned long freq, bootup_volt;
->  
->  	if (!vdd_name || !clk_name || !dev) {
-> -		printk(KERN_ERR "%s: Invalid parameters!\n", __func__);
-> +		pr_err("%s: invalid parameters\n", __func__);
->  		goto exit;
->  	}
->  
->  	voltdm = omap_voltage_domain_lookup(vdd_name);
->  	if (IS_ERR(voltdm)) {
-> -		printk(KERN_ERR "%s: Unable to get vdd pointer for vdd_%s\n",
-> +		pr_err("%s: unable to get vdd pointer for vdd_%s\n",
->  			__func__, vdd_name);
->  		goto exit;
->  	}
->  
->  	clk =  clk_get(NULL, clk_name);
->  	if (IS_ERR(clk)) {
-> -		printk(KERN_ERR "%s: unable to get clk %s\n",
-> -			__func__, clk_name);
-> +		pr_err("%s: unable to get clk %s\n", __func__, clk_name);
->  		goto exit;
->  	}
->  
-> @@ -202,14 +201,14 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
->  
->  	opp = opp_find_freq_ceil(dev, &freq);
->  	if (IS_ERR(opp)) {
-> -		printk(KERN_ERR "%s: unable to find boot up OPP for vdd_%s\n",
-> +		pr_err("%s: unable to find boot up OPP for vdd_%s\n",
->  			__func__, vdd_name);
->  		goto exit;
->  	}
->  
->  	bootup_volt = opp_get_voltage(opp);
->  	if (!bootup_volt) {
-> -		printk(KERN_ERR "%s: unable to find voltage corresponding"
-> +		pr_err("%s: unable to find voltage corresponding "
->  			"to the bootup OPP for vdd_%s\n", __func__, vdd_name);
->  		goto exit;
->  	}
-> @@ -218,8 +217,7 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
->  	return 0;
->  
->  exit:
-> -	printk(KERN_ERR "%s: Unable to set vdd_%s to its init voltage\n\n",
-> -		__func__, vdd_name);
-> +	pr_err("%s: unable to set vdd_%s\n", __func__, vdd_name);
->  	return -EINVAL;
->  }
