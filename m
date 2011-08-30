@@ -1,21 +1,22 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/2 RESEND] OMAP2+: pm: fix typos
-Date: Tue, 30 Aug 2011 14:14:35 -0700
-Message-ID: <87zkiqmwjo.fsf@ti.com>
+Subject: Re: [PATCH 2/2 RESEND] OMAP2+: pm: clean up error messages
+Date: Tue, 30 Aug 2011 14:15:07 -0700
+Message-ID: <87ty8ymwis.fsf@ti.com>
 References: <87r543rkdk.fsf@ti.com>
 	<1314722897-25040-1-git-send-email-jhovold@gmail.com>
+	<1314722897-25040-2-git-send-email-jhovold@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:45038 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756672Ab1H3VOj (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:33928 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756672Ab1H3VPL (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Aug 2011 17:14:39 -0400
-Received: by mail-pz0-f48.google.com with SMTP id 34so81449pzk.21
-        for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 14:14:38 -0700 (PDT)
-In-Reply-To: <1314722897-25040-1-git-send-email-jhovold@gmail.com> (Johan
-	Hovold's message of "Tue, 30 Aug 2011 18:48:16 +0200")
+	Tue, 30 Aug 2011 17:15:11 -0400
+Received: by mail-gx0-f175.google.com with SMTP id 3so30170gxk.20
+        for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 14:15:10 -0700 (PDT)
+In-Reply-To: <1314722897-25040-2-git-send-email-jhovold@gmail.com> (Johan
+	Hovold's message of "Tue, 30 Aug 2011 18:48:17 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Johan Hovold <jhovold@gmail.com>
@@ -23,7 +24,10 @@ Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kern
 
 Johan Hovold <jhovold@gmail.com> writes:
 
-> Fix typos in comment and error message.
+> Replace all printks with pr_err.
+>
+> Clean up error messages by adding missing whitespace, fixing
+> capitalisations, removing double newlines, and reducing verbosity.
 >
 > Signed-off-by: Johan Hovold <jhovold@gmail.com>
 
@@ -32,33 +36,72 @@ Thanks, queuing for v3.2 (branch: for_3.2/pm-cleanup)
 Kevin
 
 > ---
->  arch/arm/mach-omap2/pm.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
+>  arch/arm/mach-omap2/pm.c |   18 ++++++++----------
+>  1 files changed, 8 insertions(+), 10 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index 3feb359..fd77cf4 100644
+> index fd77cf4..3837818 100644
 > --- a/arch/arm/mach-omap2/pm.c
 > +++ b/arch/arm/mach-omap2/pm.c
-> @@ -163,11 +163,11 @@ err:
->  }
+> @@ -137,8 +137,8 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
 >  
->  /*
-> - * This API is to be called during init to put the various voltage
-> + * This API is to be called during init to set the various voltage
->   * domains to the voltage as per the opp table. Typically we boot up
->   * at the nominal voltage. So this function finds out the rate of
->   * the clock associated with the voltage domain, finds out the correct
-> - * opp entry and puts the voltage domain to the voltage specifies
-> + * opp entry and sets the voltage domain to the voltage specified
->   * in the opp entry
->   */
->  static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
-> @@ -218,7 +218,7 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+>  	ret = pwrdm_set_next_pwrst(pwrdm, state);
+>  	if (ret) {
+> -		printk(KERN_ERR "Unable to set state of powerdomain: %s\n",
+> -		       pwrdm->name);
+> +		pr_err("%s: unable to set state of powerdomain: %s\n",
+> +		       __func__, pwrdm->name);
+>  		goto err;
+>  	}
+>  
+> @@ -179,21 +179,20 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+>  	unsigned long freq, bootup_volt;
+>  
+>  	if (!vdd_name || !clk_name || !dev) {
+> -		printk(KERN_ERR "%s: Invalid parameters!\n", __func__);
+> +		pr_err("%s: invalid parameters\n", __func__);
+>  		goto exit;
+>  	}
+>  
+>  	voltdm = omap_voltage_domain_lookup(vdd_name);
+>  	if (IS_ERR(voltdm)) {
+> -		printk(KERN_ERR "%s: Unable to get vdd pointer for vdd_%s\n",
+> +		pr_err("%s: unable to get vdd pointer for vdd_%s\n",
+>  			__func__, vdd_name);
+>  		goto exit;
+>  	}
+>  
+>  	clk =  clk_get(NULL, clk_name);
+>  	if (IS_ERR(clk)) {
+> -		printk(KERN_ERR "%s: unable to get clk %s\n",
+> -			__func__, clk_name);
+> +		pr_err("%s: unable to get clk %s\n", __func__, clk_name);
+>  		goto exit;
+>  	}
+>  
+> @@ -202,14 +201,14 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+>  
+>  	opp = opp_find_freq_ceil(dev, &freq);
+>  	if (IS_ERR(opp)) {
+> -		printk(KERN_ERR "%s: unable to find boot up OPP for vdd_%s\n",
+> +		pr_err("%s: unable to find boot up OPP for vdd_%s\n",
+>  			__func__, vdd_name);
+>  		goto exit;
+>  	}
+>  
+>  	bootup_volt = opp_get_voltage(opp);
+>  	if (!bootup_volt) {
+> -		printk(KERN_ERR "%s: unable to find voltage corresponding"
+> +		pr_err("%s: unable to find voltage corresponding "
+>  			"to the bootup OPP for vdd_%s\n", __func__, vdd_name);
+>  		goto exit;
+>  	}
+> @@ -218,8 +217,7 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
 >  	return 0;
 >  
 >  exit:
-> -	printk(KERN_ERR "%s: Unable to put vdd_%s to its init voltage\n\n",
-> +	printk(KERN_ERR "%s: Unable to set vdd_%s to its init voltage\n\n",
->  		__func__, vdd_name);
+> -	printk(KERN_ERR "%s: Unable to set vdd_%s to its init voltage\n\n",
+> -		__func__, vdd_name);
+> +	pr_err("%s: unable to set vdd_%s\n", __func__, vdd_name);
 >  	return -EINVAL;
 >  }
