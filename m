@@ -1,40 +1,40 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Subject: Re: How to handle named resources with DT?
-Date: Mon, 29 Aug 2011 22:54:04 +0100
-Message-ID: <20110829215404.GA26846@sirena.org.uk>
-References: <20110809205723.GE11568@ponder.secretlab.ca>
-	<877h6173wm.fsf@ti.com> <20110826041200.GD2308@yookeroo.fritz.box>
-	<201108261258.32880.arnd@arndb.de>
-	<20110826130644.GN2308@yookeroo.fritz.box>
-	<alpine.DEB.2.00.1108271444240.23968@utopia.booyaka.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 3/3] TI814X: Create board support and enable build for TI8148 EVM
+Date: Mon, 29 Aug 2011 17:13:04 -0700
+Message-ID: <878vqbpxin.fsf@ti.com>
+References: <1312479903-22909-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1108271444240.23968-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "G,
-	Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:38480 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755086Ab1H3ANJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Aug 2011 20:13:09 -0400
+Received: by pzk32 with SMTP id 32so10799014pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 29 Aug 2011 17:13:07 -0700 (PDT)
+In-Reply-To: <1312479903-22909-1-git-send-email-hemantp@ti.com> (Hemant
+	Pedanekar's message of "Thu, 4 Aug 2011 23:15:03 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hemant Pedanekar <hemantp@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-On Sat, Aug 27, 2011 at 03:47:55PM -0600, Paul Walmsley wrote:
+Hemant Pedanekar <hemantp@ti.com> writes:
 
-> Certainly, from a kernel development perspective, one can decide to just 
-> dump this kind of DT generation problem back on the hardware vendors.  
-> But it seems more efficient and less error-prone to simply remove both 
-> mapping tables, and to export names directly from the IP block data into 
-> the device data format.
+> This patch adds minimal support and build configuration for TI8148 EVM. Also
+> adds support for low level debugging on UART1 console on the EVM.
+>
+> Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
 
-That seems sensible, though we'd probably want to keep the option to
-remap in there at least on the generation side in case some integrators
-end up renaming the ports on the IP block for some reason.
+[...]
+
+> +static void __init ti8148_init_early(void)
+> +{
+> +	omap2_init_common_infrastructure();
+> +	omap2_init_common_devices(NULL, NULL);
+
+Note that this function no longer exists in mainline.
+
+Kevin
+
