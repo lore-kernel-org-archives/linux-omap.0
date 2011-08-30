@@ -1,194 +1,230 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 02/10] OMAP: DSS2: DSI: Represent L4 and VP as sources of VC instead of modes
-Date: Tue, 30 Aug 2011 16:21:27 +0530
-Message-ID: <1314701495-11247-3-git-send-email-archit@ti.com>
+Subject: [PATCH 04/10] OMAP: DSS2: DSI: Introduce generic write functions
+Date: Tue, 30 Aug 2011 16:21:29 +0530
+Message-ID: <1314701495-11247-5-git-send-email-archit@ti.com>
 References: <1314701495-11247-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60334 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52463 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753006Ab1H3KxO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Aug 2011 06:53:14 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7UArDiL000540
+	id S1753006Ab1H3KxX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Aug 2011 06:53:23 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7UArLlg020867
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 05:53:13 -0500
+	for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 05:53:21 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p7UArDdJ021069
-	for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 05:53:13 -0500 (CDT)
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7UArLPI009397
+	for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 05:53:21 -0500 (CDT)
 Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7UArDGX025061
-	for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 05:53:13 -0500 (CDT)
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7UArL63025179
+	for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 05:53:21 -0500 (CDT)
 In-Reply-To: <1314701495-11247-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The enum type dsi_vc_mode is a bit misleading as L4 slave port and video port
-are sources to VC rather than the mode of operation. Rename then enum type and
-its members. Merge dsi_vc_config_vp() and dsi_vc_config_l4() into a single
-function called dsi_vc_config_source() which takes dsi_vc_source enum as an
-extra argument.
+Intoduce enum "dss_dsi_content_type" to differentiate between DCS and generic
+content types.
+
+Introduce short and long packet write functions which use generic
+Processor-to-Peripheral transaction types. These are needed by some devices
+which may not support corresponding DCS commands. Create common write functions
+which allow code reuse between DCS and generic write functions.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c |   72 ++++++++++++-----------------------------
- 1 files changed, 21 insertions(+), 51 deletions(-)
+ drivers/video/omap2/dss/dsi.c |   84 +++++++++++++++++++++++++++++++++++------
+ drivers/video/omap2/dss/dss.h |    5 ++
+ include/video/omapdss.h       |   12 +++++-
+ 3 files changed, 87 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 6735e0c..bdc2c9d 100644
+index d3bffe8..bb55889 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -217,9 +217,9 @@ enum fifo_size {
- 	DSI_FIFO_SIZE_128	= 4,
- };
- 
--enum dsi_vc_mode {
--	DSI_VC_MODE_L4 = 0,
--	DSI_VC_MODE_VP,
-+enum dsi_vc_source {
-+	DSI_VC_SOURCE_L4 = 0,
-+	DSI_VC_SOURCE_VP,
- };
- 
- enum dsi_lane {
-@@ -272,7 +272,7 @@ struct dsi_data {
- 	struct regulator *vdds_dsi_reg;
- 
- 	struct {
--		enum dsi_vc_mode mode;
-+		enum dsi_vc_source source;
- 		struct omap_dss_device *dssdev;
- 		enum fifo_size fifo_size;
- 		int vc_id;
-@@ -2672,10 +2672,10 @@ static int dsi_sync_vc(struct platform_device *dsidev, int channel)
- 	if (!dsi_vc_is_enabled(dsidev, channel))
- 		return 0;
- 
--	switch (dsi->vc[channel].mode) {
--	case DSI_VC_MODE_VP:
-+	switch (dsi->vc[channel].source) {
-+	case DSI_VC_SOURCE_VP:
- 		return dsi_sync_vc_vp(dsidev, channel);
--	case DSI_VC_MODE_L4:
-+	case DSI_VC_SOURCE_L4:
- 		return dsi_sync_vc_l4(dsidev, channel);
- 	default:
- 		BUG();
-@@ -2729,43 +2729,12 @@ static void dsi_vc_initial_config(struct platform_device *dsidev, int channel)
- 	dsi_write_reg(dsidev, DSI_VC_CTRL(channel), r);
+@@ -3065,38 +3065,60 @@ int dsi_vc_send_null(struct omap_dss_device *dssdev, int channel)
  }
+ EXPORT_SYMBOL(dsi_vc_send_null);
  
--static int dsi_vc_config_l4(struct platform_device *dsidev, int channel)
-+static int dsi_vc_config_source(struct platform_device *dsidev, int channel,
-+		enum dsi_vc_source source)
+-int dsi_vc_dcs_write_nosync(struct omap_dss_device *dssdev, int channel,
+-		u8 *data, int len)
++static int dsi_vc_write_nosync_common(struct omap_dss_device *dssdev,
++		int channel, u8 *data, int len, enum dss_dsi_content_type type)
  {
- 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+ 	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
+ 	int r;
  
--	if (dsi->vc[channel].mode == DSI_VC_MODE_L4)
--		return 0;
+-	BUG_ON(len == 0);
 -
--	DSSDBGF("%d", channel);
--
--	dsi_sync_vc(dsidev, channel);
--
--	dsi_vc_enable(dsidev, channel, 0);
--
--	/* VC_BUSY */
--	if (wait_for_bit_change(dsidev, DSI_VC_CTRL(channel), 15, 0) != 0) {
--		DSSERR("vc(%d) busy when trying to config for L4\n", channel);
--		return -EIO;
--	}
--
--	REG_FLD_MOD(dsidev, DSI_VC_CTRL(channel), 0, 1, 1); /* SOURCE, 0 = L4 */
--
--	/* DCS_CMD_ENABLE */
--	if (dss_has_feature(FEAT_DSI_DCS_CMD_CONFIG_VC))
--		REG_FLD_MOD(dsidev, DSI_VC_CTRL(channel), 0, 30, 30);
--
--	dsi_vc_enable(dsidev, channel, 1);
--
--	dsi->vc[channel].mode = DSI_VC_MODE_L4;
--
--	return 0;
--}
--
--static int dsi_vc_config_vp(struct platform_device *dsidev, int channel)
--{
--	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
--
--	if (dsi->vc[channel].mode == DSI_VC_MODE_VP)
-+	if (dsi->vc[channel].source == source)
- 		return 0;
- 
- 	DSSDBGF("%d", channel);
-@@ -2780,21 +2749,22 @@ static int dsi_vc_config_vp(struct platform_device *dsidev, int channel)
- 		return -EIO;
+-	if (len == 1) {
++	if (len == 0) {
++		BUG_ON(type == DSS_DSI_CONTENT_DCS);
+ 		r = dsi_vc_send_short(dsidev, channel,
++				MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM, 0, 0);
++	} else if (len == 1) {
++		r = dsi_vc_send_short(dsidev, channel,
++				type == DSS_DSI_CONTENT_GENERIC ?
++				MIPI_DSI_GENERIC_SHORT_WRITE_1_PARAM :
+ 				MIPI_DSI_DCS_SHORT_WRITE, data[0], 0);
+ 	} else if (len == 2) {
+ 		r = dsi_vc_send_short(dsidev, channel,
++				type == DSS_DSI_CONTENT_GENERIC ?
++				MIPI_DSI_GENERIC_SHORT_WRITE_2_PARAM :
+ 				MIPI_DSI_DCS_SHORT_WRITE_PARAM,
+ 				data[0] | (data[1] << 8), 0);
+ 	} else {
+-		/* 0x39 = DCS Long Write */
+-		r = dsi_vc_send_long(dsidev, channel, MIPI_DSI_DCS_LONG_WRITE,
+-				data, len, 0);
++		r = dsi_vc_send_long(dsidev, channel,
++				type == DSS_DSI_CONTENT_GENERIC ?
++				MIPI_DSI_GENERIC_LONG_WRITE :
++				MIPI_DSI_DCS_LONG_WRITE, data, len, 0);
  	}
  
--	/* SOURCE, 1 = video port */
--	REG_FLD_MOD(dsidev, DSI_VC_CTRL(channel), 1, 1, 1);
-+	/* SOURCE, 0 = L4, 1 = video port */
-+	REG_FLD_MOD(dsidev, DSI_VC_CTRL(channel), source, 1, 1);
+ 	return r;
+ }
++
++int dsi_vc_dcs_write_nosync(struct omap_dss_device *dssdev, int channel,
++		u8 *data, int len)
++{
++	return dsi_vc_write_nosync_common(dssdev, channel, data, len,
++			DSS_DSI_CONTENT_DCS);
++}
+ EXPORT_SYMBOL(dsi_vc_dcs_write_nosync);
  
- 	/* DCS_CMD_ENABLE */
--	if (dss_has_feature(FEAT_DSI_DCS_CMD_CONFIG_VC))
--		REG_FLD_MOD(dsidev, DSI_VC_CTRL(channel), 1, 30, 30);
-+	if (dss_has_feature(FEAT_DSI_DCS_CMD_CONFIG_VC)) {
-+		bool enable = source == DSI_VC_SOURCE_VP;
-+		REG_FLD_MOD(dsidev, DSI_VC_CTRL(channel), enable, 30, 30);
-+	}
+-int dsi_vc_dcs_write(struct omap_dss_device *dssdev, int channel, u8 *data,
+-		int len)
++int dsi_vc_generic_write_nosync(struct omap_dss_device *dssdev, int channel,
++		u8 *data, int len)
++{
++	return dsi_vc_write_nosync_common(dssdev, channel, data, len,
++			DSS_DSI_CONTENT_GENERIC);
++}
++EXPORT_SYMBOL(dsi_vc_generic_write_nosync);
++
++static int dsi_vc_write_common(struct omap_dss_device *dssdev, int channel,
++		u8 *data, int len, enum dss_dsi_content_type type)
+ {
+ 	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
+ 	int r;
  
- 	dsi_vc_enable(dsidev, channel, 1);
+-	r = dsi_vc_dcs_write_nosync(dssdev, channel, data, len);
++	r = dsi_vc_write_nosync_common(dssdev, channel, data, len, type);
+ 	if (r)
+ 		goto err;
  
--	dsi->vc[channel].mode = DSI_VC_MODE_VP;
-+	dsi->vc[channel].source = source;
+@@ -3114,18 +3136,39 @@ int dsi_vc_dcs_write(struct omap_dss_device *dssdev, int channel, u8 *data,
  
  	return 0;
+ err:
+-	DSSERR("dsi_vc_dcs_write(ch %d, cmd 0x%02x, len %d) failed\n",
++	DSSERR("dsi_vc_write_common(ch %d, cmd 0x%02x, len %d) failed\n",
+ 			channel, data[0], len);
+ 	return r;
  }
++
++int dsi_vc_dcs_write(struct omap_dss_device *dssdev, int channel, u8 *data,
++		int len)
++{
++	return dsi_vc_write_common(dssdev, channel, data, len,
++			DSS_DSI_CONTENT_DCS);
++}
+ EXPORT_SYMBOL(dsi_vc_dcs_write);
  
--
- void omapdss_dsi_vc_enable_hs(struct omap_dss_device *dssdev, int channel,
- 		bool enable)
++int dsi_vc_generic_write(struct omap_dss_device *dssdev, int channel, u8 *data,
++		int len)
++{
++	return dsi_vc_write_common(dssdev, channel, data, len,
++			DSS_DSI_CONTENT_GENERIC);
++}
++EXPORT_SYMBOL(dsi_vc_generic_write);
++
+ int dsi_vc_dcs_write_0(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd)
  {
-@@ -3010,7 +2980,7 @@ static int dsi_vc_send_long(struct platform_device *dsidev, int channel,
- 		return -EINVAL;
- 	}
+ 	return dsi_vc_dcs_write(dssdev, channel, &dcs_cmd, 1);
+ }
+ EXPORT_SYMBOL(dsi_vc_dcs_write_0);
  
--	dsi_vc_config_l4(dsidev, channel);
-+	dsi_vc_config_source(dsidev, channel, DSI_VC_SOURCE_L4);
++int dsi_vc_generic_write_0(struct omap_dss_device *dssdev, int channel)
++{
++	return dsi_vc_generic_write(dssdev, channel, NULL, 0);
++}
++EXPORT_SYMBOL(dsi_vc_generic_write_0);
++
+ int dsi_vc_dcs_write_1(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd,
+ 		u8 param)
+ {
+@@ -3136,6 +3179,23 @@ int dsi_vc_dcs_write_1(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd,
+ }
+ EXPORT_SYMBOL(dsi_vc_dcs_write_1);
  
- 	dsi_vc_write_long_header(dsidev, channel, data_type, len, ecc);
++int dsi_vc_generic_write_1(struct omap_dss_device *dssdev, int channel,
++		u8 param)
++{
++	return dsi_vc_generic_write(dssdev, channel, &param, 1);
++}
++EXPORT_SYMBOL(dsi_vc_generic_write_1);
++
++int dsi_vc_generic_write_2(struct omap_dss_device *dssdev, int channel,
++		u8 param1, u8 param2)
++{
++	u8 buf[2];
++	buf[0] = param1;
++	buf[1] = param2;
++	return dsi_vc_generic_write(dssdev, channel, buf, 2);
++}
++EXPORT_SYMBOL(dsi_vc_generic_write_2);
++
+ int dsi_vc_dcs_read(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd,
+ 		u8 *buf, int buflen)
+ {
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index a095a62..3ec8dd7 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -108,6 +108,11 @@ enum dss_hdmi_venc_clk_source_select {
+ 	DSS_HDMI_M_PCLK = 1,
+ };
  
-@@ -3069,7 +3039,7 @@ static int dsi_vc_send_short(struct platform_device *dsidev, int channel,
- 				channel,
- 				data_type, data & 0xff, (data >> 8) & 0xff);
- 
--	dsi_vc_config_l4(dsidev, channel);
-+	dsi_vc_config_source(dsidev, channel, DSI_VC_SOURCE_L4);
- 
- 	if (FLD_GET(dsi_read_reg(dsidev, DSI_VC_CTRL(channel)), 16, 16)) {
- 		DSSERR("ERROR FIFO FULL, aborting transfer\n");
-@@ -3657,7 +3627,7 @@ static void dsi_update_screen_dispc(struct omap_dss_device *dssdev,
- 	DSSDBG("dsi_update_screen_dispc(%d,%d %dx%d)\n",
- 			x, y, w, h);
- 
--	dsi_vc_config_vp(dsidev, channel);
-+	dsi_vc_config_source(dsidev, channel, DSI_VC_SOURCE_VP);
- 
- 	bytespp	= dssdev->ctrl.pixel_size / 8;
- 	bytespl = w * bytespp;
-@@ -4383,7 +4353,7 @@ static int omap_dsihw_probe(struct platform_device *dsidev)
- 
- 	/* DSI VCs initialization */
- 	for (i = 0; i < ARRAY_SIZE(dsi->vc); i++) {
--		dsi->vc[i].mode = DSI_VC_MODE_L4;
-+		dsi->vc[i].source = DSI_VC_SOURCE_L4;
- 		dsi->vc[i].dssdev = NULL;
- 		dsi->vc[i].vc_id = 0;
- 	}
++enum dss_dsi_content_type {
++	DSS_DSI_CONTENT_DCS,
++	DSS_DSI_CONTENT_GENERIC,
++};
++
+ struct dss_clock_info {
+ 	/* rates that we get with dividers below */
+ 	unsigned long fck;
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 2babe7e..00462cd 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -225,12 +225,20 @@ void dsi_bus_lock(struct omap_dss_device *dssdev);
+ void dsi_bus_unlock(struct omap_dss_device *dssdev);
+ int dsi_vc_dcs_write(struct omap_dss_device *dssdev, int channel, u8 *data,
+ 		int len);
+-int dsi_vc_dcs_write_0(struct omap_dss_device *dssdev, int channel,
+-		u8 dcs_cmd);
++int dsi_vc_generic_write(struct omap_dss_device *dssdev, int channel, u8 *data,
++		int len);
++int dsi_vc_dcs_write_0(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd);
++int dsi_vc_generic_write_0(struct omap_dss_device *dssdev, int channel);
+ int dsi_vc_dcs_write_1(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd,
+ 		u8 param);
++int dsi_vc_generic_write_1(struct omap_dss_device *dssdev, int channel,
++		u8 param);
++int dsi_vc_generic_write_2(struct omap_dss_device *dssdev, int channel,
++		u8 param1, u8 param2);
+ int dsi_vc_dcs_write_nosync(struct omap_dss_device *dssdev, int channel,
+ 		u8 *data, int len);
++int dsi_vc_generic_write_nosync(struct omap_dss_device *dssdev, int channel,
++		u8 *data, int len);
+ int dsi_vc_dcs_read(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd,
+ 		u8 *buf, int buflen);
+ int dsi_vc_dcs_read_1(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd,
 -- 
 1.7.1
 
