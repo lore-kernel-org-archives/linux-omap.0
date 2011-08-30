@@ -1,85 +1,442 @@
-From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 5/5 v4] mfd: omap: usb: Runtime PM support
-Date: Tue, 30 Aug 2011 11:47:08 +0530
-Message-ID: <CAP05o4+cmLWu6e36mkzED1X2f=seS9urXva2dRk5dTLWCBZ9FQ@mail.gmail.com>
-References: <1312899309-24067-1-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-2-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-3-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-4-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-5-git-send-email-keshava_mgowda@ti.com>
-	<1312899309-24067-6-git-send-email-keshava_mgowda@ti.com>
-	<87mxesrr1g.fsf@ti.com>
-	<8739gkrllg.fsf@ti.com>
+From: Hemanth V <hemanthv@ti.com>
+Subject: [PATCH] mfd: Add PWM1 and PWM2 support to twl6030-pwm
+Date: Tue, 30 Aug 2011 12:27:17 +0530
+Message-ID: <51632.192.168.10.10.1314687437.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8739gkrllg.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org, Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60881 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750842Ab1H3G5T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Aug 2011 02:57:19 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, sameo@linux.intel.com
 
-On Tue, Aug 30, 2011 at 2:17 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
-> Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> writes:
->
->> Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
->>
->>> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>>
->>> The usbhs core driver does not enable/disable the intefrace and
->>> fucntional clocks; These clocks are handled by hwmod and runtime pm=
-,
->>> hence insted of the clock enable/disable, the runtime pm APIS are
->>> used. however,the port clocks are handled by the usbhs core.
->>>
->>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>
->> General comment: all usage of pm_runtime_put_sync() can likely be
->> replaced by the asynchronous versions. =A0I don't currently see why =
-the
->> synchronous verions are needed here.
->>
->> Other than that, the runtime PM parts of this look OK to me. =A0Afte=
-r
->> changing to asynchonous puts, feel free to add:
->>
->> Reviewed-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
->
-> oops, this should've been in response to your v8 version.
->
-> Kevin
->
->>
->> Also, after a quick glance, it looks like this version of the series
->> addresses the problems seen by Jassi Brar with the TLL reset[1]. =A0=
-Please
->> confirm.
->>
->> Speaking of which, it's helpful to Cc folks who have had comments on
->> previous versions of your series so they are sure they're previous
->> issues are addressed. =A0 I've Cc'd Jassi Brar.
->>
->> Thanks,
->>
->> Kevin
->>
->> [1] http://marc.info/?l=3Dlinux-omap&m=3D130921260703865&w=3D2
->
+From: Hemanth V <hemanthv@ti.com>
+Date: Fri, 26 Aug 2011 10:49:29 +0530
+Subject: [PATCH] Add PWM1 and PWM2 support to twl6030-pwm driver
 
-Thanks for review;  yes, its reworks of complete runtime pm of usbhs as
-suggested by Jassi Brar.
+This patch adds support for PWM1/PWM2. TWL6030 PWM driver also
+supports Indicator LED PWM. Function pointers are defined for
+for init, enable, disable and configuration for both Indicator LED
+PWM (led_pwm) and PWM1/PWM2 (std_pwm)
 
-balbi, sameo
-         this patch series available at
+Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Hemanth V <hemanthv@ti.com>
+---
+ drivers/mfd/twl6030-pwm.c |  324 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 309 insertions(+), 15 deletions(-)
 
-the branch kmg-usbhs-pm
+diff --git a/drivers/mfd/twl6030-pwm.c b/drivers/mfd/twl6030-pwm.c
+index e8fee14..8d9c3f5 100644
+--- a/drivers/mfd/twl6030-pwm.c
++++ b/drivers/mfd/twl6030-pwm.c
+@@ -5,6 +5,9 @@
+  * Copyright (C) 2010 Texas Instruments
+  * Author: Hemanth V <hemanthv@ti.com>
+  *
++ * Added support for PWM1, PWM2
++ * Hemanth V <hemanthv@ti.com>
++ *
+  * This program is free software; you can redistribute it and/or modify it
+  * under the terms of the GNU General Public License version 2 as published by
+  * the Free Software Foundation.
+@@ -36,7 +39,9 @@
+ #define PWM_CTRL2_CURR_02	(2 << 4)
 
-of code repository : git://gitorious.org/~kmg/mirrors/kmg-usbhs-pm.git
+ /* LED supply source */
++#define PWM_CTRL2_SRC_VBUS	(0 << 2)
+ #define PWM_CTRL2_SRC_VAC	(1 << 2)
++#define PWM_CTRL2_SRC_EXT	(2 << 2)
 
-Regards
-Keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ /* LED modes */
+ #define PWM_CTRL2_MODE_HW	(0 << 0)
+@@ -45,12 +50,53 @@
+
+ #define PWM_CTRL2_MODE_MASK	0x3
+
++/* PWMs supported by driver */
++#define PWM_ID_LED		1
++#define PWM_ID_PWM1		2
++#define PWM_ID_PWM2		3
++
++#define LED_PWM1ON		0x00
++#define LED_PWM1OFF		0x01
++#define LED_PWM2ON		0x03
++#define LED_PWM2OFF		0x04
++#define TWL6030_TOGGLE3		0x92
++#define PWMSTATUS2		0x94
++
++/* Defines for TOGGLE3 register */
++#define PWM2EN			(1 << 5)
++#define PWM2S			(1 << 4)
++#define PWM2R			(1 << 3)
++#define PWM1EN			(1 << 2)
++#define PWM1S			(1 << 1)
++#define PWM1R			(1 << 0)
++
++/* Defines for PWMSTATUS2 register */
++#define PWM1_CLK_EN		(1 << 1)
++#define PWM2_CLK_EN		(1 << 3)
++#define	TRUE			1
++#define	FALSE			0
++
++static DEFINE_MUTEX(pwm_lock);
++static LIST_HEAD(pwm_list);
++
++struct pwm_device;
++
++struct pwm_ops {
++	int	(*config)(struct pwm_device *, int, int);
++	int	(*enable)(struct pwm_device *);
++	void	(*disable)(struct pwm_device *);
++	int	(*init)(struct pwm_device *);
++};
++
+ struct pwm_device {
+-	const char *label;
+-	unsigned int pwm_id;
++	struct list_head	node;
++	const char		*label;
++	unsigned int		pwm_id;
++	unsigned int		use_count;
++	struct pwm_ops		*ops;
+ };
+
+-int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
++int led_pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+ {
+ 	u8 duty_cycle;
+ 	int ret;
+@@ -69,9 +115,8 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL(pwm_config);
+
+-int pwm_enable(struct pwm_device *pwm)
++int led_pwm_enable(struct pwm_device *pwm)
+ {
+ 	u8 val;
+ 	int ret;
+@@ -95,9 +140,8 @@ int pwm_enable(struct pwm_device *pwm)
+ 	twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(pwm_enable);
+
+-void pwm_disable(struct pwm_device *pwm)
++void led_pwm_disable(struct pwm_device *pwm)
+ {
+ 	u8 val;
+ 	int ret;
+@@ -120,37 +164,284 @@ void pwm_disable(struct pwm_device *pwm)
+ 	}
+ 	return;
+ }
+-EXPORT_SYMBOL(pwm_disable);
+
+-struct pwm_device *pwm_request(int pwm_id, const char *label)
++int led_pwm_init(struct pwm_device *pwm)
+ {
+ 	u8 val;
+ 	int ret;
++
++	val = PWM_CTRL2_DIS_PD | PWM_CTRL2_CURR_02 | PWM_CTRL2_SRC_VBUS |
++		PWM_CTRL2_MODE_HW;
++
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
++
++	return ret;
++}
++
++static struct pwm_ops pwm_led = {
++	.config = led_pwm_config,
++	.enable = led_pwm_enable,
++	.disable = led_pwm_disable,
++	.init = led_pwm_init,
++};
++
++int std_pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
++{
++	int ret = 0, level, pwm_id, reg;
++
++	level = (duty_ns * PWM_CTRL1_MAX) / period_ns;
++	pwm_id = pwm->pwm_id;
++
++	if (pwm_id == PWM_ID_PWM1)
++		reg = LED_PWM1ON;
++	else
++		reg = LED_PWM2ON;
++
++	if (level > 1) {
++		if (level == 255)
++			level = 0x7F;
++		else
++			level = (~(level/2)) & 0x7F;
++
++		ret = twl_i2c_write_u8(TWL_MODULE_PWM, level, reg);
++	}
++
++	return ret;
++}
++
++void std_pwm_disable(struct pwm_device *pwm)
++{
++
++	int ret, pwm_id;
++	bool pwm1_enabled = FALSE;
++	bool pwm2_enabled = FALSE;
++	u8 reg_val, reset_val, dis_val = 0;
++
++	pwm_id = pwm->pwm_id;
++
++	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &reg_val, PWMSTATUS2);
++	if (ret < 0)
++		goto out_err;
++
++	if (reg_val & PWM1_CLK_EN)
++		pwm1_enabled = TRUE;
++	if (reg_val & PWM2_CLK_EN)
++		pwm2_enabled = TRUE;
++
++	if (pwm_id == PWM_ID_PWM1) {
++		reset_val = PWM1EN | PWM1R;
++
++		/* Donot reset the state for PWM2 */
++		if (pwm2_enabled) {
++			dis_val |= PWM2EN | PWM2S;
++			reset_val |= PWM2EN | PWM2S;
++		}
++
++	} else if (pwm_id == PWM_ID_PWM2) {
++		reset_val = PWM2EN | PWM2R ;
++
++		/* Donot reset the state for PWM1 */
++		if (pwm1_enabled) {
++			dis_val |= PWM1EN | PWM1S;
++			reset_val |= PWM1EN | PWM1S;
++		}
++	} else {
++		ret = -EINVAL;
++		goto out_err;
++	}
++
++	/* Reset PWM to be disabled */
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, reset_val, TWL6030_TOGGLE3);
++	if (ret < 0)
++		goto out_err;
++
++	/* Disable PWM */
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, dis_val, TWL6030_TOGGLE3);
++	if (ret < 0)
++		goto out_err;
++
++	return;
++
++out_err:
++	pr_err("%s: Failed to Enable PWM, Error %d\n",
++		pwm->label, ret);
++	return;
++}
++
++int std_pwm_enable(struct pwm_device *pwm)
++{
++
++	int ret, pwm_id;
++	u8 en_val, reg_val;
++	bool pwm1_enabled = FALSE;
++	bool pwm2_enabled = FALSE;
++
++	pwm_id = pwm->pwm_id;
++
++	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &reg_val, PWMSTATUS2);
++	if (ret < 0)
++		goto out_err;
++
++	if (reg_val & PWM1_CLK_EN)
++		pwm1_enabled = TRUE;
++	if (reg_val & PWM2_CLK_EN)
++		pwm2_enabled = TRUE;
++
++	if (pwm_id == PWM_ID_PWM1) {
++		en_val = PWM1EN | PWM1S;
++
++		/* Maintain PWM2 state as-is*/
++		if (pwm2_enabled)
++			en_val |= PWM2EN | PWM2S;
++
++	} else if (pwm_id == PWM_ID_PWM2) {
++		en_val = PWM2EN | PWM2S;
++
++		/* Maintain PWM1 state as-is*/
++		if (pwm1_enabled)
++			en_val |= PWM1EN | PWM1S;
++	} else {
++		ret = -EINVAL;
++		goto out_err;
++	}
++
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, en_val, TWL6030_TOGGLE3);
++	if (ret < 0)
++		goto out_err;
++
++	return ret;
++
++out_err:
++	pr_err("%s: Failed to Enable PWM, Error %d\n",
++		pwm->label, ret);
++	return ret;
++}
++
++int std_pwm_init(struct pwm_device *pwm)
++{
++	int ret, reg1, reg2, pwm_id;
++
++	pwm_id = pwm->pwm_id;
++
++	if (pwm_id == PWM_ID_PWM1) {
++		reg1 = LED_PWM1ON;
++		reg2 = LED_PWM1OFF;
++	} else if (pwm_id == PWM_ID_PWM2) {
++		reg1 = LED_PWM2ON;
++		reg2 = LED_PWM2OFF;
++	} else {
++		ret = -EINVAL;
++		goto out_err;
++	}
++
++	ret = twl_i2c_write_u8(TWL_MODULE_PWM, 0x7F, reg1);
++	if (ret < 0)
++		goto out_err;
++
++	twl_i2c_write_u8(TWL_MODULE_PWM, 0x7F, reg2);
++	if (ret < 0)
++		goto out_err;
++
++	twl_i2c_write_u8(TWL6030_MODULE_ID1, 0x0, TWL6030_TOGGLE3);
++	if (ret < 0)
++		goto out_err;
++
++	return ret;
++
++out_err:
++	pr_err("%s: PWM init failed, Error %d\n",
++		pwm->label, ret);
++
++	return ret;
++}
++static struct pwm_ops pwm_std = {
++	.config = std_pwm_config,
++	.enable = std_pwm_enable,
++	.disable = std_pwm_disable,
++	.init = std_pwm_init,
++};
++
++int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
++{
++	return pwm->ops->config(pwm, duty_ns, period_ns);
++}
++EXPORT_SYMBOL(pwm_config);
++
++int pwm_enable(struct pwm_device *pwm)
++{
++	return pwm->ops->enable(pwm);
++}
++EXPORT_SYMBOL(pwm_enable);
++
++void pwm_disable(struct pwm_device *pwm)
++{
++	pwm->ops->disable(pwm);
++}
++EXPORT_SYMBOL(pwm_disable);
++
++struct pwm_device *pwm_request(int pwm_id, const char *label)
++{
++	int ret, found = 0;
+ 	struct pwm_device *pwm;
+
++	mutex_lock(&pwm_lock);
++
++	list_for_each_entry(pwm, &pwm_list, node) {
++		if (pwm->pwm_id == pwm_id) {
++			found = 1;
++			break;
++		}
++	}
++
++	if (found) {
++		if (pwm->use_count == 0) {
++			pwm->use_count++;
++			pwm->label = label;
++		} else {
++			pwm = ERR_PTR(-EBUSY);
++		}
++
++		goto out;
++	}
++
++	mutex_unlock(&pwm_lock);
++
+ 	pwm = kzalloc(sizeof(struct pwm_device), GFP_KERNEL);
+ 	if (pwm == NULL) {
+ 		pr_err("%s: failed to allocate memory\n", label);
+-		return NULL;
++		goto out;
+ 	}
+
+ 	pwm->label = label;
+ 	pwm->pwm_id = pwm_id;
++	pwm->use_count++;
+
+-	/* Configure PWM */
+-	val = PWM_CTRL2_DIS_PD | PWM_CTRL2_CURR_02 | PWM_CTRL2_SRC_VAC |
+-		PWM_CTRL2_MODE_HW;
++	if (pwm_id == PWM_ID_LED) {
++		pwm->ops = &pwm_led;
++	} else if (pwm_id == PWM_ID_PWM1 || pwm_id == PWM_ID_PWM2) {
++		pwm->ops = &pwm_std;
++	} else {
++		kfree(pwm);
++		pwm = ERR_PTR(-EINVAL);
++		goto out;
++	}
+
+-	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
++	ret = pwm->ops->init(pwm);
+
+ 	if (ret < 0) {
+ 		pr_err("%s: Failed to configure PWM, Error %d\n",
+ 			 pwm->label, ret);
+
+ 		kfree(pwm);
+-		return NULL;
++		pwm = NULL;
++		goto out;
+ 	}
+
++	mutex_lock(&pwm_lock);
++	list_add_tail(&pwm->node, &pwm_list);
++	mutex_unlock(&pwm_lock);
++
++out:
+ 	return pwm;
+ }
+ EXPORT_SYMBOL(pwm_request);
+@@ -158,6 +449,9 @@ EXPORT_SYMBOL(pwm_request);
+ void pwm_free(struct pwm_device *pwm)
+ {
+ 	pwm_disable(pwm);
++	mutex_lock(&pwm_lock);
++	list_del(&pwm->node);
++	mutex_unlock(&pwm_lock);
+ 	kfree(pwm);
+ }
+ EXPORT_SYMBOL(pwm_free);
+-- 
+1.7.1
+
+
+
