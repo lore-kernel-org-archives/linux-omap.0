@@ -1,74 +1,662 @@
-From: Ben Gamari <bgamari.foss@gmail.com>
-Subject: [PATCH] beagledaq: Hack in cs_gpios
-Date: Tue, 30 Aug 2011 09:52:23 -0400
-Message-ID: <1314712343-27367-1-git-send-email-bgamari.foss@gmail.com>
-References: <1314712254-27199-1-git-send-email-bgamari.foss@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:41887 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753069Ab1H3Nwa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Aug 2011 09:52:30 -0400
-Received: by qyk34 with SMTP id 34so4497065qyk.19
-        for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 06:52:29 -0700 (PDT)
-In-Reply-To: <1314712254-27199-1-git-send-email-bgamari.foss@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/2] arm: omap: usb: Add mux initialization to ehci and ohci hwmods for omap4
+Date: Tue, 30 Aug 2011 19:27:26 +0530
+Message-ID: <1314712647-30008-2-git-send-email-keshava_mgowda@ti.com>
+References: <1314712647-30008-1-git-send-email-keshava_mgowda@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1314712647-30008-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org, Kishon Vijay Abraham <kishon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Raju Sana <venkat.rajuece@gmail.com>
-Cc: beagleboard@googlegroups.com, linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, Ben Gamari <bgamari.foss@gmail.com>
 
+From: Kishon Vijay Abraham <kishon-l0cyMroinI0@public.gmane.org>
+
+For ehci and ohci hwmods, the omap4 mux initializations functions
+are included.
+
+Signed-off-by: Kishon Vijay Abraham <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |    4 ++--
- arch/arm/mach-omap2/devices.c           |   15 +++++++++++++++
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/usb-host.c |  546 +++++++++++++++++++++++++++++-----------
+ 1 files changed, 403 insertions(+), 143 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 67999da..481c1a9 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -661,8 +661,8 @@ static struct spi_board_info beagledaq_mcspi_board_info[] = {
- 	},
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 9c37db9..9ec3d01 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -52,6 +52,355 @@ static struct omap_device_pm_latency omap_uhhtll_latency[] = {
+ 	  },
  };
  
--static int mcspi3_cs_gpios[4];
--static int mcspi4_cs_gpios[4];
-+int mcspi3_cs_gpios[4];
-+int mcspi4_cs_gpios[4];
- 
- static void __init beagledaq_init(void)
- {
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 5b8ca68..6808251 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -341,6 +341,9 @@ struct omap_device_pm_latency omap_mcspi_latency[] = {
- 	},
- };
- 
-+extern int mcspi3_cs_gpios[4];
-+extern int mcspi4_cs_gpios[4];
 +
- static int omap_mcspi_init(struct omap_hwmod *oh, void *unused)
++static struct omap_device_pad port1_phy_pads[] __initdata = {
++	{
++		.name = "usbb1_ulpitll_stp.usbb1_ulpiphy_stp",
++		.enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb1_ulpitll_clk.usbb1_ulpiphy_clk",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb1_ulpitll_dir.usbb1_ulpiphy_dir",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb1_ulpitll_nxt.usbb1_ulpiphy_nxt",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb1_ulpitll_dat0.usbb1_ulpiphy_dat0",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb1_ulpitll_dat1.usbb1_ulpiphy_dat1",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb1_ulpitll_dat2.usbb1_ulpiphy_dat2",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb1_ulpitll_dat3.usbb1_ulpiphy_dat3",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb1_ulpitll_dat4.usbb1_ulpiphy_dat4",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb1_ulpitll_dat5.usbb1_ulpiphy_dat5",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb1_ulpitll_dat6.usbb1_ulpiphy_dat6",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb1_ulpitll_dat7.usbb1_ulpiphy_dat7",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++};
++
++static struct omap_device_pad port1_tll_pads[] __initdata = {
++	{
++		.name = "usbb1_ulpitll_stp.usbb1_ulpitll_stp",
++		.enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb1_ulpitll_clk.usbb1_ulpitll_clk",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb1_ulpitll_dir.usbb1_ulpitll_dir",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb1_ulpitll_nxt.usbb1_ulpitll_nxt",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb1_ulpitll_dat0.usbb1_ulpitll_dat0",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb1_ulpitll_dat1.usbb1_ulpitll_dat1",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb1_ulpitll_dat2.usbb1_ulpitll_dat2",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb1_ulpitll_dat3.usbb1_ulpitll_dat3",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb1_ulpitll_dat4.usbb1_ulpitll_dat4",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb1_ulpitll_dat5.usbb1_ulpitll_dat5",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb1_ulpitll_dat6.usbb1_ulpitll_dat6",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb1_ulpitll_dat7.usbb1_ulpitll_dat7",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++};
++
++static struct omap_device_pad port2_phy_pads[] __initdata = {
++	{
++		.name = "usbb2_ulpitll_stp.usbb2_ulpiphy_stp",
++		.enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb2_ulpitll_clk.usbb2_ulpiphy_clk",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb2_ulpitll_dir.usbb2_ulpiphy_dir",
++		.enable	= OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb2_ulpitll_nxt.usbb2_ulpiphy_nxt",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb2_ulpitll_dat0.usbb2_ulpiphy_dat0",
++		.enable	= OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb2_ulpitll_dat1.usbb2_ulpiphy_dat1",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb2_ulpitll_dat2.usbb2_ulpiphy_dat2",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb2_ulpitll_dat3.usbb2_ulpiphy_dat3",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb2_ulpitll_dat4.usbb2_ulpiphy_dat4",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb2_ulpitll_dat5.usbb2_ulpiphy_dat5",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb2_ulpitll_dat6.usbb2_ulpiphy_dat6",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "usbb2_ulpitll_dat7.usbb2_ulpiphy_dat7",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++};
++
++static struct omap_device_pad port2_tll_pads[] __initdata = {
++	{
++		.name = "usbb2_ulpitll_stp.usbb2_ulpitll_stp",
++		.enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb2_ulpitll_clk.usbb2_ulpitll_clk",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb2_ulpitll_dir.usbb2_ulpitll_dir",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb2_ulpitll_nxt.usbb2_ulpitll_nxt",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb2_ulpitll_dat0.usbb2_ulpitll_dat0",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb2_ulpitll_dat1.usbb2_ulpitll_dat1",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb2_ulpitll_dat2.usbb2_ulpitll_dat2",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb2_ulpitll_dat3.usbb2_ulpitll_dat3",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb2_ulpitll_dat4.usbb2_ulpitll_dat4",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb2_ulpitll_dat5.usbb2_ulpitll_dat5",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb2_ulpitll_dat6.usbb2_ulpitll_dat6",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++	{
++		.name = "usbb2_ulpitll_dat7.usbb2_ulpitll_dat7",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0,
++	},
++};
++
++static struct omap_device_pad port1_6pin_pads[] __initdata = {
++	{
++		.name = "usbb1_ulpitll_stp.usbb1_mm_rxdp",
++		.enable	= OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++	{
++		.name = "usbb1_ulpitll_nxt.usbb1_mm_rxdm",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++	{
++		.name = "usbb1_ulpitll_dat0.usbb1_mm_rxrcv",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++	{
++		.name = "usbb1_ulpitll_dat3.usbb1_mm_txen",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++	{
++		.name = "usbb1_ulpitll_dat1.usbb1_mm_txdat",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++	{
++		.name = "usbb1_ulpitll_dat2.usbb1_mm_txse0",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++};
++
++static struct omap_device_pad port1_4pin_pads[] __initdata = {
++	{
++		.name = "usbb1_ulpitll_dat0.usbb1_mm_rxrcv",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++	{
++		.name = "usbb1_ulpitll_dat3.usbb1_mm_txen",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++	{
++		.name = "usbb1_ulpitll_dat1.usbb1_mm_txdat",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++	{
++		.name = "usbb1_ulpitll_dat2.usbb1_mm_txse0",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++};
++
++static struct omap_device_pad port1_3pin_pads[] __initdata = {
++	{
++		.name = "usbb1_ulpitll_dat3.usbb1_mm_txen",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++	{
++		.name = "usbb1_ulpitll_dat1.usbb1_mm_txdat",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++	{
++		.name = "usbb1_ulpitll_dat2.usbb1_mm_txse0",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++};
++
++static struct omap_device_pad port1_2pin_pads[] __initdata = {
++	{
++		.name = "usbb1_ulpitll_dat1.usbb1_mm_txdat",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++	{
++		.name = "usbb1_ulpitll_dat2.usbb1_mm_txse0",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE5,
++	},
++};
++
++static struct omap_device_pad port2_6pin_pads[] __initdata = {
++	{
++		.name = "abe_mcbsp2_dr.usbb2_mm_rxdp",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "abe_mcbsp2_clkx.usbb2_mm_rxdm",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "abe_mcbsp2_dx.usbb2_mm_rxrcv",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "abe_mcbsp2_fsx.usbb2_mm_txen",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "abe_dmic_din1.usbb2_mm_txdat",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "abe_dmic_clk1.usbb2_mm_txse0",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++};
++
++static struct omap_device_pad port2_4pin_pads[] __initdata = {
++	{
++		.name = "abe_mcbsp2_dx.usbb2_mm_rxrcv",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "abe_mcbsp2_fsx.usbb2_mm_txen",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "abe_dmic_din1.usbb2_mm_txdat",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "abe_dmic_clk1.usbb2_mm_txse0",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++};
++
++static struct omap_device_pad port2_3pin_pads[] __initdata = {
++	{
++		.name = "abe_mcbsp2_fsx.usbb2_mm_txen",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "abe_dmic_din1.usbb2_mm_txdat",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "abe_dmic_clk1.usbb2_mm_txse0",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++};
++
++static struct omap_device_pad port2_2pin_pads[] __initdata = {
++	{
++		.name = "abe_dmic_din1.usbb2_mm_txdat",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++	{
++		.name = "abe_dmic_clk1.usbb2_mm_txse0",
++		.enable = OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE4,
++	},
++};
++
+ /* MUX settings for EHCI pins */
+ /*
+  * setup_ehci_io_mux - initialize IO pad mux for USBHOST
+@@ -199,121 +548,34 @@ static void setup_ehci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 	return;
+ }
+ 
+-static void setup_4430ehci_io_mux(const enum usbhs_omap_port_mode *port_mode)
++static void setup_4430ehci_io_mux(const enum usbhs_omap_port_mode *port_mode,
++				struct omap_board_data *bdata)
  {
- 	struct omap_device *od;
-@@ -369,6 +372,18 @@ static int omap_mcspi_init(struct omap_hwmod *oh, void *unused)
- 			return -EINVAL;
+ 	switch (port_mode[0]) {
+ 	case OMAP_EHCI_PORT_MODE_PHY:
+-		omap_mux_init_signal("usbb1_ulpiphy_stp",
+-			OMAP_PIN_OUTPUT);
+-		omap_mux_init_signal("usbb1_ulpiphy_clk",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpiphy_dir",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpiphy_nxt",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpiphy_dat0",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpiphy_dat1",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpiphy_dat2",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpiphy_dat3",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpiphy_dat4",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpiphy_dat5",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpiphy_dat6",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpiphy_dat7",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-			break;
++		bdata->pads = port1_phy_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port1_phy_pads);
++		break;
+ 	case OMAP_EHCI_PORT_MODE_TLL:
+-		omap_mux_init_signal("usbb1_ulpitll_stp",
+-			OMAP_PIN_INPUT_PULLUP);
+-		omap_mux_init_signal("usbb1_ulpitll_clk",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpitll_dir",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpitll_nxt",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpitll_dat0",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpitll_dat1",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpitll_dat2",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpitll_dat3",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpitll_dat4",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpitll_dat5",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpitll_dat6",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_ulpitll_dat7",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-			break;
++		bdata->pads = port1_tll_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port1_tll_pads);
++		break;
+ 	case OMAP_USBHS_PORT_MODE_UNUSED:
+ 	default:
+-			break;
++		break;
+ 	}
+ 	switch (port_mode[1]) {
+ 	case OMAP_EHCI_PORT_MODE_PHY:
+-		omap_mux_init_signal("usbb2_ulpiphy_stp",
+-			OMAP_PIN_OUTPUT);
+-		omap_mux_init_signal("usbb2_ulpiphy_clk",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpiphy_dir",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpiphy_nxt",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpiphy_dat0",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpiphy_dat1",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpiphy_dat2",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpiphy_dat3",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpiphy_dat4",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpiphy_dat5",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpiphy_dat6",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpiphy_dat7",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-			break;
++		bdata->pads = port2_phy_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port2_phy_pads);
++		break;
+ 	case OMAP_EHCI_PORT_MODE_TLL:
+-		omap_mux_init_signal("usbb2_ulpitll_stp",
+-			OMAP_PIN_INPUT_PULLUP);
+-		omap_mux_init_signal("usbb2_ulpitll_clk",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpitll_dir",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpitll_nxt",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpitll_dat0",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpitll_dat1",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpitll_dat2",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpitll_dat3",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpitll_dat4",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpitll_dat5",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpitll_dat6",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_ulpitll_dat7",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-			break;
++		bdata->pads = port2_tll_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port2_tll_pads);
++		break;
+ 	case OMAP_USBHS_PORT_MODE_UNUSED:
+ 	default:
+-			break;
++		break;
+ 	}
+ }
+ 
+@@ -414,35 +676,31 @@ static void setup_ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 	}
+ }
+ 
+-static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
++static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode,
++				struct omap_board_data *bdata)
+ {
+ 	switch (port_mode[0]) {
+ 	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
+ 	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM:
+ 	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0:
+ 	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM:
+-		omap_mux_init_signal("usbb1_mm_rxdp",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_mm_rxdm",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-
++		bdata->pads = port1_6pin_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port1_6pin_pads);
++		break;
+ 	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
+ 	case OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM:
+-		omap_mux_init_signal("usbb1_mm_rxrcv",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-
++		bdata->pads = port1_4pin_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port1_4pin_pads);
++		break;
+ 	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
+ 	case OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0:
+-		omap_mux_init_signal("usbb1_mm_txen",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-
+-
++		bdata->pads = port1_3pin_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port1_3pin_pads);
++		break;
+ 	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0:
+ 	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM:
+-		omap_mux_init_signal("usbb1_mm_txdat",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb1_mm_txse0",
+-			OMAP_PIN_INPUT_PULLDOWN);
++		bdata->pads = port1_2pin_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port1_2pin_pads);
+ 		break;
+ 
+ 	case OMAP_USBHS_PORT_MODE_UNUSED:
+@@ -455,28 +713,23 @@ static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM:
+ 	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0:
+ 	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM:
+-		omap_mux_init_signal("usbb2_mm_rxdp",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_mm_rxdm",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-
++		bdata->pads = port2_6pin_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port2_6pin_pads);
++		break;
+ 	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
+ 	case OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM:
+-		omap_mux_init_signal("usbb2_mm_rxrcv",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-
++		bdata->pads = port2_4pin_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port2_4pin_pads);
++		break;
+ 	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
+ 	case OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0:
+-		omap_mux_init_signal("usbb2_mm_txen",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-
+-
++		bdata->pads = port2_3pin_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port2_3pin_pads);
++		break;
+ 	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0:
+ 	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM:
+-		omap_mux_init_signal("usbb2_mm_txdat",
+-			OMAP_PIN_INPUT_PULLDOWN);
+-		omap_mux_init_signal("usbb2_mm_txse0",
+-			OMAP_PIN_INPUT_PULLDOWN);
++		bdata->pads = port2_2pin_pads;
++		bdata->pads_cnt = ARRAY_SIZE(port2_3pin_pads);
+ 		break;
+ 
+ 	case OMAP_USBHS_PORT_MODE_UNUSED:
+@@ -491,7 +744,9 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 	struct omap_device	*od;
+ 	int			bus_id = -1;
+ 	int			i;
++	struct omap_board_data	bdata;
+ 
++	bdata.pads = NULL;
+ 	for (i = 0; i < OMAP3_HS_USB_PORTS; i++) {
+ 		usbhs_data.port_mode[i] = pdata->port_mode[i];
+ 		ohci_data.port_mode[i] = pdata->port_mode[i];
+@@ -504,13 +759,6 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 	usbhs_data.ehci_data = &ehci_data;
+ 	usbhs_data.ohci_data = &ohci_data;
+ 
+-	if (cpu_is_omap34xx()) {
+-		setup_ehci_io_mux(pdata->port_mode);
+-		setup_ohci_io_mux(pdata->port_mode);
+-	} else if (cpu_is_omap44xx()) {
+-		setup_4430ehci_io_mux(pdata->port_mode);
+-		setup_4430ohci_io_mux(pdata->port_mode);
+-	}
+ 
+ 	oh[0] = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
+ 	if (!oh[0]) {
+@@ -536,6 +784,18 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 		return;
  	}
  
-+	/* HACK: Not enough time to figure out how to export cs_gpios from
-+	 * board file to driver correctly */
-+	if (spi_num == 2) {
-+		// Setup McSPI3 cs_gpios
-+		pdata->num_cs = 4;
-+		pdata->cs_gpios = mcspi3_cs_gpios;
-+	} else if (spi_num == 3) {
-+		// Setup McSPI4 cs_gpios
-+		pdata->num_cs = 4;
-+		pdata->cs_gpios = mcspi4_cs_gpios;
++	if (cpu_is_omap34xx()) {
++		setup_ehci_io_mux(pdata->port_mode);
++		setup_ohci_io_mux(pdata->port_mode);
++	} else if (cpu_is_omap44xx()) {
++		setup_4430ehci_io_mux(pdata->port_mode, &bdata);
++		oh[2]->mux = omap_hwmod_mux_init((&bdata)->pads,
++						bdata.pads_cnt);
++		setup_4430ohci_io_mux(pdata->port_mode, &bdata);
++		oh[1]->mux = omap_hwmod_mux_init((&bdata)->pads,
++						bdata.pads_cnt);
 +	}
 +
- 	spi_num++;
- 	od = omap_device_build(name, spi_num, oh, pdata,
- 				sizeof(*pdata),	omap_mcspi_latency,
+ 	od = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 4,
+ 				(void *)&usbhs_data, sizeof(usbhs_data),
+ 				omap_uhhtll_latency,
 -- 
-1.7.4.1
+1.6.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
