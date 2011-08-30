@@ -1,40 +1,36 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH 0/3] ASoC: tpa6130a2: model handling cleanup
-Date: Tue, 30 Aug 2011 16:38:50 +0300
-Message-ID: <4E5CE7EA.4000101@bitmer.com>
-References: <1314704394-31298-1-git-send-email-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Ben Gamari <bgamari.foss@gmail.com>
+Subject: GPIO chip select support
+Date: Tue, 30 Aug 2011 09:50:53 -0400
+Message-ID: <1314712254-27199-1-git-send-email-bgamari.foss@gmail.com>
+References: <CA+dZkakw9COsETWZkvMzp2v-ymfQdDEqp3jJuhWbrRTTTjpbGQ@mail.gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:60718 "EHLO bitmer.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753069Ab1H3NjE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Aug 2011 09:39:04 -0400
-In-Reply-To: <1314704394-31298-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:53785 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753069Ab1H3NvQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Aug 2011 09:51:16 -0400
+Received: by qyk34 with SMTP id 34so4495864qyk.19
+        for <linux-omap@vger.kernel.org>; Tue, 30 Aug 2011 06:51:15 -0700 (PDT)
+In-Reply-To: <CA+dZkakw9COsETWZkvMzp2v-ymfQdDEqp3jJuhWbrRTTTjpbGQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: Raju Sana <venkat.rajuece@gmail.com>
+Cc: beagleboard@googlegroups.com, linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net
 
-On 08/30/2011 02:39 PM, Peter Ujfalusi wrote:
-> Hello,
->
-> Small cleanup for the tpa6130a2 driver for model handling:
-> Remove the model_id from platform_data, and use the device name/device_data
-> to distinguish between the supported models of TPA.
->
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (3):
->    ASoC: tpa6130a2: Model support cleanup
->    OMAP: RX51: No need to configure the tpa_model
->    ASoC: tpa6130a2: Remove model_id from platform data
->
->   arch/arm/mach-omap2/board-rx51-peripherals.c |    1 -
->   include/sound/tpa6130a2-plat.h               |    6 ------
->   sound/soc/codecs/tpa6130a2.c                 |   12 +++++++++---
->   3 files changed, 9 insertions(+), 10 deletions(-)
-Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+
+Thanks for the poke. I've been meaning to send this set out again anyways.
+
+This is the patch I am currently using (on top of v3.0). Conceptually it's
+quite similar to the first patches I sent out but some implementation details
+were slightly reworked to account for the generalization of the McSPI driver to
+other silicon.
+
+I would say that the patch is close to mergable save the fact that there is
+currently no clean way to set up GPIO CS pins from a board file. I'll send the
+horrible hack I currently use shortly. If anyone has any ideas on how this
+might be done cleanly please let me know. It's sad that the mere lack of a
+configuration interface is the reason this isn't upstream.
+
+Cheers,
+
+- Ben
 
