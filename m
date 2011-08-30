@@ -1,33 +1,50 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH 0/2] omap: usb: I/O pads initialization to ehci and ohci hwmods
-Date: Tue, 30 Aug 2011 19:27:25 +0530
-Message-ID: <1314712647-30008-1-git-send-email-keshava_mgowda@ti.com>
+From: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Subject: Re: [PATCH] usb: ehci: fix update qtd->token in qh_append_tds
+Date: Tue, 30 Aug 2011 22:02:35 +0800
+Message-ID: <CACVXFVPDuq5tDsFVaGo5gWJVJ+g3MqK1O5+bUD7_d086_1xKZw@mail.gmail.com>
+References: <CACVXFVNFXh33tsvkM=jdnc8OocVhjkzpt6LK59zKa9L2F7HxpQ@mail.gmail.com>
+	<Pine.LNX.4.44L0.1108291218040.2525-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, Keshava Munegowda <Keshava_mgowda@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1108291218040.2525-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Santosh <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Keshava Munegowda <Keshava_mgowda@ti.com>
+Hi Alan,
 
-These two patches performs the I/O pad mux initialization 
-to ehci and ohci hwmods for both omap3 and omap4 SOCs.
-This patch series is based on 
-1.	Runtime PM support of usbhs of omap3 and omap4
-	These patches are avilable at branch kmg-usbhs-pm
-	code repository : git://gitorious.org/~kmg/mirrors/kmg-usbhs-pm.git
-2. 	Kevin's pm branch
+Thanks for your comment.
+
+On Tue, Aug 30, 2011 at 12:33 AM, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org=
+> wrote:
+> Nevertheless, it remains true that you want to add a memory barrier
+> instruction simply in order to speed up a cache writeback, not to for=
+ce
+> any sort of ordering. =A0This needs to be explained carefully in the =
+code
+> (not just in the patch description!) and it needs to be done in a way
+> that won't affect other architectures.
+
+OK, will do it.
+
+> Also, as you mentioned before, you may want to do the same thing in
+> qh_link_async() just after the
+>
+> =A0 =A0 =A0 =A0head->hw->hw_next =3D dma;
+>
+> line. =A0Delays in flushing that write would also slow down performan=
+ce.
+
+Will do it too.
 
 
-Keshava Munegowda (1):
-  arm: omap: usb: Add mux initialization to ehci and ohci hwmods for
-    omap3
-
-Kishon Vijay Abraham (1):
-  arm: omap: usb: Add mux initialization to ehci and ohci hwmods for
-    omap4
-
- arch/arm/mach-omap2/usb-host.c | 1234 ++++++++++++++++++++++++++++++----------
- 1 files changed, 933 insertions(+), 301 deletions(-)
+thanks,
+--
+Ming Lei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
