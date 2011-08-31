@@ -1,22 +1,24 @@
-From: Jean Delvare <khali@linux-fr.org>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
-Date: Wed, 31 Aug 2011 18:18:07 +0200
-Message-ID: <20110831181807.4be09f72@endymion.delvare>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
-	<1314643307-17780-1-git-send-email-coelho@ti.com>
+Date: Wed, 31 Aug 2011 18:49:37 +0200
+Message-ID: <201108311849.37273.arnd@arndb.de>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <1314643307-17780-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:57827 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756860Ab1HaQuB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Aug 2011 12:50:01 -0400
 In-Reply-To: <1314643307-17780-1-git-send-email-coelho@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Luciano Coelho <coelho@ti.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 
-Hi Luciano,
-
-On Mon, 29 Aug 2011 21:41:47 +0300, Luciano Coelho wrote:
+On Monday 29 August 2011, Luciano Coelho wrote:
 > From: Randy Dunlap <rdunlap@xenotime.net>
 > 
 > Combine MFD_SUPPORT (which only enabled the remainder of the MFD
@@ -26,40 +28,6 @@ On Mon, 29 Aug 2011 21:41:47 +0300, Luciano Coelho wrote:
 > 
 > [Forward-ported to 3.1-rc4.  This fixes a warning when some drivers,
 > such as RADIO_WL1273, are selected, but MFD_SUPPORT is not. -- Luca]
-
-I like the idea in general, this makes things much simpler.
-
-There is at least one issue with your current implementation though.
-"make oldconfig" has this to complain about:
-
-drivers/mfd/Kconfig:5:error: recursive dependency detected!
-drivers/mfd/Kconfig:5:	symbol MFD_CORE is selected by OLPC_XO1_PM
-arch/x86/Kconfig:2028:	symbol OLPC_XO1_PM depends on MFD_CS5535
-drivers/mfd/Kconfig:613:	symbol MFD_CS5535 depends on MFD_CORE
-
-Not sure if it is really caused by your patch or only revealed by it,
-but it should be fixed anyway. The following should fix it, please
-consider folding in your patch:
-
---- linux-3.1-rc4.orig/arch/x86/Kconfig	2011-08-16 11:49:42.000000000 +0200
-+++ linux-3.1-rc4/arch/x86/Kconfig	2011-08-31 16:54:09.000000000 +0200
-@@ -2028,7 +2028,6 @@ config OLPC
- config OLPC_XO1_PM
- 	bool "OLPC XO-1 Power Management"
- 	depends on OLPC && MFD_CS5535 && PM_SLEEP
--	select MFD_CORE
- 	---help---
- 	  Add support for poweroff and suspend of the OLPC XO-1 laptop.
- 
-@@ -2044,7 +2043,6 @@ config OLPC_XO1_SCI
- 	depends on OLPC && OLPC_XO1_PM
- 	select POWER_SUPPLY
- 	select GPIO_CS5535
--	select MFD_CORE
- 	---help---
- 	  Add support for SCI-based features of the OLPC XO-1 laptop:
- 	   - EC-driven system wakeups
-
 > 
 > Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
 > Reported-by: Johannes Berg <johannes@sipsolutions.net>
@@ -72,19 +40,22 @@ consider folding in your patch:
 > I guess this should fix the problem.  I've simple forward-ported
 > Randy's patch to the latest mainline kernel.  I don't know via which
 > tree this should go in, though.
-
-Samuel Ortiz is the maintainer of the mfd subsystem, so his tree would
-be an obvious choice.
-
-> NOTE: I have *not* tested this very thoroughly.  But at least
+> 
+> NOTE: I have not tested this very thoroughly.  But at least
 > omap2plus stuff seems to work okay with this change.  MFD_SUPPORT is
 > also selected by a couple of "tile" platforms defconfigs, but I guess
 > the Kconfig system should take care of it.
 
-I can't test it either, but it looks sane to me. If you merge the
-proposed changes above, you can add:
+Doing this is a good idea, but incidentally I have just spent some time
+with the same problem and ended up with a solution that I like better,
+which is removing CONFIG_MFD_SUPPORT altogether.
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+The point is that there is no use enabling MFD_CORE if you don't also
+enable any of the specific drivers. MFD_SUPPORT was added as a 'menuconfig'
+before we had Kconfig warn about broken dependencies, so everything was
+fine. Since Kconfig now issues the warnings, I think it would be better
+to just turn the MFD menu into a plain 'menu' and remove all the
+'depends on MFD_SUPPORT' and 'select MFD_SUPPORT' lines from the other
+Kconfig files.
 
--- 
-Jean Delvare
+	Arnd
