@@ -1,21 +1,21 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/7] OMAP: PM: omap_device: add omap_hwmod_name_get_odev
-Date: Wed, 31 Aug 2011 15:20:29 -0700
-Message-ID: <87zkip8bpu.fsf@ti.com>
+Subject: Re: [PATCH 2/7] OMAP: PM: omap_device: add few quick access functions
+Date: Wed, 31 Aug 2011 15:23:24 -0700
+Message-ID: <87r5418bkz.fsf@ti.com>
 References: <1314026347-21623-1-git-send-email-b-cousson@ti.com>
-	<1314026347-21623-2-git-send-email-b-cousson@ti.com>
+	<1314026347-21623-3-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:49375 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756740Ab1HaWUd (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:40035 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756714Ab1HaWX2 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Aug 2011 18:20:33 -0400
-Received: by mail-pz0-f49.google.com with SMTP id 6so2204977pzk.22
-        for <linux-omap@vger.kernel.org>; Wed, 31 Aug 2011 15:20:32 -0700 (PDT)
-In-Reply-To: <1314026347-21623-2-git-send-email-b-cousson@ti.com> (Benoit
-	Cousson's message of "Mon, 22 Aug 2011 17:19:01 +0200")
+	Wed, 31 Aug 2011 18:23:28 -0400
+Received: by mail-yw0-f43.google.com with SMTP id 3so1343509ywm.16
+        for <linux-omap@vger.kernel.org>; Wed, 31 Aug 2011 15:23:27 -0700 (PDT)
+In-Reply-To: <1314026347-21623-3-git-send-email-b-cousson@ti.com> (Benoit
+	Cousson's message of "Mon, 22 Aug 2011 17:19:02 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <b-cousson@ti.com>
@@ -25,91 +25,56 @@ Benoit Cousson <b-cousson@ti.com> writes:
 
 > From: Nishanth Menon <nm@ti.com>
 >
-> An API which translates a standard hwmod name to corresponding
-> omap_device is useful for drivers when they need to look up the
-> device associated with a hwmod name to map back into the device
-> structure pointers. These ideally should be used by drivers in
-> mach directory. Using a generic hwmod name like "gpu" instead of
-> the actual device name which could change in the future, allows
-> us to:
-> a) Could in effect help replace apis such as omap2_get_mpuss_device,
-> omap2_get_iva_device, omap2_get_l3_device, omap4_get_dsp_device,
-> etc..
-> b) Scale to more devices rather than be restricted to named functions
-> c) Simplify driver's platform_data from passing additional fields
-> all doing the same thing with different function pointer names
-> just for accessing a different device name.
+> Provide a quick set of access functions:
+> a) Convert omap_device to platform_device - This is the flip of
+>    to_omap_device for equivalent usage
+> b) Convert omap_device to device pointer - This is useful for
+>    most devices that need to go through standard linux functions that
+>    take device pointer.
+> c) Convert hwmod to device pointer - This wrapper provides ability for
+>    drivers to convert directly from hwmod name back to device pointer
+>    without having to handle this on a driver by driver basis
 >
 > Signed-off-by: Nishanth Menon <nm@ti.com>
-> [b-cousson@ti.com: rebased on top of Kevin's changes]
+> [b-cousson@ti.com: Adapt it to the new pdev pointer inside od]
 > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> ---
+>  arch/arm/plat-omap/include/plat/omap_device.h |   15 +++++++++++++++
+>  1 files changed, 15 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+> index bdc2804..903f329 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -152,6 +152,21 @@ static inline struct omap_device *to_omap_device(struct platform_device *pdev)
+>  	return pdev ? pdev->archdata.od : NULL;
+>  }
+>  
+> +/* Convert omap_device to platform device pointer */
+> +#define omap_device_get_pdev(x) ((x)->pdev)
+> +/* Convert omap_device to device pointer */
+> +#define omap_device_get_dev(x) (&omap_device_get_pdev(x)->dev)
 
-OK, I cerainly like this better than the omap2_get_*_device APIs, but
-I don't see the point in returning an omap_device pointer.
+I don't see these used elsewhere, and I don't think they're needed...
 
-In my series, I tried to make all the OMAP device APIs return/use a
-platform_device pointer instead of an omap_device pointer, so I'd rather
-just see this return the platform_device pointer directly.
+> +/* Convert omap_hwmod name to device pointer */
+> +static inline struct device *omap_hwmod_name_get_dev(const char *oh_name)
+> +{
+> +	struct omap_device *od;
+> +	od = omap_hwmod_name_get_odev(oh_name);
+> +	if (IS_ERR_OR_NULL(od))
+> +		return ERR_PTR(od ? PTR_ERR(od) : -ENODEV);
+> +	return omap_device_get_dev(od);
+> +}
+> +
+
+After comments on patch 1 are addressed, the 
+
+      pdev = omap_hwmod_name_get_pdev(oh_name)
+      return &pdev->dev;
 
 Kevin
 
-> ---
->  arch/arm/plat-omap/include/plat/omap_device.h |    1 +
->  arch/arm/plat-omap/omap_device.c              |   32 +++++++++++++++++++++++++
->  2 files changed, 33 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-> index d4d9b96..bdc2804 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -101,6 +101,7 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->  					 int pm_lats_cnt, int is_early_device);
->  
->  void __iomem *omap_device_get_rt_va(struct omap_device *od);
-> +struct omap_device *omap_hwmod_name_get_odev(const char *oh_name);
->  
->  /* OMAP PM interface */
->  int omap_device_align_pm_lat(struct platform_device *pdev,
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index d8f2299..455594a 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -840,6 +840,38 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od)
->  	return omap_hwmod_get_mpu_rt_va(od->hwmods[0]);
->  }
->  
-> +/**
-> + * omap_hwmod_name_get_odev() - convert a hwmod name to omap_device pointer
-> + * @oh_name: name of the hwmod device
-> + *
-> + * returns back a struct omap_device * pointer associated with a hwmod
-> + * device represented by a hwmod_name
-> + */
-> +struct omap_device *omap_hwmod_name_get_odev(const char *oh_name)
-> +{
-> +	struct omap_hwmod *oh;
-> +
-> +	if (!oh_name) {
-> +		WARN(1, "%s: no hwmod name!\n", __func__);
-> +		return ERR_PTR(-EINVAL);
-> +	}
-> +
-> +	oh = omap_hwmod_lookup(oh_name);
-> +	if (IS_ERR_OR_NULL(oh)) {
-> +		WARN(1, "%s: no hwmod for %s\n", __func__,
-> +			oh_name);
-> +		return ERR_PTR(oh ? PTR_ERR(oh) : -ENODEV);
-> +	}
-> +	if (IS_ERR_OR_NULL(oh->od)) {
-> +		WARN(1, "%s: no omap_device for %s\n", __func__,
-> +			oh_name);
-> +		return ERR_PTR(oh->od ? PTR_ERR(oh->od) : -ENODEV);
-> +	}
-> +
-> +	return oh->od;
-> +}
-> +EXPORT_SYMBOL(omap_hwmod_name_get_odev);
-> +
->  /*
->   * Public functions intended for use in omap_device_pm_latency
->   * .activate_func and .deactivate_func function pointers
+>  static inline
+>  void omap_device_disable_idle_on_suspend(struct platform_device *pdev)
+>  {
