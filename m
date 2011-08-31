@@ -1,15 +1,15 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v6 07/25] gpio/omap: avoid cpu checks during module ena/disable
-Date: Wed, 31 Aug 2011 19:12:23 +0530
-Message-ID: <1314798161-19523-8-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v6 13/25] gpio/omap: use pinctrl offset instead of macro
+Date: Wed, 31 Aug 2011 19:12:29 +0530
+Message-ID: <1314798161-19523-14-git-send-email-tarun.kanti@ti.com>
 References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34780 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756031Ab1HaNn2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Aug 2011 09:43:28 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46689 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756024Ab1HaNnf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Aug 2011 09:43:35 -0400
 In-Reply-To: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,129 +18,63 @@ Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Char
 
 From: Charulatha V <charu@ti.com>
 
-Remove cpu-is checks while enabling/disabling OMAP GPIO module during a gpio
-request/free.
+Use regs->pinctrl field instead of using the macro OMAP1510_GPIO_PIN_CONTROL
 
 Signed-off-by: Charulatha V <charu@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/gpio.c             |    2 +
+ arch/arm/mach-omap1/gpio15xx.c         |    1 +
  arch/arm/plat-omap/include/plat/gpio.h |    1 +
- drivers/gpio/gpio-omap.c               |   53 ++++++++++++++------------------
- 3 files changed, 26 insertions(+), 30 deletions(-)
+ drivers/gpio/gpio-omap.c               |    8 +++-----
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-index a430fb1..72a640d 100644
---- a/arch/arm/mach-omap2/gpio.c
-+++ b/arch/arm/mach-omap2/gpio.c
-@@ -98,6 +98,7 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- 		pdata->regs->clr_irqenable = OMAP24XX_GPIO_CLEARIRQENABLE1;
- 		pdata->regs->debounce = OMAP24XX_GPIO_DEBOUNCE_VAL;
- 		pdata->regs->debounce_en = OMAP24XX_GPIO_DEBOUNCE_EN;
-+		pdata->regs->ctrl = OMAP24XX_GPIO_CTRL;
- 		break;
- 	case 2:
- 		pdata->bank_type = METHOD_GPIO_44XX;
-@@ -114,6 +115,7 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- 		pdata->regs->clr_irqenable = OMAP4_GPIO_IRQSTATUSCLR0;
- 		pdata->regs->debounce = OMAP4_GPIO_DEBOUNCINGTIME;
- 		pdata->regs->debounce_en = OMAP4_GPIO_DEBOUNCENABLE;
-+		pdata->regs->ctrl = OMAP4_GPIO_CTRL;
- 		break;
- 	default:
- 		WARN(1, "Invalid gpio bank_type\n");
+diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
+index 2adfece..950e467 100644
+--- a/arch/arm/mach-omap1/gpio15xx.c
++++ b/arch/arm/mach-omap1/gpio15xx.c
+@@ -85,6 +85,7 @@ static struct omap_gpio_reg_offs omap15xx_gpio_regs = {
+ 	.irqenable	= OMAP1510_GPIO_INT_MASK,
+ 	.irqenable_inv	= true,
+ 	.irqctrl	= OMAP1510_GPIO_INT_CONTROL,
++	.pinctrl	= OMAP1510_GPIO_PIN_CONTROL,
+ };
+ 
+ static struct __initdata omap_gpio_platform_data omap15xx_gpio_config = {
 diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
-index a93adeb..eaa6de3 100644
+index 92a6262..a4e5ef3 100644
 --- a/arch/arm/plat-omap/include/plat/gpio.h
 +++ b/arch/arm/plat-omap/include/plat/gpio.h
-@@ -188,6 +188,7 @@ struct omap_gpio_reg_offs {
- 	u16 clr_irqenable;
- 	u16 debounce;
- 	u16 debounce_en;
-+	u16 ctrl;
+@@ -198,6 +198,7 @@ struct omap_gpio_reg_offs {
+ 	u16 irqctrl;
+ 	u16 edgectrl1;
+ 	u16 edgectrl2;
++	u16 pinctrl;
  
  	bool irqenable_inv;
  };
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 69271c4..fe28f93 100644
+index fa2fb4f..e2a8b09 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -83,6 +83,7 @@ struct gpio_bank {
+@@ -481,15 +481,13 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+ 	 */
+ 	_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
  
- #define GPIO_INDEX(bank, gpio) (gpio % bank->width)
- #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
-+#define GPIO_MOD_CTRL_BIT	BIT(0)
+-#ifdef CONFIG_ARCH_OMAP15XX
+-	if (bank->method == METHOD_GPIO_1510) {
+-		void __iomem *reg;
++	if (bank->regs->pinctrl) {
++		void __iomem *reg = bank->base + bank->regs->pinctrl;
  
- static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
- {
-@@ -573,22 +574,18 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+ 		/* Claim the pin for MPU */
+-		reg = bank->base + OMAP1510_GPIO_PIN_CONTROL;
  		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
  	}
- #endif
--	if (!cpu_class_is_omap1()) {
--		if (!bank->mod_usage) {
--			void __iomem *reg = bank->base;
--			u32 ctrl;
--
--			if (cpu_is_omap24xx() || cpu_is_omap34xx())
--				reg += OMAP24XX_GPIO_CTRL;
--			else if (cpu_is_omap44xx())
--				reg += OMAP4_GPIO_CTRL;
--			ctrl = __raw_readl(reg);
--			/* Module is enabled, clocks are not gated */
--			ctrl &= 0xFFFFFFFE;
--			__raw_writel(ctrl, reg);
--		}
--		bank->mod_usage |= 1 << offset;
-+	if (bank->regs->ctrl && !bank->mod_usage) {
-+		void __iomem *reg = bank->base + bank->regs->ctrl;
-+		u32 ctrl;
+-#endif
 +
-+		ctrl = __raw_readl(reg);
-+		/* Module is enabled, clocks are not gated */
-+		ctrl &= ~GPIO_MOD_CTRL_BIT;
-+		__raw_writel(ctrl, reg);
- 	}
-+
-+	bank->mod_usage |= 1 << offset;
-+
- 	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	return 0;
-@@ -621,22 +618,18 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
- 		__raw_writel(1 << offset, reg);
- 	}
- #endif
--	if (!cpu_class_is_omap1()) {
--		bank->mod_usage &= ~(1 << offset);
--		if (!bank->mod_usage) {
--			void __iomem *reg = bank->base;
--			u32 ctrl;
--
--			if (cpu_is_omap24xx() || cpu_is_omap34xx())
--				reg += OMAP24XX_GPIO_CTRL;
--			else if (cpu_is_omap44xx())
--				reg += OMAP4_GPIO_CTRL;
--			ctrl = __raw_readl(reg);
--			/* Module is disabled, clocks are gated */
--			ctrl |= 1;
--			__raw_writel(ctrl, reg);
--		}
-+	bank->mod_usage &= ~(1 << offset);
-+
-+	if (bank->regs->ctrl && !bank->mod_usage) {
-+		void __iomem *reg = bank->base + bank->regs->ctrl;
-+		u32 ctrl;
-+
-+		ctrl = __raw_readl(reg);
-+		/* Module is disabled, clocks are gated */
-+		ctrl |= GPIO_MOD_CTRL_BIT;
-+		__raw_writel(ctrl, reg);
- 	}
-+
- 	_reset_gpio(bank, bank->chip.base + offset);
- 	spin_unlock_irqrestore(&bank->lock, flags);
- }
+ 	if (bank->regs->ctrl && !bank->mod_usage) {
+ 		void __iomem *reg = bank->base + bank->regs->ctrl;
+ 		u32 ctrl;
 -- 
 1.7.0.4
 
