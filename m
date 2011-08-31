@@ -1,329 +1,311 @@
 From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: [PATCH 04/14] omap: mcbsp: Implement generic register access
-Date: Wed, 31 Aug 2011 18:22:51 +0300
-Message-ID: <1314804181-17260-5-git-send-email-jarkko.nikula@bitmer.com>
+Subject: [PATCH 07/14] omap: mcbsp: Make threshold based transfer code generic
+Date: Wed, 31 Aug 2011 18:22:54 +0300
+Message-ID: <1314804181-17260-8-git-send-email-jarkko.nikula@bitmer.com>
 References: <1314804181-17260-1-git-send-email-jarkko.nikula@bitmer.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:53045 "EHLO bitmer.com"
+Received: from bitmer.com ([213.157.87.50]:53073 "EHLO bitmer.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756446Ab1HaPXZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Aug 2011 11:23:25 -0400
+	id S1756316Ab1HaPXa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Aug 2011 11:23:30 -0400
 In-Reply-To: <1314804181-17260-1-git-send-email-jarkko.nikula@bitmer.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Register access can be made more generic by calculating register address
-offsets runtime from common register definitions and by using reg_size and
-reg_step variables that are passed via platform data. Common register
-definitions are possible since McBSP registers are ordered similarly between
-OMAP versions.
+Remove CONFIG_ARCH_OMAP3 conditional compilation and cpu_is_omap34xx test
+around buffer threshold based transfer and DMA operating mode control. Use
+instead the buffer_size in platform data to determine when these sysfs
+controls are exposed and when to access related McBSP registers. Rationale
+for this is to make code generic and to allow to use it on OMAP4 that also
+supports threshold based transfers.
 
-Remove also references to OMAP2+ specific config_type variable from generic
-McBSP code since other variables and feature flags are better to carry needed
-information from platform code.
+Currently buffer_size variable is set only for OMAP3 SoCs but it is easy
+to extend to OMAP4 and any later OMAP version.
 
 Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- arch/arm/mach-omap1/mcbsp.c             |    2 +
- arch/arm/mach-omap2/mcbsp.c             |    6 +-
- arch/arm/plat-omap/include/plat/mcbsp.h |  145 ++++++++++++-------------------
- arch/arm/plat-omap/mcbsp.c              |   45 ++++------
- 4 files changed, 82 insertions(+), 116 deletions(-)
+ arch/arm/plat-omap/include/plat/mcbsp.h |   15 +----
+ arch/arm/plat-omap/mcbsp.c              |  120 +++++++++++++++----------------
+ 2 files changed, 59 insertions(+), 76 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
-index 3c985ac..36ab5d8 100644
---- a/arch/arm/mach-omap1/mcbsp.c
-+++ b/arch/arm/mach-omap1/mcbsp.c
-@@ -391,6 +391,8 @@ static void omap_mcbsp_register_board_cfg(struct resource *res, int res_count,
- 			continue;
- 		platform_device_add_resources(new_mcbsp, &res[i * res_count],
- 					res_count);
-+		config[i].reg_size = 2;
-+		config[i].reg_step = 2;
- 		new_mcbsp->dev.platform_data = &config[i];
- 		ret = platform_device_add(new_mcbsp);
- 		if (ret) {
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 4a6ef6a..a157e3e 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -126,7 +126,11 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
- 		return -ENOMEM;
- 	}
- 
--	pdata->mcbsp_config_type = oh->class->rev;
-+	pdata->reg_step = 4;
-+	if (oh->class->rev < MCBSP_CONFIG_TYPE2)
-+		pdata->reg_size = 2;
-+	else
-+		pdata->reg_size = 4;
- 
- 	if (oh->class->rev == MCBSP_CONFIG_TYPE3) {
- 		if (id == 2)
 diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 7adfd92..14bc1cb 100644
+index eed20ef..0fad63c 100644
 --- a/arch/arm/plat-omap/include/plat/mcbsp.h
 +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -51,93 +51,60 @@ static struct platform_device omap_mcbsp##port_nr = {	\
- #define OMAP1610_MCBSP2_BASE	0xfffb1000
- #define OMAP1610_MCBSP3_BASE	0xe1017000
- 
--#ifdef CONFIG_ARCH_OMAP1
--
--#define OMAP_MCBSP_REG_DRR2	0x00
--#define OMAP_MCBSP_REG_DRR1	0x02
--#define OMAP_MCBSP_REG_DXR2	0x04
--#define OMAP_MCBSP_REG_DXR1	0x06
--#define OMAP_MCBSP_REG_DRR	0x02
--#define OMAP_MCBSP_REG_DXR	0x06
--#define OMAP_MCBSP_REG_SPCR2	0x08
--#define OMAP_MCBSP_REG_SPCR1	0x0a
--#define OMAP_MCBSP_REG_RCR2	0x0c
--#define OMAP_MCBSP_REG_RCR1	0x0e
--#define OMAP_MCBSP_REG_XCR2	0x10
--#define OMAP_MCBSP_REG_XCR1	0x12
--#define OMAP_MCBSP_REG_SRGR2	0x14
--#define OMAP_MCBSP_REG_SRGR1	0x16
--#define OMAP_MCBSP_REG_MCR2	0x18
--#define OMAP_MCBSP_REG_MCR1	0x1a
--#define OMAP_MCBSP_REG_RCERA	0x1c
--#define OMAP_MCBSP_REG_RCERB	0x1e
--#define OMAP_MCBSP_REG_XCERA	0x20
--#define OMAP_MCBSP_REG_XCERB	0x22
--#define OMAP_MCBSP_REG_PCR0	0x24
--#define OMAP_MCBSP_REG_RCERC	0x26
--#define OMAP_MCBSP_REG_RCERD	0x28
--#define OMAP_MCBSP_REG_XCERC	0x2A
--#define OMAP_MCBSP_REG_XCERD	0x2C
--#define OMAP_MCBSP_REG_RCERE	0x2E
--#define OMAP_MCBSP_REG_RCERF	0x30
--#define OMAP_MCBSP_REG_XCERE	0x32
--#define OMAP_MCBSP_REG_XCERF	0x34
--#define OMAP_MCBSP_REG_RCERG	0x36
--#define OMAP_MCBSP_REG_RCERH	0x38
--#define OMAP_MCBSP_REG_XCERG	0x3A
--#define OMAP_MCBSP_REG_XCERH	0x3C
--
--/* Dummy defines, these are not available on omap1 */
--#define OMAP_MCBSP_REG_XCCR	0x00
--#define OMAP_MCBSP_REG_RCCR	0x00
--
--#else
--
--#define OMAP_MCBSP_REG_DRR2	0x00
--#define OMAP_MCBSP_REG_DRR1	0x04
--#define OMAP_MCBSP_REG_DXR2	0x08
--#define OMAP_MCBSP_REG_DXR1	0x0C
--#define OMAP_MCBSP_REG_DRR	0x00
--#define OMAP_MCBSP_REG_DXR	0x08
--#define OMAP_MCBSP_REG_SPCR2	0x10
--#define OMAP_MCBSP_REG_SPCR1	0x14
--#define OMAP_MCBSP_REG_RCR2	0x18
--#define OMAP_MCBSP_REG_RCR1	0x1C
--#define OMAP_MCBSP_REG_XCR2	0x20
--#define OMAP_MCBSP_REG_XCR1	0x24
--#define OMAP_MCBSP_REG_SRGR2	0x28
--#define OMAP_MCBSP_REG_SRGR1	0x2C
--#define OMAP_MCBSP_REG_MCR2	0x30
--#define OMAP_MCBSP_REG_MCR1	0x34
--#define OMAP_MCBSP_REG_RCERA	0x38
--#define OMAP_MCBSP_REG_RCERB	0x3C
--#define OMAP_MCBSP_REG_XCERA	0x40
--#define OMAP_MCBSP_REG_XCERB	0x44
--#define OMAP_MCBSP_REG_PCR0	0x48
--#define OMAP_MCBSP_REG_RCERC	0x4C
--#define OMAP_MCBSP_REG_RCERD	0x50
--#define OMAP_MCBSP_REG_XCERC	0x54
--#define OMAP_MCBSP_REG_XCERD	0x58
--#define OMAP_MCBSP_REG_RCERE	0x5C
--#define OMAP_MCBSP_REG_RCERF	0x60
--#define OMAP_MCBSP_REG_XCERE	0x64
--#define OMAP_MCBSP_REG_XCERF	0x68
--#define OMAP_MCBSP_REG_RCERG	0x6C
--#define OMAP_MCBSP_REG_RCERH	0x70
--#define OMAP_MCBSP_REG_XCERG	0x74
--#define OMAP_MCBSP_REG_XCERH	0x78
--#define OMAP_MCBSP_REG_SYSCON	0x8C
--#define OMAP_MCBSP_REG_THRSH2	0x90
--#define OMAP_MCBSP_REG_THRSH1	0x94
--#define OMAP_MCBSP_REG_IRQST	0xA0
--#define OMAP_MCBSP_REG_IRQEN	0xA4
--#define OMAP_MCBSP_REG_WAKEUPEN	0xA8
--#define OMAP_MCBSP_REG_XCCR	0xAC
--#define OMAP_MCBSP_REG_RCCR	0xB0
--#define OMAP_MCBSP_REG_XBUFFSTAT	0xB4
--#define OMAP_MCBSP_REG_RBUFFSTAT	0xB8
--#define OMAP_MCBSP_REG_SSELCR	0xBC
-+/* McBSP register numbers. Register address offset = num * reg_step */
-+enum {
-+	/* Common registers */
-+	OMAP_MCBSP_REG_SPCR2 = 4,
-+	OMAP_MCBSP_REG_SPCR1,
-+	OMAP_MCBSP_REG_RCR2,
-+	OMAP_MCBSP_REG_RCR1,
-+	OMAP_MCBSP_REG_XCR2,
-+	OMAP_MCBSP_REG_XCR1,
-+	OMAP_MCBSP_REG_SRGR2,
-+	OMAP_MCBSP_REG_SRGR1,
-+	OMAP_MCBSP_REG_MCR2,
-+	OMAP_MCBSP_REG_MCR1,
-+	OMAP_MCBSP_REG_RCERA,
-+	OMAP_MCBSP_REG_RCERB,
-+	OMAP_MCBSP_REG_XCERA,
-+	OMAP_MCBSP_REG_XCERB,
-+	OMAP_MCBSP_REG_PCR0,
-+	OMAP_MCBSP_REG_RCERC,
-+	OMAP_MCBSP_REG_RCERD,
-+	OMAP_MCBSP_REG_XCERC,
-+	OMAP_MCBSP_REG_XCERD,
-+	OMAP_MCBSP_REG_RCERE,
-+	OMAP_MCBSP_REG_RCERF,
-+	OMAP_MCBSP_REG_XCERE,
-+	OMAP_MCBSP_REG_XCERF,
-+	OMAP_MCBSP_REG_RCERG,
-+	OMAP_MCBSP_REG_RCERH,
-+	OMAP_MCBSP_REG_XCERG,
-+	OMAP_MCBSP_REG_XCERH,
-+
-+	/* OMAP1-OMAP2420 registers */
-+	OMAP_MCBSP_REG_DRR2 = 0,
-+	OMAP_MCBSP_REG_DRR1,
-+	OMAP_MCBSP_REG_DXR2,
-+	OMAP_MCBSP_REG_DXR1,
-+
-+	/* OMAP2430 and onwards */
-+	OMAP_MCBSP_REG_DRR = 0,
-+	OMAP_MCBSP_REG_DXR = 2,
-+	OMAP_MCBSP_REG_SYSCON =	35,
-+	OMAP_MCBSP_REG_THRSH2,
-+	OMAP_MCBSP_REG_THRSH1,
-+	OMAP_MCBSP_REG_IRQST = 40,
-+	OMAP_MCBSP_REG_IRQEN,
-+	OMAP_MCBSP_REG_WAKEUPEN,
-+	OMAP_MCBSP_REG_XCCR,
-+	OMAP_MCBSP_REG_RCCR,
-+	OMAP_MCBSP_REG_XBUFFSTAT,
-+	OMAP_MCBSP_REG_RBUFFSTAT,
-+	OMAP_MCBSP_REG_SSELCR,
-+};
- 
-+/* OMAP3 sidetone control registers */
- #define OMAP_ST_REG_REV		0x00
- #define OMAP_ST_REG_SYSCONFIG	0x10
- #define OMAP_ST_REG_IRQSTATUS	0x18
-@@ -146,8 +113,6 @@ static struct platform_device omap_mcbsp##port_nr = {	\
- #define OMAP_ST_REG_SFIRCR	0x28
- #define OMAP_ST_REG_SSELCR	0x2C
- 
--#endif
--
- /************************** McBSP SPCR1 bit definitions ***********************/
- #define RRST			0x0001
- #define RRDY			0x0002
-@@ -350,7 +315,8 @@ struct omap_mcbsp_ops {
- struct omap_mcbsp_platform_data {
- 	struct omap_mcbsp_ops *ops;
- 	u16 buffer_size;
--	unsigned int mcbsp_config_type;
-+	u8 reg_size;
-+	u8 reg_step;
- };
- 
- struct omap_mcbsp_st_data {
-@@ -389,7 +355,6 @@ struct omap_mcbsp {
+@@ -354,10 +354,10 @@ struct omap_mcbsp {
+ 	struct clk *fclk;
+ #ifdef CONFIG_ARCH_OMAP3
+ 	struct omap_mcbsp_st_data *st_data;
++#endif
+ 	int dma_op_mode;
+ 	u16 max_tx_thres;
  	u16 max_rx_thres;
- #endif
+-#endif
  	void *reg_cache;
--	unsigned int mcbsp_config_type;
  };
  
- /**
+@@ -377,7 +377,6 @@ extern int omap_mcbsp_count, omap_mcbsp_cache_size;
+ 
+ int omap_mcbsp_init(void);
+ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config);
+-#ifdef CONFIG_ARCH_OMAP3
+ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold);
+ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold);
+ u16 omap_mcbsp_get_max_tx_threshold(unsigned int id);
+@@ -386,18 +385,6 @@ u16 omap_mcbsp_get_fifo_size(unsigned int id);
+ u16 omap_mcbsp_get_tx_delay(unsigned int id);
+ u16 omap_mcbsp_get_rx_delay(unsigned int id);
+ int omap_mcbsp_get_dma_op_mode(unsigned int id);
+-#else
+-static inline void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
+-{ }
+-static inline void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
+-{ }
+-static inline u16 omap_mcbsp_get_max_tx_threshold(unsigned int id) { return 0; }
+-static inline u16 omap_mcbsp_get_max_rx_threshold(unsigned int id) { return 0; }
+-static inline u16 omap_mcbsp_get_fifo_size(unsigned int id) { return 0; }
+-static inline u16 omap_mcbsp_get_tx_delay(unsigned int id) { return 0; }
+-static inline u16 omap_mcbsp_get_rx_delay(unsigned int id) { return 0; }
+-static inline int omap_mcbsp_get_dma_op_mode(unsigned int id) { return 0; }
+-#endif
+ int omap_mcbsp_request(unsigned int id);
+ void omap_mcbsp_free(unsigned int id);
+ void omap_mcbsp_start(unsigned int id, int tx, int rx);
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 4b233e8..623f2c1 100644
+index 97bcbfa..234ab16 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -35,29 +35,27 @@ int omap_mcbsp_count, omap_mcbsp_cache_size;
- 
- static void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
- {
--	if (cpu_class_is_omap1()) {
--		((u16 *)mcbsp->reg_cache)[reg / sizeof(u16)] = (u16)val;
--		__raw_writew((u16)val, mcbsp->io_base + reg);
--	} else if (cpu_is_omap2420()) {
--		((u16 *)mcbsp->reg_cache)[reg / sizeof(u32)] = (u16)val;
--		__raw_writew((u16)val, mcbsp->io_base + reg);
-+	void __iomem *addr = mcbsp->io_base + reg * mcbsp->pdata->reg_step;
-+
-+	if (mcbsp->pdata->reg_size == 2) {
-+		((u16 *)mcbsp->reg_cache)[reg] = (u16)val;
-+		__raw_writew((u16)val, addr);
- 	} else {
--		((u32 *)mcbsp->reg_cache)[reg / sizeof(u32)] = val;
--		__raw_writel(val, mcbsp->io_base + reg);
-+		((u32 *)mcbsp->reg_cache)[reg] = val;
-+		__raw_writel(val, addr);
- 	}
+@@ -492,6 +492,11 @@ int omap_st_is_enabled(unsigned int id)
  }
+ EXPORT_SYMBOL(omap_st_is_enabled);
  
- static int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg, bool from_cache)
- {
--	if (cpu_class_is_omap1()) {
--		return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
--				((u16 *)mcbsp->reg_cache)[reg / sizeof(u16)];
--	} else if (cpu_is_omap2420()) {
--		return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
--				((u16 *)mcbsp->reg_cache)[reg / sizeof(u32)];
-+	void __iomem *addr = mcbsp->io_base + reg * mcbsp->pdata->reg_step;
++#else
++static inline void omap_st_start(struct omap_mcbsp *mcbsp) {}
++static inline void omap_st_stop(struct omap_mcbsp *mcbsp) {}
++#endif
 +
-+	if (mcbsp->pdata->reg_size == 2) {
-+		return !from_cache ? __raw_readw(addr) :
-+				     ((u16 *)mcbsp->reg_cache)[reg];
- 	} else {
--		return !from_cache ? __raw_readl(mcbsp->io_base + reg) :
--				((u32 *)mcbsp->reg_cache)[reg / sizeof(u32)];
-+		return !from_cache ? __raw_readl(addr) :
-+				     ((u32 *)mcbsp->reg_cache)[reg];
- 	}
- }
+ /*
+  * omap_mcbsp_set_rx_threshold configures the transmit threshold in words.
+  * The threshold parameter is 1 based, and it is converted (threshold - 1)
+@@ -501,14 +506,13 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
+ {
+ 	struct omap_mcbsp *mcbsp;
  
-@@ -238,21 +236,19 @@ int omap_mcbsp_dma_reg_params(unsigned int id, unsigned int stream)
+-	if (!cpu_is_omap34xx() && !cpu_is_omap44xx())
+-		return;
+-
+ 	if (!omap_mcbsp_check_valid_id(id)) {
+ 		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+ 		return;
  	}
  	mcbsp = id_to_mcbsp_ptr(id);
++	if (mcbsp->pdata->buffer_size == 0)
++		return;
  
--	data_reg = mcbsp->phys_dma_base;
+ 	if (threshold && threshold <= mcbsp->max_tx_thres)
+ 		MCBSP_WRITE(mcbsp, THRSH2, threshold - 1);
+@@ -524,14 +528,13 @@ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
+ {
+ 	struct omap_mcbsp *mcbsp;
+ 
+-	if (!cpu_is_omap34xx() && !cpu_is_omap44xx())
+-		return;
 -
--	if (mcbsp->mcbsp_config_type < MCBSP_CONFIG_TYPE2) {
-+	if (mcbsp->pdata->reg_size == 2) {
- 		if (stream)
--			data_reg += OMAP_MCBSP_REG_DRR1;
-+			data_reg = OMAP_MCBSP_REG_DRR1;
- 		else
--			data_reg += OMAP_MCBSP_REG_DXR1;
-+			data_reg = OMAP_MCBSP_REG_DXR1;
- 	} else {
- 		if (stream)
--			data_reg += OMAP_MCBSP_REG_DRR;
-+			data_reg = OMAP_MCBSP_REG_DRR;
- 		else
--			data_reg += OMAP_MCBSP_REG_DXR;
-+			data_reg = OMAP_MCBSP_REG_DXR;
+ 	if (!omap_mcbsp_check_valid_id(id)) {
+ 		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+ 		return;
  	}
+ 	mcbsp = id_to_mcbsp_ptr(id);
++	if (mcbsp->pdata->buffer_size == 0)
++		return;
  
--	return data_reg;
-+	return mcbsp->phys_dma_base + data_reg * mcbsp->pdata->reg_step;
+ 	if (threshold && threshold <= mcbsp->max_rx_thres)
+ 		MCBSP_WRITE(mcbsp, THRSH1, threshold - 1);
+@@ -601,6 +604,8 @@ u16 omap_mcbsp_get_tx_delay(unsigned int id)
+ 		return -ENODEV;
+ 	}
+ 	mcbsp = id_to_mcbsp_ptr(id);
++	if (mcbsp->pdata->buffer_size == 0)
++		return 0;
+ 
+ 	/* Returns the number of free locations in the buffer */
+ 	buffstat = MCBSP_READ(mcbsp, XBUFFSTAT);
+@@ -624,6 +629,8 @@ u16 omap_mcbsp_get_rx_delay(unsigned int id)
+ 		return -ENODEV;
+ 	}
+ 	mcbsp = id_to_mcbsp_ptr(id);
++	if (mcbsp->pdata->buffer_size == 0)
++		return 0;
+ 
+ 	/* Returns the number of used locations in the buffer */
+ 	buffstat = MCBSP_READ(mcbsp, RBUFFSTAT);
+@@ -659,11 +666,6 @@ int omap_mcbsp_get_dma_op_mode(unsigned int id)
  }
- EXPORT_SYMBOL(omap_mcbsp_dma_reg_params);
+ EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
  
-@@ -1337,7 +1333,6 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 	mcbsp->pdata = pdata;
- 	mcbsp->dev = &pdev->dev;
- 	mcbsp_ptr[id] = mcbsp;
--	mcbsp->mcbsp_config_type = pdata->mcbsp_config_type;
+-#else
+-static inline void omap_st_start(struct omap_mcbsp *mcbsp) {}
+-static inline void omap_st_stop(struct omap_mcbsp *mcbsp) {}
+-#endif
+-
+ int omap_mcbsp_request(unsigned int id)
+ {
+ 	struct omap_mcbsp *mcbsp;
+@@ -937,7 +939,6 @@ void omap2_mcbsp1_mux_fsr_src(u8 mux)
+ }
+ #endif
+ 
+-#ifdef CONFIG_ARCH_OMAP3
+ #define max_thres(m)			(mcbsp->pdata->buffer_size)
+ #define valid_threshold(m, val)		((val) <= max_thres(m))
+ #define THRESHOLD_PROP_BUILDER(prop)					\
+@@ -1028,6 +1029,18 @@ unlock:
+ 
+ static DEVICE_ATTR(dma_op_mode, 0644, dma_op_mode_show, dma_op_mode_store);
+ 
++static const struct attribute *additional_attrs[] = {
++	&dev_attr_max_tx_thres.attr,
++	&dev_attr_max_rx_thres.attr,
++	&dev_attr_dma_op_mode.attr,
++	NULL,
++};
++
++static const struct attribute_group additional_attr_group = {
++	.attrs = (struct attribute **)additional_attrs,
++};
++
++#ifdef CONFIG_ARCH_OMAP3
+ static ssize_t st_taps_show(struct device *dev,
+ 			    struct device_attribute *attr, char *buf)
+ {
+@@ -1086,27 +1099,6 @@ out:
+ 
+ static DEVICE_ATTR(st_taps, 0644, st_taps_show, st_taps_store);
+ 
+-static const struct attribute *additional_attrs[] = {
+-	&dev_attr_max_tx_thres.attr,
+-	&dev_attr_max_rx_thres.attr,
+-	&dev_attr_dma_op_mode.attr,
+-	NULL,
+-};
+-
+-static const struct attribute_group additional_attr_group = {
+-	.attrs = (struct attribute **)additional_attrs,
+-};
+-
+-static inline int __devinit omap_additional_add(struct device *dev)
+-{
+-	return sysfs_create_group(&dev->kobj, &additional_attr_group);
+-}
+-
+-static inline void __devexit omap_additional_remove(struct device *dev)
+-{
+-	sysfs_remove_group(&dev->kobj, &additional_attr_group);
+-}
+-
+ static const struct attribute *sidetone_attrs[] = {
+ 	&dev_attr_st_taps.attr,
+ 	NULL,
+@@ -1167,45 +1159,18 @@ static void __devexit omap_st_remove(struct omap_mcbsp *mcbsp)
+ 
+ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
+ {
+-	mcbsp->dma_op_mode = MCBSP_DMA_MODE_ELEMENT;
+-	if (cpu_is_omap34xx()) {
+-		/*
+-		 * Initially configure the maximum thresholds to a safe value.
+-		 * The McBSP FIFO usage with these values should not go under
+-		 * 16 locations.
+-		 * If the whole FIFO without safety buffer is used, than there
+-		 * is a possibility that the DMA will be not able to push the
+-		 * new data on time, causing channel shifts in runtime.
+-		 */
+-		mcbsp->max_tx_thres = max_thres(mcbsp) - 0x10;
+-		mcbsp->max_rx_thres = max_thres(mcbsp) - 0x10;
+-		/*
+-		 * REVISIT: Set dmap_op_mode to THRESHOLD as default
+-		 * for mcbsp2 instances.
+-		 */
+-		if (omap_additional_add(mcbsp->dev))
+-			dev_warn(mcbsp->dev,
+-				"Unable to create additional controls\n");
+-
++	if (cpu_is_omap34xx())
+ 		if (mcbsp->id == 2 || mcbsp->id == 3)
+ 			if (omap_st_add(mcbsp))
+ 				dev_warn(mcbsp->dev,
+ 				 "Unable to create sidetone controls\n");
+-
+-	} else {
+-		mcbsp->max_tx_thres = -EINVAL;
+-		mcbsp->max_rx_thres = -EINVAL;
+-	}
+ }
+ 
+ static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp)
+ {
+-	if (cpu_is_omap34xx()) {
+-		omap_additional_remove(mcbsp->dev);
+-
++	if (cpu_is_omap34xx())
+ 		if (mcbsp->id == 2 || mcbsp->id == 3)
+ 			omap_st_remove(mcbsp);
+-	}
+ }
+ #else
+ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp) {}
+@@ -1311,11 +1276,38 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
  	platform_set_drvdata(pdev, mcbsp);
  	pm_runtime_enable(mcbsp->dev);
  
++	mcbsp->dma_op_mode = MCBSP_DMA_MODE_ELEMENT;
++	if (mcbsp->pdata->buffer_size) {
++		/*
++		 * Initially configure the maximum thresholds to a safe value.
++		 * The McBSP FIFO usage with these values should not go under
++		 * 16 locations.
++		 * If the whole FIFO without safety buffer is used, than there
++		 * is a possibility that the DMA will be not able to push the
++		 * new data on time, causing channel shifts in runtime.
++		 */
++		mcbsp->max_tx_thres = max_thres(mcbsp) - 0x10;
++		mcbsp->max_rx_thres = max_thres(mcbsp) - 0x10;
++
++		ret = sysfs_create_group(&mcbsp->dev->kobj,
++					 &additional_attr_group);
++		if (ret) {
++			dev_err(mcbsp->dev,
++				"Unable to create additional controls\n");
++			goto err_thres;
++		}
++	} else {
++		mcbsp->max_tx_thres = -EINVAL;
++		mcbsp->max_rx_thres = -EINVAL;
++	}
++
+ 	/* Initialize mcbsp properties for OMAP34XX if needed / applicable */
+ 	omap34xx_device_init(mcbsp);
+ 
+ 	return 0;
+ 
++err_thres:
++	clk_put(mcbsp->fclk);
+ err_res:
+ 	iounmap(mcbsp->io_base);
+ err_ioremap:
+@@ -1335,6 +1327,10 @@ static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
+ 				mcbsp->pdata->ops->free)
+ 			mcbsp->pdata->ops->free(mcbsp->id);
+ 
++		if (mcbsp->pdata->buffer_size)
++			sysfs_remove_group(&mcbsp->dev->kobj,
++					   &additional_attr_group);
++
+ 		omap34xx_device_exit(mcbsp);
+ 
+ 		clk_put(mcbsp->fclk);
 -- 
 1.7.5.4
 
