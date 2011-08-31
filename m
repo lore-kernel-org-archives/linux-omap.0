@@ -1,121 +1,220 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 4/6 V4] OMAP4: Hwmod: OMAP temperature sensor
-Date: Wed, 31 Aug 2011 22:55:08 +0530
-Message-ID: <1314811510-15595-5-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 3/6 V4] OMAP4460: Temperature sensor data
+Date: Wed, 31 Aug 2011 22:55:07 +0530
+Message-ID: <1314811510-15595-4-git-send-email-j-keerthy@ti.com>
 References: <1314811510-15595-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40350 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756915Ab1HaRZ2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Aug 2011 13:25:28 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:49373 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756914Ab1HaRZ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Aug 2011 13:25:28 -0400
 In-Reply-To: <1314811510-15595-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Benoit Cousson <b-cousson@ti.com>, Keerthy <j-keerthy@ti.com>, tony@atomide.com
+Cc: Keerthy <j-keerthy@ti.com>, tony@atomide.com
 
-From: Benoit Cousson <b-cousson@ti.com>
+The register set and the
+bit fields might vary across OMAP versions. Hence
+creating a structure comprising of all the registers
+and bit fields to make the driver uniform for all the
+versions with different register sets. The data file
+contains the structure populated with register offsets
+and bit fields corresponding to OMAP4460 on die sensor.
 
-OMAP4460 temperature sensor hwmod cannot be auto generated
-since it is part of ctrl module. Hence populating the
-necessary hwmod info manually.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 Cc: tony@atomide.com
-Cc: b-cousson@ti.com
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   61 ++++++++++++++++++++++++++++
- 1 files changed, 61 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Makefile                       |    2 +-
+ arch/arm/mach-omap2/temp_sensor4460_data.c         |   63 +++++++++++++
+ .../plat-omap/include/plat/temperature_sensor.h    |   93 ++++++++++++++++++++
+ 3 files changed, 157 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/temp_sensor4460_data.c
+ create mode 100644 arch/arm/plat-omap/include/plat/temperature_sensor.h
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 6201422..28bf6d3 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -29,6 +29,7 @@
- #include <plat/mcbsp.h>
- #include <plat/mmc.h>
- #include <plat/i2c.h>
-+#include <plat/temperature_sensor.h>
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index fb02937..2d5d981 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -86,7 +86,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o \
+ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
+ 					   cm44xx.o prcm_mpu44xx.o \
+ 					   prminst44xx.o vc44xx_data.o \
+-					   vp44xx_data.o
++					   vp44xx_data.o temp_sensor4460_data.o
  
- #include "omap_hwmod_common_data.h"
- 
-@@ -832,6 +833,63 @@ static struct omap_hwmod omap44xx_aess_hwmod = {
- };
- 
- /*
-+ * 'temperature_sensor' class
-+ * temperature sensor module inside the bandgap / control module
+ # OMAP voltage domains
+ ifeq ($(CONFIG_PM),y)
+diff --git a/arch/arm/mach-omap2/temp_sensor4460_data.c b/arch/arm/mach-omap2/temp_sensor4460_data.c
+new file mode 100644
+index 0000000..294963d
+--- /dev/null
++++ b/arch/arm/mach-omap2/temp_sensor4460_data.c
+@@ -0,0 +1,63 @@
++/*
++ * OMAP4460 on die Temperature sensor data file
++ *
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ * Author: J Keerthy <j-keerthy@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
 + */
 +
-+static struct omap_hwmod_class omap44xx_temperature_sensor_hwmod_class = {
-+	.name   = "temperature_sensor",
-+};
-+
-+static struct omap_hwmod_irq_info omap44xx_temperature_sensor_irqs[] = {
-+	{ .name = "thermal_alert", .irq = 126 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_temperature_sensor_addrs[] = {
-+	{
-+		.pa_start       = 0x4a00232c,
-+		.pa_end         = 0x4a00238b,
-+	},
-+};
-+
-+static struct omap_hwmod omap44xx_temperature_sensor_hwmod;
-+/* l4_cfg -> ctrl_module_core */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__temperature_sensor = {
-+	.master         = &omap44xx_l4_cfg_hwmod,
-+	.slave          = &omap44xx_temperature_sensor_hwmod,
-+	.clk            = "l4_div_ck",
-+	.addr           = omap44xx_temperature_sensor_addrs,
-+	.user           = OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* ctrl_module_core slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_temperature_sensor_slaves[] = {
-+	&omap44xx_l4_cfg__temperature_sensor,
-+};
-+
-+/* temperature sensor dev_attr */
-+static struct omap_temp_sensor_dev_attr temp_sensor_dev_attr = {
-+	.name	= "mpu",
-+};
-+
-+static struct omap_hwmod omap44xx_temperature_sensor_hwmod = {
-+	.name           = "temperature_sensor_mpu",
-+	.class          = &omap44xx_temperature_sensor_hwmod_class,
-+	.mpu_irqs       = omap44xx_temperature_sensor_irqs,
-+	.main_clk       = "bandgap_ts_fclk",
-+	.slaves		= omap44xx_temperature_sensor_slaves,
-+	.slaves_cnt     = ARRAY_SIZE(omap44xx_temperature_sensor_slaves),
-+	.clkdm_name     = "l4_wkup_clkdm",
-+	.prcm           = {
-+		.omap4 = {
-+		.clkctrl_offs = OMAP4_CM_WKUP_BANDGAP_CLKCTRL_OFFSET,
-+		},
-+	},
-+	.dev_attr	= &temp_sensor_dev_attr,
-+	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
++#include <linux/slab.h>
++#include "control.h"
++#include <plat/temperature_sensor.h>
 +
 +/*
-  * 'bandgap' class
-  * bangap reference for ldo regulators
-  */
-@@ -5469,6 +5527,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_timer10_hwmod,
- 	&omap44xx_timer11_hwmod,
- 
-+	/* temperature sensor hwmod */
-+	&omap44xx_temperature_sensor_hwmod,
++ * OMAP4460 has one instance of thermal sensor for MPU
++ * need to describe the individual bit fields
++ */
++struct omap_temp_sensor_registers omap_mpu_temp_sensor_registers = {
++	.temp_sensor_ctrl		= OMAP4460_TEMP_SENSOR_CTRL_OFFSET,
++	.bgap_tempsoff_mask		= OMAP4460_BGAP_TEMPSOFF_MASK,
++	.bgap_soc_mask			= OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK,
++	.bgap_eocz_mask			= OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK,
++	.bgap_dtemp_mask		= OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK,
 +
- 	/* uart class */
- 	&omap44xx_uart1_hwmod,
- 	&omap44xx_uart2_hwmod,
++	.bgap_mask_ctrl			= OMAP4460_BGAP_CTRL_OFFSET,
++	.mask_hot_mask			= OMAP4460_MASK_HOT_MASK,
++	.mask_cold_mask			= OMAP4460_MASK_COLD_MASK,
++
++	.bgap_mode_ctrl			= OMAP4460_BGAP_CTRL_OFFSET,
++	.mode_ctrl_mask			= OMAP4460_SINGLE_MODE_MASK,
++
++	.bgap_counter			= OMAP4460_BGAP_COUNTER_OFFSET,
++	.counter_mask			= OMAP4460_COUNTER_MASK,
++
++	.bgap_threshold			= OMAP4460_BGAP_THRESHOLD_OFFSET,
++	.threshold_thot_mask		= OMAP4460_T_HOT_MASK,
++	.threshold_tcold_mask		= OMAP4460_T_COLD_MASK,
++
++	.thsut_threshold		= OMAP4460_BGAP_TSHUT_OFFSET,
++	.tshut_hot_mask			= OMAP4460_TSHUT_HOT_MASK,
++	.tshut_cold_mask		= OMAP4460_TSHUT_COLD_MASK,
++
++	.bgap_status			= OMAP4460_BGAP_STATUS_OFFSET,
++	.status_clean_stop_mask		= OMAP4460_CLEAN_STOP_MASK,
++	.status_bgap_alert_mask		= OMAP4460_BGAP_ALERT_MASK,
++	.status_hot_mask		= OMAP4460_HOT_FLAG_MASK,
++	.status_cold_mask		= OMAP4460_COLD_FLAG_MASK,
++
++	.bgap_efuse			= OMAP4460_FUSE_OPP_BGAP,
++};
+diff --git a/arch/arm/plat-omap/include/plat/temperature_sensor.h b/arch/arm/plat-omap/include/plat/temperature_sensor.h
+new file mode 100644
+index 0000000..9302ea8
+--- /dev/null
++++ b/arch/arm/plat-omap/include/plat/temperature_sensor.h
+@@ -0,0 +1,93 @@
++/*
++ * OMAP Temperature sensor header file
++ *
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ * Author: J Keerthy <j-keerthy@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
++#define __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
++
++/* Offsets from the base of temperature sensor registers */
++
++#define OMAP4460_TEMP_SENSOR_CTRL_OFFSET	0x00
++#define OMAP4460_BGAP_CTRL_OFFSET		0x4c
++#define OMAP4460_BGAP_COUNTER_OFFSET		0x50
++#define OMAP4460_BGAP_THRESHOLD_OFFSET		0x54
++#define OMAP4460_BGAP_TSHUT_OFFSET		0x58
++#define OMAP4460_BGAP_STATUS_OFFSET		0x5c
++#define OMAP4460_FUSE_OPP_BGAP			-0xcc
++
++/*
++ * The register offsets and but fields might change across
++ * OMAP versions hence populating them in this structure.
++ */
++struct omap_temp_sensor_registers {
++	u32	temp_sensor_ctrl;
++	u32	bgap_tempsoff_mask;
++	u32	bgap_soc_mask;
++	u32	bgap_eocz_mask;
++	u32	bgap_dtemp_mask;
++
++	u32	bgap_mask_ctrl;
++	u32	mask_hot_mask;
++	u32	mask_cold_mask;
++
++	u32	bgap_mode_ctrl;
++	u32	mode_ctrl_mask;
++
++	u32	bgap_counter;
++	u32	counter_mask;
++
++	u32	bgap_threshold;
++	u32	threshold_thot_mask;
++	u32	threshold_tcold_mask;
++
++	u32	thsut_threshold;
++	u32	tshut_hot_mask;
++	u32	tshut_cold_mask;
++
++	u32	bgap_status;
++	u32	status_clean_stop_mask;
++	u32	status_bgap_alert_mask;
++	u32	status_hot_mask;
++	u32	status_cold_mask;
++
++	u32	bgap_efuse;
++};
++
++/* @name: Name of the domain of the temperature sensor */
++struct omap_temp_sensor_dev_attr {
++	const char *name;
++};
++
++extern struct omap_temp_sensor_registers omap_mpu_temp_sensor_registers;
++
++/*
++ * omap_temp_sensor platform data
++ * @registers - pointer to register set and thier bit fields information
++ * @min_freq - The minimum frequency for temp sensor to be operational
++ * @max_freq - The maximum frequency at which temp sensor is operational
++ */
++struct omap_temp_sensor_pdata {
++	struct omap_temp_sensor_registers *registers;
++	u32 min_freq;
++	u32 max_freq;
++};
++
++#endif
 -- 
 1.7.0.4
 
