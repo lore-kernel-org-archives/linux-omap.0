@@ -1,61 +1,35 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
-Date: Wed, 31 Aug 2011 18:49:37 +0200
-Message-ID: <201108311849.37273.arnd@arndb.de>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <1314643307-17780-1-git-send-email-coelho@ti.com>
+From: Marc Dietrich <Marc.Dietrich@ap.physik.uni-giessen.de>
+Subject: Re: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
+Date: Wed, 31 Aug 2011 18:55:03 +0200
+Message-ID: <201108311855.27711.marc.dietrich@ap.physik.uni-giessen.de>
+References: <1314720193-26577-1-git-send-email-ming.lei@canonical.com> <1314804471.2344.79.camel@deneb.redhat.com> <4E5E5D80.6080409@arm.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57827 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756860Ab1HaQuB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Aug 2011 12:50:01 -0400
-In-Reply-To: <1314643307-17780-1-git-send-email-coelho@ti.com>
+Received: from merkurneu.hrz.uni-giessen.de ([134.176.2.3]:37741 "EHLO
+	merkurneu.hrz.uni-giessen.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756808Ab1HaQzy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Aug 2011 12:55:54 -0400
+In-Reply-To: <4E5E5D80.6080409@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Luciano Coelho <coelho@ti.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Mark Salter <msalter@redhat.com>, Russell King <linux@arm.linux.org.uk>, Chen Peter-B29397 <B29397@freescale.com>, "ming.lei@canonical.com" <ming.lei@canonical.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Monday 29 August 2011, Luciano Coelho wrote:
-> From: Randy Dunlap <rdunlap@xenotime.net>
+Am Mittwoch 31 August 2011, 18:12:48 schrieb Marc Zyngier:
+> [...]
+> Oddly enough, this patch doesn't do anything on my Tegra setup. In both
+> cases, I get around 17MB/s from a crap SD card plugged in a USB reader.
 > 
-> Combine MFD_SUPPORT (which only enabled the remainder of the MFD
-> menu) and MFD_CORE.  This allows other drivers to select MFD_CORE
-> without needing to also select MFD_SUPPORT, which fixes some
-> kconfig unmet dependency warnings.  Modeled after I2C kconfig.
-> 
-> [Forward-ported to 3.1-rc4.  This fixes a warning when some drivers,
-> such as RADIO_WL1273, are selected, but MFD_SUPPORT is not. -- Luca]
-> 
-> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> Reported-by: Johannes Berg <johannes@sipsolutions.net>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Signed-off-by: Luciano Coelho <coelho@ti.com>
-> ---
-> 
-> I guess this should fix the problem.  I've simple forward-ported
-> Randy's patch to the latest mainline kernel.  I don't know via which
-> tree this should go in, though.
-> 
-> NOTE: I have not tested this very thoroughly.  But at least
-> omap2plus stuff seems to work okay with this change.  MFD_SUPPORT is
-> also selected by a couple of "tile" platforms defconfigs, but I guess
-> the Kconfig system should take care of it.
+> This leads me to suspect that this issue is very much OMAP4 specific.
+> Can anyone verify this theory on other some A9 platforms?
 
-Doing this is a good idea, but incidentally I have just spent some time
-with the same problem and ended up with a solution that I like better,
-which is removing CONFIG_MFD_SUPPORT altogether.
+That's odd. On my Tegra2 (on ac100) it boosts the transfer rate from 7 to 
+17 MB/s. 
 
-The point is that there is no use enabling MFD_CORE if you don't also
-enable any of the specific drivers. MFD_SUPPORT was added as a 'menuconfig'
-before we had Kconfig warn about broken dependencies, so everything was
-fine. Since Kconfig now issues the warnings, I think it would be better
-to just turn the MFD menu into a plain 'menu' and remove all the
-'depends on MFD_SUPPORT' and 'select MFD_SUPPORT' lines from the other
-Kconfig files.
+Marc
 
-	Arnd
+
