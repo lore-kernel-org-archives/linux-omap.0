@@ -1,78 +1,40 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 03/12] OMAP: DSS2: HDMI: make set_timing saner
-Date: Wed, 31 Aug 2011 16:23:14 +0300
-Message-ID: <1314797003-17638-4-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 01/12] OMAP: DSS2: add read_edid() to omap_dss_driver struct
+Date: Wed, 31 Aug 2011 16:23:12 +0300
+Message-ID: <1314797003-17638-2-git-send-email-tomi.valkeinen@ti.com>
 References: <1314797003-17638-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59363 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755757Ab1HaNXo (ORCPT
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:44202 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755392Ab1HaNXk (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Aug 2011 09:23:44 -0400
+	Wed, 31 Aug 2011 09:23:40 -0400
 In-Reply-To: <1314797003-17638-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, mythripk@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Currently the set_timings code for hdmi is quite strange. The display is
-disabled in hdmi_omap4_panel.c before setting timings, and enabled in
-hdmi.c after setting the timings. Furthermore, the timings were not
-permanent, and disabling and enabling the display would lose them.
-
-This patch makes the set_timings handling a bit better.
+read_edid() can be used to get the EDID information from the display.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/hdmi.c             |   13 +++++++++++--
- drivers/video/omap2/dss/hdmi_omap4_panel.c |    7 +------
- 2 files changed, 12 insertions(+), 8 deletions(-)
+ include/video/omapdss.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index d08096b..8f8ae0e 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -1226,11 +1226,20 @@ void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev)
- 	struct hdmi_cm cm;
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index f8385ae..8ed5a6c 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -558,6 +558,8 @@ struct omap_dss_driver {
  
- 	hdmi.custom_set = 1;
+ 	int (*set_wss)(struct omap_dss_device *dssdev, u32 wss);
+ 	u32 (*get_wss)(struct omap_dss_device *dssdev);
 +
- 	cm = hdmi_get_code(&dssdev->panel.timings);
- 	hdmi.code = cm.code;
- 	hdmi.mode = cm.mode;
--	omapdss_hdmi_display_enable(dssdev);
--	hdmi.custom_set = 0;
-+
-+	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
-+		int r;
-+
-+		hdmi_power_off(dssdev);
-+
-+		r = hdmi_power_on(dssdev);
-+		if (r)
-+			DSSERR("failed to power on device\n");
-+	}
- }
++	int (*read_edid)(struct omap_dss_device *dssdev, u8 *buf, int len);
+ };
  
- int omapdss_hdmi_display_enable(struct omap_dss_device *dssdev)
-diff --git a/drivers/video/omap2/dss/hdmi_omap4_panel.c b/drivers/video/omap2/dss/hdmi_omap4_panel.c
-index 7d4f2bd..25d5fb2 100644
---- a/drivers/video/omap2/dss/hdmi_omap4_panel.c
-+++ b/drivers/video/omap2/dss/hdmi_omap4_panel.c
-@@ -161,12 +161,7 @@ static void hdmi_set_timings(struct omap_dss_device *dssdev,
- 	mutex_lock(&hdmi.hdmi_lock);
- 
- 	dssdev->panel.timings = *timings;
--
--	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
--		/* turn the hdmi off and on to get new timings to use */
--		omapdss_hdmi_display_disable(dssdev);
--		omapdss_hdmi_display_set_timing(dssdev);
--	}
-+	omapdss_hdmi_display_set_timing(dssdev);
- 
- 	mutex_unlock(&hdmi.hdmi_lock);
- }
+ int omap_dss_register_driver(struct omap_dss_driver *);
 -- 
 1.7.4.1
 
