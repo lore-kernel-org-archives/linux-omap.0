@@ -1,65 +1,90 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
-Date: Wed, 31 Aug 2011 17:12:48 +0100
-Message-ID: <4E5E5D80.6080409@arm.com>
-References: <1314720193-26577-1-git-send-email-ming.lei@canonical.com>	<1314722311.2344.64.camel@deneb.redhat.com>	<20110830172642.GE3464@e102144-lin.cambridge.arm.com>	<20110830174859.GA23098@kroah.com>	<20110830175432.GG3464@e102144-lin.cambridge.arm.com>	<5484D075-A7DA-41B7-B8FA-9B6D72A23723@freescale.com>	<20110831084922.GA8777@e102144-lin.cambridge.arm.com>	<1314798215.2344.76.camel@deneb.redhat.com>	<20110831152137.GG8777@e102144-lin.cambridge.arm.com>
-	<1314804471.2344.79.camel@deneb.redhat.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
+Date: Wed, 31 Aug 2011 18:18:07 +0200
+Message-ID: <20110831181807.4be09f72@endymion.delvare>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
+	<1314643307-17780-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1314804471.2344.79.camel@deneb.redhat.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Salter <msalter@redhat.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Chen Peter-B29397 <B29397@freescale.com>, "ming.lei@canonical.com" <ming.lei@canonical.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1314643307-17780-1-git-send-email-coelho@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
 
-On 31/08/11 16:27, Mark Salter wrote:
-> On Wed, 2011-08-31 at 16:21 +0100, Will Deacon wrote:
->> On Wed, Aug 31, 2011 at 02:43:33PM +0100, Mark Salter wrote:
->>> On Wed, 2011-08-31 at 09:49 +0100, Will Deacon wrote:
->>>> On Wed, Aug 31, 2011 at 01:23:47AM +0100, Chen Peter-B29397 wrote:
->>>>> One question: why this write buffer issue did not happen at UP ARM V7 platform, whose dma buffer
->>>>> also uncache, but bufferable?
->>>>
->>>> Which CPU was on this platform?
->>>
->>> Using a 3.1.0-rc4+ kernel on a Pandaboard, and running 'hdparm -t' on a
->>> usb disk drive, I see ~5.8MB/s read speed. Same kernel, but passing
->>> nosmp on the commandline, I see 20.3MB/s.
->>>
->>> Can someone explain why nosmp would make such a difference?
->>
->> Oh gawd, that's horrible. I have a feeling it's probably a separate issue
->> though, caused by:
->>
->> omap_modify_auxcoreboot0(0x200, 0xfffffdff);
->>
->> in boot_secondary for OMAP. Unfortunately I have no idea what that line is
->> doing because it ends up talking to the secure monitor.
+Hi Luciano,
+
+On Mon, 29 Aug 2011 21:41:47 +0300, Luciano Coelho wrote:
+> From: Randy Dunlap <rdunlap@xenotime.net>
 > 
-> Okay, I may poke around a bit with that to see I can get a better
-> understanding.
+> Combine MFD_SUPPORT (which only enabled the remainder of the MFD
+> menu) and MFD_CORE.  This allows other drivers to select MFD_CORE
+> without needing to also select MFD_SUPPORT, which fixes some
+> kconfig unmet dependency warnings.  Modeled after I2C kconfig.
 > 
-> With the patched ehci-q.c, I see no noticeable difference between smp
-> and nosmp. Both get me around 23.5MB/s with my setup.
+> [Forward-ported to 3.1-rc4.  This fixes a warning when some drivers,
+> such as RADIO_WL1273, are selected, but MFD_SUPPORT is not. -- Luca]
 
-Oddly enough, this patch doesn't do anything on my Tegra setup. In both
-cases, I get around 17MB/s from a crap SD card plugged in a USB reader.
+I like the idea in general, this makes things much simpler.
 
-This leads me to suspect that this issue is very much OMAP4 specific.
-Can anyone verify this theory on other some A9 platforms?
+There is at least one issue with your current implementation though.
+"make oldconfig" has this to complain about:
 
-Cheers,
+drivers/mfd/Kconfig:5:error: recursive dependency detected!
+drivers/mfd/Kconfig:5:	symbol MFD_CORE is selected by OLPC_XO1_PM
+arch/x86/Kconfig:2028:	symbol OLPC_XO1_PM depends on MFD_CS5535
+drivers/mfd/Kconfig:613:	symbol MFD_CS5535 depends on MFD_CORE
 
-	M.
+Not sure if it is really caused by your patch or only revealed by it,
+but it should be fixed anyway. The following should fix it, please
+consider folding in your patch:
+
+--- linux-3.1-rc4.orig/arch/x86/Kconfig	2011-08-16 11:49:42.000000000 +0200
++++ linux-3.1-rc4/arch/x86/Kconfig	2011-08-31 16:54:09.000000000 +0200
+@@ -2028,7 +2028,6 @@ config OLPC
+ config OLPC_XO1_PM
+ 	bool "OLPC XO-1 Power Management"
+ 	depends on OLPC && MFD_CS5535 && PM_SLEEP
+-	select MFD_CORE
+ 	---help---
+ 	  Add support for poweroff and suspend of the OLPC XO-1 laptop.
+ 
+@@ -2044,7 +2043,6 @@ config OLPC_XO1_SCI
+ 	depends on OLPC && OLPC_XO1_PM
+ 	select POWER_SUPPLY
+ 	select GPIO_CS5535
+-	select MFD_CORE
+ 	---help---
+ 	  Add support for SCI-based features of the OLPC XO-1 laptop:
+ 	   - EC-driven system wakeups
+
+> 
+> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> Reported-by: Johannes Berg <johannes@sipsolutions.net>
+> Cc: Jean Delvare <khali@linux-fr.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Signed-off-by: Luciano Coelho <coelho@ti.com>
+> ---
+> 
+> I guess this should fix the problem.  I've simple forward-ported
+> Randy's patch to the latest mainline kernel.  I don't know via which
+> tree this should go in, though.
+
+Samuel Ortiz is the maintainer of the mfd subsystem, so his tree would
+be an obvious choice.
+
+> NOTE: I have *not* tested this very thoroughly.  But at least
+> omap2plus stuff seems to work okay with this change.  MFD_SUPPORT is
+> also selected by a couple of "tile" platforms defconfigs, but I guess
+> the Kconfig system should take care of it.
+
+I can't test it either, but it looks sane to me. If you merge the
+proposed changes above, you can add:
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
 -- 
-Jazz is not dead. It just smells funny...
+Jean Delvare
