@@ -1,112 +1,51 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 7/8] OMAP: DSS2: DISPC: improve dispc_mgr_enable_digit_out()
-Date: Wed, 31 Aug 2011 16:21:47 +0300
-Message-ID: <1314796908-17354-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 8/8] OMAP: DSS2: HDMI: fix hdmi output enable
+Date: Wed, 31 Aug 2011 16:21:48 +0300
+Message-ID: <1314796908-17354-9-git-send-email-tomi.valkeinen@ti.com>
 References: <1314796908-17354-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:53325 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755581Ab1HaNWR (ORCPT
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:37074 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755693Ab1HaNWS (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Aug 2011 09:22:17 -0400
+	Wed, 31 Aug 2011 09:22:18 -0400
 In-Reply-To: <1314796908-17354-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, mythripk@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-dispc_mgr_enable_digit_out() didn't handle HDMI case very well.
+Enabling HDMI output often causes sync lost errors. The problem seems to
+go away if we first enable the HDMI output, and only then enable the
+DISPC output.
 
-Improve the function to use FRAMEDONETV interrupt to see when HDMI has
-been disabled.
+This will also fix the dispc's dispc_mgr_enable_digit_out(), as the code
+waits for two VSYNCs after enabling the output. If the HDMI output is
+disabled (as it was previously), there are no VSYNCs and
+dispc_mgr_enable_digit_out() will print timeout errors.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   49 +++++++++++++++++++++++----------------
- 1 files changed, 29 insertions(+), 20 deletions(-)
+ drivers/video/omap2/dss/hdmi.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 7f3d847..4af4bd4 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1924,11 +1924,16 @@ static void _enable_digit_out(bool enable)
- static void dispc_mgr_enable_digit_out(bool enable)
- {
- 	struct completion frame_done_completion;
--	int r;
-+	enum dss_hdmi_venc_clk_source_select src;
-+	int r, i;
-+	u32 irq_mask;
-+	int num_irqs;
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 504c507..d08096b 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -1184,10 +1184,10 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
+ 	dispc_set_digit_size(dssdev->panel.timings.x_res,
+ 			dssdev->panel.timings.y_res);
  
- 	if (REG_GET(DISPC_CONTROL, 1, 1) == enable)
- 		return;
- 
-+	src = dss_get_hdmi_venc_clk_source();
-+
- 	if (enable) {
- 		unsigned long flags;
- 		/* When we enable digit output, we'll get an extra digit
-@@ -1945,36 +1950,40 @@ static void dispc_mgr_enable_digit_out(bool enable)
- 	 * wait for the extra sync losts */
- 	init_completion(&frame_done_completion);
- 
-+	if (src == DSS_HDMI_M_PCLK && enable == false) {
-+		irq_mask = DISPC_IRQ_FRAMEDONETV;
-+		num_irqs = 1;
-+	} else {
-+		irq_mask = DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD;
-+		/* XXX I understand from TRM that we should only wait for the
-+		 * current field to complete. But it seems we have to wait for
-+		 * both fields */
-+		num_irqs = 2;
-+	}
-+
- 	r = omap_dispc_register_isr(dispc_disable_isr, &frame_done_completion,
--			DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD);
-+			irq_mask);
- 	if (r)
--		DSSERR("failed to register EVSYNC isr\n");
-+		DSSERR("failed to register %x isr\n", irq_mask);
- 
- 	_enable_digit_out(enable);
- 
--	/* XXX I understand from TRM that we should only wait for the
--	 * current field to complete. But it seems we have to wait
--	 * for both fields */
--	if (!wait_for_completion_timeout(&frame_done_completion,
--				msecs_to_jiffies(100)))
--		DSSERR("timeout waiting for EVSYNC\n");
+-	dispc_mgr_enable(OMAP_DSS_CHANNEL_DIGIT, 1);
 -
--	if (!wait_for_completion_timeout(&frame_done_completion,
--				msecs_to_jiffies(100)))
--		DSSERR("timeout waiting for EVSYNC\n");
-+	for (i = 0; i < num_irqs; ++i) {
-+		if (!wait_for_completion_timeout(&frame_done_completion,
-+					msecs_to_jiffies(100)))
-+			DSSERR("timeout waiting for digit out to %s\n",
-+					enable ? "start" : "stop");
-+	}
+ 	hdmi_wp_video_start(1);
  
--	r = omap_dispc_unregister_isr(dispc_disable_isr,
--			&frame_done_completion,
--			DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD);
-+	r = omap_dispc_unregister_isr(dispc_disable_isr, &frame_done_completion,
-+			irq_mask);
- 	if (r)
--		DSSERR("failed to unregister EVSYNC isr\n");
-+		DSSERR("failed to unregister %x isr\n", irq_mask);
- 
- 	if (enable) {
- 		unsigned long flags;
- 		spin_lock_irqsave(&dispc.irq_lock, flags);
--		dispc.irq_error_mask = DISPC_IRQ_MASK_ERROR;
--		if (dss_has_feature(FEAT_MGR_LCD2))
--			dispc.irq_error_mask |= DISPC_IRQ_SYNC_LOST2;
-+		dispc.irq_error_mask |= DISPC_IRQ_SYNC_LOST_DIGIT;
- 		dispc_write_reg(DISPC_IRQSTATUS, DISPC_IRQ_SYNC_LOST_DIGIT);
- 		_omap_dispc_set_irqs();
- 		spin_unlock_irqrestore(&dispc.irq_lock, flags);
++	dispc_mgr_enable(OMAP_DSS_CHANNEL_DIGIT, 1);
++
+ 	return 0;
+ err:
+ 	hdmi_runtime_put();
 -- 
 1.7.4.1
 
