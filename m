@@ -1,194 +1,171 @@
 From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: [PATCH 13/14] omap: mcbsp: Start generalize omap2_mcbsp_set_clks_src
-Date: Wed, 31 Aug 2011 18:23:00 +0300
-Message-ID: <1314804181-17260-14-git-send-email-jarkko.nikula@bitmer.com>
+Subject: [PATCH 14/14] omap: mcbsp: Start generalize signal muxing functions
+Date: Wed, 31 Aug 2011 18:23:01 +0300
+Message-ID: <1314804181-17260-15-git-send-email-jarkko.nikula@bitmer.com>
 References: <1314804181-17260-1-git-send-email-jarkko.nikula@bitmer.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:36928 "EHLO bitmer.com"
+Received: from bitmer.com ([213.157.87.50]:36931 "EHLO bitmer.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756618Ab1HaPlq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Aug 2011 11:41:46 -0400
+	id S1756646Ab1HaPlu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Aug 2011 11:41:50 -0400
 In-Reply-To: <1314804181-17260-1-git-send-email-jarkko.nikula@bitmer.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-This generalizes the omap2_mcbsp_set_clks_src implementation between generic
-McBSP and OMAP2 specific McBSP code. Currently this function is used to
-select either internal fclk or clks pin as a McBSP CLKS source on OMAP2+.
+This generalizes the omap2_mcbsp1_mux_clkr_src and omap2_mcbsp1_mux_fsr_src
+implementation between generic McBSP and OMAP2 specific McBSP code. These
+functions are used to select source for CLKR and FSR signals on OMAP2+.
 
-Implement generalization by having an optional set_clk_src function pointer
-in platform data that is used to select parent for a given clock. Idea is to
-pass higher level source clock name (later coming from client driver) that
-platform specific code will map to platform specific clock name.
-
-API cleanup between McBSP and client code comes later.
+Start generalizing the code by implementing an optional mux_signal function
+pointer in platform data that will implement the actual muxing and which is
+called now from omap2_mcbsp1_mux_clkr_src and omap2_mcbsp1_mux_fsr_src.
+These functions are to be removed later and cleanup the API so that
+mux_signal gets its arguments directly from client code.
 
 Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- arch/arm/mach-omap2/mcbsp.c             |   25 ++++++++---------------
- arch/arm/plat-omap/include/plat/mcbsp.h |    5 +---
- arch/arm/plat-omap/mcbsp.c              |   33 +++++++++++++++++++++++-------
- 3 files changed, 35 insertions(+), 28 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c             |   43 +++++++++++++++++-------------
+ arch/arm/plat-omap/include/plat/mcbsp.h |    1 +
+ arch/arm/plat-omap/mcbsp.c              |   36 ++++++++++++++++++++------
+ 3 files changed, 53 insertions(+), 27 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index bc51424..8a534b9 100644
+index 8a534b9..9c3c51e 100644
 --- a/arch/arm/mach-omap2/mcbsp.c
 +++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -63,37 +63,30 @@ void omap2_mcbsp1_mux_fsr_src(u8 mux)
- EXPORT_SYMBOL(omap2_mcbsp1_mux_fsr_src);
+@@ -34,33 +34,36 @@
+ #include "cm2xxx_3xxx.h"
+ #include "cm-regbits-34xx.h"
  
- /* McBSP CLKS source switching function */
+-/* McBSP internal signal muxing functions */
 -
--int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
-+static int omap2_mcbsp_set_clk_src(struct device *dev, struct clk *clk,
+-void omap2_mcbsp1_mux_clkr_src(u8 mux)
++/* McBSP internal signal muxing function */
++static int omap2_mcbsp1_mux_rx_clk(struct device *dev, const char *signal,
 +				   const char *src)
  {
--	struct omap_mcbsp *mcbsp;
- 	struct clk *fck_src;
- 	char *fck_src_name;
- 	int r;
+ 	u32 v;
  
--	if (!omap_mcbsp_check_valid_id(id)) {
--		pr_err("%s: Invalid id (%d)\n", __func__, id + 1);
--		return -EINVAL;
--	}
--	mcbsp = id_to_mcbsp_ptr(id);
--
--	if (fck_src_id == MCBSP_CLKS_PAD_SRC)
-+	if (!strcmp(src, "clks_ext"))
- 		fck_src_name = "pad_fck";
--	else if (fck_src_id == MCBSP_CLKS_PRCM_SRC)
-+	else if (!strcmp(src, "clks_fclk"))
- 		fck_src_name = "prcm_fck";
- 	else
- 		return -EINVAL;
+ 	v = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
+-	if (mux == CLKR_SRC_CLKR)
+-		v &= ~OMAP2_MCBSP1_CLKR_MASK;
+-	else if (mux == CLKR_SRC_CLKX)
+-		v |= OMAP2_MCBSP1_CLKR_MASK;
+-	omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
+-}
+-EXPORT_SYMBOL(omap2_mcbsp1_mux_clkr_src);
  
--	fck_src = clk_get(mcbsp->dev, fck_src_name);
-+	fck_src = clk_get(dev, fck_src_name);
- 	if (IS_ERR_OR_NULL(fck_src)) {
- 		pr_err("omap-mcbsp: %s: could not clk_get() %s\n", "clks",
- 		       fck_src_name);
- 		return -EINVAL;
- 	}
+-void omap2_mcbsp1_mux_fsr_src(u8 mux)
+-{
+-	u32 v;
++	if (!strcmp(signal, "clkr")) {
++		if (!strcmp(src, "clkr"))
++			v &= ~OMAP2_MCBSP1_CLKR_MASK;
++		else if (!strcmp(src, "clkx"))
++			v |= OMAP2_MCBSP1_CLKR_MASK;
++		else
++			return -EINVAL;
++	} else if (!strcmp(signal, "fsr")) {
++		if (!strcmp(src, "fsr"))
++			v &= ~OMAP2_MCBSP1_FSR_MASK;
++		else if (!strcmp(src, "fsx"))
++			v |= OMAP2_MCBSP1_FSR_MASK;
++		else
++			return -EINVAL;
++	} else {
++		return -EINVAL;
++	}
  
--	pm_runtime_put_sync(mcbsp->dev);
-+	pm_runtime_put_sync(dev);
- 
--	r = clk_set_parent(mcbsp->fclk, fck_src);
-+	r = clk_set_parent(clk, fck_src);
- 	if (IS_ERR_VALUE(r)) {
- 		pr_err("omap-mcbsp: %s: could not clk_set_parent() to %s\n",
- 		       "clks", fck_src_name);
-@@ -101,13 +94,12 @@ int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
- 		return -EINVAL;
- 	}
- 
--	pm_runtime_get_sync(mcbsp->dev);
-+	pm_runtime_get_sync(dev);
- 
- 	clk_put(fck_src);
- 
- 	return 0;
+-	v = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
+-	if (mux == FSR_SRC_FSR)
+-		v &= ~OMAP2_MCBSP1_FSR_MASK;
+-	else if (mux == FSR_SRC_FSX)
+-		v |= OMAP2_MCBSP1_FSR_MASK;
+ 	omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
++
++	return 0;
  }
--EXPORT_SYMBOL(omap2_mcbsp_set_clks_src);
+-EXPORT_SYMBOL(omap2_mcbsp1_mux_fsr_src);
  
- static int omap3_enable_st_clock(unsigned int id, bool enable)
- {
-@@ -188,6 +180,7 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
- 					name, oh->name);
+ /* McBSP CLKS source switching function */
+ static int omap2_mcbsp_set_clk_src(struct device *dev, struct clk *clk,
+@@ -181,6 +184,8 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
  		return PTR_ERR(od);
  	}
-+	pdata->set_clk_src = omap2_mcbsp_set_clk_src;
+ 	pdata->set_clk_src = omap2_mcbsp_set_clk_src;
++	if (id == 1)
++		pdata->mux_signal = omap2_mcbsp1_mux_rx_clk;
  	omap_mcbsp_count++;
  	return 0;
  }
 diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index af5824a..c8ebfc9 100644
+index c8ebfc9..8fa74e2 100644
 --- a/arch/arm/plat-omap/include/plat/mcbsp.h
 +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -296,7 +296,6 @@ typedef enum {
- struct omap_mcbsp_ops {
- 	void (*request)(unsigned int);
- 	void (*free)(unsigned int);
--	int (*set_clks_src)(u8, u8);
- };
- 
- struct omap_mcbsp_platform_data {
-@@ -309,6 +308,7 @@ struct omap_mcbsp_platform_data {
- 	bool has_wakeup; /* Wakeup capability */
+@@ -309,6 +309,7 @@ struct omap_mcbsp_platform_data {
  	bool has_ccr; /* Transceiver has configuration control registers */
  	int (*enable_st_clock)(unsigned int, bool);
-+	int (*set_clk_src)(struct device *dev, struct clk *clk, const char *src);
+ 	int (*set_clk_src)(struct device *dev, struct clk *clk, const char *src);
++	int (*mux_signal)(struct device *dev, const char *signal, const char *src);
  };
  
  struct omap_mcbsp_st_data {
-@@ -359,9 +359,6 @@ struct omap_mcbsp_dev_attr {
- extern struct omap_mcbsp **mcbsp_ptr;
- extern int omap_mcbsp_count;
- 
--#define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
--#define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
--
- int omap_mcbsp_init(void);
- void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config);
- void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold);
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index f92227f..38b67d9 100644
+index 38b67d9..4b15cd7 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -29,6 +29,9 @@
- struct omap_mcbsp **mcbsp_ptr;
- int omap_mcbsp_count;
- 
-+#define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
-+#define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
-+
- static void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
- {
- 	void __iomem *addr = mcbsp->io_base + reg * mcbsp->pdata->reg_step;
-@@ -894,18 +897,32 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
+@@ -922,21 +922,41 @@ int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
  }
- EXPORT_SYMBOL(omap_mcbsp_stop);
+ EXPORT_SYMBOL(omap2_mcbsp_set_clks_src);
  
--/*
-- * The following functions are only required on an OMAP1-only build.
-- * mach-omap2/mcbsp.c contains the real functions
-- */
 -#ifndef CONFIG_ARCH_OMAP2PLUS
- int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
+ void omap2_mcbsp1_mux_clkr_src(u8 mux)
  {
 -	WARN(1, "%s: should never be called on an OMAP1-only kernel\n",
 -	     __func__);
--	return -EINVAL;
+-	return;
 +	struct omap_mcbsp *mcbsp;
 +	const char *src;
 +
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		pr_err("%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -EINVAL;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	if (fck_src_id == MCBSP_CLKS_PAD_SRC)
-+		src = "clks_ext";
-+	else if (fck_src_id == MCBSP_CLKS_PRCM_SRC)
-+		src = "clks_fclk";
++	if (mux == CLKR_SRC_CLKR)
++		src = "clkr";
++	else if (mux == CLKR_SRC_CLKX)
++		src = "clkx";
 +	else
-+		return -EINVAL;
++		return;
 +
-+	if (mcbsp->pdata->set_clk_src)
-+		return mcbsp->pdata->set_clk_src(mcbsp->dev, mcbsp->fclk, src);
-+	else
-+		return -EINVAL;
++	mcbsp = id_to_mcbsp_ptr(0);
++	if (mcbsp->pdata->mux_signal)
++		mcbsp->pdata->mux_signal(mcbsp->dev, "clkr", src);
  }
-+EXPORT_SYMBOL(omap2_mcbsp_set_clks_src);
++EXPORT_SYMBOL(omap2_mcbsp1_mux_clkr_src);
  
-+#ifndef CONFIG_ARCH_OMAP2PLUS
- void omap2_mcbsp1_mux_clkr_src(u8 mux)
+ void omap2_mcbsp1_mux_fsr_src(u8 mux)
  {
- 	WARN(1, "%s: should never be called on an OMAP1-only kernel\n",
+-	WARN(1, "%s: should never be called on an OMAP1-only kernel\n",
+-	     __func__);
+-	return;
++	struct omap_mcbsp *mcbsp;
++	const char *src;
++
++	if (mux == FSR_SRC_FSR)
++		src = "fsr";
++	else if (mux == FSR_SRC_FSX)
++		src = "fsx";
++	else
++		return;
++
++	mcbsp = id_to_mcbsp_ptr(0);
++	if (mcbsp->pdata->mux_signal)
++		mcbsp->pdata->mux_signal(mcbsp->dev, "fsr", src);
+ }
+-#endif
++EXPORT_SYMBOL(omap2_mcbsp1_mux_fsr_src);
+ 
+ #define max_thres(m)			(mcbsp->pdata->buffer_size)
+ #define valid_threshold(m, val)		((val) <= max_thres(m))
 -- 
 1.7.5.4
 
