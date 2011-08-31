@@ -1,111 +1,121 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/6 V4] OMAP4: Adding the temperature sensor register set bit fields
-Date: Wed, 31 Aug 2011 22:55:06 +0530
-Message-ID: <1314811510-15595-3-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 4/6 V4] OMAP4: Hwmod: OMAP temperature sensor
+Date: Wed, 31 Aug 2011 22:55:08 +0530
+Message-ID: <1314811510-15595-5-git-send-email-j-keerthy@ti.com>
 References: <1314811510-15595-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40348 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40350 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756894Ab1HaRZ1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Aug 2011 13:25:27 -0400
+	id S1756915Ab1HaRZ2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Aug 2011 13:25:28 -0400
 In-Reply-To: <1314811510-15595-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Keerthy <j-keerthy@ti.com>, tony@atomide.com
+Cc: Benoit Cousson <b-cousson@ti.com>, Keerthy <j-keerthy@ti.com>, tony@atomide.com
 
-OMAP4460 specific temperature sensor register bit fields are added.
-Existing OMAP4 entries are renamed to OMAP4430.
+From: Benoit Cousson <b-cousson@ti.com>
 
+OMAP4460 temperature sensor hwmod cannot be auto generated
+since it is part of ctrl module. Hence populating the
+necessary hwmod info manually.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 Cc: tony@atomide.com
+Cc: b-cousson@ti.com
 ---
- .../include/mach/ctrl_module_core_44xx.h           |   70 ++++++++++++++++----
- 1 files changed, 57 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   61 ++++++++++++++++++++++++++++
+ 1 files changed, 61 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-index 2f7ac70..725c1e1 100644
---- a/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-+++ b/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-@@ -256,19 +256,63 @@
- #define OMAP4_LDOSRAMCORE_ACTMODE_VSET_OUT_SHIFT	0
- #define OMAP4_LDOSRAMCORE_ACTMODE_VSET_OUT_MASK		(0x1f << 0)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 6201422..28bf6d3 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -29,6 +29,7 @@
+ #include <plat/mcbsp.h>
+ #include <plat/mmc.h>
+ #include <plat/i2c.h>
++#include <plat/temperature_sensor.h>
  
--/* TEMP_SENSOR */
--#define OMAP4_BGAP_TEMPSOFF_SHIFT			12
--#define OMAP4_BGAP_TEMPSOFF_MASK			(1 << 12)
--#define OMAP4_BGAP_TSHUT_SHIFT				11
--#define OMAP4_BGAP_TSHUT_MASK				(1 << 11)
--#define OMAP4_BGAP_TEMP_SENSOR_CONTCONV_SHIFT		10
--#define OMAP4_BGAP_TEMP_SENSOR_CONTCONV_MASK		(1 << 10)
--#define OMAP4_BGAP_TEMP_SENSOR_SOC_SHIFT		9
--#define OMAP4_BGAP_TEMP_SENSOR_SOC_MASK			(1 << 9)
--#define OMAP4_BGAP_TEMP_SENSOR_EOCZ_SHIFT		8
--#define OMAP4_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 8)
--#define OMAP4_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
--#define OMAP4_BGAP_TEMP_SENSOR_DTEMP_MASK		(0xff << 0)
-+/* TEMP_SENSOR OMAP4430 */
-+#define OMAP4430_BGAP_TEMPSOFF_SHIFT			12
-+#define OMAP4430_BGAP_TEMPSOFF_MASK			(1 << 12)
-+#define OMAP4430_BGAP_TSHUT_SHIFT				11
-+#define OMAP4430_BGAP_TSHUT_MASK				(1 << 11)
-+#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_SHIFT		10
-+#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_MASK		(1 << 10)
-+#define OMAP4430_BGAP_TEMP_SENSOR_SOC_SHIFT		9
-+#define OMAP4430_BGAP_TEMP_SENSOR_SOC_MASK			(1 << 9)
-+#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_SHIFT		8
-+#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 8)
-+#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
-+#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
-+
-+/* TEMP_SENSOR OMAP4460 */
-+#define OMAP4460_BGAP_TEMPSOFF_SHIFT			13
-+#define OMAP4460_BGAP_TEMPSOFF_MASK			(1 << 13)
-+#define OMAP4460_BGAP_TEMP_SENSOR_SOC_SHIFT		11
-+#define OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK		(1 << 11)
-+#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_SHIFT		10
-+#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 10)
-+#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
-+#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
-+
-+/* BANDGAP_CTRL */
-+#define OMAP4460_SINGLE_MODE_SHIFT			31
-+#define OMAP4460_SINGLE_MODE_MASK			(1 << 31)
-+#define OMAP4460_MASK_HOT_SHIFT				1
-+#define OMAP4460_MASK_HOT_MASK				(1 << 1)
-+#define OMAP4460_MASK_COLD_SHIFT			0
-+#define OMAP4460_MASK_COLD_MASK				(1 << 0)
-+
-+/* BANDGAP_COUNTER */
-+#define OMAP4460_COUNTER_SHIFT				0
-+#define OMAP4460_COUNTER_MASK				(0xffffff << 0)
-+
-+/* BANDGAP_THRESHOLD */
-+#define OMAP4460_T_HOT_SHIFT				16
-+#define OMAP4460_T_HOT_MASK				(0x3ff << 16)
-+#define OMAP4460_T_COLD_SHIFT				0
-+#define OMAP4460_T_COLD_MASK				(0x3ff << 0)
-+
-+/* TSHUT_THRESHOLD */
-+#define OMAP4460_TSHUT_HOT_SHIFT			16
-+#define OMAP4460_TSHUT_HOT_MASK				(0x3ff << 16)
-+#define OMAP4460_TSHUT_COLD_SHIFT			0
-+#define OMAP4460_TSHUT_COLD_MASK			(0x3ff << 0)
-+
-+/* BANDGAP_STATUS */
-+#define OMAP4460_CLEAN_STOP_SHIFT			3
-+#define OMAP4460_CLEAN_STOP_MASK			(1 << 3)
-+#define OMAP4460_BGAP_ALERT_SHIFT			2
-+#define OMAP4460_BGAP_ALERT_MASK			(1 << 2)
-+#define OMAP4460_HOT_FLAG_SHIFT				1
-+#define OMAP4460_HOT_FLAG_MASK				(1 << 1)
-+#define OMAP4460_COLD_FLAG_SHIFT			0
-+#define OMAP4460_COLD_FLAG_MASK				(1 << 0)
+ #include "omap_hwmod_common_data.h"
  
- /* DPLL_NWELL_TRIM_0 */
- #define OMAP4_DPLL_ABE_NWELL_TRIM_MUX_CTRL_SHIFT	29
+@@ -832,6 +833,63 @@ static struct omap_hwmod omap44xx_aess_hwmod = {
+ };
+ 
+ /*
++ * 'temperature_sensor' class
++ * temperature sensor module inside the bandgap / control module
++ */
++
++static struct omap_hwmod_class omap44xx_temperature_sensor_hwmod_class = {
++	.name   = "temperature_sensor",
++};
++
++static struct omap_hwmod_irq_info omap44xx_temperature_sensor_irqs[] = {
++	{ .name = "thermal_alert", .irq = 126 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_temperature_sensor_addrs[] = {
++	{
++		.pa_start       = 0x4a00232c,
++		.pa_end         = 0x4a00238b,
++	},
++};
++
++static struct omap_hwmod omap44xx_temperature_sensor_hwmod;
++/* l4_cfg -> ctrl_module_core */
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__temperature_sensor = {
++	.master         = &omap44xx_l4_cfg_hwmod,
++	.slave          = &omap44xx_temperature_sensor_hwmod,
++	.clk            = "l4_div_ck",
++	.addr           = omap44xx_temperature_sensor_addrs,
++	.user           = OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* ctrl_module_core slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_temperature_sensor_slaves[] = {
++	&omap44xx_l4_cfg__temperature_sensor,
++};
++
++/* temperature sensor dev_attr */
++static struct omap_temp_sensor_dev_attr temp_sensor_dev_attr = {
++	.name	= "mpu",
++};
++
++static struct omap_hwmod omap44xx_temperature_sensor_hwmod = {
++	.name           = "temperature_sensor_mpu",
++	.class          = &omap44xx_temperature_sensor_hwmod_class,
++	.mpu_irqs       = omap44xx_temperature_sensor_irqs,
++	.main_clk       = "bandgap_ts_fclk",
++	.slaves		= omap44xx_temperature_sensor_slaves,
++	.slaves_cnt     = ARRAY_SIZE(omap44xx_temperature_sensor_slaves),
++	.clkdm_name     = "l4_wkup_clkdm",
++	.prcm           = {
++		.omap4 = {
++		.clkctrl_offs = OMAP4_CM_WKUP_BANDGAP_CLKCTRL_OFFSET,
++		},
++	},
++	.dev_attr	= &temp_sensor_dev_attr,
++	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/*
+  * 'bandgap' class
+  * bangap reference for ldo regulators
+  */
+@@ -5469,6 +5527,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_timer10_hwmod,
+ 	&omap44xx_timer11_hwmod,
+ 
++	/* temperature sensor hwmod */
++	&omap44xx_temperature_sensor_hwmod,
++
+ 	/* uart class */
+ 	&omap44xx_uart1_hwmod,
+ 	&omap44xx_uart2_hwmod,
 -- 
 1.7.0.4
 
