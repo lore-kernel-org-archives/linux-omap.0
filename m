@@ -1,25 +1,25 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 4/4] TEMP: OMAP3: beagle rev-c4: enable OPP6
-Date: Wed, 31 Aug 2011 18:11:18 +0300
-Message-ID: <1314803478-15634-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 3/4] omap: smps: add smps regulator init to voltage.c
+Date: Wed, 31 Aug 2011 18:11:17 +0300
+Message-ID: <1314803478-15634-4-git-send-email-t-kristo@ti.com>
 References: <1314803478-15634-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60497 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53057 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756574Ab1HaPLv convert rfc822-to-8bit (ORCPT
+	id S1756567Ab1HaPLv convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Aug 2011 11:11:51 -0400
 Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7VFBpKs011596
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7VFBoh1024166
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 31 Aug 2011 10:11:51 -0500
+	for <linux-omap@vger.kernel.org>; Wed, 31 Aug 2011 10:11:50 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p7VFBpdd025337
-	for <linux-omap@vger.kernel.org>; Wed, 31 Aug 2011 10:11:51 -0500 (CDT)
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p7VFBo1T025334
+	for <linux-omap@vger.kernel.org>; Wed, 31 Aug 2011 10:11:50 -0500 (CDT)
 Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7VFBm4G023878
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7VFBm4F023878
 	for <linux-omap@vger.kernel.org>; Wed, 31 Aug 2011 10:11:50 -0500 (CDT)
 Content-Class: urn:content-classes:message
 In-Reply-To: <1314803478-15634-1-git-send-email-t-kristo@ti.com>
@@ -27,76 +27,130 @@ Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can run at 720MHz.
+All voltagedomains that have support for vc and vp are now automatically
+registered with SMPS regulator driver. Voltage.c builds a platform device
+structure for this purpose during late init.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |   29 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/opp3xxx_data.c      |    4 ++++
- 2 files changed, 33 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/voltage.c |   81 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 81 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 32f5f89..b07af4f 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -489,6 +489,35 @@ static void __init beagle_opp_init(void)
- 		return;
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index cebc8b1..30102a4 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -25,6 +25,9 @@
+ #include <linux/debugfs.h>
+ #include <linux/slab.h>
+ #include <linux/clk.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/machine.h>
++#include <linux/regulator/omap-smps.h>
+ 
+ #include <plat/common.h>
+ 
+@@ -238,6 +241,42 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+ 	}
+ }
+ 
++static void smps_add_regulator_info(struct platform_device *smps_dev,
++			       struct voltagedomain *voltdm)
++{
++	struct omap_smps_platform_data *info;
++	struct regulator_init_data *init_data;
++	struct regulator_consumer_supply *supply;
++
++	if (!smps_dev || !voltdm)
++		return;
++
++	info = smps_dev->dev.platform_data;
++
++	init_data = kzalloc(sizeof(struct regulator_init_data), GFP_KERNEL);
++	supply = kzalloc(sizeof(struct regulator_consumer_supply), GFP_KERNEL);
++
++	if (!init_data || !supply) {
++		kfree(init_data);
++		kfree(supply);
++		return;
++	}
++	supply->supply = "vcc";
++	supply->dev_name = voltdm->proc_dev;
++	init_data->constraints.min_uV =
++		voltdm->pmic->vsel_to_uv(voltdm->pmic->vp_vddmin);
++	init_data->constraints.max_uV =
++		voltdm->pmic->vsel_to_uv(voltdm->pmic->vp_vddmax);
++	init_data->constraints.valid_modes_mask = REGULATOR_MODE_NORMAL;
++	init_data->constraints.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE;
++	init_data->num_consumer_supplies = 1;
++	init_data->consumer_supplies = supply;
++	init_data->driver_data = voltdm;
++
++	info->regulators[info->num_regulators++] = init_data;
++}
++
++
+ /**
+  * omap_voltage_late_init() - Init the various voltage parameters
+  *
+@@ -248,6 +287,11 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+ int __init omap_voltage_late_init(void)
+ {
+ 	struct voltagedomain *voltdm;
++	struct platform_device *smps_dev;
++	struct omap_smps_platform_data *smps_pdata;
++	struct regulator_init_data **reg_list;
++	int num_smps = 0;
++	int ret;
+ 
+ 	if (list_empty(&voltdm_list)) {
+ 		pr_err("%s: Voltage driver support not added\n",
+@@ -279,8 +323,45 @@ int __init omap_voltage_late_init(void)
+ 			voltdm->scale = omap_vp_forceupdate_scale;
+ 			omap_vp_init(voltdm);
+ 		}
++
++		if (voltdm->vc && voltdm->vp)
++			num_smps++;
  	}
  
-+	if (omap3_beagle_version == OMAP3BEAGLE_BOARD_C4) {
-+		struct device *mpu_dev, *iva_dev;
++	if (num_smps) {
++		smps_dev = platform_device_alloc("omap-smps", -1);
 +
-+		mpu_dev = omap2_get_mpuss_device();
-+		iva_dev = omap2_get_iva_device();
++		if (!smps_dev)
++			return -ENOMEM;
 +
-+		if (!mpu_dev || !iva_dev) {
-+			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
-+				__func__, mpu_dev, iva_dev);
-+			return;
++		smps_pdata = kzalloc(sizeof(struct omap_smps_platform_data),
++			GFP_KERNEL);
++		reg_list = kzalloc(sizeof(void *) * num_smps, GFP_KERNEL);
++
++		if (!smps_pdata || !reg_list) {
++			kfree(smps_pdata);
++			kfree(reg_list);
++			return -ENOMEM;
 +		}
-+		/* Enable MPU 720MHz opp */
-+		r = opp_enable(mpu_dev, 720000000);
 +
-+		/* Enable IVA 520MHz opp */
-+		r |= opp_enable(iva_dev, 520000000);
++		smps_pdata->regulators = reg_list;
 +
-+		if (r) {
-+			pr_err("%s: failed to enable higher opp %d\n",
-+				__func__, r);
-+			/*
-+			 * Cleanup - disable the higher freqs - we dont care
-+			 * about the results
-+			 */
-+			opp_disable(mpu_dev, 720000000);
-+			opp_disable(iva_dev, 520000000);
++		ret = platform_device_add_data(smps_dev, smps_pdata,
++			sizeof(struct omap_smps_platform_data));
++
++		if (ret) {
++			kfree(smps_pdata);
++			kfree(reg_list);
++			platform_device_put(smps_dev);
++			return ret;
 +		}
++
++		list_for_each_entry(voltdm, &voltdm_list, node)
++			if (voltdm->vp && voltdm->vc)
++				smps_add_regulator_info(smps_dev, voltdm);
++
++		platform_device_add(smps_dev);
 +	}
-+
- 	/* Custom OPP enabled for all xM versions */
- 	if (cpu_is_omap3630()) {
- 		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index d95f3f9..a0f5fe1 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -98,6 +98,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* MPU OPP5 */
- 	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* MPU OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("mpu", false, 720000000, OMAP3430_VDD_MPU_OPP5_UV),
+ 	return 0;
+ }
  
- 	/*
- 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-@@ -123,6 +125,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* DSP OPP5 */
- 	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* DSP OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("iva", false, 520000000, OMAP3430_VDD_MPU_OPP5_UV),
- };
- 
- static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
 -- 
 1.7.4.1
 
