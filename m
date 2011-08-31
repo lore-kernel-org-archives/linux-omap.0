@@ -1,214 +1,143 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v6 00/25] gpio/omap: driver cleanup and fixes
-Date: Wed, 31 Aug 2011 19:12:16 +0530
-Message-ID: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v6 02/25] gpio/omap: use flag to identify wakeup domain
+Date: Wed, 31 Aug 2011 19:12:18 +0530
+Message-ID: <1314798161-19523-3-git-send-email-tarun.kanti@ti.com>
+References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41530 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41550 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755464Ab1HaNnK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Aug 2011 09:43:10 -0400
+	id S1755464Ab1HaNnS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Aug 2011 09:43:18 -0400
+In-Reply-To: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-This series is continuation of cleanup of OMAP GPIO driver and fixes.
-The cleanup include getting rid of cpu_is_* checks wherever possible,
-use of gpio_bank list instead of static array, use of unique platform
-specific value associated data member to OMAP platforms to avoid
-cpu_is_* checks. The series also include PM runtime support.*
+From: Charulatha V <charu@ti.com>
 
-Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-Branch: master
-Commit: c6a389f  Linux 3.1-rc4 
+In omap3, save/restore context is implemented for GPIO banks 2-6 as GPIO bank1
+is in wakeup domain. Instead of identifying bank's power domain by bank id,
+use 'loses_context' flag which is filled by pwrdm_can_ever_lose_context()
+during dev_init.
 
-Test Details:
-- Compile tested for omap1_defconfig and omap2plus_defconfig.
-- OMAP1710-H3: Bootup test pending due to non-availability of setup.
-  As soon as the setup is available I will boot test and intimate.
-- OMAP2430/SDP, OMAP3430/SDP, OMAP4430/SDP, OMAP4430/Blaze: Functional testing. 
-- PM Testing on OMAP3430-SDP: retention, off_mode, system_wide
-  suspend and gpio wakeup.
+For getting the powerdomain pointer, omap_hwmod_get_pwrdm() is used.
+omap_device_get_pwrdm() could not be used as the pwrdm information needs to be
+filled in pdata, whereas omap_device_get_pwrdm() could be used only after
+omap_device_build() call.
 
-v6:
-- Save and restore debounce registers for proper driver operation.
+Signed-off-by: Charulatha V <charu@ti.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/gpio.c             |    6 ++++++
+ arch/arm/plat-omap/include/plat/gpio.h |    1 +
+ drivers/gpio/gpio-omap.c               |   13 ++++++-------
+ 3 files changed, 13 insertions(+), 7 deletions(-)
 
-- Restore interrupt enable after all configuration to avoid spurious interrupts.
-
-- Restore dataout register before oe register.
-
-- Restore dataout into dataout_set or dataout based upon the OMAP version.
-
-- Change register name from wkup_status to wkup_en.
-
-- Remove wrapper around omap_pm_get_dev_context_loss_count(). Use it directly.
-  Also, changed the signature of get_context_loss_count in pdata and bank structure
-  from int to u32.
-  
-- Use 'context' instead of 'ctx' for clarity wherever it is used.
-
-- Merged two patches into one which are related to bank_is_mpuio() modification.
-
-- Use shift operator instead of following:
-+	.irqctrl	= OMAP_MPUIO_GPIO_INT_EDGE / 2,
-
-- Remove redundant check from the following
-+	if (bank_is_mpuio(bank)) {
-+		if (bank->regs->wkup_status) <--- redundant check
-+			mpuio_init(bank);
-
-- Change subject of following patch
-  [PATCH v5 15/22] gpio/omap: use readl in irq_handler for all access
-  into 
-  [PATCH 14/25] gpio/omap: remove unnecessary bit-masking for read access
-  
-- Fix multi-line comments in 
-  [PATCH v5 20/22] gpio/omap: cleanup prepare_for_idle and resume_after_idle
-
-
-v5:
-- Reduce runtime callback overhead when *_get/put_sync() called from probe()
-  and *_gpio_request/free().
-
-- Dynamic context save within functions where context is modified instead of
-  saving all context within a common function.
-
-- Removed call to mpuio_init() from omap_gpio_mod_init(). Both the functions are
-  called once during initialization in *_gpio_probe().
-  Call to omap_gpio_mod_init() has been removed from omap_gpio_request() on the
-  first access to gpio bank. One time initialization looks sufficient.
-
-- In *_gpio_irq_handler() use *_put_sync_suspend() instead of *_put_sync().
-
-- Removed hardcoding of OMAP16xx sysconfig register value and instead defined an
-  associated constant.
-
-- Removed *_get_sync() call from *_gpio_suspend() and *_put_sync() call from
-  *_gpio_resume(). They got wrongly slipped into the code.
-
-- Removed following redundant zero allocated initialization from mach-omap2/gpio.c
-+	pdata->regs->irqctrl = 0;
-+	pdata->regs->edgectrl1 = 0;
-+	pdata->regs->edgectrl2 = 0;
-
-- Removed following redundant code in gpio-omap.c
-  -#define bank_is_mpuio(bank)	((bank)->method == METHOD_MPUIO)
-
-v4:
-- since all accesses to registers are 4-byte aligned, removing special
-  checks and handling of 16 and 32-bit wide bank registers and instead
-  use 32-bit read/write access consistently.
-  
-- redundant usage of MOD_REG_BIT has been corrected and replaced with
-  _gpio_rmw().
-  
-- omap_gpio_mod_init() function has been simplified further using _gpio_rmw().
-
-- sysconfig register offset specific to omap16xx has been removed along
-  with its usage.
-
-- additional logic to skip from suspend/resume:
-  
-  if (!bank->regs->wkup_status || !bank->suspend_wakeup)
-  	return 0;
-  
-  if (!bank->regs->wkup_status || !bank->saved_wakeup)
-  	return 0;
-  	
-- separated mpuio related changes into a different patch from the patch where
-  wakeup status register related changes are done.
-
-- Incorrect replacement of !cpu_class_is_omap2() in gpio_irq_type()
-  corrected:
-+	if (!bank->regs->leveldetect0 &&
-+		(type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
+diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+index fb162fd..9f3a007 100644
+--- a/arch/arm/mach-omap2/gpio.c
++++ b/arch/arm/mach-omap2/gpio.c
+@@ -24,6 +24,8 @@
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
+ 
++#include "powerdomain.h"
++
+ static struct omap_device_pm_latency omap_gpio_latency[] = {
+ 	[0] = {
+ 		.deactivate_func = omap_device_idle_hwmods,
+@@ -39,6 +41,7 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
+ 	struct omap_gpio_dev_attr *dev_attr;
+ 	char *name = "omap_gpio";
+ 	int id;
++	struct powerdomain *pwrdm;
+ 
+ 	/*
+ 	 * extract the device id from name field available in the
+@@ -107,6 +110,9 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
  		return -EINVAL;
-
-v3:
-- Avoid use of wkup_set and wkup_clear registers. Instead use wkup_status
-  register for all platforms. This is because on OMAP4 it is recommended
-  not to use them.
-
-- Remove duplicate code in omap_gpio_mod_init() for handling the same for
-  32-bit and 16-bit GPIO bank widths. This is accomplished by having two
-  functions to handle each case while assiging a common function pointer
-  during initialization.
-  
-- Remove OMAP16xx specific one time initialization from omap_gpio_mod_init().
-  Move it inside omap16xx_gpio_init().
-
-- Avoid usage of USHRT_MAX to indicate undefined values. Use 0 instead.
-
-- In omap_gpio_suspend()/resume() functions remove code that checks
-  if the feature is supported. Instead, assign these functions to
-  struct platform_driver's suspend & resume function pointers for those
-  OMAP platforms whcih support this feature.
-
-- Remove 'suspend_support' flag because it is redundant. Instead use
-  wkup_* registers to decode the same information.
-
-- Restore context also when we don't know if the context is lost.
-
-- Make omap_gpio_save_context() and omap_gpio_restore_context()
-  static.
-
-v2:
-- Do special handling of non-wakeup GPIOs only on OMAP2420. Avoid this
-  handling on OMAP3430.
-- Isolate cleanups and fixes into separate set of patches. Keep the cleanup
-  first followed by the fixes.
-- Avoid calling omap_gpio_get_context_loss() directly and instead call it
-  through function pointer in pdata initialized during init.
-- workaround_enabled flag is not longer needed and is removed.
-- Call pwrdm_post_transition() before calling omap_gpio_resume_after_idle().
-- In omap2_gpio_resume_after_idle() do context restore before handling
-  workaround.
-- Use PM runtime framework.
-- Modify register offset names to : wkup_status, wkup_clear, wkup_set.
-  Also use 'base + offset' for readibility in all relevant places.
-- Remove unwanted messages from commit section like TODO, etc.
-
-Charulatha V (10):
-  gpio/omap: remove dependency on gpio_bank_count
-  gpio/omap: use flag to identify wakeup domain
-  gpio/omap: make gpio_context part of gpio_bank structure
-  gpio/omap: fix pwrdm_post_transition call sequence
-  gpio/omap: handle save/restore context in GPIO driver
-  gpio/omap: make non-wakeup GPIO part of pdata
-  gpio/omap: avoid cpu checks during module ena/disable
-  gpio/omap: use pinctrl offset instead of macro
-  gpio/omap: remove bank->method & METHOD_* macros
-  gpio/omap: fix bankwidth for OMAP7xx MPUIO
-
-Nishant Menon (1):
-  gpio/omap: save and restore debounce registers
-
-Nishanth Menon (3):
-  gpio/omap: enable irq at the end of all configuration in restore
-  gpio/omap: restore OE only after setting the output level
-  gpio/omap: handle set_dataout reg capable IP on restore
-
-Tarun Kanti DebBarma (11):
-  gpio/omap: further cleanup using wkup_en register
-  gpio/omap: use level/edge detect reg offsets
-  gpio/omap: remove hardcoded offsets in context save/restore
-  gpio/omap: cleanup set_gpio_triggering function
-  gpio/omap: cleanup omap_gpio_mod_init function
-  gpio/omap: remove unnecessary bit-masking for read access
-  gpio/omap: use pm-runtime framework
-  gpio/omap: optimize suspend and resume functions
-  gpio/omap: cleanup prepare_for_idle and resume_after_idle
-  gpio/omap: skip operations in runtime callbacks
-  gpio/omap: remove omap_gpio_save_context overhead
-
- arch/arm/mach-omap1/gpio15xx.c         |    7 +-
- arch/arm/mach-omap1/gpio16xx.c         |   47 ++-
- arch/arm/mach-omap1/gpio7xx.c          |   14 +-
- arch/arm/mach-omap2/gpio.c             |   36 +-
- arch/arm/mach-omap2/pm34xx.c           |   21 +-
- arch/arm/plat-omap/include/plat/gpio.h |   29 +-
- drivers/gpio/gpio-omap.c               | 1067 +++++++++++++-------------------
- 7 files changed, 530 insertions(+), 691 deletions(-)
+ 	}
+ 
++	pwrdm = omap_hwmod_get_pwrdm(oh);
++	pdata->loses_context = pwrdm_can_ever_lose_context(pwrdm);
++
+ 	od = omap_device_build(name, id - 1, oh, pdata,
+ 				sizeof(*pdata),	omap_gpio_latency,
+ 				ARRAY_SIZE(omap_gpio_latency),
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index dd330ed..58d0bf2 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -198,6 +198,7 @@ struct omap_gpio_platform_data {
+ 	int bank_width;		/* GPIO bank width */
+ 	int bank_stride;	/* Only needed for omap1 MPUIO */
+ 	bool dbck_flag;		/* dbck required or not - True for OMAP3&4 */
++	bool loses_context;	/* whether the bank would ever lose context */
+ 
+ 	struct omap_gpio_reg_offs *regs;
+ };
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 14fced1..9a160d4 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -56,6 +56,7 @@ struct gpio_bank {
+ 	u32 dbck_enable_mask;
+ 	struct device *dev;
+ 	bool dbck_flag;
++	bool loses_context;
+ 	int stride;
+ 	u32 width;
+ 	u16 id;
+@@ -1172,7 +1173,7 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	bank->dbck_flag = pdata->dbck_flag;
+ 	bank->stride = pdata->bank_stride;
+ 	bank->width = pdata->bank_width;
+-
++	bank->loses_context = pdata->loses_context;
+ 	bank->regs = pdata->regs;
+ 
+ 	if (bank->regs->set_dataout && bank->regs->clr_dataout)
+@@ -1328,8 +1329,7 @@ void omap2_gpio_prepare_for_idle(int off_mode)
+ 		u32 l1 = 0, l2 = 0;
+ 		int j;
+ 
+-		/* TODO: Do not use cpu_is_omap34xx */
+-		if ((cpu_is_omap34xx()) && (bank->id == 0))
++		if (!bank->loses_context)
+ 			continue;
+ 
+ 		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
+@@ -1396,8 +1396,7 @@ void omap2_gpio_resume_after_idle(void)
+ 		u32 l = 0, gen, gen0, gen1;
+ 		int j;
+ 
+-		/* TODO: Do not use cpu_is_omap34xx */
+-		if ((cpu_is_omap34xx()) && (bank->id == 0))
++		if (!bank->loses_context)
+ 			continue;
+ 
+ 		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
+@@ -1496,7 +1495,7 @@ void omap_gpio_save_context(void)
+ 	list_for_each_entry(bank, &omap_gpio_list, node) {
+ 		i++;
+ 
+-		if (bank->id == 0)
++		if (!bank->loses_context)
+ 			continue;
+ 
+ 		gpio_context[i].irqenable1 =
+@@ -1530,7 +1529,7 @@ void omap_gpio_restore_context(void)
+ 	list_for_each_entry(bank, &omap_gpio_list, node) {
+ 		i++;
+ 
+-		if (bank->id == 0)
++		if (!bank->loses_context)
+ 			continue;
+ 
+ 		__raw_writel(gpio_context[i].irqenable1,
+-- 
+1.7.0.4
 
