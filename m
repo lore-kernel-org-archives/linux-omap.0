@@ -1,130 +1,88 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 06/12] OMAP: DSS2: HDMI: split hdmi_core_ddc_edid
-Date: Wed, 31 Aug 2011 16:23:17 +0300
-Message-ID: <1314797003-17638-7-git-send-email-tomi.valkeinen@ti.com>
-References: <1314797003-17638-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 3/8] OMAP: DSS2: HDMI: change regn definition
+Date: Wed, 31 Aug 2011 16:21:43 +0300
+Message-ID: <1314796908-17354-4-git-send-email-tomi.valkeinen@ti.com>
+References: <1314796908-17354-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:45341 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755757Ab1HaNYA (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:44226 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755757Ab1HaNY0 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Aug 2011 09:24:00 -0400
-In-Reply-To: <1314797003-17638-1-git-send-email-tomi.valkeinen@ti.com>
+	Wed, 31 Aug 2011 09:24:26 -0400
+In-Reply-To: <1314796908-17354-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, mythripk@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Split the DDC initialization off from hdmi_core_ddc_edid() into a
-separate function hdmi_core_ddc_init().
+regn divider is currently programmed to the registers without change,
+but when calculating clock frequencies it is used as regn+1.
+
+To make this similar to how DSI handles the dividers this patch changes
+the regn value to be used as such for calculations, but the value
+programmed to registers is regn-1.
+
+This simplifies the clock frequency calculations, makes it similar to
+DSI, and also allows us to use regn value 0 as undefined.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/hdmi.c |   67 +++++++++++++++++++++++++++-------------
- 1 files changed, 45 insertions(+), 22 deletions(-)
+ drivers/video/omap2/dss/hdmi.c |    8 ++++----
+ include/video/omapdss.h        |    1 +
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index b5aca64..04ce105 100644
+index a3b3899..504c507 100644
 --- a/drivers/video/omap2/dss/hdmi.c
 +++ b/drivers/video/omap2/dss/hdmi.c
-@@ -366,12 +366,8 @@ static void hdmi_phy_off(void)
- 	hdmi_set_phy_pwr(HDMI_PHYPWRCMD_OFF);
- }
+@@ -43,7 +43,7 @@
+ #include "hdmi.h"
+ #include "dss_features.h"
  
--static int hdmi_core_ddc_edid(u8 *pedid, int ext)
-+static int hdmi_core_ddc_init(void)
- {
--	u32 i, j;
--	char checksum = 0;
--	u32 offset = 0;
--
- 	/* Turn on CLK for DDC */
- 	REG_FLD_MOD(HDMI_CORE_AV_DPD, 0x7, 2, 0);
+-#define HDMI_DEFAULT_REGN 15
++#define HDMI_DEFAULT_REGN 16
+ #define HDMI_DEFAULT_REGM2 1
  
-@@ -382,32 +378,55 @@ static int hdmi_core_ddc_edid(u8 *pedid, int ext)
+ static struct {
+@@ -208,7 +208,7 @@ static int hdmi_pll_init(enum hdmi_clk_refsel refsel, int dcofreq,
+ 
+ 	r = hdmi_read_reg(PLLCTRL_CFG1);
+ 	r = FLD_MOD(r, fmt->regm, 20, 9); /* CFG1_PLL_REGM */
+-	r = FLD_MOD(r, fmt->regn, 8, 1);  /* CFG1_PLL_REGN */
++	r = FLD_MOD(r, fmt->regn - 1, 8, 1);  /* CFG1_PLL_REGN */
+ 
+ 	hdmi_write_reg(PLLCTRL_CFG1, r);
+ 
+@@ -1084,7 +1084,7 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
+ 	else
+ 		pi->regn = dssdev->clocks.hdmi.regn;
+ 
+-	refclk = clkin / (pi->regn + 1);
++	refclk = clkin / pi->regn;
+ 
+ 	/*
+ 	 * multiplier is pixel_clk/ref_clk
+@@ -1110,7 +1110,7 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
+ 	 * is greater than 1000MHz
  	 */
- 	usleep_range(800, 1000);
+ 	pi->dcofreq = phy > 1000 * 100;
+-	pi->regsd = ((pi->regm * clkin / 10) / ((pi->regn + 1) * 250) + 5) / 10;
++	pi->regsd = ((pi->regm * clkin / 10) / (pi->regn * 250) + 5) / 10;
  
--	if (!ext) {
--		/* Clk SCL Devices */
--		REG_FLD_MOD(HDMI_CORE_DDC_CMD, 0xA, 3, 0);
-+	/* IN_PROG */
-+	if (REG_GET(HDMI_CORE_DDC_STATUS, 4, 4) == 1) {
-+		/* Abort transaction */
-+		REG_FLD_MOD(HDMI_CORE_DDC_CMD, 0xf, 3, 0);
+ 	DSSDBG("M = %d Mf = %d\n", pi->regm, pi->regmf);
+ 	DSSDBG("range = %d sd = %d\n", pi->dcofreq, pi->regsd);
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 9398dd3..534e3d1 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -460,6 +460,7 @@ struct omap_dss_device {
+ 		} dsi;
  
--		/* HDMI_CORE_DDC_STATUS_IN_PROG */
-+		/* IN_PROG */
- 		if (hdmi_wait_for_bit_change(HDMI_CORE_DDC_STATUS,
--						4, 4, 0) != 0) {
--			DSSERR("Failed to program DDC\n");
-+					4, 4, 0) != 0) {
-+			DSSERR("Timeout aborting DDC transaction\n");
- 			return -ETIMEDOUT;
- 		}
-+	}
- 
--		/* Clear FIFO */
--		REG_FLD_MOD(HDMI_CORE_DDC_CMD, 0x9, 3, 0);
-+	/* Clk SCL Devices */
-+	REG_FLD_MOD(HDMI_CORE_DDC_CMD, 0xA, 3, 0);
- 
--		/* HDMI_CORE_DDC_STATUS_IN_PROG */
--		if (hdmi_wait_for_bit_change(HDMI_CORE_DDC_STATUS,
--						4, 4, 0) != 0) {
--			DSSERR("Failed to program DDC\n");
--			return -ETIMEDOUT;
--		}
-+	/* HDMI_CORE_DDC_STATUS_IN_PROG */
-+	if (hdmi_wait_for_bit_change(HDMI_CORE_DDC_STATUS, 4, 4, 0) != 0) {
-+		DSSERR("Timeout starting SCL clock\n");
-+		return -ETIMEDOUT;
-+	}
- 
--	} else {
--		if (ext % 2 != 0)
--			offset = 0x80;
-+	/* Clear FIFO */
-+	REG_FLD_MOD(HDMI_CORE_DDC_CMD, 0x9, 3, 0);
-+
-+	/* HDMI_CORE_DDC_STATUS_IN_PROG */
-+	if (hdmi_wait_for_bit_change(HDMI_CORE_DDC_STATUS, 4, 4, 0) != 0) {
-+		DSSERR("Timeout clearing DDC fifo\n");
-+		return -ETIMEDOUT;
-+	}
-+
-+	return 0;
-+}
-+
-+static int hdmi_core_ddc_edid(u8 *pedid, int ext)
-+{
-+	u32 i, j;
-+	char checksum = 0;
-+	u32 offset = 0;
-+
-+	/* HDMI_CORE_DDC_STATUS_IN_PROG */
-+	if (hdmi_wait_for_bit_change(HDMI_CORE_DDC_STATUS, 4, 4, 0) != 0) {
-+		DSSERR("Timeout waiting DDC to be ready\n");
-+		return -ETIMEDOUT;
- 	}
- 
-+	if (ext % 2 != 0)
-+		offset = 0x80;
-+
- 	/* Load Segment Address Register */
- 	REG_FLD_MOD(HDMI_CORE_DDC_SEGM, ext/2, 7, 0);
- 
-@@ -468,6 +487,10 @@ static int read_edid(u8 *pedid, u16 max_length)
- 	int max_ext_blocks = (max_length / 128) - 1;
- 	int len;
- 
-+	r = hdmi_core_ddc_init();
-+	if (r)
-+		return r;
-+
- 	r = hdmi_core_ddc_edid(pedid, 0);
- 	if (r)
- 		return r;
+ 		struct {
++			/* regn is one greater than TRM's REGN value */
+ 			u16 regn;
+ 			u16 regm2;
+ 		} hdmi;
 -- 
 1.7.4.1
 
