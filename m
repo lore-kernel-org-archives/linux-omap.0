@@ -1,140 +1,112 @@
 From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: [PATCH 05/14] omap: mcbsp: Make wakeup control generic
-Date: Wed, 31 Aug 2011 18:22:52 +0300
-Message-ID: <1314804181-17260-6-git-send-email-jarkko.nikula@bitmer.com>
+Subject: [PATCH 01/14] omap: mcbsp: Remove omap device API
+Date: Wed, 31 Aug 2011 18:22:48 +0300
+Message-ID: <1314804181-17260-2-git-send-email-jarkko.nikula@bitmer.com>
 References: <1314804181-17260-1-git-send-email-jarkko.nikula@bitmer.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:53057 "EHLO bitmer.com"
+Received: from bitmer.com ([213.157.87.50]:53059 "EHLO bitmer.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756468Ab1HaPX1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1756451Ab1HaPX1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 31 Aug 2011 11:23:27 -0400
 In-Reply-To: <1314804181-17260-1-git-send-email-jarkko.nikula@bitmer.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, Jarkko Nikula <jhnikula@gmail.com>
 
-Currently wakeup control code is compiled only when CONFIG_ARCH_OMAP3 is
-set even it should be available for CONFIG_ARCH_OMAP4 only builds also.
+From: Jarkko Nikula <jhnikula@gmail.com>
 
-Fix this by making wakeup control generic so that it is executed whenever
-new feature flag has_wakeup in platform data is set. Currently flag is set
-for McBSP config types 3 and 4.
+struct omap_device *od is only set with find_omap_device_by_dev but not used
+otherwise so remove them and references to omap device API.
 
-Remove also old comments about idle mode settings and HW bug workarounds
-that were not updated during hwmod conversion.
-
-Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
 ---
- arch/arm/mach-omap2/mcbsp.c             |    3 ++
- arch/arm/plat-omap/include/plat/mcbsp.h |    3 ++
- arch/arm/plat-omap/mcbsp.c              |   43 ++++++------------------------
- 3 files changed, 15 insertions(+), 34 deletions(-)
+ arch/arm/plat-omap/mcbsp.c |   27 ---------------------------
+ 1 files changed, 0 insertions(+), 27 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index a157e3e..628497e 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -141,6 +141,9 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
- 			pdata->buffer_size = 0x80;
- 	}
- 
-+	if (oh->class->rev >= MCBSP_CONFIG_TYPE3)
-+		pdata->has_wakeup = true;
-+
- 	oh_device[0] = oh;
- 
- 	if (oh->dev_attr) {
-diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 14bc1cb..ac48d83 100644
---- a/arch/arm/plat-omap/include/plat/mcbsp.h
-+++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -317,6 +317,9 @@ struct omap_mcbsp_platform_data {
- 	u16 buffer_size;
- 	u8 reg_size;
- 	u8 reg_step;
-+
-+	/* McBSP platform and instance specific features */
-+	bool has_wakeup; /* Wakeup capability */
- };
- 
- struct omap_mcbsp_st_data {
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 623f2c1..0338ad0 100644
+index 6c62af1..4b233e8 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -659,35 +659,7 @@ int omap_mcbsp_get_dma_op_mode(unsigned int id)
- }
- EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
+@@ -24,7 +24,6 @@
+ #include <linux/slab.h>
  
--static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+ #include <plat/mcbsp.h>
+-#include <plat/omap_device.h>
+ #include <linux/pm_runtime.h>
+ 
+ /* XXX These "sideways" includes are a sign that something is wrong */
+@@ -258,19 +257,9 @@ int omap_mcbsp_dma_reg_params(unsigned int id, unsigned int stream)
+ EXPORT_SYMBOL(omap_mcbsp_dma_reg_params);
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+-static struct omap_device *find_omap_device_by_dev(struct device *dev)
 -{
--	/*
--	 * Enable wakup behavior, smart idle and all wakeups
--	 * REVISIT: some wakeups may be unnecessary
--	 */
--	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
--		MCBSP_WRITE(mcbsp, WAKEUPEN, XRDYEN | RRDYEN);
--	}
+-	struct platform_device *pdev = container_of(dev,
+-					struct platform_device, dev);
+-	return container_of(pdev, struct omap_device, pdev);
 -}
 -
--static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
--{
--	/*
--	 * Disable wakup behavior, smart idle and all wakeups
--	 */
--	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
--		/*
--		 * HW bug workaround - If no_idle mode is taken, we need to
--		 * go to smart_idle before going to always_idle, or the
--		 * device will not hit retention anymore.
--		 */
+ static void omap_st_on(struct omap_mcbsp *mcbsp)
+ {
+ 	unsigned int w;
+-	struct omap_device *od;
 -
--		MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
--	}
--}
- #else
--static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp) {}
--static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp) {}
- static inline void omap_st_start(struct omap_mcbsp *mcbsp) {}
- static inline void omap_st_stop(struct omap_mcbsp *mcbsp) {}
- #endif
-@@ -726,8 +698,9 @@ int omap_mcbsp_request(unsigned int id)
- 
- 	pm_runtime_get_sync(mcbsp->dev);
- 
--	/* Do procedure specific to omap34xx arch, if applicable */
--	omap34xx_mcbsp_request(mcbsp);
-+	/* Enable wakeup behavior */
-+	if (mcbsp->pdata->has_wakeup)
-+		MCBSP_WRITE(mcbsp, WAKEUPEN, XRDYEN | RRDYEN);
+-	od = find_omap_device_by_dev(mcbsp->dev);
  
  	/*
- 	 * Make sure that transmitter, receiver and sample-rate generator are
-@@ -764,8 +737,9 @@ err_clk_disable:
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
- 		mcbsp->pdata->ops->free(id);
+ 	 * Sidetone uses McBSP ICLK - which must not idle when sidetones
+@@ -292,9 +281,6 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
+ static void omap_st_off(struct omap_mcbsp *mcbsp)
+ {
+ 	unsigned int w;
+-	struct omap_device *od;
+-
+-	od = find_omap_device_by_dev(mcbsp->dev);
  
--	/* Do procedure specific to omap34xx arch, if applicable */
--	omap34xx_mcbsp_free(mcbsp);
-+	/* Disable wakeup behavior */
-+	if (mcbsp->pdata->has_wakeup)
-+		MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
+ 	w = MCBSP_ST_READ(mcbsp, SSELCR);
+ 	MCBSP_ST_WRITE(mcbsp, SSELCR, w & ~(ST_SIDETONEEN));
+@@ -310,9 +296,6 @@ static void omap_st_off(struct omap_mcbsp *mcbsp)
+ static void omap_st_fir_write(struct omap_mcbsp *mcbsp, s16 *fir)
+ {
+ 	u16 val, i;
+-	struct omap_device *od;
+-
+-	od = find_omap_device_by_dev(mcbsp->dev);
  
- 	pm_runtime_put_sync(mcbsp->dev);
+ 	val = MCBSP_ST_READ(mcbsp, SSELCR);
  
-@@ -794,8 +768,9 @@ void omap_mcbsp_free(unsigned int id)
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
- 		mcbsp->pdata->ops->free(id);
+@@ -340,9 +323,6 @@ static void omap_st_chgain(struct omap_mcbsp *mcbsp)
+ {
+ 	u16 w;
+ 	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
+-	struct omap_device *od;
+-
+-	od = find_omap_device_by_dev(mcbsp->dev);
  
--	/* Do procedure specific to omap34xx arch, if applicable */
--	omap34xx_mcbsp_free(mcbsp);
-+	/* Disable wakeup behavior */
-+	if (mcbsp->pdata->has_wakeup)
-+		MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
+ 	w = MCBSP_ST_READ(mcbsp, SSELCR);
  
- 	pm_runtime_put_sync(mcbsp->dev);
+@@ -685,9 +665,6 @@ EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
  
+ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+ {
+-	struct omap_device *od;
+-
+-	od = find_omap_device_by_dev(mcbsp->dev);
+ 	/*
+ 	 * Enable wakup behavior, smart idle and all wakeups
+ 	 * REVISIT: some wakeups may be unnecessary
+@@ -699,10 +676,6 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+ 
+ static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
+ {
+-	struct omap_device *od;
+-
+-	od = find_omap_device_by_dev(mcbsp->dev);
+-
+ 	/*
+ 	 * Disable wakup behavior, smart idle and all wakeups
+ 	 */
 -- 
 1.7.5.4
 
