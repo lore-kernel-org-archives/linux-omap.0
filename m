@@ -1,16 +1,16 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 6/7] OMAP: omap_device: Create a default
-	omap_device_pm_latency
-Date: Wed, 31 Aug 2011 15:30:35 -0700
-Message-ID: <87zkip6wok.fsf@ti.com>
+Subject: Re: [PATCH 7/7] OMAP2+: devices: Remove all omap_device_pm_latency
+	structures
+Date: Wed, 31 Aug 2011 15:31:12 -0700
+Message-ID: <87sjoh6wnj.fsf@ti.com>
 References: <1314026347-21623-1-git-send-email-b-cousson@ti.com>
-	<1314026347-21623-7-git-send-email-b-cousson@ti.com>
+	<1314026347-21623-8-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1314026347-21623-7-git-send-email-b-cousson@ti.com> (Benoit
-	Cousson's message of "Mon, 22 Aug 2011 17:19:06 +0200")
+In-Reply-To: <1314026347-21623-8-git-send-email-b-cousson@ti.com> (Benoit
+	Cousson's message of "Mon, 22 Aug 2011 17:19:07 +0200")
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -26,17 +26,25 @@ List-Id: linux-omap@vger.kernel.org
 
 Benoit Cousson <b-cousson@ti.com> writes:
 
-> Most devices are using the same default omap_device_pm_latency structure
-> during device built. In order to avoid the duplication of the same
-> structure everywhere, add a default structure that will be used if
-> the device does not have an explicit one.
->
-> Next patches will clean the duplicated structures.
+> Remove all these duplicated structures since a default one is now
+> available.
 >
 > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 > Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/devices.c    |   46 +++----------------------------------
+>  arch/arm/mach-omap2/display.c    |   11 +--------
+>  arch/arm/mach-omap2/dma.c        |   11 +--------
+>  arch/arm/mach-omap2/gpio.c       |   12 +---------
+>  arch/arm/mach-omap2/hsmmc.c      |   18 +--------------
+>  arch/arm/mach-omap2/hwspinlock.c |   12 +---------
+>  arch/arm/mach-omap2/mcbsp.c      |   11 +--------
+>  arch/arm/mach-omap2/serial.c     |   25 +-------------------
+>  arch/arm/mach-omap2/sr_device.c  |   11 +--------
+>  arch/arm/mach-omap2/usb-musb.c   |   11 +--------
+>  arch/arm/plat-omap/i2c.c         |   10 +-------
+>  11 files changed, 14 insertions(+), 164 deletions(-)
 
-Excellent, queuing this for v3.2 (branch: for_3.2/omap_device)
+Nice!  queuing this for v3.2 (branch: for_3.2/omap_device)
 
 Kevin
