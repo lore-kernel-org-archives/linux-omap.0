@@ -1,36 +1,61 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
-Date: Wed, 31 Aug 2011 08:56:41 +0800
-Message-ID: <CACVXFVN8PoJqKKBr8gejPHPEiKcv9r3Apskb0mPOPkEMdtuodA@mail.gmail.com>
-References: <1314720193-26577-1-git-send-email-ming.lei@canonical.com>
-	<1314722311.2344.64.camel@deneb.redhat.com>
-	<20110830172642.GE3464@e102144-lin.cambridge.arm.com>
-	<20110830174859.GA23098@kroah.com>
-	<20110830175432.GG3464@e102144-lin.cambridge.arm.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Arm device tree wonder
+Date: Tue, 30 Aug 2011 19:30:57 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1108301910390.26173@utopia.booyaka.com>
+References: <1314734987.11994.YahooMailNeo@web132211.mail.ird.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:57195 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754375Ab1HaA4n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Aug 2011 20:56:43 -0400
-In-Reply-To: <20110830175432.GG3464@e102144-lin.cambridge.arm.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:42405 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752557Ab1HaBa7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Aug 2011 21:30:59 -0400
+In-Reply-To: <1314734987.11994.YahooMailNeo@web132211.mail.ird.yahoo.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Greg KH <greg@kroah.com>, Russell King <linux@arm.linux.org.uk>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, Mark Salter <msalter@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Pierre Beaumon <pierre.beaumon@yahoo.com>
+Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 
-On Wed, Aug 31, 2011 at 1:54 AM, Will Deacon <will.deacon@arm.com> wrote:
+On Tue, 30 Aug 2011, Pierre Beaumon wrote:
 
-> Although this doesn't have anything to do with ordering; it's all to do with
-> immediacy so I think we should try to avoiding using the term `barrier'. If
-> this can be made part of the coherent DMA API, that might be the best place
-> for it (I can't think of any other areas this is needed given that the
-> streaming DMA API and I/O accessors already deal with it).
+> Also I believe one big arm problem is a lack of common infrastructure 
+> that lead to code duplication. Some machine try to do too much things. 
+> omap2 (mach-omap2 + plat-omap) is about 80 KSLOC over 400KSLOC (76 mach 
+> + plat directories). That 8 times bigger than the average 
+> ((80/2)/(400/76))! There are either common stuff that should be shared, 
+> or some stuff should be moved in drivers.
 
-Agree too.
+Here are some additional data points you might consider adding to your 
+analysis:
+
+- Consider taking into account what percentage of those lines are for 
+  SoC-specific device data files.  Where should those files be moved, 
+  before a DT (or other data format) conversion?
+
+- Consider comparing the number of on-chip devices supported by the core 
+  OMAP code to the number of devices supported by the average SoC core 
+  code, in mainline.
+
+- Consider accounting for the extra code and data needed for fine-grained 
+  power management, compared to the average SoC core code, assuming the
+  SoC supports it.
+
+- Consider taking into account the number of OMAP variants supported by 
+  the core OMAP code (at least thirty, not counting silicon revision 
+  differences, which can be significant) compared to the average SoC.
+
+- Consider comparing the number of boards supported by the core OMAP code
+  to the number supported by the average SoC code.  To what other shared
+  directory or drivers/ subdirectory should these files be moved to,
+  before a DT conversion?
+
+To be sure, there's a fair amount of OMAP core code that should be moved 
+out to drivers.  My guess is about 10-15% of the current total.  Work 
+along those lines is proceeding.  If you're offering to help, we could use 
+it.
+
+But I don't think that the way to deal with the remaining 85-90% of the 
+core code and data is quite as simple as your rough summary suggests.
 
 
-thanks,
---
-Ming Lei
+- Paul
