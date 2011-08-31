@@ -1,51 +1,63 @@
-From: Chen Peter-B29397 <B29397@freescale.com>
-Subject: Re: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
-Date: Wed, 31 Aug 2011 12:33:29 +0000
-Message-ID: <ED138203-5980-4D48-AC14-4784A199C89F@freescale.com>
-References: <1314720193-26577-1-git-send-email-ming.lei@canonical.com>
-	<1314722311.2344.64.camel@deneb.redhat.com>
-	<20110830172642.GE3464@e102144-lin.cambridge.arm.com>
-	<20110830174859.GA23098@kroah.com>
-	<20110830175432.GG3464@e102144-lin.cambridge.arm.com>
-	<5484D075-A7DA-41B7-B8FA-9B6D72A23723@freescale.com>
-	<20110831084922.GA8777@e102144-lin.cambridge.arm.com>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH] iommu: omap_iovmm: support non page-aligned buffers in
+ iommu_vmap
+Date: Wed, 31 Aug 2011 15:06:42 +0200
+Message-ID: <20110831130642.GQ12940@amd.com>
+References: <1314646569-16738-1-git-send-email-ohad@wizery.com>
+ <CAK=Wgbb06Z0_8OKFf6MKjYe+SJN16Mh9PA6z_T+cpSpB9EKHFw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110831084922.GA8777@e102144-lin.cambridge.arm.com>
-Content-Language: en-US
-Content-ID: <D3B360709802994489152CC75B4961EB@freescale.net>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Chen Peter-B29397 <B29397@freescale.com>, "ming.lei@canonical.com" <ming.lei@canonical.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Greg KH <greg@kroah.com>, Mark Salter <msalter@redhat.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ch1ehsobe002.messaging.microsoft.com ([216.32.181.182]:38053
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755541Ab1HaNGu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Aug 2011 09:06:50 -0400
+Content-Disposition: inline
+In-Reply-To: <CAK=Wgbb06Z0_8OKFf6MKjYe+SJN16Mh9PA6z_T+cpSpB9EKHFw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
 
-
-
-Best Regard,
-Peter Chen
- 
-
-
-
-On Aug 31, 2011, at 4:49 PM, Will Deacon wrote:
-
-> On Wed, Aug 31, 2011 at 01:23:47AM +0100, Chen Peter-B29397 wrote:
->> One question: why this write buffer issue did not happen at UP ARM V7 platform, whose dma buffer
->> also uncache, but bufferable?
+On Wed, Aug 31, 2011 at 06:52:08AM -0400, Ohad Ben-Cohen wrote:
+> On Mon, Aug 29, 2011 at 10:36 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> > From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >
+> > omap_iovmm requires page-aligned buffers, and that sometimes causes
+> > omap3isp failures (i.e. whenever the buffer passed from userspace is not
+> > page-aligned).
+> >
+> > Remove this limitation by rounding the address of the first page entry
+> > down, and adding the offset back to the device address.
 > 
-> Which CPU was on this platform?
+> I'm having second thoughts about this.
+> 
+> Obviously it works for omap3isp and its users because the buffer gets
+> mapped and everyone is happy.
+> 
+> But I'm not sure this is a valid IOMMU interface that the kernel
+> should have, because effectively we're now mapping physical memory
+> which nobody asked us to, and which might contain sensitive stuff we
+> don't want to give the device (e.g. a remote processor which might be
+> running rogue code) access to.
+> 
+> Thoughts ?
 
-Cortex A8 UP system (freescale i.MX5x platform)
-> 
-> Will
-> 
+Do you mean the parts of the pages you map to the device that are not in
+the requested range (basically everything before offset and all after
+size)?
+This issue exists in other iommu drivers as well. It is inherent to how
+the dma-api is defined and how the iommu hardware works.
+The dma-api can work on byte granularity while the hardware usually only
+works on page granularity.
+
+	Joerg
+
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+
