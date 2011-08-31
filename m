@@ -1,12 +1,12 @@
 From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: [PATCH 08/14] omap: mcbsp: Use per instance register cache size
-Date: Wed, 31 Aug 2011 18:22:55 +0300
-Message-ID: <1314804181-17260-9-git-send-email-jarkko.nikula@bitmer.com>
+Subject: [PATCH 06/14] omap: mcbsp: Make tranceiver configuration control register access generic
+Date: Wed, 31 Aug 2011 18:22:53 +0300
+Message-ID: <1314804181-17260-7-git-send-email-jarkko.nikula@bitmer.com>
 References: <1314804181-17260-1-git-send-email-jarkko.nikula@bitmer.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:53049 "EHLO bitmer.com"
+Received: from bitmer.com ([213.157.87.50]:53051 "EHLO bitmer.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756451Ab1HaPXZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1756452Ab1HaPXZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 31 Aug 2011 11:23:25 -0400
 In-Reply-To: <1314804181-17260-1-git-send-email-jarkko.nikula@bitmer.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,67 +14,89 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Rationale here is to remove one global variable and to make possible to have
-variable size McBSP register maps inside SoC.
+McBSP transmit and receive configuration control registers must be set up
+for OMAP2430 and later. Replace is_omap tests in generic code with a new
+feature flag has_ccr in platform data so that there is no need to change
+code for any upcoming OMAP version.
 
 Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- arch/arm/plat-omap/include/plat/mcbsp.h |    3 ++-
- arch/arm/plat-omap/mcbsp.c              |    6 +++---
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c             |    6 ++++--
+ arch/arm/plat-omap/include/plat/mcbsp.h |    1 +
+ arch/arm/plat-omap/mcbsp.c              |    8 ++++----
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 628497e..3c42adb 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -127,10 +127,12 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 	}
+ 
+ 	pdata->reg_step = 4;
+-	if (oh->class->rev < MCBSP_CONFIG_TYPE2)
++	if (oh->class->rev < MCBSP_CONFIG_TYPE2) {
+ 		pdata->reg_size = 2;
+-	else
++	} else {
+ 		pdata->reg_size = 4;
++		pdata->has_ccr = true;
++	}
+ 
+ 	if (oh->class->rev == MCBSP_CONFIG_TYPE3) {
+ 		if (id == 2)
 diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 0fad63c..648344a 100644
+index ac48d83..eed20ef 100644
 --- a/arch/arm/plat-omap/include/plat/mcbsp.h
 +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -359,6 +359,7 @@ struct omap_mcbsp {
- 	u16 max_tx_thres;
- 	u16 max_rx_thres;
- 	void *reg_cache;
-+	int reg_cache_size;
+@@ -320,6 +320,7 @@ struct omap_mcbsp_platform_data {
+ 
+ 	/* McBSP platform and instance specific features */
+ 	bool has_wakeup; /* Wakeup capability */
++	bool has_ccr; /* Transceiver has configuration control registers */
  };
  
- /**
-@@ -370,7 +371,7 @@ struct omap_mcbsp_dev_attr {
- };
- 
- extern struct omap_mcbsp **mcbsp_ptr;
--extern int omap_mcbsp_count, omap_mcbsp_cache_size;
-+extern int omap_mcbsp_count;
- 
- #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
- #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
+ struct omap_mcbsp_st_data {
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 234ab16..3ad536e 100644
+index 0338ad0..97bcbfa 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -31,7 +31,7 @@
- #include "../mach-omap2/cm-regbits-34xx.h"
- 
- struct omap_mcbsp **mcbsp_ptr;
--int omap_mcbsp_count, omap_mcbsp_cache_size;
-+int omap_mcbsp_count;
- 
- static void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
- {
-@@ -678,7 +678,7 @@ int omap_mcbsp_request(unsigned int id)
+@@ -184,7 +184,7 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
+ 	MCBSP_WRITE(mcbsp, MCR2, config->mcr2);
+ 	MCBSP_WRITE(mcbsp, MCR1, config->mcr1);
+ 	MCBSP_WRITE(mcbsp, PCR0, config->pcr0);
+-	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
++	if (mcbsp->pdata->has_ccr) {
+ 		MCBSP_WRITE(mcbsp, XCCR, config->xccr);
+ 		MCBSP_WRITE(mcbsp, RCCR, config->rccr);
  	}
- 	mcbsp = id_to_mcbsp_ptr(id);
+@@ -848,7 +848,7 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
+ 		MCBSP_WRITE(mcbsp, SPCR2, w | (1 << 7));
+ 	}
  
--	reg_cache = kzalloc(omap_mcbsp_cache_size, GFP_KERNEL);
-+	reg_cache = kzalloc(mcbsp->reg_cache_size, GFP_KERNEL);
- 	if (!reg_cache) {
- 		return -ENOMEM;
- 	}
-@@ -1225,7 +1225,7 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 		}
- 	}
- 	mcbsp->phys_base = res->start;
--	omap_mcbsp_cache_size = resource_size(res);
-+	mcbsp->reg_cache_size = resource_size(res);
- 	mcbsp->io_base = ioremap(res->start, resource_size(res));
- 	if (!mcbsp->io_base) {
- 		ret = -ENOMEM;
+-	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
++	if (mcbsp->pdata->has_ccr) {
+ 		/* Release the transmitter and receiver */
+ 		w = MCBSP_READ_CACHE(mcbsp, XCCR);
+ 		w &= ~(tx ? XDISABLE : 0);
+@@ -878,7 +878,7 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
+ 
+ 	/* Reset transmitter */
+ 	tx &= 1;
+-	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
++	if (mcbsp->pdata->has_ccr) {
+ 		w = MCBSP_READ_CACHE(mcbsp, XCCR);
+ 		w |= (tx ? XDISABLE : 0);
+ 		MCBSP_WRITE(mcbsp, XCCR, w);
+@@ -888,7 +888,7 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
+ 
+ 	/* Reset receiver */
+ 	rx &= 1;
+-	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
++	if (mcbsp->pdata->has_ccr) {
+ 		w = MCBSP_READ_CACHE(mcbsp, RCCR);
+ 		w |= (rx ? RDISABLE : 0);
+ 		MCBSP_WRITE(mcbsp, RCCR, w);
 -- 
 1.7.5.4
 
