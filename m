@@ -1,60 +1,41 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v6 23/25] gpio/omap: enable irq at the end of all configuration in restore
-Date: Wed, 31 Aug 2011 19:12:39 +0530
-Message-ID: <1314798161-19523-24-git-send-email-tarun.kanti@ti.com>
-References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
+Date: Wed, 31 Aug 2011 09:43:33 -0400
+Message-ID: <1314798215.2344.76.camel@deneb.redhat.com>
+References: <1314720193-26577-1-git-send-email-ming.lei@canonical.com>
+	 <1314722311.2344.64.camel@deneb.redhat.com>
+	 <20110830172642.GE3464@e102144-lin.cambridge.arm.com>
+	 <20110830174859.GA23098@kroah.com>
+	 <20110830175432.GG3464@e102144-lin.cambridge.arm.com>
+	 <5484D075-A7DA-41B7-B8FA-9B6D72A23723@freescale.com>
+	 <20110831084922.GA8777@e102144-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34818 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756097Ab1HaNnp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Aug 2011 09:43:45 -0400
-In-Reply-To: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:41349 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756127Ab1HaNoB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Aug 2011 09:44:01 -0400
+In-Reply-To: <20110831084922.GA8777@e102144-lin.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Will Deacon <will.deacon@arm.com>
+Cc: Chen Peter-B29397 <B29397@freescale.com>, Greg KH <greg@kroah.com>, "ming.lei@canonical.com" <ming.lei@canonical.com>, Russell King <linux@arm.linux.org.uk>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Nishanth Menon <nm@ti.com>
+On Wed, 2011-08-31 at 09:49 +0100, Will Deacon wrote:
+> On Wed, Aug 31, 2011 at 01:23:47AM +0100, Chen Peter-B29397 wrote:
+> > One question: why this write buffer issue did not happen at UP ARM V7 platform, whose dma buffer
+> > also uncache, but bufferable?
+> 
+> Which CPU was on this platform?
 
-Setup the interrupt enable registers only after we have configured the
-required edge and required configurations, not before, to prevent
-spurious events as part of restore routine.
+Using a 3.1.0-rc4+ kernel on a Pandaboard, and running 'hdparm -t' on a
+usb disk drive, I see ~5.8MB/s read speed. Same kernel, but passing
+nosmp on the commandline, I see 20.3MB/s.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- drivers/gpio/gpio-omap.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+Can someone explain why nosmp would make such a difference?
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 67e08e9..db22df8 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1323,10 +1323,6 @@ void omap2_gpio_resume_after_idle(void)
- 
- static void omap_gpio_restore_context(struct gpio_bank *bank)
- {
--	__raw_writel(bank->context.irqenable1,
--				bank->base + bank->regs->irqenable);
--	__raw_writel(bank->context.irqenable2,
--				bank->base + bank->regs->irqenable2);
- 	__raw_writel(bank->context.wake_en,
- 				bank->base + bank->regs->wkup_en);
- 	__raw_writel(bank->context.ctrl, bank->base + bank->regs->ctrl);
-@@ -1347,6 +1343,10 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
- 		__raw_writel(bank->context.debounce_en,
- 					bank->base + bank->regs->debounce_en);
- 	}
-+	__raw_writel(bank->context.irqenable1,
-+				bank->base + bank->regs->irqenable);
-+	__raw_writel(bank->context.irqenable2,
-+				bank->base + bank->regs->irqenable2);
- }
- #else
- #define omap_gpio_runtime_suspend NULL
--- 
-1.7.0.4
+--Mark
+
 
