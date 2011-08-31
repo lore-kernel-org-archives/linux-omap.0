@@ -1,89 +1,67 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/8] OMAP: DSS2: HDMI: use default dividers
-Date: Wed, 31 Aug 2011 16:21:42 +0300
-Message-ID: <1314796908-17354-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 6/8] OMAP: DSS2: add dss_get_hdmi_venc_clk_source()
+Date: Wed, 31 Aug 2011 16:21:46 +0300
+Message-ID: <1314796908-17354-7-git-send-email-tomi.valkeinen@ti.com>
 References: <1314796908-17354-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:39029 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755534Ab1HaNWK (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:57433 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755658Ab1HaNWQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Aug 2011 09:22:10 -0400
+	Wed, 31 Aug 2011 09:22:16 -0400
 In-Reply-To: <1314796908-17354-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, mythripk@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use default regn and regm2 dividers in the hdmi driver if the board file
-does not define them.
+Add dss_get_hdmi_venc_clk_source(), which can be used to get the value
+programmed with dss_select_hdmi_venc_clk_source(). This can be used to
+find out if the digit output is going to VENC or HDMI.
+
+For OMAP2/3 dss_get_hdmi_venc_clk_source() always returns
+DSS_VENC_TV_CLK.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |    9 ---------
- drivers/video/omap2/dss/hdmi.c      |   15 +++++++++++++--
- 2 files changed, 13 insertions(+), 11 deletions(-)
+ drivers/video/omap2/dss/dss.c |   11 +++++++++++
+ drivers/video/omap2/dss/dss.h |    1 +
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 6713d6e..3fd7e8f 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -818,15 +818,6 @@ static struct omap_dss_device sdp4430_hdmi_device = {
- 	.name = "hdmi",
- 	.driver_name = "hdmi_panel",
- 	.type = OMAP_DISPLAY_TYPE_HDMI,
--	.clocks	= {
--		.dispc	= {
--			.dispc_fclk_src	= OMAP_DSS_CLK_SRC_FCK,
--		},
--		.hdmi	= {
--			.regn	= 15,
--			.regm2	= 1,
--		},
--	},
- 	.platform_enable = sdp4430_panel_enable_hdmi,
- 	.platform_disable = sdp4430_panel_disable_hdmi,
- 	.channel = OMAP_DSS_CHANNEL_DIGIT,
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index b8e02e4..a3b3899 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -43,6 +43,9 @@
- #include "hdmi.h"
- #include "dss_features.h"
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 356d3c1..3e09726 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -639,6 +639,17 @@ void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select hdmi)
+ 	REG_FLD_MOD(DSS_CONTROL, hdmi, 15, 15);	/* VENC_HDMI_SWITCH */
+ }
  
-+#define HDMI_DEFAULT_REGN 15
-+#define HDMI_DEFAULT_REGM2 1
++enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void)
++{
++	enum omap_display_type displays;
 +
- static struct {
- 	struct mutex lock;
- 	struct omap_display_platform_data *pdata;
-@@ -1076,7 +1079,11 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
- 	 * Input clock is predivided by N + 1
- 	 * out put of which is reference clk
- 	 */
--	pi->regn = dssdev->clocks.hdmi.regn;
-+	if (dssdev->clocks.hdmi.regn == 0)
-+		pi->regn = HDMI_DEFAULT_REGN;
-+	else
-+		pi->regn = dssdev->clocks.hdmi.regn;
++	displays = dss_feat_get_supported_displays(OMAP_DSS_CHANNEL_DIGIT);
++	if ((displays & OMAP_DISPLAY_TYPE_HDMI) == 0)
++		return DSS_VENC_TV_CLK;
 +
- 	refclk = clkin / (pi->regn + 1);
++	return REG_GET(DSS_CONTROL, 15, 15);
++}
++
+ static int dss_get_clocks(void)
+ {
+ 	struct clk *clk;
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index a095a62..57b1a01 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -210,6 +210,7 @@ int dss_runtime_get(void);
+ void dss_runtime_put(void);
  
- 	/*
-@@ -1084,7 +1091,11 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
- 	 * Multiplying by 100 to avoid fractional part removal
- 	 */
- 	pi->regm = (phy * 100 / (refclk)) / 100;
--	pi->regm2 = dssdev->clocks.hdmi.regm2;
-+
-+	if (dssdev->clocks.hdmi.regm2 == 0)
-+		pi->regm2 = HDMI_DEFAULT_REGM2;
-+	else
-+		pi->regm2 = dssdev->clocks.hdmi.regm2;
+ void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select);
++enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void);
+ const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src);
+ void dss_dump_clocks(struct seq_file *s);
  
- 	/*
- 	 * fractional multiplier is remainder of the difference between
 -- 
 1.7.4.1
 
