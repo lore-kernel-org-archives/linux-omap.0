@@ -1,41 +1,60 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
-Date: Wed, 31 Aug 2011 09:43:33 -0400
-Message-ID: <1314798215.2344.76.camel@deneb.redhat.com>
-References: <1314720193-26577-1-git-send-email-ming.lei@canonical.com>
-	 <1314722311.2344.64.camel@deneb.redhat.com>
-	 <20110830172642.GE3464@e102144-lin.cambridge.arm.com>
-	 <20110830174859.GA23098@kroah.com>
-	 <20110830175432.GG3464@e102144-lin.cambridge.arm.com>
-	 <5484D075-A7DA-41B7-B8FA-9B6D72A23723@freescale.com>
-	 <20110831084922.GA8777@e102144-lin.cambridge.arm.com>
+From: Andy Doan <andy.doan@linaro.org>
+Subject: Re: [PATCH 11/12] OMAP: Panda & Beagle: DVI: Add i2c_bus_num
+Date: Wed, 31 Aug 2011 10:00:43 -0500
+Message-ID: <4E5E4C9B.2010504@linaro.org>
+References: <1314797003-17638-1-git-send-email-tomi.valkeinen@ti.com> <1314797003-17638-12-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41349 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756127Ab1HaNoB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Aug 2011 09:44:01 -0400
-In-Reply-To: <20110831084922.GA8777@e102144-lin.cambridge.arm.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:53672 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756085Ab1HaPAq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Aug 2011 11:00:46 -0400
+In-Reply-To: <1314797003-17638-12-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Chen Peter-B29397 <B29397@freescale.com>, Greg KH <greg@kroah.com>, "ming.lei@canonical.com" <ming.lei@canonical.com>, Russell King <linux@arm.linux.org.uk>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com, mythripk@ti.com
 
-On Wed, 2011-08-31 at 09:49 +0100, Will Deacon wrote:
-> On Wed, Aug 31, 2011 at 01:23:47AM +0100, Chen Peter-B29397 wrote:
-> > One question: why this write buffer issue did not happen at UP ARM V7 platform, whose dma buffer
-> > also uncache, but bufferable?
-> 
-> Which CPU was on this platform?
+On 08/31/2011 08:23 AM, Tomi Valkeinen wrote:
+> Add i2c bus number for DVI output. The driver uses this to detect if a
+> panel is connected and to read EDID.
+>
+> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> ---
+>   arch/arm/mach-omap2/board-omap3beagle.c |    1 +
+>   arch/arm/mach-omap2/board-omap4panda.c  |    1 +
+>   2 files changed, 2 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 3ae16b4..13244e9 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -207,6 +207,7 @@ static struct panel_generic_dpi_data dvi_panel = {
+>   	.name = "generic",
+>   	.platform_enable = beagle_enable_dvi,
+>   	.platform_disable = beagle_disable_dvi,
+> +	.i2c_bus_num = 3,
+>   };
+>
+>   static struct omap_dss_device beagle_dvi_device = {
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+> index 9aaa960..d5760e3 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -459,6 +459,7 @@ static struct panel_generic_dpi_data omap4_dvi_panel = {
+>   	.name			= "generic",
+>   	.platform_enable	= omap4_panda_enable_dvi,
+>   	.platform_disable	= omap4_panda_disable_dvi,
+> +	.i2c_bus_num = 3,
+>   };
+>
+>   struct omap_dss_device omap4_panda_dvi_device = {
 
-Using a 3.1.0-rc4+ kernel on a Pandaboard, and running 'hdparm -t' on a
-usb disk drive, I see ~5.8MB/s read speed. Same kernel, but passing
-nosmp on the commandline, I see 20.3MB/s.
+Can you add a similar patch for board-overo.c? I've tested earlier 
+versions of this patch series on a Tide+Tobi successfully. Here's a copy 
+of my patch:
 
-Can someone explain why nosmp would make such a difference?
-
---Mark
-
+   http://tinyurl.com/3cek5m7
 
