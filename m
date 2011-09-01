@@ -1,75 +1,55 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 09/13] arm/dts: omap4-sdp: Add twl6030 node
-Date: Thu, 1 Sep 2011 19:21:25 +0200
-Message-ID: <1314897689-17791-10-git-send-email-b-cousson@ti.com>
-References: <1314897689-17791-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 0/7] OMAP3: Add basic DT support + i2c + twl
+Date: Thu, 1 Sep 2011 19:25:05 +0200
+Message-ID: <1314897912-18178-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35323 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:35529 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756043Ab1IARWn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 13:22:43 -0400
-In-Reply-To: <1314897689-17791-1-git-send-email-b-cousson@ti.com>
+	with ESMTP id S1755872Ab1IARZX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 13:25:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: grant.likely@secretlab.ca, tony@atomide.com
 Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, manjugk@ti.com, Benoit Cousson <b-cousson@ti.com>
 
-Add the twl6030 node inside the i2c1 controller node.
-Add the RTC submodule inside the twl node.
+Hi Grant, Tony,
 
-This is just the minimal support needed to boot OMAP4 boards
-without any crash.
-The support for all the features included in this MFD will be added
-later.
+This is second part of the rework of the original series done by Manju:
+http://www.spinics.net/lists/linux-omap/msg55827.html
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
----
- arch/arm/boot/dts/omap4-sdp.dts |   25 +++++++++++++++++++++++--
- 1 files changed, 23 insertions(+), 2 deletions(-)
+It introduces the OMAP3 DT support incrementaly like it was done for OMAP4.
 
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index ed85b35..d03f2e7 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -26,12 +26,33 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
--
--
- };
- 
- &i2c1 {
- 	clock-frequency = <400000>;
-+
-+	/*
-+	 * Integrated Power Management Chip
-+	 * http://www.ti.com/lit/ds/symlink/twl6030.pdf
-+	 */
-+	twl@48 {
-+		compatible = "ti,twl6030";
-+		reg = <0x48>;
-+		interrupts = <39>; /* IRQ_SYS_1N cascaded to gic */
-+		interrupt-controller;
-+		#interrupt-cells = <1>;
-+		interrupt-parent = <&gic>;
-+		/* twl is a MFD, so it will contain a bunch of sub-ips */
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		ranges = <0 0x48>;
-+
-+		twl_rtc {
-+			compatible = "ti,twl_rtc";
-+			interrupts = <11>;
-+			reg = <0>;
-+		};
-+	};
- };
- 
- &i2c2 {
--- 
-1.7.0.4
+Patches are based on for_3.2/5_omap_dt_i2c_twl + devicetree/test
+and are available here:
+git://gitorious.org/omap-pm/linux.git for_3.2/6_omap3_dt_base
+
+Tested on Beagle XM.
+
+Comments are welcome.
+
+Regards,
+Benoit
+
+
+Benoit Cousson (7):
+  arm/dts: Add initial device-tree support for OMAP3 SoC
+  arm/dts: OMAP3: Add mpu and iva nodes
+  arm/dts: OMAP3: Add i2c controllers nodes
+  arm/dts: omap3-beagle: Include the generic omap3.dtsi
+  arm/dts: omap3-beagle: Add twl4030 and EEPROM i2c devices
+  OMAP3: board-dt: Add generic board file for DT support
+  OMAP3: beagleboard: Remove DT support from regular board
+
+ arch/arm/boot/dts/omap3-beagle.dts      |   68 +++++++++++++++++++++-
+ arch/arm/boot/dts/omap3.dtsi            |   95 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/Kconfig             |   10 +++
+ arch/arm/mach-omap2/Makefile            |    1 +
+ arch/arm/mach-omap2/board-omap3-dt.c    |   74 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c |   13 ----
+ arch/arm/mach-omap2/pm.c                |    6 +-
+ 7 files changed, 250 insertions(+), 17 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3.dtsi
+ create mode 100644 arch/arm/mach-omap2/board-omap3-dt.c
 
