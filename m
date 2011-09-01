@@ -1,72 +1,69 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 6/6 V4] hwmon: OMAP4: On die temperature sensor driver
-Date: Wed, 31 Aug 2011 17:56:35 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1108311721460.26173@utopia.booyaka.com>
-References: <1314811510-15595-1-git-send-email-j-keerthy@ti.com> <1314811510-15595-7-git-send-email-j-keerthy@ti.com>
+Subject: Re: [PATCH 1/6 V4] OMAP4: Clock: Associate clocks for OMAP temperature
+ sensor
+Date: Wed, 31 Aug 2011 18:00:20 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1108311757260.26173@utopia.booyaka.com>
+References: <1314811510-15595-1-git-send-email-j-keerthy@ti.com> <1314811510-15595-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44957 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:44971 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755181Ab1HaX4g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Aug 2011 19:56:36 -0400
-In-Reply-To: <1314811510-15595-7-git-send-email-j-keerthy@ti.com>
+	with ESMTP id S1755871Ab1IAAAV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Aug 2011 20:00:21 -0400
+In-Reply-To: <1314811510-15595-2-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
-Cc: linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, rnayak@ti.com
 
 Hi,
 
+a comment:
+
 On Wed, 31 Aug 2011, Keerthy wrote:
 
-> On chip temperature sensor driver. The driver monitors the temperature of
-> the MPU subsystem of the OMAP4. It sends notifications to the user space if
-> the temperature crosses user defined thresholds via kobject_uevent interface.
-> The user is allowed to configure the temperature thresholds vis sysfs nodes
-> exposed using hwmon interface.
+> div_ts_ck feeds only the temperature sensor functional clock
+> and also has a clksel associated (for divider selection). Mapping this
+> as the functional clock for the temperature sensor in clkdev table,
+> so a clk_set_rate() in the driver would have the effect of changing the
+> temperature sensor clock rate indirectly.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: tony@atomide.com
+> Cc: rnayak@ti.com
+> ---
+>  arch/arm/mach-omap2/clock44xx_data.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> index 2af0e3f..4a788f4 100644
+> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> @@ -3187,7 +3187,7 @@ static struct omap_clk omap44xx_clks[] = {
+>  	CLK(NULL,	"bandgap_fclk",			&bandgap_fclk,	CK_443X),
+>  	CLK(NULL,	"bandgap_ts_fclk",		&bandgap_ts_fclk,	CK_446X),
+>  	CLK(NULL,	"des3des_fck",			&des3des_fck,	CK_443X),
+> -	CLK(NULL,	"div_ts_ck",			&div_ts_ck,	CK_446X),
+> +	CLK("omap_temp_sensor.0",	"fck",			&div_ts_ck,	CK_446X),
 
-I commented in a separate post that this driver should probably use an MFD 
-driver for the System Control Module accesses, and then this hwmon driver 
-should use functions from that to access the BANDGAP temperature sensor 
-registers[1].
+It shouldn't be necessary to add the device name/ID here.  We're trying 
+to get rid of these.  The omap_device code should take care of adding the 
+appropriate alias.
 
-But I had another comment on this driver.
 
-A similar sensor is available on the OMAP34xx[2], OMAP36xx[3], and 
-OMAP4430[4] chips.  There are some register layout differences; the 
-thermal shutdown threshold is configurable on the 4460 but fixed on the 
-4430; and also I'd assume, without looking, that the temperature mapping 
-table is different on different chips.  
-
-So it would seem to make sense to move the chip-specific code and 
-data into chip-specific source files.  
-
-I could see keeping a generic filename like "omap_temp_sensor.c" if you 
-implemented a common interface to the bandgap sensors, ADCs and 
-comparators, across all those different chips.  That might be worth 
-thinking about.  But at least, this should probably be named 
-drivers/hwmon/omap4460_temp_sensor.c, or something similar.
+>  	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
+>  	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
+>  	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
+> -- 
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
 - Paul
-
-1. Walmsley, Paul.  _Re: [PATCH 4/6 V4] OMAP4: Hwmod: OMAP temperature 
-   sensor_.  Posted to the linux-omap@vger.kernel.org list on Wed, 31 Aug 
-   2011 17:16:44 -0600.  Available from (among others):
-   http://marc.info/?l=linux-omap&m=131483260632685&w=2
-
-2. Section 7.4.6 "Band Gap Voltage and Temperature Sensor". _OMAP34xx 
-   Multimedia Device Silicon Revision 3.1.x Version R (SWPU223R)_ (public 
-   version).  Available from
-   http://focus.ti.com/pdfs/wtbu/OMAP34xx_ES3.1.x_PUBLIC_TRM_vZR.zip
-
-3. Section 13.4.6 "Band Gap Voltage and Temperature Sensor". _OMAP36xx 
-   Multimedia Device Silicon Revision 1.x Version V (SWPU177V)_ (public 
-   version).  Available from
-   http://focus.ti.com/pdfs/wtbu/OMAP36xx_ES1.x_PUBLIC_TRM_vV.zip
-
-4. Section 18.4.10 "Band Gap Voltage and Temperature Sensor". _OMAP4430 
-   Multimedia Device Silicon Revision 2.x Version V (SWPU231V)_ (public 
-   version).  Available from
-   http://focus.ti.com/pdfs/wtbu/OMAP4430_ES2.x_PUBLIC_TRM_vV.zip
