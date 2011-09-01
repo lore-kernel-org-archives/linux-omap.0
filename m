@@ -1,41 +1,60 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: [PATCH 2/2] omap: hsmmc: Don't hold spinlock during dma configuration
-Date: Fri, 2 Sep 2011 00:35:57 +0530
-Message-ID: <1314903957-24408-3-git-send-email-svenkatr@ti.com>
-References: <y>
+From: Stephen Warren <swarren@nvidia.com>
+Subject: RE: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
+Date: Thu, 1 Sep 2011 12:08:29 -0700
+Message-ID: <74CDBE0F657A3D45AFBB94109FB122FF04B327A383@HQMAIL01.nvidia.com>
+References: <1314720193-26577-1-git-send-email-ming.lei@canonical.com>
+	<201108311855.27711.marc.dietrich@ap.physik.uni-giessen.de>
+	<4E5F5FA9.3010305@arm.com> <201109011313.42547.marvin24@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <y>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: per.forlin@linaro.org, cjb@laptop.org, Venkatraman S <svenkatr@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201109011313.42547.marvin24@gmx.de>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Marc Dietich <marvin24@gmx.de>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Greg KH <greg@kroah.com>, "ming.lei@canonical.com" <ming.lei@canonical.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, Mark Salter <msalter@redhat.com>, Chen Peter-B29397 <B29397@freescale.com>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-No need to hold the spinlock during a rather long dma configuration
-sequence inside dma callback, which doesn't need it.
+Marc Dietich wrote at Thursday, September 01, 2011 5:14 AM:
+> I'll add Stephen Warren from NVIDIA to the CC list. He has more HW to test on.
 
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
----
- drivers/mmc/host/omap_hsmmc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Here are the results I found:
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 5b7776c..c5fd413 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1384,10 +1384,10 @@ static void omap_hsmmc_dma_cb(int lch, u16 ch_status, void *cb_data)
- 	data = host->mrq->data;
- 	host->dma_sg_idx++;
- 	if (host->dma_sg_idx < host->dma_len) {
-+		spin_unlock(&host->irq_lock);
- 		/* Fire up the next transfer. */
- 		omap_hsmmc_config_dma_params(host, data,
- 					   data->sg + host->dma_sg_idx);
--		spin_unlock(&host->irq_lock);
- 		return;
- 	}
- 
+Harmony:
+Tegra USB3 -> SMSC9514 hub: NOT affected
+(Unplugging LAN cable, or disabling SMSC9514 LAN driver doesn't change this)
+
+Seaboard (springbank; clamshell):
+Tegra USB1 -> no hub: Affected
+
+Seaboard (seaboard non-clamshell):
+Tegra USB1 -> no hub: Affected
+Tegra USB3 -> no hub: Affected
+
+TrimSlice:
+Tegra USB3 -> unknown hub: Affected
+
+This implies there's something different about Harmony.
+
+Is the USB hub a clue? Seaboard doesn't have one, and although I don't
+know what model TrimSlice uses, I assume it's different since I know
+TrimSlice's Ethernet is not the same as Harmony's.
+
+I don't see anything in board-harmony.c vs. board-seaboard.c that'd affect
+anything USB-related.
+
+Perhaps there's some kind of bootloader or BCT difference. However, my
+Harmony and both Seaboards both use (a very old) U-Boot and BCT from
+ChromeOS, so I don't imagine there's actually much difference there.
+
 -- 
-1.7.1
-
+nvpublic
