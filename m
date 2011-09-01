@@ -1,84 +1,81 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/7] OMAP: omap_device cleanup before device-tree integration
-Date: Thu, 01 Sep 2011 09:28:29 -0700
-Message-ID: <87sjogjkgi.fsf@ti.com>
-References: <1314026347-21623-1-git-send-email-b-cousson@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 00/13] OMAP4: Add DT support for i2c and twl6030
+Date: Thu, 1 Sep 2011 19:21:16 +0200
+Message-ID: <1314897689-17791-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:38572 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757333Ab1IAQ2d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 12:28:33 -0400
-Received: by mail-iy0-f182.google.com with SMTP id x2so2570132iad.41
-        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 09:28:32 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: grant.likely@secretlab.ca, tony@atomide.com
+Cc: manjugk@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
 
-Benoit Cousson <b-cousson@ti.com> writes:
+Hi Grant, Tony,
 
-> Hi Kevin,
->
-> Here are a couple of cleanups on top of your for_3.2/omap_device series
-> rebased on top of 3.1-rc2 to get your pm-fixes.
+This is a rework of the original series done by Manju:
+http://www.spinics.net/lists/linux-omap/msg55827.html
 
-OK, my for_3.2/omap_device is now based on v3.1-rc4 which has my
-pm-fixes merged.
+It fixes the main issue of the previous series that was not booting at all
+due to the lack of twl support. That fix is mandatory to allow further
+work on the regulators DT bindings.
+In order to have a minimal i2c support, both i2c and twl must be added
+at the same time.
+Please note than some patches can be reshuffle with the previous OMAP4
+series to avoid the intermediate step with static i2c initialization.
 
-> The goal is to help building core devices using device-tree by removing
-> direct reference to the device inside PM.
+That series is as well using the hwmods binding introduced in my previous
+series.
+The OMAP3/beagle support will be added in an other series.
 
-Great.
+A couple of basic i2c devices are added for panda and sdp board.
 
-> For that, I took and rebased the two patches done by Nishanth to use hwmod
-> to identify the device from the generic IP name.
+Patches are based on for_3.2/4_omap4_dt_early_devices + devicetree/test
+and are available here:
+git://gitorious.org/omap-pm/linux.git for_3.2/5_omap_dt_i2c_twl
 
-OK, I had some minor comments on those.
+Tested on PandaBoard and sdp4430.
 
-> The currently "unused" omap_device_pm_latency is moved inside the
-> omap_device core code to avoid the duplication.
+Comments are welcome.
 
-And these two I've pulled into my for_3.2/omap_device branch.
-(not yet pushed because main kernel.org server is down.)
+Regards,
+Benoit
 
-Kevin
 
-> patches are available here:
-> git://gitorious.org/omap-pm/linux.git for_3.2/omap_device_cleanup
->
-> It is tested on OMAP4 SDP and Panda only. I don't even have the Beagle
-> to test the beagle patch :-(
->
-> Regards,
-> Benoit
->
->
-> Benoit Cousson (5):
->   OMAP3: beagle-board: Use the omap_hwmod_name_get_dev API
->   OMAP2+: pm: Use hwmod name instead of dev pointer
->   OMAP2+: pm: Remove static devices variable for mpu, dsp, iva and l3 PM
->   OMAP: omap_device: Create a default omap_device_pm_latency
->   OMAP2+: devices: Remove all omap_device_pm_latency structures
->
-> Nishanth Menon (2):
->   OMAP: PM: omap_device: add omap_hwmod_name_get_odev
->   OMAP: PM: omap_device: add few quick access functions
->
->  arch/arm/mach-omap2/board-omap3beagle.c       |    4 +-
->  arch/arm/mach-omap2/devices.c                 |   46 ++---------------
->  arch/arm/mach-omap2/display.c                 |   11 +----
->  arch/arm/mach-omap2/dma.c                     |   11 +----
->  arch/arm/mach-omap2/gpio.c                    |   12 +----
->  arch/arm/mach-omap2/hsmmc.c                   |   18 +------
->  arch/arm/mach-omap2/hwspinlock.c              |   12 +----
->  arch/arm/mach-omap2/mcbsp.c                   |   11 +----
->  arch/arm/mach-omap2/pm.c                      |   69 ++++++++-----------------
->  arch/arm/mach-omap2/serial.c                  |   25 +---------
->  arch/arm/mach-omap2/sr_device.c               |   11 +----
->  arch/arm/mach-omap2/usb-musb.c                |   11 +----
->  arch/arm/plat-omap/i2c.c                      |   10 +---
->  arch/arm/plat-omap/include/plat/omap_device.h |   16 ++++++
->  arch/arm/plat-omap/omap_device.c              |   49 +++++++++++++++++-
->  15 files changed, 101 insertions(+), 215 deletions(-)
+Benoit Cousson (10):
+  irq: Add stub for none DT build in irqdomain.h
+  mfd: twl-core: Add initial DT support for twl4030/twl6030
+  documentation/dt: Add TWL4030 and TWL6030 bindings
+  arm/dts: OMAP4: Add i2c controller nodes
+  arm/dts: omap4-sdp: Set clock freq for i2c controllers
+  arm/dts: omap4-sdp: Add twl6030 node
+  arm/dts: omap4-panda: Add twl6030 node
+  OMAP4: board-dt: Remove static i2c init
+  arm/dts: omap4-sdp: Add i2c3 & i2c4 devices
+  arm/dts: omap4-panda: Add EEPROM entry in i2c3
+
+G, Manjunath Kondaiah (3):
+  i2c: OMAP: Add DT support for i2c controller
+  documentation/dt: Add OMAP i2c bindings documentation
+  arm/dts: omap4-panda: Set clock freq for i2c controllers
+
+ Documentation/devicetree/bindings/i2c/omap-i2c.txt |   30 ++++++
+ .../devicetree/bindings/mfd/twl-familly.txt        |   47 +++++++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   48 ++++++++++
+ arch/arm/boot/dts/omap4-sdp.dts                    |   66 +++++++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |   32 +++++++
+ arch/arm/mach-omap2/board-omap4-dt.c               |   15 ---
+ drivers/i2c/busses/i2c-omap.c                      |   23 ++++-
+ drivers/mfd/twl-core.c                             |   99 +++++++++++++++++++-
+ include/linux/irqdomain.h                          |    2 +
+ 9 files changed, 340 insertions(+), 22 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
+ create mode 100644 Documentation/devicetree/bindings/mfd/twl-familly.txt
