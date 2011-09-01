@@ -1,59 +1,73 @@
-From: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: cpuidle status in mainline for Beagleboard xM
-Date: Thu, 1 Sep 2011 17:33:31 +0200
-Message-ID: <CACKLOr0KpCUXrXM7M9YvE3DGPbGjzT4N678eEPfx_GGE7+40-w@mail.gmail.com>
-References: <CACKLOr10aTCwkBZnSinvP4HLPhrJeiBs=6KM2we4DwTT0NJ22A@mail.gmail.com>
-	<87vctcjo2w.fsf@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 00/11] Add L2 cache cleaning to generic CPU suspend
+Date: Thu, 1 Sep 2011 16:34:51 +0100
+Message-ID: <20110901153451.GA16024@n2100.arm.linux.org.uk>
+References: <20110901124752.GE29729@n2100.arm.linux.org.uk> <20110901153342.GB5147@S2100-06.ap.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:35206 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932367Ab1IAPdc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 11:33:32 -0400
-Received: by gxk21 with SMTP id 21so1449265gxk.19
-        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 08:33:31 -0700 (PDT)
-In-Reply-To: <87vctcjo2w.fsf@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41669 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932469Ab1IAPfG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 11:35:06 -0400
+Content-Disposition: inline
+In-Reply-To: <20110901153342.GB5147@S2100-06.ap.freescale.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Koen Kooi <koen@beagleboard.org>
+To: Shawn Guo <shawn.guo@freescale.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Kevin,
-thanks for your help.
+On Thu, Sep 01, 2011 at 11:33:43PM +0800, Shawn Guo wrote:
+> This is also the case on i.MX6Q, which L2 cache is retained during a
+> suspend/resume cycle.  Currently, I have to call into the following
+> before calling generic cpu_suspend() to clean/invalidate the entire
+> L2 cache.
+> 
+> 	outer_flush_all();
+> 	outer_disable();
+> 
+> But there is a wired thing on using generic cpu_resume().  I have to
+> invalidate L1 before calling into cpu_resume() like below.
+> 
+> ENTRY(imx6q_cpu_resume)
+>         bl      v7_invalidate_l1
+>         b       cpu_resume
+> ENDPROC(imx6q_cpu_resume)
+> 
+> ENTRY(imx6q_secondary_startup)
+>         bl      v7_invalidate_l1
+>         b       secondary_startup
+> ENDPROC(imx6q_secondary_startup)
+> 
+> The v7_invalidate_l1() is the function copied from mach-tegra/headsmp.S,
+> which has to be called before calling secondary_startup to boot
+> secondary cores (same situation between Tegra and i.MX6Q).
 
-> CPU is staying in C0 probably because UARTs are not being idled, so S=
-oC
-> cannot hit deeper idle states. =A0Try the following at the command li=
-ne to
-> to enable UART idle timeouts, so the SoC can attempt idle after the
-> timeout period
->
-> # UART timeouts: omap-serial (4th UART only on OMAP36xx and OMAP4)
-> echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
-> echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
-> echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
-> echo 5 > /sys/devices/platform/omap/omap_uart.3/sleep_timeout
->
-> After 5 seconds of inactivity on the UARTs, you should see the SoC
-> hitting deeper C-states.
+Presumably that's because your L1 cache contains randomized data with
+random validity (and presumably random dirtyness) at boot time - something
+which unfortunately the ARM ARM permits.  I don't think we can go to the
+extent of dealing with this in the generic code as it would unnecessarily
+perturb those implementations which either the boot loader has already
+sorted out that issue, or which don't have the issue at all.
 
-I've tried that but it still doesn't hit any C-state deeper than 0.
-I'll try the same test using your pm branch you pointed me out and
-post the results.
+> Before applying this patch series, I have something like below actually
+> working.
+> 
+> 
+> 	outer_flush_all();
+> 	outer_disable();
+> 	imx_set_cpu_jump(0, imx6q_cpu_resume);
+> 	/* Zzz ... */
+> 	cpu_suspend(0, imx6q_suspend_finish);
+> 
+> I expect with you patches applied, I can still have it work with simply
+> removing those two lines outer cache codes.
 
-Regards.
---=20
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That should be the case.
+
+> But unfortunately, I'm
+> running into Oops when resuming back.  And I also have Oops with
+> imx_set_cpu_jump(0, cpu_resume) which means skipping the
+> v7_invalidate_l1() and calling generic cpu_resume() only.
+
+Do you have a copy of the oops?
