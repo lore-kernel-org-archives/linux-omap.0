@@ -1,95 +1,93 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC PATCH 2/3] OMAP: omap_device: Add a DT parser for multiple
-	strings
-Date: Thu, 01 Sep 2011 11:38:22 -0700
-Message-ID: <87d3fkds69.fsf@ti.com>
-References: <1314037343-19783-1-git-send-email-b-cousson@ti.com>
-	<1314037343-19783-3-git-send-email-b-cousson@ti.com>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: [PATCH 1/2] omap: hsmmc: Normalize dma cleanup operations
+Date: Fri, 2 Sep 2011 00:35:56 +0530
+Message-ID: <1314903957-24408-2-git-send-email-svenkatr@ti.com>
+References: <y>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1314037343-19783-3-git-send-email-b-cousson@ti.com> (Benoit
-	Cousson's message of "Mon, 22 Aug 2011 20:22:22 +0200")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: grant.likely@secretlab.ca, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45884 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757651Ab1IATHk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Sep 2011 15:07:40 -0400
+In-Reply-To: <y>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: per.forlin@linaro.org, cjb@laptop.org, Venkatraman S <svenkatr@ti.com>
 
-Benoit Cousson <b-cousson@ti.com> writes:
+Reuse omap_hsmmc_dma_cleanup even for normal dma teardown in
+omap_hsmmc_dma_cb. Consolidate multiple points of dma unmap into a 
+single location in post_req function, to prevent double unmapping.
 
-> Add two helpers function to parse a property that contains multiple
-> strings.
->
-> These functions might be exported and moved to a common place if they
-> can to be useful elsewhere.
->
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Venkatraman S <svenkatr@ti.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |   20 +++++---------------
+ 1 files changed, 5 insertions(+), 15 deletions(-)
 
-These should just be folded into 3/3 where they are used (with a comment
-changelog of course.)
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 21e4a79..5b7776c 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -999,7 +999,8 @@ static void omap_hsmmc_dma_cleanup(struct omap_hsmmc_host *host, int errno)
+ {
+ 	int dma_ch;
+ 
+-	host->data->error = errno;
++	if (host->data)
++		host->data->error = errno;
+ 
+ 	spin_lock(&host->irq_lock);
+ 	dma_ch = host->dma_ch;
+@@ -1007,12 +1008,8 @@ static void omap_hsmmc_dma_cleanup(struct omap_hsmmc_host *host, int errno)
+ 	spin_unlock(&host->irq_lock);
+ 
+ 	if (host->use_dma && dma_ch != -1) {
+-		dma_unmap_sg(mmc_dev(host->mmc), host->data->sg,
+-			host->data->sg_len,
+-			omap_hsmmc_get_dma_dir(host, host->data));
+ 		omap_free_dma(dma_ch);
+ 	}
+-	host->data = NULL;
+ }
+ 
+ /*
+@@ -1370,7 +1367,7 @@ static void omap_hsmmc_dma_cb(int lch, u16 ch_status, void *cb_data)
+ {
+ 	struct omap_hsmmc_host *host = cb_data;
+ 	struct mmc_data *data;
+-	int dma_ch, req_in_progress;
++	int req_in_progress;
+ 
+ 	if (!(ch_status & OMAP_DMA_BLOCK_IRQ)) {
+ 		dev_warn(mmc_dev(host->mmc), "unexpected dma status %x\n",
+@@ -1394,16 +1391,9 @@ static void omap_hsmmc_dma_cb(int lch, u16 ch_status, void *cb_data)
+ 		return;
+ 	}
+ 
+-	if (!data->host_cookie)
+-		dma_unmap_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
+-			     omap_hsmmc_get_dma_dir(host, data));
+-
+ 	req_in_progress = host->req_in_progress;
+-	dma_ch = host->dma_ch;
+-	host->dma_ch = -1;
+ 	spin_unlock(&host->irq_lock);
+-
+-	omap_free_dma(dma_ch);
++	omap_hsmmc_dma_cleanup(host, 0);
+ 
+ 	/* If DMA has finished after TC, complete the request */
+ 	if (!req_in_progress) {
+@@ -1575,7 +1565,7 @@ static void omap_hsmmc_post_req(struct mmc_host *mmc, struct mmc_request *mrq,
+ 	struct omap_hsmmc_host *host = mmc_priv(mmc);
+ 	struct mmc_data *data = mrq->data;
+ 
+-	if (host->use_dma) {
++	if (data->host_cookie) {
+ 		dma_unmap_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
+ 			     omap_hsmmc_get_dma_dir(host, data));
+ 		data->host_cookie = 0;
+-- 
+1.7.1
 
-Kevin
-
-> ---
->  arch/arm/plat-omap/omap_device.c |   39 ++++++++++++++++++++++++++++++++++++++
->  1 files changed, 39 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index 752d72a..70361f8 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -315,6 +315,45 @@ static void _add_hwmod_clocks_clkdev(struct omap_device *od,
->  		_add_clkdev(od, oh->opt_clks[i].role, oh->opt_clks[i].clk);
->  }
->  
-> +/*
-> + * XXX: DT helper functions that should probably move elsewhere if
-> + * they become usefull for other needs.
-> + */
-> +static int _dt_count_property_string(const char *prop, int len)
-> +{
-> +	int i = 0;
-> +	size_t l = 0, total = 0;
-> +
-> +	if (!prop || !len)
-> +		return -EINVAL;
-> +
-> +	for (i = 0; len >= total; total += l, prop += l) {
-> +		l = strlen(prop) + 1;
-> +		if (*prop != 0)
-> +			i++;
-> +	}
-> +	return i;
-> +}
-> +
-> +static int _dt_get_property(const char *prop, int len, int index, char *output,
-> +			    int size)
-> +{
-> +	int i = 0;
-> +	size_t l = 0, total = 0;
-> +
-> +	if (!prop || !len)
-> +		return -EINVAL;
-> +
-> +	for (i = 0; len >= total; total += l, prop += l) {
-> +		l = strlcpy(output, prop, size) + 1;
-> +		if (*prop != 0) {
-> +			if (i++ == index)
-> +				return 0;
-> +		}
-> +	}
-> +	return -ENODEV;
-> +}
-> +
->  
->  /* Public functions for use by core code */
