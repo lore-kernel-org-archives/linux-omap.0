@@ -1,62 +1,21 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Subject: Re: [PATCH 6/6 V4] hwmon: OMAP4: On die temperature sensor driver
-Date: Wed, 31 Aug 2011 21:40:47 -0700
-Message-ID: <20110901044047.GB25878@ericsson.com>
-References: <1314811510-15595-1-git-send-email-j-keerthy@ti.com>
- <1314811510-15595-7-git-send-email-j-keerthy@ti.com>
- <alpine.DEB.2.00.1108311810280.26173@utopia.booyaka.com>
- <20110901014939.GB21986@ericsson.com>
- <alpine.DEB.2.00.1108312200260.26173@utopia.booyaka.com>
+From: Sabah Halif <huonght@utehy.edu.vn>
+Subject: (unknown)
+Date: Thu, 1 Sep 2011 07:04:34 +0100
+Message-ID: <CAA0cr1pFpmanUTVevXWrq1XBiGz8rYOQCXHndgo+GZDZ_pyoBg@mail.gmail.com>
+Reply-To: sabahhalif@yahoo.com.hk
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from imr3.ericy.com ([198.24.6.13]:34078 "EHLO imr3.ericy.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750794Ab1IAEm4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Sep 2011 00:42:56 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1108312200260.26173@utopia.booyaka.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:48163 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753047Ab1IAGEl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 02:04:41 -0400
+Received: by vws1 with SMTP id 1so1150491vws.19
+        for <linux-omap@vger.kernel.org>; Wed, 31 Aug 2011 23:04:39 -0700 (PDT)
+Subject: 
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Keerthy <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On Thu, Sep 01, 2011 at 12:09:14AM -0400, Paul Walmsley wrote:
-> On Wed, 31 Aug 2011, Guenter Roeck wrote:
-> 
-> > On Wed, Aug 31, 2011 at 08:36:43PM -0400, Paul Walmsley wrote:
-> > > Hi
-> > > 
-> > > Some comments.
-> > > 
-> > > On Wed, 31 Aug 2011, Keerthy wrote:
-> > > 
-> > [ ... ]
-> > > 
-> > > > +}
-> > > > +
-> > > > +/* Sysfs hook functions */
-> > > 
-> > > These should be conditionally compiled out if sysfs isn't compiled in.
-> > > 
-> > The whole point of the hwmon subsystem is to expose hardware monitoring information
-> > to userland using sysfs. hwmon without sysfs doesn't make sense.
-> > 
-> > So, if anything, it might make sense to disable the entire hwmon tree if sysfs is disabled.
-> > But please no conditionals in the code.
-> 
-> Hmm.  This IP block is more than just a sensor.  It also can interrupt the 
-> CPU and/or trigger a GPIO line (to shut down the chip) if the chip 
-> temperature crosses some thresholds.  On some OMAPs, the thresholds are 
-> fixed; on others, they are software-programmable.  That functionality 
-> shouldn't require sysfs; it's almost closer to an x86 MCE.
-> 
-> So based on your comments, it sounds like we should move that part of the 
-> code to a different driver, and just leave the basic software thermal 
-> monitoring here?
-> 
-Good point. This definitely requires some thought. hwmon is meant to be hw monitoring,
-as the name says, not thermal management. Maybe this entire driver should be a thermal driver
-instead ?
-
-Guenter
+-- 
+Good day,my name Mrs is Sabah Halif am in urgent need of your assistance
+please contact me via (Email; sabahhalif@yahoo.com.hk )
