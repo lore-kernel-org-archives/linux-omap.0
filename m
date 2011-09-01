@@ -1,185 +1,105 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 10/11] ARM: pm: convert some assembly to C
-Date: Thu, 01 Sep 2011 13:51:39 +0100
-Message-ID: <E1Qz6k7-00078l-SM@rmk-PC.arm.linux.org.uk>
-References: <20110901124752.GE29729@n2100.arm.linux.org.uk>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv6 01/11] omap: prcm: switch to a chained IRQ handler mechanism
+Date: Thu, 1 Sep 2011 17:00:00 +0300
+Message-ID: <1314885600.24105.11.camel@sokoban>
+References: <1311611771-15093-1-git-send-email-t-kristo@ti.com> <1311611771-15093-2-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1108260257410.9743@utopia.booyaka.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34120 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757516Ab1IAOAE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 10:00:04 -0400
-In-Reply-To: <20110901124752.GE29729@n2100.arm.linux.org.uk>
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55711 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757516Ab1IAOAJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 10:00:09 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <alpine.DEB.2.00.1108260257410.9743@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.orglinux-arm-kernel@lists.infradead.orglinux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Mahadeva, Avinash" <avinashhm@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "R, Govindraj" <govindraj.raja@ti.com>, "Balbi, Felipe" <balbi@ti.com>
 
-Convert some of the sleep.S guts to C code, which makes it easier to
-use our macros and to add L2 cache handling.  We provide a helper
-function, __cpu_suspend_save(), which deals with saving the common
-state, setting up for resume, and flushing caches.
+Hey Paul,
 
-The remainder left as assembly code is the saving of the CPU general
-purpose registers, and allocating space on the stack to save the CPU
-specific registers and resume state.
+I've been looking at this now and got one question below. Otherwise your
+comments look okay to me and I can work with those.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/include/asm/proc-fns.h |    8 ++++++
- arch/arm/kernel/sleep.S         |   53 ++++++++++++--------------------------
- arch/arm/kernel/suspend.c       |   24 +++++++++++++++--
- 3 files changed, 46 insertions(+), 39 deletions(-)
+On Fri, 2011-08-26 at 11:12 +0200, Paul Walmsley wrote:
+> Hello Tero,
+> 
+> a few comments on this patch:
+> 
+> On Mon, 25 Jul 2011, Tero Kristo wrote:
+> 
+> > Introduce a chained interrupt handler mechanism for the PRCM
+> > interrupt, so that individual PRCM event can cleanly be handled by
+> > handlers in separate drivers. We do this by introducing PRCM event
+> > names, which are then matched to the particular PRCM interrupt bit
+> > depending on the specific OMAP SoC being used.
+> > 
+> > arch/arm/mach-omap2/prcm.c implements the chained interrupt mechanism
+> > itself, with SoC specific support / init structure defined in
+> > arch/arm/mach-omap2/prm2xxx_3xxx.c and arch/arm/mach-omap2/prm4xxx.c
+> > respectively. At initialization time, the set of PRCM events is filtered
+> > against the SoC on which we are running, keeping only the ones that are
+> > actually useful. All the logic is written to be generic with regard to
+> > OMAP3/OMAP4, even though OMAP3 has single PRCM event registers and OMAP4
+> > has two PRCM event registers.
+> 
+> Looking over this patch, it seems that this functionality should be
+> part of a PRM device driver.  That would allow the separation of the
+> SoC-specific data from the code, so there wouldn't be a need to embed
+> the OMAP_PRCM_IRQ data in the driver code.  Rather, that data could go
+> into the dev_attr data for the PRM hwmod.  That avoids putting
+> SoC-specific data in driver code, allows the removal of
+> omap[34]_prcm_irq_setup(), and should also remove the dependency on
+> omap_chip.
+> 
+> Similarly, OMAP_PRCM_MAX_NR_PENDING_REG and OMAP_PRCM_NR_IRQS should
+> be defined somewhere SoC-specific.  I'd suggest defining those in the
+> hwmod dev_attr data.  That way that file won't need to be patched if
+> those constants need change in the future.  Unfortunately, doing this
+> in a clean way will probably mean that the variables that are
+> allocated via these constants will need to be allocated and freed
+> dynamically.
+> 
+> What I'd suggest is to create a short series that:
+> 
+> 1. adds PRM hwmod data for OMAP2430+ platforms
 
-diff --git a/arch/arm/include/asm/proc-fns.h b/arch/arm/include/asm/proc-fns.h
-index 633d1cb..9e92cb2 100644
---- a/arch/arm/include/asm/proc-fns.h
-+++ b/arch/arm/include/asm/proc-fns.h
-@@ -81,6 +81,10 @@ extern void cpu_dcache_clean_area(void *, int);
- extern void cpu_do_switch_mm(unsigned long pgd_phys, struct mm_struct *mm);
- extern void cpu_set_pte_ext(pte_t *ptep, pte_t pte, unsigned int ext);
- extern void cpu_reset(unsigned long addr) __attribute__((noreturn));
-+
-+/* These three are private to arch/arm/kernel/suspend.c */
-+extern void cpu_do_suspend(void *);
-+extern void cpu_do_resume(void *);
- #else
- #define cpu_proc_init			processor._proc_init
- #define cpu_proc_fin			processor._proc_fin
-@@ -89,6 +93,10 @@ extern void cpu_reset(unsigned long addr) __attribute__((noreturn));
- #define cpu_dcache_clean_area		processor.dcache_clean_area
- #define cpu_set_pte_ext			processor.set_pte_ext
- #define cpu_do_switch_mm		processor.switch_mm
-+
-+/* These three are private to arch/arm/kernel/suspend.c */
-+#define cpu_do_suspend			processor.do_suspend
-+#define cpu_do_resume			processor.do_resume
- #endif
+How should this be done? It believe all the data in the hwmods should be
+autogenerated somehow... should I just make a temporary hack patch for
+one platform that could be then autogenerated by someone for all omap
+platforms?
+
+
+> 
+> 2. adds a basic PRM device driver skeleton in a directory such as
+>    drivers/power -- (I'm not convinced that this is the right place,
+>    in the end; but seems like a good place to start)
+> 
+> 3. creates the chained interrupt handler in the PRM device driver,
+>    and removes the old PRCM interrupt handler from pm34xx.c 
+> 
+> ...
+> 
+> A few other relatively minor comments:
+> 
+> - Probably omap_prcm_irq_cleanup() shouldn't be called from pm34xx.c,
+>   since other code outside of pm34xx.c might wish to use the PRCM
+>   interrupt, even in the (admittedly unlikely) circumstance that some
+>   of the code in pm34xx.c fails?
+> 
+> - It would be good to document struct omap_prcm_irq via KernelDoc,
+>   rather than inline comments
+>   (Documentation/kernel-doc-nano-HOWTO.txt).  It would be ideal if the
+>   patch's function documentation followed the same standard.
+> 
+> 
+> - Paul
+
+
+
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
  
- extern void cpu_resume(void);
-diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
-index c9a43ca..020e99c 100644
---- a/arch/arm/kernel/sleep.S
-+++ b/arch/arm/kernel/sleep.S
-@@ -8,54 +8,35 @@
- 	.text
- 
- /*
-- * Save CPU state for a suspend
-- *  r0 = phys addr of temporary page tables
-- *  r1 = v:p offset
-- *  r2 = suspend function arg0
-- *  r3 = suspend function
-+ * Save CPU state for a suspend.  This saves the CPU general purpose
-+ * registers, and allocates space on the kernel stack to save the CPU
-+ * specific registers and some other data for resume.
-+ *  r0 = suspend function arg0
-+ *  r1 = suspend function
-  */
- ENTRY(__cpu_suspend)
- 	stmfd	sp!, {r4 - r11, lr}
--	mov	r4, r0
- #ifdef MULTI_CPU
- 	ldr	r10, =processor
--	ldr	r5, [r10, #CPU_SLEEP_SIZE] @ size of CPU sleep state
--	ldr	ip, [r10, #CPU_DO_RESUME] @ virtual resume function
-+	ldr	r4, [r10, #CPU_SLEEP_SIZE] @ size of CPU sleep state
- #else
--	ldr	r5, =cpu_suspend_size
--	ldr	ip, =cpu_do_resume
-+	ldr	r4, =cpu_suspend_size
- #endif
--	mov	r6, sp			@ current virtual SP
--	sub	sp, sp, r5		@ allocate CPU state on stack
--	mov	r0, sp			@ save pointer to CPU save block
--	add	ip, ip, r1		@ convert resume fn to phys
--	stmfd	sp!, {r4, r6, ip}	@ save phys pgd, virt SP, phys resume fn
--	ldr	r5, =sleep_save_sp
--	add	r6, sp, r1		@ convert SP to phys
--	stmfd	sp!, {r2, r3}		@ save suspend func arg and pointer
-+	mov	r5, sp			@ current virtual SP
-+	add	r4, r4, #12		@ Space for pgd, virt sp, phys resume fn
-+	sub	sp, sp, r4		@ allocate CPU state on stack
-+	stmfd	sp!, {r0, r1}		@ save suspend func arg and pointer
-+	add	r0, sp, #8		@ save pointer to save block
-+	mov	r1, r4			@ size of save block
-+	mov	r2, r5			@ virtual SP
-+	ldr	r3, =sleep_save_sp
- #ifdef CONFIG_SMP
- 	ALT_SMP(mrc p15, 0, lr, c0, c0, 5)
- 	ALT_UP(mov lr, #0)
- 	and	lr, lr, #15
--	str	r6, [r5, lr, lsl #2]	@ save phys SP
--#else
--	str	r6, [r5]		@ save phys SP
--#endif
--#ifdef MULTI_CPU
--	mov	lr, pc
--	ldr	pc, [r10, #CPU_DO_SUSPEND] @ save CPU state
--#else
--	bl	cpu_do_suspend
--#endif
--
--	@ flush data cache
--#ifdef MULTI_CACHE
--	ldr	r10, =cpu_cache
--	mov	lr, pc
--	ldr	pc, [r10, #CACHE_FLUSH_KERN_ALL]
--#else
--	bl	__cpuc_flush_kern_all
-+	add	r3, r3, lr, lsl #2
- #endif
-+	bl	__cpu_suspend_save
- 	adr	lr, BSYM(cpu_suspend_abort)
- 	ldmfd	sp!, {r0, pc}		@ call suspend fn
- ENDPROC(__cpu_suspend)
-diff --git a/arch/arm/kernel/suspend.c b/arch/arm/kernel/suspend.c
-index 115736a..c78a88f 100644
---- a/arch/arm/kernel/suspend.c
-+++ b/arch/arm/kernel/suspend.c
-@@ -8,10 +8,29 @@
- 
- static pgd_t *suspend_pgd;
- 
--extern int __cpu_suspend(int, long, unsigned long, int (*)(unsigned long));
-+extern int __cpu_suspend(unsigned long, int (*)(unsigned long));
- extern void cpu_resume_mmu(void);
- 
- /*
-+ * This is called by __cpu_suspend() to save the state, and do whatever
-+ * flushing is required to ensure that when the CPU goes to sleep we have
-+ * the necessary data available when the caches are not searched.
-+ */
-+void __cpu_suspend_save(u32 *ptr, u32 ptrsz, u32 sp, u32 *save_ptr)
-+{
-+	*save_ptr = virt_to_phys(ptr);
-+
-+	/* This must correspond to the LDM in cpu_resume() assembly */
-+	*ptr++ = virt_to_phys(suspend_pgd);
-+	*ptr++ = sp;
-+	*ptr++ = virt_to_phys(cpu_do_resume);
-+
-+	cpu_do_suspend(ptr);
-+
-+	flush_cache_all();
-+}
-+
-+/*
-  * Hide the first two arguments to __cpu_suspend - these are an implementation
-  * detail which platform code shouldn't have to know about.
-  */
-@@ -29,8 +48,7 @@ int cpu_suspend(unsigned long arg, int (*fn)(unsigned long))
- 	 * resume (indicated by a zero return code), we need to switch
- 	 * back to the correct page tables.
- 	 */
--	ret = __cpu_suspend(virt_to_phys(suspend_pgd),
--			    PHYS_OFFSET - PAGE_OFFSET, arg, fn);
-+	ret = __cpu_suspend(arg, fn);
- 	if (ret == 0)
- 		cpu_switch_mm(mm->pgd, mm);
- 
--- 
-1.7.4.4
 
