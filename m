@@ -1,47 +1,45 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/1] OMAP: omap_device: only override _noirq methods, not normal suspend/resume
-Date: Thu, 01 Sep 2011 10:50:24 -0700
-Message-ID: <8762lcf8yn.fsf@ti.com>
-References: <1314229437-31836-1-git-send-email-khilman@ti.com>
-	<1314229437-31836-2-git-send-email-khilman@ti.com>
-	<201109011800.55516.arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH] OMAP: omap_device: fix !CONFIG_SUSPEND case in _noirq handlers
+Date: Thu,  1 Sep 2011 11:12:02 -0700
+Message-ID: <1314900722-10252-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:52596 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756448Ab1IARu2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 13:50:28 -0400
-Received: by mail-iy0-f169.google.com with SMTP id v1so2881063iag.14
-        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 10:50:27 -0700 (PDT)
-In-Reply-To: <201109011800.55516.arnd@arndb.de> (Arnd Bergmann's message of
-	"Thu, 1 Sep 2011 18:00:55 +0200")
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:51777 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755404Ab1IASL3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 14:11:29 -0400
+Received: by mail-gx0-f178.google.com with SMTP id 8so1927951gxk.23
+        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 11:11:28 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org
 
-Arnd Bergmann <arnd@arndb.de> writes:
+The suspend/resume _noirq handlers were #ifdef'd out in the
+!CONFIG_SUSPEND case, but were still assigned to the dev_pm_ops
+struct.  Fix by defining them to NULL in the !CONFIG_SUSPEND case.
 
-> On Thursday 25 August 2011, Kevin Hilman wrote:
->> --- a/arch/arm/plat-omap/omap_device.c
->> +++ b/arch/arm/plat-omap/omap_device.c
->> @@ -622,7 +622,8 @@ static struct dev_pm_domain omap_device_pm_domain = {
->>                 SET_RUNTIME_PM_OPS(_od_runtime_suspend, _od_runtime_resume,
->>                                    _od_runtime_idle)
->>                 USE_PLATFORM_PM_SLEEP_OPS
->> -               SET_SYSTEM_SLEEP_PM_OPS(_od_suspend_noirq, _od_resume_noirq)
->> +               .suspend_noirq = _od_suspend_noirq,
->> +               .resume_noirq = _od_resume_noirq,
->>         }
->>  };
->
-> This breaks if CONFIG_SUSPEND is not set and the _od_suspend_noirq/_od_resume_noirq
-> functions are not defined.
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Applies to v3.1-rc4.
 
-Indeed.
+ arch/arm/plat-omap/omap_device.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Will post a fix shortly.
-
-Kevin
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 9a6a538..02609ee 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -615,6 +615,9 @@ static int _od_resume_noirq(struct device *dev)
+ 
+ 	return pm_generic_resume_noirq(dev);
+ }
++#else
++#define _od_suspend_noirq NULL
++#define _od_resume_noirq NULL
+ #endif
+ 
+ static struct dev_pm_domain omap_device_pm_domain = {
+-- 
+1.7.6
 
