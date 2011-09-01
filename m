@@ -1,56 +1,58 @@
-From: Marc Dietich <marvin24-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
-Date: Thu, 1 Sep 2011 13:13:41 +0200
-Message-ID: <201109011313.42547.marvin24@gmx.de>
-References: <1314720193-26577-1-git-send-email-ming.lei@canonical.com> <201108311855.27711.marc.dietrich@ap.physik.uni-giessen.de> <4E5F5FA9.3010305@arm.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH] iommu: omap_iovmm: support non page-aligned buffers in iommu_vmap
+Date: Thu, 1 Sep 2011 14:47:26 +0300
+Message-ID: <CAK=WgbaOSaKcxmsG2L3G3g+bORvtq4nyzCg9yhA=tTLhsYmh3w@mail.gmail.com>
+References: <1314646569-16738-1-git-send-email-ohad@wizery.com> <CAK=Wgbb06Z0_8OKFf6MKjYe+SJN16Mh9PA6z_T+cpSpB9EKHFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E5F5FA9.3010305-5wv7dgnIgG8@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Chen Peter-B29397 <B29397-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Mark Salter <msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64266 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753055Ab1IALru (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 07:47:50 -0400
+Received: by wyh22 with SMTP id 22so897953wyh.19
+        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 04:47:46 -0700 (PDT)
+In-Reply-To: <CAK=Wgbb06Z0_8OKFf6MKjYe+SJN16Mh9PA6z_T+cpSpB9EKHFw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org
 
-> Hi Marc,
+On Wed, Aug 31, 2011 at 1:52 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+> omap_iovmm requires page-aligned buffers, and that sometimes causes
+> omap3isp failures (i.e. whenever the buffer passed from userspace is not
+> page-aligned).
+>
+> Remove this limitation by rounding the address of the first page entry
+> down, and adding the offset back to the device address.
 
-^dito,
+Seems like the unmap paths were skipped (need to adjust the sizes in
+the unmap path too).
 
-> On 31/08/11 17:55, Marc Dietrich wrote:
-> > Am Mittwoch 31 August 2011, 18:12:48 schrieb Marc Zyngier:
-> >> [...]
-> >> Oddly enough, this patch doesn't do anything on my Tegra setup. In both
-> >> cases, I get around 17MB/s from a crap SD card plugged in a USB reader.
-> >> 
-> >> This leads me to suspect that this issue is very much OMAP4 specific.
-> >> Can anyone verify this theory on other some A9 platforms?
-> > 
-> > That's odd. On my Tegra2 (on ac100) it boosts the transfer rate from 7 to
-> > 17 MB/s.
-> 
-> I'm using a Harmony board. Could you share your kernel version, .config
-> and dmesg?
-> 
-> Thanks,
-> 
-> 	M.
+Laurent, if it looks good to you, I'll just squash it to the original
+patch and repost:
 
-I use the chromiumos tree (for chromiumos 2.6.38 kernel: 
-http://git.chromium.org/chromiumos/third_party/kernel-next.git) with some 
-additions to make it run on the AC100. This modified tree is on 
-git://gitorious.org/~marvin24/ac100/marvin24s-kernel.git. The config is 
-paz00_defconfig and a dmesg you can get e.g. from http://pastebin.com/9uVfDWma
-(it's not very current, but it should be sufficient).
+diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
+index d28a256..39bdb92 100644
+--- a/drivers/iommu/omap-iovmm.c
++++ b/drivers/iommu/omap-iovmm.c
+@@ -447,7 +447,7 @@ err_out:
+        for_each_sg(sgt->sgl, sg, i, j) {
+                size_t bytes;
 
-I'll add Stephen Warren from NVIDIA to the CC list. He has more HW to test on. 
+-               bytes = sg->length;
++               bytes = sg->length + sg->offset;
+                order = get_order(bytes);
 
-Btw, this is the patch I used: http://gitorious.org/~marvin24/ac100/marvin24s-
-kernel/commit/cce8d9e25d009a45c219a6ad0b9ac4e27d034ab0
+                /* ignore failures.. we're already handling one */
+@@ -476,7 +476,7 @@ static void unmap_iovm_area(struct iommu_domain *domain, str
+                size_t bytes;
+                int order;
 
-	Marc
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-               bytes = sg->length;
++               bytes = sg->length + sg->offset;
+                order = get_order(bytes);
+
+                err = iommu_unmap(domain, start, order);
