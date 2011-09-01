@@ -1,88 +1,73 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/7] arm/dts: Add initial device-tree support for OMAP3 SoC
-Date: Thu, 1 Sep 2011 19:25:06 +0200
-Message-ID: <1314897912-18178-2-git-send-email-b-cousson@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 3/7] arm/dts: OMAP3: Add i2c controllers nodes
+Date: Thu, 1 Sep 2011 19:25:08 +0200
+Message-ID: <1314897912-18178-4-git-send-email-b-cousson@ti.com>
 References: <1314897912-18178-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1314897912-18178-1-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: manjugk-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52497 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756466Ab1IARZh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Sep 2011 13:25:37 -0400
+In-Reply-To: <1314897912-18178-1-git-send-email-b-cousson@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: grant.likely@secretlab.ca, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, manjugk@ti.com, Benoit Cousson <b-cousson@ti.com>
 
-Add initial OMAP3 soc file with empty ocp bus.
+Add i2c controllers nodes into the main ocp bus.
 
-Based on initial patch from Manju:
-http://www.spinics.net/lists/linux-omap/msg55830.html
-
-Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: G, Manjunath Kondaiah <manjugk-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: G, Manjunath Kondaiah <manjugk@ti.com>
 ---
- arch/arm/boot/dts/omap3.dtsi |   44 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 44 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3.dtsi
+ arch/arm/boot/dts/omap3.dtsi |   27 +++++++++++++++++++++++++++
+ 1 files changed, 27 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-new file mode 100644
-index 0000000..1b27925
---- /dev/null
+index 5a95a69..aab2129 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
 +++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -0,0 +1,44 @@
-+/*
-+ * Device Tree Source for OMAP3 SoC
-+ *
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
-+
-+/include/ "skeleton.dtsi"
-+
-+/ {
-+	compatible = "ti,omap3430", "ti,omap3";
-+
-+	/*
-+	 * The soc node represents the soc top level view. It is uses for IPs
-+	 * that are not memory mapped in the MPU view or for the MPU itself.
-+	 */
-+	soc {
-+		compatible = "ti,omap-infra";
+@@ -13,6 +13,12 @@
+ / {
+ 	compatible = "ti,omap3430", "ti,omap3";
+ 
++	aliases {
++		i2c1 = &i2c1;
++		i2c2 = &i2c2;
++		i2c3 = &i2c3;
 +	};
 +
-+	/*
-+	 * XXX: Use a flat representation of the OMAP3 interconnect.
-+	 * The real OMAP interconnect network is quite complex.
-+	 * Since that will not bring real advantage to represent that in DT for
-+	 * the moment, just use a fake OCP bus entry to represent the whole bus
-+	 * hierarchy.
-+	 */
-+	ocp {
-+		compatible = "ti,l3-smx", "arteris,smx", "simple-bus";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+		hwmods = "l3_main";
+ 	/*
+ 	 * XXX: The cpus node is mandatory, but since the CPUs are as well part
+ 	 * of the mpu subsystem below, it is not clear where the information
+@@ -64,5 +70,26 @@
+ 			interrupt-controller;
+ 			#interrupt-cells = <1>;
+ 		};
 +
-+		intc: interrupt-controller@1 {
-+			compatible = "ti,omap3-intc";
-+			interrupt-controller;
-+			#interrupt-cells = <1>;
++		i2c1: i2c@1 {
++			compatible = "ti,omap3-i2c", "ti,omap-i2c";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			hwmods = "i2c1";
 +		};
-+	};
-+};
++
++		i2c2: i2c@2 {
++			compatible = "ti,omap3-i2c", "ti,omap-i2c";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			hwmods = "i2c2";
++		};
++
++		i2c3: i2c@3 {
++			compatible = "ti,omap3-i2c", "ti,omap-i2c";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			hwmods = "i2c3";
++		};
+ 	};
+ };
 -- 
 1.7.0.4
+
