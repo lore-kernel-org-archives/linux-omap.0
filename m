@@ -1,36 +1,40 @@
 From: Thomas Weber <weber@corscience.de>
-Subject: Re: devkit8000 & omap3stalker LCD panel
-Date: Thu, 01 Sep 2011 15:00:48 +0200
-Message-ID: <4E5F8200.4040608@corscience.de>
+Subject: [PATCH 2/3] OMAP: Devkit8000: Change lcd driver to AT070TN83
+Date: Thu,  1 Sep 2011 15:05:08 +0200
+Message-ID: <1314882308-25915-2-git-send-email-weber@corscience.de>
 References: <1314859332.1933.4.camel@deskari>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+ <1314882308-25915-1-git-send-email-weber@corscience.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:60702 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.10]:58986 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932107Ab1IANBN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 09:01:13 -0400
-In-Reply-To: <1314859332.1933.4.camel@deskari>
+	with ESMTP id S932107Ab1IANFn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 09:05:43 -0400
+In-Reply-To: <1314882308-25915-1-git-send-email-weber@corscience.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: lzg@ema-tech.com, linux-omap mailing list <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Thomas Weber <weber@corscience.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Am 01.09.2011 08:42, schrieb Tomi Valkeinen:
-> Hi Thomas, Jason,
->
-> I noticed that both devkit8000 and omap3stalker boards use the generic
-> dpi driver for LCD. Why is that? If the boards have a normal fixed
-> resolution LCD, the timings for the LCD should be added to the
-> panel-generic-dpi.c.
->
->  Tomi
->
->
-Hello Tomi,
+Change lcd driver from generic to AT070TN83.
 
-I will send a patch that adds support for the devkit8000 panel.
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+ arch/arm/mach-omap2/board-devkit8000.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Thomas
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 4b1f6c6..a3b8e81 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -139,7 +139,7 @@ static struct regulator_consumer_supply devkit8000_vio_supply[] = {
+ };
+ 
+ static struct panel_generic_dpi_data lcd_panel = {
+-	.name			= "generic",
++	.name			= "innolux_at070tn83",
+ 	.platform_enable        = devkit8000_panel_enable_lcd,
+ 	.platform_disable       = devkit8000_panel_disable_lcd,
+ };
+-- 
+1.7.6.1
 
