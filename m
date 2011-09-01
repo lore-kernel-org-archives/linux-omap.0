@@ -1,43 +1,33 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 03/11] ARM: pm: some ARMv7 requires a dsb in resume to ensure
- correctness
-Date: Thu, 01 Sep 2011 13:49:19 +0100
-Message-ID: <E1Qz6hr-00078J-2k@rmk-PC.arm.linux.org.uk>
-References: <20110901124752.GE29729@n2100.arm.linux.org.uk>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH] iommu: omap_iovmm: support non page-aligned buffers in iommu_vmap
+Date: Thu, 1 Sep 2011 17:02:35 +0300
+Message-ID: <CAK=WgbY0YTBVbHwHDDa-+8j8d_navvKN=JXFJDpdWp2BX0LFCg@mail.gmail.com>
+References: <1314646569-16738-1-git-send-email-ohad@wizery.com>
+ <CAK=Wgbb06Z0_8OKFf6MKjYe+SJN16Mh9PA6z_T+cpSpB9EKHFw@mail.gmail.com>
+ <CAK=WgbaOSaKcxmsG2L3G3g+bORvtq4nyzCg9yhA=tTLhsYmh3w@mail.gmail.com> <201109011559.33491.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57092 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757553Ab1IAOCz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 10:02:55 -0400
-In-Reply-To: <20110901124752.GE29729@n2100.arm.linux.org.uk>
-Content-Disposition: inline
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:47823 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757553Ab1IAOC5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 10:02:57 -0400
+Received: by eyx24 with SMTP id 24so1633948eyx.19
+        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 07:02:55 -0700 (PDT)
+In-Reply-To: <201109011559.33491.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.orglinux-arm-kernel@lists.infradead.orglinux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org
 
-Add a dsb after the isb to ensure that the previous writes to the
-CP15 registers take effect before we enable the MMU.
+On Thu, Sep 1, 2011 at 4:59 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> It looks good to me.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/mm/proc-v7.S |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Thanks.
 
-diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
-index dec72ee..a773f4e 100644
---- a/arch/arm/mm/proc-v7.S
-+++ b/arch/arm/mm/proc-v7.S
-@@ -255,6 +255,7 @@ ENTRY(cpu_v7_do_resume)
- 	mcr	p15, 0, r4, c10, c2, 0	@ write PRRR
- 	mcr	p15, 0, r5, c10, c2, 1	@ write NMRR
- 	isb
-+	dsb
- 	mov	r0, r9			@ control register
- 	mov	r2, r7, lsr #14		@ get TTB0 base
- 	mov	r2, r2, lsl #14
--- 
-1.7.4.4
+> I haven't tested it though.
 
+I did, but I always get aligned buffers so my testing is a bit moot. I
+can't see how unmap could work without this patch, though, so I'll
+squash this and re-post.
