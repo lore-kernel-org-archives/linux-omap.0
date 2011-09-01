@@ -1,51 +1,46 @@
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [PATCH] iommu: omap_iovmm: support non page-aligned buffers in
- iommu_vmap
-Date: Thu, 1 Sep 2011 11:35:18 +0200
-Message-ID: <20110901093518.GC15287@amd.com>
-References: <1314646569-16738-1-git-send-email-ohad@wizery.com>
- <CAK=Wgbb06Z0_8OKFf6MKjYe+SJN16Mh9PA6z_T+cpSpB9EKHFw@mail.gmail.com>
- <20110831130642.GQ12940@amd.com>
- <201108311856.26969.laurent.pinchart@ideasonboard.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
+Date: Thu, 01 Sep 2011 11:34:17 +0100
+Message-ID: <4E5F5FA9.3010305@arm.com>
+References: <1314720193-26577-1-git-send-email-ming.lei@canonical.com>	<1314804471.2344.79.camel@deneb.redhat.com>	<4E5E5D80.6080409@arm.com>
+	<201108311855.27711.marc.dietrich@ap.physik.uni-giessen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from db3ehsobe002.messaging.microsoft.com ([213.199.154.140]:36853
-	"EHLO DB3EHSOBE002.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750879Ab1IAJgd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 05:36:33 -0400
-Content-Disposition: inline
-In-Reply-To: <201108311856.26969.laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201108311855.27711.marc.dietrich@ap.physik.uni-giessen.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Marc Dietrich <Marc.Dietrich@ap.physik.uni-giessen.de>
+Cc: Russell King <linux@arm.linux.org.uk>, Greg KH <greg@kroah.com>, "ming.lei@canonical.com" <ming.lei@canonical.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, Mark Salter <msalter@redhat.com>, Chen Peter-B29397 <B29397@freescale.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
 
-On Wed, Aug 31, 2011 at 12:56:26PM -0400, Laurent Pinchart wrote:
-> True, but if we implement address rounding transparently in the IOMMU layer 
-> Ohad's concern can be valid, depending on whether the device is trusted. If we 
-> decide to push address rounding to the drivers that decision can be made on a 
-> per-device basis. However, drivers are usually not aware of what granularity 
-> the IOMMU works on, so that wouldn't be straightforward and clean.
+Hi Marc,
 
-Drivers usually just use the DMA-API, so they can not assume at all that
-any protection happens. The problem also can't be really solved without
-changing/breaking the DMA-API. It is defined to work on byte granularity
-while the hardware only works with pages.
+On 31/08/11 17:55, Marc Dietrich wrote:
+> Am Mittwoch 31 August 2011, 18:12:48 schrieb Marc Zyngier:
+>> [...]
+>> Oddly enough, this patch doesn't do anything on my Tegra setup. In both
+>> cases, I get around 17MB/s from a crap SD card plugged in a USB reader.
+>>
+>> This leads me to suspect that this issue is very much OMAP4 specific.
+>> Can anyone verify this theory on other some A9 platforms?
+> 
+> That's odd. On my Tegra2 (on ac100) it boosts the transfer rate from 7 to 
+> 17 MB/s. 
 
-The only way to work around this it to implement the driver in a way so
-that they only map page-aligned buffers where the size is also a
-multiple of a page-size.
+I'm using a Harmony board. Could you share your kernel version, .config
+and dmesg?
 
-In this case you can assume the page-size you are working on because you
-already assume in the driver that an iommu is in use.
+Thanks,
 
-	Joerg
-
+	M.
 -- 
-AMD Operating System Research Center
-
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
-
+Jazz is not dead. It just smells funny...
