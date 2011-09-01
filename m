@@ -1,16 +1,15 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 04/11] ARM: pm: avoid writing the auxillary control register
- for ARMv7
-Date: Thu, 01 Sep 2011 13:49:39 +0100
-Message-ID: <E1Qz6iB-00078N-6O@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 02/11] ARM: pm: arm920/926: fix number of registers saved
+Date: Thu, 01 Sep 2011 13:48:58 +0100
+Message-ID: <E1Qz6hW-00078F-VZ@rmk-PC.arm.linux.org.uk>
 References: <20110901124752.GE29729@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57090 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57091 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757571Ab1IAOCk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 10:02:40 -0400
+	with ESMTP id S1757553Ab1IAOCs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 10:02:48 -0400
 In-Reply-To: <20110901124752.GE29729@n2100.arm.linux.org.uk>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,31 +17,41 @@ List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.orglinux-arm-kernel@lists.infradead.orglinux-omap@vger.kernel.org
 
-For ARMv7 kernels running in the non-secure world, writing to the
-auxillary control register causes an abort, so we must avoid directly
-writing the auxillary control register.  If the ACR has already been
-reinitialized by SoC code, don't try to restore it.
+ARM920 and ARM926 save four registers, not three.  Fix the size of
+the suspend region required.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mm/proc-v7.S |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ arch/arm/mm/proc-arm920.S |    2 +-
+ arch/arm/mm/proc-arm926.S |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
-index a773f4e..9049c07 100644
---- a/arch/arm/mm/proc-v7.S
-+++ b/arch/arm/mm/proc-v7.S
-@@ -248,7 +248,9 @@ ENTRY(cpu_v7_do_resume)
- 	mcr	p15, 0, r7, c2, c0, 0	@ TTB 0
- 	mcr	p15, 0, r8, c2, c0, 1	@ TTB 1
- 	mcr	p15, 0, ip, c2, c0, 2	@ TTB control register
--	mcr	p15, 0, r10, c1, c0, 1	@ Auxiliary control register
-+	mrc	p15, 0, r4, c1, c0, 1	@ Read Auxiliary control register
-+	teq	r4, r10			@ Is it already set?
-+	mcrne	p15, 0, r10, c1, c0, 1	@ No, so write it
- 	mcr	p15, 0, r11, c1, c0, 2	@ Co-processor access control
- 	ldr	r4, =PRRR		@ PRRR
- 	ldr	r5, =NMRR		@ NMRR
+diff --git a/arch/arm/mm/proc-arm920.S b/arch/arm/mm/proc-arm920.S
+index 92bd102..2e6849b 100644
+--- a/arch/arm/mm/proc-arm920.S
++++ b/arch/arm/mm/proc-arm920.S
+@@ -379,7 +379,7 @@ ENTRY(cpu_arm920_set_pte_ext)
+ 
+ /* Suspend/resume support: taken from arch/arm/plat-s3c24xx/sleep.S */
+ .globl	cpu_arm920_suspend_size
+-.equ	cpu_arm920_suspend_size, 4 * 3
++.equ	cpu_arm920_suspend_size, 4 * 4
+ #ifdef CONFIG_PM_SLEEP
+ ENTRY(cpu_arm920_do_suspend)
+ 	stmfd	sp!, {r4 - r7, lr}
+diff --git a/arch/arm/mm/proc-arm926.S b/arch/arm/mm/proc-arm926.S
+index 2bbcf05..cd8f79c 100644
+--- a/arch/arm/mm/proc-arm926.S
++++ b/arch/arm/mm/proc-arm926.S
+@@ -394,7 +394,7 @@ ENTRY(cpu_arm926_set_pte_ext)
+ 
+ /* Suspend/resume support: taken from arch/arm/plat-s3c24xx/sleep.S */
+ .globl	cpu_arm926_suspend_size
+-.equ	cpu_arm926_suspend_size, 4 * 3
++.equ	cpu_arm926_suspend_size, 4 * 4
+ #ifdef CONFIG_PM_SLEEP
+ ENTRY(cpu_arm926_do_suspend)
+ 	stmfd	sp!, {r4 - r7, lr}
 -- 
 1.7.4.4
 
