@@ -1,59 +1,48 @@
-From: javier Martin <javier.martin@vista-silicon.com>
-Subject: cpuidle status in mainline for Beagleboard xM
-Date: Thu, 1 Sep 2011 16:14:00 +0200
-Message-ID: <CACKLOr10aTCwkBZnSinvP4HLPhrJeiBs=6KM2we4DwTT0NJ22A@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] iommu: omap_iovmm: support non page-aligned buffers in
+	iommu_vmap
+Date: Thu, 1 Sep 2011 16:15:48 +0200
+Message-ID: <201109011615.49533.laurent.pinchart@ideasonboard.com>
+References: <1314646569-16738-1-git-send-email-ohad@wizery.com>
+	<201109011559.33491.laurent.pinchart@ideasonboard.com>
+	<CAK=WgbY0YTBVbHwHDDa-+8j8d_navvKN=JXFJDpdWp2BX0LFCg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:35894 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757420Ab1IAOOB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 10:14:01 -0400
-Received: by ywf7 with SMTP id 7so1404997ywf.19
-        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 07:14:00 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAK=WgbY0YTBVbHwHDDa-+8j8d_navvKN=JXFJDpdWp2BX0LFCg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Koen Kooi <koen@beagleboard.org>
 
-Hi,
-I am trying to enable cpuidle and cpufreq support in latest stable
-kernel (3.0.4) in the Beagleboard xM.
-The default governor I've selected in the kernel menu is "powersave".
-However, when I execute powertop 1.12 (downloaded from Angstrom 2010.x
-repository through opkg) I get the following:
+On Thursday 01 September 2011 16:02:35 Ohad Ben-Cohen wrote:
+> On Thu, Sep 1, 2011 at 4:59 PM, Laurent Pinchart
+> 
+> <laurent.pinchart@ideasonboard.com> wrote:
+> > It looks good to me.
+> 
+> Thanks.
+> 
+> > I haven't tested it though.
+> 
+> I did, but I always get aligned buffers so my testing is a bit moot. I
+> can't see how unmap could work without this patch, though, so I'll
+> squash this and re-post.
 
+You can allocate a page-aligned buffer with posix_memalign() and add an offset 
+(64 should do the job, smaller values can get rejected by the OMAP3 ISP 
+driver).
 
-Cn=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Avg residency=A0=A0=A0=A0=
-=A0=A0 P-states (frequencies)
-C0 (cpu running)=A0=A0=A0=A0=A0=A0=A0 ( 0.4%)
-C0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 16.7ms (99.6%)
-C1=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 0.0ms ( 0.0%)
-C2=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 0.0ms ( 0.0%)
-C3=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 0.0ms ( 0.0%)
-C4=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 0.0ms ( 0.0%)
-C5=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 0.0ms ( 0.0%)
-C6=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 0.0ms ( 0.0%)
+-- 
+Regards,
 
-So, the CPU always stays in C0 status and P-states are not shown. I've
-read some old reports of this working properly in omap-pm-next branch
-http://groups.google.com/group/beagleboard/browse_thread/thread/b03e088=
-68af7c6e0?pli=3D1%29
-Do cpuidle and cpufreq really work in mainline?
-
-Thank you.
-
---
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Laurent Pinchart
