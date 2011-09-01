@@ -1,30 +1,37 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 1/7] OMAP: PM: omap_device: add omap_hwmod_name_get_odev
-Date: Thu, 1 Sep 2011 15:44:24 -0500
-Message-ID: <CAOMWX4fWwc88JuxE0vCejBAROMrwfX8E3G8zdXo-2yNSOdRrRA@mail.gmail.com>
-References: <1314026347-21623-1-git-send-email-b-cousson@ti.com>
- <1314026347-21623-2-git-send-email-b-cousson@ti.com> <87zkip8bpu.fsf@ti.com> <4E5F7120.8040907@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] OMAP: omap_device: fix !CONFIG_SUSPEND case in _noirq handlers
+Date: Thu, 1 Sep 2011 23:57:39 +0200
+Message-ID: <201109012357.39873.rjw@sisk.pl>
+References: <1314900722-10252-1-git-send-email-khilman@ti.com> <1876183.c78P8V3ZbL@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:50669 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757909Ab1IAUop (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 16:44:45 -0400
-Received: by mail-yw0-f49.google.com with SMTP id 17so2328084ywp.22
-        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 13:44:44 -0700 (PDT)
-In-Reply-To: <4E5F7120.8040907@ti.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:57942 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757961Ab1IAVzs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Sep 2011 17:55:48 -0400
+In-Reply-To: <1876183.c78P8V3ZbL@wuerfel>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-On Thu, Sep 1, 2011 at 06:48, Cousson, Benoit <b-cousson@ti.com> wrote:
+On Thursday, September 01, 2011, Arnd Bergmann wrote:
+> On Thursday 01 September 2011 11:12:02 Kevin Hilman wrote:
+> > The suspend/resume _noirq handlers were #ifdef'd out in the
+> > !CONFIG_SUSPEND case, but were still assigned to the dev_pm_ops
+> > struct.  Fix by defining them to NULL in the !CONFIG_SUSPEND case.
+> > 
+> > Reported-by: Arnd Bergmann <arnd@arndb.de>
+> > Signed-off-by: Kevin Hilman <khilman@ti.com>
+> 
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+> 
+> Thansk for the fast response!
 
->
-> Nishanth,
-> Do you have any objection to replace that API with omap_hwmod_name_get_pdev?
-None.
+I'll apply the patch when kernel.org is back in order.
 
-Regards,
-Nishanth Menon
+Thanks,
+Rafael
