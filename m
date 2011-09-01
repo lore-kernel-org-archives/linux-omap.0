@@ -1,62 +1,47 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: cpuidle status in mainline for Beagleboard xM
-Date: Thu, 01 Sep 2011 10:46:53 -0700
-Message-ID: <87ei00f94i.fsf@ti.com>
-References: <CACKLOr10aTCwkBZnSinvP4HLPhrJeiBs=6KM2we4DwTT0NJ22A@mail.gmail.com>
-	<87vctcjo2w.fsf@ti.com>
-	<CACKLOr0KpCUXrXM7M9YvE3DGPbGjzT4N678eEPfx_GGE7+40-w@mail.gmail.com>
+Subject: Re: [PATCH 1/1] OMAP: omap_device: only override _noirq methods, not normal suspend/resume
+Date: Thu, 01 Sep 2011 10:50:24 -0700
+Message-ID: <8762lcf8yn.fsf@ti.com>
+References: <1314229437-31836-1-git-send-email-khilman@ti.com>
+	<1314229437-31836-2-git-send-email-khilman@ti.com>
+	<201109011800.55516.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:56270 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756448Ab1IARq5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Sep 2011 13:46:57 -0400
-Received: by mail-yx0-f175.google.com with SMTP id 11so566201yxl.20
-        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 10:46:56 -0700 (PDT)
-In-Reply-To: <CACKLOr0KpCUXrXM7M9YvE3DGPbGjzT4N678eEPfx_GGE7+40-w@mail.gmail.com>
-	(javier Martin's message of "Thu, 1 Sep 2011 17:33:31 +0200")
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:52596 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756448Ab1IARu2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Sep 2011 13:50:28 -0400
+Received: by mail-iy0-f169.google.com with SMTP id v1so2881063iag.14
+        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 10:50:27 -0700 (PDT)
+In-Reply-To: <201109011800.55516.arnd@arndb.de> (Arnd Bergmann's message of
+	"Thu, 1 Sep 2011 18:00:55 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-omap@vger.kernel.org, Koen Kooi <koen@beagleboard.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-javier Martin <javier.martin@vista-silicon.com> writes:
+Arnd Bergmann <arnd@arndb.de> writes:
 
-> Hi Kevin,
-> thanks for your help.
+> On Thursday 25 August 2011, Kevin Hilman wrote:
+>> --- a/arch/arm/plat-omap/omap_device.c
+>> +++ b/arch/arm/plat-omap/omap_device.c
+>> @@ -622,7 +622,8 @@ static struct dev_pm_domain omap_device_pm_domain = {
+>>                 SET_RUNTIME_PM_OPS(_od_runtime_suspend, _od_runtime_resume,
+>>                                    _od_runtime_idle)
+>>                 USE_PLATFORM_PM_SLEEP_OPS
+>> -               SET_SYSTEM_SLEEP_PM_OPS(_od_suspend_noirq, _od_resume_noirq)
+>> +               .suspend_noirq = _od_suspend_noirq,
+>> +               .resume_noirq = _od_resume_noirq,
+>>         }
+>>  };
 >
->> CPU is staying in C0 probably because UARTs are not being idled, so =
-SoC
->> cannot hit deeper idle states. =C2=A0Try the following at the comman=
-d line to
->> to enable UART idle timeouts, so the SoC can attempt idle after the
->> timeout period
->>
->> # UART timeouts: omap-serial (4th UART only on OMAP36xx and OMAP4)
->> echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
->> echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
->> echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
->> echo 5 > /sys/devices/platform/omap/omap_uart.3/sleep_timeout
->>
->> After 5 seconds of inactivity on the UARTs, you should see the SoC
->> hitting deeper C-states.
->
-> I've tried that but it still doesn't hit any C-state deeper than 0.
-> I'll try the same test using your pm branch you pointed me out and
-> post the results.
->
+> This breaks if CONFIG_SUSPEND is not set and the _od_suspend_noirq/_od_resume_noirq
+> functions are not defined.
 
-The CPUidle stuff works in mainline (after allowing UARTs to idle).
+Indeed.
 
-You only need my pm-wip/cpufreq branch for testing CPUfreq.
+Will post a fix shortly.
 
 Kevin
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
