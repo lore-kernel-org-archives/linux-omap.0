@@ -1,69 +1,73 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
-Date: Fri, 02 Sep 2011 14:54:55 +0300
-Message-ID: <1314964495.2296.632.camel@cumari>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
-	 <1314643307-17780-1-git-send-email-coelho@ti.com>
-	 <201108311849.37273.arnd@arndb.de>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv6 01/11] omap: prcm: switch to a chained IRQ handler mechanism
+Date: Fri, 2 Sep 2011 15:15:12 +0300
+Message-ID: <1314965712.3035.5.camel@sokoban>
+References: <1311611771-15093-1-git-send-email-t-kristo@ti.com> <1311611771-15093-2-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1108260257410.9743@utopia.booyaka.com> <1314885600.24105.11.camel@sokoban> <alpine.DEB.2.00.1109020311050.8762@utopia.booyaka.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201108311849.37273.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59049 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750860Ab1IBMPV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 08:15:21 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <alpine.DEB.2.00.1109020311050.8762@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Mahadeva, Avinash" <avinashhm@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "R, Govindraj" <govindraj.raja@ti.com>, "Balbi, Felipe" <balbi@ti.com>
 
-On Wed, 2011-08-31 at 18:49 +0200, Arnd Bergmann wrote: 
-> On Monday 29 August 2011, Luciano Coelho wrote:
-> > From: Randy Dunlap <rdunlap@xenotime.net>
-> > 
-> > Combine MFD_SUPPORT (which only enabled the remainder of the MFD
-> > menu) and MFD_CORE.  This allows other drivers to select MFD_CORE
-> > without needing to also select MFD_SUPPORT, which fixes some
-> > kconfig unmet dependency warnings.  Modeled after I2C kconfig.
-> > 
-> > [Forward-ported to 3.1-rc4.  This fixes a warning when some drivers,
-> > such as RADIO_WL1273, are selected, but MFD_SUPPORT is not. -- Luca]
-> > 
-> > Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> > Reported-by: Johannes Berg <johannes@sipsolutions.net>
-> > Cc: Jean Delvare <khali@linux-fr.org>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Grant Likely <grant.likely@secretlab.ca>
-> > Signed-off-by: Luciano Coelho <coelho@ti.com>
-> > ---
-> > 
-> > I guess this should fix the problem.  I've simple forward-ported
-> > Randy's patch to the latest mainline kernel.  I don't know via which
-> > tree this should go in, though.
-> > 
-> > NOTE: I have not tested this very thoroughly.  But at least
-> > omap2plus stuff seems to work okay with this change.  MFD_SUPPORT is
-> > also selected by a couple of "tile" platforms defconfigs, but I guess
-> > the Kconfig system should take care of it.
+Hi Paul,
+
+On Fri, 2011-09-02 at 11:20 +0200, Paul Walmsley wrote:
+> Hi Tero,
 > 
-> Doing this is a good idea, but incidentally I have just spent some time
-> with the same problem and ended up with a solution that I like better,
-> which is removing CONFIG_MFD_SUPPORT altogether.
+> On Thu, 1 Sep 2011, Tero Kristo wrote:
 > 
-> The point is that there is no use enabling MFD_CORE if you don't also
-> enable any of the specific drivers. MFD_SUPPORT was added as a 'menuconfig'
-> before we had Kconfig warn about broken dependencies, so everything was
-> fine. Since Kconfig now issues the warnings, I think it would be better
-> to just turn the MFD menu into a plain 'menu' and remove all the
-> 'depends on MFD_SUPPORT' and 'select MFD_SUPPORT' lines from the other
-> Kconfig files.
+> > I've been looking at this now and got one question below. Otherwise your
+> > comments look okay to me and I can work with those.
+> 
+> Great.  As you work on it, please let me know if there's something that 
+> doesn't make sense with this arrangement.  I think this will work, and 
+> will move some code out of arch/arm/*omap*, but it's hard to tell, until 
+> someone tries it.
+> 
+> > On Fri, 2011-08-26 at 11:12 +0200, Paul Walmsley wrote:
+> > 
+> > > What I'd suggest is to create a short series that:
+> > > 
+> > > 1. adds PRM hwmod data for OMAP2430+ platforms
+> > 
+> > How should this be done? It believe all the data in the hwmods should be
+> > autogenerated somehow... should I just make a temporary hack patch for
+> > one platform that could be then autogenerated by someone for all omap
+> > platforms?
+> 
+> Only OMAP4 is autogenerated, currently.  OMAP2 & 3 are still done by hand. 
+> I'd suggest starting with either OMAP4 (because the hwmod data should be 
+> autogeneratable) or OMAP3 (because we know that one pretty well and the 
+> hwmod data should not be too difficult to build).
+> 
+> If it would help, I'd be happy to do a first draft of the OMAP3430 PRM 
+> hwmod data.
 
-Yes, this makes sense.  I think your solution is indeed cleaner.  If you
-want to send it it's fine with me.  I don't really have any preference,
-I just wanted to clean a problem that was reported to me. ;)
+If you can do this it would help, as you have much better understanding
+of the hwmod data than I do. It will probably drop a couple of review
+rounds away as the hwmod data would be close to what it should be from
+beginning.
 
-If you send your changes, my patch can be ignored, otherwise, I can send
-a v2 with the changes Jean proposed.
+If you are busy with other things, I can see what I can craft myself.
+
+> 
+> 
+> regards,
+> 
+> - Paul
 
 
--- 
-Cheers,
-Luca.
+
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
+
