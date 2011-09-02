@@ -1,70 +1,72 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 02/10] OMAP4: DSS: HDMI: Move pll and video
- configuration
-Date: Fri, 02 Sep 2011 08:13:52 +0300
-Message-ID: <1314940432.1907.1.camel@deskari>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH v2 04/10] OMAP4: DSS: HDMI: Move the common header file
+Date: Fri, 2 Sep 2011 10:45:55 +0530
+Message-ID: <CAP5A+B8j=6+a2m=Lpf0-G-arO9q2R_286=mHEv52qm4FiyWnZg@mail.gmail.com>
 References: <1314598500-24005-1-git-send-email-mythripk@ti.com>
-	 <1314598500-24005-2-git-send-email-mythripk@ti.com>
-	 <1314598500-24005-3-git-send-email-mythripk@ti.com>
-	 <1314865665.2169.7.camel@lappyti>
-	 <CAP5A+B_Kx+sHj+n3MZRPFMjeh+1u_g_4KbyW5qCdD7SOZyF5Yw@mail.gmail.com>
+ <1314598500-24005-2-git-send-email-mythripk@ti.com> <1314598500-24005-3-git-send-email-mythripk@ti.com>
+ <1314598500-24005-4-git-send-email-mythripk@ti.com> <1314598500-24005-5-git-send-email-mythripk@ti.com>
+ <1314867624.2169.21.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:36750 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750904Ab1IBFN5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 01:13:57 -0400
-Received: by fxg9 with SMTP id 9so1529469fxg.0
-        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 22:13:55 -0700 (PDT)
-In-Reply-To: <CAP5A+B_Kx+sHj+n3MZRPFMjeh+1u_g_4KbyW5qCdD7SOZyF5Yw@mail.gmail.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:53928 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750904Ab1IBFQQ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Sep 2011 01:16:16 -0400
+Received: by mail-iy0-f172.google.com with SMTP id c1so2778767iak.3
+        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 22:16:15 -0700 (PDT)
+In-Reply-To: <1314867624.2169.21.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-On Fri, 2011-09-02 at 10:41 +0530, K, Mythri P wrote:
-> Hi,
-> 
-> On Thu, Sep 1, 2011 at 1:57 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> > On Mon, 2011-08-29 at 11:44 +0530, mythripk@ti.com wrote:
-> >> From: Mythri P K <mythripk@ti.com>
-> >>
-> >> As the pll and the video configuration info are part of the ip_data those
-> >> structures are moved to the ip_data strtucure.Also the functions are modified
-> >> accordingly to take care of this movement.
-> >
-> > structure typoed, and use a space after period.
-> >
-> >> Signed-off-by: Mythri P K <mythripk@ti.com>
-> >> ---
-> >>  drivers/video/omap2/dss/hdmi.c |   34 +++++++++++++++-------------------
-> >>  drivers/video/omap2/dss/hdmi.h |   18 ++++++++++--------
-> >>  2 files changed, 25 insertions(+), 27 deletions(-)
+Hi,
 
-> >> -static int hdmi_pll_program(struct hdmi_ip_data *ip_data,
-> >> -                             struct hdmi_pll_info *fmt)
-> >> +static int hdmi_pll_program(struct hdmi_ip_data *ip_data)
-> >>  {
-> >>       u16 r = 0;
-> >>       enum hdmi_clk_refsel refsel;
-> >> @@ -399,7 +397,7 @@ static int hdmi_pll_program(struct hdmi_ip_data *ip_data,
-> >>
-> >>       refsel = HDMI_REFSEL_SYSCLK;
-> >>
-> >> -     r = hdmi_pll_init(ip_data, refsel, fmt->dcofreq, fmt, fmt->regsd);
-> >> +     r = hdmi_pll_init(ip_data, refsel);
-> >
-> > I don't think I quite understood why refsel is not part of the pll info.
-> > And if it has to be hardcoded, you could as well do that in
-> > hdmi_pll_init().
-> >
-> Ok , yes that is better.
+On Thu, Sep 1, 2011 at 2:30 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> =
+wrote:
+> On Mon, 2011-08-29 at 11:44 +0530, mythripk@ti.com wrote:
+>> From: Mythri P K <mythripk@ti.com>
+>>
+>> Some of the header file definitions of HDMI IP are needed by audio d=
+river thus
+>> moving the common defintion to more generic Include/video.
+>>
+>> Signed-off-by: Mythri P K <mythripk@ti.com>
+>> ---
+>> =A0drivers/video/omap2/dss/dss.h =A0| =A0 10 -----
+>> =A0drivers/video/omap2/dss/hdmi.c | =A0 =A01 +
+>> =A0drivers/video/omap2/dss/hdmi.h | =A0 53 ------------------------
+>> =A0include/video/omaphdmi.h =A0 =A0 =A0 | =A0 86 +++++++++++++++++++=
++++++++++++++++++++++
+>> =A04 files changed, 87 insertions(+), 63 deletions(-)
+>> =A0create mode 100644 include/video/omaphdmi.h
+>
+> As the functions will be renamed to hdmi_ti_4xxx_*, perhaps the heade=
+r
+> file is a bit misnamed.
+>
+> Also, please first do the changes/renamings/etc, and only then move t=
+he
+> finished header file to include/video/ to prevent unnecessary changes=
+ in
+> include/video.
+>
+The Include/video hdmi header file is a generic file that can be used
+across 4 ,5 and Netra. Actually even the hdmi_ti_5xxx_ definitions
+would come in this header so what do you think it can be named as ? ,
+If you have any better name for hdmi_ti_4xxx_ip as well please suggest
+would be happy to take it , as it doesn't sound that intuitive to me
+as well.
 
-So, why refsel is not part of the pll info? The HW doesn't support
-changing it? If so, is it only for OMAPs or for all SoCs?
-
- Tomi
-
-
+> =A0Tomi
+>
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
