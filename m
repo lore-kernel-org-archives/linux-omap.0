@@ -1,99 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/7] OMAP3: board-dt: Add generic board file for DT
- support
-Date: Fri, 2 Sep 2011 14:57:33 +0300
-Message-ID: <20110902115733.GU3548@atomide.com>
-References: <1314897912-18178-1-git-send-email-b-cousson@ti.com>
- <1314897912-18178-7-git-send-email-b-cousson@ti.com>
- <20110902080944.GP3548@atomide.com>
- <4E609800.9090402@ti.com>
- <20110902104330.GR3548@atomide.com>
- <4E60C174.50604@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
+Date: Fri, 02 Sep 2011 14:54:55 +0300
+Message-ID: <1314964495.2296.632.camel@cumari>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
+	 <1314643307-17780-1-git-send-email-coelho@ti.com>
+	 <201108311849.37273.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:37803 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751083Ab1IBL5i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 07:57:38 -0400
-Content-Disposition: inline
-In-Reply-To: <4E60C174.50604@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201108311849.37273.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "G, Manjunath Kondaiah" <manjugk@ti.com>
 
-* Cousson, Benoit <b-cousson@ti.com> [110902 14:10]:
-> On 9/2/2011 12:43 PM, Tony Lindgren wrote:
-> > * Cousson, Benoit<b-cousson@ti.com>  [110902 11:13]:
-> >> Hi Tony,
-> >>
-> >> On 9/2/2011 10:09 AM, Tony Lindgren wrote:
-> >>> Hi,
-> >>>
-> >>> * Benoit Cousson<b-cousson@ti.com>   [110901 19:52]:
-> >>>> Create an OMAP3 generic board to start the DT migration.
-> >>>
-> >>> I don't think this needs to be SoC specific, we can add multiple
-> >>> DT_MACHINE_START entries into a single file. So it should be
-> >>> just board-omap-dt.c.
-> >>
-> >> I do agree, it should not, I made that comment into the
-> >> board-omap4-dt.c, but for the moment we still have dedicated OMAP
-> >> specifics stuff at board level, like the map_io.
+On Wed, 2011-08-31 at 18:49 +0200, Arnd Bergmann wrote: 
+> On Monday 29 August 2011, Luciano Coelho wrote:
+> > From: Randy Dunlap <rdunlap@xenotime.net>
 > > 
-> > Well map_io can also be set in DT_MACHINE_START. For most part
-> > it already is generic like omap3_map_io and omap4_map_io.
-> > So that should not stop anything.
-> 
-> OK, I think I was trying to be a little bit more extreme, meaning only one omap_map_io for every OMAPs.
-> Then, inside omap_map_io we can use the DT compatible information to retrieve the proper OMAPs revision and thus use the proper init table.
->
-> Whereas in your case you are still relying on the various DT_MACHINE entries to detect which OMAP revision is used.
-
-Sure that can be changed. But why not get the whole data that's
-now in various structs from DT too? It's just something like:
-
-        .class  = OMAP243X_CLASS,
-        .tap    = OMAP2_L4_IO_ADDRESS(0x4900a000),
-        .sdrc   = OMAP243X_SDRC_BASE,
-        .sms    = OMAP243X_SMS_BASE,
-        .ctrl   = OMAP243X_CTRL_BASE,
-        .prm    = OMAP2430_PRM_BASE,
-        .cm     = OMAP2430_CM_BASE,
-
-And all these could be just defined in DT right?
- 
-> It looks to me that relying on several DT_MACHINE_START to identify a SoC version is a little bit more a hack. 
-> I will let the device-tree experts answering that question :-)
-> For my point of view, using DT compatible in the various place where the OMAP revision is important, might allow a finer granularity.
-
-Sure I agree.
- 
-> >> I have an other series that make the map_io DT aware to get rid of
-> >> that, but it still not finalized.
+> > Combine MFD_SUPPORT (which only enabled the remainder of the MFD
+> > menu) and MFD_CORE.  This allows other drivers to select MFD_CORE
+> > without needing to also select MFD_SUPPORT, which fixes some
+> > kconfig unmet dependency warnings.  Modeled after I2C kconfig.
 > > 
-> > Hmm maybe take a look again? We've already sorted out quite a bit
-> > of the init stuff over past few merge windows. If there's still
-> > something blocking that, let's clear it out ASAP.
+> > [Forward-ported to 3.1-rc4.  This fixes a warning when some drivers,
+> > such as RADIO_WL1273, are selected, but MFD_SUPPORT is not. -- Luca]
+> > 
+> > Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> > Reported-by: Johannes Berg <johannes@sipsolutions.net>
+> > Cc: Jean Delvare <khali@linux-fr.org>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Grant Likely <grant.likely@secretlab.ca>
+> > Signed-off-by: Luciano Coelho <coelho@ti.com>
+> > ---
+> > 
+> > I guess this should fix the problem.  I've simple forward-ported
+> > Randy's patch to the latest mainline kernel.  I don't know via which
+> > tree this should go in, though.
+> > 
+> > NOTE: I have not tested this very thoroughly.  But at least
+> > omap2plus stuff seems to work okay with this change.  MFD_SUPPORT is
+> > also selected by a couple of "tile" platforms defconfigs, but I guess
+> > the Kconfig system should take care of it.
 > 
-> Now that I understand your approach, it is fine. Please find below an example of what I was trying to achieve, and why that point was an issue.
-> The clear advantage of your method is that not further effort will be require for this part. At least for the moment.
+> Doing this is a good idea, but incidentally I have just spent some time
+> with the same problem and ended up with a solution that I like better,
+> which is removing CONFIG_MFD_SUPPORT altogether.
+> 
+> The point is that there is no use enabling MFD_CORE if you don't also
+> enable any of the specific drivers. MFD_SUPPORT was added as a 'menuconfig'
+> before we had Kconfig warn about broken dependencies, so everything was
+> fine. Since Kconfig now issues the warnings, I think it would be better
+> to just turn the MFD menu into a plain 'menu' and remove all the
+> 'depends on MFD_SUPPORT' and 'select MFD_SUPPORT' lines from the other
+> Kconfig files.
 
-Well I guess the globals could come from device tree still :)
+Yes, this makes sense.  I think your solution is indeed cleaner.  If you
+want to send it it's fine with me.  I don't really have any preference,
+I just wanted to clean a problem that was reported to me. ;)
 
-In general, I'd like to get rid of the cpu_is_omapxxxx stuff
-and SoC detection early as that always requires DEBUG_LL to
-see any decent debug info when things go wrong.
+If you send your changes, my patch can be ignored, otherwise, I can send
+a v2 with the changes Jean proposed.
 
-If we get the SoC major type from DT, then we only need to
-do SoC specific ES revision and GP/HS omap detection. And that's
-very simple code compared to the current cpu_is_omapxxxx stuff.
 
-Then we can boot with the DT information pretty far to map_io
-and initialize low-level serial console, and then set up things
-further while having a decent console ;)
-
-Regards,
-
-Tony
+-- 
+Cheers,
+Luca.
