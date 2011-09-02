@@ -1,141 +1,93 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 1/8] OMAP: DSS2: DISPC: Fix minimum PCD value
-Date: Fri, 2 Sep 2011 12:23:05 +0530
-Message-ID: <4E607D51.8010203@ti.com>
-References: <1314796908-17354-1-git-send-email-tomi.valkeinen@ti.com> <1314796908-17354-2-git-send-email-tomi.valkeinen@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 1/6 V4] OMAP4: Clock: Associate clocks for OMAP temperature
+ sensor
+Date: Fri, 02 Sep 2011 12:42:40 +0530
+Message-ID: <4E6081E8.3090509@ti.com>
+References: <1314811510-15595-1-git-send-email-j-keerthy@ti.com> <1314811510-15595-2-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1108311757260.26173@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45751 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752944Ab1IBGyC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Sep 2011 02:54:02 -0400
-In-Reply-To: <1314796908-17354-2-git-send-email-tomi.valkeinen@ti.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:32837 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752536Ab1IBHMr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 03:12:47 -0400
+Received: by mail-yi0-f48.google.com with SMTP id 17so2650995yib.35
+        for <linux-omap@vger.kernel.org>; Fri, 02 Sep 2011 00:12:46 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1108311757260.26173@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "K, Mythri P" <mythripk@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, "Cousson, Benoit" <b-cousson@ti.com>
 
-On Wednesday 31 August 2011 06:51 PM, Valkeinen, Tomi wrote:
-> The current driver had a hardcoded minimum value of 2 for pixel clock
-> divisor (PCD). This doesn't seem to be right.
->
-> OMAP4 TRM says that PCD can be 1 when not downscaling, and inverted
-> pixel clock (IPC) is off.
->
-> OMAP3 TRM says the same, but also in the register descriptions that PCD
-> value 1 is invalid.
->
-> OMAP2 TRM says PCD 2 is the minimum.
->
-> OMAP2 is still untested, but for both OMAP3 and OMAP4 PCD of 1 seems to
-> work fine.
->
-> This patch adds a new DSS feature, FEAT_PARAM_DSS_PCD, which is used to
-> find the minimum and maximum PCD. The minimum is set to 2 for OMAP2, and
-> 1 for OMAP3/4.
+Hi Paul,
 
-This looks good to me.
+On Thursday 01 September 2011 05:30 AM, Paul Walmsley wrote:
+> Hi,
+>
+> a comment:
+>
+> On Wed, 31 Aug 2011, Keerthy wrote:
+>
+>> div_ts_ck feeds only the temperature sensor functional clock
+>> and also has a clksel associated (for divider selection). Mapping this
+>> as the functional clock for the temperature sensor in clkdev table,
+>> so a clk_set_rate() in the driver would have the effect of changing the
+>> temperature sensor clock rate indirectly.
+>>
+>> Signed-off-by: Keerthy<j-keerthy@ti.com>
+>> Reviewed-by: Rajendra Nayak<rnayak@ti.com>
+>> Cc: tony@atomide.com
+>> Cc: rnayak@ti.com
+>> ---
+>>   arch/arm/mach-omap2/clock44xx_data.c |    2 +-
+>>   1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+>> index 2af0e3f..4a788f4 100644
+>> --- a/arch/arm/mach-omap2/clock44xx_data.c
+>> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+>> @@ -3187,7 +3187,7 @@ static struct omap_clk omap44xx_clks[] = {
+>>   	CLK(NULL,	"bandgap_fclk",			&bandgap_fclk,	CK_443X),
+>>   	CLK(NULL,	"bandgap_ts_fclk",		&bandgap_ts_fclk,	CK_446X),
+>>   	CLK(NULL,	"des3des_fck",			&des3des_fck,	CK_443X),
+>> -	CLK(NULL,	"div_ts_ck",			&div_ts_ck,	CK_446X),
+>> +	CLK("omap_temp_sensor.0",	"fck",			&div_ts_ck,	CK_446X),
+>
+> It shouldn't be necessary to add the device name/ID here.  We're trying
+> to get rid of these.  The omap_device code should take care of adding the
+> appropriate alias.
 
-Archit
+The problem seems to be that we have 2 clock nodes modeled,
+bandgap_ts_fclk with enable/disable ops, (which also happens
+to be the main_clk for the bandgap hwmod) and div_ts_ck (as
+parent of bandgap_ts_fclk) with clksel for divider selection.
+Like you said, the clkdev entries are added by omap_device code
+for bandgap_ts_fclk, however doing a clk_set_rate on it from
+the driver has no effect as the clksel information is missing
+and is modeled in the parent (div_ts_ck) node.
+ From looking at it, it makes sense to merge these 2 nodes and fix
+the autogen scripts which currently generate 2 separate nodes.
+what do you think?
+
+regards,
+Rajendra
+
 
 >
-> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/dss/dispc.c        |   14 ++++++++++----
->   drivers/video/omap2/dss/dss_features.c |    3 +++
->   drivers/video/omap2/dss/dss_features.h |    1 +
->   3 files changed, 14 insertions(+), 4 deletions(-)
 >
-> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-> index de20936..7f3d847 100644
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -2339,7 +2339,7 @@ static void dispc_mgr_set_lcd_divisor(enum omap_channel channel, u16 lck_div,
->   		u16 pck_div)
->   {
->   	BUG_ON(lck_div<  1);
-> -	BUG_ON(pck_div<  2);
-> +	BUG_ON(pck_div<  1);
+>>   	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
+>>   	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
+>>   	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
+>> --
+>> 1.7.0.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 >
->   	dispc_write_reg(DISPC_DIVISORo(channel),
->   			FLD_VAL(lck_div, 23, 16) | FLD_VAL(pck_div, 7, 0));
-> @@ -2726,11 +2726,17 @@ void dispc_mgr_set_pol_freq(enum omap_channel channel,
->   void dispc_find_clk_divs(bool is_tft, unsigned long req_pck, unsigned long fck,
->   		struct dispc_clock_info *cinfo)
->   {
-> -	u16 pcd_min = is_tft ? 2 : 3;
-> +	u16 pcd_min, pcd_max;
->   	unsigned long best_pck;
->   	u16 best_ld, cur_ld;
->   	u16 best_pd, cur_pd;
 >
-> +	pcd_min = dss_feat_get_param_min(FEAT_PARAM_DSS_PCD);
-> +	pcd_max = dss_feat_get_param_max(FEAT_PARAM_DSS_PCD);
-> +
-> +	if (!is_tft)
-> +		pcd_min = 3;
-> +
->   	best_pck = 0;
->   	best_ld = 0;
->   	best_pd = 0;
-> @@ -2738,7 +2744,7 @@ void dispc_find_clk_divs(bool is_tft, unsigned long req_pck, unsigned long fck,
->   	for (cur_ld = 1; cur_ld<= 255; ++cur_ld) {
->   		unsigned long lck = fck / cur_ld;
->
-> -		for (cur_pd = pcd_min; cur_pd<= 255; ++cur_pd) {
-> +		for (cur_pd = pcd_min; cur_pd<= pcd_max; ++cur_pd) {
->   			unsigned long pck = lck / cur_pd;
->   			long old_delta = abs(best_pck - req_pck);
->   			long new_delta = abs(pck - req_pck);
-> @@ -2773,7 +2779,7 @@ int dispc_calc_clock_rates(unsigned long dispc_fclk_rate,
->   {
->   	if (cinfo->lck_div>  255 || cinfo->lck_div == 0)
->   		return -EINVAL;
-> -	if (cinfo->pck_div<  2 || cinfo->pck_div>  255)
-> +	if (cinfo->pck_div<  1 || cinfo->pck_div>  255)
->   		return -EINVAL;
->
->   	cinfo->lck = dispc_fclk_rate / cinfo->lck_div;
-> diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-> index b63c5f8..85b07ca 100644
-> --- a/drivers/video/omap2/dss/dss_features.c
-> +++ b/drivers/video/omap2/dss/dss_features.c
-> @@ -281,6 +281,7 @@ static const char * const omap4_dss_clk_source_names[] = {
->
->   static const struct dss_param_range omap2_dss_param_range[] = {
->   	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
-> +	[FEAT_PARAM_DSS_PCD]			= { 2, 255 },
->   	[FEAT_PARAM_DSIPLL_REGN]		= { 0, 0 },
->   	[FEAT_PARAM_DSIPLL_REGM]		= { 0, 0 },
->   	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, 0 },
-> @@ -291,6 +292,7 @@ static const struct dss_param_range omap2_dss_param_range[] = {
->
->   static const struct dss_param_range omap3_dss_param_range[] = {
->   	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
-> +	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
->   	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1<<  7) - 1 },
->   	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1<<  11) - 1 },
->   	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1<<  4) - 1 },
-> @@ -301,6 +303,7 @@ static const struct dss_param_range omap3_dss_param_range[] = {
->
->   static const struct dss_param_range omap4_dss_param_range[] = {
->   	[FEAT_PARAM_DSS_FCK]			= { 0, 186000000 },
-> +	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
->   	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1<<  8) - 1 },
->   	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1<<  12) - 1 },
->   	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1<<  5) - 1 },
-> diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-> index 4271e96..158d922 100644
-> --- a/drivers/video/omap2/dss/dss_features.h
-> +++ b/drivers/video/omap2/dss/dss_features.h
-> @@ -73,6 +73,7 @@ enum dss_feat_reg_field {
->
->   enum dss_range_param {
->   	FEAT_PARAM_DSS_FCK,
-> +	FEAT_PARAM_DSS_PCD,
->   	FEAT_PARAM_DSIPLL_REGN,
->   	FEAT_PARAM_DSIPLL_REGM,
->   	FEAT_PARAM_DSIPLL_REGM_DISPC,
+> - Paul
 
