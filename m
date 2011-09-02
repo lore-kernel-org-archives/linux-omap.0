@@ -1,49 +1,83 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 2/4] OMAP4: TWL: Add common omapdss supplies
-Date: Fri, 02 Sep 2011 10:30:50 +0300
-Message-ID: <1314948650.3374.25.camel@deskari>
-References: <1314001599-17951-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1314001599-17951-3-git-send-email-tomi.valkeinen@ti.com>
-	 <4E607A40.8000707@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 6/7] OMAP3: board-dt: Add generic board file for DT
+ support
+Date: Fri, 2 Sep 2011 11:09:44 +0300
+Message-ID: <20110902080944.GP3548@atomide.com>
+References: <1314897912-18178-1-git-send-email-b-cousson@ti.com>
+ <1314897912-18178-7-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:40129 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755809Ab1IBHqb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 03:46:31 -0400
-In-Reply-To: <4E607A40.8000707@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39133 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758136Ab1IBIJu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 04:09:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1314897912-18178-7-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: grant.likely@secretlab.ca, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, manjugk@ti.com
 
-On Fri, 2011-09-02 at 12:10 +0530, Archit Taneja wrote:
-> Hi,
-> 
-> On Monday 22 August 2011 01:56 PM, Valkeinen, Tomi wrote:
-> > OMAP DSS normally gets power from VCXIO on OMAP4. Add configuration
-> for
-> > this into twl-common.c
-> >
-> > Mark VCXIO as always_on, as VCXIO is used by multiple components,
-> > including the MPU, and turning it off when DSS doesn't need it would
-> > lead the device to halt.
-> 
-> I had a query. Is this the right place to set always_on to true?
-> Won't 
-> this lead to VCXIO being always on all omap4 boards? Is it necessary 
-> that VCXIO will be used to power on MPU for all omap4 boards? 
+Hi,
 
-I don't really know, but TRM's 27.2.1 Power Requirements chapter shows
-vcxio connected to multiple places. It's an example, but I would guess
-it is the common setup, thus setting it to always on in twl-common.c
-sounds ok.
+* Benoit Cousson <b-cousson@ti.com> [110901 19:52]:
+> Create an OMAP3 generic board to start the DT migration.
 
-If there will be an omap4 board with different setup, then we need to
-revisit this.
+I don't think this needs to be SoC specific, we can add multiple
+DT_MACHINE_START entries into a single file. So it should be
+just board-omap-dt.c.
+ 
+> +#include "mux.h"
+> +#include "common-board-devices.h"
+> +#include "sdram-micron-mt46h32m32lf-6.h"
+> +
+> +
+> +static void __init omap3_init_early(void)
+> +{
+> +	omap2_init_common_infrastructure();
+> +	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
+> +				  mt46h32m32lf6_sdrc_params);
+> +}
 
- Tomi
+This has changed, see the cleanup branch. Also, let's just leave
+out the sdram timings for now as we can work with bootloader
+timings until those come from DT too.
 
+> +static void __init omap3_init(void)
+> +{
+> +	struct device_node *node;
+> +
+> +	node = of_find_matching_node(NULL, omap_dt_intc_match);
+> +	if (node)
+> +		irq_domain_add_simple(node, 0);
+> +
+> +	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+> +	omap_serial_init();
+> +
+> +	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+> +}
+> +
+> +static const char *omap3_dt_match[] __initdata = {
+> +	"ti,omap3",
+> +	NULL
+> +};
 
+Most likely we just need SoC specific init functions in this file
+now until the mux data comes from DT also.
+
+> +DT_MACHINE_START(OMAP3_DT, "TI OMAP3 (Flattened Device Tree)")
+> +	.reserve	= omap_reserve,
+> +	.map_io		= omap3_map_io,
+> +	.init_early	= omap3_init_early,
+> +	.init_irq	= omap3_init_irq,
+> +	.init_machine	= omap3_init,
+> +	.timer		= &omap3_timer,
+> +	.dt_compat	= omap3_dt_match,
+> +MACHINE_END
+
+Here omap3_init_early is now generic in the cleanup branch.
+
+Regards,
+
+Tony
