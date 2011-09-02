@@ -1,64 +1,59 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
-Date: Fri, 2 Sep 2011 17:49:10 +0200
-Message-ID: <201109021749.10638.arnd@arndb.de>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <201108311849.37273.arnd@arndb.de> <20110902143713.307bbebe@endymion.delvare>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [RFC PATCH 1/3] OMAP: omap_device: Add omap_device_[alloc|delete] for DT integration
+Date: Fri, 02 Sep 2011 09:20:05 -0700
+Message-ID: <87vcta9aru.fsf@ti.com>
+References: <1314037343-19783-1-git-send-email-b-cousson@ti.com>
+	<1314037343-19783-2-git-send-email-b-cousson@ti.com>
+	<87liu8dsjj.fsf@ti.com> <4E60F4C6.2050802@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:53233 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752945Ab1IBPtf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 11:49:35 -0400
-In-Reply-To: <20110902143713.307bbebe@endymion.delvare>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:42839 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752941Ab1IBQUK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 12:20:10 -0400
+Received: by mail-yx0-f177.google.com with SMTP id 8so1343469yxk.8
+        for <linux-omap@vger.kernel.org>; Fri, 02 Sep 2011 09:20:08 -0700 (PDT)
+In-Reply-To: <4E60F4C6.2050802@ti.com> (Benoit Cousson's message of "Fri, 2
+	Sep 2011 17:22:46 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Luciano Coelho <coelho@ti.com>, Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 
-On Friday 02 September 2011, Jean Delvare wrote:
-> > Doing this is a good idea, but incidentally I have just spent some time
-> > with the same problem and ended up with a solution that I like better,
-> > which is removing CONFIG_MFD_SUPPORT altogether.
-> > 
-> > The point is that there is no use enabling MFD_CORE if you don't also
-> > enable any of the specific drivers.
-> 
-> Same holds for pretty much every subsystem, right?
+"Cousson, Benoit" <b-cousson@ti.com> writes:
 
-I think not: MFD is a bit different from other subsystems in that it does
-not have a user space interface by itself. It's also different from bus
-drivers in that it is not specific to some particular class of hardware,
-since it only abstracts devices that do multiple things independent of
-how they do them.
+[...]
 
-It is similar to MISC_DEVICES (drivers/misc) in some regards, and I
-would also like to turn that one back from menuconfig into menu for
-the same reasons.
+>>> @@ -471,72 +572,31 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+>>>   		goto odbs_exit;
+>>>   	}
+>>>
+>>> -	pr_debug("omap_device: %s: building with %d hwmods\n", pdev_name,
+>>> -		 oh_cnt);
+>>> +	/* Set the dev_name early to allow dev_xxx in omap_device_alloc */
+>>> +	if (pdev->id != -1)
+>>> +		dev_set_name(&pdev->dev, "%s.%d", pdev->name,  pdev->id);
+>>> +	else
+>>> +		dev_set_name(&pdev->dev, "%s", pdev->name);
+>> 
+>> Minor: I think setting dev->init_name is more appropriate here, and
+>> should have the same effect.
+>
+> The slight difference is that if I do that:
+> pdev->dev.init_name = kasprintf(GFP_KERNEL, "%s.%d", pdev->name, pdev->id);
+>
+> I will have to free it myself, because device_add is doing only that:
+>
+>         if (dev->init_name) {
+>                 dev_set_name(dev, "%s", dev->init_name);
+>                 dev->init_name = NULL;
+>         }
+>
+> Whereas dev_set_name is doing it for me.
+>
+> So it will add one more line later. Does it worth it?
 
-> > MFD_SUPPORT was added as a 'menuconfig'
-> > before we had Kconfig warn about broken dependencies, so everything was
-> > fine. Since Kconfig now issues the warnings, I think it would be better
-> > to just turn the MFD menu into a plain 'menu' and remove all the
-> > 'depends on MFD_SUPPORT' and 'select MFD_SUPPORT' lines from the other
-> > Kconfig files.
-> 
-> This would make it impossible to turn off all MFD drivers at once. I
-> think this is considered a feature, at least I find it very convenient
-> to be able to "kill" a subsystem completely. And in the past few years
-> many subsystems were turned from menu to menuconfig for this reason.
-> But maybe MFD is a special case here.
+OK, keeping dev_set_name() is fine with me then.
 
-I agree that it's convenient for a lot of subsystems to be able to
-turn them off entirely, but in case of MFD and MISC, I cannot see a clear
-use case for that.
-
-> Anyway, if you want your patch to be applied, you'll have to send it
-> for review first, as at this point all we have is Luciano's proposal.
-
-Ok. I had actually meant to send this mail out before the patches, but
-apparently it got stuck in my mail client.
-
-	Arnd
+Kevin
