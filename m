@@ -1,160 +1,141 @@
 From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 3/4] OMAP: DSS2: Handle manager change in apply
-Date: Fri, 2 Sep 2011 12:20:43 +0530
-Message-ID: <4E607CC3.2000407@ti.com>
-References: <1314001636-18036-1-git-send-email-tomi.valkeinen@ti.com> <1314001636-18036-4-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/8] OMAP: DSS2: DISPC: Fix minimum PCD value
+Date: Fri, 2 Sep 2011 12:23:05 +0530
+Message-ID: <4E607D51.8010203@ti.com>
+References: <1314796908-17354-1-git-send-email-tomi.valkeinen@ti.com> <1314796908-17354-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44541 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101Ab1IBGvl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 02:51:41 -0400
-In-Reply-To: <1314001636-18036-4-git-send-email-tomi.valkeinen@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45751 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752944Ab1IBGyC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Sep 2011 02:54:02 -0400
+In-Reply-To: <1314796908-17354-2-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "K, Mythri P" <mythripk@ti.com>
 
-On Monday 22 August 2011 01:57 PM, Valkeinen, Tomi wrote:
-> Currently when changing the manager of an overlay, set_manager() directly
-> calls dispc to set the overlay's destination.
+On Wednesday 31 August 2011 06:51 PM, Valkeinen, Tomi wrote:
+> The current driver had a hardcoded minimum value of 2 for pixel clock
+> divisor (PCD). This doesn't seem to be right.
 >
-> Change this to be more in line with other overlay configurations, and
-> this will also remove the need to have dispc clocks enabled when calling
-> set_manager().
+> OMAP4 TRM says that PCD can be 1 when not downscaling, and inverted
+> pixel clock (IPC) is off.
 >
-> A new field is added to overlay struct, "manager_changed". This is
-> similar to "display_changed" field in manager struct, and is used to
-> inform apply that the manager has changed and thus write to the
-> registers is needed.
+> OMAP3 TRM says the same, but also in the register descriptions that PCD
+> value 1 is invalid.
+>
+> OMAP2 TRM says PCD 2 is the minimum.
+>
+> OMAP2 is still untested, but for both OMAP3 and OMAP4 PCD of 1 seems to
+> work fine.
+>
+> This patch adds a new DSS feature, FEAT_PARAM_DSS_PCD, which is used to
+> find the minimum and maximum PCD. The minimum is set to 2 for OMAP2, and
+> 1 for OMAP3/4.
 
-I was wondering if it would be better to create an overlay_info member 
-called 'channel_out' rather than having 'manager_enabled' at a higher 
-level? This way, we won't need to do some of the things below(I have 
-pointed them out):
+This looks good to me.
+
+Archit
 
 >
 > Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
 > ---
->   drivers/video/omap2/dss/dispc.c   |    4 +++-
->   drivers/video/omap2/dss/dss.h     |    2 --
->   drivers/video/omap2/dss/manager.c |    5 +++++
->   drivers/video/omap2/dss/overlay.c |    9 ++-------
->   include/video/omapdss.h           |    1 +
->   5 files changed, 11 insertions(+), 10 deletions(-)
+>   drivers/video/omap2/dss/dispc.c        |   14 ++++++++++----
+>   drivers/video/omap2/dss/dss_features.c |    3 +++
+>   drivers/video/omap2/dss/dss_features.h |    1 +
+>   3 files changed, 14 insertions(+), 4 deletions(-)
 >
 > diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-> index 9d9fbeb..003227c 100644
+> index de20936..7f3d847 100644
 > --- a/drivers/video/omap2/dss/dispc.c
 > +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -841,7 +841,7 @@ static void _dispc_set_color_mode(enum omap_plane plane,
->   	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(plane), m, 4, 1);
->   }
->
-> -void dispc_set_channel_out(enum omap_plane plane,
-> +static void dispc_set_channel_out(enum omap_plane plane,
->   		enum omap_channel channel)
+> @@ -2339,7 +2339,7 @@ static void dispc_mgr_set_lcd_divisor(enum omap_channel channel, u16 lck_div,
+>   		u16 pck_div)
 >   {
->   	int shift;
-> @@ -1860,6 +1860,8 @@ int dispc_setup_plane(enum omap_plane plane,
->   	_dispc_set_pre_mult_alpha(plane, pre_mult_alpha);
->   	_dispc_setup_global_alpha(plane, global_alpha);
+>   	BUG_ON(lck_div<  1);
+> -	BUG_ON(pck_div<  2);
+> +	BUG_ON(pck_div<  1);
 >
-> +	dispc_set_channel_out(plane, channel);
-> +
->   	return 0;
->   }
->
-> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-> index adeff04..ff7ac35 100644
-> --- a/drivers/video/omap2/dss/dss.h
-> +++ b/drivers/video/omap2/dss/dss.h
-> @@ -399,8 +399,6 @@ void dispc_set_plane_ba0(enum omap_plane plane, u32 paddr);
->   void dispc_set_plane_ba1(enum omap_plane plane, u32 paddr);
->   void dispc_set_plane_pos(enum omap_plane plane, u16 x, u16 y);
->   void dispc_set_plane_size(enum omap_plane plane, u16 width, u16 height);
-> -void dispc_set_channel_out(enum omap_plane plane,
-> -		enum omap_channel channel_out);
->
->   void dispc_enable_gamma_table(bool enable);
->   int dispc_setup_plane(enum omap_plane plane,
-> diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-> index 63674b0..a6a909a 100644
-> --- a/drivers/video/omap2/dss/manager.c
-> +++ b/drivers/video/omap2/dss/manager.c
-> @@ -1338,6 +1338,11 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
->
->   		oc =&dss_cache.overlay_cache[ovl->id];
->
-> +		if (ovl->manager_changed) {
-> +			ovl->manager_changed = false;
-> +			ovl->info_dirty  = true;
-> +		}
-> +
-
-We won't need to do this if we created channel_out as an overlay_info 
-member. The info will get dirty automatically.
-
->   		if (!overlay_enabled(ovl)) {
->   			if (oc->enabled) {
->   				oc->enabled = false;
-> diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-> index c84380c..ab44403 100644
-> --- a/drivers/video/omap2/dss/overlay.c
-> +++ b/drivers/video/omap2/dss/overlay.c
-> @@ -516,6 +516,7 @@ static int omap_dss_set_manager(struct omap_overlay *ovl,
->   	}
->
->   	ovl->manager = mgr;
-> +	ovl->manager_changed = true;
->
->   	/* XXX: When there is an overlay on a DSI manual update display, and
->   	 * the overlay is first disabled, then moved to tv, and enabled, we
-> @@ -529,15 +530,12 @@ static int omap_dss_set_manager(struct omap_overlay *ovl,
->   	 * Userspace workaround for this is to update the LCD after disabling
->   	 * the overlay, but before moving the overlay to TV.
->   	 */
-> -	dispc_set_channel_out(ovl->id, mgr->id);
-
-We would need to do a get_overlay_info/set_overlay_info here, like it is 
-done for other overlay sysfs attributes.
-
->
->   	return 0;
->   }
->
->   static int omap_dss_unset_manager(struct omap_overlay *ovl)
+>   	dispc_write_reg(DISPC_DIVISORo(channel),
+>   			FLD_VAL(lck_div, 23, 16) | FLD_VAL(pck_div, 7, 0));
+> @@ -2726,11 +2726,17 @@ void dispc_mgr_set_pol_freq(enum omap_channel channel,
+>   void dispc_find_clk_divs(bool is_tft, unsigned long req_pck, unsigned long fck,
+>   		struct dispc_clock_info *cinfo)
 >   {
-> -	int r;
-> -
->   	if (!ovl->manager) {
->   		DSSERR("failed to detach overlay: manager not set\n");
+> -	u16 pcd_min = is_tft ? 2 : 3;
+> +	u16 pcd_min, pcd_max;
+>   	unsigned long best_pck;
+>   	u16 best_ld, cur_ld;
+>   	u16 best_pd, cur_pd;
+>
+> +	pcd_min = dss_feat_get_param_min(FEAT_PARAM_DSS_PCD);
+> +	pcd_max = dss_feat_get_param_max(FEAT_PARAM_DSS_PCD);
+> +
+> +	if (!is_tft)
+> +		pcd_min = 3;
+> +
+>   	best_pck = 0;
+>   	best_ld = 0;
+>   	best_pd = 0;
+> @@ -2738,7 +2744,7 @@ void dispc_find_clk_divs(bool is_tft, unsigned long req_pck, unsigned long fck,
+>   	for (cur_ld = 1; cur_ld<= 255; ++cur_ld) {
+>   		unsigned long lck = fck / cur_ld;
+>
+> -		for (cur_pd = pcd_min; cur_pd<= 255; ++cur_pd) {
+> +		for (cur_pd = pcd_min; cur_pd<= pcd_max; ++cur_pd) {
+>   			unsigned long pck = lck / cur_pd;
+>   			long old_delta = abs(best_pck - req_pck);
+>   			long new_delta = abs(pck - req_pck);
+> @@ -2773,7 +2779,7 @@ int dispc_calc_clock_rates(unsigned long dispc_fclk_rate,
+>   {
+>   	if (cinfo->lck_div>  255 || cinfo->lck_div == 0)
 >   		return -EINVAL;
-> @@ -548,11 +546,8 @@ static int omap_dss_unset_manager(struct omap_overlay *ovl)
+> -	if (cinfo->pck_div<  2 || cinfo->pck_div>  255)
+> +	if (cinfo->pck_div<  1 || cinfo->pck_div>  255)
 >   		return -EINVAL;
->   	}
 >
-> -	r = ovl->wait_for_go(ovl);
-> -	if (r)
-> -		return r;
-> -
->   	ovl->manager = NULL;
-> +	ovl->manager_changed = true;
+>   	cinfo->lck = dispc_fclk_rate / cinfo->lck_div;
+> diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+> index b63c5f8..85b07ca 100644
+> --- a/drivers/video/omap2/dss/dss_features.c
+> +++ b/drivers/video/omap2/dss/dss_features.c
+> @@ -281,6 +281,7 @@ static const char * const omap4_dss_clk_source_names[] = {
 >
->   	return 0;
->   }
-> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-> index 9301805..b965f5a 100644
-> --- a/include/video/omapdss.h
-> +++ b/include/video/omapdss.h
-> @@ -326,6 +326,7 @@ struct omap_overlay {
->   	struct omap_overlay_manager *manager;
->   	struct omap_overlay_info info;
+>   static const struct dss_param_range omap2_dss_param_range[] = {
+>   	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
+> +	[FEAT_PARAM_DSS_PCD]			= { 2, 255 },
+>   	[FEAT_PARAM_DSIPLL_REGN]		= { 0, 0 },
+>   	[FEAT_PARAM_DSIPLL_REGM]		= { 0, 0 },
+>   	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, 0 },
+> @@ -291,6 +292,7 @@ static const struct dss_param_range omap2_dss_param_range[] = {
 >
-> +	bool manager_changed;
->   	/* if true, info has been changed, but not applied() yet */
->   	bool info_dirty;
+>   static const struct dss_param_range omap3_dss_param_range[] = {
+>   	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
+> +	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
+>   	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1<<  7) - 1 },
+>   	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1<<  11) - 1 },
+>   	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1<<  4) - 1 },
+> @@ -301,6 +303,7 @@ static const struct dss_param_range omap3_dss_param_range[] = {
 >
+>   static const struct dss_param_range omap4_dss_param_range[] = {
+>   	[FEAT_PARAM_DSS_FCK]			= { 0, 186000000 },
+> +	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
+>   	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1<<  8) - 1 },
+>   	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1<<  12) - 1 },
+>   	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1<<  5) - 1 },
+> diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+> index 4271e96..158d922 100644
+> --- a/drivers/video/omap2/dss/dss_features.h
+> +++ b/drivers/video/omap2/dss/dss_features.h
+> @@ -73,6 +73,7 @@ enum dss_feat_reg_field {
+>
+>   enum dss_range_param {
+>   	FEAT_PARAM_DSS_FCK,
+> +	FEAT_PARAM_DSS_PCD,
+>   	FEAT_PARAM_DSIPLL_REGN,
+>   	FEAT_PARAM_DSIPLL_REGM,
+>   	FEAT_PARAM_DSIPLL_REGM_DISPC,
 
