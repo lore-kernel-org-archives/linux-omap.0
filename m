@@ -1,139 +1,234 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 2/2] mfd: remove CONFIG_MFD_SUPPORT
-Date: Fri, 2 Sep 2011 16:43:36 +0200
-Message-ID: <201109021643.36369.arnd@arndb.de>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <201108311849.37273.arnd@arndb.de> <20110902143713.307bbebe@endymion.delvare>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC PATCH 1/3] OMAP: omap_device: Add omap_device_[alloc|delete]
+ for DT integration
+Date: Fri, 2 Sep 2011 17:22:46 +0200
+Message-ID: <4E60F4C6.2050802@ti.com>
+References: <1314037343-19783-1-git-send-email-b-cousson@ti.com> <1314037343-19783-2-git-send-email-b-cousson@ti.com> <87liu8dsjj.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:53382 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752612Ab1IBOo3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 10:44:29 -0400
-In-Reply-To: <20110902143713.307bbebe@endymion.delvare>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39976 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752692Ab1IBPW4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Sep 2011 11:22:56 -0400
+In-Reply-To: <87liu8dsjj.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Luciano Coelho <coelho@ti.com>, Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 
-We currently have two symbols to control compilation the MFD subsystem,
-MFD_SUPPORT and MFD_CORE. The MFD_SUPPORT is actually not required
-at all, it only hides the submenu when not set, with the effect that
-Kconfig warns about missing dependencies when another driver selects
-an MFD driver while MFD_SUPPORT is disabled. Turning the MFD submenu
-back from menuconfig into a plain menu simplifies the Kconfig syntax
-for those kinds of users and avoids the surprise when the menu
-suddenly appears because another driver was enabled that selects this
-symbol.
+On 9/1/2011 8:30 PM, Hilman, Kevin wrote:
+> Benoit Cousson<b-cousson@ti.com>  writes:
+> 
+>> Split the omap_device_build_ss into two smaller functions
+>> that will allow to populate a platform_device already alocated by
+>> device-tree.
+>> The functionality of the omap_device_build_ss is still the same, but
+>> the omap_device_alloc will be usable with devices already built by
+>> device-tree.
+> 
+> Very nice, I started down this path in the original series, but didn't
+> finish.
+> Some minor comments below...
+> 
+>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>> Cc: Kevin Hilman<khilman@ti.com>
+>> ---
+>>   arch/arm/plat-omap/omap_device.c |  168 ++++++++++++++++++++++++++------------
+>>   1 files changed, 114 insertions(+), 54 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+>> index f2149be..752d72a 100644
+>> --- a/arch/arm/plat-omap/omap_device.c
+>> +++ b/arch/arm/plat-omap/omap_device.c
+>> @@ -96,6 +96,11 @@
+>>
+>>   static int omap_device_register(struct platform_device *pdev);
+>>   static int omap_early_device_register(struct platform_device *pdev);
+>> +static struct omap_device *omap_device_alloc(struct platform_device *pdev,
+>> +				      struct omap_hwmod **ohs, int oh_cnt,
+>> +				      struct omap_device_pm_latency *pm_lats,
+>> +				      int pm_lats_cnt);
+>> +
+>>
+>>   static struct omap_device_pm_latency omap_default_latency[] = {
+>>   	{
+>> @@ -397,6 +402,105 @@ static int omap_device_fill_resources(struct omap_device *od,
+>>   }
+>>
+>>   /**
+>> + * omap_device_alloc - allocate an omap_device
+>> + * @pdev: platform_device that will be represent this omap_device
+>> + * @oh: ptr to the single omap_hwmod that backs this omap_device
+>> + * @pdata: platform_data ptr to associate with the platform_device
+>> + * @pdata_len: amount of memory pointed to by @pdata
+>> + * @pm_lats: pointer to a omap_device_pm_latency array for this device
+>> + * @pm_lats_cnt: ARRAY_SIZE() of @pm_lats
+>> + *
+>> + * Convenience function for allocating an omap_device structure and filling
+>> + * hwmods, resources and pm_latency attributes.
+>> + *
+>> + * Returns an struct omap_device pointer or ERR_PTR() on error;
+>> + */
+>> +static struct omap_device *omap_device_alloc(struct platform_device *pdev,
+>> +					struct omap_hwmod **ohs, int oh_cnt,
+>> +					struct omap_device_pm_latency *pm_lats,
+>> +					int pm_lats_cnt)
+>> +{
+>> +	int ret = -ENOMEM;
+>> +	struct omap_device *od;
+>> +	struct resource *res = NULL;
+>> +	int i, res_count;
+>> +	struct omap_hwmod **hwmods;
+>> +
+>> +	od = kzalloc(sizeof(struct omap_device), GFP_KERNEL);
+>> +	if (!od) {
+>> +		ret = -ENOMEM;
+>> +		goto oda_exit1;
+>> +	}
+>> +	od->hwmods_cnt = oh_cnt;
+>> +
+>> +	hwmods = kzalloc(sizeof(struct omap_hwmod *) * oh_cnt,
+>> +			 GFP_KERNEL);
+>> +	if (!hwmods)
+>> +		goto oda_exit2;
+>> +
+>> +	memcpy(hwmods, ohs, sizeof(struct omap_hwmod *) * oh_cnt);
+>> +	od->hwmods = hwmods;
+>> +	od->pdev = pdev;
+>> +
+>> +	if (pdev->num_resources&&  pdev->resource)
+>> +		dev_warn(&pdev->dev, "%s(): ressources already allocated %d\n",
+> 
+> typo: ressources (occurs again below)
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/arm/mach-omap2/Kconfig |    1 -
- drivers/gpio/Kconfig        |    3 +--
- drivers/i2c/busses/Kconfig  |    1 -
- drivers/media/radio/Kconfig |    1 -
- drivers/mfd/Kconfig         |   22 ++++------------------
- 5 files changed, 5 insertions(+), 23 deletions(-)
+It is not a real typo, it is a French word :-)
+ 
+> also, this check/warn should probably go after the 'HACK' comment below.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 57b66d5..1aee224 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -14,7 +14,6 @@ config ARCH_OMAP2PLUS_TYPICAL
- 	select SERIAL_OMAP_CONSOLE
- 	select I2C
- 	select I2C_OMAP
--	select MFD_SUPPORT
- 	select MENELAUS if ARCH_OMAP2
- 	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
- 	select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
-diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-index d539efd..fbc5fd4 100644
---- a/drivers/gpio/Kconfig
-+++ b/drivers/gpio/Kconfig
-@@ -180,7 +180,7 @@ config GPIO_SCH
- 
- config GPIO_VX855
- 	tristate "VIA VX855/VX875 GPIO"
--	depends on MFD_SUPPORT && PCI
-+	depends on PCI
- 	select MFD_CORE
- 	select MFD_VX855
- 	help
-@@ -417,7 +417,6 @@ config GPIO_TIMBERDALE
- config GPIO_RDC321X
- 	tristate "RDC R-321x GPIO support"
- 	depends on PCI
--	select MFD_SUPPORT
- 	select MFD_CORE
- 	select MFD_RDC321X
- 	help
-diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
-index 646068e..d625a48 100644
---- a/drivers/i2c/busses/Kconfig
-+++ b/drivers/i2c/busses/Kconfig
-@@ -110,7 +110,6 @@ config I2C_I801
- config I2C_ISCH
- 	tristate "Intel SCH SMBus 1.0"
- 	depends on PCI
--	select MFD_CORE
- 	select LPC_SCH
- 	help
- 	  Say Y here if you want to use SMBus controller on the Intel SCH
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 52798a1..ccd5f0d 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -426,7 +426,6 @@ config RADIO_TIMBERDALE
- config RADIO_WL1273
- 	tristate "Texas Instruments WL1273 I2C FM Radio"
- 	depends on I2C && VIDEO_V4L2
--	select MFD_CORE
- 	select MFD_WL1273_CORE
- 	select FW_LOADER
- 	---help---
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 21574bd..a7f1137 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -2,23 +2,8 @@
- # Multifunction miscellaneous devices
- #
- 
--menuconfig MFD_SUPPORT
--	bool "Multifunction device drivers"
--	depends on HAS_IOMEM
--	default y
--	help
--	  Multifunction devices embed several functions (e.g. GPIOs,
--	  touchscreens, keyboards, current regulators, power management chips,
--	  etc...) in one single integrated circuit. They usually talk to the
--	  main CPU through one or more IRQ lines and low speed data busses (SPI,
--	  I2C, etc..). They appear as one single device to the main system
--	  through the data bus and the MFD framework allows for sub devices
--	  (a.k.a. functions) to appear as discrete platform devices.
--	  MFDs are typically found on embedded platforms.
--
--	  This option alone does not add any kernel code.
--
--if MFD_SUPPORT
-+if HAS_IOMEM
-+menu "Multifunction device drivers"
- 
- config MFD_CORE
- 	tristate
-@@ -770,7 +755,8 @@ config MFD_AAT2870_CORE
- 	  additional drivers must be enabled in order to use the
- 	  functionality of the device.
- 
--endif # MFD_SUPPORT
-+endmenu
-+endif
- 
- menu "Multimedia Capabilities Port drivers"
- 	depends on ARCH_SA1100
--- 
-1.7.1
+yep.
+
+> 
+>> +			__func__, pdev->num_resources);
+>> +	/*
+>> +	 * HACK: Idealy the resources from DT should match, and hwmod
+> 
+> s/Idealy/Ideally/
+
+OK, for that one, I do not have the French word excuse...
+
+> 
+>> +	 * should just add the missing ones. Since the name is not
+>> +	 * properly populated by DT, stick to hwmod resources only.
+> 
+> I think this limitation is fine until we come to resolution in the named
+> resources debate.
+
+Indeed :-)
+
+>> +	 */
+>> +	res_count = omap_device_count_resources(od);
+>> +	if (res_count>  0) {
+>> +		dev_dbg(&pdev->dev, "%s(): ressources allocated from hwmod %d\n",
+>> +			__func__, res_count);
+>> +		res = kzalloc(sizeof(struct resource) * res_count, GFP_KERNEL);
+>> +		if (!res)
+>> +			goto oda_exit3;
+>> +
+>> +		omap_device_fill_resources(od, res);
+>> +
+>> +		ret = platform_device_add_resources(pdev, res, res_count);
+>> +		kfree(res);
+>> +
+>> +		if (ret)
+>> +			goto oda_exit3;
+>> +	}
+>> +
+>> +	if (pm_lats) {
+>> +		od->pm_lats = pm_lats;
+>> +		od->pm_lats_cnt = pm_lats_cnt;
+>> +	} else {
+>> +		od->pm_lats = omap_default_latency;
+>> +		od->pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
+>> +	}
+>> +
+>> +	pdev->archdata.od = od;
+>> +
+>> +	for (i = 0; i<  oh_cnt; i++) {
+>> +		hwmods[i]->od = od;
+>> +		_add_hwmod_clocks_clkdev(od, hwmods[i]);
+>> +	}
+>> +
+>> +	return od;
+>> +
+>> +oda_exit3:
+>> +	kfree(hwmods);
+>> +oda_exit2:
+>> +	kfree(od);
+>> +oda_exit1:
+>> +	dev_err(&pdev->dev, "omap_device: build failed (%d)\n", ret);
+>> +
+>> +	return ERR_PTR(ret);
+>> +}
+>> +
+>> +void omap_device_delete(struct omap_device *od)
+>> +{
+>> +	kfree(od->hwmods);
+>> +	kfree(od);
+> 
+> maybe set pdev->archdata.od = NULL too.
+
+OK.
+
+>> +}
+>> +
+>> +/**
+>>    * omap_device_build - build and register an omap_device with one omap_hwmod
+>>    * @pdev_name: name of the platform_device driver to use
+>>    * @pdev_id: this platform_device's connection ID
+>> @@ -455,9 +559,6 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+>>   	int ret = -ENOMEM;
+>>   	struct platform_device *pdev;
+>>   	struct omap_device *od;
+>> -	struct resource *res = NULL;
+>> -	int i, res_count;
+>> -	struct omap_hwmod **hwmods;
+>>
+>>   	if (!ohs || oh_cnt == 0 || !pdev_name)
+>>   		return ERR_PTR(-EINVAL);
+>> @@ -471,72 +572,31 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+>>   		goto odbs_exit;
+>>   	}
+>>
+>> -	pr_debug("omap_device: %s: building with %d hwmods\n", pdev_name,
+>> -		 oh_cnt);
+>> +	/* Set the dev_name early to allow dev_xxx in omap_device_alloc */
+>> +	if (pdev->id != -1)
+>> +		dev_set_name(&pdev->dev, "%s.%d", pdev->name,  pdev->id);
+>> +	else
+>> +		dev_set_name(&pdev->dev, "%s", pdev->name);
+> 
+> Minor: I think setting dev->init_name is more appropriate here, and
+> should have the same effect.
+
+The slight difference is that if I do that:
+pdev->dev.init_name = kasprintf(GFP_KERNEL, "%s.%d", pdev->name, pdev->id);
+
+I will have to free it myself, because device_add is doing only that:
+
+        if (dev->init_name) {
+                dev_set_name(dev, "%s", dev->init_name);
+                dev->init_name = NULL;
+        }
+
+Whereas dev_set_name is doing it for me.
+
+So it will add one more line later. Does it worth it?
+
+The init_name seems to be used only to provide a static const name most of the time, hence the lack of kfree.
+
+
+Thanks for the comments,
+Benoit
 
