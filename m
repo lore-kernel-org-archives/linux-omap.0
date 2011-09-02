@@ -1,96 +1,94 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 10/10] OMAP: DSS2: DSI Video mode support
-Date: Fri, 2 Sep 2011 10:45:33 +0530
-Message-ID: <4E606675.5010403@ti.com>
-References: <1314701495-11247-1-git-send-email-archit@ti.com>	 <1314701495-11247-11-git-send-email-archit@ti.com> <1314882869.2169.22.camel@lappyti>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH v2 02/10] OMAP4: DSS: HDMI: Move pll and video configuration
+Date: Fri, 2 Sep 2011 10:52:26 +0530
+Message-ID: <CAP5A+B-7EWL81UVOB4Ncaed-uNbGp5Sp8T1-dJrib3t6MA_3Tw@mail.gmail.com>
+References: <1314598500-24005-1-git-send-email-mythripk@ti.com>
+ <1314598500-24005-2-git-send-email-mythripk@ti.com> <1314598500-24005-3-git-send-email-mythripk@ti.com>
+ <1314865665.2169.7.camel@lappyti> <CAP5A+B_Kx+sHj+n3MZRPFMjeh+1u_g_4KbyW5qCdD7SOZyF5Yw@mail.gmail.com>
+ <1314940432.1907.1.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40872 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751736Ab1IBFQg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 01:16:36 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p825GWVp006058
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 2 Sep 2011 00:16:35 -0500
-In-Reply-To: <1314882869.2169.22.camel@lappyti>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:43167 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750904Ab1IBFWr convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Sep 2011 01:22:47 -0400
+Received: by iafi7 with SMTP id i7so3981307iaf.21
+        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 22:22:46 -0700 (PDT)
+In-Reply-To: <1314940432.1907.1.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
 Hi,
 
-On Thursday 01 September 2011 06:44 PM, Valkeinen, Tomi wrote:
-> On Tue, 2011-08-30 at 16:21 +0530, Archit Taneja wrote:
->> Add initial support for DSI video mode panels:
->> - Add a new structure omap_dss_dsi_videomode_data in the member "panel" in
->>    omap_dss_device struct. This allows panel driver to configure dsi video_mode
->>    specific parameters.
->> - Configure basic DSI video mode timing parameters: HBP, HFP, HSA, VBP, VFP, VSA,
->>    TL and VACT.
->> - Configure DSI protocol engine registers for video_mode support.
->> - Introduce functions dsi_video_mode_enable() and dsi_video_mode_disable() which
->>    enable/disable video mode for a given virtual channel and a given pixel format
->>    type.
+On Fri, Sep 2, 2011 at 10:43 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Fri, 2011-09-02 at 10:41 +0530, K, Mythri P wrote:
+>> Hi,
 >>
->> Things left for later
->> - Add functions to check for errors in video mode timings provided by panel.
->> - Configure timing registers required  for command mode interleaving.
->>
->> Signed-off-by: Archit Taneja<archit@ti.com>
->> ---
->>   drivers/video/omap2/dss/dsi.c |  256 ++++++++++++++++++++++++++++++++++++-----
->>   include/video/omapdss.h       |   32 +++++
->>   2 files changed, 259 insertions(+), 29 deletions(-)
->>
->> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
->> index 582ae7b..e3d5c38 100644
->> --- a/drivers/video/omap2/dss/dsi.c
->> +++ b/drivers/video/omap2/dss/dsi.c
->> @@ -132,7 +132,7 @@ struct dsi_reg { u16 idx; };
->>   #define DSI_IRQ_TA_TIMEOUT	(1<<  20)
->>   #define DSI_IRQ_ERROR_MASK \
->>   	(DSI_IRQ_HS_TX_TIMEOUT | DSI_IRQ_LP_RX_TIMEOUT | DSI_IRQ_SYNC_LOST | \
->> -	DSI_IRQ_TA_TIMEOUT)
->> +	DSI_IRQ_TA_TIMEOUT | DSI_IRQ_SYNC_LOST)
->>   #define DSI_IRQ_CHANNEL_MASK	0xf
->>
->>   /* Virtual channel interrupts */
->> @@ -2472,6 +2472,12 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
->>
->>   	dsi_cio_timings(dsidev);
->>
->> +	if (dssdev->panel.dsi_mode == OMAP_DSS_DSI_VIDEO_MODE) {
->> +		/* DDR_CLK_ALWAYS_ON */
->> +		REG_FLD_MOD(dsidev, DSI_CLK_CTRL,
->> +			dssdev->panel.dsi_vm_data.ddr_clk_always_on, 13, 13);
->> +	}
->> +
+>> On Thu, Sep 1, 2011 at 1:57 PM, Tomi Valkeinen <tomi.valkeinen@ti.co=
+m> wrote:
+>> > On Mon, 2011-08-29 at 11:44 +0530, mythripk@ti.com wrote:
+>> >> From: Mythri P K <mythripk@ti.com>
+>> >>
+>> >> As the pll and the video configuration info are part of the ip_da=
+ta those
+>> >> structures are moved to the ip_data strtucure.Also the functions =
+are modified
+>> >> accordingly to take care of this movement.
+>> >
+>> > structure typoed, and use a space after period.
+>> >
+>> >> Signed-off-by: Mythri P K <mythripk@ti.com>
+>> >> ---
+>> >> =A0drivers/video/omap2/dss/hdmi.c | =A0 34 +++++++++++++++-------=
+------------
+>> >> =A0drivers/video/omap2/dss/hdmi.h | =A0 18 ++++++++++--------
+>> >> =A02 files changed, 25 insertions(+), 27 deletions(-)
 >
-> For the DDR clock to start, you need to send a null packet, don't you?
-
-Yes, we have to send a null packet, but that is for the case when DDR 
-clock is required by the panel to function properly. Hence we need to 
-start the DDR clock right at the beginning(before we start sending 
-DCS/generic commands to configure the panel).
-
-The panel driver may set DDR_CLK_ALWAYS_ON even if it has its own 
-internal clock to function. In that case, we don't need it to be enabled 
-right at the beginning, i.e, when we send DCS commands to configure the 
-panel. In this case, the signal TxRequestHS will be asserted later on 
-when we enable video mode for a VC, and that will start the DDR clock.
-
-I had left out the "sending null packet" part as I think its a more 
-specific case. Setting DDR_CLK_ALWAYS_ON affects timing calculations, 
-that is why I added it as a configurable parameter for the panel driver.
-
-Archit
-
+>> >> -static int hdmi_pll_program(struct hdmi_ip_data *ip_data,
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct =
+hdmi_pll_info *fmt)
+>> >> +static int hdmi_pll_program(struct hdmi_ip_data *ip_data)
+>> >> =A0{
+>> >> =A0 =A0 =A0 u16 r =3D 0;
+>> >> =A0 =A0 =A0 enum hdmi_clk_refsel refsel;
+>> >> @@ -399,7 +397,7 @@ static int hdmi_pll_program(struct hdmi_ip_da=
+ta *ip_data,
+>> >>
+>> >> =A0 =A0 =A0 refsel =3D HDMI_REFSEL_SYSCLK;
+>> >>
+>> >> - =A0 =A0 r =3D hdmi_pll_init(ip_data, refsel, fmt->dcofreq, fmt,=
+ fmt->regsd);
+>> >> + =A0 =A0 r =3D hdmi_pll_init(ip_data, refsel);
+>> >
+>> > I don't think I quite understood why refsel is not part of the pll=
+ info.
+>> > And if it has to be hardcoded, you could as well do that in
+>> > hdmi_pll_init().
+>> >
+>> Ok , yes that is better.
 >
->   Tomi
+> So, why refsel is not part of the pll info? The HW doesn't support
+> changing it? If so, is it only for OMAPs or for all SoCs?
+It is a variable parameter ,H/w supports changing it but it is never tr=
+ied,
+I was considering hard-coding it in the hdmi.c and passing it,
+so that there would be no hard-coding in IP functions.
+
+Thanks and regards,
+Mythri.
+>
+> =A0Tomi
 >
 >
-
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
