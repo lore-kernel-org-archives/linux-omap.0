@@ -1,44 +1,142 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 5/7] iommu/msm: ->unmap() should return order of unmapped page
-Date: Fri,  2 Sep 2011 20:32:34 +0300
-Message-ID: <1314984756-4400-6-git-send-email-ohad@wizery.com>
+Subject: [PATCH 1/7] iommu/omap-iovmm: support non page-aligned buffers in
+	iommu_vmap
+Date: Fri,  2 Sep 2011 20:32:30 +0300
+Message-ID: <1314984756-4400-2-git-send-email-ohad@wizery.com>
 References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1314984756-4400-1-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: iommu@lists.linux-foundation.org
-Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Stepan Moskovchenko <stepanm@codeaurora.org>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Users of the IOMMU API (kvm specifically) assume that iommu_unmap()
-returns the order of the unmapped page (on success).
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Fix msm_iommu_unmap() accordingly.
+omap_iovmm requires page-aligned buffers, and that sometimes causes
+omap3isp failures (i.e. whenever the buffer passed from userspace is not
+page-aligned).
 
+Remove this limitation by rounding the address of the first page entry
+down, and adding the offset back to the device address.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+[ohad@wizery.com: rebased, but tested only with aligned buffers]
+[ohad@wizery.com: slightly edited the commit log]
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Stepan Moskovchenko <stepanm@codeaurora.org>
-Cc: David Brown <davidb@codeaurora.org>
 ---
- drivers/iommu/msm_iommu.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ drivers/iommu/omap-iovmm.c |   36 ++++++++++++++++++++++++++----------
+ 1 files changed, 26 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/iommu/msm_iommu.c b/drivers/iommu/msm_iommu.c
-index 1a584e0..d1733f6 100644
---- a/drivers/iommu/msm_iommu.c
-+++ b/drivers/iommu/msm_iommu.c
-@@ -543,6 +543,13 @@ static int msm_iommu_unmap(struct iommu_domain *domain, unsigned long va,
- 	}
+diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
+index 5e7f97d..39bdb92 100644
+--- a/drivers/iommu/omap-iovmm.c
++++ b/drivers/iommu/omap-iovmm.c
+@@ -27,6 +27,15 @@
  
- 	ret = __flush_iotlb(domain);
+ static struct kmem_cache *iovm_area_cachep;
+ 
++/* return the offset of the first scatterlist entry in a sg table */
++static unsigned int sgtable_offset(const struct sg_table *sgt)
++{
++	if (!sgt || !sgt->nents)
++		return 0;
 +
-+	/*
-+	 * the IOMMU API requires us to return the order of the unmapped
-+	 * page (on success).
-+	 */
-+	if (!ret)
-+		ret = order;
- fail:
- 	spin_unlock_irqrestore(&msm_iommu_lock, flags);
- 	return ret;
++	return sgt->sgl->offset;
++}
++
+ /* return total bytes of sg buffers */
+ static size_t sgtable_len(const struct sg_table *sgt)
+ {
+@@ -39,11 +48,17 @@ static size_t sgtable_len(const struct sg_table *sgt)
+ 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+ 		size_t bytes;
+ 
+-		bytes = sg->length;
++		bytes = sg->length + sg->offset;
+ 
+ 		if (!iopgsz_ok(bytes)) {
+-			pr_err("%s: sg[%d] not iommu pagesize(%x)\n",
+-			       __func__, i, bytes);
++			pr_err("%s: sg[%d] not iommu pagesize(%u %u)\n",
++			       __func__, i, bytes, sg->offset);
++			return 0;
++		}
++
++		if (i && sg->offset) {
++			pr_err("%s: sg[%d] offset not allowed in internal "
++					"entries\n", __func__, i);
+ 			return 0;
+ 		}
+ 
+@@ -164,8 +179,8 @@ static void *vmap_sg(const struct sg_table *sgt)
+ 		u32 pa;
+ 		int err;
+ 
+-		pa = sg_phys(sg);
+-		bytes = sg->length;
++		pa = sg_phys(sg) - sg->offset;
++		bytes = sg->length + sg->offset;
+ 
+ 		BUG_ON(bytes != PAGE_SIZE);
+ 
+@@ -405,8 +420,8 @@ static int map_iovm_area(struct iommu_domain *domain, struct iovm_struct *new,
+ 		u32 pa;
+ 		size_t bytes;
+ 
+-		pa = sg_phys(sg);
+-		bytes = sg->length;
++		pa = sg_phys(sg) - sg->offset;
++		bytes = sg->length + sg->offset;
+ 
+ 		flags &= ~IOVMF_PGSZ_MASK;
+ 
+@@ -432,7 +447,7 @@ err_out:
+ 	for_each_sg(sgt->sgl, sg, i, j) {
+ 		size_t bytes;
+ 
+-		bytes = sg->length;
++		bytes = sg->length + sg->offset;
+ 		order = get_order(bytes);
+ 
+ 		/* ignore failures.. we're already handling one */
+@@ -461,7 +476,7 @@ static void unmap_iovm_area(struct iommu_domain *domain, struct omap_iommu *obj,
+ 		size_t bytes;
+ 		int order;
+ 
+-		bytes = sg->length;
++		bytes = sg->length + sg->offset;
+ 		order = get_order(bytes);
+ 
+ 		err = iommu_unmap(domain, start, order);
+@@ -600,7 +615,7 @@ u32 omap_iommu_vmap(struct iommu_domain *domain, struct omap_iommu *obj, u32 da,
+ 	if (IS_ERR_VALUE(da))
+ 		vunmap_sg(va);
+ 
+-	return da;
++	return da + sgtable_offset(sgt);
+ }
+ EXPORT_SYMBOL_GPL(omap_iommu_vmap);
+ 
+@@ -620,6 +635,7 @@ omap_iommu_vunmap(struct iommu_domain *domain, struct omap_iommu *obj, u32 da)
+ 	 * 'sgt' is allocated before 'omap_iommu_vmalloc()' is called.
+ 	 * Just returns 'sgt' to the caller to free
+ 	 */
++	da &= PAGE_MASK;
+ 	sgt = unmap_vm_area(domain, obj, da, vunmap_sg,
+ 					IOVMF_DISCONT | IOVMF_MMIO);
+ 	if (!sgt)
 -- 
 1.7.4.1
