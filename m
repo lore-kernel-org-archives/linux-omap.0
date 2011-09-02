@@ -1,26 +1,24 @@
 From: <mythripk@ti.com>
-Subject: [PATCH v3 04/10] OMAP4: DSS: HDMI: Move IP independent common header
-Date: Fri, 2 Sep 2011 16:17:44 +0530
-Message-ID: <1314960470-2616-5-git-send-email-mythripk@ti.com>
+Subject: [PATCH v3 02/10] OMAP4: DSS: HDMI: Move pll and video configuration
+Date: Fri, 2 Sep 2011 16:17:42 +0530
+Message-ID: <1314960470-2616-3-git-send-email-mythripk@ti.com>
 References: <1314960470-2616-1-git-send-email-mythripk@ti.com>
  <1314960470-2616-2-git-send-email-mythripk@ti.com>
- <1314960470-2616-3-git-send-email-mythripk@ti.com>
- <1314960470-2616-4-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55346 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55345 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933395Ab1IBK4B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S933394Ab1IBK4B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 2 Sep 2011 06:56:01 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p82Atvcp027236
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p82Atv5c027232
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
 	for <linux-omap@vger.kernel.org>; Fri, 2 Sep 2011 05:55:59 -0500
 Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p82AturI016844
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p82AturG016844
 	for <linux-omap@vger.kernel.org>; Fri, 2 Sep 2011 16:25:57 +0530 (IST)
-In-Reply-To: <1314960470-2616-4-git-send-email-mythripk@ti.com>
+In-Reply-To: <1314960470-2616-2-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
@@ -28,24 +26,191 @@ Cc: Mythri P K <mythripk@ti.com>
 
 From: Mythri P K <mythripk@ti.com>
 
-Some of the header file definitions that are there in the hdmi.h are generic
-and can be used across OMAP's, Thus moving generic definition to new file.
+As the pll and the video configuration info are part of the ip_data those
+structures are moved to the ip_data structure. Also the functions are modified
+accordingly to take care of this movement.
 
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- drivers/video/omap2/dss/dss.h     |   18 -------
- drivers/video/omap2/dss/hdmi.c    |    1 +
- drivers/video/omap2/dss/hdmi.h    |   53 ---------------------
- drivers/video/omap2/dss/ti_hdmi.h |   94 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 95 insertions(+), 71 deletions(-)
- create mode 100644 drivers/video/omap2/dss/ti_hdmi.h
+ drivers/video/omap2/dss/dss.h  |    8 +++++++
+ drivers/video/omap2/dss/hdmi.c |   41 +++++++++++++++++----------------------
+ drivers/video/omap2/dss/hdmi.h |   25 +++++++++--------------
+ 3 files changed, 36 insertions(+), 38 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 4cb264e..7c9565f 100644
+index a095a62..4cb264e 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -150,24 +150,6 @@ struct dsi_clock_info {
+@@ -150,6 +150,13 @@ struct dsi_clock_info {
  	bool use_sys_clk;
+ };
+ 
++enum hdmi_clk_refsel {
++	HDMI_REFSEL_PCLK = 0,
++	HDMI_REFSEL_REF1 = 1,
++	HDMI_REFSEL_REF2 = 2,
++	HDMI_REFSEL_SYSCLK = 3
++};
++
+ /* HDMI PLL structure */
+ struct hdmi_pll_info {
+ 	u16 regn;
+@@ -158,6 +165,7 @@ struct hdmi_pll_info {
+ 	u16 regm2;
+ 	u16 regsd;
+ 	u16 dcofreq;
++	enum hdmi_clk_refsel refsel;
+ };
+ 
+ struct seq_file;
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 544f93e..9a28e5e 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -59,7 +59,6 @@ static struct {
+ 	u8 edid[HDMI_EDID_MAX_LENGTH];
+ 	u8 edid_set;
+ 	bool custom_set;
+-	struct hdmi_config cfg;
+ 
+ 	struct clk *sys_clk;
+ } hdmi;
+@@ -229,12 +228,11 @@ int hdmi_init_display(struct omap_dss_device *dssdev)
+ 	return 0;
+ }
+ 
+-static int hdmi_pll_init(struct hdmi_ip_data *ip_data,
+-		enum hdmi_clk_refsel refsel, int dcofreq,
+-		struct hdmi_pll_info *fmt, u16 sd)
++static int hdmi_pll_init(struct hdmi_ip_data *ip_data)
+ {
+ 	u32 r;
+ 	void __iomem *pll_base = hdmi_pll_base(ip_data);
++	struct hdmi_pll_info *fmt = &ip_data->pll_data;
+ 
+ 	/* PLL start always use manual mode */
+ 	REG_FLD_MOD(pll_base, PLLCTRL_PLL_CONTROL, 0x0, 0, 0);
+@@ -251,9 +249,9 @@ static int hdmi_pll_init(struct hdmi_ip_data *ip_data,
+ 	r = FLD_MOD(r, 0x1, 13, 13); /* PLL_REFEN */
+ 	r = FLD_MOD(r, 0x0, 14, 14); /* PHY_CLKINEN de-assert during locking */
+ 
+-	if (dcofreq) {
++	if (fmt->dcofreq) {
+ 		/* divider programming for frequency beyond 1000Mhz */
+-		REG_FLD_MOD(pll_base, PLLCTRL_CFG3, sd, 17, 10);
++		REG_FLD_MOD(pll_base, PLLCTRL_CFG3, fmt->regsd, 17, 10);
+ 		r = FLD_MOD(r, 0x4, 3, 1); /* 1000MHz and 2000MHz */
+ 	} else {
+ 		r = FLD_MOD(r, 0x2, 3, 1); /* 500MHz and 1000MHz */
+@@ -379,11 +377,9 @@ static int hdmi_phy_init(struct hdmi_ip_data *ip_data)
+ 	return 0;
+ }
+ 
+-static int hdmi_pll_program(struct hdmi_ip_data *ip_data,
+-				struct hdmi_pll_info *fmt)
++static int hdmi_pll_program(struct hdmi_ip_data *ip_data)
+ {
+ 	u16 r = 0;
+-	enum hdmi_clk_refsel refsel;
+ 
+ 	r = hdmi_set_pll_pwr(ip_data, HDMI_PLLPWRCMD_ALLOFF);
+ 	if (r)
+@@ -397,9 +393,7 @@ static int hdmi_pll_program(struct hdmi_ip_data *ip_data,
+ 	if (r)
+ 		return r;
+ 
+-	refsel = HDMI_REFSEL_SYSCLK;
+-
+-	r = hdmi_pll_init(ip_data, refsel, fmt->dcofreq, fmt, fmt->regsd);
++	r = hdmi_pll_init(ip_data);
+ 	if (r)
+ 		return r;
+ 
+@@ -1015,8 +1009,7 @@ static void hdmi_wp_video_config_timing(struct hdmi_ip_data *ip_data,
+ 	hdmi_write_reg(hdmi_wp_base(ip_data), HDMI_WP_VIDEO_TIMING_V, timing_v);
+ }
+ 
+-static void hdmi_basic_configure(struct hdmi_ip_data *ip_data,
+-			struct hdmi_config *cfg)
++static void hdmi_basic_configure(struct hdmi_ip_data *ip_data)
+ {
+ 	/* HDMI */
+ 	struct omap_video_timings video_timing;
+@@ -1026,6 +1019,7 @@ static void hdmi_basic_configure(struct hdmi_ip_data *ip_data,
+ 	struct hdmi_core_infoframe_avi avi_cfg;
+ 	struct hdmi_core_video_config v_core_cfg;
+ 	struct hdmi_core_packet_enable_repeat repeat_cfg;
++	struct hdmi_config *cfg = &ip_data->cfg;
+ 
+ 	hdmi_wp_init(&video_timing, &video_format,
+ 		&video_interface);
+@@ -1034,8 +1028,7 @@ static void hdmi_basic_configure(struct hdmi_ip_data *ip_data,
+ 		&avi_cfg,
+ 		&repeat_cfg);
+ 
+-	hdmi_wp_video_init_format(&video_format,
+-			&video_timing, cfg);
++	hdmi_wp_video_init_format(&video_format, &video_timing, cfg);
+ 
+ 	hdmi_wp_video_config_timing(ip_data, &video_timing);
+ 
+@@ -1154,6 +1147,9 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
+ 	pi->dcofreq = phy > 1000 * 100;
+ 	pi->regsd = ((pi->regm * clkin / 10) / ((pi->regn + 1) * 250) + 5) / 10;
+ 
++	/* Set the reference clock to sysclk reference */
++	pi->refsel = HDMI_REFSEL_SYSCLK;
++
+ 	DSSDBG("M = %d Mf = %d\n", pi->regm, pi->regmf);
+ 	DSSDBG("range = %d sd = %d\n", pi->dcofreq, pi->regsd);
+ }
+@@ -1161,7 +1157,6 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
+ static int hdmi_power_on(struct omap_dss_device *dssdev)
+ {
+ 	int r, code = 0;
+-	struct hdmi_pll_info pll_data;
+ 	struct omap_video_timings *p;
+ 	unsigned long phy;
+ 
+@@ -1183,16 +1178,16 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
+ 	}
+ 	code = get_timings_index();
+ 	dssdev->panel.timings = cea_vesa_timings[code].timings;
+-	update_hdmi_timings(&hdmi.cfg, p, code);
++	update_hdmi_timings(&hdmi.hdmi_data.cfg, p, code);
+ 
+ 	phy = p->pixel_clock;
+ 
+-	hdmi_compute_pll(dssdev, phy, &pll_data);
++	hdmi_compute_pll(dssdev, phy, &hdmi.hdmi_data.pll_data);
+ 
+ 	hdmi_wp_video_start(&hdmi.hdmi_data, 0);
+ 
+ 	/* config the PLL and PHY hdmi_set_pll_pwrfirst */
+-	r = hdmi_pll_program(&hdmi.hdmi_data, &pll_data);
++	r = hdmi_pll_program(&hdmi.hdmi_data);
+ 	if (r) {
+ 		DSSDBG("Failed to lock PLL\n");
+ 		goto err;
+@@ -1204,9 +1199,9 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
+ 		goto err;
+ 	}
+ 
+-	hdmi.cfg.cm.mode = hdmi.mode;
+-	hdmi.cfg.cm.code = hdmi.code;
+-	hdmi_basic_configure(&hdmi.hdmi_data, &hdmi.cfg);
++	hdmi.hdmi_data.cfg.cm.mode = hdmi.mode;
++	hdmi.hdmi_data.cfg.cm.code = hdmi.code;
++	hdmi_basic_configure(&hdmi.hdmi_data);
+ 
+ 	/* Make selection of HDMI in DSS */
+ 	dss_select_hdmi_venc_clk_source(DSS_HDMI_M_PCLK);
+diff --git a/drivers/video/omap2/dss/hdmi.h b/drivers/video/omap2/dss/hdmi.h
+index ee37bd9..d2913f8 100644
+--- a/drivers/video/omap2/dss/hdmi.h
++++ b/drivers/video/omap2/dss/hdmi.h
+@@ -218,13 +218,6 @@ enum hdmi_pll_pwr {
+ 	HDMI_PLLPWRCMD_BOTHON_NOPHYCLK = 3
  };
  
 -enum hdmi_clk_refsel {
@@ -55,206 +220,28 @@ index 4cb264e..7c9565f 100644
 -	HDMI_REFSEL_SYSCLK = 3
 -};
 -
--/* HDMI PLL structure */
--struct hdmi_pll_info {
--	u16 regn;
--	u16 regm;
--	u32 regmf;
--	u16 regm2;
--	u16 regsd;
--	u16 dcofreq;
--	enum hdmi_clk_refsel refsel;
--};
--
- struct seq_file;
- struct platform_device;
- 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 09c0b28..aea4a79 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -39,6 +39,7 @@
- #include <sound/pcm_params.h>
- #endif
- 
-+#include "ti_hdmi.h"
- #include "dss.h"
- #include "hdmi.h"
- #include "dss_features.h"
-diff --git a/drivers/video/omap2/dss/hdmi.h b/drivers/video/omap2/dss/hdmi.h
-index 02342f6..cb50f6a 100644
---- a/drivers/video/omap2/dss/hdmi.h
-+++ b/drivers/video/omap2/dss/hdmi.h
-@@ -198,39 +198,12 @@ struct hdmi_reg { u16 idx; };
- #define REG_GET(base, idx, start, end) \
- 	FLD_GET(hdmi_read_reg(base, idx), start, end)
- 
--struct hdmi_video_timings {
--	u16 x_res;
--	u16 y_res;
--	/* Unit: KHz */
--	u32 pixel_clock;
--	u16 hsw;
--	u16 hfp;
--	u16 hbp;
--	u16 vsw;
--	u16 vfp;
--	u16 vbp;
--};
--
--/* HDMI timing structure */
--struct hdmi_timings {
--	struct hdmi_video_timings timings;
--	int vsync_pol;
--	int hsync_pol;
--};
--
- enum hdmi_phy_pwr {
- 	HDMI_PHYPWRCMD_OFF = 0,
- 	HDMI_PHYPWRCMD_LDOON = 1,
- 	HDMI_PHYPWRCMD_TXON = 2
- };
- 
--enum hdmi_pll_pwr {
--	HDMI_PLLPWRCMD_ALLOFF = 0,
--	HDMI_PLLPWRCMD_PLLONLY = 1,
--	HDMI_PLLPWRCMD_BOTHON_ALLCLKS = 2,
--	HDMI_PLLPWRCMD_BOTHON_NOPHYCLK = 3
--};
--
  enum hdmi_core_inputbus_width {
  	HDMI_INPUT_8BIT = 0,
  	HDMI_INPUT_10BIT = 1,
-@@ -259,11 +232,6 @@ enum hdmi_core_packet_mode {
- 	HDMI_PACKETMODE48BITPERPIXEL = 7
- };
- 
--enum hdmi_core_hdmi_dvi {
--	HDMI_DVI = 0,
--	HDMI_HDMI = 1
--};
--
- enum hdmi_core_tclkselclkmult {
- 	HDMI_FPLL05IDCK = 0,
- 	HDMI_FPLL10IDCK = 1,
-@@ -564,27 +532,6 @@ struct hdmi_video_interface {
+@@ -558,14 +551,6 @@ struct hdmi_video_interface {
  	int	tm;	/* Timing mode */
  };
  
--struct hdmi_cm {
--	int	code;
--	int	mode;
--};
--
--struct hdmi_config {
--	struct hdmi_timings timings;
--	u16	interlace;
--	struct hdmi_cm cm;
--};
--
 -struct hdmi_ip_data {
 -	void __iomem	*base_wp;	/* HDMI wrapper */
 -	unsigned long	core_sys_offset;
 -	unsigned long	core_av_offset;
 -	unsigned long	pll_offset;
 -	unsigned long	phy_offset;
--	struct hdmi_config cfg;
--	struct hdmi_pll_info pll_data;
 -};
 -
- struct hdmi_audio_format {
- 	enum hdmi_stereo_channels		stereo_channels;
- 	u8					active_chnnls_msk;
-diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-new file mode 100644
-index 0000000..f0e508e
---- /dev/null
-+++ b/drivers/video/omap2/dss/ti_hdmi.h
-@@ -0,0 +1,94 @@
-+/*
-+ * ti_hdmi.h
-+ *
-+ * HDMI driver definition for TI OMAP4, DM81xx, DM38xx  Processor.
-+ *
-+ * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef _TI_HDMI_H
-+#define _TI_HDMI_H
-+
-+enum hdmi_pll_pwr {
-+	HDMI_PLLPWRCMD_ALLOFF = 0,
-+	HDMI_PLLPWRCMD_PLLONLY = 1,
-+	HDMI_PLLPWRCMD_BOTHON_ALLCLKS = 2,
-+	HDMI_PLLPWRCMD_BOTHON_NOPHYCLK = 3
-+};
-+
-+enum hdmi_core_hdmi_dvi {
-+	HDMI_DVI = 0,
-+	HDMI_HDMI = 1
-+};
-+
-+enum hdmi_clk_refsel {
-+	HDMI_REFSEL_PCLK = 0,
-+	HDMI_REFSEL_REF1 = 1,
-+	HDMI_REFSEL_REF2 = 2,
-+	HDMI_REFSEL_SYSCLK = 3
-+};
-+
-+struct hdmi_video_timings {
-+	u16 x_res;
-+	u16 y_res;
-+	/* Unit: KHz */
-+	u32 pixel_clock;
-+	u16 hsw;
-+	u16 hfp;
-+	u16 hbp;
-+	u16 vsw;
-+	u16 vfp;
-+	u16 vbp;
-+};
-+
-+/* HDMI timing structure */
-+struct hdmi_timings {
-+	struct hdmi_video_timings timings;
-+	int vsync_pol;
-+	int hsync_pol;
-+};
-+
-+struct hdmi_cm {
-+	int	code;
-+	int	mode;
-+};
-+
-+struct hdmi_config {
-+	struct hdmi_timings timings;
-+	u16	interlace;
-+	struct hdmi_cm cm;
-+};
-+
-+/* HDMI PLL structure */
-+struct hdmi_pll_info {
-+	u16 regn;
-+	u16 regm;
-+	u32 regmf;
-+	u16 regm2;
-+	u16 regsd;
-+	u16 dcofreq;
-+	enum hdmi_clk_refsel refsel;
-+};
-+
+ struct hdmi_cm {
+ 	int	code;
+ 	int	mode;
+@@ -577,6 +562,16 @@ struct hdmi_config {
+ 	struct hdmi_cm cm;
+ };
+ 
 +struct hdmi_ip_data {
 +	void __iomem	*base_wp;	/* HDMI wrapper */
 +	unsigned long	core_sys_offset;
@@ -264,7 +251,10 @@ index 0000000..f0e508e
 +	struct hdmi_config cfg;
 +	struct hdmi_pll_info pll_data;
 +};
-+#endif
++
+ struct hdmi_audio_format {
+ 	enum hdmi_stereo_channels		stereo_channels;
+ 	u8					active_chnnls_msk;
 -- 
 1.7.5.4
 
