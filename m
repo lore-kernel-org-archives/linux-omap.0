@@ -1,64 +1,60 @@
-From: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: cpuidle status in mainline for Beagleboard xM
-Date: Fri, 2 Sep 2011 09:23:52 +0200
-Message-ID: <CACKLOr1h23n-dSCZ6Dqzo_EW_6fyieZodCKfXFmn7i2tL=hQCQ@mail.gmail.com>
-References: <CACKLOr10aTCwkBZnSinvP4HLPhrJeiBs=6KM2we4DwTT0NJ22A@mail.gmail.com>
-	<87vctcjo2w.fsf@ti.com>
-	<CACKLOr0KpCUXrXM7M9YvE3DGPbGjzT4N678eEPfx_GGE7+40-w@mail.gmail.com>
-	<87ei00f94i.fsf@ti.com>
-	<4E607241.8000704@bitmer.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/4] OMAP: DSS2: Handle manager change in apply
+Date: Fri, 02 Sep 2011 10:25:22 +0300
+Message-ID: <1314948322.3374.21.camel@deskari>
+References: <1314001636-18036-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1314001636-18036-4-git-send-email-tomi.valkeinen@ti.com>
+	 <4E607CC3.2000407@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:40680 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755718Ab1IBHXx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 03:23:53 -0400
-Received: by yie30 with SMTP id 30so1998507yie.19
-        for <linux-omap@vger.kernel.org>; Fri, 02 Sep 2011 00:23:53 -0700 (PDT)
-In-Reply-To: <4E607241.8000704@bitmer.com>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:37817 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752498Ab1IBHZ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 03:25:28 -0400
+In-Reply-To: <4E607CC3.2000407@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Koen Kooi <koen@beagleboard.org>
+To: Archit Taneja <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-On 2 September 2011 08:05, Jarkko Nikula <jarkko.nikula@bitmer.com> wrote:
-> Other usual things to check that display is off (echo 1 >
-> /sys/class/graphics/fb0/blank) and no cable to musb/otg port.
->
-> Haven't tried myself with recent kernel but does EHCI and hub on XM let to
-> idle cpu at all? At least on one board having on-board hub I had to disable
-> or unload ehci module in order to hit the retention.
->
+On Fri, 2011-09-02 at 12:20 +0530, Archit Taneja wrote:
+> On Monday 22 August 2011 01:57 PM, Valkeinen, Tomi wrote:
+> > Currently when changing the manager of an overlay, set_manager()
+> directly
+> > calls dispc to set the overlay's destination.
+> >
+> > Change this to be more in line with other overlay configurations,
+> and
+> > this will also remove the need to have dispc clocks enabled when
+> calling
+> > set_manager().
+> >
+> > A new field is added to overlay struct, "manager_changed". This is
+> > similar to "display_changed" field in manager struct, and is used to
+> > inform apply that the manager has changed and thus write to the
+> > registers is needed.
+> 
+> I was wondering if it would be better to create an overlay_info
+> member 
+> called 'channel_out' rather than having 'manager_enabled' at a higher 
+> level? This way, we won't need to do some of the things below(I have 
+> pointed them out): 
 
-I've checked that too and I've even disabled USB support in the kernel
-just to be sure. But still nothing:
+The overlay_info is written by the users of the DSS. So if we had
+channel_out there, we'd need to remove the set/get_manager() functions.
+I made those functions in the first place as I felt changing the manager
+is a bit bigger operation than the normal overlay attributes. Changing
+the manager does effect both the old and the new managers. While I don't
+think we currently do anything related to that, I believe it would be
+needed for optimizations like FIFO merge.
 
-root@beagleboard:~# powertop -d -t 100
-PowerTOP 1.12   (C) 2007, 2008 Intel Corporation
+It could perhaps be possible to change this so that the overlay_info has
+the channel_out parameter, but that would be a bit bigger change, and
+would needs lots of testing. So I feel this is a safer change, and it
+fixes a problem we had with DRM.
 
-Collecting data for 100 seconds
-
-
-Cn                Avg residency
-C0 (cpu running)        ( 0.0%)
-C0               58.5ms (100.0%)
-C1                0.0ms ( 0.0%)
-C2                0.0ms ( 0.0%)
-C3                0.0ms ( 0.0%)
-C4                0.0ms ( 0.0%)
-C5                0.0ms ( 0.0%)
-C6                0.0ms ( 0.0%)
-
-Even when CPU has been idle 100% of the time it doesn't hit any state
-deeper than C0.
+ Tomi
 
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
