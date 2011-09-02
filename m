@@ -1,93 +1,64 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 1/6 V4] OMAP4: Clock: Associate clocks for OMAP temperature
- sensor
-Date: Fri, 02 Sep 2011 12:42:40 +0530
-Message-ID: <4E6081E8.3090509@ti.com>
-References: <1314811510-15595-1-git-send-email-j-keerthy@ti.com> <1314811510-15595-2-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1108311757260.26173@utopia.booyaka.com>
+From: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: cpuidle status in mainline for Beagleboard xM
+Date: Fri, 2 Sep 2011 09:23:52 +0200
+Message-ID: <CACKLOr1h23n-dSCZ6Dqzo_EW_6fyieZodCKfXFmn7i2tL=hQCQ@mail.gmail.com>
+References: <CACKLOr10aTCwkBZnSinvP4HLPhrJeiBs=6KM2we4DwTT0NJ22A@mail.gmail.com>
+	<87vctcjo2w.fsf@ti.com>
+	<CACKLOr0KpCUXrXM7M9YvE3DGPbGjzT4N678eEPfx_GGE7+40-w@mail.gmail.com>
+	<87ei00f94i.fsf@ti.com>
+	<4E607241.8000704@bitmer.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:32837 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752536Ab1IBHMr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 03:12:47 -0400
-Received: by mail-yi0-f48.google.com with SMTP id 17so2650995yib.35
-        for <linux-omap@vger.kernel.org>; Fri, 02 Sep 2011 00:12:46 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1108311757260.26173@utopia.booyaka.com>
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:40680 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755718Ab1IBHXx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 03:23:53 -0400
+Received: by yie30 with SMTP id 30so1998507yie.19
+        for <linux-omap@vger.kernel.org>; Fri, 02 Sep 2011 00:23:53 -0700 (PDT)
+In-Reply-To: <4E607241.8000704@bitmer.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, "Cousson, Benoit" <b-cousson@ti.com>
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Koen Kooi <koen@beagleboard.org>
 
-Hi Paul,
+On 2 September 2011 08:05, Jarkko Nikula <jarkko.nikula@bitmer.com> wrote:
+> Other usual things to check that display is off (echo 1 >
+> /sys/class/graphics/fb0/blank) and no cable to musb/otg port.
+>
+> Haven't tried myself with recent kernel but does EHCI and hub on XM let to
+> idle cpu at all? At least on one board having on-board hub I had to disable
+> or unload ehci module in order to hit the retention.
+>
 
-On Thursday 01 September 2011 05:30 AM, Paul Walmsley wrote:
-> Hi,
->
-> a comment:
->
-> On Wed, 31 Aug 2011, Keerthy wrote:
->
->> div_ts_ck feeds only the temperature sensor functional clock
->> and also has a clksel associated (for divider selection). Mapping this
->> as the functional clock for the temperature sensor in clkdev table,
->> so a clk_set_rate() in the driver would have the effect of changing the
->> temperature sensor clock rate indirectly.
->>
->> Signed-off-by: Keerthy<j-keerthy@ti.com>
->> Reviewed-by: Rajendra Nayak<rnayak@ti.com>
->> Cc: tony@atomide.com
->> Cc: rnayak@ti.com
->> ---
->>   arch/arm/mach-omap2/clock44xx_data.c |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
->> index 2af0e3f..4a788f4 100644
->> --- a/arch/arm/mach-omap2/clock44xx_data.c
->> +++ b/arch/arm/mach-omap2/clock44xx_data.c
->> @@ -3187,7 +3187,7 @@ static struct omap_clk omap44xx_clks[] = {
->>   	CLK(NULL,	"bandgap_fclk",			&bandgap_fclk,	CK_443X),
->>   	CLK(NULL,	"bandgap_ts_fclk",		&bandgap_ts_fclk,	CK_446X),
->>   	CLK(NULL,	"des3des_fck",			&des3des_fck,	CK_443X),
->> -	CLK(NULL,	"div_ts_ck",			&div_ts_ck,	CK_446X),
->> +	CLK("omap_temp_sensor.0",	"fck",			&div_ts_ck,	CK_446X),
->
-> It shouldn't be necessary to add the device name/ID here.  We're trying
-> to get rid of these.  The omap_device code should take care of adding the
-> appropriate alias.
+I've checked that too and I've even disabled USB support in the kernel
+just to be sure. But still nothing:
 
-The problem seems to be that we have 2 clock nodes modeled,
-bandgap_ts_fclk with enable/disable ops, (which also happens
-to be the main_clk for the bandgap hwmod) and div_ts_ck (as
-parent of bandgap_ts_fclk) with clksel for divider selection.
-Like you said, the clkdev entries are added by omap_device code
-for bandgap_ts_fclk, however doing a clk_set_rate on it from
-the driver has no effect as the clksel information is missing
-and is modeled in the parent (div_ts_ck) node.
- From looking at it, it makes sense to merge these 2 nodes and fix
-the autogen scripts which currently generate 2 separate nodes.
-what do you think?
+root@beagleboard:~# powertop -d -t 100
+PowerTOP 1.12   (C) 2007, 2008 Intel Corporation
 
-regards,
-Rajendra
+Collecting data for 100 seconds
 
 
->
->
->>   	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
->>   	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
->>   	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
->> --
->> 1.7.0.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
->
-> - Paul
+Cn                Avg residency
+C0 (cpu running)        ( 0.0%)
+C0               58.5ms (100.0%)
+C1                0.0ms ( 0.0%)
+C2                0.0ms ( 0.0%)
+C3                0.0ms ( 0.0%)
+C4                0.0ms ( 0.0%)
+C5                0.0ms ( 0.0%)
+C6                0.0ms ( 0.0%)
 
+Even when CPU has been idle 100% of the time it doesn't hit any state
+deeper than C0.
+
+
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
