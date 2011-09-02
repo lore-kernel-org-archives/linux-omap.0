@@ -1,66 +1,69 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 3/3] trace points: power: remove 'cpu_id' from trace_cpu_idle
-Date: Fri, 2 Sep 2011 09:26:28 +0200
-Message-ID: <CAORVsuVkxHTEr5J9F1USr3csMoCELDfk9ixeG3kddy6oRj5RUw@mail.gmail.com>
-References: <1313766244-22313-1-git-send-email-tom.leiming@gmail.com>
-	<201108192231.02665.trenn@suse.de>
-	<CACVXFVPeFyg7YoAsY63Mpy9HVR1y3ibg9R8HnUfLVe=hKf3ApA@mail.gmail.com>
-	<201108221027.34441.trenn@suse.de>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 3/4] OMAP: DSS2: Handle manager change in apply
+Date: Fri, 2 Sep 2011 13:02:23 +0530
+Message-ID: <4E608687.7080806@ti.com>
+References: <1314001636-18036-1-git-send-email-tomi.valkeinen@ti.com>	 <1314001636-18036-4-git-send-email-tomi.valkeinen@ti.com>	 <4E607CC3.2000407@ti.com> <1314948322.3374.21.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201108221027.34441.trenn@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>, Ming Lei <tom.leiming@gmail.com>
-Cc: rostedt@goodmis.org, fweisbec@gmail.com, mingo@redhat.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33364 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755718Ab1IBHdV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Sep 2011 03:33:21 -0400
+In-Reply-To: <1314948322.3374.21.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-Ming Lei, Thomas,
-
-Sorry if it is a bit late to jump in.
-
-On Mon, Aug 22, 2011 at 10:27 AM, Thomas Renninger <trenn@suse.de> wrot=
-e:
-> On Saturday, August 20, 2011 04:40:09 AM Ming Lei wrote:
->> Hi,
+On Friday 02 September 2011 12:55 PM, Valkeinen, Tomi wrote:
+> On Fri, 2011-09-02 at 12:20 +0530, Archit Taneja wrote:
+>> On Monday 22 August 2011 01:57 PM, Valkeinen, Tomi wrote:
+>>> Currently when changing the manager of an overlay, set_manager()
+>> directly
+>>> calls dispc to set the overlay's destination.
+>>>
+>>> Change this to be more in line with other overlay configurations,
+>> and
+>>> this will also remove the need to have dispc clocks enabled when
+>> calling
+>>> set_manager().
+>>>
+>>> A new field is added to overlay struct, "manager_changed". This is
+>>> similar to "display_changed" field in manager struct, and is used to
+>>> inform apply that the manager has changed and thus write to the
+>>> registers is needed.
 >>
->> 2011/8/20 Thomas Renninger <trenn@suse.de>:
->> > On Friday, August 19, 2011 05:04:04 PM tom.leiming@gmail.com wrote=
-:
->> >> From: Ming Lei <tom.leiming@gmail.com>
->> >>
->> >> This patch removes the 'cpu_id' parameter of the cpu_idle
->> >> trace point, based on the ideas below:
->> >>
->> >> - the cpu_id which is passed to trace point is always the current
->> >> =A0 cpu
->> > Are you sure this will always be true?
->>
->> It is sure at least now, =A0the only place to pass 'dev->cpu' is ins=
-ide
->> cpuidle_idle_call,
-> It was known that cpu_id is always the current cpu with current
-> implementation when this got introduced.
-> But the perf events API must not change back and forth for userspace
-> compatibility. Therefore the cpu_id was added in case
-> that future implementations want to pass info where the current cpu
-> is not the cpu which is sent to the sleep state.
-Agree. Let's keep the cpu_id field.
+>> I was wondering if it would be better to create an overlay_info
+>> member
+>> called 'channel_out' rather than having 'manager_enabled' at a higher
+>> level? This way, we won't need to do some of the things below(I have
+>> pointed them out):
+>
+> The overlay_info is written by the users of the DSS. So if we had
+> channel_out there, we'd need to remove the set/get_manager() functions.
+> I made those functions in the first place as I felt changing the manager
+> is a bit bigger operation than the normal overlay attributes. Changing
+> the manager does effect both the old and the new managers. While I don't
+> think we currently do anything related to that, I believe it would be
+> needed for optimizations like FIFO merge.
+
+Right, I forgot users of DSS2 will also get the opportunity to change 
+channel_out, and we would need to do extra stuff in that case.
 
 >
->> smp_processor_id() can't be used safely in preemptible context.
-> I expect the only side effect that could happen is that if smp_proces=
-s_id
-> is interrupted you get the wrong core id on a cpu idle trace event.
-> This only happens if cpuidle is not used and even then should happen
-> very rarely, nothing to worry for a debug tool like that.
-> And it should get fixed if these idle functions get fully integrated =
-into
-> cpuidle at some point of time.
+> It could perhaps be possible to change this so that the overlay_info has
+> the channel_out parameter, but that would be a bit bigger change, and
+> would needs lots of testing. So I feel this is a safer change, and it
+> fixes a problem we had with DRM.
+
+Okay, we could think about this later then.
+
+Archit
+
 >
-> =A0 Thomas
+>   Tomi
+>
 >
 
-Regards,
-Jean
