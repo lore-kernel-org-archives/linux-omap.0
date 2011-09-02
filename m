@@ -1,234 +1,109 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH 1/3] OMAP: omap_device: Add omap_device_[alloc|delete]
- for DT integration
-Date: Fri, 2 Sep 2011 17:22:46 +0200
-Message-ID: <4E60F4C6.2050802@ti.com>
-References: <1314037343-19783-1-git-send-email-b-cousson@ti.com> <1314037343-19783-2-git-send-email-b-cousson@ti.com> <87liu8dsjj.fsf@ti.com>
+Subject: Re: [RFC PATCH 2/3] OMAP: omap_device: Add a DT parser for multiple
+	strings
+Date: Fri, 2 Sep 2011 17:32:52 +0200
+Message-ID: <4E60F724.8060702@ti.com>
+References: <1314037343-19783-1-git-send-email-b-cousson@ti.com>
+	<1314037343-19783-3-git-send-email-b-cousson@ti.com>
+	<87d3fkds69.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39976 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752692Ab1IBPW4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Sep 2011 11:22:56 -0400
-In-Reply-To: <87liu8dsjj.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87d3fkds69.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
+Cc: "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
-On 9/1/2011 8:30 PM, Hilman, Kevin wrote:
+On 9/1/2011 8:38 PM, Hilman, Kevin wrote:
 > Benoit Cousson<b-cousson@ti.com>  writes:
-> 
->> Split the omap_device_build_ss into two smaller functions
->> that will allow to populate a platform_device already alocated by
->> device-tree.
->> The functionality of the omap_device_build_ss is still the same, but
->> the omap_device_alloc will be usable with devices already built by
->> device-tree.
-> 
-> Very nice, I started down this path in the original series, but didn't
-> finish.
-> Some minor comments below...
-> 
+>
+>> Add two helpers function to parse a property that contains multiple
+>> strings.
+>>
+>> These functions might be exported and moved to a common place if they
+>> can to be useful elsewhere.
+>>
 >> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
 >> Cc: Kevin Hilman<khilman@ti.com>
->> ---
->>   arch/arm/plat-omap/omap_device.c |  168 ++++++++++++++++++++++++++------------
->>   1 files changed, 114 insertions(+), 54 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
->> index f2149be..752d72a 100644
->> --- a/arch/arm/plat-omap/omap_device.c
->> +++ b/arch/arm/plat-omap/omap_device.c
->> @@ -96,6 +96,11 @@
->>
->>   static int omap_device_register(struct platform_device *pdev);
->>   static int omap_early_device_register(struct platform_device *pdev);
->> +static struct omap_device *omap_device_alloc(struct platform_device *pdev,
->> +				      struct omap_hwmod **ohs, int oh_cnt,
->> +				      struct omap_device_pm_latency *pm_lats,
->> +				      int pm_lats_cnt);
->> +
->>
->>   static struct omap_device_pm_latency omap_default_latency[] = {
->>   	{
->> @@ -397,6 +402,105 @@ static int omap_device_fill_resources(struct omap_device *od,
->>   }
->>
->>   /**
->> + * omap_device_alloc - allocate an omap_device
->> + * @pdev: platform_device that will be represent this omap_device
->> + * @oh: ptr to the single omap_hwmod that backs this omap_device
->> + * @pdata: platform_data ptr to associate with the platform_device
->> + * @pdata_len: amount of memory pointed to by @pdata
->> + * @pm_lats: pointer to a omap_device_pm_latency array for this device
->> + * @pm_lats_cnt: ARRAY_SIZE() of @pm_lats
->> + *
->> + * Convenience function for allocating an omap_device structure and filling
->> + * hwmods, resources and pm_latency attributes.
->> + *
->> + * Returns an struct omap_device pointer or ERR_PTR() on error;
->> + */
->> +static struct omap_device *omap_device_alloc(struct platform_device *pdev,
->> +					struct omap_hwmod **ohs, int oh_cnt,
->> +					struct omap_device_pm_latency *pm_lats,
->> +					int pm_lats_cnt)
->> +{
->> +	int ret = -ENOMEM;
->> +	struct omap_device *od;
->> +	struct resource *res = NULL;
->> +	int i, res_count;
->> +	struct omap_hwmod **hwmods;
->> +
->> +	od = kzalloc(sizeof(struct omap_device), GFP_KERNEL);
->> +	if (!od) {
->> +		ret = -ENOMEM;
->> +		goto oda_exit1;
->> +	}
->> +	od->hwmods_cnt = oh_cnt;
->> +
->> +	hwmods = kzalloc(sizeof(struct omap_hwmod *) * oh_cnt,
->> +			 GFP_KERNEL);
->> +	if (!hwmods)
->> +		goto oda_exit2;
->> +
->> +	memcpy(hwmods, ohs, sizeof(struct omap_hwmod *) * oh_cnt);
->> +	od->hwmods = hwmods;
->> +	od->pdev = pdev;
->> +
->> +	if (pdev->num_resources&&  pdev->resource)
->> +		dev_warn(&pdev->dev, "%s(): ressources already allocated %d\n",
-> 
-> typo: ressources (occurs again below)
+>
+> These should just be folded into 3/3 where they are used (with a comment
+> changelog of course.)
 
-It is not a real typo, it is a French word :-)
- 
-> also, this check/warn should probably go after the 'HACK' comment below.
+I did that because I was hoping to generalize them or to remove them if 
+something better become available in DT core. And it seems that Stephen 
+Warren from nvidia introduced a generic iterator for properties:
+http://www.spinics.net/lists/arm-kernel/msg138013.html
 
-yep.
+But since it is not in mainline or even in devicetree/test, I still have 
+to add mine for the moment.
 
-> 
->> +			__func__, pdev->num_resources);
->> +	/*
->> +	 * HACK: Idealy the resources from DT should match, and hwmod
-> 
-> s/Idealy/Ideally/
-
-OK, for that one, I do not have the French word excuse...
-
-> 
->> +	 * should just add the missing ones. Since the name is not
->> +	 * properly populated by DT, stick to hwmod resources only.
-> 
-> I think this limitation is fine until we come to resolution in the named
-> resources debate.
-
-Indeed :-)
-
->> +	 */
->> +	res_count = omap_device_count_resources(od);
->> +	if (res_count>  0) {
->> +		dev_dbg(&pdev->dev, "%s(): ressources allocated from hwmod %d\n",
->> +			__func__, res_count);
->> +		res = kzalloc(sizeof(struct resource) * res_count, GFP_KERNEL);
->> +		if (!res)
->> +			goto oda_exit3;
->> +
->> +		omap_device_fill_resources(od, res);
->> +
->> +		ret = platform_device_add_resources(pdev, res, res_count);
->> +		kfree(res);
->> +
->> +		if (ret)
->> +			goto oda_exit3;
->> +	}
->> +
->> +	if (pm_lats) {
->> +		od->pm_lats = pm_lats;
->> +		od->pm_lats_cnt = pm_lats_cnt;
->> +	} else {
->> +		od->pm_lats = omap_default_latency;
->> +		od->pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
->> +	}
->> +
->> +	pdev->archdata.od = od;
->> +
->> +	for (i = 0; i<  oh_cnt; i++) {
->> +		hwmods[i]->od = od;
->> +		_add_hwmod_clocks_clkdev(od, hwmods[i]);
->> +	}
->> +
->> +	return od;
->> +
->> +oda_exit3:
->> +	kfree(hwmods);
->> +oda_exit2:
->> +	kfree(od);
->> +oda_exit1:
->> +	dev_err(&pdev->dev, "omap_device: build failed (%d)\n", ret);
->> +
->> +	return ERR_PTR(ret);
->> +}
->> +
->> +void omap_device_delete(struct omap_device *od)
->> +{
->> +	kfree(od->hwmods);
->> +	kfree(od);
-> 
-> maybe set pdev->archdata.od = NULL too.
-
-OK.
-
->> +}
->> +
->> +/**
->>    * omap_device_build - build and register an omap_device with one omap_hwmod
->>    * @pdev_name: name of the platform_device driver to use
->>    * @pdev_id: this platform_device's connection ID
->> @@ -455,9 +559,6 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->>   	int ret = -ENOMEM;
->>   	struct platform_device *pdev;
->>   	struct omap_device *od;
->> -	struct resource *res = NULL;
->> -	int i, res_count;
->> -	struct omap_hwmod **hwmods;
->>
->>   	if (!ohs || oh_cnt == 0 || !pdev_name)
->>   		return ERR_PTR(-EINVAL);
->> @@ -471,72 +572,31 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->>   		goto odbs_exit;
->>   	}
->>
->> -	pr_debug("omap_device: %s: building with %d hwmods\n", pdev_name,
->> -		 oh_cnt);
->> +	/* Set the dev_name early to allow dev_xxx in omap_device_alloc */
->> +	if (pdev->id != -1)
->> +		dev_set_name(&pdev->dev, "%s.%d", pdev->name,  pdev->id);
->> +	else
->> +		dev_set_name(&pdev->dev, "%s", pdev->name);
-> 
-> Minor: I think setting dev->init_name is more appropriate here, and
-> should have the same effect.
-
-The slight difference is that if I do that:
-pdev->dev.init_name = kasprintf(GFP_KERNEL, "%s.%d", pdev->name, pdev->id);
-
-I will have to free it myself, because device_add is doing only that:
-
-        if (dev->init_name) {
-                dev_set_name(dev, "%s", dev->init_name);
-                dev->init_name = NULL;
-        }
-
-Whereas dev_set_name is doing it for me.
-
-So it will add one more line later. Does it worth it?
-
-The init_name seems to be used only to provide a static const name most of the time, hence the lack of kfree.
-
-
-Thanks for the comments,
+Regards,
 Benoit
 
+
+>
+> Kevin
+>
+>> ---
+>>   arch/arm/plat-omap/omap_device.c |   39 ++++++++++++++++++++++++++++++++++++++
+>>   1 files changed, 39 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+>> index 752d72a..70361f8 100644
+>> --- a/arch/arm/plat-omap/omap_device.c
+>> +++ b/arch/arm/plat-omap/omap_device.c
+>> @@ -315,6 +315,45 @@ static void _add_hwmod_clocks_clkdev(struct omap_device *od,
+>>   		_add_clkdev(od, oh->opt_clks[i].role, oh->opt_clks[i].clk);
+>>   }
+>>
+>> +/*
+>> + * XXX: DT helper functions that should probably move elsewhere if
+>> + * they become usefull for other needs.
+>> + */
+>> +static int _dt_count_property_string(const char *prop, int len)
+>> +{
+>> +	int i = 0;
+>> +	size_t l = 0, total = 0;
+>> +
+>> +	if (!prop || !len)
+>> +		return -EINVAL;
+>> +
+>> +	for (i = 0; len>= total; total += l, prop += l) {
+>> +		l = strlen(prop) + 1;
+>> +		if (*prop != 0)
+>> +			i++;
+>> +	}
+>> +	return i;
+>> +}
+>> +
+>> +static int _dt_get_property(const char *prop, int len, int index, char *output,
+>> +			    int size)
+>> +{
+>> +	int i = 0;
+>> +	size_t l = 0, total = 0;
+>> +
+>> +	if (!prop || !len)
+>> +		return -EINVAL;
+>> +
+>> +	for (i = 0; len>= total; total += l, prop += l) {
+>> +		l = strlcpy(output, prop, size) + 1;
+>> +		if (*prop != 0) {
+>> +			if (i++ == index)
+>> +				return 0;
+>> +		}
+>> +	}
+>> +	return -ENODEV;
+>> +}
+>> +
+>>
+>>   /* Public functions for use by core code */
