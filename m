@@ -1,94 +1,77 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH v2 02/10] OMAP4: DSS: HDMI: Move pll and video configuration
-Date: Fri, 2 Sep 2011 10:52:26 +0530
-Message-ID: <CAP5A+B-7EWL81UVOB4Ncaed-uNbGp5Sp8T1-dJrib3t6MA_3Tw@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 04/10] OMAP4: DSS: HDMI: Move the common header file
+Date: Fri, 02 Sep 2011 08:24:03 +0300
+Message-ID: <1314941043.1907.8.camel@deskari>
 References: <1314598500-24005-1-git-send-email-mythripk@ti.com>
- <1314598500-24005-2-git-send-email-mythripk@ti.com> <1314598500-24005-3-git-send-email-mythripk@ti.com>
- <1314865665.2169.7.camel@lappyti> <CAP5A+B_Kx+sHj+n3MZRPFMjeh+1u_g_4KbyW5qCdD7SOZyF5Yw@mail.gmail.com>
- <1314940432.1907.1.camel@deskari>
+	 <1314598500-24005-2-git-send-email-mythripk@ti.com>
+	 <1314598500-24005-3-git-send-email-mythripk@ti.com>
+	 <1314598500-24005-4-git-send-email-mythripk@ti.com>
+	 <1314598500-24005-5-git-send-email-mythripk@ti.com>
+	 <1314867624.2169.21.camel@lappyti>
+	 <CAP5A+B8j=6+a2m=Lpf0-G-arO9q2R_286=mHEv52qm4FiyWnZg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:43167 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750904Ab1IBFWr convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Sep 2011 01:22:47 -0400
-Received: by iafi7 with SMTP id i7so3981307iaf.21
-        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 22:22:46 -0700 (PDT)
-In-Reply-To: <1314940432.1907.1.camel@deskari>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:52597 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751406Ab1IBFYH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 01:24:07 -0400
+Received: by mail-fx0-f48.google.com with SMTP id 7so1326850fxg.7
+        for <linux-omap@vger.kernel.org>; Thu, 01 Sep 2011 22:24:05 -0700 (PDT)
+In-Reply-To: <CAP5A+B8j=6+a2m=Lpf0-G-arO9q2R_286=mHEv52qm4FiyWnZg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: "K, Mythri P" <mythripk@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-Hi,
+On Fri, 2011-09-02 at 10:45 +0530, K, Mythri P wrote:
+> Hi,
+> 
+> On Thu, Sep 1, 2011 at 2:30 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> > On Mon, 2011-08-29 at 11:44 +0530, mythripk@ti.com wrote:
+> >> From: Mythri P K <mythripk@ti.com>
+> >>
+> >> Some of the header file definitions of HDMI IP are needed by audio driver thus
+> >> moving the common defintion to more generic Include/video.
+> >>
+> >> Signed-off-by: Mythri P K <mythripk@ti.com>
+> >> ---
+> >>  drivers/video/omap2/dss/dss.h  |   10 -----
+> >>  drivers/video/omap2/dss/hdmi.c |    1 +
+> >>  drivers/video/omap2/dss/hdmi.h |   53 ------------------------
+> >>  include/video/omaphdmi.h       |   86 ++++++++++++++++++++++++++++++++++++++++
+> >>  4 files changed, 87 insertions(+), 63 deletions(-)
+> >>  create mode 100644 include/video/omaphdmi.h
+> >
+> > As the functions will be renamed to hdmi_ti_4xxx_*, perhaps the header
+> > file is a bit misnamed.
+> >
+> > Also, please first do the changes/renamings/etc, and only then move the
+> > finished header file to include/video/ to prevent unnecessary changes in
+> > include/video.
+> >
+> The Include/video hdmi header file is a generic file that can be used
+> across 4 ,5 and Netra. Actually even the hdmi_ti_5xxx_ definitions
+> would come in this header so what do you think it can be named as ? ,
+> If you have any better name for hdmi_ti_4xxx_ip as well please suggest
+> would be happy to take it , as it doesn't sound that intuitive to me
+> as well.
 
-On Fri, Sep 2, 2011 at 10:43 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> On Fri, 2011-09-02 at 10:41 +0530, K, Mythri P wrote:
->> Hi,
->>
->> On Thu, Sep 1, 2011 at 1:57 PM, Tomi Valkeinen <tomi.valkeinen@ti.co=
-m> wrote:
->> > On Mon, 2011-08-29 at 11:44 +0530, mythripk@ti.com wrote:
->> >> From: Mythri P K <mythripk@ti.com>
->> >>
->> >> As the pll and the video configuration info are part of the ip_da=
-ta those
->> >> structures are moved to the ip_data strtucure.Also the functions =
-are modified
->> >> accordingly to take care of this movement.
->> >
->> > structure typoed, and use a space after period.
->> >
->> >> Signed-off-by: Mythri P K <mythripk@ti.com>
->> >> ---
->> >> =A0drivers/video/omap2/dss/hdmi.c | =A0 34 +++++++++++++++-------=
-------------
->> >> =A0drivers/video/omap2/dss/hdmi.h | =A0 18 ++++++++++--------
->> >> =A02 files changed, 25 insertions(+), 27 deletions(-)
->
->> >> -static int hdmi_pll_program(struct hdmi_ip_data *ip_data,
->> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct =
-hdmi_pll_info *fmt)
->> >> +static int hdmi_pll_program(struct hdmi_ip_data *ip_data)
->> >> =A0{
->> >> =A0 =A0 =A0 u16 r =3D 0;
->> >> =A0 =A0 =A0 enum hdmi_clk_refsel refsel;
->> >> @@ -399,7 +397,7 @@ static int hdmi_pll_program(struct hdmi_ip_da=
-ta *ip_data,
->> >>
->> >> =A0 =A0 =A0 refsel =3D HDMI_REFSEL_SYSCLK;
->> >>
->> >> - =A0 =A0 r =3D hdmi_pll_init(ip_data, refsel, fmt->dcofreq, fmt,=
- fmt->regsd);
->> >> + =A0 =A0 r =3D hdmi_pll_init(ip_data, refsel);
->> >
->> > I don't think I quite understood why refsel is not part of the pll=
- info.
->> > And if it has to be hardcoded, you could as well do that in
->> > hdmi_pll_init().
->> >
->> Ok , yes that is better.
->
-> So, why refsel is not part of the pll info? The HW doesn't support
-> changing it? If so, is it only for OMAPs or for all SoCs?
-It is a variable parameter ,H/w supports changing it but it is never tr=
-ied,
-I was considering hard-coding it in the hdmi.c and passing it,
-so that there would be no hard-coding in IP functions.
+Well, I think whatever the header name is, it should somehow match the
+functions and the .c file. So if the functions and the .c file in this
+case are hdmi_ti_4xxx, then it'd be logical for the .h file to be named
+similarly.
 
-Thanks and regards,
-Mythri.
->
-> =A0Tomi
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So, if it will contain functions for other IPs also, perhaps just leave
+the 4xxx out of it and name it hdmi_ti.h. Then the functions could be
+named hdmi_ti_4xxx_yyy(), and accordingly the .c file can be
+hdmi_ti_4xxx.c.
+
+Or, perhaps ti_hdmi.h (and funcs & .c files accordingly) would be more
+"standard", as it's quite usual to name drivers etc. starting with the
+company name.
+
+ Tomi
+
+
