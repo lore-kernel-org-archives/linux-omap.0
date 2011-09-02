@@ -1,74 +1,63 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: testing-board branch: rebase to RMK's devel-stable?
-Date: Fri, 02 Sep 2011 11:06:52 -0700
-Message-ID: <87vcta7r9f.fsf@ti.com>
+From: David Brown <davidb@codeaurora.org>
+Subject: Re: [PATCH 5/7] iommu/msm: ->unmap() should return order of unmapped
+	page
+Date: Fri, 2 Sep 2011 11:36:34 -0700
+Message-ID: <20110902183634.GA25775@huya.qualcomm.com>
+References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
+	<1314984756-4400-6-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:58435 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753632Ab1IBSGz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 14:06:55 -0400
-Received: by mail-pz0-f42.google.com with SMTP id 37so4838205pzk.1
-        for <linux-omap@vger.kernel.org>; Fri, 02 Sep 2011 11:06:54 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1314984756-4400-6-git-send-email-ohad@wizery.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, Stepan Moskovchenko <stepanm@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Nicolas Pitre <nicolas.pitre@linaro.org>
 
-Hi Tony,
+On Fri, Sep 02, 2011 at 08:32:34PM +0300, Ohad Ben-Cohen wrote:
+> Users of the IOMMU API (kvm specifically) assume that iommu_unmap()
+> returns the order of the unmapped page (on success).
+> 
+> Fix msm_iommu_unmap() accordingly.
+> 
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Cc: Stepan Moskovchenko <stepanm@codeaurora.org>
+> Cc: David Brown <davidb@codeaurora.org>
+> ---
+>  drivers/iommu/msm_iommu.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/iommu/msm_iommu.c b/drivers/iommu/msm_iommu.c
+> index 1a584e0..d1733f6 100644
+> --- a/drivers/iommu/msm_iommu.c
+> +++ b/drivers/iommu/msm_iommu.c
+> @@ -543,6 +543,13 @@ static int msm_iommu_unmap(struct iommu_domain *domain, unsigned long va,
+>  	}
+>  
+>  	ret = __flush_iotlb(domain);
+> +
+> +	/*
+> +	 * the IOMMU API requires us to return the order of the unmapped
+> +	 * page (on success).
+> +	 */
+> +	if (!ret)
+> +		ret = order;
+>  fail:
+>  	spin_unlock_irqrestore(&msm_iommu_lock, flags);
+>  	return ret;
 
-Your testing-board branch currently has a couple new boards that are
-missing the boot_params to atag_offset conversion (patch below.)
+Acked-by: David Brown <davidb@codeaurora.org>
 
-There's a patch below to fix this, but maybe it's better to just rebase
-your testing-board branch onto Russell's devel-stable branch (where he's
-merged the seris from Nico) so any board stuff we add is sure to do it
-correctly.
-
-Kevin
-
-
->From 4c5699a5feb1a037e1ae3147ca7d7e9fe3eb62c1 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Fri, 2 Sep 2011 11:00:12 -0700
-Subject: [PATCH] OMAP: convert new boards to atag_offset
-
-These boards were added after the bulk converson from boot_params to
-atag_offset (queued for v3.2.)  Fix them up.
-
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/board-omap3encore.c |    2 +-
- arch/arm/mach-omap2/board-omap4pcm049.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3encore.c b/arch/arm/mach-omap2/board-omap3encore.c
-index eb70fe1..07ed8ab 100644
---- a/arch/arm/mach-omap2/board-omap3encore.c
-+++ b/arch/arm/mach-omap2/board-omap3encore.c
-@@ -338,7 +338,7 @@ static void __init omap_encore_init(void)
- }
- 
- MACHINE_START(ENCORE, "encore")
--	.boot_params	= 0x80000100,
-+	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
- 	.init_early	= omap_encore_init_early,
-diff --git a/arch/arm/mach-omap2/board-omap4pcm049.c b/arch/arm/mach-omap2/board-omap4pcm049.c
-index d889110..260f2cb 100644
---- a/arch/arm/mach-omap2/board-omap4pcm049.c
-+++ b/arch/arm/mach-omap2/board-omap4pcm049.c
-@@ -578,7 +578,7 @@ static void __init pcm049_map_io(void)
- 
- MACHINE_START(PCM049, "phyCORE OMAP4")
- 	/* Maintainer: Jan Weitzel - Phytec Messtechnik GmbH */
--	.boot_params	= 0x80000100,
-+	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= pcm049_map_io,
- 	.init_early	= pcm049_init_early,
 -- 
-1.7.6
-
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
