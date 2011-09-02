@@ -1,90 +1,124 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 3/6] OMAP2+: pm: Use hwmod name instead of dev pointer
-Date: Fri, 2 Sep 2011 16:25:17 +0200
-Message-ID: <1314973520-3585-4-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 1/6] OMAP: omap_device: Add omap_hwmod_name_get_dev
+Date: Fri, 2 Sep 2011 16:25:15 +0200
+Message-ID: <1314973520-3585-2-git-send-email-b-cousson@ti.com>
 References: <1314973520-3585-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36544 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752535Ab1IBO0V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Sep 2011 10:26:21 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:37921 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752467Ab1IBO0T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 10:26:19 -0400
 In-Reply-To: <1314973520-3585-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-Replace the struct device parameter of omap2_set_init_voltage
-by the hwmod name. It will avoid having to store explicitely
-the device pointer into a static variable.
-Moreover, it will be a little bit more scalable if we introduce
-new DVFS devices.
+From: Nishanth Menon <nm@ti.com>
 
+An API which translates a standard hwmod name to corresponding
+platform_device is useful for drivers when they need to look up the
+device associated with a hwmod name to map back into the device
+structure pointers. These ideally should be used by drivers in
+mach directory. Using a generic hwmod name like "gpu" instead of
+the actual device name which could change in the future, allows
+us to:
+a) Could in effect help replace apis such as omap2_get_mpuss_device,
+omap2_get_iva_device, omap2_get_l3_device, omap4_get_dsp_device,
+etc..
+b) Scale to more devices rather than be restricted to named functions
+c) Simplify driver's platform_data from passing additional fields
+all doing the same thing with different function pointer names
+just for accessing a different device name.
+
+Provide an omap_hwmod_name_get_dev helper function to convert
+hwmod to device pointer.
+This wrapper provides ability for drivers to convert directly
+from hwmod name back to device pointer without having to handle
+this on a driver by driver basis.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+[b-cousson@ti.com: Adapt it to the new pdev pointer inside od,
+remove the unneeded helpers, and fold the next patch here]
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/pm.c |   22 +++++++++++++++-------
- 1 files changed, 15 insertions(+), 7 deletions(-)
+ arch/arm/plat-omap/include/plat/omap_device.h |   10 +++++++
+ arch/arm/plat-omap/omap_device.c              |   32 +++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 54281e5..17725d2 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -171,18 +171,26 @@ err:
-  * in the opp entry
-  */
- static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
--						struct device *dev)
-+					 const char *oh_name)
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index d4d9b96..a3db748 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -101,6 +101,7 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 					 int pm_lats_cnt, int is_early_device);
+ 
+ void __iomem *omap_device_get_rt_va(struct omap_device *od);
++struct platform_device *omap_hwmod_name_get_pdev(const char *oh_name);
+ 
+ /* OMAP PM interface */
+ int omap_device_align_pm_lat(struct platform_device *pdev,
+@@ -151,6 +152,15 @@ static inline struct omap_device *to_omap_device(struct platform_device *pdev)
+ 	return pdev ? pdev->archdata.od : NULL;
+ }
+ 
++/* Convert omap_hwmod name to device pointer */
++static inline struct device *omap_hwmod_name_get_dev(const char *oh_name)
++{
++	struct platform_device *pdev = omap_hwmod_name_get_pdev(oh_name);
++	if (IS_ERR_OR_NULL(pdev))
++		return ERR_PTR(pdev ? PTR_ERR(pdev) : -ENODEV);
++	return &pdev->dev;
++}
++
+ static inline
+ void omap_device_disable_idle_on_suspend(struct platform_device *pdev)
  {
- 	struct voltagedomain *voltdm;
- 	struct clk *clk;
- 	struct opp *opp;
- 	unsigned long freq, bootup_volt;
-+	struct device *dev;
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 7a0d248..320b1f4 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -841,6 +841,38 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od)
+ 	return omap_hwmod_get_mpu_rt_va(od->hwmods[0]);
+ }
  
--	if (!vdd_name || !clk_name || !dev) {
-+	if (!vdd_name || !clk_name || !oh_name) {
- 		printk(KERN_ERR "%s: Invalid parameters!\n", __func__);
- 		goto exit;
- 	}
- 
-+	dev = omap_hwmod_name_get_dev(oh_name);
-+	if (IS_ERR(dev)) {
-+		pr_err("%s: Unable to get dev pointer for hwmod %s\n",
-+			__func__, oh_name);
-+		goto exit;
++/**
++ * omap_hwmod_name_get_pdev() - convert a hwmod name to platform_device pointer
++ * @oh_name: name of the hwmod device
++ *
++ * Returns back a struct platform_device * pointer associated with a hwmod
++ * device represented by a hwmod_name
++ */
++struct platform_device *omap_hwmod_name_get_pdev(const char *oh_name)
++{
++	struct omap_hwmod *oh;
++
++	if (!oh_name) {
++		WARN(1, "%s: no hwmod name!\n", __func__);
++		return ERR_PTR(-EINVAL);
 +	}
 +
- 	voltdm = omap_voltage_domain_lookup(vdd_name);
- 	if (IS_ERR(voltdm)) {
- 		printk(KERN_ERR "%s: Unable to get vdd pointer for vdd_%s\n",
-@@ -228,8 +236,8 @@ static void __init omap3_init_voltages(void)
- 	if (!cpu_is_omap34xx())
- 		return;
- 
--	omap2_set_init_voltage("mpu", "dpll1_ck", mpu_dev);
--	omap2_set_init_voltage("core", "l3_ick", l3_dev);
-+	omap2_set_init_voltage("mpu", "dpll1_ck", "mpu");
-+	omap2_set_init_voltage("core", "l3_ick", "l3_main");
- }
- 
- static void __init omap4_init_voltages(void)
-@@ -237,9 +245,9 @@ static void __init omap4_init_voltages(void)
- 	if (!cpu_is_omap44xx())
- 		return;
- 
--	omap2_set_init_voltage("mpu", "dpll_mpu_ck", mpu_dev);
--	omap2_set_init_voltage("core", "l3_div_ck", l3_dev);
--	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", iva_dev);
-+	omap2_set_init_voltage("mpu", "dpll_mpu_ck", "mpu");
-+	omap2_set_init_voltage("core", "l3_div_ck", "l3_main_1");
-+	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", "iva");
- }
- 
- static int __init omap2_common_pm_init(void)
++	oh = omap_hwmod_lookup(oh_name);
++	if (IS_ERR_OR_NULL(oh)) {
++		WARN(1, "%s: no hwmod for %s\n", __func__,
++			oh_name);
++		return ERR_PTR(oh ? PTR_ERR(oh) : -ENODEV);
++	}
++	if (IS_ERR_OR_NULL(oh->od)) {
++		WARN(1, "%s: no omap_device for %s\n", __func__,
++			oh_name);
++		return ERR_PTR(oh->od ? PTR_ERR(oh->od) : -ENODEV);
++	}
++
++	return oh->od->pdev;
++}
++EXPORT_SYMBOL(omap_hwmod_name_get_pdev);
++
+ /*
+  * Public functions intended for use in omap_device_pm_latency
+  * .activate_func and .deactivate_func function pointers
 -- 
 1.7.0.4
 
