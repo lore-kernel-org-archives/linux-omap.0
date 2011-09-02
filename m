@@ -1,92 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 7/7] OMAP3: beagleboard: Remove DT support from regular
- board
-Date: Fri, 2 Sep 2011 16:08:39 +0300
-Message-ID: <20110902130838.GY3548@atomide.com>
-References: <1314897912-18178-1-git-send-email-b-cousson@ti.com>
- <1314897912-18178-8-git-send-email-b-cousson@ti.com>
- <20110902081246.GQ3548@atomide.com>
- <4E609B0A.1020804@ti.com>
- <20110902104850.GS3548@atomide.com>
- <4E60CD78.9030602@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: [PATCH 0/8] PM QoS: implement the OMAP low level constraints management code
+Date: Fri,  2 Sep 2011 15:13:16 +0200
+Message-ID: <1314969204-21704-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30144 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751821Ab1IBNIn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 09:08:43 -0400
-Content-Disposition: inline
-In-Reply-To: <4E60CD78.9030602@ti.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:40419 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751806Ab1IBNNj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 09:13:39 -0400
+Received: by wwf5 with SMTP id 5so2916254wwf.1
+        for <linux-omap@vger.kernel.org>; Fri, 02 Sep 2011 06:13:38 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "G, Manjunath Kondaiah" <manjugk@ti.com>
+To: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.co>
+Cc: Jean Pihet <j-pihet@ti.com>
 
-* Cousson, Benoit <b-cousson@ti.com> [110902 15:02]:
-> On 9/2/2011 12:48 PM, Tony Lindgren wrote:
-> 
-> I'm not sure it is that simple. We have 20+ OMAP3+ boards supported
-> so far. Dropping pdata when a driver is adapted means that all these
-> boards should be properly adapted to DT and tested... (board-XXX.dts
-> + board-XXX.c).
-> That's a huge effort for my point of view. Whereas keeping the
-> legacy pdata method will allow progressing on the boart-dt only
-> without breaking any legacy boards. It will allow the board
-> manufacturers to potentially do the DTS file for their own system
-> using then the generic board-dt.c file.
+. create a PM layer plugin for per-device constraints, compiled under
+  CONFIG_OMAP_PM_CONSTRAINTS=y
+. implement the devices wake-up latency constraints using the global
+  device PM QoS notification handler which applies the constraints to the
+  underlying layer
+. implement the low level code which controls the power domains next power
+  states, through the hwmod and pwrdm layers
+. add cpuidle and power domains wake-up latency figures for OMAP3, cf. [1]
+  for the details on where the numbers are coming from
+. cpuidle is a CPU centric framework so it decides the MPU next power state
+  based on the MPU exit_latency and target_residency figures. The rest of
+  the power domains get their next power state programmed from the devices
+  PM QoS framework, via the devices wake-up latency constraints.
+. convert the OMAP I2C driver to the PM QoS API for MPU latency constraints
 
-Yeah but we've seen how badly "we'll clean it up later" approach
-works :(
+ToDo:
+1. validate the constraints framework on OMAP4 HW (done on OMAP3)
+2. re-visit the OMAP power domains states initialization procedure. Currently
+   the power states that have been changed from the constraints API which were
+   applied before the initialization of the power domains are lost
 
-Unfortunately that path means nobody comes back to clean-up
-anything after the party is over and all that work falls on the
-maintainers.
+   
+Based on the pm-qos branch of the linux-pm git tree (3.1.0-rc3), cf. [2].
 
-So the one driver at a time conversion approach is better.
- 
-> That being said, keeping the legacy pdata code in some driver along
-> with the DT is a big pain as well:-(
+Tested on OMAP3 Beagleboard (ES2.x) with constraints on MPU, CORE, PER in
+RETention and OFF modes.
 
-Yup and duplicate data will lead to nasty bugs and support issues.
+[1] http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
+[2] git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
 
-> >It's easier just to require DT append for all the boards. In most
-> >cases it's just a trivial include of the common dts file for now.
-> 
-> That part is easy indeed, this is hacking every board-XXX.c and
-> testing them that will be tricky. This is as well the board
-> specifics settings that are tricky not the generic OMAP stuff. We do
-> have to set GPIOs, pin mux, regulator bindings, audio codec stuff...
 
-Right but for most part it's just removing the data. The board
-specific things are usually number of MMC data lines, number of
-USB transceiver data lines, GPIO to enable etc. Pretty trivial
-stuff that the board maintainers can test.
- 
-> >When we convert something to DT, there's no point going back.
-> 
-> Agree on that, in theory, I'm just wondering how practical it will
-> be to progress on every board at the same time.
+Jean Pihet (8):
+  OMAP: convert I2C driver to PM QoS for latency constraints
+  OMAP: PM: create a PM layer plugin for per-device constraints
+  OMAP2+: powerdomain: control power domains next state
+  OMAP3: powerdomain data: add wake-up latency figures
+  OMAP2+: omap_hwmod: manage the wake-up latency constraints
+  OMAP: PM CONSTRAINTS: implement the devices wake-up latency
+    constraints
+  OMAP2+: cpuidle only influences the MPU state
+  OMAP3: update cpuidle latency and threshold figures
 
-That should not be too bad for most part. For example, the board-*.c
-files all just call  omap_register_i2c_bus with the controllers.
-So not much there to convert, just add the controllers to board
-.dts files and remove from board-*.c files.
- 
-> I guess we do need some advice from the DT gurus on that as well.
-> 
-> It looks to me that both approaches are painful and will require
-> some efforts.
+ arch/arm/mach-omap2/cpuidle34xx.c            |   56 ++---
+ arch/arm/mach-omap2/omap_hwmod.c             |   26 ++-
+ arch/arm/mach-omap2/pm.h                     |   17 ++-
+ arch/arm/mach-omap2/powerdomain.c            |  190 ++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h            |   33 +++-
+ arch/arm/mach-omap2/powerdomains3xxx_data.c  |   78 ++++++
+ arch/arm/plat-omap/Kconfig                   |    7 +
+ arch/arm/plat-omap/Makefile                  |    1 +
+ arch/arm/plat-omap/i2c.c                     |   20 --
+ arch/arm/plat-omap/include/plat/omap-pm.h    |  128 ----------
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
+ arch/arm/plat-omap/omap-pm-constraints.c     |  350 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/omap-pm-noop.c            |   89 -------
+ drivers/i2c/busses/i2c-omap.c                |   31 ++-
+ 14 files changed, 737 insertions(+), 291 deletions(-)
+ create mode 100644 arch/arm/plat-omap/omap-pm-constraints.c
 
-Yes, but if we don't drop the pdata then we'll be in half-converted
-state eternally.
+-- 
+1.7.4.1
 
-> It is too bad that nobody did a
-> devicetree-migration-o-matic-for-lazy-developer.py script to handle
-> that...
-
-The conversion for some drivers can be scripted for sure :)
-
-Regards,
-
-Tony
