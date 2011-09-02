@@ -1,66 +1,64 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 8/8] OMAP3: update cpuidle latency and threshold figures
-Date: Fri,  2 Sep 2011 15:13:24 +0200
-Message-ID: <1314969204-21704-9-git-send-email-j-pihet@ti.com>
-References: <1314969204-21704-1-git-send-email-j-pihet@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH v2 0/6] OMAP: omap_device cleanup before device-tree integration
+Date: Fri, 2 Sep 2011 16:25:14 +0200
+Message-ID: <1314973520-3585-1-git-send-email-b-cousson@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:44822 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752091Ab1IBNN6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2011 09:13:58 -0400
-Received: by mail-wy0-f174.google.com with SMTP id 22so1943107wyh.19
-        for <linux-omap@vger.kernel.org>; Fri, 02 Sep 2011 06:13:57 -0700 (PDT)
-In-Reply-To: <1314969204-21704-1-git-send-email-j-pihet@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:36603 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752440Ab1IBOZe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Sep 2011 10:25:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.co>
-Cc: Jean Pihet <j-pihet@ti.com>
+To: khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Update the data from the measurements performed at HW and SW levels.
+Hi Kevin,
 
-Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
-for a detailed explanation on where are the numbers magically coming from.
+Here are a couple of cleanups on top of your (old) for_3.2/omap_device branch
+rebased on top of -rc4 + Tony's cleanup patches.
 
-ToDo:
-- Measure the wake-up latencies for all power domains for OMAP3
-- Correct some numbers when sys_clkreq and sys_offmode are supported
+Since I cannot pull your latest version, I repost the whole series.
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+patches are available here:
+git://gitorious.org/omap-pm/linux.git for_3.2/1_omap_device_cleanup
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index b43d1d2..3f37e89 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -45,19 +45,19 @@
-  */
- static struct cpuidle_params cpuidle_params_table[] = {
- 	/* C1 . MPU WFI + Core active */
--	{2 + 2, 5, 1},
-+	{73 + 78, 152, 1},
- 	/* C2 . MPU WFI + Core inactive */
--	{10 + 10, 30, 1},
-+	{165 + 88, 345, 1},
- 	/* C3 . MPU CSWR + Core inactive */
--	{50 + 50, 300, 1},
-+	{163 + 182, 345, 1},
- 	/* C4 . MPU OFF + Core inactive */
--	{1500 + 1800, 4000, 1},
-+	{2852 + 605, 150000, 1},
- 	/* C5 . MPU RET + Core RET */
--	{2500 + 7500, 12000, 1},
-+	{800 + 366, 2120, 1},
- 	/* C6 . MPU OFF + Core RET */
--	{3000 + 8500, 15000, 1},
-+	{4080 + 801, 215000, 1},
- 	/* C7 . MPU OFF + Core OFF */
--	{10000 + 30000, 300000, 1},
-+	{4300 + 13000, 215000, 1},
- };
- #define OMAP3_NUM_STATES ARRAY_SIZE(cpuidle_params_table)
- 
--- 
-1.7.4.1
+It is tested on OMAP4 SDP, Panda and Beagle-xM (Yeah, I found one...).
+
+Regards,
+Benoit
+
+
+Changes since v1: http://www.spinics.net/lists/linux-omap/msg55801.html
+ - Update the 2 patches from Nishanth based on Kevin's comment and merge
+   them into one patch.
+
+
+Benoit Cousson (5):
+  OMAP3: beagle-board: Use the omap_hwmod_name_get_dev API
+  OMAP2+: pm: Use hwmod name instead of dev pointer
+  OMAP2+: pm: Remove static devices variable for mpu, dsp, iva and l3 PM
+  OMAP: omap_device: Create a default omap_device_pm_latency
+  OMAP2+: devices: Remove all omap_device_pm_latency structures
+
+Nishanth Menon (1):
+  OMAP: omap_device: Add omap_hwmod_name_get_dev
+
+ arch/arm/mach-omap2/board-omap3beagle.c       |    4 +-
+ arch/arm/mach-omap2/devices.c                 |   46 ++---------------
+ arch/arm/mach-omap2/display.c                 |   11 +----
+ arch/arm/mach-omap2/dma.c                     |   11 +----
+ arch/arm/mach-omap2/gpio.c                    |   12 +----
+ arch/arm/mach-omap2/hsmmc.c                   |   18 +------
+ arch/arm/mach-omap2/hwspinlock.c              |   12 +----
+ arch/arm/mach-omap2/mcbsp.c                   |   11 +----
+ arch/arm/mach-omap2/pm.c                      |   69 ++++++++-----------------
+ arch/arm/mach-omap2/serial.c                  |   25 +---------
+ arch/arm/mach-omap2/sr_device.c               |   11 +----
+ arch/arm/mach-omap2/usb-musb.c                |   11 +----
+ arch/arm/plat-omap/i2c.c                      |   10 +---
+ arch/arm/plat-omap/include/plat/omap_device.h |   10 ++++
+ arch/arm/plat-omap/omap_device.c              |   49 +++++++++++++++++-
+ 15 files changed, 95 insertions(+), 215 deletions(-)
 
