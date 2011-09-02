@@ -1,15 +1,16 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 6/7] OMAP3: board-dt: Add generic board file for DT support
-Date: Fri, 2 Sep 2011 10:46:56 +0200
-Message-ID: <4E609800.9090402@ti.com>
+Subject: Re: [PATCH 7/7] OMAP3: beagleboard: Remove DT support from regular
+	board
+Date: Fri, 2 Sep 2011 10:59:54 +0200
+Message-ID: <4E609B0A.1020804@ti.com>
 References: <1314897912-18178-1-git-send-email-b-cousson@ti.com>
-	<1314897912-18178-7-git-send-email-b-cousson@ti.com>
-	<20110902080944.GP3548@atomide.com>
+	<1314897912-18178-8-git-send-email-b-cousson@ti.com>
+	<20110902081246.GQ3548@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110902080944.GP3548@atomide.com>
+In-Reply-To: <20110902081246.GQ3548@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,88 +25,39 @@ Cc: "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "G,
 	Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On 9/2/2011 10:09 AM, Tony Lindgren wrote:
-> Hi,
->
+On 9/2/2011 10:12 AM, Tony Lindgren wrote:
 > * Benoit Cousson<b-cousson@ti.com>  [110901 19:52]:
->> Create an OMAP3 generic board to start the DT migration.
+>> In order to avoid conflict with the new board-omap3-dt.c file,
+>> remove the .dt_compat entry from the beagle regular board
+>> file.
+>>
+>> Any DT work for OMAP3 will have to be done on the generic DT
+>> board file to avoid breaking the legacy board support until
+>> DT migration is done.
 >
-> I don't think this needs to be SoC specific, we can add multiple
-> DT_MACHINE_START entries into a single file. So it should be
-> just board-omap-dt.c.
+> In general we should not keep duplicate old non-DT data around
+> now that we have the DT append support. Instead we should just
+> require the .dts file appended to zImage for all mach-omap2
+> machines. Otherwise we'll end up with double bloat :)
 
-I do agree, it should not, I made that comment into the 
-board-omap4-dt.c, but for the moment we still have dedicated OMAP 
-specifics stuff at board level, like the map_io.
+Mmm, I'm not sure to get your point. We are not duplicating, since a 
+pure DT generic board will not have anything except a 
+of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+And the regular board files will keep initializing devices statically.
+The drivers will then for the moment support both pdata and DT method to 
+get board parameters.
 
-I have an other series that make the map_io DT aware to get rid of that, 
-but it still not finalized.
+> So it's OK to have the DT entries in board files so drivers
+> that get converted will work with them.
 
-My goal was have a single DT_MACHINE_START for every OMAPs.
-But, meanwhile, if you prefer one file with many board descriptors, 
-that's fine.
+Well, it will be a little bit more tricky, because having DT in current 
+board files will be a mess with a bunch of #ifdef CONFIG_OF, and adding 
+DT compatible inside each boards will prevent the pure generic DT one to 
+work. In that case we will duplicate the DT migration in every legacy 
+boards files...
 
->> +#include "mux.h"
->> +#include "common-board-devices.h"
->> +#include "sdram-micron-mt46h32m32lf-6.h"
->> +
->> +
->> +static void __init omap3_init_early(void)
->> +{
->> +	omap2_init_common_infrastructure();
->> +	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
->> +				  mt46h32m32lf6_sdrc_params);
->> +}
->
-> This has changed, see the cleanup branch. Also, let's just leave
-> out the sdram timings for now as we can work with bootloader
-> timings until those come from DT too.
+That's why the current strategy is to keep the current board files 
+non-DT aware and add the DT support only to the generic DT board file.
 
-Yep, I know, but since that series is based on my previous series that 
-is based on mainline rc-3, I missed these.
-
-Now, that kernel.org is back, I'll pull you branches :-).
-
-Which one do you recommend in that case, master or cleanup?
-
->> +static void __init omap3_init(void)
->> +{
->> +	struct device_node *node;
->> +
->> +	node = of_find_matching_node(NULL, omap_dt_intc_match);
->> +	if (node)
->> +		irq_domain_add_simple(node, 0);
->> +
->> +	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->> +	omap_serial_init();
->> +
->> +	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
->> +}
->> +
->> +static const char *omap3_dt_match[] __initdata = {
->> +	"ti,omap3",
->> +	NULL
->> +};
->
-> Most likely we just need SoC specific init functions in this file
-> now until the mux data comes from DT also.
-
-OK, I can get rid of mux stuff then.
-
->> +DT_MACHINE_START(OMAP3_DT, "TI OMAP3 (Flattened Device Tree)")
->> +	.reserve	= omap_reserve,
->> +	.map_io		= omap3_map_io,
->> +	.init_early	= omap3_init_early,
->> +	.init_irq	= omap3_init_irq,
->> +	.init_machine	= omap3_init,
->> +	.timer		=&omap3_timer,
->> +	.dt_compat	= omap3_dt_match,
->> +MACHINE_END
->
-> Here omap3_init_early is now generic in the cleanup branch.
-
-Cool, I'll update the whole series, including the OMAP4 ones.
-
+Regards,
 Benoit
