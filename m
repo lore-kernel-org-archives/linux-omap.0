@@ -1,54 +1,98 @@
-From: =?utf-8?B?5q+P5aSp6YO95pyJ5paw5Lmw5a62?= <admin@brentonasia.com>
-Subject: =?utf-8?B?5pyA5paw5bm/5Lqk5Lya5Lmw5a625bqTKzUwMOS4h+a1t+WkluS5sOWutui1hOa6kCs=?=
-	=?utf-8?B?6YKu5Lu25Y+R6YCB5pa55qGIPeavj+WkqemDveacieaWsOS5sOWutuWbnuWkje+8gQ==?=
-Date: Sat, 3 Sep 2011 09:26:59 +0000 (UTC)
-Message-ID: <20110930155244378680@brentonasia.com>
-Reply-To: <1339625218@qq.com>
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 08/11] ARM: pm: no need to save/restore context ID register
+Date: Sat, 03 Sep 2011 22:03:00 +0530
+Message-ID: <4E6256BC.3080604@ti.com>
+References: <20110901124752.GE29729@n2100.arm.linux.org.uk> <E1Qz6jT-00078d-LC@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [183.63.203.40] ([183.63.203.40]:46545 "HELO brentonasia.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751130Ab1ICJ0x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 3 Sep 2011 05:26:53 -0400
-Date: Fri, 30 Sep 2011 15:52:38 +0800
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:35944 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752573Ab1ICQdK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Sep 2011 12:33:10 -0400
+Received: by yxi11 with SMTP id 11so2976294yxi.25
+        for <linux-omap@vger.kernel.org>; Sat, 03 Sep 2011 09:33:08 -0700 (PDT)
+In-Reply-To: <E1Qz6jT-00078d-LC@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-NTAw5LiH5rW35aSW5Lmw5a626LWE5rqQK+mCruS7tuWPkemAgeaWueahiCvmtbflpJbkubDlrrZF
-bWFpbOaQnOe0ouacuj3mr4/lpKnpg73mnInlrqLmiLflm57lpI3vvIENCjUwMOS4h+a1t+WkluS5
-sOWutui1hOa6kCvpgq7ku7blj5HpgIHmlrnmoYgr5rW35aSW5Lmw5a62RW1haWzmkJzntKLmnLo9
-5q+P5aSp6YO95pyJ5a6i5oi35Zue5aSN77yBDQoNCjHjgIE1MDDkuIfkubDlrrbotYTmupDvvJog
-6LWg6YCB55qENTAw5LiH5Lmw5a626LWE5rqQ5bqT77yM5pu05pawICjlj6/ku6XmjInnhafmgqjn
-moTkuqflk4Hmj5Dlj5blh7rmnaXvvIzmm7Tnsr7lh4blvIDlj5Ep44CCIA0KMuOAgei2hee6p+a1
-t+WkluS5sOWutkVtYWls5pCc57Si5py677yaIOWGhee9ruS6hjYwMOS4h+ihjOS4muWFs+mUruiv
-je+8jOagueaNrumVv+WwvuivjeaQnOe0ou+8jOe7k+aenOabtOeyvuehruWMuemFje+8m+avj+Wk
-qeiDveaQnOe0ojEtMuS4h+S7peS4iuS5sOWutuecn+WunkVNQUlM77yM5oiQ5Y2V546H6auY44CC
-IA0KM+OAgee+pOWPkei9r+S7tu+8miDmk43kvZznroDljZXvvIzlip/og73lvLrlpKfvvIzmqKHk
-u7/kurrlt6Xmk43kvZzmqKHlvI/vvIzliLDovr7njofpq5jvvIzml6Xlj5HpgIE15LiH5bCB5Lul
-5LiK44CCIA0KIA0K5pSv5oyB5pSv5LuY5a6d5ouF5L+d5Lqk5piTICjlhYjlj5HotKflubblrono
-o4Xorr7nva7nvqTlj5Hova/ku7bvvIznhLblkI7ku5jmrL4pIOW9u+W6leaJk+a2iOaCqOeahCDp
-ob7omZHjgIINCg0K6K+36IGU57O777yaDQpRUToxMzM5NjI1MjE4ICAgZW1haWw6IDEzMzk2MjUy
-MThAcXEuY29tDQpRUToxMzM5NjI1MjE4ICAgZW1haWw6IDEzMzk2MjUyMThAcXEuY29tDQpRUTox
-MzM5NjI1MjE4ICAgZW1haWw6IDEzMzk2MjUyMThAcXEuY29tDQpRUToxMzM5NjI1MjE4ICAgZW1h
-aWw6IDEzMzk2MjUyMThAcXEuY29tDQpRUToxMzM5NjI1MjE4ICAgZW1haWw6IDEzMzk2MjUyMThA
-cXEuY29tDQpRUToxMzM5NjI1MjE4ICAgZW1haWw6IDEzMzk2MjUyMThAcXEuY29tDQoNCuWFjei0
-uei1oOmAgToNCjHjgIHotoXnuqfmtbflpJbkubDlrrbmkJzntKLmnLos5Y+v5Lul6L275p2+5omr
-5o+P5Ye6IDUwMC0xMDAw5LiH5Lmw5a62RW1haWzvvIzlu7rnq4voh6rlt7HnmoTokKXplIDmlbDm
-ja7lupPjgIINCjLjgIEyMDA55bm05rW35YWz5o+Q5Y2V5pWw5o2ucGllcnPniYjmlbDmja4gMeWN
-g+S4h+OAgg0KM+OAgTIwMTHmmKXlraMxMDnlsYrlub/kuqTkvJrkubDlrrbnjrDlnLror6Lnm5jm
-lbDmja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDmja7v
-vIzlrrnmmJPmiJDljZXvvIEgDQo044CBMjAwOOW5tOiHszIwMTDlubQg5pil5a2jK+eni+Wto+W5
-v+S6pOS8muS5sOWutuWQjeW9le+8jDEwMyAxMDQgMTA1IDEwNiAxMDcgMTA4IOWFseWFreWxiu+8
-jOWFsTEyMC425LiH5pWw5o2u44CCIA0KNeOAgeacgOaWsOWFqOeQg+S5sOWutuW6kyzlhbE0NTE2
-NjDmnaHmlbDmja7vvIzmr4/kuKrlnYfmnIlFbWFpbOOAgg0KNuOAgTIwMTDlubTlm73pmYXkv4Pp
-lIDljY/kvJrvvIhQUEFJ77yJ5oiQ5ZGY5ZCN5Y2VIFBQQUkgTWVtYmVycyBEaXJlY3RvcnnvvIzp
-nZ7luLjph43opoHnmoTlpKfkubDlrrbjgIINCjfjgIEyMDEw5bm05Yiw6aaZ5riv6YeH6LSt55qE
-5Zu95aSW5a6i5Lq65ZCN5b2VKOmmmea4r+i0uOWPkeWxgOaPkOS+mynvvIzlhbE3LjLkuIfmlbDm
-ja7vvIzotoXnuqfph43opoHnmoTkubDlrrbjgIINCjjjgIExMDDkuIfmnaHlm73lpJbotLjmmJPo
-r6Lnm5jvvIzmr4/kuKrlnYfmnIlFbWFpbOOAgg0KOeOAgeS5sOWutui1hOa6kOabtOaWsOS4reOA
-guOAguOAgg0K5YWo6YOo6YO95pyJ44CCDQogDQo=
+On Thursday 01 September 2011 06:20 PM, Russell King - ARM Linux wrote:
+> There is no need to save and restore the context ID register on ARMv6
+> and ARMv7 with a temporary page table as we write the context ID
+> register when we switch back to the real page tables for the thread.
+>
+> Moreover, the temporary page tables do not contain any non-global
+> mappings, so the context ID value should not be used.  To be safe,
+> initialize the register to a reserved context ID value.
+>
+> Signed-off-by: Russell King<rmk+kernel@arm.linux.org.uk>
+> ---
+>   arch/arm/mm/proc-v6.S |   33 ++++++++++++++++-----------------
+>   arch/arm/mm/proc-v7.S |   13 ++++++-------
+>   2 files changed, 22 insertions(+), 24 deletions(-)
+>
+> diff --git a/arch/arm/mm/proc-v6.S b/arch/arm/mm/proc-v6.S
+> index 2e27b46..a92c3c3 100644
+> --- a/arch/arm/mm/proc-v6.S
+> +++ b/arch/arm/mm/proc-v6.S
+> @@ -128,19 +128,18 @@ ENTRY(cpu_v6_set_pte_ext)
+>
+>   /* Suspend/resume support: taken from arch/arm/mach-s3c64xx/sleep.S */
+>   .globl	cpu_v6_suspend_size
+> -.equ	cpu_v6_suspend_size, 4 * 7
+> +.equ	cpu_v6_suspend_size, 4 * 6
+>   #ifdef CONFIG_PM_SLEEP
+>   ENTRY(cpu_v6_do_suspend)
+> -	stmfd	sp!, {r4 - r10, lr}
+> +	stmfd	sp!, {r4 - r9, lr}
+>   	mrc	p15, 0, r4, c13, c0, 0	@ FCSE/PID
+> -	mrc	p15, 0, r5, c13, c0, 1	@ Context ID
+> -	mrc	p15, 0, r6, c3, c0, 0	@ Domain ID
+> -	mrc	p15, 0, r7, c2, c0, 1	@ Translation table base 1
+> -	mrc	p15, 0, r8, c1, c0, 1	@ auxiliary control register
+> -	mrc	p15, 0, r9, c1, c0, 2	@ co-processor access control
+> -	mrc	p15, 0, r10, c1, c0, 0	@ control register
+> -	stmia	r0, {r4 - r10}
+> -	ldmfd	sp!, {r4- r10, pc}
+> +	mrc	p15, 0, r5, c3, c0, 0	@ Domain ID
+> +	mrc	p15, 0, r6, c2, c0, 1	@ Translation table base 1
+> +	mrc	p15, 0, r7, c1, c0, 1	@ auxiliary control register
+> +	mrc	p15, 0, r8, c1, c0, 2	@ co-processor access control
+> +	mrc	p15, 0, r9, c1, c0, 0	@ control register
+> +	stmia	r0, {r4 - r9}
+> +	ldmfd	sp!, {r4- r9, pc}
+>   ENDPROC(cpu_v6_do_suspend)
+>
+>   ENTRY(cpu_v6_do_resume)
+> @@ -149,19 +148,19 @@ ENTRY(cpu_v6_do_resume)
+>   	mcr	p15, 0, ip, c7, c5, 0	@ invalidate I cache
+>   	mcr	p15, 0, ip, c7, c15, 0	@ clean+invalidate cache
+>   	mcr	p15, 0, ip, c7, c10, 4	@ drain write buffer
+> -	ldmia	r0, {r4 - r10}
+> +	mcr	p15, 0, ip, c13, 0, 1	@ set reserved context ID
+Typo which results in build error.
+Error: co-processor register expected -- `mcr p15,0,ip,c13,0,1'
 
+You can fold below fix.
 
+diff --git a/arch/arm/mm/proc-v6.S b/arch/arm/mm/proc-v6.S
+index 53bba9d..b3455c1 100644
+--- a/arch/arm/mm/proc-v6.S
++++ b/arch/arm/mm/proc-v6.S
+@@ -148,7 +148,7 @@ ENTRY(cpu_v6_do_resume)
+  	mcr	p15, 0, ip, c7, c5, 0	@ invalidate I cache
+  	mcr	p15, 0, ip, c7, c15, 0	@ clean+invalidate cache
+  	mcr	p15, 0, ip, c7, c10, 4	@ drain write buffer
+-	mcr	p15, 0, ip, c13, 0, 1	@ set reserved context ID
++	mcr	p15, 0, ip, c13, c0, 1	@ set reserved context ID
+  	ldmia	r0, {r4 - r9}
+  	mcr	p15, 0, r4, c13, c0, 0	@ FCSE/PID
+  	mcr	p15, 0, r5, c3, c0, 0	@ Domain ID
+-- 
+1.7.4.1
+
+Regards
+Santosh
