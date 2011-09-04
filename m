@@ -1,130 +1,166 @@
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
-Date: Sun, 04 Sep 2011 10:32:28 -0300
-Message-ID: <4E637DEC.5080507@infradead.org>
-References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com> <201108241525.47332.laurent.pinchart@ideasonboard.com> <4E62A872.7070808@infradead.org> <201109041101.05028.laurent.pinchart@ideasonboard.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 03/25] OMAP4: PM: Use custom omap_do_wfi() for suspend and default idle.
+Date: Sun, 4 Sep 2011 19:24:04 +0530
+Message-ID: <1315144466-9395-4-git-send-email-santosh.shilimkar@ti.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201109041101.05028.laurent.pinchart@ideasonboard.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Ravi, Deepthy" <deepthy.ravi@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38005 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754285Ab1IDNzf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 4 Sep 2011 09:55:35 -0400
+In-Reply-To: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Em 04-09-2011 06:01, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
-> On Sunday 04 September 2011 00:21:38 Mauro Carvalho Chehab wrote:
->> Em 24-08-2011 10:25, Laurent Pinchart escreveu:
->>> On Wednesday 24 August 2011 14:19:01 Hiremath, Vaibhav wrote:
->>>> On Wednesday, August 24, 2011 5:00 PM Laurent Pinchart wrote:
->>>>> On Wednesday 24 August 2011 13:21:27 Ravi, Deepthy wrote:
->>>>>> On Wed, Aug 24, 2011 at 4:47 PM, Laurent Pinchart wrote:
->>>>>>> On Friday 19 August 2011 15:48:45 Deepthy Ravi wrote:
->>>>>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
->>>>>>>>
->>>>>>>> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
->>>>>>>> option is disabled and if any sensor driver has to be used
->>>>>>>> between MC and non MC framework compatible devices.
->>>>>>>>
->>>>>>>> For example,if tvp514x video decoder driver migrated to
->>>>>>>> MC framework is being built without CONFIG_MEDIA_CONTROLLER
->>>>>>>> option enabled, the following error messages will result.
->>>>>>>> drivers/built-in.o: In function `tvp514x_remove':
->>>>>>>> drivers/media/video/tvp514x.c:1285: undefined reference to
->>>>>>>> `media_entity_cleanup'
->>>>>>>> drivers/built-in.o: In function `tvp514x_probe':
->>>>>>>> drivers/media/video/tvp514x.c:1237: undefined reference to
->>>>>>>> `media_entity_init'
->>>>>>>
->>>>>>> If the tvp514x is migrated to the MC framework, its Kconfig option
->>>>>>> should depend on MEDIA_CONTROLLER.
->>>>>>
->>>>>> The same TVP514x driver is being used for both MC and non MC
->>>>>> compatible devices, for example OMAP3 and AM35x. So if it is made
->>>>>> dependent on MEDIA CONTROLLER, we cannot enable the driver for MC
->>>>>> independent devices.
->>>>>
->>>>> Then you should use conditional compilation in the tvp514x driver
->>>>> itself. Or
->>>>
->>>> No. I am not in favor of conditional compilation in driver code.
->>>
->>> Actually, thinking some more about this, you should make the tvp514x
->>> driver depend on CONFIG_MEDIA_CONTROLLER unconditionally. This doesn't
->>> mean that the driver will become unusable by applications that are not
->>> MC-aware. Hosts/bridges don't have to export subdev nodes, they can just
->>> call subdev pad-level operations internally and let applications control
->>> the whole device through a single V4L2 video node.
->>>
->>>>> better, port the AM35x driver to the MC API.
->>>>
->>>> Why should we use MC if I have very simple device (like AM35x) which
->>>> only supports single path? I can very well use simple V4L2 sub-dev
->>>> based approach (master - slave), isn't it?
->>>
->>> The AM35x driver should use the in-kernel MC and V4L2 subdev APIs, but it
->>> doesn't have to expose them to userspace.
->>
->> I don't agree. If AM35x doesn't expose the MC API to userspace,
->> CONFIG_MEDIA_CONTROLLER should not be required at all.
->>
->> Also, according with the Linux best practices, when  #if tests for config
->> symbols are required, developers should put it into the header files, and
->> not inside the code, as it helps to improve code readability. From
->> Documentation/SubmittingPatches:
->>
->> 	2) #ifdefs are ugly
->>
->> 	Code cluttered with ifdefs is difficult to read and maintain.  Don't do
->> 	it.  Instead, put your ifdefs in a header, and conditionally define
->> 	'static inline' functions, or macros, which are used in the code.
->> 	Let the compiler optimize away the "no-op" case.
->>
->> So, this patch is perfectly fine on my eyes.
-> 
-> I'm sorry, but I don't agree.
-> 
-> Regarding the V4L2 subdev pad-level API, the goal is to convert all host and 
-> subdev drivers to it, so that's definitely the way to go. This does *not* mean 
-> that subdevs must expose a subdev device node. That's entirely optional. What 
-> I'm talking about is switching from video::*_mbus_fmt operations to pad::*_fmt 
-> operations. The pad-level format operations are very similar to video-level 
-> format operations, and more generic. Drivers shouldn't implement both.
+The omap_do_wfi() incorporates interconnect barriers to meet
+OMAP44XX interconnect ordering requirements. Make use of this
+hook in default idle, suspend and CPU hot-plug paths.
 
-I agree that implementing two ways for doing the same thing is a bad idea, 
-but especially since your idea is to convert all subdevs to it, this type 
-of conversion should not require enabling CONFIG_MEDIA_CONTROLLER, as this
-feature is used to enable the MC userspace API.
+Without the interconnect barriers, many issues have been observed
+leading to system freeze, CPU deadlocks, random crashes with
+register accesses, synchronization loss on initiators operating
+on both interconnect port simultaneously.
 
-> Regarding the MC API, drivers are not required to register a media_device 
-> instance. I have no issue with that. However, drivers should initialized the 
-> subdev's embedded media_entity, as that's required by subdev pad-level 
-> operations to get the number of pads for a subdev.
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/include/mach/omap4-common.h |    1 +
+ arch/arm/mach-omap2/omap-hotplug.c              |    2 +-
+ arch/arm/mach-omap2/pm44xx.c                    |   22 ++++++++++-
+ arch/arm/mach-omap2/sleep44xx.S                 |   47 +++++++++++++++++++++++
+ 4 files changed, 70 insertions(+), 2 deletions(-)
 
-There are two solutions:
+diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
+index 26653f6..62d8d07 100644
+--- a/arch/arm/mach-omap2/include/mach/omap4-common.h
++++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+@@ -38,6 +38,7 @@ extern void __init gic_init_irq(void);
+ extern void omap_smc1(u32 fn, u32 arg);
+ extern void omap_bus_sync(void);
+ extern unsigned long omap_get_dram_barrier_base(void);
++extern void omap_do_wfi(void);
+ 
+ #ifdef CONFIG_SMP
+ /* Needed for secondary core boot */
+diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
+index 4976b93..80167ec 100644
+--- a/arch/arm/mach-omap2/omap-hotplug.c
++++ b/arch/arm/mach-omap2/omap-hotplug.c
+@@ -45,7 +45,7 @@ void platform_cpu_die(unsigned int cpu)
+ 		/*
+ 		 * Execute WFI
+ 		 */
+-		do_wfi();
++		omap_do_wfi();
+ 
+ 		if (omap_read_auxcoreboot0() == cpu) {
+ 			/*
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 59a870b..4bbc6fe 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -33,7 +33,7 @@ static LIST_HEAD(pwrst_list);
+ #ifdef CONFIG_SUSPEND
+ static int omap4_pm_suspend(void)
+ {
+-	do_wfi();
++	omap_do_wfi();
+ 	return 0;
+ }
+ 
+@@ -91,6 +91,23 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ }
+ 
+ /**
++ * omap_default_idle -
++ * Implements OMAP4 memory, IO ordering requirements which can't be addressed
++ * with default arch_idle() hook. Used by all CPUs with !CONFIG_CPUIDLE and
++ * by secondary CPU with CONFIG_CPUIDLE.
++ */
++static void omap_default_idle(void)
++{
++	local_irq_disable();
++	local_fiq_disable();
++
++	omap_do_wfi();
++
++	local_fiq_enable();
++	local_irq_enable();
++}
++
++/**
+  * omap4_pm_init - Init routine for OMAP4 PM
+  *
+  * Initializes all powerdomain and clockdomain target states
+@@ -115,6 +132,9 @@ static int __init omap4_pm_init(void)
+ 	suspend_set_ops(&omap_pm_ops);
+ #endif /* CONFIG_SUSPEND */
+ 
++	/* Overwrite the default arch_idle() */
++	pm_idle = omap_default_idle;
++
+ err2:
+ 	return ret;
+ }
+diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
+index 5406713..049f426 100644
+--- a/arch/arm/mach-omap2/sleep44xx.S
++++ b/arch/arm/mach-omap2/sleep44xx.S
+@@ -27,3 +27,50 @@ ENTRY(omap_bus_sync)
+ 	isb
+ 	ldmfd	sp!, {pc}
+ ENDPROC(omap_bus_sync)
++
++ENTRY(omap_do_wfi)
++	stmfd	sp!, {lr}
++	/* Drain interconnect write buffers. */
++	bl omap_bus_sync
++
++	/*
++	 * Execute an ISB instruction to ensure that all of the
++	 * CP15 register changes have been committed.
++	 */
++	isb
++
++	/*
++	 * Execute a barrier instruction to ensure that all cache,
++	 * TLB and branch predictor maintenance operations issued
++	 * by any CPU in the cluster have completed.
++	 */
++	dsb
++	dmb
++
++	/*
++	 * Execute a WFI instruction and wait until the
++	 * STANDBYWFI output is asserted to indicate that the
++	 * CPU is in idle and low power state. CPU can specualatively
++	 * prefetch the instructions so add NOPs after WFI. Sixteen
++	 * NOPs as per Cortex-A9 pipeline.
++	 */
++	wfi					@ Wait For Interrupt
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++
++	ldmfd	sp!, {pc}
++ENDPROC(omap_do_wfi)
+-- 
+1.7.4.1
 
-1) add some "fallback" method at the core to use the video::*_mbus_fmt way, when
-MC is disabled;
-
-2) split the config options into two: one configurable by the user to enable
-the userspace MC API, and another, used internally that would select the MC
-internal API when drivers need it.
-
-As your plan is to convert all drivers to the new way, (2) doesn't make much
-sense in long term, as, at the end, all drivers will be selecting it.
-
-Also, I don't like the idea of increasing drivers complexity for the existing
-drivers that work properly without MC. All those core conversions that were
-done in the last two years caused already too much instability to them.
-
-We should really avoid touching on them again for something that won't be
-adding any new feature nor fixing any known bug.
-> 
-> This will result in no modification to the userspace.
-> 
-
-Regards,
-Mauro
