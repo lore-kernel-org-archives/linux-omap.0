@@ -1,233 +1,297 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 21/25] OMAP4: PM: Add MPUSS power domain OSWR support
-Date: Sun, 4 Sep 2011 19:24:22 +0530
-Message-ID: <1315144466-9395-22-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 23/25] OMAP4: PM: Add CPUidle support
+Date: Sun, 4 Sep 2011 19:24:24 +0530
+Message-ID: <1315144466-9395-24-git-send-email-santosh.shilimkar@ti.com>
 References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36819 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38060 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754623Ab1IDN4S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 4 Sep 2011 09:56:18 -0400
+	id S1754661Ab1IDN4U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 4 Sep 2011 09:56:20 -0400
 In-Reply-To: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch adds the MPUSS OSWR (Open Switch Retention) support. The MPUSS
-OSWR configuration is as below.
-	- CPUx L1 and logic lost, MPUSS logic lost, L2 memory is retained
+Add OMAP4 CPUIDLE support. CPU1 is left with defualt idle and
+the low power state for it is managed via cpu-hotplug.
+
+This patch adds MPUSS low power states in cpuidle.
+
+	C1 - CPU0 ON + CPU1 ON + MPU ON
+	C2 - CPU0 OFF + CPU1 OFF + MPU CSWR
+	C3 - CPU0 OFF + CPU1 OFF + MPU OSWR
 
 OMAP4460 onwards, MPUSS power domain doesn't support OFF state any more
-anymore just like CORE power domain. The deepest state supported is OSWR.
-On OMAP4430 secure devices too, MPUSS off mode can't be used because of
-a bug which alters Ducati and Tesla states. Hence MPUSS off mode as an
-independent state isn't supported on OMAP44XX devices.
+anymore just like CORE power domain. The deepest state supported is OSWr.
+Ofcourse when MPUSS and CORE PD transitions to OSWR along with device
+off mode, even the memory contemts are lost which is as good as
+the PD off state.
 
-Ofcourse when MPUSS power domain transitions to OSWR along
-with device off mode, it eventually hits off state since memory
-contents are lost.
+On OMAP4 because of hardware constraints, no low power states are
+targeted when both CPUs are online and in SMP mode. The low power
+states are attempted only when secondary CPU gets offline to OFF
+through hotplug infrastructure.
 
-Hence the MPUSS off mode independent state is not attempted without
-device off mode. All the necessary infrastructure code for MPUSS
-off mode is in place as part of this series.
+Thanks to Nicole Chalhoub <n-chalhoub@ti.com> for doing exhaustive
+C-state latency profiling.
 
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/include/mach/omap4-common.h |   10 +++-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c       |   65 +++++++++++++++++++++-
- arch/arm/mach-omap2/pm44xx.c                    |    4 ++
- 3 files changed, 75 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/Makefile      |    2 +-
+ arch/arm/mach-omap2/cpuidle44xx.c |  198 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h          |    1 +
+ arch/arm/mach-omap2/pm44xx.c      |    2 +
+ 4 files changed, 202 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cpuidle44xx.c
 
-diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
-index 14803c3..6651cb0 100644
---- a/arch/arm/mach-omap2/include/mach/omap4-common.h
-+++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
-@@ -52,6 +52,7 @@ extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
- extern int omap4_finish_suspend(unsigned long cpu_state);
- extern void omap4_cpu_resume(void);
- extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
-+extern u32 omap4_mpuss_read_prev_context_state(void);
- #else
- static inline int omap4_enter_lowpower(unsigned int cpu,
- 					unsigned int power_state)
-@@ -70,11 +71,18 @@ static inline int omap4_mpuss_init(void)
- {
- 	return 0;
- }
--
-+static inline u32 omap4_mpuss_read_prev_context_state(void)
-+{
-+	return 0;
-+}
- static inline int omap4_finish_suspend(unsigned long cpu_state)
- {}
- static inline void omap4_cpu_resume(void)
- {}
-+static inline u32 omap4_mpuss_read_prev_context_state(void)
-+{
-+	return 0;
-+}
- #endif
- 
- #endif /* __ASSEMBLER__ */
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index aea6deb..4dd9d0f 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -24,8 +24,8 @@
-  *	ON		ON		ON
-  *	ON(Inactive)	OFF		ON(Inactive)
-  *	OFF		OFF		CSWR
-- *	OFF		OFF		OSWR (*TBD)
-- *	OFF		OFF		OFF* (*TBD)
-+ *	OFF		OFF		OSWR
-+ *	OFF		OFF		OFF(Device OFF *TBD)
-  *	----------------------------------------------
-  *
-  * Note: CPU0 is the master core and it is the last CPU to go down
-@@ -56,7 +56,11 @@
- 
- #include "omap4-sar-layout.h"
- #include "pm.h"
--#include "powerdomain.h"
-+#include "prcm_mpu44xx.h"
-+#include "prminst44xx.h"
-+#include "prcm44xx.h"
-+#include "prm44xx.h"
-+#include "prm-regbits-44xx.h"
- 
- #ifdef CONFIG_SMP
- 
-@@ -138,6 +142,48 @@ static void scu_pwrst_prepare(unsigned int cpu_id, unsigned int cpu_state)
- 	__raw_writel(scu_pwr_st, pm_info->scu_sar_addr);
- }
- 
-+/* Helper functions for MPUSS OSWR */
-+static inline void mpuss_clear_prev_logic_pwrst(void)
-+{
-+	u32 reg;
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index b4f2eeb..f603286 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -64,7 +64,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o \
+ 					   cpuidle34xx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o sleep44xx.o \
+-					   omap-mpuss-lowpower.o
++					   omap-mpuss-lowpower.o cpuidle44xx.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+new file mode 100644
+index 0000000..c9c6f43
+--- /dev/null
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -0,0 +1,198 @@
++/*
++ * OMAP4 CPU idle Routines
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ * Santosh Shilimkar <santosh.shilimkar@ti.com>
++ * Rajendra Nayak <rnayak@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+	reg = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-+		OMAP4430_PRM_MPU_INST, OMAP4_RM_MPU_MPU_CONTEXT_OFFSET);
-+	omap4_prminst_write_inst_reg(reg, OMAP4430_PRM_PARTITION,
-+		OMAP4430_PRM_MPU_INST, OMAP4_RM_MPU_MPU_CONTEXT_OFFSET);
-+}
++#include <linux/sched.h>
++#include <linux/cpuidle.h>
++#include <linux/cpu_pm.h>
 +
-+static inline void cpu_clear_prev_logic_pwrst(unsigned int cpu_id)
++#include <asm/proc-fns.h>
++
++#include <mach/omap4-common.h>
++
++#include "pm.h"
++#include "prm.h"
++
++#ifdef CONFIG_CPU_IDLE
++
++/* Machine specific information to be recorded in the C-state driver_data */
++struct omap4_idle_statedata {
++	u32 cpu_state;
++	u32 mpu_logic_state;
++	u32 mpu_state;
++	u8 valid;
++};
++
++static struct cpuidle_params cpuidle_params_table[] = {
++	/* C1 - CPU0 ON + CPU1 ON + MPU ON */
++	{.exit_latency = 2 + 2 , .target_residency = 5, .valid = 1},
++	/* C2- CPU0 OFF + CPU1 OFF + MPU CSWR */
++	{.exit_latency = 328 + 440 , .target_residency = 960, .valid = 1},
++	/* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
++	{.exit_latency = 460 + 518 , .target_residency = 1100, .valid = 1},
++};
++
++#define OMAP4_NUM_STATES ARRAY_SIZE(cpuidle_params_table)
++
++struct omap4_idle_statedata omap4_idle_data[OMAP4_NUM_STATES];
++static struct powerdomain *mpu_pd, *cpu0_pd, *cpu1_pd;
++
++/**
++ * omap4_enter_idle - Programs OMAP4 to enter the specified state
++ * @dev: cpuidle device
++ * @state: The target state to be programmed
++ *
++ * Called from the CPUidle framework to program the device to the
++ * specified low power state selected by the governor.
++ * Returns the amount of time spent in the low power state.
++ */
++static int omap4_enter_idle(struct cpuidle_device *dev,
++			struct cpuidle_state *state)
 +{
-+	u32 reg;
++	struct omap4_idle_statedata *cx = cpuidle_get_statedata(state);
++	struct timespec ts_preidle, ts_postidle, ts_idle;
++	u32 cpu1_state;
 +
-+	if (cpu_id) {
-+		reg = omap4_prcm_mpu_read_inst_reg(OMAP4430_PRCM_MPU_CPU1_INST,
-+					OMAP4_RM_CPU1_CPU1_CONTEXT_OFFSET);
-+		omap4_prcm_mpu_write_inst_reg(reg, OMAP4430_PRCM_MPU_CPU1_INST,
-+					OMAP4_RM_CPU1_CPU1_CONTEXT_OFFSET);
-+	} else {
-+		reg = omap4_prcm_mpu_read_inst_reg(OMAP4430_PRCM_MPU_CPU0_INST,
-+					OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET);
-+		omap4_prcm_mpu_write_inst_reg(reg, OMAP4430_PRCM_MPU_CPU0_INST,
-+					OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET);
++	/* Used to keep track of the total time in idle */
++	getnstimeofday(&ts_preidle);
++
++	local_irq_disable();
++	local_fiq_disable();
++
++	/*
++	 * Keep demoting CPU0 C-state till CPU1 hits OFF state.
++	 * This is necessary to honour hardware recommondation
++	 * of triggeing all the possible low power modes once CPU1 is
++	 * out of coherency and in OFF mode.
++	 * Update dev->last_state so that governor stats reflects right
++	 * data.
++	 */
++	cpu1_state = pwrdm_read_pwrst(cpu1_pd);
++	if (cpu1_state != PWRDM_POWER_OFF) {
++		dev->last_state = dev->safe_state;
++		cx = cpuidle_get_statedata(dev->safe_state);
 +	}
++
++	/* Call idle CPU PM enter notifier chain */
++	if (cx->cpu_state == PWRDM_POWER_OFF)
++		cpu_pm_enter();
++
++	pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
++	omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
++
++	/* Call idle CPU cluster PM enter notifier chain */
++	if ((cx->mpu_state == PWRDM_POWER_RET) &&
++		(cx->mpu_logic_state == PWRDM_POWER_OFF))
++			cpu_cluster_pm_enter();
++
++	omap4_enter_lowpower(dev->cpu, cx->cpu_state);
++
++	/* Call idle CPU PM exit notifier chain */
++	if (pwrdm_read_prev_pwrst(cpu0_pd) == PWRDM_POWER_OFF)
++		cpu_pm_exit();
++
++	/* Call idle CPU cluster PM exit notifier chain */
++	if (omap4_mpuss_read_prev_context_state())
++		cpu_cluster_pm_exit();
++
++	getnstimeofday(&ts_postidle);
++	ts_idle = timespec_sub(ts_postidle, ts_preidle);
++
++	local_irq_enable();
++	local_fiq_enable();
++
++	return ts_idle.tv_nsec / NSEC_PER_USEC + ts_idle.tv_sec * USEC_PER_SEC;
++}
++
++DEFINE_PER_CPU(struct cpuidle_device, omap4_idle_dev);
++
++struct cpuidle_driver omap4_idle_driver = {
++	.name =		"omap4_idle",
++	.owner =	THIS_MODULE,
++};
++
++/* Fill in the state data from the mach tables and register the driver_data */
++static inline struct omap4_idle_statedata *_fill_cstate(
++					struct cpuidle_device *dev,
++					int idx, const char *descr)
++{
++	struct omap4_idle_statedata *cx = &omap4_idle_data[idx];
++	struct cpuidle_state *state = &dev->states[idx];
++
++	state->exit_latency	= cpuidle_params_table[idx].exit_latency;
++	state->target_residency	= cpuidle_params_table[idx].target_residency;
++	state->flags		= CPUIDLE_FLAG_TIME_VALID;
++	state->enter		= omap4_enter_idle;
++	cx->valid		= cpuidle_params_table[idx].valid;
++	sprintf(state->name, "C%d", idx + 1);
++	strncpy(state->desc, descr, CPUIDLE_DESC_LEN);
++	cpuidle_set_statedata(state, cx);
++
++	return cx;
 +}
 +
 +/**
-+ * omap4_mpuss_read_prev_context_state:
-+ * Function returns the MPUSS previous context state
++ * omap4_idle_init - Init routine for OMAP4 idle
++ *
++ * Registers the OMAP4 specific cpuidle driver to the cpuidle
++ * framework with the valid set of states.
 + */
-+u32 omap4_mpuss_read_prev_context_state(void)
++int __init omap4_idle_init(void)
 +{
-+	u32 reg;
++	struct omap4_idle_statedata *cx;
++	struct cpuidle_device *dev;
++	unsigned int cpu_id = 0;
 +
-+	reg = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-+		OMAP4430_PRM_MPU_INST, OMAP4_RM_MPU_MPU_CONTEXT_OFFSET);
-+	reg &= OMAP4430_LOSTCONTEXT_DFF_MASK;
-+	return reg;
++	mpu_pd = pwrdm_lookup("mpu_pwrdm");
++	cpu0_pd = pwrdm_lookup("cpu0_pwrdm");
++	cpu1_pd = pwrdm_lookup("cpu1_pwrdm");
++	if ((!mpu_pd) || (!cpu0_pd) || (!cpu1_pd))
++		return -ENODEV;
++
++	cpuidle_register_driver(&omap4_idle_driver);
++
++	dev = &per_cpu(omap4_idle_dev, cpu_id);
++	dev->cpu = cpu_id;
++
++	/* C1 - CPU0 ON + CPU1 ON + MPU ON */
++	cx = _fill_cstate(dev, 0, "MPUSS ON");
++	dev->safe_state = &dev->states[0];
++	cx->valid = 1;	/* C1 is always valid */
++	cx->cpu_state = PWRDM_POWER_ON;
++	cx->mpu_state = PWRDM_POWER_ON;
++	cx->mpu_logic_state = PWRDM_POWER_RET;
++
++	/* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
++	cx = _fill_cstate(dev, 1, "MPUSS CSWR");
++	cx->cpu_state = PWRDM_POWER_OFF;
++	cx->mpu_state = PWRDM_POWER_RET;
++	cx->mpu_logic_state = PWRDM_POWER_RET;
++
++	/* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
++	cx = _fill_cstate(dev, 2, "MPUSS OSWR");
++	cx->cpu_state = PWRDM_POWER_OFF;
++	cx->mpu_state = PWRDM_POWER_RET;
++	cx->mpu_logic_state = PWRDM_POWER_OFF;
++
++	dev->state_count = OMAP4_NUM_STATES;
++	if (cpuidle_register_device(dev)) {
++		pr_err("%s: CPUidle register device failed\n", __func__);
++			return -EIO;
++		}
++
++	return 0;
 +}
-+
- /*
-  * Store the CPU cluster state for L2X0 low power operations.
-  */
-@@ -207,8 +253,18 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 		return -ENXIO;
- 	}
++#else
++int __init omap4_idle_init(void)
++{
++	return 0;
++}
++#endif /* CONFIG_CPU_IDLE */
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 4e166ad..b737b11 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -21,6 +21,7 @@ extern void omap_sram_idle(void);
+ extern int omap3_can_sleep(void);
+ extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap3_idle_init(void);
++extern int omap4_idle_init(void);
  
-+	/*
-+	 * Check MPUSS next state and save interrupt controller if needed.
-+	 * In MPUSS OSWR or device OFF, interrupt controller  contest is lost.
-+	 */
-+	mpuss_clear_prev_logic_pwrst();
- 	pwrdm_clear_all_prev_pwrst(mpuss_pd);
-+	if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
-+		(pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF))
-+		save_state = 2;
-+
- 	clear_cpu_prev_pwrst(cpu);
-+	cpu_clear_prev_logic_pwrst(cpu);
- 	set_cpu_next_pwrst(cpu, power_state);
- 	set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
- 	scu_pwrst_prepare(cpu, power_state);
-@@ -293,6 +349,7 @@ int __init omap4_mpuss_init(void)
- 
- 	/* Clear CPU previous power domain state */
- 	pwrdm_clear_all_prev_pwrst(pm_info->pwrdm);
-+	cpu_clear_prev_logic_pwrst(0);
- 
- 	/* Initialise CPU0 power domain state to ON */
- 	pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
-@@ -309,6 +366,7 @@ int __init omap4_mpuss_init(void)
- 
- 	/* Clear CPU previous power domain state */
- 	pwrdm_clear_all_prev_pwrst(pm_info->pwrdm);
-+	cpu_clear_prev_logic_pwrst(1);
- 
- 	/* Initialise CPU1 power domain state to ON */
- 	pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
-@@ -319,6 +377,7 @@ int __init omap4_mpuss_init(void)
- 		return -ENODEV;
- 	}
- 	pwrdm_clear_all_prev_pwrst(mpuss_pd);
-+	mpuss_clear_prev_logic_pwrst();
- 
- 	/* Save device type on scratchpad for low level code to use */
- 	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
+ #if defined(CONFIG_PM_OPP)
+ extern int omap3_opp_init(void);
 diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 63e8f9b..8df57cb 100644
+index 8df57cb..a4ba474 100644
 --- a/arch/arm/mach-omap2/pm44xx.c
 +++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -28,6 +28,7 @@ struct power_state {
- 	u32 next_state;
- #ifdef CONFIG_SUSPEND
- 	u32 saved_state;
-+	u32 saved_logic_state;
- #endif
- 	struct list_head node;
- };
-@@ -44,11 +45,13 @@ static int omap4_pm_suspend(void)
- 	/* Save current powerdomain state */
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
-+		pwrst->saved_logic_state = pwrdm_read_logic_retst(pwrst->pwrdm);
- 	}
+@@ -258,6 +258,8 @@ static int __init omap4_pm_init(void)
+ 	/* Overwrite the default arch_idle() */
+ 	pm_idle = omap_default_idle;
  
- 	/* Set targeted power domain states by suspend */
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-+		pwrdm_set_logic_retst(pwrst->pwrdm, PWRDM_POWER_OFF);
- 	}
- 
- 	/*
-@@ -73,6 +76,7 @@ static int omap4_pm_suspend(void)
- 			ret = -1;
- 		}
- 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
-+		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->saved_logic_state);
- 	}
- 	if (ret)
- 		pr_err("Could not enter target state in pm_suspend\n");
++	omap4_idle_init();
++
+ err2:
+ 	return ret;
+ }
 -- 
 1.7.4.1
 
