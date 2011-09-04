@@ -1,194 +1,192 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 16/25] OMAP4: PM: Program CPU1 to hit OFF when off-lined
-Date: Sun, 4 Sep 2011 19:24:17 +0530
-Message-ID: <1315144466-9395-17-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 18/25] OMAP4: suspend: Add MPUSS power domain RETENTION support
+Date: Sun, 4 Sep 2011 19:24:19 +0530
+Message-ID: <1315144466-9395-19-git-send-email-santosh.shilimkar@ti.com>
 References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38055 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36816 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754627Ab1IDN4L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 4 Sep 2011 09:56:11 -0400
+	id S1754619Ab1IDN4M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 4 Sep 2011 09:56:12 -0400
 In-Reply-To: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Program non-boot CPUs to hit lowest supported power state
-when it is off-lined using cpu hotplug framework.
+This patch adds MPUSS(MPU Sub System) power domain
+CSWR(Close Switch Retention) support to system wide suspend.
+For both MPUSS RET support, CPUs are programmed to OFF state.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/include/mach/omap4-common.h |    7 +++++
- arch/arm/mach-omap2/omap-hotplug.c              |   14 ++++++---
- arch/arm/mach-omap2/omap-mpuss-lowpower.c       |   33 +++++++++++++++++++++++
- arch/arm/mach-omap2/omap-wakeupgen.c            |   32 ++++++++++++++++++++++
- 4 files changed, 81 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |   16 +++++++
+ arch/arm/mach-omap2/pm44xx.c              |   71 +++++++++++++++++++++++++++--
+ 2 files changed, 82 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
-index 662f37c..14803c3 100644
---- a/arch/arm/mach-omap2/include/mach/omap4-common.h
-+++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
-@@ -51,6 +51,7 @@ extern int omap4_mpuss_init(void);
- extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
- extern int omap4_finish_suspend(unsigned long cpu_state);
- extern void omap4_cpu_resume(void);
-+extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
- #else
- static inline int omap4_enter_lowpower(unsigned int cpu,
- 					unsigned int power_state)
-@@ -59,6 +60,12 @@ static inline int omap4_enter_lowpower(unsigned int cpu,
- 	return 0;
- }
- 
-+static inline int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
-+{
-+	omap_do_wfi();
-+	return 0;
-+}
-+
- static inline int omap4_mpuss_init(void)
- {
- 	return 0;
-diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
-index 80167ec..51ade8d 100644
---- a/arch/arm/mach-omap2/omap-hotplug.c
-+++ b/arch/arm/mach-omap2/omap-hotplug.c
-@@ -21,6 +21,8 @@
- #include <asm/cacheflush.h>
- #include <mach/omap4-common.h>
- 
-+#include "powerdomain.h"
-+
- int platform_cpu_kill(unsigned int cpu)
- {
- 	return 1;
-@@ -32,6 +34,8 @@ int platform_cpu_kill(unsigned int cpu)
-  */
- void platform_cpu_die(unsigned int cpu)
- {
-+	unsigned int this_cpu;
-+
- 	flush_cache_all();
- 	dsb();
- 
-@@ -39,15 +43,15 @@ void platform_cpu_die(unsigned int cpu)
- 	 * we're ready for shutdown now, so do it
- 	 */
- 	if (omap_modify_auxcoreboot0(0x0, 0x200) != 0x0)
--		printk(KERN_CRIT "Secure clear status failed\n");
-+		pr_err("Secure clear status failed\n");
- 
- 	for (;;) {
- 		/*
--		 * Execute WFI
-+		 * Enter into low power state
- 		 */
--		omap_do_wfi();
--
--		if (omap_read_auxcoreboot0() == cpu) {
-+		omap4_hotplug_cpu(cpu, PWRDM_POWER_OFF);
-+		this_cpu = smp_processor_id();
-+		if (omap_read_auxcoreboot0() == this_cpu) {
- 			/*
- 			 * OK, proper wakeup, we're done
- 			 */
 diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 1137537..9d68abf 100644
+index 9d68abf..9f632fe 100644
 --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
 +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -193,6 +193,39 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 	return 0;
- }
+@@ -66,6 +66,7 @@ struct omap4_cpu_pm_info {
+ };
  
-+/**
-+ * omap4_hotplug_cpu: OMAP4 CPU hotplug entry
-+ * @cpu : CPU ID
-+ * @power_state: CPU low power state.
-+ */
-+int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
-+{
-+	unsigned int cpu_state = 0;
+ static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
++static struct powerdomain *mpuss_pd;
+ 
+ /*
+  * Program the wakeup routine address for the CPU0 and CPU1
+@@ -140,6 +141,13 @@ static void scu_pwrst_prepare(unsigned int cpu_id, unsigned int cpu_state)
+  * of OMAP4 MPUSS subsystem
+  * @cpu : CPU ID
+  * @power_state: Low power state.
++ *
++ * MPUSS states for the context save:
++ * save_state =
++ *	0 - Nothing lost and no need to save: MPUSS INACTIVE
++ *	1 - CPUx L1 and logic lost: MPUSS CSWR
++ *	2 - CPUx L1 and logic lost + GIC lost: MPUSS OSWR
++ *	3 - CPUx L1 and logic lost + GIC + L2 lost: DEVICE OFF
+  */
+ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ {
+@@ -169,6 +177,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 		return -ENXIO;
+ 	}
+ 
++	pwrdm_clear_all_prev_pwrst(mpuss_pd);
+ 	clear_cpu_prev_pwrst(cpu);
+ 	set_cpu_next_pwrst(cpu, power_state);
+ 	set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
+@@ -270,6 +279,13 @@ int __init omap4_mpuss_init(void)
+ 	/* Initialise CPU1 power domain state to ON */
+ 	pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
+ 
++	mpuss_pd = pwrdm_lookup("mpu_pwrdm");
++	if (!mpuss_pd) {
++		pr_err("Failed to lookup MPUSS power domain\n");
++		return -ENODEV;
++	}
++	pwrdm_clear_all_prev_pwrst(mpuss_pd);
 +
-+	if (omap_rev() == OMAP4430_REV_ES1_0)
-+		return -ENXIO;
+ 	/* Save device type on scratchpad for low level code to use */
+ 	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
+ 		__raw_writel(1, sar_base + OMAP_TYPE_OFFSET);
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 4f39de5..63e8f9b 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -1,8 +1,9 @@
+ /*
+  * OMAP4 Power Management Routines
+  *
+- * Copyright (C) 2010 Texas Instruments, Inc.
++ * Copyright (C) 2010-2011 Texas Instruments, Inc.
+  * Rajendra Nayak <rnayak@ti.com>
++ * Santosh Shilimkar <santosh.shilimkar@ti.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -16,9 +17,11 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ 
++#include <mach/omap4-common.h>
 +
-+	if (power_state == PWRDM_POWER_OFF)
-+		cpu_state = 1;
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+-#include <mach/omap4-common.h>
++#include "pm.h"
+ 
+ struct power_state {
+ 	struct powerdomain *pwrdm;
+@@ -34,7 +37,48 @@ static LIST_HEAD(pwrst_list);
+ #ifdef CONFIG_SUSPEND
+ static int omap4_pm_suspend(void)
+ {
+-	omap_do_wfi();
++	struct power_state *pwrst;
++	int state, ret = 0;
++	u32 cpu_id = smp_processor_id();
 +
-+	clear_cpu_prev_pwrst(cpu);
-+	cpu_clear_prev_logic_pwrst(cpu);
-+	set_cpu_next_pwrst(cpu, power_state);
-+	set_cpu_wakeup_addr(cpu, virt_to_phys(omap_secondary_startup));
-+	scu_pwrst_prepare(cpu, power_state);
++	/* Save current powerdomain state */
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
++	}
++
++	/* Set targeted power domain states by suspend */
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
++	}
 +
 +	/*
-+	 * CPU never retuns back if targetted power state is OFF mode.
-+	 * CPU ONLINE follows normal CPU ONLINE ptah via
-+	 * omap_secondary_startup().
++	 * For MPUSS to hit power domain retention(CSWR or OSWR),
++	 * CPU0 and CPU1 power domain needs to be in OFF or DORMANT
++	 * state. For MPUSS to reach off-mode. CPU0 and CPU1 power domain
++	 * should be in off state.
++	 * Only master CPU followes suspend path. All other CPUs follow
++	 * cpu-hotplug path in system wide suspend. On OMAP4, CPU power
++	 * domain CSWR is not supported by hardware.
++	 * More details can be found in OMAP4430 TRM section 4.3.4.2.
 +	 */
-+	omap4_finish_suspend(cpu_state);
++	omap4_enter_lowpower(cpu_id, PWRDM_POWER_OFF);
 +
-+	set_cpu_next_pwrst(cpu, PWRDM_POWER_ON);
-+	return 0;
-+}
-+
-+
- /*
-  * Initialise OMAP4 MPUSS
-  */
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-index a0882e6..6461f22 100644
---- a/arch/arm/mach-omap2/omap-wakeupgen.c
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -194,6 +194,36 @@ void wakeupgen_irqmask_all(unsigned int cpu, unsigned int set)
- 	spin_unlock_irqrestore(&wakeupgen_lock, flags);
- }
- 
-+#ifdef CONFIG_HOTPLUG_CPU
-+static int __cpuinit irq_cpu_hotplug_notify(struct notifier_block *self,
-+					 unsigned long action, void *hcpu)
-+{
-+	unsigned int cpu = (unsigned int)hcpu;
-+
-+	switch (action) {
-+	case CPU_ONLINE:
-+		wakeupgen_irqmask_all(cpu, 0);
-+		break;
-+	case CPU_DEAD:
-+		wakeupgen_irqmask_all(cpu, 1);
-+		break;
++	/* Restore next powerdomain state */
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
++		if (state > pwrst->next_state) {
++			pr_info("Powerdomain (%s) didn't enter "
++			       "target state %d\n",
++			       pwrst->pwrdm->name, pwrst->next_state);
++			ret = -1;
++		}
++		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
 +	}
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block __refdata irq_hotplug_notifier = {
-+	.notifier_call = irq_cpu_hotplug_notify,
-+};
-+
-+static void __init irq_hotplug_init(void)
-+{
-+	register_hotcpu_notifier(&irq_hotplug_notifier);
-+}
-+#else
-+static void __init irq_hotplug_init(void)
-+{}
-+#endif
-+
- /*
-  * Initialise the wakeupgen module.
-  */
-@@ -237,5 +267,7 @@ int __init omap_wakeupgen_init(void)
- 	for (i = 0; i < NR_IRQS; i++)
- 		irq_target_cpu[i] = boot_cpu;
- 
-+	irq_hotplug_init();
++	if (ret)
++		pr_err("Could not enter target state in pm_suspend\n");
++	else
++		pr_err("Successfully put all powerdomains to target state\n");
 +
  	return 0;
  }
+ 
+@@ -97,14 +141,31 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	if (!pwrdm->pwrsts)
+ 		return 0;
+ 
++	/*
++	 * Skip CPU0 and CPU1 power domains. CPU1 is programmed
++	 * through hotplug path and CPU0 explicitly programmed
++	 * further down in the code path
++	 */
++	if ((!strcmp(pwrdm->name, "cpu0_pwrdm")) ||
++		(!strcmp(pwrdm->name, "cpu1_pwrdm")))
++		return 0;
++
++	/*
++	 * FIXME: Remove this check when core retention is supported
++	 * Only MPUSS power domain is added in the list.
++	 */
++	if (strcmp(pwrdm->name, "mpu_pwrdm"))
++		return 0;
++
+ 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
+ 	if (!pwrst)
+ 		return -ENOMEM;
++
+ 	pwrst->pwrdm = pwrdm;
+-	pwrst->next_state = PWRDM_POWER_ON;
++	pwrst->next_state = PWRDM_POWER_RET;
+ 	list_add(&pwrst->node, &pwrst_list);
+ 
+-	return pwrdm_set_next_pwrst(pwrst->pwrdm, pwrst->next_state);
++	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+ }
+ 
+ /**
 -- 
 1.7.4.1
 
