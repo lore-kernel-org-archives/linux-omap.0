@@ -1,41 +1,37 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: Re: [PATCH 1/3] OMAP: DSS2: Support for Innolux AT070TN83
-Date: Mon, 05 Sep 2011 10:25:06 +0200
-Message-ID: <4E648762.4050804@corscience.de>
-References: <1314859332.1933.4.camel@deskari>  <1314882308-25915-1-git-send-email-weber@corscience.de> <1314950284.3374.31.camel@deskari>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH V2 00/16] omap_hsmmc patches
+Date: Mon, 5 Sep 2011 12:11:09 +0300
+Message-ID: <CANOLnON24o8-SsWE4QY-xaxyBw3rW71F8x1_3Bmh-3uwAeADKw@mail.gmail.com>
+References: <1304673255-31634-1-git-send-email-adrian.hunter@nokia.com>
+	<CANOLnONWmYn4FpuF-UAKQR4rAA6LOgWdMfu2bMN46nna6rOxAw@mail.gmail.com>
+	<m2k4bm2nwl.fsf@bob.laptop.org>
+	<CANOLnOPGay+jQaeBAVD5-B3WQaWMSiPFirvhrPkeS0_ZgmX-BQ@mail.gmail.com>
+	<20110902105325.GT3548@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:59223 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347Ab1IEIZ0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Sep 2011 04:25:26 -0400
-In-Reply-To: <1314950284.3374.31.camel@deskari>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:48591 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751665Ab1IEJLK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Sep 2011 05:11:10 -0400
+Received: by gya6 with SMTP id 6so3055033gya.19
+        for <linux-omap@vger.kernel.org>; Mon, 05 Sep 2011 02:11:10 -0700 (PDT)
+In-Reply-To: <20110902105325.GT3548@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 
-Am 02.09.2011 09:58, schrieb Tomi Valkeinen:
-> On Thu, 2011-09-01 at 15:05 +0200, Thomas Weber wrote:
->> Add support for Innolux AT070TN83, a 7 inch LCD
->> with RGB-Interface and touch panel to panel-generic-dpi.
+On Fri, Sep 2, 2011 at 1:53 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Grazvydas Ignotas <notasas@gmail.com> [110715 12:27]:
+>> On Wed, Jul 13, 2011 at 6:36 PM, Chris Ball <cjb@laptop.org> wrote:
+>> > If someone wants to look at rebasing the rest of these against mmc-next
+>> > and resubmitting, I think that'd be useful.
 >>
->> Tested with Devkit8000.
->>
->> Signed-off-by: Thomas Weber <weber@corscience.de>
->> ---
->>  drivers/video/omap2/displays/panel-generic-dpi.c |   25 ++++++++++++++++++++++
->>  1 files changed, 25 insertions(+), 0 deletions(-)
-> Thanks, these look fine to me.
+>> Thanks! 1 and 4 seem to be unneeded any more (I was trying them on
+>> linux-next, not noticing it was not updated for a while), and others
+>> have comments pending, so it's all done.
 >
-> The subject suggests there are 3 patches, but I presume that's wrong?
->
->  Tomi
->
->
->
-You are right, I had an additional patch during format-patch.
+> So I guess that means I don't need to look at anything, right?
 
-Thomas
+Yeah, these patches hit mainline already.
