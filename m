@@ -1,46 +1,95 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3 00/10]HDMI: Split hdmi.c in DSS to seperate OMAP
- dependent
-Date: Mon, 05 Sep 2011 15:15:16 +0300
-Message-ID: <1315224916.1825.2.camel@lappyti>
-References: <1314960470-2616-1-git-send-email-mythripk@ti.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 1/2] misc: remove CONFIG_MISC_DEVICES
+Date: Mon, 5 Sep 2011 14:41:34 +0200
+Message-ID: <20110905144134.2c80c4b9@endymion.delvare>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
+	<201108311849.37273.arnd@arndb.de>
+	<20110902143713.307bbebe@endymion.delvare>
+	<201109021643.14275.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:56262 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752998Ab1IEMPU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Sep 2011 08:15:20 -0400
-Received: by mail-bw0-f48.google.com with SMTP id t2so6376323bka.35
-        for <linux-omap@vger.kernel.org>; Mon, 05 Sep 2011 05:15:19 -0700 (PDT)
-In-Reply-To: <1314960470-2616-1-git-send-email-mythripk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <201109021643.14275.arnd@arndb.de>
+Sender: linux-media-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Luciano Coelho <coelho@ti.com>, Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
-To: mythripk@ti.com
-Cc: linux-omap@vger.kernel.org
 
-On Fri, 2011-09-02 at 16:17 +0530, mythripk@ti.com wrote:
-> From: Mythri P K <mythripk@ti.com>
+Hi Arnd,
+
+On Fri, 2 Sep 2011 16:43:14 +0200, Arnd Bergmann wrote:
+> Since misc devices have nothing in common besides fitting in no
+> other category, there is no need to group them in one Kconfig
+> symbol. Simply removing the symbol gets rid of all sorts of
+> Kconfig warnings about missing dependencies when another driver
+> selects a misc driver without also selecting MISC_DEVICES.
 > 
-> HDMI IP block is common between TI OMAP4 Procerssor and Netra processor although
-> the Display subsytem is different.Also the IP block in future OMAP may differ
-> from the one existing in OMAP4. Thus to reuse the code between these two
-> processors , and maintain the multi omap build functionality in DSS.
-> HDMI IP dependant code is seperated out from hdmi.c and moved to
-> new library file hdmi_ti_4xxx_ip.c.From the DSS dependent HDMI code only the
-> function pointer to functionality/features offered by HDMI is called.
-> 
-> This patch series does the split and also renames hdmi_omap4_panel.c to
-> hdmi_panel.c as that file has nothing specific to OMAP4 and can be reused for
-> other OMAP family of processors as well.
-> 
-> This patch series is based on Tomi's LO-DSS2 master branch.
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  arch/arm/mach-davinci/Kconfig |    6 ------
+>  arch/unicore32/Kconfig        |    1 -
+>  drivers/misc/Kconfig          |   26 ++++++++------------------
+>  drivers/mmc/host/Kconfig      |    1 -
+>  4 files changed, 8 insertions(+), 26 deletions(-)
+> (...)
+> --- a/drivers/misc/Kconfig
+> +++ b/drivers/misc/Kconfig
+> @@ -2,23 +2,7 @@
+>  # Misc strange devices
+>  #
+>  
+> -# This one has to live outside of the MISC_DEVICES conditional,
+> -# because it may be selected by drivers/platform/x86/hp_accel.
+> -config SENSORS_LIS3LV02D
+> -	tristate
+> -	depends on INPUT
+> -	select INPUT_POLLDEV
+> -	default n
+> -
+> -menuconfig MISC_DEVICES
+> -	bool "Misc devices"
+> -	---help---
+> -	  Say Y here to get to see options for device drivers from various
+> -	  different categories. This option alone does not add any kernel code.
+> -
+> -	  If you say N, all options in this submenu will be skipped and disabled.
+> -
+> -if MISC_DEVICES
+> +menu "Misc devices"
 
-The kernel doesn't compile at all after enabling
-SND_OMAP_SOC_OMAP4_HDMI. Looks like you didn't move any of the sound
-stuff, but just left them in hdmi.c file.
+As said before, I'm not sure. Yes, it makes it easier to select misc
+device drivers from Kconfig files. But it also makes it impossible to
+deselect all misc device drivers at once.
 
- Tomi
+I think that what we really need is the implementation in the Kconfig
+system of smart selects, i.e. whenever an entry is selected, everything
+it depends on gets selected as well. I don't know how feasible this is,
+but if it can be done then I'd prefer this to your proposal.
 
+Meanwhile, I am not in favor of applying your patch. The benefit is
+relatively small IMHO (misc device drivers are rarely selected) and
+there is one significant drawback.
 
+That being said, I'm not the one to decide, so if you can convince
+someone with more power (aka Andrew Morton)...
+
+>  
+>  config AD525X_DPOT
+>  	tristate "Analog Devices Digital Potentiometers"
+> @@ -344,6 +328,12 @@ config ISL29020
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called isl29020.
+>  
+> +config SENSORS_LIS3LV02D
+> +	tristate
+> +	depends on INPUT
+> +	select INPUT_POLLDEV
+> +	default n
+> +
+
+If you patch gets applied, then this one would better be moved to
+drivers/misc/lis3lv02d/Kconfig.
+
+-- 
+Jean Delvare
