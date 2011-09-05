@@ -1,68 +1,89 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 1/2] misc: remove CONFIG_MISC_DEVICES
-Date: Mon, 5 Sep 2011 16:27:10 +0200
-Message-ID: <20110905162710.348c380f@endymion.delvare>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
-	<201109021643.14275.arnd@arndb.de>
-	<20110905144134.2c80c4b9@endymion.delvare>
-	<201109051619.35553.arnd@arndb.de>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/7] arm/dts: OMAP3: Add mpu and iva nodes
+Date: Mon, 5 Sep 2011 17:05:11 +0200
+Message-ID: <4E64E527.4040409@ti.com>
+References: <1314897912-18178-1-git-send-email-b-cousson@ti.com> <1314897912-18178-3-git-send-email-b-cousson@ti.com> <1377915.IaVE5xAurc@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201109051619.35553.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Luciano Coelho <coelho@ti.com>, Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34361 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753528Ab1IEPF3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Sep 2011 11:05:29 -0400
+In-Reply-To: <1377915.IaVE5xAurc@wuerfel>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 5 Sep 2011 16:19:35 +0200, Arnd Bergmann wrote:
-> On Monday 05 September 2011, Jean Delvare wrote:
-> > As said before, I'm not sure. Yes, it makes it easier to select misc
-> > device drivers from Kconfig files. But it also makes it impossible to
-> > deselect all misc device drivers at once.
-> > 
-> > I think that what we really need is the implementation in the Kconfig
-> > system of smart selects, i.e. whenever an entry is selected, everything
-> > it depends on gets selected as well. I don't know how feasible this is,
-> > but if it can be done then I'd prefer this to your proposal.
-> > 
-> > Meanwhile, I am not in favor of applying your patch. The benefit is
-> > relatively small IMHO (misc device drivers are rarely selected) and
-> > there is one significant drawback.
-> 
-> Before I made this patch, I started a different one that added about
-> a dozen 'select MISC_DEVICES' statements sprinkled all over the kernel
-> in order to silence the Kconfig warnings.
+Hi Arnd,
 
-Ah, OK. This certainly shifts the scales towards your side.
+On 9/1/2011 8:17 PM, Arnd Bergmann wrote:
+> On Thursday 01 September 2011 19:25:07 Benoit Cousson wrote:
+>>
+>>          /*
+>> +        * XXX: The cpus node is mandatory, but since the CPUs are as well part
+>> +        * of the mpu subsystem below, it is not clear where the information
+>> +        * should be. Maybe here with a phandle inside the mpu?
+>> +        */
+>> +       cpus {
+>> +       };
+>> +
+>> +       /*
+>>           * The soc node represents the soc top level view. It is uses for IPs
+>>           * that are not memory mapped in the MPU view or for the MPU itself.
+>>           */
+>>          soc {
+>>                  compatible = "ti,omap-infra";
+>> +               mpu {
+>> +                       compatible = "ti,omap3-mpu";
+>> +                       hwmods = "mpu";
+>> +                       cpu@0 {
+>> +                               compatible = "arm,cortex-a8";
+>> +                       };
+>> +               };
+>> +
+>
+> I would always put the cpu nodes in the top-level, even if that's
+> a slight misrepresentation of the truth. The point is basically
+> that CPU nodes are special (you cannot have device drivers for them)
+> and that the device tree is basically laid out from the perspective
+> of the CPU, which may be different from the perspective that a
+> hardware designer has.
 
-> The problem is that whenever you select that option, the misc directory
-> suddenly becomes visible when it was disabled before, and things like
-> 'oldconfig' will start asking about all other misc drivers as well.
+Yeah, I saw that in the "cpus" node documentation. My point here is that 
+I do need to represent the MPU subsystem that will contain the cpus. And 
+thus the Cortex is inside the MPU subsystem.
 
-Another good point. Maybe I'm convinced now.
+I can potentially keep the CPUs inside the cpus node, and just represent 
+the mpu node inside the soc, with potentially some phandle to the real 
+cpu nodes.
 
-> I think it would simply be more consistent to have it enabled all
-> the time. Well, even better would be to move the bulk of the misc
-> drivers to a proper location sorted by their subsystems. A lot of them
-> should never have been merged in their current state IMHO.
+Something like that:
 
-As one of the offenders, I won't dare to comment on this ;)
+cpus {
+	cpu0: cpu@0 {
+			compatible = "arm,cortex-a8";
+	};
+};
 
-> > That being said, I'm not the one to decide, so if you can convince
-> > someone with more power (aka Andrew Morton)...
-> 
-> I think I should finally do what has been  talked about a few times and
-> formally become the maintainer of drivers/char and drivers/misc ;-)
-> 
-> The problem is that I'm not actually a good maintainer, but maybe it's
-> better to just have someone instead of falling back to Andrew or
-> some random subsystem maintainer to send any patches for drivers/misc.
+[...]
 
-Certainly. And having a maintainer for these (non-)subsystems would
-certainly help keep their size low, while the current trend is in the
-other direction.
+soc {
+	compatible = "ti,omap-infra";
+	mpu {
+		compatible = "ti,omap3-mpu";
+		hwmods = "mpu";
+		cpu@0 {
+			phandle = <&cpu0>;
+			[...]
+		};
+	};
+};
 
--- 
-Jean Delvare
+
+Does that look better?
+
+Thanks,
+Benoit
