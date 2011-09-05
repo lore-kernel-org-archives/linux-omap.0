@@ -1,55 +1,46 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 05/25] OMAP4: Use WARN_ON() instead of BUG_ON() with graceful
- exit
-Date: Mon, 05 Sep 2011 14:11:12 +0400
-Message-ID: <4E64A040.4000801@ru.mvista.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com> <1315144466-9395-6-git-send-email-santosh.shilimkar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: testing-board branch: rebase to RMK's devel-stable?
+Date: Mon, 5 Sep 2011 03:31:35 -0700
+Message-ID: <20110905103135.GF1903@atomide.com>
+References: <87vcta7r9f.fsf@ti.com>
+ <alpine.LFD.2.00.1109021446300.20358@xanadu.home>
+ <alpine.LFD.2.00.1109021448120.20358@xanadu.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:38689 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751969Ab1IEKL5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Sep 2011 06:11:57 -0400
-Received: by wyh22 with SMTP id 22so3494798wyh.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Sep 2011 03:11:56 -0700 (PDT)
-In-Reply-To: <1315144466-9395-6-git-send-email-santosh.shilimkar@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38064 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752478Ab1IEKbk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Sep 2011 06:31:40 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1109021448120.20358@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hello.
+* Nicolas Pitre <nicolas.pitre@linaro.org> [110902 11:25]:
+> On Fri, 2 Sep 2011, Nicolas Pitre wrote:
+> 
+> > On Fri, 2 Sep 2011, Kevin Hilman wrote:
+> > 
+> > > Hi Tony,
+> > > 
+> > > Your testing-board branch currently has a couple new boards that are
+> > > missing the boot_params to atag_offset conversion (patch below.)
+> > > 
+> > > There's a patch below to fix this, but maybe it's better to just rebase
+> > > your testing-board branch onto Russell's devel-stable branch (where he's
+> > > merged the seris from Nico) so any board stuff we add is sure to do it
+> > > correctly.
+> > 
+> > I would suggest that too.
+> 
+> Better yet, if your bootloader does pass the address of the ATAG list 
+> via r2 already (contemporary u-Boot versions do) then the 
+> boot_params/atag_offset entry is redundant and can simply be dropped 
+> upfront.
 
-On 04-09-2011 17:54, Santosh Shilimkar wrote:
+Yes we should be able to drop it then.
 
-> OMAP4 L2X0 initialisation code uses BUG_ON() for the ioremap()
-> failure scenarios.
-
-> Use WARN_ON() instead and allow graceful function exits.
-
-> This was suggsted by Kevin Hilman<khilman@ti.com>  during
-> OMAP4 PM code review.
-
-> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> Cc: Kevin Hilman<khilman@ti.com>
-> ---
->   arch/arm/mach-omap2/omap4-common.c |    3 ++-
->   1 files changed, 2 insertions(+), 1 deletions(-)
-
-> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-> index 4791370..4904025 100644
-> --- a/arch/arm/mach-omap2/omap4-common.c
-> +++ b/arch/arm/mach-omap2/omap4-common.c
-> @@ -121,7 +121,8 @@ static int __init omap_l2_cache_init(void)
->
->   	/* Static mapping, never released */
->   	l2cache_base = ioremap(OMAP44XX_L2CACHE_BASE, SZ_4K);
-> -	BUG_ON(!l2cache_base);
-> +	if (WARN_ON(!l2cache_base))
-> +		return -ENODEV;
-
-    Rather ENOMEM...
-
-WBR, Sergei
+Tony
