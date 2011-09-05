@@ -1,89 +1,85 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/7] arm/dts: OMAP3: Add mpu and iva nodes
-Date: Mon, 5 Sep 2011 17:05:11 +0200
-Message-ID: <4E64E527.4040409@ti.com>
-References: <1314897912-18178-1-git-send-email-b-cousson@ti.com> <1314897912-18178-3-git-send-email-b-cousson@ti.com> <1377915.IaVE5xAurc@wuerfel>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP2+: hwmod: remove OMAP_CHIP*
+Date: Mon, 5 Sep 2011 18:19:47 +0300
+Message-ID: <20110905151947.GA3548@atomide.com>
+References: <alpine.DEB.2.00.1109042042250.9056@utopia.booyaka.com>
+ <CANOLnOOkz2ZkhPSafTLxUUH2bSVoRrYA44-C1+yku8naYaRz3w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34361 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753528Ab1IEPF3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Sep 2011 11:05:29 -0400
-In-Reply-To: <1377915.IaVE5xAurc@wuerfel>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26183 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754521Ab1IEPTt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Sep 2011 11:19:49 -0400
+Content-Disposition: inline
+In-Reply-To: <CANOLnOOkz2ZkhPSafTLxUUH2bSVoRrYA44-C1+yku8naYaRz3w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Arnd,
+* Grazvydas Ignotas <notasas@gmail.com> [110905 13:54]:
+> On Mon, Sep 5, 2011 at 5:43 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2=
+/omap_hwmod.c
+> > index 84cc0bd..d7138070 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> <snip>
+>=20
+> >
+> > =C2=A0int __init omap3xxx_hwmod_init(void)
+> > =C2=A0{
+> > - =C2=A0 =C2=A0 =C2=A0 return omap_hwmod_register(omap3xxx_hwmods);
+> > + =C2=A0 =C2=A0 =C2=A0 int r;
+> > + =C2=A0 =C2=A0 =C2=A0 struct omap_hwmod **h =3D NULL;
+> > +
+> > + =C2=A0 =C2=A0 =C2=A0 /* Register hwmods common to all OMAP3 */
+> > + =C2=A0 =C2=A0 =C2=A0 r =3D omap_hwmod_register(omap3xxx_hwmods);
+> > + =C2=A0 =C2=A0 =C2=A0 if (!r)
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return r;
+> > +
+> > + =C2=A0 =C2=A0 =C2=A0 /*
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0* Register hwmods common to individual=
+ OMAP3 families, all
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0* silicon revisions (e.g., 34xx, or AM=
+3505/3517, or 36xx)
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0* All possible revisions should be inc=
+luded in this conditional.
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
+> > + =C2=A0 =C2=A0 =C2=A0 if (omap_rev() =3D=3D OMAP3430_REV_ES1_0 ||
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_rev() =3D=3D OMAP3430_REV=
+_ES2_0 ||
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_rev() =3D=3D OMAP3430_REV=
+_ES2_1 ||
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_rev() =3D=3D OMAP3430_REV=
+_ES3_0 ||
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_rev() =3D=3D OMAP3430_REV=
+_ES3_1 ||
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_rev() =3D=3D OMAP3430_REV=
+_ES3_1_2) {
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 h =3D omap34xx_h=
+wmods;
+> > + =C2=A0 =C2=A0 =C2=A0 } else if (omap_rev() & OMAP3505_REV(0)) {
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 h =3D am35xx_hwm=
+ods;
+>=20
+> This check will be always true I think?
+>=20
+> Why not just use cpu_is_omap3xxx() for these tests, since it does sam=
+e
+> omap_rev() call but only once per family?
 
-On 9/1/2011 8:17 PM, Arnd Bergmann wrote:
-> On Thursday 01 September 2011 19:25:07 Benoit Cousson wrote:
->>
->>          /*
->> +        * XXX: The cpus node is mandatory, but since the CPUs are as well part
->> +        * of the mpu subsystem below, it is not clear where the information
->> +        * should be. Maybe here with a phandle inside the mpu?
->> +        */
->> +       cpus {
->> +       };
->> +
->> +       /*
->>           * The soc node represents the soc top level view. It is uses for IPs
->>           * that are not memory mapped in the MPU view or for the MPU itself.
->>           */
->>          soc {
->>                  compatible = "ti,omap-infra";
->> +               mpu {
->> +                       compatible = "ti,omap3-mpu";
->> +                       hwmods = "mpu";
->> +                       cpu@0 {
->> +                               compatible = "arm,cortex-a8";
->> +                       };
->> +               };
->> +
->
-> I would always put the cpu nodes in the top-level, even if that's
-> a slight misrepresentation of the truth. The point is basically
-> that CPU nodes are special (you cannot have device drivers for them)
-> and that the device tree is basically laid out from the perspective
-> of the CPU, which may be different from the perspective that a
-> hardware designer has.
+=46or SoC family based ES revision and GP/HS detection
+we should set up minimal macros. Ideally we would not
+need cpu_is_omapxxxx during early_init at all.
 
-Yeah, I saw that in the "cpus" node documentation. My point here is that 
-I do need to represent the MPU subsystem that will contain the cpus. And 
-thus the Cortex is inside the MPU subsystem.
+Regards,
 
-I can potentially keep the CPUs inside the cpus node, and just represent 
-the mpu node inside the soc, with potentially some phandle to the real 
-cpu nodes.
-
-Something like that:
-
-cpus {
-	cpu0: cpu@0 {
-			compatible = "arm,cortex-a8";
-	};
-};
-
-[...]
-
-soc {
-	compatible = "ti,omap-infra";
-	mpu {
-		compatible = "ti,omap3-mpu";
-		hwmods = "mpu";
-		cpu@0 {
-			phandle = <&cpu0>;
-			[...]
-		};
-	};
-};
-
-
-Does that look better?
-
-Thanks,
-Benoit
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
