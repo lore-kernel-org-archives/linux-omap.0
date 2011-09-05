@@ -1,78 +1,66 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 2/2] mfd: remove CONFIG_MFD_SUPPORT
-Date: Mon, 5 Sep 2011 15:09:42 +0200
-Message-ID: <20110905150942.54aecf4e@endymion.delvare>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
-	<201108311849.37273.arnd@arndb.de>
-	<20110902143713.307bbebe@endymion.delvare>
-	<201109021643.36369.arnd@arndb.de>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH v3 00/10]HDMI: Split hdmi.c in DSS to seperate OMAP dependent
+Date: Mon, 5 Sep 2011 18:52:40 +0530
+Message-ID: <CAP5A+B-Fcx=mqYf_uCGPPw1Wn_D=6eZ0dZxX7vK2OXC2-vaQpA@mail.gmail.com>
+References: <1314960470-2616-1-git-send-email-mythripk@ti.com> <1315224916.1825.2.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:12430 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112Ab1IENJ6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Sep 2011 09:09:58 -0400
-In-Reply-To: <201109021643.36369.arnd@arndb.de>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:51132 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753017Ab1IENXC convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Sep 2011 09:23:02 -0400
+Received: by vws18 with SMTP id 18so5063657vws.13
+        for <linux-omap@vger.kernel.org>; Mon, 05 Sep 2011 06:23:00 -0700 (PDT)
+In-Reply-To: <1315224916.1825.2.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Luciano Coelho <coelho@ti.com>, Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, 2 Sep 2011 16:43:36 +0200, Arnd Bergmann wrote:
-> We currently have two symbols to control compilation the MFD subsystem,
-> MFD_SUPPORT and MFD_CORE. The MFD_SUPPORT is actually not required
-> at all, it only hides the submenu when not set, with the effect that
-> Kconfig warns about missing dependencies when another driver selects
-> an MFD driver while MFD_SUPPORT is disabled. Turning the MFD submenu
-> back from menuconfig into a plain menu simplifies the Kconfig syntax
-> for those kinds of users and avoids the surprise when the menu
-> suddenly appears because another driver was enabled that selects this
-> symbol.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  arch/arm/mach-omap2/Kconfig |    1 -
->  drivers/gpio/Kconfig        |    3 +--
->  drivers/i2c/busses/Kconfig  |    1 -
->  drivers/media/radio/Kconfig |    1 -
->  drivers/mfd/Kconfig         |   22 ++++------------------
->  5 files changed, 5 insertions(+), 23 deletions(-)
-> (...)
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -2,23 +2,8 @@
->  # Multifunction miscellaneous devices
->  #
->  
-> -menuconfig MFD_SUPPORT
-> -	bool "Multifunction device drivers"
-> -	depends on HAS_IOMEM
-> -	default y
-> -	help
-> -	  Multifunction devices embed several functions (e.g. GPIOs,
-> -	  touchscreens, keyboards, current regulators, power management chips,
-> -	  etc...) in one single integrated circuit. They usually talk to the
-> -	  main CPU through one or more IRQ lines and low speed data busses (SPI,
-> -	  I2C, etc..). They appear as one single device to the main system
-> -	  through the data bus and the MFD framework allows for sub devices
-> -	  (a.k.a. functions) to appear as discrete platform devices.
-> -	  MFDs are typically found on embedded platforms.
-> -
-> -	  This option alone does not add any kernel code.
-> -
-> -if MFD_SUPPORT
-> +if HAS_IOMEM
-> +menu "Multifunction device drivers"
->  
->  config MFD_CORE
->  	tristate
+Hi,
 
-I think I prefer Luciano's proposal, for the same reasons given for the
-misc device drivers patch. But here again I'm not the one making the
-decision, so it's up to Samuel to decide which patch he wants to apply.
-
-
--- 
-Jean Delvare
+On Mon, Sep 5, 2011 at 5:45 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> =
+wrote:
+> On Fri, 2011-09-02 at 16:17 +0530, mythripk@ti.com wrote:
+>> From: Mythri P K <mythripk@ti.com>
+>>
+>> HDMI IP block is common between TI OMAP4 Procerssor and Netra proces=
+sor although
+>> the Display subsytem is different.Also the IP block in future OMAP m=
+ay differ
+>> from the one existing in OMAP4. Thus to reuse the code between these=
+ two
+>> processors , and maintain the multi omap build functionality in DSS.
+>> HDMI IP dependant code is seperated out from hdmi.c and moved to
+>> new library file hdmi_ti_4xxx_ip.c.From the DSS dependent HDMI code =
+only the
+>> function pointer to functionality/features offered by HDMI is called=
+=2E
+>>
+>> This patch series does the split and also renames hdmi_omap4_panel.c=
+ to
+>> hdmi_panel.c as that file has nothing specific to OMAP4 and can be r=
+eused for
+>> other OMAP family of processors as well.
+>>
+>> This patch series is based on Tomi's LO-DSS2 master branch.
+>
+> The kernel doesn't compile at all after enabling
+> SND_OMAP_SOC_OMAP4_HDMI. Looks like you didn't move any of the sound
+> stuff, but just left them in hdmi.c file.
+>
+I shall check this, may be i should handle some dependency but i didnt
+think there were any direct dependency , i guess you need to enable
+some audio files as well? let me check.
+> =A0Tomi
+>
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
