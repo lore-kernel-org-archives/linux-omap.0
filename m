@@ -1,105 +1,159 @@
-From: Raju Sana <venkat.rajuece-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] beagledaq: Hack in cs_gpios
-Date: Mon, 5 Sep 2011 18:12:26 +0530
-Message-ID: <CA+dZkamSp1O_e+uEEhudCGFedUC0mzHg0Ur4bJQ76mMekHkZGw@mail.gmail.com>
-References: <1314712254-27199-1-git-send-email-bgamari.foss@gmail.com>
-	<1314712343-27367-1-git-send-email-bgamari.foss@gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+Date: Mon, 5 Sep 2011 14:49:50 +0200
+Message-ID: <201109051449.50744.laurent.pinchart@ideasonboard.com>
+References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com> <201109041101.05028.laurent.pinchart@ideasonboard.com> <4E637DEC.5080507@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1314712343-27367-1-git-send-email-bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36368 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753280Ab1IEMtw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Sep 2011 08:49:52 -0400
+In-Reply-To: <4E637DEC.5080507@infradead.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Ravi, Deepthy" <deepthy.ravi@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Ben,
+Hi Mauro,
 
-The McSPI1 has got  "num_cs"  as 4.
-I would like to use McSPI1 to select my 3 chips based on the two GPIO pins.
-
-Could you please give me some pointers on this.
-
-Thanks,
-Venkat Raju.
-
-
-
-
-
-On Tue, Aug 30, 2011 at 7:22 PM, Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-
-> ---
->  arch/arm/mach-omap2/board-omap3beagle.c |    4 ++--
->  arch/arm/mach-omap2/devices.c           |   15 +++++++++++++++
->  2 files changed, 17 insertions(+), 2 deletions(-)
+On Sunday 04 September 2011 15:32:28 Mauro Carvalho Chehab wrote:
+> Em 04-09-2011 06:01, Laurent Pinchart escreveu:
+> > On Sunday 04 September 2011 00:21:38 Mauro Carvalho Chehab wrote:
+> >> Em 24-08-2011 10:25, Laurent Pinchart escreveu:
+> >>> On Wednesday 24 August 2011 14:19:01 Hiremath, Vaibhav wrote:
+> >>>> On Wednesday, August 24, 2011 5:00 PM Laurent Pinchart wrote:
+> >>>>> On Wednesday 24 August 2011 13:21:27 Ravi, Deepthy wrote:
+> >>>>>> On Wed, Aug 24, 2011 at 4:47 PM, Laurent Pinchart wrote:
+> >>>>>>> On Friday 19 August 2011 15:48:45 Deepthy Ravi wrote:
+> >>>>>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >>>>>>>> 
+> >>>>>>>> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
+> >>>>>>>> option is disabled and if any sensor driver has to be used
+> >>>>>>>> between MC and non MC framework compatible devices.
+> >>>>>>>> 
+> >>>>>>>> For example,if tvp514x video decoder driver migrated to
+> >>>>>>>> MC framework is being built without CONFIG_MEDIA_CONTROLLER
+> >>>>>>>> option enabled, the following error messages will result.
+> >>>>>>>> drivers/built-in.o: In function `tvp514x_remove':
+> >>>>>>>> drivers/media/video/tvp514x.c:1285: undefined reference to
+> >>>>>>>> `media_entity_cleanup'
+> >>>>>>>> drivers/built-in.o: In function `tvp514x_probe':
+> >>>>>>>> drivers/media/video/tvp514x.c:1237: undefined reference to
+> >>>>>>>> `media_entity_init'
+> >>>>>>> 
+> >>>>>>> If the tvp514x is migrated to the MC framework, its Kconfig option
+> >>>>>>> should depend on MEDIA_CONTROLLER.
+> >>>>>> 
+> >>>>>> The same TVP514x driver is being used for both MC and non MC
+> >>>>>> compatible devices, for example OMAP3 and AM35x. So if it is made
+> >>>>>> dependent on MEDIA CONTROLLER, we cannot enable the driver for MC
+> >>>>>> independent devices.
+> >>>>> 
+> >>>>> Then you should use conditional compilation in the tvp514x driver
+> >>>>> itself. Or
+> >>>> 
+> >>>> No. I am not in favor of conditional compilation in driver code.
+> >>> 
+> >>> Actually, thinking some more about this, you should make the tvp514x
+> >>> driver depend on CONFIG_MEDIA_CONTROLLER unconditionally. This doesn't
+> >>> mean that the driver will become unusable by applications that are not
+> >>> MC-aware. Hosts/bridges don't have to export subdev nodes, they can
+> >>> just call subdev pad-level operations internally and let applications
+> >>> control the whole device through a single V4L2 video node.
+> >>> 
+> >>>>> better, port the AM35x driver to the MC API.
+> >>>> 
+> >>>> Why should we use MC if I have very simple device (like AM35x) which
+> >>>> only supports single path? I can very well use simple V4L2 sub-dev
+> >>>> based approach (master - slave), isn't it?
+> >>> 
+> >>> The AM35x driver should use the in-kernel MC and V4L2 subdev APIs, but
+> >>> it doesn't have to expose them to userspace.
+> >> 
+> >> I don't agree. If AM35x doesn't expose the MC API to userspace,
+> >> CONFIG_MEDIA_CONTROLLER should not be required at all.
+> >> 
+> >> Also, according with the Linux best practices, when  #if tests for
+> >> config symbols are required, developers should put it into the header
+> >> files, and not inside the code, as it helps to improve code
+> >> readability. From
+> >> 
+> >> Documentation/SubmittingPatches:
+> >> 	2) #ifdefs are ugly
+> >> 	
+> >> 	Code cluttered with ifdefs is difficult to read and maintain.  Don't do
+> >> 	it.  Instead, put your ifdefs in a header, and conditionally define
+> >> 	'static inline' functions, or macros, which are used in the code.
+> >> 	Let the compiler optimize away the "no-op" case.
+> >> 
+> >> So, this patch is perfectly fine on my eyes.
+> > 
+> > I'm sorry, but I don't agree.
+> > 
+> > Regarding the V4L2 subdev pad-level API, the goal is to convert all host
+> > and subdev drivers to it, so that's definitely the way to go. This does
+> > *not* mean that subdevs must expose a subdev device node. That's
+> > entirely optional. What I'm talking about is switching from
+> > video::*_mbus_fmt operations to pad::*_fmt operations. The pad-level
+> > format operations are very similar to video-level format operations, and
+> > more generic. Drivers shouldn't implement both.
+> 
+> I agree that implementing two ways for doing the same thing is a bad idea,
+> but especially since your idea is to convert all subdevs to it, this type
+> of conversion should not require enabling CONFIG_MEDIA_CONTROLLER, as this
+> feature is used to enable the MC userspace API.
+> 
+> > Regarding the MC API, drivers are not required to register a media_device
+> > instance. I have no issue with that. However, drivers should initialized
+> > the subdev's embedded media_entity, as that's required by subdev
+> > pad-level operations to get the number of pads for a subdev.
+> 
+> There are two solutions:
+> 
+> 1) add some "fallback" method at the core to use the video::*_mbus_fmt way,
+> when MC is disabled;
+> 
+> 2) split the config options into two: one configurable by the user to
+> enable the userspace MC API, and another, used internally that would
+> select the MC internal API when drivers need it.
 >
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
-> b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 67999da..481c1a9 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -661,8 +661,8 @@ static struct spi_board_info
-> beagledaq_mcspi_board_info[] = {
->        },
->  };
->
-> -static int mcspi3_cs_gpios[4];
-> -static int mcspi4_cs_gpios[4];
-> +int mcspi3_cs_gpios[4];
-> +int mcspi4_cs_gpios[4];
->
->  static void __init beagledaq_init(void)
->  {
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 5b8ca68..6808251 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -341,6 +341,9 @@ struct omap_device_pm_latency omap_mcspi_latency[] = {
->        },
->  };
->
-> +extern int mcspi3_cs_gpios[4];
-> +extern int mcspi4_cs_gpios[4];
-> +
->  static int omap_mcspi_init(struct omap_hwmod *oh, void *unused)
->  {
->        struct omap_device *od;
-> @@ -369,6 +372,18 @@ static int omap_mcspi_init(struct omap_hwmod *oh, void
-> *unused)
->                        return -EINVAL;
->        }
->
-> +       /* HACK: Not enough time to figure out how to export cs_gpios from
-> +        * board file to driver correctly */
-> +       if (spi_num == 2) {
-> +               // Setup McSPI3 cs_gpios
-> +               pdata->num_cs = 4;
-> +               pdata->cs_gpios = mcspi3_cs_gpios;
-> +       } else if (spi_num == 3) {
-> +               // Setup McSPI4 cs_gpios
-> +               pdata->num_cs = 4;
-> +               pdata->cs_gpios = mcspi4_cs_gpios;
-> +       }
-> +
->        spi_num++;
->        od = omap_device_build(name, spi_num, oh, pdata,
->                                sizeof(*pdata), omap_mcspi_latency,
-> --
-> 1.7.4.1
->
->
-------------------------------------------------------------------------------
-Special Offer -- Download ArcSight Logger for FREE!
-Finally, a world-class log management solution at an even better 
-price-free! And you'll get a free "Love Thy Logs" t-shirt when you
-download Logger. Secure your free ArcSight Logger TODAY!
-http://p.sf.net/sfu/arcsisghtdev2dev
+> As your plan is to convert all drivers to the new way, (2) doesn't make
+> much sense in long term, as, at the end, all drivers will be selecting it.
+
+But (1) makes even less sense :-) The issue here is that MC-enabled drivers 
+will use pad-level subdev operations, so those operations need to be 
+implemented in subdev drivers used by MC-enabled hosts/bridges. I don't like 
+the idea of having two sets of similar operations in subdevs, as that will 
+result in duplicate code. We should thus implement only pad-level subdev 
+operations for MC-aware subdevs (a wrapper method can be implemented in the 
+code to convert video operations to subdev operations transparently for non 
+MC-aware hosts/bridges). This requires media_entity_init() and 
+media_entity_cleanup() being available to those subdev drivers regardless of 
+whether the host/bridge exposes the MC API to userspace.
+
+I don't mind splitting the config option. An alternative would be to compile 
+media_entity_init() and media_entity_cleanup() based on CONFIG_MEDIA_SUPPORT 
+instead of CONFIG_MEDIA_CONTROLLER, but that looks a bit hackish to me.
+
+> Also, I don't like the idea of increasing drivers complexity for the
+> existing drivers that work properly without MC. All those core conversions
+> that were done in the last two years caused already too much instability
+> to them.
+> 
+> We should really avoid touching on them again for something that won't be
+> adding any new feature nor fixing any known bug.
+
+We don't have to convert them all in one go right now, we can implement pad-
+level operations support selectively when a subdev driver becomes used by an 
+MC-enabled host/bridge driver.
+
+> > This will result in no modification to the userspace.
+
+-- 
+Regards,
+
+Laurent Pinchart
