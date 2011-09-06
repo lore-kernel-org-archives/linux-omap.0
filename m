@@ -1,39 +1,43 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [GIT PULL] I2C: OMAP: misc. cleanup for v3.2
-Date: Tue, 06 Sep 2011 15:31:18 -0700
-Message-ID: <4E669F36.2070008@ti.com>
-References: <871uwbhdoj.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [GIT PULL] gpio/omap: minor cleanups for v3.2
+Date: Tue, 06 Sep 2011 15:57:42 -0700
+Message-ID: <8739g91dp5.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <871uwbhdoj.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:51725 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754851Ab1IFW5t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 18:57:49 -0400
+Received: by mail-gx0-f182.google.com with SMTP id 28so4802534gxk.41
+        for <linux-omap@vger.kernel.org>; Tue, 06 Sep 2011 15:57:48 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hi Ben,
+Grant,
 
-On 08/23/2011 05:10 PM, Kevin Hilman wrote:
-> Ben,
->
-> Here's one more I2C cleanup series for v3.2.
->
-> It applies on top of my for_3.2/i2c-fixes branch just submitted.
->
-> Please pull into your tree for linux-next.
+Please pull the following OMAP GPIO cleanups for v3.2.
 
-I see you pulled the other two, can you pull this one as well?
-
-Since master.kernel.org is still down, I pushed a (backup) copy of these 
-branches to my gitorious repo[1].  It should pull cleanly into what 
-you've already pulled since this branch is based on my for_3.2/i2c-fixes 
-which you've already pulled.
-
-Thanks,
+Just a heads up: we're also working on another large series of cleanup
+for this driver that we'll be trying to merge for v3.2.
 
 Kevin
 
 
-[1] git://gitorious.org/khilman/linux-omap-pm.git
+The following changes since commit fcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c:
+
+  Linux 3.1-rc3 (2011-08-22 11:42:53 -0700)
+
+are available in the git repository at:
+  git://gitorious.org/khilman/linux-omap-pm.git for_3.2/gpio-cleanup
+
+Kevin Hilman (1):
+      gpio/omap: replace MOD_REG_BIT macro with static inline
+
+Todd Poynor (1):
+      gpio/omap: check return value from irq_alloc_generic_chip
+
+ drivers/gpio/gpio-omap.c |   59 ++++++++++++++++++++++++++-------------------
+ 1 files changed, 34 insertions(+), 25 deletions(-)
