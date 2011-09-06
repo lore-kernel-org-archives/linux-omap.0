@@ -1,52 +1,45 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: Re: OMAP2+: hwmod: remove OMAP_CHIP*
-Date: Tue, 6 Sep 2011 16:08:52 +0300 (EEST)
-Message-ID: <alpine.DEB.2.00.1109051606330.19606@esdhcp041196.research.nokia.com>
-References: <alpine.DEB.2.00.1109042042250.9056@utopia.booyaka.com>
+From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: [PATCH] arm: omap: Fix build error in ispccdc.c
+Date: Tue, 6 Sep 2011 16:02:15 +0200
+Message-ID: <1315317735-5255-1-git-send-email-joerg.roedel@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.1109042042250.9056@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Joerg Roedel <joerg.roedel@amd.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The following build error occurs with 3.1-rc5:
 
-On Mon, 5 Sep 2011, Paul Walmsley wrote:
-> At Tony's request, remove the OMAP_CHIP* flags from the hwmod data, and
-> replace it instead with chip family, variant, and ES level-specific lists
-> of hwmods to register.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+  CC      drivers/media/video/omap3isp/ispccdc.o
+/home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c: In function 'ccdc_lsc_config':
+/home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c:427:2: error: implicit declaration of function 'kzalloc' [-Werror=implicit-function-declaration]
+/home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c:427:6: warning: assignment makes pointer from integer without a cast [enabled by default]
 
-[...]
+This patch adds the missing 'linux/slab.h' include to fix the problem.
 
-> int __init omap3xxx_hwmod_init(void)
-> {
-> -	return omap_hwmod_register(omap3xxx_hwmods);
-> +	int r;
-> +	struct omap_hwmod **h = NULL;
-> +
-> +	/* Register hwmods common to all OMAP3 */
-> +	r = omap_hwmod_register(omap3xxx_hwmods);
-> +	if (!r)
-> +		return r;
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+---
+ drivers/media/video/omap3isp/ispccdc.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Should the timer12 be also removed from the common omap3xxx_hwmods
-list, as it is not available on (some?) HS devices. See
-e.g. <http://marc.info/?l=linux-omap&m=129433066521102&w=2>
-
-Currently RM-680 boot is broken because of this.
-
-A.
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 9d3459d..80796eb 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -31,6 +31,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/mm.h>
+ #include <linux/sched.h>
++#include <linux/slab.h>
+ #include <media/v4l2-event.h>
+ 
+ #include "isp.h"
+-- 
+1.7.4.1
