@@ -1,44 +1,64 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: [PATCH] OMAP2: Devkit8000: Remove double omap_mux_init_gpio
-Date: Tue,  6 Sep 2011 17:11:49 +0200
-Message-ID: <1315321909-5593-1-git-send-email-weber@corscience.de>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] mfd: twl6030: Setup irq_wake infrastructure.
+Date: Tue, 6 Sep 2011 21:29:30 +0530
+Message-ID: <1315324770-14530-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Thomas Weber <weber@corscience.de>, Russell King <linux@arm.linux.org.uk>, open list <linux-kernel@vger.kernel.org>, "open list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35665 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754598Ab1IFP7k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Sep 2011 11:59:40 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Remove the init of card detect pin because
-omap_mux_init_gpio() is called during hsmmc initialization
-for the write protect and card detect pin.
+TWL6030 devices have an interrupt line which is connected to
+application processor like OMAP. These devices support multiple features
+such as MMC card detect, USB cable detect, RTC interrupt, etc. that must
+wake up the application processor.
 
-Signed-off-by: Thomas Weber <weber@corscience.de>
+With this change, TWL6030 client drivers can make use of
+irq_wake() if the wakeup is desirable on it's irq events.
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- arch/arm/mach-omap2/board-devkit8000.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/mfd/twl6030-irq.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index f15f2a2..029c08a 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -226,7 +226,6 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
- {
- 	int ret;
+diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
+index eb3b5f8..4477134 100644
+--- a/drivers/mfd/twl6030-irq.c
++++ b/drivers/mfd/twl6030-irq.c
+@@ -187,6 +187,13 @@ static inline void activate_irq(int irq)
+ #endif
+ }
  
--	omap_mux_init_gpio(29, OMAP_PIN_INPUT);
- 	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
- 	mmc[0].gpio_cd = gpio + 0;
- 	omap2_hsmmc_init(mmc);
++int twl6030_irq_set_wake(struct irq_data *d, unsigned int on)
++{
++	int twl_irq = (int)irq_get_chip_data(d->irq);
++
++	return irq_set_irq_wake(twl_irq, on);
++}
++
+ /*----------------------------------------------------------------------*/
+ 
+ static unsigned twl6030_irq_next;
+@@ -318,10 +325,12 @@ int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
+ 	twl6030_irq_chip = dummy_irq_chip;
+ 	twl6030_irq_chip.name = "twl6030";
+ 	twl6030_irq_chip.irq_set_type = NULL;
++	twl6030_irq_chip.irq_set_wake = twl6030_irq_set_wake;
+ 
+ 	for (i = irq_base; i < irq_end; i++) {
+ 		irq_set_chip_and_handler(i, &twl6030_irq_chip,
+ 					 handle_simple_irq);
++		irq_set_chip_data(i, (void *)irq_num);
+ 		activate_irq(i);
+ 	}
+ 
 -- 
-1.7.6.1
+1.7.4.1
+
