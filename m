@@ -1,35 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Alternative git mirror for linux-omap
-Date: Tue, 6 Sep 2011 14:32:49 +0300
-Message-ID: <20110906113248.GD3548@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [GIT PULL v3] OMAP: clock/powerdomain/clockdomain/hwmod: fixes
+	for 3.1-rc
+Date: Tue, 6 Sep 2011 12:45:26 +0100
+Message-ID: <20110906114526.GD6918@n2100.arm.linux.org.uk>
+References: <alpine.DEB.2.00.1108222319310.28226@utopia.booyaka.com> <alpine.DEB.2.00.1108230105180.28226@utopia.booyaka.com> <alpine.DEB.2.00.1108300104010.26173@utopia.booyaka.com> <alpine.DEB.2.00.1109011751370.26025@utopia.booyaka.com> <alpine.DEB.2.00.1109042023190.9056@utopia.booyaka.com> <20110906112914.GC1895@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20830 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753795Ab1IFLcv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 07:32:51 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.72)
-	(envelope-from <tony@atomide.com>)
-	id 1R0tta-000AhJ-Gc
-	for linux-omap@vger.kernel.org; Tue, 06 Sep 2011 11:32:51 +0000
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44374 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753424Ab1IFLpj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 07:45:39 -0400
 Content-Disposition: inline
+In-Reply-To: <20110906112914.GC1895@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 
-Hi all,
+On Tue, Sep 06, 2011 at 04:29:14AM -0700, Tony Lindgren wrote:
+> Arnd,
+> 
+> Care to pull the following fixes to the -rc series from Paul?
 
-As kernel.org git servers still cannot be updated, I've set up
-a git branch at:
+Tony,
 
-http://github.com/tmlind/linux
+I don't think that will happen until master.kernel.org is back online
+as the tree was hosted on that machine.
 
-You can pull from that to your existing tree with:
-
-$ git pull http://github.com/tmlind/linux master
-
-Regards,
-
-Tony
