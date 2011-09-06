@@ -1,97 +1,453 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH v3 00/10]HDMI: Split hdmi.c in DSS to seperate OMAP dependent
-Date: Tue, 6 Sep 2011 16:58:10 +0530
-Message-ID: <CAP5A+B-WeYQ+FJqSTqSEsdMaBmHOViT7-6rgyR1DSZBvmE9Oyg@mail.gmail.com>
-References: <1314960470-2616-1-git-send-email-mythripk@ti.com>
- <1315224916.1825.2.camel@lappyti> <CAP5A+B-Fcx=mqYf_uCGPPw1Wn_D=6eZ0dZxX7vK2OXC2-vaQpA@mail.gmail.com>
- <CAP5A+B9RNhagZfD8-HqoE7rOWrFTYUChzu72iTXwD1yfddaOjw@mail.gmail.com>
+From: Hemanth V <hemanthv@ti.com>
+Subject: Re: [PATCH] mfd: Add PWM1 and PWM2 support to twl6030-pwm
+Date: Tue, 6 Sep 2011 16:58:50 +0530
+Message-ID: <64093.192.168.10.10.1315308530.squirrel@dbdmail.itg.ti.com>
+References: <51632.192.168.10.10.1314687437.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:36964 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753411Ab1IFL2b convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Sep 2011 07:28:31 -0400
-Received: by mail-vx0-f171.google.com with SMTP id 2so2354967vxh.2
-        for <linux-omap@vger.kernel.org>; Tue, 06 Sep 2011 04:28:30 -0700 (PDT)
-In-Reply-To: <CAP5A+B9RNhagZfD8-HqoE7rOWrFTYUChzu72iTXwD1yfddaOjw@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47426 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754195Ab1IFL2w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Sep 2011 07:28:52 -0400
+In-Reply-To: <51632.192.168.10.10.1314687437.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, "Neri, Ricardo" <ricardo.neri@ti.com>
+To: sameo@linux.intel.com
 Cc: linux-omap@vger.kernel.org
 
-Hi,
+> From: Hemanth V <hemanthv@ti.com>
+> Date: Fri, 26 Aug 2011 10:49:29 +0530
+> Subject: [PATCH] Add PWM1 and PWM2 support to twl6030-pwm driver
 
-On Tue, Sep 6, 2011 at 3:09 PM, K, Mythri P <mythripk@ti.com> wrote:
-> Hi,
->
-> On Mon, Sep 5, 2011 at 6:52 PM, K, Mythri P <mythripk@ti.com> wrote:
->> Hi,
->>
->> On Mon, Sep 5, 2011 at 5:45 PM, Tomi Valkeinen <tomi.valkeinen@ti.co=
-m> wrote:
->>> On Fri, 2011-09-02 at 16:17 +0530, mythripk@ti.com wrote:
->>>> From: Mythri P K <mythripk@ti.com>
->>>>
->>>> HDMI IP block is common between TI OMAP4 Procerssor and Netra proc=
-essor although
->>>> the Display subsytem is different.Also the IP block in future OMAP=
- may differ
->>>> from the one existing in OMAP4. Thus to reuse the code between the=
-se two
->>>> processors , and maintain the multi omap build functionality in DS=
-S.
->>>> HDMI IP dependant code is seperated out from hdmi.c and moved to
->>>> new library file hdmi_ti_4xxx_ip.c.From the DSS dependent HDMI cod=
-e only the
->>>> function pointer to functionality/features offered by HDMI is call=
-ed.
->>>>
->>>> This patch series does the split and also renames hdmi_omap4_panel=
-=2Ec to
->>>> hdmi_panel.c as that file has nothing specific to OMAP4 and can be=
- reused for
->>>> other OMAP family of processors as well.
->>>>
->>>> This patch series is based on Tomi's LO-DSS2 master branch.
->>>
->>> The kernel doesn't compile at all after enabling
->>> SND_OMAP_SOC_OMAP4_HDMI. Looks like you didn't move any of the soun=
-d
->>> stuff, but just left them in hdmi.c file.
->>>
->> I shall check this, may be i should handle some dependency but i did=
-nt
->> think there were any direct dependency , i guess you need to enable
->> some audio files as well? let me check.
->
-> There is a dependency on the audio files on the register writers and =
-i
-> was not very sure on what would be a genuine API v's what can be a
-> static function.
-> Ricardo any comments would you like to post a patch on top of this se=
-ries ?
->
-I have made a temporary patch to move the IP  dependent audio
-functions to ti_hdmi_4xxx_ip.c and i see it compiles fine, later on we
-can decide on what could be the API's and move the audio(non IP
-dependent ) portion out of  DSS ?
-are you ok with that ?
+Samuel, any comments on this patch.
 
-Thanks and regards,
-Mythri.
-> thanks and regards,
-> Mythri.
->>> =A0Tomi
->>>
->>>
->>>
->>
+Thanks
+Hemanth
+
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This patch adds support for PWM1/PWM2. TWL6030 PWM driver also
+> supports Indicator LED PWM. Function pointers are defined for
+> for init, enable, disable and configuration for both Indicator LED
+> PWM (led_pwm) and PWM1/PWM2 (std_pwm)
+>
+> Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Signed-off-by: Hemanth V <hemanthv@ti.com>
+> ---
+>  drivers/mfd/twl6030-pwm.c |  324 ++++++++++++++++++++++++++++++++++++++++++--
+>  1 files changed, 309 insertions(+), 15 deletions(-)
+>
+> diff --git a/drivers/mfd/twl6030-pwm.c b/drivers/mfd/twl6030-pwm.c
+> index e8fee14..8d9c3f5 100644
+> --- a/drivers/mfd/twl6030-pwm.c
+> +++ b/drivers/mfd/twl6030-pwm.c
+> @@ -5,6 +5,9 @@
+>   * Copyright (C) 2010 Texas Instruments
+>   * Author: Hemanth V <hemanthv@ti.com>
+>   *
+> + * Added support for PWM1, PWM2
+> + * Hemanth V <hemanthv@ti.com>
+> + *
+>   * This program is free software; you can redistribute it and/or modify it
+>   * under the terms of the GNU General Public License version 2 as published by
+>   * the Free Software Foundation.
+> @@ -36,7 +39,9 @@
+>  #define PWM_CTRL2_CURR_02	(2 << 4)
+>
+>  /* LED supply source */
+> +#define PWM_CTRL2_SRC_VBUS	(0 << 2)
+>  #define PWM_CTRL2_SRC_VAC	(1 << 2)
+> +#define PWM_CTRL2_SRC_EXT	(2 << 2)
+>
+>  /* LED modes */
+>  #define PWM_CTRL2_MODE_HW	(0 << 0)
+> @@ -45,12 +50,53 @@
+>
+>  #define PWM_CTRL2_MODE_MASK	0x3
+>
+> +/* PWMs supported by driver */
+> +#define PWM_ID_LED		1
+> +#define PWM_ID_PWM1		2
+> +#define PWM_ID_PWM2		3
+> +
+> +#define LED_PWM1ON		0x00
+> +#define LED_PWM1OFF		0x01
+> +#define LED_PWM2ON		0x03
+> +#define LED_PWM2OFF		0x04
+> +#define TWL6030_TOGGLE3		0x92
+> +#define PWMSTATUS2		0x94
+> +
+> +/* Defines for TOGGLE3 register */
+> +#define PWM2EN			(1 << 5)
+> +#define PWM2S			(1 << 4)
+> +#define PWM2R			(1 << 3)
+> +#define PWM1EN			(1 << 2)
+> +#define PWM1S			(1 << 1)
+> +#define PWM1R			(1 << 0)
+> +
+> +/* Defines for PWMSTATUS2 register */
+> +#define PWM1_CLK_EN		(1 << 1)
+> +#define PWM2_CLK_EN		(1 << 3)
+> +#define	TRUE			1
+> +#define	FALSE			0
+> +
+> +static DEFINE_MUTEX(pwm_lock);
+> +static LIST_HEAD(pwm_list);
+> +
+> +struct pwm_device;
+> +
+> +struct pwm_ops {
+> +	int	(*config)(struct pwm_device *, int, int);
+> +	int	(*enable)(struct pwm_device *);
+> +	void	(*disable)(struct pwm_device *);
+> +	int	(*init)(struct pwm_device *);
+> +};
+> +
+>  struct pwm_device {
+> -	const char *label;
+> -	unsigned int pwm_id;
+> +	struct list_head	node;
+> +	const char		*label;
+> +	unsigned int		pwm_id;
+> +	unsigned int		use_count;
+> +	struct pwm_ops		*ops;
+>  };
+>
+> -int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+> +int led_pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+>  {
+>  	u8 duty_cycle;
+>  	int ret;
+> @@ -69,9 +115,8 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+>  	}
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL(pwm_config);
+>
+> -int pwm_enable(struct pwm_device *pwm)
+> +int led_pwm_enable(struct pwm_device *pwm)
+>  {
+>  	u8 val;
+>  	int ret;
+> @@ -95,9 +140,8 @@ int pwm_enable(struct pwm_device *pwm)
+>  	twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL(pwm_enable);
+>
+> -void pwm_disable(struct pwm_device *pwm)
+> +void led_pwm_disable(struct pwm_device *pwm)
+>  {
+>  	u8 val;
+>  	int ret;
+> @@ -120,37 +164,284 @@ void pwm_disable(struct pwm_device *pwm)
+>  	}
+>  	return;
+>  }
+> -EXPORT_SYMBOL(pwm_disable);
+>
+> -struct pwm_device *pwm_request(int pwm_id, const char *label)
+> +int led_pwm_init(struct pwm_device *pwm)
+>  {
+>  	u8 val;
+>  	int ret;
+> +
+> +	val = PWM_CTRL2_DIS_PD | PWM_CTRL2_CURR_02 | PWM_CTRL2_SRC_VBUS |
+> +		PWM_CTRL2_MODE_HW;
+> +
+> +	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
+> +
+> +	return ret;
+> +}
+> +
+> +static struct pwm_ops pwm_led = {
+> +	.config = led_pwm_config,
+> +	.enable = led_pwm_enable,
+> +	.disable = led_pwm_disable,
+> +	.init = led_pwm_init,
+> +};
+> +
+> +int std_pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+> +{
+> +	int ret = 0, level, pwm_id, reg;
+> +
+> +	level = (duty_ns * PWM_CTRL1_MAX) / period_ns;
+> +	pwm_id = pwm->pwm_id;
+> +
+> +	if (pwm_id == PWM_ID_PWM1)
+> +		reg = LED_PWM1ON;
+> +	else
+> +		reg = LED_PWM2ON;
+> +
+> +	if (level > 1) {
+> +		if (level == 255)
+> +			level = 0x7F;
+> +		else
+> +			level = (~(level/2)) & 0x7F;
+> +
+> +		ret = twl_i2c_write_u8(TWL_MODULE_PWM, level, reg);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +void std_pwm_disable(struct pwm_device *pwm)
+> +{
+> +
+> +	int ret, pwm_id;
+> +	bool pwm1_enabled = FALSE;
+> +	bool pwm2_enabled = FALSE;
+> +	u8 reg_val, reset_val, dis_val = 0;
+> +
+> +	pwm_id = pwm->pwm_id;
+> +
+> +	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &reg_val, PWMSTATUS2);
+> +	if (ret < 0)
+> +		goto out_err;
+> +
+> +	if (reg_val & PWM1_CLK_EN)
+> +		pwm1_enabled = TRUE;
+> +	if (reg_val & PWM2_CLK_EN)
+> +		pwm2_enabled = TRUE;
+> +
+> +	if (pwm_id == PWM_ID_PWM1) {
+> +		reset_val = PWM1EN | PWM1R;
+> +
+> +		/* Donot reset the state for PWM2 */
+> +		if (pwm2_enabled) {
+> +			dis_val |= PWM2EN | PWM2S;
+> +			reset_val |= PWM2EN | PWM2S;
+> +		}
+> +
+> +	} else if (pwm_id == PWM_ID_PWM2) {
+> +		reset_val = PWM2EN | PWM2R ;
+> +
+> +		/* Donot reset the state for PWM1 */
+> +		if (pwm1_enabled) {
+> +			dis_val |= PWM1EN | PWM1S;
+> +			reset_val |= PWM1EN | PWM1S;
+> +		}
+> +	} else {
+> +		ret = -EINVAL;
+> +		goto out_err;
+> +	}
+> +
+> +	/* Reset PWM to be disabled */
+> +	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, reset_val, TWL6030_TOGGLE3);
+> +	if (ret < 0)
+> +		goto out_err;
+> +
+> +	/* Disable PWM */
+> +	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, dis_val, TWL6030_TOGGLE3);
+> +	if (ret < 0)
+> +		goto out_err;
+> +
+> +	return;
+> +
+> +out_err:
+> +	pr_err("%s: Failed to Enable PWM, Error %d\n",
+> +		pwm->label, ret);
+> +	return;
+> +}
+> +
+> +int std_pwm_enable(struct pwm_device *pwm)
+> +{
+> +
+> +	int ret, pwm_id;
+> +	u8 en_val, reg_val;
+> +	bool pwm1_enabled = FALSE;
+> +	bool pwm2_enabled = FALSE;
+> +
+> +	pwm_id = pwm->pwm_id;
+> +
+> +	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &reg_val, PWMSTATUS2);
+> +	if (ret < 0)
+> +		goto out_err;
+> +
+> +	if (reg_val & PWM1_CLK_EN)
+> +		pwm1_enabled = TRUE;
+> +	if (reg_val & PWM2_CLK_EN)
+> +		pwm2_enabled = TRUE;
+> +
+> +	if (pwm_id == PWM_ID_PWM1) {
+> +		en_val = PWM1EN | PWM1S;
+> +
+> +		/* Maintain PWM2 state as-is*/
+> +		if (pwm2_enabled)
+> +			en_val |= PWM2EN | PWM2S;
+> +
+> +	} else if (pwm_id == PWM_ID_PWM2) {
+> +		en_val = PWM2EN | PWM2S;
+> +
+> +		/* Maintain PWM1 state as-is*/
+> +		if (pwm1_enabled)
+> +			en_val |= PWM1EN | PWM1S;
+> +	} else {
+> +		ret = -EINVAL;
+> +		goto out_err;
+> +	}
+> +
+> +	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, en_val, TWL6030_TOGGLE3);
+> +	if (ret < 0)
+> +		goto out_err;
+> +
+> +	return ret;
+> +
+> +out_err:
+> +	pr_err("%s: Failed to Enable PWM, Error %d\n",
+> +		pwm->label, ret);
+> +	return ret;
+> +}
+> +
+> +int std_pwm_init(struct pwm_device *pwm)
+> +{
+> +	int ret, reg1, reg2, pwm_id;
+> +
+> +	pwm_id = pwm->pwm_id;
+> +
+> +	if (pwm_id == PWM_ID_PWM1) {
+> +		reg1 = LED_PWM1ON;
+> +		reg2 = LED_PWM1OFF;
+> +	} else if (pwm_id == PWM_ID_PWM2) {
+> +		reg1 = LED_PWM2ON;
+> +		reg2 = LED_PWM2OFF;
+> +	} else {
+> +		ret = -EINVAL;
+> +		goto out_err;
+> +	}
+> +
+> +	ret = twl_i2c_write_u8(TWL_MODULE_PWM, 0x7F, reg1);
+> +	if (ret < 0)
+> +		goto out_err;
+> +
+> +	twl_i2c_write_u8(TWL_MODULE_PWM, 0x7F, reg2);
+> +	if (ret < 0)
+> +		goto out_err;
+> +
+> +	twl_i2c_write_u8(TWL6030_MODULE_ID1, 0x0, TWL6030_TOGGLE3);
+> +	if (ret < 0)
+> +		goto out_err;
+> +
+> +	return ret;
+> +
+> +out_err:
+> +	pr_err("%s: PWM init failed, Error %d\n",
+> +		pwm->label, ret);
+> +
+> +	return ret;
+> +}
+> +static struct pwm_ops pwm_std = {
+> +	.config = std_pwm_config,
+> +	.enable = std_pwm_enable,
+> +	.disable = std_pwm_disable,
+> +	.init = std_pwm_init,
+> +};
+> +
+> +int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+> +{
+> +	return pwm->ops->config(pwm, duty_ns, period_ns);
+> +}
+> +EXPORT_SYMBOL(pwm_config);
+> +
+> +int pwm_enable(struct pwm_device *pwm)
+> +{
+> +	return pwm->ops->enable(pwm);
+> +}
+> +EXPORT_SYMBOL(pwm_enable);
+> +
+> +void pwm_disable(struct pwm_device *pwm)
+> +{
+> +	pwm->ops->disable(pwm);
+> +}
+> +EXPORT_SYMBOL(pwm_disable);
+> +
+> +struct pwm_device *pwm_request(int pwm_id, const char *label)
+> +{
+> +	int ret, found = 0;
+>  	struct pwm_device *pwm;
+>
+> +	mutex_lock(&pwm_lock);
+> +
+> +	list_for_each_entry(pwm, &pwm_list, node) {
+> +		if (pwm->pwm_id == pwm_id) {
+> +			found = 1;
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (found) {
+> +		if (pwm->use_count == 0) {
+> +			pwm->use_count++;
+> +			pwm->label = label;
+> +		} else {
+> +			pwm = ERR_PTR(-EBUSY);
+> +		}
+> +
+> +		goto out;
+> +	}
+> +
+> +	mutex_unlock(&pwm_lock);
+> +
+>  	pwm = kzalloc(sizeof(struct pwm_device), GFP_KERNEL);
+>  	if (pwm == NULL) {
+>  		pr_err("%s: failed to allocate memory\n", label);
+> -		return NULL;
+> +		goto out;
+>  	}
+>
+>  	pwm->label = label;
+>  	pwm->pwm_id = pwm_id;
+> +	pwm->use_count++;
+>
+> -	/* Configure PWM */
+> -	val = PWM_CTRL2_DIS_PD | PWM_CTRL2_CURR_02 | PWM_CTRL2_SRC_VAC |
+> -		PWM_CTRL2_MODE_HW;
+> +	if (pwm_id == PWM_ID_LED) {
+> +		pwm->ops = &pwm_led;
+> +	} else if (pwm_id == PWM_ID_PWM1 || pwm_id == PWM_ID_PWM2) {
+> +		pwm->ops = &pwm_std;
+> +	} else {
+> +		kfree(pwm);
+> +		pwm = ERR_PTR(-EINVAL);
+> +		goto out;
+> +	}
+>
+> -	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
+> +	ret = pwm->ops->init(pwm);
+>
+>  	if (ret < 0) {
+>  		pr_err("%s: Failed to configure PWM, Error %d\n",
+>  			 pwm->label, ret);
+>
+>  		kfree(pwm);
+> -		return NULL;
+> +		pwm = NULL;
+> +		goto out;
+>  	}
+>
+> +	mutex_lock(&pwm_lock);
+> +	list_add_tail(&pwm->node, &pwm_list);
+> +	mutex_unlock(&pwm_lock);
+> +
+> +out:
+>  	return pwm;
+>  }
+>  EXPORT_SYMBOL(pwm_request);
+> @@ -158,6 +449,9 @@ EXPORT_SYMBOL(pwm_request);
+>  void pwm_free(struct pwm_device *pwm)
+>  {
+>  	pwm_disable(pwm);
+> +	mutex_lock(&pwm_lock);
+> +	list_del(&pwm->node);
+> +	mutex_unlock(&pwm_lock);
+>  	kfree(pwm);
+>  }
+>  EXPORT_SYMBOL(pwm_free);
+> --
+> 1.7.1
+>
+>
+>
+
+
