@@ -1,71 +1,44 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] arm: omap: Fix build error in ispccdc.c
-Date: Tue, 6 Sep 2011 17:06:23 +0200
-Message-ID: <201109061706.26776.laurent.pinchart@ideasonboard.com>
-References: <1315317735-5255-1-git-send-email-joerg.roedel@amd.com>
+From: Thomas Weber <weber@corscience.de>
+Subject: [PATCH] OMAP2: Devkit8000: Remove double omap_mux_init_gpio
+Date: Tue,  6 Sep 2011 17:11:49 +0200
+Message-ID: <1315321909-5593-1-git-send-email-weber@corscience.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34787 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754257Ab1IFPGe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 11:06:34 -0400
-In-Reply-To: <1315317735-5255-1-git-send-email-joerg.roedel@amd.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Thomas Weber <weber@corscience.de>, Russell King <linux@arm.linux.org.uk>, open list <linux-kernel@vger.kernel.org>, "open list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joerg.roedel@amd.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Joerg,
+Remove the init of card detect pin because
+omap_mux_init_gpio() is called during hsmmc initialization
+for the write protect and card detect pin.
 
-On Tuesday 06 September 2011 16:02:15 Joerg Roedel wrote:
-> The following build error occurs with 3.1-rc5:
->
->   CC      drivers/media/video/omap3isp/ispccdc.o
-> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c: In
-> function 'ccdc_lsc_config':
-> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c:42
-> 7:2: error: implicit declaration of function 'kzalloc'
-> [-Werror=implicit-function-declaration]
-> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c:42
-> 7:6: warning: assignment makes pointer from integer without a cast [enabled
-> by default]
-> 
-> This patch adds the missing 'linux/slab.h' include to fix the problem.
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+ arch/arm/mach-omap2/board-devkit8000.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-Thanks for the patch.
-
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: linux-media@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Mauro, can you please pick this patch and push it to v3.1 ?
-
-> ---
->  drivers/media/video/omap3isp/ispccdc.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/ispccdc.c
-> b/drivers/media/video/omap3isp/ispccdc.c index 9d3459d..80796eb 100644
-> --- a/drivers/media/video/omap3isp/ispccdc.c
-> +++ b/drivers/media/video/omap3isp/ispccdc.c
-> @@ -31,6 +31,7 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/mm.h>
->  #include <linux/sched.h>
-> +#include <linux/slab.h>
->  #include <media/v4l2-event.h>
-> 
->  #include "isp.h"
-
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index f15f2a2..029c08a 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -226,7 +226,6 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
+ {
+ 	int ret;
+ 
+-	omap_mux_init_gpio(29, OMAP_PIN_INPUT);
+ 	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+ 	mmc[0].gpio_cd = gpio + 0;
+ 	omap2_hsmmc_init(mmc);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.6.1
