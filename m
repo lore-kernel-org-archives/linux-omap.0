@@ -1,60 +1,50 @@
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [PATCH/RFC 0/7] iommu: fixes & extensions
-Date: Tue, 6 Sep 2011 12:15:35 +0200
-Message-ID: <20110906101535.GT16691@amd.com>
-References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 09/10] OMAP4: DSS2: HDMI: Function pointer approach
+ to call
+Date: Tue, 06 Sep 2011 13:17:41 +0300
+Message-ID: <1315304261.1930.7.camel@deskari>
+References: <1314960470-2616-1-git-send-email-mythripk@ti.com>
+	 <1314960470-2616-2-git-send-email-mythripk@ti.com>
+	 <1314960470-2616-3-git-send-email-mythripk@ti.com>
+	 <1314960470-2616-4-git-send-email-mythripk@ti.com>
+	 <1314960470-2616-5-git-send-email-mythripk@ti.com>
+	 <1314960470-2616-6-git-send-email-mythripk@ti.com>
+	 <1314960470-2616-7-git-send-email-mythripk@ti.com>
+	 <1314960470-2616-8-git-send-email-mythripk@ti.com>
+	 <1314960470-2616-9-git-send-email-mythripk@ti.com>
+	 <1314960470-2616-10-git-send-email-mythripk@ti.com>
+	 <1315220503.3214.28.camel@deskari>
+	 <CAP5A+B__VLN4Vr3v3Q7GXdKoxicTFOFQaTs8-UnoVC+XXRTETA@mail.gmail.com>
+	 <CAP5A+B8j8QHOOXp5H2d=rsEgn+YOdWcqB9_SjZ=aE3U4jovLNA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from am1ehsobe003.messaging.microsoft.com ([213.199.154.206]:13873
-	"EHLO AM1EHSOBE003.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753316Ab1IFKQT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 06:16:19 -0400
-Content-Disposition: inline
-In-Reply-To: <1314984756-4400-1-git-send-email-ohad@wizery.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:48411 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753316Ab1IFKRq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 06:17:46 -0400
+Received: by bkas6 with SMTP id s6so9790629bka.1
+        for <linux-omap@vger.kernel.org>; Tue, 06 Sep 2011 03:17:43 -0700 (PDT)
+In-Reply-To: <CAP5A+B8j8QHOOXp5H2d=rsEgn+YOdWcqB9_SjZ=aE3U4jovLNA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Sep 02, 2011 at 01:32:29PM -0400, Ohad Ben-Cohen wrote:
-> 5 first patches are relatively small iommu fixes/cleanups.
-> 
-> 2 last patches are proposals for core iommu extensions:
-> - Add fault report mechanism, needed for recovery of remote processors
->   trying to access unmapped addresses.
-> - Add splitting of memory regions to pages in the iommu core itself
->   (according to hardware capabilities as advertised by the iommu drivers).
->   This is needed to prevent duplication of this logic by
->   the iommu users/drivers themselves.
-> 
-> The patches are based on Joerg's arm/omap branch.
-> 
-> Tested with OMAP3 (omap3isp) + OMAP4 (rpmsg/remoteproc).
-> 
-> Laurent Pinchart (1):
->   iommu/omap-iovmm: support non page-aligned buffers in iommu_vmap
-> 
-> Ohad Ben-Cohen (6):
->   iommu/omap: cleanup: remove a redundant 'return' statement
->   iommu/core: use the existing IS_ALIGNED macro
->   iommu/omap: ->unmap() should return order of unmapped page
->   iommu/msm: ->unmap() should return order of unmapped page
->   iommu/core: add fault reporting
->   iommu/core: split mapping to page sizes as supported by the hardware
+On Tue, 2011-09-06 at 11:38 +0530, K, Mythri P wrote:
+> >> Did you consider how the code would look if the function pointers
+> were
+> >> just included into struct hdmi_ip_data, without any ops struct at
+> all?
+> >>
+> I tried without ops structure , but then using it in dss_features to
+> initialize would be a problem so i have moved it to ti_hdmi.h.
 
-Ok, I applied 1-5 to their respective branches. Patch 6 needs some more
-discussion to make sure the interface is generally usable. Patch 7 seems
-to be a starting point for now. This definitly requires conversion of
-the other IOMMU drivers too.
-Please make individual patch-sets from patch 6 and 7 respectivly.
+I'm fine with the ops struct, but I don't see why it would be a problem
+without it. You'd just pass the hdmi_ip_data to dss_features, which
+would initialize it.
 
-	Joerg
+ Tomi
 
--- 
-AMD Operating System Research Center
-
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
 
