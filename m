@@ -1,56 +1,69 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
-Date: Tue, 6 Sep 2011 16:47:31 +0200
-Message-ID: <201109061647.31861.laurent.pinchart@ideasonboard.com>
-References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com> <201109051449.50744.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404EC6BEE0C@dbde02.ent.ti.com>
+Subject: Re: [PATCH] arm: omap: Fix build error in ispccdc.c
+Date: Tue, 6 Sep 2011 17:06:23 +0200
+Message-ID: <201109061706.26776.laurent.pinchart@ideasonboard.com>
+References: <1315317735-5255-1-git-send-email-joerg.roedel@amd.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50438 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34787 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752322Ab1IFOrc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 10:47:32 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC6BEE0C@dbde02.ent.ti.com>
+	with ESMTP id S1754257Ab1IFPGe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 11:06:34 -0400
+In-Reply-To: <1315317735-5255-1-git-send-email-joerg.roedel@amd.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, "Ravi, Deepthy" <deepthy.ravi@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Joerg Roedel <joerg.roedel@amd.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Vaibhav,
+Hi Joerg,
 
-On Tuesday 06 September 2011 16:12:35 Hiremath, Vaibhav wrote:
-> On Monday, September 05, 2011 6:20 PM Laurent Pinchart wrote:
-> > On Sunday 04 September 2011 15:32:28 Mauro Carvalho Chehab wrote:
+On Tuesday 06 September 2011 16:02:15 Joerg Roedel wrote:
+> The following build error occurs with 3.1-rc5:
+>
+>   CC      drivers/media/video/omap3isp/ispccdc.o
+> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c: In
+> function 'ccdc_lsc_config':
+> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c:42
+> 7:2: error: implicit declaration of function 'kzalloc'
+> [-Werror=implicit-function-declaration]
+> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c:42
+> 7:6: warning: assignment makes pointer from integer without a cast [enabled
+> by default]
 > 
-> <snip>
-> 
-> > I don't mind splitting the config option. An alternative would be to
-> > compile media_entity_init() and media_entity_cleanup() based on
-> > CONFIG_MEDIA_SUPPORT instead of CONFIG_MEDIA_CONTROLLER, but that looks a
-> > bit hackish to me.
-> > 
-> > > Also, I don't like the idea of increasing drivers complexity for the
-> > > existing drivers that work properly without MC. All those core
-> > > conversions that were done in the last two years caused already too much
-> > > instability to them.
-> > > 
-> > > We should really avoid touching on them again for something that won't
-> > > be adding any new feature nor fixing any known bug.
-> > 
-> > We don't have to convert them all in one go right now, we can implement
-> > pad-level operations support selectively when a subdev driver becomes used
-> > by an MC-enabled host/bridge driver.
-> 
-> I completely agree that we should not be duplicating the code just for sake
-> of it.
-> 
-> Isn't the wrapper approach seems feasible here?
+> This patch adds the missing 'linux/slab.h' include to fix the problem.
 
-As explained in a previous e-mail, a wrapper sounds like a good approach to 
-me, to emulate video::* operations based on pad::* operations. We want to move 
-to pad::* operations, so we should not perform emulation the other way around.
+Thanks for the patch.
+
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-kernel@vger.kernel.org
+> Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Mauro, can you please pick this patch and push it to v3.1 ?
+
+> ---
+>  drivers/media/video/omap3isp/ispccdc.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> b/drivers/media/video/omap3isp/ispccdc.c index 9d3459d..80796eb 100644
+> --- a/drivers/media/video/omap3isp/ispccdc.c
+> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/dma-mapping.h>
+>  #include <linux/mm.h>
+>  #include <linux/sched.h>
+> +#include <linux/slab.h>
+>  #include <media/v4l2-event.h>
+> 
+>  #include "isp.h"
 
 -- 
 Regards,
