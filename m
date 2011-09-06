@@ -1,82 +1,60 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH v3 00/10]HDMI: Split hdmi.c in DSS to seperate OMAP dependent
-Date: Tue, 6 Sep 2011 15:09:43 +0530
-Message-ID: <CAP5A+B9RNhagZfD8-HqoE7rOWrFTYUChzu72iTXwD1yfddaOjw@mail.gmail.com>
-References: <1314960470-2616-1-git-send-email-mythripk@ti.com>
- <1315224916.1825.2.camel@lappyti> <CAP5A+B-Fcx=mqYf_uCGPPw1Wn_D=6eZ0dZxX7vK2OXC2-vaQpA@mail.gmail.com>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH/RFC 0/7] iommu: fixes & extensions
+Date: Tue, 6 Sep 2011 12:15:35 +0200
+Message-ID: <20110906101535.GT16691@amd.com>
+References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:43342 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753299Ab1IFJkE convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Sep 2011 05:40:04 -0400
-Received: by vxi9 with SMTP id 9so5767600vxi.5
-        for <linux-omap@vger.kernel.org>; Tue, 06 Sep 2011 02:40:03 -0700 (PDT)
-In-Reply-To: <CAP5A+B-Fcx=mqYf_uCGPPw1Wn_D=6eZ0dZxX7vK2OXC2-vaQpA@mail.gmail.com>
+Received: from am1ehsobe003.messaging.microsoft.com ([213.199.154.206]:13873
+	"EHLO AM1EHSOBE003.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753316Ab1IFKQT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 06:16:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1314984756-4400-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, "Neri, Ricardo" <ricardo.neri@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi,
+On Fri, Sep 02, 2011 at 01:32:29PM -0400, Ohad Ben-Cohen wrote:
+> 5 first patches are relatively small iommu fixes/cleanups.
+> 
+> 2 last patches are proposals for core iommu extensions:
+> - Add fault report mechanism, needed for recovery of remote processors
+>   trying to access unmapped addresses.
+> - Add splitting of memory regions to pages in the iommu core itself
+>   (according to hardware capabilities as advertised by the iommu drivers).
+>   This is needed to prevent duplication of this logic by
+>   the iommu users/drivers themselves.
+> 
+> The patches are based on Joerg's arm/omap branch.
+> 
+> Tested with OMAP3 (omap3isp) + OMAP4 (rpmsg/remoteproc).
+> 
+> Laurent Pinchart (1):
+>   iommu/omap-iovmm: support non page-aligned buffers in iommu_vmap
+> 
+> Ohad Ben-Cohen (6):
+>   iommu/omap: cleanup: remove a redundant 'return' statement
+>   iommu/core: use the existing IS_ALIGNED macro
+>   iommu/omap: ->unmap() should return order of unmapped page
+>   iommu/msm: ->unmap() should return order of unmapped page
+>   iommu/core: add fault reporting
+>   iommu/core: split mapping to page sizes as supported by the hardware
 
-On Mon, Sep 5, 2011 at 6:52 PM, K, Mythri P <mythripk@ti.com> wrote:
-> Hi,
->
-> On Mon, Sep 5, 2011 at 5:45 PM, Tomi Valkeinen <tomi.valkeinen@ti.com=
-> wrote:
->> On Fri, 2011-09-02 at 16:17 +0530, mythripk@ti.com wrote:
->>> From: Mythri P K <mythripk@ti.com>
->>>
->>> HDMI IP block is common between TI OMAP4 Procerssor and Netra proce=
-ssor although
->>> the Display subsytem is different.Also the IP block in future OMAP =
-may differ
->>> from the one existing in OMAP4. Thus to reuse the code between thes=
-e two
->>> processors , and maintain the multi omap build functionality in DSS=
-=2E
->>> HDMI IP dependant code is seperated out from hdmi.c and moved to
->>> new library file hdmi_ti_4xxx_ip.c.From the DSS dependent HDMI code=
- only the
->>> function pointer to functionality/features offered by HDMI is calle=
-d.
->>>
->>> This patch series does the split and also renames hdmi_omap4_panel.=
-c to
->>> hdmi_panel.c as that file has nothing specific to OMAP4 and can be =
-reused for
->>> other OMAP family of processors as well.
->>>
->>> This patch series is based on Tomi's LO-DSS2 master branch.
->>
->> The kernel doesn't compile at all after enabling
->> SND_OMAP_SOC_OMAP4_HDMI. Looks like you didn't move any of the sound
->> stuff, but just left them in hdmi.c file.
->>
-> I shall check this, may be i should handle some dependency but i didn=
-t
-> think there were any direct dependency , i guess you need to enable
-> some audio files as well? let me check.
+Ok, I applied 1-5 to their respective branches. Patch 6 needs some more
+discussion to make sure the interface is generally usable. Patch 7 seems
+to be a starting point for now. This definitly requires conversion of
+the other IOMMU drivers too.
+Please make individual patch-sets from patch 6 and 7 respectivly.
 
-There is a dependency on the audio files on the register writers and i
-was not very sure on what would be a genuine API v's what can be a
-static function.
-Ricardo any comments would you like to post a patch on top of this seri=
-es ?
+	Joerg
 
-thanks and regards,
-Mythri.
->> =A0Tomi
->>
->>
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+
