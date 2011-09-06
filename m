@@ -1,43 +1,49 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [GIT PULL] gpio/omap: minor cleanups for v3.2
-Date: Tue, 06 Sep 2011 15:57:42 -0700
-Message-ID: <8739g91dp5.fsf@ti.com>
+Subject: Re: [PATCH v6 00/25] gpio/omap: driver cleanup and fixes
+Date: Tue, 06 Sep 2011 15:59:55 -0700
+Message-ID: <87ty8pz384.fsf@ti.com>
+References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:51725 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754851Ab1IFW5t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 18:57:49 -0400
-Received: by mail-gx0-f182.google.com with SMTP id 28so4802534gxk.41
-        for <linux-omap@vger.kernel.org>; Tue, 06 Sep 2011 15:57:48 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Wed, 31 Aug 2011 19:12:16 +0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Grant,
+Hi Tarun,
 
-Please pull the following OMAP GPIO cleanups for v3.2.
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-Just a heads up: we're also working on another large series of cleanup
-for this driver that we'll be trying to merge for v3.2.
+> This series is continuation of cleanup of OMAP GPIO driver and fixes.
+> The cleanup include getting rid of cpu_is_* checks wherever possible,
+> use of gpio_bank list instead of static array, use of unique platform
+> specific value associated data member to OMAP platforms to avoid
+> cpu_is_* checks. The series also include PM runtime support.*
+
+Thanks for your continued effort on this series.
+
+> Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+> Branch: master
+> Commit: c6a389f  Linux 3.1-rc4 
+
+This series was supposed to be based on my for_3.2/gpio-cleanup branch,
+which removes MOD_REG_BIT among other things.
+
+Please rebase onto that branch so these changes can be tested along with
+changes already queued for v3.2.
+
+Thanks,
 
 Kevin
-
-
-The following changes since commit fcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c:
-
-  Linux 3.1-rc3 (2011-08-22 11:42:53 -0700)
-
-are available in the git repository at:
-  git://gitorious.org/khilman/linux-omap-pm.git for_3.2/gpio-cleanup
-
-Kevin Hilman (1):
-      gpio/omap: replace MOD_REG_BIT macro with static inline
-
-Todd Poynor (1):
-      gpio/omap: check return value from irq_alloc_generic_chip
-
- drivers/gpio/gpio-omap.c |   59 ++++++++++++++++++++++++++-------------------
- 1 files changed, 34 insertions(+), 25 deletions(-)
