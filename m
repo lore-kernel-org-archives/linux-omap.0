@@ -1,104 +1,91 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 10/11] ARM: pm: convert some assembly to C
-Date: Wed, 7 Sep 2011 16:48:28 +0100
-Message-ID: <20110907154828.GA21987@e102568-lin.cambridge.arm.com>
-References: <20110901124752.GE29729@n2100.arm.linux.org.uk>
-	<E1Qz6k7-00078l-SM@rmk-PC.arm.linux.org.uk>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [linux-pm] Issue: Runtime API usage in wake-up device irq_handler during wakeup from system-wide-suspend.
+Date: Wed, 7 Sep 2011 18:48:33 +0300
+Message-ID: <1315410513.2679.9.camel@sokoban>
+References: <Pine.LNX.4.44L0.1108271537300.21403-100000@netrider.rowland.org>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <E1Qz6k7-00078l-SM@rmk-PC.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48345 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754575Ab1IGQBA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 12:01:00 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <Pine.LNX.4.44L0.1108271537300.21403-100000@netrider.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "R, Govindraj" <govindraj.raja@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "Munegowda, Keshava" <keshava_mgowda@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-Hi Russell,
+Hi,
 
-On Thu, Sep 01, 2011 at 01:51:39PM +0100, Russell King - ARM Linux wrote:
-> Convert some of the sleep.S guts to C code, which makes it easier to
-> use our macros and to add L2 cache handling.  We provide a helper
-> function, __cpu_suspend_save(), which deals with saving the common
-> state, setting up for resume, and flushing caches.
+On Sat, 2011-08-27 at 21:42 +0200, Alan Stern wrote:
+> On Sat, 27 Aug 2011, Santosh wrote:
 > 
-> The remainder left as assembly code is the saving of the CPU general
-> purpose registers, and allocating space on the stack to save the CPU
-> specific registers and resume state.
+> > On Saturday 27 August 2011 07:31 PM, Alan Stern wrote:
+> > > On Sat, 27 Aug 2011, Santosh wrote:
+> > >
+> > >> I might be wrong here, but after discussion with Govindraj on this
+> > >> issue, it seems there is a flaw in the way OMAP chain handler
+> > >> handling the child interrupts.
+> > >>
+> > >> On OMAP, we have special interrupt wakeup source at PRCM level and
+> > >> many devices can trigger wakeup from low power via this common
+> > >> interrupt source. The common interrupt source upon wakeup from low
+> > >> power state, decodes the source of interrupt and based on that
+> > >> source, calls the respective device ISR directly.
+> > >>
+> > >> The issue I see here is, the ISR on _a_ device (UART in this case)
+> > >> is happening even before UART resume and DPM resume has been completed.
+> > >> If this is the case, then it is surely asking for trouble. Because not
+> > >> just clocks, but even driver state machine is already in suspend state
+> > >> when the ISR is called.
+> > >
+> > > If the driver state machine is in the suspend state when the ISR is
+> > > called, then the ISR should realize it is handling a wakeup event
+> > > instead of a normal I/O event.  All it needs to do is turn off the
+> > > interrupt source; the event itself will be taken care of during the
+> > > device's resume callback.
+> > >
+> > Good point but the ISR is called as a function call and not real
+> > hardware event so no need to turn-off the source in the child
+> > ISR. Parent ISR will clear the source anyways.
+> > 
+> > But the intention here is to record the event for the child.
 > 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  arch/arm/include/asm/proc-fns.h |    8 ++++++
->  arch/arm/kernel/sleep.S         |   53 ++++++++++++--------------------------
->  arch/arm/kernel/suspend.c       |   24 +++++++++++++++--
->  3 files changed, 46 insertions(+), 39 deletions(-)
+> In that case the ISR only has to record the event.
+> 
+> > I mean for UART wakeup, the received character should be
+> > extracted. If not done, UART will loose that character because
+> > the event is lost. So not sure how the event will be taken
+> > care during resume callback. Could you elaborate bit more on
+> > last comment please?
+> 
+> The resume callback routine must check to see if an event was recorded.
+> If one was, the routine must see whether a character was received while 
+> the system was asleep and extract the character from the UART.  (It 
+> probably won't hurt to do this even if an event wasn't recorded.)
+> 
+> Alan Stern
 > 
 
-[...]
+After thinking about this problem and looking at possible ways to fix
+it, I am planning to change the PRCM chain handler to be a driver, which
+gets suspended along with the rest of the system. This means the PRCM
+interrupt would get disabled also during this time, and it would be
+enabled in the driver->complete() call, which should happen after rest
+of the drivers have been able to enable their PM runtime in the
+driver->resume() call chain. Do you see any problems with this approach?
+The only issue I am seeing myself is if some driver decides to do
+resume() in the complete() pm-op and potentially screwing the ordering
+here...
 
-> diff --git a/arch/arm/kernel/suspend.c b/arch/arm/kernel/suspend.c
-> index 115736a..c78a88f 100644
-> --- a/arch/arm/kernel/suspend.c
-> +++ b/arch/arm/kernel/suspend.c
-> @@ -8,10 +8,29 @@
->  
->  static pgd_t *suspend_pgd;
->  
-> -extern int __cpu_suspend(int, long, unsigned long, int (*)(unsigned long));
-> +extern int __cpu_suspend(unsigned long, int (*)(unsigned long));
->  extern void cpu_resume_mmu(void);
->  
->  /*
-> + * This is called by __cpu_suspend() to save the state, and do whatever
-> + * flushing is required to ensure that when the CPU goes to sleep we have
-> + * the necessary data available when the caches are not searched.
-> + */
-> +void __cpu_suspend_save(u32 *ptr, u32 ptrsz, u32 sp, u32 *save_ptr)
-> +{
-> +	*save_ptr = virt_to_phys(ptr);
-> +
-> +	/* This must correspond to the LDM in cpu_resume() assembly */
-> +	*ptr++ = virt_to_phys(suspend_pgd);
-> +	*ptr++ = sp;
-> +	*ptr++ = virt_to_phys(cpu_do_resume);
-> +
-> +	cpu_do_suspend(ptr);
-> +
-> +	flush_cache_all();
-> +}
-> +
-> +/*
->   * Hide the first two arguments to __cpu_suspend - these are an implementation
->   * detail which platform code shouldn't have to know about.
->   */
-> @@ -29,8 +48,7 @@ int cpu_suspend(unsigned long arg, int (*fn)(unsigned long))
->  	 * resume (indicated by a zero return code), we need to switch
->  	 * back to the correct page tables.
->  	 */
-> -	ret = __cpu_suspend(virt_to_phys(suspend_pgd),
-> -			    PHYS_OFFSET - PAGE_OFFSET, arg, fn);
-> +	ret = __cpu_suspend(arg, fn);
->  	if (ret == 0)
->  		cpu_switch_mm(mm->pgd, mm);
+-Tero
 
-It is still early testing, but without a local tlb flush here I am getting
-random segmentation faults in user space.
-My fear is that 1:1 global TLB entries cause issues if user space processes 
-happen to map those pages at addresses overlapping 1:1 mapping set-up for 
-resume and we do not flush the TLB.
 
-With the tlb flush the whole patchset works with nary a blemish, from cpuidle. 
 
-Still a question mark so please give me the benefit of the doubt.
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
 
-Many thanks,
-Lorenzo
