@@ -1,53 +1,62 @@
-From: Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] ASoC: omap: add MODULE_ALIAS to mcbsp and pcm drivers
-Date: Wed, 07 Sep 2011 12:29:58 +0300
-Message-ID: <4E673996.1090401@bitmer.com>
-References: <1315340056-32148-1-git-send-email-mans.rullgard@linaro.org>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 09/22] OMAP2: add voltage domains and connect to
+	powerdomains
+Date: Wed, 7 Sep 2011 12:39:36 +0200
+Message-ID: <CAORVsuXd2eeSs_TFu+stJge6tqQzO+4d0FcnmDPMHnChLgCuiQ@mail.gmail.com>
+References: <1314639355-12713-1-git-send-email-khilman@ti.com>
+	<1314639355-12713-10-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1315340056-32148-1-git-send-email-mans.rullgard-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Mans Rullgard <mans.rullgard-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1314639355-12713-10-git-send-email-khilman@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Kevin,
 
-On 09/06/2011 11:14 PM, Mans Rullgard wrote:
-> This adds MODULE_ALIAS directives to the omap-mcbsp-dai and
-> omap-pcm-audio drivers so they can be auto-loaded when platform
-> devices are scanned.
+On Mon, Aug 29, 2011 at 7:35 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Create basic voltagedomains for OMAP2 and associate OMAP2 powerdomains
+> with the newly created voltage domains.
 >
-> Signed-off-by: Mans Rullgard<mans.rullgard-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 > ---
->   sound/soc/omap/omap-mcbsp.c |    2 ++
->   sound/soc/omap/omap-pcm.c   |    2 ++
->   2 files changed, 4 insertions(+), 0 deletions(-)
+> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =
+=A03 +-
+> =A0arch/arm/mach-omap2/io.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0 =A02 +
+> =A0arch/arm/mach-omap2/powerdomains2xxx_data.c =A0 | =A0 =A04 +++
+> =A0arch/arm/mach-omap2/voltage.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =
+=A01 +
+> =A0arch/arm/mach-omap2/voltagedomains2xxx_data.c | =A0 32 +++++++++++++++=
+++++++++++
+> =A05 files changed, 41 insertions(+), 1 deletions(-)
+> =A0create mode 100644 arch/arm/mach-omap2/voltagedomains2xxx_data.c
 >
-> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-> index 07b7723..56b7504 100644
-> --- a/sound/soc/omap/omap-mcbsp.c
-> +++ b/sound/soc/omap/omap-mcbsp.c
-> @@ -758,6 +758,8 @@ static int __devexit asoc_mcbsp_remove(struct platform_device *pdev)
->   	return 0;
->   }
->
-> +MODULE_ALIAS("platform:omap-mcbsp-dai");
-> +
-Put these at the end of file where the other MODULE_ macros are.
+...
 
-Send updated patch to alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org with Liam Girdwood and 
-Mark Brown cc'ed (see SOUND - SOC LAYER in ./MAINTAINERS).
+> diff --git a/arch/arm/mach-omap2/voltagedomains2xxx_data.c b/arch/arm/mac=
+h-omap2/voltagedomains2xxx_data.c
+> new file mode 100644
+> index 0000000..69ff261
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/voltagedomains2xxx_data.c
+> @@ -0,0 +1,32 @@
+> +/*
+> + * OMAP3 voltage domain data
+> + *
+> + * Copyright (C) 2007, 2010 Texas Instruments, Inc.
+2011?
 
--- 
-Jarkko
+Regards,
+Jean
