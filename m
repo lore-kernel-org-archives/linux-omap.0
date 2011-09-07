@@ -1,58 +1,66 @@
-From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Subject: RE: [PATCH 1/2] omap3: ISP: Fix the failure of CCDC capture during
- suspend/resume
-Date: Wed, 7 Sep 2011 15:40:23 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087037AF843C7@dbde02.ent.ti.com>
-References: <1312984992-19315-1-git-send-email-deepthy.ravi@ti.com>,<201108302307.47564.laurent.pinchart@ideasonboard.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 03/11] ARM: pm: some ARMv7 requires a dsb in resume to
+ ensure correctness
+Date: Wed, 7 Sep 2011 17:54:58 +0100
+Message-ID: <CAHkRjk5qyR4O2bXPSX4U7pPG2+K0B=U=G3kJGHM43vBzko-jsw@mail.gmail.com>
+References: <20110901124752.GE29729@n2100.arm.linux.org.uk>
+ <E1Qz6hr-00078J-2k@rmk-PC.arm.linux.org.uk> <CAHkRjk65O3wJLazxZeOOQrDuM-XkZXo4fcOuVZf4Jzq9OP3p3g@mail.gmail.com>
+ <20110907161906.GA2327@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50933 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753145Ab1IGQmK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 12:42:10 -0400
-In-Reply-To: <201108302307.47564.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:62329 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753320Ab1IGQzZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 12:55:25 -0400
+Received: by yie30 with SMTP id 30so5105018yie.19
+        for <linux-omap@vger.kernel.org>; Wed, 07 Sep 2011 09:55:24 -0700 (PDT)
+In-Reply-To: <20110907161906.GA2327@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Ravi, Deepthy" <deepthy.ravi@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@infradead.org" <mchehab@infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-
-
-On Tue, Aug 30, 2011  Laurent Pinchart wrote:
-> Hi,
->
-> On Wednesday 10 August 2011 16:03:12 Deepthy Ravi wrote:
->> From: Abhilash K V <abhilash.kv@ti.com>
+On 7 September 2011 17:19, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Wed, Sep 07, 2011 at 04:41:32PM +0100, Catalin Marinas wrote:
+>> On 1 September 2011 13:49, Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> wrote:
+>> > Add a dsb after the isb to ensure that the previous writes to the
+>> > CP15 registers take effect before we enable the MMU.
+>> >
+>> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+>> > ---
+>> > =A0arch/arm/mm/proc-v7.S | =A0 =A01 +
+>> > =A01 files changed, 1 insertions(+), 0 deletions(-)
+>> >
+>> > diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+>> > index dec72ee..a773f4e 100644
+>> > --- a/arch/arm/mm/proc-v7.S
+>> > +++ b/arch/arm/mm/proc-v7.S
+>> > @@ -255,6 +255,7 @@ ENTRY(cpu_v7_do_resume)
+>> > =A0 =A0 =A0 =A0mcr =A0 =A0 p15, 0, r4, c10, c2, 0 =A0@ write PRRR
+>> > =A0 =A0 =A0 =A0mcr =A0 =A0 p15, 0, r5, c10, c2, 1 =A0@ write NMRR
+>> > =A0 =A0 =A0 =A0isb
+>> > + =A0 =A0 =A0 dsb
 >>
->> While resuming from the "suspended to memory" state,
->> occasionally CCDC fails to get enabled and thus fails
->> to capture frames any more till the next suspend/resume
->> is issued.
->> This is a race condition which happens only when a CCDC
->> frame-completion ISR is pending even as ISP device's
->> isp_pm_prepare() is getting called and only one buffer
->> is left on the DMA queue.
->> The DMA queue buffers are thus depleted which results in
->> its underrun.So when ISP resumes there are no buffers on
->> the queue (as the application which can issue buffers is
->> yet to resume) to start video capture.
->> This fix addresses this issue by dequeuing and enqueing
->> the last buffer in isp_pm_prepare() after its DMA gets
->> completed. Thus,when ISP resumes it always finds atleast
->> one buffer on the DMA queue - this is true if application
->> uses only 3 buffers.
+>> Isn't an ISB enough here? We usually have the DSB for some backgroun=
+d
+>> operations like cache maintenance.
 >
-> How is that problem specific to the CCDC ? Can't it be reproduce at the
-> preview engine or resizer output as well ?
-[Abhilash K V]Yes,  I believe this issue would crop with preview and resizer too though I have
-not been able to try these out.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+> That depends whether you're including the effects of the cache
+> maintanence instructions in this. =A0The ARM ARM tells me that
+> a DSB is required to ensure that all cache maintanence is issued
+> before the dsb is complete at the point that the dsb is executed.
 
+Another minor point, in general we would use the DSB before the ISB
+(but that's when the I-cache is enabled).
+
+--=20
+Catalin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
