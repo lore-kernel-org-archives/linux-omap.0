@@ -1,20 +1,20 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v6 24/25] gpio/omap: restore OE only after setting the output level
-Date: Tue, 06 Sep 2011 17:06:33 -0700
-Message-ID: <87ty8pusfq.fsf@ti.com>
+Subject: Re: [PATCH v6 25/25] gpio/omap: handle set_dataout reg capable IP on restore
+Date: Tue, 06 Sep 2011 17:07:55 -0700
+Message-ID: <87mxehusdg.fsf@ti.com>
 References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
-	<1314798161-19523-25-git-send-email-tarun.kanti@ti.com>
+	<1314798161-19523-26-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:58377 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750760Ab1IGAGi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 20:06:38 -0400
-Received: by mail-yx0-f174.google.com with SMTP id 19so3439862yxj.19
-        for <linux-omap@vger.kernel.org>; Tue, 06 Sep 2011 17:06:37 -0700 (PDT)
-In-Reply-To: <1314798161-19523-25-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Wed, 31 Aug 2011 19:12:40 +0530")
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:42210 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751196Ab1IGAH7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 20:07:59 -0400
+Received: by mail-yw0-f46.google.com with SMTP id 7so5355693ywf.33
+        for <linux-omap@vger.kernel.org>; Tue, 06 Sep 2011 17:07:58 -0700 (PDT)
+In-Reply-To: <1314798161-19523-26-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Wed, 31 Aug 2011 19:12:41 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
@@ -24,39 +24,40 @@ Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
 > From: Nishanth Menon <nm@ti.com>
 >
-> Setup the dataout register before setting the GPIO to output mode
-> in restore path.
+> GPIO IP revisions such as those used in OMAP4 have a set_dataout
+> while the previous revisions used a single dataout register.
+> Depending on what is available restore the dataout settings
+> to the right register.
 
-Please summarize why.  (again, it may seem obvious now, but may not be for
-those not familiar with the driver or when coming back to it after a few
-months looking at other code.
-
-Kevin
+OK, minor nit below...
 
 > Signed-off-by: Nishanth Menon <nm@ti.com>
 > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 > Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > ---
->  drivers/gpio/gpio-omap.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>  drivers/gpio/gpio-omap.c |    7 ++++++-
+>  1 files changed, 6 insertions(+), 1 deletions(-)
 >
 > diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index db22df8..a629498 100644
+> index a629498..4680b4c 100644
 > --- a/drivers/gpio/gpio-omap.c
 > +++ b/drivers/gpio/gpio-omap.c
-> @@ -1326,7 +1326,6 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
->  	__raw_writel(bank->context.wake_en,
->  				bank->base + bank->regs->wkup_en);
->  	__raw_writel(bank->context.ctrl, bank->base + bank->regs->ctrl);
-> -	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
->  	__raw_writel(bank->context.leveldetect0,
->  				bank->base + bank->regs->leveldetect0);
->  	__raw_writel(bank->context.leveldetect1,
-> @@ -1336,6 +1335,7 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
+> @@ -1334,7 +1334,12 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
+>  				bank->base + bank->regs->risingdetect);
 >  	__raw_writel(bank->context.fallingdetect,
 >  				bank->base + bank->regs->fallingdetect);
->  	__raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
-> +	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
+> -	__raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
+> +	if (bank->regs->set_dataout && bank->regs->clr_dataout)
+
+Why the check for ->clr_dataout here?
+
+> +		__raw_writel(bank->context.dataout,
+> +				bank->base + bank->regs->set_dataout);
+> +	else
+> +		__raw_writel(bank->context.dataout,
+> +				bank->base + bank->regs->dataout);
+>  	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
 >  
 >  	if (bank->dbck_enable_mask) {
->  		__raw_writel(bank->context.debounce, bank->base +
+
+Kevin
