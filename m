@@ -1,47 +1,30 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/6 v2] omap: musb: Adding support for ti81xx
-Date: Wed, 7 Sep 2011 22:32:21 +0530
-Message-ID: <1315414945-19829-3-git-send-email-ajay.gupta@ti.com>
-References: <1315414945-19829-1-git-send-email-ajay.gupta@ti.com>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: [PATCH v2] ASoC: omap: add MODULE_ALIAS to mcbsp and pcm drivers
+Date: Wed, 7 Sep 2011 10:10:50 -0700
+Message-ID: <20110907171049.GA2906@opensource.wolfsonmicro.com>
+References: <1315393641-21261-1-git-send-email-mans.rullgard@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1315414945-19829-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1315393641-21261-1-git-send-email-mans.rullgard-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Mans Rullgard <mans.rullgard-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lrg-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
+On Wed, Sep 07, 2011 at 12:07:21PM +0100, Mans Rullgard wrote:
+> This adds MODULE_ALIAS directives to the omap-mcbsp-dai and
+> omap-pcm-audio drivers so they can be auto-loaded when platform
+> devices are scanned.
 
-Added musb support for ti81xx platform which has two instances of musb
-interface and uses CPPI4.1 DMA. The current patch set adds support for
-single instance and in PIO mode only.
-
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
----
- arch/arm/mach-omap2/usb-musb.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index a65145b..8bceeca 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -143,6 +143,9 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
- 	if (cpu_is_omap3517() || cpu_is_omap3505()) {
- 		oh_name = "am35x_otg_hs";
- 		name = "musb-am35x";
-+	} else if (cpu_is_ti81xx()) {
-+		oh_name = "usb_otg_hs";
-+		name = "musb-ti81xx";
- 	} else {
- 		oh_name = "usb_otg_hs";
- 		name = "musb-omap2430";
--- 
-1.6.2.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
