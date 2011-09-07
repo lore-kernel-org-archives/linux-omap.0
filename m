@@ -1,58 +1,72 @@
 From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH 1/2] usb: musb: omap2+: fix context api's
-Date: Tue, 6 Sep 2011 17:49:32 -0700
-Message-ID: <1315356573-1057-2-git-send-email-vikram.pandita@ti.com>
+Subject: [PATCH 2/2] usb: musb: omap2+: save and restore OTG_INTERFSEL
+Date: Tue, 6 Sep 2011 17:49:33 -0700
+Message-ID: <1315356573-1057-3-git-send-email-vikram.pandita@ti.com>
 References: <1315356573-1057-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42623 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36530 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751876Ab1IGAtv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Sep 2011 20:49:51 -0400
+	id S1752028Ab1IGAtx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Sep 2011 20:49:53 -0400
 In-Reply-To: <1315356573-1057-1-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>, Anand Gadiyar <gadiyar@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+From: Hema HK <hemahk@ti.com>
 
-RxFifoSz, TxFifoSz, RxFifoAddr, TxFifoAddr
-are all indexed registers.
+we need to save and restore OTG_INTERFSEL register
+else we will be unable to function on resume after
+OFF mode.
 
-So before doing a context save or restore, INDEX register
-should be set, then only one gets to the right register offset.
-
-Change-Id: I33ab09f8c214457914ee848e097880c8800de9e6
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Change-Id: I6c29c69596d5f47e00cf74ab0e32bb44ef71dda9
+Reported-by: Devaraj Rangasamy <dev@ti.com>
+Signed-off-by: Hema HK <hemahk@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/musb/musb_core.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/musb/musb_core.h |    1 +
+ drivers/usb/musb/omap2430.c  |    6 ++++++
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 20a2873..83facaf 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -2158,7 +2158,7 @@ static void musb_save_context(struct musb *musb)
- 		epio = hw_ep->regs;
- 		if (!epio)
- 			continue;
--
-+		musb_writeb(musb_base, MUSB_INDEX, i);
- 		musb->context.index_regs[i].txmaxp =
- 			musb_readw(epio, MUSB_TXMAXP);
- 		musb->context.index_regs[i].txcsr =
-@@ -2233,7 +2233,7 @@ static void musb_restore_context(struct musb *musb)
- 		epio = hw_ep->regs;
- 		if (!epio)
- 			continue;
--
-+		musb_writeb(musb_base, MUSB_INDEX, i);
- 		musb_writew(epio, MUSB_TXMAXP,
- 			musb->context.index_regs[i].txmaxp);
- 		musb_writew(epio, MUSB_TXCSR,
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index b3c065a..3259a6b 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -311,6 +311,7 @@ struct musb_context_registers {
+ 	u8 index, testmode;
+ 
+ 	u8 devctl, busctl, misc;
++	u32 otg_interfsel;
+ 
+ 	struct musb_csr_regs index_regs[MUSB_C_NUM_EPS];
+ };
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index ba85f27..78eb13a 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -491,6 +491,9 @@ static int omap2430_runtime_suspend(struct device *dev)
+ 	struct omap2430_glue		*glue = dev_get_drvdata(dev);
+ 	struct musb			*musb = glue_to_musb(glue);
+ 
++	musb->context.otg_interfsel = musb_readl(musb->mregs,
++						OTG_INTERFSEL);
++
+ 	omap2430_low_level_exit(musb);
+ 	otg_set_suspend(musb->xceiv, 1);
+ 
+@@ -503,6 +506,9 @@ static int omap2430_runtime_resume(struct device *dev)
+ 	struct musb			*musb = glue_to_musb(glue);
+ 
+ 	omap2430_low_level_init(musb);
++	musb_writel(musb->mregs, OTG_INTERFSEL,
++					musb->context.otg_interfsel);
++
+ 	otg_set_suspend(musb->xceiv, 0);
+ 
+ 	return 0;
 -- 
 1.7.4.1
 
