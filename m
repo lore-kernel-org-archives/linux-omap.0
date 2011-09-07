@@ -1,139 +1,51 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH 6/6 V4] hwmon: OMAP4: On die temperature
-	sensor driver
-Date: Wed, 7 Sep 2011 20:02:56 +0530
-Message-ID: <CAJ6a13YzSj2XsUqQXPRyq88komtqkKjL1+AmqdPWzL1rUuCWew@mail.gmail.com>
-References: <1314811510-15595-1-git-send-email-j-keerthy@ti.com>
-	<1314811510-15595-7-git-send-email-j-keerthy@ti.com>
-	<alpine.DEB.2.00.1108311810280.26173@utopia.booyaka.com>
-	<20110901014939.GB21986@ericsson.com>
-	<alpine.DEB.2.00.1108312200260.26173@utopia.booyaka.com>
-	<20110901044047.GB25878@ericsson.com>
-	<CAJ6a13ZT_q1XYPebSLyLh7a7k6KeOsyERHfx+EKo+_u9bjxxMg@mail.gmail.com>
-	<1315332779.2455.93.camel@groeck-laptop>
-	<CAJ6a13a+nXtPByyhrxbFXuMc5-1n-dADmt0f1PM+F5NWGpzDig@mail.gmail.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 03/11] ARM: pm: some ARMv7 requires a dsb in resume to
+	ensure correctness
+Date: Wed, 7 Sep 2011 16:41:32 +0100
+Message-ID: <CAHkRjk65O3wJLazxZeOOQrDuM-XkZXo4fcOuVZf4Jzq9OP3p3g@mail.gmail.com>
+References: <20110901124752.GE29729@n2100.arm.linux.org.uk>
+	<E1Qz6hr-00078J-2k@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <lm-sensors-bounces@lm-sensors.org>
-In-Reply-To: <CAJ6a13a+nXtPByyhrxbFXuMc5-1n-dADmt0f1PM+F5NWGpzDig@mail.gmail.com>
-List-Unsubscribe: <http://lists.lm-sensors.org/mailman/options/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
-List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors/>
-List-Post: <mailto:lm-sensors@lm-sensors.org>
-List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
-List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
-Sender: lm-sensors-bounces@lm-sensors.org
-Errors-To: lm-sensors-bounces@lm-sensors.org
-To: guenter.roeck@ericsson.com
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <E1Qz6hr-00078J-2k@rmk-PC.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 7, 2011 at 12:11 AM, J, KEERTHY <j-keerthy@ti.com> wrote:
-> On Tue, Sep 6, 2011 at 11:42 PM, Guenter Roeck
-> <guenter.roeck@ericsson.com> wrote:
->> On Tue, 2011-09-06 at 14:02 -0400, J, KEERTHY wrote:
->>> On Thu, Sep 1, 2011 at 10:10 AM, Guenter Roeck
->>> <guenter.roeck@ericsson.com> wrote:
->>> > On Thu, Sep 01, 2011 at 12:09:14AM -0400, Paul Walmsley wrote:
->>> >> On Wed, 31 Aug 2011, Guenter Roeck wrote:
->>> >>
->>> >> > On Wed, Aug 31, 2011 at 08:36:43PM -0400, Paul Walmsley wrote:
->>> >> > > Hi
->>> >> > >
->>> >> > > Some comments.
->>> >> > >
->>> >> > > On Wed, 31 Aug 2011, Keerthy wrote:
->>> >> > >
->>> >> > [ ... ]
->>> >> > >
->>> >> > > > +}
->>> >> > > > +
->>> >> > > > +/* Sysfs hook functions */
->>> >> > >
->>> >> > > These should be conditionally compiled out if sysfs isn't compil=
-ed in.
->>> >> > >
->>> >> > The whole point of the hwmon subsystem is to expose hardware monit=
-oring information
->>> >> > to userland using sysfs. hwmon without sysfs doesn't make sense.
->>> >> >
->>> >> > So, if anything, it might make sense to disable the entire hwmon t=
-ree if sysfs is disabled.
->>> >> > But please no conditionals in the code.
->>> >>
->>> >> Hmm. =A0This IP block is more than just a sensor. =A0It also can int=
-errupt the
->>> >> CPU and/or trigger a GPIO line (to shut down the chip) if the chip
->>> >> temperature crosses some thresholds. =A0On some OMAPs, the threshold=
-s are
->>> >> fixed; on others, they are software-programmable. =A0That functional=
-ity
->>> >> shouldn't require sysfs; it's almost closer to an x86 MCE.
->>> >>
->>> >> So based on your comments, it sounds like we should move that part o=
-f the
->>> >> code to a different driver, and just leave the basic software thermal
->>> >> monitoring here?
->>> >>
->>> > Good point. This definitely requires some thought. hwmon is meant to =
-be hw monitoring,
->>> > as the name says, not thermal management. Maybe this entire driver sh=
-ould be a thermal driver
->>> > instead ?
->>>
->>> This driver is not taking any action on THSUT. This is not doing the th=
-ermal
->>> management. It is a driver exposing configurable temperature thresholds.
->>
->> What sense would it make, then, to keep the driver around even if SYSFS
->> is not defined ?
+On 1 September 2011 13:49, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> Add a dsb after the isb to ensure that the previous writes to the
+> CP15 registers take effect before we enable the MMU.
 >
-> SYSFS nodes are defined for t_hot and t_cold thresholds. SYSFS nodes
-> are not defined
-> for TSHUT thresholds which are different.
-
-The point i am trying to make here is that this is a hardware monitoring
-driver with configurable thresholds. The driver reads the on-die temperatur=
-e.
-The thermal framework as such is being discussed in a separate thread, which
-dictates the actions to be taken once the thresholds are crossed.
-This driver does not take any actions but just monitors the temperatures.
-
-TSHUT or the thermal shutdown implementation requires the driver
-to perform a shutdown of the device on reaching a certain temperature
-and hence is not part of this driver.
-
-
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+> =A0arch/arm/mm/proc-v7.S | =A0 =A01 +
+> =A01 files changed, 1 insertions(+), 0 deletions(-)
 >
->>
->> Note that I am not looking at the code right now, but at the suggestion
->> that the driver would do something useful if SYSFS is not defined.
->> Question is what that is, and if that part of it should reside in a
->> hwmon driver.
->>
->> Thanks,
->> Guenter
->>
->>
->>
->
->
->
-> --
-> Regards and Thanks,
-> Keerthy
->
+> diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+> index dec72ee..a773f4e 100644
+> --- a/arch/arm/mm/proc-v7.S
+> +++ b/arch/arm/mm/proc-v7.S
+> @@ -255,6 +255,7 @@ ENTRY(cpu_v7_do_resume)
+> =A0 =A0 =A0 =A0mcr =A0 =A0 p15, 0, r4, c10, c2, 0 =A0@ write PRRR
+> =A0 =A0 =A0 =A0mcr =A0 =A0 p15, 0, r5, c10, c2, 1 =A0@ write NMRR
+> =A0 =A0 =A0 =A0isb
+> + =A0 =A0 =A0 dsb
 
-
+Isn't an ISB enough here? We usually have the DSB for some background
+operations like cache maintenance.
 
 -- =
 
-Regards and Thanks,
-Keerthy
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Catalin
