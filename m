@@ -1,134 +1,220 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/6 v2] omap: musb: Adding hwmod data for ti81xx
-Date: Wed, 7 Sep 2011 22:32:20 +0530
-Message-ID: <1315414945-19829-2-git-send-email-ajay.gupta@ti.com>
-References: <1315414945-19829-1-git-send-email-ajay.gupta@ti.com>
+From: Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH v2] omap3: ISP: Fix the failure of CCDC capture during suspend/resume
+Date: Wed, 7 Sep 2011 15:58:25 +0530
+Message-ID: <1315391305-31669-1-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1315414945-19829-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: laurent.pinchart@ideasonboard.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Abhilash K V <abhilash.kv@ti.com>, Deepthy Ravi <deepthy.ravi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
+From: Abhilash K V <abhilash.kv@ti.com>
 
-The usb subsystem (usbss) in ti81xx has two musb interfaces. There are three
-irqs and three address spaces for usbss, musb0 and musb1 respectively. Created
-one hwmod with three irq and memory resources.
+While resuming from the "suspended to memory" state,
+occasionally CCDC fails to get enabled and thus fails
+to capture frames any more till the next suspend/resume
+is issued.
+This is a race condition which happens only when a CCDC
+frame-completion ISR is pending even as ISP device's
+isp_pm_prepare() is getting called and only one buffer
+is left on the DMA queue.
+The DMA queue buffers are thus depleted which results in
+its underrun.So when ISP resumes there are no buffers on
+the queue (as the application which can issue buffers is
+yet to resume) to start video capture.
+This fix addresses this issue by dequeuing and enqueing
+the last buffer in isp_pm_prepare() after its DMA gets
+completed. Thus,when ISP resumes it always finds atleast
+one buffer on the DMA queue - this is true if application
+uses only 3 buffers.
 
-Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c |   74 ++++++++++++++++++++++++++++
- 1 files changed, 74 insertions(+), 0 deletions(-)
+Changes since v1:
+Merged the patch which fixes kernel crash when attempting suspend
+ 
+ drivers/media/video/omap3isp/isp.c      |   30 +++++++++++++++-
+ drivers/media/video/omap3isp/isp.h      |    4 ++
+ drivers/media/video/omap3isp/ispvideo.c |   58 ++++++++++++++++++++++++++++++-
+ drivers/media/video/omap3isp/ispvideo.h |    2 +
+ 4 files changed, 92 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-index e73a4c6..e960d70 100644
---- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-@@ -194,6 +194,7 @@ static struct omap_hwmod ti81xx_timer4_hwmod;
- static struct omap_hwmod ti81xx_timer5_hwmod;
- static struct omap_hwmod ti81xx_timer6_hwmod;
- static struct omap_hwmod ti81xx_timer7_hwmod;
-+static struct omap_hwmod ti81xx_usbss_hwmod;
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 5cea2bb..00fd021 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -1566,12 +1566,24 @@ static int isp_pm_prepare(struct device *dev)
+ {
+ 	struct isp_device *isp = dev_get_drvdata(dev);
+ 	int reset;
++	int err = 0;
++	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
++	struct isp_video *video = &ccdc->video_out;
++	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
++	unsigned long flags;
  
- /* L4 SLOW -> TIMER1 interface */
- static struct omap_hwmod_addr_space ti81xx_timer1_addr_space[] = {
-@@ -650,6 +651,78 @@ static struct omap_hwmod ti81xx_timer7_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_TI816X | CHIP_IS_TI814X)
+ 	WARN_ON(mutex_is_locked(&isp->isp_mutex));
+-
+ 	if (isp->ref_count == 0)
+ 		return 0;
+ 
++	spin_lock_irqsave(&pipe->lock, flags);
++	pipe->state |= ISP_PIPELINE_PREPARE_SUSPEND;
++	spin_unlock_irqrestore(&pipe->lock, flags);
++
++	err = isp_video_handle_buffer_starvation(video);
++	if (err < 0)
++		return err;
++
+ 	reset = isp_suspend_modules(isp);
+ 	isp_disable_interrupts(isp);
+ 	isp_save_ctx(isp);
+@@ -1596,16 +1608,32 @@ static int isp_pm_suspend(struct device *dev)
+ static int isp_pm_resume(struct device *dev)
+ {
+ 	struct isp_device *isp = dev_get_drvdata(dev);
++	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
++	struct isp_video *video = &ccdc->video_out;
++	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
++	unsigned long flags;
+ 
+ 	if (isp->ref_count == 0)
+ 		return 0;
+ 
++	spin_lock_irqsave(&pipe->lock, flags);
++	pipe->state &= ~ISP_PIPELINE_PREPARE_SUSPEND;
++	spin_unlock_irqrestore(&pipe->lock, flags);
++
+ 	return isp_enable_clocks(isp);
+ }
+ 
+ static void isp_pm_complete(struct device *dev)
+ {
+ 	struct isp_device *isp = dev_get_drvdata(dev);
++	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
++	struct isp_video *video = &ccdc->video_out;
++	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
++	unsigned long flags;
++
++	spin_lock_irqsave(&pipe->lock, flags);
++	pipe->state &= ~ISP_PIPELINE_PREPARE_SUSPEND;
++	spin_unlock_irqrestore(&pipe->lock, flags);
+ 
+ 	if (isp->ref_count == 0)
+ 		return;
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index 521db0c..0acc622 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -259,6 +259,10 @@ int omap3isp_register_entities(struct platform_device *pdev,
+ 			       struct v4l2_device *v4l2_dev);
+ void omap3isp_unregister_entities(struct platform_device *pdev);
+ 
++#ifdef CONFIG_PM
++int isp_video_handle_buffer_starvation(struct isp_video *video);
++#endif
++
+ /*
+  * isp_reg_readl - Read value of an OMAP3 ISP register
+  * @dev: Device pointer specific to the OMAP3 ISP.
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index 0b7b6dd..d1c316c 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -526,6 +526,26 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM
++static int isp_video_deq_enq(struct isp_video_queue *queue)
++{
++	int err = 0;
++	struct v4l2_buffer vbuf;
++
++	vbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	/* blocking dequeue to ensure DMA is done */
++	err = omap3isp_video_queue_dqbuf(queue, &vbuf, 0);
++	if (err < 0)
++		return err;
++	else {
++		err = omap3isp_video_queue_qbuf(queue, &vbuf);
++		if (err < 0)
++			return err;
++	}
++	return err;
++}
++#endif
++
+ /*
+  * isp_video_buffer_queue - Add buffer to streaming queue
+  * @buf: Video buffer
+@@ -549,7 +569,7 @@ static void isp_video_buffer_queue(struct isp_video_buffer *buf)
+ 	empty = list_empty(&video->dmaqueue);
+ 	list_add_tail(&buffer->buffer.irqlist, &video->dmaqueue);
+ 
+-	if (empty) {
++	if (empty && !(pipe->state & ISP_PIPELINE_PREPARE_SUSPEND)) {
+ 		if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 			state = ISP_PIPELINE_QUEUE_OUTPUT;
+ 		else
+@@ -690,6 +710,42 @@ void omap3isp_video_resume(struct isp_video *video, int continuous)
+ 	}
+ }
+ 
++#ifdef CONFIG_PM
++
++/*
++ * isp_video_handle_buffer_starvation - Handles the case when there are only 1
++ * or less active buffers present on the dmaqueue while preparing for suspend.
++ *
++ * @video: ISP video object
++ *
++ * This function is intended to be used in suspend/resume scenario. While
++ * preparing for suspend, if the number of active buffers on dmaqueue is 0 or 1,
++ * the last buffer is dequeued after DMA completes and re-queued again. This
++ * prevents ISP_VIDEO_DMAQUEUE_UNDERRUN from occuring on issue of resume.
++ */
++int isp_video_handle_buffer_starvation(struct isp_video *video)
++{
++	int err = 0;
++	struct isp_video_queue *queue = video->queue;
++	struct isp_video_buffer *buf;
++	struct list_head *head = &video->dmaqueue;
++	struct isp_ccdc_device *ccdc = &video->isp->isp_ccdc;
++
++	if (list_empty(&video->dmaqueue)
++		&& ccdc->state != ISP_PIPELINE_STREAM_STOPPED) {
++		err = isp_video_deq_enq(queue);
++	} else if (head->next->next == head) {
++		/* only one buffer is left on dmaqueue */
++		buf = list_first_entry(&video->dmaqueue,
++					struct isp_video_buffer,
++					irqlist);
++		if (buf->state == ISP_BUF_STATE_ACTIVE)
++			err = isp_video_deq_enq(queue);
++	}
++	return err;
++}
++#endif
++
+ /* -----------------------------------------------------------------------------
+  * V4L2 ioctls
+  */
+diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
+index 01d8728..cba6649 100644
+--- a/drivers/media/video/omap3isp/ispvideo.h
++++ b/drivers/media/video/omap3isp/ispvideo.h
+@@ -83,6 +83,8 @@ enum isp_pipeline_state {
+ 	ISP_PIPELINE_IDLE_OUTPUT = 32,
+ 	/* The pipeline is currently streaming. */
+ 	ISP_PIPELINE_STREAM = 64,
++	/* The pipeline is currently preparing to suspend. */
++	ISP_PIPELINE_PREPARE_SUSPEND = 128,
  };
  
-+/* L3 SLOW -> USBSS interface */
-+static struct omap_hwmod_addr_space ti81xx_usbss_addr_space[] = {
-+	{
-+		.name		= "usbss",
-+		.pa_start	= 0x47400000,
-+		.pa_end		= 0x47400000 + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{
-+		.name		= "musb0",
-+		.pa_start	= 0x47401000,
-+		.pa_end		= 0x47401000 + SZ_2K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{
-+		.name		= "musb1",
-+		.pa_start	= 0x47401800,
-+		.pa_end		= 0x47401800 + SZ_2K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{
-+	},
-+};
-+
-+static struct omap_hwmod_class_sysconfig ti81xx_usbhsotg_sysc = {
-+	.rev_offs	= 0x0,
-+	.sysc_offs	= 0x10,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type2,
-+};
-+
-+static struct omap_hwmod_class ti81xx_usbotg_class = {
-+	.name = "usbotg",
-+	.sysc = &ti81xx_usbhsotg_sysc,
-+};
-+
-+static struct omap_hwmod_irq_info ti81xx_usbss_mpu_irqs[] = {
-+	{ .name = "usbss-irq", .irq = 17, },
-+	{ .name = "musb0-irq", .irq = 18, },
-+	{ .name = "musb1-irq", .irq = 19, },
-+	{ .irq = -1, },
-+};
-+
-+static struct omap_hwmod_ocp_if ti81xx_l3_slow__usbss = {
-+	.master		= &ti81xx_l3_slow_hwmod,
-+	.slave		= &ti81xx_usbss_hwmod,
-+	.clk		= "usbotg_ick",
-+	.addr		= ti81xx_usbss_addr_space,
-+	.user		= OCP_USER_MPU,
-+	.flags		= OCPIF_SWSUP_IDLE,
-+};
-+
-+static struct omap_hwmod_ocp_if *ti81xx_usbss_slaves[] = {
-+	&ti81xx_l3_slow__usbss,
-+};
-+
-+static struct omap_hwmod ti81xx_usbss_hwmod = {
-+	.name		= "usb_otg_hs",
-+	.mpu_irqs	= ti81xx_usbss_mpu_irqs,
-+	.main_clk	= "usbotg_ick",
-+	.clkdm_name	= "default_usb_clkdm",
-+	.prcm		= {
-+		.omap4 = {
-+			.clkctrl_offs = TI816X_CM_DEFAULT_USB_CLKCTRL_OFFSET,
-+		},
-+	},
-+	.slaves		= ti81xx_usbss_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(ti81xx_usbss_slaves),
-+	.class		= &ti81xx_usbotg_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_TI816X | CHIP_IS_TI814X)
-+};
- 
- static __initdata struct omap_hwmod *ti81xx_hwmods[] = {
- 	&ti81xx_l3_fast_hwmod,
-@@ -668,6 +741,7 @@ static __initdata struct omap_hwmod *ti81xx_hwmods[] = {
- 	&ti81xx_timer5_hwmod,
- 	&ti81xx_timer6_hwmod,
- 	&ti81xx_timer7_hwmod,
-+	&ti81xx_usbss_hwmod,
- 	NULL,
- };
- 
+ struct isp_pipeline {
 -- 
-1.6.2.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.0.4
