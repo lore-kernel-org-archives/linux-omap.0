@@ -1,16 +1,13 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v6 25/25] gpio/omap: handle set_dataout reg capable IP on
-	restore
-Date: Wed, 7 Sep 2011 13:05:34 +0530
-Message-ID: <CAC83ZvJJV1v0akAwv_vM-SaENxvDSpw3v_ckFTBoEqcL+X5QSg@mail.gmail.com>
-References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
-	<1314798161-19523-26-git-send-email-tarun.kanti@ti.com>
-	<87mxehusdg.fsf@ti.com>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 00/14] McBSP cleanup and generalization
+Date: Wed, 07 Sep 2011 09:46:06 +0300
+Message-ID: <2765628.C70gLzgCW7@barack>
+References: <1314804181-17260-1-git-send-email-jarkko.nikula@bitmer.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87mxehusdg.fsf@ti.com>
+In-Reply-To: <1314804181-17260-1-git-send-email-jarkko.nikula@bitmer.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,60 +17,31 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: tony@atomide.com, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 7, 2011 at 5:37 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->
->> From: Nishanth Menon <nm@ti.com>
->>
->> GPIO IP revisions such as those used in OMAP4 have a set_dataout
->> while the previous revisions used a single dataout register.
->> Depending on what is available restore the dataout settings
->> to the right register.
->
-> OK, minor nit below...
->
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> ---
->> =A0drivers/gpio/gpio-omap.c | =A0 =A07 ++++++-
->> =A01 files changed, 6 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index a629498..4680b4c 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -1334,7 +1334,12 @@ static void omap_gpio_restore_context(struct gpio=
-_bank *bank)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->base +=
- bank->regs->risingdetect);
->> =A0 =A0 =A0 __raw_writel(bank->context.fallingdetect,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->base +=
- bank->regs->fallingdetect);
->> - =A0 =A0 __raw_writel(bank->context.dataout, bank->base + bank->regs->d=
-ataout);
->> + =A0 =A0 if (bank->regs->set_dataout && bank->regs->clr_dataout)
->
-> Why the check for ->clr_dataout here?
-Well, I guess it was just an additional check. It can possibly be removed.
---
-Tarun
->
->> + =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(bank->context.dataout,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->base + b=
-ank->regs->set_dataout);
->> + =A0 =A0 else
->> + =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(bank->context.dataout,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->base + b=
-ank->regs->dataout);
->> =A0 =A0 =A0 __raw_writel(bank->context.oe, bank->base + bank->regs->dire=
-ction);
->>
->> =A0 =A0 =A0 if (bank->dbck_enable_mask) {
->
-> Kevin
->
+On Wednesday 31 August 2011 17:22:47 Jarkko Nikula wrote:
+> Hi
+> 
+> Updates and continuation to my McBSP cleanup RFC set I sent before vacation
+> period. Motivation here is to get rid off all is_omap and CONFIG_ARCH stuff
+> and to make code a step more generic (and for preparing to move code out
+> under arch/arm/).
+> 
+> I hope this version doesn't break OMAP1. I suppose it should work now as
+> the register and dma addresses are calculated from common register numbers
+> and not by mangling from OMAP2+ register offsets (Thanks for
+> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> for the idea).
+> 
+> Also MCBSP_CONFIG_TYPEx defines are not used to replace is_omap tests in
+> plat/mcbsp.c in this version but by using a feature flags (Thanks for
+> Charulatha V <charu@ti.com> for the idea).
+> 
+> Note that patch 01/14 has from address to my disabled google account. This
+> is since the patch is already committed in to
+> for_3.2/omap_device branch of Kevin's git tree.
+
+These all looks good to me.
+
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
