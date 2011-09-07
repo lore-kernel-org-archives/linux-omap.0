@@ -1,54 +1,54 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/2] omap3: ISP: Fix the failure of CCDC capture during suspend/resume
-Date: Wed, 7 Sep 2011 12:36:34 +0200
-Message-ID: <201109071236.34883.laurent.pinchart@ideasonboard.com>
-References: <1312984992-19315-1-git-send-email-deepthy.ravi@ti.com> <201108302307.47564.laurent.pinchart@ideasonboard.com> <FCCFB4CDC6E5564B9182F639FC356087037AF843C7@dbde02.ent.ti.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 2/2] usb: musb: omap2+: save and restore OTG_INTERFSEL
+Date: Wed, 07 Sep 2011 14:52:02 +0400
+Message-ID: <4E674CD2.6050800@ru.mvista.com>
+References: <1315356573-1057-1-git-send-email-vikram.pandita@ti.com> <1315356573-1057-3-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087037AF843C7@dbde02.ent.ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Cc: "Ravi, Deepthy" <deepthy.ravi@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@infradead.org" <mchehab@infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1315356573-1057-3-git-send-email-vikram.pandita-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hello.
 
-On Wednesday 07 September 2011 12:10:23 Koyamangalath, Abhilash wrote:
-> On Tue, Aug 30, 2011  Laurent Pinchart wrote:
-> > On Wednesday 10 August 2011 16:03:12 Deepthy Ravi wrote:
-> >> From: Abhilash K V <abhilash.kv@ti.com>
-> >> 
-> >> While resuming from the "suspended to memory" state,
-> >> occasionally CCDC fails to get enabled and thus fails
-> >> to capture frames any more till the next suspend/resume
-> >> is issued.
-> >> This is a race condition which happens only when a CCDC
-> >> frame-completion ISR is pending even as ISP device's
-> >> isp_pm_prepare() is getting called and only one buffer
-> >> is left on the DMA queue.
-> >> The DMA queue buffers are thus depleted which results in
-> >> its underrun.So when ISP resumes there are no buffers on
-> >> the queue (as the application which can issue buffers is
-> >> yet to resume) to start video capture.
-> >> This fix addresses this issue by dequeuing and enqueing
-> >> the last buffer in isp_pm_prepare() after its DMA gets
-> >> completed. Thus,when ISP resumes it always finds atleast
-> >> one buffer on the DMA queue - this is true if application
-> >> uses only 3 buffers.
-> > 
-> > How is that problem specific to the CCDC ? Can't it be reproduce at the
-> > preview engine or resizer output as well ?
-> 
-> Yes, I believe this issue would crop with preview and resizer too though I
-> have not been able to try these out.
+On 07-09-2011 4:49, Vikram Pandita wrote:
 
-That's my belief as well. In that case the fix should be generic, not CCDC-
-specific.
+> From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
 
--- 
-Regards,
+> we need to save and restore OTG_INTERFSEL register
+> else we will be unable to function on resume after
+> OFF mode.
 
-Laurent Pinchart
+> Change-Id: I6c29c69596d5f47e00cf74ab0e32bb44ef71dda9
+
+    Remove this, please.
+
+> Reported-by: Devaraj Rangasamy<dev-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
+> ---
+>   drivers/usb/musb/musb_core.h |    1 +
+>   drivers/usb/musb/omap2430.c  |    6 ++++++
+>   2 files changed, 7 insertions(+), 0 deletions(-)
+
+> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+> index b3c065a..3259a6b 100644
+> --- a/drivers/usb/musb/musb_core.h
+> +++ b/drivers/usb/musb/musb_core.h
+> @@ -311,6 +311,7 @@ struct musb_context_registers {
+>   	u8 index, testmode;
+>
+>   	u8 devctl, busctl, misc;
+> +	u32 otg_interfsel;
+
+    Shouldn't this be encosed in #ifdef?
+
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
