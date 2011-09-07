@@ -1,44 +1,56 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v6 20/25] gpio/omap: skip operations in runtime callbacks
-Date: Wed, 7 Sep 2011 11:03:58 +0530
-Message-ID: <CAC83Zv+OoysGwzGqydFkCd6y4aRr-67LUcpMBfyuZiYqkhJzOw@mail.gmail.com>
-References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
-	<1314798161-19523-21-git-send-email-tarun.kanti@ti.com>
-	<87ty8pw7jm.fsf@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 7/7] iommu/core: split mapping to page sizes as supported by
+ the hardware
+Date: Wed, 7 Sep 2011 09:01:26 +0300
+Message-ID: <CAK=WgbZPFryzCFLa5AhAYDmH1S8c3x-OsSTyxYeq0WLAe8VyTg@mail.gmail.com>
+References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
+ <1314984756-4400-8-git-send-email-ohad@wizery.com> <CAHQjnOMT3UOFMi=JbSXf4-s_BbZ+fSGbOEjxwT7t7N-zd+9-zg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:36172 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754015Ab1IGFeA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 01:34:00 -0400
-Received: by mail-bw0-f43.google.com with SMTP id zv15so8851230bkb.16
-        for <linux-omap@vger.kernel.org>; Tue, 06 Sep 2011 22:33:58 -0700 (PDT)
-In-Reply-To: <87ty8pw7jm.fsf@ti.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:63863 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754369Ab1IGGBr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 02:01:47 -0400
+In-Reply-To: <CAHQjnOMT3UOFMi=JbSXf4-s_BbZ+fSGbOEjxwT7t7N-zd+9-zg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: KyongHo Cho <pullip.cho@samsung.com>
+Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org
 
-On Wed, Sep 7, 2011 at 5:24 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->
->> Most operations within runtime callbacks should be skipped when
->> *_runtime_get_sync() and *_runtime_put_sync() are called in probe(),
->> *_gpio_request() and *_gpio_free().
->
-> Why?
->
-> (again, I know the answer, but should be described in the changelog for
-> folks not familiar with this driver, or when we come back to this in 3
-> months and have forgotten why.
-Ok.
+Hi Cho,
 
+On Wed, Sep 7, 2011 at 4:30 AM, KyongHo Cho <pullip.cho@samsung.com> wrote:
+> Please find the following link that I submitted for our IOMMU.
+> https://lkml.org/lkml/2011/7/3/152
 >
->> We just need clock enable/disable.
->>
->> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->
-> Kevin
->
+> s5p_iommu_map/unmap accepts any order of physical address and iova
+> without support of your suggestion if the order is not less than PAGE_SHIFT
+
+That's exactly what I'm trying to prevent; there's no reason to
+duplicate the exact same logic in every iommu driver.
+
+As a result, your map function is quite big (it even duplicates the
+same logic for every page size it tries).
+
+Try to rebase your patch on the "iommu/core: split mapping to page
+sizes as supported by the hardware" patch I've just sent, and see how
+significantly simpler your code becomes.
+
+Relying on a single implementation, provided by the IOMMU core, means
+less code to maintain (and debug) and a consistent behavior (across
+all supported hardware) exposed to users of the IOMMU API.
+
+> But I think IOMMU API must not expect that the caller of iommu_map() knows
+> about the restriction of IOMMU API implementation.
+
+Right. But I don't think there's any disagreement here ?
+
+If any, then I think that s5p_iommu_map() is more limited than what I
+propose: if it is given a 64KB region aligned only to a 4KB address,
+it will BUG_ON() it. While not ideal, I don't think there's any reason
+not to map it using 4KB pages (which is exactly what the new
+iommu_map() I propose will do).
+
+Thanks,
+Ohad.
