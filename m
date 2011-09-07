@@ -1,49 +1,61 @@
-From: KyongHo Cho <pullip.cho@samsung.com>
-Subject: Re: [RFC 7/7] iommu/core: split mapping to page sizes as supported by
- the hardware
-Date: Wed, 7 Sep 2011 10:30:33 +0900
-Message-ID: <CAHQjnOMT3UOFMi=JbSXf4-s_BbZ+fSGbOEjxwT7t7N-zd+9-zg@mail.gmail.com>
-References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
-	<1314984756-4400-8-git-send-email-ohad@wizery.com>
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+Date: Tue, 06 Sep 2011 23:50:54 -0300
+Message-ID: <4E66DC0E.4070006@infradead.org>
+References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com> <201109051449.50744.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404EC6BEE0C@dbde02.ent.ti.com> <201109061647.31861.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:36837 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753888Ab1IGBah (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 21:30:37 -0400
-In-Reply-To: <1314984756-4400-8-git-send-email-ohad@wizery.com>
+Received: from casper.infradead.org ([85.118.1.10]:44152 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753091Ab1IGCvC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 22:51:02 -0400
+In-Reply-To: <201109061647.31861.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Ravi, Deepthy" <deepthy.ravi@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi
+Em 06-09-2011 11:47, Laurent Pinchart escreveu:
+> Hi Vaibhav,
+> 
+> On Tuesday 06 September 2011 16:12:35 Hiremath, Vaibhav wrote:
+>> On Monday, September 05, 2011 6:20 PM Laurent Pinchart wrote:
+>>> On Sunday 04 September 2011 15:32:28 Mauro Carvalho Chehab wrote:
+>>
+>> <snip>
+>>
+>>> I don't mind splitting the config option. An alternative would be to
+>>> compile media_entity_init() and media_entity_cleanup() based on
+>>> CONFIG_MEDIA_SUPPORT instead of CONFIG_MEDIA_CONTROLLER, but that looks a
+>>> bit hackish to me.
+>>>
+>>>> Also, I don't like the idea of increasing drivers complexity for the
+>>>> existing drivers that work properly without MC. All those core
+>>>> conversions that were done in the last two years caused already too much
+>>>> instability to them.
+>>>>
+>>>> We should really avoid touching on them again for something that won't
+>>>> be adding any new feature nor fixing any known bug.
+>>>
+>>> We don't have to convert them all in one go right now, we can implement
+>>> pad-level operations support selectively when a subdev driver becomes used
+>>> by an MC-enabled host/bridge driver.
+>>
+>> I completely agree that we should not be duplicating the code just for sake
+>> of it.
+>>
+>> Isn't the wrapper approach seems feasible here?
+> 
+> As explained in a previous e-mail, a wrapper sounds like a good approach to 
+> me, to emulate video::* operations based on pad::* operations. We want to move 
+> to pad::* operations, so we should not perform emulation the other way around.
 
-On Sat, Sep 3, 2011 at 2:32 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> When mapping a memory region, split it to page sizes as supported
-> by the iommu hardware. Always prefer bigger pages, when possible,
-> in order to reduce the TLB pressure.
->
-True. It is important for the peripheral devices that works with IOMMU.
+We have 300+ drivers under /drivers/media. Just a few of them need MC API.
 
-> This allows a more lenient granularity of mappings: traditionally the
-> IOMMU API took 'order' (of a page) as a mapping size, and directly let
-> the low level iommu drivers handle the mapping. Now that the IOMMU
-> core can split arbitrary memory regions into pages, we can remove this
-> limitation, so users don't have to split those regions by themselves.
->
+Good sense says that we shouldn't touch on 300+ just because of half dozen drivers.
 
-Please find the following link that I submitted for our IOMMU.
-https://lkml.org/lkml/2011/7/3/152
+So, if a wrapper is needed, it should be done for the other side.
 
-s5p_iommu_map/unmap accepts any order of physical address and iova
-without support of your suggestion if the order is not less than PAGE_SHIFT
-
-Of course, an IO virtual memory manager must be careful when it allocates
-IO virtual memory to lead best performance.
-But I think IOMMU API must not expect that the caller of iommu_map() knows
-about the restriction of IOMMU API implementation.
-
-Regards,
-Cho KyongHo.
+Mauro.
