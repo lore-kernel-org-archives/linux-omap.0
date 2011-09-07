@@ -1,150 +1,82 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 00/22] OMAP: voltage cleanup part A
-Date: Wed, 7 Sep 2011 21:12:31 +0200
-Message-ID: <CAORVsuVQQof_LwLQepJiEqRdJmHwL_8aBwxAxrsT=9LBR-ouew@mail.gmail.com>
-References: <1314639355-12713-1-git-send-email-khilman@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 6/6 v2] usb: musb: Add support for ti81xx platform
+Date: Wed, 7 Sep 2011 22:14:26 +0300
+Message-ID: <20110907191425.GB6506@legolas.emea.dhcp.ti.com>
+References: <1315414945-19829-1-git-send-email-ajay.gupta@ti.com>
+ <1315414945-19829-7-git-send-email-ajay.gupta@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:51600 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753740Ab1IGTMc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 15:12:32 -0400
-Received: by vxj15 with SMTP id 15so625966vxj.19
-        for <linux-omap@vger.kernel.org>; Wed, 07 Sep 2011 12:12:32 -0700 (PDT)
-In-Reply-To: <1314639355-12713-1-git-send-email-khilman@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1315414945-19829-7-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
-Kevin,
-
-On Mon, Aug 29, 2011 at 7:35 PM, Kevin Hilman <khilman@ti.com> wrote:
-> This is the first phase of the OMAP voltage layer cleanup. =A0The
-> primary goal is to cleanup/reorganize data structures to facilitate
-> splitting apart the voltage processor (VP) and voltage controller (VC=
-)
-> into separate layers.
->
-> Based on v3.1-rc3
->
-> Series available in branch pm-wip/voltdm_a in my linux-omap-pm tree:
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.g=
-it
 
 
-Some comments have been sent on this patch set, otherwise OK after revi=
-ew.
+--dTy3Mrz/UPE2dbVg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-=46WIW:
-Acked-by: Jean Pihet <j-pihet@ti.com>
+Hi,
 
-Regards,
-Jean
+On Wed, Sep 07, 2011 at 10:32:25PM +0530, Ajay Kumar Gupta wrote:
+> +static int __devinit dsps_probe(struct platform_device *pdev)
+> +{
+> +	const struct platform_device_id *id =3D platform_get_device_id(pdev);
+> +	const struct dsps_musb_wrapper *wrp =3D
+> +				(struct dsps_musb_wrapper *)id->driver_data;
+> +	struct dsps_glue *glue;
+> +	struct resource *iomem;
+> +	int ret;
+> +
+> +	/* allocate glue */
+> +	glue =3D kzalloc(sizeof(*glue), GFP_KERNEL);
+> +	if (!glue) {
+> +		dev_err(&pdev->dev, "unable to allocate glue memory\n");
+> +		ret =3D -ENOMEM;
+> +		goto err0;
+> +	}
+> +
+> +	/* get memory resource */
+> +	iomem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (!iomem) {
+> +		dev_err(&pdev->dev, "failed to get usbss mem resourse\n");
+> +		ret =3D -ENODEV;
+> +		goto err1;
+> +	}
+> +
+> +	glue->dev =3D &pdev->dev;
+> +	glue->wrp =3D wrp;
 
->
-> Benoit Cousson (1):
-> =A0OMAP4: powerdomain data: add voltage domains
->
-> Kevin Hilman (21):
-> =A0OMAP2+: hwmod: remove unused voltagedomain pointer
-> =A0OMAP2+: voltage: move PRCM mod offets into VC/VP structures
-> =A0OMAP2+: voltage: move prm_irqst_reg from VP into voltage domain
-> =A0OMAP2+: voltage: start towards a new voltagedomain layer
-> =A0OMAP3: voltage: rename "mpu" voltagedomain to "mpu_iva"
-> =A0OMAP3: voltagedomain data: add wakeup domain
-> =A0OMAP3+: voltage: add scalable flag to voltagedomain
-> =A0OMAP2+: powerdomain: add voltagedomain to struct powerdomain
-> =A0OMAP2: add voltage domains and connect to powerdomains
-> =A0OMAP3: powerdomain data: add voltage domains
-> =A0OMAP2+: powerdomain: add voltage domain lookup during register
-> =A0OMAP2+: voltage: keep track of powerdomains in each voltagedomain
-> =A0OMAP2+: voltage: split voltage controller (VC) code into dedicated
-> =A0 =A0layer
-> =A0OMAP2+: voltage: move VC into struct voltagedomain, misc. renames
-> =A0OMAP2+: voltage: enable VC bypass scale method when VC is initiali=
-zed
-> =A0OMAP2+: voltage: split out voltage processor (VP) code into new la=
-yer
-> =A0OMAP2+: VC: support PMICs with separate voltage and command regist=
-ers
-> =A0OMAP2+: add PRM VP functions for checking/clearing VP TX done stat=
-us
-> =A0OMAP3+ VP: replace transaction done check/clear with VP ops
-> =A0OMAP2+: PRM: add register access functions for VC/VP
-> =A0OMAP3+: voltage: convert to PRM register access functions
->
-> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- | =A0 =A05 +-
-> =A0arch/arm/mach-omap2/io.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0 =A05 +
-> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c =A0 =A0 =A0 | =A0 =A04 =
-+-
-> =A0arch/arm/mach-omap2/omap_twl.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- | =A0 20 +-
-> =A0arch/arm/mach-omap2/pm.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0 =A04 +-
-> =A0arch/arm/mach-omap2/powerdomain.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
- =A0 23 +
-> =A0arch/arm/mach-omap2/powerdomain.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
- =A0 10 +
-> =A0arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c | =A0 =A02 +
-> =A0arch/arm/mach-omap2/powerdomains2xxx_data.c =A0 =A0 =A0| =A0 =A04 =
-+
-> =A0arch/arm/mach-omap2/powerdomains3xxx_data.c =A0 =A0 =A0| =A0 16 +
-> =A0arch/arm/mach-omap2/powerdomains44xx_data.c =A0 =A0 =A0| =A0 16 +
-> =A0arch/arm/mach-omap2/prm2xxx_3xxx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- 56 ++
-> =A0arch/arm/mach-omap2/prm2xxx_3xxx.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- 12 +
-> =A0arch/arm/mach-omap2/prm44xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0| =A0 71 ++
-> =A0arch/arm/mach-omap2/prm44xx.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0| =A0 12 +
-> =A0arch/arm/mach-omap2/sr_device.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A02 +-
-> =A0arch/arm/mach-omap2/vc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0259 +++++++
-> =A0arch/arm/mach-omap2/vc.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0 34 +-
-> =A0arch/arm/mach-omap2/vc3xxx_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
- =A0 10 +-
-> =A0arch/arm/mach-omap2/vc44xx_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
- =A0 14 +-
-> =A0arch/arm/mach-omap2/voltage.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0| =A0889 +++++-----------------
-> =A0arch/arm/mach-omap2/voltage.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0| =A0 61 +-
-> =A0arch/arm/mach-omap2/voltagedomains2xxx_data.c =A0 =A0| =A0 32 +
-> =A0arch/arm/mach-omap2/voltagedomains3xxx_data.c =A0 =A0| =A0 53 +-
-> =A0arch/arm/mach-omap2/voltagedomains44xx_data.c =A0 =A0| =A0 69 +-
-> =A0arch/arm/mach-omap2/vp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0367 +++++++++
-> =A0arch/arm/mach-omap2/vp.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0 45 +-
-> =A0arch/arm/mach-omap2/vp3xxx_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
- =A0 21 +-
-> =A0arch/arm/mach-omap2/vp44xx_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
- =A0 28 +-
-> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h =A0 =A0 | =A0 =A01 -
-> =A030 files changed, 1281 insertions(+), 864 deletions(-)
-> =A0create mode 100644 arch/arm/mach-omap2/vc.c
-> =A0create mode 100644 arch/arm/mach-omap2/voltagedomains2xxx_data.c
-> =A0create mode 100644 arch/arm/mach-omap2/vp.c
->
-> --
-> 1.7.6
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+wrp is marked __devinitconst, so I guess you need to copy it here,
+instead of just pointing to it.
+
+--=20
+balbi
+
+--dTy3Mrz/UPE2dbVg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOZ8KRAAoJEAv8Txj19kN12cUH/ii6dFYmAqQxKEZOKquKi2jj
+aqdqnVWRjWvf7SGLpAb8a6NINFraVFxMweQYVTuOHiEhjw47+PBxabiQea43W4dc
+fEGWRmx4m71BVDtDjKS5OfGu6V2q1spWWb0Hcp+RmuTXBkDLQ8cFxoKxY/fnFHhZ
+WIwd/uzP5PZLVKy5qUwqfsPrT1Z4p+540NXoVRya3ECCKEoMLbEOD7CffhNKZJcl
+zk0k0jqhqOYQy2HNXGamQELYU39TPtROQjEvnNm3hbVLBp89nQ4QOCEvYAe7nQET
+roohC22LQTXbz6iphjSK/P4pJ2bMuOT26DQ4qE6MKlPRhrIXdnfmjV5avD72Zmc=
+=4uoe
+-----END PGP SIGNATURE-----
+
+--dTy3Mrz/UPE2dbVg--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
