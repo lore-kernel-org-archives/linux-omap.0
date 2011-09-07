@@ -1,72 +1,55 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [v2 2/2] usb: musb: omap2+: save and restore OTG_INTERFSEL
-Date: Wed, 7 Sep 2011 09:19:24 -0700
-Message-ID: <1315412364-21384-3-git-send-email-vikram.pandita@ti.com>
+From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Subject: [v2 1/2] usb: musb: omap2+: fix context api's
+Date: Wed, 7 Sep 2011 09:19:23 -0700
+Message-ID: <1315412364-21384-2-git-send-email-vikram.pandita@ti.com>
 References: <1315412364-21384-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60947 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756417Ab1IGQTd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Sep 2011 12:19:33 -0400
-In-Reply-To: <1315412364-21384-1-git-send-email-vikram.pandita@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1315412364-21384-1-git-send-email-vikram.pandita-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Vikram Pandita <vikram.pandita@ti.com>
 
-From: Hema HK <hemahk@ti.com>
+From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
 
-we need to save and restore OTG_INTERFSEL register
-else we will be unable to function on resume after
-OFF mode.
+RxFifoSz, TxFifoSz, RxFifoAddr, TxFifoAddr
+are all indexed registers.
 
-Reported-by: Devaraj Rangasamy <dev@ti.com>
-Signed-off-by: Hema HK <hemahk@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+So before doing a context save or restore, INDEX register
+should be set, then only one gets to the right register offset.
+
+Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/musb/musb_core.h |    1 +
- drivers/usb/musb/omap2430.c  |    6 ++++++
- 2 files changed, 7 insertions(+), 0 deletions(-)
+ drivers/usb/musb/musb_core.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index b3c065a..3259a6b 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -311,6 +311,7 @@ struct musb_context_registers {
- 	u8 index, testmode;
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 20a2873..6328aaf 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2159,6 +2159,7 @@ static void musb_save_context(struct musb *musb)
+ 		if (!epio)
+ 			continue;
  
- 	u8 devctl, busctl, misc;
-+	u32 otg_interfsel;
++		musb_writeb(musb_base, MUSB_INDEX, i);
+ 		musb->context.index_regs[i].txmaxp =
+ 			musb_readw(epio, MUSB_TXMAXP);
+ 		musb->context.index_regs[i].txcsr =
+@@ -2234,6 +2235,7 @@ static void musb_restore_context(struct musb *musb)
+ 		if (!epio)
+ 			continue;
  
- 	struct musb_csr_regs index_regs[MUSB_C_NUM_EPS];
- };
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index ba85f27..78eb13a 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -491,6 +491,9 @@ static int omap2430_runtime_suspend(struct device *dev)
- 	struct omap2430_glue		*glue = dev_get_drvdata(dev);
- 	struct musb			*musb = glue_to_musb(glue);
- 
-+	musb->context.otg_interfsel = musb_readl(musb->mregs,
-+						OTG_INTERFSEL);
-+
- 	omap2430_low_level_exit(musb);
- 	otg_set_suspend(musb->xceiv, 1);
- 
-@@ -503,6 +506,9 @@ static int omap2430_runtime_resume(struct device *dev)
- 	struct musb			*musb = glue_to_musb(glue);
- 
- 	omap2430_low_level_init(musb);
-+	musb_writel(musb->mregs, OTG_INTERFSEL,
-+					musb->context.otg_interfsel);
-+
- 	otg_set_suspend(musb->xceiv, 0);
- 
- 	return 0;
++		musb_writeb(musb_base, MUSB_INDEX, i);
+ 		musb_writew(epio, MUSB_TXMAXP,
+ 			musb->context.index_regs[i].txmaxp);
+ 		musb_writew(epio, MUSB_TXCSR,
 -- 
 1.7.4.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
