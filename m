@@ -1,56 +1,139 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 7/7] iommu/core: split mapping to page sizes as supported by
- the hardware
-Date: Wed, 7 Sep 2011 09:01:26 +0300
-Message-ID: <CAK=WgbZPFryzCFLa5AhAYDmH1S8c3x-OsSTyxYeq0WLAe8VyTg@mail.gmail.com>
-References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
- <1314984756-4400-8-git-send-email-ohad@wizery.com> <CAHQjnOMT3UOFMi=JbSXf4-s_BbZ+fSGbOEjxwT7t7N-zd+9-zg@mail.gmail.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v6 22/25] gpio/omap: save and restore debounce registers
+Date: Wed, 7 Sep 2011 11:46:43 +0530
+Message-ID: <CAC83ZvKQ_Nrekoet6gnPuHTQ9pXSFpZaYAxJ5O8nsYetBxd6dw@mail.gmail.com>
+References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
+	<1314798161-19523-23-git-send-email-tarun.kanti@ti.com>
+	<877h5lw75t.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:63863 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754369Ab1IGGBr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 02:01:47 -0400
-In-Reply-To: <CAHQjnOMT3UOFMi=JbSXf4-s_BbZ+fSGbOEjxwT7t7N-zd+9-zg@mail.gmail.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:39467 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755523Ab1IGGQo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Sep 2011 02:16:44 -0400
+Received: by mail-bw0-f44.google.com with SMTP id c12so193024bkb.17
+        for <linux-omap@vger.kernel.org>; Tue, 06 Sep 2011 23:16:43 -0700 (PDT)
+In-Reply-To: <877h5lw75t.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: KyongHo Cho <pullip.cho@samsung.com>
-Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Nishant Menon <nm@ti.com>
 
-Hi Cho,
-
-On Wed, Sep 7, 2011 at 4:30 AM, KyongHo Cho <pullip.cho@samsung.com> wrote:
-> Please find the following link that I submitted for our IOMMU.
-> https://lkml.org/lkml/2011/7/3/152
+On Wed, Sep 7, 2011 at 5:33 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 >
-> s5p_iommu_map/unmap accepts any order of physical address and iova
-> without support of your suggestion if the order is not less than PAGE_SHIFT
+>> From: Nishant Menon <nm@ti.com>
+>
+> Check spelling of first name (I believe version in signed-off-by belo=
+w
+> is the correct one.)
+Yes, it should haven been "Nishanth".
 
-That's exactly what I'm trying to prevent; there's no reason to
-duplicate the exact same logic in every iommu driver.
-
-As a result, your map function is quite big (it even duplicates the
-same logic for every page size it tries).
-
-Try to rebase your patch on the "iommu/core: split mapping to page
-sizes as supported by the hardware" patch I've just sent, and see how
-significantly simpler your code becomes.
-
-Relying on a single implementation, provided by the IOMMU core, means
-less code to maintain (and debug) and a consistent behavior (across
-all supported hardware) exposed to users of the IOMMU API.
-
-> But I think IOMMU API must not expect that the caller of iommu_map() knows
-> about the restriction of IOMMU API implementation.
-
-Right. But I don't think there's any disagreement here ?
-
-If any, then I think that s5p_iommu_map() is more limited than what I
-propose: if it is given a 64KB region aligned only to a 4KB address,
-it will BUG_ON() it. While not ideal, I don't think there's any reason
-not to map it using 4KB pages (which is exactly what the new
-iommu_map() I propose will do).
-
-Thanks,
-Ohad.
+>
+>> GPIO debounce registers need to be saved and restored for proper fun=
+ctioning
+>> of driver. To save the registers, we cannot cut the clock before the=
+ save,
+>> hence move the clk disable after the save.
+>>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>> =A0drivers/gpio/gpio-omap.c | =A0 22 +++++++++++++++++++---
+>> =A01 files changed, 19 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index dc382f6..67e08e9 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -41,6 +41,8 @@ struct gpio_regs {
+>> =A0 =A0 =A0 u32 risingdetect;
+>> =A0 =A0 =A0 u32 fallingdetect;
+>> =A0 =A0 =A0 u32 dataout;
+>> + =A0 =A0 u32 debounce;
+>> + =A0 =A0 u32 debounce_en;
+>> =A0};
+>>
+>> =A0struct gpio_bank {
+>> @@ -1158,9 +1160,6 @@ static int omap_gpio_runtime_suspend(struct de=
+vice *dev)
+>> =A0 =A0 =A0 u32 l1 =3D 0, l2 =3D 0;
+>> =A0 =A0 =A0 int j;
+>>
+>> - =A0 =A0 for (j =3D 0; j < hweight_long(bank->dbck_enable_mask); j+=
++)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 clk_disable(bank->dbck);
+>> -
+>> =A0 =A0 =A0 if (!bank->mod_usage)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+>>
+>> @@ -1192,6 +1191,16 @@ update_gpio_context_count:
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->context_loss_count =3D
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->ge=
+t_context_loss_count(bank->dev);
+>>
+>> + =A0 =A0 if (bank->dbck_enable_mask) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 bank->context.debounce =3D __raw_readl(ban=
+k->base +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 bank->regs->debounce);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 bank->context.debounce_en =3D __raw_readl(=
+bank->base +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 bank->regs->debounce_en);
+>
+> Here you're taking a step backwards from the goal of not having to re=
+ad
+> registers in the runtime suspend callback.
+>
+> Rather than reading the registers here, the values should be saved in=
+to
+> bank->context when they are initially written (_set_gpio_debounce()),=
+ so
+> you don't have the overhead of reading the registers in ->runtime_sus=
+pend.
+Good catch! Thanks.
+--
+Tarun
+>
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 for (j =3D 0; j < hweight_long(bank->dbck_enable_mask); j+=
++)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 clk_disable(bank->dbck);
+>> +
+>> =A0 =A0 =A0 return 0;
+>> =A0}
+>>
+>> @@ -1331,6 +1340,13 @@ static void omap_gpio_restore_context(struct =
+gpio_bank *bank)
+>> =A0 =A0 =A0 __raw_writel(bank->context.fallingdetect,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->ba=
+se + bank->regs->fallingdetect);
+>> =A0 =A0 =A0 __raw_writel(bank->context.dataout, bank->base + bank->r=
+egs->dataout);
+>> +
+>> + =A0 =A0 if (bank->dbck_enable_mask) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(bank->context.debounce, bank-=
+>base +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 bank->regs->debounce);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(bank->context.debounce_en,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 bank->base + bank->regs->debounce_en);
+>> + =A0 =A0 }
+>> =A0}
+>> =A0#else
+>> =A0#define omap_gpio_runtime_suspend NULL
+>
+> Kevin
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
