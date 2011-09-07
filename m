@@ -1,49 +1,58 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 6/7] iommu/core: add fault reporting
-Date: Wed, 7 Sep 2011 19:36:01 +0300
-Message-ID: <CAK=WgbafsdQ1MCai05jPsggJ72-jRh1w3OJ4hnuHyYMQauVvKw@mail.gmail.com>
-References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
-	<1314984756-4400-7-git-send-email-ohad@wizery.com>
-	<20110905100053.GP16691@amd.com>
+From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: RE: [PATCH 1/2] omap3: ISP: Fix the failure of CCDC capture during
+ suspend/resume
+Date: Wed, 7 Sep 2011 15:40:23 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087037AF843C7@dbde02.ent.ti.com>
+References: <1312984992-19315-1-git-send-email-deepthy.ravi@ti.com>,<201108302307.47564.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110905100053.GP16691@amd.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50933 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753145Ab1IGQmK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 12:42:10 -0400
+In-Reply-To: <201108302307.47564.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@infradead.org" <mchehab@infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Sep 5, 2011 at 1:00 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
-> Please add a seperate function for setting the fault-handler. It is
-> optional, so no need to be a value of the alloc-function.
 
-Will do.
 
-> Can you elaborate a bit on what the user of the api will do different
-> between IOMMU_TLBMISS and IOMMU_NOPTE?
-> My feeling is that those differences should be handled internally in the
-> IOMMU driver, but probably I miss a use-case.
+On Tue, Aug 30, 2011  Laurent Pinchart wrote:
+> Hi,
+>
+> On Wednesday 10 August 2011 16:03:12 Deepthy Ravi wrote:
+>> From: Abhilash K V <abhilash.kv@ti.com>
+>>
+>> While resuming from the "suspended to memory" state,
+>> occasionally CCDC fails to get enabled and thus fails
+>> to capture frames any more till the next suspend/resume
+>> is issued.
+>> This is a race condition which happens only when a CCDC
+>> frame-completion ISR is pending even as ISP device's
+>> isp_pm_prepare() is getting called and only one buffer
+>> is left on the DMA queue.
+>> The DMA queue buffers are thus depleted which results in
+>> its underrun.So when ISP resumes there are no buffers on
+>> the queue (as the application which can issue buffers is
+>> yet to resume) to start video capture.
+>> This fix addresses this issue by dequeuing and enqueing
+>> the last buffer in isp_pm_prepare() after its DMA gets
+>> completed. Thus,when ISP resumes it always finds atleast
+>> one buffer on the DMA queue - this is true if application
+>> uses only 3 buffers.
+>
+> How is that problem specific to the CCDC ? Can't it be reproduce at the
+> preview engine or resizer output as well ?
+[Abhilash K V]Yes,  I believe this issue would crop with preview and resizer too though I have
+not been able to try these out.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
-I actually agree. Moreover, since we're not planning on implementing
-this (dynamic PTE/TLB loading is supported by the hardware, but we're
-not really using it ATM), and I don't see any other user doing so at
-this point, I'll just remove those two fault types altogether.
-
-> Also, we need some flags to distinguish between the type of the fault
-> (read, write, ...).
-
-I'll add it (though it won't be used by OMAP since the hardware
-doesn't tell us this info).
-
-Thanks!
-Ohad.
