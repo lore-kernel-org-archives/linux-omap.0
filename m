@@ -1,18 +1,16 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 7/7] iommu/core: split mapping to page sizes as supported by
-	the hardware
-Date: Wed, 7 Sep 2011 12:16:00 +0300
-Message-ID: <CAK=WgbbFhmiC=PJfmyPOhbHGtiPFOcmqBx7nSpkuDX36hPYgbA@mail.gmail.com>
-References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
-	<1314984756-4400-8-git-send-email-ohad@wizery.com>
-	<CAHQjnOMT3UOFMi=JbSXf4-s_BbZ+fSGbOEjxwT7t7N-zd+9-zg@mail.gmail.com>
-	<CAK=WgbZPFryzCFLa5AhAYDmH1S8c3x-OsSTyxYeq0WLAe8VyTg@mail.gmail.com>
-	<CAHQjnOMnOjAJ6QuuLmLa1UKvTRHfyyjiUYrfvzLx8FSsCixxng@mail.gmail.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v6 25/25] gpio/omap: handle set_dataout reg capable IP on
+	restore
+Date: Wed, 7 Sep 2011 13:05:34 +0530
+Message-ID: <CAC83ZvJJV1v0akAwv_vM-SaENxvDSpw3v_ckFTBoEqcL+X5QSg@mail.gmail.com>
+References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
+	<1314798161-19523-26-git-send-email-tarun.kanti@ti.com>
+	<87mxehusdg.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAHQjnOMnOjAJ6QuuLmLa1UKvTRHfyyjiUYrfvzLx8FSsCixxng@mail.gmail.com>
+In-Reply-To: <87mxehusdg.fsf@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,47 +20,60 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: KyongHo Cho <pullip.cho@samsung.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: tony@atomide.com, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi KyongHo,
-
-On Wed, Sep 7, 2011 at 11:05 AM, KyongHo Cho <pullip.cho@samsung.com> wrote:
-> However, it is faster because it does not calculate the given order and
-> not call any function.
-
-Hmm this sounds a bit like a red herring to me; optimization of the
-map function is not the main subject here. Especially not when we're
-discussing mapping of large physically contiguous memory regions which
-do not happen too often.
-
-But generally I don't think that duplicating code and eliminating
-function calls is a good optimization (the compiler can do that for
-us..). Moreover, it looks like s5p_iommu_map() gives a higher priority
-for bigger pages first, and only reaches 4KB pages after it tried all
-other supported pages. IMHO that's sub-optimal, because small mappings
-are more common than big ones.
-
-Another advantage for migrating s5p_iommu_map() over to the subject
-patch, is that s5p_iommu_map() doesn't support super sections yet. To
-support it, you'd need to add more code (duplicate another while
-loop). But if you migrated to the subject patch, then you would only
-need to flip the 16MB bit when you advertise page size capabilities
-and then that's it; you're done.
-
-> It is a logical error because the caller of iommu_map() gives
-> 4KB aligned physical address while saying that it is 64KB aligned.
-
-The caller of iommu_map() doesn't say anything about alignments. It
-just gives it a memory region to map, and expect things to just work.
-
-Obviously it's better if big physically contiguous mapping will be
-aligned to big pages, but things can still work even if it's not, by
-using smaller pages. No reason not to provide this flexibility.
-
-The only requirement the IOMMU API should have is the minimum 4KB
-alignment, because IOMMU hardware does not support smaller pages.
-
-Thanks,
-Ohad.
+On Wed, Sep 7, 2011 at 5:37 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+>
+>> From: Nishanth Menon <nm@ti.com>
+>>
+>> GPIO IP revisions such as those used in OMAP4 have a set_dataout
+>> while the previous revisions used a single dataout register.
+>> Depending on what is available restore the dataout settings
+>> to the right register.
+>
+> OK, minor nit below...
+>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>> =A0drivers/gpio/gpio-omap.c | =A0 =A07 ++++++-
+>> =A01 files changed, 6 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index a629498..4680b4c 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -1334,7 +1334,12 @@ static void omap_gpio_restore_context(struct gpio=
+_bank *bank)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->base +=
+ bank->regs->risingdetect);
+>> =A0 =A0 =A0 __raw_writel(bank->context.fallingdetect,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->base +=
+ bank->regs->fallingdetect);
+>> - =A0 =A0 __raw_writel(bank->context.dataout, bank->base + bank->regs->d=
+ataout);
+>> + =A0 =A0 if (bank->regs->set_dataout && bank->regs->clr_dataout)
+>
+> Why the check for ->clr_dataout here?
+Well, I guess it was just an additional check. It can possibly be removed.
+--
+Tarun
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(bank->context.dataout,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->base + b=
+ank->regs->set_dataout);
+>> + =A0 =A0 else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(bank->context.dataout,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->base + b=
+ank->regs->dataout);
+>> =A0 =A0 =A0 __raw_writel(bank->context.oe, bank->base + bank->regs->dire=
+ction);
+>>
+>> =A0 =A0 =A0 if (bank->dbck_enable_mask) {
+>
+> Kevin
+>
