@@ -1,54 +1,49 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/2] usb: musb: omap2+: save and restore OTG_INTERFSEL
-Date: Wed, 07 Sep 2011 14:52:02 +0400
-Message-ID: <4E674CD2.6050800@ru.mvista.com>
-References: <1315356573-1057-1-git-send-email-vikram.pandita@ti.com> <1315356573-1057-3-git-send-email-vikram.pandita@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 6/7] iommu/core: add fault reporting
+Date: Wed, 7 Sep 2011 19:36:01 +0300
+Message-ID: <CAK=WgbafsdQ1MCai05jPsggJ72-jRh1w3OJ4hnuHyYMQauVvKw@mail.gmail.com>
+References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
+	<1314984756-4400-7-git-send-email-ohad@wizery.com>
+	<20110905100053.GP16691@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1315356573-1057-3-git-send-email-vikram.pandita-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110905100053.GP16691@amd.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+On Mon, Sep 5, 2011 at 1:00 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> Please add a seperate function for setting the fault-handler. It is
+> optional, so no need to be a value of the alloc-function.
 
-On 07-09-2011 4:49, Vikram Pandita wrote:
+Will do.
 
-> From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+> Can you elaborate a bit on what the user of the api will do different
+> between IOMMU_TLBMISS and IOMMU_NOPTE?
+> My feeling is that those differences should be handled internally in the
+> IOMMU driver, but probably I miss a use-case.
 
-> we need to save and restore OTG_INTERFSEL register
-> else we will be unable to function on resume after
-> OFF mode.
+I actually agree. Moreover, since we're not planning on implementing
+this (dynamic PTE/TLB loading is supported by the hardware, but we're
+not really using it ATM), and I don't see any other user doing so at
+this point, I'll just remove those two fault types altogether.
 
-> Change-Id: I6c29c69596d5f47e00cf74ab0e32bb44ef71dda9
+> Also, we need some flags to distinguish between the type of the fault
+> (read, write, ...).
 
-    Remove this, please.
+I'll add it (though it won't be used by OMAP since the hardware
+doesn't tell us this info).
 
-> Reported-by: Devaraj Rangasamy<dev-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
-> ---
->   drivers/usb/musb/musb_core.h |    1 +
->   drivers/usb/musb/omap2430.c  |    6 ++++++
->   2 files changed, 7 insertions(+), 0 deletions(-)
-
-> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-> index b3c065a..3259a6b 100644
-> --- a/drivers/usb/musb/musb_core.h
-> +++ b/drivers/usb/musb/musb_core.h
-> @@ -311,6 +311,7 @@ struct musb_context_registers {
->   	u8 index, testmode;
->
->   	u8 devctl, busctl, misc;
-> +	u32 otg_interfsel;
-
-    Shouldn't this be encosed in #ifdef?
-
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks!
+Ohad.
