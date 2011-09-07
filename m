@@ -1,72 +1,49 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH 2/2] usb: musb: omap2+: save and restore OTG_INTERFSEL
-Date: Tue, 6 Sep 2011 17:49:33 -0700
-Message-ID: <1315356573-1057-3-git-send-email-vikram.pandita@ti.com>
-References: <1315356573-1057-1-git-send-email-vikram.pandita@ti.com>
+From: KyongHo Cho <pullip.cho@samsung.com>
+Subject: Re: [RFC 7/7] iommu/core: split mapping to page sizes as supported by
+ the hardware
+Date: Wed, 7 Sep 2011 10:30:33 +0900
+Message-ID: <CAHQjnOMT3UOFMi=JbSXf4-s_BbZ+fSGbOEjxwT7t7N-zd+9-zg@mail.gmail.com>
+References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
+	<1314984756-4400-8-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36530 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752028Ab1IGAtx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Sep 2011 20:49:53 -0400
-In-Reply-To: <1315356573-1057-1-git-send-email-vikram.pandita@ti.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:36837 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753888Ab1IGBah (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Sep 2011 21:30:37 -0400
+In-Reply-To: <1314984756-4400-8-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org
 
-From: Hema HK <hemahk@ti.com>
+Hi
 
-we need to save and restore OTG_INTERFSEL register
-else we will be unable to function on resume after
-OFF mode.
+On Sat, Sep 3, 2011 at 2:32 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> When mapping a memory region, split it to page sizes as supported
+> by the iommu hardware. Always prefer bigger pages, when possible,
+> in order to reduce the TLB pressure.
+>
+True. It is important for the peripheral devices that works with IOMMU.
 
-Change-Id: I6c29c69596d5f47e00cf74ab0e32bb44ef71dda9
-Reported-by: Devaraj Rangasamy <dev@ti.com>
-Signed-off-by: Hema HK <hemahk@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/usb/musb/musb_core.h |    1 +
- drivers/usb/musb/omap2430.c  |    6 ++++++
- 2 files changed, 7 insertions(+), 0 deletions(-)
+> This allows a more lenient granularity of mappings: traditionally the
+> IOMMU API took 'order' (of a page) as a mapping size, and directly let
+> the low level iommu drivers handle the mapping. Now that the IOMMU
+> core can split arbitrary memory regions into pages, we can remove this
+> limitation, so users don't have to split those regions by themselves.
+>
 
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index b3c065a..3259a6b 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -311,6 +311,7 @@ struct musb_context_registers {
- 	u8 index, testmode;
- 
- 	u8 devctl, busctl, misc;
-+	u32 otg_interfsel;
- 
- 	struct musb_csr_regs index_regs[MUSB_C_NUM_EPS];
- };
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index ba85f27..78eb13a 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -491,6 +491,9 @@ static int omap2430_runtime_suspend(struct device *dev)
- 	struct omap2430_glue		*glue = dev_get_drvdata(dev);
- 	struct musb			*musb = glue_to_musb(glue);
- 
-+	musb->context.otg_interfsel = musb_readl(musb->mregs,
-+						OTG_INTERFSEL);
-+
- 	omap2430_low_level_exit(musb);
- 	otg_set_suspend(musb->xceiv, 1);
- 
-@@ -503,6 +506,9 @@ static int omap2430_runtime_resume(struct device *dev)
- 	struct musb			*musb = glue_to_musb(glue);
- 
- 	omap2430_low_level_init(musb);
-+	musb_writel(musb->mregs, OTG_INTERFSEL,
-+					musb->context.otg_interfsel);
-+
- 	otg_set_suspend(musb->xceiv, 0);
- 
- 	return 0;
--- 
-1.7.4.1
+Please find the following link that I submitted for our IOMMU.
+https://lkml.org/lkml/2011/7/3/152
 
+s5p_iommu_map/unmap accepts any order of physical address and iova
+without support of your suggestion if the order is not less than PAGE_SHIFT
+
+Of course, an IO virtual memory manager must be careful when it allocates
+IO virtual memory to lead best performance.
+But I think IOMMU API must not expect that the caller of iommu_map() knows
+about the restriction of IOMMU API implementation.
+
+Regards,
+Cho KyongHo.
