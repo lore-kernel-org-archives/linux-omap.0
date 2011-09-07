@@ -1,51 +1,68 @@
-From: Mans Rullgard <mans.rullgard-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v2] ASoC: omap: add MODULE_ALIAS to mcbsp and pcm drivers
-Date: Wed,  7 Sep 2011 12:07:21 +0100
-Message-ID: <1315393641-21261-1-git-send-email-mans.rullgard@linaro.org>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 7/7] iommu/core: split mapping to page sizes as supported by
+	the hardware
+Date: Wed, 7 Sep 2011 12:16:00 +0300
+Message-ID: <CAK=WgbbFhmiC=PJfmyPOhbHGtiPFOcmqBx7nSpkuDX36hPYgbA@mail.gmail.com>
+References: <1314984756-4400-1-git-send-email-ohad@wizery.com>
+	<1314984756-4400-8-git-send-email-ohad@wizery.com>
+	<CAHQjnOMT3UOFMi=JbSXf4-s_BbZ+fSGbOEjxwT7t7N-zd+9-zg@mail.gmail.com>
+	<CAK=WgbZPFryzCFLa5AhAYDmH1S8c3x-OsSTyxYeq0WLAe8VyTg@mail.gmail.com>
+	<CAHQjnOMnOjAJ6QuuLmLa1UKvTRHfyyjiUYrfvzLx8FSsCixxng@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liam Girdwood <lrg-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAHQjnOMnOjAJ6QuuLmLa1UKvTRHfyyjiUYrfvzLx8FSsCixxng@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: KyongHo Cho <pullip.cho@samsung.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This adds MODULE_ALIAS directives to the omap-mcbsp-dai and
-omap-pcm-audio drivers so they can be auto-loaded when platform
-devices are scanned.
+Hi KyongHo,
 
-Signed-off-by: Mans Rullgard <mans.rullgard-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
- sound/soc/omap/omap-mcbsp.c |    1 +
- sound/soc/omap/omap-pcm.c   |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+On Wed, Sep 7, 2011 at 11:05 AM, KyongHo Cho <pullip.cho@samsung.com> wrote:
+> However, it is faster because it does not calculate the given order and
+> not call any function.
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 07b7723..5ddfadd 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -783,3 +783,4 @@ module_exit(snd_omap_mcbsp_exit);
- MODULE_AUTHOR("Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>");
- MODULE_DESCRIPTION("OMAP I2S SoC Interface");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:omap-mcbsp-dai");
-diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-index e6a6b99..f19ccc1 100644
---- a/sound/soc/omap/omap-pcm.c
-+++ b/sound/soc/omap/omap-pcm.c
-@@ -437,3 +437,4 @@ module_exit(snd_omap_pcm_exit);
- MODULE_AUTHOR("Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>");
- MODULE_DESCRIPTION("OMAP PCM DMA module");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:omap-pcm-audio");
--- 
-1.7.6.1
+Hmm this sounds a bit like a red herring to me; optimization of the
+map function is not the main subject here. Especially not when we're
+discussing mapping of large physically contiguous memory regions which
+do not happen too often.
+
+But generally I don't think that duplicating code and eliminating
+function calls is a good optimization (the compiler can do that for
+us..). Moreover, it looks like s5p_iommu_map() gives a higher priority
+for bigger pages first, and only reaches 4KB pages after it tried all
+other supported pages. IMHO that's sub-optimal, because small mappings
+are more common than big ones.
+
+Another advantage for migrating s5p_iommu_map() over to the subject
+patch, is that s5p_iommu_map() doesn't support super sections yet. To
+support it, you'd need to add more code (duplicate another while
+loop). But if you migrated to the subject patch, then you would only
+need to flip the 16MB bit when you advertise page size capabilities
+and then that's it; you're done.
+
+> It is a logical error because the caller of iommu_map() gives
+> 4KB aligned physical address while saying that it is 64KB aligned.
+
+The caller of iommu_map() doesn't say anything about alignments. It
+just gives it a memory region to map, and expect things to just work.
+
+Obviously it's better if big physically contiguous mapping will be
+aligned to big pages, but things can still work even if it's not, by
+using smaller pages. No reason not to provide this flexibility.
+
+The only requirement the IOMMU API should have is the minimum 4KB
+alignment, because IOMMU hardware does not support smaller pages.
+
+Thanks,
+Ohad.
