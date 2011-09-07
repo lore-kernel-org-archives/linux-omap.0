@@ -1,82 +1,65 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 6/6 v2] usb: musb: Add support for ti81xx platform
-Date: Wed, 7 Sep 2011 22:14:26 +0300
-Message-ID: <20110907191425.GB6506@legolas.emea.dhcp.ti.com>
-References: <1315414945-19829-1-git-send-email-ajay.gupta@ti.com>
- <1315414945-19829-7-git-send-email-ajay.gupta@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 2/8] OMAP3+: PM: VP: generalize PRM interrupt helpers
+Date: Wed, 7 Sep 2011 21:27:07 +0200
+Message-ID: <CAORVsuXzyfWHNyM1u=bXwnhM=yLfF_Q2SS3wjv9n-13mvHcYgw@mail.gmail.com>
+References: <1309393560-8874-1-git-send-email-mturquette@ti.com>
+	<1309393560-8874-3-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1315414945-19829-7-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vw0-f43.google.com ([209.85.212.43]:51987 "EHLO
+	mail-vw0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089Ab1IGT1J convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 15:27:09 -0400
+Received: by vws10 with SMTP id 10so7635018vws.2
+        for <linux-omap@vger.kernel.org>; Wed, 07 Sep 2011 12:27:08 -0700 (PDT)
+In-Reply-To: <1309393560-8874-3-git-send-email-mturquette@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@ti.com>, khilman@ti.com, Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org
 
+Mike, Kevin,
 
---dTy3Mrz/UPE2dbVg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Jun 30, 2011 at 2:25 AM, Mike Turquette <mturquette@ti.com> wro=
+te:
+> From: Nishanth Menon <nm@ti.com>
+>
+> We have multiple interrupt status hidden in the PRM interrupt status
+> reg. Make this handling generic to allow us to pull out LDO status su=
+ch
+> as those for ABB from it using the same data structure and indexing. =
+We
+> hence rename accordingly.
+I am not sure that the rename is needed.
 
-Hi,
+Kevin, Nishant, what is your opinion?
 
-On Wed, Sep 07, 2011 at 10:32:25PM +0530, Ajay Kumar Gupta wrote:
-> +static int __devinit dsps_probe(struct platform_device *pdev)
-> +{
-> +	const struct platform_device_id *id =3D platform_get_device_id(pdev);
-> +	const struct dsps_musb_wrapper *wrp =3D
-> +				(struct dsps_musb_wrapper *)id->driver_data;
-> +	struct dsps_glue *glue;
-> +	struct resource *iomem;
-> +	int ret;
-> +
-> +	/* allocate glue */
-> +	glue =3D kzalloc(sizeof(*glue), GFP_KERNEL);
-> +	if (!glue) {
-> +		dev_err(&pdev->dev, "unable to allocate glue memory\n");
-> +		ret =3D -ENOMEM;
-> +		goto err0;
-> +	}
-> +
-> +	/* get memory resource */
-> +	iomem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (!iomem) {
-> +		dev_err(&pdev->dev, "failed to get usbss mem resourse\n");
-> +		ret =3D -ENODEV;
-> +		goto err1;
-> +	}
-> +
-> +	glue->dev =3D &pdev->dev;
-> +	glue->wrp =3D wrp;
+Regards,
+Jean
 
-wrp is marked __devinitconst, so I guess you need to copy it here,
-instead of just pointing to it.
-
---=20
-balbi
-
---dTy3Mrz/UPE2dbVg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOZ8KRAAoJEAv8Txj19kN12cUH/ii6dFYmAqQxKEZOKquKi2jj
-aqdqnVWRjWvf7SGLpAb8a6NINFraVFxMweQYVTuOHiEhjw47+PBxabiQea43W4dc
-fEGWRmx4m71BVDtDjKS5OfGu6V2q1spWWb0Hcp+RmuTXBkDLQ8cFxoKxY/fnFHhZ
-WIwd/uzP5PZLVKy5qUwqfsPrT1Z4p+540NXoVRya3ECCKEoMLbEOD7CffhNKZJcl
-zk0k0jqhqOYQy2HNXGamQELYU39TPtROQjEvnNm3hbVLBp89nQ4QOCEvYAe7nQET
-roohC22LQTXbz6iphjSK/P4pJ2bMuOT26DQ4qE6MKlPRhrIXdnfmjV5avD72Zmc=
-=4uoe
------END PGP SIGNATURE-----
-
---dTy3Mrz/UPE2dbVg--
+>
+> We also fix a trivial warning as the variable does not need exporting=
+:
+> arch/arm/mach-omap2/prm2xxx_3xxx.c:172:22: warning: symbol
+> 'omap3_prm_irqs' was not declared. Should it be static?
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Mike Turquette <mturquette@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/prm2xxx_3xxx.c | =A0 22 +++++++++++-----------
+> =A0arch/arm/mach-omap2/prm2xxx_3xxx.h | =A0 =A07 +++++--
+> =A0arch/arm/mach-omap2/prm44xx.c =A0 =A0 =A0| =A0 28 ++++++++++++++--=
+------------
+> =A0arch/arm/mach-omap2/prm44xx.h =A0 =A0 =A0| =A0 =A07 +++++--
+> =A0arch/arm/mach-omap2/vp.h =A0 =A0 =A0 =A0 =A0 | =A0 =A09 ---------
+> =A0arch/arm/mach-omap2/vp3xxx_data.c =A0| =A0 =A04 ++--
+> =A0arch/arm/mach-omap2/vp44xx_data.c =A0| =A0 =A06 +++---
+> =A07 files changed, 40 insertions(+), 43 deletions(-)
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
