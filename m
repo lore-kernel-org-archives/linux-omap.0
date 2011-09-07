@@ -1,8 +1,8 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v4 09/11] OMAP2+: Serial: Use prepare and resume calls to gate
-	uart clocks
-Date: Wed, 7 Sep 2011 18:23:31 +0530
-Message-ID: <1315400013-4849-10-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v4 03/11] OMAP2+: UART: cleanup + remove certain uart calls
+	from pm code
+Date: Wed, 7 Sep 2011 18:23:25 +0530
+Message-ID: <1315400013-4849-4-git-send-email-govindraj.raja@ti.com>
 References: <1315400013-4849-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,181 +22,218 @@ To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently we are using uart prepare and resume calls to gate uart clocks
-retaining the same method.
+In preparation to UART runtime conversion. Remove certain uart specific calls
+from pm24xx/34xx files. Remove uart pads from 3430 board file.
+These func calls will no more be used with upcoming uart runtime design.
 
-More details on reason to retain this design is provided here:
-http://www.spinics.net/lists/linux-serial/msg04128.html
-
-Since prepare and resume hooks are moved to driver itself we can just use
-a single prepare and resume call. As in driver we traverse on number of uart
-instance and handle it accordingly.
-
-In 34xx uart can wakeup using module level PM_WKEN or IO PAD wakeup use
-resume_call from prcm irq handler to wakeup uart, based on chk_wakeup_status
-from io_pad or PM_WKST.
+1.) omap_uart_can_sleep :- not needed driver can autosuspend based on usage_count
+    and autosuspend delay.
+2.) omap_uart_prepare_suspend :- can be taken care with driver.
+3.) The pad values in 3430 board file are same as the default pad values to be
+    updated in serial.c file with uart runtime conversion changes.
+    Avoid structure duplication and use default pads.
 
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/pm24xx.c             |    8 +----
- arch/arm/mach-omap2/pm34xx.c             |   17 +++++-------
- arch/arm/plat-omap/include/plat/serial.h |    4 +-
- drivers/tty/serial/omap-serial.c         |   40 ++++++++++++++++++++++++++++++
- 4 files changed, 51 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap2/board-3430sdp.c      |  100 +-----------------------------
+ arch/arm/mach-omap2/pm24xx.c             |    3 -
+ arch/arm/mach-omap2/pm34xx.c             |    5 --
+ arch/arm/plat-omap/include/plat/serial.h |    4 -
+ 4 files changed, 1 insertions(+), 111 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index bd600cf..b12b38f 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -482,106 +482,8 @@ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-
+-static struct omap_device_pad serial1_pads[] __initdata = {
+-	/*
+-	 * Note that off output enable is an active low
+-	 * signal. So setting this means pin is a
+-	 * input enabled in off mode
+-	 */
+-	OMAP_MUX_STATIC("uart1_cts.uart1_cts",
+-			 OMAP_PIN_INPUT |
+-			 OMAP_PIN_OFF_INPUT_PULLDOWN |
+-			 OMAP_OFFOUT_EN |
+-			 OMAP_MUX_MODE0),
+-	OMAP_MUX_STATIC("uart1_rts.uart1_rts",
+-			 OMAP_PIN_OUTPUT |
+-			 OMAP_OFF_EN |
+-			 OMAP_MUX_MODE0),
+-	OMAP_MUX_STATIC("uart1_rx.uart1_rx",
+-			 OMAP_PIN_INPUT |
+-			 OMAP_PIN_OFF_INPUT_PULLDOWN |
+-			 OMAP_OFFOUT_EN |
+-			 OMAP_MUX_MODE0),
+-	OMAP_MUX_STATIC("uart1_tx.uart1_tx",
+-			 OMAP_PIN_OUTPUT |
+-			 OMAP_OFF_EN |
+-			 OMAP_MUX_MODE0),
+-};
+-
+-static struct omap_device_pad serial2_pads[] __initdata = {
+-	OMAP_MUX_STATIC("uart2_cts.uart2_cts",
+-			 OMAP_PIN_INPUT_PULLUP |
+-			 OMAP_PIN_OFF_INPUT_PULLDOWN |
+-			 OMAP_OFFOUT_EN |
+-			 OMAP_MUX_MODE0),
+-	OMAP_MUX_STATIC("uart2_rts.uart2_rts",
+-			 OMAP_PIN_OUTPUT |
+-			 OMAP_OFF_EN |
+-			 OMAP_MUX_MODE0),
+-	OMAP_MUX_STATIC("uart2_rx.uart2_rx",
+-			 OMAP_PIN_INPUT |
+-			 OMAP_PIN_OFF_INPUT_PULLDOWN |
+-			 OMAP_OFFOUT_EN |
+-			 OMAP_MUX_MODE0),
+-	OMAP_MUX_STATIC("uart2_tx.uart2_tx",
+-			 OMAP_PIN_OUTPUT |
+-			 OMAP_OFF_EN |
+-			 OMAP_MUX_MODE0),
+-};
+-
+-static struct omap_device_pad serial3_pads[] __initdata = {
+-	OMAP_MUX_STATIC("uart3_cts_rctx.uart3_cts_rctx",
+-			 OMAP_PIN_INPUT_PULLDOWN |
+-			 OMAP_PIN_OFF_INPUT_PULLDOWN |
+-			 OMAP_OFFOUT_EN |
+-			 OMAP_MUX_MODE0),
+-	OMAP_MUX_STATIC("uart3_rts_sd.uart3_rts_sd",
+-			 OMAP_PIN_OUTPUT |
+-			 OMAP_OFF_EN |
+-			 OMAP_MUX_MODE0),
+-	OMAP_MUX_STATIC("uart3_rx_irrx.uart3_rx_irrx",
+-			 OMAP_PIN_INPUT |
+-			 OMAP_PIN_OFF_INPUT_PULLDOWN |
+-			 OMAP_OFFOUT_EN |
+-			 OMAP_MUX_MODE0),
+-	OMAP_MUX_STATIC("uart3_tx_irtx.uart3_tx_irtx",
+-			 OMAP_PIN_OUTPUT |
+-			 OMAP_OFF_EN |
+-			 OMAP_MUX_MODE0),
+-};
+-
+-static struct omap_board_data serial1_data __initdata = {
+-	.id		= 0,
+-	.pads		= serial1_pads,
+-	.pads_cnt	= ARRAY_SIZE(serial1_pads),
+-};
+-
+-static struct omap_board_data serial2_data __initdata = {
+-	.id		= 1,
+-	.pads		= serial2_pads,
+-	.pads_cnt	= ARRAY_SIZE(serial2_pads),
+-};
+-
+-static struct omap_board_data serial3_data __initdata = {
+-	.id		= 2,
+-	.pads		= serial3_pads,
+-	.pads_cnt	= ARRAY_SIZE(serial3_pads),
+-};
+-
+-static inline void board_serial_init(void)
+-{
+-	omap_serial_init_port(&serial1_data);
+-	omap_serial_init_port(&serial2_data);
+-	omap_serial_init_port(&serial3_data);
+-}
+ #else
+ #define board_mux	NULL
+-
+-static inline void board_serial_init(void)
+-{
+-	omap_serial_init();
+-}
+ #endif
+ 
+ /*
+@@ -718,7 +620,7 @@ static void __init omap_3430sdp_init(void)
+ 	else
+ 		gpio_pendown = SDP3430_TS_GPIO_IRQ_SDPV1;
+ 	omap_ads7846_init(1, gpio_pendown, 310, NULL);
+-	board_serial_init();
++	omap_serial_init();
+ 	usb_musb_init(NULL);
+ 	board_smc91x_init();
+ 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
 diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 39f26af..91eacef 100644
+index bf089e7..39f26af 100644
 --- a/arch/arm/mach-omap2/pm24xx.c
 +++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -138,18 +138,14 @@ static void omap2_enter_full_retention(void)
- 		if (!console_trylock())
- 			goto no_sleep;
+@@ -265,8 +265,6 @@ static int omap2_can_sleep(void)
+ {
+ 	if (omap2_fclks_active())
+ 		return 0;
+-	if (!omap_uart_can_sleep())
+-		return 0;
+ 	if (osc_ck->usecount > 1)
+ 		return 0;
+ 	if (omap_dma_running())
+@@ -317,7 +315,6 @@ static int omap2_pm_suspend(void)
+ 	mir1 = omap_readl(0x480fe0a4);
+ 	omap_writel(1 << 5, 0x480fe0ac);
  
--	omap_uart_prepare_idle(0);
--	omap_uart_prepare_idle(1);
--	omap_uart_prepare_idle(2);
-+	omap_uart_prepare_idle();
+-	omap_uart_prepare_suspend();
+ 	omap2_enter_full_retention();
  
- 	/* Jump to SRAM suspend code */
- 	omap2_sram_suspend(sdrc_read_reg(SDRC_DLLA_CTRL),
- 			   OMAP_SDRC_REGADDR(SDRC_DLLA_CTRL),
- 			   OMAP_SDRC_REGADDR(SDRC_POWER));
- 
--	omap_uart_resume_idle(2);
--	omap_uart_resume_idle(1);
--	omap_uart_resume_idle(0);
-+	omap_uart_resume_idle();
- 
- 	if (!is_suspending())
- 		console_unlock();
+ 	omap_writel(mir1, 0x480fe0a4);
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 9f3bf2c..26ddd56 100644
+index 7255d9b..9f3bf2c 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -210,6 +210,7 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
+@@ -485,8 +485,6 @@ console_still_active:
  
- 	wkst = omap2_prm_read_mod_reg(module, wkst_off);
- 	wkst &= omap2_prm_read_mod_reg(module, grpsel_off);
-+	c += omap_uart_resume_idle();
- 	if (wkst) {
- 		iclk = omap2_cm_read_mod_reg(module, iclk_off);
- 		fclk = omap2_cm_read_mod_reg(module, fclk_off);
-@@ -380,17 +381,19 @@ void omap_sram_idle(void)
+ int omap3_can_sleep(void)
+ {
+-	if (!omap_uart_can_sleep())
+-		return 0;
+ 	return 1;
+ }
+ 
+@@ -531,7 +529,6 @@ static int omap3_pm_suspend(void)
+ 			goto restore;
  	}
  
- 	/* Block console output in case it is on one of the OMAP UARTs */
--	if (!is_suspending())
-+	if (!is_suspending()) {
- 		if (per_next_state < PWRDM_POWER_ON ||
--		    core_next_state < PWRDM_POWER_ON)
-+		    core_next_state < PWRDM_POWER_ON) {
- 			if (!console_trylock())
- 				goto console_still_active;
-+			else
-+				omap_uart_prepare_idle();
-+		}
-+	}
+-	omap_uart_prepare_suspend();
+ 	omap3_intc_suspend();
  
- 	/* PER */
- 	if (per_next_state < PWRDM_POWER_ON) {
- 		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
--		omap_uart_prepare_idle(2);
--		omap_uart_prepare_idle(3);
- 		omap2_gpio_prepare_for_idle(per_going_off);
- 		if (per_next_state == PWRDM_POWER_OFF)
- 				omap3_per_save_context();
-@@ -398,8 +401,6 @@ void omap_sram_idle(void)
+ 	omap_sram_idle();
+@@ -578,14 +575,12 @@ static int omap3_pm_begin(suspend_state_t state)
+ {
+ 	disable_hlt();
+ 	suspend_state = state;
+-	omap_uart_enable_irqs(0);
+ 	return 0;
+ }
  
- 	/* CORE */
- 	if (core_next_state < PWRDM_POWER_ON) {
--		omap_uart_prepare_idle(0);
--		omap_uart_prepare_idle(1);
- 		if (core_next_state == PWRDM_POWER_OFF) {
- 			omap3_core_save_context();
- 			omap3_cm_save_context();
-@@ -446,8 +447,6 @@ void omap_sram_idle(void)
- 			omap3_sram_restore_context();
- 			omap2_sms_restore_context();
- 		}
--		omap_uart_resume_idle(0);
--		omap_uart_resume_idle(1);
- 		if (core_next_state == PWRDM_POWER_OFF)
- 			omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
- 					       OMAP3430_GR_MOD,
-@@ -461,8 +460,6 @@ void omap_sram_idle(void)
- 		omap2_gpio_resume_after_idle();
- 		if (per_prev_state == PWRDM_POWER_OFF)
- 			omap3_per_restore_context();
--		omap_uart_resume_idle(2);
--		omap_uart_resume_idle(3);
- 	}
- 
- 	if (!is_suspending())
+ static void omap3_pm_end(void)
+ {
+ 	suspend_state = PM_SUSPEND_ON;
+-	omap_uart_enable_irqs(1);
+ 	enable_hlt();
+ 	return;
+ }
 diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index bfd73b7..5b8c8f2 100644
+index de3b10c..bfd73b7 100644
 --- a/arch/arm/plat-omap/include/plat/serial.h
 +++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -109,8 +109,8 @@ struct omap_board_data;
+@@ -109,12 +109,8 @@ struct omap_board_data;
  
  extern void omap_serial_init(void);
  extern void omap_serial_init_port(struct omap_board_data *bdata);
--extern void omap_uart_prepare_idle(int num);
--extern void omap_uart_resume_idle(int num);
-+extern void omap_uart_prepare_idle(void);
-+extern int omap_uart_resume_idle(void);
+-extern int omap_uart_can_sleep(void);
+-extern void omap_uart_check_wakeup(void);
+-extern void omap_uart_prepare_suspend(void);
+ extern void omap_uart_prepare_idle(int num);
+ extern void omap_uart_resume_idle(int num);
+-extern void omap_uart_enable_irqs(int enable);
  #endif
  
  #endif
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 96fc860..05c2f52 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -54,6 +54,46 @@ static void serial_omap_rx_timeout(unsigned long uart_no);
- static int serial_omap_start_rxdma(struct uart_omap_port *up);
- static void omap_uart_mdr1_errataset(struct uart_omap_port *up, u8 mdr1);
- 
-+int omap_uart_resume_idle()
-+{
-+	struct uart_omap_port *up;
-+	int i, ret = 0;
-+
-+	for (i = 0; i < OMAP_MAX_HSUART_PORTS; i++) {
-+		up = ui[i];
-+		if (!up)
-+			continue;
-+
-+		if (!up->clocked && up->chk_wakeup(up->pdev)) {
-+			pm_runtime_get_sync(&up->pdev->dev);
-+			up->clocked = 1;
-+			ret++;
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+void omap_uart_prepare_idle()
-+{
-+	struct uart_omap_port *up;
-+	int i;
-+
-+	for (i = 0; i < OMAP_MAX_HSUART_PORTS; i++) {
-+		up = ui[i];
-+		if (!up)
-+			continue;
-+
-+		if (up->clocked &&
-+				jiffies_to_msecs(jiffies - up->port_activity)
-+					> 3000) {
-+			pm_runtime_mark_last_busy(&up->pdev->dev);
-+			pm_runtime_put_autosuspend(&up->pdev->dev);
-+			up->clocked = 0;
-+		}
-+	}
-+}
-+
- static inline unsigned int serial_in(struct uart_omap_port *up, int offset)
- {
- 	offset <<= up->port.regshift;
 -- 
 1.7.4.1
