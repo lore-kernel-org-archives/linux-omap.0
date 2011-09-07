@@ -1,88 +1,58 @@
 From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v6 19/25] gpio/omap: cleanup prepare_for_idle and resume_after_idle
-Date: Wed, 7 Sep 2011 10:47:20 +0530
-Message-ID: <CAC83Zv+zAve-fNGYR9BTZ7nPXpz5HDWzyX=gdwS92OouVVo14Q@mail.gmail.com>
+Subject: Re: [PATCH v6 00/25] gpio/omap: driver cleanup and fixes
+Date: Wed, 7 Sep 2011 10:54:11 +0530
+Message-ID: <CAC83ZvKoSsGNMDoHNeCOZXk9mOZxcKjT_vMjnXGQn6F52YNDKg@mail.gmail.com>
 References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
-	<1314798161-19523-20-git-send-email-tarun.kanti@ti.com>
-	<874o0pxm77.fsf@ti.com>
+	<87ty8pz384.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:51116 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753753Ab1IGFRV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Sep 2011 01:17:21 -0400
-Received: by mail-bw0-f45.google.com with SMTP id zv3so6252003bkb.4
-        for <linux-omap@vger.kernel.org>; Tue, 06 Sep 2011 22:17:20 -0700 (PDT)
-In-Reply-To: <874o0pxm77.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87ty8pz384.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 7, 2011 at 5:23 AM, Kevin Hilman <khilman@ti.com> wrote:
+On Wed, Sep 7, 2011 at 4:29 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Hi Tarun,
+>
 > Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 >
->> Cleanup =A0omap2_gpio_prepare_for_idle() and omap2_gpio_resume_after=
-_idle()
->> by moving most of the stuff to *_runtime_suspend() and *_runtime_res=
-ume().
+>> This series is continuation of cleanup of OMAP GPIO driver and fixes.
+>> The cleanup include getting rid of cpu_is_* checks wherever possible,
+>> use of gpio_bank list instead of static array, use of unique platform
+>> specific value associated data member to OMAP platforms to avoid
+>> cpu_is_* checks. The series also include PM runtime support.*
 >
-> Why?
+> Thanks for your continued effort on this series.
 >
-> (I know the answer, but it should be in the changelog.)
+>> Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2=
+.6.git
+>> Branch: master
+>> Commit: c6a389f =A0Linux 3.1-rc4
+>
+> This series was supposed to be based on my for_3.2/gpio-cleanup branch,
+> which removes MOD_REG_BIT among other things.
+I saw most of your patches on the mainline except MOD_REG_BIT.
+I thought you have no intention of taking it. That's why generated the
+series on the mainline.
+
+>
+> Please rebase onto that branch so these changes can be tested along with
+> changes already queued for v3.2.
 Ok.
 
 >
->> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> Signed-off-by: Charulatha V <charu@ti.com>
->> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->
-> Also, as pointed out in an earlier patch, now that this is moved out =
-of
-> the idle path, where interrupts were known to be disabled, the regist=
-er
-> accesses in the runtime PM callbacks need to be protected by the
-> spinlock just like they are in other parts of the driver.
-Ok.
-
->
-> [...]
->
->> @@ -1305,9 +1316,14 @@ static void omap_gpio_restore_context(struct =
-gpio_bank *bank)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->ba=
-se + bank->regs->fallingdetect);
->> =A0 =A0 =A0 __raw_writel(bank->context.dataout, bank->base + bank->r=
-egs->dataout);
->> =A0}
->> +#else
->> +#define omap_gpio_runtime_suspend NULL
->> +#define omap_gpio_runtime_resume NULL
->> =A0#endif
->>
->> =A0static const struct dev_pm_ops gpio_pm_ops =3D {
->> + =A0 =A0 .runtime_suspend =A0 =A0 =A0 =A0=3D omap_gpio_runtime_susp=
-end,
->> + =A0 =A0 .runtime_resume =A0 =A0 =A0 =A0 =3D omap_gpio_runtime_resu=
-me,
->
-> Please use SET_RUNTIME_PM_OPS() (see <linux/pm.h.)
-Sure.
-
->
->> =A0 =A0 =A0 .suspend =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D omap_gpio_su=
-spend,
->> =A0 =A0 =A0 .resume =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D omap_gpio_re=
-sume,
->> =A0};
+> Thanks,
 >
 > Kevin
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
