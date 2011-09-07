@@ -1,14 +1,11 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v4 04/11] OMAP2+: UART: Remove uart clock handling code from
-	serial.c
-Date: Wed, 7 Sep 2011 18:23:26 +0530
-Message-ID: <1315400013-4849-5-git-send-email-govindraj.raja@ti.com>
-References: <1315400013-4849-1-git-send-email-govindraj.raja@ti.com>
+From: TAO HU <tghk48@motorola.com>
+Subject: Tasks schedule/migration issue with CPU hotplug?
+Date: Wed, 7 Sep 2011 22:22:16 +0800
+Message-ID: <CAOwKts_WTDBLkz9=0MBhs6wzc67XD_bYgGMiZ-JUM+8O7gP_fw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1315400013-4849-1-git-send-email-govindraj.raja@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,924 +15,612 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Ingo Molnar <mingo@elte.hu>, peterz@infradead.org
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Cleanup serial.c file in preparation to addition of runtime API's in omap-serial
-file. Remove all clock handling mechanism as this will be taken care with
-pm runtime API's in omap-serial.c file itself.
+Hi, All
 
-1.) Remove omap-device enable and disable. We can can use get_sync/put_sync API's
-2.) Remove context save/restore can be done with runtime_resume callback for
-    get_sync call. No need to save context as all reg details available in
-    uart_port structure can be used for restore, so add missing regs in
-    uart port struct.
-3.) Add func to identify console uart.
-4.) Erratum handling informed as flag to driver and func to handle erratum
-    can be moved to omap-serial driver itself.
+We seems got a schedule/migration issue in a OMAP4430 dual-core system.
+The kernel base is 2.6.35.7 and we're using CFS.
 
-Acked-by: Alan Cox <alan@linux.intel.com>
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/serial.c                  |  742 ++-----------------------
- arch/arm/plat-omap/include/plat/omap-serial.h |   11 +-
- 2 files changed, 53 insertions(+), 700 deletions(-)
+In a stress testing, we created a huge amount of processes/threads and
+forced the 2nd CPU plug/unplug back and forth.
+Looks like a few tasks such as below ones didn't get scheduled in 8 seconds!
+omap2_mcspi  (pid 21, exec-runtime 2223062.886210)
+hackbench (pid 3445, exec-runtime 2223114.709956)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 3d1c1d3..e732d6c 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -19,25 +19,16 @@
-  */
- #include <linux/kernel.h>
- #include <linux/init.h>
--#include <linux/serial_reg.h>
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/delay.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
--#include <linux/serial_8250.h>
- #include <linux/pm_runtime.h>
--#include <linux/console.h>
- 
--#ifdef CONFIG_SERIAL_OMAP
- #include <plat/omap-serial.h>
--#endif
--
- #include <plat/common.h>
- #include <plat/board.h>
--#include <plat/clock.h>
--#include <plat/dma.h>
--#include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
- 
- #include "prm2xxx_3xxx.h"
-@@ -47,66 +38,8 @@
- #include "control.h"
- #include "mux.h"
- 
--#define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV	0x52
--#define UART_OMAP_WER		0x17	/* Wake-up enable register */
--
--#define UART_ERRATA_FIFO_FULL_ABORT	(0x1 << 0)
--#define UART_ERRATA_i202_MDR1_ACCESS	(0x1 << 1)
--
--/*
-- * NOTE: By default the serial timeout is disabled as it causes lost characters
-- * over the serial ports. This means that the UART clocks will stay on until
-- * disabled via sysfs. This also causes that any deeper omap sleep states are
-- * blocked. 
-- */
--#define DEFAULT_TIMEOUT 0
--
- #define MAX_UART_HWMOD_NAME_LEN		16
- 
--struct omap_uart_state {
--	int num;
--	int can_sleep;
--	struct timer_list timer;
--	u32 timeout;
--
--	void __iomem *wk_st;
--	void __iomem *wk_en;
--	u32 wk_mask;
--	u32 padconf;
--	u32 dma_enabled;
--
--	struct clk *ick;
--	struct clk *fck;
--	int clocked;
--
--	int irq;
--	int regshift;
--	int irqflags;
--	void __iomem *membase;
--	resource_size_t mapbase;
--
--	struct list_head node;
--	struct omap_hwmod *oh;
--	struct platform_device *pdev;
--
--	u32 errata;
--#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
--	int context_valid;
--
--	/* Registers to be saved/restored for OFF-mode */
--	u16 dll;
--	u16 dlh;
--	u16 ier;
--	u16 sysc;
--	u16 scr;
--	u16 wer;
--	u16 mcr;
--#endif
--};
--
--static LIST_HEAD(uart_list);
--static u8 num_uarts;
--
- static int uart_idle_hwmod(struct omap_device *od)
- {
- 	omap_hwmod_idle(od->hwmods[0]);
-@@ -129,396 +62,35 @@ static struct omap_device_pm_latency omap_uart_latency[] = {
- 	},
- };
- 
--static inline unsigned int __serial_read_reg(struct uart_port *up,
--					     int offset)
--{
--	offset <<= up->regshift;
--	return (unsigned int)__raw_readb(up->membase + offset);
--}
--
--static inline unsigned int serial_read_reg(struct omap_uart_state *uart,
--					   int offset)
--{
--	offset <<= uart->regshift;
--	return (unsigned int)__raw_readb(uart->membase + offset);
--}
--
--static inline void __serial_write_reg(struct uart_port *up, int offset,
--		int value)
--{
--	offset <<= up->regshift;
--	__raw_writeb(value, up->membase + offset);
--}
--
--static inline void serial_write_reg(struct omap_uart_state *uart, int offset,
--				    int value)
--{
--	offset <<= uart->regshift;
--	__raw_writeb(value, uart->membase + offset);
--}
--
--/*
-- * Internal UARTs need to be initialized for the 8250 autoconfig to work
-- * properly. Note that the TX watermark initialization may not be needed
-- * once the 8250.c watermark handling code is merged.
-- */
--
--static inline void __init omap_uart_reset(struct omap_uart_state *uart)
--{
--	serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
--	serial_write_reg(uart, UART_OMAP_SCR, 0x08);
--	serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
--}
--
--#if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
--
--/*
-- * Work Around for Errata i202 (3430 - 1.12, 3630 - 1.6)
-- * The access to uart register after MDR1 Access
-- * causes UART to corrupt data.
-- *
-- * Need a delay =
-- * 5 L4 clock cycles + 5 UART functional clock cycle (@48MHz = ~0.2uS)
-- * give 10 times as much
-- */
--static void omap_uart_mdr1_errataset(struct omap_uart_state *uart, u8 mdr1_val,
--		u8 fcr_val)
--{
--	u8 timeout = 255;
--
--	serial_write_reg(uart, UART_OMAP_MDR1, mdr1_val);
--	udelay(2);
--	serial_write_reg(uart, UART_FCR, fcr_val | UART_FCR_CLEAR_XMIT |
--			UART_FCR_CLEAR_RCVR);
--	/*
--	 * Wait for FIFO to empty: when empty, RX_FIFO_E bit is 0 and
--	 * TX_FIFO_E bit is 1.
--	 */
--	while (UART_LSR_THRE != (serial_read_reg(uart, UART_LSR) &
--				(UART_LSR_THRE | UART_LSR_DR))) {
--		timeout--;
--		if (!timeout) {
--			/* Should *never* happen. we warn and carry on */
--			dev_crit(&uart->pdev->dev, "Errata i202: timedout %x\n",
--			serial_read_reg(uart, UART_LSR));
--			break;
--		}
--		udelay(1);
--	}
--}
--
--static void omap_uart_save_context(struct omap_uart_state *uart)
--{
--	u16 lcr = 0;
--
--	if (!enable_off_mode)
--		return;
--
--	lcr = serial_read_reg(uart, UART_LCR);
--	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_B);
--	uart->dll = serial_read_reg(uart, UART_DLL);
--	uart->dlh = serial_read_reg(uart, UART_DLM);
--	serial_write_reg(uart, UART_LCR, lcr);
--	uart->ier = serial_read_reg(uart, UART_IER);
--	uart->sysc = serial_read_reg(uart, UART_OMAP_SYSC);
--	uart->scr = serial_read_reg(uart, UART_OMAP_SCR);
--	uart->wer = serial_read_reg(uart, UART_OMAP_WER);
--	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_A);
--	uart->mcr = serial_read_reg(uart, UART_MCR);
--	serial_write_reg(uart, UART_LCR, lcr);
--
--	uart->context_valid = 1;
--}
--
--static void omap_uart_restore_context(struct omap_uart_state *uart)
--{
--	u16 efr = 0;
--
--	if (!enable_off_mode)
--		return;
--
--	if (!uart->context_valid)
--		return;
--
--	uart->context_valid = 0;
--
--	if (uart->errata & UART_ERRATA_i202_MDR1_ACCESS)
--		omap_uart_mdr1_errataset(uart, UART_OMAP_MDR1_DISABLE, 0xA0);
--	else
--		serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
--
--	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_B);
--	efr = serial_read_reg(uart, UART_EFR);
--	serial_write_reg(uart, UART_EFR, UART_EFR_ECB);
--	serial_write_reg(uart, UART_LCR, 0x0); /* Operational mode */
--	serial_write_reg(uart, UART_IER, 0x0);
--	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_B);
--	serial_write_reg(uart, UART_DLL, uart->dll);
--	serial_write_reg(uart, UART_DLM, uart->dlh);
--	serial_write_reg(uart, UART_LCR, 0x0); /* Operational mode */
--	serial_write_reg(uart, UART_IER, uart->ier);
--	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_A);
--	serial_write_reg(uart, UART_MCR, uart->mcr);
--	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_B);
--	serial_write_reg(uart, UART_EFR, efr);
--	serial_write_reg(uart, UART_LCR, UART_LCR_WLEN8);
--	serial_write_reg(uart, UART_OMAP_SCR, uart->scr);
--	serial_write_reg(uart, UART_OMAP_WER, uart->wer);
--	serial_write_reg(uart, UART_OMAP_SYSC, uart->sysc);
--
--	if (uart->errata & UART_ERRATA_i202_MDR1_ACCESS)
--		omap_uart_mdr1_errataset(uart, UART_OMAP_MDR1_16X_MODE, 0xA1);
--	else
--		/* UART 16x mode */
--		serial_write_reg(uart, UART_OMAP_MDR1,
--				UART_OMAP_MDR1_16X_MODE);
--}
--#else
--static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
--static inline void omap_uart_restore_context(struct omap_uart_state *uart) {}
--#endif /* CONFIG_PM && CONFIG_ARCH_OMAP3 */
--
--static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
--{
--	if (uart->clocked)
--		return;
--
--	omap_device_enable(uart->pdev);
--	uart->clocked = 1;
--	omap_uart_restore_context(uart);
--}
--
--#ifdef CONFIG_PM
--
--static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
--{
--	if (!uart->clocked)
--		return;
--
--	omap_uart_save_context(uart);
--	uart->clocked = 0;
--	omap_device_idle(uart->pdev);
--}
--
--static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
--{
--	/* Set wake-enable bit */
--	if (uart->wk_en && uart->wk_mask) {
--		u32 v = __raw_readl(uart->wk_en);
--		v |= uart->wk_mask;
--		__raw_writel(v, uart->wk_en);
--	}
--
--	/* Ensure IOPAD wake-enables are set */
--	if (cpu_is_omap34xx() && uart->padconf) {
--		u16 v = omap_ctrl_readw(uart->padconf);
--		v |= OMAP3_PADCONF_WAKEUPENABLE0;
--		omap_ctrl_writew(v, uart->padconf);
--	}
--}
--
--static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
--{
--	/* Clear wake-enable bit */
--	if (uart->wk_en && uart->wk_mask) {
--		u32 v = __raw_readl(uart->wk_en);
--		v &= ~uart->wk_mask;
--		__raw_writel(v, uart->wk_en);
--	}
--
--	/* Ensure IOPAD wake-enables are cleared */
--	if (cpu_is_omap34xx() && uart->padconf) {
--		u16 v = omap_ctrl_readw(uart->padconf);
--		v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
--		omap_ctrl_writew(v, uart->padconf);
--	}
--}
--
--static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
--					       int enable)
--{
--	u8 idlemode;
--
--	if (enable) {
--		/**
--		 * Errata 2.15: [UART]:Cannot Acknowledge Idle Requests
--		 * in Smartidle Mode When Configured for DMA Operations.
--		 */
--		if (uart->dma_enabled)
--			idlemode = HWMOD_IDLEMODE_FORCE;
--		else
--			idlemode = HWMOD_IDLEMODE_SMART;
--	} else {
--		idlemode = HWMOD_IDLEMODE_NO;
--	}
--
--	omap_hwmod_set_slave_idlemode(uart->oh, idlemode);
--}
--
--static void omap_uart_block_sleep(struct omap_uart_state *uart)
--{
--	omap_uart_enable_clocks(uart);
--
--	omap_uart_smart_idle_enable(uart, 0);
--	uart->can_sleep = 0;
--	if (uart->timeout)
--		mod_timer(&uart->timer, jiffies + uart->timeout);
--	else
--		del_timer(&uart->timer);
--}
--
--static void omap_uart_allow_sleep(struct omap_uart_state *uart)
--{
--	if (device_may_wakeup(&uart->pdev->dev))
--		omap_uart_enable_wakeup(uart);
--	else
--		omap_uart_disable_wakeup(uart);
--
--	if (!uart->clocked)
--		return;
--
--	omap_uart_smart_idle_enable(uart, 1);
--	uart->can_sleep = 1;
--	del_timer(&uart->timer);
--}
--
--static void omap_uart_idle_timer(unsigned long data)
--{
--	struct omap_uart_state *uart = (struct omap_uart_state *)data;
--
--	omap_uart_allow_sleep(uart);
--}
--
--void omap_uart_prepare_idle(int num)
--{
--	struct omap_uart_state *uart;
--
--	list_for_each_entry(uart, &uart_list, node) {
--		if (num == uart->num && uart->can_sleep) {
--			omap_uart_disable_clocks(uart);
--			return;
--		}
--	}
--}
--
--void omap_uart_resume_idle(int num)
-+static void omap_uart_idle_init(struct omap_uart_port_info *uart,
-+				unsigned short num)
- {
--	struct omap_uart_state *uart;
--
--	list_for_each_entry(uart, &uart_list, node) {
--		if (num == uart->num && uart->can_sleep) {
--			omap_uart_enable_clocks(uart);
--
--			/* Check for IO pad wakeup */
--			if (cpu_is_omap34xx() && uart->padconf) {
--				u16 p = omap_ctrl_readw(uart->padconf);
--
--				if (p & OMAP3_PADCONF_WAKEUPEVENT0)
--					omap_uart_block_sleep(uart);
--			}
--
--			/* Check for normal UART wakeup */
--			if (__raw_readl(uart->wk_st) & uart->wk_mask)
--				omap_uart_block_sleep(uart);
--			return;
--		}
--	}
--}
--
--void omap_uart_prepare_suspend(void)
--{
--	struct omap_uart_state *uart;
--
--	list_for_each_entry(uart, &uart_list, node) {
--		omap_uart_allow_sleep(uart);
--	}
--}
--
--int omap_uart_can_sleep(void)
--{
--	struct omap_uart_state *uart;
--	int can_sleep = 1;
--
--	list_for_each_entry(uart, &uart_list, node) {
--		if (!uart->clocked)
--			continue;
--
--		if (!uart->can_sleep) {
--			can_sleep = 0;
--			continue;
--		}
--
--		/* This UART can now safely sleep. */
--		omap_uart_allow_sleep(uart);
--	}
--
--	return can_sleep;
--}
--
--/**
-- * omap_uart_interrupt()
-- *
-- * This handler is used only to detect that *any* UART interrupt has
-- * occurred.  It does _nothing_ to handle the interrupt.  Rather,
-- * any UART interrupt will trigger the inactivity timer so the
-- * UART will not idle or sleep for its timeout period.
-- *
-- **/
--/* static int first_interrupt; */
--static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
--{
--	struct omap_uart_state *uart = dev_id;
--
--	omap_uart_block_sleep(uart);
--
--	return IRQ_NONE;
--}
--
--static void omap_uart_idle_init(struct omap_uart_state *uart)
--{
--	int ret;
--
--	uart->can_sleep = 0;
--	uart->timeout = DEFAULT_TIMEOUT;
--	setup_timer(&uart->timer, omap_uart_idle_timer,
--		    (unsigned long) uart);
--	if (uart->timeout)
--		mod_timer(&uart->timer, jiffies + uart->timeout);
--	omap_uart_smart_idle_enable(uart, 0);
--
--	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
--		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
-+	if (cpu_is_omap34xx()) {
-+		u32 mod = num > 1 ? OMAP3430_PER_MOD : CORE_MOD;
- 		u32 wk_mask = 0;
--		u32 padconf = 0;
- 
--		/* XXX These PRM accesses do not belong here */
- 		uart->wk_en = OMAP34XX_PRM_REGADDR(mod, PM_WKEN1);
- 		uart->wk_st = OMAP34XX_PRM_REGADDR(mod, PM_WKST1);
--		switch (uart->num) {
-+		switch (num) {
- 		case 0:
- 			wk_mask = OMAP3430_ST_UART1_MASK;
--			padconf = 0x182;
- 			break;
- 		case 1:
- 			wk_mask = OMAP3430_ST_UART2_MASK;
--			padconf = 0x17a;
- 			break;
- 		case 2:
- 			wk_mask = OMAP3430_ST_UART3_MASK;
--			padconf = 0x19e;
- 			break;
- 		case 3:
- 			wk_mask = OMAP3630_ST_UART4_MASK;
--			padconf = 0x0d2;
- 			break;
- 		}
- 		uart->wk_mask = wk_mask;
--		uart->padconf = padconf;
- 	} else if (cpu_is_omap24xx()) {
- 		u32 wk_mask = 0;
- 		u32 wk_en = PM_WKEN1, wk_st = PM_WKST1;
- 
--		switch (uart->num) {
-+		switch (num) {
- 		case 0:
- 			wk_mask = OMAP24XX_ST_UART1_MASK;
- 			break;
-@@ -543,155 +115,33 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 		uart->wk_en = NULL;
- 		uart->wk_st = NULL;
- 		uart->wk_mask = 0;
--		uart->padconf = 0;
--	}
--
--	uart->irqflags |= IRQF_SHARED;
--	ret = request_threaded_irq(uart->irq, NULL, omap_uart_interrupt,
--				   IRQF_SHARED, "serial idle", (void *)uart);
--	WARN_ON(ret);
--}
--
--void omap_uart_enable_irqs(int enable)
--{
--	int ret;
--	struct omap_uart_state *uart;
--
--	list_for_each_entry(uart, &uart_list, node) {
--		if (enable) {
--			pm_runtime_put_sync(&uart->pdev->dev);
--			ret = request_threaded_irq(uart->irq, NULL,
--						   omap_uart_interrupt,
--						   IRQF_SHARED,
--						   "serial idle",
--						   (void *)uart);
--		} else {
--			pm_runtime_get_noresume(&uart->pdev->dev);
--			free_irq(uart->irq, (void *)uart);
--		}
--	}
--}
--
--static ssize_t sleep_timeout_show(struct device *dev,
--				  struct device_attribute *attr,
--				  char *buf)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_device *odev = to_omap_device(pdev);
--	struct omap_uart_state *uart = odev->hwmods[0]->dev_attr;
--
--	return sprintf(buf, "%u\n", uart->timeout / HZ);
--}
--
--static ssize_t sleep_timeout_store(struct device *dev,
--				   struct device_attribute *attr,
--				   const char *buf, size_t n)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_device *odev = to_omap_device(pdev);
--	struct omap_uart_state *uart = odev->hwmods[0]->dev_attr;
--	unsigned int value;
--
--	if (sscanf(buf, "%u", &value) != 1) {
--		dev_err(dev, "sleep_timeout_store: Invalid value\n");
--		return -EINVAL;
- 	}
--
--	uart->timeout = value * HZ;
--	if (uart->timeout)
--		mod_timer(&uart->timer, jiffies + uart->timeout);
--	else
--		/* A zero value means disable timeout feature */
--		omap_uart_block_sleep(uart);
--
--	return n;
- }
- 
--static DEVICE_ATTR(sleep_timeout, 0644, sleep_timeout_show,
--		sleep_timeout_store);
--#define DEV_CREATE_FILE(dev, attr) WARN_ON(device_create_file(dev, attr))
--#else
--static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
--static void omap_uart_block_sleep(struct omap_uart_state *uart)
-+struct omap_hwmod *omap_uart_hwmod_lookup(int num)
- {
--	/* Needed to enable UART clocks when built without CONFIG_PM */
--	omap_uart_enable_clocks(uart);
--}
--#define DEV_CREATE_FILE(dev, attr)
--#endif /* CONFIG_PM */
--
--#ifndef CONFIG_SERIAL_OMAP
--/*
-- * Override the default 8250 read handler: mem_serial_in()
-- * Empty RX fifo read causes an abort on omap3630 and omap4
-- * This function makes sure that an empty rx fifo is not read on these silicons
-- * (OMAP1/2/3430 are not affected)
-- */
--static unsigned int serial_in_override(struct uart_port *up, int offset)
--{
--	if (UART_RX == offset) {
--		unsigned int lsr;
--		lsr = __serial_read_reg(up, UART_LSR);
--		if (!(lsr & UART_LSR_DR))
--			return -EPERM;
--	}
--
--	return __serial_read_reg(up, offset);
--}
--
--static void serial_out_override(struct uart_port *up, int offset, int value)
--{
--	unsigned int status, tmout = 10000;
-+	struct omap_hwmod *oh;
-+	char oh_name[MAX_UART_HWMOD_NAME_LEN];
- 
--	status = __serial_read_reg(up, UART_LSR);
--	while (!(status & UART_LSR_THRE)) {
--		/* Wait up to 10ms for the character(s) to be sent. */
--		if (--tmout == 0)
--			break;
--		udelay(1);
--		status = __serial_read_reg(up, UART_LSR);
--	}
--	__serial_write_reg(up, offset, value);
-+	snprintf(oh_name, MAX_UART_HWMOD_NAME_LEN, "uart%d", num + 1);
-+	oh = omap_hwmod_lookup(oh_name);
-+	WARN(IS_ERR(oh), "Could not lookup hmwod info for %s\n",
-+					oh_name);
-+	return oh;
- }
--#endif
- 
- static int __init omap_serial_early_init(void)
- {
- 	int i = 0;
-+	struct omap_hwmod *oh;
- 
--	do {
--		char oh_name[MAX_UART_HWMOD_NAME_LEN];
--		struct omap_hwmod *oh;
--		struct omap_uart_state *uart;
--
--		snprintf(oh_name, MAX_UART_HWMOD_NAME_LEN,
--			 "uart%d", i + 1);
--		oh = omap_hwmod_lookup(oh_name);
-+	for (i = 0; i < OMAP_MAX_HSUART_PORTS; i++) {
-+		oh = omap_uart_hwmod_lookup(i);
- 		if (!oh)
--			break;
--
--		uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
--		if (WARN_ON(!uart))
--			return -ENODEV;
--
--		uart->oh = oh;
--		uart->num = i++;
--		list_add_tail(&uart->node, &uart_list);
--		num_uarts++;
--
--		/*
--		 * NOTE: omap_hwmod_setup*() has not yet been called,
--		 *       so no hwmod functions will work yet.
--		 */
--
--		/*
--		 * During UART early init, device need to be probed
--		 * to determine SoC specific init before omap_device
--		 * is ready.  Therefore, don't allow idle here
--		 */
--		uart->oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
--	} while (1);
-+			continue;
- 
-+		oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
-+	}
- 	return 0;
- }
- core_initcall(omap_serial_early_init);
-@@ -709,150 +159,49 @@ core_initcall(omap_serial_early_init);
-  */
- void __init omap_serial_init_port(struct omap_board_data *bdata)
- {
--	struct omap_uart_state *uart;
- 	struct omap_hwmod *oh;
- 	struct platform_device *pdev;
--	void *pdata = NULL;
--	u32 pdata_size = 0;
--	char *name;
--#ifndef CONFIG_SERIAL_OMAP
--	struct plat_serial8250_port ports[2] = {
--		{},
--		{.flags = 0},
--	};
--	struct plat_serial8250_port *p = &ports[0];
--#else
--	struct omap_uart_port_info omap_up;
--#endif
-+	struct omap_uart_port_info *pdata;
-+	char *name = DRIVER_NAME;
- 
- 	if (WARN_ON(!bdata))
- 		return;
- 	if (WARN_ON(bdata->id < 0))
- 		return;
--	if (WARN_ON(bdata->id >= num_uarts))
-+	if (WARN_ON(bdata->id >= OMAP_MAX_HSUART_PORTS))
- 		return;
- 
--	list_for_each_entry(uart, &uart_list, node)
--		if (bdata->id == uart->num)
--			break;
--
--	oh = uart->oh;
--	uart->dma_enabled = 0;
--#ifndef CONFIG_SERIAL_OMAP
--	name = "serial8250";
--
--	/*
--	 * !! 8250 driver does not use standard IORESOURCE* It
--	 * has it's own custom pdata that can be taken from
--	 * the hwmod resource data.  But, this needs to be
--	 * done after the build.
--	 *
--	 * ?? does it have to be done before the register ??
--	 * YES, because platform_device_data_add() copies
--	 * pdata, it does not use a pointer.
--	 */
--	p->flags = UPF_BOOT_AUTOCONF;
--	p->iotype = UPIO_MEM;
--	p->regshift = 2;
--	p->uartclk = OMAP24XX_BASE_BAUD * 16;
--	p->irq = oh->mpu_irqs[0].irq;
--	p->mapbase = oh->slaves[0]->addr->pa_start;
--	p->membase = omap_hwmod_get_mpu_rt_va(oh);
--	p->irqflags = IRQF_SHARED;
--	p->private_data = uart;
--
--	/*
--	 * omap44xx, ti816x: Never read empty UART fifo
--	 * omap3xxx: Never read empty UART fifo on UARTs
--	 * with IP rev >=0x52
--	 */
--	uart->regshift = p->regshift;
--	uart->membase = p->membase;
--	if (cpu_is_omap44xx() || cpu_is_ti816x())
--		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
--	else if ((serial_read_reg(uart, UART_OMAP_MVER) & 0xFF)
--			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
--		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
-+	oh = omap_uart_hwmod_lookup(bdata->id);
-+	if (!oh)
-+		return;
- 
--	if (uart->errata & UART_ERRATA_FIFO_FULL_ABORT) {
--		p->serial_in = serial_in_override;
--		p->serial_out = serial_out_override;
-+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata) {
-+		pr_err("Memory allocation for UART pdata failed\n");
-+		return;
- 	}
- 
--	pdata = &ports[0];
--	pdata_size = 2 * sizeof(struct plat_serial8250_port);
--#else
--
--	name = DRIVER_NAME;
-+	omap_uart_idle_init(pdata, bdata->id);
- 
--	omap_up.dma_enabled = uart->dma_enabled;
--	omap_up.uartclk = OMAP24XX_BASE_BAUD * 16;
--	omap_up.mapbase = oh->slaves[0]->addr->pa_start;
--	omap_up.membase = omap_hwmod_get_mpu_rt_va(oh);
--	omap_up.irqflags = IRQF_SHARED;
--	omap_up.flags = UPF_BOOT_AUTOCONF | UPF_SHARE_IRQ;
--
--	pdata = &omap_up;
--	pdata_size = sizeof(struct omap_uart_port_info);
--#endif
-+	/* Enable the MDR1 errata for OMAP3 */
-+	if (cpu_is_omap34xx() && !cpu_is_ti816x())
-+		pdata->errata |= UART_ERRATA_i202_MDR1_ACCESS;
- 
--	if (WARN_ON(!oh))
--		return;
-+	pdata->uartclk = OMAP24XX_BASE_BAUD * 16;
-+	pdata->flags = UPF_BOOT_AUTOCONF;
- 
--	pdev = omap_device_build(name, uart->num, oh, pdata, pdata_size,
--			       omap_uart_latency,
--			       ARRAY_SIZE(omap_uart_latency), false);
-+	pdev = omap_device_build(name, bdata->id, oh, pdata,
-+				sizeof(*pdata),	omap_uart_latency,
-+				ARRAY_SIZE(omap_uart_latency), false);
- 	WARN(IS_ERR(pdev), "Could not build omap_device for %s: %s.\n",
- 	     name, oh->name);
- 
--	omap_device_disable_idle_on_suspend(pdev);
- 	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
--
--	uart->irq = oh->mpu_irqs[0].irq;
--	uart->regshift = 2;
--	uart->mapbase = oh->slaves[0]->addr->pa_start;
--	uart->membase = omap_hwmod_get_mpu_rt_va(oh);
--	uart->pdev = pdev;
--
--	oh->dev_attr = uart;
--
--	console_lock(); /* in case the earlycon is on the UART */
--
--	/*
--	 * Because of early UART probing, UART did not get idled
--	 * on init.  Now that omap_device is ready, ensure full idle
--	 * before doing omap_device_enable().
--	 */
--	omap_hwmod_idle(uart->oh);
--
--	omap_device_enable(uart->pdev);
--	omap_uart_idle_init(uart);
--	omap_uart_reset(uart);
--	omap_hwmod_enable_wakeup(uart->oh);
--	omap_device_idle(uart->pdev);
--
--	/*
--	 * Need to block sleep long enough for interrupt driven
--	 * driver to start.  Console driver is in polling mode
--	 * so device needs to be kept enabled while polling driver
--	 * is in use.
--	 */
--	if (uart->timeout)
--		uart->timeout = (30 * HZ);
--	omap_uart_block_sleep(uart);
--	uart->timeout = DEFAULT_TIMEOUT;
--
--	console_unlock();
--
--	if ((cpu_is_omap34xx() && uart->padconf) ||
--	    (uart->wk_en && uart->wk_mask)) {
-+	if ((cpu_is_omap34xx() && bdata->pads) ||
-+			(pdata->wk_en && pdata->wk_mask))
- 		device_init_wakeup(&pdev->dev, true);
--		DEV_CREATE_FILE(&pdev->dev, &dev_attr_sleep_timeout);
--	}
- 
--	/* Enable the MDR1 errata for OMAP3 */
--	if (cpu_is_omap34xx() && !cpu_is_ti816x())
--		uart->errata |= UART_ERRATA_i202_MDR1_ACCESS;
-+	kfree(pdata);
- }
- 
- /**
-@@ -864,15 +213,14 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
-  */
- void __init omap_serial_init(void)
- {
--	struct omap_uart_state *uart;
- 	struct omap_board_data bdata;
-+	u8 i;
- 
--	list_for_each_entry(uart, &uart_list, node) {
--		bdata.id = uart->num;
-+	for (i = 0; i < OMAP_MAX_HSUART_PORTS; i++) {
-+		bdata.id = i;
- 		bdata.flags = 0;
- 		bdata.pads = NULL;
- 		bdata.pads_cnt = 0;
- 		omap_serial_init_port(&bdata);
--
- 	}
- }
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index 2682043..f79a76f 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -56,13 +56,17 @@
- 
- #define MSR_SAVE_FLAGS		UART_MSR_ANY_DELTA
- 
-+#define UART_ERRATA_i202_MDR1_ACCESS	BIT(0)
-+
- struct omap_uart_port_info {
- 	bool			dma_enabled;	/* To specify DMA Mode */
- 	unsigned int		uartclk;	/* UART clock rate */
--	void __iomem		*membase;	/* ioremap cookie or NULL */
--	resource_size_t		mapbase;	/* resource base */
--	unsigned long		irqflags;	/* request_irq flags */
- 	upf_t			flags;		/* UPF_* flags */
-+	unsigned int		errata;
-+
-+	void __iomem *wk_st;
-+	void __iomem *wk_en;
-+	u32 wk_mask;
- };
- 
- struct uart_omap_dma {
-@@ -111,6 +115,7 @@ struct uart_omap_port {
- 	unsigned char		msr_saved_flags;
- 	char			name[20];
- 	unsigned long		port_activity;
-+	unsigned int		errata;
- };
- 
- #endif /* __OMAP_SERIAL_H__ */
+We believe the two tasks were migrated to the primary CPU.
+Somehow, they were no selected to run any more.
+
+The two tasks have a high exec_runtime value.
+Can it be a scheduler's bug for tasks migration?
+Do we need kind of normalization for vruntime when migrating tasks
+from one CPU to another one?
+
+Here is the part of ftrace logs:
+<0>[ 6953.595642] hackbenc-3425    1...2. 2630440327us :   3425:120:S
+==> [001]  3445:120:R <...>
+<0>[ 6953.595672]    <...>-3445    1d..5. 2630440358us :   3445:120:R
+ + [001]  3426:120:R hackbench
+<0>[ 6953.595703]    <...>-3445    1...2. 2630440388us :   3445:120:R
+==> [001]  3426:120:R hackbench
+<0>[ 6953.595733] hackbenc-3426    1...2. 2630440388us :   3426:120:S
+==> [001]  3445:120:R <...>
+<0>[ 6953.595764]    <...>-3445    1d..5. 2630440419us :   3445:120:R
+ + [001]  3427:120:R hackbench
+<0>[ 6953.595825]    <...>-3445    1...2. 2630440449us :   3445:120:R
+==> [001]  3427:120:R hackbench
+.... ...
+<0>[ 6955.049468]    <...>-3396    1d..5. 2630462666us :   3396:120:R
+ + [001]  3376:120:R hackbench
+<0>[ 6955.049499]    <...>-3396    1...2. 2630462697us :   3396:120:R
+==> [001]  2683:  0:R <...>
+<0>[ 6955.049560]    <...>-2683    1...2. 2630463093us :   2683:  0:S
+==> [001]     0:  0:R <idle>
+<0>[ 6955.049591]   <idle>-0       1d..5. 2630463154us :      0:  0:R
+ + [000]  1642:120:D <...>   (the 2nd CPU down here)
+... ...
+... ....
+<0>[ 6958.913970] hackbenc-3226    0...2. 2638767048us :   3226:120:R
+==> [000]  3223:120:R hackbench
+<0>[ 6958.914001] hackbenc-3223    0d.s7. 2638767110us :   3223:120:S
+ + [000]  2345:120:R crashspi
+<0>[ 6958.914031] hackbenc-3223    0...2. 2638767110us :   3223:120:S
+==> [000]  3226:120:R hackbench
+<0>[ 6958.914062] hackbenc-3226    0...2. 2638767140us :   3226:120:R
+==> [000]  2345:120:R crashspi
+<0>[ 6958.914093] ---------------------------------
+
+
+Here is the threads/process info dump:
+
+<4>[ 6950.135192] now at 6950549.376887 msecs
+<4>[ 6950.135223]   .jiffies                                 : 850755
+<4>[ 6950.135223]   .sysctl_sched_latency                    : 10.000000
+<4>[ 6950.135253]   .sysctl_sched_min_granularity            : 4.000000
+<4>[ 6950.135253]   .sysctl_sched_wakeup_granularity         : 2.000000
+<4>[ 6950.135284]   .sysctl_sched_child_runs_first           : 0.000000
+<4>[ 6950.135284]   .sysctl_sched_features                   : 15471
+<4>[ 6950.135284]   .sysctl_sched_tunable_scaling            : 1 (logaritmic)
+<4>[ 6950.135314]
+<4>[ 6950.135314] cpu#0
+<4>[ 6950.135314]   .nr_running                    : 212
+<4>[ 6950.135345]   .load                          : 217650
+<4>[ 6950.135345]   .nr_switches                   : 144304735
+<4>[ 6950.135375]   .nr_load_updates               : 847105
+<4>[ 6950.135375]   .nr_uninterruptible            : 108
+<4>[ 6950.135375]   .next_balance                  : 0.849692
+<4>[ 6950.135406]   .curr->pid                     : 2345
+<4>[ 6950.135406]   .clock                         : 6946109.313964
+<4>[ 6950.135437]   .cpu_load[0]                   : 216626
+<4>[ 6950.135437]   .cpu_load[1]                   : 216865
+<4>[ 6950.135437]   .cpu_load[2]                   : 217114
+<4>[ 6950.135467]   .cpu_load[3]                   : 217240
+<4>[ 6950.135467]   .cpu_load[4]                   : 217318
+<4>[ 6950.135467]   .yld_count                     : 46326
+<4>[ 6950.135498]   .sched_switch                  : 0
+<4>[ 6950.135498]   .sched_count                   : 144442385
+<4>[ 6950.135528]   .sched_goidle                  : 2021081
+<4>[ 6950.135528]   .avg_idle                      : 51188
+<4>[ 6950.135528]   .ttwu_count                    : 93102282
+<4>[ 6950.135559]   .ttwu_local                    : 87445098
+<4>[ 6950.135559]   .bkl_count                     : 32006801
+<4>[ 6950.135589]
+<4>[ 6950.135589] cfs_rq[0]:/bg_non_interactive
+<4>[ 6950.135589]   .exec_clock                    : 7934.204110
+<4>[ 6950.135620]   .MIN_vruntime                  : 0.000001
+<4>[ 6950.135620]   .min_vruntime                  : 79877.877411
+<4>[ 6950.135650]   .max_vruntime                  : 0.000001
+<4>[ 6950.135650]   .spread                        : 0.000000
+<4>[ 6950.135650]   .spread0                       : -2143179.551111
+<4>[ 6950.135681]   .nr_running                    : 0
+<4>[ 6950.135681]   .load                          : 0
+<4>[ 6950.135711]   .nr_spread_over                : 390
+<4>[ 6950.135711]   .shares                        : 0
+<4>[ 6950.135711]   .se->exec_start                : 6945754.943847
+<4>[ 6950.135742]   .se->vruntime                  : 2223057.623199
+<4>[ 6950.135742]   .se->sum_exec_runtime          : 7934.417734
+<4>[ 6950.135772]   .se->statistics.wait_start     : 0.000000
+<4>[ 6950.135772]   .se->statistics.sleep_start    : 0.000000
+<4>[ 6950.135803]   .se->statistics.block_start    : 0.000000
+<4>[ 6950.135803]   .se->statistics.sleep_max      : 0.000000
+<4>[ 6950.135803]   .se->statistics.block_max      : 0.000000
+<4>[ 6950.135833]   .se->statistics.exec_max       : 7.843018
+<4>[ 6950.135833]   .se->statistics.slice_max      : 12.329101
+<4>[ 6950.135864]   .se->statistics.wait_max       : 45493.103028
+<4>[ 6950.135864]   .se->statistics.wait_sum       : 722360.626242
+<4>[ 6950.135894]   .se->statistics.wait_count     : 37054
+<4>[ 6950.135894]   .se->load.weight               : 26
+<4>[ 6950.135894]
+<4>[ 6950.135925] cfs_rq[0]:/fg_boost
+<4>[ 6950.135925]   .exec_clock                    : 0.000000
+<4>[ 6950.135925]   .MIN_vruntime                  : 0.000001
+<4>[ 6950.135955]   .min_vruntime                  : -1.048576
+<4>[ 6950.135955]   .max_vruntime                  : 0.000001
+<4>[ 6950.135986]   .spread                        : 0.000000
+<4>[ 6950.135986]   .spread0                       : -2223058.477098
+<4>[ 6950.135986]   .nr_running                    : 0
+<4>[ 6950.136016]   .load                          : 0
+<4>[ 6950.136016]   .nr_spread_over                : 0
+<4>[ 6950.136047]   .shares                        : 0
+<4>[ 6950.136047]   .se->exec_start                : 0.000000
+<4>[ 6950.136047]   .se->vruntime                  : 0.000000
+<4>[ 6950.136077]   .se->sum_exec_runtime          : 0.000000
+<4>[ 6950.136077]   .se->statistics.wait_start     : 0.000000
+<4>[ 6950.136108]   .se->statistics.sleep_start    : 0.000000
+<4>[ 6950.136108]   .se->statistics.block_start    : 0.000000
+<4>[ 6950.136108]   .se->statistics.sleep_max      : 0.000000
+<4>[ 6950.136138]   .se->statistics.block_max      : 0.000000
+<4>[ 6950.136138]   .se->statistics.exec_max       : 0.000000
+<4>[ 6950.136169]   .se->statistics.slice_max      : 0.000000
+<4>[ 6950.136169]   .se->statistics.wait_max       : 0.000000
+<4>[ 6950.136199]   .se->statistics.wait_sum       : 0.000000
+<4>[ 6950.136199]   .se->statistics.wait_count     : 0
+<4>[ 6950.136199]   .se->load.weight               : 512
+<4>[ 6950.136230]
+<4>[ 6950.136230] cfs_rq[0]:/
+<4>[ 6950.136230]   .exec_clock                    : 6520265.283900
+<4>[ 6950.136260]   .MIN_vruntime                  : 2223057.428522
+<4>[ 6950.136260]   .min_vruntime                  : 2223057.428522
+<4>[ 6950.136291]   .max_vruntime                  : 2223114.709956
+<4>[ 6950.136291]   .spread                        : 57.281434
+<4>[ 6950.136291]   .spread0                       : 0.000000
+<4>[ 6950.136322]   .nr_running                    : 212
+<4>[ 6950.136322]   .load                          : 217650
+<4>[ 6950.136352]   .nr_spread_over                : 125034
+<4>[ 6950.136352]   .shares                        : 0
+<4>[ 6950.136352]
+<4>[ 6950.136383] rt_rq[0]:/bg_non_interactive
+<4>[ 6950.136383]   .rt_nr_running                 : 0
+<4>[ 6950.136383]   .rt_throttled                  : 0
+<4>[ 6950.136413]   .rt_time                       : 0.000000
+<4>[ 6950.136413]   .rt_runtime                    : 0.000000
+<4>[ 6950.136413]
+<4>[ 6950.136444] rt_rq[0]:/fg_boost
+<4>[ 6950.136444]   .rt_nr_running                 : 0
+<4>[ 6950.136444]   .rt_throttled                  : 0
+<4>[ 6950.136474]   .rt_time                       : 0.000000
+<4>[ 6950.136474]   .rt_runtime                    : 0.000000
+<4>[ 6950.136505]
+<4>[ 6950.136505] rt_rq[0]:/
+<4>[ 6950.136505]   .rt_nr_running                 : 0
+<4>[ 6950.136505]   .rt_throttled                  : 0
+<4>[ 6950.136535]   .rt_time                       : 0.000000
+<4>[ 6950.136535]   .rt_runtime                    : 950.000000
+<4>[ 6950.136566]
+<4>[ 6950.136566] runnable tasks:
+<4>[ 6950.136566]             task   PID         tree-key  switches
+prio     exec-runtime         sum-exec        sum-sleep
+<4>[ 6950.136596]
+----------------------------------------------------------------------------------------------------------
+<4>[ 6950.136627]      omap2_mcspi    21   2223062.886210  29451523
+120   2223062.886210   1177589.035038   1648080.867813 /
+<4>[ 6950.136718]        salt_lj_2  1683   2223061.583766      2671
+120   2223061.583766      6119.567813   6395425.231938 /
+<4>[ 6950.136779]  test-fb-refresh  1644   2223069.415582    672416
+120   2223069.415582   2846654.876990    711754.241756 /
+<4>[ 6950.136810]  ActivityManager  4634   2223058.516356     13709
+118   2223058.516356     38864.105043   4091806.121829 /
+<4>[ 6950.137115] R       crashspi  2345   2223052.428522     17082
+120   2223052.428522       433.624298    237326.354921 /
+<4>[ 6950.137145]               dd  3030   2223058.989726       638
+120   2223058.989726      2179.229733     16940.704346 /
+<4>[ 6950.137207]        hackbench  3066   2223057.672624      9610
+120   2223057.672624       393.890422       197.662353 /
+<4>[ 6950.137237]        hackbench  3067   2223058.832266      9197
+120   2223058.832266       395.019547       193.176269 /
+<4>[ 6950.137268]        hackbench  3068   2223057.764114      9466
+120   2223057.764114       393.951394       197.631836 /
+<4>[ 6950.137298]        hackbench  3069   2223057.916691      9308
+120   2223057.916691       394.103971       193.145752 /
+<4>[ 6950.137329]        hackbench  3070   2223057.733619      9395
+120   2223057.733619       393.920900       193.115234 /
+<4>[ 6950.137359]        hackbench  3071   2223059.290012      9357
+120   2223059.290012       395.507810       197.540284 /
+<4>[ 6950.137420]        hackbench  3072   2223058.313450      9501
+120   2223058.313450       394.500730       193.054199 /
+<4>[ 6950.137451]        hackbench  3073   2223057.977845      9588
+120   2223057.977845       394.165126       197.509766 /
+<4>[ 6950.137481]        hackbench  3074   2223058.649040      9272
+120   2223058.649040       394.836321       197.479248 /
+<4>[ 6950.137512]        hackbench  3075   2223058.221896      9536
+120   2223058.221896       394.439694       197.357178 /
+<4>[ 6950.137542]        hackbench  3076   2223058.160997      9151
+120   2223058.160997       394.348277       197.418213 /
+<4>[ 6950.137573]        hackbench  3077   2223057.733577      9574
+120   2223057.733577       393.951375       192.993164 /
+<4>[ 6950.137603]        hackbench  3078   2223058.710150      9455
+120   2223058.710150       394.897431       197.296142 /
+<4>[ 6950.137664]        hackbench  3079   2223057.947243      8920
+120   2223057.947243       394.134524       192.962646 /
+<4>[ 6950.137695]        hackbench  3080   2223057.733599      9466
+120   2223057.733599       393.920880       197.326660 /
+<4>[ 6950.137725]        hackbench  3081   2223058.984851      9557
+120   2223058.984851       395.172132       192.901611 /
+<4>[ 6950.137756]        hackbench  3082   2223058.435540      8960
+120   2223058.435540       394.653338       192.840576 /
+<4>[ 6950.137786]        hackbench  3083   2223057.794693      9513
+120   2223057.794693       393.981973       197.235108 /
+<4>[ 6950.137817]        hackbench  3084   2223058.862755      9145
+120   2223058.862755       395.050035       192.810059 /
+<4>[ 6950.137847]        hackbench  3085   2223057.855681      9013
+120   2223057.855681       394.042962       192.749023 /
+<4>[ 6950.137908]        hackbench  3106   2223057.916697      7399
+120   2223057.916697       394.134495       164.001465 /
+<4>[ 6950.137939]        hackbench  3107   2223058.221850      7661
+120   2223058.221850       394.439648       163.940430 /
+<4>[ 6950.137969]        hackbench  3108   2223058.099761      7428
+120   2223058.099761       394.287041       163.879395 /
+<4>[ 6950.138000]        hackbench  3109   2223058.343988      7831
+120   2223058.343988       394.561785       162.231446 /
+<4>[ 6950.138031]        hackbench  3110   2223057.550561      7632
+120   2223057.550561       393.737842       163.848877 /
+<4>[ 6950.138061]        hackbench  3111   2223058.038736      6971
+120   2223058.038736       394.256534       163.787842 /
+<4>[ 6950.138122]        hackbench  3112   2223059.045885      7666
+120   2223059.045885       395.233166       162.200928 /
+<4>[ 6950.138153]        hackbench  3113   2223059.106955      7683
+120   2223059.106955       395.294236       163.726806 /
+<4>[ 6950.138183]        hackbench  3114   2223057.581077      7724
+120   2223057.581077       393.768358       162.170410 /
+<4>[ 6950.138214]        hackbench  3115   2223057.886195      7580
+120   2223057.886195       394.073475       163.696289 /
+<4>[ 6950.138244]        hackbench  3116   2223058.832318      3037
+120   2223058.832318       314.117462       471.862792 /
+<4>[ 6950.138275]        hackbench  3117   2223058.404983      7230
+120   2223058.404983       394.592264       163.665771 /
+<4>[ 6950.138305]        hackbench  3118   2223059.168044      7859
+120   2223059.168044       395.355324       516.845703 /
+<4>[ 6950.138366]        hackbench  3119   2223058.343964      7533
+120   2223058.343964       394.561762       163.604736 /
+<4>[ 6950.138397]        hackbench  3120   2223058.649172      7738
+120   2223058.649172       394.836453       163.543701 /
+<4>[ 6950.138427]        hackbench  3121   2223057.947257      3433
+120   2223057.947257       313.201884       471.740722 /
+<4>[ 6950.138458]        hackbench  3122   2223059.015328      7743
+120   2223059.015328       395.233126       516.693117 /
+<4>[ 6950.138488]        hackbench  3123   2223058.282921      7757
+120   2223058.282921       394.470201       163.513184 /
+<4>[ 6950.138519]        hackbench  3124   2223057.550511      7373
+120   2223057.550511       393.737792       516.693116 /
+<4>[ 6950.138549]        hackbench  3125   2223057.550537      7566
+120   2223057.550537       393.737818       163.482666 /
+<4>[ 6950.138610]        hackbench  3146   2223058.221875      9126
+120   2223058.221875       394.409155       147.613526 /
+<4>[ 6950.138641]        hackbench  3147   2223073.145025      9818
+120   2223073.145025       409.332306       157.928467 /
+<4>[ 6950.138671]        hackbench  3148   2223057.977772      9457
+120   2223057.977772       394.165053       147.552490 /
+<4>[ 6950.138702]        hackbench  3149   2223058.984894      9508
+120   2223058.984894       395.202692       147.491455 /
+<4>[ 6950.138732]        hackbench  3150   2223102.045087     10882
+120   2223102.045087       438.232368       157.745361 /
+<4>[ 6950.138763]        hackbench  3151   2223059.442607      9630
+120   2223059.442607       395.629888       147.460937 /
+<4>[ 6950.138824]        hackbench  3152   2223058.405016      9648
+120   2223058.405016       394.592296       157.836914 /
+<4>[ 6950.138854]        hackbench  3153   2223058.527088      9373
+120   2223058.527088       394.714368       157.714844 /
+<4>[ 6950.138885]        hackbench  3154   2223058.282932      9576
+120   2223058.282932       394.470213       157.470703 /
+<4>[ 6950.138916]        hackbench  3155   2223058.893246      8810
+120   2223058.893246       395.080526       147.399903 /
+<4>[ 6950.138946]        hackbench  3156   2223058.130297      9568
+120   2223058.130297       394.317578       157.562256 /
+<4>[ 6950.138977]        hackbench  3157   2223059.412138      9432
+120   2223059.412138       395.599418       157.501221 /
+<4>[ 6950.139007]        hackbench  3158   2223058.740634      9527
+120   2223058.740634       394.927915       147.369385 /
+<4>[ 6950.139068]        hackbench  3159   2223058.221865      9193
+120   2223058.221865       394.409146       157.653809 /
+<4>[ 6950.139099]        hackbench  3160   2223058.282916      9580
+120   2223058.282916       394.500714       147.308350 /
+<4>[ 6950.139129]        hackbench  3161   2223058.832267      8928
+120   2223058.832267       395.019548       445.556640 /
+<4>[ 6950.139160]        hackbench  3162   2223058.069307      9401
+120   2223058.069307       394.287105       157.592774 /
+<4>[ 6950.139190]        hackbench  3163   2223059.076440      9460
+120   2223059.076440       395.263720       147.216797 /
+<4>[ 6950.139221]        hackbench  3164   2223058.069300      9206
+120   2223058.069300       394.256581       157.379150 /
+<4>[ 6950.139251]        hackbench  3165   2223059.412122      8881
+120   2223059.412122       395.629920       157.409668 /
+<4>[ 6950.139312]        hackbench  3186   2223057.764144      5252
+120   2223057.764144       393.981942       128.143310 /
+<4>[ 6950.139343]        hackbench  3187   2223059.320515      5568
+120   2223059.320515       395.507795       128.082276 /
+<4>[ 6950.139373]        hackbench  3188   2223057.550470      5303
+120   2223057.550470       393.737751       128.051758 /
+<4>[ 6950.139404]        hackbench  3189   2223058.496557      5096
+120   2223058.496557       394.714355       127.990723 /
+<4>[ 6950.139434]        hackbench  3190   2223058.893313      5242
+120   2223058.893313       395.080594       127.960205 /
+<4>[ 6950.139465]        hackbench  3191   2223057.733573      5030
+120   2223057.733573       393.920853       127.899170 /
+<4>[ 6950.139526]        hackbench  3192   2223058.343903      5208
+120   2223058.343903       394.561701       127.838135 /
+<4>[ 6950.139556]        hackbench  3193   2223058.557565      5208
+120   2223058.557565       394.744846       127.807617 /
+<4>[ 6950.139587]        hackbench  3194   2223057.489480      5099
+120   2223057.489480       393.676761       127.746582 /
+<4>[ 6950.139617]        hackbench  3195   2223058.557600      5235
+120   2223058.557600       394.744880       233.428958 /
+<4>[ 6950.139648]        hackbench  3196   2223058.557583      5422
+120   2223058.557583       394.775381       127.685547 /
+<4>[ 6950.139678]        hackbench  3197   2223057.733636      4665
+120   2223057.733636       312.988263       232.971190 /
+<4>[ 6950.139709]        hackbench  3198   2223058.069299      4848
+120   2223058.069299       394.256580       233.245849 /
+<4>[ 6950.139739]        hackbench  3199   2223097.711703      6751
+120   2223097.711703       433.898983       179.016113 /
+<4>[ 6950.139801]        hackbench  3200   2223058.771274      4300
+120   2223058.771274       314.056418       127.349854 /
+<4>[ 6950.139831]        hackbench  3201   2223058.466064      5259
+120   2223058.466064       394.683862       213.226320 /
+<4>[ 6950.139862]        hackbench  3202   2223058.618645      4705
+120   2223058.618645       313.873272       127.319336 /
+<4>[ 6950.139892]        hackbench  3203   2223059.015430      4845
+120   2223059.015430       314.270057       127.410889 /
+<4>[ 6950.139923]        hackbench  3204   2223058.801745      5110
+120   2223058.801745       395.019543       136.474609 /
+<4>[ 6950.139953]        hackbench  3205   2223058.649169      4757
+120   2223058.649169       313.903795       127.258301 /
+<4>[ 6950.140014]        hackbench  3226   2223058.679731      6443
+120   2223058.679731       313.964875       152.099610 /
+<4>[ 6950.140045]        hackbench  3227   2223098.962891      7276
+120   2223098.962891       354.217518       152.130127 /
+<4>[ 6950.140075]        hackbench  3228   2223059.076460      5924
+120   2223059.076460       314.331087       152.069092 /
+<4>[ 6950.140106]        hackbench  3229   2223058.679697      3712
+120   2223058.679697       394.897496       122.253417 /
+<4>[ 6950.140136]        hackbench  3230   2223058.984841      3425
+120   2223058.984841       395.172121       122.222900 /
+<4>[ 6950.140167]        hackbench  3231   2223057.520020      6199
+120   2223057.520020       312.805164       152.099609 /
+<4>[ 6950.140228]        hackbench  3232   2223057.886169      3575
+120   2223057.886169       394.103967       122.161865 /
+<4>[ 6950.140258]        hackbench  3233   2223058.740636      6318
+120   2223058.740636       313.995262       126.495362 /
+<4>[ 6950.140289]        hackbench  3234   2223058.832260      3353
+120   2223058.832260       395.019541       122.131347 /
+<4>[ 6950.140319]        hackbench  3235   2223058.984873      3566
+120   2223058.984873       395.172153       122.070313 /
+<4>[ 6950.140350]        hackbench  3236   2223058.923805      6362
+120   2223058.923805       314.178432       126.434326 /
+<4>[ 6950.140380]        hackbench  3237   2223058.954306      5879
+120   2223058.954306       314.208932       126.403809 /
+<4>[ 6950.140411]        hackbench  3238   2223058.862741      6144
+120   2223058.862741       314.147886       126.342773 /
+<4>[ 6950.140472]        hackbench  3239   2223059.381590      6495
+120   2223059.381590       314.666734       110.717774 /
+<4>[ 6950.140502]        hackbench  3240   2223058.588091      3647
+120   2223058.588091       394.775371        89.355469 /
+<4>[ 6950.140533]        hackbench  3241   2223057.764225      6466
+120   2223057.764225       313.049370       110.656738 /
+<4>[ 6950.140563]        hackbench  3242   2223058.221896      3157
+120   2223058.221896       394.409177        89.294434 /
+<4>[ 6950.140594]        hackbench  3243   2223058.588163      6417
+120   2223058.588163       313.842789       110.595703 /
+<4>[ 6950.140625]        hackbench  3244   2223059.442554      3648
+120   2223059.442554       395.660352        88.806153 /
+<4>[ 6950.140655]        hackbench  3245   2223057.855737      5957
+120   2223057.855737       313.140881       100.616455 /
+<4>[ 6950.140716]        hackbench  3266   2223057.947276      7480
+120   2223057.947276       313.201903        77.270508 /
+<4>[ 6950.140747]        hackbench  3267   2223058.191358      7487
+120   2223058.191358       313.476502        77.209473 /
+<4>[ 6950.140777]        hackbench  3268   2223059.106873      7480
+120   2223059.106873       314.361500        77.178955 /
+<4>[ 6950.140808]        hackbench  3269   2223059.290019      7645
+120   2223059.290019       314.544645        77.148438 /
+<4>[ 6950.140838]        hackbench  3270   2223057.428522      7512
+120   2223057.428522       312.713666        77.056885 /
+<4>[ 6950.140869]        hackbench  3271   2223058.679698      7515
+120   2223058.679698       313.934325       131.988525 /
+<4>[ 6950.140930]        hackbench  3272   2223059.412048      7623
+120   2223059.412048       314.666675       132.019042 /
+<4>[ 6950.140960]        hackbench  3273   2223057.947316      7492
+120   2223057.947316       313.201943        76.995849 /
+<4>[ 6950.140991]        hackbench  3274   2223058.771171      7539
+120   2223058.771171       314.025798        77.026367 /
+<4>[ 6950.141021]        hackbench  3275   2223059.106900      7496
+120   2223059.106900       314.361527        76.843262 /
+<4>[ 6950.141052]        hackbench  3276   2223057.794724      7502
+120   2223057.794724       313.079868       131.988525 /
+<4>[ 6950.141082]        hackbench  3277   2223058.740749      7628
+120   2223058.740749       313.995375       131.958008 /
+<4>[ 6950.141113]        hackbench  3278   2223058.710230      7585
+120   2223058.710230       314.025891        76.873780 /
+<4>[ 6950.141174]        hackbench  3279   2223057.611597      7460
+120   2223057.611597       312.866224        87.249756 /
+<4>[ 6950.141204]        hackbench  3280   2223057.489500      7366
+120   2223057.489500       312.774644        76.751709 /
+<4>[ 6950.141235]        hackbench  3281   2223058.221939      7505
+120   2223058.221939       313.507083        87.188721 /
+<4>[ 6950.141265]        hackbench  3282   2223058.222022      7461
+120   2223058.222022       313.476649        76.660156 /
+<4>[ 6950.141296]        hackbench  3283   2223058.527082      7568
+120   2223058.527082       313.781709        76.812744 /
+<4>[ 6950.141326]        hackbench  3284   2223058.649179      7527
+120   2223058.649179       313.903806        87.127685 /
+<4>[ 6950.141357]        hackbench  3285   2223058.954322      7549
+120   2223058.954322       314.239466        76.599121 /
+<4>[ 6950.141418]        hackbench  3306   2223058.588151      7570
+120   2223058.588151       313.873295       123.596191 /
+<4>[ 6950.141448]        hackbench  3307   2223059.320521      7491
+120   2223059.320521       314.605665        74.645996 /
+<4>[ 6950.141479]        hackbench  3308   2223058.435490      7445
+120   2223058.435490       313.690117       123.596191 /
+<4>[ 6950.141510]        hackbench  3309   2223058.405116      7464
+120   2223058.405116       313.659743        74.615478 /
+<4>[ 6950.141540]        hackbench  3310   2223058.984904      7489
+120   2223058.984904       314.270048       123.565674 /
+<4>[ 6950.141571]        hackbench  3311   2223059.290113      7560
+120   2223059.290113       314.544740       123.565674 /
+<4>[ 6950.141632]        hackbench  3312   2223058.740716      7601
+120   2223058.740716       313.995342        74.554444 /
+<4>[ 6950.141662]        hackbench  3313   2223058.313453      7525
+120   2223058.313453       313.598597        74.493409 /
+<4>[ 6950.141693]        hackbench  3314   2223058.343951      7484
+120   2223058.343951       313.598578        74.462891 /
+<4>[ 6950.141723]        hackbench  3315   2223058.862795      7314
+120   2223058.862795       314.117421        75.927735 /
+<4>[ 6950.141754]        hackbench  3316   2223057.733614      7530
+120   2223057.733614       313.049277        55.023193 /
+<4>[ 6950.141784]        hackbench  3317   2223057.611637      7407
+120   2223057.611637       312.896782        70.098877 /
+<4>[ 6950.141815]        hackbench  3318   2223058.069358      7538
+120   2223058.069358       313.385019        54.901123 /
+<4>[ 6950.141845]        hackbench  3319   2223057.489559      7450
+120   2223057.489559       312.744185        70.037842 /
+<4>[ 6950.141906]        hackbench  3320   2223058.771222      7525
+120   2223058.771222       314.025849        54.870605 /
+<4>[ 6950.141937]        hackbench  3321   2223058.771264      7560
+120   2223058.771264       314.056408        69.976807 /
+<4>[ 6950.141967]        hackbench  3322   2223058.801787      7552
+120   2223058.801787       314.086931        54.809570 /
+<4>[ 6950.141998]        hackbench  3323   2223063.501453      7662
+120   2223063.501453       318.756080        69.946289 /
+<4>[ 6950.142028]        hackbench  3324   2223058.557622      7429
+120   2223058.557622       313.812249        54.748535 /
+<4>[ 6950.142059]        hackbench  3325   2223059.045915      7546
+120   2223059.045915       314.331059        69.854736 /
+<4>[ 6950.142120]        hackbench  3346   2223058.618603      5936
+120   2223058.618603       313.873230       138.793945 /
+<4>[ 6950.142150]        hackbench  3347   2223058.008418      5961
+120   2223058.008418       313.293562       138.793945 /
+<4>[ 6950.142181]        hackbench  3348   2223058.282914      6214
+120   2223058.282914       313.568058       138.732911 /
+<4>[ 6950.142211]        hackbench  3349   2223058.099899      6215
+120   2223058.099899       313.385043       138.763429 /
+<4>[ 6950.142242]        hackbench  3350   2223058.771209      6163
+120   2223058.771209       314.056353        32.104493 /
+<4>[ 6950.142272]        hackbench  3351   2223058.710174      6207
+120   2223058.710174       313.995318        32.043458 /
+<4>[ 6950.142333]        hackbench  3352   2223057.550538      6070
+120   2223057.550538       312.835682        31.890869 /
+<4>[ 6950.142364]        hackbench  3353   2223058.069267      3653
+120   2223058.069267       394.256548        35.186767 /
+<4>[ 6950.142395]        hackbench  3354   2223058.679696      6022
+120   2223058.679696       313.964841        31.951904 /
+<4>[ 6950.142425]        hackbench  3355   2223058.343969      3779
+120   2223058.343969       394.531250        35.095214 /
+<4>[ 6950.142456]        hackbench  3356   2223059.442623      6049
+120   2223059.442623       314.697250        31.768798 /
+<4>[ 6950.142486]        hackbench  3357   2223059.412094      3800
+120   2223059.412094       395.629892        64.361572 /
+<4>[ 6950.142517]        hackbench  3358   2223058.527132      6159
+120   2223058.527132       313.812276       139.129638 /
+<4>[ 6950.142547]        hackbench  3359   2223057.855719      3752
+120   2223057.855719       394.043000       142.486572 /
+<4>[ 6950.142608]        hackbench  3360   2223059.320504      3754
+120   2223059.320504       395.538302        34.942627 /
+<4>[ 6950.142639]        hackbench  3361   2223059.442588      6178
+120   2223059.442588       314.697215        31.646728 /
+<4>[ 6950.142669]        hackbench  3362   2223059.289979      3781
+120   2223059.289979       395.477260        34.820556 /
+<4>[ 6950.142700]        hackbench  3363   2223058.862838      6280
+120   2223058.862838       314.117464        31.494141 /
+<4>[ 6950.142730]        hackbench  3364   2223058.374486      3574
+120   2223058.374486       394.561766        35.064697 /
+<4>[ 6950.142761]        hackbench  3365   2223058.923857      6232
+120   2223058.923857       314.239518        81.695556 /
+<4>[ 6950.142822]        hackbench  3386   2223057.855737      6944
+120   2223057.855737       313.110363       697.662355 /
+<4>[ 6950.142852]        hackbench  3387   2223057.732209      3013
+120   2223057.732209       393.646224        56.457520 /
+<4>[ 6950.142883]        hackbench  3388   2223059.045915      7227
+120   2223059.045915       314.300542        30.944824 /
+<4>[ 6950.142913]        hackbench  3389   2223058.493195      7140
+120   2223058.493195       313.781777        30.914307 /
+<4>[ 6950.142944]        hackbench  3391   2223057.943836      7163
+120   2223057.943836       313.293453        20.538330 /
+<4>[ 6950.142974]        hackbench  3392   2223057.913266      7054
+120   2223057.913266       313.201849        20.507812 /
+<4>[ 6950.143005]        hackbench  3393   2223058.859329      6962
+120   2223058.859329       314.147912        20.477294 /
+<4>[ 6950.143066]        hackbench  3394   2223058.584693      7180
+120   2223058.584693       313.873275        20.416260 /
+<4>[ 6950.143096]        hackbench  3395   2223059.042494      7120
+120   2223059.042494       314.361594        20.355225 /
+<4>[ 6950.143127]        hackbench  3396   2223058.187924      7083
+120   2223058.187924       313.476507        20.324707 /
+<4>[ 6950.143157]        hackbench  3397   2223058.310064      7203
+120   2223058.310064       313.598646        20.263672 /
+<4>[ 6950.143188]        hackbench  3398   2223057.608173      6928
+120   2223057.608173       312.896756        20.233154 /
+<4>[ 6950.143218]        hackbench  3399   2223059.225628      7253
+120   2223059.225628       314.544728        20.172119 /
+<4>[ 6950.143249]        hackbench  3400   2223058.035102      3044
+120   2223058.035102       391.326887         2.166748 /
+<4>[ 6950.143310]        hackbench  3401   2223059.439242      6937
+120   2223059.439242       314.727825        20.141601 /
+<4>[ 6950.143341]        hackbench  3402   2223057.481471      6749
+120   2223057.481471       309.753424         2.075196 /
+<4>[ 6950.143371]        hackbench  3403   2223059.439238      6983
+120   2223059.439238       314.727820        20.080567 /
+<4>[ 6950.143402]        hackbench  3404   2223057.791245      7107
+120   2223057.791245       313.079828        20.050049 /
+<4>[ 6950.143432]        hackbench  3405   2223057.908789      6948
+120   2223057.908789       310.180704         1.953125 /
+<4>[ 6950.143463]        hackbench  3406   2223058.523635      7068
+120   2223058.523635       313.812217        20.019532 /
+<4>[ 6950.143524]        hackbench  3428   2223058.313422      5337
+120   2223058.313422       265.045082      9233.978271 /
+<4>[ 6950.143554]        hackbench  3429   2223059.168004      5277
+120   2223059.168004       282.775870      8696.319582 /
+<4>[ 6950.143585]        hackbench  3430   2223057.728820      6040
+120   2223057.728820       301.605244      3877.227783 /
+<4>[ 6950.143615]        hackbench  3431   2223059.233894      2218
+120   2223059.233894       382.110606      3795.104981 /
+<4>[ 6950.143646]        hackbench  3432   2223057.667812      5830
+120   2223057.667812       285.736138      6528.869629 /
+<4>[ 6950.143676]        hackbench  3433   2223058.522277      5567
+120   2223058.522277       299.621600      5717.285156 /
+<4>[ 6950.143707]        hackbench  3434   2223058.980062      6110
+120   2223058.980062       293.426557      5739.990234 /
+<4>[ 6950.143768]        hackbench  3435   2223058.191454      5514
+120   2223058.191454       277.832045      8030.822755 /
+<4>[ 6950.143798]        hackbench  3436   2223059.106975      5677
+120   2223059.106975       278.320255      6854.644777 /
+<4>[ 6950.143829]        hackbench  3437   2223059.473183      6101
+120   2223059.473183       290.588355      5625.305176 /
+<4>[ 6950.143859]        hackbench  3438   2223057.647029      5570
+120   2223057.647029       275.299082      8041.503907 /
+<4>[ 6950.143890]        hackbench  3439   2223059.106971      5878
+120   2223059.106971       286.071772      6566.406251 /
+<4>[ 6950.143920]        hackbench  3440   2223057.489483      6113
+120   2223057.489483       308.166449      2902.313233 /
+<4>[ 6950.143951]        hackbench  3441   2223058.466070      6376
+120   2223058.466070       302.093487      3230.041504 /
+<4>[ 6950.144012]        hackbench  3442   2223058.623568      5077
+120   2223058.623568       261.810318     11294.525148 /
+<4>[ 6950.144042]        hackbench  3443   2223058.379449      5345
+120   2223058.379449       276.397734      8350.708009 /
+<4>[ 6950.144073]        hackbench  3444   2223058.654045      4896
+120   2223058.654045       277.343722      9959.838869 /
+<4>[ 6950.144104]        hackbench  3445   2223114.709956      7669
+120   2223114.709956       342.468227      5719.573975 /
+<4>[ 6950.144134]        hackbench  3446   2223057.585953      5494
+120   2223057.585953       277.252185      8900.085448 /
+<4>[ 6950.144165]        hackbench  3447   2223059.259559      6293
+120   2223059.259559       302.734394      3191.955566 /
+<4>[ 6950.144195]       churn_data  3575   2223057.707968        87
+120   2223057.707968       187.683096     11222.930908 /
+<4>[ 6950.144287]               ps  3752   2223059.719359        65
+120   2223059.719359       179.565417         0.000000 /
+<4>[ 6950.144317]  kkkkkkkkkkkkkkk  3787   2223058.346130        58
+120   2223058.346130        71.044920         4.821777 /
+<4>[ 6950.144348]           pipeio  3788   2223059.320594       182
+120   2223059.320594        56.304934         0.000000 /
+<4>[ 6950.144378]           fork11  3818   2223058.262515         0
+120   2223058.262515         0.000000         0.000000 /
+<4>[ 6950.144409]         kthreadd  3819   2223060.868907         0
+120   2223060.868907         0.000000         0.000000 /
+<4>[ 6950.144439]
+
+
 -- 
-1.7.4.1
+Best Regards
+Hu Tao
