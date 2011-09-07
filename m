@@ -1,104 +1,158 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [linux-pm] Issue: Runtime API usage in wake-up device irq_handler during wakeup from system-wide-suspend.
-Date: Wed, 07 Sep 2011 10:59:54 -0700
-Message-ID: <87fwk8qllx.fsf@ti.com>
-References: <Pine.LNX.4.44L0.1108271537300.21403-100000@netrider.rowland.org>
-	<1315410513.2679.9.camel@sokoban>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH 1/3] iommu/core: add fault reporting mechanism
+Date: Wed,  7 Sep 2011 21:53:22 +0300
+Message-ID: <1315421604-12286-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:43716 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756040Ab1IGSAG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 14:00:06 -0400
-Received: by mail-pz0-f42.google.com with SMTP id 37so93720pzk.15
-        for <linux-omap@vger.kernel.org>; Wed, 07 Sep 2011 10:59:58 -0700 (PDT)
-In-Reply-To: <1315410513.2679.9.camel@sokoban> (Tero Kristo's message of "Wed,
-	7 Sep 2011 18:48:33 +0300")
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:35099 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756607Ab1IGSyW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 14:54:22 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Alan Stern <stern@rowland.harvard.edu>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "R, Govindraj" <govindraj.raja@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "Munegowda, Keshava" <keshava_mgowda@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>
 
-Tero Kristo <t-kristo@ti.com> writes:
+Add iommu fault report mechanism to the IOMMU API, so implementations
+could report about mmu faults (translation errors, hardware errors,
+etc..).
 
-> Hi,
->
-> On Sat, 2011-08-27 at 21:42 +0200, Alan Stern wrote:
->> On Sat, 27 Aug 2011, Santosh wrote:
->> 
->> > On Saturday 27 August 2011 07:31 PM, Alan Stern wrote:
->> > > On Sat, 27 Aug 2011, Santosh wrote:
->> > >
->> > >> I might be wrong here, but after discussion with Govindraj on this
->> > >> issue, it seems there is a flaw in the way OMAP chain handler
->> > >> handling the child interrupts.
->> > >>
->> > >> On OMAP, we have special interrupt wakeup source at PRCM level and
->> > >> many devices can trigger wakeup from low power via this common
->> > >> interrupt source. The common interrupt source upon wakeup from low
->> > >> power state, decodes the source of interrupt and based on that
->> > >> source, calls the respective device ISR directly.
->> > >>
->> > >> The issue I see here is, the ISR on _a_ device (UART in this case)
->> > >> is happening even before UART resume and DPM resume has been completed.
->> > >> If this is the case, then it is surely asking for trouble. Because not
->> > >> just clocks, but even driver state machine is already in suspend state
->> > >> when the ISR is called.
->> > >
->> > > If the driver state machine is in the suspend state when the ISR is
->> > > called, then the ISR should realize it is handling a wakeup event
->> > > instead of a normal I/O event.  All it needs to do is turn off the
->> > > interrupt source; the event itself will be taken care of during the
->> > > device's resume callback.
->> > >
->> > Good point but the ISR is called as a function call and not real
->> > hardware event so no need to turn-off the source in the child
->> > ISR. Parent ISR will clear the source anyways.
->> > 
->> > But the intention here is to record the event for the child.
->> 
->> In that case the ISR only has to record the event.
->> 
->> > I mean for UART wakeup, the received character should be
->> > extracted. If not done, UART will loose that character because
->> > the event is lost. So not sure how the event will be taken
->> > care during resume callback. Could you elaborate bit more on
->> > last comment please?
->> 
->> The resume callback routine must check to see if an event was recorded.
->> If one was, the routine must see whether a character was received while 
->> the system was asleep and extract the character from the UART.  (It 
->> probably won't hurt to do this even if an event wasn't recorded.)
->> 
->> Alan Stern
->> 
->
-> After thinking about this problem and looking at possible ways to fix
-> it, I am planning to change the PRCM chain handler to be a driver, which
-> gets suspended along with the rest of the system. This means the PRCM
-> interrupt would get disabled also during this time, and it would be
-> enabled in the driver->complete() call, which should happen after rest
-> of the drivers have been able to enable their PM runtime in the
-> driver->resume() call chain. Do you see any problems with this approach?
+Fault reports can be used in several ways:
+- mere logging
+- reset the device that accessed the faulting address (may be necessary
+  in case the device is a remote processor for example)
+- implement dynamic PTE/TLB loading
 
-How will the system wakeup from retention or off-mode if the PRCM IRQ is
-disabled?
+A dedicated iommu_set_fault_handler() API has been added to allow
+users, who are interested to receive such reports, to provide
+their handler.
 
-Besides that, I don't like this approach because it leaves a rather long
-window during which no PRCM-triggered wakeup events can happen.  This is
-not good since we also want potential wakeup events that happen *during*
-system suspend to be able to cancel the suspend.
+At this point only a generic IOMMU_ERROR fault type has been added.
+Future users, who will require additional fault types, will add
+new events as needed.
 
-> The only issue I am seeing myself is if some driver decides to do
-> resume() in the complete() pm-op and potentially screwing the ordering
-> here...
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ drivers/iommu/iommu.c |   13 ++++++++++
+ include/linux/iommu.h |   65 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 78 insertions(+), 0 deletions(-)
 
-Personally, I think Alan's approach is the only scalable approach.  This
-has to be handled by the drivers.
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index e61a9ba..c68ff29 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -40,6 +40,19 @@ bool iommu_found(void)
+ }
+ EXPORT_SYMBOL_GPL(iommu_found);
+ 
++/**
++ * iommu_domain_alloc() - set a fault handler for an iommu domain
++ * @domain: iommu domain
++ * @handler: fault handler
++ */
++void iommu_set_fault_handler(struct iommu_domain *domain,
++					iommu_fault_handler_t handler)
++{
++	BUG_ON(!domain);
++
++	domain->handler = handler;
++}
++
+ struct iommu_domain *iommu_domain_alloc(void)
+ {
+ 	struct iommu_domain *domain;
+diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+index 9940319..d67bf8c 100644
+--- a/include/linux/iommu.h
++++ b/include/linux/iommu.h
+@@ -26,9 +26,31 @@
+ #define IOMMU_CACHE	(4) /* DMA cache coherency */
+ 
+ struct device;
++struct iommu_domain;
++
++/**
++ * enum iommu_fault_types - iommu fault types
++ *
++ * @IOMMU_ERROR: Unrecoverable error
++ *
++ * Currently we only support a generic error fault type.
++ * Future users, which will require more informative fault types, will add
++ * them as needed.
++ */
++enum iommu_fault_types {
++	IOMMU_ERROR,
++};
++
++/* iommu fault flags */
++#define IOMMU_FAULT_READ	0x0
++#define IOMMU_FAULT_WRITE	0x1
++
++typedef int (*iommu_fault_handler_t)(struct iommu_domain *,
++				struct device *, unsigned long, int, int);
+ 
+ struct iommu_domain {
+ 	void *priv;
++	iommu_fault_handler_t handler;
+ };
+ 
+ #define IOMMU_CAP_CACHE_COHERENCY	0x1
+@@ -67,6 +89,44 @@ extern phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain,
+ 				      unsigned long iova);
+ extern int iommu_domain_has_cap(struct iommu_domain *domain,
+ 				unsigned long cap);
++extern void iommu_set_fault_handler(struct iommu_domain *domain,
++					iommu_fault_handler_t handler);
++
++/**
++ * report_iommu_fault() - report about an IOMMU fault to the IOMMU framework
++ * @domain: the iommu domain where the fault has happened
++ * @dev: the device where the fault has happened
++ * @iova: the faulting address
++ * @flags: mmu fault flags (e.g. IOMMU_FAULT_READ/IOMMU_FAULT_WRITE/...)
++ * @event: the mmu fault type
++ *
++ * This function should be called by the low-level IOMMU implementations
++ * whenever IOMMU faults happen, to allow high-level users, that are
++ * interested in such events, to know about them.
++ *
++ * This event may be useful for several possible use cases:
++ * - mere logging of the event
++ * - dynamic TLB/PTE loading
++ * - if restarting of the faulting device is required
++ *
++ * Returns 0 on success and an appropriate error code otherwise (if dynamic
++ * PTE/TLB loading will one day be supported, implementations will be able
++ * to tell whether it succeeded or not according to this return value).
++ */
++static inline int report_iommu_fault(struct iommu_domain *domain,
++	struct device *dev, unsigned long iova, int flags, int event)
++{
++	int ret = 0;
++
++	/*
++	 * if upper layers showed interest and installed a fault handler,
++	 * invoke it.
++	 */
++	if (domain->handler)
++		ret = domain->handler(domain, dev, iova, flags, event);
++
++	return ret;
++}
+ 
+ #else /* CONFIG_IOMMU_API */
+ 
+@@ -123,6 +183,11 @@ static inline int domain_has_cap(struct iommu_domain *domain,
+ 	return 0;
+ }
+ 
++static inline void iommu_set_fault_handler(struct iommu_domain *domain,
++					iommu_fault_handler_t handler)
++{
++}
++
+ #endif /* CONFIG_IOMMU_API */
+ 
+ #endif /* __LINUX_IOMMU_H */
+-- 
+1.7.4.1
 
-If the driver's ISR does a pm_runtime_get_sync() and it fails (in this
-case, with -EACCESS since runtime PM is disabled), the driver should
-handle that handle as Alan described above.
-
-Kevin
