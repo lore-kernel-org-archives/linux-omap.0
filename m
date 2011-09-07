@@ -1,60 +1,72 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 03/11] ARM: pm: some ARMv7 requires a dsb in resume to
-	ensure correctness
-Date: Wed, 7 Sep 2011 17:19:06 +0100
-Message-ID: <20110907161906.GA2327@n2100.arm.linux.org.uk>
-References: <20110901124752.GE29729@n2100.arm.linux.org.uk>
-	<E1Qz6hr-00078J-2k@rmk-PC.arm.linux.org.uk>
-	<CAHkRjk65O3wJLazxZeOOQrDuM-XkZXo4fcOuVZf4Jzq9OP3p3g@mail.gmail.com>
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [v2 2/2] usb: musb: omap2+: save and restore OTG_INTERFSEL
+Date: Wed, 7 Sep 2011 09:19:24 -0700
+Message-ID: <1315412364-21384-3-git-send-email-vikram.pandita@ti.com>
+References: <1315412364-21384-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAHkRjk65O3wJLazxZeOOQrDuM-XkZXo4fcOuVZf4Jzq9OP3p3g@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60947 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756417Ab1IGQTd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Sep 2011 12:19:33 -0400
+In-Reply-To: <1315412364-21384-1-git-send-email-vikram.pandita@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Vikram Pandita <vikram.pandita@ti.com>
 
-On Wed, Sep 07, 2011 at 04:41:32PM +0100, Catalin Marinas wrote:
-> On 1 September 2011 13:49, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > Add a dsb after the isb to ensure that the previous writes to the
-> > CP15 registers take effect before we enable the MMU.
-> >
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > ---
-> > =A0arch/arm/mm/proc-v7.S | =A0 =A01 +
-> > =A01 files changed, 1 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
-> > index dec72ee..a773f4e 100644
-> > --- a/arch/arm/mm/proc-v7.S
-> > +++ b/arch/arm/mm/proc-v7.S
-> > @@ -255,6 +255,7 @@ ENTRY(cpu_v7_do_resume)
-> > =A0 =A0 =A0 =A0mcr =A0 =A0 p15, 0, r4, c10, c2, 0 =A0@ write PRRR
-> > =A0 =A0 =A0 =A0mcr =A0 =A0 p15, 0, r5, c10, c2, 1 =A0@ write NMRR
-> > =A0 =A0 =A0 =A0isb
-> > + =A0 =A0 =A0 dsb
-> =
+From: Hema HK <hemahk@ti.com>
 
-> Isn't an ISB enough here? We usually have the DSB for some background
-> operations like cache maintenance.
+we need to save and restore OTG_INTERFSEL register
+else we will be unable to function on resume after
+OFF mode.
 
-That depends whether you're including the effects of the cache
-maintanence instructions in this.  The ARM ARM tells me that
-a DSB is required to ensure that all cache maintanence is issued
-before the dsb is complete at the point that the dsb is executed.
+Reported-by: Devaraj Rangasamy <dev@ti.com>
+Signed-off-by: Hema HK <hemahk@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ drivers/usb/musb/musb_core.h |    1 +
+ drivers/usb/musb/omap2430.c  |    6 ++++++
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
-So for architectural compliance, yes, a dsb is required.  The isb
-is also required to ensure that instruction cache maintanence is
-properly visible.
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index b3c065a..3259a6b 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -311,6 +311,7 @@ struct musb_context_registers {
+ 	u8 index, testmode;
+ 
+ 	u8 devctl, busctl, misc;
++	u32 otg_interfsel;
+ 
+ 	struct musb_csr_regs index_regs[MUSB_C_NUM_EPS];
+ };
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index ba85f27..78eb13a 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -491,6 +491,9 @@ static int omap2430_runtime_suspend(struct device *dev)
+ 	struct omap2430_glue		*glue = dev_get_drvdata(dev);
+ 	struct musb			*musb = glue_to_musb(glue);
+ 
++	musb->context.otg_interfsel = musb_readl(musb->mregs,
++						OTG_INTERFSEL);
++
+ 	omap2430_low_level_exit(musb);
+ 	otg_set_suspend(musb->xceiv, 1);
+ 
+@@ -503,6 +506,9 @@ static int omap2430_runtime_resume(struct device *dev)
+ 	struct musb			*musb = glue_to_musb(glue);
+ 
+ 	omap2430_low_level_init(musb);
++	musb_writel(musb->mregs, OTG_INTERFSEL,
++					musb->context.otg_interfsel);
++
+ 	otg_set_suspend(musb->xceiv, 0);
+ 
+ 	return 0;
+-- 
+1.7.4.1
+
