@@ -1,37 +1,71 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [v2 0/2] usb: musb: off mode fixes
-Date: Wed, 7 Sep 2011 09:19:22 -0700
-Message-ID: <1315412364-21384-1-git-send-email-vikram.pandita@ti.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 03/11] ARM: pm: some ARMv7 requires a dsb in resume to
+ ensure correctness
+Date: Wed, 7 Sep 2011 17:26:53 +0100
+Message-ID: <CAHkRjk6q+0igtZVn7LE4NfDhcXEtQCJZ3cBrtfY4brtW7M86NQ@mail.gmail.com>
+References: <20110901124752.GE29729@n2100.arm.linux.org.uk>
+ <E1Qz6hr-00078J-2k@rmk-PC.arm.linux.org.uk> <CAHkRjk65O3wJLazxZeOOQrDuM-XkZXo4fcOuVZf4Jzq9OP3p3g@mail.gmail.com>
+ <20110907161906.GA2327@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49614 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756369Ab1IGQTa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 12:19:30 -0400
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:58606 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092Ab1IGQ1N convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2011 12:27:13 -0400
+Received: by gxk21 with SMTP id 21so5742819gxk.5
+        for <linux-omap@vger.kernel.org>; Wed, 07 Sep 2011 09:27:13 -0700 (PDT)
+In-Reply-To: <20110907161906.GA2327@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+On 7 September 2011 17:19, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Wed, Sep 07, 2011 at 04:41:32PM +0100, Catalin Marinas wrote:
+>> On 1 September 2011 13:49, Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> wrote:
+>> > Add a dsb after the isb to ensure that the previous writes to the
+>> > CP15 registers take effect before we enable the MMU.
+>> >
+>> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+>> > ---
+>> > =A0arch/arm/mm/proc-v7.S | =A0 =A01 +
+>> > =A01 files changed, 1 insertions(+), 0 deletions(-)
+>> >
+>> > diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+>> > index dec72ee..a773f4e 100644
+>> > --- a/arch/arm/mm/proc-v7.S
+>> > +++ b/arch/arm/mm/proc-v7.S
+>> > @@ -255,6 +255,7 @@ ENTRY(cpu_v7_do_resume)
+>> > =A0 =A0 =A0 =A0mcr =A0 =A0 p15, 0, r4, c10, c2, 0 =A0@ write PRRR
+>> > =A0 =A0 =A0 =A0mcr =A0 =A0 p15, 0, r5, c10, c2, 1 =A0@ write NMRR
+>> > =A0 =A0 =A0 =A0isb
+>> > + =A0 =A0 =A0 dsb
+>>
+>> Isn't an ISB enough here? We usually have the DSB for some backgroun=
+d
+>> operations like cache maintenance.
+>
+> That depends whether you're including the effects of the cache
+> maintanence instructions in this. =A0The ARM ARM tells me that
+> a DSB is required to ensure that all cache maintanence is issued
+> before the dsb is complete at the point that the dsb is executed.
+>
+> So for architectural compliance, yes, a dsb is required. =A0The isb
+> is also required to ensure that instruction cache maintanence is
+> properly visible.
 
-v1:
-Recent tests with OFF mode on OMAP44xx brings out these bugs 
-v2:
-Fix review comments from: Sergei Shtylyov <sshtylyov@mvista.com>
+That's correct, I got the wrong impression that there was a DSB
+earlier in the code after he TLB and cache maintenance, but that's not
+the case, so a DSB here is needed.
 
-Hema HK (1):
-  usb: musb: omap2+: save and restore OTG_INTERFSEL
-
-Vikram Pandita (1):
-  usb: musb: omap2+: fix context api's
-
- drivers/usb/musb/musb_core.c |    2 ++
- drivers/usb/musb/musb_core.h |    1 +
- drivers/usb/musb/omap2430.c  |    6 ++++++
- 3 files changed, 9 insertions(+), 0 deletions(-)
-
--- 
-1.7.4.1
-
+--=20
+Catalin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
