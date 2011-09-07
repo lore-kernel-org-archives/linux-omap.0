@@ -1,13 +1,11 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v4 02/11] OMAP2+: hwmod: Add API to check IO PAD wakeup status
-Date: Wed, 7 Sep 2011 18:23:24 +0530
-Message-ID: <1315400013-4849-3-git-send-email-govindraj.raja@ti.com>
-References: <1315400013-4849-1-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v4 00/11] OMAP2+: Serial: Runtime adaptation + cleanup
+Date: Wed, 7 Sep 2011 18:23:22 +0530
+Message-ID: <1315400013-4849-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1315400013-4849-1-git-send-email-govindraj.raja@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,110 +19,81 @@ To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add API to determine IO-PAD wakeup event status for a given
-hwmod dynamic_mux pad.
+Converting uart driver to adapt to pm runtime API's.
+Code re-org + cleanup.
+Moving some functionality from serial.c to omap-serial.c
 
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/mux.c                    |   30 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/mux.h                    |   13 +++++++++++
- arch/arm/mach-omap2/omap_hwmod.c             |    7 ++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 4 files changed, 51 insertions(+), 0 deletions(-)
+Changes involves:
+================
+1.) Cleaning up certain uart calls from sram_idle func.
+2.) Removed all types of uart clock handling code from serial.c
+3.) Using hwmod_mux API enable wakeup capability for uart pad during
+   hwmod_idle state i.e., when uart clocks are disabled we can enable
+   io-pad wakeup capability for uart if mux_data is available for
+   given uart. Also during during resume from idle call to uart we need
+   to enable clocks back conditionally and this can be done only when io-pad
+   wakeup event bit is set for uart_rx pad. So we need a hwmod API
+   which can probe the uart pad and let us know whether a uart wakeup
+   happened. So omap_hmwod_pad_wakeup_status API is added to meet this
+   requirement.
+3.) Adapted omap-serial driver to use runtime API's.
+4.) Modify serial_init calls to accept certain uart parameters from board file.
+5.) using prepare and resume_call to disable/enable uart_port.
+    Reference to discussion why we need to use prepare and resume hooks.
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg52707.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53209.html
+	
+Patch series is based on 3.1.0-rc4 + omap_device fixes.
+>From Kevin's tree.
+git://gitorious.org/khilman/linux-omap-pm.git for_3.2/omap_device
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 655e948..5f15ab8 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -351,6 +351,36 @@ err1:
- 	return NULL;
- }
- 
-+/**
-+ * omap_hwmod_mux_get_wake_status - omap hwmod check pad wakeup
-+ * @hmux:		Pads for a hwmod
-+ *
-+ * Gets the wakeup status of given pad from omap-hwmod.
-+ * Returns true if wakeup event is set for pad else false
-+ * if wakeup is not occured or pads are not avialable.
-+ */
-+bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
-+{
-+	int i;
-+	unsigned int val;
-+	u8 ret = false;
-+
-+	for (i = 0; i < hmux->nr_pads; i++) {
-+		struct omap_device_pad *pad = &hmux->pads[i];
-+
-+		if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
-+			val = omap_mux_read(pad->partition,
-+					pad->mux->reg_offset);
-+			if (val & OMAP_WAKEUP_EVENT) {
-+				ret = true;
-+				break;
-+			}
-+		}
-+	}
-+
-+	return ret;
-+}
-+
- /* Assumes the calling function takes care of locking */
- void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
- {
-diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-index 2132308..8b2150a 100644
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -225,8 +225,21 @@ omap_hwmod_mux_init(struct omap_device_pad *bpads, int nr_pads);
-  */
- void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state);
- 
-+/**
-+ * omap_hwmod_mux_get_wake_status - omap hwmod check pad wakeup
-+ * @hmux:		Pads for a hwmod
-+ *
-+ * Called only from omap_hwmod.c, do not use.
-+ */
-+bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux);
- #else
- 
-+static inline bool
-+omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
-+{
-+	return 0;
-+}
-+
- static inline int omap_mux_init_gpio(int gpio, int val)
- {
- 	return 0;
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index e751dd9..a8b24d7 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2724,3 +2724,10 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh)
- 
- 	return 0;
- }
-+
-+int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh)
-+{
-+	if (oh && oh->mux)
-+		return omap_hwmod_mux_get_wake_status(oh->mux);
-+	return -EINVAL;
-+}
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 0e329ca..9a6195c 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -607,6 +607,7 @@ u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
- 
- int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
- 
-+int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh);
- /*
-  * Chip variant-specific hwmod init routines - XXX should be converted
-  * to use initcalls once the initial boot ordering is straightened out
+This Patch series based on Kevin's tree is hosted at:
+git://gitorious.org/runtime_3-0/runtime_3-0.git rc4_uart_od
+
+Testing updates:
+----------------
+3430SDP:
+retention, off_mode, system_wide suspend is tested.
+(earlyprintk & no_console_suspend checked)
+
+OMAP3630 - Zoom3:
+pm-retention checked with quart/omap-uart3
+[Also tested with uart3 as console uart and pm-ret checked]
+
+OMAP4430-SDP: Boot tested.
+OMAP2420/2430SDP: Boot tested.
+
+Govindraj.R (10):
+  OMAP2+: hwmod: Add API to enable IO ring wakeup.
+  OMAP2+: hwmod: Add API to check IO PAD wakeup status
+  OMAP2+: UART: cleanup + remove certain uart calls from pm code
+  OMAP2+: UART: Remove uart clock handling code from serial.c
+  OMAP2+: Serial: Add default mux for all uarts.
+  Serial: OMAP: Store certain reg values to port structure
+  Serial: OMAP: Add runtime pm support for omap-serial driver
+  Serial: OMAP2+: Move erratum handling from serial.c
+  OMAP2+: Serial: Use prepare and resume calls to gate uart clocks
+  OMAP: Serial: Allow UART parameters to be configured from board file.
+
+Jon Hunter (1):
+  Serial: OMAP2+: Make the RX_TIMEOUT for DMA configurable for each
+    UART
+
+ arch/arm/mach-omap2/board-3430sdp.c           |  100 +---
+ arch/arm/mach-omap2/board-4430sdp.c           |    8 +-
+ arch/arm/mach-omap2/board-n8x0.c              |    6 +-
+ arch/arm/mach-omap2/board-omap4panda.c        |    8 +-
+ arch/arm/mach-omap2/mux.c                     |   30 +
+ arch/arm/mach-omap2/mux.h                     |   13 +
+ arch/arm/mach-omap2/omap_hwmod.c              |   66 ++
+ arch/arm/mach-omap2/pm24xx.c                  |   11 +-
+ arch/arm/mach-omap2/pm34xx.c                  |   22 +-
+ arch/arm/mach-omap2/serial.c                  |  922 +++++++------------------
+ arch/arm/plat-omap/include/plat/omap-serial.h |   34 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
+ arch/arm/plat-omap/include/plat/serial.h      |   13 +-
+ drivers/tty/serial/omap-serial.c              |  349 ++++++++--
+ 14 files changed, 717 insertions(+), 866 deletions(-)
+
 -- 
 1.7.4.1
