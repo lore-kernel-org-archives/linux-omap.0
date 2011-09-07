@@ -1,293 +1,53 @@
-From: Yong Zhang <yong.zhang0@gmail.com>
-Subject: [PATCH 56/62] video: irq: Remove IRQF_DISABLED
-Date: Wed,  7 Sep 2011 16:10:53 +0800
-Message-ID: <1315383059-3673-57-git-send-email-yong.zhang0@gmail.com>
-References: <1315383059-3673-1-git-send-email-yong.zhang0@gmail.com>
+From: Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] ASoC: omap: add MODULE_ALIAS to mcbsp and pcm drivers
+Date: Wed, 07 Sep 2011 12:29:58 +0300
+Message-ID: <4E673996.1090401@bitmer.com>
+References: <1315340056-32148-1-git-send-email-mans.rullgard@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <1315383059-3673-1-git-send-email-yong.zhang0@gmail.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org, Daniel Walker <dwalker@fifo99.com>, Kukjin Kim <kgene.kim@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, mingo@elte.hu, Anatolij Gustschin <agust@denx.de>, cbe-oss-dev@lists.ozlabs.org, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, Yong Zhang <yong.zhang0@gmail.com>, Ben Dooks <ben-linux@fluff.org>, tglx@linutronix.de, linux-omap@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Geoff Levand <geoff@infradead.org>, Jiri Kosina <jkosina@suse.cz>, Bryan Huntsman <bryanh@codeaurora.org>, Paul Mundt <lethal@linux-sh.org>, Joe Perches <joe@perches.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <1315340056-32148-1-git-send-email-mans.rullgard-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Mans Rullgard <mans.rullgard-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This flag is a NOOP and can be removed now.
+Hi
 
-Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
----
- drivers/video/au1200fb.c                  |    2 +-
- drivers/video/bf54x-lq043fb.c             |    2 +-
- drivers/video/bfin-lq035q1-fb.c           |    2 +-
- drivers/video/bfin-t350mcqb-fb.c          |    2 +-
- drivers/video/bfin_adv7393fb.c            |    2 +-
- drivers/video/mb862xx/mb862xxfbdrv.c      |    4 ++--
- drivers/video/msm/mddi.c                  |    2 +-
- drivers/video/msm/mdp.c                   |    2 +-
- drivers/video/nuc900fb.c                  |    2 +-
- drivers/video/omap2/displays/panel-taal.c |    2 +-
- drivers/video/ps3fb.c                     |    2 +-
- drivers/video/pxa3xx-gcu.c                |    2 +-
- drivers/video/pxafb.c                     |    2 +-
- drivers/video/s3c2410fb.c                 |    2 +-
- drivers/video/sa1100fb.c                  |    3 +--
- drivers/video/sh_mobile_lcdcfb.c          |    2 +-
- drivers/video/tmiofb.c                    |    2 +-
- drivers/video/vt8500lcdfb.c               |    2 +-
- 18 files changed, 19 insertions(+), 20 deletions(-)
+On 09/06/2011 11:14 PM, Mans Rullgard wrote:
+> This adds MODULE_ALIAS directives to the omap-mcbsp-dai and
+> omap-pcm-audio drivers so they can be auto-loaded when platform
+> devices are scanned.
+>
+> Signed-off-by: Mans Rullgard<mans.rullgard-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> ---
+>   sound/soc/omap/omap-mcbsp.c |    2 ++
+>   sound/soc/omap/omap-pcm.c   |    2 ++
+>   2 files changed, 4 insertions(+), 0 deletions(-)
+>
+> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+> index 07b7723..56b7504 100644
+> --- a/sound/soc/omap/omap-mcbsp.c
+> +++ b/sound/soc/omap/omap-mcbsp.c
+> @@ -758,6 +758,8 @@ static int __devexit asoc_mcbsp_remove(struct platform_device *pdev)
+>   	return 0;
+>   }
+>
+> +MODULE_ALIAS("platform:omap-mcbsp-dai");
+> +
+Put these at the end of file where the other MODULE_ macros are.
 
-diff --git a/drivers/video/au1200fb.c b/drivers/video/au1200fb.c
-index 5dff32a..4cbcae9 100644
---- a/drivers/video/au1200fb.c
-+++ b/drivers/video/au1200fb.c
-@@ -1694,7 +1694,7 @@ static int au1200fb_drv_probe(struct platform_device *dev)
- 
- 	/* Now hook interrupt too */
- 	if ((ret = request_irq(AU1200_LCD_INT, au1200fb_handle_irq,
--		 	  IRQF_DISABLED | IRQF_SHARED, "lcd", (void *)dev)) < 0) {
-+					IRQF_SHARED, "lcd", (void *)dev)) < 0) {
- 		print_err("fail to request interrupt line %d (err: %d)",
- 			  AU1200_LCD_INT, ret);
- 		goto failed;
-diff --git a/drivers/video/bf54x-lq043fb.c b/drivers/video/bf54x-lq043fb.c
-index 2464b91..56720fb 100644
---- a/drivers/video/bf54x-lq043fb.c
-+++ b/drivers/video/bf54x-lq043fb.c
-@@ -633,7 +633,7 @@ static int __devinit bfin_bf54x_probe(struct platform_device *pdev)
- 		goto out7;
- 	}
- 
--	if (request_irq(info->irq, bfin_bf54x_irq_error, IRQF_DISABLED,
-+	if (request_irq(info->irq, bfin_bf54x_irq_error, 0,
- 			"PPI ERROR", info) < 0) {
- 		printk(KERN_ERR DRIVER_NAME
- 		       ": unable to request PPI ERROR IRQ\n");
-diff --git a/drivers/video/bfin-lq035q1-fb.c b/drivers/video/bfin-lq035q1-fb.c
-index 23b6c4b..c633068 100644
---- a/drivers/video/bfin-lq035q1-fb.c
-+++ b/drivers/video/bfin-lq035q1-fb.c
-@@ -695,7 +695,7 @@ static int __devinit bfin_lq035q1_probe(struct platform_device *pdev)
- 		goto out7;
- 	}
- 
--	ret = request_irq(info->irq, bfin_lq035q1_irq_error, IRQF_DISABLED,
-+	ret = request_irq(info->irq, bfin_lq035q1_irq_error, 0,
- 			DRIVER_NAME" PPI ERROR", info);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "unable to request PPI ERROR IRQ\n");
-diff --git a/drivers/video/bfin-t350mcqb-fb.c b/drivers/video/bfin-t350mcqb-fb.c
-index d8de29f..d5e1267 100644
---- a/drivers/video/bfin-t350mcqb-fb.c
-+++ b/drivers/video/bfin-t350mcqb-fb.c
-@@ -529,7 +529,7 @@ static int __devinit bfin_t350mcqb_probe(struct platform_device *pdev)
- 		goto out7;
- 	}
- 
--	ret = request_irq(info->irq, bfin_t350mcqb_irq_error, IRQF_DISABLED,
-+	ret = request_irq(info->irq, bfin_t350mcqb_irq_error, 0,
- 			"PPI ERROR", info);
- 	if (ret < 0) {
- 		printk(KERN_ERR DRIVER_NAME
-diff --git a/drivers/video/bfin_adv7393fb.c b/drivers/video/bfin_adv7393fb.c
-index 8486f54..811dd7f 100644
---- a/drivers/video/bfin_adv7393fb.c
-+++ b/drivers/video/bfin_adv7393fb.c
-@@ -481,7 +481,7 @@ static int __devinit bfin_adv7393_fb_probe(struct i2c_client *client,
- 		goto out_4;
- 	}
- 
--	if (request_irq(IRQ_PPI_ERROR, ppi_irq_error, IRQF_DISABLED,
-+	if (request_irq(IRQ_PPI_ERROR, ppi_irq_error, 0,
- 			"PPI ERROR", fbdev) < 0) {
- 		dev_err(&client->dev, "unable to request PPI ERROR IRQ\n");
- 		ret = -EFAULT;
-diff --git a/drivers/video/mb862xx/mb862xxfbdrv.c b/drivers/video/mb862xx/mb862xxfbdrv.c
-index ee1de3e..c647db2 100644
---- a/drivers/video/mb862xx/mb862xxfbdrv.c
-+++ b/drivers/video/mb862xx/mb862xxfbdrv.c
-@@ -737,7 +737,7 @@ static int __devinit of_platform_mb862xx_probe(struct platform_device *ofdev)
- 	if (mb862xx_gdc_init(par))
- 		goto io_unmap;
- 
--	if (request_irq(par->irq, mb862xx_intr, IRQF_DISABLED,
-+	if (request_irq(par->irq, mb862xx_intr, 0,
- 			DRV_NAME, (void *)par)) {
- 		dev_err(dev, "Cannot request irq\n");
- 		goto io_unmap;
-@@ -1073,7 +1073,7 @@ static int __devinit mb862xx_pci_probe(struct pci_dev *pdev,
- 	if (mb862xx_pci_gdc_init(par))
- 		goto io_unmap;
- 
--	if (request_irq(par->irq, mb862xx_intr, IRQF_DISABLED | IRQF_SHARED,
-+	if (request_irq(par->irq, mb862xx_intr, IRQF_SHARED,
- 			DRV_NAME, (void *)par)) {
- 		dev_err(dev, "Cannot request irq\n");
- 		goto io_unmap;
-diff --git a/drivers/video/msm/mddi.c b/drivers/video/msm/mddi.c
-index 178b072..4527cbf 100644
---- a/drivers/video/msm/mddi.c
-+++ b/drivers/video/msm/mddi.c
-@@ -715,7 +715,7 @@ static int __devinit mddi_probe(struct platform_device *pdev)
- 
- 	mddi->int_enable = 0;
- 	mddi_writel(mddi->int_enable, INTEN);
--	ret = request_irq(mddi->irq, mddi_isr, IRQF_DISABLED, "mddi",
-+	ret = request_irq(mddi->irq, mddi_isr, 0, "mddi",
- 			  &mddi->client_data);
- 	if (ret) {
- 		printk(KERN_ERR "mddi: failed to request enable irq!\n");
-diff --git a/drivers/video/msm/mdp.c b/drivers/video/msm/mdp.c
-index 243d16f..04a2b41 100644
---- a/drivers/video/msm/mdp.c
-+++ b/drivers/video/msm/mdp.c
-@@ -424,7 +424,7 @@ int mdp_probe(struct platform_device *pdev)
- 		return PTR_ERR(clk);
- 	}
- 
--	ret = request_irq(mdp->irq, mdp_isr, IRQF_DISABLED, "msm_mdp", mdp);
-+	ret = request_irq(mdp->irq, mdp_isr, 0, "msm_mdp", mdp);
- 	if (ret)
- 		goto error_request_irq;
- 	disable_irq(mdp->irq);
-diff --git a/drivers/video/nuc900fb.c b/drivers/video/nuc900fb.c
-index 0fff597..5ab0e1e 100644
---- a/drivers/video/nuc900fb.c
-+++ b/drivers/video/nuc900fb.c
-@@ -588,7 +588,7 @@ static int __devinit nuc900fb_probe(struct platform_device *pdev)
- 	fbinfo->flags			= FBINFO_FLAG_DEFAULT;
- 	fbinfo->pseudo_palette		= &fbi->pseudo_pal;
- 
--	ret = request_irq(irq, nuc900fb_irqhandler, IRQF_DISABLED,
-+	ret = request_irq(irq, nuc900fb_irqhandler, 0,
- 			  pdev->name, fbinfo);
- 	if (ret) {
- 		dev_err(&pdev->dev, "cannot register irq handler %d -err %d\n",
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index 4e888ac..ca00843 100644
---- a/drivers/video/omap2/displays/panel-taal.c
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -1067,7 +1067,7 @@ static int taal_probe(struct omap_dss_device *dssdev)
- 		gpio_direction_input(gpio);
- 
- 		r = request_irq(gpio_to_irq(gpio), taal_te_isr,
--				IRQF_DISABLED | IRQF_TRIGGER_RISING,
-+				IRQF_TRIGGER_RISING,
- 				"taal vsync", dssdev);
- 
- 		if (r) {
-diff --git a/drivers/video/ps3fb.c b/drivers/video/ps3fb.c
-index 65560a1..213fbbc 100644
---- a/drivers/video/ps3fb.c
-+++ b/drivers/video/ps3fb.c
-@@ -1082,7 +1082,7 @@ static int __devinit ps3fb_probe(struct ps3_system_bus_device *dev)
- 	}
- 
- 	retval = request_irq(ps3fb.irq_no, ps3fb_vsync_interrupt,
--			     IRQF_DISABLED, DEVICE_NAME, &dev->core);
-+			     0, DEVICE_NAME, &dev->core);
- 	if (retval) {
- 		dev_err(&dev->core, "%s: request_irq failed %d\n", __func__,
- 			retval);
-diff --git a/drivers/video/pxa3xx-gcu.c b/drivers/video/pxa3xx-gcu.c
-index 0283c70..ef0a917 100644
---- a/drivers/video/pxa3xx-gcu.c
-+++ b/drivers/video/pxa3xx-gcu.c
-@@ -678,7 +678,7 @@ pxa3xx_gcu_probe(struct platform_device *dev)
- 	}
- 
- 	ret = request_irq(irq, pxa3xx_gcu_handle_irq,
--			  IRQF_DISABLED, DRV_NAME, priv);
-+			  0, DRV_NAME, priv);
- 	if (ret) {
- 		dev_err(&dev->dev, "request_irq failed\n");
- 		ret = -EBUSY;
-diff --git a/drivers/video/pxafb.c b/drivers/video/pxafb.c
-index 0f4e8c9..e89778f 100644
---- a/drivers/video/pxafb.c
-+++ b/drivers/video/pxafb.c
-@@ -2191,7 +2191,7 @@ static int __devinit pxafb_probe(struct platform_device *dev)
- 		goto failed_free_mem;
- 	}
- 
--	ret = request_irq(irq, pxafb_handle_irq, IRQF_DISABLED, "LCD", fbi);
-+	ret = request_irq(irq, pxafb_handle_irq, 0, "LCD", fbi);
- 	if (ret) {
- 		dev_err(&dev->dev, "request_irq failed: %d\n", ret);
- 		ret = -EBUSY;
-diff --git a/drivers/video/s3c2410fb.c b/drivers/video/s3c2410fb.c
-index 0aa1376..038e079 100644
---- a/drivers/video/s3c2410fb.c
-+++ b/drivers/video/s3c2410fb.c
-@@ -911,7 +911,7 @@ static int __devinit s3c24xxfb_probe(struct platform_device *pdev,
- 	for (i = 0; i < 256; i++)
- 		info->palette_buffer[i] = PALETTE_BUFF_CLEAR;
- 
--	ret = request_irq(irq, s3c2410fb_irq, IRQF_DISABLED, pdev->name, info);
-+	ret = request_irq(irq, s3c2410fb_irq, 0, pdev->name, info);
- 	if (ret) {
- 		dev_err(&pdev->dev, "cannot get irq %d - err %d\n", irq, ret);
- 		ret = -EBUSY;
-diff --git a/drivers/video/sa1100fb.c b/drivers/video/sa1100fb.c
-index e8b76d6..98d55d0 100644
---- a/drivers/video/sa1100fb.c
-+++ b/drivers/video/sa1100fb.c
-@@ -1457,8 +1457,7 @@ static int __devinit sa1100fb_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto failed;
- 
--	ret = request_irq(irq, sa1100fb_handle_irq, IRQF_DISABLED,
--			  "LCD", fbi);
-+	ret = request_irq(irq, sa1100fb_handle_irq, 0, "LCD", fbi);
- 	if (ret) {
- 		printk(KERN_ERR "sa1100fb: request_irq failed: %d\n", ret);
- 		goto failed;
-diff --git a/drivers/video/sh_mobile_lcdcfb.c b/drivers/video/sh_mobile_lcdcfb.c
-index b048417..77d6935 100644
---- a/drivers/video/sh_mobile_lcdcfb.c
-+++ b/drivers/video/sh_mobile_lcdcfb.c
-@@ -1440,7 +1440,7 @@ static int __devinit sh_mobile_lcdc_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, priv);
- 
--	error = request_irq(i, sh_mobile_lcdc_irq, IRQF_DISABLED,
-+	error = request_irq(i, sh_mobile_lcdc_irq, 0,
- 			    dev_name(&pdev->dev), priv);
- 	if (error) {
- 		dev_err(&pdev->dev, "unable to request irq\n");
-diff --git a/drivers/video/tmiofb.c b/drivers/video/tmiofb.c
-index cd1c4dc..8e4a446 100644
---- a/drivers/video/tmiofb.c
-+++ b/drivers/video/tmiofb.c
-@@ -744,7 +744,7 @@ static int __devinit tmiofb_probe(struct platform_device *dev)
- 		goto err_ioremap_vram;
- 	}
- 
--	retval = request_irq(irq, &tmiofb_irq, IRQF_DISABLED,
-+	retval = request_irq(irq, &tmiofb_irq, 0,
- 					dev_name(&dev->dev), info);
- 
- 	if (retval)
-diff --git a/drivers/video/vt8500lcdfb.c b/drivers/video/vt8500lcdfb.c
-index 0e120d6..1000c78 100644
---- a/drivers/video/vt8500lcdfb.c
-+++ b/drivers/video/vt8500lcdfb.c
-@@ -355,7 +355,7 @@ static int __devinit vt8500lcd_probe(struct platform_device *pdev)
- 		goto failed_free_palette;
- 	}
- 
--	ret = request_irq(irq, vt8500lcd_handle_irq, IRQF_DISABLED, "LCD", fbi);
-+	ret = request_irq(irq, vt8500lcd_handle_irq, 0, "LCD", fbi);
- 	if (ret) {
- 		dev_err(&pdev->dev, "request_irq failed: %d\n", ret);
- 		ret = -EBUSY;
+Send updated patch to alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org with Liam Girdwood and 
+Mark Brown cc'ed (see SOUND - SOC LAYER in ./MAINTAINERS).
+
 -- 
-1.7.4.1
+Jarkko
