@@ -1,51 +1,187 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC PATCH 06/10] hwspinlock: OMAP4: Add spinlock support in DT
-Date: Thu, 8 Sep 2011 10:56:17 +0300
-Message-ID: <CAK=WgbYgatyLWqmrZnUfSGxCkZsRiJ3sbQwmenxyiJ6JBw5vJA@mail.gmail.com>
-References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
- <1314191356-10963-7-git-send-email-b-cousson@ti.com> <CAK=WgbYX50R_MCgwdzywgrAEDJkmDSmeSSCuuqst5UBYk_sYow@mail.gmail.com>
- <4E686B71.2060107@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/6 v2] omap: musb: Adding hwmod data for ti81xx
+Date: Thu, 8 Sep 2011 11:00:05 +0300
+Message-ID: <20110908080004.GD7707@legolas.emea.dhcp.ti.com>
+References: <1315414945-19829-1-git-send-email-ajay.gupta@ti.com>
+ <1315414945-19829-2-git-send-email-ajay.gupta@ti.com>
+ <CAP05o4Lfas96izGGVQN0qkTRX_kwUncPWVX2d6+izh4YMuQ6dA@mail.gmail.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:37466 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932192Ab1IHH4i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 03:56:38 -0400
-Received: by wwf5 with SMTP id 5so570834wwf.1
-        for <linux-omap@vger.kernel.org>; Thu, 08 Sep 2011 00:56:37 -0700 (PDT)
-In-Reply-To: <4E686B71.2060107@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9UV9rz0O2dU/yYYn"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAP05o4Lfas96izGGVQN0qkTRX_kwUncPWVX2d6+izh4YMuQ6dA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Arnd Bergmann <arnd@arndb.de>, Mathieu Poirier <mathieu.poirier@linaro.org>
 
-Hi Benoit,
 
-On Thu, Sep 8, 2011 at 10:14 AM, Cousson, Benoit <b-cousson@ti.com> wrote:
-> Hehe, I'm not the one who wrote that driver :-)
->
-> This is not wrong for the current HW. The point is do we want to anticipate
-> potential HW evolution that might never happen on that IP?
+--9UV9rz0O2dU/yYYn
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I originally really thought we can ignore those cases (hence the 0
-base id ;), and personally I still think the scenario is a bit
-fictional, and wouldn't even mind just having omap_hwspinlock_probe()
-return an error if it is unexpectedly probed with a second device.
+Hi,
 
-But if fixing this entirely only means doing a small change, then it's
-surely nicer.
+On Thu, Sep 08, 2011 at 11:56:25AM +0530, Munegowda, Keshava wrote:
+> On Wed, Sep 7, 2011 at 10:32 PM, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org> wro=
+te:
+> > From: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
+> >
+> > The usb subsystem (usbss) in ti81xx has two musb interfaces. There are =
+three
+> > irqs and three address spaces for usbss, musb0 and musb1 respectively. =
+Created
+> > one hwmod with three irq and memory resources.
+> >
+> > Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+> > Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> > Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
+> > ---
+> > =A0arch/arm/mach-omap2/omap_hwmod_81xx_data.c | =A0 74 ++++++++++++++++=
+++++++++++++
+> > =A01 files changed, 74 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_81xx_data.c
+> > index e73a4c6..e960d70 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> > @@ -194,6 +194,7 @@ static struct omap_hwmod ti81xx_timer4_hwmod;
+> > =A0static struct omap_hwmod ti81xx_timer5_hwmod;
+> > =A0static struct omap_hwmod ti81xx_timer6_hwmod;
+> > =A0static struct omap_hwmod ti81xx_timer7_hwmod;
+> > +static struct omap_hwmod ti81xx_usbss_hwmod;
+> >
+> > =A0/* L4 SLOW -> TIMER1 interface */
+> > =A0static struct omap_hwmod_addr_space ti81xx_timer1_addr_space[] =3D {
+> > @@ -650,6 +651,78 @@ static struct omap_hwmod ti81xx_timer7_hwmod =3D {
+> > =A0 =A0 =A0 =A0.omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_TI816X =
+| CHIP_IS_TI814X)
+> > =A0};
+> >
+> > +/* L3 SLOW -> USBSS interface */
+> > +static struct omap_hwmod_addr_space ti81xx_usbss_addr_space[] =3D {
+> > + =A0 =A0 =A0 {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usbss",
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x47400000,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x47400000 + =
+SZ_4K - 1,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE_RT
+> > + =A0 =A0 =A0 },
+> > + =A0 =A0 =A0 {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "musb0",
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x47401000,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x47401000 + =
+SZ_2K - 1,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE_RT
+> > + =A0 =A0 =A0 },
+> > + =A0 =A0 =A0 {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "musb1",
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x47401800,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x47401800 + =
+SZ_2K - 1,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE_RT
+> > + =A0 =A0 =A0 },
+> > + =A0 =A0 =A0 {
+> > + =A0 =A0 =A0 },
+> > +};
+> > +
+> > +static struct omap_hwmod_class_sysconfig ti81xx_usbhsotg_sysc =3D {
+> > + =A0 =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x0,
+> > + =A0 =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x10,
+> > + =A0 =A0 =A0 .sysc_flags =A0 =A0 =3D (SYSC_HAS_SIDLEMODE | SYSC_HAS_SO=
+FTRESET),
+> > + =A0 =A0 =A0 .idlemodes =A0 =A0 =A0=3D (SIDLE_FORCE | SIDLE_NO | SIDLE=
+_SMART),
+> > + =A0 =A0 =A0 .sysc_fields =A0 =A0=3D &omap_hwmod_sysc_type2,
+> > +};
+> > +
+> > +static struct omap_hwmod_class ti81xx_usbotg_class =3D {
+> > + =A0 =A0 =A0 .name =3D "usbotg",
+> > + =A0 =A0 =A0 .sysc =3D &ti81xx_usbhsotg_sysc,
+> > +};
+> > +
+> > +static struct omap_hwmod_irq_info ti81xx_usbss_mpu_irqs[] =3D {
+> > + =A0 =A0 =A0 { .name =3D "usbss-irq", .irq =3D 17, },
+> > + =A0 =A0 =A0 { .name =3D "musb0-irq", .irq =3D 18, },
+> > + =A0 =A0 =A0 { .name =3D "musb1-irq", .irq =3D 19, },
+> > + =A0 =A0 =A0 { .irq =3D -1, },
+> > +};
+> > +
+> > +static struct omap_hwmod_ocp_if ti81xx_l3_slow__usbss =3D {
+> > + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &ti81xx_l3_slow_hwmod,
+> > + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &ti81xx_usbss_hwmod,
+> > + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbotg_ick",
+> > + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D ti81xx_usbss_addr_space,
+> > + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
+> > + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D OCPIF_SWSUP_IDLE,
+> > +};
+> > +
+> > +static struct omap_hwmod_ocp_if *ti81xx_usbss_slaves[] =3D {
+> > + =A0 =A0 =A0 &ti81xx_l3_slow__usbss,
+> > +};
+> > +
+> > +static struct omap_hwmod ti81xx_usbss_hwmod =3D {
+> > + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usb_otg_hs",
+> > + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D ti81xx_usbss_mpu_irqs,
+> > + =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "usbotg_ick",
+> > + =A0 =A0 =A0 .clkdm_name =A0 =A0 =3D "default_usb_clkdm",
+> > + =A0 =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .omap4 =3D {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .clkctrl_offs =3D TI816X_=
+CM_DEFAULT_USB_CLKCTRL_OFFSET,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> > + =A0 =A0 =A0 },
+> > + =A0 =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D ti81xx_usbss_slaves,
+> > + =A0 =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(ti81xx_usbss_slaves),
+> > + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &ti81xx_usbotg_class,
+> > + =A0 =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_TI816X |=
+ CHIP_IS_TI814X)
+> > +};
+> >
+> > =A0static __initdata struct omap_hwmod *ti81xx_hwmods[] =3D {
+> > =A0 =A0 =A0 =A0&ti81xx_l3_fast_hwmod,
+> > @@ -668,6 +741,7 @@ static __initdata struct omap_hwmod *ti81xx_hwmods[=
+] =3D {
+> > =A0 =A0 =A0 =A0&ti81xx_timer5_hwmod,
+> > =A0 =A0 =A0 =A0&ti81xx_timer6_hwmod,
+> > =A0 =A0 =A0 =A0&ti81xx_timer7_hwmod,
+> > + =A0 =A0 =A0 &ti81xx_usbss_hwmod,
+> > =A0 =A0 =A0 =A0NULL,
+> > =A0};
+> >
+> > --
+> > 1.6.2.4
+>=20
+> looks good to me.
 
-> This is no different than the multiple GPIO controllers we have today.
-> Since we cannot rely on the DT nodes order, I added an explicit "id"
-> attribute to provide that information to the driver. And then the baseid is
-> "id * #gpios".
+how about you reply with your Acked-by then ?
 
-That would work if #hwspinlock is a fixed number, but a "baseid"
-attribute would allow supporting devices with different #hwspinlocks
-per device. Since I am not aware of any real hardware that does this
-kind of blasphemy, I can't say if the latter is really necessary :) If
-you prefer the former, I'm entirely fine with it.
+--=20
+balbi
 
-Thanks,
-Ohad.
+--9UV9rz0O2dU/yYYn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOaHYEAAoJEAv8Txj19kN165AH/3vxZsHNfPCYarGL7jhUgdzv
+Wgw6XHSCHlLVlj0EA/Gg6E7+dH/kDLwCF2QA8gqFOPKng0yOuaWDWPzKqOrbAD6t
+zZcw/xPom6XGXvsal5sMZao3APdu1Q2RSc4RrjgINpMh1quKGjAY2bYUFzPHamNN
+3hbCePIShQyB/tiDSnlMH2FkZbVORkQ1+MTpM8F1ytRp8qMqhaGoGnBifWaPzG/l
+kHnxpHHXO44faaho2Ro9yCQsZRQpOe3Wu3yPMwDfTTzg9LnGzuDjPTFDmYadyqPY
+oTczFXmgCyDZwuBqly8+/kCSnxqluNrosZwPI+UjjuaAEbETXLTnAqbqyPMEFOk=
+=ghDp
+-----END PGP SIGNATURE-----
+
+--9UV9rz0O2dU/yYYn--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
