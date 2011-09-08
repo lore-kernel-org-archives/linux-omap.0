@@ -1,108 +1,117 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 08/25] OMAP4: PM: Keep static dep between MPUSS-EMIF and
-	MPUSS-L3 and DUCATI-L3
-Date: Thu, 08 Sep 2011 11:06:35 -0700
-Message-ID: <87ehzqhpsk.fsf@ti.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
-	<1315144466-9395-9-git-send-email-santosh.shilimkar@ti.com>
+From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Subject: Re: [RFC PATCH 04/10] arm/dts: OMAP4: Add mpu, dsp and iva nodes
+Date: Thu, 8 Sep 2011 11:07:07 -0700
+Message-ID: <20110908180707.GD2967@ponder.secretlab.ca>
+References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
+	<1314191356-10963-5-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1315144466-9395-9-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Sun, 4 Sep 2011 19:24:09 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1314191356-10963-5-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: khilman-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, manjugk-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-
-> As per OMAP4430 TRM, the dynamic dependency between MPUSS -> EMIF
-> and MPUSS -> L3* and DUCATI -> L3 *clockdomains is enable by default.
-> Refer register CM_MPU_DYNAMICDEP description for details.
->
-> But these dynamic dependencies doesn't work as expected. The hardware
-> recommendation is to keep above dependencies.
-
-Minor nit on changelog wording...
-
-The use of "above dependencies" here is a bit confusing, since the only
-thing refered to above are dynamic dependencies.
-
-I think this should be worked to be clear that what is being kept are
-the *static* dependencies (assuming I understand it correctly.)
-
-
-> Without this system locks up or randomly crashesh.
-
-Is 'crashesh' a particular kind of crash. maybe a silent one?  ;)
-
-
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
+On Wed, Aug 24, 2011 at 03:09:10PM +0200, Benoit Cousson wrote:
+> Add nodes for devices used by PM code (mpu, dsp, iva).
+> 
+> Add an empty cpus node as well as recommended in the DT spec.
+> 
+> Remove mpu, dsp, iva devices init if CONFIG_OF is defined.
+> Ideally the whole function should be removed. It will be doable as
+> soon as the OMAP3 DT support will be added.
+> 
+> Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+> Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+> Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
 > ---
->  arch/arm/mach-omap2/pm44xx.c |   28 ++++++++++++++++++++++++++++
->  1 files changed, 28 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-> index 4bbc6fe..35ba028 100644
-> --- a/arch/arm/mach-omap2/pm44xx.c
-> +++ b/arch/arm/mach-omap2/pm44xx.c
-> @@ -116,6 +116,8 @@ static void omap_default_idle(void)
->  static int __init omap4_pm_init(void)
->  {
->  	int ret;
-> +	struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm;
-> +	struct clockdomain *ducati_clkdm, *l3_2_clkdm;
+>  arch/arm/boot/dts/omap4.dtsi |   28 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/pm.c     |    5 ++++-
+>  2 files changed, 32 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 928a74c..a3efe76 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -25,11 +25,39 @@
+>  	};
 >  
->  	if (!cpu_is_omap44xx())
->  		return -ENODEV;
-> @@ -128,6 +130,32 @@ static int __init omap4_pm_init(void)
->  		goto err2;
->  	}
->  
-> +	/*
-> +	 * The dynamic dependency between MPUSS -> MEMIF and
-> +	 * MPUSS -> L3_* and DUCATI -> doesn't work as expected.
-> +	 * The hardware recommendation is to keep above dependencies.
-
-same here... "The hardware recommendation is to use static dependencies."
-
-> +	 * Without this system locks up or randomly crashesh.
+>  	/*
+> +	 * XXX: The cpus node is mandatory, but since the CPUs are as well part
+> +	 * of the mpu subsystem below, it is not clear where the information
+> +	 * should be. Maybe here with a phandle inside the mpu?
 > +	 */
-> +	mpuss_clkdm = clkdm_lookup("mpuss_clkdm");
-> +	emif_clkdm = clkdm_lookup("l3_emif_clkdm");
-> +	l3_1_clkdm = clkdm_lookup("l3_1_clkdm");
-> +	l3_2_clkdm = clkdm_lookup("l3_2_clkdm");
-> +	ducati_clkdm = clkdm_lookup("ducati_clkdm");
-> +	if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm) ||
-> +			(!l3_2_clkdm) || (!ducati_clkdm))
-> +		goto err2;
+> +	cpus {
+> +	};
 > +
-> +	ret = clkdm_add_wkdep(mpuss_clkdm, emif_clkdm);
-> +	ret |= clkdm_add_wkdep(mpuss_clkdm, l3_1_clkdm);
-> +	ret |= clkdm_add_wkdep(mpuss_clkdm, l3_2_clkdm);
-> +	ret |= clkdm_add_wkdep(ducati_clkdm, l3_1_clkdm);
-> +	ret |= clkdm_add_wkdep(ducati_clkdm, l3_2_clkdm);
-> +	if (ret) {
-> +		pr_err("Failed to add MPUSS -> L3/EMIF, DUCATI -> L3 "
-> +				"wakeup dependency\n");
-> +		goto err2;
-> +	}
+> +	/*
+>  	 * The soc node represents the soc top level view. It is uses for IPs
+>  	 * that are not memory mapped in the MPU view or for the MPU itself.
+>  	 */
+>  	soc {
+>  		compatible = "ti,omap-infra";
+> +		mpu {
+> +			compatible = "ti,omap4-mpu";
+> +			hwmods = "mpu";
+> +			cpu@0 {
+> +				compatible = "arm,cortex-a9";
+> +			};
+> +			cpu@1 {
+> +				compatible = "arm,cortex-a9";
+> +			};
+> +		};
 > +
->  #ifdef CONFIG_SUSPEND
->  	suspend_set_ops(&omap_pm_ops);
->  #endif /* CONFIG_SUSPEND */
+> +		dsp {
+> +			compatible = "ti,omap4-c64", "ti,c64";
+> +			hwmods = "dsp";
+> +		};
+> +
+> +		iva {
+> +			compatible = "ti,ivahd", "ti,iva";
+> +			hwmods = "iva";
+> +		};
+>  	};
+>  
+>  	/*
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 832577a..ba4d187 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -49,15 +49,18 @@ static int _init_omap_device(char *name)
+>   */
+>  static void omap2_init_processor_devices(void)
+>  {
+> -	_init_omap_device("mpu");
+>  	if (omap3_has_iva())
+>  		_init_omap_device("iva");
+>  
+>  	if (cpu_is_omap44xx()) {
+> +#ifndef CONFIG_OF
+> +		_init_omap_device("mpu");
+>  		_init_omap_device("l3_main_1");
+>  		_init_omap_device("dsp");
+>  		_init_omap_device("iva");
+> +#endif
 
-Kevin
+Ditto here, turning on CONFIG_OF should not be an either/or option
+with ATAGs support.
+
+>  	} else {
+> +		_init_omap_device("mpu");
+>  		_init_omap_device("l3_main");
+>  	}
+>  }
+> -- 
+> 1.7.0.4
+> 
