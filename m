@@ -1,57 +1,69 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2] ASoC: omap: convert per-board modules
-	to platform	drivers
-Date: Fri, 9 Sep 2011 00:01:02 +0100
-Message-ID: <20110908230102.GB21469@n2100.arm.linux.org.uk>
-References: <1315503297-8365-1-git-send-email-mans.rullgard@linaro.org>
-	<CABb+yY0b607kDSGU+trycqQuvGMhC-zpHcv20wjgmEcaK7dz8Q@mail.gmail.com>
-	<CAG5Tg6UOuztenNid1=YbH9a4ZH5MqV4YhohG+r9R+7F=zXs=CQ@mail.gmail.com>
-	<3110288.bQbb0H2ME1@wuerfel>
-	<1315520956.4126.3.camel@finisterre.wolfsonmicro.main>
-	<20110908223720.GA21469@n2100.arm.linux.org.uk>
-	<20110908224731.GB5201@opensource.wolfsonmicro.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC PATCH 01/10] OMAP2+: l3-noc: Add support for device-tree
+Date: Thu, 8 Sep 2011 16:35:16 -0700
+Message-ID: <20110908233516.GA6401@ponder.secretlab.ca>
+References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
+ <1314191356-10963-2-git-send-email-b-cousson@ti.com>
+ <20110908180148.GA2967@ponder.secretlab.ca>
+ <4E693AB6.7050200@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:64814 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755616Ab1IHXfT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 19:35:19 -0400
+Received: by gxk21 with SMTP id 21so559506gxk.5
+        for <linux-omap@vger.kernel.org>; Thu, 08 Sep 2011 16:35:18 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20110908224731.GB5201@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, linaro-dev@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, Mans Rullgard <mans.rullgard@linaro.org>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <4E693AB6.7050200@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Sep 08, 2011 at 03:47:31PM -0700, Mark Brown wrote:
-> On Thu, Sep 08, 2011 at 11:37:20PM +0100, Russell King - ARM Linux wrote:
+On Thu, Sep 08, 2011 at 11:59:18PM +0200, Cousson, Benoit wrote:
+> On 9/8/2011 8:01 PM, Grant Likely wrote:
+> >On Wed, Aug 24, 2011 at 03:09:07PM +0200, Benoit Cousson wrote:
+> >>Add device-tree support for the l3-noc driver.
+> >>
+> >>Use platform_driver_register to defer the probing at device init
+> >>time.
+> >>
+> >>Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+> >>Cc: Tony Lindgren<tony@atomide.com>
+> >>Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+> >>---
+> >>  arch/arm/mach-omap2/omap_l3_noc.c |   16 ++++++++++++++--
+> >>  1 files changed, 14 insertions(+), 2 deletions(-)
+> >>
+> >>diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/arch/arm/mach-omap2/omap_l3_noc.c
+> >>index 7b9f190..4630703 100644
+> >>--- a/arch/arm/mach-omap2/omap_l3_noc.c
+> >>+++ b/arch/arm/mach-omap2/omap_l3_noc.c
+> >>@@ -228,16 +228,28 @@ static int __exit omap4_l3_remove(struct platform_device *pdev)
+> >>  	return 0;
+> >>  }
+> >>
+> >>+#if defined(CONFIG_OF)
+> >>+static const struct of_device_id l3_noc_match[] = {
+> >>+	{.compatible = "arteris,noc", },
+> >
+> >Missing documentation for this compatible property.
 > 
-> > With DT of course, all devices get instantiated from the device tree,
-> > so there should not be any more platform specific chunks of code in
-> > these locations (ha, it couldn't be solved with platform data so I
-> > suspect it will continue to persist, forever unsolved.)
+> As you already figured out... it will come later.
 > 
-> That's not the case at all for audio, the PCB schematic for the audio
-> subsystem on a device like a smartphone is a sufficiently interesting
-> piece of hardware to be a device with a driver in its own right.  The
-> ASoC machine drivers aren't about instantiating devices, they are about
-> controlling the interrelationships between the various devices in the
-> audio subsystem.
+> >Also, it appears
+> >to be rather on the generic side.
 > 
-> What will happen for device tree is that there will be a device in the
-> device tree for the ASoC board.
+> It is indeed a generic IP that will be there on OMAP5 too.
 
-Sounds like you just solved the machine_is_xxx() problem in ASoC land too
-there.  If you're _already_ going for separate devices to describe the
-ASoC stuff on the board, then there's no reason that couldn't have already
-been done to eliminate the machine_is_xxx() usage in ASoC - rather than
-complaining about machine_is_xxx() not being a very good solution.
+Even for common ip blocks, it is good practice to be specific about
+the implementation.  IP block details tend to change from one silicon
+design to the next.  Overly generic (optimistic) compatible value names
+generally should be avoided.  Instead, backwards compatibility is
+achieved by newer devices claiming compatibility with older
+implementations in the compatible list.
 
-As I said, the problem was solved years ago, and all the component parts
-have been there also for years.
+g.
+
