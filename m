@@ -1,65 +1,61 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2] ASoC: omap: convert per-board modules
-	to platform	drivers
-Date: Thu, 8 Sep 2011 23:37:20 +0100
-Message-ID: <20110908223720.GA21469@n2100.arm.linux.org.uk>
-References: <1315503297-8365-1-git-send-email-mans.rullgard@linaro.org>
-	<CABb+yY0b607kDSGU+trycqQuvGMhC-zpHcv20wjgmEcaK7dz8Q@mail.gmail.com>
-	<CAG5Tg6UOuztenNid1=YbH9a4ZH5MqV4YhohG+r9R+7F=zXs=CQ@mail.gmail.com>
-	<3110288.bQbb0H2ME1@wuerfel>
-	<1315520956.4126.3.camel@finisterre.wolfsonmicro.main>
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
+Date: Thu, 08 Sep 2011 18:41:14 -0400
+Message-ID: <1315521779.2313.29.camel@deneb.redhat.com>
+References: <20110830172642.GE3464@e102144-lin.cambridge.arm.com>
+	<20110830174859.GA23098@kroah.com>
+	<20110830175432.GG3464@e102144-lin.cambridge.arm.com>
+	<5484D075-A7DA-41B7-B8FA-9B6D72A23723@freescale.com>
+	<20110831084922.GA8777@e102144-lin.cambridge.arm.com>
+	<1314798215.2344.76.camel@deneb.redhat.com>
+	<20110831152137.GG8777@e102144-lin.cambridge.arm.com>
+	<alpine.LFD.2.00.1108311332410.20358@xanadu.home>
+	<20110831175147.GI8777@e102144-lin.cambridge.arm.com>
+	<4E5E7B35.9080008@gmail.com>
+	<20110831193525.GA27476@e102144-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1315520956.4126.3.camel@finisterre.wolfsonmicro.main>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, linaro-dev@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, Mans Rullgard <mans.rullgard@linaro.org>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110831193525.GA27476@e102144-lin.cambridge.arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Chen Peter-B29397 <B29397@freescale.com>, "ming.lei@canonical.com" <ming.lei@canonical.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Greg KH <greg@kroah.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 08, 2011 at 03:29:11PM -0700, Mark Brown wrote:
-> On Thu, 2011-09-08 at 22:28 +0200, Arnd Bergmann wrote:
-> > On Thursday 08 September 2011 20:05:48 Mans Rullgard wrote:
+On Wed, 2011-08-31 at 20:35 +0100, Will Deacon wrote:
+> On Wed, Aug 31, 2011 at 07:19:33PM +0100, Rob Herring wrote:
+> > On 08/31/2011 12:51 PM, Will Deacon wrote:
+> > > Another thing that Marc and I tried on OMAP4 was not bringing up the secondary
+> > > CPU during boot (by commenting out most of smp_init). In this case, I/O
+> > > performance was good until we tried to online the secondary CPU. The online
+> > > failed but after that the I/O performance was certainly degraded.
+> > > 
+> > 
+> > Was the SCU enabled at that point? One diff between nosmp boot and
+> > offlining the 2nd core would be that the SCU remains enabled in the
+> > latter case. I think the SCU does not get enabled for nosmp.
 > 
-> > > I had the same thought, but I couldn't find a suitable string anywhere.
-> > > Are you suggesting an if(machine_is_foo()) cascade in omap_init_audio()?
-> 
-> > > I'll be the first to agree this patch is not particularly pretty.
-> 
-> > My general feeling is that practically every time someone writes
-> > machine_is_*(), they are doing it wrong. There are of course exceptions,
-> > but I would strongly recommend to have the initialization calling up
-> > from the board file into more general functions instead of having all
-> > boards calling the same function which then goes to board specific
-> > code again.
-> 
-> I have to agree, that seems tasteless. I'd expect something like
-> triggering registration of devices based off walking down a table of
-> machine IDs or something. One other issue to consider here is that we
-> don't want to discourage people from sharing machine drivers while we
-> can so it can't be completely automatic, it 
+> Our rudimentary test (printing out the SCU control register during boot)
+> showed that it *was* enabled for nosmp. I think this is due to the secure
+> world having to do that on OMAP so it's probably not true for other
+> platforms.
 
-This problem has been solved (before DT) for _ages_ through the use
-of platform devices in the platform support files, registered by the
-.init_machine callback.
+I've done a little test and found that turning on the MMU of the second
+core causes the problem to show up. I patched head.S so I stopped the
+second core in an infinite loop just before turning on the MMU. The
+system continues booting on core#0 and I see ~20MB/s with hdparm -t to
+an attached usb disk. Same setup but with second core being stopped with
+infinite loop just after MMU is enabled shows ~5MB/s. So whatever is
+going wrong, its not because of anything the second core is doing beyond
+turning on its MMU and doing an empty loop.
 
-Where it went wrong is when ASOC and PCMCIA became rather complicated
-that you could no longer just pass a platform data structure, but
-instead needed some complex platform specific code - which started the
-demand to have mini platform specific chunks of code in drivers/pcmcia/
-and sound/.
-
-With DT of course, all devices get instantiated from the device tree,
-so there should not be any more platform specific chunks of code in
-these locations (ha, it couldn't be solved with platform data so I
-suspect it will continue to persist, forever unsolved.)
+--Mark
