@@ -1,213 +1,202 @@
-From: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
-Subject: Re: Debugging LCD and encountering NULL pointer in omap_vout_probe
-Date: Thu, 8 Sep 2011 04:19:36 -0700 (PDT)
-Message-ID: <10651908.679.1315480776490.JavaMail.geo-discussion-forums@yqap15>
-References: <968502.699.1315478251635.JavaMail.geo-discussion-forums@yqej16>
- <4E689FCB.30008@gmail.com>
-Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP2PLUS: DSS: Ensure DSS works correctly if display
+ is enabled in bootloader
+Date: Thu, 08 Sep 2011 14:28:54 +0300
+Message-ID: <1315481334.2018.40.camel@deskari>
+References: <1315475793-7737-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_Part_678_677432.1315480776488"
-Return-path: <beagleboard+bncCNSPtrLdDRDJyaLzBBoEXVTHAA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <4E689FCB.30008-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Post: <http://groups.google.com/group/beagleboard/post?hl=en_US>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/beagleboard?hl=en_US>
-Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=en_US>,
- <mailto:beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:50422 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932403Ab1IHL27 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 07:28:59 -0400
+Received: by mail-bw0-f54.google.com with SMTP id t8so668736bka.41
+        for <linux-omap@vger.kernel.org>; Thu, 08 Sep 2011 04:28:57 -0700 (PDT)
+In-Reply-To: <1315475793-7737-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: santosh.shilimkar@ti.com, r.sricharan@ti.com, tony@atomide.com, linux-omap@vger.kernel.org
 
-------=_Part_678_677432.1315480776488
-Content-Type: text/plain; charset=ISO-8859-1
+Hi,
 
-On Thursday, September 8, 2011 6:58:19 AM UTC-4, vladimir wrote:
->
-> Jason Kridner wrote:
-> > Any ideas on debugging this crash in omap_vout_probe? This is a 3.0.4 
-> kernel with PM patches applied from Kevin's tree.
+I guess this should go through Paul. Paul, this is based on the DSS
+HWMOD patches from me, and needed for cases where the bootloader has
+enabled the DSS.
 
+On Thu, 2011-09-08 at 15:26 +0530, Archit Taneja wrote:
+> Resetting DISPC when a DISPC output is enabled causes the DSS to go into an
+> inconsistent state. Thus if the bootloader has enabled a display, the hwmod code
+> cannot reset the DISPC module just like that, but the outputs need to be
+> disabled first.
+> 
+> Add function dispc_disable_outputs() which disables all active overlay manager
+> and ensure all frame transfers are completed.
+> 
+> Modify omap_dss_reset() to call this function and clear DSS_CONTROL,
+> DSS_SDI_CONTROL and DSS_PLL_CONTROL so that DSS is in a clean state when the
+> DSS2 driver starts.
+> 
+> Tested-by: R, Sricharan <r.sricharan@ti.com>
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+> Note:
+> This resolves the hang issue(caused by a L3 errod during boot) seen on the
+> beagle board C3, which has a factory bootloader that enables display. The issue
+> is resovled with this patch.
 
-I tried against the latest copy of the mainline I could get (commit 
-9e79e3e9dd9672b37ac9412e9a926714306551fe) to see what that would do (without 
-applying any of my patches) and got a linker error in the same function in 
-question.
+This note would be useful to have in the actual commit desc also. (with
+error and resolved typofixed =).
 
-  CC      drivers/media/video/omap/omap_vout.o
-drivers/media/video/omap/omap_vout.c: In function 'omap_vout_probe':
-drivers/media/video/omap/omap_vout.c:2202:15: error: 'struct 
-omap_dss_driver' has no member named 'set_update_mode'
-drivers/media/video/omap/omap_vout.c:2203:12: error: 'struct 
-omap_dss_driver' has no member named 'set_update_mode'
-drivers/media/video/omap/omap_vout.c:2204:8: error: 'OMAP_DSS_UPDATE_MANUAL' 
-undeclared (first use in this function)
-drivers/media/video/omap/omap_vout.c:2204:8: note: each undeclared 
-identifier is reported only once for each function it appears in
-drivers/media/video/omap/omap_vout.c:2206:15: error: 'struct 
-omap_dss_driver' has no member named 'set_update_mode'
-drivers/media/video/omap/omap_vout.c:2207:12: error: 'struct 
-omap_dss_driver' has no member named 'set_update_mode'
-drivers/media/video/omap/omap_vout.c:2208:8: error: 'OMAP_DSS_UPDATE_AUTO' 
-undeclared (first use in this function)
-make[4]: *** [drivers/media/video/omap/omap_vout.o] Error 1
-make[3]: *** [drivers/media/video/omap] Error 2
-make[2]: *** [drivers/media/video] Error 2
-make[1]: *** [drivers/media] Error 2
-make: *** [drivers] Error 2
+Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-http://paste.ubuntu.com/685168/
+ Tomi
 
-
-it crashed where in omap_vout_probe?
->
-
-At offset 0x6b8, per the paste below...
- 
-
-> >
-> > Built using: 
-> https://gitorious.org/beagleboard-validation/linux/commits/ulcd-20110907
-> >
->
-> [ 3.676513] Unable to handle kernel NULL pointer dereference at virtual 
-address 0000005c
-
-> > [ 3.685058] pgd = c0004000
-> > [ 3.687896] [0000005c] *pgd=00000000
-> > [ 3.691680] Internal error: Oops: 5 [#1]
-> > [ 3.695831] Modules linked in:
-> > [ 3.699066] CPU: 0 Not tainted (3.0.4+ #2)
-> > [ 3.703735] PC is at omap_vout_probe+0x6b8/0x7e0
-> > [ 3.708618] LR is at omap_vout_probe+0x684/0x7e0
->
-.
-.
-.
- 
-
-> > [ 3.855529] [<c00297bc>] (omap_vout_probe+0x6b8/0x7e0) from [<c02a79b4>] 
-> (platform_drv_probe+0x14/0x18)
-> > [ 3.865447] [<c02a79b4>] (platform_drv_probe+0x14/0x18) from [<c02a6944>] 
-> (driver_probe_device+0xc8/0x184)
-> > [ 3.875610] [<c02a6944>] (driver_probe_device+0xc8/0x184) from 
-> [<c02a6a60>] (__driver_attach+0x60/0x84)
-> > [ 3.885528] [<c02a6a60>] (__driver_attach+0x60/0x84) from [<c02a5bf4>] 
-> (bus_for_each_dev+0x4c/0x78)
-> > [ 3.895050] [<c02a5bf4>] (bus_for_each_dev+0x4c/0x78) from [<c02a6264>] 
-> (bus_add_driver+0x98/0x210)
-> > [ 3.904602] [<c02a6264>] (bus_add_driver+0x98/0x210) from [<c02a6f6c>] 
-> (driver_register+0xa0/0x120)
-> > [ 3.914154] [<c02a6f6c>] (driver_register+0xa0/0x120) from [<c00290e4>] 
-> (omap_vout_init+0xc/0x2c)
-> > [ 3.923492] [<c00290e4>] (omap_vout_init+0xc/0x2c) from [<c003d45c>] 
-> (do_one_initcall+0x90/0x160)
-> > [ 3.932861] [<c003d45c>] (do_one_initcall+0x90/0x160) from [<c000894c>] 
-> (kernel_init+0x88/0x130)
-> > [ 3.942138] [<c000894c>] (kernel_init+0x88/0x130) from [<c0042cd4>] 
-> (kernel_thread_exit+0x0/0x8)
-> > [ 3.951416] Code: e3e05012 ea000016 e59a0094 e5903200 (e593c05c)
-> > [ 3.957885] ---[ end trace cbb5c332507f77c9 ]---
-> > [ 3.962890] Kernel panic - not syncing: Attempted to kill init!
->
->
->
-
--- 
-You received this message because you are subscribed to the Google Groups "Beagle Board" group.
-To view this discussion on the web visit https://groups.google.com/d/msg/beagleboard/-/BUAXSWVTewgJ.
-To post to this group, send email to beagleboard-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-To unsubscribe from this group, send email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit this group at http://groups.google.com/group/beagleboard?hl=en.
-
-
-------=_Part_678_677432.1315480776488
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On Thursday, September 8, 2011 6:58:19 AM UTC-4, vladimir wrote:<blockquote=
- class=3D"gmail_quote" style=3D"margin: 0pt 0pt 0pt 0.8ex; border-left: 1px=
- solid rgb(204, 204, 204); padding-left: 1ex;">Jason Kridner wrote:<br>&gt;=
- Any ideas on debugging this crash in omap_vout_probe? This is a 3.0.4 kern=
-el with PM patches applied from Kevin's tree.</blockquote><div style=3D"tex=
-t-align: left;"><br>I tried against the latest copy of the mainline I could=
- get (commit 9e79e3e9dd9672b37ac9412e9a926714306551fe) to see what that wou=
-ld do (without applying any of my patches) and got a linker error in the sa=
-me function in question.<br><br>&nbsp; CC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dri=
-vers/media/video/omap/omap_vout.o<br>drivers/media/video/omap/omap_vout.c: =
-In function 'omap_vout_probe':<br>drivers/media/video/omap/omap_vout.c:2202=
-:15: error: 'struct omap_dss_driver' has no member named 'set_update_mode'<=
-br>drivers/media/video/omap/omap_vout.c:2203:12: error: 'struct omap_dss_dr=
-iver' has no member named 'set_update_mode'<br>drivers/media/video/omap/oma=
-p_vout.c:2204:8: error: 'OMAP_DSS_UPDATE_MANUAL' undeclared (first use in t=
-his function)<br>drivers/media/video/omap/omap_vout.c:2204:8: note: each un=
-declared identifier is reported only once for each function it appears in<b=
-r>drivers/media/video/omap/omap_vout.c:2206:15: error: 'struct omap_dss_dri=
-ver' has no member named 'set_update_mode'<br>drivers/media/video/omap/omap=
-_vout.c:2207:12: error: 'struct omap_dss_driver' has no member named 'set_u=
-pdate_mode'<br>drivers/media/video/omap/omap_vout.c:2208:8: error: 'OMAP_DS=
-S_UPDATE_AUTO' undeclared (first use in this function)<br>make[4]: *** [dri=
-vers/media/video/omap/omap_vout.o] Error 1<br>make[3]: *** [drivers/media/v=
-ideo/omap] Error 2<br>make[2]: *** [drivers/media/video] Error 2<br>make[1]=
-: *** [drivers/media] Error 2<br>make: *** [drivers] Error 2<br><br>http://=
-paste.ubuntu.com/685168/<br><br><br></div><blockquote class=3D"gmail_quote"=
- style=3D"margin: 0pt 0pt 0pt 0.8ex; border-left: 1px solid rgb(204, 204, 2=
-04); padding-left: 1ex;"><p>it crashed where in omap_vout_probe?</p></block=
-quote><div style=3D"text-align: left;"><br>At offset 0x6b8, per the paste b=
-elow...<br>&nbsp;</div><blockquote class=3D"gmail_quote" style=3D"margin: 0=
-pt 0pt 0pt 0.8ex; border-left: 1px solid rgb(204, 204, 204); padding-left: =
-1ex;"><p>&gt;<br>&gt; Built using: <a href=3D"https://gitorious.org/beagleb=
-oard-validation/linux/commits/ulcd-20110907" target=3D"_blank">https://gito=
-rious.org/<wbr>beagleboard-validation/linux/<wbr>commits/ulcd-20110907</a><=
-br>&gt;<br></p></blockquote>&gt; [ 3.676513] Unable to handle kernel NULL p=
-ointer dereference at virtual address 0000005c<br><blockquote class=3D"gmai=
-l_quote" style=3D"margin: 0pt 0pt 0pt 0.8ex; border-left: 1px solid rgb(204=
-, 204, 204); padding-left: 1ex;"><p>&gt; [ 3.685058] pgd =3D c0004000<br>&g=
-t; [ 3.687896] [0000005c] *pgd=3D00000000<br>&gt; [ 3.691680] Internal erro=
-r: Oops: 5 [#1]<br>&gt; [ 3.695831] Modules linked in:<br>&gt; [ 3.699066] =
-CPU: 0 Not tainted (3.0.4+ #2)<br>&gt; [ 3.703735] PC is at omap_vout_probe=
-+0x6b8/0x7e0<br>&gt; [ 3.708618] LR is at omap_vout_probe+0x684/0x7e0<br></=
-p></blockquote><div style=3D"text-align: left;">.<br>.<br>.<br>&nbsp;</div>=
-<div style=3D"text-align: left;"><blockquote class=3D"gmail_quote" style=3D=
-"margin: 0pt 0pt 0pt 0.8ex; border-left: 1px solid rgb(204, 204, 204); padd=
-ing-left: 1ex;"><div style=3D"text-align: left;">&gt; [ 3.855529] [&lt;c002=
-97bc&gt;] (omap_vout_probe+0x6b8/0x7e0) from [&lt;c02a79b4&gt;] (platform_d=
-rv_probe+0x14/0x18)<br>&gt; [ 3.865447] [&lt;c02a79b4&gt;] (platform_drv_pr=
-obe+0x14/0x18) from [&lt;c02a6944&gt;] (driver_probe_device+0xc8/<wbr>0x184=
-)<br>&gt; [ 3.875610] [&lt;c02a6944&gt;] (driver_probe_device+0xc8/<wbr>0x1=
-84) from [&lt;c02a6a60&gt;] (__driver_attach+0x60/0x84)<br>&gt; [ 3.885528]=
- [&lt;c02a6a60&gt;] (__driver_attach+0x60/0x84) from [&lt;c02a5bf4&gt;] (bu=
-s_for_each_dev+0x4c/0x78)<br>&gt; [ 3.895050] [&lt;c02a5bf4&gt;] (bus_for_e=
-ach_dev+0x4c/0x78) from [&lt;c02a6264&gt;] (bus_add_driver+0x98/0x210)<br>&=
-gt; [ 3.904602] [&lt;c02a6264&gt;] (bus_add_driver+0x98/0x210) from [&lt;c0=
-2a6f6c&gt;] (driver_register+0xa0/0x120)<br>&gt; [ 3.914154] [&lt;c02a6f6c&=
-gt;] (driver_register+0xa0/0x120) from [&lt;c00290e4&gt;] (omap_vout_init+0=
-xc/0x2c)<br>&gt; [ 3.923492] [&lt;c00290e4&gt;] (omap_vout_init+0xc/0x2c) f=
-rom [&lt;c003d45c&gt;] (do_one_initcall+0x90/0x160)<br>&gt; [ 3.932861] [&l=
-t;c003d45c&gt;] (do_one_initcall+0x90/0x160) from [&lt;c000894c&gt;] (kerne=
-l_init+0x88/0x130)<br>&gt; [ 3.942138] [&lt;c000894c&gt;] (kernel_init+0x88=
-/0x130) from [&lt;c0042cd4&gt;] (kernel_thread_exit+0x0/0x8)<br>&gt; [ 3.95=
-1416] Code: e3e05012 ea000016 e59a0094 e5903200 (e593c05c)<br>&gt; [ 3.9578=
-85] ---[ end trace cbb5c332507f77c9 ]---<br>&gt; [ 3.962890] Kernel panic -=
- not syncing: Attempted to kill init!<br></div><p><br></p></blockquote></di=
-v>
-
-<p></p>
-
--- <br />
-You received this message because you are subscribed to the Google Groups "=
-Beagle Board" group.<br />
-To view this discussion on the web visit <a href=3D"https://groups.google.c=
-om/d/msg/beagleboard/-/BUAXSWVTewgJ">https://groups.google.com/d/msg/beagle=
-board/-/BUAXSWVTewgJ</a>.<br />=20
-To post to this group, send email to beagleboard-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org<br />
-To unsubscribe from this group, send email to beagleboard+unsubscribe@googl=
-egroups.com.<br />
-
-For more options, visit this group at http://groups.google.com/group/beagle=
-board?hl=3Den.<br />
+> 
+> The patch depends on a HWMOD patch series which has been posted by Tomi, it can
+> be tested by applying over the following branch:
+> 
+> https://gitorious.org/linux-omap-dss2/linux/commits/master
+> 
+>  arch/arm/mach-omap2/display.c |  110 +++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 110 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+> index 93db7c1..eab81f4 100644
+> --- a/arch/arm/mach-omap2/display.c
+> +++ b/arch/arm/mach-omap2/display.c
+> @@ -30,6 +30,30 @@
+>  
+>  #include "control.h"
+>  
+> +#define DISPC_BASE_OMAP2	0x48050400
+> +#define DISPC_BASE_OMAP4	0x48041000
+> +
+> +#define DISPC_REG(base, offset)	(base + offset)
+> +
+> +#define DISPC_CONTROL		0x0040
+> +#define DISPC_CONTROL2		0x0238
+> +#define DISPC_IRQSTATUS		0x0018
+> +
+> +#define DSS_SYSCONFIG		0x10
+> +#define DSS_SYSSTATUS		0x14
+> +#define DSS_CONTROL		0x40
+> +#define DSS_SDI_CONTROL		0x44
+> +#define DSS_PLL_CONTROL		0x48
+> +
+> +#define LCD_EN_MASK		(0x1 << 0)
+> +#define DIGIT_EN_MASK		(0x1 << 1)
+> +
+> +#define FRAMEDONE_IRQ_SHIFT	0
+> +#define EVSYNC_EVEN_IRQ_SHIFT	2
+> +#define EVSYNC_ODD_IRQ_SHIFT	3
+> +#define FRAMEDONE2_IRQ_SHIFT	22
+> +#define FRAMEDONETV_IRQ_SHIFT	24
+> +
+>  static struct platform_device omap_display_device = {
+>  	.name          = "omapdss",
+>  	.id            = -1,
+> @@ -182,6 +206,78 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+>  	return r;
+>  }
+>  
+> +static void dispc_disable_outputs(void)
+> +{
+> +	u32 val, irq_mask, base;
+> +	bool lcd_en, digit_en, lcd2_en = false;
+> +	int i, num_mgrs;
+> +
+> +	if (cpu_is_omap44xx()) {
+> +		base = DISPC_BASE_OMAP4;
+> +		num_mgrs = 3;
+> +	} else {
+> +		base = DISPC_BASE_OMAP2;
+> +		num_mgrs = 2;
+> +	}
+> +
+> +	/* store value of LCDENABLE and DIGITENABLE bits */
+> +	val = omap_readl(DISPC_REG(base, DISPC_CONTROL));
+> +	lcd_en = val & LCD_EN_MASK;
+> +	digit_en = val & DIGIT_EN_MASK;
+> +
+> +	/* store value of LCDENABLE for LCD2 */
+> +	if (num_mgrs > 2) {
+> +		val = omap_readl(DISPC_REG(base, DISPC_CONTROL2));
+> +		lcd2_en = val & LCD_EN_MASK;
+> +	}
+> +
+> +	/*
+> +	 * If any manager was enabled, we need to disable it before DSS clocks
+> +	 * are disabled or DISPC module is reset
+> +	 */
+> +	if (lcd_en || digit_en || lcd2_en) {
+> +		irq_mask = (lcd_en ? 1 : 0) << FRAMEDONE_IRQ_SHIFT;
+> +
+> +		if (cpu_is_omap44xx())
+> +			irq_mask |= (digit_en ? 1 : 0) << FRAMEDONETV_IRQ_SHIFT;
+> +		else
+> +			irq_mask |= (digit_en ? 1 : 0) << EVSYNC_EVEN_IRQ_SHIFT |
+> +				(digit_en ? 1 : 0) << EVSYNC_ODD_IRQ_SHIFT;
+> +
+> +		irq_mask |= (lcd2_en ? 1 : 0) << FRAMEDONE2_IRQ_SHIFT;
+> +
+> +		/*
+> +		 * clear any previous FRAMEDONE, FRAMEDONETV, EVSYNC_EVEN/ODD
+> +		 * or FRAMEDONE2 interrupts
+> +		 */
+> +		omap_writel(irq_mask, DISPC_REG(base, DISPC_IRQSTATUS));
+> +
+> +		/* disable LCD and TV managers */
+> +		val = omap_readl(DISPC_REG(base, DISPC_CONTROL));
+> +		val &= ~(LCD_EN_MASK | DIGIT_EN_MASK);
+> +		omap_writel(val, DISPC_REG(base, DISPC_CONTROL));
+> +
+> +		/* disable LCD2 manager */
+> +		if (num_mgrs > 2) {
+> +			val = omap_readl(DISPC_REG(base, DISPC_CONTROL2));
+> +			val &= ~LCD_EN_MASK;
+> +			omap_writel(val, DISPC_REG(base, DISPC_CONTROL2));
+> +		}
+> +
+> +		i = 0;
+> +		while ((omap_readl(DISPC_REG(base, DISPC_IRQSTATUS)) & irq_mask) !=
+> +				irq_mask) {
+> +			i++;
+> +			if (i > 100) {
+> +				printk(KERN_ERR "didn't get FRAMEDONE1/2 or TV"
+> +					" interrupt\n");
+> +				break;
+> +			}
+> +			mdelay(1);
+> +		}
+> +	}
+> +}
+> +
+>  #define MAX_MODULE_SOFTRESET_WAIT	10000
+>  int omap_dss_reset(struct omap_hwmod *oh)
+>  {
+> @@ -198,6 +294,20 @@ int omap_dss_reset(struct omap_hwmod *oh)
+>  		if (oc->_clk)
+>  			clk_enable(oc->_clk);
+>  
+> +	dispc_disable_outputs();
+> +
+> +	/* clear SDI registers */
+> +	if (cpu_is_omap3430()) {
+> +		omap_hwmod_write(0x0, oh, DSS_SDI_CONTROL);
+> +		omap_hwmod_write(0x0, oh, DSS_PLL_CONTROL);
+> +	}
+> +
+> +	/*
+> +	 * clear DSS_CONTROL register to switch DSS clock sources to
+> +	 * PRCM clock, if any
+> +	 */
+> +	omap_hwmod_write(0x0, oh, DSS_CONTROL);
+> +
+>  	omap_test_timeout((omap_hwmod_read(oh, oh->class->sysc->syss_offs)
+>  				& SYSS_RESETDONE_MASK),
+>  			MAX_MODULE_SOFTRESET_WAIT, c);
 
 
-
-------=_Part_678_677432.1315480776488--
