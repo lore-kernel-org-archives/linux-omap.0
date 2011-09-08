@@ -1,34 +1,101 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: Tasks schedule/migration issue with CPU hotplug?
-Date: Thu, 08 Sep 2011 14:55:48 +0200
-Message-ID: <1315486548.20256.4.camel@twins>
-References: <CAOwKts_WTDBLkz9=0MBhs6wzc67XD_bYgGMiZ-JUM+8O7gP_fw@mail.gmail.com>
-	<CAOwKts8pXt6spknNfBV-wy4_KoSp-JaZsdbzOxxWTqu=f6X3Bg@mail.gmail.com>
+From: "Saxena, Parth" <parth.saxena@ti.com>
+Subject: [PATCH] ti816x: add support for nand on ti8168 evm
+Date: Thu, 8 Sep 2011 18:33:02 +0530
+Message-ID: <1315486982-30109-1-git-send-email-parth.saxena@ti.com>
+References: <parth.saxena@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAOwKts8pXt6spknNfBV-wy4_KoSp-JaZsdbzOxxWTqu=f6X3Bg@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: TAO HU <tghk48@motorola.com>
-Cc: "yong.zhang0" <yong.zhang0@gmail.com>, Ingo Molnar <mingo@elte.hu>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56884 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932609Ab1IHNDQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Sep 2011 09:03:16 -0400
+In-Reply-To: <parth.saxena@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-mtd@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, "Saxena, Parth" <parth.saxena@ti.com>, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>
 
-On Thu, 2011-09-08 at 14:47 +0800, TAO HU wrote:
-> > We seems got a schedule/migration issue in a OMAP4430 dual-core system.
-> > The kernel base is 2.6.35.7 and we're using CFS.
+Add partition table for NAND device on TI8168 EVM
+and initialise the NAND module.
 
-step 1, try with a kernel that isn't quite as fossilized 
-	(3.0 or even better 3.1-rc)
-step 2, if no luck, report that
-step 3, when sending email, 
-     3a, don't wrap machine output
-     3b, include .config like things
+Signed-off-by: Saxena, Parth <parth.saxena@ti.com>
+Signed-off-by: Basheer, Mansoor Ahamed <mansoor.ahamed@ti.com>
+---
+
+This patch is tested on top of linux-omap/master and
+Hemant's patches submitted recently.
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53457.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg54296.html
+
+ arch/arm/mach-omap2/board-ti8168evm.c |   39 +++++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
+index e516a04..87953bb 100644
+--- a/arch/arm/mach-omap2/board-ti8168evm.c
++++ b/arch/arm/mach-omap2/board-ti8168evm.c
+@@ -14,6 +14,7 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/mtd/nand.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -23,6 +24,42 @@
+ #include <plat/irqs.h>
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/gpmc.h>
++#include <plat/nand.h>
++
++#include "board-flash.h"
++
++#define NAND_BLOCK_SIZE		SZ_128K
++
++static struct mtd_partition ti816x_nand_partitions[] = {
++/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name		= "U-Boot",
++		.offset		= 0,			/* Offset = 0x0 */
++		.size		= 18 * NAND_BLOCK_SIZE,
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot Env",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x240000 */
++		.size		= 2 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "Kernel",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
++		.size		= 34 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "File System",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x6C0000 */
++		.size		= 1601 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "Reserved",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0xCEE0000 */
++		.size		= MTDPART_SIZ_FULL,
++	},
++};
+ 
+ static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
+ };
+@@ -35,6 +72,8 @@ static void __init ti8168_init_early(void)
+ 
+ static void __init ti8168_evm_init(void)
+ {
++	board_nand_init(ti816x_nand_partitions,
++		ARRAY_SIZE(ti816x_nand_partitions), 0, NAND_BUSWIDTH_16);
+ 	omap_serial_init();
+ 	omap_board_config = ti8168_evm_config;
+ 	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
+-- 
+1.6.2.4
+
