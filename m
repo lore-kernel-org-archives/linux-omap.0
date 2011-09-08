@@ -1,127 +1,57 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [linux-pm] Issue: Runtime API usage in wake-up device irq_handler during wakeup from system-wide-suspend.
-Date: Thu, 8 Sep 2011 07:58:31 +0300
-Message-ID: <1315457911.2679.19.camel@sokoban>
-References: <Pine.LNX.4.44L0.1108271537300.21403-100000@netrider.rowland.org> <1315410513.2679.9.camel@sokoban>  <87fwk8qllx.fsf@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/8] OMAP3/4: Misc fixes and clean-up
+Date: Thu, 8 Sep 2011 10:51:59 +0530
+Message-ID: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44399 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36642 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754651Ab1IHE6x convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 00:58:53 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <87fwk8qllx.fsf@ti.com>
+	id S1751685Ab1IHFWT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Sep 2011 01:22:19 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "R, Govindraj" <govindraj.raja@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "Munegowda, Keshava" <keshava_mgowda@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Wed, 2011-09-07 at 19:59 +0200, Hilman, Kevin wrote:
-> Tero Kristo <t-kristo@ti.com> writes:
-> 
-> > Hi,
-> >
-> > On Sat, 2011-08-27 at 21:42 +0200, Alan Stern wrote:
-> >> On Sat, 27 Aug 2011, Santosh wrote:
-> >> 
-> >> > On Saturday 27 August 2011 07:31 PM, Alan Stern wrote:
-> >> > > On Sat, 27 Aug 2011, Santosh wrote:
-> >> > >
-> >> > >> I might be wrong here, but after discussion with Govindraj on this
-> >> > >> issue, it seems there is a flaw in the way OMAP chain handler
-> >> > >> handling the child interrupts.
-> >> > >>
-> >> > >> On OMAP, we have special interrupt wakeup source at PRCM level and
-> >> > >> many devices can trigger wakeup from low power via this common
-> >> > >> interrupt source. The common interrupt source upon wakeup from low
-> >> > >> power state, decodes the source of interrupt and based on that
-> >> > >> source, calls the respective device ISR directly.
-> >> > >>
-> >> > >> The issue I see here is, the ISR on _a_ device (UART in this case)
-> >> > >> is happening even before UART resume and DPM resume has been completed.
-> >> > >> If this is the case, then it is surely asking for trouble. Because not
-> >> > >> just clocks, but even driver state machine is already in suspend state
-> >> > >> when the ISR is called.
-> >> > >
-> >> > > If the driver state machine is in the suspend state when the ISR is
-> >> > > called, then the ISR should realize it is handling a wakeup event
-> >> > > instead of a normal I/O event.  All it needs to do is turn off the
-> >> > > interrupt source; the event itself will be taken care of during the
-> >> > > device's resume callback.
-> >> > >
-> >> > Good point but the ISR is called as a function call and not real
-> >> > hardware event so no need to turn-off the source in the child
-> >> > ISR. Parent ISR will clear the source anyways.
-> >> > 
-> >> > But the intention here is to record the event for the child.
-> >> 
-> >> In that case the ISR only has to record the event.
-> >> 
-> >> > I mean for UART wakeup, the received character should be
-> >> > extracted. If not done, UART will loose that character because
-> >> > the event is lost. So not sure how the event will be taken
-> >> > care during resume callback. Could you elaborate bit more on
-> >> > last comment please?
-> >> 
-> >> The resume callback routine must check to see if an event was recorded.
-> >> If one was, the routine must see whether a character was received while 
-> >> the system was asleep and extract the character from the UART.  (It 
-> >> probably won't hurt to do this even if an event wasn't recorded.)
-> >> 
-> >> Alan Stern
-> >> 
-> >
-> > After thinking about this problem and looking at possible ways to fix
-> > it, I am planning to change the PRCM chain handler to be a driver, which
-> > gets suspended along with the rest of the system. This means the PRCM
-> > interrupt would get disabled also during this time, and it would be
-> > enabled in the driver->complete() call, which should happen after rest
-> > of the drivers have been able to enable their PM runtime in the
-> > driver->resume() call chain. Do you see any problems with this approach?
-> 
-> How will the system wakeup from retention or off-mode if the PRCM IRQ is
-> disabled?
+The series contains few fixes and clean-up for OMAP.
+Briefly,
+- HWMOD fix for the address space count
+- Improving the L3 register accesses
+- Bug fix in the L3 error handler
+- Sparce warning and indentation fixes in L3 error handler
+- Print master id in case of L3 custom errors for better debug.
+- Adding local time clock node for the CPUfreq and time re-calibration
+- Fix in the address overlap for emif and emulation domain.
 
-This is actually some sort of an issue with retention if we disable PRCM
-irq completely, off works purely with wakeup signals as we come out of
-reset. Anyway, I did some experimentation with this, and OMAP3 is able
-to wake up if we leave WKUP irq up, but disable IO chain irq. IO chain
-events seem to trigger a WKUP event also always, we just postpone the
-processing of IO chain until later. I had to also split the wakeup
-clearing for OMAP3 into 2 parts, one part handles wakeups and another IO
-chain. Currently both IO chain and WKUP are acked by the same handler.
+The series is tested on OMAP4430 SDP and OMAP4430 beagle and SDP.
 
-> Besides that, I don't like this approach because it leaves a rather long
-> window during which no PRCM-triggered wakeup events can happen.  This is
-> not good since we also want potential wakeup events that happen *during*
-> system suspend to be able to cancel the suspend.
+The following changes since commit c6a389f123b9f68d605bb7e0f9b32ec1e3e14132:
 
-This should also be taken care of by the approach described above.
+  Linux 3.1-rc4 (2011-08-28 21:16:01 -0700)
 
-> 
-> > The only issue I am seeing myself is if some driver decides to do
-> > resume() in the complete() pm-op and potentially screwing the ordering
-> > here...
-> 
-> Personally, I think Alan's approach is the only scalable approach.  This
-> has to be handled by the drivers.
-> 
-> If the driver's ISR does a pm_runtime_get_sync() and it fails (in this
-> case, with -EACCESS since runtime PM is disabled), the driver should
-> handle that handle as Alan described above.
+are available in the git repository at:
+  git://gitorious.org/omap-sw-develoment/linux-omap-dev.git v3.1-rc4-omap-misc
 
-Yea I think this probably needs to be done anyway, at least on some
-cases. The PRCM chain handler approach might be able to solve most of
-the problems though. I think I will post what I have anyway for comments
-hopefully later today, so you can have a look and say what you think.
+Santosh Shilimkar (2):
+      OMAP4: clock: Add CPU local timer clock node.
+      OMAP4: Fix the emif and dmm virtual mapping
 
--Tero
+Todd Poynor (2):
+      OMAP: Improve register access in L3 Error handler.
+      OMAP: Fix a BUG in l3 error handler.
 
+sricharan (4):
+      OMAP: hwmod: Fix the addr spaces count API.
+      OMAP: Fix indentation issues in l3 error handler.
+      OMAP: Fix sparse warnings in l3 error handler.
+      OMAP: Print Initiator name for l3 custom error.
 
-
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
-
+ arch/arm/mach-omap2/clock44xx_data.c |    9 ++
+ arch/arm/mach-omap2/omap_hwmod.c     |    8 +-
+ arch/arm/mach-omap2/omap_l3_noc.c    |  130 ++++++++++----------
+ arch/arm/mach-omap2/omap_l3_noc.h    |  224 +++++++++++++++++++---------------
+ arch/arm/mach-omap2/omap_l3_smx.c    |   91 +++++++-------
+ arch/arm/mach-omap2/omap_l3_smx.h    |  164 ++++++++++++------------
+ arch/arm/plat-omap/include/plat/io.h |    4 +-
+ 7 files changed, 336 insertions(+), 294 deletions(-)
