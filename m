@@ -1,40 +1,108 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] ASoC: omap: convert per-board modules to
- platform drivers
-Date: Thu, 8 Sep 2011 09:37:43 -0700
-Message-ID: <20110908163742.GD3098@opensource.wolfsonmicro.com>
-References: <1315494354-17597-1-git-send-email-mans.rullgard@linaro.org>
-	<4E68DBF7.1030009@metafoo.de>
-	<CAG5Tg6XxGP1YhQ0zW3f=1EkZfAmb9vj3pBemeSazpH1_CZ3OzQ@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/8] omap3evm: Enable regulators for camera interface
+Date: Thu, 8 Sep 2011 18:51:52 +0200
+Message-ID: <201109081851.53078.laurent.pinchart@ideasonboard.com>
+References: <1315488831-15998-1-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <CAG5Tg6XxGP1YhQ0zW3f=1EkZfAmb9vj3pBemeSazpH1_CZ3OzQ@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mans Rullgard <mans.rullgard@linaro.org>
-Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linaro-dev@lists.linaro.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1315488831-15998-1-git-send-email-deepthy.ravi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Deepthy Ravi <deepthy.ravi@ti.com>
+Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, mchehab@infradead.org, linux-omap@vger.kernel.org, g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 08, 2011 at 04:41:30PM +0100, Mans Rullgard wrote:
-> On 8 September 2011 16:15, Lars-Peter Clausen <lars@metafoo.de> wrote:
+Hi,
 
-> > Use different device driver names for different drivers.
+On Thursday 08 September 2011 15:33:51 Deepthy Ravi wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Enabled 1v8 and 2v8 regulator output, which is being used by
+> camera module.
 
-> I guess this worked by accident on my system.
+Thanks for the patch. Just one minor comment below.
 
-> Are there any other changes needed?
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3evm.c |   40
+> ++++++++++++++++++++++++++++++++++ 1 files changed, 40 insertions(+), 0
+> deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c
+> b/arch/arm/mach-omap2/board-omap3evm.c index a1184b3..8333ee4 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -273,6 +273,44 @@ static struct omap_dss_board_info omap3_evm_dss_data =
+> { .default_device	= &omap3_evm_lcd_device,
+>  };
+> 
+> +static struct regulator_consumer_supply omap3evm_vaux3_supply = {
+> +	.supply         = "cam_1v8",
+> +};
+> +
+> +static struct regulator_consumer_supply omap3evm_vaux4_supply = {
+> +	.supply         = "cam_2v8",
+> +};
+> +
+> +/* VAUX3 for CAM_1V8 */
+> +static struct regulator_init_data omap3evm_vaux3 = {
+> +	.constraints = {
+> +		.min_uV                 = 1800000,
+> +		.max_uV                 = 1800000,
+> +		.apply_uV               = true,
+> +		.valid_modes_mask       = REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask         = REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +		},
+> +	.num_consumer_supplies  = 1,
+> +	.consumer_supplies      = &omap3evm_vaux3_supply,
 
-Check the N810 code - it looks like that driver should be taking
-platform data to distinguish between the two models.  Possibly also rx51
-though I only looked at the diff.  Also it should probably be grabbing
-the clocks before it registers the card.
+I might be wrong, but I think we're standardizing on using REGULATOR_SUPPLY 
+arrays as described in commit 786b01a8c1db0c0decca55d660a2a3ebd7cfb26b 
+("cleanup regulator supply definitions in mach-omap2").
+
+> +};
+> +
+> +/* VAUX4 for CAM_2V8 */
+> +static struct regulator_init_data omap3evm_vaux4 = {
+> +	.constraints = {
+> +		.min_uV                 = 1800000,
+> +		.max_uV                 = 1800000,
+> +		.apply_uV               = true,
+> +		.valid_modes_mask       = REGULATOR_MODE_NORMAL
+> +			| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask         = REGULATOR_CHANGE_MODE
+> +			| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies  = 1,
+> +	.consumer_supplies      = &omap3evm_vaux4_supply,
+> +};
+> +
+>  static struct regulator_consumer_supply omap3evm_vmmc1_supply[] = {
+>  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+>  };
+> @@ -499,6 +537,8 @@ static struct twl4030_platform_data omap3evm_twldata =
+> { .vio		= &omap3evm_vio,
+>  	.vmmc1		= &omap3evm_vmmc1,
+>  	.vsim		= &omap3evm_vsim,
+> +	.vaux3          = &omap3evm_vaux3,
+> +	.vaux4          = &omap3evm_vaux4,
+>  };
+> 
+>  static int __init omap3_evm_i2c_init(void)
+
+-- 
+Regards,
+
+Laurent Pinchart
