@@ -1,25 +1,32 @@
 From: <mythripk@ti.com>
-Subject: [PATCH 03/10] OMAP4: DSS: HDMI: Use specific HDMI timings structure
-Date: Thu, 8 Sep 2011 19:06:20 +0530
-Message-ID: <1315488987-4546-4-git-send-email-mythripk@ti.com>
+Subject: [PATCH 10/10] OMAP4: DSS: Rename hdmi_omap4_panel.c to hdmi_panel.c
+Date: Thu, 8 Sep 2011 19:06:27 +0530
+Message-ID: <1315488987-4546-11-git-send-email-mythripk@ti.com>
 References: <1315488987-4546-1-git-send-email-mythripk@ti.com>
  <1315488987-4546-2-git-send-email-mythripk@ti.com>
  <1315488987-4546-3-git-send-email-mythripk@ti.com>
+ <1315488987-4546-4-git-send-email-mythripk@ti.com>
+ <1315488987-4546-5-git-send-email-mythripk@ti.com>
+ <1315488987-4546-6-git-send-email-mythripk@ti.com>
+ <1315488987-4546-7-git-send-email-mythripk@ti.com>
+ <1315488987-4546-8-git-send-email-mythripk@ti.com>
+ <1315488987-4546-9-git-send-email-mythripk@ti.com>
+ <1315488987-4546-10-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59271 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59272 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932907Ab1IHNog (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Sep 2011 09:44:36 -0400
+	id S932922Ab1IHNoh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Sep 2011 09:44:37 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p88DiWH8013880
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p88DiXSn013883
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 8 Sep 2011 08:44:34 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p88DiVvb003391
-	for <linux-omap@vger.kernel.org>; Thu, 8 Sep 2011 19:14:31 +0530 (IST)
-In-Reply-To: <1315488987-4546-3-git-send-email-mythripk@ti.com>
+	for <linux-omap@vger.kernel.org>; Thu, 8 Sep 2011 08:44:35 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p88DiX6U003419
+	for <linux-omap@vger.kernel.org>; Thu, 8 Sep 2011 19:14:33 +0530 (IST)
+In-Reply-To: <1315488987-4546-10-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
@@ -27,100 +34,40 @@ Cc: Mythri P K <mythripk@ti.com>
 
 From: Mythri P K <mythripk@ti.com>
 
-As hdmi has few additional parameters such as vsync and hsync
-polarity which is missing in DSS timing structure, define HDMI timings
-structure for hdmi to use instead of OMAP DSS timing structure.
-
+As the panel driver will remain generic across OMAP's renaming it to
+hdmi_panel.c
 
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- drivers/video/omap2/dss/hdmi.c |   23 ++++++++++++++++++++---
- drivers/video/omap2/dss/hdmi.h |   15 ++++++++++++++-
- 2 files changed, 34 insertions(+), 4 deletions(-)
+ drivers/video/omap2/dss/Makefile                   |    2 +-
+ .../omap2/dss/{hdmi_omap4_panel.c => hdmi_panel.c} |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+ rename drivers/video/omap2/dss/{hdmi_omap4_panel.c => hdmi_panel.c} (99%)
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 47e9f4a..c387bf4 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -534,6 +534,21 @@ static int read_edid(struct hdmi_ip_data *ip_data, u8 *pedid, u16 max_length)
- 	return 0;
- }
- 
-+static void copy_hdmi_to_dss_timings(
-+		const struct hdmi_video_timings *hdmi_timings,
-+		struct omap_video_timings *timings)
-+{
-+	timings->x_res = hdmi_timings->x_res;
-+	timings->y_res = hdmi_timings->y_res;
-+	timings->pixel_clock = hdmi_timings->pixel_clock;
-+	timings->hbp = hdmi_timings->hbp;
-+	timings->hfp = hdmi_timings->hfp;
-+	timings->hsw = hdmi_timings->hsw;
-+	timings->vbp = hdmi_timings->vbp;
-+	timings->vfp = hdmi_timings->vfp;
-+	timings->vsw = hdmi_timings->vsw;
-+}
-+
- static int get_timings_index(void)
- {
- 	int code;
-@@ -558,7 +573,7 @@ static struct hdmi_cm hdmi_get_code(struct omap_video_timings *timing)
- {
- 	int i = 0, code = -1, temp_vsync = 0, temp_hsync = 0;
- 	int timing_vsync = 0, timing_hsync = 0;
--	struct omap_video_timings temp;
-+	struct hdmi_video_timings temp;
- 	struct hdmi_cm cm = {-1};
- 	DSSDBG("hdmi_get_code\n");
- 
-@@ -716,7 +731,8 @@ static void hdmi_read_edid(struct omap_video_timings *dp)
- 
- 	code = get_timings_index();
- 
--	*dp = cea_vesa_timings[code].timings;
-+	copy_hdmi_to_dss_timings(&cea_vesa_timings[code].timings, dp);
-+
- }
- 
- static void hdmi_core_init(struct hdmi_core_video_config *video_cfg,
-@@ -1178,7 +1194,8 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
- 		hdmi_read_edid(p);
- 	}
- 	code = get_timings_index();
--	dssdev->panel.timings = cea_vesa_timings[code].timings;
-+	copy_hdmi_to_dss_timings(&cea_vesa_timings[code].timings,
-+			&dssdev->panel.timings);
- 	update_hdmi_timings(&hdmi.ip_data.cfg, p, code);
- 
- 	phy = p->pixel_clock;
-diff --git a/drivers/video/omap2/dss/hdmi.h b/drivers/video/omap2/dss/hdmi.h
-index d2913f8..02342f6 100644
---- a/drivers/video/omap2/dss/hdmi.h
-+++ b/drivers/video/omap2/dss/hdmi.h
-@@ -198,9 +198,22 @@ struct hdmi_reg { u16 idx; };
- #define REG_GET(base, idx, start, end) \
- 	FLD_GET(hdmi_read_reg(base, idx), start, end)
- 
-+struct hdmi_video_timings {
-+	u16 x_res;
-+	u16 y_res;
-+	/* Unit: KHz */
-+	u32 pixel_clock;
-+	u16 hsw;
-+	u16 hfp;
-+	u16 hbp;
-+	u16 vsw;
-+	u16 vfp;
-+	u16 vbp;
-+};
-+
- /* HDMI timing structure */
- struct hdmi_timings {
--	struct omap_video_timings timings;
-+	struct hdmi_video_timings timings;
- 	int vsync_pol;
- 	int hsync_pol;
- };
+diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
+index 9627829..bd34ac5 100644
+--- a/drivers/video/omap2/dss/Makefile
++++ b/drivers/video/omap2/dss/Makefile
+@@ -6,4 +6,4 @@ omapdss-$(CONFIG_OMAP2_DSS_VENC) += venc.o
+ omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
+ omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
+ omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi.o \
+-				    hdmi_omap4_panel.o ti_hdmi_4xxx_ip.o
++				    hdmi_panel.o ti_hdmi_4xxx_ip.o
+diff --git a/drivers/video/omap2/dss/hdmi_omap4_panel.c b/drivers/video/omap2/dss/hdmi_panel.c
+similarity index 99%
+rename from drivers/video/omap2/dss/hdmi_omap4_panel.c
+rename to drivers/video/omap2/dss/hdmi_panel.c
+index 7d4f2bd..e30182f 100644
+--- a/drivers/video/omap2/dss/hdmi_omap4_panel.c
++++ b/drivers/video/omap2/dss/hdmi_panel.c
+@@ -1,5 +1,5 @@
+ /*
+- * hdmi_omap4_panel.c
++ * hdmi_panel.c
+  *
+  * HDMI library support functions for TI OMAP4 processors.
+  *
 -- 
 1.7.5.4
 
