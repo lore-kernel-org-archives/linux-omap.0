@@ -1,207 +1,71 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 8/9] omap3: pm: split prcm and wakeup event handling
-Date: Thu, 8 Sep 2011 18:22:23 +0300
-Message-ID: <1315495344-23133-9-git-send-email-t-kristo@ti.com>
-References: <1315495344-23133-1-git-send-email-t-kristo@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC PATCH 06/10] hwspinlock: OMAP4: Add spinlock support in
+ DT
+Date: Thu, 8 Sep 2011 17:34:51 +0200
+Message-ID: <4E68E09B.4050006@ti.com>
+References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
+	<4E6877A9.3090104@ti.com>
+	<CAK=WgbbN-RYj2quMQOyYbEBBfV3gty4dOE7DgjvsRcoYO=F3kw@mail.gmail.com>
+	<201109081647.55377.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40806 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754023Ab1IHPWn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 11:22:43 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <1315495344-23133-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201109081647.55377.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, "Hilman, Kevin" <khilman@ti.com>, Mathieu Poirier <mathieu.poirier@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "G,
+	Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, paul@pwsan.com, govindraj.raja@ti.com
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/mux.c    |    3 +-
- arch/arm/mach-omap2/pm34xx.c |  104 +++++++++++++++---------------------------
- 2 files changed, 39 insertions(+), 68 deletions(-)
+On 9/8/2011 4:47 PM, Arnd Bergmann wrote:
+> On Thursday 08 September 2011, Ohad Ben-Cohen wrote:
+>> On Thu, Sep 8, 2011 at 11:07 AM, Cousson, Benoit<b-cousson@ti.com>  wrote:
+>>> The (small) issue for my point of view is that the #hwspinlock is already
+>>> encoded in the IP itself. So adding a baseid directly in DT will look like
+>>> duplicating indirectly something that is already there in the HW.
+>>> That being said, since we cannot rely on the order, we will not be able to
+>>> get the proper baseid until the driver probe every hwspinlock devices :-(
+>>> So baseid might be a easier choice.
+>>
+>> Sounds good. Thanks a lot !
+>
+> I think a number would work here but is not optimal for the device tree
+> representation. I think a better binding would be to encode it like
+> interrupt numbers, where every device that uses a hwspinlock will describe
+> that as a combination of phandle to the hwspinlock controller and
+> identifier to be used by that controller, e.g.
+>
+> 	spinlock1 {
+> 		compatible = "ti,omap-spinlock";
+> 		regs = ...
+> 		interrupts =<42>;
+> 		interrupt-parent =&irq-controller;
+> 	};
+>
+> 	dsp {
+> 		compatible = ...
+> 		regs = ...
+> 		spinlocks =<23>; // local number withing&spinlock1;
+> 		spinlock-controller =&spinlock1;
+> 	};
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index b6ec5de..6fd9675 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -797,7 +797,8 @@ static int __init omap_mux_late_init(void)
- 	}
- 
- 	ret = request_irq(omap_prcm_event_to_irq("io"),
--		omap_hwmod_mux_handle_irq, 0, "hwmod_io", NULL);
-+		omap_hwmod_mux_handle_irq, IRQF_SHARED, "hwmod_io",
-+			omap_mux_late_init);
- 
- 	if (ret)
- 		printk(KERN_WARNING "Failed to setup hwmod io irq %d\n", ret);
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 7255d9b..2789e0a 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -29,6 +29,7 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/console.h>
-+#include <linux/power/omap_prm.h>
- #include <trace/events/power.h>
- 
- #include <asm/suspend.h>
-@@ -198,7 +199,7 @@ static void omap3_save_secure_ram_context(void)
-  * that any peripheral wake-up events occurring while attempting to
-  * clear the PM_WKST_x are detected and cleared.
-  */
--static int prcm_clear_mod_irqs(s16 module, u8 regs)
-+static int prcm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
- {
- 	u32 wkst, fclk, iclk, clken;
- 	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
-@@ -210,6 +211,7 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
- 
- 	wkst = omap2_prm_read_mod_reg(module, wkst_off);
- 	wkst &= omap2_prm_read_mod_reg(module, grpsel_off);
-+	wkst &= ~ignore_bits;
- 	if (wkst) {
- 		iclk = omap2_cm_read_mod_reg(module, iclk_off);
- 		fclk = omap2_cm_read_mod_reg(module, fclk_off);
-@@ -225,6 +227,7 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
- 			omap2_cm_set_mod_reg_bits(clken, module, fclk_off);
- 			omap2_prm_write_mod_reg(wkst, module, wkst_off);
- 			wkst = omap2_prm_read_mod_reg(module, wkst_off);
-+			wkst &= ~ignore_bits;
- 			c++;
- 		}
- 		omap2_cm_write_mod_reg(iclk, module, iclk_off);
-@@ -234,76 +237,35 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
- 	return c;
- }
- 
--static int _prcm_int_handle_wakeup(void)
-+static irqreturn_t _prcm_int_handle_io(int irq, void *unused)
- {
- 	int c;
- 
--	c = prcm_clear_mod_irqs(WKUP_MOD, 1);
--	c += prcm_clear_mod_irqs(CORE_MOD, 1);
--	c += prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
--	if (omap_rev() > OMAP3430_REV_ES1_0) {
--		c += prcm_clear_mod_irqs(CORE_MOD, 3);
--		c += prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
--	}
-+	c = prcm_clear_mod_irqs(WKUP_MOD, 1,
-+		~(OMAP3430_ST_IO_MASK | OMAP3430_ST_IO_CHAIN_MASK));
- 
--	return c;
-+	return c ? IRQ_HANDLED : IRQ_NONE;
- }
- 
--/*
-- * PRCM Interrupt Handler
-- *
-- * The PRM_IRQSTATUS_MPU register indicates if there are any pending
-- * interrupts from the PRCM for the MPU. These bits must be cleared in
-- * order to clear the PRCM interrupt. The PRCM interrupt handler is
-- * implemented to simply clear the PRM_IRQSTATUS_MPU in order to clear
-- * the PRCM interrupt. Please note that bit 0 of the PRM_IRQSTATUS_MPU
-- * register indicates that a wake-up event is pending for the MPU and
-- * this bit can only be cleared if the all the wake-up events latched
-- * in the various PM_WKST_x registers have been cleared. The interrupt
-- * handler is implemented using a do-while loop so that if a wake-up
-- * event occurred during the processing of the prcm interrupt handler
-- * (setting a bit in the corresponding PM_WKST_x register and thus
-- * preventing us from clearing bit 0 of the PRM_IRQSTATUS_MPU register)
-- * this would be handled.
-- */
--static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
-+static irqreturn_t _prcm_int_handle_wakeup(int irq, void *unused)
- {
--	u32 irqenable_mpu, irqstatus_mpu;
--	int c = 0;
--
--	irqenable_mpu = omap2_prm_read_mod_reg(OCP_MOD,
--					 OMAP3_PRM_IRQENABLE_MPU_OFFSET);
--	irqstatus_mpu = omap2_prm_read_mod_reg(OCP_MOD,
--					 OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--	irqstatus_mpu &= irqenable_mpu;
--
--	do {
--		if (irqstatus_mpu & (OMAP3430_WKUP_ST_MASK |
--				     OMAP3430_IO_ST_MASK)) {
--			c = _prcm_int_handle_wakeup();
--
--			/*
--			 * Is the MPU PRCM interrupt handler racing with the
--			 * IVA2 PRCM interrupt handler ?
--			 */
--			WARN(c == 0, "prcm: WARNING: PRCM indicated MPU wakeup "
--			     "but no wakeup sources are marked\n");
--		} else {
--			/* XXX we need to expand our PRCM interrupt handler */
--			WARN(1, "prcm: WARNING: PRCM interrupt received, but "
--			     "no code to handle it (%08x)\n", irqstatus_mpu);
--		}
--
--		omap2_prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
--					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--
--		irqstatus_mpu = omap2_prm_read_mod_reg(OCP_MOD,
--					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--		irqstatus_mpu &= irqenable_mpu;
-+	int c;
- 
--	} while (irqstatus_mpu);
-+	/*
-+	 * Clear all except ST_IO and ST_IO_CHAIN for wkup module,
-+	 * these are handled in a separate handler to avoid acking
-+	 * IO events before parsing in mux code
-+	 */
-+	c = prcm_clear_mod_irqs(WKUP_MOD, 1,
-+		OMAP3430_ST_IO_MASK | OMAP3430_ST_IO_CHAIN_MASK);
-+	c += prcm_clear_mod_irqs(CORE_MOD, 1, 0);
-+	c += prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1, 0);
-+	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+		c += prcm_clear_mod_irqs(CORE_MOD, 3, 0);
-+		c += prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1, 0);
-+	}
- 
--	return IRQ_HANDLED;
-+	return c ? IRQ_HANDLED : IRQ_NONE;
- }
- 
- static void omap34xx_save_context(u32 *save)
-@@ -876,12 +838,20 @@ static int __init omap3_pm_init(void)
- 	 * supervised mode for powerdomains */
- 	prcm_setup_regs();
- 
--	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
--			  (irq_handler_t)prcm_interrupt_handler,
--			  IRQF_DISABLED, "prcm", NULL);
-+	ret = request_irq(omap_prcm_event_to_irq("wkup"),
-+		_prcm_int_handle_wakeup, 0, "pm_wkup", NULL);
-+
-+	if (ret) {
-+		printk(KERN_ERR "Failed to request pm_wkup irq\n");
-+		goto err1;
-+	}
-+
-+	/* IO interrupt is shared with mux code */
-+	ret = request_irq(omap_prcm_event_to_irq("io"),
-+		_prcm_int_handle_io, IRQF_SHARED, "pm_io", omap3_pm_init);
-+
- 	if (ret) {
--		printk(KERN_ERR "request_irq failed to register for 0x%x\n",
--		       INT_34XX_PRCM_MPU_IRQ);
-+		printk(KERN_ERR "Failed to request pm_io irq\n");
- 		goto err1;
- 	}
- 
--- 
-1.7.4.1
+OK, this is indeed much more aligned with the current practice, and what 
+DMA should do as well.
 
+Practically speaking, that change will go beyond the original scope of 
+that patch that was just adding the DT support based on the existing 
+functionality.
 
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
+Is it OK to handle that improvement in a further patch / series?
 
+Thanks,
+Benoit
