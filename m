@@ -1,7 +1,7 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v15 07/12] OMAP: dmtimer: pm_runtime support
-Date: Fri, 9 Sep 2011 02:38:13 +0530
-Message-ID: <1315516098-29761-8-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v15 02/12] OMAP4: hwmod data: add dmtimer version information
+Date: Fri, 9 Sep 2011 02:38:08 +0530
+Message-ID: <1315516098-29761-3-git-send-email-tarun.kanti@ti.com>
 References: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,105 +18,64 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, Partha Basak <p-basak2@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: khilman@ti.com, tony@atomide.com, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add pm_runtime feature to dmtimer whereby *_runtime_get_sync()
-is called within omap_dm_timer_enable(), pm_runtime_put()
-is called in omap_dm_timer_disable(). In addition to calling
-pm_runtime_enable, we are calling pm_runtime_irq_safe so that
-they can be called from interrupt context.
+OMAP4 has two groups of timers: version 1 timers are 1, 2, 10,
+while the rest of the timers, 3-9, 11 are version 2 timers.
+The version information is required by the driver so that they
+could be handled correctly by it.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Signed-off-by: Partha Basak <p-basak2@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Acked-by: Cousson, Benoit <b-cousson@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c              |   33 ++++++++--------------------
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
- 2 files changed, 10 insertions(+), 24 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +++
+ arch/arm/plat-omap/include/plat/dmtimer.h  |    4 +++-
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 854e735..39751f9 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -38,6 +38,7 @@
- #include <linux/io.h>
- #include <linux/slab.h>
- #include <linux/err.h>
-+#include <linux/pm_runtime.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 6201422..2010a7b 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -29,6 +29,7 @@
+ #include <plat/mcbsp.h>
+ #include <plat/mmc.h>
+ #include <plat/i2c.h>
++#include <plat/dmtimer.h>
  
- #include <plat/dmtimer.h>
+ #include "omap_hwmod_common_data.h"
  
-@@ -209,33 +210,13 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_free);
+@@ -4248,6 +4249,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_1ms_sysc = {
+ static struct omap_hwmod_class omap44xx_timer_1ms_hwmod_class = {
+ 	.name	= "timer",
+ 	.sysc	= &omap44xx_timer_1ms_sysc,
++	.rev    = OMAP_TIMER_IP_VERSION_1,
+ };
  
- void omap_dm_timer_enable(struct omap_dm_timer *timer)
- {
--	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
--
--	if (timer->enabled)
--		return;
--
--	if (!pdata->needs_manual_reset) {
--		clk_enable(timer->fclk);
--		clk_enable(timer->iclk);
--	}
--
--	timer->enabled = 1;
-+	pm_runtime_get_sync(&timer->pdev->dev);
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_enable);
+ static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc = {
+@@ -4263,6 +4265,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc = {
+ static struct omap_hwmod_class omap44xx_timer_hwmod_class = {
+ 	.name	= "timer",
+ 	.sysc	= &omap44xx_timer_sysc,
++	.rev    = OMAP_TIMER_IP_VERSION_2,
+ };
  
- void omap_dm_timer_disable(struct omap_dm_timer *timer)
- {
--	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
--
--	if (!timer->enabled)
--		return;
--
--	if (!pdata->needs_manual_reset) {
--		clk_disable(timer->iclk);
--		clk_disable(timer->fclk);
--	}
--
--	timer->enabled = 0;
-+	pm_runtime_put(&timer->pdev->dev);
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_disable);
- 
-@@ -475,7 +456,7 @@ int omap_dm_timers_active(void)
- 	struct omap_dm_timer *timer;
- 
- 	list_for_each_entry(timer, &omap_timer_list, node) {
--		if (!timer->enabled)
-+		if (!timer->reserved)
- 			continue;
- 
- 		if (omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG) &
-@@ -550,6 +531,12 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
- 	timer->irq = irq->start;
- 	timer->pdev = pdev;
- 
-+	/* Skip pm_runtime_enable for OMAP1 */
-+	if (!pdata->needs_manual_reset) {
-+		pm_runtime_enable(&pdev->dev);
-+		pm_runtime_irq_safe(&pdev->dev);
-+	}
-+
- 	/* add the timer element to the list */
- 	spin_lock_irqsave(&dm_timer_lock, flags);
- 	list_add_tail(&timer->node, &omap_timer_list);
+ /* timer1 */
 diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index fc086ce..5368140 100644
+index eb5d16c..37efa15 100644
 --- a/arch/arm/plat-omap/include/plat/dmtimer.h
 +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -239,7 +239,6 @@ struct omap_dm_timer {
- 	void __iomem *io_base;
- 	unsigned long rate;
- 	unsigned reserved:1;
--	unsigned enabled:1;
- 	unsigned posted:1;
- 	u8 func_offset;
- 	u8 intr_offset;
+@@ -58,7 +58,9 @@
+  * IP revision identifier so that Highlander IP
+  * in OMAP4 can be distinguished.
+  */
+-#define OMAP_TIMER_IP_VERSION_1                        0x1
++#define OMAP_TIMER_IP_VERSION_1			0x1
++#define OMAP_TIMER_IP_VERSION_2			0x2
++
+ struct omap_dm_timer;
+ struct clk;
+ 
 -- 
 1.7.0.4
