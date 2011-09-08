@@ -1,53 +1,145 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 13/25] OMAP4: PM: Add WakeupGen module as OMAP
-	gic_arch_extn
-Date: Thu, 08 Sep 2011 11:27:25 -0700
-Message-ID: <878vpyhotu.fsf@ti.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
-	<1315144466-9395-14-git-send-email-santosh.shilimkar@ti.com>
+From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Subject: Re: [RFC PATCH 09/10] arm/dts: OMAP4: Add gpio nodes
+Date: Thu, 8 Sep 2011 11:16:20 -0700
+Message-ID: <20110908181620.GH2967@ponder.secretlab.ca>
+References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
+	<1314191356-10963-10-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1315144466-9395-14-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Sun, 4 Sep 2011 19:24:14 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1314191356-10963-10-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: khilman-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, manjugk-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Charulatha V <charu-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+On Wed, Aug 24, 2011 at 03:09:15PM +0200, Benoit Cousson wrote:
+> Add the 6 GPIOs controller nodes.
+> Since the GPIO driver is still under cleanup, a couple of temp
+> hacks are needed. They will be removed as soon as the driver will
+> be cleaned.
+> 
+> Remove gpio static device initialisation if CONFIG_OF is defined.
+> 
+> Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+> Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+> Cc: Charulatha V <charu-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/omap4.dtsi |   69 ++++++++++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/gpio.c   |    2 +
+>  2 files changed, 71 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 231d7b4..f672927 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -110,5 +110,74 @@
+>  			compatible = "ti,omap-spinlock";
+>  			hwmods = "spinlock";
+>  		};
+> +
+> +		gpio1: gpio@1 {
+> +			compatible = "ti,omap4-gpio", "ti,omap-gpio";
+> +			hwmods = "gpio1";
+> +			/* id should not be needed with a global GPIO parent */
+> +			id = <1>;
+> +			bank_width = <32>;
+> +			debounce;
+> +			/* XXX: big hack until the bank_count is removed */
+> +			bank_count = <6>;
+> +			no_idle_on_suspend;
+> +			#gpio-cells = <2>;
+> +			gpio-controller;
+> +		};
+> +
+> +		gpio2: gpio@2 {
+> +			compatible = "ti,omap4-gpio", "ti,omap-gpio";
+> +			hwmods = "gpio2";
+> +			id = <2>;
+> +			bank_width = <32>;
+> +			debounce;
+> +			no_idle_on_suspend;
+> +			#gpio-cells = <2>;
+> +			gpio-controller;
+> +		};
+> +
+> +		gpio3: gpio@3 {
+> +			compatible = "ti,omap4-gpio", "ti,omap-gpio";
+> +			hwmods = "gpio3";
+> +			id = <3>;
+> +			bank_width = <32>;
+> +			debounce;
+> +			no_idle_on_suspend;
+> +			#gpio-cells = <2>;
+> +			gpio-controller;
+> +		};
+> +
+> +		gpio4: gpio@4 {
+> +			compatible = "ti,omap4-gpio", "ti,omap-gpio";
+> +			hwmods = "gpio4";
+> +			id = <4>;
+> +			bank_width = <32>;
+> +			debounce;
+> +			no_idle_on_suspend;
+> +			#gpio-cells = <2>;
+> +			gpio-controller;
+> +		};
+> +
+> +		gpio5: gpio@5 {
+> +			compatible = "ti,omap4-gpio", "ti,omap-gpio";
+> +			hwmods = "gpio5";
+> +			id = <5>;
+> +			bank_width = <32>;
+> +			debounce;
+> +			no_idle_on_suspend;
+> +			#gpio-cells = <2>;
+> +			gpio-controller;
+> +		};
+> +
+> +		gpio6: gpio@6 {
+> +			compatible = "ti,omap4-gpio", "ti,omap-gpio";
+> +			hwmods = "gpio6";
+> +			id = <6>;
+> +			bank_width = <32>;
+> +			debounce;
+> +			no_idle_on_suspend;
+> +			#gpio-cells = <2>;
+> +			gpio-controller;
+> +		};
+>  	};
+>  };
+> diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+> index 8cbfbc2..c51e952 100644
+> --- a/arch/arm/mach-omap2/gpio.c
+> +++ b/arch/arm/mach-omap2/gpio.c
+> @@ -16,6 +16,7 @@
+>   * GNU General Public License for more details.
+>   */
+>  
+> +#ifndef CONFIG_OF
+>  #include <linux/gpio.h>
+>  #include <linux/err.h>
+>  #include <linux/slab.h>
+> @@ -126,3 +127,4 @@ static int __init omap2_gpio_init(void)
+>  						NULL);
+>  }
+>  postcore_initcall(omap2_gpio_init);
+> +#endif
 
-> OMAP WakeupGen is the interrupt controller extension used along
-> with ARM GIC to wake the CPU out from low power states on
-> external interrupts.
->
-> The WakeupGen unit is responsible for generating wakeup event
-> from the incoming interrupts and enable bits. It is implemented
-> in MPU always ON power domain. During normal operation,
-> WakeupGen delivers external interrupts directly to the GIC.
->
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Kevin Hilman <khilman@ti.com>
+Same as on earlier patch, don't #ifndef CONFIG_OF out non-DT code.
 
-[...]
+g.
 
-> +#ifdef CONFIG_PM
-> +/*
-> + * Masking wakeup irqs is handled by the IRQCHIP_MASK_ON_SUSPEND flag,
-> + * so no action is necessary in set_wake, but implement an empty handler
-> + * here to prevent enable_irq_wake() returning an error.
-> + * FIXME: Remove the dummy handler once gen irq code fix above.
-> + */
-
-Just curious... is there a fix for this pending for v3.2?
-
-Kevin
+> -- 
+> 1.7.0.4
+> 
