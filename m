@@ -1,56 +1,79 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH 06/10] hwspinlock: OMAP4: Add spinlock support in DT
-Date: Thu, 8 Sep 2011 16:47:55 +0200
-Message-ID: <201109081647.55377.arnd@arndb.de>
-References: <1314191356-10963-1-git-send-email-b-cousson@ti.com> <4E6877A9.3090104@ti.com> <CAK=WgbbN-RYj2quMQOyYbEBBfV3gty4dOE7DgjvsRcoYO=F3kw@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/8] OMAP: hwmod: Fix the addr spaces count API.
+Date: Thu, 8 Sep 2011 17:06:20 +0200
+Message-ID: <4E68D9EC.9080204@ti.com>
+References: <f44b67c9efd46d2e7d078da4d3acd30c@mail.gmail.com> <5e4ae8f3e715eb5e46468695a88c541a@mail.gmail.com> <4E688BBA.3010803@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:64367 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751904Ab1IHOsI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 10:48:08 -0400
-In-Reply-To: <CAK=WgbbN-RYj2quMQOyYbEBBfV3gty4dOE7DgjvsRcoYO=F3kw@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36029 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752534Ab1IHPG1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Sep 2011 11:06:27 -0400
+In-Reply-To: <4E688BBA.3010803@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Mathieu Poirier <mathieu.poirier@linaro.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "R, Sricharan" <r.sricharan@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, paul Walmsley <paul@pwsan.com>
 
-On Thursday 08 September 2011, Ohad Ben-Cohen wrote:
-> On Thu, Sep 8, 2011 at 11:07 AM, Cousson, Benoit <b-cousson@ti.com> wrote:
-> > The (small) issue for my point of view is that the #hwspinlock is already
-> > encoded in the IP itself. So adding a baseid directly in DT will look like
-> > duplicating indirectly something that is already there in the HW.
-> > That being said, since we cannot rely on the order, we will not be able to
-> > get the proper baseid until the driver probe every hwspinlock devices :-(
-> > So baseid might be a easier choice.
-> 
-> Sounds good. Thanks a lot !
+On 9/8/2011 11:32 AM, Shilimkar, Santosh wrote:
+> On Thursday 08 September 2011 02:45 PM, Sricharan R wrote:
+>> Hi Benoit,
+>>
+>>> -----Original Message-----
+>>> From: Sricharan R [mailto:r.sricharan@ti.com]
+>>> Sent: Thursday, September 08, 2011 2:35 PM
+>>> To: Sricharan R
+>>> Subject: Re: [PATCH 1/8] OMAP: hwmod: Fix the addr spaces count API.
+>>>
+>
+> [...]
+>
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
+>>> b/arch/arm/mach-omap2/omap_hwmod.c
+>>>> index 84cc0bd..32a0f48a 100644
+>>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>>>> @@ -791,9 +791,11 @@ static int _count_ocp_if_addr_spaces(struct
+>>> omap_hwmod_ocp_if *os)
+>>>>     	if (!os || !os->addr)
+>>>>     		return 0;
+>>>>
+>>>> -	do {
+>>>> -		mem =&os->addr[i++];
+>>>> -	} while (mem->pa_start != mem->pa_end);
+>>>> +	mem =&os->addr[i];
+>>>> +
+> This extran line isn't needed Sricharan.
+>
+>>>> +	while (mem->pa_start != mem->pa_end) {
+>>>> +		mem =&os->addr[++i];
+>>>> +	};
+>>>>
+>>>>     	return i;
+>>>
+>>> Cannot you just do "return i - 1"?
+>>
+>> Right. That was the first idea.
+>> But after some discussion concluded that
+>> right way is to, not to take in to account, the
+>> null structure itself, rather than incrementing and
+>> decrementing.
+>>
+> I was the one who objected to the i-1 or i--
+> change. The count logic itself should
+> handle all the scenario's.
 
-I think a number would work here but is not optimal for the device tree
-representation. I think a better binding would be to encode it like
-interrupt numbers, where every device that uses a hwspinlock will describe
-that as a combination of phandle to the hwspinlock controller and
-identifier to be used by that controller, e.g.
+But this is the case even with the i-1.
+That's a details, but it looks to me nicer to do a return i-1 to 
+highlight the extra empty entry that is added, instead of doing twice 
+"mem =&os->addr[i];"
+The loop is counting the real number of entries, but you return only the 
+relevant number by removing the terminator.
 
-	spinlock1 {
-		compatible = "ti,omap-spinlock";
-		regs = ...
-		interrupts = <42>;
-		interrupt-parent = &irq-controller;
-	};
+BTW, don't we have the same issue with _count_sdma_reqs and _count_mpu_irqs?
 
-	dsp {
-		compatible = ...
-		regs = ...
-		spinlocks = <23>; // local number withing &spinlock1;
-		spinlock-controller = &spinlock1;
-	};
-
-or possibly shorter
-
-		spinlocks = <&spinlock1 23>;
-
-	Arnd
+Regards,
+Benoit
