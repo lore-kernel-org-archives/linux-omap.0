@@ -1,14 +1,16 @@
-From: Jassi Brar <jassisinghbrar@gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Subject: Re: [PATCH v2] ASoC: omap: convert per-board modules
-	to platform drivers
-Date: Thu, 8 Sep 2011 23:47:16 +0530
-Message-ID: <CABb+yY0b607kDSGU+trycqQuvGMhC-zpHcv20wjgmEcaK7dz8Q@mail.gmail.com>
+ to platform drivers
+Date: Thu, 8 Sep 2011 11:18:32 -0700
+Message-ID: <20110908181831.GE3591@opensource.wolfsonmicro.com>
 References: <1315503297-8365-1-git-send-email-mans.rullgard@linaro.org>
+	<CABb+yY0b607kDSGU+trycqQuvGMhC-zpHcv20wjgmEcaK7dz8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1315503297-8365-1-git-send-email-mans.rullgard@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <CABb+yY0b607kDSGU+trycqQuvGMhC-zpHcv20wjgmEcaK7dz8Q@mail.gmail.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -18,35 +20,15 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mans Rullgard <mans.rullgard@linaro.org>
-Cc: alsa-devel@alsa-project.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linaro-dev@lists.linaro.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: alsa-devel@alsa-project.org, Russell King <linux@arm.linux.org.uk>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linaro-dev@lists.linaro.org, linux-omap@vger.kernel.org, Mans Rullgard <mans.rullgard@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCBTZXAgOCwgMjAxMSBhdCAxMTowNCBQTSwgTWFucyBSdWxsZ2FyZCA8bWFucy5ydWxs
-Z2FyZEBsaW5hcm8ub3JnPiB3cm90ZToKPiBUaGlzIGNvbnZlcnRzIHRoZSBwZXItYm9hcmQgbW9k
-dWxlcyB0byBwbGF0Zm9ybSBkcml2ZXJzIGZvciBhCj4gZGV2aWNlIGNyZWF0ZWQgYnkgaW4gbWFp
-biBwbGF0Zm9ybSBzZXR1cC4gwqBUaGVzZSBkcml2ZXJzIGNhbGwKPiBzbmRfc29jX3JlZ2lzdGVy
-X2NhcmQoKSBkaXJlY3RseSBpbnN0ZWFkIG9mIGdvaW5nIHZpYSBhICJzb2MtYXVkaW8iCj4gZGV2
-aWNlIGFuZCB0aGUgY29ycmVzcG9uZGluZyBkcml2ZXIgaW4gc29jLWNvcmUuCj4KPiBTaWduZWQt
-b2ZmLWJ5OiBNYW5zIFJ1bGxnYXJkIDxtYW5zLnJ1bGxnYXJkQGxpbmFyby5vcmc+Cj4gLS0tCj4g
-UGxhdGZvcm0gZGV2aWNlIG5hbWVzIGZpeGVkLgo+IE44eDAgY2hhbmdlZCB0byBnZXQgY2xvY2tz
-IGJlZm9yZSByZWdpc3RlcmluZyBjYXJkLgo+IC0tLQo+IMKgYXJjaC9hcm0vbWFjaC1vbWFwMi9i
-b2FyZC0zNDMwc2RwLmMgwqAgwqAgwqAgwqAgwqB8IMKgIMKgNiArKwo+IMKgYXJjaC9hcm0vbWFj
-aC1vbWFwMi9ib2FyZC00NDMwc2RwLmMgwqAgwqAgwqAgwqAgwqB8IMKgIMKgNiArKwo+IMKgYXJj
-aC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1hbTM1MTdldm0uYyDCoCDCoCDCoCDCoHwgwqAgwqA3ICsr
-Kwo+IMKgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1kZXZraXQ4MDAwLmMgwqAgwqAgwqAgfCDC
-oCDCoDYgKysKPiDCoGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtaWdlcDAwMjAuYyDCoCDCoCDC
-oCDCoCB8IMKgIMKgNiArKwo+IMKgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1uOHgwLmMgwqAg
-wqAgwqAgwqAgwqAgwqAgfCDCoCDCoDYgKysKPiDCoGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQt
-b21hcDNiZWFnbGUuYyDCoCDCoCDCoHwgwqAgwqA2ICsrCj4gwqBhcmNoL2FybS9tYWNoLW9tYXAy
-L2JvYXJkLW9tYXAzZXZtLmMgwqAgwqAgwqAgwqAgfCDCoCDCoDcgKysrCj4gwqBhcmNoL2FybS9t
-YWNoLW9tYXAyL2JvYXJkLW9tYXAzcGFuZG9yYS5jIMKgIMKgIHwgwqAgwqA2ICsrCj4gwqBhcmNo
-L2FybS9tYWNoLW9tYXAyL2JvYXJkLW92ZXJvLmMgwqAgwqAgwqAgwqAgwqAgwqB8IMKgIDE3ICsr
-KysrKwo+IMKgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1yeDUxLmMgwqAgwqAgwqAgwqAgwqAg
-wqAgfCDCoCDCoDYgKysKPiDCoGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtem9vbS1wZXJpcGhl
-cmFscy5jIHwgwqAgwqA2ICsrCgpDYW4ndCB3ZSBkbyBieSBoYXZpbmcgb21hcF9pbml0X2F1ZGlv
-KCkgaW4gYXJjaC9hcm0vbWFjaC1vbWFwMi9kZXZpY2VzLmMKZ2VuZXJhdGUgYSBwbGF0Zm9ybSBk
-ZXZpY2Ugb2YgbmFtZSBkZXBlbmRpbmcgdXBvbiBtYWNoaW5lX2lzXyogPwpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlz
-dApBbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
+On Thu, Sep 08, 2011 at 11:47:16PM +0530, Jassi Brar wrote:
+
+> Can't we do by having omap_init_audio() in arch/arm/mach-omap2/devices.c
+> generate a platform device of name depending upon machine_is_* ?
+
+That's not a bad idea.  If we were going to do that it shouldn't be OMAP
+specific, any platform could use it.  Though we'd need a way to override
+it to provide platform data on systems that needs it.
