@@ -1,53 +1,44 @@
 From: Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH 8/8] omap2plus_defconfig: Enable tvp514x video decoder support
-Date: Thu, 8 Sep 2011 19:08:06 +0530
-Message-ID: <1315489086-16413-1-git-send-email-deepthy.ravi@ti.com>
+Subject: [PATCH 7/8] omap3evm: camera: Configure BT656 interface
+Date: Thu, 8 Sep 2011 19:07:26 +0530
+Message-ID: <1315489046-16332-1-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Deepthy Ravi <deepthy.ravi@ti.com>, linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, mchehab@infradead.org, laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, mchehab@infradead.org, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de, Vaibhav Hiremath <hvaibhav@ti.com>, Deepthy Ravi <deepthy.ravi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Enables multimedia driver, media controller api,
-v4l2-subdev-api, and tvp514x video decoder support
-in omap2plus_defconfig.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
 ---
- arch/arm/configs/omap2plus_defconfig |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-omap3evm-camera.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index d5f00d7..10474d4 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -133,6 +133,16 @@ CONFIG_TWL4030_WATCHDOG=y
- CONFIG_REGULATOR_TWL4030=y
- CONFIG_REGULATOR_TPS65023=y
- CONFIG_REGULATOR_TPS6507X=y
-+CONFIG_MEDIA_SUPPORT=y
-+CONFIG_MEDIA_CONTROLLER=y
-+CONFIG_VIDEO_DEV=y
-+CONFIG_VIDEO_V4L2_COMMON=y
-+CONFIG_VIDEO_ALLOW_V4L1=y
-+CONFIG_VIDEO_V4L1_COMPAT=y
-+CONFIG_VIDEO_V4L2_SUBDEV_API=y
-+CONFIG_VIDEO_MEDIA=y
-+CONFIG_VIDEO_TVP514X=y
-+CONFIG_VIDEO_OMAP3=y
- CONFIG_FB=y
- CONFIG_FIRMWARE_EDID=y
- CONFIG_FB_MODE_HELPERS=y
+diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
+index 718dd6d..e92fb13 100644
+--- a/arch/arm/mach-omap2/board-omap3evm-camera.c
++++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+@@ -141,9 +141,14 @@ static struct isp_v4l2_subdevs_group omap3evm_camera_subdevs[] = {
+ 		.interface      = ISP_INTERFACE_PARALLEL,
+ 		.bus            = {
+ 			.parallel       = {
+-				.data_lane_shift        = 1,
+-				.clk_pol                = 0,
+-				.bridge                 = 0,
++				.width			= 8,
++				.data_lane_shift	= 1,
++				.clk_pol		= 0,
++				.hs_pol			= 0,
++				.vs_pol			= 1,
++				.fldmode		= 1,
++				.bridge			= 0,
++				.is_bt656		= 1,
+ 			},
+ 		}
+ 	},
 -- 
 1.7.0.4
