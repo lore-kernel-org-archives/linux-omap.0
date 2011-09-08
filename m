@@ -1,14 +1,13 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 14/25] OMAP4: PM: Add CPUX OFF mode support
-Date: Thu, 8 Sep 2011 21:39:28 +0200
-Message-ID: <CAORVsuUXtiitSTMB0MTJPobppqKymmYFsDpsOqALP8UV7Pm+dQ@mail.gmail.com>
+Subject: Re: [PATCH 00/25] OMAP4: PM: suspend, CPU-hotplug and CPUilde support
+Date: Thu, 8 Sep 2011 22:15:19 +0200
+Message-ID: <CAORVsuX4wZOr71RahnLUHwDMT1B1593bdKFAynNqtVXJOWVazQ@mail.gmail.com>
 References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
-	<1315144466-9395-15-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1315144466-9395-15-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,229 +21,163 @@ To: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: khilman@ti.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi Santosh,
+
 On Sun, Sep 4, 2011 at 3:54 PM, Santosh Shilimkar
 <santosh.shilimkar@ti.com> wrote:
-> This patch adds the CPU0 and CPU1 off mode support. CPUX close switch
-> retention (CSWR) is not supported by hardware design.
+> This series adds OMAP4 MPUSS (MPU SubSystem) power management support for
+> suspend (S2R), CPU hotplug and CPUidle.
 >
-> The CPUx OFF mode isn't supported on OMAP4430 ES1.0
+> Most of these patches have been posted and reviewed earlier [1] on the li=
+st
+> and have missed last couple of merge windows because of dependencies.
+> New set of patches have diverged more and hence the series version
+> continuity isn't maintained.
 >
-> CPUx sleep code is common for hotplug, suspend and CPUilde.
+> Below are the main updates from previous versions.
+> - Use of generic ARM suspend hooks instead of OMAP custom code.
+> - Making use of common GIC code instead of OMAP custom code.
+> - Use of generic CPU PM notifiers for CPUIDLE and suspend.
+> - Use of CPU PM notifiers and hotplug notifiers for GIC extension.
+> - PM support of OMAP4 HS devices.
+> - Introduction of interconnect barriers as per the OMAP4 requirements.
 >
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
-=A0 =A03 +-
-> =A0arch/arm/mach-omap2/include/mach/omap-secure.h =A0| =A0 =A08 +
-> =A0arch/arm/mach-omap2/include/mach/omap4-common.h | =A0 25 +++
-> =A0arch/arm/mach-omap2/omap-mpuss-lowpower.c =A0 =A0 =A0 | =A0249 +++++++=
-++++++++++++++++
-> =A0arch/arm/mach-omap2/omap-smp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
-=A0 =A06 +
-> =A0arch/arm/mach-omap2/omap4-sar-layout.h =A0 =A0 =A0 =A0 =A0| =A0 =A09 +
-> =A0arch/arm/mach-omap2/pm44xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
-=A0 =A06 +
-> =A0arch/arm/mach-omap2/sleep44xx.S =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A02=
-13 +++++++++++++++++++
-> =A08 files changed, 518 insertions(+), 1 deletions(-)
-> =A0create mode 100644 arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> Special thanks to,
+> - Kevin Hilman for the detailed reviews.
+> - Russell for adding the L2 cache handling support to generic suspend.
+> - Colin Cross for the generic CPU PM notifier patches.
+> - Rajendra Nayak and Paul Walmsley for clock-domain sequencing series.
 >
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index b032c21..b4f2eeb 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -63,7 +63,8 @@ obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0 =A0+=
-=3D pm24xx.o
-> =A0obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D sleep24xx.o
-> =A0obj-$(CONFIG_ARCH_OMAP3) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm34xx.o sle=
-ep34xx.o \
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 cpuidle34xx.o
-> -obj-$(CONFIG_ARCH_OMAP4) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm44xx.o sleep=
-44xx.o
-> +obj-$(CONFIG_ARCH_OMAP4) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm44xx.o sleep=
-44xx.o \
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0omap-mpuss-lowpower.o
-> =A0obj-$(CONFIG_PM_DEBUG) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm-debug.o
-> =A0obj-$(CONFIG_OMAP_SMARTREFLEX) =A0 =A0 =A0 =A0 =A0+=3D sr_device.o sma=
-rtreflex.o
-> =A0obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3) =A0+=3D smartreflex-class3.o
-> diff --git a/arch/arm/mach-omap2/include/mach/omap-secure.h b/arch/arm/ma=
-ch-omap2/include/mach/omap-secure.h
-> index e2f95a0..0062d49 100644
-> --- a/arch/arm/mach-omap2/include/mach/omap-secure.h
-> +++ b/arch/arm/mach-omap2/include/mach/omap-secure.h
-> @@ -35,10 +35,18 @@
-> =A0#define OMAP4_HAL_SAVEALL_INDEX =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x1c
-> =A0#define OMAP4_HAL_SAVEGIC_INDEX =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x1d
+> Below series has dependency on Russell's L2 generic suspend support [2]
+> and earlier posted CPU PM notifiers series [3].
+> An integrated branch with these dependencies can be found here [4].
 >
-> +/* Secure Monitor mode APIs */
-> +#define OMAP4_MON_SCU_PWR_INDEX =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x108
-> +
-> +/* Secure PPA(Primary Protected Application) APIs */
-> +#define OMAP4_PPA_CPU_ACTRL_SMP_INDEX =A00x25
-> +
-> +#ifndef __ASSEMBLER__
-> =A0extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0u32 arg1, =
-u32 arg2, u32 arg3, u32 arg4);
-> =A0extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
-> =A0extern phys_addr_t omap_secure_ram_mempool_base(void);
-> =A0extern int omap_secure_ram_reserve_memblock(void);
+> The series is tested on OMAP4430 SDP for suspend, hotplug and CPUidle
+> with OMAP4 GP and HS (secure) devices.
 >
-> +#endif /* __ASSEMBLER__ */
-> =A0#endif /* OMAP_ARCH_OMAP_SECURE_H */
-> diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/m=
-ach-omap2/include/mach/omap4-common.h
-> index 040dcf6..662f37c 100644
-> --- a/arch/arm/mach-omap2/include/mach/omap4-common.h
-> +++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
-> @@ -45,5 +45,30 @@ extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 =
-clear_mask);
-> =A0extern void omap_auxcoreboot_addr(u32 cpu_addr);
-> =A0extern u32 omap_read_auxcoreboot0(void);
-> =A0#endif
-> +
-> +#if defined(CONFIG_SMP) && defined(CONFIG_PM)
-> +extern int omap4_mpuss_init(void);
-> +extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_sta=
-te);
-> +extern int omap4_finish_suspend(unsigned long cpu_state);
-> +extern void omap4_cpu_resume(void);
-> +#else
-> +static inline int omap4_enter_lowpower(unsigned int cpu,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 unsigned int power_state)
-> +{
-> + =A0 =A0 =A0 omap_do_wfi();
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static inline int omap4_mpuss_init(void)
-> +{
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static inline int omap4_finish_suspend(unsigned long cpu_state)
-> +{}
-The int function should return something (0?)
-Has the code been test compiled without SMP and/or PM?
+> The following changes since commit c6a389f123b9f68d605bb7e0f9b32ec1e3e141=
+32:
+>
+> =A0Linux 3.1-rc4 (2011-08-28 21:16:01 -0700)
+>
+> are available in the git repository at:
+> =A0git://gitorious.org/omap-sw-develoment/linux-omap-dev.git v3.1-rc4-oma=
+p4-mpuss-pm
 
-> +static inline void omap4_cpu_resume(void)
-> +{}
-> +#endif
-> +
-> =A0#endif /* __ASSEMBLER__ */
-> =A0#endif /* OMAP_ARCH_OMAP4_COMMON_H */
-> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-om=
-ap2/omap-mpuss-lowpower.c
-...
+Some comments have been sent on this patch set, otherwise OK after review.
 
-> +/**
-> + * omap4_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
-> + * The purpose of this function is to manage low power programming
-> + * of OMAP4 MPUSS subsystem
-> + * @cpu : CPU ID
-> + * @power_state: Low power state.
-> + */
-> +int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
-> +{
-> + =A0 =A0 =A0 unsigned int save_state =3D 0;
-> + =A0 =A0 =A0 unsigned int wakeup_cpu;
-> +
-> + =A0 =A0 =A0 if (omap_rev() =3D=3D OMAP4430_REV_ES1_0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENXIO;
-> +
-> + =A0 =A0 =A0 switch (power_state) {
-> + =A0 =A0 =A0 case PWRDM_POWER_ON:
-> + =A0 =A0 =A0 case PWRDM_POWER_INACTIVE:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 save_state =3D 0;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 case PWRDM_POWER_OFF:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 save_state =3D 1;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 case PWRDM_POWER_RET:
-> + =A0 =A0 =A0 default:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* CPUx CSWR is invalid hardware state. A=
-lso CPUx OSWR
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* doesn't make much scense, since logic =
-is lost and $L1
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* needs to be cleaned because of coheren=
-cy. This makes
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* CPUx OSWR equivalent to CPUX OFF and h=
-ence not supported
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN_ON(1);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENXIO;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 clear_cpu_prev_pwrst(cpu);
-> + =A0 =A0 =A0 set_cpu_next_pwrst(cpu, power_state);
-> + =A0 =A0 =A0 set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
-> + =A0 =A0 =A0 scu_pwrst_prepare(cpu, power_state);
-> +
-> + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* Call low level function =A0with targeted CPU id
-> + =A0 =A0 =A0 =A0* and its low power state.
-> + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 cpu_suspend(save_state, omap4_finish_suspend);
-There is no CPU id parameter to the call although the above comment says so.
-
-...
-
-> diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep4=
-4xx.S
-...
-
-> +/*
-> + * =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
-> + * =3D=3D CPU suspend finisher =3D=3D
-> + * =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
-> + *
-> + * void omap4_finish_suspend(unsigned long cpu_state)
-> + *
-> + * This function code saves the CPU context and performs the CPU
-> + * power down sequence. Calling WFI effectively changes the CPU
-> + * power domains states to the desired target power state.
-> + *
-> + * @cpu_state : contains context save state (r0)
-> + * =A0 =A0 0 - No context lost
-> + * =A0 =A0 1 - CPUx L1 and logic lost: MPUSS CSWR
-> + * =A0 =A0 2 - CPUx L1 and logic lost + GIC lost: MPUSS OSWR
-> + * =A0 =A0 3 - CPUx L1 and logic lost + GIC + L2 lost: MPUSS OFF
-> + * @return: This function never returns for CPU OFF and DORMANT power st=
-ates.
-> + * Post WFI, CPU transitions to DORMANT or OFF power state and on wake-up
-> + * from this follows a full CPU reset path via ROM code to CPU restore c=
-ode.
-Is the ROM code jumping to the physical address of omap4_cpu_resume?
-If so please add it in the comment.
-
-...
-
-> +/*
-> + * =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
-> + * =3D=3D CPU resume entry point =3D=3D
-> + * =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
-> + *
-> + * void omap4_cpu_resume(void)
-> + *
-> + * ROM code jumps to this function while waking up from CPU
-> + * OFF or DORMANT state. Physical address of the function is
-> + * stored in the SAR RAM while entering to OFF or DORMANT mode.
-Which code stores the address in the SAR RAM? Please describe it here.
-
-> + */
-> +ENTRY(omap4_cpu_resume)
-> + =A0 =A0 =A0 /*
-...
+FWIW:
+Acked-by: Jean Pihet <j-pihet@ti.com>
 
 Regards,
 Jean
+
+>
+> Santosh Shilimkar (25):
+> =A0 =A0 =A0ARM: mm: Add strongly ordered descriptor support.
+> =A0 =A0 =A0OMAP4: Redefine mandatory barriers for OMAP to include interco=
+nnect barriers.
+> =A0 =A0 =A0OMAP4: PM: Use custom omap_do_wfi() for suspend and default id=
+le.
+> =A0 =A0 =A0OMAP4: Remove un-used do_wfi() macro.
+> =A0 =A0 =A0OMAP4: Use WARN_ON() instead of BUG_ON() with graceful exit
+> =A0 =A0 =A0OMAP4: Export omap4_get_base*() rather than global address poi=
+nters
+> =A0 =A0 =A0OMAP4: PM: Add SAR RAM support
+> =A0 =A0 =A0OMAP4: PM: Keep static dep between MPUSS-EMIF and MPUSS-L3 and=
+ DUCATI-L3
+> =A0 =A0 =A0OMAP4: PM: Avoid omap4_pm_init() on OMAP4430 ES1.0
+> =A0 =A0 =A0OMAP4: PM: Initialise all the clockdomains to supported states
+> =A0 =A0 =A0OMAP: Add Secure HAL and monitor mode API infrastructure.
+> =A0 =A0 =A0OMAP: Add support to allocate the memory for secure RAM
+> =A0 =A0 =A0OMAP4: PM: Add WakeupGen module as OMAP gic_arch_extn
+> =A0 =A0 =A0OMAP4: PM: Add CPUX OFF mode support
+> =A0 =A0 =A0OMAP4: Remove __INIT from omap_secondary_startup() to re-use i=
+t for hotplug.
+> =A0 =A0 =A0OMAP4: PM: Program CPU1 to hit OFF when off-lined
+> =A0 =A0 =A0OMAP4: PM: CPU1 wakeup workaround from Low power modes
+> =A0 =A0 =A0OMAP4: suspend: Add MPUSS power domain RETENTION support
+> =A0 =A0 =A0OMAP4: PM: Add WakeupGen and secure GIC low power support
+> =A0 =A0 =A0OMAP4: PM: Add L2X0 cache lowpower support
+> =A0 =A0 =A0OMAP4: PM: Add MPUSS power domain OSWR support
+> =A0 =A0 =A0OMAP4: PM: Add power domain statistics support
+> =A0 =A0 =A0OMAP4: PM: Add CPUidle support
+> =A0 =A0 =A0OMAP4: cpuidle: Switch to gptimer from twd in deeper C-states.
+> =A0 =A0 =A0OMAP3: CPUidle: Make use of CPU PM notifiers
+>
+> =A0arch/arm/include/asm/mach/map.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0| =A0 =A01 +
+> =A0arch/arm/include/asm/pgtable.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ | =A0 =A03 +
+> =A0arch/arm/mach-omap2/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| =A0 =A01 +
+> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 | =A0 15 +-
+> =A0arch/arm/mach-omap2/cpuidle34xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 =A07 +
+> =A0arch/arm/mach-omap2/cpuidle44xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0206 ++++++++++
+> =A0arch/arm/mach-omap2/include/mach/barriers.h =A0 =A0 =A0 =A0| =A0 48 +++
+> =A0arch/arm/mach-omap2/include/mach/omap-secure.h =A0 =A0 | =A0 57 +++
+> =A0arch/arm/mach-omap2/include/mach/omap-wakeupgen.h =A0| =A0 39 ++
+> =A0arch/arm/mach-omap2/include/mach/omap4-common.h =A0 =A0| =A0 70 +++-
+> =A0arch/arm/mach-omap2/omap-headsmp.S =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =
+=A0 =A05 -
+> =A0arch/arm/mach-omap2/omap-hotplug.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =
+=A0 14 +-
+> =A0arch/arm/mach-omap2/omap-mpuss-lowpower.c =A0 =A0 =A0 =A0 =A0| =A0398 =
++++++++++++++++++++
+> =A0arch/arm/mach-omap2/omap-secure.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 81 ++++
+> =A0arch/arm/mach-omap2/{omap44xx-smc.S =3D> omap-smc.S} | =A0 23 ++
+> =A0arch/arm/mach-omap2/omap-smp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ | =A0 38 ++
+> =A0arch/arm/mach-omap2/omap-wakeupgen.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+403 ++++++++++++++++++++
+> =A0arch/arm/mach-omap2/omap4-common.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =
+=A0 93 +++++-
+> =A0arch/arm/mach-omap2/omap4-sar-layout.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 5=
+0 +++
+> =A0arch/arm/mach-omap2/pm.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 | =A0 =A01 +
+> =A0arch/arm/mach-omap2/pm44xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 | =A0155 ++++++++-
+> =A0arch/arm/mach-omap2/sleep44xx.S =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0| =A0385 +++++++++++++++++++
+> =A0arch/arm/mm/mmu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0| =A0 =A08 +
+> =A0arch/arm/plat-omap/common.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| =A0 =A03 +
+> =A0arch/arm/plat-omap/include/plat/omap44xx.h =A0 =A0 =A0 =A0 | =A0 =A01 +
+> =A0arch/arm/plat-omap/include/plat/sram.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =
+=A01 +
+> =A0arch/arm/plat-omap/sram.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| =A0 47 ++-
+> =A027 files changed, 2104 insertions(+), 49 deletions(-)
+> =A0create mode 100644 arch/arm/mach-omap2/cpuidle44xx.c
+> =A0create mode 100644 arch/arm/mach-omap2/include/mach/barriers.h
+> =A0create mode 100644 arch/arm/mach-omap2/include/mach/omap-secure.h
+> =A0create mode 100644 arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
+> =A0create mode 100644 arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> =A0create mode 100644 arch/arm/mach-omap2/omap-secure.c
+> =A0rename arch/arm/mach-omap2/{omap44xx-smc.S =3D> omap-smc.S} (70%)
+> =A0create mode 100644 arch/arm/mach-omap2/omap-wakeupgen.c
+> =A0create mode 100644 arch/arm/mach-omap2/omap4-sar-layout.h
+> =A0create mode 100644 arch/arm/mach-omap2/sleep44xx.S
+>
+> Regards
+> Santosh
+>
+> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg47511.html
+>
+> [2] http://www.spinics.net/lists/arm-kernel/msg138803.html
+>
+> [3] https://lkml.org/lkml/2011/9/3/49
+>
+> [4] https://gitorious.org/omap-sw-develoment/linux-omap-dev/commits/v3.1-=
+rc4-omap4-pm-integrated
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
