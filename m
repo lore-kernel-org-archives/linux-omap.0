@@ -1,69 +1,122 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC PATCH 01/10] OMAP2+: l3-noc: Add support for device-tree
-Date: Thu, 8 Sep 2011 16:35:16 -0700
-Message-ID: <20110908233516.GA6401@ponder.secretlab.ca>
-References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
- <1314191356-10963-2-git-send-email-b-cousson@ti.com>
- <20110908180148.GA2967@ponder.secretlab.ca>
- <4E693AB6.7050200@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v4 04/11] OMAP2+: UART: Remove uart clock handling code from serial.c
+Date: Thu, 08 Sep 2011 16:39:21 -0700
+Message-ID: <87pqja61ue.fsf@ti.com>
+References: <1315400013-4849-1-git-send-email-govindraj.raja@ti.com>
+	<1315400013-4849-5-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:64814 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755616Ab1IHXfT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 19:35:19 -0400
-Received: by gxk21 with SMTP id 21so559506gxk.5
-        for <linux-omap@vger.kernel.org>; Thu, 08 Sep 2011 16:35:18 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <4E693AB6.7050200@ti.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:36568 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755353Ab1IHXj1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 19:39:27 -0400
+In-Reply-To: <1315400013-4849-5-git-send-email-govindraj.raja@ti.com>
+	(Govindraj R.'s message of "Wed, 7 Sep 2011 18:23:26 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Thu, Sep 08, 2011 at 11:59:18PM +0200, Cousson, Benoit wrote:
-> On 9/8/2011 8:01 PM, Grant Likely wrote:
-> >On Wed, Aug 24, 2011 at 03:09:07PM +0200, Benoit Cousson wrote:
-> >>Add device-tree support for the l3-noc driver.
-> >>
-> >>Use platform_driver_register to defer the probing at device init
-> >>time.
-> >>
-> >>Signed-off-by: Benoit Cousson<b-cousson@ti.com>
-> >>Cc: Tony Lindgren<tony@atomide.com>
-> >>Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> >>---
-> >>  arch/arm/mach-omap2/omap_l3_noc.c |   16 ++++++++++++++--
-> >>  1 files changed, 14 insertions(+), 2 deletions(-)
-> >>
-> >>diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/arch/arm/mach-omap2/omap_l3_noc.c
-> >>index 7b9f190..4630703 100644
-> >>--- a/arch/arm/mach-omap2/omap_l3_noc.c
-> >>+++ b/arch/arm/mach-omap2/omap_l3_noc.c
-> >>@@ -228,16 +228,28 @@ static int __exit omap4_l3_remove(struct platform_device *pdev)
-> >>  	return 0;
-> >>  }
-> >>
-> >>+#if defined(CONFIG_OF)
-> >>+static const struct of_device_id l3_noc_match[] = {
-> >>+	{.compatible = "arteris,noc", },
-> >
-> >Missing documentation for this compatible property.
-> 
-> As you already figured out... it will come later.
-> 
-> >Also, it appears
-> >to be rather on the generic side.
-> 
-> It is indeed a generic IP that will be there on OMAP5 too.
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-Even for common ip blocks, it is good practice to be specific about
-the implementation.  IP block details tend to change from one silicon
-design to the next.  Overly generic (optimistic) compatible value names
-generally should be avoided.  Instead, backwards compatibility is
-achieved by newer devices claiming compatibility with older
-implementations in the compatible list.
+> Cleanup serial.c file in preparation to addition of runtime API's in omap-serial
+> file. Remove all clock handling mechanism as this will be taken care with
+> pm runtime API's in omap-serial.c file itself.
+>
+> 1.) Remove omap-device enable and disable. We can can use get_sync/put_sync API's
+> 2.) Remove context save/restore can be done with runtime_resume callback for
+>     get_sync call. No need to save context as all reg details available in
+>     uart_port structure can be used for restore, so add missing regs in
+>     uart port struct.
+> 3.) Add func to identify console uart.
 
-g.
+I don't see that as part of this patch.
 
+> 4.) Erratum handling informed as flag to driver and func to handle erratum
+>     can be moved to omap-serial driver itself.
+
+OK, but I see two erratum flags removed, but only flag added back.
+Also, the erratum handling is completely removed here and not added to
+the driver.
+
+In general, this way of moving things makes it very difficult to review.
+You remove a bunch of things in this patch (and the previous one) and
+imply that some of it is added back to the driver.  However, that's
+really difficult to verify with patch review.
+
+If code is being moved, it is customary to remove it and add it to the
+new place in the same patch.
+
+> Acked-by: Alan Cox <alan@linux.intel.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+>  arch/arm/mach-omap2/serial.c                  |  742 ++-----------------------
+>  arch/arm/plat-omap/include/plat/omap-serial.h |   11 +-
+>  2 files changed, 53 insertions(+), 700 deletions(-)
+
+[...]
+
+> -static DEVICE_ATTR(sleep_timeout, 0644, sleep_timeout_show,
+> -		sleep_timeout_store);
+> -#define DEV_CREATE_FILE(dev, attr) WARN_ON(device_create_file(dev, attr))
+> -#else
+> -static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
+> -static void omap_uart_block_sleep(struct omap_uart_state *uart)
+> +struct omap_hwmod *omap_uart_hwmod_lookup(int num)
+
+function should be static
+
+[...]
+
+> +	for (i = 0; i < OMAP_MAX_HSUART_PORTS; i++) {
+> +		oh = omap_uart_hwmod_lookup(i);
+>  		if (!oh)
+> -			break;
+> -
+> -		uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
+> -		if (WARN_ON(!uart))
+> -			return -ENODEV;
+> -
+> -		uart->oh = oh;
+> -		uart->num = i++;
+> -		list_add_tail(&uart->node, &uart_list);
+> -		num_uarts++;
+> -
+> -		/*
+> -		 * NOTE: omap_hwmod_setup*() has not yet been called,
+> -		 *       so no hwmod functions will work yet.
+> -		 */
+> -
+> -		/*
+> -		 * During UART early init, device need to be probed
+> -		 * to determine SoC specific init before omap_device
+> -		 * is ready.  Therefore, don't allow idle here
+> -		 */
+> -		uart->oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
+> -	} while (1);
+> +			continue;
+>  
+> +		oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
+
+With proper runtime PM in the driver, I did not expect these to be
+needed any longer by the end of the series, but I see they are still
+there.  Are they really needed?
+
+[...]
+
+> @@ -864,15 +213,14 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+>   */
+>  void __init omap_serial_init(void)
+>  {
+> -	struct omap_uart_state *uart;
+>  	struct omap_board_data bdata;
+> +	u8 i;
+>  
+> -	list_for_each_entry(uart, &uart_list, node) {
+> -		bdata.id = uart->num;
+> +	for (i = 0; i < OMAP_MAX_HSUART_PORTS; i++) {
+
+This should probably use the hwmod class iterator.
+
+Kevin
