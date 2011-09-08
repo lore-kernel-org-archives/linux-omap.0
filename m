@@ -1,166 +1,934 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 1/6 v2] omap: musb: Adding hwmod data for ti81xx
-Date: Thu, 8 Sep 2011 11:56:25 +0530
-Message-ID: <CAP05o4Lfas96izGGVQN0qkTRX_kwUncPWVX2d6+izh4YMuQ6dA@mail.gmail.com>
-References: <1315414945-19829-1-git-send-email-ajay.gupta@ti.com>
-	<1315414945-19829-2-git-send-email-ajay.gupta@ti.com>
+From: TAO HU <tghk48@motorola.com>
+Subject: Re: Tasks schedule/migration issue with CPU hotplug?
+Date: Thu, 8 Sep 2011 14:47:08 +0800
+Message-ID: <CAOwKts8pXt6spknNfBV-wy4_KoSp-JaZsdbzOxxWTqu=f6X3Bg@mail.gmail.com>
+References: <CAOwKts_WTDBLkz9=0MBhs6wzc67XD_bYgGMiZ-JUM+8O7gP_fw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:54940 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758010Ab1IHG0b convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Sep 2011 02:26:31 -0400
-In-Reply-To: <1315414945-19829-2-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAOwKts_WTDBLkz9=0MBhs6wzc67XD_bYgGMiZ-JUM+8O7gP_fw@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ingo Molnar <mingo@elte.hu>, peterz@infradead.org, linux-kernel@vger.kernel.org
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, tony@atomide.com, Ravi Babu <ravibabu@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Wed, Sep 7, 2011 at 10:32 PM, Ajay Kumar Gupta <ajay.gupta@ti.com> w=
-rote:
-> From: Ravi Babu <ravibabu@ti.com>
+Resend with linux-kernel mail list included.
+
+On Wed, Sep 7, 2011 at 10:22 PM, TAO HU <tghk48@motorola.com> wrote:
+> Hi, All
 >
-> The usb subsystem (usbss) in ti81xx has two musb interfaces. There ar=
-e three
-> irqs and three address spaces for usbss, musb0 and musb1 respectively=
-=2E Created
-> one hwmod with three irq and memory resources.
+> We seems got a schedule/migration issue in a OMAP4430 dual-core system.
+> The kernel base is 2.6.35.7 and we're using CFS.
 >
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Keshava Munegowda <keshava_mgowda@ti.com>
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> Signed-off-by: Ravi Babu <ravibabu@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/omap_hwmod_81xx_data.c | =A0 74 ++++++++++++++=
-++++++++++++++
-> =A01 files changed, 74 insertions(+), 0 deletions(-)
+> In a stress testing, we created a huge amount of processes/threads and
+> forced the 2nd CPU plug/unplug back and forth.
+> Looks like a few tasks such as below ones didn't get scheduled in 8 secon=
+ds!
+> omap2_mcspi =A0(pid 21, exec-runtime 2223062.886210)
+> hackbench (pid 3445, exec-runtime 2223114.709956)
 >
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/ma=
-ch-omap2/omap_hwmod_81xx_data.c
-> index e73a4c6..e960d70 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-> @@ -194,6 +194,7 @@ static struct omap_hwmod ti81xx_timer4_hwmod;
-> =A0static struct omap_hwmod ti81xx_timer5_hwmod;
-> =A0static struct omap_hwmod ti81xx_timer6_hwmod;
-> =A0static struct omap_hwmod ti81xx_timer7_hwmod;
-> +static struct omap_hwmod ti81xx_usbss_hwmod;
+> We believe the two tasks were migrated to the primary CPU.
+> Somehow, they were no selected to run any more.
 >
-> =A0/* L4 SLOW -> TIMER1 interface */
-> =A0static struct omap_hwmod_addr_space ti81xx_timer1_addr_space[] =3D=
- {
-> @@ -650,6 +651,78 @@ static struct omap_hwmod ti81xx_timer7_hwmod =3D=
- {
-> =A0 =A0 =A0 =A0.omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_TI816=
-X | CHIP_IS_TI814X)
-> =A0};
+> The two tasks have a high exec_runtime value.
+> Can it be a scheduler's bug for tasks migration?
+> Do we need kind of normalization for vruntime when migrating tasks
+> from one CPU to another one?
 >
-> +/* L3 SLOW -> USBSS interface */
-> +static struct omap_hwmod_addr_space ti81xx_usbss_addr_space[] =3D {
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usbss",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x47400000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x47400000 =
-+ SZ_4K - 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE=
-_RT
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "musb0",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x47401000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x47401000 =
-+ SZ_2K - 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE=
-_RT
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "musb1",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x47401800,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x47401800 =
-+ SZ_2K - 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE=
-_RT
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 },
-> +};
-> +
-> +static struct omap_hwmod_class_sysconfig ti81xx_usbhsotg_sysc =3D {
-> + =A0 =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x0,
-> + =A0 =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x10,
-> + =A0 =A0 =A0 .sysc_flags =A0 =A0 =3D (SYSC_HAS_SIDLEMODE | SYSC_HAS_=
-SOFTRESET),
-> + =A0 =A0 =A0 .idlemodes =A0 =A0 =A0=3D (SIDLE_FORCE | SIDLE_NO | SID=
-LE_SMART),
-> + =A0 =A0 =A0 .sysc_fields =A0 =A0=3D &omap_hwmod_sysc_type2,
-> +};
-> +
-> +static struct omap_hwmod_class ti81xx_usbotg_class =3D {
-> + =A0 =A0 =A0 .name =3D "usbotg",
-> + =A0 =A0 =A0 .sysc =3D &ti81xx_usbhsotg_sysc,
-> +};
-> +
-> +static struct omap_hwmod_irq_info ti81xx_usbss_mpu_irqs[] =3D {
-> + =A0 =A0 =A0 { .name =3D "usbss-irq", .irq =3D 17, },
-> + =A0 =A0 =A0 { .name =3D "musb0-irq", .irq =3D 18, },
-> + =A0 =A0 =A0 { .name =3D "musb1-irq", .irq =3D 19, },
-> + =A0 =A0 =A0 { .irq =3D -1, },
-> +};
-> +
-> +static struct omap_hwmod_ocp_if ti81xx_l3_slow__usbss =3D {
-> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &ti81xx_l3_slow_hwmod,
-> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &ti81xx_usbss_hwmod,
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbotg_ick",
-> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D ti81xx_usbss_addr_space,
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
-> + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D OCPIF_SWSUP_IDLE,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *ti81xx_usbss_slaves[] =3D {
-> + =A0 =A0 =A0 &ti81xx_l3_slow__usbss,
-> +};
-> +
-> +static struct omap_hwmod ti81xx_usbss_hwmod =3D {
-> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usb_otg_hs",
-> + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D ti81xx_usbss_mpu_irqs,
-> + =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "usbotg_ick",
-> + =A0 =A0 =A0 .clkdm_name =A0 =A0 =3D "default_usb_clkdm",
-> + =A0 =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .omap4 =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .clkctrl_offs =3D TI816=
-X_CM_DEFAULT_USB_CLKCTRL_OFFSET,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D ti81xx_usbss_slaves,
-> + =A0 =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(ti81xx_usbss_slaves)=
-,
-> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &ti81xx_usbotg_class,
-> + =A0 =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_TI816X=
- | CHIP_IS_TI814X)
-> +};
+> Here is the part of ftrace logs:
+> <0>[ 6953.595642] hackbenc-3425 =A0 =A01...2. 2630440327us : =A0 3425:120=
+:S
+> =3D=3D> [001] =A03445:120:R <...>
+> <0>[ 6953.595672] =A0 =A0<...>-3445 =A0 =A01d..5. 2630440358us : =A0 3445=
+:120:R
+> =A0+ [001] =A03426:120:R hackbench
+> <0>[ 6953.595703] =A0 =A0<...>-3445 =A0 =A01...2. 2630440388us : =A0 3445=
+:120:R
+> =3D=3D> [001] =A03426:120:R hackbench
+> <0>[ 6953.595733] hackbenc-3426 =A0 =A01...2. 2630440388us : =A0 3426:120=
+:S
+> =3D=3D> [001] =A03445:120:R <...>
+> <0>[ 6953.595764] =A0 =A0<...>-3445 =A0 =A01d..5. 2630440419us : =A0 3445=
+:120:R
+> =A0+ [001] =A03427:120:R hackbench
+> <0>[ 6953.595825] =A0 =A0<...>-3445 =A0 =A01...2. 2630440449us : =A0 3445=
+:120:R
+> =3D=3D> [001] =A03427:120:R hackbench
+> .... ...
+> <0>[ 6955.049468] =A0 =A0<...>-3396 =A0 =A01d..5. 2630462666us : =A0 3396=
+:120:R
+> =A0+ [001] =A03376:120:R hackbench
+> <0>[ 6955.049499] =A0 =A0<...>-3396 =A0 =A01...2. 2630462697us : =A0 3396=
+:120:R
+> =3D=3D> [001] =A02683: =A00:R <...>
+> <0>[ 6955.049560] =A0 =A0<...>-2683 =A0 =A01...2. 2630463093us : =A0 2683=
+: =A00:S
+> =3D=3D> [001] =A0 =A0 0: =A00:R <idle>
+> <0>[ 6955.049591] =A0 <idle>-0 =A0 =A0 =A0 1d..5. 2630463154us : =A0 =A0 =
+=A00: =A00:R
+> =A0+ [000] =A01642:120:D <...> =A0 (the 2nd CPU down here)
+> ... ...
+> ... ....
+> <0>[ 6958.913970] hackbenc-3226 =A0 =A00...2. 2638767048us : =A0 3226:120=
+:R
+> =3D=3D> [000] =A03223:120:R hackbench
+> <0>[ 6958.914001] hackbenc-3223 =A0 =A00d.s7. 2638767110us : =A0 3223:120=
+:S
+> =A0+ [000] =A02345:120:R crashspi
+> <0>[ 6958.914031] hackbenc-3223 =A0 =A00...2. 2638767110us : =A0 3223:120=
+:S
+> =3D=3D> [000] =A03226:120:R hackbench
+> <0>[ 6958.914062] hackbenc-3226 =A0 =A00...2. 2638767140us : =A0 3226:120=
+:R
+> =3D=3D> [000] =A02345:120:R crashspi
+> <0>[ 6958.914093] ---------------------------------
 >
-> =A0static __initdata struct omap_hwmod *ti81xx_hwmods[] =3D {
-> =A0 =A0 =A0 =A0&ti81xx_l3_fast_hwmod,
-> @@ -668,6 +741,7 @@ static __initdata struct omap_hwmod *ti81xx_hwmod=
-s[] =3D {
-> =A0 =A0 =A0 =A0&ti81xx_timer5_hwmod,
-> =A0 =A0 =A0 =A0&ti81xx_timer6_hwmod,
-> =A0 =A0 =A0 =A0&ti81xx_timer7_hwmod,
-> + =A0 =A0 =A0 &ti81xx_usbss_hwmod,
-> =A0 =A0 =A0 =A0NULL,
-> =A0};
+>
+> Here is the threads/process info dump:
+>
+> <4>[ 6950.135192] now at 6950549.376887 msecs
+> <4>[ 6950.135223] =A0 .jiffies =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 : 850755
+> <4>[ 6950.135223] =A0 .sysctl_sched_latency =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0: 10.000000
+> <4>[ 6950.135253] =A0 .sysctl_sched_min_granularity =A0 =A0 =A0 =A0 =A0 =
+=A0: 4.000000
+> <4>[ 6950.135253] =A0 .sysctl_sched_wakeup_granularity =A0 =A0 =A0 =A0 : =
+2.000000
+> <4>[ 6950.135284] =A0 .sysctl_sched_child_runs_first =A0 =A0 =A0 =A0 =A0 =
+: 0.000000
+> <4>[ 6950.135284] =A0 .sysctl_sched_features =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 : 15471
+> <4>[ 6950.135284] =A0 .sysctl_sched_tunable_scaling =A0 =A0 =A0 =A0 =A0 =
+=A0: 1 (logaritmic)
+> <4>[ 6950.135314]
+> <4>[ 6950.135314] cpu#0
+> <4>[ 6950.135314] =A0 .nr_running =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 212
+> <4>[ 6950.135345] =A0 .load =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0: 217650
+> <4>[ 6950.135345] =A0 .nr_switches =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 : =
+144304735
+> <4>[ 6950.135375] =A0 .nr_load_updates =A0 =A0 =A0 =A0 =A0 =A0 =A0 : 8471=
+05
+> <4>[ 6950.135375] =A0 .nr_uninterruptible =A0 =A0 =A0 =A0 =A0 =A0: 108
+> <4>[ 6950.135375] =A0 .next_balance =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+0.849692
+> <4>[ 6950.135406] =A0 .curr->pid =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+: 2345
+> <4>[ 6950.135406] =A0 .clock =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 : 6946109.313964
+> <4>[ 6950.135437] =A0 .cpu_load[0] =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 : =
+216626
+> <4>[ 6950.135437] =A0 .cpu_load[1] =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 : =
+216865
+> <4>[ 6950.135437] =A0 .cpu_load[2] =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 : =
+217114
+> <4>[ 6950.135467] =A0 .cpu_load[3] =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 : =
+217240
+> <4>[ 6950.135467] =A0 .cpu_load[4] =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 : =
+217318
+> <4>[ 6950.135467] =A0 .yld_count =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+: 46326
+> <4>[ 6950.135498] =A0 .sched_switch =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: 0
+> <4>[ 6950.135498] =A0 .sched_count =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 : =
+144442385
+> <4>[ 6950.135528] =A0 .sched_goidle =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+2021081
+> <4>[ 6950.135528] =A0 .avg_idle =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0: 51188
+> <4>[ 6950.135528] =A0 .ttwu_count =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 93102282
+> <4>[ 6950.135559] =A0 .ttwu_local =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 87445098
+> <4>[ 6950.135559] =A0 .bkl_count =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+: 32006801
+> <4>[ 6950.135589]
+> <4>[ 6950.135589] cfs_rq[0]:/bg_non_interactive
+> <4>[ 6950.135589] =A0 .exec_clock =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 7934.204110
+> <4>[ 6950.135620] =A0 .MIN_vruntime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+0.000001
+> <4>[ 6950.135620] =A0 .min_vruntime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+79877.877411
+> <4>[ 6950.135650] =A0 .max_vruntime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+0.000001
+> <4>[ 6950.135650] =A0 .spread =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0: 0.000000
+> <4>[ 6950.135650] =A0 .spread0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 : -2143179.551111
+> <4>[ 6950.135681] =A0 .nr_running =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 0
+> <4>[ 6950.135681] =A0 .load =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0: 0
+> <4>[ 6950.135711] =A0 .nr_spread_over =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: 390
+> <4>[ 6950.135711] =A0 .shares =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0: 0
+> <4>[ 6950.135711] =A0 .se->exec_start =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: 69=
+45754.943847
+> <4>[ 6950.135742] =A0 .se->vruntime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+2223057.623199
+> <4>[ 6950.135742] =A0 .se->sum_exec_runtime =A0 =A0 =A0 =A0 =A0: 7934.417=
+734
+> <4>[ 6950.135772] =A0 .se->statistics.wait_start =A0 =A0 : 0.000000
+> <4>[ 6950.135772] =A0 .se->statistics.sleep_start =A0 =A0: 0.000000
+> <4>[ 6950.135803] =A0 .se->statistics.block_start =A0 =A0: 0.000000
+> <4>[ 6950.135803] =A0 .se->statistics.sleep_max =A0 =A0 =A0: 0.000000
+> <4>[ 6950.135803] =A0 .se->statistics.block_max =A0 =A0 =A0: 0.000000
+> <4>[ 6950.135833] =A0 .se->statistics.exec_max =A0 =A0 =A0 : 7.843018
+> <4>[ 6950.135833] =A0 .se->statistics.slice_max =A0 =A0 =A0: 12.329101
+> <4>[ 6950.135864] =A0 .se->statistics.wait_max =A0 =A0 =A0 : 45493.103028
+> <4>[ 6950.135864] =A0 .se->statistics.wait_sum =A0 =A0 =A0 : 722360.626242
+> <4>[ 6950.135894] =A0 .se->statistics.wait_count =A0 =A0 : 37054
+> <4>[ 6950.135894] =A0 .se->load.weight =A0 =A0 =A0 =A0 =A0 =A0 =A0 : 26
+> <4>[ 6950.135894]
+> <4>[ 6950.135925] cfs_rq[0]:/fg_boost
+> <4>[ 6950.135925] =A0 .exec_clock =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 0.000000
+> <4>[ 6950.135925] =A0 .MIN_vruntime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+0.000001
+> <4>[ 6950.135955] =A0 .min_vruntime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+-1.048576
+> <4>[ 6950.135955] =A0 .max_vruntime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+0.000001
+> <4>[ 6950.135986] =A0 .spread =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0: 0.000000
+> <4>[ 6950.135986] =A0 .spread0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 : -2223058.477098
+> <4>[ 6950.135986] =A0 .nr_running =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 0
+> <4>[ 6950.136016] =A0 .load =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0: 0
+> <4>[ 6950.136016] =A0 .nr_spread_over =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: 0
+> <4>[ 6950.136047] =A0 .shares =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0: 0
+> <4>[ 6950.136047] =A0 .se->exec_start =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: 0.=
+000000
+> <4>[ 6950.136047] =A0 .se->vruntime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+0.000000
+> <4>[ 6950.136077] =A0 .se->sum_exec_runtime =A0 =A0 =A0 =A0 =A0: 0.000000
+> <4>[ 6950.136077] =A0 .se->statistics.wait_start =A0 =A0 : 0.000000
+> <4>[ 6950.136108] =A0 .se->statistics.sleep_start =A0 =A0: 0.000000
+> <4>[ 6950.136108] =A0 .se->statistics.block_start =A0 =A0: 0.000000
+> <4>[ 6950.136108] =A0 .se->statistics.sleep_max =A0 =A0 =A0: 0.000000
+> <4>[ 6950.136138] =A0 .se->statistics.block_max =A0 =A0 =A0: 0.000000
+> <4>[ 6950.136138] =A0 .se->statistics.exec_max =A0 =A0 =A0 : 0.000000
+> <4>[ 6950.136169] =A0 .se->statistics.slice_max =A0 =A0 =A0: 0.000000
+> <4>[ 6950.136169] =A0 .se->statistics.wait_max =A0 =A0 =A0 : 0.000000
+> <4>[ 6950.136199] =A0 .se->statistics.wait_sum =A0 =A0 =A0 : 0.000000
+> <4>[ 6950.136199] =A0 .se->statistics.wait_count =A0 =A0 : 0
+> <4>[ 6950.136199] =A0 .se->load.weight =A0 =A0 =A0 =A0 =A0 =A0 =A0 : 512
+> <4>[ 6950.136230]
+> <4>[ 6950.136230] cfs_rq[0]:/
+> <4>[ 6950.136230] =A0 .exec_clock =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 6520265.283900
+> <4>[ 6950.136260] =A0 .MIN_vruntime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+2223057.428522
+> <4>[ 6950.136260] =A0 .min_vruntime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+2223057.428522
+> <4>[ 6950.136291] =A0 .max_vruntime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: =
+2223114.709956
+> <4>[ 6950.136291] =A0 .spread =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0: 57.281434
+> <4>[ 6950.136291] =A0 .spread0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 : 0.000000
+> <4>[ 6950.136322] =A0 .nr_running =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 212
+> <4>[ 6950.136322] =A0 .load =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0: 217650
+> <4>[ 6950.136352] =A0 .nr_spread_over =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: 12=
+5034
+> <4>[ 6950.136352] =A0 .shares =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0: 0
+> <4>[ 6950.136352]
+> <4>[ 6950.136383] rt_rq[0]:/bg_non_interactive
+> <4>[ 6950.136383] =A0 .rt_nr_running =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 : 0
+> <4>[ 6950.136383] =A0 .rt_throttled =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: 0
+> <4>[ 6950.136413] =A0 .rt_time =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 : 0.000000
+> <4>[ 6950.136413] =A0 .rt_runtime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 0.000000
+> <4>[ 6950.136413]
+> <4>[ 6950.136444] rt_rq[0]:/fg_boost
+> <4>[ 6950.136444] =A0 .rt_nr_running =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 : 0
+> <4>[ 6950.136444] =A0 .rt_throttled =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: 0
+> <4>[ 6950.136474] =A0 .rt_time =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 : 0.000000
+> <4>[ 6950.136474] =A0 .rt_runtime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 0.000000
+> <4>[ 6950.136505]
+> <4>[ 6950.136505] rt_rq[0]:/
+> <4>[ 6950.136505] =A0 .rt_nr_running =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 : 0
+> <4>[ 6950.136505] =A0 .rt_throttled =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: 0
+> <4>[ 6950.136535] =A0 .rt_time =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 : 0.000000
+> <4>[ 6950.136535] =A0 .rt_runtime =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+: 950.000000
+> <4>[ 6950.136566]
+> <4>[ 6950.136566] runnable tasks:
+> <4>[ 6950.136566] =A0 =A0 =A0 =A0 =A0 =A0 task =A0 PID =A0 =A0 =A0 =A0 tr=
+ee-key =A0switches
+> prio =A0 =A0 exec-runtime =A0 =A0 =A0 =A0 sum-exec =A0 =A0 =A0 =A0sum-sle=
+ep
+> <4>[ 6950.136596]
+> -------------------------------------------------------------------------=
+---------------------------------
+> <4>[ 6950.136627] =A0 =A0 =A0omap2_mcspi =A0 =A021 =A0 2223062.886210 =A0=
+29451523
+> 120 =A0 2223062.886210 =A0 1177589.035038 =A0 1648080.867813 /
+> <4>[ 6950.136718] =A0 =A0 =A0 =A0salt_lj_2 =A01683 =A0 2223061.583766 =A0=
+ =A0 =A02671
+> 120 =A0 2223061.583766 =A0 =A0 =A06119.567813 =A0 6395425.231938 /
+> <4>[ 6950.136779] =A0test-fb-refresh =A01644 =A0 2223069.415582 =A0 =A067=
+2416
+> 120 =A0 2223069.415582 =A0 2846654.876990 =A0 =A0711754.241756 /
+> <4>[ 6950.136810] =A0ActivityManager =A04634 =A0 2223058.516356 =A0 =A0 1=
+3709
+> 118 =A0 2223058.516356 =A0 =A0 38864.105043 =A0 4091806.121829 /
+> <4>[ 6950.137115] R =A0 =A0 =A0 crashspi =A02345 =A0 2223052.428522 =A0 =
+=A0 17082
+> 120 =A0 2223052.428522 =A0 =A0 =A0 433.624298 =A0 =A0237326.354921 /
+> <4>[ 6950.137145] =A0 =A0 =A0 =A0 =A0 =A0 =A0 dd =A03030 =A0 2223058.9897=
+26 =A0 =A0 =A0 638
+> 120 =A0 2223058.989726 =A0 =A0 =A02179.229733 =A0 =A0 16940.704346 /
+> <4>[ 6950.137207] =A0 =A0 =A0 =A0hackbench =A03066 =A0 2223057.672624 =A0=
+ =A0 =A09610
+> 120 =A0 2223057.672624 =A0 =A0 =A0 393.890422 =A0 =A0 =A0 197.662353 /
+> <4>[ 6950.137237] =A0 =A0 =A0 =A0hackbench =A03067 =A0 2223058.832266 =A0=
+ =A0 =A09197
+> 120 =A0 2223058.832266 =A0 =A0 =A0 395.019547 =A0 =A0 =A0 193.176269 /
+> <4>[ 6950.137268] =A0 =A0 =A0 =A0hackbench =A03068 =A0 2223057.764114 =A0=
+ =A0 =A09466
+> 120 =A0 2223057.764114 =A0 =A0 =A0 393.951394 =A0 =A0 =A0 197.631836 /
+> <4>[ 6950.137298] =A0 =A0 =A0 =A0hackbench =A03069 =A0 2223057.916691 =A0=
+ =A0 =A09308
+> 120 =A0 2223057.916691 =A0 =A0 =A0 394.103971 =A0 =A0 =A0 193.145752 /
+> <4>[ 6950.137329] =A0 =A0 =A0 =A0hackbench =A03070 =A0 2223057.733619 =A0=
+ =A0 =A09395
+> 120 =A0 2223057.733619 =A0 =A0 =A0 393.920900 =A0 =A0 =A0 193.115234 /
+> <4>[ 6950.137359] =A0 =A0 =A0 =A0hackbench =A03071 =A0 2223059.290012 =A0=
+ =A0 =A09357
+> 120 =A0 2223059.290012 =A0 =A0 =A0 395.507810 =A0 =A0 =A0 197.540284 /
+> <4>[ 6950.137420] =A0 =A0 =A0 =A0hackbench =A03072 =A0 2223058.313450 =A0=
+ =A0 =A09501
+> 120 =A0 2223058.313450 =A0 =A0 =A0 394.500730 =A0 =A0 =A0 193.054199 /
+> <4>[ 6950.137451] =A0 =A0 =A0 =A0hackbench =A03073 =A0 2223057.977845 =A0=
+ =A0 =A09588
+> 120 =A0 2223057.977845 =A0 =A0 =A0 394.165126 =A0 =A0 =A0 197.509766 /
+> <4>[ 6950.137481] =A0 =A0 =A0 =A0hackbench =A03074 =A0 2223058.649040 =A0=
+ =A0 =A09272
+> 120 =A0 2223058.649040 =A0 =A0 =A0 394.836321 =A0 =A0 =A0 197.479248 /
+> <4>[ 6950.137512] =A0 =A0 =A0 =A0hackbench =A03075 =A0 2223058.221896 =A0=
+ =A0 =A09536
+> 120 =A0 2223058.221896 =A0 =A0 =A0 394.439694 =A0 =A0 =A0 197.357178 /
+> <4>[ 6950.137542] =A0 =A0 =A0 =A0hackbench =A03076 =A0 2223058.160997 =A0=
+ =A0 =A09151
+> 120 =A0 2223058.160997 =A0 =A0 =A0 394.348277 =A0 =A0 =A0 197.418213 /
+> <4>[ 6950.137573] =A0 =A0 =A0 =A0hackbench =A03077 =A0 2223057.733577 =A0=
+ =A0 =A09574
+> 120 =A0 2223057.733577 =A0 =A0 =A0 393.951375 =A0 =A0 =A0 192.993164 /
+> <4>[ 6950.137603] =A0 =A0 =A0 =A0hackbench =A03078 =A0 2223058.710150 =A0=
+ =A0 =A09455
+> 120 =A0 2223058.710150 =A0 =A0 =A0 394.897431 =A0 =A0 =A0 197.296142 /
+> <4>[ 6950.137664] =A0 =A0 =A0 =A0hackbench =A03079 =A0 2223057.947243 =A0=
+ =A0 =A08920
+> 120 =A0 2223057.947243 =A0 =A0 =A0 394.134524 =A0 =A0 =A0 192.962646 /
+> <4>[ 6950.137695] =A0 =A0 =A0 =A0hackbench =A03080 =A0 2223057.733599 =A0=
+ =A0 =A09466
+> 120 =A0 2223057.733599 =A0 =A0 =A0 393.920880 =A0 =A0 =A0 197.326660 /
+> <4>[ 6950.137725] =A0 =A0 =A0 =A0hackbench =A03081 =A0 2223058.984851 =A0=
+ =A0 =A09557
+> 120 =A0 2223058.984851 =A0 =A0 =A0 395.172132 =A0 =A0 =A0 192.901611 /
+> <4>[ 6950.137756] =A0 =A0 =A0 =A0hackbench =A03082 =A0 2223058.435540 =A0=
+ =A0 =A08960
+> 120 =A0 2223058.435540 =A0 =A0 =A0 394.653338 =A0 =A0 =A0 192.840576 /
+> <4>[ 6950.137786] =A0 =A0 =A0 =A0hackbench =A03083 =A0 2223057.794693 =A0=
+ =A0 =A09513
+> 120 =A0 2223057.794693 =A0 =A0 =A0 393.981973 =A0 =A0 =A0 197.235108 /
+> <4>[ 6950.137817] =A0 =A0 =A0 =A0hackbench =A03084 =A0 2223058.862755 =A0=
+ =A0 =A09145
+> 120 =A0 2223058.862755 =A0 =A0 =A0 395.050035 =A0 =A0 =A0 192.810059 /
+> <4>[ 6950.137847] =A0 =A0 =A0 =A0hackbench =A03085 =A0 2223057.855681 =A0=
+ =A0 =A09013
+> 120 =A0 2223057.855681 =A0 =A0 =A0 394.042962 =A0 =A0 =A0 192.749023 /
+> <4>[ 6950.137908] =A0 =A0 =A0 =A0hackbench =A03106 =A0 2223057.916697 =A0=
+ =A0 =A07399
+> 120 =A0 2223057.916697 =A0 =A0 =A0 394.134495 =A0 =A0 =A0 164.001465 /
+> <4>[ 6950.137939] =A0 =A0 =A0 =A0hackbench =A03107 =A0 2223058.221850 =A0=
+ =A0 =A07661
+> 120 =A0 2223058.221850 =A0 =A0 =A0 394.439648 =A0 =A0 =A0 163.940430 /
+> <4>[ 6950.137969] =A0 =A0 =A0 =A0hackbench =A03108 =A0 2223058.099761 =A0=
+ =A0 =A07428
+> 120 =A0 2223058.099761 =A0 =A0 =A0 394.287041 =A0 =A0 =A0 163.879395 /
+> <4>[ 6950.138000] =A0 =A0 =A0 =A0hackbench =A03109 =A0 2223058.343988 =A0=
+ =A0 =A07831
+> 120 =A0 2223058.343988 =A0 =A0 =A0 394.561785 =A0 =A0 =A0 162.231446 /
+> <4>[ 6950.138031] =A0 =A0 =A0 =A0hackbench =A03110 =A0 2223057.550561 =A0=
+ =A0 =A07632
+> 120 =A0 2223057.550561 =A0 =A0 =A0 393.737842 =A0 =A0 =A0 163.848877 /
+> <4>[ 6950.138061] =A0 =A0 =A0 =A0hackbench =A03111 =A0 2223058.038736 =A0=
+ =A0 =A06971
+> 120 =A0 2223058.038736 =A0 =A0 =A0 394.256534 =A0 =A0 =A0 163.787842 /
+> <4>[ 6950.138122] =A0 =A0 =A0 =A0hackbench =A03112 =A0 2223059.045885 =A0=
+ =A0 =A07666
+> 120 =A0 2223059.045885 =A0 =A0 =A0 395.233166 =A0 =A0 =A0 162.200928 /
+> <4>[ 6950.138153] =A0 =A0 =A0 =A0hackbench =A03113 =A0 2223059.106955 =A0=
+ =A0 =A07683
+> 120 =A0 2223059.106955 =A0 =A0 =A0 395.294236 =A0 =A0 =A0 163.726806 /
+> <4>[ 6950.138183] =A0 =A0 =A0 =A0hackbench =A03114 =A0 2223057.581077 =A0=
+ =A0 =A07724
+> 120 =A0 2223057.581077 =A0 =A0 =A0 393.768358 =A0 =A0 =A0 162.170410 /
+> <4>[ 6950.138214] =A0 =A0 =A0 =A0hackbench =A03115 =A0 2223057.886195 =A0=
+ =A0 =A07580
+> 120 =A0 2223057.886195 =A0 =A0 =A0 394.073475 =A0 =A0 =A0 163.696289 /
+> <4>[ 6950.138244] =A0 =A0 =A0 =A0hackbench =A03116 =A0 2223058.832318 =A0=
+ =A0 =A03037
+> 120 =A0 2223058.832318 =A0 =A0 =A0 314.117462 =A0 =A0 =A0 471.862792 /
+> <4>[ 6950.138275] =A0 =A0 =A0 =A0hackbench =A03117 =A0 2223058.404983 =A0=
+ =A0 =A07230
+> 120 =A0 2223058.404983 =A0 =A0 =A0 394.592264 =A0 =A0 =A0 163.665771 /
+> <4>[ 6950.138305] =A0 =A0 =A0 =A0hackbench =A03118 =A0 2223059.168044 =A0=
+ =A0 =A07859
+> 120 =A0 2223059.168044 =A0 =A0 =A0 395.355324 =A0 =A0 =A0 516.845703 /
+> <4>[ 6950.138366] =A0 =A0 =A0 =A0hackbench =A03119 =A0 2223058.343964 =A0=
+ =A0 =A07533
+> 120 =A0 2223058.343964 =A0 =A0 =A0 394.561762 =A0 =A0 =A0 163.604736 /
+> <4>[ 6950.138397] =A0 =A0 =A0 =A0hackbench =A03120 =A0 2223058.649172 =A0=
+ =A0 =A07738
+> 120 =A0 2223058.649172 =A0 =A0 =A0 394.836453 =A0 =A0 =A0 163.543701 /
+> <4>[ 6950.138427] =A0 =A0 =A0 =A0hackbench =A03121 =A0 2223057.947257 =A0=
+ =A0 =A03433
+> 120 =A0 2223057.947257 =A0 =A0 =A0 313.201884 =A0 =A0 =A0 471.740722 /
+> <4>[ 6950.138458] =A0 =A0 =A0 =A0hackbench =A03122 =A0 2223059.015328 =A0=
+ =A0 =A07743
+> 120 =A0 2223059.015328 =A0 =A0 =A0 395.233126 =A0 =A0 =A0 516.693117 /
+> <4>[ 6950.138488] =A0 =A0 =A0 =A0hackbench =A03123 =A0 2223058.282921 =A0=
+ =A0 =A07757
+> 120 =A0 2223058.282921 =A0 =A0 =A0 394.470201 =A0 =A0 =A0 163.513184 /
+> <4>[ 6950.138519] =A0 =A0 =A0 =A0hackbench =A03124 =A0 2223057.550511 =A0=
+ =A0 =A07373
+> 120 =A0 2223057.550511 =A0 =A0 =A0 393.737792 =A0 =A0 =A0 516.693116 /
+> <4>[ 6950.138549] =A0 =A0 =A0 =A0hackbench =A03125 =A0 2223057.550537 =A0=
+ =A0 =A07566
+> 120 =A0 2223057.550537 =A0 =A0 =A0 393.737818 =A0 =A0 =A0 163.482666 /
+> <4>[ 6950.138610] =A0 =A0 =A0 =A0hackbench =A03146 =A0 2223058.221875 =A0=
+ =A0 =A09126
+> 120 =A0 2223058.221875 =A0 =A0 =A0 394.409155 =A0 =A0 =A0 147.613526 /
+> <4>[ 6950.138641] =A0 =A0 =A0 =A0hackbench =A03147 =A0 2223073.145025 =A0=
+ =A0 =A09818
+> 120 =A0 2223073.145025 =A0 =A0 =A0 409.332306 =A0 =A0 =A0 157.928467 /
+> <4>[ 6950.138671] =A0 =A0 =A0 =A0hackbench =A03148 =A0 2223057.977772 =A0=
+ =A0 =A09457
+> 120 =A0 2223057.977772 =A0 =A0 =A0 394.165053 =A0 =A0 =A0 147.552490 /
+> <4>[ 6950.138702] =A0 =A0 =A0 =A0hackbench =A03149 =A0 2223058.984894 =A0=
+ =A0 =A09508
+> 120 =A0 2223058.984894 =A0 =A0 =A0 395.202692 =A0 =A0 =A0 147.491455 /
+> <4>[ 6950.138732] =A0 =A0 =A0 =A0hackbench =A03150 =A0 2223102.045087 =A0=
+ =A0 10882
+> 120 =A0 2223102.045087 =A0 =A0 =A0 438.232368 =A0 =A0 =A0 157.745361 /
+> <4>[ 6950.138763] =A0 =A0 =A0 =A0hackbench =A03151 =A0 2223059.442607 =A0=
+ =A0 =A09630
+> 120 =A0 2223059.442607 =A0 =A0 =A0 395.629888 =A0 =A0 =A0 147.460937 /
+> <4>[ 6950.138824] =A0 =A0 =A0 =A0hackbench =A03152 =A0 2223058.405016 =A0=
+ =A0 =A09648
+> 120 =A0 2223058.405016 =A0 =A0 =A0 394.592296 =A0 =A0 =A0 157.836914 /
+> <4>[ 6950.138854] =A0 =A0 =A0 =A0hackbench =A03153 =A0 2223058.527088 =A0=
+ =A0 =A09373
+> 120 =A0 2223058.527088 =A0 =A0 =A0 394.714368 =A0 =A0 =A0 157.714844 /
+> <4>[ 6950.138885] =A0 =A0 =A0 =A0hackbench =A03154 =A0 2223058.282932 =A0=
+ =A0 =A09576
+> 120 =A0 2223058.282932 =A0 =A0 =A0 394.470213 =A0 =A0 =A0 157.470703 /
+> <4>[ 6950.138916] =A0 =A0 =A0 =A0hackbench =A03155 =A0 2223058.893246 =A0=
+ =A0 =A08810
+> 120 =A0 2223058.893246 =A0 =A0 =A0 395.080526 =A0 =A0 =A0 147.399903 /
+> <4>[ 6950.138946] =A0 =A0 =A0 =A0hackbench =A03156 =A0 2223058.130297 =A0=
+ =A0 =A09568
+> 120 =A0 2223058.130297 =A0 =A0 =A0 394.317578 =A0 =A0 =A0 157.562256 /
+> <4>[ 6950.138977] =A0 =A0 =A0 =A0hackbench =A03157 =A0 2223059.412138 =A0=
+ =A0 =A09432
+> 120 =A0 2223059.412138 =A0 =A0 =A0 395.599418 =A0 =A0 =A0 157.501221 /
+> <4>[ 6950.139007] =A0 =A0 =A0 =A0hackbench =A03158 =A0 2223058.740634 =A0=
+ =A0 =A09527
+> 120 =A0 2223058.740634 =A0 =A0 =A0 394.927915 =A0 =A0 =A0 147.369385 /
+> <4>[ 6950.139068] =A0 =A0 =A0 =A0hackbench =A03159 =A0 2223058.221865 =A0=
+ =A0 =A09193
+> 120 =A0 2223058.221865 =A0 =A0 =A0 394.409146 =A0 =A0 =A0 157.653809 /
+> <4>[ 6950.139099] =A0 =A0 =A0 =A0hackbench =A03160 =A0 2223058.282916 =A0=
+ =A0 =A09580
+> 120 =A0 2223058.282916 =A0 =A0 =A0 394.500714 =A0 =A0 =A0 147.308350 /
+> <4>[ 6950.139129] =A0 =A0 =A0 =A0hackbench =A03161 =A0 2223058.832267 =A0=
+ =A0 =A08928
+> 120 =A0 2223058.832267 =A0 =A0 =A0 395.019548 =A0 =A0 =A0 445.556640 /
+> <4>[ 6950.139160] =A0 =A0 =A0 =A0hackbench =A03162 =A0 2223058.069307 =A0=
+ =A0 =A09401
+> 120 =A0 2223058.069307 =A0 =A0 =A0 394.287105 =A0 =A0 =A0 157.592774 /
+> <4>[ 6950.139190] =A0 =A0 =A0 =A0hackbench =A03163 =A0 2223059.076440 =A0=
+ =A0 =A09460
+> 120 =A0 2223059.076440 =A0 =A0 =A0 395.263720 =A0 =A0 =A0 147.216797 /
+> <4>[ 6950.139221] =A0 =A0 =A0 =A0hackbench =A03164 =A0 2223058.069300 =A0=
+ =A0 =A09206
+> 120 =A0 2223058.069300 =A0 =A0 =A0 394.256581 =A0 =A0 =A0 157.379150 /
+> <4>[ 6950.139251] =A0 =A0 =A0 =A0hackbench =A03165 =A0 2223059.412122 =A0=
+ =A0 =A08881
+> 120 =A0 2223059.412122 =A0 =A0 =A0 395.629920 =A0 =A0 =A0 157.409668 /
+> <4>[ 6950.139312] =A0 =A0 =A0 =A0hackbench =A03186 =A0 2223057.764144 =A0=
+ =A0 =A05252
+> 120 =A0 2223057.764144 =A0 =A0 =A0 393.981942 =A0 =A0 =A0 128.143310 /
+> <4>[ 6950.139343] =A0 =A0 =A0 =A0hackbench =A03187 =A0 2223059.320515 =A0=
+ =A0 =A05568
+> 120 =A0 2223059.320515 =A0 =A0 =A0 395.507795 =A0 =A0 =A0 128.082276 /
+> <4>[ 6950.139373] =A0 =A0 =A0 =A0hackbench =A03188 =A0 2223057.550470 =A0=
+ =A0 =A05303
+> 120 =A0 2223057.550470 =A0 =A0 =A0 393.737751 =A0 =A0 =A0 128.051758 /
+> <4>[ 6950.139404] =A0 =A0 =A0 =A0hackbench =A03189 =A0 2223058.496557 =A0=
+ =A0 =A05096
+> 120 =A0 2223058.496557 =A0 =A0 =A0 394.714355 =A0 =A0 =A0 127.990723 /
+> <4>[ 6950.139434] =A0 =A0 =A0 =A0hackbench =A03190 =A0 2223058.893313 =A0=
+ =A0 =A05242
+> 120 =A0 2223058.893313 =A0 =A0 =A0 395.080594 =A0 =A0 =A0 127.960205 /
+> <4>[ 6950.139465] =A0 =A0 =A0 =A0hackbench =A03191 =A0 2223057.733573 =A0=
+ =A0 =A05030
+> 120 =A0 2223057.733573 =A0 =A0 =A0 393.920853 =A0 =A0 =A0 127.899170 /
+> <4>[ 6950.139526] =A0 =A0 =A0 =A0hackbench =A03192 =A0 2223058.343903 =A0=
+ =A0 =A05208
+> 120 =A0 2223058.343903 =A0 =A0 =A0 394.561701 =A0 =A0 =A0 127.838135 /
+> <4>[ 6950.139556] =A0 =A0 =A0 =A0hackbench =A03193 =A0 2223058.557565 =A0=
+ =A0 =A05208
+> 120 =A0 2223058.557565 =A0 =A0 =A0 394.744846 =A0 =A0 =A0 127.807617 /
+> <4>[ 6950.139587] =A0 =A0 =A0 =A0hackbench =A03194 =A0 2223057.489480 =A0=
+ =A0 =A05099
+> 120 =A0 2223057.489480 =A0 =A0 =A0 393.676761 =A0 =A0 =A0 127.746582 /
+> <4>[ 6950.139617] =A0 =A0 =A0 =A0hackbench =A03195 =A0 2223058.557600 =A0=
+ =A0 =A05235
+> 120 =A0 2223058.557600 =A0 =A0 =A0 394.744880 =A0 =A0 =A0 233.428958 /
+> <4>[ 6950.139648] =A0 =A0 =A0 =A0hackbench =A03196 =A0 2223058.557583 =A0=
+ =A0 =A05422
+> 120 =A0 2223058.557583 =A0 =A0 =A0 394.775381 =A0 =A0 =A0 127.685547 /
+> <4>[ 6950.139678] =A0 =A0 =A0 =A0hackbench =A03197 =A0 2223057.733636 =A0=
+ =A0 =A04665
+> 120 =A0 2223057.733636 =A0 =A0 =A0 312.988263 =A0 =A0 =A0 232.971190 /
+> <4>[ 6950.139709] =A0 =A0 =A0 =A0hackbench =A03198 =A0 2223058.069299 =A0=
+ =A0 =A04848
+> 120 =A0 2223058.069299 =A0 =A0 =A0 394.256580 =A0 =A0 =A0 233.245849 /
+> <4>[ 6950.139739] =A0 =A0 =A0 =A0hackbench =A03199 =A0 2223097.711703 =A0=
+ =A0 =A06751
+> 120 =A0 2223097.711703 =A0 =A0 =A0 433.898983 =A0 =A0 =A0 179.016113 /
+> <4>[ 6950.139801] =A0 =A0 =A0 =A0hackbench =A03200 =A0 2223058.771274 =A0=
+ =A0 =A04300
+> 120 =A0 2223058.771274 =A0 =A0 =A0 314.056418 =A0 =A0 =A0 127.349854 /
+> <4>[ 6950.139831] =A0 =A0 =A0 =A0hackbench =A03201 =A0 2223058.466064 =A0=
+ =A0 =A05259
+> 120 =A0 2223058.466064 =A0 =A0 =A0 394.683862 =A0 =A0 =A0 213.226320 /
+> <4>[ 6950.139862] =A0 =A0 =A0 =A0hackbench =A03202 =A0 2223058.618645 =A0=
+ =A0 =A04705
+> 120 =A0 2223058.618645 =A0 =A0 =A0 313.873272 =A0 =A0 =A0 127.319336 /
+> <4>[ 6950.139892] =A0 =A0 =A0 =A0hackbench =A03203 =A0 2223059.015430 =A0=
+ =A0 =A04845
+> 120 =A0 2223059.015430 =A0 =A0 =A0 314.270057 =A0 =A0 =A0 127.410889 /
+> <4>[ 6950.139923] =A0 =A0 =A0 =A0hackbench =A03204 =A0 2223058.801745 =A0=
+ =A0 =A05110
+> 120 =A0 2223058.801745 =A0 =A0 =A0 395.019543 =A0 =A0 =A0 136.474609 /
+> <4>[ 6950.139953] =A0 =A0 =A0 =A0hackbench =A03205 =A0 2223058.649169 =A0=
+ =A0 =A04757
+> 120 =A0 2223058.649169 =A0 =A0 =A0 313.903795 =A0 =A0 =A0 127.258301 /
+> <4>[ 6950.140014] =A0 =A0 =A0 =A0hackbench =A03226 =A0 2223058.679731 =A0=
+ =A0 =A06443
+> 120 =A0 2223058.679731 =A0 =A0 =A0 313.964875 =A0 =A0 =A0 152.099610 /
+> <4>[ 6950.140045] =A0 =A0 =A0 =A0hackbench =A03227 =A0 2223098.962891 =A0=
+ =A0 =A07276
+> 120 =A0 2223098.962891 =A0 =A0 =A0 354.217518 =A0 =A0 =A0 152.130127 /
+> <4>[ 6950.140075] =A0 =A0 =A0 =A0hackbench =A03228 =A0 2223059.076460 =A0=
+ =A0 =A05924
+> 120 =A0 2223059.076460 =A0 =A0 =A0 314.331087 =A0 =A0 =A0 152.069092 /
+> <4>[ 6950.140106] =A0 =A0 =A0 =A0hackbench =A03229 =A0 2223058.679697 =A0=
+ =A0 =A03712
+> 120 =A0 2223058.679697 =A0 =A0 =A0 394.897496 =A0 =A0 =A0 122.253417 /
+> <4>[ 6950.140136] =A0 =A0 =A0 =A0hackbench =A03230 =A0 2223058.984841 =A0=
+ =A0 =A03425
+> 120 =A0 2223058.984841 =A0 =A0 =A0 395.172121 =A0 =A0 =A0 122.222900 /
+> <4>[ 6950.140167] =A0 =A0 =A0 =A0hackbench =A03231 =A0 2223057.520020 =A0=
+ =A0 =A06199
+> 120 =A0 2223057.520020 =A0 =A0 =A0 312.805164 =A0 =A0 =A0 152.099609 /
+> <4>[ 6950.140228] =A0 =A0 =A0 =A0hackbench =A03232 =A0 2223057.886169 =A0=
+ =A0 =A03575
+> 120 =A0 2223057.886169 =A0 =A0 =A0 394.103967 =A0 =A0 =A0 122.161865 /
+> <4>[ 6950.140258] =A0 =A0 =A0 =A0hackbench =A03233 =A0 2223058.740636 =A0=
+ =A0 =A06318
+> 120 =A0 2223058.740636 =A0 =A0 =A0 313.995262 =A0 =A0 =A0 126.495362 /
+> <4>[ 6950.140289] =A0 =A0 =A0 =A0hackbench =A03234 =A0 2223058.832260 =A0=
+ =A0 =A03353
+> 120 =A0 2223058.832260 =A0 =A0 =A0 395.019541 =A0 =A0 =A0 122.131347 /
+> <4>[ 6950.140319] =A0 =A0 =A0 =A0hackbench =A03235 =A0 2223058.984873 =A0=
+ =A0 =A03566
+> 120 =A0 2223058.984873 =A0 =A0 =A0 395.172153 =A0 =A0 =A0 122.070313 /
+> <4>[ 6950.140350] =A0 =A0 =A0 =A0hackbench =A03236 =A0 2223058.923805 =A0=
+ =A0 =A06362
+> 120 =A0 2223058.923805 =A0 =A0 =A0 314.178432 =A0 =A0 =A0 126.434326 /
+> <4>[ 6950.140380] =A0 =A0 =A0 =A0hackbench =A03237 =A0 2223058.954306 =A0=
+ =A0 =A05879
+> 120 =A0 2223058.954306 =A0 =A0 =A0 314.208932 =A0 =A0 =A0 126.403809 /
+> <4>[ 6950.140411] =A0 =A0 =A0 =A0hackbench =A03238 =A0 2223058.862741 =A0=
+ =A0 =A06144
+> 120 =A0 2223058.862741 =A0 =A0 =A0 314.147886 =A0 =A0 =A0 126.342773 /
+> <4>[ 6950.140472] =A0 =A0 =A0 =A0hackbench =A03239 =A0 2223059.381590 =A0=
+ =A0 =A06495
+> 120 =A0 2223059.381590 =A0 =A0 =A0 314.666734 =A0 =A0 =A0 110.717774 /
+> <4>[ 6950.140502] =A0 =A0 =A0 =A0hackbench =A03240 =A0 2223058.588091 =A0=
+ =A0 =A03647
+> 120 =A0 2223058.588091 =A0 =A0 =A0 394.775371 =A0 =A0 =A0 =A089.355469 /
+> <4>[ 6950.140533] =A0 =A0 =A0 =A0hackbench =A03241 =A0 2223057.764225 =A0=
+ =A0 =A06466
+> 120 =A0 2223057.764225 =A0 =A0 =A0 313.049370 =A0 =A0 =A0 110.656738 /
+> <4>[ 6950.140563] =A0 =A0 =A0 =A0hackbench =A03242 =A0 2223058.221896 =A0=
+ =A0 =A03157
+> 120 =A0 2223058.221896 =A0 =A0 =A0 394.409177 =A0 =A0 =A0 =A089.294434 /
+> <4>[ 6950.140594] =A0 =A0 =A0 =A0hackbench =A03243 =A0 2223058.588163 =A0=
+ =A0 =A06417
+> 120 =A0 2223058.588163 =A0 =A0 =A0 313.842789 =A0 =A0 =A0 110.595703 /
+> <4>[ 6950.140625] =A0 =A0 =A0 =A0hackbench =A03244 =A0 2223059.442554 =A0=
+ =A0 =A03648
+> 120 =A0 2223059.442554 =A0 =A0 =A0 395.660352 =A0 =A0 =A0 =A088.806153 /
+> <4>[ 6950.140655] =A0 =A0 =A0 =A0hackbench =A03245 =A0 2223057.855737 =A0=
+ =A0 =A05957
+> 120 =A0 2223057.855737 =A0 =A0 =A0 313.140881 =A0 =A0 =A0 100.616455 /
+> <4>[ 6950.140716] =A0 =A0 =A0 =A0hackbench =A03266 =A0 2223057.947276 =A0=
+ =A0 =A07480
+> 120 =A0 2223057.947276 =A0 =A0 =A0 313.201903 =A0 =A0 =A0 =A077.270508 /
+> <4>[ 6950.140747] =A0 =A0 =A0 =A0hackbench =A03267 =A0 2223058.191358 =A0=
+ =A0 =A07487
+> 120 =A0 2223058.191358 =A0 =A0 =A0 313.476502 =A0 =A0 =A0 =A077.209473 /
+> <4>[ 6950.140777] =A0 =A0 =A0 =A0hackbench =A03268 =A0 2223059.106873 =A0=
+ =A0 =A07480
+> 120 =A0 2223059.106873 =A0 =A0 =A0 314.361500 =A0 =A0 =A0 =A077.178955 /
+> <4>[ 6950.140808] =A0 =A0 =A0 =A0hackbench =A03269 =A0 2223059.290019 =A0=
+ =A0 =A07645
+> 120 =A0 2223059.290019 =A0 =A0 =A0 314.544645 =A0 =A0 =A0 =A077.148438 /
+> <4>[ 6950.140838] =A0 =A0 =A0 =A0hackbench =A03270 =A0 2223057.428522 =A0=
+ =A0 =A07512
+> 120 =A0 2223057.428522 =A0 =A0 =A0 312.713666 =A0 =A0 =A0 =A077.056885 /
+> <4>[ 6950.140869] =A0 =A0 =A0 =A0hackbench =A03271 =A0 2223058.679698 =A0=
+ =A0 =A07515
+> 120 =A0 2223058.679698 =A0 =A0 =A0 313.934325 =A0 =A0 =A0 131.988525 /
+> <4>[ 6950.140930] =A0 =A0 =A0 =A0hackbench =A03272 =A0 2223059.412048 =A0=
+ =A0 =A07623
+> 120 =A0 2223059.412048 =A0 =A0 =A0 314.666675 =A0 =A0 =A0 132.019042 /
+> <4>[ 6950.140960] =A0 =A0 =A0 =A0hackbench =A03273 =A0 2223057.947316 =A0=
+ =A0 =A07492
+> 120 =A0 2223057.947316 =A0 =A0 =A0 313.201943 =A0 =A0 =A0 =A076.995849 /
+> <4>[ 6950.140991] =A0 =A0 =A0 =A0hackbench =A03274 =A0 2223058.771171 =A0=
+ =A0 =A07539
+> 120 =A0 2223058.771171 =A0 =A0 =A0 314.025798 =A0 =A0 =A0 =A077.026367 /
+> <4>[ 6950.141021] =A0 =A0 =A0 =A0hackbench =A03275 =A0 2223059.106900 =A0=
+ =A0 =A07496
+> 120 =A0 2223059.106900 =A0 =A0 =A0 314.361527 =A0 =A0 =A0 =A076.843262 /
+> <4>[ 6950.141052] =A0 =A0 =A0 =A0hackbench =A03276 =A0 2223057.794724 =A0=
+ =A0 =A07502
+> 120 =A0 2223057.794724 =A0 =A0 =A0 313.079868 =A0 =A0 =A0 131.988525 /
+> <4>[ 6950.141082] =A0 =A0 =A0 =A0hackbench =A03277 =A0 2223058.740749 =A0=
+ =A0 =A07628
+> 120 =A0 2223058.740749 =A0 =A0 =A0 313.995375 =A0 =A0 =A0 131.958008 /
+> <4>[ 6950.141113] =A0 =A0 =A0 =A0hackbench =A03278 =A0 2223058.710230 =A0=
+ =A0 =A07585
+> 120 =A0 2223058.710230 =A0 =A0 =A0 314.025891 =A0 =A0 =A0 =A076.873780 /
+> <4>[ 6950.141174] =A0 =A0 =A0 =A0hackbench =A03279 =A0 2223057.611597 =A0=
+ =A0 =A07460
+> 120 =A0 2223057.611597 =A0 =A0 =A0 312.866224 =A0 =A0 =A0 =A087.249756 /
+> <4>[ 6950.141204] =A0 =A0 =A0 =A0hackbench =A03280 =A0 2223057.489500 =A0=
+ =A0 =A07366
+> 120 =A0 2223057.489500 =A0 =A0 =A0 312.774644 =A0 =A0 =A0 =A076.751709 /
+> <4>[ 6950.141235] =A0 =A0 =A0 =A0hackbench =A03281 =A0 2223058.221939 =A0=
+ =A0 =A07505
+> 120 =A0 2223058.221939 =A0 =A0 =A0 313.507083 =A0 =A0 =A0 =A087.188721 /
+> <4>[ 6950.141265] =A0 =A0 =A0 =A0hackbench =A03282 =A0 2223058.222022 =A0=
+ =A0 =A07461
+> 120 =A0 2223058.222022 =A0 =A0 =A0 313.476649 =A0 =A0 =A0 =A076.660156 /
+> <4>[ 6950.141296] =A0 =A0 =A0 =A0hackbench =A03283 =A0 2223058.527082 =A0=
+ =A0 =A07568
+> 120 =A0 2223058.527082 =A0 =A0 =A0 313.781709 =A0 =A0 =A0 =A076.812744 /
+> <4>[ 6950.141326] =A0 =A0 =A0 =A0hackbench =A03284 =A0 2223058.649179 =A0=
+ =A0 =A07527
+> 120 =A0 2223058.649179 =A0 =A0 =A0 313.903806 =A0 =A0 =A0 =A087.127685 /
+> <4>[ 6950.141357] =A0 =A0 =A0 =A0hackbench =A03285 =A0 2223058.954322 =A0=
+ =A0 =A07549
+> 120 =A0 2223058.954322 =A0 =A0 =A0 314.239466 =A0 =A0 =A0 =A076.599121 /
+> <4>[ 6950.141418] =A0 =A0 =A0 =A0hackbench =A03306 =A0 2223058.588151 =A0=
+ =A0 =A07570
+> 120 =A0 2223058.588151 =A0 =A0 =A0 313.873295 =A0 =A0 =A0 123.596191 /
+> <4>[ 6950.141448] =A0 =A0 =A0 =A0hackbench =A03307 =A0 2223059.320521 =A0=
+ =A0 =A07491
+> 120 =A0 2223059.320521 =A0 =A0 =A0 314.605665 =A0 =A0 =A0 =A074.645996 /
+> <4>[ 6950.141479] =A0 =A0 =A0 =A0hackbench =A03308 =A0 2223058.435490 =A0=
+ =A0 =A07445
+> 120 =A0 2223058.435490 =A0 =A0 =A0 313.690117 =A0 =A0 =A0 123.596191 /
+> <4>[ 6950.141510] =A0 =A0 =A0 =A0hackbench =A03309 =A0 2223058.405116 =A0=
+ =A0 =A07464
+> 120 =A0 2223058.405116 =A0 =A0 =A0 313.659743 =A0 =A0 =A0 =A074.615478 /
+> <4>[ 6950.141540] =A0 =A0 =A0 =A0hackbench =A03310 =A0 2223058.984904 =A0=
+ =A0 =A07489
+> 120 =A0 2223058.984904 =A0 =A0 =A0 314.270048 =A0 =A0 =A0 123.565674 /
+> <4>[ 6950.141571] =A0 =A0 =A0 =A0hackbench =A03311 =A0 2223059.290113 =A0=
+ =A0 =A07560
+> 120 =A0 2223059.290113 =A0 =A0 =A0 314.544740 =A0 =A0 =A0 123.565674 /
+> <4>[ 6950.141632] =A0 =A0 =A0 =A0hackbench =A03312 =A0 2223058.740716 =A0=
+ =A0 =A07601
+> 120 =A0 2223058.740716 =A0 =A0 =A0 313.995342 =A0 =A0 =A0 =A074.554444 /
+> <4>[ 6950.141662] =A0 =A0 =A0 =A0hackbench =A03313 =A0 2223058.313453 =A0=
+ =A0 =A07525
+> 120 =A0 2223058.313453 =A0 =A0 =A0 313.598597 =A0 =A0 =A0 =A074.493409 /
+> <4>[ 6950.141693] =A0 =A0 =A0 =A0hackbench =A03314 =A0 2223058.343951 =A0=
+ =A0 =A07484
+> 120 =A0 2223058.343951 =A0 =A0 =A0 313.598578 =A0 =A0 =A0 =A074.462891 /
+> <4>[ 6950.141723] =A0 =A0 =A0 =A0hackbench =A03315 =A0 2223058.862795 =A0=
+ =A0 =A07314
+> 120 =A0 2223058.862795 =A0 =A0 =A0 314.117421 =A0 =A0 =A0 =A075.927735 /
+> <4>[ 6950.141754] =A0 =A0 =A0 =A0hackbench =A03316 =A0 2223057.733614 =A0=
+ =A0 =A07530
+> 120 =A0 2223057.733614 =A0 =A0 =A0 313.049277 =A0 =A0 =A0 =A055.023193 /
+> <4>[ 6950.141784] =A0 =A0 =A0 =A0hackbench =A03317 =A0 2223057.611637 =A0=
+ =A0 =A07407
+> 120 =A0 2223057.611637 =A0 =A0 =A0 312.896782 =A0 =A0 =A0 =A070.098877 /
+> <4>[ 6950.141815] =A0 =A0 =A0 =A0hackbench =A03318 =A0 2223058.069358 =A0=
+ =A0 =A07538
+> 120 =A0 2223058.069358 =A0 =A0 =A0 313.385019 =A0 =A0 =A0 =A054.901123 /
+> <4>[ 6950.141845] =A0 =A0 =A0 =A0hackbench =A03319 =A0 2223057.489559 =A0=
+ =A0 =A07450
+> 120 =A0 2223057.489559 =A0 =A0 =A0 312.744185 =A0 =A0 =A0 =A070.037842 /
+> <4>[ 6950.141906] =A0 =A0 =A0 =A0hackbench =A03320 =A0 2223058.771222 =A0=
+ =A0 =A07525
+> 120 =A0 2223058.771222 =A0 =A0 =A0 314.025849 =A0 =A0 =A0 =A054.870605 /
+> <4>[ 6950.141937] =A0 =A0 =A0 =A0hackbench =A03321 =A0 2223058.771264 =A0=
+ =A0 =A07560
+> 120 =A0 2223058.771264 =A0 =A0 =A0 314.056408 =A0 =A0 =A0 =A069.976807 /
+> <4>[ 6950.141967] =A0 =A0 =A0 =A0hackbench =A03322 =A0 2223058.801787 =A0=
+ =A0 =A07552
+> 120 =A0 2223058.801787 =A0 =A0 =A0 314.086931 =A0 =A0 =A0 =A054.809570 /
+> <4>[ 6950.141998] =A0 =A0 =A0 =A0hackbench =A03323 =A0 2223063.501453 =A0=
+ =A0 =A07662
+> 120 =A0 2223063.501453 =A0 =A0 =A0 318.756080 =A0 =A0 =A0 =A069.946289 /
+> <4>[ 6950.142028] =A0 =A0 =A0 =A0hackbench =A03324 =A0 2223058.557622 =A0=
+ =A0 =A07429
+> 120 =A0 2223058.557622 =A0 =A0 =A0 313.812249 =A0 =A0 =A0 =A054.748535 /
+> <4>[ 6950.142059] =A0 =A0 =A0 =A0hackbench =A03325 =A0 2223059.045915 =A0=
+ =A0 =A07546
+> 120 =A0 2223059.045915 =A0 =A0 =A0 314.331059 =A0 =A0 =A0 =A069.854736 /
+> <4>[ 6950.142120] =A0 =A0 =A0 =A0hackbench =A03346 =A0 2223058.618603 =A0=
+ =A0 =A05936
+> 120 =A0 2223058.618603 =A0 =A0 =A0 313.873230 =A0 =A0 =A0 138.793945 /
+> <4>[ 6950.142150] =A0 =A0 =A0 =A0hackbench =A03347 =A0 2223058.008418 =A0=
+ =A0 =A05961
+> 120 =A0 2223058.008418 =A0 =A0 =A0 313.293562 =A0 =A0 =A0 138.793945 /
+> <4>[ 6950.142181] =A0 =A0 =A0 =A0hackbench =A03348 =A0 2223058.282914 =A0=
+ =A0 =A06214
+> 120 =A0 2223058.282914 =A0 =A0 =A0 313.568058 =A0 =A0 =A0 138.732911 /
+> <4>[ 6950.142211] =A0 =A0 =A0 =A0hackbench =A03349 =A0 2223058.099899 =A0=
+ =A0 =A06215
+> 120 =A0 2223058.099899 =A0 =A0 =A0 313.385043 =A0 =A0 =A0 138.763429 /
+> <4>[ 6950.142242] =A0 =A0 =A0 =A0hackbench =A03350 =A0 2223058.771209 =A0=
+ =A0 =A06163
+> 120 =A0 2223058.771209 =A0 =A0 =A0 314.056353 =A0 =A0 =A0 =A032.104493 /
+> <4>[ 6950.142272] =A0 =A0 =A0 =A0hackbench =A03351 =A0 2223058.710174 =A0=
+ =A0 =A06207
+> 120 =A0 2223058.710174 =A0 =A0 =A0 313.995318 =A0 =A0 =A0 =A032.043458 /
+> <4>[ 6950.142333] =A0 =A0 =A0 =A0hackbench =A03352 =A0 2223057.550538 =A0=
+ =A0 =A06070
+> 120 =A0 2223057.550538 =A0 =A0 =A0 312.835682 =A0 =A0 =A0 =A031.890869 /
+> <4>[ 6950.142364] =A0 =A0 =A0 =A0hackbench =A03353 =A0 2223058.069267 =A0=
+ =A0 =A03653
+> 120 =A0 2223058.069267 =A0 =A0 =A0 394.256548 =A0 =A0 =A0 =A035.186767 /
+> <4>[ 6950.142395] =A0 =A0 =A0 =A0hackbench =A03354 =A0 2223058.679696 =A0=
+ =A0 =A06022
+> 120 =A0 2223058.679696 =A0 =A0 =A0 313.964841 =A0 =A0 =A0 =A031.951904 /
+> <4>[ 6950.142425] =A0 =A0 =A0 =A0hackbench =A03355 =A0 2223058.343969 =A0=
+ =A0 =A03779
+> 120 =A0 2223058.343969 =A0 =A0 =A0 394.531250 =A0 =A0 =A0 =A035.095214 /
+> <4>[ 6950.142456] =A0 =A0 =A0 =A0hackbench =A03356 =A0 2223059.442623 =A0=
+ =A0 =A06049
+> 120 =A0 2223059.442623 =A0 =A0 =A0 314.697250 =A0 =A0 =A0 =A031.768798 /
+> <4>[ 6950.142486] =A0 =A0 =A0 =A0hackbench =A03357 =A0 2223059.412094 =A0=
+ =A0 =A03800
+> 120 =A0 2223059.412094 =A0 =A0 =A0 395.629892 =A0 =A0 =A0 =A064.361572 /
+> <4>[ 6950.142517] =A0 =A0 =A0 =A0hackbench =A03358 =A0 2223058.527132 =A0=
+ =A0 =A06159
+> 120 =A0 2223058.527132 =A0 =A0 =A0 313.812276 =A0 =A0 =A0 139.129638 /
+> <4>[ 6950.142547] =A0 =A0 =A0 =A0hackbench =A03359 =A0 2223057.855719 =A0=
+ =A0 =A03752
+> 120 =A0 2223057.855719 =A0 =A0 =A0 394.043000 =A0 =A0 =A0 142.486572 /
+> <4>[ 6950.142608] =A0 =A0 =A0 =A0hackbench =A03360 =A0 2223059.320504 =A0=
+ =A0 =A03754
+> 120 =A0 2223059.320504 =A0 =A0 =A0 395.538302 =A0 =A0 =A0 =A034.942627 /
+> <4>[ 6950.142639] =A0 =A0 =A0 =A0hackbench =A03361 =A0 2223059.442588 =A0=
+ =A0 =A06178
+> 120 =A0 2223059.442588 =A0 =A0 =A0 314.697215 =A0 =A0 =A0 =A031.646728 /
+> <4>[ 6950.142669] =A0 =A0 =A0 =A0hackbench =A03362 =A0 2223059.289979 =A0=
+ =A0 =A03781
+> 120 =A0 2223059.289979 =A0 =A0 =A0 395.477260 =A0 =A0 =A0 =A034.820556 /
+> <4>[ 6950.142700] =A0 =A0 =A0 =A0hackbench =A03363 =A0 2223058.862838 =A0=
+ =A0 =A06280
+> 120 =A0 2223058.862838 =A0 =A0 =A0 314.117464 =A0 =A0 =A0 =A031.494141 /
+> <4>[ 6950.142730] =A0 =A0 =A0 =A0hackbench =A03364 =A0 2223058.374486 =A0=
+ =A0 =A03574
+> 120 =A0 2223058.374486 =A0 =A0 =A0 394.561766 =A0 =A0 =A0 =A035.064697 /
+> <4>[ 6950.142761] =A0 =A0 =A0 =A0hackbench =A03365 =A0 2223058.923857 =A0=
+ =A0 =A06232
+> 120 =A0 2223058.923857 =A0 =A0 =A0 314.239518 =A0 =A0 =A0 =A081.695556 /
+> <4>[ 6950.142822] =A0 =A0 =A0 =A0hackbench =A03386 =A0 2223057.855737 =A0=
+ =A0 =A06944
+> 120 =A0 2223057.855737 =A0 =A0 =A0 313.110363 =A0 =A0 =A0 697.662355 /
+> <4>[ 6950.142852] =A0 =A0 =A0 =A0hackbench =A03387 =A0 2223057.732209 =A0=
+ =A0 =A03013
+> 120 =A0 2223057.732209 =A0 =A0 =A0 393.646224 =A0 =A0 =A0 =A056.457520 /
+> <4>[ 6950.142883] =A0 =A0 =A0 =A0hackbench =A03388 =A0 2223059.045915 =A0=
+ =A0 =A07227
+> 120 =A0 2223059.045915 =A0 =A0 =A0 314.300542 =A0 =A0 =A0 =A030.944824 /
+> <4>[ 6950.142913] =A0 =A0 =A0 =A0hackbench =A03389 =A0 2223058.493195 =A0=
+ =A0 =A07140
+> 120 =A0 2223058.493195 =A0 =A0 =A0 313.781777 =A0 =A0 =A0 =A030.914307 /
+> <4>[ 6950.142944] =A0 =A0 =A0 =A0hackbench =A03391 =A0 2223057.943836 =A0=
+ =A0 =A07163
+> 120 =A0 2223057.943836 =A0 =A0 =A0 313.293453 =A0 =A0 =A0 =A020.538330 /
+> <4>[ 6950.142974] =A0 =A0 =A0 =A0hackbench =A03392 =A0 2223057.913266 =A0=
+ =A0 =A07054
+> 120 =A0 2223057.913266 =A0 =A0 =A0 313.201849 =A0 =A0 =A0 =A020.507812 /
+> <4>[ 6950.143005] =A0 =A0 =A0 =A0hackbench =A03393 =A0 2223058.859329 =A0=
+ =A0 =A06962
+> 120 =A0 2223058.859329 =A0 =A0 =A0 314.147912 =A0 =A0 =A0 =A020.477294 /
+> <4>[ 6950.143066] =A0 =A0 =A0 =A0hackbench =A03394 =A0 2223058.584693 =A0=
+ =A0 =A07180
+> 120 =A0 2223058.584693 =A0 =A0 =A0 313.873275 =A0 =A0 =A0 =A020.416260 /
+> <4>[ 6950.143096] =A0 =A0 =A0 =A0hackbench =A03395 =A0 2223059.042494 =A0=
+ =A0 =A07120
+> 120 =A0 2223059.042494 =A0 =A0 =A0 314.361594 =A0 =A0 =A0 =A020.355225 /
+> <4>[ 6950.143127] =A0 =A0 =A0 =A0hackbench =A03396 =A0 2223058.187924 =A0=
+ =A0 =A07083
+> 120 =A0 2223058.187924 =A0 =A0 =A0 313.476507 =A0 =A0 =A0 =A020.324707 /
+> <4>[ 6950.143157] =A0 =A0 =A0 =A0hackbench =A03397 =A0 2223058.310064 =A0=
+ =A0 =A07203
+> 120 =A0 2223058.310064 =A0 =A0 =A0 313.598646 =A0 =A0 =A0 =A020.263672 /
+> <4>[ 6950.143188] =A0 =A0 =A0 =A0hackbench =A03398 =A0 2223057.608173 =A0=
+ =A0 =A06928
+> 120 =A0 2223057.608173 =A0 =A0 =A0 312.896756 =A0 =A0 =A0 =A020.233154 /
+> <4>[ 6950.143218] =A0 =A0 =A0 =A0hackbench =A03399 =A0 2223059.225628 =A0=
+ =A0 =A07253
+> 120 =A0 2223059.225628 =A0 =A0 =A0 314.544728 =A0 =A0 =A0 =A020.172119 /
+> <4>[ 6950.143249] =A0 =A0 =A0 =A0hackbench =A03400 =A0 2223058.035102 =A0=
+ =A0 =A03044
+> 120 =A0 2223058.035102 =A0 =A0 =A0 391.326887 =A0 =A0 =A0 =A0 2.166748 /
+> <4>[ 6950.143310] =A0 =A0 =A0 =A0hackbench =A03401 =A0 2223059.439242 =A0=
+ =A0 =A06937
+> 120 =A0 2223059.439242 =A0 =A0 =A0 314.727825 =A0 =A0 =A0 =A020.141601 /
+> <4>[ 6950.143341] =A0 =A0 =A0 =A0hackbench =A03402 =A0 2223057.481471 =A0=
+ =A0 =A06749
+> 120 =A0 2223057.481471 =A0 =A0 =A0 309.753424 =A0 =A0 =A0 =A0 2.075196 /
+> <4>[ 6950.143371] =A0 =A0 =A0 =A0hackbench =A03403 =A0 2223059.439238 =A0=
+ =A0 =A06983
+> 120 =A0 2223059.439238 =A0 =A0 =A0 314.727820 =A0 =A0 =A0 =A020.080567 /
+> <4>[ 6950.143402] =A0 =A0 =A0 =A0hackbench =A03404 =A0 2223057.791245 =A0=
+ =A0 =A07107
+> 120 =A0 2223057.791245 =A0 =A0 =A0 313.079828 =A0 =A0 =A0 =A020.050049 /
+> <4>[ 6950.143432] =A0 =A0 =A0 =A0hackbench =A03405 =A0 2223057.908789 =A0=
+ =A0 =A06948
+> 120 =A0 2223057.908789 =A0 =A0 =A0 310.180704 =A0 =A0 =A0 =A0 1.953125 /
+> <4>[ 6950.143463] =A0 =A0 =A0 =A0hackbench =A03406 =A0 2223058.523635 =A0=
+ =A0 =A07068
+> 120 =A0 2223058.523635 =A0 =A0 =A0 313.812217 =A0 =A0 =A0 =A020.019532 /
+> <4>[ 6950.143524] =A0 =A0 =A0 =A0hackbench =A03428 =A0 2223058.313422 =A0=
+ =A0 =A05337
+> 120 =A0 2223058.313422 =A0 =A0 =A0 265.045082 =A0 =A0 =A09233.978271 /
+> <4>[ 6950.143554] =A0 =A0 =A0 =A0hackbench =A03429 =A0 2223059.168004 =A0=
+ =A0 =A05277
+> 120 =A0 2223059.168004 =A0 =A0 =A0 282.775870 =A0 =A0 =A08696.319582 /
+> <4>[ 6950.143585] =A0 =A0 =A0 =A0hackbench =A03430 =A0 2223057.728820 =A0=
+ =A0 =A06040
+> 120 =A0 2223057.728820 =A0 =A0 =A0 301.605244 =A0 =A0 =A03877.227783 /
+> <4>[ 6950.143615] =A0 =A0 =A0 =A0hackbench =A03431 =A0 2223059.233894 =A0=
+ =A0 =A02218
+> 120 =A0 2223059.233894 =A0 =A0 =A0 382.110606 =A0 =A0 =A03795.104981 /
+> <4>[ 6950.143646] =A0 =A0 =A0 =A0hackbench =A03432 =A0 2223057.667812 =A0=
+ =A0 =A05830
+> 120 =A0 2223057.667812 =A0 =A0 =A0 285.736138 =A0 =A0 =A06528.869629 /
+> <4>[ 6950.143676] =A0 =A0 =A0 =A0hackbench =A03433 =A0 2223058.522277 =A0=
+ =A0 =A05567
+> 120 =A0 2223058.522277 =A0 =A0 =A0 299.621600 =A0 =A0 =A05717.285156 /
+> <4>[ 6950.143707] =A0 =A0 =A0 =A0hackbench =A03434 =A0 2223058.980062 =A0=
+ =A0 =A06110
+> 120 =A0 2223058.980062 =A0 =A0 =A0 293.426557 =A0 =A0 =A05739.990234 /
+> <4>[ 6950.143768] =A0 =A0 =A0 =A0hackbench =A03435 =A0 2223058.191454 =A0=
+ =A0 =A05514
+> 120 =A0 2223058.191454 =A0 =A0 =A0 277.832045 =A0 =A0 =A08030.822755 /
+> <4>[ 6950.143798] =A0 =A0 =A0 =A0hackbench =A03436 =A0 2223059.106975 =A0=
+ =A0 =A05677
+> 120 =A0 2223059.106975 =A0 =A0 =A0 278.320255 =A0 =A0 =A06854.644777 /
+> <4>[ 6950.143829] =A0 =A0 =A0 =A0hackbench =A03437 =A0 2223059.473183 =A0=
+ =A0 =A06101
+> 120 =A0 2223059.473183 =A0 =A0 =A0 290.588355 =A0 =A0 =A05625.305176 /
+> <4>[ 6950.143859] =A0 =A0 =A0 =A0hackbench =A03438 =A0 2223057.647029 =A0=
+ =A0 =A05570
+> 120 =A0 2223057.647029 =A0 =A0 =A0 275.299082 =A0 =A0 =A08041.503907 /
+> <4>[ 6950.143890] =A0 =A0 =A0 =A0hackbench =A03439 =A0 2223059.106971 =A0=
+ =A0 =A05878
+> 120 =A0 2223059.106971 =A0 =A0 =A0 286.071772 =A0 =A0 =A06566.406251 /
+> <4>[ 6950.143920] =A0 =A0 =A0 =A0hackbench =A03440 =A0 2223057.489483 =A0=
+ =A0 =A06113
+> 120 =A0 2223057.489483 =A0 =A0 =A0 308.166449 =A0 =A0 =A02902.313233 /
+> <4>[ 6950.143951] =A0 =A0 =A0 =A0hackbench =A03441 =A0 2223058.466070 =A0=
+ =A0 =A06376
+> 120 =A0 2223058.466070 =A0 =A0 =A0 302.093487 =A0 =A0 =A03230.041504 /
+> <4>[ 6950.144012] =A0 =A0 =A0 =A0hackbench =A03442 =A0 2223058.623568 =A0=
+ =A0 =A05077
+> 120 =A0 2223058.623568 =A0 =A0 =A0 261.810318 =A0 =A0 11294.525148 /
+> <4>[ 6950.144042] =A0 =A0 =A0 =A0hackbench =A03443 =A0 2223058.379449 =A0=
+ =A0 =A05345
+> 120 =A0 2223058.379449 =A0 =A0 =A0 276.397734 =A0 =A0 =A08350.708009 /
+> <4>[ 6950.144073] =A0 =A0 =A0 =A0hackbench =A03444 =A0 2223058.654045 =A0=
+ =A0 =A04896
+> 120 =A0 2223058.654045 =A0 =A0 =A0 277.343722 =A0 =A0 =A09959.838869 /
+> <4>[ 6950.144104] =A0 =A0 =A0 =A0hackbench =A03445 =A0 2223114.709956 =A0=
+ =A0 =A07669
+> 120 =A0 2223114.709956 =A0 =A0 =A0 342.468227 =A0 =A0 =A05719.573975 /
+> <4>[ 6950.144134] =A0 =A0 =A0 =A0hackbench =A03446 =A0 2223057.585953 =A0=
+ =A0 =A05494
+> 120 =A0 2223057.585953 =A0 =A0 =A0 277.252185 =A0 =A0 =A08900.085448 /
+> <4>[ 6950.144165] =A0 =A0 =A0 =A0hackbench =A03447 =A0 2223059.259559 =A0=
+ =A0 =A06293
+> 120 =A0 2223059.259559 =A0 =A0 =A0 302.734394 =A0 =A0 =A03191.955566 /
+> <4>[ 6950.144195] =A0 =A0 =A0 churn_data =A03575 =A0 2223057.707968 =A0 =
+=A0 =A0 =A087
+> 120 =A0 2223057.707968 =A0 =A0 =A0 187.683096 =A0 =A0 11222.930908 /
+> <4>[ 6950.144287] =A0 =A0 =A0 =A0 =A0 =A0 =A0 ps =A03752 =A0 2223059.7193=
+59 =A0 =A0 =A0 =A065
+> 120 =A0 2223059.719359 =A0 =A0 =A0 179.565417 =A0 =A0 =A0 =A0 0.000000 /
+> <4>[ 6950.144317] =A0kkkkkkkkkkkkkkk =A03787 =A0 2223058.346130 =A0 =A0 =
+=A0 =A058
+> 120 =A0 2223058.346130 =A0 =A0 =A0 =A071.044920 =A0 =A0 =A0 =A0 4.821777 /
+> <4>[ 6950.144348] =A0 =A0 =A0 =A0 =A0 pipeio =A03788 =A0 2223059.320594 =
+=A0 =A0 =A0 182
+> 120 =A0 2223059.320594 =A0 =A0 =A0 =A056.304934 =A0 =A0 =A0 =A0 0.000000 /
+> <4>[ 6950.144378] =A0 =A0 =A0 =A0 =A0 fork11 =A03818 =A0 2223058.262515 =
+=A0 =A0 =A0 =A0 0
+> 120 =A0 2223058.262515 =A0 =A0 =A0 =A0 0.000000 =A0 =A0 =A0 =A0 0.000000 /
+> <4>[ 6950.144409] =A0 =A0 =A0 =A0 kthreadd =A03819 =A0 2223060.868907 =A0=
+ =A0 =A0 =A0 0
+> 120 =A0 2223060.868907 =A0 =A0 =A0 =A0 0.000000 =A0 =A0 =A0 =A0 0.000000 /
+> <4>[ 6950.144439]
+>
 >
 > --
-> 1.6.2.4
+> Best Regards
+> Hu Tao
+>
 
-looks good to me.
 
-keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- =
+
+Best Regards
+Hu Tao
