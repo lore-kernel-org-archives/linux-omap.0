@@ -1,53 +1,60 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: RE: [PATCH 1/8] OMAP: hwmod: Fix the addr spaces count API.
-Date: Thu, 8 Sep 2011 18:33:30 +0530
-Message-ID: <ed9b1afc1264f865f86bf6621bbac0e6@mail.gmail.com>
-References: <f44b67c9efd46d2e7d078da4d3acd30c@mail.gmail.com>
- <5e4ae8f3e715eb5e46468695a88c541a@mail.gmail.com> <4E688BBA.3010803@ti.com>
+From: Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH 0/8] OMAP3EVM: Add tvp514x video decoder support
+Date: Thu, 8 Sep 2011 19:03:12 +0530
+Message-ID: <1315488792-15949-1-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:48476 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932609Ab1IHNDj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 09:03:39 -0400
-Received: by mail-wy0-f178.google.com with SMTP id 19so585009wyg.9
-        for <linux-omap@vger.kernel.org>; Thu, 08 Sep 2011 06:03:31 -0700 (PDT)
-In-Reply-To: <4E688BBA.3010803@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-media@vger.kernel.org
+Cc: Deepthy Ravi <deepthy.ravi@ti.com>, linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, mchehab@infradead.org, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
 
-[...]
->>> -----Original Message-----
->>> From: Sricharan R [mailto:r.sricharan@ti.com]
->>> Sent: Thursday, September 08, 2011 2:35 PM
->>> To: Sricharan R
->>> Subject: Re: [PATCH 1/8] OMAP: hwmod: Fix the addr spaces count API.
->>>
->
->[...]
->
->>>>
->>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
->>> b/arch/arm/mach-omap2/omap_hwmod.c
->>>> index 84cc0bd..32a0f48a 100644
->>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>>> @@ -791,9 +791,11 @@ static int _count_ocp_if_addr_spaces(struct
->>> omap_hwmod_ocp_if *os)
->>>>    	if (!os || !os->addr)
->>>>    		return 0;
->>>>
->>>> -	do {
->>>> -		mem =&os->addr[i++];
->>>> -	} while (mem->pa_start != mem->pa_end);
->>>> +	mem =&os->addr[i];
->>>> +
->This extran line isn't needed Sricharan.
->
-   Will correct this, along with benoit's commmets.
+This patchset
+        -add support for tvp514x video decoder on omap3evm and also migrate the
+         decoder driver to media controller framework.
+        -add support for BT656 interface.
+        -enable multimedia driver and tvp514x decoder support in omap2plus_defconfig.
 
-Thanks,
- Sricharan
+It is dependent on the following patch
+https://patchwork.kernel.org/patch/1062042/ which moves
+platform data definitions from isp.h to media/omap3isp.h
+
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+
+Deepthy Ravi (1):
+  omap2plus_defconfig: Enable tvp514x video decoder support
+
+Vaibhav Hiremath (7):
+  omap3evm: Enable regulators for camera interface
+  omap3evm: Add Camera board init/hookup file
+  tvp514x: Migrate to media-controller framework
+  ispvideo: Add support for G/S/ENUM_STD ioctl
+  ispccdc: Configure CCDC registers
+  ispccdc: Add support for BT656 interface
+  omap3evm: camera: Configure BT656 interface
+
+ arch/arm/configs/omap2plus_defconfig        |   10 +
+ arch/arm/mach-omap2/Makefile                |    5 +
+ arch/arm/mach-omap2/board-omap3evm-camera.c |  258 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3evm.c        |   44 +++++
+ drivers/media/video/omap3isp/ispccdc.c      |  185 +++++++++++++++-----
+ drivers/media/video/omap3isp/ispreg.h       |    1 +
+ drivers/media/video/omap3isp/ispvideo.c     |  106 +++++++++++-
+ drivers/media/video/omap3isp/ispvideo.h     |    5 +-
+ drivers/media/video/tvp514x.c               |  241 ++++++++++++++++++++++---
+ include/media/omap3isp.h                    |    7 +
+ include/media/tvp514x.h                     |    3 +
+ include/media/v4l2-subdev.h                 |    7 +-
+ 12 files changed, 797 insertions(+), 75 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
