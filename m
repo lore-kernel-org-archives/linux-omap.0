@@ -1,7 +1,7 @@
 From: Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH 0/8] OMAP3EVM: Add tvp514x video decoder support
-Date: Thu, 8 Sep 2011 19:03:12 +0530
-Message-ID: <1315488792-15949-1-git-send-email-deepthy.ravi@ti.com>
+Subject: [PATCH 1/8] omap3evm: Enable regulators for camera interface
+Date: Thu, 8 Sep 2011 19:03:51 +0530
+Message-ID: <1315488831-15998-1-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,46 +15,78 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-media@vger.kernel.org
-Cc: Deepthy Ravi <deepthy.ravi@ti.com>, linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, mchehab@infradead.org, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Deepthy Ravi <deepthy.ravi@ti.com>, linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, mchehab@infradead.org, laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patchset
-        -add support for tvp514x video decoder on omap3evm and also migrate the
-         decoder driver to media controller framework.
-        -add support for BT656 interface.
-        -enable multimedia driver and tvp514x decoder support in omap2plus_defconfig.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-It is dependent on the following patch
-https://patchwork.kernel.org/patch/1062042/ which moves
-platform data definitions from isp.h to media/omap3isp.h
+Enabled 1v8 and 2v8 regulator output, which is being used by
+camera module.
 
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
 ---
+ arch/arm/mach-omap2/board-omap3evm.c |   40 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
 
-Deepthy Ravi (1):
-  omap2plus_defconfig: Enable tvp514x video decoder support
-
-Vaibhav Hiremath (7):
-  omap3evm: Enable regulators for camera interface
-  omap3evm: Add Camera board init/hookup file
-  tvp514x: Migrate to media-controller framework
-  ispvideo: Add support for G/S/ENUM_STD ioctl
-  ispccdc: Configure CCDC registers
-  ispccdc: Add support for BT656 interface
-  omap3evm: camera: Configure BT656 interface
-
- arch/arm/configs/omap2plus_defconfig        |   10 +
- arch/arm/mach-omap2/Makefile                |    5 +
- arch/arm/mach-omap2/board-omap3evm-camera.c |  258 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-omap3evm.c        |   44 +++++
- drivers/media/video/omap3isp/ispccdc.c      |  185 +++++++++++++++-----
- drivers/media/video/omap3isp/ispreg.h       |    1 +
- drivers/media/video/omap3isp/ispvideo.c     |  106 +++++++++++-
- drivers/media/video/omap3isp/ispvideo.h     |    5 +-
- drivers/media/video/tvp514x.c               |  241 ++++++++++++++++++++++---
- include/media/omap3isp.h                    |    7 +
- include/media/tvp514x.h                     |    3 +
- include/media/v4l2-subdev.h                 |    7 +-
- 12 files changed, 797 insertions(+), 75 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index a1184b3..8333ee4 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -273,6 +273,44 @@ static struct omap_dss_board_info omap3_evm_dss_data = {
+ 	.default_device	= &omap3_evm_lcd_device,
+ };
+ 
++static struct regulator_consumer_supply omap3evm_vaux3_supply = {
++	.supply         = "cam_1v8",
++};
++
++static struct regulator_consumer_supply omap3evm_vaux4_supply = {
++	.supply         = "cam_2v8",
++};
++
++/* VAUX3 for CAM_1V8 */
++static struct regulator_init_data omap3evm_vaux3 = {
++	.constraints = {
++		.min_uV                 = 1800000,
++		.max_uV                 = 1800000,
++		.apply_uV               = true,
++		.valid_modes_mask       = REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask         = REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++		},
++	.num_consumer_supplies  = 1,
++	.consumer_supplies      = &omap3evm_vaux3_supply,
++};
++
++/* VAUX4 for CAM_2V8 */
++static struct regulator_init_data omap3evm_vaux4 = {
++	.constraints = {
++		.min_uV                 = 1800000,
++		.max_uV                 = 1800000,
++		.apply_uV               = true,
++		.valid_modes_mask       = REGULATOR_MODE_NORMAL
++			| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask         = REGULATOR_CHANGE_MODE
++			| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = 1,
++	.consumer_supplies      = &omap3evm_vaux4_supply,
++};
++
+ static struct regulator_consumer_supply omap3evm_vmmc1_supply[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+ };
+@@ -499,6 +537,8 @@ static struct twl4030_platform_data omap3evm_twldata = {
+ 	.vio		= &omap3evm_vio,
+ 	.vmmc1		= &omap3evm_vmmc1,
+ 	.vsim		= &omap3evm_vsim,
++	.vaux3          = &omap3evm_vaux3,
++	.vaux4          = &omap3evm_vaux4,
+ };
+ 
+ static int __init omap3_evm_i2c_init(void)
+-- 
+1.7.0.4
