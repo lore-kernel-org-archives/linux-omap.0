@@ -1,206 +1,93 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
-Date: Fri, 9 Sep 2011 00:38:43 +0300
-Message-ID: <20110908213843.GE1724@valkosipuli.localdomain>
-References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
+From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH 01/10] OMAP2+: l3-noc: Add support for device-tree
+Date: Thu, 8 Sep 2011 23:59:18 +0200
+Message-ID: <4E693AB6.7050200@ti.com>
+References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
+	<1314191356-10963-2-git-send-email-b-cousson@ti.com>
+	<20110908180148.GA2967@ponder.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Deepthy Ravi <deepthy.ravi@ti.com>
-Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, mchehab@infradead.org, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20110908180148.GA2967-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "G,
+	Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Shilimkar,
+	Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Deepathy,
+On 9/8/2011 8:01 PM, Grant Likely wrote:
+> On Wed, Aug 24, 2011 at 03:09:07PM +0200, Benoit Cousson wrote:
+>> Add device-tree support for the l3-noc driver.
+>>
+>> Use platform_driver_register to defer the probing at device init
+>> time.
+>>
+>> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
+>> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> Cc: Santosh Shilimkar<santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   arch/arm/mach-omap2/omap_l3_noc.c |   16 ++++++++++++++--
+>>   1 files changed, 14 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/arch/arm/mach-omap2/omap_l3_noc.c
+>> index 7b9f190..4630703 100644
+>> --- a/arch/arm/mach-omap2/omap_l3_noc.c
+>> +++ b/arch/arm/mach-omap2/omap_l3_noc.c
+>> @@ -228,16 +228,28 @@ static int __exit omap4_l3_remove(struct platform_device *pdev)
+>>   	return 0;
+>>   }
+>>
+>> +#if defined(CONFIG_OF)
+>> +static const struct of_device_id l3_noc_match[] = {
+>> +	{.compatible = "arteris,noc", },
+>
+> Missing documentation for this compatible property.
 
-Thanks for the patches.
+As you already figured out... it will come later.
 
-On Thu, Sep 08, 2011 at 07:05:22PM +0530, Deepthy Ravi wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> In order to support TVP5146 (for that matter any video decoder),
-> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
-> device node.
+> Also, it appears
+> to be rather on the generic side.
 
-Why on video nodes rather than the subdev node?
+It is indeed a generic IP that will be there on OMAP5 too.
 
-I don't think *_STD ioctls should be handled differently from any others,
-i.e. this is directly related to that subdev, so the control should go
-through the subdev node.
+>> +	{},
+>> +}
+>> +MODULE_DEVICE_TABLE(of, l3_noc_match);
+>> +#else
+>> +#define l3_noc_match NULL
+>> +#endif
+>> +
+>>   static struct platform_driver omap4_l3_driver = {
+>> +	.probe		= omap4_l3_probe,
+>
+> .probe needs to be put into the __devinit section.
+>
+>>   	.remove		= __exit_p(omap4_l3_remove),
+>
+> Similarly, at the same time the remove hook should be changed to
+> __devexit and __devexit_p() at the same time.
+>
+>>   	.driver		= {
+>> -	.name		= "omap_l3_noc",
+>> +		.name		= "omap_l3_noc",
+>> +		.of_match_table = l3_noc_match,
+>
+> Looks like ".owner = THIS_MODULE," is missing too.
 
-That said, generic applications aren't necessarily aware of the subdev nodes
-and I think this is something that should be handled in a libv4l plugin.
-This appears quite generic to me; walking the graph and accessing the right
-subdev node can be done in user space.
+Well, yeah, that driver was supposed to be started really early to catch 
+any potential bus violation. So it was clearly not targeted to be a 
+loadable module.
+Anyway, it will not hurt, so I'll fix that.
 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
-> ---
->  drivers/media/video/omap3isp/ispvideo.c |   98 ++++++++++++++++++++++++++++++-
->  drivers/media/video/omap3isp/ispvideo.h |    1 +
->  2 files changed, 98 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-> index d5b8236..ff0ffed 100644
-> --- a/drivers/media/video/omap3isp/ispvideo.c
-> +++ b/drivers/media/video/omap3isp/ispvideo.c
-> @@ -37,6 +37,7 @@
->  #include <plat/iovmm.h>
->  #include <plat/omap-pm.h>
->  
-> +#include <media/tvp514x.h>
->  #include "ispvideo.h"
->  #include "isp.h"
->  
-> @@ -1136,7 +1137,97 @@ isp_video_g_input(struct file *file, void *fh, unsigned int *input)
->  static int
->  isp_video_s_input(struct file *file, void *fh, unsigned int input)
->  {
-> -	return input == 0 ? 0 : -EINVAL;
-> +	struct isp_video *video = video_drvdata(file);
-> +	struct media_entity *entity = &video->video.entity;
-> +	struct media_entity_graph graph;
-> +	struct v4l2_subdev *subdev;
-> +	struct v4l2_routing route;
-> +	int ret = 0;
-> +
-> +	media_entity_graph_walk_start(&graph, entity);
-> +	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +		if (media_entity_type(entity) ==
-> +				MEDIA_ENT_T_V4L2_SUBDEV) {
-> +			subdev = media_entity_to_v4l2_subdev(entity);
-> +			if (subdev != NULL) {
-> +				if (input == 0)
-> +					route.input = INPUT_CVBS_VI4A;
-> +				else
-> +					route.input = INPUT_SVIDEO_VI2C_VI1C;
-> +				route.output = 0;
-> +				ret = v4l2_subdev_call(subdev, video, s_routing,
-> +						route.input, route.output, 0);
-> +				if (ret < 0 && ret != -ENOIOCTLCMD)
-> +					return ret;
-> +			}
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int isp_video_querystd(struct file *file, void *fh, v4l2_std_id *a)
-> +{
-> +	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-> +	struct isp_video *video = video_drvdata(file);
-> +	struct media_entity *entity = &video->video.entity;
-> +	struct media_entity_graph graph;
-> +	struct v4l2_subdev *subdev;
-> +	int ret = 0;
-> +
-> +	media_entity_graph_walk_start(&graph, entity);
-> +	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +		if (media_entity_type(entity) ==
-> +				MEDIA_ENT_T_V4L2_SUBDEV) {
-> +			subdev = media_entity_to_v4l2_subdev(entity);
-> +			if (subdev != NULL) {
-> +				ret = v4l2_subdev_call(subdev, video, querystd,
-> +						a);
-> +				if (ret < 0 && ret != -ENOIOCTLCMD)
-> +					return ret;
-> +			}
-> +		}
-> +	}
-> +
-> +	vfh->standard.id = *a;
-> +	return 0;
-> +}
-> +
-> +static int isp_video_g_std(struct file *file, void *fh, v4l2_std_id *norm)
-> +{
-> +	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-> +	struct isp_video *video = video_drvdata(file);
-> +
-> +	mutex_lock(&video->mutex);
-> +	*norm = vfh->standard.id;
-> +	mutex_unlock(&video->mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +static int isp_video_s_std(struct file *file, void *fh, v4l2_std_id *norm)
-> +{
-> +	struct isp_video *video = video_drvdata(file);
-> +	struct media_entity *entity = &video->video.entity;
-> +	struct media_entity_graph graph;
-> +	struct v4l2_subdev *subdev;
-> +	int ret = 0;
-> +
-> +	media_entity_graph_walk_start(&graph, entity);
-> +	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +		if (media_entity_type(entity) ==
-> +				MEDIA_ENT_T_V4L2_SUBDEV) {
-> +			subdev = media_entity_to_v4l2_subdev(entity);
-> +			if (subdev != NULL) {
-> +				ret = v4l2_subdev_call(subdev, core, s_std,
-> +						*norm);
-> +				if (ret < 0 && ret != -ENOIOCTLCMD)
-> +					return ret;
-> +			}
-> +		}
-> +	}
-> +
-> +	return 0;
->  }
->  
->  static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
-> @@ -1161,6 +1252,9 @@ static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
->  	.vidioc_enum_input		= isp_video_enum_input,
->  	.vidioc_g_input			= isp_video_g_input,
->  	.vidioc_s_input			= isp_video_s_input,
-> +	.vidioc_querystd		= isp_video_querystd,
-> +	.vidioc_g_std			= isp_video_g_std,
-> +	.vidioc_s_std			= isp_video_s_std,
->  };
->  
->  /* -----------------------------------------------------------------------------
-> @@ -1325,6 +1419,8 @@ int omap3isp_video_register(struct isp_video *video, struct v4l2_device *vdev)
->  		printk(KERN_ERR "%s: could not register video device (%d)\n",
->  			__func__, ret);
->  
-> +	video->video.tvnorms		= V4L2_STD_NTSC | V4L2_STD_PAL;
-> +	video->video.current_norm	= V4L2_STD_NTSC;
->  	return ret;
->  }
->  
-> diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
-> index 53160aa..bb8feb6 100644
-> --- a/drivers/media/video/omap3isp/ispvideo.h
-> +++ b/drivers/media/video/omap3isp/ispvideo.h
-> @@ -182,6 +182,7 @@ struct isp_video_fh {
->  	struct isp_video *video;
->  	struct isp_video_queue queue;
->  	struct v4l2_format format;
-> +	struct v4l2_standard standard;
->  	struct v4l2_fract timeperframe;
->  };
->  
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Thanks for the review,
+Benoit
