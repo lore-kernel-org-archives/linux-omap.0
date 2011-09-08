@@ -1,15 +1,15 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 4/9] power: omap-prm: added prcm chain interrupt handler
-Date: Thu, 8 Sep 2011 18:22:19 +0300
-Message-ID: <1315495344-23133-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv7 2/9] OMAP2+: hwmod: Add API to enable IO ring wakeup.
+Date: Thu, 8 Sep 2011 18:22:17 +0300
+Message-ID: <1315495344-23133-3-git-send-email-t-kristo@ti.com>
 References: <1315495344-23133-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40791 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37205 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753772Ab1IHPWi convert rfc822-to-8bit (ORCPT
+	id S1753786Ab1IHPWi convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 11:22:38 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1315495344-23133-1-git-send-email-t-kristo@ti.com>
@@ -18,295 +18,114 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, paul@pwsan.com, govindraj.raja@ti.com
 
-The implementation in this patch still requires the irq_setup to be done
-properly, and also lacks the supported interrupts. These will be added
-in separate patches.
+From: R, Govindraj <govindraj.raja@ti.com>
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Add API to enable IO pad wakeup capability based on mux dynamic pad and
+wake_up enable flag available from hwmod_mux initialization.
+
+Use the wakeup_enable flag and enable wakeup capability
+for the given pads. Wakeup capability will be enabled/disabled
+during hwmod idle transition based on whether wakeup_flag is
+set or cleared.
+
+Map the enable/disable pad wakeup API's to hwmod_wakeup_enable/disable.
+
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- drivers/power/omap_prm.c       |  214 +++++++++++++++++++++++++++++++++++++++-
- include/linux/power/omap_prm.h |   19 ++++
- 2 files changed, 231 insertions(+), 2 deletions(-)
- create mode 100644 include/linux/power/omap_prm.h
+ arch/arm/mach-omap2/omap_hwmod.c |   59 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 59 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/power/omap_prm.c b/drivers/power/omap_prm.c
-index dfc0920..745a4bc 100644
---- a/drivers/power/omap_prm.c
-+++ b/drivers/power/omap_prm.c
-@@ -15,15 +15,32 @@
- #include <linux/ctype.h>
- #include <linux/module.h>
- #include <linux/io.h>
-+#include <linux/irq.h>
-+#include <linux/interrupt.h>
- #include <linux/slab.h>
- #include <linux/init.h>
- #include <linux/err.h>
- #include <linux/platform_device.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 84cc0bd..e751dd9 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2062,6 +2062,34 @@ static int __init omap_hwmod_setup_all(void)
+ core_initcall(omap_hwmod_setup_all);
  
-+#include <plat/irqs.h>
-+
- #define DRIVER_NAME "omap-prm"
-+#define OMAP_PRCM_MAX_NR_PENDING_REG 2
-+
-+struct omap_prcm_irq_setup {
-+	u32 ack;
-+	u32 mask;
-+	int irq;
-+	int io_irq;
-+	int base_irq;
-+	int nr_regs;
-+	int nr_irqs;
-+};
- 
- struct omap_prm_device {
- 	struct platform_device		pdev;
-+	struct omap_prcm_irq_setup	irq_setup;
-+	struct irq_chip_generic		**irq_chips;
- };
- 
- static struct omap_prm_device prm_dev = {
-@@ -33,20 +50,213 @@ static struct omap_prm_device prm_dev = {
- 	},
- };
- 
--static int __init omap_prm_probe(struct platform_device *pdev)
-+static void prm_pending_events(unsigned long *events)
-+{
-+	u32 ena, st;
-+	int i;
-+
-+	memset(events, 0, prm_dev.irq_setup.nr_regs * 8);
-+
-+	for (i = 0; i < prm_dev.irq_setup.nr_regs; i++) {
-+		ena = readl(prm_dev.irq_setup.mask);
-+		st = readl(prm_dev.irq_setup.ack);
-+		events[i] = ena & st;
-+	}
-+}
-+
-+/*
-+ * PRCM Interrupt Handler
+ /**
++ * omap_hwmod_set_ioring_wakeup - enable io pad wakeup flag.
++ * @oh: struct omap_hwmod *
++ * @set: bool value indicating to set or clear wakeup status.
 + *
-+ * The PRM_IRQSTATUS_MPU register indicates if there are any pending
-+ * interrupts from the PRCM for the MPU. These bits must be cleared in
-+ * order to clear the PRCM interrupt. The PRCM interrupt handler is
-+ * implemented to simply clear the PRM_IRQSTATUS_MPU in order to clear
-+ * the PRCM interrupt. Please note that bit 0 of the PRM_IRQSTATUS_MPU
-+ * register indicates that a wake-up event is pending for the MPU and
-+ * this bit can only be cleared if the all the wake-up events latched
-+ * in the various PM_WKST_x registers have been cleared. The interrupt
-+ * handler is implemented using a do-while loop so that if a wake-up
-+ * event occurred during the processing of the prcm interrupt handler
-+ * (setting a bit in the corresponding PM_WKST_x register and thus
-+ * preventing us from clearing bit 0 of the PRM_IRQSTATUS_MPU register)
-+ * this would be handled.
++ * Set or Clear wakeup flag for the io_pad.
 + */
-+static void prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
++static int omap_hwmod_set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
 +{
-+	unsigned long pending[OMAP_PRCM_MAX_NR_PENDING_REG];
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
-+	unsigned int virtirq;
-+	int nr_irqs = prm_dev.irq_setup.nr_irqs;
++	struct omap_device_pad *pad;
++	int ret = -EINVAL, j;
 +
-+	/*
-+	 * Loop until all pending irqs are handled, since
-+	 * generic_handle_irq() can cause new irqs to come
-+	 */
-+	while (1) {
-+		chip->irq_ack(&desc->irq_data);
-+
-+		prm_pending_events(pending);
-+
-+		/* No bit set, then all IRQs are handled */
-+		if (find_first_bit(pending, nr_irqs) >= nr_irqs) {
-+			chip->irq_unmask(&desc->irq_data);
-+			break;
++	if (oh->mux && oh->mux->enabled) {
++		for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
++			pad = oh->mux->pads_dynamic[j];
++			if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
++				if (set_wake)
++					pad->idle |= OMAP_WAKEUP_EN;
++				else
++					pad->idle &= ~OMAP_WAKEUP_EN;
++				ret = 0;
++			}
 +		}
-+
-+		/*
-+		 * Loop on all currently pending irqs so that new irqs
-+		 * cannot starve previously pending irqs
-+		 */
-+		for_each_set_bit(virtirq, pending, nr_irqs)
-+			generic_handle_irq(prm_dev.irq_setup.base_irq +
-+				virtirq);
-+
-+		chip->irq_unmask(&desc->irq_data);
 +	}
++
++	return ret;
 +}
 +
-+/*
-+ * Given a PRCM event name, returns the corresponding IRQ on which the
-+ * handler should be registered.
-+ */
-+int omap_prcm_event_to_irq(const char *name)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(omap_prcm_irqs); i++)
-+		if (!strcmp(omap_prcm_irqs[i].name, name))
-+			return prm_dev.irq_setup.base_irq +
-+				omap_prcm_irqs[i].offset;
-+
-+	return -ENOENT;
-+}
-+
-+/*
-+ * Reverses memory allocated and other setups done by
-+ * omap_prcm_irq_init().
-+ */
-+void omap_prcm_irq_cleanup(void)
++/**
+  * omap_hwmod_enable - enable an omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+@@ -2393,6 +2421,35 @@ int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
  {
-+	int i;
-+
-+	if (prm_dev.irq_chips) {
-+		for (i = 0; i < prm_dev.irq_setup.nr_regs; i++) {
-+			if (prm_dev.irq_chips[i])
-+				irq_remove_generic_chip(prm_dev.irq_chips[i],
-+					0xffffffff, 0, 0);
-+			prm_dev.irq_chips[i] = NULL;
-+		}
-+		kfree(prm_dev.irq_chips);
-+		prm_dev.irq_chips = NULL;
-+	}
-+
-+	irq_set_chained_handler(prm_dev.irq_setup.irq, NULL);
-+
-+	if (prm_dev.irq_setup.base_irq > 0)
-+		irq_free_descs(prm_dev.irq_setup.base_irq,
-+				prm_dev.irq_setup.nr_irqs);
-+	prm_dev.irq_setup.base_irq = 0;
-+}
-+
-+/*
-+ * Prepare the array of PRCM events corresponding to the current SoC,
-+ * and set-up the chained interrupt handler mechanism.
-+ */
-+static int __init omap_prcm_irq_init(void)
-+{
-+	int i;
-+	struct irq_chip_generic *gc;
-+	struct irq_chip_type *ct;
-+	int offset;
-+	int max_irq = 64;
-+
-+	/* XXX: supported irqs should be setup here */
-+
-+	irq_set_chained_handler(prm_dev.irq_setup.irq, prcm_irq_handler);
-+
-+	prm_dev.irq_setup.base_irq =
-+		irq_alloc_descs(-1, 0, prm_dev.irq_setup.nr_irqs, 0);
-+
-+	if (prm_dev.irq_setup.base_irq < 0) {
-+		pr_err("PRCM: failed to allocate irq descs\n");
-+		goto err;
-+	}
-+
-+	prm_dev.irq_chips = kzalloc(sizeof(void *) * prm_dev.irq_setup.nr_regs,
-+		GFP_KERNEL);
-+
-+	if (!prm_dev.irq_chips) {
-+		pr_err("PRCM: kzalloc failed\n");
-+		goto err;
-+	}
-+
-+	for (i = 0; i <= max_irq / 32; i++) {
-+		gc = irq_alloc_generic_chip("PRCM", 1,
-+			prm_dev.irq_setup.base_irq + i * 32, NULL,
-+			handle_level_irq);
-+
-+		if (!gc) {
-+			pr_err("PRCM: failed to allocate generic chip\n");
-+			goto err;
-+		}
-+		ct = gc->chip_types;
-+		ct->chip.irq_ack = irq_gc_ack_set_bit;
-+		ct->chip.irq_mask = irq_gc_mask_clr_bit;
-+		ct->chip.irq_unmask = irq_gc_mask_set_bit;
-+
-+		ct->regs.ack = prm_dev.irq_setup.ack + (i << 2);
-+		ct->regs.mask = prm_dev.irq_setup.mask + (i << 2);
-+
-+		irq_setup_generic_chip(gc, 0xffffffff, 0, IRQ_NOREQUEST, 0);
-+		prm_dev.irq_chips[i] = gc;
-+	}
-+
- 	return 0;
-+
-+err:
-+	omap_prcm_irq_cleanup();
-+	return -ENOMEM;
+ 	return _del_initiator_dep(oh, init_oh);
  }
- 
--static int __devexit omap_prm_remove(struct platform_device *pdev)
-+static int omap_prm_prepare(struct device *kdev)
- {
-+	disable_irq(prm_dev.irq_setup.io_irq);
- 	return 0;
- }
- 
-+static void omap_prm_complete(struct device *kdev)
-+{
-+	enable_irq(prm_dev.irq_setup.io_irq);
-+}
-+
-+static int __devexit omap_prm_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int __init omap_prm_probe(struct platform_device *pdev)
-+{
-+	/* XXX: prm_dev.irq_setup should be populated here */
-+
-+	/* XXX: following calls should be enabled once irq_setup is done */
-+#if 0
-+	omap_prcm_irq_init();
-+
-+	prm_dev.irq_setup.io_irq = omap_prcm_event_to_irq("io");
-+#endif
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops prm_pm_ops = {
-+	.prepare = omap_prm_prepare,
-+	.complete = omap_prm_complete,
-+};
-+
- static struct platform_driver prm_driver = {
- 	.remove		= __exit_p(omap_prm_remove),
- 	.driver		= {
- 		.name	= DRIVER_NAME,
-+		.pm	= &prm_pm_ops,
- 	},
- };
- 
-diff --git a/include/linux/power/omap_prm.h b/include/linux/power/omap_prm.h
-new file mode 100644
-index 0000000..9b161b5
---- /dev/null
-+++ b/include/linux/power/omap_prm.h
-@@ -0,0 +1,19 @@
-+/*
-+ * OMAP Power and Reset Management (PRM) driver
++/**
++ * omap_hwmod_enable_ioring_wakeup - Set wakeup flag for iopad.
++ * @oh: struct omap_hwmod *
 + *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ *
-+ * Author: Tero Kristo <t-kristo@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * Traverse through dynamic pads, if pad is enabled then
++ * set wakeup enable bit flag for the mux pin. Wakeup pad bit
++ * will be set during hwmod idle transistion.
++ * Return error if pads are not enabled or not available.
 + */
++int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh)
++{
++	/* Enable pad wake-up capability */
++	return omap_hwmod_set_ioring_wakeup(oh, true);
++}
 +
-+#ifndef __LINUX_POWER_OMAP_PRM_H__
-+#define __LINUX_POWER_OMAP_PRM_H__
-+
-+int omap_prcm_event_to_irq(const char *name);
-+
-+#endif
++/**
++ * omap_hwmod_disable_ioring_wakeup - Clear wakeup flag for iopad.
++ * @oh: struct omap_hwmod *
++ *
++ * Traverse through dynamic pads, if pad is enabled then
++ * clear wakeup enable bit flag for the mux pin. Wakeup pad bit
++ * will be set during hwmod idle transistion.
++ * Return error if pads are not enabled or not available.
++ */
++int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh)
++{
++	/* Disable pad wakeup capability */
++	return omap_hwmod_set_ioring_wakeup(oh, false);
++}
+ 
+ /**
+  * omap_hwmod_enable_wakeup - allow device to wake up the system
+@@ -2419,6 +2476,7 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
+ 	v = oh->_sysc_cache;
+ 	_enable_wakeup(oh, &v);
+ 	_write_sysconfig(v, oh);
++	omap_hwmod_enable_ioring_wakeup(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+ 
+ 	return 0;
+@@ -2449,6 +2507,7 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
+ 	v = oh->_sysc_cache;
+ 	_disable_wakeup(oh, &v);
+ 	_write_sysconfig(v, oh);
++	omap_hwmod_disable_ioring_wakeup(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+ 
+ 	return 0;
 -- 
 1.7.4.1
 
