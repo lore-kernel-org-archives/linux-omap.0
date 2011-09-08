@@ -1,71 +1,115 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH 06/10] hwspinlock: OMAP4: Add spinlock support in
- DT
-Date: Thu, 8 Sep 2011 17:34:51 +0200
-Message-ID: <4E68E09B.4050006@ti.com>
-References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
-	<4E6877A9.3090104@ti.com>
-	<CAK=WgbbN-RYj2quMQOyYbEBBfV3gty4dOE7DgjvsRcoYO=F3kw@mail.gmail.com>
-	<201109081647.55377.arnd@arndb.de>
+From: Mans Rullgard <mans.rullgard@linaro.org>
+Subject: Re: [PATCH] ASoC: omap: convert per-board modules to
+ platform drivers
+Date: Thu, 8 Sep 2011 16:41:30 +0100
+Message-ID: <CAG5Tg6XxGP1YhQ0zW3f=1EkZfAmb9vj3pBemeSazpH1_CZ3OzQ@mail.gmail.com>
+References: <1315494354-17597-1-git-send-email-mans.rullgard@linaro.org>
+	<4E68DBF7.1030009@metafoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201109081647.55377.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, "Hilman, Kevin" <khilman@ti.com>, Mathieu Poirier <mathieu.poirier@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "G,
-	Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <4E68DBF7.1030009@metafoo.de>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: alsa-devel@alsa-project.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linaro-dev@lists.linaro.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 9/8/2011 4:47 PM, Arnd Bergmann wrote:
-> On Thursday 08 September 2011, Ohad Ben-Cohen wrote:
->> On Thu, Sep 8, 2011 at 11:07 AM, Cousson, Benoit<b-cousson@ti.com>  wrote:
->>> The (small) issue for my point of view is that the #hwspinlock is already
->>> encoded in the IP itself. So adding a baseid directly in DT will look like
->>> duplicating indirectly something that is already there in the HW.
->>> That being said, since we cannot rely on the order, we will not be able to
->>> get the proper baseid until the driver probe every hwspinlock devices :-(
->>> So baseid might be a easier choice.
+On 8 September 2011 16:15, Lars-Peter Clausen <lars@metafoo.de> wrote:
+> On 09/08/2011 05:05 PM, Mans Rullgard wrote:
+>> This converts the per-board modules to platform drivers for a
+>> device created by in main platform setup. =A0These drivers call
+>> snd_soc_register_card() directly instead of going via a "soc-audio"
+>> device and the corresponding driver in soc-core.
 >>
->> Sounds good. Thanks a lot !
+>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices=
+.c
+>> index 5b8ca68..7cb93d9 100644
+>> --- a/arch/arm/mach-omap2/devices.c
+>> +++ b/arch/arm/mach-omap2/devices.c
+>> @@ -299,6 +299,11 @@ static struct platform_device omap_pcm =3D {
+>> =A0 =A0 =A0 .id =A0 =A0 =3D -1,
+>> =A0};
+>>
+>> +static struct platform_device omap_soc_audio =3D {
+>> + =A0 =A0 .name =A0 =3D "omap-soc-audio",
+>> + =A0 =A0 .id =A0 =A0 =3D -1,
+>> +};
+>> +
+>> =A0/*
+>> =A0 * OMAP2420 has 2 McBSP ports
+>> =A0 * OMAP2430 has 5 McBSP ports
+>> @@ -323,6 +328,7 @@ static void omap_init_audio(void)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 platform_device_register(&omap_mcbsp5);
+>>
+>> =A0 =A0 =A0 platform_device_register(&omap_pcm);
+>> + =A0 =A0 platform_device_register(&omap_soc_audio);
+>> =A0}
+>>
+>> =A0#else
+>> diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
+>> index 73dde4a..fcd18af 100644
+>> --- a/sound/soc/omap/am3517evm.c
+>> +++ b/sound/soc/omap/am3517evm.c
+>> @@ -151,45 +151,60 @@ static struct snd_soc_card snd_soc_am3517evm =3D {
+>> =A0 =A0 =A0 .num_links =3D 1,
+>> =A0};
+>>
+>> [...]
+>> +static struct platform_driver am3517evm_driver =3D {
+>> + =A0 =A0 .driver =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "omap-soc-audio",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .owner =3D THIS_MODULE,
+>> + =A0 =A0 },
+>>
+>> - =A0 =A0 return ret;
+>> + =A0 =A0 .probe =3D am3517evm_soc_probe,
+>> + =A0 =A0 .remove =3D __devexit_p(am3517evm_soc_remove),
+>> +};
+>> +[...]
+>> +
+>> +static struct platform_driver igep2_driver =3D {
+>> + =A0 =A0 .driver =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "omap-soc-audio",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .owner =3D THIS_MODULE,
+>> + =A0 =A0 },
+>> +
+>> + =A0 =A0 .probe =3D igep2_soc_probe,
+>> + =A0 =A0 .remove =3D __devexit_p(igep2_soc_remove),
+>> +};
+>> [...]
+>>
+>> +static struct platform_driver n810_driver =3D {
+>> + =A0 =A0 .driver =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "omap-soc-audio",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .owner =3D THIS_MODULE,
+>> + =A0 =A0 },
+>> +
+>> + =A0 =A0 .probe =3D n810_soc_probe,
+>> + =A0 =A0 .remove =3D __devexit_p(n810_soc_remove),
+>> +};
+>> [...]
 >
-> I think a number would work here but is not optimal for the device tree
-> representation. I think a better binding would be to encode it like
-> interrupt numbers, where every device that uses a hwspinlock will describe
-> that as a combination of phandle to the hwspinlock controller and
-> identifier to be used by that controller, e.g.
->
-> 	spinlock1 {
-> 		compatible = "ti,omap-spinlock";
-> 		regs = ...
-> 		interrupts =<42>;
-> 		interrupt-parent =&irq-controller;
-> 	};
->
-> 	dsp {
-> 		compatible = ...
-> 		regs = ...
-> 		spinlocks =<23>; // local number withing&spinlock1;
-> 		spinlock-controller =&spinlock1;
-> 	};
+> This isn't really any better then using the soc-core device, since all yo=
+ur
+> drivers are still named the same. udev still wouldn't know which one to l=
+oad.
+> Use different device driver names for different drivers.
 
-OK, this is indeed much more aligned with the current practice, and what 
-DMA should do as well.
+I guess this worked by accident on my system.
 
-Practically speaking, that change will go beyond the original scope of 
-that patch that was just adding the DT support based on the existing 
-functionality.
+Are there any other changes needed?
 
-Is it OK to handle that improvement in a further patch / series?
+-- =
 
-Thanks,
-Benoit
+Mans Rullgard
+Multimedia
+mans.rullgard@linaro.org
