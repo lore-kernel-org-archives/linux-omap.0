@@ -1,44 +1,64 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v2] ASoC: omap: convert per-board modules
-	to platform drivers
-Date: Thu, 08 Sep 2011 22:28:50 +0200
-Message-ID: <3110288.bQbb0H2ME1@wuerfel>
-References: <1315503297-8365-1-git-send-email-mans.rullgard@linaro.org>
-	<CABb+yY0b607kDSGU+trycqQuvGMhC-zpHcv20wjgmEcaK7dz8Q@mail.gmail.com>
-	<CAG5Tg6UOuztenNid1=YbH9a4ZH5MqV4YhohG+r9R+7F=zXs=CQ@mail.gmail.com>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v15 09/12] OMAP: dmtimer: mark clocksource and clockevent
+	timers reserved
+Date: Fri, 9 Sep 2011 02:38:15 +0530
+Message-ID: <1315516098-29761-10-git-send-email-tarun.kanti@ti.com>
+References: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <CAG5Tg6UOuztenNid1=YbH9a4ZH5MqV4YhohG+r9R+7F=zXs=CQ@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: linaro-dev@lists.linaro.org
-Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Russell King <linux@arm.linux.org.uk>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, Mans Rullgard <mans.rullgard@linaro.org>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, tony@atomide.com, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 08 September 2011 20:05:48 Mans Rullgard wrote:
-> >
-> > Can't we do by having omap_init_audio() in arch/arm/mach-omap2/devices.c
-> > generate a platform device of name depending upon machine_is_* ?
-> 
-> I had the same thought, but I couldn't find a suitable string anywhere.
-> Are you suggesting an if(machine_is_foo()) cascade in omap_init_audio()?
-> 
-> I'll be the first to agree this patch is not particularly pretty.
+In driver probe use sys_timer_reserved to identify which all timers
+have already been used for clocksource and clockevent. Mark all those
+timers as reserved so that no one else can use them.
 
-My general feeling is that practically every time someone writes
-machine_is_*(), they are doing it wrong. There are of course exceptions,
-but I would strongly recommend to have the initialization calling up
-from the board file into more general functions instead of having all
-boards calling the same function which then goes to board specific
-code again.
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/plat-omap/dmtimer.c |   17 +++++++++++------
+ 1 files changed, 11 insertions(+), 6 deletions(-)
 
-	Arnd
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 39751f9..6312dfb 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -531,12 +531,17 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+ 	timer->irq = irq->start;
+ 	timer->pdev = pdev;
+ 
+-	/* Skip pm_runtime_enable for OMAP1 */
+-	if (!pdata->needs_manual_reset) {
+-		pm_runtime_enable(&pdev->dev);
+-		pm_runtime_irq_safe(&pdev->dev);
+-	}
+-
++/*
++ * sys_timer_reserved is not defined for OMAP1.
++ * Use the macro to avoid compilation error on OMAP1.
++ */
++#if defined(CONFIG_ARCH_OMAP2PLUS)
++	pm_runtime_enable(&pdev->dev);
++	pm_runtime_irq_safe(&pdev->dev);
++	/* Mark clocksource and clockevent timers as reserved */
++	if ((sys_timer_reserved >> (pdev->id - 1)) & 0x1)
++		timer->reserved = 1;
++#endif
+ 	/* add the timer element to the list */
+ 	spin_lock_irqsave(&dm_timer_lock, flags);
+ 	list_add_tail(&timer->node, &omap_timer_list);
+-- 
+1.7.0.4
