@@ -1,16 +1,16 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 5/9] TEMP: power: omap-prm: added prcm events
-Date: Thu, 8 Sep 2011 18:22:20 +0300
-Message-ID: <1315495344-23133-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv7 9/9] TEMP: serial: added mux support
+Date: Thu, 8 Sep 2011 18:22:24 +0300
+Message-ID: <1315495344-23133-10-git-send-email-t-kristo@ti.com>
 References: <1315495344-23133-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47222 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47229 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753862Ab1IHPWi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 11:22:38 -0400
+	id S1754028Ab1IHPWn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 11:22:43 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1315495344-23133-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,75 +18,105 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, paul@pwsan.com, govindraj.raja@ti.com
 
-Added wakeup and io event definitions for the PRCM interrupt handler.
-This should eventually be generated from PRM hwmod data.
+Just for PRCM chain handler testing purposes. This should be replaced with
+a proper implementation.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/power/omap_prm.c |   34 +++++++++++++++++++++++++++++++---
- 1 files changed, 31 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/serial.c |   71 ++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 69 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/power/omap_prm.c b/drivers/power/omap_prm.c
-index 745a4bc..ce0a872 100644
---- a/drivers/power/omap_prm.c
-+++ b/drivers/power/omap_prm.c
-@@ -50,6 +50,26 @@ static struct omap_prm_device prm_dev = {
- 	},
- };
- 
-+struct omap_prcm_irq {
-+	const char *name;
-+	unsigned int offset;
-+	const struct omap_chip_id omap_chip;
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 3d1c1d3..432b308 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -862,17 +862,84 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+  * can call this function when they want to have default behaviour
+  * for serial ports (e.g initialize them all as serial ports).
+  */
++
++struct serial_mux_conf {
++	char *name;
++	int omap3_mux;
++	int omap4_mux;
 +};
 +
-+#define OMAP_PRCM_IRQ(_name, _offset, _chip) {	\
-+	.name = _name,				\
-+	.offset = _offset,			\
-+	.omap_chip = OMAP_CHIP_INIT(_chip)	\
-+	}
++#define OMAP3_SERIAL_MUX_IN_PU (OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0)
++#define OMAP3_SERIAL_MUX_IN_PD (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0)
++#define OMAP3_SERIAL_MUX_IN (OMAP_PIN_INPUT | OMAP_MUX_MODE0)
++#define OMAP3_SERIAL_MUX_OUT (OMAP_PIN_OUTPUT | OMAP_MUX_MODE0)
++#define OMAP4_SERIAL_MUX_IN_PU (OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0)
++#define OMAP4_SERIAL_MUX_OUT (OMAP_PIN_OUTPUT | OMAP_MUX_MODE0)
++#define OMAP4_SERIAL_MUX_IN (OMAP_PIN_INPUT | OMAP_MUX_MODE0)
++#define SERIAL_DISABLED OMAP_MUX_MODE7
 +
-+static struct omap_prcm_irq omap_prcm_irqs[] = {
-+	OMAP_PRCM_IRQ("wkup",		0,
-+			CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1),
-+	OMAP_PRCM_IRQ("io",		9,
-+			CHIP_IS_OMAP3430 | CHIP_GE_OMAP3630ES1_1 |
-+			CHIP_IS_OMAP4430),
++#define OMAP_SERIAL_NUM_PADS_PER_PORT 4
++
++static const struct serial_mux_conf serial_mux_data[] = {
++	{ "uart1_cts.uart1_cts", OMAP3_SERIAL_MUX_IN, SERIAL_DISABLED, },
++	{ "uart1_rts.uart1_rts", OMAP3_SERIAL_MUX_OUT, SERIAL_DISABLED, },
++	{ "uart1_rx.uart1_rx", OMAP3_SERIAL_MUX_IN, SERIAL_DISABLED, },
++	{ "uart1_tx.uart1_tx", OMAP3_SERIAL_MUX_OUT, SERIAL_DISABLED, },
++	{ "uart2_cts.uart2_cts", OMAP3_SERIAL_MUX_IN,
++		OMAP4_SERIAL_MUX_IN_PU, },
++	{ "uart2_rts.uart2_rts", OMAP3_SERIAL_MUX_OUT, OMAP4_SERIAL_MUX_OUT, },
++	{ "uart2_rx.uart2_rx", OMAP3_SERIAL_MUX_IN, OMAP4_SERIAL_MUX_IN_PU, },
++	{ "uart2_tx.uart2_tx", OMAP3_SERIAL_MUX_OUT, OMAP4_SERIAL_MUX_OUT },
++	{ "uart3_cts_rctx.uart3_cts_rctx", OMAP3_SERIAL_MUX_IN_PD,
++		OMAP4_SERIAL_MUX_IN_PU, },
++	{ "uart3_rts_sd.uart3_rts_sd", OMAP3_SERIAL_MUX_OUT,
++		OMAP4_SERIAL_MUX_OUT, },
++	{ "uart3_rx_irrx.uart3_rx_irrx", OMAP3_SERIAL_MUX_IN,
++		OMAP4_SERIAL_MUX_IN, },
++	{ "uart3_tx_irtx.uart3_tx_irtx", OMAP3_SERIAL_MUX_OUT,
++		OMAP4_SERIAL_MUX_OUT, },
++	{ "uart4_rx.uart4_rx", SERIAL_DISABLED, OMAP4_SERIAL_MUX_IN, },
++	{ "uart4_tx.uart4_tx", SERIAL_DISABLED, OMAP4_SERIAL_MUX_OUT, },
++	{ NULL, 0, 0, },
++	{ NULL, 0, 0, },
 +};
 +
- static void prm_pending_events(unsigned long *events)
+ void __init omap_serial_init(void)
  {
- 	u32 ena, st;
-@@ -167,10 +187,18 @@ static int __init omap_prcm_irq_init(void)
- 	int i;
- 	struct irq_chip_generic *gc;
- 	struct irq_chip_type *ct;
-+	u32 mask[OMAP_PRCM_MAX_NR_PENDING_REG];
- 	int offset;
--	int max_irq = 64;
-+	int max_irq = 0;
+ 	struct omap_uart_state *uart;
+ 	struct omap_board_data bdata;
++	struct omap_device_pad *pads;
++	int idx;
++	int i;
  
--	/* XXX: supported irqs should be setup here */
-+	memset(mask, 0, sizeof(mask));
-+	for (i = 0; i < ARRAY_SIZE(omap_prcm_irqs); i++)
-+		if (omap_chip_is(omap_prcm_irqs[i].omap_chip)) {
-+			offset = omap_prcm_irqs[i].offset;
-+			mask[offset >> 5] |= 1 << (offset & 0x1f);
-+			if (offset > max_irq)
-+				max_irq = offset;
++	pads = kmalloc(sizeof(struct omap_device_pad) * 4, GFP_KERNEL);
+ 	list_for_each_entry(uart, &uart_list, node) {
+ 		bdata.id = uart->num;
+ 		bdata.flags = 0;
+-		bdata.pads = NULL;
+ 		bdata.pads_cnt = 0;
++		bdata.pads = pads;
++
++		for (i = 0; i < OMAP_SERIAL_NUM_PADS_PER_PORT; i++) {
++			idx = bdata.id * OMAP_SERIAL_NUM_PADS_PER_PORT + i;
++			pads[i].name = serial_mux_data[idx].name;
++			pads[i].enable = 0;
++			pads[i].idle = 0;
++			pads[i].flags = 0;
++			if (cpu_is_omap34xx())
++				pads[i].enable = serial_mux_data[idx].omap3_mux;
++			if (cpu_is_omap44xx())
++				pads[i].enable = serial_mux_data[idx].omap4_mux;
++			if (pads[i].enable != SERIAL_DISABLED)
++				bdata.pads_cnt++;
++			if (pads[i].enable & OMAP_PIN_INPUT) {
++				pads[i].flags = OMAP_DEVICE_PAD_REMUX |
++					OMAP_DEVICE_PAD_WAKEUP;
++			}
++			pads[i].idle = pads[i].enable;
 +		}
- 
- 	irq_set_chained_handler(prm_dev.irq_setup.irq, prcm_irq_handler);
- 
-@@ -207,7 +235,7 @@ static int __init omap_prcm_irq_init(void)
- 		ct->regs.ack = prm_dev.irq_setup.ack + (i << 2);
- 		ct->regs.mask = prm_dev.irq_setup.mask + (i << 2);
- 
--		irq_setup_generic_chip(gc, 0xffffffff, 0, IRQ_NOREQUEST, 0);
-+		irq_setup_generic_chip(gc, mask[i], 0, IRQ_NOREQUEST, 0);
- 		prm_dev.irq_chips[i] = gc;
++		if (bdata.pads_cnt == 0)
++			bdata.pads = NULL;
+ 		omap_serial_init_port(&bdata);
+-
  	}
- 
++	kfree(pads);
+ }
 -- 
 1.7.4.1
 
