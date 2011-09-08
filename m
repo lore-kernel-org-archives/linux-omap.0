@@ -1,186 +1,88 @@
 From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/6 v2] omap: musb: Adding hwmod data for ti81xx
-Date: Thu, 8 Sep 2011 11:00:05 +0300
-Message-ID: <20110908080004.GD7707@legolas.emea.dhcp.ti.com>
-References: <1315414945-19829-1-git-send-email-ajay.gupta@ti.com>
- <1315414945-19829-2-git-send-email-ajay.gupta@ti.com>
- <CAP05o4Lfas96izGGVQN0qkTRX_kwUncPWVX2d6+izh4YMuQ6dA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] usb: musb: omap2+: save and restore OTG_INTERFSEL
+Date: Thu, 8 Sep 2011 11:02:59 +0300
+Message-ID: <20110908080258.GE7707@legolas.emea.dhcp.ti.com>
+References: <1315356573-1057-1-git-send-email-vikram.pandita@ti.com>
+ <1315356573-1057-3-git-send-email-vikram.pandita@ti.com>
+ <4E674CD2.6050800@ru.mvista.com>
 Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9UV9rz0O2dU/yYYn"
+	protocol="application/pgp-signature"; boundary="M/SuVGWktc5uNpra"
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAP05o4Lfas96izGGVQN0qkTRX_kwUncPWVX2d6+izh4YMuQ6dA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <4E674CD2.6050800-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---9UV9rz0O2dU/yYYn
-Content-Type: text/plain; charset=iso-8859-1
+--M/SuVGWktc5uNpra
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Sep 08, 2011 at 11:56:25AM +0530, Munegowda, Keshava wrote:
-> On Wed, Sep 7, 2011 at 10:32 PM, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org> wro=
-te:
-> > From: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
-> >
-> > The usb subsystem (usbss) in ti81xx has two musb interfaces. There are =
-three
-> > irqs and three address spaces for usbss, musb0 and musb1 respectively. =
-Created
-> > one hwmod with three irq and memory resources.
-> >
-> > Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-> > Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> > Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
-> > ---
-> > =A0arch/arm/mach-omap2/omap_hwmod_81xx_data.c | =A0 74 ++++++++++++++++=
-++++++++++++
-> > =A01 files changed, 74 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_81xx_data.c
-> > index e73a4c6..e960d70 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-> > @@ -194,6 +194,7 @@ static struct omap_hwmod ti81xx_timer4_hwmod;
-> > =A0static struct omap_hwmod ti81xx_timer5_hwmod;
-> > =A0static struct omap_hwmod ti81xx_timer6_hwmod;
-> > =A0static struct omap_hwmod ti81xx_timer7_hwmod;
-> > +static struct omap_hwmod ti81xx_usbss_hwmod;
-> >
-> > =A0/* L4 SLOW -> TIMER1 interface */
-> > =A0static struct omap_hwmod_addr_space ti81xx_timer1_addr_space[] =3D {
-> > @@ -650,6 +651,78 @@ static struct omap_hwmod ti81xx_timer7_hwmod =3D {
-> > =A0 =A0 =A0 =A0.omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_TI816X =
-| CHIP_IS_TI814X)
-> > =A0};
-> >
-> > +/* L3 SLOW -> USBSS interface */
-> > +static struct omap_hwmod_addr_space ti81xx_usbss_addr_space[] =3D {
-> > + =A0 =A0 =A0 {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usbss",
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x47400000,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x47400000 + =
-SZ_4K - 1,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE_RT
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "musb0",
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x47401000,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x47401000 + =
-SZ_2K - 1,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE_RT
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "musb1",
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x47401800,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x47401800 + =
-SZ_2K - 1,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE_RT
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 {
-> > + =A0 =A0 =A0 },
-> > +};
-> > +
-> > +static struct omap_hwmod_class_sysconfig ti81xx_usbhsotg_sysc =3D {
-> > + =A0 =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x0,
-> > + =A0 =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x10,
-> > + =A0 =A0 =A0 .sysc_flags =A0 =A0 =3D (SYSC_HAS_SIDLEMODE | SYSC_HAS_SO=
-FTRESET),
-> > + =A0 =A0 =A0 .idlemodes =A0 =A0 =A0=3D (SIDLE_FORCE | SIDLE_NO | SIDLE=
-_SMART),
-> > + =A0 =A0 =A0 .sysc_fields =A0 =A0=3D &omap_hwmod_sysc_type2,
-> > +};
-> > +
-> > +static struct omap_hwmod_class ti81xx_usbotg_class =3D {
-> > + =A0 =A0 =A0 .name =3D "usbotg",
-> > + =A0 =A0 =A0 .sysc =3D &ti81xx_usbhsotg_sysc,
-> > +};
-> > +
-> > +static struct omap_hwmod_irq_info ti81xx_usbss_mpu_irqs[] =3D {
-> > + =A0 =A0 =A0 { .name =3D "usbss-irq", .irq =3D 17, },
-> > + =A0 =A0 =A0 { .name =3D "musb0-irq", .irq =3D 18, },
-> > + =A0 =A0 =A0 { .name =3D "musb1-irq", .irq =3D 19, },
-> > + =A0 =A0 =A0 { .irq =3D -1, },
-> > +};
-> > +
-> > +static struct omap_hwmod_ocp_if ti81xx_l3_slow__usbss =3D {
-> > + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &ti81xx_l3_slow_hwmod,
-> > + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &ti81xx_usbss_hwmod,
-> > + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbotg_ick",
-> > + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D ti81xx_usbss_addr_space,
-> > + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
-> > + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D OCPIF_SWSUP_IDLE,
-> > +};
-> > +
-> > +static struct omap_hwmod_ocp_if *ti81xx_usbss_slaves[] =3D {
-> > + =A0 =A0 =A0 &ti81xx_l3_slow__usbss,
-> > +};
-> > +
-> > +static struct omap_hwmod ti81xx_usbss_hwmod =3D {
-> > + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usb_otg_hs",
-> > + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D ti81xx_usbss_mpu_irqs,
-> > + =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "usbotg_ick",
-> > + =A0 =A0 =A0 .clkdm_name =A0 =A0 =3D "default_usb_clkdm",
-> > + =A0 =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .omap4 =3D {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .clkctrl_offs =3D TI816X_=
-CM_DEFAULT_USB_CLKCTRL_OFFSET,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D ti81xx_usbss_slaves,
-> > + =A0 =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(ti81xx_usbss_slaves),
-> > + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &ti81xx_usbotg_class,
-> > + =A0 =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_TI816X |=
- CHIP_IS_TI814X)
-> > +};
-> >
-> > =A0static __initdata struct omap_hwmod *ti81xx_hwmods[] =3D {
-> > =A0 =A0 =A0 =A0&ti81xx_l3_fast_hwmod,
-> > @@ -668,6 +741,7 @@ static __initdata struct omap_hwmod *ti81xx_hwmods[=
-] =3D {
-> > =A0 =A0 =A0 =A0&ti81xx_timer5_hwmod,
-> > =A0 =A0 =A0 =A0&ti81xx_timer6_hwmod,
-> > =A0 =A0 =A0 =A0&ti81xx_timer7_hwmod,
-> > + =A0 =A0 =A0 &ti81xx_usbss_hwmod,
-> > =A0 =A0 =A0 =A0NULL,
-> > =A0};
-> >
-> > --
-> > 1.6.2.4
+On Wed, Sep 07, 2011 at 02:52:02PM +0400, Sergei Shtylyov wrote:
+> Hello.
 >=20
-> looks good to me.
+> On 07-09-2011 4:49, Vikram Pandita wrote:
+>=20
+> >From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+>=20
+> >we need to save and restore OTG_INTERFSEL register
+> >else we will be unable to function on resume after
+> >OFF mode.
+>=20
+> >Change-Id: I6c29c69596d5f47e00cf74ab0e32bb44ef71dda9
+>=20
+>    Remove this, please.
+>=20
+> >Reported-by: Devaraj Rangasamy<dev-l0cyMroinI0@public.gmane.org>
+> >Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
+> >Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
+> >---
+> >  drivers/usb/musb/musb_core.h |    1 +
+> >  drivers/usb/musb/omap2430.c  |    6 ++++++
+> >  2 files changed, 7 insertions(+), 0 deletions(-)
+>=20
+> >diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+> >index b3c065a..3259a6b 100644
+> >--- a/drivers/usb/musb/musb_core.h
+> >+++ b/drivers/usb/musb/musb_core.h
+> >@@ -311,6 +311,7 @@ struct musb_context_registers {
+> >  	u8 index, testmode;
+> >
+> >  	u8 devctl, busctl, misc;
+> >+	u32 otg_interfsel;
+>=20
+>    Shouldn't this be encosed in #ifdef?
 
-how about you reply with your Acked-by then ?
+Actually, this is part of the OMAP wrapper, so it would be better if you
+would, instead, take care of this in omap2430.c.
 
 --=20
 balbi
 
---9UV9rz0O2dU/yYYn
+--M/SuVGWktc5uNpra
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOaHYEAAoJEAv8Txj19kN165AH/3vxZsHNfPCYarGL7jhUgdzv
-Wgw6XHSCHlLVlj0EA/Gg6E7+dH/kDLwCF2QA8gqFOPKng0yOuaWDWPzKqOrbAD6t
-zZcw/xPom6XGXvsal5sMZao3APdu1Q2RSc4RrjgINpMh1quKGjAY2bYUFzPHamNN
-3hbCePIShQyB/tiDSnlMH2FkZbVORkQ1+MTpM8F1ytRp8qMqhaGoGnBifWaPzG/l
-kHnxpHHXO44faaho2Ro9yCQsZRQpOe3Wu3yPMwDfTTzg9LnGzuDjPTFDmYadyqPY
-oTczFXmgCyDZwuBqly8+/kCSnxqluNrosZwPI+UjjuaAEbETXLTnAqbqyPMEFOk=
-=ghDp
+iQEcBAEBAgAGBQJOaHayAAoJEAv8Txj19kN1oFoH/iGgE0zJX6K4kLgImBKM1V71
+NJ+GugN4KIRGAZMkOu9Wsuos92N83vL0Mt98ha7/Ndo4nunbeHEwCYc6XPu/6JJn
+3LzZlqgNAd+dTUhi4sq12LpC2ihcYCmGudPVIKD7hhtHW9HN7m2MCGxmIukQ8Ii8
+xrOujelnmhX6nFlKkFcIn7ZAUdLKoWoZYigHyepaonNPOEGVit1jOVhIWiVCf4PL
+n/Co7W0migzv8E9D9F1GdADEIk/E2judLhug1p/90Nh+18D63psXWCBMXEQ5qgqb
+JkddB5Ptwo8oI1cQUyPLggotvLGYHz/sKnfB2jC8hML2oP6s4tHKgeR/T1NxbsQ=
+=QEV0
 -----END PGP SIGNATURE-----
 
---9UV9rz0O2dU/yYYn--
+--M/SuVGWktc5uNpra--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
