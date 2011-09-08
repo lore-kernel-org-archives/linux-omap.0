@@ -1,93 +1,51 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 01/10] OMAP2+: l3-noc: Add support for device-tree
-Date: Thu, 8 Sep 2011 23:59:18 +0200
-Message-ID: <4E693AB6.7050200@ti.com>
-References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
-	<1314191356-10963-2-git-send-email-b-cousson@ti.com>
-	<20110908180148.GA2967@ponder.secretlab.ca>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2] ASoC: omap: convert per-board modules
+ to platform drivers
+Date: Thu, 08 Sep 2011 15:29:11 -0700
+Message-ID: <1315520956.4126.3.camel@finisterre.wolfsonmicro.main>
+References: <1315503297-8365-1-git-send-email-mans.rullgard@linaro.org>
+	<CABb+yY0b607kDSGU+trycqQuvGMhC-zpHcv20wjgmEcaK7dz8Q@mail.gmail.com>
+	<CAG5Tg6UOuztenNid1=YbH9a4ZH5MqV4YhohG+r9R+7F=zXs=CQ@mail.gmail.com>
+	<3110288.bQbb0H2ME1@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20110908180148.GA2967-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "G,
-	Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Shilimkar,
-	Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <3110288.bQbb0H2ME1@wuerfel>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: alsa-devel@alsa-project.org, King <linux@arm.linux.org.uk>, Russell@alsa-project.org, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Takashi@alsa-project.org, Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, Iwai <tiwai@suse.de>, linaro-dev@lists.linaro.org, linux-omap@vger.kernel.org, Mans Rullgard <mans.rullgard@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 9/8/2011 8:01 PM, Grant Likely wrote:
-> On Wed, Aug 24, 2011 at 03:09:07PM +0200, Benoit Cousson wrote:
->> Add device-tree support for the l3-noc driver.
->>
->> Use platform_driver_register to defer the probing at device init
->> time.
->>
->> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
->> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Cc: Santosh Shilimkar<santosh.shilimkar-l0cyMroinI0@public.gmane.org>
->> ---
->>   arch/arm/mach-omap2/omap_l3_noc.c |   16 ++++++++++++++--
->>   1 files changed, 14 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/arch/arm/mach-omap2/omap_l3_noc.c
->> index 7b9f190..4630703 100644
->> --- a/arch/arm/mach-omap2/omap_l3_noc.c
->> +++ b/arch/arm/mach-omap2/omap_l3_noc.c
->> @@ -228,16 +228,28 @@ static int __exit omap4_l3_remove(struct platform_device *pdev)
->>   	return 0;
->>   }
->>
->> +#if defined(CONFIG_OF)
->> +static const struct of_device_id l3_noc_match[] = {
->> +	{.compatible = "arteris,noc", },
->
-> Missing documentation for this compatible property.
+On Thu, 2011-09-08 at 22:28 +0200, Arnd Bergmann wrote:
+> On Thursday 08 September 2011 20:05:48 Mans Rullgard wrote:
 
-As you already figured out... it will come later.
+> > I had the same thought, but I couldn't find a suitable string anywhere.
+> > Are you suggesting an if(machine_is_foo()) cascade in omap_init_audio()?
 
-> Also, it appears
-> to be rather on the generic side.
+> > I'll be the first to agree this patch is not particularly pretty.
 
-It is indeed a generic IP that will be there on OMAP5 too.
+> My general feeling is that practically every time someone writes
+> machine_is_*(), they are doing it wrong. There are of course exceptions,
+> but I would strongly recommend to have the initialization calling up
+> from the board file into more general functions instead of having all
+> boards calling the same function which then goes to board specific
+> code again.
 
->> +	{},
->> +}
->> +MODULE_DEVICE_TABLE(of, l3_noc_match);
->> +#else
->> +#define l3_noc_match NULL
->> +#endif
->> +
->>   static struct platform_driver omap4_l3_driver = {
->> +	.probe		= omap4_l3_probe,
->
-> .probe needs to be put into the __devinit section.
->
->>   	.remove		= __exit_p(omap4_l3_remove),
->
-> Similarly, at the same time the remove hook should be changed to
-> __devexit and __devexit_p() at the same time.
->
->>   	.driver		= {
->> -	.name		= "omap_l3_noc",
->> +		.name		= "omap_l3_noc",
->> +		.of_match_table = l3_noc_match,
->
-> Looks like ".owner = THIS_MODULE," is missing too.
+I have to agree, that seems tasteless. I'd expect something like
+triggering registration of devices based off walking down a table of
+machine IDs or something. One other issue to consider here is that we
+don't want to discourage people from sharing machine drivers while we
+can so it can't be completely automatic, it 
 
-Well, yeah, that driver was supposed to be started really early to catch 
-any potential bus violation. So it was clearly not targeted to be a 
-loadable module.
-Anyway, it will not hurt, so I'll fix that.
-
-Thanks for the review,
-Benoit
+Perhaps some sort of generic machine type based mechanism for
+instantiating drivers a bit like what's done with DMI might be useful,
+video will have a similar issue I guess.
