@@ -1,115 +1,90 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH v4 00/11] HDMI: Split hdmi.c in DSS to seperate OMAP dependent
-Date: Thu, 8 Sep 2011 19:09:16 +0530
-Message-ID: <CAP5A+B-iOL2xMLuLEyXbc_r8agoqpgXtJzszwdaySsZQbiBMkA@mail.gmail.com>
-References: <1315310335-26054-1-git-send-email-mythripk@ti.com> <1315396542.2371.20.camel@lappyti>
+From: <mythripk@ti.com>
+Subject: [PATCH 00/10] OMAP4: DSS2: HDMI: Split hdmi.c in DSS to seperate
+Date: Thu, 8 Sep 2011 19:06:17 +0530
+Message-ID: <1315488987-4546-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:55945 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932789Ab1IHNjm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Sep 2011 09:39:42 -0400
-Received: by mail-vw0-f48.google.com with SMTP id 7so966974vws.21
-        for <linux-omap@vger.kernel.org>; Thu, 08 Sep 2011 06:39:36 -0700 (PDT)
-In-Reply-To: <1315396542.2371.20.camel@lappyti>
+Received: from comal.ext.ti.com ([198.47.26.152]:40941 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932874Ab1IHNof (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Sep 2011 09:44:35 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p88DiV97016494
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 8 Sep 2011 08:44:34 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p88DiVpl003379
+	for <linux-omap@vger.kernel.org>; Thu, 8 Sep 2011 19:14:31 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Mythri P K <mythripk@ti.com>
 
-Hi,
+From: Mythri P K <mythripk@ti.com>
 
-On Wed, Sep 7, 2011 at 5:25 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> =
-wrote:
-> Hi,
->
-> On Tue, 2011-09-06 at 17:28 +0530, mythripk@ti.com wrote:
->> From: Mythri P K <mythripk@ti.com>
->>
->> HDMI IP block is common between TI OMAP4 Procerssor and Netra proces=
-sor although
->> the Display subsytem is different.Also the IP block in future OMAP m=
-ay differ
->> from the one existing in OMAP4. Thus to reuse the code between these=
- two
->> processors , and maintain the multi omap build functionality in DSS.
->> HDMI IP dependant code is seperated out from hdmi.c and moved to
->> new library file hdmi_ti_4xxx_ip.c.From the DSS dependent HDMI code =
-only the
->> function pointer to functionality/features offered by HDMI is called=
-=2E
->>
->> This patch series does the split and also renames hdmi_omap4_panel.c=
- to
->> hdmi_panel.c as that file has nothing specific to OMAP4 and can be r=
-eused for
->> other OMAP family of processors as well.
->>
->> This patch series is based on Tomi's LO-DSS2 master branch.
->>
->> changes since
->> v3:Handle the sparse error for set_pll_pwr function
->> Move audio functions out of hdmi.c to ip file.
->> rename hdmi_data to ip_data
->> V2: Rename certain files/function to have standard format and handle=
- scenario
->> when hdmi is disabled.
->> V1: Function pointer approach to call the HDMI IP functions from DSS=
- HDMI
->
-> I think there's still lots of cleanups/restructuring needed for HDMI,
-> but I'm willing to merge this patch set as it'll gives as a good
-> baseline to continue the work, and trying to do too much in one go wo=
-uld
-> just be difficult.
->
-> However, there are a couple of changes I wish you can do first:
->
-> - Remove refsel. You still have an enum and a field for it, even if i=
-t's
-> not used.
->
+HDMI IP block is common between TI OMAP4 Procerssor and Netra processor although
+the Display subsytem is different. Also the IP block in future OMAP's may differ
+from the one existing in OMAP4. Thus to reuse the code between these two
+processors , and maintain the multi omap build functionality in DSS,
+HDMI IP dependant code is seperated out from hdmi.c and moved to
+new library file ti_hdmi_4xxx_ip.c. From the DSS dependent HDMI code only the
+function pointer to functionality/features offered by HDMI is called.
 
-Instead fixed the bug in the same patch to use refsel to be set in the =
-PLL_CFG2.
+This patch series does the split and also renames hdmi_omap4_panel.c to
+hdmi_panel.c as that file has nothing specific to OMAP4 and can be reused for
+other OMAP family of processors as well.
 
-> - Instead of creating include/video/ti_hdmi.h, create the file into
-> drivers/video/omap2/dss/. Let's keep this totally inside DSS2 for the
-> time being.
-Sure done.
->
-> - You still haven't changed copy_hdmi_to_dss_timings() to take a poin=
-ter
-> instead of a value. It's been commented at least three times already.=
- As
-> similar things seem to happen quite often for you, if you have troubl=
-e
-> remembering all the required changes, please write the received comme=
-nts
-> down to, say, a piece of paper, and cross them over when you've actua=
-lly
-> made the change. It's a waste of reviewers time to review and comment
-> the same problems again and again.
->
-Point taken. Thanks for your review. Fixed this.
+This patch series is based on Tomi's LO-DSS2 master branch.
 
-> - Go though the commit subjects and descriptions. I see the same typo=
-es
-> that I've also already commented about, and I see new ones also.
-> Description on patch 10 is almost gibberish.
-Added more details to most of patches in series. Posting the patch.
+changes since
+V4: Change the description of patch.
+	Fix the bug to use refsel in the PLL_CFG2.
+	Pass parameters to copy_hdmi_to_dss_timings by pointer.
+V3: Handle the sparse error for set_pll_pwr function
+	Move audio functions out of hdmi.c to ip file.
+	Rename hdmi_data to ip_data 
+V2: Rename certain files/function to have standard format.H
+	Handle scenario when hdmi is disabled.
+V1: Add Function pointer approach to call the HDMI IP functions
+	from DSS HDMI
+Mythri P K (10):
+  OMAP4: DSS: HDMI: HDMI clean up to pass base_address dynamically to
+    IP dependant functions of HDMI
+  OMAP4: DSS: HDMI: Move pll and video configuration      info to
+    ip_data structure
+  OMAP4: DSS: HDMI: Use specific HDMI timings structure      instead of
+    OMAP DSS timings
+  OMAP4: DSS: HDMI: Move IP independent common header file definition
+    to generic header file
+  OMAP4 : DSS : HDMI : Move the EDID portion from HDMI IP header
+  OMAP4: DSS2: HDMI: Split the HDMI driver to DSS and IP           
+    specific portion.
+  OMAP4: DSS2: HDMI: Move the HDMI IP dependent audio functions to IP
+    library
+  OMAP4: DSS: HDMI: Rename the functions in HDMI IP library to IP
+    specific name
+  OMAP4: DSS2: HDMI: Function pointer approach to call      HDMI IP
+    driver function from DSS
+  OMAP4: DSS: Rename hdmi_omap4_panel.c to hdmi_panel.c
 
-Mythri.
->
-> =A0Tomi
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/video/omap2/dss/Makefile                   |    2 +-
+ drivers/video/omap2/dss/dss.h                      |   10 -
+ drivers/video/omap2/dss/dss_features.c             |   20 +
+ drivers/video/omap2/dss/dss_features.h             |    7 +
+ drivers/video/omap2/dss/hdmi.c                     | 1027 ++------------------
+ drivers/video/omap2/dss/hdmi.h                     |  631 ------------
+ .../omap2/dss/{hdmi_omap4_panel.c => hdmi_panel.c} |    2 +-
+ drivers/video/omap2/dss/ti_hdmi.h                  |  123 +++
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c          | 1033 ++++++++++++++++++++
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h          |  597 +++++++++++
+ 10 files changed, 1853 insertions(+), 1599 deletions(-)
+ delete mode 100644 drivers/video/omap2/dss/hdmi.h
+ rename drivers/video/omap2/dss/{hdmi_omap4_panel.c => hdmi_panel.c} (99%)
+ create mode 100644 drivers/video/omap2/dss/ti_hdmi.h
+ create mode 100644 drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+ create mode 100644 drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+
+-- 
+1.7.5.4
+
