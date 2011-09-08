@@ -1,293 +1,203 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 2/8] OMAP: Improve register access in L3 Error handler.
-Date: Thu, 8 Sep 2011 10:52:01 +0530
-Message-ID: <1315459327-3285-3-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 5/8] OMAP: Fix sparse warnings in l3 error handler.
+Date: Thu, 8 Sep 2011 10:52:04 +0530
+Message-ID: <1315459327-3285-6-git-send-email-santosh.shilimkar@ti.com>
 References: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35597 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:35600 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752302Ab1IHFWc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 01:22:32 -0400
+	with ESMTP id S1756439Ab1IHFWe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 01:22:34 -0400
 In-Reply-To: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Todd Poynor <toddpoynor@google.com>, sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-From: Todd Poynor <toddpoynor@google.com>
+From: sricharan <r.sricharan@ti.com>
 
-* Changed the way of accessing L3 target
-  registers from standard base rather
-  than relative to STDERRLOG_MAIN.
+Fix below sparse warnings from the l3-noc and l3-smx error handlers
+files.
 
-* Use ffs() to find error source from
-  the L3_FLAGMUX_REGERRn register.
+arch/arm/mach-omap2/omap_l3_smx.h:209:22: warning: symbol 'omap3_l3_app_bases' was not declared. Should it be static?
+arch/arm/mach-omap2/omap_l3_smx.h:308:22: warning: symbol 'omap3_l3_debug_bases' was not declared. Should it be static?
+arch/arm/mach-omap2/omap_l3_smx.h:325:2: warning: incorrect type in initializer (different address spaces)
+arch/arm/mach-omap2/omap_l3_smx.h:325:2:    expected unsigned int [usertype] *
+arch/arm/mach-omap2/omap_l3_smx.h:325:2:    got unsigned int [noderef] [toplevel] <asn:2>*<noident>
+arch/arm/mach-omap2/omap_l3_smx.h:326:2: warning: incorrect type in initializer (different address spaces)
+arch/arm/mach-omap2/omap_l3_smx.h:326:2:    expected unsigned int [usertype] *
+arch/arm/mach-omap2/omap_l3_smx.h:326:2:    got unsigned int [noderef] [toplevel] <asn:2>*<noident>
+arch/arm/mach-omap2/omap_l3_smx.h:324:5: warning: symbol 'omap3_l3_bases' was not declared. Should it be static?
+  CC      arch/arm/mach-omap2/omap_l3_smx.o
+  CHECK   arch/arm/mach-omap2/omap_l3_noc.c
+arch/arm/mach-omap2/omap_l3_noc.c:73:13: warning: symbol '__v' shadows an earlier one
+arch/arm/mach-omap2/omap_l3_noc.c:73:13: originally declared here
+arch/arm/mach-omap2/omap_l3_noc.c:83:20: warning: symbol '__v' shadows an earlier one
+arch/arm/mach-omap2/omap_l3_noc.c:83:20: originally declared here
+arch/arm/mach-omap2/omap_l3_noc.c:90:5: warning: symbol '__v' shadows an earlier one
+arch/arm/mach-omap2/omap_l3_noc.c:90:5: originally declared here
+arch/arm/mach-omap2/omap_l3_noc.h:39:5: warning: symbol 'l3_flagmux' was not declared. Should it be static?
+arch/arm/mach-omap2/omap_l3_noc.h:46:5: warning: symbol 'l3_targ_inst_clk1' was not declared. Should it be static?
+arch/arm/mach-omap2/omap_l3_noc.h:54:5: warning: symbol 'l3_targ_inst_clk2' was not declared. Should it be static?
+arch/arm/mach-omap2/omap_l3_noc.h:75:5: warning: symbol 'l3_targ_inst_clk3' was not declared. Should it be static?
+arch/arm/mach-omap2/omap_l3_noc.h:79:6: warning: symbol 'l3_targ_inst_name' was not declared. Should it be static?
+arch/arm/mach-omap2/omap_l3_noc.h:112:5: warning: symbol 'l3_targ' was not declared. Should it be static?
+arch/arm/mach-omap2/omap_l3_noc.c:72:11: warning: cast removes address space of expression
+arch/arm/mach-omap2/omap_l3_noc.c:73:13: warning: incorrect type in argument 1 (different base types)
+arch/arm/mach-omap2/omap_l3_noc.c:73:13:    expected void const volatile [noderef] <asn:2>*<noident>
+arch/arm/mach-omap2/omap_l3_noc.c:73:13:    got unsigned int
+arch/arm/mach-omap2/omap_l3_noc.c:83:20: warning: incorrect type in argument 1 (different base types)
+arch/arm/mach-omap2/omap_l3_noc.c:83:20:    expected void const volatile [noderef] <asn:2>*<noident>
+arch/arm/mach-omap2/omap_l3_noc.c:83:20:    got unsigned int
+arch/arm/mach-omap2/omap_l3_noc.c:90:5: warning: incorrect type in argument 1 (different base types)
+arch/arm/mach-omap2/omap_l3_noc.c:90:5:    expected void const volatile [noderef] <asn:2>*<noident>
+arch/arm/mach-omap2/omap_l3_noc.c:90:5:    got unsigned int
+arch/arm/mach-omap2/omap_l3_noc.c:96:5: warning: incorrect type in argument 1 (different base types)
+arch/arm/mach-omap2/omap_l3_noc.c:96:5:    expected void const volatile [noderef] <asn:2>*<noident>
+arch/arm/mach-omap2/omap_l3_noc.c:96:5:    got unsigned int
+arch/arm/mach-omap2/omap_l3_noc.c:108:5: warning: incorrect type in argument 1 (different base types)
+arch/arm/mach-omap2/omap_l3_noc.c:108:5:    expected void const volatile [noderef] <asn:2>*<noident>
+arch/arm/mach-omap2/omap_l3_noc.c:108:5:    got unsigned int
 
-* Remove extra l3_base[] entry.
-
-* Modified L3 custom error message.
-
-Signed-off-by: Todd Poynor <toddpoynor@google.com>
 Signed-off-by: sricharan <r.sricharan@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Reported-by: Paul Walmsley <paul@pwsan.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omap_l3_noc.c |   43 +++++++++---------
- arch/arm/mach-omap2/omap_l3_noc.h |   86 +++++++++++++++++-------------------
- arch/arm/mach-omap2/omap_l3_smx.c |    5 +-
- arch/arm/mach-omap2/omap_l3_smx.h |    2 +-
- 4 files changed, 65 insertions(+), 71 deletions(-)
+ arch/arm/mach-omap2/omap_l3_noc.c |   11 ++++++-----
+ arch/arm/mach-omap2/omap_l3_noc.h |   12 ++++++------
+ arch/arm/mach-omap2/omap_l3_smx.h |    6 +++---
+ 3 files changed, 15 insertions(+), 14 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/arch/arm/mach-omap2/omap_l3_noc.c
-index 7b9f190..d560c88 100644
+index 1f68e95..8f18357 100644
 --- a/arch/arm/mach-omap2/omap_l3_noc.c
 +++ b/arch/arm/mach-omap2/omap_l3_noc.c
-@@ -56,10 +56,9 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
- {
- 
- 	struct omap4_l3		*l3 = _l3;
--	int inttype, i, j;
-+	int inttype, i;
+@@ -58,7 +58,8 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+ 	struct omap4_l3 *l3 = _l3;
+ 	int inttype, i;
  	int err_src = 0;
--	u32 std_err_main_addr, std_err_main, err_reg;
--	u32 base, slave_addr, clear;
-+	u32 std_err_main, err_reg, clear, base, l3_targ_base;
+-	u32 std_err_main, err_reg, clear, base, l3_targ_base;
++	u32 std_err_main, err_reg, clear;
++	void __iomem *base, *l3_targ_base;
  	char *source_name;
  
  	/* Get the Type of interrupt */
-@@ -71,42 +70,43 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+@@ -69,8 +70,8 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+ 		 * Read the regerr register of the clock domain
  		 * to determine the source
  		 */
- 		base = (u32)l3->l3_base[i];
--		err_reg =  readl(base + l3_flagmux[i] + (inttype << 3));
-+		err_reg = readl(base + l3_flagmux[i] +
-+					+ L3_FLAGMUX_REGERR0 + (inttype << 3));
+-		base = (u32)l3->l3_base[i];
+-		err_reg = readl(base + l3_flagmux[i] +
++		base = l3->l3_base[i];
++		err_reg = __raw_readl(base + l3_flagmux[i] +
+ 					+ L3_FLAGMUX_REGERR0 + (inttype << 3));
  
  		/* Get the corresponding error and analyse */
- 		if (err_reg) {
- 			/* Identify the source from control status register */
--			for (j = 0; !(err_reg & (1 << j)); j++)
--									;
-+			err_src = __ffs(err_reg);
+@@ -80,7 +81,7 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
  
--			err_src = j;
  			/* Read the stderrlog_main_source from clk domain */
--			std_err_main_addr = base + *(l3_targ[i] + err_src);
--			std_err_main = readl(std_err_main_addr);
-+			l3_targ_base = base + *(l3_targ[i] + err_src);
-+			std_err_main =  readl(l3_targ_base +
-+					L3_TARG_STDERRLOG_MAIN);
+ 			l3_targ_base = base + *(l3_targ[i] + err_src);
+-			std_err_main =  readl(l3_targ_base +
++			std_err_main =  __raw_readl(l3_targ_base +
+ 					L3_TARG_STDERRLOG_MAIN);
  
  			switch (std_err_main & CUSTOM_ERROR) {
- 			case STANDARD_ERROR:
- 				source_name =
--				l3_targ_stderrlog_main_name[i][err_src];
--
--				slave_addr = std_err_main_addr +
--						L3_SLAVE_ADDRESS_OFFSET;
-+					l3_targ_inst_name[i][err_src];
+@@ -89,7 +90,7 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+ 					l3_targ_inst_name[i][err_src];
  				WARN(true, "L3 standard error: SOURCE:%s at address 0x%x\n",
--					source_name, readl(slave_addr));
-+					source_name,
-+					readl(l3_targ_base +
-+						L3_TARG_STDERRLOG_SLVOFSLSB));
+ 					source_name,
+-					readl(l3_targ_base +
++					__raw_readl(l3_targ_base +
+ 						L3_TARG_STDERRLOG_SLVOFSLSB));
  				/* clear the std error log*/
  				clear = std_err_main | CLEAR_STDERR_LOG;
--				writel(clear, std_err_main_addr);
-+				writel(clear, l3_targ_base +
-+					L3_TARG_STDERRLOG_MAIN);
- 				break;
- 
- 			case CUSTOM_ERROR:
- 				source_name =
--				l3_targ_stderrlog_main_name[i][err_src];
-+					l3_targ_inst_name[i][err_src];
- 
--				WARN(true, "CUSTOM SRESP error with SOURCE:%s\n",
--							source_name);
-+				WARN(true, "L3 custom error: SOURCE:%s\n",
-+					source_name);
- 				/* clear the std error log*/
- 				clear = std_err_main | CLEAR_STDERR_LOG;
--				writel(clear, std_err_main_addr);
-+				writel(clear, l3_targ_base +
-+					L3_TARG_STDERRLOG_MAIN);
- 				break;
- 
- 			default:
-@@ -123,9 +123,8 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
- static int __init omap4_l3_probe(struct platform_device *pdev)
- {
- 	static struct omap4_l3		*l3;
--	struct resource		*res;
--	int			ret;
--	int			irq;
-+	struct resource	*res;
-+	int ret, irq;
- 
- 	l3 = kzalloc(sizeof(*l3), GFP_KERNEL);
- 	if (!l3)
 diff --git a/arch/arm/mach-omap2/omap_l3_noc.h b/arch/arm/mach-omap2/omap_l3_noc.h
-index 359b833..22c0d57 100644
+index 9120e70..74c1643 100644
 --- a/arch/arm/mach-omap2/omap_l3_noc.h
 +++ b/arch/arm/mach-omap2/omap_l3_noc.h
-@@ -23,63 +23,60 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_L3_INTERCONNECT_3XXX_H
- #define __ARCH_ARM_MACH_OMAP2_L3_INTERCONNECT_3XXX_H
+@@ -36,14 +36,14 @@
+ #define L3_TARG_STDERRLOG_SLVOFSLSB	0x5c
+ #define L3_FLAGMUX_REGERR0		0xc
  
--/*
-- * L3 register offsets
-- */
- #define L3_MODULES			3
- #define CLEAR_STDERR_LOG		(1 << 31)
- #define CUSTOM_ERROR			0x2
- #define STANDARD_ERROR			0x0
- #define INBAND_ERROR			0x0
--#define EMIF_KERRLOG_OFFSET		0x10
--#define L3_SLAVE_ADDRESS_OFFSET		0x14
--#define LOGICAL_ADDR_ERRORLOG		0x4
- #define L3_APPLICATION_ERROR		0x0
- #define L3_DEBUG_ERROR			0x1
- 
-+/* L3 TARG register offsets */
-+#define L3_TARG_STDERRLOG_MAIN         0x48
-+#define L3_TARG_STDERRLOG_SLVOFSLSB    0x5c
-+#define L3_FLAGMUX_REGERR0	       0xc
-+
- u32 l3_flagmux[L3_MODULES] = {
--	0x50C,
--	0x100C,
--	0X020C
-+	0x500,
-+	0x1000,
-+	0X0200
+-u32 l3_flagmux[L3_MODULES] = {
++static u32 l3_flagmux[L3_MODULES] = {
+ 	0x500,
+ 	0x1000,
+ 	0X0200
  };
  
--/*
-- * L3 Target standard Error register offsets
-- */
--u32 l3_targ_stderrlog_main_clk1[] = {
--	0x148, /* DMM1 */
--	0x248, /* DMM2 */
--	0x348, /* ABE */
--	0x448, /* L4CFG */
--	0x648  /* CLK2 PWR DISC */
-+/* L3 Target standard Error register offsets */
-+u32 l3_targ_inst_clk1[] = {
-+	0x100, /* DMM1 */
-+	0x200, /* DMM2 */
-+	0x300, /* ABE */
-+	0x400, /* L4CFG */
-+	0x600  /* CLK2 PWR DISC */
+ /* L3 Target standard Error register offsets */
+-u32 l3_targ_inst_clk1[] = {
++static u32 l3_targ_inst_clk1[] = {
+ 	0x100, /* DMM1 */
+ 	0x200, /* DMM2 */
+ 	0x300, /* ABE */
+@@ -51,7 +51,7 @@ u32 l3_targ_inst_clk1[] = {
+ 	0x600  /* CLK2 PWR DISC */
  };
  
--u32 l3_targ_stderrlog_main_clk2[] = {
--	0x548,		/* CORTEX M3 */
--	0x348,		/* DSS */
--	0x148,		/* GPMC */
--	0x448,		/* ISS */
--	0x748,		/* IVAHD */
--	0xD48,		/* missing in TRM  corresponds to AES1*/
--	0x948,		/* L4 PER0*/
--	0x248,		/* OCMRAM */
--	0x148,		/* missing in TRM corresponds to GPMC sERROR*/
--	0x648,		/* SGX */
--	0x848,		/* SL2 */
--	0x1648,		/* C2C */
--	0x1148,		/* missing in TRM corresponds PWR DISC CLK1*/
--	0xF48,		/* missing in TRM corrsponds to SHA1*/
--	0xE48,		/* missing in TRM corresponds to AES2*/
--	0xC48,		/* L4 PER3 */
--	0xA48,		/* L4 PER1*/
--	0xB48		/* L4 PER2*/
-+u32 l3_targ_inst_clk2[] = {
-+	0x500, /* CORTEX M3 */
-+	0x300, /* DSS */
-+	0x100, /* GPMC */
-+	0x400, /* ISS */
-+	0x700, /* IVAHD */
-+	0xD00, /* missing in TRM  corresponds to AES1*/
-+	0x900, /* L4 PER0*/
-+	0x200, /* OCMRAM */
-+	0x100, /* missing in TRM corresponds to GPMC sERROR*/
-+	0x600, /* SGX */
-+	0x800, /* SL2 */
-+	0x1600, /* C2C */
-+	0x1100,	/* missing in TRM corresponds PWR DISC CLK1*/
-+	0xF00, /* missing in TRM corrsponds to SHA1*/
-+	0xE00, /* missing in TRM corresponds to AES2*/
-+	0xC00, /* L4 PER3 */
-+	0xA00, /* L4 PER1*/
-+	0xB00 /* L4 PER2*/
+-u32 l3_targ_inst_clk2[] = {
++static u32 l3_targ_inst_clk2[] = {
+ 	0x500, /* CORTEX M3 */
+ 	0x300, /* DSS */
+ 	0x100, /* GPMC */
+@@ -72,11 +72,11 @@ u32 l3_targ_inst_clk2[] = {
+ 	0xB00 /* L4 PER2*/
  };
  
--u32 l3_targ_stderrlog_main_clk3[] = {
--	0x0148	/* EMUSS */
-+u32 l3_targ_inst_clk3[] = {
-+	0x0100	/* EMUSS */
+-u32 l3_targ_inst_clk3[] = {
++static u32 l3_targ_inst_clk3[] = {
+ 	0x0100	/* EMUSS */
  };
  
--char *l3_targ_stderrlog_main_name[L3_MODULES][18] = {
-+char *l3_targ_inst_name[L3_MODULES][18] = {
+-char *l3_targ_inst_name[L3_MODULES][18] = {
++static char *l3_targ_inst_name[L3_MODULES][18] = {
  	{
- 	"DMM1",
- 	"DMM2",
-@@ -113,9 +110,9 @@ char *l3_targ_stderrlog_main_name[L3_MODULES][18] = {
+ 		"DMM1",
+ 		"DMM2",
+@@ -109,7 +109,7 @@ char *l3_targ_inst_name[L3_MODULES][18] = {
+ 	},
  };
  
- u32 *l3_targ[L3_MODULES] = {
--	l3_targ_stderrlog_main_clk1,
--	l3_targ_stderrlog_main_clk2,
--	l3_targ_stderrlog_main_clk3,
-+	l3_targ_inst_clk1,
-+	l3_targ_inst_clk2,
-+	l3_targ_inst_clk3,
- };
- 
- struct omap4_l3 {
-@@ -123,10 +120,9 @@ struct omap4_l3 {
- 	struct clk	*ick;
- 
- 	/* memory base */
--	void __iomem *l3_base[4];
-+	void __iomem *l3_base[L3_MODULES];
- 
- 	int		debug_irq;
- 	int		app_irq;
- };
--
- #endif
-diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/arch/arm/mach-omap2/omap_l3_smx.c
-index 873c0e3..fa07edf 100644
---- a/arch/arm/mach-omap2/omap_l3_smx.c
-+++ b/arch/arm/mach-omap2/omap_l3_smx.c
-@@ -191,10 +191,9 @@ static irqreturn_t omap3_l3_app_irq(int irq, void *_l3)
- 	}
- 
- 	/* identify the error source */
--	for (err_source = 0; !(status & (1 << err_source)); err_source++)
--									;
-+	err_source = __ffs(status);
- 
--	base = l3->rt + *(omap3_l3_bases[int_type] + err_source);
-+	base = l3->rt + omap3_l3_bases[int_type][err_source];
- 	error = omap3_l3_readll(base, L3_ERROR_LOG);
- 	if (error) {
- 		error_addr = omap3_l3_readll(base, L3_ERROR_LOG_ADDR);
+-u32 *l3_targ[L3_MODULES] = {
++static u32 *l3_targ[L3_MODULES] = {
+ 	l3_targ_inst_clk1,
+ 	l3_targ_inst_clk2,
+ 	l3_targ_inst_clk3,
 diff --git a/arch/arm/mach-omap2/omap_l3_smx.h b/arch/arm/mach-omap2/omap_l3_smx.h
-index ba2ed9a..185d77a 100644
+index 18e5ec2..4f3cebc 100644
 --- a/arch/arm/mach-omap2/omap_l3_smx.h
 +++ b/arch/arm/mach-omap2/omap_l3_smx.h
-@@ -40,7 +40,7 @@
- #define L3_SI_CONTROL			0x020
- #define L3_SI_FLAG_STATUS_0		0x510
+@@ -206,7 +206,7 @@ struct omap3_l3 {
+ };
  
--const u64 shift = 1;
-+static const u64 shift = 1;
+ /* offsets for l3 agents in order with the Flag status register */
+-unsigned int __iomem omap3_l3_app_bases[] = {
++static unsigned int omap3_l3_app_bases[] = {
+ 	/* MPU IA */
+ 	0x1400,
+ 	0x1400,
+@@ -305,7 +305,7 @@ unsigned int __iomem omap3_l3_app_bases[] = {
+ 	0,
+ };
  
- #define L3_STATUS_0_MPUIA_BRST		(shift << 0)
- #define L3_STATUS_0_MPUIA_RSP		(shift << 1)
+-unsigned int __iomem omap3_l3_debug_bases[] = {
++static unsigned int omap3_l3_debug_bases[] = {
+ 	/* MPU DATA IA */
+ 	0x1400,
+ 	/* RESERVED */
+@@ -321,7 +321,7 @@ unsigned int __iomem omap3_l3_debug_bases[] = {
+ 	/* REST RESERVED */
+ };
+ 
+-u32 *omap3_l3_bases[] = {
++static u32 *omap3_l3_bases[] = {
+ 	omap3_l3_app_bases,
+ 	omap3_l3_debug_bases,
+ };
 -- 
 1.7.4.1
 
