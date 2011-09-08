@@ -1,89 +1,69 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] usb: musb: omap2+: save and restore OTG_INTERFSEL
-Date: Thu, 8 Sep 2011 11:02:59 +0300
-Message-ID: <20110908080258.GE7707@legolas.emea.dhcp.ti.com>
-References: <1315356573-1057-1-git-send-email-vikram.pandita@ti.com>
- <1315356573-1057-3-git-send-email-vikram.pandita@ti.com>
- <4E674CD2.6050800@ru.mvista.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC PATCH 06/10] hwspinlock: OMAP4: Add spinlock support in
+ DT
+Date: Thu, 8 Sep 2011 10:07:05 +0200
+Message-ID: <4E6877A9.3090104@ti.com>
+References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
+	<1314191356-10963-7-git-send-email-b-cousson@ti.com>
+	<CAK=WgbYX50R_MCgwdzywgrAEDJkmDSmeSSCuuqst5UBYk_sYow@mail.gmail.com>
+	<4E686B71.2060107@ti.com>
+	<CAK=WgbYgatyLWqmrZnUfSGxCkZsRiJ3sbQwmenxyiJ6JBw5vJA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="M/SuVGWktc5uNpra"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4E674CD2.6050800-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAK=WgbYgatyLWqmrZnUfSGxCkZsRiJ3sbQwmenxyiJ6JBw5vJA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, Mathieu Poirier <mathieu.poirier@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "tony@atomide.com" <tony@atomide.com>, "G,
+	Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 9/8/2011 9:56 AM, Ohad Ben-Cohen wrote:
+> Hi Benoit,
+>
+> On Thu, Sep 8, 2011 at 10:14 AM, Cousson, Benoit<b-cousson@ti.com>  wrote:
+>> Hehe, I'm not the one who wrote that driver :-)
+>>
+>> This is not wrong for the current HW. The point is do we want to anticipate
+>> potential HW evolution that might never happen on that IP?
+>
+> I originally really thought we can ignore those cases (hence the 0
+> base id ;), and personally I still think the scenario is a bit
+> fictional, and wouldn't even mind just having omap_hwspinlock_probe()
+> return an error if it is unexpectedly probed with a second device.
+>
+> But if fixing this entirely only means doing a small change, then it's
+> surely nicer.
 
---M/SuVGWktc5uNpra
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+That should not be a big deal to add that kind of support.
 
-Hi,
+>> This is no different than the multiple GPIO controllers we have today.
+>> Since we cannot rely on the DT nodes order, I added an explicit "id"
+>> attribute to provide that information to the driver. And then the baseid is
+>> "id * #gpios".
+>
+> That would work if #hwspinlock is a fixed number, but a "baseid"
+> attribute would allow supporting devices with different #hwspinlocks
+> per device. Since I am not aware of any real hardware that does this
+> kind of blasphemy, I can't say if the latter is really necessary :) If
+> you prefer the former, I'm entirely fine with it.
 
-On Wed, Sep 07, 2011 at 02:52:02PM +0400, Sergei Shtylyov wrote:
-> Hello.
->=20
-> On 07-09-2011 4:49, Vikram Pandita wrote:
->=20
-> >From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
->=20
-> >we need to save and restore OTG_INTERFSEL register
-> >else we will be unable to function on resume after
-> >OFF mode.
->=20
-> >Change-Id: I6c29c69596d5f47e00cf74ab0e32bb44ef71dda9
->=20
->    Remove this, please.
->=20
-> >Reported-by: Devaraj Rangasamy<dev-l0cyMroinI0@public.gmane.org>
-> >Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
-> >Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
-> >---
-> >  drivers/usb/musb/musb_core.h |    1 +
-> >  drivers/usb/musb/omap2430.c  |    6 ++++++
-> >  2 files changed, 7 insertions(+), 0 deletions(-)
->=20
-> >diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-> >index b3c065a..3259a6b 100644
-> >--- a/drivers/usb/musb/musb_core.h
-> >+++ b/drivers/usb/musb/musb_core.h
-> >@@ -311,6 +311,7 @@ struct musb_context_registers {
-> >  	u8 index, testmode;
-> >
-> >  	u8 devctl, busctl, misc;
-> >+	u32 otg_interfsel;
->=20
->    Shouldn't this be encosed in #ifdef?
+The (small) issue for my point of view is that the #hwspinlock is 
+already encoded in the IP itself. So adding a baseid directly in DT will 
+look like duplicating indirectly something that is already there in the HW.
+That being said, since we cannot rely on the order, we will not be able 
+to get the proper baseid until the driver probe every hwspinlock devices 
+:-(
+So baseid might be a easier choice.
 
-Actually, this is part of the OMAP wrapper, so it would be better if you
-would, instead, take care of this in omap2430.c.
-
---=20
-balbi
-
---M/SuVGWktc5uNpra
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOaHayAAoJEAv8Txj19kN1oFoH/iGgE0zJX6K4kLgImBKM1V71
-NJ+GugN4KIRGAZMkOu9Wsuos92N83vL0Mt98ha7/Ndo4nunbeHEwCYc6XPu/6JJn
-3LzZlqgNAd+dTUhi4sq12LpC2ihcYCmGudPVIKD7hhtHW9HN7m2MCGxmIukQ8Ii8
-xrOujelnmhX6nFlKkFcIn7ZAUdLKoWoZYigHyepaonNPOEGVit1jOVhIWiVCf4PL
-n/Co7W0migzv8E9D9F1GdADEIk/E2judLhug1p/90Nh+18D63psXWCBMXEQ5qgqb
-JkddB5Ptwo8oI1cQUyPLggotvLGYHz/sKnfB2jC8hML2oP6s4tHKgeR/T1NxbsQ=
-=QEV0
------END PGP SIGNATURE-----
-
---M/SuVGWktc5uNpra--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Benoit
