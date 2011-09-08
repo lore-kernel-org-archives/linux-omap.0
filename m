@@ -1,13 +1,14 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v15 01/12] OMAP2+: dmtimer: add device names to flck nodes
-Date: Fri, 9 Sep 2011 02:38:07 +0530
-Message-ID: <1315516098-29761-2-git-send-email-tarun.kanti@ti.com>
-References: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+Date: Fri, 9 Sep 2011 00:38:43 +0300
+Message-ID: <20110908213843.GE1724@valkosipuli.localdomain>
+References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,233 +18,189 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, Thara Gopinath <thara@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Deepthy Ravi <deepthy.ravi@ti.com>
+Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, mchehab@infradead.org, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add device name to OMAP2 dmtimer fclk nodes so that the fclk nodes can be
-retrieved by doing a clk_get with the corresponding device pointers or
-device names.
+Hi Deepathy,
 
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Acked-by: Cousson, Benoit <b-cousson@ti.com>
----
- arch/arm/mach-omap2/clock2420_data.c |   48 ++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/clock2430_data.c |   48 ++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/clock3xxx_data.c |   36 +++++++++++++++++++++++++
- arch/arm/mach-omap2/clock44xx_data.c |   33 +++++++++++++++++++++++
- 4 files changed, 165 insertions(+), 0 deletions(-)
+Thanks for the patches.
 
-diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index debc040..14a6277 100644
---- a/arch/arm/mach-omap2/clock2420_data.c
-+++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -1898,6 +1898,54 @@ static struct omap_clk omap2420_clks[] = {
- 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
- 	CLK(NULL,	"usb_fck",	&usb_fck,	CK_242X),
- 	CLK("musb-hdrc",	"fck",	&osc_ck,	CK_242X),
-+	CLK("omap_timer.1",	"fck",	&gpt1_fck,	CK_242X),
-+	CLK("omap_timer.2",	"fck",	&gpt2_fck,	CK_242X),
-+	CLK("omap_timer.3",	"fck",	&gpt3_fck,	CK_242X),
-+	CLK("omap_timer.4",	"fck",	&gpt4_fck,	CK_242X),
-+	CLK("omap_timer.5",	"fck",	&gpt5_fck,	CK_242X),
-+	CLK("omap_timer.6",	"fck",	&gpt6_fck,	CK_242X),
-+	CLK("omap_timer.7",	"fck",	&gpt7_fck,	CK_242X),
-+	CLK("omap_timer.8",	"fck",	&gpt8_fck,	CK_242X),
-+	CLK("omap_timer.9",	"fck",	&gpt9_fck,	CK_242X),
-+	CLK("omap_timer.10",	"fck",	&gpt10_fck,	CK_242X),
-+	CLK("omap_timer.11",	"fck",	&gpt11_fck,	CK_242X),
-+	CLK("omap_timer.12",	"fck",	&gpt12_fck,	CK_242X),
-+	CLK("omap_timer.1",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.2",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.3",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.4",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.5",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.6",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.7",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.8",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.9",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.10",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.11",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.12",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.1",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.2",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.3",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.4",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.5",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.6",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.7",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.8",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.9",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.10",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.11",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.12",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.1",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.2",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.3",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.4",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.5",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.6",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.7",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.8",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.9",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.10",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.11",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.12",	"alt_ck",	&alt_ck,	CK_243X),
- };
- 
- /*
-diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-index 96a942e..ea6717c 100644
---- a/arch/arm/mach-omap2/clock2430_data.c
-+++ b/arch/arm/mach-omap2/clock2430_data.c
-@@ -1998,6 +1998,54 @@ static struct omap_clk omap2430_clks[] = {
- 	CLK(NULL,	"mdm_intc_ick",	&mdm_intc_ick,	CK_243X),
- 	CLK("omap_hsmmc.0", "mmchsdb_fck",	&mmchsdb1_fck,	CK_243X),
- 	CLK("omap_hsmmc.1", "mmchsdb_fck",	&mmchsdb2_fck,	CK_243X),
-+	CLK("omap_timer.1",     "fck",  &gpt1_fck,      CK_243X),
-+	CLK("omap_timer.2",     "fck",  &gpt2_fck,      CK_243X),
-+	CLK("omap_timer.3",     "fck",  &gpt3_fck,      CK_243X),
-+	CLK("omap_timer.4",     "fck",  &gpt4_fck,      CK_243X),
-+	CLK("omap_timer.5",     "fck",  &gpt5_fck,      CK_243X),
-+	CLK("omap_timer.6",     "fck",  &gpt6_fck,      CK_243X),
-+	CLK("omap_timer.7",     "fck",  &gpt7_fck,      CK_243X),
-+	CLK("omap_timer.8",     "fck",  &gpt8_fck,      CK_243X),
-+	CLK("omap_timer.9",     "fck",  &gpt9_fck,      CK_243X),
-+	CLK("omap_timer.10",    "fck",  &gpt10_fck,     CK_243X),
-+	CLK("omap_timer.11",    "fck",  &gpt11_fck,     CK_243X),
-+	CLK("omap_timer.12",    "fck",  &gpt12_fck,     CK_243X),
-+	CLK("omap_timer.1",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.2",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.3",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.4",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.5",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.6",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.7",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.8",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.9",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.10",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.11",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.12",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.1",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.2",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.3",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.4",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.5",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.6",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.7",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.8",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.9",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.10",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.11",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.12",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.1",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.2",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.3",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.4",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.5",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.6",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.7",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.8",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.9",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.10",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.11",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.12",	"alt_ck",	&alt_ck,	CK_243X),
- };
- 
- /*
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index ffd55b1..2e1ed0d 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3462,6 +3462,42 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK("musb-am35x",	"fck",		&hsotgusb_fck_am35xx,	CK_AM35XX),
- 	CLK(NULL,	"hecc_ck",	&hecc_ck,	CK_AM35XX),
- 	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx,	CK_AM35XX),
-+	CLK("omap_timer.1",	"fck",	&gpt1_fck,	CK_3XXX),
-+	CLK("omap_timer.2",	"fck",	&gpt2_fck,	CK_3XXX),
-+	CLK("omap_timer.3",	"fck",	&gpt3_fck,	CK_3XXX),
-+	CLK("omap_timer.4",	"fck",	&gpt4_fck,	CK_3XXX),
-+	CLK("omap_timer.5",	"fck",	&gpt5_fck,	CK_3XXX),
-+	CLK("omap_timer.6",	"fck",	&gpt6_fck,	CK_3XXX),
-+	CLK("omap_timer.7",	"fck",	&gpt7_fck,	CK_3XXX),
-+	CLK("omap_timer.8",	"fck",	&gpt8_fck,	CK_3XXX),
-+	CLK("omap_timer.9",	"fck",	&gpt9_fck,	CK_3XXX),
-+	CLK("omap_timer.10",    "fck",  &gpt10_fck,     CK_3XXX),
-+	CLK("omap_timer.11",    "fck",  &gpt11_fck,     CK_3XXX),
-+	CLK("omap_timer.12",    "fck",  &gpt12_fck,     CK_3XXX),
-+	CLK("omap_timer.1",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.2",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.3",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.4",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.5",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.6",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.7",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.8",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.9",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.10",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.11",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.12",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.1",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.2",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.3",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.4",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.5",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.6",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.7",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.8",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.9",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.10",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.11",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.12",	"sys_ck",	&sys_ck,	CK_3XXX),
- };
- 
- 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 2af0e3f..705c1fd 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3363,6 +3363,39 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK("usbhs-omap.0",	"usbhost_ick",		&dummy_ck,		CK_443X),
- 	CLK("usbhs-omap.0",	"usbtll_fck",		&dummy_ck,	CK_443X),
- 	CLK("omap_wdt",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("omap_timer.1",	"fck",			&timer1_fck,	CK_443X),
-+	CLK("omap_timer.2",	"fck",			&timer2_fck,	CK_443X),
-+	CLK("omap_timer.3",	"fck",			&timer3_fck,	CK_443X),
-+	CLK("omap_timer.4",	"fck",			&timer4_fck,	CK_443X),
-+	CLK("omap_timer.5",	"fck",			&timer5_fck,	CK_443X),
-+	CLK("omap_timer.6",	"fck",			&timer6_fck,	CK_443X),
-+	CLK("omap_timer.7",	"fck",			&timer7_fck,	CK_443X),
-+	CLK("omap_timer.8",	"fck",			&timer8_fck,	CK_443X),
-+	CLK("omap_timer.9",	"fck",			&timer9_fck,	CK_443X),
-+	CLK("omap_timer.10",	"fck",			&timer10_fck,	CK_443X),
-+	CLK("omap_timer.11",	"fck",			&timer11_fck,	CK_443X),
-+	CLK("omap_timer.1",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.2",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.3",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.4",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.5",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.6",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.7",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.8",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.9",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.10",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.11",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.1",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.2",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.3",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.4",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.9",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.10",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.11",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.5",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("omap_timer.6",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("omap_timer.7",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("omap_timer.8",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
- };
- 
- int __init omap4xxx_clk_init(void)
+On Thu, Sep 08, 2011 at 07:05:22PM +0530, Deepthy Ravi wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> In order to support TVP5146 (for that matter any video decoder),
+> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
+> device node.
+
+Why on video nodes rather than the subdev node?
+
+I don't think *_STD ioctls should be handled differently from any others,
+i.e. this is directly related to that subdev, so the control should go
+through the subdev node.
+
+That said, generic applications aren't necessarily aware of the subdev nodes
+and I think this is something that should be handled in a libv4l plugin.
+This appears quite generic to me; walking the graph and accessing the right
+subdev node can be done in user space.
+
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> ---
+>  drivers/media/video/omap3isp/ispvideo.c |   98 ++++++++++++++++++++++++++++++-
+>  drivers/media/video/omap3isp/ispvideo.h |    1 +
+>  2 files changed, 98 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+> index d5b8236..ff0ffed 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.c
+> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> @@ -37,6 +37,7 @@
+>  #include <plat/iovmm.h>
+>  #include <plat/omap-pm.h>
+>  
+> +#include <media/tvp514x.h>
+>  #include "ispvideo.h"
+>  #include "isp.h"
+>  
+> @@ -1136,7 +1137,97 @@ isp_video_g_input(struct file *file, void *fh, unsigned int *input)
+>  static int
+>  isp_video_s_input(struct file *file, void *fh, unsigned int input)
+>  {
+> -	return input == 0 ? 0 : -EINVAL;
+> +	struct isp_video *video = video_drvdata(file);
+> +	struct media_entity *entity = &video->video.entity;
+> +	struct media_entity_graph graph;
+> +	struct v4l2_subdev *subdev;
+> +	struct v4l2_routing route;
+> +	int ret = 0;
+> +
+> +	media_entity_graph_walk_start(&graph, entity);
+> +	while ((entity = media_entity_graph_walk_next(&graph))) {
+> +		if (media_entity_type(entity) ==
+> +				MEDIA_ENT_T_V4L2_SUBDEV) {
+> +			subdev = media_entity_to_v4l2_subdev(entity);
+> +			if (subdev != NULL) {
+> +				if (input == 0)
+> +					route.input = INPUT_CVBS_VI4A;
+> +				else
+> +					route.input = INPUT_SVIDEO_VI2C_VI1C;
+> +				route.output = 0;
+> +				ret = v4l2_subdev_call(subdev, video, s_routing,
+> +						route.input, route.output, 0);
+> +				if (ret < 0 && ret != -ENOIOCTLCMD)
+> +					return ret;
+> +			}
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int isp_video_querystd(struct file *file, void *fh, v4l2_std_id *a)
+> +{
+> +	struct isp_video_fh *vfh = to_isp_video_fh(fh);
+> +	struct isp_video *video = video_drvdata(file);
+> +	struct media_entity *entity = &video->video.entity;
+> +	struct media_entity_graph graph;
+> +	struct v4l2_subdev *subdev;
+> +	int ret = 0;
+> +
+> +	media_entity_graph_walk_start(&graph, entity);
+> +	while ((entity = media_entity_graph_walk_next(&graph))) {
+> +		if (media_entity_type(entity) ==
+> +				MEDIA_ENT_T_V4L2_SUBDEV) {
+> +			subdev = media_entity_to_v4l2_subdev(entity);
+> +			if (subdev != NULL) {
+> +				ret = v4l2_subdev_call(subdev, video, querystd,
+> +						a);
+> +				if (ret < 0 && ret != -ENOIOCTLCMD)
+> +					return ret;
+> +			}
+> +		}
+> +	}
+> +
+> +	vfh->standard.id = *a;
+> +	return 0;
+> +}
+> +
+> +static int isp_video_g_std(struct file *file, void *fh, v4l2_std_id *norm)
+> +{
+> +	struct isp_video_fh *vfh = to_isp_video_fh(fh);
+> +	struct isp_video *video = video_drvdata(file);
+> +
+> +	mutex_lock(&video->mutex);
+> +	*norm = vfh->standard.id;
+> +	mutex_unlock(&video->mutex);
+> +
+> +	return 0;
+> +}
+> +
+> +static int isp_video_s_std(struct file *file, void *fh, v4l2_std_id *norm)
+> +{
+> +	struct isp_video *video = video_drvdata(file);
+> +	struct media_entity *entity = &video->video.entity;
+> +	struct media_entity_graph graph;
+> +	struct v4l2_subdev *subdev;
+> +	int ret = 0;
+> +
+> +	media_entity_graph_walk_start(&graph, entity);
+> +	while ((entity = media_entity_graph_walk_next(&graph))) {
+> +		if (media_entity_type(entity) ==
+> +				MEDIA_ENT_T_V4L2_SUBDEV) {
+> +			subdev = media_entity_to_v4l2_subdev(entity);
+> +			if (subdev != NULL) {
+> +				ret = v4l2_subdev_call(subdev, core, s_std,
+> +						*norm);
+> +				if (ret < 0 && ret != -ENOIOCTLCMD)
+> +					return ret;
+> +			}
+> +		}
+> +	}
+> +
+> +	return 0;
+>  }
+>  
+>  static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
+> @@ -1161,6 +1252,9 @@ static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
+>  	.vidioc_enum_input		= isp_video_enum_input,
+>  	.vidioc_g_input			= isp_video_g_input,
+>  	.vidioc_s_input			= isp_video_s_input,
+> +	.vidioc_querystd		= isp_video_querystd,
+> +	.vidioc_g_std			= isp_video_g_std,
+> +	.vidioc_s_std			= isp_video_s_std,
+>  };
+>  
+>  /* -----------------------------------------------------------------------------
+> @@ -1325,6 +1419,8 @@ int omap3isp_video_register(struct isp_video *video, struct v4l2_device *vdev)
+>  		printk(KERN_ERR "%s: could not register video device (%d)\n",
+>  			__func__, ret);
+>  
+> +	video->video.tvnorms		= V4L2_STD_NTSC | V4L2_STD_PAL;
+> +	video->video.current_norm	= V4L2_STD_NTSC;
+>  	return ret;
+>  }
+>  
+> diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
+> index 53160aa..bb8feb6 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.h
+> +++ b/drivers/media/video/omap3isp/ispvideo.h
+> @@ -182,6 +182,7 @@ struct isp_video_fh {
+>  	struct isp_video *video;
+>  	struct isp_video_queue queue;
+>  	struct v4l2_format format;
+> +	struct v4l2_standard standard;
+>  	struct v4l2_fract timeperframe;
+>  };
+>  
+> -- 
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -- 
-1.7.0.4
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
