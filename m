@@ -1,71 +1,49 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 3/6 v2] omap: musb: ti81xx: Add phy power function
-Date: Thu, 8 Sep 2011 16:23:22 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC6BF3C9@dbde02.ent.ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH 1/6 v2] omap: musb: Adding hwmod data for ti81xx
+Date: Thu, 8 Sep 2011 16:36:40 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC6BF3D2@dbde02.ent.ti.com>
 References: <1315414945-19829-1-git-send-email-ajay.gupta@ti.com>
- <1315414945-19829-4-git-send-email-ajay.gupta@ti.com>
- <4E689CCD.2050708@ru.mvista.com>
+	<1315414945-19829-2-git-send-email-ajay.gupta@ti.com>
+	<CAP05o4Lfas96izGGVQN0qkTRX_kwUncPWVX2d6+izh4YMuQ6dA@mail.gmail.com>
+	<20110908080004.GD7707@legolas.emea.dhcp.ti.com>
+ <CAP05o4+WjKJZDH1k1Rzrzju2yQEHQ7Z96qhU5qY0oD5NRoddJg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E689CCD.2050708-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:51545 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758206Ab1IHLHD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 07:07:03 -0400
+In-Reply-To: <CAP05o4+WjKJZDH1k1Rzrzju2yQEHQ7Z96qhU5qY0oD5NRoddJg@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "B, Ravi" <ravibabu@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "Munegowda, Keshava" <keshava_mgowda@ti.com>, "Pasupathy, Visuvanadan" <vichu@ti.com>
 
 Hi,
-
-> On 07-09-2011 21:02, Ajay Kumar Gupta wrote:
-> 
-> > Adding ti81xx_musb_phy_power() which will be used by musb driver
-> through
-> > its function pointer in board_data.
-> 
-> > Signed-off-by: Ajay Kumar Gupta<ajay.gupta-l0cyMroinI0@public.gmane.org>
-> > Signed-off-by: Ravi Babu<ravibabu-l0cyMroinI0@public.gmane.org>
-> > ---
-> >   arch/arm/mach-omap2/omap_phy_internal.c |   24
-> +++++++++++++++++++++++
-> >   arch/arm/plat-omap/include/plat/usb.h   |   32
-> +++++++++++++++++++++++++++++++
-> >   2 files changed, 56 insertions(+), 0 deletions(-)
-> 
-> > diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-
-> omap2/omap_phy_internal.c
-> > index 58775e3..352b6af 100644
-> > --- a/arch/arm/mach-omap2/omap_phy_internal.c
-> > +++ b/arch/arm/mach-omap2/omap_phy_internal.c
-> > @@ -260,3 +260,27 @@ void am35x_set_mode(u8 musb_mode)
+> <ajay.gupta@ti.com> wrote:
+[...]
+> >> >
+> >> > --
+> >> > 1.6.2.4
+> >>
+> >> looks good to me.
 > >
-> >   	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-> >   }
-> > +
-> > +void ti81xx_musb_phy_power(u8 on)
-> > +{
-> > +	u32 usbphycfg = omap_ctrl_readl(USBCTRL0);
-> > +
-> > +	if (on) {
-> > +		if (cpu_is_ti816x()) {
-> > +			usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
-> > +			usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
-> > +		} else if (cpu_is_ti814x()) {
-> > +			usbphycfg&= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN
-> > +				| USBPHY_DPINPUT | USBPHY_DMINPUT);
-> > +			usbphycfg |= (USBPHY_OTGVDET_EN |
-> USBPHY_OTGSESSEND_EN
-> > +				| USBPHY_DPOPBUFCTL | USBPHY_DPOPBUFCTL);
+> > how about you reply with your Acked-by then ?
+> >
+> > --
+> > balbi
 > 
->     Same #define repeated twice?
+> yes balbi,
+>      here it is
+> 
+> Acked-By: Keshava Munegowda <keshava_mgowda@ti.com>
 
-Good catch.. thanks. One of them should be USBPHY_DMOPBUFCTL, will fix in v3.
+Tony and Benoit,
 
+Please review this patch and provide your input on this.
+
+Thanks,
 Ajay
-> 
-> WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
