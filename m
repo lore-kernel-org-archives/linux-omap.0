@@ -1,55 +1,76 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 14/22] OMAP2+: voltage: split voltage controller (VC) code
-	into dedicated layer
-Date: Fri, 09 Sep 2011 14:51:40 -0700
-Message-ID: <87vct1s7tf.fsf@ti.com>
-References: <1314639355-12713-1-git-send-email-khilman@ti.com>
-	<1314639355-12713-15-git-send-email-khilman@ti.com>
-	<CAORVsuWEZmChCjy8dJV+acosr_8N9XN0VL8-L6HWaKnZkoqqYA@mail.gmail.com>
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: [PATCH 14/25] OMAP4: PM: Add CPUX OFF mode support
+Date: Sat, 10 Sep 2011 07:34:49 +0800
+Message-ID: <20110909233448.GH32138@S2100-06.ap.freescale.net>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+ <1315144466-9395-15-git-send-email-santosh.shilimkar@ti.com>
+ <20110909080416.GF31581@S2100-06.ap.freescale.net>
+ <4E69C9CF.6090709@ti.com>
+ <20110909141321.GC32138@S2100-06.ap.freescale.net>
+ <CAMQu2gxeDzFGyhsXK-wDkyiJRoD6_GN58m=3_=NC8yKa_ThJnQ@mail.gmail.com>
+ <20110909152729.GG32138@S2100-06.ap.freescale.net>
+ <4E6A4605.3050305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAORVsuWEZmChCjy8dJV+acosr_8N9XN0VL8-L6HWaKnZkoqqYA@mail.gmail.com>
-	(Jean Pihet's message of "Wed, 7 Sep 2011 12:42:20 +0200")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from tx2ehsobe004.messaging.microsoft.com ([65.55.88.14]:20595 "EHLO
+	TX2EHSOBE008.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751148Ab1IIX1r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Sep 2011 19:27:47 -0400
+Content-Disposition: inline
+In-Reply-To: <4E6A4605.3050305@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh <santosh.shilimkar@ti.com>
+Cc: khilman@ti.com, Dave Martin <dave.martin@linaro.org>, linux@arm.linux.org.uk, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-SmVhbiBQaWhldCA8amVhbi5waWhldEBuZXdvbGRiaXRzLmNvbT4gd3JpdGVzOgoKPiBLZXZpbiwK
-Pgo+IE9uIE1vbiwgQXVnIDI5LCAyMDExIGF0IDc6MzUgUE0sIEtldmluIEhpbG1hbiA8a2hpbG1h
-bkB0aS5jb20+IHdyb3RlOgo+PiBBcyBwYXJ0IG9mIHRoZSB2b2x0YWdlIGxheWVyIGNsZWFudXAs
-IHNwbGl0IG91dCBWQyBzcGVjaWZpYyBjb2RlIGludG8KPj4gYSBkZWRpY2F0ZWQgVkMgbGF5ZXIu
-IMKgVGhpcyBwYXRjaCBwcmltYXJpbHkganVzdCBtb3ZlcyBWQyBjb2RlIGZyb20KPj4gdm9sdGFn
-ZS5jIGludG8gdmMuYywgYW5kIGFkZHMgcHJvdG90eXBlcyB0byB2Yy5oLgo+Pgo+PiBObyBmdW5j
-dGlvbmFsIGNoYW5nZXMuCj4+Cj4+IEZvciByZWFkYWJpbGl0eSwgZWFjaCBmdW5jdGlvbiB3YXMg
-Z2l2ZW4gYSBsb2NhbCAndmMnIHBvaW50ZXI6Cj4+Cj4+IMKgIMKgc3RydWN0IG9tYXBfdmNfaW5z
-dGFuY2VfZGF0YSAqdmMgPSB2b2x0ZG0tPnZkZC0+dmNfZGF0YTsKPj4KPj4gYW5kIGEgZ2xvYmFs
-IHJlcGxhY2Ugb2Ygcy92ZGQtPnZjX2RhdGEvdmMvIHdhcyBkb25lLgo+Pgo+PiBBbHNvIHZjX2lu
-aXQgd2FzIHJlbmFtZWQgdG8gdmNfaW5pdF9jaGFubmVsIHRvIHJlZmxlY3QgdGhhdCB0aGlzIGlz
-Cj4+IHBlci1WQyBjaGFubmVsIGluaXRpYWxpenRpb24uCj4+Cj4+IFNpZ25lZC1vZmYtYnk6IEtl
-dmluIEhpbG1hbiA8a2hpbG1hbkB0aS5jb20+Cj4+IC0tLQo+PiDCoGFyY2gvYXJtL21hY2gtb21h
-cDIvTWFrZWZpbGUgwqB8IMKgIMKgMiArLQo+PiDCoGFyY2gvYXJtL21hY2gtb21hcDIvdmMuYyDC
-oCDCoCDCoHwgwqAyNzYgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysK
-Pj4gwqBhcmNoL2FybS9tYWNoLW9tYXAyL3ZjLmggwqAgwqAgwqB8IMKgIDEyICsrCj4+IMKgYXJj
-aC9hcm0vbWFjaC1vbWFwMi92b2x0YWdlLmMgfCDCoDI2NCArLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0KPj4gwqA0IGZpbGVzIGNoYW5nZWQsIDI5MyBpbnNlcnRpb25zKCsp
-LCAyNjEgZGVsZXRpb25zKC0pCj4+IMKgY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL21hY2gt
-b21hcDIvdmMuYwo+Pgo+IC4uLgo+Cj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAy
-L3ZjLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3ZjLmMKPj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQK
-Pj4gaW5kZXggMDAwMDAwMC4uOThmNWE0Ygo+PiAtLS0gL2Rldi9udWxsCj4+ICsrKyBiL2FyY2gv
-YXJtL21hY2gtb21hcDIvdmMuYwo+PiBAQCAtMCwwICsxLDI3NiBAQAo+Cj4gVGhlIGNvcHlyaWdo
-dCBub3RpY2UgaXMgbWlzc2luZy4KPgoKb29wcywgd2lsbCBhZGQuCgpUaGFua3MsCgpLZXZpbgoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJt
-LWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3Jn
-Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtl
-cm5lbAo=
+On Fri, Sep 09, 2011 at 10:29:49PM +0530, Santosh wrote:
+> On Friday 09 September 2011 08:57 PM, Shawn Guo wrote:
+> >On Fri, Sep 09, 2011 at 07:41:08PM +0530, Shilimkar, Santosh wrote:
+> >>On Fri, Sep 9, 2011 at 7:43 PM, Shawn Guo<shawn.guo@freescale.com>  wrote:
+> >>>On Fri, Sep 09, 2011 at 01:39:51PM +0530, Santosh wrote:
+> >>>>On Friday 09 September 2011 01:34 PM, Shawn Guo wrote:
+> >>>>>Hi Santosh,
+> 
+> [...]
+> 
+> >>#ifdef CONFIG_CACHE_L2X0
+> >>	/*
+> >>	 * Clean and invalidate the L2 cache.
+> >>	 * Common cache-l2x0.c functions can't be used here since it
+> >>	 * uses spinlocks. We are out of coherency here with data cache
+> >>	 * disabled. The spinlock implementation uses exclusive load/store
+> >>	 * instruction which can fail without data cache being enabled.
+> >>	 * OMAP4 hardware doesn't support exclusive monitor which can
+> >>	 * overcome exclusive access issue. Because of this, CPU can
+> >>	 * lead to deadlock.
+> >>	 */
+> >>l2x_clean_inv:
+> >>	bl	omap4_get_sar_ram_base
+> >>	mov	r8, r0
+> >>	mrc	p15, 0, r5, c0, c0, 5		@ Read MPIDR
+> >>	ands	r5, r5, #0x0f
+> >>	ldreq	r0, [r8, #L2X0_SAVE_OFFSET0]
+> >>	ldrne	r0, [r8, #L2X0_SAVE_OFFSET1]
+> >>	cmp	r0, #3
+> >>	bne	do_WFI
+> >
+> >It looks like you are bypassing L2 clean and invalidate for cases
+> >"1" and "2" here.  But I really do not understand how you get r0
+> >back here.
+> >
+> The value which is passed in R0 is also stored in scratch patch memory
+> and retrieved using L2X0_SAVE_OFFSET0.
+> Simple :)
+> 
+Aha, no wonder that I read it wrongly.  The parameter passing in r0
+is here simply for confusing people.
+
+Also, IMO, lable "l2x_clean_inv" should be put after the "bne do_WFI".
+Otherwise, my original statement (it seems l2x_clean_inv will be
+called for case "2") stands correct :)
+
+-- 
+Regards,
+Shawn
+
