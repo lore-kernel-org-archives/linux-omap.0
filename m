@@ -1,215 +1,1176 @@
-From: Santosh <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 14/25] OMAP4: PM: Add CPUX OFF mode support
-Date: Fri, 09 Sep 2011 15:29:47 +0530
-Message-ID: <4E69E393.2060003@ti.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>	<1315144466-9395-15-git-send-email-santosh.shilimkar@ti.com> <CAORVsuUXtiitSTMB0MTJPobppqKymmYFsDpsOqALP8UV7Pm+dQ@mail.gmail.com>
+From: Mans Rullgard <mans.rullgard@linaro.org>
+Subject: [PATCH v3] ASoC: omap: convert per-board modules to
+	platform drivers
+Date: Fri,  9 Sep 2011 12:38:51 +0100
+Message-ID: <1315568332-10224-1-git-send-email-mans.rullgard@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:60105 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933223Ab1IIJ7z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Sep 2011 05:59:55 -0400
-Received: by yxk30 with SMTP id 30so471868yxk.26
-        for <linux-omap@vger.kernel.org>; Fri, 09 Sep 2011 02:59:53 -0700 (PDT)
-In-Reply-To: <CAORVsuUXtiitSTMB0MTJPobppqKymmYFsDpsOqALP8UV7Pm+dQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: linux-omap@vger.kernel.org
+Cc: alsa-devel@alsa-project.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linaro-dev@lists.linaro.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com
 
-On Friday 09 September 2011 01:09 AM, Jean Pihet wrote:
-> On Sun, Sep 4, 2011 at 3:54 PM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com>  wrote:
->> This patch adds the CPU0 and CPU1 off mode support. CPUX close switch
->> retention (CSWR) is not supported by hardware design.
->>
->> The CPUx OFF mode isn't supported on OMAP4430 ES1.0
->>
->> CPUx sleep code is common for hotplug, suspend and CPUilde.
->>
->> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
->> Cc: Kevin Hilman<khilman@ti.com>
->> ---
->>   arch/arm/mach-omap2/Makefile                    |    3 +-
->>   arch/arm/mach-omap2/include/mach/omap-secure.h  |    8 +
->>   arch/arm/mach-omap2/include/mach/omap4-common.h |   25 +++
->>   arch/arm/mach-omap2/omap-mpuss-lowpower.c       |  249 +++++++++++++++++++++++
->>   arch/arm/mach-omap2/omap-smp.c                  |    6 +
->>   arch/arm/mach-omap2/omap4-sar-layout.h          |    9 +
->>   arch/arm/mach-omap2/pm44xx.c                    |    6 +
->>   arch/arm/mach-omap2/sleep44xx.S                 |  213 +++++++++++++++++++
->>   8 files changed, 518 insertions(+), 1 deletions(-)
->>   create mode 100644 arch/arm/mach-omap2/omap-mpuss-lowpower.c
->>
->> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
->> index b032c21..b4f2eeb 100644
->> --- a/arch/arm/mach-omap2/Makefile
->> +++ b/arch/arm/mach-omap2/Makefile
->> @@ -63,7 +63,8 @@ obj-$(CONFIG_ARCH_OMAP2)              += pm24xx.o
->>   obj-$(CONFIG_ARCH_OMAP2)               += sleep24xx.o
->>   obj-$(CONFIG_ARCH_OMAP3)               += pm34xx.o sleep34xx.o \
->>                                            cpuidle34xx.o
->> -obj-$(CONFIG_ARCH_OMAP4)               += pm44xx.o sleep44xx.o
->> +obj-$(CONFIG_ARCH_OMAP4)               += pm44xx.o sleep44xx.o \
->> +                                          omap-mpuss-lowpower.o
->>   obj-$(CONFIG_PM_DEBUG)                 += pm-debug.o
->>   obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
->>   obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)  += smartreflex-class3.o
->> diff --git a/arch/arm/mach-omap2/include/mach/omap-secure.h b/arch/arm/mach-omap2/include/mach/omap-secure.h
->> index e2f95a0..0062d49 100644
->> --- a/arch/arm/mach-omap2/include/mach/omap-secure.h
->> +++ b/arch/arm/mach-omap2/include/mach/omap-secure.h
->> @@ -35,10 +35,18 @@
->>   #define OMAP4_HAL_SAVEALL_INDEX                0x1c
->>   #define OMAP4_HAL_SAVEGIC_INDEX                0x1d
->>
->> +/* Secure Monitor mode APIs */
->> +#define OMAP4_MON_SCU_PWR_INDEX                0x108
->> +
->> +/* Secure PPA(Primary Protected Application) APIs */
->> +#define OMAP4_PPA_CPU_ACTRL_SMP_INDEX  0x25
->> +
->> +#ifndef __ASSEMBLER__
->>   extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
->>                                 u32 arg1, u32 arg2, u32 arg3, u32 arg4);
->>   extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
->>   extern phys_addr_t omap_secure_ram_mempool_base(void);
->>   extern int omap_secure_ram_reserve_memblock(void);
->>
->> +#endif /* __ASSEMBLER__ */
->>   #endif /* OMAP_ARCH_OMAP_SECURE_H */
->> diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
->> index 040dcf6..662f37c 100644
->> --- a/arch/arm/mach-omap2/include/mach/omap4-common.h
->> +++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
->> @@ -45,5 +45,30 @@ extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
->>   extern void omap_auxcoreboot_addr(u32 cpu_addr);
->>   extern u32 omap_read_auxcoreboot0(void);
->>   #endif
->> +
->> +#if defined(CONFIG_SMP)&&  defined(CONFIG_PM)
->> +extern int omap4_mpuss_init(void);
->> +extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
->> +extern int omap4_finish_suspend(unsigned long cpu_state);
->> +extern void omap4_cpu_resume(void);
->> +#else
->> +static inline int omap4_enter_lowpower(unsigned int cpu,
->> +                                       unsigned int power_state)
->> +{
->> +       omap_do_wfi();
->> +       return 0;
->> +}
->> +
->> +static inline int omap4_mpuss_init(void)
->> +{
->> +       return 0;
->> +}
->> +
->> +static inline int omap4_finish_suspend(unsigned long cpu_state)
->> +{}
-> The int function should return something (0?)
-> Has the code been test compiled without SMP and/or PM?
->
->> +static inline void omap4_cpu_resume(void)
->> +{}
->> +#endif
->> +
->>   #endif /* __ASSEMBLER__ */
->>   #endif /* OMAP_ARCH_OMAP4_COMMON_H */
->> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> ...
->
->> +/**
->> + * omap4_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
->> + * The purpose of this function is to manage low power programming
->> + * of OMAP4 MPUSS subsystem
->> + * @cpu : CPU ID
->> + * @power_state: Low power state.
->> + */
->> +int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
->> +{
->> +       unsigned int save_state = 0;
->> +       unsigned int wakeup_cpu;
->> +
->> +       if (omap_rev() == OMAP4430_REV_ES1_0)
->> +               return -ENXIO;
->> +
->> +       switch (power_state) {
->> +       case PWRDM_POWER_ON:
->> +       case PWRDM_POWER_INACTIVE:
->> +               save_state = 0;
->> +               break;
->> +       case PWRDM_POWER_OFF:
->> +               save_state = 1;
->> +               break;
->> +       case PWRDM_POWER_RET:
->> +       default:
->> +               /*
->> +                * CPUx CSWR is invalid hardware state. Also CPUx OSWR
->> +                * doesn't make much scense, since logic is lost and $L1
->> +                * needs to be cleaned because of coherency. This makes
->> +                * CPUx OSWR equivalent to CPUX OFF and hence not supported
->> +                */
->> +               WARN_ON(1);
->> +               return -ENXIO;
->> +       }
->> +
->> +       clear_cpu_prev_pwrst(cpu);
->> +       set_cpu_next_pwrst(cpu, power_state);
->> +       set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
->> +       scu_pwrst_prepare(cpu, power_state);
->> +
->> +       /*
->> +        * Call low level function  with targeted CPU id
->> +        * and its low power state.
->> +        */
->> +       cpu_suspend(save_state, omap4_finish_suspend);
-> There is no CPU id parameter to the call although the above comment says so.
->
-> ...
->
->> diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
-> ...
->
->> +/*
->> + * =============================
->> + * == CPU suspend finisher ==
->> + * =============================
->> + *
->> + * void omap4_finish_suspend(unsigned long cpu_state)
->> + *
->> + * This function code saves the CPU context and performs the CPU
->> + * power down sequence. Calling WFI effectively changes the CPU
->> + * power domains states to the desired target power state.
->> + *
->> + * @cpu_state : contains context save state (r0)
->> + *     0 - No context lost
->> + *     1 - CPUx L1 and logic lost: MPUSS CSWR
->> + *     2 - CPUx L1 and logic lost + GIC lost: MPUSS OSWR
->> + *     3 - CPUx L1 and logic lost + GIC + L2 lost: MPUSS OFF
->> + * @return: This function never returns for CPU OFF and DORMANT power states.
->> + * Post WFI, CPU transitions to DORMANT or OFF power state and on wake-up
->> + * from this follows a full CPU reset path via ROM code to CPU restore code.
-> Is the ROM code jumping to the physical address of omap4_cpu_resume?
-> If so please add it in the comment.
->
-> ...
->
->> +/*
->> + * ============================
->> + * == CPU resume entry point ==
->> + * ============================
->> + *
->> + * void omap4_cpu_resume(void)
->> + *
->> + * ROM code jumps to this function while waking up from CPU
->> + * OFF or DORMANT state. Physical address of the function is
->> + * stored in the SAR RAM while entering to OFF or DORMANT mode.
-> Which code stores the address in the SAR RAM? Please describe it here.
->
-Will add that comment.
+This converts the per-board modules to platform drivers for a
+device created by in main platform setup.  These drivers call
+snd_soc_register_card() directly instead of going via a "soc-audio"
+device and the corresponding driver in soc-core.
 
-Regards
-Santosh
+Signed-off-by: Mans Rullgard <mans.rullgard@linaro.org>
+---
+This version uses a table to assign the device name in omap_init_audio().
+It is certainly less ugly than the previous patch.
+
+Again, tested only on Beagle.
+---
+ arch/arm/mach-omap2/devices.c |   34 +++++++++++++++++++
+ sound/soc/omap/am3517evm.c    |   55 +++++++++++++++++++-----------
+ sound/soc/omap/igep0020.c     |   52 +++++++++++++++++++----------
+ sound/soc/omap/n810.c         |   73 ++++++++++++++++++++++++++---------------
+ sound/soc/omap/omap3beagle.c  |   55 +++++++++++++++++++-----------
+ sound/soc/omap/omap3evm.c     |   56 ++++++++++++++++++++-----------
+ sound/soc/omap/omap3pandora.c |   70 ++++++++++++++++++++++++---------------
+ sound/soc/omap/overo.c        |   56 +++++++++++++++++++------------
+ sound/soc/omap/rx51.c         |   55 +++++++++++++++++++++----------
+ sound/soc/omap/sdp3430.c      |   65 ++++++++++++++++++++++--------------
+ sound/soc/omap/sdp4430.c      |   60 +++++++++++++++++++++------------
+ sound/soc/omap/zoom2.c        |   68 +++++++++++++++++++++++++-------------
+ 12 files changed, 458 insertions(+), 241 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 5b8ca68..cfec01b 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -299,6 +299,10 @@ static struct platform_device omap_pcm = {
+ 	.id	= -1,
+ };
+ 
++static struct platform_device omap_soc_audio = {
++	.id	= -1,
++};
++
+ /*
+  * OMAP2420 has 2 McBSP ports
+  * OMAP2430 has 5 McBSP ports
+@@ -311,8 +315,30 @@ OMAP_MCBSP_PLATFORM_DEVICE(3);
+ OMAP_MCBSP_PLATFORM_DEVICE(4);
+ OMAP_MCBSP_PLATFORM_DEVICE(5);
+ 
++static struct {
++	int machine;
++	const char *name;
++} soc_device_names[] = {
++	{ MACH_TYPE_OMAP3517EVM,	"am3517evm-soc-audio"	},
++	{ MACH_TYPE_IGEP0020,		"igep2-soc-audio"	},
++	{ MACH_TYPE_NOKIA_N810,		"n8x1-soc-audio"	},
++	{ MACH_TYPE_NOKIA_N810_WIMAX,	"n8x1-soc-audio"	},
++	{ MACH_TYPE_OMAP3_BEAGLE,	"omap3beagle-soc-audio"	},
++	{ MACH_TYPE_DEVKIT8000,		"omap3beagle-soc-audio"	},
++	{ MACH_TYPE_OMAP3EVM,		"omap3evm-soc-audio"	},
++	{ MACH_TYPE_OMAP3_PANDORA,	"pandora-soc-audio"	},
++	{ MACH_TYPE_OVERO,		"overo-soc-audio",	},
++	{ MACH_TYPE_CM_T35,		"overo-soc-audio",	},
++	{ MACH_TYPE_NOKIA_RX51,		"rx51-soc-audio",	},
++	{ MACH_TYPE_OMAP_3430SDP,	"sdp3430-soc-audio",	},
++	{ MACH_TYPE_OMAP_4430SDP,	"sdp4430-soc-audio",	},
++	{ MACH_TYPE_OMAP_ZOOM2,		"zoom2-soc-audio",	},
++};
++
+ static void omap_init_audio(void)
+ {
++	int i;
++
+ 	platform_device_register(&omap_mcbsp1);
+ 	platform_device_register(&omap_mcbsp2);
+ 	if (cpu_is_omap243x() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
+@@ -323,6 +349,14 @@ static void omap_init_audio(void)
+ 		platform_device_register(&omap_mcbsp5);
+ 
+ 	platform_device_register(&omap_pcm);
++
++	for (i = 0; i < ARRAY_SIZE(soc_device_names); i++) {
++		if (machine_arch_type == soc_device_names[i].machine) {
++			omap_soc_audio.name = soc_device_names[i].name;
++			platform_device_register(&omap_soc_audio);
++			break;
++		}
++	}
+ }
+ 
+ #else
+diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
+index 73dde4a..75c8766 100644
+--- a/sound/soc/omap/am3517evm.c
++++ b/sound/soc/omap/am3517evm.c
+@@ -151,45 +151,60 @@ static struct snd_soc_card snd_soc_am3517evm = {
+ 	.num_links = 1,
+ };
+ 
+-static struct platform_device *am3517evm_snd_device;
+-
+-static int __init am3517evm_soc_init(void)
++static int __devinit am3517evm_soc_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &snd_soc_am3517evm;
+ 	int ret;
+ 
+-	if (!machine_is_omap3517evm())
+-		return -ENODEV;
+ 	pr_info("OMAP3517 / AM3517 EVM SoC init\n");
+ 
+-	am3517evm_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (!am3517evm_snd_device) {
+-		printk(KERN_ERR "Platform device allocation failed\n");
+-		return -ENOMEM;
++	card->dev = &pdev->dev;
++
++	ret = snd_soc_register_card(card);
++	if (ret) {
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			ret);
++		return ret;
+ 	}
+ 
+-	platform_set_drvdata(am3517evm_snd_device, &snd_soc_am3517evm);
++	return 0;
++}
+ 
+-	ret = platform_device_add(am3517evm_snd_device);
+-	if (ret)
+-		goto err1;
++static int __devexit am3517evm_soc_remove(struct platform_device *pdev)
++{
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
++	snd_soc_unregister_card(card);
+ 
+ 	return 0;
++}
+ 
+-err1:
+-	printk(KERN_ERR "Unable to add platform device\n");
+-	platform_device_put(am3517evm_snd_device);
++static struct platform_driver am3517evm_driver = {
++	.driver = {
++		.name = "am3517evm-soc-audio",
++		.owner = THIS_MODULE,
++	},
+ 
+-	return ret;
++	.probe = am3517evm_soc_probe,
++	.remove = __devexit_p(am3517evm_soc_remove),
++};
++
++static int __init am3517evm_soc_init(void)
++{
++	if (!machine_is_omap3517evm())
++		return -ENODEV;
++
++	return platform_driver_register(&am3517evm_driver);
+ }
++module_init(am3517evm_soc_init);
+ 
+ static void __exit am3517evm_soc_exit(void)
+ {
+-	platform_device_unregister(am3517evm_snd_device);
++	platform_driver_unregister(&am3517evm_driver);
+ }
+-
+-module_init(am3517evm_soc_init);
+ module_exit(am3517evm_soc_exit);
+ 
+ MODULE_AUTHOR("Anuj Aggarwal <anuj.aggarwal@ti.com>");
+ MODULE_DESCRIPTION("ALSA SoC OMAP3517 / AM3517 EVM");
+ MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:am3517evm-soc-audio");
+diff --git a/sound/soc/omap/igep0020.c b/sound/soc/omap/igep0020.c
+index 0ae3470..1d6b756 100644
+--- a/sound/soc/omap/igep0020.c
++++ b/sound/soc/omap/igep0020.c
+@@ -94,44 +94,60 @@ static struct snd_soc_card snd_soc_card_igep2 = {
+ 	.num_links = 1,
+ };
+ 
+-static struct platform_device *igep2_snd_device;
+-
+-static int __init igep2_soc_init(void)
++static int __devinit igep2_soc_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &snd_soc_card_igep2;
+ 	int ret;
+ 
+-	if (!machine_is_igep0020())
+-		return -ENODEV;
+ 	printk(KERN_INFO "IGEP v2 SoC init\n");
+ 
+-	igep2_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (!igep2_snd_device) {
+-		printk(KERN_ERR "Platform device allocation failed\n");
+-		return -ENOMEM;
++	card->dev = &pdev->dev;
++
++	ret = snd_soc_register_card(card);
++	if (ret) {
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			ret);
++		return ret;
+ 	}
+ 
+-	platform_set_drvdata(igep2_snd_device, &snd_soc_card_igep2);
++	return 0;
++}
++
++static int __devexit igep2_soc_remove(struct platform_device *pdev)
++{
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
+ 
+-	ret = platform_device_add(igep2_snd_device);
+-	if (ret)
+-		goto err1;
++	snd_soc_unregister_card(card);
+ 
+ 	return 0;
++}
++
++static struct platform_driver igep2_driver = {
++	.driver = {
++		.name = "igep2-soc-audio",
++		.owner = THIS_MODULE,
++	},
++
++	.probe = igep2_soc_probe,
++	.remove = __devexit_p(igep2_soc_remove),
++};
+ 
+-err1:
+-	printk(KERN_ERR "Unable to add platform device\n");
+-	platform_device_put(igep2_snd_device);
++static int __init igep2_soc_init(void)
++{
++	if (!machine_is_igep0020())
++		return -ENODEV;
+ 
+-	return ret;
++	return platform_driver_register(&igep2_driver);
+ }
+ module_init(igep2_soc_init);
+ 
+ static void __exit igep2_soc_exit(void)
+ {
+-	platform_device_unregister(igep2_snd_device);
++	platform_driver_unregister(&igep2_driver);
+ }
+ module_exit(igep2_soc_exit);
+ 
+ MODULE_AUTHOR("Enric Balletbo i Serra <eballetbo@iseebcn.com>");
+ MODULE_DESCRIPTION("ALSA SoC IGEP v2");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:igep2-soc-audio");
+diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
+index 83d213b..2904499 100644
+--- a/sound/soc/omap/n810.c
++++ b/sound/soc/omap/n810.c
+@@ -323,38 +323,25 @@ static struct snd_soc_card snd_soc_n810 = {
+ 	.num_links = 1,
+ };
+ 
+-static struct platform_device *n810_snd_device;
+-
+-static int __init n810_soc_init(void)
++static int __devinit n810_soc_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &snd_soc_n810;
++	struct device *dev = &pdev->dev;
+ 	int err;
+-	struct device *dev;
+-
+-	if (!(machine_is_nokia_n810() || machine_is_nokia_n810_wimax()))
+-		return -ENODEV;
+ 
+-	n810_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (!n810_snd_device)
+-		return -ENOMEM;
+-
+-	platform_set_drvdata(n810_snd_device, &snd_soc_n810);
+-	err = platform_device_add(n810_snd_device);
+-	if (err)
+-		goto err1;
+-
+-	dev = &n810_snd_device->dev;
++	card->dev = dev;
+ 
+ 	sys_clkout2_src = clk_get(dev, "sys_clkout2_src");
+ 	if (IS_ERR(sys_clkout2_src)) {
+ 		dev_err(dev, "Could not get sys_clkout2_src clock\n");
+ 		err = PTR_ERR(sys_clkout2_src);
+-		goto err2;
++		return err;
+ 	}
+ 	sys_clkout2 = clk_get(dev, "sys_clkout2");
+ 	if (IS_ERR(sys_clkout2)) {
+ 		dev_err(dev, "Could not get sys_clkout2\n");
+ 		err = PTR_ERR(sys_clkout2);
+-		goto err3;
++		goto err1;
+ 	}
+ 	/*
+ 	 * Configure 12 MHz output on SYS_CLKOUT2. Therefore we must use
+@@ -364,7 +351,7 @@ static int __init n810_soc_init(void)
+ 	if (IS_ERR(func96m_clk)) {
+ 		dev_err(dev, "Could not get func 96M clock\n");
+ 		err = PTR_ERR(func96m_clk);
+-		goto err4;
++		goto err2;
+ 	}
+ 	clk_set_parent(sys_clkout2_src, func96m_clk);
+ 	clk_set_rate(sys_clkout2, 12000000);
+@@ -375,33 +362,65 @@ static int __init n810_soc_init(void)
+ 	gpio_direction_output(N810_HEADSET_AMP_GPIO, 0);
+ 	gpio_direction_output(N810_SPEAKER_AMP_GPIO, 0);
+ 
++	err = snd_soc_register_card(card);
++	if (err) {
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			err);
++		goto err3;
++	}
++
+ 	return 0;
+-err4:
+-	clk_put(sys_clkout2);
+ err3:
+-	clk_put(sys_clkout2_src);
++	clk_put(func96m_clk);
+ err2:
+-	platform_device_del(n810_snd_device);
++	clk_put(sys_clkout2);
+ err1:
+-	platform_device_put(n810_snd_device);
++	clk_put(sys_clkout2_src);
+ 
+ 	return err;
+ }
+ 
+-static void __exit n810_soc_exit(void)
++static int __devexit n810_soc_remove(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
+ 	gpio_free(N810_SPEAKER_AMP_GPIO);
+ 	gpio_free(N810_HEADSET_AMP_GPIO);
+ 	clk_put(sys_clkout2_src);
+ 	clk_put(sys_clkout2);
+ 	clk_put(func96m_clk);
+ 
+-	platform_device_unregister(n810_snd_device);
++	snd_soc_unregister_card(card);
++
++	return 0;
+ }
+ 
++static struct platform_driver n810_driver = {
++	.driver = {
++		.name = "n8x0-soc-audio",
++		.owner = THIS_MODULE,
++	},
++
++	.probe = n810_soc_probe,
++	.remove = __devexit_p(n810_soc_remove),
++};
++
++static int __init n810_soc_init(void)
++{
++	if (!(machine_is_nokia_n810() || machine_is_nokia_n810_wimax()))
++		return -ENODEV;
++
++	return platform_driver_register(&n810_driver);
++}
+ module_init(n810_soc_init);
++
++static void __exit n810_soc_exit(void)
++{
++	platform_driver_unregister(&n810_driver);
++}
+ module_exit(n810_soc_exit);
+ 
+ MODULE_AUTHOR("Jarkko Nikula <jhnikula@gmail.com>");
+ MODULE_DESCRIPTION("ALSA SoC Nokia N810");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:n8x0-soc-audio");
+diff --git a/sound/soc/omap/omap3beagle.c b/sound/soc/omap/omap3beagle.c
+index 40db813..85db9c3 100644
+--- a/sound/soc/omap/omap3beagle.c
++++ b/sound/soc/omap/omap3beagle.c
+@@ -105,45 +105,60 @@ static struct snd_soc_card snd_soc_omap3beagle = {
+ 	.num_links = 1,
+ };
+ 
+-static struct platform_device *omap3beagle_snd_device;
+-
+-static int __init omap3beagle_soc_init(void)
++static int __devinit omap3beagle_soc_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &snd_soc_omap3beagle;
+ 	int ret;
+ 
+-	if (!(machine_is_omap3_beagle() || machine_is_devkit8000()))
+-		return -ENODEV;
+ 	pr_info("OMAP3 Beagle/Devkit8000 SoC init\n");
+ 
+-	omap3beagle_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (!omap3beagle_snd_device) {
+-		printk(KERN_ERR "Platform device allocation failed\n");
+-		return -ENOMEM;
++	card->dev = &pdev->dev;
++
++	ret = snd_soc_register_card(card);
++	if (ret) {
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			ret);
++		return ret;
+ 	}
+ 
+-	platform_set_drvdata(omap3beagle_snd_device, &snd_soc_omap3beagle);
++	return 0;
++}
+ 
+-	ret = platform_device_add(omap3beagle_snd_device);
+-	if (ret)
+-		goto err1;
++static int __devexit omap3beagle_soc_remove(struct platform_device *pdev)
++{
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
++	snd_soc_unregister_card(card);
+ 
+ 	return 0;
++}
+ 
+-err1:
+-	printk(KERN_ERR "Unable to add platform device\n");
+-	platform_device_put(omap3beagle_snd_device);
++static struct platform_driver omap3beagle_driver = {
++	.driver = {
++		.name = "omap3beagle-soc-audio",
++		.owner = THIS_MODULE,
++	},
+ 
+-	return ret;
++	.probe = omap3beagle_soc_probe,
++	.remove = __devexit_p(omap3beagle_soc_remove),
++};
++
++static int __init omap3beagle_soc_init(void)
++{
++	if (!(machine_is_omap3_beagle() || machine_is_devkit8000()))
++		return -ENODEV;
++
++	return platform_driver_register(&omap3beagle_driver);
+ }
++module_init(omap3beagle_soc_init);
+ 
+ static void __exit omap3beagle_soc_exit(void)
+ {
+-	platform_device_unregister(omap3beagle_snd_device);
++	platform_driver_unregister(&omap3beagle_driver);
+ }
+-
+-module_init(omap3beagle_soc_init);
+ module_exit(omap3beagle_soc_exit);
+ 
+ MODULE_AUTHOR("Steve Sakoman <steve@sakoman.com>");
+ MODULE_DESCRIPTION("ALSA SoC OMAP3 Beagle");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:omap3beagle-soc-audio");
+diff --git a/sound/soc/omap/omap3evm.c b/sound/soc/omap/omap3evm.c
+index 0daa044..55c9aa3 100644
+--- a/sound/soc/omap/omap3evm.c
++++ b/sound/soc/omap/omap3evm.c
+@@ -92,44 +92,60 @@ static struct snd_soc_card snd_soc_omap3evm = {
+ 	.num_links = 1,
+ };
+ 
+-static struct platform_device *omap3evm_snd_device;
+-
+-static int __init omap3evm_soc_init(void)
++static int __devinit omap3evm_soc_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &snd_soc_omap3evm;
+ 	int ret;
+ 
+-	if (!machine_is_omap3evm())
+-		return -ENODEV;
+ 	pr_info("OMAP3 EVM SoC init\n");
+ 
+-	omap3evm_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (!omap3evm_snd_device) {
+-		printk(KERN_ERR "Platform device allocation failed\n");
+-		return -ENOMEM;
++	card->dev = &pdev->dev;
++
++	ret = snd_soc_register_card(card);
++	if (ret) {
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			ret);
++		return ret;
+ 	}
+ 
+-	platform_set_drvdata(omap3evm_snd_device, &snd_soc_omap3evm);
+-	ret = platform_device_add(omap3evm_snd_device);
+-	if (ret)
+-		goto err1;
++	return 0;
++}
++
++static int __devexit omap3evm_soc_remove(struct platform_device *pdev)
++{
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
++	snd_soc_unregister_card(card);
+ 
+ 	return 0;
++}
++
++static struct platform_driver omap3evm_driver = {
++	.driver = {
++		.name = "omap3evm-soc-audio",
++		.owner = THIS_MODULE,
++	},
+ 
+-err1:
+-	printk(KERN_ERR "Unable to add platform device\n");
+-	platform_device_put(omap3evm_snd_device);
++	.probe = omap3evm_soc_probe,
++	.remove = __devexit_p(omap3evm_soc_remove),
++};
+ 
+-	return ret;
++static int __init omap3evm_soc_init(void)
++{
++	if (!machine_is_omap3evm())
++		return -ENODEV;
++
++	return platform_driver_register(&omap3evm_driver);
+ }
++module_init(omap3evm_soc_init);
+ 
+ static void __exit omap3evm_soc_exit(void)
+ {
+-	platform_device_unregister(omap3evm_snd_device);
++	platform_driver_unregister(&omap3evm_driver);
+ }
+-
+-module_init(omap3evm_soc_init);
+ module_exit(omap3evm_soc_exit);
+ 
+ MODULE_AUTHOR("Anuj Aggarwal <anuj.aggarwal@ti.com>");
+ MODULE_DESCRIPTION("ALSA SoC OMAP3 EVM");
+ MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:omap3evm-soc-audio");
+diff --git a/sound/soc/omap/omap3pandora.c b/sound/soc/omap/omap3pandora.c
+index 8047c52..79827c4 100644
+--- a/sound/soc/omap/omap3pandora.c
++++ b/sound/soc/omap/omap3pandora.c
+@@ -252,17 +252,15 @@ static struct snd_soc_card snd_soc_card_omap3pandora = {
+ 	.num_links = ARRAY_SIZE(omap3pandora_dai),
+ };
+ 
+-static struct platform_device *omap3pandora_snd_device;
+-
+-static int __init omap3pandora_soc_init(void)
++static int __devinit omap3pandora_soc_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &snd_soc_card_omap3pandora;
+ 	int ret;
+ 
+-	if (!machine_is_omap3_pandora())
+-		return -ENODEV;
+-
+ 	pr_info("OMAP3 Pandora SoC init\n");
+ 
++	card->dev = &pdev->dev;
++
+ 	ret = gpio_request(OMAP3_PANDORA_DAC_POWER_GPIO, "dac_power");
+ 	if (ret) {
+ 		pr_err(PREFIX "Failed to get DAC power GPIO\n");
+@@ -287,53 +285,71 @@ static int __init omap3pandora_soc_init(void)
+ 		goto fail1;
+ 	}
+ 
+-	omap3pandora_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (omap3pandora_snd_device == NULL) {
+-		pr_err(PREFIX "Platform device allocation failed\n");
+-		ret = -ENOMEM;
+-		goto fail1;
+-	}
+-
+-	platform_set_drvdata(omap3pandora_snd_device, &snd_soc_card_omap3pandora);
+-
+-	ret = platform_device_add(omap3pandora_snd_device);
++	ret = snd_soc_register_card(card);
+ 	if (ret) {
+-		pr_err(PREFIX "Unable to add platform device\n");
+-		goto fail2;
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			ret);
++		goto fail1;
+ 	}
+ 
+-	omap3pandora_dac_reg = regulator_get(&omap3pandora_snd_device->dev, "vcc");
++	omap3pandora_dac_reg = regulator_get(card->dev, "vcc");
+ 	if (IS_ERR(omap3pandora_dac_reg)) {
+ 		pr_err(PREFIX "Failed to get DAC regulator from %s: %ld\n",
+-			dev_name(&omap3pandora_snd_device->dev),
++			dev_name(card->dev),
+ 			PTR_ERR(omap3pandora_dac_reg));
+ 		ret = PTR_ERR(omap3pandora_dac_reg);
+-		goto fail3;
++		goto fail2;
+ 	}
+ 
+ 	return 0;
+ 
+-fail3:
+-	platform_device_del(omap3pandora_snd_device);
+ fail2:
+-	platform_device_put(omap3pandora_snd_device);
++	snd_soc_unregister_card(card);
+ fail1:
+ 	gpio_free(OMAP3_PANDORA_AMP_POWER_GPIO);
+ fail0:
+ 	gpio_free(OMAP3_PANDORA_DAC_POWER_GPIO);
+ 	return ret;
+ }
+-module_init(omap3pandora_soc_init);
+ 
+-static void __exit omap3pandora_soc_exit(void)
++static int __devexit omap3pandora_soc_remove(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
+ 	regulator_put(omap3pandora_dac_reg);
+-	platform_device_unregister(omap3pandora_snd_device);
++	snd_soc_unregister_card(card);
+ 	gpio_free(OMAP3_PANDORA_AMP_POWER_GPIO);
+ 	gpio_free(OMAP3_PANDORA_DAC_POWER_GPIO);
++
++	return 0;
++}
++
++static struct platform_driver omap3pandora_driver = {
++	.driver = {
++		.name = "pandora-soc-audio",
++		.owner = THIS_MODULE,
++	},
++
++	.probe = omap3pandora_soc_probe,
++	.remove = __devexit_p(omap3pandora_soc_remove),
++};
++
++static int __init omap3pandora_soc_init(void)
++{
++	if (!machine_is_omap3_pandora())
++		return -ENODEV;
++
++	return platform_driver_register(&omap3pandora_driver);
++}
++module_init(omap3pandora_soc_init);
++
++static void __exit omap3pandora_soc_exit(void)
++{
++	platform_driver_unregister(&omap3pandora_driver);
+ }
+ module_exit(omap3pandora_soc_exit);
+ 
+ MODULE_AUTHOR("Grazvydas Ignotas <notasas@gmail.com>");
+ MODULE_DESCRIPTION("ALSA SoC OMAP3 Pandora");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:pandora-soc-audio");
+diff --git a/sound/soc/omap/overo.c b/sound/soc/omap/overo.c
+index bbcf380..a8337f6 100644
+--- a/sound/soc/omap/overo.c
++++ b/sound/soc/omap/overo.c
+@@ -94,46 +94,60 @@ static struct snd_soc_card snd_soc_card_overo = {
+ 	.num_links = 1,
+ };
+ 
+-static struct platform_device *overo_snd_device;
+-
+-static int __init overo_soc_init(void)
++static int __devinit overo_soc_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &snd_soc_card_overo;
+ 	int ret;
+ 
+-	if (!(machine_is_overo() || machine_is_cm_t35())) {
+-		pr_debug("Incomatible machine!\n");
+-		return -ENODEV;
+-	}
+-	printk(KERN_INFO "overo SoC init\n");
++	pr_info("overo SoC init\n");
++
++	card->dev = &pdev->dev;
+ 
+-	overo_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (!overo_snd_device) {
+-		printk(KERN_ERR "Platform device allocation failed\n");
+-		return -ENOMEM;
++	ret = snd_soc_register_card(card);
++	if (ret) {
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			ret);
++		return ret;
+ 	}
+ 
+-	platform_set_drvdata(overo_snd_device, &snd_soc_card_overo);
++	return 0;
++}
+ 
+-	ret = platform_device_add(overo_snd_device);
+-	if (ret)
+-		goto err1;
++static int __devexit overo_soc_remove(struct platform_device *pdev)
++{
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
++	snd_soc_unregister_card(card);
+ 
+ 	return 0;
++}
++
++static struct platform_driver overo_driver = {
++	.driver = {
++		.name = "overo-soc-audio",
++		.owner = THIS_MODULE,
++	},
++
++	.probe = overo_soc_probe,
++	.remove = __devexit_p(overo_soc_remove),
++};
+ 
+-err1:
+-	printk(KERN_ERR "Unable to add platform device\n");
+-	platform_device_put(overo_snd_device);
++static int __init overo_soc_init(void)
++{
++	if (!(machine_is_overo() || machine_is_cm_t35()))
++		return -ENODEV;
+ 
+-	return ret;
++	return platform_driver_register(&overo_driver);
+ }
+ module_init(overo_soc_init);
+ 
+ static void __exit overo_soc_exit(void)
+ {
+-	platform_device_unregister(overo_snd_device);
++	platform_driver_unregister(&overo_driver);
+ }
+ module_exit(overo_soc_exit);
+ 
+ MODULE_AUTHOR("Steve Sakoman <steve@sakoman.com>");
+ MODULE_DESCRIPTION("ALSA SoC overo");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:overo-soc-audio");
+diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
+index 0aae998..a14f4d4 100644
+--- a/sound/soc/omap/rx51.c
++++ b/sound/soc/omap/rx51.c
+@@ -408,14 +408,12 @@ static struct snd_soc_card rx51_sound_card = {
+ 	.num_configs = ARRAY_SIZE(rx51_codec_conf),
+ };
+ 
+-static struct platform_device *rx51_snd_device;
+-
+-static int __init rx51_soc_init(void)
++static int __devinit rx51_soc_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &rx51_sound_card;
+ 	int err;
+ 
+-	if (!machine_is_nokia_rx51())
+-		return -ENODEV;
++	card->dev = &pdev->dev;
+ 
+ 	err = gpio_request_one(RX51_TVOUT_SEL_GPIO,
+ 			       GPIOF_DIR_OUT | GPIOF_INIT_LOW, "tvout_sel");
+@@ -426,21 +424,14 @@ static int __init rx51_soc_init(void)
+ 	if (err)
+ 		goto err_gpio_eci_sw;
+ 
+-	rx51_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (!rx51_snd_device) {
+-		err = -ENOMEM;
++	err = snd_soc_register_card(card);
++	if (err) {
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			err);
+ 		goto err1;
+ 	}
+ 
+-	platform_set_drvdata(rx51_snd_device, &rx51_sound_card);
+-
+-	err = platform_device_add(rx51_snd_device);
+-	if (err)
+-		goto err2;
+-
+ 	return 0;
+-err2:
+-	platform_device_put(rx51_snd_device);
+ err1:
+ 	gpio_free(RX51_ECI_SW_GPIO);
+ err_gpio_eci_sw:
+@@ -450,19 +441,47 @@ err_gpio_tvout_sel:
+ 	return err;
+ }
+ 
+-static void __exit rx51_soc_exit(void)
++static int __devexit rx51_soc_remove(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
+ 	snd_soc_jack_free_gpios(&rx51_av_jack, ARRAY_SIZE(rx51_av_jack_gpios),
+ 				rx51_av_jack_gpios);
+ 
+-	platform_device_unregister(rx51_snd_device);
++	snd_soc_unregister_card(card);
++
+ 	gpio_free(RX51_ECI_SW_GPIO);
+ 	gpio_free(RX51_TVOUT_SEL_GPIO);
++
++	return 0;
+ }
+ 
++static struct platform_driver rx51_driver = {
++	.driver = {
++		.name = "rx51-soc-audio",
++		.owner = THIS_MODULE,
++	},
++
++	.probe = rx51_soc_probe,
++	.remove = __devexit_p(rx51_soc_remove),
++};
++
++static int __init rx51_soc_init(void)
++{
++	if (!machine_is_nokia_rx51())
++		return -ENODEV;
++
++	return platform_driver_register(&rx51_driver);
++}
+ module_init(rx51_soc_init);
++
++static void __exit rx51_soc_exit(void)
++{
++	platform_driver_unregister(&rx51_driver);
++}
+ module_exit(rx51_soc_exit);
+ 
+ MODULE_AUTHOR("Nokia Corporation");
+ MODULE_DESCRIPTION("ALSA SoC Nokia RX-51");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:rx51-soc-audio");
+diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
+index 3f72d17..73e317e 100644
+--- a/sound/soc/omap/sdp3430.c
++++ b/sound/soc/omap/sdp3430.c
+@@ -289,24 +289,15 @@ static struct snd_soc_card snd_soc_sdp3430 = {
+ 	.num_links = ARRAY_SIZE(sdp3430_dai),
+ };
+ 
+-static struct platform_device *sdp3430_snd_device;
+-
+-static int __init sdp3430_soc_init(void)
++static int __devinit sdp3430_soc_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &snd_soc_sdp3430;
+ 	int ret;
+ 	u8 pin_mux;
+ 
+-	if (!machine_is_omap_3430sdp())
+-		return -ENODEV;
+-	printk(KERN_INFO "SDP3430 SoC init\n");
++	pr_info("SDP3430 SoC init\n");
+ 
+-	sdp3430_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (!sdp3430_snd_device) {
+-		printk(KERN_ERR "Platform device allocation failed\n");
+-		return -ENOMEM;
+-	}
+-
+-	platform_set_drvdata(sdp3430_snd_device, &snd_soc_sdp3430);
++	card->dev = &pdev->dev;
+ 
+ 	/* Set TWL4030 GPIO6 as EXTMUTE signal */
+ 	twl_i2c_read_u8(TWL4030_MODULE_INTBR, &pin_mux,
+@@ -316,30 +307,54 @@ static int __init sdp3430_soc_init(void)
+ 	twl_i2c_write_u8(TWL4030_MODULE_INTBR, pin_mux,
+ 						TWL4030_INTBR_PMBR1);
+ 
+-	ret = platform_device_add(sdp3430_snd_device);
+-	if (ret)
+-		goto err1;
++	ret = snd_soc_register_card(card);
++	if (ret) {
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			ret);
++		return ret;
++	}
+ 
+ 	return 0;
++}
+ 
+-err1:
+-	printk(KERN_ERR "Unable to add platform device\n");
+-	platform_device_put(sdp3430_snd_device);
++static int __devexit sdp3430_soc_remove(struct platform_device *pdev)
++{
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
+ 
+-	return ret;
++	snd_soc_jack_free_gpios(&hs_jack, ARRAY_SIZE(hs_jack_gpios),
++				hs_jack_gpios);
++
++	snd_soc_unregister_card(card);
++
++	return 0;
++}
++
++static struct platform_driver sdp3430_driver = {
++	.driver = {
++		.name = "sdp3430-soc-audio",
++		.owner = THIS_MODULE,
++	},
++
++	.probe = sdp3430_soc_probe,
++	.remove = __devexit_p(sdp3430_soc_remove),
++};
++
++static int __init sdp3430_soc_init(void)
++{
++	if (!machine_is_omap_3430sdp())
++		return -ENODEV;
++
++	return platform_driver_register(&sdp3430_driver);
+ }
+ module_init(sdp3430_soc_init);
+ 
+ static void __exit sdp3430_soc_exit(void)
+ {
+-	snd_soc_jack_free_gpios(&hs_jack, ARRAY_SIZE(hs_jack_gpios),
+-				hs_jack_gpios);
+-
+-	platform_device_unregister(sdp3430_snd_device);
++	platform_driver_unregister(&sdp3430_driver);
+ }
+ module_exit(sdp3430_soc_exit);
+ 
+ MODULE_AUTHOR("Misael Lopez Cruz <x0052729@ti.com>");
+ MODULE_DESCRIPTION("ALSA SoC SDP3430");
+ MODULE_LICENSE("GPL");
+-
++MODULE_ALIAS("platform:sdp3430-soc-audio");
+diff --git a/sound/soc/omap/sdp4430.c b/sound/soc/omap/sdp4430.c
+index 189e039..9dfa9fd 100644
+--- a/sound/soc/omap/sdp4430.c
++++ b/sound/soc/omap/sdp4430.c
+@@ -215,47 +215,63 @@ static struct snd_soc_card snd_soc_sdp4430 = {
+ 	.num_links = 1,
+ };
+ 
+-static struct platform_device *sdp4430_snd_device;
+-
+-static int __init sdp4430_soc_init(void)
++static int __devinit sdp4430_soc_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &snd_soc_sdp4430;
+ 	int ret;
+ 
+-	if (!machine_is_omap_4430sdp())
+-		return -ENODEV;
+-	printk(KERN_INFO "SDP4430 SoC init\n");
++	pr_info("SDP4430 SoC init\n");
+ 
+-	sdp4430_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (!sdp4430_snd_device) {
+-		printk(KERN_ERR "Platform device allocation failed\n");
+-		return -ENOMEM;
+-	}
+-
+-	platform_set_drvdata(sdp4430_snd_device, &snd_soc_sdp4430);
++	card->dev = &pdev->dev;
+ 
+-	ret = platform_device_add(sdp4430_snd_device);
+-	if (ret)
+-		goto err;
++	ret = snd_soc_register_card(card);
++	if (ret) {
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			ret);
++		return ret;
++	}
+ 
+ 	/* Codec starts in HP mode */
+ 	twl6040_power_mode = 1;
+ 
+ 	return 0;
++}
+ 
+-err:
+-	printk(KERN_ERR "Unable to add platform device\n");
+-	platform_device_put(sdp4430_snd_device);
+-	return ret;
++static int __devexit sdp4430_soc_remove(struct platform_device *pdev)
++{
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
++	snd_soc_unregister_card(card);
++
++	return 0;
++}
++
++static struct platform_driver sdp4430_driver = {
++	.driver = {
++		.name = "sdp4430-soc-audio",
++		.owner = THIS_MODULE,
++	},
++
++	.probe = sdp4430_soc_probe,
++	.remove = __devexit_p(sdp4430_soc_remove),
++};
++
++static int __init sdp4430_soc_init(void)
++{
++	if (!machine_is_omap_4430sdp())
++		return -ENODEV;
++
++	return platform_driver_register(&sdp4430_driver);
+ }
+ module_init(sdp4430_soc_init);
+ 
+ static void __exit sdp4430_soc_exit(void)
+ {
+-	platform_device_unregister(sdp4430_snd_device);
++	platform_driver_unregister(&sdp4430_driver);
+ }
+ module_exit(sdp4430_soc_exit);
+ 
+ MODULE_AUTHOR("Misael Lopez Cruz <x0052729@ti.com>");
+ MODULE_DESCRIPTION("ALSA SoC SDP4430");
+ MODULE_LICENSE("GPL");
+-
++MODULE_ALIAS("platform:sdp4430-soc-audio");
+diff --git a/sound/soc/omap/zoom2.c b/sound/soc/omap/zoom2.c
+index 0170994..15691e0 100644
+--- a/sound/soc/omap/zoom2.c
++++ b/sound/soc/omap/zoom2.c
+@@ -239,26 +239,14 @@ static struct snd_soc_card snd_soc_zoom2 = {
+ 	.num_links = ARRAY_SIZE(zoom2_dai),
+ };
+ 
+-static struct platform_device *zoom2_snd_device;
+-
+-static int __init zoom2_soc_init(void)
++static int __devinit zoom2_soc_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &snd_soc_zoom2;
+ 	int ret;
+ 
+-	if (!machine_is_omap_zoom2())
+-		return -ENODEV;
+-	printk(KERN_INFO "Zoom2 SoC init\n");
++	pr_info("Zoom2 SoC init\n");
+ 
+-	zoom2_snd_device = platform_device_alloc("soc-audio", -1);
+-	if (!zoom2_snd_device) {
+-		printk(KERN_ERR "Platform device allocation failed\n");
+-		return -ENOMEM;
+-	}
+-
+-	platform_set_drvdata(zoom2_snd_device, &snd_soc_zoom2);
+-	ret = platform_device_add(zoom2_snd_device);
+-	if (ret)
+-		goto err1;
++	card->dev = &pdev->dev;
+ 
+ 	BUG_ON(gpio_request(ZOOM2_HEADSET_MUX_GPIO, "hs_mux") < 0);
+ 	gpio_direction_output(ZOOM2_HEADSET_MUX_GPIO, 0);
+@@ -266,26 +254,60 @@ static int __init zoom2_soc_init(void)
+ 	BUG_ON(gpio_request(ZOOM2_HEADSET_EXTMUTE_GPIO, "ext_mute") < 0);
+ 	gpio_direction_output(ZOOM2_HEADSET_EXTMUTE_GPIO, 0);
+ 
++	ret = snd_soc_register_card(card);
++	if (ret) {
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			ret);
++		goto err;
++	}
++
+ 	return 0;
+ 
+-err1:
+-	printk(KERN_ERR "Unable to add platform device\n");
+-	platform_device_put(zoom2_snd_device);
++err:
++	gpio_free(ZOOM2_HEADSET_MUX_GPIO);
++	gpio_free(ZOOM2_HEADSET_EXTMUTE_GPIO);
+ 
+ 	return ret;
+ }
+-module_init(zoom2_soc_init);
+ 
+-static void __exit zoom2_soc_exit(void)
++static int __devexit zoom2_soc_remove(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
++	snd_soc_unregister_card(card);
++
+ 	gpio_free(ZOOM2_HEADSET_MUX_GPIO);
+ 	gpio_free(ZOOM2_HEADSET_EXTMUTE_GPIO);
+ 
+-	platform_device_unregister(zoom2_snd_device);
++	return 0;
++}
++
++static struct platform_driver zoom2_driver = {
++	.driver = {
++		.name = "zoom2-soc-audio",
++		.owner = THIS_MODULE,
++	},
++
++	.probe = zoom2_soc_probe,
++	.remove = __devexit_p(zoom2_soc_remove),
++};
++
++static int __init zoom2_soc_init(void)
++{
++	if (!machine_is_omap_zoom2())
++		return -ENODEV;
++
++	return platform_driver_register(&zoom2_driver);
++}
++module_init(zoom2_soc_init);
++
++static void __exit zoom2_soc_exit(void)
++{
++	platform_driver_unregister(&zoom2_driver);
+ }
+ module_exit(zoom2_soc_exit);
+ 
+ MODULE_AUTHOR("Misael Lopez Cruz <x0052729@ti.com>");
+ MODULE_DESCRIPTION("ALSA SoC Zoom2");
+ MODULE_LICENSE("GPL");
+-
++MODULE_ALIAS("platform:zoom2-soc-audio");
+-- 
+1.7.6.1
