@@ -1,85 +1,65 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v3] ASoC: omap: convert per-board modules to platform
-	drivers
-Date: Fri, 9 Sep 2011 20:06:57 +0100
-Message-ID: <20110909190657.GC14520@n2100.arm.linux.org.uk>
-References: <1315568332-10224-1-git-send-email-mans.rullgard@linaro.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v4 10/11] OMAP: Serial: Allow UART parameters to be configured from board file.
+Date: Fri, 09 Sep 2011 12:11:01 -0700
+Message-ID: <87zkidtttm.fsf@ti.com>
+References: <1315400013-4849-1-git-send-email-govindraj.raja@ti.com>
+	<1315400013-4849-11-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35877 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759161Ab1IITHI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Sep 2011 15:07:08 -0400
-Content-Disposition: inline
-In-Reply-To: <1315568332-10224-1-git-send-email-mans.rullgard@linaro.org>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:45476 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759534Ab1IITLG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Sep 2011 15:11:06 -0400
+In-Reply-To: <1315400013-4849-11-git-send-email-govindraj.raja@ti.com>
+	(Govindraj R.'s message of "Wed, 7 Sep 2011 18:23:32 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mans Rullgard <mans.rullgard@linaro.org>
-Cc: linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Deepak K <deepak.k@ti.com>, Partha Basak <p-basak2@ti.com>, Jon Hunter <jon-hunter@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Fri, Sep 09, 2011 at 12:38:51PM +0100, Mans Rullgard wrote:
-> This converts the per-board modules to platform drivers for a
-> device created by in main platform setup.  These drivers call
-> snd_soc_register_card() directly instead of going via a "soc-audio"
-> device and the corresponding driver in soc-core.
-> 
-> Signed-off-by: Mans Rullgard <mans.rullgard@linaro.org>
-> ---
-> This version uses a table to assign the device name in omap_init_audio().
-> It is certainly less ugly than the previous patch.
-> 
-> Again, tested only on Beagle.
-> ---
->  arch/arm/mach-omap2/devices.c |   34 +++++++++++++++++++
->  sound/soc/omap/am3517evm.c    |   55 +++++++++++++++++++-----------
->  sound/soc/omap/igep0020.c     |   52 +++++++++++++++++++----------
->  sound/soc/omap/n810.c         |   73 ++++++++++++++++++++++++++---------------
->  sound/soc/omap/omap3beagle.c  |   55 +++++++++++++++++++-----------
->  sound/soc/omap/omap3evm.c     |   56 ++++++++++++++++++++-----------
->  sound/soc/omap/omap3pandora.c |   70 ++++++++++++++++++++++++---------------
->  sound/soc/omap/overo.c        |   56 +++++++++++++++++++------------
->  sound/soc/omap/rx51.c         |   55 +++++++++++++++++++++----------
->  sound/soc/omap/sdp3430.c      |   65 ++++++++++++++++++++++--------------
->  sound/soc/omap/sdp4430.c      |   60 +++++++++++++++++++++------------
->  sound/soc/omap/zoom2.c        |   68 +++++++++++++++++++++++++-------------
->  12 files changed, 458 insertions(+), 241 deletions(-)
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-I don't think this is an improvement.  Just look at the diffstat - it almost
-doubles the number of lines of code.
+> The following UART parameters are defined within the UART driver:
+>
+> 1). Whether the UART uses DMA (dma_enabled), by default set to 0
+> 2). The size of dma buffer (set to 4096 bytes)
+> 3). The time after which the dma should stop if no more data is received.
+> 4). The auto suspend delay that will be passed for pm_runtime_autosuspend
+>     where uart will be disabled after timeout
+>
+> Different UARTs may be used for different purpose such as the console,
+> for interfacing bluetooth chip, for interfacing to a modem chip, etc.
+> Therefore, it is necessary to be able to customize the above settings
+> for a given board on a per UART basis.
+>
+> This change allows these parameters to be configured from the board file
+> and allows the parameters to be configured for each UART independently.
+>
+> If a board does not define its own custom parameters for the UARTs, then
+> use the default parameters in the structure "omap_serial_default_info".
+> The default parameters are defined to be the same as the current settings
+> in the UART driver to avoid breaking the UART for any board. By default,
+> make all boards use the default UART parameters.
+>
+> Signed-off-by: Deepak K <deepak.k@ti.com>
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 
-One thing here which is utterly silly is:
+Who is the author of this patch?  The first version says Jon[1], v2 says
+Deepak[2].  Either way, please ensure proper authorship is attributed
+using From: at the beginning of the changelog.  (git-format-patch will
+do this for you when the authorship is correct in the git history.)
 
-> +static struct {
-> +	int machine;
-> +	const char *name;
-> +} soc_device_names[] = {
-> +	{ MACH_TYPE_OMAP3517EVM,	"am3517evm-soc-audio"	},
-> +	{ MACH_TYPE_IGEP0020,		"igep2-soc-audio"	},
-> +	{ MACH_TYPE_NOKIA_N810,		"n8x1-soc-audio"	},
-> +	{ MACH_TYPE_NOKIA_N810_WIMAX,	"n8x1-soc-audio"	},
-> +	{ MACH_TYPE_OMAP3_BEAGLE,	"omap3beagle-soc-audio"	},
-> +	{ MACH_TYPE_DEVKIT8000,		"omap3beagle-soc-audio"	},
-> +	{ MACH_TYPE_OMAP3EVM,		"omap3evm-soc-audio"	},
-> +	{ MACH_TYPE_OMAP3_PANDORA,	"pandora-soc-audio"	},
-> +	{ MACH_TYPE_OVERO,		"overo-soc-audio",	},
-> +	{ MACH_TYPE_CM_T35,		"overo-soc-audio",	},
-> +	{ MACH_TYPE_NOKIA_RX51,		"rx51-soc-audio",	},
-> +	{ MACH_TYPE_OMAP_3430SDP,	"sdp3430-soc-audio",	},
-> +	{ MACH_TYPE_OMAP_4430SDP,	"sdp4430-soc-audio",	},
-> +	{ MACH_TYPE_OMAP_ZOOM2,		"zoom2-soc-audio",	},
-> +};
+Even better would be to summarize the changes since the first version
+after the '---' so it would be clearer why the authorship was changed.
 
-So you're using the machine ID to select the name of the device.
-(That's not really DT compatible.)
+Only 1/3 of my comments from v3 were addressed in this version.  Please
+re-read my comments there[3]. 
 
-> +static int __init am3517evm_soc_init(void)
-> +{
-> +	if (!machine_is_omap3517evm())
-> +		return -ENODEV;
+Kevin
 
-But then you conditionalize the registration of the drivers on the
-platform as well.  Why?  It's pointless.  If you don't have the core
-code register the struct device for this platform then this driver
-won't be bound to a device, and therefore the probe function won't be
-called.
+
+[1] http://marc.info/?l=linux-omap&m=129890257812478&w=2
+[2] http://marc.info/?l=linux-omap&m=130408096416887&w=2
+[3] http://marc.info/?l=linux-omap&m=130896078622810&w=2
