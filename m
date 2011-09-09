@@ -1,66 +1,51 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH 10/10] documentation/dt: Add OMAP GPIO properties
-Date: Fri, 9 Sep 2011 03:51:46 +0200
-Message-ID: <4E697132.9070505@ti.com>
-References: <1314191356-10963-1-git-send-email-b-cousson@ti.com> <1314191356-10963-11-git-send-email-b-cousson@ti.com> <20110908181819.GI2967@ponder.secretlab.ca>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC PATCH 05/10] documentation/dt: Add mpu, dsp and iva bindings
+Date: Thu, 8 Sep 2011 19:40:47 -0700
+Message-ID: <20110909024047.GA6726@ponder.secretlab.ca>
+References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
+ <1314191356-10963-6-git-send-email-b-cousson@ti.com>
+ <20110908180910.GE2967@ponder.secretlab.ca>
+ <4E695E20.5070506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45393 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932067Ab1IIBv5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Sep 2011 21:51:57 -0400
-In-Reply-To: <20110908181819.GI2967@ponder.secretlab.ca>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:46926 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932548Ab1IICkv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 22:40:51 -0400
+Received: by yxp4 with SMTP id 4so1048018yxp.19
+        for <linux-omap@vger.kernel.org>; Thu, 08 Sep 2011 19:40:50 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4E695E20.5070506@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
+To: "Cousson, Benoit" <b-cousson@ti.com>
 Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Randy Dunlap <rdunlap@xenotime.net>
 
-On 9/8/2011 8:18 PM, Grant Likely wrote:
-> On Wed, Aug 24, 2011 at 03:09:16PM +0200, Benoit Cousson wrote:
->> Add documentation for GPIO properties specific to OMAP.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Randy Dunlap<rdunlap@xenotime.net>
->> ---
->>   .../devicetree/bindings/gpio/gpio-omap.txt         |   33 ++++++++++++++++++++
->>   1 files changed, 33 insertions(+), 0 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/gpio/gpio-omap.txt
->>
->> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->> new file mode 100644
->> index 0000000..692b1c7
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->> @@ -0,0 +1,33 @@
->> +OMAP GPIO controller
->> +
->> +Required properties:
->> +- compatible:
->> +  - "ti,omap2-gpio" for OMAP2 and OMAP3 controllers
->> +  - "ti,omap4-gpio" for OMAP4 controller
->> +- #gpio-cells : Should be two.
->> +  - first cell is the pin number
->> +  - second cell is used to specify optional parameters (unused)
->> +- gpio-controller : Marks the device node as a GPIO controller.
->> +
->> +OMAP specific properties:
->> +- hwmods: Name of the hwmod associated to the GPIO
->> +- id: 32 bits to identify the id (1 based index)
->
-> id should not be necessary.  Linux GPIO numbers are to be dynamically
-> assigned when using DT.
->
->> +- bank_width: number of pin supported by the controller (16 or 32)
->> +- debounce: set if the controller support the debouce funtionnality
->> +- bank_count: number of controller support by the SoC. This is a temporary
->> +  hack until the bank_count is removed from the driver.
->
-> All these properties should be prefixed with "ti,".
-> Use '-' instead of '_' in property names
+On Fri, Sep 09, 2011 at 02:30:24AM +0200, Cousson, Benoit wrote:
+> On 9/8/2011 8:09 PM, Grant Likely wrote:
+> >>+- compatible : Should be:
+> >>+  - "ti,ivahd", "ti,iva" for OMAP4
+> >>+  - "ti,iva2", "ti,iva" for OMAP3
+> >>+  - "ti,iva1", "ti,iva" for OMAP2
+> >
+> >Again, be specific to the instantiation and encode the omap version
+> >into the compatible value.  Use the form "ti,omap4-*", etc.
+> 
+> In that case, I do not necessarily agree. The IVA is a generic TI IP
+> used in various chips. The IP version is well documented in the TRM.
+> 
+> OK, in fact I didn't pick the proper version:-(
+> It should be:
+> 
+> +  - "ti,ivahd", for OMAP4
+> +  - "ti,iva2.2", for OMAP3
+> +  - "ti,iva2.1", for OMAP2430
+> +  - "ti,iva1", for OMAP2420
+> 
+> But still, no need to rely on OMAP version to identify the IVA version.
 
-I'll fix that.
+Fair enough, providing that the "ti,iva" value is dropped.
 
-Thanks,
-Benoit
+g.
+
