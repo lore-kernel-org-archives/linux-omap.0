@@ -1,85 +1,144 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC PATCH 02/10] arm/dts: OMAP4: Add a main ocp entry bound to
- l3-noc driver
-Date: Thu, 8 Sep 2011 19:41:25 -0700
-Message-ID: <20110909024125.GB6726@ponder.secretlab.ca>
-References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
- <1314191356-10963-3-git-send-email-b-cousson@ti.com>
- <20110908180300.GB2967@ponder.secretlab.ca>
- <4E695960.8010905@ti.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [RFC PATCH v2 5/6] TI81XX: Add minimal hwmod data
+Date: Fri, 9 Sep 2011 08:12:13 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4AABE49@dbde02.ent.ti.com>
+References: <1314119627-23088-1-git-send-email-hemantp@ti.com>
+	<87ty8zoi15.fsf@ti.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B03B4AAB78D@dbde02.ent.ti.com>
+	<87ehzrj60m.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:65292 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932548Ab1IICl1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2011 22:41:27 -0400
-Received: by yxp4 with SMTP id 4so1048369yxp.19
-        for <linux-omap@vger.kernel.org>; Thu, 08 Sep 2011 19:41:27 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <4E695960.8010905@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87ehzrj60m.fsf@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Sep 09, 2011 at 02:10:08AM +0200, Cousson, Benoit wrote:
-> On 9/8/2011 8:03 PM, Grant Likely wrote:
-> >On Wed, Aug 24, 2011 at 03:09:08PM +0200, Benoit Cousson wrote:
-> >>Used the main OCP node to add bindings with the l3_noc driver.
-> >>Remove l3_noc static device creation if CONFIG_OF is defined.
-> >>
-> >>Signed-off-by: Benoit Cousson<b-cousson@ti.com>
-> >>Cc: Tony Lindgren<tony@atomide.com>
-> >>Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> >>---
-> >>  arch/arm/boot/dts/omap4.dtsi  |    3 ++-
-> >>  arch/arm/mach-omap2/devices.c |    2 ++
-> >>  2 files changed, 4 insertions(+), 1 deletions(-)
-> >>
-> >>diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> >>index 97a3ea7..928a74c 100644
-> >>--- a/arch/arm/boot/dts/omap4.dtsi
-> >>+++ b/arch/arm/boot/dts/omap4.dtsi
-> >>@@ -64,10 +64,11 @@
-> >>  	 * hierarchy.
-> >>  	 */
-> >>  	ocp {
-> >>-		compatible = "simple-bus";
-> >>+		compatible = "ti,l3-noc", "arteris,noc", "simple-bus";
-> >>  		#address-cells =<1>;
-> >>  		#size-cells =<1>;
-> >>  		ranges;
-> >>+		hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
-> >>
-> >>  		gic: interrupt-controller@48241000 {
-> >>  			compatible = "ti,omap4-gic", "arm,gic";
-> >>diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> >>index 2d4a199..5964650 100644
-> >>--- a/arch/arm/mach-omap2/devices.c
-> >>+++ b/arch/arm/mach-omap2/devices.c
-> >>@@ -70,6 +70,7 @@ static int __init omap3_l3_init(void)
-> >>  }
-> >>  postcore_initcall(omap3_l3_init);
-> >>
-> >>+#ifndef CONFIG_OF
-> >>  static int __init omap4_l3_init(void)
-> >>  {
-> >>  	int l, i;
-> >>@@ -100,6 +101,7 @@ static int __init omap4_l3_init(void)
-> >>  	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
-> >>  }
-> >>  postcore_initcall(omap4_l3_init);
-> >>+#endif
-> >
-> >Don't do this.  Turning on CONFIG_OF must not break non-DT booting.
-> >Instead, check at runtime if a DT is available, and if it does then
-> >don't run the hook.
+Hilman, Kevin wrote on Thursday, September 08, 2011 11:01 PM:
+
+> "Pedanekar, Hemant" <hemantp@ti.com> writes:
 > 
-> Do you want to check only the availability of the DT or the
-> availability of that specific node inside the DT?
+>> Hilman, Kevin wrote on Tuesday, August 30, 2011 6:03 AM:
+>> 
+>>> Hemant Pedanekar <hemantp@ti.com> writes:
+>>> 
+>>>> This patch adds minimum required hwmod data (e.g., UARTs) for bootup of
+>>>> TI81XX devices (currently common data for TI816X and TI814X is added).
+>>>> 
+>>>> Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
+>>> 
+>>> I haven't looked at the details yet, but just tried to boot this using
+>>> current mainline and it fails.
+>>> 
+>>> My first guess is that it appears to be related to a missing clkdm for
+>>> the MPU hwmod. 
+>>> 
+>>> Kevin
+>> 
+>> Thanks for the feedback.
+>> 
+>> I think that the issue is bacause clk_get() on fck_source is failing
+>> as TI816X clock data had different clock source names compared to
+>> OMAP3 (e.g., osc_sys_ck instead of sys_ck). I will update this in next
+>> version.
+> 
+> Actually, I realized also that ti816x doesn't boot on current
+> l-o master
+> branch, even without this series.
+> 
+>> Even after this, the kernel would get stuck at "Calibrating delay loop..."
+>> because a few timer register offsets on TI81XX are different than
+>> OMAP3.
+> 
+> At least with my tests, it's getting past that and failing here:
+> 
+> [...]
+> [    0.000000] NR_IRQS:410
+> 
+> [    0.000000] IRQ: Found an INTC at 0xfa200000 (revision
+> 5.0) with 128 interrup
+> ts
+> 
+> [    0.000000] Total of 128 interrupts on 1 active controller
+> 
+> [    0.000000] omap_hwmod: timer1: cannot setup_one: MPU
+> initiator hwmod mpu not
+>  yet registered
+>
+> 
+> The reason seems to be that no hwmods are getting registered at all.
 
-Up to you.  What makes the most sense?
+Kevin,
+By any chance, is patch 6 of this series is not applied in your case?
 
-g.
+With all patches in this series applied, I get to following:
 
+[    0.000000] Total of 128 interrupts on 1 active controller
+[    0.000000] omap_hwmod: mpu: no clkdm_name
+[    0.000000] omap_hwmod: mpu: cannot _init_clocks
+[    0.000000] ------------[ cut here ]------------
+[    0.000000] WARNING: at arch/arm/mach-omap2/omap_hwmod.c:2031 omap_hwmod_setup_one+0x100/0x14c()
+[...]
+[    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+
+The above crash can be fixed by fixing the correct timer clock source
+(match name with OMAP3 OSC source):
+
+diff --git a/arch/arm/mach-omap2/clock816x_data.c b/arch/arm/mach-omap2/clock816x_data.c
+index 496c205..434837f 100644
+--- a/arch/arm/mach-omap2/clock816x_data.c
++++ b/arch/arm/mach-omap2/clock816x_data.c
+@@ -40,7 +40,7 @@ static struct clk tclkin_ck = {
+ };
+
+ static struct clk osc_sys_ck = {
+-       .name           = "osc_sys_ck",
++       .name           = "sys_ck",
+        .ops            = &clkops_null,
+        .rate           = 27000000,
+ };
+@@ -994,7 +994,7 @@ static struct clk mcasp2_fck = {
+ static struct omap_clk ti816x_clks[] = {
+        CLK(NULL,               "sys_32k_ck",           &sys_32k_ck,            CK_TI816X),
+        CLK(NULL,               "tclkin_ck",            &tclkin_ck,             CK_TI816X),
+-       CLK(NULL,               "osc_sys_ck",           &osc_sys_ck,            CK_TI816X),
++       CLK(NULL,               "sys_ck",               &osc_sys_ck,            CK_TI816X),
+        CLK(NULL,               "main_pll_clk1_ck",     &main_pll_clk1_ck,      CK_TI816X),
+        CLK(NULL,               "sysclk1_ck",           &sysclk1_ck,            CK_TI816X),
+        CLK(NULL,               "dsp_ick",              &dsp_ick,               CK_TI816X),
+
+Now, the boot should reach till "Calibrating delay loop". There will still
+be WARNING messages due to absence of MPU clkdm as you mentioned (will fix
+in next version), the the hang would be because timer offsets being
+different.
+
+(Please note that CONFIG_OMAP_32K_TIMER needs to be disabled)
+> 
+>> I see there are some patches floating on ML which add reg_map array
+>> (similar to i2c driver) but seems they have not (yet) been
+>> accepted. Any chance that this will get added to kernel?
+> 
+> I'm not sure.  Which series are you referring to?
+>
+I was referring to following:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35182.html
+
+E.g., on TI81XX, counter register is @0x3c instead of 0x28 offset.
+ 
+> Kevin
+
+
+Thanks.
+
+   Hemant
