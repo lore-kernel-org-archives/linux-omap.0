@@ -1,59 +1,76 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2] ASoC: omap: convert per-board modules
-	to platform	drivers
-Date: Fri, 9 Sep 2011 21:56:45 +0100
-Message-ID: <20110909205645.GA16355@n2100.arm.linux.org.uk>
-References: <3110288.bQbb0H2ME1@wuerfel>
-	<1315520956.4126.3.camel@finisterre.wolfsonmicro.main>
-	<20110908223720.GA21469@n2100.arm.linux.org.uk>
-	<20110908224731.GB5201@opensource.wolfsonmicro.com>
-	<20110908230102.GB21469@n2100.arm.linux.org.uk>
-	<20110908235903.GA6370@opensource.wolfsonmicro.com>
-	<20110909094156.GE6918@n2100.arm.linux.org.uk>
-	<20110909161151.GA3515@opensource.wolfsonmicro.com>
-	<20110909190134.GA14520@n2100.arm.linux.org.uk>
-	<20110909193010.GA2993@opensource.wolfsonmicro.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v6 17/25] gpio/omap: use pm-runtime framework
+Date: Fri, 09 Sep 2011 14:00:28 -0700
+Message-ID: <87ty8ltor7.fsf@ti.com>
+References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
+	<1314798161-19523-18-git-send-email-tarun.kanti@ti.com>
+	<87ehztxmcg.fsf@ti.com>
+	<CAC83ZvL3Y-4f+nAvFb023JTPcBb-joG8JonujCMJCNUmYrSZaA@mail.gmail.com>
+	<87pqj9y4mi.fsf@ti.com>
+	<CAC83Zv+=gbt=KTx0ZsxRfL1k4=R7c0CLSCRQ_D+PrNQOso3q-g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20110909193010.GA2993@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Grant Likely <grant.likely@secretlab.ca>
-Cc: alsa-devel@alsa-project.org, linaro-dev@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, Mans Rullgard <mans.rullgard@linaro.org>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:59130 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933345Ab1IIVAf convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Sep 2011 17:00:35 -0400
+Received: by mail-gx0-f181.google.com with SMTP id 9so2186829gxk.12
+        for <linux-omap@vger.kernel.org>; Fri, 09 Sep 2011 14:00:34 -0700 (PDT)
+In-Reply-To: <CAC83Zv+=gbt=KTx0ZsxRfL1k4=R7c0CLSCRQ_D+PrNQOso3q-g@mail.gmail.com>
+	(Tarun Kanti DebBarma's message of "Sat, 10 Sep 2011 00:25:46 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-On Fri, Sep 09, 2011 at 12:30:11PM -0700, Mark Brown wrote:
-> On Fri, Sep 09, 2011 at 08:01:35PM +0100, Russell King - ARM Linux wrote:
-> 
-> > Well, with DT, there won't be any 'board type' anymore.  There won't be
-> > any 'machine_is_xxx()' to sort it out anymore.  Using DT, all that will
-> > be history - it's all got to be sorted out by either devices or device
-> > properties.
-> 
-> There is a board type - there's a root compatible property for the board
-> which fulfils this purpose - so the situation with and without device
-> tree is essentially the same.
+"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 
-So instead of a table of machine id numbers and soc device strings, you're
-going to have a table of board 'compatible' strings and soc device strings,
-and you're going to have to manually create the struct device with that
-name.
+> On Fri, Sep 9, 2011 at 11:34 PM, Kevin Hilman <khilman@ti.com> wrote:
+>> "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+>>
+>>> [...]
+>>>>>
+>>>>> +static const struct dev_pm_ops gpio_pm_ops =3D {
+>>>>> + =C2=A0 =C2=A0 .suspend =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0=3D omap_gpio_suspend,
+>>>>> + =C2=A0 =C2=A0 .resume =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =3D omap_gpio_resume,
+>>>>> +};
+>>>>
+>>>> Please use SET_SYSTEM_SLEEP_PM_OPS(). =C2=A0See <linux/pm.h>
+>>> We can use following macro to initialize .suspend and .resume callb=
+acks.
+>>> But how do we initialize .runtime_suspend and .runtime_resume callb=
+acks?
+>>>
+>>> #define SIMPLE_DEV_PM_OPS(name, suspend_fn, resume_fn) \
+>>> const struct dev_pm_ops name =3D { \
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, res=
+ume_fn) \
+>>> }
+>>>
+>>> Do we have something similar to following where we can assign separ=
+ate
+>>> pair of callbacks?
+>>
+>> SET_RUNTIME_PM_OPS()
+> Yes, I have done this way:
+>
+> static const struct dev_pm_ops gpio_pm_ops =3D {
+>         SET_SYSTEM_SLEEP_PM_OPS(omap_gpio_suspend, omap_gpio_resume)
+>         SET_RUNTIME_PM_OPS(omap_gpio_runtime_suspend, omap_gpio_runti=
+me_resume,
+>                                                                      =
+   NULL)
 
-That's just twisted and utterly insane - adding more code for precisely
-zero benefit what so ever.  Think about it - the device tree is *already*
-creating platform devices for entries in the device tree file.  What's
-the point of having this special ASoC code look up the platform compatible
-property in a table of strings to find a different string to manually
-create a device with.  Why not just _add_ the bloody device to the DT
-file in the first place?  That's partly what DT is there for - to create
-platform specific struct devices.
+Perfect.
+
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
