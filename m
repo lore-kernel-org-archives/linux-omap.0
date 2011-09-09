@@ -1,42 +1,60 @@
-From: Nick Bowler <nbowler@elliptictech.com>
-Subject: Re: [PATCH 5/5] ARM: omap4: Kill private do_wfi macro.
-Date: Fri, 9 Sep 2011 13:18:08 -0400
-Message-ID: <20110909171808.GA24630@elliptictech.com>
-References: <1315582012-23507-1-git-send-email-nbowler@elliptictech.com>
-	<1315582012-23507-6-git-send-email-nbowler@elliptictech.com>
-	<4E6A470E.9010703@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v6 17/25] gpio/omap: use pm-runtime framework
+Date: Fri, 09 Sep 2011 11:04:05 -0700
+Message-ID: <87pqj9y4mi.fsf@ti.com>
+References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
+	<1314798161-19523-18-git-send-email-tarun.kanti@ti.com>
+	<87ehztxmcg.fsf@ti.com>
+	<CAC83ZvL3Y-4f+nAvFb023JTPcBb-joG8JonujCMJCNUmYrSZaA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <4E6A470E.9010703@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh <santosh.shilimkar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:59051 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759479Ab1IISEO convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Sep 2011 14:04:14 -0400
+Received: by mail-gy0-f171.google.com with SMTP id 3so660044gyh.16
+        for <linux-omap@vger.kernel.org>; Fri, 09 Sep 2011 11:04:13 -0700 (PDT)
+In-Reply-To: <CAC83ZvL3Y-4f+nAvFb023JTPcBb-joG8JonujCMJCNUmYrSZaA@mail.gmail.com>
+	(Tarun Kanti DebBarma's message of "Fri, 9 Sep 2011 18:02:33 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-On 2011-09-09 22:34 +0530, Santosh wrote:
-> On Friday 09 September 2011 08:56 PM, Nick Bowler wrote:
-> > The do_wfi macro duplicates the functionality of the wfi macro in common
-> > ARM code.  Use the common version instead.
-> >
-> > Signed-off-by: Nick Bowler<nbowler@elliptictech.com>
-> > ---
-> > Compile tested in both ARM and Thumb-2 mode.
-> 
-> Thanks but this is already handle in my PM series.
+"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 
-OK, I will drop this patch.
+> [...]
+>>>
+>>> +static const struct dev_pm_ops gpio_pm_ops =3D {
+>>> + =C2=A0 =C2=A0 .suspend =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0=3D omap_gpio_suspend,
+>>> + =C2=A0 =C2=A0 .resume =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =3D omap_gpio_resume,
+>>> +};
+>>
+>> Please use SET_SYSTEM_SLEEP_PM_OPS(). =C2=A0See <linux/pm.h>
+> We can use following macro to initialize .suspend and .resume callbac=
+ks.
+> But how do we initialize .runtime_suspend and .runtime_resume callbac=
+ks?
+>
+> #define SIMPLE_DEV_PM_OPS(name, suspend_fn, resume_fn) \
+> const struct dev_pm_ops name =3D { \
+>         SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
+> }
+>
+> Do we have something similar to following where we can assign separat=
+e
+> pair of callbacks?
 
-Thanks,
--- 
-Nick Bowler, Elliptic Technologies (http://www.elliptictech.com/)
+SET_RUNTIME_PM_OPS()
+
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
