@@ -1,52 +1,84 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2] ASoC: omap: convert per-board modules
- to platform drivers
-Date: Thu, 8 Sep 2011 16:59:04 -0700
-Message-ID: <20110908235903.GA6370@opensource.wolfsonmicro.com>
-References: <1315503297-8365-1-git-send-email-mans.rullgard@linaro.org>
-	<CABb+yY0b607kDSGU+trycqQuvGMhC-zpHcv20wjgmEcaK7dz8Q@mail.gmail.com>
-	<CAG5Tg6UOuztenNid1=YbH9a4ZH5MqV4YhohG+r9R+7F=zXs=CQ@mail.gmail.com>
-	<3110288.bQbb0H2ME1@wuerfel>
-	<1315520956.4126.3.camel@finisterre.wolfsonmicro.main>
-	<20110908223720.GA21469@n2100.arm.linux.org.uk>
-	<20110908224731.GB5201@opensource.wolfsonmicro.com>
-	<20110908230102.GB21469@n2100.arm.linux.org.uk>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC PATCH 02/10] arm/dts: OMAP4: Add a main ocp entry bound
+	to l3-noc driver
+Date: Fri, 9 Sep 2011 02:10:08 +0200
+Message-ID: <4E695960.8010905@ti.com>
+References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
+	<1314191356-10963-3-git-send-email-b-cousson@ti.com>
+	<20110908180300.GB2967@ponder.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20110908230102.GB21469@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linaro-dev@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, Mans Rullgard <mans.rullgard@linaro.org>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110908180300.GB2967@ponder.secretlab.ca>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "G,
+	Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Shilimkar,
+	Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 09, 2011 at 12:01:02AM +0100, Russell King - ARM Linux wrote:
-> On Thu, Sep 08, 2011 at 03:47:31PM -0700, Mark Brown wrote:
+On 9/8/2011 8:03 PM, Grant Likely wrote:
+> On Wed, Aug 24, 2011 at 03:09:08PM +0200, Benoit Cousson wrote:
+>> Used the main OCP node to add bindings with the l3_noc driver.
+>> Remove l3_noc static device creation if CONFIG_OF is defined.
+>>
+>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>> Cc: Tony Lindgren<tony@atomide.com>
+>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>> ---
+>>   arch/arm/boot/dts/omap4.dtsi  |    3 ++-
+>>   arch/arm/mach-omap2/devices.c |    2 ++
+>>   2 files changed, 4 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>> index 97a3ea7..928a74c 100644
+>> --- a/arch/arm/boot/dts/omap4.dtsi
+>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>> @@ -64,10 +64,11 @@
+>>   	 * hierarchy.
+>>   	 */
+>>   	ocp {
+>> -		compatible = "simple-bus";
+>> +		compatible = "ti,l3-noc", "arteris,noc", "simple-bus";
+>>   		#address-cells =<1>;
+>>   		#size-cells =<1>;
+>>   		ranges;
+>> +		hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
+>>
+>>   		gic: interrupt-controller@48241000 {
+>>   			compatible = "ti,omap4-gic", "arm,gic";
+>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+>> index 2d4a199..5964650 100644
+>> --- a/arch/arm/mach-omap2/devices.c
+>> +++ b/arch/arm/mach-omap2/devices.c
+>> @@ -70,6 +70,7 @@ static int __init omap3_l3_init(void)
+>>   }
+>>   postcore_initcall(omap3_l3_init);
+>>
+>> +#ifndef CONFIG_OF
+>>   static int __init omap4_l3_init(void)
+>>   {
+>>   	int l, i;
+>> @@ -100,6 +101,7 @@ static int __init omap4_l3_init(void)
+>>   	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
+>>   }
+>>   postcore_initcall(omap4_l3_init);
+>> +#endif
+>
+> Don't do this.  Turning on CONFIG_OF must not break non-DT booting.
+> Instead, check at runtime if a DT is available, and if it does then
+> don't run the hook.
 
-> > What will happen for device tree is that there will be a device in the
-> > device tree for the ASoC board.
+Do you want to check only the availability of the DT or the availability 
+of that specific node inside the DT?
 
-> Sounds like you just solved the machine_is_xxx() problem in ASoC land too
-> there.  If you're _already_ going for separate devices to describe the
-> ASoC stuff on the board, then there's no reason that couldn't have already
-> been done to eliminate the machine_is_xxx() usage in ASoC - rather than
-> complaining about machine_is_xxx() not being a very good solution.
-
-The problem is that someone has to manually go and add the device to
-every board that needs one and people find that tedious and slightly
-inelegant (especially for device tree where not everyone is entirely
-happy that it's a good idea to have the node for the board when we
-already have the top level machine information saying what board we're
-running on).   Jassi's suggestion was that we should have some magic to
-automatically generate defaults for the relevant device registrations to
-sidestep these issues.
+Benoit
