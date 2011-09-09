@@ -1,65 +1,44 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v4 10/11] OMAP: Serial: Allow UART parameters to be configured from board file.
-Date: Fri, 09 Sep 2011 12:11:01 -0700
-Message-ID: <87zkidtttm.fsf@ti.com>
-References: <1315400013-4849-1-git-send-email-govindraj.raja@ti.com>
-	<1315400013-4849-11-git-send-email-govindraj.raja@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2] ASoC: omap: convert per-board modules
+ to platform drivers
+Date: Fri, 9 Sep 2011 12:30:11 -0700
+Message-ID: <20110909193010.GA2993@opensource.wolfsonmicro.com>
+References: <CAG5Tg6UOuztenNid1=YbH9a4ZH5MqV4YhohG+r9R+7F=zXs=CQ@mail.gmail.com>
+	<3110288.bQbb0H2ME1@wuerfel>
+	<1315520956.4126.3.camel@finisterre.wolfsonmicro.main>
+	<20110908223720.GA21469@n2100.arm.linux.org.uk>
+	<20110908224731.GB5201@opensource.wolfsonmicro.com>
+	<20110908230102.GB21469@n2100.arm.linux.org.uk>
+	<20110908235903.GA6370@opensource.wolfsonmicro.com>
+	<20110909094156.GE6918@n2100.arm.linux.org.uk>
+	<20110909161151.GA3515@opensource.wolfsonmicro.com>
+	<20110909190134.GA14520@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:45476 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759534Ab1IITLG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Sep 2011 15:11:06 -0400
-In-Reply-To: <1315400013-4849-11-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Wed, 7 Sep 2011 18:23:32 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20110909190134.GA14520@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, linaro-dev@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, Mans Rullgard <mans.rullgard@linaro.org>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Deepak K <deepak.k@ti.com>, Partha Basak <p-basak2@ti.com>, Jon Hunter <jon-hunter@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+On Fri, Sep 09, 2011 at 08:01:35PM +0100, Russell King - ARM Linux wrote:
 
-> The following UART parameters are defined within the UART driver:
->
-> 1). Whether the UART uses DMA (dma_enabled), by default set to 0
-> 2). The size of dma buffer (set to 4096 bytes)
-> 3). The time after which the dma should stop if no more data is received.
-> 4). The auto suspend delay that will be passed for pm_runtime_autosuspend
->     where uart will be disabled after timeout
->
-> Different UARTs may be used for different purpose such as the console,
-> for interfacing bluetooth chip, for interfacing to a modem chip, etc.
-> Therefore, it is necessary to be able to customize the above settings
-> for a given board on a per UART basis.
->
-> This change allows these parameters to be configured from the board file
-> and allows the parameters to be configured for each UART independently.
->
-> If a board does not define its own custom parameters for the UARTs, then
-> use the default parameters in the structure "omap_serial_default_info".
-> The default parameters are defined to be the same as the current settings
-> in the UART driver to avoid breaking the UART for any board. By default,
-> make all boards use the default UART parameters.
->
-> Signed-off-by: Deepak K <deepak.k@ti.com>
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> Well, with DT, there won't be any 'board type' anymore.  There won't be
+> any 'machine_is_xxx()' to sort it out anymore.  Using DT, all that will
+> be history - it's all got to be sorted out by either devices or device
+> properties.
 
-Who is the author of this patch?  The first version says Jon[1], v2 says
-Deepak[2].  Either way, please ensure proper authorship is attributed
-using From: at the beginning of the changelog.  (git-format-patch will
-do this for you when the authorship is correct in the git history.)
-
-Even better would be to summarize the changes since the first version
-after the '---' so it would be clearer why the authorship was changed.
-
-Only 1/3 of my comments from v3 were addressed in this version.  Please
-re-read my comments there[3]. 
-
-Kevin
-
-
-[1] http://marc.info/?l=linux-omap&m=129890257812478&w=2
-[2] http://marc.info/?l=linux-omap&m=130408096416887&w=2
-[3] http://marc.info/?l=linux-omap&m=130896078622810&w=2
+There is a board type - there's a root compatible property for the board
+which fulfils this purpose - so the situation with and without device
+tree is essentially the same.
