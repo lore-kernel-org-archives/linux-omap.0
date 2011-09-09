@@ -1,68 +1,121 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCH] OMAP4: MMC: fix power and audio issue, decouple USBC1
- from MMC1
-Date: Fri, 9 Sep 2011 19:34:01 +0530
-Message-ID: <CANrkHUZP5+wqmA5yjmbF5LatJH9Z7eJ1T-KEHogpP2MFxWRz=w@mail.gmail.com>
-References: <1311276543-9374-1-git-send-email-bryan.buckley@ti.com>
-	<CAF=Qhp0YO2zYnwo63ddhKZv-o+eXs2bQETrqF5wYU2EtKQ=Yqw@mail.gmail.com>
-	<CAG_NtY8uCAQNOpGFYLSMTbQ-=WEmRmjFSau7a_41XEwhE0280Q@mail.gmail.com>
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: [PATCH 14/25] OMAP4: PM: Add CPUX OFF mode support
+Date: Fri, 9 Sep 2011 22:13:22 +0800
+Message-ID: <20110909141321.GC32138@S2100-06.ap.freescale.net>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+ <1315144466-9395-15-git-send-email-santosh.shilimkar@ti.com>
+ <20110909080416.GF31581@S2100-06.ap.freescale.net>
+ <4E69C9CF.6090709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:38869 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756640Ab1IIOEH convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Sep 2011 10:04:07 -0400
-In-Reply-To: <CAG_NtY8uCAQNOpGFYLSMTbQ-=WEmRmjFSau7a_41XEwhE0280Q@mail.gmail.com>
+Received: from va3ehsobe006.messaging.microsoft.com ([216.32.180.16]:1247 "EHLO
+	VA3EHSOBE009.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758837Ab1IIOEX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Sep 2011 10:04:23 -0400
+Content-Disposition: inline
+In-Reply-To: <4E69C9CF.6090709@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Buckley, Bryan" <bryan.buckley@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Kishore Kadiyala <kishorek.kadiyala@gmail.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, Moiz Sonasath <m-sonasath@ti.com>, Viswanath Puttagunta <vishp@ti.com>
+To: Santosh <santosh.shilimkar@ti.com>
+Cc: khilman@ti.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 
-On Fri, Aug 12, 2011 at 8:43 PM, Buckley, Bryan <bryan.buckley@ti.com> =
-wrote:
-> On Fri, Jul 22, 2011 at 7:30 AM, Kishore Kadiyala
-> <kishorek.kadiyala@gmail.com> wrote:
->>
->> On Fri, Jul 22, 2011 at 12:59 AM, Bryan Buckley <bryan.buckley@ti.co=
-m> wrote:
->> > Remove OMAP4_USBC1_ICUSB_PWRDNZ_MASK during enable/disable PWRDNZ =
-mode for
->> > MMC1_PBIAS and associated extended-drain MMC1 I/O cell. This is in=
- accordance
->> > with the control module programming guide. This fixes a bug where =
-if trying to
->> > use gpio_98 or gpio_99 and MMC1 at the same time the GPIO signal w=
-ill be
->> > affected by a changing SDMMC1_VDDS.
->> >
->> > Software must keep MMC1_PBIAS cell and MMC1_IO cell PWRDNZ signals=
- low whenever
->> > SDMMC1_VDDS ramps up/down or changes for cell protection purposes.
->> >
->> > MMC1 is based on SDMMC1_VDDS whereas USBC1 is based on SIM_VDDS th=
-erefore
->> > they can operate independently.
->> >
->> > Signed-off-by: Bryan Buckley <bryan.buckley@ti.com>
->>
->> Good catch,
->>
->> Acked-by: =A0Kishore Kadiyala <kishore.kadiyala@ti.com>
->>
->
-> Any other comments from anyone else? =A0Noticed that this commit isn'=
-t
-> in any upstream branches. This patch will fix issues with people who
-> want to use GPIO 98/99 AND MMC1 at the same time. =A0Would be good to
-> have this fix upstream.
->
-=46WIW: Tested on OMAP4 Blaze
-Tested-by: Balaji T K <balajitk@ti.com>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, Sep 09, 2011 at 01:39:51PM +0530, Santosh wrote:
+> On Friday 09 September 2011 01:34 PM, Shawn Guo wrote:
+> >Hi Santosh,
+> >
+> >On Sun, Sep 04, 2011 at 07:24:15PM +0530, Santosh Shilimkar wrote:
+> >>This patch adds the CPU0 and CPU1 off mode support. CPUX close switch
+> >>retention (CSWR) is not supported by hardware design.
+> >>
+> >>The CPUx OFF mode isn't supported on OMAP4430 ES1.0
+> >>
+> >>CPUx sleep code is common for hotplug, suspend and CPUilde.
+> >>
+> >>Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+> >>Cc: Kevin Hilman<khilman@ti.com>
+> >>---
+> >>  arch/arm/mach-omap2/Makefile                    |    3 +-
+> >>  arch/arm/mach-omap2/include/mach/omap-secure.h  |    8 +
+> >>  arch/arm/mach-omap2/include/mach/omap4-common.h |   25 +++
+> >>  arch/arm/mach-omap2/omap-mpuss-lowpower.c       |  249 +++++++++++++++++++++++
+> >>  arch/arm/mach-omap2/omap-smp.c                  |    6 +
+> >>  arch/arm/mach-omap2/omap4-sar-layout.h          |    9 +
+> >>  arch/arm/mach-omap2/pm44xx.c                    |    6 +
+> >>  arch/arm/mach-omap2/sleep44xx.S                 |  213 +++++++++++++++++++
+> >>  8 files changed, 518 insertions(+), 1 deletions(-)
+> >>  create mode 100644 arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> >>
+> >
+> >[...]
+> >
+> >>diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
+> >>index 049f426..230ab8c 100644
+> >>--- a/arch/arm/mach-omap2/sleep44xx.S
+> >>+++ b/arch/arm/mach-omap2/sleep44xx.S
+> >>@@ -11,8 +11,221 @@
+> >>
+> >>  #include<linux/linkage.h>
+> >>  #include<asm/system.h>
+> >>+#include<asm/smp_scu.h>
+> >>+#include<asm/memory.h>
+> >>+#include<asm/hardware/cache-l2x0.h>
+> >>
+> >>+#include<plat/omap44xx.h>
+> >>  #include<mach/omap4-common.h>
+> >>+#include<mach/omap-secure.h>
+> >>+
+> >>+#include "omap4-sar-layout.h"
+> >>+
+> >>+#ifdef CONFIG_SMP
+> >>+
+> >>+.macro	DO_SMC
+> >>+	dsb
+> >>+	smc	#0
+> >>+	dsb
+> >>+.endm
+> >>+
+> >>+ppa_zero_params:
+> >>+	.word		0x0
+> >>+
+> >>+/*
+> >>+ * =============================
+> >>+ * == CPU suspend finisher ==
+> >>+ * =============================
+> >>+ *
+> >>+ * void omap4_finish_suspend(unsigned long cpu_state)
+> >>+ *
+> >>+ * This function code saves the CPU context and performs the CPU
+> >>+ * power down sequence. Calling WFI effectively changes the CPU
+> >>+ * power domains states to the desired target power state.
+> >>+ *
+> >>+ * @cpu_state : contains context save state (r0)
+> >>+ *	0 - No context lost
+> >>+ * 	1 - CPUx L1 and logic lost: MPUSS CSWR
+> >>+ * 	2 - CPUx L1 and logic lost + GIC lost: MPUSS OSWR
+> >>+ *	3 - CPUx L1 and logic lost + GIC + L2 lost: MPUSS OFF
+> >
+> >I was told by rmk that same as imx6q, omap44xx will retain L2 content
+> >across suspen/resume cycle.  Then what does "L2 lost" mean here?  Or
+> >what rmk meant is the case cpu_state == 2?
+> >
+> Yes.
+> 
+> The last case is entire SOC OFF. We call Device OFF in OMAP.
+> All voltages will scale to 0 V. This isn't supported by this
+> series.
+> 
+Then the second question would be what the following patch in this
+series is for.
+
+    [PATCH 20/25] OMAP4: PM: Add L2X0 cache lowpower support
+
+I could have read the patch incorrectly, but it seems l2x_clean_inv
+will also be called for "MPUSS OSWR" in which case L2 is retained?
+Shouldn't L2 for this case have been handled by rmk's patch (ARM: pm:
+add L2 cache cleaning for suspend)?
+
+-- 
+Regards,
+Shawn
+
