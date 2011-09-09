@@ -1,66 +1,62 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 0/5 v8] mfd: omap: usb: Runtime PM support for EHCI and
- OHCI drivers
-Date: Fri, 9 Sep 2011 22:02:39 +0530
-Message-ID: <CAP05o4KGqbX6KzZjjpXEfyNk5RzYkgKRkn+P9GYvxLA9pgLOxg@mail.gmail.com>
-References: <1314255697-15411-1-git-send-email-keshava_mgowda@ti.com>
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 14/25] OMAP4: PM: Add CPUX OFF mode support
+Date: Fri, 09 Sep 2011 22:29:49 +0530
+Message-ID: <4E6A4605.3050305@ti.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com> <1315144466-9395-15-git-send-email-santosh.shilimkar@ti.com> <20110909080416.GF31581@S2100-06.ap.freescale.net> <4E69C9CF.6090709@ti.com> <20110909141321.GC32138@S2100-06.ap.freescale.net> <CAMQu2gxeDzFGyhsXK-wDkyiJRoD6_GN58m=3_=NC8yKa_ThJnQ@mail.gmail.com> <20110909152729.GG32138@S2100-06.ap.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1314255697-15411-1-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b-cousson@ti.com
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:53520 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758985Ab1IIRAA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Sep 2011 13:00:00 -0400
+Received: by pzd13 with SMTP id 13so1234004pzd.23
+        for <linux-omap@vger.kernel.org>; Fri, 09 Sep 2011 09:59:57 -0700 (PDT)
+In-Reply-To: <20110909152729.GG32138@S2100-06.ap.freescale.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Shawn Guo <shawn.guo@freescale.com>
+Cc: khilman@ti.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, Dave Martin <dave.martin@linaro.org>
 
-On Thu, Aug 25, 2011 at 12:31 PM, Keshava Munegowda
-<keshava_mgowda@ti.com> wrote:
-> From: Keshava Munegowda <Keshava_mgowda@ti.com>
->
-> The Hwmod structures and Runtime PM features are implemented
-> For EHCI and OHCI drivers of OMAP3 and OMAP4.
-> The global suspend/resume of EHCI and OHCI
-> is validated on OMAP3430 sdp board with these patches.
->
-> these patches are rebased to kevin's pm branch and
-> usbhs latest mainline kernel patches
->
-> TODO:
-> =A0 - Adding pad configurations to Hwmods
-> =A0 - Aggressive clock cutting in usb bus suspends
-> =A0 - Remote Wakeup implementation using irq-chaining
->
->
-> Benoit Cousson (1):
-> =A0arm: omap: usb: ehci and ohci hwmod structures for omap4
->
-> Keshava Munegowda (4):
-> =A0arm: omap: usb: ehci and ohci hwmod structures for omap3
-> =A0arm: omap: usb: register hwmods of usbhs
-> =A0arm: omap: usb: device name change for the clk names of usbhs
-> =A0mfd: omap: usb: Runtime PM support
->
-> =A0arch/arm/mach-omap2/clock3xxx_data.c =A0 =A0 =A0 | =A0 26 +-
-> =A0arch/arm/mach-omap2/clock44xx_data.c =A0 =A0 =A0 | =A0 10 +-
-> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0281 +++++++++++
-> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0247 ++++++++++
-> =A0arch/arm/mach-omap2/usb-host.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0114 ++=
----
-> =A0arch/arm/plat-omap/include/plat/usb.h =A0 =A0 =A0| =A0 =A03 -
-> =A0drivers/mfd/omap-usb-host.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A073=
-3 +++++++++++-----------------
-> =A0drivers/usb/host/ehci-omap.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 17 =
-+-
-> =A0drivers/usb/host/ohci-omap3.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 18 =
-+-
-> =A09 files changed, 891 insertions(+), 558 deletions(-)
->
->
+On Friday 09 September 2011 08:57 PM, Shawn Guo wrote:
+> On Fri, Sep 09, 2011 at 07:41:08PM +0530, Shilimkar, Santosh wrote:
+>> On Fri, Sep 9, 2011 at 7:43 PM, Shawn Guo<shawn.guo@freescale.com>  wrote:
+>>> On Fri, Sep 09, 2011 at 01:39:51PM +0530, Santosh wrote:
+>>>> On Friday 09 September 2011 01:34 PM, Shawn Guo wrote:
+>>>>> Hi Santosh,
 
-Hi Benoit Cousson
-                   please ack this series; I am waiting for your ack
-to lineup this USBHS runtime pm adaptions.
+[...]
 
-regards
-keshava
+>> #ifdef CONFIG_CACHE_L2X0
+>> 	/*
+>> 	 * Clean and invalidate the L2 cache.
+>> 	 * Common cache-l2x0.c functions can't be used here since it
+>> 	 * uses spinlocks. We are out of coherency here with data cache
+>> 	 * disabled. The spinlock implementation uses exclusive load/store
+>> 	 * instruction which can fail without data cache being enabled.
+>> 	 * OMAP4 hardware doesn't support exclusive monitor which can
+>> 	 * overcome exclusive access issue. Because of this, CPU can
+>> 	 * lead to deadlock.
+>> 	 */
+>> l2x_clean_inv:
+>> 	bl	omap4_get_sar_ram_base
+>> 	mov	r8, r0
+>> 	mrc	p15, 0, r5, c0, c0, 5		@ Read MPIDR
+>> 	ands	r5, r5, #0x0f
+>> 	ldreq	r0, [r8, #L2X0_SAVE_OFFSET0]
+>> 	ldrne	r0, [r8, #L2X0_SAVE_OFFSET1]
+>> 	cmp	r0, #3
+>> 	bne	do_WFI
+>
+> It looks like you are bypassing L2 clean and invalidate for cases
+> "1" and "2" here.  But I really do not understand how you get r0
+> back here.
+>
+The value which is passed in R0 is also stored in scratch patch memory
+and retrieved using L2X0_SAVE_OFFSET0.
+Simple :)
+
+Regards
+Santosh
+
