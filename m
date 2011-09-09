@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@ti.com>
 Subject: Re: [PATCH 09/22] OMAP2: add voltage domains and connect to powerdomains
-Date: Fri, 09 Sep 2011 14:41:31 -0700
-Message-ID: <87d3f9tmus.fsf@ti.com>
+Date: Fri, 09 Sep 2011 14:46:03 -0700
+Message-ID: <877h5htmn8.fsf@ti.com>
 References: <1314639355-12713-1-git-send-email-khilman@ti.com>
 	<1314639355-12713-10-git-send-email-khilman@ti.com>
 	<CAORVsuXd2eeSs_TFu+stJge6tqQzO+4d0FcnmDPMHnChLgCuiQ@mail.gmail.com>
@@ -9,13 +9,13 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:34800 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755358Ab1IIVlg convert rfc822-to-8bit
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:52616 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751795Ab1IIVqG convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Sep 2011 17:41:36 -0400
-Received: by mail-gx0-f172.google.com with SMTP id 19so2012094gxk.3
-        for <linux-omap@vger.kernel.org>; Fri, 09 Sep 2011 14:41:35 -0700 (PDT)
+	Fri, 9 Sep 2011 17:46:06 -0400
+Received: by mail-pz0-f49.google.com with SMTP id 6so4069865pzk.8
+        for <linux-omap@vger.kernel.org>; Fri, 09 Sep 2011 14:46:05 -0700 (PDT)
 In-Reply-To: <CAORVsuXd2eeSs_TFu+stJge6tqQzO+4d0FcnmDPMHnChLgCuiQ@mail.gmail.com>
 	(Jean Pihet's message of "Wed, 7 Sep 2011 12:39:36 +0200")
 Sender: linux-omap-owner@vger.kernel.org
@@ -23,10 +23,10 @@ List-Id: linux-omap@vger.kernel.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Jean,
-
 Jean Pihet <jean.pihet@newoldbits.com> writes:
 
+> Kevin,
+>
 > On Mon, Aug 29, 2011 at 7:35 PM, Kevin Hilman <khilman@ti.com> wrote:
 >> Create basic voltagedomains for OMAP2 and associate OMAP2 powerdomai=
 ns
@@ -64,9 +64,7 @@ m/mach-omap2/voltagedomains2xxx_data.c
 > 2011?
 >
 
-Yup, thanks for the review!
-
-Will update.
+Thanks, will update.
 
 Kevin
 
