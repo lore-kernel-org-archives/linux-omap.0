@@ -1,51 +1,79 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/8] OMAP3+: PM: VP: generalize PRM interrupt helpers
-Date: Fri, 09 Sep 2011 11:41:11 -0700
-Message-ID: <8762l1woc8.fsf@ti.com>
-References: <1309393560-8874-1-git-send-email-mturquette@ti.com>
-	<1309393560-8874-3-git-send-email-mturquette@ti.com>
-	<CAORVsuXzyfWHNyM1u=bXwnhM=yLfF_Q2SS3wjv9n-13mvHcYgw@mail.gmail.com>
+From: Trond Myklebust <Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Regression seen when HIGHMEM enabled with NFS on 3.1rc4 kernel
+Date: Fri, 09 Sep 2011 14:51:57 -0400
+Message-ID: <1315594317.17611.25.camel@lade.trondhjem.org>
+References: <CAJ7qFSeB8bAGdYfZs-LFHuYqGWNA2RidY0EBEFw_1CndvG7q5A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:38720 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759438Ab1IISlW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Sep 2011 14:41:22 -0400
-Received: by gwb17 with SMTP id 17so1708048gwb.1
-        for <linux-omap@vger.kernel.org>; Fri, 09 Sep 2011 11:41:21 -0700 (PDT)
-In-Reply-To: <CAORVsuXzyfWHNyM1u=bXwnhM=yLfF_Q2SS3wjv9n-13mvHcYgw@mail.gmail.com>
-	(Jean Pihet's message of "Wed, 7 Sep 2011 21:27:07 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ7qFSeB8bAGdYfZs-LFHuYqGWNA2RidY0EBEFw_1CndvG7q5A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "R, Sricharan" <r.sricharan-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Mike Turquette <mturquette@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+On Fri, 2011-09-09 at 18:40 +0530, R, Sricharan wrote: 
+> Sorry resending again. My mailer settings thrashed my earlier email.
+> 
+> Hi,
+>   A kernel crash is observed on 3.1rc4 kernel when HIGHMEM is enabled and
+>   kernel is booted with a NFS on omap4430sdp. The issue happens in the below
+>   scenario.
+> 
+>        In file net/sunrpc/xprtsock.c,
+>          static int xs_send_pagedata( xxx, struct xdr_buf *xdr, ..)
+>          {
+>                 Struct page **ppage;
+>                 ....
+>                 .....
+>                 ppage = xdr->pages + (base >> PAGE_SHIFT);
+>                 ....
+>             err = sock->ops->sendpage(sock, *ppage, base, len, flags);
+> 
+>             ...
+>          }
+> 
+>          1) In the above piece of code, the *ppage value from ops->sendpage
+>             function is finally passed on to Kmap by the lower level code to
+>             get the virtual address of the page.
+>          2) In some corner cases the value of *ppage pointer is NULL.
+>          3) When highmem is enabled and a NULL pointer is passed to
+>             Kmap, then kmap finally crashes. But in the case when highmem
+>             is disabled, then kmap returns a junk value for NULL pointer.
+> 
+>             Highmem Enabled , kmap( NULL )-----> kernel crashes.
+> 
+>            Highmem disabled, kmap( NULL )-----> junk value is returned.
+>                Subsequently this message is observed on
+>                                                 the console.
+> 
+>                                 "RPC call returned error 14"
+> 
+>          4) Now the question is why is the value of *ppage = NULL is passed
+>             from the above piece of code to lower layers.
+>            Should that not have handled *ppage = NULL? and kmap should not
+>             have received a NULL pointer?
 
-> Mike, Kevin,
->
-> On Thu, Jun 30, 2011 at 2:25 AM, Mike Turquette <mturquette@ti.com> wrote:
->> From: Nishanth Menon <nm@ti.com>
->>
->> We have multiple interrupt status hidden in the PRM interrupt status
->> reg. Make this handling generic to allow us to pull out LDO status such
->> as those for ABB from it using the same data structure and indexing. We
->> hence rename accordingly.
-> I am not sure that the rename is needed.
->
-> Kevin, Nishant, what is your opinion?
+I wouldn't expect *ppage to be NULL under any circumstances, so I'm
+really curious as to what is happening here.
 
-Rename is mostly fine.
+Could you perhaps add a printk() to that section of code to print out
+the values of 'xdr->page_base', 'xdr->page_len', 'len' and 'remainder'
+in the case where *ppage == NULL?
 
-I think the patch is correct, since the interrupts are technically for
-the the whole PRM, not just the VP.
+Cheers
+  Trond
 
-However, I don't like  the s/vp_id/irq_id/ in the APIs, because the APIs
-are intended to be VP specific.
+-- 
+Trond Myklebust
+Linux NFS client maintainer
 
-I'll likely pull/fold the parts I agree with into the original patch in
-my VP cleanup series
+NetApp
+Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+www.netapp.com
 
-Kevin
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
