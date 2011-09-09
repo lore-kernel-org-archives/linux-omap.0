@@ -1,59 +1,58 @@
-From: "R, Sricharan" <r.sricharan-l0cyMroinI0@public.gmane.org>
-Subject: Regression seen when HIGHMEM enabled with NFS on 3.1rc4 kernel
-Date: Fri, 9 Sep 2011 18:40:32 +0530
-Message-ID: <CAJ7qFSeB8bAGdYfZs-LFHuYqGWNA2RidY0EBEFw_1CndvG7q5A@mail.gmail.com>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 5/6 v3] ti814evm: Add support for musb interface
+Date: Fri, 9 Sep 2011 19:17:49 +0530
+Message-ID: <1315576070-7618-6-git-send-email-ajay.gupta@ti.com>
+References: <1315576070-7618-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "trond.myklebust" <trond.myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:44974 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759133Ab1IINr7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Sep 2011 09:47:59 -0400
+In-Reply-To: <1315576070-7618-1-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, balbi@ti.com, tony@atomide.com, Ravi Babu <ravibabu@ti.com>, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Sorry resending again. My mailer settings thrashed my earlier email.
+From: Ravi Babu <ravibabu@ti.com>
 
-Hi,
-  A kernel crash is observed on 3.1rc4 kernel when HIGHMEM is enabled and
-  kernel is booted with a NFS on omap4430sdp. The issue happens in the below
-  scenario.
+Adding musb support in ti814 EVM board file.
 
-       In file net/sunrpc/xprtsock.c,
-         static int xs_send_pagedata( xxx, struct xdr_buf *xdr, ..)
-         {
-                Struct page **ppage;
-                ....
-                .....
-                ppage = xdr->pages + (base >> PAGE_SHIFT);
-                ....
-            err = sock->ops->sendpage(sock, *ppage, base, len, flags);
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Ravi Babu <ravibabu@ti.com>
+---
+ arch/arm/mach-omap2/board-ti8148evm.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-            ...
-         }
+diff --git a/arch/arm/mach-omap2/board-ti8148evm.c b/arch/arm/mach-omap2/board-ti8148evm.c
+index 588d6b7..7dbf115 100644
+--- a/arch/arm/mach-omap2/board-ti8148evm.c
++++ b/arch/arm/mach-omap2/board-ti8148evm.c
+@@ -23,6 +23,14 @@
+ #include <plat/irqs.h>
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/usb.h>
++
++static struct omap_musb_board_data musb_board_data = {
++	.set_phy_power	= ti81xx_musb_phy_power,
++	.interface_type	= MUSB_INTERFACE_ULPI,
++	.mode           = MUSB_OTG,
++	.power		= 500,
++};
+ 
+ static struct omap_board_config_kernel ti8148_evm_config[] __initdata = {
+ };
+@@ -38,6 +46,7 @@ static void __init ti8148_evm_init(void)
+ 	omap_serial_init();
+ 	omap_board_config = ti8148_evm_config;
+ 	omap_board_config_size = ARRAY_SIZE(ti8148_evm_config);
++	usb_musb_init(&musb_board_data);
+ }
+ 
+ static void __init ti8148_evm_map_io(void)
+-- 
+1.6.2.4
 
-         1) In the above piece of code, the *ppage value from ops->sendpage
-            function is finally passed on to Kmap by the lower level code to
-            get the virtual address of the page.
-         2) In some corner cases the value of *ppage pointer is NULL.
-         3) When highmem is enabled and a NULL pointer is passed to
-            Kmap, then kmap finally crashes. But in the case when highmem
-            is disabled, then kmap returns a junk value for NULL pointer.
-
-            Highmem Enabled , kmap( NULL )-----> kernel crashes.
-
-           Highmem disabled, kmap( NULL )-----> junk value is returned.
-               Subsequently this message is observed on
-                                                the console.
-
-                                "RPC call returned error 14"
-
-         4) Now the question is why is the value of *ppage = NULL is passed
-            from the above piece of code to lower layers.
-           Should that not have handled *ppage = NULL? and kmap should not
-            have received a NULL pointer?
-
-Thanks,
-  Sricharan
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
