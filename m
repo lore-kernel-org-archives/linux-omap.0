@@ -1,97 +1,55 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 13/22] OMAP2+: voltage: keep track of powerdomains in each voltagedomain
-Date: Fri, 09 Sep 2011 14:52:51 -0700
-Message-ID: <87pqj9s7rg.fsf@ti.com>
+Subject: Re: [PATCH 14/22] OMAP2+: voltage: split voltage controller (VC) code
+	into dedicated layer
+Date: Fri, 09 Sep 2011 14:51:40 -0700
+Message-ID: <87vct1s7tf.fsf@ti.com>
 References: <1314639355-12713-1-git-send-email-khilman@ti.com>
-	<1314639355-12713-14-git-send-email-khilman@ti.com>
-	<CAORVsuU27kNiJAt-YRgfJ5i0=ZpfcDhNfY+kYK+AnKurDHDPfQ@mail.gmail.com>
+	<1314639355-12713-15-git-send-email-khilman@ti.com>
+	<CAORVsuWEZmChCjy8dJV+acosr_8N9XN0VL8-L6HWaKnZkoqqYA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:41667 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750816Ab1IIVw5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Sep 2011 17:52:57 -0400
-Received: by mail-yi0-f54.google.com with SMTP id 19so1944222yib.27
-        for <linux-omap@vger.kernel.org>; Fri, 09 Sep 2011 14:52:56 -0700 (PDT)
-In-Reply-To: <CAORVsuU27kNiJAt-YRgfJ5i0=ZpfcDhNfY+kYK+AnKurDHDPfQ@mail.gmail.com>
-	(Jean Pihet's message of "Wed, 7 Sep 2011 11:23:21 +0200")
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAORVsuWEZmChCjy8dJV+acosr_8N9XN0VL8-L6HWaKnZkoqqYA@mail.gmail.com>
+	(Jean Pihet's message of "Wed, 7 Sep 2011 12:42:20 +0200")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
-
-> Hi Kevin,
->
-> On Mon, Aug 29, 2011 at 7:35 PM, Kevin Hilman <khilman@ti.com> wrote:
->> When a powerdomain is registered and it has an associated voltage do=
-main,
->> add the powerdomain to the voltagedomain using voltdm_add_pwrdm().
->>
->> Also add voltagedomain iterator helper functions to iterate over all
->> registered voltagedomains and all powerdomains associated with a
->> voltagedomain.
->>
->> Modeled after a similar relationship between clockdomains and powerd=
-omains.
->>
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
->> ---
->> =C2=A0arch/arm/mach-omap2/powerdomain.c | =C2=A0 =C2=A02 +
->> =C2=A0arch/arm/mach-omap2/powerdomain.h | =C2=A0 =C2=A02 +
->> =C2=A0arch/arm/mach-omap2/voltage.c =C2=A0 =C2=A0 | =C2=A0 80 ++++++=
-+++++++++++++++++++++++++++++++
->> =C2=A0arch/arm/mach-omap2/voltage.h =C2=A0 =C2=A0 | =C2=A0 10 +++++
->> =C2=A04 files changed, 94 insertions(+), 0 deletions(-)
->>
-> ...
->
->> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/vol=
-tage.h
->> index 966aa88..b41d9f1 100644
->> --- a/arch/arm/mach-omap2/voltage.h
->> +++ b/arch/arm/mach-omap2/voltage.h
->> @@ -19,6 +19,8 @@
->> =C2=A0#include "vc.h"
->> =C2=A0#include "vp.h"
->>
->> +struct powerdomain;
->> +
->> =C2=A0/* XXX document */
->> =C2=A0#define VOLTSCALE_VPFORCEUPDATE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A01
->> =C2=A0#define VOLTSCALE_VCBYPASS =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 2
->> @@ -55,12 +57,15 @@ struct omap_vfsm_instance_data {
->> =C2=A0* @name: Name of the voltage domain which can be used as a uni=
-que identifier.
->> =C2=A0* @scalable: Whether or not this voltage domain is scalable
->> =C2=A0* @node: list_head linking all voltage domains
->> + * @pwrdm_node: list_head linking all powerdomains in this voltaged=
-omain
->> =C2=A0* @vdd: to be removed
->> + * @pwrdms: powerdomains in this voltagedomain
->> =C2=A0*/
->> =C2=A0struct voltagedomain {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0char *name;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0bool scalable;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct list_head node;
->> + =C2=A0 =C2=A0 =C2=A0 struct list_head pwrdm_list;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct omap_vdd_info *vdd;
->> =C2=A0};
-> The kerneldoc is not reflecting the code for struct voltagedomain.
-
-hmm, looks like kerneldoc is out of sync in a few places.
-
-Thanks for catching.  Will fixup.
-
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SmVhbiBQaWhldCA8amVhbi5waWhldEBuZXdvbGRiaXRzLmNvbT4gd3JpdGVzOgoKPiBLZXZpbiwK
+Pgo+IE9uIE1vbiwgQXVnIDI5LCAyMDExIGF0IDc6MzUgUE0sIEtldmluIEhpbG1hbiA8a2hpbG1h
+bkB0aS5jb20+IHdyb3RlOgo+PiBBcyBwYXJ0IG9mIHRoZSB2b2x0YWdlIGxheWVyIGNsZWFudXAs
+IHNwbGl0IG91dCBWQyBzcGVjaWZpYyBjb2RlIGludG8KPj4gYSBkZWRpY2F0ZWQgVkMgbGF5ZXIu
+IMKgVGhpcyBwYXRjaCBwcmltYXJpbHkganVzdCBtb3ZlcyBWQyBjb2RlIGZyb20KPj4gdm9sdGFn
+ZS5jIGludG8gdmMuYywgYW5kIGFkZHMgcHJvdG90eXBlcyB0byB2Yy5oLgo+Pgo+PiBObyBmdW5j
+dGlvbmFsIGNoYW5nZXMuCj4+Cj4+IEZvciByZWFkYWJpbGl0eSwgZWFjaCBmdW5jdGlvbiB3YXMg
+Z2l2ZW4gYSBsb2NhbCAndmMnIHBvaW50ZXI6Cj4+Cj4+IMKgIMKgc3RydWN0IG9tYXBfdmNfaW5z
+dGFuY2VfZGF0YSAqdmMgPSB2b2x0ZG0tPnZkZC0+dmNfZGF0YTsKPj4KPj4gYW5kIGEgZ2xvYmFs
+IHJlcGxhY2Ugb2Ygcy92ZGQtPnZjX2RhdGEvdmMvIHdhcyBkb25lLgo+Pgo+PiBBbHNvIHZjX2lu
+aXQgd2FzIHJlbmFtZWQgdG8gdmNfaW5pdF9jaGFubmVsIHRvIHJlZmxlY3QgdGhhdCB0aGlzIGlz
+Cj4+IHBlci1WQyBjaGFubmVsIGluaXRpYWxpenRpb24uCj4+Cj4+IFNpZ25lZC1vZmYtYnk6IEtl
+dmluIEhpbG1hbiA8a2hpbG1hbkB0aS5jb20+Cj4+IC0tLQo+PiDCoGFyY2gvYXJtL21hY2gtb21h
+cDIvTWFrZWZpbGUgwqB8IMKgIMKgMiArLQo+PiDCoGFyY2gvYXJtL21hY2gtb21hcDIvdmMuYyDC
+oCDCoCDCoHwgwqAyNzYgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysK
+Pj4gwqBhcmNoL2FybS9tYWNoLW9tYXAyL3ZjLmggwqAgwqAgwqB8IMKgIDEyICsrCj4+IMKgYXJj
+aC9hcm0vbWFjaC1vbWFwMi92b2x0YWdlLmMgfCDCoDI2NCArLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0KPj4gwqA0IGZpbGVzIGNoYW5nZWQsIDI5MyBpbnNlcnRpb25zKCsp
+LCAyNjEgZGVsZXRpb25zKC0pCj4+IMKgY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL21hY2gt
+b21hcDIvdmMuYwo+Pgo+IC4uLgo+Cj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAy
+L3ZjLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3ZjLmMKPj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQK
+Pj4gaW5kZXggMDAwMDAwMC4uOThmNWE0Ygo+PiAtLS0gL2Rldi9udWxsCj4+ICsrKyBiL2FyY2gv
+YXJtL21hY2gtb21hcDIvdmMuYwo+PiBAQCAtMCwwICsxLDI3NiBAQAo+Cj4gVGhlIGNvcHlyaWdo
+dCBub3RpY2UgaXMgbWlzc2luZy4KPgoKb29wcywgd2lsbCBhZGQuCgpUaGFua3MsCgpLZXZpbgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJt
+LWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3Jn
+Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtl
+cm5lbAo=
