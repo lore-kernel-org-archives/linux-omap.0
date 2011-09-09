@@ -1,44 +1,92 @@
-From: Nick Bowler <nbowler@elliptictech.com>
-Subject: Re: [PATCH 0/5] Convert ARM subarchitectures to generic wfi macro.
-Date: Fri, 9 Sep 2011 11:42:54 -0400
-Message-ID: <20110909154254.GA23810@elliptictech.com>
-References: <1315582012-23507-1-git-send-email-nbowler@elliptictech.com>
+From: sricharan <r.sricharan@ti.com>
+Subject: [PATCH v2 1/8] OMAP: hwmod: Fix the addr spaces, irq, dma count APIs.
+Date: Fri, 9 Sep 2011 21:32:14 +0530
+Message-ID: <1315584134-3869-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1315582012-23507-1-git-send-email-nbowler@elliptictech.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Russell King <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, linux-samsung-soc@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org, Colin Cross <ccross@android.com>, Erik Gilling <konkers@android.com>, Olof Johansson <olof@lixom.net>, linux-tegra@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53481 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758537Ab1IIP7Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Sep 2011 11:59:25 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: b-cousson@ti.com, santosh.shilimkar@ti.com, paul@pswan.com
 
-And after all that, I forgot to CC Russell on these patches.  Oops.
+The address spaces, irqs and dma reqs count API returns the
+number of corresponding entries in a hwmod including a additional
+null value or a -1 terminator in the structure introduced
+recently. More information here:
 
-On 2011-09-09 11:26 -0400, Nick Bowler wrote:
-> This series cleans up all remaining ARM subarchitectures that I could
-> find to use the generic wfi macro.  As I don't have any of the boards in
-> question, I've only compile-tested these patches to the extent that I
-> was able.
-> 
-> See the previous discussion in https://lkml.org/lkml/2011/8/19/433 for
-> more background.
-> 
-> Nick Bowler (5):
->   ARM: realview: Use wfi macro in platform_do_lowpower.
->   ARM: exynos4: Use wfi macro in platform_do_lowpower.
->   ARM: shmobile: Use wfi macro in platform_cpu_die.
->   ARM: tegra: Use wfi macro in platform_do_lowpower.
->   ARM: omap4: Kill private do_wfi macro.
-> 
->  arch/arm/mach-exynos4/hotplug.c                 |    9 ++-------
->  arch/arm/mach-omap2/include/mach/omap4-common.h |   11 -----------
->  arch/arm/mach-omap2/omap-hotplug.c              |    7 +++----
->  arch/arm/mach-omap2/pm44xx.c                    |    4 +++-
->  arch/arm/mach-realview/hotplug.c                |    9 ++-------
->  arch/arm/mach-shmobile/hotplug.c                |   10 +++-------
->  arch/arm/mach-tegra/hotplug.c                   |    9 ++-------
->  7 files changed, 15 insertions(+), 44 deletions(-)
+	212738a4 (omap_hwmod: use a terminator record with omap_hwmod_mpu_irqs arrays)
+	78183f3f (omap_hwmod: use a null structure record to terminate omap_hwmod_addr_space arrays)
+	bc614958 (omap_hwmod: use a terminator record with omap_hwmod_dma_info arrays)
 
+The devices which have multiple hwmods and use device_build_ss are
+broken with this, as their resources are populated with a
+extra null value, subsequently the probe fails. So fix the API not to
+include the array terminator in the count.
+
+Signed-off-by: sricharan <r.sricharan@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+[v1]
+     Initial version.
+[v2]
+     1) Added the correction for irq and dma counts along with
+	addr spaces.
+     2) Changed the commit log.
+
+ arch/arm/mach-omap2/omap_hwmod.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 84cc0bd..c69fbc2 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -745,9 +745,9 @@ static int _count_mpu_irqs(struct omap_hwmod *oh)
+ 	if (!oh || !oh->mpu_irqs)
+ 		return 0;
+ 
+-	do {
+-		ohii = &oh->mpu_irqs[i++];
+-	} while (ohii->irq != -1);
++	ohii = &oh->mpu_irqs[i];
++	while (ohii->irq != -1)
++		ohii = &oh->mpu_irqs[++i];
+ 
+ 	return i;
+ }
+@@ -768,9 +768,9 @@ static int _count_sdma_reqs(struct omap_hwmod *oh)
+ 	if (!oh || !oh->sdma_reqs)
+ 		return 0;
+ 
+-	do {
+-		ohdi = &oh->sdma_reqs[i++];
+-	} while (ohdi->dma_req != -1);
++	ohdi = &oh->sdma_reqs[i];
++	while (ohdi->dma_req != -1)
++		ohdi = &oh->sdma_reqs[++i];
+ 
+ 	return i;
+ }
+@@ -791,9 +791,9 @@ static int _count_ocp_if_addr_spaces(struct omap_hwmod_ocp_if *os)
+ 	if (!os || !os->addr)
+ 		return 0;
+ 
+-	do {
+-		mem = &os->addr[i++];
+-	} while (mem->pa_start != mem->pa_end);
++	mem = &os->addr[i];
++	while (mem->pa_start != mem->pa_end)
++		mem = &os->addr[++i];
+ 
+ 	return i;
+ }
 -- 
-Nick Bowler, Elliptic Technologies (http://www.elliptictech.com/)
+1.7.0.4
+
