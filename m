@@ -1,17 +1,14 @@
-From: "Pedanekar, Hemant" <hemantp@ti.com>
-Subject: RE: [RFC PATCH v2 5/6] TI81XX: Add minimal hwmod data
-Date: Fri, 9 Sep 2011 08:12:13 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4AABE49@dbde02.ent.ti.com>
-References: <1314119627-23088-1-git-send-email-hemantp@ti.com>
-	<87ty8zoi15.fsf@ti.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B03B4AAB78D@dbde02.ent.ti.com>
-	<87ehzrj60m.fsf@ti.com>
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 25/25] OMAP3: CPUidle: Make use of CPU PM notifiers
+Date: Fri, 09 Sep 2011 09:50:16 +0530
+Message-ID: <4E699400.2070706@ti.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>	<1315144466-9395-26-git-send-email-santosh.shilimkar@ti.com>
+	<87vct2hq79.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87ehzrj60m.fsf@ti.com>
-Content-Language: en-US
+In-Reply-To: <87vct2hq79.fsf@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,124 +18,81 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hilman, Kevin wrote on Thursday, September 08, 2011 11:01 PM:
-
-> "Pedanekar, Hemant" <hemantp@ti.com> writes:
-> 
->> Hilman, Kevin wrote on Tuesday, August 30, 2011 6:03 AM:
->> 
->>> Hemant Pedanekar <hemantp@ti.com> writes:
->>> 
->>>> This patch adds minimum required hwmod data (e.g., UARTs) for bootup of
->>>> TI81XX devices (currently common data for TI816X and TI814X is added).
->>>> 
->>>> Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
->>> 
->>> I haven't looked at the details yet, but just tried to boot this using
->>> current mainline and it fails.
->>> 
->>> My first guess is that it appears to be related to a missing clkdm for
->>> the MPU hwmod. 
->>> 
->>> Kevin
->> 
->> Thanks for the feedback.
->> 
->> I think that the issue is bacause clk_get() on fck_source is failing
->> as TI816X clock data had different clock source names compared to
->> OMAP3 (e.g., osc_sys_ck instead of sys_ck). I will update this in next
->> version.
-> 
-> Actually, I realized also that ti816x doesn't boot on current
-> l-o master
-> branch, even without this series.
-> 
->> Even after this, the kernel would get stuck at "Calibrating delay loop..."
->> because a few timer register offsets on TI81XX are different than
->> OMAP3.
-> 
-> At least with my tests, it's getting past that and failing here:
-> 
-> [...]
-> [    0.000000] NR_IRQS:410
-> 
-> [    0.000000] IRQ: Found an INTC at 0xfa200000 (revision
-> 5.0) with 128 interrup
-> ts
-> 
-> [    0.000000] Total of 128 interrupts on 1 active controller
-> 
-> [    0.000000] omap_hwmod: timer1: cannot setup_one: MPU
-> initiator hwmod mpu not
->  yet registered
+On Thursday 08 September 2011 11:27 PM, Kevin Hilman wrote:
+> Hi Santosh,
 >
-> 
-> The reason seems to be that no hwmods are getting registered at all.
-
-Kevin,
-By any chance, is patch 6 of this series is not applied in your case?
-
-With all patches in this series applied, I get to following:
-
-[    0.000000] Total of 128 interrupts on 1 active controller
-[    0.000000] omap_hwmod: mpu: no clkdm_name
-[    0.000000] omap_hwmod: mpu: cannot _init_clocks
-[    0.000000] ------------[ cut here ]------------
-[    0.000000] WARNING: at arch/arm/mach-omap2/omap_hwmod.c:2031 omap_hwmod_setup_one+0x100/0x14c()
-[...]
-[    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
-
-The above crash can be fixed by fixing the correct timer clock source
-(match name with OMAP3 OSC source):
-
-diff --git a/arch/arm/mach-omap2/clock816x_data.c b/arch/arm/mach-omap2/clock816x_data.c
-index 496c205..434837f 100644
---- a/arch/arm/mach-omap2/clock816x_data.c
-+++ b/arch/arm/mach-omap2/clock816x_data.c
-@@ -40,7 +40,7 @@ static struct clk tclkin_ck = {
- };
-
- static struct clk osc_sys_ck = {
--       .name           = "osc_sys_ck",
-+       .name           = "sys_ck",
-        .ops            = &clkops_null,
-        .rate           = 27000000,
- };
-@@ -994,7 +994,7 @@ static struct clk mcasp2_fck = {
- static struct omap_clk ti816x_clks[] = {
-        CLK(NULL,               "sys_32k_ck",           &sys_32k_ck,            CK_TI816X),
-        CLK(NULL,               "tclkin_ck",            &tclkin_ck,             CK_TI816X),
--       CLK(NULL,               "osc_sys_ck",           &osc_sys_ck,            CK_TI816X),
-+       CLK(NULL,               "sys_ck",               &osc_sys_ck,            CK_TI816X),
-        CLK(NULL,               "main_pll_clk1_ck",     &main_pll_clk1_ck,      CK_TI816X),
-        CLK(NULL,               "sysclk1_ck",           &sysclk1_ck,            CK_TI816X),
-        CLK(NULL,               "dsp_ick",              &dsp_ick,               CK_TI816X),
-
-Now, the boot should reach till "Calibrating delay loop". There will still
-be WARNING messages due to absence of MPU clkdm as you mentioned (will fix
-in next version), the the hang would be because timer offsets being
-different.
-
-(Please note that CONFIG_OMAP_32K_TIMER needs to be disabled)
-> 
->> I see there are some patches floating on ML which add reg_map array
->> (similar to i2c driver) but seems they have not (yet) been
->> accepted. Any chance that this will get added to kernel?
-> 
-> I'm not sure.  Which series are you referring to?
+> Santosh Shilimkar<santosh.shilimkar@ti.com>  writes:
 >
-I was referring to following:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35182.html
+>> These notifiers can be used to isolate non-cpu specific PM
+>> code from CPU idle code.
+>>
+>> To start with, we can already leverage VFP handlers using notifier
+>> chain for low power idle code. So use them.
+>>
+>> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>> Cc: Kevin Hilman<khilman@ti.com>
+>
+> A comment below related to our other discussion in the CPU PM notifiers
+> thread...
+>
+After the discussion, this patch needs to be updated.
 
-E.g., on TI81XX, counter register is @0x3c instead of 0x28 offset.
- 
-> Kevin
+>> ---
+>>   arch/arm/mach-omap2/cpuidle34xx.c |    7 +++++++
+>>   1 files changed, 7 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+>> index 4bf6e6e..1112519 100644
+>> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+>> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+>> @@ -24,6 +24,7 @@
+>>
+>>   #include<linux/sched.h>
+>>   #include<linux/cpuidle.h>
+>> +#include<linux/cpu_pm.h>
+>>
+>>   #include<plat/prcm.h>
+>>   #include<plat/irqs.h>
+>> @@ -118,9 +119,15 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+>>   		pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
+>>   	}
+>>
+>> +	if (mpu_state == PWRDM_POWER_OFF)
+>> +		cpu_pm_enter();
+>
+> Making all CPU PM notifiers conditional on the MPU power state is not
+> right since upon an MPU transition, other domains might also transition.
+>
+> What if there are notifiers for other drivers in other power domains
+> whose states might be transitioning?  Notifiers for those devices should
+> be called no matter what the MPU's target state is.
+>
+> Also triggering the notifiers here has the same problem that I mentioned
+> with the syscore PM ops.  Namely, that next power states are not yet
+> determined, so any device notifier decisions based on that will be wrong.
+>
+> The way I envision this working is (at least on OMAP) is CPU PM
+> notifiers are triggered only *after* the next power states are
+> determined and programmed.  This allows the device-specific notifiers to
+> check their target power state and take appropriate action.
+>
+> I've been testing the CPU PM notifiers with the patch below (after also
+> dropping [PATCH 2/5] from your the CPU PM notifiers series.)  This patch works
+> for both suspend and idle by using the code common to them, and
+> triggering the event only after the target states are programmed.
+>
+> I'm testing this patch now along with the 2nd patch below which removes
+> all the UART calls from the idle/suspend path and just adds a notifier
+> in the UART driver.
+>
+> Will post these officially after a bit more testing, but so far it's
+> working on OMAP2420/n810 and OMAP3430/n900.
+>
+Agree. I will drop my patch in favour of below patch.
 
-
-Thanks.
-
-   Hemant
+Regards
+Santosh
