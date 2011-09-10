@@ -1,98 +1,42 @@
-From: Shawn Guo <shawn.guo@freescale.com>
-Subject: Re: [PATCH 00/11] Add L2 cache cleaning to generic CPU suspend
-Date: Sun, 11 Sep 2011 00:10:04 +0800
-Message-ID: <20110910161002.GA462@S2100-06.ap.freescale.net>
-References: <20110901124752.GE29729@n2100.arm.linux.org.uk>
- <20110901153342.GB5147@S2100-06.ap.freescale.net>
- <20110901153451.GA16024@n2100.arm.linux.org.uk>
- <20110901155752.GC5147@S2100-06.ap.freescale.net>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v2] ASoC: omap: convert per-board modules
+	to platform drivers
+Date: Sat, 10 Sep 2011 22:37:15 +0200
+Message-ID: <201109102237.15193.arnd@arndb.de>
+References: <3110288.bQbb0H2ME1@wuerfel>
+	<20110909193010.GA2993@opensource.wolfsonmicro.com>
+	<20110909205645.GA16355@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from va3ehsobe006.messaging.microsoft.com ([216.32.180.16]:6639 "EHLO
-	VA3EHSOBE009.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1759357Ab1IJQBE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 10 Sep 2011 12:01:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20110901155752.GC5147@S2100-06.ap.freescale.net>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20110909205645.GA16355@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: alsa-devel@alsa-project.org, Jassi Brar <jassisinghbrar@gmail.com>, linaro-dev@lists.linaro.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Mans Rullgard <mans.rullgard@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 01, 2011 at 11:57:54PM +0800, Shawn Guo wrote:
-> On Thu, Sep 01, 2011 at 04:34:51PM +0100, Russell King - ARM Linux wrote:
-> > On Thu, Sep 01, 2011 at 11:33:43PM +0800, Shawn Guo wrote:
-> > > This is also the case on i.MX6Q, which L2 cache is retained during a
-> > > suspend/resume cycle.  Currently, I have to call into the following
-> > > before calling generic cpu_suspend() to clean/invalidate the entire
-> > > L2 cache.
-> > > 
-> > > 	outer_flush_all();
-> > > 	outer_disable();
-> > > 
-> > > But there is a wired thing on using generic cpu_resume().  I have to
-> > > invalidate L1 before calling into cpu_resume() like below.
-> > > 
-> > > ENTRY(imx6q_cpu_resume)
-> > >         bl      v7_invalidate_l1
-> > >         b       cpu_resume
-> > > ENDPROC(imx6q_cpu_resume)
-> > > 
-> > > ENTRY(imx6q_secondary_startup)
-> > >         bl      v7_invalidate_l1
-> > >         b       secondary_startup
-> > > ENDPROC(imx6q_secondary_startup)
-> > > 
-> > > The v7_invalidate_l1() is the function copied from mach-tegra/headsmp.S,
-> > > which has to be called before calling secondary_startup to boot
-> > > secondary cores (same situation between Tegra and i.MX6Q).
-> > 
-> > Presumably that's because your L1 cache contains randomized data with
-> > random validity (and presumably random dirtyness) at boot time - something
-> > which unfortunately the ARM ARM permits.  I don't think we can go to the
-> > extent of dealing with this in the generic code as it would unnecessarily
-> > perturb those implementations which either the boot loader has already
-> > sorted out that issue, or which don't have the issue at all.
-> > 
-> Yes, agreed.  It seems that Tegra and i.MX6Q are the only two CA9MP
-> cases here.  But is it possible to maintain this v7_invalidate_l1()
-> function in cache-v7.S, so that we do not need to duplicate it in
-> platform codes?
-> 
-> > > Before applying this patch series, I have something like below actually
-> > > working.
-> > > 
-> > > 
-> > > 	outer_flush_all();
-> > > 	outer_disable();
-> > > 	imx_set_cpu_jump(0, imx6q_cpu_resume);
-> > > 	/* Zzz ... */
-> > > 	cpu_suspend(0, imx6q_suspend_finish);
-> > > 
-> > > I expect with you patches applied, I can still have it work with simply
-> > > removing those two lines outer cache codes.
-> > 
-> > That should be the case.
-> > 
-> > > But unfortunately, I'm
-> > > running into Oops when resuming back.  And I also have Oops with
-> > > imx_set_cpu_jump(0, cpu_resume) which means skipping the
-> > > v7_invalidate_l1() and calling generic cpu_resume() only.
-> > 
-> > Do you have a copy of the oops?
-> > 
-> 
-Hi Russell,
+On Friday 09 September 2011, Russell King - ARM Linux wrote:
+> That's just twisted and utterly insane - adding more code for precisely
+> zero benefit what so ever.  Think about it - the device tree is already
+> creating platform devices for entries in the device tree file.  What's
+> the point of having this special ASoC code look up the platform compatible
+> property in a table of strings to find a different string to manually
+> create a device with.  Why not just add the bloody device to the DT
+> file in the first place?  That's partly what DT is there for - to create
+> platform specific struct devices.
 
-After following your great debugging clue that we need to enable L2
-before calling into generic cpu_resume(), now this patch series works
-great for imx6q.  Thanks a lot, and here is my tag.
+Exactly. No driver or (worse) user program should ever need to look at
+the top-level compatible property. When you want information about a
+localized part of the system (e.g. the ASoC components), you should
+look up the information for that component.
 
-Tested-by: Shawn Guo <shawn.guo@linaro.org>
-
--- 
-Regards,
-Shawn
-
+	Arnd
