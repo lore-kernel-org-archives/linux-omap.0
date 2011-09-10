@@ -1,76 +1,36 @@
-From: Shawn Guo <shawn.guo@freescale.com>
-Subject: Re: [PATCH 14/25] OMAP4: PM: Add CPUX OFF mode support
-Date: Sat, 10 Sep 2011 07:34:49 +0800
-Message-ID: <20110909233448.GH32138@S2100-06.ap.freescale.net>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
- <1315144466-9395-15-git-send-email-santosh.shilimkar@ti.com>
- <20110909080416.GF31581@S2100-06.ap.freescale.net>
- <4E69C9CF.6090709@ti.com>
- <20110909141321.GC32138@S2100-06.ap.freescale.net>
- <CAMQu2gxeDzFGyhsXK-wDkyiJRoD6_GN58m=3_=NC8yKa_ThJnQ@mail.gmail.com>
- <20110909152729.GG32138@S2100-06.ap.freescale.net>
- <4E6A4605.3050305@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v6 00/25] gpio/omap: driver cleanup and fixes
+Date: Sat, 10 Sep 2011 06:24:53 +0530
+Message-ID: <CAC83ZvLN1ucD6R11ga3x7caaPgnEjYPYTehE7xfPf59XSjKYpQ@mail.gmail.com>
+References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
+	<87ty8pz384.fsf@ti.com>
+	<CAC83ZvKoSsGNMDoHNeCOZXk9mOZxcKjT_vMjnXGQn6F52YNDKg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from tx2ehsobe004.messaging.microsoft.com ([65.55.88.14]:20595 "EHLO
-	TX2EHSOBE008.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148Ab1IIX1r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Sep 2011 19:27:47 -0400
-Content-Disposition: inline
-In-Reply-To: <4E6A4605.3050305@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAC83ZvKoSsGNMDoHNeCOZXk9mOZxcKjT_vMjnXGQn6F52YNDKg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh <santosh.shilimkar@ti.com>
-Cc: khilman@ti.com, Dave Martin <dave.martin@linaro.org>, linux@arm.linux.org.uk, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Sep 09, 2011 at 10:29:49PM +0530, Santosh wrote:
-> On Friday 09 September 2011 08:57 PM, Shawn Guo wrote:
-> >On Fri, Sep 09, 2011 at 07:41:08PM +0530, Shilimkar, Santosh wrote:
-> >>On Fri, Sep 9, 2011 at 7:43 PM, Shawn Guo<shawn.guo@freescale.com>  wrote:
-> >>>On Fri, Sep 09, 2011 at 01:39:51PM +0530, Santosh wrote:
-> >>>>On Friday 09 September 2011 01:34 PM, Shawn Guo wrote:
-> >>>>>Hi Santosh,
-> 
-> [...]
-> 
-> >>#ifdef CONFIG_CACHE_L2X0
-> >>	/*
-> >>	 * Clean and invalidate the L2 cache.
-> >>	 * Common cache-l2x0.c functions can't be used here since it
-> >>	 * uses spinlocks. We are out of coherency here with data cache
-> >>	 * disabled. The spinlock implementation uses exclusive load/store
-> >>	 * instruction which can fail without data cache being enabled.
-> >>	 * OMAP4 hardware doesn't support exclusive monitor which can
-> >>	 * overcome exclusive access issue. Because of this, CPU can
-> >>	 * lead to deadlock.
-> >>	 */
-> >>l2x_clean_inv:
-> >>	bl	omap4_get_sar_ram_base
-> >>	mov	r8, r0
-> >>	mrc	p15, 0, r5, c0, c0, 5		@ Read MPIDR
-> >>	ands	r5, r5, #0x0f
-> >>	ldreq	r0, [r8, #L2X0_SAVE_OFFSET0]
-> >>	ldrne	r0, [r8, #L2X0_SAVE_OFFSET1]
-> >>	cmp	r0, #3
-> >>	bne	do_WFI
-> >
-> >It looks like you are bypassing L2 clean and invalidate for cases
-> >"1" and "2" here.  But I really do not understand how you get r0
-> >back here.
-> >
-> The value which is passed in R0 is also stored in scratch patch memory
-> and retrieved using L2X0_SAVE_OFFSET0.
-> Simple :)
-> 
-Aha, no wonder that I read it wrongly.  The parameter passing in r0
-is here simply for confusing people.
-
-Also, IMO, lable "l2x_clean_inv" should be put after the "bne do_WFI".
-Otherwise, my original statement (it seems l2x_clean_inv will be
-called for case "2") stands correct :)
-
--- 
-Regards,
-Shawn
-
+[...]
+>> Please rebase onto that branch so these changes can be tested along with
+>> changes already queued for v3.2.
+> Ok.
+I am not able to git pull
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+Looks like there is problem with git.kernel.org?
+--
+Tarun
+>
+[...]
