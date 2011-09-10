@@ -1,47 +1,45 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL v3] OMAP: clock/powerdomain/clockdomain/hwmod: fixes for 3.1-rc
-Date: Sat, 10 Sep 2011 23:16:57 +0200
-Message-ID: <201109102316.57287.arnd@arndb.de>
-References: <alpine.DEB.2.00.1108222319310.28226@utopia.booyaka.com> <201109081717.23139.arnd@arndb.de> <alpine.LFD.2.00.1109081348150.20358@xanadu.home>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2] ASoC: omap: convert per-board modules
+	to platform	drivers
+Date: Sat, 10 Sep 2011 22:43:44 +0100
+Message-ID: <20110910214343.GB21361@opensource.wolfsonmicro.com>
+References: <3110288.bQbb0H2ME1@wuerfel>
+	<20110909193010.GA2993@opensource.wolfsonmicro.com>
+	<20110909205645.GA16355@n2100.arm.linux.org.uk>
+	<201109102237.15193.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:49541 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934084Ab1IJVRE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Sep 2011 17:17:04 -0400
-In-Reply-To: <alpine.LFD.2.00.1109081348150.20358@xanadu.home>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <201109102237.15193.arnd@arndb.de>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: alsa-devel@alsa-project.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, Mans Rullgard <mans.rullgard@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Takashi Iwai <tiwai@suse.de>, linaro-dev@lists.linaro.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, rnayak@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 08 September 2011, Nicolas Pitre wrote:
-> On Thu, 8 Sep 2011, Arnd Bergmann wrote:
-> 
-> > On Tuesday 06 September 2011, Russell King - ARM Linux wrote:
-> > > On Tue, Sep 06, 2011 at 04:29:14AM -0700, Tony Lindgren wrote:
-> > > > Arnd,
-> > > > 
-> > > > Care to pull the following fixes to the -rc series from Paul?
-> > > 
-> > > Tony,
-> > > 
-> > > I don't think that will happen until master.kernel.org is back online
-> > > as the tree was hosted on that machine.
-> > 
-> > Right. I have a number of pull requests lined up. While I did consider
-> > starting a new tree on git.linaro.org to handle the time until then,
-> > I'm still hoping for hera to get back online at some point, and linux-next
-> > is equally disabled for now.
-> 
-> I think that putting the tree on git.linaro.org would be a good thing to 
-> do as an intermediate measure.
+On Sat, Sep 10, 2011 at 10:37:15PM +0200, Arnd Bergmann wrote:
+> On Friday 09 September 2011, Russell King - ARM Linux wrote:
 
-Ok, pulled into the fixes branch.
+> > That's just twisted and utterly insane - adding more code for precisely
+> > zero benefit what so ever.  Think about it - the device tree is already
+> > creating platform devices for entries in the device tree file.  What's
 
-Thanks everyone,
+> Exactly. No driver or (worse) user program should ever need to look at
+> the top-level compatible property. When you want information about a
+> localized part of the system (e.g. the ASoC components), you should
+> look up the information for that component.
 
-	Arnd
+Right, and this is the state of the art right now.  I can see why people
+find this inelegant and want to come up with a way of automatically
+generating all these different devices to describe boards especially
+with the non-device tree systems, though, so if people want to work on
+that stuff I don't see a problem with it.
