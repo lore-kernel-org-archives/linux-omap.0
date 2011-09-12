@@ -1,98 +1,56 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v4 10/11] OMAP: Serial: Allow UART parameters to be
- configured from board file.
-Date: Mon, 12 Sep 2011 12:04:41 +0530
-Message-ID: <CAAL8m4x6uNKu9tTxj8L4HkrsFhigJ_mxOg+NMGcAk__aCg8VZA@mail.gmail.com>
-References: <1315400013-4849-1-git-send-email-govindraj.raja@ti.com>
- <1315400013-4849-11-git-send-email-govindraj.raja@ti.com> <87zkidtttm.fsf@ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] arm: omap: usb: enable I/O wakeups of ehci and ohci
+ hwmods of omap4
+Date: Mon, 12 Sep 2011 12:06:31 +0530
+Message-ID: <CAP05o4+L=RtVr_653WRukwBtQX+8KyBNStmRjg7sk4tEoNY77w@mail.gmail.com>
+References: <1315579967-24945-1-git-send-email-keshava_mgowda@ti.com>
+	<1315579967-24945-2-git-send-email-keshava_mgowda@ti.com>
+	<87mxedwoyu.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87zkidtttm.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Deepak K <deepak.k@ti.com>, Partha Basak <p-basak2@ti.com>, Jon Hunter <jon-hunter@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87mxedwoyu.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org, Kishon Vijay Abraham <kishon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Sep 10, 2011 at 12:41 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
+On Fri, Sep 9, 2011 at 11:57 PM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
+> Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
 >
->> The following UART parameters are defined within the UART driver:
+>> From: Kishon Vijay Abraham <kishon-l0cyMroinI0@public.gmane.org>
 >>
->> 1). Whether the UART uses DMA (dma_enabled), by default set to 0
->> 2). The size of dma buffer (set to 4096 bytes)
->> 3). The time after which the dma should stop if no more data is rece=
-ived.
->> 4). The auto suspend delay that will be passed for pm_runtime_autosu=
-spend
->> =A0 =A0 where uart will be disabled after timeout
+>> For ehci and ohci hwmods, the omap4 I/O wakeup capablity is enabled.
+>> for ehci in phy mode,
+>> =A0 =A0 =A0 - the DAT0 and DIR I/O pad is set as wakeup capable
+>> for ohci in serial mode
+>> =A0 =A0 =A0 - usbb*_mm_rxdp is set as I/O wakeup for 6 pin serial mo=
+de
+>> =A0 =A0 =A0 - usbb*_mm_rxrcv is set as I/O wakeup for 4 pin serial m=
+ode
+>> =A0 =A0 =A0 - usbb*_mm_txen is set as I/O wakeup for 3 pin serial mo=
+de
+>> =A0 =A0 =A0 - usbb*_mm_txdat is set as I/O wakeup for 2 pin serial m=
+ode
 >>
->> Different UARTs may be used for different purpose such as the consol=
-e,
->> for interfacing bluetooth chip, for interfacing to a modem chip, etc=
-=2E
->> Therefore, it is necessary to be able to customize the above setting=
-s
->> for a given board on a per UART basis.
->>
->> This change allows these parameters to be configured from the board =
-file
->> and allows the parameters to be configured for each UART independent=
-ly.
->>
->> If a board does not define its own custom parameters for the UARTs, =
-then
->> use the default parameters in the structure "omap_serial_default_inf=
-o".
->> The default parameters are defined to be the same as the current set=
-tings
->> in the UART driver to avoid breaking the UART for any board. By defa=
-ult,
->> make all boards use the default UART parameters.
->>
->> Signed-off-by: Deepak K <deepak.k@ti.com>
->> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>> Signed-off-by: Kishon Vijay Abraham <kishon-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 >
-> Who is the author of this patch? =A0The first version says Jon[1], v2=
- says
-> Deepak[2]. =A0Either way, please ensure proper authorship is attribut=
-ed
-> using From: at the beginning of the changelog. =A0(git-format-patch w=
-ill
-> do this for you when the authorship is correct in the git history.)
+> What if the end user doesn't want this device to be a wakeup source?
 >
-> Even better would be to summarize the changes since the first version
-> after the '---' so it would be clearer why the authorship was changed=
-=2E
+> Currently, the IO pad wakeup for these pins is enabled unconditionall=
+y.
+> While having it enabled as a wakeup source by default is fine, it sho=
+uld
+> not generate wakeups if the user has disable them by doing:
 >
-> Only 1/3 of my comments from v3 were addressed in this version. =A0Pl=
-ease
-> re-read my comments there[3].
->
+> =A0 =A0$ echo disabled > /sys/devices/.../power/wakeup
 
-Will fix this and repost.
+OK, I will do this.
 
+keshava
 --
-Thanks,
-Govindraj.R
-
-
-> Kevin
->
->
-> [1] http://marc.info/?l=3Dlinux-omap&m=3D129890257812478&w=3D2
-> [2] http://marc.info/?l=3Dlinux-omap&m=3D130408096416887&w=3D2
-> [3] http://marc.info/?l=3Dlinux-omap&m=3D130896078622810&w=3D2
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
