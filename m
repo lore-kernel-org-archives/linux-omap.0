@@ -1,32 +1,53 @@
-From: Per Forlin <per.forlin@linaro.org>
-Subject: Re: [PATCH 1/2] omap: hsmmc: Normalize dma cleanup operations
-Date: Mon, 12 Sep 2011 21:56:52 +0200
-Message-ID: <CAJ0pr18PtGWga7n8nm1xs-=wtRjMu=X_wZONAOAgeaLamtEJjg@mail.gmail.com>
-References: <y>
-	<1314903957-24408-2-git-send-email-svenkatr@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 14/25] OMAP4: PM: Add CPUX OFF mode support
+Date: Mon, 12 Sep 2011 14:06:55 -0700
+Message-ID: <87y5xteahc.fsf@ti.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+	<1315144466-9395-15-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:65452 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753792Ab1ILT4x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Sep 2011 15:56:53 -0400
-In-Reply-To: <1314903957-24408-2-git-send-email-svenkatr@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1315144466-9395-15-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Sun, 4 Sep 2011 19:24:15 +0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>, Kishore Kadiyala <kishorek.kadiyala@gmail.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org
 
-On 1 September 2011 21:05, Venkatraman S <svenkatr@ti.com> wrote:
-> Reuse omap_hsmmc_dma_cleanup even for normal dma teardown in
-> omap_hsmmc_dma_cb. Consolidate multiple points of dma unmap into a
-> single location in post_req function, to prevent double unmapping.
-It's optional to use pre_req() and post_req(). The SDIO framework
-doesn't utilise these hooks. For instance this wont work together with
-SDIO-wlan on the pandaboard.
-If pre_req() has been issued it's fine to defer dma_unmap() until
-post_req(). If pre_req() is not called the driver should call
-dma_unmap() directly.
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-Regards,
-Per
+> This patch adds the CPU0 and CPU1 off mode support. CPUX close switch
+> retention (CSWR) is not supported by hardware design.
+>
+> The CPUx OFF mode isn't supported on OMAP4430 ES1.0
+>
+> CPUx sleep code is common for hotplug, suspend and CPUilde.
+>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+
+[...]
+
+> @@ -38,6 +39,11 @@ void __iomem *omap4_get_scu_base(void)
+>  
+>  void __cpuinit platform_secondary_init(unsigned int cpu)
+>  {
+> +	/* Enable NS access to SMP bit for this CPU on EMU/HS devices */
+> +	if (cpu_is_omap443x() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
+
+A comment here about why this is 443x specific would be helpful.
+
+I see a comment in omap4_cpu_resume() that seems to indicate that SMP
+bit is accessible on 446x NS devices, but repeating that commen here
+would help future readability.
+
+Kevin
