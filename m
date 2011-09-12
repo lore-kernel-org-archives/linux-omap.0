@@ -1,41 +1,55 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v6 00/25] gpio/omap: driver cleanup and fixes
-Date: Mon, 12 Sep 2011 09:39:33 -0700
-Message-ID: <87r53lk94q.fsf@ti.com>
-References: <1314798161-19523-1-git-send-email-tarun.kanti@ti.com>
-	<87ty8pz384.fsf@ti.com>
-	<CAC83ZvKoSsGNMDoHNeCOZXk9mOZxcKjT_vMjnXGQn6F52YNDKg@mail.gmail.com>
-	<CAC83ZvLN1ucD6R11ga3x7caaPgnEjYPYTehE7xfPf59XSjKYpQ@mail.gmail.com>
+From: Rob Clark <robdclark@gmail.com>
+Subject: Re: [PATCHv2 09/15] OMAP: DSS2: HDMI: implement detect()
+Date: Mon, 12 Sep 2011 11:46:50 -0500
+Message-ID: <CAF6AEGuhjZgH9zFuigjfvHGM9r7jSLY2TTCD0LjZbT+Ubrb12A@mail.gmail.com>
+References: <1315818818-18733-1-git-send-email-tomi.valkeinen@ti.com>
+	<1315818818-18733-10-git-send-email-tomi.valkeinen@ti.com>
+	<CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:38394 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751560Ab1ILQjj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Sep 2011 12:39:39 -0400
-Received: by mail-gx0-f173.google.com with SMTP id 26so4484307gxk.4
-        for <linux-omap@vger.kernel.org>; Mon, 12 Sep 2011 09:39:38 -0700 (PDT)
-In-Reply-To: <CAC83ZvLN1ucD6R11ga3x7caaPgnEjYPYTehE7xfPf59XSjKYpQ@mail.gmail.com>
-	(Tarun Kanti DebBarma's message of "Sat, 10 Sep 2011 06:24:53 +0530")
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:44125 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751333Ab1ILQqw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Sep 2011 12:46:52 -0400
+In-Reply-To: <CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
-"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+On Mon, Sep 12, 2011 at 8:24 AM, K, Mythri P <mythripk@ti.com> wrote:
+>> +bool ti_hdmi_4xxx_detect(struct hdmi_ip_data *ip_data)
+>> +{
+>> + =A0 =A0 =A0 int r;
+>> +
+>> + =A0 =A0 =A0 void __iomem *base =3D hdmi_core_sys_base(ip_data);
+>> +
+>> + =A0 =A0 =A0 /* HPD */
+>> + =A0 =A0 =A0 r =3D REG_GET(base, HDMI_CORE_SYS_SYS_STAT, 1, 1);
+>> +
+>> + =A0 =A0 =A0 return r =3D=3D 1;
+>> +}
+>> +
+> For HPD the probe should also be on the core interrupt first , and th=
+e
+> detect should be dynamic, ie based on the cable connect and disconnec=
+t
+> event.So this approach for HPD is not really the way.
+> Also that should be based on the GPIO(63) , I am planning to push a
+> patch on that shortly.
 
-> [...]
->>> Please rebase onto that branch so these changes can be tested along with
->>> changes already queued for v3.2.
->> Ok.
-> I am not able to git pull
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-> Looks like there is problem with git.kernel.org?
 
-Until the kernel.org infrastructure has recovered, you can use my backup
-tree from gitorious[1].  The for_3.2/gpio-cleanup branch is available there.
+=46wiw, we do still need a dssdrv->detect() function from omapdrm
+driver..  if there is another way to implement that function, such as
+with a GPIO, that is great.  But somehow or another we need the detect
+function.  The implementation can always change later.
 
-Kevin
-
-[1] git://gitorious.org/khilman/linux-omap-pm.git
+BR,
+-R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
