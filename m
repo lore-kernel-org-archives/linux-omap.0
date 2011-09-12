@@ -1,54 +1,87 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH 06/10] hwspinlock: OMAP4: Add spinlock support in DT
-Date: Mon, 12 Sep 2011 16:32:42 +0200
-Message-ID: <201109121632.42688.arnd@arndb.de>
-References: <1314191356-10963-1-git-send-email-b-cousson@ti.com>
-	<201109091458.44153.arnd@arndb.de>
-	<CAK=WgbYTo=R1=KhMzLv0iw2qYBPXXyLtB43Z4wvN5p-EvLL9Xw@mail.gmail.com>
+From: Trond Myklebust <Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: RE: Regression seen when HIGHMEM enabled with NFS on 3.1rc4 kernel
+Date: Mon, 12 Sep 2011 10:41:49 -0400
+Message-ID: <1315838509.12736.4.camel@lade.trondhjem.org>
+References: <CAJ7qFSeB8bAGdYfZs-LFHuYqGWNA2RidY0EBEFw_1CndvG7q5A@mail.gmail.com>
+	 <1315594317.17611.25.camel@lade.trondhjem.org>
+	 <dbdc7c3761a82e0b84f2f49c533c07a5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAK=WgbYTo=R1=KhMzLv0iw2qYBPXXyLtB43Z4wvN5p-EvLL9Xw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Mathieu Poirier <mathieu.poirier@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "G,
-	Manjunath Kondaiah" <manjugk@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <dbdc7c3761a82e0b84f2f49c533c07a5-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sunday 11 September 2011, Ohad Ben-Cohen wrote:
-> > but instead the controller should have a list of the available
-> > spinlocks.
+On Mon, 2011-09-12 at 11:46 +0530, Sricharan R wrote: 
+> Hi Trond,
+> [....]
 > 
-> Might make more sense to give it the list of reserved (i.e. those that
-> were statically allocated) spinlocks, and then let it treat the rest
-> as available.
-
-Fair enough. Whatever you expect to be a shorter list, I guess.
-
-> hwspinlock drivers will tell the core which of their spinlocks are
-> reserved, so it can make sure not to allocate them when someone calls
-> hwspin_lock_request(). To use those reserved spinlocks, users will
-> explicitly have to call hwspin_lock_request_specific().
+> >>          1) In the above piece of code, the *ppage value from ops-
+> >>sendpage
+> >>             function is finally passed on to Kmap by the lower level
+> code
+> >to
+> >>             get the virtual address of the page.
+> >>          2) In some corner cases the value of *ppage pointer is NULL.
+> >>          3) When highmem is enabled and a NULL pointer is passed to
+> >>             Kmap, then kmap finally crashes. But in the case when
+> highmem
+> >>             is disabled, then kmap returns a junk value for NULL
+> pointer.
+> >>
+> >>             Highmem Enabled , kmap( NULL )-----> kernel crashes.
+> >>
+> >>            Highmem disabled, kmap( NULL )-----> junk value is returned.
+> >>                Subsequently this message is observed on
+> >>                                                 the console.
+> >>
+> >>                                 "RPC call returned error 14"
+> >>
+> >>          4) Now the question is why is the value of *ppage = NULL is
+> >passed
+> >>             from the above piece of code to lower layers.
+> >>            Should that not have handled *ppage = NULL? and kmap should
+> >not
+> >>             have received a NULL pointer?
+> >
+> >I wouldn't expect *ppage to be NULL under any circumstances, so I'm
+> >really curious as to what is happening here.
+> >
+> >Could you perhaps add a printk() to that section of code to print out
+> >the values of 'xdr->page_base', 'xdr->page_len', 'len' and 'remainder'
+> >in the case where *ppage == NULL?
+> >
 > 
-> The controller's node should still have something like a "baseid"
-> attribute, and possibly also the number of available spinlocks. The
-> latter is a bit redundant though, as drivers already know how many
-> spinlocks are available (at least the OMAP driver reads it from an
-> hardware register. The U8500 one seem just to have it hardcoded in the
-> driver).
 > 
-> Vast majority of hwspinlocks are not statically allocated, so this
-> would keep the DT minimal, and IMHO, cleaner.
+> Thanks for the response.
+> I added a printk just before err = sock->ops->sendpage(sock, *ppage, base,
+> len, flags);
+> So here are values when *ppage is NULL.
+> 
+> xdr->page_base= 0xCE9  xdr->page_len=0x400 len=0xE9 remainder=0x0.
+> 
+> Thanks,
+>  Sricharan
 
-Ok.
+Can you please tell me what the mount options are for this setup?
 
-	Arnd
+Are you running any applications that might be using O_DIRECT writes?
+
+Cheers
+  Trond
+
+-- 
+Trond Myklebust
+Linux NFS client maintainer
+
+NetApp
+Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+www.netapp.com
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
