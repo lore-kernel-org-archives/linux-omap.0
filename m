@@ -1,113 +1,94 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv2 7/8] OMAP: DSS2: DISPC: improve dispc_mgr_enable_digit_out()
-Date: Mon, 12 Sep 2011 12:12:52 +0300
-Message-ID: <1315818773-18660-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv2 3/8] OMAP: DSS2: HDMI: change regn definition
+Date: Mon, 12 Sep 2011 12:12:48 +0300
+Message-ID: <1315818773-18660-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1315818773-18660-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:36587 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753204Ab1ILJNY (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:41321 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752082Ab1ILJNP (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Sep 2011 05:13:24 -0400
+	Mon, 12 Sep 2011 05:13:15 -0400
 In-Reply-To: <1315818773-18660-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Mythri P K <mythripk@ti.com>
 
-dispc_mgr_enable_digit_out() didn't handle HDMI case very well.
+regn divider is currently programmed to the registers without change,
+but when calculating clock frequencies it is used as regn+1.
 
-Improve the function to use FRAMEDONETV interrupt to see when HDMI has
-been disabled.
+To make this similar to how DSI handles the dividers this patch changes
+the regn value to be used as such for calculations, but the value
+programmed to registers is regn-1.
+
+This simplifies the clock frequency calculations, makes it similar to
+DSI, and also allows us to use regn value 0 as undefined.
 
 Cc: Mythri P K <mythripk@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   49 +++++++++++++++++++++++----------------
- 1 files changed, 29 insertions(+), 20 deletions(-)
+ drivers/video/omap2/dss/hdmi.c            |    6 +++---
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    2 +-
+ include/video/omapdss.h                   |    1 +
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 4e9f87f..38d6595 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1924,11 +1924,16 @@ static void _enable_digit_out(bool enable)
- static void dispc_mgr_enable_digit_out(bool enable)
- {
- 	struct completion frame_done_completion;
--	int r;
-+	enum dss_hdmi_venc_clk_source_select src;
-+	int r, i;
-+	u32 irq_mask;
-+	int num_irqs;
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 52731b5..4752137 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -60,7 +60,7 @@
  
- 	if (REG_GET(DISPC_CONTROL, 1, 1) == enable)
- 		return;
+ #define OMAP_HDMI_TIMINGS_NB			34
  
-+	src = dss_get_hdmi_venc_clk_source();
-+
- 	if (enable) {
- 		unsigned long flags;
- 		/* When we enable digit output, we'll get an extra digit
-@@ -1945,36 +1950,40 @@ static void dispc_mgr_enable_digit_out(bool enable)
- 	 * wait for the extra sync losts */
- 	init_completion(&frame_done_completion);
+-#define HDMI_DEFAULT_REGN 15
++#define HDMI_DEFAULT_REGN 16
+ #define HDMI_DEFAULT_REGM2 1
  
-+	if (src == DSS_HDMI_M_PCLK && enable == false) {
-+		irq_mask = DISPC_IRQ_FRAMEDONETV;
-+		num_irqs = 1;
-+	} else {
-+		irq_mask = DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD;
-+		/* XXX I understand from TRM that we should only wait for the
-+		 * current field to complete. But it seems we have to wait for
-+		 * both fields */
-+		num_irqs = 2;
-+	}
-+
- 	r = omap_dispc_register_isr(dispc_disable_isr, &frame_done_completion,
--			DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD);
-+			irq_mask);
- 	if (r)
--		DSSERR("failed to register EVSYNC isr\n");
-+		DSSERR("failed to register %x isr\n", irq_mask);
+ static struct {
+@@ -426,7 +426,7 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
+ 	else
+ 		pi->regn = dssdev->clocks.hdmi.regn;
  
- 	_enable_digit_out(enable);
+-	refclk = clkin / (pi->regn + 1);
++	refclk = clkin / pi->regn;
  
--	/* XXX I understand from TRM that we should only wait for the
--	 * current field to complete. But it seems we have to wait
--	 * for both fields */
--	if (!wait_for_completion_timeout(&frame_done_completion,
--				msecs_to_jiffies(100)))
--		DSSERR("timeout waiting for EVSYNC\n");
--
--	if (!wait_for_completion_timeout(&frame_done_completion,
--				msecs_to_jiffies(100)))
--		DSSERR("timeout waiting for EVSYNC\n");
-+	for (i = 0; i < num_irqs; ++i) {
-+		if (!wait_for_completion_timeout(&frame_done_completion,
-+					msecs_to_jiffies(100)))
-+			DSSERR("timeout waiting for digit out to %s\n",
-+					enable ? "start" : "stop");
-+	}
+ 	/*
+ 	 * multiplier is pixel_clk/ref_clk
+@@ -452,7 +452,7 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
+ 	 * is greater than 1000MHz
+ 	 */
+ 	pi->dcofreq = phy > 1000 * 100;
+-	pi->regsd = ((pi->regm * clkin / 10) / ((pi->regn + 1) * 250) + 5) / 10;
++	pi->regsd = ((pi->regm * clkin / 10) / (pi->regn * 250) + 5) / 10;
  
--	r = omap_dispc_unregister_isr(dispc_disable_isr,
--			&frame_done_completion,
--			DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD);
-+	r = omap_dispc_unregister_isr(dispc_disable_isr, &frame_done_completion,
-+			irq_mask);
- 	if (r)
--		DSSERR("failed to unregister EVSYNC isr\n");
-+		DSSERR("failed to unregister %x isr\n", irq_mask);
+ 	/* Set the reference clock to sysclk reference */
+ 	pi->refsel = HDMI_REFSEL_SYSCLK;
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index cb3a2d6..403c662 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -92,7 +92,7 @@ static int hdmi_pll_init(struct hdmi_ip_data *ip_data)
  
- 	if (enable) {
- 		unsigned long flags;
- 		spin_lock_irqsave(&dispc.irq_lock, flags);
--		dispc.irq_error_mask = DISPC_IRQ_MASK_ERROR;
--		if (dss_has_feature(FEAT_MGR_LCD2))
--			dispc.irq_error_mask |= DISPC_IRQ_SYNC_LOST2;
-+		dispc.irq_error_mask |= DISPC_IRQ_SYNC_LOST_DIGIT;
- 		dispc_write_reg(DISPC_IRQSTATUS, DISPC_IRQ_SYNC_LOST_DIGIT);
- 		_omap_dispc_set_irqs();
- 		spin_unlock_irqrestore(&dispc.irq_lock, flags);
+ 	r = hdmi_read_reg(pll_base, PLLCTRL_CFG1);
+ 	r = FLD_MOD(r, fmt->regm, 20, 9); /* CFG1_PLL_REGM */
+-	r = FLD_MOD(r, fmt->regn, 8, 1);  /* CFG1_PLL_REGN */
++	r = FLD_MOD(r, fmt->regn - 1, 8, 1);  /* CFG1_PLL_REGN */
+ 
+ 	hdmi_write_reg(pll_base, PLLCTRL_CFG1, r);
+ 
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index c462ed0..528cf79 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -513,6 +513,7 @@ struct omap_dss_device {
+ 		} dsi;
+ 
+ 		struct {
++			/* regn is one greater than TRM's REGN value */
+ 			u16 regn;
+ 			u16 regm2;
+ 		} hdmi;
 -- 
 1.7.4.1
 
