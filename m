@@ -1,155 +1,79 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv2 3/6] OMAP: 2420SDP: Port the display driver to new DSS2
-Date: Mon, 12 Sep 2011 14:20:45 +0300
-Message-ID: <1315826448-27891-4-git-send-email-tomi.valkeinen@ti.com>
-References: <1315826448-27891-1-git-send-email-tomi.valkeinen@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCHv2 8/8] OMAP: DSS2: HDMI: improve hdmi output enable
+Date: Mon, 12 Sep 2011 16:53:34 +0530
+Message-ID: <4E6DEBB6.6090703@ti.com>
+References: <1315818773-18660-1-git-send-email-tomi.valkeinen@ti.com>	 <1315818773-18660-9-git-send-email-tomi.valkeinen@ti.com>	 <4E6DE68F.3020809@ti.com> <1315825587.2177.27.camel@deskari>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:49301 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755043Ab1ILLVy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Sep 2011 07:21:54 -0400
-Received: by bkar4 with SMTP id r4so3059108bka.29
-        for <linux-omap@vger.kernel.org>; Mon, 12 Sep 2011 04:21:04 -0700 (PDT)
-In-Reply-To: <1315826448-27891-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51904 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755043Ab1ILLWl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Sep 2011 07:22:41 -0400
+In-Reply-To: <1315825587.2177.27.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Hunyue Yau <hyau@mvista.com>
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "K, Mythri P" <mythripk@ti.com>
 
-Port the old omapfb panel driver to DSS2. This patch changes the board
-file only, the driver is ported in separate patch.
+On Monday 12 September 2011 04:36 PM, Valkeinen, Tomi wrote:
+> On Mon, 2011-09-12 at 16:31 +0530, Archit Taneja wrote:
+>> On Monday 12 September 2011 02:42 PM, Valkeinen, Tomi wrote:
+>>> Enabling HDMI output often causes sync lost errors, and almost always
+>>> causes timeout errors being printed from dispc_mgr_enable_digit_out().
+>>>
+>>> The sync lost problem seems to go lessen greatly if we first enable the
+>>> HDMI output, and only then enable the DISPC output. However, as this is
+>>> only based on observations, the fix may not be perfect as the problem
+>>> may lie somewhere else. Nevertheless, HDMI works better with this patch.
+>>>
+>>> This will also fix the dispc's dispc_mgr_enable_digit_out(), as the code
+>>> waits for two VSYNCs after enabling the output. If the HDMI output is
+>>> disabled (as it was previously), there are no VSYNCs and
+>>> dispc_mgr_enable_digit_out() will print timeout errors.
+>>>
+>>> Cc: Mythri P K<mythripk@ti.com>
+>>> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+>>> ---
+>>>    drivers/video/omap2/dss/hdmi.c |    4 ++--
+>>>    1 files changed, 2 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+>>> index 4752137..06a78b2 100644
+>>> --- a/drivers/video/omap2/dss/hdmi.c
+>>> +++ b/drivers/video/omap2/dss/hdmi.c
+>>> @@ -529,10 +529,10 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
+>>>    	dispc_set_digit_size(dssdev->panel.timings.x_res,
+>>>    			dssdev->panel.timings.y_res);
+>>>
+>>> -	dispc_mgr_enable(OMAP_DSS_CHANNEL_DIGIT, 1);
+>>> -
+>>>    	hdmi.ip_data.ops->video_enable(&hdmi.ip_data, 1);
+>>>
+>>> +	dispc_mgr_enable(OMAP_DSS_CHANNEL_DIGIT, 1);
+>>> +
+>>
+>> What content would HDMI push out till the time DIGIT is enabled? It
+>> might be interesting to put some milliseconds of delay here and see what
+>> happens.
+>
+> I guess HDMI works independently of DISPC. So HDMI will output whatever
+> is in the video port from DISPC to HDMI, regardless of what DISPC does.
+> My guess is it's either random bits or, more probably, zeroes.
 
-Cc: Hunyue Yau <hyau@mvista.com>
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/board-2430sdp.c |   78 ++++++++++++++++++++++++++++------
- 1 files changed, 64 insertions(+), 14 deletions(-)
+Okay. I thought HDMI block may probe the video port's DE line or 
+something to check if it is pushing out valid content. However, with 
+this patch, we are more aligned with what we do in power_off(), i.e 
+first disable the manager and then disable HDMI.
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 2028464..6742eef 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -39,6 +39,9 @@
- #include <plat/usb.h>
- #include <plat/gpmc-smc91x.h>
- 
-+#include <video/omapdss.h>
-+#include <video/omap-panel-generic-dpi.h>
-+
- #include "mux.h"
- #include "hsmmc.h"
- #include "common-board-devices.h"
-@@ -99,20 +102,72 @@ static struct platform_device sdp2430_flash_device = {
- 	.resource	= &sdp2430_flash_resource,
- };
- 
--static struct platform_device sdp2430_lcd_device = {
--	.name		= "sdp2430_lcd",
--	.id		= -1,
--};
--
- static struct platform_device *sdp2430_devices[] __initdata = {
- 	&sdp2430_flash_device,
-+};
-+
-+/* LCD */
-+#define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
-+#define SDP2430_LCD_PANEL_ENABLE_GPIO		154
-+
-+static int sdp2430_panel_enable_lcd(struct omap_dss_device *dssdev)
-+{
-+	gpio_direction_output(SDP2430_LCD_PANEL_ENABLE_GPIO, 1);
-+	gpio_direction_output(SDP2430_LCD_PANEL_BACKLIGHT_GPIO, 1);
-+
-+	return 0;
-+}
-+
-+static void sdp2430_panel_disable_lcd(struct omap_dss_device *dssdev)
-+{
-+	gpio_direction_output(SDP2430_LCD_PANEL_ENABLE_GPIO, 0);
-+	gpio_direction_output(SDP2430_LCD_PANEL_BACKLIGHT_GPIO, 0);
-+}
-+
-+static struct panel_generic_dpi_data sdp2430_panel_data = {
-+	.name			= "2430sdp",
-+	.platform_enable	= sdp2430_panel_enable_lcd,
-+	.platform_disable	= sdp2430_panel_disable_lcd,
-+};
-+
-+static struct omap_dss_device sdp2430_lcd_device = {
-+	.name			= "lcd",
-+	.driver_name		= "generic_dpi_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 16,
-+	.data			= &sdp2430_panel_data,
-+};
-+
-+static struct omap_dss_device *sdp2430_dss_devices[] = {
- 	&sdp2430_lcd_device,
- };
- 
--static struct omap_lcd_config sdp2430_lcd_config __initdata = {
--	.ctrl_name	= "internal",
-+static struct omap_dss_board_info sdp2430_dss_data = {
-+	.num_devices	= ARRAY_SIZE(sdp2430_dss_devices),
-+	.devices	= sdp2430_dss_devices,
-+	.default_device	= &sdp2430_lcd_device,
- };
- 
-+static void __init sdp2430_display_init(void)
-+{
-+	int r;
-+
-+	static struct gpio gpios[] __initdata = {
-+		{ SDP2430_LCD_PANEL_ENABLE_GPIO, GPIOF_OUT_INIT_LOW,
-+			"LCD reset" },
-+		{ SDP2430_LCD_PANEL_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW,
-+			"LCD Backlight" },
-+	};
-+
-+	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
-+	if (r) {
-+		pr_err("Cannot request LCD GPIOs, error %d\n", r);
-+		return;
-+	}
-+
-+	omap_display_init(&sdp2430_dss_data);
-+}
-+
- #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91x_MODULE)
- 
- static struct omap_smc91x_platform_data board_smc91x_data = {
-@@ -137,10 +192,6 @@ static inline void board_smc91x_init(void)
- 
- #endif
- 
--static struct omap_board_config_kernel sdp2430_config[] __initdata = {
--	{OMAP_TAG_LCD, &sdp2430_lcd_config},
--};
--
- static void __init omap_2430sdp_init_early(void)
- {
- 	omap2_init_common_infrastructure();
-@@ -228,9 +279,6 @@ static void __init omap_2430sdp_init(void)
- {
- 	omap2430_mux_init(board_mux, OMAP_PACKAGE_ZAC);
- 
--	omap_board_config = sdp2430_config;
--	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
--
- 	omap2430_i2c_init();
- 
- 	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
-@@ -246,6 +294,8 @@ static void __init omap_2430sdp_init(void)
- 	/* Turn off secondary LCD backlight */
- 	gpio_request_one(SECONDARY_LCD_GPIO, GPIOF_OUT_INIT_LOW,
- 			 "Secondary LCD backlight");
-+
-+	sdp2430_display_init();
- }
- 
- static void __init omap_2430sdp_map_io(void)
--- 
-1.7.4.1
+Archit
+
+>
+> I think this way is the same as used for VENC: first we configure and
+> enable VENC, then we enable DISPC digit output.
+>
+>   Tomi
+>
+>
 
