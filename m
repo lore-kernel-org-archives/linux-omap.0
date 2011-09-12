@@ -1,163 +1,258 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 04/10] hwspinlock/core/omap: fix id issues on multiple hwspinlock devices
-Date: Mon, 12 Sep 2011 19:46:59 +0300
-Message-ID: <1315846025-11453-5-git-send-email-ohad@wizery.com>
+Subject: [PATCH 05/10] hwspinlock/core: use a mutex to protect the radix tree
+Date: Mon, 12 Sep 2011 19:47:00 +0300
+Message-ID: <1315846025-11453-6-git-send-email-ohad@wizery.com>
 References: <1315846025-11453-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1315846025-11453-1-git-send-email-ohad@wizery.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Juan Gutierrez <jgutierrez@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
 
-hwspinlock devices provide system-wide hardware locks that are used
-by remote processors that have no other way to achieve synchronization.
+From: Juan Gutierrez <jgutierrez@ti.com>
 
-For that to work, each physical lock must have a system-wide unique id
-number that all processors are familiar with, otherwise they can't
-possibly assume they're using the same hardware lock.
+Since we're using non-atomic radix tree allocations, we
+should be protecting the tree using a mutex and not a
+spinlock.
 
-Usually SoCs have a single hwspinlock device, which provides several
-hwspinlocks, and in this case, they can be trivially numbered 0 to
-(num-of-locks - 1).
+Non-atomic allocations and process context locking is good enough,
+as the tree is manipulated only when locks are registered/
+unregistered/requested/freed.
 
-In case boards have several hwspinlocks devices (each of which
-providing numerous hardware spinlocks) a different base id should be
-used for each hwspinlock device (they can't all use 0 as a starting
-id!).
+The locks themselves are still protected by spinlocks of course,
+and mutexes are not involved in the locking/unlocking paths.
 
-While this is certainly not common, it's just plain wrong to just
-silently use 0 as a base id whenever the hwspinlock driver is probed.
-
-This patch provides a hwspinlock_pdata structure, that boards can use
-to set a different base id for each of the hwspinlock devices they may
-have, and demonstrates how to use it with the omap hwspinlock driver
-(ultimately it will be DT which will supply this base_id information).
-
-While we're at it, make sure the hwspinlock core prints an explicit
-error message in case an hwspinlock is registered with an id number
-that already exists; this will help users catch such base id issues.
-
-Reported-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Juan Gutierrez <jgutierrez@ti.com>
+[ohad@wizery.com: rewrite the commit log, #include mutex.h, add minor
+commentary]
+[ohad@wizery.com: update register/unregister parts in hwspinlock.txt]
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
- arch/arm/mach-omap2/hwspinlock.c     |    8 +++++++-
- drivers/hwspinlock/hwspinlock_core.c |    2 ++
- drivers/hwspinlock/omap_hwspinlock.c |    6 +++++-
- include/linux/hwspinlock.h           |   28 ++++++++++++++++++++++++++++
- 4 files changed, 42 insertions(+), 2 deletions(-)
+ Documentation/hwspinlock.txt         |   18 +++++--------
+ drivers/hwspinlock/hwspinlock_core.c |   45 +++++++++++++++-------------------
+ 2 files changed, 27 insertions(+), 36 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/hwspinlock.c b/arch/arm/mach-omap2/hwspinlock.c
-index 06d4a80..eb7e509 100644
---- a/arch/arm/mach-omap2/hwspinlock.c
-+++ b/arch/arm/mach-omap2/hwspinlock.c
-@@ -19,10 +19,15 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/err.h>
-+#include <linux/hwspinlock.h>
+diff --git a/Documentation/hwspinlock.txt b/Documentation/hwspinlock.txt
+index bbaa464..9171f91 100644
+--- a/Documentation/hwspinlock.txt
++++ b/Documentation/hwspinlock.txt
+@@ -39,23 +39,20 @@ independent, drivers.
+      in case an unused hwspinlock isn't available. Users of this
+      API will usually want to communicate the lock's id to the remote core
+      before it can be used to achieve synchronization.
+-     Can be called from an atomic context (this function will not sleep) but
+-     not from within interrupt context.
++     Should be called from a process context (might sleep).
  
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
+   struct hwspinlock *hwspin_lock_request_specific(unsigned int id);
+    - assign a specific hwspinlock id and return its address, or NULL
+      if that hwspinlock is already in use. Usually board code will
+      be calling this function in order to reserve specific hwspinlock
+      ids for predefined purposes.
+-     Can be called from an atomic context (this function will not sleep) but
+-     not from within interrupt context.
++     Should be called from a process context (might sleep).
  
-+static struct hwspinlock_pdata omap_hwspinlock_pdata __initdata = {
-+	.base_id = 0,
-+};
-+
- struct omap_device_pm_latency omap_spinlock_latency[] = {
- 	{
- 		.deactivate_func = omap_device_idle_hwmods,
-@@ -48,7 +53,8 @@ int __init hwspinlocks_init(void)
- 	if (oh == NULL)
- 		return -EINVAL;
+   int hwspin_lock_free(struct hwspinlock *hwlock);
+    - free a previously-assigned hwspinlock; returns 0 on success, or an
+      appropriate error code on failure (e.g. -EINVAL if the hwspinlock
+      is already free).
+-     Can be called from an atomic context (this function will not sleep) but
+-     not from within interrupt context.
++     Should be called from a process context (might sleep).
  
--	od = omap_device_build(dev_name, 0, oh, NULL, 0,
-+	od = omap_device_build(dev_name, 0, oh, &omap_hwspinlock_pdata,
-+				sizeof(struct hwspinlock_pdata),
- 				omap_spinlock_latency,
- 				ARRAY_SIZE(omap_spinlock_latency), false);
- 	if (IS_ERR(od)) {
+   int hwspin_lock_timeout(struct hwspinlock *hwlock, unsigned int timeout);
+    - lock a previously-assigned hwspinlock with a timeout limit (specified in
+@@ -232,15 +229,14 @@ int hwspinlock_example2(void)
+ 
+   int hwspin_lock_register(struct hwspinlock *hwlock);
+    - to be called from the underlying platform-specific implementation, in
+-     order to register a new hwspinlock instance. Can be called from an atomic
+-     context (this function will not sleep) but not from within interrupt
+-     context. Returns 0 on success, or appropriate error code on failure.
++     order to register a new hwspinlock instance. Should be called from
++     a process context (this function might sleep).
++     Returns 0 on success, or appropriate error code on failure.
+ 
+   struct hwspinlock *hwspin_lock_unregister(unsigned int id);
+    - to be called from the underlying vendor-specific implementation, in order
+      to unregister an existing (and unused) hwspinlock instance.
+-     Can be called from an atomic context (will not sleep) but not from
+-     within interrupt context.
++     Should be called from a process context (this function might sleep).
+      Returns the address of hwspinlock on success, or NULL on error (e.g.
+      if the hwspinlock is sill in use).
+ 
 diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
-index af5175c..4eb85b4 100644
+index 4eb85b4..0d20b82 100644
 --- a/drivers/hwspinlock/hwspinlock_core.c
 +++ b/drivers/hwspinlock/hwspinlock_core.c
-@@ -282,6 +282,8 @@ int hwspin_lock_register(struct hwspinlock *hwlock)
- 	spin_lock(&hwspinlock_tree_lock);
+@@ -26,6 +26,7 @@
+ #include <linux/radix-tree.h>
+ #include <linux/hwspinlock.h>
+ #include <linux/pm_runtime.h>
++#include <linux/mutex.h>
+ 
+ #include "hwspinlock_internal.h"
+ 
+@@ -52,10 +53,12 @@
+ static RADIX_TREE(hwspinlock_tree, GFP_KERNEL);
+ 
+ /*
+- * Synchronization of access to the tree is achieved using this spinlock,
++ * Synchronization of access to the tree is achieved using this mutex,
+  * as the radix-tree API requires that users provide all synchronisation.
++ * A mutex is needed because we're using non-atomic radix tree allocations.
+  */
+-static DEFINE_SPINLOCK(hwspinlock_tree_lock);
++static DEFINE_MUTEX(hwspinlock_tree_lock);
++
+ 
+ /**
+  * __hwspin_trylock() - attempt to lock a specific hwspinlock
+@@ -261,8 +264,7 @@ EXPORT_SYMBOL_GPL(__hwspin_unlock);
+  * This function should be called from the underlying platform-specific
+  * implementation, to register a new hwspinlock instance.
+  *
+- * Can be called from an atomic context (will not sleep) but not from
+- * within interrupt context.
++ * Should be called from a process context (might sleep)
+  *
+  * Returns 0 on success, or an appropriate error code on failure
+  */
+@@ -279,7 +281,7 @@ int hwspin_lock_register(struct hwspinlock *hwlock)
+ 
+ 	spin_lock_init(&hwlock->lock);
+ 
+-	spin_lock(&hwspinlock_tree_lock);
++	mutex_lock(&hwspinlock_tree_lock);
  
  	ret = radix_tree_insert(&hwspinlock_tree, hwlock->id, hwlock);
-+	if (ret == -EEXIST)
-+		pr_err("hwspinlock id %d already exists!\n", hwlock->id);
- 	if (ret)
- 		goto out;
+ 	if (ret == -EEXIST)
+@@ -295,7 +297,7 @@ int hwspin_lock_register(struct hwspinlock *hwlock)
+ 	WARN_ON(tmp != hwlock);
  
-diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
-index d058348..2044d18 100644
---- a/drivers/hwspinlock/omap_hwspinlock.c
-+++ b/drivers/hwspinlock/omap_hwspinlock.c
-@@ -94,12 +94,16 @@ static const struct hwspinlock_ops omap_hwspinlock_ops = {
+ out:
+-	spin_unlock(&hwspinlock_tree_lock);
++	mutex_unlock(&hwspinlock_tree_lock);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(hwspin_lock_register);
+@@ -307,8 +309,7 @@ EXPORT_SYMBOL_GPL(hwspin_lock_register);
+  * This function should be called from the underlying platform-specific
+  * implementation, to unregister an existing (and unused) hwspinlock.
+  *
+- * Can be called from an atomic context (will not sleep) but not from
+- * within interrupt context.
++ * Should be called from a process context (might sleep)
+  *
+  * Returns the address of hwspinlock @id on success, or NULL on failure
+  */
+@@ -317,7 +318,7 @@ struct hwspinlock *hwspin_lock_unregister(unsigned int id)
+ 	struct hwspinlock *hwlock = NULL;
+ 	int ret;
  
- static int __devinit omap_hwspinlock_probe(struct platform_device *pdev)
- {
-+	struct hwspinlock_pdata *pdata = pdev->dev.platform_data;
- 	struct omap_hwspinlock *omap_lock;
- 	struct omap_hwspinlock_state *state;
- 	struct resource *res;
- 	void __iomem *io_base;
- 	int i, ret;
+-	spin_lock(&hwspinlock_tree_lock);
++	mutex_lock(&hwspinlock_tree_lock);
  
-+	if (!pdata)
-+		return -ENODEV;
-+
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res)
- 		return -ENODEV;
-@@ -141,7 +145,7 @@ static int __devinit omap_hwspinlock_probe(struct platform_device *pdev)
- 		omap_lock = &state->lock[i];
+ 	/* make sure the hwspinlock is not in use (tag is set) */
+ 	ret = radix_tree_tag_get(&hwspinlock_tree, id, HWSPINLOCK_UNUSED);
+@@ -333,7 +334,7 @@ struct hwspinlock *hwspin_lock_unregister(unsigned int id)
+ 	}
  
- 		omap_lock->lock.dev = &pdev->dev;
--		omap_lock->lock.id = i;
-+		omap_lock->lock.id = pdata->base_id + i;
- 		omap_lock->lock.ops = &omap_hwspinlock_ops;
- 		omap_lock->addr = io_base + LOCK_BASE_OFFSET + sizeof(u32) * i;
+ out:
+-	spin_unlock(&hwspinlock_tree_lock);
++	mutex_unlock(&hwspinlock_tree_lock);
+ 	return hwlock;
+ }
+ EXPORT_SYMBOL_GPL(hwspin_lock_unregister);
+@@ -402,9 +403,7 @@ EXPORT_SYMBOL_GPL(hwspin_lock_get_id);
+  * to the remote core before it can be used for synchronization (to get the
+  * id of a given hwlock, use hwspin_lock_get_id()).
+  *
+- * Can be called from an atomic context (will not sleep) but not from
+- * within interrupt context (simply because there is no use case for
+- * that yet).
++ * Should be called from a process context (might sleep)
+  *
+  * Returns the address of the assigned hwspinlock, or NULL on error
+  */
+@@ -413,7 +412,7 @@ struct hwspinlock *hwspin_lock_request(void)
+ 	struct hwspinlock *hwlock;
+ 	int ret;
  
-diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
-index 8390efc..f85cef5 100644
---- a/include/linux/hwspinlock.h
-+++ b/include/linux/hwspinlock.h
-@@ -27,6 +27,34 @@
+-	spin_lock(&hwspinlock_tree_lock);
++	mutex_lock(&hwspinlock_tree_lock);
  
- struct hwspinlock;
+ 	/* look for an unused lock */
+ 	ret = radix_tree_gang_lookup_tag(&hwspinlock_tree, (void **)&hwlock,
+@@ -433,7 +432,7 @@ struct hwspinlock *hwspin_lock_request(void)
+ 		hwlock = NULL;
  
-+/**
-+ * struct hwspinlock_pdata - platform data for hwspinlock drivers
-+ * @base_id: base id for this hwspinlock device
-+ *
-+ * hwspinlock devices provide system-wide hardware locks that are used
-+ * by remote processors that have no other way to achieve synchronization.
-+ *
-+ * To achieve that, each physical lock must have a system-wide id number
-+ * that is agreed upon, otherwise remote processors can't possibly assume
-+ * they're using the same hardware lock.
-+ *
-+ * Usually boards have a single hwspinlock device, which provides several
-+ * hwspinlocks, and in this case, they can be trivially numbered 0 to
-+ * (num-of-locks - 1).
-+ *
-+ * In case boards have several hwspinlocks devices, a different base id
-+ * should be used for each hwspinlock device (they can't all use 0 as
-+ * a starting id!).
-+ *
-+ * This platform data structure should be used to provide the base id
-+ * for each device (which is trivially 0 when only a single hwspinlock
-+ * device exists). It can be shared between different platforms, hence
-+ * its location.
-+ */
-+struct hwspinlock_pdata {
-+	int base_id;
-+};
-+
- #if defined(CONFIG_HWSPINLOCK) || defined(CONFIG_HWSPINLOCK_MODULE)
+ out:
+-	spin_unlock(&hwspinlock_tree_lock);
++	mutex_unlock(&hwspinlock_tree_lock);
+ 	return hwlock;
+ }
+ EXPORT_SYMBOL_GPL(hwspin_lock_request);
+@@ -447,9 +446,7 @@ EXPORT_SYMBOL_GPL(hwspin_lock_request);
+  * Usually early board code will be calling this function in order to
+  * reserve specific hwspinlock ids for predefined purposes.
+  *
+- * Can be called from an atomic context (will not sleep) but not from
+- * within interrupt context (simply because there is no use case for
+- * that yet).
++ * Should be called from a process context (might sleep)
+  *
+  * Returns the address of the assigned hwspinlock, or NULL on error
+  */
+@@ -458,7 +455,7 @@ struct hwspinlock *hwspin_lock_request_specific(unsigned int id)
+ 	struct hwspinlock *hwlock;
+ 	int ret;
  
- int hwspin_lock_register(struct hwspinlock *lock);
+-	spin_lock(&hwspinlock_tree_lock);
++	mutex_lock(&hwspinlock_tree_lock);
+ 
+ 	/* make sure this hwspinlock exists */
+ 	hwlock = radix_tree_lookup(&hwspinlock_tree, id);
+@@ -484,7 +481,7 @@ struct hwspinlock *hwspin_lock_request_specific(unsigned int id)
+ 		hwlock = NULL;
+ 
+ out:
+-	spin_unlock(&hwspinlock_tree_lock);
++	mutex_unlock(&hwspinlock_tree_lock);
+ 	return hwlock;
+ }
+ EXPORT_SYMBOL_GPL(hwspin_lock_request_specific);
+@@ -497,9 +494,7 @@ EXPORT_SYMBOL_GPL(hwspin_lock_request_specific);
+  * Should only be called with an @hwlock that was retrieved from
+  * an earlier call to omap_hwspin_lock_request{_specific}.
+  *
+- * Can be called from an atomic context (will not sleep) but not from
+- * within interrupt context (simply because there is no use case for
+- * that yet).
++ * Should be called from a process context (might sleep)
+  *
+  * Returns 0 on success, or an appropriate error code on failure
+  */
+@@ -513,7 +508,7 @@ int hwspin_lock_free(struct hwspinlock *hwlock)
+ 		return -EINVAL;
+ 	}
+ 
+-	spin_lock(&hwspinlock_tree_lock);
++	mutex_lock(&hwspinlock_tree_lock);
+ 
+ 	/* make sure the hwspinlock is used */
+ 	ret = radix_tree_tag_get(&hwspinlock_tree, hwlock->id,
+@@ -540,7 +535,7 @@ int hwspin_lock_free(struct hwspinlock *hwlock)
+ 	module_put(hwlock->dev->driver->owner);
+ 
+ out:
+-	spin_unlock(&hwspinlock_tree_lock);
++	mutex_unlock(&hwspinlock_tree_lock);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(hwspin_lock_free);
 -- 
 1.7.4.1
