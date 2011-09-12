@@ -1,59 +1,27 @@
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [PATCH 1/3] iommu/core: add fault reporting mechanism
-Date: Mon, 12 Sep 2011 18:02:52 +0200
-Message-ID: <20110912160252.GE11701@amd.com>
-References: <1315421604-12286-1-git-send-email-ohad@wizery.com>
+From: "Deborah T. Cartwright" <dcartwright@madison.k12.al.us>
+Subject: Mail Box Quota Exceeded
+Date: Mon, 12 Sep 2011 11:02:40 -0500
+Message-ID: <A5D16D96C171864D9040F8628055A7030992711AB2__27306.0375512161$1315843692$gmane$org@mailman.mcboe.madison.k12.al.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1315421604-12286-1-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailman.madison.k12.al.us ([207.157.66.13]:15738 "EHLO
+	mailman.mcboe.madison.k12.al.us" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758319Ab1ILQHz convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Sep 2011 12:07:55 -0400
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 07, 2011 at 02:53:22PM -0400, Ohad Ben-Cohen wrote:
->  struct device;
-> +struct iommu_domain;
-> +
-> +/**
-> + * enum iommu_fault_types - iommu fault types
-> + *
-> + * @IOMMU_ERROR: Unrecoverable error
-> + *
-> + * Currently we only support a generic error fault type.
-> + * Future users, which will require more informative fault types, will add
-> + * them as needed.
-> + */
-> +enum iommu_fault_types {
-> +	IOMMU_ERROR,
-> +};
+Your web mail quota has exceeded the set quota which is 3GB. you are
+currently running on 3.9 GB.
+To re-activate and increase your web mail quota please click the link
+below.
+https://docs.google.com/spreadsheet/viewform?formkey=dDRwLWpBNjZrbVJpeUJnNVZZY1ZuN1E6MQ&theme=0AX42CRMsmRFbUy1jYWNjZmUzNi1iNzViLTRhZGUtYmIzNy1jYmE5MWFiMWQyZjU&ifq
 
-I still don't get the need for this. It would make sense to encode
-different types of faults, like page-faults or interrupt-faults. That is
-what I read from the name of the enum.
-When I read the comment above it sounds more like you want to encode
-different error-levels, like recoverable and unrecoverable error.
-The exact meaning of these values need to be clarified.
-
-> +/**
-> + * report_iommu_fault() - report about an IOMMU fault to the IOMMU framework
-> + * @domain: the iommu domain where the fault has happened
-> + * @dev: the device where the fault has happened
-> + * @iova: the faulting address
-> + * @flags: mmu fault flags (e.g. IOMMU_FAULT_READ/IOMMU_FAULT_WRITE/...)
-> + * @event: the mmu fault type
-
-Please place 'event' before iova when you keep it, and not at the end.
-Then you have 'where' and 'what' of the fault first before the details
-(iova, flags).
-
-	Joerg
-
--- 
-AMD Operating System Research Center
-
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+Failure to do so may result in the cancellation of your web mail
+account.
+Thanks, and sorry for the inconvenience
+Local-host.
