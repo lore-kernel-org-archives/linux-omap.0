@@ -1,7 +1,7 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 02/10] hwspinlock/core: simplify 'owner' handling
-Date: Mon, 12 Sep 2011 19:46:57 +0300
-Message-ID: <1315846025-11453-3-git-send-email-ohad@wizery.com>
+Subject: [PATCH 04/10] hwspinlock/core/omap: fix id issues on multiple hwspinlock devices
+Date: Mon, 12 Sep 2011 19:46:59 +0300
+Message-ID: <1315846025-11453-5-git-send-email-ohad@wizery.com>
 References: <1315846025-11453-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1315846025-11453-1-git-send-email-ohad@wizery.com>
@@ -10,110 +10,154 @@ To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@l
 Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use struct device_driver's owner member instead of asking drivers to
-explicitly pass the owner again.
+hwspinlock devices provide system-wide hardware locks that are used
+by remote processors that have no other way to achieve synchronization.
 
-This simplifies drivers and also save some memory, since there's no
-point now in maintaining a separate owner pointer per hwspinlock.
+For that to work, each physical lock must have a system-wide unique id
+number that all processors are familiar with, otherwise they can't
+possibly assume they're using the same hardware lock.
 
+Usually SoCs have a single hwspinlock device, which provides several
+hwspinlocks, and in this case, they can be trivially numbered 0 to
+(num-of-locks - 1).
+
+In case boards have several hwspinlocks devices (each of which
+providing numerous hardware spinlocks) a different base id should be
+used for each hwspinlock device (they can't all use 0 as a starting
+id!).
+
+While this is certainly not common, it's just plain wrong to just
+silently use 0 as a base id whenever the hwspinlock driver is probed.
+
+This patch provides a hwspinlock_pdata structure, that boards can use
+to set a different base id for each of the hwspinlock devices they may
+have, and demonstrates how to use it with the omap hwspinlock driver
+(ultimately it will be DT which will supply this base_id information).
+
+While we're at it, make sure the hwspinlock core prints an explicit
+error message in case an hwspinlock is registered with an id number
+that already exists; this will help users catch such base id issues.
+
+Reported-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
- Documentation/hwspinlock.txt             |    6 ++----
- drivers/hwspinlock/hwspinlock_core.c     |    4 ++--
- drivers/hwspinlock/hwspinlock_internal.h |    4 +---
- drivers/hwspinlock/omap_hwspinlock.c     |    2 +-
- 4 files changed, 6 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/hwspinlock.c     |    8 +++++++-
+ drivers/hwspinlock/hwspinlock_core.c |    2 ++
+ drivers/hwspinlock/omap_hwspinlock.c |    6 +++++-
+ include/linux/hwspinlock.h           |   28 ++++++++++++++++++++++++++++
+ 4 files changed, 42 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/hwspinlock.txt b/Documentation/hwspinlock.txt
-index 7dcd1a4..bbaa464 100644
---- a/Documentation/hwspinlock.txt
-+++ b/Documentation/hwspinlock.txt
-@@ -256,18 +256,16 @@ underlying hwspinlock implementation using the hwspin_lock_register() API.
-  * @ops: vendor-specific hwspinlock handlers
-  * @id: a global, unique, system-wide, index of the lock.
-  * @lock: initialized and used by hwspinlock core
-- * @owner: underlying implementation module, used to maintain module ref count
-  */
- struct hwspinlock {
- 	struct device *dev;
- 	const struct hwspinlock_ops *ops;
- 	int id;
- 	spinlock_t lock;
--	struct module *owner;
- };
+diff --git a/arch/arm/mach-omap2/hwspinlock.c b/arch/arm/mach-omap2/hwspinlock.c
+index 06d4a80..eb7e509 100644
+--- a/arch/arm/mach-omap2/hwspinlock.c
++++ b/arch/arm/mach-omap2/hwspinlock.c
+@@ -19,10 +19,15 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/err.h>
++#include <linux/hwspinlock.h>
  
--The underlying implementation is responsible to assign the dev, ops, id and
--owner members. The lock member, OTOH, is initialized and used by the hwspinlock
-+The underlying implementation is responsible to assign the dev, ops and id
-+members. The lock member, OTOH, is initialized and used by the hwspinlock
- core.
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
  
- 6. Implementation callbacks
++static struct hwspinlock_pdata omap_hwspinlock_pdata __initdata = {
++	.base_id = 0,
++};
++
+ struct omap_device_pm_latency omap_spinlock_latency[] = {
+ 	{
+ 		.deactivate_func = omap_device_idle_hwmods,
+@@ -48,7 +53,8 @@ int __init hwspinlocks_init(void)
+ 	if (oh == NULL)
+ 		return -EINVAL;
+ 
+-	od = omap_device_build(dev_name, 0, oh, NULL, 0,
++	od = omap_device_build(dev_name, 0, oh, &omap_hwspinlock_pdata,
++				sizeof(struct hwspinlock_pdata),
+ 				omap_spinlock_latency,
+ 				ARRAY_SIZE(omap_spinlock_latency), false);
+ 	if (IS_ERR(od)) {
 diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
-index 43a6271..af5175c 100644
+index af5175c..4eb85b4 100644
 --- a/drivers/hwspinlock/hwspinlock_core.c
 +++ b/drivers/hwspinlock/hwspinlock_core.c
-@@ -352,7 +352,7 @@ static int __hwspin_lock_request(struct hwspinlock *hwlock)
- 	int ret;
+@@ -282,6 +282,8 @@ int hwspin_lock_register(struct hwspinlock *hwlock)
+ 	spin_lock(&hwspinlock_tree_lock);
  
- 	/* prevent underlying implementation from being removed */
--	if (!try_module_get(hwlock->owner)) {
-+	if (!try_module_get(hwlock->dev->driver->owner)) {
- 		dev_err(hwlock->dev, "%s: can't get owner\n", __func__);
- 		return -EINVAL;
- 	}
-@@ -535,7 +535,7 @@ int hwspin_lock_free(struct hwspinlock *hwlock)
- 	/* sanity check (this shouldn't happen) */
- 	WARN_ON(tmp != hwlock);
+ 	ret = radix_tree_insert(&hwspinlock_tree, hwlock->id, hwlock);
++	if (ret == -EEXIST)
++		pr_err("hwspinlock id %d already exists!\n", hwlock->id);
+ 	if (ret)
+ 		goto out;
  
--	module_put(hwlock->owner);
-+	module_put(hwlock->dev->driver->owner);
- 
- out:
- 	spin_unlock(&hwspinlock_tree_lock);
-diff --git a/drivers/hwspinlock/hwspinlock_internal.h b/drivers/hwspinlock/hwspinlock_internal.h
-index 69935e6..fb25830 100644
---- a/drivers/hwspinlock/hwspinlock_internal.h
-+++ b/drivers/hwspinlock/hwspinlock_internal.h
-@@ -44,10 +44,9 @@ struct hwspinlock_ops {
-  * @ops: platform-specific hwspinlock handlers
-  * @id: a global, unique, system-wide, index of the lock.
-  * @lock: initialized and used by hwspinlock core
-- * @owner: underlying implementation module, used to maintain module ref count
-  *
-  * Note: currently simplicity was opted for, but later we can squeeze some
-- * memory bytes by grouping the dev, ops and owner members in a single
-+ * memory bytes by grouping dev, ops in a single
-  * per-platform struct, and have all hwspinlocks point at it.
-  */
- struct hwspinlock {
-@@ -55,7 +54,6 @@ struct hwspinlock {
- 	const struct hwspinlock_ops *ops;
- 	int id;
- 	spinlock_t lock;
--	struct module *owner;
- };
- 
- #endif /* __HWSPINLOCK_HWSPINLOCK_H */
 diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
-index a8f0273..1d19fe9 100644
+index d058348..2044d18 100644
 --- a/drivers/hwspinlock/omap_hwspinlock.c
 +++ b/drivers/hwspinlock/omap_hwspinlock.c
-@@ -143,7 +143,6 @@ static int __devinit omap_hwspinlock_probe(struct platform_device *pdev)
- 		}
+@@ -94,12 +94,16 @@ static const struct hwspinlock_ops omap_hwspinlock_ops = {
+ 
+ static int __devinit omap_hwspinlock_probe(struct platform_device *pdev)
+ {
++	struct hwspinlock_pdata *pdata = pdev->dev.platform_data;
+ 	struct omap_hwspinlock *omap_lock;
+ 	struct omap_hwspinlock_state *state;
+ 	struct resource *res;
+ 	void __iomem *io_base;
+ 	int i, ret;
+ 
++	if (!pdata)
++		return -ENODEV;
++
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res)
+ 		return -ENODEV;
+@@ -141,7 +145,7 @@ static int __devinit omap_hwspinlock_probe(struct platform_device *pdev)
+ 		omap_lock = &state->lock[i];
  
  		omap_lock->lock.dev = &pdev->dev;
--		omap_lock->lock.owner = THIS_MODULE;
- 		omap_lock->lock.id = i;
+-		omap_lock->lock.id = i;
++		omap_lock->lock.id = pdata->base_id + i;
  		omap_lock->lock.ops = &omap_hwspinlock_ops;
  		omap_lock->addr = io_base + LOCK_BASE_OFFSET + sizeof(u32) * i;
-@@ -208,6 +207,7 @@ static struct platform_driver omap_hwspinlock_driver = {
- 	.remove		= omap_hwspinlock_remove,
- 	.driver		= {
- 		.name	= "omap_hwspinlock",
-+		.owner	= THIS_MODULE,
- 	},
- };
  
+diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
+index 8390efc..f85cef5 100644
+--- a/include/linux/hwspinlock.h
++++ b/include/linux/hwspinlock.h
+@@ -27,6 +27,34 @@
+ 
+ struct hwspinlock;
+ 
++/**
++ * struct hwspinlock_pdata - platform data for hwspinlock drivers
++ * @base_id: base id for this hwspinlock device
++ *
++ * hwspinlock devices provide system-wide hardware locks that are used
++ * by remote processors that have no other way to achieve synchronization.
++ *
++ * To achieve that, each physical lock must have a system-wide id number
++ * that is agreed upon, otherwise remote processors can't possibly assume
++ * they're using the same hardware lock.
++ *
++ * Usually boards have a single hwspinlock device, which provides several
++ * hwspinlocks, and in this case, they can be trivially numbered 0 to
++ * (num-of-locks - 1).
++ *
++ * In case boards have several hwspinlocks devices, a different base id
++ * should be used for each hwspinlock device (they can't all use 0 as
++ * a starting id!).
++ *
++ * This platform data structure should be used to provide the base id
++ * for each device (which is trivially 0 when only a single hwspinlock
++ * device exists). It can be shared between different platforms, hence
++ * its location.
++ */
++struct hwspinlock_pdata {
++	int base_id;
++};
++
+ #if defined(CONFIG_HWSPINLOCK) || defined(CONFIG_HWSPINLOCK_MODULE)
+ 
+ int hwspin_lock_register(struct hwspinlock *lock);
 -- 
 1.7.4.1
