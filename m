@@ -1,69 +1,51 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 09/15] OMAP: DSS2: HDMI: implement detect()
-Date: Mon, 12 Sep 2011 19:18:01 +0300
-Message-ID: <1315844281.2177.36.camel@deskari>
-References: <1315818818-18733-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1315818818-18733-10-git-send-email-tomi.valkeinen@ti.com>
-	 <CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 1/3] iommu/core: add fault reporting mechanism
+Date: Mon, 12 Sep 2011 19:21:13 +0300
+Message-ID: <CAK=WgbZCDsBk+dueKfAX3ewsvqEnVDN+jW_ftW+BDKnayunOwA@mail.gmail.com>
+References: <1315421604-12286-1-git-send-email-ohad@wizery.com>
+	<20110912160252.GE11701@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:54795 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751730Ab1ILQSG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Sep 2011 12:18:06 -0400
-In-Reply-To: <CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110912160252.GE11701@amd.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
-On Mon, 2011-09-12 at 18:54 +0530, K, Mythri P wrote:
-> Hi Tomi,
-> 
-> On Mon, Sep 12, 2011 at 2:43 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> > Implement detect() by checking the hot plug detect status.
-> >
-> > The implementation is not very good, as it always turns on the HDMI
-> > output to get the detection working. HDMI driver needs improvements so
-> > that we could enable only core parts of it.
-> >
-> > Cc: Mythri P K <mythripk@ti.com>
-> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > ---
+On Mon, Sep 12, 2011 at 7:02 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> I still don't get the need for this. It would make sense to encode
+> different types of faults, like page-faults or interrupt-faults.
 
-<snip>
+Right.
 
-> > +bool ti_hdmi_4xxx_detect(struct hdmi_ip_data *ip_data)
-> > +{
-> > +       int r;
-> > +
-> > +       void __iomem *base = hdmi_core_sys_base(ip_data);
-> > +
-> > +       /* HPD */
-> > +       r = REG_GET(base, HDMI_CORE_SYS_SYS_STAT, 1, 1);
-> > +
-> > +       return r == 1;
-> > +}
-> > +
-> For HPD the probe should also be on the core interrupt first , and the
-> detect should be dynamic, ie based on the cable connect and disconnect
-> event.So this approach for HPD is not really the way.
+> When I read the comment above it sounds more like you want to encode
+> different error-levels, like recoverable and unrecoverable error.
+> The exact meaning of these values need to be clarified.
 
-This is not for the event, this is for polling. There is currently no
-hot plug event mechanism in the DSS.
+Well, we currently only need to say "something bad has happened".
 
-Do we get an interrupt when the driver is loaded and the cable is
-already connected? And do you plan to keep the plugged in/out state
-stored somewhere, or how do you implement detect()?
+We don't need at this point to tell whether it's a hardware bug,
+inconsistent data, missing page-table entries or whatnot, because we
+don't expect the user (or the iommu core itself) to do anything about
+it. Not that it's not possible though: a valid response one day would
+be to fix the page-table or add a missing TLB (depending on the mode
+the hardware is configured to) but this is not (yet?) implemented. So
+a "general unrecoverable error" is enough at this point, but it's
+certainly makes sense to allow drivers to provide additional types of
+errors/faults - once they are implemented.
 
-> Also that should be based on the GPIO(63) , I am planning to push a
-> patch on that shortly.
+> Please place 'event' before iova when you keep it, and not at the end.
+> Then you have 'where' and 'what' of the fault first before the details
+> (iova, flags).
 
-What is gpio 63? What does the HDMI_CORE_SYS_STAT HDP bit tell us then?
-
- Tomi
-
-
+Will do.
