@@ -1,7 +1,7 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 06/10] hwspinlock/core: remove stubs for register/unregister
-Date: Mon, 12 Sep 2011 19:47:01 +0300
-Message-ID: <1315846025-11453-7-git-send-email-ohad@wizery.com>
+Subject: [PATCH 09/10] hwspinlock/omap: omap_hwspinlock_remove should be __devexit
+Date: Mon, 12 Sep 2011 19:47:04 +0300
+Message-ID: <1315846025-11453-10-git-send-email-ohad@wizery.com>
 References: <1315846025-11453-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1315846025-11453-1-git-send-email-ohad@wizery.com>
@@ -10,37 +10,35 @@ To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@l
 Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
 
-hwspinlock drivers must anyway select CONFIG_HWSPINLOCK,
-so there's no point in having register/unregister stubs.
-
-Removing those stubs will only make it easier for developers
-to catch CONFIG_HWSPINLOCK mis-.config-urations.
+Mark omap_hwspinlock_remove with __devexit (and use __devexit_p
+appropriately) so the function can be discarded when the conditions are met.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
- include/linux/hwspinlock.h |   10 ----------
- 1 files changed, 0 insertions(+), 10 deletions(-)
+ drivers/hwspinlock/omap_hwspinlock.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
-index f85cef5..c246522 100644
---- a/include/linux/hwspinlock.h
-+++ b/include/linux/hwspinlock.h
-@@ -122,16 +122,6 @@ static inline int hwspin_lock_get_id(struct hwspinlock *hwlock)
- 	return 0;
+diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
+index aec3006..887d34e 100644
+--- a/drivers/hwspinlock/omap_hwspinlock.c
++++ b/drivers/hwspinlock/omap_hwspinlock.c
+@@ -142,7 +142,7 @@ iounmap_base:
+ 	return ret;
  }
  
--static inline int hwspin_lock_register(struct hwspinlock *hwlock)
--{
--	return -ENODEV;
--}
--
--static inline struct hwspinlock *hwspin_lock_unregister(unsigned int id)
--{
--	return NULL;
--}
--
- #endif /* !CONFIG_HWSPINLOCK */
+-static int omap_hwspinlock_remove(struct platform_device *pdev)
++static int __devexit omap_hwspinlock_remove(struct platform_device *pdev)
+ {
+ 	struct hwspinlock_device *bank = platform_get_drvdata(pdev);
+ 	void __iomem *io_base = bank->lock[0].priv - LOCK_BASE_OFFSET;
+@@ -163,7 +163,7 @@ static int omap_hwspinlock_remove(struct platform_device *pdev)
  
- /**
+ static struct platform_driver omap_hwspinlock_driver = {
+ 	.probe		= omap_hwspinlock_probe,
+-	.remove		= omap_hwspinlock_remove,
++	.remove		= __devexit_p(omap_hwspinlock_remove),
+ 	.driver		= {
+ 		.name	= "omap_hwspinlock",
+ 		.owner	= THIS_MODULE,
 -- 
 1.7.4.1
