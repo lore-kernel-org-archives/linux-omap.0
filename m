@@ -1,80 +1,59 @@
-From: Trond Myklebust <Trond.Myklebust@netapp.com>
-Subject: RE: Regression seen when HIGHMEM enabled with NFS on 3.1rc4 kernel
-Date: Mon, 12 Sep 2011 11:54:18 -0400
-Message-ID: <1315842858.15975.2.camel@lade.trondhjem.org>
-References: <CAJ7qFSeB8bAGdYfZs-LFHuYqGWNA2RidY0EBEFw_1CndvG7q5A@mail.gmail.com>
-	 <1315594317.17611.25.camel@lade.trondhjem.org>
-	 <dbdc7c3761a82e0b84f2f49c533c07a5@mail.gmail.com>
-	 <1315838509.12736.4.camel@lade.trondhjem.org>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH 1/3] iommu/core: add fault reporting mechanism
+Date: Mon, 12 Sep 2011 18:02:52 +0200
+Message-ID: <20110912160252.GE11701@amd.com>
+References: <1315421604-12286-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.netapp.com ([216.240.18.37]:22732 "EHLO mx2.netapp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758069Ab1ILPye convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Sep 2011 11:54:34 -0400
-In-Reply-To: <1315838509.12736.4.camel@lade.trondhjem.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1315421604-12286-1-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-nfs@vger.kernel.org
 
-On Mon, 2011-09-12 at 10:41 -0400, Trond Myklebust wrote: 
-> On Mon, 2011-09-12 at 11:46 +0530, Sricharan R wrote: 
-> > Thanks for the response.
-> > I added a printk just before err = sock->ops->sendpage(sock, *ppage, base,
-> > len, flags);
-> > So here are values when *ppage is NULL.
-> > 
-> > xdr->page_base= 0xCE9  xdr->page_len=0x400 len=0xE9 remainder=0x0.
-> > 
-> > Thanks,
-> >  Sricharan
-> 
-> Can you please tell me what the mount options are for this setup?
+On Wed, Sep 07, 2011 at 02:53:22PM -0400, Ohad Ben-Cohen wrote:
+>  struct device;
+> +struct iommu_domain;
+> +
+> +/**
+> + * enum iommu_fault_types - iommu fault types
+> + *
+> + * @IOMMU_ERROR: Unrecoverable error
+> + *
+> + * Currently we only support a generic error fault type.
+> + * Future users, which will require more informative fault types, will add
+> + * them as needed.
+> + */
+> +enum iommu_fault_types {
+> +	IOMMU_ERROR,
+> +};
 
-I'm guessing you've got wsize=1024, in which case, can you please try
-the following patch?
+I still don't get the need for this. It would make sense to encode
+different types of faults, like page-faults or interrupt-faults. That is
+what I read from the name of the enum.
+When I read the comment above it sounds more like you want to encode
+different error-levels, like recoverable and unrecoverable error.
+The exact meaning of these values need to be clarified.
 
-Cheers
-  Trond
-8<-------------------------------------------------------------------------- 
->From 7b4a9c76b55dd254431902552528137a2ea5e55d Mon Sep 17 00:00:00 2001
-From: Trond Myklebust <Trond.Myklebust@netapp.com>
-Date: Mon, 12 Sep 2011 11:47:53 -0400
-Subject: [PATCH] NFS: Fix a typo in nfs_flush_multi
+> +/**
+> + * report_iommu_fault() - report about an IOMMU fault to the IOMMU framework
+> + * @domain: the iommu domain where the fault has happened
+> + * @dev: the device where the fault has happened
+> + * @iova: the faulting address
+> + * @flags: mmu fault flags (e.g. IOMMU_FAULT_READ/IOMMU_FAULT_WRITE/...)
+> + * @event: the mmu fault type
 
-Fix a typo which causes an Oops in the RPC layer, when using wsize < 4k.
+Please place 'event' before iova when you keep it, and not at the end.
+Then you have 'where' and 'what' of the fault first before the details
+(iova, flags).
 
-Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
----
- fs/nfs/write.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/fs/nfs/write.c b/fs/nfs/write.c
-index b39b37f..c9bd2a6 100644
---- a/fs/nfs/write.c
-+++ b/fs/nfs/write.c
-@@ -958,7 +958,7 @@ static int nfs_flush_multi(struct nfs_pageio_descriptor *desc, struct list_head
- 		if (!data)
- 			goto out_bad;
- 		data->pagevec[0] = page;
--		nfs_write_rpcsetup(req, data, wsize, offset, desc->pg_ioflags);
-+		nfs_write_rpcsetup(req, data, len, offset, desc->pg_ioflags);
- 		list_add(&data->list, res);
- 		requests++;
- 		nbytes -= len;
--- 
-1.7.6
-
-
+	Joerg
 
 -- 
-Trond Myklebust
-Linux NFS client maintainer
+AMD Operating System Research Center
 
-NetApp
-Trond.Myklebust@netapp.com
-www.netapp.com
-
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
