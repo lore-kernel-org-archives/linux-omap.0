@@ -1,73 +1,266 @@
 From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v4 09/11] OMAP2+: Serial: Use prepare and resume calls to
- gate uart clocks
-Date: Mon, 12 Sep 2011 12:07:05 +0530
-Message-ID: <CAAL8m4xtrpkWUZYEkcMGdttzwHEC-q72FDcLYLa6hFWjpjQ_0Q@mail.gmail.com>
+Subject: Re: [PATCH v4 07/11] Serial: OMAP: Add runtime pm support for
+	omap-serial driver
+Date: Mon, 12 Sep 2011 12:25:41 +0530
+Message-ID: <CAAL8m4zR06U115V52+fT84dc6g7PYkLb1jJaMKGyi2VJhFtYxg@mail.gmail.com>
 References: <1315400013-4849-1-git-send-email-govindraj.raja@ti.com>
- <1315400013-4849-10-git-send-email-govindraj.raja@ti.com> <87ehzpv8wq.fsf@ti.com>
+	<1315400013-4849-8-git-send-email-govindraj.raja@ti.com>
+	<87obyu36lo.fsf@ti.com>
+	<CAAL8m4wpCVrhY7++ROwu0Whh4w_cF_dUr0t5622+WmJZah_FRA@mail.gmail.com>
+	<8739g5y45m.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87ehzpv8wq.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <8739g5y45m.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Sep 10, 2011 at 12:29 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
+On Fri, Sep 9, 2011 at 11:44 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Govindraj <govindraj.ti@gmail.com> writes:
 >
->> Currently we are using uart prepare and resume calls to gate uart clocks
->> retaining the same method.
+>> On Fri, Sep 9, 2011 at 5:54 AM, Kevin Hilman <khilman@ti.com> wrote:
+>>> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>>>
+>>>> Adapts omap-serial driver to use pm_runtime API's.
+>>>>
+>>>> 1.) Moving context_restore func to driver from serial.c
+>>>> 2.) Use runtime irq safe to use get_sync from irq context.
+>>>> 3.) autosuspend for port specific activities and put for reg access.
+>>>
+>>> Re: autosuspend, it looks like the driver now has 2 mechanisms for
+>>> tracking activity. =A0The runtime PM 'mark last busy' and the existing
+>>> 'up->port_activity =3D jiffies' stuff. =A0Do you think those could be
+>>> unified?
+>>>
 >>
->> More details on reason to retain this design is provided here:
->> http://www.spinics.net/lists/linux-serial/msg04128.html
+>> Is there a way where we can retrieve the last busy jiffie value
+>> using runtime API? I don't find that available.
+>>
 >
-> This type of thing can go after the '---' since it doesn't belong in the
-> permanent git history.
+> Not currently. =A0The question is more along the lines of: what is the
+> port_activity jiffies used for, and can it be replaced by using
+> _mark_last_busy().
 >
+> If it cannot, that's fine, but it should be described.
 
 Okay.
 
->> Since prepare and resume hooks are moved to driver itself we can just use
->> a single prepare and resume call. As in driver we traverse on number of uart
->> instance and handle it accordingly.
 >
-> Some important functionality has been removed (and not documented.)
-> Namely, the current code checks the next power when deciding whether or
-> not to call prepare_idle, and vice versa for resume_idle.
+>>> At first glance, it looks like most places with a _mark_last_busy() also
+>>> have a up->port_activity update. =A0I'm not familiar enough with the
+>>> driver to make the call, but they look awfully similar.
+>>>
+>>
+>> Ok, I will check whether I can get rid if it.
+>>
+>>>> 4.) for earlyprintk usage the debug macro will write to console uart
+>>>> =A0 =A0 so keep uart clocks active from boot, idle using hwmod API's r=
+e-enable back
+>>>> =A0 =A0 using runtime API's.
+>>>
+>>> /me doesn't understand
+>>
+>> I have added this reason in early mail reply to 04/11 patch review
+>> [needed for earlyprintk option from low level debug ]
 >
-> It's quite possible that it is no longer needed with the runtime PM
+> OK, but AFAIK, DEBUG_LL + earlyprintk do not use this driver. =A0Instead
+> they use the debug macros, so any hacks to deal with that do not belong
+> in the driver.
 >
->> In 34xx uart can wakeup using module level PM_WKEN or IO PAD wakeup use
->> resume_call from prcm irq handler to wakeup uart, based on chk_wakeup_status
->> from io_pad or PM_WKST.
->
-> IMO, this patch should just replace the mulitple calls with a single
-> call, but still in the idle path.
->
-
-Yes fine, will make resume from prcm_irq a separate patch.
-
-> Using the PRCM IRQ handler should be a separate patch with it's own
-> changelog.
->
->> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->
-> Also, moving these calls to the driver means that the driver cannot be
-> built as a module:
->
-> arch/arm/mach-omap2/built-in.o: In function `omap2_enter_full_retention':
-> /work/kernel/omap/pm/arch/arm/mach-omap2/pm24xx.c:141: undefined reference to `omap_uart_prepare_idle'
-> /work/kernel/omap/pm/arch/arm/mach-omap2/pm24xx.c:148: undefined reference to `omap_uart_resume_idle'
-> arch/arm/mach-omap2/built-in.o: In function `prcm_clear_mod_irqs':
-> /work/kernel/omap/pm/arch/arm/mach-omap2/pm34xx.c:213: undefined reference to `omap_uart_resume_idle'
-> arch/arm/mach-omap2/built-in.o: In function `omap_sram_idle':
-> /work/kernel/omap/pm/arch/arm/mach-omap2/pm34xx.c:390: undefined reference to `omap_uart_prepare_idle'
+> If there are hacks required, they should be in a separate patch, with a
+> separate descriptive changelog.
 >
 
-Will check and fix this in next version.
+Yes these are required, because early printk relies on clocks from bootload=
+er
+and if clocks are gated even before console_driver is available it can
+lead to boot failures.
+
+I can keep that part as a separate patch.
+
+
+>>>
+>>>> 5.) Moving context restore to runtime suspend and using reg values fro=
+m port
+>>>> =A0 =A0 structure to restore the uart port context based on context_lo=
+ss_count.
+>>>> =A0 =A0 Maintain internal state machine for avoiding repeated enable/d=
+isable of
+>>>> =A0 =A0 uart port wakeup mechanism.
+>>>> 6.) Add API to enable wakeup and check wakeup status.
+>>>>
+>>>> Acked-by: Alan Cox <alan@linux.intel.com>
+>>>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>>>> ---
+>>>> =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0 49 ++++++
+>>>> =A0arch/arm/plat-omap/include/plat/omap-serial.h | =A0 10 ++
+>>>> =A0drivers/tty/serial/omap-serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A021=
+1 ++++++++++++++++++++++---
+>>>> =A03 files changed, 250 insertions(+), 20 deletions(-)
+>>>>
+>>
+>> [..]
+>>
+>>>> +
+>>>> +static void omap_uart_wakeup_enable(struct platform_device *pdev, boo=
+l enable)
+>>>> +{
+>>>> + =A0 =A0 struct omap_device *od;
+>>>> + =A0 =A0 struct omap_uart_port_info *up =3D pdev->dev.platform_data;
+>>>> +
+>>>> + =A0 =A0 /* Set or clear wake-enable bit */
+>>>> + =A0 =A0 if (up->wk_en && up->wk_mask) {
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 u32 v =3D __raw_readl(up->wk_en);
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 if (enable)
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 v |=3D up->wk_mask;
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 else
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 v &=3D ~up->wk_mask;
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(v, up->wk_en);
+>>>> + =A0 =A0 }
+>>>> +
+>>>> + =A0 =A0 od =3D to_omap_device(pdev);
+>>>> + =A0 =A0 if (enable)
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_hwmod_enable_wakeup(od->hwmods[0]);
+>>>> + =A0 =A0 else
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_hwmod_disable_wakeup(od->hwmods[0]);
+>>>> +}
+>>>> +
+>>>
+>>> Here again, this is difficult to review because you removed the code in
+>>> [4/11] and add it back here, but with rather different functionality
+>>> with no description as to why.
+>>>
+>>
+>> will move this change as part of 4/11 itself.
+>>
+>
+> The point was not just that the move was confusing, but that you changed
+> the functionality along with the move without any description.
+>
+
+If are referring to uart rx pad wakeup its still retained but done
+using mux framework.
+
+>>> The previous version enabled wakeups at the PRCM and at the IO ring.
+>>> This version enables wakeups at the PRCM as well but instead of enabling
+>>> them at the IO ring, enables them at the module.
+>>>
+>>
+>> Since we are gating using prepare idle call I think
+>> we can use this enable wake-up call as part of prepare idle call itself,
+>> as done earlier.
+>
+> Not sure what that has to with my comment.
+>
+> In moving this code, you removed the enable/disable of IO ring wakeups.
+> It probably continues to work because they're enabled by the bootloader,
+> but that is not correct and the driver should be managing the IO ring
+> wakeups as before.
+>
+
+Prior to this we used io-pad offsets address and modified to enable wakeup
+mechanism, But since we received some comments from Tony to use mux framewo=
+rk
+for any mux changes, I removed using mux address and use mux framework from
+hwmod, I have not removed rx-pad wakeup still enable io-pad wakeup.
+otherwise wakeup from off-mode will fail on 3430SDP.
+
+omap_uart_wakeup_enable
+    --> omap_hwmod_enable_wakeup
+           --> omap_hwmod_enable_ioring_wakeup [PATCH v4 01/11]
+OMAP2+: hwmod: Add API to enable IO ring wakeup.]
+
+boot-loaders doesn't enable io pad wakeup for uart.
+
+
+> [...]
+>
+>>>> =A0}
+>>>>
+>>>> =A0static int __init
+>>>> @@ -1065,22 +1123,33 @@ static struct uart_driver serial_omap_reg =3D {
+>>>> =A0 =A0 =A0 .cons =A0 =A0 =A0 =A0 =A0 =3D OMAP_CONSOLE,
+>>>> =A0};
+>>>>
+>>>> -static int
+>>>> -serial_omap_suspend(struct platform_device *pdev, pm_message_t state)
+>>>> +static int serial_omap_suspend(struct device *dev)
+>>>> =A0{
+>>>> - =A0 =A0 struct uart_omap_port *up =3D platform_get_drvdata(pdev);
+>>>> + =A0 =A0 struct uart_omap_port *up =3D dev_get_drvdata(dev);
+>>>>
+>>>> - =A0 =A0 if (up)
+>>>> + =A0 =A0 if (up) {
+>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 uart_suspend_port(&serial_omap_reg, &up->p=
+ort);
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 if (up->port.line =3D=3D up->port.cons->inde=
+x &&
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 !is_console_=
+locked())
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->console_locked =3D conso=
+le_trylock();
+>>>> + =A0 =A0 }
+>>>> +
+>>>
+>>> Motiviation for console locking in this version of the series is not
+>>> clear, and not described in the changelog.
+>>>
+>>> It's also present here in static suspend/resume but not in runtime
+>>> suspend/resume, which also is suspicious.
+>>>
+>>
+>> Yes will add to change log,
+>>
+>> We needed this for no console suspend use case
+>> no console lock is taken in no_console_suspend is specified,
+>>
+>> Since our pwr_dmn hooks disable clocks left enabled during suspend,
+>> so any prints after pwr_dmn hooks can cause problems since clocks
+>> are already cut from pwr_dmn hooks.
+>>
+>> So buffer prints while entering suspend by taking console lock
+>> if not taken already and print back after uart state machine restores
+>> console uart.
+>
+> Any special consideration for features like no_console_suspend should be
+> done in a separate patch with a separate changelog.
+>
+
+will add as separate patch.
+
+> However, as I've stated before during previous reviews, if someone has
+> put no_console_suspend on the command line, that means they've
+> specifically stated they *want* to see console writes during suspend.
+> That means, we should not cut clocks at all.
+>
+> Of course, that means the system will not hit the low power state becase
+> the UART clocks are not gated, but that is what the user requested.
+
+Yes correct, But pwr domain callback will now cut all enabled clocks
+now, so only available method was to use console_lock and print later.
+
+pwr_domain callback done in omap-device.c
+will force to low powers state by gating all clocks that where left
+enabled by driver.
 
 --
 Thanks,
 Govindraj.R
+
+
+>
+>
+> Kevin
+>
