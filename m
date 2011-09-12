@@ -1,55 +1,70 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: Re: [PATCHv2 09/15] OMAP: DSS2: HDMI: implement detect()
-Date: Mon, 12 Sep 2011 11:46:50 -0500
-Message-ID: <CAF6AEGuhjZgH9zFuigjfvHGM9r7jSLY2TTCD0LjZbT+Ubrb12A@mail.gmail.com>
-References: <1315818818-18733-1-git-send-email-tomi.valkeinen@ti.com>
-	<1315818818-18733-10-git-send-email-tomi.valkeinen@ti.com>
-	<CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH 00/10] hwspinlock-next
+Date: Mon, 12 Sep 2011 19:46:55 +0300
+Message-ID: <1315846025-11453-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:44125 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751333Ab1ILQqw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Sep 2011 12:46:52 -0400
-In-Reply-To: <CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
-On Mon, Sep 12, 2011 at 8:24 AM, K, Mythri P <mythripk@ti.com> wrote:
->> +bool ti_hdmi_4xxx_detect(struct hdmi_ip_data *ip_data)
->> +{
->> + =A0 =A0 =A0 int r;
->> +
->> + =A0 =A0 =A0 void __iomem *base =3D hdmi_core_sys_base(ip_data);
->> +
->> + =A0 =A0 =A0 /* HPD */
->> + =A0 =A0 =A0 r =3D REG_GET(base, HDMI_CORE_SYS_SYS_STAT, 1, 1);
->> +
->> + =A0 =A0 =A0 return r =3D=3D 1;
->> +}
->> +
-> For HPD the probe should also be on the core interrupt first , and th=
-e
-> detect should be dynamic, ie based on the cable connect and disconnec=
-t
-> event.So this approach for HPD is not really the way.
-> Also that should be based on the GPIO(63) , I am planning to push a
-> patch on that shortly.
+This series includes a new u8500 hwspinlock driver from Mathieu,
+a core fix from Juan and several other cleanups/fixes
+(some of which were reported by Arnd while reviewing Mathieu's
+driver).
 
+Maybe the most notable core change is the move to registering
+a bank of hwspinlocks in a single API call, rather than the
+existing approach which required drivers to register each
+hwspinlock separately.
 
-=46wiw, we do still need a dssdrv->detect() function from omapdrm
-driver..  if there is another way to implement that function, such as
-with a GPIO, that is great.  But somehow or another we need the detect
-function.  The implementation can always change later.
+That also allowed eliminating 3 per-lock struct members
+(dev and ops, which are now maintained per-bank, and id, which
+is completely removed, and instead, derived from the array index
+of the hwspinlock struct).
 
-BR,
--R
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The result is ~20% code reduction in the hwspinlock drivers and
+a smaller memory footprint.
+
+Juan Gutierrez (1):
+  hwspinlock/core: use a mutex to protect the radix tree
+
+Mathieu J. Poirier (1):
+  hwspinlock/u8500: add hwspinlock driver
+
+Ohad Ben-Cohen (8):
+  hwspinlock/core: simplify Kconfig
+  hwspinlock/core: simplify 'owner' handling
+  hwspinlock/omap: simplify allocation scheme
+  hwspinlock/core/omap: fix id issues on multiple hwspinlock devices
+  hwspinlock/core: remove stubs for register/unregister
+  hwspinlock/core: register a bank of hwspinlocks in a single API call
+  hwspinlock/omap: omap_hwspinlock_remove should be __devexit
+  hwspinlock: add MAINTAINERS entries
+
+ Documentation/hwspinlock.txt             |   74 +++++++-----
+ MAINTAINERS                              |   15 +++
+ arch/arm/mach-omap2/hwspinlock.c         |    8 +-
+ drivers/hwspinlock/Kconfig               |   27 +++--
+ drivers/hwspinlock/Makefile              |    2 +
+ drivers/hwspinlock/hwspinlock_core.c     |  204 +++++++++++++++++++-----------
+ drivers/hwspinlock/hwspinlock_internal.h |   40 ++++--
+ drivers/hwspinlock/omap_hwspinlock.c     |  127 +++++++------------
+ drivers/hwspinlock/u8500_hsem.c          |  198 +++++++++++++++++++++++++++++
+ include/linux/hwspinlock.h               |   46 +++++--
+ 10 files changed, 516 insertions(+), 225 deletions(-)
+ create mode 100644 drivers/hwspinlock/u8500_hsem.c
+
+-- 
+1.7.4.1
