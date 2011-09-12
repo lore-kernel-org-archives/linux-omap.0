@@ -1,186 +1,80 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2] OMAP2PLUS: DSS: Ensure DSS works correctly if display is enabled in bootloader
-Date: Mon, 12 Sep 2011 12:38:26 +0530
-Message-ID: <1315811306-11001-1-git-send-email-archit@ti.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 13/25] OMAP4: PM: Add WakeupGen module as OMAP
+ gic_arch_extn
+Date: Mon, 12 Sep 2011 09:56:04 +0200 (CEST)
+Message-ID: <alpine.LFD.2.02.1109120955300.2723@ionos>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com> <1315144466-9395-14-git-send-email-santosh.shilimkar@ti.com> <878vpyhotu.fsf@ti.com> <4E69961D.40700@ti.com> <alpine.LFD.2.02.1109090912130.2723@ionos> <4E69C957.5070708@ti.com>
+ <alpine.LFD.2.02.1109091017300.2723@ionos> <4E69D6ED.4080409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60654 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750811Ab1ILHHk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Sep 2011 03:07:40 -0400
+Received: from www.linutronix.de ([62.245.132.108]:60184 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751287Ab1ILH4H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Sep 2011 03:56:07 -0400
+In-Reply-To: <4E69D6ED.4080409@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: tomi.valkeinen@ti.com, santosh.shilimkar@ti.com, r.sricharan@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Santosh <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, rnayak@ti.com
 
-Resetting DISPC when a DISPC output is enabled causes the DSS to go into an
-inconsistent state. Thus if the bootloader has enabled a display, the hwmod code
-cannot reset the DISPC module just like that, but the outputs need to be
-disabled first.
+On Fri, 9 Sep 2011, Santosh wrote:
 
-Add function dispc_disable_outputs() which disables all active overlay manager
-and ensure all frame transfers are completed.
+> On Friday 09 September 2011 01:48 PM, Thomas Gleixner wrote:
+> > On Fri, 9 Sep 2011, Santosh wrote:
+> > > On Friday 09 September 2011 12:49 PM, Thomas Gleixner wrote:
+> > > > 
+> > > > The flag says: MASK ON SUSPEND and it does not imply that you don't
+> > > > need a wake function. There might be cases where you want to setup
+> > > > stuff in that function in order to have the wakeup happen on that
+> > > > interrupt line despite of the mask on suspend.
+> > > > 
+> > > I see your point.
+> > > 
+> > > > We either need a separate flag or a global dummy set_wake function in
+> > > > the core to avoid empty copies all over the place.
+> > > > 
+> > > A flag is probably better since you mentioned that on some arch, there
+> > > might be need to have actual set_wake() handler. Or if the global
+> > > dummy can be over-ridden by platform, that's fine too.
+> > 
+> > Global dummy would mean:
+> > 
+> > int irq_set_wake_dummy(...)
+> > {
+> > 	return 0;
+> > }
+> > 
+> > And you just add it to your chip, but either way I don't care whether
+> > it's a dummy function or a flag.
+> > 
+> Will below patch work for you then ?
+> Attaching the same in case mailer damages it.
 
-Modify omap_dss_reset() to call this function and clear DSS_CONTROL,
-DSS_SDI_CONTROL and DSS_PLL_CONTROL so that DSS is in a clean state when the
-DSS2 driver starts.
-
-This resolves the hang issue(caused by a L3 error during boot) seen on the
-beagle board C3, which has a factory bootloader that enables display. The issue
-is resolved with this patch.
-
-Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Tested-by: R, Sricharan <r.sricharan@ti.com>
-Signed-off-by: Archit Taneja <archit@ti.com>
----
-v2:
-
-- Added more info in the commit message, fixed some typos.
+It does :)
  
-The patch depends on a HWMOD patch series which has been posted by Tomi, it can
-be tested by applying over the following branch:
+> Regards,
+> Santosh
+> 
+> From d63d4347dc8fb144b19f4d4e7c0621397cccea94 Mon Sep 17 00:00:00 2001
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Date: Fri, 9 Sep 2011 13:59:35 +0530
+> Subject: [PATCH] irq: Add IRQCHIP_SKIP_SET_WAKE flag to avoid need of dummy
+> set_wake() handler.
+> 
+> Certain IRQCHIP's may not need to install the irq_set_wake() handler if
+> the IRQCHIP_MASK_ON_SUSPEND flag is set. But but if it's not implemented,
+> enable_irq_wake() will return an error.  That needs the IRQCHIP to install
+> an empty set_wake handler.
+> 
+> Add an 'IRQCHIP_SKIP_SET_WAKE' flag so that IRQCHIP can inform the core
+> irq code that irq_set_wake() handler is not necessary.
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
 
-https://gitorious.org/linux-omap-dss2/linux/commits/master
+Queued to irq/core for 3.2
 
- arch/arm/mach-omap2/display.c |  110 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 110 insertions(+), 0 deletions(-)
+Thanks,
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 93db7c1..eab81f4 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -30,6 +30,30 @@
- 
- #include "control.h"
- 
-+#define DISPC_BASE_OMAP2	0x48050400
-+#define DISPC_BASE_OMAP4	0x48041000
-+
-+#define DISPC_REG(base, offset)	(base + offset)
-+
-+#define DISPC_CONTROL		0x0040
-+#define DISPC_CONTROL2		0x0238
-+#define DISPC_IRQSTATUS		0x0018
-+
-+#define DSS_SYSCONFIG		0x10
-+#define DSS_SYSSTATUS		0x14
-+#define DSS_CONTROL		0x40
-+#define DSS_SDI_CONTROL		0x44
-+#define DSS_PLL_CONTROL		0x48
-+
-+#define LCD_EN_MASK		(0x1 << 0)
-+#define DIGIT_EN_MASK		(0x1 << 1)
-+
-+#define FRAMEDONE_IRQ_SHIFT	0
-+#define EVSYNC_EVEN_IRQ_SHIFT	2
-+#define EVSYNC_ODD_IRQ_SHIFT	3
-+#define FRAMEDONE2_IRQ_SHIFT	22
-+#define FRAMEDONETV_IRQ_SHIFT	24
-+
- static struct platform_device omap_display_device = {
- 	.name          = "omapdss",
- 	.id            = -1,
-@@ -182,6 +206,78 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
- 	return r;
- }
- 
-+static void dispc_disable_outputs(void)
-+{
-+	u32 val, irq_mask, base;
-+	bool lcd_en, digit_en, lcd2_en = false;
-+	int i, num_mgrs;
-+
-+	if (cpu_is_omap44xx()) {
-+		base = DISPC_BASE_OMAP4;
-+		num_mgrs = 3;
-+	} else {
-+		base = DISPC_BASE_OMAP2;
-+		num_mgrs = 2;
-+	}
-+
-+	/* store value of LCDENABLE and DIGITENABLE bits */
-+	val = omap_readl(DISPC_REG(base, DISPC_CONTROL));
-+	lcd_en = val & LCD_EN_MASK;
-+	digit_en = val & DIGIT_EN_MASK;
-+
-+	/* store value of LCDENABLE for LCD2 */
-+	if (num_mgrs > 2) {
-+		val = omap_readl(DISPC_REG(base, DISPC_CONTROL2));
-+		lcd2_en = val & LCD_EN_MASK;
-+	}
-+
-+	/*
-+	 * If any manager was enabled, we need to disable it before DSS clocks
-+	 * are disabled or DISPC module is reset
-+	 */
-+	if (lcd_en || digit_en || lcd2_en) {
-+		irq_mask = (lcd_en ? 1 : 0) << FRAMEDONE_IRQ_SHIFT;
-+
-+		if (cpu_is_omap44xx())
-+			irq_mask |= (digit_en ? 1 : 0) << FRAMEDONETV_IRQ_SHIFT;
-+		else
-+			irq_mask |= (digit_en ? 1 : 0) << EVSYNC_EVEN_IRQ_SHIFT |
-+				(digit_en ? 1 : 0) << EVSYNC_ODD_IRQ_SHIFT;
-+
-+		irq_mask |= (lcd2_en ? 1 : 0) << FRAMEDONE2_IRQ_SHIFT;
-+
-+		/*
-+		 * clear any previous FRAMEDONE, FRAMEDONETV, EVSYNC_EVEN/ODD
-+		 * or FRAMEDONE2 interrupts
-+		 */
-+		omap_writel(irq_mask, DISPC_REG(base, DISPC_IRQSTATUS));
-+
-+		/* disable LCD and TV managers */
-+		val = omap_readl(DISPC_REG(base, DISPC_CONTROL));
-+		val &= ~(LCD_EN_MASK | DIGIT_EN_MASK);
-+		omap_writel(val, DISPC_REG(base, DISPC_CONTROL));
-+
-+		/* disable LCD2 manager */
-+		if (num_mgrs > 2) {
-+			val = omap_readl(DISPC_REG(base, DISPC_CONTROL2));
-+			val &= ~LCD_EN_MASK;
-+			omap_writel(val, DISPC_REG(base, DISPC_CONTROL2));
-+		}
-+
-+		i = 0;
-+		while ((omap_readl(DISPC_REG(base, DISPC_IRQSTATUS)) & irq_mask) !=
-+				irq_mask) {
-+			i++;
-+			if (i > 100) {
-+				printk(KERN_ERR "didn't get FRAMEDONE1/2 or TV"
-+					" interrupt\n");
-+				break;
-+			}
-+			mdelay(1);
-+		}
-+	}
-+}
-+
- #define MAX_MODULE_SOFTRESET_WAIT	10000
- int omap_dss_reset(struct omap_hwmod *oh)
- {
-@@ -198,6 +294,20 @@ int omap_dss_reset(struct omap_hwmod *oh)
- 		if (oc->_clk)
- 			clk_enable(oc->_clk);
- 
-+	dispc_disable_outputs();
-+
-+	/* clear SDI registers */
-+	if (cpu_is_omap3430()) {
-+		omap_hwmod_write(0x0, oh, DSS_SDI_CONTROL);
-+		omap_hwmod_write(0x0, oh, DSS_PLL_CONTROL);
-+	}
-+
-+	/*
-+	 * clear DSS_CONTROL register to switch DSS clock sources to
-+	 * PRCM clock, if any
-+	 */
-+	omap_hwmod_write(0x0, oh, DSS_CONTROL);
-+
- 	omap_test_timeout((omap_hwmod_read(oh, oh->class->sysc->syss_offs)
- 				& SYSS_RESETDONE_MASK),
- 			MAX_MODULE_SOFTRESET_WAIT, c);
--- 
-1.7.1
-
+	tglx
