@@ -1,42 +1,62 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [GIT PULL] I2C: OMAP: misc. cleanup for v3.2
-Date: Mon, 12 Sep 2011 10:39:57 -0700
-Message-ID: <4E6E43ED.9080600@ti.com>
-References: <871uwbhdoj.fsf@ti.com> <4E669F36.2070008@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP: omap_device: fix !CONFIG_SUSPEND case in _noirq
+ handlers
+Date: Mon, 12 Sep 2011 10:44:03 -0700
+Message-ID: <4E6E44E3.1090607@ti.com>
+References: <1314900722-10252-1-git-send-email-khilman@ti.com> <1876183.c78P8V3ZbL@wuerfel> <201109012357.39873.rjw@sisk.pl> <4E667EE1.1020808@ti.com> <4E668094.40108@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E669F36.2070008-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:40922 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751618Ab1ILRoK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Sep 2011 13:44:10 -0400
+Received: by mail-yx0-f179.google.com with SMTP id 8so326398yxk.10
+        for <linux-omap@vger.kernel.org>; Mon, 12 Sep 2011 10:44:09 -0700 (PDT)
+In-Reply-To: <4E668094.40108@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-ping
+Arnd,
 
-On 09/06/2011 03:31 PM, Kevin Hilman wrote:
-> Hi Ben,
->
-> On 08/23/2011 05:10 PM, Kevin Hilman wrote:
->> Ben,
+On 09/06/2011 01:20 PM, Kevin Hilman wrote:
+> On 09/06/2011 01:13 PM, Kevin Hilman wrote:
+>> On 09/01/2011 02:57 PM, Rafael J. Wysocki wrote:
+>>> On Thursday, September 01, 2011, Arnd Bergmann wrote:
+>>>> On Thursday 01 September 2011 11:12:02 Kevin Hilman wrote:
+>>>>> The suspend/resume _noirq handlers were #ifdef'd out in the
+>>>>> !CONFIG_SUSPEND case, but were still assigned to the dev_pm_ops
+>>>>> struct. Fix by defining them to NULL in the !CONFIG_SUSPEND case.
+>>>>>
+>>>>> Reported-by: Arnd Bergmann<arnd@arndb.de>
+>>>>> Signed-off-by: Kevin Hilman<khilman@ti.com>
+>>>>
+>>>> Acked-by: Arnd Bergmann<arnd@arndb.de>
+>>>>
+>>>> Thansk for the fast response!
+>>>
+>>> I'll apply the patch when kernel.org is back in order.
+>>>
 >>
->> Here's one more I2C cleanup series for v3.2.
+>> Tony,
 >>
->> It applies on top of my for_3.2/i2c-fixes branch just submitted.
->>
->> Please pull into your tree for linux-next.
+>> I spoke w/Rafael and due to hera being down and Rafael traveling to LPC
+>> he wont be able to queue this for v3.1. Can you queue up this fix? This
+>> needs to go in to v3.1-rc.
 >
-> I see you pulled the other two, can you pull this one as well?
+> For convenience, this patch is in a branch in my backup gitorious repo
+> with Arnd's ack added:
 >
-> Since master.kernel.org is still down, I pushed a (backup) copy of these
-> branches to my gitorious repo[1]. It should pull cleanly into what
-> you've already pulled since this branch is based on my for_3.2/i2c-fixes
-> which you've already pulled.
+> git://gitorious.org/khilman/linux-omap-pm.git for_3.1/pm-fixes-2
 >
-> Thanks,
->
-> Kevin
->
->
-> [1] git://gitorious.org/khilman/linux-omap-pm.git
+
+Can you pick this up for v3.1-rc also?
+
+Thanks,
+
+Kevin
+
