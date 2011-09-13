@@ -1,67 +1,70 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 3/6] OMAP3: id: use explicit omap_revision codes for 3505/3517
-	ES levels
-Date: Tue, 13 Sep 2011 15:28:04 -0600
-Message-ID: <20110913212803.26161.31753.stgit@dusk>
+Subject: [PATCH 4/6] OMAP3: id: add fallthrough warning;
+	fix some CodingStyle issues
+Date: Tue, 13 Sep 2011 15:28:05 -0600
+Message-ID: <20110913212804.26161.38976.stgit@dusk>
 References: <20110913212638.26161.62284.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40110 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:40113 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932850Ab1IMVbU (ORCPT
+	with ESMTP id S932851Ab1IMVbU (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2011 17:31:20 -0400
 In-Reply-To: <20110913212638.26161.62284.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Sanjeev Premi <premi@ti.com>
+Cc: Hemant Pedanekar <hemantp@ti.com>
 
-Use explicit revision codes for OMAP/AM 3505/3517 ES levels, as the rest
-of the OMAP2+ SoCs do in mach-omap2/cpu.c.
+Emit a warning to the console in omap3_check_revision() if that code
+cannot determine what type of SoC the system is currently running on.
+
+Remove some extra whitespace, remove some duplicate code, and
+add an appropriate comment to a fallthrough case.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Sanjeev Premi <premi@ti.com>
+Cc: Hemant Pedanekar <hemantp@ti.com>
 ---
- arch/arm/mach-omap2/id.c              |   10 +++++++++-
- arch/arm/plat-omap/include/plat/cpu.h |    3 ++-
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/id.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 46bc2f9..6810c52 100644
+index 6810c52..18c3797 100644
 --- a/arch/arm/mach-omap2/id.c
 +++ b/arch/arm/mach-omap2/id.c
-@@ -312,7 +312,15 @@ static void __init omap3_check_revision(void)
- 		 *
- 		 * REVISIT: AM3505/AM3517 should have their own CHIP_IS
- 		 */
--		omap_revision = OMAP3517_REV(rev);
-+		switch (rev) {
-+		case 0:
-+			omap_revision = OMAP3517_REV_ES1_0;
-+			break;
-+		case 1:
+@@ -336,8 +336,9 @@ static void __init omap3_check_revision(void)
+ 			omap_chip.oc |= CHIP_IS_OMAP3630ES1_1;
+ 			break;
+ 		case 2:
 +		/* FALLTHROUGH */
-+		default:
-+			omap_revision = OMAP3517_REV_ES1_1;
-+		}
- 		omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+ 		default:
+-			omap_revision =  OMAP3630_REV_ES1_2;
++			omap_revision = OMAP3630_REV_ES1_2;
+ 			omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
+ 		}
  		break;
- 	case 0xb891:
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index b6bd8f7..566975c 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -398,7 +398,8 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define OMAP3630_REV_ES1_2	(OMAP363X_CLASS | (OMAP_REVBITS_02 << 8))
+@@ -349,16 +350,16 @@ static void __init omap3_check_revision(void)
+ 			omap_revision = TI8168_REV_ES1_0;
+ 			break;
+ 		case 1:
+-			omap_revision = TI8168_REV_ES1_1;
+-			break;
++		/* FALLTHROUGH */
+ 		default:
+-			omap_revision =  TI8168_REV_ES1_1;
++			omap_revision = TI8168_REV_ES1_1;
+ 		}
+ 		break;
+ 	default:
+-		/* Unknown default to latest silicon rev as default*/
++		/* Unknown default to latest silicon rev as default */
+ 		omap_revision =  OMAP3630_REV_ES1_2;
+ 		omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
++		pr_warn("Warning: unknown chip type; assuming OMAP3630ES1.2\n");
+ 	}
+ }
  
- #define OMAP3517_CLASS		0x35170000
--#define OMAP3517_REV(v)		(OMAP3517_CLASS | (v << 8))
-+#define OMAP3517_REV_ES1_0	OMAP3517_CLASS
-+#define OMAP3517_REV_ES1_1	(OMAP3517_CLASS | (OMAP_REVBITS_01 << 8))
- 
- #define TI816X_CLASS		0x81600034
- #define TI8168_REV_ES1_0	TI816X_CLASS
 
 
