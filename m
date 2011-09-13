@@ -1,118 +1,111 @@
-From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
-Subject: RE: [PATCH 1/8] omap3evm: Enable regulators for camera interface
-Date: Tue, 13 Sep 2011 12:36:20 +0530
-Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090831@dbde03.ent.ti.com>
-References: <1315488831-15998-1-git-send-email-deepthy.ravi@ti.com>,<201109081851.53078.laurent.pinchart@ideasonboard.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 21/25] OMAP4: PM: Add MPUSS power domain OSWR support
+Date: Tue, 13 Sep 2011 09:39:05 +0200
+Message-ID: <CAORVsuUaR8pcZ4MYigi85tmtWspz3tR_OJcvhaB0AFRLRaAANw@mail.gmail.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+	<1315144466-9395-22-git-send-email-santosh.shilimkar@ti.com>
+	<87obypfvah.fsf@ti.com>
+	<4E6EEC35.8080203@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43337 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754743Ab1IMHKH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2011 03:10:07 -0400
-In-Reply-To: <201109081851.53078.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
+Received: from mail-vw0-f52.google.com ([209.85.212.52]:54699 "EHLO
+	mail-vw0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754945Ab1IMHjG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2011 03:39:06 -0400
+Received: by vws16 with SMTP id 16so563932vws.11
+        for <linux-omap@vger.kernel.org>; Tue, 13 Sep 2011 00:39:06 -0700 (PDT)
+In-Reply-To: <4E6EEC35.8080203@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@infradead.org" <mchehab@infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Santosh <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, rnayak@ti.com
 
-Hi,
-> ________________________________________
-> From: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
-> Sent: Thursday, September 08, 2011 10:21 PM
-> To: Ravi, Deepthy
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; mchehab@infradead.org; linux-media@vger.kernel.org; g.liakhovetski@gmx.de; Hiremath, Vaibhav
-> Subject: Re: [PATCH 1/8] omap3evm: Enable regulators for camera interface
->
-> Hi,
->
-> On Thursday 08 September 2011 15:33:51 Deepthy Ravi wrote:
->> From: Vaibhav Hiremath <hvaibhav@ti.com>
+Hi Santosh,
+
+On Tue, Sep 13, 2011 at 7:37 AM, Santosh <santosh.shilimkar@ti.com> wro=
+te:
+> On Tuesday 13 September 2011 12:22 AM, Kevin Hilman wrote:
 >>
->> Enabled 1v8 and 2v8 regulator output, which is being used by
->> camera module.
->
-> Thanks for the patch. Just one minor comment below.
->
->> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
->> ---
->>  arch/arm/mach-omap2/board-omap3evm.c |   40
->> ++++++++++++++++++++++++++++++++++ 1 files changed, 40 insertions(+), 0
->> deletions(-)
+>> Santosh Shilimkar<santosh.shilimkar@ti.com> =A0writes:
 >>
->> diff --git a/arch/arm/mach-omap2/board-omap3evm.c
->> b/arch/arm/mach-omap2/board-omap3evm.c index a1184b3..8333ee4 100644
->> --- a/arch/arm/mach-omap2/board-omap3evm.c
->> +++ b/arch/arm/mach-omap2/board-omap3evm.c
->> @@ -273,6 +273,44 @@ static struct omap_dss_board_info omap3_evm_dss_data =
->> { .default_device     = &omap3_evm_lcd_device,
->>  };
+>>> This patch adds the MPUSS OSWR (Open Switch Retention) support. The=
+ MPUSS
+>>> OSWR configuration is as below.
+>>> =A0 =A0 =A0 =A0- CPUx L1 and logic lost, MPUSS logic lost, L2 memor=
+y is retained
+>>>
+>>> OMAP4460 onwards, MPUSS power domain doesn't support OFF state any =
+more
+>>> anymore just like CORE power domain. The deepest state supported is=
+ OSWR.
+>>> On OMAP4430 secure devices too, MPUSS off mode can't be used becaus=
+e of
+>>> a bug which alters Ducati and Tesla states. Hence MPUSS off mode as=
+ an
+>>> independent state isn't supported on OMAP44XX devices.
+>>>
+>>> Ofcourse when MPUSS power domain transitions to OSWR along
+>>> with device off mode, it eventually hits off state since memory
+>>> contents are lost.
+>>>
+>>> Hence the MPUSS off mode independent state is not attempted without
+>>> device off mode. All the necessary infrastructure code for MPUSS
+>>> off mode is in place as part of this series.
+>>>
+>>> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>>> Cc: Kevin Hilman<khilman@ti.com>
 >>
->> +static struct regulator_consumer_supply omap3evm_vaux3_supply = {
->> +     .supply         = "cam_1v8",
->> +};
->> +
->> +static struct regulator_consumer_supply omap3evm_vaux4_supply = {
->> +     .supply         = "cam_2v8",
->> +};
->> +
->> +/* VAUX3 for CAM_1V8 */
->> +static struct regulator_init_data omap3evm_vaux3 = {
->> +     .constraints = {
->> +             .min_uV                 = 1800000,
->> +             .max_uV                 = 1800000,
->> +             .apply_uV               = true,
->> +             .valid_modes_mask       = REGULATOR_MODE_NORMAL
->> +                                     | REGULATOR_MODE_STANDBY,
->> +             .valid_ops_mask         = REGULATOR_CHANGE_MODE
->> +                                     | REGULATOR_CHANGE_STATUS,
->> +             },
->> +     .num_consumer_supplies  = 1,
->> +     .consumer_supplies      = &omap3evm_vaux3_supply,
->
-> I might be wrong, but I think we're standardizing on using REGULATOR_SUPPLY
-> arrays as described in commit 786b01a8c1db0c0decca55d660a2a3ebd7cfb26b
-> ("cleanup regulator supply definitions in mach-omap2").
->
-[Deepthy Ravi] Yes, you are right. I will modify it.
->> +};
->> +
->> +/* VAUX4 for CAM_2V8 */
->> +static struct regulator_init_data omap3evm_vaux4 = {
->> +     .constraints = {
->> +             .min_uV                 = 1800000,
->> +             .max_uV                 = 1800000,
->> +             .apply_uV               = true,
->> +             .valid_modes_mask       = REGULATOR_MODE_NORMAL
->> +                     | REGULATOR_MODE_STANDBY,
->> +             .valid_ops_mask         = REGULATOR_CHANGE_MODE
->> +                     | REGULATOR_CHANGE_STATUS,
->> +     },
->> +     .num_consumer_supplies  = 1,
->> +     .consumer_supplies      = &omap3evm_vaux4_supply,
->> +};
->> +
->>  static struct regulator_consumer_supply omap3evm_vmmc1_supply[] = {
->>       REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
->>  };
->> @@ -499,6 +537,8 @@ static struct twl4030_platform_data omap3evm_twldata =
->> { .vio                = &omap3evm_vio,
->>       .vmmc1          = &omap3evm_vmmc1,
->>       .vsim           = &omap3evm_vsim,
->> +     .vaux3          = &omap3evm_vaux3,
->> +     .vaux4          = &omap3evm_vaux4,
->>  };
+>> Compile failure for the !CONFIG_PM case:
 >>
->>  static int __init omap3_evm_i2c_init(void)
+>> [...]
+>>
+>>> @@ -70,11 +71,18 @@ static inline int omap4_mpuss_init(void)
+>>> =A0{
+>>> =A0 =A0 =A0 =A0return 0;
+>>> =A0}
+>>> -
+>>> +static inline u32 omap4_mpuss_read_prev_context_state(void)
+>>> +{
+>>> + =A0 =A0 =A0 return 0;
+>>> +}
+>>
+>> added here
+>>
+>>> =A0static inline int omap4_finish_suspend(unsigned long cpu_state)
+>>> =A0{}
+This one should return 0, as I already pointed out in the comments for =
+[14/25].
+
+Regards,
+Jean
+
+>>> =A0static inline void omap4_cpu_resume(void)
+>>> =A0{}
+>>> +static inline u32 omap4_mpuss_read_prev_context_state(void)
+>>> +{
+>>> + =A0 =A0 =A0 return 0;
+>>> +}
+>>
+>> same thing added here
+>>
+> I noticed this yesterday and was planning to send a note on this
+> patch. :(
+> Have removed this already in the updated patches.
+> Thanks for pointing it out.
+>
+> Regards
+> Santosh
 >
 > --
-> Regards,
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >
-> Laurent Pinchart
->
-
-Thanks,
-Deepthy Ravi.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
