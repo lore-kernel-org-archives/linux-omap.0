@@ -1,177 +1,57 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/4] AM3517 : support for suspend/resume
-Date: Tue, 13 Sep 2011 11:24:05 -0700
-Message-ID: <8739g0b8sa.fsf@ti.com>
-References: <1313754927-11992-1-git-send-email-abhilash.kv@ti.com>
-	<1313754927-11992-2-git-send-email-abhilash.kv@ti.com>
-	<87fwkild5k.fsf@ti.com>
-	<FCCFB4CDC6E5564B9182F639FC356087037B3D8823@dbde02.ent.ti.com>
+From: =?utf-8?B?5LuFMTDlhYPmr4/lpKk=?= <test@amidress.com>
+Subject: =?utf-8?B?576k5Y+R6L2v5Lu2K+S5sOWutuaQnOe0ouacuisxMDnlsYrlub/kuqTkvJrkubDlrrY=?=
+	=?utf-8?B?44CB5rW35YWz5pWw5o2uLEIyQuivouebmOS5sOWutjUwMOS4h+OAgg==?=
+Date: Tue, 13 Sep 2011 18:41:03 +0000 (UTC)
+Message-ID: <20111213091115820210@amidress.com>
+Reply-To: <1339625218@qq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087037B3D8823@dbde02.ent.ti.com>
-	(Abhilash Koyamangalath's message of "Tue, 13 Sep 2011 17:01:01
-	+0530")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Lohithakshan, Ranjith" <ranjithl@ti.com>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 184.172.211.66-static.reverse.softlayer.com ([184.172.211.66]:2809
+	"HELO amidress.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932101Ab1IMSk7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2011 14:40:59 -0400
+Date: Tue, 13 Dec 2011 09:11:04 +0800
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Abhilash,
-
-"Koyamangalath, Abhilash" <abhilash.kv@ti.com> writes:
-
-> Hi
->
-> On Wed, Aug 31, 2011 at 4:28 AM, Hilman, Kevin wrote:
->>
->> Abhilash K V <abhilash.kv@ti.com> writes:
->>
->>> 1. Patch to disable dynamic sleep (as it is not supported
->>>    on AM35xx).
->>> 2. Imported the unique suspend/resume sequence for AM3517,
->>>    contained in the new file arch/arm/mach-omap2/sleep3517.S.
->>> 3. Added omap3517_ to symbol-names in sleep3517.S which are common
->>>    with sleep34xx.S, and added appropriate checks.
->>>
->>> There are still 3 caveats:
->>>
->>> 1. If "no_console_suspend" is enabled (via boot-args), the device
->>>    doesnot resume but simply hangs.
->>> 2. Every second and subsequent attempt to suspend/resume prints this slow-path
->>>    WARNING (for both uart1 and uart2), while resuming :
->>>    [   70.943939] omap_hwmod: uart1: idle state can only be entered from
->>>    enabled state
->>> 3. Wakeup using the TSC2004 touch-screen controller is not supported.
->>>
->>> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
->>> Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
->>> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
->>
->> In addition to Russell's comments about using the latest code from
->> mainline, I have some comments below.
-> [Abhilash K V] I have reworked the patch against the tip (as suggested by
-> Russell).
-> And I've incorporated all of Kevin's comments too.
-
-Great, thanks!
-
-> There is one "known" issue left which needs to be closed before I can submit v2 of this patch.
-> With no_console_suspend, suspend to RAM hangs right now on AM3517, after
-> the message:
->           Disabling non-boot CPUs ...
-> There is no error message or dump.
-> I found that this crash is happening in a call to pr_warning(), from _omap_device_deactivate().
-> The same code does not produce this issue on omap34xx due to this snippet from omap_sram_idle() :
->         /* PER */
->         if (per_next_state < PWRDM_POWER_ON) {
->                 per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
->                 omap_uart_prepare_idle(2);
->                 omap_uart_prepare_idle(3);
->                 omap2_gpio_prepare_for_idle(per_going_off);
->                 if (per_next_state == PWRDM_POWER_OFF)
->                                 omap3_per_save_context();
->         }
->         /* CORE */
->         if (core_next_state < PWRDM_POWER_ON) {
->                 omap_uart_prepare_idle(0);
->                 omap_uart_prepare_idle(1);
->                 if (core_next_state == PWRDM_POWER_OFF) {
->                         omap3_core_save_context();
->                         omap3_cm_save_context();
->                 }
->         }
-> This happens in preparation to the suspend operation (I,e. the WFI).
-> As seen here, on 34xx the sequence in which the uarts are disabled is 2, 3, 0 and 1.The console-uart, which is uart-1 here (starting from uart-0) is disabled last.
-
-> For AM3517 EVM, the console-uart is uart-2 and this ought to be
-> disabled at the last to prevent this crash from occurring.
-
-There are several other OMAP3 platforms (n900, Beagle, etc.) where the
-UART console is also UART2, so console ordering is not the problem.
-
-The fact that that pr_warning is making it to the console suggests that
-the console is not locked.  In the idle path, we take the console lock
-(using console_trylock(), just above the code you showed above.)
-
-But during suspend, there was an assumption (by me[2]) that the console
-would always be locked in the suspend path.  During no_console_suspend,
-it appears that is not the case.
-
-Can you try the patch below[1] to see if that fixes your problem?  I
-think it should.
-
-Kevin
+576k5Y+R6L2v5Lu2KzEwOeWxiuW5v+S6pOS8muS5sOWutuOAgea1t+WFs+aVsOaNruOAgeaQnOe0
+ouW8leaTjuS5sOWutixCMkLor6Lnm5jkubDlrrblhbE1MDDkuIcs5LuFMTDlhYPmr4/lpKnjgIIg
+DQrkv53or4Hmr4/lpKnpg73mnInkubDlrrblm57lpI3jgIINCuS/neivgeavj+WkqemDveacieS5
+sOWutuWbnuWkjeOAgg0KDQoNCjHjgIHnvqTlj5Hova/ku7bvvJog5pON5L2c566A5Y2V77yM5Yqf
+6IO95by65aSn77yM5qih5Lu/5Lq65bel5pON5L2c5qih5byP77yM5Yiw6L6+546H6auY77yM5pel
+5Y+R6YCBNeS4h+WwgeS7peS4iuOAgiANCjLjgIE1MDDkuIfkubDlrrbotYTmupDvvJog6LWg6YCB
+55qENTAw5LiH5Lmw5a626LWE5rqQ5bqT77yM5q+P5pyI5pu05pawIOOAgiANCjPjgIHotoXnuqfm
+tbflpJbkubDlrrZFbWFpbOaQnOe0ouacuu+8miDmr4/lpKnog73mkJzntKIxLTLkuIfku6XkuIrk
+ubDlrrbnnJ/lrp5FTUFJTO+8jOaIkOWNleeOh+mrmOOAgiANCiANCg0K6KaB55qE5oqT57Sn6IGU
+57O7UVE6IDEzMzk2MjUyMTggICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEzMzk2MjUyMThA
+cXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogMTMzOTYyNTIxOCAgIOaIluiAheeri+WNs+Wb
+nuWkjemCrueusTogMTMzOTYyNTIxOEBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzM5
+NjI1MjE4ICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMzM5NjI1MjE4QHFxLmNvbQ0KDQrl
+hY3otLnotaDpgIE6DQrkuIDlhbE45Liq5YyFKOaVsOaNruaYr+WFqOihjOS4mueahO+8jOaMieeF
+p+ihjOS4muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeafpeivoueahCnv
+vJogDQox77yMMjAxMeaYpeWtozEwOeWxiuW5v+S6pOS8muS5sOWutueOsOWcuuivouebmOaVsOaN
+ruW6k+aWsOmynOWHuueCie+8jOi2hee6p+aWsOmynOS5sOWutu+8jOaWsOmynOaVsOaNru+8jOWu
+ueaYk+aIkOWNle+8gSANCjLvvIzotK3kubDlkI7lj6/ku6XlhY3otLnmm7TmlrAyMDEx56eL5a2j
+5bm/5Lqk5LyaKzIwMTLmmKXlraPlub/kuqTkvJrkubDlrrbmlbDmja7jgILlpKrotoXlgLzkuobj
+gIINCjPvvIzmnIDmlrDlhajnkIPkubDlrrblupMs5YWxNDUxNjYw5p2h5pWw5o2u44CCICjmnIDm
+lrDmm7TmlrDml6XmnJ8gMjAxMS0wNS0xNuaXpSkNCjTvvIwyMDA45bm0LDIwMDnlubQsMjAxMOW5
+tCDmmKXlraMr56eL5a2j5bm/5Lqk5Lya5Lmw5a625ZCN5b2V77yMMTAzIDEwNCAxMDUgMTA2IDEw
+NyAxMDgg5YWx5YWt5bGKIOWFsTEyMC425LiH5pWw5o2u44CCDQo177yMMjAxMOW5tOWbvemZheS/
+g+mUgOWNj+S8mu+8iFBQQUnvvInmiJDlkZjlkI3ljZUgUFBBSSBNZW1iZXJzIERpcmVjdG9yee+8
+jOmdnuW4uOmHjeimgeeahOWkp+S5sOWutuOAgg0KNu+8jDIwMTDlubTliLDpppnmuK/ph4fotK3n
+moTlm73lpJblrqLkurrlkI3lvZUo6aaZ5riv6LS45Y+R5bGA5o+Q5L6bKe+8jOWFsTcuMuS4h+aV
+sOaNru+8jOi2hee6p+mHjeimgeeahOS5sOWutuOAgg0KN++8jDQ4LjY45LiH5p2h5pyA5paw5Lmw
+5a626K+i55uY77yM6LSt5Lmw5ZCO5q+P5pyI5pu05pawIDEtMuS4h+adoe+8jOWMheaLrDLpg6jl
+iIbvvIwx77yM5pyA5paw55qE6K+i55uYIDLvvIzmnIDmlrDnmoTlsZXkvJrkubDlrrbjgILlhY3o
+tLnmm7TmlrAzNuS4quaciOOAgg0KOO+8jDIwMDnlubTmtbflhbPmj5DljZXmlbDmja5waWVyc+eJ
+iOaVsOaNriAx5Y2D5LiH44CCDQoNCg0K6K+a5L+h5Li65pys77yM5pSv5oyB5pSv5LuY5a6d5ouF
+5L+d5Lqk5piTICjlhYjlj5HotKflubblronoo4Xorr7nva7nvqTlj5Hova/ku7bvvIznhLblkI7k
+u5jmrL4pIOW9u+W6leaJk+a2iOaCqOeahCDpob7omZHjgIINCg0KIA0KDQoNCiANCg0K57K+5YeG
+5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+
+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K
+57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K
 
 
-[1]
->From 5b5a73101fcfa042d53828c017ee3149eae44b50 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Tue, 13 Sep 2011 11:18:44 -0700
-Subject: [PATCH] OMAP3: PM: fix UART handling when using no_console_suspend
-
-During the idle/suspend path, we expect the console lock to be held so
-that no console output is done during/after the UARTs are idled.
-
-However, when using the no_console_suspend argument on the
-command-line, the console driver does not take the console lock.  This
-allows the possibility of console activity after UARTs have been
-disabled.
-
-To fix, update the current is_suspending() to also check the
-console_suspend_enabled flag.
-
-NOTE: this is short-term workaround until the OMAP serial driver
-      is fully converted to use runtime PM.
-
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 7255d9b..c8cbd00 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -55,7 +55,7 @@
- static suspend_state_t suspend_state = PM_SUSPEND_ON;
- static inline bool is_suspending(void)
- {
--	return (suspend_state != PM_SUSPEND_ON);
-+	return (suspend_state != PM_SUSPEND_ON) && console_suspend_enabled;
- }
- #else
- static inline bool is_suspending(void)
--- 
-1.7.6
-
-
-
-[2]
-commit e83df17f178360a8e7874441bca04a710c869e42
-Author: Kevin Hilman <khilman@deeprootsystems.com>
-Date:   Wed Dec 8 22:40:40 2010 +0000
-
-    OMAP2+: PM/serial: fix console semaphore acquire during suspend
-    
-    commit 0d8e2d0dad98a693bad88aea6876ac8b94ad95c6 (OMAP2+: PM/serial:
-    hold console semaphore while OMAP UARTs are disabled) added use of the
-    console semaphore to protect UARTs from being accessed after disabled
-    during idle, but this causes problems in suspend.
-    
-    During suspend, the console semaphore is acquired by the console
-    suspend method (console_suspend()) so the try_acquire_console_sem()
-    will always fail and suspend will be aborted.
-    
-    To fix, introduce a check so the console semaphore is only attempted
-    during idle, and not during suspend.  Also use the same check so that
-    the console semaphore is not prematurely released during resume.
-    
-    Thanks to Paul Walmsley for suggesting adding the same check during
-    resume.
-    
-    Cc: Paul Walmsley <paul@pwsan.com>
-    Tested-by: Jean Pihet <j-pihet@ti.com>
-    Tested-by: Paul Walmsley <paul@pwsan.com>
-    Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-    Signed-off-by: Tony Lindgren <tony@atomide.com>
