@@ -1,236 +1,148 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 5/6] OMAP3: id: remove duplicate code for testing SoC ES level
-Date: Tue, 13 Sep 2011 15:28:06 -0600
-Message-ID: <20110913212805.26161.80347.stgit@dusk>
-References: <20110913212638.26161.62284.stgit@dusk>
+From: David Woodhouse <dwmw2@infradead.org>
+Subject: Re: [PATCH v2 5/6] iommu/intel: announce supported page sizes
+Date: Tue, 13 Sep 2011 22:32:59 +0100
+Message-ID: <1315949582.2687.204.camel@shinybook.infradead.org>
+References: <1315942288-17297-1-git-send-email-ohad@wizery.com>
+	 <1315942288-17297-5-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40116 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932867Ab1IMVbV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2011 17:31:21 -0400
-In-Reply-To: <20110913212638.26161.62284.stgit@dusk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg="sha1"; protocol="application/x-pkcs7-signature";
+	boundary="=-LFLdJev2L+YzyRNs3VYJ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1315942288-17297-5-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
-omap3_cpuinfo() contains essentially duplicated code from
-omap3_check_revision(), just for the purpose of determining the chip ES level.
-Set the cpu_rev char array pointer in omap3_check_revision() instead,
-and drop the now-useless code from omap3_cpuinfo().
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/id.c |   80 +++++++++++++---------------------------------
- 1 files changed, 23 insertions(+), 57 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 18c3797..307e186 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -242,7 +242,7 @@ static void __init ti816x_check_features(void)
- 	omap_features = OMAP3_HAS_NEON;
- }
- 
--static void __init omap3_check_revision(void)
-+static void __init omap3_check_revision(const char **cpu_rev)
- {
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
-@@ -259,6 +259,7 @@ static void __init omap3_check_revision(void)
- 	if ((((cpuid >> 4) & 0xfff) == 0xc08) && ((cpuid & 0xf) == 0x0)) {
- 		omap_revision = OMAP3430_REV_ES1_0;
- 		omap_chip.oc |= CHIP_IS_OMAP3430ES1;
-+		*cpu_rev = "1.0";
- 		return;
- 	}
- 
-@@ -280,18 +281,22 @@ static void __init omap3_check_revision(void)
- 		case 1:
- 			omap_revision = OMAP3430_REV_ES2_0;
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
-+			*cpu_rev = "2.0";
- 			break;
- 		case 2:
- 			omap_revision = OMAP3430_REV_ES2_1;
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
-+			*cpu_rev = "2.1";
- 			break;
- 		case 3:
- 			omap_revision = OMAP3430_REV_ES3_0;
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_0;
-+			*cpu_rev = "3.0";
- 			break;
- 		case 4:
- 			omap_revision = OMAP3430_REV_ES3_1;
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
-+			*cpu_rev = "3.1";
- 			break;
- 		case 7:
- 		/* FALLTHROUGH */
-@@ -301,6 +306,7 @@ static void __init omap3_check_revision(void)
- 
- 			/* REVISIT: Add CHIP_IS_OMAP3430ES3_1_2? */
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
-+			*cpu_rev = "3.1.2";
- 		}
- 		break;
- 	case 0xb868:
-@@ -315,11 +321,13 @@ static void __init omap3_check_revision(void)
- 		switch (rev) {
- 		case 0:
- 			omap_revision = OMAP3517_REV_ES1_0;
-+			*cpu_rev = "1.0";
- 			break;
- 		case 1:
- 		/* FALLTHROUGH */
- 		default:
- 			omap_revision = OMAP3517_REV_ES1_1;
-+			*cpu_rev = "1.1";
- 		}
- 		omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
- 		break;
-@@ -330,16 +338,19 @@ static void __init omap3_check_revision(void)
- 		switch(rev) {
- 		case 0: /* Take care of early samples */
- 			omap_revision = OMAP3630_REV_ES1_0;
-+			*cpu_rev = "1.0";
- 			break;
- 		case 1:
- 			omap_revision = OMAP3630_REV_ES1_1;
- 			omap_chip.oc |= CHIP_IS_OMAP3630ES1_1;
-+			*cpu_rev = "1.1";
- 			break;
- 		case 2:
- 		/* FALLTHROUGH */
- 		default:
- 			omap_revision = OMAP3630_REV_ES1_2;
- 			omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
-+			*cpu_rev = "1.2";
- 		}
- 		break;
- 	case 0xb81e:
-@@ -348,17 +359,21 @@ static void __init omap3_check_revision(void)
- 		switch (rev) {
- 		case 0:
- 			omap_revision = TI8168_REV_ES1_0;
-+			*cpu_rev = "1.0";
- 			break;
- 		case 1:
- 		/* FALLTHROUGH */
- 		default:
- 			omap_revision = TI8168_REV_ES1_1;
-+			*cpu_rev = "1.1";
-+			break;
- 		}
- 		break;
- 	default:
- 		/* Unknown default to latest silicon rev as default */
--		omap_revision =  OMAP3630_REV_ES1_2;
-+		omap_revision = OMAP3630_REV_ES1_2;
- 		omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
-+		*cpu_rev = "1.2";
- 		pr_warn("Warning: unknown chip type; assuming OMAP3630ES1.2\n");
- 	}
- }
-@@ -435,10 +450,9 @@ static void __init omap4_check_revision(void)
- 	if (omap3_has_ ##feat())		\
- 		printk(#feat" ");
- 
--static void __init omap3_cpuinfo(void)
-+static void __init omap3_cpuinfo(const char *cpu_rev)
- {
--	u8 rev = GET_OMAP_REVISION();
--	const char *cpu_name, *cpu_rev;
-+	const char *cpu_name;
- 
- 	/*
- 	 * OMAP3430 and OMAP3530 are assumed to be same.
-@@ -465,56 +479,6 @@ static void __init omap3_cpuinfo(void)
- 		cpu_name = "OMAP3503";
- 	}
- 
--	if (cpu_is_omap3630() || cpu_is_ti816x()) {
--		switch (rev) {
--		case OMAP_REVBITS_00:
--			cpu_rev = "1.0";
--			break;
--		case OMAP_REVBITS_01:
--			cpu_rev = "1.1";
--			break;
--		case OMAP_REVBITS_02:
--			/* FALLTHROUGH */
--		default:
--			/* Use the latest known revision as default */
--			cpu_rev = "1.2";
--		}
--	} else if (cpu_is_omap3505() || cpu_is_omap3517()) {
--		switch (rev) {
--		case OMAP_REVBITS_00:
--			cpu_rev = "1.0";
--			break;
--		case OMAP_REVBITS_01:
--			/* FALLTHROUGH */
--		default:
--			/* Use the latest known revision as default */
--			cpu_rev = "1.1";
--		}
--	} else {
--		switch (rev) {
--		case OMAP_REVBITS_00:
--			cpu_rev = "1.0";
--			break;
--		case OMAP_REVBITS_01:
--			cpu_rev = "2.0";
--			break;
--		case OMAP_REVBITS_02:
--			cpu_rev = "2.1";
--			break;
--		case OMAP_REVBITS_03:
--			cpu_rev = "3.0";
--			break;
--		case OMAP_REVBITS_04:
--			cpu_rev = "3.1";
--			break;
--		case OMAP_REVBITS_05:
--			/* FALLTHROUGH */
--		default:
--			/* Use the latest known revision as default */
--			cpu_rev = "3.1.2";
--		}
--	}
--
- 	/* Print verbose information */
- 	pr_info("%s ES%s (", cpu_name, cpu_rev);
- 
-@@ -533,6 +497,8 @@ static void __init omap3_cpuinfo(void)
-  */
- void __init omap2_check_revision(void)
- {
-+	const char *cpu_rev;
-+
- 	/*
- 	 * At this point we have an idea about the processor revision set
- 	 * earlier with omap2_set_globals_tap().
-@@ -540,7 +506,7 @@ void __init omap2_check_revision(void)
- 	if (cpu_is_omap24xx()) {
- 		omap24xx_check_revision();
- 	} else if (cpu_is_omap34xx()) {
--		omap3_check_revision();
-+		omap3_check_revision(&cpu_rev);
- 
- 		/* TI816X doesn't have feature register */
- 		if (!cpu_is_ti816x())
-@@ -548,7 +514,7 @@ void __init omap2_check_revision(void)
- 		else
- 			ti816x_check_features();
- 
--		omap3_cpuinfo();
-+		omap3_cpuinfo(cpu_rev);
- 		return;
- 	} else if (cpu_is_omap44xx()) {
- 		omap4_check_revision();
 
 
+--=-LFLdJev2L+YzyRNs3VYJ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, 2011-09-13 at 22:31 +0300, Ohad Ben-Cohen wrote:
+> + * Traditionally the IOMMU core just handed us the mappings directly,
+> + * after making sure the size is an order of a 4KB page and that the
+> + * mapping has natural alignment.
+> + *
+> + * To retain this behavior, we currently advertise that we support
+> + * all page sizes that are an order of 4KB.=20
+
+This is wrong. We do not support 4000-byte pages. We only support
+4096-byte pages. 4KiB, not 4kB.
+
+Please fix.
+
+--=20
+dwmw2
+
+--=-LFLdJev2L+YzyRNs3VYJ
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIITvzCCBi0w
+ggQVoAMCAQICAwCtOTANBgkqhkiG9w0BAQUFADBUMRQwEgYDVQQKEwtDQWNlcnQgSW5jLjEeMBwG
+A1UECxMVaHR0cDovL3d3dy5DQWNlcnQub3JnMRwwGgYDVQQDExNDQWNlcnQgQ2xhc3MgMyBSb290
+MB4XDTEwMDYxMjEwMDMwMFoXDTEyMDYxMTEwMDMwMFowgegxGDAWBgNVBAMTD0RhdmlkIFdvb2Ro
+b3VzZTEiMCAGCSqGSIb3DQEJARYTZHdtdzJAaW5mcmFkZWFkLm9yZzEfMB0GCSqGSIb3DQEJARYQ
+ZGF2aWRAd29vZGhvdS5zZTEoMCYGCSqGSIb3DQEJARYZZGF2aWQud29vZGhvdXNlQGludGVsLmNv
+bTEkMCIGCSqGSIb3DQEJARYVZHdtdzJAbGludXguaW50ZWwuY29tMTcwNQYJKoZIhvcNAQkBFigx
+MDg3MmEwN2Y2ZDdlMWUwN2Y1NWZmMTcyYTAzYjMwMGVlYWFkMjAzMIIBIjANBgkqhkiG9w0BAQEF
+AAOCAQ8AMIIBCgKCAQEA29OPhNvMxBMW83psWdVhZDtmJvgN+tBEp1r6MZamONsR0k81a6fDFwJz
+M0fEzEbV/bDG102QyX/xXC/0IpKV4acnqESC+sTHUmRwxfRKGNmR6t2iwEs2Y5kQDF31JxbCt49w
+AlhLMAa+e1MBZ7vO0uDmRuJpS7+ZdHboq7cdk6dyoeumGv5sl6U/SPK9rL4KzULtqQaw6Wucd6MJ
+irIggEHfCNqeT5a+TyuH4zKCwv9nblIGXq9wt+yqu5t/RicGaKPnXSqo/WpJAGggaO8g92mnYlVl
+Wu/b9bYVISwQ8LI0sEtjN1WnP5AQO2f59bdPAVk4Rn25HceOO4NvlG47LwIDAQABo4IBcTCCAW0w
+DAYDVR0TAQH/BAIwADBWBglghkgBhvhCAQ0ESRZHVG8gZ2V0IHlvdXIgb3duIGNlcnRpZmljYXRl
+IGZvciBGUkVFIGhlYWQgb3ZlciB0byBodHRwOi8vd3d3LkNBY2VydC5vcmcwQAYDVR0lBDkwNwYI
+KwYBBQUHAwQGCCsGAQUFBwMCBgorBgEEAYI3CgMEBgorBgEEAYI3CgMDBglghkgBhvhCBAEwMgYI
+KwYBBQUHAQEEJjAkMCIGCCsGAQUFBzABhhZodHRwOi8vb2NzcC5jYWNlcnQub3JnMIGOBgNVHREE
+gYYwgYOBE2R3bXcyQGluZnJhZGVhZC5vcmeBEGRhdmlkQHdvb2Rob3Uuc2WBGWRhdmlkLndvb2Ro
+b3VzZUBpbnRlbC5jb22BFWR3bXcyQGxpbnV4LmludGVsLmNvbYEoMTA4NzJhMDdmNmQ3ZTFlMDdm
+NTVmZjE3MmEwM2IzMDBlZWFhZDIwMzANBgkqhkiG9w0BAQUFAAOCAgEAXm+SUO1/TSeGJK0D9pAm
+E9LTFkdlgbaD6HXGbS0TNUDyfLFkacc2F1JLoWcoFwcL6Rup5o/Rt4QYDBPWgF9EXFvqsc9SLrSe
+X6VwRj7vI40x19ThE2A1Y8DzBJ9+2MzIR6hd5n9axATCOIRhmZVjX1cRkwshEGvAn8mTYGhWttkx
+WhBcaAuCd9OOQqUwfxTUXiSfVumPUNrrbuvaH6MjrNjDrXdvicL26Y+AzFSJn3o8DShjjMhkUx9l
+qV46BpjSGIuvkHhcLkGJ3Y1YmtOX1hwT+Z+d/10WJh8ZG2FqIlJtPtqvHK5ol/KvdzMwmMBd4qFj
+YAO32vf7zde+jdTHNp2Mb15bJHhNdGOsZicpGue42fg3deZQFe1E2KBl9VO09fjncjt9YdhCUtxO
+buDnoOixY6YSJgSmGJB2Xs+TE5gps4UiiOYen+NeJkuwg5x9vmyraU061Uc0csfc/E5IoxhTX/Pc
+H+zXiER8aSjA/9MXQfrJM2xkY6UNKlDbCYSLKnH/O02eu7Hma6lB4wtcY8ECu7LJuFY2448Quolv
+SQfQLRvKauGFGUAhbPClOxObuv/fNzA+lfg8DX2y5jXDutnpvBGgsplKxoah01SZfR9zNqxodPx2
+srKhujBNB+WiAZntMf0xp4e0JPMlTFxm3tbY9wuBSyTJyueO9hUkbN4wggYtMIIEFaADAgECAgMA
+rTkwDQYJKoZIhvcNAQEFBQAwVDEUMBIGA1UEChMLQ0FjZXJ0IEluYy4xHjAcBgNVBAsTFWh0dHA6
+Ly93d3cuQ0FjZXJ0Lm9yZzEcMBoGA1UEAxMTQ0FjZXJ0IENsYXNzIDMgUm9vdDAeFw0xMDA2MTIx
+MDAzMDBaFw0xMjA2MTExMDAzMDBaMIHoMRgwFgYDVQQDEw9EYXZpZCBXb29kaG91c2UxIjAgBgkq
+hkiG9w0BCQEWE2R3bXcyQGluZnJhZGVhZC5vcmcxHzAdBgkqhkiG9w0BCQEWEGRhdmlkQHdvb2Ro
+b3Uuc2UxKDAmBgkqhkiG9w0BCQEWGWRhdmlkLndvb2Rob3VzZUBpbnRlbC5jb20xJDAiBgkqhkiG
+9w0BCQEWFWR3bXcyQGxpbnV4LmludGVsLmNvbTE3MDUGCSqGSIb3DQEJARYoMTA4NzJhMDdmNmQ3
+ZTFlMDdmNTVmZjE3MmEwM2IzMDBlZWFhZDIwMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
+ggEBANvTj4TbzMQTFvN6bFnVYWQ7Zib4DfrQRKda+jGWpjjbEdJPNWunwxcCczNHxMxG1f2wxtdN
+kMl/8Vwv9CKSleGnJ6hEgvrEx1JkcMX0ShjZkerdosBLNmOZEAxd9ScWwrePcAJYSzAGvntTAWe7
+ztLg5kbiaUu/mXR26Ku3HZOncqHrphr+bJelP0jyvay+Cs1C7akGsOlrnHejCYqyIIBB3wjank+W
+vk8rh+MygsL/Z25SBl6vcLfsqrubf0YnBmij510qqP1qSQBoIGjvIPdpp2JVZVrv2/W2FSEsEPCy
+NLBLYzdVpz+QEDtn+fW3TwFZOEZ9uR3HjjuDb5RuOy8CAwEAAaOCAXEwggFtMAwGA1UdEwEB/wQC
+MAAwVgYJYIZIAYb4QgENBEkWR1RvIGdldCB5b3VyIG93biBjZXJ0aWZpY2F0ZSBmb3IgRlJFRSBo
+ZWFkIG92ZXIgdG8gaHR0cDovL3d3dy5DQWNlcnQub3JnMEAGA1UdJQQ5MDcGCCsGAQUFBwMEBggr
+BgEFBQcDAgYKKwYBBAGCNwoDBAYKKwYBBAGCNwoDAwYJYIZIAYb4QgQBMDIGCCsGAQUFBwEBBCYw
+JDAiBggrBgEFBQcwAYYWaHR0cDovL29jc3AuY2FjZXJ0Lm9yZzCBjgYDVR0RBIGGMIGDgRNkd213
+MkBpbmZyYWRlYWQub3JngRBkYXZpZEB3b29kaG91LnNlgRlkYXZpZC53b29kaG91c2VAaW50ZWwu
+Y29tgRVkd213MkBsaW51eC5pbnRlbC5jb22BKDEwODcyYTA3ZjZkN2UxZTA3ZjU1ZmYxNzJhMDNi
+MzAwZWVhYWQyMDMwDQYJKoZIhvcNAQEFBQADggIBAF5vklDtf00nhiStA/aQJhPS0xZHZYG2g+h1
+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
+AAAAAA==
+
+
+--=-LFLdJev2L+YzyRNs3VYJ--
