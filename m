@@ -1,123 +1,360 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v2 2/2] iommu/omap: migrate to the generic fault report
-	mechanism
-Date: Tue, 13 Sep 2011 22:26:29 +0300
-Message-ID: <1315941989-17199-1-git-send-email-ohad@wizery.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Subject: [PATCH v2 1/6] iommu/core: split mapping to page sizes as supported by the hardware
+Date: Tue, 13 Sep 2011 22:31:23 +0300
+Message-ID: <1315942288-17297-1-git-send-email-ohad@wizery.com>
+Return-path: <kvm-owner@vger.kernel.org>
+Sender: kvm-owner@vger.kernel.org
 To: iommu@lists.linux-foundation.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Stepan Moskovchenko <stepanm@codeaurora.org>, kvm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Start using the generic fault report mechanism, as provided by
-the IOMMU core, and remove its now-redundant omap_iommu_set_isr API.
+When mapping a memory region, split it to page sizes as supported
+by the iommu hardware. Always prefer bigger pages, when possible,
+in order to reduce the TLB pressure.
 
-Currently we're only interested in letting upper layers know about the
-fault, so in case the faulting device is a remote processor, they could
-restart it.
+The logic to do that is now added to the IOMMU core, so neither the iommu
+drivers themselves nor users of the IOMMU API have to duplicate it.
 
-Dynamic PTE/TLB loading is not supported.
+This allows a more lenient granularity of mappings; traditionally the
+IOMMU API took 'order' (of a page) as a mapping size, and directly let
+the low level iommu drivers handle the mapping, but now that the IOMMU
+core can split arbitrary memory regions into pages, we can remove this
+limitation, so users don't have to split those regions by themselves.
+
+Currently the supported page sizes are advertised once and they then
+remain static. That works well for OMAP (and seemingly MSM too) but
+it would probably not fly with intel's hardware, where the page size
+capabilities seem to have the potential to be different between
+several DMA remapping devices. This limitation can be dealt with
+later, if desired. For now, the existing IOMMU API behavior is retained
+(see: "iommu/intel: announce supported page sizes").
+
+As requested, register_iommu() isn't changed yet, so we can convert
+the IOMMU drivers in subsequent patches, and after all the drivers
+are converted, register_iommu will be changed (and the temporary
+register_iommu_pgsize() will be removed).
+
+Mainline users of the IOMMU API (kvm and omap-iovmm) are adopted
+to send the mapping size in bytes instead of in page order.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: David Brown <davidb@codeaurora.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Joerg Roedel <Joerg.Roedel@amd.com>
+Cc: Stepan Moskovchenko <stepanm@codeaurora.org>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: kvm@vger.kernel.org
 ---
- arch/arm/plat-omap/include/plat/iommu.h |    3 +--
- drivers/iommu/omap-iommu.c              |   31 +++----------------------------
- 2 files changed, 4 insertions(+), 30 deletions(-)
+v1->v2: keep old code around until all drivers are converted
 
-diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
-index 7f1df0e..a1d79ee 100644
---- a/arch/arm/plat-omap/include/plat/iommu.h
-+++ b/arch/arm/plat-omap/include/plat/iommu.h
-@@ -32,6 +32,7 @@ struct omap_iommu {
- 	void __iomem	*regbase;
- 	struct device	*dev;
- 	void		*isr_priv;
-+	struct iommu_domain *domain;
+ drivers/iommu/iommu.c      |  158 +++++++++++++++++++++++++++++++++++++++++---
+ drivers/iommu/omap-iovmm.c |   12 +---
+ include/linux/iommu.h      |    6 +-
+ virt/kvm/iommu.c           |    4 +-
+ 4 files changed, 157 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index c68ff29..c848f14 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -16,6 +16,8 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+  */
  
- 	unsigned int	refcount;
- 	spinlock_t	iommu_lock;	/* global for this whole object */
-@@ -48,8 +49,6 @@ struct omap_iommu {
- 	struct list_head	mmap;
- 	struct mutex		mmap_lock; /* protect mmap */
++#define pr_fmt(fmt)    "%s: " fmt, __func__
++
+ #include <linux/kernel.h>
+ #include <linux/bug.h>
+ #include <linux/types.h>
+@@ -23,15 +25,73 @@
+ #include <linux/slab.h>
+ #include <linux/errno.h>
+ #include <linux/iommu.h>
++#include <linux/bitmap.h>
  
--	int (*isr)(struct omap_iommu *obj, u32 da, u32 iommu_errs, void *priv);
--
- 	void *ctx; /* iommu context: registres saved area */
- 	u32 da_start;
- 	u32 da_end;
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index bd5f606..7e0188f 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -775,6 +775,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
- 	u32 da, errs;
- 	u32 *iopgd, *iopte;
- 	struct omap_iommu *obj = data;
-+	struct iommu_domain *domain = obj->domain;
+ static struct iommu_ops *iommu_ops;
  
- 	if (!obj->refcount)
- 		return IRQ_NONE;
-@@ -786,7 +787,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
- 		return IRQ_HANDLED;
++/* bitmap of supported page sizes */
++static unsigned long *iommu_pgsize_bitmap;
++
++/* number of bits used to represent the supported pages */
++static unsigned int iommu_nr_page_bits;
++
++/* size of the smallest supported page (in bytes) */
++static unsigned int iommu_min_pagesz;
++
++/* bit number of the smallest supported page */
++static unsigned int iommu_min_page_idx;
++
++/**
++ * register_iommu() - register an IOMMU hardware
++ * @ops: iommu handlers
++ * @pgsize_bitmap: bitmap of page sizes supported by the hardware
++ * @nr_page_bits: size of @pgsize_bitmap (in bits)
++ *
++ * Note: this is a temporary function, which will be removed once
++ * all IOMMU drivers are converted. The only reason it exists is to
++ * allow splitting the pgsizes changes to several patches in order to ease
++ * the review.
++ */
++void register_iommu_pgsize(struct iommu_ops *ops, unsigned long *pgsize_bitmap,
++					unsigned int nr_page_bits)
++{
++	if (iommu_ops || iommu_pgsize_bitmap || !nr_page_bits)
++		BUG();
++
++	iommu_ops = ops;
++	iommu_pgsize_bitmap = pgsize_bitmap;
++	iommu_nr_page_bits = nr_page_bits;
++
++	/* find the minimum page size and its index only once */
++	iommu_min_page_idx = find_first_bit(pgsize_bitmap, nr_page_bits);
++	iommu_min_pagesz = 1 << iommu_min_page_idx;
++}
++
++/*
++ * default pagesize bitmap, will be removed once all IOMMU drivers
++ * are converted
++ */
++static unsigned long default_iommu_pgsizes = ~0xFFFUL;
++
+ void register_iommu(struct iommu_ops *ops)
+ {
+ 	if (iommu_ops)
+ 		BUG();
  
- 	/* Fault callback or TLB/PTE Dynamic loading */
--	if (obj->isr && !obj->isr(obj, da, errs, obj->isr_priv))
-+	if (!report_iommu_fault(domain, obj->dev, da, 0))
- 		return IRQ_HANDLED;
- 
- 	iommu_disable(obj);
-@@ -904,33 +905,6 @@ static void omap_iommu_detach(struct omap_iommu *obj)
- 	dev_dbg(obj->dev, "%s: %s\n", __func__, obj->name);
+ 	iommu_ops = ops;
++
++	/*
++	 * set default pgsize values, which retain the existing
++	 * IOMMU API behavior: drivers will be called to map
++	 * regions that are sized/aligned to order of 4KB pages
++	 */
++	iommu_pgsize_bitmap = &default_iommu_pgsizes;
++	iommu_nr_page_bits = BITS_PER_LONG;
++
++	/* find the minimum page size and its index only once */
++	iommu_min_page_idx = find_first_bit(iommu_pgsize_bitmap,
++						iommu_nr_page_bits);
++	iommu_min_pagesz = 1 << iommu_min_page_idx;
  }
  
--int omap_iommu_set_isr(const char *name,
--		  int (*isr)(struct omap_iommu *obj, u32 da, u32 iommu_errs,
--			     void *priv),
--		  void *isr_priv)
--{
--	struct device *dev;
--	struct omap_iommu *obj;
+ bool iommu_found(void)
+@@ -109,26 +169,104 @@ int iommu_domain_has_cap(struct iommu_domain *domain,
+ EXPORT_SYMBOL_GPL(iommu_domain_has_cap);
+ 
+ int iommu_map(struct iommu_domain *domain, unsigned long iova,
+-	      phys_addr_t paddr, int gfp_order, int prot)
++	      phys_addr_t paddr, size_t size, int prot)
+ {
+-	size_t size;
++	int ret = 0;
++
++	/*
++	 * both the virtual address and the physical one, as well as
++	 * the size of the mapping, must be aligned (at least) to the
++	 * size of the smallest page supported by the hardware
++	 */
++	if (!IS_ALIGNED(iova | paddr | size, iommu_min_pagesz)) {
++		pr_err("unaligned: iova 0x%lx pa 0x%lx size 0x%lx min_pagesz "
++			"0x%x\n", iova, (unsigned long)paddr,
++			(unsigned long)size, iommu_min_pagesz);
++		return -EINVAL;
++	}
++
++	pr_debug("map: iova 0x%lx pa 0x%lx size 0x%lx\n", iova,
++				(unsigned long)paddr, (unsigned long)size);
++
++	while (size) {
++		unsigned long pgsize = iommu_min_pagesz;
++		unsigned long idx = iommu_min_page_idx;
++		unsigned long addr_merge = iova | paddr;
++		int order;
++
++		/* find the max page size with which iova, paddr are aligned */
++		for (;;) {
++			unsigned long try_pgsize;
++
++			idx = find_next_bit(iommu_pgsize_bitmap,
++						iommu_nr_page_bits, idx + 1);
++
++			/* no more pages to check ? */
++			if (idx >= iommu_nr_page_bits)
++				break;
++
++			try_pgsize = 1 << idx;
+ 
+-	size         = 0x1000UL << gfp_order;
++			/* page too big ? addresses not aligned ? */
++			if (size < try_pgsize ||
++					!IS_ALIGNED(addr_merge, try_pgsize))
++				break;
+ 
+-	BUG_ON(!IS_ALIGNED(iova | paddr, size));
++			pgsize = try_pgsize;
++		}
+ 
+-	return iommu_ops->map(domain, iova, paddr, gfp_order, prot);
++		order = get_order(pgsize);
++
++		pr_debug("mapping: iova 0x%lx pa 0x%lx order %d\n", iova,
++					(unsigned long)paddr, order);
++
++		ret = iommu_ops->map(domain, iova, paddr, order, prot);
++		if (ret)
++			break;
++
++		size -= pgsize;
++		iova += pgsize;
++		paddr += pgsize;
++	}
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(iommu_map);
+ 
+-int iommu_unmap(struct iommu_domain *domain, unsigned long iova, int gfp_order)
++int iommu_unmap(struct iommu_domain *domain, unsigned long iova, size_t size)
+ {
+-	size_t size;
++	int order, unmapped_size, unmapped_order, total_unmapped = 0;
++
++	/*
++	 * The virtual address, as well as the size of the mapping, must be
++	 * aligned (at least) to the size of the smallest page supported
++	 * by the hardware
++	 */
++	if (!IS_ALIGNED(iova | size, iommu_min_pagesz)) {
++		pr_err("unaligned: iova 0x%lx size 0x%lx min_pagesz 0x%x\n",
++				iova, (unsigned long)size, iommu_min_pagesz);
++		return -EINVAL;
++	}
++
++	pr_debug("unmap this: iova 0x%lx size 0x%lx\n", iova,
++							(unsigned long)size);
++
++	while (size > total_unmapped) {
++		order = get_order(size - total_unmapped);
++
++		unmapped_order = iommu_ops->unmap(domain, iova, order);
++		if (unmapped_order < 0)
++			return unmapped_order;
++
++		pr_debug("unmapped: iova 0x%lx order %d\n", iova,
++							unmapped_order);
+ 
+-	size         = 0x1000UL << gfp_order;
++		unmapped_size = 0x1000UL << unmapped_order;
+ 
+-	BUG_ON(!IS_ALIGNED(iova, size));
++		iova += unmapped_size;
++		total_unmapped += unmapped_size;
++	}
+ 
+-	return iommu_ops->unmap(domain, iova, gfp_order);
++	return get_order(total_unmapped);
+ }
+ EXPORT_SYMBOL_GPL(iommu_unmap);
+diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
+index e8fdb88..f4dea5a 100644
+--- a/drivers/iommu/omap-iovmm.c
++++ b/drivers/iommu/omap-iovmm.c
+@@ -409,7 +409,6 @@ static int map_iovm_area(struct iommu_domain *domain, struct iovm_struct *new,
+ 	unsigned int i, j;
+ 	struct scatterlist *sg;
+ 	u32 da = new->da_start;
+-	int order;
+ 
+ 	if (!domain || !sgt)
+ 		return -EINVAL;
+@@ -428,12 +427,10 @@ static int map_iovm_area(struct iommu_domain *domain, struct iovm_struct *new,
+ 		if (bytes_to_iopgsz(bytes) < 0)
+ 			goto err_out;
+ 
+-		order = get_order(bytes);
 -
--	dev = driver_find_device(&omap_iommu_driver.driver, NULL, (void *)name,
--				 device_match_by_alias);
--	if (!dev)
--		return -ENODEV;
--
--	obj = to_iommu(dev);
--	spin_lock(&obj->iommu_lock);
--	if (obj->refcount != 0) {
--		spin_unlock(&obj->iommu_lock);
--		return -EBUSY;
--	}
--	obj->isr = isr;
--	obj->isr_priv = isr_priv;
--	spin_unlock(&obj->iommu_lock);
--
--	return 0;
--}
--EXPORT_SYMBOL_GPL(omap_iommu_set_isr);
--
- /*
-  *	OMAP Device MMU(IOMMU) detection
-  */
-@@ -1115,6 +1089,7 @@ omap_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
+ 		pr_debug("%s: [%d] %08x %08x(%x)\n", __func__,
+ 			 i, da, pa, bytes);
+ 
+-		err = iommu_map(domain, da, pa, order, flags);
++		err = iommu_map(domain, da, pa, bytes, flags);
+ 		if (err)
+ 			goto err_out;
+ 
+@@ -448,10 +445,9 @@ err_out:
+ 		size_t bytes;
+ 
+ 		bytes = sg->length + sg->offset;
+-		order = get_order(bytes);
+ 
+ 		/* ignore failures.. we're already handling one */
+-		iommu_unmap(domain, da, order);
++		iommu_unmap(domain, da, bytes);
+ 
+ 		da += bytes;
  	}
+@@ -474,12 +470,10 @@ static void unmap_iovm_area(struct iommu_domain *domain, struct omap_iommu *obj,
+ 	start = area->da_start;
+ 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+ 		size_t bytes;
+-		int order;
  
- 	omap_domain->iommu_dev = oiommu;
-+	oiommu->domain = domain;
+ 		bytes = sg->length + sg->offset;
+-		order = get_order(bytes);
  
- out:
- 	spin_unlock(&omap_domain->lock);
+-		err = iommu_unmap(domain, start, order);
++		err = iommu_unmap(domain, start, bytes);
+ 		if (err < 0)
+ 			break;
+ 
+diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+index d084e87..1806956 100644
+--- a/include/linux/iommu.h
++++ b/include/linux/iommu.h
+@@ -61,6 +61,8 @@ struct iommu_ops {
+ #ifdef CONFIG_IOMMU_API
+ 
+ extern void register_iommu(struct iommu_ops *ops);
++extern void register_iommu_pgsize(struct iommu_ops *ops,
++		unsigned long *pgsize_bitmap, unsigned int nr_page_bits);
+ extern bool iommu_found(void);
+ extern struct iommu_domain *iommu_domain_alloc(void);
+ extern void iommu_domain_free(struct iommu_domain *domain);
+@@ -69,9 +71,9 @@ extern int iommu_attach_device(struct iommu_domain *domain,
+ extern void iommu_detach_device(struct iommu_domain *domain,
+ 				struct device *dev);
+ extern int iommu_map(struct iommu_domain *domain, unsigned long iova,
+-		     phys_addr_t paddr, int gfp_order, int prot);
++		     phys_addr_t paddr, size_t size, int prot);
+ extern int iommu_unmap(struct iommu_domain *domain, unsigned long iova,
+-		       int gfp_order);
++		       size_t size);
+ extern phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain,
+ 				      unsigned long iova);
+ extern int iommu_domain_has_cap(struct iommu_domain *domain,
+diff --git a/virt/kvm/iommu.c b/virt/kvm/iommu.c
+index 78c80f6..ea142d3 100644
+--- a/virt/kvm/iommu.c
++++ b/virt/kvm/iommu.c
+@@ -111,7 +111,7 @@ int kvm_iommu_map_pages(struct kvm *kvm, struct kvm_memory_slot *slot)
+ 
+ 		/* Map into IO address space */
+ 		r = iommu_map(domain, gfn_to_gpa(gfn), pfn_to_hpa(pfn),
+-			      get_order(page_size), flags);
++			      page_size, flags);
+ 		if (r) {
+ 			printk(KERN_ERR "kvm_iommu_map_address:"
+ 			       "iommu failed to map pfn=%llx\n", pfn);
+@@ -293,7 +293,7 @@ static void kvm_iommu_put_pages(struct kvm *kvm,
+ 		pfn  = phys >> PAGE_SHIFT;
+ 
+ 		/* Unmap address from IO address space */
+-		order       = iommu_unmap(domain, gfn_to_gpa(gfn), 0);
++		order       = iommu_unmap(domain, gfn_to_gpa(gfn), PAGE_SIZE);
+ 		unmap_pages = 1ULL << order;
+ 
+ 		/* Unpin all pages we just unmapped to not leak any memory */
 -- 
 1.7.4.1
+
