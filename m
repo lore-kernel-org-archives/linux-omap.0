@@ -1,111 +1,62 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v7 18/26] gpio/omap: optimize suspend and resume functions
-Date: Tue, 13 Sep 2011 18:32:51 +0530
-Message-ID: <1315918979-26173-19-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v7 25/26] gpio/omap: handle set_dataout reg capable IP on restore
+Date: Tue, 13 Sep 2011 18:32:58 +0530
+Message-ID: <1315918979-26173-26-git-send-email-tarun.kanti@ti.com>
 References: <1315918979-26173-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33047 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44274 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753479Ab1IMNDY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Sep 2011 09:03:24 -0400
+	id S1753527Ab1IMND1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Sep 2011 09:03:27 -0400
 In-Reply-To: <1315918979-26173-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-There is no need to operate on all the banks every time the function is called.
-Just operate on the current bank passed by the framework.
+From: Nishanth Menon <nm@ti.com>
 
+GPIO IP revisions such as those used in OMAP4 have a set_dataout
+while the previous revisions used a single dataout register.
+Depending on what is available restore the dataout settings
+to the right register.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/gpio/gpio-omap.c |   53 +++++++++++++++++++++------------------------
- 1 files changed, 25 insertions(+), 28 deletions(-)
+ drivers/gpio/gpio-omap.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index b5be8b8..6249b8f 100644
+index 165a598..c597303 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1044,6 +1044,8 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 		goto err_free;
- 	}
+@@ -1048,7 +1048,7 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	bank->get_context_loss_count = pdata->get_context_loss_count;
+ 	bank->regs = pdata->regs;
  
-+	platform_set_drvdata(pdev, bank);
-+
- 	pm_runtime_enable(bank->dev);
- 	pm_runtime_irq_safe(bank->dev);
- 	pm_runtime_get_sync(bank->dev);
-@@ -1071,44 +1073,39 @@ err_exit:
+-	if (bank->regs->set_dataout && bank->regs->clr_dataout)
++	if (bank->regs->set_dataout)
+ 		bank->set_dataout = _set_gpio_dataout_reg;
+ 	else
+ 		bank->set_dataout = _set_gpio_dataout_mask;
+@@ -1321,7 +1321,12 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
+ 				bank->base + bank->regs->risingdetect);
+ 	__raw_writel(bank->context.fallingdetect,
+ 				bank->base + bank->regs->fallingdetect);
+-	__raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
++	if (bank->regs->set_dataout)
++		__raw_writel(bank->context.dataout,
++				bank->base + bank->regs->set_dataout);
++	else
++		__raw_writel(bank->context.dataout,
++				bank->base + bank->regs->dataout);
+ 	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
  
- static int omap_gpio_suspend(struct device *dev)
- {
--	struct gpio_bank *bank;
--
--	list_for_each_entry(bank, &omap_gpio_list, node) {
--		void __iomem *base = bank->base;
--		void __iomem *wake_status;
--		unsigned long flags;
--
--		if (!bank->regs->wkup_en)
--			return 0;
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct gpio_bank *bank = platform_get_drvdata(pdev);
-+	void __iomem *base = bank->base;
-+	void __iomem *wake_status;
-+	unsigned long flags;
- 
--		wake_status = bank->base + bank->regs->wkup_en;
-+	if (!bank->regs->wkup_en || !bank->suspend_wakeup)
-+		return 0;
- 
--		spin_lock_irqsave(&bank->lock, flags);
--		bank->saved_wakeup = __raw_readl(wake_status);
--		_gpio_rmw(base, bank->regs->wkup_en, bank->suspend_wakeup, 1);
--		spin_unlock_irqrestore(&bank->lock, flags);
--		pm_runtime_put_sync(dev);
--	}
-+	wake_status = bank->base + bank->regs->wkup_en;
- 
-+	spin_lock_irqsave(&bank->lock, flags);
-+	bank->saved_wakeup = __raw_readl(wake_status);
-+	_gpio_rmw(base, bank->regs->wkup_en, bank->suspend_wakeup, 1);
-+	spin_unlock_irqrestore(&bank->lock, flags);
-+	pm_runtime_put_sync(dev);
- 	return 0;
- }
- 
- static int omap_gpio_resume(struct device *dev)
- {
--	struct gpio_bank *bank;
--
--	list_for_each_entry(bank, &omap_gpio_list, node) {
--		void __iomem *base = bank->base;
--		unsigned long flags;
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct gpio_bank *bank = platform_get_drvdata(pdev);
-+	void __iomem *base = bank->base;
-+	unsigned long flags;
- 
--		if (!bank->regs->wkup_en)
--			return 0;
-+	if (!bank->regs->wkup_en || !bank->saved_wakeup)
-+		return 0;
- 
--		pm_runtime_get_sync(dev);
--		spin_lock_irqsave(&bank->lock, flags);
--		_gpio_rmw(base, bank->regs->wkup_en, bank->saved_wakeup, 1);
--		spin_unlock_irqrestore(&bank->lock, flags);
--	}
-+	pm_runtime_get_sync(dev);
-+	spin_lock_irqsave(&bank->lock, flags);
-+	_gpio_rmw(base, bank->regs->wkup_en, bank->saved_wakeup, 1);
-+	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	return 0;
- }
+ 	if (bank->dbck_enable_mask) {
 -- 
 1.7.0.4
 
