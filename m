@@ -1,69 +1,40 @@
-From: "Dan Pereira" <danp_48@yahoo.com>
-Subject: Build-a-home-based-business-on-Auto-Pilot-
-Date: Mon, 12 Sep 2011 09:43:07 -0700 (PDT)
-Message-ID: <201109121643.p8CGh750090339@mail3.spagack2.com>
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 21/25] OMAP4: PM: Add MPUSS power domain OSWR support
+Date: Tue, 13 Sep 2011 13:55:34 +0530
+Message-ID: <4E6F137E.30105@ti.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>	<1315144466-9395-22-git-send-email-santosh.shilimkar@ti.com>	<87obypfvah.fsf@ti.com>	<4E6EEC35.8080203@ti.com> <CAORVsuUaR8pcZ4MYigi85tmtWspz3tR_OJcvhaB0AFRLRaAANw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail3.spagack2.com ([74.122.159.222]:50093 "EHLO
-	mail3.spagack2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754882Ab1IMHs6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2011 03:48:58 -0400
-Received: from mail3.spagack2.com (localhost.mail3.spagack2.com [127.0.0.1])
-	by mail3.spagack2.com (8.13.8/8.12.7) with ESMTP id p8CGh7dh090348
-	for <linux-omap@vger.kernel.org>; Mon, 12 Sep 2011 09:43:07 -0700 (PDT)
-	(envelope-from u789mobs@reliablecontact.com)
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:34619 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753596Ab1IMIZm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Sep 2011 04:25:42 -0400
+Received: by gyg13 with SMTP id 13so263821gyg.8
+        for <linux-omap@vger.kernel.org>; Tue, 13 Sep 2011 01:25:40 -0700 (PDT)
+In-Reply-To: <CAORVsuUaR8pcZ4MYigi85tmtWspz3tR_OJcvhaB0AFRLRaAANw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, rnayak@ti.com
 
+On Tuesday 13 September 2011 01:09 PM, Jean Pihet wrote:
+> Hi Santosh,
+>
+> On Tue, Sep 13, 2011 at 7:37 AM, Santosh<santosh.shilimkar@ti.com>  wrote:
+>> On Tuesday 13 September 2011 12:22 AM, Kevin Hilman wrote:
+>>>
 
+[..]
 
-Hello Everyone,
+>>>
+>>>>   static inline int omap4_finish_suspend(unsigned long cpu_state)
+>>>>   {}
+> This one should return 0, as I already pointed out in the comments for [14/25].
+>
+Taken care already.
 
-Discover how average people who have never made a cent in the past
-Are now making $1,000+ every month,=20
-With the Potential of making $50,000 a month
-Just "Plug In"... to Your
-Own Fully Automated=20
-  Turn Key...Global Marketing $ystem
-Receive $500-$3,500 Monthly or MORE
-Not MLM...and
-No Selling...
-No Cold Phone Calling.=20
-Complete plug-in-system!
-
-Check-it-Out!
-
-http://trckrs.com/48184/rc1
-
-It=92s surprisingly cool!
-
-Dan and Noel
-
-
-His was a Com.Merical adv.Sent to you by:Dan Pereira, 11383 Golf Road, =
-Turlock, CA 95380
-In compliance with Federal law, should you choose to Un.Subscribe from =
-our network, you may do so using theUn.Subscribe instruction found belo=
-w.  We are fully compliant with CAN-SPAM Act of 2005-Please use the Un.=
-Subscribe link provided:
-
-
-
-
-
-
-
-
-To remove this email address from further mailings click on  the link b=
-elow  while connected to the internet.
-http://www.reliablecontact.com/cgi-bin/maxsponder/maxuseradmin.cgi?func=
-tion=3Dmanualdelete3&email=3Dlinux-omap*vger.kernel.org&un=3Drichardper=
-eira
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Santosh
