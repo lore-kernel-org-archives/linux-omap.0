@@ -1,15 +1,16 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/6] OMAP3: id: remove useless strcpy()s
-Date: Tue, 13 Sep 2011 15:28:03 -0600
-Message-ID: <20110913212802.26161.42003.stgit@dusk>
+Subject: [PATCH 3/6] OMAP3: id: use explicit omap_revision codes for 3505/3517
+	ES levels
+Date: Tue, 13 Sep 2011 15:28:04 -0600
+Message-ID: <20110913212803.26161.31753.stgit@dusk>
 References: <20110913212638.26161.62284.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40106 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:40110 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932838Ab1IMVbU (ORCPT
+	with ESMTP id S932850Ab1IMVbU (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2011 17:31:20 -0400
 In-Reply-To: <20110913212638.26161.62284.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
@@ -17,124 +18,50 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Sanjeev Premi <premi@ti.com>
 
-omap3_cpuinfo() is filled with useless strcpy() calls; remove them.
+Use explicit revision codes for OMAP/AM 3505/3517 ES levels, as the rest
+of the OMAP2+ SoCs do in mach-omap2/cpu.c.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Cc: Sanjeev Premi <premi@ti.com>
 ---
- arch/arm/mach-omap2/id.c |   48 +++++++++++++++++++++-------------------------
- 1 files changed, 22 insertions(+), 26 deletions(-)
+ arch/arm/mach-omap2/id.c              |   10 +++++++++-
+ arch/arm/plat-omap/include/plat/cpu.h |    3 ++-
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 723e2f8..46bc2f9 100644
+index 46bc2f9..6810c52 100644
 --- a/arch/arm/mach-omap2/id.c
 +++ b/arch/arm/mach-omap2/id.c
-@@ -429,84 +429,80 @@ static void __init omap4_check_revision(void)
- static void __init omap3_cpuinfo(void)
- {
- 	u8 rev = GET_OMAP_REVISION();
--	char cpu_name[16], cpu_rev[16];
-+	const char *cpu_name, *cpu_rev;
+@@ -312,7 +312,15 @@ static void __init omap3_check_revision(void)
+ 		 *
+ 		 * REVISIT: AM3505/AM3517 should have their own CHIP_IS
+ 		 */
+-		omap_revision = OMAP3517_REV(rev);
++		switch (rev) {
++		case 0:
++			omap_revision = OMAP3517_REV_ES1_0;
++			break;
++		case 1:
++		/* FALLTHROUGH */
++		default:
++			omap_revision = OMAP3517_REV_ES1_1;
++		}
+ 		omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+ 		break;
+ 	case 0xb891:
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index b6bd8f7..566975c 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -398,7 +398,8 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define OMAP3630_REV_ES1_2	(OMAP363X_CLASS | (OMAP_REVBITS_02 << 8))
  
--	/* OMAP3430 and OMAP3530 are assumed to be same.
-+	/*
-+	 * OMAP3430 and OMAP3530 are assumed to be same.
- 	 *
- 	 * OMAP3525, OMAP3515 and OMAP3503 can be detected only based
- 	 * on available features. Upon detection, update the CPU id
- 	 * and CPU class bits.
- 	 */
- 	if (cpu_is_omap3630()) {
--		strcpy(cpu_name, "OMAP3630");
-+		cpu_name = "OMAP3630";
- 	} else if (cpu_is_omap3505()) {
--		/*
--		 * AM35xx devices
--		 */
--		if (omap3_has_sgx())
--			strcpy(cpu_name, "AM3517");
--		else
--			strcpy(cpu_name, "AM3505");
-+		/* AM35xx devices */
-+		cpu_name = (omap3_has_sgx()) ? "AM3517" : "AM3505";
- 	} else if (cpu_is_ti816x()) {
--		strcpy(cpu_name, "TI816X");
-+		cpu_name = "TI816X";
- 	} else if (omap3_has_iva() && omap3_has_sgx()) {
- 		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
--		strcpy(cpu_name, "OMAP3430/3530");
-+		cpu_name = "OMAP3430/3530";
- 	} else if (omap3_has_iva()) {
--		strcpy(cpu_name, "OMAP3525");
-+		cpu_name = "OMAP3525";
- 	} else if (omap3_has_sgx()) {
--		strcpy(cpu_name, "OMAP3515");
-+		cpu_name = "OMAP3515";
- 	} else {
--		strcpy(cpu_name, "OMAP3503");
-+		cpu_name = "OMAP3503";
- 	}
+ #define OMAP3517_CLASS		0x35170000
+-#define OMAP3517_REV(v)		(OMAP3517_CLASS | (v << 8))
++#define OMAP3517_REV_ES1_0	OMAP3517_CLASS
++#define OMAP3517_REV_ES1_1	(OMAP3517_CLASS | (OMAP_REVBITS_01 << 8))
  
- 	if (cpu_is_omap3630() || cpu_is_ti816x()) {
- 		switch (rev) {
- 		case OMAP_REVBITS_00:
--			strcpy(cpu_rev, "1.0");
-+			cpu_rev = "1.0";
- 			break;
- 		case OMAP_REVBITS_01:
--			strcpy(cpu_rev, "1.1");
-+			cpu_rev = "1.1";
- 			break;
- 		case OMAP_REVBITS_02:
- 			/* FALLTHROUGH */
- 		default:
- 			/* Use the latest known revision as default */
--			strcpy(cpu_rev, "1.2");
-+			cpu_rev = "1.2";
- 		}
- 	} else if (cpu_is_omap3505() || cpu_is_omap3517()) {
- 		switch (rev) {
- 		case OMAP_REVBITS_00:
--			strcpy(cpu_rev, "1.0");
-+			cpu_rev = "1.0";
- 			break;
- 		case OMAP_REVBITS_01:
- 			/* FALLTHROUGH */
- 		default:
- 			/* Use the latest known revision as default */
--			strcpy(cpu_rev, "1.1");
-+			cpu_rev = "1.1";
- 		}
- 	} else {
- 		switch (rev) {
- 		case OMAP_REVBITS_00:
--			strcpy(cpu_rev, "1.0");
-+			cpu_rev = "1.0";
- 			break;
- 		case OMAP_REVBITS_01:
--			strcpy(cpu_rev, "2.0");
-+			cpu_rev = "2.0";
- 			break;
- 		case OMAP_REVBITS_02:
--			strcpy(cpu_rev, "2.1");
-+			cpu_rev = "2.1";
- 			break;
- 		case OMAP_REVBITS_03:
--			strcpy(cpu_rev, "3.0");
-+			cpu_rev = "3.0";
- 			break;
- 		case OMAP_REVBITS_04:
--			strcpy(cpu_rev, "3.1");
-+			cpu_rev = "3.1";
- 			break;
- 		case OMAP_REVBITS_05:
- 			/* FALLTHROUGH */
- 		default:
- 			/* Use the latest known revision as default */
--			strcpy(cpu_rev, "3.1.2");
-+			cpu_rev = "3.1.2";
- 		}
- 	}
- 
+ #define TI816X_CLASS		0x81600034
+ #define TI8168_REV_ES1_0	TI816X_CLASS
 
 
