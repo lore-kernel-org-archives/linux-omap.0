@@ -1,34 +1,54 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] [PATCH 0/3] ASoC: tpa6130a2: model handling cleanup
-Date: Tue, 13 Sep 2011 13:27:20 +0100
-Message-ID: <20110913122720.GA13757@opensource.wolfsonmicro.com>
-References: <1314704394-31298-1-git-send-email-peter.ujfalusi@ti.com>
- <3889212.SkWsu33aHd@barack>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 3/3] iommu/core: split mapping to page sizes as supported
+	by the hardware
+Date: Tue, 13 Sep 2011 15:48:54 +0300
+Message-ID: <CAK=Wgbb_DZgH0jvgQr_Rt7G0-Cy0q2pHe+auBOtrFai-D-yMSQ@mail.gmail.com>
+References: <1315421604-12286-1-git-send-email-ohad@wizery.com>
+	<1315421604-12286-3-git-send-email-ohad@wizery.com>
+	<20110913101011.GK11701@amd.com>
+	<CAK=WgbbhdFpAHTt=Bku-v1ZOCf48+u+XB-f4yO=5EDojv1kCJg@mail.gmail.com>
+	<20110913104433.GL11701@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:36118 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753256Ab1IMM1d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Sep 2011 08:27:33 -0400
-Content-Disposition: inline
-In-Reply-To: <3889212.SkWsu33aHd@barack>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110913104433.GL11701@amd.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Stepan Moskovchenko <stepanm@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, "Girdwood, Liam" <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-On Tue, Sep 13, 2011 at 03:11:41PM +0300, P=E9ter Ujfalusi wrote:
+On Tue, Sep 13, 2011 at 1:44 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> Not necessarily. You could implement this side-by-side with the old code
+> until all drivers are converted and remove the old code then. This keeps
+> bisectability.
 
-> Would you have time to take a look at this series (it got the Tested-=
-by from=20
-> Jarkko)?
+Ok.
 
-I'm fine with it, I'm waiting for Liam's review.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> > Intel IOMMU does not support arbitrary page-sizes, afaik.
+>>
+>> It does; besides the usual 4K it has "super page sizes" support of
+>> 2MB, 1GB, 512GB and 1TB.
+>
+> But the value ~0xfffUL indicates support for 4k, 8k, 16k .. 2^63, no?
+
+Yes, I have done this intentionally, in order to retain the existing
+behavior for IOMMU drivers which are already capable of handling
+arbitrary page sizes (intel-iommu handles this in software, see
+hardware_largepage_caps() and the code that uses it).
+
+Long term, it might make more sense to remove
+hardware_largepage_caps() (and the logic around it) and instead just
+declare the real page sizes the hardware supports when calling
+register_iommu(), but I guess it's up to Intel guys. For now it's just
+safer to declare ~0xfffUL which really means: keep calling me with
+sizes and alignments that are an order of 4KB, just like you always
+did.
