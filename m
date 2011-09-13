@@ -1,50 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 13/25] OMAP4: PM: Add WakeupGen module as OMAP
- gic_arch_extn
-Date: Tue, 13 Sep 2011 13:36:16 -0700
-Message-ID: <20110913203616.GG24252@atomide.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
- <1315144466-9395-14-git-send-email-santosh.shilimkar@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/6] OMAP2+: id: cleanup for 3.2
+Date: Tue, 13 Sep 2011 15:28:01 -0600
+Message-ID: <20110913212638.26161.62284.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:15400 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932562Ab1IMUgV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2011 16:36:21 -0400
-Content-Disposition: inline
-In-Reply-To: <1315144466-9395-14-git-send-email-santosh.shilimkar@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:40101 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932751Ab1IMVbT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2011 17:31:19 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [110904 06:23]:
-> OMAP WakeupGen is the interrupt controller extension used along
-> with ARM GIC to wake the CPU out from low power states on
-> external interrupts.
-> 
-> The WakeupGen unit is responsible for generating wakeup event
-> from the incoming interrupts and enable bits. It is implemented
-> in MPU always ON power domain. During normal operation,
-> WakeupGen delivers external interrupts directly to the GIC.
-...
+Clean up the SoC detection code for some OMAP3 devices.  The main goal
+is to make the AM3517 family detection code work like the rest of the
+OMAP3 SoCs, although this series does some other cleanup of this code
+at the same time.  This patch series will be a prerequisite for the
+OMAP_CHIP removal series.
 
-> +	/*
-> +	 * Override GIC architecture specific functions to add
-> +	 * OMAP WakeupGen interrupt controller along with GIC
-> +	 */
-> +	gic_arch_extn.irq_mask = wakeupgen_mask;
-> +	gic_arch_extn.irq_unmask = wakeupgen_unmask;
-> +	gic_arch_extn.irq_set_wake = wakeupgen_set_wake;
-> +	gic_arch_extn.flags = IRQCHIP_MASK_ON_SUSPEND;
+Tested on an OMAP3530ES2 BeagleBoard C2 and a OMAP3730ES1 BeagleBoard A2.
+These are the only OMAP3 boards I have access to right now - testing welcomed
+from people with other OMAP3 families or ES levels.
 
-As I've commented before, there should not be any need to tweak
-the wakeupgen registers for each interrupt during the runtime.
+- Paul
 
-AFAIK the wakeupgen registers only need to be armed every time
-before entering idle.
+---
 
-Regards,
+Paul Walmsley (6):
+      OMAP3: id: remove identification codes that only correspond to marketing names
+      OMAP3: id: remove useless strcpy()s
+      OMAP3: id: use explicit omap_revision codes for 3505/3517 ES levels
+      OMAP3: id: add fallthrough warning; fix some CodingStyle issues
+      OMAP3: id: remove duplicate code for testing SoC ES level
+      OMAP2+: id: remove OMAP_REVBITS_* macros
 
-Tony
+
+ arch/arm/mach-omap2/id.c              |  134 ++++++++++++---------------------
+ arch/arm/plat-omap/include/plat/cpu.h |   41 +++-------
+ 2 files changed, 62 insertions(+), 113 deletions(-)
+
