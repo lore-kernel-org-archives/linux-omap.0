@@ -1,42 +1,62 @@
-From: Liam Girdwood <lrg@ti.com>
-Subject: Re: [alsa-devel] [PATCH 0/3] ASoC: tpa6130a2: model handling
- cleanup
-Date: Tue, 13 Sep 2011 15:53:46 +0100
-Message-ID: <1315925626.5157.11.camel@odin>
-References: <1314704394-31298-1-git-send-email-peter.ujfalusi@ti.com>
-	 <3889212.SkWsu33aHd@barack>
-	 <20110913122720.GA13757@opensource.wolfsonmicro.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 14/25] OMAP4: PM: Add CPUX OFF mode support
+Date: Tue, 13 Sep 2011 10:33:42 -0700
+Message-ID: <87wrdcbb49.fsf@ti.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+	<1315144466-9395-15-git-send-email-santosh.shilimkar@ti.com>
+	<87y5xteahc.fsf@ti.com> <4E6EECA3.4040704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:56405 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754346Ab1IMOxu (ORCPT
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:38962 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755734Ab1IMRds (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Sep 2011 10:53:50 -0400
-Received: by mail-ww0-f41.google.com with SMTP id 10so2881632wwf.0
-        for <linux-omap@vger.kernel.org>; Tue, 13 Sep 2011 07:53:49 -0700 (PDT)
-In-Reply-To: <20110913122720.GA13757@opensource.wolfsonmicro.com>
+	Tue, 13 Sep 2011 13:33:48 -0400
+Received: by mail-gw0-f51.google.com with SMTP id 17so800743gwj.10
+        for <linux-omap@vger.kernel.org>; Tue, 13 Sep 2011 10:33:47 -0700 (PDT)
+In-Reply-To: <4E6EECA3.4040704@ti.com> (Santosh's message of "Tue, 13 Sep 2011
+	11:09:47 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: Santosh <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, rnayak@ti.com
 
-On Tue, 2011-09-13 at 13:27 +0100, Mark Brown wrote:
-> On Tue, Sep 13, 2011 at 03:11:41PM +0300, P=C3=A9ter Ujfalusi wrote:
->=20
-> > Would you have time to take a look at this series (it got the Teste=
-d-by from=20
-> > Jarkko)?
->=20
-> I'm fine with it, I'm waiting for Liam's review.
+Santosh <santosh.shilimkar@ti.com> writes:
 
-Acked-by: Liam Girdwood <lrg@ti.com>
+> On Tuesday 13 September 2011 02:36 AM, Kevin Hilman wrote:
+>> Santosh Shilimkar<santosh.shilimkar@ti.com>  writes:
+>>
+>>> This patch adds the CPU0 and CPU1 off mode support. CPUX close switch
+>>> retention (CSWR) is not supported by hardware design.
+>>>
+>>> The CPUx OFF mode isn't supported on OMAP4430 ES1.0
+>>>
+>>> CPUx sleep code is common for hotplug, suspend and CPUilde.
+>>>
+>>> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>>> Cc: Kevin Hilman<khilman@ti.com>
+>>
+>> [...]
+>>
+>>> @@ -38,6 +39,11 @@ void __iomem *omap4_get_scu_base(void)
+>>>
+>>>   void __cpuinit platform_secondary_init(unsigned int cpu)
+>>>   {
+>>> +	/* Enable NS access to SMP bit for this CPU on EMU/HS devices */
+>>> +	if (cpu_is_omap443x()&&  (omap_type() != OMAP2_DEVICE_TYPE_GP))
+>>
+>> A comment here about why this is 443x specific would be helpful.
+>>
+>> I see a comment in omap4_cpu_resume() that seems to indicate that SMP
+>> bit is accessible on 446x NS devices, but repeating that commen here
+>> would help future readability.
+>>
+> Ok. Will add comments here too. Was just trying to save some lines :)
 
+heh, this is a negative side-effect of people caring primarily about
+diffstat. :(
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+One other comment on this patch.  You need spaces around the '&&' above.
+
+Kevin
