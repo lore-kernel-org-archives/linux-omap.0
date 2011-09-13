@@ -1,57 +1,148 @@
-From: =?utf-8?B?5LuFMTDlhYPmr4/lpKk=?= <test@amidress.com>
-Subject: =?utf-8?B?576k5Y+R6L2v5Lu2K+S5sOWutuaQnOe0ouacuisxMDnlsYrlub/kuqTkvJrkubDlrrY=?=
-	=?utf-8?B?44CB5rW35YWz5pWw5o2uLEIyQuivouebmOS5sOWutjUwMOS4h+OAgg==?=
-Date: Tue, 13 Sep 2011 18:41:03 +0000 (UTC)
-Message-ID: <20111213091115820210@amidress.com>
-Reply-To: <1339625218@qq.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH v2 1/2] iommu/core: add fault reporting mechanism
+Date: Tue, 13 Sep 2011 22:25:23 +0300
+Message-ID: <1315941923-17145-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 184.172.211.66-static.reverse.softlayer.com ([184.172.211.66]:2809
-	"HELO amidress.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932101Ab1IMSk7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2011 14:40:59 -0400
-Date: Tue, 13 Dec 2011 09:11:04 +0800
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: iommu@lists.linux-foundation.org
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-576k5Y+R6L2v5Lu2KzEwOeWxiuW5v+S6pOS8muS5sOWutuOAgea1t+WFs+aVsOaNruOAgeaQnOe0
-ouW8leaTjuS5sOWutixCMkLor6Lnm5jkubDlrrblhbE1MDDkuIcs5LuFMTDlhYPmr4/lpKnjgIIg
-DQrkv53or4Hmr4/lpKnpg73mnInkubDlrrblm57lpI3jgIINCuS/neivgeavj+WkqemDveacieS5
-sOWutuWbnuWkjeOAgg0KDQoNCjHjgIHnvqTlj5Hova/ku7bvvJog5pON5L2c566A5Y2V77yM5Yqf
-6IO95by65aSn77yM5qih5Lu/5Lq65bel5pON5L2c5qih5byP77yM5Yiw6L6+546H6auY77yM5pel
-5Y+R6YCBNeS4h+WwgeS7peS4iuOAgiANCjLjgIE1MDDkuIfkubDlrrbotYTmupDvvJog6LWg6YCB
-55qENTAw5LiH5Lmw5a626LWE5rqQ5bqT77yM5q+P5pyI5pu05pawIOOAgiANCjPjgIHotoXnuqfm
-tbflpJbkubDlrrZFbWFpbOaQnOe0ouacuu+8miDmr4/lpKnog73mkJzntKIxLTLkuIfku6XkuIrk
-ubDlrrbnnJ/lrp5FTUFJTO+8jOaIkOWNleeOh+mrmOOAgiANCiANCg0K6KaB55qE5oqT57Sn6IGU
-57O7UVE6IDEzMzk2MjUyMTggICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEzMzk2MjUyMThA
-cXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogMTMzOTYyNTIxOCAgIOaIluiAheeri+WNs+Wb
-nuWkjemCrueusTogMTMzOTYyNTIxOEBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzM5
-NjI1MjE4ICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMzM5NjI1MjE4QHFxLmNvbQ0KDQrl
-hY3otLnotaDpgIE6DQrkuIDlhbE45Liq5YyFKOaVsOaNruaYr+WFqOihjOS4mueahO+8jOaMieeF
-p+ihjOS4muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeafpeivoueahCnv
-vJogDQox77yMMjAxMeaYpeWtozEwOeWxiuW5v+S6pOS8muS5sOWutueOsOWcuuivouebmOaVsOaN
-ruW6k+aWsOmynOWHuueCie+8jOi2hee6p+aWsOmynOS5sOWutu+8jOaWsOmynOaVsOaNru+8jOWu
-ueaYk+aIkOWNle+8gSANCjLvvIzotK3kubDlkI7lj6/ku6XlhY3otLnmm7TmlrAyMDEx56eL5a2j
-5bm/5Lqk5LyaKzIwMTLmmKXlraPlub/kuqTkvJrkubDlrrbmlbDmja7jgILlpKrotoXlgLzkuobj
-gIINCjPvvIzmnIDmlrDlhajnkIPkubDlrrblupMs5YWxNDUxNjYw5p2h5pWw5o2u44CCICjmnIDm
-lrDmm7TmlrDml6XmnJ8gMjAxMS0wNS0xNuaXpSkNCjTvvIwyMDA45bm0LDIwMDnlubQsMjAxMOW5
-tCDmmKXlraMr56eL5a2j5bm/5Lqk5Lya5Lmw5a625ZCN5b2V77yMMTAzIDEwNCAxMDUgMTA2IDEw
-NyAxMDgg5YWx5YWt5bGKIOWFsTEyMC425LiH5pWw5o2u44CCDQo177yMMjAxMOW5tOWbvemZheS/
-g+mUgOWNj+S8mu+8iFBQQUnvvInmiJDlkZjlkI3ljZUgUFBBSSBNZW1iZXJzIERpcmVjdG9yee+8
-jOmdnuW4uOmHjeimgeeahOWkp+S5sOWutuOAgg0KNu+8jDIwMTDlubTliLDpppnmuK/ph4fotK3n
-moTlm73lpJblrqLkurrlkI3lvZUo6aaZ5riv6LS45Y+R5bGA5o+Q5L6bKe+8jOWFsTcuMuS4h+aV
-sOaNru+8jOi2hee6p+mHjeimgeeahOS5sOWutuOAgg0KN++8jDQ4LjY45LiH5p2h5pyA5paw5Lmw
-5a626K+i55uY77yM6LSt5Lmw5ZCO5q+P5pyI5pu05pawIDEtMuS4h+adoe+8jOWMheaLrDLpg6jl
-iIbvvIwx77yM5pyA5paw55qE6K+i55uYIDLvvIzmnIDmlrDnmoTlsZXkvJrkubDlrrbjgILlhY3o
-tLnmm7TmlrAzNuS4quaciOOAgg0KOO+8jDIwMDnlubTmtbflhbPmj5DljZXmlbDmja5waWVyc+eJ
-iOaVsOaNriAx5Y2D5LiH44CCDQoNCg0K6K+a5L+h5Li65pys77yM5pSv5oyB5pSv5LuY5a6d5ouF
-5L+d5Lqk5piTICjlhYjlj5HotKflubblronoo4Xorr7nva7nvqTlj5Hova/ku7bvvIznhLblkI7k
-u5jmrL4pIOW9u+W6leaJk+a2iOaCqOeahCDpob7omZHjgIINCg0KIA0KDQoNCiANCg0K57K+5YeG
-5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+
-5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K
-57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K
+Add iommu fault report mechanism to the IOMMU API, so implementations
+could report about mmu faults (translation errors, hardware errors,
+etc..).
 
+Fault reports can be used in several ways:
+- mere logging
+- reset the device that accessed the faulting address (may be necessary
+  in case the device is a remote processor for example)
+- implement dynamic PTE/TLB loading
 
+A dedicated iommu_set_fault_handler() API has been added to allow
+users, who are interested to receive such reports, to provide
+their handler.
+
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+v1->v2: remove 'event' parameter
+
+ drivers/iommu/iommu.c |   13 ++++++++++++
+ include/linux/iommu.h |   51 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index e61a9ba..c68ff29 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -40,6 +40,19 @@ bool iommu_found(void)
+ }
+ EXPORT_SYMBOL_GPL(iommu_found);
+ 
++/**
++ * iommu_domain_alloc() - set a fault handler for an iommu domain
++ * @domain: iommu domain
++ * @handler: fault handler
++ */
++void iommu_set_fault_handler(struct iommu_domain *domain,
++					iommu_fault_handler_t handler)
++{
++	BUG_ON(!domain);
++
++	domain->handler = handler;
++}
++
+ struct iommu_domain *iommu_domain_alloc(void)
+ {
+ 	struct iommu_domain *domain;
+diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+index 9940319..d084e87 100644
+--- a/include/linux/iommu.h
++++ b/include/linux/iommu.h
+@@ -26,9 +26,18 @@
+ #define IOMMU_CACHE	(4) /* DMA cache coherency */
+ 
+ struct device;
++struct iommu_domain;
++
++/* iommu fault flags */
++#define IOMMU_FAULT_READ	0x0
++#define IOMMU_FAULT_WRITE	0x1
++
++typedef int (*iommu_fault_handler_t)(struct iommu_domain *,
++				struct device *, unsigned long, int);
+ 
+ struct iommu_domain {
+ 	void *priv;
++	iommu_fault_handler_t handler;
+ };
+ 
+ #define IOMMU_CAP_CACHE_COHERENCY	0x1
+@@ -67,6 +76,43 @@ extern phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain,
+ 				      unsigned long iova);
+ extern int iommu_domain_has_cap(struct iommu_domain *domain,
+ 				unsigned long cap);
++extern void iommu_set_fault_handler(struct iommu_domain *domain,
++					iommu_fault_handler_t handler);
++
++/**
++ * report_iommu_fault() - report about an IOMMU fault to the IOMMU framework
++ * @domain: the iommu domain where the fault has happened
++ * @dev: the device where the fault has happened
++ * @iova: the faulting address
++ * @flags: mmu fault flags (e.g. IOMMU_FAULT_READ/IOMMU_FAULT_WRITE/...)
++ *
++ * This function should be called by the low-level IOMMU implementations
++ * whenever IOMMU faults happen, to allow high-level users, that are
++ * interested in such events, to know about them.
++ *
++ * This event may be useful for several possible use cases:
++ * - mere logging of the event
++ * - dynamic TLB/PTE loading
++ * - if restarting of the faulting device is required
++ *
++ * Returns 0 on success and an appropriate error code otherwise (if dynamic
++ * PTE/TLB loading will one day be supported, implementations will be able
++ * to tell whether it succeeded or not according to this return value).
++ */
++static inline int report_iommu_fault(struct iommu_domain *domain,
++		struct device *dev, unsigned long iova, int flags)
++{
++	int ret = 0;
++
++	/*
++	 * if upper layers showed interest and installed a fault handler,
++	 * invoke it.
++	 */
++	if (domain->handler)
++		ret = domain->handler(domain, dev, iova, flags);
++
++	return ret;
++}
+ 
+ #else /* CONFIG_IOMMU_API */
+ 
+@@ -123,6 +169,11 @@ static inline int domain_has_cap(struct iommu_domain *domain,
+ 	return 0;
+ }
+ 
++static inline void iommu_set_fault_handler(struct iommu_domain *domain,
++					iommu_fault_handler_t handler)
++{
++}
++
+ #endif /* CONFIG_IOMMU_API */
+ 
+ #endif /* __LINUX_IOMMU_H */
+-- 
+1.7.4.1
