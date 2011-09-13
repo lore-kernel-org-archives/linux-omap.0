@@ -1,81 +1,118 @@
-From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-Subject: RE: Regression seen when HIGHMEM enabled with NFS on 3.1rc4 kernel
-Date: Tue, 13 Sep 2011 12:11:09 +0530
-Message-ID: <7c29a4c977b98cf95ef8c7f69e094896@mail.gmail.com>
-References: <CAJ7qFSeB8bAGdYfZs-LFHuYqGWNA2RidY0EBEFw_1CndvG7q5A@mail.gmail.com>
- <1315594317.17611.25.camel@lade.trondhjem.org> <dbdc7c3761a82e0b84f2f49c533c07a5@mail.gmail.com>
- <1315838509.12736.4.camel@lade.trondhjem.org> <1315842858.15975.2.camel@lade.trondhjem.org>
+From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Subject: RE: [PATCH 1/8] omap3evm: Enable regulators for camera interface
+Date: Tue, 13 Sep 2011 12:36:20 +0530
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090831@dbde03.ent.ti.com>
+References: <1315488831-15998-1-git-send-email-deepthy.ravi@ti.com>,<201109081851.53078.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1315842858.15975.2.camel-SyLVLa/KEI9HwK5hSS5vWB2eb7JE58TQ@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Trond Myklebust <Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43337 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754743Ab1IMHKH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2011 03:10:07 -0400
+In-Reply-To: <201109081851.53078.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@infradead.org" <mchehab@infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-[..]
+Hi,
+> ________________________________________
+> From: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
+> Sent: Thursday, September 08, 2011 10:21 PM
+> To: Ravi, Deepthy
+> Cc: linux-omap@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; mchehab@infradead.org; linux-media@vger.kernel.org; g.liakhovetski@gmx.de; Hiremath, Vaibhav
+> Subject: Re: [PATCH 1/8] omap3evm: Enable regulators for camera interface
+>
+> Hi,
+>
+> On Thursday 08 September 2011 15:33:51 Deepthy Ravi wrote:
+>> From: Vaibhav Hiremath <hvaibhav@ti.com>
 >>
->> Can you please tell me what the mount options are for this setup?
+>> Enabled 1v8 and 2v8 regulator output, which is being used by
+>> camera module.
 >
->I'm guessing you've got wsize=1024, in which case, can you please try
->the following patch?
+> Thanks for the patch. Just one minor comment below.
 >
-The mount options for nfs is rw.
+>> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/board-omap3evm.c |   40
+>> ++++++++++++++++++++++++++++++++++ 1 files changed, 40 insertions(+), 0
+>> deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-omap3evm.c
+>> b/arch/arm/mach-omap2/board-omap3evm.c index a1184b3..8333ee4 100644
+>> --- a/arch/arm/mach-omap2/board-omap3evm.c
+>> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+>> @@ -273,6 +273,44 @@ static struct omap_dss_board_info omap3_evm_dss_data =
+>> { .default_device     = &omap3_evm_lcd_device,
+>>  };
+>>
+>> +static struct regulator_consumer_supply omap3evm_vaux3_supply = {
+>> +     .supply         = "cam_1v8",
+>> +};
+>> +
+>> +static struct regulator_consumer_supply omap3evm_vaux4_supply = {
+>> +     .supply         = "cam_2v8",
+>> +};
+>> +
+>> +/* VAUX3 for CAM_1V8 */
+>> +static struct regulator_init_data omap3evm_vaux3 = {
+>> +     .constraints = {
+>> +             .min_uV                 = 1800000,
+>> +             .max_uV                 = 1800000,
+>> +             .apply_uV               = true,
+>> +             .valid_modes_mask       = REGULATOR_MODE_NORMAL
+>> +                                     | REGULATOR_MODE_STANDBY,
+>> +             .valid_ops_mask         = REGULATOR_CHANGE_MODE
+>> +                                     | REGULATOR_CHANGE_STATUS,
+>> +             },
+>> +     .num_consumer_supplies  = 1,
+>> +     .consumer_supplies      = &omap3evm_vaux3_supply,
+>
+> I might be wrong, but I think we're standardizing on using REGULATOR_SUPPLY
+> arrays as described in commit 786b01a8c1db0c0decca55d660a2a3ebd7cfb26b
+> ("cleanup regulator supply definitions in mach-omap2").
+>
+[Deepthy Ravi] Yes, you are right. I will modify it.
+>> +};
+>> +
+>> +/* VAUX4 for CAM_2V8 */
+>> +static struct regulator_init_data omap3evm_vaux4 = {
+>> +     .constraints = {
+>> +             .min_uV                 = 1800000,
+>> +             .max_uV                 = 1800000,
+>> +             .apply_uV               = true,
+>> +             .valid_modes_mask       = REGULATOR_MODE_NORMAL
+>> +                     | REGULATOR_MODE_STANDBY,
+>> +             .valid_ops_mask         = REGULATOR_CHANGE_MODE
+>> +                     | REGULATOR_CHANGE_STATUS,
+>> +     },
+>> +     .num_consumer_supplies  = 1,
+>> +     .consumer_supplies      = &omap3evm_vaux4_supply,
+>> +};
+>> +
+>>  static struct regulator_consumer_supply omap3evm_vmmc1_supply[] = {
+>>       REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+>>  };
+>> @@ -499,6 +537,8 @@ static struct twl4030_platform_data omap3evm_twldata =
+>> { .vio                = &omap3evm_vio,
+>>       .vmmc1          = &omap3evm_vmmc1,
+>>       .vsim           = &omap3evm_vsim,
+>> +     .vaux3          = &omap3evm_vaux3,
+>> +     .vaux4          = &omap3evm_vaux4,
+>>  };
+>>
+>>  static int __init omap3_evm_i2c_init(void)
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
-Yes, in my setup wsize=1024 when the issue happened.
-I tried your patch and I was not able to see the issue after that,
-where as in the other case the issue happened quite frequently.
-So I think that the patch fixes the issue.
-Thanks a lot for your help.
-
->Cheers
->  Trond
->8<-----------------------------------------------------------------------
---
->-
->From 7b4a9c76b55dd254431902552528137a2ea5e55d Mon Sep 17 00:00:00 2001
->From: Trond Myklebust <Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
->Date: Mon, 12 Sep 2011 11:47:53 -0400
->Subject: [PATCH] NFS: Fix a typo in nfs_flush_multi
->
->Fix a typo which causes an Oops in the RPC layer, when using wsize < 4k.
->
->Signed-off-by: Trond Myklebust <Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
->---
-> fs/nfs/write.c |    2 +-
-> 1 files changed, 1 insertions(+), 1 deletions(-)
->
->diff --git a/fs/nfs/write.c b/fs/nfs/write.c
->index b39b37f..c9bd2a6 100644
->--- a/fs/nfs/write.c
->+++ b/fs/nfs/write.c
->@@ -958,7 +958,7 @@ static int nfs_flush_multi(struct
-nfs_pageio_descriptor
->*desc, struct list_head
-> 		if (!data)
-> 			goto out_bad;
-> 		data->pagevec[0] = page;
->-		nfs_write_rpcsetup(req, data, wsize, offset,
-desc->pg_ioflags);
->+		nfs_write_rpcsetup(req, data, len, offset,
-desc->pg_ioflags);
-> 		list_add(&data->list, res);
-> 		requests++;
-> 		nbytes -= len;
->--
->1.7.6
->
->
->
->--
->Trond Myklebust
->Linux NFS client maintainer
->
->NetApp
->Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
->www.netapp.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Deepthy Ravi.
