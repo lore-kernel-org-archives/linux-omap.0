@@ -1,63 +1,65 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v2 3/6] iommu/msm: announce supported page sizes
-Date: Tue, 13 Sep 2011 22:31:25 +0300
-Message-ID: <1315942288-17297-3-git-send-email-ohad@wizery.com>
+Subject: [PATCH v2 4/6] iommu/amd: announce supported page sizes
+Date: Tue, 13 Sep 2011 22:31:26 +0300
+Message-ID: <1315942288-17297-4-git-send-email-ohad@wizery.com>
 References: <1315942288-17297-1-git-send-email-ohad@wizery.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1315942288-17297-1-git-send-email-ohad@wizery.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: iommu@lists.linux-foundation.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, Stepan Moskovchenko <stepanm@codeaurora.org>
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
 
-Let the IOMMU core know we support 4KB, 64KB, 1MB and 16MB page sizes.
+Let the IOMMU core know we support arbitrary page sizes (as long as
+they're an order of 4KB).
 
-This way the IOMMU core can split any arbitrary-sized physically
-contiguous regions (that it needs to map) as needed.
+This way the IOMMU core will retain the existing behavior we're used to;
+it will let us map regions that:
+- their size is an order of 4KB
+- they are naturally aligned
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: David Brown <davidb@codeaurora.org>
-Cc: Stepan Moskovchenko <stepanm@codeaurora.org>
+Cc: Joerg Roedel <Joerg.Roedel@amd.com>
 ---
- drivers/iommu/msm_iommu.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+ drivers/iommu/amd_iommu.c |   21 ++++++++++++++++++++-
+ 1 files changed, 20 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/iommu/msm_iommu.c b/drivers/iommu/msm_iommu.c
-index d1733f6..a4ed116 100644
---- a/drivers/iommu/msm_iommu.c
-+++ b/drivers/iommu/msm_iommu.c
-@@ -676,6 +676,9 @@ fail:
- 	return 0;
+diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+index a14f8dc..17fa0fc 100644
+--- a/drivers/iommu/amd_iommu.c
++++ b/drivers/iommu/amd_iommu.c
+@@ -2488,12 +2488,31 @@ static unsigned device_dma_ops_init(void)
  }
  
-+/* bitmap of the page sizes currently supported */
-+static unsigned long msm_iommu_pgsizes = SZ_4K | SZ_64K | SZ_1M | SZ_16M;
+ /*
++ * This bitmap is used to advertise the page sizes our hardware support
++ * to the IOMMU core, which will then use this information to split
++ * physically contiguous memory regions it is mapping into page sizes
++ * that we support.
++ *
++ * Traditionally the IOMMU core just handed us the mappings directly,
++ * after making sure the size is an order of a 4KB page and that the
++ * mapping has natural alignment.
++ *
++ * To retain this behavior, we currently advertise that we support
++ * all page sizes that are an order of 4KB.
++ *
++ * If at some point we'd like to utilize the IOMMU core's new behavior,
++ * we could change this to advertise the real page sizes we support.
++ */
++static unsigned long amd_iommu_pgsizes = ~0xFFFUL;
 +
- static struct iommu_ops msm_iommu_ops = {
- 	.domain_init = msm_iommu_domain_init,
- 	.domain_destroy = msm_iommu_domain_destroy,
-@@ -728,7 +731,10 @@ static void __init setup_iommu_tex_classes(void)
- static int __init msm_iommu_init(void)
++/*
+  * The function which clues the AMD IOMMU driver into dma_ops.
+  */
+ 
+ void __init amd_iommu_init_api(void)
  {
- 	setup_iommu_tex_classes();
--	register_iommu(&msm_iommu_ops);
-+
-+	/* we're only using the first 25 bits of the pgsizes bitmap */
-+	register_iommu_pgsize(&msm_iommu_ops, &msm_iommu_pgsizes, 25);
-+
- 	return 0;
+-	register_iommu(&amd_iommu_ops);
++	register_iommu_pgsize(&amd_iommu_ops, &amd_iommu_pgsizes,
++						BITS_PER_LONG);
  }
  
+ int __init amd_iommu_init_dma_ops(void)
 -- 
 1.7.4.1
