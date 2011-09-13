@@ -1,33 +1,65 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCH 1/2] omap: hsmmc: Normalize dma cleanup operations
-Date: Tue, 13 Sep 2011 14:50:56 +0530
-Message-ID: <CANfBPZ-0ChfErPcFYe5jfip_6dSNv9Lz+-Mf6rEaB9j43QKtFQ@mail.gmail.com>
-References: <1314903957-24408-2-git-send-email-svenkatr@ti.com>
-	<CAJ0pr18PtGWga7n8nm1xs-=wtRjMu=X_wZONAOAgeaLamtEJjg@mail.gmail.com>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH 1/3] iommu/core: add fault reporting mechanism
+Date: Tue, 13 Sep 2011 12:00:34 +0200
+Message-ID: <20110913100034.GJ11701@amd.com>
+References: <1315421604-12286-1-git-send-email-ohad@wizery.com>
+	<20110912160252.GE11701@amd.com>
+	<CAK=WgbZCDsBk+dueKfAX3ewsvqEnVDN+jW_ftW+BDKnayunOwA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:56452 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751147Ab1IMJU6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Sep 2011 05:20:58 -0400
-In-Reply-To: <CAJ0pr18PtGWga7n8nm1xs-=wtRjMu=X_wZONAOAgeaLamtEJjg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CAK=WgbZCDsBk+dueKfAX3ewsvqEnVDN+jW_ftW+BDKnayunOwA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Per Forlin <per.forlin@linaro.org>
-Cc: Kishore Kadiyala <kishorek.kadiyala@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, cjb <cjb@laptop.org>
 
-On Tue, Sep 13, 2011 at 1:26 AM, Per Forlin <per.forlin@linaro.org> wrote:
-> On 1 September 2011 21:05, Venkatraman S <svenkatr@ti.com> wrote:
->> Reuse omap_hsmmc_dma_cleanup even for normal dma teardown in
->> omap_hsmmc_dma_cb. Consolidate multiple points of dma unmap into a
->> single location in post_req function, to prevent double unmapping.
-> It's optional to use pre_req() and post_req(). The SDIO framework
-> doesn't utilise these hooks. For instance this wont work together with
-> SDIO-wlan on the pandaboard.
-> If pre_req() has been issued it's fine to defer dma_unmap() until
-> post_req(). If pre_req() is not called the driver should call
-> dma_unmap() directly.
->
-Thanks for the clarification. I'll redo the fix.
+On Mon, Sep 12, 2011 at 12:21:13PM -0400, Ohad Ben-Cohen wrote:
+> On Mon, Sep 12, 2011 at 7:02 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> > I still don't get the need for this. It would make sense to encode
+> > different types of faults, like page-faults or interrupt-faults.
+> 
+> Right.
+> 
+> > When I read the comment above it sounds more like you want to encode
+> > different error-levels, like recoverable and unrecoverable error.
+> > The exact meaning of these values need to be clarified.
+> 
+> Well, we currently only need to say "something bad has happened".
+> 
+> We don't need at this point to tell whether it's a hardware bug,
+> inconsistent data, missing page-table entries or whatnot, because we
+> don't expect the user (or the iommu core itself) to do anything about
+> it. Not that it's not possible though: a valid response one day would
+> be to fix the page-table or add a missing TLB (depending on the mode
+> the hardware is configured to) but this is not (yet?) implemented. So
+> a "general unrecoverable error" is enough at this point, but it's
+> certainly makes sense to allow drivers to provide additional types of
+> errors/faults - once they are implemented.
+
+But besides real faults all this can be handled in the iommu-driver
+itself, right? So there is no need to communicate other errors than
+page-faults up to the driver.
+
+For now I think it is the best to remove this IOMMU_ERROR thing. It is
+inherent to the function call already. When a real use-case comes up we
+can easily add it later.
+
+	Joerg
+
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
