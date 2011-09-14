@@ -1,95 +1,110 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 10/10] OMAP2PLUS: DSS2: FEATURES: Create a range param to get max downscaling
-Date: Wed, 14 Sep 2011 17:55:14 +0530
-Message-ID: <1316003114-24291-7-git-send-email-archit@ti.com>
-References: <1316003114-24291-1-git-send-email-archit@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 6/6] OMAP2+: id: remove OMAP_REVBITS_* macros
+Date: Wed, 14 Sep 2011 15:24:51 +0300
+Message-ID: <4E709D13.1080908@compulab.co.il>
+References: <20110913212638.26161.62284.stgit@dusk> <20110913212806.26161.37867.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38890 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932456Ab1INMYh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Sep 2011 08:24:37 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8ECOb2A024141
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:37 -0500
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p8ECObjs015233
-	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:37 -0500 (CDT)
-Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p8ECObiw001549
-	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:37 -0500 (CDT)
-In-Reply-To: <1316003114-24291-1-git-send-email-archit@ti.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:44218
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932397Ab1INMYy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Sep 2011 08:24:54 -0400
+In-Reply-To: <20110913212806.26161.37867.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, hvaibhav@ti.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Create a dss_range_param member called FEAT_PARAM_DOWNSCALE to get the maximum
-downscaling possible on the current platform. Use this in
-dispc_ovl_calc_scaling().
+Hi Paul,
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/dispc.c        |    2 +-
- drivers/video/omap2/dss/dss_features.c |    3 +++
- drivers/video/omap2/dss/dss_features.h |    1 +
- 3 files changed, 5 insertions(+), 1 deletions(-)
+Same problem (as with 3_6) here...
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 9f36db7..d447359 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1716,7 +1716,7 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 		enum omap_color_mode color_mode, bool *five_taps)
- {
- 	struct omap_overlay *ovl = omap_dss_get_overlay(plane);
--	const int maxdownscale = cpu_is_omap34xx() ? 4 : 2;
-+	const int maxdownscale = dss_feat_get_param_max(FEAT_PARAM_DOWNSCALE);
- 	unsigned long fclk = 0;
- 
- 	if ((ovl->caps & OMAP_DSS_OVL_CAP_SCALE) == 0) {
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 0299338..e5e94f4 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -303,6 +303,7 @@ static const struct dss_param_range omap2_dss_param_range[] = {
- 	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, 0 },
- 	[FEAT_PARAM_DSIPLL_FINT]		= { 0, 0 },
- 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, 0 },
-+	[FEAT_PARAM_DOWNSCALE]			= { 1, 2 },
- };
- 
- static const struct dss_param_range omap3_dss_param_range[] = {
-@@ -314,6 +315,7 @@ static const struct dss_param_range omap3_dss_param_range[] = {
- 	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, (1 << 4) - 1 },
- 	[FEAT_PARAM_DSIPLL_FINT]		= { 750000, 2100000 },
- 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 1, (1 << 13) - 1},
-+	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
- };
- 
- static const struct dss_param_range omap4_dss_param_range[] = {
-@@ -325,6 +327,7 @@ static const struct dss_param_range omap4_dss_param_range[] = {
- 	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, (1 << 5) - 1 },
- 	[FEAT_PARAM_DSIPLL_FINT]		= { 500000, 2500000 },
- 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, (1 << 13) - 1 },
-+	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
- };
- 
- /* OMAP2 DSS Features */
-diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index 879f3fb..6a6c05d 100644
---- a/drivers/video/omap2/dss/dss_features.h
-+++ b/drivers/video/omap2/dss/dss_features.h
-@@ -85,6 +85,7 @@ enum dss_range_param {
- 	FEAT_PARAM_DSIPLL_REGM_DSI,
- 	FEAT_PARAM_DSIPLL_FINT,
- 	FEAT_PARAM_DSIPLL_LPDIV,
-+	FEAT_PARAM_DOWNSCALE,
- };
- 
- /* DSS Feature Functions */
+On 09/14/11 00:28, Paul Walmsley wrote:
+> The OMAP_REVBITS_* macros are just used as otherwise meaningless
+> aliases for the numbers zero through five, so remove these macros.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/plat-omap/include/plat/cpu.h |   33 ++++++++++-----------------------
+>  1 files changed, 10 insertions(+), 23 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+> index 566975c..0ec90cf 100644
+> --- a/arch/arm/plat-omap/include/plat/cpu.h
+> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> @@ -60,19 +60,6 @@ struct omap_chip_id {
+>  unsigned int omap_rev(void);
+>  
+>  /*
+> - * Define CPU revision bits
+> - *
+> - * Verbose meaning of the revision bits may be different for a silicon
+> - * family. This difference can be handled separately.
+> - */
+> -#define OMAP_REVBITS_00		0x00
+> -#define OMAP_REVBITS_01		0x01
+> -#define OMAP_REVBITS_02		0x02
+> -#define OMAP_REVBITS_03		0x03
+> -#define OMAP_REVBITS_04		0x04
+> -#define OMAP_REVBITS_05		0x05
+> -
+> -/*
+>   * Get the CPU revision for OMAP devices
+>   */
+>  #define GET_OMAP_REVISION()	((omap_rev() >> 8) & 0xff)
+> @@ -379,31 +366,31 @@ IS_OMAP_TYPE(3517, 0x3517)
+>  /* Various silicon revisions for omap2 */
+>  #define OMAP242X_CLASS		0x24200024
+>  #define OMAP2420_REV_ES1_0	OMAP242X_CLASS
+> -#define OMAP2420_REV_ES2_0	(OMAP242X_CLASS | (OMAP_REVBITS_01 << 8))
+> +#define OMAP2420_REV_ES2_0	(OMAP242X_CLASS | (0x1 << 8))
+>  
+>  #define OMAP243X_CLASS		0x24300024
+>  #define OMAP2430_REV_ES1_0	OMAP243X_CLASS
+>  
+>  #define OMAP343X_CLASS		0x34300034
+>  #define OMAP3430_REV_ES1_0	OMAP343X_CLASS
+> -#define OMAP3430_REV_ES2_0	(OMAP343X_CLASS | (OMAP_REVBITS_01 << 8))
+> -#define OMAP3430_REV_ES2_1	(OMAP343X_CLASS | (OMAP_REVBITS_02 << 8))
+> -#define OMAP3430_REV_ES3_0	(OMAP343X_CLASS | (OMAP_REVBITS_03 << 8))
+> -#define OMAP3430_REV_ES3_1	(OMAP343X_CLASS | (OMAP_REVBITS_04 << 8))
+> -#define OMAP3430_REV_ES3_1_2	(OMAP343X_CLASS | (OMAP_REVBITS_05 << 8))
+> +#define OMAP3430_REV_ES2_0	(OMAP343X_CLASS | (0x1 << 8))
+> +#define OMAP3430_REV_ES2_1	(OMAP343X_CLASS | (0x2 << 8))
+> +#define OMAP3430_REV_ES3_0	(OMAP343X_CLASS | (0x3 << 8))
+> +#define OMAP3430_REV_ES3_1	(OMAP343X_CLASS | (0x4 << 8))
+> +#define OMAP3430_REV_ES3_1_2	(OMAP343X_CLASS | (0x5 << 8))
+>  
+>  #define OMAP363X_CLASS		0x36300034
+>  #define OMAP3630_REV_ES1_0	OMAP363X_CLASS
+> -#define OMAP3630_REV_ES1_1	(OMAP363X_CLASS | (OMAP_REVBITS_01 << 8))
+> -#define OMAP3630_REV_ES1_2	(OMAP363X_CLASS | (OMAP_REVBITS_02 << 8))
+> +#define OMAP3630_REV_ES1_1	(OMAP363X_CLASS | (0x1 << 8))
+> +#define OMAP3630_REV_ES1_2	(OMAP363X_CLASS | (0x2 << 8))
+>  
+>  #define OMAP3517_CLASS		0x35170000
+>  #define OMAP3517_REV_ES1_0	OMAP3517_CLASS
+> -#define OMAP3517_REV_ES1_1	(OMAP3517_CLASS | (OMAP_REVBITS_01 << 8))
+> +#define OMAP3517_REV_ES1_1	(OMAP3517_CLASS | (0x1 << 8))
+>  
+>  #define TI816X_CLASS		0x81600034
+>  #define TI8168_REV_ES1_0	TI816X_CLASS
+> -#define TI8168_REV_ES1_1	(TI816X_CLASS | (OMAP_REVBITS_01 << 8))
+> +#define TI8168_REV_ES1_1	(TI816X_CLASS | (0x1 << 8))
+>  
+>  #define OMAP443X_CLASS		0x44300044
+>  #define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 -- 
-1.7.1
-
+Regards,
+Igor.
