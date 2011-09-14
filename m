@@ -1,56 +1,69 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v3 0/6] OMAP2+: id: cleanup for 3.2
-Date: Wed, 14 Sep 2011 15:58:04 -0600
-Message-ID: <20110914215512.4790.34446.stgit@dusk>
+Subject: [PATCH v3 3/6] OMAP3: id: use explicit omap_revision codes for
+	3505/3517 ES levels
+Date: Wed, 14 Sep 2011 15:58:15 -0600
+Message-ID: <20110914215812.4790.60145.stgit@dusk>
+References: <20110914215512.4790.34446.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36451 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:36467 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809Ab1INV71 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 17:59:27 -0400
+	with ESMTP id S1756640Ab1INV72 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 17:59:28 -0400
+In-Reply-To: <20110914215512.4790.34446.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: abhilash.kv@ti.com, grinberg@compulab.co.il
+Cc: Abhilash Koyamangalath <abhilash.kv@ti.com>, Sanjeev Premi <premi@ti.com>, Igor Grinberg <grinberg@compulab.co.il>
 
-Clean up the SoC detection code for some OMAP3 devices.  The main goal
-is to make the AM3517 family detection code work like the rest of the
-OMAP3 SoCs, although this series does some other cleanup of this code
-at the same time.  This patch series will be a prerequisite for the
-OMAP_CHIP removal series.
+Use explicit revision codes for OMAP/AM 3505/3517 ES levels, as the rest
+of the OMAP2+ SoCs do in mach-omap2/cpu.c.
 
-Tested locally on an OMAP3530ES2 BeagleBoard C2 and a OMAP3730ES1
-BeagleBoard A2.  These are the only OMAP3 boards I have access to
-right now - testing welcomed from people with other OMAP3 families or
-ES levels.  Thanks to Igor Grinberg <grinberg@compulab.co.il> and
-Abhilash Koyamangalath <abhilash.kv@ti.com> for their help testing
-these patches on AM3517 boards.
-
-This third version fixes another 3517/3505 bug in the first patch.
-
-
-- Paul
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Tested-by: Igor Grinberg <grinberg@compulab.co.il>
+Tested-by: Abhilash Koyamangalath <abhilash.kv@ti.com>
 ---
+ arch/arm/mach-omap2/id.c              |   10 +++++++++-
+ arch/arm/plat-omap/include/plat/cpu.h |    3 ++-
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-id_3517_cleanup_3.2
-   text	   data	    bss	    dec	    hex	filename
-6330180	 656956	5591124	12578260	 bfedd4	vmlinux.omap2plus_defconfig.orig
-6329924	 656956	5591124	12578004	 bfecd4	vmlinux.omap2plus_defconfig.patched
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 9fae4de..94a51cf 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -312,7 +312,15 @@ static void __init omap3_check_revision(void)
+ 		 *
+ 		 * REVISIT: AM3505/AM3517 should have their own CHIP_IS
+ 		 */
+-		omap_revision = OMAP3517_REV(rev);
++		switch (rev) {
++		case 0:
++			omap_revision = OMAP3517_REV_ES1_0;
++			break;
++		case 1:
++		/* FALLTHROUGH */
++		default:
++			omap_revision = OMAP3517_REV_ES1_1;
++		}
+ 		omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+ 		break;
+ 	case 0xb891:
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 34df171..1debee9 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -399,7 +399,8 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define OMAP3630_REV_ES1_2	(OMAP363X_CLASS | (OMAP_REVBITS_02 << 8))
+ 
+ #define OMAP3517_CLASS		0x35170034
+-#define OMAP3517_REV(v)		(OMAP3517_CLASS | (v << 8))
++#define OMAP3517_REV_ES1_0	OMAP3517_CLASS
++#define OMAP3517_REV_ES1_1	(OMAP3517_CLASS | (OMAP_REVBITS_01 << 8))
+ 
+ #define TI816X_CLASS		0x81600034
+ #define TI8168_REV_ES1_0	TI816X_CLASS
 
-Paul Walmsley (6):
-      OMAP3: id: remove identification codes that only correspond to marketing names
-      OMAP3: id: remove useless strcpy()s
-      OMAP3: id: use explicit omap_revision codes for 3505/3517 ES levels
-      OMAP3: id: add fallthrough warning; fix some CodingStyle issues
-      OMAP3: id: remove duplicate code for testing SoC ES level
-      OMAP2+: id: remove OMAP_REVBITS_* macros
-
-
- arch/arm/mach-omap2/clock3xxx_data.c  |   11 ++-
- arch/arm/mach-omap2/id.c              |  136 ++++++++++++---------------------
- arch/arm/plat-omap/include/plat/cpu.h |   46 ++++-------
- 3 files changed, 76 insertions(+), 117 deletions(-)
 
