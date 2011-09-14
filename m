@@ -1,91 +1,54 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP2+: hwmod: remove OMAP_CHIP*
-Date: Wed, 14 Sep 2011 05:54:46 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109140546300.27954@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1109042042250.9056@utopia.booyaka.com> <CANOLnOOkz2ZkhPSafTLxUUH2bSVoRrYA44-C1+yku8naYaRz3w@mail.gmail.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: OMAP3505 revisions?
+Date: Wed, 14 Sep 2011 17:27:08 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59302575A00A6@dbde02.ent.ti.com>
+References: <alpine.DEB.2.00.1109131157520.1885@utopia.booyaka.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593025750A2A5@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1109140539230.27954@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1584965051-1316001286=:27954"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33779 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932269Ab1INLyr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 07:54:47 -0400
-In-Reply-To: <CANOLnOOkz2ZkhPSafTLxUUH2bSVoRrYA44-C1+yku8naYaRz3w@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37615 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932315Ab1INL5Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 07:57:16 -0400
+In-Reply-To: <alpine.DEB.2.00.1109140539230.27954@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "notasas@gmail.com" <notasas@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com] 
+> Sent: Wednesday, September 14, 2011 5:11 PM
+> To: Premi, Sanjeev
+> Cc: notasas@gmail.com; tony@atomide.com; linux-omap@vger.kernel.org
+> Subject: RE: OMAP3505 revisions?
+> 
+> On Wed, 14 Sep 2011, Premi, Sanjeev wrote:
+> 
+> > Looks like I was unsubscribed from linux-omap sometime last week.
+> > Why? no idea!
+> 
+> Bummer.
+> 
+> > Anyways, I just looked at your mails. Will be responding with
+> > details in next hour. Will also attempt to re-subscribe in meantime.
+> 
+> Thanks.  Could you try a test boot of the 
+> 'id_3517_cleanup_3.2' branch of 
+> git://git.pwsan.com/linux-2.6 on an AM3517/3505, or ask 
+> someone to try 
+> that out?
 
---155748971-1584965051-1316001286=:27954
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Sure I will get this tested.
 
-Hello Gra=B8vydas,
+~sanjeev
 
-On Mon, 5 Sep 2011, Grazvydas Ignotas wrote:
-
-> On Mon, Sep 5, 2011 at 5:43 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
-p_hwmod.c
-> > index 84cc0bd..d7138070 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> <snip>
->=20
-> >
-> > =A0int __init omap3xxx_hwmod_init(void)
-> > =A0{
-> > - =A0 =A0 =A0 return omap_hwmod_register(omap3xxx_hwmods);
-> > + =A0 =A0 =A0 int r;
-> > + =A0 =A0 =A0 struct omap_hwmod **h =3D NULL;
-> > +
-> > + =A0 =A0 =A0 /* Register hwmods common to all OMAP3 */
-> > + =A0 =A0 =A0 r =3D omap_hwmod_register(omap3xxx_hwmods);
-> > + =A0 =A0 =A0 if (!r)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return r;
-> > +
-> > + =A0 =A0 =A0 /*
-> > + =A0 =A0 =A0 =A0* Register hwmods common to individual OMAP3 families,=
- all
-> > + =A0 =A0 =A0 =A0* silicon revisions (e.g., 34xx, or AM3505/3517, or 36=
-xx)
-> > + =A0 =A0 =A0 =A0* All possible revisions should be included in this co=
-nditional.
-> > + =A0 =A0 =A0 =A0*/
-> > + =A0 =A0 =A0 if (omap_rev() =3D=3D OMAP3430_REV_ES1_0 ||
-> > + =A0 =A0 =A0 =A0 =A0 omap_rev() =3D=3D OMAP3430_REV_ES2_0 ||
-> > + =A0 =A0 =A0 =A0 =A0 omap_rev() =3D=3D OMAP3430_REV_ES2_1 ||
-> > + =A0 =A0 =A0 =A0 =A0 omap_rev() =3D=3D OMAP3430_REV_ES3_0 ||
-> > + =A0 =A0 =A0 =A0 =A0 omap_rev() =3D=3D OMAP3430_REV_ES3_1 ||
-> > + =A0 =A0 =A0 =A0 =A0 omap_rev() =3D=3D OMAP3430_REV_ES3_1_2) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 h =3D omap34xx_hwmods;
-> > + =A0 =A0 =A0 } else if (omap_rev() & OMAP3505_REV(0)) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 h =3D am35xx_hwmods;
->=20
-> This check will be always true I think?
-
-Thanks for the review; you are absolutely right and this will be fixed.
-
-> Why not just use cpu_is_omap3xxx() for these tests, since it does same
-> omap_rev() call but only once per family?
-
-cpu_is_omap*() doesn't do what one would expect :-(
-
-For example, cpu_is_omap34xx() returns 1 on not only 34xx, but also 36xx=20
-and 3517/3505.  Unfortunately, we don't currently do a good job of=20
-separating SoC family detection from individual SoC detection.
-
-If your objection is to the multiple calls to omap_rev(), those do indeed=
-=20
-appear in the source to be potentially expensive function calls --=20
-although the compiler should inline them.  Just to be sure, the=20
-next revision will use a variable.
-
-regards
-
-
-- Paul
---155748971-1584965051-1316001286=:27954--
+> 
+> thanks, 
+> 
+> - Paul
+> 
