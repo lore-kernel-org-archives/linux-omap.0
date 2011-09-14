@@ -1,51 +1,29 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 6/6] OMAP2+: id: remove OMAP_REVBITS_* macros
-Date: Wed, 14 Sep 2011 16:30:06 +0300
-Message-ID: <4E70AC5E.8050300@compulab.co.il>
-References: <20110913212638.26161.62284.stgit@dusk> <20110913212806.26161.37867.stgit@dusk> <4E709D13.1080908@compulab.co.il> <alpine.DEB.2.00.1109140628520.27954@utopia.booyaka.com> <4E70A337.6090400@compulab.co.il> <alpine.DEB.2.00.1109140708590.27954@utopia.booyaka.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH 1/2] omap: hsmmc: Normalize dma cleanup operations
+Date: Wed, 14 Sep 2011 19:10:42 +0530
+Message-ID: <CANfBPZ9sVvcVhwxgu0SqbjY1gT8GdeXXsThf48__ax=bQ4zHEA@mail.gmail.com>
+References: <1314903957-24408-2-git-send-email-svenkatr@ti.com> <CAJ0pr18PtGWga7n8nm1xs-=wtRjMu=X_wZONAOAgeaLamtEJjg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:44861
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932610Ab1INNaQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Sep 2011 09:30:16 -0400
-In-Reply-To: <alpine.DEB.2.00.1109140708590.27954@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAJ0pr18PtGWga7n8nm1xs-=wtRjMu=X_wZONAOAgeaLamtEJjg@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Per Forlin <per.forlin@linaro.org>
+Cc: Kishore Kadiyala <kishorek.kadiyala@gmail.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, premi@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 09/14/11 16:10, Paul Walmsley wrote:
-> Hi Igor,
-> 
-> Could you try this patch on top of the ones that you are testing?
+On Tue, Sep 13, 2011 at 1:26 AM, Per Forlin <per.forlin@linaro.org> wrote:
+> On 1 September 2011 21:05, Venkatraman S <svenkatr@ti.com> wrote:
+>> Reuse omap_hsmmc_dma_cleanup even for normal dma teardown in
+>> omap_hsmmc_dma_cb. Consolidate multiple points of dma unmap into a
+>> single location in post_req function, to prevent double unmapping.
+> It's optional to use pre_req() and post_req(). The SDIO framework
+> doesn't utilise these hooks. For instance this wont work together with
+> SDIO-wlan on the pandaboard.
+> If pre_req() has been issued it's fine to defer dma_unmap() until
+> post_req(). If pre_req() is not called the driver should call
+> dma_unmap() directly.
+>
 
-After applying the patch to your id_3517_cleanup_3.2 branch:
---------------cut-------------------
-[    0.000000] Linux version 3.1.0-rc4-00014-gbe89163 (grinberg@grinberg-linux) (gcc version 4.4.1 (Sourcery G++ Lite 2010q1-202) ) #2 SMP Wed Sep 14 16:21:47 IDT 2011
-[    0.000000] CPU: ARMv7 Processor [411fc087] revision 7 (ARMv7), cr=10c53c7f
-[    0.000000] CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
-[    0.000000] Machine: Compulab CM-T3517
-[    0.000000] Reserving 8388608 bytes SDRAM for VRAM
-[    0.000000] Memory policy: ECC disabled, Data cache writeback
-[    0.000000] AM3517 ES1.0 (l2cache iva sgx neon isp )
--------------cut--------------------
-
-The SoC is really AM3517. I have no AM3505 available right now, sorry...
-
-Feel free to add:
-
-Tested-by: Igor Grinberg <grinberg@compulab.co.il>
-
-> 
-> thanks for the testing help,
-
-No problem ;)
-
-
--- 
-Regards,
-Igor.
+In that case, can the actual 'request' function just call pre_req and post_req
+(at the beginning and at the end), if host_cookie is not set ?
