@@ -1,122 +1,55 @@
-From: "Saxena, Parth" <parth.saxena@ti.com>
-Subject: RE: [PATCH] ti816x: add support for nand on ti8168 evm
-Date: Wed, 14 Sep 2011 16:40:09 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC3121A5@dbde02.ent.ti.com>
-References: <parth.saxena@ti.com>
- <1315486982-30109-1-git-send-email-parth.saxena@ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH v7 14/26] gpio/omap: remove unnecessary bit-masking for
+ read access
+Date: Wed, 14 Sep 2011 15:19:38 +0400
+Message-ID: <4E708DCA.3090606@ru.mvista.com>
+References: <1315918979-26173-1-git-send-email-tarun.kanti@ti.com> <1315918979-26173-15-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57468 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756457Ab1INLKS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 07:10:18 -0400
-In-Reply-To: <1315486982-30109-1-git-send-email-parth.saxena@ti.com>
-Content-Language: en-US
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:42706 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756483Ab1INLU0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 07:20:26 -0400
+Received: by wwf22 with SMTP id 22so2087378wwf.1
+        for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 04:20:25 -0700 (PDT)
+In-Reply-To: <1315918979-26173-15-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Saxena, Parth" <parth.saxena@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-If there are no review comments on this patch, can this be merged?
+Hello.
 
-Thanks and Regards,
-Parth
+On 13-09-2011 17:02, Tarun Kanti DebBarma wrote:
 
-> -----Original Message-----
-> From: Saxena, Parth
-> Sent: Thursday, September 08, 2011 6:33 PM
-> To: linux-mtd@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org; Saxena, Parth; Basheer, Mansoor Ahamed
-> Subject: [PATCH] ti816x: add support for nand on ti8168 evm
-> 
-> Add partition table for NAND device on TI8168 EVM
-> and initialise the NAND module.
-> 
-> Signed-off-by: Saxena, Parth <parth.saxena@ti.com>
-> Signed-off-by: Basheer, Mansoor Ahamed <mansoor.ahamed@ti.com>
+> Remove un-necessary bit masking. Since the register are 4 byte aligned
+> and readl would work as is. The 'enabled' mask is already taking care
+> to mask for bank width.
+
+> Signed-off-by: Charulatha V<charu@ti.com>
+> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> Reviewed-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
 > ---
-> 
-> This patch is tested on top of linux-omap/master and
-> Hemant's patches submitted recently.
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53457.html
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg54296.html
-> 
->  arch/arm/mach-omap2/board-ti8168evm.c |   39
-> +++++++++++++++++++++++++++++++++
->  1 files changed, 39 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-
-> omap2/board-ti8168evm.c
-> index e516a04..87953bb 100644
-> --- a/arch/arm/mach-omap2/board-ti8168evm.c
-> +++ b/arch/arm/mach-omap2/board-ti8168evm.c
-> @@ -14,6 +14,7 @@
->   */
->  #include <linux/kernel.h>
->  #include <linux/init.h>
-> +#include <linux/mtd/nand.h>
-> 
->  #include <mach/hardware.h>
->  #include <asm/mach-types.h>
-> @@ -23,6 +24,42 @@
->  #include <plat/irqs.h>
->  #include <plat/board.h>
->  #include <plat/common.h>
-> +#include <plat/gpmc.h>
-> +#include <plat/nand.h>
-> +
-> +#include "board-flash.h"
-> +
-> +#define NAND_BLOCK_SIZE		SZ_128K
-> +
-> +static struct mtd_partition ti816x_nand_partitions[] = {
-> +/* All the partition sizes are listed in terms of NAND block size */
-> +	{
-> +		.name		= "U-Boot",
-> +		.offset		= 0,			/* Offset = 0x0 */
-> +		.size		= 18 * NAND_BLOCK_SIZE,
-> +		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-> +	},
-> +	{
-> +		.name		= "U-Boot Env",
-> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x240000
-> */
-> +		.size		= 2 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name		= "Kernel",
-> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000
-> */
-> +		.size		= 34 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name		= "File System",
-> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x6C0000
-> */
-> +		.size		= 1601 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name		= "Reserved",
-> +		.offset		= MTDPART_OFS_APPEND,	/* Offset =
-> 0xCEE0000 */
-> +		.size		= MTDPART_SIZ_FULL,
-> +	},
-> +};
-> 
->  static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
->  };
-> @@ -35,6 +72,8 @@ static void __init ti8168_init_early(void)
-> 
->  static void __init ti8168_evm_init(void)
->  {
-> +	board_nand_init(ti816x_nand_partitions,
-> +		ARRAY_SIZE(ti816x_nand_partitions), 0, NAND_BUSWIDTH_16);
->  	omap_serial_init();
->  	omap_board_config = ti8168_evm_config;
->  	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
-> --
-> 1.6.2.4
+>   drivers/gpio/gpio-omap.c |    2 --
+>   1 files changed, 0 insertions(+), 2 deletions(-)
 
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 876e387..d614c6d 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -571,8 +571,6 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+>   		enabled = _get_gpio_irqbank_mask(bank);
+>   		isr_saved = isr = __raw_readl(isr_reg)&  enabled;
+>
+> -		if (cpu_is_omap15xx()&&  (bank->method == METHOD_MPUIO))
+> -			isr&= 0x0000ffff;
+>
+
+    Should have removed the now unneeded empty line too.
+
+>   		if (bank->level_mask)
+>   			level_mask = bank->level_mask&  enabled;
+
+WBR, Sergei
