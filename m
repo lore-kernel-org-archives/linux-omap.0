@@ -1,58 +1,171 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 6/6] OMAP2+: id: remove OMAP_REVBITS_* macros
-Date: Wed, 14 Sep 2011 15:51:03 +0300
-Message-ID: <4E70A337.6090400@compulab.co.il>
-References: <20110913212638.26161.62284.stgit@dusk> <20110913212806.26161.37867.stgit@dusk> <4E709D13.1080908@compulab.co.il> <alpine.DEB.2.00.1109140628520.27954@utopia.booyaka.com>
+From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: RE: [PATCH 1/4] AM3517 : support for suspend/resume
+Date: Wed, 14 Sep 2011 18:30:51 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087037AF843DD@dbde02.ent.ti.com>
+References: <1313754927-11992-1-git-send-email-abhilash.kv@ti.com>
+	<1313754927-11992-2-git-send-email-abhilash.kv@ti.com>
+	<87fwkild5k.fsf@ti.com>
+	<FCCFB4CDC6E5564B9182F639FC356087037B3D8823@dbde02.ent.ti.com>,<8739g0b8sa.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:40800
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932406Ab1INMvK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Sep 2011 08:51:10 -0400
-In-Reply-To: <alpine.DEB.2.00.1109140628520.27954@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8739g0b8sa.fsf@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Lohithakshan, Ranjith" <ranjithl@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 09/14/11 15:29, Paul Walmsley wrote:
-> On Wed, 14 Sep 2011, Igor Grinberg wrote:
-> 
->> Hi Paul,
+hi  Kevin
+
+On Tue, Sep 13, 2011 at 11:54 PM, Hilman, Kevin wrote:
+> Hi Abhilash,
+>
+> "Koyamangalath, Abhilash" <abhilash.kv@ti.com> writes:
+>
+>> Hi
 >>
->> Same problem (as with 3_6) here...
-> 
-> Thanks, I'll repost those.  In the meantime, maybe try pulling the branch 
-> 'id_3517_cleanup_3.2' from git://git.pwsan.com/linux-2.6 ?
+>> On Wed, Aug 31, 2011 at 4:28 AM, Hilman, Kevin wrote:
+>>>
+>>> Abhilash K V <abhilash.kv@ti.com> writes:
+>>>
+<snip>
+>>>
+>>> In addition to Russell's comments about using the latest code from
+>>> mainline, I have some comments below.
+>> [Abhilash K V] I have reworked the patch against the tip (as suggested by
+>> Russell).
+>> And I've incorporated all of Kevin's comments too.
+>
+> Great, thanks!
+>
+>> There is one "known" issue left which needs to be closed before I can submit v2 of this patch.
+>> With no_console_suspend, suspend to RAM hangs right now on AM3517, after
+>> the message:
+>>           Disabling non-boot CPUs ...
+>> There is no error message or dump.
+>> I found that this crash is happening in a call to pr_warning(), from _omap_device_deactivate().
+>> The same code does not produce this issue on omap34xx due to this snippet from omap_sram_idle() :
+>>         /* PER */
+>>         if (per_next_state < PWRDM_POWER_ON) {
+>>                 per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
+>>                 omap_uart_prepare_idle(2);
+>>                 omap_uart_prepare_idle(3);
+>>                 omap2_gpio_prepare_for_idle(per_going_off);
+>>                 if (per_next_state == PWRDM_POWER_OFF)
+>>                                 omap3_per_save_context();
+>>         }
+>>         /* CORE */
+>>         if (core_next_state < PWRDM_POWER_ON) {
+>>                 omap_uart_prepare_idle(0);
+>>                 omap_uart_prepare_idle(1);
+>>                 if (core_next_state == PWRDM_POWER_OFF) {
+>>                         omap3_core_save_context();
+>>                         omap3_cm_save_context();
+>>                 }
+>>         }
+>> This happens in preparation to the suspend operation (I,e. the WFI).
+>> As seen here, on 34xx the sequence in which the uarts are disabled is 2, 3, 0 and 1.The console-uart, which is uart-1 here (starting from uart-0) is disabled last.
+>
+>> For AM3517 EVM, the console-uart is uart-2 and this ought to be
+>> disabled at the last to prevent this crash from occurring.
+>
+> There are several other OMAP3 platforms (n900, Beagle, etc.) where the
+> UART console is also UART2, so console ordering is not the problem.
+[Abhilash K V]  OK. Yet changing the order so that uart-2 is disabled at the last
+seems to rid me of the crash on AM35x. 
+I understand that holding the console_sem before suspend (your fix below) is the
+way to go, but I'm just curious over what's happening here.
+Simply put what is the rationale behind choosing this order of UART-disables ?
 
-I've applied those manually on top of v3.1-rc3:
-
---------------cut--------------------
-[    0.000000] Linux version 3.1.0-rc3-00006-ga942f6de (grinberg@grinberg-linux) (gcc version 4.4.1 (Sourcery G++ Lite 2010q1-202) ) #1 SMP Wed Sep 14 15:35:32 IDT 2011
-[    0.000000] CPU: ARMv7 Processor [411fc087] revision 7 (ARMv7), cr=10c53c7f
-[    0.000000] CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
-[    0.000000] Machine: Compulab CM-T3517
-[    0.000000] Reserving 8388608 bytes SDRAM for VRAM
-[    0.000000] Memory policy: ECC disabled, Data cache writeback
-[    0.000000] OMAP3430/3530 ES1.0 (l2cache iva sgx neon isp )
-----------cut----------------------------
-               ^^^^^^^^^^^^^^^^^^^
-
-While U-Boot says:
-
-------------cut---------------------
-U-Boot 2009.11-cm-t3517-1 (Dec 10 2010 - 23:25:02)
-
-AM35xx-GP ES1.0, L3-165MHz
-------------cut---------------------
-
-Do I miss something, that should be in your tree?
-Pulling it in right now, should be available shortly...
-
-
--- 
-Regards,
-Igor.
+>
+> The fact that that pr_warning is making it to the console suggests that
+> the console is not locked.  In the idle path, we take the console lock
+> (using console_trylock(), just above the code you showed above.)
+>
+> But during suspend, there was an assumption (by me[2]) that the console
+> would always be locked in the suspend path.  During no_console_suspend,
+> it appears that is not the case.
+>
+> Can you try the patch below[1] to see if that fixes your problem?  I
+> think it should.
+[Abhilash K V] Yes it does, thanks.
+>
+> Kevin
+>
+>
+> [1]
+> From 5b5a73101fcfa042d53828c017ee3149eae44b50 Mon Sep 17 00:00:00 2001
+> From: Kevin Hilman <khilman@ti.com>
+> Date: Tue, 13 Sep 2011 11:18:44 -0700
+> Subject: [PATCH] OMAP3: PM: fix UART handling when using no_console_suspend
+>
+> During the idle/suspend path, we expect the console lock to be held so
+> that no console output is done during/after the UARTs are idled.
+>
+> However, when using the no_console_suspend argument on the
+> command-line, the console driver does not take the console lock.  This
+> allows the possibility of console activity after UARTs have been
+> disabled.
+>
+> To fix, update the current is_suspending() to also check the
+> console_suspend_enabled flag.
+>
+> NOTE: this is short-term workaround until the OMAP serial driver
+>      is fully converted to use runtime PM.
+>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 7255d9b..c8cbd00 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -55,7 +55,7 @@
+>  static suspend_state_t suspend_state = PM_SUSPEND_ON;
+>  static inline bool is_suspending(void)
+>  {
+> -       return (suspend_state != PM_SUSPEND_ON);
+> +       return (suspend_state != PM_SUSPEND_ON) && console_suspend_enabled;
+>  }
+>  #else
+>  static inline bool is_suspending(void)
+> --
+> 1.7.6
+>
+>
+>
+> [2]
+> commit e83df17f178360a8e7874441bca04a710c869e42
+> Author: Kevin Hilman <khilman@deeprootsystems.com>
+> Date:   Wed Dec 8 22:40:40 2010 +0000
+>
+>    OMAP2+: PM/serial: fix console semaphore acquire during suspend
+>
+>    commit 0d8e2d0dad98a693bad88aea6876ac8b94ad95c6 (OMAP2+: PM/serial:
+>    hold console semaphore while OMAP UARTs are disabled) added use of the
+>    console semaphore to protect UARTs from being accessed after disabled
+>    during idle, but this causes problems in suspend.
+>
+>    During suspend, the console semaphore is acquired by the console
+>    suspend method (console_suspend()) so the try_acquire_console_sem()
+>    will always fail and suspend will be aborted.
+>
+>    To fix, introduce a check so the console semaphore is only attempted
+>    during idle, and not during suspend.  Also use the same check so that
+>    the console semaphore is not prematurely released during resume.
+>
+>    Thanks to Paul Walmsley for suggesting adding the same check during
+>    resume.
+>
+>    Cc: Paul Walmsley <paul@pwsan.com>
+>    Tested-by: Jean Pihet <j-pihet@ti.com>
+>    Tested-by: Paul Walmsley <paul@pwsan.com>
+>    Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>    Signed-off-by: Tony Lindgren <tony@atomide.com>
+>
+>
+>
