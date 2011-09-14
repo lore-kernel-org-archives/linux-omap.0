@@ -1,80 +1,67 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 14/25] OMAP4: PM: Add CPUX OFF mode support
-Date: Wed, 14 Sep 2011 10:56:36 +0530
-Message-ID: <CAMQu2gwtj17KTeQFA-okaPYV4KKTnvzM8FcqaO0ptm2ZEH-8=A@mail.gmail.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
- <1315144466-9395-15-git-send-email-santosh.shilimkar@ti.com>
- <87y5xteahc.fsf@ti.com> <4E6EECA3.4040704@ti.com> <87wrdcbb49.fsf@ti.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCHv2 09/15] OMAP: DSS2: HDMI: implement detect()
+Date: Wed, 14 Sep 2011 11:04:08 +0530
+Message-ID: <CAP5A+B87w6Hir-0+SNnckQaDcO=ixgq-U8pFo2U42dwQgtUrZQ@mail.gmail.com>
+References: <1315818818-18733-1-git-send-email-tomi.valkeinen@ti.com>
+ <1315818818-18733-10-git-send-email-tomi.valkeinen@ti.com>
+ <CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com> <CAF6AEGuhjZgH9zFuigjfvHGM9r7jSLY2TTCD0LjZbT+Ubrb12A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:58485 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750906Ab1INF05 convert rfc822-to-8bit
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:47221 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751134Ab1INFea convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Sep 2011 01:26:57 -0400
-Received: by mail-gw0-f54.google.com with SMTP id 18so1643126gwj.27
-        for <linux-omap@vger.kernel.org>; Tue, 13 Sep 2011 22:26:56 -0700 (PDT)
-In-Reply-To: <87wrdcbb49.fsf@ti.com>
+	Wed, 14 Sep 2011 01:34:30 -0400
+In-Reply-To: <CAF6AEGuhjZgH9zFuigjfvHGM9r7jSLY2TTCD0LjZbT+Ubrb12A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, rnayak@ti.com
+To: Rob Clark <robdclark@gmail.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
-On Tue, Sep 13, 2011 at 11:03 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Santosh <santosh.shilimkar@ti.com> writes:
->
->> On Tuesday 13 September 2011 02:36 AM, Kevin Hilman wrote:
->>> Santosh Shilimkar<santosh.shilimkar@ti.com> =A0writes:
->>>
->>>> This patch adds the CPU0 and CPU1 off mode support. CPUX close swi=
-tch
->>>> retention (CSWR) is not supported by hardware design.
->>>>
->>>> The CPUx OFF mode isn't supported on OMAP4430 ES1.0
->>>>
->>>> CPUx sleep code is common for hotplug, suspend and CPUilde.
->>>>
->>>> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
->>>> Cc: Kevin Hilman<khilman@ti.com>
->>>
->>> [...]
->>>
->>>> @@ -38,6 +39,11 @@ void __iomem *omap4_get_scu_base(void)
->>>>
->>>> =A0 void __cpuinit platform_secondary_init(unsigned int cpu)
->>>> =A0 {
->>>> + =A0 /* Enable NS access to SMP bit for this CPU on EMU/HS device=
-s */
->>>> + =A0 if (cpu_is_omap443x()&& =A0(omap_type() !=3D OMAP2_DEVICE_TY=
-PE_GP))
->>>
->>> A comment here about why this is 443x specific would be helpful.
->>>
->>> I see a comment in omap4_cpu_resume() that seems to indicate that S=
-MP
->>> bit is accessible on 446x NS devices, but repeating that commen her=
-e
->>> would help future readability.
->>>
->> Ok. Will add comments here too. Was just trying to save some lines :=
-)
->
-> heh, this is a negative side-effect of people caring primarily about
-> diffstat. :(
->
-ya.
+Hi,
 
-> One other comment on this patch. =A0You need spaces around the '&&' a=
-bove.
+On Mon, Sep 12, 2011 at 10:16 PM, Rob Clark <robdclark@gmail.com> wrote=
+:
+> On Mon, Sep 12, 2011 at 8:24 AM, K, Mythri P <mythripk@ti.com> wrote:
+>>> +bool ti_hdmi_4xxx_detect(struct hdmi_ip_data *ip_data)
+>>> +{
+>>> + =A0 =A0 =A0 int r;
+>>> +
+>>> + =A0 =A0 =A0 void __iomem *base =3D hdmi_core_sys_base(ip_data);
+>>> +
+>>> + =A0 =A0 =A0 /* HPD */
+>>> + =A0 =A0 =A0 r =3D REG_GET(base, HDMI_CORE_SYS_SYS_STAT, 1, 1);
+>>> +
+>>> + =A0 =A0 =A0 return r =3D=3D 1;
+>>> +}
+>>> +
+>> For HPD the probe should also be on the core interrupt first , and t=
+he
+>> detect should be dynamic, ie based on the cable connect and disconne=
+ct
+>> event.So this approach for HPD is not really the way.
+>> Also that should be based on the GPIO(63) , I am planning to push a
+>> patch on that shortly.
 >
-The original patch is fine for that. Some replies has eaten that space.=
- My
-Thunderbird email client is doing the same. :(
-
-Regards
-Santosh
+>
+> Fwiw, we do still need a dssdrv->detect() function from omapdrm
+> driver.. =A0if there is another way to implement that function, such =
+as
+> with a GPIO, that is great. =A0But somehow or another we need the det=
+ect
+> function. =A0The implementation can always change later.
+Yes we still need a detect , but the implementation would be different
+, from the prior experience with the Hot-plug detection it wad found
+that the interrupt based way to handle HPD was not the best ,but if
+this is just to poll the status then it should be fine.
+>
+> BR,
+> -R
+>
+Thanks and regards,
+Mythri.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
