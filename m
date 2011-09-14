@@ -1,58 +1,44 @@
 From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [PATCH] arm: omap: Fix build error in ispccdc.c
-Date: Wed, 14 Sep 2011 17:33:03 +0200
-Message-ID: <20110914153303.GW11701@amd.com>
-References: <1315317735-5255-1-git-send-email-joerg.roedel@amd.com>
+Subject: Re: [PATCH v2 2/2] iommu/omap: migrate to the generic fault report
+ mechanism
+Date: Wed, 14 Sep 2011 17:39:47 +0200
+Message-ID: <20110914153947.GX11701@amd.com>
+References: <1315941989-17199-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from tx2ehsobe002.messaging.microsoft.com ([65.55.88.12]:16171 "EHLO
-	TX2EHSOBE004.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752676Ab1INPd2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 11:33:28 -0400
+Received: from tx2ehsobe004.messaging.microsoft.com ([65.55.88.14]:56407 "EHLO
+	TX2EHSOBE009.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755292Ab1INPka (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Sep 2011 11:40:30 -0400
 Content-Disposition: inline
-In-Reply-To: <1315317735-5255-1-git-send-email-joerg.roedel@amd.com>
+In-Reply-To: <1315941989-17199-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Ping?
-
-On Tue, Sep 06, 2011 at 10:02:15AM -0400, Joerg Roedel wrote:
-> The following build error occurs with 3.1-rc5:
+On Tue, Sep 13, 2011 at 03:26:29PM -0400, Ohad Ben-Cohen wrote:
+> Start using the generic fault report mechanism, as provided by
+> the IOMMU core, and remove its now-redundant omap_iommu_set_isr API.
 > 
->   CC      drivers/media/video/omap3isp/ispccdc.o
-> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c: In function 'ccdc_lsc_config':
-> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c:427:2: error: implicit declaration of function 'kzalloc' [-Werror=implicit-function-declaration]
-> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c:427:6: warning: assignment makes pointer from integer without a cast [enabled by default]
+> Currently we're only interested in letting upper layers know about the
+> fault, so in case the faulting device is a remote processor, they could
+> restart it.
 > 
-> This patch adds the missing 'linux/slab.h' include to fix the problem.
+> Dynamic PTE/TLB loading is not supported.
 > 
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: linux-media@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 > ---
->  drivers/media/video/omap3isp/ispccdc.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-> index 9d3459d..80796eb 100644
-> --- a/drivers/media/video/omap3isp/ispccdc.c
-> +++ b/drivers/media/video/omap3isp/ispccdc.c
-> @@ -31,6 +31,7 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/mm.h>
->  #include <linux/sched.h>
-> +#include <linux/slab.h>
->  #include <media/v4l2-event.h>
->  
->  #include "isp.h"
-> -- 
-> 1.7.4.1
+>  arch/arm/plat-omap/include/plat/iommu.h |    3 +--
+>  drivers/iommu/omap-iommu.c              |   31 +++----------------------------
+>  2 files changed, 4 insertions(+), 30 deletions(-)
+
+Applied both to new branch iommu/fault-reporting and merged into my next
+branch. Thanks Ohad.
+
+	Joerg
 
 -- 
 AMD Operating System Research Center
