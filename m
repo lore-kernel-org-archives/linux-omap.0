@@ -1,61 +1,66 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] iommu/omap: Fix build error with !IOMMU_SUPPORT
-Date: Wed, 14 Sep 2011 21:57:13 +0300
-Message-ID: <CAK=WgbbCgXjOQ=xXSwnVhT9sqsYtpo6cFcRQYSEGY2ow215n=Q@mail.gmail.com>
-References: <1316009259-18052-1-git-send-email-joerg.roedel@amd.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 13/25] OMAP4: PM: Add WakeupGen module as OMAP
+ gic_arch_extn
+Date: Wed, 14 Sep 2011 12:04:33 -0700
+Message-ID: <20110914190433.GP24252@atomide.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+ <1315144466-9395-14-git-send-email-santosh.shilimkar@ti.com>
+ <20110913203616.GG24252@atomide.com>
+ <CAMQu2gyYETPZRJu=4MWX6bULgmMaJb8MRwfhvURtOuyyWhLkAQ@mail.gmail.com>
+ <20110914152116.GM24252@atomide.com>
+ <4E70DB33.5070501@ti.com>
+ <20110914170803.GN24252@atomide.com>
+ <4E70E0CC.80300@ti.com>
+ <20110914171800.GO24252@atomide.com>
+ <4E70E2DE.2030006@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:43191 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932269Ab1INS5e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 14:57:34 -0400
-In-Reply-To: <1316009259-18052-1-git-send-email-joerg.roedel@amd.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:36219 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932462Ab1INTEh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 15:04:37 -0400
+Content-Disposition: inline
+In-Reply-To: <4E70E2DE.2030006@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joerg.roedel@amd.com>
-Cc: linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org
+To: Santosh <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-On Wed, Sep 14, 2011 at 5:07 PM, Joerg Roedel <joerg.roedel@amd.com> wrote:
-> Without this patch it is possible to select the VIDEO_OMAP3
-> driver which then selects OMAP_IOVMM. But the omap iommu
-> driver is not compiled without IOMMU_SUPPORT enabled. Fix
-> that by forcing OMAP_IOMMU and OMAP_IOVMM are enabled before
-> VIDEO_OMAP3 can be selected.
+* Santosh <santosh.shilimkar@ti.com> [110914 09:49]:
+> On Wednesday 14 September 2011 10:48 PM, Tony Lindgren wrote:
+> >* Santosh<santosh.shilimkar@ti.com>  [110914 09:40]:
+> >>On Wednesday 14 September 2011 10:38 PM, Tony Lindgren wrote:
+> >>>* Santosh<santosh.shilimkar@ti.com>   [110914 09:16]:
+> >>>
+> >>>Thanks for the clarification. It seems to me the spec is most likely
+> >>>wrong as we've had the GIC working for over two years now without
+> >>>doing anything with the wakeup gen registers :)
+> >>>
+> >>It's working because CPU clockdomain are never put under HW
+> >>supervised mode and they are kept in force wakeup. Clock-domain
+> >>never idles on mainline code. PM series will put the clock-domains
+> >>under HW supervison as needed to achieve any low power states and
+> >>then all sorts of corner cases will come out.
+> >
+> >But again the wakeup gen triggers only do something when hitting
+> >idle. There should be no use for them during runtime, right?
+> >
+> You missed my point in the description. Clockdomain inactive
+> doesn't depend on idle or WFI execution. Under HW supervison
+> CPU clock domain can get into inactive when CPU is stalled and
+> waiting for a read response from slow interconnect.
 
-I'm ok with this but wouldn't it be simpler if we drop IOMMU_SUPPORT
-altogether (and just use a plain menu instead) ?
+Ah OK. If it's needed during runtime too then that explains why
+the registers need to be kept in sync.
 
-Users will then be presented with only a single iommu-related
-question: whether they want their iommu driver built or not.
+> One thing for sure. Designers has chosen a wrong name to this
+> IP. Wakeugen apears like needed only for low power wakeup which
+> not seems to be entirely correct as per specs
 
-Something like this:
+Yes it's not obvious reading the TRM either. Maybe add some
+comment about that to the patch?
 
-diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-index d901930..7d6e5ad 100644
---- a/drivers/iommu/Kconfig
-+++ b/drivers/iommu/Kconfig
-@@ -2,16 +2,7 @@
- config IOMMU_API
-        bool
+Regards,
 
--menuconfig IOMMU_SUPPORT
--       bool "IOMMU Hardware Support"
--       default y
--       ---help---
--         Say Y here if you want to compile device drivers for IO Memory
--         Management Units into the kernel. These devices usually allow to
--         remap DMA requests and/or remap interrupts from other devices on the
--         system.
--
--if IOMMU_SUPPORT
-+menu "IOMMU Hardware Support"
-
- # MSM IOMMU support
- config MSM_IOMMU
-@@ -126,4 +117,4 @@ config OMAP_IOMMU_DEBUG
-
-          Say N unless you know you need this.
-
--endif # IOMMU_SUPPORT
-+endmenu
+Tony
