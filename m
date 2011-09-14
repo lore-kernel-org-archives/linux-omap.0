@@ -1,55 +1,68 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH] irq: call also chip->irq_mask from irq_disable
-Date: Wed, 14 Sep 2011 11:53:48 +0300
-Message-ID: <1315990428-22676-1-git-send-email-t-kristo@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv2 09/15] OMAP: DSS2: HDMI: implement detect()
+Date: Wed, 14 Sep 2011 11:57:10 +0300
+Message-ID: <1315990630.2172.51.camel@deskari>
+References: <1315818818-18733-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1315818818-18733-10-git-send-email-tomi.valkeinen@ti.com>
+	 <CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com>
+	 <CAF6AEGuhjZgH9zFuigjfvHGM9r7jSLY2TTCD0LjZbT+Ubrb12A@mail.gmail.com>
+	 <CAP5A+B87w6Hir-0+SNnckQaDcO=ixgq-U8pFo2U42dwQgtUrZQ@mail.gmail.com>
+	 <1315984468.2172.10.camel@deskari>
+	 <CAP5A+B9uDj4kCowbEKgX1J74zWvBarp64Cn4YVom-a8BYtab4w@mail.gmail.com>
+	 <1315989282.2172.36.camel@deskari>
+	 <CAP5A+B-GWN+oJhcVbB24swfmH=-dE4sViNqF+hX6=D1owzOLzA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57600 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754215Ab1INIxw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 04:53:52 -0400
-Content-Class: urn:content-classes:message
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:47908 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754250Ab1INI5P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Sep 2011 04:57:15 -0400
+In-Reply-To: <CAP5A+B-GWN+oJhcVbB24swfmH=-dE4sViNqF+hX6=D1owzOLzA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: lkml@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
-Current implementation of the irq_disable only calls chip->irq_disable.
-This fails to disable interrupt on some chip implementations, as there
-are two alternative chip specific functions for this task,
-chip->irq_disable and chip->irq_mask. Added alternative path for
-chip->irq_disable also.
+On Wed, 2011-09-14 at 14:18 +0530, K, Mythri P wrote:
+> On Wed, Sep 14, 2011 at 2:04 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> > On Wed, 2011-09-14 at 13:57 +0530, K, Mythri P wrote:
+> >> On Wed, Sep 14, 2011 at 12:44 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- kernel/irq/chip.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+<snip>
 
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index d5a3009..15597f1 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -198,10 +198,11 @@ void irq_enable(struct irq_desc *desc)
- void irq_disable(struct irq_desc *desc)
- {
- 	irq_state_set_disabled(desc);
--	if (desc->irq_data.chip->irq_disable) {
-+	if (desc->irq_data.chip->irq_disable)
- 		desc->irq_data.chip->irq_disable(&desc->irq_data);
--		irq_state_set_masked(desc);
--	}
-+	else
-+		desc->irq_data.chip->irq_mask(&desc->irq_data);
-+	irq_state_set_masked(desc);
- }
- 
- static inline void mask_ack_irq(struct irq_desc *desc)
--- 
-1.7.4.1
+> > I don't understand this one. How could this be more dynamic? The
+> > function checks the HPD bit, which (based on my observation) shows the
+> > status whether a display is connected or not.
+> There is a GPIO which detects the +3.3V on the line and detects the
+> cable connect , there is also an interrupt based way.This is ideally
+> called a Hot-plug detect event according to the spec in HDMI terms.
+> But what you are saying here is that it is just a poll on the state?
 
+Yes, it's just for polling, but I don't quite see the difference. A
+hot-plug event notifies when the display is connected or disconnected,
+and detect() tells if a display is connected. They are all about the
+same thing.
 
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
+> >> So I said if the purpose of this function is only to check for the HPD
+> >> state bit it is fine.
+> >
+> > What does HPD bit tell us then?
+> 
+> HPD state bit tells whether the cable is connected and whether EDID is
+
+This sounds like a good bit to test then. So is there something wrong
+with using HPD? How does the GPIO differ from HPD bit?
+
+> ready to be read, But this is a static check that is done in this
+> function.
+
+I don't understand what you mean with "static". The bit changes
+dynamically according to the connect/disconnect state, and the bit is
+checked dynamically when detect() is called.
+
+ Tomi
+
 
