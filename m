@@ -1,35 +1,50 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 0/6] OMAP3+ Clock Fixes
-Date: Wed, 14 Sep 2011 14:34:29 -0500
-Message-ID: <4E7101C5.4060600@ti.com>
-References: <1310078513-21754-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1108282210110.26173@utopia.booyaka.com>
+From: Per Forlin <per.forlin@linaro.org>
+Subject: Re: [PATCH 1/2] omap: hsmmc: Normalize dma cleanup operations
+Date: Wed, 14 Sep 2011 22:55:18 +0200
+Message-ID: <CAJ0pr19gtXSMXPD4AcAJ3Nw60AtkuZ8xNsNQX_ae07t212GBGg@mail.gmail.com>
+References: <1314903957-24408-2-git-send-email-svenkatr@ti.com>
+	<CAJ0pr18PtGWga7n8nm1xs-=wtRjMu=X_wZONAOAgeaLamtEJjg@mail.gmail.com>
+	<CANfBPZ9sVvcVhwxgu0SqbjY1gT8GdeXXsThf48__ax=bQ4zHEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58320 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932890Ab1INTeb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 15:34:31 -0400
-In-Reply-To: <alpine.DEB.2.00.1108282210110.26173@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CANfBPZ9sVvcVhwxgu0SqbjY1gT8GdeXXsThf48__ax=bQ4zHEA@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: Kishore Kadiyala <kishorek.kadiyala@gmail.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi Paul,
-
-On 8/28/2011 23:11, Paul Walmsley wrote:
-> Hi Jon,
+On 14 September 2011 15:40, S, Venkatraman <svenkatr@ti.com> wrote:
+> On Tue, Sep 13, 2011 at 1:26 AM, Per Forlin <per.forlin@linaro.org> wrote:
+>> On 1 September 2011 21:05, Venkatraman S <svenkatr@ti.com> wrote:
+>>> Reuse omap_hsmmc_dma_cleanup even for normal dma teardown in
+>>> omap_hsmmc_dma_cb. Consolidate multiple points of dma unmap into a
+>>> single location in post_req function, to prevent double unmapping.
+>> It's optional to use pre_req() and post_req(). The SDIO framework
+>> doesn't utilise these hooks. For instance this wont work together with
+>> SDIO-wlan on the pandaboard.
+>> If pre_req() has been issued it's fine to defer dma_unmap() until
+>> post_req(). If pre_req() is not called the driver should call
+>> dma_unmap() directly.
+>>
 >
-> On Thu, 7 Jul 2011, Jon Hunter wrote:
+> In that case, can the actual 'request' function just call pre_req and post_req
+> (at the beginning and at the end), if host_cookie is not set ?
 >
->> Various clock fixes for OMAP3 and OMAP4 devices.
->
-> Just doublechecking on these patches, some of them don't have
-> Signed-off-by:'s from you.  Seems like we should add those?
+Which request() function do your refer to? The mmc_host_ops.request()
+returns before the transfer is finished.
+Apart from that, I would say yes. It's nice to have the same code path
+for valid cookie and invalid cookie scenario.
 
-Ok, let me look at that.
+Note that the host_cookie could be set but with an invalid value.
+host driver:
+1. validate cookie
+2. if invalid cookie call pre_req()
+3. run request
+4. done -> if (has called pre_req() #2) -> call post_req().
 
-Cheers
-Jon
+A general fix would be to put this logic in mmc_wait_for_req() in
+core.c, but at this level it's not possible to validate the cookie. In
+the current implementation the host driver controls the cookie value.
+
+/Per
