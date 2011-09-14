@@ -1,2533 +1,2079 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 2/4] OMAP: clockdomain code/data: remove omap_chip bitmask
-	from struct clockdomain
-Date: Wed, 14 Sep 2011 16:45:09 -0600
-Message-ID: <20110914224505.12067.37503.stgit@dusk>
-References: <20110914220723.12067.99495.stgit@dusk>
+Subject: [PATCH v2] OMAP2+: hwmod: remove OMAP_CHIP*
+Date: Wed, 14 Sep 2011 16:55:32 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109141650490.15220@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1109042042250.9056@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1467590856-1316040932=:15220"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55757 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:37480 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988Ab1INWrb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 18:47:31 -0400
-In-Reply-To: <20110914220723.12067.99495.stgit@dusk>
+	with ESMTP id S1750784Ab1INWzd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 18:55:33 -0400
+In-Reply-To: <alpine.DEB.2.00.1109042042250.9056@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: =?ISO-8859-15?Q?Gra=B8vydas_Ignotas?= <notasas@gmail.com>
 
-At Tony's request, remove the omap_chip bitmasks from the clockdomain
-and clockdomain dependency definitions.  Instead, initialize
-clockdomains based on one or more lists that are applicable to a
-particular SoC family, variant, and silicon revision.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--155748971-1467590856-1316040932=:15220
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+At Tony's request, remove the OMAP_CHIP* flags from the hwmod data, and
+replace it instead with chip family, variant, and ES level-specific lists
+of hwmods to register.
+
+Thanks to Gra=B8vydas Ignotas <notasas@gmail.com> for finding a bug in the
+AM3517/3505 support, and for other review comments.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Gra=B8vydas Ignotas <notasas@gmail.com>
 ---
- arch/arm/mach-omap2/Makefile                     |    5=20
- arch/arm/mach-omap2/clockdomain.c                |   19 -
- arch/arm/mach-omap2/clockdomain.h                |   15=20
- arch/arm/mach-omap2/clockdomain2xxx_3xxx.c       |    4=20
- arch/arm/mach-omap2/clockdomain44xx.c            |    2=20
- arch/arm/mach-omap2/clockdomains2420_data.c      |  155 ++++
- arch/arm/mach-omap2/clockdomains2430_data.c      |  181 +++++
- arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |  812 --------------=
---------
- arch/arm/mach-omap2/clockdomains3xxx_data.c      |  398 +++++++++++
- arch/arm/mach-omap2/clockdomains44xx_data.c      |  404 ++---------
- arch/arm/mach-omap2/io.c                         |    4=20
- 11 files changed, 843 insertions(+), 1156 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clockdomains2420_data.c
- create mode 100644 arch/arm/mach-omap2/clockdomains2430_data.c
- create mode 100644 arch/arm/mach-omap2/clockdomains3xxx_data.c
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefil=
-e
-index f343365..5a6fe73 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -116,9 +116,12 @@ obj-$(CONFIG_ARCH_OMAP4)		+=3D $(powerdomain-commo=
-n) \
- obj-$(CONFIG_ARCH_OMAP2)		+=3D clockdomain.o \
- 					   clockdomain2xxx_3xxx.o \
- 					   clockdomains2xxx_3xxx_data.o
-+obj-$(CONFIG_SOC_OMAP2420)		+=3D clockdomains2420_data.o
-+obj-$(CONFIG_SOC_OMAP2430)		+=3D clockdomains2430_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+=3D clockdomain.o \
- 					   clockdomain2xxx_3xxx.o \
--					   clockdomains2xxx_3xxx_data.o
-+					   clockdomains2xxx_3xxx_data.o \
-+					   clockdomains3xxx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+=3D clockdomain.o \
- 					   clockdomain44xx.o \
- 					   clockdomains44xx_data.o
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/cl=
-ockdomain.c
-index b73a1dc..8480ee4 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -73,9 +73,6 @@ static int _clkdm_register(struct clockdomain *clkdm)
- 	if (!clkdm || !clkdm->name)
- 		return -EINVAL;
+Also available from the branch 'hwmod_remove_omap_chip_cleanup_3.2' of=20
+git://git.pwsan.com/linux-2.6
+
+ arch/arm/mach-omap2/omap_hwmod.c             |    3 -
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c   |   37 ------
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c   |   45 -------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |  169 +++++++++++++---------=
+----
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   82 -------------
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 -
+ 6 files changed, 85 insertions(+), 253 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hw=
+mod.c
+index 84cc0bd..d7138070 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1954,9 +1954,6 @@ int __init omap_hwmod_register(struct omap_hwmod **oh=
+s)
 =20
--	if (!omap_chip_is(clkdm->omap_chip))
--		return -EINVAL;
+ =09i =3D 0;
+ =09do {
+-=09=09if (!omap_chip_is(ohs[i]->omap_chip))
+-=09=09=09continue;
 -
- 	pwrdm =3D pwrdm_lookup(clkdm->pwrdm.name);
- 	if (!pwrdm) {
- 		pr_err("clockdomain: %s: powerdomain %s does not exist\n",
-@@ -105,13 +102,10 @@ static struct clkdm_dep *_clkdm_deps_lookup(struc=
-t clockdomain *clkdm,
- {
- 	struct clkdm_dep *cd;
-=20
--	if (!clkdm || !deps || !omap_chip_is(clkdm->omap_chip))
-+	if (!clkdm || !deps)
- 		return ERR_PTR(-EINVAL);
-=20
- 	for (cd =3D deps; cd->clkdm_name; cd++) {
--		if (!omap_chip_is(cd->omap_chip))
--			continue;
--
- 		if (!cd->clkdm && cd->clkdm_name)
- 			cd->clkdm =3D _clkdm_lookup(cd->clkdm_name);
-=20
-@@ -148,9 +142,6 @@ static void _autodep_lookup(struct clkdm_autodep *a=
-utodep)
- 	if (!autodep)
- 		return;
-=20
--	if (!omap_chip_is(autodep->omap_chip))
--		return;
--
- 	clkdm =3D clkdm_lookup(autodep->clkdm.name);
- 	if (!clkdm) {
- 		pr_err("clockdomain: autodeps: clockdomain %s does not exist\n",
-@@ -182,9 +173,6 @@ void _clkdm_add_autodeps(struct clockdomain *clkdm)
- 		if (IS_ERR(autodep->clkdm.ptr))
- 			continue;
-=20
--		if (!omap_chip_is(autodep->omap_chip))
--			continue;
--
- 		pr_debug("clockdomain: adding %s sleepdep/wkdep for "
- 			 "clkdm %s\n", autodep->clkdm.ptr->name,
- 			 clkdm->name);
-@@ -216,9 +204,6 @@ void _clkdm_del_autodeps(struct clockdomain *clkdm)
- 		if (IS_ERR(autodep->clkdm.ptr))
- 			continue;
-=20
--		if (!omap_chip_is(autodep->omap_chip))
--			continue;
--
- 		pr_debug("clockdomain: removing %s sleepdep/wkdep for "
- 			 "clkdm %s\n", autodep->clkdm.ptr->name,
- 			 clkdm->name);
-@@ -243,8 +228,6 @@ static void _resolve_clkdm_deps(struct clockdomain =
-*clkdm,
- 	struct clkdm_dep *cd;
-=20
- 	for (cd =3D clkdm_deps; cd && cd->clkdm_name; cd++) {
--		if (!omap_chip_is(cd->omap_chip))
--			continue;
- 		if (cd->clkdm)
- 			continue;
- 		cd->clkdm =3D _clkdm_lookup(cd->clkdm_name);
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/cl=
-ockdomain.h
-index 0d879ff..f7b5860 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -45,7 +45,6 @@
- /**
-  * struct clkdm_autodep - clkdm deps to add when entering/exiting hwsu=
-p mode
-  * @clkdm: clockdomain to add wkdep+sleepdep on - set name member only
-- * @omap_chip: OMAP chip types that this autodep is valid on
-  *
-  * A clockdomain that should have wkdeps and sleepdeps added when a
-  * clockdomain should stay active in hwsup mode; and conversely,
-@@ -60,14 +59,12 @@ struct clkdm_autodep {
- 		const char *name;
- 		struct clockdomain *ptr;
- 	} clkdm;
--	const struct omap_chip_id omap_chip;
+ =09=09r =3D _register(ohs[i]);
+ =09=09WARN(r, "omap_hwmod: %s: _register returned %d\n", ohs[i]->name,
+ =09=09     r);
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-oma=
+p2/omap_hwmod_2420_data.c
+index a015c69..b6ea69a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -100,7 +100,6 @@ static struct omap_hwmod omap2420_l3_main_hwmod =3D {
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2420_l3_main_masters),
+ =09.slaves=09=09=3D omap2420_l3_main_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_l3_main_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
  };
 =20
- /**
-  * struct clkdm_dep - encode dependencies between clockdomains
-  * @clkdm_name: clockdomain name
-  * @clkdm: pointer to the struct clockdomain of @clkdm_name
-- * @omap_chip: OMAP chip types that this dependency is valid on
-  * @wkdep_usecount: Number of wakeup dependencies causing this clkdm t=
-o wake
-  * @sleepdep_usecount: Number of sleep deps that could prevent clkdm f=
-rom idle
-  *
-@@ -81,7 +78,6 @@ struct clkdm_dep {
- 	struct clockdomain *clkdm;
- 	atomic_t wkdep_usecount;
- 	atomic_t sleepdep_usecount;
--	const struct omap_chip_id omap_chip;
+@@ -206,7 +205,6 @@ static struct omap_hwmod omap2420_l4_core_hwmod =3D {
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2420_l4_core_masters),
+ =09.slaves=09=09=3D omap2420_l4_core_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_l4_core_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
  };
 =20
- /* Possible flags for struct clockdomain._flags */
-@@ -101,7 +97,6 @@ struct clkdm_dep {
-  * @clkdm_offs: (OMAP4 only) CM clockdomain register offset
-  * @wkdep_srcs: Clockdomains that can be told to wake this powerdomain=
- up
-  * @sleepdep_srcs: Clockdomains that can be told to keep this clkdm fr=
-om inact
-- * @omap_chip: OMAP chip types that this clockdomain is valid on
-  * @usecount: Usecount tracking
-  * @node: list_head to link all clockdomains together
-  *
-@@ -126,7 +121,6 @@ struct clockdomain {
- 	const u16 clkdm_offs;
- 	struct clkdm_dep *wkdep_srcs;
- 	struct clkdm_dep *sleepdep_srcs;
--	const struct omap_chip_id omap_chip;
- 	atomic_t usecount;
- 	struct list_head node;
- 	spinlock_t lock;
-@@ -198,7 +192,8 @@ int clkdm_clk_disable(struct clockdomain *clkdm, st=
-ruct clk *clk);
- int clkdm_hwmod_enable(struct clockdomain *clkdm, struct omap_hwmod *o=
-h);
- int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *=
-oh);
-=20
--extern void __init omap2xxx_clockdomains_init(void);
-+extern void __init omap242x_clockdomains_init(void);
-+extern void __init omap243x_clockdomains_init(void);
- extern void __init omap3xxx_clockdomains_init(void);
- extern void __init omap44xx_clockdomains_init(void);
- extern void _clkdm_add_autodeps(struct clockdomain *clkdm);
-@@ -208,4 +203,10 @@ extern struct clkdm_ops omap2_clkdm_operations;
- extern struct clkdm_ops omap3_clkdm_operations;
- extern struct clkdm_ops omap4_clkdm_operations;
-=20
-+extern struct clkdm_dep gfx_24xx_wkdeps[];
-+extern struct clkdm_dep dsp_24xx_wkdeps[];
-+extern struct clockdomain wkup_common_clkdm;
-+extern struct clockdomain prm_common_clkdm;
-+extern struct clockdomain cm_common_clkdm;
-+
- #endif
-diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach=
--omap2/clockdomain2xxx_3xxx.c
-index f740edb..a0d68db 100644
---- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-@@ -52,8 +52,6 @@ static int omap2_clkdm_clear_all_wkdeps(struct clockd=
-omain *clkdm)
- 	u32 mask =3D 0;
-=20
- 	for (cd =3D clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
--		if (!omap_chip_is(cd->omap_chip))
--			continue;
- 		if (!cd->clkdm)
- 			continue; /* only happens if data is erroneous */
-=20
-@@ -98,8 +96,6 @@ static int omap3_clkdm_clear_all_sleepdeps(struct clo=
-ckdomain *clkdm)
- 	u32 mask =3D 0;
-=20
- 	for (cd =3D clkdm->sleepdep_srcs; cd && cd->clkdm_name; cd++) {
--		if (!omap_chip_is(cd->omap_chip))
--			continue;
- 		if (!cd->clkdm)
- 			continue; /* only happens if data is erroneous */
-=20
-diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap=
-2/clockdomain44xx.c
-index b43706a..935c7f0 100644
---- a/arch/arm/mach-omap2/clockdomain44xx.c
-+++ b/arch/arm/mach-omap2/clockdomain44xx.c
-@@ -52,8 +52,6 @@ static int omap4_clkdm_clear_all_wkup_sleep_deps(stru=
-ct clockdomain *clkdm)
- 	u32 mask =3D 0;
-=20
- 	for (cd =3D clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
--		if (!omap_chip_is(cd->omap_chip))
--			continue;
- 		if (!cd->clkdm)
- 			continue; /* only happens if data is erroneous */
-=20
-diff --git a/arch/arm/mach-omap2/clockdomains2420_data.c b/arch/arm/mac=
-h-omap2/clockdomains2420_data.c
-new file mode 100644
-index 0000000..8895bba
---- /dev/null
-+++ b/arch/arm/mach-omap2/clockdomains2420_data.c
-@@ -0,0 +1,155 @@
-+/*
-+ * OMAP2420 clockdomains
-+ *
-+ * Copyright (C) 2008-2011 Texas Instruments, Inc.
-+ * Copyright (C) 2008-2010 Nokia Corporation
-+ *
-+ * Paul Walmsley, Jouni H=C3=B6gander
-+ *
-+ * This file contains clockdomains and clockdomain wakeup dependencies
-+ * for OMAP2420 chips.  Some notes:
-+ *
-+ * A useful validation rule for struct clockdomain: Any clockdomain
-+ * referenced by a wkdep_srcs must have a dep_bit assigned.  So
-+ * wkdep_srcs are really just software-controllable dependencies.
-+ * Non-software-controllable dependencies do exist, but they are not
-+ * encoded below (yet).
-+ *
-+ * 24xx does not support programmable sleep dependencies (SLEEPDEP)
-+ *
-+ * The overly-specific dep_bit names are due to a bit name collision
-+ * with CM_FCLKEN_{DSP,IVA2}.  The DSP/IVA2 PM_WKDEP and CM_SLEEPDEP s=
-hift
-+ * value are the same for all powerdomains: 2
-+ *
-+ * XXX should dep_bit be a mask, so we can test to see if it is 0 as a
-+ * sanity check?
-+ * XXX encode hardware fixed wakeup dependencies -- esp. for 3430 CORE
-+ */
-+
-+/*
-+ * To-Do List
-+ * -> Port the Sleep/Wakeup dependencies for the domains
-+ *    from the Power domain framework
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/io.h>
-+
-+#include "clockdomain.h"
-+#include "prm2xxx_3xxx.h"
-+#include "cm2xxx_3xxx.h"
-+#include "cm-regbits-24xx.h"
-+#include "prm-regbits-24xx.h"
-+
-+/*
-+ * Clockdomain dependencies for wkdeps
-+ *
-+ * XXX Hardware dependencies (e.g., dependencies that cannot be
-+ * changed in software) are not included here yet, but should be.
-+ */
-+
-+/* Wakeup dependency source arrays */
-+
-+/* 2420-specific possible wakeup dependencies */
-+
-+/* 2420 PM_WKDEP_MPU: CORE, DSP, WKUP */
-+static struct clkdm_dep mpu_2420_wkdeps[] =3D {
-+	{ .clkdm_name =3D "core_l3_clkdm" },
-+	{ .clkdm_name =3D "core_l4_clkdm" },
-+	{ .clkdm_name =3D "dsp_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 2420 PM_WKDEP_CORE: DSP, GFX, MPU, WKUP */
-+static struct clkdm_dep core_2420_wkdeps[] =3D {
-+	{ .clkdm_name =3D "dsp_clkdm" },
-+	{ .clkdm_name =3D "gfx_clkdm" },
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
-+	{ .clkdm_name =3D "mdm_clkdm" },
-+	{ NULL },
-+};
-+
-+/*
-+ * 2420-only clockdomains
-+ */
-+
-+static struct clockdomain mpu_2420_clkdm =3D {
-+	.name		=3D "mpu_clkdm",
-+	.pwrdm		=3D { .name =3D "mpu_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP,
-+	.wkdep_srcs	=3D mpu_2420_wkdeps,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_MPU_MASK,
-+};
-+
-+static struct clockdomain iva1_2420_clkdm =3D {
-+	.name		=3D "iva1_clkdm",
-+	.pwrdm		=3D { .name =3D "dsp_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.dep_bit	=3D OMAP24XX_PM_WKDEP_MPU_EN_DSP_SHIFT,
-+	.wkdep_srcs	=3D dsp_24xx_wkdeps,
-+	.clktrctrl_mask =3D OMAP2420_AUTOSTATE_IVA_MASK,
-+};
-+
-+static struct clockdomain dsp_2420_clkdm =3D {
-+	.name		=3D "dsp_clkdm",
-+	.pwrdm		=3D { .name =3D "dsp_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_DSP_MASK,
-+};
-+
-+static struct clockdomain gfx_2420_clkdm =3D {
-+	.name		=3D "gfx_clkdm",
-+	.pwrdm		=3D { .name =3D "gfx_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	=3D gfx_24xx_wkdeps,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_GFX_MASK,
-+};
-+
-+static struct clockdomain core_l3_2420_clkdm =3D {
-+	.name		=3D "core_l3_clkdm",
-+	.pwrdm		=3D { .name =3D "core_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP,
-+	.wkdep_srcs	=3D core_2420_wkdeps,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_L3_MASK,
-+};
-+
-+static struct clockdomain core_l4_2420_clkdm =3D {
-+	.name		=3D "core_l4_clkdm",
-+	.pwrdm		=3D { .name =3D "core_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP,
-+	.wkdep_srcs	=3D core_2420_wkdeps,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_L4_MASK,
-+};
-+
-+static struct clockdomain dss_2420_clkdm =3D {
-+	.name		=3D "dss_clkdm",
-+	.pwrdm		=3D { .name =3D "core_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_DSS_MASK,
-+};
-+
-+static struct clockdomain *clockdomains_omap242x[] __initdata =3D {
-+	&wkup_common_clkdm,
-+	&cm_common_clkdm,
-+	&prm_common_clkdm,
-+	&mpu_2420_clkdm,
-+	&iva1_2420_clkdm,
-+	&dsp_2420_clkdm,
-+	&gfx_2420_clkdm,
-+	&core_l3_2420_clkdm,
-+	&core_l4_2420_clkdm,
-+	&dss_2420_clkdm,
-+	NULL,
-+};
-+
-+void __init omap242x_clockdomains_init(void)
-+{
-+	if (!cpu_is_omap242x())
-+		return;
-+
-+	clkdm_register_platform_funcs(&omap2_clkdm_operations);
-+	clkdm_register_clkdms(clockdomains_omap242x);
-+	clkdm_complete_init();
-+}
-diff --git a/arch/arm/mach-omap2/clockdomains2430_data.c b/arch/arm/mac=
-h-omap2/clockdomains2430_data.c
-new file mode 100644
-index 0000000..3645ed0
---- /dev/null
-+++ b/arch/arm/mach-omap2/clockdomains2430_data.c
-@@ -0,0 +1,181 @@
-+/*
-+ * OMAP2xxx clockdomains
-+ *
-+ * Copyright (C) 2008-2009 Texas Instruments, Inc.
-+ * Copyright (C) 2008-2010 Nokia Corporation
-+ *
-+ * Paul Walmsley, Jouni H=C3=B6gander
-+ *
-+ * This file contains clockdomains and clockdomain wakeup dependencies
-+ * for OMAP2xxx chips.  Some notes:
-+ *
-+ * A useful validation rule for struct clockdomain: Any clockdomain
-+ * referenced by a wkdep_srcs must have a dep_bit assigned.  So
-+ * wkdep_srcs are really just software-controllable dependencies.
-+ * Non-software-controllable dependencies do exist, but they are not
-+ * encoded below (yet).
-+ *
-+ * 24xx does not support programmable sleep dependencies (SLEEPDEP)
-+ *
-+ * The overly-specific dep_bit names are due to a bit name collision
-+ * with CM_FCLKEN_{DSP,IVA2}.  The DSP/IVA2 PM_WKDEP and CM_SLEEPDEP s=
-hift
-+ * value are the same for all powerdomains: 2
-+ *
-+ * XXX should dep_bit be a mask, so we can test to see if it is 0 as a
-+ * sanity check?
-+ * XXX encode hardware fixed wakeup dependencies -- esp. for 3430 CORE
-+ */
-+
-+/*
-+ * To-Do List
-+ * -> Port the Sleep/Wakeup dependencies for the domains
-+ *    from the Power domain framework
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/io.h>
-+
-+#include "clockdomain.h"
-+#include "prm2xxx_3xxx.h"
-+#include "cm2xxx_3xxx.h"
-+#include "cm-regbits-24xx.h"
-+#include "prm-regbits-24xx.h"
-+
-+/*
-+ * Clockdomain dependencies for wkdeps
-+ *
-+ * XXX Hardware dependencies (e.g., dependencies that cannot be
-+ * changed in software) are not included here yet, but should be.
-+ */
-+
-+/* Wakeup dependency source arrays */
-+
-+/* 2430-specific possible wakeup dependencies */
-+
-+/* 2430 PM_WKDEP_CORE: DSP, GFX, MPU, WKUP, MDM */
-+static struct clkdm_dep core_2430_wkdeps[] =3D {
-+	{ .clkdm_name =3D "dsp_clkdm" },
-+	{ .clkdm_name =3D "gfx_clkdm" },
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
-+	{ .clkdm_name =3D "mdm_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 2430 PM_WKDEP_MPU: CORE, DSP, WKUP, MDM */
-+static struct clkdm_dep mpu_2430_wkdeps[] =3D {
-+	{ .clkdm_name =3D "core_l3_clkdm" },
-+	{ .clkdm_name =3D "core_l4_clkdm" },
-+	{ .clkdm_name =3D "dsp_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
-+	{ .clkdm_name =3D "mdm_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 2430 PM_WKDEP_MDM: CORE, MPU, WKUP */
-+static struct clkdm_dep mdm_2430_wkdeps[] =3D {
-+	{ .clkdm_name =3D "core_l3_clkdm" },
-+	{ .clkdm_name =3D "core_l4_clkdm" },
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
-+	{ NULL },
-+};
-+
-+/*
-+ * 2430-only clockdomains
-+ */
-+
-+static struct clockdomain mpu_2430_clkdm =3D {
-+	.name		=3D "mpu_clkdm",
-+	.pwrdm		=3D { .name =3D "mpu_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	=3D mpu_2430_wkdeps,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_MPU_MASK,
-+};
-+
-+/* Another case of bit name collisions between several registers: EN_M=
-DM */
-+static struct clockdomain mdm_clkdm =3D {
-+	.name		=3D "mdm_clkdm",
-+	.pwrdm		=3D { .name =3D "mdm_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.dep_bit	=3D OMAP2430_PM_WKDEP_MPU_EN_MDM_SHIFT,
-+	.wkdep_srcs	=3D mdm_2430_wkdeps,
-+	.clktrctrl_mask =3D OMAP2430_AUTOSTATE_MDM_MASK,
-+};
-+
-+static struct clockdomain dsp_2430_clkdm =3D {
-+	.name		=3D "dsp_clkdm",
-+	.pwrdm		=3D { .name =3D "dsp_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.dep_bit	=3D OMAP24XX_PM_WKDEP_MPU_EN_DSP_SHIFT,
-+	.wkdep_srcs	=3D dsp_24xx_wkdeps,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_DSP_MASK,
-+};
-+
-+static struct clockdomain gfx_2430_clkdm =3D {
-+	.name		=3D "gfx_clkdm",
-+	.pwrdm		=3D { .name =3D "gfx_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	=3D gfx_24xx_wkdeps,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_GFX_MASK,
-+};
-+
-+/*
-+ * XXX add usecounting for clkdm dependencies, otherwise the presence
-+ * of a single dep bit for core_l3_24xx_clkdm and core_l4_24xx_clkdm
-+ * could cause trouble
-+ */
-+static struct clockdomain core_l3_2430_clkdm =3D {
-+	.name		=3D "core_l3_clkdm",
-+	.pwrdm		=3D { .name =3D "core_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP,
-+	.dep_bit	=3D OMAP24XX_EN_CORE_SHIFT,
-+	.wkdep_srcs	=3D core_2430_wkdeps,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_L3_MASK,
-+};
-+
-+/*
-+ * XXX add usecounting for clkdm dependencies, otherwise the presence
-+ * of a single dep bit for core_l3_24xx_clkdm and core_l4_24xx_clkdm
-+ * could cause trouble
-+ */
-+static struct clockdomain core_l4_2430_clkdm =3D {
-+	.name		=3D "core_l4_clkdm",
-+	.pwrdm		=3D { .name =3D "core_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP,
-+	.dep_bit	=3D OMAP24XX_EN_CORE_SHIFT,
-+	.wkdep_srcs	=3D core_2430_wkdeps,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_L4_MASK,
-+};
-+
-+static struct clockdomain dss_2430_clkdm =3D {
-+	.name		=3D "dss_clkdm",
-+	.pwrdm		=3D { .name =3D "core_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP,
-+	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_DSS_MASK,
-+};
-+
-+static struct clockdomain *clockdomains_omap243x[] __initdata =3D {
-+	&wkup_common_clkdm,
-+	&cm_common_clkdm,
-+	&prm_common_clkdm,
-+	&mpu_2430_clkdm,
-+	&mdm_clkdm,
-+	&dsp_2430_clkdm,
-+	&gfx_2430_clkdm,
-+	&core_l3_2430_clkdm,
-+	&core_l4_2430_clkdm,
-+	&dss_2430_clkdm,
-+	NULL,
-+};
-+
-+void __init omap243x_clockdomains_init(void)
-+{
-+	if (!cpu_is_omap243x())
-+		return;
-+
-+	clkdm_register_platform_funcs(&omap2_clkdm_operations);
-+	clkdm_register_clkdms(clockdomains_omap243x);
-+	clkdm_complete_init();
-+}
-+
-diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c b/arch/ar=
-m/mach-omap2/clockdomains2xxx_3xxx_data.c
-index 148a3e8..0a6a048 100644
---- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
-@@ -1,7 +1,7 @@
- /*
-- * OMAP2/3 clockdomains
-+ * OMAP2/3 clockdomain common data
-  *
-- * Copyright (C) 2008-2009 Texas Instruments, Inc.
-+ * Copyright (C) 2008-2011 Texas Instruments, Inc.
-  * Copyright (C) 2008-2010 Nokia Corporation
-  *
-  * Paul Walmsley, Jouni H=C3=B6gander
-@@ -51,374 +51,28 @@
-  * changed in software) are not included here yet, but should be.
-  */
-=20
--/* OMAP2/3-common wakeup dependencies */
--
--/*
-- * 2420/2430 PM_WKDEP_GFX: CORE, MPU, WKUP
-- * 3430ES1 PM_WKDEP_GFX: adds IVA2, removes CORE
-- * 3430ES2 PM_WKDEP_SGX: adds IVA2, removes CORE
-- * These can share data since they will never be present simultaneousl=
-y
-- * on the same device.
-- */
--static struct clkdm_dep gfx_sgx_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "core_l3_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "core_l4_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "iva2_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX |
--					    CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "wkup_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX |
--					    CHIP_IS_OMAP3430)
--	},
--	{ NULL },
--};
--
--
--/* 24XX-specific possible dependencies */
--
--#ifdef CONFIG_ARCH_OMAP2
--
- /* Wakeup dependency source arrays */
-=20
--/* 2420/2430 PM_WKDEP_DSP: CORE, MPU, WKUP */
--static struct clkdm_dep dsp_24xx_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "core_l3_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "core_l4_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "wkup_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{ NULL },
--};
--
--/*
-- * 2420 PM_WKDEP_MPU: CORE, DSP, WKUP
-- * 2430 adds MDM
-- */
--static struct clkdm_dep mpu_24xx_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "core_l3_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "core_l4_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "dsp_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "wkup_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "mdm_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
--	},
--	{ NULL },
--};
--
--/*
-- * 2420 PM_WKDEP_CORE: DSP, GFX, MPU, WKUP
-- * 2430 adds MDM
-- */
--static struct clkdm_dep core_24xx_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "dsp_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "gfx_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "wkup_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "mdm_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
--	},
--	{ NULL },
--};
--
--#endif /* CONFIG_ARCH_OMAP2 */
--
--/* 2430-specific possible wakeup dependencies */
-+/* 2xxx-specific possible dependencies */
-=20
--#ifdef CONFIG_SOC_OMAP2430
--
--/* 2430 PM_WKDEP_MDM: CORE, MPU, WKUP */
--static struct clkdm_dep mdm_2430_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "core_l3_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "core_l4_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{
--		.clkdm_name =3D "wkup_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
--	},
--	{ NULL },
--};
--
--#endif /* CONFIG_SOC_OMAP2430 */
--
--
--/* OMAP3-specific possible dependencies */
--
--#ifdef CONFIG_ARCH_OMAP3
--
--/* 3430: PM_WKDEP_PER: CORE, IVA2, MPU, WKUP */
--static struct clkdm_dep per_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "core_l3_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "core_l4_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "iva2_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "wkup_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{ NULL },
--};
--
--/* 3430ES2: PM_WKDEP_USBHOST: CORE, IVA2, MPU, WKUP */
--static struct clkdm_dep usbhost_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "core_l3_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "core_l4_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "iva2_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "wkup_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
-+/* 2xxx PM_WKDEP_GFX: CORE, MPU, WKUP */
-+struct clkdm_dep gfx_24xx_wkdeps[] =3D {
-+	{ .clkdm_name =3D "core_l3_clkdm" },
-+	{ .clkdm_name =3D "core_l4_clkdm" },
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
- 	{ NULL },
+@@ -227,7 +225,6 @@ static struct omap_hwmod omap2420_l4_wkup_hwmod =3D {
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2420_l4_wkup_masters),
+ =09.slaves=09=09=3D omap2420_l4_wkup_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_l4_wkup_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
  };
 =20
--/* 3430 PM_WKDEP_MPU: CORE, IVA2, DSS, PER */
--static struct clkdm_dep mpu_3xxx_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "core_l3_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "core_l4_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "iva2_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "dss_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "per_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
-+/* 2xxx PM_WKDEP_DSP: CORE, MPU, WKUP */
-+struct clkdm_dep dsp_24xx_wkdeps[] =3D {
-+	{ .clkdm_name =3D "core_l3_clkdm" },
-+	{ .clkdm_name =3D "core_l4_clkdm" },
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
- 	{ NULL },
+@@ -243,7 +240,6 @@ static struct omap_hwmod omap2420_mpu_hwmod =3D {
+ =09.main_clk=09=3D "mpu_ck",
+ =09.masters=09=3D omap2420_mpu_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2420_mpu_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
  };
-=20
--/* 3430 PM_WKDEP_IVA2: CORE, MPU, WKUP, DSS, PER */
--static struct clkdm_dep iva2_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "core_l3_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "core_l4_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "wkup_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "dss_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "per_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{ NULL },
--};
--
--
--/* 3430 PM_WKDEP_CAM: IVA2, MPU, WKUP */
--static struct clkdm_dep cam_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "iva2_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "wkup_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{ NULL },
--};
--
--/* 3430 PM_WKDEP_DSS: IVA2, MPU, WKUP */
--static struct clkdm_dep dss_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "iva2_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "wkup_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{ NULL },
--};
--
--/* 3430: PM_WKDEP_NEON: MPU */
--static struct clkdm_dep neon_wkdeps[] =3D {
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{ NULL },
--};
--
--
--/* Sleep dependency source arrays for OMAP3-specific clkdms */
--
--/* 3430: CM_SLEEPDEP_DSS: MPU, IVA */
--static struct clkdm_dep dss_sleepdeps[] =3D {
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "iva2_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{ NULL },
--};
--
--/* 3430: CM_SLEEPDEP_PER: MPU, IVA */
--static struct clkdm_dep per_sleepdeps[] =3D {
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "iva2_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{ NULL },
--};
--
--/* 3430ES2: CM_SLEEPDEP_USBHOST: MPU, IVA */
--static struct clkdm_dep usbhost_sleepdeps[] =3D {
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm_name =3D "iva2_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{ NULL },
--};
--
--/* 3430: CM_SLEEPDEP_CAM: MPU */
--static struct clkdm_dep cam_sleepdeps[] =3D {
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{ NULL },
--};
--
--/*
-- * 3430ES1: CM_SLEEPDEP_GFX: MPU
-- * 3430ES2: CM_SLEEPDEP_SGX: MPU
-- * These can share data since they will never be present simultaneousl=
-y
-- * on the same device.
-- */
--static struct clkdm_dep gfx_sgx_sleepdeps[] =3D {
--	{
--		.clkdm_name =3D "mpu_clkdm",
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{ NULL },
--};
--
--#endif /* CONFIG_ARCH_OMAP3 */
--
 =20
  /*
-  * OMAP2/3-common clockdomains
-@@ -430,448 +84,18 @@ static struct clkdm_dep gfx_sgx_sleepdeps[] =3D {
-  */
-=20
- /* This is an implicit clockdomain - it is never defined as such in TR=
-M */
--static struct clockdomain wkup_clkdm =3D {
-+struct clockdomain wkup_common_clkdm =3D {
- 	.name		=3D "wkup_clkdm",
- 	.pwrdm		=3D { .name =3D "wkup_pwrdm" },
- 	.dep_bit	=3D OMAP_EN_WKUP_SHIFT,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
+@@ -271,7 +267,6 @@ static struct omap_hwmod omap2420_iva_hwmod =3D {
+ =09.class=09=09=3D &iva_hwmod_class,
+ =09.masters=09=3D omap2420_iva_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2420_iva_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
--static struct clockdomain prm_clkdm =3D {
-+struct clockdomain prm_common_clkdm =3D {
- 	.name		=3D "prm_clkdm",
- 	.pwrdm		=3D { .name =3D "wkup_pwrdm" },
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
+ /* timer1 */
+@@ -317,7 +312,6 @@ static struct omap_hwmod omap2420_timer1_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer1_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
--static struct clockdomain cm_clkdm =3D {
-+struct clockdomain cm_common_clkdm =3D {
- 	.name		=3D "cm_clkdm",
- 	.pwrdm		=3D { .name =3D "core_pwrdm" },
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
--};
--
--/*
-- * 2420-only clockdomains
-- */
--
--#if defined(CONFIG_SOC_OMAP2420)
--
--static struct clockdomain mpu_2420_clkdm =3D {
--	.name		=3D "mpu_clkdm",
--	.pwrdm		=3D { .name =3D "mpu_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP,
--	.wkdep_srcs	=3D mpu_24xx_wkdeps,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_MPU_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
--};
--
--static struct clockdomain iva1_2420_clkdm =3D {
--	.name		=3D "iva1_clkdm",
--	.pwrdm		=3D { .name =3D "dsp_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.dep_bit	=3D OMAP24XX_PM_WKDEP_MPU_EN_DSP_SHIFT,
--	.wkdep_srcs	=3D dsp_24xx_wkdeps,
--	.clktrctrl_mask =3D OMAP2420_AUTOSTATE_IVA_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
--};
--
--static struct clockdomain dsp_2420_clkdm =3D {
--	.name		=3D "dsp_clkdm",
--	.pwrdm		=3D { .name =3D "dsp_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_DSP_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
--};
--
--static struct clockdomain gfx_2420_clkdm =3D {
--	.name		=3D "gfx_clkdm",
--	.pwrdm		=3D { .name =3D "gfx_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.wkdep_srcs	=3D gfx_sgx_wkdeps,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_GFX_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
--};
--
--static struct clockdomain core_l3_2420_clkdm =3D {
--	.name		=3D "core_l3_clkdm",
--	.pwrdm		=3D { .name =3D "core_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP,
--	.wkdep_srcs	=3D core_24xx_wkdeps,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_L3_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
--};
--
--static struct clockdomain core_l4_2420_clkdm =3D {
--	.name		=3D "core_l4_clkdm",
--	.pwrdm		=3D { .name =3D "core_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP,
--	.wkdep_srcs	=3D core_24xx_wkdeps,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_L4_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
--};
--
--static struct clockdomain dss_2420_clkdm =3D {
--	.name		=3D "dss_clkdm",
--	.pwrdm		=3D { .name =3D "core_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_DSS_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
--};
--
--#endif   /* CONFIG_SOC_OMAP2420 */
--
--
--/*
-- * 2430-only clockdomains
-- */
--
--#if defined(CONFIG_SOC_OMAP2430)
--
--static struct clockdomain mpu_2430_clkdm =3D {
--	.name		=3D "mpu_clkdm",
--	.pwrdm		=3D { .name =3D "mpu_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.wkdep_srcs	=3D mpu_24xx_wkdeps,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_MPU_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
--};
--
--/* Another case of bit name collisions between several registers: EN_M=
-DM */
--static struct clockdomain mdm_clkdm =3D {
--	.name		=3D "mdm_clkdm",
--	.pwrdm		=3D { .name =3D "mdm_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.dep_bit	=3D OMAP2430_PM_WKDEP_MPU_EN_MDM_SHIFT,
--	.wkdep_srcs	=3D mdm_2430_wkdeps,
--	.clktrctrl_mask =3D OMAP2430_AUTOSTATE_MDM_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
--};
--
--static struct clockdomain dsp_2430_clkdm =3D {
--	.name		=3D "dsp_clkdm",
--	.pwrdm		=3D { .name =3D "dsp_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.dep_bit	=3D OMAP24XX_PM_WKDEP_MPU_EN_DSP_SHIFT,
--	.wkdep_srcs	=3D dsp_24xx_wkdeps,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_DSP_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
--};
--
--static struct clockdomain gfx_2430_clkdm =3D {
--	.name		=3D "gfx_clkdm",
--	.pwrdm		=3D { .name =3D "gfx_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.wkdep_srcs	=3D gfx_sgx_wkdeps,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_GFX_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
--};
--
--/*
-- * XXX add usecounting for clkdm dependencies, otherwise the presence
-- * of a single dep bit for core_l3_24xx_clkdm and core_l4_24xx_clkdm
-- * could cause trouble
-- */
--static struct clockdomain core_l3_2430_clkdm =3D {
--	.name		=3D "core_l3_clkdm",
--	.pwrdm		=3D { .name =3D "core_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP,
--	.dep_bit	=3D OMAP24XX_EN_CORE_SHIFT,
--	.wkdep_srcs	=3D core_24xx_wkdeps,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_L3_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
--};
--
--/*
-- * XXX add usecounting for clkdm dependencies, otherwise the presence
-- * of a single dep bit for core_l3_24xx_clkdm and core_l4_24xx_clkdm
-- * could cause trouble
-- */
--static struct clockdomain core_l4_2430_clkdm =3D {
--	.name		=3D "core_l4_clkdm",
--	.pwrdm		=3D { .name =3D "core_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP,
--	.dep_bit	=3D OMAP24XX_EN_CORE_SHIFT,
--	.wkdep_srcs	=3D core_24xx_wkdeps,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_L4_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
--};
--
--static struct clockdomain dss_2430_clkdm =3D {
--	.name		=3D "dss_clkdm",
--	.pwrdm		=3D { .name =3D "core_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP,
--	.clktrctrl_mask =3D OMAP24XX_AUTOSTATE_DSS_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
--};
--
--#endif    /* CONFIG_SOC_OMAP2430 */
--
--
--/*
-- * OMAP3 clockdomains
-- */
--
--#if defined(CONFIG_ARCH_OMAP3)
--
--static struct clockdomain mpu_3xxx_clkdm =3D {
--	.name		=3D "mpu_clkdm",
--	.pwrdm		=3D { .name =3D "mpu_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP,
--	.dep_bit	=3D OMAP3430_EN_MPU_SHIFT,
--	.wkdep_srcs	=3D mpu_3xxx_wkdeps,
--	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_MPU_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
--
--static struct clockdomain neon_clkdm =3D {
--	.name		=3D "neon_clkdm",
--	.pwrdm		=3D { .name =3D "neon_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.wkdep_srcs	=3D neon_wkdeps,
--	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_NEON_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--static struct clockdomain iva2_clkdm =3D {
--	.name		=3D "iva2_clkdm",
--	.pwrdm		=3D { .name =3D "iva2_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.dep_bit	=3D OMAP3430_PM_WKDEP_MPU_EN_IVA2_SHIFT,
--	.wkdep_srcs	=3D iva2_wkdeps,
--	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_IVA2_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--static struct clockdomain gfx_3430es1_clkdm =3D {
--	.name		=3D "gfx_clkdm",
--	.pwrdm		=3D { .name =3D "gfx_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.wkdep_srcs	=3D gfx_sgx_wkdeps,
--	.sleepdep_srcs	=3D gfx_sgx_sleepdeps,
--	.clktrctrl_mask =3D OMAP3430ES1_CLKTRCTRL_GFX_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
--};
--
--static struct clockdomain sgx_clkdm =3D {
--	.name		=3D "sgx_clkdm",
--	.pwrdm		=3D { .name =3D "sgx_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.wkdep_srcs	=3D gfx_sgx_wkdeps,
--	.sleepdep_srcs	=3D gfx_sgx_sleepdeps,
--	.clktrctrl_mask =3D OMAP3430ES2_CLKTRCTRL_SGX_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
--};
--
--/*
-- * The die-to-die clockdomain was documented in the 34xx ES1 TRM, but
-- * then that information was removed from the 34xx ES2+ TRM.  It is
-- * unclear whether the core is still there, but the clockdomain logic
-- * is there, and must be programmed to an appropriate state if the
-- * CORE clockdomain is to become inactive.
-- */
--static struct clockdomain d2d_clkdm =3D {
--	.name		=3D "d2d_clkdm",
--	.pwrdm		=3D { .name =3D "core_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.clktrctrl_mask =3D OMAP3430ES1_CLKTRCTRL_D2D_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--/*
-- * XXX add usecounting for clkdm dependencies, otherwise the presence
-- * of a single dep bit for core_l3_3xxx_clkdm and core_l4_3xxx_clkdm
-- * could cause trouble
-- */
--static struct clockdomain core_l3_3xxx_clkdm =3D {
--	.name		=3D "core_l3_clkdm",
--	.pwrdm		=3D { .name =3D "core_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP,
--	.dep_bit	=3D OMAP3430_EN_CORE_SHIFT,
--	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_L3_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--/*
-- * XXX add usecounting for clkdm dependencies, otherwise the presence
-- * of a single dep bit for core_l3_3xxx_clkdm and core_l4_3xxx_clkdm
-- * could cause trouble
-- */
--static struct clockdomain core_l4_3xxx_clkdm =3D {
--	.name		=3D "core_l4_clkdm",
--	.pwrdm		=3D { .name =3D "core_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP,
--	.dep_bit	=3D OMAP3430_EN_CORE_SHIFT,
--	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_L4_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--/* Another case of bit name collisions between several registers: EN_D=
-SS */
--static struct clockdomain dss_3xxx_clkdm =3D {
--	.name		=3D "dss_clkdm",
--	.pwrdm		=3D { .name =3D "dss_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.dep_bit	=3D OMAP3430_PM_WKDEP_MPU_EN_DSS_SHIFT,
--	.wkdep_srcs	=3D dss_wkdeps,
--	.sleepdep_srcs	=3D dss_sleepdeps,
--	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_DSS_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--static struct clockdomain cam_clkdm =3D {
--	.name		=3D "cam_clkdm",
--	.pwrdm		=3D { .name =3D "cam_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.wkdep_srcs	=3D cam_wkdeps,
--	.sleepdep_srcs	=3D cam_sleepdeps,
--	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_CAM_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--static struct clockdomain usbhost_clkdm =3D {
--	.name		=3D "usbhost_clkdm",
--	.pwrdm		=3D { .name =3D "usbhost_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.wkdep_srcs	=3D usbhost_wkdeps,
--	.sleepdep_srcs	=3D usbhost_sleepdeps,
--	.clktrctrl_mask =3D OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
--};
--
--static struct clockdomain per_clkdm =3D {
--	.name		=3D "per_clkdm",
--	.pwrdm		=3D { .name =3D "per_pwrdm" },
--	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
--	.dep_bit	=3D OMAP3430_EN_PER_SHIFT,
--	.wkdep_srcs	=3D per_wkdeps,
--	.sleepdep_srcs	=3D per_sleepdeps,
--	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_PER_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--/*
-- * Disable hw supervised mode for emu_clkdm, because emu_pwrdm is
-- * switched of even if sdti is in use
-- */
--static struct clockdomain emu_clkdm =3D {
--	.name		=3D "emu_clkdm",
--	.pwrdm		=3D { .name =3D "emu_pwrdm" },
--	.flags		=3D /* CLKDM_CAN_ENABLE_AUTO |  */CLKDM_CAN_SWSUP,
--	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_EMU_MASK,
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--static struct clockdomain dpll1_clkdm =3D {
--	.name		=3D "dpll1_clkdm",
--	.pwrdm		=3D { .name =3D "dpll1_pwrdm" },
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--static struct clockdomain dpll2_clkdm =3D {
--	.name		=3D "dpll2_clkdm",
--	.pwrdm		=3D { .name =3D "dpll2_pwrdm" },
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--static struct clockdomain dpll3_clkdm =3D {
--	.name		=3D "dpll3_clkdm",
--	.pwrdm		=3D { .name =3D "dpll3_pwrdm" },
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--static struct clockdomain dpll4_clkdm =3D {
--	.name		=3D "dpll4_clkdm",
--	.pwrdm		=3D { .name =3D "dpll4_pwrdm" },
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
--};
--
--static struct clockdomain dpll5_clkdm =3D {
--	.name		=3D "dpll5_clkdm",
--	.pwrdm		=3D { .name =3D "dpll5_pwrdm" },
--	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
--};
--
--#endif   /* CONFIG_ARCH_OMAP3 */
--
--/*
-- * Clockdomain hwsup dependencies (OMAP3 only)
-- */
--
--static struct clkdm_autodep clkdm_autodeps[] =3D {
--	{
--		.clkdm	   =3D { .name =3D "mpu_clkdm" },
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm	   =3D { .name =3D "iva2_clkdm" },
--		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
--	},
--	{
--		.clkdm	   =3D { .name =3D NULL },
--	}
--};
--
--static struct clockdomain *clockdomains_omap2[] __initdata =3D {
--	&wkup_clkdm,
--	&cm_clkdm,
--	&prm_clkdm,
--
--#ifdef CONFIG_SOC_OMAP2420
--	&mpu_2420_clkdm,
--	&iva1_2420_clkdm,
--	&dsp_2420_clkdm,
--	&gfx_2420_clkdm,
--	&core_l3_2420_clkdm,
--	&core_l4_2420_clkdm,
--	&dss_2420_clkdm,
--#endif
--
--#ifdef CONFIG_SOC_OMAP2430
--	&mpu_2430_clkdm,
--	&mdm_clkdm,
--	&dsp_2430_clkdm,
--	&gfx_2430_clkdm,
--	&core_l3_2430_clkdm,
--	&core_l4_2430_clkdm,
--	&dss_2430_clkdm,
--#endif
--
--#ifdef CONFIG_ARCH_OMAP3
--	&mpu_3xxx_clkdm,
--	&neon_clkdm,
--	&iva2_clkdm,
--	&gfx_3430es1_clkdm,
--	&sgx_clkdm,
--	&d2d_clkdm,
--	&core_l3_3xxx_clkdm,
--	&core_l4_3xxx_clkdm,
--	&dss_3xxx_clkdm,
--	&cam_clkdm,
--	&usbhost_clkdm,
--	&per_clkdm,
--	&emu_clkdm,
--	&dpll1_clkdm,
--	&dpll2_clkdm,
--	&dpll3_clkdm,
--	&dpll4_clkdm,
--	&dpll5_clkdm,
--#endif
--	NULL,
--};
--
--static void __init omap2_3_clockdomains_init(void)
--{
--	clkdm_register_clkdms(clockdomains_omap2);
--	clkdm_register_autodeps(clkdm_autodeps);
--	clkdm_complete_init();
--}
--
--void __init omap2xxx_clockdomains_init(void)
--{
--	clkdm_register_platform_funcs(&omap2_clkdm_operations);
--	omap2_3_clockdomains_init();
--}
--
--void __init omap3xxx_clockdomains_init(void)
--{
--	clkdm_register_platform_funcs(&omap3_clkdm_operations);
--	omap2_3_clockdomains_init();
--}
-diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mac=
-h-omap2/clockdomains3xxx_data.c
-new file mode 100644
-index 0000000..b84e138
---- /dev/null
-+++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-@@ -0,0 +1,398 @@
-+/*
-+ * OMAP3xxx clockdomains
-+ *
-+ * Copyright (C) 2008-2011 Texas Instruments, Inc.
-+ * Copyright (C) 2008-2010 Nokia Corporation
-+ *
-+ * Paul Walmsley, Jouni H=C3=B6gander
-+ *
-+ * This file contains clockdomains and clockdomain wakeup/sleep
-+ * dependencies for the OMAP3xxx chips.  Some notes:
-+ *
-+ * A useful validation rule for struct clockdomain: Any clockdomain
-+ * referenced by a wkdep_srcs or sleepdep_srcs array must have a
-+ * dep_bit assigned.  So wkdep_srcs/sleepdep_srcs are really just
-+ * software-controllable dependencies.  Non-software-controllable
-+ * dependencies do exist, but they are not encoded below (yet).
-+ *
-+ * The overly-specific dep_bit names are due to a bit name collision
-+ * with CM_FCLKEN_{DSP,IVA2}.  The DSP/IVA2 PM_WKDEP and CM_SLEEPDEP s=
-hift
-+ * value are the same for all powerdomains: 2
-+ *
-+ * XXX should dep_bit be a mask, so we can test to see if it is 0 as a
-+ * sanity check?
-+ * XXX encode hardware fixed wakeup dependencies -- esp. for 3430 CORE
-+ */
-+
-+/*
-+ * To-Do List
-+ * -> Port the Sleep/Wakeup dependencies for the domains
-+ *    from the Power domain framework
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/io.h>
-+
-+#include "clockdomain.h"
-+#include "prm2xxx_3xxx.h"
-+#include "cm2xxx_3xxx.h"
-+#include "cm-regbits-34xx.h"
-+#include "prm-regbits-34xx.h"
-+
-+/*
-+ * Clockdomain dependencies for wkdeps/sleepdeps
-+ *
-+ * XXX Hardware dependencies (e.g., dependencies that cannot be
-+ * changed in software) are not included here yet, but should be.
-+ */
-+
-+/* OMAP3-specific possible dependencies */
-+
-+/*
-+ * 3430ES1 PM_WKDEP_GFX: adds IVA2, removes CORE
-+ * 3430ES2 PM_WKDEP_SGX: adds IVA2, removes CORE
-+ */
-+static struct clkdm_dep gfx_sgx_3xxx_wkdeps[] =3D {
-+	{ .clkdm_name =3D "iva2_clkdm", },
-+	{ .clkdm_name =3D "mpu_clkdm", },
-+	{ .clkdm_name =3D "wkup_clkdm", },
-+	{ NULL },
-+};
-+
-+/* 3430: PM_WKDEP_PER: CORE, IVA2, MPU, WKUP */
-+static struct clkdm_dep per_wkdeps[] =3D {
-+	{ .clkdm_name =3D "core_l3_clkdm" },
-+	{ .clkdm_name =3D "core_l4_clkdm" },
-+	{ .clkdm_name =3D "iva2_clkdm" },
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 3430ES2: PM_WKDEP_USBHOST: CORE, IVA2, MPU, WKUP */
-+static struct clkdm_dep usbhost_wkdeps[] =3D {
-+	{ .clkdm_name =3D "core_l3_clkdm" },
-+	{ .clkdm_name =3D "core_l4_clkdm" },
-+	{ .clkdm_name =3D "iva2_clkdm" },
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 3430 PM_WKDEP_MPU: CORE, IVA2, DSS, PER */
-+static struct clkdm_dep mpu_3xxx_wkdeps[] =3D {
-+	{ .clkdm_name =3D "core_l3_clkdm" },
-+	{ .clkdm_name =3D "core_l4_clkdm" },
-+	{ .clkdm_name =3D "iva2_clkdm" },
-+	{ .clkdm_name =3D "dss_clkdm" },
-+	{ .clkdm_name =3D "per_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 3430 PM_WKDEP_IVA2: CORE, MPU, WKUP, DSS, PER */
-+static struct clkdm_dep iva2_wkdeps[] =3D {
-+	{ .clkdm_name =3D "core_l3_clkdm" },
-+	{ .clkdm_name =3D "core_l4_clkdm" },
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
-+	{ .clkdm_name =3D "dss_clkdm" },
-+	{ .clkdm_name =3D "per_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 3430 PM_WKDEP_CAM: IVA2, MPU, WKUP */
-+static struct clkdm_dep cam_wkdeps[] =3D {
-+	{ .clkdm_name =3D "iva2_clkdm" },
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 3430 PM_WKDEP_DSS: IVA2, MPU, WKUP */
-+static struct clkdm_dep dss_wkdeps[] =3D {
-+	{ .clkdm_name =3D "iva2_clkdm" },
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "wkup_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 3430: PM_WKDEP_NEON: MPU */
-+static struct clkdm_dep neon_wkdeps[] =3D {
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ NULL },
-+};
-+
-+/* Sleep dependency source arrays for OMAP3-specific clkdms */
-+
-+/* 3430: CM_SLEEPDEP_DSS: MPU, IVA */
-+static struct clkdm_dep dss_sleepdeps[] =3D {
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "iva2_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 3430: CM_SLEEPDEP_PER: MPU, IVA */
-+static struct clkdm_dep per_sleepdeps[] =3D {
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "iva2_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 3430ES2: CM_SLEEPDEP_USBHOST: MPU, IVA */
-+static struct clkdm_dep usbhost_sleepdeps[] =3D {
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ .clkdm_name =3D "iva2_clkdm" },
-+	{ NULL },
-+};
-+
-+/* 3430: CM_SLEEPDEP_CAM: MPU */
-+static struct clkdm_dep cam_sleepdeps[] =3D {
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ NULL },
-+};
-+
-+/*
-+ * 3430ES1: CM_SLEEPDEP_GFX: MPU
-+ * 3430ES2: CM_SLEEPDEP_SGX: MPU
-+ * These can share data since they will never be present simultaneousl=
-y
-+ * on the same device.
-+ */
-+static struct clkdm_dep gfx_sgx_sleepdeps[] =3D {
-+	{ .clkdm_name =3D "mpu_clkdm" },
-+	{ NULL },
-+};
-+
-+/*
-+ * OMAP3 clockdomains
-+ */
-+
-+static struct clockdomain mpu_3xxx_clkdm =3D {
-+	.name		=3D "mpu_clkdm",
-+	.pwrdm		=3D { .name =3D "mpu_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP,
-+	.dep_bit	=3D OMAP3430_EN_MPU_SHIFT,
-+	.wkdep_srcs	=3D mpu_3xxx_wkdeps,
-+	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_MPU_MASK,
-+};
-+
-+static struct clockdomain neon_clkdm =3D {
-+	.name		=3D "neon_clkdm",
-+	.pwrdm		=3D { .name =3D "neon_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	=3D neon_wkdeps,
-+	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_NEON_MASK,
-+};
-+
-+static struct clockdomain iva2_clkdm =3D {
-+	.name		=3D "iva2_clkdm",
-+	.pwrdm		=3D { .name =3D "iva2_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.dep_bit	=3D OMAP3430_PM_WKDEP_MPU_EN_IVA2_SHIFT,
-+	.wkdep_srcs	=3D iva2_wkdeps,
-+	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_IVA2_MASK,
-+};
-+
-+static struct clockdomain gfx_3430es1_clkdm =3D {
-+	.name		=3D "gfx_clkdm",
-+	.pwrdm		=3D { .name =3D "gfx_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	=3D gfx_sgx_3xxx_wkdeps,
-+	.sleepdep_srcs	=3D gfx_sgx_sleepdeps,
-+	.clktrctrl_mask =3D OMAP3430ES1_CLKTRCTRL_GFX_MASK,
-+};
-+
-+static struct clockdomain sgx_clkdm =3D {
-+	.name		=3D "sgx_clkdm",
-+	.pwrdm		=3D { .name =3D "sgx_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	=3D gfx_sgx_3xxx_wkdeps,
-+	.sleepdep_srcs	=3D gfx_sgx_sleepdeps,
-+	.clktrctrl_mask =3D OMAP3430ES2_CLKTRCTRL_SGX_MASK,
-+};
-+
-+/*
-+ * The die-to-die clockdomain was documented in the 34xx ES1 TRM, but
-+ * then that information was removed from the 34xx ES2+ TRM.  It is
-+ * unclear whether the core is still there, but the clockdomain logic
-+ * is there, and must be programmed to an appropriate state if the
-+ * CORE clockdomain is to become inactive.
-+ */
-+static struct clockdomain d2d_clkdm =3D {
-+	.name		=3D "d2d_clkdm",
-+	.pwrdm		=3D { .name =3D "core_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask =3D OMAP3430ES1_CLKTRCTRL_D2D_MASK,
-+};
-+
-+/*
-+ * XXX add usecounting for clkdm dependencies, otherwise the presence
-+ * of a single dep bit for core_l3_3xxx_clkdm and core_l4_3xxx_clkdm
-+ * could cause trouble
-+ */
-+static struct clockdomain core_l3_3xxx_clkdm =3D {
-+	.name		=3D "core_l3_clkdm",
-+	.pwrdm		=3D { .name =3D "core_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP,
-+	.dep_bit	=3D OMAP3430_EN_CORE_SHIFT,
-+	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_L3_MASK,
-+};
-+
-+/*
-+ * XXX add usecounting for clkdm dependencies, otherwise the presence
-+ * of a single dep bit for core_l3_3xxx_clkdm and core_l4_3xxx_clkdm
-+ * could cause trouble
-+ */
-+static struct clockdomain core_l4_3xxx_clkdm =3D {
-+	.name		=3D "core_l4_clkdm",
-+	.pwrdm		=3D { .name =3D "core_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP,
-+	.dep_bit	=3D OMAP3430_EN_CORE_SHIFT,
-+	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_L4_MASK,
-+};
-+
-+/* Another case of bit name collisions between several registers: EN_D=
-SS */
-+static struct clockdomain dss_3xxx_clkdm =3D {
-+	.name		=3D "dss_clkdm",
-+	.pwrdm		=3D { .name =3D "dss_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.dep_bit	=3D OMAP3430_PM_WKDEP_MPU_EN_DSS_SHIFT,
-+	.wkdep_srcs	=3D dss_wkdeps,
-+	.sleepdep_srcs	=3D dss_sleepdeps,
-+	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_DSS_MASK,
-+};
-+
-+static struct clockdomain cam_clkdm =3D {
-+	.name		=3D "cam_clkdm",
-+	.pwrdm		=3D { .name =3D "cam_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	=3D cam_wkdeps,
-+	.sleepdep_srcs	=3D cam_sleepdeps,
-+	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_CAM_MASK,
-+};
-+
-+static struct clockdomain usbhost_clkdm =3D {
-+	.name		=3D "usbhost_clkdm",
-+	.pwrdm		=3D { .name =3D "usbhost_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.wkdep_srcs	=3D usbhost_wkdeps,
-+	.sleepdep_srcs	=3D usbhost_sleepdeps,
-+	.clktrctrl_mask =3D OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
-+};
-+
-+static struct clockdomain per_clkdm =3D {
-+	.name		=3D "per_clkdm",
-+	.pwrdm		=3D { .name =3D "per_pwrdm" },
-+	.flags		=3D CLKDM_CAN_HWSUP_SWSUP,
-+	.dep_bit	=3D OMAP3430_EN_PER_SHIFT,
-+	.wkdep_srcs	=3D per_wkdeps,
-+	.sleepdep_srcs	=3D per_sleepdeps,
-+	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_PER_MASK,
-+};
-+
-+/*
-+ * Disable hw supervised mode for emu_clkdm, because emu_pwrdm is
-+ * switched of even if sdti is in use
-+ */
-+static struct clockdomain emu_clkdm =3D {
-+	.name		=3D "emu_clkdm",
-+	.pwrdm		=3D { .name =3D "emu_pwrdm" },
-+	.flags		=3D /* CLKDM_CAN_ENABLE_AUTO |  */CLKDM_CAN_SWSUP,
-+	.clktrctrl_mask =3D OMAP3430_CLKTRCTRL_EMU_MASK,
-+};
-+
-+static struct clockdomain dpll1_clkdm =3D {
-+	.name		=3D "dpll1_clkdm",
-+	.pwrdm		=3D { .name =3D "dpll1_pwrdm" },
-+};
-+
-+static struct clockdomain dpll2_clkdm =3D {
-+	.name		=3D "dpll2_clkdm",
-+	.pwrdm		=3D { .name =3D "dpll2_pwrdm" },
-+};
-+
-+static struct clockdomain dpll3_clkdm =3D {
-+	.name		=3D "dpll3_clkdm",
-+	.pwrdm		=3D { .name =3D "dpll3_pwrdm" },
-+};
-+
-+static struct clockdomain dpll4_clkdm =3D {
-+	.name		=3D "dpll4_clkdm",
-+	.pwrdm		=3D { .name =3D "dpll4_pwrdm" },
-+};
-+
-+static struct clockdomain dpll5_clkdm =3D {
-+	.name		=3D "dpll5_clkdm",
-+	.pwrdm		=3D { .name =3D "dpll5_pwrdm" },
-+};
-+
-+/*
-+ * Clockdomain hwsup dependencies
-+ */
-+
-+static struct clkdm_autodep clkdm_autodeps[] =3D {
-+	{
-+		.clkdm =3D { .name =3D "mpu_clkdm" },
-+	},
-+	{
-+		.clkdm =3D { .name =3D "iva2_clkdm" },
-+	},
-+	{
-+		.clkdm =3D { .name =3D NULL },
-+	}
-+};
-+
-+/*
-+ *
-+ */
-+
-+static struct clockdomain *clockdomains_omap3430_common[] __initdata =3D=
- {
-+	&wkup_common_clkdm,
-+	&cm_common_clkdm,
-+	&prm_common_clkdm,
-+	&mpu_3xxx_clkdm,
-+	&neon_clkdm,
-+	&iva2_clkdm,
-+	&d2d_clkdm,
-+	&core_l3_3xxx_clkdm,
-+	&core_l4_3xxx_clkdm,
-+	&dss_3xxx_clkdm,
-+	&cam_clkdm,
-+	&per_clkdm,
-+	&emu_clkdm,
-+	&dpll1_clkdm,
-+	&dpll2_clkdm,
-+	&dpll3_clkdm,
-+	&dpll4_clkdm,
-+	NULL
-+};
-+
-+static struct clockdomain *clockdomains_omap3430es1[] __initdata =3D {
-+	&gfx_3430es1_clkdm,
-+	NULL,
-+};
-+
-+static struct clockdomain *clockdomains_omap3430es2plus[] __initdata =3D=
- {
-+	&sgx_clkdm,
-+	&dpll5_clkdm,
-+	&usbhost_clkdm,
-+	NULL,
-+};
-+
-+void __init omap3xxx_clockdomains_init(void)
-+{
-+	struct clockdomain **sc;
-+
-+	if (!cpu_is_omap34xx())
-+		return;
-+
-+	clkdm_register_platform_funcs(&omap3_clkdm_operations);
-+	clkdm_register_clkdms(clockdomains_omap3430_common);
-+
-+	sc =3D (omap_rev() =3D=3D OMAP3430_REV_ES1_0) ? clockdomains_omap3430=
-es1 :
-+		clockdomains_omap3430es2plus;
-+
-+	clkdm_register_clkdms(sc);
-+
-+	clkdm_register_autodeps(clkdm_autodeps);
-+	clkdm_complete_init();
-+}
-diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mac=
-h-omap2/clockdomains44xx_data.c
-index c75411a..9299ac2 100644
---- a/arch/arm/mach-omap2/clockdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
-@@ -34,350 +34,122 @@
- /* Static Dependencies for OMAP4 Clock Domains */
-=20
- static struct clkdm_dep d2d_wkup_sleep_deps[] =3D {
--	{
--		.clkdm_name	 =3D "abe_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "ivahd_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_1_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_2_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_emif_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_init_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_cfg_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_per_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
-+	{ .clkdm_name =3D "abe_clkdm" },
-+	{ .clkdm_name =3D "ivahd_clkdm" },
-+	{ .clkdm_name =3D "l3_1_clkdm" },
-+	{ .clkdm_name =3D "l3_2_clkdm" },
-+	{ .clkdm_name =3D "l3_emif_clkdm" },
-+	{ .clkdm_name =3D "l3_init_clkdm" },
-+	{ .clkdm_name =3D "l4_cfg_clkdm" },
-+	{ .clkdm_name =3D "l4_per_clkdm" },
- 	{ NULL },
+ /* timer2 */
+@@ -354,7 +348,6 @@ static struct omap_hwmod omap2420_timer2_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer2_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
- static struct clkdm_dep ducati_wkup_sleep_deps[] =3D {
--	{
--		.clkdm_name	 =3D "abe_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "ivahd_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_1_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_2_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_dss_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_emif_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_gfx_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_init_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_cfg_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_per_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_secure_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_wkup_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "tesla_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
-+	{ .clkdm_name =3D "abe_clkdm" },
-+	{ .clkdm_name =3D "ivahd_clkdm" },
-+	{ .clkdm_name =3D "l3_1_clkdm" },
-+	{ .clkdm_name =3D "l3_2_clkdm" },
-+	{ .clkdm_name =3D "l3_dss_clkdm" },
-+	{ .clkdm_name =3D "l3_emif_clkdm" },
-+	{ .clkdm_name =3D "l3_gfx_clkdm" },
-+	{ .clkdm_name =3D "l3_init_clkdm" },
-+	{ .clkdm_name =3D "l4_cfg_clkdm" },
-+	{ .clkdm_name =3D "l4_per_clkdm" },
-+	{ .clkdm_name =3D "l4_secure_clkdm" },
-+	{ .clkdm_name =3D "l4_wkup_clkdm" },
-+	{ .clkdm_name =3D "tesla_clkdm" },
- 	{ NULL },
+ /* timer3 */
+@@ -391,7 +384,6 @@ static struct omap_hwmod omap2420_timer3_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer3_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
- static struct clkdm_dep iss_wkup_sleep_deps[] =3D {
--	{
--		.clkdm_name	 =3D "ivahd_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_1_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_emif_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
-+	{ .clkdm_name =3D "ivahd_clkdm" },
-+	{ .clkdm_name =3D "l3_1_clkdm" },
-+	{ .clkdm_name =3D "l3_emif_clkdm" },
- 	{ NULL },
+ /* timer4 */
+@@ -428,7 +420,6 @@ static struct omap_hwmod omap2420_timer4_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer4_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
- static struct clkdm_dep ivahd_wkup_sleep_deps[] =3D {
--	{
--		.clkdm_name	 =3D "l3_1_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_emif_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
-+	{ .clkdm_name =3D "l3_1_clkdm" },
-+	{ .clkdm_name =3D "l3_emif_clkdm" },
- 	{ NULL },
+ /* timer5 */
+@@ -465,7 +456,6 @@ static struct omap_hwmod omap2420_timer5_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer5_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer5_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
- static struct clkdm_dep l3_dma_wkup_sleep_deps[] =3D {
--	{
--		.clkdm_name	 =3D "abe_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "ducati_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "ivahd_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_1_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_dss_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_emif_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_init_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_cfg_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_per_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_secure_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_wkup_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
-+	{ .clkdm_name =3D "abe_clkdm" },
-+	{ .clkdm_name =3D "ducati_clkdm" },
-+	{ .clkdm_name =3D "ivahd_clkdm" },
-+	{ .clkdm_name =3D "l3_1_clkdm" },
-+	{ .clkdm_name =3D "l3_dss_clkdm" },
-+	{ .clkdm_name =3D "l3_emif_clkdm" },
-+	{ .clkdm_name =3D "l3_init_clkdm" },
-+	{ .clkdm_name =3D "l4_cfg_clkdm" },
-+	{ .clkdm_name =3D "l4_per_clkdm" },
-+	{ .clkdm_name =3D "l4_secure_clkdm" },
-+	{ .clkdm_name =3D "l4_wkup_clkdm" },
- 	{ NULL },
+=20
+@@ -503,7 +493,6 @@ static struct omap_hwmod omap2420_timer6_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer6_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer6_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
- static struct clkdm_dep l3_dss_wkup_sleep_deps[] =3D {
--	{
--		.clkdm_name	 =3D "ivahd_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_2_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_emif_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
-+	{ .clkdm_name =3D "ivahd_clkdm" },
-+	{ .clkdm_name =3D "l3_2_clkdm" },
-+	{ .clkdm_name =3D "l3_emif_clkdm" },
- 	{ NULL },
+ /* timer7 */
+@@ -540,7 +529,6 @@ static struct omap_hwmod omap2420_timer7_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer7_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer7_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
- static struct clkdm_dep l3_gfx_wkup_sleep_deps[] =3D {
--	{
--		.clkdm_name	 =3D "ivahd_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_1_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_emif_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
-+	{ .clkdm_name =3D "ivahd_clkdm" },
-+	{ .clkdm_name =3D "l3_1_clkdm" },
-+	{ .clkdm_name =3D "l3_emif_clkdm" },
- 	{ NULL },
+ /* timer8 */
+@@ -577,7 +565,6 @@ static struct omap_hwmod omap2420_timer8_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer8_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer8_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
- static struct clkdm_dep l3_init_wkup_sleep_deps[] =3D {
--	{
--		.clkdm_name	 =3D "abe_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "ivahd_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_emif_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_cfg_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_per_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_secure_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_wkup_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
-+	{ .clkdm_name =3D "abe_clkdm" },
-+	{ .clkdm_name =3D "ivahd_clkdm" },
-+	{ .clkdm_name =3D "l3_emif_clkdm" },
-+	{ .clkdm_name =3D "l4_cfg_clkdm" },
-+	{ .clkdm_name =3D "l4_per_clkdm" },
-+	{ .clkdm_name =3D "l4_secure_clkdm" },
-+	{ .clkdm_name =3D "l4_wkup_clkdm" },
- 	{ NULL },
+ /* timer9 */
+@@ -614,7 +601,6 @@ static struct omap_hwmod omap2420_timer9_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer9_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer9_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
- static struct clkdm_dep l4_secure_wkup_sleep_deps[] =3D {
--	{
--		.clkdm_name	 =3D "l3_1_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_emif_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_per_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
-+	{ .clkdm_name =3D "l3_1_clkdm" },
-+	{ .clkdm_name =3D "l3_emif_clkdm" },
-+	{ .clkdm_name =3D "l4_per_clkdm" },
- 	{ NULL },
+ /* timer10 */
+@@ -651,7 +637,6 @@ static struct omap_hwmod omap2420_timer10_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer10_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer10_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
- static struct clkdm_dep mpu_wkup_sleep_deps[] =3D {
--	{
--		.clkdm_name	 =3D "abe_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "ducati_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "ivahd_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_1_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_2_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_dss_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_emif_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_gfx_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_init_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_cfg_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_per_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_secure_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_wkup_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "tesla_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
-+	{ .clkdm_name =3D "abe_clkdm" },
-+	{ .clkdm_name =3D "ducati_clkdm" },
-+	{ .clkdm_name =3D "ivahd_clkdm" },
-+	{ .clkdm_name =3D "l3_1_clkdm" },
-+	{ .clkdm_name =3D "l3_2_clkdm" },
-+	{ .clkdm_name =3D "l3_dss_clkdm" },
-+	{ .clkdm_name =3D "l3_emif_clkdm" },
-+	{ .clkdm_name =3D "l3_gfx_clkdm" },
-+	{ .clkdm_name =3D "l3_init_clkdm" },
-+	{ .clkdm_name =3D "l4_cfg_clkdm" },
-+	{ .clkdm_name =3D "l4_per_clkdm" },
-+	{ .clkdm_name =3D "l4_secure_clkdm" },
-+	{ .clkdm_name =3D "l4_wkup_clkdm" },
-+	{ .clkdm_name =3D "tesla_clkdm" },
- 	{ NULL },
+ /* timer11 */
+@@ -688,7 +673,6 @@ static struct omap_hwmod omap2420_timer11_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer11_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer11_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
- static struct clkdm_dep tesla_wkup_sleep_deps[] =3D {
--	{
--		.clkdm_name	 =3D "abe_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "ivahd_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_1_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_2_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_emif_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l3_init_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_cfg_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_per_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
--	{
--		.clkdm_name	 =3D "l4_wkup_clkdm",
--		.omap_chip	 =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
--	},
-+	{ .clkdm_name =3D "abe_clkdm" },
-+	{ .clkdm_name =3D "ivahd_clkdm" },
-+	{ .clkdm_name =3D "l3_1_clkdm" },
-+	{ .clkdm_name =3D "l3_2_clkdm" },
-+	{ .clkdm_name =3D "l3_emif_clkdm" },
-+	{ .clkdm_name =3D "l3_init_clkdm" },
-+	{ .clkdm_name =3D "l4_cfg_clkdm" },
-+	{ .clkdm_name =3D "l4_per_clkdm" },
-+	{ .clkdm_name =3D "l4_wkup_clkdm" },
- 	{ NULL },
+ /* timer12 */
+@@ -725,7 +709,6 @@ static struct omap_hwmod omap2420_timer12_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_timer12_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_timer12_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
 =20
-@@ -388,7 +160,6 @@ static struct clockdomain l4_cefuse_44xx_clkdm =3D =
+ /* l4_wkup -> wd_timer2 */
+@@ -766,7 +749,6 @@ static struct omap_hwmod omap2420_wd_timer2_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2420_wd_timer2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_wd_timer2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /* UART1 */
+@@ -792,7 +774,6 @@ static struct omap_hwmod omap2420_uart1_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_uart1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_uart1_slaves),
+ =09.class=09=09=3D &omap2_uart_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /* UART2 */
+@@ -818,7 +799,6 @@ static struct omap_hwmod omap2420_uart2_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_uart2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_uart2_slaves),
+ =09.class=09=09=3D &omap2_uart_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /* UART3 */
+@@ -844,7 +824,6 @@ static struct omap_hwmod omap2420_uart3_hwmod =3D {
+ =09.slaves=09=09=3D omap2420_uart3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_uart3_slaves),
+ =09.class=09=09=3D &omap2_uart_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /* dss */
+@@ -898,7 +877,6 @@ static struct omap_hwmod omap2420_dss_core_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_dss_slaves),
+ =09.masters=09=3D omap2420_dss_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2420_dss_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -938,7 +916,6 @@ static struct omap_hwmod omap2420_dss_dispc_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2420_dss_dispc_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_dss_dispc_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -975,7 +952,6 @@ static struct omap_hwmod omap2420_dss_rfbi_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2420_dss_rfbi_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_dss_rfbi_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -1013,7 +989,6 @@ static struct omap_hwmod omap2420_dss_venc_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2420_dss_venc_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_dss_venc_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -1064,7 +1039,6 @@ static struct omap_hwmod omap2420_i2c1_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_i2c1_slaves),
+ =09.class=09=09=3D &i2c_class,
+ =09.dev_attr=09=3D &i2c_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ =09.flags=09=09=3D HWMOD_16BIT_REG,
+ };
+=20
+@@ -1092,7 +1066,6 @@ static struct omap_hwmod omap2420_i2c2_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_i2c2_slaves),
+ =09.class=09=09=3D &i2c_class,
+ =09.dev_attr=09=3D &i2c_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ =09.flags=09=09=3D HWMOD_16BIT_REG,
+ };
+=20
+@@ -1197,7 +1170,6 @@ static struct omap_hwmod omap2420_gpio1_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_gpio1_slaves),
+ =09.class=09=09=3D &omap2xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /* gpio2 */
+@@ -1223,7 +1195,6 @@ static struct omap_hwmod omap2420_gpio2_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_gpio2_slaves),
+ =09.class=09=09=3D &omap2xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /* gpio3 */
+@@ -1249,7 +1220,6 @@ static struct omap_hwmod omap2420_gpio3_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_gpio3_slaves),
+ =09.class=09=09=3D &omap2xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /* gpio4 */
+@@ -1275,7 +1245,6 @@ static struct omap_hwmod omap2420_gpio4_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_gpio4_slaves),
+ =09.class=09=09=3D &omap2xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /* dma attributes */
+@@ -1322,7 +1291,6 @@ static struct omap_hwmod omap2420_dma_system_hwmod =
+=3D {
+ =09.masters=09=3D omap2420_dma_system_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2420_dma_system_masters),
+ =09.dev_attr=09=3D &dma_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -1363,7 +1331,6 @@ static struct omap_hwmod omap2420_mailbox_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2420_mailbox_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_mailbox_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /* mcspi1 */
+@@ -1393,7 +1360,6 @@ static struct omap_hwmod omap2420_mcspi1_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_mcspi1_slaves),
+ =09.class=09=09=3D &omap2xxx_mcspi_class,
+ =09.dev_attr=09=3D &omap_mcspi1_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /* mcspi2 */
+@@ -1423,7 +1389,6 @@ static struct omap_hwmod omap2420_mcspi2_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_mcspi2_slaves),
+ =09.class=09=09=3D &omap2xxx_mcspi_class,
+ =09.dev_attr=09=3D &omap_mcspi2_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /*
+@@ -1473,7 +1438,6 @@ static struct omap_hwmod omap2420_mcbsp1_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2420_mcbsp1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_mcbsp1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ /* mcbsp2 */
+@@ -1514,7 +1478,6 @@ static struct omap_hwmod omap2420_mcbsp2_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2420_mcbsp2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2420_mcbsp2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+=20
+ static __initdata struct omap_hwmod *omap2420_hwmods[] =3D {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-oma=
+p2/omap_hwmod_2430_data.c
+index 408193d..56de8d6 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -110,7 +110,6 @@ static struct omap_hwmod omap2430_l3_main_hwmod =3D {
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2430_l3_main_masters),
+ =09.slaves=09=09=3D omap2430_l3_main_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_l3_main_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -250,7 +249,6 @@ static struct omap_hwmod omap2430_l4_core_hwmod =3D {
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2430_l4_core_masters),
+ =09.slaves=09=09=3D omap2430_l4_core_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_l4_core_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -301,7 +299,6 @@ static struct omap_hwmod omap2430_l4_wkup_hwmod =3D {
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2430_l4_wkup_masters),
+ =09.slaves=09=09=3D omap2430_l4_wkup_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_l4_wkup_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -317,7 +314,6 @@ static struct omap_hwmod omap2430_mpu_hwmod =3D {
+ =09.main_clk=09=3D "mpu_ck",
+ =09.masters=09=3D omap2430_mpu_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2430_mpu_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ };
+=20
+ /*
+@@ -345,7 +341,6 @@ static struct omap_hwmod omap2430_iva_hwmod =3D {
+ =09.class=09=09=3D &iva_hwmod_class,
+ =09.masters=09=3D omap2430_iva_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2430_iva_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer1 */
+@@ -391,7 +386,6 @@ static struct omap_hwmod omap2430_timer1_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer1_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer2 */
+@@ -428,7 +422,6 @@ static struct omap_hwmod omap2430_timer2_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer2_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer3 */
+@@ -465,7 +458,6 @@ static struct omap_hwmod omap2430_timer3_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer3_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer4 */
+@@ -502,7 +494,6 @@ static struct omap_hwmod omap2430_timer4_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer4_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer5 */
+@@ -539,7 +530,6 @@ static struct omap_hwmod omap2430_timer5_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer5_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer5_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer6 */
+@@ -576,7 +566,6 @@ static struct omap_hwmod omap2430_timer6_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer6_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer6_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer7 */
+@@ -613,7 +602,6 @@ static struct omap_hwmod omap2430_timer7_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer7_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer7_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer8 */
+@@ -650,7 +638,6 @@ static struct omap_hwmod omap2430_timer8_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer8_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer8_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer9 */
+@@ -687,7 +674,6 @@ static struct omap_hwmod omap2430_timer9_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer9_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer9_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer10 */
+@@ -724,7 +710,6 @@ static struct omap_hwmod omap2430_timer10_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer10_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer10_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer11 */
+@@ -761,7 +746,6 @@ static struct omap_hwmod omap2430_timer11_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer11_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer11_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* timer12 */
+@@ -798,7 +782,6 @@ static struct omap_hwmod omap2430_timer12_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_timer12_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_timer12_slaves),
+ =09.class=09=09=3D &omap2xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+ };
+=20
+ /* l4_wkup -> wd_timer2 */
+@@ -839,7 +822,6 @@ static struct omap_hwmod omap2430_wd_timer2_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2430_wd_timer2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_wd_timer2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ };
+=20
+ /* UART1 */
+@@ -865,7 +847,6 @@ static struct omap_hwmod omap2430_uart1_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_uart1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_uart1_slaves),
+ =09.class=09=09=3D &omap2_uart_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ };
+=20
+ /* UART2 */
+@@ -891,7 +872,6 @@ static struct omap_hwmod omap2430_uart2_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_uart2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_uart2_slaves),
+ =09.class=09=09=3D &omap2_uart_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ };
+=20
+ /* UART3 */
+@@ -917,7 +897,6 @@ static struct omap_hwmod omap2430_uart3_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_uart3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_uart3_slaves),
+ =09.class=09=09=3D &omap2_uart_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ };
+=20
+ /* dss */
+@@ -965,7 +944,6 @@ static struct omap_hwmod omap2430_dss_core_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_dss_slaves),
+ =09.masters=09=3D omap2430_dss_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2430_dss_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -999,7 +977,6 @@ static struct omap_hwmod omap2430_dss_dispc_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2430_dss_dispc_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_dss_dispc_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -1030,7 +1007,6 @@ static struct omap_hwmod omap2430_dss_rfbi_hwmod =3D =
 {
- 	.cm_inst	  =3D OMAP4430_CM2_CEFUSE_INST,
- 	.clkdm_offs	  =3D OMAP4430_CM2_CEFUSE_CEFUSE_CDOFFS,
- 	.flags		  =3D CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ =09},
+ =09.slaves=09=09=3D omap2430_dss_rfbi_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_dss_rfbi_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
  };
 =20
- static struct clockdomain l4_cfg_44xx_clkdm =3D {
-@@ -399,7 +170,6 @@ static struct clockdomain l4_cfg_44xx_clkdm =3D {
- 	.clkdm_offs	  =3D OMAP4430_CM2_CORE_L4CFG_CDOFFS,
- 	.dep_bit	  =3D OMAP4430_L4CFG_STATDEP_SHIFT,
- 	.flags		  =3D CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
-=20
- static struct clockdomain tesla_44xx_clkdm =3D {
-@@ -412,7 +182,6 @@ static struct clockdomain tesla_44xx_clkdm =3D {
- 	.wkdep_srcs	  =3D tesla_wkup_sleep_deps,
- 	.sleepdep_srcs	  =3D tesla_wkup_sleep_deps,
- 	.flags		  =3D CLKDM_CAN_HWSUP_SWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
-=20
- static struct clockdomain l3_gfx_44xx_clkdm =3D {
-@@ -425,7 +194,6 @@ static struct clockdomain l3_gfx_44xx_clkdm =3D {
- 	.wkdep_srcs	  =3D l3_gfx_wkup_sleep_deps,
- 	.sleepdep_srcs	  =3D l3_gfx_wkup_sleep_deps,
- 	.flags		  =3D CLKDM_CAN_HWSUP_SWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
-=20
- static struct clockdomain ivahd_44xx_clkdm =3D {
-@@ -438,7 +206,6 @@ static struct clockdomain ivahd_44xx_clkdm =3D {
- 	.wkdep_srcs	  =3D ivahd_wkup_sleep_deps,
- 	.sleepdep_srcs	  =3D ivahd_wkup_sleep_deps,
- 	.flags		  =3D CLKDM_CAN_HWSUP_SWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
-=20
- static struct clockdomain l4_secure_44xx_clkdm =3D {
-@@ -451,7 +218,6 @@ static struct clockdomain l4_secure_44xx_clkdm =3D =
+@@ -1062,7 +1038,6 @@ static struct omap_hwmod omap2430_dss_venc_hwmod =3D =
 {
- 	.wkdep_srcs	  =3D l4_secure_wkup_sleep_deps,
- 	.sleepdep_srcs	  =3D l4_secure_wkup_sleep_deps,
- 	.flags		  =3D CLKDM_CAN_HWSUP_SWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ =09},
+ =09.slaves=09=09=3D omap2430_dss_venc_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_dss_venc_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
  };
 =20
- static struct clockdomain l4_per_44xx_clkdm =3D {
-@@ -462,7 +228,6 @@ static struct clockdomain l4_per_44xx_clkdm =3D {
- 	.clkdm_offs	  =3D OMAP4430_CM2_L4PER_L4PER_CDOFFS,
- 	.dep_bit	  =3D OMAP4430_L4PER_STATDEP_SHIFT,
- 	.flags		  =3D CLKDM_CAN_HWSUP_SWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1123,7 +1098,6 @@ static struct omap_hwmod omap2430_i2c1_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_i2c1_slaves),
+ =09.class=09=09=3D &i2c_class,
+ =09.dev_attr=09=3D &i2c_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain abe_44xx_clkdm =3D {
-@@ -473,7 +238,6 @@ static struct clockdomain abe_44xx_clkdm =3D {
- 	.clkdm_offs	  =3D OMAP4430_CM1_ABE_ABE_CDOFFS,
- 	.dep_bit	  =3D OMAP4430_ABE_STATDEP_SHIFT,
- 	.flags		  =3D CLKDM_CAN_HWSUP_SWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* I2C2 */
+@@ -1151,7 +1125,6 @@ static struct omap_hwmod omap2430_i2c2_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_i2c2_slaves),
+ =09.class=09=09=3D &i2c_class,
+ =09.dev_attr=09=3D &i2c_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain l3_instr_44xx_clkdm =3D {
-@@ -482,7 +246,6 @@ static struct clockdomain l3_instr_44xx_clkdm =3D {
- 	.prcm_partition	  =3D OMAP4430_CM2_PARTITION,
- 	.cm_inst	  =3D OMAP4430_CM2_CORE_INST,
- 	.clkdm_offs	  =3D OMAP4430_CM2_CORE_L3INSTR_CDOFFS,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* l4_wkup -> gpio1 */
+@@ -1273,7 +1246,6 @@ static struct omap_hwmod omap2430_gpio1_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_gpio1_slaves),
+ =09.class=09=09=3D &omap2xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain l3_init_44xx_clkdm =3D {
-@@ -495,7 +258,6 @@ static struct clockdomain l3_init_44xx_clkdm =3D {
- 	.wkdep_srcs	  =3D l3_init_wkup_sleep_deps,
- 	.sleepdep_srcs	  =3D l3_init_wkup_sleep_deps,
- 	.flags		  =3D CLKDM_CAN_HWSUP_SWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* gpio2 */
+@@ -1299,7 +1271,6 @@ static struct omap_hwmod omap2430_gpio2_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_gpio2_slaves),
+ =09.class=09=09=3D &omap2xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain d2d_44xx_clkdm =3D {
-@@ -507,7 +269,6 @@ static struct clockdomain d2d_44xx_clkdm =3D {
- 	.wkdep_srcs	  =3D d2d_wkup_sleep_deps,
- 	.sleepdep_srcs	  =3D d2d_wkup_sleep_deps,
- 	.flags		  =3D CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* gpio3 */
+@@ -1325,7 +1296,6 @@ static struct omap_hwmod omap2430_gpio3_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_gpio3_slaves),
+ =09.class=09=09=3D &omap2xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain mpu0_44xx_clkdm =3D {
-@@ -517,7 +278,6 @@ static struct clockdomain mpu0_44xx_clkdm =3D {
- 	.cm_inst	  =3D OMAP4430_PRCM_MPU_CPU0_INST,
- 	.clkdm_offs	  =3D OMAP4430_PRCM_MPU_CPU0_CPU0_CDOFFS,
- 	.flags		  =3D CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* gpio4 */
+@@ -1351,7 +1321,6 @@ static struct omap_hwmod omap2430_gpio4_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_gpio4_slaves),
+ =09.class=09=09=3D &omap2xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain mpu1_44xx_clkdm =3D {
-@@ -527,7 +287,6 @@ static struct clockdomain mpu1_44xx_clkdm =3D {
- 	.cm_inst	  =3D OMAP4430_PRCM_MPU_CPU1_INST,
- 	.clkdm_offs	  =3D OMAP4430_PRCM_MPU_CPU1_CPU1_CDOFFS,
- 	.flags		  =3D CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* gpio5 */
+@@ -1382,7 +1351,6 @@ static struct omap_hwmod omap2430_gpio5_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_gpio5_slaves),
+ =09.class=09=09=3D &omap2xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain l3_emif_44xx_clkdm =3D {
-@@ -538,7 +297,6 @@ static struct clockdomain l3_emif_44xx_clkdm =3D {
- 	.clkdm_offs	  =3D OMAP4430_CM2_CORE_MEMIF_CDOFFS,
- 	.dep_bit	  =3D OMAP4430_MEMIF_STATDEP_SHIFT,
- 	.flags		  =3D CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* dma attributes */
+@@ -1429,7 +1397,6 @@ static struct omap_hwmod omap2430_dma_system_hwmod =
+=3D {
+ =09.masters=09=3D omap2430_dma_system_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap2430_dma_system_masters),
+ =09.dev_attr=09=3D &dma_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
  };
 =20
- static struct clockdomain l4_ao_44xx_clkdm =3D {
-@@ -548,7 +306,6 @@ static struct clockdomain l4_ao_44xx_clkdm =3D {
- 	.cm_inst	  =3D OMAP4430_CM2_ALWAYS_ON_INST,
- 	.clkdm_offs	  =3D OMAP4430_CM2_ALWAYS_ON_ALWON_CDOFFS,
- 	.flags		  =3D CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1469,7 +1436,6 @@ static struct omap_hwmod omap2430_mailbox_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2430_mailbox_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_mailbox_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain ducati_44xx_clkdm =3D {
-@@ -561,7 +318,6 @@ static struct clockdomain ducati_44xx_clkdm =3D {
- 	.wkdep_srcs	  =3D ducati_wkup_sleep_deps,
- 	.sleepdep_srcs	  =3D ducati_wkup_sleep_deps,
- 	.flags		  =3D CLKDM_CAN_HWSUP_SWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* mcspi1 */
+@@ -1499,7 +1465,6 @@ static struct omap_hwmod omap2430_mcspi1_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_mcspi1_slaves),
+ =09.class=09=09=3D &omap2xxx_mcspi_class,
+ =09.dev_attr=09=3D &omap_mcspi1_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain mpu_44xx_clkdm =3D {
-@@ -573,7 +329,6 @@ static struct clockdomain mpu_44xx_clkdm =3D {
- 	.wkdep_srcs	  =3D mpu_wkup_sleep_deps,
- 	.sleepdep_srcs	  =3D mpu_wkup_sleep_deps,
- 	.flags		  =3D CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* mcspi2 */
+@@ -1529,7 +1494,6 @@ static struct omap_hwmod omap2430_mcspi2_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_mcspi2_slaves),
+ =09.class=09=09=3D &omap2xxx_mcspi_class,
+ =09.dev_attr=09=3D &omap_mcspi2_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain l3_2_44xx_clkdm =3D {
-@@ -584,7 +339,6 @@ static struct clockdomain l3_2_44xx_clkdm =3D {
- 	.clkdm_offs	  =3D OMAP4430_CM2_CORE_L3_2_CDOFFS,
- 	.dep_bit	  =3D OMAP4430_L3_2_STATDEP_SHIFT,
- 	.flags		  =3D CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* mcspi3 */
+@@ -1572,7 +1536,6 @@ static struct omap_hwmod omap2430_mcspi3_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_mcspi3_slaves),
+ =09.class=09=09=3D &omap2xxx_mcspi_class,
+ =09.dev_attr=09=3D &omap_mcspi3_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain l3_1_44xx_clkdm =3D {
-@@ -595,7 +349,6 @@ static struct clockdomain l3_1_44xx_clkdm =3D {
- 	.clkdm_offs	  =3D OMAP4430_CM2_CORE_L3_1_CDOFFS,
- 	.dep_bit	  =3D OMAP4430_L3_1_STATDEP_SHIFT,
- 	.flags		  =3D CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /*
+@@ -1628,7 +1591,6 @@ static struct omap_hwmod omap2430_usbhsotg_hwmod =3D =
+{
+ =09 */
+ =09.flags=09=09=3D HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE
+ =09=09=09=09| HWMOD_SWSUP_MSTANDBY,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
  };
 =20
- static struct clockdomain iss_44xx_clkdm =3D {
-@@ -607,7 +360,6 @@ static struct clockdomain iss_44xx_clkdm =3D {
- 	.wkdep_srcs	  =3D iss_wkup_sleep_deps,
- 	.sleepdep_srcs	  =3D iss_wkup_sleep_deps,
- 	.flags		  =3D CLKDM_CAN_HWSUP_SWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /*
+@@ -1689,7 +1651,6 @@ static struct omap_hwmod omap2430_mcbsp1_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2430_mcbsp1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_mcbsp1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain l3_dss_44xx_clkdm =3D {
-@@ -620,7 +372,6 @@ static struct clockdomain l3_dss_44xx_clkdm =3D {
- 	.wkdep_srcs	  =3D l3_dss_wkup_sleep_deps,
- 	.sleepdep_srcs	  =3D l3_dss_wkup_sleep_deps,
- 	.flags		  =3D CLKDM_CAN_HWSUP_SWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* mcbsp2 */
+@@ -1731,7 +1692,6 @@ static struct omap_hwmod omap2430_mcbsp2_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2430_mcbsp2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_mcbsp2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain l4_wkup_44xx_clkdm =3D {
-@@ -631,7 +382,6 @@ static struct clockdomain l4_wkup_44xx_clkdm =3D {
- 	.clkdm_offs	  =3D OMAP4430_PRM_WKUP_CM_WKUP_CDOFFS,
- 	.dep_bit	  =3D OMAP4430_L4WKUP_STATDEP_SHIFT,
- 	.flags		  =3D CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* mcbsp3 */
+@@ -1783,7 +1743,6 @@ static struct omap_hwmod omap2430_mcbsp3_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2430_mcbsp3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_mcbsp3_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain emu_sys_44xx_clkdm =3D {
-@@ -641,7 +391,6 @@ static struct clockdomain emu_sys_44xx_clkdm =3D {
- 	.cm_inst	  =3D OMAP4430_PRM_EMU_CM_INST,
- 	.clkdm_offs	  =3D OMAP4430_PRM_EMU_CM_EMU_CDOFFS,
- 	.flags		  =3D CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* mcbsp4 */
+@@ -1841,7 +1800,6 @@ static struct omap_hwmod omap2430_mcbsp4_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2430_mcbsp4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_mcbsp4_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- static struct clockdomain l3_dma_44xx_clkdm =3D {
-@@ -653,7 +402,6 @@ static struct clockdomain l3_dma_44xx_clkdm =3D {
- 	.wkdep_srcs	  =3D l3_dma_wkup_sleep_deps,
- 	.sleepdep_srcs	  =3D l3_dma_wkup_sleep_deps,
- 	.flags		  =3D CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
--	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ /* mcbsp5 */
+@@ -1899,7 +1857,6 @@ static struct omap_hwmod omap2430_mcbsp5_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap2430_mcbsp5_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_mcbsp5_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
 =20
- /* As clockdomains are added or removed above, this list must also be =
-changed */
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 2ce1ce6..d098c87 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -342,11 +342,11 @@ void __init omap2_init_common_infrastructure(void=
-)
+ /* MMC/SD/SDIO common */
+@@ -1966,7 +1923,6 @@ static struct omap_hwmod omap2430_mmc1_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_mmc1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_mmc1_slaves),
+ =09.class=09=09=3D &omap2430_mmc_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ };
 =20
- 	if (cpu_is_omap242x()) {
- 		omap2xxx_powerdomains_init();
--		omap2xxx_clockdomains_init();
-+		omap242x_clockdomains_init();
- 		omap2420_hwmod_init();
- 	} else if (cpu_is_omap243x()) {
- 		omap2xxx_powerdomains_init();
--		omap2xxx_clockdomains_init();
-+		omap243x_clockdomains_init();
- 		omap2430_hwmod_init();
- 	} else if (cpu_is_omap34xx()) {
- 		omap3xxx_powerdomains_init();
+ /* MMC/SD/SDIO2 */
+@@ -2010,7 +1966,6 @@ static struct omap_hwmod omap2430_mmc2_hwmod =3D {
+ =09.slaves=09=09=3D omap2430_mmc2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap2430_mmc2_slaves),
+ =09.class=09=09=3D &omap2430_mmc_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ };
+=20
+ static __initdata struct omap_hwmod *omap2430_hwmods[] =3D {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-oma=
+p2/omap_hwmod_3xxx_data.c
+index 25bf43b..ab35acb 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -156,7 +156,6 @@ static struct omap_hwmod omap3xxx_l3_main_hwmod =3D {
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap3xxx_l3_main_masters),
+ =09.slaves=09=09=3D omap3xxx_l3_main_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_l3_main_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -459,7 +458,6 @@ static struct omap_hwmod omap3xxx_l4_core_hwmod =3D {
+ =09.class=09=09=3D &l4_hwmod_class,
+ =09.slaves=09=09=3D omap3xxx_l4_core_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_l4_core_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -474,7 +472,6 @@ static struct omap_hwmod omap3xxx_l4_per_hwmod =3D {
+ =09.class=09=09=3D &l4_hwmod_class,
+ =09.slaves=09=09=3D omap3xxx_l4_per_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_l4_per_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -489,7 +486,6 @@ static struct omap_hwmod omap3xxx_l4_wkup_hwmod =3D {
+ =09.class=09=09=3D &l4_hwmod_class,
+ =09.slaves=09=09=3D omap3xxx_l4_wkup_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_l4_wkup_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -505,7 +501,6 @@ static struct omap_hwmod omap3xxx_mpu_hwmod =3D {
+ =09.main_clk=09=3D "arm_fck",
+ =09.masters=09=3D omap3xxx_mpu_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap3xxx_mpu_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /*
+@@ -533,7 +528,6 @@ static struct omap_hwmod omap3xxx_iva_hwmod =3D {
+ =09.class=09=09=3D &iva_hwmod_class,
+ =09.masters=09=3D omap3xxx_iva_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap3xxx_iva_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer class */
+@@ -613,7 +607,6 @@ static struct omap_hwmod omap3xxx_timer1_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer1_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_1ms_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer2 */
+@@ -659,7 +652,6 @@ static struct omap_hwmod omap3xxx_timer2_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer2_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_1ms_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer3 */
+@@ -705,7 +697,6 @@ static struct omap_hwmod omap3xxx_timer3_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer3_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer4 */
+@@ -751,7 +742,6 @@ static struct omap_hwmod omap3xxx_timer4_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer4_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer5 */
+@@ -797,7 +787,6 @@ static struct omap_hwmod omap3xxx_timer5_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer5_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer5_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer6 */
+@@ -843,7 +832,6 @@ static struct omap_hwmod omap3xxx_timer6_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer6_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer6_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer7 */
+@@ -889,7 +877,6 @@ static struct omap_hwmod omap3xxx_timer7_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer7_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer7_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer8 */
+@@ -935,7 +922,6 @@ static struct omap_hwmod omap3xxx_timer8_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer8_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer8_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer9 */
+@@ -981,7 +967,6 @@ static struct omap_hwmod omap3xxx_timer9_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer9_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer9_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer10 */
+@@ -1018,7 +1003,6 @@ static struct omap_hwmod omap3xxx_timer10_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer10_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer10_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_1ms_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer11 */
+@@ -1055,7 +1039,6 @@ static struct omap_hwmod omap3xxx_timer11_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer11_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer11_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* timer12*/
+@@ -1105,7 +1088,6 @@ static struct omap_hwmod omap3xxx_timer12_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_timer12_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_timer12_slaves),
+ =09.class=09=09=3D &omap3xxx_timer_hwmod_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* l4_wkup -> wd_timer2 */
+@@ -1182,7 +1164,6 @@ static struct omap_hwmod omap3xxx_wd_timer2_hwmod =3D=
+ {
+ =09},
+ =09.slaves=09=09=3D omap3xxx_wd_timer2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_wd_timer2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ =09/*
+ =09 * XXX: Use software supervised mode, HW supervised smartidle seems to
+ =09 * block CORE power domain idle transitions. Maybe a HW bug in wdt2?
+@@ -1213,7 +1194,6 @@ static struct omap_hwmod omap3xxx_uart1_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_uart1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_uart1_slaves),
+ =09.class=09=09=3D &omap2_uart_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* UART2 */
+@@ -1239,7 +1219,6 @@ static struct omap_hwmod omap3xxx_uart2_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_uart2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_uart2_slaves),
+ =09.class=09=09=3D &omap2_uart_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* UART3 */
+@@ -1265,7 +1244,6 @@ static struct omap_hwmod omap3xxx_uart3_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_uart3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_uart3_slaves),
+ =09.class=09=09=3D &omap2_uart_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* UART4 */
+@@ -1302,7 +1280,6 @@ static struct omap_hwmod omap3xxx_uart4_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_uart4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_uart4_slaves),
+ =09.class=09=09=3D &omap2_uart_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
+ };
+=20
+ static struct omap_hwmod_class i2c_class =3D {
+@@ -1390,7 +1367,6 @@ static struct omap_hwmod omap3430es1_dss_core_hwmod =
+=3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3430es1_dss_slaves),
+ =09.masters=09=3D omap3xxx_dss_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap3xxx_dss_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -1415,8 +1391,6 @@ static struct omap_hwmod omap3xxx_dss_core_hwmod =3D =
+{
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_dss_slaves),
+ =09.masters=09=3D omap3xxx_dss_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap3xxx_dss_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2 |
+-=09=09=09=09CHIP_IS_OMAP3630ES1 | CHIP_GE_OMAP3630ES1_1),
+ };
+=20
+ /* l4_core -> dss_dispc */
+@@ -1454,9 +1428,6 @@ static struct omap_hwmod omap3xxx_dss_dispc_hwmod =3D=
+ {
+ =09},
+ =09.slaves=09=09=3D omap3xxx_dss_dispc_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_dss_dispc_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
+-=09=09=09=09CHIP_GE_OMAP3430ES2 | CHIP_IS_OMAP3630ES1 |
+-=09=09=09=09CHIP_GE_OMAP3630ES1_1),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -1518,9 +1489,6 @@ static struct omap_hwmod omap3xxx_dss_dsi1_hwmod =3D =
+{
+ =09},
+ =09.slaves=09=09=3D omap3xxx_dss_dsi1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_dss_dsi1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
+-=09=09=09=09CHIP_GE_OMAP3430ES2 | CHIP_IS_OMAP3630ES1 |
+-=09=09=09=09CHIP_GE_OMAP3630ES1_1),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -1558,9 +1526,6 @@ static struct omap_hwmod omap3xxx_dss_rfbi_hwmod =3D =
+{
+ =09},
+ =09.slaves=09=09=3D omap3xxx_dss_rfbi_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_dss_rfbi_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
+-=09=09=09=09CHIP_GE_OMAP3430ES2 | CHIP_IS_OMAP3630ES1 |
+-=09=09=09=09CHIP_GE_OMAP3630ES1_1),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -1599,9 +1564,6 @@ static struct omap_hwmod omap3xxx_dss_venc_hwmod =3D =
+{
+ =09},
+ =09.slaves=09=09=3D omap3xxx_dss_venc_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_dss_venc_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
+-=09=09=09=09CHIP_GE_OMAP3430ES2 | CHIP_IS_OMAP3630ES1 |
+-=09=09=09=09CHIP_GE_OMAP3630ES1_1),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -1637,7 +1599,6 @@ static struct omap_hwmod omap3xxx_i2c1_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_i2c1_slaves),
+ =09.class=09=09=3D &i2c_class,
+ =09.dev_attr=09=3D &i2c1_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* I2C2 */
+@@ -1672,7 +1633,6 @@ static struct omap_hwmod omap3xxx_i2c2_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_i2c2_slaves),
+ =09.class=09=09=3D &i2c_class,
+ =09.dev_attr=09=3D &i2c2_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* I2C3 */
+@@ -1718,7 +1678,6 @@ static struct omap_hwmod omap3xxx_i2c3_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_i2c3_slaves),
+ =09.class=09=09=3D &i2c_class,
+ =09.dev_attr=09=3D &i2c3_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* l4_wkup -> gpio1 */
+@@ -1880,7 +1839,6 @@ static struct omap_hwmod omap3xxx_gpio1_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_gpio1_slaves),
+ =09.class=09=09=3D &omap3xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* gpio2 */
+@@ -1912,7 +1870,6 @@ static struct omap_hwmod omap3xxx_gpio2_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_gpio2_slaves),
+ =09.class=09=09=3D &omap3xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* gpio3 */
+@@ -1944,7 +1901,6 @@ static struct omap_hwmod omap3xxx_gpio3_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_gpio3_slaves),
+ =09.class=09=09=3D &omap3xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* gpio4 */
+@@ -1976,7 +1932,6 @@ static struct omap_hwmod omap3xxx_gpio4_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_gpio4_slaves),
+ =09.class=09=09=3D &omap3xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* gpio5 */
+@@ -2013,7 +1968,6 @@ static struct omap_hwmod omap3xxx_gpio5_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_gpio5_slaves),
+ =09.class=09=09=3D &omap3xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* gpio6 */
+@@ -2050,7 +2004,6 @@ static struct omap_hwmod omap3xxx_gpio6_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_gpio6_slaves),
+ =09.class=09=09=3D &omap3xxx_gpio_hwmod_class,
+ =09.dev_attr=09=3D &gpio_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* dma_system -> L3 */
+@@ -2134,7 +2087,6 @@ static struct omap_hwmod omap3xxx_dma_system_hwmod =
+=3D {
+ =09.masters=09=3D omap3xxx_dma_system_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap3xxx_dma_system_masters),
+ =09.dev_attr=09=3D &dma_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ =09.flags=09=09=3D HWMOD_NO_IDLEST,
+ };
+=20
+@@ -2207,7 +2159,6 @@ static struct omap_hwmod omap3xxx_mcbsp1_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap3xxx_mcbsp1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_mcbsp1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* mcbsp2 */
+@@ -2264,7 +2215,6 @@ static struct omap_hwmod omap3xxx_mcbsp2_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_mcbsp2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_mcbsp2_slaves),
+ =09.dev_attr=09=3D &omap34xx_mcbsp2_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* mcbsp3 */
+@@ -2321,7 +2271,6 @@ static struct omap_hwmod omap3xxx_mcbsp3_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_mcbsp3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_mcbsp3_slaves),
+ =09.dev_attr=09=3D &omap34xx_mcbsp3_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* mcbsp4 */
+@@ -2379,7 +2328,6 @@ static struct omap_hwmod omap3xxx_mcbsp4_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap3xxx_mcbsp4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_mcbsp4_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* mcbsp5 */
+@@ -2437,7 +2385,6 @@ static struct omap_hwmod omap3xxx_mcbsp5_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap3xxx_mcbsp5_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_mcbsp5_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+ /* 'mcbsp sidetone' class */
+=20
+@@ -2498,7 +2445,6 @@ static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwm=
+od =3D {
+ =09},
+ =09.slaves=09=09=3D omap3xxx_mcbsp2_sidetone_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_mcbsp2_sidetone_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* mcbsp3_sidetone */
+@@ -2547,7 +2493,6 @@ static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwm=
+od =3D {
+ =09},
+ =09.slaves=09=09=3D omap3xxx_mcbsp3_sidetone_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_mcbsp3_sidetone_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+=20
+@@ -2609,9 +2554,6 @@ static struct omap_hwmod omap34xx_sr1_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap3_sr1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3_sr1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
+-=09=09=09=09=09CHIP_IS_OMAP3430ES3_0 |
+-=09=09=09=09=09CHIP_IS_OMAP3430ES3_1),
+ =09.flags=09=09=3D HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+=20
+@@ -2631,7 +2573,6 @@ static struct omap_hwmod omap36xx_sr1_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap3_sr1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3_sr1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
+ };
+=20
+ /* SR2 */
+@@ -2655,9 +2596,6 @@ static struct omap_hwmod omap34xx_sr2_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap3_sr2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3_sr2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
+-=09=09=09=09=09CHIP_IS_OMAP3430ES3_0 |
+-=09=09=09=09=09CHIP_IS_OMAP3430ES3_1),
+ =09.flags=09=09=3D HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+=20
+@@ -2677,7 +2615,6 @@ static struct omap_hwmod omap36xx_sr2_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap3_sr2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3_sr2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
+ };
+=20
+ /*
+@@ -2745,7 +2682,6 @@ static struct omap_hwmod omap3xxx_mailbox_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap3xxx_mailbox_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_mailbox_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* l4 core -> mcspi1 interface */
+@@ -2843,7 +2779,6 @@ static struct omap_hwmod omap34xx_mcspi1 =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap34xx_mcspi1_slaves),
+ =09.class=09=09=3D &omap34xx_mcspi_class,
+ =09.dev_attr       =3D &omap_mcspi1_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* mcspi2 */
+@@ -2873,7 +2808,6 @@ static struct omap_hwmod omap34xx_mcspi2 =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap34xx_mcspi2_slaves),
+ =09.class=09=09=3D &omap34xx_mcspi_class,
+ =09.dev_attr       =3D &omap_mcspi2_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* mcspi3 */
+@@ -2916,7 +2850,6 @@ static struct omap_hwmod omap34xx_mcspi3 =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap34xx_mcspi3_slaves),
+ =09.class=09=09=3D &omap34xx_mcspi_class,
+ =09.dev_attr       =3D &omap_mcspi3_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* SPI4 */
+@@ -2957,7 +2890,6 @@ static struct omap_hwmod omap34xx_mcspi4 =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap34xx_mcspi4_slaves),
+ =09.class=09=09=3D &omap34xx_mcspi_class,
+ =09.dev_attr       =3D &omap_mcspi4_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /*
+@@ -3014,7 +2946,6 @@ static struct omap_hwmod omap3xxx_usbhsotg_hwmod =3D =
+{
+ =09 */
+ =09.flags=09=09=3D HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE
+ =09=09=09=09| HWMOD_SWSUP_MSTANDBY,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+=20
+ /* usb_otg_hs */
+@@ -3042,7 +2973,6 @@ static struct omap_hwmod am35xx_usbhsotg_hwmod =3D {
+ =09.slaves=09=09=3D am35xx_usbhsotg_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(am35xx_usbhsotg_slaves),
+ =09.class=09=09=3D &am35xx_usbotg_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES3_1)
+ };
+=20
+ /* MMC/SD/SDIO common */
+@@ -3108,7 +3038,6 @@ static struct omap_hwmod omap3xxx_mmc1_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_mmc1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_mmc1_slaves),
+ =09.class=09=09=3D &omap34xx_mmc_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* MMC/SD/SDIO2 */
+@@ -3151,7 +3080,6 @@ static struct omap_hwmod omap3xxx_mmc2_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_mmc2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_mmc2_slaves),
+ =09.class=09=09=3D &omap34xx_mmc_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ /* MMC/SD/SDIO3 */
+@@ -3193,7 +3121,6 @@ static struct omap_hwmod omap3xxx_mmc3_hwmod =3D {
+ =09.slaves=09=09=3D omap3xxx_mmc3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_mmc3_slaves),
+ =09.class=09=09=3D &omap34xx_mmc_class,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+=20
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] =3D {
+@@ -3224,10 +3151,7 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods=
+[] =3D {
+ =09&omap3xxx_uart1_hwmod,
+ =09&omap3xxx_uart2_hwmod,
+ =09&omap3xxx_uart3_hwmod,
+-=09&omap3xxx_uart4_hwmod,
+ =09/* dss class */
+-=09&omap3430es1_dss_core_hwmod,
+-=09&omap3xxx_dss_core_hwmod,
+ =09&omap3xxx_dss_dispc_hwmod,
+ =09&omap3xxx_dss_dsi1_hwmod,
+ =09&omap3xxx_dss_rfbi_hwmod,
+@@ -3239,9 +3163,6 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[=
+] =3D {
+ =09&omap3xxx_i2c3_hwmod,
+ =09&omap34xx_sr1_hwmod,
+ =09&omap34xx_sr2_hwmod,
+-=09&omap36xx_sr1_hwmod,
+-=09&omap36xx_sr2_hwmod,
+-
+=20
+ =09/* gpio class */
+ =09&omap3xxx_gpio1_hwmod,
+@@ -3272,16 +3193,96 @@ static __initdata struct omap_hwmod *omap3xxx_hwmod=
+s[] =3D {
+ =09&omap34xx_mcspi3,
+ =09&omap34xx_mcspi4,
+=20
+-=09/* usbotg class */
++=09NULL,
++};
++
++/* 3430ES1-only hwmods */
++static __initdata struct omap_hwmod *omap3430es1_hwmods[] =3D {
++=09&omap3430es1_dss_core_hwmod,
++=09NULL
++};
++
++/* 3430ES2+-only hwmods */
++static __initdata struct omap_hwmod *omap3430es2plus_hwmods[] =3D {
++=09&omap3xxx_dss_core_hwmod,
+ =09&omap3xxx_usbhsotg_hwmod,
++=09NULL
++};
+=20
+-=09/* usbotg for am35x */
+-=09&am35xx_usbhsotg_hwmod,
++/* 34xx-only hwmods (all ES revisions) */
++static __initdata struct omap_hwmod *omap34xx_hwmods[] =3D {
++=09&omap34xx_sr1_hwmod,
++=09&omap34xx_sr2_hwmod,
++=09NULL
++};
+=20
+-=09NULL,
++/* 36xx-only hwmods (all ES revisions) */
++static __initdata struct omap_hwmod *omap36xx_hwmods[] =3D {
++=09&omap3xxx_uart4_hwmod,
++=09&omap3xxx_dss_core_hwmod,
++=09&omap36xx_sr1_hwmod,
++=09&omap36xx_sr2_hwmod,
++=09&omap3xxx_usbhsotg_hwmod,
++=09NULL
++};
++
++static __initdata struct omap_hwmod *am35xx_hwmods[] =3D {
++=09&omap3xxx_dss_core_hwmod, /* XXX ??? */
++=09&am35xx_usbhsotg_hwmod,
++=09NULL
+ };
+=20
+ int __init omap3xxx_hwmod_init(void)
+ {
+-=09return omap_hwmod_register(omap3xxx_hwmods);
++=09int r;
++=09struct omap_hwmod **h =3D NULL;
++=09unsigned int rev;
++
++=09/* Register hwmods common to all OMAP3 */
++=09r =3D omap_hwmod_register(omap3xxx_hwmods);
++=09if (!r)
++=09=09return r;
++
++=09rev =3D omap_rev();
++
++=09/*
++=09 * Register hwmods common to individual OMAP3 families, all
++=09 * silicon revisions (e.g., 34xx, or AM3505/3517, or 36xx)
++=09 * All possible revisions should be included in this conditional.
++=09 */
++=09if (rev =3D=3D OMAP3430_REV_ES1_0 || rev =3D=3D OMAP3430_REV_ES2_0 ||
++=09    rev =3D=3D OMAP3430_REV_ES2_1 || rev =3D=3D OMAP3430_REV_ES3_0 ||
++=09    rev =3D=3D OMAP3430_REV_ES3_1 || rev =3D=3D OMAP3430_REV_ES3_1_2) {
++=09=09h =3D omap34xx_hwmods;
++=09} else if (rev =3D=3D OMAP3517_REV_ES1_0 || rev =3D=3D OMAP3517_REV_ES1=
+_1) {
++=09=09h =3D am35xx_hwmods;
++=09} else if (rev =3D=3D OMAP3630_REV_ES1_0 || rev =3D=3D OMAP3630_REV_ES1=
+_1 ||
++=09=09   rev =3D=3D OMAP3630_REV_ES1_2) {
++=09=09h =3D omap36xx_hwmods;
++=09} else {
++=09=09WARN(1, "OMAP3 hwmod family init: unknown chip type\n");
++=09=09return -EINVAL;
++=09};
++
++=09r =3D omap_hwmod_register(h);
++=09if (!r)
++=09=09return r;
++
++=09/*
++=09 * Register hwmods specific to certain ES levels of a
++=09 * particular family of silicon (e.g., 34xx ES1.0)
++=09 */
++=09h =3D NULL;
++=09if (rev =3D=3D OMAP3430_REV_ES1_0) {
++=09=09h =3D omap3430es1_hwmods;
++=09} else if (rev =3D=3D OMAP3430_REV_ES2_0 || rev =3D=3D OMAP3430_REV_ES2=
+_1 ||
++=09=09   rev =3D=3D OMAP3430_REV_ES3_0 || rev =3D=3D OMAP3430_REV_ES3_1 ||
++=09=09   rev =3D=3D OMAP3430_REV_ES3_1_2) {
++=09=09h =3D omap3430es2plus_hwmods;
++=09};
++
++=09if (h)
++=09=09r =3D omap_hwmod_register(h);
++
++=09return r;
+ }
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-oma=
+p2/omap_hwmod_44xx_data.c
+index 6201422..caaf409 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -133,7 +133,6 @@ static struct omap_hwmod omap44xx_dmm_hwmod =3D {
+ =09.slaves=09=09=3D omap44xx_dmm_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_dmm_slaves),
+ =09.mpu_irqs=09=3D omap44xx_dmm_irqs,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -189,7 +188,6 @@ static struct omap_hwmod omap44xx_emif_fw_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_emif_fw_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_emif_fw_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -236,7 +234,6 @@ static struct omap_hwmod omap44xx_l3_instr_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_l3_instr_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_l3_instr_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* l3_main_1 */
+@@ -336,7 +333,6 @@ static struct omap_hwmod omap44xx_l3_main_1_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_l3_main_1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_l3_main_1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* l3_main_2 */
+@@ -438,7 +434,6 @@ static struct omap_hwmod omap44xx_l3_main_2_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_l3_main_2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_l3_main_2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* l3_main_3 */
+@@ -496,7 +491,6 @@ static struct omap_hwmod omap44xx_l3_main_3_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_l3_main_3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_l3_main_3_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -559,7 +553,6 @@ static struct omap_hwmod omap44xx_l4_abe_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_l4_abe_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_l4_abe_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* l4_cfg */
+@@ -588,7 +581,6 @@ static struct omap_hwmod omap44xx_l4_cfg_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_l4_cfg_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_l4_cfg_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* l4_per */
+@@ -617,7 +609,6 @@ static struct omap_hwmod omap44xx_l4_per_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_l4_per_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_l4_per_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* l4_wkup */
+@@ -646,7 +637,6 @@ static struct omap_hwmod omap44xx_l4_wkup_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_l4_wkup_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_l4_wkup_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -677,7 +667,6 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod =3D=
+ {
+ =09.clkdm_name=09=3D "mpuss_clkdm",
+ =09.slaves=09=09=3D omap44xx_mpu_private_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mpu_private_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -828,7 +817,6 @@ static struct omap_hwmod omap44xx_aess_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_aess_slaves),
+ =09.masters=09=3D omap44xx_aess_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_aess_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -856,7 +844,6 @@ static struct omap_hwmod omap44xx_bandgap_hwmod =3D {
+ =09},
+ =09.opt_clks=09=3D bandgap_opt_clks,
+ =09.opt_clks_cnt=09=3D ARRAY_SIZE(bandgap_opt_clks),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -917,7 +904,6 @@ static struct omap_hwmod omap44xx_counter_32k_hwmod =3D=
+ {
+ =09},
+ =09.slaves=09=09=3D omap44xx_counter_32k_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_counter_32k_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -1005,7 +991,6 @@ static struct omap_hwmod omap44xx_dma_system_hwmod =3D=
+ {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_dma_system_slaves),
+ =09.masters=09=3D omap44xx_dma_system_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_dma_system_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -1098,7 +1083,6 @@ static struct omap_hwmod omap44xx_dmic_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_dmic_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_dmic_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -1164,7 +1148,6 @@ static struct omap_hwmod omap44xx_dsp_c0_hwmod =3D {
+ =09=09=09.rstctrl_offs =3D OMAP4_RM_TESLA_RSTCTRL_OFFSET,
+ =09=09},
+ =09},
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ static struct omap_hwmod omap44xx_dsp_hwmod =3D {
+@@ -1187,7 +1170,6 @@ static struct omap_hwmod omap44xx_dsp_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_dsp_slaves),
+ =09.masters=09=3D omap44xx_dsp_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_dsp_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -1278,7 +1260,6 @@ static struct omap_hwmod omap44xx_dss_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_dss_slaves),
+ =09.masters=09=3D omap44xx_dss_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_dss_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -1381,7 +1362,6 @@ static struct omap_hwmod omap44xx_dss_dispc_hwmod =3D=
+ {
+ =09.opt_clks_cnt=09=3D ARRAY_SIZE(dss_dispc_opt_clks),
+ =09.slaves=09=09=3D omap44xx_dss_dispc_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_dss_dispc_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -1480,7 +1460,6 @@ static struct omap_hwmod omap44xx_dss_dsi1_hwmod =3D =
+{
+ =09.opt_clks_cnt=09=3D ARRAY_SIZE(dss_dsi1_opt_clks),
+ =09.slaves=09=09=3D omap44xx_dss_dsi1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_dss_dsi1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* dss_dsi2 */
+@@ -1558,7 +1537,6 @@ static struct omap_hwmod omap44xx_dss_dsi2_hwmod =3D =
+{
+ =09.opt_clks_cnt=09=3D ARRAY_SIZE(dss_dsi2_opt_clks),
+ =09.slaves=09=09=3D omap44xx_dss_dsi2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_dss_dsi2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -1656,7 +1634,6 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod =3D =
+{
+ =09.opt_clks_cnt=09=3D ARRAY_SIZE(dss_hdmi_opt_clks),
+ =09.slaves=09=09=3D omap44xx_dss_hdmi_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_dss_hdmi_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -1748,7 +1725,6 @@ static struct omap_hwmod omap44xx_dss_rfbi_hwmod =3D =
+{
+ =09.opt_clks_cnt=09=3D ARRAY_SIZE(dss_rfbi_opt_clks),
+ =09.slaves=09=09=3D omap44xx_dss_rfbi_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_dss_rfbi_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -1817,7 +1793,6 @@ static struct omap_hwmod omap44xx_dss_venc_hwmod =3D =
+{
+ =09},
+ =09.slaves=09=09=3D omap44xx_dss_venc_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_dss_venc_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -1901,7 +1876,6 @@ static struct omap_hwmod omap44xx_gpio1_hwmod =3D {
+ =09.dev_attr=09=3D &gpio_dev_attr,
+ =09.slaves=09=09=3D omap44xx_gpio1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_gpio1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* gpio2 */
+@@ -1957,7 +1931,6 @@ static struct omap_hwmod omap44xx_gpio2_hwmod =3D {
+ =09.dev_attr=09=3D &gpio_dev_attr,
+ =09.slaves=09=09=3D omap44xx_gpio2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_gpio2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* gpio3 */
+@@ -2013,7 +1986,6 @@ static struct omap_hwmod omap44xx_gpio3_hwmod =3D {
+ =09.dev_attr=09=3D &gpio_dev_attr,
+ =09.slaves=09=09=3D omap44xx_gpio3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_gpio3_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* gpio4 */
+@@ -2069,7 +2041,6 @@ static struct omap_hwmod omap44xx_gpio4_hwmod =3D {
+ =09.dev_attr=09=3D &gpio_dev_attr,
+ =09.slaves=09=09=3D omap44xx_gpio4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_gpio4_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* gpio5 */
+@@ -2125,7 +2096,6 @@ static struct omap_hwmod omap44xx_gpio5_hwmod =3D {
+ =09.dev_attr=09=3D &gpio_dev_attr,
+ =09.slaves=09=09=3D omap44xx_gpio5_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_gpio5_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* gpio6 */
+@@ -2181,7 +2151,6 @@ static struct omap_hwmod omap44xx_gpio6_hwmod =3D {
+ =09.dev_attr=09=3D &gpio_dev_attr,
+ =09.slaves=09=09=3D omap44xx_gpio6_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_gpio6_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -2261,7 +2230,6 @@ static struct omap_hwmod omap44xx_hsi_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_hsi_slaves),
+ =09.masters=09=3D omap44xx_hsi_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_hsi_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -2345,7 +2313,6 @@ static struct omap_hwmod omap44xx_i2c1_hwmod =3D {
+ =09.slaves=09=09=3D omap44xx_i2c1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_i2c1_slaves),
+ =09.dev_attr=09=3D &i2c_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* i2c2 */
+@@ -2402,7 +2369,6 @@ static struct omap_hwmod omap44xx_i2c2_hwmod =3D {
+ =09.slaves=09=09=3D omap44xx_i2c2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_i2c2_slaves),
+ =09.dev_attr=09=3D &i2c_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* i2c3 */
+@@ -2459,7 +2425,6 @@ static struct omap_hwmod omap44xx_i2c3_hwmod =3D {
+ =09.slaves=09=09=3D omap44xx_i2c3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_i2c3_slaves),
+ =09.dev_attr=09=3D &i2c_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* i2c4 */
+@@ -2516,7 +2481,6 @@ static struct omap_hwmod omap44xx_i2c4_hwmod =3D {
+ =09.slaves=09=09=3D omap44xx_i2c4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_i2c4_slaves),
+ =09.dev_attr=09=3D &i2c_dev_attr,
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -2577,7 +2541,6 @@ static struct omap_hwmod omap44xx_ipu_c0_hwmod =3D {
+ =09=09=09.rstctrl_offs =3D OMAP4_RM_DUCATI_RSTCTRL_OFFSET,
+ =09=09},
+ =09},
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* Pseudo hwmod for reset control purpose only */
+@@ -2593,7 +2556,6 @@ static struct omap_hwmod omap44xx_ipu_c1_hwmod =3D {
+ =09=09=09.rstctrl_offs =3D OMAP4_RM_DUCATI_RSTCTRL_OFFSET,
+ =09=09},
+ =09},
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ static struct omap_hwmod omap44xx_ipu_hwmod =3D {
+@@ -2616,7 +2578,6 @@ static struct omap_hwmod omap44xx_ipu_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_ipu_slaves),
+ =09.masters=09=3D omap44xx_ipu_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_ipu_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -2706,7 +2667,6 @@ static struct omap_hwmod omap44xx_iss_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_iss_slaves),
+ =09.masters=09=3D omap44xx_iss_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_iss_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -2781,7 +2741,6 @@ static struct omap_hwmod omap44xx_iva_seq0_hwmod =3D =
+{
+ =09=09=09.rstctrl_offs =3D OMAP4_RM_IVAHD_RSTCTRL_OFFSET,
+ =09=09},
+ =09},
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* Pseudo hwmod for reset control purpose only */
+@@ -2797,7 +2756,6 @@ static struct omap_hwmod omap44xx_iva_seq1_hwmod =3D =
+{
+ =09=09=09.rstctrl_offs =3D OMAP4_RM_IVAHD_RSTCTRL_OFFSET,
+ =09=09},
+ =09},
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ static struct omap_hwmod omap44xx_iva_hwmod =3D {
+@@ -2820,7 +2778,6 @@ static struct omap_hwmod omap44xx_iva_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_iva_slaves),
+ =09.masters=09=3D omap44xx_iva_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_iva_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -2890,7 +2847,6 @@ static struct omap_hwmod omap44xx_kbd_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_kbd_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_kbd_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -2956,7 +2912,6 @@ static struct omap_hwmod omap44xx_mailbox_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_mailbox_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mailbox_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -3051,7 +3006,6 @@ static struct omap_hwmod omap44xx_mcbsp1_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_mcbsp1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mcbsp1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* mcbsp2 */
+@@ -3127,7 +3081,6 @@ static struct omap_hwmod omap44xx_mcbsp2_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_mcbsp2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mcbsp2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* mcbsp3 */
+@@ -3203,7 +3156,6 @@ static struct omap_hwmod omap44xx_mcbsp3_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_mcbsp3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mcbsp3_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* mcbsp4 */
+@@ -3258,7 +3210,6 @@ static struct omap_hwmod omap44xx_mcbsp4_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_mcbsp4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mcbsp4_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -3353,7 +3304,6 @@ static struct omap_hwmod omap44xx_mcpdm_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_mcpdm_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mcpdm_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -3442,7 +3392,6 @@ static struct omap_hwmod omap44xx_mcspi1_hwmod =3D {
+ =09.dev_attr=09=3D &mcspi1_dev_attr,
+ =09.slaves=09=09=3D omap44xx_mcspi1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mcspi1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* mcspi2 */
+@@ -3505,7 +3454,6 @@ static struct omap_hwmod omap44xx_mcspi2_hwmod =3D {
+ =09.dev_attr=09=3D &mcspi2_dev_attr,
+ =09.slaves=09=09=3D omap44xx_mcspi2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mcspi2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* mcspi3 */
+@@ -3568,7 +3516,6 @@ static struct omap_hwmod omap44xx_mcspi3_hwmod =3D {
+ =09.dev_attr=09=3D &mcspi3_dev_attr,
+ =09.slaves=09=09=3D omap44xx_mcspi3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mcspi3_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* mcspi4 */
+@@ -3629,7 +3576,6 @@ static struct omap_hwmod omap44xx_mcspi4_hwmod =3D {
+ =09.dev_attr=09=3D &mcspi4_dev_attr,
+ =09.slaves=09=09=3D omap44xx_mcspi4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mcspi4_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -3718,7 +3664,6 @@ static struct omap_hwmod omap44xx_mmc1_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mmc1_slaves),
+ =09.masters=09=3D omap44xx_mmc1_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_mmc1_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* mmc2 */
+@@ -3779,7 +3724,6 @@ static struct omap_hwmod omap44xx_mmc2_hwmod =3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mmc2_slaves),
+ =09.masters=09=3D omap44xx_mmc2_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_mmc2_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* mmc3 */
+@@ -3834,7 +3778,6 @@ static struct omap_hwmod omap44xx_mmc3_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_mmc3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mmc3_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* mmc4 */
+@@ -3890,7 +3833,6 @@ static struct omap_hwmod omap44xx_mmc4_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_mmc4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mmc4_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* mmc5 */
+@@ -3945,7 +3887,6 @@ static struct omap_hwmod omap44xx_mmc5_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_mmc5_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_mmc5_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -3987,7 +3928,6 @@ static struct omap_hwmod omap44xx_mpu_hwmod =3D {
+ =09},
+ =09.masters=09=3D omap44xx_mpu_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_mpu_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -4063,7 +4003,6 @@ static struct omap_hwmod omap44xx_smartreflex_core_hw=
+mod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_smartreflex_core_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_smartreflex_core_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* smartreflex_iva */
+@@ -4112,7 +4051,6 @@ static struct omap_hwmod omap44xx_smartreflex_iva_hwm=
+od =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_smartreflex_iva_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_smartreflex_iva_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* smartreflex_mpu */
+@@ -4161,7 +4099,6 @@ static struct omap_hwmod omap44xx_smartreflex_mpu_hwm=
+od =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_smartreflex_mpu_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_smartreflex_mpu_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -4224,7 +4161,6 @@ static struct omap_hwmod omap44xx_spinlock_hwmod =3D =
+{
+ =09},
+ =09.slaves=09=09=3D omap44xx_spinlock_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_spinlock_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -4310,7 +4246,6 @@ static struct omap_hwmod omap44xx_timer1_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_timer1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_timer1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* timer2 */
+@@ -4358,7 +4293,6 @@ static struct omap_hwmod omap44xx_timer2_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_timer2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_timer2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* timer3 */
+@@ -4406,7 +4340,6 @@ static struct omap_hwmod omap44xx_timer3_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_timer3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_timer3_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* timer4 */
+@@ -4454,7 +4387,6 @@ static struct omap_hwmod omap44xx_timer4_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_timer4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_timer4_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* timer5 */
+@@ -4521,7 +4453,6 @@ static struct omap_hwmod omap44xx_timer5_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_timer5_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_timer5_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* timer6 */
+@@ -4589,7 +4520,6 @@ static struct omap_hwmod omap44xx_timer6_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_timer6_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_timer6_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* timer7 */
+@@ -4656,7 +4586,6 @@ static struct omap_hwmod omap44xx_timer7_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_timer7_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_timer7_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* timer8 */
+@@ -4723,7 +4652,6 @@ static struct omap_hwmod omap44xx_timer8_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_timer8_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_timer8_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* timer9 */
+@@ -4771,7 +4699,6 @@ static struct omap_hwmod omap44xx_timer9_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_timer9_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_timer9_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* timer10 */
+@@ -4819,7 +4746,6 @@ static struct omap_hwmod omap44xx_timer10_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_timer10_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_timer10_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* timer11 */
+@@ -4867,7 +4793,6 @@ static struct omap_hwmod omap44xx_timer11_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_timer11_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_timer11_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -4944,7 +4869,6 @@ static struct omap_hwmod omap44xx_uart1_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_uart1_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_uart1_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* uart2 */
+@@ -4999,7 +4923,6 @@ static struct omap_hwmod omap44xx_uart2_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_uart2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_uart2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* uart3 */
+@@ -5055,7 +4978,6 @@ static struct omap_hwmod omap44xx_uart3_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_uart3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_uart3_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* uart4 */
+@@ -5110,7 +5032,6 @@ static struct omap_hwmod omap44xx_uart4_hwmod =3D {
+ =09},
+ =09.slaves=09=09=3D omap44xx_uart4_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_uart4_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -5195,7 +5116,6 @@ static struct omap_hwmod omap44xx_usb_otg_hs_hwmod =
+=3D {
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_usb_otg_hs_slaves),
+ =09.masters=09=3D omap44xx_usb_otg_hs_masters,
+ =09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_usb_otg_hs_masters),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /*
+@@ -5266,7 +5186,6 @@ static struct omap_hwmod omap44xx_wd_timer2_hwmod =3D=
+ {
+ =09},
+ =09.slaves=09=09=3D omap44xx_wd_timer2_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_wd_timer2_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ /* wd_timer3 */
+@@ -5333,7 +5252,6 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod =3D=
+ {
+ =09},
+ =09.slaves=09=09=3D omap44xx_wd_timer3_slaves,
+ =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_wd_timer3_slaves),
+-=09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+ static __initdata struct omap_hwmod *omap44xx_hwmods[] =3D {
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-o=
+map/include/plat/omap_hwmod.h
+index 0e329ca..9115aed 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -496,7 +496,6 @@ struct omap_hwmod_class {
+  * @_state: internal-use hwmod state
+  * @_postsetup_state: internal-use state to leave the hwmod in after _setu=
+p()
+  * @flags: hwmod flags (documented below)
+- * @omap_chip: OMAP chips this hwmod is present on
+  * @_lock: spinlock serializing operations on this hwmod
+  * @node: list node for hwmod list (internal use)
+  *
+@@ -545,7 +544,6 @@ struct omap_hwmod {
+ =09u8=09=09=09=09_int_flags;
+ =09u8=09=09=09=09_state;
+ =09u8=09=09=09=09_postsetup_state;
+-=09const struct omap_chip_id=09omap_chip;
+ };
+=20
+ int omap_hwmod_register(struct omap_hwmod **ohs);
+--=20
+1.7.5.4
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--155748971-1467590856-1316040932=:15220--
