@@ -1,29 +1,39 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCH 1/2] omap: hsmmc: Normalize dma cleanup operations
-Date: Wed, 14 Sep 2011 19:10:42 +0530
-Message-ID: <CANfBPZ9sVvcVhwxgu0SqbjY1gT8GdeXXsThf48__ax=bQ4zHEA@mail.gmail.com>
-References: <1314903957-24408-2-git-send-email-svenkatr@ti.com> <CAJ0pr18PtGWga7n8nm1xs-=wtRjMu=X_wZONAOAgeaLamtEJjg@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: OMAP3505 revisions?
+Date: Wed, 14 Sep 2011 07:49:07 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109140746410.27954@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1109131157520.1885@utopia.booyaka.com> <B85A65D85D7EB246BE421B3FB0FBB593025750A2A5@dbde02.ent.ti.com> <alpine.DEB.2.00.1109140539230.27954@utopia.booyaka.com> <B85A65D85D7EB246BE421B3FB0FBB59302575A00A6@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAJ0pr18PtGWga7n8nm1xs-=wtRjMu=X_wZONAOAgeaLamtEJjg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Per Forlin <per.forlin@linaro.org>
-Cc: Kishore Kadiyala <kishorek.kadiyala@gmail.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:46672 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751076Ab1INNtI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 09:49:08 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59302575A00A6@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "notasas@gmail.com" <notasas@gmail.com>, "tony@atomide.com" <tony@atomide.com>, Igor Grinberg <grinberg@compulab.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Sep 13, 2011 at 1:26 AM, Per Forlin <per.forlin@linaro.org> wrote:
-> On 1 September 2011 21:05, Venkatraman S <svenkatr@ti.com> wrote:
->> Reuse omap_hsmmc_dma_cleanup even for normal dma teardown in
->> omap_hsmmc_dma_cb. Consolidate multiple points of dma unmap into a
->> single location in post_req function, to prevent double unmapping.
-> It's optional to use pre_req() and post_req(). The SDIO framework
-> doesn't utilise these hooks. For instance this wont work together with
-> SDIO-wlan on the pandaboard.
-> If pre_req() has been issued it's fine to defer dma_unmap() until
-> post_req(). If pre_req() is not called the driver should call
-> dma_unmap() directly.
->
+On Wed, 14 Sep 2011, Premi, Sanjeev wrote:
 
-In that case, can the actual 'request' function just call pre_req and post_req
-(at the beginning and at the end), if host_cookie is not set ?
+> > -----Original Message-----
+> > From: Paul Walmsley [mailto:paul@pwsan.com] 
+> > Sent: Wednesday, September 14, 2011 5:11 PM
+> > To: Premi, Sanjeev
+> > Cc: notasas@gmail.com; tony@atomide.com; linux-omap@vger.kernel.org
+> > Subject: RE: OMAP3505 revisions?
+> > 
+> > Thanks.  Could you try a test boot of the 'id_3517_cleanup_3.2' branch 
+> > of git://git.pwsan.com/linux-2.6 on an AM3517/3505, or ask someone to 
+> > try that out?
+> 
+> Sure I will get this tested.
+
+I just repushed this branch with changes to fix a bug that Igor found. 
+If you've pulled it already, could you re-pull?  I'm particularly 
+interested in a test on a 3505 board.
+
+
+- Paul
