@@ -1,130 +1,45 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v15 11/12] OMAP: dmtimer: extend spinlock to exported APIs
-Date: Wed, 14 Sep 2011 10:28:06 +0530
-Message-ID: <CAC83ZvK0rknVX3bw42dL-V2Dpq5wjwhU6H=fNjR1=oZCs+rkng@mail.gmail.com>
-References: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
-	<1315516098-29761-12-git-send-email-tarun.kanti@ti.com>
-	<20110913231540.GI24252@atomide.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v2 5/6] iommu/intel: announce supported page sizes
+Date: Wed, 14 Sep 2011 08:11:34 +0300
+Message-ID: <CAK=WgbbVTFb3vh7CA+teA4Un9-BBaAVO5m-rq2V6CMKv0++YFg@mail.gmail.com>
+References: <1315942288-17297-1-git-send-email-ohad@wizery.com>
+	<1315942288-17297-5-git-send-email-ohad@wizery.com>
+	<1315949582.2687.204.camel@shinybook.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:42337 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750837Ab1INE6I convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Sep 2011 00:58:08 -0400
-Received: by mail-bw0-f46.google.com with SMTP id zt4so1518547bkb.33
-        for <linux-omap@vger.kernel.org>; Tue, 13 Sep 2011 21:58:07 -0700 (PDT)
-In-Reply-To: <20110913231540.GI24252@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1315949582.2687.204.camel@shinybook.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: David Woodhouse <dwmw2@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Wed, Sep 14, 2011 at 4:45 AM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * Tarun Kanti DebBarma <tarun.kanti@ti.com> [110908 13:36]:
->> Since the exported APIs can be called from interrupt context
->> extend spinlock protection to some more relevant APIs to avoid
->> race condition.
+On Wed, Sep 14, 2011 at 12:32 AM, David Woodhouse <dwmw2@infradead.org> wrote:
+> On Tue, 2011-09-13 at 22:31 +0300, Ohad Ben-Cohen wrote:
+>> + * Traditionally the IOMMU core just handed us the mappings directly,
+>> + * after making sure the size is an order of a 4KB page and that the
+>> + * mapping has natural alignment.
+>> + *
+>> + * To retain this behavior, we currently advertise that we support
+>> + * all page sizes that are an order of 4KB.
 >
-> We should have locking for requesting and releasing a timer etc,
-> but I don't see need for that for the timer specific functions.
-Alright... I will remove locking from timer specific functions.
-In that case we have extension of locks to just following two functions=
-:
-omap_dm_timer_request()
-omap_dm_timer_request_specific()
+> This is wrong. We do not support 4000-byte pages. We only support
+> 4096-byte pages. 4KiB, not 4kB.
+>
+> Please fix.
 
-So, I can modify the patch subject and description accordingly.
+Sure thing; I'll s/KB/KiB throughout the patch set.
 
->
->> @@ -317,9 +317,11 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_trigger);
->> =A0void omap_dm_timer_start(struct omap_dm_timer *timer)
->> =A0{
->> =A0 =A0 =A0 u32 l;
->> + =A0 =A0 unsigned long flags;
->>
->> =A0 =A0 =A0 omap_dm_timer_enable(timer);
->>
->> + =A0 =A0 spin_lock_irqsave(&dm_timer_lock, flags);
->> =A0 =A0 =A0 if (timer->loses_context) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 ctx_loss_cnt_after =3D
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timer->get_context_loss_=
-count(&timer->pdev->dev);
->
-> Here the caller already owns the timer being started. So there
-> should never be multiple users for a single timer. If there are,
-> then the caller should take care of locking.
-Ok.
+Do I have your ACK otherwise ?
 
->
->> =A0void omap_dm_timer_stop(struct omap_dm_timer *timer)
->> =A0{
->> - =A0 =A0 unsigned long rate =3D 0;
->> + =A0 =A0 unsigned long rate =3D 0, flags;
->> =A0 =A0 =A0 struct dmtimer_platform_data *pdata =3D timer->pdev->dev=
-=2Eplatform_data;
->> =A0 =A0 =A0 bool is_omap2 =3D true;
->>
->> + =A0 =A0 spin_lock_irqsave(&dm_timer_lock, flags);
->> =A0 =A0 =A0 if (pdata->needs_manual_reset)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 is_omap2 =3D false;
->> =A0 =A0 =A0 else
->
-> Here too.
-Right.
-
->
->> @@ -389,8 +394,10 @@ void omap_dm_timer_set_load(struct omap_dm_time=
-r *timer, int autoreload,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsigned int loa=
-d)
->> =A0{
->> =A0 =A0 =A0 u32 l;
->> + =A0 =A0 unsigned long flags;
->>
->> =A0 =A0 =A0 omap_dm_timer_enable(timer);
->> + =A0 =A0 spin_lock_irqsave(&dm_timer_lock, flags);
->> =A0 =A0 =A0 l =3D omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG)=
-;
->> =A0 =A0 =A0 if (autoreload)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 l |=3D OMAP_TIMER_CTRL_AR;
->
-> And here.
-Ok.
-
->
->> @@ -412,9 +420,11 @@ void omap_dm_timer_set_load_start(struct omap_d=
-m_timer *timer, int autoreload,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned =
-int load)
->> =A0{
->> =A0 =A0 =A0 u32 l;
->> + =A0 =A0 unsigned long flags;
->>
->> =A0 =A0 =A0 omap_dm_timer_enable(timer);
->>
->> + =A0 =A0 spin_lock_irqsave(&dm_timer_lock, flags);
->> =A0 =A0 =A0 if (timer->loses_context) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 ctx_loss_cnt_after =3D
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timer->get_context_loss_=
-count(&timer->pdev->dev);
->
-> Not needed here either. And that's the case for all the other functio=
-ns
-> too.
-Sure.
---
-Tarun
->
-> Regards,
->
-> Tony
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Ohad.
