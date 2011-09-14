@@ -1,244 +1,105 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 05/10] OMAP4: DSS2: zorder support for DSS overlays
-Date: Wed, 14 Sep 2011 17:55:09 +0530
-Message-ID: <1316003114-24291-2-git-send-email-archit@ti.com>
+Subject: [PATCH v3 06/10] OMAP: DSS2: Create helper function dispc_mgr_is_lcd()
+Date: Wed, 14 Sep 2011 17:55:10 +0530
+Message-ID: <1316003114-24291-3-git-send-email-archit@ti.com>
 References: <1316003114-24291-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38866 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60564 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932370Ab1INMYO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Sep 2011 08:24:14 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8ECOEx8024077
+	id S932370Ab1INMYW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Sep 2011 08:24:22 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8ECOLXw013301
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:14 -0500
+	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:21 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p8ECODng011307
-	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:13 -0500 (CDT)
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p8ECOLnV015175
+	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:21 -0500 (CDT)
 Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p8ECODcW001077
-	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:13 -0500 (CDT)
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p8ECOLHg001273
+	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:21 -0500 (CDT)
 In-Reply-To: <1316003114-24291-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, hvaibhav@ti.com
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Add zorder support on OMAP4, this feature allows deciding the visibility order
-of the overlays based on the zorder value provided as an overlay info parameter
-or a sysfs attribute of the overlay object.
-
-Use the overlay cap OMAP_DSS_OVL_CAP_ZORDER to determine whether zorder is
-supported for the overlay or not. Use dss feature FEAT_ALPHA_FREE_ZORDER
-if the caps are not available.
-
-Ensure that all overlays that are enabled and connected to the same manager
-have different zorders. Swapping zorders of 2 enabled overlays currently
-requires disabling one of the overlays.
+Create a helper function called dispc_mgr_is_lcd() which returns true if the
+manager is LCD or LCD2.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c   |   24 ++++++++++++
- drivers/video/omap2/dss/overlay.c |   72 +++++++++++++++++++++++++++++++++++++
- include/video/omapdss.h           |    1 +
- 3 files changed, 97 insertions(+), 0 deletions(-)
+ drivers/video/omap2/dss/dispc.c |   22 +++++++++++++---------
+ 1 files changed, 13 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index a3f6d17..6b9f1b6 100644
+index 6b9f1b6..0bae6be 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -726,6 +726,27 @@ static void dispc_ovl_set_vid_size(enum omap_plane plane, int width, int height)
- 	dispc_write_reg(DISPC_OVL_SIZE(plane), val);
+@@ -420,13 +420,20 @@ void dispc_runtime_put(void)
+ 	WARN_ON(r < 0);
  }
  
-+static void dispc_ovl_set_zorder(enum omap_plane plane, u8 zorder)
++static inline bool dispc_mgr_is_lcd(enum omap_channel channel)
 +{
-+	struct omap_overlay *ovl = omap_dss_get_overlay(plane);
-+
-+	if ((ovl->caps & OMAP_DSS_OVL_CAP_ZORDER) == 0)
-+		return;
-+
-+	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(plane), zorder, 27, 26);
++	if (channel == OMAP_DSS_CHANNEL_LCD ||
++			channel == OMAP_DSS_CHANNEL_LCD2)
++		return true;
++	else
++		return false;
 +}
-+
-+static void dispc_ovl_enable_zorder_planes(void)
-+{
-+	int i;
-+
-+	if (!dss_has_feature(FEAT_ALPHA_FREE_ZORDER))
-+		return;
-+
-+	for (i = 0; i < dss_feat_get_num_ovls(); i++)
-+		REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(i), 1, 25, 25);
-+}
-+
- static void dispc_ovl_set_pre_mult_alpha(enum omap_plane plane, bool enable)
+ 
+ bool dispc_mgr_go_busy(enum omap_channel channel)
  {
- 	struct omap_overlay *ovl = omap_dss_get_overlay(plane);
-@@ -1840,6 +1861,7 @@ int dispc_ovl_setup(enum omap_plane plane, struct omap_overlay_info *oi,
- 	dispc_ovl_set_rotation_attrs(plane, oi->rotation, oi->mirror,
- 			oi->color_mode);
+ 	int bit;
  
-+	dispc_ovl_set_zorder(plane, oi->zorder);
- 	dispc_ovl_set_pre_mult_alpha(plane, oi->pre_mult_alpha);
- 	dispc_ovl_setup_global_alpha(plane, oi->global_alpha);
+-	if (channel == OMAP_DSS_CHANNEL_LCD ||
+-			channel == OMAP_DSS_CHANNEL_LCD2)
++	if (dispc_mgr_is_lcd(channel))
+ 		bit = 5; /* GOLCD */
+ 	else
+ 		bit = 6; /* GODIGIT */
+@@ -442,8 +449,7 @@ void dispc_mgr_go(enum omap_channel channel)
+ 	int bit;
+ 	bool enable_bit, go_bit;
  
-@@ -3277,6 +3299,8 @@ static void _omap_dispc_initial_config(void)
- 	dispc_read_plane_fifo_sizes();
+-	if (channel == OMAP_DSS_CHANNEL_LCD ||
+-			channel == OMAP_DSS_CHANNEL_LCD2)
++	if (dispc_mgr_is_lcd(channel))
+ 		bit = 0; /* LCDENABLE */
+ 	else
+ 		bit = 1; /* DIGITALENABLE */
+@@ -457,8 +463,7 @@ void dispc_mgr_go(enum omap_channel channel)
+ 	if (!enable_bit)
+ 		return;
  
- 	dispc_configure_burst_sizes();
-+
-+	dispc_ovl_enable_zorder_planes();
- }
+-	if (channel == OMAP_DSS_CHANNEL_LCD ||
+-			channel == OMAP_DSS_CHANNEL_LCD2)
++	if (dispc_mgr_is_lcd(channel))
+ 		bit = 5; /* GOLCD */
+ 	else
+ 		bit = 6; /* GODIGIT */
+@@ -969,7 +974,7 @@ void dispc_mgr_set_cpr_coef(enum omap_channel channel,
+ {
+ 	u32 coef_r, coef_g, coef_b;
  
- /* DISPC HW IP initialisation */
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index 11d21e3..ab8e40e 100644
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -311,6 +311,42 @@ static ssize_t overlay_pre_mult_alpha_store(struct omap_overlay *ovl,
- 	return size;
- }
+-	if (channel != OMAP_DSS_CHANNEL_LCD && channel != OMAP_DSS_CHANNEL_LCD2)
++	if (!dispc_mgr_is_lcd(channel))
+ 		return;
  
-+static ssize_t overlay_zorder_show(struct omap_overlay *ovl, char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", ovl->info.zorder);
-+}
-+
-+static ssize_t overlay_zorder_store(struct omap_overlay *ovl,
-+		const char *buf, size_t size)
-+{
-+	int r;
-+	u8 zorder;
-+	struct omap_overlay_info info;
-+
-+	if ((ovl->caps & OMAP_DSS_OVL_CAP_ZORDER) == 0)
-+		return -ENODEV;
-+
-+	r = kstrtou8(buf, 0, &zorder);
-+	if (r)
-+		return r;
-+
-+	ovl->get_overlay_info(ovl, &info);
-+
-+	info.zorder = zorder;
-+
-+	r = ovl->set_overlay_info(ovl, &info);
-+	if (r)
-+		return r;
-+
-+	if (ovl->manager) {
-+		r = ovl->manager->apply(ovl->manager);
-+		if (r)
-+			return r;
-+	}
-+
-+	return size;
-+}
-+
- struct overlay_attribute {
- 	struct attribute attr;
- 	ssize_t (*show)(struct omap_overlay *, char *);
-@@ -337,6 +373,8 @@ static OVERLAY_ATTR(global_alpha, S_IRUGO|S_IWUSR,
- static OVERLAY_ATTR(pre_mult_alpha, S_IRUGO|S_IWUSR,
- 		overlay_pre_mult_alpha_show,
- 		overlay_pre_mult_alpha_store);
-+static OVERLAY_ATTR(zorder, S_IRUGO|S_IWUSR,
-+		overlay_zorder_show, overlay_zorder_store);
+ 	coef_r = FLD_VAL(coefs->rr, 31, 22) | FLD_VAL(coefs->rg, 20, 11) |
+@@ -2026,8 +2031,7 @@ bool dispc_mgr_is_enabled(enum omap_channel channel)
  
- static struct attribute *overlay_sysfs_attrs[] = {
- 	&overlay_attr_name.attr,
-@@ -348,6 +386,7 @@ static struct attribute *overlay_sysfs_attrs[] = {
- 	&overlay_attr_enabled.attr,
- 	&overlay_attr_global_alpha.attr,
- 	&overlay_attr_pre_mult_alpha.attr,
-+	&overlay_attr_zorder.attr,
- 	NULL
- };
- 
-@@ -397,6 +436,7 @@ int dss_check_overlay(struct omap_overlay *ovl, struct omap_dss_device *dssdev)
- 	struct omap_overlay_info *info;
- 	u16 outw, outh;
- 	u16 dw, dh;
-+	int i;
- 
- 	if (!dssdev)
- 		return 0;
-@@ -452,6 +492,31 @@ int dss_check_overlay(struct omap_overlay *ovl, struct omap_dss_device *dssdev)
- 		return -EINVAL;
- 	}
- 
-+	if (ovl->caps & OMAP_DSS_OVL_CAP_ZORDER) {
-+		if (info->zorder < 0 || info->zorder > 3) {
-+			DSSERR("zorder out of range: %d\n",
-+				info->zorder);
-+			return -EINVAL;
-+		}
-+		/*
-+		 * Check that zorder doesn't match with zorder of any other
-+		 * overlay which is enabled and is also connected to the same
-+		 * manager
-+		 */
-+		for (i = 0; i < omap_dss_get_num_overlays(); i++) {
-+			struct omap_overlay *tmp_ovl = omap_dss_get_overlay(i);
-+
-+			if (tmp_ovl->id != ovl->id &&
-+					tmp_ovl->manager == ovl->manager &&
-+					tmp_ovl->info.enabled == true &&
-+					tmp_ovl->info.zorder == info->zorder) {
-+				DSSERR("%s and %s have same zorder: %d\n",
-+					ovl->name, tmp_ovl->name, info->zorder);
-+				return -EINVAL;
-+			}
-+		}
-+	}
-+
- 	return 0;
- }
- 
-@@ -604,21 +669,28 @@ void dss_init_overlays(struct platform_device *pdev)
- 			ovl->name = "gfx";
- 			ovl->id = OMAP_DSS_GFX;
- 			ovl->info.global_alpha = 255;
-+			ovl->info.zorder = 0;
- 			break;
- 		case 1:
- 			ovl->name = "vid1";
- 			ovl->id = OMAP_DSS_VIDEO1;
- 			ovl->info.global_alpha = 255;
-+			ovl->info.zorder =
-+				dss_has_feature(FEAT_ALPHA_FREE_ZORDER) ? 3 : 0;
- 			break;
- 		case 2:
- 			ovl->name = "vid2";
- 			ovl->id = OMAP_DSS_VIDEO2;
- 			ovl->info.global_alpha = 255;
-+			ovl->info.zorder =
-+				dss_has_feature(FEAT_ALPHA_FREE_ZORDER) ? 2 : 0;
- 			break;
- 		case 3:
- 			ovl->name = "vid3";
- 			ovl->id = OMAP_DSS_VIDEO3;
- 			ovl->info.global_alpha = 255;
-+			ovl->info.zorder =
-+				dss_has_feature(FEAT_ALPHA_FREE_ZORDER) ? 1 : 0;
- 			break;
- 		}
- 
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 1f12559..9cd61e8 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -371,6 +371,7 @@ struct omap_overlay_info {
- 	u16 out_height;	/* if 0, out_height == height */
- 	u8 global_alpha;
- 	u8 pre_mult_alpha;
-+	u8 zorder;
- };
- 
- struct omap_overlay {
+ void dispc_mgr_enable(enum omap_channel channel, bool enable)
+ {
+-	if (channel == OMAP_DSS_CHANNEL_LCD ||
+-			channel == OMAP_DSS_CHANNEL_LCD2)
++	if (dispc_mgr_is_lcd(channel))
+ 		dispc_mgr_enable_lcd_out(channel, enable);
+ 	else if (channel == OMAP_DSS_CHANNEL_DIGIT)
+ 		dispc_mgr_enable_digit_out(enable);
 -- 
 1.7.1
 
