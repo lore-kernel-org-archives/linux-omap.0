@@ -1,365 +1,126 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/5 v8] arm: omap: usb: ehci and ohci hwmod structures
- for omap4
-Date: Wed, 14 Sep 2011 18:50:32 +0200
-Message-ID: <4E70DB58.9070901@ti.com>
-References: <1314255697-15411-1-git-send-email-keshava_mgowda@ti.com> <1314255697-15411-2-git-send-email-keshava_mgowda@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 13/25] OMAP4: PM: Add WakeupGen module as OMAP
+ gic_arch_extn
+Date: Wed, 14 Sep 2011 10:08:03 -0700
+Message-ID: <20110914170803.GN24252@atomide.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+ <1315144466-9395-14-git-send-email-santosh.shilimkar@ti.com>
+ <20110913203616.GG24252@atomide.com>
+ <CAMQu2gyYETPZRJu=4MWX6bULgmMaJb8MRwfhvURtOuyyWhLkAQ@mail.gmail.com>
+ <20110914152116.GM24252@atomide.com>
+ <4E70DB33.5070501@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1314255697-15411-2-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org" <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, "paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org" <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org" <johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "Sripathy, Vishwanath" <vishwanath.bs-l0cyMroinI0@public.gmane.org>, "Quadros, Roger" <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:12675 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757082Ab1INRIH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 13:08:07 -0400
+Content-Disposition: inline
+In-Reply-To: <4E70DB33.5070501@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-Hi Keshava,
-
-On 8/25/2011 9:01 AM, Munegowda, Keshava wrote:
-> From: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
+* Santosh <santosh.shilimkar@ti.com> [110914 09:16]:
 > 
-> Following 4 hwmod structures are added:
-> UHH hwmod of usbhs with uhh base address and functional clock,
-> EHCI hwmod with irq and base address,
-> OHCI hwmod with irq and base address,
-> TLL hwmod of usbhs with the TLL base address and irq.
+> First and foremost, I have to go with the approach here because MPUSS
+> hardware team put a requirement that GIC and wakeupgen should always be
+> kept in sync. If needed we can discuss this off-the list with Richard.
 > 
-> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
-
-That version is really different compared to my original patch, so you should highlight the diff you introduced.
-
-> Signed-off-by: Keshava Munegowda<keshava_mgowda-l0cyMroinI0@public.gmane.org>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  247 ++++++++++++++++++++++++++++
->   1 files changed, 247 insertions(+), 0 deletions(-)
+> Below is the extract from the veyron func specs.
+> -------------------------------------
+> Version 1.6 of veyron spec has this.
 > 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index 6201422..0bc01dd 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -68,6 +68,10 @@ static struct omap_hwmod omap44xx_mmc2_hwmod;
->   static struct omap_hwmod omap44xx_mpu_hwmod;
->   static struct omap_hwmod omap44xx_mpu_private_hwmod;
->   static struct omap_hwmod omap44xx_usb_otg_hs_hwmod;
-> +static struct omap_hwmod omap44xx_usb_host_hs_hwmod;
-> +static struct omap_hwmod omap44xx_usbhs_ohci_hwmod;
-> +static struct omap_hwmod omap44xx_usbhs_ehci_hwmod;
-> +static struct omap_hwmod omap44xx_usb_tll_hs_hwmod;
-
-None of the 3 last entries are master, and thus should not need any backward declaration.
-
->   /*
->    * Interconnects omap_hwmod structures
-> @@ -5336,6 +5340,245 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
->   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
->   };
+> From page 95, paragraph 2 on version 1.6:
 > 
-> +/*
-> + * 'usb_host_hs' class
-> + * high-speed multi-port usb host controller
-> + */
-> +static struct omap_hwmod_ocp_if omap44xx_usb_host_hs__l3_main_2 = {
-> +	.master		=&omap44xx_usb_host_hs_hwmod,
-> +	.slave		=&omap44xx_l3_main_2_hwmod,
-> +	.clk		= "l3_div_ck",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_class_sysconfig omap44xx_usb_host_hs_sysc = {
-> +	.rev_offs	= 0x0000,
-> +	.sysc_offs	= 0x0010,
-> +	.syss_offs	= 0x0014,
-> +	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +				SIDLE_SMART_WKUP | MSTANDBY_FORCE |
-> +				MSTANDBY_NO | MSTANDBY_SMART |
-> +				MSTANDBY_SMART_WKUP),
-
-Minor, but it should be:
-+       .idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+                          SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
-+                          MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
-
-> +	.sysc_fields	=&omap_hwmod_sysc_type2,
-> +};
-> +
-> +static struct omap_hwmod_class omap44xx_usb_host_hs_hwmod_class = {
-> +	.name = "usbhs_uhh",
-> +	.sysc =&omap44xx_usb_host_hs_sysc,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap44xx_usb_host_hs_masters[] = {
-> +	&omap44xx_usb_host_hs__l3_main_2,
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap44xx_usb_host_hs_addrs[] = {
-> +	{
-> +		.name		= "uhh",
-
-In general, there is no name for unique entry. And if you need a name, you should find something relevant considering this is local to the hwmod.
-
-> +		.pa_start	= 0x4a064000,
-> +		.pa_end		= 0x4a0647ff,
-> +		.flags		= ADDR_TYPE_RT
-> +	},
-> +	{} /* Terminating Entry */
-
-That comment is useless. Paul added one space inside the terminator as well.
-
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_host_hs = {
-> +	.master		=&omap44xx_l4_cfg_hwmod,
-> +	.slave		=&omap44xx_usb_host_hs_hwmod,
-> +	.clk		= "l4_div_ck",
-> +	.addr		= omap44xx_usb_host_hs_addrs,
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap44xx_usb_host_hs_slaves[] = {
-> +	&omap44xx_l4_cfg__usb_host_hs,
-> +};
-> +
-> +static struct omap_hwmod omap44xx_usb_host_hs_hwmod = {
-> +	.name		= "usbhs_uhh",
-> +	.class		=&omap44xx_usb_host_hs_hwmod_class,
-> +	.clkdm_name	= "l3_init_clkdm",
-> +	.main_clk	= "usb_host_hs_fck",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = OMAP4_CM_L3INIT_USB_HOST_CLKCTRL_OFFSET,
-> +			.context_offs = OMAP4_RM_L3INIT_USB_HOST_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +	.slaves		= omap44xx_usb_host_hs_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_host_hs_slaves),
-> +	.masters	= omap44xx_usb_host_hs_masters,
-> +	.masters_cnt	= ARRAY_SIZE(omap44xx_usb_host_hs_masters),
-> +	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-> +};
-> +
-> +/* 'usbhs_ohci' class */
-> +static struct omap_hwmod_class omap44xx_usbhs_ohci_hwmod_class = {
-> +	.name = "usbhs_ohci",
-
-In the context of devicetree and considering what Felipe did for the USB3, I'm wondering if you should define hwmods for ohci and ehci.
-I'm not 100% sure it will apply here, but cannot you add the register entries inside the usb_host_hs hwmod and create the devices using that?
-
-There is no PRCM entry for them so they do not need to be omap_device.
-
-> +};
-> +
-> +static struct omap_hwmod_irq_info omap44xx_usbhs_ohci_irqs[] = {
-> +	{ .name = "ohci-irq", .irq = 76 + OMAP44XX_IRQ_GIC_START },
-
-Same comment that before about address space name.
-
-> +	{ .irq = -1 } /* Terminating IRQ */
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap44xx_usbhs_ohci_addrs[] = {
-> +	{
-> +		.name		= "ohci",
-
-Same comment than before.
-
-> +		.pa_start	= 0x4A064800,
-> +		.pa_end		= 0x4A064BFF,
-> +		.flags		= ADDR_MAP_ON_INIT
-
-Why do you need that flag?
-
-> +	},
-> +	{}
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usbhs_ohci = {
-> +	.master		=&omap44xx_l4_cfg_hwmod,
-> +	.slave		=&omap44xx_usbhs_ohci_hwmod,
-> +	.clk		= "l4_div_ck",
-> +	.addr		= omap44xx_usbhs_ohci_addrs,
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap44xx_usbhs_ohci_slaves[] = {
-> +	&omap44xx_l4_cfg__usbhs_ohci,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap44xx_usbhs_ohci_masters[] = {
-> +	&omap44xx_usb_host_hs__l3_main_2,
-> +};
-> +
-> +static struct omap_hwmod omap44xx_usbhs_ohci_hwmod = {
-> +	.name		= "usbhs_ohci",
-> +	.class		=&omap44xx_usbhs_ohci_hwmod_class,
-> +	.clkdm_name	= "l3_init_clkdm",
-> +	.mpu_irqs	= omap44xx_usbhs_ohci_irqs,
-> +	.slaves		= omap44xx_usbhs_ohci_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_usbhs_ohci_slaves),
-> +	.masters	= omap44xx_usbhs_ohci_masters,
-> +	.masters_cnt	= ARRAY_SIZE(omap44xx_usbhs_ohci_masters),
-
-Assuming you need hwmod entries for that, these master entries are useless and probably wrong.
-The TRM just documents 2 ports for usb_host_hs and 1 port for usb_tll_hs.
-
-You will still need the slave for the address space.
-
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-> +	.flags		= HWMOD_INIT_NO_RESET | HWMOD_NO_IDLEST,
-> +};
-> +
-> +/* 'usbhs_ehci' class */
-> +static struct omap_hwmod_class omap44xx_usbhs_ehci_hwmod_class = {
-> +	.name = "usbhs_ehci",
-> +};
-> +
-> +static struct omap_hwmod_irq_info omap44xx_usbhs_ehci_irqs[] = {
-> +	{ .name = "ehci-irq", .irq = 77 + OMAP44XX_IRQ_GIC_START },
-> +	{ .irq = -1 } /* Terminating IRQ */
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap44xx_usbhs_ehci_addrs[] = {
-> +	{
-> +		.name		= "ehci",
-> +		.pa_start	= 0x4A064C00,
-> +		.pa_end		= 0x4A064FFF,
-> +		.flags		= ADDR_MAP_ON_INIT
-> +	},
-> +	{} /* Terminating Entry */
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usbhs_ehci = {
-> +	.master		=&omap44xx_l4_cfg_hwmod,
-> +	.slave		=&omap44xx_usbhs_ehci_hwmod,
-> +	.clk		= "l4_div_ck",
-> +	.addr		= omap44xx_usbhs_ehci_addrs,
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap44xx_usbhs_ehci_slaves[] = {
-> +	&omap44xx_l4_cfg__usbhs_ehci,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap44xx_usbhs_ehci_masters[] = {
-> +	&omap44xx_usb_host_hs__l3_main_2,
-> +};
-> +
-> +
-> +static struct omap_hwmod omap44xx_usbhs_ehci_hwmod = {
-> +	.name		= "usbhs_ehci",
-> +	.class		=&omap44xx_usbhs_ehci_hwmod_class,
-> +	.clkdm_name	= "l3_init_clkdm",
-> +	.mpu_irqs	= omap44xx_usbhs_ehci_irqs,
-> +	.slaves		= omap44xx_usbhs_ehci_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_usbhs_ehci_slaves),
-> +	.masters	= omap44xx_usbhs_ehci_masters,
-> +	.masters_cnt	= ARRAY_SIZE(omap44xx_usbhs_ehci_masters),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-> +	.flags		= HWMOD_INIT_NO_RESET | HWMOD_NO_IDLEST,
-> +};
-> +
-> +/*
-> + * 'usb_tll_hs' class
-> + * usb_tll_hs module is the adapter on the usb_host_hs ports
-> + */
-> +static struct omap_hwmod_class_sysconfig omap44xx_usb_tll_hs_sysc = {
-> +	.rev_offs	= 0x0000,
-> +	.sysc_offs	= 0x0010,
-> +	.syss_offs	= 0x0014,
-> +	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
-> +				SYSC_HAS_SOFTRESET | SYSC_HAS_ENAWAKEUP	|
-> +				SYSC_HAS_CLOCKACTIVITY),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.sysc_fields	=&omap_hwmod_sysc_type1,
-> +};
-> +
-> +static struct omap_hwmod_class omap44xx_usb_tll_hs_hwmod_class = {
-> +	.name = "usbhs_tll",
-> +	.sysc =&omap44xx_usb_tll_hs_sysc,
-> +};
-> +
-> +static struct omap_hwmod_irq_info omap44xx_usb_tll_hs_irqs[] = {
-> +	{ .name = "tll-irq", .irq = 78 + OMAP44XX_IRQ_GIC_START },
-> +	{ .irq = -1 } /* Terminating IRQ */
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap44xx_usb_tll_hs_addrs[] = {
-> +	{
-> +		.name		= "tll",
-> +		.pa_start	= 0x4a062000,
-> +		.pa_end		= 0x4a063fff,
-> +		.flags		= ADDR_TYPE_RT
-> +	},
-> +	{} /* Terminating Entry */
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_tll_hs = {
-> +	.master		=&omap44xx_l4_cfg_hwmod,
-> +	.slave		=&omap44xx_usb_tll_hs_hwmod,
-> +	.clk		= "l4_div_ck",
-> +	.addr		= omap44xx_usb_tll_hs_addrs,
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap44xx_usb_tll_hs_slaves[] = {
-> +	&omap44xx_l4_cfg__usb_tll_hs,
-> +};
-> +
-> +static struct omap_hwmod omap44xx_usb_tll_hs_hwmod = {
-> +	.name		= "usbhs_tll",
-> +	.class		=&omap44xx_usb_tll_hs_hwmod_class,
-> +	.clkdm_name	= "l3_init_clkdm",
-> +	.mpu_irqs	= omap44xx_usb_tll_hs_irqs,
-> +	.main_clk	= "usb_tll_hs_ick",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = OMAP4_CM_L3INIT_USB_TLL_CLKCTRL_OFFSET,
-> +			.context_offs = OMAP4_RM_L3INIT_USB_TLL_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_HWCTRL,
-> +		},
-> +	},
-> +	.slaves		= omap44xx_usb_tll_hs_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_tll_hs_slaves),
-> +	.flags		= HWMOD_SWSUP_SIDLE,
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-> +};
-> +
->   static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+> "It is SW responsibility to program interrupt enabling/disabling
+> coherently in the GIC and in the Wugen enable registers. That is, a
+> given interrupt for a given CPU is either enable at both GIC and Wugen,
+> or disable at both, but no mix."
+> -------------------------------------
+>
+> The way understand this IP is, even in normal scenario's every IRQ
+> will come to wakeupgen and then it will pass that to GIC. CPU clock
+> domains are kept under HW supervised always and they can enter inactive
+> any time without WFI. Only wakeup gen can bring the CPU out of inactive
+> state.
 > 
->   	/* dmm class */
-> @@ -5482,6 +5725,10 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
->   	&omap44xx_wd_timer2_hwmod,
->   	&omap44xx_wd_timer3_hwmod,
+> That's requirement really lead to this design choice. Just to add
+> all ARM SOC's using GIC has a gic extension interrupt controller and
+> follow the same approach for the secondary IRQCHIPO.
+
+Thanks for the clarification. It seems to me the spec is most likely
+wrong as we've had the GIC working for over two years now without
+doing anything with the wakeup gen registers :)
+
+Of course the wakeup events probably don't work currently, but the
+GIC interrupts certainly do. So most likely there's no need to
+continuously syncronize the wakeup gen registers with the GIC
+registers.
+ 
+> Below points as such don't matter after the strict hardware
+> requirement. Still .....
+
+I think the issue is that you're assuming the spec is correct,
+which does not seem to be the case here. 
+ 
+> Let's say, we ignore the hardware recommendation and try
+> to do what you are suggesting.
 > 
-> +	&omap44xx_usb_host_hs_hwmod,
-> +	&omap44xx_usbhs_ohci_hwmod,
-> +	&omap44xx_usbhs_ehci_hwmod,
-> +	&omap44xx_usb_tll_hs_hwmod,
+> How will you know while entering in idle which IRQ's to be
+> masked and which are to be unmasked ?
+> The only way is to run though entire 1024 possible IRQ's from GIC
+> and then check the state of each IRQ and set things accordingly.
+> At GIC level, mask and unmask registers are different so you will
+> end up reading those many registers. That also means you need to
+> export some non-standard APIs from GIC driver.
 
-This list is ordered, so it should be something like that: 
+When entering idle, we have plenty of time to do that. Sounds like
+that could be easily implemented in a generic way.
+ 
+> In system wide suspend, the core irq code, communicates
+> the wakeup and non-wakeup functionality using standard mask/
+> unmask APIs when used with IRQCHIP_MASK_ON_SUSPEND.
+> With what you are suggesting it won't work
+> as desired. Because that information is only passed
+> to the IRQ chips. So you will still need IRQCHIP and
+> mask/unmask APIs. That can be done as part of set_wake()
+> handler as well though.
+> 
+> The wakeupgen is within CPU cluster and the accesses
+> to it are not as expensive as like accessing 32 K timer or
+> GP timer.
 
-        &omap44xx_uart3_hwmod,
-        &omap44xx_uart4_hwmod,
+Sure, but it still causes unnecesary writes for every interrupt.
+There's no technical reason to do that.
 
-+       /* usb_host_hs class */
-+	&omap44xx_usb_host_hs_hwmod,
-+
-        /* usb_otg_hs class */
-        &omap44xx_usb_otg_hs_hwmod,
+> By making the wakeupgen as an IRQCHIP, we meet the hardware
+> requirement and also make use of this IP properly for the
+> desired functionality using standard IRQCHIP interfaces
+> No need of non-standard hacking.
 
-+       /* usb_tll_hs class */
-+	&omap44xx_usb_tll_hs_hwmod,
-+
-        /* wd_timer class */
-        &omap44xx_wd_timer2_hwmod,
-        &omap44xx_wd_timer3_hwmod,
+Well it seems the "hardware requirement" is based on a buggy
+spec considering things are currently working.
+ 
+> It also avoid platform code monkeing with common GIC code
+> and irq subsystem to hack the stuff.
+
+What I'm suggesting can be implemented in a generic way.
+ 
+> Btw, not exactly related here, but because of common code
+> consolidation, we need to actually use GIC common
+> save/restore hooks, even though OMAP has very
+> optimal software save and hardware restore mechanism
+> for GIC.
+> 
+> Hope this email summarise all previous multiple discussions
+> in one place.
+
+Thanks, but unfortunately it does not. To me it still seems
+this is the wrong approach for the wakeup triggers.
 
 Regards,
-Benoit
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Tony
