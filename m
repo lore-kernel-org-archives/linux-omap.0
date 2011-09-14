@@ -1,169 +1,240 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v3 1/6] OMAP3: id: remove identification codes that only
-	correspond to marketing names
-Date: Wed, 14 Sep 2011 15:58:08 -0600
-Message-ID: <20110914215804.4790.43237.stgit@dusk>
+Subject: [PATCH v3 5/6] OMAP3: id: remove duplicate code for testing SoC ES
+	level
+Date: Wed, 14 Sep 2011 15:58:22 -0600
+Message-ID: <20110914215818.4790.1748.stgit@dusk>
 References: <20110914215512.4790.34446.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36455 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:36477 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874Ab1INV72 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 17:59:28 -0400
+	with ESMTP id S1757472Ab1INV73 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 17:59:29 -0400
 In-Reply-To: <20110914215512.4790.34446.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Abhilash Koyamangalath <abhilash.kv@ti.com>, Sanjeev Premi <premi@ti.com>, Igor Grinberg <grinberg@compulab.co.il>
+Cc: Abhilash Koyamangalath <abhilash.kv@ti.com>, Igor Grinberg <grinberg@compulab.co.il>
 
-The OMAP3505/AM3505 appears to be based on the same silicon as the
-OMAP3517/AM3517, with some features disabled via eFuse bits.  Follow
-the same practice as OMAP3430 and identify these devices internally as
-part of the OMAP3517/AM3517 family.
-
-The OMAP3503/3515/3525/3530 chips appear to be based on the same silicon
-as the OMAP3430, with some features disabled via eFuse bits.  Identify
-these devices internally as part of the OMAP3430 family.
-
-Remove the old OMAP35XX_CLASS, which actually covered two very different
-chip families.  The OMAP3503/3515/3525/3530 chips will now be covered by
-OMAP343X_CLASS, since the silicon appears to be identical.  For the
-OMAP3517/AM3517 family, create a new class, OMAP3517_CLASS.
-
-Thanks to Tony Lindgren <tony@atomide.com> for some help with the second
-revision of this patch.
+omap3_cpuinfo() contains essentially duplicated code from
+omap3_check_revision(), just for the purpose of determining the chip ES level.
+Set the cpu_rev char array pointer in omap3_check_revision() instead,
+and drop the now-useless code from omap3_cpuinfo().
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Sanjeev Premi <premi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
 Tested-by: Igor Grinberg <grinberg@compulab.co.il>
 Tested-by: Abhilash Koyamangalath <abhilash.kv@ti.com>
 ---
- arch/arm/mach-omap2/clock3xxx_data.c  |   11 ++++++++++-
- arch/arm/mach-omap2/id.c              |   19 +++++++------------
- arch/arm/plat-omap/include/plat/cpu.h |   14 +++++---------
- 3 files changed, 22 insertions(+), 22 deletions(-)
+ arch/arm/mach-omap2/id.c |   80 +++++++++++++---------------------------------
+ 1 files changed, 23 insertions(+), 57 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index b9b8446..dadb8c6 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3472,7 +3472,16 @@ int __init omap3xxx_clk_init(void)
- 	struct omap_clk *c;
- 	u32 cpu_clkflg = 0;
- 
--	if (cpu_is_omap3517()) {
-+	/*
-+	 * 3505 must be tested before 3517, since 3517 returns true
-+	 * for both AM3517 chips and AM3517 family chips, which
-+	 * includes 3505.  Unfortunately there's no obvious family
-+	 * test for 3517/3505 :-(
-+	 */
-+	if (cpu_is_omap3505()) {
-+		cpu_mask = RATE_IN_34XX;
-+		cpu_clkflg = CK_3505;
-+	} else if (cpu_is_omap3517()) {
- 		cpu_mask = RATE_IN_34XX;
- 		cpu_clkflg = CK_3517;
- 	} else if (cpu_is_omap3505()) {
 diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 37efb86..3f3f998 100644
+index 3f4a0d0..ed1d439 100644
 --- a/arch/arm/mach-omap2/id.c
 +++ b/arch/arm/mach-omap2/id.c
-@@ -304,14 +304,15 @@ static void __init omap3_check_revision(void)
+@@ -242,7 +242,7 @@ static void __init ti816x_check_features(void)
+ 	omap_features = OMAP3_HAS_NEON;
+ }
+ 
+-static void __init omap3_check_revision(void)
++static void __init omap3_check_revision(const char **cpu_rev)
+ {
+ 	u32 cpuid, idcode;
+ 	u16 hawkeye;
+@@ -259,6 +259,7 @@ static void __init omap3_check_revision(void)
+ 	if ((((cpuid >> 4) & 0xfff) == 0xc08) && ((cpuid & 0xf) == 0x0)) {
+ 		omap_revision = OMAP3430_REV_ES1_0;
+ 		omap_chip.oc |= CHIP_IS_OMAP3430ES1;
++		*cpu_rev = "1.0";
+ 		return;
+ 	}
+ 
+@@ -280,18 +281,22 @@ static void __init omap3_check_revision(void)
+ 		case 1:
+ 			omap_revision = OMAP3430_REV_ES2_0;
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
++			*cpu_rev = "2.0";
+ 			break;
+ 		case 2:
+ 			omap_revision = OMAP3430_REV_ES2_1;
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
++			*cpu_rev = "2.1";
+ 			break;
+ 		case 3:
+ 			omap_revision = OMAP3430_REV_ES3_0;
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_0;
++			*cpu_rev = "3.0";
+ 			break;
+ 		case 4:
+ 			omap_revision = OMAP3430_REV_ES3_1;
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
++			*cpu_rev = "3.1";
+ 			break;
+ 		case 7:
+ 		/* FALLTHROUGH */
+@@ -301,6 +306,7 @@ static void __init omap3_check_revision(void)
+ 
+ 			/* REVISIT: Add CHIP_IS_OMAP3430ES3_1_2? */
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
++			*cpu_rev = "3.1.2";
  		}
  		break;
  	case 0xb868:
--		/* Handle OMAP35xx/AM35xx devices
-+		/*
-+		 * Handle OMAP/AM 3505/3517 devices
- 		 *
--		 * Set the device to be OMAP3505 here. Actual device
-+		 * Set the device to be OMAP3517 here. Actual device
- 		 * is identified later based on the features.
- 		 *
- 		 * REVISIT: AM3505/AM3517 should have their own CHIP_IS
- 		 */
--		omap_revision = OMAP3505_REV(rev);
-+		omap_revision = OMAP3517_REV(rev);
+@@ -315,11 +321,13 @@ static void __init omap3_check_revision(void)
+ 		switch (rev) {
+ 		case 0:
+ 			omap_revision = OMAP3517_REV_ES1_0;
++			*cpu_rev = "1.0";
+ 			break;
+ 		case 1:
+ 		/* FALLTHROUGH */
+ 		default:
+ 			omap_revision = OMAP3517_REV_ES1_1;
++			*cpu_rev = "1.1";
+ 		}
  		omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
  		break;
- 	case 0xb891:
-@@ -438,30 +439,24 @@ static void __init omap3_cpuinfo(void)
- 	 */
- 	if (cpu_is_omap3630()) {
- 		strcpy(cpu_name, "OMAP3630");
--	} else if (cpu_is_omap3505()) {
-+	} else if (cpu_is_omap3517()) {
- 		/*
- 		 * AM35xx devices
- 		 */
--		if (omap3_has_sgx()) {
--			omap_revision = OMAP3517_REV(rev);
-+		if (omap3_has_sgx())
- 			strcpy(cpu_name, "AM3517");
--		} else {
--			/* Already set in omap3_check_revision() */
-+		else
- 			strcpy(cpu_name, "AM3505");
--		}
- 	} else if (cpu_is_ti816x()) {
- 		strcpy(cpu_name, "TI816X");
- 	} else if (omap3_has_iva() && omap3_has_sgx()) {
- 		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
- 		strcpy(cpu_name, "OMAP3430/3530");
- 	} else if (omap3_has_iva()) {
--		omap_revision = OMAP3525_REV(rev);
- 		strcpy(cpu_name, "OMAP3525");
- 	} else if (omap3_has_sgx()) {
--		omap_revision = OMAP3515_REV(rev);
- 		strcpy(cpu_name, "OMAP3515");
- 	} else {
--		omap_revision = OMAP3503_REV(rev);
- 		strcpy(cpu_name, "OMAP3503");
+@@ -330,16 +338,19 @@ static void __init omap3_check_revision(void)
+ 		switch(rev) {
+ 		case 0: /* Take care of early samples */
+ 			omap_revision = OMAP3630_REV_ES1_0;
++			*cpu_rev = "1.0";
+ 			break;
+ 		case 1:
+ 			omap_revision = OMAP3630_REV_ES1_1;
+ 			omap_chip.oc |= CHIP_IS_OMAP3630ES1_1;
++			*cpu_rev = "1.1";
+ 			break;
+ 		case 2:
+ 		/* FALLTHROUGH */
+ 		default:
+ 			omap_revision = OMAP3630_REV_ES1_2;
+ 			omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
++			*cpu_rev = "1.2";
+ 		}
+ 		break;
+ 	case 0xb81e:
+@@ -348,17 +359,21 @@ static void __init omap3_check_revision(void)
+ 		switch (rev) {
+ 		case 0:
+ 			omap_revision = TI8168_REV_ES1_0;
++			*cpu_rev = "1.0";
+ 			break;
+ 		case 1:
+ 		/* FALLTHROUGH */
+ 		default:
+ 			omap_revision = TI8168_REV_ES1_1;
++			*cpu_rev = "1.1";
++			break;
+ 		}
+ 		break;
+ 	default:
+ 		/* Unknown default to latest silicon rev as default */
+-		omap_revision =  OMAP3630_REV_ES1_2;
++		omap_revision = OMAP3630_REV_ES1_2;
+ 		omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
++		*cpu_rev = "1.2";
+ 		pr_warn("Warning: unknown chip type; assuming OMAP3630ES1.2\n");
+ 	}
+ }
+@@ -435,10 +450,9 @@ static void __init omap4_check_revision(void)
+ 	if (omap3_has_ ##feat())		\
+ 		printk(#feat" ");
+ 
+-static void __init omap3_cpuinfo(void)
++static void __init omap3_cpuinfo(const char *cpu_rev)
+ {
+-	u8 rev = GET_OMAP_REVISION();
+-	const char *cpu_name, *cpu_rev;
++	const char *cpu_name;
+ 
+ 	/*
+ 	 * OMAP3430 and OMAP3530 are assumed to be same.
+@@ -465,56 +479,6 @@ static void __init omap3_cpuinfo(void)
+ 		cpu_name = "OMAP3503";
  	}
  
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 67b3d75..34df171 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -262,7 +262,7 @@ IS_OMAP_TYPE(2422, 0x2422)
- IS_OMAP_TYPE(2423, 0x2423)
- IS_OMAP_TYPE(2430, 0x2430)
- IS_OMAP_TYPE(3430, 0x3430)
--IS_OMAP_TYPE(3505, 0x3505)
-+IS_OMAP_TYPE(3505, 0x3517)
- IS_OMAP_TYPE(3517, 0x3517)
+-	if (cpu_is_omap3630() || cpu_is_ti816x()) {
+-		switch (rev) {
+-		case OMAP_REVBITS_00:
+-			cpu_rev = "1.0";
+-			break;
+-		case OMAP_REVBITS_01:
+-			cpu_rev = "1.1";
+-			break;
+-		case OMAP_REVBITS_02:
+-			/* FALLTHROUGH */
+-		default:
+-			/* Use the latest known revision as default */
+-			cpu_rev = "1.2";
+-		}
+-	} else if (cpu_is_omap3505() || cpu_is_omap3517()) {
+-		switch (rev) {
+-		case OMAP_REVBITS_00:
+-			cpu_rev = "1.0";
+-			break;
+-		case OMAP_REVBITS_01:
+-			/* FALLTHROUGH */
+-		default:
+-			/* Use the latest known revision as default */
+-			cpu_rev = "1.1";
+-		}
+-	} else {
+-		switch (rev) {
+-		case OMAP_REVBITS_00:
+-			cpu_rev = "1.0";
+-			break;
+-		case OMAP_REVBITS_01:
+-			cpu_rev = "2.0";
+-			break;
+-		case OMAP_REVBITS_02:
+-			cpu_rev = "2.1";
+-			break;
+-		case OMAP_REVBITS_03:
+-			cpu_rev = "3.0";
+-			break;
+-		case OMAP_REVBITS_04:
+-			cpu_rev = "3.1";
+-			break;
+-		case OMAP_REVBITS_05:
+-			/* FALLTHROUGH */
+-		default:
+-			/* Use the latest known revision as default */
+-			cpu_rev = "3.1.2";
+-		}
+-	}
+-
+ 	/* Print verbose information */
+ 	pr_info("%s ES%s (", cpu_name, cpu_rev);
  
- #define cpu_is_omap310()		0
-@@ -354,8 +354,9 @@ IS_OMAP_TYPE(3517, 0x3517)
- 						(!omap3_has_sgx()) &&	\
- 						(omap3_has_iva()))
- # define cpu_is_omap3530()		(cpu_is_omap3430())
--# define cpu_is_omap3505()		is_omap3505()
- # define cpu_is_omap3517()		is_omap3517()
-+# define cpu_is_omap3505()		(cpu_is_omap3517() &&		\
-+						!omap3_has_sgx())
- # undef cpu_is_omap3630
- # define cpu_is_omap3630()		is_omap363x()
- # define cpu_is_ti816x()		is_ti816x()
-@@ -397,13 +398,8 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define OMAP3630_REV_ES1_1	(OMAP363X_CLASS | (OMAP_REVBITS_01 << 8))
- #define OMAP3630_REV_ES1_2	(OMAP363X_CLASS | (OMAP_REVBITS_02 << 8))
+@@ -533,6 +497,8 @@ static void __init omap3_cpuinfo(void)
+  */
+ void __init omap2_check_revision(void)
+ {
++	const char *cpu_rev;
++
+ 	/*
+ 	 * At this point we have an idea about the processor revision set
+ 	 * earlier with omap2_set_globals_tap().
+@@ -540,7 +506,7 @@ void __init omap2_check_revision(void)
+ 	if (cpu_is_omap24xx()) {
+ 		omap24xx_check_revision();
+ 	} else if (cpu_is_omap34xx()) {
+-		omap3_check_revision();
++		omap3_check_revision(&cpu_rev);
  
--#define OMAP35XX_CLASS		0x35000034
--#define OMAP3503_REV(v)		(OMAP35XX_CLASS | (0x3503 << 16) | (v << 8))
--#define OMAP3515_REV(v)		(OMAP35XX_CLASS | (0x3515 << 16) | (v << 8))
--#define OMAP3525_REV(v)		(OMAP35XX_CLASS | (0x3525 << 16) | (v << 8))
--#define OMAP3530_REV(v)		(OMAP35XX_CLASS | (0x3530 << 16) | (v << 8))
--#define OMAP3505_REV(v)		(OMAP35XX_CLASS | (0x3505 << 16) | (v << 8))
--#define OMAP3517_REV(v)		(OMAP35XX_CLASS | (0x3517 << 16) | (v << 8))
-+#define OMAP3517_CLASS		0x35170034
-+#define OMAP3517_REV(v)		(OMAP3517_CLASS | (v << 8))
+ 		/* TI816X doesn't have feature register */
+ 		if (!cpu_is_ti816x())
+@@ -548,7 +514,7 @@ void __init omap2_check_revision(void)
+ 		else
+ 			ti816x_check_features();
  
- #define TI816X_CLASS		0x81600034
- #define TI8168_REV_ES1_0	TI816X_CLASS
+-		omap3_cpuinfo();
++		omap3_cpuinfo(cpu_rev);
+ 		return;
+ 	} else if (cpu_is_omap44xx()) {
+ 		omap4_check_revision();
 
 
