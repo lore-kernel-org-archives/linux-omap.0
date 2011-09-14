@@ -1,36 +1,36 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 3/4] OMAP: powerdomain: split pwrdm_init() into two
-	functions
-Date: Wed, 14 Sep 2011 16:45:13 -0600
-Message-ID: <20110914224509.12067.18383.stgit@dusk>
+Subject: [PATCH v2 1/4] OMAP: clockdomain: split clkdm_init()
+Date: Wed, 14 Sep 2011 16:45:05 -0600
+Message-ID: <20110914224500.12067.2349.stgit@dusk>
 References: <20110914220723.12067.99495.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55759 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55755 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066Ab1INWrb (ORCPT
+	with ESMTP id S1751020Ab1INWrb (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 18:47:31 -0400
 In-Reply-To: <20110914220723.12067.99495.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-In preparation for OMAP_CHIP() removal, split pwrdm_init() into three
+In preparation for OMAP_CHIP() removal, split clkdm_init() into four
 functions.  This allows some of them to be called multiple times: for
-example, pwrdm_register_pwrdms() can be called once to register
-powerdomains that are common to a group of SoCs, and once to register
-powerdomains that are specific to a single SoC.
+example, clkdm_register_clkdms() can be called once to register
+clockdomains that are common to a group of SoCs, and once to register
+clockdomains that are specific to a single SoC.
 
 The appropriate order to call these functions - which is enforced
 by the code - is:
 
-1. pwrdm_register_platform_funcs()
-2. pwrdm_register_pwrdms() (can be called multiple times)
-3. pwrdm_complete_init()
+1. clkdm_register_platform_funcs()
+2. clkdm_register_clkdms() (can be called multiple times)
+3. clkdm_register_autodeps() (optional; deprecated)
+4. clkdm_complete_init()
 
-Convert the OMAP2, 3, and 4 powerdomain init code to use these new
+Convert the OMAP2, 3, and 4 clockdomain init code to use these new
 functions.
 
 While here, improve documentation, and increase CodingStyle
@@ -38,177 +38,229 @@ conformance by shortening some local variable names.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/powerdomain.c           |   84 ++++++++++++++++++++-------
- arch/arm/mach-omap2/powerdomain.h           |    4 +
- arch/arm/mach-omap2/powerdomains2xxx_data.c |    4 +
- arch/arm/mach-omap2/powerdomains3xxx_data.c |    4 +
- arch/arm/mach-omap2/powerdomains44xx_data.c |    4 +
- 5 files changed, 74 insertions(+), 26 deletions(-)
+ arch/arm/mach-omap2/clockdomain.c                |  130 +++++++++++++++++-----
+ arch/arm/mach-omap2/clockdomain.h                |    7 +
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   13 ++
+ arch/arm/mach-omap2/clockdomains44xx_data.c      |    5 +
+ 4 files changed, 121 insertions(+), 34 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index ef71fdd..3483537 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -1,7 +1,7 @@
- /*
-  * OMAP powerdomain control
-  *
-- * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * Copyright (C) 2007-2008, 2011 Texas Instruments, Inc.
-  * Copyright (C) 2007-2011 Nokia Corporation
-  *
-  * Written by Paul Walmsley
-@@ -194,36 +194,76 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 8f08906..b73a1dc 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -257,43 +257,113 @@ static void _resolve_clkdm_deps(struct clockdomain *clkdm,
  /* Public functions */
  
  /**
-- * pwrdm_init - set up the powerdomain layer
-- * @pwrdms: array of struct powerdomain pointers to register
+- * clkdm_init - set up the clockdomain layer
+- * @clkdms: optional pointer to an array of clockdomains to register
+- * @init_autodeps: optional pointer to an array of autodeps to register
 - * @custom_funcs: func pointers for arch specific implementations
-+ * pwrdm_register_platform_funcs - register powerdomain implementation fns
-+ * @po: func pointers for arch specific implementations
-  *
-- * Loop through the array of powerdomains @pwrdms, registering all
-- * that are available on the current CPU.  Also, program all
-- * powerdomain target state as ON; this is to prevent domains from
-- * hitting low power states (if bootloader has target states set to
-- * something other than ON) and potentially even losing context while
-- * PM is not fully initialized.  The PM late init code can then program
-- * the desired target state for all the power domains.  No return
-- * value.
+- *
+- * Set up internal state.  If a pointer to an array of clockdomains
+- * @clkdms was supplied, loop through the list of clockdomains,
+- * register all that are available on the current platform. Similarly,
+- * if a pointer to an array of clockdomain autodependencies
+- * @init_autodeps was provided, register those.  No return value.
++ * clkdm_register_platform_funcs - register clockdomain implementation fns
++ * @co: func pointers for arch specific implementations
++ *
 + * Register the list of function pointers used to implement the
-+ * powerdomain functions on different OMAP SoCs.  Should be called
-+ * before any other pwrdm_register*() function.  Returns -EINVAL if
-+ * @po is null, -EEXIST if platform functions have already been
++ * clockdomain functions on different OMAP SoCs.  Should be called
++ * before any other clkdm_register*() function.  Returns -EINVAL if
++ * @co is null, -EEXIST if platform functions have already been
 + * registered, or 0 upon success.
-  */
--void pwrdm_init(struct powerdomain **pwrdms, struct pwrdm_ops *custom_funcs)
-+int pwrdm_register_platform_funcs(struct pwrdm_ops *po)
++ */
++int clkdm_register_platform_funcs(struct clkdm_ops *co)
 +{
-+	if (!po)
++	if (!co)
 +		return -EINVAL;
 +
-+	if (arch_pwrdm)
++	if (arch_clkdm)
 +		return -EEXIST;
 +
-+	arch_pwrdm = po;
++	arch_clkdm = co;
 +
 +	return 0;
-+}
++};
 +
 +/**
-+ * pwrdm_register_pwrdms - register SoC powerdomains
-+ * @ps: pointer to an array of struct powerdomain to register
++ * clkdm_register_clkdms - register SoC clockdomains
++ * @cs: pointer to an array of struct clockdomain to register
 + *
-+ * Register the powerdomains available on a particular OMAP SoC.  Must
-+ * be called after pwrdm_register_platform_funcs().  May be called
++ * Register the clockdomains available on a particular OMAP SoC.  Must
++ * be called after clkdm_register_platform_funcs().  May be called
 + * multiple times.  Returns -EACCES if called before
-+ * pwrdm_register_platform_funcs(); -EINVAL if the argument @ps is
++ * clkdm_register_platform_funcs(); -EINVAL if the argument @cs is
 + * null; or 0 upon success.
-+ */
-+int pwrdm_register_pwrdms(struct powerdomain **ps)
+  */
+-void clkdm_init(struct clockdomain **clkdms,
+-		struct clkdm_autodep *init_autodeps,
+-		struct clkdm_ops *custom_funcs)
++int clkdm_register_clkdms(struct clockdomain **cs)
  {
- 	struct powerdomain **p = NULL;
--	struct powerdomain *temp_p;
+ 	struct clockdomain **c = NULL;
+-	struct clockdomain *clkdm;
+-	struct clkdm_autodep *autodep = NULL;
  
 -	if (!custom_funcs)
--		WARN(1, "powerdomain: No custom pwrdm functions registered\n");
+-		WARN(1, "No custom clkdm functions registered\n");
 -	else
--		arch_pwrdm = custom_funcs;
-+	if (!arch_pwrdm)
-+		return -EEXIST;
- 
--	if (pwrdms) {
--		for (p = pwrdms; *p; p++)
--			_pwrdm_register(*p);
--	}
-+	if (!ps)
+-		arch_clkdm = custom_funcs;
++	if (!arch_clkdm)
++		return -EACCES;
++
++	if (!cs)
 +		return -EINVAL;
 +
-+	for (p = ps; *p; p++)
-+		_pwrdm_register(*p);
++	for (c = cs; *c; c++)
++		_clkdm_register(*c);
+ 
+-	if (clkdms)
+-		for (c = clkdms; *c; c++)
+-			_clkdm_register(*c);
++	return 0;
++}
++
++/**
++ * clkdm_register_autodeps - register autodeps (if required)
++ * @ia: pointer to a static array of struct clkdm_autodep to register
++ *
++ * Register clockdomain "automatic dependencies."  These are
++ * clockdomain wakeup and sleep dependencies that are automatically
++ * added whenever the first clock inside a clockdomain is enabled, and
++ * removed whenever the last clock inside a clockdomain is disabled.
++ * These are currently only used on OMAP3 devices, and are deprecated,
++ * since they waste energy.  However, until the OMAP2/3 IP block
++ * enable/disable sequence can be converted to match the OMAP4
++ * sequence, they are needed.
++ *
++ * Must be called only after all of the SoC clockdomains are
++ * registered, since the function will resolve autodep clockdomain
++ * names into clockdomain pointers.
++ *
++ * The struct clkdm_autodep @ia array must be static, as this function
++ * does not copy the array elements.
++ *
++ * Returns -EACCES if called before any clockdomains have been
++ * registered, -EINVAL if called with a null @ia argument, -EEXIST if
++ * autodeps have already been registered, or 0 upon success.
++ */
++int clkdm_register_autodeps(struct clkdm_autodep *ia)
++{
++	struct clkdm_autodep *a = NULL;
++
++	if (list_empty(&clkdm_list))
++		return -EACCES;
++
++	if (!ia)
++		return -EINVAL;
+ 
+-	autodeps = init_autodeps;
+ 	if (autodeps)
+-		for (autodep = autodeps; autodep->clkdm.ptr; autodep++)
+-			_autodep_lookup(autodep);
++		return -EEXIST;
++
++	autodeps = ia;
++	for (a = autodeps; a->clkdm.ptr; a++)
++		_autodep_lookup(a);
 +
 +	return 0;
 +}
 +
 +/**
-+ * pwrdm_complete_init - set up the powerdomain layer
++ * clkdm_complete_init - set up the clockdomain layer
 + *
-+ * Do whatever is necessary to initialize registered powerdomains and
-+ * powerdomain code.  Currently, this programs the next power state
-+ * for each powerdomain to ON.  This prevents powerdomains from
-+ * unexpectedly losing context or entering high wakeup latency modes
-+ * with non-power-management-enabled kernels.  Must be called after
-+ * pwrdm_register_pwrdms().  Returns -EACCES if called before
-+ * pwrdm_register_pwrdms(), or 0 upon success.
++ * Put all clockdomains into software-supervised mode; PM code should
++ * later enable hardware-supervised mode as appropriate.  Must be
++ * called after clkdm_register_clkdms().  Returns -EACCES if called
++ * before clkdm_register_clkdms(), or 0 upon success.
 + */
-+int pwrdm_complete_init(void)
++int clkdm_complete_init(void)
 +{
-+	struct powerdomain *temp_p;
++	struct clockdomain *clkdm;
 +
-+	if (list_empty(&pwrdm_list))
++	if (list_empty(&clkdm_list))
 +		return -EACCES;
  
- 	list_for_each_entry(temp_p, &pwrdm_list, node)
- 		pwrdm_set_next_pwrst(temp_p, PWRDM_POWER_ON);
+-	/*
+-	 * Put all clockdomains into software-supervised mode; PM code
+-	 * should later enable hardware-supervised mode as appropriate
+-	 */
+ 	list_for_each_entry(clkdm, &clkdm_list, node) {
+ 		if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
+ 			clkdm_wakeup(clkdm);
+@@ -306,6 +376,8 @@ void clkdm_init(struct clockdomain **clkdms,
+ 		_resolve_clkdm_deps(clkdm, clkdm->sleepdep_srcs);
+ 		clkdm_clear_all_sleepdeps(clkdm);
+ 	}
 +
 +	return 0;
  }
  
  /**
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index d23d979..489e1c5 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -162,7 +162,9 @@ struct pwrdm_ops {
- 	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 1e50c88..0d879ff 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -166,8 +166,11 @@ struct clkdm_ops {
+ 	int	(*clkdm_clk_disable)(struct clockdomain *clkdm);
  };
  
--void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_ops *custom_funcs);
-+int pwrdm_register_platform_funcs(struct pwrdm_ops *custom_funcs);
-+int pwrdm_register_pwrdms(struct powerdomain **pwrdm_list);
-+int pwrdm_complete_init(void);
+-void clkdm_init(struct clockdomain **clkdms, struct clkdm_autodep *autodeps,
+-			struct clkdm_ops *custom_funcs);
++int clkdm_register_platform_funcs(struct clkdm_ops *co);
++int clkdm_register_autodeps(struct clkdm_autodep *ia);
++int clkdm_register_clkdms(struct clockdomain **c);
++int clkdm_complete_init(void);
++
+ struct clockdomain *clkdm_lookup(const char *name);
  
- struct powerdomain *pwrdm_lookup(const char *name);
+ int clkdm_for_each(int (*fn)(struct clockdomain *clkdm, void *user),
+diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+index 13bde95..148a3e8 100644
+--- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
++++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+@@ -857,12 +857,21 @@ static struct clockdomain *clockdomains_omap2[] __initdata = {
+ 	NULL,
+ };
  
-diff --git a/arch/arm/mach-omap2/powerdomains2xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_data.c
-index cc389fb..71c4fd7 100644
---- a/arch/arm/mach-omap2/powerdomains2xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains2xxx_data.c
-@@ -119,5 +119,7 @@ static struct powerdomain *powerdomains_omap2xxx[] __initdata = {
- 
- void __init omap2xxx_powerdomains_init(void)
++static void __init omap2_3_clockdomains_init(void)
++{
++	clkdm_register_clkdms(clockdomains_omap2);
++	clkdm_register_autodeps(clkdm_autodeps);
++	clkdm_complete_init();
++}
++
+ void __init omap2xxx_clockdomains_init(void)
  {
--	pwrdm_init(powerdomains_omap2xxx, &omap2_pwrdm_operations);
-+	pwrdm_register_platform_funcs(&omap2_pwrdm_operations);
-+	pwrdm_register_pwrdms(powerdomains_omap2xxx);
-+	pwrdm_complete_init();
+-	clkdm_init(clockdomains_omap2, clkdm_autodeps, &omap2_clkdm_operations);
++	clkdm_register_platform_funcs(&omap2_clkdm_operations);
++	omap2_3_clockdomains_init();
  }
-diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-index 469a920..9d355fc 100644
---- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-@@ -283,5 +283,7 @@ static struct powerdomain *powerdomains_omap3xxx[] __initdata = {
  
- void __init omap3xxx_powerdomains_init(void)
+ void __init omap3xxx_clockdomains_init(void)
  {
--	pwrdm_init(powerdomains_omap3xxx, &omap3_pwrdm_operations);
-+	pwrdm_register_platform_funcs(&omap3_pwrdm_operations);
-+	pwrdm_register_pwrdms(powerdomains_omap3xxx);
-+	pwrdm_complete_init();
+-	clkdm_init(clockdomains_omap2, clkdm_autodeps, &omap3_clkdm_operations);
++	clkdm_register_platform_funcs(&omap3_clkdm_operations);
++	omap2_3_clockdomains_init();
  }
-diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
-index 247e794..67ac24b 100644
---- a/arch/arm/mach-omap2/powerdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
-@@ -352,5 +352,7 @@ static struct powerdomain *powerdomains_omap44xx[] __initdata = {
+diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-omap2/clockdomains44xx_data.c
+index dccc651..c75411a 100644
+--- a/arch/arm/mach-omap2/clockdomains44xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+@@ -685,7 +685,10 @@ static struct clockdomain *clockdomains_omap44xx[] __initdata = {
+ 	NULL
+ };
  
- void __init omap44xx_powerdomains_init(void)
++
+ void __init omap44xx_clockdomains_init(void)
  {
--	pwrdm_init(powerdomains_omap44xx, &omap4_pwrdm_operations);
-+	pwrdm_register_platform_funcs(&omap4_pwrdm_operations);
-+	pwrdm_register_pwrdms(powerdomains_omap44xx);
-+	pwrdm_complete_init();
+-	clkdm_init(clockdomains_omap44xx, NULL, &omap4_clkdm_operations);
++	clkdm_register_platform_funcs(&omap4_clkdm_operations);
++	clkdm_register_clkdms(clockdomains_omap44xx);
++	clkdm_complete_init();
  }
 
 
