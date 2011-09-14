@@ -1,64 +1,122 @@
-From: Santosh <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 02/25] OMAP4: Redefine mandatory barriers for OMAP to
- include interconnect barriers.
-Date: Wed, 14 Sep 2011 15:54:56 +0530
-Message-ID: <4E7080F8.9020302@ti.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com> <1315144466-9395-3-git-send-email-santosh.shilimkar@ti.com> <20110913202701.GF24252@atomide.com>
+From: "Saxena, Parth" <parth.saxena@ti.com>
+Subject: RE: [PATCH] ti816x: add support for nand on ti8168 evm
+Date: Wed, 14 Sep 2011 16:40:09 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC3121A5@dbde02.ent.ti.com>
+References: <parth.saxena@ti.com>
+ <1315486982-30109-1-git-send-email-parth.saxena@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:35355 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756344Ab1INKZE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Sep 2011 06:25:04 -0400
-Received: by mail-yi0-f50.google.com with SMTP id 25so13939yib.9
-        for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 03:25:03 -0700 (PDT)
-In-Reply-To: <20110913202701.GF24252@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:57468 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756457Ab1INLKS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 07:10:18 -0400
+In-Reply-To: <1315486982-30109-1-git-send-email-parth.saxena@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com, Richard Woodruff <r-woodruff2@ti.com>
+To: "Saxena, Parth" <parth.saxena@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>
 
-On Wednesday 14 September 2011 01:57 AM, Tony Lindgren wrote:
-> * Santosh Shilimkar<santosh.shilimkar@ti.com>  [110904 06:22]:
->> On OMAP4 SOC intecronnects has many write buffers in the async bridges
->> and they can be drained only with stongly ordered accesses.
->
-> This is not correct, strongly ordered access does not guarantee
-> anything here. If it fixes issues, it's because it makes the writes
-> to reach the device faster. Strongly ordered does not affect anything
-> outside ARM, so the bus access won't change.
->
-What I said is the aync bridges WB and what is said is correct
-from MPU accesses point of view.
+If there are no review comments on this patch, can this be merged?
 
-It's not about faster or slower. With device memory the, writes
-can get stuck into write buffers where as with SO, the write buffers 
-will be bypassed.
+Thanks and Regards,
+Parth
 
-The behaviours is limited to the MPU side async bridge boundary which
-is the problem. The statement is not for l3 and l4 interconnect which
-probably you mean.
-
-There is always a hardware signal to communicate CPU at async bridges
-to ensure that data is not stuck in these bridges before CPU
-clock/voltage is cut. Unfortunately we have a BUG on OMAP44XX devices
-and the dual channel makes it even worst since both pipes have the
-same BUG. So what we are doing is issuing SO write/read accesses
-on these pipes so that there is nothing stuck there before MPU
-hits low power states and also avoids any race conditions when
-both channels are used together by some initiators. The behaviour
-is validated at RTL level and there is no ambiguity about it.
-
-May be you have mistaken the L3 and L4 as the interconnect levels
-in this case.
-
-Regards
-Santosh
-
-
-
-
+> -----Original Message-----
+> From: Saxena, Parth
+> Sent: Thursday, September 08, 2011 6:33 PM
+> To: linux-mtd@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org; Saxena, Parth; Basheer, Mansoor Ahamed
+> Subject: [PATCH] ti816x: add support for nand on ti8168 evm
+> 
+> Add partition table for NAND device on TI8168 EVM
+> and initialise the NAND module.
+> 
+> Signed-off-by: Saxena, Parth <parth.saxena@ti.com>
+> Signed-off-by: Basheer, Mansoor Ahamed <mansoor.ahamed@ti.com>
+> ---
+> 
+> This patch is tested on top of linux-omap/master and
+> Hemant's patches submitted recently.
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53457.html
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg54296.html
+> 
+>  arch/arm/mach-omap2/board-ti8168evm.c |   39
+> +++++++++++++++++++++++++++++++++
+>  1 files changed, 39 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-
+> omap2/board-ti8168evm.c
+> index e516a04..87953bb 100644
+> --- a/arch/arm/mach-omap2/board-ti8168evm.c
+> +++ b/arch/arm/mach-omap2/board-ti8168evm.c
+> @@ -14,6 +14,7 @@
+>   */
+>  #include <linux/kernel.h>
+>  #include <linux/init.h>
+> +#include <linux/mtd/nand.h>
+> 
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -23,6 +24,42 @@
+>  #include <plat/irqs.h>
+>  #include <plat/board.h>
+>  #include <plat/common.h>
+> +#include <plat/gpmc.h>
+> +#include <plat/nand.h>
+> +
+> +#include "board-flash.h"
+> +
+> +#define NAND_BLOCK_SIZE		SZ_128K
+> +
+> +static struct mtd_partition ti816x_nand_partitions[] = {
+> +/* All the partition sizes are listed in terms of NAND block size */
+> +	{
+> +		.name		= "U-Boot",
+> +		.offset		= 0,			/* Offset = 0x0 */
+> +		.size		= 18 * NAND_BLOCK_SIZE,
+> +		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+> +	},
+> +	{
+> +		.name		= "U-Boot Env",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x240000
+> */
+> +		.size		= 2 * NAND_BLOCK_SIZE,
+> +	},
+> +	{
+> +		.name		= "Kernel",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000
+> */
+> +		.size		= 34 * NAND_BLOCK_SIZE,
+> +	},
+> +	{
+> +		.name		= "File System",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x6C0000
+> */
+> +		.size		= 1601 * NAND_BLOCK_SIZE,
+> +	},
+> +	{
+> +		.name		= "Reserved",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset =
+> 0xCEE0000 */
+> +		.size		= MTDPART_SIZ_FULL,
+> +	},
+> +};
+> 
+>  static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
+>  };
+> @@ -35,6 +72,8 @@ static void __init ti8168_init_early(void)
+> 
+>  static void __init ti8168_evm_init(void)
+>  {
+> +	board_nand_init(ti816x_nand_partitions,
+> +		ARRAY_SIZE(ti816x_nand_partitions), 0, NAND_BUSWIDTH_16);
+>  	omap_serial_init();
+>  	omap_board_config = ti8168_evm_config;
+>  	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
+> --
+> 1.6.2.4
 
