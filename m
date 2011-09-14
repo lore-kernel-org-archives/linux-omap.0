@@ -1,50 +1,75 @@
-From: Per Forlin <per.forlin@linaro.org>
-Subject: Re: [PATCH 1/2] omap: hsmmc: Normalize dma cleanup operations
-Date: Wed, 14 Sep 2011 22:55:18 +0200
-Message-ID: <CAJ0pr19gtXSMXPD4AcAJ3Nw60AtkuZ8xNsNQX_ae07t212GBGg@mail.gmail.com>
-References: <1314903957-24408-2-git-send-email-svenkatr@ti.com>
-	<CAJ0pr18PtGWga7n8nm1xs-=wtRjMu=X_wZONAOAgeaLamtEJjg@mail.gmail.com>
-	<CANfBPZ9sVvcVhwxgu0SqbjY1gT8GdeXXsThf48__ax=bQ4zHEA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v15 06/12] OMAP: dmtimer: switch-over to platform
+ device driver
+Date: Wed, 14 Sep 2011 14:45:33 -0700
+Message-ID: <20110914214533.GA30941@atomide.com>
+References: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
+ <1315516098-29761-7-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CANfBPZ9sVvcVhwxgu0SqbjY1gT8GdeXXsThf48__ax=bQ4zHEA@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: Kishore Kadiyala <kishorek.kadiyala@gmail.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:56889 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750809Ab1INVpg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 17:45:36 -0400
+Content-Disposition: inline
+In-Reply-To: <1315516098-29761-7-git-send-email-tarun.kanti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 14 September 2011 15:40, S, Venkatraman <svenkatr@ti.com> wrote:
-> On Tue, Sep 13, 2011 at 1:26 AM, Per Forlin <per.forlin@linaro.org> wrote:
->> On 1 September 2011 21:05, Venkatraman S <svenkatr@ti.com> wrote:
->>> Reuse omap_hsmmc_dma_cleanup even for normal dma teardown in
->>> omap_hsmmc_dma_cb. Consolidate multiple points of dma unmap into a
->>> single location in post_req function, to prevent double unmapping.
->> It's optional to use pre_req() and post_req(). The SDIO framework
->> doesn't utilise these hooks. For instance this wont work together with
->> SDIO-wlan on the pandaboard.
->> If pre_req() has been issued it's fine to defer dma_unmap() until
->> post_req(). If pre_req() is not called the driver should call
->> dma_unmap() directly.
->>
->
-> In that case, can the actual 'request' function just call pre_req and post_req
-> (at the beginning and at the end), if host_cookie is not set ?
->
-Which request() function do your refer to? The mmc_host_ops.request()
-returns before the transfer is finished.
-Apart from that, I would say yes. It's nice to have the same code path
-for valid cookie and invalid cookie scenario.
+Hi,
 
-Note that the host_cookie could be set but with an invalid value.
-host driver:
-1. validate cookie
-2. if invalid cookie call pre_req()
-3. run request
-4. done -> if (has called pre_req() #2) -> call post_req().
+* Tarun Kanti DebBarma <tarun.kanti@ti.com> [110908 13:36]:
+> Register timer devices by going through hwmod database using
+> hwmod API. The driver probes each of the registered devices.
+> Functionality which are already performed by hwmod framework
+> are removed from timer code. New set of timers present on
+> OMAP4 are now supported.
 
-A general fix would be to put this logic in mmc_wait_for_req() in
-core.c, but at this level it's not possible to validate the cookie. In
-the current implementation the host driver controls the cookie value.
+Adding the support for the different offsets on some omap4
+timers should be a separate patch.
 
-/Per
+Also, as we don't need the support for different register offsets
+for the first two omap4 timers, please rather implement support
+for the new timers and the timeouts directly in plat-omap/dmtimer.c.
+
+That way we can still keep the minimal timer support simple
+for clocksource and clockevent. Of course this means that we'll
+be only supporting the first two timers as system timers on
+omap4, but that's fine.
+ 
+>  static inline u32 __omap_dm_timer_read(void __iomem *base, u32 reg,
+> -						int posted)
+> +						int posted, u8 func_offset)
+>  {
+>  	if (posted)
+> -		while (__raw_readl(base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
+> +		while (__raw_readl(base +
+> +			((OMAP_TIMER_WRITE_PEND_REG + func_offset) & 0xff))
+>  				& (reg >> WPSHIFT))
+>  			cpu_relax();
+>  
+> @@ -264,10 +263,11 @@ static inline u32 __omap_dm_timer_read(void __iomem *base, u32 reg,
+>  }
+>  
+>  static inline void __omap_dm_timer_write(void __iomem *base, u32 reg, u32 val,
+> -						int posted)
+> +						int posted, u8 func_offset)
+>  {
+>  	if (posted)
+> -		while (__raw_readl(base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
+> +		while (__raw_readl(base +
+> +			((OMAP_TIMER_WRITE_PEND_REG + func_offset) & 0xff))
+>  				& (reg >> WPSHIFT))
+>  			cpu_relax();
+
+Otherwise our inline functions just get too messed up with these func_offset
+hacks. These need to be minimal as they're being called contantly for the
+system timers. We can still recycle the inline functions if we pass the
+correct WRITE_PEND_REG to them instead of the func_offset.
+
+Regards,
+
+Tony 
