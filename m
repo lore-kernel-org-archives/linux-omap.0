@@ -1,140 +1,58 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 2/6] OMAP3: id: remove useless strcpy()s
-Date: Wed, 14 Sep 2011 06:39:28 -0600
-Message-ID: <20110914123924.25282.84238.stgit@dusk>
-References: <20110914123708.25282.78122.stgit@dusk>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 6/6] OMAP2+: id: remove OMAP_REVBITS_* macros
+Date: Wed, 14 Sep 2011 15:51:03 +0300
+Message-ID: <4E70A337.6090400@compulab.co.il>
+References: <20110913212638.26161.62284.stgit@dusk> <20110913212806.26161.37867.stgit@dusk> <4E709D13.1080908@compulab.co.il> <alpine.DEB.2.00.1109140628520.27954@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37238 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932408Ab1INMmZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 08:42:25 -0400
-In-Reply-To: <20110914123708.25282.78122.stgit@dusk>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:40800
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932406Ab1INMvK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Sep 2011 08:51:10 -0400
+In-Reply-To: <alpine.DEB.2.00.1109140628520.27954@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-omap3_cpuinfo() is filled with useless strcpy() calls; remove them.
+On 09/14/11 15:29, Paul Walmsley wrote:
+> On Wed, 14 Sep 2011, Igor Grinberg wrote:
+> 
+>> Hi Paul,
+>>
+>> Same problem (as with 3_6) here...
+> 
+> Thanks, I'll repost those.  In the meantime, maybe try pulling the branch 
+> 'id_3517_cleanup_3.2' from git://git.pwsan.com/linux-2.6 ?
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/id.c |   48 +++++++++++++++++++++-------------------------
- 1 files changed, 22 insertions(+), 26 deletions(-)
+I've applied those manually on top of v3.1-rc3:
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 723e2f8..46bc2f9 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -429,84 +429,80 @@ static void __init omap4_check_revision(void)
- static void __init omap3_cpuinfo(void)
- {
- 	u8 rev = GET_OMAP_REVISION();
--	char cpu_name[16], cpu_rev[16];
-+	const char *cpu_name, *cpu_rev;
- 
--	/* OMAP3430 and OMAP3530 are assumed to be same.
-+	/*
-+	 * OMAP3430 and OMAP3530 are assumed to be same.
- 	 *
- 	 * OMAP3525, OMAP3515 and OMAP3503 can be detected only based
- 	 * on available features. Upon detection, update the CPU id
- 	 * and CPU class bits.
- 	 */
- 	if (cpu_is_omap3630()) {
--		strcpy(cpu_name, "OMAP3630");
-+		cpu_name = "OMAP3630";
- 	} else if (cpu_is_omap3505()) {
--		/*
--		 * AM35xx devices
--		 */
--		if (omap3_has_sgx())
--			strcpy(cpu_name, "AM3517");
--		else
--			strcpy(cpu_name, "AM3505");
-+		/* AM35xx devices */
-+		cpu_name = (omap3_has_sgx()) ? "AM3517" : "AM3505";
- 	} else if (cpu_is_ti816x()) {
--		strcpy(cpu_name, "TI816X");
-+		cpu_name = "TI816X";
- 	} else if (omap3_has_iva() && omap3_has_sgx()) {
- 		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
--		strcpy(cpu_name, "OMAP3430/3530");
-+		cpu_name = "OMAP3430/3530";
- 	} else if (omap3_has_iva()) {
--		strcpy(cpu_name, "OMAP3525");
-+		cpu_name = "OMAP3525";
- 	} else if (omap3_has_sgx()) {
--		strcpy(cpu_name, "OMAP3515");
-+		cpu_name = "OMAP3515";
- 	} else {
--		strcpy(cpu_name, "OMAP3503");
-+		cpu_name = "OMAP3503";
- 	}
- 
- 	if (cpu_is_omap3630() || cpu_is_ti816x()) {
- 		switch (rev) {
- 		case OMAP_REVBITS_00:
--			strcpy(cpu_rev, "1.0");
-+			cpu_rev = "1.0";
- 			break;
- 		case OMAP_REVBITS_01:
--			strcpy(cpu_rev, "1.1");
-+			cpu_rev = "1.1";
- 			break;
- 		case OMAP_REVBITS_02:
- 			/* FALLTHROUGH */
- 		default:
- 			/* Use the latest known revision as default */
--			strcpy(cpu_rev, "1.2");
-+			cpu_rev = "1.2";
- 		}
- 	} else if (cpu_is_omap3505() || cpu_is_omap3517()) {
- 		switch (rev) {
- 		case OMAP_REVBITS_00:
--			strcpy(cpu_rev, "1.0");
-+			cpu_rev = "1.0";
- 			break;
- 		case OMAP_REVBITS_01:
- 			/* FALLTHROUGH */
- 		default:
- 			/* Use the latest known revision as default */
--			strcpy(cpu_rev, "1.1");
-+			cpu_rev = "1.1";
- 		}
- 	} else {
- 		switch (rev) {
- 		case OMAP_REVBITS_00:
--			strcpy(cpu_rev, "1.0");
-+			cpu_rev = "1.0";
- 			break;
- 		case OMAP_REVBITS_01:
--			strcpy(cpu_rev, "2.0");
-+			cpu_rev = "2.0";
- 			break;
- 		case OMAP_REVBITS_02:
--			strcpy(cpu_rev, "2.1");
-+			cpu_rev = "2.1";
- 			break;
- 		case OMAP_REVBITS_03:
--			strcpy(cpu_rev, "3.0");
-+			cpu_rev = "3.0";
- 			break;
- 		case OMAP_REVBITS_04:
--			strcpy(cpu_rev, "3.1");
-+			cpu_rev = "3.1";
- 			break;
- 		case OMAP_REVBITS_05:
- 			/* FALLTHROUGH */
- 		default:
- 			/* Use the latest known revision as default */
--			strcpy(cpu_rev, "3.1.2");
-+			cpu_rev = "3.1.2";
- 		}
- 	}
- 
+--------------cut--------------------
+[    0.000000] Linux version 3.1.0-rc3-00006-ga942f6de (grinberg@grinberg-linux) (gcc version 4.4.1 (Sourcery G++ Lite 2010q1-202) ) #1 SMP Wed Sep 14 15:35:32 IDT 2011
+[    0.000000] CPU: ARMv7 Processor [411fc087] revision 7 (ARMv7), cr=10c53c7f
+[    0.000000] CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+[    0.000000] Machine: Compulab CM-T3517
+[    0.000000] Reserving 8388608 bytes SDRAM for VRAM
+[    0.000000] Memory policy: ECC disabled, Data cache writeback
+[    0.000000] OMAP3430/3530 ES1.0 (l2cache iva sgx neon isp )
+----------cut----------------------------
+               ^^^^^^^^^^^^^^^^^^^
+
+While U-Boot says:
+
+------------cut---------------------
+U-Boot 2009.11-cm-t3517-1 (Dec 10 2010 - 23:25:02)
+
+AM35xx-GP ES1.0, L3-165MHz
+------------cut---------------------
+
+Do I miss something, that should be in your tree?
+Pulling it in right now, should be available shortly...
 
 
+-- 
+Regards,
+Igor.
