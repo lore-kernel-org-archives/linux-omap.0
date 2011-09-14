@@ -1,62 +1,146 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: OMAP3505 revisions?
-Date: Wed, 14 Sep 2011 16:59:35 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59302575A0074@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.1109131157520.1885@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH v2 1/6] OMAP3: id: remove identification codes that only
+ correspond to marketing names
+Date: Wed, 14 Sep 2011 05:39:16 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109140536300.27954@utopia.booyaka.com>
+References: <20110913212638.26161.62284.stgit@dusk> <20110913212801.26161.47980.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57453 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756456Ab1INL3n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 07:29:43 -0400
-In-Reply-To: <alpine.DEB.2.00.1109131157520.1885@utopia.booyaka.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:39800 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932143Ab1INLjR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 07:39:17 -0400
+In-Reply-To: <20110913212801.26161.47980.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "notasas@gmail.com" <notasas@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com] 
-> Sent: Tuesday, September 13, 2011 11:33 PM
-> To: Premi, Sanjeev
-> Cc: notasas@gmail.com; tony@atomide.com; linux-omap@vger.kernel.org
-> Subject: OMAP3505 revisions?
-> 
-> 
-> Hi Sanjeev
-> 
-> Am looking at your commit 4cac6018, which touches 
-> arch/arm/mach-omap2/id.c.  That commit implements SoC 
-> detection for the 
-> 3505 in a different way than the implementations for other 
-> OMAP2+ devices: 
-> it doesn't enumerate the possible TAP revisions for OMAP3505. 
->  The TRM 
-
-Paul,
-
-In the function omap3_check_revision(), the revision is being
-extracted from the TAP register for AM3505/AM3517 devices thru
-same code used for OMAP34xx registers.
-
-OR, Am I missing something?
-
-~sanjeev
-
-> doesn't seem to list those, either.  And unfortunately that 
-> is blocking 
-> some of the omap_chip removal work.
-> 
-> Could you send me a list of the possible revision values for the 
-> 3505/3517, along with mappings to ES levels, please?
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Sanjeev Premi <premi@ti.com>, tony@atomide.com
 
 
+The OMAP3505/AM3505 appears to be based on the same silicon as the
+OMAP3517/AM3517, with some features disabled via eFuse bits.  Follow
+the same practice as OMAP3430 and identify these devices internally as
+part of the OMAP3517/AM3517 family.
 
-> 
-> thanks
-> 
-> - Paul
-> 
+The OMAP3503/3515/3525/3530 chips appear to be based on the same silicon
+as the OMAP3430, with some features disabled via eFuse bits.  Identify
+these devices internally as part of the OMAP3430 family.
+
+Remove the old OMAP35XX_CLASS, which actually covered two very different
+chip families.  The OMAP3503/3515/3525/3530 chips will now be covered by
+OMAP343X_CLASS, since the silicon appears to be identical.  For the
+OMAP3517/AM3517 family, create a new class, OMAP3517_CLASS.
+
+Thanks to Tony Lindgren <tony@atomide.com> for some help with the second
+revision of this patch.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+
+This second version fixes a stupid bug that would have definitely caused 
+problems with the first patch version on AM3517/3505 devices.  Still not 
+sure if it works correctly, though, since I don't have an AM3517/3505 
+board here to test.  Testing help very welcome.
+
+ arch/arm/mach-omap2/id.c              |   17 ++++++-----------
+ arch/arm/plat-omap/include/plat/cpu.h |   14 +++++---------
+ 2 files changed, 11 insertions(+), 20 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 37efb86..723e2f8 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -304,14 +304,15 @@ static void __init omap3_check_revision(void)
+ 		}
+ 		break;
+ 	case 0xb868:
+-		/* Handle OMAP35xx/AM35xx devices
++		/*
++		 * Handle OMAP/AM 3505/3517 devices
+ 		 *
+-		 * Set the device to be OMAP3505 here. Actual device
++		 * Set the device to be OMAP3517 here. Actual device
+ 		 * is identified later based on the features.
+ 		 *
+ 		 * REVISIT: AM3505/AM3517 should have their own CHIP_IS
+ 		 */
+-		omap_revision = OMAP3505_REV(rev);
++		omap_revision = OMAP3517_REV(rev);
+ 		omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+ 		break;
+ 	case 0xb891:
+@@ -442,26 +443,20 @@ static void __init omap3_cpuinfo(void)
+ 		/*
+ 		 * AM35xx devices
+ 		 */
+-		if (omap3_has_sgx()) {
+-			omap_revision = OMAP3517_REV(rev);
++		if (omap3_has_sgx())
+ 			strcpy(cpu_name, "AM3517");
+-		} else {
+-			/* Already set in omap3_check_revision() */
++		else
+ 			strcpy(cpu_name, "AM3505");
+-		}
+ 	} else if (cpu_is_ti816x()) {
+ 		strcpy(cpu_name, "TI816X");
+ 	} else if (omap3_has_iva() && omap3_has_sgx()) {
+ 		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
+ 		strcpy(cpu_name, "OMAP3430/3530");
+ 	} else if (omap3_has_iva()) {
+-		omap_revision = OMAP3525_REV(rev);
+ 		strcpy(cpu_name, "OMAP3525");
+ 	} else if (omap3_has_sgx()) {
+-		omap_revision = OMAP3515_REV(rev);
+ 		strcpy(cpu_name, "OMAP3515");
+ 	} else {
+-		omap_revision = OMAP3503_REV(rev);
+ 		strcpy(cpu_name, "OMAP3503");
+ 	}
+ 
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 67b3d75..34df171 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -262,7 +262,7 @@ IS_OMAP_TYPE(2422, 0x2422)
+ IS_OMAP_TYPE(2423, 0x2423)
+ IS_OMAP_TYPE(2430, 0x2430)
+ IS_OMAP_TYPE(3430, 0x3430)
+-IS_OMAP_TYPE(3505, 0x3505)
++IS_OMAP_TYPE(3505, 0x3517)
+ IS_OMAP_TYPE(3517, 0x3517)
+ 
+ #define cpu_is_omap310()		0
+@@ -354,8 +354,9 @@ IS_OMAP_TYPE(3517, 0x3517)
+ 						(!omap3_has_sgx()) &&	\
+ 						(omap3_has_iva()))
+ # define cpu_is_omap3530()		(cpu_is_omap3430())
+-# define cpu_is_omap3505()		is_omap3505()
+ # define cpu_is_omap3517()		is_omap3517()
++# define cpu_is_omap3505()		(cpu_is_omap3517() &&		\
++						!omap3_has_sgx())
+ # undef cpu_is_omap3630
+ # define cpu_is_omap3630()		is_omap363x()
+ # define cpu_is_ti816x()		is_ti816x()
+@@ -397,13 +398,8 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define OMAP3630_REV_ES1_1	(OMAP363X_CLASS | (OMAP_REVBITS_01 << 8))
+ #define OMAP3630_REV_ES1_2	(OMAP363X_CLASS | (OMAP_REVBITS_02 << 8))
+ 
+-#define OMAP35XX_CLASS		0x35000034
+-#define OMAP3503_REV(v)		(OMAP35XX_CLASS | (0x3503 << 16) | (v << 8))
+-#define OMAP3515_REV(v)		(OMAP35XX_CLASS | (0x3515 << 16) | (v << 8))
+-#define OMAP3525_REV(v)		(OMAP35XX_CLASS | (0x3525 << 16) | (v << 8))
+-#define OMAP3530_REV(v)		(OMAP35XX_CLASS | (0x3530 << 16) | (v << 8))
+-#define OMAP3505_REV(v)		(OMAP35XX_CLASS | (0x3505 << 16) | (v << 8))
+-#define OMAP3517_REV(v)		(OMAP35XX_CLASS | (0x3517 << 16) | (v << 8))
++#define OMAP3517_CLASS		0x35170034
++#define OMAP3517_REV(v)		(OMAP3517_CLASS | (v << 8))
+ 
+ #define TI816X_CLASS		0x81600034
+ #define TI8168_REV_ES1_0	TI816X_CLASS
+-- 
+1.7.5.4
+
