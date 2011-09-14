@@ -1,68 +1,83 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH] mfd: omap: cleanup: use macros to check for TLL mode
-Date: Wed, 14 Sep 2011 20:11:30 +0530
-Message-ID: <CAP05o4K4X6-Qs-KogPCuZwyfMNTQ19wD4vPV+c4Xn0ftzMef7Q@mail.gmail.com>
-References: <1316010433-6024-1-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 13/25] OMAP4: PM: Add WakeupGen module as OMAP
+ gic_arch_extn
+Date: Wed, 14 Sep 2011 08:21:17 -0700
+Message-ID: <20110914152116.GM24252@atomide.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+ <1315144466-9395-14-git-send-email-santosh.shilimkar@ti.com>
+ <20110913203616.GG24252@atomide.com>
+ <CAMQu2gyYETPZRJu=4MWX6bULgmMaJb8MRwfhvURtOuyyWhLkAQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:49790 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751710Ab1INOld convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Sep 2011 10:41:33 -0400
-In-Reply-To: <1316010433-6024-1-git-send-email-kishon@ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:39641 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753572Ab1INPVU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 11:21:20 -0400
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gyYETPZRJu=4MWX6bULgmMaJb8MRwfhvURtOuyyWhLkAQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, gadiyar@ti.com, bigeasy@linutronix.de, balbi@ti.com, p-basak2@ti.com
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com
 
-On Wed, Sep 14, 2011 at 7:57 PM, Kishon Vijay Abraham I <kishon@ti.com>=
- wrote:
-> In one particular place the old form of checking for TLL mode is used=
-=2E
-> This patch fixes the same by using macros to check for TLL mode.
->
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
-> patch is created on top of runtime patches from keshava hsoted at
-> git://gitorious.org/~kmg/mirrors/kmg-usbhs-pm.git
-> branch:kmg-pm-1
-> =A0drivers/mfd/omap-usb-host.c | =A0 =A02 +-
-> =A01 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.=
-c
-> index e6f3b01..d43ca08 100644
-> --- a/drivers/mfd/omap-usb-host.c
-> +++ b/drivers/mfd/omap-usb-host.c
-> @@ -401,7 +401,7 @@ static void usbhs_omap_tll_init(struct device *de=
-v, u8 tll_channel_count)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0reg |=3D ohci_omap3_fs=
-lsmode(pdata->port_mode[i])
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0<< OMA=
-P_TLL_CHANNEL_CONF_FSLSMODE_SHIFT;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0reg |=3D OMAP_TLL_CHAN=
-NEL_CONF_CHANMODE_FSLS;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else if (pdata->port_mode[i] =3D=3D O=
-MAP_EHCI_PORT_MODE_TLL) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else if (is_ehci_tll_mode(pdata->port=
-_mode[i])) {
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Disable AutoIdle, B=
-itStuffing and use SDR Mode */
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0reg &=3D ~(OMAP_TLL_CH=
-ANNEL_CONF_UTMIAUTOIDLE
-> --
-> 1.7.0.4
->
->
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [110913 22:01]:
+> Tony,
+> On Wed, Sep 14, 2011 at 2:06 AM, Tony Lindgren <tony@atomide.com> wro=
+te:
+> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [110904 06:23]:
+> >> OMAP WakeupGen is the interrupt controller extension used along
+> >> with ARM GIC to wake the CPU out from low power states on
+> >> external interrupts.
+> >>
+> >> The WakeupGen unit is responsible for generating wakeup event
+> >> from the incoming interrupts and enable bits. It is implemented
+> >> in MPU always ON power domain. During normal operation,
+> >> WakeupGen delivers external interrupts directly to the GIC.
+> > ...
+> >
+> >> + =C2=A0 =C2=A0 /*
+> >> + =C2=A0 =C2=A0 =C2=A0* Override GIC architecture specific functio=
+ns to add
+> >> + =C2=A0 =C2=A0 =C2=A0* OMAP WakeupGen interrupt controller along =
+with GIC
+> >> + =C2=A0 =C2=A0 =C2=A0*/
+> >> + =C2=A0 =C2=A0 gic_arch_extn.irq_mask =3D wakeupgen_mask;
+> >> + =C2=A0 =C2=A0 gic_arch_extn.irq_unmask =3D wakeupgen_unmask;
+> >> + =C2=A0 =C2=A0 gic_arch_extn.irq_set_wake =3D wakeupgen_set_wake;
+> >> + =C2=A0 =C2=A0 gic_arch_extn.flags =3D IRQCHIP_MASK_ON_SUSPEND;
+> >
+> > As I've commented before, there should not be any need to tweak
+> > the wakeupgen registers for each interrupt during the runtime.
+> >
+> And I gave you all the reasons why it needs to be done this way.
 
-is this rebased to my pm branch of runtime pm adaptations?
+Hmm, I don't think you ever answered the main question:
 
-regards
-keshava
+Why would you need to write the wakeupgen registers for every
+interrupt during the runtime instead of arming them only when
+entering idle?
+=20
+> > AFAIK the wakeupgen registers only need to be armed every time
+> > before entering idle.
+> >
+> No that doesn't work and it completely hacky approach.
+
+And how is writing the registers over and over again unnecessarily
+a non-hacky approach?
+
+> This problem is for all SOC's using A9 SMP and GIC and every soc
+> has an architecture specific interrupt controller extension. And that
+> was the reason the GIC arch_extn was proposed.
+> It's just another IRQCHIP and works seamlessly being part of the
+> framework.  And it will also initialized with primary IRQCHIP( GIC).
+
+Sure, but I don't know if there is really a need for for that?
+
+Regards,
+
+Tony
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
