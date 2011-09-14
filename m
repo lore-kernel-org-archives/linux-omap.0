@@ -1,94 +1,53 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 6/6] OMAP2+: id: remove OMAP_REVBITS_* macros
-Date: Wed, 14 Sep 2011 06:39:42 -0600
-Message-ID: <20110914123938.25282.30133.stgit@dusk>
-References: <20110914123708.25282.78122.stgit@dusk>
+Subject: [PATCH v2 0/6] OMAP2+: id: cleanup for 3.2
+Date: Wed, 14 Sep 2011 06:39:20 -0600
+Message-ID: <20110914123708.25282.78122.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37249 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:37231 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932442Ab1INMm0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 08:42:26 -0400
-In-Reply-To: <20110914123708.25282.78122.stgit@dusk>
+	with ESMTP id S932381Ab1INMmZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 08:42:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The OMAP_REVBITS_* macros are just used as otherwise meaningless
-aliases for the numbers zero through five, so remove these macros.
+Clean up the SoC detection code for some OMAP3 devices.  The main goal
+is to make the AM3517 family detection code work like the rest of the
+OMAP3 SoCs, although this series does some other cleanup of this code
+at the same time.  This patch series will be a prerequisite for the
+OMAP_CHIP removal series.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Tested on an OMAP3530ES2 BeagleBoard C2 and a OMAP3730ES1 BeagleBoard A2.
+These are the only OMAP3 boards I have access to right now - testing welcomed
+from people with other OMAP3 families or ES levels.
+
+This second version fixes a bug in the first patch, which requires the
+later patches to be updated to apply without rejects.  Thanks to Igor
+Grinberg <grinberg@compulab.co.il> for comments about this.
+
+
+- Paul
+
 ---
- arch/arm/plat-omap/include/plat/cpu.h |   33 ++++++++++-----------------------
- 1 files changed, 10 insertions(+), 23 deletions(-)
+id_3517_cleanup_3.2
+   text	   data	    bss	    dec	    hex	filename
+6330180	 656956	5591124	12578260	 bfedd4	vmlinux.omap2plus_defconfig.orig
+6329884	 656964	5591124	12577972	 bfecb4	vmlinux.omap2plus_defconfig.patched
 
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 1debee9..ddbc025 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -60,19 +60,6 @@ struct omap_chip_id {
- unsigned int omap_rev(void);
- 
- /*
-- * Define CPU revision bits
-- *
-- * Verbose meaning of the revision bits may be different for a silicon
-- * family. This difference can be handled separately.
-- */
--#define OMAP_REVBITS_00		0x00
--#define OMAP_REVBITS_01		0x01
--#define OMAP_REVBITS_02		0x02
--#define OMAP_REVBITS_03		0x03
--#define OMAP_REVBITS_04		0x04
--#define OMAP_REVBITS_05		0x05
--
--/*
-  * Get the CPU revision for OMAP devices
-  */
- #define GET_OMAP_REVISION()	((omap_rev() >> 8) & 0xff)
-@@ -380,31 +367,31 @@ IS_OMAP_TYPE(3517, 0x3517)
- /* Various silicon revisions for omap2 */
- #define OMAP242X_CLASS		0x24200024
- #define OMAP2420_REV_ES1_0	OMAP242X_CLASS
--#define OMAP2420_REV_ES2_0	(OMAP242X_CLASS | (OMAP_REVBITS_01 << 8))
-+#define OMAP2420_REV_ES2_0	(OMAP242X_CLASS | (0x1 << 8))
- 
- #define OMAP243X_CLASS		0x24300024
- #define OMAP2430_REV_ES1_0	OMAP243X_CLASS
- 
- #define OMAP343X_CLASS		0x34300034
- #define OMAP3430_REV_ES1_0	OMAP343X_CLASS
--#define OMAP3430_REV_ES2_0	(OMAP343X_CLASS | (OMAP_REVBITS_01 << 8))
--#define OMAP3430_REV_ES2_1	(OMAP343X_CLASS | (OMAP_REVBITS_02 << 8))
--#define OMAP3430_REV_ES3_0	(OMAP343X_CLASS | (OMAP_REVBITS_03 << 8))
--#define OMAP3430_REV_ES3_1	(OMAP343X_CLASS | (OMAP_REVBITS_04 << 8))
--#define OMAP3430_REV_ES3_1_2	(OMAP343X_CLASS | (OMAP_REVBITS_05 << 8))
-+#define OMAP3430_REV_ES2_0	(OMAP343X_CLASS | (0x1 << 8))
-+#define OMAP3430_REV_ES2_1	(OMAP343X_CLASS | (0x2 << 8))
-+#define OMAP3430_REV_ES3_0	(OMAP343X_CLASS | (0x3 << 8))
-+#define OMAP3430_REV_ES3_1	(OMAP343X_CLASS | (0x4 << 8))
-+#define OMAP3430_REV_ES3_1_2	(OMAP343X_CLASS | (0x5 << 8))
- 
- #define OMAP363X_CLASS		0x36300034
- #define OMAP3630_REV_ES1_0	OMAP363X_CLASS
--#define OMAP3630_REV_ES1_1	(OMAP363X_CLASS | (OMAP_REVBITS_01 << 8))
--#define OMAP3630_REV_ES1_2	(OMAP363X_CLASS | (OMAP_REVBITS_02 << 8))
-+#define OMAP3630_REV_ES1_1	(OMAP363X_CLASS | (0x1 << 8))
-+#define OMAP3630_REV_ES1_2	(OMAP363X_CLASS | (0x2 << 8))
- 
- #define OMAP3517_CLASS		0x35170034
- #define OMAP3517_REV_ES1_0	OMAP3517_CLASS
--#define OMAP3517_REV_ES1_1	(OMAP3517_CLASS | (OMAP_REVBITS_01 << 8))
-+#define OMAP3517_REV_ES1_1	(OMAP3517_CLASS | (0x1 << 8))
- 
- #define TI816X_CLASS		0x81600034
- #define TI8168_REV_ES1_0	TI816X_CLASS
--#define TI8168_REV_ES1_1	(TI816X_CLASS | (OMAP_REVBITS_01 << 8))
-+#define TI8168_REV_ES1_1	(TI816X_CLASS | (0x1 << 8))
- 
- #define OMAP443X_CLASS		0x44300044
- #define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
 
+Paul Walmsley (6):
+      OMAP3: id: remove identification codes that only correspond to marketing names
+      OMAP3: id: remove useless strcpy()s
+      OMAP3: id: use explicit omap_revision codes for 3505/3517 ES levels
+      OMAP3: id: add fallthrough warning; fix some CodingStyle issues
+      OMAP3: id: remove duplicate code for testing SoC ES level
+      OMAP2+: id: remove OMAP_REVBITS_* macros
+
+
+ arch/arm/mach-omap2/id.c              |  134 ++++++++++++---------------------
+ arch/arm/plat-omap/include/plat/cpu.h |   46 ++++-------
+ 2 files changed, 65 insertions(+), 115 deletions(-)
 
