@@ -1,85 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 13/25] OMAP4: PM: Add WakeupGen module as OMAP
- gic_arch_extn
-Date: Wed, 14 Sep 2011 08:21:17 -0700
-Message-ID: <20110914152116.GM24252@atomide.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
- <1315144466-9395-14-git-send-email-santosh.shilimkar@ti.com>
- <20110913203616.GG24252@atomide.com>
- <CAMQu2gyYETPZRJu=4MWX6bULgmMaJb8MRwfhvURtOuyyWhLkAQ@mail.gmail.com>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH] arm: omap: Fix build error in ispccdc.c
+Date: Wed, 14 Sep 2011 17:33:03 +0200
+Message-ID: <20110914153303.GW11701@amd.com>
+References: <1315317735-5255-1-git-send-email-joerg.roedel@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:39641 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753572Ab1INPVU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 11:21:20 -0400
+Received: from tx2ehsobe002.messaging.microsoft.com ([65.55.88.12]:16171 "EHLO
+	TX2EHSOBE004.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752676Ab1INPd2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 11:33:28 -0400
 Content-Disposition: inline
-In-Reply-To: <CAMQu2gyYETPZRJu=4MWX6bULgmMaJb8MRwfhvURtOuyyWhLkAQ@mail.gmail.com>
+In-Reply-To: <1315317735-5255-1-git-send-email-joerg.roedel@amd.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [110913 22:01]:
-> Tony,
-> On Wed, Sep 14, 2011 at 2:06 AM, Tony Lindgren <tony@atomide.com> wro=
-te:
-> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [110904 06:23]:
-> >> OMAP WakeupGen is the interrupt controller extension used along
-> >> with ARM GIC to wake the CPU out from low power states on
-> >> external interrupts.
-> >>
-> >> The WakeupGen unit is responsible for generating wakeup event
-> >> from the incoming interrupts and enable bits. It is implemented
-> >> in MPU always ON power domain. During normal operation,
-> >> WakeupGen delivers external interrupts directly to the GIC.
-> > ...
-> >
-> >> + =C2=A0 =C2=A0 /*
-> >> + =C2=A0 =C2=A0 =C2=A0* Override GIC architecture specific functio=
-ns to add
-> >> + =C2=A0 =C2=A0 =C2=A0* OMAP WakeupGen interrupt controller along =
-with GIC
-> >> + =C2=A0 =C2=A0 =C2=A0*/
-> >> + =C2=A0 =C2=A0 gic_arch_extn.irq_mask =3D wakeupgen_mask;
-> >> + =C2=A0 =C2=A0 gic_arch_extn.irq_unmask =3D wakeupgen_unmask;
-> >> + =C2=A0 =C2=A0 gic_arch_extn.irq_set_wake =3D wakeupgen_set_wake;
-> >> + =C2=A0 =C2=A0 gic_arch_extn.flags =3D IRQCHIP_MASK_ON_SUSPEND;
-> >
-> > As I've commented before, there should not be any need to tweak
-> > the wakeupgen registers for each interrupt during the runtime.
-> >
-> And I gave you all the reasons why it needs to be done this way.
+Ping?
 
-Hmm, I don't think you ever answered the main question:
+On Tue, Sep 06, 2011 at 10:02:15AM -0400, Joerg Roedel wrote:
+> The following build error occurs with 3.1-rc5:
+> 
+>   CC      drivers/media/video/omap3isp/ispccdc.o
+> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c: In function 'ccdc_lsc_config':
+> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c:427:2: error: implicit declaration of function 'kzalloc' [-Werror=implicit-function-declaration]
+> /home/data/repos/linux.trees.git/drivers/media/video/omap3isp/ispccdc.c:427:6: warning: assignment makes pointer from integer without a cast [enabled by default]
+> 
+> This patch adds the missing 'linux/slab.h' include to fix the problem.
+> 
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-kernel@vger.kernel.org
+> Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+> ---
+>  drivers/media/video/omap3isp/ispccdc.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+> index 9d3459d..80796eb 100644
+> --- a/drivers/media/video/omap3isp/ispccdc.c
+> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/dma-mapping.h>
+>  #include <linux/mm.h>
+>  #include <linux/sched.h>
+> +#include <linux/slab.h>
+>  #include <media/v4l2-event.h>
+>  
+>  #include "isp.h"
+> -- 
+> 1.7.4.1
 
-Why would you need to write the wakeupgen registers for every
-interrupt during the runtime instead of arming them only when
-entering idle?
-=20
-> > AFAIK the wakeupgen registers only need to be armed every time
-> > before entering idle.
-> >
-> No that doesn't work and it completely hacky approach.
+-- 
+AMD Operating System Research Center
 
-And how is writing the registers over and over again unnecessarily
-a non-hacky approach?
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
 
-> This problem is for all SOC's using A9 SMP and GIC and every soc
-> has an architecture specific interrupt controller extension. And that
-> was the reason the GIC arch_extn was proposed.
-> It's just another IRQCHIP and works seamlessly being part of the
-> framework.  And it will also initialized with primary IRQCHIP( GIC).
-
-Sure, but I don't know if there is really a need for for that?
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
