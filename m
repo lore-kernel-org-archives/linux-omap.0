@@ -1,75 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v15 06/12] OMAP: dmtimer: switch-over to platform
- device driver
-Date: Wed, 14 Sep 2011 14:45:33 -0700
-Message-ID: <20110914214533.GA30941@atomide.com>
-References: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
- <1315516098-29761-7-git-send-email-tarun.kanti@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH v3 4/6] OMAP3: id: add fallthrough warning;
+	fix some CodingStyle issues
+Date: Wed, 14 Sep 2011 15:58:18 -0600
+Message-ID: <20110914215815.4790.12872.stgit@dusk>
+References: <20110914215512.4790.34446.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:56889 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750809Ab1INVpg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 17:45:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1315516098-29761-7-git-send-email-tarun.kanti@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:36472 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750809Ab1INV72 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 17:59:28 -0400
+In-Reply-To: <20110914215512.4790.34446.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Abhilash Koyamangalath <abhilash.kv@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Hemant Pedanekar <hemantp@ti.com>
 
-Hi,
+Emit a warning to the console in omap3_check_revision() if that code
+cannot determine what type of SoC the system is currently running on.
 
-* Tarun Kanti DebBarma <tarun.kanti@ti.com> [110908 13:36]:
-> Register timer devices by going through hwmod database using
-> hwmod API. The driver probes each of the registered devices.
-> Functionality which are already performed by hwmod framework
-> are removed from timer code. New set of timers present on
-> OMAP4 are now supported.
+Remove some extra whitespace, remove some duplicate code, and
+add an appropriate comment to a fallthrough case.
 
-Adding the support for the different offsets on some omap4
-timers should be a separate patch.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Hemant Pedanekar <hemantp@ti.com>
+Tested-by: Igor Grinberg <grinberg@compulab.co.il>
+Tested-by: Abhilash Koyamangalath <abhilash.kv@ti.com>
+---
+ arch/arm/mach-omap2/id.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-Also, as we don't need the support for different register offsets
-for the first two omap4 timers, please rather implement support
-for the new timers and the timeouts directly in plat-omap/dmtimer.c.
-
-That way we can still keep the minimal timer support simple
-for clocksource and clockevent. Of course this means that we'll
-be only supporting the first two timers as system timers on
-omap4, but that's fine.
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 94a51cf..3f4a0d0 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -336,8 +336,9 @@ static void __init omap3_check_revision(void)
+ 			omap_chip.oc |= CHIP_IS_OMAP3630ES1_1;
+ 			break;
+ 		case 2:
++		/* FALLTHROUGH */
+ 		default:
+-			omap_revision =  OMAP3630_REV_ES1_2;
++			omap_revision = OMAP3630_REV_ES1_2;
+ 			omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
+ 		}
+ 		break;
+@@ -349,16 +350,16 @@ static void __init omap3_check_revision(void)
+ 			omap_revision = TI8168_REV_ES1_0;
+ 			break;
+ 		case 1:
+-			omap_revision = TI8168_REV_ES1_1;
+-			break;
++		/* FALLTHROUGH */
+ 		default:
+-			omap_revision =  TI8168_REV_ES1_1;
++			omap_revision = TI8168_REV_ES1_1;
+ 		}
+ 		break;
+ 	default:
+-		/* Unknown default to latest silicon rev as default*/
++		/* Unknown default to latest silicon rev as default */
+ 		omap_revision =  OMAP3630_REV_ES1_2;
+ 		omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
++		pr_warn("Warning: unknown chip type; assuming OMAP3630ES1.2\n");
+ 	}
+ }
  
->  static inline u32 __omap_dm_timer_read(void __iomem *base, u32 reg,
-> -						int posted)
-> +						int posted, u8 func_offset)
->  {
->  	if (posted)
-> -		while (__raw_readl(base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
-> +		while (__raw_readl(base +
-> +			((OMAP_TIMER_WRITE_PEND_REG + func_offset) & 0xff))
->  				& (reg >> WPSHIFT))
->  			cpu_relax();
->  
-> @@ -264,10 +263,11 @@ static inline u32 __omap_dm_timer_read(void __iomem *base, u32 reg,
->  }
->  
->  static inline void __omap_dm_timer_write(void __iomem *base, u32 reg, u32 val,
-> -						int posted)
-> +						int posted, u8 func_offset)
->  {
->  	if (posted)
-> -		while (__raw_readl(base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
-> +		while (__raw_readl(base +
-> +			((OMAP_TIMER_WRITE_PEND_REG + func_offset) & 0xff))
->  				& (reg >> WPSHIFT))
->  			cpu_relax();
 
-Otherwise our inline functions just get too messed up with these func_offset
-hacks. These need to be minimal as they're being called contantly for the
-system timers. We can still recycle the inline functions if we pass the
-correct WRITE_PEND_REG to them instead of the func_offset.
 
-Regards,
-
-Tony 
