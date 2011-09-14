@@ -1,64 +1,65 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: OMAP3505 revisions?
-Date: Wed, 14 Sep 2011 19:21:15 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59302575A016A@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.1109131157520.1885@utopia.booyaka.com>
- <B85A65D85D7EB246BE421B3FB0FBB593025750A2A5@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1109140539230.27954@utopia.booyaka.com>
- <B85A65D85D7EB246BE421B3FB0FBB59302575A00A6@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1109140746410.27954@utopia.booyaka.com>
+From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: [PATCH] iommu/omap: Fix build error with !IOMMU_SUPPORT
+Date: Wed, 14 Sep 2011 16:07:39 +0200
+Message-ID: <1316009259-18052-1-git-send-email-joerg.roedel@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43824 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932843Ab1INNv1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 09:51:27 -0400
-In-Reply-To: <alpine.DEB.2.00.1109140746410.27954@utopia.booyaka.com>
-Content-Language: en-US
+Received: from ch1ehsobe001.messaging.microsoft.com ([216.32.181.181]:8507
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753821Ab1INOJb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Sep 2011 10:09:31 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "notasas@gmail.com" <notasas@gmail.com>, "tony@atomide.com" <tony@atomide.com>, Igor Grinberg <grinberg@compulab.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Joerg Roedel <joerg.roedel@amd.com>, Ohad Ben-Cohen <ohad@wizery.com>, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com] 
-> Sent: Wednesday, September 14, 2011 7:19 PM
-> To: Premi, Sanjeev
-> Cc: notasas@gmail.com; tony@atomide.com; Igor Grinberg; 
-> linux-omap@vger.kernel.org
-> Subject: RE: OMAP3505 revisions?
-> 
-> On Wed, 14 Sep 2011, Premi, Sanjeev wrote:
-> 
-> > > -----Original Message-----
-> > > From: Paul Walmsley [mailto:paul@pwsan.com] 
-> > > Sent: Wednesday, September 14, 2011 5:11 PM
-> > > To: Premi, Sanjeev
-> > > Cc: notasas@gmail.com; tony@atomide.com; 
-> linux-omap@vger.kernel.org
-> > > Subject: RE: OMAP3505 revisions?
-> > > 
-> > > Thanks.  Could you try a test boot of the 
-> 'id_3517_cleanup_3.2' branch 
-> > > of git://git.pwsan.com/linux-2.6 on an AM3517/3505, or 
-> ask someone to 
-> > > try that out?
-> > 
-> > Sure I will get this tested.
-> 
-> I just repushed this branch with changes to fix a bug that 
-> Igor found. 
-> If you've pulled it already, could you re-pull?  I'm particularly 
-> interested in a test on a 3505 board.
+Without this patch it is possible to select the VIDEO_OMAP3
+driver which then selects OMAP_IOVMM. But the omap iommu
+driver is not compiled without IOMMU_SUPPORT enabled. Fix
+that by forcing OMAP_IOMMU and OMAP_IOVMM are enabled before
+VIDEO_OMAP3 can be selected.
 
-[sp] The pull is in progress (... bit slow).
-     Not sure if we have a AM3505 board, but it can be simulated.
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: iommu@lists.linux-foundation.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+---
+ drivers/iommu/Kconfig       |    4 ++--
+ drivers/media/video/Kconfig |    3 +--
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-~sanjeev
+diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+index d901930..ae46776 100644
+--- a/drivers/iommu/Kconfig
++++ b/drivers/iommu/Kconfig
+@@ -114,8 +114,8 @@ config OMAP_IOMMU
+ 	select IOMMU_API
+ 
+ config OMAP_IOVMM
+-	tristate
+-	select OMAP_IOMMU
++	tristate "OMAP IO Virtual Memory Manager Support"
++	depends on OMAP_IOMMU
+ 
+ config OMAP_IOMMU_DEBUG
+        tristate "Export OMAP IOMMU/IOVMM internals in DebugFS"
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 6a25fad..6201069 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -763,8 +763,7 @@ source "drivers/media/video/m5mols/Kconfig"
+ 
+ config VIDEO_OMAP3
+ 	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
+-	select OMAP_IOVMM
+-	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3 && EXPERIMENTAL
++	depends on OMAP_IOVMM && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3 && EXPERIMENTAL
+ 	---help---
+ 	  Driver for an OMAP 3 camera controller.
+ 
+-- 
+1.7.4.1
 
-> 
-> 
-> - Paul
-> 
+
