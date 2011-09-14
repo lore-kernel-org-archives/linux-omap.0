@@ -1,42 +1,61 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 7/8] drivers: introduce rpmsg, a remote-processor messaging bus
-Date: Wed, 14 Sep 2011 21:38:43 +0300
-Message-ID: <CAK=WgbY0zMkHw9XHDKPEfVQZVRfGP=nMmyJgm6jD5FEkBZkMRQ@mail.gmail.com>
-References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
- <1308640714-17961-8-git-send-email-ohad@wizery.com> <87liwu8u3q.fsf@rustcorp.com.au>
- <BANLkTi=7TBMqnEf2qustrmSaubtTam79Bw@mail.gmail.com>
+Subject: Re: [PATCH] iommu/omap: Fix build error with !IOMMU_SUPPORT
+Date: Wed, 14 Sep 2011 21:57:13 +0300
+Message-ID: <CAK=WgbbCgXjOQ=xXSwnVhT9sqsYtpo6cFcRQYSEGY2ow215n=Q@mail.gmail.com>
+References: <1316009259-18052-1-git-send-email-joerg.roedel@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BANLkTi=7TBMqnEf2qustrmSaubtTam79Bw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rusty Russell <rusty@rustcorp.com.au>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:43191 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932269Ab1INS5e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 14:57:34 -0400
+In-Reply-To: <1316009259-18052-1-git-send-email-joerg.roedel@amd.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joerg Roedel <joerg.roedel@amd.com>
+Cc: linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org
 
-Hi Rusty,
+On Wed, Sep 14, 2011 at 5:07 PM, Joerg Roedel <joerg.roedel@amd.com> wrote:
+> Without this patch it is possible to select the VIDEO_OMAP3
+> driver which then selects OMAP_IOVMM. But the omap iommu
+> driver is not compiled without IOMMU_SUPPORT enabled. Fix
+> that by forcing OMAP_IOMMU and OMAP_IOVMM are enabled before
+> VIDEO_OMAP3 can be selected.
 
-On Wed, Jun 22, 2011 at 1:46 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> On Wed, Jun 22, 2011 at 5:42 AM, Rusty Russell <rusty@rustcorp.com.au=
-> wrote:
->> On Tue, 21 Jun 2011 10:18:33 +0300, Ohad Ben-Cohen <ohad@wizery.com>=
- wrote:
->>> +#define VIRTIO_ID_RPMSG =A0 =A0 =A0 =A0 =A0 =A0 =A010 /* virtio re=
-mote processor messaging */
->>
->> I think you want 6. =A0Plan 9 jumped ahead to grab 9 :)
->
-> 6 it is :)
+I'm ok with this but wouldn't it be simpler if we drop IOMMU_SUPPORT
+altogether (and just use a plain menu instead) ?
 
-Looking at the virtio-spec, it seems that 6 is taken by 'ioMemory'.
-There's no indication for it in virtio_ids.h though, and the
-virtio-spec has no appendix for this id, so maybe it's available after
-all ?
+Users will then be presented with only a single iommu-related
+question: whether they want their iommu driver built or not.
 
-If it is available, I'll take it for rpmsg, and will also update
-virtio-spec appropriately. Otherwise, we'll settle on 7 ? :)
+Something like this:
 
-Thanks,
-Ohad.
+diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+index d901930..7d6e5ad 100644
+--- a/drivers/iommu/Kconfig
++++ b/drivers/iommu/Kconfig
+@@ -2,16 +2,7 @@
+ config IOMMU_API
+        bool
+
+-menuconfig IOMMU_SUPPORT
+-       bool "IOMMU Hardware Support"
+-       default y
+-       ---help---
+-         Say Y here if you want to compile device drivers for IO Memory
+-         Management Units into the kernel. These devices usually allow to
+-         remap DMA requests and/or remap interrupts from other devices on the
+-         system.
+-
+-if IOMMU_SUPPORT
++menu "IOMMU Hardware Support"
+
+ # MSM IOMMU support
+ config MSM_IOMMU
+@@ -126,4 +117,4 @@ config OMAP_IOMMU_DEBUG
+
+          Say N unless you know you need this.
+
+-endif # IOMMU_SUPPORT
++endmenu
