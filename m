@@ -1,65 +1,81 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 09/15] OMAP: DSS2: HDMI: implement detect()
-Date: Wed, 14 Sep 2011 10:14:28 +0300
-Message-ID: <1315984468.2172.10.camel@deskari>
-References: <1315818818-18733-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1315818818-18733-10-git-send-email-tomi.valkeinen@ti.com>
-	 <CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com>
-	 <CAF6AEGuhjZgH9zFuigjfvHGM9r7jSLY2TTCD0LjZbT+Ubrb12A@mail.gmail.com>
-	 <CAP5A+B87w6Hir-0+SNnckQaDcO=ixgq-U8pFo2U42dwQgtUrZQ@mail.gmail.com>
+From: Bjarne Steinsbo <bsteinsbo@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: Pointers to __devexit should be __devexit_p
+Date: Wed, 14 Sep 2011 09:10:05 +0200
+Message-ID: <CAFULf_xOY74c5Osg0s_sc6SCC8e8_KNpOWOSAL6Lr68gfmNbCQ@mail.gmail.com>
+References: <CAFULf_wXK_2XkjUaDuZc+Ap8YiaesrdmHjErNvwyzV5CizLYYQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:51100 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755562Ab1INHOe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Sep 2011 03:14:34 -0400
-In-Reply-To: <CAP5A+B87w6Hir-0+SNnckQaDcO=ixgq-U8pFo2U42dwQgtUrZQ@mail.gmail.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:34345 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755606Ab1INHPS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 03:15:18 -0400
+Received: by qyk7 with SMTP id 7so1350658qyk.19
+        for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 00:15:17 -0700 (PDT)
+In-Reply-To: <CAFULf_wXK_2XkjUaDuZc+Ap8YiaesrdmHjErNvwyzV5CizLYYQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
+To: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Wed, 2011-09-14 at 11:04 +0530, K, Mythri P wrote:
-> Hi,
-> 
-> On Mon, Sep 12, 2011 at 10:16 PM, Rob Clark <robdclark@gmail.com> wrote:
-> > On Mon, Sep 12, 2011 at 8:24 AM, K, Mythri P <mythripk@ti.com> wrote:
-> >>> +bool ti_hdmi_4xxx_detect(struct hdmi_ip_data *ip_data)
-> >>> +{
-> >>> +       int r;
-> >>> +
-> >>> +       void __iomem *base = hdmi_core_sys_base(ip_data);
-> >>> +
-> >>> +       /* HPD */
-> >>> +       r = REG_GET(base, HDMI_CORE_SYS_SYS_STAT, 1, 1);
-> >>> +
-> >>> +       return r == 1;
-> >>> +}
-> >>> +
-> >> For HPD the probe should also be on the core interrupt first , and the
-> >> detect should be dynamic, ie based on the cable connect and disconnect
-> >> event.So this approach for HPD is not really the way.
-> >> Also that should be based on the GPIO(63) , I am planning to push a
-> >> patch on that shortly.
-> >
-> >
-> > Fwiw, we do still need a dssdrv->detect() function from omapdrm
-> > driver..  if there is another way to implement that function, such as
-> > with a GPIO, that is great.  But somehow or another we need the detect
-> > function.  The implementation can always change later.
-> Yes we still need a detect , but the implementation would be different
-> , from the prior experience with the Hot-plug detection it wad found
-> that the interrupt based way to handle HPD was not the best ,but if
-> this is just to poll the status then it should be fine.
+I can't see this one queued up anywhere.  Did it just slip through the
+cracks, or are there any problems with it?
 
-I'm not sure I understood. First you say the implementation should be
-different, but then you say this should be fine. So is this a valid
-implementation for detect() or is there a better way to do it?
+BR,
 
- Tomi
+Bjarne Steinsbo
 
-
-
+On Tue, Aug 16, 2011 at 4:33 PM, Bjarne Steinsbo <bsteinsbo@gmail.com> =
+wrote:
+> Pointers to functions that are annotated as __devexit should be
+> protected by the __devexit_p() macro.
+>
+> This fixes a build failure for OMAP when defined(CONFIG_SMP_ON_UP) &&
+> !defined(CONFIG_DEBUG_SPINLOCK)
+>
+> Signed-off-by: Bjarne Steinsbo <bsteinsbo@gmail.com>
+> ---
+> =A0arch/arm/mach-omap2/smartreflex.c | =A0 =A02 +-
+> =A0arch/arm/plat-omap/dma.c =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
+> =A02 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/smartreflex.c
+> b/arch/arm/mach-omap2/smartreflex.c
+> index 34c01a7..67bc6ce 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -1002,7 +1002,7 @@ static int __devexit omap_sr_remove(struct
+> platform_device *pdev)
+> =A0}
+>
+> =A0static struct platform_driver smartreflex_driver =3D {
+> - =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D omap_sr_remove,
+> + =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D __devexit_p(omap_sr_remove)=
+,
+> =A0 =A0 =A0 =A0.driver =A0 =A0 =A0 =A0 =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "smartreflex",
+> =A0 =A0 =A0 =A0},
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index c22217c..f7150ba 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -2105,7 +2105,7 @@ static int __devexit
+> omap_system_dma_remove(struct platform_device *pdev)
+>
+> =A0static struct platform_driver omap_system_dma_driver =3D {
+> =A0 =A0 =A0 =A0.probe =A0 =A0 =A0 =A0 =A0=3D omap_system_dma_probe,
+> - =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D omap_system_dma_remove,
+> + =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D __devexit_p(omap_system_dma=
+_remove),
+> =A0 =A0 =A0 =A0.driver =A0 =A0 =A0 =A0 =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "omap_dma_system"
+> =A0 =A0 =A0 =A0},
+> --
+> 1.7.1
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
