@@ -1,41 +1,69 @@
-From: Bjarne Steinsbo <bsteinsbo@gmail.com>
-Subject: Re: [PATCHv2 2/4] OMAP4: Keyboard: Fix section mismatch in the board file
-Date: Wed, 14 Sep 2011 09:12:58 +0200
-Message-ID: <CAFULf_yWUwSf8kgtJmMeNx04axG1FoRBAy2b=ApYjGfcEvvAhg@mail.gmail.com>
-References: <CAFULf_zAqFGcUfgfOMyrm8DLJhg1qXG+48W5u+pjBUwa=PmrRg@mail.gmail.com>
-	<CAFULf_x_7GXMRY_rNDFk377R-ZWSOvM5KBqOe0a4cYbzGARnYA@mail.gmail.com>
-	<20110816065332.GC2305@legolas.emea.dhcp.ti.com>
+From: "Dan Pereira" <danp_48@yahoo.com>
+Subject: Build-a-home-based-business-on-Auto-Pilot-
+Date: Tue, 13 Sep 2011 20:01:35 -0700 (PDT)
+Message-ID: <201109140301.p8E31ZYp063448@mail3.spagack2.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f42.google.com ([209.85.212.42]:49656 "EHLO
-	mail-vw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755513Ab1INHUD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 03:20:03 -0400
-Received: by vwl1 with SMTP id 1so2205317vwl.1
-        for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 00:20:02 -0700 (PDT)
-In-Reply-To: <20110816065332.GC2305@legolas.emea.dhcp.ti.com>
+Received: from mail3.spagack2.com ([74.122.159.222]:63071 "EHLO
+	mail3.spagack2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755385Ab1INH3R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 03:29:17 -0400
+Received: from mail3.spagack2.com (localhost.mail3.spagack2.com [127.0.0.1])
+	by mail3.spagack2.com (8.13.8/8.12.7) with ESMTP id p8E31Znp063458
+	for <linux-omap@vger.kernel.org>; Tue, 13 Sep 2011 20:01:36 -0700 (PDT)
+	(envelope-from u789mobs@reliablecontact.com)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, balbi@ti.com
 
-I can't see this one queued up anywhere.  Did it just slip through the
-cracks, or are there any problems with it?
 
-BR,
 
-Bjarne Steinsbo
+Hello Everyone,
 
-On Tue, Aug 16, 2011 at 8:53 AM, Felipe Balbi <balbi@ti.com> wrote:
-> On Fri, Aug 12, 2011 at 05:27:52PM +0200, Bjarne Steinsbo wrote:
->> `keypad_pads' is referred to by `keypad_data' which is
->> not __initdata, so `keypad_pads' should not be __initdata either.
->>
->> Signed-off-by: Bjarne Steinsbo <bsteinsbo@gmail.com>
->
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
->
-> --
-> balbi
->
+Discover how average people who have never made a cent in the past
+Are now making $1,000+ every month,=20
+With the Potential of making $50,000 a month
+Just "Plug In"... to Your
+Own Fully Automated=20
+  Turn Key...Global Marketing $ystem
+Receive $500-$3,500 Monthly or MORE
+Not MLM...and
+No Selling...
+No Cold Phone Calling.=20
+Complete plug-in-system!
+
+Check-it-Out!
+
+http://trckrs.com/48184/rc7
+
+It=92s surprisingly cool!
+
+Dan and Noel
+
+
+His was a Com.Merical adv.Sent to you by:Dan Pereira, 11383 Golf Road, =
+Turlock, CA 95380
+In compliance with Federal law, should you choose to Un.Subscribe from =
+our network, you may do so using theUn.Subscribe instruction found belo=
+w.  We are fully compliant with CAN-SPAM Act of 2005-Please use the Un.=
+Subscribe link provided:
+
+
+
+
+
+
+
+
+To remove this email address from further mailings click on  the link b=
+elow  while connected to the internet.
+http://www.reliablecontact.com/cgi-bin/maxsponder/maxuseradmin.cgi?func=
+tion=3Dmanualdelete3&email=3Dlinux-omap*vger.kernel.org&un=3Drichardper=
+eira
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
