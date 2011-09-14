@@ -1,353 +1,502 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 03/10] OMAP4: DSS2: Fix incorrect OMAP3-alpha compatibility setting
-Date: Wed, 14 Sep 2011 17:54:26 +0530
-Message-ID: <1316003066-24233-1-git-send-email-archit@ti.com>
+Subject: [PATCH v3 04/10] OMAP4: DSS2: VIDEO3 pipeline support
+Date: Wed, 14 Sep 2011 17:55:08 +0530
+Message-ID: <1316003114-24291-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46303 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932370Ab1INMXM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Sep 2011 08:23:12 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:59975 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932370Ab1INMYB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 08:24:01 -0400
 Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8ECNCe7014804
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8ECO15x030199
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:23:12 -0500
+	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:01 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p8ECNBQT014917
-	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:23:11 -0500 (CDT)
-Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p8ECNB6R000119
-	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:23:11 -0500 (CDT)
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p8ECO0fw015078
+	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:00 -0500 (CDT)
+Received: from DFLE70.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p8ECO0w1000815
+	for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 07:24:00 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, hvaibhav@ti.com
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On OMAP3, in order to enable alpha blending for LCD and TV managers, we needed
-to set LCDALPHABLENDERENABLE/TVALPHABLENDERENABLE bits in DISPC_CONFIG. On
-OMAP4, alpha blending is always enabled by default, if the above bits are set,
-we switch to an OMAP3 compatibility mode where the zorder values in the pipleine
-attribute registers are ignored and a fixed priority is configured.
-
-Rename the manager_info member "alpha_enabled" to "partial_alpha_enabled" for
-more clarity. Introduce two dss_features FEAT_ALPHA_FIXED_ZORDER and
-FEAT_ALPHA_FREE_ZORDER which represent OMAP3-alpha compatibility mode and OMAP4
-alpha mode respectively. Introduce an overlay cap for ZORDER. The DSS2 user is
-expected to check for the ZORDER cap, if an overlay doesn't have this cap, the
-user is expected to set the parameter partial_alpha_enabled. If the overlay has
-ZORDER cap, the DSS2 user can assume that alpha blending is already enabled.
-
-Don't support OMAP3 compatibility mode for now. Trying to read/write to
-alpha_blending_enabled sysfs attribute issues a warning for OMAP4 and does not
-set the LCDALPHABLENDERENABLE/TVALPHABLENDERENABLE bits.
-
-Initial patch was made by: Lajos Molnar <molnar@ti.com>
+Add support for VIDEO3 pipeline on OMAP4:
+- Add VIDEO3 pipeline information in dss_features and omapdss.h
+- Add VIDEO3 pipeline register coefficients in dispc.h
+- Create a new overlay structure corresponding to VIDEO3.
+- Make changes in dispc.c for VIDEO3
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
-Note:
-
-This will cause a build break for omap_vout driver. A Patch will be posted to
-resolve this.
-
- drivers/video/omap2/dss/dispc.c        |   24 ++++++++++++------------
- drivers/video/omap2/dss/dss.h          |    4 ++--
- drivers/video/omap2/dss/dss_features.c |   22 +++++++++++-----------
- drivers/video/omap2/dss/dss_features.h |    3 ++-
- drivers/video/omap2/dss/manager.c      |   28 +++++++++++++++++++---------
- include/video/omapdss.h                |    3 ++-
- 6 files changed, 48 insertions(+), 36 deletions(-)
+ drivers/video/omap2/dss/dispc.c        |   17 ++++++++--
+ drivers/video/omap2/dss/dispc.h        |   57 ++++++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/dss_features.c |   18 +++++++++-
+ drivers/video/omap2/dss/dss_features.h |    2 +-
+ drivers/video/omap2/dss/overlay.c      |    5 +++
+ include/video/omapdss.h                |    5 ++-
+ 6 files changed, 97 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index fbcefce..4a061dd 100644
+index 4a061dd..a3f6d17 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -179,7 +179,8 @@ static void dispc_save_context(void)
- 	SR(CONTROL);
- 	SR(CONFIG);
- 	SR(LINE_NUMBER);
--	if (dss_has_feature(FEAT_GLOBAL_ALPHA))
-+	if (dss_has_feature(FEAT_ALPHA_FIXED_ZORDER) ||
-+			dss_has_feature(FEAT_ALPHA_FREE_ZORDER))
- 		SR(GLOBAL_ALPHA);
- 	if (dss_has_feature(FEAT_MGR_LCD2)) {
- 		SR(CONTROL2);
-@@ -293,7 +294,8 @@ static void dispc_restore_context(void)
- 	/*RR(CONTROL);*/
- 	RR(CONFIG);
- 	RR(LINE_NUMBER);
--	if (dss_has_feature(FEAT_GLOBAL_ALPHA))
-+	if (dss_has_feature(FEAT_ALPHA_FIXED_ZORDER) ||
-+			dss_has_feature(FEAT_ALPHA_FREE_ZORDER))
- 		RR(GLOBAL_ALPHA);
+@@ -738,7 +738,7 @@ static void dispc_ovl_set_pre_mult_alpha(enum omap_plane plane, bool enable)
+ 
+ static void dispc_ovl_setup_global_alpha(enum omap_plane plane, u8 global_alpha)
+ {
+-	static const unsigned shifts[] = { 0, 8, 16, };
++	static const unsigned shifts[] = { 0, 8, 16, 24, };
+ 	int shift;
+ 	struct omap_overlay *ovl = omap_dss_get_overlay(plane);
+ 
+@@ -853,6 +853,7 @@ static void dispc_ovl_set_channel_out(enum omap_plane plane,
+ 		break;
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
++	case OMAP_DSS_VIDEO3:
+ 		shift = 16;
+ 		break;
+ 	default:
+@@ -890,7 +891,7 @@ static void dispc_ovl_set_channel_out(enum omap_plane plane,
+ static void dispc_ovl_set_burst_size(enum omap_plane plane,
+ 		enum omap_burst_size burst_size)
+ {
+-	static const unsigned shifts[] = { 6, 14, 14, };
++	static const unsigned shifts[] = { 6, 14, 14, 14, };
+ 	int shift;
+ 
+ 	shift = shifts[plane];
+@@ -975,7 +976,7 @@ static void dispc_ovl_set_vid_color_conv(enum omap_plane plane, bool enable)
+ 
+ static void dispc_ovl_enable_replication(enum omap_plane plane, bool enable)
+ {
+-	static const unsigned shifts[] = { 5, 10, 10 };
++	static const unsigned shifts[] = { 5, 10, 10, 10 };
+ 	int shift;
+ 
+ 	shift = shifts[plane];
+@@ -2518,6 +2519,10 @@ void dispc_dump_irqs(struct seq_file *s)
+ 	PIS(VID1_END_WIN);
+ 	PIS(VID2_FIFO_UNDERFLOW);
+ 	PIS(VID2_END_WIN);
++	if (dss_feat_get_num_ovls() > 3) {
++		PIS(VID3_FIFO_UNDERFLOW);
++		PIS(VID3_END_WIN);
++	}
+ 	PIS(SYNC_LOST);
+ 	PIS(SYNC_LOST_DIGIT);
+ 	PIS(WAKEUP);
+@@ -2543,6 +2548,7 @@ void dispc_dump_regs(struct seq_file *s)
+ 		[OMAP_DSS_GFX]		= "GFX",
+ 		[OMAP_DSS_VIDEO1]	= "VID1",
+ 		[OMAP_DSS_VIDEO2]	= "VID2",
++		[OMAP_DSS_VIDEO3]	= "VID3",
+ 	};
+ 	const char **p_names;
+ 
+@@ -2945,6 +2951,8 @@ static void print_irq_status(u32 status)
+ 	PIS(OCP_ERR);
+ 	PIS(VID1_FIFO_UNDERFLOW);
+ 	PIS(VID2_FIFO_UNDERFLOW);
++	if (dss_feat_get_num_ovls() > 3)
++		PIS(VID3_FIFO_UNDERFLOW);
+ 	PIS(SYNC_LOST);
+ 	PIS(SYNC_LOST_DIGIT);
  	if (dss_has_feature(FEAT_MGR_LCD2))
- 		RR(CONFIG2);
-@@ -2134,38 +2136,35 @@ void dispc_mgr_enable_trans_key(enum omap_channel ch, bool enable)
- 	else /* OMAP_DSS_CHANNEL_LCD2 */
- 		REG_FLD_MOD(DISPC_CONFIG2, enable, 10, 10);
- }
--void dispc_mgr_enable_alpha_blending(enum omap_channel ch, bool enable)
-+
-+void dispc_mgr_enable_alpha_fixed_zorder(enum omap_channel ch, bool enable)
- {
--	if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
-+	if (!dss_has_feature(FEAT_ALPHA_FIXED_ZORDER))
- 		return;
+@@ -3042,6 +3050,7 @@ static void dispc_error_worker(struct work_struct *work)
+ 		DISPC_IRQ_GFX_FIFO_UNDERFLOW,
+ 		DISPC_IRQ_VID1_FIFO_UNDERFLOW,
+ 		DISPC_IRQ_VID2_FIFO_UNDERFLOW,
++		DISPC_IRQ_VID3_FIFO_UNDERFLOW,
+ 	};
  
- 	if (ch == OMAP_DSS_CHANNEL_LCD)
- 		REG_FLD_MOD(DISPC_CONFIG, enable, 18, 18);
- 	else if (ch == OMAP_DSS_CHANNEL_DIGIT)
- 		REG_FLD_MOD(DISPC_CONFIG, enable, 19, 19);
--	else /* OMAP_DSS_CHANNEL_LCD2 */
--		REG_FLD_MOD(DISPC_CONFIG2, enable, 18, 18);
- }
--bool dispc_mgr_alpha_blending_enabled(enum omap_channel ch)
-+
-+bool dispc_mgr_alpha_fixed_zorder_enabled(enum omap_channel ch)
- {
- 	bool enabled;
+ 	static const unsigned sync_lost_bits[] = {
+@@ -3217,6 +3226,8 @@ static void _omap_dispc_initialize_irq(void)
+ 	dispc.irq_error_mask = DISPC_IRQ_MASK_ERROR;
+ 	if (dss_has_feature(FEAT_MGR_LCD2))
+ 		dispc.irq_error_mask |= DISPC_IRQ_SYNC_LOST2;
++	if (dss_feat_get_num_ovls() > 3)
++		dispc.irq_error_mask |= DISPC_IRQ_VID3_FIFO_UNDERFLOW;
  
--	if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
-+	if (!dss_has_feature(FEAT_ALPHA_FIXED_ZORDER))
- 		return false;
- 
- 	if (ch == OMAP_DSS_CHANNEL_LCD)
- 		enabled = REG_GET(DISPC_CONFIG, 18, 18);
- 	else if (ch == OMAP_DSS_CHANNEL_DIGIT)
- 		enabled = REG_GET(DISPC_CONFIG, 19, 19);
--	else if (ch == OMAP_DSS_CHANNEL_LCD2)
--		enabled = REG_GET(DISPC_CONFIG2, 18, 18);
- 	else
+ 	/* there's SYNC_LOST_DIGIT waiting after enabling the DSS,
+ 	 * so clear it */
+diff --git a/drivers/video/omap2/dss/dispc.h b/drivers/video/omap2/dss/dispc.h
+index 6c9ee0a..c06efc3 100644
+--- a/drivers/video/omap2/dss/dispc.h
++++ b/drivers/video/omap2/dss/dispc.h
+@@ -291,6 +291,8 @@ static inline u16 DISPC_OVL_BASE(enum omap_plane plane)
+ 		return 0x00BC;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x014C;
++	case OMAP_DSS_VIDEO3:
++		return 0x0300;
+ 	default:
  		BUG();
- 
- 	return enabled;
- }
- 
--
- bool dispc_mgr_trans_key_enabled(enum omap_channel ch)
- {
- 	bool enabled;
-@@ -2563,7 +2562,8 @@ void dispc_dump_regs(struct seq_file *s)
- 	DUMPREG(DISPC_CAPABLE);
- 	DUMPREG(DISPC_LINE_STATUS);
- 	DUMPREG(DISPC_LINE_NUMBER);
--	if (dss_has_feature(FEAT_GLOBAL_ALPHA))
-+	if (dss_has_feature(FEAT_ALPHA_FIXED_ZORDER) ||
-+			dss_has_feature(FEAT_ALPHA_FREE_ZORDER))
- 		DUMPREG(DISPC_GLOBAL_ALPHA);
- 	if (dss_has_feature(FEAT_MGR_LCD2)) {
- 		DUMPREG(DISPC_CONTROL2);
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index dff9b79..c303a71 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -430,9 +430,9 @@ void dispc_mgr_get_trans_key(enum omap_channel ch,
- 		enum omap_dss_trans_key_type *type,
- 		u32 *trans_key);
- void dispc_mgr_enable_trans_key(enum omap_channel ch, bool enable);
--void dispc_mgr_enable_alpha_blending(enum omap_channel ch, bool enable);
-+void dispc_mgr_enable_alpha_fixed_zorder(enum omap_channel ch, bool enable);
- bool dispc_mgr_trans_key_enabled(enum omap_channel ch);
--bool dispc_mgr_alpha_blending_enabled(enum omap_channel ch);
-+bool dispc_mgr_alpha_fixed_zorder_enabled(enum omap_channel ch);
- void dispc_mgr_set_lcd_timings(enum omap_channel channel,
- 		struct omap_video_timings *timings);
- void dispc_mgr_set_pol_freq(enum omap_channel channel,
+ 	}
+@@ -304,6 +306,8 @@ static inline u16 DISPC_BA0_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0000;
++	case OMAP_DSS_VIDEO3:
++		return 0x0008;
+ 	default:
+ 		BUG();
+ 	}
+@@ -316,6 +320,8 @@ static inline u16 DISPC_BA1_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0004;
++	case OMAP_DSS_VIDEO3:
++		return 0x000C;
+ 	default:
+ 		BUG();
+ 	}
+@@ -330,6 +336,8 @@ static inline u16 DISPC_BA0_UV_OFFSET(enum omap_plane plane)
+ 		return 0x0544;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x04BC;
++	case OMAP_DSS_VIDEO3:
++		return 0x0310;
+ 	default:
+ 		BUG();
+ 	}
+@@ -344,6 +352,8 @@ static inline u16 DISPC_BA1_UV_OFFSET(enum omap_plane plane)
+ 		return 0x0548;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x04C0;
++	case OMAP_DSS_VIDEO3:
++		return 0x0314;
+ 	default:
+ 		BUG();
+ 	}
+@@ -356,6 +366,8 @@ static inline u16 DISPC_POS_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0008;
++	case OMAP_DSS_VIDEO3:
++		return 0x009C;
+ 	default:
+ 		BUG();
+ 	}
+@@ -368,6 +380,8 @@ static inline u16 DISPC_SIZE_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x000C;
++	case OMAP_DSS_VIDEO3:
++		return 0x00A8;
+ 	default:
+ 		BUG();
+ 	}
+@@ -381,6 +395,8 @@ static inline u16 DISPC_ATTR_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0010;
++	case OMAP_DSS_VIDEO3:
++		return 0x0070;
+ 	default:
+ 		BUG();
+ 	}
+@@ -395,6 +411,8 @@ static inline u16 DISPC_ATTR2_OFFSET(enum omap_plane plane)
+ 		return 0x0568;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x04DC;
++	case OMAP_DSS_VIDEO3:
++		return 0x032C;
+ 	default:
+ 		BUG();
+ 	}
+@@ -408,6 +426,8 @@ static inline u16 DISPC_FIFO_THRESH_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0014;
++	case OMAP_DSS_VIDEO3:
++		return 0x008C;
+ 	default:
+ 		BUG();
+ 	}
+@@ -421,6 +441,8 @@ static inline u16 DISPC_FIFO_SIZE_STATUS_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0018;
++	case OMAP_DSS_VIDEO3:
++		return 0x0088;
+ 	default:
+ 		BUG();
+ 	}
+@@ -434,6 +456,8 @@ static inline u16 DISPC_ROW_INC_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x001C;
++	case OMAP_DSS_VIDEO3:
++		return 0x00A4;
+ 	default:
+ 		BUG();
+ 	}
+@@ -447,6 +471,8 @@ static inline u16 DISPC_PIX_INC_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0020;
++	case OMAP_DSS_VIDEO3:
++		return 0x0098;
+ 	default:
+ 		BUG();
+ 	}
+@@ -459,6 +485,7 @@ static inline u16 DISPC_WINDOW_SKIP_OFFSET(enum omap_plane plane)
+ 		return 0x0034;
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
++	case OMAP_DSS_VIDEO3:
+ 		BUG();
+ 	default:
+ 		BUG();
+@@ -472,6 +499,7 @@ static inline u16 DISPC_TABLE_BA_OFFSET(enum omap_plane plane)
+ 		return 0x0038;
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
++	case OMAP_DSS_VIDEO3:
+ 		BUG();
+ 	default:
+ 		BUG();
+@@ -486,6 +514,8 @@ static inline u16 DISPC_FIR_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0024;
++	case OMAP_DSS_VIDEO3:
++		return 0x0090;
+ 	default:
+ 		BUG();
+ 	}
+@@ -500,6 +530,8 @@ static inline u16 DISPC_FIR2_OFFSET(enum omap_plane plane)
+ 		return 0x0580;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x055C;
++	case OMAP_DSS_VIDEO3:
++		return 0x0424;
+ 	default:
+ 		BUG();
+ 	}
+@@ -513,6 +545,8 @@ static inline u16 DISPC_PIC_SIZE_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0028;
++	case OMAP_DSS_VIDEO3:
++		return 0x0094;
+ 	default:
+ 		BUG();
+ 	}
+@@ -527,6 +561,8 @@ static inline u16 DISPC_ACCU0_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x002C;
++	case OMAP_DSS_VIDEO3:
++		return 0x0000;
+ 	default:
+ 		BUG();
+ 	}
+@@ -541,6 +577,8 @@ static inline u16 DISPC_ACCU2_0_OFFSET(enum omap_plane plane)
+ 		return 0x0584;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0560;
++	case OMAP_DSS_VIDEO3:
++		return 0x0428;
+ 	default:
+ 		BUG();
+ 	}
+@@ -554,6 +592,8 @@ static inline u16 DISPC_ACCU1_OFFSET(enum omap_plane plane)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0030;
++	case OMAP_DSS_VIDEO3:
++		return 0x0004;
+ 	default:
+ 		BUG();
+ 	}
+@@ -568,6 +608,8 @@ static inline u16 DISPC_ACCU2_1_OFFSET(enum omap_plane plane)
+ 		return 0x0588;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0564;
++	case OMAP_DSS_VIDEO3:
++		return 0x042C;
+ 	default:
+ 		BUG();
+ 	}
+@@ -582,6 +624,8 @@ static inline u16 DISPC_FIR_COEF_H_OFFSET(enum omap_plane plane, u16 i)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0034 + i * 0x8;
++	case OMAP_DSS_VIDEO3:
++		return 0x0010 + i * 0x8;
+ 	default:
+ 		BUG();
+ 	}
+@@ -597,6 +641,8 @@ static inline u16 DISPC_FIR_COEF_H2_OFFSET(enum omap_plane plane, u16 i)
+ 		return 0x058C + i * 0x8;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0568 + i * 0x8;
++	case OMAP_DSS_VIDEO3:
++		return 0x0430 + i * 0x8;
+ 	default:
+ 		BUG();
+ 	}
+@@ -611,6 +657,8 @@ static inline u16 DISPC_FIR_COEF_HV_OFFSET(enum omap_plane plane, u16 i)
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x0038 + i * 0x8;
++	case OMAP_DSS_VIDEO3:
++		return 0x0014 + i * 0x8;
+ 	default:
+ 		BUG();
+ 	}
+@@ -626,6 +674,8 @@ static inline u16 DISPC_FIR_COEF_HV2_OFFSET(enum omap_plane plane, u16 i)
+ 		return 0x0590 + i * 8;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x056C + i * 0x8;
++	case OMAP_DSS_VIDEO3:
++		return 0x0434 + i * 0x8;
+ 	default:
+ 		BUG();
+ 	}
+@@ -639,6 +689,7 @@ static inline u16 DISPC_CONV_COEF_OFFSET(enum omap_plane plane, u16 i)
+ 		BUG();
+ 	case OMAP_DSS_VIDEO1:
+ 	case OMAP_DSS_VIDEO2:
++	case OMAP_DSS_VIDEO3:
+ 		return 0x0074 + i * 0x4;
+ 	default:
+ 		BUG();
+@@ -655,6 +706,8 @@ static inline u16 DISPC_FIR_COEF_V_OFFSET(enum omap_plane plane, u16 i)
+ 		return 0x0124 + i * 0x4;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x00B4 + i * 0x4;
++	case OMAP_DSS_VIDEO3:
++		return 0x0050 + i * 0x4;
+ 	default:
+ 		BUG();
+ 	}
+@@ -670,6 +723,8 @@ static inline u16 DISPC_FIR_COEF_V2_OFFSET(enum omap_plane plane, u16 i)
+ 		return 0x05CC + i * 0x4;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x05A8 + i * 0x4;
++	case OMAP_DSS_VIDEO3:
++		return 0x0470 + i * 0x4;
+ 	default:
+ 		BUG();
+ 	}
+@@ -684,6 +739,8 @@ static inline u16 DISPC_PRELOAD_OFFSET(enum omap_plane plane)
+ 		return 0x0174;
+ 	case OMAP_DSS_VIDEO2:
+ 		return 0x00E8;
++	case OMAP_DSS_VIDEO3:
++		return 0x00A0;
+ 	default:
+ 		BUG();
+ 	}
 diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index ab41665..452853d 100644
+index 452853d..0299338 100644
 --- a/drivers/video/omap2/dss/dss_features.c
 +++ b/drivers/video/omap2/dss/dss_features.c
-@@ -248,15 +248,16 @@ static const enum omap_overlay_caps omap3630_dss_overlay_caps[] = {
+@@ -210,6 +210,16 @@ static const enum omap_color_mode omap4_dss_supported_color_modes[] = {
+ 	OMAP_DSS_COLOR_ARGB16 | OMAP_DSS_COLOR_XRGB16_1555 |
+ 	OMAP_DSS_COLOR_ARGB32 | OMAP_DSS_COLOR_RGBX16 |
+ 	OMAP_DSS_COLOR_RGBX32,
++
++	/* OMAP_DSS_VIDEO3 */
++	OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB12U |
++	OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_ARGB16_1555 |
++	OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_NV12 |
++	OMAP_DSS_COLOR_RGBA16 | OMAP_DSS_COLOR_RGB24U |
++	OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_UYVY |
++	OMAP_DSS_COLOR_ARGB16 | OMAP_DSS_COLOR_XRGB16_1555 |
++	OMAP_DSS_COLOR_ARGB32 | OMAP_DSS_COLOR_RGBX16 |
++	OMAP_DSS_COLOR_RGBX32,
+ };
  
- static const enum omap_overlay_caps omap4_dss_overlay_caps[] = {
- 	/* OMAP_DSS_GFX */
--	OMAP_DSS_OVL_CAP_GLOBAL_ALPHA | OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA,
-+	OMAP_DSS_OVL_CAP_GLOBAL_ALPHA | OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA |
-+		OMAP_DSS_OVL_CAP_ZORDER,
- 
- 	/* OMAP_DSS_VIDEO1 */
- 	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_GLOBAL_ALPHA |
--		OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA,
-+		OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_ZORDER,
- 
+ static const enum omap_overlay_caps omap2_dss_overlay_caps[] = {
+@@ -258,6 +268,10 @@ static const enum omap_overlay_caps omap4_dss_overlay_caps[] = {
  	/* OMAP_DSS_VIDEO2 */
  	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_GLOBAL_ALPHA |
--		OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA,
+ 		OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_ZORDER,
++
++	/* OMAP_DSS_VIDEO3 */
++	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_GLOBAL_ALPHA |
 +		OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_ZORDER,
  };
  
  static const char * const omap2_dss_clk_source_names[] = {
-@@ -339,13 +340,13 @@ static const struct omap_dss_features omap3430_dss_features = {
- 	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
- 
- 	.has_feature	=
--		FEAT_GLOBAL_ALPHA | FEAT_LCDENABLEPOL |
-+		FEAT_LCDENABLEPOL |
- 		FEAT_LCDENABLESIGNAL | FEAT_PCKFREEENABLE |
- 		FEAT_FUNCGATED | FEAT_ROWREPEATENABLE |
- 		FEAT_LINEBUFFERSPLIT | FEAT_RESIZECONF |
- 		FEAT_DSI_PLL_FREQSEL | FEAT_DSI_REVERSE_TXCLKESC |
- 		FEAT_VENC_REQUIRES_TV_DAC_CLK | FEAT_CPR | FEAT_PRELOAD |
--		FEAT_FIR_COEF_V,
-+		FEAT_FIR_COEF_V | FEAT_ALPHA_FIXED_ZORDER,
- 
- 	.num_mgrs = 2,
- 	.num_ovls = 3,
-@@ -363,13 +364,13 @@ static const struct omap_dss_features omap3630_dss_features = {
- 	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
- 
- 	.has_feature    =
--		FEAT_GLOBAL_ALPHA | FEAT_LCDENABLEPOL |
-+		FEAT_LCDENABLEPOL |
- 		FEAT_LCDENABLESIGNAL | FEAT_PCKFREEENABLE |
- 		FEAT_FUNCGATED |
- 		FEAT_ROWREPEATENABLE | FEAT_LINEBUFFERSPLIT |
- 		FEAT_RESIZECONF | FEAT_DSI_PLL_PWR_BUG |
- 		FEAT_DSI_PLL_FREQSEL | FEAT_CPR | FEAT_PRELOAD |
--		FEAT_FIR_COEF_V,
-+		FEAT_FIR_COEF_V | FEAT_ALPHA_FIXED_ZORDER,
- 
- 	.num_mgrs = 2,
- 	.num_ovls = 3,
-@@ -389,12 +390,12 @@ static const struct omap_dss_features omap4430_es1_0_dss_features  = {
- 	.num_reg_fields = ARRAY_SIZE(omap4_dss_reg_fields),
- 
- 	.has_feature	=
--		FEAT_GLOBAL_ALPHA |
- 		FEAT_MGR_LCD2 |
- 		FEAT_CORE_CLK_DIV | FEAT_LCD_CLK_SRC |
- 		FEAT_DSI_DCS_CMD_CONFIG_VC | FEAT_DSI_VC_OCP_WIDTH |
- 		FEAT_DSI_GNQ | FEAT_HANDLE_UV_SEPARATE | FEAT_ATTR2 |
--		FEAT_CPR | FEAT_PRELOAD | FEAT_FIR_COEF_V,
-+		FEAT_CPR | FEAT_PRELOAD | FEAT_FIR_COEF_V |
-+		FEAT_ALPHA_FREE_ZORDER,
+@@ -398,7 +412,7 @@ static const struct omap_dss_features omap4430_es1_0_dss_features  = {
+ 		FEAT_ALPHA_FREE_ZORDER,
  
  	.num_mgrs = 3,
- 	.num_ovls = 3,
-@@ -413,13 +414,12 @@ static const struct omap_dss_features omap4_dss_features = {
- 	.num_reg_fields = ARRAY_SIZE(omap4_dss_reg_fields),
- 
- 	.has_feature	=
--		FEAT_GLOBAL_ALPHA |
- 		FEAT_MGR_LCD2 |
- 		FEAT_CORE_CLK_DIV | FEAT_LCD_CLK_SRC |
- 		FEAT_DSI_DCS_CMD_CONFIG_VC | FEAT_DSI_VC_OCP_WIDTH |
- 		FEAT_DSI_GNQ | FEAT_HDMI_CTS_SWMODE |
- 		FEAT_HANDLE_UV_SEPARATE | FEAT_ATTR2 | FEAT_CPR |
--		FEAT_PRELOAD | FEAT_FIR_COEF_V,
-+		FEAT_PRELOAD | FEAT_FIR_COEF_V | FEAT_ALPHA_FREE_ZORDER,
+-	.num_ovls = 3,
++	.num_ovls = 4,
+ 	.supported_displays = omap4_dss_supported_displays,
+ 	.supported_color_modes = omap4_dss_supported_color_modes,
+ 	.overlay_caps = omap4_dss_overlay_caps,
+@@ -422,7 +436,7 @@ static const struct omap_dss_features omap4_dss_features = {
+ 		FEAT_PRELOAD | FEAT_FIR_COEF_V | FEAT_ALPHA_FREE_ZORDER,
  
  	.num_mgrs = 3,
- 	.num_ovls = 3,
+-	.num_ovls = 3,
++	.num_ovls = 4,
+ 	.supported_displays = omap4_dss_supported_displays,
+ 	.supported_color_modes = omap4_dss_supported_color_modes,
+ 	.overlay_caps = omap4_dss_overlay_caps,
 diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index f73585e..626bfd3 100644
+index 626bfd3..879f3fb 100644
 --- a/drivers/video/omap2/dss/dss_features.h
 +++ b/drivers/video/omap2/dss/dss_features.h
-@@ -31,7 +31,6 @@
+@@ -25,7 +25,7 @@
+ #endif
  
- /* DSS has feature id */
- enum dss_feat_id {
--	FEAT_GLOBAL_ALPHA		= 1 << 0,
- 	FEAT_LCDENABLEPOL		= 1 << 3,
- 	FEAT_LCDENABLESIGNAL		= 1 << 4,
- 	FEAT_PCKFREEENABLE		= 1 << 5,
-@@ -57,6 +56,8 @@ enum dss_feat_id {
- 	FEAT_CPR			= 1 << 23,
- 	FEAT_PRELOAD			= 1 << 24,
- 	FEAT_FIR_COEF_V			= 1 << 25,
-+	FEAT_ALPHA_FIXED_ZORDER		= 1 << 26,
-+	FEAT_ALPHA_FREE_ZORDER		= 1 << 27,
- };
+ #define MAX_DSS_MANAGERS	3
+-#define MAX_DSS_OVERLAYS	3
++#define MAX_DSS_OVERLAYS	4
+ #define MAX_DSS_LCD_MANAGERS	2
+ #define MAX_NUM_DSI		2
  
- /* DSS register field id */
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index fdbbeeb..6e63845 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -249,7 +249,10 @@ static ssize_t manager_trans_key_enabled_store(struct omap_overlay_manager *mgr,
- static ssize_t manager_alpha_blending_enabled_show(
- 		struct omap_overlay_manager *mgr, char *buf)
- {
--	return snprintf(buf, PAGE_SIZE, "%d\n", mgr->info.alpha_enabled);
-+	WARN_ON(!dss_has_feature(FEAT_ALPHA_FIXED_ZORDER));
-+
-+	return snprintf(buf, PAGE_SIZE, "%d\n",
-+		mgr->info.partial_alpha_enabled);
- }
+diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
+index afb7583..11d21e3 100644
+--- a/drivers/video/omap2/dss/overlay.c
++++ b/drivers/video/omap2/dss/overlay.c
+@@ -615,6 +615,11 @@ void dss_init_overlays(struct platform_device *pdev)
+ 			ovl->id = OMAP_DSS_VIDEO2;
+ 			ovl->info.global_alpha = 255;
+ 			break;
++		case 3:
++			ovl->name = "vid3";
++			ovl->id = OMAP_DSS_VIDEO3;
++			ovl->info.global_alpha = 255;
++			break;
+ 		}
  
- static ssize_t manager_alpha_blending_enabled_store(
-@@ -260,13 +263,15 @@ static ssize_t manager_alpha_blending_enabled_store(
- 	bool enable;
- 	int r;
- 
-+	WARN_ON(!dss_has_feature(FEAT_ALPHA_FIXED_ZORDER));
-+
- 	r = strtobool(buf, &enable);
- 	if (r)
- 		return r;
- 
- 	mgr->get_manager_info(mgr, &info);
- 
--	info.alpha_enabled = enable;
-+	info.partial_alpha_enabled = enable;
- 
- 	r = mgr->set_manager_info(mgr, &info);
- 	if (r)
-@@ -966,7 +971,7 @@ static void configure_manager(enum omap_channel channel)
- 	dispc_mgr_set_default_color(channel, mi->default_color);
- 	dispc_mgr_set_trans_key(channel, mi->trans_key_type, mi->trans_key);
- 	dispc_mgr_enable_trans_key(channel, mi->trans_enabled);
--	dispc_mgr_enable_alpha_blending(channel, mi->alpha_enabled);
-+	dispc_mgr_enable_alpha_fixed_zorder(channel, mi->partial_alpha_enabled);
- 	if (dss_has_feature(FEAT_CPR)) {
- 		dispc_mgr_enable_cpr(channel, mi->cpr_enable);
- 		dispc_mgr_set_cpr_coef(channel, &mi->cpr_coefs);
-@@ -1481,12 +1486,17 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
- 
- static int dss_check_manager(struct omap_overlay_manager *mgr)
- {
--	/* OMAP supports only graphics source transparency color key and alpha
--	 * blending simultaneously. See TRM 15.4.2.4.2.2 Alpha Mode */
--
--	if (mgr->info.alpha_enabled && mgr->info.trans_enabled &&
--			mgr->info.trans_key_type != OMAP_DSS_COLOR_KEY_GFX_DST)
--		return -EINVAL;
-+	if (dss_has_feature(FEAT_ALPHA_FIXED_ZORDER)) {
-+		/*
-+		 * OMAP3 supports only graphics source transparency color key
-+		 * and alpha blending simultaneously. See TRM 15.4.2.4.2.2
-+		 * Alpha Mode
-+		 */
-+		if (mgr->info.partial_alpha_enabled && mgr->info.trans_enabled
-+			&& mgr->info.trans_key_type !=
-+				OMAP_DSS_COLOR_KEY_GFX_DST)
-+			return -EINVAL;
-+	}
- 
- 	return 0;
- }
+ 		ovl->set_manager = &omap_dss_set_manager;
 diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index c62b9a4..5f0ce5e 100644
+index 5f0ce5e..1f12559 100644
 --- a/include/video/omapdss.h
 +++ b/include/video/omapdss.h
-@@ -179,6 +179,7 @@ enum omap_overlay_caps {
- 	OMAP_DSS_OVL_CAP_SCALE = 1 << 0,
- 	OMAP_DSS_OVL_CAP_GLOBAL_ALPHA = 1 << 1,
- 	OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA = 1 << 2,
-+	OMAP_DSS_OVL_CAP_ZORDER = 1 << 3,
+@@ -41,6 +41,8 @@
+ #define DISPC_IRQ_WAKEUP		(1 << 16)
+ #define DISPC_IRQ_SYNC_LOST2		(1 << 17)
+ #define DISPC_IRQ_VSYNC2		(1 << 18)
++#define DISPC_IRQ_VID3_END_WIN		(1 << 19)
++#define DISPC_IRQ_VID3_FIFO_UNDERFLOW	(1 << 20)
+ #define DISPC_IRQ_ACBIAS_COUNT_STAT2	(1 << 21)
+ #define DISPC_IRQ_FRAMEDONE2		(1 << 22)
+ #define DISPC_IRQ_FRAMEDONEWB		(1 << 23)
+@@ -63,7 +65,8 @@ enum omap_display_type {
+ enum omap_plane {
+ 	OMAP_DSS_GFX	= 0,
+ 	OMAP_DSS_VIDEO1	= 1,
+-	OMAP_DSS_VIDEO2	= 2
++	OMAP_DSS_VIDEO2	= 2,
++	OMAP_DSS_VIDEO3	= 3,
  };
  
- enum omap_overlay_manager_caps {
-@@ -406,7 +407,7 @@ struct omap_overlay_manager_info {
- 	u32 trans_key;
- 	bool trans_enabled;
- 
--	bool alpha_enabled;
-+	bool partial_alpha_enabled;
- 
- 	bool cpr_enable;
- 	struct omap_dss_cpr_coefs cpr_coefs;
+ enum omap_channel {
 -- 
 1.7.1
 
