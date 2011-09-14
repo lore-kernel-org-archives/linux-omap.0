@@ -1,58 +1,64 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: OMAP3505 revisions?
-Date: Wed, 14 Sep 2011 15:19:25 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593025750A2A5@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.1109131157520.1885@utopia.booyaka.com>
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 02/25] OMAP4: Redefine mandatory barriers for OMAP to
+ include interconnect barriers.
+Date: Wed, 14 Sep 2011 15:54:56 +0530
+Message-ID: <4E7080F8.9020302@ti.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com> <1315144466-9395-3-git-send-email-santosh.shilimkar@ti.com> <20110913202701.GF24252@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52818 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755747Ab1INJte convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 05:49:34 -0400
-In-Reply-To: <alpine.DEB.2.00.1109131157520.1885@utopia.booyaka.com>
-Content-Language: en-US
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:35355 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756344Ab1INKZE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Sep 2011 06:25:04 -0400
+Received: by mail-yi0-f50.google.com with SMTP id 25so13939yib.9
+        for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 03:25:03 -0700 (PDT)
+In-Reply-To: <20110913202701.GF24252@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "notasas@gmail.com" <notasas@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com, Richard Woodruff <r-woodruff2@ti.com>
 
-Paul,
+On Wednesday 14 September 2011 01:57 AM, Tony Lindgren wrote:
+> * Santosh Shilimkar<santosh.shilimkar@ti.com>  [110904 06:22]:
+>> On OMAP4 SOC intecronnects has many write buffers in the async bridges
+>> and they can be drained only with stongly ordered accesses.
+>
+> This is not correct, strongly ordered access does not guarantee
+> anything here. If it fixes issues, it's because it makes the writes
+> to reach the device faster. Strongly ordered does not affect anything
+> outside ARM, so the bus access won't change.
+>
+What I said is the aync bridges WB and what is said is correct
+from MPU accesses point of view.
 
-Looks like I was unsubscribed from linux-omap sometime last week.
-Why? no idea!
+It's not about faster or slower. With device memory the, writes
+can get stuck into write buffers where as with SO, the write buffers 
+will be bypassed.
 
-Anyways, I just looked at your mails. Will be responding with
-details in next hour. Will also attempt to re-subscribe in meantime.
+The behaviours is limited to the MPU side async bridge boundary which
+is the problem. The statement is not for l3 and l4 interconnect which
+probably you mean.
 
-~sanjeev 
+There is always a hardware signal to communicate CPU at async bridges
+to ensure that data is not stuck in these bridges before CPU
+clock/voltage is cut. Unfortunately we have a BUG on OMAP44XX devices
+and the dual channel makes it even worst since both pipes have the
+same BUG. So what we are doing is issuing SO write/read accesses
+on these pipes so that there is nothing stuck there before MPU
+hits low power states and also avoids any race conditions when
+both channels are used together by some initiators. The behaviour
+is validated at RTL level and there is no ambiguity about it.
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com] 
-> Sent: Tuesday, September 13, 2011 11:33 PM
-> To: Premi, Sanjeev
-> Cc: notasas@gmail.com; tony@atomide.com; linux-omap@vger.kernel.org
-> Subject: OMAP3505 revisions?
-> 
-> 
-> Hi Sanjeev
-> 
-> Am looking at your commit 4cac6018, which touches 
-> arch/arm/mach-omap2/id.c.  That commit implements SoC 
-> detection for the 
-> 3505 in a different way than the implementations for other 
-> OMAP2+ devices: 
-> it doesn't enumerate the possible TAP revisions for OMAP3505. 
->  The TRM 
-> doesn't seem to list those, either.  And unfortunately that 
-> is blocking 
-> some of the omap_chip removal work.
-> 
-> Could you send me a list of the possible revision values for the 
-> 3505/3517, along with mappings to ES levels, please?
-> 
-> thanks
-> 
-> - Paul
-> 
+May be you have mistaken the L3 and L4 as the interconnect levels
+in this case.
+
+Regards
+Santosh
+
+
+
+
+
