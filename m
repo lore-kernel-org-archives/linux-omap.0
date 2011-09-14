@@ -1,66 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 13/25] OMAP4: PM: Add WakeupGen module as OMAP
- gic_arch_extn
-Date: Wed, 14 Sep 2011 12:04:33 -0700
-Message-ID: <20110914190433.GP24252@atomide.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
- <1315144466-9395-14-git-send-email-santosh.shilimkar@ti.com>
- <20110913203616.GG24252@atomide.com>
- <CAMQu2gyYETPZRJu=4MWX6bULgmMaJb8MRwfhvURtOuyyWhLkAQ@mail.gmail.com>
- <20110914152116.GM24252@atomide.com>
- <4E70DB33.5070501@ti.com>
- <20110914170803.GN24252@atomide.com>
- <4E70E0CC.80300@ti.com>
- <20110914171800.GO24252@atomide.com>
- <4E70E2DE.2030006@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/6] OMAP4: Add missing clock divider for OCP_ABE_ICLK
+Date: Wed, 14 Sep 2011 14:32:24 -0500
+Message-ID: <4E710148.5010407@ti.com>
+References: <1310685865-3249-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1107150216380.16606@utopia.booyaka.com> <4E204FFC.5080700@ti.com> <4E2F4397.8060004@ti.com> <alpine.DEB.2.00.1108282207170.26173@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:36219 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932462Ab1INTEh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 15:04:37 -0400
-Content-Disposition: inline
-In-Reply-To: <4E70E2DE.2030006@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58226 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932890Ab1INTcl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 15:32:41 -0400
+In-Reply-To: <alpine.DEB.2.00.1108282207170.26173@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-* Santosh <santosh.shilimkar@ti.com> [110914 09:49]:
-> On Wednesday 14 September 2011 10:48 PM, Tony Lindgren wrote:
-> >* Santosh<santosh.shilimkar@ti.com>  [110914 09:40]:
-> >>On Wednesday 14 September 2011 10:38 PM, Tony Lindgren wrote:
-> >>>* Santosh<santosh.shilimkar@ti.com>   [110914 09:16]:
-> >>>
-> >>>Thanks for the clarification. It seems to me the spec is most likely
-> >>>wrong as we've had the GIC working for over two years now without
-> >>>doing anything with the wakeup gen registers :)
-> >>>
-> >>It's working because CPU clockdomain are never put under HW
-> >>supervised mode and they are kept in force wakeup. Clock-domain
-> >>never idles on mainline code. PM series will put the clock-domains
-> >>under HW supervison as needed to achieve any low power states and
-> >>then all sorts of corner cases will come out.
-> >
-> >But again the wakeup gen triggers only do something when hitting
-> >idle. There should be no use for them during runtime, right?
-> >
-> You missed my point in the description. Clockdomain inactive
-> doesn't depend on idle or WFI execution. Under HW supervison
-> CPU clock domain can get into inactive when CPU is stalled and
-> waiting for a read response from slow interconnect.
+Hi Paul
 
-Ah OK. If it's needed during runtime too then that explains why
-the registers need to be kept in sync.
+On 8/28/2011 23:09, Paul Walmsley wrote:
+> Just doublechecking on this patch.  Does anything need to be changed
+> before we merge this?  I can take a look at the autogeneration script if
+> that's the only issue left.
 
-> One thing for sure. Designers has chosen a wrong name to this
-> IP. Wakeugen apears like needed only for low power wakeup which
-> not seems to be entirely correct as per specs
+Sorry, I have been out on holiday. I believe that was the only problem 
+with this.
 
-Yes it's not obvious reading the TRM either. Maybe add some
-comment about that to the patch?
+Benoit what are your thoughts?
 
-Regards,
-
-Tony
+Cheers
+Jon
