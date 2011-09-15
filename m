@@ -1,100 +1,120 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [RFC PATCH 05/11] TWL: regulator: Make twl-regulator driver extract data from DT
-Date: Thu, 15 Sep 2011 16:52:01 +0530
-Message-ID: <1316085727-15023-6-git-send-email-rnayak@ti.com>
+Subject: [RFC PATCH 09/11] DT: regulator: Helper to extract regulator node based on supply name
+Date: Thu, 15 Sep 2011 16:52:05 +0530
+Message-ID: <1316085727-15023-10-git-send-email-rnayak@ti.com>
 References: <1316085727-15023-1-git-send-email-rnayak@ti.com>
  <1316085727-15023-2-git-send-email-rnayak@ti.com>
  <1316085727-15023-3-git-send-email-rnayak@ti.com>
  <1316085727-15023-4-git-send-email-rnayak@ti.com>
  <1316085727-15023-5-git-send-email-rnayak@ti.com>
+ <1316085727-15023-6-git-send-email-rnayak@ti.com>
+ <1316085727-15023-7-git-send-email-rnayak@ti.com>
+ <1316085727-15023-8-git-send-email-rnayak@ti.com>
+ <1316085727-15023-9-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56962 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933261Ab1IOLWg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Sep 2011 07:22:36 -0400
-In-Reply-To: <1316085727-15023-5-git-send-email-rnayak@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48790 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933301Ab1IOLWl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Sep 2011 07:22:41 -0400
+In-Reply-To: <1316085727-15023-9-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca
 Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-Modify the twl regulator driver to extract the regulator_init_data from
-device tree when passed, instead of getting it through platform_data
-structures (on non-DT builds)
+Device nodes in DT can associate themselves with one or more
+regulators by providing a list of phandles (to regulator nodes)
+and corresponding supply names.
+
+For Example:
+	devicenode: node@0x0 {
+		...
+		...
+		regulator = <&regulator1>,<&regulator2>;
+		regulator-names = "supply1","supply2";
+	};
+
+of_get_regulator() extracts the regulator node for a given
+device, based on the supply name.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- drivers/regulator/twl-regulator.c |   28 +++++++++++++++++++++++++---
- 1 files changed, 25 insertions(+), 3 deletions(-)
+ drivers/of/of_regulator.c    |   37 +++++++++++++++++++++++++++++++++++++
+ include/linux/of_regulator.h |    7 +++++++
+ 2 files changed, 44 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index ee8747f..df1b95a 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -17,6 +17,8 @@
- #include <linux/regulator/driver.h>
- #include <linux/regulator/machine.h>
- #include <linux/i2c/twl.h>
-+#include <linux/of.h>
-+#include <linux/of_regulator.h>
- 
- 
- /*
-@@ -1011,6 +1013,9 @@ static int __devinit twlreg_probe(struct platform_device *pdev)
- 	struct regulation_constraints	*c;
- 	struct regulator_dev		*rdev;
- 
-+	if (pdev->dev.of_node)
-+		of_property_read_u32(pdev->dev.of_node, "ti,reg-id", &pdev->id);
+diff --git a/drivers/of/of_regulator.c b/drivers/of/of_regulator.c
+index 4d7a49d..6f8fd4e 100644
+--- a/drivers/of/of_regulator.c
++++ b/drivers/of/of_regulator.c
+@@ -114,3 +114,40 @@ struct fixed_voltage_config *of_get_fixed_voltage_config(struct device_node *np)
+ 	return config;
+ }
+ EXPORT_SYMBOL(of_get_fixed_voltage_config);
 +
- 	for (i = 0, info = NULL; i < ARRAY_SIZE(twl_regs); i++) {
- 		if (twl_regs[i].desc.id != pdev->id)
- 			continue;
-@@ -1020,7 +1025,11 @@ static int __devinit twlreg_probe(struct platform_device *pdev)
- 	if (!info)
- 		return -ENODEV;
- 
--	initdata = pdev->dev.platform_data;
-+	if (pdev->dev.of_node)
-+		initdata = of_get_regulator_init_data(pdev->dev.of_node);
-+	else
-+		initdata = pdev->dev.platform_data;
++/**
++ * of_get_regulator - get a regulator device node based on supply name
++ * @dev: Device pointer for the consumer (of regulator) device
++ * @supply: regulator supply name
++ *
++ * Extract the regulator device node corresponding to the supply name.
++ * retruns the device node corresponding to the regulator if found, else
++ * returns NULL.
++ */
++struct device_node *of_get_regulator(struct device *dev, const char *supply)
++{
++	struct device_node *regnode = NULL;
++	u32 reghandle;
++	int regsz, namesz;
++	const void *regprop;
++	const char *namesprop;
 +
- 	if (!initdata)
- 		return -EINVAL;
- 
-@@ -1101,14 +1110,27 @@ static int __devexit twlreg_remove(struct platform_device *pdev)
- 
- MODULE_ALIAS("platform:twl_reg");
- 
-+#if defined(CONFIG_OF)
-+static const struct of_device_id twl_of_match[] __devinitconst = {
-+	{ .compatible = "ti,twl-reg", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, twl_of_match);
-+#else
-+#define twl_of_match NULL
-+#endif
++	regprop = of_get_property(dev->of_node, "regulator", &regsz);
++	namesprop = of_get_property(dev->of_node, "regulator-names", &namesz);
++	if (!regprop || !namesprop)
++		return NULL;
 +
- static struct platform_driver twlreg_driver = {
- 	.probe		= twlreg_probe,
- 	.remove		= __devexit_p(twlreg_remove),
- 	/* NOTE: short name, to work around driver model truncation of
- 	 * "twl_regulator.12" (and friends) to "twl_regulator.1".
- 	 */
--	.driver.name	= "twl_reg",
--	.driver.owner	= THIS_MODULE,
-+	.driver  = {
-+		.name  = "twl_reg",
-+		.owner = THIS_MODULE,
-+		.of_match_table = twl_of_match,
-+	},
- };
++	while (regsz && namesz) {
++		if (!strcmp(namesprop, supply)) {
++			reghandle = be32_to_cpup(regprop);
++			regnode = of_find_node_by_phandle(reghandle);
++			break;
++		}
++		regsz -= 4;
++		regprop += 4;
++		namesz -= strlen(namesprop) + 1;
++		namesprop += strlen(namesprop) + 1;
++	}
++	return regnode;
++}
++EXPORT_SYMBOL(of_get_regulator);
+diff --git a/include/linux/of_regulator.h b/include/linux/of_regulator.h
+index 39860c5..5fc7329 100644
+--- a/include/linux/of_regulator.h
++++ b/include/linux/of_regulator.h
+@@ -13,6 +13,8 @@ extern struct regulator_init_data
+ 	*of_get_regulator_init_data(struct device_node *np);
+ extern struct fixed_voltage_config
+ 	*of_get_fixed_voltage_config(struct device_node *np);
++extern struct device_node *of_get_regulator(struct device *dev,
++	const char *id);
+ #else
+ static inline struct regulator_init_data
+ 	*of_get_regulator_init_data(struct device_node *np)
+@@ -24,6 +26,11 @@ static inline struct fixed_voltage_config
+ {
+ 	return NULL;
+ }
++static inline struct device_node *of_get_regulator(struct device *dev,
++	const char *id)
++{
++	return NULL;
++}
+ #endif /* CONFIG_OF_REGULATOR */
  
- static int __init twlreg_init(void)
+ #endif /* __LINUX_OF_REG_H */
 -- 
 1.7.1
 
