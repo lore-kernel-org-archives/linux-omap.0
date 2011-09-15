@@ -1,7 +1,7 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [RFC PATCH 10/11] regulator: Implement consumer regulator mapping from device tree
-Date: Thu, 15 Sep 2011 16:52:06 +0530
-Message-ID: <1316085727-15023-11-git-send-email-rnayak@ti.com>
+Subject: [RFC PATCH 11/11] DT: regulator: register regulators as platform devices
+Date: Thu, 15 Sep 2011 16:52:07 +0530
+Message-ID: <1316085727-15023-12-git-send-email-rnayak@ti.com>
 References: <1316085727-15023-1-git-send-email-rnayak@ti.com>
  <1316085727-15023-2-git-send-email-rnayak@ti.com>
  <1316085727-15023-3-git-send-email-rnayak@ti.com>
@@ -12,123 +12,120 @@ References: <1316085727-15023-1-git-send-email-rnayak@ti.com>
  <1316085727-15023-8-git-send-email-rnayak@ti.com>
  <1316085727-15023-9-git-send-email-rnayak@ti.com>
  <1316085727-15023-10-git-send-email-rnayak@ti.com>
+ <1316085727-15023-11-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59766 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59765 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933345Ab1IOLWj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S933293Ab1IOLWj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 15 Sep 2011 07:22:39 -0400
-In-Reply-To: <1316085727-15023-10-git-send-email-rnayak@ti.com>
+In-Reply-To: <1316085727-15023-11-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca
 Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-With device tree, the consumer regulator mapping is deferred till
-a regulator_get is called from the corresponding device driver,
-instead of being done during regulator_register.
-This avoids a complete scan of all DT nodes to identify consumers
-for all regulators.
-
-Devices can assocaite with one or more regulators by providing a
-list of phandles and supply names.
-
-For Example:
-        devicenode: node@0x0 {
-                ...
-                ...
-                regulator = <&regulator1>,<&regulator2>;
-                regulator-names = "supply1","supply2";
-        };
-
-When a device driver calls a regulator_get, specifying the
-supply name, the phandle and eventually the regulator node
-is extracted from the device and a mapping created by calling
-set_consumer_device_supply().
+of_regulator_register_devices() registers all regulators
+as platform devices. Use this to register all twl regulators
+from the twl driver probe.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- drivers/regulator/core.c         |   23 +++++++++++++++++++++++
- include/linux/regulator/driver.h |    3 +++
- 2 files changed, 26 insertions(+), 0 deletions(-)
+ drivers/mfd/twl-core.c       |    3 +++
+ drivers/of/of_regulator.c    |   30 ++++++++++++++++++++++++++++++
+ include/linux/of_regulator.h |    5 +++++
+ 3 files changed, 38 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index 9365359..61da2e7 100644
---- a/drivers/regulator/core.c
-+++ b/drivers/regulator/core.c
-@@ -25,6 +25,8 @@
- #include <linux/mutex.h>
- #include <linux/suspend.h>
- #include <linux/delay.h>
-+#include <linux/of.h>
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index a12af12..f210e28 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -36,6 +36,7 @@
+ #include <linux/slab.h>
+ #include <linux/of_irq.h>
+ #include <linux/irqdomain.h>
 +#include <linux/of_regulator.h>
- #include <linux/regulator/consumer.h>
- #include <linux/regulator/driver.h>
+ 
  #include <linux/regulator/machine.h>
-@@ -1167,6 +1169,15 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
  
- 	mutex_lock(&regulator_list_mutex);
+@@ -1357,6 +1358,8 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	else
+ 		status = add_children(pdata, id->driver_data);
  
-+#ifdef CONFIG_OF
-+	struct device_node *node;
-+	node = of_get_regulator(dev, id);
-+	if (!node)
-+		goto out;
-+	list_for_each_entry(rdev, &regulator_list, list)
-+		if (node == rdev->node)
-+			goto found;
-+#else
- 	list_for_each_entry(map, &regulator_map_list, list) {
- 		/* If the mapping has a device set up it must match */
- 		if (map->dev_name &&
-@@ -1178,6 +1189,7 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
- 			goto found;
- 		}
- 	}
-+#endif
- 
- 	if (board_wants_dummy_regulator) {
- 		rdev = dummy_regulator_rdev;
-@@ -1216,6 +1228,15 @@ found:
- 	if (!try_module_get(rdev->owner))
- 		goto out;
- 
-+#ifdef CONFIG_OF
-+	ret = set_consumer_device_supply(rdev, dev, devname, id);
-+	if (ret < 0) {
-+		dev_err(dev, "Failed to set supply %d\n", ret);
-+		unset_regulator_supplies(rdev);
-+		goto out;
-+	}
-+#endif
++	of_regulator_register_devices(node);
 +
- 	regulator = create_regulator(rdev, dev, id);
- 	if (regulator == NULL) {
- 		regulator = ERR_PTR(-ENOMEM);
-@@ -2619,6 +2640,8 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
- 	rdev->reg_data = driver_data;
- 	rdev->owner = regulator_desc->owner;
- 	rdev->desc = regulator_desc;
-+	if (dev && dev->of_node)
-+		rdev->node = dev->of_node;
- 	INIT_LIST_HEAD(&rdev->consumer_list);
- 	INIT_LIST_HEAD(&rdev->list);
- 	BLOCKING_INIT_NOTIFIER_HEAD(&rdev->notifier);
-diff --git a/include/linux/regulator/driver.h b/include/linux/regulator/driver.h
-index 1a80bc7..4aebbf5 100644
---- a/include/linux/regulator/driver.h
-+++ b/include/linux/regulator/driver.h
-@@ -196,6 +196,9 @@ struct regulator_dev {
- 	struct mutex mutex; /* consumer lock */
- 	struct module *owner;
- 	struct device dev;
-+#ifdef CONFIG_OF
-+	struct device_node *node;
-+#endif
- 	struct regulation_constraints *constraints;
- 	struct regulator *supply;	/* for tree */
+ fail:
+ 	if (status < 0)
+ 		twl_remove(client);
+diff --git a/drivers/of/of_regulator.c b/drivers/of/of_regulator.c
+index 6f8fd4e..0312a6a 100644
+--- a/drivers/of/of_regulator.c
++++ b/drivers/of/of_regulator.c
+@@ -12,6 +12,7 @@
  
+ #include <linux/slab.h>
+ #include <linux/of.h>
++#include <linux/of_platform.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/fixed.h>
+ 
+@@ -151,3 +152,32 @@ struct device_node *of_get_regulator(struct device *dev, const char *supply)
+ 	return regnode;
+ }
+ EXPORT_SYMBOL(of_get_regulator);
++
++/**
++ * of_regulator_register_devices - Register regulator devices to platform bus
++ * @np:	Parent device node with regulator child nodes
++ *
++ * Registers all the regulator and regulator-fixed nodes as platform devices
++ *
++ */
++void of_regulator_register_devices(struct device_node *np)
++{
++	struct device_node *child;
++	struct platform_device *dev;
++
++	for_each_child_of_node(np, child) {
++		if (of_device_is_compatible(child, "regulator")
++			|| of_device_is_compatible(child, "regulator-fixed")) {
++			dev = of_device_alloc(child, NULL, NULL);
++			if (!dev)
++				return;
++			dev->dev.bus = &platform_bus_type;
++			if (of_device_add(dev) != 0) {
++				platform_device_put(dev);
++				return;
++			}
++		}
++	}
++	return;
++}
++
+diff --git a/include/linux/of_regulator.h b/include/linux/of_regulator.h
+index 5fc7329..38cf7e3 100644
+--- a/include/linux/of_regulator.h
++++ b/include/linux/of_regulator.h
+@@ -15,6 +15,7 @@ extern struct fixed_voltage_config
+ 	*of_get_fixed_voltage_config(struct device_node *np);
+ extern struct device_node *of_get_regulator(struct device *dev,
+ 	const char *id);
++extern void of_regulator_register_devices(struct device_node *np);
+ #else
+ static inline struct regulator_init_data
+ 	*of_get_regulator_init_data(struct device_node *np)
+@@ -31,6 +32,10 @@ static inline struct device_node *of_get_regulator(struct device *dev,
+ {
+ 	return NULL;
+ }
++static inline void of_regulator_register_devices(struct device_node *np)
++{
++	return NULL;
++}
+ #endif /* CONFIG_OF_REGULATOR */
+ 
+ #endif /* __LINUX_OF_REG_H */
 -- 
 1.7.1
 
