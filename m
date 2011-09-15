@@ -1,54 +1,38 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC PATCH 03/11] DT: regulator: Helper routine to extract
- regulator_init_data
-Date: Thu, 15 Sep 2011 14:44:27 +0100
-Message-ID: <20110915134427.GJ7988@opensource.wolfsonmicro.com>
+Subject: Re: [RFC PATCH 04/11] omap4: SDP: Pass regulator_init_data from DT
+Date: Thu, 15 Sep 2011 14:46:18 +0100
+Message-ID: <20110915134618.GK7988@opensource.wolfsonmicro.com>
 References: <1316085727-15023-1-git-send-email-rnayak@ti.com>
  <1316085727-15023-2-git-send-email-rnayak@ti.com>
  <1316085727-15023-3-git-send-email-rnayak@ti.com>
  <1316085727-15023-4-git-send-email-rnayak@ti.com>
+ <1316085727-15023-5-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58344 "EHLO
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58366 "EHLO
 	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933238Ab1IONo3 (ORCPT
+	by vger.kernel.org with ESMTP id S933238Ab1IONqU (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Sep 2011 09:44:29 -0400
+	Thu, 15 Sep 2011 09:46:20 -0400
 Content-Disposition: inline
-In-Reply-To: <1316085727-15023-4-git-send-email-rnayak@ti.com>
+In-Reply-To: <1316085727-15023-5-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rajendra Nayak <rnayak@ti.com>
 Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com
 
-On Thu, Sep 15, 2011 at 04:51:59PM +0530, Rajendra Nayak wrote:
-
->  .../devicetree/bindings/regulator/regulator.txt    |   37 +++++++++
->  drivers/of/Kconfig                                 |    6 ++
->  drivers/of/Makefile                                |    1 +
->  drivers/of/of_regulator.c                          |   85 ++++++++++++++++++++
->  include/linux/of_regulator.h                       |   23 +++++
-
-Don't go hiding the bindings for things away from the code they're
-binding.  Bindings for the regualtor API are a regulator API thing and
-should be part of the regulator API code.
+On Thu, Sep 15, 2011 at 04:52:00PM +0530, Rajendra Nayak wrote:
 
 > +Required properties:
-> +- compatible: Must be "regulator";
+> +- compatible: Must be "regulator","ti,twl-reg";
 
-Is this idiomatic or should we just have a helper that parses a big list
-of properties from the device node?
+I'd expect listings for the specific chips too.
 
-> +- mode-fast: boolean, Can handle fast changes in its load
-> +- mode-normal: boolean, Normal regulator power supply mode
-> +- mode-idle: boolean, Can be more efficient during light loads
-> +- mode-standby: boolean, Can be most efficient during light loads
+> +	xyz-regulator: regulator@0 {
+> +		compatible = "regulator","ti,twl-reg";
+> +		ti,reg-id = <37>; /* TWL6030_REG_VAUX1_6030 */
 
-I guess these are actually permissions to set the given modes?  The
-documentation should be clearer.
-
-> +- apply-uV: apply uV constraint if min == max
-
-This seems a bit Linux/runtime policy specific (especially the last
-bit).
+These magic numbers are *very* Linux specific, we should have a better
+way of specifying regulators - I'd off the top of my head expect that
+the compatible property would identify the regulator.
