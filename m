@@ -1,38 +1,102 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] mfd: twl6030: Setup irq_wake infrastructure.
-Date: Thu, 15 Sep 2011 22:56:15 +0530
-Message-ID: <CAMQu2gx8beDSziPDkc9Lut67VfLxYfhUnZmrcmHRQNaEhu6QUg@mail.gmail.com>
-References: <1315324770-14530-1-git-send-email-santosh.shilimkar@ti.com> <20110915170203.GJ32263@sortiz-mobl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02/25] OMAP4: Redefine mandatory barriers for OMAP to
+ include interconnect barriers.
+Date: Thu, 15 Sep 2011 10:53:54 -0700
+Message-ID: <20110915175354.GW24252@atomide.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+ <1315144466-9395-3-git-send-email-santosh.shilimkar@ti.com>
+ <20110913202701.GF24252@atomide.com>
+ <4E7080F8.9020302@ti.com>
+ <87obyl7mj8.fsf@ti.com>
+ <CAMQu2gy6yVA7zWAPUsnzCtixHkjzkn6UnbapR0mpoJ+AwNMAcQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:56281 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756583Ab1IOR0g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Sep 2011 13:26:36 -0400
-Received: by mail-yw0-f50.google.com with SMTP id 13so2761287ywm.37
-        for <linux-omap@vger.kernel.org>; Thu, 15 Sep 2011 10:26:35 -0700 (PDT)
-In-Reply-To: <20110915170203.GJ32263@sortiz-mobl>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:12518 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S934040Ab1IORx6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Sep 2011 13:53:58 -0400
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gy6yVA7zWAPUsnzCtixHkjzkn6UnbapR0mpoJ+AwNMAcQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, rnayak@ti.com, Richard Woodruff <r-woodruff2@ti.com>
 
-On Thu, Sep 15, 2011 at 10:32 PM, Samuel Ortiz <sameo@linux.intel.com> wrote:
-> Hi Santosh,
->
-> On Tue, Sep 06, 2011 at 09:29:30PM +0530, Santosh Shilimkar wrote:
->> TWL6030 devices have an interrupt line which is connected to
->> application processor like OMAP. These devices support multiple features
->> such as MMC card detect, USB cable detect, RTC interrupt, etc. that must
->> wake up the application processor.
->>
->> With this change, TWL6030 client drivers can make use of
->> irq_wake() if the wakeup is desirable on it's irq events.
-> Patch applied to my for-next branch, thanks.
->
-Thanks Samuel.
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [110915 09:51]:
+> On Thu, Sep 15, 2011 at 10:47 PM, Kevin Hilman <khilman@ti.com> wrote=
+:
+> > Santosh <santosh.shilimkar@ti.com> writes:
+> >
+> >> On Wednesday 14 September 2011 01:57 AM, Tony Lindgren wrote:
+> >>> * Santosh Shilimkar<santosh.shilimkar@ti.com> =C2=A0[110904 06:22=
+]:
+> >>>> On OMAP4 SOC intecronnects has many write buffers in the async b=
+ridges
+> >>>> and they can be drained only with stongly ordered accesses.
+> >>>
+> >>> This is not correct, strongly ordered access does not guarantee
+> >>> anything here. If it fixes issues, it's because it makes the writ=
+es
+> >>> to reach the device faster. Strongly ordered does not affect anyt=
+hing
+> >>> outside ARM, so the bus access won't change.
+> >>>
+> >> What I said is the aync bridges WB and what is said is correct
+> >> from MPU accesses point of view.
+> >>
+> >> It's not about faster or slower. With device memory the, writes
+> >> can get stuck into write buffers where as with SO, the write buffe=
+rs
+> >> will be bypassed.
+> >>
+> >> The behaviours is limited to the MPU side async bridge boundary wh=
+ich
+> >> is the problem. The statement is not for l3 and l4 interconnect wh=
+ich
+> >> probably you mean.
+> >>
+> >> There is always a hardware signal to communicate CPU at async brid=
+ges
+> >> to ensure that data is not stuck in these bridges before CPU
+> >> clock/voltage is cut. Unfortunately we have a BUG on OMAP44XX devi=
+ces
+> >> and the dual channel makes it even worst since both pipes have the
+> >> same BUG. So what we are doing is issuing SO write/read accesses
+> >> on these pipes so that there is nothing stuck there before MPU
+> >> hits low power states and also avoids any race conditions when
+> >> both channels are used together by some initiators. The behaviour
+> >> is validated at RTL level and there is no ambiguity about it.
+> >>
+> >> May be you have mistaken the L3 and L4 as the interconnect levels
+> >> in this case.
+> >
+> > Sounds to me like the changelog needs to be a bit more verbose.
+> >
+> > Remember, we're all probably going to forget the gory details of th=
+is in
+> > a few months and want to be able to go back to the code w/changelog=
+ to
+> > refresh our memories.
+> >
+> Change log was accurate but I agree it needs more description to make=
+ it
+> clear. I plan to update it.
 
-Regards
-Santosh
+Please also include the errata in the description and set it up with
+a Kconfig entry with something like ARM_ERRATA_XXXXXX or TI_ERRATA_XXXX=
+XX.
+
+Also it would be best to apply this fix at the end of the PM series so
+it is easier to verify the bug and potentially remove the hack if
+a better fix is ever available.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
