@@ -1,213 +1,125 @@
-From: Santosh <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 18/25] OMAP4: suspend: Add MPUSS power domain RETENTION
- support
-Date: Thu, 15 Sep 2011 08:49:44 +0530
-Message-ID: <4E716ED0.5040305@ti.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>	<1315144466-9395-19-git-send-email-santosh.shilimkar@ti.com> <87ty8e8xam.fsf@ti.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCHv2 09/15] OMAP: DSS2: HDMI: implement detect()
+Date: Thu, 15 Sep 2011 11:11:43 +0530
+Message-ID: <CAP5A+B-_19gPDmjJGBHpcDcGPGyt9QvFXFwgjGPUqr-QY9SPJg@mail.gmail.com>
+References: <1315818818-18733-1-git-send-email-tomi.valkeinen@ti.com>
+ <1315818818-18733-10-git-send-email-tomi.valkeinen@ti.com>
+ <CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com>
+ <CAF6AEGuhjZgH9zFuigjfvHGM9r7jSLY2TTCD0LjZbT+Ubrb12A@mail.gmail.com>
+ <CAP5A+B87w6Hir-0+SNnckQaDcO=ixgq-U8pFo2U42dwQgtUrZQ@mail.gmail.com>
+ <1315984468.2172.10.camel@deskari> <CAP5A+B9uDj4kCowbEKgX1J74zWvBarp64Cn4YVom-a8BYtab4w@mail.gmail.com>
+ <1315989282.2172.36.camel@deskari> <CAP5A+B-GWN+oJhcVbB24swfmH=-dE4sViNqF+hX6=D1owzOLzA@mail.gmail.com>
+ <1315990630.2172.51.camel@deskari> <CAP5A+B9Me0RX3PY7Uwf=VuaHzaPtoNY0q9gxFg9H-Q3N2giC2Q@mail.gmail.com>
+ <1316009509.2118.6.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:52892 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753247Ab1IODTw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Sep 2011 23:19:52 -0400
-Received: by gwj18 with SMTP id 18so2886324gwj.27
-        for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2011 20:19:50 -0700 (PDT)
-In-Reply-To: <87ty8e8xam.fsf@ti.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:53675 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754360Ab1IOFmG convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Sep 2011 01:42:06 -0400
+In-Reply-To: <1316009509.2118.6.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
-On Thursday 15 September 2011 05:57 AM, Kevin Hilman wrote:
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-> 
->> This patch adds MPUSS(MPU Sub System) power domain
->> CSWR(Close Switch Retention) support to system wide suspend.
->> For both MPUSS RET support, CPUs are programmed to OFF state.
-> 
-> is 'both' in the wrong place in this sentence?   I think you meant:
-> 
-You are right.
+Hi,
 
-> For MPUSS retention support, both CPUs are programmed to OFF state.
-> 
->> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Kevin Hilman <khilman@ti.com>
->> ---
->>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   16 +++++++
->>  arch/arm/mach-omap2/pm44xx.c              |   71 +++++++++++++++++++++++++++--
->>  2 files changed, 82 insertions(+), 5 deletions(-)
+On Wed, Sep 14, 2011 at 7:41 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Wed, 2011-09-14 at 17:50 +0530, K, Mythri P wrote:
+>> Hi,
 >>
->> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
->> index 9d68abf..9f632fe 100644
->> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
->> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
->> @@ -66,6 +66,7 @@ struct omap4_cpu_pm_info {
->>  };
->>  
->>  static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
->> +static struct powerdomain *mpuss_pd;
->>  
->>  /*
->>   * Program the wakeup routine address for the CPU0 and CPU1
->> @@ -140,6 +141,13 @@ static void scu_pwrst_prepare(unsigned int cpu_id, unsigned int cpu_state)
->>   * of OMAP4 MPUSS subsystem
->>   * @cpu : CPU ID
->>   * @power_state: Low power state.
->> + *
->> + * MPUSS states for the context save:
->> + * save_state =
->> + *	0 - Nothing lost and no need to save: MPUSS INACTIVE
->> + *	1 - CPUx L1 and logic lost: MPUSS CSWR
->> + *	2 - CPUx L1 and logic lost + GIC lost: MPUSS OSWR
->> + *	3 - CPUx L1 and logic lost + GIC + L2 lost: DEVICE OFF
->>   */
->>  int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
->>  {
->> @@ -169,6 +177,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
->>  		return -ENXIO;
->>  	}
->>  
->> +	pwrdm_clear_all_prev_pwrst(mpuss_pd);
->>  	clear_cpu_prev_pwrst(cpu);
->>  	set_cpu_next_pwrst(cpu, power_state);
->>  	set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
->> @@ -270,6 +279,13 @@ int __init omap4_mpuss_init(void)
->>  	/* Initialise CPU1 power domain state to ON */
->>  	pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
->>  
->> +	mpuss_pd = pwrdm_lookup("mpu_pwrdm");
->> +	if (!mpuss_pd) {
->> +		pr_err("Failed to lookup MPUSS power domain\n");
->> +		return -ENODEV;
->> +	}
->> +	pwrdm_clear_all_prev_pwrst(mpuss_pd);
->> +
->>  	/* Save device type on scratchpad for low level code to use */
->>  	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
->>  		__raw_writel(1, sar_base + OMAP_TYPE_OFFSET);
->> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
->> index 4f39de5..63e8f9b 100644
->> --- a/arch/arm/mach-omap2/pm44xx.c
->> +++ b/arch/arm/mach-omap2/pm44xx.c
->> @@ -1,8 +1,9 @@
->>  /*
->>   * OMAP4 Power Management Routines
->>   *
->> - * Copyright (C) 2010 Texas Instruments, Inc.
->> + * Copyright (C) 2010-2011 Texas Instruments, Inc.
->>   * Rajendra Nayak <rnayak@ti.com>
->> + * Santosh Shilimkar <santosh.shilimkar@ti.com>
->>   *
->>   * This program is free software; you can redistribute it and/or modify
->>   * it under the terms of the GNU General Public License version 2 as
->> @@ -16,9 +17,11 @@
->>  #include <linux/err.h>
->>  #include <linux/slab.h>
->>  
->> +#include <mach/omap4-common.h>
->> +
->>  #include "powerdomain.h"
->>  #include "clockdomain.h"
->> -#include <mach/omap4-common.h>
->> +#include "pm.h"
->>  
->>  struct power_state {
->>  	struct powerdomain *pwrdm;
->> @@ -34,7 +37,48 @@ static LIST_HEAD(pwrst_list);
->>  #ifdef CONFIG_SUSPEND
->>  static int omap4_pm_suspend(void)
->>  {
->> -	omap_do_wfi();
->> +	struct power_state *pwrst;
->> +	int state, ret = 0;
->> +	u32 cpu_id = smp_processor_id();
->> +
->> +	/* Save current powerdomain state */
->> +	list_for_each_entry(pwrst, &pwrst_list, node) {
->> +		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
->> +	}
->> +
->> +	/* Set targeted power domain states by suspend */
->> +	list_for_each_entry(pwrst, &pwrst_list, node) {
->> +		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
->> +	}
->> +
->> +	/*
->> +	 * For MPUSS to hit power domain retention(CSWR or OSWR),
->> +	 * CPU0 and CPU1 power domain needs to be in OFF or DORMANT
-> 
-> s/domain needs/domains need/
+>> On Wed, Sep 14, 2011 at 2:27 PM, Tomi Valkeinen <tomi.valkeinen@ti.c=
+om> wrote:
+>> > On Wed, 2011-09-14 at 14:18 +0530, K, Mythri P wrote:
+>> >> On Wed, Sep 14, 2011 at 2:04 PM, Tomi Valkeinen <tomi.valkeinen@t=
+i.com> wrote:
+>> >> > On Wed, 2011-09-14 at 13:57 +0530, K, Mythri P wrote:
+>> >> >> On Wed, Sep 14, 2011 at 12:44 PM, Tomi Valkeinen <tomi.valkein=
+en@ti.com> wrote:
+>> >
+>> > <snip>
+>> >
+>> >> > I don't understand this one. How could this be more dynamic? Th=
+e
+>> >> > function checks the HPD bit, which (based on my observation) sh=
+ows the
+>> >> > status whether a display is connected or not.
+>> >> There is a GPIO which detects the +3.3V on the line and detects t=
+he
+>> >> cable connect , there is also an interrupt based way.This is idea=
+lly
+>> >> called a Hot-plug detect event according to the spec in HDMI term=
+s.
+>> >> But what you are saying here is that it is just a poll on the sta=
+te?
+>> >
+>> > Yes, it's just for polling, but I don't quite see the difference. =
+A
+>> > hot-plug event notifies when the display is connected or disconnec=
+ted,
+>> > and detect() tells if a display is connected. They are all about t=
+he
+>> > same thing.
+>> >
+>> >> >> So I said if the purpose of this function is only to check for=
+ the HPD
+>> >> >> state bit it is fine.
+>> >> >
+>> >> > What does HPD bit tell us then?
+>> >>
+>> >> HPD state bit tells whether the cable is connected and whether ED=
+ID is
+>> >
+>> > This sounds like a good bit to test then. So is there something wr=
+ong
+>> > with using HPD? How does the GPIO differ from HPD bit?
+>> >
+>> >> ready to be read, But this is a static check that is done in this
+>> >> function.
+>> >
+>> > I don't understand what you mean with "static". The bit changes
+>> > dynamically according to the connect/disconnect state, and the bit=
+ is
+>> > checked dynamically when detect() is called.
+>> >
+>> Well ! Who would call the detect and why ? By Dynamic i meant when t=
+he
+>> cable is physically disconnected and connected there is detection
+>> logic which can be implemented either by GPIo/Interrupts.
+>> When you say the cable is connected , what happens in this case when
+>> the cable is connected to say monitor of one resolution and then
+>> plugged out and put to the other. Instead with dynamic method the
+>> based on the physical connect and disconnect the notification would =
+be
+>> sent to any listener.
 >
-ok
-
->> +	 * state. For MPUSS to reach off-mode. CPU0 and CPU1 power domain
->> +	 * should be in off state.
-> 
-> nit: please be consistent with naming of power states (e.g. OFF vs. off)
-> 
-ok.
-
->> +	 * Only master CPU followes suspend path. All other CPUs follow
->> +	 * cpu-hotplug path in system wide suspend. On OMAP4, CPU power
->> +	 * domain CSWR is not supported by hardware.
-> 
-> I think this sentence belongs a little earlier.  E.g. something like
-> ...CPU0 and CPU1 power domains need to be in OFF or DORMANT state, since
-> CPU power domain CSWR is not supported by hardware.
+> Ok, I see now what you mean.
 >
-Looks better.
+> Yes, you are right, detect() does not "know" if the monitor has chang=
+ed
+> between polls, so both notification and polling are needed. I
+> implemented only polling as there's no HPD event mechanism yet in
+> omapdss, and also because this was simple and gives DRM basic ability=
+ to
+> detect a monitor.
+>
+If it is needed for DRM then it is fine, but with detect renamed to
+poll. By next week i should have a patch ready for HPD event
+mechanism.
 
-
->> +	 * More details can be found in OMAP4430 TRM section 4.3.4.2.
->> +	 */
->> +	omap4_enter_lowpower(cpu_id, PWRDM_POWER_OFF);
->> +
->> +	/* Restore next powerdomain state */
->> +	list_for_each_entry(pwrst, &pwrst_list, node) {
->> +		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
->> +		if (state > pwrst->next_state) {
->> +			pr_info("Powerdomain (%s) didn't enter "
->> +			       "target state %d\n",
->> +			       pwrst->pwrdm->name, pwrst->next_state);
->> +			ret = -1;
->> +		}0001
->> +		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
->> +	}
->> +	if (ret)
->> +		pr_err("Could not enter target state in pm_suspend\n");
-> 
-> Without more details, this isn't terribly useful.  I'd suggest just
-> making the per-state one above pr_err().
-> 
-You mean pr_crit ?
-
->> +	else
->> +		pr_err("Successfully put all powerdomains to target state\n");
-> 
-> and this one pr_info.
-> 
->>  	return 0;
->>  }
->>  
->> @@ -97,14 +141,31 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
->>  	if (!pwrdm->pwrsts)
->>  		return 0;
->>  
->> +	/*
->> +	 * Skip CPU0 and CPU1 power domains. CPU1 is programmed
->> +	 * through hotplug path and CPU0 explicitly programmed
->> +	 * further down in the code path
->> +	 */
->> +	if ((!strcmp(pwrdm->name, "cpu0_pwrdm")) ||
->> +		(!strcmp(pwrdm->name, "cpu1_pwrdm")))
-> 
-> or just one compare using strncmp(pwrdm->name, "cpu", 3)
-> 
-Let me check this.
-
-Regards
-Santosh
+> =A0Tomi
+>
+>
+>
+Thanks and regards,
+Mythri.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
