@@ -1,41 +1,44 @@
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [PATCH] iommu/omap: Fix build error with !IOMMU_SUPPORT
-Date: Thu, 15 Sep 2011 12:45:24 +0200
-Message-ID: <20110915104524.GY11701@amd.com>
-References: <1316009259-18052-1-git-send-email-joerg.roedel@amd.com>
- <CAK=WgbbCgXjOQ=xXSwnVhT9sqsYtpo6cFcRQYSEGY2ow215n=Q@mail.gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [RFC PATCH 02/11] regulator: Fix error check in set_consumer_device_supply
+Date: Thu, 15 Sep 2011 16:51:58 +0530
+Message-ID: <1316085727-15023-3-git-send-email-rnayak@ti.com>
+References: <1316085727-15023-1-git-send-email-rnayak@ti.com>
+ <1316085727-15023-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAK=WgbbCgXjOQ=xXSwnVhT9sqsYtpo6cFcRQYSEGY2ow215n=Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56963 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933281Ab1IOLWg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Sep 2011 07:22:36 -0400
+In-Reply-To: <1316085727-15023-2-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-On Wed, Sep 14, 2011 at 02:57:13PM -0400, Ohad Ben-Cohen wrote:
-> On Wed, Sep 14, 2011 at 5:07 PM, Joerg Roedel <joerg.roedel@amd.com> wrote:
-> > Without this patch it is possible to select the VIDEO_OMAP3
-> > driver which then selects OMAP_IOVMM. But the omap iommu
-> > driver is not compiled without IOMMU_SUPPORT enabled. Fix
-> > that by forcing OMAP_IOMMU and OMAP_IOVMM are enabled before
-> > VIDEO_OMAP3 can be selected.
-> 
-> I'm ok with this but wouldn't it be simpler if we drop IOMMU_SUPPORT
-> altogether (and just use a plain menu instead) ?
-> 
-> Users will then be presented with only a single iommu-related
-> question: whether they want their iommu driver built or not.
+The parameters to set_consumer_device_supply() can be considered
+invalid (and hence it could return -EINVAL) if nether consumer_dev nor
+consumer_dev_name are passed, not when *both* are passed.
 
-This doesn't work on platforms that may have more than one possible
-iommu driver, like x86 for example.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ drivers/regulator/core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-	Joerg
-
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index d8e6a42..9365359 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -981,7 +981,7 @@ static int set_consumer_device_supply(struct regulator_dev *rdev,
+ 	struct regulator_map *node;
+ 	int has_dev;
+ 
+-	if (consumer_dev && consumer_dev_name)
++	if (!consumer_dev && !consumer_dev_name)
+ 		return -EINVAL;
+ 
+ 	if (!consumer_dev_name && consumer_dev)
 -- 
-AMD Operating System Research Center
+1.7.1
 
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
