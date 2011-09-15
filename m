@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH 2/6] usb: musb: omap4430_phy_power to enable/disable clocks and power up/down phy
-Date: Thu, 15 Sep 2011 19:49:59 +0530
-Message-ID: <1316096403-6013-3-git-send-email-kishon@ti.com>
+Subject: [RFC PATCH 4/6] MUSB Charger Type Detection: Fix DCP detect during boot.
+Date: Thu, 15 Sep 2011 19:50:01 +0530
+Message-ID: <1316096403-6013-5-git-send-email-kishon@ti.com>
 References: <1316096403-6013-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,47 +12,44 @@ To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z
 Cc: p-basak2-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, x0153364-l0cyMroinI0@public.gmane.org, m-sonasath-l0cyMroinI0@public.gmane.org, vishp-l0cyMroinI0@public.gmane.org, hemahk-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-omap4430_phy_power is modified to be self contained in that it enables clock
-and power up the phy in addition to modifying the USBOTGHS_CONTROL register
-during power on. Similarly while powering down, it disables clock and
-power down the phy.
+From: Viswanath Puttagunta <vishp-l0cyMroinI0@public.gmane.org>
 
+The charger detection module is getting
+disabled during boot up if a DCP (Dedicated charging port)
+is connected before device is powered on (Bit 30 of CONTROL_USB2PHYCORE
+is set). This patch enables charger type detection each time the charger type
+wants to be detected.
+
+Signed-off-by: Viswanath Puttagunta <vishp-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/omap_phy_internal.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_phy_internal.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
-index 58775e3..a828833 100644
+index e5a6701..55918ea 100644
 --- a/arch/arm/mach-omap2/omap_phy_internal.c
 +++ b/arch/arm/mach-omap2/omap_phy_internal.c
-@@ -110,6 +110,13 @@ int omap4430_phy_set_clk(struct device *dev, int on)
- int omap4430_phy_power(struct device *dev, int ID, int on)
- {
- 	if (on) {
-+		/* enabled the clocks */
-+		omap4430_phy_set_clk(dev, 1);
-+		/* power on the phy */
-+		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
-+			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
-+			msleep_interruptible(200);
-+		}
- 		if (ID)
- 			/* enable VBUS valid, IDDIG groung */
- 			__raw_writel(AVALID | VBUSVALID, ctrl_base +
-@@ -125,6 +132,10 @@ int omap4430_phy_power(struct device *dev, int ID, int on)
- 		/* Enable session END and IDIG to high impedance. */
- 		__raw_writel(SESSEND | IDDIG, ctrl_base +
- 					USBOTGHS_CONTROL);
-+		/* Power down the phy */
-+		__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
-+		/* Disable the clocks */
-+		omap4430_phy_set_clk(dev, 0);
- 	}
- 	return 0;
- }
+@@ -49,6 +49,7 @@
+ #define CHARGER_TYPE_HOST		0x5
+ #define CHARGER_TYPE_PC			0x6
+ #define USB2PHY_CHGDETECTED		BIT(13)
++#define USB2PHY_DISCHGDET		BIT(30)
+ 
+ static struct clk *phyclk, *clk48m, *clk32k;
+ static void __iomem *ctrl_base;
+@@ -124,6 +125,10 @@ int omap4_charger_detect(void)
+ 
+ 	omap4430_phy_power(NULL, 0, 1);
+ 
++	usb2phycore = omap4_ctrl_pad_readl(CONTROL_USB2PHYCORE);
++	usb2phycore &= ~USB2PHY_DISCHGDET;
++	omap4_ctrl_pad_writel(usb2phycore, CONTROL_USB2PHYCORE);
++
+ 	timeout = jiffies + msecs_to_jiffies(500);
+ 	do {
+ 		usb2phycore = omap4_ctrl_pad_readl(CONTROL_USB2PHYCORE);
 -- 
 1.7.0.4
 
