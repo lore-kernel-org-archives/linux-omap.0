@@ -1,80 +1,62 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC PATCH 10/11] regulator: Implement consumer regulator
- mapping from device tree
-Date: Thu, 15 Sep 2011 14:59:39 +0100
-Message-ID: <20110915135939.GO7988@opensource.wolfsonmicro.com>
-References: <1316085727-15023-2-git-send-email-rnayak@ti.com>
- <1316085727-15023-3-git-send-email-rnayak@ti.com>
- <1316085727-15023-4-git-send-email-rnayak@ti.com>
- <1316085727-15023-5-git-send-email-rnayak@ti.com>
- <1316085727-15023-6-git-send-email-rnayak@ti.com>
- <1316085727-15023-7-git-send-email-rnayak@ti.com>
- <1316085727-15023-8-git-send-email-rnayak@ti.com>
- <1316085727-15023-9-git-send-email-rnayak@ti.com>
- <1316085727-15023-10-git-send-email-rnayak@ti.com>
- <1316085727-15023-11-git-send-email-rnayak@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH 0/6] usb: musb: charger detection
+Date: Thu, 15 Sep 2011 19:49:57 +0530
+Message-ID: <1316096403-6013-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38146 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933376Ab1ION7l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Sep 2011 09:59:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1316085727-15023-11-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org
+Cc: p-basak2-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, x0153364-l0cyMroinI0@public.gmane.org, m-sonasath-l0cyMroinI0@public.gmane.org, vishp-l0cyMroinI0@public.gmane.org, hemahk-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com
 
-On Thu, Sep 15, 2011 at 04:52:06PM +0530, Rajendra Nayak wrote:
+This provides a series of patches contributed by several people to
+do correct charger detection and solve issues that came along with
+the charger detection implementation.
 
-> +#ifdef CONFIG_OF
-> +	struct device_node *node;
-> +	node = of_get_regulator(dev, id);
-> +	if (!node)
-> +		goto out;
-> +	list_for_each_entry(rdev, &regulator_list, list)
-> +		if (node == rdev->node)
-> +			goto found;
-> +#else
->  	list_for_each_entry(map, &regulator_map_list, list) {
->  		/* If the mapping has a device set up it must match */
->  		if (map->dev_name &&
-> @@ -1178,6 +1189,7 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
->  			goto found;
->  		}
->  	}
-> +#endif
+USB_EVENT_NONE notification is sent only when a PC cable/CDP cable or
+a device connected to MUSB is detached.
 
-This forces all machines to use device tree when CONFIG_OF is enabled.
-I'd expect to see both mechanisms supported simultaneously, for example
-by falling back to the current code if the device tree lookup fails.
+USB_EVENT_VBUS notification is sent only when a PC cable/CDP cable or
+a device is connected to MUSB.
 
-> @@ -1216,6 +1228,15 @@ found:
->  	if (!try_module_get(rdev->owner))
->  		goto out;
->  
-> +#ifdef CONFIG_OF
-> +	ret = set_consumer_device_supply(rdev, dev, devname, id);
-> +	if (ret < 0) {
-> +		dev_err(dev, "Failed to set supply %d\n", ret);
-> +		unset_regulator_supplies(rdev);
-> +		goto out;
-> +	}
-> +#endif
-> +
+Developed on:
+git://github.com/torvalds/linux.git
+commit id: cc39c6a9bbdebfcf1a7dee64d83bf302bc38d941
 
-This seems wrong, why are we adding things to the regulator_map which is
-really only there for lookups when we already did the lookup using the
-device tree?
+This patch series is developed and tested on top of Heikki Krogerus
+patch series (version4) [1]
 
-> @@ -2619,6 +2640,8 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
->  	rdev->reg_data = driver_data;
->  	rdev->owner = regulator_desc->owner;
->  	rdev->desc = regulator_desc;
-> +	if (dev && dev->of_node)
-> +		rdev->node = dev->of_node;
+Basic Testing:
+Tested with gadget zero enabled for charger detection (PC/DCP). Data transfer testing
+is done on both omap4 and omap3 with ./testusb. Tested for device enumeration when a
+device is connected to MUSB.
 
-dev is mandatory.
+[1] http://www.spinics.net/lists/linux-usb/msg51038.html
+
+Balaji T K (2):
+  OMAP4: TWL6030: add USB charger detection
+  twl6030: set charger current to be used by battery charging module
+
+Kishon Vijay Abraham I (2):
+  usb: musb: omap: Configure OTG_INTERFSEL for proper charger detection
+  usb: musb: omap4430_phy_power to enable/disable clocks and power
+    up/down phy
+
+Sergii Postulga (1):
+  OMAP4: PHY internal: Add msleep_interruptible to charger detection
+    function
+
+Viswanath Puttagunta (1):
+  MUSB Charger Type Detection: Fix DCP detect during boot.
+
+ arch/arm/mach-omap2/omap_phy_internal.c |   67 +++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/usb.h   |    1 +
+ drivers/usb/musb/omap2430.c             |   50 +++++++++++++++++++----
+ drivers/usb/otg/twl6030-usb.c           |   64 +++++++++++++++++++++++------
+ 4 files changed, 159 insertions(+), 23 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
