@@ -1,64 +1,58 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/8] OMAP: convert I2C driver to PM QoS for latency constraints
-Date: Thu, 15 Sep 2011 15:46:26 -0700
-Message-ID: <87aaa5whj1.fsf@ti.com>
-References: <1314969204-21704-1-git-send-email-j-pihet@ti.com>
-	<1314969204-21704-2-git-send-email-j-pihet@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC PATCH 09/11] DT: regulator: Helper to extract regulator
+ node based on supply name
+Date: Thu, 15 Sep 2011 16:50:35 -0600
+Message-ID: <20110915225035.GP3523@ponder.secretlab.ca>
+References: <1316085727-15023-2-git-send-email-rnayak@ti.com>
+ <1316085727-15023-3-git-send-email-rnayak@ti.com>
+ <1316085727-15023-4-git-send-email-rnayak@ti.com>
+ <1316085727-15023-5-git-send-email-rnayak@ti.com>
+ <1316085727-15023-6-git-send-email-rnayak@ti.com>
+ <1316085727-15023-7-git-send-email-rnayak@ti.com>
+ <1316085727-15023-8-git-send-email-rnayak@ti.com>
+ <1316085727-15023-9-git-send-email-rnayak@ti.com>
+ <1316085727-15023-10-git-send-email-rnayak@ti.com>
+ <20110915135416.GN7988@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:38210 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935230Ab1IOWqc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Sep 2011 18:46:32 -0400
-Received: by mail-yw0-f41.google.com with SMTP id 9so2981932ywe.0
-        for <linux-omap@vger.kernel.org>; Thu, 15 Sep 2011 15:46:31 -0700 (PDT)
-In-Reply-To: <1314969204-21704-2-git-send-email-j-pihet@ti.com> (Jean Pihet's
-	message of "Fri, 2 Sep 2011 15:13:17 +0200")
+Received: from mail-gw0-f42.google.com ([74.125.83.42]:64126 "EHLO
+	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935230Ab1IOWuj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Sep 2011 18:50:39 -0400
+Received: by gwb17 with SMTP id 17so3818009gwb.1
+        for <linux-omap@vger.kernel.org>; Thu, 15 Sep 2011 15:50:39 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20110915135416.GN7988@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com
 
-Hi Jean,
+On Thu, Sep 15, 2011 at 02:54:16PM +0100, Mark Brown wrote:
+> On Thu, Sep 15, 2011 at 04:52:05PM +0530, Rajendra Nayak wrote:
+> 
+> > 		regulator = <&regulator1>,<&regulator2>;
+> > 		regulator-names = "supply1","supply2";
+> > 	};
+> 
+> This syntax is really painful - we're relying on keeping two arrays in
+> sync which isn't good for legibility or robustness.  I'd expect
+> something like having a property with the supply name referencing the
+> regulator node concerned like:
+> 
+> 	dbvdd = <&regulator1>;
+> 	dcvdd = <&regulator2>;
+> 
+> or something.  Keeping the two arrays separate doesn't seem great.
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+We've got two competing approaches here.  For reg and interrupts, the
+proposal on the table that we talked about at LPC is to do reg-names
+and interrupts-names so as to preserve the existing semantics of the
+reg and interrupts properties.  For gpios we're using the binding
+"<name>-gpios" for named gpio references.  There isn't the same
+pressure to preserve existing bindings in that case.  I'm okay with
+either approach, providing that "-regulator" is encoded into the name.
 
-> Convert the driver from the outdated omap_pm_set_max_mpu_wakeup_lat
-> API to the new PM QoS API.
-> Since the constraint is on the MPU subsystem, use the PM_QOS_CPU_DMA_LATENCY
-> class of PM QoS. The resulting MPU constraints are used by cpuidle to
-> decide the next power state of the MPU subsystem.
->
-> Currently only OMAP3 is placing constraints on the MPU.
->
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-
-[...]
-
-> @@ -648,8 +648,16 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
->  	if (r < 0)
->  		goto out;
->  
-> -	if (dev->set_mpu_wkup_lat != NULL)
-> -		dev->set_mpu_wkup_lat(dev->dev, dev->latency);
-> +	/*
-> +	 * When waiting for completion of a i2c transfer, we need to
-> +	 * set a wake up latency constraint for the MPU. This is to
-> +	 * ensure quick enough wakeup from idle, when transfer
-> +	 * completes.
-> +	 * Used on OMAP3 Only
-> +	 */
-> +	if (cpu_is_omap34xx())
-
-We don't want any cpu_is_* checking  in drivers.
-
-If this is only done on certain SoCs, then a flag should be passed from
-device init code via pdata.
-
-That being said, I don't see why this shouldn't be set for all SoCs
-since it's using the FIFO size to determine the latency.
-
-Kevin
+g.
 
