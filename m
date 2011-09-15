@@ -1,46 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH-V2 0/4] Introducing TI's New SoC/board AM335XEVM
-Date: Wed, 14 Sep 2011 17:32:10 -0700
-Message-ID: <20110915003210.GC30941@atomide.com>
-References: <hvaibhav@ti.com>
- <1314621976-25750-1-git-send-email-hvaibhav@ti.com>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [RFC 7/8] drivers: introduce rpmsg, a remote-processor messaging bus
+Date: Thu, 15 Sep 2011 09:42:05 +0930
+Message-ID: <87d3f2hdey.fsf@rustcorp.com.au>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com> <1308640714-17961-8-git-send-email-ohad@wizery.com> <87liwu8u3q.fsf@rustcorp.com.au> <BANLkTi=7TBMqnEf2qustrmSaubtTam79Bw@mail.gmail.com> <CAK=WgbY0zMkHw9XHDKPEfVQZVRfGP=nMmyJgm6jD5FEkBZkMRQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33552 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751519Ab1IOAcO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 20:32:14 -0400
-Content-Disposition: inline
-In-Reply-To: <1314621976-25750-1-git-send-email-hvaibhav@ti.com>
+Received: from ozlabs.org ([203.10.76.45]:47731 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751519Ab1IOAci convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2011 20:32:38 -0400
+In-Reply-To: <CAK=WgbY0zMkHw9XHDKPEfVQZVRfGP=nMmyJgm6jD5FEkBZkMRQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>
 
-* hvaibhav@ti.com <hvaibhav@ti.com> [110829 05:52]:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> This patch set adds support for AM335x device having
-> Cortex-A8 MPU.
-> 
-> AM335X is treated as another OMAP3 variant, where,
-> along with existing cpu class OMAP34XX, new cpu class AM33XX is created
-> and the respective type is AM335X, which is newly added device in the family.
-> This means, cpu_is_omap34xx(), cpu_is_am33xx() and
-> cpu_is_am335x() checks return success for AM335X.
-> 
-> Currently submitting this patch series as a RFC (V2), to initiate the
-> discussion on the approach we have chosen for AM335x device support.
-> Based on the feedback, will submit the final version of patch series
-> immediately.
+On Wed, 14 Sep 2011 21:38:43 +0300, Ohad Ben-Cohen <ohad@wizery.com> wr=
+ote:
+> Hi Rusty,
+>=20
+> On Wed, Jun 22, 2011 at 1:46 PM, Ohad Ben-Cohen <ohad@wizery.com> wro=
+te:
+> > On Wed, Jun 22, 2011 at 5:42 AM, Rusty Russell <rusty@rustcorp.com.=
+au> wrote:
+> >> On Tue, 21 Jun 2011 10:18:33 +0300, Ohad Ben-Cohen <ohad@wizery.co=
+m> wrote:
+> >>> +#define VIRTIO_ID_RPMSG =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A010 /* virtio remote processor messaging */
+> >>
+> >> I think you want 6. =C2=A0Plan 9 jumped ahead to grab 9 :)
+> >
+> > 6 it is :)
+>=20
+> Looking at the virtio-spec, it seems that 6 is taken by 'ioMemory'.
+> There's no indication for it in virtio_ids.h though, and the
+> virtio-spec has no appendix for this id, so maybe it's available afte=
+r
+> all ?
+>=20
+> If it is available, I'll take it for rpmsg, and will also update
+> virtio-spec appropriately. Otherwise, we'll settle on 7 ? :)
 
-Can you please rebase these on Paul's CHIP_IS removal series?
+7... numbers are cheap :)
 
-Those patches are available at:
-
-git://git.pwsan.com/linux-2.6 omap_chip_remove_cleanup_3.2
-
-Regards,
-
-Tony
+Cheers,
+Rusty.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
