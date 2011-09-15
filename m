@@ -1,161 +1,57 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC PATCH 06/11] DT: regulator: Helper routine to extract
- fixed_voltage_config
-Date: Thu, 15 Sep 2011 16:19:12 -0600
-Message-ID: <20110915221912.GO3523@ponder.secretlab.ca>
-References: <1316085727-15023-1-git-send-email-rnayak@ti.com>
- <1316085727-15023-2-git-send-email-rnayak@ti.com>
- <1316085727-15023-3-git-send-email-rnayak@ti.com>
- <1316085727-15023-4-git-send-email-rnayak@ti.com>
- <1316085727-15023-5-git-send-email-rnayak@ti.com>
- <1316085727-15023-6-git-send-email-rnayak@ti.com>
- <1316085727-15023-7-git-send-email-rnayak@ti.com>
+From: =?utf-8?B?5LuFMTDlhYPmr4/lpKk=?= <test@amidress.com>
+Subject: =?utf-8?B?576k5Y+R6L2v5Lu2K+S5sOWutuaQnOe0ouacuisxMDnlsYrlub/kuqTkvJrkubDlrrY=?=
+	=?utf-8?B?44CB5rW35YWz5pWw5o2uLEIyQuivouebmOS5sOWutjUwMOS4h+OAgg==?=
+Date: Thu, 15 Sep 2011 22:35:49 +0000 (UTC)
+Message-ID: <20111214073410331648@amidress.com>
+Reply-To: <1339625218@qq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:38980 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935100Ab1IOWTQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Sep 2011 18:19:16 -0400
-Received: by ywb5 with SMTP id 5so2541241ywb.19
-        for <linux-omap@vger.kernel.org>; Thu, 15 Sep 2011 15:19:15 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1316085727-15023-7-git-send-email-rnayak@ti.com>
+Received: from 184.172.211.66-static.reverse.softlayer.com ([184.172.211.66]:3804
+	"HELO amidress.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S935099Ab1IOWfp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Sep 2011 18:35:45 -0400
+Date: Wed, 14 Dec 2011 07:33:59 +0800
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: broonie@opensource.wolfsonmicro.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com
 
-On Thu, Sep 15, 2011 at 04:52:02PM +0530, Rajendra Nayak wrote:
-> The helper routine defined here (of_get_fixed_voltage_config) can
-> be used to extract information about fixed regulators (which are not
-> software controlable) from device tree.
-> 
-> Add documenation about additional bindings for fixed
-> regulators that can be passed through DT.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  .../devicetree/bindings/regulator/regulator.txt    |   19 ++++++++++++
->  drivers/of/of_regulator.c                          |   31 ++++++++++++++++++++
->  include/linux/of_regulator.h                       |    7 ++++
->  3 files changed, 57 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
-> index 001e5ce..f8c51d8 100644
-> --- a/Documentation/devicetree/bindings/regulator/regulator.txt
-> +++ b/Documentation/devicetree/bindings/regulator/regulator.txt
-> @@ -2,6 +2,8 @@ Voltage/Current Regulators
->  
->  Required properties:
->  - compatible: Must be "regulator";
-> +or
-> +- compatible: Must be "regulator-fixed"; /* For Fixed volatge regulator */
+576k5Y+R6L2v5Lu2KzEwOeWxiuW5v+S6pOS8muS5sOWutuOAgea1t+WFs+aVsOaNruOAgeaQnOe0
+ouW8leaTjuS5sOWutixCMkLor6Lnm5jkubDlrrblhbE1MDDkuIcs5LuFMTDlhYPmr4/lpKnjgIIg
+DQrkv53or4Hmr4/lpKnpg73mnInkubDlrrblm57lpI3jgIINCuS/neivgeavj+WkqemDveacieS5
+sOWutuWbnuWkjeOAgg0KDQoNCjHjgIHnvqTlj5Hova/ku7bvvJog5pON5L2c566A5Y2V77yM5Yqf
+6IO95by65aSn77yM5qih5Lu/5Lq65bel5pON5L2c5qih5byP77yM5Yiw6L6+546H6auY77yM5pel
+5Y+R6YCBNeS4h+WwgeS7peS4iuOAgiANCjLjgIE1MDDkuIfkubDlrrbotYTmupDvvJog6LWg6YCB
+55qENTAw5LiH5Lmw5a626LWE5rqQ5bqT77yM5q+P5pyI5pu05pawIOOAgiANCjPjgIHotoXnuqfm
+tbflpJbkubDlrrZFbWFpbOaQnOe0ouacuu+8miDmr4/lpKnog73mkJzntKIxLTLkuIfku6XkuIrk
+ubDlrrbnnJ/lrp5FTUFJTO+8jOaIkOWNleeOh+mrmOOAgiANCiANCg0K6KaB55qE5oqT57Sn6IGU
+57O7UVE6IDEzMzk2MjUyMTggICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEzMzk2MjUyMThA
+cXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogMTMzOTYyNTIxOCAgIOaIluiAheeri+WNs+Wb
+nuWkjemCrueusTogMTMzOTYyNTIxOEBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzM5
+NjI1MjE4ICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMzM5NjI1MjE4QHFxLmNvbQ0KDQrl
+hY3otLnotaDpgIE6DQrkuIDlhbE45Liq5YyFKOaVsOaNruaYr+WFqOihjOS4mueahO+8jOaMieeF
+p+ihjOS4muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeafpeivoueahCnv
+vJogDQox77yMMjAxMeaYpeWtozEwOeWxiuW5v+S6pOS8muS5sOWutueOsOWcuuivouebmOaVsOaN
+ruW6k+aWsOmynOWHuueCie+8jOi2hee6p+aWsOmynOS5sOWutu+8jOaWsOmynOaVsOaNru+8jOWu
+ueaYk+aIkOWNle+8gSANCjLvvIzotK3kubDlkI7lj6/ku6XlhY3otLnmm7TmlrAyMDEx56eL5a2j
+5bm/5Lqk5LyaKzIwMTLmmKXlraPlub/kuqTkvJrkubDlrrbmlbDmja7jgILlpKrotoXlgLzkuobj
+gIINCjPvvIzmnIDmlrDlhajnkIPkubDlrrblupMs5YWxNDUxNjYw5p2h5pWw5o2u44CCICjmnIDm
+lrDmm7TmlrDml6XmnJ8gMjAxMS0wNS0xNuaXpSkNCjTvvIwyMDA45bm0LDIwMDnlubQsMjAxMOW5
+tCDmmKXlraMr56eL5a2j5bm/5Lqk5Lya5Lmw5a625ZCN5b2V77yMMTAzIDEwNCAxMDUgMTA2IDEw
+NyAxMDgg5YWx5YWt5bGKIOWFsTEyMC425LiH5pWw5o2u44CCDQo177yMMjAxMOW5tOWbvemZheS/
+g+mUgOWNj+S8mu+8iFBQQUnvvInmiJDlkZjlkI3ljZUgUFBBSSBNZW1iZXJzIERpcmVjdG9yee+8
+jOmdnuW4uOmHjeimgeeahOWkp+S5sOWutuOAgg0KNu+8jDIwMTDlubTliLDpppnmuK/ph4fotK3n
+moTlm73lpJblrqLkurrlkI3lvZUo6aaZ5riv6LS45Y+R5bGA5o+Q5L6bKe+8jOWFsTcuMuS4h+aV
+sOaNru+8jOi2hee6p+mHjeimgeeahOS5sOWutuOAgg0KN++8jDQ4LjY45LiH5p2h5pyA5paw5Lmw
+5a626K+i55uY77yM6LSt5Lmw5ZCO5q+P5pyI5pu05pawIDEtMuS4h+adoe+8jOWMheaLrDLpg6jl
+iIbvvIwx77yM5pyA5paw55qE6K+i55uYIDLvvIzmnIDmlrDnmoTlsZXkvJrkubDlrrbjgILlhY3o
+tLnmm7TmlrAzNuS4quaciOOAgg0KOO+8jDIwMDnlubTmtbflhbPmj5DljZXmlbDmja5waWVyc+eJ
+iOaVsOaNriAx5Y2D5LiH44CCDQoNCg0K6K+a5L+h5Li65pys77yM5pSv5oyB5pSv5LuY5a6d5ouF
+5L+d5Lqk5piTICjlhYjlj5HotKflubblronoo4Xorr7nva7nvqTlj5Hova/ku7bvvIznhLblkI7k
+u5jmrL4pIOW9u+W6leaJk+a2iOaCqOeahCDpob7omZHjgIINCg0KIA0KDQoNCiANCg0K57K+5YeG
+5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+
+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K
+57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K
 
-regulator-fixed should actually just be another driver binding that
-uses the regulator binding.
 
->  
->  Optional properties:
->  - supply-regulator: Name of the parent regulator
-> @@ -24,6 +26,13 @@ Optional properties:
->  - always-on: boolean, regulator should never be disabled
->  - boot-on: bootloader/firmware enabled regulator
->  - apply-uV: apply uV constraint if min == max
-> +# For fixed voltage regulators
-> +- supply-name: Name of the regulator supply
-> +- microvolts: Output voltage of regulator
-> +- gpio: gpio to use for enable control
-> +- startup-delay: startup time in microseconds
-> +- enable-high: Polarity of enable GPIO, 1 = Active High, 0 = Active low
-> +- enabled-at-boot: 1 = yes, 0 = no
->  
->  Example:
->  
-> @@ -35,3 +44,13 @@ Example:
->  		change-voltage;
->  		always-on;
->  	};
-> +
-> +	abc-fixedregulator {
-> +		compatible = "regulator-fixed";
-> +		supply-name = "fixed-supply";
-> +		microvolts = <1800000>;
-> +		gpio = <43>;
-> +		startup-delay = <70000>;
-> +		enable-high;
-> +		enabled-at-boot;
-> +	};
-> diff --git a/drivers/of/of_regulator.c b/drivers/of/of_regulator.c
-> index f01d275..4d7a49d 100644
-> --- a/drivers/of/of_regulator.c
-> +++ b/drivers/of/of_regulator.c
-> @@ -13,6 +13,7 @@
->  #include <linux/slab.h>
->  #include <linux/of.h>
->  #include <linux/regulator/machine.h>
-> +#include <linux/regulator/fixed.h>
->  
->  static void of_get_regulation_constraints(struct device_node *np,
->  					struct regulator_init_data **init_data)
-> @@ -83,3 +84,33 @@ struct regulator_init_data *of_get_regulator_init_data(struct device_node *np)
->  	return init_data;
->  }
->  EXPORT_SYMBOL(of_get_regulator_init_data);
-> +
-> +/**
-> + * of_get_fixed_voltage_config - extract fixed_voltage_config structure info
-> + * @np: Pointer to fixed-regulator device tree node
-> + *
-> + * Populates fixed_voltage_config structure by extracting data from device
-> + * tree node, returns a pointer to the populated structure of NULL if memory
-> + * alloc fails.
-> + */
-> +struct fixed_voltage_config *of_get_fixed_voltage_config(struct device_node *np)
-> +{
-> +	struct fixed_voltage_config *config;
-> +
-> +	config = kzalloc(sizeof(struct fixed_voltage_config), GFP_KERNEL);
-> +	if (!config)
-> +		return NULL;
-> +
-> +	config->supply_name = (char *)of_get_property(np, "supply-name", NULL);
-> +	of_property_read_u32(np, "microvolts", &config->microvolts);
-> +	of_property_read_u32(np, "gpio", &config->gpio);
-> +	of_property_read_u32(np, "startup-delay", &config->startup_delay);
-> +	if (of_find_property(np, "enable-high", NULL))
-> +		config->enable_high = true;
-> +	if (of_find_property(np, "enabled-at-boot", NULL))
-> +		config->enabled_at_boot = true;
-> +	config->init_data = of_get_regulator_init_data(np);
-> +
-> +	return config;
-> +}
-> +EXPORT_SYMBOL(of_get_fixed_voltage_config);
-> diff --git a/include/linux/of_regulator.h b/include/linux/of_regulator.h
-> index 5eb048c..39860c5 100644
-> --- a/include/linux/of_regulator.h
-> +++ b/include/linux/of_regulator.h
-> @@ -11,12 +11,19 @@
->  #if defined(CONFIG_OF_REGULATOR)
->  extern struct regulator_init_data
->  	*of_get_regulator_init_data(struct device_node *np);
-> +extern struct fixed_voltage_config
-> +	*of_get_fixed_voltage_config(struct device_node *np);
->  #else
->  static inline struct regulator_init_data
->  	*of_get_regulator_init_data(struct device_node *np)
->  {
->  	return NULL;
->  }
-> +static inline struct fixed_voltage_config
-> +	*of_get_fixed_voltage_config(struct device_node *np)
-> +{
-> +	return NULL;
-> +}
->  #endif /* CONFIG_OF_REGULATOR */
->  
->  #endif /* __LINUX_OF_REG_H */
-> -- 
-> 1.7.1
-> 
