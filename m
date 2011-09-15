@@ -1,130 +1,62 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 1/6] usb: musb: omap: Configure OTG_INTERFSEL for proper charger detection
-Date: Thu, 15 Sep 2011 19:49:58 +0530
-Message-ID: <1316096403-6013-2-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH 2/6] usb: musb: omap4430_phy_power to enable/disable clocks and power up/down phy
+Date: Thu, 15 Sep 2011 19:49:59 +0530
+Message-ID: <1316096403-6013-3-git-send-email-kishon@ti.com>
 References: <1316096403-6013-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41362 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753892Ab1IOORb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Sep 2011 10:17:31 -0400
-In-Reply-To: <1316096403-6013-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1316096403-6013-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org
+Cc: p-basak2-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, x0153364-l0cyMroinI0@public.gmane.org, m-sonasath-l0cyMroinI0@public.gmane.org, vishp-l0cyMroinI0@public.gmane.org, hemahk-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, heikki.krogerus@linux.intel.com, gregkh@suse.de
-Cc: p-basak2@ti.com, kishon@ti.com, balajitk@ti.com, x0153364@ti.com, m-sonasath@ti.com, vishp@ti.com, hemahk@ti.com
 
-Setting OTG_INTERFSEL to UTMI interferes with charger detection resulting
-in incorrect detection of charger type. Hence OTG_INTERFSEL is configured to
-ULPI initially and changed to UTMI only after receiving USB_EVENT_ID or
-USB_EVENT_VBUS notification.
+omap4430_phy_power is modified to be self contained in that it enables clock
+and power up the phy in addition to modifying the USBOTGHS_CONTROL register
+during power on. Similarly while powering down, it disables clock and
+power down the phy.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
-[sandesh.gowda@ti.com: The interface selection has to be done before the PHY
-is activated and is not allowed to change when the PHY clock is already
-running]
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/musb/omap2430.c |   50 +++++++++++++++++++++++++++++++++++-------
- 1 files changed, 41 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/omap_phy_internal.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index fc9377c..724450b 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -228,6 +228,7 @@ static inline void omap2430_low_level_init(struct musb *musb)
- static int musb_otg_notifications(struct notifier_block *nb,
- 		unsigned long event, void *unused)
+diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
+index 58775e3..a828833 100644
+--- a/arch/arm/mach-omap2/omap_phy_internal.c
++++ b/arch/arm/mach-omap2/omap_phy_internal.c
+@@ -110,6 +110,13 @@ int omap4430_phy_set_clk(struct device *dev, int on)
+ int omap4430_phy_power(struct device *dev, int ID, int on)
  {
-+	u32 val;
- 	struct musb	*musb = container_of(nb, struct musb, nb);
- 	struct device *dev = musb->controller;
- 	struct musb_hdrc_platform_data *pdata = dev->platform_data;
-@@ -240,11 +241,32 @@ static int musb_otg_notifications(struct notifier_block *nb,
- 		if (is_otg_enabled(musb)) {
- 			if (musb->gadget_driver) {
- 				pm_runtime_get_sync(musb->controller);
-+
-+				val = musb_readl(musb->mregs, OTG_INTERFSEL);
-+				if (data->interface_type ==
-+							MUSB_INTERFACE_UTMI) {
-+					val &= ~ULPI_12PIN;
-+					val |= UTMI_8BIT;
-+				} else {
-+					val |= ULPI_12PIN;
-+				}
-+				musb_writel(musb->mregs, OTG_INTERFSEL, val);
-+
- 				usb_phy_init(musb->xceiv);
- 				omap2430_musb_set_vbus(musb, 1);
- 			}
- 		} else {
- 			pm_runtime_get_sync(musb->controller);
-+
-+			val = musb_readl(musb->mregs, OTG_INTERFSEL);
-+			if (data->interface_type == MUSB_INTERFACE_UTMI) {
-+				val &= ~ULPI_12PIN;
-+				val |= UTMI_8BIT;
-+			} else {
-+				val |= ULPI_12PIN;
-+			}
-+			musb_writel(musb->mregs, OTG_INTERFSEL, val);
-+
- 			usb_phy_init(musb->xceiv);
- 			omap2430_musb_set_vbus(musb, 1);
- 		}
-@@ -255,6 +277,16 @@ static int musb_otg_notifications(struct notifier_block *nb,
- 
- 		if (musb->gadget_driver)
- 			pm_runtime_get_sync(musb->controller);
-+
-+		val = musb_readl(musb->mregs, OTG_INTERFSEL);
-+		if (data->interface_type == MUSB_INTERFACE_UTMI) {
-+			val &= ~ULPI_12PIN;
-+			val |= UTMI_8BIT;
-+		} else {
-+			val |= ULPI_12PIN;
+ 	if (on) {
++		/* enabled the clocks */
++		omap4430_phy_set_clk(dev, 1);
++		/* power on the phy */
++		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
++			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
++			msleep_interruptible(200);
 +		}
-+		musb_writel(musb->mregs, OTG_INTERFSEL, val);
-+
- 		usb_phy_init(musb->xceiv);
- 		break;
- 
-@@ -272,6 +304,11 @@ static int musb_otg_notifications(struct notifier_block *nb,
- 				otg_set_vbus(musb->xceiv->otg, 0);
- 		}
- 		usb_phy_shutdown(musb->xceiv);
-+
-+		val = musb_readl(musb->mregs, OTG_INTERFSEL);
-+		val |= ULPI_12PIN;
-+		musb_writel(musb->mregs, OTG_INTERFSEL, val);
-+
- 		break;
- 	default:
- 		dev_dbg(musb->controller, "ID float\n");
-@@ -304,16 +341,11 @@ static int omap2430_musb_init(struct musb *musb)
- 		goto err1;
+ 		if (ID)
+ 			/* enable VBUS valid, IDDIG groung */
+ 			__raw_writel(AVALID | VBUSVALID, ctrl_base +
+@@ -125,6 +132,10 @@ int omap4430_phy_power(struct device *dev, int ID, int on)
+ 		/* Enable session END and IDIG to high impedance. */
+ 		__raw_writel(SESSEND | IDDIG, ctrl_base +
+ 					USBOTGHS_CONTROL);
++		/* Power down the phy */
++		__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
++		/* Disable the clocks */
++		omap4430_phy_set_clk(dev, 0);
  	}
- 
-+	/* Set OTG_INTERFSEL to ULPI for correct charger detection.
-+	 * This should be later set to UTMI.
-+	 */
- 	l = musb_readl(musb->mregs, OTG_INTERFSEL);
--
--	if (data->interface_type == MUSB_INTERFACE_UTMI) {
--		/* OMAP4 uses Internal PHY GS70 which uses UTMI interface */
--		l &= ~ULPI_12PIN;       /* Disable ULPI */
--		l |= UTMI_8BIT;         /* Enable UTMI  */
--	} else {
--		l |= ULPI_12PIN;
--	}
--
-+	l |= ULPI_12PIN;
- 	musb_writel(musb->mregs, OTG_INTERFSEL, l);
- 
- 	pr_debug("HS USB OTG: revision 0x%x, sysconfig 0x%02x, "
+ 	return 0;
+ }
 -- 
 1.7.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
