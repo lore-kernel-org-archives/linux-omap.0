@@ -1,113 +1,242 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 02/25] OMAP4: Redefine mandatory barriers for OMAP to
- include interconnect barriers.
-Date: Thu, 15 Sep 2011 23:52:21 +0530
-Message-ID: <CAMQu2gzfU0K0Q1Pta4vX=dNBBYQ6wNg_Kf5EeMTCV_WHTs3Y=w@mail.gmail.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
- <1315144466-9395-3-git-send-email-santosh.shilimkar@ti.com>
- <20110913202701.GF24252@atomide.com> <4E7080F8.9020302@ti.com>
- <87obyl7mj8.fsf@ti.com> <CAMQu2gy6yVA7zWAPUsnzCtixHkjzkn6UnbapR0mpoJ+AwNMAcQ@mail.gmail.com>
- <20110915175354.GW24252@atomide.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [RFC PATCH 03/11] DT: regulator: Helper routine to extract regulator_init_data
+Date: Thu, 15 Sep 2011 13:30:08 -0500
+Message-ID: <4E724430.4020208@gmail.com>
+References: <1316085727-15023-1-git-send-email-rnayak@ti.com> <1316085727-15023-2-git-send-email-rnayak@ti.com> <1316085727-15023-3-git-send-email-rnayak@ti.com> <1316085727-15023-4-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:36559 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934271Ab1IOSWm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Sep 2011 14:22:42 -0400
-Received: by mail-yx0-f171.google.com with SMTP id 3so3363748yxt.30
-        for <linux-omap@vger.kernel.org>; Thu, 15 Sep 2011 11:22:41 -0700 (PDT)
-In-Reply-To: <20110915175354.GW24252@atomide.com>
+Received: from mail-gw0-f42.google.com ([74.125.83.42]:44629 "EHLO
+	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934209Ab1IOSaM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Sep 2011 14:30:12 -0400
+Received: by gwb17 with SMTP id 17so3558456gwb.1
+        for <linux-omap@vger.kernel.org>; Thu, 15 Sep 2011 11:30:11 -0700 (PDT)
+In-Reply-To: <1316085727-15023-4-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, rnayak@ti.com, Richard Woodruff <r-woodruff2@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, Sep 15, 2011 at 11:23 PM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [110915 09:51]:
->> On Thu, Sep 15, 2011 at 10:47 PM, Kevin Hilman <khilman@ti.com> wrot=
-e:
->> > Santosh <santosh.shilimkar@ti.com> writes:
->> >
->> >> On Wednesday 14 September 2011 01:57 AM, Tony Lindgren wrote:
->> >>> * Santosh Shilimkar<santosh.shilimkar@ti.com> =A0[110904 06:22]:
->> >>>> On OMAP4 SOC intecronnects has many write buffers in the async =
-bridges
->> >>>> and they can be drained only with stongly ordered accesses.
->> >>>
->> >>> This is not correct, strongly ordered access does not guarantee
->> >>> anything here. If it fixes issues, it's because it makes the wri=
-tes
->> >>> to reach the device faster. Strongly ordered does not affect any=
-thing
->> >>> outside ARM, so the bus access won't change.
->> >>>
->> >> What I said is the aync bridges WB and what is said is correct
->> >> from MPU accesses point of view.
->> >>
->> >> It's not about faster or slower. With device memory the, writes
->> >> can get stuck into write buffers where as with SO, the write buff=
-ers
->> >> will be bypassed.
->> >>
->> >> The behaviours is limited to the MPU side async bridge boundary w=
-hich
->> >> is the problem. The statement is not for l3 and l4 interconnect w=
-hich
->> >> probably you mean.
->> >>
->> >> There is always a hardware signal to communicate CPU at async bri=
-dges
->> >> to ensure that data is not stuck in these bridges before CPU
->> >> clock/voltage is cut. Unfortunately we have a BUG on OMAP44XX dev=
-ices
->> >> and the dual channel makes it even worst since both pipes have th=
-e
->> >> same BUG. So what we are doing is issuing SO write/read accesses
->> >> on these pipes so that there is nothing stuck there before MPU
->> >> hits low power states and also avoids any race conditions when
->> >> both channels are used together by some initiators. The behaviour
->> >> is validated at RTL level and there is no ambiguity about it.
->> >>
->> >> May be you have mistaken the L3 and L4 as the interconnect levels
->> >> in this case.
->> >
->> > Sounds to me like the changelog needs to be a bit more verbose.
->> >
->> > Remember, we're all probably going to forget the gory details of t=
-his in
->> > a few months and want to be able to go back to the code w/changelo=
-g to
->> > refresh our memories.
->> >
->> Change log was accurate but I agree it needs more description to mak=
-e it
->> clear. I plan to update it.
->
-> Please also include the errata in the description and set it up with
-> a Kconfig entry with something like ARM_ERRATA_XXXXXX or TI_ERRATA_XX=
-XXXX.
->
-Sure.
-It's a  TI ERRATA.
+On 09/15/2011 06:21 AM, Rajendra Nayak wrote:
+> The helper routine is meant to be used by regulator drivers
+> to extract the regulator_init_data structure passed from device tree.
+> 'consumer_supplies' which is part of regulator_init_data is not extracted
+> as the regulator consumer mappings are passed through DT differently,
+> implemented in subsequent patches.
+> 
+> Also add documentation for regulator bindings to be used to pass
+> regulator_init_data struct information from device tree.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  .../devicetree/bindings/regulator/regulator.txt    |   37 +++++++++
+>  drivers/of/Kconfig                                 |    6 ++
+>  drivers/of/Makefile                                |    1 +
+>  drivers/of/of_regulator.c                          |   85 ++++++++++++++++++++
+>  include/linux/of_regulator.h                       |   23 +++++
+>  5 files changed, 152 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/regulator/regulator.txt
+>  create mode 100644 drivers/of/of_regulator.c
+>  create mode 100644 include/linux/of_regulator.h
+> 
+> diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
+> new file mode 100644
+> index 0000000..001e5ce
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/regulator/regulator.txt
+> @@ -0,0 +1,37 @@
+> +Voltage/Current Regulators
+> +
+> +Required properties:
+> +- compatible: Must be "regulator";
 
-> Also it would be best to apply this fix at the end of the PM series s=
-o
-> it is easier to verify the bug and potentially remove the hack if
-> a better fix is ever available.
->
-As such order doesn't matter much because it can be removed either way
-even if it is in the beginning of the series with KCONFIG entry.
+This is way too generic. compatible is not for matching a class of
+devices. It is for matching a specific piece of h/w. So I would expect
+names like "wolfson,wm8350-dcdc".
 
-But I can change the order if you prefer that way.
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +
+> +Optional properties:
+> +- supply-regulator: Name of the parent regulator
+> +- min-uV: smallest voltage consumers may set
+> +- max-uV: largest voltage consumers may set
+> +- uV-offset: Offset applied to voltages from consumer to compensate for voltage drops
+> +- min-uA: smallest current consumers may set
+> +- max-uA: largest current consumers may set
+> +- mode-fast: boolean, Can handle fast changes in its load
+> +- mode-normal: boolean, Normal regulator power supply mode
+> +- mode-idle: boolean, Can be more efficient during light loads
+> +- mode-standby: boolean, Can be most efficient during light loads
+> +- change-voltage: boolean, Output voltage can be changed by software
+> +- change-current: boolean, Output current can be chnaged by software
+> +- change-mode: boolean, Operating mode can be changed by software
+> +- change-status: boolean, Enable/Disable control for regulator exists
+> +- change-drms: boolean, Dynamic regulator mode switching is enabled
+> +- input-uV: Input voltage for regulator when supplied by another regulator
+> +- initial-mode: Mode to set at startup
+> +- always-on: boolean, regulator should never be disabled
+> +- boot-on: bootloader/firmware enabled regulator
+> +- apply-uV: apply uV constraint if min == max
+> +
+> +Example:
+> +
+> +	xyz-regulator: regulator@0 {
+> +		compatible = "regulator";
+> +		min-uV = <1000000>;
+> +		max-uV = <2500000>;
+> +		mode-fast;
+> +		change-voltage;
+> +		always-on;
+> +	};
+
+You need to show how a node references the regulator.
+
+Rob
+
+> diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
+> index b3bfea5..296b96d 100644
+> --- a/drivers/of/Kconfig
+> +++ b/drivers/of/Kconfig
+> @@ -87,4 +87,10 @@ config OF_PCI_IRQ
+>  	help
+>  	  OpenFirmware PCI IRQ routing helpers
+>  
+> +config OF_REGULATOR
+> +	def_bool y
+> +	depends on REGULATOR
+> +	help
+> +	  OpenFirmware regulator framework helpers
+> +
+>  endmenu # OF
+> diff --git a/drivers/of/Makefile b/drivers/of/Makefile
+> index 74b959c..bea2852 100644
+> --- a/drivers/of/Makefile
+> +++ b/drivers/of/Makefile
+> @@ -12,3 +12,4 @@ obj-$(CONFIG_OF_SPI)	+= of_spi.o
+>  obj-$(CONFIG_OF_MDIO)	+= of_mdio.o
+>  obj-$(CONFIG_OF_PCI)	+= of_pci.o
+>  obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
+> +obj-$(CONFIG_OF_REGULATOR) += of_regulator.o
+> diff --git a/drivers/of/of_regulator.c b/drivers/of/of_regulator.c
+> new file mode 100644
+> index 0000000..f01d275
+> --- /dev/null
+> +++ b/drivers/of/of_regulator.c
+> @@ -0,0 +1,85 @@
+> +/*
+> + * OF helpers for regulator framework
+> + *
+> + * Copyright (C) 2011 Texas Instruments, Inc.
+> + * Rajendra Nayak <rnayak@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#include <linux/slab.h>
+> +#include <linux/of.h>
+> +#include <linux/regulator/machine.h>
+> +
+> +static void of_get_regulation_constraints(struct device_node *np,
+> +					struct regulator_init_data **init_data)
+> +{
+> +	unsigned int valid_modes_mask = 0, valid_ops_mask = 0;
+> +
+> +	of_property_read_u32(np, "min-uV", &(*init_data)->constraints.min_uV);
+> +	of_property_read_u32(np, "max-uV", &(*init_data)->constraints.max_uV);
+> +	of_property_read_u32(np, "uV-offset", &(*init_data)->constraints.uV_offset);
+> +	of_property_read_u32(np, "min-uA", &(*init_data)->constraints.min_uA);
+> +	of_property_read_u32(np, "max-uA", &(*init_data)->constraints.max_uA);
+> +
+> +	/* valid modes mask */
+> +	if (of_find_property(np, "mode-fast", NULL))
+> +		valid_modes_mask |= REGULATOR_MODE_FAST;
+> +	if (of_find_property(np, "mode-normal", NULL))
+> +		valid_modes_mask |= REGULATOR_MODE_NORMAL;
+> +	if (of_find_property(np, "mode-idle", NULL))
+> +		valid_modes_mask |= REGULATOR_MODE_IDLE;
+> +	if (of_find_property(np, "mode-standby", NULL))
+> +		valid_modes_mask |= REGULATOR_MODE_STANDBY;
+> +
+> +	/* valid ops mask */
+> +	if (of_find_property(np, "change-voltage", NULL))
+> +		valid_ops_mask |= REGULATOR_CHANGE_VOLTAGE;
+> +	if (of_find_property(np, "change-current", NULL))
+> +		valid_ops_mask |= REGULATOR_CHANGE_CURRENT;
+> +	if (of_find_property(np, "change-mode", NULL))
+> +		valid_ops_mask |= REGULATOR_CHANGE_MODE;
+> +	if (of_find_property(np, "change-status", NULL))
+> +		valid_ops_mask |= REGULATOR_CHANGE_STATUS;
+> +
+> +	(*init_data)->constraints.valid_modes_mask = valid_modes_mask;
+> +	(*init_data)->constraints.valid_ops_mask = valid_ops_mask;
+> +
+> +	of_property_read_u32(np, "input-uV",
+> +			&(*init_data)->constraints.input_uV);
+> +	of_property_read_u32(np, "initial-mode",
+> +			&(*init_data)->constraints.initial_mode);
+> +
+> +	if (of_find_property(np, "always-on", NULL))
+> +			(*init_data)->constraints.always_on = true;
+> +	if (of_find_property(np, "boot-on", NULL))
+> +			(*init_data)->constraints.boot_on = true;
+> +	if (of_find_property(np, "apply-uV", NULL))
+> +			(*init_data)->constraints.apply_uV = true;
+> +}
+> +
+> +/**
+> + * of_get_regulator_init_data - extarct regulator_init_data structure info
+> + * @np: Pointer to regulator device tree node
+> + *
+> + * Populates regulator_init_data structure by extracting data from device
+> + * tree node, returns a pointer to the populated struture or NULL if memory
+> + * alloc fails.
+> + */
+> +struct regulator_init_data *of_get_regulator_init_data(struct device_node *np)
+> +{
+> +	struct regulator_init_data *init_data;
+> +
+> +	init_data = kzalloc(sizeof(struct regulator_init_data), GFP_KERNEL);
+> +	if (!init_data)
+> +		return NULL; /* Out of memory? */
+> +
+> +	init_data->supply_regulator = (char *)of_get_property(np,
+> +						"supply-regulator", NULL);
+> +	of_get_regulation_constraints(np, &init_data);
+> +	return init_data;
+> +}
+> +EXPORT_SYMBOL(of_get_regulator_init_data);
+> diff --git a/include/linux/of_regulator.h b/include/linux/of_regulator.h
+> new file mode 100644
+> index 0000000..5eb048c
+> --- /dev/null
+> +++ b/include/linux/of_regulator.h
+> @@ -0,0 +1,23 @@
+> +/*
+> + * OpenFirmware regulator support routines
+> + *
+> + */
+> +
+> +#ifndef __LINUX_OF_REG_H
+> +#define __LINUX_OF_REG_H
+> +
+> +#include <linux/regulator/machine.h>
+> +
+> +#if defined(CONFIG_OF_REGULATOR)
+> +extern struct regulator_init_data
+> +	*of_get_regulator_init_data(struct device_node *np);
+> +#else
+> +static inline struct regulator_init_data
+> +	*of_get_regulator_init_data(struct device_node *np)
+> +{
+> +	return NULL;
+> +}
+> +#endif /* CONFIG_OF_REGULATOR */
+> +
+> +#endif /* __LINUX_OF_REG_H */
+> +
+
