@@ -1,131 +1,138 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 02/16] OMAP2+: hwmod: Add API to enable IO ring wakeup.
-Date: Fri, 16 Sep 2011 19:05:36 +0300
-Message-ID: <1316189150-21448-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 13/16] TEMP: OMAP3: serial: made serial to work properly with PRCM chain handler
+Date: Fri, 16 Sep 2011 19:05:47 +0300
+Message-ID: <1316189150-21448-14-git-send-email-t-kristo@ti.com>
 References: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57274 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896Ab1IPQG3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:29 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:53668 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752896Ab1IPQG1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:27 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm@lists.arm.linux.org.uk, "R, Govindraj" <govindraj.raja@ti.com>
+Cc: linux-arm@lists.arm.linux.org.uk, "Govindraj.R" <govindraj.raja@ti.com>
 
-From: R, Govindraj <govindraj.raja@ti.com>
+This patch is just a temporary hack to allow serial to work properly with
+the PRCM chain handler. Should be replaced with a proper implementation
+by serial runtime PM support.
 
-Add API to enable IO pad wakeup capability based on mux dynamic pad and
-wake_up enable flag available from hwmod_mux initialization.
-
-Use the wakeup_enable flag and enable wakeup capability
-for the given pads. Wakeup capability will be enabled/disabled
-during hwmod idle transition based on whether wakeup_flag is
-set or cleared.
-
-Map the enable/disable pad wakeup API's to hwmod_wakeup_enable/disable.
-
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   59 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 59 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/serial.c     |   29 +++++++++--------------------
+ drivers/tty/serial/omap-serial.c |    8 ++++++++
+ 2 files changed, 17 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 84cc0bd..e751dd9 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2062,6 +2062,34 @@ static int __init omap_hwmod_setup_all(void)
- core_initcall(omap_hwmod_setup_all);
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index e08feb1..0cc5434 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -39,6 +39,7 @@
+ #include <plat/dma.h>
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
++#include <plat/prcm.h>
  
- /**
-+ * omap_hwmod_set_ioring_wakeup - enable io pad wakeup flag.
-+ * @oh: struct omap_hwmod *
-+ * @set: bool value indicating to set or clear wakeup status.
-+ *
-+ * Set or Clear wakeup flag for the io_pad.
-+ */
-+static int omap_hwmod_set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
-+{
-+	struct omap_device_pad *pad;
-+	int ret = -EINVAL, j;
-+
-+	if (oh->mux && oh->mux->enabled) {
-+		for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
-+			pad = oh->mux->pads_dynamic[j];
-+			if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
-+				if (set_wake)
-+					pad->idle |= OMAP_WAKEUP_EN;
-+				else
-+					pad->idle &= ~OMAP_WAKEUP_EN;
-+				ret = 0;
-+			}
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+/**
-  * omap_hwmod_enable - enable an omap_hwmod
-  * @oh: struct omap_hwmod *
-  *
-@@ -2393,6 +2421,35 @@ int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
- {
- 	return _del_initiator_dep(oh, init_oh);
+ #include "prm2xxx_3xxx.h"
+ #include "pm.h"
+@@ -380,6 +381,7 @@ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
+ 	omap_uart_smart_idle_enable(uart, 1);
+ 	uart->can_sleep = 1;
+ 	del_timer(&uart->timer);
++	omap_uart_disable_clocks(uart);
  }
-+/**
-+ * omap_hwmod_enable_ioring_wakeup - Set wakeup flag for iopad.
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Traverse through dynamic pads, if pad is enabled then
-+ * set wakeup enable bit flag for the mux pin. Wakeup pad bit
-+ * will be set during hwmod idle transistion.
-+ * Return error if pads are not enabled or not available.
-+ */
-+int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh)
-+{
-+	/* Enable pad wake-up capability */
-+	return omap_hwmod_set_ioring_wakeup(oh, true);
-+}
+ 
+ static void omap_uart_idle_timer(unsigned long data)
+@@ -391,36 +393,23 @@ static void omap_uart_idle_timer(unsigned long data)
+ 
+ void omap_uart_prepare_idle(int num)
+ {
+-	struct omap_uart_state *uart;
+-
+-	list_for_each_entry(uart, &uart_list, node) {
+-		if (num == uart->num && uart->can_sleep) {
+-			omap_uart_disable_clocks(uart);
+-			return;
+-		}
+-	}
+ }
+ 
+ void omap_uart_resume_idle(int num)
+ {
+ 	struct omap_uart_state *uart;
++	u32 wkst;
+ 
+ 	list_for_each_entry(uart, &uart_list, node) {
+ 		if (num == uart->num && uart->can_sleep) {
+-			omap_uart_enable_clocks(uart);
++			omap_uart_block_sleep(uart);
+ 
+-			/* Check for IO pad wakeup */
+-			if (cpu_is_omap34xx() && uart->padconf) {
+-				u16 p = omap_ctrl_readw(uart->padconf);
+-
+-				if (p & OMAP3_PADCONF_WAKEUPEVENT0)
+-					omap_uart_block_sleep(uart);
++			/* Check for normal UART wakeup (and clear it) */
++			if (uart->wk_st && uart->wk_mask) {
++				wkst = __raw_readl(uart->wk_st) & uart->wk_mask;
++				if (wkst)
++					__raw_writel(wkst, uart->wk_st);
+ 			}
+-
+-			/* Check for normal UART wakeup */
+-			if (__raw_readl(uart->wk_st) & uart->wk_mask)
+-				omap_uart_block_sleep(uart);
+-			return;
+ 		}
+ 	}
+ }
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index c37df8d..cfff8ac 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -261,6 +261,8 @@ static void serial_omap_start_tx(struct uart_port *port)
+ 	unsigned int start;
+ 	int ret = 0;
+ 
++	omap_uart_resume_idle(up->pdev->id);
 +
-+/**
-+ * omap_hwmod_disable_ioring_wakeup - Clear wakeup flag for iopad.
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Traverse through dynamic pads, if pad is enabled then
-+ * clear wakeup enable bit flag for the mux pin. Wakeup pad bit
-+ * will be set during hwmod idle transistion.
-+ * Return error if pads are not enabled or not available.
-+ */
-+int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh)
-+{
-+	/* Disable pad wakeup capability */
-+	return omap_hwmod_set_ioring_wakeup(oh, false);
-+}
+ 	if (!up->use_dma) {
+ 		serial_omap_enable_ier_thri(up);
+ 		return;
+@@ -354,6 +356,8 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
+ 	unsigned int iir, lsr;
+ 	unsigned long flags;
  
- /**
-  * omap_hwmod_enable_wakeup - allow device to wake up the system
-@@ -2419,6 +2476,7 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
- 	v = oh->_sysc_cache;
- 	_enable_wakeup(oh, &v);
- 	_write_sysconfig(v, oh);
-+	omap_hwmod_enable_ioring_wakeup(oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
++	omap_uart_resume_idle(up->pdev->id);
++
+ 	iir = serial_in(up, UART_IIR);
+ 	if (iir & UART_IIR_NO_INT)
+ 		return IRQ_NONE;
+@@ -641,6 +645,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	unsigned long flags = 0;
+ 	unsigned int baud, quot;
  
- 	return 0;
-@@ -2449,6 +2507,7 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
- 	v = oh->_sysc_cache;
- 	_disable_wakeup(oh, &v);
- 	_write_sysconfig(v, oh);
-+	omap_hwmod_disable_ioring_wakeup(oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
++	omap_uart_resume_idle(up->pdev->id);
++
+ 	switch (termios->c_cflag & CSIZE) {
+ 	case CS5:
+ 		cval = UART_LCR_WLEN5;
+@@ -947,6 +953,8 @@ serial_omap_console_write(struct console *co, const char *s,
+ 	unsigned int ier;
+ 	int locked = 1;
  
- 	return 0;
++	omap_uart_resume_idle(up->pdev->id);
++
+ 	local_irq_save(flags);
+ 	if (up->port.sysrq)
+ 		locked = 0;
 -- 
 1.7.4.1
 
