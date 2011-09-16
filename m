@@ -1,54 +1,47 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] OMAP3: PM: fix UART handling when using no_console_suspend
-Date: Fri, 16 Sep 2011 09:47:23 -0700
-Message-ID: <1316191643-5692-1-git-send-email-khilman@ti.com>
+Subject: [GIT PULL] OMAP PM cleanup for v3.2
+Date: Fri, 16 Sep 2011 09:50:18 -0700
+Message-ID: <87y5xoqvn9.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:57062 "EHLO
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:48570 "EHLO
 	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752964Ab1IPQqc (ORCPT
+	by vger.kernel.org with ESMTP id S1753405Ab1IPQuZ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Sep 2011 12:46:32 -0400
-Received: by ywf9 with SMTP id 9so4293663ywf.22
-        for <linux-omap@vger.kernel.org>; Fri, 16 Sep 2011 09:46:31 -0700 (PDT)
+	Fri, 16 Sep 2011 12:50:25 -0400
+Received: by mail-yx0-f170.google.com with SMTP id 13so3171201yxi.15
+        for <linux-omap@vger.kernel.org>; Fri, 16 Sep 2011 09:50:21 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Abhilash Koyamangalath <abhilash.kv@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-During the idle/suspend path, we expect the console lock to be held so
-that no console output is done during/after the UARTs are idled.
+Tony,
 
-However, when using the no_console_suspend argument on the
-command-line, the console driver does not take the console lock.  This
-allows the possibility of console activity after UARTs have been
-disabled.
+Please pull the following PM cleanups for v3.2
 
-To fix, update the current is_suspending() to also check the
-console_suspend_enabled flag.
+Kevin
 
-Reported-by: Abhilash Koyamangalath <abhilash.kv@ti.com>
-Tested-by: Abhilash Koyamangalath <abhilash.kv@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-This patch will be included in my PM cleanup series for v3.2
-(branch: for_3.2/pm-cleanup)
 
+The following changes since commit fcb8ce5cfe30ca9ca5c9a79cdfe26d1993e65e0c:
+
+  Linux 3.1-rc3 (2011-08-22 11:42:53 -0700)
+
+are available in the git repository at:
+  git://gitorious.org/khilman/linux-omap-pm.git for_3.2/pm-cleanup
+
+Johan Hovold (2):
+      OMAP2+: PM: fix typos in misc. comment and error messages
+      OMAP2+: PM: clean up error messages: replace printk with pr_err.
+
+Kevin Hilman (1):
+      OMAP3: PM: fix UART handling when using no_console_suspend
+
+Michael Jones (1):
+      OMAP2: PM debug: remove leftover debug code
+
+ arch/arm/mach-omap2/pm.c     |   22 ++++++++++------------
+ arch/arm/mach-omap2/pm24xx.c |   27 ---------------------------
  arch/arm/mach-omap2/pm34xx.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 7255d9b..c8cbd00 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -55,7 +55,7 @@
- static suspend_state_t suspend_state = PM_SUSPEND_ON;
- static inline bool is_suspending(void)
- {
--	return (suspend_state != PM_SUSPEND_ON);
-+	return (suspend_state != PM_SUSPEND_ON) && console_suspend_enabled;
- }
- #else
- static inline bool is_suspending(void)
--- 
-1.7.6
-
+ 3 files changed, 11 insertions(+), 40 deletions(-)
