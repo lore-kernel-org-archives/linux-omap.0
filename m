@@ -1,68 +1,62 @@
-From: Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [RFC PATCH 1/6] usb: musb: omap: Configure OTG_INTERFSEL for
- proper charger detection
-Date: Fri, 16 Sep 2011 16:13:39 +0200
-Message-ID: <20110916141339.GA31093@suse.de>
-References: <1316096403-6013-1-git-send-email-kishon@ti.com>
- <1316096403-6013-2-git-send-email-kishon@ti.com>
- <4E731B6D.2040007@ru.mvista.com>
- <CAAe_U6KaFJGM61=Pkm2q-EBQeEtSAOBuC2jgFRd7DV4xKOjJdg@mail.gmail.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH v2 0/2] OMAP: omap_device: Add a method to build an omap_device from a DT node
+Date: Fri, 16 Sep 2011 16:43:17 +0200
+Message-ID: <1316184199-12599-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAe_U6KaFJGM61=Pkm2q-EBQeEtSAOBuC2jgFRd7DV4xKOjJdg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, x0153364-l0cyMroinI0@public.gmane.org, m-sonasath-l0cyMroinI0@public.gmane.org, vishp-l0cyMroinI0@public.gmane.org, hemahk-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60097 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751820Ab1IPOn2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Sep 2011 10:43:28 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca, Benoit Cousson <b-cousson@ti.com>
 
-On Fri, Sep 16, 2011 at 07:21:41PM +0530, ABRAHAM, KISHON VIJAY wrote:
-> Sergei,
->=20
-> Thanks for your comments.
->=20
-> On Fri, Sep 16, 2011 at 3:18 PM, Sergei Shtylyov <sshtylyov-Igf4POYTYCBhl2p70BpVqQ@public.gmane.org=
-m> wrote:
-> > Hello.
-> >
-> > On 15-09-2011 18:19, Kishon Vijay Abraham I wrote:
-> >
-> >> Setting OTG_INTERFSEL to UTMI interferes with charger detection re=
-sulting
-> >> in incorrect detection of charger type. Hence OTG_INTERFSEL is con=
-figured
-> >> to
-> >> ULPI initially and changed to UTMI only after receiving USB_EVENT_=
-ID or
-> >> USB_EVENT_VBUS notification.
-> >
-> >> Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
-> >> Signed-off-by: Balaji T K<balajitk-l0cyMroinI0@public.gmane.org>
-> >
-> > =A0 AFAIK, full name is needed here.
->=20
-> is it not the prerogative of the person giving his signed-off by??
+Hi Kevin,
 
-Not really.
+This is the updated version of the initial series that introduced a
+notifier in order to create an omap_device from a platform_device bound
+to DT node as suggested by Grant.
 
-> >> [sandesh.gowda-l0cyMroinI0@public.gmane.org: The interface selection has to be done befo=
-re the
-> >> PHY
-> >> is activated and is not allowed to change when the PHY clock is al=
-ready
-> >> running]
-> >
-> > =A0 No signoff from him?
->=20
-> ok. will add his signoff.
+For the moment, the informations are all extracted from the hwmod data.
+The idea is to focus first on the devices / board static init removal.
+The other issue is that some bindings, like dma, are still not present
+in the DT core code. The reg and irq bindings are there, but cannot
+be used by some drivers due to the lack of named resources in DT for
+the moment.
+We agreed with Grant about the strategy to introduce the name without
+breaking the compatibility and the default assumption about the order.
 
-You can NOT add someone else's sign-off to a patch, please go re-read
-Documentation/SubmittingPatches as to what this really means.
+I'll update that in another series after 3.2 and then these informations
+will be moved from hwmod to DT.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Patches are based on my for_3.2/1_omap_device_cleanup branch and are
+available here:
+git://gitorious.org/omap-pm/linux.git for_3.2/2_omap_device_dt
+
+It is tested on OMAP4 SDP, Panda and Beagle-xM with and without CONFIG_OF.
+
+Regards,
+Benoit
+
+
+Changes since v1: http://www.spinics.net/lists/linux-omap/msg55814.html
+ - delete omap_device structure during BUS_NOTIFY_DEL_DEVICE callback
+   as suggested by Kevin
+ - merge previous patches 2&3 as suggested by Kevin
+ - delete pm_lats in omap_device_delete since this is now kmalloc-ed
+ - use kmemdup instead of kzalloc + memcopy for hmwods creation
+ - Fix the wrong usage of of_*.h includes to build properly without
+   CONFIG_OF.
+
+
+Benoit Cousson (2):
+  OMAP: omap_device: Add omap_device_[alloc|delete] for DT integration
+  OMAP: omap_device: Add a method to build an omap_device from a DT node
+
+
+ arch/arm/plat-omap/omap_device.c |  321 +++++++++++++++++++++++++++++++-------
+ 1 files changed, 263 insertions(+), 58 deletions(-)
+
