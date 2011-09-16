@@ -1,122 +1,88 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 09/16] TEMP: serial: added mux support
-Date: Fri, 16 Sep 2011 19:05:43 +0300
-Message-ID: <1316189150-21448-10-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 12/16] TEMP: OMAP3: pm: remove serial resume / idle calls from idle path
+Date: Fri, 16 Sep 2011 19:05:46 +0300
+Message-ID: <1316189150-21448-13-git-send-email-t-kristo@ti.com>
 References: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57260 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:57267 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896Ab1IPQGX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:23 -0400
+	with ESMTP id S1752896Ab1IPQG0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:26 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm@lists.arm.linux.org.uk
+Cc: linux-arm@lists.arm.linux.org.uk, "Govindraj.R" <govindraj.raja@ti.com>
 
-Just for PRCM chain handler testing purposes. This should be replaced with
-a proper implementation.
+This is no longer needed as it will be handled within serial driver itself.
+This part should be properly handled with serial runtime support.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |   71 ++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 69 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |   19 -------------------
+ 1 files changed, 0 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 3d1c1d3..e08feb1 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -862,17 +862,84 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
-  * can call this function when they want to have default behaviour
-  * for serial ports (e.g initialize them all as serial ports).
-  */
-+
-+struct serial_mux_conf {
-+	char *name;
-+	int omap3_mux;
-+	int omap4_mux;
-+};
-+
-+#define OMAP3_SERIAL_MUX_IN_PU (OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0)
-+#define OMAP3_SERIAL_MUX_IN_PD (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0)
-+#define OMAP3_SERIAL_MUX_IN (OMAP_PIN_INPUT | OMAP_MUX_MODE0)
-+#define OMAP3_SERIAL_MUX_OUT (OMAP_PIN_OUTPUT | OMAP_MUX_MODE0)
-+#define OMAP4_SERIAL_MUX_IN_PU (OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0)
-+#define OMAP4_SERIAL_MUX_OUT (OMAP_PIN_OUTPUT | OMAP_MUX_MODE0)
-+#define OMAP4_SERIAL_MUX_IN (OMAP_PIN_INPUT | OMAP_MUX_MODE0)
-+#define SERIAL_DISABLED OMAP_MUX_MODE7
-+
-+#define OMAP_SERIAL_NUM_PADS_PER_PORT 4
-+
-+static const struct serial_mux_conf serial_mux_data[] = {
-+	{ "uart1_cts.uart1_cts", OMAP3_SERIAL_MUX_IN, SERIAL_DISABLED, },
-+	{ "uart1_rts.uart1_rts", OMAP3_SERIAL_MUX_OUT, SERIAL_DISABLED, },
-+	{ "uart1_rx.uart1_rx", OMAP3_SERIAL_MUX_IN, SERIAL_DISABLED, },
-+	{ "uart1_tx.uart1_tx", OMAP3_SERIAL_MUX_OUT, SERIAL_DISABLED, },
-+	{ "uart2_cts.uart2_cts", OMAP3_SERIAL_MUX_IN,
-+		OMAP4_SERIAL_MUX_IN_PU, },
-+	{ "uart2_rts.uart2_rts", OMAP3_SERIAL_MUX_OUT, OMAP4_SERIAL_MUX_OUT, },
-+	{ "uart2_rx.uart2_rx", OMAP3_SERIAL_MUX_IN, OMAP4_SERIAL_MUX_IN_PU, },
-+	{ "uart2_tx.uart2_tx", OMAP3_SERIAL_MUX_OUT, OMAP4_SERIAL_MUX_OUT },
-+	{ "uart3_cts_rctx.uart3_cts_rctx", OMAP3_SERIAL_MUX_IN_PD,
-+		OMAP4_SERIAL_MUX_IN_PU, },
-+	{ "uart3_rts_sd.uart3_rts_sd", OMAP3_SERIAL_MUX_OUT,
-+		OMAP4_SERIAL_MUX_OUT, },
-+	{ "uart3_rx_irrx.uart3_rx_irrx", OMAP3_SERIAL_MUX_IN,
-+		OMAP4_SERIAL_MUX_IN, },
-+	{ "uart3_tx_irtx.uart3_tx_irtx", OMAP3_SERIAL_MUX_OUT,
-+		OMAP4_SERIAL_MUX_OUT, },
-+	{ "uart4_rx.uart4_rx", SERIAL_DISABLED, OMAP4_SERIAL_MUX_IN, },
-+	{ "uart4_tx.uart4_tx", SERIAL_DISABLED, OMAP4_SERIAL_MUX_OUT, },
-+	{ NULL, SERIAL_DISABLED, SERIAL_DISABLED, },
-+	{ NULL, SERIAL_DISABLED, SERIAL_DISABLED, },
-+};
-+
- void __init omap_serial_init(void)
- {
- 	struct omap_uart_state *uart;
- 	struct omap_board_data bdata;
-+	struct omap_device_pad *pads;
-+	int idx;
-+	int i;
- 
-+	pads = kmalloc(sizeof(struct omap_device_pad) * 4, GFP_KERNEL);
- 	list_for_each_entry(uart, &uart_list, node) {
- 		bdata.id = uart->num;
- 		bdata.flags = 0;
--		bdata.pads = NULL;
- 		bdata.pads_cnt = 0;
-+		bdata.pads = pads;
-+
-+		for (i = 0; i < OMAP_SERIAL_NUM_PADS_PER_PORT; i++) {
-+			idx = bdata.id * OMAP_SERIAL_NUM_PADS_PER_PORT + i;
-+			pads[i].name = serial_mux_data[idx].name;
-+			pads[i].enable = 0;
-+			pads[i].idle = 0;
-+			pads[i].flags = 0;
-+			if (cpu_is_omap34xx())
-+				pads[i].enable = serial_mux_data[idx].omap3_mux;
-+			if (cpu_is_omap44xx())
-+				pads[i].enable = serial_mux_data[idx].omap4_mux;
-+			if (pads[i].enable != SERIAL_DISABLED)
-+				bdata.pads_cnt++;
-+			if (pads[i].enable & OMAP_PIN_INPUT) {
-+				pads[i].flags = OMAP_DEVICE_PAD_REMUX |
-+					OMAP_DEVICE_PAD_WAKEUP;
-+			}
-+			pads[i].idle = pads[i].enable;
-+		}
-+		if (bdata.pads_cnt == 0)
-+			bdata.pads = NULL;
- 		omap_serial_init_port(&bdata);
--
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 2789e0a..4571993 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -341,18 +341,9 @@ void omap_sram_idle(void)
+ 		omap3_enable_io_chain();
  	}
-+	kfree(pads);
- }
+ 
+-	/* Block console output in case it is on one of the OMAP UARTs */
+-	if (!is_suspending())
+-		if (per_next_state < PWRDM_POWER_ON ||
+-		    core_next_state < PWRDM_POWER_ON)
+-			if (!console_trylock())
+-				goto console_still_active;
+-
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
+-		omap_uart_prepare_idle(2);
+-		omap_uart_prepare_idle(3);
+ 		omap2_gpio_prepare_for_idle(per_going_off);
+ 		if (per_next_state == PWRDM_POWER_OFF)
+ 				omap3_per_save_context();
+@@ -360,8 +351,6 @@ void omap_sram_idle(void)
+ 
+ 	/* CORE */
+ 	if (core_next_state < PWRDM_POWER_ON) {
+-		omap_uart_prepare_idle(0);
+-		omap_uart_prepare_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF) {
+ 			omap3_core_save_context();
+ 			omap3_cm_save_context();
+@@ -408,8 +397,6 @@ void omap_sram_idle(void)
+ 			omap3_sram_restore_context();
+ 			omap2_sms_restore_context();
+ 		}
+-		omap_uart_resume_idle(0);
+-		omap_uart_resume_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF)
+ 			omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
+ 					       OMAP3430_GR_MOD,
+@@ -423,14 +410,8 @@ void omap_sram_idle(void)
+ 		omap2_gpio_resume_after_idle();
+ 		if (per_prev_state == PWRDM_POWER_OFF)
+ 			omap3_per_restore_context();
+-		omap_uart_resume_idle(2);
+-		omap_uart_resume_idle(3);
+ 	}
+ 
+-	if (!is_suspending())
+-		console_unlock();
+-
+-console_still_active:
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
+ 	if (omap3_has_io_wakeup() &&
+ 	    (per_next_state < PWRDM_POWER_ON ||
 -- 
 1.7.4.1
 
