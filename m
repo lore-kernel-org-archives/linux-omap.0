@@ -1,78 +1,43 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in omap_vout_isr
-Date: Fri, 16 Sep 2011 15:30:31 +0530
-Message-ID: <1316167233-1437-4-git-send-email-archit@ti.com>
+Subject: [PATCH 4/5] [media] OMAP_VOUT: Add support for DSI panels
+Date: Fri, 16 Sep 2011 15:30:32 +0530
+Message-ID: <1316167233-1437-5-git-send-email-archit@ti.com>
 References: <1316167233-1437-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34248 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45164 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752348Ab1IPJ7O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Sep 2011 05:59:14 -0400
+	id S1752348Ab1IPJ7T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Sep 2011 05:59:19 -0400
 In-Reply-To: <1316167233-1437-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: hvaibhav@ti.com
 Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, sumit.semwal@ti.com, linux-media@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Currently, in omap_vout_isr(), if the panel type is DPI, and if we
-get either VSYNC or VSYNC2 interrupts, we proceed ahead to set the
-current buffers state to VIDEOBUF_DONE and prepare to display the
-next frame in the queue.
-
-On OMAP4, because we have 2 LCD managers, the panel type itself is not
-sufficient to tell if we have received the correct irq, i.e, we shouldn't
-proceed ahead if we get a VSYNC interrupt for LCD2 manager, or a VSYNC2
-interrupt for LCD manager.
-
-Fix this by correlating LCD manager to VSYNC interrupt and LCD2 manager
-to VSYNC2 interrupt.
+Add support for DSI panels. DSI video mode panels will work directly. For
+command mode panels, we will need to trigger updates regularly. This isn't done
+by the omap_vout driver currently. It can still be supported if we connect a
+framebuffer device to the panel and configure it in auto update mode.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/video/omap/omap_vout.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/media/video/omap/omap_vout.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index c5f2ea0..20638c3 100644
+index 20638c3..51cf6c2 100644
 --- a/drivers/media/video/omap/omap_vout.c
 +++ b/drivers/media/video/omap/omap_vout.c
-@@ -566,8 +566,8 @@ err:
- 
- static void omap_vout_isr(void *arg, unsigned int irqstatus)
- {
--	int ret, fid;
--	u32 addr;
-+	int ret, fid, mgr_id;
-+	u32 addr, irq;
- 	struct omap_overlay *ovl;
- 	struct timeval timevalue;
- 	struct omapvideo_info *ovid;
-@@ -583,6 +583,7 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
- 	if (!ovl->manager || !ovl->manager->device)
- 		return;
- 
-+	mgr_id = ovl->manager->id;
- 	cur_display = ovl->manager->device;
- 
- 	spin_lock(&vout->vbq_lock);
-@@ -590,7 +591,14 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+@@ -590,6 +590,7 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+ 	do_gettimeofday(&timevalue);
  
  	switch (cur_display->type) {
++	case OMAP_DISPLAY_TYPE_DSI:
  	case OMAP_DISPLAY_TYPE_DPI:
--		if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
-+		if (mgr_id == OMAP_DSS_CHANNEL_LCD)
-+			irq = DISPC_IRQ_VSYNC;
-+		else if (mgr_id == OMAP_DSS_CHANNEL_LCD2)
-+			irq = DISPC_IRQ_VSYNC2;
-+		else
-+			goto vout_isr_err;
-+
-+		if (!(irqstatus & irq))
- 			goto vout_isr_err;
- 		break;
- 	case OMAP_DISPLAY_TYPE_VENC:
+ 		if (mgr_id == OMAP_DSS_CHANNEL_LCD)
+ 			irq = DISPC_IRQ_VSYNC;
 -- 
 1.7.1
 
