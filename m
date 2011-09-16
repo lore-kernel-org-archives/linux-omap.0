@@ -1,105 +1,103 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 1/8] OMAP: hwmod: Fix the addr spaces, irq, dma count
- APIs.
-Date: Fri, 16 Sep 2011 17:40:14 +0200
-Message-ID: <4E736DDE.9090300@ti.com>
-References: <1315584134-3869-1-git-send-email-r.sricharan@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 6/8] OMAP: PM CONSTRAINTS: implement the devices wake-up
+ latency constraints
+Date: Fri, 16 Sep 2011 17:43:10 +0200
+Message-ID: <CAORVsuWH+MjOL-VYWZQt_Lxpp1=7Emw=ZXfeMCW8TofuX1u_vw@mail.gmail.com>
+References: <1314969204-21704-1-git-send-email-j-pihet@ti.com>
+	<1314969204-21704-7-git-send-email-j-pihet@ti.com>
+	<878vpptlku.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55472 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752811Ab1IPPkS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 11:40:18 -0400
-In-Reply-To: <1315584134-3869-1-git-send-email-r.sricharan@ti.com>
+Received: from mail-vw0-f42.google.com ([209.85.212.42]:33347 "EHLO
+	mail-vw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752811Ab1IPPnL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 11:43:11 -0400
+Received: by vwl1 with SMTP id 1so7244636vwl.1
+        for <linux-omap@vger.kernel.org>; Fri, 16 Sep 2011 08:43:10 -0700 (PDT)
+In-Reply-To: <878vpptlku.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "R, Sricharan" <r.sricharan@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "paul@pswan.com" <paul@pswan.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
 
-Hi Sricharan,
+Kevin,
 
-On 9/9/2011 6:02 PM, R, Sricharan wrote:
-> The address spaces, irqs and dma reqs count API returns the
-> number of corresponding entries in a hwmod including a additional
-> null value or a -1 terminator in the structure introduced
-> recently. More information here:
+On Fri, Sep 16, 2011 at 1:47 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Jean Pihet <jean.pihet@newoldbits.com> writes:
 >
-> 	212738a4 (omap_hwmod: use a terminator record with omap_hwmod_mpu_irqs arrays)
-> 	78183f3f (omap_hwmod: use a null structure record to terminate omap_hwmod_addr_space arrays)
-> 	bc614958 (omap_hwmod: use a terminator record with omap_hwmod_dma_info arrays)
+>> Implement the devices wake-up latency constraints using the global
+>> device PM QoS notification handler which applies the constraints to =
+the
+>> underlying layer by calling the corresponding function at hwmod leve=
+l.
+>>
+>> Note: the bus throughput function is implemented but currently is
+>> a no-op. A new PM QoS class for the bus throughput needs to be
+>> added.
+>>
+>> Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using wa=
+ke-up
+>> latency constraints on MPU, CORE and PER.
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
 >
-> The devices which have multiple hwmods and use device_build_ss are
-> broken with this, as their resources are populated with a
-> extra null value, subsequently the probe fails. So fix the API not to
-> include the array terminator in the count.
+> This patch does 2 things.
 >
-> Signed-off-by: sricharan<r.sricharan@ti.com>
-> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> Cc: Benoit Cousson<b-cousson@ti.com>
-> Cc: Paul Walmsley<paul@pwsan.com>
-> Cc: Kevin Hilman<khilman@ti.com>
+> 1) removes the MPU lat stuff from the OMAP PM layer (since it's now
+> =A0 available in a generic form
+> 2) implements device wake-up latency constraints
+>
+> This should be broken up into two parts.
+>
+> Also, this patch seems to remove a bunch of stuff that was just added=
+ in
+> patch 2/8. =A0Probably best to create the new OMAP PM layer after rem=
+ving
+> the unused stuff.
+>
+> It think the code using the new per-device PM QoS API should also liv=
+e
+> outside the OMAP PM layer, since it's not related, and we want to get
+> rid of the OMAP PM layer eventually.
+>
+> Speaking of which..., the more I think about it, the more I think we
+> should take this opportunity to clean and/or remove the OMAP PM layer
+> completely.
 
-It would have been nice to give me the credit for the bug report on the 
-other functions, but otherwise:
 
-Acked-by: Benoit Cousson <b-cousson@ti.com>
+I agree completely, the OMAP PM 'plugin' layer is useless and anyway
+an empty implementation for now.
 
-And I still prefer the return i - 1 :-)
+> With your work, other than the no-op bus throughput API, it's basical=
+ly
+> unused. =A0I think that rather than creating a new OMAP PM layer just=
+ to
+> have a a no-op bus throughput function here, I think it's time
+> to remove OMAP PM completely.
+Ok. The only useful code is to register a PM QoS notifier in order to
+apply the constraints to the power domains.
+Are you suggesting to move this code to e.g. pmxxx.c?
 
-> ---
-> [v1]
->       Initial version.
-> [v2]
->       1) Added the correction for irq and dma counts along with
-> 	addr spaces.
->       2) Changed the commit log.
->
->   arch/arm/mach-omap2/omap_hwmod.c |   18 +++++++++---------
->   1 files changed, 9 insertions(+), 9 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 84cc0bd..c69fbc2 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -745,9 +745,9 @@ static int _count_mpu_irqs(struct omap_hwmod *oh)
->   	if (!oh || !oh->mpu_irqs)
->   		return 0;
->
-> -	do {
-> -		ohii =&oh->mpu_irqs[i++];
-> -	} while (ohii->irq != -1);
-> +	ohii =&oh->mpu_irqs[i];
-> +	while (ohii->irq != -1)
-> +		ohii =&oh->mpu_irqs[++i];
->
->   	return i;
->   }
-> @@ -768,9 +768,9 @@ static int _count_sdma_reqs(struct omap_hwmod *oh)
->   	if (!oh || !oh->sdma_reqs)
->   		return 0;
->
-> -	do {
-> -		ohdi =&oh->sdma_reqs[i++];
-> -	} while (ohdi->dma_req != -1);
-> +	ohdi =&oh->sdma_reqs[i];
-> +	while (ohdi->dma_req != -1)
-> +		ohdi =&oh->sdma_reqs[++i];
->
->   	return i;
->   }
-> @@ -791,9 +791,9 @@ static int _count_ocp_if_addr_spaces(struct omap_hwmod_ocp_if *os)
->   	if (!os || !os->addr)
->   		return 0;
->
-> -	do {
-> -		mem =&os->addr[i++];
-> -	} while (mem->pa_start != mem->pa_end);
-> +	mem =&os->addr[i];
-> +	while (mem->pa_start != mem->pa_end)
-> +		mem =&os->addr[++i];
->
->   	return i;
->   }
+> =A0 This might also give some incentive
+> for a PM QoS bus throughput constraint as well.
+Sure the tput constraints should be implemented as well.
 
+>
+> Of course, Paul can make the final decision there whether to remove i=
+t
+> now, but I think it's time.
+>
+> Just to prove it's usefulness (or lack thereof), Here's a hack that
+> combined with your patch 1/8 shows that it is pretty easy to remove.
+>
+> Kevin
+
+Thanks!
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
