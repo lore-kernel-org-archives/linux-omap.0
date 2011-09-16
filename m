@@ -1,118 +1,197 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCHv2 09/15] OMAP: DSS2: HDMI: implement detect()
-Date: Fri, 16 Sep 2011 18:11:53 +0530
-Message-ID: <CAP5A+B9upB3VUaRme84Fm6ewx9KkyOu4hCavMetkEeKcSHORXw@mail.gmail.com>
-References: <1315818818-18733-1-git-send-email-tomi.valkeinen@ti.com>
- <1315818818-18733-10-git-send-email-tomi.valkeinen@ti.com>
- <CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com>
- <CAF6AEGuhjZgH9zFuigjfvHGM9r7jSLY2TTCD0LjZbT+Ubrb12A@mail.gmail.com>
- <CAP5A+B87w6Hir-0+SNnckQaDcO=ixgq-U8pFo2U42dwQgtUrZQ@mail.gmail.com>
- <1315984468.2172.10.camel@deskari> <CAP5A+B9uDj4kCowbEKgX1J74zWvBarp64Cn4YVom-a8BYtab4w@mail.gmail.com>
- <1315989282.2172.36.camel@deskari> <CAP5A+B-GWN+oJhcVbB24swfmH=-dE4sViNqF+hX6=D1owzOLzA@mail.gmail.com>
- <1315990630.2172.51.camel@deskari> <CAP5A+B9Me0RX3PY7Uwf=VuaHzaPtoNY0q9gxFg9H-Q3N2giC2Q@mail.gmail.com>
- <1316009509.2118.6.camel@deskari> <CAP5A+B-_19gPDmjJGBHpcDcGPGyt9QvFXFwgjGPUqr-QY9SPJg@mail.gmail.com>
- <1316066265.1880.6.camel@deskari> <CAP5A+B_WvtNTi9ckyor-+5bo7n6GkeTSAvhDsrGQxhPZWgXO0w@mail.gmail.com>
- <1316068371.1880.25.camel@deskari>
+From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Subject: RE: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+Date: Fri, 16 Sep 2011 18:30:53 +0530
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com>
+References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>,<201109081921.28051.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:52972 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753900Ab1IPMmO convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Sep 2011 08:42:14 -0400
-In-Reply-To: <1316068371.1880.25.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <201109081921.28051.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@infradead.org" <mchehab@infradead.org>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
 Hi,
-
-On Thu, Sep 15, 2011 at 12:02 PM, Tomi Valkeinen <tomi.valkeinen@ti.com=
-> wrote:
-> On Thu, 2011-09-15 at 11:54 +0530, K, Mythri P wrote:
->> Hi,
+Sorry for the delayed response.
+> ________________________________________
+> From: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
+> Sent: Thursday, September 08, 2011 10:51 PM
+> To: Ravi, Deepthy
+> Cc: linux-media@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk; linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; mchehab@infradead.org; g.liakhovetski@gmx.de; Hiremath, Vaibhav
+> Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+>
+> Hi,
+>
+> Thanks for the patch.
+>
+> On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
+>> From: Vaibhav Hiremath <hvaibhav@ti.com>
 >>
->> On Thu, Sep 15, 2011 at 11:27 AM, Tomi Valkeinen <tomi.valkeinen@ti.=
-com> wrote:
->> > On Thu, 2011-09-15 at 11:11 +0530, K, Mythri P wrote:
->> >> Hi,
->> >>
->> >> On Wed, Sep 14, 2011 at 7:41 PM, Tomi Valkeinen <tomi.valkeinen@t=
-i.com> wrote:
->> >
->> >> > Yes, you are right, detect() does not "know" if the monitor has=
- changed
->> >> > between polls, so both notification and polling are needed. I
->> >> > implemented only polling as there's no HPD event mechanism yet =
-in
->> >> > omapdss, and also because this was simple and gives DRM basic a=
-bility to
->> >> > detect a monitor.
->> >> >
->> >> If it is needed for DRM then it is fine, but with detect renamed =
-to
->> >> poll. By next week i should have a patch ready for HPD event
->> >> mechanism.
->> >
->> > What is wrong with "detect"? It detects if there's a display conne=
-cted.
->> > It can be used in polling manner, trying it every n seconds, but i=
-t
->> > should also be used even if you use HPD event. I think the normal
->> > sequence would be something like:
->> >
->> > 1) register HPD event
->> > 2) use detect() to see if a monitor is already connected
->> >
->> I guess polling ever few seconds to detect would be waste of CPU
->> cycles when there is already a mechanism in the H/w to detect the
->> connection.
+>> In order to support TVP5146 (for that matter any video decoder),
+>> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
+>> device node.
 >
-> Obviously. Polling is only used if hot-plug-detect is not available. =
-But
-> detect function can be used even when HPD is available.
+> Why so ? Shouldn't it be queried on the subdev output pad directly ?
 >
->> Current sequence :
->> Enable display ( Irrespective of whether the cable is connected on n=
-ot)
->>
->> Sequence with HPD:
->> 1.Register for HPD connect.
->> 2.Enable display
->> 3.Notify DRM/Audio/Kernel component that wants to listen to this eve=
-nt.
->
-> Why would you enable the display even if there's no monitor connected=
-?
->
-> And when the DRM starts, how does DRM know if the display was already
-> connected? Would you send a HPD event when DRM registers to the event
-> even if there's no actual plug-in event done (i.e. user actually
-> connecting the cable)?
->
-HPD event would be triggered only when the cable is connected , and
-the EDID is ready to be read by the monitor. So the question enabling
-display doesnt exist. When HDMI is enabled in the HPD mode it will be
-in minimal power mode.
-Yes then the driver will notify DRM/any module that cable(monitor)  is
-now connected.
+[Deepthy Ravi] Because standard v4l2 application for analog devices will call these std ioctls on the streaming device node. So it's done on /dev/video to make the existing apllication work.
 
-> And just to clarify, my sequence example was from DRM's point of view=
-=2E
-> The HDMI driver shouldn't do anything before DRM/omapfb asks it to do
-> something.
+>> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+>> ---
+>>  drivers/media/video/omap3isp/ispvideo.c |   98
+>> ++++++++++++++++++++++++++++++- drivers/media/video/omap3isp/ispvideo.h |
+>>   1 +
+>>  2 files changed, 98 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+>> b/drivers/media/video/omap3isp/ispvideo.c index d5b8236..ff0ffed 100644
+>> --- a/drivers/media/video/omap3isp/ispvideo.c
+>> +++ b/drivers/media/video/omap3isp/ispvideo.c
+>> @@ -37,6 +37,7 @@
+>>  #include <plat/iovmm.h>
+>>  #include <plat/omap-pm.h>
+>>
+>> +#include <media/tvp514x.h>
+>>  #include "ispvideo.h"
+>>  #include "isp.h"
+>>
+>> @@ -1136,7 +1137,97 @@ isp_video_g_input(struct file *file, void *fh,
+>> unsigned int *input) static int
+>>  isp_video_s_input(struct file *file, void *fh, unsigned int input)
+>>  {
+>> -     return input == 0 ? 0 : -EINVAL;
+>> +     struct isp_video *video = video_drvdata(file);
+>> +     struct media_entity *entity = &video->video.entity;
+>> +     struct media_entity_graph graph;
+>> +     struct v4l2_subdev *subdev;
+>> +     struct v4l2_routing route;
+>> +     int ret = 0;
+>> +
+>> +     media_entity_graph_walk_start(&graph, entity);
+>> +     while ((entity = media_entity_graph_walk_next(&graph))) {
+>> +             if (media_entity_type(entity) ==
+>> +                             MEDIA_ENT_T_V4L2_SUBDEV) {
+>> +                     subdev = media_entity_to_v4l2_subdev(entity);
+>> +                     if (subdev != NULL) {
+>> +                             if (input == 0)
+>> +                                     route.input = INPUT_CVBS_VI4A;
+>> +                             else
+>> +                                     route.input = INPUT_SVIDEO_VI2C_VI1C;
+>> +                             route.output = 0;
+>> +                             ret = v4l2_subdev_call(subdev, video, s_routing,
+>> +                                             route.input, route.output, 0);
+>> +                             if (ret < 0 && ret != -ENOIOCTLCMD)
+>> +                                     return ret;
+>> +                     }
+>> +             }
+>> +     }
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int isp_video_querystd(struct file *file, void *fh, v4l2_std_id *a)
+>> +{
+>> +     struct isp_video_fh *vfh = to_isp_video_fh(fh);
+>> +     struct isp_video *video = video_drvdata(file);
+>> +     struct media_entity *entity = &video->video.entity;
+>> +     struct media_entity_graph graph;
+>> +     struct v4l2_subdev *subdev;
+>> +     int ret = 0;
+>> +
+>> +     media_entity_graph_walk_start(&graph, entity);
+>> +     while ((entity = media_entity_graph_walk_next(&graph))) {
+>> +             if (media_entity_type(entity) ==
+>> +                             MEDIA_ENT_T_V4L2_SUBDEV) {
+>> +                     subdev = media_entity_to_v4l2_subdev(entity);
+>> +                     if (subdev != NULL) {
+>> +                             ret = v4l2_subdev_call(subdev, video, querystd,
+>> +                                             a);
+>> +                             if (ret < 0 && ret != -ENOIOCTLCMD)
+>> +                                     return ret;
+>> +                     }
+>> +             }
+>> +     }
+>> +
+>> +     vfh->standard.id = *a;
+>> +     return 0;
+>> +}
+>> +
+>> +static int isp_video_g_std(struct file *file, void *fh, v4l2_std_id *norm)
+>> +{
+>> +     struct isp_video_fh *vfh = to_isp_video_fh(fh);
+>> +     struct isp_video *video = video_drvdata(file);
+>> +
+>> +     mutex_lock(&video->mutex);
+>> +     *norm = vfh->standard.id;
+>> +     mutex_unlock(&video->mutex);
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int isp_video_s_std(struct file *file, void *fh, v4l2_std_id *norm)
+>> +{
+>> +     struct isp_video *video = video_drvdata(file);
+>> +     struct media_entity *entity = &video->video.entity;
+>> +     struct media_entity_graph graph;
+>> +     struct v4l2_subdev *subdev;
+>> +     int ret = 0;
+>> +
+>> +     media_entity_graph_walk_start(&graph, entity);
+>> +     while ((entity = media_entity_graph_walk_next(&graph))) {
+>> +             if (media_entity_type(entity) ==
+>> +                             MEDIA_ENT_T_V4L2_SUBDEV) {
+>> +                     subdev = media_entity_to_v4l2_subdev(entity);
+>> +                     if (subdev != NULL) {
+>> +                             ret = v4l2_subdev_call(subdev, core, s_std,
+>> +                                             *norm);
+>> +                             if (ret < 0 && ret != -ENOIOCTLCMD)
+>> +                                     return ret;
+>> +                     }
+>> +             }
+>> +     }
+>> +
+>> +     return 0;
+>>  }
+>>
+>>  static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
+>> @@ -1161,6 +1252,9 @@ static const struct v4l2_ioctl_ops
+>> isp_video_ioctl_ops = { .vidioc_enum_input            = isp_video_enum_input,
+>>       .vidioc_g_input                 = isp_video_g_input,
+>>       .vidioc_s_input                 = isp_video_s_input,
+>> +     .vidioc_querystd                = isp_video_querystd,
+>> +     .vidioc_g_std                   = isp_video_g_std,
+>> +     .vidioc_s_std                   = isp_video_s_std,
+>>  };
+>>
+>>  /*
+>> --------------------------------------------------------------------------
+>> --- @@ -1325,6 +1419,8 @@ int omap3isp_video_register(struct isp_video
+>> *video, struct v4l2_device *vdev) printk(KERN_ERR "%s: could not register
+>> video device (%d)\n",
+>>                       __func__, ret);
+>>
+>> +     video->video.tvnorms            = V4L2_STD_NTSC | V4L2_STD_PAL;
+>> +     video->video.current_norm       = V4L2_STD_NTSC;
+>>       return ret;
+>>  }
+>>
+>> diff --git a/drivers/media/video/omap3isp/ispvideo.h
+>> b/drivers/media/video/omap3isp/ispvideo.h index 53160aa..bb8feb6 100644
+>> --- a/drivers/media/video/omap3isp/ispvideo.h
+>> +++ b/drivers/media/video/omap3isp/ispvideo.h
+>> @@ -182,6 +182,7 @@ struct isp_video_fh {
+>>       struct isp_video *video;
+>>       struct isp_video_queue queue;
+>>       struct v4l2_format format;
+>> +     struct v4l2_standard standard;
+>>       struct v4l2_fract timeperframe;
+>>  };
 >
-> =A0Tomi
+> --
+> Regards,
 >
+> Laurent Pinchart
 >
->
-Thanks and regards,
-Mythri.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
