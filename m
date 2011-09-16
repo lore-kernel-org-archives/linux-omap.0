@@ -1,62 +1,258 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 0/2] OMAP: omap_device: Add a method to build an omap_device from a DT node
-Date: Fri, 16 Sep 2011 16:43:17 +0200
-Message-ID: <1316184199-12599-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 1/2] OMAP: omap_device: Add omap_device_[alloc|delete] for DT integration
+Date: Fri, 16 Sep 2011 16:43:18 +0200
+Message-ID: <1316184199-12599-2-git-send-email-b-cousson@ti.com>
+References: <1316184199-12599-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60097 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60141 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751820Ab1IPOn2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Sep 2011 10:43:28 -0400
+	id S1752325Ab1IPOoC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Sep 2011 10:44:02 -0400
+In-Reply-To: <1316184199-12599-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@ti.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca, Benoit Cousson <b-cousson@ti.com>
 
-Hi Kevin,
+Split the omap_device_build_ss into two smaller functions
+that will allow to populate a platform_device already allocated by
+device-tree.
+The functionality of the omap_device_build_ss is still the same, but
+the omap_device_alloc will be usable with devices already built by
+device-tree.
 
-This is the updated version of the initial series that introduced a
-notifier in order to create an omap_device from a platform_device bound
-to DT node as suggested by Grant.
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/plat-omap/omap_device.c |  177 +++++++++++++++++++++++++------------
+ 1 files changed, 119 insertions(+), 58 deletions(-)
 
-For the moment, the informations are all extracted from the hwmod data.
-The idea is to focus first on the devices / board static init removal.
-The other issue is that some bindings, like dma, are still not present
-in the DT core code. The reg and irq bindings are there, but cannot
-be used by some drivers due to the lack of named resources in DT for
-the moment.
-We agreed with Grant about the strategy to introduce the name without
-breaking the compatibility and the default assumption about the order.
-
-I'll update that in another series after 3.2 and then these informations
-will be moved from hwmod to DT.
-
-Patches are based on my for_3.2/1_omap_device_cleanup branch and are
-available here:
-git://gitorious.org/omap-pm/linux.git for_3.2/2_omap_device_dt
-
-It is tested on OMAP4 SDP, Panda and Beagle-xM with and without CONFIG_OF.
-
-Regards,
-Benoit
-
-
-Changes since v1: http://www.spinics.net/lists/linux-omap/msg55814.html
- - delete omap_device structure during BUS_NOTIFY_DEL_DEVICE callback
-   as suggested by Kevin
- - merge previous patches 2&3 as suggested by Kevin
- - delete pm_lats in omap_device_delete since this is now kmalloc-ed
- - use kmemdup instead of kzalloc + memcopy for hmwods creation
- - Fix the wrong usage of of_*.h includes to build properly without
-   CONFIG_OF.
-
-
-Benoit Cousson (2):
-  OMAP: omap_device: Add omap_device_[alloc|delete] for DT integration
-  OMAP: omap_device: Add a method to build an omap_device from a DT node
-
-
- arch/arm/plat-omap/omap_device.c |  321 +++++++++++++++++++++++++++++++-------
- 1 files changed, 263 insertions(+), 58 deletions(-)
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 54bbe7b..cac7b9a 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -96,6 +96,11 @@
+ 
+ static int omap_device_register(struct platform_device *pdev);
+ static int omap_early_device_register(struct platform_device *pdev);
++static struct omap_device *omap_device_alloc(struct platform_device *pdev,
++				      struct omap_hwmod **ohs, int oh_cnt,
++				      struct omap_device_pm_latency *pm_lats,
++				      int pm_lats_cnt);
++
+ 
+ static struct omap_device_pm_latency omap_default_latency[] = {
+ 	{
+@@ -397,6 +402,110 @@ static int omap_device_fill_resources(struct omap_device *od,
+ }
+ 
+ /**
++ * omap_device_alloc - allocate an omap_device
++ * @pdev: platform_device that will be included in this omap_device
++ * @oh: ptr to the single omap_hwmod that backs this omap_device
++ * @pdata: platform_data ptr to associate with the platform_device
++ * @pdata_len: amount of memory pointed to by @pdata
++ * @pm_lats: pointer to a omap_device_pm_latency array for this device
++ * @pm_lats_cnt: ARRAY_SIZE() of @pm_lats
++ *
++ * Convenience function for allocating an omap_device structure and filling
++ * hwmods, resources and pm_latency attributes.
++ *
++ * Returns an struct omap_device pointer or ERR_PTR() on error;
++ */
++static struct omap_device *omap_device_alloc(struct platform_device *pdev,
++					struct omap_hwmod **ohs, int oh_cnt,
++					struct omap_device_pm_latency *pm_lats,
++					int pm_lats_cnt)
++{
++	int ret = -ENOMEM;
++	struct omap_device *od;
++	struct resource *res = NULL;
++	int i, res_count;
++	struct omap_hwmod **hwmods;
++
++	od = kzalloc(sizeof(struct omap_device), GFP_KERNEL);
++	if (!od) {
++		ret = -ENOMEM;
++		goto oda_exit1;
++	}
++	od->hwmods_cnt = oh_cnt;
++
++	hwmods = kmemdup(ohs, sizeof(struct omap_hwmod *) * oh_cnt, GFP_KERNEL);
++	if (!hwmods)
++		goto oda_exit2;
++
++	od->hwmods = hwmods;
++	od->pdev = pdev;
++
++	/*
++	 * HACK: Ideally the resources from DT should match, and hwmod
++	 * should just add the missing ones. Since the name is not
++	 * properly populated by DT, stick to hwmod resources only.
++	 */
++	if (pdev->num_resources && pdev->resource)
++		dev_warn(&pdev->dev, "%s(): resources already allocated %d\n",
++			__func__, pdev->num_resources);
++
++	res_count = omap_device_count_resources(od);
++	if (res_count > 0) {
++		dev_dbg(&pdev->dev, "%s(): resources allocated from hwmod %d\n",
++			__func__, res_count);
++		res = kzalloc(sizeof(struct resource) * res_count, GFP_KERNEL);
++		if (!res)
++			goto oda_exit3;
++
++		omap_device_fill_resources(od, res);
++
++		ret = platform_device_add_resources(pdev, res, res_count);
++		kfree(res);
++
++		if (ret)
++			goto oda_exit3;
++	}
++
++	if (!pm_lats) {
++		pm_lats = omap_default_latency;
++		pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
++	}
++
++	od->pm_lats_cnt = pm_lats_cnt;
++	od->pm_lats = kmemdup(pm_lats,
++			sizeof(struct omap_device_pm_latency) * pm_lats_cnt,
++			GFP_KERNEL);
++	if (!od->pm_lats)
++		goto oda_exit3;
++
++	pdev->archdata.od = od;
++
++	for (i = 0; i < oh_cnt; i++) {
++		hwmods[i]->od = od;
++		_add_hwmod_clocks_clkdev(od, hwmods[i]);
++	}
++
++	return od;
++
++oda_exit3:
++	kfree(hwmods);
++oda_exit2:
++	kfree(od);
++oda_exit1:
++	dev_err(&pdev->dev, "omap_device: build failed (%d)\n", ret);
++
++	return ERR_PTR(ret);
++}
++
++static void omap_device_delete(struct omap_device *od)
++{
++	od->pdev->archdata.od = NULL;
++	kfree(od->pm_lats);
++	kfree(od->hwmods);
++	kfree(od);
++}
++
++/**
+  * omap_device_build - build and register an omap_device with one omap_hwmod
+  * @pdev_name: name of the platform_device driver to use
+  * @pdev_id: this platform_device's connection ID
+@@ -455,9 +564,6 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 	int ret = -ENOMEM;
+ 	struct platform_device *pdev;
+ 	struct omap_device *od;
+-	struct resource *res = NULL;
+-	int i, res_count;
+-	struct omap_hwmod **hwmods;
+ 
+ 	if (!ohs || oh_cnt == 0 || !pdev_name)
+ 		return ERR_PTR(-EINVAL);
+@@ -471,76 +577,31 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 		goto odbs_exit;
+ 	}
+ 
+-	pr_debug("omap_device: %s: building with %d hwmods\n", pdev_name,
+-		 oh_cnt);
++	/* Set the dev_name early to allow dev_xxx in omap_device_alloc */
++	if (pdev->id != -1)
++		dev_set_name(&pdev->dev, "%s.%d", pdev->name,  pdev->id);
++	else
++		dev_set_name(&pdev->dev, "%s", pdev->name);
+ 
+-	od = kzalloc(sizeof(struct omap_device), GFP_KERNEL);
+-	if (!od) {
+-		ret = -ENOMEM;
++	od = omap_device_alloc(pdev, ohs, oh_cnt, pm_lats, pm_lats_cnt);
++	if (!od)
+ 		goto odbs_exit1;
+-	}
+-	od->hwmods_cnt = oh_cnt;
+-
+-	hwmods = kzalloc(sizeof(struct omap_hwmod *) * oh_cnt,
+-			 GFP_KERNEL);
+-	if (!hwmods)
+-		goto odbs_exit2;
+-
+-	memcpy(hwmods, ohs, sizeof(struct omap_hwmod *) * oh_cnt);
+-	od->hwmods = hwmods;
+-	od->pdev = pdev;
+-
+-	res_count = omap_device_count_resources(od);
+-	if (res_count > 0) {
+-		res = kzalloc(sizeof(struct resource) * res_count, GFP_KERNEL);
+-		if (!res)
+-			goto odbs_exit3;
+-
+-		omap_device_fill_resources(od, res);
+-
+-		ret = platform_device_add_resources(pdev, res, res_count);
+-		kfree(res);
+-
+-		if (ret)
+-			goto odbs_exit3;
+-	}
+ 
+ 	ret = platform_device_add_data(pdev, pdata, pdata_len);
+ 	if (ret)
+-		goto odbs_exit3;
+-
+-	pdev->archdata.od = od;
++		goto odbs_exit2;
+ 
+ 	if (is_early_device)
+ 		ret = omap_early_device_register(pdev);
+ 	else
+ 		ret = omap_device_register(pdev);
+ 	if (ret)
+-		goto odbs_exit3;
+-
+-	if (!pm_lats) {
+-		pm_lats = omap_default_latency;
+-		pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
+-	}
+-
+-	od->pm_lats_cnt = pm_lats_cnt;
+-	od->pm_lats = kmemdup(pm_lats,
+-			sizeof(struct omap_device_pm_latency) * pm_lats_cnt,
+-			GFP_KERNEL);
+-	if (!od->pm_lats)
+-		goto odbs_exit3;
+-
+-	for (i = 0; i < oh_cnt; i++) {
+-		hwmods[i]->od = od;
+-		_add_hwmod_clocks_clkdev(od, hwmods[i]);
+-	}
++		goto odbs_exit2;
+ 
+ 	return pdev;
+ 
+-odbs_exit3:
+-	kfree(hwmods);
+ odbs_exit2:
+-	kfree(od);
++	omap_device_delete(od);
+ odbs_exit1:
+ 	platform_device_put(pdev);
+ odbs_exit:
+-- 
+1.7.0.4
 
