@@ -1,24 +1,45 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] iommu/omap: Fix build error with !IOMMU_SUPPORT
-Date: Fri, 16 Sep 2011 12:57:08 +0300
-Message-ID: <CAK=WgbbqJKdm+=s-+Zmv9b7aoWeB2-14W70RXhVCQGJPaUzJKw@mail.gmail.com>
-References: <1316009259-18052-1-git-send-email-joerg.roedel@amd.com>
- <CAK=WgbbCgXjOQ=xXSwnVhT9sqsYtpo6cFcRQYSEGY2ow215n=Q@mail.gmail.com> <20110915104524.GY11701@amd.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH 0/5] [media]: OMAP_VOUT: Misc fixes and cleanup patches for 3.2
+Date: Fri, 16 Sep 2011 15:30:28 +0530
+Message-ID: <1316167233-1437-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110915104524.GY11701@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:34236 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750828Ab1IPJ7B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Sep 2011 05:59:01 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: hvaibhav@ti.com
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, sumit.semwal@ti.com, linux-media@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On Thu, Sep 15, 2011 at 1:45 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
-> This doesn't work on platforms that may have more than one possible
-> iommu driver, like x86 for example.
+This set includes patches which do the following:
+- Fix crash if a we call dssdev->driver->update for a disabled panel.
+- Fix the issue of not being able to request for a buffer which is larger than
+  what we did the last time.
+- Fix a small bug in omap_vout_isr()
+- Remove some redundant code in omap_vout_isr()
+- Add basic support for DSI panels
 
-Ok.
+Note:
+The patch "OMAP_VOUT: Fix check in reqbuf & mmap for buf_size allocation" had
+been posted in the past, but wasn't commented on. So copied it here again.
 
-Acked-by: Ohad Ben-Cohen <ohad@wizery.com>
+These patches are based on Tomi's master branch(which is based on 3.1-rc6), and
+a patches which affects omap_vout and has been posted recently on linux-media
+(see "OMAPDSS/OMAP_VOUT: Fix incorrect OMAP3-alpha compatibility setting"). This
+tree can be used as reference:
 
-(cc'ing Laurent for the VIDEO_OMAP3 part)
+git@gitorious.org:~boddob/linux-omap-dss2/archit-dss2-clone.git 'for_omap_vout'
+
+Archit Taneja (5):
+  OMAP_VOUT: Fix check in reqbuf & mmap for buf_size allocation
+  OMAP_VOUT: CLEANUP: Remove redundant code from omap_vout_isr
+  OMAP_VOUT: Fix VSYNC IRQ handling in omap_vout_isr
+  OMAP_VOUT: Add support for DSI panels
+  OMAP_VOUT: Don't trigger updates in omap_vout_probe
+
+ drivers/media/video/omap/omap_vout.c |  199 +++++++++++++++++-----------------
+ 1 files changed, 99 insertions(+), 100 deletions(-)
+
