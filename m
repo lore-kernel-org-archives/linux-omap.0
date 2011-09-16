@@ -1,302 +1,122 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [RFC PATCH 03/11] DT: regulator: Helper routine to extract regulator_init_data
-Date: Fri, 16 Sep 2011 12:54:18 +0530
-Message-ID: <4E72F9A2.20608@ti.com>
-References: <1316085727-15023-1-git-send-email-rnayak@ti.com> <1316085727-15023-2-git-send-email-rnayak@ti.com> <1316085727-15023-3-git-send-email-rnayak@ti.com> <1316085727-15023-4-git-send-email-rnayak@ti.com> <20110915221258.GK3523@ponder.secretlab.ca>
+Subject: Re: [RFC PATCH 05/11] TWL: regulator: Make twl-regulator driver extract
+ data from DT
+Date: Fri, 16 Sep 2011 12:55:07 +0530
+Message-ID: <4E72F9D3.9060304@ti.com>
+References: <1316085727-15023-1-git-send-email-rnayak@ti.com> <1316085727-15023-2-git-send-email-rnayak@ti.com> <1316085727-15023-3-git-send-email-rnayak@ti.com> <1316085727-15023-4-git-send-email-rnayak@ti.com> <1316085727-15023-5-git-send-email-rnayak@ti.com> <1316085727-15023-6-git-send-email-rnayak@ti.com> <20110915221811.GN3523@ponder.secretlab.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:52458 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751155Ab1IPHY1 (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:51331 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751155Ab1IPHZO (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Sep 2011 03:24:27 -0400
-Received: by yia27 with SMTP id 27so3214213yia.6
-        for <linux-omap@vger.kernel.org>; Fri, 16 Sep 2011 00:24:25 -0700 (PDT)
-In-Reply-To: <20110915221258.GK3523@ponder.secretlab.ca>
+	Fri, 16 Sep 2011 03:25:14 -0400
+Received: by mail-gx0-f178.google.com with SMTP id 21so2261719gxk.23
+        for <linux-omap@vger.kernel.org>; Fri, 16 Sep 2011 00:25:13 -0700 (PDT)
+In-Reply-To: <20110915221811.GN3523@ponder.secretlab.ca>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Grant Likely <grant.likely@secretlab.ca>
 Cc: broonie@opensource.wolfsonmicro.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com
 
-On Friday 16 September 2011 03:42 AM, Grant Likely wrote:
-> On Thu, Sep 15, 2011 at 04:51:59PM +0530, Rajendra Nayak wrote:
->> The helper routine is meant to be used by regulator drivers
->> to extract the regulator_init_data structure passed from device tree.
->> 'consumer_supplies' which is part of regulator_init_data is not extracted
->> as the regulator consumer mappings are passed through DT differently,
->> implemented in subsequent patches.
->>
->> Also add documentation for regulator bindings to be used to pass
->> regulator_init_data struct information from device tree.
+On Friday 16 September 2011 03:48 AM, Grant Likely wrote:
+> On Thu, Sep 15, 2011 at 04:52:01PM +0530, Rajendra Nayak wrote:
+>> Modify the twl regulator driver to extract the regulator_init_data from
+>> device tree when passed, instead of getting it through platform_data
+>> structures (on non-DT builds)
 >>
 >> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
 >> ---
->>   .../devicetree/bindings/regulator/regulator.txt    |   37 +++++++++
->>   drivers/of/Kconfig                                 |    6 ++
->>   drivers/of/Makefile                                |    1 +
->>   drivers/of/of_regulator.c                          |   85 ++++++++++++++++++++
->
-> I originally put the DT stuff under drivers/of for i2c and spi because
-> there was resistance from driver subsystem maintainers to having code
-> for something that was powerpc only.  Now that it is no longer the
-> case, I recommend putting this code under drivers/regulator.
-
-sure, will move these in drivers/regulator.
-
->
->>   include/linux/of_regulator.h                       |   23 +++++
->>   5 files changed, 152 insertions(+), 0 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/regulator/regulator.txt
->>   create mode 100644 drivers/of/of_regulator.c
->>   create mode 100644 include/linux/of_regulator.h
+>>   drivers/regulator/twl-regulator.c |   28 +++++++++++++++++++++++++---
+>>   1 files changed, 25 insertions(+), 3 deletions(-)
 >>
->> diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
->> new file mode 100644
->> index 0000000..001e5ce
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/regulator/regulator.txt
->> @@ -0,0 +1,37 @@
->> +Voltage/Current Regulators
->> +
->> +Required properties:
->> +- compatible: Must be "regulator";
->
-> A "regulator" compatible doesn't actually help much.  Compatible is
-> for specifying the specific device, not for trying to describe what
-> kind of device it is.  Instead, specific regulator bindings can adopt
-> &  extend this binding.
-
-yeah, will have a compatible for each specific device.
-
->
->> +
->> +Optional properties:
->> +- supply-regulator: Name of the parent regulator
->
-> If this is a reference to another regulator node then don't use names.
-> Use phandles instead.  In which case it should probably be named
-> something like "regulator-parent" (similar to interrupt parent).
->
-> However, I can imagine it possible for a regulator to have multiple
-> parents.  It may just be better to go with something like the gpio
-> scheme of<phandle gpio-specifier>  list of entries.  Or maybe just a
-> list of phandles would be sufficient.
-
-Ok, I can use phandles instead of the name, and have a list to specify
-multiple parents.
-The linux regulator framework though limits to just one parent I guess.
-
->
->> +- min-uV: smallest voltage consumers may set
->> +- max-uV: largest voltage consumers may set
->> +- uV-offset: Offset applied to voltages from consumer to compensate for voltage drops
->> +- min-uA: smallest current consumers may set
->> +- max-uA: largest current consumers may set
->> +- mode-fast: boolean, Can handle fast changes in its load
->> +- mode-normal: boolean, Normal regulator power supply mode
->> +- mode-idle: boolean, Can be more efficient during light loads
->> +- mode-standby: boolean, Can be most efficient during light loads
->> +- change-voltage: boolean, Output voltage can be changed by software
->> +- change-current: boolean, Output current can be chnaged by software
->> +- change-mode: boolean, Operating mode can be changed by software
->> +- change-status: boolean, Enable/Disable control for regulator exists
->> +- change-drms: boolean, Dynamic regulator mode switching is enabled
->> +- input-uV: Input voltage for regulator when supplied by another regulator
->> +- initial-mode: Mode to set at startup
->> +- always-on: boolean, regulator should never be disabled
->> +- boot-on: bootloader/firmware enabled regulator
->> +- apply-uV: apply uV constraint if min == max
->
-> To avoid collisions, I'd prefix all of these with a common prefix.
-> Something like regulator-*.
-
-Ok.
-
->
-> These map 1:1 to how Linux currently implements regulators; which
-> isn't exactly bad, but it means that even if Linux changes, we're
-> still have to support this binding.  Does this represent the best
-> layout for high level description of regulators?
-
-I guess, except for some like apply-uV, which like Mark pointed
-out are very linux/runtime policy specific.
-Mark, what do you think?
-
->
->> +
->> +Example:
->> +
->> +	xyz-regulator: regulator@0 {
->> +		compatible = "regulator";
->> +		min-uV =<1000000>;
->> +		max-uV =<2500000>;
->> +		mode-fast;
->> +		change-voltage;
->> +		always-on;
->> +	};
->> diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
->> index b3bfea5..296b96d 100644
->> --- a/drivers/of/Kconfig
->> +++ b/drivers/of/Kconfig
->> @@ -87,4 +87,10 @@ config OF_PCI_IRQ
->>   	help
->>   	  OpenFirmware PCI IRQ routing helpers
->>
->> +config OF_REGULATOR
->> +	def_bool y
->> +	depends on REGULATOR
->> +	help
->> +	  OpenFirmware regulator framework helpers
->> +
->>   endmenu # OF
->> diff --git a/drivers/of/Makefile b/drivers/of/Makefile
->> index 74b959c..bea2852 100644
->> --- a/drivers/of/Makefile
->> +++ b/drivers/of/Makefile
->> @@ -12,3 +12,4 @@ obj-$(CONFIG_OF_SPI)	+= of_spi.o
->>   obj-$(CONFIG_OF_MDIO)	+= of_mdio.o
->>   obj-$(CONFIG_OF_PCI)	+= of_pci.o
->>   obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
->> +obj-$(CONFIG_OF_REGULATOR) += of_regulator.o
->> diff --git a/drivers/of/of_regulator.c b/drivers/of/of_regulator.c
->> new file mode 100644
->> index 0000000..f01d275
->> --- /dev/null
->> +++ b/drivers/of/of_regulator.c
->> @@ -0,0 +1,85 @@
->> +/*
->> + * OF helpers for regulator framework
->> + *
->> + * Copyright (C) 2011 Texas Instruments, Inc.
->> + * Rajendra Nayak<rnayak@ti.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; either version 2 of the License, or
->> + * (at your option) any later version.
->> + */
->> +
->> +#include<linux/slab.h>
+>> diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+>> index ee8747f..df1b95a 100644
+>> --- a/drivers/regulator/twl-regulator.c
+>> +++ b/drivers/regulator/twl-regulator.c
+>> @@ -17,6 +17,8 @@
+>>   #include<linux/regulator/driver.h>
+>>   #include<linux/regulator/machine.h>
+>>   #include<linux/i2c/twl.h>
 >> +#include<linux/of.h>
->> +#include<linux/regulator/machine.h>
+>> +#include<linux/of_regulator.h>
+>>
+>>
+>>   /*
+>> @@ -1011,6 +1013,9 @@ static int __devinit twlreg_probe(struct platform_device *pdev)
+>>   	struct regulation_constraints	*c;
+>>   	struct regulator_dev		*rdev;
+>>
+>> +	if (pdev->dev.of_node)
+>> +		of_property_read_u32(pdev->dev.of_node, "ti,reg-id",&pdev->id);
 >> +
->> +static void of_get_regulation_constraints(struct device_node *np,
->> +					struct regulator_init_data **init_data)
->> +{
->> +	unsigned int valid_modes_mask = 0, valid_ops_mask = 0;
->> +
->> +	of_property_read_u32(np, "min-uV",&(*init_data)->constraints.min_uV);
->> +	of_property_read_u32(np, "max-uV",&(*init_data)->constraints.max_uV);
->> +	of_property_read_u32(np, "uV-offset",&(*init_data)->constraints.uV_offset);
->> +	of_property_read_u32(np, "min-uA",&(*init_data)->constraints.min_uA);
->> +	of_property_read_u32(np, "max-uA",&(*init_data)->constraints.max_uA);
 >
-> Are all these structure members are int and unsigned int.  They need
-> to be u32 to be used with of_property_read_u32()  (which also tells
-> me that the of_property_read_*() api still needs work).
+> Don't do this.  As much as possible, don't reply on plaform_device->id
+> when using DT.  Plus it is illegal to modify pdev->id after the device
+> is registered.
 
-right, will fix that.
-
->
->> +
->> +	/* valid modes mask */
->> +	if (of_find_property(np, "mode-fast", NULL))
->> +		valid_modes_mask |= REGULATOR_MODE_FAST;
->> +	if (of_find_property(np, "mode-normal", NULL))
->> +		valid_modes_mask |= REGULATOR_MODE_NORMAL;
->> +	if (of_find_property(np, "mode-idle", NULL))
->> +		valid_modes_mask |= REGULATOR_MODE_IDLE;
->> +	if (of_find_property(np, "mode-standby", NULL))
->> +		valid_modes_mask |= REGULATOR_MODE_STANDBY;
->> +
->> +	/* valid ops mask */
->> +	if (of_find_property(np, "change-voltage", NULL))
->> +		valid_ops_mask |= REGULATOR_CHANGE_VOLTAGE;
->> +	if (of_find_property(np, "change-current", NULL))
->> +		valid_ops_mask |= REGULATOR_CHANGE_CURRENT;
->> +	if (of_find_property(np, "change-mode", NULL))
->> +		valid_ops_mask |= REGULATOR_CHANGE_MODE;
->> +	if (of_find_property(np, "change-status", NULL))
->> +		valid_ops_mask |= REGULATOR_CHANGE_STATUS;
->> +
->> +	(*init_data)->constraints.valid_modes_mask = valid_modes_mask;
->> +	(*init_data)->constraints.valid_ops_mask = valid_ops_mask;
->> +
->> +	of_property_read_u32(np, "input-uV",
->> +			&(*init_data)->constraints.input_uV);
->> +	of_property_read_u32(np, "initial-mode",
->> +			&(*init_data)->constraints.initial_mode);
->> +
->> +	if (of_find_property(np, "always-on", NULL))
->> +			(*init_data)->constraints.always_on = true;
->> +	if (of_find_property(np, "boot-on", NULL))
->> +			(*init_data)->constraints.boot_on = true;
->> +	if (of_find_property(np, "apply-uV", NULL))
->> +			(*init_data)->constraints.apply_uV = true;
->> +}
->> +
->> +/**
->> + * of_get_regulator_init_data - extarct regulator_init_data structure info
->> + * @np: Pointer to regulator device tree node
->> + *
->> + * Populates regulator_init_data structure by extracting data from device
->> + * tree node, returns a pointer to the populated struture or NULL if memory
->> + * alloc fails.
->> + */
->> +struct regulator_init_data *of_get_regulator_init_data(struct device_node *np)
->> +{
->> +	struct regulator_init_data *init_data;
->> +
->> +	init_data = kzalloc(sizeof(struct regulator_init_data), GFP_KERNEL);
->> +	if (!init_data)
->> +		return NULL; /* Out of memory? */
->> +
->> +	init_data->supply_regulator = (char *)of_get_property(np,
->> +						"supply-regulator", NULL);
->> +	of_get_regulation_constraints(np,&init_data);
->> +	return init_data;
->> +}
->> +EXPORT_SYMBOL(of_get_regulator_init_data);
->
-> Who will call this?  If it is done by proper device drivers, it would
-> be better have it do the alloc so that it can do devm_kzalloc().  Or
-> maybe have a devm_kzalloc variant.
-
-Yes, its expected to be called always from proper device drivers. So I
-could use devm_kzalloc() instead.
+yeah, I did this hackery to just get around the drivers per-regulator
+lookup table for which it uses the pdev->id as the index.
+I will need to do this lookup based on compatible instead I guess.
 
 >
->> diff --git a/include/linux/of_regulator.h b/include/linux/of_regulator.h
->> new file mode 100644
->> index 0000000..5eb048c
->> --- /dev/null
->> +++ b/include/linux/of_regulator.h
->> @@ -0,0 +1,23 @@
->> +/*
->> + * OpenFirmware regulator support routines
->> + *
->> + */
+>>   	for (i = 0, info = NULL; i<  ARRAY_SIZE(twl_regs); i++) {
+>>   		if (twl_regs[i].desc.id != pdev->id)
+>>   			continue;
+>> @@ -1020,7 +1025,11 @@ static int __devinit twlreg_probe(struct platform_device *pdev)
+>>   	if (!info)
+>>   		return -ENODEV;
+>>
+>> -	initdata = pdev->dev.platform_data;
+>> +	if (pdev->dev.of_node)
+>> +		initdata = of_get_regulator_init_data(pdev->dev.of_node);
+>> +	else
+>> +		initdata = pdev->dev.platform_data;
 >> +
->> +#ifndef __LINUX_OF_REG_H
->> +#define __LINUX_OF_REG_H
->> +
->> +#include<linux/regulator/machine.h>
->> +
->> +#if defined(CONFIG_OF_REGULATOR)
->> +extern struct regulator_init_data
->> +	*of_get_regulator_init_data(struct device_node *np);
+>>   	if (!initdata)
+>>   		return -EINVAL;
+>>
+>> @@ -1101,14 +1110,27 @@ static int __devexit twlreg_remove(struct platform_device *pdev)
+>>
+>>   MODULE_ALIAS("platform:twl_reg");
+>>
+>> +#if defined(CONFIG_OF)
+>> +static const struct of_device_id twl_of_match[] __devinitconst = {
+>> +	{ .compatible = "ti,twl-reg", },
+>
+> This looks rather generic.  Is this a specific chip?  It should be.
+
+We have multiple chips in the twl family like twl6030/twl6040/twl6025
+but just one driver which handles all variants.
+
+>
+> g.
+>
+>> +	{},
+>> +};
+>> +MODULE_DEVICE_TABLE(of, twl_of_match);
 >> +#else
->> +static inline struct regulator_init_data
->> +	*of_get_regulator_init_data(struct device_node *np)
->> +{
->> +	return NULL;
->> +}
->> +#endif /* CONFIG_OF_REGULATOR */
+>> +#define twl_of_match NULL
+>> +#endif
 >> +
->> +#endif /* __LINUX_OF_REG_H */
->> +
+>>   static struct platform_driver twlreg_driver = {
+>>   	.probe		= twlreg_probe,
+>>   	.remove		= __devexit_p(twlreg_remove),
+>>   	/* NOTE: short name, to work around driver model truncation of
+>>   	 * "twl_regulator.12" (and friends) to "twl_regulator.1".
+>>   	 */
+>> -	.driver.name	= "twl_reg",
+>> -	.driver.owner	= THIS_MODULE,
+>> +	.driver  = {
+>> +		.name  = "twl_reg",
+>> +		.owner = THIS_MODULE,
+>> +		.of_match_table = twl_of_match,
+>> +	},
+>>   };
+>>
+>>   static int __init twlreg_init(void)
 >> --
 >> 1.7.1
 >>
