@@ -1,80 +1,55 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH v2 1/6] OMAP4: Add missing clock divider for OCP_ABE_ICLK
-Date: Fri, 16 Sep 2011 12:47:29 -0500
-Message-ID: <1316195249-14914-1-git-send-email-jon-hunter@ti.com>
+From: Frank Rowand <frank.rowand@am.sony.com>
+Subject: Re: [PATCH 5/5 v9] mfd: omap: usb: Runtime PM support
+Date: Fri, 16 Sep 2011 10:47:06 -0700
+Message-ID: <4E738B9A.3050908@am.sony.com>
+References: <1316092970-2440-1-git-send-email-keshava_mgowda@ti.com>	<1316092970-2440-2-git-send-email-keshava_mgowda@ti.com>	<1316092970-2440-3-git-send-email-keshava_mgowda@ti.com>	<1316092970-2440-4-git-send-email-keshava_mgowda@ti.com>	<1316092970-2440-5-git-send-email-keshava_mgowda@ti.com>	<1316092970-2440-6-git-send-email-keshava_mgowda@ti.com>	<4E729AFB.6010008@am.sony.com>	<CAP05o4JK9zdZ8P5o0Di+obDwYjur0p=TC-n9weznqx_odMzycw@mail.gmail.com> <CAP05o4JxUPBM=PqguRL8-Mvgyf=wgxvg7UWMcRo2WXe2jmCUVA@mail.gmail.com>
+Reply-To: <frank.rowand@am.sony.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43073 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754804Ab1IPRrh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Sep 2011 13:47:37 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAP05o4JxUPBM=PqguRL8-Mvgyf=wgxvg7UWMcRo2WXe2jmCUVA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: "Rowand, Frank" <Frank_Rowand@sonyusa.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "b-cousson@ti.com" <b-cousson@ti.com>, "balbi@ti.com" <balbi@ti.com>, "gadiyar@ti.com" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@ti.com" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "vishwanath.bs@ti.com" <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-From: Jon Hunter <jon-hunter@ti.com>
+On 09/16/11 00:31, Munegowda, Keshava wrote:
+> On Fri, Sep 16, 2011 at 11:17 AM, Munegowda, Keshava
+> <keshava_mgowda@ti.com> wrote:
+>> On Fri, Sep 16, 2011 at 6:10 AM, Frank Rowand <frank.rowand@am.sony.com> wrote:
+>>> On 09/15/11 06:22, Keshava Munegowda wrote:
+>>>> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>>>>
+>>>> The usbhs core driver does not enable/disable the interface and
+>>>> functional clocks; These clocks are handled by hwmod and runtime pm,
+>>>> hence instead of the clock enable/disable, the runtime pm APIS are
+>>>> used. however,the port clocks are handled by the usbhs core.
+>>>>
+>>>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>>>> Reviewed-by: Kevin Hilman <khilman@ti.com>
+>>>> ---
+>>>>  arch/arm/plat-omap/include/plat/usb.h |    3 -
+>>>>  drivers/mfd/omap-usb-host.c           |  731 +++++++++++++--------------------
+>>>>  drivers/usb/host/ehci-omap.c          |   17 +-
+>>>>  drivers/usb/host/ohci-omap3.c         |   18 +-
+>>>>  4 files changed, 295 insertions(+), 474 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+>>>> index 17d3c93..2b66dc2 100644
+>>>
+>>> Patch 5/5 is white space mangled.  The tabs have been changed into spaces.
+>>>
+>>> -Frank
+>>
+> 
+> Hi Frank
+>           I tried the checkpatch with --strict option; its not showing
+> anything here. may be some problem with your editor/browser.
 
-The parent clock of the OCP_ABE_ICLK is the AESS_FCLK and the
-parent clock of the AESS_FCLK is the ABE_FCLK...
+It must be my email server, because when I pull the patch from an archive
+it has tabs.  Weird that only the fifth patch is being munged for me...
 
-ABE_FCLK --> AESS_FCLK --> OCP_ABE_ICLK
+Thanks for checking!
 
-The AESS_FCLK and OCP_ABE_ICLK clocks both have dividers which
-determine their operational frequency. However, the dividers for
-the AESS_FCLK and OCP_ABE_ICLK are controlled via a single bit,
-which is the CM1_ABE_AESS_CLKCTRL[24] bit. When this bit is set to
-0, the AESS_FCLK divider is 1 and the OCP_ABE_ICLK divider is 2.
-Similarly, when this bit is set to 1, the AESS_FCLK divider is 2
-and the OCP_ABE_ICLK is 1.
-
-The above relationship between the AESS_FCLK and OCP_ABE_ICLK
-dividers ensure that the OCP_ABE_ICLK clock is always half the
-frequency of the ABE_CLK...
-
-OCP_ABE_ICLK = ABE_FCLK/2
-
-The divider for the OCP_ABE_ICLK is currently missing so add a
-divider that will ensure the OCP_ABE_ICLK frequency is always half
-the ABE_FCLK frequency.
-
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/clock44xx_data.c |   16 +++++++++++++++-
- 1 files changed, 15 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index c0b6fbd..3e34dcd 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -1195,11 +1195,25 @@ static struct clk l4_wkup_clk_mux_ck = {
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
-+static const struct clksel_rate div2_2to1_rates[] = {
-+	{ .div = 1, .val = 1, .flags = RATE_IN_4430 },
-+	{ .div = 2, .val = 0, .flags = RATE_IN_4430 },
-+	{ .div = 0 },
-+};
-+
-+static const struct clksel ocp_abe_iclk_div[] = {
-+	{ .parent = &aess_fclk, .rates = div2_2to1_rates },
-+	{ .parent = NULL },
-+};
-+
- static struct clk ocp_abe_iclk = {
- 	.name		= "ocp_abe_iclk",
- 	.parent		= &aess_fclk,
-+	.clksel		= ocp_abe_iclk_div,
-+	.clksel_reg	= OMAP4430_CM1_ABE_AESS_CLKCTRL,
-+	.clksel_mask	= OMAP4430_CLKSEL_AESS_FCLK_MASK,
- 	.ops		= &clkops_null,
--	.recalc		= &followparent_recalc,
-+	.recalc		= &omap2_clksel_recalc,
- };
- 
- static struct clk per_abe_24m_fclk = {
--- 
-1.7.4.1
-
+-Frank
