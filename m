@@ -1,16 +1,16 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 13/16] TEMP: OMAP3: serial: made serial to work properly with PRCM chain handler
-Date: Fri, 16 Sep 2011 19:05:47 +0300
-Message-ID: <1316189150-21448-14-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 14/16] TEMP: OMAP: serial: remove padconf hacks
+Date: Fri, 16 Sep 2011 19:05:48 +0300
+Message-ID: <1316189150-21448-15-git-send-email-t-kristo@ti.com>
 References: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53668 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53672 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752896Ab1IPQG1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:27 -0400
+	id S1755293Ab1IPQG2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:28 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,121 +18,105 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm@lists.arm.linux.org.uk, "Govindraj.R" <govindraj.raja@ti.com>
 
-This patch is just a temporary hack to allow serial to work properly with
-the PRCM chain handler. Should be replaced with a proper implementation
-by serial runtime PM support.
+These are no longer needed as omap_hwmod takes care of multiplexing of pads.
+Should be handled properly with serial runtime PM support patches.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Cc: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/serial.c     |   29 +++++++++--------------------
- drivers/tty/serial/omap-serial.c |    8 ++++++++
- 2 files changed, 17 insertions(+), 20 deletions(-)
+ arch/arm/mach-omap2/serial.c |   25 +------------------------
+ 1 files changed, 1 insertions(+), 24 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index e08feb1..0cc5434 100644
+index 0cc5434..cdcdd83 100644
 --- a/arch/arm/mach-omap2/serial.c
 +++ b/arch/arm/mach-omap2/serial.c
-@@ -39,6 +39,7 @@
- #include <plat/dma.h>
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
-+#include <plat/prcm.h>
+@@ -73,7 +73,6 @@ struct omap_uart_state {
+ 	void __iomem *wk_st;
+ 	void __iomem *wk_en;
+ 	u32 wk_mask;
+-	u32 padconf;
+ 	u32 dma_enabled;
  
- #include "prm2xxx_3xxx.h"
- #include "pm.h"
-@@ -380,6 +381,7 @@ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
- 	omap_uart_smart_idle_enable(uart, 1);
- 	uart->can_sleep = 1;
- 	del_timer(&uart->timer);
-+	omap_uart_disable_clocks(uart);
- }
- 
- static void omap_uart_idle_timer(unsigned long data)
-@@ -391,36 +393,23 @@ static void omap_uart_idle_timer(unsigned long data)
- 
- void omap_uart_prepare_idle(int num)
- {
--	struct omap_uart_state *uart;
+ 	struct clk *ick;
+@@ -309,13 +308,6 @@ static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
+ 		v |= uart->wk_mask;
+ 		__raw_writel(v, uart->wk_en);
+ 	}
 -
--	list_for_each_entry(uart, &uart_list, node) {
--		if (num == uart->num && uart->can_sleep) {
--			omap_uart_disable_clocks(uart);
--			return;
--		}
+-	/* Ensure IOPAD wake-enables are set */
+-	if (cpu_is_omap34xx() && uart->padconf) {
+-		u16 v = omap_ctrl_readw(uart->padconf);
+-		v |= OMAP3_PADCONF_WAKEUPENABLE0;
+-		omap_ctrl_writew(v, uart->padconf);
 -	}
  }
  
- void omap_uart_resume_idle(int num)
- {
- 	struct omap_uart_state *uart;
-+	u32 wkst;
- 
- 	list_for_each_entry(uart, &uart_list, node) {
- 		if (num == uart->num && uart->can_sleep) {
--			omap_uart_enable_clocks(uart);
-+			omap_uart_block_sleep(uart);
- 
--			/* Check for IO pad wakeup */
--			if (cpu_is_omap34xx() && uart->padconf) {
--				u16 p = omap_ctrl_readw(uart->padconf);
--
--				if (p & OMAP3_PADCONF_WAKEUPEVENT0)
--					omap_uart_block_sleep(uart);
-+			/* Check for normal UART wakeup (and clear it) */
-+			if (uart->wk_st && uart->wk_mask) {
-+				wkst = __raw_readl(uart->wk_st) & uart->wk_mask;
-+				if (wkst)
-+					__raw_writel(wkst, uart->wk_st);
- 			}
--
--			/* Check for normal UART wakeup */
--			if (__raw_readl(uart->wk_st) & uart->wk_mask)
--				omap_uart_block_sleep(uart);
--			return;
- 		}
+ static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
+@@ -326,13 +318,6 @@ static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
+ 		v &= ~uart->wk_mask;
+ 		__raw_writel(v, uart->wk_en);
  	}
+-
+-	/* Ensure IOPAD wake-enables are cleared */
+-	if (cpu_is_omap34xx() && uart->padconf) {
+-		u16 v = omap_ctrl_readw(uart->padconf);
+-		v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
+-		omap_ctrl_writew(v, uart->padconf);
+-	}
  }
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index c37df8d..cfff8ac 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -261,6 +261,8 @@ static void serial_omap_start_tx(struct uart_port *port)
- 	unsigned int start;
- 	int ret = 0;
  
-+	omap_uart_resume_idle(up->pdev->id);
-+
- 	if (!up->use_dma) {
- 		serial_omap_enable_ier_thri(up);
- 		return;
-@@ -354,6 +356,8 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
- 	unsigned int iir, lsr;
- 	unsigned long flags;
+ static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
+@@ -478,7 +463,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
+ 		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
+ 		u32 wk_mask = 0;
+-		u32 padconf = 0;
  
-+	omap_uart_resume_idle(up->pdev->id);
-+
- 	iir = serial_in(up, UART_IIR);
- 	if (iir & UART_IIR_NO_INT)
- 		return IRQ_NONE;
-@@ -641,6 +645,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	unsigned long flags = 0;
- 	unsigned int baud, quot;
+ 		/* XXX These PRM accesses do not belong here */
+ 		uart->wk_en = OMAP34XX_PRM_REGADDR(mod, PM_WKEN1);
+@@ -486,23 +470,18 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		switch (uart->num) {
+ 		case 0:
+ 			wk_mask = OMAP3430_ST_UART1_MASK;
+-			padconf = 0x182;
+ 			break;
+ 		case 1:
+ 			wk_mask = OMAP3430_ST_UART2_MASK;
+-			padconf = 0x17a;
+ 			break;
+ 		case 2:
+ 			wk_mask = OMAP3430_ST_UART3_MASK;
+-			padconf = 0x19e;
+ 			break;
+ 		case 3:
+ 			wk_mask = OMAP3630_ST_UART4_MASK;
+-			padconf = 0x0d2;
+ 			break;
+ 		}
+ 		uart->wk_mask = wk_mask;
+-		uart->padconf = padconf;
+ 	} else if (cpu_is_omap24xx()) {
+ 		u32 wk_mask = 0;
+ 		u32 wk_en = PM_WKEN1, wk_st = PM_WKST1;
+@@ -532,7 +511,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		uart->wk_en = NULL;
+ 		uart->wk_st = NULL;
+ 		uart->wk_mask = 0;
+-		uart->padconf = 0;
+ 	}
  
-+	omap_uart_resume_idle(up->pdev->id);
-+
- 	switch (termios->c_cflag & CSIZE) {
- 	case CS5:
- 		cval = UART_LCR_WLEN5;
-@@ -947,6 +953,8 @@ serial_omap_console_write(struct console *co, const char *s,
- 	unsigned int ier;
- 	int locked = 1;
+ 	uart->irqflags |= IRQF_SHARED;
+@@ -833,8 +811,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
  
-+	omap_uart_resume_idle(up->pdev->id);
-+
- 	local_irq_save(flags);
- 	if (up->port.sysrq)
- 		locked = 0;
+ 	console_unlock();
+ 
+-	if ((cpu_is_omap34xx() && uart->padconf) ||
+-	    (uart->wk_en && uart->wk_mask)) {
++	if (uart->oh->mux || (uart->wk_en && uart->wk_mask)) {
+ 		device_init_wakeup(&pdev->dev, true);
+ 		DEV_CREATE_FILE(&pdev->dev, &dev_attr_sleep_timeout);
+ 	}
 -- 
 1.7.4.1
 
