@@ -1,122 +1,130 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 14/16] TEMP: OMAP: serial: remove padconf hacks
-Date: Fri, 16 Sep 2011 19:05:48 +0300
-Message-ID: <1316189150-21448-15-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 03/16] OMAP2+: hwmod: Add API to check IO PAD wakeup status
+Date: Fri, 16 Sep 2011 19:05:37 +0300
+Message-ID: <1316189150-21448-4-git-send-email-t-kristo@ti.com>
 References: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53672 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53678 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755293Ab1IPQG2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:28 -0400
+	id S1755293Ab1IPQGc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:32 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm@lists.arm.linux.org.uk, "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-arm@lists.arm.linux.org.uk, "R, Govindraj" <govindraj.raja@ti.com>
 
-These are no longer needed as omap_hwmod takes care of multiplexing of pads.
-Should be handled properly with serial runtime PM support patches.
+From: R, Govindraj <govindraj.raja@ti.com>
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Govindraj.R <govindraj.raja@ti.com>
+Add API to determine IO-PAD wakeup event status for a given
+hwmod dynamic_mux pad.
+
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |   25 +------------------------
- 1 files changed, 1 insertions(+), 24 deletions(-)
+ arch/arm/mach-omap2/mux.c                    |   30 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/mux.h                    |   13 +++++++++++
+ arch/arm/mach-omap2/omap_hwmod.c             |    7 ++++++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 4 files changed, 51 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 0cc5434..cdcdd83 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -73,7 +73,6 @@ struct omap_uart_state {
- 	void __iomem *wk_st;
- 	void __iomem *wk_en;
- 	u32 wk_mask;
--	u32 padconf;
- 	u32 dma_enabled;
- 
- 	struct clk *ick;
-@@ -309,13 +308,6 @@ static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
- 		v |= uart->wk_mask;
- 		__raw_writel(v, uart->wk_en);
- 	}
--
--	/* Ensure IOPAD wake-enables are set */
--	if (cpu_is_omap34xx() && uart->padconf) {
--		u16 v = omap_ctrl_readw(uart->padconf);
--		v |= OMAP3_PADCONF_WAKEUPENABLE0;
--		omap_ctrl_writew(v, uart->padconf);
--	}
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index c7fb22a..50ee806 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -351,6 +351,36 @@ err1:
+ 	return NULL;
  }
  
- static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
-@@ -326,13 +318,6 @@ static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
- 		v &= ~uart->wk_mask;
- 		__raw_writel(v, uart->wk_en);
- 	}
--
--	/* Ensure IOPAD wake-enables are cleared */
--	if (cpu_is_omap34xx() && uart->padconf) {
--		u16 v = omap_ctrl_readw(uart->padconf);
--		v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
--		omap_ctrl_writew(v, uart->padconf);
--	}
++/**
++ * omap_hwmod_mux_get_wake_status - omap hwmod check pad wakeup
++ * @hmux:		Pads for a hwmod
++ *
++ * Gets the wakeup status of given pad from omap-hwmod.
++ * Returns true if wakeup event is set for pad else false
++ * if wakeup is not occured or pads are not avialable.
++ */
++bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
++{
++	int i;
++	unsigned int val;
++	u8 ret = false;
++
++	for (i = 0; i < hmux->nr_pads; i++) {
++		struct omap_device_pad *pad = &hmux->pads[i];
++
++		if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
++			val = omap_mux_read(pad->partition,
++					pad->mux->reg_offset);
++			if (val & OMAP_WAKEUP_EVENT) {
++				ret = true;
++				break;
++			}
++		}
++	}
++
++	return ret;
++}
++
+ /* Assumes the calling function takes care of locking */
+ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+ {
+diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+index 2132308..8b2150a 100644
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -225,8 +225,21 @@ omap_hwmod_mux_init(struct omap_device_pad *bpads, int nr_pads);
+  */
+ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state);
+ 
++/**
++ * omap_hwmod_mux_get_wake_status - omap hwmod check pad wakeup
++ * @hmux:		Pads for a hwmod
++ *
++ * Called only from omap_hwmod.c, do not use.
++ */
++bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux);
+ #else
+ 
++static inline bool
++omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
++{
++	return 0;
++}
++
+ static inline int omap_mux_init_gpio(int gpio, int val)
+ {
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index e751dd9..a8b24d7 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2724,3 +2724,10 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh)
+ 
+ 	return 0;
  }
++
++int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh)
++{
++	if (oh && oh->mux)
++		return omap_hwmod_mux_get_wake_status(oh->mux);
++	return -EINVAL;
++}
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 38ac4af..9c70cc8 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -606,6 +606,7 @@ u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
  
- static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
-@@ -478,7 +463,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
- 		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
- 		u32 wk_mask = 0;
--		u32 padconf = 0;
+ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
  
- 		/* XXX These PRM accesses do not belong here */
- 		uart->wk_en = OMAP34XX_PRM_REGADDR(mod, PM_WKEN1);
-@@ -486,23 +470,18 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 		switch (uart->num) {
- 		case 0:
- 			wk_mask = OMAP3430_ST_UART1_MASK;
--			padconf = 0x182;
- 			break;
- 		case 1:
- 			wk_mask = OMAP3430_ST_UART2_MASK;
--			padconf = 0x17a;
- 			break;
- 		case 2:
- 			wk_mask = OMAP3430_ST_UART3_MASK;
--			padconf = 0x19e;
- 			break;
- 		case 3:
- 			wk_mask = OMAP3630_ST_UART4_MASK;
--			padconf = 0x0d2;
- 			break;
- 		}
- 		uart->wk_mask = wk_mask;
--		uart->padconf = padconf;
- 	} else if (cpu_is_omap24xx()) {
- 		u32 wk_mask = 0;
- 		u32 wk_en = PM_WKEN1, wk_st = PM_WKST1;
-@@ -532,7 +511,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 		uart->wk_en = NULL;
- 		uart->wk_st = NULL;
- 		uart->wk_mask = 0;
--		uart->padconf = 0;
- 	}
- 
- 	uart->irqflags |= IRQF_SHARED;
-@@ -833,8 +811,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
- 
- 	console_unlock();
- 
--	if ((cpu_is_omap34xx() && uart->padconf) ||
--	    (uart->wk_en && uart->wk_mask)) {
-+	if (uart->oh->mux || (uart->wk_en && uart->wk_mask)) {
- 		device_init_wakeup(&pdev->dev, true);
- 		DEV_CREATE_FILE(&pdev->dev, &dev_attr_sleep_timeout);
- 	}
++int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh);
+ /*
+  * Chip variant-specific hwmod init routines - XXX should be converted
+  * to use initcalls once the initial boot ordering is straightened out
 -- 
 1.7.4.1
 
