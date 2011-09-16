@@ -1,53 +1,107 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 5/5] [media]: OMAP_VOUT: Don't trigger updates in omap_vout_probe
-Date: Fri, 16 Sep 2011 15:30:33 +0530
-Message-ID: <1316167233-1437-6-git-send-email-archit@ti.com>
-References: <1316167233-1437-1-git-send-email-archit@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 5/6] OMAP: omap_device: Create a default omap_device_pm_latency
+Date: Fri, 16 Sep 2011 13:52:27 +0200
+Message-ID: <4E73387B.2030403@ti.com>
+References: <1314973520-3585-1-git-send-email-b-cousson@ti.com> <1314973520-3585-6-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45167 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49827 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752348Ab1IPJ7X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Sep 2011 05:59:23 -0400
-In-Reply-To: <1316167233-1437-1-git-send-email-archit@ti.com>
+	id S1751968Ab1IPLwe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Sep 2011 07:52:34 -0400
+In-Reply-To: <1314973520-3585-6-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, sumit.semwal@ti.com, linux-media@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>
 
-Remove the code in omap_vout_probe() which calls display->driver->update() for
-all the displays. This isn't correct because:
+Hi Kevin,
 
-- An update in probe doesn't make sense, because we don't have any valid content
-  to show at this time.
-- Calling update for a panel which isn't enabled is not supported by DSS2. This
-  leads to a crash at probe.
+On 9/2/2011 4:25 PM, Cousson, Benoit wrote:
+> Most devices are using the same default omap_device_pm_latency structure
+> during device built. In order to avoid the duplication of the same
+> structure everywhere, add a default structure that will be used if
+> the device does not have an explicit one.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
+[...]
+
+> -	od->pm_lats = pm_lats;
+> -	od->pm_lats_cnt = pm_lats_cnt;
+> +	if (pm_lats) {
+> +		od->pm_lats = pm_lats;
+> +		od->pm_lats_cnt = pm_lats_cnt;
+> +	} else {
+> +		od->pm_lats = omap_default_latency;
+> +		od->pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
+> +	}
+
+Here is the fix for that part. I did the easy version :-). Splitting the structure in two parts will indeed require more work.
+
+I updated the for_3.2/1_omap_device_cleanup branch.
+
+Regards,
+Benoit
+
 ---
- drivers/media/video/omap/omap_vout.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
+>From ad163000568dd61dee441473d0a576d84152da9e Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Tue, 9 Aug 2011 16:54:19 +0200
+Subject: [PATCH v3 5/6] OMAP: omap_device: Create a default omap_device_pm_latency
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 51cf6c2..a9fcb1a 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -2220,14 +2220,6 @@ static int __init omap_vout_probe(struct platform_device *pdev)
+Most devices are using the same default omap_device_pm_latency structure
+during device built. In order to avoid the duplication of the same
+structure everywhere, add a default structure that will be used if
+the device does not have an explicit one.
+
+Next patches will clean the duplicated structures.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/plat-omap/omap_device.c |   19 ++++++++++++++++++-
+ 1 files changed, 18 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 7b2cf62..54bbe7b 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -97,6 +97,14 @@
+ static int omap_device_register(struct platform_device *pdev);
+ static int omap_early_device_register(struct platform_device *pdev);
+ 
++static struct omap_device_pm_latency omap_default_latency[] = {
++	{
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func   = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	}
++};
++
+ /* Private functions */
+ 
+ /**
+@@ -510,8 +518,17 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
  	if (ret)
- 		goto probe_err2;
+ 		goto odbs_exit3;
  
--	for (i = 0; i < vid_dev->num_displays; i++) {
--		struct omap_dss_device *display = vid_dev->displays[i];
--
--		if (display->driver->update)
--			display->driver->update(display, 0, 0,
--					display->panel.timings.x_res,
--					display->panel.timings.y_res);
--	}
- 	return 0;
+-	od->pm_lats = pm_lats;
++	if (!pm_lats) {
++		pm_lats = omap_default_latency;
++		pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
++	}
++
+ 	od->pm_lats_cnt = pm_lats_cnt;
++	od->pm_lats = kmemdup(pm_lats,
++			sizeof(struct omap_device_pm_latency) * pm_lats_cnt,
++			GFP_KERNEL);
++	if (!od->pm_lats)
++		goto odbs_exit3;
  
- probe_err2:
+ 	for (i = 0; i < oh_cnt; i++) {
+ 		hwmods[i]->od = od;
 -- 
-1.7.1
+1.7.0.4
 
