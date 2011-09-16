@@ -1,14 +1,14 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH v2 4/6] OMAP3+: use DPLLs recalc function instead of omap2_get_dpll_rate
-Date: Fri, 16 Sep 2011 12:48:21 -0500
-Message-ID: <1316195301-15025-1-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH v2 5/6] OMAP3+: Update DPLL Fint range for OMAP36xx and OMAP4xxx devices
+Date: Fri, 16 Sep 2011 12:48:42 -0500
+Message-ID: <1316195322-15062-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42485 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43144 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755615Ab1IPRsf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Sep 2011 13:48:35 -0400
+	id S1752386Ab1IPRss (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Sep 2011 13:48:48 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
@@ -16,45 +16,104 @@ Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.i
 
 From: Jon Hunter <jon-hunter@ti.com>
 
-This is a continuation of Mike Turquette's patch "OMAP3+: use
-DPLL's round_rate when setting rate".
+The OMAP36xx and OMAP4xxx DPLLs have a different internal reference
+clock frequency (fint) operating range than OMAP3430. Update the
+dpll_test_fint() function to check for the correct frequency ranges
+for OMAP36xx and OMAP4xxx.
 
-omap3_noncore_dpll_set_rate() and omap3_noncore_dpll_enable() call
-omap2_get_dpll_rate() explicitly. It may be necessary for some
-DPLLs to use a different function and so use the DPLLs recalc()
-function pointer instead.
-
-An example is the DPLL_ABE on OMAP4 which can have a 4X multiplier
-in addition to the usual MN multipler and dividers and therefore
-uses a different round_rate and recalc function.
+For OMAP36xx and OMAP4xxx devices, DPLLs fint range is 0.5MHz to
+2.5MHz for j-type DPLLs and otherwise it is 32KHz to 52MHz for all
+other DPLLs.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/dpll3xxx.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/clkt_dpll.c |   51 ++++++++++++++++++++++++++------------
+ 1 files changed, 35 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index 73a1595..7916f66 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -390,7 +390,7 @@ int omap3_noncore_dpll_enable(struct clk *clk)
- 	 * propagating?
- 	 */
- 	if (!r)
--		clk->rate = omap2_get_dpll_rate(clk);
-+		clk->rate = clk->recalc(clk);
+diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
+index bcffee0..e069a9b 100644
+--- a/arch/arm/mach-omap2/clkt_dpll.c
++++ b/arch/arm/mach-omap2/clkt_dpll.c
+@@ -46,10 +46,19 @@
+ 					 (DPLL_SCALE_FACTOR / DPLL_SCALE_BASE))
  
- 	return r;
- }
-@@ -435,7 +435,7 @@ int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
- 	if (!dd)
- 		return -EINVAL;
+ /* DPLL valid Fint frequency band limits - from 34xx TRM Section 4.7.6.2 */
+-#define DPLL_FINT_BAND1_MIN		750000
+-#define DPLL_FINT_BAND1_MAX		2100000
+-#define DPLL_FINT_BAND2_MIN		7500000
+-#define DPLL_FINT_BAND2_MAX		21000000
++#define OMAP3430_DPLL_FINT_BAND1_MIN	750000
++#define OMAP3430_DPLL_FINT_BAND1_MAX	2100000
++#define OMAP3430_DPLL_FINT_BAND2_MIN	7500000
++#define OMAP3430_DPLL_FINT_BAND2_MAX	21000000
++
++/*
++ * DPLL valid Fint frequency range for OMAP36xx and OMAP4xxx.
++ * From device data manual section 4.3 "DPLL and DLL Specifications".
++ */
++#define OMAP3PLUS_DPLL_FINT_JTYPE_MIN	500000
++#define OMAP3PLUS_DPLL_FINT_JTYPE_MAX	2500000
++#define OMAP3PLUS_DPLL_FINT_MIN		32000
++#define OMAP3PLUS_DPLL_FINT_MAX		52000000
  
--	if (rate == omap2_get_dpll_rate(clk))
-+	if (rate == clk->recalc(clk))
- 		return 0;
+ /* _dpll_test_fint() return codes */
+ #define DPLL_FINT_UNDERFLOW		-1
+@@ -71,33 +80,43 @@
+ static int _dpll_test_fint(struct clk *clk, u8 n)
+ {
+ 	struct dpll_data *dd;
+-	long fint;
++	long fint, fint_min, fint_max;
+ 	int ret = 0;
  
- 	/*
+ 	dd = clk->dpll_data;
+ 
+ 	/* DPLL divider must result in a valid jitter correction val */
+ 	fint = clk->parent->rate / n;
+-	if (fint < DPLL_FINT_BAND1_MIN) {
+ 
++	if (cpu_is_omap24xx()) {
++		/* Should not be called for OMAP2, so warn if it is called */
++		WARN(1, "No fint limits available for OMAP2!\n");
++		return DPLL_FINT_INVALID;
++	} else if (cpu_is_omap3430()) {
++		fint_min = OMAP3430_DPLL_FINT_BAND1_MIN;
++		fint_max = OMAP3430_DPLL_FINT_BAND2_MAX;
++	} else if (dd->flags & DPLL_J_TYPE) {
++		fint_min = OMAP3PLUS_DPLL_FINT_JTYPE_MIN;
++		fint_max = OMAP3PLUS_DPLL_FINT_JTYPE_MAX;
++	} else {
++		fint_min = OMAP3PLUS_DPLL_FINT_MIN;
++		fint_max = OMAP3PLUS_DPLL_FINT_MAX;
++	}
++
++	if (fint < fint_min) {
+ 		pr_debug("rejecting n=%d due to Fint failure, "
+ 			 "lowering max_divider\n", n);
+ 		dd->max_divider = n;
+ 		ret = DPLL_FINT_UNDERFLOW;
+-
+-	} else if (fint > DPLL_FINT_BAND1_MAX &&
+-		   fint < DPLL_FINT_BAND2_MIN) {
+-
+-		pr_debug("rejecting n=%d due to Fint failure\n", n);
+-		ret = DPLL_FINT_INVALID;
+-
+-	} else if (fint > DPLL_FINT_BAND2_MAX) {
+-
++	} else if (fint > fint_max) {
+ 		pr_debug("rejecting n=%d due to Fint failure, "
+ 			 "boosting min_divider\n", n);
+ 		dd->min_divider = n;
+ 		ret = DPLL_FINT_INVALID;
+-
++	} else if (cpu_is_omap3430() && fint > OMAP3430_DPLL_FINT_BAND1_MAX &&
++		   fint < OMAP3430_DPLL_FINT_BAND2_MIN) {
++		pr_debug("rejecting n=%d due to Fint failure\n", n);
++		ret = DPLL_FINT_INVALID;
+ 	}
+ 
+ 	return ret;
 -- 
 1.7.4.1
 
