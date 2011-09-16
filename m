@@ -1,39 +1,61 @@
-From: Frank Rowand <frank.rowand@am.sony.com>
-Subject: Re: [PATCH 5/5 v9] mfd: omap: usb: Runtime PM support
-Date: Thu, 15 Sep 2011 17:40:27 -0700
-Message-ID: <4E729AFB.6010008@am.sony.com>
-References: <1316092970-2440-1-git-send-email-keshava_mgowda@ti.com> <1316092970-2440-2-git-send-email-keshava_mgowda@ti.com> <1316092970-2440-3-git-send-email-keshava_mgowda@ti.com> <1316092970-2440-4-git-send-email-keshava_mgowda@ti.com> <1316092970-2440-5-git-send-email-keshava_mgowda@ti.com> <1316092970-2440-6-git-send-email-keshava_mgowda@ti.com>
-Reply-To: <frank.rowand@am.sony.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v15 06/12] OMAP: dmtimer: switch-over to platform device driver
+Date: Fri, 16 Sep 2011 09:24:48 +0530
+Message-ID: <CAC83ZvKGoucZ=xQSa7GEk7Gg8jcFBQE==1a6m4=+nzDRrsw+jw@mail.gmail.com>
+References: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
+	<1315516098-29761-7-git-send-email-tarun.kanti@ti.com>
+	<20110914214533.GA30941@atomide.com>
+	<CAC83ZvJgPYb3JbWT4SKXpQvq-vdKK4b6hd6E-ik5uyRCqgwWsg@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59302575A050D@dbde02.ent.ti.com>
+	<20110915165810.GA2284@atomide.com>
+	<20110915170548.GB2284@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1316092970-2440-6-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "b-cousson@ti.com" <b-cousson@ti.com>, "balbi@ti.com" <balbi@ti.com>, "gadiyar@ti.com" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@ti.com" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "vishwanath.bs@ti.com" <vishwanath.bs@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:54617 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751780Ab1IPDyx convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Sep 2011 23:54:53 -0400
+Received: by bke11 with SMTP id 11so3342058bke.20
+        for <linux-omap@vger.kernel.org>; Thu, 15 Sep 2011 20:54:49 -0700 (PDT)
+In-Reply-To: <20110915170548.GB2284@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Pedanekar, Hemant" <hemantp@ti.com>
 
-On 09/15/11 06:22, Keshava Munegowda wrote:
-> From: Keshava Munegowda <Keshava_mgowda@ti.com>
-> 
-> The usbhs core driver does not enable/disable the interface and
-> functional clocks; These clocks are handled by hwmod and runtime pm,
-> hence instead of the clock enable/disable, the runtime pm APIS are
-> used. however,the port clocks are handled by the usbhs core.
-> 
-> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
-> ---
->  arch/arm/plat-omap/include/plat/usb.h |    3 -
->  drivers/mfd/omap-usb-host.c           |  731 +++++++++++++--------------------
->  drivers/usb/host/ehci-omap.c          |   17 +-
->  drivers/usb/host/ohci-omap3.c         |   18 +-
->  4 files changed, 295 insertions(+), 474 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-> index 17d3c93..2b66dc2 100644
-
-Patch 5/5 is white space mangled.  The tabs have been changed into spaces.
-
--Frank
+On Thu, Sep 15, 2011 at 10:35 PM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> * Tony Lindgren <tony@atomide.com> [110915 09:24]:
+>> * Mohammed, Afzal <afzal@ti.com> [110915 01:13]:
+>> >
+>> > We need clocksource & clockevent to be able to work with
+>> > timers requiring addition of offsets. Without this AM335X,
+>> > TI816X and TI814X SoC's will not boot.
+>>
+>> OK. Then how about let's do the following things:
+>>
+>> 1. Modify the inline access functions to take the PEND and others
+>> =A0 =A0if needed registers as a parameter
+>>
+>> 2. Modify mach-omap2/timer.c to initialize the PEND and others
+>> =A0 =A0in the SoC specific timer_init function
+>
+> Also, let's do these changes first then rebase the dmtimer
+> series on those changes as it simplifies the dmtimer series
+> a bit.
+Alright.... I will start with this.
+--
+Tarun
+>
+> Regards,
+>
+> Tony
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
