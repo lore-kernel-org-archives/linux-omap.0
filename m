@@ -1,94 +1,119 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/8] OMAP: convert I2C driver to PM QoS for latency constraints
-Date: Fri, 16 Sep 2011 09:06:52 -0700
-Message-ID: <87d3f0sc83.fsf@ti.com>
-References: <1314969204-21704-1-git-send-email-j-pihet@ti.com>
-	<1314969204-21704-2-git-send-email-j-pihet@ti.com>
-	<87aaa5whj1.fsf@ti.com>
-	<CAORVsuVH=iK4-ajBjpU+rdquV5MV=JjkHzRcJavJ5=d2e7dCxw@mail.gmail.com>
+Subject: Re: [PATCH v2 5/6] OMAP: omap_device: Create a default omap_device_pm_latency
+Date: Fri, 16 Sep 2011 09:41:41 -0700
+Message-ID: <8762kssam2.fsf@ti.com>
+References: <1314973520-3585-1-git-send-email-b-cousson@ti.com>
+	<1314973520-3585-6-git-send-email-b-cousson@ti.com>
+	<4E73387B.2030403@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:52172 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755344Ab1IPQG6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Sep 2011 12:06:58 -0400
-Received: by mail-gw0-f48.google.com with SMTP id 22so3772302gwj.21
-        for <linux-omap@vger.kernel.org>; Fri, 16 Sep 2011 09:06:57 -0700 (PDT)
-In-Reply-To: <CAORVsuVH=iK4-ajBjpU+rdquV5MV=JjkHzRcJavJ5=d2e7dCxw@mail.gmail.com>
-	(Jean Pihet's message of "Fri, 16 Sep 2011 17:39:46 +0200")
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:48077 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751104Ab1IPQlr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Sep 2011 12:41:47 -0400
+Received: by mail-gx0-f172.google.com with SMTP id 19so5183666gxk.17
+        for <linux-omap@vger.kernel.org>; Fri, 16 Sep 2011 09:41:46 -0700 (PDT)
+In-Reply-To: <4E73387B.2030403@ti.com> (Benoit Cousson's message of "Fri, 16
+	Sep 2011 13:52:27 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+"Cousson, Benoit" <b-cousson@ti.com> writes:
 
-> Kevin,
+> Hi Kevin,
 >
-> On Fri, Sep 16, 2011 at 12:46 AM, Kevin Hilman <khilman@ti.com> wrote=
-:
->> Hi Jean,
->>
->> Jean Pihet <jean.pihet@newoldbits.com> writes:
->>
->>> Convert the driver from the outdated omap_pm_set_max_mpu_wakeup_lat
->>> API to the new PM QoS API.
->>> Since the constraint is on the MPU subsystem, use the PM_QOS_CPU_DM=
-A_LATENCY
->>> class of PM QoS. The resulting MPU constraints are used by cpuidle =
-to
->>> decide the next power state of the MPU subsystem.
->>>
->>> Currently only OMAP3 is placing constraints on the MPU.
->>>
->>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->>
->> [...]
->>
->>> @@ -648,8 +648,16 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct=
- i2c_msg msgs[], int num)
->>> =C2=A0 =C2=A0 =C2=A0 if (r < 0)
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto out;
->>>
->>> - =C2=A0 =C2=A0 if (dev->set_mpu_wkup_lat !=3D NULL)
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 dev->set_mpu_wkup_lat(d=
-ev->dev, dev->latency);
->>> + =C2=A0 =C2=A0 /*
->>> + =C2=A0 =C2=A0 =C2=A0* When waiting for completion of a i2c transf=
-er, we need to
->>> + =C2=A0 =C2=A0 =C2=A0* set a wake up latency constraint for the MP=
-U. This is to
->>> + =C2=A0 =C2=A0 =C2=A0* ensure quick enough wakeup from idle, when =
-transfer
->>> + =C2=A0 =C2=A0 =C2=A0* completes.
->>> + =C2=A0 =C2=A0 =C2=A0* Used on OMAP3 Only
->>> + =C2=A0 =C2=A0 =C2=A0*/
->>> + =C2=A0 =C2=A0 if (cpu_is_omap34xx())
->>
->> We don't want any cpu_is_* checking =C2=A0in drivers.
->>
->> If this is only done on certain SoCs, then a flag should be passed f=
-rom
->> device init code via pdata.
->>
->> That being said, I don't see why this shouldn't be set for all SoCs
->> since it's using the FIFO size to determine the latency.
-> I am OK to have the constraints active for all OMAPs. Side question:
-> what if different SOCs need different values for the constraint?
+> On 9/2/2011 4:25 PM, Cousson, Benoit wrote:
+>> Most devices are using the same default omap_device_pm_latency structure
+>> during device built. In order to avoid the duplication of the same
+>> structure everywhere, add a default structure that will be used if
+>> the device does not have an explicit one.
+>
+> [...]
+>
+>> -	od->pm_lats = pm_lats;
+>> -	od->pm_lats_cnt = pm_lats_cnt;
+>> +	if (pm_lats) {
+>> +		od->pm_lats = pm_lats;
+>> +		od->pm_lats_cnt = pm_lats_cnt;
+>> +	} else {
+>> +		od->pm_lats = omap_default_latency;
+>> +		od->pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
+>> +	}
+>
+> Here is the fix for that part. I did the easy version :-). Splitting
+> the structure in two parts will indeed require more work.
 
-This latency calculation is based on FIFO size and drain rate, so it
-should be completely SoC independent.
+The kmemdup() method is fine with me.
 
-However, if for some reason there are SoC dependencies, the SoC specifi=
-c
-parts need to be passed in to the driver.
+> I updated the for_3.2/1_omap_device_cleanup branch.
+
+Thanks, I'll pick these into my branch (which is now renamed to
+for_3.2/omap_device-cleanup)
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> Regards,
+> Benoit
+>
+> ---
+> From ad163000568dd61dee441473d0a576d84152da9e Mon Sep 17 00:00:00 2001
+> From: Benoit Cousson <b-cousson@ti.com>
+> Date: Tue, 9 Aug 2011 16:54:19 +0200
+> Subject: [PATCH v3 5/6] OMAP: omap_device: Create a default omap_device_pm_latency
+>
+> Most devices are using the same default omap_device_pm_latency structure
+> during device built. In order to avoid the duplication of the same
+> structure everywhere, add a default structure that will be used if
+> the device does not have an explicit one.
+>
+> Next patches will clean the duplicated structures.
+>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/plat-omap/omap_device.c |   19 ++++++++++++++++++-
+>  1 files changed, 18 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index 7b2cf62..54bbe7b 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -97,6 +97,14 @@
+>  static int omap_device_register(struct platform_device *pdev);
+>  static int omap_early_device_register(struct platform_device *pdev);
+>  
+> +static struct omap_device_pm_latency omap_default_latency[] = {
+> +	{
+> +		.deactivate_func = omap_device_idle_hwmods,
+> +		.activate_func   = omap_device_enable_hwmods,
+> +		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> +	}
+> +};
+> +
+>  /* Private functions */
+>  
+>  /**
+> @@ -510,8 +518,17 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+>  	if (ret)
+>  		goto odbs_exit3;
+>  
+> -	od->pm_lats = pm_lats;
+> +	if (!pm_lats) {
+> +		pm_lats = omap_default_latency;
+> +		pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
+> +	}
+> +
+>  	od->pm_lats_cnt = pm_lats_cnt;
+> +	od->pm_lats = kmemdup(pm_lats,
+> +			sizeof(struct omap_device_pm_latency) * pm_lats_cnt,
+> +			GFP_KERNEL);
+> +	if (!od->pm_lats)
+> +		goto odbs_exit3;
+>  
+>  	for (i = 0; i < oh_cnt; i++) {
+>  		hwmods[i]->od = od;
