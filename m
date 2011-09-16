@@ -1,55 +1,53 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 16/16] TEMP: OMAP device: change pr_warnings to pr_debugs
-Date: Fri, 16 Sep 2011 19:05:50 +0300
-Message-ID: <1316189150-21448-17-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 10/16] TEMP: 4430sdp: use common serial init with mux support
+Date: Fri, 16 Sep 2011 19:05:44 +0300
+Message-ID: <1316189150-21448-11-git-send-email-t-kristo@ti.com>
 References: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37054 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37932 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755344Ab1IPQGk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:40 -0400
+	id S1755293Ab1IPQGe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:34 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm@lists.arm.linux.org.uk, "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-arm@lists.arm.linux.org.uk
 
-Prevents a hang when omap_device would want to print something for
-serial console device while enabling / disabling its clocks.
-Should be handled properly by serial runtime PM support.
+Temporary testing related patch, not meant for integration.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/plat-omap/omap_device.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c |   12 +-----------
+ 1 files changed, 1 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index d8f2299..ecec0cc 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -154,7 +154,7 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
- 					"%d: %llu\n",
- 					od->pm_lat_level, act_lat);
- 			} else
--				dev_warn(&od->pdev->dev,
-+				dev_dbg(&od->pdev->dev,
- 					 "activate latency %d "
- 					 "higher than exptected. (%llu > %d)\n",
- 					 od->pm_lat_level, act_lat,
-@@ -221,7 +221,7 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
- 					"%d: %llu\n",
- 					od->pm_lat_level, deact_lat);
- 			} else
--				dev_warn(&od->pdev->dev,
-+				dev_dbg(&od->pdev->dev,
- 					 "deactivate latency %d "
- 					 "higher than exptected. (%llu > %d)\n",
- 					 od->pm_lat_level, deact_lat,
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index c7cef44..f1151e8 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -737,17 +737,7 @@ static struct omap_board_data serial4_data __initdata = {
+ 
+ static inline void board_serial_init(void)
+ {
+-	struct omap_board_data bdata;
+-	bdata.flags	= 0;
+-	bdata.pads	= NULL;
+-	bdata.pads_cnt	= 0;
+-	bdata.id	= 0;
+-	/* pass dummy data for UART1 */
+-	omap_serial_init_port(&bdata);
+-
+-	omap_serial_init_port(&serial2_data);
+-	omap_serial_init_port(&serial3_data);
+-	omap_serial_init_port(&serial4_data);
++	omap_serial_init();
+ }
+ #else
+ #define board_mux	NULL
 -- 
 1.7.4.1
 
