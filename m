@@ -1,14 +1,14 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH v2 5/6] OMAP3+: Update DPLL Fint range for OMAP36xx and OMAP4xxx devices
-Date: Fri, 16 Sep 2011 12:48:42 -0500
-Message-ID: <1316195322-15062-1-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH v2 6/6] OMAP4: Clock: Correct the name of SLIMBUS interface clocks
+Date: Fri, 16 Sep 2011 12:48:50 -0500
+Message-ID: <1316195330-15099-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43144 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59244 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752386Ab1IPRss (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Sep 2011 13:48:48 -0400
+	id S1755675Ab1IPRs4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Sep 2011 13:48:56 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
@@ -16,104 +16,56 @@ Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.i
 
 From: Jon Hunter <jon-hunter@ti.com>
 
-The OMAP36xx and OMAP4xxx DPLLs have a different internal reference
-clock frequency (fint) operating range than OMAP3430. Update the
-dpll_test_fint() function to check for the correct frequency ranges
-for OMAP36xx and OMAP4xxx.
-
-For OMAP36xx and OMAP4xxx devices, DPLLs fint range is 0.5MHz to
-2.5MHz for j-type DPLLs and otherwise it is 32KHz to 52MHz for all
-other DPLLs.
+Currently the interface clocks for the two SLIMBUS peripherals are
+named slimbus1_fck and slimbus2_fck. Rename these clocks to be
+slimbus1_ick and slimbus2_ick so it is clear that these are
+interface clocks and not functional clocks.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/clkt_dpll.c |   51 ++++++++++++++++++++++++++------------
- 1 files changed, 35 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/clock44xx_data.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
-index bcffee0..e069a9b 100644
---- a/arch/arm/mach-omap2/clkt_dpll.c
-+++ b/arch/arm/mach-omap2/clkt_dpll.c
-@@ -46,10 +46,19 @@
- 					 (DPLL_SCALE_FACTOR / DPLL_SCALE_BASE))
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index eb2a345..d75ebdd 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -2210,8 +2210,8 @@ static struct clk slimbus1_slimbus_clk = {
+ 	.recalc		= &followparent_recalc,
+ };
  
- /* DPLL valid Fint frequency band limits - from 34xx TRM Section 4.7.6.2 */
--#define DPLL_FINT_BAND1_MIN		750000
--#define DPLL_FINT_BAND1_MAX		2100000
--#define DPLL_FINT_BAND2_MIN		7500000
--#define DPLL_FINT_BAND2_MAX		21000000
-+#define OMAP3430_DPLL_FINT_BAND1_MIN	750000
-+#define OMAP3430_DPLL_FINT_BAND1_MAX	2100000
-+#define OMAP3430_DPLL_FINT_BAND2_MIN	7500000
-+#define OMAP3430_DPLL_FINT_BAND2_MAX	21000000
-+
-+/*
-+ * DPLL valid Fint frequency range for OMAP36xx and OMAP4xxx.
-+ * From device data manual section 4.3 "DPLL and DLL Specifications".
-+ */
-+#define OMAP3PLUS_DPLL_FINT_JTYPE_MIN	500000
-+#define OMAP3PLUS_DPLL_FINT_JTYPE_MAX	2500000
-+#define OMAP3PLUS_DPLL_FINT_MIN		32000
-+#define OMAP3PLUS_DPLL_FINT_MAX		52000000
+-static struct clk slimbus1_fck = {
+-	.name		= "slimbus1_fck",
++static struct clk slimbus1_ick = {
++	.name		= "slimbus1_ick",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM1_ABE_SLIMBUS_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+@@ -2250,8 +2250,8 @@ static struct clk slimbus2_slimbus_clk = {
+ 	.recalc		= &followparent_recalc,
+ };
  
- /* _dpll_test_fint() return codes */
- #define DPLL_FINT_UNDERFLOW		-1
-@@ -71,33 +80,43 @@
- static int _dpll_test_fint(struct clk *clk, u8 n)
- {
- 	struct dpll_data *dd;
--	long fint;
-+	long fint, fint_min, fint_max;
- 	int ret = 0;
- 
- 	dd = clk->dpll_data;
- 
- 	/* DPLL divider must result in a valid jitter correction val */
- 	fint = clk->parent->rate / n;
--	if (fint < DPLL_FINT_BAND1_MIN) {
- 
-+	if (cpu_is_omap24xx()) {
-+		/* Should not be called for OMAP2, so warn if it is called */
-+		WARN(1, "No fint limits available for OMAP2!\n");
-+		return DPLL_FINT_INVALID;
-+	} else if (cpu_is_omap3430()) {
-+		fint_min = OMAP3430_DPLL_FINT_BAND1_MIN;
-+		fint_max = OMAP3430_DPLL_FINT_BAND2_MAX;
-+	} else if (dd->flags & DPLL_J_TYPE) {
-+		fint_min = OMAP3PLUS_DPLL_FINT_JTYPE_MIN;
-+		fint_max = OMAP3PLUS_DPLL_FINT_JTYPE_MAX;
-+	} else {
-+		fint_min = OMAP3PLUS_DPLL_FINT_MIN;
-+		fint_max = OMAP3PLUS_DPLL_FINT_MAX;
-+	}
-+
-+	if (fint < fint_min) {
- 		pr_debug("rejecting n=%d due to Fint failure, "
- 			 "lowering max_divider\n", n);
- 		dd->max_divider = n;
- 		ret = DPLL_FINT_UNDERFLOW;
--
--	} else if (fint > DPLL_FINT_BAND1_MAX &&
--		   fint < DPLL_FINT_BAND2_MIN) {
--
--		pr_debug("rejecting n=%d due to Fint failure\n", n);
--		ret = DPLL_FINT_INVALID;
--
--	} else if (fint > DPLL_FINT_BAND2_MAX) {
--
-+	} else if (fint > fint_max) {
- 		pr_debug("rejecting n=%d due to Fint failure, "
- 			 "boosting min_divider\n", n);
- 		dd->min_divider = n;
- 		ret = DPLL_FINT_INVALID;
--
-+	} else if (cpu_is_omap3430() && fint > OMAP3430_DPLL_FINT_BAND1_MAX &&
-+		   fint < OMAP3430_DPLL_FINT_BAND2_MIN) {
-+		pr_debug("rejecting n=%d due to Fint failure\n", n);
-+		ret = DPLL_FINT_INVALID;
- 	}
- 
- 	return ret;
+-static struct clk slimbus2_fck = {
+-	.name		= "slimbus2_fck",
++static struct clk slimbus2_ick = {
++	.name		= "slimbus2_ick",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_L4PER_SLIMBUS2_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+@@ -3272,11 +3272,11 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"slimbus1_fclk_0",		&slimbus1_fclk_0,	CK_443X),
+ 	CLK(NULL,	"slimbus1_fclk_2",		&slimbus1_fclk_2,	CK_443X),
+ 	CLK(NULL,	"slimbus1_slimbus_clk",		&slimbus1_slimbus_clk,	CK_443X),
+-	CLK(NULL,	"slimbus1_fck",			&slimbus1_fck,	CK_443X),
++	CLK(NULL,	"slimbus1_ick",			&slimbus1_ick,	CK_443X),
+ 	CLK(NULL,	"slimbus2_fclk_1",		&slimbus2_fclk_1,	CK_443X),
+ 	CLK(NULL,	"slimbus2_fclk_0",		&slimbus2_fclk_0,	CK_443X),
+ 	CLK(NULL,	"slimbus2_slimbus_clk",		&slimbus2_slimbus_clk,	CK_443X),
+-	CLK(NULL,	"slimbus2_fck",			&slimbus2_fck,	CK_443X),
++	CLK(NULL,	"slimbus2_ick",			&slimbus2_ick,	CK_443X),
+ 	CLK(NULL,	"smartreflex_core_fck",		&smartreflex_core_fck,	CK_443X),
+ 	CLK(NULL,	"smartreflex_iva_fck",		&smartreflex_iva_fck,	CK_443X),
+ 	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_mpu_fck,	CK_443X),
 -- 
 1.7.4.1
 
