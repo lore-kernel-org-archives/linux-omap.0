@@ -1,45 +1,55 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 15/16] OMAP3: pm: do not enable PRCM MPU interrupts manually
-Date: Fri, 16 Sep 2011 19:05:49 +0300
-Message-ID: <1316189150-21448-16-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 16/16] TEMP: OMAP device: change pr_warnings to pr_debugs
+Date: Fri, 16 Sep 2011 19:05:50 +0300
+Message-ID: <1316189150-21448-17-git-send-email-t-kristo@ti.com>
 References: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57292 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755332Ab1IPQGi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:38 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:37054 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755344Ab1IPQGk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:40 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm@lists.arm.linux.org.uk
+Cc: linux-arm@lists.arm.linux.org.uk, "Govindraj.R" <govindraj.raja@ti.com>
 
-This is handled automatically by the PRCM chain interrupt mechanism now.
+Prevents a hang when omap_device would want to print something for
+serial console device while enabling / disabling its clocks.
+Should be handled properly by serial runtime PM support.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/omap_device.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 4571993..5765949 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -642,10 +642,6 @@ static void __init prcm_setup_regs(void)
- 			  OMAP3430_GRPSEL_GPT1_MASK |
- 			  OMAP3430_GRPSEL_GPT12_MASK,
- 			  WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
--	/* For some reason IO doesn't generate wakeup event even if
--	 * it is selected to mpu wakeup goup */
--	omap2_prm_write_mod_reg(OMAP3430_IO_EN_MASK | OMAP3430_WKUP_EN_MASK,
--			  OCP_MOD, OMAP3_PRM_IRQENABLE_MPU_OFFSET);
- 
- 	/* Enable PM_WKEN to support DSS LPR */
- 	omap2_prm_write_mod_reg(OMAP3430_PM_WKEN_DSS_EN_DSS_MASK,
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index d8f2299..ecec0cc 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -154,7 +154,7 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+ 					"%d: %llu\n",
+ 					od->pm_lat_level, act_lat);
+ 			} else
+-				dev_warn(&od->pdev->dev,
++				dev_dbg(&od->pdev->dev,
+ 					 "activate latency %d "
+ 					 "higher than exptected. (%llu > %d)\n",
+ 					 od->pm_lat_level, act_lat,
+@@ -221,7 +221,7 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+ 					"%d: %llu\n",
+ 					od->pm_lat_level, deact_lat);
+ 			} else
+-				dev_warn(&od->pdev->dev,
++				dev_dbg(&od->pdev->dev,
+ 					 "deactivate latency %d "
+ 					 "higher than exptected. (%llu > %d)\n",
+ 					 od->pm_lat_level, deact_lat,
 -- 
 1.7.4.1
 
