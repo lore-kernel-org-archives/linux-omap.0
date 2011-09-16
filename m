@@ -1,107 +1,112 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 5/6] OMAP: omap_device: Create a default omap_device_pm_latency
-Date: Fri, 16 Sep 2011 13:52:27 +0200
-Message-ID: <4E73387B.2030403@ti.com>
-References: <1314973520-3585-1-git-send-email-b-cousson@ti.com> <1314973520-3585-6-git-send-email-b-cousson@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 02/25] OMAP4: Redefine mandatory barriers for OMAP to
+ include interconnect barriers.
+Date: Fri, 16 Sep 2011 17:31:53 +0530
+Message-ID: <CAMQu2gxhDyQqLqt3C+97s0vy_r0P2umcrygN5ZaN=A8p0TV3xQ@mail.gmail.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+ <1315144466-9395-3-git-send-email-santosh.shilimkar@ti.com>
+ <20110913202701.GF24252@atomide.com> <4E7080F8.9020302@ti.com>
+ <87obyl7mj8.fsf@ti.com> <CAMQu2gy6yVA7zWAPUsnzCtixHkjzkn6UnbapR0mpoJ+AwNMAcQ@mail.gmail.com>
+ <20110915175354.GW24252@atomide.com> <CAMQu2gzfU0K0Q1Pta4vX=dNBBYQ6wNg_Kf5EeMTCV_WHTs3Y=w@mail.gmail.com>
+ <20110915194330.GC2284@atomide.com> <CAMQu2gwv5y6PY_ooBjYuM497D=QuU54yWB+i6DRdn1YuuocY6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49827 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751968Ab1IPLwe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Sep 2011 07:52:34 -0400
-In-Reply-To: <1314973520-3585-6-git-send-email-b-cousson@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:56932 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751968Ab1IPMCO convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Sep 2011 08:02:14 -0400
+Received: by gwb15 with SMTP id 15so3967674gwb.5
+        for <linux-omap@vger.kernel.org>; Fri, 16 Sep 2011 05:02:13 -0700 (PDT)
+In-Reply-To: <CAMQu2gwv5y6PY_ooBjYuM497D=QuU54yWB+i6DRdn1YuuocY6Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, rnayak@ti.com, Richard Woodruff <r-woodruff2@ti.com>
 
-Hi Kevin,
+On Fri, Sep 16, 2011 at 1:30 AM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
+> On Fri, Sep 16, 2011 at 1:13 AM, Tony Lindgren <tony@atomide.com> wro=
+te:
+>> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [110915 10:49]:
+>>> On Thu, Sep 15, 2011 at 11:23 PM, Tony Lindgren <tony@atomide.com> =
+wrote:
+>>> >
+>>> > Please also include the errata in the description and set it up w=
+ith
+>>> > a Kconfig entry with something like ARM_ERRATA_XXXXXX or TI_ERRAT=
+A_XXXXXX.
+>>> >
+>>> Sure.
+>>> It's a =A0TI ERRATA.
+>>
+>> OK
+>>
+>>> > Also it would be best to apply this fix at the end of the PM seri=
+es so
+>>> > it is easier to verify the bug and potentially remove the hack if
+>>> > a better fix is ever available.
+>>> >
+>>> As such order doesn't matter much because it can be removed either =
+way
+>>> even if it is in the beginning of the series with KCONFIG entry.
+>>>
+>>> But I can change the order if you prefer that way.
+>>
+>> Well it seems that it's the omap4_finish_suspend in this series that
+>> can be used to trigger the bug, although the bug has been around for
+>> few years. So then instead of mentioning random hangups you can have
+>> a better description with something like "Patch xyz added PM idle
+>> support for omap4, however bug 123 causes so and so. Fix the issue
+>> with blah blah".
+>>
+> Sounds good .
+>
+>> Also, if you have some easy way to reproduce the bug maybe mention
+>> that too? That would make it easy to verify if issue has been fixed.
+>>
 
-On 9/2/2011 4:25 PM, Cousson, Benoit wrote:
-> Most devices are using the same default omap_device_pm_latency structure
-> during device built. In order to avoid the duplication of the same
-> structure everywhere, add a default structure that will be used if
-> the device does not have an explicit one.
+Just for record, Below are the errata details.
 
-[...]
+ERRATA: i688: Async Bridge Corruption
 
-> -	od->pm_lats = pm_lats;
-> -	od->pm_lats_cnt = pm_lats_cnt;
-> +	if (pm_lats) {
-> +		od->pm_lats = pm_lats;
-> +		od->pm_lats_cnt = pm_lats_cnt;
-> +	} else {
-> +		od->pm_lats = omap_default_latency;
-> +		od->pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
-> +	}
+If a data is stalled inside asynchronous bridge because
+of backpressure, it may be accepted multiple times, creating pointer
+misalignment that will corrupt next transfers on that data path until n=
+ext
+reset of the system (No recovery procedure once the issue is hit, the
+path remains consistently broken). Async bridge can be found on path be=
+tween
+MPU to EMIF, MPU to L3 interconnect and Cortex M3 to Emif .
 
-Here is the fix for that part. I did the easy version :-). Splitting the structure in two parts will indeed require more work.
+This situation can happen only when the idle is initiated by a Master
+Request Disconnection (which is trigged by software whenexecuting WFI)
 
-I updated the for_3.2/1_omap_device_cleanup branch.
+WORKAROUND
+All the initiators connected through Async Bridge must ensure that
+data path is properly drained before issuing WFI. This condition will b=
+e
+met if one Strongly ordered access is performed to the target right
+before executing the WFI.
 
-Regards,
-Benoit
+> There are some multimedia usecases where the bug was discovered
+> but on mainline obviously we don't have that support.
+>
+> I will check with IP folks if any other simple test-case is possible
+> to reproduce the issue and If I find one, will mention that.
+>
+We have a GFX usecase which demonstrate this issue but can't
+be tested on mainline sicne no GFX support.
 
----
->From ad163000568dd61dee441473d0a576d84152da9e Mon Sep 17 00:00:00 2001
-From: Benoit Cousson <b-cousson@ti.com>
-Date: Tue, 9 Aug 2011 16:54:19 +0200
-Subject: [PATCH v3 5/6] OMAP: omap_device: Create a default omap_device_pm_latency
+But the same patch is already in the product line which
+has fixed the GFX usecase issue.
 
-Most devices are using the same default omap_device_pm_latency structure
-during device built. In order to avoid the duplication of the same
-structure everywhere, add a default structure that will be used if
-the device does not have an explicit one.
-
-Next patches will clean the duplicated structures.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/plat-omap/omap_device.c |   19 ++++++++++++++++++-
- 1 files changed, 18 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 7b2cf62..54bbe7b 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -97,6 +97,14 @@
- static int omap_device_register(struct platform_device *pdev);
- static int omap_early_device_register(struct platform_device *pdev);
- 
-+static struct omap_device_pm_latency omap_default_latency[] = {
-+	{
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func   = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+	}
-+};
-+
- /* Private functions */
- 
- /**
-@@ -510,8 +518,17 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
- 	if (ret)
- 		goto odbs_exit3;
- 
--	od->pm_lats = pm_lats;
-+	if (!pm_lats) {
-+		pm_lats = omap_default_latency;
-+		pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
-+	}
-+
- 	od->pm_lats_cnt = pm_lats_cnt;
-+	od->pm_lats = kmemdup(pm_lats,
-+			sizeof(struct omap_device_pm_latency) * pm_lats_cnt,
-+			GFP_KERNEL);
-+	if (!od->pm_lats)
-+		goto odbs_exit3;
- 
- 	for (i = 0; i < oh_cnt; i++) {
- 		hwmods[i]->od = od;
--- 
-1.7.0.4
-
+Regards
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
