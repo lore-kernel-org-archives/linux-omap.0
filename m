@@ -1,119 +1,153 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 04/16] TEMP: OMAP3xxx: hwmod data: add PRM hwmod
-Date: Fri, 16 Sep 2011 19:05:38 +0300
-Message-ID: <1316189150-21448-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 01/16] power: add omap prm driver skeleton
+Date: Fri, 16 Sep 2011 19:05:35 +0300
+Message-ID: <1316189150-21448-2-git-send-email-t-kristo@ti.com>
 References: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53681 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755310Ab1IPQGd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:33 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:57275 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753377Ab1IPQGa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2011 12:06:30 -0400
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm@lists.arm.linux.org.uk, Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm@lists.arm.linux.org.uk, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
-This patch is temporary until Paul can provide a final version.
+This driver will eventually support OMAP soc PRM module features, e.g. PRCM
+chain interrupts.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   56 ++++++++++++++++++++++++++++
- 1 files changed, 56 insertions(+), 0 deletions(-)
+ drivers/power/Kconfig    |    7 ++++
+ drivers/power/Makefile   |    1 +
+ drivers/power/omap_prm.c |   83 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 91 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/power/omap_prm.c
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 59fdb9f..77f44de 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -161,6 +161,7 @@ static struct omap_hwmod omap3xxx_l3_main_hwmod = {
- };
+diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
+index 57de051..e735a95 100644
+--- a/drivers/power/Kconfig
++++ b/drivers/power/Kconfig
+@@ -249,4 +249,11 @@ config CHARGER_MAX8998
+ 	  Say Y to enable support for the battery charger control sysfs and
+ 	  platform data of MAX8998/LP3974 PMICs.
  
- static struct omap_hwmod omap3xxx_l4_wkup_hwmod;
-+static struct omap_hwmod omap3xxx_prm_hwmod;
- static struct omap_hwmod omap3xxx_uart1_hwmod;
- static struct omap_hwmod omap3xxx_uart2_hwmod;
- static struct omap_hwmod omap3xxx_uart3_hwmod;
-@@ -478,6 +479,24 @@ static struct omap_hwmod omap3xxx_l4_per_hwmod = {
- 	.flags		= HWMOD_NO_IDLEST,
- };
++config OMAP_PRM
++	bool "OMAP Power and Reset Management driver"
++	depends on (ARCH_OMAP) && PM
++	help
++	  Say Y to enable support for the OMAP Power and Reset Management
++	  driver.
++
+ endif # POWER_SUPPLY
+diff --git a/drivers/power/Makefile b/drivers/power/Makefile
+index b4af13d..8df93c2 100644
+--- a/drivers/power/Makefile
++++ b/drivers/power/Makefile
+@@ -13,6 +13,7 @@ obj-$(CONFIG_WM831X_BACKUP)	+= wm831x_backup.o
+ obj-$(CONFIG_WM831X_POWER)	+= wm831x_power.o
+ obj-$(CONFIG_WM8350_POWER)	+= wm8350_power.o
+ obj-$(CONFIG_TEST_POWER)	+= test_power.o
++obj-$(CONFIG_OMAP_PRM)		+= omap_prm.o
  
-+static struct omap_hwmod_addr_space omap3xxx_prm_addrs[] = {
-+	{
-+		.pa_start	= 0x48306000,
-+		.pa_end		= 0x48306000 + SZ_8K + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
+ obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_battery.o
+ obj-$(CONFIG_BATTERY_DS2780)	+= ds2780_battery.o
+diff --git a/drivers/power/omap_prm.c b/drivers/power/omap_prm.c
+new file mode 100644
+index 0000000..dfc0920
+--- /dev/null
++++ b/drivers/power/omap_prm.c
+@@ -0,0 +1,83 @@
++/*
++ * OMAP Power and Reset Management (PRM) driver
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ *
++ * Author: Tero Kristo <t-kristo@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/ctype.h>
++#include <linux/module.h>
++#include <linux/io.h>
++#include <linux/slab.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/platform_device.h>
++
++#define DRIVER_NAME "omap-prm"
++
++struct omap_prm_device {
++	struct platform_device		pdev;
++};
++
++static struct omap_prm_device prm_dev = {
++	.pdev		= {
++		.name	= DRIVER_NAME,
++		.id	= -1,
 +	},
-+	{}
 +};
 +
-+/* L4_WKUP -> PRM interface */
-+static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__prm = {
-+	.master		= &omap3xxx_l4_wkup_hwmod,
-+	.slave		= &omap3xxx_prm_hwmod,
-+	.clk		= "wkup_l4_ick",
-+	.addr		= omap3xxx_prm_addrs,
-+	.user		= OCP_USER_MPU,
++static int __init omap_prm_probe(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int __devexit omap_prm_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static struct platform_driver prm_driver = {
++	.remove		= __exit_p(omap_prm_remove),
++	.driver		= {
++		.name	= DRIVER_NAME,
++	},
 +};
 +
- /* Slave interfaces on the L4_WKUP interconnect */
- static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_slaves[] = {
- 	&omap3xxx_l4_core__l4_wkup,
-@@ -493,6 +512,40 @@ static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
- 	.flags		= HWMOD_NO_IDLEST,
- };
- 
-+/* Slave interfaces on the L4_WKUP interconnect */
-+static struct omap_hwmod_ocp_if *omap3xxx_prm_slaves[] = {
-+	&omap3xxx_l4_wkup__prm,
-+};
++static int __init omap_prm_init(void)
++{
++	int ret;
 +
-+static struct omap_hwmod_class_sysconfig omap3xxx_prm_sysc = {
-+	.rev_offs	= 0x0804,
-+	.sysc_offs	= 0x0814,
-+	.sysc_flags	= SYSC_HAS_AUTOIDLE,
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
++	ret = platform_device_register(&prm_dev.pdev);
 +
-+static struct omap_hwmod_class omap3xxx_prm_hwmod_class = {
-+	.name		= "prm",
-+	.sysc		= &omap3xxx_prm_sysc,
-+};
++	if (ret) {
++		printk(KERN_ERR "Unable to register PRM device: %d\n", ret);
++		return ret;
++	}
 +
-+static struct omap_hwmod_irq_info omap3xxx_prm_irqs[] = {
-+	{ .irq = 11 },
-+	{ .irq = -1 }
-+};
++	ret = platform_driver_probe(&prm_driver, omap_prm_probe);
 +
-+/* PRM */
-+static struct omap_hwmod omap3xxx_prm_hwmod = {
-+	.name		= "prm",
-+	.mpu_irqs	= omap3xxx_prm_irqs,
-+	.class		= &omap3xxx_prm_hwmod_class,
-+	.main_clk	= "wkup_32k_fck",
-+	.slaves		= omap3xxx_prm_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_prm_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= HWMOD_NO_IDLEST,
-+};
++	if (ret)
++		printk(KERN_ERR "PRM driver probe failed: %d\n", ret);
 +
- /* Master interfaces on the MPU device */
- static struct omap_hwmod_ocp_if *omap3xxx_mpu_masters[] = {
- 	&omap3xxx_mpu__l3_main,
-@@ -3201,6 +3254,9 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l4_core_hwmod,
- 	&omap3xxx_l4_per_hwmod,
- 	&omap3xxx_l4_wkup_hwmod,
++	return ret;
++}
++subsys_initcall(omap_prm_init);
 +
-+	&omap3xxx_prm_hwmod,
++static void __exit omap_prm_exit(void)
++{
++	platform_device_unregister(&prm_dev.pdev);
++	platform_driver_unregister(&prm_driver);
++}
++module_exit(omap_prm_exit);
 +
- 	&omap3xxx_mmc1_hwmod,
- 	&omap3xxx_mmc2_hwmod,
- 	&omap3xxx_mmc3_hwmod,
++MODULE_ALIAS("platform:"DRIVER_NAME);
++MODULE_AUTHOR("Tero Kristo <t-kristo@ti.com>");
++MODULE_DESCRIPTION("OMAP PRM driver");
++MODULE_LICENSE("GPL");
 -- 
 1.7.4.1
 
