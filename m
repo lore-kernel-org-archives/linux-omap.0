@@ -1,227 +1,57 @@
-From: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based camera board.
-Date: Sat, 17 Sep 2011 11:34:57 +0200
-Message-ID: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
-Return-path: <linux-media-owner@vger.kernel.org>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Martin Hostettler <martin@neutronstar.dyndns.org>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: READ THIS: the next mach-types update
+Date: Sat, 17 Sep 2011 19:58:20 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4C80171@dbde02.ent.ti.com>
+References: <20110915102528.GI6267@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:50256 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752402Ab1IQO2d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Sep 2011 10:28:33 -0400
+In-Reply-To: <20110915102528.GI6267@n2100.arm.linux.org.uk>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Adds board support for an MT9M032 based camera to omap3evm.
+Hello,
 
-Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
----
- arch/arm/mach-omap2/Makefile                |    1 +
- arch/arm/mach-omap2/board-omap3evm-camera.c |  183 +++++++++++++++++++++++++++
- 2 files changed, 184 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+linux-arm-kernel-bounces@lists.infradead.org wrote on :
 
-Changes in V2:
- * ported to current mainline
- * Style fixes
- * Fix error handling
+> I'm going to be merging a mach-types update (the cut-down and the
+> policy-conforming version) for the next merge window.  This will mean
+> that things WILL BREAK, and I will not notice that things have broken.
+> 
+> In order to fix this, entries need to be fixed to conform to the
+> requirements - where the machine_is_xxx() name is the same as the
+> MACH_TYPE_xxx name and the CONFIG_MACH_xxx name too.
+> 
+> Moreover, entries older than 12 months which have not been merged will
+> be removed.  It is not possible to automatically check for machine_is_xxx()
+> usages as these could conflict with other architectures, and I'm
+> certainly NOT checking for them by hand (I estimate that'd take a
+> significant amount of manual effort to do.)  What that means
+> is that it
+> is _important_ to get the core platform support in _first_ before any
+> drivers which may make use of this.
+> 
+> The following will be deleted from the file this time around are:
+[...]
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index f343365..8ae3d25 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -202,6 +202,7 @@ obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o \
- obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
-+					   board-omap3evm-camera.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
- 					   hsmmc.o
-diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
-new file mode 100644
-index 0000000..be987d9
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-@@ -0,0 +1,183 @@
-+/*
-+ * Copyright (C) 2010-2011 Lund Engineering
-+ * Contact: Gil Lund <gwlund@lundeng.com>
-+ * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
-+ *
-+ * Board intregration for a MT9M032 camera connected to IMAGE_CONN and I2C Bus 2
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#include <linux/i2c.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+
-+#include <linux/gpio.h>
-+#include <plat/mux.h>
-+#include "mux.h"
-+
-+#include "../../../drivers/media/video/omap3isp/isp.h"
-+#include "media/mt9m032.h"
-+
-+#include "devices.h"
-+
-+#define EVM_TWL_GPIO_BASE OMAP_MAX_GPIO_LINES
-+#define GPIO98_VID_DEC_RES	98
-+#define nCAM_VD_SEL		157
-+
-+#define MT9M032_I2C_BUS_NUM	2
-+
-+
-+enum omap3evmdc_mux {
-+	MUX_TVP5146,
-+	MUX_CAMERA_SENSOR,
-+	MUX_EXP_CAMERA_SENSOR,
-+};
-+
-+/**
-+ * omap3evm_set_mux - Sets mux to enable signal routing to
-+ *                           different peripherals present on new EVM board
-+ * @mux_id: enum, mux id to enable
-+ *
-+ * Returns 0 for success or a negative error code
-+ */
-+static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
-+{
-+	/* Set GPIO6 = 1 */
-+	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
-+	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-+
-+	switch (mux_id) {
-+	case MUX_TVP5146:
-+		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-+		gpio_set_value(nCAM_VD_SEL, 1);
-+		break;
-+
-+	case MUX_CAMERA_SENSOR:
-+		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-+		gpio_set_value(nCAM_VD_SEL, 0);
-+		break;
-+
-+	case MUX_EXP_CAMERA_SENSOR:
-+		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
-+		break;
-+
-+	default:
-+		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct mt9m032_platform_data mt9m032_platform_data = {
-+	.ext_clock = 13500000,
-+	.pll_pre_div = 6,
-+	.pll_mul = 120,
-+	.pll_out_div = 5,
-+	.invert_pixclock = 1,
-+};
-+
-+static struct i2c_board_info camera_i2c_devices[] = {
-+	{
-+		I2C_BOARD_INFO(MT9M032_NAME, MT9M032_I2C_ADDR),
-+		.platform_data = &mt9m032_platform_data,
-+	},
-+};
-+
-+static struct isp_subdev_i2c_board_info camera_i2c_subdevs[] = {
-+	{
-+		.board_info = &camera_i2c_devices[0],
-+		.i2c_adapter_id = MT9M032_I2C_BUS_NUM,
-+	},
-+	{},
-+};
-+
-+static struct isp_v4l2_subdevs_group camera_subdevs[] = {
-+	{
-+		.subdevs = camera_i2c_subdevs,
-+		.interface = ISP_INTERFACE_PARALLEL,
-+		.bus = {
-+			.parallel = {
-+				.data_lane_shift = 1,
-+				.clk_pol = 0,
-+				.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
-+			}
-+		},
-+	},
-+	{},
-+};
-+
-+static struct isp_platform_data isp_platform_data = {
-+	.subdevs = camera_subdevs,
-+};
-+
-+static int __init camera_init(void)
-+{
-+	int ret = -EINVAL;
-+	
-+	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
-+	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL") < 0) {
-+		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
-+		       nCAM_VD_SEL);
-+		goto err;
-+	}
-+	if (gpio_direction_output(nCAM_VD_SEL, 1) < 0) {
-+		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_SEL(%d) direction\n",
-+		       nCAM_VD_SEL);
-+		goto err_vdsel;
-+	}
-+
-+	if (gpio_request(EVM_TWL_GPIO_BASE + 2, "T2_GPIO2") < 0) {
-+		pr_err("omap3evm-camera: Failed to get GPIO T2_GPIO2(%d)\n",
-+		       EVM_TWL_GPIO_BASE + 2);
-+		goto err_vdsel;
-+	}
-+	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 2, 0) < 0) {
-+		pr_err("omap3evm-camera: Failed to set GPIO T2_GPIO2(%d) direction\n",
-+		       EVM_TWL_GPIO_BASE + 2);
-+		goto err_2;
-+	}
-+
-+	if (gpio_request(EVM_TWL_GPIO_BASE + 8, "nCAM_VD_EN") < 0) {
-+		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_EN(%d)\n",
-+		       EVM_TWL_GPIO_BASE + 8);
-+		goto err_2;
-+	}
-+	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 8, 0) < 0) {
-+		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_EN(%d) direction\n",
-+		       EVM_TWL_GPIO_BASE + 8);
-+		goto err_8;
-+	}
-+
-+	omap3evm_set_mux(MUX_CAMERA_SENSOR);
-+
-+	
-+	ret = omap3_init_camera(&isp_platform_data);
-+	if (ret < 0)
-+		goto err_8;
-+	return 0;
-+	
-+err_8:
-+	gpio_free(EVM_TWL_GPIO_BASE + 8);
-+err_2:
-+	gpio_free(EVM_TWL_GPIO_BASE + 2);
-+err_vdsel:
-+	gpio_free(nCAM_VD_SEL);
-+err:
-+	return ret;
-+}
-+
-+device_initcall(camera_init);
--- 
-1.7.2.5
+> -ti8148evm               MACH_TI8148EVM          TI8148EVM            3004
+
+I guess this was removed due to being older than 12 months.
+
+But since I had submitted v1 (see [1]) and am working on v2 post review, can you
+please suggest how to go about it as I will need the above for adding support
+for TI8148 EVM?
+
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53457.html
+
+Thanks.
+
+   Hemant
