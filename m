@@ -1,57 +1,227 @@
-From: =?utf-8?B?5LuFMTDlhYPmr4/lpKk=?= <test@amidress.com>
-Subject: =?utf-8?B?576k5Y+R6L2v5Lu2K+S5sOWutuaQnOe0ouacuisxMDnlsYrlub/kuqTkvJrkubDlrrY=?=
-	=?utf-8?B?44CB5rW35YWz5pWw5o2uLEIyQuivouebmOS5sOWutjUwMOS4h+OAgg==?=
-Date: Sat, 17 Sep 2011 08:48:18 +0000 (UTC)
-Message-ID: <20111215003045771347@amidress.com>
-Reply-To: <1339625218@qq.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 184.172.211.66-static.reverse.softlayer.com ([184.172.211.66]:3939
-	"HELO amidress.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751735Ab1IQIsG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Sep 2011 04:48:06 -0400
-Date: Thu, 15 Dec 2011 00:30:37 +0800
-Sender: linux-omap-owner@vger.kernel.org
+From: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based camera board.
+Date: Sat, 17 Sep 2011 11:34:57 +0200
+Message-ID: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Martin Hostettler <martin@neutronstar.dyndns.org>
 List-Id: linux-omap@vger.kernel.org
 
-576k5Y+R6L2v5Lu2KzEwOeWxiuW5v+S6pOS8muS5sOWutuOAgea1t+WFs+aVsOaNruOAgeaQnOe0
-ouW8leaTjuS5sOWutixCMkLor6Lnm5jkubDlrrblhbE1MDDkuIcs5LuFMTDlhYPmr4/lpKnjgIIg
-DQrkv53or4Hmr4/lpKnpg73mnInkubDlrrblm57lpI3jgIINCuS/neivgeavj+WkqemDveacieS5
-sOWutuWbnuWkjeOAgg0KDQoNCjHjgIHnvqTlj5Hova/ku7bvvJog5pON5L2c566A5Y2V77yM5Yqf
-6IO95by65aSn77yM5qih5Lu/5Lq65bel5pON5L2c5qih5byP77yM5Yiw6L6+546H6auY77yM5pel
-5Y+R6YCBNeS4h+WwgeS7peS4iuOAgiANCjLjgIE1MDDkuIfkubDlrrbotYTmupDvvJog6LWg6YCB
-55qENTAw5LiH5Lmw5a626LWE5rqQ5bqT77yM5q+P5pyI5pu05pawIOOAgiANCjPjgIHotoXnuqfm
-tbflpJbkubDlrrZFbWFpbOaQnOe0ouacuu+8miDmr4/lpKnog73mkJzntKIxLTLkuIfku6XkuIrk
-ubDlrrbnnJ/lrp5FTUFJTO+8jOaIkOWNleeOh+mrmOOAgiANCiANCg0K6KaB55qE5oqT57Sn6IGU
-57O7UVE6IDEzMzk2MjUyMTggICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEzMzk2MjUyMThA
-cXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogMTMzOTYyNTIxOCAgIOaIluiAheeri+WNs+Wb
-nuWkjemCrueusTogMTMzOTYyNTIxOEBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzM5
-NjI1MjE4ICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMzM5NjI1MjE4QHFxLmNvbQ0KDQrl
-hY3otLnotaDpgIE6DQrkuIDlhbE45Liq5YyFKOaVsOaNruaYr+WFqOihjOS4mueahO+8jOaMieeF
-p+ihjOS4muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeafpeivoueahCnv
-vJogDQox77yMMjAxMeaYpeWtozEwOeWxiuW5v+S6pOS8muS5sOWutueOsOWcuuivouebmOaVsOaN
-ruW6k+aWsOmynOWHuueCie+8jOi2hee6p+aWsOmynOS5sOWutu+8jOaWsOmynOaVsOaNru+8jOWu
-ueaYk+aIkOWNle+8gSANCjLvvIzotK3kubDlkI7lj6/ku6XlhY3otLnmm7TmlrAyMDEx56eL5a2j
-5bm/5Lqk5LyaKzIwMTLmmKXlraPlub/kuqTkvJrkubDlrrbmlbDmja7jgILlpKrotoXlgLzkuobj
-gIINCjPvvIzmnIDmlrDlhajnkIPkubDlrrblupMs5YWxNDUxNjYw5p2h5pWw5o2u44CCICjmnIDm
-lrDmm7TmlrDml6XmnJ8gMjAxMS0wNS0xNuaXpSkNCjTvvIwyMDA45bm0LDIwMDnlubQsMjAxMOW5
-tCDmmKXlraMr56eL5a2j5bm/5Lqk5Lya5Lmw5a625ZCN5b2V77yMMTAzIDEwNCAxMDUgMTA2IDEw
-NyAxMDgg5YWx5YWt5bGKIOWFsTEyMC425LiH5pWw5o2u44CCDQo177yMMjAxMOW5tOWbvemZheS/
-g+mUgOWNj+S8mu+8iFBQQUnvvInmiJDlkZjlkI3ljZUgUFBBSSBNZW1iZXJzIERpcmVjdG9yee+8
-jOmdnuW4uOmHjeimgeeahOWkp+S5sOWutuOAgg0KNu+8jDIwMTDlubTliLDpppnmuK/ph4fotK3n
-moTlm73lpJblrqLkurrlkI3lvZUo6aaZ5riv6LS45Y+R5bGA5o+Q5L6bKe+8jOWFsTcuMuS4h+aV
-sOaNru+8jOi2hee6p+mHjeimgeeahOS5sOWutuOAgg0KN++8jDQ4LjY45LiH5p2h5pyA5paw5Lmw
-5a626K+i55uY77yM6LSt5Lmw5ZCO5q+P5pyI5pu05pawIDEtMuS4h+adoe+8jOWMheaLrDLpg6jl
-iIbvvIwx77yM5pyA5paw55qE6K+i55uYIDLvvIzmnIDmlrDnmoTlsZXkvJrkubDlrrbjgILlhY3o
-tLnmm7TmlrAzNuS4quaciOOAgg0KOO+8jDIwMDnlubTmtbflhbPmj5DljZXmlbDmja5waWVyc+eJ
-iOaVsOaNriAx5Y2D5LiH44CCDQoNCg0K6K+a5L+h5Li65pys77yM5pSv5oyB5pSv5LuY5a6d5ouF
-5L+d5Lqk5piTICjlhYjlj5HotKflubblronoo4Xorr7nva7nvqTlj5Hova/ku7bvvIznhLblkI7k
-u5jmrL4pIOW9u+W6leaJk+a2iOaCqOeahCDpob7omZHjgIINCg0KIA0KDQoNCiANCg0K57K+5YeG
-5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+
-5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K
-57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K
+Adds board support for an MT9M032 based camera to omap3evm.
 
+Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+---
+ arch/arm/mach-omap2/Makefile                |    1 +
+ arch/arm/mach-omap2/board-omap3evm-camera.c |  183 +++++++++++++++++++++++++++
+ 2 files changed, 184 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
 
+Changes in V2:
+ * ported to current mainline
+ * Style fixes
+ * Fix error handling
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index f343365..8ae3d25 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -202,6 +202,7 @@ obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o \
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
++					   board-omap3evm-camera.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+ 					   hsmmc.o
+diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
+new file mode 100644
+index 0000000..be987d9
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+@@ -0,0 +1,183 @@
++/*
++ * Copyright (C) 2010-2011 Lund Engineering
++ * Contact: Gil Lund <gwlund@lundeng.com>
++ * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
++ *
++ * Board intregration for a MT9M032 camera connected to IMAGE_CONN and I2C Bus 2
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <linux/i2c.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++
++#include <linux/gpio.h>
++#include <plat/mux.h>
++#include "mux.h"
++
++#include "../../../drivers/media/video/omap3isp/isp.h"
++#include "media/mt9m032.h"
++
++#include "devices.h"
++
++#define EVM_TWL_GPIO_BASE OMAP_MAX_GPIO_LINES
++#define GPIO98_VID_DEC_RES	98
++#define nCAM_VD_SEL		157
++
++#define MT9M032_I2C_BUS_NUM	2
++
++
++enum omap3evmdc_mux {
++	MUX_TVP5146,
++	MUX_CAMERA_SENSOR,
++	MUX_EXP_CAMERA_SENSOR,
++};
++
++/**
++ * omap3evm_set_mux - Sets mux to enable signal routing to
++ *                           different peripherals present on new EVM board
++ * @mux_id: enum, mux id to enable
++ *
++ * Returns 0 for success or a negative error code
++ */
++static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
++{
++	/* Set GPIO6 = 1 */
++	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
++	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++
++	switch (mux_id) {
++	case MUX_TVP5146:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++		gpio_set_value(nCAM_VD_SEL, 1);
++		break;
++
++	case MUX_CAMERA_SENSOR:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++		gpio_set_value(nCAM_VD_SEL, 0);
++		break;
++
++	case MUX_EXP_CAMERA_SENSOR:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
++		break;
++
++	default:
++		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static struct mt9m032_platform_data mt9m032_platform_data = {
++	.ext_clock = 13500000,
++	.pll_pre_div = 6,
++	.pll_mul = 120,
++	.pll_out_div = 5,
++	.invert_pixclock = 1,
++};
++
++static struct i2c_board_info camera_i2c_devices[] = {
++	{
++		I2C_BOARD_INFO(MT9M032_NAME, MT9M032_I2C_ADDR),
++		.platform_data = &mt9m032_platform_data,
++	},
++};
++
++static struct isp_subdev_i2c_board_info camera_i2c_subdevs[] = {
++	{
++		.board_info = &camera_i2c_devices[0],
++		.i2c_adapter_id = MT9M032_I2C_BUS_NUM,
++	},
++	{},
++};
++
++static struct isp_v4l2_subdevs_group camera_subdevs[] = {
++	{
++		.subdevs = camera_i2c_subdevs,
++		.interface = ISP_INTERFACE_PARALLEL,
++		.bus = {
++			.parallel = {
++				.data_lane_shift = 1,
++				.clk_pol = 0,
++				.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
++			}
++		},
++	},
++	{},
++};
++
++static struct isp_platform_data isp_platform_data = {
++	.subdevs = camera_subdevs,
++};
++
++static int __init camera_init(void)
++{
++	int ret = -EINVAL;
++	
++	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
++	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL") < 0) {
++		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
++		       nCAM_VD_SEL);
++		goto err;
++	}
++	if (gpio_direction_output(nCAM_VD_SEL, 1) < 0) {
++		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_SEL(%d) direction\n",
++		       nCAM_VD_SEL);
++		goto err_vdsel;
++	}
++
++	if (gpio_request(EVM_TWL_GPIO_BASE + 2, "T2_GPIO2") < 0) {
++		pr_err("omap3evm-camera: Failed to get GPIO T2_GPIO2(%d)\n",
++		       EVM_TWL_GPIO_BASE + 2);
++		goto err_vdsel;
++	}
++	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 2, 0) < 0) {
++		pr_err("omap3evm-camera: Failed to set GPIO T2_GPIO2(%d) direction\n",
++		       EVM_TWL_GPIO_BASE + 2);
++		goto err_2;
++	}
++
++	if (gpio_request(EVM_TWL_GPIO_BASE + 8, "nCAM_VD_EN") < 0) {
++		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_EN(%d)\n",
++		       EVM_TWL_GPIO_BASE + 8);
++		goto err_2;
++	}
++	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 8, 0) < 0) {
++		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_EN(%d) direction\n",
++		       EVM_TWL_GPIO_BASE + 8);
++		goto err_8;
++	}
++
++	omap3evm_set_mux(MUX_CAMERA_SENSOR);
++
++	
++	ret = omap3_init_camera(&isp_platform_data);
++	if (ret < 0)
++		goto err_8;
++	return 0;
++	
++err_8:
++	gpio_free(EVM_TWL_GPIO_BASE + 8);
++err_2:
++	gpio_free(EVM_TWL_GPIO_BASE + 2);
++err_vdsel:
++	gpio_free(nCAM_VD_SEL);
++err:
++	return ret;
++}
++
++device_initcall(camera_init);
+-- 
+1.7.2.5
