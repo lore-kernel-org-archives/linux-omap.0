@@ -1,56 +1,66 @@
 From: Santosh <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 24/25] OMAP4: cpuidle: Switch to gptimer from twd in deeper
- C-states.
-Date: Sun, 18 Sep 2011 14:18:17 +0530
-Message-ID: <4E75B051.9000503@ti.com>
-References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>	<1315144466-9395-25-git-send-email-santosh.shilimkar@ti.com> <878vpope90.fsf@ti.com>
+Subject: Re: [PATCH v2 1/8] OMAP: hwmod: Fix the addr spaces, irq, dma count
+ APIs.
+Date: Sun, 18 Sep 2011 14:28:42 +0530
+Message-ID: <4E75B2C2.6070904@ti.com>
+References: <1315584134-3869-1-git-send-email-r.sricharan@ti.com> <4E736DDE.9090300@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:46222 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750753Ab1IRIsX (ORCPT
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40428 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755370Ab1IRI6r (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 18 Sep 2011 04:48:23 -0400
-Received: by gxk5 with SMTP id 5so10840024gxk.39
-        for <linux-omap@vger.kernel.org>; Sun, 18 Sep 2011 01:48:21 -0700 (PDT)
-In-Reply-To: <878vpope90.fsf@ti.com>
+	Sun, 18 Sep 2011 04:58:47 -0400
+Received: by mail-gx0-f182.google.com with SMTP id 28so4966805gxk.13
+        for <linux-omap@vger.kernel.org>; Sun, 18 Sep 2011 01:58:46 -0700 (PDT)
+In-Reply-To: <4E736DDE.9090300@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, rnayak@ti.com
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "R, Sricharan" <r.sricharan@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pswan.com" <paul@pswan.com>
 
-On Friday 16 September 2011 11:21 PM, Kevin Hilman wrote:
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+On Friday 16 September 2011 09:10 PM, Cousson, Benoit wrote:
+> Hi Sricharan,
 > 
->> CPU local timer(TWD) stops when the CPU is transitioning into
->> deeper C-States. Since these timers are not wakeup capable, we
->> need the wakeup capable global timer to program the wakeup time
->> depending on the next timer expiry.
+> On 9/9/2011 6:02 PM, R, Sricharan wrote:
+>> The address spaces, irqs and dma reqs count API returns the
+>> number of corresponding entries in a hwmod including a additional
+>> null value or a -1 terminator in the structure introduced
+>> recently. More information here:
 >>
->> It can be handled by registering a global wakeup capable timer along
->> with local timers marked with (mis)feature flag CLOCK_EVT_FEAT_C3STOP.
-> 
-> nit: this comment makes is sound like this patch adds the registration
-> of this timer, when all this patch does is add the notification.
-> 
-> Changelog should be updated to make it clear that the global timer exists
-> already, and is already marked with the C3STOP flag.
-> 
- Will add couple of lines in the change log to make it clear.
-
->> Then notify the clock events layer from idle code using
->> CLOCK_EVT_NOTIFY_BROADCAST_ENTER/EXIT).
+>>     212738a4 (omap_hwmod: use a terminator record with
+>> omap_hwmod_mpu_irqs arrays)
+>>     78183f3f (omap_hwmod: use a null structure record to terminate
+>> omap_hwmod_addr_space arrays)
+>>     bc614958 (omap_hwmod: use a terminator record with
+>> omap_hwmod_dma_info arrays)
 >>
->> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Kevin Hilman <khilman@ti.com>
+>> The devices which have multiple hwmods and use device_build_ss are
+>> broken with this, as their resources are populated with a
+>> extra null value, subsequently the probe fails. So fix the API not to
+>> include the array terminator in the count.
+>>
+>> Signed-off-by: sricharan<r.sricharan@ti.com>
+>> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>> Cc: Benoit Cousson<b-cousson@ti.com>
+>> Cc: Paul Walmsley<paul@pwsan.com>
+>> Cc: Kevin Hilman<khilman@ti.com>
 > 
-> Other than that
+> It would have been nice to give me the credit for the bug report on the
+> other functions, but otherwise:
 > 
-> Acked-by: Kevin Hilman <khilman@ti.com>
-> 
-Thanks.
+Sure. Will add reported-by of yours.
 
-Regards
+> Acked-by: Benoit Cousson <b-cousson@ti.com>
+> 
+Thanks
+
+> And I still prefer the return i - 1 :-)
+> 
+Let's do "i-1" as you prefer. Maintainer
+always have final say !!
+
+Regards,
 Santosh
