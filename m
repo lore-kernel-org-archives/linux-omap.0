@@ -1,55 +1,63 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: Re: [PATCH 1/2] misc: remove CONFIG_MISC_DEVICES
-Date: Sun, 18 Sep 2011 11:45:16 -0700
-Message-ID: <4E763C3C.3050909@xenotime.net>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <201109021643.14275.arnd@arndb.de> <20110905144134.2c80c4b9@endymion.delvare> <201109051619.35553.arnd@arndb.de> <4E760A31.8030807@xenotime.net> <20110918152835.GA30696@kroah.com>
+From: martin@neutronstar.dyndns.org
+Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based
+ camera board.
+Date: Sun, 18 Sep 2011 22:10:22 +0200
+Message-ID: <1316376623.565262.7548@localhost>
+References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
+ <1316291069.1610.23.camel@Joe-Laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20110918152835.GA30696@kroah.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Jean Delvare <khali@linux-fr.org>, Luciano Coelho <coelho@ti.com>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:57978 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754718Ab1IRUKb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Sep 2011 16:10:31 -0400
+Content-Disposition: inline
+In-Reply-To: <1316291069.1610.23.camel@Joe-Laptop>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 
-On 09/18/2011 08:28 AM, Greg KH wrote:
-> On Sun, Sep 18, 2011 at 08:11:45AM -0700, Randy Dunlap wrote:
->> On 09/05/2011 07:19 AM, Arnd Bergmann wrote:
->>> I think it would simply be more consistent to have it enabled all
->>> the time. Well, even better would be to move the bulk of the misc
->>> drivers to a proper location sorted by their subsystems. A lot of them
->>> should never have been merged in their current state IMHO.
->>
->>
->> If it's clear where they belong, then sure, they should be somewhere
->> other than drivers/misc/, but I don't see that it's clear for several
->> of them.
->>
->>
->>> I think I should finally do what has been  talked about a few times and
->>> formally become the maintainer of drivers/char and drivers/misc ;-)
->>>
->>> The problem is that I'm not actually a good maintainer, but maybe it's
->>> better to just have someone instead of falling back to Andrew or
->>> some random subsystem maintainer to send any patches for drivers/misc.
->>
->> We have fallbacks to Andrew and/or GregKH currently, but GregKH is not
->> consistent or timely with applying drivers/misc/ patches.  It deserves better.
->> [added him to Cc: list]
+On Sat, Sep 17, 2011 at 01:24:29PM -0700, Joe Perches wrote:
+> On Sat, 2011-09-17 at 11:34 +0200, Martin Hostettler wrote:
+> > Adds board support for an MT9M032 based camera to omap3evm.
 > 
-> I do try to handle patches sent to me for misc/ in time for the
-> different merge windows as that directory contains drivers that have
-> moved out of the staging/ directory.
+> All of the logging messages could be
+> prefixed by the printk subsystem if you
+> add #define pr_fmt before any #include
+
+Ah, i didn't really knew about that feature yet. I really have to keep
+that in mind when grepping for error messages in the future.
+
+But i don't think it would help much, as i now reducted the total number
+of pr_err calls to 2 in this patch.
+
+Thanks for the idea anyway.
+
+ - Martin Hostettler
+
 > 
-> But yes, I'm not the overall drivers/misc/ maintainer, do we really need
-> one?  If so, I can easily start maintaining a development tree for it to
-> keep it separate for the different driver authors to send me stuff and
-> start tracking it more "for real" if Arnd doesn't want to do it.
-
-We need for the patches to be applied in a timely manner.
-Sometimes when there is no real maintainer, that does not happen.
-
--- 
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+> > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
+> []
+> #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> []
+> > +static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
+> []
+> > +	switch (mux_id) {
+> []
+> > +	default:
+> > +		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
+> 
+> 		pr_err("Invalid mux id #%d\n", mux_id);
+> []
+> > +static int __init camera_init(void)
+> []
+> > +	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL") < 0) {
+> > +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
+> > +		       nCAM_VD_SEL);
+> 
+> 		pr_err("Failed to get GPIO nCAM_VD_SEL(%d)\n",
+> 		       nCAM_VD_SEL);
+> etc.
+> 
