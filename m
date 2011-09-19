@@ -1,263 +1,99 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 2/2] OMAP: omap_device: Add a method to build an omap_device
- from a DT node
-Date: Mon, 19 Sep 2011 15:22:36 +0200
-Message-ID: <4E77421C.3000202@ti.com>
-References: <1316184199-12599-1-git-send-email-b-cousson@ti.com> <1316184199-12599-3-git-send-email-b-cousson@ti.com> <20110917161314.GV3523@ponder.secretlab.ca>
+From: "Saxena, Parth" <parth.saxena@ti.com>
+Subject: [PATCH] ti816x: add support for nand on ti8168 evm
+Date: Mon, 19 Sep 2011 18:54:08 +0530
+Message-ID: <1316438648-25760-1-git-send-email-parth.saxena@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54811 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753773Ab1ISNWs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Sep 2011 09:22:48 -0400
-In-Reply-To: <20110917161314.GV3523@ponder.secretlab.ca>
+Received: from devils.ext.ti.com ([198.47.26.153]:44860 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754990Ab1ISNYR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 09:24:17 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>, "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-mtd@lists.infradead.org, tony@atomide.com, "Saxena, Parth" <parth.saxena@ti.com>, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>
 
-On 9/17/2011 6:13 PM, Grant Likely wrote:
-> On Fri, Sep 16, 2011 at 04:43:19PM +0200, Benoit Cousson wrote:
->> Add a notifier called during device_add phase. If an of_node is present,
->> retrieve the hwmod entry in order to populate properly the omap_device
->> structure.
->> For the moment the resource from the device-tree are overloaded.
->> DT does not support named resource yet, and thus, most driver
->> will not work without that information.
->>
->> Add two helpers function to parse a property that contains multiple
->> strings.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Kevin Hilman<khilman@ti.com>
->> ---
->>   arch/arm/plat-omap/omap_device.c |  144 ++++++++++++++++++++++++++++++++++++++
->>   1 files changed, 144 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
->> index cac7b9a..da13630 100644
->> --- a/arch/arm/plat-omap/omap_device.c
->> +++ b/arch/arm/plat-omap/omap_device.c
->> @@ -85,6 +85,8 @@
->>   #include<linux/clk.h>
->>   #include<linux/clkdev.h>
->>   #include<linux/pm_runtime.h>
->> +#include<linux/of.h>
->> +#include<linux/notifier.h>
->>
->>   #include<plat/omap_device.h>
->>   #include<plat/omap_hwmod.h>
->> @@ -94,12 +96,15 @@
->>   #define USE_WAKEUP_LAT			0
->>   #define IGNORE_WAKEUP_LAT		1
->>
->> +#define MAX_HWMOD_NAME_SIZE		32
->> +
->>   static int omap_device_register(struct platform_device *pdev);
->>   static int omap_early_device_register(struct platform_device *pdev);
->>   static struct omap_device *omap_device_alloc(struct platform_device *pdev,
->>   				      struct omap_hwmod **ohs, int oh_cnt,
->>   				      struct omap_device_pm_latency *pm_lats,
->>   				      int pm_lats_cnt);
->> +static void omap_device_delete(struct omap_device *od);
->>
->>
->>   static struct omap_device_pm_latency omap_default_latency[] = {
->> @@ -315,6 +320,138 @@ static void _add_hwmod_clocks_clkdev(struct omap_device *od,
->>   		_add_clkdev(od, oh->opt_clks[i].role, oh->opt_clks[i].clk);
->>   }
->>
->> +/*
->> + * XXX: DT helper functions that should probably move elsewhere if
->> + * they become usefull for other needs.
->> + */
->
-> Lets just *assume* these are useful for other needs and start with
-> them in drivers/of so that other people know that they actually exist.
-> Otherwise they will never be made generic. :-)
+Add partition table for NAND device on TI8168 EVM
+and initialise the NAND module.
 
-Good point...
+Signed-off-by: Saxena, Parth <parth.saxena@ti.com>
+Signed-off-by: Basheer, Mansoor Ahamed <mansoor.ahamed@ti.com>
+---
 
-But, meanwhile Stephen Warren proposed a much nicer iterator to deal 
-with that. Since these patches are still not in mainline, I didn't want 
-to depend on them yet. So my "secret" plan was to remove these functions 
-once the ones from Stephen will be merged.
+This patch is tested on top of linux-omap/master and
+Hemant's patches submitted recently.
 
->> +static int _dt_count_property_string(const char *prop, int len)
->> +{
->> +	int i = 0;
->> +	size_t l = 0, total = 0;
->> +
->> +	if (!prop || !len)
->> +		return -EINVAL;
->> +
->> +	for (i = 0; len>= total; total += l, prop += l) {
->> +		l = strlen(prop) + 1;
->> +		if (*prop != 0)
->> +			i++;
->> +	}
->> +	return i;
->> +}
->> +
->> +static int _dt_get_property(const char *prop, int len, int index, char *output,
->> +			    int size)
->> +{
->> +	int i = 0;
->> +	size_t l = 0, total = 0;
->> +
->> +	if (!prop || !len)
->> +		return -EINVAL;
->> +
->> +	for (i = 0; len>= total; total += l, prop += l) {
->> +		l = strlcpy(output, prop, size) + 1;
->> +		if (*prop != 0) {
->> +			if (i++ == index)
->> +				return 0;
->> +		}
->> +	}
->> +	return -ENODEV;
->> +}
->> +
->> +static struct dev_pm_domain omap_device_pm_domain;
->> +
->> +/**
->> + * omap_device_build_from_dt - build an omap_device with multiple hwmods
->> + * @pdev_name: name of the platform_device driver to use
->> + * @pdev_id: this platform_device's connection ID
->> + * @oh: ptr to the single omap_hwmod that backs this omap_device
->> + * @pdata: platform_data ptr to associate with the platform_device
->> + * @pdata_len: amount of memory pointed to by @pdata
->> + * @pm_lats: pointer to a omap_device_pm_latency array for this device
->> + * @pm_lats_cnt: ARRAY_SIZE() of @pm_lats
->> + * @is_early_device: should the device be registered as an early device or not
->> + *
->> + * Function for building an omap_device already registered from device-tree
->> + *
->> + * Returns 0 or PTR_ERR() on error.
->> + */
->> +static int omap_device_build_from_dt(struct platform_device *pdev)
->> +{
->> +	struct omap_hwmod **hwmods;
->> +	struct omap_device *od;
->> +	struct omap_hwmod *oh;
->> +	char oh_name[MAX_HWMOD_NAME_SIZE];
->> +	const char *prop;
->> +	int oh_cnt, i, prop_len;
->> +	int ret = 0;
->> +
->> +	prop = of_get_property(pdev->dev.of_node, "hwmods",&prop_len);
->
-> I know you've posted it before, but what is the status of the "hwmods"
-> binding documentation.  I would expect it to be part of this patch.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53457.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg54296.html
 
-It was part of the series that introduced the first node with hwmods 
-attribute 
-(http://lists.ozlabs.org/pipermail/devicetree-discuss/2011-August/007621.html).
-I do agree, it makes sense to add it here.
+ arch/arm/mach-omap2/board-ti8168evm.c |   39 +++++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+), 0 deletions(-)
 
->> +	oh_cnt = _dt_count_property_string(prop, prop_len);
->> +	if (!oh_cnt || IS_ERR_VALUE(oh_cnt)) {
->> +		dev_warn(&pdev->dev, "No 'hwmods' to build omap_device\n");
->> +		return -ENODEV;
->> +	}
->> +
->> +	hwmods = kzalloc(sizeof(struct omap_hwmod *) * oh_cnt, GFP_KERNEL);
->> +	if (!hwmods) {
->> +		ret = -ENOMEM;
->> +		goto odbfd_exit;
->> +	}
->> +
->> +	for (i = 0; i<  oh_cnt; i++) {
->> +		_dt_get_property(prop, prop_len, i, oh_name,
->> +				 MAX_HWMOD_NAME_SIZE);
->> +
->> +		oh = omap_hwmod_lookup(oh_name);
->> +		if (!oh) {
->> +			dev_err(&pdev->dev, "Cannot lookup hwmod '%s'\n",
->> +				oh_name);
->> +			ret = -EINVAL;
->> +			goto odbfd_exit1;
->> +		}
->> +		hwmods[i] = oh;
->> +	}
->> +
->> +	od = omap_device_alloc(pdev, hwmods, oh_cnt, NULL, 0);
->> +	if (!od) {
->> +		dev_err(&pdev->dev, "Cannot allocate omap_device for :%s\n",
->> +			oh_name);
->> +		ret = PTR_ERR(od);
->> +		goto odbfd_exit1;
->> +	}
->> +
->> +	if (of_get_property(pdev->dev.of_node, "no_idle_on_suspend", NULL))
->> +		omap_device_disable_idle_on_suspend(pdev);
->> +
->> +	pdev->dev.pm_domain =&omap_device_pm_domain;
->> +
->> +odbfd_exit1:
->> +	kfree(hwmods);
->> +odbfd_exit:
->> +	return ret;
->> +}
->> +
->> +static int _omap_device_notifier_call(struct notifier_block *nb,
->> +				      unsigned long event, void *dev)
->
-> Nit: Why the preceding underscore?  Generally that is only done for
-> 'special' variants of public functions.  ie. for a variant that
-> expects a lock to already be held.
+diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
+index e516a04..87953bb 100644
+--- a/arch/arm/mach-omap2/board-ti8168evm.c
++++ b/arch/arm/mach-omap2/board-ti8168evm.c
+@@ -14,6 +14,7 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/mtd/nand.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -23,6 +24,42 @@
+ #include <plat/irqs.h>
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/gpmc.h>
++#include <plat/nand.h>
++
++#include "board-flash.h"
++
++#define NAND_BLOCK_SIZE		SZ_128K
++
++static struct mtd_partition ti816x_nand_partitions[] = {
++/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name		= "U-Boot",
++		.offset		= 0,			/* Offset = 0x0 */
++		.size		= 18 * NAND_BLOCK_SIZE,
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot Env",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x240000 */
++		.size		= 2 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "Kernel",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
++		.size		= 34 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "File System",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x6C0000 */
++		.size		= 1601 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "Reserved",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0xCEE0000 */
++		.size		= MTDPART_SIZ_FULL,
++	},
++};
+ 
+ static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
+ };
+@@ -35,6 +72,8 @@ static void __init ti8168_init_early(void)
+ 
+ static void __init ti8168_evm_init(void)
+ {
++	board_nand_init(ti816x_nand_partitions,
++		ARRAY_SIZE(ti816x_nand_partitions), 0, NAND_BUSWIDTH_16);
+ 	omap_serial_init();
+ 	omap_board_config = ti8168_evm_config;
+ 	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
+-- 
+1.6.2.4
 
-Yeah, the convention in this file is not that strict, and it is used for 
-internal static helper function as well.
-I'll let Kevin arbitrate that point :-)
-
->> +{
->> +	struct platform_device *pdev = to_platform_device(dev);
->> +
->> +	switch (event) {
->> +	case BUS_NOTIFY_ADD_DEVICE:
->> +		if (pdev->dev.of_node)
->> +			omap_device_build_from_dt(pdev);
->> +		break;
->> +
->> +	case BUS_NOTIFY_DEL_DEVICE:
->> +		if (pdev->archdata.od)
->> +			omap_device_delete(pdev->archdata.od);
->> +		break;
->> +	}
->> +
->> +	return NOTIFY_DONE;
->> +}
->> +
->>
->>   /* Public functions for use by core code */
->>
->> @@ -499,6 +636,9 @@ oda_exit1:
->>
->>   static void omap_device_delete(struct omap_device *od)
->>   {
->> +	if (!od)
->> +		return;
->> +
->>   	od->pdev->archdata.od = NULL;
->>   	kfree(od->pm_lats);
->>   	kfree(od->hwmods);
->> @@ -1034,8 +1174,12 @@ struct device omap_device_parent = {
->>   	.parent         =&platform_bus,
->>   };
->>
->> +static struct notifier_block platform_nb;
->
-> Nit: Since it is static initialization, you can do the following
-> instead of setting it up in the init function.
->
-> static struct notifier_block platform_nb = {
-> 	.notifier_call = _omap_device_notifier_call;
-> };
-
-Much better, indeed.
-
-Thanks,
-Benoit
