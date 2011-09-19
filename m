@@ -1,44 +1,47 @@
-From: "Pedanekar, Hemant" <hemantp@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: Add support for dmtimer v2 ip (Re: [PATCH
- v15 06/12] OMAP: dmtimer: switch-over to platform device driver)
-Date: Mon, 19 Sep 2011 09:36:17 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4C80288@dbde02.ent.ti.com>
-References: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
- <1315516098-29761-7-git-send-email-tarun.kanti@ti.com>
- <20110914214533.GA30941@atomide.com>
- <CAC83ZvJgPYb3JbWT4SKXpQvq-vdKK4b6hd6E-ik5uyRCqgwWsg@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB59302575A050D@dbde02.ent.ti.com>
- <20110915165810.GA2284@atomide.com> <20110915170548.GB2284@atomide.com>
- <CAC83ZvKGoucZ=xQSa7GEk7Gg8jcFBQE==1a6m4=+nzDRrsw+jw@mail.gmail.com>
- <CAC83ZvKXEb7MTujP4JqhrPeysYxQcLF+BV-J9tpYoRwWGVZ8_Q@mail.gmail.com>
- <20110917013531.GB2937@atomide.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH] ti816x: add support for nand on ti8168 evm
+Date: Mon, 19 Sep 2011 07:56:20 +0300
+Message-ID: <1316408187.24366.52.camel@sauron>
+References: <parth.saxena@ti.com>
+	 <1315486982-30109-1-git-send-email-parth.saxena@ti.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46880 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750736Ab1ISEGa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Sep 2011 00:06:30 -0400
-In-Reply-To: <20110917013531.GB2937@atomide.com>
-Content-Language: en-US
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:61201 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750889Ab1ISExm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 00:53:42 -0400
+Received: by fxe4 with SMTP id 4so3523778fxe.19
+        for <linux-omap@vger.kernel.org>; Sun, 18 Sep 2011 21:53:41 -0700 (PDT)
+In-Reply-To: <1315486982-30109-1-git-send-email-parth.saxena@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Saxena, Parth" <parth.saxena@ti.com>
+Cc: linux-mtd@lists.infradead.org, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>, linux-omap@vger.kernel.org
 
-VG9ueSBMaW5kZ3JlbiB3cm90ZSBvbiBTYXR1cmRheSwgU2VwdGVtYmVyIDE3LCAyMDExIDc6MDYg
-QU06DQoNCj4gZGV2aWNlIGRyaXZlcikNCj4gDQo+ICogRGViQmFybWEsIFRhcnVuIEthbnRpIDx0
-YXJ1bi5rYW50aUB0aS5jb20+IFsxMTA5MTYgMDE6NTZdOg0KPj4gWy4uLl0NCj4gDQo+IEFmemFs
-LCBjYXJlIHRvIGNoZWNrIGlmIHRoYXQgd29ya3MgZm9yIEFNMzM1WC9USTgxNlgvVEk4MTRYPw0K
-PiBJdCB0cmllZCBpdCBicmllZmx5IHdpdGggb21hcDQgZ3B0aW1lcjMgYXMgdGhlIGNsb2NrZXZl
-bnQgYW5kDQo+IENPTkZJR19MT0NBTF9USU1FUiBkaXNhYmxlZC4gDQo+IA0KPiBUaGUgcGF0Y2gg
-aXMgYWdhaW5zdCB0aGUgY3VycmVudCBjbGVhbnVwIGJyYW5jaCBpbiBsaW51eC1vbWFwDQo+IHRy
-ZWUuDQo+IA0KPiBSZWdhcmRzLA0KPiANCj4gVG9ueQ0KPiANCj4gDQo+IEZyb206IFRvbnkgTGlu
-ZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+DQo+IERhdGU6IEZyaSwgMTYgU2VwIDIwMTEgMTU6NDQ6
-MjAgLTA3MDANCj4gU3ViamVjdDogW1BBVENIXSBBUk06IE9NQVA6IEFkZCBzdXBwb3J0IGZvciBk
-bXRpbWVyIHYyIGlwDQo+IA0KWy4uLl0NCg0KVG9ueSwNCktlcm5lbCBib290cyBmaW5lIG9uIFRJ
-ODE2WCAoc2hvdWxkIGFsc28gYm9vdCBvbiBUSTgxNFgpIHdpdGggeW91ciBwYXRjaA0KYW5kIHBh
-dGNoZXMgKGluY2x1ZGluZyBPU0MgY2xvY2sgZml4KSBmcm9tIHNlcmllcw0KaHR0cDovL3d3dy5z
-cGluaWNzLm5ldC9saXN0cy9saW51eC1vbWFwL21zZzU3MDExLmh0bWwgIA0KDQpUaGFua3MuDQoN
-CiAgIEhlbWFudA==
+On Thu, 2011-09-08 at 18:33 +0530, Saxena, Parth wrote:
+> Add partition table for NAND device on TI8168 EVM
+> and initialise the NAND module.
+> 
+> Signed-off-by: Saxena, Parth <parth.saxena@ti.com>
+> Signed-off-by: Basheer, Mansoor Ahamed <mansoor.ahamed@ti.com>
+> ---
+> 
+> This patch is tested on top of linux-omap/master and
+> Hemant's patches submitted recently.
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53457.html
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg54296.html
+> 
+>  arch/arm/mach-omap2/board-ti8168evm.c |   39 +++++++++++++++++++++++++++++++++
+>  1 files changed, 39 insertions(+), 0 deletions(-)
+
+Please, send this patch to Tony, I think it should go in via the omap
+tree, not via the MTD tree.
+
+-- 
+Best Regards,
+Artem Bityutskiy
+
