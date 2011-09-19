@@ -1,73 +1,66 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCHv8] 00/16] OMAP PRCM chain handler driver
-Date: Mon, 19 Sep 2011 19:20:47 +0530
-Message-ID: <CAAL8m4yx-1HcN5UhQH7JscBthVYXtZEM5dgAEnCFzZ+DLdF0bQ@mail.gmail.com>
-References: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 0/5 v9] mfd: omap: usb: Runtime PM support for EHCI and
+ OHCI drivers
+Date: Mon, 19 Sep 2011 15:56:53 +0200
+Message-ID: <20110919135653.GR32263@sortiz-mobl>
+References: <1316092970-2440-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:34697 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755083Ab1ISNvI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 09:51:08 -0400
-Received: by bkbzt4 with SMTP id zt4so5308441bkb.19
-        for <linux-omap@vger.kernel.org>; Mon, 19 Sep 2011 06:51:07 -0700 (PDT)
-In-Reply-To: <1316189150-21448-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1316092970-2440-1-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, b-cousson@ti.com, balbi@ti.com, gadiyar@ti.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, paul@pwsan.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm@lists.arm.linux.org.uk
 
-On Fri, Sep 16, 2011 at 9:35 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> Hello,
->
-> This patch set is the version 8 for the OMAP PRCM chain interrupt han=
-dler.
-> The driver is providing a chain handler for PRCM interrupt events, wh=
-ich
-> can be then individually used by different drivers. Currently PRCM in=
-terrupt
-> is owned by the PM core code and it is impossible for other users to =
-listen
-> to any of the PRCM events. Quite a few of the patches in this set are=
- tagged
-> as TEMP, they are not meant for integration at this point, but are pr=
-ovided
-> as FYI for educated users and as a means to test the driver out.
->
-> Changes compared to the previous set:
->
-> - PRCM chain handler is now a driver of its own
-> - The driver gets PRCM IP info from omap hwmod and configures itself =
-based
-> =A0on this
-> - Added temporary implementations for OMAP3 and OMAP4 PRM hwmods
->
-> Applies on top of Kevin's PM branch.
->
-> Testing done:
->
-> - platforms used: omap3 beagleboard and omap4430 blaze
-> - suspend / resume test with retention : ok on both
-> - cpuidle with retention test : ok on both
-> - off-mode testing : ok on omap3 (omap4 does not support off-mode yet=
-)
->
-> OMAP4 testing was done on top of a custom kernel tree, this patch set
-> does not work directly for omap4 on mainline.
->
+Hi Keshava,
 
+On Thu, Sep 15, 2011 at 06:52:45PM +0530, Keshava Munegowda wrote:
+> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+> 
+> The Hwmod structures and Runtime PM features are implemented
+> For EHCI and OHCI drivers of OMAP3 and OMAP4.
+> The global suspend/resume of EHCI and OHCI
+> is validated on OMAP3430 sdp board with these patches.
+> 
+> these patches are rebased to kevin's pm branch and
+> usbhs latest mainline kernel patches
 
-Looks like you have CC'ed the wrong arm mailing list.
+I'm ready to apply this one to my MFD for-next branch. Or do you want it to go
+through Kevin's tree ?
 
-I think it should be be linux-arm-kernel@lists.infradead.org
+Cheers,
+Samuel
 
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 
+> TODO:
+>    - Adding pad configurations to Hwmods
+>    - Aggressive clock cutting in usb bus suspends
+>    - Remote Wakeup implementation using irq-chaining
+> 
+> 
+> Benoit Cousson (1):
+>   arm: omap: usb: ehci and ohci hwmod structures for omap4
+> 
+> Keshava Munegowda (4):
+>   arm: omap: usb: ehci and ohci hwmod structures for omap3
+>   arm: omap: usb: register hwmods of usbhs
+>   arm: omap: usb: device name change for the clk names of usbhs
+>   mfd: omap: usb: Runtime PM support
+> 
+>  arch/arm/mach-omap2/clock3xxx_data.c       |   26 +-
+>  arch/arm/mach-omap2/clock44xx_data.c       |   10 +-
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  281 +++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  247 ++++++++++
+>  arch/arm/mach-omap2/usb-host.c             |  114 ++---
+>  arch/arm/plat-omap/include/plat/usb.h      |    3 -
+>  drivers/mfd/omap-usb-host.c                |  733 +++++++++++-----------------
+>  drivers/usb/host/ehci-omap.c               |   17 +-
+>  drivers/usb/host/ohci-omap3.c              |   18 +-
+>  9 files changed, 891 insertions(+), 558 deletions(-)
+> 
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
