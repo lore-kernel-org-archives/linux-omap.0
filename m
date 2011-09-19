@@ -1,56 +1,80 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: Add support for dmtimer v2 ip (Re: [PATCH
- v15 06/12] OMAP: dmtimer: switch-over to platform device driver)
-Date: Mon, 19 Sep 2011 10:52:04 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59302575A0FBC@dbde02.ent.ti.com>
-References: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
- <1315516098-29761-7-git-send-email-tarun.kanti@ti.com>
- <20110914214533.GA30941@atomide.com>
- <CAC83ZvJgPYb3JbWT4SKXpQvq-vdKK4b6hd6E-ik5uyRCqgwWsg@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB59302575A050D@dbde02.ent.ti.com>
- <20110915165810.GA2284@atomide.com> <20110915170548.GB2284@atomide.com>
- <CAC83ZvKGoucZ=xQSa7GEk7Gg8jcFBQE==1a6m4=+nzDRrsw+jw@mail.gmail.com>
- <CAC83ZvKXEb7MTujP4JqhrPeysYxQcLF+BV-J9tpYoRwWGVZ8_Q@mail.gmail.com>
- <20110917013531.GB2937@atomide.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 5/5 v9] mfd: omap: usb: Runtime PM support
+Date: Mon, 19 Sep 2011 11:35:12 +0530
+Message-ID: <CAP05o4+KOns9a-u0GdCe1SK65eo61iee4d8zYJ6DzpT_wec2Hg@mail.gmail.com>
+References: <1316092970-2440-1-git-send-email-keshava_mgowda@ti.com>
+	<1316092970-2440-2-git-send-email-keshava_mgowda@ti.com>
+	<1316092970-2440-3-git-send-email-keshava_mgowda@ti.com>
+	<1316092970-2440-4-git-send-email-keshava_mgowda@ti.com>
+	<1316092970-2440-5-git-send-email-keshava_mgowda@ti.com>
+	<1316092970-2440-6-git-send-email-keshava_mgowda@ti.com>
+	<4E729AFB.6010008@am.sony.com>
+	<CAP05o4JK9zdZ8P5o0Di+obDwYjur0p=TC-n9weznqx_odMzycw@mail.gmail.com>
+	<CAP05o4JxUPBM=PqguRL8-Mvgyf=wgxvg7UWMcRo2WXe2jmCUVA@mail.gmail.com>
+	<4E738B9A.3050908@am.sony.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57581 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750928Ab1ISFWP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Sep 2011 01:22:15 -0400
-In-Reply-To: <20110917013531.GB2937@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4E738B9A.3050908@am.sony.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: frank.rowand@am.sony.com
+Cc: "Rowand, Frank" <Frank_Rowand@sonyusa.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "b-cousson@ti.com" <b-cousson@ti.com>, "balbi@ti.com" <balbi@ti.com>, "gadiyar@ti.com" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@ti.com" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "vishwanath.bs@ti.com" <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Pedanekar, Hemant" <hemantp@ti.com>
 
-SGkgVG9ueSwNCg0KT24gU2F0LCBTZXAgMTcsIDIwMTEgYXQgMDc6MDU6MzEsIFRvbnkgTGluZGdy
-ZW4gd3JvdGU6DQo+IA0KPiBBZnphbCwgY2FyZSB0byBjaGVjayBpZiB0aGF0IHdvcmtzIGZvciBB
-TTMzNVgvVEk4MTZYL1RJODE0WD8NCg0KV2l0aCBmb2xsb3dpbmcgcGF0Y2ggb3ZlciB5b3Vycywg
-QU0zMzVYICh0aGUgb25seSBib2FyZCB3aXRoIG1lKSBib290cyB1cCBmaW5lLg0KDQpSZWdhcmRz
-DQpBZnphbA0KDQpGcm9tIGZmNjRhMjM5ZTYwZjliNTE3ODYwZWIyZmU5YzRmODhhMTg4Y2E1MWQg
-TW9uIFNlcCAxNyAwMDowMDowMCAyMDAxDQpGcm9tOiBBZnphbCBNb2hhbW1lZCA8YWZ6YWxAdGku
-Y29tPg0KRGF0ZTogTW9uLCAxOSBTZXAgMjAxMSAxMDowNjo1OSArMDUzMA0KU3ViamVjdDogW1BB
-VENIXSBBUk06IE9NQVA6IGRtdGltZXIgcmVnaXN0ZXIgc2FmZSBhY2Nlc3MNCg0KQWNjZXNzIGRt
-dGltZXIgcmVnaXN0ZXJzIGFmdGVyIHNldHRpbmcgaXQncyBwYXJlbnQNCmNsb2NrLiBJZiBkZWZh
-dWx0IHBhcmVudCBpcyBub3QgcGh5c2ljYWxseSBwcmVzZW50LA0KYWNjZXNzaW5nIHJlZ2lzdGVy
-IGNhdXNlcyBhYm9ydCwgc28gYWNjZXNzIHJlZ2lzdGVycw0KYWZ0ZXIgcHJvcGVyIHBhcmVudCBp
-cyBzZXQuDQoNClNpZ25lZC1vZmYtYnk6IEFmemFsIE1vaGFtbWVkIDxhZnphbEB0aS5jb20+DQot
-LS0NCiBhcmNoL2FybS9tYWNoLW9tYXAyL3RpbWVyLmMgfCAgICAyICstDQogMSBmaWxlcyBjaGFu
-Z2VkLCAxIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9hcmNo
-L2FybS9tYWNoLW9tYXAyL3RpbWVyLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3RpbWVyLmMNCmlu
-ZGV4IDE3NDZjNjkuLmFiYWJjNGQgMTAwNjQ0DQotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3Rp
-bWVyLmMNCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXIuYw0KQEAgLTE3Miw3ICsxNzIs
-NiBAQCBzdGF0aWMgaW50IF9faW5pdCBvbWFwX2RtX3RpbWVyX2luaXRfb25lKHN0cnVjdCBvbWFw
-X2RtX3RpbWVyICp0aW1lciwNCiAgICAgICAgfQ0KDQogICAgICAgIG9tYXBfaHdtb2RfZW5hYmxl
-KG9oKTsNCi0gICAgICAgX19vbWFwX2RtX3RpbWVyX2luaXRfcmVncyh0aW1lcik7DQoNCiAgICAg
-ICAgc3lzX3RpbWVyX3Jlc2VydmVkIHw9ICgxIDw8IChncHRpbWVyX2lkIC0gMSkpOw0KDQpAQCAt
-MTkwLDYgKzE4OSw3IEBAIHN0YXRpYyBpbnQgX19pbml0IG9tYXBfZG1fdGltZXJfaW5pdF9vbmUo
-c3RydWN0IG9tYXBfZG1fdGltZXIgKnRpbWVyLA0KICAgICAgICAgICAgICAgICAgICAgICAgY2xr
-X3B1dChzcmMpOw0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgfQ0KKyAgICAgICBfX29tYXBf
-ZG1fdGltZXJfaW5pdF9yZWdzKHRpbWVyKTsNCiAgICAgICAgX19vbWFwX2RtX3RpbWVyX3Jlc2V0
-KHRpbWVyLCAxLCAxKTsNCiAgICAgICAgdGltZXItPnBvc3RlZCA9IDE7DQoNCi0tDQoxLjYuMi40
-DQo=
+On Fri, Sep 16, 2011 at 11:17 PM, Frank Rowand <frank.rowand@am.sony.co=
+m> wrote:
+> On 09/16/11 00:31, Munegowda, Keshava wrote:
+>> On Fri, Sep 16, 2011 at 11:17 AM, Munegowda, Keshava
+>> <keshava_mgowda@ti.com> wrote:
+>>> On Fri, Sep 16, 2011 at 6:10 AM, Frank Rowand <frank.rowand@am.sony=
+=2Ecom> wrote:
+>>>> On 09/15/11 06:22, Keshava Munegowda wrote:
+>>>>> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>>>>>
+>>>>> The usbhs core driver does not enable/disable the interface and
+>>>>> functional clocks; These clocks are handled by hwmod and runtime =
+pm,
+>>>>> hence instead of the clock enable/disable, the runtime pm APIS ar=
+e
+>>>>> used. however,the port clocks are handled by the usbhs core.
+>>>>>
+>>>>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>>>>> Reviewed-by: Kevin Hilman <khilman@ti.com>
+>>>>> ---
+>>>>> =A0arch/arm/plat-omap/include/plat/usb.h | =A0 =A03 -
+>>>>> =A0drivers/mfd/omap-usb-host.c =A0 =A0 =A0 =A0 =A0 | =A0731 +++++=
+++++++++--------------------
+>>>>> =A0drivers/usb/host/ehci-omap.c =A0 =A0 =A0 =A0 =A0| =A0 17 +-
+>>>>> =A0drivers/usb/host/ohci-omap3.c =A0 =A0 =A0 =A0 | =A0 18 +-
+>>>>> =A04 files changed, 295 insertions(+), 474 deletions(-)
+>>>>>
+>>>>> diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/pla=
+t-omap/include/plat/usb.h
+>>>>> index 17d3c93..2b66dc2 100644
+>>>>
+>>>> Patch 5/5 is white space mangled. =A0The tabs have been changed in=
+to spaces.
+>>>>
+>>>> -Frank
+>>>
+>>
+>> Hi Frank
+>> =A0 =A0 =A0 =A0 =A0 I tried the checkpatch with --strict option; its=
+ not showing
+>> anything here. may be some problem with your editor/browser.
+>
+> It must be my email server, because when I pull the patch from an arc=
+hive
+> it has tabs. =A0Weird that only the fifth patch is being munged for m=
+e...
+>
+> Thanks for checking!
+>
+> -Frank
+
+
+Thanks Frank.
+
+regards
+keshava
