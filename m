@@ -1,47 +1,56 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH] ti816x: add support for nand on ti8168 evm
-Date: Mon, 19 Sep 2011 07:56:20 +0300
-Message-ID: <1316408187.24366.52.camel@sauron>
-References: <parth.saxena@ti.com>
-	 <1315486982-30109-1-git-send-email-parth.saxena@ti.com>
-Reply-To: dedekind1@gmail.com
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH] ARM: OMAP: Add support for dmtimer v2 ip (Re: [PATCH
+ v15 06/12] OMAP: dmtimer: switch-over to platform device driver)
+Date: Mon, 19 Sep 2011 10:52:04 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59302575A0FBC@dbde02.ent.ti.com>
+References: <1315516098-29761-1-git-send-email-tarun.kanti@ti.com>
+ <1315516098-29761-7-git-send-email-tarun.kanti@ti.com>
+ <20110914214533.GA30941@atomide.com>
+ <CAC83ZvJgPYb3JbWT4SKXpQvq-vdKK4b6hd6E-ik5uyRCqgwWsg@mail.gmail.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59302575A050D@dbde02.ent.ti.com>
+ <20110915165810.GA2284@atomide.com> <20110915170548.GB2284@atomide.com>
+ <CAC83ZvKGoucZ=xQSa7GEk7Gg8jcFBQE==1a6m4=+nzDRrsw+jw@mail.gmail.com>
+ <CAC83ZvKXEb7MTujP4JqhrPeysYxQcLF+BV-J9tpYoRwWGVZ8_Q@mail.gmail.com>
+ <20110917013531.GB2937@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:61201 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750889Ab1ISExm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 00:53:42 -0400
-Received: by fxe4 with SMTP id 4so3523778fxe.19
-        for <linux-omap@vger.kernel.org>; Sun, 18 Sep 2011 21:53:41 -0700 (PDT)
-In-Reply-To: <1315486982-30109-1-git-send-email-parth.saxena@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57581 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750928Ab1ISFWP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Sep 2011 01:22:15 -0400
+In-Reply-To: <20110917013531.GB2937@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Saxena, Parth" <parth.saxena@ti.com>
-Cc: linux-mtd@lists.infradead.org, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Pedanekar, Hemant" <hemantp@ti.com>
 
-On Thu, 2011-09-08 at 18:33 +0530, Saxena, Parth wrote:
-> Add partition table for NAND device on TI8168 EVM
-> and initialise the NAND module.
-> 
-> Signed-off-by: Saxena, Parth <parth.saxena@ti.com>
-> Signed-off-by: Basheer, Mansoor Ahamed <mansoor.ahamed@ti.com>
-> ---
-> 
-> This patch is tested on top of linux-omap/master and
-> Hemant's patches submitted recently.
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53457.html
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg54296.html
-> 
->  arch/arm/mach-omap2/board-ti8168evm.c |   39 +++++++++++++++++++++++++++++++++
->  1 files changed, 39 insertions(+), 0 deletions(-)
-
-Please, send this patch to Tony, I think it should go in via the omap
-tree, not via the MTD tree.
-
--- 
-Best Regards,
-Artem Bityutskiy
-
+SGkgVG9ueSwNCg0KT24gU2F0LCBTZXAgMTcsIDIwMTEgYXQgMDc6MDU6MzEsIFRvbnkgTGluZGdy
+ZW4gd3JvdGU6DQo+IA0KPiBBZnphbCwgY2FyZSB0byBjaGVjayBpZiB0aGF0IHdvcmtzIGZvciBB
+TTMzNVgvVEk4MTZYL1RJODE0WD8NCg0KV2l0aCBmb2xsb3dpbmcgcGF0Y2ggb3ZlciB5b3Vycywg
+QU0zMzVYICh0aGUgb25seSBib2FyZCB3aXRoIG1lKSBib290cyB1cCBmaW5lLg0KDQpSZWdhcmRz
+DQpBZnphbA0KDQpGcm9tIGZmNjRhMjM5ZTYwZjliNTE3ODYwZWIyZmU5YzRmODhhMTg4Y2E1MWQg
+TW9uIFNlcCAxNyAwMDowMDowMCAyMDAxDQpGcm9tOiBBZnphbCBNb2hhbW1lZCA8YWZ6YWxAdGku
+Y29tPg0KRGF0ZTogTW9uLCAxOSBTZXAgMjAxMSAxMDowNjo1OSArMDUzMA0KU3ViamVjdDogW1BB
+VENIXSBBUk06IE9NQVA6IGRtdGltZXIgcmVnaXN0ZXIgc2FmZSBhY2Nlc3MNCg0KQWNjZXNzIGRt
+dGltZXIgcmVnaXN0ZXJzIGFmdGVyIHNldHRpbmcgaXQncyBwYXJlbnQNCmNsb2NrLiBJZiBkZWZh
+dWx0IHBhcmVudCBpcyBub3QgcGh5c2ljYWxseSBwcmVzZW50LA0KYWNjZXNzaW5nIHJlZ2lzdGVy
+IGNhdXNlcyBhYm9ydCwgc28gYWNjZXNzIHJlZ2lzdGVycw0KYWZ0ZXIgcHJvcGVyIHBhcmVudCBp
+cyBzZXQuDQoNClNpZ25lZC1vZmYtYnk6IEFmemFsIE1vaGFtbWVkIDxhZnphbEB0aS5jb20+DQot
+LS0NCiBhcmNoL2FybS9tYWNoLW9tYXAyL3RpbWVyLmMgfCAgICAyICstDQogMSBmaWxlcyBjaGFu
+Z2VkLCAxIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9hcmNo
+L2FybS9tYWNoLW9tYXAyL3RpbWVyLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3RpbWVyLmMNCmlu
+ZGV4IDE3NDZjNjkuLmFiYWJjNGQgMTAwNjQ0DQotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3Rp
+bWVyLmMNCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXIuYw0KQEAgLTE3Miw3ICsxNzIs
+NiBAQCBzdGF0aWMgaW50IF9faW5pdCBvbWFwX2RtX3RpbWVyX2luaXRfb25lKHN0cnVjdCBvbWFw
+X2RtX3RpbWVyICp0aW1lciwNCiAgICAgICAgfQ0KDQogICAgICAgIG9tYXBfaHdtb2RfZW5hYmxl
+KG9oKTsNCi0gICAgICAgX19vbWFwX2RtX3RpbWVyX2luaXRfcmVncyh0aW1lcik7DQoNCiAgICAg
+ICAgc3lzX3RpbWVyX3Jlc2VydmVkIHw9ICgxIDw8IChncHRpbWVyX2lkIC0gMSkpOw0KDQpAQCAt
+MTkwLDYgKzE4OSw3IEBAIHN0YXRpYyBpbnQgX19pbml0IG9tYXBfZG1fdGltZXJfaW5pdF9vbmUo
+c3RydWN0IG9tYXBfZG1fdGltZXIgKnRpbWVyLA0KICAgICAgICAgICAgICAgICAgICAgICAgY2xr
+X3B1dChzcmMpOw0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgfQ0KKyAgICAgICBfX29tYXBf
+ZG1fdGltZXJfaW5pdF9yZWdzKHRpbWVyKTsNCiAgICAgICAgX19vbWFwX2RtX3RpbWVyX3Jlc2V0
+KHRpbWVyLCAxLCAxKTsNCiAgICAgICAgdGltZXItPnBvc3RlZCA9IDE7DQoNCi0tDQoxLjYuMi40
+DQo=
