@@ -1,43 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Add support for dmtimer v2 ip (Re: [PATCH
- v15 06/12] OMAP: dmtimer: switch-over to platform device driver)
-Date: Mon, 19 Sep 2011 10:43:53 -0700
-Message-ID: <20110919174353.GG2937@atomide.com>
-References: <1315516098-29761-7-git-send-email-tarun.kanti@ti.com>
- <20110914214533.GA30941@atomide.com>
- <CAC83ZvJgPYb3JbWT4SKXpQvq-vdKK4b6hd6E-ik5uyRCqgwWsg@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB59302575A050D@dbde02.ent.ti.com>
- <20110915165810.GA2284@atomide.com>
- <20110915170548.GB2284@atomide.com>
- <CAC83ZvKGoucZ=xQSa7GEk7Gg8jcFBQE==1a6m4=+nzDRrsw+jw@mail.gmail.com>
- <CAC83ZvKXEb7MTujP4JqhrPeysYxQcLF+BV-J9tpYoRwWGVZ8_Q@mail.gmail.com>
- <20110917013531.GB2937@atomide.com>
- <B85A65D85D7EB246BE421B3FB0FBB59302575A0FBC@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH 7/7] ARM: pm: add L2 cache cleaning for suspend
+Date: Mon, 19 Sep 2011 17:40:44 +0100
+Message-ID: <E1R5gtg-00056O-J9@rmk-PC.arm.linux.org.uk>
+References: <20110919163741.GE16591@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52042 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754480Ab1ISRnz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 13:43:55 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36140 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754648Ab1ISRsr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 13:48:47 -0400
+In-Reply-To: <20110919163741.GE16591@n2100.arm.linux.org.uk>
 Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59302575A0FBC@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Pedanekar, Hemant" <hemantp@ti.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.orglinux-omap@vger.kernel.orglinux-arm-kernel@lists.infradead.org
 
-* Mohammed, Afzal <afzal@ti.com> [110918 21:48]:
-> Hi Tony,
-> 
-> On Sat, Sep 17, 2011 at 07:05:31, Tony Lindgren wrote:
-> > 
-> > Afzal, care to check if that works for AM335X/TI816X/TI814X?
-> 
-> With following patch over yours, AM335X (the only board with me) boots up fine.
+We need to ensure that state is pushed out from the L2 cache when
+suspending so that the resume paths can access their data before the
+MMU and caches have been re-initialized.  Add the necessary calls to
+__cpu_suspend_save().
 
-Thanks for catching that, will fold it in with your Signed-off-by.
+Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/kernel/suspend.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Regards,
+diff --git a/arch/arm/kernel/suspend.c b/arch/arm/kernel/suspend.c
+index 2d60f19..93a22d2 100644
+--- a/arch/arm/kernel/suspend.c
++++ b/arch/arm/kernel/suspend.c
+@@ -28,6 +28,9 @@ void __cpu_suspend_save(u32 *ptr, u32 ptrsz, u32 sp, u32 *save_ptr)
+ 	cpu_do_suspend(ptr);
+ 
+ 	flush_cache_all();
++	outer_clean_range(*save_ptr, *save_ptr + ptrsz);
++	outer_clean_range(virt_to_phys(save_ptr),
++			  virt_to_phys(save_ptr) + sizeof(*save_ptr));
+ }
+ 
+ /*
+-- 
+1.7.4.4
 
-Tony
