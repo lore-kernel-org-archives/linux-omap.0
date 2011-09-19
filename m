@@ -1,71 +1,71 @@
-From: martin@neutronstar.dyndns.org
-Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based
- camera board.
-Date: Mon, 19 Sep 2011 08:10:19 +0200
-Message-ID: <20110919061019.GD9244@neutronstar.dyndns.org>
-References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
- <201109182358.55816.laurent.pinchart@ideasonboard.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv2 09/15] OMAP: DSS2: HDMI: implement detect()
+Date: Mon, 19 Sep 2011 09:50:46 +0300
+Message-ID: <1316415046.1978.19.camel@deskari>
+References: <1315818818-18733-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1315818818-18733-10-git-send-email-tomi.valkeinen@ti.com>
+	 <CAP5A+B9_Jsg23oR49q2bkBGVLDWHBiBZj_=_G1SRf7ftrMt_iw@mail.gmail.com>
+	 <CAF6AEGuhjZgH9zFuigjfvHGM9r7jSLY2TTCD0LjZbT+Ubrb12A@mail.gmail.com>
+	 <CAP5A+B87w6Hir-0+SNnckQaDcO=ixgq-U8pFo2U42dwQgtUrZQ@mail.gmail.com>
+	 <1315984468.2172.10.camel@deskari>
+	 <CAP5A+B9uDj4kCowbEKgX1J74zWvBarp64Cn4YVom-a8BYtab4w@mail.gmail.com>
+	 <1315989282.2172.36.camel@deskari>
+	 <CAP5A+B-GWN+oJhcVbB24swfmH=-dE4sViNqF+hX6=D1owzOLzA@mail.gmail.com>
+	 <1315990630.2172.51.camel@deskari>
+	 <CAP5A+B9Me0RX3PY7Uwf=VuaHzaPtoNY0q9gxFg9H-Q3N2giC2Q@mail.gmail.com>
+	 <1316009509.2118.6.camel@deskari>
+	 <CAP5A+B-_19gPDmjJGBHpcDcGPGyt9QvFXFwgjGPUqr-QY9SPJg@mail.gmail.com>
+	 <1316066265.1880.6.camel@deskari>
+	 <CAP5A+B_WvtNTi9ckyor-+5bo7n6GkeTSAvhDsrGQxhPZWgXO0w@mail.gmail.com>
+	 <1316068371.1880.25.camel@deskari>
+	 <CAP5A+B9upB3VUaRme84Fm6ewx9KkyOu4hCavMetkEeKcSHORXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201109182358.55816.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:54930 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751757Ab1ISGuw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Sep 2011 02:50:52 -0400
+In-Reply-To: <CAP5A+B9upB3VUaRme84Fm6ewx9KkyOu4hCavMetkEeKcSHORXw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
-On Sun, Sep 18, 2011 at 11:58:55PM +0200, Laurent Pinchart wrote:
-> Hi Martin,
-> 
-> On Saturday 17 September 2011 11:34:57 Martin Hostettler wrote:
-> > Adds board support for an MT9M032 based camera to omap3evm.
-> > 
-> > Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> > ---
-> >  arch/arm/mach-omap2/Makefile                |    1 +
-> >  arch/arm/mach-omap2/board-omap3evm-camera.c |  183
-> > +++++++++++++++++++++++++++ 2 files changed, 184 insertions(+), 0
-> > deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
-> > 
-> > Changes in V2:
-> >  * ported to current mainline
-> >  * Style fixes
-> >  * Fix error handling
-> > 
-> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> > index f343365..8ae3d25 100644
-> > --- a/arch/arm/mach-omap2/Makefile
-> > +++ b/arch/arm/mach-omap2/Makefile
-> > +	return 0;
-> > +
-> > +err_8:
-> > +	gpio_free(EVM_TWL_GPIO_BASE + 8);
-> > +err_2:
-> > +	gpio_free(EVM_TWL_GPIO_BASE + 2);
-> > +err_vdsel:
-> > +	gpio_free(nCAM_VD_SEL);
-> > +err:
-> > +	return ret;
-> > +}
-> > +
-> > +device_initcall(camera_init);
-> 
-> Please don't use device_initcall(), but call the function directly from the 
-> OMAP3 EVM init handler. Otherwise camera_init() will be called if OMAP3 EVM 
-> support is compiled in the kernel, regardless of the board the kernel runs on.
+On Fri, 2011-09-16 at 18:11 +0530, K, Mythri P wrote:
+> Hi,
 
-Ok, will do.
-In which header should the prototyp of that function go? Or can i just 
-add a prototyp to board-omap3evm.c directly?
-I couldn't find anything that looked right, this is rather board specific
-after all. 
+> >> Sequence with HPD:
+> >> 1.Register for HPD connect.
+> >> 2.Enable display
+> >> 3.Notify DRM/Audio/Kernel component that wants to listen to this event.
+> >
+> > Why would you enable the display even if there's no monitor connected?
+> >
+> > And when the DRM starts, how does DRM know if the display was already
+> > connected? Would you send a HPD event when DRM registers to the event
+> > even if there's no actual plug-in event done (i.e. user actually
+> > connecting the cable)?
+> >
+> HPD event would be triggered only when the cable is connected , and
+> the EDID is ready to be read by the monitor. So the question enabling
+> display doesnt exist. When HDMI is enabled in the HPD mode it will be
+> in minimal power mode.
 
- - Martin Hostettler
+I don't think that will work correctly. "enable" in the current driver
+means that the DISPC output will be enabled, and the display is showing
+an image.
 
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
+How would you implement the case with your model where the user wants to
+get the EDID information, but doesn't want to enable the display yet
+(send an output signal)?
+
+I think we need a new power state for the displays. DSI panels could use
+it also, as there's a need to turn them on for configuration before
+actually turning on the actual display.
+
+ Tomi
+
+
