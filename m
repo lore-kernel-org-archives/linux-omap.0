@@ -1,36 +1,60 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: RE: [PATCH] ti816x: add support for nand on ti8168 evm
-Date: Mon, 19 Sep 2011 15:31:35 +0300
-Message-ID: <1316435503.24366.61.camel@sauron>
-References: <parth.saxena@ti.com>
-	 <1315486982-30109-1-git-send-email-parth.saxena@ti.com>
-	 <1316408187.24366.52.camel@sauron>
-	 <19F8576C6E063C45BE387C64729E739404EC3121B9@dbde02.ent.ti.com>
-Reply-To: dedekind1@gmail.com
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 1/2] misc: remove CONFIG_MISC_DEVICES
+Date: Mon, 19 Sep 2011 06:07:55 -0700
+Message-ID: <20110919130755.GA9829@kroah.com>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
+ <20110918152835.GA30696@kroah.com>
+ <4E763C3C.3050909@xenotime.net>
+ <2282172.TF7nejTDIZ@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f170.google.com ([74.125.82.170]:64522 "EHLO
-	mail-wy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752998Ab1ISM27 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 08:28:59 -0400
-Received: by wyg8 with SMTP id 8so9174905wyg.1
-        for <linux-omap@vger.kernel.org>; Mon, 19 Sep 2011 05:28:57 -0700 (PDT)
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC3121B9@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2282172.TF7nejTDIZ@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Randy Dunlap <rdunlap@xenotime.net>, Jean Delvare <khali@linux-fr.org>, Luciano Coelho <coelho@ti.com>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
-To: "Saxena, Parth" <parth.saxena@ti.com>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2011-09-19 at 17:04 +0530, Saxena, Parth wrote:
-> Artem,
-> I will re-post this patch to linux-omap list and Tony. Can I add your name in the 'Acked-by' section?
+On Mon, Sep 19, 2011 at 10:47:50AM +0200, Arnd Bergmann wrote:
+> On Sunday 18 September 2011 11:45:16 Randy Dunlap wrote:
+> > >> We have fallbacks to Andrew and/or GregKH currently, but GregKH is not
+> > >> consistent or timely with applying drivers/misc/ patches.  It deserves better.
+> > >> [added him to Cc: list]
+> > > 
+> > > I do try to handle patches sent to me for misc/ in time for the
+> > > different merge windows as that directory contains drivers that have
+> > > moved out of the staging/ directory.
+> > > 
+> > > But yes, I'm not the overall drivers/misc/ maintainer, do we really need
+> > > one?  If so, I can easily start maintaining a development tree for it to
+> > > keep it separate for the different driver authors to send me stuff and
+> > > start tracking it more "for real" if Arnd doesn't want to do it.
+> > 
+> > We need for the patches to be applied in a timely manner.
+> > Sometimes when there is no real maintainer, that does not happen.
+> 
+> I think the other equally import aspect of maintainership that
+> drivers/misc (and drivers/char) needs is someone who says no to
+> stuff that doesn't belong there and helps submitters to find a
+> proper place where appropriate and to come up with a proper user
+> interface abstraction.
+> 
+> I'm definitely willing to do that part.
+> 
+> Greg, how about we both formally take ownership of driver/{misc,char}
+> and you track the patches while I do the bulk of the reviews? You
+> are definitely better than me with the patch tracking workflow.
 
-No, I did not review this patch.
+That sounds good to me, I'll be glad to collect the patches and push
+them to Linus for both of those trees (might as well keep them in the
+same git tree, no need to separate them, right?) and I'll rely on you
+for review and acking them.  Much like I do today for the tty and serial
+trees.
 
+I'll go set up the trees locally today and when kernel.org opens back
+up, make them public and add them to linux-next.
 
--- 
-Best Regards,
-Artem Bityutskiy
+thanks,
 
+greg k-h
