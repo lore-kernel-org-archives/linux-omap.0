@@ -1,152 +1,394 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based
- camera board.
-Date: Tue, 20 Sep 2011 01:29:26 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC811425@dbde02.ent.ti.com>
-References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
- <201109182358.55816.laurent.pinchart@ideasonboard.com>
- <19F8576C6E063C45BE387C64729E739404EC8111DE@dbde02.ent.ti.com>
- <20110919192442.GE9244@neutronstar.dyndns.org>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/5 v8] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Mon, 19 Sep 2011 22:33:27 +0200
+Message-ID: <4E77A717.8020504@ti.com>
+References: <1314255697-15411-1-git-send-email-keshava_mgowda@ti.com> <1314255697-15411-2-git-send-email-keshava_mgowda@ti.com> <4E70DB58.9070901@ti.com> <CAP05o4KG36-Aa_KeyYe34Rr7E4nYK6w3WB57GzTw24M6PKFsuw@mail.gmail.com> <CAP05o4LbG4xinrkdztJWdO3bMj0WQtEBsOLp7oJ9W0SYGE1fmg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58868 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752862Ab1IST7l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 15:59:41 -0400
-In-Reply-To: <20110919192442.GE9244@neutronstar.dyndns.org>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:43298 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753682Ab1ISUdj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 16:33:39 -0400
+In-Reply-To: <CAP05o4LbG4xinrkdztJWdO3bMj0WQtEBsOLp7oJ9W0SYGE1fmg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "martin@neutronstar.dyndns.org" <martin@neutronstar.dyndns.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Quadros, Roger" <rogerq@ti.com>
 
+OK, it looks like the second half of the answer was in a second email... 
+that makes sense:-)
 
-> -----Original Message-----
-> From: martin@neutronstar.dyndns.org [mailto:martin@neutronstar.dyndns.org]
-> Sent: Tuesday, September 20, 2011 12:55 AM
-> To: Hiremath, Vaibhav
-> Cc: Laurent Pinchart; Tony Lindgren; linux-omap@vger.kernel.org; linux-
-> media@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based
-> camera board.
-> 
-> On Mon, Sep 19, 2011 at 11:37:37AM +0530, Hiremath, Vaibhav wrote:
-> >
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> > > Sent: Monday, September 19, 2011 3:29 AM
-> > > To: Martin Hostettler
-> > > Cc: Tony Lindgren; linux-omap@vger.kernel.org; linux-
-> > > media@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> > > Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032
-> based
-> > > camera board.
-> > >
-> > > Hi Martin,
-> > >
-> > > On Saturday 17 September 2011 11:34:57 Martin Hostettler wrote:
-> > > > Adds board support for an MT9M032 based camera to omap3evm.
-> > > >
-> > > > Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> > > > ---
-> > > >  arch/arm/mach-omap2/Makefile                |    1 +
-> > > >  arch/arm/mach-omap2/board-omap3evm-camera.c |  183
-> > > > +++++++++++++++++++++++++++ 2 files changed, 184 insertions(+), 0
-> > > > deletions(-)
-> > > >  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
-> > > >
-> > > > Changes in V2:
-> > > >  * ported to current mainline
-> > > >  * Style fixes
-> > > >  * Fix error handling
-> > > >
-> > > > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-
-> omap2/Makefile
-> > > > index f343365..8ae3d25 100644
-> > > > --- a/arch/arm/mach-omap2/Makefile
-> > > > +++ b/arch/arm/mach-omap2/Makefile
-> > > > @@ -202,6 +202,7 @@ obj-$(CONFIG_MACH_OMAP3_TORPEDO)        +=
-> > > > board-omap3logic.o \ obj-$(CONFIG_MACH_OVERO)		+= board-
-> overo.o \
-> > > >  					   hsmmc.o
-> > > >  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
-> > > > +					   board-omap3evm-camera.o \
-> > > >  					   hsmmc.o
-> > > >  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
-> > > >  					   hsmmc.o
-> > > > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > > > b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
-> > > > index 0000000..be987d9
-> > > > --- /dev/null
-> > > > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > > > @@ -0,0 +1,183 @@
-> > > > +/*
-> > > > + * Copyright (C) 2010-2011 Lund Engineering
-> > > > + * Contact: Gil Lund <gwlund@lundeng.com>
-> > > > + * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
-> > > > + *
-> > [Hiremath, Vaibhav] The file below seems copied from (which is coming
-> from all older releases of TI)
-> >
-> > http://arago-project.org/git/projects/?p=linux-
-> omap3.git;a=blob;f=arch/arm/mach-omap2/board-omap3evm-
-> camera.c;h=2e6ccfef69027dee880d507b98b5a7998d4bbe7e;hb=adcd067326836777c04
-> 9e3cb32a5b7d9d401fc31
-> >
-> > So I would appreciate if you keep original copyright and authorship of
-> the file and add your sign-off to the patch.
-> >
-> 
-> First of all i don't have any problem Adding your name and the TI
-> copyright.
-> Maybe i should have been more careful when looking at and adeption
-> omap3evm_set_mux as i really took that from the TI code.
-> 
+On 9/15/2011 9:22 AM, Munegowda, Keshava wrote:
+> On Thu, Sep 15, 2011 at 11:25 AM, Munegowda, Keshava
+> <keshava_mgowda@ti.com>  wrote:
+>> On Wed, Sep 14, 2011 at 10:20 PM, Cousson, Benoit<b-cousson@ti.com>  wrote:
+>>> Hi Keshava,
+>>>
+>>> On 8/25/2011 9:01 AM, Munegowda, Keshava wrote:
+>>>> From: Benoit Cousson<b-cousson@ti.com>
+>>>>
+>>>> Following 4 hwmod structures are added:
+>>>> UHH hwmod of usbhs with uhh base address and functional clock,
+>>>> EHCI hwmod with irq and base address,
+>>>> OHCI hwmod with irq and base address,
+>>>> TLL hwmod of usbhs with the TLL base address and irq.
+>>>>
+>>>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>>>
+>>> That version is really different compared to my original patch, so you should highlight the diff you introduced.
+>
+> Since there are too many changes are done compare to your original
+> patch; i prefer keep a single patch,rather
+> keeping your original patch and my changes are another patch.
 
-The best practice it to always keep copy-right of the file intact... I wouldn't mind if you use and modify any part of the code and also add your authorship. 
-I feel, Copy-right is important part.
- 
-> I honestly don't remember if i took any other code from that file or not.
-> It ends up doing what the hardware needs anyway. For me it doesn't matter
-> with such trival things, but i should have been more careful.
-> 
-> Do you consider it resolved if use the following at the start?
-> 
-> /*
->  * Copyright (C) 2010 Texas Instruments Inc
+This is not really what I was asking for. You changed at least 30% of 
+the original patch without mentioning anything in the changelog.
+You should at least add a history to clarify what part you edited / 
+added compared to the original.
 
-Change it to 2011.
+>>>> Signed-off-by: Keshava Munegowda<keshava_mgowda@ti.com>
+>>>> ---
+>>>>    arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  247 ++++++++++++++++++++++++++++
+>>>>    1 files changed, 247 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>>> index 6201422..0bc01dd 100644
+>>>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>>> @@ -68,6 +68,10 @@ static struct omap_hwmod omap44xx_mmc2_hwmod;
+>>>>    static struct omap_hwmod omap44xx_mpu_hwmod;
+>>>>    static struct omap_hwmod omap44xx_mpu_private_hwmod;
+>>>>    static struct omap_hwmod omap44xx_usb_otg_hs_hwmod;
+>>>> +static struct omap_hwmod omap44xx_usb_host_hs_hwmod;
+>>>> +static struct omap_hwmod omap44xx_usbhs_ohci_hwmod;
+>>>> +static struct omap_hwmod omap44xx_usbhs_ehci_hwmod;
+>>>> +static struct omap_hwmod omap44xx_usb_tll_hs_hwmod;
+>>>
+>>> None of the 3 last entries are master, and thus should not need any backward declaration.
+>
+> yes, I will make this change.
 
->  * Copyright (C) 2010-2011 Lund Engineering
->  * Contact: Gil Lund <gwlund@lundeng.com>
+But you didn't...
 
-Not sure do you really need above line...
+>>>>    /*
+>>>>     * Interconnects omap_hwmod structures
+>>>> @@ -5336,6 +5340,245 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
+>>>>        .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>>>>    };
+>>>>
+>>>> +/*
+>>>> + * 'usb_host_hs' class
+>>>> + * high-speed multi-port usb host controller
+>>>> + */
+>>>> +static struct omap_hwmod_ocp_if omap44xx_usb_host_hs__l3_main_2 = {
+>>>> +     .master         =&omap44xx_usb_host_hs_hwmod,
+>>>> +     .slave          =&omap44xx_l3_main_2_hwmod,
+>>>> +     .clk            = "l3_div_ck",
+>>>> +     .user           = OCP_USER_MPU | OCP_USER_SDMA,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_class_sysconfig omap44xx_usb_host_hs_sysc = {
+>>>> +     .rev_offs       = 0x0000,
+>>>> +     .sysc_offs      = 0x0010,
+>>>> +     .syss_offs      = 0x0014,
+>>>> +     .sysc_flags     = (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
+>>>> +     .idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+>>>> +                             SIDLE_SMART_WKUP | MSTANDBY_FORCE |
+>>>> +                             MSTANDBY_NO | MSTANDBY_SMART |
+>>>> +                             MSTANDBY_SMART_WKUP),
+>>>
+>>> Minor, but it should be:
+>>> +       .idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+>>> +                          SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
+>>> +                          MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
+>>>
+>>>> +     .sysc_fields    =&omap_hwmod_sysc_type2,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_class omap44xx_usb_host_hs_hwmod_class = {
+>>>> +     .name = "usbhs_uhh",
+>>>> +     .sysc =&omap44xx_usb_host_hs_sysc,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_ocp_if *omap44xx_usb_host_hs_masters[] = {
+>>>> +&omap44xx_usb_host_hs__l3_main_2,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_addr_space omap44xx_usb_host_hs_addrs[] = {
+>>>> +     {
+>>>> +             .name           = "uhh",
+>>>
+>>> In general, there is no name for unique entry. And if you need a name, you should find something relevant considering this is local to the hwmod.
 
->  * Authors:
->  *    Vaibhav Hiremath <hvaibhav@ti.com>
->  *    Martin Hostettler <martin@neutronstar.dyndns.org>
->  */
-> 
-> 
-Looks ok to me.
+No answer and no change on that one.
 
-> But then again the copy on my harddisk has these too...
-> 
->  * Contributors:
->  *     Anuj Aggarwal <anuj.aggarwal@ti.com>
->  *     Sivaraj R <sivaraj@ti.com>
-> 
-> Maybe i should add them too.
-> 
-> Not sure really...
-> 
-> 
+>>>> +             .pa_start       = 0x4a064000,
+>>>> +             .pa_end         = 0x4a0647ff,
+>>>> +             .flags          = ADDR_TYPE_RT
+>>>> +     },
+>>>> +     {} /* Terminating Entry */
+>>>
+>>> That comment is useless. Paul added one space inside the terminator as well.
+>>>
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_host_hs = {
+>>>> +     .master         =&omap44xx_l4_cfg_hwmod,
+>>>> +     .slave          =&omap44xx_usb_host_hs_hwmod,
+>>>> +     .clk            = "l4_div_ck",
+>>>> +     .addr           = omap44xx_usb_host_hs_addrs,
+>>>> +     .user           = OCP_USER_MPU | OCP_USER_SDMA,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_ocp_if *omap44xx_usb_host_hs_slaves[] = {
+>>>> +&omap44xx_l4_cfg__usb_host_hs,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod omap44xx_usb_host_hs_hwmod = {
+>>>> +     .name           = "usbhs_uhh",
+>>>> +     .class          =&omap44xx_usb_host_hs_hwmod_class,
+>>>> +     .clkdm_name     = "l3_init_clkdm",
+>>>> +     .main_clk       = "usb_host_hs_fck",
+>>>> +     .prcm = {
+>>>> +             .omap4 = {
+>>>> +                     .clkctrl_offs = OMAP4_CM_L3INIT_USB_HOST_CLKCTRL_OFFSET,
+>>>> +                     .context_offs = OMAP4_RM_L3INIT_USB_HOST_CONTEXT_OFFSET,
+>>>> +                     .modulemode   = MODULEMODE_SWCTRL,
+>>>> +             },
+>>>> +     },
+>>>> +     .slaves         = omap44xx_usb_host_hs_slaves,
+>>>> +     .slaves_cnt     = ARRAY_SIZE(omap44xx_usb_host_hs_slaves),
+>>>> +     .masters        = omap44xx_usb_host_hs_masters,
+>>>> +     .masters_cnt    = ARRAY_SIZE(omap44xx_usb_host_hs_masters),
+>>>> +     .flags          = HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+>>>> +     .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>>>> +};
+>>>> +
+>>>> +/* 'usbhs_ohci' class */
+>>>> +static struct omap_hwmod_class omap44xx_usbhs_ohci_hwmod_class = {
+>>>> +     .name = "usbhs_ohci",
+>>>
+>>> In the context of devicetree and considering what Felipe did for the USB3, I'm wondering if you should define hwmods for ohci and ehci.
+>>> I'm not 100% sure it will apply here, but cannot you add the register entries inside the usb_host_hs hwmod and create the devices using that?
+>>>
+>>> There is no PRCM entry for them so they do not need to be omap_device.
+>
+>
+> you need , ehci and ohci as a different hwmods, because later we can
+> add the mux to ehc and ochi independently.
 
-I think we should not pollute source file with all our names, so I would recommend to put copy rights and probably author.
+So what? Why do you need 2 hwmods for that? cannot you have regular 
+platform_device for that purpose?
+
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_irq_info omap44xx_usbhs_ohci_irqs[] = {
+>>>> +     { .name = "ohci-irq", .irq = 76 + OMAP44XX_IRQ_GIC_START },
+>>>
+>>> Same comment that before about address space name.
+>>>
+>>>> +     { .irq = -1 } /* Terminating IRQ */
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_addr_space omap44xx_usbhs_ohci_addrs[] = {
+>>>> +     {
+>>>> +             .name           = "ohci",
+>>>
+>>> Same comment than before.
+>>>
+>>>> +             .pa_start       = 0x4A064800,
+>>>> +             .pa_end         = 0x4A064BFF,
+>>>> +             .flags          = ADDR_MAP_ON_INIT
+>>>
+>>> Why do you need that flag?
+>
+> This address space does not has sysconfig; so hwmod need not to map to
+> this address.
+> driver will to ioremap.
+
+I do agree for the first part, but that does not explain why you did add 
+that flag? Have you check the behavior of that flag?
+No using the ADDR_TYPE_RT does not mean you have to add that flag.
+
+>>>> +     },
+>>>> +     {}
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usbhs_ohci = {
+>>>> +     .master         =&omap44xx_l4_cfg_hwmod,
+>>>> +     .slave          =&omap44xx_usbhs_ohci_hwmod,
+>>>> +     .clk            = "l4_div_ck",
+>>>> +     .addr           = omap44xx_usbhs_ohci_addrs,
+>>>> +     .user           = OCP_USER_MPU | OCP_USER_SDMA,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_ocp_if *omap44xx_usbhs_ohci_slaves[] = {
+>>>> +&omap44xx_l4_cfg__usbhs_ohci,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_ocp_if *omap44xx_usbhs_ohci_masters[] = {
+>>>> +&omap44xx_usb_host_hs__l3_main_2,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod omap44xx_usbhs_ohci_hwmod = {
+>>>> +     .name           = "usbhs_ohci",
+>>>> +     .class          =&omap44xx_usbhs_ohci_hwmod_class,
+>>>> +     .clkdm_name     = "l3_init_clkdm",
+>>>> +     .mpu_irqs       = omap44xx_usbhs_ohci_irqs,
+>>>> +     .slaves         = omap44xx_usbhs_ohci_slaves,
+>>>> +     .slaves_cnt     = ARRAY_SIZE(omap44xx_usbhs_ohci_slaves),
+>>>> +     .masters        = omap44xx_usbhs_ohci_masters,
+>>>> +     .masters_cnt    = ARRAY_SIZE(omap44xx_usbhs_ohci_masters),
+>>>
+>>> Assuming you need hwmod entries for that, these master entries are useless and probably wrong.
+>>> The TRM just documents 2 ports for usb_host_hs and 1 port for usb_tll_hs.
+>
+> ports are not specific to usbhs or tll,  port 1 and port2  can be used
+> in phy or tll modes.
+
+OK, sorry for the confusion, but I was referring to the ocp ports, 
+because slaves and masters are both OCP connections lists.
+
+>>> You will still need the slave for the address space.
+>>>
+>>>> +     .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>>>> +     .flags          = HWMOD_INIT_NO_RESET | HWMOD_NO_IDLEST,
+>>>> +};
+>>>> +
+>>>> +/* 'usbhs_ehci' class */
+>>>> +static struct omap_hwmod_class omap44xx_usbhs_ehci_hwmod_class = {
+>>>> +     .name = "usbhs_ehci",
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_irq_info omap44xx_usbhs_ehci_irqs[] = {
+>>>> +     { .name = "ehci-irq", .irq = 77 + OMAP44XX_IRQ_GIC_START },
+>>>> +     { .irq = -1 } /* Terminating IRQ */
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_addr_space omap44xx_usbhs_ehci_addrs[] = {
+>>>> +     {
+>>>> +             .name           = "ehci",
+>>>> +             .pa_start       = 0x4A064C00,
+>>>> +             .pa_end         = 0x4A064FFF,
+>>>> +             .flags          = ADDR_MAP_ON_INIT
+>>>> +     },
+>>>> +     {} /* Terminating Entry */
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usbhs_ehci = {
+>>>> +     .master         =&omap44xx_l4_cfg_hwmod,
+>>>> +     .slave          =&omap44xx_usbhs_ehci_hwmod,
+>>>> +     .clk            = "l4_div_ck",
+>>>> +     .addr           = omap44xx_usbhs_ehci_addrs,
+>>>> +     .user           = OCP_USER_MPU | OCP_USER_SDMA,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_ocp_if *omap44xx_usbhs_ehci_slaves[] = {
+>>>> +&omap44xx_l4_cfg__usbhs_ehci,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_ocp_if *omap44xx_usbhs_ehci_masters[] = {
+>>>> +&omap44xx_usb_host_hs__l3_main_2,
+>>>> +};
+>>>> +
+>>>> +
+>>>> +static struct omap_hwmod omap44xx_usbhs_ehci_hwmod = {
+>>>> +     .name           = "usbhs_ehci",
+>>>> +     .class          =&omap44xx_usbhs_ehci_hwmod_class,
+>>>> +     .clkdm_name     = "l3_init_clkdm",
+>>>> +     .mpu_irqs       = omap44xx_usbhs_ehci_irqs,
+>>>> +     .slaves         = omap44xx_usbhs_ehci_slaves,
+>>>> +     .slaves_cnt     = ARRAY_SIZE(omap44xx_usbhs_ehci_slaves),
+>>>> +     .masters        = omap44xx_usbhs_ehci_masters,
+>>>> +     .masters_cnt    = ARRAY_SIZE(omap44xx_usbhs_ehci_masters),
+>>>> +     .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>>>> +     .flags          = HWMOD_INIT_NO_RESET | HWMOD_NO_IDLEST,
+>>>> +};
+>>>> +
+>>>> +/*
+>>>> + * 'usb_tll_hs' class
+>>>> + * usb_tll_hs module is the adapter on the usb_host_hs ports
+>>>> + */
+>>>> +static struct omap_hwmod_class_sysconfig omap44xx_usb_tll_hs_sysc = {
+>>>> +     .rev_offs       = 0x0000,
+>>>> +     .sysc_offs      = 0x0010,
+>>>> +     .syss_offs      = 0x0014,
+>>>> +     .sysc_flags     = (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
+>>>> +                             SYSC_HAS_SOFTRESET | SYSC_HAS_ENAWAKEUP |
+>>>> +                             SYSC_HAS_CLOCKACTIVITY),
+>>>> +     .idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+>>>> +     .sysc_fields    =&omap_hwmod_sysc_type1,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_class omap44xx_usb_tll_hs_hwmod_class = {
+>>>> +     .name = "usbhs_tll",
+>>>> +     .sysc =&omap44xx_usb_tll_hs_sysc,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_irq_info omap44xx_usb_tll_hs_irqs[] = {
+>>>> +     { .name = "tll-irq", .irq = 78 + OMAP44XX_IRQ_GIC_START },
+>>>> +     { .irq = -1 } /* Terminating IRQ */
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_addr_space omap44xx_usb_tll_hs_addrs[] = {
+>>>> +     {
+>>>> +             .name           = "tll",
+>>>> +             .pa_start       = 0x4a062000,
+>>>> +             .pa_end         = 0x4a063fff,
+>>>> +             .flags          = ADDR_TYPE_RT
+>>>> +     },
+>>>> +     {} /* Terminating Entry */
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_tll_hs = {
+>>>> +     .master         =&omap44xx_l4_cfg_hwmod,
+>>>> +     .slave          =&omap44xx_usb_tll_hs_hwmod,
+>>>> +     .clk            = "l4_div_ck",
+>>>> +     .addr           = omap44xx_usb_tll_hs_addrs,
+>>>> +     .user           = OCP_USER_MPU | OCP_USER_SDMA,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod_ocp_if *omap44xx_usb_tll_hs_slaves[] = {
+>>>> +&omap44xx_l4_cfg__usb_tll_hs,
+>>>> +};
+>>>> +
+>>>> +static struct omap_hwmod omap44xx_usb_tll_hs_hwmod = {
+>>>> +     .name           = "usbhs_tll",
+>>>> +     .class          =&omap44xx_usb_tll_hs_hwmod_class,
+>>>> +     .clkdm_name     = "l3_init_clkdm",
+>>>> +     .mpu_irqs       = omap44xx_usb_tll_hs_irqs,
+>>>> +     .main_clk       = "usb_tll_hs_ick",
+>>>> +     .prcm = {
+>>>> +             .omap4 = {
+>>>> +                     .clkctrl_offs = OMAP4_CM_L3INIT_USB_TLL_CLKCTRL_OFFSET,
+>>>> +                     .context_offs = OMAP4_RM_L3INIT_USB_TLL_CONTEXT_OFFSET,
+>>>> +                     .modulemode   = MODULEMODE_HWCTRL,
+>>>> +             },
+>>>> +     },
+>>>> +     .slaves         = omap44xx_usb_tll_hs_slaves,
+>>>> +     .slaves_cnt     = ARRAY_SIZE(omap44xx_usb_tll_hs_slaves),
+>>>> +     .flags          = HWMOD_SWSUP_SIDLE,
+>>>> +     .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>>>> +};
+>>>> +
+>>>>    static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>>>>
+>>>>        /* dmm class */
+>>>> @@ -5482,6 +5725,10 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>>>>        &omap44xx_wd_timer2_hwmod,
+>>>>        &omap44xx_wd_timer3_hwmod,
+>>>>
+>>>> +&omap44xx_usb_host_hs_hwmod,
+>>>> +&omap44xx_usbhs_ohci_hwmod,
+>>>> +&omap44xx_usbhs_ehci_hwmod,
+>>>> +&omap44xx_usb_tll_hs_hwmod,
+>>>
+>>> This list is ordered, so it should be something like that:
+>
+> yes, i will do this.
 
 Thanks,
-Vaibhav
->  - Martin Hostettler
+Benoit
