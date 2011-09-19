@@ -1,45 +1,45 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 0/7] Add L2 cache cleaning to generic CPU suspend
-Date: Mon, 19 Sep 2011 17:37:41 +0100
-Message-ID: <20110919163741.GE16591@n2100.arm.linux.org.uk>
+Subject: [PATCH 1/7] ARM: pm: force non-zero return value from __cpu_suspend
+ when aborting
+Date: Mon, 19 Sep 2011 17:38:43 +0100
+Message-ID: <E1R5grj-0004xn-RB@rmk-PC.arm.linux.org.uk>
+References: <20110919163741.GE16591@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47021 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47025 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756479Ab1ISQiB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 12:38:01 -0400
+	with ESMTP id S1756542Ab1ISQir (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 12:38:47 -0400
+In-Reply-To: <20110919163741.GE16591@n2100.arm.linux.org.uk>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.orglinux-omap@vger.kernel.orglinux-arm-kernel@lists.infradead.org
 
-This is a re-post of the previous patch series, but with an additional
-TLB flush to ensure that hte global TLB entry in the page tables is
-flushed out.  This is a flush of all TLB entries, but it could probably
-be more targetted if we need to.
+Ensure that the return value from __cpu_suspend is non-zero when
+aborting.  Zero indicates a successful suspend occurred.
 
-Original cover mail follows:
+Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/kernel/sleep.S |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Some systems (such as OMAP) preserve the L2 cache across a suspend/
-resume cycle.  This means they do not perform L2 cache maintanence
-in their suspend finisher function.
-
-However, the side effect is that the saved CPU state is not readable
-by the resume code because it is sitting in the L2 cache.
-
-This patch series adds L2 cache cleaning to the generic CPU suspend/
-resume support code, making it possible to use this on systems with
-L2 cache enabled without having to clean/invalidate the entire L2
-cache.
-
-We also add a separate page table, allocated at boot time, for the
-resume process to use so we don't have to fiddle about with tweaking
-entries in the current processes page table.  Moreover, the current
-processes page table may be in use by another CPU in the system if
-these paths are used from cpuidle or hotplug, so changing the page
-table is technically unsound.
-
-Overall, this makes it possible for OMAP4 systems to use this code.
+diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
+index dc902f2..46a9f46 100644
+--- a/arch/arm/kernel/sleep.S
++++ b/arch/arm/kernel/sleep.S
+@@ -61,6 +61,8 @@ ENDPROC(__cpu_suspend)
+ 
+ cpu_suspend_abort:
+ 	ldmia	sp!, {r1 - r3}		@ pop v:p, virt SP, phys resume fn
++	teq	r0, #0
++	moveq	r0, #1			@ force non-zero value
+ 	mov	sp, r2
+ 	ldmfd	sp!, {r4 - r11, pc}
+ ENDPROC(cpu_suspend_abort)
+-- 
+1.7.4.4
 
