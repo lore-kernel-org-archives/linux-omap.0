@@ -1,82 +1,51 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [RFC PATCH 1/6] usb: musb: omap: Configure OTG_INTERFSEL for
- proper charger detection
-Date: Mon, 19 Sep 2011 10:12:34 -0700
-Message-ID: <20110919171234.GC31542@suse.de>
-References: <1316096403-6013-1-git-send-email-kishon@ti.com>
- <1316096403-6013-2-git-send-email-kishon@ti.com>
- <4E731B6D.2040007@ru.mvista.com>
- <CAAe_U6KaFJGM61=Pkm2q-EBQeEtSAOBuC2jgFRd7DV4xKOjJdg@mail.gmail.com>
- <20110916141339.GA31093@suse.de>
- <CANrkHUaNhzLgYhF745=cs8cNjjNL3nc884+AoFwRjz3WEUhCcw@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 0/5 v9] mfd: omap: usb: Runtime PM support for EHCI and
+ OHCI drivers
+Date: Mon, 19 Sep 2011 19:22:08 +0200
+Message-ID: <4E777A40.20508@ti.com>
+References: <1316092970-2440-1-git-send-email-keshava_mgowda@ti.com> <20110919135653.GR32263@sortiz-mobl> <CAP05o4+AYs07JLio7NgSUOuzSTqiZA45WPDPqAB55u=02vHYWA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:55078 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751896Ab1ISROj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Sep 2011 13:14:39 -0400
-Content-Disposition: inline
-In-Reply-To: <CANrkHUaNhzLgYhF745=cs8cNjjNL3nc884+AoFwRjz3WEUhCcw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAP05o4+AYs07JLio7NgSUOuzSTqiZA45WPDPqAB55u=02vHYWA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Sergei Shtylyov <sshtylyov@mvista.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, heikki.krogerus@linux.intel.com, p-basak2@ti.com, x0153364@ti.com, m-sonasath@ti.com, vishp@ti.com, hemahk@ti.com
 
-On Mon, Sep 19, 2011 at 08:26:08PM +0530, T Krishnamoorthy, Balaji wrot=
-e:
-> On Fri, Sep 16, 2011 at 7:43 PM, Greg KH <gregkh@suse.de> wrote:
-> > On Fri, Sep 16, 2011 at 07:21:41PM +0530, ABRAHAM, KISHON VIJAY wro=
-te:
-> >> Sergei,
-> >>
-> >> Thanks for your comments.
-> >>
-> >> On Fri, Sep 16, 2011 at 3:18 PM, Sergei Shtylyov <sshtylyov@mvista=
-=2Ecom> wrote:
-> >> > Hello.
-> >> >
-> >> > On 15-09-2011 18:19, Kishon Vijay Abraham I wrote:
-> >> >
-> >> >> Setting OTG_INTERFSEL to UTMI interferes with charger detection=
- resulting
-> >> >> in incorrect detection of charger type. Hence OTG_INTERFSEL is =
-configured
-> >> >> to
-> >> >> ULPI initially and changed to UTMI only after receiving USB_EVE=
-NT_ID or
-> >> >> USB_EVENT_VBUS notification.
-> >> >
-> >> >> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
-> >> >> Signed-off-by: Balaji T K<balajitk@ti.com>
-> >> >
-> >> > =A0 AFAIK, full name is needed here.
-> >>
-> >> is it not the prerogative of the person giving his signed-off by??
-> >
-> > Not really.
-> >
->=20
-> Certainly did not want to compete for long names :-)
-> But Is Real Name + unique email id not sufficient.
-> patches with this Signed-off  .
+Hi Keshava,
 
-Real Name + unique email is sufficient.  If "Balaji T K" is the real
-name here, then my sincere apologies at getting this incorrect.  If it
-isn't, a few more letters might be sufficient, or even, native utf-8
-characters for the name in the native language is also ok.
+On 9/19/2011 4:01 PM, Munegowda, Keshava wrote:
+> On Mon, Sep 19, 2011 at 7:26 PM, Samuel Ortiz<sameo@linux.intel.com>  wrote:
+>> Hi Keshava,
+>>
+>> On Thu, Sep 15, 2011 at 06:52:45PM +0530, Keshava Munegowda wrote:
+>>> From: Keshava Munegowda<Keshava_mgowda@ti.com>
+>>>
+>>> The Hwmod structures and Runtime PM features are implemented
+>>> For EHCI and OHCI drivers of OMAP3 and OMAP4.
+>>> The global suspend/resume of EHCI and OHCI
+>>> is validated on OMAP3430 sdp board with these patches.
+>>>
+>>> these patches are rebased to kevin's pm branch and
+>>> usbhs latest mainline kernel patches
+>>
+>> I'm ready to apply this one to my MFD for-next branch. Or do you want it to go
+>> through Kevin's tree ?
+>>
+>> Cheers,
+>> Samuel
+>
+>
+> Thanks samuel;
+> But, patch 1 and 2 requires benoit causson's ack by;
+> so , I am waiting for benoit response on this.
 
-I know I get enough problems with my "odd" last name to be aware that
-there are lots of misconceptions about what is a real and not-real way
-to spell/handle a name, so again, if I am mistaken here, please let me
-know.
+I made a couple of comments in the v8, and you did address only half of 
+them. It will be nice to at least answer the remaining points.
 
-thanks,
+Moreover, Paul is the maintainer of the OMAP3 hwmod data file.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Benoit
