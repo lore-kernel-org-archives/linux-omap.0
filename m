@@ -1,75 +1,49 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based camera board.
-Date: Mon, 19 Sep 2011 10:01:12 +0200
-Message-ID: <201109191001.12364.laurent.pinchart@ideasonboard.com>
-References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org> <201109182358.55816.laurent.pinchart@ideasonboard.com> <20110919061019.GD9244@neutronstar.dyndns.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/2] misc: remove CONFIG_MISC_DEVICES
+Date: Mon, 19 Sep 2011 10:47:50 +0200
+Message-ID: <2282172.TF7nejTDIZ@wuerfel>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <20110918152835.GA30696@kroah.com> <4E763C3C.3050909@xenotime.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20110919061019.GD9244@neutronstar.dyndns.org>
-Sender: linux-media-owner@vger.kernel.org
-To: martin@neutronstar.dyndns.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:63966 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753255Ab1ISIsx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 04:48:53 -0400
+In-Reply-To: <4E763C3C.3050909@xenotime.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Greg KH <greg@kroah.com>, Jean Delvare <khali@linux-fr.org>, Luciano Coelho <coelho@ti.com>, matti.j.aaltonen@nokia.com, johannes@sipsolutions.net, linux-kernel@vger.kernel.org, sameo@linux.intel.com, mchehab@infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 
-Hi Martin,
-
-On Monday 19 September 2011 08:10:19 martin@neutronstar.dyndns.org wrote:
-> On Sun, Sep 18, 2011 at 11:58:55PM +0200, Laurent Pinchart wrote:
-> > On Saturday 17 September 2011 11:34:57 Martin Hostettler wrote:
-> > > Adds board support for an MT9M032 based camera to omap3evm.
-> > > 
-> > > Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> > > ---
-> > > 
-> > >  arch/arm/mach-omap2/Makefile                |    1 +
-> > >  arch/arm/mach-omap2/board-omap3evm-camera.c |  183
-> > > 
-> > > +++++++++++++++++++++++++++ 2 files changed, 184 insertions(+), 0
-> > > deletions(-)
-> > > 
-> > >  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
-> > > 
-> > > Changes in V2:
-> > >  * ported to current mainline
-> > >  * Style fixes
-> > >  * Fix error handling
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/Makefile
-> > > b/arch/arm/mach-omap2/Makefile index f343365..8ae3d25 100644
-> > > --- a/arch/arm/mach-omap2/Makefile
-> > > +++ b/arch/arm/mach-omap2/Makefile
-> > > +	return 0;
-> > > +
-> > > +err_8:
-> > > +	gpio_free(EVM_TWL_GPIO_BASE + 8);
-> > > +err_2:
-> > > +	gpio_free(EVM_TWL_GPIO_BASE + 2);
-> > > +err_vdsel:
-> > > +	gpio_free(nCAM_VD_SEL);
-> > > +err:
-> > > +	return ret;
-> > > +}
-> > > +
-> > > +device_initcall(camera_init);
+On Sunday 18 September 2011 11:45:16 Randy Dunlap wrote:
+> >> We have fallbacks to Andrew and/or GregKH currently, but GregKH is not
+> >> consistent or timely with applying drivers/misc/ patches.  It deserves better.
+> >> [added him to Cc: list]
 > > 
-> > Please don't use device_initcall(), but call the function directly from
-> > the OMAP3 EVM init handler. Otherwise camera_init() will be called if
-> > OMAP3 EVM support is compiled in the kernel, regardless of the board the
-> > kernel runs on.
+> > I do try to handle patches sent to me for misc/ in time for the
+> > different merge windows as that directory contains drivers that have
+> > moved out of the staging/ directory.
+> > 
+> > But yes, I'm not the overall drivers/misc/ maintainer, do we really need
+> > one?  If so, I can easily start maintaining a development tree for it to
+> > keep it separate for the different driver authors to send me stuff and
+> > start tracking it more "for real" if Arnd doesn't want to do it.
 > 
-> Ok, will do.
-> In which header should the prototyp of that function go? Or can i just
-> add a prototyp to board-omap3evm.c directly?
-> I couldn't find anything that looked right, this is rather board specific
-> after all.
+> We need for the patches to be applied in a timely manner.
+> Sometimes when there is no real maintainer, that does not happen.
 
-You can either create arch/arm/mach-omap2/board-omap3evm.h or add the 
-prototype to board-omap3evm.c.
+I think the other equally import aspect of maintainership that
+drivers/misc (and drivers/char) needs is someone who says no to
+stuff that doesn't belong there and helps submitters to find a
+proper place where appropriate and to come up with a proper user
+interface abstraction.
 
--- 
-Regards,
+I'm definitely willing to do that part.
 
-Laurent Pinchart
+Greg, how about we both formally take ownership of driver/{misc,char}
+and you track the patches while I do the bulk of the reviews? You
+are definitely better than me with the patch tracking workflow.
+
+	Arnd
