@@ -1,75 +1,92 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
-Date: Mon, 19 Sep 2011 21:01:02 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC8113E2@dbde02.ent.ti.com>
-References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
- <201109081921.28051.laurent.pinchart@ideasonboard.com>
- <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com>
- <201109161506.16505.laurent.pinchart@ideasonboard.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 00/11] Add L2 cache cleaning to generic CPU suspend
+Date: Mon, 19 Sep 2011 17:22:22 +0100
+Message-ID: <20110919162222.GC16591@n2100.arm.linux.org.uk>
+References: <20110901124752.GE29729@n2100.arm.linux.org.uk> <20110901153342.GB5147@S2100-06.ap.freescale.net> <20110901153451.GA16024@n2100.arm.linux.org.uk> <20110901155752.GC5147@S2100-06.ap.freescale.net> <20110910161002.GA462@S2100-06.ap.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53283 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755300Ab1ISPb2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 11:31:28 -0400
-In-Reply-To: <201109161506.16505.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56417 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756541Ab1ISQWc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 12:22:32 -0400
+Content-Disposition: inline
+In-Reply-To: <20110910161002.GA462@S2100-06.ap.freescale.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Ravi, Deepthy" <deepthy.ravi@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@infradead.org" <mchehab@infradead.org>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
+To: Shawn Guo <shawn.guo@freescale.com>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Friday, September 16, 2011 6:36 PM
-> To: Ravi, Deepthy
-> Cc: linux-media@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk;
-> linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
-> kernel@vger.kernel.org; mchehab@infradead.org; g.liakhovetski@gmx.de;
-> Hiremath, Vaibhav
-> Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+On Sun, Sep 11, 2011 at 12:10:04AM +0800, Shawn Guo wrote:
+> On Thu, Sep 01, 2011 at 11:57:54PM +0800, Shawn Guo wrote:
+> > On Thu, Sep 01, 2011 at 04:34:51PM +0100, Russell King - ARM Linux wrote:
+> > > On Thu, Sep 01, 2011 at 11:33:43PM +0800, Shawn Guo wrote:
+> > > > This is also the case on i.MX6Q, which L2 cache is retained during a
+> > > > suspend/resume cycle.  Currently, I have to call into the following
+> > > > before calling generic cpu_suspend() to clean/invalidate the entire
+> > > > L2 cache.
+> > > > 
+> > > > 	outer_flush_all();
+> > > > 	outer_disable();
+> > > > 
+> > > > But there is a wired thing on using generic cpu_resume().  I have to
+> > > > invalidate L1 before calling into cpu_resume() like below.
+> > > > 
+> > > > ENTRY(imx6q_cpu_resume)
+> > > >         bl      v7_invalidate_l1
+> > > >         b       cpu_resume
+> > > > ENDPROC(imx6q_cpu_resume)
+> > > > 
+> > > > ENTRY(imx6q_secondary_startup)
+> > > >         bl      v7_invalidate_l1
+> > > >         b       secondary_startup
+> > > > ENDPROC(imx6q_secondary_startup)
+> > > > 
+> > > > The v7_invalidate_l1() is the function copied from mach-tegra/headsmp.S,
+> > > > which has to be called before calling secondary_startup to boot
+> > > > secondary cores (same situation between Tegra and i.MX6Q).
+> > > 
+> > > Presumably that's because your L1 cache contains randomized data with
+> > > random validity (and presumably random dirtyness) at boot time - something
+> > > which unfortunately the ARM ARM permits.  I don't think we can go to the
+> > > extent of dealing with this in the generic code as it would unnecessarily
+> > > perturb those implementations which either the boot loader has already
+> > > sorted out that issue, or which don't have the issue at all.
+> > > 
+> > Yes, agreed.  It seems that Tegra and i.MX6Q are the only two CA9MP
+> > cases here.  But is it possible to maintain this v7_invalidate_l1()
+> > function in cache-v7.S, so that we do not need to duplicate it in
+> > platform codes?
+> > 
+> > > > Before applying this patch series, I have something like below actually
+> > > > working.
+> > > > 
+> > > > 
+> > > > 	outer_flush_all();
+> > > > 	outer_disable();
+> > > > 	imx_set_cpu_jump(0, imx6q_cpu_resume);
+> > > > 	/* Zzz ... */
+> > > > 	cpu_suspend(0, imx6q_suspend_finish);
+> > > > 
+> > > > I expect with you patches applied, I can still have it work with simply
+> > > > removing those two lines outer cache codes.
+> > > 
+> > > That should be the case.
+> > > 
+> > > > But unfortunately, I'm
+> > > > running into Oops when resuming back.  And I also have Oops with
+> > > > imx_set_cpu_jump(0, cpu_resume) which means skipping the
+> > > > v7_invalidate_l1() and calling generic cpu_resume() only.
+> > > 
+> > > Do you have a copy of the oops?
+> > > 
+> > 
+> Hi Russell,
 > 
-> Hi Deepthy,
+> After following your great debugging clue that we need to enable L2
+> before calling into generic cpu_resume(), now this patch series works
+> great for imx6q.  Thanks a lot, and here is my tag.
 > 
-> On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
-> > On Thursday, September 08, 2011 10:51 PM Laurent Pinchart wrote:
-> > > On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
-> > >> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >>
-> > >> In order to support TVP5146 (for that matter any video decoder),
-> > >> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
-> > >> device node.
-> > >
-> > > Why so ? Shouldn't it be queried on the subdev output pad directly ?
-> >
-> > Because standard v4l2 application for analog devices will call these std
-> > ioctls on the streaming device node. So it's done on /dev/video to make
-> the
-> > existing apllication work.
-> 
-> Existing applications can't work with the OMAP3 ISP (and similar complex
-> embedded devices) without userspace support anyway, either in the form of
-> a
-> GStreamer element or a libv4l plugin. I still believe that analog video
-> standard operations should be added to the subdev pad operations and
-> exposed
-> through subdev device nodes, exactly as done with formats.
-> 
-[Hiremath, Vaibhav] Laurent,
+> Tested-by: Shawn Guo <shawn.guo@linaro.org>
 
-I completely agree with your point that, existing application will not work without setting links properly. But I believe the assumption here is, media-controller should set the links (along with pad formants) and all existing application should work as is. Isn't it?
-
-The way it is being done currently is, set the format at the pad level which is same as analog standard resolution and use existing application for streaming...
-
-I am ok, if we add s/g/enum_std api support at sub-dev level but this should also be supported on streaming device node.
-
-Thanks,
-Vaibhav
-
-> --
-> Regards,
-> 
-> Laurent Pinchart
+Is that for all these patches?
