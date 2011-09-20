@@ -1,15 +1,15 @@
 From: <hvaibhav@ti.com>
-Subject: [PATCH-V3 3/4] arm:omap:am33xx: Create board support and enable build for AM335XEVM
-Date: Tue, 20 Sep 2011 20:02:21 +0530
-Message-ID: <1316529142-27564-4-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V3 4/4] arm:omap:am33xx: Add low level debugging support
+Date: Tue, 20 Sep 2011 20:02:22 +0530
+Message-ID: <1316529142-27564-5-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56641 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41429 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751326Ab1ITOcv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Sep 2011 10:32:51 -0400
+	id S1751326Ab1ITOcx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Sep 2011 10:32:53 -0400
 In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,110 +18,111 @@ Cc: khilman@ti.com, paul@pwsan.com, tony@atomide.com, linux-arm-kernel@lists.inf
 
 From: Afzal Mohammed <afzal@ti.com>
 
-This patch adds minimal support and build configuration for
-AM335X EVM.
+Add support for low level debugging on AM335X EVM (AM33XX family).
+Currently only support for UART1 console, which is used on AM335X EVM
+is added.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig           |    5 +++
- arch/arm/mach-omap2/Makefile          |    2 +
- arch/arm/mach-omap2/board-am335xevm.c |   57 +++++++++++++++++++++++++++++++++
- 3 files changed, 64 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-am335xevm.c
+ arch/arm/mach-omap2/include/mach/debug-macro.S |   22 ++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/serial.h       |    4 ++++
+ arch/arm/plat-omap/include/plat/uncompress.h   |    6 ++++++
+ 3 files changed, 32 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 12ab835..8533008 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -315,6 +315,11 @@ config MACH_TI8168EVM
- 	depends on SOC_OMAPTI816X
- 	default y
+diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
+index 48adfe9..f649973 100644
+--- a/arch/arm/mach-omap2/include/mach/debug-macro.S
++++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
+@@ -78,6 +78,8 @@ omap_uart_lsr:	.word	0
+ 		beq	82f			@ configure UART2
+ 		cmp	\rp, #TI816XUART3	@ ti816x UART offsets different
+ 		beq	83f			@ configure UART3
++		cmp	\rp, #AM33XXUART1	@ AM33XX UART offsets different
++		beq	84f			@ configure UART1
+ 		cmp	\rp, #ZOOM_UART		@ only on zoom2/3
+ 		beq	95f			@ configure ZOOM_UART
 
-+config MACH_AM335XEVM
-+	bool "AM335X Evaluation Module"
-+	depends on SOC_OMAPAM33XX
-+	default y
+@@ -106,6 +108,9 @@ omap_uart_lsr:	.word	0
+ 		b	98f
+ 83:		mov	\rp, #UART_OFFSET(TI816X_UART3_BASE)
+ 		b	98f
++84:		ldr	\rp, =AM33XX_UART1_BASE
++		and	\rp, \rp, #0x00ffffff
++		b	97f
+ 95:		ldr	\rp, =ZOOM_UART_BASE
+ 		mrc	p15, 0, \rv, c1, c0
+ 		tst	\rv, #1			@ MMU enabled?
+@@ -121,6 +126,23 @@ omap_uart_lsr:	.word	0
+ 		b	10b
+
+ 		/* Store both phys and virt address for the uart */
++97:		add	\rp, \rp, #0x44000000	@ phys base
++		mrc	p15, 0, \rv, c1, c0
++		tst	\rv, #1			@ MMU enabled?
++		ldreq	\rv, =omap_uart_v2p(omap_uart_phys)	@ MMU disabled
++		ldrne	\rv, =omap_uart_phys	@ MMU enabled
++		str	\rp, [\rv, #0]
++		sub	\rp, \rp, #0x44000000	@ phys base
++		add	\rp, \rp, #0xf9000000	@ virt base
++		add	\rv, \rv, #4		@ omap_uart_virt
++		str	\rp, [\rv, #0]
++		mov	\rp, #(UART_LSR << OMAP_PORT_SHIFT)
++		add	\rv, \rv, #4		@ omap_uart_lsr
++		str	\rp, [\rv, #0]
 +
- config MACH_OMAP_4430SDP
- 	bool "OMAP 4430 SDP board"
- 	default y
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 5a6fe73..47d8de1 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -259,6 +259,8 @@ obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
- obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
-+obj-$(CONFIG_MACH_AM335XEVM)		+= board-am335xevm.o
++		b	10b
 +
- # Platform specific device init code
- usbfs-$(CONFIG_ARCH_OMAP_OTG)		:= usb-fs.o
- obj-y					+= $(usbfs-m) $(usbfs-y)
-diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
-new file mode 100644
-index 0000000..afa3f26
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-am335xevm.c
-@@ -0,0 +1,57 @@
-+/*
-+ * Code for AM335X EVM.
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc. - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/init.h>
++		/* Store both phys and virt address for the uart */
+ 98:		add	\rp, \rp, #0x48000000	@ phys base
+ 		mrc	p15, 0, \rv, c1, c0
+ 		tst	\rv, #1			@ MMU enabled?
+diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
+index de3b10c..ad19377 100644
+--- a/arch/arm/plat-omap/include/plat/serial.h
++++ b/arch/arm/plat-omap/include/plat/serial.h
+@@ -59,6 +59,9 @@
+ /* AM3505/3517 UART4 */
+ #define AM35XX_UART4_BASE	0x4809E000	/* Only on AM3505/3517 */
+
++/* AM33XX serial port */
++#define AM33XX_UART1_BASE	0x44E09000
 +
-+#include <mach/hardware.h>
-+#include <asm/mach-types.h>
-+#include <asm/mach/arch.h>
-+#include <asm/mach/map.h>
+ /* External port on Zoom2/3 */
+ #define ZOOM_UART_BASE		0x10000000
+ #define ZOOM_UART_VIRT		0xfa400000
+@@ -92,6 +95,7 @@
+ #define TI816XUART1		81
+ #define TI816XUART2		82
+ #define TI816XUART3		83
++#define AM33XXUART1		84
+ #define ZOOM_UART		95		/* Only on zoom2/3 */
+
+ /* This is only used by 8250.c for omap1510 */
+diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+index a067484..bd1e051 100644
+--- a/arch/arm/plat-omap/include/plat/uncompress.h
++++ b/arch/arm/plat-omap/include/plat/uncompress.h
+@@ -97,6 +97,10 @@ static inline void flush(void)
+ 	_DEBUG_LL_ENTRY(mach, TI816X_UART##p##_BASE, OMAP_PORT_SHIFT,	\
+ 		TI816XUART##p)
+
++#define DEBUG_LL_AM33XX(p, mach)					\
++	_DEBUG_LL_ENTRY(mach, AM33XX_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		AM33XXUART##p)
 +
-+#include <plat/irqs.h>
-+#include <plat/board.h>
-+#include <plat/common.h>
-+
-+static struct omap_board_config_kernel am335x_evm_config[] __initdata = {
-+};
-+
-+static void __init am335x_init_early(void)
-+{
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
-+}
-+
-+static void __init am335x_evm_init(void)
-+{
-+	omap_serial_init();
-+	omap_board_config = am335x_evm_config;
-+	omap_board_config_size = ARRAY_SIZE(am335x_evm_config);
-+}
-+
-+static void __init am335x_evm_map_io(void)
-+{
-+	omap2_set_globals_am33xx();
-+	omapam33xx_map_common_io();
-+}
-+
-+MACHINE_START(AM335XEVM, "am335xevm")
-+	/* Maintainer: Texas Instruments */
-+	.boot_params	= 0x80000100,
-+	.map_io		= am335x_evm_map_io,
-+	.init_early	= am335x_init_early,
-+	.init_irq	= ti816x_init_irq,
-+	.timer		= &omap3_timer,
-+	.init_machine	= am335x_evm_init,
-+MACHINE_END
+ static inline void __arch_decomp_setup(unsigned long arch_id)
+ {
+ 	int port = 0;
+@@ -173,6 +177,8 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
+ 		/* TI8168 base boards using UART3 */
+ 		DEBUG_LL_TI816X(3, ti8168evm);
+
++		/* AM33XX base boards using UART1 */
++		DEBUG_LL_AM33XX(1, am335xevm);
+ 	} while (0);
+ }
+
 --
 1.7.0.4
 
