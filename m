@@ -1,52 +1,106 @@
-From: "Pedanekar, Hemant" <hemantp@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: Add support for dmtimer v2 ip (Re: [PATCH
- v15 06/12] OMAP: dmtimer: switch-over to platform device driver)
-Date: Tue, 20 Sep 2011 05:11:47 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4C809C3@dbde02.ent.ti.com>
-References: <1315516098-29761-7-git-send-email-tarun.kanti@ti.com>
- <20110914214533.GA30941@atomide.com>
- <CAC83ZvJgPYb3JbWT4SKXpQvq-vdKK4b6hd6E-ik5uyRCqgwWsg@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB59302575A050D@dbde02.ent.ti.com>
- <20110915165810.GA2284@atomide.com> <20110915170548.GB2284@atomide.com>
- <CAC83ZvKGoucZ=xQSa7GEk7Gg8jcFBQE==1a6m4=+nzDRrsw+jw@mail.gmail.com>
- <CAC83ZvKXEb7MTujP4JqhrPeysYxQcLF+BV-J9tpYoRwWGVZ8_Q@mail.gmail.com>
- <20110917013531.GB2937@atomide.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B03B4C80288@dbde02.ent.ti.com>
- <20110919174054.GE2937@atomide.com>
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: [PATCH 00/11] Add L2 cache cleaning to generic CPU suspend
+Date: Tue, 20 Sep 2011 11:24:23 +0800
+Message-ID: <20110920032422.GF28084@S2100-06.ap.freescale.net>
+References: <20110901124752.GE29729@n2100.arm.linux.org.uk>
+ <20110901153342.GB5147@S2100-06.ap.freescale.net>
+ <20110901153451.GA16024@n2100.arm.linux.org.uk>
+ <20110901155752.GC5147@S2100-06.ap.freescale.net>
+ <20110910161002.GA462@S2100-06.ap.freescale.net>
+ <20110919162222.GC16591@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53507 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751666Ab1ISXl5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2011 19:41:57 -0400
-In-Reply-To: <20110919174054.GE2937@atomide.com>
-Content-Language: en-US
+Received: from am1ehsobe004.messaging.microsoft.com ([213.199.154.207]:26096
+	"EHLO AM1EHSOBE004.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752879Ab1ITDPB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Sep 2011 23:15:01 -0400
+Content-Disposition: inline
+In-Reply-To: <20110919162222.GC16591@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Tony Lindgren wrote on Monday, September 19, 2011 11:11 PM:
-
-> device driver)
+On Mon, Sep 19, 2011 at 05:22:22PM +0100, Russell King - ARM Linux wrote:
+> On Sun, Sep 11, 2011 at 12:10:04AM +0800, Shawn Guo wrote:
+> > On Thu, Sep 01, 2011 at 11:57:54PM +0800, Shawn Guo wrote:
+> > > On Thu, Sep 01, 2011 at 04:34:51PM +0100, Russell King - ARM Linux wrote:
+> > > > On Thu, Sep 01, 2011 at 11:33:43PM +0800, Shawn Guo wrote:
+> > > > > This is also the case on i.MX6Q, which L2 cache is retained during a
+> > > > > suspend/resume cycle.  Currently, I have to call into the following
+> > > > > before calling generic cpu_suspend() to clean/invalidate the entire
+> > > > > L2 cache.
+> > > > > 
+> > > > > 	outer_flush_all();
+> > > > > 	outer_disable();
+> > > > > 
+> > > > > But there is a wired thing on using generic cpu_resume().  I have to
+> > > > > invalidate L1 before calling into cpu_resume() like below.
+> > > > > 
+> > > > > ENTRY(imx6q_cpu_resume)
+> > > > >         bl      v7_invalidate_l1
+> > > > >         b       cpu_resume
+> > > > > ENDPROC(imx6q_cpu_resume)
+> > > > > 
+> > > > > ENTRY(imx6q_secondary_startup)
+> > > > >         bl      v7_invalidate_l1
+> > > > >         b       secondary_startup
+> > > > > ENDPROC(imx6q_secondary_startup)
+> > > > > 
+> > > > > The v7_invalidate_l1() is the function copied from mach-tegra/headsmp.S,
+> > > > > which has to be called before calling secondary_startup to boot
+> > > > > secondary cores (same situation between Tegra and i.MX6Q).
+> > > > 
+> > > > Presumably that's because your L1 cache contains randomized data with
+> > > > random validity (and presumably random dirtyness) at boot time - something
+> > > > which unfortunately the ARM ARM permits.  I don't think we can go to the
+> > > > extent of dealing with this in the generic code as it would unnecessarily
+> > > > perturb those implementations which either the boot loader has already
+> > > > sorted out that issue, or which don't have the issue at all.
+> > > > 
+> > > Yes, agreed.  It seems that Tegra and i.MX6Q are the only two CA9MP
+> > > cases here.  But is it possible to maintain this v7_invalidate_l1()
+> > > function in cache-v7.S, so that we do not need to duplicate it in
+> > > platform codes?
+> > > 
+> > > > > Before applying this patch series, I have something like below actually
+> > > > > working.
+> > > > > 
+> > > > > 
+> > > > > 	outer_flush_all();
+> > > > > 	outer_disable();
+> > > > > 	imx_set_cpu_jump(0, imx6q_cpu_resume);
+> > > > > 	/* Zzz ... */
+> > > > > 	cpu_suspend(0, imx6q_suspend_finish);
+> > > > > 
+> > > > > I expect with you patches applied, I can still have it work with simply
+> > > > > removing those two lines outer cache codes.
+> > > > 
+> > > > That should be the case.
+> > > > 
+> > > > > But unfortunately, I'm
+> > > > > running into Oops when resuming back.  And I also have Oops with
+> > > > > imx_set_cpu_jump(0, cpu_resume) which means skipping the
+> > > > > v7_invalidate_l1() and calling generic cpu_resume() only.
+> > > > 
+> > > > Do you have a copy of the oops?
+> > > > 
+> > > 
+> > Hi Russell,
+> > 
+> > After following your great debugging clue that we need to enable L2
+> > before calling into generic cpu_resume(), now this patch series works
+> > great for imx6q.  Thanks a lot, and here is my tag.
+> > 
+> > Tested-by: Shawn Guo <shawn.guo@linaro.org>
 > 
-> * Pedanekar, Hemant <hemantp@ti.com> [110918 20:32]:
->> 
->> Tony,
->> Kernel boots fine on TI816X (should also boot on TI814X) with your patch
->> and patches (including OSC clock fix) from series
->> http://www.spinics.net/lists/linux-omap/msg57011.html
+> Is that for all these patches?
 > 
-> OK good to hear, I assume I can add your Tested-by then?
-> 
-> Regards,
-> 
-> Tony
+Yes, it is.
 
-Yes.
+-- 
+Regards,
+Shawn
 
-Thanks.
-
-   Hemant
