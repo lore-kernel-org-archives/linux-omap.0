@@ -1,70 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap cleanup part1 for v3.2 merge window
-Date: Tue, 20 Sep 2011 15:33:12 -0700
-Message-ID: <20110920223311.GK2937@atomide.com>
-References: <20110917014623.GC2937@atomide.com>
- <201109202334.43213.arnd@arndb.de>
- <201109202346.11393.arnd@arndb.de>
+Subject: Re: [PATCH 00/10] hwspinlock-next
+Date: Tue, 20 Sep 2011 16:13:40 -0700
+Message-ID: <20110920231340.GT18894@atomide.com>
+References: <1315846025-11453-1-git-send-email-ohad@wizery.com>
+ <CAK=Wgbam6u1bq8fG+oMUhxfWH1g3dU7q+VhPWFEZOLgFMV_3vQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:37907 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752110Ab1ITWdP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Sep 2011 18:33:15 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201109202346.11393.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAK=Wgbam6u1bq8fG+oMUhxfWH1g3dU7q+VhPWFEZOLgFMV_3vQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linus Walleij <linus.walleij@linaro.org>, Linus Torvalds <torvalds@linux-foundation.org>, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [110920 14:12]:
-> On Tuesday 20 September 2011, Arnd Bergmann wrote:
-> > 
-> > One more thing: my randconfig tests are running now and
-> > have spit out a new error after merging lost of stuff
-> > today:
-
-Good to hear you got "arndconfig" running :)
-
-Do you think we could also add support for something
-like this:
-
-$ echo CONFIG_ARCH_OMAP=y > .config
-$ make randconfig
-
-or
-
-$ make --force=CONFIG_ARCH_OMAP randconfig
-
-Where randconfig would keep the forced CONFIG_ARCH_OMAP
-static while randomly selecting the others?
-
-This would allow targeted randconfig for each patch more
-or less..
- 
-> > arch/arm/mach-omap2/built-in.o: In function `omap_zoom_init':
-> > /home/arnd/linux-arm/arch/arm/mach-omap2/board-zoom.c:117: undefined reference to `board_nand_init'
-> > make[1]: *** [.tmp_vmlinux1] Error 1
-> > make[1]: Target `_all' not remade because of errors.
-> > make: *** [sub-make] Error 2
-> > make: Target `_all' not remade because of errors.
+* Ohad Ben-Cohen <ohad@wizery.com> [110920 01:34]:
+> On Mon, Sep 12, 2011 at 7:46 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
 > 
-> Found it: the offending patch is:
+> I'm wondering how hwspinlock updates like this should go upstream.
 > 
->       omap2+: Use Kconfig symbol in Makefile instead of obj-y
+> The first hwspinlock batch was picked by Tony, because it involved a
+> bulk of OMAP changes.
 > 
+> Hwspinlock isn't OMAP-specific anymore though (we gained support for
+> STE's u8500) and the vast majority of changes are in drivers/. We're
+> still very much ARM-related, though this may change too at some point
+> (c6x has a similar "hardware semaphore" peripheral like the u8500
+> does).
 > 
-> It seems that you replace the #ifdef in the board-flash.c file
-> with a similar #ifdef in the header that replaces this with an
-> empty inline function when the object is not built.
+> Tony, if you're still willing to pick up these updates I'd be happy to
+> send you pull requests of course.
 
-Oops. I'll do a fix for that. Those should be now inline
-functions in the header.
+I'd prefer for Greg to take these as these are drivers.
 
-As various other omap branches are based on the cleanup I'd
-rather not go mess with the original patch unless you insist.
+If he's not taking it at this point based on it being ARM only,
+I can take it then.
 
 Regards,
 
