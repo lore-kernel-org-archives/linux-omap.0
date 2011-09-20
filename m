@@ -1,78 +1,82 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 08/10] OMAP: 4430SDP: Remove unneeded lcd config
-Date: Tue, 20 Sep 2011 11:18:24 +0300
-Message-ID: <1316506706-18941-9-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 07/10] OMAP: Add DDC i2c_bus_num to board files
+Date: Tue, 20 Sep 2011 11:18:23 +0300
+Message-ID: <1316506706-18941-8-git-send-email-tomi.valkeinen@ti.com>
 References: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:37051 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754268Ab1ITITE (ORCPT
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:40600 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754268Ab1ITITB (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Sep 2011 04:19:04 -0400
-Received: by bkbzu17 with SMTP id zu17so219707bkb.10
-        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2011 01:19:02 -0700 (PDT)
+	Tue, 20 Sep 2011 04:19:01 -0400
+Received: by mail-bw0-f48.google.com with SMTP id zu5so319316bkb.35
+        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2011 01:19:00 -0700 (PDT)
 In-Reply-To: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-4430SDP board file contains some unused old LCD configurations. They are
-not used and can be removed.
+Add i2c bus number for DVI output for boards with DVI output where the
+i2c bus has been confirmed to be connected and working. The driver uses
+this to detect if a panel is connected and to read EDID.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   17 -----------------
- 1 files changed, 0 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/board-igep0020.c    |    1 +
+ arch/arm/mach-omap2/board-omap3beagle.c |    1 +
+ arch/arm/mach-omap2/board-omap4panda.c  |    1 +
+ arch/arm/mach-omap2/board-overo.c       |    1 +
+ 4 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 79c2827..62ec9f5 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -340,11 +340,6 @@ static int __init omap_ethernet_init(void)
- 	return status;
- }
- 
--static struct platform_device sdp4430_lcd_device = {
--	.name		= "sdp4430_lcd",
--	.id		= -1,
--};
--
- static struct regulator_consumer_supply sdp4430_vbat_supply[] = {
- 	REGULATOR_SUPPLY("vddvibl", "twl6040-vibra"),
- 	REGULATOR_SUPPLY("vddvibr", "twl6040-vibra"),
-@@ -374,21 +369,12 @@ static struct platform_device sdp4430_vbat = {
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 9fda8d8..6ff5222 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -458,6 +458,7 @@ static void igep2_disable_dvi(struct omap_dss_device *dssdev)
+ static struct panel_dvi_platform_data dvi_panel = {
+ 	.platform_enable	= igep2_enable_dvi,
+ 	.platform_disable	= igep2_disable_dvi,
++	.i2c_bus_num = 3,
  };
  
- static struct platform_device *sdp4430_devices[] __initdata = {
--	&sdp4430_lcd_device,
- 	&sdp4430_gpio_keys_device,
- 	&sdp4430_leds_gpio,
- 	&sdp4430_leds_pwm,
- 	&sdp4430_vbat,
+ static struct omap_dss_device igep2_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 26bc860..742ac45 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -206,6 +206,7 @@ static void beagle_disable_dvi(struct omap_dss_device *dssdev)
+ static struct panel_dvi_platform_data dvi_panel = {
+ 	.platform_enable = beagle_enable_dvi,
+ 	.platform_disable = beagle_disable_dvi,
++	.i2c_bus_num = 3,
  };
  
--static struct omap_lcd_config sdp4430_lcd_config __initdata = {
--	.ctrl_name	= "internal",
--};
--
--static struct omap_board_config_kernel sdp4430_config[] __initdata = {
--	{ OMAP_TAG_LCD,		&sdp4430_lcd_config },
--};
--
- static void __init omap_4430sdp_init_early(void)
- {
- 	omap2_init_common_infrastructure();
-@@ -793,9 +779,6 @@ static void __init omap_4430sdp_init(void)
- 		package = OMAP_PACKAGE_CBL;
- 	omap4_mux_init(board_mux, NULL, package);
+ static struct omap_dss_device beagle_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index c35384e..a38ed273 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -458,6 +458,7 @@ static void omap4_panda_disable_dvi(struct omap_dss_device *dssdev)
+ static struct panel_dvi_platform_data omap4_dvi_panel = {
+ 	.platform_enable	= omap4_panda_enable_dvi,
+ 	.platform_disable	= omap4_panda_disable_dvi,
++	.i2c_bus_num = 3,
+ };
  
--	omap_board_config = sdp4430_config;
--	omap_board_config_size = ARRAY_SIZE(sdp4430_config);
--
- 	omap4_i2c_init();
- 	omap_sfh7741prox_init();
- 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+ struct omap_dss_device omap4_panda_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 06064d5..da94376 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -186,6 +186,7 @@ static void overo_panel_disable_dvi(struct omap_dss_device *dssdev)
+ static struct panel_dvi_platform_data dvi_panel = {
+ 	.platform_enable	= overo_panel_enable_dvi,
+ 	.platform_disable	= overo_panel_disable_dvi,
++	.i2c_bus_num		= 3,
+ };
+ 
+ static struct omap_dss_device overo_dvi_device = {
 -- 
 1.7.4.1
 
