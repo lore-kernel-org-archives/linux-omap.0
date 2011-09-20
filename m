@@ -1,60 +1,49 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 0/7] Add L2 cache cleaning to generic CPU suspend
-Date: Tue, 20 Sep 2011 12:45:27 +0100
-Message-ID: <20110920114527.GA15663@e102568-lin.cambridge.arm.com>
-References: <20110919163741.GE16591@n2100.arm.linux.org.uk>
+From: Santosh <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 00/25] OMAP4: PM: suspend, CPU-hotplug and CPUilde support
+Date: Tue, 20 Sep 2011 17:27:32 +0530
+Message-ID: <4E787FAC.5070905@ti.com>
+References: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110919163741.GE16591@n2100.arm.linux.org.uk>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:38417 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752442Ab1ITL5k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Sep 2011 07:57:40 -0400
+Received: by mail-gy0-f180.google.com with SMTP id 8so967504gyd.39
+        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2011 04:57:39 -0700 (PDT)
+In-Reply-To: <1315144466-9395-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, khilman@ti.com, rnayak@ti.com
 
-On Mon, Sep 19, 2011 at 05:37:41PM +0100, Russell King - ARM Linux wrote:
-> This is a re-post of the previous patch series, but with an additional
-> TLB flush to ensure that hte global TLB entry in the page tables is
-> flushed out.  This is a flush of all TLB entries, but it could probably
-> be more targetted if we need to.
+On Sunday 04 September 2011 07:24 PM, Santosh Shilimkar wrote:
+> This series adds OMAP4 MPUSS (MPU SubSystem) power management support for
+> suspend (S2R), CPU hotplug and CPUidle.
 > 
-> Original cover mail follows:
-> 
-> Some systems (such as OMAP) preserve the L2 cache across a suspend/
-> resume cycle.  This means they do not perform L2 cache maintanence
-> in their suspend finisher function.
-> 
-> However, the side effect is that the saved CPU state is not readable
-> by the resume code because it is sitting in the L2 cache.
-> 
-> This patch series adds L2 cache cleaning to the generic CPU suspend/
-> resume support code, making it possible to use this on systems with
-> L2 cache enabled without having to clean/invalidate the entire L2
-> cache.
-> 
-> We also add a separate page table, allocated at boot time, for the
-> resume process to use so we don't have to fiddle about with tweaking
-> entries in the current processes page table.  Moreover, the current
-> processes page table may be in use by another CPU in the system if
-> these paths are used from cpuidle or hotplug, so changing the page
-> table is technically unsound.
-> 
-> Overall, this makes it possible for OMAP4 systems to use this code.
-> 
-> 
+Thanks all for your review's and testing of this series. Have addressed
+all the concerns/comments as part of the next post which  I am holding
+for couple of days more.
 
-Thanks Russell for this.
-As expected, it does fix the issue. Tested on ARM internal platforms
-and Origen with both suspend and cpuidle. So, on the whole series:
+Reason is mainly to ensure that dependent patches(series) are merged or
+on the way for 3.2, and the patches are re-based against the
+right tree for the merge.
 
-Tested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+As documented earlier, there are 3 dependencies for this series.
+
+1) Russell's L2 cache update to generic suspend which seems to be
+be ready now since Lorenzo confirmed that pending issue is fixed.
+http://www.spinics.net/lists/linux-omap/msg57625.html
+
+2) CPU PM notifier series for which I have pull request ready
+to be send.
+https://lkml.org/lkml/2011/9/3/49
+
+3) IRQ subystem patch which is already in Thomas's irq/core for 3.2
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg55483.html
+
+Regards
+Santosh
