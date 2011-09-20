@@ -1,40 +1,44 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap voltage cleanup for v3.2 merge window
-Date: Tue, 20 Sep 2011 22:06:24 +0200
-Message-ID: <201109202206.24931.arnd@arndb.de>
-References: <20110917015419.GD2937@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap cleanup part1 for v3.2 merge window
+Date: Tue, 20 Sep 2011 13:55:37 -0700
+Message-ID: <20110920205537.GI2937@atomide.com>
+References: <20110917014623.GC2937@atomide.com>
+ <201109202201.18574.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:52264 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973Ab1ITUG3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Sep 2011 16:06:29 -0400
-In-Reply-To: <20110917015419.GD2937@atomide.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:31742 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751182Ab1ITUzp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Sep 2011 16:55:45 -0400
+Content-Disposition: inline
+In-Reply-To: <201109202201.18574.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Arnd Bergmann <arnd@arndb.de>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Saturday 17 September 2011, Tony Lindgren wrote:
-> Please pull omap voltage cleanup series:
+* Arnd Bergmann <arnd@arndb.de> [110920 12:27]:
+> On Saturday 17 September 2011, Tony Lindgren wrote:
+> > Please pull the first part of omap cleanup from:
+> > 
+> > git://github.com/tmlind/linux.git cleanup
+> > 
+> > This series cleans up early_init functions and removes
+> > CHIP_IS macro usage. This makes it easier to have SoC
+> > specific init functions so adding support for new omap
+> > variants does not require patching all over the place.
 > 
-> git://github.com/tmlind/linux.git voltage
+> Thanks, pulled.
 > 
-> This has a dependency to the cleanup part 1 series. As
-> this contains some voltage fixes too, it's a separate
-> series. You can either pull it into cleanup or keep it
-> separate.
+> Note that we are trying to get everyone to use the similar
+> prefixes for patch summaries, so it would be nice if you could
+> change 'OMAP: powerdomain:' to 'ARM: OMAP: powerdomain' or
+> 'ARM: omap/powerdowmain:' in the future.
 
-Hi Tony,
-
-I've pulled it into the for-next branch, but haven't
-made up my mind how it I will send it upstream.
-I definitely think it's good that you sent it to me
-as a separate series, given the number of patches in it.
+Already did that for my patches.. Paul and Kevin, can you
+please also start following that standard too?
 
 Thanks,
 
-	Arnd
+Tony
