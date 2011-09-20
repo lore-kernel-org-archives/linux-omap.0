@@ -1,62 +1,71 @@
-From: Shawn Guo <shawn.guo@freescale.com>
-Subject: Re: [PATCH 0/7] Add L2 cache cleaning to generic CPU suspend
-Date: Tue, 20 Sep 2011 11:47:18 +0800
-Message-ID: <20110920034717.GG28084@S2100-06.ap.freescale.net>
-References: <20110919163741.GE16591@n2100.arm.linux.org.uk>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 0/5 v9] mfd: omap: usb: Runtime PM support for EHCI and
+ OHCI drivers
+Date: Tue, 20 Sep 2011 11:50:36 +0530
+Message-ID: <CAP05o4LB2=0tcAn5BLdKYz0bTVMv5=y+dZHusocO-byDQz758g@mail.gmail.com>
+References: <1316092970-2440-1-git-send-email-keshava_mgowda@ti.com>
+	<20110919135653.GR32263@sortiz-mobl>
+	<CAP05o4+AYs07JLio7NgSUOuzSTqiZA45WPDPqAB55u=02vHYWA@mail.gmail.com>
+	<4E777A40.20508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from am1ehsobe003.messaging.microsoft.com ([213.199.154.206]:57237
-	"EHLO AM1EHSOBE003.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753191Ab1ITDi3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Sep 2011 23:38:29 -0400
-Content-Disposition: inline
-In-Reply-To: <20110919163741.GE16591@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4E777A40.20508@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Sep 19, 2011 at 05:37:41PM +0100, Russell King - ARM Linux wrote:
-> This is a re-post of the previous patch series, but with an additional
-> TLB flush to ensure that hte global TLB entry in the page tables is
-> flushed out.  This is a flush of all TLB entries, but it could probably
-> be more targetted if we need to.
-> 
+On Mon, Sep 19, 2011 at 10:52 PM, Cousson, Benoit <b-cousson@ti.com> wr=
+ote:
+> Hi Keshava,
+>
+> On 9/19/2011 4:01 PM, Munegowda, Keshava wrote:
+>>
+>> On Mon, Sep 19, 2011 at 7:26 PM, Samuel Ortiz<sameo@linux.intel.com>
+>> =A0wrote:
+>>>
+>>> Hi Keshava,
+>>>
+>>> On Thu, Sep 15, 2011 at 06:52:45PM +0530, Keshava Munegowda wrote:
+>>>>
+>>>> From: Keshava Munegowda<Keshava_mgowda@ti.com>
+>>>>
+>>>> The Hwmod structures and Runtime PM features are implemented
+>>>> For EHCI and OHCI drivers of OMAP3 and OMAP4.
+>>>> The global suspend/resume of EHCI and OHCI
+>>>> is validated on OMAP3430 sdp board with these patches.
+>>>>
+>>>> these patches are rebased to kevin's pm branch and
+>>>> usbhs latest mainline kernel patches
+>>>
+>>> I'm ready to apply this one to my MFD for-next branch. Or do you wa=
+nt it
+>>> to go
+>>> through Kevin's tree ?
+>>>
+>>> Cheers,
+>>> Samuel
+>>
+>>
+>> Thanks samuel;
+>> But, patch 1 and 2 requires benoit causson's ack by;
+>> so , I am waiting for benoit response on this.
+>
+> I made a couple of comments in the v8, and you did address only half =
+of
+> them. It will be nice to at least answer the remaining points.
+>
+> Moreover, Paul is the maintainer of the OMAP3 hwmod data file.
+>
+> Regards,
+> Benoit
 
-Here is the diff on suspend.c between last post and this series.  With
-the outer_clean_range() calls added back, the series works fine on
-imx6q, otherwise it hangs on resume.
 
-diff --git a/arch/arm/kernel/suspend.c b/arch/arm/kernel/suspend.c
-index 4c95410..2d60f19 100644
---- a/arch/arm/kernel/suspend.c
-+++ b/arch/arm/kernel/suspend.c
-@@ -28,9 +28,6 @@ void __cpu_suspend_save(u32 *ptr, u32 ptrsz, u32 sp, u32 *save_ptr)
-        cpu_do_suspend(ptr);
+Thanks Benoit
+    I will reply to your mail which includes your comments with
+detailed descriptions.
 
-        flush_cache_all();
--       outer_clean_range(*save_ptr, *save_ptr + ptrsz);
--       outer_clean_range(virt_to_phys(save_ptr),
--                         virt_to_phys(save_ptr) + sizeof(*save_ptr));
- }
-
- /*
-@@ -52,8 +49,10 @@ int cpu_suspend(unsigned long arg, int (*fn)(unsigned long))
-         * back to the correct page tables.
-         */
-        ret = __cpu_suspend(arg, fn);
--       if (ret == 0)
-+       if (ret == 0) {
-                cpu_switch_mm(mm->pgd, mm);
-+               local_flush_tlb_all();
-+       }
-
-        return ret;
- }
-
--- 
-Regards,
-Shawn
-
+regards
+keshava
