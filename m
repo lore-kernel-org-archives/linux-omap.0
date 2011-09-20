@@ -1,125 +1,58 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 10/10] OMAP4: 4430SDP: Add picodlp support to board file
-Date: Tue, 20 Sep 2011 11:18:26 +0300
-Message-ID: <1316506706-18941-11-git-send-email-tomi.valkeinen@ti.com>
-References: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
+From: =?utf-8?B?5LuFMTDlhYPmr4/lpKk=?= <user@tal-oz.co.il>
+Subject: =?utf-8?B?576k5Y+R6L2v5Lu2K+S5sOWutuaQnOe0ouacuisxMDnlsYrlub/kuqTkvJrkubDlrrY=?=
+	=?utf-8?B?44CB5rW35YWz5pWw5o2uLEIyQuivouebmOS5sOWutjUwMOS4h+OAgg==?=
+Date: Tue, 20 Sep 2011 08:26:29 +0000 (UTC)
+Message-ID: <20120920114825586034@tal-oz.co.il>
+Reply-To: <1339625218@qq.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:53126 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754268Ab1ITITI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Sep 2011 04:19:08 -0400
-Received: by mail-bw0-f51.google.com with SMTP id zu17so219707bkb.10
-        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2011 01:19:06 -0700 (PDT)
-In-Reply-To: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail.tal-oz.co.il ([212.235.34.242]:16664 "EHLO tal-oz.co.il"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753687Ab1ITI0Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Sep 2011 04:26:24 -0400
+Date: Thu, 20 Sep 2012 11:48:13 +0800
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Mayuresh Janorkar <mayur@ti.com>, Mythri P K <mythripk@ti.com>
+To: lindalonia@aol.com, linnetten@aol.com, linpopin@yahoo.com, linux-omap@vger.kernel.org, linx-lunx@yahoogroups.com, linzylulu33@gmail.com, lionel@pismo.com, lionspecial@g
 
-An on-board projector named picodlp is available for OMAP4430 SDP.
+576k5Y+R6L2v5Lu2KzEwOeWxiuW5v+S6pOS8muS5sOWutuOAgea1t+WFs+aVsOaNruOAgeaQnOe0
+ouW8leaTjuS5sOWutixCMkLor6Lnm5jkubDlrrblhbE1MDDkuIcs5LuFMTDlhYPmr4/lpKnjgIIg
+DQrkv53or4Hmr4/lpKnpg73mnInkubDlrrblm57lpI3jgIINCuS/neivgeavj+WkqemDveacieS5
+sOWutuWbnuWkjeOAgg0KDQoNCjHjgIHnvqTlj5Hova/ku7bvvJog5pON5L2c566A5Y2V77yM5Yqf
+6IO95by65aSn77yM5qih5Lu/5Lq65bel5pON5L2c5qih5byP77yM5Yiw6L6+546H6auY77yM5pel
+5Y+R6YCBNeS4h+WwgeS7peS4iuOAgiANCjLjgIE1MDDkuIflub/kuqTkvJrkubDlrrbotYTmupDv
+vJog6LWg6YCB55qENTAw5LiH5Lmw5a626LWE5rqQ5bqT77yM5q+P5pyI5pu05pawIOOAgiANCjPj
+gIHotoXnuqfmtbflpJbkubDlrrZFbWFpbOaQnOe0ouacuu+8miDmr4/lpKnog73mkJzntKIxLTLk
+uIfku6XkuIrkubDlrrbnnJ/lrp5FTUFJTO+8jOaIkOWNleeOh+mrmOOAgiANCiANCg0K6KaB55qE
+5oqT57Sn6IGU57O7UVE6IDEzMzk2MjUyMTggICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEz
+Mzk2MjUyMThAcXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogMTMzOTYyNTIxOCAgIOaIluiA
+heeri+WNs+WbnuWkjemCrueusTogMTMzOTYyNTIxOEBxcS5jb20NCuimgeeahOaKk+e0p+iBlOez
+u1FROiAxMzM5NjI1MjE4ICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMzM5NjI1MjE4QHFx
+LmNvbQ0KDQrlhY3otLnotaDpgIE6DQrkuIDlhbE45Liq5YyFKOaVsOaNruaYr+WFqOihjOS4muea
+hO+8jOaMieeFp+ihjOS4muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeaf
+peivoueahCnvvJogDQox77yMMjAxMeaYpeWtozEwOeWxiuW5v+S6pOS8muS5sOWutueOsOWcuuiv
+ouebmOaVsOaNruW6k+aWsOmynOWHuueCie+8jOi2hee6p+aWsOmynOS5sOWutu+8jOaWsOmynOaV
+sOaNru+8jOWuueaYk+aIkOWNle+8gSANCjLvvIzotK3kubDlkI7lj6/ku6XlhY3otLnmm7TmlrAy
+MDEx56eL5a2j5bm/5Lqk5LyaKzIwMTLmmKXlraPlub/kuqTkvJrkubDlrrbmlbDmja7jgILlpKro
+toXlgLzkuobjgIINCjPvvIzmnIDmlrDlhajnkIPkubDlrrblupMs5YWxNDUxNjYw5p2h5pWw5o2u
+44CCICjmnIDmlrDmm7TmlrDml6XmnJ8gMjAxMS0wNS0xNuaXpSkNCjTvvIwyMDA45bm0LDIwMDnl
+ubQsMjAxMOW5tCDmmKXlraMr56eL5a2j5bm/5Lqk5Lya5Lmw5a625ZCN5b2V77yMMTAzIDEwNCAx
+MDUgMTA2IDEwNyAxMDgg5YWx5YWt5bGKIOWFsTEyMC425LiH5pWw5o2u44CCDQo177yMMjAxMOW5
+tOWbvemZheS/g+mUgOWNj+S8mu+8iFBQQUnvvInmiJDlkZjlkI3ljZUgUFBBSSBNZW1iZXJzIERp
+cmVjdG9yee+8jOmdnuW4uOmHjeimgeeahOWkp+S5sOWutuOAgg0KNu+8jDIwMTDlubTliLDpppnm
+uK/ph4fotK3nmoTlm73lpJblrqLkurrlkI3lvZUo6aaZ5riv6LS45Y+R5bGA5o+Q5L6bKe+8jOWF
+sTcuMuS4h+aVsOaNru+8jOi2hee6p+mHjeimgeeahOS5sOWutuOAgg0KN++8jDQ4LjY45LiH5p2h
+5pyA5paw5Lmw5a626K+i55uY77yM6LSt5Lmw5ZCO5q+P5pyI5pu05pawIDEtMuS4h+adoe+8jOWM
+heaLrDLpg6jliIbvvIwx77yM5pyA5paw55qE6K+i55uYIDLvvIzmnIDmlrDnmoTlsZXkvJrkubDl
+rrbjgILlhY3otLnmm7TmlrAzNuS4quaciOOAgg0KOO+8jDIwMDnlubTmtbflhbPmj5DljZXmlbDm
+ja5waWVyc+eJiOaVsOaNriAx5Y2D5LiH44CCDQoNCg0K6K+a5L+h5Li65pys77yM5pSv5oyB5pSv
+5LuY5a6d5ouF5L+d5Lqk5piTICjlhYjlj5HotKflubblronoo4Xorr7nva7nvqTlj5Hova/ku7bv
+vIznhLblkI7ku5jmrL4pIOW9u+W6leaJk+a2iOaCqOeahCDpob7omZHjgIINCg0KIA0KDQoNCiAN
+Cg0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+ae
+gemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeO
+h+aegemrmA0K57K+5YeG5pWw5o2uLeaIkOWNleeOh+aegemrmA0K
 
-Entry for this picodlp as a panel is being added in dss_devices array to
-the board file.  It needs 4 GPIO pins for interfacing with host
-processor and these are defined and two of them are configured in board
-file.  Two GPIOs power_on and display_select are configured here.
-picodlp also needs an i2c client over i2c controller-2 at address 0x1b.
-
-Signed-off-by: Mayuresh Janorkar <mayur@ti.com>
-Signed-off-by: Mythri P K <mythripk@ti.com>
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |   52 +++++++++++++++++++++++++++++++++++
- 1 files changed, 52 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 187fcae..d3874a6 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -39,6 +39,7 @@
- #include <plat/omap4-keypad.h>
- #include <video/omapdss.h>
- #include <video/omap-panel-nokia-dsi.h>
-+#include <video/omap-panel-picodlp.h>
- #include <linux/wl12xx.h>
- 
- #include "mux.h"
-@@ -54,6 +55,7 @@
- #define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
- #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
- #define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
-+#define DLP_POWER_ON_GPIO	40
- 
- #define GPIO_WIFI_PMENA		54
- #define GPIO_WIFI_IRQ		53
-@@ -758,10 +760,59 @@ static struct omap_dss_device sdp4430_hdmi_device = {
- 	.channel = OMAP_DSS_CHANNEL_DIGIT,
- };
- 
-+static struct picodlp_panel_data sdp4430_picodlp_pdata = {
-+	.picodlp_adapter_id	= 2,
-+	.emu_done_gpio		= 44,
-+	.pwrgood_gpio		= 45,
-+};
-+
-+static void sdp4430_picodlp_init(void)
-+{
-+	int r;
-+	const struct gpio picodlp_gpios[] = {
-+		{DLP_POWER_ON_GPIO, GPIOF_OUT_INIT_LOW,
-+			"DLP POWER ON"},
-+		{sdp4430_picodlp_pdata.emu_done_gpio, GPIOF_IN,
-+			"DLP EMU DONE"},
-+		{sdp4430_picodlp_pdata.pwrgood_gpio, GPIOF_OUT_INIT_LOW,
-+			"DLP PWRGOOD"},
-+	};
-+
-+	r = gpio_request_array(picodlp_gpios, ARRAY_SIZE(picodlp_gpios));
-+	if (r)
-+		pr_err("Cannot request PicoDLP GPIOs, error %d\n", r);
-+}
-+
-+static int sdp4430_panel_enable_picodlp(struct omap_dss_device *dssdev)
-+{
-+	gpio_set_value(DISPLAY_SEL_GPIO, 0);
-+	gpio_set_value(DLP_POWER_ON_GPIO, 1);
-+
-+	return 0;
-+}
-+
-+static void sdp4430_panel_disable_picodlp(struct omap_dss_device *dssdev)
-+{
-+	gpio_set_value(DLP_POWER_ON_GPIO, 0);
-+	gpio_set_value(DISPLAY_SEL_GPIO, 1);
-+}
-+
-+static struct omap_dss_device sdp4430_picodlp_device = {
-+	.name			= "picodlp",
-+	.driver_name		= "picodlp_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 24,
-+	.channel		= OMAP_DSS_CHANNEL_LCD2,
-+	.platform_enable	= sdp4430_panel_enable_picodlp,
-+	.platform_disable	= sdp4430_panel_disable_picodlp,
-+	.data			= &sdp4430_picodlp_pdata,
-+};
-+
- static struct omap_dss_device *sdp4430_dss_devices[] = {
- 	&sdp4430_lcd_device,
- 	&sdp4430_lcd2_device,
- 	&sdp4430_hdmi_device,
-+	&sdp4430_picodlp_device,
- };
- 
- static struct omap_dss_board_info sdp4430_dss_data = {
-@@ -782,6 +833,7 @@ static void omap_4430sdp_display_init(void)
- 
- 	sdp4430_lcd_init();
- 	sdp4430_hdmi_mux_init();
-+	sdp4430_picodlp_init();
- 	omap_display_init(&sdp4430_dss_data);
- }
- 
--- 
-1.7.4.1
 
