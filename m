@@ -1,47 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 5/5] OMAPDSS: HDMI: Add support to dump clocks through
-Date: Tue, 20 Sep 2011 16:31:17 +0300
-Message-ID: <1316525477.1949.20.camel@deskari>
-References: <1316522954-16594-1-git-send-email-mythripk@ti.com>
-	 <1316522954-16594-2-git-send-email-mythripk@ti.com>
-	 <1316522954-16594-3-git-send-email-mythripk@ti.com>
-	 <1316522954-16594-4-git-send-email-mythripk@ti.com>
-	 <1316522954-16594-5-git-send-email-mythripk@ti.com>
-	 <1316522954-16594-6-git-send-email-mythripk@ti.com>
+From: Bjarne Steinsbo <bsteinsbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] usb: musb: OMAP4430: Remove a redundant omap4430_phy_init
+ call in usb_musb_init
+Date: Tue, 20 Sep 2011 16:27:15 +0200
+Message-ID: <CAFULf_xq8E1hvB6sXKfwxo6PS39mN0Xe15nevmNReCtfcJ90tg@mail.gmail.com>
+References: <1316508629.14514.2.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:47127 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750810Ab1ITNbW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Sep 2011 09:31:22 -0400
-Received: by mail-ew0-f42.google.com with SMTP id 1so243469ewy.15
-        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2011 06:31:20 -0700 (PDT)
-In-Reply-To: <1316522954-16594-6-git-send-email-mythripk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1316508629.14514.2.camel@phoenix>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Axel Lin <axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: mythripk@ti.com
-Cc: linux-omap@vger.kernel.org
 
-On Tue, 2011-09-20 at 18:19 +0530, mythripk@ti.com wrote:
-> From: Mythri P K <mythripk@ti.com>
-> 
-> Add support to dump the HDMI regm, regn, and other clock parameters.
+Ref thread starting at http://marc.info/?l=3Dlinux-omap&m=3D13131628921=
+1258&w=3D2
 
-This patch doesn't work at all. It's checking for CONFIG_OMAP2_DSS_HDMI,
-whereas the actual define is CONFIG_OMAP4_DSS_HDMI. And even after
-fixing that, the output is:
+Bjarne Steinsbo
 
-HDMI Clock Info
-regm            104regmf 104
-dcofreq 0regsd 1
-DSS_FCK (DSS_FCLK)      (off)
-hdmi fclk source = 3
-
-Did you test your patches at all?
-
- Tomi
-
-
+On Tue, Sep 20, 2011 at 10:50 AM, Axel Lin <axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Current code calls omap4430_phy_init() twice in usb_musb_init().
+> Calling omap4430_phy_init() once is enough.
+> This patch removes the first omap4430_phy_init() call, which using an
+> uninitialized pointer as parameter.
+>
+> This patch elimates below build warning:
+> arch/arm/mach-omap2/usb-musb.c: In function 'usb_musb_init':
+> arch/arm/mach-omap2/usb-musb.c:141: warning: 'dev' may be used uninit=
+ialized in this function
+>
+> Signed-off-by: Axel Lin <axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+> =A0arch/arm/mach-omap2/usb-musb.c | =A0 =A03 ---
+> =A01 files changed, 0 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb=
+-musb.c
+> index a65145b..19e4dac 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -137,9 +137,6 @@ void __init usb_musb_init(struct omap_musb_board_=
+data *musb_board_data)
+> =A0 =A0 =A0 =A0musb_plat.mode =3D board_data->mode;
+> =A0 =A0 =A0 =A0musb_plat.extvbus =3D board_data->extvbus;
+>
+> - =A0 =A0 =A0 if (cpu_is_omap44xx())
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap4430_phy_init(dev);
+> -
+> =A0 =A0 =A0 =A0if (cpu_is_omap3517() || cpu_is_omap3505()) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh_name =3D "am35x_otg_hs";
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0name =3D "musb-am35x";
+> --
+> 1.7.4.1
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
