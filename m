@@ -1,53 +1,56 @@
 From: Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for UYVY8_2X8 and YUYV8_2X8 formats
-Date: Tue, 20 Sep 2011 20:26:51 +0530
-Message-ID: <1316530612-23075-5-git-send-email-deepthy.ravi@ti.com>
+Subject: [PATCH 5/5] omap2plus_defconfig: Enable omap3isp and MT9T111 sensor
+	drivers
+Date: Tue, 20 Sep 2011 20:26:52 +0530
+Message-ID: <1316530612-23075-6-git-send-email-deepthy.ravi@ti.com>
 References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: laurent.pinchart@ideasonboard.com, mchehab@infradead.org, tony@atomide.com, hvaibhav@ti.com, linux-media@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.i
-Cc: linux-omap@vger.kernel.org, Deepthy Ravi <deepthy.ravi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: laurent.pinchart@ideasonboard.com, mchehab@infradead.org, tony@atomide.com, hvaibhav@ti.com, linux-media@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.in
+Cc: Deepthy Ravi <deepthy.ravi@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
-register for UYVY8_2X8 and YUYV8_2X8 formats.
+Enables multimedia driver, media controller api,
+v4l2-subdev-api, omap3isp and mt9t111 sensor
+drivers in omap2plus_defconfig.
 
 Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
 ---
- drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
+ arch/arm/configs/omap2plus_defconfig |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 418ba65..1dcf180 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 
- 	syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
- 	if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
--	    format->code == V4L2_MBUS_FMT_UYVY8_2X8)
--		syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-+	    format->code == V4L2_MBUS_FMT_UYVY8_2X8){
-+		if (pdata && pdata->bt656)
-+			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-+		else
-+			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-+	}
- 	else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
- 		 format->code == V4L2_MBUS_FMT_UYVY8_1X16)
- 		syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-@@ -1172,7 +1176,8 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 		syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
- 
- 	/* Use PACK8 mode for 1byte per pixel formats. */
--	if (omap3isp_video_format_info(format->code)->width <= 8)
-+	if ((omap3isp_video_format_info(format->code)->width <= 8) &&
-+			(omap3isp_video_format_info(format->code)->bpp <= 8))
- 		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
- 	else
- 		syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index d5f00d7..548823d 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -133,6 +133,16 @@ CONFIG_TWL4030_WATCHDOG=y
+ CONFIG_REGULATOR_TWL4030=y
+ CONFIG_REGULATOR_TPS65023=y
+ CONFIG_REGULATOR_TPS6507X=y
++CONFIG_MEDIA_SUPPORT=y
++CONFIG_MEDIA_CONTROLLER=y
++CONFIG_VIDEO_DEV=y
++CONFIG_VIDEO_V4L2_COMMON=y
++CONFIG_VIDEO_ALLOW_V4L1=y
++CONFIG_VIDEO_V4L1_COMPAT=y
++CONFIG_VIDEO_V4L2_SUBDEV_API=y
++CONFIG_VIDEO_MEDIA=y
++CONFIG_VIDEO_MT9T111=y
++CONFIG_VIDEO_OMAP3=y
+ CONFIG_FB=y
+ CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_MODE_HELPERS=y
 -- 
 1.7.0.4
