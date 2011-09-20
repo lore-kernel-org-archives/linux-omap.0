@@ -1,59 +1,64 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 2/5] [media] v4l: Add mt9t111 sensor driver
-Date: Tue, 20 Sep 2011 17:09:26 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1109201704190.11274@axis700.grange>
-References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
- <1316530612-23075-3-git-send-email-deepthy.ravi@ti.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH 5/5] OMAPDSS: HDMI: Add support to dump clocks through
+Date: Tue, 20 Sep 2011 21:06:53 +0530
+Message-ID: <CAP5A+B8inCnMnvrjDbtHUQ=t86HiOXvM6W+gPUVBAHcQLwH8=A@mail.gmail.com>
+References: <1316522954-16594-1-git-send-email-mythripk@ti.com>
+ <1316522954-16594-2-git-send-email-mythripk@ti.com> <1316522954-16594-3-git-send-email-mythripk@ti.com>
+ <1316522954-16594-4-git-send-email-mythripk@ti.com> <1316522954-16594-5-git-send-email-mythripk@ti.com>
+ <1316522954-16594-6-git-send-email-mythripk@ti.com> <1316525477.1949.20.camel@deskari>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1316530612-23075-3-git-send-email-deepthy.ravi@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Deepthy Ravi <deepthy.ravi@ti.com>
-Cc: laurent.pinchart@ideasonboard.com, mchehab@infradead.org, tony@atomide.com, hvaibhav@ti.com, linux-media@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, kyungmin.park@samsung.com, hverkuil@xs4all.nl, m.szyprowski@samsung.com, santosh.shilimkar@ti.com, khilman@deeprootsystems.com, david.woodhouse@intel.com, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:59043 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750886Ab1ITPhO convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Sep 2011 11:37:14 -0400
+Received: by gxk4 with SMTP id 4so533412gxk.34
+        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2011 08:37:13 -0700 (PDT)
+In-Reply-To: <1316525477.1949.20.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, 20 Sep 2011, Deepthy Ravi wrote:
+Hi,
 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
->=20
-> The MT9T111 is a 3.1Mp CMOS sensor from Aptina with
-> its latest image signal processing (ISP) and 1.75=CE=BCm
-> pixel technology.
-> The sensor driver currently supports only VGA
-> resolution.
->=20
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
-> ---
->  drivers/media/video/Kconfig       |    7 +
->  drivers/media/video/Makefile      |    1 +
->  drivers/media/video/mt9t111.c     |  793 +++++++++++++++++++++
->  drivers/media/video/mt9t111_reg.h | 1367 +++++++++++++++++++++++++++=
-++++++++++
->  include/media/mt9t111.h           |   45 ++
->  5 files changed, 2213 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/mt9t111.c
->  create mode 100644 drivers/media/video/mt9t111_reg.h
->  create mode 100644 include/media/mt9t111.h
-
-NAK. The mt9t112 driver claims to also support mt9t111. I'm not sure,=20
-whether the driver has indeed been tested with mt9t111, but this is=20
-definitely something to verify. If the chips are indeed similar, please=
-=20
-use the tree at
-
-http://git.linuxtv.org/gliakhovetski/v4l-dvb.git/shortlog/refs/heads/rc=
-1-for-3.2
-
-which has converted the mt9t112 driver to be also used outside ot the=20
-soc-camera subsystem, and use that driver instead of adding another one=
-=2E
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-=46reelance Open-Source Software Developer
-http://www.open-technology.de/
+On Tue, Sep 20, 2011 at 7:01 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Tue, 2011-09-20 at 18:19 +0530, mythripk@ti.com wrote:
+>> From: Mythri P K <mythripk@ti.com>
+>>
+>> Add support to dump the HDMI regm, regn, and other clock parameters.
+>
+> This patch doesn't work at all. It's checking for CONFIG_OMAP2_DSS_HD=
+MI,
+> whereas the actual define is CONFIG_OMAP4_DSS_HDMI. And even after
+> fixing that, the output is:
+>
+> HDMI Clock Info
+> regm =A0 =A0 =A0 =A0 =A0 =A0104regmf 104
+> dcofreq 0regsd 1
+> DSS_FCK (DSS_FCLK) =A0 =A0 =A0(off)
+> hdmi fclk source =3D 3
+>
+These are the reg m , mf , dcofreq , by default the HDMI clock input is=
+ sysclk ,
+These values are based on the pixel clock.I suppose all the other
+clock values are
+printed via dss / dispc clock dump , is there any other dump that is mi=
+ssing?
+Thanks and regards,
+Mythri.
+> Did you test your patches at all?
+>
+> =A0Tomi
+>
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
