@@ -1,77 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP2+: Fix missing inline functions for Makefile
- cleanup (Re: [GIT PULL] omap cleanup part1 for v3.2 merge window)
-Date: Tue, 20 Sep 2011 16:25:51 -0700
-Message-ID: <20110920232551.GL2937@atomide.com>
-References: <20110917014623.GC2937@atomide.com>
- <201109202334.43213.arnd@arndb.de>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for UYVY8_2X8 and YUYV8_2X8 formats
+Date: Wed, 21 Sep 2011 01:26:19 +0200
+Message-ID: <201109210126.20436.laurent.pinchart@ideasonboard.com>
+References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com> <1316530612-23075-5-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:32774 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752107Ab1ITXZ4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Sep 2011 19:25:56 -0400
-Content-Disposition: inline
-In-Reply-To: <201109202334.43213.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1316530612-23075-5-git-send-email-deepthy.ravi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Deepthy Ravi <deepthy.ravi@ti.com>
+Cc: mchehab@infradead.org, tony@atomide.com, hvaibhav@ti.com, linux-media@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, kyungmin.park@samsung.com, hverkuil@xs4all.nl, m.szyprowski@samsung.com, g.liakhovetski@gmx.de, santosh.shilimkar@ti.com, khilman@deeprootsystems.com, david.woodhouse@intel.com, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Commit f41caddbe73f52a42f529d668ce47b4d693fd2c0 (omap2+: Use
-Kconfig symbol in Makefile instead of obj-y) cleaned up the
-omap2+ Makefile. However this did not account for the inline
-functions that are now needed for board_flash_init and
-board_nand_init.
+Hi Deepthy,
 
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Thanks for the patch.
 
----
+On Tuesday 20 September 2011 16:56:51 Deepthy Ravi wrote:
+> Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
+> register for UYVY8_2X8 and YUYV8_2X8 formats.
+> 
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> ---
+>  drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
+>  1 files changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> b/drivers/media/video/omap3isp/ispccdc.c index 418ba65..1dcf180 100644
+> --- a/drivers/media/video/omap3isp/ispccdc.c
+> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> @@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct isp_ccdc_device
+> *ccdc,
+> 
+>  	syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
+>  	if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
+> -	    format->code == V4L2_MBUS_FMT_UYVY8_2X8)
+> -		syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+> +	    format->code == V4L2_MBUS_FMT_UYVY8_2X8){
+> +		if (pdata && pdata->bt656)
+> +			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+> +		else
+> +			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+> +	}
+>  	else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
+>  		 format->code == V4L2_MBUS_FMT_UYVY8_1X16)
+>  		syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+> @@ -1172,7 +1176,8 @@ static void ccdc_configure(struct isp_ccdc_device
+> *ccdc) syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
+> 
+>  	/* Use PACK8 mode for 1byte per pixel formats. */
+> -	if (omap3isp_video_format_info(format->code)->width <= 8)
+> +	if ((omap3isp_video_format_info(format->code)->width <= 8) &&
+> +			(omap3isp_video_format_info(format->code)->bpp <= 8))
 
-Will have this in the next pull request for cleanup
+I'm not sure to follow you. This will clear the PACK8 bit for the YUYV8_2X8 
+formats. Those formats are 8 bits wide, shouldn't PACK8 be set to store 
+samples on 8 bits instead of 16 bits ?
 
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -148,11 +148,6 @@ __init board_nand_init(struct mtd_partition *nand_parts,
- 	board_nand_data.gpmc_irq = OMAP_GPMC_IRQ_BASE + cs;
- 	gpmc_nand_init(&board_nand_data);
- }
--#else
--void
--__init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs, int nand_type)
--{
--}
- #endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
- 
- /**
---- a/arch/arm/mach-omap2/board-flash.h
-+++ b/arch/arm/mach-omap2/board-flash.h
-@@ -24,7 +24,26 @@ struct flash_partitions {
- 	int nr_parts;
- };
- 
-+#if defined(CONFIG_MTD_NAND_OMAP2) || \
-+		defined(CONFIG_MTD_NAND_OMAP2_MODULE) || \
-+		defined(CONFIG_MTD_ONENAND_OMAP2) || \
-+		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
- extern void board_flash_init(struct flash_partitions [],
- 				char chip_sel[][GPMC_CS_NUM], int nand_type);
-+#else
-+static inline void board_flash_init(struct flash_partitions part[],
-+				char chip_sel[][GPMC_CS_NUM], int nand_type)
-+{
-+}
-+#endif
-+
-+#if defined(CONFIG_MTD_NAND_OMAP2) || \
-+		defined(CONFIG_MTD_NAND_OMAP2_MODULE)
- extern void board_nand_init(struct mtd_partition *nand_parts,
- 					u8 nr_parts, u8 cs, int nand_type);
-+#else
-+static inline void board_nand_init(struct mtd_partition *nand_parts,
-+					u8 nr_parts, u8 cs, int nand_type)
-+{
-+}
-+#endif
+Is this patch intended to support YUYV8_2X8 sensors in non BT.656 mode with 
+the bridge enabled ? In that case, what would you think about setting the CCDC 
+input format to YUYV8_1X16 instead ? This would better reflect the reality, as 
+the bridge converts YUYV8_2X8 to YUYV8_1X16, and the CCDC is then fed with 
+YUYV8_1X16.
+
+>  		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
+>  	else
+>  		syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
+
+-- 
+Regards,
+
+Laurent Pinchart
