@@ -1,41 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/10] hwspinlock-next
-Date: Tue, 20 Sep 2011 16:13:40 -0700
-Message-ID: <20110920231340.GT18894@atomide.com>
-References: <1315846025-11453-1-git-send-email-ohad@wizery.com>
- <CAK=Wgbam6u1bq8fG+oMUhxfWH1g3dU7q+VhPWFEZOLgFMV_3vQ@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 5/5] omap2plus_defconfig: Enable omap3isp and MT9T111 sensor drivers
+Date: Wed, 21 Sep 2011 01:13:48 +0200
+Message-ID: <201109210113.49151.laurent.pinchart@ideasonboard.com>
+References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com> <1316530612-23075-6-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAK=Wgbam6u1bq8fG+oMUhxfWH1g3dU7q+VhPWFEZOLgFMV_3vQ@mail.gmail.com>
+In-Reply-To: <1316530612-23075-6-git-send-email-deepthy.ravi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linus Walleij <linus.walleij@linaro.org>, Linus Torvalds <torvalds@linux-foundation.org>, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Grant Likely <grant.likely@secretlab.ca>
+To: Deepthy Ravi <deepthy.ravi@ti.com>
+Cc: mchehab@infradead.org, tony@atomide.com, hvaibhav@ti.com, linux-media@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, kyungmin.park@samsung.com, hverkuil@xs4all.nl, m.szyprowski@samsung.com, g.liakhovetski@gmx.de, santosh.shilimkar@ti.com, khilman@deeprootsystems.com, david.woodhouse@intel.com, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ohad Ben-Cohen <ohad@wizery.com> [110920 01:34]:
-> On Mon, Sep 12, 2011 at 7:46 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> 
-> I'm wondering how hwspinlock updates like this should go upstream.
-> 
-> The first hwspinlock batch was picked by Tony, because it involved a
-> bulk of OMAP changes.
-> 
-> Hwspinlock isn't OMAP-specific anymore though (we gained support for
-> STE's u8500) and the vast majority of changes are in drivers/. We're
-> still very much ARM-related, though this may change too at some point
-> (c6x has a similar "hardware semaphore" peripheral like the u8500
-> does).
-> 
-> Tony, if you're still willing to pick up these updates I'd be happy to
-> send you pull requests of course.
+Hi Deepthy,
 
-I'd prefer for Greg to take these as these are drivers.
+Thanks for the patch.
 
-If he's not taking it at this point based on it being ARM only,
-I can take it then.
+On Tuesday 20 September 2011 16:56:52 Deepthy Ravi wrote:
+> Enables multimedia driver, media controller api,
+> v4l2-subdev-api, omap3isp and mt9t111 sensor
+> drivers in omap2plus_defconfig.
+> 
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> ---
+>  arch/arm/configs/omap2plus_defconfig |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/configs/omap2plus_defconfig
+> b/arch/arm/configs/omap2plus_defconfig index d5f00d7..548823d 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -133,6 +133,16 @@ CONFIG_TWL4030_WATCHDOG=y
+>  CONFIG_REGULATOR_TWL4030=y
+>  CONFIG_REGULATOR_TPS65023=y
+>  CONFIG_REGULATOR_TPS6507X=y
+> +CONFIG_MEDIA_SUPPORT=y
+> +CONFIG_MEDIA_CONTROLLER=y
+> +CONFIG_VIDEO_DEV=y
+> +CONFIG_VIDEO_V4L2_COMMON=y
+> +CONFIG_VIDEO_ALLOW_V4L1=y
+> +CONFIG_VIDEO_V4L1_COMPAT=y
+> +CONFIG_VIDEO_V4L2_SUBDEV_API=y
+> +CONFIG_VIDEO_MEDIA=y
+> +CONFIG_VIDEO_MT9T111=y
+> +CONFIG_VIDEO_OMAP3=y
 
+Shouldn't they be compiled as modules instead ?
+
+>  CONFIG_FB=y
+>  CONFIG_FIRMWARE_EDID=y
+>  CONFIG_FB_MODE_HELPERS=y
+
+-- 
 Regards,
 
-Tony
+Laurent Pinchart
