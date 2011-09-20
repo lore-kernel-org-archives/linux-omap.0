@@ -1,90 +1,78 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 06/10] OMAP: stalker: Remove LCD device from board file
-Date: Tue, 20 Sep 2011 11:18:22 +0300
-Message-ID: <1316506706-18941-7-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 08/10] OMAP: 4430SDP: Remove unneeded lcd config
+Date: Tue, 20 Sep 2011 11:18:24 +0300
+Message-ID: <1316506706-18941-9-git-send-email-tomi.valkeinen@ti.com>
 References: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58878 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754259Ab1ITITA (ORCPT
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:37051 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754268Ab1ITITE (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Sep 2011 04:19:00 -0400
-Received: by bke11 with SMTP id 11so257477bke.20
-        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2011 01:18:58 -0700 (PDT)
+	Tue, 20 Sep 2011 04:19:04 -0400
+Received: by bkbzu17 with SMTP id zu17so219707bkb.10
+        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2011 01:19:02 -0700 (PDT)
 In-Reply-To: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jason Lam <lzg@ema-tech.com>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-OMAP3 Stalker board has definitions for LCD, but uses the generic driver
-without any information what kind of LCD it has. The board should use a
-particular panel type from panel-generic-dpi driver, not the generic
-one.
+4430SDP board file contains some unused old LCD configurations. They are
+not used and can be removed.
 
-As I haven't gotten response the signer-off of stalker board about the
-issue, this patch removes the LCD support from the board file. This will
-allow us to clean up the panel-generic-dpi driver and make it support
-only fixed size panels.
-
-CC: Jason Lam <lzg@ema-tech.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3stalker.c |   34 ------------------------------
- 1 files changed, 0 insertions(+), 34 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c |   17 -----------------
+ 1 files changed, 0 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index 8ab99f1..106a2ba 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -108,39 +108,6 @@ static void __init omap3_stalker_display_init(void)
- 	return;
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 79c2827..62ec9f5 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -340,11 +340,6 @@ static int __init omap_ethernet_init(void)
+ 	return status;
  }
  
--static int omap3_stalker_enable_lcd(struct omap_dss_device *dssdev)
--{
--	if (dvi_enabled) {
--		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
--		return -EINVAL;
--	}
--	gpio_set_value(DSS_ENABLE_GPIO, 1);
--	gpio_set_value(LCD_PANEL_BKLIGHT_GPIO, 1);
--	lcd_enabled = 1;
--	return 0;
--}
--
--static void omap3_stalker_disable_lcd(struct omap_dss_device *dssdev)
--{
--	gpio_set_value(DSS_ENABLE_GPIO, 0);
--	gpio_set_value(LCD_PANEL_BKLIGHT_GPIO, 0);
--	lcd_enabled = 0;
--}
--
--static struct panel_generic_dpi_data lcd_panel = {
--	.name			= "generic",
--	.platform_enable	= omap3_stalker_enable_lcd,
--	.platform_disable	= omap3_stalker_disable_lcd,
+-static struct platform_device sdp4430_lcd_device = {
+-	.name		= "sdp4430_lcd",
+-	.id		= -1,
 -};
 -
--static struct omap_dss_device omap3_stalker_lcd_device = {
--	.name			= "lcd",
--	.driver_name		= "generic_dpi_panel",
--	.data			= &lcd_panel,
--	.phy.dpi.data_lines	= 24,
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--};
--
- static int omap3_stalker_enable_tv(struct omap_dss_device *dssdev)
- {
- 	return 0;
-@@ -194,7 +161,6 @@ static struct omap_dss_device omap3_stalker_dvi_device = {
+ static struct regulator_consumer_supply sdp4430_vbat_supply[] = {
+ 	REGULATOR_SUPPLY("vddvibl", "twl6040-vibra"),
+ 	REGULATOR_SUPPLY("vddvibr", "twl6040-vibra"),
+@@ -374,21 +369,12 @@ static struct platform_device sdp4430_vbat = {
  };
  
- static struct omap_dss_device *omap3_stalker_dss_devices[] = {
--	&omap3_stalker_lcd_device,
- 	&omap3_stalker_tv_device,
- 	&omap3_stalker_dvi_device,
+ static struct platform_device *sdp4430_devices[] __initdata = {
+-	&sdp4430_lcd_device,
+ 	&sdp4430_gpio_keys_device,
+ 	&sdp4430_leds_gpio,
+ 	&sdp4430_leds_pwm,
+ 	&sdp4430_vbat,
  };
+ 
+-static struct omap_lcd_config sdp4430_lcd_config __initdata = {
+-	.ctrl_name	= "internal",
+-};
+-
+-static struct omap_board_config_kernel sdp4430_config[] __initdata = {
+-	{ OMAP_TAG_LCD,		&sdp4430_lcd_config },
+-};
+-
+ static void __init omap_4430sdp_init_early(void)
+ {
+ 	omap2_init_common_infrastructure();
+@@ -793,9 +779,6 @@ static void __init omap_4430sdp_init(void)
+ 		package = OMAP_PACKAGE_CBL;
+ 	omap4_mux_init(board_mux, NULL, package);
+ 
+-	omap_board_config = sdp4430_config;
+-	omap_board_config_size = ARRAY_SIZE(sdp4430_config);
+-
+ 	omap4_i2c_init();
+ 	omap_sfh7741prox_init();
+ 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
 -- 
 1.7.4.1
 
