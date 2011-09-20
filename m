@@ -1,102 +1,62 @@
-From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Subject: suspend/resume trouble on 2.6.39
-Date: Tue, 20 Sep 2011 10:00:18 +0200
-Message-ID: <CAJJ=G6_MahLmGowi97smwDhNfimOqN7dOKWEOOhBBTWVZjTHog@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 00/10] OMAP DSS related board changes
+Date: Tue, 20 Sep 2011 11:18:16 +0300
+Message-ID: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:47986 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752796Ab1ITIAT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Sep 2011 04:00:19 -0400
-Received: by iaqq3 with SMTP id q3so349936iaq.19
-        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2011 01:00:19 -0700 (PDT)
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:57792 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753971Ab1ITISq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Sep 2011 04:18:46 -0400
+Received: by bke11 with SMTP id 11so418522bke.6
+        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2011 01:18:44 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-I have problems making suspend/resume work on 2.6.39 from
-org.openembedded.dev. I believe this kernel has most/all functionality
-from the pm-branch. I've tested on Beagleboard C3 (which never
-resumes), and slightly modified C3 (which resumes, but says that it
-had problems with core_pwrdm). Below is some output from the latter.
+Hi Tony,
 
-Output from suspend/resume:
-root@proto:~# echo mem > /sys/power/state
-[  165.707061] PM: Syncing filesystems ... done.
-^C[  186.674713] Freezing user space processes ... (elapsed 0.02 seconds) done.
-[  186.703308] Freezing remaining freezable tasks ... (elapsed 0.02
-seconds) done.
-[  186.734863] Suspending console(s) (use no_console_suspend to debug)
-[  186.859222] omap_device: usbhs_omap.-1: new worst case deactivate
-latency 0: 61035
-[  186.860931] PM: suspend of devices complete after 118.225 msecs
-[  186.861663] PM: late suspend of devices complete after 0.701 msecs
-[  186.862152] omap_device: omap_uart.1: new worst case deactivate
-latency 0: 30517
-[  193.183654] Powerdomain (core_pwrdm) didn't enter target state 1
-[  193.183685] Could not enter target state in pm_suspend
-[  193.184448] PM: early resume of devices complete after 0.579 msecs
-[  193.570251] PM: resume of devices complete after 385.467 msecs
-[  193.624176] Restarting tasks ... done.
+Here is a bunch of board file patches related to DSS. They have all been sent
+for review earlier, and are currently in my tree. Some of them depend on DSS
+driver changes, so I'd like to keep them there to avoid compilation errors
+(these won't compile if you apply them without patches from DSS tree).
 
-mem
-root@proto:~#
+Can you give your ack for these? Alternatively we can see which of these could
+go through your tree and I can make a new set.
 
+ Tomi
 
-Before suspend:
+Thomas Weber (1):
+  OMAP: Devkit8000: Change lcd driver to AT070TN83
 
-root@proto:~# cat /debug/pm_debug/count
-usbhost_pwrdm (ON),OFF:0,RET:0,INA:1,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-per_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-dss_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-cam_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-core_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-neon_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0
-mpu_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-per_clkdm->per_pwrdm (20)
-usbhost_clkdm->usbhost_pwrdm (3)
-cam_clkdm->cam_pwrdm (0)
-dss_clkdm->dss_pwrdm (3)
-core_l4_clkdm->core_pwrdm (23)
-core_l3_clkdm->core_pwrdm (5)
-d2d_clkdm->core_pwrdm (0)
-sgx_clkdm->sgx_pwrdm (0)
-iva2_clkdm->iva2_pwrdm (0)
-neon_clkdm->neon_pwrdm (0)
-mpu_clkdm->mpu_pwrdm (0)
-prm_clkdm->wkup_pwrdm (0)
-cm_clkdm->core_pwrdm (0)
+Tomi Valkeinen (9):
+  OMAP: DSS2: Change DSI device naming
+  OMAP4: TWL: Add common omapdss supplies
+  OMAP: DSS2: HDMI: use default dividers
+  OMAP: use dvi panel driver instead of generic-dpi
+  OMAP: stalker: Remove LCD device from board file
+  OMAP: Add DDC i2c_bus_num to board files
+  OMAP: 4430SDP: Remove unneeded lcd config
+  OMAP4: 4430SDP: Add panel support to board file
+  OMAP4: 4430SDP: Add picodlp support to board file
 
-After suspend:
+ arch/arm/mach-omap2/board-3430sdp.c      |    7 +-
+ arch/arm/mach-omap2/board-4430sdp.c      |  208 ++++++++++++++++++++++++++----
+ arch/arm/mach-omap2/board-am3517evm.c    |    6 +-
+ arch/arm/mach-omap2/board-cm-t35.c       |    6 +-
+ arch/arm/mach-omap2/board-devkit8000.c   |   10 +-
+ arch/arm/mach-omap2/board-igep0020.c     |    8 +-
+ arch/arm/mach-omap2/board-omap3beagle.c  |    8 +-
+ arch/arm/mach-omap2/board-omap3evm.c     |    7 +-
+ arch/arm/mach-omap2/board-omap3pandora.c |    2 +-
+ arch/arm/mach-omap2/board-omap3stalker.c |   40 +------
+ arch/arm/mach-omap2/board-omap4panda.c   |    8 +-
+ arch/arm/mach-omap2/board-overo.c        |    7 +-
+ arch/arm/mach-omap2/display.c            |    6 +-
+ arch/arm/mach-omap2/twl-common.c         |   11 ++-
+ 14 files changed, 230 insertions(+), 104 deletions(-)
 
-root@proto:~# cat /debug/pm_debug/count
-usbhost_pwrdm (ON),OFF:0,RET:1,INA:1,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-per_pwrdm (ON),OFF:0,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-dss_pwrdm (ON),OFF:0,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-cam_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-core_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-neon_pwrdm (ON),OFF:0,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0
-mpu_pwrdm (ON),OFF:0,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-per_clkdm->per_pwrdm (20)
-usbhost_clkdm->usbhost_pwrdm (3)
-cam_clkdm->cam_pwrdm (0)
-dss_clkdm->dss_pwrdm (3)
-core_l4_clkdm->core_pwrdm (23)
-core_l3_clkdm->core_pwrdm (5)
-d2d_clkdm->core_pwrdm (0)
-sgx_clkdm->sgx_pwrdm (0)
-iva2_clkdm->iva2_pwrdm (0)
-neon_clkdm->neon_pwrdm (0)
-mpu_clkdm->mpu_pwrdm (0)
-prm_clkdm->wkup_pwrdm (0)
-cm_clkdm->core_pwrdm (0)
+-- 
+1.7.4.1
 
-I've started reading kernel source, but so far I have no idea what
-could be wrong or how to debug this. Anyone got any ideas?
-
-- Tasslehoff
