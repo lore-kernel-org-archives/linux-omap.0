@@ -1,123 +1,79 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [GIT PULL] omap cleanup part1 for v3.2 merge window
-Date: Wed, 21 Sep 2011 09:43:06 -0700
-Message-ID: <87d3et4zj9.fsf@ti.com>
-References: <20110917014623.GC2937@atomide.com>
-	<201109202334.43213.arnd@arndb.de> <201109202346.11393.arnd@arndb.de>
-	<2241590.uiCS2D9jjt@wuerfel>
+Subject: Re: [PATCH 8/8] OMAP4: Fix the emif and dmm virtual mapping
+Date: Wed, 21 Sep 2011 10:31:11 -0700
+Message-ID: <87zkhx3iqo.fsf@ti.com>
+References: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com>
+	<1315459327-3285-9-git-send-email-santosh.shilimkar@ti.com>
+	<87r53gnzfh.fsf@ti.com> <4E78AAD5.6010906@ti.com>
+	<4E7A0292.4020408@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:51655 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752876Ab1IUQnL (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:33066 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751821Ab1IURbW (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Sep 2011 12:43:11 -0400
-Received: by gwm11 with SMTP id 11so646691gwm.2
-        for <linux-omap@vger.kernel.org>; Wed, 21 Sep 2011 09:43:10 -0700 (PDT)
-In-Reply-To: <2241590.uiCS2D9jjt@wuerfel> (Arnd Bergmann's message of "Wed, 21
-	Sep 2011 11:28:31 +0200")
+	Wed, 21 Sep 2011 13:31:22 -0400
+Received: by mail-yw0-f45.google.com with SMTP id 39so2685393ywm.32
+        for <linux-omap@vger.kernel.org>; Wed, 21 Sep 2011 10:31:21 -0700 (PDT)
+In-Reply-To: <4E7A0292.4020408@ti.com> (Santosh Shilimkar's message of "Wed,
+	21 Sep 2011 20:58:18 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Girish S G <girishsg@ti.com>
 
-Hi Arnd,
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-Arnd Bergmann <arnd@arndb.de> writes:
-
-> On Tuesday 20 September 2011 23:46:11 Arnd Bergmann wrote:
+> On Tuesday 20 September 2011 08:31 PM, Santosh Shilimkar wrote:
+>> On Friday 16 September 2011 11:26 PM, Kevin Hilman wrote:
+>>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>>>
 >
->> It seems that you replace the #ifdef in the board-flash.c file
->> with a similar #ifdef in the header that replaces this with an
->> empty inline function when the object is not built.
+> [...]
 >
-> Found another similar problem over night, presumably in the voltage series:
+>> 
+>>>>  #define OMAP44XX_EMIF2_SIZE	SZ_1M
+>>>>  
+>>>>  #define OMAP44XX_DMM_PHYS	OMAP44XX_DMM_BASE
+>>>>  						/* 0x4e000000 --> 0xfd300000 */
+>>>> -#define OMAP44XX_DMM_VIRT	(OMAP44XX_DMM_PHYS + OMAP4_L3_PER_IO_OFFSET)
+>>>> +#define OMAP44XX_DMM_VIRT	(OMAP44XX_EMIF2_VIRT + SZ_1M)
+>>>
+>>> and '+ OMAP44XX_EMIF2_SIZE' here.
+>>>
+>> Will add OMAP44XX_EMIF_SIZE since 2 EMIFs instaces are and
+>> suppose to be identical.Almost missed this email in other traffic.
 >
+> OPPs. It was already there. Dumb of me not using it. Below
+> is the update what I will do.
+>
+> diff --git a/arch/arm/plat-omap/include/plat/io.h
+> b/arch/arm/plat-omap/include/plat/io.h
+> index d72ec85..db36292 100644
+> --- a/arch/arm/plat-omap/include/plat/io.h
+> +++ b/arch/arm/plat-omap/include/plat/io.h
+> @@ -228,13 +228,13 @@
+>
+>  #define OMAP44XX_EMIF2_PHYS	OMAP44XX_EMIF2_BASE
+>  						/* 0x4d000000 --> 0xfd200000 */
+> -#define OMAP44XX_EMIF2_VIRT	(OMAP44XX_EMIF2_PHYS + OMAP4_L3_PER_IO_OFFSET)
+>  #define OMAP44XX_EMIF2_SIZE	SZ_1M
+> +#define OMAP44XX_EMIF2_VIRT	(OMAP44XX_EMIF1_VIRT + OMAP44XX_EMIF2_SIZE)
 
-Found.  Patch below.
+This doesn't look right either.
 
-If this one is OK, I'll push to my for_3.2/voltage-cleanup branch (which
-is already pulled into arm-soc/next/voltage) so just re-pulling will
-pick up the fix.
+This #define is for the *start* of EMIF2 virtual address space, so 
+assuming the start address of EMIF2 is immediatly after EMIF1, it should
+be EMIF1_VIRT + EMIF1_SIZE (not EMIF2_SIZE.)
+
+>  #define OMAP44XX_DMM_PHYS	OMAP44XX_DMM_BASE
+>  						/* 0x4e000000 --> 0xfd300000 */
+> -#define OMAP44XX_DMM_VIRT	(OMAP44XX_DMM_PHYS + OMAP4_L3_PER_IO_OFFSET)
+>  #define OMAP44XX_DMM_SIZE	SZ_1M
+> +#define OMAP44XX_DMM_VIRT	(OMAP44XX_EMIF2_VIRT + OMAP44XX_DMM_SIZE)
+
+And here, assuming DMM range is immediately after EMIF2, this should be
+EMIF2_VIRT + EMFI2_SIZE)
 
 Kevin
-
-
->From 473dc975c3ea468049732155467ff08fe3701f98 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Wed, 21 Sep 2011 09:24:53 -0700
-Subject: [PATCH] ARM: OMAP: voltage layer present, even when CONFIG_PM=n
-
-Even when CONFIG_PM=n, we try to scale the boot voltage to a sane,
-known value using OPP table to find matching voltage based on boot
-frequency.  This should be done, even when CONFIG_PM=n to avoid
-mis-configured bootloaders and/or boot voltage assumptions made by
-boot loaders.
-
-Also fixes various compile problems due to depenencies between voltage
-domain and powerdomain code (also present when CONFIG_PM=n).
-
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Compile tested with CONFIG_PM=n
-Applies to arm-soc/next/voltage
-
- arch/arm/mach-omap2/Makefile  |    2 --
- arch/arm/mach-omap2/voltage.h |   14 --------------
- 2 files changed, 0 insertions(+), 16 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 8bd389d..5129785 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -89,7 +89,6 @@ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
- 					   vp44xx_data.o
- 
- # OMAP voltage domains
--ifeq ($(CONFIG_PM),y)
- voltagedomain-common			:= voltage.o vc.o vp.o
- obj-$(CONFIG_ARCH_OMAP2)		+= $(voltagedomain-common) \
- 					   voltagedomains2xxx_data.o
-@@ -97,7 +96,6 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(voltagedomain-common) \
- 					   voltagedomains3xxx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(voltagedomain-common) \
- 					   voltagedomains44xx_data.o
--endif
- 
- # OMAP powerdomain framework
- powerdomain-common			+= powerdomain.o powerdomain-common.o
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 4c09809..16a1b09 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -148,25 +148,11 @@ void omap_voltage_get_volttable(struct voltagedomain *voltdm,
- 		struct omap_volt_data **volt_data);
- struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
- 		unsigned long volt);
--#ifdef CONFIG_PM
- int omap_voltage_register_pmic(struct voltagedomain *voltdm,
- 			       struct omap_voltdm_pmic *pmic);
- void omap_change_voltscale_method(struct voltagedomain *voltdm,
- 		int voltscale_method);
- int omap_voltage_late_init(void);
--#else
--static inline int omap_voltage_register_pmic(struct voltagedomain *voltdm,
--					     struct omap_voltdm_pmic *pmic)
--{
--	return -EINVAL;
--}
--static inline  void omap_change_voltscale_method(struct voltagedomain *voltdm,
--		int voltscale_method) {}
--static inline int omap_voltage_late_init(void)
--{
--	return -EINVAL;
--}
--#endif
- 
- extern void omap2xxx_voltagedomains_init(void);
- extern void omap3xxx_voltagedomains_init(void);
--- 
-1.7.6
-
