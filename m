@@ -1,79 +1,74 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 8/8] OMAP4: Fix the emif and dmm virtual mapping
-Date: Wed, 21 Sep 2011 10:31:11 -0700
-Message-ID: <87zkhx3iqo.fsf@ti.com>
-References: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com>
-	<1315459327-3285-9-git-send-email-santosh.shilimkar@ti.com>
-	<87r53gnzfh.fsf@ti.com> <4E78AAD5.6010906@ti.com>
-	<4E7A0292.4020408@ti.com>
+From: Hemant Pedanekar <hemantp@ti.com>
+Subject: [PATCH v2 0/3] Add support for TI814X processor series
+Date: Wed, 21 Sep 2011 23:08:46 +0530
+Message-ID: <1316626726-5518-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:33066 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751821Ab1IURbW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Sep 2011 13:31:22 -0400
-Received: by mail-yw0-f45.google.com with SMTP id 39so2685393ywm.32
-        for <linux-omap@vger.kernel.org>; Wed, 21 Sep 2011 10:31:21 -0700 (PDT)
-In-Reply-To: <4E7A0292.4020408@ti.com> (Santosh Shilimkar's message of "Wed,
-	21 Sep 2011 20:58:18 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:34573 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750825Ab1IURjE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Sep 2011 13:39:04 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Girish S G <girishsg@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Hemant Pedanekar <hemantp@ti.com>
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+This patch set adds support for DM814x/AM387x device series having Cortex-A8
+MPU.
 
-> On Tuesday 20 September 2011 08:31 PM, Santosh Shilimkar wrote:
->> On Friday 16 September 2011 11:26 PM, Kevin Hilman wrote:
->>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->>>
->
-> [...]
->
->> 
->>>>  #define OMAP44XX_EMIF2_SIZE	SZ_1M
->>>>  
->>>>  #define OMAP44XX_DMM_PHYS	OMAP44XX_DMM_BASE
->>>>  						/* 0x4e000000 --> 0xfd300000 */
->>>> -#define OMAP44XX_DMM_VIRT	(OMAP44XX_DMM_PHYS + OMAP4_L3_PER_IO_OFFSET)
->>>> +#define OMAP44XX_DMM_VIRT	(OMAP44XX_EMIF2_VIRT + SZ_1M)
->>>
->>> and '+ OMAP44XX_EMIF2_SIZE' here.
->>>
->> Will add OMAP44XX_EMIF_SIZE since 2 EMIFs instaces are and
->> suppose to be identical.Almost missed this email in other traffic.
->
-> OPPs. It was already there. Dumb of me not using it. Below
-> is the update what I will do.
->
-> diff --git a/arch/arm/plat-omap/include/plat/io.h
-> b/arch/arm/plat-omap/include/plat/io.h
-> index d72ec85..db36292 100644
-> --- a/arch/arm/plat-omap/include/plat/io.h
-> +++ b/arch/arm/plat-omap/include/plat/io.h
-> @@ -228,13 +228,13 @@
->
->  #define OMAP44XX_EMIF2_PHYS	OMAP44XX_EMIF2_BASE
->  						/* 0x4d000000 --> 0xfd200000 */
-> -#define OMAP44XX_EMIF2_VIRT	(OMAP44XX_EMIF2_PHYS + OMAP4_L3_PER_IO_OFFSET)
->  #define OMAP44XX_EMIF2_SIZE	SZ_1M
-> +#define OMAP44XX_EMIF2_VIRT	(OMAP44XX_EMIF1_VIRT + OMAP44XX_EMIF2_SIZE)
+The technical documents are available from following link:
 
-This doesn't look right either.
+http://focus.ti.com/docs/prod/folders/print/tms320dm8148.html
 
-This #define is for the *start* of EMIF2 virtual address space, so 
-assuming the start address of EMIF2 is immediatly after EMIF1, it should
-be EMIF1_VIRT + EMIF1_SIZE (not EMIF2_SIZE.)
+This series is referred in code as TI814X.
 
->  #define OMAP44XX_DMM_PHYS	OMAP44XX_DMM_BASE
->  						/* 0x4e000000 --> 0xfd300000 */
-> -#define OMAP44XX_DMM_VIRT	(OMAP44XX_DMM_PHYS + OMAP4_L3_PER_IO_OFFSET)
->  #define OMAP44XX_DMM_SIZE	SZ_1M
-> +#define OMAP44XX_DMM_VIRT	(OMAP44XX_EMIF2_VIRT + OMAP44XX_DMM_SIZE)
+Since these devices share similar architecture as TI816X devices, existing
+TI816X code is updated to accomodate TI814X support. The code shared across
+TI816X and TI814X devices is updated with TI81XX/ti81xx prefix as applicable,
+while maintaining cpu_is_ti816x() and cpu_is_ti814x() to distinguish specific
+execution differences.
 
-And here, assuming DMM range is immediately after EMIF2, this should be
-EMIF2_VIRT + EMFI2_SIZE)
+Changes since v1:
+1) Rebased and updated after Paul's CHIP_IS removal changes
+2) Removed call to omap2_init_common_devices() as per Kevin's comment
 
-Kevin
+Hemant Pedanekar (3):
+  TI81XX: Prepare for addition of TI814X support
+  TI814X: Add cpu type macros and detection support
+  TI814X: Create board support and enable build for TI8148 EVM
+
+ arch/arm/mach-omap2/Kconfig                        |   11 +++-
+ arch/arm/mach-omap2/Makefile                       |    1 +
+ arch/arm/mach-omap2/board-ti8148evm.c              |   51 ++++++++++++++++++++
+ arch/arm/mach-omap2/board-ti8168evm.c              |    8 ++--
+ arch/arm/mach-omap2/clock.c                        |    2 +-
+ arch/arm/mach-omap2/clock.h                        |    2 +-
+ arch/arm/mach-omap2/clock3xxx_data.c               |    5 ++-
+ arch/arm/mach-omap2/common.c                       |   22 ++++----
+ arch/arm/mach-omap2/control.h                      |    8 ++--
+ arch/arm/mach-omap2/id.c                           |   30 ++++++++++--
+ arch/arm/mach-omap2/include/mach/debug-macro.S     |   12 ++--
+ arch/arm/mach-omap2/include/mach/entry-macro.S     |    4 +-
+ arch/arm/mach-omap2/io.c                           |   12 ++--
+ arch/arm/mach-omap2/irq.c                          |    2 +-
+ arch/arm/mach-omap2/opp2xxx.h                      |    2 +-
+ arch/arm/mach-omap2/serial.c                       |    6 +-
+ arch/arm/plat-omap/include/plat/clkdev_omap.h      |    1 +
+ arch/arm/plat-omap/include/plat/clock.h            |    3 +-
+ arch/arm/plat-omap/include/plat/common.h           |    4 +-
+ arch/arm/plat-omap/include/plat/cpu.h              |   22 ++++++++
+ arch/arm/plat-omap/include/plat/hardware.h         |    2 +-
+ arch/arm/plat-omap/include/plat/io.h               |    6 +-
+ arch/arm/plat-omap/include/plat/irqs.h             |    2 +-
+ arch/arm/plat-omap/include/plat/serial.h           |   14 +++---
+ .../plat-omap/include/plat/{ti816x.h => ti81xx.h}  |   18 ++++----
+ arch/arm/plat-omap/include/plat/uncompress.h       |   11 +++--
+ arch/arm/plat-omap/io.c                            |    2 +-
+ 27 files changed, 186 insertions(+), 77 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-ti8148evm.c
+ rename arch/arm/plat-omap/include/plat/{ti816x.h => ti81xx.h} (60%)
+
+-- 
+1.7.3.5
+
