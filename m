@@ -1,113 +1,83 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 1/5] [media]: OMAP_VOUT: Fix check in reqbuf & mmap for
- buf_size allocation
-Date: Wed, 21 Sep 2011 14:10:14 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC941E1C@dbde02.ent.ti.com>
-References: <1316167233-1437-1-git-send-email-archit@ti.com>
- <1316167233-1437-2-git-send-email-archit@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv8 06/16] power: omap-prm: added chain interrupt handler
+Date: Wed, 21 Sep 2011 02:51:55 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109210230550.10719@utopia.booyaka.com>
+References: <1316189150-21448-1-git-send-email-t-kristo@ti.com> <1316189150-21448-7-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1316167233-1437-2-git-send-email-archit@ti.com>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:56689 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752084Ab1IUIvz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 04:51:55 -0400
+In-Reply-To: <1316189150-21448-7-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm@lists.arm.linux.org.uk, Kevin Hilman <khilman@ti.com>, "Avinash.H.M" <avinashhm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
+Hi
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Friday, September 16, 2011 3:30 PM
-> To: Hiremath, Vaibhav
-> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
-> media@vger.kernel.org; Taneja, Archit
-> Subject: [PATCH 1/5] [media]: OMAP_VOUT: Fix check in reqbuf & mmap for
-> buf_size allocation
-> 
-> The commit 383e4f69879d11c86ebdd38b3356f6d0690fb4cc makes reqbuf and mmap
-> prevent
-> requesting a larger size buffer than what is allocated at kernel boot
-> during
-> omap_vout_probe.
-> 
-> The requested size is compared with vout->buffer_size, this isn't correct
-> as
-> vout->buffer_size is later set to the size requested in reqbuf. When the
-> video
-> device is opened the next time, this check will prevent us to allocate a
-> buffer
-> which is larger than what we requested the last time.
-> 
-> Don't use vout->buffer_size, always check with the parameters
-> video1_bufsize
-> or video2_bufsize.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/video/omap/omap_vout.c |   10 ++++++++--
->  1 files changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index 95daf98..e14c82b 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -664,10 +664,14 @@ static int omap_vout_buffer_setup(struct
-> videobuf_queue *q, unsigned int *count,
->  	u32 phy_addr = 0, virt_addr = 0;
->  	struct omap_vout_device *vout = q->priv_data;
->  	struct omapvideo_info *ovid = &vout->vid_info;
-> +	int vid_max_buf_size;
-> 
->  	if (!vout)
->  		return -EINVAL;
-> 
-> +	vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
-> +		video2_bufsize;
+some comments (also see the comments for the 1/16 patch, some of which 
+apply to this patch)
+
+On Fri, 16 Sep 2011, Tero Kristo wrote:
+
+> diff --git a/drivers/power/omap_prm.c b/drivers/power/omap_prm.c
+> index dfc0920..880748a 100644
+> --- a/drivers/power/omap_prm.c
+> +++ b/drivers/power/omap_prm.c
+
+...
+
+> +static int __init omap_prm_probe(struct platform_device *pdev)
+> +{
+> +	struct omap_hwmod *oh;
+
+This is a sign that something is wrong here.  Device driver code shouldn't 
+have any hwmod dependencies.  The driver should just use whatever data it 
+gets from the struct platform_device / platform_data.  
+
+Code in arch/arm/mach-omap2 can use hwmod data to populate platform_data, 
+if needed.  But it doesn't even look like that would be needed in this 
+case.  The PRM revision register resides inside the PRM IP block, so it's 
+valid for the PRM driver to read it directly.
+
+Anyway, this PRM revision code is presumably mooted anyway if different 
+drivers are probed for OMAP2430 vs. OMAP4-style PRMs.
+
+> +	int rev;
 > +
->  	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
->  		return -EINVAL;
-> 
-> @@ -690,7 +694,7 @@ static int omap_vout_buffer_setup(struct
-> videobuf_queue *q, unsigned int *count,
->  		video1_numbuffers : video2_numbuffers;
-> 
->  	/* Check the size of the buffer */
-> -	if (*size > vout->buffer_size) {
-> +	if (*size > vid_max_buf_size) {
-Good catch !!!
+> +	oh = omap_hwmod_lookup("prm");
+> +
+> +	if (!oh) {
+> +		pr_err("prm hwmod not found\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	prm_dev.base = omap_hwmod_get_mpu_rt_va(oh);
+> +
+> +	rev = prm_read_reg(oh->class->sysc->rev_offs);
+> +
+> +	switch (rev) {
+> +	case OMAP3_PRM_REVISION:
+> +		prm_dev.irq_setup = &omap3_prcm_irq_setup;
+> +		prm_dev.revision = PRM_OMAP3;
+> +		break;
+> +	case OMAP4_PRM_REVISION:
+> +		prm_dev.irq_setup = &omap4_prcm_irq_setup;
+> +		prm_dev.revision = PRM_OMAP4;
+> +		break;
+> +	default:
+> +		pr_err("unknown PRM revision: %08x\n", rev);
+> +		return -ENODEV;
+> +	}
+> +
+> +	prm_dev.irq = oh->mpu_irqs[0].irq;
+> +
+> +	omap_prcm_irq_init();
+> +
+> +	return 0;
+> +}
 
->  		v4l2_err(&vout->vid_dev->v4l2_dev,
->  				"buffer allocation mismatch [%u] [%u]\n",
->  				*size, vout->buffer_size);
-> @@ -865,6 +869,8 @@ static int omap_vout_mmap(struct file *file, struct
-> vm_area_struct *vma)
->  	unsigned long size = (vma->vm_end - vma->vm_start);
->  	struct omap_vout_device *vout = file->private_data;
->  	struct videobuf_queue *q = &vout->vbq;
-> +	int vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
-> +		video2_bufsize;
-> 
->  	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
->  			" %s pgoff=0x%lx, start=0x%lx, end=0x%lx\n", __func__,
-> @@ -887,7 +893,7 @@ static int omap_vout_mmap(struct file *file, struct
-> vm_area_struct *vma)
->  		return -EINVAL;
->  	}
->  	/* Check the size of the buffer */
-> -	if (size > vout->buffer_size) {
-> +	if (size > vid_max_buf_size) {
-Don't you think in case of mmap we should still check for the 
-vout->buffer_size, since this is the size user has requested in req_buf.
-
-Thanks,
-Vaibhav
-
-
->  		v4l2_err(&vout->vid_dev->v4l2_dev,
->  				"insufficient memory [%lu] [%u]\n",
->  				size, vout->buffer_size);
-> --
-> 1.7.1
+- Paul
