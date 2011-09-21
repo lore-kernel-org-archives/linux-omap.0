@@ -1,16 +1,17 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH v2 0/8] PM QoS: implement the OMAP low level constraints management code
-Date: Wed, 21 Sep 2011 18:24:10 +0200
-Message-ID: <1316622258-3892-1-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 1/8] OMAP: convert I2C driver to PM QoS for latency constraints
+Date: Wed, 21 Sep 2011 18:24:11 +0200
+Message-ID: <1316622258-3892-2-git-send-email-j-pihet@ti.com>
 References: <1316621649-3622-1-git-send-email-j-pihet@ti.com>
+ <1316622258-3892-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:61555 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752617Ab1IUQZB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 12:25:01 -0400
-Received: by wyg34 with SMTP id 34so2075656wyg.19
-        for <linux-omap@vger.kernel.org>; Wed, 21 Sep 2011 09:25:00 -0700 (PDT)
-In-Reply-To: <1316621649-3622-1-git-send-email-j-pihet@ti.com>
+Received: from mail-ew0-f42.google.com ([209.85.215.42]:61336 "EHLO
+	mail-ew0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753079Ab1IUQZu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 12:25:50 -0400
+Received: by ewy1 with SMTP id 1so1809483ewy.1
+        for <linux-omap@vger.kernel.org>; Wed, 21 Sep 2011 09:25:48 -0700 (PDT)
+In-Reply-To: <1316622258-3892-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.co>
@@ -18,70 +19,157 @@ Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-. Convert the OMAP I2C driver to the PM QoS API for MPU latency constraints
-. Remove the remove the latency related functions from OMAP PM in favor of
-  the generic per-device PM QoS API
-. Implement the devices wake-up latency constraints using the global
-  device PM QoS notification handler which applies the constraints to the
-  underlying layer
-. Implement the low level code which controls the power domains next power
-  states, through the hwmod and pwrdm layers
-. Add cpuidle and power domains wake-up latency figures for OMAP3, cf. [1]
-  for the details on where the numbers are coming from
-. Implement the relation between the cpuidle and per-device PM QoS frameworks
-  in the OMAP3 specific idle callbacks.
-  The chosen C-state shall satisfy the following conditions:
-   . the 'valid' field is enabled,
-   . it satisfies the enable_off_mode flag,
-   . the next state for MPU and CORE power domains is not lower than the
-     state programmed by the per-device PM QoS.
+Convert the driver from the outdated omap_pm_set_max_mpu_wakeup_lat
+API to the new PM QoS API.
+Since the constraint is on the MPU subsystem, use the PM_QOS_CPU_DMA_LATENCY
+class of PM QoS. The resulting MPU constraints are used by cpuidle to
+decide the next power state of the MPU subsystem.
 
+The I2C device latency timing is derived from the FIFO size and the
+clock speed and so is applicable to all OMAP SoCs.
 
-ToDo:
-1. validate the constraints framework on OMAP4 HW (done on OMAP3)
-2. Re-visit the OMAP power domains states initialization procedure. Currently
-   the power states that have been changed from the constraints API which were
-   applied before the initialization of the power domains are lost
-3. Further clean-up the OMAP PM layer, use the generic frameworks instead (OPP,
-   PM QoS...)
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/plat-omap/i2c.c      |   20 --------------------
+ drivers/i2c/busses/i2c-omap.c |   30 +++++++++++++++---------------
+ include/linux/i2c-omap.h      |    1 -
+ 3 files changed, 15 insertions(+), 36 deletions(-)
 
-
-Based on the pm-qos branch of the linux-pm git tree (3.1.0-rc3), cf. [2].
-
-Tested on OMAP3 Beagleboard (ES2.x) with constraints on MPU, CORE, PER in
-RETention and OFF modes.
-
-[1] http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
-[2] git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-
-
-Jean Pihet (8):
-  OMAP: convert I2C driver to PM QoS for latency constraints
-  OMAP: PM: remove the latency related functions from the API
-  OMAP2+: powerdomain: control power domains next state
-  OMAP2+: omap_hwmod: manage the wake-up latency constraints
-  OMAP: PM: register to the per-device PM QoS framework
-  OMAP3: cpuidle: next C-state decision depends on the PM QoS MPU and
-    CORE constraints
-  OMAP3: update cpuidle latency and threshold figures
-  OMAP3: powerdomain data: add wake-up latency figures
-
- Documentation/arm/OMAP/omap_pm               |   55 ++------
- arch/arm/mach-omap2/cpuidle34xx.c            |   77 ++++++-----
- arch/arm/mach-omap2/omap_hwmod.c             |   26 ++++-
- arch/arm/mach-omap2/pm.c                     |   63 ++++++++
- arch/arm/mach-omap2/pm.h                     |   17 ++-
- arch/arm/mach-omap2/powerdomain.c            |  197 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.h            |   35 +++++-
- arch/arm/mach-omap2/powerdomains3xxx_data.c  |   78 ++++++++++
- arch/arm/plat-omap/i2c.c                     |   20 ---
- arch/arm/plat-omap/include/plat/omap-pm.h    |   99 -------------
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
- arch/arm/plat-omap/omap-pm-noop.c            |   88 ------------
- drivers/i2c/busses/i2c-omap.c                |   30 ++--
- include/linux/i2c-omap.h                     |    1 -
- 14 files changed, 480 insertions(+), 308 deletions(-)
-
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index 3341ca4..e1e2502 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -34,7 +34,6 @@
+ #include <mach/irqs.h>
+ #include <plat/mux.h>
+ #include <plat/i2c.h>
+-#include <plat/omap-pm.h>
+ #include <plat/omap_device.h>
+ 
+ #define OMAP_I2C_SIZE		0x3f
+@@ -113,16 +112,6 @@ static inline int omap1_i2c_add_bus(int bus_id)
+ 
+ 
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+-/*
+- * XXX This function is a temporary compatibility wrapper - only
+- * needed until the I2C driver can be converted to call
+- * omap_pm_set_max_dev_wakeup_lat() and handle a return code.
+- */
+-static void omap_pm_set_max_mpu_wakeup_lat_compat(struct device *dev, long t)
+-{
+-	omap_pm_set_max_mpu_wakeup_lat(dev, t);
+-}
+-
+ static struct omap_device_pm_latency omap_i2c_latency[] = {
+ 	[0] = {
+ 		.deactivate_func	= omap_device_idle_hwmods,
+@@ -151,15 +140,6 @@ static inline int omap2_i2c_add_bus(int bus_id)
+ 	}
+ 
+ 	pdata = &i2c_pdata[bus_id - 1];
+-	/*
+-	 * When waiting for completion of a i2c transfer, we need to
+-	 * set a wake up latency constraint for the MPU. This is to
+-	 * ensure quick enough wakeup from idle, when transfer
+-	 * completes.
+-	 * Only omap3 has support for constraints
+-	 */
+-	if (cpu_is_omap34xx())
+-		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
+ 	od = omap_device_build(name, bus_id, oh, pdata,
+ 			sizeof(struct omap_i2c_bus_platform_data),
+ 			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 1a766cf..95e5205 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -40,6 +40,7 @@
+ #include <linux/slab.h>
+ #include <linux/i2c-omap.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pm_qos.h>
+ 
+ /* I2C controller revisions */
+ #define OMAP_I2C_REV_2			0x20
+@@ -179,8 +180,7 @@ struct omap_i2c_dev {
+ 	struct completion	cmd_complete;
+ 	struct resource		*ioarea;
+ 	u32			latency;	/* maximum mpu wkup latency */
+-	void			(*set_mpu_wkup_lat)(struct device *dev,
+-						    long latency);
++	struct pm_qos_request	pm_qos_request;
+ 	u32			speed;		/* Speed of bus in Khz */
+ 	u16			cmd_err;
+ 	u8			*buf;
+@@ -648,8 +648,14 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 	if (r < 0)
+ 		goto out;
+ 
+-	if (dev->set_mpu_wkup_lat != NULL)
+-		dev->set_mpu_wkup_lat(dev->dev, dev->latency);
++	/*
++	 * When waiting for completion of a i2c transfer, we need to
++	 * set a wake up latency constraint for the MPU. This is to
++	 * ensure quick enough wakeup from idle, when transfer
++	 * completes.
++	 */
++	pm_qos_add_request(&dev->pm_qos_request, PM_QOS_CPU_DMA_LATENCY,
++			   dev->latency);
+ 
+ 	for (i = 0; i < num; i++) {
+ 		r = omap_i2c_xfer_msg(adap, &msgs[i], (i == (num - 1)));
+@@ -657,8 +663,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 			break;
+ 	}
+ 
+-	if (dev->set_mpu_wkup_lat != NULL)
+-		dev->set_mpu_wkup_lat(dev->dev, -1);
++	pm_qos_remove_request(&dev->pm_qos_request);
+ 
+ 	if (r == 0)
+ 		r = num;
+@@ -1007,13 +1012,10 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		goto err_release_region;
+ 	}
+ 
+-	if (pdata != NULL) {
++	if (pdata != NULL)
+ 		speed = pdata->clkrate;
+-		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+-	} else {
++	else
+ 		speed = 100;	/* Default speed */
+-		dev->set_mpu_wkup_lat = NULL;
+-	}
+ 
+ 	dev->speed = speed;
+ 	dev->idle = 1;
+@@ -1066,10 +1068,8 @@ omap_i2c_probe(struct platform_device *pdev)
+ 			dev->fifo_size = (dev->fifo_size / 2);
+ 			dev->b_hw = 1; /* Enable hardware fixes */
+ 		}
+-		/* calculate wakeup latency constraint for MPU */
+-		if (dev->set_mpu_wkup_lat != NULL)
+-			dev->latency = (1000000 * dev->fifo_size) /
+-				       (1000 * speed / 8);
++		/* calculate wakeup latency constraint */
++		dev->latency = (1000000 * dev->fifo_size) / (1000 * speed / 8);
+ 	}
+ 
+ 	/* reset ASAP, clearing any IRQs */
+diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+index 0aa0cbd..d06a8aa 100644
+--- a/include/linux/i2c-omap.h
++++ b/include/linux/i2c-omap.h
+@@ -32,7 +32,6 @@
+ 
+ struct omap_i2c_bus_platform_data {
+ 	u32		clkrate;
+-	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
+ 	int		(*device_enable) (struct platform_device *pdev);
+ 	int		(*device_shutdown) (struct platform_device *pdev);
+ 	int		(*device_idle) (struct platform_device *pdev);
 -- 
 1.7.4.1
 
