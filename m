@@ -1,223 +1,113 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv8 01/16] power: add omap prm driver skeleton
-Date: Wed, 21 Sep 2011 02:28:20 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109210150460.10719@utopia.booyaka.com>
-References: <1316189150-21448-1-git-send-email-t-kristo@ti.com> <1316189150-21448-2-git-send-email-t-kristo@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 1/5] [media]: OMAP_VOUT: Fix check in reqbuf & mmap for
+ buf_size allocation
+Date: Wed, 21 Sep 2011 14:10:14 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC941E1C@dbde02.ent.ti.com>
+References: <1316167233-1437-1-git-send-email-archit@ti.com>
+ <1316167233-1437-2-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55058 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751846Ab1IUI2V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 04:28:21 -0400
-In-Reply-To: <1316189150-21448-2-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1316167233-1437-2-git-send-email-archit@ti.com>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm@lists.arm.linux.org.uk, Kevin Hilman <khilman@ti.com>
 
-Hi
 
-a few comments.
-
-First, as Govindraj mentioned, this should be cc'ed to 
-linux-arm-kernel@lists.infradead.org.  It's surprising that the linux-arm 
-mailing list is still running...
-
- On Fri, 16 Sep 2011, Tero Kristo wrote:
-
-> This driver will eventually support OMAP soc PRM module features, e.g. PRCM
-> chain interrupts.
-
-This driver should be a separate series and should be posted to 
-linux-kernel@vger.kernel.org also, since it will presumably need to be 
-acked or merged by someone else who is responsible for the appropriate 
-drivers directory.  Since it should probably go into drivers/mfd (see 
-below), it should also be sent to the MFD tree maintainer, Samuel Ortiz 
-<sameo@linux.intel.com>.
-
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
+> -----Original Message-----
+> From: Taneja, Archit
+> Sent: Friday, September 16, 2011 3:30 PM
+> To: Hiremath, Vaibhav
+> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
+> media@vger.kernel.org; Taneja, Archit
+> Subject: [PATCH 1/5] [media]: OMAP_VOUT: Fix check in reqbuf & mmap for
+> buf_size allocation
+> 
+> The commit 383e4f69879d11c86ebdd38b3356f6d0690fb4cc makes reqbuf and mmap
+> prevent
+> requesting a larger size buffer than what is allocated at kernel boot
+> during
+> omap_vout_probe.
+> 
+> The requested size is compared with vout->buffer_size, this isn't correct
+> as
+> vout->buffer_size is later set to the size requested in reqbuf. When the
+> video
+> device is opened the next time, this check will prevent us to allocate a
+> buffer
+> which is larger than what we requested the last time.
+> 
+> Don't use vout->buffer_size, always check with the parameters
+> video1_bufsize
+> or video2_bufsize.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 > ---
->  drivers/power/Kconfig    |    7 ++++
->  drivers/power/Makefile   |    1 +
->  drivers/power/omap_prm.c |   83 ++++++++++++++++++++++++++++++++++++++++++++++
-
-A couple of comments here:
-
-This driver is eventually going to need to create the VC and VP 
-subdevices, so it makes sense to me to place the main portion of the 
-driver into drivers/mfd, rather than drivers/power, to avoid churn.
-
-Also, the driver should probably be renamed to something like 
-'omap2430_prm.c' or something like that.  It looks to me like there are at 
-least three different hardware "PRM" IP block designs:
-
-- OMAP2420 (integrated into the PRCM)
-- OMAP2430/3430/3630/3517 (standalone PRM)
-- OMAP4430/4460, possibly also the 816x (standalone PRM with very 
-  different register layout)
-
-The idea being that the hwmods for these would all have different names 
-and would therefore be associated with different drivers/mfd drivers.
-
-Looking at your patch 6/16, it looks like there's some code that can be 
-shared between OMAP3/4 for interrupt handling, so maybe that can go into a 
-shared file, like omap_prm_common.c.  The omap2430_prm.c or omap4430_prm.c 
-files could pass the number of registers and IRQ register offset arrays to 
-the common code in platform_data.  drivers/mfd/wm8350-{core,irq}.c is what 
-I'm looking at here as a reasonable approach to compare to; see 
-wm8350_irq_init().
-
->  3 files changed, 91 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/power/omap_prm.c
+>  drivers/media/video/omap/omap_vout.c |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
-> index 57de051..e735a95 100644
-> --- a/drivers/power/Kconfig
-> +++ b/drivers/power/Kconfig
-> @@ -249,4 +249,11 @@ config CHARGER_MAX8998
->  	  Say Y to enable support for the battery charger control sysfs and
->  	  platform data of MAX8998/LP3974 PMICs.
->  
-> +config OMAP_PRM
-> +	bool "OMAP Power and Reset Management driver"
-> +	depends on (ARCH_OMAP) && PM
-> +	help
-> +	  Say Y to enable support for the OMAP Power and Reset Management
-> +	  driver.
-> +
->  endif # POWER_SUPPLY
-> diff --git a/drivers/power/Makefile b/drivers/power/Makefile
-> index b4af13d..8df93c2 100644
-> --- a/drivers/power/Makefile
-> +++ b/drivers/power/Makefile
-> @@ -13,6 +13,7 @@ obj-$(CONFIG_WM831X_BACKUP)	+= wm831x_backup.o
->  obj-$(CONFIG_WM831X_POWER)	+= wm831x_power.o
->  obj-$(CONFIG_WM8350_POWER)	+= wm8350_power.o
->  obj-$(CONFIG_TEST_POWER)	+= test_power.o
-> +obj-$(CONFIG_OMAP_PRM)		+= omap_prm.o
->  
->  obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_battery.o
->  obj-$(CONFIG_BATTERY_DS2780)	+= ds2780_battery.o
-> diff --git a/drivers/power/omap_prm.c b/drivers/power/omap_prm.c
-> new file mode 100644
-> index 0000000..dfc0920
-> --- /dev/null
-> +++ b/drivers/power/omap_prm.c
-> @@ -0,0 +1,83 @@
-> +/*
-> + * OMAP Power and Reset Management (PRM) driver
-> + *
-> + * Copyright (C) 2011 Texas Instruments, Inc.
-> + *
-> + * Author: Tero Kristo <t-kristo@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/ctype.h>
-> +#include <linux/module.h>
-> +#include <linux/io.h>
-> +#include <linux/slab.h>
-> +#include <linux/init.h>
-> +#include <linux/err.h>
-> +#include <linux/platform_device.h>
-> +
-> +#define DRIVER_NAME "omap-prm"
-> +
-> +struct omap_prm_device {
-> +	struct platform_device		pdev;
-> +};
-
-Hmm.  This doesn't look right.  The platform_device should be created as 
-part of an omap_device_build() call in code that resides in 
-arch/arm/mach-omap2/ - see for example arch/arm/mach-omap2/hwspinlock.c
-
-> +
-> +static struct omap_prm_device prm_dev = {
-> +	.pdev		= {
-> +		.name	= DRIVER_NAME,
-> +		.id	= -1,
-> +	},
-> +};
-> +
-> +static int __init omap_prm_probe(struct platform_device *pdev)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int __devexit omap_prm_remove(struct platform_device *pdev)
-> +{
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver prm_driver = {
-> +	.remove		= __exit_p(omap_prm_remove),
-
-This should define a probe function that the LDM core will call when it 
-matches the driver's driver name with the hwmod's name (in the case of 
-OMAP).
-
-> +	.driver		= {
-> +		.name	= DRIVER_NAME,
-> +	},
-> +};
-> +
-> +static int __init omap_prm_init(void)
-> +{
-> +	int ret;
-> +
-> +	ret = platform_device_register(&prm_dev.pdev);
-> +
-> +	if (ret) {
-> +		printk(KERN_ERR "Unable to register PRM device: %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	ret = platform_driver_probe(&prm_driver, omap_prm_probe);
-> +
-> +	if (ret)
-> +		printk(KERN_ERR "PRM driver probe failed: %d\n", ret);
-> +
-> +	return ret;
-> +}
-> +subsys_initcall(omap_prm_init);
-
-This function shouldn't be needed.  
-
-> +
-> +static void __exit omap_prm_exit(void)
-> +{
-> +	platform_device_unregister(&prm_dev.pdev);
-> +	platform_driver_unregister(&prm_driver);
-> +}
-> +module_exit(omap_prm_exit);
-
-Nor should this one.
-
-> +
-> +MODULE_ALIAS("platform:"DRIVER_NAME);
-> +MODULE_AUTHOR("Tero Kristo <t-kristo@ti.com>");
-> +MODULE_DESCRIPTION("OMAP PRM driver");
-> +MODULE_LICENSE("GPL");
-> -- 
-> 1.7.4.1
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c
+> index 95daf98..e14c82b 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -664,10 +664,14 @@ static int omap_vout_buffer_setup(struct
+> videobuf_queue *q, unsigned int *count,
+>  	u32 phy_addr = 0, virt_addr = 0;
+>  	struct omap_vout_device *vout = q->priv_data;
+>  	struct omapvideo_info *ovid = &vout->vid_info;
+> +	int vid_max_buf_size;
 > 
+>  	if (!vout)
+>  		return -EINVAL;
 > 
-> Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
->  
+> +	vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
+> +		video2_bufsize;
+> +
+>  	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
+>  		return -EINVAL;
 > 
+> @@ -690,7 +694,7 @@ static int omap_vout_buffer_setup(struct
+> videobuf_queue *q, unsigned int *count,
+>  		video1_numbuffers : video2_numbuffers;
+> 
+>  	/* Check the size of the buffer */
+> -	if (*size > vout->buffer_size) {
+> +	if (*size > vid_max_buf_size) {
+Good catch !!!
+
+>  		v4l2_err(&vout->vid_dev->v4l2_dev,
+>  				"buffer allocation mismatch [%u] [%u]\n",
+>  				*size, vout->buffer_size);
+> @@ -865,6 +869,8 @@ static int omap_vout_mmap(struct file *file, struct
+> vm_area_struct *vma)
+>  	unsigned long size = (vma->vm_end - vma->vm_start);
+>  	struct omap_vout_device *vout = file->private_data;
+>  	struct videobuf_queue *q = &vout->vbq;
+> +	int vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
+> +		video2_bufsize;
+> 
+>  	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
+>  			" %s pgoff=0x%lx, start=0x%lx, end=0x%lx\n", __func__,
+> @@ -887,7 +893,7 @@ static int omap_vout_mmap(struct file *file, struct
+> vm_area_struct *vma)
+>  		return -EINVAL;
+>  	}
+>  	/* Check the size of the buffer */
+> -	if (size > vout->buffer_size) {
+> +	if (size > vid_max_buf_size) {
+Don't you think in case of mmap we should still check for the 
+vout->buffer_size, since this is the size user has requested in req_buf.
+
+Thanks,
+Vaibhav
+
+
+>  		v4l2_err(&vout->vid_dev->v4l2_dev,
+>  				"insufficient memory [%lu] [%u]\n",
+>  				size, vout->buffer_size);
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-- Paul
+> 1.7.1
