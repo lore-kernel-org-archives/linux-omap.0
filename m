@@ -1,57 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/10] hwspinlock-next
-Date: Wed, 21 Sep 2011 08:24:00 -0700
-Message-ID: <20110921152359.GD2937@atomide.com>
-References: <1315846025-11453-1-git-send-email-ohad@wizery.com>
- <CAK=Wgbam6u1bq8fG+oMUhxfWH1g3dU7q+VhPWFEZOLgFMV_3vQ@mail.gmail.com>
- <20110920231340.GT18894@atomide.com>
- <20110920234515.GA16276@kroah.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 8/8] OMAP4: Fix the emif and dmm virtual mapping
+Date: Wed, 21 Sep 2011 20:58:18 +0530
+Message-ID: <4E7A0292.4020408@ti.com>
+References: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com>	<1315459327-3285-9-git-send-email-santosh.shilimkar@ti.com> <87r53gnzfh.fsf@ti.com> <4E78AAD5.6010906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44151 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750751Ab1IUPYS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 11:24:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20110920234515.GA16276@kroah.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:48634 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751485Ab1IUP2Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Sep 2011 11:28:24 -0400
+Received: by mail-gy0-f179.google.com with SMTP id 4so1603937gyg.24
+        for <linux-omap@vger.kernel.org>; Wed, 21 Sep 2011 08:28:22 -0700 (PDT)
+In-Reply-To: <4E78AAD5.6010906@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linus Walleij <linus.walleij@linaro.org>, Linus Torvalds <torvalds@linux-foundation.org>, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Grant Likely <grant.likely@secretlab.ca>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Girish S G <girishsg@ti.com>
 
-* Greg KH <greg@kroah.com> [110921 07:27]:
-> On Tue, Sep 20, 2011 at 04:13:40PM -0700, Tony Lindgren wrote:
-> > * Ohad Ben-Cohen <ohad@wizery.com> [110920 01:34]:
-> > > On Mon, Sep 12, 2011 at 7:46 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> > > 
-> > > I'm wondering how hwspinlock updates like this should go upstream.
-> > > 
-> > > The first hwspinlock batch was picked by Tony, because it involved a
-> > > bulk of OMAP changes.
-> > > 
-> > > Hwspinlock isn't OMAP-specific anymore though (we gained support for
-> > > STE's u8500) and the vast majority of changes are in drivers/. We're
-> > > still very much ARM-related, though this may change too at some point
-> > > (c6x has a similar "hardware semaphore" peripheral like the u8500
-> > > does).
-> > > 
-> > > Tony, if you're still willing to pick up these updates I'd be happy to
-> > > send you pull requests of course.
-> > 
-> > I'd prefer for Greg to take these as these are drivers.
-> 
-> What, am I the catch-all for drivers these days?
-> 
-> Oh, right, it looks like I am :)
-> 
-> > If he's not taking it at this point based on it being ARM only,
-> > I can take it then.
-> 
-> Please do, I don't even have the ability to build them here, as I don't
-> have an arm cross-compiler on this travel laptop.
+On Tuesday 20 September 2011 08:31 PM, Santosh Shilimkar wrote:
+> On Friday 16 September 2011 11:26 PM, Kevin Hilman wrote:
+>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>>
 
-OK so you're off the hook then :) Now we still need to sort out the
-remaining options posted by Arnd.
+[...]
 
-Tony
+> 
+>>>  #define OMAP44XX_EMIF2_SIZE	SZ_1M
+>>>  
+>>>  #define OMAP44XX_DMM_PHYS	OMAP44XX_DMM_BASE
+>>>  						/* 0x4e000000 --> 0xfd300000 */
+>>> -#define OMAP44XX_DMM_VIRT	(OMAP44XX_DMM_PHYS + OMAP4_L3_PER_IO_OFFSET)
+>>> +#define OMAP44XX_DMM_VIRT	(OMAP44XX_EMIF2_VIRT + SZ_1M)
+>>
+>> and '+ OMAP44XX_EMIF2_SIZE' here.
+>>
+> Will add OMAP44XX_EMIF_SIZE since 2 EMIFs instaces are and
+> suppose to be identical.Almost missed this email in other traffic.
+
+OPPs. It was already there. Dumb of me not using it. Below
+is the update what I will do.
+
+diff --git a/arch/arm/plat-omap/include/plat/io.h
+b/arch/arm/plat-omap/include/plat/io.h
+index d72ec85..db36292 100644
+--- a/arch/arm/plat-omap/include/plat/io.h
++++ b/arch/arm/plat-omap/include/plat/io.h
+@@ -228,13 +228,13 @@
+
+ #define OMAP44XX_EMIF2_PHYS	OMAP44XX_EMIF2_BASE
+ 						/* 0x4d000000 --> 0xfd200000 */
+-#define OMAP44XX_EMIF2_VIRT	(OMAP44XX_EMIF2_PHYS + OMAP4_L3_PER_IO_OFFSET)
+ #define OMAP44XX_EMIF2_SIZE	SZ_1M
++#define OMAP44XX_EMIF2_VIRT	(OMAP44XX_EMIF1_VIRT + OMAP44XX_EMIF2_SIZE)
+
+ #define OMAP44XX_DMM_PHYS	OMAP44XX_DMM_BASE
+ 						/* 0x4e000000 --> 0xfd300000 */
+-#define OMAP44XX_DMM_VIRT	(OMAP44XX_DMM_PHYS + OMAP4_L3_PER_IO_OFFSET)
+ #define OMAP44XX_DMM_SIZE	SZ_1M
++#define OMAP44XX_DMM_VIRT	(OMAP44XX_EMIF2_VIRT + OMAP44XX_DMM_SIZE)
+ /*
+  *
+----------------------------------------------------------------------------
+  * Omap specific register access
+-- 
+1.7.4.1
+
