@@ -1,85 +1,290 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 37/57] mmc: irq: Remove IRQF_DISABLED
-Date: Wed, 21 Sep 2011 12:16:06 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1109211208440.24024@axis700.grange>
-References: <1316597339-29861-1-git-send-email-yong.zhang0@gmail.com>
- <1316597339-29861-38-git-send-email-yong.zhang0@gmail.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
+ from omap_vout_isr
+Date: Wed, 21 Sep 2011 16:15:39 +0530
+Message-ID: <4E79C053.903@ti.com>
+References: <1316167233-1437-1-git-send-email-archit@ti.com> <1316167233-1437-3-git-send-email-archit@ti.com> <19F8576C6E063C45BE387C64729E739404EC941E8B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1316597339-29861-38-git-send-email-yong.zhang0@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Yong Zhang <yong.zhang0@gmail.com>
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, tglx@linutronix.de, Chris Ball <cjb@laptop.org>, Ian Molton <ian@mnementh.co.uk>, Tony Lindgren <tony@atomide.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, Balaji T K <balajitk@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49149 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751336Ab1IUKnL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 06:43:11 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC941E8B@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-On Wed, 21 Sep 2011, Yong Zhang wrote:
+Hi,
 
-> Since commit [c58543c8: genirq: Run irq handlers with interrupts disabled],
-> We run all interrupt handlers with interrupts disabled
-> and we even check and yell when an interrupt handler
-> returns with interrupts enabled (see commit [b738a50a:
-> genirq: Warn when handler enables interrupts]).
-> 
-> So now this flag is a NOOP and can be removed.
-> 
-> Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    5 ++---
->  drivers/mmc/host/tmio_mmc.c   |    4 ++--
+On Wednesday 21 September 2011 03:35 PM, Hiremath, Vaibhav wrote:
+>
+>> -----Original Message-----
+>> From: Taneja, Archit
+>> Sent: Friday, September 16, 2011 3:31 PM
+>> To: Hiremath, Vaibhav
+>> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
+>> media@vger.kernel.org; Taneja, Archit
+>> Subject: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
+>> from omap_vout_isr
+>>
+>> Currently, there is a lot of redundant code is between DPI and VENC panels,
+>> this
+>> can be made common by moving out field/interlace specific code to a
+>> separate
+>> function called omapvid_handle_interlace_display(). There is no functional
+>> change made.
+>>
+>> Signed-off-by: Archit Taneja<archit@ti.com>
+>> ---
+>>   drivers/media/video/omap/omap_vout.c |  172 ++++++++++++++++-------------
+>> -----
+>>   1 files changed, 82 insertions(+), 90 deletions(-)
+>>
+>> diff --git a/drivers/media/video/omap/omap_vout.c
+>> b/drivers/media/video/omap/omap_vout.c
+>> index e14c82b..c5f2ea0 100644
+>> --- a/drivers/media/video/omap/omap_vout.c
+>> +++ b/drivers/media/video/omap/omap_vout.c
+>> @@ -524,10 +524,50 @@ static int omapvid_apply_changes(struct
+>> omap_vout_device *vout)
+>>   	return 0;
+>>   }
+>>
+>> +static int omapvid_handle_interlace_display(struct omap_vout_device *vout,
+>> +		unsigned int irqstatus, struct timeval timevalue)
+>> +{
+>> +	u32 fid;
+>> +
+>> +	if (vout->first_int) {
+>> +		vout->first_int = 0;
+>> +		goto err;
+>> +	}
+>> +
+>> +	if (irqstatus&  DISPC_IRQ_EVSYNC_ODD)
+>> +		fid = 1;
+>> +	else if (irqstatus&  DISPC_IRQ_EVSYNC_EVEN)
+>> +		fid = 0;
+>> +	else
+>> +		goto err;
+>> +
+>> +	vout->field_id ^= 1;
+>> +	if (fid != vout->field_id) {
+>> +		/* reset field ID */
+>> +		vout->field_id = 0;
+> [Hiremath, Vaibhav] You should check whether fid == 0 before resetting it.
+>
+>> +	} else if (0 == fid) {
+> [Hiremath, Vaibhav] This is not matching with the original code, probably I have to be more careful here. I need to spend more time here...
 
-For tmio_mmc.c:
+If you do a dry run of it you'll see that it does the same thing 
+functionally. If fid was 1, vout->field_id would have been 0 anyway.
+So the check for fid == 0 looked a bit redundant to me. However, if you 
+think that doing this makes the code less clear, we can surely keep this 
+check.
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>
+>
+>> +		if (vout->cur_frm == vout->next_frm)
+>> +			goto err;
+>> +
+>> +		vout->cur_frm->ts = timevalue;
+>> +		vout->cur_frm->state = VIDEOBUF_DONE;
+>> +		wake_up_interruptible(&vout->cur_frm->done);
+>> +		vout->cur_frm = vout->next_frm;
+>> +	} else {
+>> +		if (list_empty(&vout->dma_queue) ||
+>> +				(vout->cur_frm != vout->next_frm))
+>> +			goto err;
+>> +	}
+>> +
+>> +	return vout->field_id;
+>> +err:
+>> +	return 0;
+>> +}
+>> +
+>>   static void omap_vout_isr(void *arg, unsigned int irqstatus)
+>>   {
+>> -	int ret;
+>> -	u32 addr, fid;
+>> +	int ret, fid;
+>> +	u32 addr;
+>>   	struct omap_overlay *ovl;
+>>   	struct timeval timevalue;
+>>   	struct omapvideo_info *ovid;
+>> @@ -548,107 +588,59 @@ static void omap_vout_isr(void *arg, unsigned int
+>> irqstatus)
+>>   	spin_lock(&vout->vbq_lock);
+>>   	do_gettimeofday(&timevalue);
+>>
+>> -	if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
+>> -		switch (cur_display->type) {
+>> -		case OMAP_DISPLAY_TYPE_DPI:
+>> -			if (!(irqstatus&  (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+>> -				goto vout_isr_err;
+>> -			break;
+>> -		case OMAP_DISPLAY_TYPE_HDMI:
+>> -			if (!(irqstatus&  DISPC_IRQ_EVSYNC_EVEN))
+>> -				goto vout_isr_err;
+>> -			break;
+>> -		default:
+>> +	switch (cur_display->type) {
+>> +	case OMAP_DISPLAY_TYPE_DPI:
+>> +		if (!(irqstatus&  (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+>>   			goto vout_isr_err;
+>> -		}
+>> -		if (!vout->first_int&&  (vout->cur_frm != vout->next_frm)) {
+>> -			vout->cur_frm->ts = timevalue;
+>> -			vout->cur_frm->state = VIDEOBUF_DONE;
+>> -			wake_up_interruptible(&vout->cur_frm->done);
+>> -			vout->cur_frm = vout->next_frm;
+>> -		}
+>> -		vout->first_int = 0;
+>> -		if (list_empty(&vout->dma_queue))
+>> +		break;
+>> +	case OMAP_DISPLAY_TYPE_VENC:
+>> +		fid = omapvid_handle_interlace_display(vout, irqstatus,
+>> +				timevalue);
+>> +		if (!fid)
+>>   			goto vout_isr_err;
+> [Hiremath, Vaibhav]
+> Have you tested TV out functionality?
 
-Thanks
-Guennadi
+I haven't checked it yet to be totally honest. Its hard to find a VENC 
+TV! I wanted to anyway get some kind of Ack from you before starting to 
+test this. Since you also feel that this clean up is needed, I'll start 
+testing this out :)
 
->  2 files changed, 4 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 21e4a79..75c6395 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2015,7 +2015,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
->  	}
->  
->  	/* Request IRQ for MMC operations */
-> -	ret = request_irq(host->irq, omap_hsmmc_irq, IRQF_DISABLED,
-> +	ret = request_irq(host->irq, omap_hsmmc_irq, 0,
->  			mmc_hostname(mmc), host);
->  	if (ret) {
->  		dev_dbg(mmc_dev(host->mmc), "Unable to grab HSMMC IRQ\n");
-> @@ -2043,8 +2043,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
->  	if ((mmc_slot(host).card_detect_irq)) {
->  		ret = request_irq(mmc_slot(host).card_detect_irq,
->  				  omap_hsmmc_cd_handler,
-> -				  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING
-> -					  | IRQF_DISABLED,
-> +				  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
->  				  mmc_hostname(mmc), host);
->  		if (ret) {
->  			dev_dbg(mmc_dev(host->mmc),
-> diff --git a/drivers/mmc/host/tmio_mmc.c b/drivers/mmc/host/tmio_mmc.c
-> index 44a9668..a4ea102 100644
-> --- a/drivers/mmc/host/tmio_mmc.c
-> +++ b/drivers/mmc/host/tmio_mmc.c
-> @@ -88,8 +88,8 @@ static int __devinit tmio_mmc_probe(struct platform_device *pdev)
->  	if (ret)
->  		goto cell_disable;
->  
-> -	ret = request_irq(irq, tmio_mmc_irq, IRQF_DISABLED |
-> -			  IRQF_TRIGGER_FALLING, dev_name(&pdev->dev), host);
-> +	ret = request_irq(irq, tmio_mmc_irq, IRQF_TRIGGER_FALLING,
-> +				dev_name(&pdev->dev), host);
->  	if (ret)
->  		goto host_remove;
->  
-> -- 
-> 1.7.4.1
-> 
+>
+>> +		break;
+>> +	case OMAP_DISPLAY_TYPE_HDMI:
+>> +		if (!(irqstatus&  DISPC_IRQ_EVSYNC_EVEN))
+>> +			goto vout_isr_err;
+>> +		break;
+>> +	default:
+>> +		goto vout_isr_err;
+>> +	}
+>>
+>> -		vout->next_frm = list_entry(vout->dma_queue.next,
+>> -				struct videobuf_buffer, queue);
+>> -		list_del(&vout->next_frm->queue);
+>> -
+>> -		vout->next_frm->state = VIDEOBUF_ACTIVE;
+>> -
+>> -		addr = (unsigned long) vout->queued_buf_addr[vout->next_frm-
+>>> i]
+>> -			+ vout->cropped_offset;
+>> +	if (!vout->first_int&&  (vout->cur_frm != vout->next_frm)) {
+>> +		vout->cur_frm->ts = timevalue;
+>> +		vout->cur_frm->state = VIDEOBUF_DONE;
+>> +		wake_up_interruptible(&vout->cur_frm->done);
+>> +		vout->cur_frm = vout->next_frm;
+>> +	}
+>>
+>> -		/* First save the configuration in ovelray structure */
+>> -		ret = omapvid_init(vout, addr);
+>> -		if (ret)
+>> -			printk(KERN_ERR VOUT_NAME
+>> -				"failed to set overlay info\n");
+>> -		/* Enable the pipeline and set the Go bit */
+>> -		ret = omapvid_apply_changes(vout);
+>> -		if (ret)
+>> -			printk(KERN_ERR VOUT_NAME "failed to change mode\n");
+>> -	} else {
+>> +	vout->first_int = 0;
+>> +	if (list_empty(&vout->dma_queue))
+>> +		goto vout_isr_err;
+>>
+>> -		if (vout->first_int) {
+>> -			vout->first_int = 0;
+>> -			goto vout_isr_err;
+>> -		}
+>> -		if (irqstatus&  DISPC_IRQ_EVSYNC_ODD)
+>> -			fid = 1;
+>> -		else if (irqstatus&  DISPC_IRQ_EVSYNC_EVEN)
+>> -			fid = 0;
+>> -		else
+>> -			goto vout_isr_err;
+>> +	vout->next_frm = list_entry(vout->dma_queue.next,
+>> +			struct videobuf_buffer, queue);
+>> +	list_del(&vout->next_frm->queue);
+>>
+>> -		vout->field_id ^= 1;
+>> -		if (fid != vout->field_id) {
+>> -			if (0 == fid)
+>> -				vout->field_id = fid;
+>> +	vout->next_frm->state = VIDEOBUF_ACTIVE;
+>>
+>> -			goto vout_isr_err;
+>> -		}
+>> -		if (0 == fid) {
+>> -			if (vout->cur_frm == vout->next_frm)
+>> -				goto vout_isr_err;
+>> -
+>> -			vout->cur_frm->ts = timevalue;
+>> -			vout->cur_frm->state = VIDEOBUF_DONE;
+>> -			wake_up_interruptible(&vout->cur_frm->done);
+>> -			vout->cur_frm = vout->next_frm;
+>> -		} else if (1 == fid) {
+>> -			if (list_empty(&vout->dma_queue) ||
+>> -					(vout->cur_frm != vout->next_frm))
+>> -				goto vout_isr_err;
+>> -
+>> -			vout->next_frm = list_entry(vout->dma_queue.next,
+>> -					struct videobuf_buffer, queue);
+>> -			list_del(&vout->next_frm->queue);
+>> -
+>> -			vout->next_frm->state = VIDEOBUF_ACTIVE;
+>> -			addr = (unsigned long)
+>> -				vout->queued_buf_addr[vout->next_frm->i] +
+>> -				vout->cropped_offset;
+>> -			/* First save the configuration in ovelray structure */
+>> -			ret = omapvid_init(vout, addr);
+>> -			if (ret)
+>> -				printk(KERN_ERR VOUT_NAME
+>> -						"failed to set overlay info\n");
+>> -			/* Enable the pipeline and set the Go bit */
+>> -			ret = omapvid_apply_changes(vout);
+>> -			if (ret)
+>> -				printk(KERN_ERR VOUT_NAME
+>> -						"failed to change mode\n");
+>> -		}
+>> +	addr = (unsigned long) vout->queued_buf_addr[vout->next_frm->i]
+>> +		+ vout->cropped_offset;
+>>
+>> -	}
+>> +	/* First save the configuration in ovelray structure */
+>> +	ret = omapvid_init(vout, addr);
+>> +	if (ret)
+>> +		printk(KERN_ERR VOUT_NAME
+>> +			"failed to set overlay info\n");
+>> +	/* Enable the pipeline and set the Go bit */
+>> +	ret = omapvid_apply_changes(vout);
+>> +	if (ret)
+>> +		printk(KERN_ERR VOUT_NAME "failed to change mode\n");
+>>
+>>   vout_isr_err:
+>>   	spin_unlock(&vout->vbq_lock);
+>>   }
+> [Hiremath, Vaibhav] Overall this clean-up was required, thanks for working on this patch.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Thanks for the review!
+
+Archit
+
+>
+> Thanks,
+> Vaibhav
+>>
+>> -
+>>   /* Video buffer call backs */
+>>
+>>   /*
+>> --
+>> 1.7.1
+>
+>
+
