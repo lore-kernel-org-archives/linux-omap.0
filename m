@@ -1,59 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 3/3] TI814X: Create board support and enable build
- for TI8148 EVM
-Date: Wed, 21 Sep 2011 13:48:26 -0700
-Message-ID: <20110921204826.GK2937@atomide.com>
-References: <1316626754-5764-1-git-send-email-hemantp@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 2/2] OMAP: omap_device: Add a method to build an omap_device from a DT node
+Date: Wed, 21 Sep 2011 14:17:37 -0700
+Message-ID: <87lith389a.fsf@ti.com>
+References: <1316184199-12599-1-git-send-email-b-cousson@ti.com>
+	<1316184199-12599-3-git-send-email-b-cousson@ti.com>
+	<20110917161314.GV3523@ponder.secretlab.ca> <4E77421C.3000202@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43909 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713Ab1IUUs3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 16:48:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1316626754-5764-1-git-send-email-hemantp@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:33067 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751041Ab1IUVRm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Sep 2011 17:17:42 -0400
+Received: by mail-yx0-f181.google.com with SMTP id 30so1768794yxk.12
+        for <linux-omap@vger.kernel.org>; Wed, 21 Sep 2011 14:17:41 -0700 (PDT)
+In-Reply-To: <4E77421C.3000202@ti.com> (Benoit Cousson's message of "Mon, 19
+	Sep 2011 15:22:36 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemant Pedanekar <hemantp@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Hemant Pedanekar <hemantp@ti.com> [110921 10:05]:
-> +
-> +static struct omap_board_config_kernel ti8148_evm_config[] __initdata = {
-> +};
-> +
-> +static void __init ti8148_evm_init(void)
-> +{
-> +	omap_serial_init();
-> +	omap_board_config = ti8148_evm_config;
-> +	omap_board_config_size = ARRAY_SIZE(ti8148_evm_config);
-> +}
-> +
-> +static void __init ti8148_evm_map_io(void)
-> +{
-> +	omap2_set_globals_ti81xx();
-> +	omapti81xx_map_common_io();
-> +}
+"Cousson, Benoit" <b-cousson@ti.com> writes:
 
-Hmm I guess we still have board specific map_io in board-ti8668evm.c
-also. Those would be better replaced with ti81xx_map_io in
-mach-omap2/common.c. Care to take a look at that?
+> On 9/17/2011 6:13 PM, Grant Likely wrote:
+>> On Fri, Sep 16, 2011 at 04:43:19PM +0200, Benoit Cousson wrote:
 
-> +MACHINE_START(TI8148EVM, "ti8148evm")
-> +	/* Maintainer: Texas Instruments */
-> +	.atag_offset	= 0x100,
-> +	.map_io		= ti8148_evm_map_io,
-> +	.init_early	= ti81xx_init_early,
-> +	.init_irq	= ti81xx_init_irq,
-> +	.timer		= &omap3_timer,
-> +	.init_machine	= ti8148_evm_init,
-> +MACHINE_END
+[...]
 
-Please add this all to board-ti8168evm.c instead of adding a new
-board-*.c file. With the upcoming device tree conversion most of
-these will disappear anyways.
+>>> +}
+>>> +
+>>> +static int _omap_device_notifier_call(struct notifier_block *nb,
+>>> +				      unsigned long event, void *dev)
+>>
+>> Nit: Why the preceding underscore?  Generally that is only done for
+>> 'special' variants of public functions.  ie. for a variant that
+>> expects a lock to already be held.
+>
+> Yeah, the convention in this file is not that strict, and it is used
+> for internal static helper function as well.
+> I'll let Kevin arbitrate that point :-)
 
-Regards,
+The convention in this file is the leading '_' is used for internal
+helper functions.
 
-Tony
+I'd prefer to keep it that way, and if we decide to change the coding
+convention to match a coding convention elsewhere, we should do it all
+at the same time.
+
+Kevin
