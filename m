@@ -1,35 +1,91 @@
-From: David Brown <davidb@codeaurora.org>
-Subject: Re: [PATCH 49/57] video: irq: Remove IRQF_DISABLED
-Date: Wed, 21 Sep 2011 13:22:02 -0700
-Message-ID: <20110921202202.GB2321@huya.qualcomm.com>
-References: <1316597339-29861-1-git-send-email-yong.zhang0@gmail.com>
- <1316597339-29861-50-git-send-email-yong.zhang0@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Staging tree for AM335x platforms
+Date: Wed, 21 Sep 2011 13:23:04 -0700
+Message-ID: <20110921202304.GI2937@atomide.com>
+References: <CA+T6QP=H0=WYcrA0HL+06Az6mFk7=K0O3MYNR=t+5Za-vDSyJA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arch-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53537 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751244Ab1IUUXI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 16:23:08 -0400
 Content-Disposition: inline
-In-Reply-To: <1316597339-29861-50-git-send-email-yong.zhang0@gmail.com>
-Sender: linux-arch-owner@vger.kernel.org
-To: Yong Zhang <yong.zhang0@gmail.com>
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, tglx@linutronix.de, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Wan ZongShun <mcuos.com@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Geoff Levand <geoff@infradead.org>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Anatolij Gustschin <agust@denx.de>, Paul Gortmaker <paul.gortmaker@windriver.com>, Andrew Morton <akpm@linux-foundation.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Jiri Kosina <jkosina@suse.cz>, Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, cbe-oss-dev@lists.ozlabs.org
+In-Reply-To: <CA+T6QP=H0=WYcrA0HL+06Az6mFk7=K0O3MYNR=t+5Za-vDSyJA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jason Kridner <jkridner@beagleboard.org>
+Cc: linux-omap@vger.kernel.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On Wed, Sep 21, 2011 at 05:28:50PM +0800, Yong Zhang wrote:
-> Since commit [c58543c8: genirq: Run irq handlers with interrupts disabled],
-> We run all interrupt handlers with interrupts disabled
-> and we even check and yell when an interrupt handler
-> returns with interrupts enabled (see commit [b738a50a:
-> genirq: Warn when handler enables interrupts]).
+Hi,
+
+* Jason Kridner <jkridner@beagleboard.org> [110921 10:56]:
+> Tony,
 > 
-> So now this flag is a NOOP and can be removed.
-> 
-> Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
-> ---
->  drivers/video/msm/mddi.c                  |    2 +-
->  drivers/video/msm/mdp.c                   |    2 +-
+> I'm looking at creating a public repository to hold patches not yet in
+> shape for inclusion in linux-omap (if not personally, then someone at
+> TI that meets the below charter).  I know there can be concern that
+> this becomes a distraction if we start pulling in community patches.
+> It seems it needs to be coupled with reworking systems for acceptance
+> upstream, but we'd like for there to be something where community
+> members can generate patches against while we are in the process of
+> cleaning up the underlying platform bits.
 
-Acked-by: David Brown <davidb@codeaurora.org>
+OK cool.
+ 
+> Do you have any recommendations or guidelines that should be followed
+> regarding anything about such a public repository?  Recommendations
+> and guidelines can include, but not be limited to, where the
+> repository should live, where patches and pull requests should be
+> submitted, what types of patches should be accepted and what state
+> they should be in, when should it be rebased, who is suitable to
+> maintain this repository and what should be used for managing patch
+> status (ie. patchwork and which patchwork).
 
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+Well in general the thing to watch out for is once you create a tree
+it becomes a complete mess in about three months. Or else it just
+becomes a graveyard of unmergeable patches :)
+
+So keeping that in mind, ideally your tree would be just a daily merge
+of various driver developers branches. And then try to set up things
+where the responsibility of merging code upstream is on the drivers
+developers. Trying to merge other people's patches upstream is not
+scalable.
+
+Other than that, you should be able to base it on some recent mainline
+tag and pick in some queued up patches as needed.
+ 
+> If this doesn't sound useful to you, then please feel free to shut me
+> down on this.  The goal is to help and it is understood that
+> contributions to the infrastructure (dev tree, pwr mgmt, etc.) are
+> required to be productive.
+
+That totally sounds usable to me :) Assuming you can figure out some
+way to address the comments above.
+
+For helping with contributions, I can think of a few places where
+help is badly needed:
+
+1. Remove dependencies in mainline kernel that block merging
+
+   Maybe you can isolate some issues in mainline kernel that cause
+   you problems merging your patches upstream? If so, whatever is
+   needed should be done to patch away those dependencies. At least
+   PM patches fit into this category..
+
+2. Merge all am335x/beagle clone board-*.c files together
+
+   This would help a lot when we start converting drivers to use
+   device tree as it reduces the number of board-*.c files
+
+3. Help with device tree conversion of device drivers
+
+   Which drivers do most am335x and beagle clones use? Maybe
+   you can help converting those drivers to use device tree?
+   Sure some drivers depend on regulator framework conversion and
+   the device tree omap_device glue layer, but there are already
+   patches being posted for those
+
+Regards,
+
+Tony
