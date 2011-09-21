@@ -1,83 +1,96 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv8 06/16] power: omap-prm: added chain interrupt handler
-Date: Wed, 21 Sep 2011 02:51:55 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109210230550.10719@utopia.booyaka.com>
-References: <1316189150-21448-1-git-send-email-t-kristo@ti.com> <1316189150-21448-7-git-send-email-t-kristo@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for UYVY8_2X8 and YUYV8_2X8 formats
+Date: Wed, 21 Sep 2011 11:06:41 +0200
+Message-ID: <201109211106.41677.laurent.pinchart@ideasonboard.com>
+References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com> <201109210126.20436.laurent.pinchart@ideasonboard.com> <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090847@dbde03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56689 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084Ab1IUIvz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 04:51:55 -0400
-In-Reply-To: <1316189150-21448-7-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090847@dbde03.ent.ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Cc: "mchehab@infradead.org" <mchehab@infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>, "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david.woodhouse@intel.com" <david.woodhouse@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm@lists.arm.linux.org.uk, Kevin Hilman <khilman@ti.com>, "Avinash.H.M" <avinashhm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-Hi
+Hi Deepthy,
 
-some comments (also see the comments for the 1/16 patch, some of which 
-apply to this patch)
+On Wednesday 21 September 2011 07:32:44 Ravi, Deepthy wrote:
+> On Wednesday, September 21, 2011 4:56 AM Laurent Pinchart wrote:
+> > On Tuesday 20 September 2011 16:56:51 Deepthy Ravi wrote:
+> >> Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
+> >> register for UYVY8_2X8 and YUYV8_2X8 formats.
+> >> 
+> >> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> >> ---
+> >> 
+> >>  drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
+> >>  1 files changed, 8 insertions(+), 3 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> >> b/drivers/media/video/omap3isp/ispccdc.c index 418ba65..1dcf180 100644
+> >> --- a/drivers/media/video/omap3isp/ispccdc.c
+> >> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> >> @@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct
+> >> isp_ccdc_device
+> >> *ccdc,
+> >> 
+> >>       syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
+> >>       if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
+> >> 
+> >> -         format->code == V4L2_MBUS_FMT_UYVY8_2X8)
+> >> -             syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+> >> +         format->code == V4L2_MBUS_FMT_UYVY8_2X8){
+> >> +             if (pdata && pdata->bt656)
+> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+> >> +             else
+> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+> >> +     }
+> >> 
+> >>       else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
+> >>       
+> >>                format->code == V4L2_MBUS_FMT_UYVY8_1X16)
+> >>               
+> >>               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+> >> 
+> >> @@ -1172,7 +1176,8 @@ static void ccdc_configure(struct isp_ccdc_device
+> >> *ccdc) syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
+> >> 
+> >>       /* Use PACK8 mode for 1byte per pixel formats. */
+> >> 
+> >> -     if (omap3isp_video_format_info(format->code)->width <= 8)
+> >> +     if ((omap3isp_video_format_info(format->code)->width <= 8) &&
+> >> +                     (omap3isp_video_format_info(format->code)->bpp <=
+> >> 8))
+> > 
+> > I'm not sure to follow you. This will clear the PACK8 bit for the
+> > YUYV8_2X8 formats. Those formats are 8 bits wide, shouldn't PACK8 be set
+> > to store samples on 8 bits instead of 16 bits ?
+> > 
+> > Is this patch intended to support YUYV8_2X8 sensors in non BT.656 mode
+> > with the bridge enabled ? In that case, what would you think about setting
+> > the CCDC input format to YUYV8_1X16 instead ? This would better reflect
+> > the reality, as the bridge converts YUYV8_2X8 to YUYV8_1X16, and the CCDC
+> > is then fed with YUYV8_1X16.
+> 
+> Yes this is intended for  YUYV8_2X8 sensors in non BT.656 with 8 to 16 bit
+> bridge enabled. So the data has to be stored as 16 bits per sample. Thats
+> why PACK8 is cleared . I am not sure about using YUYV8_1X16.
 
-On Fri, 16 Sep 2011, Tero Kristo wrote:
+My original idea when I wrote the YV support patches was to implement this use 
+case with YUYV8_2X8 at the sensor output and YUYV8_1X16 at the CCDC input. The 
+ISP driver could then enable the bridge automatically. I'm not sure if that's 
+the best solution though, it might be confusing for the users. What I would 
+like to keep, however, is the idea of enabling the bridge automatically.
 
-> diff --git a/drivers/power/omap_prm.c b/drivers/power/omap_prm.c
-> index dfc0920..880748a 100644
-> --- a/drivers/power/omap_prm.c
-> +++ b/drivers/power/omap_prm.c
+Sakari, any opinion on this ?
 
-...
+> >>               syn_mode |= ISPCCDC_SYN_MODE_PACK8;
+> >>       else
+> >>               syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
 
-> +static int __init omap_prm_probe(struct platform_device *pdev)
-> +{
-> +	struct omap_hwmod *oh;
+-- 
+Regards,
 
-This is a sign that something is wrong here.  Device driver code shouldn't 
-have any hwmod dependencies.  The driver should just use whatever data it 
-gets from the struct platform_device / platform_data.  
-
-Code in arch/arm/mach-omap2 can use hwmod data to populate platform_data, 
-if needed.  But it doesn't even look like that would be needed in this 
-case.  The PRM revision register resides inside the PRM IP block, so it's 
-valid for the PRM driver to read it directly.
-
-Anyway, this PRM revision code is presumably mooted anyway if different 
-drivers are probed for OMAP2430 vs. OMAP4-style PRMs.
-
-> +	int rev;
-> +
-> +	oh = omap_hwmod_lookup("prm");
-> +
-> +	if (!oh) {
-> +		pr_err("prm hwmod not found\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	prm_dev.base = omap_hwmod_get_mpu_rt_va(oh);
-> +
-> +	rev = prm_read_reg(oh->class->sysc->rev_offs);
-> +
-> +	switch (rev) {
-> +	case OMAP3_PRM_REVISION:
-> +		prm_dev.irq_setup = &omap3_prcm_irq_setup;
-> +		prm_dev.revision = PRM_OMAP3;
-> +		break;
-> +	case OMAP4_PRM_REVISION:
-> +		prm_dev.irq_setup = &omap4_prcm_irq_setup;
-> +		prm_dev.revision = PRM_OMAP4;
-> +		break;
-> +	default:
-> +		pr_err("unknown PRM revision: %08x\n", rev);
-> +		return -ENODEV;
-> +	}
-> +
-> +	prm_dev.irq = oh->mpu_irqs[0].irq;
-> +
-> +	omap_prcm_irq_init();
-> +
-> +	return 0;
-> +}
-
-- Paul
+Laurent Pinchart
