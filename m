@@ -1,53 +1,32 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 00/10] hwspinlock-next
-Date: Tue, 20 Sep 2011 16:45:15 -0700
-Message-ID: <20110920234515.GA16276@kroah.com>
-References: <1315846025-11453-1-git-send-email-ohad@wizery.com>
- <CAK=Wgbam6u1bq8fG+oMUhxfWH1g3dU7q+VhPWFEZOLgFMV_3vQ@mail.gmail.com>
- <20110920231340.GT18894@atomide.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 0/3] ASoC: tpa6130a2: model handling cleanup
+Date: Wed, 21 Sep 2011 16:03:17 +0100
+Message-ID: <20110921150317.GE6245@opensource.wolfsonmicro.com>
+References: <1314704394-31298-1-git-send-email-peter.ujfalusi@ti.com>
+	<4E5CE7EA.4000101@bitmer.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:41707 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751825Ab1IUPAg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Sep 2011 11:00:36 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <20110920231340.GT18894@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <4E5CE7EA.4000101@bitmer.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linus Walleij <linus.walleij@linaro.org>, Linus Torvalds <torvalds@linux-foundation.org>, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Grant Likely <grant.likely@secretlab.ca>
 
-On Tue, Sep 20, 2011 at 04:13:40PM -0700, Tony Lindgren wrote:
-> * Ohad Ben-Cohen <ohad@wizery.com> [110920 01:34]:
-> > On Mon, Sep 12, 2011 at 7:46 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> > 
-> > I'm wondering how hwspinlock updates like this should go upstream.
-> > 
-> > The first hwspinlock batch was picked by Tony, because it involved a
-> > bulk of OMAP changes.
-> > 
-> > Hwspinlock isn't OMAP-specific anymore though (we gained support for
-> > STE's u8500) and the vast majority of changes are in drivers/. We're
-> > still very much ARM-related, though this may change too at some point
-> > (c6x has a similar "hardware semaphore" peripheral like the u8500
-> > does).
-> > 
-> > Tony, if you're still willing to pick up these updates I'd be happy to
-> > send you pull requests of course.
-> 
-> I'd prefer for Greg to take these as these are drivers.
+On Tue, Aug 30, 2011 at 04:38:50PM +0300, Jarkko Nikula wrote:
 
-What, am I the catch-all for drivers these days?
+> Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Oh, right, it looks like I am :)
-
-> If he's not taking it at this point based on it being ARM only,
-> I can take it then.
-
-Please do, I don't even have the ability to build them here, as I don't
-have an arm cross-compiler on this travel laptop.
-
-greg k-h
+I applied these with the last two patches squashed together in order to
+preserve bisection - the two patches should have been combined as patch
+2 removes a field that the existing code is using.
