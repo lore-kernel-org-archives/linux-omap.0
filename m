@@ -1,113 +1,48 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
- omap_vout_isr
-Date: Wed, 21 Sep 2011 19:04:45 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>
-References: <1316167233-1437-1-git-send-email-archit@ti.com>
- <1316167233-1437-4-git-send-email-archit@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap cleanup part1 for v3.2 merge window
+Date: Wed, 21 Sep 2011 06:51:27 -0700
+Message-ID: <20110921135127.GN2937@atomide.com>
+References: <20110917014623.GC2937@atomide.com>
+ <201109202334.43213.arnd@arndb.de>
+ <201109202346.11393.arnd@arndb.de>
+ <2241590.uiCS2D9jjt@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55115 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753921Ab1IUNex convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 09:34:53 -0400
-In-Reply-To: <1316167233-1437-4-git-send-email-archit@ti.com>
-Content-Language: en-US
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62793 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750783Ab1IUNvc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 09:51:32 -0400
+Content-Disposition: inline
+In-Reply-To: <2241590.uiCS2D9jjt@wuerfel>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Friday, September 16, 2011 3:31 PM
-> To: Hiremath, Vaibhav
-> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
-> media@vger.kernel.org; Taneja, Archit
-> Subject: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
-> omap_vout_isr
-> 
-> Currently, in omap_vout_isr(), if the panel type is DPI, and if we
-> get either VSYNC or VSYNC2 interrupts, we proceed ahead to set the
-> current buffers state to VIDEOBUF_DONE and prepare to display the
-> next frame in the queue.
-> 
-> On OMAP4, because we have 2 LCD managers, the panel type itself is not
-> sufficient to tell if we have received the correct irq, i.e, we shouldn't
-> proceed ahead if we get a VSYNC interrupt for LCD2 manager, or a VSYNC2
-> interrupt for LCD manager.
-> 
-> Fix this by correlating LCD manager to VSYNC interrupt and LCD2 manager
-> to VSYNC2 interrupt.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/video/omap/omap_vout.c |   14 +++++++++++---
->  1 files changed, 11 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index c5f2ea0..20638c3 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -566,8 +566,8 @@ err:
-> 
->  static void omap_vout_isr(void *arg, unsigned int irqstatus)
->  {
-> -	int ret, fid;
-> -	u32 addr;
-> +	int ret, fid, mgr_id;
-> +	u32 addr, irq;
->  	struct omap_overlay *ovl;
->  	struct timeval timevalue;
->  	struct omapvideo_info *ovid;
-> @@ -583,6 +583,7 @@ static void omap_vout_isr(void *arg, unsigned int
-> irqstatus)
->  	if (!ovl->manager || !ovl->manager->device)
->  		return;
-> 
-> +	mgr_id = ovl->manager->id;
->  	cur_display = ovl->manager->device;
-> 
->  	spin_lock(&vout->vbq_lock);
-> @@ -590,7 +591,14 @@ static void omap_vout_isr(void *arg, unsigned int
-> irqstatus)
-> 
->  	switch (cur_display->type) {
->  	case OMAP_DISPLAY_TYPE_DPI:
-> -		if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
-> +		if (mgr_id == OMAP_DSS_CHANNEL_LCD)
-> +			irq = DISPC_IRQ_VSYNC;
-> +		else if (mgr_id == OMAP_DSS_CHANNEL_LCD2)
-> +			irq = DISPC_IRQ_VSYNC2;
-> +		else
-> +			goto vout_isr_err;
-> +
-> +		if (!(irqstatus & irq))
->  			goto vout_isr_err;
->  		break;
-I understand what this patch meant for, but I am more curious to know
-What is value addition of this patch?
+Kevin,
 
-if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+* Arnd Bergmann <arnd@arndb.de> [110921 01:55]:
+> On Tuesday 20 September 2011 23:46:11 Arnd Bergmann wrote:
+> 
+> > It seems that you replace the #ifdef in the board-flash.c file
+> > with a similar #ifdef in the header that replaces this with an
+> > empty inline function when the object is not built.
+> 
+> Found another similar problem over night, presumably in the voltage series:
+> 
+> arch/arm/mach-omap2/built-in.o: In function `pwrdm_register_pwrdms':
+> twl-common.c:(.text+0x5e20): undefined reference to `voltdm_lookup'
+> twl-common.c:(.text+0x5e40): undefined reference to `voltdm_add_pwrdm'
+> arch/arm/mach-omap2/built-in.o: In function `omap2_init_common_infrastructure':
+> twl-common.c:(.init.text+0x3a4): undefined reference to `omap2xxx_voltagedomains_init'
+> twl-common.c:(.init.text+0x3c8): undefined reference to `omap3xxx_voltagedomains_init'
+> arch/arm/mach-omap2/built-in.o: In function `omap2_set_init_voltage':
+> twl-common.c:(.init.text+0x13c8): undefined reference to `voltdm_lookup'
+> arch/arm/mach-omap2/built-in.o: In function `omap3_twl_init':
+> twl-common.c:(.init.text+0x1f44): undefined reference to `voltdm_lookup'
+> twl-common.c:(.init.text+0x1f4c): undefined reference to `voltdm_lookup'
 
-Vs
+Can you take a look at this one?
 
-if (mgr_id == OMAP_DSS_CHANNEL_LCD)
-	irq = DISPC_IRQ_VSYNC;
-else if (mgr_id == OMAP_DSS_CHANNEL_LCD2)
-	irq = DISPC_IRQ_VSYNC2;
-
-Isn't this same, because we are not doing anything separate and special
-for VSYNC and VSYNC2?
-
-Thanks,
-Vaibhav
-
-
->  	case OMAP_DISPLAY_TYPE_VENC:
-> --
-> 1.7.1
-
+Tony
