@@ -1,75 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v7 26/26] gpio/omap: add dbclk aliases for all gpio
- modules
-Date: Wed, 21 Sep 2011 08:13:13 -0700
-Message-ID: <20110921151313.GC2937@atomide.com>
-References: <1315918979-26173-1-git-send-email-tarun.kanti@ti.com>
- <1315918979-26173-27-git-send-email-tarun.kanti@ti.com>
+Subject: Re: [PATCH 00/10] hwspinlock-next
+Date: Wed, 21 Sep 2011 08:24:00 -0700
+Message-ID: <20110921152359.GD2937@atomide.com>
+References: <1315846025-11453-1-git-send-email-ohad@wizery.com>
+ <CAK=Wgbam6u1bq8fG+oMUhxfWH1g3dU7q+VhPWFEZOLgFMV_3vQ@mail.gmail.com>
+ <20110920231340.GT18894@atomide.com>
+ <20110920234515.GA16276@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:38147 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751872Ab1IUPNR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 11:13:17 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44151 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750751Ab1IUPYS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 11:24:18 -0400
 Content-Disposition: inline
-In-Reply-To: <1315918979-26173-27-git-send-email-tarun.kanti@ti.com>
+In-Reply-To: <20110920234515.GA16276@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+To: Greg KH <greg@kroah.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linus Walleij <linus.walleij@linaro.org>, Linus Torvalds <torvalds@linux-foundation.org>, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Grant Likely <grant.likely@secretlab.ca>
 
-* Tarun Kanti DebBarma <tarun.kanti@ti.com> [110913 05:29]:
-> Unless the dbclk aliases are assigned, clk_get(bank->dev, "dbclk")
-> would not fetch the associated clock handle. As a result, we would
-> not be able to turn on/off the debounce clock. This was preventing
-> the gpio modules going to low power mode whenever dbclk is enabled.
+* Greg KH <greg@kroah.com> [110921 07:27]:
+> On Tue, Sep 20, 2011 at 04:13:40PM -0700, Tony Lindgren wrote:
+> > * Ohad Ben-Cohen <ohad@wizery.com> [110920 01:34]:
+> > > On Mon, Sep 12, 2011 at 7:46 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> > > 
+> > > I'm wondering how hwspinlock updates like this should go upstream.
+> > > 
+> > > The first hwspinlock batch was picked by Tony, because it involved a
+> > > bulk of OMAP changes.
+> > > 
+> > > Hwspinlock isn't OMAP-specific anymore though (we gained support for
+> > > STE's u8500) and the vast majority of changes are in drivers/. We're
+> > > still very much ARM-related, though this may change too at some point
+> > > (c6x has a similar "hardware semaphore" peripheral like the u8500
+> > > does).
+> > > 
+> > > Tony, if you're still willing to pick up these updates I'd be happy to
+> > > send you pull requests of course.
+> > 
+> > I'd prefer for Greg to take these as these are drivers.
 > 
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-
-Looks OK to me, Paul should ack this one also:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> ---
->  arch/arm/mach-omap2/clock3xxx_data.c |    6 ++++++
->  arch/arm/mach-omap2/clock44xx_data.c |    6 ++++++
->  2 files changed, 12 insertions(+), 0 deletions(-)
+> What, am I the catch-all for drivers these days?
 > 
-> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-> index ffd55b1..7238ec1 100644
-> --- a/arch/arm/mach-omap2/clock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-> @@ -3462,6 +3462,12 @@ static struct omap_clk omap3xxx_clks[] = {
->  	CLK("musb-am35x",	"fck",		&hsotgusb_fck_am35xx,	CK_AM35XX),
->  	CLK(NULL,	"hecc_ck",	&hecc_ck,	CK_AM35XX),
->  	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx,	CK_AM35XX),
-> +	CLK("omap_gpio.1",	"dbclk",	&gpio1_dbck,	CK_3XXX),
-> +	CLK("omap_gpio.2",	"dbclk",	&gpio2_dbck,	CK_3XXX),
-> +	CLK("omap_gpio.3",	"dbclk",	&gpio3_dbck,	CK_3XXX),
-> +	CLK("omap_gpio.4",	"dbclk",	&gpio4_dbck,	CK_3XXX),
-> +	CLK("omap_gpio.5",	"dbclk",	&gpio5_dbck,	CK_3XXX),
-> +	CLK("omap_gpio.6",	"dbclk",	&gpio6_dbck,	CK_3XXX),
->  };
->  
->  
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-> index 2af0e3f..4986069 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -3363,6 +3363,12 @@ static struct omap_clk omap44xx_clks[] = {
->  	CLK("usbhs-omap.0",	"usbhost_ick",		&dummy_ck,		CK_443X),
->  	CLK("usbhs-omap.0",	"usbtll_fck",		&dummy_ck,	CK_443X),
->  	CLK("omap_wdt",	"ick",				&dummy_ck,	CK_443X),
-> +	CLK("omap_gpio.1",	"dbclk",	&gpio1_dbclk,	CK_443X),
-> +	CLK("omap_gpio.2",	"dbclk",	&gpio2_dbclk,	CK_443X),
-> +	CLK("omap_gpio.3",	"dbclk",	&gpio3_dbclk,	CK_443X),
-> +	CLK("omap_gpio.4",	"dbclk",	&gpio4_dbclk,	CK_443X),
-> +	CLK("omap_gpio.5",	"dbclk",	&gpio5_dbclk,	CK_443X),
-> +	CLK("omap_gpio.6",	"dbclk",	&gpio6_dbclk,	CK_443X),
->  };
->  
->  int __init omap4xxx_clk_init(void)
-> -- 
-> 1.7.0.4
+> Oh, right, it looks like I am :)
 > 
+> > If he's not taking it at this point based on it being ARM only,
+> > I can take it then.
+> 
+> Please do, I don't even have the ability to build them here, as I don't
+> have an arm cross-compiler on this travel laptop.
+
+OK so you're off the hook then :) Now we still need to sort out the
+remaining options posted by Arnd.
+
+Tony
