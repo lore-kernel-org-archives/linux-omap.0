@@ -1,109 +1,153 @@
-From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
-Subject: RE: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for
- UYVY8_2X8 and YUYV8_2X8 formats
-Date: Wed, 21 Sep 2011 11:02:44 +0530
-Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090847@dbde03.ent.ti.com>
-References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
- <1316530612-23075-5-git-send-email-deepthy.ravi@ti.com>,<201109210126.20436.laurent.pinchart@ideasonboard.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap cleanup part1 for v3.2 merge window
+Date: Wed, 21 Sep 2011 09:06:47 +0200
+Message-ID: <1836081.h7sKlomlak@wuerfel>
+References: <20110917014623.GC2937@atomide.com> <201109202346.11393.arnd@arndb.de> <20110920223311.GK2937@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49785 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751331Ab1IUFft convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 01:35:49 -0400
-In-Reply-To: <201109210126.20436.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
+Received: from moutng.kundenserver.de ([212.227.17.10]:50621 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750725Ab1IUHHe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 03:07:34 -0400
+In-Reply-To: <20110920223311.GK2937@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "mchehab@infradead.org" <mchehab@infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>, "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david.woodhouse@intel.com" <david.woodhouse@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi Laurent,
-> ________________________________________
-> From: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
-> Sent: Wednesday, September 21, 2011 4:56 AM
-> To: Ravi, Deepthy
-> Cc: mchehab@infradead.org; tony@atomide.com; Hiremath, Vaibhav;
-> linux-media@vger.kernel.org; linux@arm.linux.org.uk;
-> linux-arm-kernel@lists.infradead.org; kyungmin.park@samsung.com;
-> hverkuil@xs4all.nl; m.szyprowski@samsung.com; g.liakhovetski@gmx.de;
-> Shilimkar, Santosh; khilman@deeprootsystems.com; david.woodhouse@intel.com;
-> akpm@linux-foundation.org; linux-kernel@vger.kernel.org;
-> linux-omap@vger.kernel.org; Sakari Ailus
-> Subject: Re: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for
-> UYVY8_2X8 and YUYV8_2X8 formats
->
-> Hi Deepthy,
->
-> Thanks for the patch.
->
-> On Tuesday 20 September 2011 16:56:51 Deepthy Ravi wrote:
->> Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
->> register for UYVY8_2X8 and YUYV8_2X8 formats.
->>
->> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
->> ---
->>  drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
->>  1 files changed, 8 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/video/omap3isp/ispccdc.c
->> b/drivers/media/video/omap3isp/ispccdc.c index 418ba65..1dcf180 100644
->> --- a/drivers/media/video/omap3isp/ispccdc.c
->> +++ b/drivers/media/video/omap3isp/ispccdc.c
->> @@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct
->> isp_ccdc_device
->> *ccdc,
->>
->>       syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
->>       if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
->> -         format->code == V4L2_MBUS_FMT_UYVY8_2X8)
->> -             syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
->> +         format->code == V4L2_MBUS_FMT_UYVY8_2X8){
->> +             if (pdata && pdata->bt656)
->> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
->> +             else
->> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
->> +     }
->>       else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
->>                format->code == V4L2_MBUS_FMT_UYVY8_1X16)
->>               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
->> @@ -1172,7 +1176,8 @@ static void ccdc_configure(struct isp_ccdc_device
->> *ccdc) syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
->>
->>       /* Use PACK8 mode for 1byte per pixel formats. */
->> -     if (omap3isp_video_format_info(format->code)->width <= 8)
->> +     if ((omap3isp_video_format_info(format->code)->width <= 8) &&
->> +                     (omap3isp_video_format_info(format->code)->bpp <=
->> 8))
->
-> I'm not sure to follow you. This will clear the PACK8 bit for the YUYV8_2X8
-> formats. Those formats are 8 bits wide, shouldn't PACK8 be set to store
-> samples on 8 bits instead of 16 bits ?
->
-> Is this patch intended to support YUYV8_2X8 sensors in non BT.656 mode with
-> the bridge enabled ? In that case, what would you think about setting the
-> CCDC
-> input format to YUYV8_1X16 instead ? This would better reflect the reality,
-> as
-> the bridge converts YUYV8_2X8 to YUYV8_1X16, and the CCDC is then fed with
-> YUYV8_1X16.
->
-[Deepthy Ravi] Yes this is intended for  YUYV8_2X8 sensors in non BT.656 with 8 to 16 bit bridge enabled. So the data has to be stored as 16 bits per sample. Thats why PACK8 is cleared . I am not sure about using YUYV8_1X16. 
+On Tuesday 20 September 2011 15:33:12 Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [110920 14:12]:
+> > On Tuesday 20 September 2011, Arnd Bergmann wrote:
+> > > 
+> > > One more thing: my randconfig tests are running now and
+> > > have spit out a new error after merging lost of stuff
+> > > today:
+> 
+> Good to hear you got "arndconfig" running :)
+> 
+> Do you think we could also add support for something
+> like this:
+> 
+> $ echo CONFIG_ARCH_OMAP=y > .config
+> $ make randconfig
+> 
+> or
+> 
+> $ make --force=CONFIG_ARCH_OMAP randconfig
+> 
+> Where randconfig would keep the forced CONFIG_ARCH_OMAP
+> static while randomly selecting the others?
+> 
+> This would allow targeted randconfig for each patch more
+> or less..
 
->>               syn_mode |= ISPCCDC_SYN_MODE_PACK8;
->>       else
->>               syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+The mechanism I use is setting KCONFIG_ALLCONFIG= to a file
+that has the options I want to have set to a specific value.
 
+If you don't do that, randconfig will take the default option
+for each 'choice' statement, which means we build for the
+ARCH_VERSATILE platform.
 
--- 
-Thanks,
-Deepthy Ravi
+See the script I'm using at the end of this mail. It should
+be easy for you to pick out the parts you need.
 
+> > It seems that you replace the #ifdef in the board-flash.c file
+> > with a similar #ifdef in the header that replaces this with an
+> > empty inline function when the object is not built.
+> 
+> Oops. I'll do a fix for that. Those should be now inline
+> functions in the header.
+> 
+> As various other omap branches are based on the cleanup I'd
+> rather not go mess with the original patch unless you insist.
+
+Totally fine with me. This is just a corner case anyway, since most
+configurations will have flash enabled I guess.
+
+	Arnd
+
+8<---
+#!/bin/bash
+
+export ARCH=arm
+export PATH=/usr/bin:/bin
+export CROSS_COMPILE=arm-linux-gnueabihf-
+export PARALLEL=-j6
+export CCACHE_DISABLE=1
+export O=$PWD/obj-tmp
+
+gen_allconfig()
+{
+        declare -a MACH
+	MACH[1]=OMAP
+	MACH[2]=EXYNOS4
+	MACH[3]=U8500
+	MACH[4]=VEXPRESS
+	MACH[5]=MXC
+	MACH[6]=MSM
+	MACH[7]=PXA
+	MACH[8]=MMP
+	MACH[9]=DOVE
+	MACH[10]=KIRKWOOD
+	MACH[11]=ZYNQ
+	MACH[12]=PRIMA2
+	MACH[13]=TEGRA
+	MACH[14]=SHMOBILE
+
+        declare -a MXC
+        MXC[1]=MX3
+        MXC[2]=MX503
+        MXC[3]=MX51
+
+        declare -a AT91
+        AT91[1]=ARCH_AT91RM9200
+        AT91[2]=ARCH_AT91SAM9260
+        AT91[3]=ARCH_AT91SAM9261
+        AT91[4]=ARCH_AT91SAM9G10
+        AT91[5]=ARCH_AT91SAM9263
+        AT91[6]=ARCH_AT91SAM9RL
+        AT91[7]=ARCH_AT91SAM9G20
+        AT91[8]=ARCH_AT91SAM9G45
+        AT91[9]=ARCH_AT91CAP9
+        AT91[10]=ARCH_AT91X40
+
+	  # pick one ARCH_* option from the main choice statement
+        echo "CONFIG_ARCH_${MACH[$[ $RANDOM % ${#MACH[@]} +1 ]]}=y"
+
+	  # IMX and AT91 have another choice statement
+        echo "CONFIG_ARCH_${MXC[$[ $RANDOM % ${#MXC[@]} +1 ]]}=y"
+        echo "CONFIG_${MXC[$[ $RANDOM % ${#AT91[@]} +1 ]]}=y"
+
+	  # These have to be fixed in order to avoid huge build breakage.
+        echo "# CONFIG_XIP_KERNEL is not set"
+        echo "# CONFIG_STAGING is not set"
+        echo "CONFIG_MMU=y"
+        echo "CONFIG_PREVENT_FIRMWARE_BUILD=y"
+
+        # add a few choice options that don't normally get selected
+        [ $[RANDOM % 2 ] == 1 ] || echo "CONFIG_PROFILE_ALL_BRANCHES=y"
+        [ $[RANDOM % 2 ] == 1 ] || echo "CONFIG_SLAB=y"
+        [ $[RANDOM % 2 ] == 1 ] || echo "CONFIG_PREEMPT=y"
+}
+
+prepare()
+{
+        mkdir -p ${O}
+        make O=${O} clean
+        gen_allconfig > ${O}/allconfig
+        make O=${O} KCONFIG_ALLCONFIG=${O}/allconfig randconfig
+}
+
+mkdir -p out
+prepare
+for i in `seq -w 9999` ; do
+        if ! make O=${O} -k -s ${PARALLEL} CFLAGS_KERNEL+=-Wno-uninitialized KALLSYMS_EXTRA_PASS=1 2> out/warnings-$i ; then
+                make O=${O} -k -s CFLAGS_KERNEL+=-Wno-uninitialized KALLSYMS_EXTRA_PASS=1 2> out/errors-$i
+                cp ${O}/.config out/config-broken-$i
+        else
+                cp ${O}/.config out/config-ok-$i
+        fi
+        prepare
+done
