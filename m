@@ -1,32 +1,29 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 0/3] ASoC: tpa6130a2: model handling cleanup
-Date: Wed, 21 Sep 2011 16:03:17 +0100
-Message-ID: <20110921150317.GE6245@opensource.wolfsonmicro.com>
-References: <1314704394-31298-1-git-send-email-peter.ujfalusi@ti.com>
-	<4E5CE7EA.4000101@bitmer.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v7 13/26] gpio/omap: use pinctrl offset instead of macro
+Date: Wed, 21 Sep 2011 08:03:46 -0700
+Message-ID: <20110921150346.GZ2937@atomide.com>
+References: <1315918979-26173-1-git-send-email-tarun.kanti@ti.com>
+ <1315918979-26173-14-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:21350 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751872Ab1IUPDt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 11:03:49 -0400
 Content-Disposition: inline
-In-Reply-To: <4E5CE7EA.4000101@bitmer.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>
+In-Reply-To: <1315918979-26173-14-git-send-email-tarun.kanti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-On Tue, Aug 30, 2011 at 04:38:50PM +0300, Jarkko Nikula wrote:
+* Tarun Kanti DebBarma <tarun.kanti@ti.com> [110913 05:29]:
+> From: Charulatha V <charu@ti.com>
+> 
+> Use regs->pinctrl field instead of using the macro OMAP1510_GPIO_PIN_CONTROL
+> 
+> Signed-off-by: Charulatha V <charu@ti.com>
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-> Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-
-I applied these with the last two patches squashed together in order to
-preserve bisection - the two patches should have been combined as patch
-2 removes a field that the existing code is using.
+Acked-by: Tony Lindgren <tony@atomide.com>
