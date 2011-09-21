@@ -1,129 +1,119 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 1/5] [media]: OMAP_VOUT: Fix check in reqbuf & mmap for
- buf_size allocation
-Date: Wed, 21 Sep 2011 16:19:38 +0530
-Message-ID: <4E79C142.80508@ti.com>
-References: <1316167233-1437-1-git-send-email-archit@ti.com> <1316167233-1437-2-git-send-email-archit@ti.com> <19F8576C6E063C45BE387C64729E739404EC941E1C@dbde02.ent.ti.com>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH v5 00/15] OMAP2+: Serial: Runtime adaptation + cleanup
+Date: Wed, 21 Sep 2011 17:41:37 +0530
+Message-ID: <1316607097-21564-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39819 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44140 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751756Ab1IUKrK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Sep 2011 06:47:10 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC941E1C@dbde02.ent.ti.com>
+	id S1752778Ab1IUMMV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Sep 2011 08:12:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tero Kristo <t-kristo@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>, Partha Basak <p-basak2@ti.com>, Tony Lindgren <tony@atomide.com>, Govindraj R <govindraj.raja@ti.com>
 
-Hi,
+Converting uart driver to adapt to pm runtime API's.
+Code re-org + cleanup.
+Moving some functionality from serial.c to omap-serial.c
 
-On Wednesday 21 September 2011 02:10 PM, Hiremath, Vaibhav wrote:
->
->> -----Original Message-----
->> From: Taneja, Archit
->> Sent: Friday, September 16, 2011 3:30 PM
->> To: Hiremath, Vaibhav
->> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
->> media@vger.kernel.org; Taneja, Archit
->> Subject: [PATCH 1/5] [media]: OMAP_VOUT: Fix check in reqbuf&  mmap for
->> buf_size allocation
->>
->> The commit 383e4f69879d11c86ebdd38b3356f6d0690fb4cc makes reqbuf and mmap
->> prevent
->> requesting a larger size buffer than what is allocated at kernel boot
->> during
->> omap_vout_probe.
->>
->> The requested size is compared with vout->buffer_size, this isn't correct
->> as
->> vout->buffer_size is later set to the size requested in reqbuf. When the
->> video
->> device is opened the next time, this check will prevent us to allocate a
->> buffer
->> which is larger than what we requested the last time.
->>
->> Don't use vout->buffer_size, always check with the parameters
->> video1_bufsize
->> or video2_bufsize.
->>
->> Signed-off-by: Archit Taneja<archit@ti.com>
->> ---
->>   drivers/media/video/omap/omap_vout.c |   10 ++++++++--
->>   1 files changed, 8 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/video/omap/omap_vout.c
->> b/drivers/media/video/omap/omap_vout.c
->> index 95daf98..e14c82b 100644
->> --- a/drivers/media/video/omap/omap_vout.c
->> +++ b/drivers/media/video/omap/omap_vout.c
->> @@ -664,10 +664,14 @@ static int omap_vout_buffer_setup(struct
->> videobuf_queue *q, unsigned int *count,
->>   	u32 phy_addr = 0, virt_addr = 0;
->>   	struct omap_vout_device *vout = q->priv_data;
->>   	struct omapvideo_info *ovid =&vout->vid_info;
->> +	int vid_max_buf_size;
->>
->>   	if (!vout)
->>   		return -EINVAL;
->>
->> +	vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
->> +		video2_bufsize;
->> +
->>   	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
->>   		return -EINVAL;
->>
->> @@ -690,7 +694,7 @@ static int omap_vout_buffer_setup(struct
->> videobuf_queue *q, unsigned int *count,
->>   		video1_numbuffers : video2_numbuffers;
->>
->>   	/* Check the size of the buffer */
->> -	if (*size>  vout->buffer_size) {
->> +	if (*size>  vid_max_buf_size) {
-> Good catch !!!
->
->>   		v4l2_err(&vout->vid_dev->v4l2_dev,
->>   				"buffer allocation mismatch [%u] [%u]\n",
->>   				*size, vout->buffer_size);
->> @@ -865,6 +869,8 @@ static int omap_vout_mmap(struct file *file, struct
->> vm_area_struct *vma)
->>   	unsigned long size = (vma->vm_end - vma->vm_start);
->>   	struct omap_vout_device *vout = file->private_data;
->>   	struct videobuf_queue *q =&vout->vbq;
->> +	int vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
->> +		video2_bufsize;
->>
->>   	v4l2_dbg(1, debug,&vout->vid_dev->v4l2_dev,
->>   			" %s pgoff=0x%lx, start=0x%lx, end=0x%lx\n", __func__,
->> @@ -887,7 +893,7 @@ static int omap_vout_mmap(struct file *file, struct
->> vm_area_struct *vma)
->>   		return -EINVAL;
->>   	}
->>   	/* Check the size of the buffer */
->> -	if (size>  vout->buffer_size) {
->> +	if (size>  vid_max_buf_size) {
-> Don't you think in case of mmap we should still check for the
-> vout->buffer_size, since this is the size user has requested in req_buf.
+Changes involves:
+================
+1.) Cleaning up certain uart calls from sram_idle func.
+2.) Removed all types of uart clock handling code from serial.c
+3.) Using hwmod_mux API enable wakeup capability for uart pad during
+   hwmod_idle state i.e., when uart clocks are disabled we can enable
+   io-pad wakeup capability for uart if mux_data is available for
+   given uart. Also during during resume from idle call to uart we need
+   to enable clocks back conditionally and this can be done only when io-pad
+   wakeup event bit is set for uart_rx pad. So we need a hwmod API
+   which can probe the uart pad and let us know whether a uart wakeup
+   happened. So omap_hmwod_pad_wakeup_status API is added to meet this
+   requirement.
+3.) Adapted omap-serial driver to use runtime API's.
+4.) Modify serial_init calls to accept uart parameters from board file.
+    Like dma_usage, rx_timeout, dma_rx_pollrate, auto_suspend_timeout etc.
+5.) Use the omap_prm driver with irq_chaining to wake up uart after clocks are
+    cut.
+	
+Patch series is based on 3.1.0-rc4 + omap_device fixes.
+>From Kevin's tree.
+git://gitorious.org/khilman/linux-omap-pm.git for_3.2/omap_device
 
-Ah, you are right, the check for the maximum size should only be in the 
-reqbuf path. vout->buffer_size would have been updated correctly at time 
-of mmap. I'll change this back to vout->buffer_size.
+Also the patch series depends on Tero's Irq_chaining patches.
+Dependent irq_chaining patches are as below.
 
-Thanks,
-Archit
+3d5b543 omap3: pm: use prcm chain handler
+c00b340 OMAP2+: mux: add support for PAD wakeup interrupts
+db6397c power: omap-prm: added chain interrupt handler
+b3f8628 TEMP: OMAP4xxx: hwmod data: add PRM hwmod
+61ec0fc TEMP: OMAP3xxx: hwmod data: add PRM hwmod
+a1ecf8c power: add omap prm driver skeleton
 
->
-> Thanks,
-> Vaibhav
->
->
->>   		v4l2_err(&vout->vid_dev->v4l2_dev,
->>   				"insufficient memory [%lu] [%u]\n",
->>   				size, vout->buffer_size);
->> --
->> 1.7.1
->
->
+Same combination is hosted at:
+git://gitorious.org/runtime_3-0/runtime_3-0.git v5_uart_irqchn
+
+Ensure CONFIG_OMAP_PRM is set while testing irq_chaining with uart.
+
+Changes from v4:
+---------------
+
+1.) Fixing v4 comments from Kevin.
+    Spilt into smaller logical patches.
+2.) Using Irq_chaining OMAP_PRM driver for waking up uart.
+
+Testing updates:
+----------------
+3430SDP:
+retention, off_mode, system_wide suspend is tested.
+(earlyprintk & no_console_suspend checked)
+
+OMAP3630 - Zoom3:
+pm-retention checked with quart/omap-uart3
+[Also tested with uart3 as console uart and pm-ret checked]
+
+OMAP4430-SDP: Boot tested.
+OMAP2420/2430SDP: Boot tested.
+
+Deepak K (1):
+  OMAP2+: UART: Allow UART parameters to be configured from board file.
+
+Govindraj.R (13):
+  OMAP2+: hwmod: Add API to enable IO ring wakeup.
+  OMAP2+: hwmod: Add API to check IO PAD wakeup status
+  OMAP2+: UART: cleanup + remove uart pm specific API
+  OMAP2+: UART: cleanup 8250 console driver support
+  OMAP2+: UART: Cleanup part of clock gating mechanism for uart
+  OMAP2+: UART: Remove certain feilds from omap_uart_state struct
+  OMAP2+: UART: Add default mux for all uarts.
+  OMAP2+: UART: Store certain reg values to port structure
+  OMAP2+: UART: Add runtime pm support for omap-serial driver
+  OMAP2+: UART: Move errata handling from serial.c to omap-serial
+  OMAP2+: UART: Take console_lock in suspend path if not taken
+  OMAP2+: UART: Enable back uart clocks with runtime API for early
+    console
+  OMAP2+: UART: Do not gate uart clocks if used for debug_prints
+
+Jon Hunter (1):
+  OMAP2+: UART: Make the RX_TIMEOUT for DMA configurable for each UART
+
+ arch/arm/mach-omap2/board-3430sdp.c           |  100 +---
+ arch/arm/mach-omap2/board-4430sdp.c           |    8 +-
+ arch/arm/mach-omap2/board-n8x0.c              |    6 +-
+ arch/arm/mach-omap2/board-omap4panda.c        |    8 +-
+ arch/arm/mach-omap2/mux.c                     |   30 +
+ arch/arm/mach-omap2/mux.h                     |   13 +
+ arch/arm/mach-omap2/omap_hwmod.c              |   66 ++
+ arch/arm/mach-omap2/pm24xx.c                  |   19 -
+ arch/arm/mach-omap2/pm34xx.c                  |   24 -
+ arch/arm/mach-omap2/serial.c                  |  933 +++++++------------------
+ arch/arm/plat-omap/include/plat/omap-serial.h |   30 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
+ arch/arm/plat-omap/include/plat/serial.h      |   11 +-
+ drivers/tty/serial/omap-serial.c              |  305 +++++++--
+ 14 files changed, 654 insertions(+), 900 deletions(-)
+
+-- 
+1.7.4.1
 
