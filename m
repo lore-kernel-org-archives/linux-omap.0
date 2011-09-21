@@ -1,38 +1,126 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 00/10] hwspinlock-next
-Date: Wed, 21 Sep 2011 18:21:54 +0200
-Message-ID: <201109211821.55058.arnd@arndb.de>
-References: <1315846025-11453-1-git-send-email-ohad@wizery.com> <201109211612.33504.arnd@arndb.de> <CACRpkdbqVuFEgntw=bUYka5NuvpbPhjB8L0cD4CTmsjwoZBDSA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdbqVuFEgntw=bUYka5NuvpbPhjB8L0cD4CTmsjwoZBDSA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linus Torvalds <torvalds@linux-foundation.org>, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Grant Likely <grant.likely@secretlab.ca>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: [PATCH 5/8] OMAP: PM: register to the per-device PM QoS framework
+Date: Wed, 21 Sep 2011 18:14:06 +0200
+Message-ID: <1316621649-3622-6-git-send-email-j-pihet@ti.com>
+References: <1316621649-3622-1-git-send-email-j-pihet@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f42.google.com ([209.85.215.42]:61354 "EHLO
+	mail-ew0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753060Ab1IUQW4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 12:22:56 -0400
+Received: by ewy1 with SMTP id 1so1804902ewy.1
+        for <linux-omap@vger.kernel.org>; Wed, 21 Sep 2011 09:22:55 -0700 (PDT)
+In-Reply-To: <1316621649-3622-1-git-send-email-j-pihet@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.co>
+Cc: Jean Pihet <j-pihet@ti.com>
 
-On Wednesday 21 September 2011, Linus Walleij wrote:
-> On Wed, Sep 21, 2011 at 4:12 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> 
-> > My feeling is that it would be best for Ohad to send these directly
-> > to Linus, since it's basically a standalone subsystem and he's listed
-> > as the maintainer (well, after this series at least).
-> 
-> I agree. That's the path of least resistance and trouble.
-> 
-> If/when ARM-specific driver subsystems need their own zuper-maintainer
-> we can deal with it, can't we? There aren't many of them yet.
+Implement the devices wake-up latency constraints using the global
+device PM QoS notification handler which applies the constraints to the
+underlying layer by calling the corresponding function at hwmod level.
 
-Definitely, I think that's the ideal case. I would very much like to
-see independent subsystem maintainers for the device drivers that are
-currently buried in per-architecture or per-platform directories.
-Among the ones that we should be moving out of there (or have already)
-are cpufreq, gpio, irqchip, pinmux, clock, dmaengine, timer, and there
-are probably some more. Since none of these are strictly ARM specific,
-my feeling is that they should not be part of the arm or arm-soc tree
-in the future but have their own trees.
+Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using wake-up
+latency constraints on MPU, CORE and PER.
 
-	Arnd
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/pm.c |   63 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 63 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 3feb359..58b4b76 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -11,13 +11,16 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/notifier.h>
+ #include <linux/io.h>
+ #include <linux/err.h>
+ #include <linux/opp.h>
++#include <linux/pm_qos.h>
+ 
+ #include <plat/omap-pm.h>
+ #include <plat/omap_device.h>
+ #include <plat/common.h>
++#include <plat/omap_hwmod.h>
+ 
+ #include "voltage.h"
+ #include "powerdomain.h"
+@@ -242,11 +245,71 @@ static void __init omap4_init_voltages(void)
+ 	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", iva_dev);
+ }
+ 
++/* Interface to the per-device PM QoS framework */
++static int omap2_dev_pm_qos_handler(struct notifier_block *nb,
++				    unsigned long new_value,
++				    void *req)
++{
++	struct omap_device *od;
++	struct omap_hwmod *oh;
++	struct platform_device *pdev;
++	struct dev_pm_qos_request *dev_pm_qos_req = req;
++
++	pr_debug("OMAP PM CONSTRAINTS: req@0x%p, new_value=%lu\n",
++		 req, new_value);
++
++	/* Look for the platform device for the constraint target device */
++	pdev = to_platform_device(dev_pm_qos_req->dev);
++
++	/* Try to catch non platform devices */
++	if (pdev->name == NULL) {
++		pr_err("%s: Error: platform device for device %s not valid\n",
++		       __func__, dev_name(dev_pm_qos_req->dev));
++		return -EINVAL;
++	}
++
++	/* Find the associated omap_device for dev */
++	od = container_of(pdev, struct omap_device, pdev);
++	if (od->hwmods_cnt != 1) {
++		pr_err("%s: Error: No unique hwmod for device %s\n",
++		       __func__, dev_name(dev_pm_qos_req->dev));
++		return -EINVAL;
++	}
++
++	/* Find the primary omap_hwmod for dev */
++	oh = od->hwmods[0];
++
++	pr_debug("OMAP PM CONSTRAINTS: req@0x%p, dev=0x%p, new_value=%lu\n",
++		 req, dev_pm_qos_req->dev, new_value);
++
++	/* Apply the constraint */
++	return omap_hwmod_set_wkup_lat_constraint(oh, dev_pm_qos_req,
++						  new_value);
++}
++
++static struct notifier_block omap2_dev_pm_qos_notifier = {
++	.notifier_call	= omap2_dev_pm_qos_handler,
++};
++
++static int __init omap2_dev_pm_qos_init(void)
++{
++	int ret;
++
++	ret = dev_pm_qos_add_global_notifier(&omap2_dev_pm_qos_notifier);
++	if (ret)
++		WARN(1, KERN_ERR "Cannot add global notifier for dev PM QoS\n");
++
++	return ret;
++}
++
+ static int __init omap2_common_pm_init(void)
+ {
+ 	omap2_init_processor_devices();
+ 	omap_pm_if_init();
+ 
++	/* Register to the per-device PM QoS framework */
++	omap2_dev_pm_qos_init();
++
+ 	return 0;
+ }
+ postcore_initcall(omap2_common_pm_init);
+-- 
+1.7.4.1
+
