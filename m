@@ -1,294 +1,189 @@
-From: Yong Zhang <yong.zhang0@gmail.com>
-Subject: [PATCH 49/55] video: irq: Remove IRQF_DISABLED
-Date: Thu, 22 Sep 2011 16:59:16 +0800
-Message-ID: <1316681962-8217-50-git-send-email-yong.zhang0@gmail.com>
-References: <1316681962-8217-1-git-send-email-yong.zhang0@gmail.com>
+From: <mythripk@ti.com>
+Subject: [PATCH 1/3] OMAPDSS: HDMI: Move Avi infoframe structure to
+Date: Thu, 22 Sep 2011 16:09:10 +0530
+Message-ID: <1316687952-27686-1-git-send-email-mythripk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:62601 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753216Ab1IVJHP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Sep 2011 05:07:15 -0400
-In-Reply-To: <1316681962-8217-1-git-send-email-yong.zhang0@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40550 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752880Ab1IVKrQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Sep 2011 06:47:16 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8MAlDM9013080
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 22 Sep 2011 05:47:15 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p8MAlCxG012133
+	for <linux-omap@vger.kernel.org>; Thu, 22 Sep 2011 16:17:12 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
-Cc: tglx@linutronix.de, yong.zhang0@gmail.com, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Wan ZongShun <mcuos.com@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Geoff Levand <geoff@infradead.org>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Anatolij Gustschin <agust@denx.de>, Paul Gortmaker <paul.gortmaker@windriver.com>, Andrew Morton <akpm@linux-foundation.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Jiri Kosina <jkosina@suse.cz>, Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, cbe-oss-dev@lists.ozlabs.org
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Mythri P K <mythripk@ti.com>
 
-Since commit [e58aa3d2: genirq: Run irq handlers with interrupts disabled],
-We run all interrupt handlers with interrupts disabled
-and we even check and yell when an interrupt handler
-returns with interrupts enabled (see commit [b738a50a:
-genirq: Warn when handler enables interrupts]).
+From: Mythri P K <mythripk@ti.com>
 
-So now this flag is a NOOP and can be removed.
+With AVI infoframe various parameters of video stream such as
+aspect ratio, quantization range, videocode etc will be indicated
+from source to sink.Thus AVI information needs to be set/accessed
+by the middle ware based on the video content.
+Thus this parameter is now moved to the ip_data structure.
 
-Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
-Acked-by: David Brown <davidb@codeaurora.org>
+Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- drivers/video/au1200fb.c                  |    2 +-
- drivers/video/bf54x-lq043fb.c             |    2 +-
- drivers/video/bfin-lq035q1-fb.c           |    2 +-
- drivers/video/bfin-t350mcqb-fb.c          |    2 +-
- drivers/video/bfin_adv7393fb.c            |    2 +-
- drivers/video/mb862xx/mb862xxfbdrv.c      |    4 ++--
- drivers/video/msm/mddi.c                  |    2 +-
- drivers/video/msm/mdp.c                   |    2 +-
- drivers/video/nuc900fb.c                  |    2 +-
- drivers/video/omap2/displays/panel-taal.c |    2 +-
- drivers/video/ps3fb.c                     |    2 +-
- drivers/video/pxa3xx-gcu.c                |    2 +-
- drivers/video/pxafb.c                     |    2 +-
- drivers/video/s3c2410fb.c                 |    2 +-
- drivers/video/sa1100fb.c                  |    3 +--
- drivers/video/sh_mobile_lcdcfb.c          |    2 +-
- drivers/video/tmiofb.c                    |    2 +-
- drivers/video/vt8500lcdfb.c               |    2 +-
- 18 files changed, 19 insertions(+), 20 deletions(-)
+ drivers/video/omap2/dss/ti_hdmi.h         |   42 +++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    8 +++---
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |   40 ---------------------------
+ 3 files changed, 46 insertions(+), 44 deletions(-)
 
-diff --git a/drivers/video/au1200fb.c b/drivers/video/au1200fb.c
-index a19a40e..7200559 100644
---- a/drivers/video/au1200fb.c
-+++ b/drivers/video/au1200fb.c
-@@ -1673,7 +1673,7 @@ static int __devinit au1200fb_drv_probe(struct platform_device *dev)
- 	/* Now hook interrupt too */
- 	irq = platform_get_irq(dev, 0);
- 	ret = request_irq(irq, au1200fb_handle_irq,
--			  IRQF_DISABLED | IRQF_SHARED, "lcd", (void *)dev);
-+			  IRQF_SHARED, "lcd", (void *)dev);
- 	if (ret) {
- 		print_err("fail to request interrupt line %d (err: %d)",
- 			  irq, ret);
-diff --git a/drivers/video/bf54x-lq043fb.c b/drivers/video/bf54x-lq043fb.c
-index 2464b91..56720fb 100644
---- a/drivers/video/bf54x-lq043fb.c
-+++ b/drivers/video/bf54x-lq043fb.c
-@@ -633,7 +633,7 @@ static int __devinit bfin_bf54x_probe(struct platform_device *pdev)
- 		goto out7;
- 	}
+diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
+index 2c3443d..f28f779 100644
+--- a/drivers/video/omap2/dss/ti_hdmi.h
++++ b/drivers/video/omap2/dss/ti_hdmi.h
+@@ -112,6 +112,47 @@ struct ti_hdmi_ip_ops {
  
--	if (request_irq(info->irq, bfin_bf54x_irq_error, IRQF_DISABLED,
-+	if (request_irq(info->irq, bfin_bf54x_irq_error, 0,
- 			"PPI ERROR", info) < 0) {
- 		printk(KERN_ERR DRIVER_NAME
- 		       ": unable to request PPI ERROR IRQ\n");
-diff --git a/drivers/video/bfin-lq035q1-fb.c b/drivers/video/bfin-lq035q1-fb.c
-index 23b6c4b..c633068 100644
---- a/drivers/video/bfin-lq035q1-fb.c
-+++ b/drivers/video/bfin-lq035q1-fb.c
-@@ -695,7 +695,7 @@ static int __devinit bfin_lq035q1_probe(struct platform_device *pdev)
- 		goto out7;
- 	}
+ };
  
--	ret = request_irq(info->irq, bfin_lq035q1_irq_error, IRQF_DISABLED,
-+	ret = request_irq(info->irq, bfin_lq035q1_irq_error, 0,
- 			DRIVER_NAME" PPI ERROR", info);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "unable to request PPI ERROR IRQ\n");
-diff --git a/drivers/video/bfin-t350mcqb-fb.c b/drivers/video/bfin-t350mcqb-fb.c
-index d8de29f..d5e1267 100644
---- a/drivers/video/bfin-t350mcqb-fb.c
-+++ b/drivers/video/bfin-t350mcqb-fb.c
-@@ -529,7 +529,7 @@ static int __devinit bfin_t350mcqb_probe(struct platform_device *pdev)
- 		goto out7;
- 	}
++/*
++ * Refer to section 8.2 in HDMI 1.3 specification for
++ * details about infoframe databytes
++ */
++struct hdmi_core_infoframe_avi {
++	/* Y0, Y1 rgb,yCbCr */
++	u8	db1_format;
++	/* A0  Active information Present */
++	u8	db1_active_info;
++	/* B0, B1 Bar info data valid */
++	u8	db1_bar_info_dv;
++	/* S0, S1 scan information */
++	u8	db1_scan_info;
++	/* C0, C1 colorimetry */
++	u8	db2_colorimetry;
++	/* M0, M1 Aspect ratio (4:3, 16:9) */
++	u8	db2_aspect_ratio;
++	/* R0...R3 Active format aspect ratio */
++	u8	db2_active_fmt_ar;
++	/* ITC IT content. */
++	u8	db3_itc;
++	/* EC0, EC1, EC2 Extended colorimetry */
++	u8	db3_ec;
++	/* Q1, Q0 Quantization range */
++	u8	db3_q_range;
++	/* SC1, SC0 Non-uniform picture scaling */
++	u8	db3_nup_scaling;
++	/* VIC0..6 Video format identification */
++	u8	db4_videocode;
++	/* PR0..PR3 Pixel repetition factor */
++	u8	db5_pixel_repeat;
++	/* Line number end of top bar */
++	u16	db6_7_line_eoftop;
++	/* Line number start of bottom bar */
++	u16	db8_9_line_sofbottom;
++	/* Pixel number end of left bar */
++	u16	db10_11_pixel_eofleft;
++	/* Pixel number start of right bar */
++	u16	db12_13_pixel_sofright;
++};
++
+ struct hdmi_ip_data {
+ 	void __iomem	*base_wp;	/* HDMI wrapper */
+ 	unsigned long	core_sys_offset;
+@@ -121,6 +162,7 @@ struct hdmi_ip_data {
+ 	const struct ti_hdmi_ip_ops *ops;
+ 	struct hdmi_config cfg;
+ 	struct hdmi_pll_info pll_data;
++	struct hdmi_core_infoframe_avi avi_cfg;
+ };
+ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
+ void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index e1a6ce5..7b0dcd2 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -534,12 +534,12 @@ static void hdmi_core_video_config(struct hdmi_ip_data *ip_data,
+ 			HDMI_CORE_SYS_TMDS_CTRL, cfg->tclk_sel_clkmult, 6, 5);
+ }
  
--	ret = request_irq(info->irq, bfin_t350mcqb_irq_error, IRQF_DISABLED,
-+	ret = request_irq(info->irq, bfin_t350mcqb_irq_error, 0,
- 			"PPI ERROR", info);
- 	if (ret < 0) {
- 		printk(KERN_ERR DRIVER_NAME
-diff --git a/drivers/video/bfin_adv7393fb.c b/drivers/video/bfin_adv7393fb.c
-index 8486f54..811dd7f 100644
---- a/drivers/video/bfin_adv7393fb.c
-+++ b/drivers/video/bfin_adv7393fb.c
-@@ -481,7 +481,7 @@ static int __devinit bfin_adv7393_fb_probe(struct i2c_client *client,
- 		goto out_4;
- 	}
+-static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_data,
+-		struct hdmi_core_infoframe_avi info_avi)
++static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_data)
+ {
+ 	u32 val;
+ 	char sum = 0, checksum = 0;
+ 	void __iomem *av_base = hdmi_av_base(ip_data);
++	struct hdmi_core_infoframe_avi info_avi = ip_data->avi_cfg;
  
--	if (request_irq(IRQ_PPI_ERROR, ppi_irq_error, IRQF_DISABLED,
-+	if (request_irq(IRQ_PPI_ERROR, ppi_irq_error, 0,
- 			"PPI ERROR", fbdev) < 0) {
- 		dev_err(&client->dev, "unable to request PPI ERROR IRQ\n");
- 		ret = -EFAULT;
-diff --git a/drivers/video/mb862xx/mb862xxfbdrv.c b/drivers/video/mb862xx/mb862xxfbdrv.c
-index 12a634a..11a7a33 100644
---- a/drivers/video/mb862xx/mb862xxfbdrv.c
-+++ b/drivers/video/mb862xx/mb862xxfbdrv.c
-@@ -738,7 +738,7 @@ static int __devinit of_platform_mb862xx_probe(struct platform_device *ofdev)
- 	if (mb862xx_gdc_init(par))
- 		goto io_unmap;
+ 	sum += 0x82 + 0x002 + 0x00D;
+ 	hdmi_write_reg(av_base, HDMI_CORE_AV_AVI_TYPE, 0x082);
+@@ -727,7 +727,7 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
+ 	struct hdmi_video_format video_format;
+ 	struct hdmi_video_interface video_interface;
+ 	/* HDMI core */
+-	struct hdmi_core_infoframe_avi avi_cfg;
++	struct hdmi_core_infoframe_avi avi_cfg = ip_data->avi_cfg;
+ 	struct hdmi_core_video_config v_core_cfg;
+ 	struct hdmi_core_packet_enable_repeat repeat_cfg;
+ 	struct hdmi_config *cfg = &ip_data->cfg;
+@@ -795,7 +795,7 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
+ 	avi_cfg.db10_11_pixel_eofleft = 0;
+ 	avi_cfg.db12_13_pixel_sofright = 0;
  
--	if (request_irq(par->irq, mb862xx_intr, IRQF_DISABLED,
-+	if (request_irq(par->irq, mb862xx_intr, 0,
- 			DRV_NAME, (void *)par)) {
- 		dev_err(dev, "Cannot request irq\n");
- 		goto io_unmap;
-@@ -1074,7 +1074,7 @@ static int __devinit mb862xx_pci_probe(struct pci_dev *pdev,
- 	if (mb862xx_pci_gdc_init(par))
- 		goto io_unmap;
+-	hdmi_core_aux_infoframe_avi_config(ip_data, avi_cfg);
++	hdmi_core_aux_infoframe_avi_config(ip_data);
  
--	if (request_irq(par->irq, mb862xx_intr, IRQF_DISABLED | IRQF_SHARED,
-+	if (request_irq(par->irq, mb862xx_intr, IRQF_SHARED,
- 			DRV_NAME, (void *)par)) {
- 		dev_err(dev, "Cannot request irq\n");
- 		goto io_unmap;
-diff --git a/drivers/video/msm/mddi.c b/drivers/video/msm/mddi.c
-index 178b072..4527cbf 100644
---- a/drivers/video/msm/mddi.c
-+++ b/drivers/video/msm/mddi.c
-@@ -715,7 +715,7 @@ static int __devinit mddi_probe(struct platform_device *pdev)
- 
- 	mddi->int_enable = 0;
- 	mddi_writel(mddi->int_enable, INTEN);
--	ret = request_irq(mddi->irq, mddi_isr, IRQF_DISABLED, "mddi",
-+	ret = request_irq(mddi->irq, mddi_isr, 0, "mddi",
- 			  &mddi->client_data);
- 	if (ret) {
- 		printk(KERN_ERR "mddi: failed to request enable irq!\n");
-diff --git a/drivers/video/msm/mdp.c b/drivers/video/msm/mdp.c
-index 2750ed2..cb2ddf1 100644
---- a/drivers/video/msm/mdp.c
-+++ b/drivers/video/msm/mdp.c
-@@ -426,7 +426,7 @@ int mdp_probe(struct platform_device *pdev)
- 		goto error_get_clk;
- 	}
- 
--	ret = request_irq(mdp->irq, mdp_isr, IRQF_DISABLED, "msm_mdp", mdp);
-+	ret = request_irq(mdp->irq, mdp_isr, 0, "msm_mdp", mdp);
- 	if (ret)
- 		goto error_request_irq;
- 	disable_irq(mdp->irq);
-diff --git a/drivers/video/nuc900fb.c b/drivers/video/nuc900fb.c
-index 37dd850..d1fbbd8 100644
---- a/drivers/video/nuc900fb.c
-+++ b/drivers/video/nuc900fb.c
-@@ -587,7 +587,7 @@ static int __devinit nuc900fb_probe(struct platform_device *pdev)
- 	fbinfo->flags			= FBINFO_FLAG_DEFAULT;
- 	fbinfo->pseudo_palette		= &fbi->pseudo_pal;
- 
--	ret = request_irq(irq, nuc900fb_irqhandler, IRQF_DISABLED,
-+	ret = request_irq(irq, nuc900fb_irqhandler, 0,
- 			  pdev->name, fbinfo);
- 	if (ret) {
- 		dev_err(&pdev->dev, "cannot register irq handler %d -err %d\n",
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index 7f91002..80c3f6a 100644
---- a/drivers/video/omap2/displays/panel-taal.c
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -1034,7 +1034,7 @@ static int taal_probe(struct omap_dss_device *dssdev)
- 		gpio_direction_input(gpio);
- 
- 		r = request_irq(gpio_to_irq(gpio), taal_te_isr,
--				IRQF_DISABLED | IRQF_TRIGGER_RISING,
-+				IRQF_TRIGGER_RISING,
- 				"taal vsync", dssdev);
- 
- 		if (r) {
-diff --git a/drivers/video/ps3fb.c b/drivers/video/ps3fb.c
-index 65560a1..213fbbc 100644
---- a/drivers/video/ps3fb.c
-+++ b/drivers/video/ps3fb.c
-@@ -1082,7 +1082,7 @@ static int __devinit ps3fb_probe(struct ps3_system_bus_device *dev)
- 	}
- 
- 	retval = request_irq(ps3fb.irq_no, ps3fb_vsync_interrupt,
--			     IRQF_DISABLED, DEVICE_NAME, &dev->core);
-+			     0, DEVICE_NAME, &dev->core);
- 	if (retval) {
- 		dev_err(&dev->core, "%s: request_irq failed %d\n", __func__,
- 			retval);
-diff --git a/drivers/video/pxa3xx-gcu.c b/drivers/video/pxa3xx-gcu.c
-index d8de557..1ed8b36 100644
---- a/drivers/video/pxa3xx-gcu.c
-+++ b/drivers/video/pxa3xx-gcu.c
-@@ -676,7 +676,7 @@ pxa3xx_gcu_probe(struct platform_device *dev)
- 	}
- 
- 	ret = request_irq(irq, pxa3xx_gcu_handle_irq,
--			  IRQF_DISABLED, DRV_NAME, priv);
-+			  0, DRV_NAME, priv);
- 	if (ret) {
- 		dev_err(&dev->dev, "request_irq failed\n");
- 		ret = -EBUSY;
-diff --git a/drivers/video/pxafb.c b/drivers/video/pxafb.c
-index 0f4e8c9..e89778f 100644
---- a/drivers/video/pxafb.c
-+++ b/drivers/video/pxafb.c
-@@ -2191,7 +2191,7 @@ static int __devinit pxafb_probe(struct platform_device *dev)
- 		goto failed_free_mem;
- 	}
- 
--	ret = request_irq(irq, pxafb_handle_irq, IRQF_DISABLED, "LCD", fbi);
-+	ret = request_irq(irq, pxafb_handle_irq, 0, "LCD", fbi);
- 	if (ret) {
- 		dev_err(&dev->dev, "request_irq failed: %d\n", ret);
- 		ret = -EBUSY;
-diff --git a/drivers/video/s3c2410fb.c b/drivers/video/s3c2410fb.c
-index 798144a..ee4c0df 100644
---- a/drivers/video/s3c2410fb.c
-+++ b/drivers/video/s3c2410fb.c
-@@ -910,7 +910,7 @@ static int __devinit s3c24xxfb_probe(struct platform_device *pdev,
- 	for (i = 0; i < 256; i++)
- 		info->palette_buffer[i] = PALETTE_BUFF_CLEAR;
- 
--	ret = request_irq(irq, s3c2410fb_irq, IRQF_DISABLED, pdev->name, info);
-+	ret = request_irq(irq, s3c2410fb_irq, 0, pdev->name, info);
- 	if (ret) {
- 		dev_err(&pdev->dev, "cannot get irq %d - err %d\n", irq, ret);
- 		ret = -EBUSY;
-diff --git a/drivers/video/sa1100fb.c b/drivers/video/sa1100fb.c
-index e8b76d6..98d55d0 100644
---- a/drivers/video/sa1100fb.c
-+++ b/drivers/video/sa1100fb.c
-@@ -1457,8 +1457,7 @@ static int __devinit sa1100fb_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto failed;
- 
--	ret = request_irq(irq, sa1100fb_handle_irq, IRQF_DISABLED,
--			  "LCD", fbi);
-+	ret = request_irq(irq, sa1100fb_handle_irq, 0, "LCD", fbi);
- 	if (ret) {
- 		printk(KERN_ERR "sa1100fb: request_irq failed: %d\n", ret);
- 		goto failed;
-diff --git a/drivers/video/sh_mobile_lcdcfb.c b/drivers/video/sh_mobile_lcdcfb.c
-index 4636f9d..facffc2 100644
---- a/drivers/video/sh_mobile_lcdcfb.c
-+++ b/drivers/video/sh_mobile_lcdcfb.c
-@@ -1577,7 +1577,7 @@ static int __devinit sh_mobile_lcdc_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, priv);
- 
--	error = request_irq(i, sh_mobile_lcdc_irq, IRQF_DISABLED,
-+	error = request_irq(i, sh_mobile_lcdc_irq, 0,
- 			    dev_name(&pdev->dev), priv);
- 	if (error) {
- 		dev_err(&pdev->dev, "unable to request irq\n");
-diff --git a/drivers/video/tmiofb.c b/drivers/video/tmiofb.c
-index cd1c4dc..8e4a446 100644
---- a/drivers/video/tmiofb.c
-+++ b/drivers/video/tmiofb.c
-@@ -744,7 +744,7 @@ static int __devinit tmiofb_probe(struct platform_device *dev)
- 		goto err_ioremap_vram;
- 	}
- 
--	retval = request_irq(irq, &tmiofb_irq, IRQF_DISABLED,
-+	retval = request_irq(irq, &tmiofb_irq, 0,
- 					dev_name(&dev->dev), info);
- 
- 	if (retval)
-diff --git a/drivers/video/vt8500lcdfb.c b/drivers/video/vt8500lcdfb.c
-index c13c246..777c21d 100644
---- a/drivers/video/vt8500lcdfb.c
-+++ b/drivers/video/vt8500lcdfb.c
-@@ -355,7 +355,7 @@ static int __devinit vt8500lcd_probe(struct platform_device *pdev)
- 		goto failed_free_palette;
- 	}
- 
--	ret = request_irq(irq, vt8500lcd_handle_irq, IRQF_DISABLED, "LCD", fbi);
-+	ret = request_irq(irq, vt8500lcd_handle_irq, 0, "LCD", fbi);
- 	if (ret) {
- 		dev_err(&pdev->dev, "request_irq failed: %d\n", ret);
- 		ret = -EBUSY;
+ 	/* enable/repeat the infoframe */
+ 	repeat_cfg.avi_infoframe = HDMI_PACKETENABLE;
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+index 2040956..9f383c9 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+@@ -450,46 +450,6 @@ struct hdmi_core_video_config {
+  * Refer to section 8.2 in HDMI 1.3 specification for
+  * details about infoframe databytes
+  */
+-struct hdmi_core_infoframe_avi {
+-	/* Y0, Y1 rgb,yCbCr */
+-	u8	db1_format;
+-	/* A0  Active information Present */
+-	u8	db1_active_info;
+-	/* B0, B1 Bar info data valid */
+-	u8	db1_bar_info_dv;
+-	/* S0, S1 scan information */
+-	u8	db1_scan_info;
+-	/* C0, C1 colorimetry */
+-	u8	db2_colorimetry;
+-	/* M0, M1 Aspect ratio (4:3, 16:9) */
+-	u8	db2_aspect_ratio;
+-	/* R0...R3 Active format aspect ratio */
+-	u8	db2_active_fmt_ar;
+-	/* ITC IT content. */
+-	u8	db3_itc;
+-	/* EC0, EC1, EC2 Extended colorimetry */
+-	u8	db3_ec;
+-	/* Q1, Q0 Quantization range */
+-	u8	db3_q_range;
+-	/* SC1, SC0 Non-uniform picture scaling */
+-	u8	db3_nup_scaling;
+-	/* VIC0..6 Video format identification */
+-	u8	db4_videocode;
+-	/* PR0..PR3 Pixel repetition factor */
+-	u8	db5_pixel_repeat;
+-	/* Line number end of top bar */
+-	u16	db6_7_line_eoftop;
+-	/* Line number start of bottom bar */
+-	u16	db8_9_line_sofbottom;
+-	/* Pixel number end of left bar */
+-	u16	db10_11_pixel_eofleft;
+-	/* Pixel number start of right bar */
+-	u16	db12_13_pixel_sofright;
+-};
+-/*
+- * Refer to section 8.2 in HDMI 1.3 specification for
+- * details about infoframe databytes
+- */
+ struct hdmi_core_infoframe_audio {
+ 	u8 db1_coding_type;
+ 	u8 db1_channel_count;
 -- 
-1.7.4.1
+1.7.5.4
 
