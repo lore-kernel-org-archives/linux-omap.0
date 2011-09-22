@@ -1,73 +1,30 @@
-From: "Pedanekar, Hemant" <hemantp@ti.com>
-Subject: RE: [PATCH v2 3/3] TI814X: Create board support and enable build
- for TI8148 EVM
-Date: Thu, 22 Sep 2011 06:11:54 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4D17101@dbde02.ent.ti.com>
-References: <1316626754-5764-1-git-send-email-hemantp@ti.com>
- <20110921204826.GK2937@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v16 10/12] OMAP: dmtimer: extend spinlock in request
+ functions
+Date: Wed, 21 Sep 2011 17:42:44 -0700
+Message-ID: <20110922004243.GL2937@atomide.com>
+References: <1316518227-28116-1-git-send-email-tarun.kanti@ti.com>
+ <1316518227-28116-11-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59611 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751331Ab1IVAmF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 20:42:05 -0400
-In-Reply-To: <20110921204826.GK2937@atomide.com>
-Content-Language: en-US
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63587 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751331Ab1IVAmq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Sep 2011 20:42:46 -0400
+Content-Disposition: inline
+In-Reply-To: <1316518227-28116-11-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-Tony Lindgren wrote on Thursday, September 22, 2011 2:18 AM:
+* Tarun Kanti DebBarma <tarun.kanti@ti.com> [110920 03:57]:
+> The request functions now verify the success of omap_dm_timer_prepare() call
+> after a timer is acquired. If *_prepare() fails then we have to release the
+> timer. In order to avoid race condition during this time, include *_prepare()
+> within lock.
 
-> * Hemant Pedanekar <hemantp@ti.com> [110921 10:05]:
->> +
->> +static struct omap_board_config_kernel ti8148_evm_config[] __initdata = {
->> +}; +
->> +static void __init ti8148_evm_init(void)
->> +{
->> +	omap_serial_init();
->> +	omap_board_config = ti8148_evm_config;
->> +	omap_board_config_size = ARRAY_SIZE(ti8148_evm_config); +}
->> +
->> +static void __init ti8148_evm_map_io(void)
->> +{
->> +	omap2_set_globals_ti81xx();
->> +	omapti81xx_map_common_io();
->> +}
-> 
-> Hmm I guess we still have board specific map_io in board-ti8668evm.c
-> also. Those would be better replaced with ti81xx_map_io in
-> mach-omap2/common.c. Care to take a look at that?
->
+This I've folded into patch 5.
 
-Yes, you are right. I will do that.
- 
->> +MACHINE_START(TI8148EVM, "ti8148evm")
->> +	/* Maintainer: Texas Instruments */
->> +	.atag_offset	= 0x100,
->> +	.map_io		= ti8148_evm_map_io,
->> +	.init_early	= ti81xx_init_early,
->> +	.init_irq	= ti81xx_init_irq,
->> +	.timer		= &omap3_timer,
->> +	.init_machine	= ti8148_evm_init,
->> +MACHINE_END
-> 
-> Please add this all to board-ti8168evm.c instead of adding a new
-> board-*.c file. With the upcoming device tree conversion most of these will
-> disappear anyways. 
->
-
-Ok, I will do that.
-
-Thanks.
-   Hemant 
-> Regards,
-> 
-> Tony
-
-
-
-   Hemant
+Tony
