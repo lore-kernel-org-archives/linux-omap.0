@@ -1,66 +1,147 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/5 v11] arm: omap: usb: ehci and ohci hwmod structures
- for omap4
-Date: Thu, 22 Sep 2011 21:28:40 +0200
-Message-ID: <4E7B8C68.7020407@ti.com>
-References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1109221213500.10719@utopia.booyaka.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [RFC PATCH V6 0/4] cpuidle: Global registration of idle states
+ with per-cpu statistics
+Date: Thu, 22 Sep 2011 21:37:27 +0200
+Message-ID: <CAORVsuWX6hQ9Zo_V8GFzzyOYziLmCtVz+DEpv+nqpF1WRPTWCg@mail.gmail.com>
+References: <20110922082840.10520.85895.stgit@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1109221213500.10719@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <20110922082840.10520.85895.stgit@localhost6.localdomain6>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Cc: khilman@ti.com, venki@google.com, ak@linux.intel.com, len.brown@intel.com, peterz@infradead.org, santosh.shilimkar@ti.com, arjan@linux.intel.com, lenb@kernel.org, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul,
+Hi,
 
-On 9/22/2011 8:14 PM, Paul Walmsley wrote:
-> Hi
+On Thu, Sep 22, 2011 at 10:28 AM, Deepthi Dharwar
+<deepthi@linux.vnet.ibm.com> wrote:
+> The following patch series implements global registration of cpuidle
+> states, and also has the necessary data structure changes to
+> accommodate the per-cpu writable members of the cpuidle_states
+> structure.
 >
-> On Thu, 22 Sep 2011, Keshava Munegowda wrote:
+> This patch series had been in discussion earlier and
+> following are the links to the previous discussions.
 >
->> Following 4 hwmod structures are added
->> 1. usb_host_hs hwmod of usbhs with uhh base address and functional clock,
->> 2. usb_ehci_hs hwmod with irq and base address,
->> 3. usb_ohci_hs hwmod with irq and base address,
->>     - The ehci and ohci hwmods does not require functional clock
->>       because usb_host_hs has functional clock which is sufficient
->>       to access ehci and ohci address space.
->>     - The usb_ehci_hs and usb_ohci_hs should be two separate hwmods
->>       which should not be combined. This is needed because ehci and
->>       ohci will have separate dedicated ports&  in omap4 there is a
->>       clock per port.We should be able to configure the IO-Wakeup
->>       capability of pins specific to EHCI&  OHCI separately and depending
->>       on the I/O wakeup event  the  only port clocks corresponding
->>       to the wakeup source will be enabled internally by the usb host driver.
->>
->> 4. usb_tll_hs hwmod of usbhs with the TLL base address and irq.
+> v1 --> https://lkml.org/lkml/2011/3/22/161
+> v2 --> https://lkml.org/lkml/2011/1/13/98
+> v3 --> https://lkml.org/lkml/2011/2/8/73
+> v4 --> https://lkml.org/lkml/2011/4/28/312
+> v5 --> https://lkml.org/lkml/2011/6/6/259
 >
-> Many of the same issues with the OMAP3 data (missing main_clks, missing
-> ADDR_TYPE_RT, etc.) exist with this patch also.
+> Changes from previous version (V5):
+>
+> =A0 =A0Rebased the series to 3.1-rc7
+>
+> Tests done:
+>
+> =A0 =A01. Compile tested for ARM using the following configs: da8xx_o=
+mapl_defconfig,
+> =A0 =A0exynos4_defconfig, kirkwood_defconfig, omap2plus_defconfig,
+> =A0 =A0at91rm9200_defconfig
 
-ADDR_TYPE_RT is mainly use for sysconfig access inside hwmod core today, 
-so why should we use it in this case?
-To be honest, I've been confused with that flag for some time :-)
-  * ADDR_TYPE_RT: Address space contains module register target data.
-Maybe that's my English, but what does "register target data" mean exactly?
-What was the intent? Providing a way to identify some register vs memory 
-space?
+Tested OK on OMAP3:
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
 
-Regarding main_clk, I do not think that some internal IPs like ohci/ehci 
-should have a main_clk, since this is not visible at that level. These 
-blocks do not have any PRCM / OCP connection. In fact they should not 
-even be hwmod in theory, these are just some internal IPs inside the 
-usb_host controller.
-These are hwmods just because of the dynamic mux support needed by these 
-IPs.
-That was one of the comments I made on these, and Keshava explained me 
-the rational and added it in the changelog.
-Hopefully, we will not have that limitation once we will have migrated 
-that to DT :-)
+>
+> =A0 =A02. Boot tested on x86 nehalem with multiple C-states for both =
+intel_idle
+> =A0 =A0and acpi_idle drivers.
+>
+> =A0 =A03. Boot tested on T60p thinkpad that has T2600 cpu with multip=
+le C-states.
+> =A0 =A0Also tested the case when there is dynamic changes in C-states
+> =A0 =A0AC <-> Battery Power switch.
+>
+> Brief description of the patches:
+>
+> Core change in this series is to split the cpuidle_device structure
+> into two parts, i.e =A0global and per-cpu basis.
+>
+> The per-cpu pieces are mostly generic statistics that can be independ=
+ent
+> of current running driver. As a result of these changes, there is sin=
+gle
+> copy of cpuidle_states structure and single registration done by one
+> cpu. The low level driver is free to set per-cpu driver data on
+> each cpu if needed using the cpuidle_set_statedata() as the case
+> today. Only in very rare cases asymmetric C-states exist which can be
+> handled within the cpuidle driver. Most architectures do not have
+> asymmetric C-states.
+>
+> First two patches in the series facilitate splitting of cpuidle_state=
+s
+> and cpuidle_device structure and next two patches do the actual split=
+,
+> change the API's and make existing code follow the changed API.
+>
+> [1/4] - Move the idle residency accounting part from cpuidle.c to
+> the respective low level drivers, so that the accounting can
+> be accurately maintained if the driver decides to demote the
+> chosen (suggested) by the governor.
+This is a nice improvement since OMAP heavily uses the state demotion
+in the cpuidle driver, and will use it even more with the per-device
+PM QoS support added.
 
+Thanks & regards,
+Jean
 
-Regards,
-Benoit
+>
+> [2/4] - removes the cpuidle_device()->prepare API since is is not
+> widely used and the only use case was to allow software
+> demotion using CPUIDLE_FLAG_IGNORE flag. =A0Both these
+> functions can be absorbed within the cpuidle back-end
+> driver ad hence deprecating the prepare routine and the
+> CPUIDLE_FLAG_IGNORE flag.
+>
+> =A0 =A0- Ref: https://lkml.org/lkml/2011/3/25/52
+>
+> [3/4] - Splits the usage statistics (read/write) part out of
+> cpuidle_state structure, so that the states can become read
+> only and hence made global.
+>
+> [4/4] - Most APIs will now need to pass pointer to both global
+> cpuidle_driver and per-cpu cpuidle_device structure.
+>
+> =A0arch/arm/mach-at91/cpuidle.c =A0 =A0 =A0 =A0 =A0| =A0 41 +++--
+> =A0arch/arm/mach-davinci/cpuidle.c =A0 =A0 =A0 | =A0 51 ++++---
+> =A0arch/arm/mach-exynos4/cpuidle.c =A0 =A0 =A0 | =A0 30 ++--
+> =A0arch/arm/mach-kirkwood/cpuidle.c =A0 =A0 =A0| =A0 42 +++---
+> =A0arch/arm/mach-omap2/cpuidle34xx.c =A0 =A0 | =A0133 +++++++++++----=
+--
+> =A0arch/sh/kernel/cpu/shmobile/cpuidle.c | =A0 28 ++--
+> =A0drivers/acpi/processor_driver.c =A0 =A0 =A0 | =A0 20 ---
+> =A0drivers/acpi/processor_idle.c =A0 =A0 =A0 =A0 | =A0251 +++++++++++=
+++++++++++++++++------
+> =A0drivers/cpuidle/cpuidle.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 86 ++++---=
+----
+> =A0drivers/cpuidle/driver.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 25 +++
+> =A0drivers/cpuidle/governors/ladder.c =A0 =A0| =A0 41 ++++-
+> =A0drivers/cpuidle/governors/menu.c =A0 =A0 =A0| =A0 29 ++--
+> =A0drivers/cpuidle/sysfs.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 22 ++-
+> =A0drivers/idle/intel_idle.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0130 +++++++=
+++++++----
+> =A0include/acpi/processor.h =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A01
+> =A0include/linux/cpuidle.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 52 ++++-=
+--
+> =A016 files changed, 650 insertions(+), 332 deletions(-)
+>
+>
+> --
+>
+> Thanks
+> =A0-Deepthi
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
