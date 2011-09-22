@@ -1,43 +1,136 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v16 00/12] OMAP: dmtimer: adaptation to platform_driver
-Date: Thu, 22 Sep 2011 11:39:13 +0530
-Message-ID: <CAC83Zv+aFu6u7TezD0NA3UHf9DMtW0AsP15jB1FFn8avEwY7CQ@mail.gmail.com>
-References: <1316518227-28116-1-git-send-email-tarun.kanti@ti.com>
-	<20110922005930.GN2937@atomide.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in omap_vout_isr
+Date: Thu, 22 Sep 2011 11:45:56 +0530
+Message-ID: <4E7AD29C.4070804@ti.com>
+References: <1316167233-1437-1-git-send-email-archit@ti.com> <1316167233-1437-4-git-send-email-archit@ti.com> <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:42673 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751390Ab1IVGJP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Sep 2011 02:09:15 -0400
-Received: by mail-bw0-f52.google.com with SMTP id 5so3728959bke.39
-        for <linux-omap@vger.kernel.org>; Wed, 21 Sep 2011 23:09:14 -0700 (PDT)
-In-Reply-To: <20110922005930.GN2937@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55230 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751276Ab1IVGNU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Sep 2011 02:13:20 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-On Thu, Sep 22, 2011 at 6:29 AM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi Tarun,
+Hi,
+
+On Wednesday 21 September 2011 07:04 PM, Hiremath, Vaibhav wrote:
+>> -----Original Message-----
+>> From: Taneja, Archit
+>> Sent: Friday, September 16, 2011 3:31 PM
+>> To: Hiremath, Vaibhav
+>> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
+>> media@vger.kernel.org; Taneja, Archit
+>> Subject: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
+>> omap_vout_isr
+>>
+>> Currently, in omap_vout_isr(), if the panel type is DPI, and if we
+>> get either VSYNC or VSYNC2 interrupts, we proceed ahead to set the
+>> current buffers state to VIDEOBUF_DONE and prepare to display the
+>> next frame in the queue.
+>>
+>> On OMAP4, because we have 2 LCD managers, the panel type itself is not
+>> sufficient to tell if we have received the correct irq, i.e, we shouldn't
+>> proceed ahead if we get a VSYNC interrupt for LCD2 manager, or a VSYNC2
+>> interrupt for LCD manager.
+>>
+>> Fix this by correlating LCD manager to VSYNC interrupt and LCD2 manager
+>> to VSYNC2 interrupt.
+>>
+>> Signed-off-by: Archit Taneja<archit@ti.com>
+>> ---
+>>   drivers/media/video/omap/omap_vout.c |   14 +++++++++++---
+>>   1 files changed, 11 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/media/video/omap/omap_vout.c
+>> b/drivers/media/video/omap/omap_vout.c
+>> index c5f2ea0..20638c3 100644
+>> --- a/drivers/media/video/omap/omap_vout.c
+>> +++ b/drivers/media/video/omap/omap_vout.c
+>> @@ -566,8 +566,8 @@ err:
+>>
+>>   static void omap_vout_isr(void *arg, unsigned int irqstatus)
+>>   {
+>> -	int ret, fid;
+>> -	u32 addr;
+>> +	int ret, fid, mgr_id;
+>> +	u32 addr, irq;
+>>   	struct omap_overlay *ovl;
+>>   	struct timeval timevalue;
+>>   	struct omapvideo_info *ovid;
+>> @@ -583,6 +583,7 @@ static void omap_vout_isr(void *arg, unsigned int
+>> irqstatus)
+>>   	if (!ovl->manager || !ovl->manager->device)
+>>   		return;
+>>
+>> +	mgr_id = ovl->manager->id;
+>>   	cur_display = ovl->manager->device;
+>>
+>>   	spin_lock(&vout->vbq_lock);
+>> @@ -590,7 +591,14 @@ static void omap_vout_isr(void *arg, unsigned int
+>> irqstatus)
+>>
+>>   	switch (cur_display->type) {
+>>   	case OMAP_DISPLAY_TYPE_DPI:
+>> -		if (!(irqstatus&  (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+>> +		if (mgr_id == OMAP_DSS_CHANNEL_LCD)
+>> +			irq = DISPC_IRQ_VSYNC;
+>> +		else if (mgr_id == OMAP_DSS_CHANNEL_LCD2)
+>> +			irq = DISPC_IRQ_VSYNC2;
+>> +		else
+>> +			goto vout_isr_err;
+>> +
+>> +		if (!(irqstatus&  irq))
+>>   			goto vout_isr_err;
+>>   		break;
+> I understand what this patch meant for, but I am more curious to know
+> What is value addition of this patch?
 >
-> * Tarun Kanti DebBarma <tarun.kanti@ti.com> [110920 03:57]:
->> Adaptation of dmtimer code to platform driver using omap_device and
->> omap_hwmod abstraction. It also include pm-runtime and off-mode support.
+> if (!(irqstatus&  (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
 >
-> I've applied these into dmtimer branch with some changes to simplify
-> things further. I've also merged it into linux-omap master branch
-> for further testing.
+> Vs
 >
-> I'll reply to your patches with the changes I've done. Care give the
-> dmtimer branch a try and see if I've missed something?
-Sure, I will go through the changes and do testing on it.
---
-Tarun
+> if (mgr_id == OMAP_DSS_CHANNEL_LCD)
+> 	irq = DISPC_IRQ_VSYNC;
+> else if (mgr_id == OMAP_DSS_CHANNEL_LCD2)
+> 	irq = DISPC_IRQ_VSYNC2;
 >
-> Regards,
+> Isn't this same, because we are not doing anything separate and special
+> for VSYNC and VSYNC2?
+
+Consider a use case where the primary LCD panel(connected to LCD 
+manager) is configured at a 60 Hz refresh rate, and the secondary 
+panel(connected to LCD2) refreshes at 30 Hz. Let the overlay 
+configuration be something like this:
+
+/dev/video1----->overlay1----->LCD manager----->Primary panel(60 Hz)
+
+
+/dev/video2----->overlay2----->LCD2 manager----->Secondary Panel(30 Hz)
+
+
+Now if we are doing streaming on both video1 and video2, since we deque 
+on either VSYNC or VSYNC2, video2 buffers will deque faster than the 
+panels refresh, which is incorrect. So for video2, we should only deque 
+when we get a VSYNC2 interrupt. Thats why there is a need to correlate 
+the interrupt and the overlay manager.
+
+Regards,
+Archit
+
 >
-> Tony
+> Thanks,
+> Vaibhav
 >
+>
+>>   	case OMAP_DISPLAY_TYPE_VENC:
+>> --
+>> 1.7.1
+>
+>
+
