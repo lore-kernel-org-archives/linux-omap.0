@@ -1,69 +1,43 @@
-From: "Dan Pereira" <danp_48@yahoo.com>
-Subject: Build-a-home-based-business-on-Auto-Pilot-
-Date: Thu, 22 Sep 2011 08:52:12 -0700 (PDT)
-Message-ID: <201109221552.p8MFqCLK090539@mail3.spagack2.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [GIT PULL] omap cleanup part1 for v3.2 merge window
+Date: Thu, 22 Sep 2011 09:15:05 -0700
+Message-ID: <87hb44v9iu.fsf@ti.com>
+References: <20110917014623.GC2937@atomide.com> <2241590.uiCS2D9jjt@wuerfel>
+	<87d3et4zj9.fsf@ti.com> <201109221633.14887.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail3.spagack2.com ([74.122.159.222]:49287 "EHLO
-	mail3.spagack2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751281Ab1IVQBY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Sep 2011 12:01:24 -0400
-Received: from mail3.spagack2.com (localhost.mail3.spagack2.com [127.0.0.1])
-	by mail3.spagack2.com (8.13.8/8.12.7) with ESMTP id p8MFqCIt090549
-	for <linux-omap@vger.kernel.org>; Thu, 22 Sep 2011 08:52:12 -0700 (PDT)
-	(envelope-from u789mobs@reliablecontact.com)
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:60219 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751051Ab1IVQPK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Sep 2011 12:15:10 -0400
+Received: by mail-yx0-f176.google.com with SMTP id 22so2793780yxn.21
+        for <linux-omap@vger.kernel.org>; Thu, 22 Sep 2011 09:15:09 -0700 (PDT)
+In-Reply-To: <201109221633.14887.arnd@arndb.de> (Arnd Bergmann's message of
+	"Thu, 22 Sep 2011 16:33:14 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Arnd Bergmann <arnd@arndb.de> writes:
 
+> On Wednesday 21 September 2011, Kevin Hilman wrote:
+>> Found.  Patch below.
+>> 
+>> If this one is OK, I'll push to my for_3.2/voltage-cleanup branch (which
+>> is already pulled into arm-soc/next/voltage) so just re-pulling will
+>> pick up the fix.
+>
+> Looks good to me, it's always nice when a bug fix is also a cleanup ;-)
+>
 
-Hello Everyone,
+OK, added it to the branch you've already pulled[1], if you (re)pull,
+you'll get the fix too.
 
-Discover how average people who have never made a cent in the past
-Are now making $1,000+ every month,=20
-With the Potential of making $50,000 a month
-Just "Plug In"... to Your
-Own Fully Automated=20
-  Turn Key...Global Marketing $ystem
-Receive $500-$3,500 Monthly or MORE
-Not MLM...and
-No Selling...
-No Cold Phone Calling.=20
-Complete plug-in-system!
+Thanks,
 
-Check-it-Out!
+Kevin
 
-http://trckrs.com/48184/rc1
-
-It=92s surprisingly cool!
-
-Dan and Noel
-
-
-His was a Com.Merical adv.Sent to you by:Dan Pereira, 11383 Golf Road, =
-Turlock, CA 95380
-In compliance with Federal law, should you choose to Un.Subscribe from =
-our network, you may do so using theUn.Subscribe instruction found belo=
-w.  We are fully compliant with CAN-SPAM Act of 2005-Please use the Un.=
-Subscribe link provided:
-
-
-
-
-
-
-
-
-To remove this email address from further mailings click on  the link b=
-elow  while connected to the internet.
-http://www.reliablecontact.com/cgi-bin/maxsponder/maxuseradmin.cgi?func=
-tion=3Dmanualdelete3&email=3Dlinux-omap*vger.kernel.org&un=3Drichardper=
-eira
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] git://gitorious.org/khilman/linux-omap-pm.git for_3.2/voltage_cleanup
