@@ -1,52 +1,30 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] iommu/omap: Fix build error with !IOMMU_SUPPORT
-Date: Thu, 22 Sep 2011 16:48:27 +0300
-Message-ID: <CAMP44s2-sBUGsOYzOxTMamOfw+Od4jOWriRinG=qkpt68WvQ9Q@mail.gmail.com>
-References: <1316009259-18052-1-git-send-email-joerg.roedel@amd.com>
-	<201109180202.23123.laurent.pinchart@ideasonboard.com>
-	<20110920100146.GA2078@amd.com>
-	<201109201254.39542.laurent.pinchart@ideasonboard.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap cleanup part1 for v3.2 merge window
+Date: Thu, 22 Sep 2011 16:33:14 +0200
+Message-ID: <201109221633.14887.arnd@arndb.de>
+References: <20110917014623.GC2937@atomide.com> <2241590.uiCS2D9jjt@wuerfel> <87d3et4zj9.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201109201254.39542.laurent.pinchart@ideasonboard.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "Roedel, Joerg" <Joerg.Roedel@amd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:50333 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753174Ab1IVOdS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Sep 2011 10:33:18 -0400
+In-Reply-To: <87d3et4zj9.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Tue, Sep 20, 2011 at 1:54 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Tuesday 20 September 2011 12:01:46 Roedel, Joerg wrote:
->> On Sat, Sep 17, 2011 at 08:02:22PM -0400, Laurent Pinchart wrote:
->> > On Wednesday 14 September 2011 16:07:39 Joerg Roedel wrote:
->> > > Without this patch it is possible to select the VIDEO_OMAP3
->> > > driver which then selects OMAP_IOVMM. But the omap iommu
->> > > driver is not compiled without IOMMU_SUPPORT enabled. Fix
->> > > that by forcing OMAP_IOMMU and OMAP_IOVMM are enabled before
->> > > VIDEO_OMAP3 can be selected.
->> >
->> > What about making VIDEO_OMAP3 select IOMMU_SUPPORT instead then ? Your
->> > patch would make the OMAP3 ISP driver disappear from the menu until
->> > IOMMU_SUPPORT gets turned on, which can confuse users.
->>
->> Using 'depends on' rather then 'selects' is common standard in Kconfig.
->> You can't select PCI drivers without selecting PCI first, for example.
->
-> You wouldn't expect a PCI driver to work without PCI support. My concern is
-> that most OMAP3 ISP users won't know that IOMMU supports is required. Feel
-> free to ignore it though :-)
+On Wednesday 21 September 2011, Kevin Hilman wrote:
+> Found.  Patch below.
+> 
+> If this one is OK, I'll push to my for_3.2/voltage-cleanup branch (which
+> is already pulled into arm-soc/next/voltage) so just re-pulling will
+> pick up the fix.
 
-I agree with Laurent. As a user, why should I care about IOMMU? I just
-want this thing.
+Looks good to me, it's always nice when a bug fix is also a cleanup ;-)
 
-That's why DRM_RADEON_KMS selects BACKLIGHT_CLASS_DEVICE; it's an
-implementation detail that the user should not need to care about. Why
-should I need to go see the dependencies of DRM_RADEON_KMS and
-manually select all of them? I shouldn't, that's the reason 'select'
-exists in the first place.
-
-Cheers.
-
--- 
-Felipe Contreras
+	Arnd
