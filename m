@@ -1,48 +1,52 @@
-From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/5 v11] mfd: omap: usb: Runtime PM support for EHCI and
- OHCI drivers
-Date: Thu, 22 Sep 2011 19:06:10 +0530
-Message-ID: <CAP05o4L5h5J7YBupH2KJJ5Bbmdq+a78Z_OORETtnLj59ZtSZJw@mail.gmail.com>
-References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
-	<CACVXFVOoHM14AqqH0CSpwNPef1QL+7MtgZOQZhYVSdgA=5KR4g@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] iommu/omap: Fix build error with !IOMMU_SUPPORT
+Date: Thu, 22 Sep 2011 16:48:27 +0300
+Message-ID: <CAMP44s2-sBUGsOYzOxTMamOfw+Od4jOWriRinG=qkpt68WvQ9Q@mail.gmail.com>
+References: <1316009259-18052-1-git-send-email-joerg.roedel@amd.com>
+	<201109180202.23123.laurent.pinchart@ideasonboard.com>
+	<20110920100146.GA2078@amd.com>
+	<201109201254.39542.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACVXFVOoHM14AqqH0CSpwNPef1QL+7MtgZOQZhYVSdgA=5KR4g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201109201254.39542.laurent.pinchart@ideasonboard.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "Roedel, Joerg" <Joerg.Roedel@amd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 22, 2011 at 7:02 PM, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Hi,
->
-> On Thu, Sep 22, 2011 at 7:37 PM, Keshava Munegowda
-> <keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
->> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+On Tue, Sep 20, 2011 at 1:54 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Tuesday 20 September 2011 12:01:46 Roedel, Joerg wrote:
+>> On Sat, Sep 17, 2011 at 08:02:22PM -0400, Laurent Pinchart wrote:
+>> > On Wednesday 14 September 2011 16:07:39 Joerg Roedel wrote:
+>> > > Without this patch it is possible to select the VIDEO_OMAP3
+>> > > driver which then selects OMAP_IOVMM. But the omap iommu
+>> > > driver is not compiled without IOMMU_SUPPORT enabled. Fix
+>> > > that by forcing OMAP_IOMMU and OMAP_IOVMM are enabled before
+>> > > VIDEO_OMAP3 can be selected.
+>> >
+>> > What about making VIDEO_OMAP3 select IOMMU_SUPPORT instead then ? Your
+>> > patch would make the OMAP3 ISP driver disappear from the menu until
+>> > IOMMU_SUPPORT gets turned on, which can confuse users.
 >>
->> The Hwmod structures and Runtime PM features are implemented
->> For EHCI and OHCI drivers of OMAP3 and OMAP4.
->> The global suspend/resume of EHCI and OHCI
->> is validated on OMAP3430 sdp board with these patches.
->>
->> These patches are re-based to Kevin's pm branch :
->> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+>> Using 'depends on' rather then 'selects' is common standard in Kconfig.
+>> You can't select PCI drivers without selecting PCI first, for example.
 >
-> Is kernel.org up now? :-)
->
-> thanks,
-> --
-> Ming Lei
+> You wouldn't expect a PCI driver to work without PCI support. My concern is
+> that most OMAP3 ISP users won't know that IOMMU supports is required. Feel
+> free to ignore it though :-)
 
+I agree with Laurent. As a user, why should I care about IOMMU? I just
+want this thing.
 
-no!
+That's why DRM_RADEON_KMS selects BACKLIGHT_CLASS_DEVICE; it's an
+implementation detail that the user should not need to care about. Why
+should I need to go see the dependencies of DRM_RADEON_KMS and
+manually select all of them? I shouldn't, that's the reason 'select'
+exists in the first place.
 
-its kevin tree, which  i took it 3 weeks back. :-(
+Cheers.
 
-regards
-keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Felipe Contreras
