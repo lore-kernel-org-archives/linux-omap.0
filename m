@@ -1,370 +1,107 @@
-From: <mythripk@ti.com>
-Subject: [PATCH v2 2/5] OMAPDSS: HDMI: Replace hdmi_reg struct with u16
-Date: Thu, 22 Sep 2011 13:37:43 +0530
-Message-ID: <1316678866-17749-3-git-send-email-mythripk@ti.com>
-References: <1316678866-17749-1-git-send-email-mythripk@ti.com>
- <1316678866-17749-2-git-send-email-mythripk@ti.com>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: [RFC PATCH V6 0/4] cpuidle: Global registration of idle states with
+ per-cpu statistics
+Date: Thu, 22 Sep 2011 13:58:52 +0530
+Message-ID: <20110922082840.10520.85895.stgit@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60557 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751282Ab1IVIPv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Sep 2011 04:15:51 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8M8FlEt007287
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 22 Sep 2011 03:15:50 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p8M8FlBu011465
-	for <linux-omap@vger.kernel.org>; Thu, 22 Sep 2011 13:45:47 +0530 (IST)
-In-Reply-To: <1316678866-17749-2-git-send-email-mythripk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+Sender: linux-sh-owner@vger.kernel.org
+To: khilman@ti.com, venki@google.com, ak@linux.intel.com, len.brown@intel.com, peterz@infradead.org, santosh.shilimkar@ti.com, arjan@linux.intel.com, lenb@kernel.org
+Cc: linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
-Cc: Mythri P K <mythripk@ti.com>
 
-From: Mythri P K <mythripk@ti.com>
+The following patch series implements global registration of cpuidle
+states, and also has the necessary data structure changes to
+accommodate the per-cpu writable members of the cpuidle_states
+structure.
 
-Remove usage of hdmi_reg struct to use u16 instead in the
-HDMI IP header file.
+This patch series had been in discussion earlier and
+following are the links to the previous discussions.
 
-Signed-off-by: Mythri P K <mythripk@ti.com>
----
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   10 +-
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |  262 ++++++++++++++---------------
- 2 files changed, 134 insertions(+), 138 deletions(-)
+v1 --> https://lkml.org/lkml/2011/3/22/161
+v2 --> https://lkml.org/lkml/2011/1/13/98
+v3 --> https://lkml.org/lkml/2011/2/8/73
+v4 --> https://lkml.org/lkml/2011/4/28/312
+v5 --> https://lkml.org/lkml/2011/6/6/259
 
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index da7fe50..5f22d2e 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -32,15 +32,15 @@
- #include "dss.h"
- 
- static inline void hdmi_write_reg(void __iomem *base_addr,
--				const struct hdmi_reg idx, u32 val)
-+				const u16 idx, u32 val)
- {
--	__raw_writel(val, base_addr + idx.idx);
-+	__raw_writel(val, base_addr + idx);
- }
- 
- static inline u32 hdmi_read_reg(void __iomem *base_addr,
--				const struct hdmi_reg idx)
-+				const u16 idx)
- {
--	return __raw_readl(base_addr + idx.idx);
-+	return __raw_readl(base_addr + idx);
- }
- 
- static inline void __iomem *hdmi_wp_base(struct hdmi_ip_data *ip_data)
-@@ -69,7 +69,7 @@ static inline void __iomem *hdmi_core_sys_base(struct hdmi_ip_data *ip_data)
- }
- 
- static inline int hdmi_wait_for_bit_change(void __iomem *base_addr,
--				const struct hdmi_reg idx,
-+				const u16 idx,
- 				int b2, int b1, u32 val)
- {
- 	u32 t = 0;
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-index de1e199..694888a 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-@@ -30,142 +30,138 @@
- #include <sound/pcm_params.h>
- #endif
- 
--struct hdmi_reg { u16 idx; };
--
--#define HDMI_REG(idx)			((const struct hdmi_reg) { idx })
--
- /* HDMI Wrapper */
- 
--#define HDMI_WP_REVISION			HDMI_REG(0x0)
--#define HDMI_WP_SYSCONFIG			HDMI_REG(0x10)
--#define HDMI_WP_IRQSTATUS_RAW			HDMI_REG(0x24)
--#define HDMI_WP_IRQSTATUS			HDMI_REG(0x28)
--#define HDMI_WP_PWR_CTRL			HDMI_REG(0x40)
--#define HDMI_WP_IRQENABLE_SET			HDMI_REG(0x2C)
--#define HDMI_WP_VIDEO_CFG			HDMI_REG(0x50)
--#define HDMI_WP_VIDEO_SIZE			HDMI_REG(0x60)
--#define HDMI_WP_VIDEO_TIMING_H			HDMI_REG(0x68)
--#define HDMI_WP_VIDEO_TIMING_V			HDMI_REG(0x6C)
--#define HDMI_WP_WP_CLK				HDMI_REG(0x70)
--#define HDMI_WP_AUDIO_CFG			HDMI_REG(0x80)
--#define HDMI_WP_AUDIO_CFG2			HDMI_REG(0x84)
--#define HDMI_WP_AUDIO_CTRL			HDMI_REG(0x88)
--#define HDMI_WP_AUDIO_DATA			HDMI_REG(0x8C)
-+#define HDMI_WP_REVISION			0x0
-+#define HDMI_WP_SYSCONFIG			0x10
-+#define HDMI_WP_IRQSTATUS_RAW			0x24
-+#define HDMI_WP_IRQSTATUS			0x28
-+#define HDMI_WP_PWR_CTRL			0x40
-+#define HDMI_WP_IRQENABLE_SET			0x2C
-+#define HDMI_WP_VIDEO_CFG			0x50
-+#define HDMI_WP_VIDEO_SIZE			0x60
-+#define HDMI_WP_VIDEO_TIMING_H			0x68
-+#define HDMI_WP_VIDEO_TIMING_V			0x6C
-+#define HDMI_WP_WP_CLK				0x70
-+#define HDMI_WP_AUDIO_CFG			0x80
-+#define HDMI_WP_AUDIO_CFG2			0x84
-+#define HDMI_WP_AUDIO_CTRL			0x88
-+#define HDMI_WP_AUDIO_DATA			0x8C
- 
- /* HDMI IP Core System */
- 
--#define HDMI_CORE_SYS_VND_IDL			HDMI_REG(0x0)
--#define HDMI_CORE_SYS_DEV_IDL			HDMI_REG(0x8)
--#define HDMI_CORE_SYS_DEV_IDH			HDMI_REG(0xC)
--#define HDMI_CORE_SYS_DEV_REV			HDMI_REG(0x10)
--#define HDMI_CORE_SYS_SRST			HDMI_REG(0x14)
--#define HDMI_CORE_CTRL1				HDMI_REG(0x20)
--#define HDMI_CORE_SYS_SYS_STAT			HDMI_REG(0x24)
--#define HDMI_CORE_SYS_VID_ACEN			HDMI_REG(0x124)
--#define HDMI_CORE_SYS_VID_MODE			HDMI_REG(0x128)
--#define HDMI_CORE_SYS_INTR_STATE		HDMI_REG(0x1C0)
--#define HDMI_CORE_SYS_INTR1			HDMI_REG(0x1C4)
--#define HDMI_CORE_SYS_INTR2			HDMI_REG(0x1C8)
--#define HDMI_CORE_SYS_INTR3			HDMI_REG(0x1CC)
--#define HDMI_CORE_SYS_INTR4			HDMI_REG(0x1D0)
--#define HDMI_CORE_SYS_UMASK1			HDMI_REG(0x1D4)
--#define HDMI_CORE_SYS_TMDS_CTRL			HDMI_REG(0x208)
--#define HDMI_CORE_SYS_DE_DLY			HDMI_REG(0xC8)
--#define HDMI_CORE_SYS_DE_CTRL			HDMI_REG(0xCC)
--#define HDMI_CORE_SYS_DE_TOP			HDMI_REG(0xD0)
--#define HDMI_CORE_SYS_DE_CNTL			HDMI_REG(0xD8)
--#define HDMI_CORE_SYS_DE_CNTH			HDMI_REG(0xDC)
--#define HDMI_CORE_SYS_DE_LINL			HDMI_REG(0xE0)
--#define HDMI_CORE_SYS_DE_LINH_1			HDMI_REG(0xE4)
-+#define HDMI_CORE_SYS_VND_IDL			0x0
-+#define HDMI_CORE_SYS_DEV_IDL			0x8
-+#define HDMI_CORE_SYS_DEV_IDH			0xC
-+#define HDMI_CORE_SYS_DEV_REV			0x10
-+#define HDMI_CORE_SYS_SRST			0x14
-+#define HDMI_CORE_CTRL1				0x20
-+#define HDMI_CORE_SYS_SYS_STAT			0x24
-+#define HDMI_CORE_SYS_VID_ACEN			0x124
-+#define HDMI_CORE_SYS_VID_MODE			0x128
-+#define HDMI_CORE_SYS_INTR_STATE		0x1C0
-+#define HDMI_CORE_SYS_INTR1			0x1C4
-+#define HDMI_CORE_SYS_INTR2			0x1C8
-+#define HDMI_CORE_SYS_INTR3			0x1CC
-+#define HDMI_CORE_SYS_INTR4			0x1D0
-+#define HDMI_CORE_SYS_UMASK1			0x1D4
-+#define HDMI_CORE_SYS_TMDS_CTRL			0x208
-+#define HDMI_CORE_SYS_DE_DLY			0xC8
-+#define HDMI_CORE_SYS_DE_CTRL			0xCC
-+#define HDMI_CORE_SYS_DE_TOP			0xD0
-+#define HDMI_CORE_SYS_DE_CNTL			0xD8
-+#define HDMI_CORE_SYS_DE_CNTH			0xDC
-+#define HDMI_CORE_SYS_DE_LINL			0xE0
-+#define HDMI_CORE_SYS_DE_LINH_1			0xE4
- #define HDMI_CORE_CTRL1_VEN_FOLLOWVSYNC	0x1
- #define HDMI_CORE_CTRL1_HEN_FOLLOWHSYNC	0x1
- #define HDMI_CORE_CTRL1_BSEL_24BITBUS		0x1
- #define HDMI_CORE_CTRL1_EDGE_RISINGEDGE	0x1
- 
- /* HDMI DDC E-DID */
--#define HDMI_CORE_DDC_CMD			HDMI_REG(0x3CC)
--#define HDMI_CORE_DDC_STATUS			HDMI_REG(0x3C8)
--#define HDMI_CORE_DDC_ADDR			HDMI_REG(0x3B4)
--#define HDMI_CORE_DDC_OFFSET			HDMI_REG(0x3BC)
--#define HDMI_CORE_DDC_COUNT1			HDMI_REG(0x3C0)
--#define HDMI_CORE_DDC_COUNT2			HDMI_REG(0x3C4)
--#define HDMI_CORE_DDC_DATA			HDMI_REG(0x3D0)
--#define HDMI_CORE_DDC_SEGM			HDMI_REG(0x3B8)
-+#define HDMI_CORE_DDC_CMD			0x3CC
-+#define HDMI_CORE_DDC_STATUS			0x3C8
-+#define HDMI_CORE_DDC_ADDR			0x3B4
-+#define HDMI_CORE_DDC_OFFSET			0x3BC
-+#define HDMI_CORE_DDC_COUNT1			0x3C0
-+#define HDMI_CORE_DDC_COUNT2			0x3C4
-+#define HDMI_CORE_DDC_DATA			0x3D0
-+#define HDMI_CORE_DDC_SEGM			0x3B8
- 
- /* HDMI IP Core Audio Video */
- 
--#define HDMI_CORE_AV_HDMI_CTRL			HDMI_REG(0xBC)
--#define HDMI_CORE_AV_DPD			HDMI_REG(0xF4)
--#define HDMI_CORE_AV_PB_CTRL1			HDMI_REG(0xF8)
--#define HDMI_CORE_AV_PB_CTRL2			HDMI_REG(0xFC)
--#define HDMI_CORE_AV_AVI_TYPE			HDMI_REG(0x100)
--#define HDMI_CORE_AV_AVI_VERS			HDMI_REG(0x104)
--#define HDMI_CORE_AV_AVI_LEN			HDMI_REG(0x108)
--#define HDMI_CORE_AV_AVI_CHSUM			HDMI_REG(0x10C)
--#define HDMI_CORE_AV_AVI_DBYTE(n)		HDMI_REG(n * 4 + 0x110)
--#define HDMI_CORE_AV_AVI_DBYTE_NELEMS		HDMI_REG(15)
--#define HDMI_CORE_AV_SPD_DBYTE			HDMI_REG(0x190)
--#define HDMI_CORE_AV_SPD_DBYTE_NELEMS		HDMI_REG(27)
--#define HDMI_CORE_AV_AUD_DBYTE(n)		HDMI_REG(n * 4 + 0x210)
--#define HDMI_CORE_AV_AUD_DBYTE_NELEMS		HDMI_REG(10)
--#define HDMI_CORE_AV_MPEG_DBYTE			HDMI_REG(0x290)
--#define HDMI_CORE_AV_MPEG_DBYTE_NELEMS		HDMI_REG(27)
--#define HDMI_CORE_AV_GEN_DBYTE			HDMI_REG(0x300)
--#define HDMI_CORE_AV_GEN_DBYTE_NELEMS		HDMI_REG(31)
--#define HDMI_CORE_AV_GEN2_DBYTE			HDMI_REG(0x380)
--#define HDMI_CORE_AV_GEN2_DBYTE_NELEMS		HDMI_REG(31)
--#define HDMI_CORE_AV_ACR_CTRL			HDMI_REG(0x4)
--#define HDMI_CORE_AV_FREQ_SVAL			HDMI_REG(0x8)
--#define HDMI_CORE_AV_N_SVAL1			HDMI_REG(0xC)
--#define HDMI_CORE_AV_N_SVAL2			HDMI_REG(0x10)
--#define HDMI_CORE_AV_N_SVAL3			HDMI_REG(0x14)
--#define HDMI_CORE_AV_CTS_SVAL1			HDMI_REG(0x18)
--#define HDMI_CORE_AV_CTS_SVAL2			HDMI_REG(0x1C)
--#define HDMI_CORE_AV_CTS_SVAL3			HDMI_REG(0x20)
--#define HDMI_CORE_AV_CTS_HVAL1			HDMI_REG(0x24)
--#define HDMI_CORE_AV_CTS_HVAL2			HDMI_REG(0x28)
--#define HDMI_CORE_AV_CTS_HVAL3			HDMI_REG(0x2C)
--#define HDMI_CORE_AV_AUD_MODE			HDMI_REG(0x50)
--#define HDMI_CORE_AV_SPDIF_CTRL			HDMI_REG(0x54)
--#define HDMI_CORE_AV_HW_SPDIF_FS		HDMI_REG(0x60)
--#define HDMI_CORE_AV_SWAP_I2S			HDMI_REG(0x64)
--#define HDMI_CORE_AV_SPDIF_ERTH			HDMI_REG(0x6C)
--#define HDMI_CORE_AV_I2S_IN_MAP			HDMI_REG(0x70)
--#define HDMI_CORE_AV_I2S_IN_CTRL		HDMI_REG(0x74)
--#define HDMI_CORE_AV_I2S_CHST0			HDMI_REG(0x78)
--#define HDMI_CORE_AV_I2S_CHST1			HDMI_REG(0x7C)
--#define HDMI_CORE_AV_I2S_CHST2			HDMI_REG(0x80)
--#define HDMI_CORE_AV_I2S_CHST4			HDMI_REG(0x84)
--#define HDMI_CORE_AV_I2S_CHST5			HDMI_REG(0x88)
--#define HDMI_CORE_AV_ASRC			HDMI_REG(0x8C)
--#define HDMI_CORE_AV_I2S_IN_LEN			HDMI_REG(0x90)
--#define HDMI_CORE_AV_HDMI_CTRL			HDMI_REG(0xBC)
--#define HDMI_CORE_AV_AUDO_TXSTAT		HDMI_REG(0xC0)
--#define HDMI_CORE_AV_AUD_PAR_BUSCLK_1		HDMI_REG(0xCC)
--#define HDMI_CORE_AV_AUD_PAR_BUSCLK_2		HDMI_REG(0xD0)
--#define HDMI_CORE_AV_AUD_PAR_BUSCLK_3		HDMI_REG(0xD4)
--#define HDMI_CORE_AV_TEST_TXCTRL		HDMI_REG(0xF0)
--#define HDMI_CORE_AV_DPD			HDMI_REG(0xF4)
--#define HDMI_CORE_AV_PB_CTRL1			HDMI_REG(0xF8)
--#define HDMI_CORE_AV_PB_CTRL2			HDMI_REG(0xFC)
--#define HDMI_CORE_AV_AVI_TYPE			HDMI_REG(0x100)
--#define HDMI_CORE_AV_AVI_VERS			HDMI_REG(0x104)
--#define HDMI_CORE_AV_AVI_LEN			HDMI_REG(0x108)
--#define HDMI_CORE_AV_AVI_CHSUM			HDMI_REG(0x10C)
--#define HDMI_CORE_AV_SPD_TYPE			HDMI_REG(0x180)
--#define HDMI_CORE_AV_SPD_VERS			HDMI_REG(0x184)
--#define HDMI_CORE_AV_SPD_LEN			HDMI_REG(0x188)
--#define HDMI_CORE_AV_SPD_CHSUM			HDMI_REG(0x18C)
--#define HDMI_CORE_AV_AUDIO_TYPE			HDMI_REG(0x200)
--#define HDMI_CORE_AV_AUDIO_VERS			HDMI_REG(0x204)
--#define HDMI_CORE_AV_AUDIO_LEN			HDMI_REG(0x208)
--#define HDMI_CORE_AV_AUDIO_CHSUM		HDMI_REG(0x20C)
--#define HDMI_CORE_AV_MPEG_TYPE			HDMI_REG(0x280)
--#define HDMI_CORE_AV_MPEG_VERS			HDMI_REG(0x284)
--#define HDMI_CORE_AV_MPEG_LEN			HDMI_REG(0x288)
--#define HDMI_CORE_AV_MPEG_CHSUM			HDMI_REG(0x28C)
--#define HDMI_CORE_AV_CP_BYTE1			HDMI_REG(0x37C)
--#define HDMI_CORE_AV_CEC_ADDR_ID		HDMI_REG(0x3FC)
-+#define HDMI_CORE_AV_HDMI_CTRL			0xBC
-+#define HDMI_CORE_AV_DPD			0xF4
-+#define HDMI_CORE_AV_PB_CTRL1			0xF8
-+#define HDMI_CORE_AV_PB_CTRL2			0xFC
-+#define HDMI_CORE_AV_AVI_TYPE			0x100
-+#define HDMI_CORE_AV_AVI_VERS			0x104
-+#define HDMI_CORE_AV_AVI_LEN			0x108
-+#define HDMI_CORE_AV_AVI_CHSUM			0x10C
-+#define HDMI_CORE_AV_AVI_DBYTE(n)		(n * 4 + 0x110)
-+#define HDMI_CORE_AV_AVI_DBYTE_NELEMS		15
-+#define HDMI_CORE_AV_SPD_DBYTE			0x190
-+#define HDMI_CORE_AV_SPD_DBYTE_NELEMS		27
-+#define HDMI_CORE_AV_AUD_DBYTE(n)		(n * 4 + 0x210)
-+#define HDMI_CORE_AV_AUD_DBYTE_NELEMS		10
-+#define HDMI_CORE_AV_MPEG_DBYTE			0x290
-+#define HDMI_CORE_AV_MPEG_DBYTE_NELEMS		27
-+#define HDMI_CORE_AV_GEN_DBYTE			0x300
-+#define HDMI_CORE_AV_GEN_DBYTE_NELEMS		31
-+#define HDMI_CORE_AV_GEN2_DBYTE			0x380
-+#define HDMI_CORE_AV_GEN2_DBYTE_NELEMS		31
-+#define HDMI_CORE_AV_ACR_CTRL			0x4
-+#define HDMI_CORE_AV_FREQ_SVAL			0x8
-+#define HDMI_CORE_AV_N_SVAL1			0xC
-+#define HDMI_CORE_AV_N_SVAL2			0x10
-+#define HDMI_CORE_AV_N_SVAL3			0x14
-+#define HDMI_CORE_AV_CTS_SVAL1			0x18
-+#define HDMI_CORE_AV_CTS_SVAL2			0x1C
-+#define HDMI_CORE_AV_CTS_SVAL3			0x20
-+#define HDMI_CORE_AV_CTS_HVAL1			0x24
-+#define HDMI_CORE_AV_CTS_HVAL2			0x28
-+#define HDMI_CORE_AV_CTS_HVAL3			0x2C
-+#define HDMI_CORE_AV_AUD_MODE			0x50
-+#define HDMI_CORE_AV_SPDIF_CTRL			0x54
-+#define HDMI_CORE_AV_HW_SPDIF_FS		0x60
-+#define HDMI_CORE_AV_SWAP_I2S			0x64
-+#define HDMI_CORE_AV_SPDIF_ERTH			0x6C
-+#define HDMI_CORE_AV_I2S_IN_MAP			0x70
-+#define HDMI_CORE_AV_I2S_IN_CTRL		0x74
-+#define HDMI_CORE_AV_I2S_CHST0			0x78
-+#define HDMI_CORE_AV_I2S_CHST1			0x7C
-+#define HDMI_CORE_AV_I2S_CHST2			0x80
-+#define HDMI_CORE_AV_I2S_CHST4			0x84
-+#define HDMI_CORE_AV_I2S_CHST5			0x88
-+#define HDMI_CORE_AV_ASRC			0x8C
-+#define HDMI_CORE_AV_I2S_IN_LEN			0x90
-+#define HDMI_CORE_AV_HDMI_CTRL			0xBC
-+#define HDMI_CORE_AV_AUDO_TXSTAT		0xC0
-+#define HDMI_CORE_AV_AUD_PAR_BUSCLK_1		0xCC
-+#define HDMI_CORE_AV_AUD_PAR_BUSCLK_2		0xD0
-+#define HDMI_CORE_AV_AUD_PAR_BUSCLK_3		0xD4
-+#define HDMI_CORE_AV_TEST_TXCTRL		0xF0
-+#define HDMI_CORE_AV_DPD			0xF4
-+#define HDMI_CORE_AV_PB_CTRL1			0xF8
-+#define HDMI_CORE_AV_PB_CTRL2			0xFC
-+#define HDMI_CORE_AV_AVI_TYPE			0x100
-+#define HDMI_CORE_AV_AVI_VERS			0x104
-+#define HDMI_CORE_AV_AVI_LEN			0x108
-+#define HDMI_CORE_AV_AVI_CHSUM			0x10C
-+#define HDMI_CORE_AV_SPD_TYPE			0x180
-+#define HDMI_CORE_AV_SPD_VERS			0x184
-+#define HDMI_CORE_AV_SPD_LEN			0x188
-+#define HDMI_CORE_AV_SPD_CHSUM			0x18C
-+#define HDMI_CORE_AV_AUDIO_TYPE			0x200
-+#define HDMI_CORE_AV_AUDIO_VERS			0x204
-+#define HDMI_CORE_AV_AUDIO_LEN			0x208
-+#define HDMI_CORE_AV_AUDIO_CHSUM		0x20C
-+#define HDMI_CORE_AV_MPEG_TYPE			0x280
-+#define HDMI_CORE_AV_MPEG_VERS			0x284
-+#define HDMI_CORE_AV_MPEG_LEN			0x288
-+#define HDMI_CORE_AV_MPEG_CHSUM			0x28C
-+#define HDMI_CORE_AV_CP_BYTE1			0x37C
-+#define HDMI_CORE_AV_CEC_ADDR_ID		0x3FC
- #define HDMI_CORE_AV_SPD_DBYTE_ELSIZE		0x4
- #define HDMI_CORE_AV_GEN2_DBYTE_ELSIZE		0x4
- #define HDMI_CORE_AV_MPEG_DBYTE_ELSIZE		0x4
-@@ -173,20 +169,20 @@ struct hdmi_reg { u16 idx; };
- 
- /* PLL */
- 
--#define PLLCTRL_PLL_CONTROL			HDMI_REG(0x0)
--#define PLLCTRL_PLL_STATUS			HDMI_REG(0x4)
--#define PLLCTRL_PLL_GO				HDMI_REG(0x8)
--#define PLLCTRL_CFG1				HDMI_REG(0xC)
--#define PLLCTRL_CFG2				HDMI_REG(0x10)
--#define PLLCTRL_CFG3				HDMI_REG(0x14)
--#define PLLCTRL_CFG4				HDMI_REG(0x20)
-+#define PLLCTRL_PLL_CONTROL			0x0
-+#define PLLCTRL_PLL_STATUS			0x4
-+#define PLLCTRL_PLL_GO				0x8
-+#define PLLCTRL_CFG1				0xC
-+#define PLLCTRL_CFG2				0x10
-+#define PLLCTRL_CFG3				0x14
-+#define PLLCTRL_CFG4				0x20
- 
- /* HDMI PHY */
- 
--#define HDMI_TXPHY_TX_CTRL			HDMI_REG(0x0)
--#define HDMI_TXPHY_DIGITAL_CTRL			HDMI_REG(0x4)
--#define HDMI_TXPHY_POWER_CTRL			HDMI_REG(0x8)
--#define HDMI_TXPHY_PAD_CFG_CTRL			HDMI_REG(0xC)
-+#define HDMI_TXPHY_TX_CTRL			0x0
-+#define HDMI_TXPHY_DIGITAL_CTRL			0x4
-+#define HDMI_TXPHY_POWER_CTRL			0x8
-+#define HDMI_TXPHY_PAD_CFG_CTRL			0xC
- 
- #define REG_FLD_MOD(base, idx, val, start, end) \
- 	hdmi_write_reg(base, idx, FLD_MOD(hdmi_read_reg(base, idx),\
+Changes from previous version (V5):
+
+    Rebased the series to 3.1-rc7
+    
+Tests done:
+
+    1. Compile tested for ARM using the following configs: da8xx_omapl_defconfig,
+    exynos4_defconfig, kirkwood_defconfig, omap2plus_defconfig, 
+    at91rm9200_defconfig
+      
+    2. Boot tested on x86 nehalem with multiple C-states for both intel_idle
+    and acpi_idle drivers.
+
+    3. Boot tested on T60p thinkpad that has T2600 cpu with multiple C-states. 
+    Also tested the case when there is dynamic changes in C-states 
+    AC <-> Battery Power switch.
+
+Brief description of the patches:
+
+Core change in this series is to split the cpuidle_device structure 
+into two parts, i.e  global and per-cpu basis. 
+
+The per-cpu pieces are mostly generic statistics that can be independent 
+of current running driver. As a result of these changes, there is single 
+copy of cpuidle_states structure and single registration done by one 
+cpu. The low level driver is free to set per-cpu driver data on
+each cpu if needed using the cpuidle_set_statedata() as the case
+today. Only in very rare cases asymmetric C-states exist which can be 
+handled within the cpuidle driver. Most architectures do not have 
+asymmetric C-states.
+
+First two patches in the series facilitate splitting of cpuidle_states
+and cpuidle_device structure and next two patches do the actual split,
+change the API's and make existing code follow the changed API.
+
+[1/4] - Move the idle residency accounting part from cpuidle.c to
+the respective low level drivers, so that the accounting can
+be accurately maintained if the driver decides to demote the
+chosen (suggested) by the governor.
+
+[2/4] - removes the cpuidle_device()->prepare API since is is not
+widely used and the only use case was to allow software
+demotion using CPUIDLE_FLAG_IGNORE flag.  Both these
+functions can be absorbed within the cpuidle back-end
+driver ad hence deprecating the prepare routine and the
+CPUIDLE_FLAG_IGNORE flag.
+
+    - Ref: https://lkml.org/lkml/2011/3/25/52
+
+[3/4] - Splits the usage statistics (read/write) part out of
+cpuidle_state structure, so that the states can become read
+only and hence made global.
+
+[4/4] - Most APIs will now need to pass pointer to both global
+cpuidle_driver and per-cpu cpuidle_device structure.
+
+ arch/arm/mach-at91/cpuidle.c          |   41 +++--
+ arch/arm/mach-davinci/cpuidle.c       |   51 ++++---
+ arch/arm/mach-exynos4/cpuidle.c       |   30 ++--
+ arch/arm/mach-kirkwood/cpuidle.c      |   42 +++---
+ arch/arm/mach-omap2/cpuidle34xx.c     |  133 +++++++++++------
+ arch/sh/kernel/cpu/shmobile/cpuidle.c |   28 ++--
+ drivers/acpi/processor_driver.c       |   20 ---
+ drivers/acpi/processor_idle.c         |  251 +++++++++++++++++++++++++++------
+ drivers/cpuidle/cpuidle.c             |   86 ++++-------
+ drivers/cpuidle/driver.c              |   25 +++
+ drivers/cpuidle/governors/ladder.c    |   41 ++++-
+ drivers/cpuidle/governors/menu.c      |   29 ++--
+ drivers/cpuidle/sysfs.c               |   22 ++-
+ drivers/idle/intel_idle.c             |  130 +++++++++++++----
+ include/acpi/processor.h              |    1 
+ include/linux/cpuidle.h               |   52 ++++---
+ 16 files changed, 650 insertions(+), 332 deletions(-)
+
+
 -- 
-1.7.5.4
 
+Thanks
+ -Deepthi
