@@ -1,78 +1,51 @@
 From: Abhilash K V <abhilash.kv@ti.com>
-Subject: [PATCH v3 3/3] OMAP3: Remove auto-selection of PMICs
-Date: Thu, 22 Sep 2011 18:59:15 +0530
-Message-ID: <1316698155-954-4-git-send-email-abhilash.kv@ti.com>
-References: <1316698155-954-1-git-send-email-abhilash.kv@ti.com>
- <1316698155-954-2-git-send-email-abhilash.kv@ti.com>
- <1316698155-954-3-git-send-email-abhilash.kv@ti.com>
+Subject: [PATCH v3 0/3] AM35x: Adding PM init
+Date: Thu, 22 Sep 2011 18:59:12 +0530
+Message-ID: <1316698155-954-1-git-send-email-abhilash.kv@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1316698155-954-3-git-send-email-abhilash.kv@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 Cc: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, sameo@linux.intel.com, santosh.shilimkar@ti.com, premi@ti.com, david.woodhouse@intel.com, christian.gmeiner@gmail.com, Abhilash K V <abhilash.kv@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The current implementation almost assumes that only
-TWL4030/TWL5030/TWl6030 are (or can be) used with the
-OMAP processors. This is, however, not true.
+This patch-set fixes the power and voltage management initialization sequence
+for AM35x.
+These patches are dependent on the following patch-set
+	[PATCH v4 0/3] AM3517: Booting up
+which gets the AM3517 EVM booting.
 
-This patch removes the automatic selection of the PMIC
-from Kconfig.
-All currently used PMICs are now added to omap2plus_defconfig;
-any new PMIC that gets supported in future could now be
-enabled here rather than by changing Kconfig for
-ARCH_OMAP2PLUS_TYPICAL
+The patches are tested on master of git://github.com/tmlind/linux.git
+Kernel version is 3.1.0-rc6 and last commit on top of which these patches
+were added is:
+	0c2838d00350afc5259730c35bbda81598e8875f: Linux-omap rebuilt: Updated
+	to -rc7, merged in dmtimer
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
-Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+Cc: Sanjeev Premi <premi@ti.com>
 ---
- arch/arm/configs/omap2plus_defconfig |    3 +++
- arch/arm/mach-omap2/Kconfig          |    3 ---
- drivers/mfd/Kconfig                  |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+Changes in v3:
+  * Reworked against the cleaned-up voltage management layer.
+Changes in v2:
+  * TWL4030 CORE and POWER drivers are no longer built only for ARM and OMAP
+  * changed comments to mark AM35x voltgate-scaling code as ad hoc
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index d5f00d7..076b131 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -130,6 +130,9 @@ CONFIG_POWER_SUPPLY=y
- CONFIG_WATCHDOG=y
- CONFIG_OMAP_WATCHDOG=y
- CONFIG_TWL4030_WATCHDOG=y
-+CONFIG_MENELAUS=y
-+CONFIG_TWL4030_CORE=y
-+CONFIG_TWL4030_POWER=y
- CONFIG_REGULATOR_TWL4030=y
- CONFIG_REGULATOR_TPS65023=y
- CONFIG_REGULATOR_TPS6507X=y
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 7edf802..d40f6d2 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -15,9 +15,6 @@ config ARCH_OMAP2PLUS_TYPICAL
- 	select I2C
- 	select I2C_OMAP
- 	select MFD_SUPPORT
--	select MENELAUS if ARCH_OMAP2
--	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
--	select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
- 	help
- 	  Compile a kernel suitable for booting most boards
- 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 21574bd..72e15c8 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -238,7 +238,7 @@ config TWL4030_MADC
- 
- config TWL4030_POWER
- 	bool "Support power resources on TWL4030 family chips"
--	depends on TWL4030_CORE && ARM
-+	depends on TWL4030_CORE
- 	help
- 	  Say yes here if you want to use the power resources on the
- 	  TWL4030 family chips.  Most of these resources are regulators,
--- 
-1.7.1
+Abhilash K V (2):
+  AM35x: voltage: Basic initialization
+  OMAP3: Remove auto-selection of PMICs
+
+Sanjeev Premi (1):
+  OMAP3: Add support for TPS65023 (AM35x only)
+
+ arch/arm/configs/omap2plus_defconfig          |    3 +
+ arch/arm/mach-omap2/Kconfig                   |    3 -
+ arch/arm/mach-omap2/Makefile                  |    3 +-
+ arch/arm/mach-omap2/omap_opp_data.h           |    1 +
+ arch/arm/mach-omap2/opp3xxx_data.c            |    9 +++
+ arch/arm/mach-omap2/pm.c                      |    1 +
+ arch/arm/mach-omap2/pm.h                      |    9 +++
+ arch/arm/mach-omap2/pmic_tps65023.c           |   84 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |   10 +++-
+ drivers/mfd/Kconfig                           |    2 +-
+ 10 files changed, 118 insertions(+), 7 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/pmic_tps65023.c
