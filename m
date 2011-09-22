@@ -1,31 +1,38 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/2] arm: omap: usb: enable I/O wakeups of ehci and ohci
- hwmods
-Date: Thu, 22 Sep 2011 17:38:31 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109221737210.10719@utopia.booyaka.com>
-References: <1315579967-24945-1-git-send-email-keshava_mgowda@ti.com>
+Subject: Re: [PATCH] OMAP2+: clock: cleanup CPUfreq leftovers
+Date: Thu, 22 Sep 2011 17:46:56 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109221746130.10719@utopia.booyaka.com>
+References: <1316726006-26925-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54346 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:38703 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754513Ab1IVXic (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Sep 2011 19:38:32 -0400
-In-Reply-To: <1315579967-24945-1-git-send-email-keshava_mgowda@ti.com>
+	with ESMTP id S1754507Ab1IVXq5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Sep 2011 19:46:57 -0400
+In-Reply-To: <1316726006-26925-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi
+Hi Kevin
 
-so as 
+On Thu, 22 Sep 2011, Kevin Hilman wrote:
 
-   http://marc.info/?l=linux-omap&m=131673433121673&w=2
+> Now that we have OPP layer, and OMAP CPUfreq driver is using it, we no
+> longer need/use the clock framework code for filling up CPUfreq
+> tables.  Remove it.
+> 
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> Paul, this patch has a dependency on the OMAP CPUFreq driver
+> move/cleanup series just posted.  Assuming that is merged for v3.2,
+> this can go also.
 
-mentions, these should either be associated with the UHH IP block, or 
-handled by code in arch/arm/mach-omap2/usb-host.c, since the EHCI and OHCI 
-IP blocks are created by the OMAP USB host MFD driver.
+Great, could you cc lakml also ?
+
+thanks,
 
 
 - Paul
