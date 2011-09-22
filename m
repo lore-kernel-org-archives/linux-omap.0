@@ -1,45 +1,74 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/5 v11] arm: omap: usb: ehci and ohci hwmod structures
- for omap4
-Date: Thu, 22 Sep 2011 12:14:53 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109221213500.10719@utopia.booyaka.com>
-References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/3] TI81XX: Prepare for addition of TI814X support
+Date: Thu, 22 Sep 2011 11:21:13 -0700
+Message-ID: <20110922182113.GU2937@atomide.com>
+References: <1316626735-5597-1-git-send-email-hemantp@ti.com>
+ <20110921204057.GJ2937@atomide.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B03B4D17100@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38346 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753013Ab1IVSOy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Sep 2011 14:14:54 -0400
-In-Reply-To: <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40230 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753160Ab1IVSVR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Sep 2011 14:21:17 -0400
+Content-Disposition: inline
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4D17100@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>, parthab@india.ti.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, b-cousson@ti.com, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, tony@atomide.com, khilman@ti.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+To: "Pedanekar, Hemant" <hemantp@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi
-
-On Thu, 22 Sep 2011, Keshava Munegowda wrote:
-
-> Following 4 hwmod structures are added
-> 1. usb_host_hs hwmod of usbhs with uhh base address and functional clock,
-> 2. usb_ehci_hs hwmod with irq and base address,
-> 3. usb_ohci_hs hwmod with irq and base address,
->    - The ehci and ohci hwmods does not require functional clock
->      because usb_host_hs has functional clock which is sufficient
->      to access ehci and ohci address space.
->    - The usb_ehci_hs and usb_ohci_hs should be two separate hwmods
->      which should not be combined. This is needed because ehci and
->      ohci will have separate dedicated ports & in omap4 there is a
->      clock per port.We should be able to configure the IO-Wakeup
->      capability of pins specific to EHCI & OHCI separately and depending
->      on the I/O wakeup event  the  only port clocks corresponding
->      to the wakeup source will be enabled internally by the usb host driver.
+* Pedanekar, Hemant <hemantp@ti.com> [110921 17:00]:
+> Tony Lindgren wrote on Thursday, September 22, 2011 2:11 AM:
 > 
-> 4. usb_tll_hs hwmod of usbhs with the TLL base address and irq.
+> > * Hemant Pedanekar <hemantp@ti.com> [110921 10:05]:
+> >> --- a/arch/arm/mach-omap2/board-ti8168evm.c
+> >> +++ b/arch/arm/mach-omap2/board-ti8168evm.c
+> >> @@ -37,16 +37,16 @@ static void __init ti8168_evm_init(void)
+> >> 
+> >>  static void __init ti8168_evm_map_io(void)
+> >>  {
+> >> -	omap2_set_globals_ti816x();
+> >> -	omapti816x_map_common_io();
+> >> +	omap2_set_globals_ti81xx();
+> >> +	omapti81xx_map_common_io();
+> >>  }
+> >> 
+> >>  MACHINE_START(TI8168EVM, "ti8168evm")
+> >>  	/* Maintainer: Texas Instruments */
+> >>  	.atag_offset	= 0x100,
+> >>  	.map_io		= ti8168_evm_map_io,
+> >> -	.init_early	= ti816x_init_early,
+> >> -	.init_irq	= ti816x_init_irq,
+> >> +	.init_early	= ti81xx_init_early,
+> >> +	.init_irq	= ti81xx_init_irq,
+> >>  	.timer		= &omap3_timer,
+> >>  	.init_machine	= ti8168_evm_init,
+> >>  MACHINE_END
+> > 
+> > Looks like you still need a minor rebase on the current cleanup
+> > branch as the ti8668_evm_map_io is no longer needed. The cleanup
+> > branch already has Paul's CHIP_IS removal, so that should be trivial.
+> >
+> 
+> Tony,
+> Can you please clarify? Do we not need ti8168_evm_map_io() for global data
+> initianlization and io init? Or, as you mentioned in comment on 3/3 of the
+> series, do you mean to rename this with ti81xx and move to common.c?
 
-Many of the same issues with the OMAP3 data (missing main_clks, missing 
-ADDR_TYPE_RT, etc.) exist with this patch also.
+Yes just have a generic one in common.c should be enough. Sorry I thought
+that was already done, but looks like it was only done for omap3_map_io.
+  
+> > Ideally the rename patch would be separate without any functional
+> > changes, maybe you can move the changes and additions to the next patch?
+> > 
+> > Tony
+> 
+> If the above understanding is correct, then I will just have to rename+move
+> ti8168_evm_map_io() so the change can still be in this patch, right? Or are
+> You referring to any other part which should not be in this patch?
 
+Yes it's OK to keep it in this patch.
 
-- Paul
+Tony
