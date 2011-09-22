@@ -1,63 +1,40 @@
-From: =?utf-8?B?5LuFMTDlhYPmr4/lpKk=?= <admin@biotherm.co.kr>
-Subject: =?utf-8?B?576k5Y+R6L2v5Lu2K+S5sOWutuaQnOe0ouacuisxMDnlsYrlub/kuqTkvJrkubDlrrY=?=
-	=?utf-8?B?44CB5rW35YWz5pWw5o2uLEIyQuivouebmOS5sOWutjUwMOS4hw==?=
-Date: Thu, 22 Sep 2011 04:42:24 +0000 (UTC)
-Message-ID: <20120921152010852363@biotherm.co.kr>
-Reply-To: <1339625218@qq.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v16 07/12] OMAP: dmtimer: add timeout to low-level routines
+Date: Thu, 22 Sep 2011 11:23:34 +0530
+Message-ID: <CAC83Zv+zg1LURpvRLc96sVV4sEx2CG7=1Lt+dT1VvhqEHAkj0Q@mail.gmail.com>
+References: <1316518227-28116-1-git-send-email-tarun.kanti@ti.com>
+	<1316518227-28116-8-git-send-email-tarun.kanti@ti.com>
+	<20110922010046.GS2937@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [210.116.76.15] ([210.116.76.15]:35726 "HELO biotherm.co.kr"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-	id S1750804Ab1IVEmR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Sep 2011 00:42:17 -0400
-Date: Fri, 21 Sep 2012 15:19:58 +0800
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:43020 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750964Ab1IVFxh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Sep 2011 01:53:37 -0400
+Received: by bkbzt12 with SMTP id zt12so2471505bkb.12
+        for <linux-omap@vger.kernel.org>; Wed, 21 Sep 2011 22:53:34 -0700 (PDT)
+In-Reply-To: <20110922010046.GS2937@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linmiao@online.sh.cnlinmiao@online.sh.cn, linna_qin@hotmail.com, linnyangchn@yahoo.com, linping.shen@dachengnet.com, linrossne@aol.com, linshaodan@518ad.com, linswung
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-576k5Y+R6L2v5Lu2KzEwOeWxiuW5v+S6pOS8muS5sOWutuOAgea1t+WFs+aVsOaNruOAgeaQnOe0
-ouW8leaTjuS5sOWutixCMkLor6Lnm5jkubDlrrblhbE1MDDkuIcs5LuFMTDlhYPmr4/lpKnjgIIg
-DQrnvqTlj5Hova/ku7YrMTA55bGK5bm/5Lqk5Lya5Lmw5a6244CB5rW35YWz5pWw5o2u44CB5pCc
-57Si5byV5pOO5Lmw5a62LEIyQuivouebmOS5sOWutuWFsTUwMOS4hyzku4UxMOWFg+avj+WkqeOA
-giANCuS/neivgeavj+WkqemDveacieS5sOWutuWbnuWkjeOAgg0K5L+d6K+B5q+P5aSp6YO95pyJ
-5Lmw5a625Zue5aSN44CCDQrkv53or4Hmr4/lpKnpg73mnInkubDlrrblm57lpI3jgIINCjHjgIHn
-vqTlj5Hova/ku7bvvJog5pON5L2c566A5Y2V77yM5Yqf6IO95by65aSn77yM5qih5Lu/5Lq65bel
-5pON5L2c5qih5byP77yM5Yiw6L6+546H6auY77yM5pel5Y+R6YCBNeS4h+WwgeS7peS4iuOAgiAN
-CjLjgIE1MDDkuIfkubDlrrbotYTmupDvvJog6LWg6YCB55qENTAw5LiH5Lmw5a626LWE5rqQ5bqT
-77yM5pu05pawICjlj6/ku6XmjInnhafmgqjnmoTkuqflk4Hmj5Dlj5blh7rmnaXvvIzmm7Tnsr7l
-h4blvIDlj5Ep44CCIA0KM+OAgei2hee6p+a1t+WkluS5sOWutkVtYWls5pCc57Si5py677yaIOWG
-hee9ruS6hjYwMOS4h+ihjOS4muWFs+mUruivje+8jOagueaNrumVv+WwvuivjeaQnOe0ou+8jOe7
-k+aenOabtOeyvuehruWMuemFje+8m+avj+WkqeiDveaQnOe0ojEtMuS4h+S7peS4iuS5sOWutuec
-n+WunkVNQUlM77yM5oiQ5Y2V546H6auY44CCIA0KIA0K6KaB55qE5oqT57Sn6IGU57O7UVE6IDEz
-Mzk2MjUyMTggICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEzMzk2MjUyMThAcXEuY29tDQro
-poHnmoTmipPntKfogZTns7tRUTogMTMzOTYyNTIxOCAgIOaIluiAheeri+WNs+WbnuWkjemCrueu
-sTogMTMzOTYyNTIxOEBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzM5NjI1MjE4ICAg
-5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMzM5NjI1MjE4QHFxLmNvbQ0KIA0K5YWN6LS56LWg
-6YCBOg0K5LiA5YWxOOS4quWMhSjmlbDmja7mmK/lhajooYzkuJrnmoTvvIzmjInnhafooYzkuJrl
-iIblpb3nsbvvvIzlubbkuJTlj6/ku6XmjInnhaflhbPplK7or43mn6Xor6LnmoQp77yaIA0KMe+8
-jDIwMTHmmKXlraMxMDnlsYrlub/kuqTkvJrkubDlrrbnjrDlnLror6Lnm5jmlbDmja7lupPmlrDp
-spzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDmja7vvIzlrrnmmJPmiJDl
-jZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAxMeeni+Wto+W5v+S6pOS8
-misyMDEy5pil5a2j5bm/5Lqk5Lya5Lmw5a625pWw5o2u44CC5aSq6LaF5YC85LqG44CCDQoz77yM
-5pyA5paw5YWo55CD5Lmw5a625bqTLOWFsTQ1MTY2MOadoeaVsOaNruOAgiAo5pyA5paw5pu05paw
-5pel5pyfIDIwMTEtMDUtMTbml6UpDQo077yMMjAwOOW5tCwyMDA55bm0LDIwMTDlubQg5pil5a2j
-K+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8jDEwMyAxMDQgMTA1IDEwNiAxMDcgMTA4IOWF
-seWFreWxiiDlhbExMjAuNuS4h+aVsOaNruOAgg0KNe+8jDIwMTDlubTlm73pmYXkv4PplIDljY/k
-vJrvvIhQUEFJ77yJ5oiQ5ZGY5ZCN5Y2VIFBQQUkgTWVtYmVycyBEaXJlY3RvcnnvvIzpnZ7luLjp
-h43opoHnmoTlpKfkubDlrrbjgIINCjbvvIwyMDEw5bm05Yiw6aaZ5riv6YeH6LSt55qE5Zu95aSW
-5a6i5Lq65ZCN5b2VKOmmmea4r+i0uOWPkeWxgOaPkOS+mynvvIzlhbE3LjLkuIfmlbDmja7vvIzo
-toXnuqfph43opoHnmoTkubDlrrbjgIINCjfvvIw0OC42OOS4h+adoeacgOaWsOS5sOWutuivoueb
-mO+8jOi0reS5sOWQjuavj+aciOabtOaWsCAxLTLkuIfmnaHvvIzljIXmi6wy6YOo5YiG77yMMe+8
-jOacgOaWsOeahOivouebmCAy77yM5pyA5paw55qE5bGV5Lya5Lmw5a6244CC5YWN6LS55pu05paw
-MzbkuKrmnIjjgIINCjjvvIwyMDA55bm05rW35YWz5o+Q5Y2V5pWw5o2ucGllcnPniYjmlbDmja4g
-MeWNg+S4h+OAgg0KDQror5rkv6HkuLrmnKzvvIzmlK/mjIHmlK/ku5jlrp3mi4Xkv53kuqTmmJMg
-KOWFiOWPkei0p+W5tuWuieijheiuvue9rue+pOWPkei9r+S7tu+8jOeEtuWQjuS7mOasvikg5b27
-5bqV5omT5raI5oKo55qEIOmhvuiZkeOAgg0KIA0KDQogDQrnsr7lh4bmlbDmja4t5oiQ5Y2V546H
-5p6B6auYDQrnsr7lh4bmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrnsr7lh4bmlbDmja4t5oiQ5Y2V
-546H5p6B6auYDQrnsr7lh4bmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrnsr7lh4bmlbDmja4t5oiQ
-5Y2V546H5p6B6auYDQo=
-
-
+> Let's leave out these changes for now, they make the
+> omap2_gp_timer_set_next_event used for system timer interrupts
+> huge if you take a look at it with objdump.
+>
+> Later on we might want to split the posted bit check into a separate
+> inline function, and then you can implement this for the device
+> driver where things are more likely to go wrong with more complicated
+> use scenarios.
+Alright.
+--
+Tarun
+>
+> Regards,
+>
+> Tony
+>
+>
