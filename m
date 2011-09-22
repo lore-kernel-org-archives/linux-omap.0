@@ -1,48 +1,90 @@
 From: Abhilash K V <abhilash.kv@ti.com>
-Subject: [PATCH v4 3/3] OMAP2+: voltage: add check for missing PMIC info in vp init
-Date: Thu, 22 Sep 2011 18:56:33 +0530
-Message-ID: <1316697993-696-4-git-send-email-abhilash.kv@ti.com>
-References: <1316697993-696-1-git-send-email-abhilash.kv@ti.com>
- <1316697993-696-2-git-send-email-abhilash.kv@ti.com>
- <1316697993-696-3-git-send-email-abhilash.kv@ti.com>
+Subject: [PATCH v3 1/3] AM35x: voltage: Basic initialization
+Date: Thu, 22 Sep 2011 18:59:13 +0530
+Message-ID: <1316698155-954-2-git-send-email-abhilash.kv@ti.com>
+References: <1316698155-954-1-git-send-email-abhilash.kv@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48015 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752164Ab1IVN1H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Sep 2011 09:27:07 -0400
-In-Reply-To: <1316697993-696-3-git-send-email-abhilash.kv@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1316698155-954-1-git-send-email-abhilash.kv@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, paul@pwsan.com, aneesh@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, christian.gmeiner@gmail.com, Abhilash K V <abhilash.kv@ti.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, sameo@linux.intel.com, santosh.shilimkar@ti.com, premi@ti.com, david.woodhouse@intel.com, christian.gmeiner@gmail.com, Abhilash K V <abhilash.kv@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-If PMIC info is not available in omap_vp_init(), abort.
+This patch adds the basic initialization of voltage layer
+for AM35x. Since AM35x doesn't support voltage scaling,
+Many functions have been defined to plug into existing
+voltage layer.
 
+Signed-off-by: Sanjeev Premi <premi@ti.com>
 Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
 ---
- arch/arm/mach-omap2/vp.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_opp_data.h           |    1 +
+ arch/arm/mach-omap2/opp3xxx_data.c            |    9 +++++++++
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |   10 ++++++++--
+ 3 files changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-index 66bd700..2c99837 100644
---- a/arch/arm/mach-omap2/vp.c
-+++ b/arch/arm/mach-omap2/vp.c
-@@ -41,6 +41,13 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
- 	u32 val, sys_clk_rate, timeout, waittime;
- 	u32 vddmin, vddmax, vstepmin, vstepmax;
+diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
+index c784c12..c7cedf3 100644
+--- a/arch/arm/mach-omap2/omap_opp_data.h
++++ b/arch/arm/mach-omap2/omap_opp_data.h
+@@ -88,6 +88,7 @@ extern struct omap_volt_data omap34xx_vddmpu_volt_data[];
+ extern struct omap_volt_data omap34xx_vddcore_volt_data[];
+ extern struct omap_volt_data omap36xx_vddmpu_volt_data[];
+ extern struct omap_volt_data omap36xx_vddcore_volt_data[];
++extern struct omap_volt_data am35xx_vdd_volt_data[];
  
-+	if (!voltdm->pmic || !voltdm->pmic->uv_to_vsel) {
-+		pr_err("%s: PMIC info requried to configure vp for"
-+			"vdd_%s not populated.Hence cannot initialize vp\n",
-+			__func__, voltdm->name);
-+		return;
-+	}
+ extern struct omap_volt_data omap44xx_vdd_mpu_volt_data[];
+ extern struct omap_volt_data omap44xx_vdd_iva_volt_data[];
+diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+index d95f3f9..e4a5ee6 100644
+--- a/arch/arm/mach-omap2/opp3xxx_data.c
++++ b/arch/arm/mach-omap2/opp3xxx_data.c
+@@ -85,6 +85,15 @@ struct omap_volt_data omap36xx_vddcore_volt_data[] = {
+ 	VOLT_DATA_DEFINE(0, 0, 0, 0),
+ };
+ 
++/* AM35x
++ *
++ * Fields related to SmartReflex and Voltage Processor are set to 0.
++ */
++struct omap_volt_data am35xx_vdd_volt_data[] = {
++	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, 0x0, 0x0, 0x0),
++	VOLT_DATA_DEFINE(0, 0, 0, 0),
++};
 +
- 	if (!voltdm->read || !voltdm->write) {
- 		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
- 			__func__, voltdm->name);
+ /* OPP data */
+ 
+ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+index 071101d..530082f 100644
+--- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+@@ -85,7 +85,10 @@ void __init omap3xxx_voltagedomains_init(void)
+ 	 * XXX Will depend on the process, validation, and binning
+ 	 * for the currently-running IC
+ 	 */
+-	if (cpu_is_omap3630()) {
++	if (cpu_is_omap3505() || cpu_is_omap3517()) {
++		omap3_voltdm_mpu.volt_data = am35xx_vdd_volt_data;
++		omap3_voltdm_core.volt_data = am35xx_vdd_volt_data;
++	} else if (cpu_is_omap3630()) {
+ 		omap3_voltdm_mpu.volt_data = omap36xx_vddmpu_volt_data;
+ 		omap3_voltdm_core.volt_data = omap36xx_vddcore_volt_data;
+ 	} else {
+@@ -93,8 +96,11 @@ void __init omap3xxx_voltagedomains_init(void)
+ 		omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
+ 	}
+ 
+-	for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++)
++	for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++) {
++		if (cpu_is_omap3505() || cpu_is_omap3517())
++			voltdm->scalable = false;
+ 		voltdm->sys_clk.name = sys_clk_name;
++	}
+ 
+ 	voltdm_init(voltagedomains_omap3);
+ };
 -- 
 1.7.1
-
