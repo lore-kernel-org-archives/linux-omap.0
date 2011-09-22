@@ -1,33 +1,66 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v4 1/3] AM35x: Using OMAP3 generic hwmods
-Date: Thu, 22 Sep 2011 13:10:19 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109221303530.10719@utopia.booyaka.com>
-References: <1316697993-696-1-git-send-email-abhilash.kv@ti.com> <1316697993-696-2-git-send-email-abhilash.kv@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/5 v11] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Thu, 22 Sep 2011 21:28:40 +0200
+Message-ID: <4E7B8C68.7020407@ti.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1109221213500.10719@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1316697993-696-2-git-send-email-abhilash.kv@ti.com>
+In-Reply-To: <alpine.DEB.2.00.1109221213500.10719@utopia.booyaka.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Abhilash K V <abhilash.kv@ti.com>
-Cc: linux-omap@vger.kernel.org, "Maupin, Chase" <chase.maupin@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, aneesh@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, christian.gmeiner@gmail.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-+ Chase
+Hi Paul,
 
-Hi
+On 9/22/2011 8:14 PM, Paul Walmsley wrote:
+> Hi
+>
+> On Thu, 22 Sep 2011, Keshava Munegowda wrote:
+>
+>> Following 4 hwmod structures are added
+>> 1. usb_host_hs hwmod of usbhs with uhh base address and functional clock,
+>> 2. usb_ehci_hs hwmod with irq and base address,
+>> 3. usb_ohci_hs hwmod with irq and base address,
+>>     - The ehci and ohci hwmods does not require functional clock
+>>       because usb_host_hs has functional clock which is sufficient
+>>       to access ehci and ohci address space.
+>>     - The usb_ehci_hs and usb_ohci_hs should be two separate hwmods
+>>       which should not be combined. This is needed because ehci and
+>>       ohci will have separate dedicated ports&  in omap4 there is a
+>>       clock per port.We should be able to configure the IO-Wakeup
+>>       capability of pins specific to EHCI&  OHCI separately and depending
+>>       on the I/O wakeup event  the  only port clocks corresponding
+>>       to the wakeup source will be enabled internally by the usb host driver.
+>>
+>> 4. usb_tll_hs hwmod of usbhs with the TLL base address and irq.
+>
+> Many of the same issues with the OMAP3 data (missing main_clks, missing
+> ADDR_TYPE_RT, etc.) exist with this patch also.
 
-On Thu, 22 Sep 2011, Abhilash K V wrote:
+ADDR_TYPE_RT is mainly use for sysconfig access inside hwmod core today, 
+so why should we use it in this case?
+To be honest, I've been confused with that flag for some time :-)
+  * ADDR_TYPE_RT: Address space contains module register target data.
+Maybe that's my English, but what does "register target data" mean exactly?
+What was the intent? Providing a way to identify some register vs memory 
+space?
 
-> This patch enables AM35x SoCs to use generic OMAP3 hwmods
-> (i,e. omap3xxx_hwmods) by allowing am35xx_init_early() to
-> disable the modules which are not present in AM3517.
-> 
-> Reviewed-by: Sanjeev Premi <premi@ti.com>
-> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+Regarding main_clk, I do not think that some internal IPs like ohci/ehci 
+should have a main_clk, since this is not visible at that level. These 
+blocks do not have any PRCM / OCP connection. In fact they should not 
+even be hwmod in theory, these are just some internal IPs inside the 
+usb_host controller.
+These are hwmods just because of the dynamic mux support needed by these 
+IPs.
+That was one of the comments I made on these, and Keshava explained me 
+the rational and added it in the changelog.
+Hopefully, we will not have that limitation once we will have migrated 
+that to DT :-)
 
-We now use a different approach for registering hwmods that are 
-device-specific.  Could you please take a look at the approach that's in 
-Tony's master branch and use it instead to handle AM3517 hwmod 
-registration?
 
-- Paul
+Regards,
+Benoit
