@@ -1,45 +1,39 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 4/6] OMAP4: Hwmod: system control module hwmod
-Date: Fri, 23 Sep 2011 00:15:45 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109230015080.10719@utopia.booyaka.com>
-References: <1316705361-12175-1-git-send-email-j-keerthy@ti.com> <1316705361-12175-5-git-send-email-j-keerthy@ti.com>
+Subject: Re: [PATCH] OMAP2+: clock: cleanup CPUfreq leftovers
+Date: Fri, 23 Sep 2011 00:34:59 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109230034180.10719@utopia.booyaka.com>
+References: <1316726006-26925-1-git-send-email-khilman@ti.com> <alpine.DEB.2.00.1109221746130.10719@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1050156857-1316758545=:10719"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47674 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:36791 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751325Ab1IWGPp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Sep 2011 02:15:45 -0400
-In-Reply-To: <1316705361-12175-5-git-send-email-j-keerthy@ti.com>
+	with ESMTP id S1750872Ab1IWGfA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Sep 2011 02:35:00 -0400
+In-Reply-To: <alpine.DEB.2.00.1109221746130.10719@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: linux-omap@vger.kernel.org, b-cousson@ti.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Thu, 22 Sep 2011, Paul Walmsley wrote:
 
---155748971-1050156857-1316758545=:10719
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+> On Thu, 22 Sep 2011, Kevin Hilman wrote:
+> 
+> > Now that we have OPP layer, and OMAP CPUfreq driver is using it, we no
+> > longer need/use the clock framework code for filling up CPUfreq
+> > tables.  Remove it.
+> > 
+> > Signed-off-by: Kevin Hilman <khilman@ti.com>
+> > ---
+> > Paul, this patch has a dependency on the OMAP CPUFreq driver
+> > move/cleanup series just posted.  Assuming that is merged for v3.2,
+> > this can go also.
+> 
+> Great, could you cc lakml also ?
 
-+ Beno=EEt
-
-Hi,
-
-On Thu, 22 Sep 2011, Keerthy wrote:
-
-> From: Benoit Cousson <b-cousson@ti.com>
->=20
-> Adding the system control module hwmod.
-
-Have the autogeneration scripts been updated ?
-
->=20
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-
+By the way, I guess the subject line should start with "ARM: OMAP2+: 
+clock: " .. etc., per Arnd's recent request.
 
 
 - Paul
---155748971-1050156857-1316758545=:10719--
