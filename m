@@ -1,55 +1,67 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v7 00/26] gpio/omap: driver cleanup and fixes
-Date: Thu, 22 Sep 2011 16:57:27 -0700
-Message-ID: <87mxdwm8pk.fsf@ti.com>
-References: <1315918979-26173-1-git-send-email-tarun.kanti@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/5 v11] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Thu, 22 Sep 2011 18:16:56 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109221814500.10719@utopia.booyaka.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1109221213500.10719@utopia.booyaka.com> <4E7B8C68.7020407@ti.com>
+ <alpine.DEB.2.00.1109221524560.10719@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:46089 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753654Ab1IVX5d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Sep 2011 19:57:33 -0400
-Received: by mail-gw0-f50.google.com with SMTP id 19so2333653gwj.9
-        for <linux-omap@vger.kernel.org>; Thu, 22 Sep 2011 16:57:32 -0700 (PDT)
-In-Reply-To: <1315918979-26173-1-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Tue, 13 Sep 2011 18:32:33 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1109221524560.10719@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, charu@ti.com
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+Hi
 
-> This series is continuation of cleanup of OMAP GPIO driver and fixes.
-> The cleanup include getting rid of cpu_is_* checks wherever possible,
-> use of gpio_bank list instead of static array, use of unique platform
-> specific value associated data member to OMAP platforms to avoid
-> cpu_is_* checks. The series also include PM runtime support.*
+On Thu, 22 Sep 2011, Paul Walmsley wrote:
 
-PER is still not hitting retention for me on 34xx/n900 when GPIOs have
-debounce enabled.  Disabling debounce in the board file makes it work.
+> On Thu, 22 Sep 2011, Cousson, Benoit wrote:
+> 
+> > ADDR_TYPE_RT is mainly use for sysconfig access inside hwmod core today, so
+> > why should we use it in this case?
+> 
+> Just for consistency, since the flag isn't defined to be 
+> SYSCONFIG-specific.
+> 
+> That way, if there's another need -- other than SYSCONFIG access -- to 
+> identify the chunk of address space that's used for register access, we 
+> won't have to dig through and possibly repatch the hwmod data, just 
+> because some people didn't want to follow the rule.
+> 
+> If the flag was simply defined to be SYSCONFIG-specific, then you're 
+> right, it wouldn't be needed.
+> 
+> > To be honest, I've been confused with that flag for some time :-)
+> >  * ADDR_TYPE_RT: Address space contains module register target data.
+> > Maybe that's my English, but what does "register target data" mean exactly?
+> 
+> The name comes from the L3 section of the 34xx TRM - see for example 
+> section 9.1.1 "Terminology" of the rev ZR TRM.  The L3 has several address 
+> space sections, and whoever wrote that text -- Sonics? -- called the one 
+> with the L3's own internal registers the "register target."  And I was 
+> looking for a name that I did not have to make up, so I personally 
+> wouldn't have to defend the name ;-)
+> 
+> > What was the intent? Providing a way to identify some register vs memory
+> > space?
+> 
+> As you suggest, the original impetus for the flag was to identify which 
+> chunk of address space needs to be mapped by the hwmod code for SYSCONFIG 
+> accesses to work.  On current OMAPs, this seems to be the same thing as 
+> identifying the IP block's primary register area for every module with 
+> SYS* and REVISION registers.  And I probably thought at the time that 
+> specifying the IP block's main register mapping seemed more useful and 
+> generally applicable than designating where the SYSCONFIG register was.  
+> Hence the current definition.
 
-[...]
+Hopefully this should go without saying, but if you think there's a good 
+rationale for renaming this flag to indicate that an address space 
+contains the SYSCONFIG registers, or maybe just changing the 
+documentation for the flag to indicate that, that's fine with me, just 
+send a patch.
 
-> - Add dbclk aliases for all GPIO modules. Without this, GPIO modules were not
->   getting the correct clock handle to enable/disable debounec clock.
 
-This isn't right.  hwmod should already be adding aliases for the
-optional clocks.
-
-After debugging this myself a bit, here's what I think may be going on.
-This may not be the only problem but here's at least one of them.
-
-First, debounce clocks are disabled in the runtime_suspend callback.
-
-When a GPIO is freed and it's the last one in the bank, bank->mod_usage
-goes to zero.
-
-After that, pm_runtime_put_sync() is called, which will trigger the
-driver's ->runtime_suspend callback.  The ->runtime_suspend() callback
-checks bank->mod_usage as well, and if zero, doesn't do anything
-(notably, it doesn't disable debounce clocks.)
-
-Kevin
+- Paul
