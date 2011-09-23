@@ -1,153 +1,65 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH v2] ARM: OMAP2+: clock: cleanup CPUfreq leftovers
-Date: Fri, 23 Sep 2011 09:00:11 -0700
-Message-ID: <1316793611-9949-1-git-send-email-khilman@ti.com>
+Subject: Re: [PATCH v2] AM3517 : support for suspend/resume
+Date: Fri, 23 Sep 2011 09:07:59 -0700
+Message-ID: <87obybjl7k.fsf@ti.com>
+References: <1316008126-7322-1-git-send-email-abhilash.kv@ti.com>
+	<87obycqm2v.fsf@ti.com>
+	<FCCFB4CDC6E5564B9182F639FC356087037AF843F0@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:43612 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754807Ab1IWQAL (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:49767 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751959Ab1IWQIL (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Sep 2011 12:00:11 -0400
-Received: by mail-yi0-f49.google.com with SMTP id 24so3230113yic.8
-        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 09:00:10 -0700 (PDT)
+	Fri, 23 Sep 2011 12:08:11 -0400
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087037AF843F0@dbde02.ent.ti.com>
+	(Abhilash Koyamangalath's message of "Fri, 23 Sep 2011 18:54:22
+	+0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "V, Aneesh" <aneesh@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lohithakshan, Ranjith" <ranjithl@ti.com>
 
-Now that we have OPP layer, and OMAP CPUfreq driver is using it, we no
-longer need/use the clock framework code for filling up CPUfreq
-tables.  Remove it.
+"Koyamangalath, Abhilash" <abhilash.kv@ti.com> writes:
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   80 --------------------------
- arch/arm/mach-omap2/clock.c                  |    5 --
- arch/arm/mach-omap2/clock.h                  |    8 ---
- 3 files changed, 0 insertions(+), 93 deletions(-)
+[...]
 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-index 39f9d5a..9a13e07 100644
---- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -164,83 +164,3 @@ int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- 
- 	return 0;
- }
--
--#ifdef CONFIG_CPU_FREQ
--/*
-- * Walk PRCM rate table and fillout cpufreq freq_table
-- * XXX This should be replaced by an OPP layer in the near future
-- */
--static struct cpufreq_frequency_table *freq_table;
--
--void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
--{
--	const struct prcm_config *prcm;
--	int i = 0;
--	int tbl_sz = 0;
--
--	if (!cpu_is_omap24xx())
--		return;
--
--	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
--		if (!(prcm->flags & cpu_mask))
--			continue;
--		if (prcm->xtal_speed != sclk->rate)
--			continue;
--
--		/* don't put bypass rates in table */
--		if (prcm->dpll_speed == prcm->xtal_speed)
--			continue;
--
--		tbl_sz++;
--	}
--
--	/*
--	 * XXX Ensure that we're doing what CPUFreq expects for this error
--	 * case and the following one
--	 */
--	if (tbl_sz == 0) {
--		pr_warning("%s: no matching entries in rate_table\n",
--			   __func__);
--		return;
--	}
--
--	/* Include the CPUFREQ_TABLE_END terminator entry */
--	tbl_sz++;
--
--	freq_table = kzalloc(sizeof(struct cpufreq_frequency_table) * tbl_sz,
--			     GFP_ATOMIC);
--	if (!freq_table) {
--		pr_err("%s: could not kzalloc frequency table\n", __func__);
--		return;
--	}
--
--	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
--		if (!(prcm->flags & cpu_mask))
--			continue;
--		if (prcm->xtal_speed != sclk->rate)
--			continue;
--
--		/* don't put bypass rates in table */
--		if (prcm->dpll_speed == prcm->xtal_speed)
--			continue;
--
--		freq_table[i].index = i;
--		freq_table[i].frequency = prcm->mpu_speed / 1000;
--		i++;
--	}
--
--	freq_table[i].index = i;
--	freq_table[i].frequency = CPUFREQ_TABLE_END;
--
--	*table = &freq_table[0];
--}
--
--void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table)
--{
--	if (!cpu_is_omap24xx())
--		return;
--
--	kfree(freq_table);
--}
--
--#endif
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 1f3481f..160e61c 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -536,10 +536,5 @@ struct clk_functions omap2_clk_functions = {
- 	.clk_set_rate		= omap2_clk_set_rate,
- 	.clk_set_parent		= omap2_clk_set_parent,
- 	.clk_disable_unused	= omap2_clk_disable_unused,
--#ifdef CONFIG_CPU_FREQ
--	/* These will be removed when the OPP code is integrated */
--	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
--	.clk_exit_cpufreq_table	= omap2_clk_exit_cpufreq_table,
--#endif
- };
- 
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 48ac568..7fa20b3 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -144,14 +144,6 @@ extern const struct clksel_rate gpt_sys_rates[];
- extern const struct clksel_rate gfx_l3_rates[];
- extern const struct clksel_rate dsp_ick_rates[];
- 
--#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_CPU_FREQ)
--extern void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
--extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
--#else
--#define omap2_clk_init_cpufreq_table	0
--#define omap2_clk_exit_cpufreq_table	0
--#endif
--
- extern const struct clkops clkops_omap2_iclk_dflt_wait;
- extern const struct clkops clkops_omap2_iclk_dflt;
- extern const struct clkops clkops_omap2_iclk_idle_only;
--- 
-1.7.6
+>>> @@ -485,6 +489,8 @@ console_still_active:
+>>>
+>>>  int omap3_can_sleep(void)
+>>>  {
+>>> +     if (cpu_is_omap3505() || cpu_is_omap3517())
+>>> +             return 0;
+>>
+>> This needs to be a separate patch with a descriptive changelog and
+>> justification as to why you can't do WFI in idle.
+> [Abhilash K V]OK
+>>
+>> Adding something like this means the device will *never* attempt a WFI
+>> during idle.
+>
+> [Abhilash K V] This patch was put in as dynamic sleep feature is not
+> supported by the device, there are no C states etc. The only PM
+> supported is forced suspend /resume. There is just one power-domain
+> and it can be in ON or RET states.
+>
+
+If the device can WFI and hit retention in suspend, there should be no
+not to target the same power state in idle.
+
+You don't have to have CPUidle with multiple C-states to use idle.
+
+>> I suspect that avoiding WFI in idle is masking a bug that you don't see
+>> in the suspend path.
+>
+> [Abhilash K V] I need to recap a bit to find out if there is a better
+> way to indicate the lack of "idle" feature.
+
+Yes please.  From my POV, deciding not to go idle is a SW decision, not
+a hardware decision.  As the same SW mechanisms are involved, whatever
+power state that can be acheived from suspend should be targetted in
+idle.
+
+Kevin
 
