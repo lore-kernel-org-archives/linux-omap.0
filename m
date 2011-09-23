@@ -1,70 +1,76 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/6] OMAP4: Clock: Associate clocks for OMAP temperature
- sensor
-Date: Thu, 22 Sep 2011 23:58:41 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109222357440.10719@utopia.booyaka.com>
-References: <1316705361-12175-1-git-send-email-j-keerthy@ti.com> <1316705361-12175-3-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1109222316350.10719@utopia.booyaka.com> <CAJ6a13aKoca1ny3ek7R3+T6GKVEKF1OhoxoDywcaPfpCnk0WzQ@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 5/5] OMAPDSS: HDMI: Add support to dump clocks
+ through
+Date: Fri, 23 Sep 2011 09:01:08 +0300
+Message-ID: <1316757668.1901.12.camel@deskari>
+References: <1316678866-17749-1-git-send-email-mythripk@ti.com>
+	 <1316678866-17749-2-git-send-email-mythripk@ti.com>
+	 <1316678866-17749-3-git-send-email-mythripk@ti.com>
+	 <1316678866-17749-4-git-send-email-mythripk@ti.com>
+	 <1316678866-17749-5-git-send-email-mythripk@ti.com>
+	 <1316678866-17749-6-git-send-email-mythripk@ti.com>
+	 <1316692870.2442.24.camel@deskari>
+	 <CAP5A+B-Ahwfk4tu3OtvRpfejFbv_jVpiVmoNJW0cGTfiwkG7kA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1911425418-1316757521=:10719"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58824 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751325Ab1IWF6m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Sep 2011 01:58:42 -0400
-In-Reply-To: <CAJ6a13aKoca1ny3ek7R3+T6GKVEKF1OhoxoDywcaPfpCnk0WzQ@mail.gmail.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:43334 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751325Ab1IWGBN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Sep 2011 02:01:13 -0400
+Received: by mail-bw0-f54.google.com with SMTP id zs8so4038704bkb.41
+        for <linux-omap@vger.kernel.org>; Thu, 22 Sep 2011 23:01:12 -0700 (PDT)
+In-Reply-To: <CAP5A+B-Ahwfk4tu3OtvRpfejFbv_jVpiVmoNJW0cGTfiwkG7kA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
+To: "K, Mythri P" <mythripk@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Fri, 2011-09-23 at 11:22 +0530, K, Mythri P wrote:
 
---155748971-1911425418-1316757521=:10719
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+> > - What is dcofreq? Looking at the code, it tells if the pixel clock is >
+> > 1000MHz. Why is such a field needed, can't the HDMI driver manage that
+> > itself? And if it's needed, why is it called dcofreq, the name doesn't
+> > make much sense to me.
+> It is DCO frequency, It suggest the frequency selector range ,
 
-On Fri, 23 Sep 2011, J, KEERTHY wrote:
+The field is not DCO frequency, it's a boolean, 0 or 1. That's why the
+name doesn't really make sense to me.
 
-> On Fri, Sep 23, 2011 at 10:48 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> > On Thu, 22 Sep 2011, Keerthy wrote:
+> HDMI_PLL_CONFIGURATION2 (3:1) has to be set accordingly by the driver
+> depending on whether the CLKOUTLDO is greater than or less than
+> 1000Mhz, but anyways the decision is taken by the driver.
+
+But can't it be done in the ti_hdmi driver, at the same time when
+programming the registers? Why do we need to set the boolean beforehand.
+
+> Also the name is as suggested by TRM .
+
+I couldn't find boolean dcofreq in the TRM.
+
+> > - We are doing HDMI PLL calculations in the omapdss drivers hdmi.c file.
+> > The PLL calculations are PLL specific, and thus should be in the
+> > specific HDMI implementation file, right?
 > >
-> >> ---
-> >> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 =A04 ++--
-> >> =A01 files changed, 2 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap=
-2/clock44xx_data.c
-> >> index 946bf04..c51e513 100644
-> >> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> >> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> >> @@ -3185,9 +3185,9 @@ static struct omap_clk omap44xx_clks[] =3D {
-> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "aes2_fck", =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 &aes2_fck, =A0 =A0 =A0CK_443X),
-> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "aess_fck", =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 &aess_fck, =A0 =A0 =A0CK_443X),
-> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "bandgap_fclk", =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 &bandgap_fclk, =A0CK_443X),
-> >> - =A0 =A0 CLK(NULL, =A0 =A0 =A0 "bandgap_ts_fclk", =A0 =A0 =A0 =A0 =A0=
- =A0 =A0&bandgap_ts_fclk, =A0 =A0 =A0 CK_446X),
-> >> + =A0 =A0 CLK("omap4460plus_scm.0", =A0 =A0 =A0 "fck", =A0 =A0 =A0 =A0=
- =A0&bandgap_ts_fclk, =A0 =A0 =A0 CK_446X),
-> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "des3des_fck", =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0&des3des_fck, =A0 CK_443X),
-> >> - =A0 =A0 CLK(NULL, =A0 =A0 =A0 "div_ts_ck", =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0&div_ts_ck, =A0 =A0 CK_446X),
-> >> + =A0 =A0 CLK("omap4460plus_scm.0", =A0 =A0 =A0 "div_ck", =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &div_ts_ck, =A0 =A0 CK_446X),
+> >> +     seq_printf(s, "DISPC clock source %s (%s)\t(%s)\n",
+> >> +                     dss_get_generic_clk_source_name(dispc_clk_src),
+> >> +                     dss_feat_get_clk_source_name(dispc_clk_src),
+> >> +                     dispc_clk_src == OMAP_DSS_CLK_SRC_FCK ?
+> >> +                     "off" : "on");
 > >
-> > Clearly this device is incorrectly named. =A0You're setting up a clkdev
-> > entry that's marked as being valid for OMAP4430, but your device is cal=
-led
-> > "omap4460plus_scm". =A0They can't both be right...
->=20
-> This is addressed in Patch 06.
+> > Why do you print DISPC clock source? How is that part of HDMI clock
+> > configuration?
+> Reason is to check whether the DISPC clock source is PRCM / DSI PLL,
+> Because DSI PLL might not be sufficient.
 
-How does patch 6 address it?=20
+But it's already printed by the DISPC section, and it's not part of
+HDMI, so I don't quite see the need.
+
+What do you mean DSI PLL might not be sufficient? We can get higher
+DISPC clocks with DSI PLL than with PRCM.
+
+ Tomi
 
 
-- Paul
---155748971-1911425418-1316757521=:10719--
