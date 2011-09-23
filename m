@@ -1,81 +1,220 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 03/11] arm/dts: Add support for OMAP4 PandaBoard
-Date: Fri, 23 Sep 2011 17:21:42 -0600
-Message-ID: <20110923232142.GG24631@ponder.secretlab.ca>
+Subject: Re: [PATCH 11/11] arm/dts: OMAP3+: Add mpu, dsp and iva nodes
+Date: Fri, 23 Sep 2011 17:26:52 -0600
+Message-ID: <20110923232652.GH24631@ponder.secretlab.ca>
 References: <1316809399-19579-1-git-send-email-b-cousson@ti.com>
- <1316809399-19579-4-git-send-email-b-cousson@ti.com>
+ <1316809399-19579-12-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:35417 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730Ab1IWXVr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Sep 2011 19:21:47 -0400
-Received: by yib18 with SMTP id 18so2981832yib.19
-        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 16:21:47 -0700 (PDT)
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:63504 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752818Ab1IWX04 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Sep 2011 19:26:56 -0400
+Received: by gyg10 with SMTP id 10so2914968gyg.19
+        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 16:26:56 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1316809399-19579-4-git-send-email-b-cousson@ti.com>
+In-Reply-To: <1316809399-19579-12-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <b-cousson@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, khilman@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: tony@atomide.com, paul@pwsan.com, khilman@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On Fri, Sep 23, 2011 at 10:23:11PM +0200, Benoit Cousson wrote:
-> Based on the original omap4-panda.dts file from Manju.
-> http://www.spinics.net/lists/linux-omap/msg55836.html
+On Fri, Sep 23, 2011 at 10:23:19PM +0200, Benoit Cousson wrote:
+> Add nodes for devices used by PM code (mpu, dsp, iva).
 > 
-> Add memory information and a default bootargs to allow
-> a boot from RAMDISK.
+> Add an empty cpus node as well as recommended in the DT spec.
+> 
+> Remove mpu, dsp, iva devices init if dt is populated.
 > 
 > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 > Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: G, Manjunath Kondaiah <manjugk@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+
+Series looks good to me on brief review.
+
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
+
 > ---
->  arch/arm/boot/dts/omap4-panda.dts |   29 +++++++++++++++++++++++++++++
->  1 files changed, 29 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/boot/dts/omap4-panda.dts
+>  Documentation/devicetree/bindings/arm/omap/dsp.txt |   14 ++++++++++
+>  Documentation/devicetree/bindings/arm/omap/iva.txt |   19 ++++++++++++++
+>  Documentation/devicetree/bindings/arm/omap/mpu.txt |   27 ++++++++++++++++++++
+>  arch/arm/boot/dts/omap3.dtsi                       |   19 ++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi                       |   23 +++++++++++++++++
+>  arch/arm/mach-omap2/pm.c                           |    3 +-
+>  6 files changed, 104 insertions(+), 1 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/dsp.txt
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/iva.txt
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/mpu.txt
 > 
-> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+> diff --git a/Documentation/devicetree/bindings/arm/omap/dsp.txt b/Documentation/devicetree/bindings/arm/omap/dsp.txt
 > new file mode 100644
-> index 0000000..c702657
+> index 0000000..325feef
 > --- /dev/null
-> +++ b/arch/arm/boot/dts/omap4-panda.dts
-> @@ -0,0 +1,29 @@
-> +/*
-> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +/dts-v1/;
+> +++ b/Documentation/devicetree/bindings/arm/omap/dsp.txt
+> @@ -0,0 +1,14 @@
+> +* TI - DSP (Digital Signal Processor)
 > +
-> +/include/ "omap4.dtsi"
+> +TI DSP included in OMAP SoC
 > +
-> +/ {
-> +	model = "TI OMAP4 PandaBoard";
-> +	compatible = "ti,omap4-panda", "ti,omap4430", "ti,omap4";
+> +Required properties:
+> +- compatible : Should be "ti,omap3-c64" for OMAP3 & 4
+> +- ti,hwmods: "dsp"
 > +
-> +	/*
-> +	 * Since the initial device tree board file does not create any
-> +	 * devices (MMC, network...), the only way to boot is to provide a
-> +	 * ramdisk.
-> +	 */
-> +	chosen {
-> +		bootargs = "root=/dev/ram0 rw console=ttyO2,115200n8 initrd=0x81600000,20M ramdisk_size=20480 no_console_suspend debug";
-
-Generally, we don't want bootargs in the .dts files; we want them
-added to the .dtb by the boot firmware.  However, we are bootstrapping
-here, so I'm okay with it in the short term until firmware matures a
-bit more.
-
-> +	};
+> +Examples:
 > +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x40000000>; /* 1 GB */
-> +	};
+> +dsp {
+> +    compatible = "ti,omap3-c64";
+> +    ti,hwmods = "dsp";
 > +};
+> diff --git a/Documentation/devicetree/bindings/arm/omap/iva.txt b/Documentation/devicetree/bindings/arm/omap/iva.txt
+> new file mode 100644
+> index 0000000..b889475
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm/omap/iva.txt
+> @@ -0,0 +1,19 @@
+> +* TI - IVA (Imaging and Video Accelerator) subsystem
+> +
+> +The IVA contain various audio, video or imaging HW accelerator
+> +depending of the version.
+> +
+> +Required properties:
+> +- compatible : Should be:
+> +  - "ti,ivahd" for OMAP4
+> +  - "ti,iva2.2" for OMAP3
+> +  - "ti,iva2.1" for OMAP2430
+> +  - "ti,iva1" for OMAP2420
+> +- ti,hwmods: "iva"
+> +
+> +Examples:
+> +
+> +iva {
+> +    compatible = "ti,ivahd", "ti,iva";
+> +    ti,hwmods = "iva";
+> +};
+> diff --git a/Documentation/devicetree/bindings/arm/omap/mpu.txt b/Documentation/devicetree/bindings/arm/omap/mpu.txt
+> new file mode 100644
+> index 0000000..5ffbacd
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm/omap/mpu.txt
+> @@ -0,0 +1,27 @@
+> +* TI - MPU (Main Processor Unit) subsystem
+> +
+> +The MPU subsystem contain one or several ARM cores
+> +depending of the version.
+> +The MPU contain CPUs, GIC, L2 cache and a local PRCM.
+> +
+> +Required properties:
+> +- compatible : Should be "ti,omap3-mpu" for OMAP3
+> +               Should be "ti,omap4-mpu" for OMAP4
+> +- ti,hwmods: "mpu"
+> +
+> +Examples:
+> +
+> +- For an OMAP4 SMP system:
+> +
+> +mpu {
+> +    compatible = "ti,omap4-mpu";
+> +    ti,hwmods = "mpu";
+> +};
+> +
+> +
+> +- For an OMAP3 monocore system:
+> +
+> +mpu {
+> +    compatible = "ti,omap3-mpu";
+> +    ti,hwmods = "mpu";
+> +};
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index d558785..d202bb5 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -13,12 +13,31 @@
+>  / {
+>  	compatible = "ti,omap3430", "ti,omap3";
+>  
+> +	cpus {
+> +		cpu@0 {
+> +			compatible = "arm,cortex-a8";
+> +		};
+> +	};
+> +
+>  	/*
+>  	 * The soc node represents the soc top level view. It is uses for IPs
+>  	 * that are not memory mapped in the MPU view or for the MPU itself.
+>  	 */
+>  	soc {
+>  		compatible = "ti,omap-infra";
+> +		mpu {
+> +			compatible = "ti,omap3-mpu";
+> +			ti,hwmods = "mpu";
+> +		};
+> +
+> +		iva {
+> +			compatible = "ti,iva2.2";
+> +			ti,hwmods = "iva";
+> +
+> +			dsp {
+> +				compatible = "ti,omap3-c64";
+> +			};
+> +		};
+>  	};
+>  
+>  	/*
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index b85a39d..4c61c82 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -23,12 +23,35 @@
+>  	aliases {
+>  	};
+>  
+> +	cpus {
+> +		cpu@0 {
+> +			compatible = "arm,cortex-a9";
+> +		};
+> +		cpu@1 {
+> +			compatible = "arm,cortex-a9";
+> +		};
+> +	};
+> +
+>  	/*
+>  	 * The soc node represents the soc top level view. It is uses for IPs
+>  	 * that are not memory mapped in the MPU view or for the MPU itself.
+>  	 */
+>  	soc {
+>  		compatible = "ti,omap-infra";
+> +		mpu {
+> +			compatible = "ti,omap4-mpu";
+> +			ti,hwmods = "mpu";
+> +		};
+> +
+> +		dsp {
+> +			compatible = "ti,omap3-c64";
+> +			ti,hwmods = "dsp";
+> +		};
+> +
+> +		iva {
+> +			compatible = "ti,ivahd";
+> +			ti,hwmods = "iva";
+> +		};
+>  	};
+>  
+>  	/*
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 1fd9576..640c266 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -217,7 +217,8 @@ static void __init omap4_init_voltages(void)
+>  
+>  static int __init omap2_common_pm_init(void)
+>  {
+> -	omap2_init_processor_devices();
+> +	if (!of_have_populated_dt())
+> +		omap2_init_processor_devices();
+>  	omap_pm_if_init();
+>  
+>  	return 0;
 > -- 
 > 1.7.0.4
 > 
