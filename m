@@ -1,50 +1,46 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP2+: clock: cleanup CPUfreq leftovers
-Date: Fri, 23 Sep 2011 06:58:10 -0700
-Message-ID: <87vcsjl5sd.fsf@ti.com>
-References: <1316726006-26925-1-git-send-email-khilman@ti.com>
-	<alpine.DEB.2.00.1109221746130.10719@utopia.booyaka.com>
-	<alpine.DEB.2.00.1109230034180.10719@utopia.booyaka.com>
+Subject: Re: [PATCH 01/10] cpufreq: OMAP: cleanup for multi-SoC support,move into drivers/cpufreq
+Date: Fri, 23 Sep 2011 07:02:17 -0700
+Message-ID: <87d3erl5li.fsf@ti.com>
+References: <1316725648-26710-1-git-send-email-khilman@ti.com>
+	<1316725648-26710-2-git-send-email-khilman@ti.com>
+	<9bc8649a2e151bec117424b678bb09f8@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:34093 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754142Ab1IWN6Q (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:53131 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753633Ab1IWOCX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Sep 2011 09:58:16 -0400
-Received: by mail-gx0-f174.google.com with SMTP id 6so3536624gxk.33
-        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 06:58:14 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1109230034180.10719@utopia.booyaka.com> (Paul
-	Walmsley's message of "Fri, 23 Sep 2011 00:34:59 -0600 (MDT)")
+	Fri, 23 Sep 2011 10:02:23 -0400
+In-Reply-To: <9bc8649a2e151bec117424b678bb09f8@mail.gmail.com> (Vishwanath
+	Sripathy's message of "Fri, 23 Sep 2011 14:51:51 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: cpufreq@vger.kernel.org, Dave Jones <davej@redhat.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Paul Walmsley <paul@pwsan.com> writes:
+Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
 
-> On Thu, 22 Sep 2011, Paul Walmsley wrote:
+[...]
+
+>> +#ifdef CONFIG_CPU_FREQ_DEBUG
+>> +	pr_info("cpufreq-omap: transition: %u --> %u\n", freqs.old,
+>> freqs.new);
+>> +#endif
+>> +
+>> +	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
 >
->> On Thu, 22 Sep 2011, Kevin Hilman wrote:
->> 
->> > Now that we have OPP layer, and OMAP CPUfreq driver is using it, we no
->> > longer need/use the clock framework code for filling up CPUfreq
->> > tables.  Remove it.
->> > 
->> > Signed-off-by: Kevin Hilman <khilman@ti.com>
->> > ---
->> > Paul, this patch has a dependency on the OMAP CPUFreq driver
->> > move/cleanup series just posted.  Assuming that is merged for v3.2,
->> > this can go also.
->> 
->> Great, could you cc lakml also ?
+> Do you plan to post follow up patches to scale voltage along with Clock?
 
-doh.
+Yes.
 
-> By the way, I guess the subject line should start with "ARM: OMAP2+: 
-> clock: " .. etc., per Arnd's recent request.
+This series is just a move of existing code + minor cleanups.
 
-yeah, will refresh.
+The next step is to finalize/merge Tero's regulator driver and use
+that to scale voltage along with frequency here.
+
+Now that the voltage domain cleanups are merged, I hope to have
+regulator series + voltage scaling changes in this driver ready next week.
 
 Kevin
