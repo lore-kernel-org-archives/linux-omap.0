@@ -1,120 +1,87 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv9 04/18] TEMP: OMAP4xxx: hwmod data: add PRM hwmod
-Date: Fri, 23 Sep 2011 15:46:12 +0300
-Message-ID: <1316781986-30642-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv9 15/18] TEMP: OMAP3: pm: remove serial resume / idle calls from idle path
+Date: Fri, 23 Sep 2011 15:46:23 +0300
+Message-ID: <1316781986-30642-16-git-send-email-t-kristo@ti.com>
 References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch is temporary until Benoit can provide final version.
+This is no longer needed as it will be handled within serial driver itself.
+This part should be properly handled with serial runtime support.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   65 ++++++++++++++++++++++++++++
- 1 files changed, 65 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |   19 -------------------
+ 1 files changed, 0 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 6201422..c09bf4d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -3990,6 +3990,68 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 4bbf1cd..46c209d 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -341,18 +341,9 @@ void omap_sram_idle(void)
+ 		omap3_enable_io_chain();
+ 	}
  
-+ /*
-+ * 'prm' class
-+ * power and reset manager (part of the prcm infrastructure)
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap44xx_prm_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_flags	= 0,
-+};
-+
-+static struct omap_hwmod_class omap44xx_prm_hwmod_class = {
-+	.name	= "prm",
-+	.sysc	= &omap44xx_prm_sysc,
-+};
-+
-+/* prm */
-+static struct omap_hwmod omap44xx_prm_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_prm_irqs[] = {
-+	{ .irq = 11 + OMAP44XX_IRQ_GIC_START },
-+	{ .irq = -1 }
-+};
-+
-+static struct omap_hwmod_rst_info omap44xx_prm_resets[] = {
-+	{ .name = "rst_global_warm_sw", .rst_shift = 0 },
-+	{ .name = "rst_global_cold_sw", .rst_shift = 1 },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_prm_addrs[] = {
-+	{
-+		.pa_start       = 0x4a306000,
-+		.pa_end         = 0x4a307fff,
-+		.flags          = ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
-+/* l4_wkup -> prm */
-+static struct omap_hwmod_ocp_if omap44xx_l4_wkup__prm = {
-+	.master		= &omap44xx_l4_wkup_hwmod,
-+	.slave		= &omap44xx_prm_hwmod,
-+	.clk		= "l4_wkup_clk_mux_ck",
-+	.addr		= omap44xx_prm_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* prm slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_prm_slaves[] = {
-+	&omap44xx_l4_wkup__prm,
-+};
-+
-+static struct omap_hwmod omap44xx_prm_hwmod = {
-+	.name		= "prm4xxx",
-+	.class		= &omap44xx_prm_hwmod_class,
-+	.mpu_irqs	= omap44xx_prm_irqs,
-+	.clkdm_name	= "l4_wkup_clkdm",
-+	.rst_lines	= omap44xx_prm_resets,
-+	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_prm_resets),
-+	.slaves		= omap44xx_prm_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_prm_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
- /*
-  * 'smartreflex' class
-  * smartreflex module (monitor silicon performance and outputs a measure of
-@@ -5448,6 +5510,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	/* mpu class */
- 	&omap44xx_mpu_hwmod,
+-	/* Block console output in case it is on one of the OMAP UARTs */
+-	if (!is_suspending())
+-		if (per_next_state < PWRDM_POWER_ON ||
+-		    core_next_state < PWRDM_POWER_ON)
+-			if (!console_trylock())
+-				goto console_still_active;
+-
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
+-		omap_uart_prepare_idle(2);
+-		omap_uart_prepare_idle(3);
+ 		omap2_gpio_prepare_for_idle(per_going_off);
+ 		if (per_next_state == PWRDM_POWER_OFF)
+ 				omap3_per_save_context();
+@@ -360,8 +351,6 @@ void omap_sram_idle(void)
  
-+	/* prm class */
-+	&omap44xx_prm_hwmod,
-+
- 	/* smartreflex class */
- 	&omap44xx_smartreflex_core_hwmod,
- 	&omap44xx_smartreflex_iva_hwmod,
+ 	/* CORE */
+ 	if (core_next_state < PWRDM_POWER_ON) {
+-		omap_uart_prepare_idle(0);
+-		omap_uart_prepare_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF) {
+ 			omap3_core_save_context();
+ 			omap3_cm_save_context();
+@@ -408,8 +397,6 @@ void omap_sram_idle(void)
+ 			omap3_sram_restore_context();
+ 			omap2_sms_restore_context();
+ 		}
+-		omap_uart_resume_idle(0);
+-		omap_uart_resume_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF)
+ 			omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
+ 					       OMAP3430_GR_MOD,
+@@ -423,14 +410,8 @@ void omap_sram_idle(void)
+ 		omap2_gpio_resume_after_idle();
+ 		if (per_prev_state == PWRDM_POWER_OFF)
+ 			omap3_per_restore_context();
+-		omap_uart_resume_idle(2);
+-		omap_uart_resume_idle(3);
+ 	}
+ 
+-	if (!is_suspending())
+-		console_unlock();
+-
+-console_still_active:
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
+ 	if (omap3_has_io_wakeup() &&
+ 	    (per_next_state < PWRDM_POWER_ON ||
 -- 
 1.7.4.1
 
 
 Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
