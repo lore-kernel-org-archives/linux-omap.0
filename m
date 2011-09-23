@@ -1,44 +1,69 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv3 5/5] OMAPDSS: HDMI: Add support to dump clocks through
-Date: Fri, 23 Sep 2011 13:45:45 +0300
-Message-ID: <1316774745.6909.2.camel@deskari>
-References: <1316770341-19140-1-git-send-email-mythripk@ti.com>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: Re: [RFC PATCH V6 0/4] cpuidle: Global registration of idle states
+ with per-cpu statistics
+Date: Fri, 23 Sep 2011 16:37:27 +0530
+Message-ID: <4E7C686F.30608@linux.vnet.ibm.com>
+References: <20110922082840.10520.85895.stgit@localhost6.localdomain6> <87ty84tl7n.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:55329 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753141Ab1IWKpt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Sep 2011 06:45:49 -0400
-Received: by mail-bw0-f50.google.com with SMTP id zt19so4079800bkb.23
-        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 03:45:48 -0700 (PDT)
-In-Reply-To: <1316770341-19140-1-git-send-email-mythripk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <87ty84tl7n.fsf@ti.com>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: venki@google.com, ak@linux.intel.com, len.brown@intel.com, peterz@infradead.org, santosh.shilimkar@ti.com, arjan@linux.intel.com, lenb@kernel.org, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rmk@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: mythripk@ti.com
-Cc: linux-omap@vger.kernel.org
 
-On Fri, 2011-09-23 at 15:02 +0530, mythripk@ti.com wrote:
-> From: Mythri P K <mythripk@ti.com>
+On Friday 23 September 2011 01:15 AM, Kevin Hilman wrote:
+> Deepthi Dharwar <deepthi@linux.vnet.ibm.com> writes:
 > 
-> Add support to dump the HDMI PLL dividers such as regm, regn etc
-> and other clock dumps such as pixel clock rate, TMDS clock rate.
+>> The following patch series implements global registration of cpuidle
+>> states, and also has the necessary data structure changes to
+>> accommodate the per-cpu writable members of the cpuidle_states
+>> structure.
 > 
-> changes since V2:
-> Add pixel clock and TMDS clock dump and remove dcofreq and DISPC clock source
-> print.
+> I reviewed earlier versions of the series, and this version still looks
+> good to me.  Any reason it is still RFC?
+> 
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> 
+> and for the OMAP-specific parts,
+> 
+> Acked-by: Kevin Hilman <khilman@ti.com>
+> 
+> Kevin
+> 
+Hi Kevin,
+Thanks for reviewing the patch.
 
-Let's drop this fifth patch for now, I think the hdmi pll code needs a
-bit cleaning up before we can have a good dump clocks support.
+This was posted as an RFC, as there were
+a couple of ToDos listed in this patch series
+which I thought needed additional review before 
+I could ask for inclusion. 
 
-I'll take the patches 1-4 and apply to dss2 master.
+To Do :
+======
 
-Btw, this patch, and the 4th patch, still have broken subject. I guess
-this is fourth time I mention it. I'll fix it myself in the patches I
-apply.
+1. Russell King pointed out that in (V5 1/4) of this patch in
+arch/arm/mach-at91/cpuidle.c, AT91 pieces may be broken.
+In at91_enter_idle() routine, folks need to fix the two
+consecutive asm() statements by combining
+it to one as per the GCC reference manual.
 
- Tomi
+Reference:
+https://lkml.org/lkml/2011/6/6/273
 
+2. In (V6 4/4), handle the case when idle states may change at run time
+and acpi_processor_cst_has_changed() routine is called in a
+better way than the current solution in this patch.
 
+In this current solution where global registration is implemented,
+the boot cpu on x86 would disable all the devices, repopulate the
+states and later enable all the devices, irrespective of the cpu
+that would receive the notification first.
+
+Reference:
+https://lkml.org/lkml/2011/4/25/83
+
+Thanks & Regards,
+ -Deepthi
