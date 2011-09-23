@@ -1,90 +1,223 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH 2/6] OMAP4: Clock: Associate clocks for OMAP temperature sensor
-Date: Fri, 23 Sep 2011 18:52:00 +0530
-Message-ID: <CAJ6a13akOoiJkSjAq6vgrsyiUvq+C1RJhk35G=TArFgkCFs5pA@mail.gmail.com>
-References: <1316705361-12175-1-git-send-email-j-keerthy@ti.com>
-	<1316705361-12175-3-git-send-email-j-keerthy@ti.com>
-	<alpine.DEB.2.00.1109222316350.10719@utopia.booyaka.com>
-	<CAJ6a13aKoca1ny3ek7R3+T6GKVEKF1OhoxoDywcaPfpCnk0WzQ@mail.gmail.com>
-	<alpine.DEB.2.00.1109222357440.10719@utopia.booyaka.com>
+From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: RE: [PATCH v2] AM3517 : support for suspend/resume
+Date: Fri, 23 Sep 2011 18:54:22 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087037AF843F0@dbde02.ent.ti.com>
+References: <1316008126-7322-1-git-send-email-abhilash.kv@ti.com>,<87obycqm2v.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:45902 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753553Ab1IWNWD convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Sep 2011 09:22:03 -0400
-Received: by mail-ww0-f49.google.com with SMTP id 14so3045188wwp.6
-        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 06:22:00 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1109222357440.10719@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87obycqm2v.fsf@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "V, Aneesh" <aneesh@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lohithakshan, Ranjith" <ranjithl@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
 
-On Fri, Sep 23, 2011 at 11:28 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Fri, 23 Sep 2011, J, KEERTHY wrote:
+hi Kevin
+
+Thanks for reviewing the patch.
+
+On Fri, Sep 23, 2011 at 3:25 AM, Hilman, Kevin wrote:
 >
->> On Fri, Sep 23, 2011 at 10:48 AM, Paul Walmsley <paul@pwsan.com> wro=
-te:
->> > On Thu, 22 Sep 2011, Keerthy wrote:
->> >
->> >> ---
->> >> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 =A04 ++--
->> >> =A01 files changed, 2 insertions(+), 2 deletions(-)
->> >>
->> >> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach=
--omap2/clock44xx_data.c
->> >> index 946bf04..c51e513 100644
->> >> --- a/arch/arm/mach-omap2/clock44xx_data.c
->> >> +++ b/arch/arm/mach-omap2/clock44xx_data.c
->> >> @@ -3185,9 +3185,9 @@ static struct omap_clk omap44xx_clks[] =3D =
-{
->> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "aes2_fck", =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 &aes2_fck, =A0 =A0 =A0CK_443X),
->> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "aess_fck", =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 &aess_fck, =A0 =A0 =A0CK_443X),
->> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "bandgap_fclk", =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 &bandgap_fclk, =A0CK_443X),
->> >> - =A0 =A0 CLK(NULL, =A0 =A0 =A0 "bandgap_ts_fclk", =A0 =A0 =A0 =A0=
- =A0 =A0 =A0&bandgap_ts_fclk, =A0 =A0 =A0 CK_446X),
->> >> + =A0 =A0 CLK("omap4460plus_scm.0", =A0 =A0 =A0 "fck", =A0 =A0 =A0=
- =A0 =A0&bandgap_ts_fclk, =A0 =A0 =A0 CK_446X),
->> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "des3des_fck", =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0&des3des_fck, =A0 CK_443X),
->> >> - =A0 =A0 CLK(NULL, =A0 =A0 =A0 "div_ts_ck", =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0&div_ts_ck, =A0 =A0 CK_446X),
->> >> + =A0 =A0 CLK("omap4460plus_scm.0", =A0 =A0 =A0 "div_ck", =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &div_ts_ck, =A0 =A0 CK_446X),
->> >
->> > Clearly this device is incorrectly named. =A0You're setting up a c=
-lkdev
->> > entry that's marked as being valid for OMAP4430, but your device i=
-s called
->> > "omap4460plus_scm". =A0They can't both be right...
+> Abhilash K V <abhilash.kv@ti.com> writes:
+>
+>> This patch-set adds support for suspension to RAM and
+>> resumption on the AM3517. This includes:
+>> 1. Patch to disable dynamic sleep (as it is not supported
+>>    on AM35xx).
+>
+> This should still be a separate patch, with justification.  More on this
+> below.
+[Abhilash K V] OK
+>
+>> 2. Imported the unique suspend/resume sequence for AM3517,
+>>    contained in the new file arch/arm/mach-omap2/sleep3517.S.
 >>
->> This is addressed in Patch 06.
+>> Caveat: If "no_console_suspend" is enabled (via boot-args),the
+>> device doesnot resume but simply hangs.
+>> Kevin's fix below should fix this:
+>>  http://marc.info/?l=linux-omap&m=131593828001388&w=2#1
 >
-> How does patch 6 address it?
-
-I am not sure i interpreted the comment right. These clock nodes are sp=
-ecific to
-OMAP4460 and are tagged CK_446X hence the device name "omap4460plus_scm=
-=2E0"
-
+> should fix?  I assumed you tested it along with this.
+[Abhilash K V] I've tested that it does; pardon my choice of words.
 >
+>> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+>> Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+>> ---
+>> This patch is dependent on the following patch-sets:
+>> * [PATCH v3 0/2] AM3517: Booting up
+>>   at http://marc.info/?l=linux-omap&m=131548349725176&w=2
+>> * [PATCH v2 0/3] AM35x: Adding PM init
+>>   at http://marc.info/?l=linux-kernel&m=131548606728209&w=2
+>>
+>> The patches are tested on master of tmlind/linux-omap-2.6.git.
+>> Kernel version is 3.1-rc3 and last commit on top of which these patches
+>> were added is:
+>>       b148d763841161894ed6629794064065a834aa2b: Linux-omap rebuilt: Updated to
+>>       use omap_sdrc_init
+>>
+>> with the folowing commit reverted:
+>>       f3637a5f2e2eb391ff5757bc83fb5de8f9726464: irq: Always set IRQF_ONESHOT
+>>       if no primary handler is specified
+>>
+>> Changes in v2:
+>>  * Synchronised with the cleaned-up suspend-resume code for OMAP3
+>>  * Removed unused *_get_restore_pointer code
+>>  * Added SECURE_SRAM feature to disallow saving and restoring
+>>    secure ram context for AM35x
 >
-> - Paul
-
-
-
---=20
-Regards and Thanks,
-Keerthy
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Adding a new feature flag should be a separate patch.
+>
+>>  * Compacted the number of patches by squashing three closely coupled
+>>    ones and eliminating one that was no longer needed.
+>>
+>>  arch/arm/mach-omap2/Makefile          |    3 +-
+>>  arch/arm/mach-omap2/id.c              |    4 +-
+>>  arch/arm/mach-omap2/pm.h              |    3 +
+>>  arch/arm/mach-omap2/pm34xx.c          |   21 ++++-
+>>  arch/arm/mach-omap2/sleep3517.S       |  156 +++++++++++++++++++++++++++++++++
+>>  arch/arm/plat-omap/include/plat/cpu.h |    2 +
+>>  6 files changed, 183 insertions(+), 6 deletions(-)
+>>  create mode 100644 arch/arm/mach-omap2/sleep3517.S
+>>
+>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+>> index 590e797..37f62ae 100644
+>> --- a/arch/arm/mach-omap2/Makefile
+>> +++ b/arch/arm/mach-omap2/Makefile
+>> @@ -61,7 +61,7 @@ endif
+>>  ifeq ($(CONFIG_PM),y)
+>>  obj-$(CONFIG_ARCH_OMAP2)             += pm24xx.o
+>>  obj-$(CONFIG_ARCH_OMAP2)             += sleep24xx.o
+>> -obj-$(CONFIG_ARCH_OMAP3)             += pm34xx.o sleep34xx.o \
+>> +obj-$(CONFIG_ARCH_OMAP3)             += pm34xx.o sleep34xx.o sleep3517.o \
+>>                                          cpuidle34xx.o
+>>  obj-$(CONFIG_ARCH_OMAP4)             += pm44xx.o
+>>  obj-$(CONFIG_PM_DEBUG)                       += pm-debug.o
+>> @@ -70,6 +70,7 @@ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)       += smartreflex-class3.o
+>>
+>>  AFLAGS_sleep24xx.o                   :=-Wa,-march=armv6
+>>  AFLAGS_sleep34xx.o                   :=-Wa,-march=armv7-a$(plus_sec)
+>> +AFLAGS_sleep3517.o                   :=-Wa,-march=armv7-a$(plus_sec)
+>>
+>>  ifeq ($(CONFIG_PM_VERBOSE),y)
+>>  CFLAGS_pm_bus.o                              += -DDEBUG
+>> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+>> index da71098..3e40c02 100644
+>> --- a/arch/arm/mach-omap2/id.c
+>> +++ b/arch/arm/mach-omap2/id.c
+>> @@ -202,7 +202,9 @@ static void __init omap3_check_features(void)
+>>       if (cpu_is_omap3630())
+>>               omap_features |= OMAP3_HAS_192MHZ_CLK;
+>>       if (!cpu_is_omap3505() && !cpu_is_omap3517())
+>> -             omap_features |= (OMAP3_HAS_IO_WAKEUP | OMAP3_HAS_SR);
+>> +             omap_features |= (OMAP3_HAS_IO_WAKEUP
+>> +                                     | OMAP3_HAS_SR
+>> +                                     | OMAP3_HAS_SECURE_SRAM);
+>
+> This is not related to suspend either, and should probably be part of
+> the bootup series.
+>
+> The HAS_SECURE_SRAM part should be added to the separate patch that adds
+> this new feature flag.
+>
+>>       omap_features |= OMAP3_HAS_SDRC;
+>>
+>> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+>> index ce028f6..952eb2b 100644
+>> --- a/arch/arm/mach-omap2/pm.h
+>> +++ b/arch/arm/mach-omap2/pm.h
+>> @@ -82,10 +82,13 @@ extern unsigned int omap24xx_cpu_suspend_sz;
+>>
+>>  /* 3xxx */
+>>  extern void omap34xx_cpu_suspend(int save_state);
+>> +extern void omap3517_cpu_suspend(int save_state);
+>>
+>>  /* omap3_do_wfi function pointer and size, for copy to SRAM */
+>>  extern void omap3_do_wfi(void);
+>> +extern void omap3517_do_wfi(void);
+>>  extern unsigned int omap3_do_wfi_sz;
+>> +extern unsigned int omap3517_do_wfi_sz;
+>>  /* ... and its pointer from SRAM after copy */
+>>  extern void (*omap3_do_wfi_sram)(void);
+>>
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+>> index 7255d9b..44f7bac 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -80,6 +80,7 @@ static LIST_HEAD(pwrst_list);
+>>
+>>  static int (*_omap_save_secure_sram)(u32 *addr);
+>>  void (*omap3_do_wfi_sram)(void);
+>> +void (*omap3517_do_wfi_sram)(void);
+>>
+>>  static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+>>  static struct powerdomain *core_pwrdm, *per_pwrdm;
+>> @@ -323,7 +324,10 @@ static void omap34xx_save_context(u32 *save)
+>>
+>>  static int omap34xx_do_sram_idle(unsigned long save_state)
+>>  {
+>> -     omap34xx_cpu_suspend(save_state);
+>> +     if (cpu_is_omap3505() || cpu_is_omap3517())
+>> +             omap3517_cpu_suspend(save_state);
+>> +     else
+>> +             omap34xx_cpu_suspend(save_state);
+>
+> We don't want cpu_is_* checks at runtime.  Make this a function pointer
+> that is initialized at init time based on SoC.
+>
+>>       return 0;
+>>  }
+>>
+>> @@ -485,6 +489,8 @@ console_still_active:
+>>
+>>  int omap3_can_sleep(void)
+>>  {
+>> +     if (cpu_is_omap3505() || cpu_is_omap3517())
+>> +             return 0;
+>
+> This needs to be a separate patch with a descriptive changelog and
+> justification as to why you can't do WFI in idle.
+[Abhilash K V]OK
+>
+> Adding something like this means the device will *never* attempt a WFI
+> during idle.
+[Abhilash K V] This patch was put in as dynamic sleep feature is not supported
+by the device, there are no C states etc. The only PM supported is forced suspend
+/resume. There is just one power-domain and it can be in ON or RET states.
+>
+> I suspect that avoiding WFI in idle is masking a bug that you don't see
+> in the suspend path.
+[Abhilash K V] I need to recap a bit to find out if there is a better way to
+indicate the lack of "idle" feature.
+>
+>>       if (!omap_uart_can_sleep())
+>>               return 0;
+>>       return 1;
+>> @@ -843,11 +849,18 @@ static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
+>>   */
+>>  void omap_push_sram_idle(void)
+>>  {
+>> -     omap3_do_wfi_sram = omap_sram_push(omap3_do_wfi, omap3_do_wfi_sz);
+>> +     if (cpu_is_omap3505() || cpu_is_omap3517())
+>> +             omap3517_do_wfi_sram = omap_sram_push(omap3517_do_wfi,
+>> +                                              omap3517_do_wfi_sz);
+>> +     else
+>> +             omap3_do_wfi_sram = omap_sram_push(omap3_do_wfi,
+>> +                                              omap3_do_wfi_sz);
+>>
+>>       if (omap_type() != OMAP2_DEVICE_TYPE_GP)
+>> -             _omap_save_secure_sram = omap_sram_push(save_secure_ram_context,
+>> -                             save_secure_ram_context_sz);
+>> +             if (omap3_has_secure_sram())
+>> +                     _omap_save_secure_sram = omap_sram_push(
+>> +                                             save_secure_ram_context,
+>> +                                             save_secure_ram_context_sz);
+>
+> This should be part of the separate patch that add the secure SRAM
+> feature flag.
+[Abhilash K V] OK
+>
+> Kevin
+>
