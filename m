@@ -1,110 +1,263 @@
-From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
-Subject: RE: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for
- UYVY8_2X8 and YUYV8_2X8 formats
-Date: Fri, 23 Sep 2011 17:23:39 +0530
-Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09084F@dbde03.ent.ti.com>
-References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
- <201109210126.20436.laurent.pinchart@ideasonboard.com>
- <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090847@dbde03.ent.ti.com>,<201109211106.41677.laurent.pinchart@ideasonboard.com>
+From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: RE: [PATCH v3 1/3] AM35x: voltage: Basic initialization
+Date: Fri, 23 Sep 2011 18:03:02 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087037AF843EC@dbde02.ent.ti.com>
+References: <1316698155-954-1-git-send-email-abhilash.kv@ti.com>
+	<1316698155-954-2-git-send-email-abhilash.kv@ti.com>,<877h50p5w0.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <201109211106.41677.laurent.pinchart@ideasonboard.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:50737 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753638Ab1IWMew convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Sep 2011 08:34:52 -0400
+In-Reply-To: <877h50p5w0.fsf@ti.com>
 Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "mchehab@infradead.org" <mchehab@infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>, "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david.woodhouse@intel.com" <david.woodhouse@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "david.woodhouse@intel.com" <david.woodhouse@intel.com>, "christian.gmeiner@gmail.com" <christian.gmeiner@gmail.com>
+
+hi Kevin
+
+On Fri, Sep 23, 2011 at 4:00 AM, Hilman, Kevin wrote:
+> Hi Abhilash,
+>
+> Abhilash K V <abhilash.kv@ti.com> writes:
+>
+>> This patch adds the basic initialization of voltage layer
+>> for AM35x. Since AM35x doesn't support voltage scaling,
+>
+> I must admit to still being confused by this series.
+>
+> This patch says AM35x doesn't support voltage scaling, and the next
+> patch adds PMIC support, and registers it with the voltage layer.
+>
+> However, with each voltdm->scalable flag set to false, none of the PMIC
+> values will ever be used (by the current voltage layer.)  Do you have
+> more patches on top of this that extend the voltage layer to directly
+> use the PMIC instead of using VC or VP?
+>
+> I'm assuming we have some more assumptions in our current voltage layer
+> about the presence of VC/VP that are wrong and need to be fixed.  Now
+> that the big voltage layer cleanup is done, I am *very* interested in
+> getting rid of any more assumptions we have in that code about how
+> devices are hooked up with PMICs.
+>
+> Can you summarize how these devices are using (or want to use) the
+> voltage layer?
+[Abhilash K V] Your concerns are grave and am trying to address most,
+however these are the only points I can make outright:
+
+- AM35x has just one voltage domain, so I tried having only one entry in 
+voltagedomains_omap3[ ]  ( and calling it "mpu_core", maybe or "mpu" or "core" ?).
+Either ways, some power-domain, say mpu_pwrdm would try looking for the "mpu_iva"
+volt-domain and return error, this happens for most powerdomains as their constituent 
+volt-domains are hard-coded (and so unavailable on am35xx). Changing the code (which
+will be massive) there going against our initial premise that am35xx is still a "type of"
+omap3 SoC.
+
+- TPS65023 PMIC code was originally included as a starting point to support a omap34xx
+ (with SR disabled maybe) with power supplied by a TPS65023. Yes,I agree that since 
+ this looks more of like hypothetical scenario right now and so we can do
+ without the addition of file pmic_tps65023.c for now as it doesn't provide any support for
+ scaling.
 
 
-> ________________________________________
-> From: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
-> Sent: Wednesday, September 21, 2011 2:36 PM
-> To: Ravi, Deepthy
-> Cc: mchehab@infradead.org; tony@atomide.com; Hiremath, Vaibhav; linux-media@vger.kernel.org; linux@arm.linux.org.uk; linux-arm-kernel@lists.infradead.org; kyungmin.park@samsung.com; hverkuil@xs4all.nl; m.szyprowski@samsung.com; g.liakhovetski@gmx.de; Shilimkar, Santosh; khilman@deeprootsystems.com; david.woodhouse@intel.com; akpm@linux-foundation.org; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus
-> Subject: Re: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for UYVY8_2X8 and YUYV8_2X8 formats
+-Abhilash
 >
-> Hi Deepthy,
+> Thanks,
 >
-> On Wednesday 21 September 2011 07:32:44 Ravi, Deepthy wrote:
->> On Wednesday, September 21, 2011 4:56 AM Laurent Pinchart wrote:
->> > On Tuesday 20 September 2011 16:56:51 Deepthy Ravi wrote:
->> >> Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
->> >> register for UYVY8_2X8 and YUYV8_2X8 formats.
->> >>
->> >> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
->> >> ---
->> >>
->> >>  drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
->> >>  1 files changed, 8 insertions(+), 3 deletions(-)
->> >>
->> >> diff --git a/drivers/media/video/omap3isp/ispccdc.c
->> >> b/drivers/media/video/omap3isp/ispccdc.c index 418ba65..1dcf180 100644
->> >> --- a/drivers/media/video/omap3isp/ispccdc.c
->> >> +++ b/drivers/media/video/omap3isp/ispccdc.c
->> >> @@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct
->> >> isp_ccdc_device
->> >> *ccdc,
->> >>
->> >>       syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
->> >>       if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
->> >>
->> >> -         format->code == V4L2_MBUS_FMT_UYVY8_2X8)
->> >> -             syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
->> >> +         format->code == V4L2_MBUS_FMT_UYVY8_2X8){
->> >> +             if (pdata && pdata->bt656)
->> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
->> >> +             else
->> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
->> >> +     }
->> >>
->> >>       else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
->> >>
->> >>                format->code == V4L2_MBUS_FMT_UYVY8_1X16)
->> >>
->> >>               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
->> >>
->> >> @@ -1172,7 +1176,8 @@ static void ccdc_configure(struct isp_ccdc_device
->> >> *ccdc) syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
->> >>
->> >>       /* Use PACK8 mode for 1byte per pixel formats. */
->> >>
->> >> -     if (omap3isp_video_format_info(format->code)->width <= 8)
->> >> +     if ((omap3isp_video_format_info(format->code)->width <= 8) &&
->> >> +                     (omap3isp_video_format_info(format->code)->bpp <=
->> >> 8))
->> >
->> > I'm not sure to follow you. This will clear the PACK8 bit for the
->> > YUYV8_2X8 formats. Those formats are 8 bits wide, shouldn't PACK8 be set
->> > to store samples on 8 bits instead of 16 bits ?
->> >
->> > Is this patch intended to support YUYV8_2X8 sensors in non BT.656 mode
->> > with the bridge enabled ? In that case, what would you think about setting
->> > the CCDC input format to YUYV8_1X16 instead ? This would better reflect
->> > the reality, as the bridge converts YUYV8_2X8 to YUYV8_1X16, and the CCDC
->> > is then fed with YUYV8_1X16.
+> Kevin
+>
+>> Many functions have been defined to plug into existing
+>> voltage layer.
 >>
->> Yes this is intended for  YUYV8_2X8 sensors in non BT.656 with 8 to 16 bit
->> bridge enabled. So the data has to be stored as 16 bits per sample. Thats
->> why PACK8 is cleared . I am not sure about using YUYV8_1X16.
+>> Signed-off-by: Sanjeev Premi <premi@ti.com>
+>> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/omap_opp_data.h           |    1 +
+>>  arch/arm/mach-omap2/opp3xxx_data.c            |    9 +++++++++
+>>  arch/arm/mach-omap2/voltagedomains3xxx_data.c |   10 ++++++++--
+>>  3 files changed, 18 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
+>> index c784c12..c7cedf3 100644
+>> --- a/arch/arm/mach-omap2/omap_opp_data.h
+>> +++ b/arch/arm/mach-omap2/omap_opp_data.h
+>> @@ -88,6 +88,7 @@ extern struct omap_volt_data omap34xx_vddmpu_volt_data[];
+>>  extern struct omap_volt_data omap34xx_vddcore_volt_data[];
+>>  extern struct omap_volt_data omap36xx_vddmpu_volt_data[];
+>>  extern struct omap_volt_data omap36xx_vddcore_volt_data[];
+>> +extern struct omap_volt_data am35xx_vdd_volt_data[];
+>>
+>>  extern struct omap_volt_data omap44xx_vdd_mpu_volt_data[];
+>>  extern struct omap_volt_data omap44xx_vdd_iva_volt_data[];
+>> diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+>> index d95f3f9..e4a5ee6 100644
+>> --- a/arch/arm/mach-omap2/opp3xxx_data.c
+>> +++ b/arch/arm/mach-omap2/opp3xxx_data.c
+>> @@ -85,6 +85,15 @@ struct omap_volt_data omap36xx_vddcore_volt_data[] = {
+>>       VOLT_DATA_DEFINE(0, 0, 0, 0),
+>>  };
+>>
+>> +/* AM35x
+>> + *
+>> + * Fields related to SmartReflex and Voltage Processor are set to 0.
+>> + */
 >
-> My original idea when I wrote the YV support patches was to implement this use
-> case with YUYV8_2X8 at the sensor output and YUYV8_1X16 at the CCDC input. The
-> ISP driver could then enable the bridge automatically. I'm not sure if that's
-> the best solution though, it might be confusing for the users. What I would
-> like to keep, however, is the idea of enabling the bridge automatically.
+> fix multi-line comment style (search for 'multi-line' in Documentation/CodingStyle)
 >
-[Deepthy Ravi] But for streaming to start, the formats on both ends of the link should match. I believe setting different formats at sensor output and ccdc input will give a broken pipe error. Is my understanding correct ? If so, how do you propose to handle the situation ? 
+>> +struct omap_volt_data am35xx_vdd_volt_data[] = {
+>> +     VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, 0x0, 0x0, 0x0),
+>> +     VOLT_DATA_DEFINE(0, 0, 0, 0),
+>> +};
+>> +
+>>  /* OPP data */
+>>
+>>  static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+>> diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+>> index 071101d..530082f 100644
+>> --- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+>> +++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+>> @@ -85,7 +85,10 @@ void __init omap3xxx_voltagedomains_init(void)
+>>        * XXX Will depend on the process, validation, and binning
+>>        * for the currently-running IC
+>>        */
+>> -     if (cpu_is_omap3630()) {
+>> +     if (cpu_is_omap3505() || cpu_is_omap3517()) {
+>> +             omap3_voltdm_mpu.volt_data = am35xx_vdd_volt_data;
+>> +             omap3_voltdm_core.volt_data = am35xx_vdd_volt_data;
+>> +     } else if (cpu_is_omap3630()) {
+>>               omap3_voltdm_mpu.volt_data = omap36xx_vddmpu_volt_data;
+>>               omap3_voltdm_core.volt_data = omap36xx_vddcore_volt_data;
+>>       } else {
+>> @@ -93,8 +96,11 @@ void __init omap3xxx_voltagedomains_init(void)
+>>               omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
+>>       }
+>>
+>> -     for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++)
+>> +     for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++) {
+>> +             if (cpu_is_omap3505() || cpu_is_omap3517())
+>> +                     voltdm->scalable = false;
+>>               voltdm->sys_clk.name = sys_clk_name;
+>> +     }
+>>
+>>       voltdm_init(voltagedomains_omap3);
+>>  };
+>
 
-> Sakari, any opinion on this ?
+
+________________________________________
+From: Hilman, Kevin
+Sent: Friday, September 23, 2011 4:00 AM
+To: Koyamangalath, Abhilash
+Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk; sameo@linux.intel.com; Shilimkar, Santosh; Premi, Sanjeev; david.woodhouse@intel.com; christian.gmeiner@gmail.com
+Subject: Re: [PATCH v3 1/3] AM35x: voltage: Basic initialization
+
+Hi Abhilash,
+
+Abhilash K V <abhilash.kv@ti.com> writes:
+
+> This patch adds the basic initialization of voltage layer
+> for AM35x. Since AM35x doesn't support voltage scaling,
+
+I must admit to still being confused by this series.
+
+This patch says AM35x doesn't support voltage scaling, and the next
+patch adds PMIC support, and registers it with the voltage layer.
+
+However, with each voltdm->scalable flag set to false, none of the PMIC
+values will ever be used (by the current voltage layer.)  Do you have
+more patches on top of this that extend the voltage layer to directly
+use the PMIC instead of using VC or VP?
+
+I'm assuming we have some more assumptions in our current voltage layer
+about the presence of VC/VP that are wrong and need to be fixed.  Now
+that the big voltage layer cleanup is done, I am *very* interested in
+getting rid of any more assumptions we have in that code about how
+devices are hooked up with PMICs.
+
+Can you summarize how these devices are using (or want to use) the
+voltage layer?
+
+Thanks,
+
+Kevin
+
+> Many functions have been defined to plug into existing
+> voltage layer.
 >
->> >>               syn_mode |= ISPCCDC_SYN_MODE_PACK8;
->> >>       else
->> >>               syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_opp_data.h           |    1 +
+>  arch/arm/mach-omap2/opp3xxx_data.c            |    9 +++++++++
+>  arch/arm/mach-omap2/voltagedomains3xxx_data.c |   10 ++++++++--
+>  3 files changed, 18 insertions(+), 2 deletions(-)
 >
-> --
-> Regards,
+> diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
+> index c784c12..c7cedf3 100644
+> --- a/arch/arm/mach-omap2/omap_opp_data.h
+> +++ b/arch/arm/mach-omap2/omap_opp_data.h
+> @@ -88,6 +88,7 @@ extern struct omap_volt_data omap34xx_vddmpu_volt_data[];
+>  extern struct omap_volt_data omap34xx_vddcore_volt_data[];
+>  extern struct omap_volt_data omap36xx_vddmpu_volt_data[];
+>  extern struct omap_volt_data omap36xx_vddcore_volt_data[];
+> +extern struct omap_volt_data am35xx_vdd_volt_data[];
 >
-> Laurent Pinchart
+>  extern struct omap_volt_data omap44xx_vdd_mpu_volt_data[];
+>  extern struct omap_volt_data omap44xx_vdd_iva_volt_data[];
+> diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+> index d95f3f9..e4a5ee6 100644
+> --- a/arch/arm/mach-omap2/opp3xxx_data.c
+> +++ b/arch/arm/mach-omap2/opp3xxx_data.c
+> @@ -85,6 +85,15 @@ struct omap_volt_data omap36xx_vddcore_volt_data[] = {
+>       VOLT_DATA_DEFINE(0, 0, 0, 0),
+>  };
 >
+> +/* AM35x
+> + *
+> + * Fields related to SmartReflex and Voltage Processor are set to 0.
+> + */
+
+fix multi-line comment style (search for 'multi-line' in Documentation/CodingStyle)
+
+> +struct omap_volt_data am35xx_vdd_volt_data[] = {
+> +     VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, 0x0, 0x0, 0x0),
+> +     VOLT_DATA_DEFINE(0, 0, 0, 0),
+> +};
+> +
+>  /* OPP data */
+>
+>  static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+> diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> index 071101d..530082f 100644
+> --- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> +++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> @@ -85,7 +85,10 @@ void __init omap3xxx_voltagedomains_init(void)
+>        * XXX Will depend on the process, validation, and binning
+>        * for the currently-running IC
+>        */
+> -     if (cpu_is_omap3630()) {
+> +     if (cpu_is_omap3505() || cpu_is_omap3517()) {
+> +             omap3_voltdm_mpu.volt_data = am35xx_vdd_volt_data;
+> +             omap3_voltdm_core.volt_data = am35xx_vdd_volt_data;
+> +     } else if (cpu_is_omap3630()) {
+>               omap3_voltdm_mpu.volt_data = omap36xx_vddmpu_volt_data;
+>               omap3_voltdm_core.volt_data = omap36xx_vddcore_volt_data;
+>       } else {
+> @@ -93,8 +96,11 @@ void __init omap3xxx_voltagedomains_init(void)
+>               omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
+>       }
+>
+> -     for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++)
+> +     for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++) {
+> +             if (cpu_is_omap3505() || cpu_is_omap3517())
+> +                     voltdm->scalable = false;
+>               voltdm->sys_clk.name = sys_clk_name;
+> +     }
+>
+>       voltdm_init(voltagedomains_omap3);
+>  };
