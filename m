@@ -1,111 +1,131 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH 2/6] OMAP4: Clock: Associate clocks for OMAP temperature sensor
-Date: Fri, 23 Sep 2011 11:23:08 +0530
-Message-ID: <CAJ6a13aKoca1ny3ek7R3+T6GKVEKF1OhoxoDywcaPfpCnk0WzQ@mail.gmail.com>
-References: <1316705361-12175-1-git-send-email-j-keerthy@ti.com>
-	<1316705361-12175-3-git-send-email-j-keerthy@ti.com>
-	<alpine.DEB.2.00.1109222316350.10719@utopia.booyaka.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH v2 5/5] OMAPDSS: HDMI: Add support to dump clocks through
+Date: Fri, 23 Sep 2011 11:22:59 +0530
+Message-ID: <CAP5A+B-Ahwfk4tu3OtvRpfejFbv_jVpiVmoNJW0cGTfiwkG7kA@mail.gmail.com>
+References: <1316678866-17749-1-git-send-email-mythripk@ti.com>
+ <1316678866-17749-2-git-send-email-mythripk@ti.com> <1316678866-17749-3-git-send-email-mythripk@ti.com>
+ <1316678866-17749-4-git-send-email-mythripk@ti.com> <1316678866-17749-5-git-send-email-mythripk@ti.com>
+ <1316678866-17749-6-git-send-email-mythripk@ti.com> <1316692870.2442.24.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:37347 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751325Ab1IWFxK convert rfc822-to-8bit
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:46041 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751325Ab1IWFxV convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Sep 2011 01:53:10 -0400
-Received: by mail-wy0-f175.google.com with SMTP id 5so3820959wyh.20
-        for <linux-omap@vger.kernel.org>; Thu, 22 Sep 2011 22:53:09 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1109222316350.10719@utopia.booyaka.com>
+	Fri, 23 Sep 2011 01:53:21 -0400
+Received: by vchq10 with SMTP id q10so1385641vch.23
+        for <linux-omap@vger.kernel.org>; Thu, 22 Sep 2011 22:53:19 -0700 (PDT)
+In-Reply-To: <1316692870.2442.24.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-On Fri, Sep 23, 2011 at 10:48 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Thu, 22 Sep 2011, Keerthy wrote:
->
->> div_ts_ck feeds only the temperature sensor functional clock
->> and also has a clksel associated (for divider selection). Mapping th=
-is
->> as well as the bandgap_ts_fclk the fclk of temperature sensor in clk=
-dev table,
->> so a clk_set_rate() on the div_ts_ck in the driver would have the ef=
-fect of
->> changing the temperature sensor clock rate indirectly.
+Hi,
+
+On Thu, Sep 22, 2011 at 5:31 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Thu, 2011-09-22 at 13:37 +0530, mythripk@ti.com wrote:
+>> From: Mythri P K <mythripk@ti.com>
 >>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
->> Cc: tony@atomide.com
->> Cc: paul@pwsan.com
+>> Add support to dump the HDMI regm, regn, and other clock parameters.
 >
-> Your cc's didn't take effect...
+> The subjects of this and previous patch seem to be still broken. And
+> while at it, you could fix missing periods and misplaced spaces (like
+> "foo ,bar") in the descriptions of this patch series.
+>
+Taken.
+>> +void hdmi_dump_clocks(struct seq_file *s)
+>> +{
+>> + =A0 =A0 enum omap_dss_clk_source dispc_clk_src;
+>> +
+>> + =A0 =A0 dispc_clk_src =3D dss_get_dispc_clk_source();
+>> +
+>> + =A0 =A0 if (hdmi_runtime_get())
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> +
+>> + =A0 =A0 seq_printf(s, "- HDMI PLL -\n");
+>> +
+>> + =A0 =A0 seq_printf(s, "regm\t%u\n", hdmi.ip_data.pll_data.regm);
+>> +
+>> + =A0 =A0 seq_printf(s, "regmf\t%u\n", hdmi.ip_data.pll_data.regmf);
+>> +
+>> + =A0 =A0 seq_printf(s, "dcofreq\t%u\n", hdmi.ip_data.pll_data.dcofr=
+eq);
+>> +
+>> + =A0 =A0 seq_printf(s, "regsd\t%u\n", hdmi.ip_data.pll_data.regsd);
+>
+> Printing the dividers is fine, but I think we're usually more interes=
+ted
+> in the resulting clocks. So you should print also the clocks. Possibl=
+y
+> internal clocks (like Fint for DSI) also, but at least the output
+> clocks. I believe for HDMI PLL they are CLKOUTLDO and CLKDCOLDO.
+>
+The clkoutldo would be the pixel clock which is a synthesis of these pa=
+rameters,
+I could print.
+> Looking at the dividers also brings up two things not directly relate=
+d
+> to this patch:
+>
+> - What is dcofreq? Looking at the code, it tells if the pixel clock i=
+s >
+> 1000MHz. Why is such a field needed, can't the HDMI driver manage tha=
+t
+> itself? And if it's needed, why is it called dcofreq, the name doesn'=
+t
+> make much sense to me.
+It is DCO frequency, It suggest the frequency selector range ,
+HDMI_PLL_CONFIGURATION2 (3:1) has to be set accordingly by the driver
+depending on whether the CLKOUTLDO is greater than or less than
+1000Mhz, but anyways the decision is taken by the driver.
+Also the name is as suggested by TRM .
 
-Yes :(. I mistakenly had supress cc in my git send command.
-
 >
->> ---
->> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 =A04 ++--
->> =A01 files changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-om=
-ap2/clock44xx_data.c
->> index 946bf04..c51e513 100644
->> --- a/arch/arm/mach-omap2/clock44xx_data.c
->> +++ b/arch/arm/mach-omap2/clock44xx_data.c
->> @@ -3185,9 +3185,9 @@ static struct omap_clk omap44xx_clks[] =3D {
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "aes2_fck", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 &aes2_fck, =A0 =A0 =A0CK_443X),
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "aess_fck", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 &aess_fck, =A0 =A0 =A0CK_443X),
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "bandgap_fclk", =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 &bandgap_fclk, =A0CK_443X),
->> - =A0 =A0 CLK(NULL, =A0 =A0 =A0 "bandgap_ts_fclk", =A0 =A0 =A0 =A0 =A0=
- =A0 =A0&bandgap_ts_fclk, =A0 =A0 =A0 CK_446X),
->> + =A0 =A0 CLK("omap4460plus_scm.0", =A0 =A0 =A0 "fck", =A0 =A0 =A0 =A0=
- =A0&bandgap_ts_fclk, =A0 =A0 =A0 CK_446X),
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "des3des_fck", =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0&des3des_fck, =A0 CK_443X),
->> - =A0 =A0 CLK(NULL, =A0 =A0 =A0 "div_ts_ck", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0&div_ts_ck, =A0 =A0 CK_446X),
->> + =A0 =A0 CLK("omap4460plus_scm.0", =A0 =A0 =A0 "div_ck", =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &div_ts_ck, =A0 =A0 CK_446X),
+> - We are doing HDMI PLL calculations in the omapdss drivers hdmi.c fi=
+le.
+> The PLL calculations are PLL specific, and thus should be in the
+> specific HDMI implementation file, right?
 >
-> Clearly this device is incorrectly named. =A0You're setting up a clkd=
-ev
-> entry that's marked as being valid for OMAP4430, but your device is c=
-alled
-> "omap4460plus_scm". =A0They can't both be right...
-
-This is addressed in Patch 06.
-
+>> + =A0 =A0 seq_printf(s, "DISPC clock source %s (%s)\t(%s)\n",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dss_get_generic_clk_source=
+_name(dispc_clk_src),
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dss_feat_get_clk_source_na=
+me(dispc_clk_src),
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dispc_clk_src =3D=3D OMAP_=
+DSS_CLK_SRC_FCK ?
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "off" : "on");
 >
+> Why do you print DISPC clock source? How is that part of HDMI clock
+> configuration?
+Reason is to check whether the DISPC clock source is PRCM / DSI PLL,
+Because DSI PLL might not be sufficient.
 >
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "dmic_sync_mux_ck", =A0 =A0 =A0 =A0=
- =A0 =A0 &dmic_sync_mux_ck, =A0 =A0 =A0CK_443X),
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "dmic_fck", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 &dmic_fck, =A0 =A0 =A0CK_443X),
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "dsp_fck", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0&dsp_fck, =A0 =A0 =A0 CK_443X),
->> --
->> 1.7.0.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->>
+>> +
+>> + =A0 =A0 seq_printf(s, "hdmi %s source rate =3D %lu\n",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 hdmi.ip_data.pll_data.refs=
+el =3D=3D HDMI_REFSEL_SYSCLK ?
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "sysclk" : "pclk/ref1/ref2=
+",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_get_rate(hdmi.sys_clk)=
+);
+>
+> Here I think it would be better to use the same format as the already
+> existing outputs (DSI). And as the PLL source is base clock, it's mor=
+e
+> logical to print it first, like DSI does.
+Sure can move it. I shall print sysclk and output clock frequency first=
+=2E
+>
+> =A0Tomi
 >
 >
-> - Paul
 >
-
-
-
---=20
-Regards and Thanks,
-Keerthy
+Thanks and regards,
+Mythri.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
