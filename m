@@ -1,137 +1,120 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv9 16/18] TEMP: OMAP3: serial: made serial to work properly with PRCM chain handler
-Date: Fri, 23 Sep 2011 15:46:24 +0300
-Message-ID: <1316781986-30642-17-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv9 04/18] TEMP: OMAP4xxx: hwmod data: add PRM hwmod
+Date: Fri, 23 Sep 2011 15:46:12 +0300
+Message-ID: <1316781986-30642-5-git-send-email-t-kristo@ti.com>
 References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch is just a temporary hack to allow serial to work properly with
-the PRCM chain handler. Should be replaced with a proper implementation
-by serial runtime PM support.
+This patch is temporary until Benoit can provide final version.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Govindraj.R <govindraj.raja@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/serial.c     |   29 +++++++++--------------------
- drivers/tty/serial/omap-serial.c |    8 ++++++++
- 2 files changed, 17 insertions(+), 20 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   65 ++++++++++++++++++++++++++++
+ 1 files changed, 65 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index e08feb1..0cc5434 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -39,6 +39,7 @@
- #include <plat/dma.h>
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
-+#include <plat/prcm.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 6201422..c09bf4d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -3990,6 +3990,68 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
  
- #include "prm2xxx_3xxx.h"
- #include "pm.h"
-@@ -380,6 +381,7 @@ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
- 	omap_uart_smart_idle_enable(uart, 1);
- 	uart->can_sleep = 1;
- 	del_timer(&uart->timer);
-+	omap_uart_disable_clocks(uart);
- }
- 
- static void omap_uart_idle_timer(unsigned long data)
-@@ -391,36 +393,23 @@ static void omap_uart_idle_timer(unsigned long data)
- 
- void omap_uart_prepare_idle(int num)
- {
--	struct omap_uart_state *uart;
--
--	list_for_each_entry(uart, &uart_list, node) {
--		if (num == uart->num && uart->can_sleep) {
--			omap_uart_disable_clocks(uart);
--			return;
--		}
--	}
- }
- 
- void omap_uart_resume_idle(int num)
- {
- 	struct omap_uart_state *uart;
-+	u32 wkst;
- 
- 	list_for_each_entry(uart, &uart_list, node) {
- 		if (num == uart->num && uart->can_sleep) {
--			omap_uart_enable_clocks(uart);
-+			omap_uart_block_sleep(uart);
- 
--			/* Check for IO pad wakeup */
--			if (cpu_is_omap34xx() && uart->padconf) {
--				u16 p = omap_ctrl_readw(uart->padconf);
--
--				if (p & OMAP3_PADCONF_WAKEUPEVENT0)
--					omap_uart_block_sleep(uart);
-+			/* Check for normal UART wakeup (and clear it) */
-+			if (uart->wk_st && uart->wk_mask) {
-+				wkst = __raw_readl(uart->wk_st) & uart->wk_mask;
-+				if (wkst)
-+					__raw_writel(wkst, uart->wk_st);
- 			}
--
--			/* Check for normal UART wakeup */
--			if (__raw_readl(uart->wk_st) & uart->wk_mask)
--				omap_uart_block_sleep(uart);
--			return;
- 		}
- 	}
- }
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index c37df8d..cfff8ac 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -261,6 +261,8 @@ static void serial_omap_start_tx(struct uart_port *port)
- 	unsigned int start;
- 	int ret = 0;
- 
-+	omap_uart_resume_idle(up->pdev->id);
++ /*
++ * 'prm' class
++ * power and reset manager (part of the prcm infrastructure)
++ */
 +
- 	if (!up->use_dma) {
- 		serial_omap_enable_ier_thri(up);
- 		return;
-@@ -354,6 +356,8 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
- 	unsigned int iir, lsr;
- 	unsigned long flags;
- 
-+	omap_uart_resume_idle(up->pdev->id);
++static struct omap_hwmod_class_sysconfig omap44xx_prm_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_flags	= 0,
++};
 +
- 	iir = serial_in(up, UART_IIR);
- 	if (iir & UART_IIR_NO_INT)
- 		return IRQ_NONE;
-@@ -641,6 +645,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	unsigned long flags = 0;
- 	unsigned int baud, quot;
- 
-+	omap_uart_resume_idle(up->pdev->id);
++static struct omap_hwmod_class omap44xx_prm_hwmod_class = {
++	.name	= "prm",
++	.sysc	= &omap44xx_prm_sysc,
++};
 +
- 	switch (termios->c_cflag & CSIZE) {
- 	case CS5:
- 		cval = UART_LCR_WLEN5;
-@@ -947,6 +953,8 @@ serial_omap_console_write(struct console *co, const char *s,
- 	unsigned int ier;
- 	int locked = 1;
- 
-+	omap_uart_resume_idle(up->pdev->id);
++/* prm */
++static struct omap_hwmod omap44xx_prm_hwmod;
++static struct omap_hwmod_irq_info omap44xx_prm_irqs[] = {
++	{ .irq = 11 + OMAP44XX_IRQ_GIC_START },
++	{ .irq = -1 }
++};
 +
- 	local_irq_save(flags);
- 	if (up->port.sysrq)
- 		locked = 0;
++static struct omap_hwmod_rst_info omap44xx_prm_resets[] = {
++	{ .name = "rst_global_warm_sw", .rst_shift = 0 },
++	{ .name = "rst_global_cold_sw", .rst_shift = 1 },
++};
++
++static struct omap_hwmod_addr_space omap44xx_prm_addrs[] = {
++	{
++		.pa_start       = 0x4a306000,
++		.pa_end         = 0x4a307fff,
++		.flags          = ADDR_TYPE_RT
++	},
++	{ }
++};
++
++/* l4_wkup -> prm */
++static struct omap_hwmod_ocp_if omap44xx_l4_wkup__prm = {
++	.master		= &omap44xx_l4_wkup_hwmod,
++	.slave		= &omap44xx_prm_hwmod,
++	.clk		= "l4_wkup_clk_mux_ck",
++	.addr		= omap44xx_prm_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* prm slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_prm_slaves[] = {
++	&omap44xx_l4_wkup__prm,
++};
++
++static struct omap_hwmod omap44xx_prm_hwmod = {
++	.name		= "prm4xxx",
++	.class		= &omap44xx_prm_hwmod_class,
++	.mpu_irqs	= omap44xx_prm_irqs,
++	.clkdm_name	= "l4_wkup_clkdm",
++	.rst_lines	= omap44xx_prm_resets,
++	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_prm_resets),
++	.slaves		= omap44xx_prm_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_prm_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
+ /*
+  * 'smartreflex' class
+  * smartreflex module (monitor silicon performance and outputs a measure of
+@@ -5448,6 +5510,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	/* mpu class */
+ 	&omap44xx_mpu_hwmod,
+ 
++	/* prm class */
++	&omap44xx_prm_hwmod,
++
+ 	/* smartreflex class */
+ 	&omap44xx_smartreflex_core_hwmod,
+ 	&omap44xx_smartreflex_iva_hwmod,
 -- 
 1.7.4.1
 
 
 Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
