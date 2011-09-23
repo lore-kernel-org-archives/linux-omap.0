@@ -1,70 +1,110 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 1/5 v11] arm: omap: usb: ehci and ohci hwmod structures
- for omap4
-Date: Fri, 23 Sep 2011 17:00:47 +0530
-Message-ID: <CAP05o4+DT8hL8A_e6WBpV9ptZ4XYYKgM=UQa8uiRH2ox6ZP-4A@mail.gmail.com>
-References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
-	<1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>
-	<alpine.DEB.2.00.1109221213500.10719@utopia.booyaka.com>
-	<4E7B8C68.7020407@ti.com>
-	<alpine.DEB.2.00.1109221524560.10719@utopia.booyaka.com>
+From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Subject: RE: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for
+ UYVY8_2X8 and YUYV8_2X8 formats
+Date: Fri, 23 Sep 2011 17:23:39 +0530
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09084F@dbde03.ent.ti.com>
+References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
+ <201109210126.20436.laurent.pinchart@ideasonboard.com>
+ <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090847@dbde03.ent.ti.com>,<201109211106.41677.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40116 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753425Ab1IWLas convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Sep 2011 07:30:48 -0400
-In-Reply-To: <alpine.DEB.2.00.1109221524560.10719@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <201109211106.41677.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "mchehab@infradead.org" <mchehab@infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>, "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david.woodhouse@intel.com" <david.woodhouse@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-> So I'd suggest one of two approaches:
+
+> ________________________________________
+> From: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
+> Sent: Wednesday, September 21, 2011 2:36 PM
+> To: Ravi, Deepthy
+> Cc: mchehab@infradead.org; tony@atomide.com; Hiremath, Vaibhav; linux-media@vger.kernel.org; linux@arm.linux.org.uk; linux-arm-kernel@lists.infradead.org; kyungmin.park@samsung.com; hverkuil@xs4all.nl; m.szyprowski@samsung.com; g.liakhovetski@gmx.de; Shilimkar, Santosh; khilman@deeprootsystems.com; david.woodhouse@intel.com; akpm@linux-foundation.org; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus
+> Subject: Re: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for UYVY8_2X8 and YUYV8_2X8 formats
 >
-> 1. If the pin muxing can follow the PM runtime status of the UHH IP b=
-lock,
-> =A0 then the pin mux data should be associated with the UHH hwmod.
+> Hi Deepthy,
+>
+> On Wednesday 21 September 2011 07:32:44 Ravi, Deepthy wrote:
+>> On Wednesday, September 21, 2011 4:56 AM Laurent Pinchart wrote:
+>> > On Tuesday 20 September 2011 16:56:51 Deepthy Ravi wrote:
+>> >> Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
+>> >> register for UYVY8_2X8 and YUYV8_2X8 formats.
+>> >>
+>> >> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+>> >> ---
+>> >>
+>> >>  drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
+>> >>  1 files changed, 8 insertions(+), 3 deletions(-)
+>> >>
+>> >> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+>> >> b/drivers/media/video/omap3isp/ispccdc.c index 418ba65..1dcf180 100644
+>> >> --- a/drivers/media/video/omap3isp/ispccdc.c
+>> >> +++ b/drivers/media/video/omap3isp/ispccdc.c
+>> >> @@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct
+>> >> isp_ccdc_device
+>> >> *ccdc,
+>> >>
+>> >>       syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
+>> >>       if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
+>> >>
+>> >> -         format->code == V4L2_MBUS_FMT_UYVY8_2X8)
+>> >> -             syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+>> >> +         format->code == V4L2_MBUS_FMT_UYVY8_2X8){
+>> >> +             if (pdata && pdata->bt656)
+>> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+>> >> +             else
+>> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+>> >> +     }
+>> >>
+>> >>       else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
+>> >>
+>> >>                format->code == V4L2_MBUS_FMT_UYVY8_1X16)
+>> >>
+>> >>               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+>> >>
+>> >> @@ -1172,7 +1176,8 @@ static void ccdc_configure(struct isp_ccdc_device
+>> >> *ccdc) syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
+>> >>
+>> >>       /* Use PACK8 mode for 1byte per pixel formats. */
+>> >>
+>> >> -     if (omap3isp_video_format_info(format->code)->width <= 8)
+>> >> +     if ((omap3isp_video_format_info(format->code)->width <= 8) &&
+>> >> +                     (omap3isp_video_format_info(format->code)->bpp <=
+>> >> 8))
+>> >
+>> > I'm not sure to follow you. This will clear the PACK8 bit for the
+>> > YUYV8_2X8 formats. Those formats are 8 bits wide, shouldn't PACK8 be set
+>> > to store samples on 8 bits instead of 16 bits ?
+>> >
+>> > Is this patch intended to support YUYV8_2X8 sensors in non BT.656 mode
+>> > with the bridge enabled ? In that case, what would you think about setting
+>> > the CCDC input format to YUYV8_1X16 instead ? This would better reflect
+>> > the reality, as the bridge converts YUYV8_2X8 to YUYV8_1X16, and the CCDC
+>> > is then fed with YUYV8_1X16.
+>>
+>> Yes this is intended for  YUYV8_2X8 sensors in non BT.656 with 8 to 16 bit
+>> bridge enabled. So the data has to be stored as 16 bits per sample. Thats
+>> why PACK8 is cleared . I am not sure about using YUYV8_1X16.
+>
+> My original idea when I wrote the YV support patches was to implement this use
+> case with YUYV8_2X8 at the sensor output and YUYV8_1X16 at the CCDC input. The
+> ISP driver could then enable the bridge automatically. I'm not sure if that's
+> the best solution though, it might be confusing for the users. What I would
+> like to keep, however, is the idea of enabling the bridge automatically.
+>
+[Deepthy Ravi] But for streaming to start, the formats on both ends of the link should match. I believe setting different formats at sensor output and ccdc input will give a broken pipe error. Is my understanding correct ? If so, how do you propose to handle the situation ? 
 
-
-No, the mux is applicable only to ehci and ohci , where as
-sysconfig is applicable to uhh ( usb_host_hs class).
-
-
-> 2. If the pin muxing must follow the EHCI/OHCI IP block PM runtime st=
-atus,
-> =A0 then drivers/mfd/omap-usb-host.c is what should be handling the
-> =A0 remuxing. =A0omap-usb-host.c can set the dev_pm_ops of the EHCI/O=
-HCI
-> =A0 platform_devices to point to functions either in
-> =A0 arch/arm/mach-omap2/usb-host.c, or local functions that call into
-> =A0 mach-omap2/usb-host.c functions to handle pin remuxing. =A0(Those
-> =A0 function pointers should be provided to the MFD driver in some cl=
-ean way,
-> =A0 like via platform_data.)
-
-The dev_pm_ops of ehci should exist in  /drivers/usb/host/ehci-omap.c a=
-nd
-dev_pm_ops of phci should exist in  /drivers/usb/host/ohci-omap3.c.
-In the existing design, the omap-usb-host.c host can not access the
-platform driver
-of ehci and ohci.
-But, through function pointers it is possible to send the platform
-data to ehci and ohci
-drivers to handle pin remuxing; but we will not able to use tero's
-patches; and it will prevent
-our future design activity for remote wakeup of ehci and ohci.
-
-please let me know if you have thoughts on this.
-
-
-Regards
-Keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Sakari, any opinion on this ?
+>
+>> >>               syn_mode |= ISPCCDC_SYN_MODE_PACK8;
+>> >>       else
+>> >>               syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
