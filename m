@@ -1,92 +1,119 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v16 00/12] OMAP: dmtimer: adaptation to platform_driver
-Date: Fri, 23 Sep 2011 14:57:36 +0530
-Message-ID: <CAC83Zv+Vd4r2Ja-KQo956WigoxV0mhoygJwi0aQjmY6Dw9L2qA@mail.gmail.com>
-References: <1316518227-28116-1-git-send-email-tarun.kanti@ti.com>
-	<20110922005930.GN2937@atomide.com>
-	<CAC83Zv+aFu6u7TezD0NA3UHf9DMtW0AsP15jB1FFn8avEwY7CQ@mail.gmail.com>
+From: <mythripk@ti.com>
+Subject: [PATCHv3 5/5] OMAPDSS: HDMI: Add support to dump clocks through
+Date: Fri, 23 Sep 2011 15:02:21 +0530
+Message-ID: <1316770341-19140-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:55667 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752231Ab1IWJ1j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Sep 2011 05:27:39 -0400
-Received: by bke11 with SMTP id 11so3674541bke.20
-        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 02:27:37 -0700 (PDT)
-In-Reply-To: <CAC83Zv+aFu6u7TezD0NA3UHf9DMtW0AsP15jB1FFn8avEwY7CQ@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43592 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752366Ab1IWJk0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Sep 2011 05:40:26 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8N9eMOT027800
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 04:40:25 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p8N9eLVs011552
+	for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 15:10:22 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Mythri P K <mythripk@ti.com>
 
-Hi Tony,
-[...]
->> I've applied these into dmtimer branch with some changes to simplify
->> things further. I've also merged it into linux-omap master branch
->> for further testing.
->>
->> I'll reply to your patches with the changes I've done. Care give the
->> dmtimer branch a try and see if I've missed something?
-> Sure, I will go through the changes and do testing on it.
-Please find the missing/correction in the patch below.
-You can include them as part of patch 9.
-Thanks.
---
-Tarun
+From: Mythri P K <mythripk@ti.com>
 
->From 98cb7949054214684d7361eed2e382fa716ab0da Mon Sep 17 00:00:00 2001
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Date: Fri, 23 Sep 2011 14:48:56 +0530
-Subject: [correction] [PATCH 09/12] OMAP: dmtimer: low-power mode support
+Add support to dump the HDMI PLL dividers such as regm, regn etc
+and other clock dumps such as pixel clock rate, TMDS clock rate.
 
-These are some missing content as well as correction to this patch.
+changes since V2:
+Add pixel clock and TMDS clock dump and remove dcofreq and DISPC clock source
+print.
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+ drivers/video/omap2/dss/dss.c  |    3 +++
+ drivers/video/omap2/dss/dss.h  |    1 +
+ drivers/video/omap2/dss/hdmi.c |   33 +++++++++++++++++++++++++++++++++
+ 3 files changed, 37 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index de7896f..81a2305 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -79,9 +79,9 @@ static void omap_dm_timer_write_reg(struct
-omap_dm_timer *timer, u32 reg,
-
- static void omap_timer_restore_context(struct omap_dm_timer *timer)
- {
--	omap_dm_timer_write_reg(timer, OMAP_TIMER_OCP_CFG_OFFSET,
--				timer->context.tiocp_cfg);
--	if (timer->revision > 1)
-+	__raw_writel(timer->context.tiocp_cfg,
-+			timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET);
-+	if (timer->revision == 1)
- 		__raw_writel(timer->context.tistat, timer->sys_stat);
-
- 	__raw_writel(timer->context.tisr, timer->irq_stat);
-@@ -356,6 +356,21 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer)
-
- 	__omap_dm_timer_stop(timer, timer->posted, rate);
-
-+	if (timer->loses_context) {
-+		if (timer->get_context_loss_count)
-+			timer->ctx_loss_count =
-+			timer->get_context_loss_count(&timer->pdev->dev);
-+	}
-+
-+	/*
-+	 * Since the register values are computed and written within
-+	 * __omap_dm_timer_stop, we need to use read to retrieve the
-+	 * context.
-+	 */
-+	timer->context.tclr =
-+			omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-+	timer->context.tisr = __raw_readl(timer->irq_stat);
-+	omap_dm_timer_disable(timer);
- 	return 0;
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 3e09726..76e2bcd 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -732,6 +732,9 @@ void dss_debug_dump_clocks(struct seq_file *s)
+ #ifdef CONFIG_OMAP2_DSS_DSI
+ 	dsi_dump_clocks(s);
+ #endif
++#ifdef CONFIG_OMAP4_DSS_HDMI
++	hdmi_dump_clocks(s);
++#endif
  }
- EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
+ #endif
+ 
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 8652007..ef8770a 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -473,6 +473,7 @@ void hdmi_uninit_platform_driver(void);
+ int hdmi_init_display(struct omap_dss_device *dssdev);
+ unsigned long hdmi_get_pixel_clock(void);
+ void hdmi_dump_regs(struct seq_file *s);
++void hdmi_dump_clocks(struct seq_file *s);
+ #else
+ static inline int hdmi_init_display(struct omap_dss_device *dssdev)
+ {
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 3262f0f..0510655 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -33,6 +33,8 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/clk.h>
+ #include <video/omapdss.h>
++#include <linux/seq_file.h>
++
+ #if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
+ 	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
+ #include <sound/soc.h>
+@@ -454,6 +456,37 @@ void hdmi_dump_regs(struct seq_file *s)
+ 	mutex_unlock(&hdmi.lock);
+ }
+ 
++void hdmi_dump_clocks(struct seq_file *s)
++{
++	enum omap_dss_clk_source dispc_clk_src;
++
++	dispc_clk_src = dss_get_dispc_clk_source();
++
++	if (hdmi_runtime_get())
++		return;
++
++	seq_printf(s, "- HDMI PLL -\n");
++
++	seq_printf(s, "hdmi %s source rate = %lu\n",
++			hdmi.ip_data.pll_data.refsel == HDMI_REFSEL_SYSCLK ?
++			"sysclk" : "pclk/ref1/ref2",
++			clk_get_rate(hdmi.sys_clk));
++
++	seq_printf(s, "Pixel clock frequency = %u\n",
++			hdmi.ip_data.cfg.timings.timings.pixel_clock);
++
++	seq_printf(s, "TMDS clock frequency = %u\n",
++			10 * hdmi.ip_data.cfg.timings.timings.pixel_clock);
++
++	seq_printf(s, "regm\t%u\n", hdmi.ip_data.pll_data.regm);
++
++	seq_printf(s, "regmf\t%u\n", hdmi.ip_data.pll_data.regmf);
++
++	seq_printf(s, "regsd\t%u\n", hdmi.ip_data.pll_data.regsd);
++
++	hdmi_runtime_put();
++}
++
+ int omapdss_hdmi_read_edid(u8 *buf, int len)
+ {
+ 	int r;
 -- 
-1.7.0.4
+1.7.5.4
+
