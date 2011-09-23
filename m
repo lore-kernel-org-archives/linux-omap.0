@@ -1,137 +1,121 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv9 01/18] OMAP2+: hwmod: Add API to enable IO ring wakeup.
-Date: Fri, 23 Sep 2011 15:46:09 +0300
-Message-ID: <1316781986-30642-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv9 17/18] TEMP: OMAP: serial: remove padconf hacks
+Date: Fri, 23 Sep 2011 15:46:25 +0300
+Message-ID: <1316781986-30642-18-git-send-email-t-kristo@ti.com>
 References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: "R, Govindraj" <govindraj.raja@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: R, Govindraj <govindraj.raja@ti.com>
+These are no longer needed as omap_hwmod takes care of multiplexing of pads.
+Should be handled properly with serial runtime PM support patches.
 
-Add API to enable IO pad wakeup capability based on mux dynamic pad and
-wake_up enable flag available from hwmod_mux initialization.
-
-Use the wakeup_enable flag and enable wakeup capability
-for the given pads. Wakeup capability will be enabled/disabled
-during hwmod idle transition based on whether wakeup_flag is
-set or cleared.
-
-Map the enable/disable pad wakeup API's to hwmod_wakeup_enable/disable.
-
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   59 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 59 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/serial.c |   25 +------------------------
+ 1 files changed, 1 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 84cc0bd..e751dd9 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2062,6 +2062,34 @@ static int __init omap_hwmod_setup_all(void)
- core_initcall(omap_hwmod_setup_all);
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 0cc5434..cdcdd83 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -73,7 +73,6 @@ struct omap_uart_state {
+ 	void __iomem *wk_st;
+ 	void __iomem *wk_en;
+ 	u32 wk_mask;
+-	u32 padconf;
+ 	u32 dma_enabled;
  
- /**
-+ * omap_hwmod_set_ioring_wakeup - enable io pad wakeup flag.
-+ * @oh: struct omap_hwmod *
-+ * @set: bool value indicating to set or clear wakeup status.
-+ *
-+ * Set or Clear wakeup flag for the io_pad.
-+ */
-+static int omap_hwmod_set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
-+{
-+	struct omap_device_pad *pad;
-+	int ret = -EINVAL, j;
-+
-+	if (oh->mux && oh->mux->enabled) {
-+		for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
-+			pad = oh->mux->pads_dynamic[j];
-+			if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
-+				if (set_wake)
-+					pad->idle |= OMAP_WAKEUP_EN;
-+				else
-+					pad->idle &= ~OMAP_WAKEUP_EN;
-+				ret = 0;
-+			}
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+/**
-  * omap_hwmod_enable - enable an omap_hwmod
-  * @oh: struct omap_hwmod *
-  *
-@@ -2393,6 +2421,35 @@ int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
- {
- 	return _del_initiator_dep(oh, init_oh);
+ 	struct clk *ick;
+@@ -309,13 +308,6 @@ static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
+ 		v |= uart->wk_mask;
+ 		__raw_writel(v, uart->wk_en);
+ 	}
+-
+-	/* Ensure IOPAD wake-enables are set */
+-	if (cpu_is_omap34xx() && uart->padconf) {
+-		u16 v = omap_ctrl_readw(uart->padconf);
+-		v |= OMAP3_PADCONF_WAKEUPENABLE0;
+-		omap_ctrl_writew(v, uart->padconf);
+-	}
  }
-+/**
-+ * omap_hwmod_enable_ioring_wakeup - Set wakeup flag for iopad.
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Traverse through dynamic pads, if pad is enabled then
-+ * set wakeup enable bit flag for the mux pin. Wakeup pad bit
-+ * will be set during hwmod idle transistion.
-+ * Return error if pads are not enabled or not available.
-+ */
-+int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh)
-+{
-+	/* Enable pad wake-up capability */
-+	return omap_hwmod_set_ioring_wakeup(oh, true);
-+}
-+
-+/**
-+ * omap_hwmod_disable_ioring_wakeup - Clear wakeup flag for iopad.
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Traverse through dynamic pads, if pad is enabled then
-+ * clear wakeup enable bit flag for the mux pin. Wakeup pad bit
-+ * will be set during hwmod idle transistion.
-+ * Return error if pads are not enabled or not available.
-+ */
-+int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh)
-+{
-+	/* Disable pad wakeup capability */
-+	return omap_hwmod_set_ioring_wakeup(oh, false);
-+}
  
- /**
-  * omap_hwmod_enable_wakeup - allow device to wake up the system
-@@ -2419,6 +2476,7 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
- 	v = oh->_sysc_cache;
- 	_enable_wakeup(oh, &v);
- 	_write_sysconfig(v, oh);
-+	omap_hwmod_enable_ioring_wakeup(oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
+ static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
+@@ -326,13 +318,6 @@ static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
+ 		v &= ~uart->wk_mask;
+ 		__raw_writel(v, uart->wk_en);
+ 	}
+-
+-	/* Ensure IOPAD wake-enables are cleared */
+-	if (cpu_is_omap34xx() && uart->padconf) {
+-		u16 v = omap_ctrl_readw(uart->padconf);
+-		v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
+-		omap_ctrl_writew(v, uart->padconf);
+-	}
+ }
  
- 	return 0;
-@@ -2449,6 +2507,7 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
- 	v = oh->_sysc_cache;
- 	_disable_wakeup(oh, &v);
- 	_write_sysconfig(v, oh);
-+	omap_hwmod_disable_ioring_wakeup(oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
+ static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
+@@ -478,7 +463,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
+ 		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
+ 		u32 wk_mask = 0;
+-		u32 padconf = 0;
  
- 	return 0;
+ 		/* XXX These PRM accesses do not belong here */
+ 		uart->wk_en = OMAP34XX_PRM_REGADDR(mod, PM_WKEN1);
+@@ -486,23 +470,18 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		switch (uart->num) {
+ 		case 0:
+ 			wk_mask = OMAP3430_ST_UART1_MASK;
+-			padconf = 0x182;
+ 			break;
+ 		case 1:
+ 			wk_mask = OMAP3430_ST_UART2_MASK;
+-			padconf = 0x17a;
+ 			break;
+ 		case 2:
+ 			wk_mask = OMAP3430_ST_UART3_MASK;
+-			padconf = 0x19e;
+ 			break;
+ 		case 3:
+ 			wk_mask = OMAP3630_ST_UART4_MASK;
+-			padconf = 0x0d2;
+ 			break;
+ 		}
+ 		uart->wk_mask = wk_mask;
+-		uart->padconf = padconf;
+ 	} else if (cpu_is_omap24xx()) {
+ 		u32 wk_mask = 0;
+ 		u32 wk_en = PM_WKEN1, wk_st = PM_WKST1;
+@@ -532,7 +511,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		uart->wk_en = NULL;
+ 		uart->wk_st = NULL;
+ 		uart->wk_mask = 0;
+-		uart->padconf = 0;
+ 	}
+ 
+ 	uart->irqflags |= IRQF_SHARED;
+@@ -833,8 +811,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+ 
+ 	console_unlock();
+ 
+-	if ((cpu_is_omap34xx() && uart->padconf) ||
+-	    (uart->wk_en && uart->wk_mask)) {
++	if (uart->oh->mux || (uart->wk_en && uart->wk_mask)) {
+ 		device_init_wakeup(&pdev->dev, true);
+ 		DEV_CREATE_FILE(&pdev->dev, &dev_attr_sleep_timeout);
+ 	}
 -- 
 1.7.4.1
 
 
 Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
