@@ -1,36 +1,88 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH 37/55] mmc: irq: Remove IRQF_DISABLED
-Date: Fri, 23 Sep 2011 14:55:57 -0400
-Message-ID: <m2pqirw0jm.fsf@bob.laptop.org>
-References: <1316681962-8217-1-git-send-email-yong.zhang0@gmail.com>
-	<1316681962-8217-38-git-send-email-yong.zhang0@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 6/6] OMAP4460: Clock: Adding support for 4460 specific
+ clocks
+Date: Fri, 23 Sep 2011 13:45:11 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109231343460.10719@utopia.booyaka.com>
+References: <1316705361-12175-1-git-send-email-j-keerthy@ti.com> <1316705361-12175-7-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1109222338590.10719@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <1316681962-8217-38-git-send-email-yong.zhang0@gmail.com> (Yong
-	Zhang's message of "Thu, 22 Sep 2011 16:59:04 +0800")
-Sender: linux-arch-owner@vger.kernel.org
-To: Yong Zhang <yong.zhang0@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, tglx@linutronix.de, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Ian Molton <ian@mnementh.co.uk>, Tony Lindgren <tony@atomide.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, Balaji T K <balajitk@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:47535 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751897Ab1IWTpM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Sep 2011 15:45:12 -0400
+In-Reply-To: <alpine.DEB.2.00.1109222338590.10719@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+Hi
 
-On Thu, Sep 22 2011, Yong Zhang wrote:
-> Since commit [e58aa3d2: genirq: Run irq handlers with interrupts disabled],
-> We run all interrupt handlers with interrupts disabled
-> and we even check and yell when an interrupt handler
-> returns with interrupts enabled (see commit [b738a50a:
-> genirq: Warn when handler enables interrupts]).
->
-> So now this flag is a NOOP and can be removed.
->
-> Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
-> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+On Thu, 22 Sep 2011, Paul Walmsley wrote:
 
-Thanks, pushed to mmc-next for 3.2 with Kishore's ACK added.
+> On Thu, 22 Sep 2011, Keerthy wrote:
+> 
+> > From: Vishwanath BS <vishwanath.bs@ti.com>
+> > 
+> > OMAP4460 specific clocks are not getting added as the
+> > cpu_is_omap44xx is choosing only OMAP4430 specific clock nodes.
+> 
+> > Changing it to add to OMAP4460 specific clocks also.
+> > This is clocks are required of temperature sensor.
+> > 
+> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> > Signed-off-by: Keerthy <j-keerthy@ti.com>
+> > Cc: paul@pwsan.com 
+> > ---
+> >  arch/arm/mach-omap2/clock44xx_data.c |   12 ++++++------
+> >  1 files changed, 6 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> > index c51e513..f72513b 100644
+> > --- a/arch/arm/mach-omap2/clock44xx_data.c
+> > +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> > @@ -1398,9 +1398,9 @@ static struct clk dss_dss_clk = {
+> >  };
+> >  
+> >  static const struct clksel_rate div3_8to32_rates[] = {
+> > -	{ .div = 8, .val = 0, .flags = RATE_IN_44XX },
+> > -	{ .div = 16, .val = 1, .flags = RATE_IN_44XX },
+> > -	{ .div = 32, .val = 2, .flags = RATE_IN_44XX },
+> > +	{ .div = 8, .val = 0, .flags = RATE_IN_4460 },
+> > +	{ .div = 16, .val = 1, .flags = RATE_IN_4460 },
+> > +	{ .div = 32, .val = 2, .flags = RATE_IN_4460 },
+> 
+> Are these rates really 4460-specific?  If so, then it looks like something 
+> is broken in the clock data generator.  Clearly, I should not have acked 
+> these patches and they should never have been merged.
+> 
+> >  	{ .div = 0 },
+> >  };
+> >  
+> > @@ -3403,12 +3403,12 @@ int __init omap4xxx_clk_init(void)
+> >  	struct omap_clk *c;
+> >  	u32 cpu_clkflg;
+> >  
+> > -	if (cpu_is_omap44xx()) {
+> > +	if (cpu_is_omap443x()) {
+> >  		cpu_mask = RATE_IN_4430;
+> >  		cpu_clkflg = CK_443X;
+> >  	} else if (cpu_is_omap446x()) {
+> > -		cpu_mask = RATE_IN_4460;
+> > -		cpu_clkflg = CK_446X;
+> > +		cpu_mask = RATE_IN_4460 | RATE_IN_4430;
+> > +		cpu_clkflg = CK_446X | CK_443X;
+> 
+> This isn't right.  Until the clock data files are converted to use per-SoC 
+> lists, what needs to be done here is to define a RATE_IN_44XX and CK_44XX 
+> that will match all existing 4430/4460/4470 clocks.  Then for rates and 
+> clocks that are only specific to one of those SoCs, the appropriate 
+> SoC-specific flag should be set.
 
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Ugh.  I see what's going on here, now.  Both of these are good fixes, 
+since the existing 4460 clock support is broken.
+
+
+
+- Paul
