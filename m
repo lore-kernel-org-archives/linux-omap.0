@@ -1,121 +1,125 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv9 12/18] TEMP: serial: added mux support
-Date: Fri, 23 Sep 2011 15:46:20 +0300
-Message-ID: <1316781986-30642-13-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv9 03/18] TEMP: OMAP3xxx: hwmod data: add PRM hwmod
+Date: Fri, 23 Sep 2011 15:46:11 +0300
+Message-ID: <1316781986-30642-4-git-send-email-t-kristo@ti.com>
 References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Just for PRCM chain handler testing purposes. This should be replaced with
-a proper implementation.
+This patch is temporary until Paul can provide a final version.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/serial.c |   71 ++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 69 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   56 ++++++++++++++++++++++++++++
+ 1 files changed, 56 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 3d1c1d3..e08feb1 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -862,17 +862,84 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
-  * can call this function when they want to have default behaviour
-  * for serial ports (e.g initialize them all as serial ports).
-  */
-+
-+struct serial_mux_conf {
-+	char *name;
-+	int omap3_mux;
-+	int omap4_mux;
-+};
-+
-+#define OMAP3_SERIAL_MUX_IN_PU (OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0)
-+#define OMAP3_SERIAL_MUX_IN_PD (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0)
-+#define OMAP3_SERIAL_MUX_IN (OMAP_PIN_INPUT | OMAP_MUX_MODE0)
-+#define OMAP3_SERIAL_MUX_OUT (OMAP_PIN_OUTPUT | OMAP_MUX_MODE0)
-+#define OMAP4_SERIAL_MUX_IN_PU (OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0)
-+#define OMAP4_SERIAL_MUX_OUT (OMAP_PIN_OUTPUT | OMAP_MUX_MODE0)
-+#define OMAP4_SERIAL_MUX_IN (OMAP_PIN_INPUT | OMAP_MUX_MODE0)
-+#define SERIAL_DISABLED OMAP_MUX_MODE7
-+
-+#define OMAP_SERIAL_NUM_PADS_PER_PORT 4
-+
-+static const struct serial_mux_conf serial_mux_data[] = {
-+	{ "uart1_cts.uart1_cts", OMAP3_SERIAL_MUX_IN, SERIAL_DISABLED, },
-+	{ "uart1_rts.uart1_rts", OMAP3_SERIAL_MUX_OUT, SERIAL_DISABLED, },
-+	{ "uart1_rx.uart1_rx", OMAP3_SERIAL_MUX_IN, SERIAL_DISABLED, },
-+	{ "uart1_tx.uart1_tx", OMAP3_SERIAL_MUX_OUT, SERIAL_DISABLED, },
-+	{ "uart2_cts.uart2_cts", OMAP3_SERIAL_MUX_IN,
-+		OMAP4_SERIAL_MUX_IN_PU, },
-+	{ "uart2_rts.uart2_rts", OMAP3_SERIAL_MUX_OUT, OMAP4_SERIAL_MUX_OUT, },
-+	{ "uart2_rx.uart2_rx", OMAP3_SERIAL_MUX_IN, OMAP4_SERIAL_MUX_IN_PU, },
-+	{ "uart2_tx.uart2_tx", OMAP3_SERIAL_MUX_OUT, OMAP4_SERIAL_MUX_OUT },
-+	{ "uart3_cts_rctx.uart3_cts_rctx", OMAP3_SERIAL_MUX_IN_PD,
-+		OMAP4_SERIAL_MUX_IN_PU, },
-+	{ "uart3_rts_sd.uart3_rts_sd", OMAP3_SERIAL_MUX_OUT,
-+		OMAP4_SERIAL_MUX_OUT, },
-+	{ "uart3_rx_irrx.uart3_rx_irrx", OMAP3_SERIAL_MUX_IN,
-+		OMAP4_SERIAL_MUX_IN, },
-+	{ "uart3_tx_irtx.uart3_tx_irtx", OMAP3_SERIAL_MUX_OUT,
-+		OMAP4_SERIAL_MUX_OUT, },
-+	{ "uart4_rx.uart4_rx", SERIAL_DISABLED, OMAP4_SERIAL_MUX_IN, },
-+	{ "uart4_tx.uart4_tx", SERIAL_DISABLED, OMAP4_SERIAL_MUX_OUT, },
-+	{ NULL, SERIAL_DISABLED, SERIAL_DISABLED, },
-+	{ NULL, SERIAL_DISABLED, SERIAL_DISABLED, },
-+};
-+
- void __init omap_serial_init(void)
- {
- 	struct omap_uart_state *uart;
- 	struct omap_board_data bdata;
-+	struct omap_device_pad *pads;
-+	int idx;
-+	int i;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 59fdb9f..26ced4f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -161,6 +161,7 @@ static struct omap_hwmod omap3xxx_l3_main_hwmod = {
+ };
  
-+	pads = kmalloc(sizeof(struct omap_device_pad) * 4, GFP_KERNEL);
- 	list_for_each_entry(uart, &uart_list, node) {
- 		bdata.id = uart->num;
- 		bdata.flags = 0;
--		bdata.pads = NULL;
- 		bdata.pads_cnt = 0;
-+		bdata.pads = pads;
+ static struct omap_hwmod omap3xxx_l4_wkup_hwmod;
++static struct omap_hwmod omap3xxx_prm_hwmod;
+ static struct omap_hwmod omap3xxx_uart1_hwmod;
+ static struct omap_hwmod omap3xxx_uart2_hwmod;
+ static struct omap_hwmod omap3xxx_uart3_hwmod;
+@@ -478,6 +479,24 @@ static struct omap_hwmod omap3xxx_l4_per_hwmod = {
+ 	.flags		= HWMOD_NO_IDLEST,
+ };
+ 
++static struct omap_hwmod_addr_space omap3xxx_prm_addrs[] = {
++	{
++		.pa_start	= 0x48306000,
++		.pa_end		= 0x48306000 + SZ_8K + SZ_4K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{}
++};
 +
-+		for (i = 0; i < OMAP_SERIAL_NUM_PADS_PER_PORT; i++) {
-+			idx = bdata.id * OMAP_SERIAL_NUM_PADS_PER_PORT + i;
-+			pads[i].name = serial_mux_data[idx].name;
-+			pads[i].enable = 0;
-+			pads[i].idle = 0;
-+			pads[i].flags = 0;
-+			if (cpu_is_omap34xx())
-+				pads[i].enable = serial_mux_data[idx].omap3_mux;
-+			if (cpu_is_omap44xx())
-+				pads[i].enable = serial_mux_data[idx].omap4_mux;
-+			if (pads[i].enable != SERIAL_DISABLED)
-+				bdata.pads_cnt++;
-+			if (pads[i].enable & OMAP_PIN_INPUT) {
-+				pads[i].flags = OMAP_DEVICE_PAD_REMUX |
-+					OMAP_DEVICE_PAD_WAKEUP;
-+			}
-+			pads[i].idle = pads[i].enable;
-+		}
-+		if (bdata.pads_cnt == 0)
-+			bdata.pads = NULL;
- 		omap_serial_init_port(&bdata);
--
- 	}
-+	kfree(pads);
- }
++/* L4_WKUP -> PRM interface */
++static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__prm = {
++	.master		= &omap3xxx_l4_wkup_hwmod,
++	.slave		= &omap3xxx_prm_hwmod,
++	.clk		= "wkup_l4_ick",
++	.addr		= omap3xxx_prm_addrs,
++	.user		= OCP_USER_MPU,
++};
++
+ /* Slave interfaces on the L4_WKUP interconnect */
+ static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_slaves[] = {
+ 	&omap3xxx_l4_core__l4_wkup,
+@@ -493,6 +512,40 @@ static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
+ 	.flags		= HWMOD_NO_IDLEST,
+ };
+ 
++/* Slave interfaces on the L4_WKUP interconnect */
++static struct omap_hwmod_ocp_if *omap3xxx_prm_slaves[] = {
++	&omap3xxx_l4_wkup__prm,
++};
++
++static struct omap_hwmod_class_sysconfig omap3xxx_prm_sysc = {
++	.rev_offs	= 0x0804,
++	.sysc_offs	= 0x0814,
++	.sysc_flags	= SYSC_HAS_AUTOIDLE,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap3xxx_prm_hwmod_class = {
++	.name		= "prm",
++	.sysc		= &omap3xxx_prm_sysc,
++};
++
++static struct omap_hwmod_irq_info omap3xxx_prm_irqs[] = {
++	{ .irq = 11 },
++	{ .irq = -1 }
++};
++
++/* PRM */
++static struct omap_hwmod omap3xxx_prm_hwmod = {
++	.name		= "prm3xxx",
++	.mpu_irqs	= omap3xxx_prm_irqs,
++	.class		= &omap3xxx_prm_hwmod_class,
++	.main_clk	= "wkup_32k_fck",
++	.slaves		= omap3xxx_prm_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_prm_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.flags		= HWMOD_NO_IDLEST,
++};
++
+ /* Master interfaces on the MPU device */
+ static struct omap_hwmod_ocp_if *omap3xxx_mpu_masters[] = {
+ 	&omap3xxx_mpu__l3_main,
+@@ -3201,6 +3254,9 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l4_core_hwmod,
+ 	&omap3xxx_l4_per_hwmod,
+ 	&omap3xxx_l4_wkup_hwmod,
++
++	&omap3xxx_prm_hwmod,
++
+ 	&omap3xxx_mmc1_hwmod,
+ 	&omap3xxx_mmc2_hwmod,
+ 	&omap3xxx_mmc3_hwmod,
 -- 
 1.7.4.1
 
 
 Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
