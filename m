@@ -1,332 +1,70 @@
-From: <mythripk@ti.com>
-Subject: [PATCHv3 4/4] OMAPDSS: HDMI: Add support to dump registers
-Date: Fri, 23 Sep 2011 16:50:30 +0530
-Message-ID: <1316776830-23160-1-git-send-email-mythripk@ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 1/5 v11] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Fri, 23 Sep 2011 17:00:47 +0530
+Message-ID: <CAP05o4+DT8hL8A_e6WBpV9ptZ4XYYKgM=UQa8uiRH2ox6ZP-4A@mail.gmail.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
+	<1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>
+	<alpine.DEB.2.00.1109221213500.10719@utopia.booyaka.com>
+	<4E7B8C68.7020407@ti.com>
+	<alpine.DEB.2.00.1109221524560.10719@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47869 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753327Ab1IWL2e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Sep 2011 07:28:34 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8NBSVZY005460
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 06:28:33 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p8NBSUhH000655
-	for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 16:58:30 +0530 (IST)
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40116 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753425Ab1IWLas convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Sep 2011 07:30:48 -0400
+In-Reply-To: <alpine.DEB.2.00.1109221524560.10719@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
-Cc: Mythri P K <mythripk@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-From: Mythri P K <mythripk@ti.com>
+> So I'd suggest one of two approaches:
+>
+> 1. If the pin muxing can follow the PM runtime status of the UHH IP b=
+lock,
+> =A0 then the pin mux data should be associated with the UHH hwmod.
 
-Add support to dump the HDMI wrapper, core, PLL and PHY registers
-through debugfs.
 
-Signed-off-by: Mythri P K <mythripk@ti.com>
----
- drivers/video/omap2/dss/core.c            |    4 +
- drivers/video/omap2/dss/dss.h             |    1 +
- drivers/video/omap2/dss/dss_features.c    |    5 +
- drivers/video/omap2/dss/hdmi.c            |   16 +++
- drivers/video/omap2/dss/ti_hdmi.h         |   14 +++
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |  173 +++++++++++++++++++++++++++++
- 6 files changed, 213 insertions(+), 0 deletions(-)
+No, the mux is applicable only to ehci and ohci , where as
+sysconfig is applicable to uhh ( usb_host_hs class).
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 76821fe..86ec12e 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -145,6 +145,10 @@ static int dss_initialize_debugfs(void)
- 	debugfs_create_file("venc", S_IRUGO, dss_debugfs_dir,
- 			&venc_dump_regs, &dss_debug_fops);
- #endif
-+#ifdef CONFIG_OMAP4_DSS_HDMI
-+	debugfs_create_file("hdmi", S_IRUGO, dss_debugfs_dir,
-+			&hdmi_dump_regs, &dss_debug_fops);
-+#endif
- 	return 0;
- }
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 47eebd8..8652007 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -472,6 +472,7 @@ int hdmi_init_platform_driver(void);
- void hdmi_uninit_platform_driver(void);
- int hdmi_init_display(struct omap_dss_device *dssdev);
- unsigned long hdmi_get_pixel_clock(void);
-+void hdmi_dump_regs(struct seq_file *s);
- #else
- static inline int hdmi_init_display(struct omap_dss_device *dssdev)
- {
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 47e66d8..a2fc8e0 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -447,6 +447,11 @@ static const struct ti_hdmi_ip_ops omap4_hdmi_functions = {
- 	.pll_enable		=	ti_hdmi_4xxx_pll_enable,
- 	.pll_disable		=	ti_hdmi_4xxx_pll_disable,
- 	.video_enable		=	ti_hdmi_4xxx_wp_video_start,
-+	.dump_wrapper		=	ti_hdmi_4xxx_wp_dump,
-+	.dump_core		=	ti_hdmi_4xxx_core_dump,
-+	.dump_pll		=	ti_hdmi_4xxx_pll_dump,
-+	.dump_phy		=	ti_hdmi_4xxx_phy_dump,
-+
- };
- 
- void dss_init_hdmi_ip_ops(struct hdmi_ip_data *ip_data)
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 2f554ae..3262f0f 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -438,6 +438,22 @@ void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev)
- 	}
- }
- 
-+void hdmi_dump_regs(struct seq_file *s)
-+{
-+	mutex_lock(&hdmi.lock);
-+
-+	if (hdmi_runtime_get())
-+		return;
-+
-+	hdmi.ip_data.ops->dump_wrapper(&hdmi.ip_data, s);
-+	hdmi.ip_data.ops->dump_pll(&hdmi.ip_data, s);
-+	hdmi.ip_data.ops->dump_phy(&hdmi.ip_data, s);
-+	hdmi.ip_data.ops->dump_core(&hdmi.ip_data, s);
-+
-+	hdmi_runtime_put();
-+	mutex_unlock(&hdmi.lock);
-+}
-+
- int omapdss_hdmi_read_edid(u8 *buf, int len)
- {
- 	int r;
-diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-index d48603c..2c3443d 100644
---- a/drivers/video/omap2/dss/ti_hdmi.h
-+++ b/drivers/video/omap2/dss/ti_hdmi.h
-@@ -101,6 +101,15 @@ struct ti_hdmi_ip_ops {
- 	void (*pll_disable)(struct hdmi_ip_data *ip_data);
- 
- 	void (*video_enable)(struct hdmi_ip_data *ip_data, bool start);
-+
-+	void (*dump_wrapper)(struct hdmi_ip_data *ip_data, struct seq_file *s);
-+
-+	void (*dump_core)(struct hdmi_ip_data *ip_data, struct seq_file *s);
-+
-+	void (*dump_pll)(struct hdmi_ip_data *ip_data, struct seq_file *s);
-+
-+	void (*dump_phy)(struct hdmi_ip_data *ip_data, struct seq_file *s);
-+
- };
- 
- struct hdmi_ip_data {
-@@ -121,4 +130,9 @@ void ti_hdmi_4xxx_wp_video_start(struct hdmi_ip_data *ip_data, bool start);
- int ti_hdmi_4xxx_pll_enable(struct hdmi_ip_data *ip_data);
- void ti_hdmi_4xxx_pll_disable(struct hdmi_ip_data *ip_data);
- void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data);
-+void ti_hdmi_4xxx_wp_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
-+void ti_hdmi_4xxx_pll_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
-+void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
-+void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
-+
- #endif
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index 5f22d2e..e1a6ce5 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -27,6 +27,7 @@
- #include <linux/mutex.h>
- #include <linux/delay.h>
- #include <linux/string.h>
-+#include <linux/seq_file.h>
- 
- #include "ti_hdmi_4xxx_ip.h"
- #include "dss.h"
-@@ -805,6 +806,178 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
- 	hdmi_core_av_packet_config(ip_data, repeat_cfg);
- }
- 
-+void ti_hdmi_4xxx_wp_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
-+{
-+#define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r,\
-+		hdmi_read_reg(hdmi_wp_base(ip_data), r))
-+
-+	DUMPREG(HDMI_WP_REVISION);
-+	DUMPREG(HDMI_WP_SYSCONFIG);
-+	DUMPREG(HDMI_WP_IRQSTATUS_RAW);
-+	DUMPREG(HDMI_WP_IRQSTATUS);
-+	DUMPREG(HDMI_WP_PWR_CTRL);
-+	DUMPREG(HDMI_WP_IRQENABLE_SET);
-+	DUMPREG(HDMI_WP_VIDEO_CFG);
-+	DUMPREG(HDMI_WP_VIDEO_SIZE);
-+	DUMPREG(HDMI_WP_VIDEO_TIMING_H);
-+	DUMPREG(HDMI_WP_VIDEO_TIMING_V);
-+	DUMPREG(HDMI_WP_WP_CLK);
-+	DUMPREG(HDMI_WP_AUDIO_CFG);
-+	DUMPREG(HDMI_WP_AUDIO_CFG2);
-+	DUMPREG(HDMI_WP_AUDIO_CTRL);
-+	DUMPREG(HDMI_WP_AUDIO_DATA);
-+}
-+
-+void ti_hdmi_4xxx_pll_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
-+{
-+#define DUMPPLL(r) seq_printf(s, "%-35s %08x\n", #r,\
-+		hdmi_read_reg(hdmi_pll_base(ip_data), r))
-+
-+	DUMPPLL(PLLCTRL_PLL_CONTROL);
-+	DUMPPLL(PLLCTRL_PLL_STATUS);
-+	DUMPPLL(PLLCTRL_PLL_GO);
-+	DUMPPLL(PLLCTRL_CFG1);
-+	DUMPPLL(PLLCTRL_CFG2);
-+	DUMPPLL(PLLCTRL_CFG3);
-+	DUMPPLL(PLLCTRL_CFG4);
-+}
-+
-+void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
-+{
-+	int i;
-+
-+#define CORE_REG(i, name) name(i)
-+#define DUMPCORE(r) seq_printf(s, "%-35s %08x\n", #r,\
-+		hdmi_read_reg(hdmi_pll_base(ip_data), r))
-+#define DUMPCOREAV(i, r) seq_printf(s, "%s[%d]%*s %08x\n", #r, i, \
-+		(i < 10) ? 32 - strlen(#r) : 31 - strlen(#r), " ", \
-+		hdmi_read_reg(hdmi_pll_base(ip_data), CORE_REG(i, r)))
-+
-+	DUMPCORE(HDMI_CORE_SYS_VND_IDL);
-+	DUMPCORE(HDMI_CORE_SYS_DEV_IDL);
-+	DUMPCORE(HDMI_CORE_SYS_DEV_IDH);
-+	DUMPCORE(HDMI_CORE_SYS_DEV_REV);
-+	DUMPCORE(HDMI_CORE_SYS_SRST);
-+	DUMPCORE(HDMI_CORE_CTRL1);
-+	DUMPCORE(HDMI_CORE_SYS_SYS_STAT);
-+	DUMPCORE(HDMI_CORE_SYS_VID_ACEN);
-+	DUMPCORE(HDMI_CORE_SYS_VID_MODE);
-+	DUMPCORE(HDMI_CORE_SYS_INTR_STATE);
-+	DUMPCORE(HDMI_CORE_SYS_INTR1);
-+	DUMPCORE(HDMI_CORE_SYS_INTR2);
-+	DUMPCORE(HDMI_CORE_SYS_INTR3);
-+	DUMPCORE(HDMI_CORE_SYS_INTR4);
-+	DUMPCORE(HDMI_CORE_SYS_UMASK1);
-+	DUMPCORE(HDMI_CORE_SYS_TMDS_CTRL);
-+	DUMPCORE(HDMI_CORE_SYS_DE_DLY);
-+	DUMPCORE(HDMI_CORE_SYS_DE_CTRL);
-+	DUMPCORE(HDMI_CORE_SYS_DE_TOP);
-+	DUMPCORE(HDMI_CORE_SYS_DE_CNTL);
-+	DUMPCORE(HDMI_CORE_SYS_DE_CNTH);
-+	DUMPCORE(HDMI_CORE_SYS_DE_LINL);
-+	DUMPCORE(HDMI_CORE_SYS_DE_LINH_1);
-+
-+	DUMPCORE(HDMI_CORE_DDC_CMD);
-+	DUMPCORE(HDMI_CORE_DDC_STATUS);
-+	DUMPCORE(HDMI_CORE_DDC_ADDR);
-+	DUMPCORE(HDMI_CORE_DDC_OFFSET);
-+	DUMPCORE(HDMI_CORE_DDC_COUNT1);
-+	DUMPCORE(HDMI_CORE_DDC_COUNT2);
-+	DUMPCORE(HDMI_CORE_DDC_DATA);
-+	DUMPCORE(HDMI_CORE_DDC_SEGM);
-+
-+	DUMPCORE(HDMI_CORE_AV_HDMI_CTRL);
-+	DUMPCORE(HDMI_CORE_AV_DPD);
-+	DUMPCORE(HDMI_CORE_AV_PB_CTRL1);
-+	DUMPCORE(HDMI_CORE_AV_PB_CTRL2);
-+	DUMPCORE(HDMI_CORE_AV_AVI_TYPE);
-+	DUMPCORE(HDMI_CORE_AV_AVI_VERS);
-+	DUMPCORE(HDMI_CORE_AV_AVI_LEN);
-+	DUMPCORE(HDMI_CORE_AV_AVI_CHSUM);
-+
-+	for (i = 0; i < HDMI_CORE_AV_AVI_DBYTE_NELEMS; i++)
-+		DUMPCOREAV(i, HDMI_CORE_AV_AVI_DBYTE);
-+
-+	for (i = 0; i < HDMI_CORE_AV_SPD_DBYTE_NELEMS; i++)
-+		DUMPCOREAV(i, HDMI_CORE_AV_SPD_DBYTE);
-+
-+	for (i = 0; i < HDMI_CORE_AV_AUD_DBYTE_NELEMS; i++)
-+		DUMPCOREAV(i, HDMI_CORE_AV_AUD_DBYTE);
-+
-+	for (i = 0; i < HDMI_CORE_AV_MPEG_DBYTE_NELEMS; i++)
-+		DUMPCOREAV(i, HDMI_CORE_AV_MPEG_DBYTE);
-+
-+	for (i = 0; i < HDMI_CORE_AV_GEN_DBYTE_NELEMS; i++)
-+		DUMPCOREAV(i, HDMI_CORE_AV_GEN_DBYTE);
-+
-+	for (i = 0; i < HDMI_CORE_AV_GEN2_DBYTE_NELEMS; i++)
-+		DUMPCOREAV(i, HDMI_CORE_AV_GEN2_DBYTE);
-+
-+	DUMPCORE(HDMI_CORE_AV_ACR_CTRL);
-+	DUMPCORE(HDMI_CORE_AV_FREQ_SVAL);
-+	DUMPCORE(HDMI_CORE_AV_N_SVAL1);
-+	DUMPCORE(HDMI_CORE_AV_N_SVAL2);
-+	DUMPCORE(HDMI_CORE_AV_N_SVAL3);
-+	DUMPCORE(HDMI_CORE_AV_CTS_SVAL1);
-+	DUMPCORE(HDMI_CORE_AV_CTS_SVAL2);
-+	DUMPCORE(HDMI_CORE_AV_CTS_SVAL3);
-+	DUMPCORE(HDMI_CORE_AV_CTS_HVAL1);
-+	DUMPCORE(HDMI_CORE_AV_CTS_HVAL2);
-+	DUMPCORE(HDMI_CORE_AV_CTS_HVAL3);
-+	DUMPCORE(HDMI_CORE_AV_AUD_MODE);
-+	DUMPCORE(HDMI_CORE_AV_SPDIF_CTRL);
-+	DUMPCORE(HDMI_CORE_AV_HW_SPDIF_FS);
-+	DUMPCORE(HDMI_CORE_AV_SWAP_I2S);
-+	DUMPCORE(HDMI_CORE_AV_SPDIF_ERTH);
-+	DUMPCORE(HDMI_CORE_AV_I2S_IN_MAP);
-+	DUMPCORE(HDMI_CORE_AV_I2S_IN_CTRL);
-+	DUMPCORE(HDMI_CORE_AV_I2S_CHST0);
-+	DUMPCORE(HDMI_CORE_AV_I2S_CHST1);
-+	DUMPCORE(HDMI_CORE_AV_I2S_CHST2);
-+	DUMPCORE(HDMI_CORE_AV_I2S_CHST4);
-+	DUMPCORE(HDMI_CORE_AV_I2S_CHST5);
-+	DUMPCORE(HDMI_CORE_AV_ASRC);
-+	DUMPCORE(HDMI_CORE_AV_I2S_IN_LEN);
-+	DUMPCORE(HDMI_CORE_AV_HDMI_CTRL);
-+	DUMPCORE(HDMI_CORE_AV_AUDO_TXSTAT);
-+	DUMPCORE(HDMI_CORE_AV_AUD_PAR_BUSCLK_1);
-+	DUMPCORE(HDMI_CORE_AV_AUD_PAR_BUSCLK_2);
-+	DUMPCORE(HDMI_CORE_AV_AUD_PAR_BUSCLK_3);
-+	DUMPCORE(HDMI_CORE_AV_TEST_TXCTRL);
-+	DUMPCORE(HDMI_CORE_AV_DPD);
-+	DUMPCORE(HDMI_CORE_AV_PB_CTRL1);
-+	DUMPCORE(HDMI_CORE_AV_PB_CTRL2);
-+	DUMPCORE(HDMI_CORE_AV_AVI_TYPE);
-+	DUMPCORE(HDMI_CORE_AV_AVI_VERS);
-+	DUMPCORE(HDMI_CORE_AV_AVI_LEN);
-+	DUMPCORE(HDMI_CORE_AV_AVI_CHSUM);
-+	DUMPCORE(HDMI_CORE_AV_SPD_TYPE);
-+	DUMPCORE(HDMI_CORE_AV_SPD_VERS);
-+	DUMPCORE(HDMI_CORE_AV_SPD_LEN);
-+	DUMPCORE(HDMI_CORE_AV_SPD_CHSUM);
-+	DUMPCORE(HDMI_CORE_AV_AUDIO_TYPE);
-+	DUMPCORE(HDMI_CORE_AV_AUDIO_VERS);
-+	DUMPCORE(HDMI_CORE_AV_AUDIO_LEN);
-+	DUMPCORE(HDMI_CORE_AV_AUDIO_CHSUM);
-+	DUMPCORE(HDMI_CORE_AV_MPEG_TYPE);
-+	DUMPCORE(HDMI_CORE_AV_MPEG_VERS);
-+	DUMPCORE(HDMI_CORE_AV_MPEG_LEN);
-+	DUMPCORE(HDMI_CORE_AV_MPEG_CHSUM);
-+	DUMPCORE(HDMI_CORE_AV_CP_BYTE1);
-+	DUMPCORE(HDMI_CORE_AV_CEC_ADDR_ID);
-+}
-+
-+void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
-+{
-+#define DUMPPHY(r) seq_printf(s, "%-35s %08x\n", #r,\
-+		hdmi_read_reg(hdmi_phy_base(ip_data), r))
-+
-+	DUMPPHY(HDMI_TXPHY_TX_CTRL);
-+	DUMPPHY(HDMI_TXPHY_DIGITAL_CTRL);
-+	DUMPPHY(HDMI_TXPHY_POWER_CTRL);
-+	DUMPPHY(HDMI_TXPHY_PAD_CFG_CTRL);
-+}
-+
- #if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
- 	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
- void hdmi_wp_audio_config_format(struct hdmi_ip_data *ip_data,
--- 
-1.7.5.4
 
+> 2. If the pin muxing must follow the EHCI/OHCI IP block PM runtime st=
+atus,
+> =A0 then drivers/mfd/omap-usb-host.c is what should be handling the
+> =A0 remuxing. =A0omap-usb-host.c can set the dev_pm_ops of the EHCI/O=
+HCI
+> =A0 platform_devices to point to functions either in
+> =A0 arch/arm/mach-omap2/usb-host.c, or local functions that call into
+> =A0 mach-omap2/usb-host.c functions to handle pin remuxing. =A0(Those
+> =A0 function pointers should be provided to the MFD driver in some cl=
+ean way,
+> =A0 like via platform_data.)
+
+The dev_pm_ops of ehci should exist in  /drivers/usb/host/ehci-omap.c a=
+nd
+dev_pm_ops of phci should exist in  /drivers/usb/host/ohci-omap3.c.
+In the existing design, the omap-usb-host.c host can not access the
+platform driver
+of ehci and ohci.
+But, through function pointers it is possible to send the platform
+data to ehci and ohci
+drivers to handle pin remuxing; but we will not able to use tero's
+patches; and it will prevent
+our future design activity for remote wakeup of ehci and ohci.
+
+please let me know if you have thoughts on this.
+
+
+Regards
+Keshava
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
