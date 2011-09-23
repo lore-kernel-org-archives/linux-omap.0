@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv9 10/18] OMAP3: pm: do not enable PRCM MPU interrupts manually
-Date: Fri, 23 Sep 2011 15:46:18 +0300
-Message-ID: <1316781986-30642-11-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv9 13/18] TEMP: 4430sdp: use common serial init with mux support
+Date: Fri, 23 Sep 2011 15:46:21 +0300
+Message-ID: <1316781986-30642-14-git-send-email-t-kristo@ti.com>
 References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -14,28 +14,36 @@ To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This is handled automatically by the PRCM chain interrupt mechanism now.
+Temporary testing related patch, not meant for integration.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c |   12 +-----------
+ 1 files changed, 1 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 712fd15..4bbf1cd 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -661,10 +661,6 @@ static void __init prcm_setup_regs(void)
- 			  OMAP3430_GRPSEL_GPT1_MASK |
- 			  OMAP3430_GRPSEL_GPT12_MASK,
- 			  WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
--	/* For some reason IO doesn't generate wakeup event even if
--	 * it is selected to mpu wakeup goup */
--	omap2_prm_write_mod_reg(OMAP3430_IO_EN_MASK | OMAP3430_WKUP_EN_MASK,
--			  OCP_MOD, OMAP3_PRM_IRQENABLE_MPU_OFFSET);
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index c7cef44..f1151e8 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -737,17 +737,7 @@ static struct omap_board_data serial4_data __initdata = {
  
- 	/* Enable PM_WKEN to support DSS LPR */
- 	omap2_prm_write_mod_reg(OMAP3430_PM_WKEN_DSS_EN_DSS_MASK,
+ static inline void board_serial_init(void)
+ {
+-	struct omap_board_data bdata;
+-	bdata.flags	= 0;
+-	bdata.pads	= NULL;
+-	bdata.pads_cnt	= 0;
+-	bdata.id	= 0;
+-	/* pass dummy data for UART1 */
+-	omap_serial_init_port(&bdata);
+-
+-	omap_serial_init_port(&serial2_data);
+-	omap_serial_init_port(&serial3_data);
+-	omap_serial_init_port(&serial4_data);
++	omap_serial_init();
+ }
+ #else
+ #define board_mux	NULL
 -- 
 1.7.4.1
 
