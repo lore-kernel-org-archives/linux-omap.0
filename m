@@ -1,101 +1,104 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv9 08/18] OMAP2+: mux: add support for PAD wakeup interrupts
-Date: Fri, 23 Sep 2011 15:46:16 +0300
-Message-ID: <1316781986-30642-9-git-send-email-t-kristo@ti.com>
-References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
+From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: RE: [PATCH v4 2/3] omap_twl: Prevent SR to enable for am3517/am3505
+ devices
+Date: Fri, 23 Sep 2011 18:21:08 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087037AF843EE@dbde02.ent.ti.com>
+References: <1316697993-696-1-git-send-email-abhilash.kv@ti.com>
+	<1316697993-696-2-git-send-email-abhilash.kv@ti.com>
+	<1316697993-696-3-git-send-email-abhilash.kv@ti.com>,<87zkhws1ja.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Class: urn:content-classes:message
-In-Reply-To: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
+In-Reply-To: <87zkhws1ja.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "V, Aneesh" <aneesh@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "christian.gmeiner@gmail.com" <christian.gmeiner@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP mux now provides a service routine to parse pending wakeup events
-and to call registered ISR whenever active wakeups are detected. This
-routine is called directly from PRCM interrupt handler.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/mux.c |   38 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 38 insertions(+), 0 deletions(-)
+hi Kevin,
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 50ee806..b27c061 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -32,6 +32,9 @@
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/uaccess.h>
-+#include <linux/irq.h>
-+#include <linux/interrupt.h>
-+#include <linux/mfd/omap-prm.h>
- 
- #include <asm/system.h>
- 
-@@ -381,6 +384,33 @@ bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
- 	return ret;
- }
- 
-+/**
-+ * omap_hwmod_mux_handle_irq - Process wakeup events for a single hwmod
-+ *
-+ * Checks a single hwmod for every wakeup capable pad to see if there is an
-+ * active wakeup event. If this is the case, call the corresponding ISR.
-+ */
-+static int _omap_hwmod_mux_handle_irq(struct omap_hwmod *oh, void *data)
-+{
-+	if (!oh->mux || !oh->mux->enabled)
-+		return 0;
-+	if (omap_hwmod_mux_get_wake_status(oh->mux))
-+		generic_handle_irq(oh->mpu_irqs[0].irq);
-+	return 0;
-+}
-+
-+/**
-+ * omap_hwmod_mux_handle_irq - Process pad wakeup irqs.
-+ *
-+ * Calls a function for each registered omap_hwmod to check
-+ * pad wakeup statuses.
-+ */
-+static irqreturn_t omap_hwmod_mux_handle_irq(int irq, void *unused)
-+{
-+	omap_hwmod_for_each(_omap_hwmod_mux_handle_irq, NULL);
-+	return IRQ_HANDLED;
-+}
-+
- /* Assumes the calling function takes care of locking */
- void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
- {
-@@ -745,6 +775,7 @@ static void __init omap_mux_free_names(struct omap_mux *m)
- static int __init omap_mux_late_init(void)
- {
- 	struct omap_mux_partition *partition;
-+	int ret;
- 
- 	list_for_each_entry(partition, &mux_partitions, node) {
- 		struct omap_mux_entry *e, *tmp;
-@@ -765,6 +796,13 @@ static int __init omap_mux_late_init(void)
- 		}
- 	}
- 
-+	ret = request_irq(omap_prcm_event_to_irq("io"),
-+		omap_hwmod_mux_handle_irq, IRQF_SHARED | IRQF_NO_SUSPEND,
-+			"hwmod_io", omap_mux_late_init);
-+
-+	if (ret)
-+		printk(KERN_WARNING "Failed to setup hwmod io irq %d\n", ret);
-+
- 	omap_mux_dbg_init();
- 
- 	return 0;
--- 
-1.7.4.1
+On Fri, Sep 23, 2011 at 3:05 PM, Hilman, Kevin wrote:
+>
+> Abhilash K V <abhilash.kv@ti.com> writes:
+>
+>> In case of AM3517 & AM3505, SmartReflex is not applicable so
+>> we must not enable it.
+>
+> This part is fine, but...
+>
+>> So omap3_twl_init() is now not called when the processor does not
+>> support SR.
+>
+> ...I don't think this is right.  DVFS using the PMIC is still doable
+> without SR.
+>
+> Are you assuming that no DVFS is done on these devices?
+[Abhilash K V] yes, I just verified (in sprugr0b), that DVFS is not supported on am35xx
+DPS however is supported, though I'm unsure of how or whether it needs
+software control.
 
+-Abhilash
 
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
+>
+> Kevin
+>
+>
+>> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/id.c              |    2 +-
+>>  arch/arm/mach-omap2/pm.c              |    3 ++-
+>>  arch/arm/plat-omap/include/plat/cpu.h |    2 ++
+>>  3 files changed, 5 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+>> index d27daf9..b7e3082 100644
+>> --- a/arch/arm/mach-omap2/id.c
+>> +++ b/arch/arm/mach-omap2/id.c
+>> @@ -188,7 +188,7 @@ static void __init omap3_check_features(void)
+>>       if (cpu_is_omap3630())
+>>               omap_features |= OMAP3_HAS_192MHZ_CLK;
+>>       if (!cpu_is_omap3505() && !cpu_is_omap3517())
+>> -             omap_features |= OMAP3_HAS_IO_WAKEUP;
+>> +             omap_features |= (OMAP3_HAS_IO_WAKEUP | OMAP3_HAS_SR);
+>>
+>>       omap_features |= OMAP3_HAS_SDRC;
+>>
+>> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+>> index d34fc52..da71abc 100644
+>> --- a/arch/arm/mach-omap2/pm.c
+>> +++ b/arch/arm/mach-omap2/pm.c
+>> @@ -252,7 +252,8 @@ postcore_initcall(omap2_common_pm_init);
+>>  static int __init omap2_common_pm_late_init(void)
+>>  {
+>>       /* Init the OMAP TWL parameters */
+>> -     omap3_twl_init();
+>> +     if (omap3_has_sr())
+>> +             omap3_twl_init();
+>>       omap4_twl_init();
+>>
+>>       /* Init the voltage layer */
+>> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+>> index 2f90269..cc6fcd3 100644
+>> --- a/arch/arm/plat-omap/include/plat/cpu.h
+>> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+>> @@ -413,6 +413,7 @@ extern u32 omap_features;
+>>  #define OMAP4_HAS_MPU_1GHZ           BIT(8)
+>>  #define OMAP4_HAS_MPU_1_2GHZ         BIT(9)
+>>  #define OMAP4_HAS_MPU_1_5GHZ         BIT(10)
+>> +#define OMAP3_HAS_SR                 BIT(11)
+>>
+>>
+>>  #define OMAP3_HAS_FEATURE(feat,flag)                 \
+>> @@ -429,6 +430,7 @@ OMAP3_HAS_FEATURE(isp, ISP)
+>>  OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+>>  OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
+>>  OMAP3_HAS_FEATURE(sdrc, SDRC)
+>> +OMAP3_HAS_FEATURE(sr, SR)
+>>
+>>  /*
+>>   * Runtime detection of OMAP4 features
+>
