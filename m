@@ -1,104 +1,90 @@
-From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Subject: RE: [PATCH v4 2/3] omap_twl: Prevent SR to enable for am3517/am3505
- devices
-Date: Fri, 23 Sep 2011 18:21:08 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087037AF843EE@dbde02.ent.ti.com>
-References: <1316697993-696-1-git-send-email-abhilash.kv@ti.com>
-	<1316697993-696-2-git-send-email-abhilash.kv@ti.com>
-	<1316697993-696-3-git-send-email-abhilash.kv@ti.com>,<87zkhws1ja.fsf@ti.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH 2/6] OMAP4: Clock: Associate clocks for OMAP temperature sensor
+Date: Fri, 23 Sep 2011 18:52:00 +0530
+Message-ID: <CAJ6a13akOoiJkSjAq6vgrsyiUvq+C1RJhk35G=TArFgkCFs5pA@mail.gmail.com>
+References: <1316705361-12175-1-git-send-email-j-keerthy@ti.com>
+	<1316705361-12175-3-git-send-email-j-keerthy@ti.com>
+	<alpine.DEB.2.00.1109222316350.10719@utopia.booyaka.com>
+	<CAJ6a13aKoca1ny3ek7R3+T6GKVEKF1OhoxoDywcaPfpCnk0WzQ@mail.gmail.com>
+	<alpine.DEB.2.00.1109222357440.10719@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87zkhws1ja.fsf@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "V, Aneesh" <aneesh@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "christian.gmeiner@gmail.com" <christian.gmeiner@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:45902 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753553Ab1IWNWD convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Sep 2011 09:22:03 -0400
+Received: by mail-ww0-f49.google.com with SMTP id 14so3045188wwp.6
+        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 06:22:00 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1109222357440.10719@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
+
+On Fri, Sep 23, 2011 at 11:28 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Fri, 23 Sep 2011, J, KEERTHY wrote:
+>
+>> On Fri, Sep 23, 2011 at 10:48 AM, Paul Walmsley <paul@pwsan.com> wro=
+te:
+>> > On Thu, 22 Sep 2011, Keerthy wrote:
+>> >
+>> >> ---
+>> >> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 =A04 ++--
+>> >> =A01 files changed, 2 insertions(+), 2 deletions(-)
+>> >>
+>> >> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach=
+-omap2/clock44xx_data.c
+>> >> index 946bf04..c51e513 100644
+>> >> --- a/arch/arm/mach-omap2/clock44xx_data.c
+>> >> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+>> >> @@ -3185,9 +3185,9 @@ static struct omap_clk omap44xx_clks[] =3D =
+{
+>> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "aes2_fck", =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 &aes2_fck, =A0 =A0 =A0CK_443X),
+>> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "aess_fck", =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 &aess_fck, =A0 =A0 =A0CK_443X),
+>> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "bandgap_fclk", =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 &bandgap_fclk, =A0CK_443X),
+>> >> - =A0 =A0 CLK(NULL, =A0 =A0 =A0 "bandgap_ts_fclk", =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0&bandgap_ts_fclk, =A0 =A0 =A0 CK_446X),
+>> >> + =A0 =A0 CLK("omap4460plus_scm.0", =A0 =A0 =A0 "fck", =A0 =A0 =A0=
+ =A0 =A0&bandgap_ts_fclk, =A0 =A0 =A0 CK_446X),
+>> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "des3des_fck", =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0&des3des_fck, =A0 CK_443X),
+>> >> - =A0 =A0 CLK(NULL, =A0 =A0 =A0 "div_ts_ck", =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0&div_ts_ck, =A0 =A0 CK_446X),
+>> >> + =A0 =A0 CLK("omap4460plus_scm.0", =A0 =A0 =A0 "div_ck", =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &div_ts_ck, =A0 =A0 CK_446X),
+>> >
+>> > Clearly this device is incorrectly named. =A0You're setting up a c=
+lkdev
+>> > entry that's marked as being valid for OMAP4430, but your device i=
+s called
+>> > "omap4460plus_scm". =A0They can't both be right...
+>>
+>> This is addressed in Patch 06.
+>
+> How does patch 6 address it?
+
+I am not sure i interpreted the comment right. These clock nodes are sp=
+ecific to
+OMAP4460 and are tagged CK_446X hence the device name "omap4460plus_scm=
+=2E0"
+
+>
+>
+> - Paul
 
 
-hi Kevin,
 
-On Fri, Sep 23, 2011 at 3:05 PM, Hilman, Kevin wrote:
->
-> Abhilash K V <abhilash.kv@ti.com> writes:
->
->> In case of AM3517 & AM3505, SmartReflex is not applicable so
->> we must not enable it.
->
-> This part is fine, but...
->
->> So omap3_twl_init() is now not called when the processor does not
->> support SR.
->
-> ...I don't think this is right.  DVFS using the PMIC is still doable
-> without SR.
->
-> Are you assuming that no DVFS is done on these devices?
-[Abhilash K V] yes, I just verified (in sprugr0b), that DVFS is not supported on am35xx
-DPS however is supported, though I'm unsure of how or whether it needs
-software control.
-
--Abhilash
-
->
-> Kevin
->
->
->> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
->> ---
->>  arch/arm/mach-omap2/id.c              |    2 +-
->>  arch/arm/mach-omap2/pm.c              |    3 ++-
->>  arch/arm/plat-omap/include/plat/cpu.h |    2 ++
->>  3 files changed, 5 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
->> index d27daf9..b7e3082 100644
->> --- a/arch/arm/mach-omap2/id.c
->> +++ b/arch/arm/mach-omap2/id.c
->> @@ -188,7 +188,7 @@ static void __init omap3_check_features(void)
->>       if (cpu_is_omap3630())
->>               omap_features |= OMAP3_HAS_192MHZ_CLK;
->>       if (!cpu_is_omap3505() && !cpu_is_omap3517())
->> -             omap_features |= OMAP3_HAS_IO_WAKEUP;
->> +             omap_features |= (OMAP3_HAS_IO_WAKEUP | OMAP3_HAS_SR);
->>
->>       omap_features |= OMAP3_HAS_SDRC;
->>
->> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
->> index d34fc52..da71abc 100644
->> --- a/arch/arm/mach-omap2/pm.c
->> +++ b/arch/arm/mach-omap2/pm.c
->> @@ -252,7 +252,8 @@ postcore_initcall(omap2_common_pm_init);
->>  static int __init omap2_common_pm_late_init(void)
->>  {
->>       /* Init the OMAP TWL parameters */
->> -     omap3_twl_init();
->> +     if (omap3_has_sr())
->> +             omap3_twl_init();
->>       omap4_twl_init();
->>
->>       /* Init the voltage layer */
->> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
->> index 2f90269..cc6fcd3 100644
->> --- a/arch/arm/plat-omap/include/plat/cpu.h
->> +++ b/arch/arm/plat-omap/include/plat/cpu.h
->> @@ -413,6 +413,7 @@ extern u32 omap_features;
->>  #define OMAP4_HAS_MPU_1GHZ           BIT(8)
->>  #define OMAP4_HAS_MPU_1_2GHZ         BIT(9)
->>  #define OMAP4_HAS_MPU_1_5GHZ         BIT(10)
->> +#define OMAP3_HAS_SR                 BIT(11)
->>
->>
->>  #define OMAP3_HAS_FEATURE(feat,flag)                 \
->> @@ -429,6 +430,7 @@ OMAP3_HAS_FEATURE(isp, ISP)
->>  OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
->>  OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
->>  OMAP3_HAS_FEATURE(sdrc, SDRC)
->> +OMAP3_HAS_FEATURE(sr, SR)
->>
->>  /*
->>   * Runtime detection of OMAP4 features
->
+--=20
+Regards and Thanks,
+Keerthy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
