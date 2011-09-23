@@ -1,146 +1,137 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv9 07/18] mfd: omap-prm: added suspend prepare and complete callbacks
-Date: Fri, 23 Sep 2011 15:46:15 +0300
-Message-ID: <1316781986-30642-8-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv9 01/18] OMAP2+: hwmod: Add API to enable IO ring wakeup.
+Date: Fri, 23 Sep 2011 15:46:09 +0300
+Message-ID: <1316781986-30642-2-git-send-email-t-kristo@ti.com>
 References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Class: urn:content-classes:message
 In-Reply-To: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: "R, Govindraj" <govindraj.raja@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-These are needed because runtime PM is disabled during suspend, and
-it is bad if we get interrupts from the PRCM chain handler during it.
-Now, PRCM interrupt forwarding is disabled until the suspend->complete,
-which makes sure that all the needed drivers are up.
+From: R, Govindraj <govindraj.raja@ti.com>
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Add API to enable IO pad wakeup capability based on mux dynamic pad and
+wake_up enable flag available from hwmod_mux initialization.
+
+Use the wakeup_enable flag and enable wakeup capability
+for the given pads. Wakeup capability will be enabled/disabled
+during hwmod idle transition based on whether wakeup_flag is
+set or cleared.
+
+Map the enable/disable pad wakeup API's to hwmod_wakeup_enable/disable.
+
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- drivers/mfd/omap-prm-common.c |   34 +++++++++++++++++++++++++++++++++-
- drivers/mfd/omap-prm.h        |    2 ++
- drivers/mfd/omap3xxx-prm.c    |    1 +
- drivers/mfd/omap4xxx-prm.c    |    1 +
- 4 files changed, 37 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   59 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 59 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mfd/omap-prm-common.c b/drivers/mfd/omap-prm-common.c
-index 2886eb2..e8522fc 100644
---- a/drivers/mfd/omap-prm-common.c
-+++ b/drivers/mfd/omap-prm-common.c
-@@ -20,6 +20,7 @@
- #include <linux/slab.h>
- #include <linux/init.h>
- #include <linux/err.h>
-+#include <linux/platform_device.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 84cc0bd..e751dd9 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2062,6 +2062,34 @@ static int __init omap_hwmod_setup_all(void)
+ core_initcall(omap_hwmod_setup_all);
  
- #include "omap-prm.h"
- 
-@@ -35,6 +36,7 @@ struct omap_prm_device {
- 	int base_irq;
- 	int irq;
- 	void __iomem *base;
-+	int suspended;
- };
- 
- static struct omap_prm_device prm_dev;
-@@ -92,12 +94,20 @@ static void prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
- 	struct irq_chip *chip = irq_desc_get_chip(desc);
- 	unsigned int virtirq;
- 	int nr_irqs = prm_dev.irq_setup->nr_regs * 32;
-+	int i;
+ /**
++ * omap_hwmod_set_ioring_wakeup - enable io pad wakeup flag.
++ * @oh: struct omap_hwmod *
++ * @set: bool value indicating to set or clear wakeup status.
++ *
++ * Set or Clear wakeup flag for the io_pad.
++ */
++static int omap_hwmod_set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
++{
++	struct omap_device_pad *pad;
++	int ret = -EINVAL, j;
 +
-+	if (prm_dev.suspended)
-+		for (i = 0; i < prm_dev.irq_setup->nr_regs; i++) {
-+			prm_dev.saved_mask[i] =
-+				prm_read_reg(prm_dev.irq_setup->mask + i * 4);
-+			prm_write_reg(0, prm_dev.irq_setup->mask + i * 4);
++	if (oh->mux && oh->mux->enabled) {
++		for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
++			pad = oh->mux->pads_dynamic[j];
++			if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
++				if (set_wake)
++					pad->idle |= OMAP_WAKEUP_EN;
++				else
++					pad->idle &= ~OMAP_WAKEUP_EN;
++				ret = 0;
++			}
 +		}
- 
- 	/*
- 	 * Loop until all pending irqs are handled, since
- 	 * generic_handle_irq() can cause new irqs to come
- 	 */
--	while (1) {
-+	while (!prm_dev.suspended) {
- 		prm_pending_events(pending);
- 
- 		/* No bit set, then all IRQs are handled */
-@@ -258,6 +268,28 @@ err:
- 	return -ENOMEM;
++	}
++
++	return ret;
++}
++
++/**
+  * omap_hwmod_enable - enable an omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+@@ -2393,6 +2421,35 @@ int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
+ {
+ 	return _del_initiator_dep(oh, init_oh);
  }
- 
-+static int omap_prm_prepare(struct device *kdev)
++/**
++ * omap_hwmod_enable_ioring_wakeup - Set wakeup flag for iopad.
++ * @oh: struct omap_hwmod *
++ *
++ * Traverse through dynamic pads, if pad is enabled then
++ * set wakeup enable bit flag for the mux pin. Wakeup pad bit
++ * will be set during hwmod idle transistion.
++ * Return error if pads are not enabled or not available.
++ */
++int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh)
 +{
-+	prm_dev.suspended = 1;
-+	return 0;
++	/* Enable pad wake-up capability */
++	return omap_hwmod_set_ioring_wakeup(oh, true);
 +}
 +
-+static void omap_prm_complete(struct device *kdev)
++/**
++ * omap_hwmod_disable_ioring_wakeup - Clear wakeup flag for iopad.
++ * @oh: struct omap_hwmod *
++ *
++ * Traverse through dynamic pads, if pad is enabled then
++ * clear wakeup enable bit flag for the mux pin. Wakeup pad bit
++ * will be set during hwmod idle transistion.
++ * Return error if pads are not enabled or not available.
++ */
++int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh)
 +{
-+	int i;
-+
-+	prm_dev.suspended = 0;
-+
-+	for (i = 0; i < prm_dev.irq_setup->nr_regs; i++)
-+		prm_write_reg(prm_dev.saved_mask[i],
-+			prm_dev.irq_setup->mask + i * 4);
++	/* Disable pad wakeup capability */
++	return omap_hwmod_set_ioring_wakeup(oh, false);
 +}
-+
-+const struct dev_pm_ops omap_prm_pm_ops = {
-+	.prepare = omap_prm_prepare,
-+	.complete = omap_prm_complete,
-+};
-+
- MODULE_AUTHOR("Tero Kristo <t-kristo@ti.com>");
- MODULE_DESCRIPTION("OMAP PRM core driver");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/mfd/omap-prm.h b/drivers/mfd/omap-prm.h
-index 7ffefe1..c901810 100644
---- a/drivers/mfd/omap-prm.h
-+++ b/drivers/mfd/omap-prm.h
-@@ -32,6 +32,8 @@ struct omap_prcm_irq {
- 	.priority = _priority				\
- 	}
  
-+extern const struct dev_pm_ops omap_prm_pm_ops;
-+
- void omap_prcm_irq_cleanup(void);
- int omap_prcm_register_chain_handler(int irq, void __iomem *base,
- 	const struct omap_prcm_irq_setup *irq_setup,
-diff --git a/drivers/mfd/omap3xxx-prm.c b/drivers/mfd/omap3xxx-prm.c
-index 9be21ee..38b88aa 100644
---- a/drivers/mfd/omap3xxx-prm.c
-+++ b/drivers/mfd/omap3xxx-prm.c
-@@ -66,6 +66,7 @@ static struct platform_driver omap3xxx_prm_driver = {
- 	.driver		= {
- 		.owner	= THIS_MODULE,
- 		.name	= DRIVER_NAME,
-+		.pm	= &omap_prm_pm_ops,
- 	},
- };
+ /**
+  * omap_hwmod_enable_wakeup - allow device to wake up the system
+@@ -2419,6 +2476,7 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
+ 	v = oh->_sysc_cache;
+ 	_enable_wakeup(oh, &v);
+ 	_write_sysconfig(v, oh);
++	omap_hwmod_enable_ioring_wakeup(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
  
-diff --git a/drivers/mfd/omap4xxx-prm.c b/drivers/mfd/omap4xxx-prm.c
-index 6e134a7..92cc67d 100644
---- a/drivers/mfd/omap4xxx-prm.c
-+++ b/drivers/mfd/omap4xxx-prm.c
-@@ -65,6 +65,7 @@ static struct platform_driver omap4xxx_prm_driver = {
- 	.driver		= {
- 		.owner	= THIS_MODULE,
- 		.name	= DRIVER_NAME,
-+		.pm	= &omap_prm_pm_ops,
- 	},
- };
+ 	return 0;
+@@ -2449,6 +2507,7 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
+ 	v = oh->_sysc_cache;
+ 	_disable_wakeup(oh, &v);
+ 	_write_sysconfig(v, oh);
++	omap_hwmod_disable_ioring_wakeup(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
  
+ 	return 0;
 -- 
 1.7.4.1
 
 
 Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
