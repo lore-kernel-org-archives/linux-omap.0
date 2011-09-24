@@ -1,50 +1,55 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 11/24] OMAP4: Remove __INIT from omap_secondary_startup() to re-use it for hotplug.
-Date: Sat, 24 Sep 2011 11:44:31 +0530
-Message-ID: <1316844884-21700-12-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 16/24] OMAP4: Remove un-used do_wfi() macro.
+Date: Sat, 24 Sep 2011 11:44:36 +0530
+Message-ID: <1316844884-21700-17-git-send-email-santosh.shilimkar@ti.com>
 References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41301 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41312 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751874Ab1IXGPH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 24 Sep 2011 02:15:07 -0400
+	id S1751467Ab1IXGPO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 24 Sep 2011 02:15:14 -0400
 In-Reply-To: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Remove the __INIT from omap_secondary_startup() so that it can
-be re-used for CPU hotplug.
+With OMAP4 suspend, idle and hotplug series, we no longer need
+do_wfi() macro.
 
-While at this, remove the un-used AUXBOOT register reference.
+Remove the same.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Acked-by: Jean Pihet <j-pihet@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
 ---
- arch/arm/mach-omap2/omap-headsmp.S |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/include/mach/omap4-common.h |   10 ----------
+ 1 files changed, 0 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-index 4ee6aec..b13ef7e 100644
---- a/arch/arm/mach-omap2/omap-headsmp.S
-+++ b/arch/arm/mach-omap2/omap-headsmp.S
-@@ -18,11 +18,6 @@
- #include <linux/linkage.h>
- #include <linux/init.h>
+diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
+index ed3797c..e5db389 100644
+--- a/arch/arm/mach-omap2/include/mach/omap4-common.h
++++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+@@ -16,16 +16,6 @@
+ #include <asm/proc-fns.h>
  
--/* Physical address needed since MMU not enabled yet on secondary core */
--#define OMAP4_AUX_CORE_BOOT1_PA			0x48281804
--
--	__INIT
--
- /*
-  * OMAP4 specific entry point for secondary CPU to jump from ROM
-  * code.  This routine also provides a holding flag into which
+ #ifndef __ASSEMBLER__
+-/*
+- * wfi used in low power code. Directly opcode is used instead
+- * of instruction to avoid mulit-omap build break
+- */
+-#ifdef CONFIG_THUMB2_KERNEL
+-#define do_wfi() __asm__ __volatile__ ("wfi" : : : "memory")
+-#else
+-#define do_wfi()			\
+-		__asm__ __volatile__ (".word	0xe320f003" : : : "memory")
+-#endif
+ 
+ #ifdef CONFIG_CACHE_L2X0
+ extern void __iomem *omap4_get_l2cache_base(void);
 -- 
 1.7.4.1
 
