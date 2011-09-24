@@ -1,75 +1,57 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/5 v11] arm: omap: usb: ehci and ohci hwmod structures
- for omap4
-Date: Sat, 24 Sep 2011 00:20:30 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109232354360.22872@utopia.booyaka.com>
-References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1109221213500.10719@utopia.booyaka.com> <4E7B8C68.7020407@ti.com> <alpine.DEB.2.00.1109221524560.10719@utopia.booyaka.com>
- <CAP05o4+DT8hL8A_e6WBpV9ptZ4XYYKgM=UQa8uiRH2ox6ZP-4A@mail.gmail.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
+ for omap3
+Date: Sat, 24 Sep 2011 00:30:33 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109240020510.22872@utopia.booyaka.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-3-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com>
+ <CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-81626102-1316844238=:22872"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAP05o4+DT8hL8A_e6WBpV9ptZ4XYYKgM=UQa8uiRH2ox6ZP-4A@mail.gmail.com>
-Content-ID: <alpine.DEB.2.00.1109240013070.22872@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---155748971-81626102-1316844238=:22872
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1109240013071.22872@utopia.booyaka.com>
-
-Hi
 
 On Fri, 23 Sep 2011, Munegowda, Keshava wrote:
 
-> Paul Walmsley <paul@pwsan.com> wrote:
->
-> > So I'd suggest one of two approaches:
-> >
-> > 1. If the pin muxing can follow the PM runtime status of the UHH IP blo=
-ck,
-> > =A0 then the pin mux data should be associated with the UHH hwmod.
->=20
-> No, the mux is applicable only to ehci and ohci , where as sysconfig is=
-=20
-> applicable to uhh ( usb_host_hs class).
+> On Thu, Sep 22, 2011 at 11:31 PM, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org> wrote:
+> 
+> But the question arises here , why do we need these ehci and ohci as two 
+> different hwmods containing only irq and base address? It is required 
+> for future - to implement remote wakeup feature for ehci and ohci ports 
+> depending on irq-chain handler patches by Tero. Separate hwmods for ehci 
+> and ohci are needed to enable prcm chain-handler to uniquely identify 
+> the wakeup source as ehci or ohci and call only the corresponding 
+> interrupt handler. We will be using omap_hwmod_mux_init for ehci and 
+> ohci hwmods to enable I/O wakeup capability for respective IO-pads. 
+> Depending on the particular wakeup source(ehci/ohci), the corresponding 
+> ehci or ohci irq handler will be called.
+> 
+> If ehci and ohci are combined with usbhs hwmod as a single hwmod , then 
+> for every wakeup (either ehci or ohci port wakeup) only the first 
+> interrupt handler will be called (please look at the function 
+> omap_hwmod_mux_handle_irq of
+> 
+> /arch/arm/mach-omap2/mux.c file ; in tero's latest patch:
+> http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg53139.html)
+> , so in this
+> case, if ehci interrupt is the first interrupt , then even for ohci wakeup
+> , only ehci interrupt will get called; which will break the functionality.
 
-My point is that, as far as I can tell, I/O pad wakeup (caused by USB=20
-remote wakeup) is only going to matter when the entire UHH IP block has=20
-its clocks cut.  Otherwise, while the UHH is clocked, the EHCI and/or OHCI=
-=20
-IP blocks will also be clocked, so no I/O pad wakeup will be needed. Do=20
-you agree?
+Any reason why this couldn't be handled either by:
 
-> > 2. If the pin muxing must follow the EHCI/OHCI IP block PM runtime stat=
-us,
-> > =A0 then drivers/mfd/omap-usb-host.c is what should be handling the
-> > =A0 remuxing. =A0omap-usb-host.c can set the dev_pm_ops of the EHCI/OHC=
-I
-> > =A0 platform_devices to point to functions either in
-> > =A0 arch/arm/mach-omap2/usb-host.c, or local functions that call into
-> > =A0 mach-omap2/usb-host.c functions to handle pin remuxing. =A0(Those
-> > =A0 function pointers should be provided to the MFD driver in some clea=
-n way,
-> > =A0 like via platform_data.)
->=20
-> The dev_pm_ops of ehci should exist in /drivers/usb/host/ehci-omap.c and=
-=20
-> dev_pm_ops of phci should exist in /drivers/usb/host/ohci-omap3.c. In=20
-> the existing design, the omap-usb-host.c host can not access the=20
-> platform driver of ehci and ohci. But, through function pointers it is=20
-> possible to send the platform data to ehci and ohci drivers to handle=20
-> pin remuxing; but we will not able to use tero's patches; and it will=20
-> prevent our future design activity for remote wakeup of ehci and ohci.
+1. adding an IRQ number field to struct omap_hwmod_mux_info, and changing
+_omap_hwmod_mux_handle_irq() to raise that IRQ number?
 
-Could you please explain in more detail why the dynamic remuxing can't=20
-be done when the UHH enters or exits idle?
+or 
+
+2. using shared interrupts?
 
 
 - Paul
---155748971-81626102-1316844238=:22872--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
