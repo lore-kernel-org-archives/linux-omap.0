@@ -1,69 +1,52 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: [PATCHv9 00/18] omap PRCM chain handler
-Date: Sat, 24 Sep 2011 01:55:42 -0400
-Message-ID: <77088.1316843742@turing-police.cc.vt.edu>
-References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
-	<35343.1316816580@turing-police.cc.vt.edu>
-	<CA+mksuDD=7Zf1bhmdq_Ficz_ZQEdiE5GLOGH18Cgf+XEmCd74w@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/8] OMAP3/4: Misc fixes and clean-up
+Date: Sat, 24 Sep 2011 11:33:43 +0530
+Message-ID: <4E7D72BF.8060009@ti.com>
+References: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0526330788=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: Your message of "Sat, 24 Sep 2011 10:54:29 +0530."
-	<CA+mksuDD=7Zf1bhmdq_Ficz_ZQEdiE5GLOGH18Cgf+XEmCd74w@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:44811 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751529Ab1IXGDu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 24 Sep 2011 02:03:50 -0400
+Received: by mail-gx0-f176.google.com with SMTP id 22so2816603gxk.7
+        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 23:03:49 -0700 (PDT)
+In-Reply-To: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---===============0526330788==
-Content-Type: multipart/signed; boundary="==_Exmh_1316843742_4534P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
+Paul,
 
---==_Exmh_1316843742_4534P
-Content-Type: text/plain; charset=us-ascii
+On Thursday 08 September 2011 10:51 AM, Santosh Shilimkar wrote:
+> The series contains few fixes and clean-up for OMAP.
+> Briefly,
+> - HWMOD fix for the address space count
+> - Improving the L3 register accesses
+> - Bug fix in the L3 error handler
+> - Sparce warning and indentation fixes in L3 error handler
+> - Print master id in case of L3 custom errors for better debug.
+> - Adding local time clock node for the CPUfreq and time re-calibration
+> - Fix in the address overlap for emif and emulation domain.
+> 
+> The series is tested on OMAP4430 SDP and OMAP4430 beagle and SDP.
+> 
+> The following changes since commit c6a389f123b9f68d605bb7e0f9b32ec1e3e14132:
+> 
+>   Linux 3.1-rc4 (2011-08-28 21:16:01 -0700)
+> 
+> are available in the git repository at:
+>   git://gitorious.org/omap-sw-develoment/linux-omap-dev.git v3.1-rc4-omap-misc
+>
+I need your ack on below two patches so that I can re-base them and
+send a pull request to Tony.
 
-On Sat, 24 Sep 2011 10:54:29 +0530, "Sripathy, Vishwanath" said:
+OMAP4: clock: Add CPU local timer clock node.
+OMAP: Fix sparse warnings in l3 error handler.
 
-> UART Runtime patches are already posted for review and it's also
-> targeted for next merge window. Our intention is to push both the
-> features together for next merge window.
-
-Oh, OK. That should work then. Thanks for the clarification...
-
---==_Exmh_1316843742_4534P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFOfXDecC3lWbTT17ARApKfAJkBgEWm9nPZuL60x8A/YyfJI9rCtgCbBdQb
-PXyCmwHPjv9W9sByeuGCOsw=
-=gd5T
------END PGP SIGNATURE-----
-
---==_Exmh_1316843742_4534P--
-
-
-
---===============0526330788==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0526330788==--
+Regards
+Santosh
