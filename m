@@ -1,57 +1,52 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
- for omap3
-Date: Sat, 24 Sep 2011 00:30:33 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109240020510.22872@utopia.booyaka.com>
-References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-3-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com>
- <CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/8] OMAP3/4: Misc fixes and clean-up
+Date: Sat, 24 Sep 2011 00:31:45 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109240031280.22872@utopia.booyaka.com>
+References: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com> <4E7D72BF.8060009@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:56237 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751063Ab1IXGbq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Sep 2011 02:31:46 -0400
+In-Reply-To: <4E7D72BF.8060009@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 23 Sep 2011, Munegowda, Keshava wrote:
+Hi Santosh
 
-> On Thu, Sep 22, 2011 at 11:31 PM, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org> wrote:
+On Sat, 24 Sep 2011, Santosh Shilimkar wrote:
+
+> On Thursday 08 September 2011 10:51 AM, Santosh Shilimkar wrote:
+> > The series contains few fixes and clean-up for OMAP.
+> > Briefly,
+> > - HWMOD fix for the address space count
+> > - Improving the L3 register accesses
+> > - Bug fix in the L3 error handler
+> > - Sparce warning and indentation fixes in L3 error handler
+> > - Print master id in case of L3 custom errors for better debug.
+> > - Adding local time clock node for the CPUfreq and time re-calibration
+> > - Fix in the address overlap for emif and emulation domain.
+> > 
+> > The series is tested on OMAP4430 SDP and OMAP4430 beagle and SDP.
+> > 
+> > The following changes since commit c6a389f123b9f68d605bb7e0f9b32ec1e3e14132:
+> > 
+> >   Linux 3.1-rc4 (2011-08-28 21:16:01 -0700)
+> > 
+> > are available in the git repository at:
+> >   git://gitorious.org/omap-sw-develoment/linux-omap-dev.git v3.1-rc4-omap-misc
+> >
+> I need your ack on below two patches so that I can re-base them and
+> send a pull request to Tony.
 > 
-> But the question arises here , why do we need these ehci and ohci as two 
-> different hwmods containing only irq and base address? It is required 
-> for future - to implement remote wakeup feature for ehci and ohci ports 
-> depending on irq-chain handler patches by Tero. Separate hwmods for ehci 
-> and ohci are needed to enable prcm chain-handler to uniquely identify 
-> the wakeup source as ehci or ohci and call only the corresponding 
-> interrupt handler. We will be using omap_hwmod_mux_init for ehci and 
-> ohci hwmods to enable I/O wakeup capability for respective IO-pads. 
-> Depending on the particular wakeup source(ehci/ohci), the corresponding 
-> ehci or ohci irq handler will be called.
-> 
-> If ehci and ohci are combined with usbhs hwmod as a single hwmod , then 
-> for every wakeup (either ehci or ohci port wakeup) only the first 
-> interrupt handler will be called (please look at the function 
-> omap_hwmod_mux_handle_irq of
-> 
-> /arch/arm/mach-omap2/mux.c file ; in tero's latest patch:
-> http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg53139.html)
-> , so in this
-> case, if ehci interrupt is the first interrupt , then even for ohci wakeup
-> , only ehci interrupt will get called; which will break the functionality.
+> OMAP4: clock: Add CPU local timer clock node.
+> OMAP: Fix sparse warnings in l3 error handler.
 
-Any reason why this couldn't be handled either by:
-
-1. adding an IRQ number field to struct omap_hwmod_mux_info, and changing
-_omap_hwmod_mux_handle_irq() to raise that IRQ number?
-
-or 
-
-2. using shared interrupts?
+Are you targeting these for 3.1-rc ?
 
 
 - Paul
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
