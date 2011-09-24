@@ -1,55 +1,128 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 05/24] OMAP4: PM: Avoid omap4_pm_init() on OMAP4430 ES1.0
-Date: Sat, 24 Sep 2011 11:44:25 +0530
-Message-ID: <1316844884-21700-6-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 08/24] OMAP: PM: Add support to allocate the memory for secure RAM
+Date: Sat, 24 Sep 2011 11:44:28 +0530
+Message-ID: <1316844884-21700-9-git-send-email-santosh.shilimkar@ti.com>
 References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39732 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42034 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751739Ab1IXGPD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 24 Sep 2011 02:15:03 -0400
+	id S1751467Ab1IXGPF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 24 Sep 2011 02:15:05 -0400
 In-Reply-To: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On OMAP4430 ES1.0, Power Management features are not supported.
-Avoid omap4_pm_init() on ES1.0 silicon so that we can continue
-to use same kernel binary to boot on all OMAP4 silicons.
+Allocate the memory to save secure ram context which needs
+to be done when MPU is hitting OFF mode.
 
-The ES1.0 boot failure with OMAP4 PM series was because of
-the clockdomain initialisation code. Hardware supervised
-clockdomain mode isn't functional for all clockdomains
-on OMAP4430 ES1.0 silicon so avoid the same.
+The ROM code expects a physical address to this memory
+and hence use memblock APIs to reserve this memory as part
+of .reserve() callback. Maximum size as per secure RAM requirements
+is allocated.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Reported-by: Kevin Hilman <khilman@ti.com>
 Acked-by: Jean Pihet <j-pihet@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
 ---
- arch/arm/mach-omap2/pm44xx.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/include/mach/omap-secure.h |    4 +++
+ arch/arm/mach-omap2/omap-secure.c              |   29 ++++++++++++++++++++++++
+ arch/arm/plat-omap/common.c                    |    3 ++
+ 3 files changed, 36 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 348ebf1..44761bb 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -105,6 +105,11 @@ static int __init omap4_pm_init(void)
- 	if (!cpu_is_omap44xx())
- 		return -ENODEV;
+diff --git a/arch/arm/mach-omap2/include/mach/omap-secure.h b/arch/arm/mach-omap2/include/mach/omap-secure.h
+index 26e7bcc..e2f95a0 100644
+--- a/arch/arm/mach-omap2/include/mach/omap-secure.h
++++ b/arch/arm/mach-omap2/include/mach/omap-secure.h
+@@ -26,6 +26,8 @@
+ #define FLAG_FIQ_ENABLE			0x1
+ #define NO_FLAG				0x0
  
-+	if (omap_rev() == OMAP4430_REV_ES1_0) {
-+		WARN(1, "Power Management not supported on OMAP4430 ES1.0\n");
-+		return -ENODEV;
-+	}
++/* Maximum Secure memory storage size */
++#define OMAP_SECURE_RAM_STORAGE	(88 * SZ_1K)
+ 
+ /* Secure low power HAL API index */
+ #define OMAP4_HAL_SAVESECURERAM_INDEX	0x1a
+@@ -36,5 +38,7 @@
+ extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
+ 				u32 arg1, u32 arg2, u32 arg3, u32 arg4);
+ extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
++extern phys_addr_t omap_secure_ram_mempool_base(void);
++extern int omap_secure_ram_reserve_memblock(void);
+ 
+ #endif /* OMAP_ARCH_OMAP_SECURE_H */
+diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
+index e5a606e..69f3c72 100644
+--- a/arch/arm/mach-omap2/omap-secure.c
++++ b/arch/arm/mach-omap2/omap-secure.c
+@@ -13,11 +13,14 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/io.h>
++#include <linux/memblock.h>
+ 
+ #include <asm/cacheflush.h>
+ 
+ #include <mach/omap-secure.h>
+ 
++static phys_addr_t omap_secure_memblock_base;
 +
- 	pr_err("Power Management for TI OMAP4.\n");
+ /**
+  * omap_sec_dispatcher: Routine to dispatch low power secure
+  * service routines
+@@ -50,3 +53,29 @@ u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs, u32 arg1, u32 arg2,
  
- 	ret = pwrdm_for_each(pwrdms_setup, NULL);
+ 	return ret;
+ }
++
++/* Allocate the memory to save secure ram */
++int __init omap_secure_ram_reserve_memblock(void)
++{
++	phys_addr_t paddr;
++	u32 size = OMAP_SECURE_RAM_STORAGE;
++
++	size = ALIGN(size, SZ_1M);
++	paddr = memblock_alloc(size, SZ_1M);
++	if (!paddr) {
++		pr_err("%s: failed to reserve %x bytes\n",
++				__func__, size);
++		return -ENOMEM;
++	}
++	memblock_free(paddr, size);
++	memblock_remove(paddr, size);
++
++	omap_secure_memblock_base = paddr;
++
++	return 0;
++}
++
++phys_addr_t omap_secure_ram_mempool_base(void)
++{
++	return omap_secure_memblock_base;
++}
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index d9f10a3..827f896 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -21,6 +21,8 @@
+ #include <plat/vram.h>
+ #include <plat/dsp.h>
+ 
++#include <mach/omap-secure.h>
++
+ 
+ #define NO_LENGTH_CHECK 0xffffffff
+ 
+@@ -65,4 +67,5 @@ void __init omap_reserve(void)
+ 	omapfb_reserve_sdram_memblock();
+ 	omap_vram_reserve_sdram_memblock();
+ 	omap_dsp_reserve_sdram_memblock();
++	omap_secure_ram_reserve_memblock();
+ }
 -- 
 1.7.4.1
 
