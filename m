@@ -1,52 +1,140 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/8] OMAP3/4: Misc fixes and clean-up
-Date: Sat, 24 Sep 2011 11:33:43 +0530
-Message-ID: <4E7D72BF.8060009@ti.com>
-References: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 03/24] OMAP4: PM: Add SAR RAM support
+Date: Sat, 24 Sep 2011 11:44:23 +0530
+Message-ID: <1316844884-21700-4-git-send-email-santosh.shilimkar@ti.com>
+References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:44811 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751529Ab1IXGDu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 24 Sep 2011 02:03:50 -0400
-Received: by mail-gx0-f176.google.com with SMTP id 22so2816603gxk.7
-        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 23:03:49 -0700 (PDT)
-In-Reply-To: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:42025 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751315Ab1IXGO6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 24 Sep 2011 02:14:58 -0400
+In-Reply-To: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Paul,
+This patch adds SAR RAM support on OMAP4430. SAR RAM used to save
+and restore the HW context in low power modes.
 
-On Thursday 08 September 2011 10:51 AM, Santosh Shilimkar wrote:
-> The series contains few fixes and clean-up for OMAP.
-> Briefly,
-> - HWMOD fix for the address space count
-> - Improving the L3 register accesses
-> - Bug fix in the L3 error handler
-> - Sparce warning and indentation fixes in L3 error handler
-> - Print master id in case of L3 custom errors for better debug.
-> - Adding local time clock node for the CPUfreq and time re-calibration
-> - Fix in the address overlap for emif and emulation domain.
-> 
-> The series is tested on OMAP4430 SDP and OMAP4430 beagle and SDP.
-> 
-> The following changes since commit c6a389f123b9f68d605bb7e0f9b32ec1e3e14132:
-> 
->   Linux 3.1-rc4 (2011-08-28 21:16:01 -0700)
-> 
-> are available in the git repository at:
->   git://gitorious.org/omap-sw-develoment/linux-omap-dev.git v3.1-rc4-omap-misc
->
-I need your ack on below two patches so that I can re-base them and
-send a pull request to Tony.
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Jean Pihet <j-pihet@ti.com>
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
+---
+ arch/arm/mach-omap2/include/mach/omap4-common.h |    1 +
+ arch/arm/mach-omap2/omap4-common.c              |   31 +++++++++++++++++++++++
+ arch/arm/mach-omap2/omap4-sar-layout.h          |   22 ++++++++++++++++
+ arch/arm/plat-omap/include/plat/omap44xx.h      |    1 +
+ 4 files changed, 55 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap4-sar-layout.h
 
-OMAP4: clock: Add CPU local timer clock node.
-OMAP: Fix sparse warnings in l3 error handler.
+diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
+index b28ad10..947d0c8 100644
+--- a/arch/arm/mach-omap2/include/mach/omap4-common.h
++++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+@@ -39,6 +39,7 @@ static inline void __iomem *omap4_get_scu_base(void)
+ 
+ extern void __init gic_init_irq(void);
+ extern void omap_smc1(u32 fn, u32 arg);
++extern void __iomem *omap4_get_sar_ram_base(void);
+ 
+ #ifdef CONFIG_SMP
+ /* Needed for secondary core boot */
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index a12896a..652e319 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -24,12 +24,16 @@
+ #include <mach/hardware.h>
+ #include <mach/omap4-common.h>
+ 
++#include "omap4-sar-layout.h"
++
+ #ifdef CONFIG_CACHE_L2X0
+ static void __iomem *l2cache_base;
+ #endif
+ 
+ void __iomem *gic_dist_base_addr;
+ 
++static void __iomem *sar_ram_base;
++
+ 
+ void __init gic_init_irq(void)
+ {
+@@ -117,3 +121,30 @@ static int __init omap_l2_cache_init(void)
+ }
+ early_initcall(omap_l2_cache_init);
+ #endif
++
++void __iomem *omap4_get_sar_ram_base(void)
++{
++	return sar_ram_base;
++}
++
++/*
++ * SAR RAM used to save and restore the HW
++ * context in low power modes
++ */
++static int __init omap4_sar_ram_init(void)
++{
++	/*
++	 * To avoid code running on other OMAPs in
++	 * multi-omap builds
++	 */
++	if (!cpu_is_omap44xx())
++		return -ENOMEM;
++
++	/* Static mapping, never released */
++	sar_ram_base = ioremap(OMAP44XX_SAR_RAM_BASE, SZ_8K);
++	if (WARN_ON(!sar_ram_base))
++		return -ENOMEM;
++
++	return 0;
++}
++early_initcall(omap4_sar_ram_init);
+diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
+new file mode 100644
+index 0000000..7781ea4
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap4-sar-layout.h
+@@ -0,0 +1,22 @@
++/*
++ * omap4-sar-layout.h: OMAP4 SAR RAM layout header file
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ *	Santosh Shilimkar <santosh.shilimkar@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef OMAP_ARCH_OMAP4_SAR_LAYOUT_H
++#define OMAP_ARCH_OMAP4_SAR_LAYOUT_H
++
++/*
++ * SAR BANK offsets from base address OMAP44XX_SAR_RAM_BASE
++ */
++#define SAR_BANK1_OFFSET		0x0000
++#define SAR_BANK2_OFFSET		0x1000
++#define SAR_BANK3_OFFSET		0x2000
++#define SAR_BANK4_OFFSET		0x3000
++
++#endif
+diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
+index ea2b8a6..c0d478e 100644
+--- a/arch/arm/plat-omap/include/plat/omap44xx.h
++++ b/arch/arm/plat-omap/include/plat/omap44xx.h
+@@ -45,6 +45,7 @@
+ #define OMAP44XX_WKUPGEN_BASE		0x48281000
+ #define OMAP44XX_MCPDM_BASE		0x40132000
+ #define OMAP44XX_MCPDM_L3_BASE		0x49032000
++#define OMAP44XX_SAR_RAM_BASE		0x4a326000
+ 
+ #define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
+ #define OMAP44XX_HSUSB_OTG_BASE		(L4_44XX_BASE + 0xAB000)
+-- 
+1.7.4.1
 
-Regards
-Santosh
