@@ -1,73 +1,85 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/8] OMAP3/4: Misc fixes and clean-up
-Date: Sat, 24 Sep 2011 01:36:31 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109240120240.22872@utopia.booyaka.com>
-References: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com> <4E7D72BF.8060009@ti.com> <alpine.DEB.2.00.1109240031280.22872@utopia.booyaka.com> <4E7D7A28.3070005@ti.com>
+Subject: Re: [PATCH 2/6] OMAP4: Clock: Associate clocks for OMAP temperature
+ sensor
+Date: Sat, 24 Sep 2011 01:38:59 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109240137260.22872@utopia.booyaka.com>
+References: <1316705361-12175-1-git-send-email-j-keerthy@ti.com> <1316705361-12175-3-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1109222316350.10719@utopia.booyaka.com> <CAJ6a13aKoca1ny3ek7R3+T6GKVEKF1OhoxoDywcaPfpCnk0WzQ@mail.gmail.com>
+ <alpine.DEB.2.00.1109222357440.10719@utopia.booyaka.com> <CAJ6a13akOoiJkSjAq6vgrsyiUvq+C1RJhk35G=TArFgkCFs5pA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1153633999-1316848941=:22872"
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-417427749-1316849939=:22872"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54635 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42308 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751931Ab1IXHgc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Sep 2011 03:36:32 -0400
-In-Reply-To: <4E7D7A28.3070005@ti.com>
-Content-ID: <alpine.DEB.2.00.1109240124020.22872@utopia.booyaka.com>
+	with ESMTP id S1751231Ab1IXHjA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Sep 2011 03:39:00 -0400
+In-Reply-To: <CAJ6a13akOoiJkSjAq6vgrsyiUvq+C1RJhk35G=TArFgkCFs5pA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org
 
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
---155748971-1153633999-1316848941=:22872
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+--155748971-417427749-1316849939=:22872
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1109240124021.22872@utopia.booyaka.com>
 
-Hi
+On Fri, 23 Sep 2011, J, KEERTHY wrote:
 
-On Sat, 24 Sep 2011, Santosh Shilimkar wrote:
-
-> On Saturday 24 September 2011 12:01 PM, Paul Walmsley wrote:
-> > Hi Santosh
-> >=20
-> > On Sat, 24 Sep 2011, Santosh Shilimkar wrote:
-> >=20
-> >> On Thursday 08 September 2011 10:51 AM, Santosh Shilimkar wrote:
-> >>>
-> >> I need your ack on below two patches so that I can re-base them and
-> >> send a pull request to Tony.
+> On Fri, Sep 23, 2011 at 11:28 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Fri, 23 Sep 2011, J, KEERTHY wrote:
+> >> On Fri, Sep 23, 2011 at 10:48 AM, Paul Walmsley <paul@pwsan.com> wrote=
+:
+> >> > On Thu, 22 Sep 2011, Keerthy wrote:
+> >> >
+> >> >> ---
+> >> >> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 =A04 ++--
+> >> >> =A01 files changed, 2 insertions(+), 2 deletions(-)
+> >> >>
+> >> >> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-o=
+map2/clock44xx_data.c
+> >> >> index 946bf04..c51e513 100644
+> >> >> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> >> >> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> >> >> @@ -3185,9 +3185,9 @@ static struct omap_clk omap44xx_clks[] =3D {
+> >> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "aes2_fck", =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 &aes2_fck, =A0 =A0 =A0CK_443X),
+> >> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "aess_fck", =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 &aess_fck, =A0 =A0 =A0CK_443X),
+> >> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "bandgap_fclk", =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 &bandgap_fclk, =A0CK_443X),
+> >> >> - =A0 =A0 CLK(NULL, =A0 =A0 =A0 "bandgap_ts_fclk", =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0&bandgap_ts_fclk, =A0 =A0 =A0 CK_446X),
+> >> >> + =A0 =A0 CLK("omap4460plus_scm.0", =A0 =A0 =A0 "fck", =A0 =A0 =A0 =
+=A0 =A0&bandgap_ts_fclk, =A0 =A0 =A0 CK_446X),
+> >> >> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "des3des_fck", =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0&des3des_fck, =A0 CK_443X),
+> >> >> - =A0 =A0 CLK(NULL, =A0 =A0 =A0 "div_ts_ck", =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0&div_ts_ck, =A0 =A0 CK_446X),
+> >> >> + =A0 =A0 CLK("omap4460plus_scm.0", =A0 =A0 =A0 "div_ck", =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &div_ts_ck, =A0 =A0 CK_446X),
+> >> >
+> >> > Clearly this device is incorrectly named. =A0You're setting up a clk=
+dev
+> >> > entry that's marked as being valid for OMAP4430, but your device is =
+called
+> >> > "omap4460plus_scm". =A0They can't both be right...
 > >>
-> >> OMAP4: clock: Add CPU local timer clock node.
-> >> OMAP: Fix sparse warnings in l3 error handler.
-> >=20
-> > Are you targeting these for 3.1-rc ?
-> >=20
-> Nope. It's for 3.2 merge window.
-> As such, the series doesn't have any major regression
-> fixes which should make it before 3.2
+> >> This is addressed in Patch 06.
+> >
+> > How does patch 6 address it?
+>=20
+> I am not sure i interpreted the comment right. These clock nodes are spec=
+ific to
+> OMAP4460 and are tagged CK_446X hence the device name "omap4460plus_scm.0=
+"
 
-In that case, patches 1 and 7 should go in through me.  The rest should go=
-=20
-via Tony.  So you can just drop 1 and 7 from your branch, I'll pull those=
-=20
-off the list.=20
-
-Some comments though:  Looks like you need to repost patch 1 due to=20
-comments from Beno=EEt?  Also, have the autogeneration scripts been updated=
-=20
-for patch 7?
-
-=2E..
-
-As far as patch 5 goes, you don't need my ack on that one, since I'm not=20
-the maintainer or original author of that code.  But feel free to add a=20
-Reviewed-by:.  I also tested the two L3 files with sparse and they are=20
-clean now.  Thanks very much for taking the initiative on this; I=20
-personally appreciate it quite a bit, and I think having clean code=20
-increases our credibility with upstream maintainers.=20
+Looking back over this, I misread the intention of this patch - sorry=20
+about that.  The right thing to do in this clock file depends on how the=20
+rest of the code is structured; will write some followup comments about=20
+that.
 
 
 - Paul
---155748971-1153633999-1316848941=:22872--
+--155748971-417427749-1316849939=:22872--
