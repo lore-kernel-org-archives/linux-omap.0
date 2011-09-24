@@ -1,43 +1,65 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 08/11] OMAP2+: board-generic: Add i2c static init
-Date: Fri, 23 Sep 2011 17:47:44 -0600
-Message-ID: <20110923234744.GL24631@ponder.secretlab.ca>
-References: <1316809399-19579-1-git-send-email-b-cousson@ti.com>
- <1316809399-19579-9-git-send-email-b-cousson@ti.com>
- <20110923231208.GE6324@atomide.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v7 00/26] gpio/omap: driver cleanup and fixes
+Date: Sat, 24 Sep 2011 09:26:41 +0530
+Message-ID: <CAC83ZvKu5Fo-c88L4WFPdvq91T=usaZY4mzTVVzDLw9HE7g9Kg@mail.gmail.com>
+References: <1315918979-26173-1-git-send-email-tarun.kanti@ti.com>
+	<87mxdwm8pk.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:61104 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826Ab1IWXrs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Sep 2011 19:47:48 -0400
-Received: by gxk6 with SMTP id 6so3062439gxk.19
-        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 16:47:48 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110923231208.GE6324@atomide.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:46297 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751290Ab1IXD4o convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Sep 2011 23:56:44 -0400
+Received: by bkbzs2 with SMTP id zs2so4838268bkb.0
+        for <linux-omap@vger.kernel.org>; Fri, 23 Sep 2011 20:56:42 -0700 (PDT)
+In-Reply-To: <87mxdwm8pk.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, khilman@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, charu@ti.com
 
-On Fri, Sep 23, 2011 at 04:12:08PM -0700, Tony Lindgren wrote:
-> * Benoit Cousson <b-cousson@ti.com> [110923 12:50]:
-> > Still needed to boot until the i2c & twl driver is adapted to
-> > device-tree. Otherwise the voltage control code will try to
-> > access the twl and crash.
-> 
-> That sounds OK to me for now. For merging these patches, how
-> about the following:
-> 
-> - Kevin queues up the omap_device related changes
-> 
-> - Grant queues up the .dts changes
-> 
-> - I'll queue the map_io and board changes based on Kevin's
->   omap_device changes
+[...]
+> After debugging this myself a bit, here's what I think may be going o=
+n.
+> This may not be the only problem but here's at least one of them.
+>
+> First, debounce clocks are disabled in the runtime_suspend callback.
+>
+> When a GPIO is freed and it's the last one in the bank, bank->mod_usa=
+ge
+> goes to zero.
+>
+> After that, pm_runtime_put_sync() is called, which will trigger the
+> driver's ->runtime_suspend callback. =A0The ->runtime_suspend() callb=
+ack
+> checks bank->mod_usage as well, and if zero, doesn't do anything
+> (notably, it doesn't disable debounce clocks.)
+I need some clarification in reproducing/testing the fix on OMAP3430SDP=
+=2E
+The first thing I am trying to verify is the code flow of suspend.
 
-Go ahead and queue up the .dts changes in your tree.  No need to split them up.
+1) With no debounce clock enabled, when I enable UART timeouts, I
+automatically see
+system going to retention. That is I don't have to type echo mem >
+/sys/power/state
+echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
+echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
+echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
 
-g.
+2) I am do not see the print in omap_gpio_suspend/resume(), but I see
+the print in
+*_prepare_for_idle()/*_resume_after_idle().
 
+=46olks testing on Tablet2 platform said there is dedicated button to
+suspend/resume.
+Is there something equivalent?
+--
+Tarun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
