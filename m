@@ -1,127 +1,74 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 08/24] OMAP: PM: Add support to allocate the memory for secure RAM
-Date: Sat, 24 Sep 2011 11:44:28 +0530
-Message-ID: <1316844884-21700-9-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 14/24] OMAP4: PM: Use custom omap_do_wfi() for default idle.
+Date: Sat, 24 Sep 2011 11:44:34 +0530
+Message-ID: <1316844884-21700-15-git-send-email-santosh.shilimkar@ti.com>
 References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42034 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39741 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751467Ab1IXGPF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 24 Sep 2011 02:15:05 -0400
+	id S1751467Ab1IXGPK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 24 Sep 2011 02:15:10 -0400
 In-Reply-To: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Allocate the memory to save secure ram context which needs
-to be done when MPU is hitting OFF mode.
+Default arch_idle() isn't good enough for OMAP4 because of aync bridge errata
+and necessity of NOPs post WFI to avoid speculative prefetch aborts.
+Hence Use OMAP4 custom omap_do_wfi() hook for default idle.
 
-The ROM code expects a physical address to this memory
-and hence use memblock APIs to reserve this memory as part
-of .reserve() callback. Maximum size as per secure RAM requirements
-is allocated.
+Later in the series, async bridge errata work-around patch updates the
+omap_do_wfi() with necessary interconnects barriers.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Acked-by: Jean Pihet <j-pihet@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
 ---
- arch/arm/mach-omap2/include/mach/omap-secure.h |    4 +++
- arch/arm/mach-omap2/omap-secure.c              |   29 ++++++++++++++++++++++++
- arch/arm/plat-omap/common.c                    |    3 ++
- 3 files changed, 36 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm44xx.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/include/mach/omap-secure.h b/arch/arm/mach-omap2/include/mach/omap-secure.h
-index 26e7bcc..e2f95a0 100644
---- a/arch/arm/mach-omap2/include/mach/omap-secure.h
-+++ b/arch/arm/mach-omap2/include/mach/omap-secure.h
-@@ -26,6 +26,8 @@
- #define FLAG_FIQ_ENABLE			0x1
- #define NO_FLAG				0x0
- 
-+/* Maximum Secure memory storage size */
-+#define OMAP_SECURE_RAM_STORAGE	(88 * SZ_1K)
- 
- /* Secure low power HAL API index */
- #define OMAP4_HAL_SAVESECURERAM_INDEX	0x1a
-@@ -36,5 +38,7 @@
- extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
- 				u32 arg1, u32 arg2, u32 arg3, u32 arg4);
- extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
-+extern phys_addr_t omap_secure_ram_mempool_base(void);
-+extern int omap_secure_ram_reserve_memblock(void);
- 
- #endif /* OMAP_ARCH_OMAP_SECURE_H */
-diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
-index e5a606e..69f3c72 100644
---- a/arch/arm/mach-omap2/omap-secure.c
-+++ b/arch/arm/mach-omap2/omap-secure.c
-@@ -13,11 +13,14 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/io.h>
-+#include <linux/memblock.h>
- 
- #include <asm/cacheflush.h>
- 
- #include <mach/omap-secure.h>
- 
-+static phys_addr_t omap_secure_memblock_base;
-+
- /**
-  * omap_sec_dispatcher: Routine to dispatch low power secure
-  * service routines
-@@ -50,3 +53,29 @@ u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs, u32 arg1, u32 arg2,
- 
- 	return ret;
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 3805c0c..fdba72a 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -108,6 +108,24 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
  }
-+
-+/* Allocate the memory to save secure ram */
-+int __init omap_secure_ram_reserve_memblock(void)
+ 
+ /**
++ * omap_default_idle - OMAP4 default ilde routine.'
++ *
++ * Implements OMAP4 memory, IO ordering requirements which can't be addressed
++ * with default arch_idle() hook. Used by all CPUs with !CONFIG_CPUIDLE and
++ * by secondary CPU with CONFIG_CPUIDLE.
++ */
++static void omap_default_idle(void)
 +{
-+	phys_addr_t paddr;
-+	u32 size = OMAP_SECURE_RAM_STORAGE;
++	local_irq_disable();
++	local_fiq_disable();
 +
-+	size = ALIGN(size, SZ_1M);
-+	paddr = memblock_alloc(size, SZ_1M);
-+	if (!paddr) {
-+		pr_err("%s: failed to reserve %x bytes\n",
-+				__func__, size);
-+		return -ENOMEM;
-+	}
-+	memblock_free(paddr, size);
-+	memblock_remove(paddr, size);
++	omap_do_wfi();
 +
-+	omap_secure_memblock_base = paddr;
-+
-+	return 0;
++	local_fiq_enable();
++	local_irq_enable();
 +}
 +
-+phys_addr_t omap_secure_ram_mempool_base(void)
-+{
-+	return omap_secure_memblock_base;
-+}
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index d9f10a3..827f896 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -21,6 +21,8 @@
- #include <plat/vram.h>
- #include <plat/dsp.h>
++/**
+  * omap4_pm_init - Init routine for OMAP4 PM
+  *
+  * Initializes all powerdomain and clockdomain target states
+@@ -175,6 +193,9 @@ static int __init omap4_pm_init(void)
+ 	suspend_set_ops(&omap_pm_ops);
+ #endif /* CONFIG_SUSPEND */
  
-+#include <mach/omap-secure.h>
++	/* Overwrite the default arch_idle() */
++	pm_idle = omap_default_idle;
 +
- 
- #define NO_LENGTH_CHECK 0xffffffff
- 
-@@ -65,4 +67,5 @@ void __init omap_reserve(void)
- 	omapfb_reserve_sdram_memblock();
- 	omap_vram_reserve_sdram_memblock();
- 	omap_dsp_reserve_sdram_memblock();
-+	omap_secure_ram_reserve_memblock();
+ err2:
+ 	return ret;
  }
 -- 
 1.7.4.1
