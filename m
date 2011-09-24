@@ -1,79 +1,48 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3/6] OMAP4460: Temperature sensor data
-Date: Sat, 24 Sep 2011 01:59:16 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109240148180.22872@utopia.booyaka.com>
-References: <1316705361-12175-1-git-send-email-j-keerthy@ti.com> <1316705361-12175-4-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1109222319210.10719@utopia.booyaka.com> <CAJ6a13bKycJYKa9CG8sgPr8PMO62RYZJ=_UD3ZfjoYQm4GbN0A@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [GIT PULL] OMAP: Few sparse/bug fixes and clean-up for 3.2
+Date: Sat, 24 Sep 2011 13:52:00 +0530
+Message-ID: <1316852520-10377-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-2035352623-1316850887=:22872"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33684 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752153Ab1IXH7R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Sep 2011 03:59:17 -0400
-In-Reply-To: <CAJ6a13bKycJYKa9CG8sgPr8PMO62RYZJ=_UD3ZfjoYQm4GbN0A@mail.gmail.com>
-Content-ID: <alpine.DEB.2.00.1109240154560.22872@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47736 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751673Ab1IXIWP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Sep 2011 04:22:15 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Tony,
 
---155748971-2035352623-1316850887=:22872
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1109240154561.22872@utopia.booyaka.com>
+Please pull few OMAP sparse/bug fixes and clean-up for 3.2 
 
-On Fri, 23 Sep 2011, J, KEERTHY wrote:
+Thnaks,
+Santosh
 
-> On Fri, Sep 23, 2011 at 11:33 AM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> > On Thu, 22 Sep 2011, Keerthy wrote:
-> >
-> >> diff --git a/arch/arm/mach-omap2/temp_sensor4460_data.c b/arch/arm/mac=
-h-omap2/temp_sensor4460_data.c
-> >> new file mode 100644
-> >> index 0000000..2804615
-> >> --- /dev/null
-> >> +++ b/arch/arm/mach-omap2/temp_sensor4460_data.c
-> >
-> > Is there some reason why this shouldn't go into drivers/ in some form?
->=20
-> This is used by mach-omap2.
+The following changes since commit b6fd41e29dea9c6753b1843a77e50433e6123bcb:
 
-Why does something in mach-omap2 need this data?
+  Linux 3.1-rc6 (2011-09-12 14:02:02 -0700)
 
-> >> diff --git a/arch/arm/plat-omap/include/plat/scm.h b/arch/arm/plat-oma=
-p/include/plat/scm.h
-> >> new file mode 100644
-> >> index 0000000..47aa38f
-> >> --- /dev/null
-> >> +++ b/arch/arm/plat-omap/include/plat/scm.h
-> >
-> > If this is being used by a driver, then this header file should go into
-> > the appropriate drivers/ subdirectory. =A0If it is being used by code i=
-n
-> > arch/arm/mach-omap2, then please use the existing
-> > arch/arm/mach-omap2/control.h instead.
->=20
-> The header file has structures used both by drivers/ and mach-omap.
-> So kept it in plat-omap.
+are available in the git repository at:
+  git://gitorious.org/omap-sw-develoment/linux-omap-dev.git for_3_2/omap_misc
 
-The point is, if there are structure definitions and macros that are
-only needed by code in drivers/, then those should be split off into a
-separate file and placed in drivers/.  Similarly, if there are elements of=
-=20
-this file that are only used in mach-omap2/, then those should go into=20
-mach-omap2/control.h.
+Santosh Shilimkar (1):
+      OMAP4: Fix the emif and dmm virtual mapping
 
-About the only part off the top of my head that should go into a
-plat-omap header file should be the dev_attr structure.  And it's=20
-debatable whether this driver even needs a dev_attr, or whether all
-this data should just go into an omap4460_scm.c MFD driver that uses
-a bunch of common code for the parts that are shared with 4430, etc.
-Do you have any views on this issue?
+Todd Poynor (2):
+      OMAP: Improve register access in L3 Error handler.
+      OMAP: Fix a BUG in l3 error handler.
 
+sricharan (3):
+      OMAP: Fix indentation issues in l3 error handler.
+      OMAP: Fix sparse warnings in l3 error handler.
+      OMAP: Print Initiator name for l3 custom error.
 
-- Paul
---155748971-2035352623-1316850887=:22872--
+ arch/arm/mach-omap2/omap_l3_noc.c    |  130 ++++++++++----------
+ arch/arm/mach-omap2/omap_l3_noc.h    |  224 +++++++++++++++++++---------------
+ arch/arm/mach-omap2/omap_l3_smx.c    |   91 +++++++-------
+ arch/arm/mach-omap2/omap_l3_smx.h    |  164 ++++++++++++------------
+ arch/arm/plat-omap/include/plat/io.h |    4 +-
+ 5 files changed, 322 insertions(+), 291 deletions(-)
