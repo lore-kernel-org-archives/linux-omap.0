@@ -1,227 +1,332 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 19/24] OMAP4: PM: Add MPUSS power domain OSWR support
-Date: Sat, 24 Sep 2011 11:44:39 +0530
-Message-ID: <1316844884-21700-20-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 24/24] OMAP4: Fix errata i688 with MPU interconnect barriers.
+Date: Sat, 24 Sep 2011 11:44:44 +0530
+Message-ID: <1316844884-21700-25-git-send-email-santosh.shilimkar@ti.com>
 References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42053 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751986Ab1IXGPU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 24 Sep 2011 02:15:20 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:44281 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752290Ab1IXGP0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Sep 2011 02:15:26 -0400
 In-Reply-To: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, Russell King <linux@arm.linux.org.uk>
 
-This patch adds the MPUSS OSWR (Open Switch Retention) support. The MPUSS
-OSWR configuration is as below.
-	- CPUx L1 and logic lost, MPUSS logic lost, L2 memory is retained
+On OMAP4 SOC, intecronnects has many write buffers in the async bridges
+and they need to be drained before CPU enters into standby state.
 
-OMAP4460 onwards, MPUSS power domain doesn't support OFF state any more
-anymore just like CORE power domain. The deepest state supported is OSWR.
-On OMAP4430 secure devices too, MPUSS off mode can't be used because of
-a bug which alters Ducati and Tesla states. Hence MPUSS off mode as an
-independent state isn't supported on OMAP44XX devices.
+Patch 'OMAP4: PM: Add CPUX OFF mode support' added CPU PM support
+but OMAP errata i688 (Async Bridge Corruption) needs to be taken
+care to avoid issues like system freeze, CPU deadlocks, random
+crashes with register accesses, synchronisation loss on initiators
+operating on both interconnect port simultaneously.
 
-Ofcourse when MPUSS power domain transitions to OSWR along
-with device off mode, it eventually hits off state since memory
-contents are lost.
+As per the errata, if a data is stalled inside asynchronous bridge
+because of back pressure, it may be accepted multiple times, creating
+pointer misalignment that will corrupt next transfers on that data
+path until next reset of the system (No recovery procedure once
+the issue is hit, the path remains consistently broken).
+Async bridge can be found on path between MPU to EMIF and
+MPU to L3 interconnect. This situation can happen only when the
+idle is initiated by a Master Request Disconnection (which is
+trigged by software when executing WFI on CPU).
 
-Hence the MPUSS off mode independent state is not attempted without
-device off mode. All the necessary infrastructure code for MPUSS
-off mode is in place as part of this series.
+The work-around for this errata needs all the initiators
+connected through async bridge must ensure that data path
+is properly drained before issuing WFI. This condition will be
+met if one Strongly ordered access is performed to the
+target right before executing the WFI. In MPU case, L3 T2ASYNC
+FIFO and DDR T2ASYNC FIFO needs to be drained. IO barrier ensure
+that there is no synchronisation loss on initiators operating
+on both interconnect port simultaneously.
+
+Thanks to Russell for a tip to conver assembly function to
+C fuction there by reducing 40 odd lines of code from the patch.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
 Acked-by: Jean Pihet <j-pihet@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/include/mach/omap4-common.h |    6 ++
- arch/arm/mach-omap2/omap-mpuss-lowpower.c       |   65 +++++++++++++++++++++-
- arch/arm/mach-omap2/pm44xx.c                    |    4 ++
- 3 files changed, 72 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/Kconfig                     |   21 +++++++++++
+ arch/arm/mach-omap2/include/mach/barriers.h     |   31 ++++++++++++++++
+ arch/arm/mach-omap2/include/mach/omap4-common.h |    4 ++
+ arch/arm/mach-omap2/omap4-common.c              |   44 +++++++++++++++++++++++
+ arch/arm/mach-omap2/sleep44xx.S                 |    8 ++++
+ arch/arm/plat-omap/sram.c                       |   43 ++++++++++++++--------
+ 6 files changed, 136 insertions(+), 15 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/include/mach/barriers.h
 
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 57b66d5..767a587 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -345,6 +345,27 @@ config OMAP3_SDRC_AC_TIMING
+ 	  wish to say no.  Selecting yes without understanding what is
+ 	  going on could result in system crashes;
+ 
++config OMAP4_ERRATA_I688
++	bool "OMAP4 errata: Async Bridge Corruption"
++	depends on ARCH_OMAP4
++	select ARCH_HAS_BARRIERS
++	help
++	  If a data is stalled inside asynchronous bridge because of back
++	  pressure, it may be accepted multiple times, creating pointer
++	  misalignment that will corrupt next transfers on that data path
++	  until next reset of the system (No recovery procedure once the
++	  issue is hit, the path remains consistently broken). Async bridge
++	  can be found on path between MPU to EMIF and MPU to L3 interconnect.
++	  This situation can happen only when the idle is initiated by a
++	  Master Request Disconnection (which is trigged by software when
++	  executing WFI on CPU).
++	  The work-around for this errata needs all the initiators connected
++	  through async bridge must ensure that data path is properly drained
++	  before issuing WFI. This condition will be met if one Strongly ordered
++	  access is performed to the target right before executing the WFI.
++	  In MPU case, L3 T2ASYNC FIFO and DDR T2ASYNC FIFO needs to be drained.
++	  IO barrier ensure that there is no synchronisation loss on initiators
++	  operating on both interconnect port simultaneously.
+ endmenu
+ 
+ endif
+diff --git a/arch/arm/mach-omap2/include/mach/barriers.h b/arch/arm/mach-omap2/include/mach/barriers.h
+new file mode 100644
+index 0000000..4fa72c7
+--- /dev/null
++++ b/arch/arm/mach-omap2/include/mach/barriers.h
+@@ -0,0 +1,31 @@
++/*
++ * OMAP memory barrier header.
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ *  Santosh Shilimkar <santosh.shilimkar@ti.com>
++ *  Richard Woodruff <r-woodruff2@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ */
++
++#ifndef __MACH_BARRIERS_H
++#define __MACH_BARRIERS_H
++
++extern void omap_bus_sync(void);
++
++#define rmb()		dsb()
++#define wmb()		do { dsb(); outer_sync(); omap_bus_sync(); } while (0)
++#define mb()		wmb()
++
++#endif	/* __MACH_BARRIERS_H */
 diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
-index e5db389..1f6ae1d 100644
+index 1f6ae1d..8aa3420 100644
 --- a/arch/arm/mach-omap2/include/mach/omap4-common.h
 +++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
-@@ -49,6 +49,7 @@ extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
- extern int omap4_finish_suspend(unsigned long cpu_state);
- extern void omap4_cpu_resume(void);
- extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
-+extern u32 omap4_mpuss_read_prev_context_state(void);
- #else
- static inline int omap4_enter_lowpower(unsigned int cpu,
- 					unsigned int power_state)
-@@ -75,6 +76,11 @@ static inline int omap4_finish_suspend(unsigned long cpu_state)
+@@ -15,11 +15,15 @@
  
- static inline void omap4_cpu_resume(void)
- {}
+ #include <asm/proc-fns.h>
+ 
++/* Used to implement memory barrier on DRAM path */
++#define OMAP4_DRAM_BARRIER_VA			0xfe600000
 +
-+static inline u32 omap4_mpuss_read_prev_context_state(void)
-+{
-+	return 0;
-+}
- #endif
- #endif /* __ASSEMBLER__ */
- #endif /* OMAP_ARCH_OMAP4_COMMON_H */
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 752dc57..505844f 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -24,8 +24,8 @@
-  *	ON		ON		ON
-  *	ON(Inactive)	OFF		ON(Inactive)
-  *	OFF		OFF		CSWR
-- *	OFF		OFF		OSWR (*TBD)
-- *	OFF		OFF		OFF* (*TBD)
-+ *	OFF		OFF		OSWR
-+ *	OFF		OFF		OFF(Device OFF *TBD)
-  *	----------------------------------------------
-  *
-  * Note: CPU0 is the master core and it is the last CPU to go down
-@@ -56,7 +56,11 @@
+ #ifndef __ASSEMBLER__
  
- #include "omap4-sar-layout.h"
- #include "pm.h"
--#include "powerdomain.h"
-+#include "prcm_mpu44xx.h"
-+#include "prminst44xx.h"
-+#include "prcm44xx.h"
-+#include "prm44xx.h"
-+#include "prm-regbits-44xx.h"
+ #ifdef CONFIG_CACHE_L2X0
+ extern void __iomem *omap4_get_l2cache_base(void);
+ #endif
++extern void __iomem *dram_sync, *sram_sync;
  
  #ifdef CONFIG_SMP
+ extern void __iomem *omap4_get_scu_base(void);
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 17274c0..29bb097 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -15,9 +15,11 @@
+ #include <linux/init.h>
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
++#include <linux/memblock.h>
  
-@@ -138,6 +142,48 @@ static void scu_pwrst_prepare(unsigned int cpu_id, unsigned int cpu_state)
- 	__raw_writel(scu_pwr_st, pm_info->scu_sar_addr);
- }
+ #include <asm/hardware/gic.h>
+ #include <asm/hardware/cache-l2x0.h>
++#include <asm/mach/map.h>
  
-+/* Helper functions for MPUSS OSWR */
-+static inline void mpuss_clear_prev_logic_pwrst(void)
+ #include <plat/irqs.h>
+ 
+@@ -32,9 +34,51 @@ static void __iomem *l2cache_base;
+ #endif
+ 
+ void __iomem *gic_dist_base_addr;
++void __iomem *dram_sync, *sram_sync;
+ 
+ static void __iomem *sar_ram_base;
+ 
++#ifdef CONFIG_OMAP4_ERRATA_I688
++void omap_bus_sync(void)
 +{
-+	u32 reg;
-+
-+	reg = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-+		OMAP4430_PRM_MPU_INST, OMAP4_RM_MPU_MPU_CONTEXT_OFFSET);
-+	omap4_prminst_write_inst_reg(reg, OMAP4430_PRM_PARTITION,
-+		OMAP4430_PRM_MPU_INST, OMAP4_RM_MPU_MPU_CONTEXT_OFFSET);
-+}
-+
-+static inline void cpu_clear_prev_logic_pwrst(unsigned int cpu_id)
-+{
-+	u32 reg;
-+
-+	if (cpu_id) {
-+		reg = omap4_prcm_mpu_read_inst_reg(OMAP4430_PRCM_MPU_CPU1_INST,
-+					OMAP4_RM_CPU1_CPU1_CONTEXT_OFFSET);
-+		omap4_prcm_mpu_write_inst_reg(reg, OMAP4430_PRCM_MPU_CPU1_INST,
-+					OMAP4_RM_CPU1_CPU1_CONTEXT_OFFSET);
-+	} else {
-+		reg = omap4_prcm_mpu_read_inst_reg(OMAP4430_PRCM_MPU_CPU0_INST,
-+					OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET);
-+		omap4_prcm_mpu_write_inst_reg(reg, OMAP4430_PRCM_MPU_CPU0_INST,
-+					OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET);
++	if (dram_sync && sram_sync) {
++		writel_relaxed(readl_relaxed(dram_sync), dram_sync);
++		writel_relaxed(readl_relaxed(sram_sync), sram_sync);
++		isb();
 +	}
 +}
 +
-+/**
-+ * omap4_mpuss_read_prev_context_state:
-+ * Function returns the MPUSS previous context state
-+ */
-+u32 omap4_mpuss_read_prev_context_state(void)
++static int __init omap_barriers_init(void)
 +{
-+	u32 reg;
++	struct map_desc dram_io_desc[1];
++	phys_addr_t paddr;
++	u32 size;
 +
-+	reg = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-+		OMAP4430_PRM_MPU_INST, OMAP4_RM_MPU_MPU_CONTEXT_OFFSET);
-+	reg &= OMAP4430_LOSTCONTEXT_DFF_MASK;
-+	return reg;
++	if (!cpu_is_omap44xx())
++		return -ENODEV;
++
++	size = ALIGN(PAGE_SIZE, SZ_1M);
++	paddr = memblock_alloc(size, SZ_1M);
++	if (!paddr) {
++		pr_err("%s: failed to reserve 4 Kbytes\n", __func__);
++		return -ENOMEM;
++	}
++	memblock_free(paddr, size);
++	memblock_remove(paddr, size);
++	dram_io_desc[0].virtual = OMAP4_DRAM_BARRIER_VA;
++	dram_io_desc[0].pfn = __phys_to_pfn(paddr);
++	dram_io_desc[0].length = size;
++	dram_io_desc[0].type = MT_MEMORY_SO;
++	iotable_init(dram_io_desc, ARRAY_SIZE(dram_io_desc));
++	dram_sync = (void __iomem *) dram_io_desc[0].virtual;
++
++	pr_info("OMAP4: Map 0x%08llx to 0x%08lx for dram barrier\n",
++		(long long) paddr, dram_io_desc[0].virtual);
++
++	return 0;
 +}
-+
- /*
-  * Store the CPU cluster state for L2X0 low power operations.
-  */
-@@ -210,8 +256,18 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 		return -ENXIO;
- 	}
++core_initcall(omap_barriers_init);
++#endif
  
-+	/*
-+	 * Check MPUSS next state and save interrupt controller if needed.
-+	 * In MPUSS OSWR or device OFF, interrupt controller  contest is lost.
-+	 */
-+	mpuss_clear_prev_logic_pwrst();
- 	pwrdm_clear_all_prev_pwrst(mpuss_pd);
-+	if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
-+		(pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF))
-+		save_state = 2;
-+
- 	clear_cpu_prev_pwrst(cpu);
-+	cpu_clear_prev_logic_pwrst(cpu);
- 	set_cpu_next_pwrst(cpu, power_state);
- 	set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
- 	scu_pwrst_prepare(cpu, power_state);
-@@ -294,6 +350,7 @@ int __init omap4_mpuss_init(void)
- 
- 	/* Clear CPU previous power domain state */
- 	pwrdm_clear_all_prev_pwrst(pm_info->pwrdm);
-+	cpu_clear_prev_logic_pwrst(0);
- 
- 	/* Initialise CPU0 power domain state to ON */
- 	pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
-@@ -310,6 +367,7 @@ int __init omap4_mpuss_init(void)
- 
- 	/* Clear CPU previous power domain state */
- 	pwrdm_clear_all_prev_pwrst(pm_info->pwrdm);
-+	cpu_clear_prev_logic_pwrst(1);
- 
- 	/* Initialise CPU1 power domain state to ON */
- 	pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
-@@ -320,6 +378,7 @@ int __init omap4_mpuss_init(void)
- 		return -ENODEV;
- 	}
- 	pwrdm_clear_all_prev_pwrst(mpuss_pd);
-+	mpuss_clear_prev_logic_pwrst();
- 
- 	/* Save device type on scratchpad for low level code to use */
- 	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index e64e275..fda656d 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -28,6 +28,7 @@ struct power_state {
- 	u32 next_state;
- #ifdef CONFIG_SUSPEND
- 	u32 saved_state;
-+	u32 saved_logic_state;
+ void __init gic_init_irq(void)
+ {
+diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
+index 94935bc..5e3f474 100644
+--- a/arch/arm/mach-omap2/sleep44xx.S
++++ b/arch/arm/mach-omap2/sleep44xx.S
+@@ -324,8 +324,16 @@ skip_l2en:
+ ENDPROC(omap4_cpu_resume)
  #endif
- 	struct list_head node;
- };
-@@ -44,11 +45,13 @@ static int omap4_pm_suspend(void)
- 	/* Save current powerdomain state */
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
-+		pwrst->saved_logic_state = pwrdm_read_logic_retst(pwrst->pwrdm);
- 	}
  
- 	/* Set targeted power domain states by suspend */
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-+		pwrdm_set_logic_retst(pwrst->pwrdm, PWRDM_POWER_OFF);
- 	}
++#ifndef CONFIG_OMAP4_ERRATA_I688
++ENTRY(omap_bus_sync)
++	mov	pc, lr
++ENDPROC(omap_bus_sync)
++#endif
++
+ ENTRY(omap_do_wfi)
+ 	stmfd	sp!, {lr}
++	/* Drain interconnect write buffers. */
++	bl omap_bus_sync
  
  	/*
-@@ -72,6 +75,7 @@ static int omap4_pm_suspend(void)
- 			ret = -1;
- 		}
- 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
-+		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->saved_logic_state);
+ 	 * Execute an ISB instruction to ensure that all of the
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 363c91e..e5e4989 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -23,13 +23,13 @@
+ 
+ #include <asm/tlb.h>
+ #include <asm/cacheflush.h>
+-
+ #include <asm/mach/map.h>
+ 
+ #include <plat/sram.h>
+ #include <plat/board.h>
+ #include <plat/cpu.h>
+ #include <plat/vram.h>
++#include <mach/omap4-common.h>
+ 
+ #include "sram.h"
+ #include "fb.h"
+@@ -185,24 +185,25 @@ static void __init omap_detect_sram(void)
+ 	omap_sram_ceil = omap_sram_base + omap_sram_size;
+ }
+ 
+-static struct map_desc omap_sram_io_desc[] __initdata = {
+-	{	/* .length gets filled in at runtime */
+-		.virtual	= OMAP1_SRAM_VA,
+-		.pfn		= __phys_to_pfn(OMAP1_SRAM_PA),
+-		.type		= MT_MEMORY
+-	}
+-};
+-
+ /*
+  * Note that we cannot use ioremap for SRAM, as clock init needs SRAM early.
+  */
+ static void __init omap_map_sram(void)
+ {
+ 	unsigned long base;
++	struct map_desc omap_sram_io_desc[2];
++	int	nr_desc = 1;
+ 
+ 	if (omap_sram_size == 0)
+ 		return;
+ 
++	omap_sram_io_desc[0].virtual = omap_sram_base;
++	base = omap_sram_start;
++	base = ROUND_DOWN(base, PAGE_SIZE);
++	omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
++	omap_sram_io_desc[0].length = ROUND_DOWN(omap_sram_size, PAGE_SIZE);
++	omap_sram_io_desc[0].type = MT_MEMORY;
++
+ 	if (cpu_is_omap34xx()) {
+ 		/*
+ 		 * SRAM must be marked as non-cached on OMAP3 since the
+@@ -212,14 +213,26 @@ static void __init omap_map_sram(void)
+ 		 * which will cause the system to hang.
+ 		 */
+ 		omap_sram_io_desc[0].type = MT_MEMORY_NONCACHED;
++	} else if (cpu_is_omap44xx()) {
++		omap_sram_io_desc[0].length =
++			ROUND_DOWN(omap_sram_size - PAGE_SIZE, PAGE_SIZE);
++		/*
++		 * Map a page of SRAM with strongly ordered attributes
++		 * for interconnect barrier usage.
++		 */
++		omap_sram_io_desc[1].virtual =
++			omap_sram_base + omap_sram_io_desc[0].length;
++		base = omap_sram_start + omap_sram_io_desc[0].length;
++		base = ROUND_DOWN(base, PAGE_SIZE);
++		omap_sram_io_desc[1].pfn = __phys_to_pfn(base);
++		omap_sram_io_desc[1].length = PAGE_SIZE;
++		omap_sram_io_desc[1].type = MT_MEMORY_SO;
++		nr_desc = 2;
++		sram_sync = (void __iomem *) omap_sram_io_desc[1].virtual;
  	}
- 	if (ret)
- 		pr_crit("Could not enter target state in pm_suspend\n");
+ 
+-	omap_sram_io_desc[0].virtual = omap_sram_base;
+-	base = omap_sram_start;
+-	base = ROUND_DOWN(base, PAGE_SIZE);
+-	omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
+-	omap_sram_io_desc[0].length = ROUND_DOWN(omap_sram_size, PAGE_SIZE);
+-	iotable_init(omap_sram_io_desc, ARRAY_SIZE(omap_sram_io_desc));
++
++	iotable_init(omap_sram_io_desc, nr_desc);
+ 
+ 	pr_info("SRAM: Mapped pa 0x%08llx to va 0x%08lx size: 0x%lx\n",
+ 		(long long) __pfn_to_phys(omap_sram_io_desc[0].pfn),
 -- 
 1.7.4.1
 
