@@ -1,78 +1,55 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 06/24] OMAP4: PM: Initialise all the clockdomains to supported states
-Date: Sat, 24 Sep 2011 11:44:26 +0530
-Message-ID: <1316844884-21700-7-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 05/24] OMAP4: PM: Avoid omap4_pm_init() on OMAP4430 ES1.0
+Date: Sat, 24 Sep 2011 11:44:25 +0530
+Message-ID: <1316844884-21700-6-git-send-email-santosh.shilimkar@ti.com>
 References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44249 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751315Ab1IXGPC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Sep 2011 02:15:02 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39732 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751739Ab1IXGPD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 24 Sep 2011 02:15:03 -0400
 In-Reply-To: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Initialise hardware supervised mode for all clockdomains if it's
-supported. Initiate sleep transition for other clockdomains,
-if they are not being used.
+On OMAP4430 ES1.0, Power Management features are not supported.
+Avoid omap4_pm_init() on ES1.0 silicon so that we can continue
+to use same kernel binary to boot on all OMAP4 silicons.
+
+The ES1.0 boot failure with OMAP4 PM series was because of
+the clockdomain initialisation code. Hardware supervised
+clockdomain mode isn't functional for all clockdomains
+on OMAP4430 ES1.0 silicon so avoid the same.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Reported-by: Kevin Hilman <khilman@ti.com>
 Acked-by: Jean Pihet <j-pihet@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
 ---
- arch/arm/mach-omap2/pm44xx.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm44xx.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 44761bb..5ec4bc6 100644
+index 348ebf1..44761bb 100644
 --- a/arch/arm/mach-omap2/pm44xx.c
 +++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -17,6 +17,7 @@
- #include <linux/slab.h>
+@@ -105,6 +105,11 @@ static int __init omap4_pm_init(void)
+ 	if (!cpu_is_omap44xx())
+ 		return -ENODEV;
  
- #include "powerdomain.h"
-+#include "clockdomain.h"
- #include <mach/omap4-common.h>
- 
- struct power_state {
-@@ -73,6 +74,22 @@ static const struct platform_suspend_ops omap_pm_ops = {
- };
- #endif /* CONFIG_SUSPEND */
- 
-+/*
-+ * Enable hardware supervised mode for all clockdomains if it's
-+ * supported. Initiate sleep transition for other clockdomains, if
-+ * they are not used
-+ */
-+static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
-+{
-+	if (clkdm->flags & CLKDM_CAN_ENABLE_AUTO)
-+		clkdm_allow_idle(clkdm);
-+	else if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP &&
-+			atomic_read(&clkdm->usecount) == 0)
-+		clkdm_sleep(clkdm);
-+	return 0;
-+}
++	if (omap_rev() == OMAP4430_REV_ES1_0) {
++		WARN(1, "Power Management not supported on OMAP4430 ES1.0\n");
++		return -ENODEV;
++	}
 +
-+
- static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- {
- 	struct power_state *pwrst;
-@@ -146,6 +163,8 @@ static int __init omap4_pm_init(void)
- 		goto err2;
- 	}
+ 	pr_err("Power Management for TI OMAP4.\n");
  
-+	(void) clkdm_for_each(clkdms_setup, NULL);
-+
- #ifdef CONFIG_SUSPEND
- 	suspend_set_ops(&omap_pm_ops);
- #endif /* CONFIG_SUSPEND */
+ 	ret = pwrdm_for_each(pwrdms_setup, NULL);
 -- 
 1.7.4.1
 
