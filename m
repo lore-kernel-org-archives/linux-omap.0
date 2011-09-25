@@ -1,37 +1,48 @@
-From: David Brown <davidb@codeaurora.org>
-Subject: Re: [PATCH v3 3/6] iommu/msm: announce supported page sizes
-Date: Sat, 24 Sep 2011 22:03:08 -0700
-Message-ID: <20110925050308.GA6493@huya.qualcomm.com>
-References: <1316195506-9777-1-git-send-email-ohad@wizery.com>
- <1316195506-9777-4-git-send-email-ohad@wizery.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:65000 "EHLO
-	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750781Ab1IYFDL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Sep 2011 01:03:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1316195506-9777-4-git-send-email-ohad@wizery.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [RFC 0/5] OMAP groundwork for IOMMU-based DMA API
+Date: Sun, 25 Sep 2011 13:58:52 +0300
+Message-ID: <1316948337-7924-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Cousson Benoit <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Stepan Moskovchenko <stepanm@codeaurora.org>
 
-On Fri, Sep 16, 2011 at 08:51:43PM +0300, Ohad Ben-Cohen wrote:
-> Let the IOMMU core know we support 4KiB, 64KiB, 1MiB and 16MiB page sizes.
-> 
-> This way the IOMMU core can split any arbitrary-sized physically
-> contiguous regions (that it needs to map) as needed.
-> 
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> Cc: David Brown <davidb@codeaurora.org>
-> Cc: Stepan Moskovchenko <stepanm@codeaurora.org>
-> ---
->  drivers/iommu/msm_iommu.c |    8 +++++++-
+Another step towards generic IOMMU support on OMAP: eliminating
+the public omap-specific find_iommu_device API.
 
-Acked-by: David Brown <davidb@codeaurora.org>
+Instead, we now bind iommu clients with their respective iommu device
+using a private iommu member which is added to ARM's dev_archdata.
+
+With this in hand, generic IOMMU API users will now work on OMAP without
+utilizing any omap-specific API.
+
+The changes are tested on OMAP3 (with omap3isp) and OMAP4 (with
+remoteproc/rpmsg).
+
+This is still RFC (2nd patch is probably the least elegant).
+
+Ohad Ben-Cohen (5):
+  ARM: dev_archdata: add private iommu extension
+  ARM: OMAP: omap_device: add a method to set iommu private archdata
+  ARM: OMAP: iommu: declare a private iommu binding struct
+  ARM: OMAP3: bind omap3isp_device to its iommu device
+  iommu/omap: eliminate the public omap_find_iommu_device() method
+
+ arch/arm/include/asm/device.h                 |    3 +
+ arch/arm/mach-omap2/devices.c                 |    7 +++
+ arch/arm/plat-omap/include/plat/iommu.h       |   31 ++++++++++++-
+ arch/arm/plat-omap/include/plat/iovmm.h       |   12 +++---
+ arch/arm/plat-omap/include/plat/omap_device.h |    6 +++
+ arch/arm/plat-omap/omap_device.c              |   39 +++++++++++++++-
+ drivers/iommu/omap-iommu.c                    |   58 +++++++++++--------------
+ drivers/iommu/omap-iovmm.c                    |   31 +++++++++-----
+ drivers/media/video/omap3isp/isp.c            |   30 ++-----------
+ drivers/media/video/omap3isp/isp.h            |    2 -
+ drivers/media/video/omap3isp/ispccdc.c        |   18 ++++----
+ drivers/media/video/omap3isp/ispstat.c        |    8 ++--
+ drivers/media/video/omap3isp/ispvideo.c       |    4 +-
+ 13 files changed, 152 insertions(+), 97 deletions(-)
 
 -- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+1.7.4.1
