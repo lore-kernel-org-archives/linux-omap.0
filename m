@@ -1,55 +1,37 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while
- arch_iommu is in use
-Date: Sat, 24 Sep 2011 06:44:52 -0700
-Message-ID: <CAGDS+nkceS-qmdNyYmOLjEQY_SiMWodZx7SMqqWOLHzkN0xGeQ@mail.gmail.com>
-References: <4D8CB106.7030608@maxwell.research.nokia.com>
-	<AANLkTikxd4kRu1+XskohhQzpqHaZTvK+afbgE-qRSOqN@mail.gmail.com>
-	<201103291732.52620.laurent.pinchart@ideasonboard.com>
+From: David Brown <davidb@codeaurora.org>
+Subject: Re: [PATCH v3 3/6] iommu/msm: announce supported page sizes
+Date: Sat, 24 Sep 2011 22:03:08 -0700
+Message-ID: <20110925050308.GA6493@huya.qualcomm.com>
+References: <1316195506-9777-1-git-send-email-ohad@wizery.com>
+ <1316195506-9777-4-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:63523 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750762Ab1IXNoy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Sep 2011 09:44:54 -0400
-Received: by vws1 with SMTP id 1so4778134vws.19
-        for <linux-omap@vger.kernel.org>; Sat, 24 Sep 2011 06:44:53 -0700 (PDT)
-In-Reply-To: <201103291732.52620.laurent.pinchart@ideasonboard.com>
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:65000 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750781Ab1IYFDL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Sep 2011 01:03:11 -0400
+Content-Disposition: inline
+In-Reply-To: <1316195506-9777-4-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Cohen David Abraham <david.cohen@nokia.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Stepan Moskovchenko <stepanm@codeaurora.org>
 
-On Tue, Mar 29, 2011 at 8:32 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
+On Fri, Sep 16, 2011 at 08:51:43PM +0300, Ohad Ben-Cohen wrote:
+> Let the IOMMU core know we support 4KiB, 64KiB, 1MiB and 16MiB page sizes.
+> 
+> This way the IOMMU core can split any arbitrary-sized physically
+> contiguous regions (that it needs to map) as needed.
+> 
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Cc: David Brown <davidb@codeaurora.org>
+> Cc: Stepan Moskovchenko <stepanm@codeaurora.org>
+> ---
+>  drivers/iommu/msm_iommu.c |    8 +++++++-
 
-> I think that Sakari's patches correcty fix the problems he noticed. However,
-> they won't fix one basic issue, which is that the iommu2 module won't be
-> automatically pulled in when the omap3isp module is loaded. The omap3isp
-> driver will then fail to probe the device. That's better than crashing though.
->
-> One possible solution for that is to turn the tristate option for iommu2 into
-> a bool option. I've also read a couple of times that the kernel provides a
-> standard iommu API. Maybe switching to it would help.
+Acked-by: David Brown <davidb@codeaurora.org>
 
-I'm attempting to get support for the Gumstix Caspa image sensor
-(based on mt9v032) working with the 3.0 release.
-
-I'm running into the issue described above -- the omap3-isp module
-loads but fails to probe the device.
-
-I've tried the tristate->bool option change and find that it does
-allow me to proceed further, but the omap3-isp module is no longer
-loaded automatically when I call omap3_init_camera in the board file.
-I have to manually modprobe it. I then see the sensor module
-successfully probed and the video devices created (though not
-functioning yet).
-
-Are you aware of a better way to do this?  I see lots of patches for
-iommu since this thread.  Would I be better off waiting for 3.1 and
-trying that, or will final resolution of this issue come even later?
-
-Best regards,
-
-Steve
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
