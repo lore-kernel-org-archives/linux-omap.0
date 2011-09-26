@@ -1,121 +1,62 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH 3/6] OMAP4460: Temperature sensor data
-Date: Mon, 26 Sep 2011 09:55:19 +0530
-Message-ID: <CAJ6a13YCkps5R4drFVp=it2cv1eMP1=hVX0ArccF3Hej4EwRPg@mail.gmail.com>
-References: <1316705361-12175-1-git-send-email-j-keerthy@ti.com>
-	<1316705361-12175-4-git-send-email-j-keerthy@ti.com>
-	<alpine.DEB.2.00.1109222319210.10719@utopia.booyaka.com>
-	<CAJ6a13bKycJYKa9CG8sgPr8PMO62RYZJ=_UD3ZfjoYQm4GbN0A@mail.gmail.com>
-	<alpine.DEB.2.00.1109240141310.22872@utopia.booyaka.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
+ from omap_vout_isr
+Date: Mon, 26 Sep 2011 11:04:36 +0530
+Message-ID: <4E800EEC.8080905@ti.com>
+References: <1316167233-1437-1-git-send-email-archit@ti.com> <1316167233-1437-3-git-send-email-archit@ti.com> <19F8576C6E063C45BE387C64729E739404EC941E8B@dbde02.ent.ti.com> <4E79C053.903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:49606 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750881Ab1IZEZV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Sep 2011 00:25:21 -0400
-Received: by mail-wy0-f172.google.com with SMTP id 21so3722746wyh.31
-        for <linux-omap@vger.kernel.org>; Sun, 25 Sep 2011 21:25:19 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1109240141310.22872@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39966 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751099Ab1IZFe2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 01:34:28 -0400
+In-Reply-To: <4E79C053.903@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-On Sat, Sep 24, 2011 at 1:18 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Fri, 23 Sep 2011, J, KEERTHY wrote:
+Hi,
+
+On Wednesday 21 September 2011 04:15 PM, Taneja, Archit wrote:
+> Hi,
 >
->> On Fri, Sep 23, 2011 at 11:33 AM, Paul Walmsley <paul@pwsan.com> wro=
-te:
->> >
->> > On Thu, 22 Sep 2011, Keerthy wrote:
->> >
->> >> @@ -0,0 +1,175 @@
->> >> +/*
->> >> + * OMAP system control module header file
->> >> + *
->> >> + * Copyright (C) 2011 Texas Instruments Incorporated - http://ww=
-w.ti.com/
->> >> + * Author: J Keerthy <j-keerthy@ti.com>
->> >> + *
->> >> + * This program is free software; you can redistribute it and/or
->> >> + * modify it under the terms of the GNU General Public License
->> >> + * version 2 as published by the Free Software Foundation.
->> >> + *
->> >> + * This program is distributed in the hope that it will be usefu=
-l, but
->> >> + * WITHOUT ANY WARRANTY; without even the implied warranty of
->> >> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See t=
-he GNU
->> >> + * General Public License for more details.
->> >> + *
->> >> + * You should have received a copy of the GNU General Public Lic=
-ense
->> >> + * along with this program; if not, write to the Free Software
->> >> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
->> >> + * 02110-1301 USA
->> >> + *
->> >> + */
->> >> +
->> >> +#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
->> >> +#define __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_TEMPERATURE_SENSOR_H
->> >
->> > You're also missing important #includes here for things like mutex=
-es
->> > and kernel types that you use later on in the file.
+> On Wednesday 21 September 2011 03:35 PM, Hiremath, Vaibhav wrote:
 >>
->> Those header files are included in c files.
->
-> And how does that affect my comment?
->
->> >> +#define OMAP_ADC_START_VALUE =A0 =A0530
->> >> +#define OMAP_ADC_END_VALUE =A0 =A0 =A0923
->> >
->> > Are these OMAP4460, OMAP4xxx, or OMAP2+ specific?
->>
->> OMAP4460. I will pass even these values through pdata
->> since they differ from platform to platform.
->
-> So then the macro names need to include "OMAP4460" or whatever SoC
-> they are first valid for.
->
->> >> +
->> >> +/**
->> >> + * struct omap4460plus_scm_dev_attr - device attributes for scm
->> >
->> > There are loads of references to 'omap4460plus' when it seems to m=
-e that
->> > much of this driver should also apply to OMAP4430 also. =A0Shouldn=
-'t this
->> > driver be named something like 'omap4430plus_scm' or even
->> > better 'omap4_scm' ?
->>
->> This is used by hwmod. Hence keeping it in the header file.
->
-> Did you even read my comment before responding?
-
-Sorry about this. OMAP4430 and OMAP4460 temperature sensors are differe=
-nt.
-The register layout and the functionalities differ. The OMAP4430 temper=
-ature
-sensor is not accurate. The SCM driver can be generic but the temperatu=
-re
-sensor driver should be OMAP4460 onwards. Please let me know if this is=
- fine?
-
->
->
-> - Paul
+>>> -----Original Message-----
+>>> From: Taneja, Archit
+>>> Sent: Friday, September 16, 2011 3:31 PM
+>>> To: Hiremath, Vaibhav
+>>> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
+>>> media@vger.kernel.org; Taneja, Archit
+>>> Subject: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
+>>> from omap_vout_isr
+>>>
+>>> Currently, there is a lot of redundant code is between DPI and VENC panels,
+>>> this
+>>> can be made common by moving out field/interlace specific code to a
+>>> separate
+>>> function called omapvid_handle_interlace_display(). There is no functional
+>>> change made.
+>>>
+>>> Signed-off-by: Archit Taneja<archit@ti.com>
+>>> ---
+>>>    drivers/media/video/omap/omap_vout.c |  172 ++++++++++++++++-------------
+>>> -----
 
 
+>> [Hiremath, Vaibhav]
+>> Have you tested TV out functionality?
+>
+> I haven't checked it yet to be totally honest. Its hard to find a VENC
+> TV! I wanted to anyway get some kind of Ack from you before starting to
+> test this. Since you also feel that this clean up is needed, I'll start
+> testing this out :)
 
---=20
-Regards and Thanks,
-Keerthy
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I tested the TV out functionality. It works fine. I have left the extra 
+fid == 0 check so that the code is more clear. Will post out the new 
+patch soon.
+
+Archit
