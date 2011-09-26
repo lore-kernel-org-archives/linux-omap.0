@@ -1,96 +1,52 @@
-From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCH] mfd: twl6030: Setup irq_wake infrastructure.
-Date: Mon, 26 Sep 2011 15:58:31 -0700
-Message-ID: <20110926225831.GA23887@google.com>
-References: <1315324770-14530-1-git-send-email-santosh.shilimkar@ti.com>
- <20110915203738.GA23208@google.com>
- <20110926085007.GB32263@sortiz-mobl>
- <4E80468A.9070605@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v7 00/26] gpio/omap: driver cleanup and fixes
+Date: Mon, 26 Sep 2011 15:59:41 -0700
+Message-ID: <87mxdq9ag2.fsf@ti.com>
+References: <1315918979-26173-1-git-send-email-tarun.kanti@ti.com>
+	<87mxdwm8pk.fsf@ti.com>
+	<CAC83ZvKu5Fo-c88L4WFPdvq91T=usaZY4mzTVVzDLw9HE7g9Kg@mail.gmail.com>
+	<4E7D99CB.7090004@ti.com>
+	<CAC83ZvLfCOjKja1rZ6GB4bmn_KrcjitTJZJsa5jy01QVj2OXXw@mail.gmail.com>
+	<87mxdrcfnf.fsf@ti.com>
+	<CAC83ZvLcq+N_LL4AD=r4hZxPeQtrAEvR7MzoANtNmQBNR7AqGw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:19220 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752114Ab1IZW6i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 18:58:38 -0400
-Content-Disposition: inline
-In-Reply-To: <4E80468A.9070605@ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:48319 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750711Ab1IZW7t convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Sep 2011 18:59:49 -0400
+Received: by mail-yi0-f49.google.com with SMTP id 24so5722950yic.36
+        for <linux-omap@vger.kernel.org>; Mon, 26 Sep 2011 15:59:45 -0700 (PDT)
+In-Reply-To: <CAC83ZvLcq+N_LL4AD=r4hZxPeQtrAEvR7MzoANtNmQBNR7AqGw@mail.gmail.com>
+	(Tarun Kanti DebBarma's message of "Tue, 27 Sep 2011 03:40:53 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, charu@ti.com
 
-On Mon, Sep 26, 2011 at 03:01:54PM +0530, Santosh Shilimkar wrote:
-> Samual,
-> 
-> On Monday 26 September 2011 02:20 PM, Samuel Ortiz wrote:
-> > Hi Todd,
-> > 
-> > On Thu, Sep 15, 2011 at 01:37:38PM -0700, Todd Poynor wrote:
-> >> On Tue, Sep 06, 2011 at 09:29:30PM +0530, Santosh Shilimkar wrote:
-> >>> TWL6030 devices have an interrupt line which is connected to
-> >>> application processor like OMAP. These devices support multiple features
-> >>> such as MMC card detect, USB cable detect, RTC interrupt, etc. that must
-> >>> wake up the application processor.
-> >>>
-> >>> With this change, TWL6030 client drivers can make use of
-> >>> irq_wake() if the wakeup is desirable on it's irq events.
-> >>>
-> >>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >>> cc: Samuel Ortiz <sameo@linux.intel.com>
-> >>> ---
-> >>>  drivers/mfd/twl6030-irq.c |    9 +++++++++
-> >>>  1 files changed, 9 insertions(+), 0 deletions(-)
-> >>>
-> >>> diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
-> >>> index eb3b5f8..4477134 100644
-> >>> --- a/drivers/mfd/twl6030-irq.c
-> >>> +++ b/drivers/mfd/twl6030-irq.c
-> >>> @@ -187,6 +187,13 @@ static inline void activate_irq(int irq)
-> >>>  #endif
-> >>>  }
-> >>>  
-> >>> +int twl6030_irq_set_wake(struct irq_data *d, unsigned int on)
-> >>> +{
-> >>> +	int twl_irq = (int)irq_get_chip_data(d->irq);
-> >>> +
-> >>> +	return irq_set_irq_wake(twl_irq, on);
-> >>
-> >> Note that when running with this previously, LOCKDEP warnings
-> >> were seen.  LOCKDEP explicitly sets all irq_desc locks as a single
-> >> lock-class, causing "possible recursive locking detected" when the TWL
-> >> RTC (or other) driver calls through enable_irq_wake to
-> >> twl6030_irq_set_wake, which recursively calls irq_set_irq_wake.
-> >> Although the irq_desc and lock are different, LOCKDEP treats these as
-> >> equivalent, presumably due to problems that can be incurred when
-> >> locking more than one irq_desc.
-> >>
-> >> Currently we're running with twl6030_irq_set_wake keeping a count of
-> >> sub-module wakeirqs, and setting the wakeup status for the twl_irq
-> >> enabled or disabled as needed at suspend time.  Can send a patch if
-> >> wanted.
-> > Please do. I'm currently considering removing Santosh's patch without this
-> > LOCKDEP warning fix.
-> > 
-> I guess the lock dep issue as Todd pointed out is because LOCKDEP treats
-> the irq_desc and lock are equivalent. And IIUC, Todd didn't fix anything
-> on this patch. he just added some logic in client driver to avoid the
-> warning. Real fix should be in LOCKDEP code which is exposed by this
-> patch. This patch should be fine as such.
+"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 
-Sorry, I've been in crunch mode, I'll generate patches now.
+> [...]
+>>> - Added the debounce clock fix in the end.
+>>
+>> Thanks. =C2=A0Glad you found and fixed it.
+>>
+>> Rather than add this patch as a fix at the end, I prefer if the prob=
+lem
+>> is fixed in the original patches that added/created the problem.
+> Sure. I will put the changes in respective patches.
 
-I'm not sure where the mfd tree lives at the moment, let me know if
-there's a tree I should use.
+Also, when you rebase, please be sure to add the Acked-by from Tony
+to the various patches he ack'd.
 
-I think the above comment refers to some old code in the driver that
-claimed to be avoiding LOCKDEP warnings, not the forthcoming patches.
+Thanks,
 
-
-Todd
-
-
-> 
-> Regards
-> Santosh
-> 
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
