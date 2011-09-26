@@ -1,161 +1,53 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
- omap_vout_isr
-Date: Mon, 26 Sep 2011 15:49:56 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404ECA54614@dbde02.ent.ti.com>
-References: <1316167233-1437-1-git-send-email-archit@ti.com>
- <1316167233-1437-4-git-send-email-archit@ti.com>
- <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>
- <4E7AD29C.4070804@ti.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 3/3] usb: musb: enable support for am335x
+Date: Mon, 26 Sep 2011 14:47:11 +0400
+Message-ID: <4E80582F.6030803@ru.mvista.com>
+References: <1317031393-9333-1-git-send-email-ajay.gupta@ti.com> <1317031393-9333-3-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <4E7AD29C.4070804@ti.com>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1317031393-9333-3-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Thursday, September 22, 2011 11:46 AM
-> To: Hiremath, Vaibhav
-> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
-> media@vger.kernel.org
-> Subject: Re: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
-> omap_vout_isr
-> 
-> Hi,
-> 
-> On Wednesday 21 September 2011 07:04 PM, Hiremath, Vaibhav wrote:
-> >> -----Original Message-----
-> >> From: Taneja, Archit
-> >> Sent: Friday, September 16, 2011 3:31 PM
-> >> To: Hiremath, Vaibhav
-> >> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
-> >> media@vger.kernel.org; Taneja, Archit
-> >> Subject: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
-> >> omap_vout_isr
-> >>
-> >> Currently, in omap_vout_isr(), if the panel type is DPI, and if we
-> >> get either VSYNC or VSYNC2 interrupts, we proceed ahead to set the
-> >> current buffers state to VIDEOBUF_DONE and prepare to display the
-> >> next frame in the queue.
-> >>
-> >> On OMAP4, because we have 2 LCD managers, the panel type itself is not
-> >> sufficient to tell if we have received the correct irq, i.e, we
-> shouldn't
-> >> proceed ahead if we get a VSYNC interrupt for LCD2 manager, or a VSYNC2
-> >> interrupt for LCD manager.
-> >>
-> >> Fix this by correlating LCD manager to VSYNC interrupt and LCD2 manager
-> >> to VSYNC2 interrupt.
-> >>
-> >> Signed-off-by: Archit Taneja<archit@ti.com>
-> >> ---
-> >>   drivers/media/video/omap/omap_vout.c |   14 +++++++++++---
-> >>   1 files changed, 11 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/drivers/media/video/omap/omap_vout.c
-> >> b/drivers/media/video/omap/omap_vout.c
-> >> index c5f2ea0..20638c3 100644
-> >> --- a/drivers/media/video/omap/omap_vout.c
-> >> +++ b/drivers/media/video/omap/omap_vout.c
-> >> @@ -566,8 +566,8 @@ err:
-> >>
-> >>   static void omap_vout_isr(void *arg, unsigned int irqstatus)
-> >>   {
-> >> -	int ret, fid;
-> >> -	u32 addr;
-> >> +	int ret, fid, mgr_id;
-> >> +	u32 addr, irq;
-> >>   	struct omap_overlay *ovl;
-> >>   	struct timeval timevalue;
-> >>   	struct omapvideo_info *ovid;
-> >> @@ -583,6 +583,7 @@ static void omap_vout_isr(void *arg, unsigned int
-> >> irqstatus)
-> >>   	if (!ovl->manager || !ovl->manager->device)
-> >>   		return;
-> >>
-> >> +	mgr_id = ovl->manager->id;
-> >>   	cur_display = ovl->manager->device;
-> >>
-> >>   	spin_lock(&vout->vbq_lock);
-> >> @@ -590,7 +591,14 @@ static void omap_vout_isr(void *arg, unsigned int
-> >> irqstatus)
-> >>
-> >>   	switch (cur_display->type) {
-> >>   	case OMAP_DISPLAY_TYPE_DPI:
-> >> -		if (!(irqstatus&  (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
-> >> +		if (mgr_id == OMAP_DSS_CHANNEL_LCD)
-> >> +			irq = DISPC_IRQ_VSYNC;
-> >> +		else if (mgr_id == OMAP_DSS_CHANNEL_LCD2)
-> >> +			irq = DISPC_IRQ_VSYNC2;
-> >> +		else
-> >> +			goto vout_isr_err;
-> >> +
-> >> +		if (!(irqstatus&  irq))
-> >>   			goto vout_isr_err;
-> >>   		break;
-> > I understand what this patch meant for, but I am more curious to know
-> > What is value addition of this patch?
-> >
-> > if (!(irqstatus&  (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
-> >
-> > Vs
-> >
-> > if (mgr_id == OMAP_DSS_CHANNEL_LCD)
-> > 	irq = DISPC_IRQ_VSYNC;
-> > else if (mgr_id == OMAP_DSS_CHANNEL_LCD2)
-> > 	irq = DISPC_IRQ_VSYNC2;
-> >
-> > Isn't this same, because we are not doing anything separate and special
-> > for VSYNC and VSYNC2?
-> 
-> Consider a use case where the primary LCD panel(connected to LCD
-> manager) is configured at a 60 Hz refresh rate, and the secondary
-> panel(connected to LCD2) refreshes at 30 Hz. Let the overlay
-> configuration be something like this:
-> 
-> /dev/video1----->overlay1----->LCD manager----->Primary panel(60 Hz)
-> 
-> 
-> /dev/video2----->overlay2----->LCD2 manager----->Secondary Panel(30 Hz)
-> 
-> 
-> Now if we are doing streaming on both video1 and video2, since we deque
-> on either VSYNC or VSYNC2, video2 buffers will deque faster than the
-> panels refresh, which is incorrect. So for video2, we should only deque
-> when we get a VSYNC2 interrupt. Thats why there is a need to correlate
-> the interrupt and the overlay manager.
-> 
+Hello.
 
-Archit,
+On 26-09-2011 14:03, Ajay Kumar Gupta wrote:
 
-I think I am still not understood or convinced with your description above,
+> Enabled the flag so that musb_dsps glue file can be used for am335x
 
-The code snippet which we are referring here, does check whether the 
-interrupt is either VSYNC or VSYNC2, else fall back to "vout_isr_err".
+> Signed-off-by: Ajay Kumar Gupta<ajay.gupta-l0cyMroinI0@public.gmane.org>
+> ---
+>   drivers/usb/musb/Kconfig |    6 +++---
+>   1 files changed, 3 insertions(+), 3 deletions(-)
 
-For me both are doing same thing, the original code is optimized way of implementation. Can you please review it again?
+> diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+> index d6abdec..4e21aee 100644
+> --- a/drivers/usb/musb/Kconfig
+> +++ b/drivers/usb/musb/Kconfig
+> @@ -8,7 +8,7 @@ config USB_MUSB_HDRC
+>   	depends on USB&&  USB_GADGET
+>   	depends on (ARM || (BF54x&&  !BF544) || (BF52x&&  !BF522&&  !BF523))
+>   	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM || BLACKFIN)
+> -	select NOP_USB_XCEIV if SOC_OMAPTI81XX
+> +	select NOP_USB_XCEIV if (SOC_OMAPTI81XX || SOC_OMAPAM33XX)
+>   	select TWL4030_USB if MACH_OMAP_3430SDP
+>   	select TWL6030_USB if MACH_OMAP_4430SDP || MACH_OMAP4_PANDA
+>   	select USB_OTG_UTILS
+> @@ -57,7 +57,7 @@ config USB_MUSB_AM35X
+>
+>   config USB_MUSB_DSPS
+>   	tristate "TI DSPS platforms"
+> -	depends on SOC_OMAPTI81XX
+> +	depends on (SOC_OMAPTI81XX || SOC_OMAPAM33XX)
 
-Thanks,
-Vaibhav
+    Parens not needed here and above.
 
-
-
-> Regards,
-> Archit
-> 
-> >
-> > Thanks,
-> > Vaibhav
-> >
-> >
-> >>   	case OMAP_DISPLAY_TYPE_VENC:
-> >> --
-> >> 1.7.1
-> >
-> >
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
