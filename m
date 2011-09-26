@@ -1,74 +1,249 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] mfd: twl6030: Setup irq_wake infrastructure.
-Date: Mon, 26 Sep 2011 10:50:07 +0200
-Message-ID: <20110926085007.GB32263@sortiz-mobl>
-References: <1315324770-14530-1-git-send-email-santosh.shilimkar@ti.com>
- <20110915203738.GA23208@google.com>
+From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 07/11] OMAP2+: board-generic: Add DT support to generic
+	board
+Date: Mon, 26 Sep 2011 11:00:39 +0200
+Message-ID: <4E803F37.6050602@ti.com>
+References: <1316809399-19579-1-git-send-email-b-cousson@ti.com>
+	<1316809399-19579-8-git-send-email-b-cousson@ti.com>
+	<4E801C62.5020700@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:25708 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751248Ab1IZIrR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Sep 2011 04:47:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20110915203738.GA23208@google.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <4E801C62.5020700-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
 
-Hi Todd,
+On 9/26/2011 8:32 AM, Nayak, Rajendra wrote:
+> Hi Benoit,
+>
+> On Saturday 24 September 2011 01:53 AM, Benoit Cousson wrote:
+>> Re-cycle the original board-generic file to support Device Tree
+>> for every OMAP2+ variants.
+>> Note: Since it is a completely new content in the existing file
+>> I removed the original copyright.
+>>
+>> The current approach is an intermediate step before having only
+>> one machine descriptor that will use some generic DT aware
+>> functions.
+>
+> What config does this work with currently? If I use omap2plus_defconfig
+> should I explicitly disable everything other than say CONFIG_ARCH_OMAP4
+> if I want it working on OMAP4?
 
-On Thu, Sep 15, 2011 at 01:37:38PM -0700, Todd Poynor wrote:
-> On Tue, Sep 06, 2011 at 09:29:30PM +0530, Santosh Shilimkar wrote:
-> > TWL6030 devices have an interrupt line which is connected to
-> > application processor like OMAP. These devices support multiple features
-> > such as MMC card detect, USB cable detect, RTC interrupt, etc. that must
-> > wake up the application processor.
-> > 
-> > With this change, TWL6030 client drivers can make use of
-> > irq_wake() if the wakeup is desirable on it's irq events.
-> > 
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > cc: Samuel Ortiz <sameo@linux.intel.com>
-> > ---
-> >  drivers/mfd/twl6030-irq.c |    9 +++++++++
-> >  1 files changed, 9 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
-> > index eb3b5f8..4477134 100644
-> > --- a/drivers/mfd/twl6030-irq.c
-> > +++ b/drivers/mfd/twl6030-irq.c
-> > @@ -187,6 +187,13 @@ static inline void activate_irq(int irq)
-> >  #endif
-> >  }
-> >  
-> > +int twl6030_irq_set_wake(struct irq_data *d, unsigned int on)
-> > +{
-> > +	int twl_irq = (int)irq_get_chip_data(d->irq);
-> > +
-> > +	return irq_set_irq_wake(twl_irq, on);
-> 
-> Note that when running with this previously, LOCKDEP warnings
-> were seen.  LOCKDEP explicitly sets all irq_desc locks as a single
-> lock-class, causing "possible recursive locking detected" when the TWL
-> RTC (or other) driver calls through enable_irq_wake to
-> twl6030_irq_set_wake, which recursively calls irq_set_irq_wake.
-> Although the irq_desc and lock are different, LOCKDEP treats these as
-> equivalent, presumably due to problems that can be incurred when
-> locking more than one irq_desc.
-> 
-> Currently we're running with twl6030_irq_set_wake keeping a count of
-> sub-module wakeirqs, and setting the wakeup status for the twl_irq
-> enabled or disabled as needed at suspend time.  Can send a patch if
-> wanted.
-Please do. I'm currently considering removing Santosh's patch without this
-LOCKDEP warning fix.
+Nope, in theory, omap2plus_defconfig should work as usual:-)
+If uboot does not provide and dtb, then the legacy board file will be 
+used. If a dtb is present then only the board-generic can match with the 
+DT mechanism.
 
-Cheers,
-Samuel.
+Regards,
+Benoit
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+
+>
+> regards,
+> Rajendra
+>
+>>
+>> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
+>> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> ---
+>>    arch/arm/mach-omap2/Kconfig         |    8 ++-
+>>    arch/arm/mach-omap2/board-generic.c |  129 ++++++++++++++++++++++------------
+>>    2 files changed, 89 insertions(+), 48 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+>> index 7edf802..5934a27 100644
+>> --- a/arch/arm/mach-omap2/Kconfig
+>> +++ b/arch/arm/mach-omap2/Kconfig
+>> @@ -106,9 +106,13 @@ comment "OMAP Board Type"
+>>    	depends on ARCH_OMAP2PLUS
+>>
+>>    config MACH_OMAP_GENERIC
+>> -	bool "Generic OMAP board"
+>> -	depends on ARCH_OMAP2
+>> +	bool "Generic OMAP2+ board"
+>> +	depends on ARCH_OMAP2PLUS
+>> +	select USE_OF
+>>    	default y
+>> +	help
+>> +	  Support for generic TI OMAP2+ boards using Flattened Device Tree.
+>> +	  More information at Documentation/devicetree
+>>
+>>    config MACH_OMAP2_TUSB6010
+>>    	bool
+>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+>> index e8d45d3..dcbd64c 100644
+>> --- a/arch/arm/mach-omap2/board-generic.c
+>> +++ b/arch/arm/mach-omap2/board-generic.c
+>> @@ -1,76 +1,113 @@
+>>    /*
+>> - * linux/arch/arm/mach-omap2/board-generic.c
+>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+>>     *
+>> - * Copyright (C) 2005 Nokia Corporation
+>> - * Author: Paul Mundt<paul.mundt-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+>> - *
+>> - * Modified from mach-omap/omap1/board-generic.c
+>> - *
+>> - * Code for generic OMAP2 board. Should work on many OMAP2 systems where
+>> - * the bootloader passes the board-specific data to the kernel.
+>> - * Do not put any board specific code to this file; create a new machine
+>> - * type if you need custom low-level initializations.
+>> + * Support for generic OMAP2+ device tree boards.
+>>     *
+>>     * This program is free software; you can redistribute it and/or modify
+>>     * it under the terms of the GNU General Public License version 2 as
+>>     * published by the Free Software Foundation.
+>>     */
+>>
+>> -#include<linux/kernel.h>
+>> -#include<linux/init.h>
+>> -#include<linux/device.h>
+>> +#include<linux/io.h>
+>> +#include<linux/of_platform.h>
+>> +#include<linux/irqdomain.h>
+>>
+>>    #include<mach/hardware.h>
+>> -#include<asm/mach-types.h>
+>>    #include<asm/mach/arch.h>
+>> -#include<asm/mach/map.h>
+>>
+>> -#include<mach/gpio.h>
+>> -#include<plat/usb.h>
+>>    #include<plat/board.h>
+>>    #include<plat/common.h>
+>> +#include<mach/omap4-common.h>
+>>
+>> -static struct omap_board_config_kernel generic_config[] = {
+>> +
+>> +static struct of_device_id omap_dt_match_table[] __initdata = {
+>> +	{ .compatible = "simple-bus", },
+>> +	{ .compatible = "ti,omap-infra", },
+>> +	{ }
+>>    };
+>>
+>> -static void __init omap_generic_init_early(void)
+>> -{
+>> -	omap2_init_common_infrastructure();
+>> -}
+>> +static struct of_device_id intc_match[] __initdata = {
+>> +	{ .compatible = "ti,omap3-intc", },
+>> +	{ .compatible = "arm,cortex-a9-gic", },
+>> +	{ }
+>> +};
+>>
+>>    static void __init omap_generic_init(void)
+>>    {
+>> +	struct device_node *node = of_find_matching_node(NULL, intc_match);
+>> +	if (node)
+>> +		irq_domain_add_simple(node, 0);
+>> +
+>>    	omap_serial_init();
+>>    	omap_sdrc_init(NULL, NULL);
+>> -	omap_board_config = generic_config;
+>> -	omap_board_config_size = ARRAY_SIZE(generic_config);
+>> -}
+>>
+>> -static void __init omap_generic_map_io(void)
+>> -{
+>> -	if (cpu_is_omap242x()) {
+>> -		omap2_set_globals_242x();
+>> -		omap242x_map_common_io();
+>> -	} else if (cpu_is_omap243x()) {
+>> -		omap2_set_globals_243x();
+>> -		omap243x_map_common_io();
+>> -	} else if (cpu_is_omap34xx()) {
+>> -		omap2_set_globals_3xxx();
+>> -		omap34xx_map_common_io();
+>> -	} else if (cpu_is_omap44xx()) {
+>> -		omap2_set_globals_443x();
+>> -		omap44xx_map_common_io();
+>> -	}
+>> +	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+>>    }
+>>
+>> -/* XXX This machine entry name should be updated */
+>> -MACHINE_START(OMAP_GENERIC, "Generic OMAP24xx")
+>> -	/* Maintainer: Paul Mundt<paul.mundt-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>   */
+>> -	.atag_offset	= 0x100,
+>> +#if defined(CONFIG_SOC_OMAP2420)
+>> +static const char *omap242x_boards_compat[] __initdata = {
+>> +	"ti,omap2420",
+>> +	NULL,
+>> +};
+>> +
+>> +DT_MACHINE_START(OMAP242X_DT, "Generic OMAP2420 (Flattened Device Tree)")
+>>    	.reserve	= omap_reserve,
+>> -	.map_io		= omap_generic_map_io,
+>> -	.init_early	= omap_generic_init_early,
+>> +	.map_io		= omap242x_map_io,
+>> +	.init_early	= omap2420_init_early,
+>>    	.init_irq	= omap2_init_irq,
+>>    	.init_machine	= omap_generic_init,
+>>    	.timer		=&omap2_timer,
+>> +	.dt_compat	= omap242x_boards_compat,
+>> +MACHINE_END
+>> +#endif
+>> +
+>> +#if defined(CONFIG_SOC_OMAP2430)
+>> +static const char *omap243x_boards_compat[] __initdata = {
+>> +	"ti,omap2430",
+>> +	NULL,
+>> +};
+>> +
+>> +DT_MACHINE_START(OMAP243X_DT, "Generic OMAP2430 (Flattened Device Tree)")
+>> +	.reserve	= omap_reserve,
+>> +	.map_io		= omap243x_map_io,
+>> +	.init_early	= omap2430_init_early,
+>> +	.init_irq	= omap2_init_irq,
+>> +	.init_machine	= omap_generic_init,
+>> +	.timer		=&omap2_timer,
+>> +	.dt_compat	= omap243x_boards_compat,
+>> +MACHINE_END
+>> +#endif
+>> +
+>> +#if defined(CONFIG_ARCH_OMAP3)
+>> +static const char *omap3_boards_compat[] __initdata = {
+>> +	"ti,omap3",
+>> +	NULL,
+>> +};
+>> +
+>> +DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
+>> +	.reserve	= omap_reserve,
+>> +	.map_io		= omap3_map_io,
+>> +	.init_early	= omap3430_init_early,
+>> +	.init_irq	= omap3_init_irq,
+>> +	.init_machine	= omap_generic_init,
+>> +	.timer		=&omap3_timer,
+>> +	.dt_compat	= omap3_boards_compat,
+>> +MACHINE_END
+>> +#endif
+>> +
+>> +#if defined(CONFIG_ARCH_OMAP4)
+>> +static const char *omap4_boards_compat[] __initdata = {
+>> +	"ti,omap4",
+>> +	NULL,
+>> +};
+>> +
+>> +DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+>> +	.reserve	= omap_reserve,
+>> +	.map_io		= omap4_map_io,
+>> +	.init_early	= omap4430_init_early,
+>> +	.init_irq	= gic_init_irq,
+>> +	.init_machine	= omap_generic_init,
+>> +	.timer		=&omap4_timer,
+>> +	.dt_compat	= omap4_boards_compat,
+>>    MACHINE_END
+>> +#endif
+>
