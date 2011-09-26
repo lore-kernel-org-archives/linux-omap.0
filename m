@@ -1,97 +1,82 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V3 0/4] Introducing TI's New SoC/board AM335XEVM
-Date: Mon, 26 Sep 2011 14:51:43 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC9429FC@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1316529142-27564-1-git-send-email-hvaibhav@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] mfd: twl6030: Setup irq_wake infrastructure.
+Date: Mon, 26 Sep 2011 15:01:54 +0530
+Message-ID: <4E80468A.9070605@ti.com>
+References: <1315324770-14530-1-git-send-email-santosh.shilimkar@ti.com> <20110915203738.GA23208@google.com> <20110926085007.GB32263@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48819 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751835Ab1IZJVz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 05:21:55 -0400
-In-Reply-To: <1316529142-27564-1-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:43151 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752543Ab1IZJcB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Sep 2011 05:32:01 -0400
+Received: by mail-gy0-f176.google.com with SMTP id 15so5783241gyc.35
+        for <linux-omap@vger.kernel.org>; Mon, 26 Sep 2011 02:32:01 -0700 (PDT)
+In-Reply-To: <20110926085007.GB32263@sortiz-mobl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Todd Poynor <toddpoynor@google.com>, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Tuesday, September 20, 2011 8:02 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Hilman, Kevin; paul@pwsan.com; tony@atomide.com; linux-arm-
-> kernel@lists.infradead.org; Hiremath, Vaibhav
-> Subject: [PATCH-V3 0/4] Introducing TI's New SoC/board AM335XEVM
-> 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> This patch set adds support for AM335x device having
-> Cortex-A8 MPU.
-> 
-> AM335X is treated as another OMAP3 variant, where,
-> along with existing cpu class OMAP34XX, new cpu class AM33XX is created
-> and the respective type is AM335X, which is newly added device in the
-> family.
-> This means, cpu_is_omap34xx(), cpu_is_am33xx() and
-> cpu_is_am335x() checks return success for AM335X.
-> 
-> Also, I have validated OMAP3 boot test with this patch-series on OMAP3EVM.
-> 
-> Changes from V1(RFC):
-> 	- Created separate cpu/SoC class for AM33XX family of devices,
->           due to all known facts. This is been mentioned in main-chain
->             https://patchwork.kernel.org/patch/1056312/
-> 	- BUG Fix in debug-macro.S, which was leading to build failure.
-> 	    https://patchwork.kernel.org/patch/1056302/
-> 
-> Changes from V2(RFC):
-> 	- Rebased against Paul's OMAP_CHIP* cleanup patches
-> 	  git://git.pwsan.com/linux-2.6 omap_chip_remove_cleanup_3.2
-> 	- Removed dependancy on Hemant's submitted patches for TI814X
-> 	  support, in order to get it upstream.
-> 
-> Afzal Mohammed (4):
->   arm:omap:am33xx: Update common omap platform files
->   arm:omap:am33xx: Update common OMAP machine specific sources
->   arm:omap:am33xx: Create board support and enable build for AM335XEVM
->   arm:omap:am33xx: Add low level debugging support
-> 
->  arch/arm/mach-omap2/Kconfig                    |   10 ++++
->  arch/arm/mach-omap2/Makefile                   |    2 +
->  arch/arm/mach-omap2/board-am335xevm.c          |   57
-> ++++++++++++++++++++++++
->  arch/arm/mach-omap2/clock.c                    |    2 +-
->  arch/arm/mach-omap2/clock.h                    |    2 +-
->  arch/arm/mach-omap2/clock3xxx_data.c           |    6 ++-
->  arch/arm/mach-omap2/common.c                   |   16 +++++++
->  arch/arm/mach-omap2/id.c                       |   10 +++-
->  arch/arm/mach-omap2/include/mach/debug-macro.S |   22 +++++++++
->  arch/arm/mach-omap2/io.c                       |   25 ++++++++++
->  arch/arm/mach-omap2/opp2xxx.h                  |    2 +-
->  arch/arm/mach-omap2/serial.c                   |    6 +-
->  arch/arm/plat-omap/include/plat/am33xx.h       |   25 ++++++++++
->  arch/arm/plat-omap/include/plat/clkdev_omap.h  |    1 +
->  arch/arm/plat-omap/include/plat/clock.h        |    3 +-
->  arch/arm/plat-omap/include/plat/common.h       |    1 +
->  arch/arm/plat-omap/include/plat/cpu.h          |   25 ++++++++++
->  arch/arm/plat-omap/include/plat/hardware.h     |    1 +
->  arch/arm/plat-omap/include/plat/io.h           |   20 ++++++++
->  arch/arm/plat-omap/include/plat/omap34xx.h     |    2 +
->  arch/arm/plat-omap/include/plat/serial.h       |    4 ++
->  arch/arm/plat-omap/include/plat/uncompress.h   |    6 +++
->  arch/arm/plat-omap/io.c                        |    5 ++
->  23 files changed, 243 insertions(+), 10 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/board-am335xevm.c
->  create mode 100644 arch/arm/plat-omap/include/plat/am33xx.h
+Samual,
 
-Tony,
+On Monday 26 September 2011 02:20 PM, Samuel Ortiz wrote:
+> Hi Todd,
+> 
+> On Thu, Sep 15, 2011 at 01:37:38PM -0700, Todd Poynor wrote:
+>> On Tue, Sep 06, 2011 at 09:29:30PM +0530, Santosh Shilimkar wrote:
+>>> TWL6030 devices have an interrupt line which is connected to
+>>> application processor like OMAP. These devices support multiple features
+>>> such as MMC card detect, USB cable detect, RTC interrupt, etc. that must
+>>> wake up the application processor.
+>>>
+>>> With this change, TWL6030 client drivers can make use of
+>>> irq_wake() if the wakeup is desirable on it's irq events.
+>>>
+>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>> cc: Samuel Ortiz <sameo@linux.intel.com>
+>>> ---
+>>>  drivers/mfd/twl6030-irq.c |    9 +++++++++
+>>>  1 files changed, 9 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
+>>> index eb3b5f8..4477134 100644
+>>> --- a/drivers/mfd/twl6030-irq.c
+>>> +++ b/drivers/mfd/twl6030-irq.c
+>>> @@ -187,6 +187,13 @@ static inline void activate_irq(int irq)
+>>>  #endif
+>>>  }
+>>>  
+>>> +int twl6030_irq_set_wake(struct irq_data *d, unsigned int on)
+>>> +{
+>>> +	int twl_irq = (int)irq_get_chip_data(d->irq);
+>>> +
+>>> +	return irq_set_irq_wake(twl_irq, on);
+>>
+>> Note that when running with this previously, LOCKDEP warnings
+>> were seen.  LOCKDEP explicitly sets all irq_desc locks as a single
+>> lock-class, causing "possible recursive locking detected" when the TWL
+>> RTC (or other) driver calls through enable_irq_wake to
+>> twl6030_irq_set_wake, which recursively calls irq_set_irq_wake.
+>> Although the irq_desc and lock are different, LOCKDEP treats these as
+>> equivalent, presumably due to problems that can be incurred when
+>> locking more than one irq_desc.
+>>
+>> Currently we're running with twl6030_irq_set_wake keeping a count of
+>> sub-module wakeirqs, and setting the wakeup status for the twl_irq
+>> enabled or disabled as needed at suspend time.  Can send a patch if
+>> wanted.
+> Please do. I'm currently considering removing Santosh's patch without this
+> LOCKDEP warning fix.
+> 
+I guess the lock dep issue as Todd pointed out is because LOCKDEP treats
+the irq_desc and lock are equivalent. And IIUC, Todd didn't fix anything
+on this patch. he just added some logic in client driver to avoid the
+warning. Real fix should be in LOCKDEP code which is exposed by this
+patch. This patch should be fine as such.
 
-Any update or comment on this patch-set? 
+Regards
+Santosh
 
-
-Thanks,
-Vaibhav
