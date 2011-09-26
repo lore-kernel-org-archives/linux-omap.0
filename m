@@ -1,43 +1,53 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 3/4] OMAP_VOUT: Add support for DSI panels
-Date: Mon, 26 Sep 2011 17:29:24 +0530
-Message-ID: <1317038365-30650-4-git-send-email-archit@ti.com>
+Subject: [PATCH v3 4/4] OMAP_VOUT: Don't trigger updates in omap_vout_probe
+Date: Mon, 26 Sep 2011 17:29:25 +0530
+Message-ID: <1317038365-30650-5-git-send-email-archit@ti.com>
 References: <1317038365-30650-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52479 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35268 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752943Ab1IZL7b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Sep 2011 07:59:31 -0400
+	id S1752671Ab1IZL7h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Sep 2011 07:59:37 -0400
 In-Reply-To: <1317038365-30650-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: hvaibhav@ti.com
 Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, sumit.semwal@ti.com, linux-media@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Add support for DSI panels. DSI video mode panels will work directly. For
-command mode panels, we will need to trigger updates regularly. This isn't done
-by the omap_vout driver currently. It can still be supported if we connect a
-framebuffer device to the panel and configure it in auto update mode.
+Remove the code in omap_vout_probe() which calls display->driver->update() for
+all the displays. This isn't correct because:
+
+- An update in probe doesn't make sense, because we don't have any valid content
+  to show at this time.
+- Calling update for a panel which isn't enabled is not supported by DSS2. This
+  leads to a crash at probe.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/video/omap/omap_vout.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/media/video/omap/omap_vout.c |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 01c24a4..7b8e87a 100644
+index 7b8e87a..3d9c83e 100644
 --- a/drivers/media/video/omap/omap_vout.c
 +++ b/drivers/media/video/omap/omap_vout.c
-@@ -589,6 +589,7 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
- 	do_gettimeofday(&timevalue);
+@@ -2213,14 +2213,6 @@ static int __init omap_vout_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto probe_err2;
  
- 	switch (cur_display->type) {
-+	case OMAP_DISPLAY_TYPE_DSI:
- 	case OMAP_DISPLAY_TYPE_DPI:
- 		if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
- 			goto vout_isr_err;
+-	for (i = 0; i < vid_dev->num_displays; i++) {
+-		struct omap_dss_device *display = vid_dev->displays[i];
+-
+-		if (display->driver->update)
+-			display->driver->update(display, 0, 0,
+-					display->panel.timings.x_res,
+-					display->panel.timings.y_res);
+-	}
+ 	return 0;
+ 
+ probe_err2:
 -- 
 1.7.1
 
