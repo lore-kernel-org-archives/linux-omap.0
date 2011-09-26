@@ -1,63 +1,46 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while arch_iommu is in use
-Date: Mon, 26 Sep 2011 18:19:17 +0200
-Message-ID: <201109261819.18442.laurent.pinchart@ideasonboard.com>
-References: <4D8CB106.7030608@maxwell.research.nokia.com> <201103291732.52620.laurent.pinchart@ideasonboard.com> <CAGDS+nkceS-qmdNyYmOLjEQY_SiMWodZx7SMqqWOLHzkN0xGeQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 08/11] OMAP2+: board-generic: Add i2c static init
+Date: Mon, 26 Sep 2011 09:45:55 -0700
+Message-ID: <20110926164555.GA17771@atomide.com>
+References: <1316809399-19579-1-git-send-email-b-cousson@ti.com>
+ <1316809399-19579-9-git-send-email-b-cousson@ti.com>
+ <20110923231208.GE6324@atomide.com>
+ <20110923234744.GL24631@ponder.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46717 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751766Ab1IZQTN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 12:19:13 -0400
-In-Reply-To: <CAGDS+nkceS-qmdNyYmOLjEQY_SiMWodZx7SMqqWOLHzkN0xGeQ@mail.gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42014 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750782Ab1IZQqB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 12:46:01 -0400
+Content-Disposition: inline
+In-Reply-To: <20110923234744.GL24631@ponder.secretlab.ca>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Cohen David Abraham <david.cohen@nokia.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, khilman@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Hi Steve,
-
-On Saturday 24 September 2011 15:44:52 Steve Sakoman wrote:
-> On Tue, Mar 29, 2011 at 8:32 AM, Laurent Pinchart
-> 
-> <laurent.pinchart@ideasonboard.com> wrote:
-> > I think that Sakari's patches correcty fix the problems he noticed.
-> > However, they won't fix one basic issue, which is that the iommu2 module
-> > won't be automatically pulled in when the omap3isp module is loaded. The
-> > omap3isp driver will then fail to probe the device. That's better than
-> > crashing though.
+* Grant Likely <grant.likely@secretlab.ca> [110923 16:14]:
+> On Fri, Sep 23, 2011 at 04:12:08PM -0700, Tony Lindgren wrote:
+> > * Benoit Cousson <b-cousson@ti.com> [110923 12:50]:
+> > > Still needed to boot until the i2c & twl driver is adapted to
+> > > device-tree. Otherwise the voltage control code will try to
+> > > access the twl and crash.
 > > 
-> > One possible solution for that is to turn the tristate option for iommu2
-> > into a bool option. I've also read a couple of times that the kernel
-> > provides a standard iommu API. Maybe switching to it would help.
+> > That sounds OK to me for now. For merging these patches, how
+> > about the following:
+> > 
+> > - Kevin queues up the omap_device related changes
+> > 
+> > - Grant queues up the .dts changes
+> > 
+> > - I'll queue the map_io and board changes based on Kevin's
+> >   omap_device changes
 > 
-> I'm attempting to get support for the Gumstix Caspa image sensor
-> (based on mt9v032) working with the 3.0 release.
-> 
-> I'm running into the issue described above -- the omap3-isp module
-> loads but fails to probe the device.
-> 
-> I've tried the tristate->bool option change and find that it does
-> allow me to proceed further, but the omap3-isp module is no longer
-> loaded automatically when I call omap3_init_camera in the board file.
+> Go ahead and queue up the .dts changes in your tree.  No need to split them up.
 
-That's weird, it should if udev is setup properly.
+OK, will do.
 
-> I have to manually modprobe it. I then see the sensor module
-> successfully probed and the video devices created (though not
-> functioning yet).
-> 
-> Are you aware of a better way to do this?  I see lots of patches for
-> iommu since this thread.  Would I be better off waiting for 3.1 and
-> trying that, or will final resolution of this issue come even later?
+Thanks,
 
-The tristate -> bool change (which will likely be part of a much bigger change 
-set) will come later.
-
--- 
-Regards,
-
-Laurent Pinchart
+Tony
