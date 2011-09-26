@@ -1,52 +1,51 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH-V3 2/4] arm:omap:am33xx: Update common OMAP machine specific sources
-Date: Mon, 26 Sep 2011 11:45:58 -0700
-Message-ID: <87fwjjcfbt.fsf@ti.com>
-References: <hvaibhav@ti.com>
-	<1316529142-27564-3-git-send-email-hvaibhav@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 07/11] OMAP2+: board-generic: Add DT support to generic
+ board
+Date: Mon, 26 Sep 2011 14:37:51 -0700
+Message-ID: <20110926213750.GG6324@atomide.com>
+References: <1316809399-19579-1-git-send-email-b-cousson@ti.com>
+ <1316809399-19579-8-git-send-email-b-cousson@ti.com>
+ <20110923230845.GD6324@atomide.com>
+ <4E80717A.3040502@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:47700 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752375Ab1IZSqE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Sep 2011 14:46:04 -0400
-Received: by gwj17 with SMTP id 17so3150902gwj.38
-        for <linux-omap@vger.kernel.org>; Mon, 26 Sep 2011 11:46:02 -0700 (PDT)
-In-Reply-To: <1316529142-27564-3-git-send-email-hvaibhav@ti.com>
-	(hvaibhav@ti.com's message of "Tue, 20 Sep 2011 20:02:20 +0530")
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47429 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752329Ab1IZVhz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 17:37:55 -0400
+Content-Disposition: inline
+In-Reply-To: <4E80717A.3040502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-<hvaibhav@ti.com> writes:
+* Cousson, Benoit <b-cousson@ti.com> [110926 05:01]:
+> On 9/24/2011 1:08 AM, Tony Lindgren wrote:
+> >* Benoit Cousson<b-cousson@ti.com>  [110923 12:50]:
+> >>Re-cycle the original board-generic file to support Device Tree
+> >>for every OMAP2+ variants.
+> >>Note: Since it is a completely new content in the existing file
+> >>I removed the original copyright.
+> >
+> >I'd suggest just keeping it, maybe just update the comments
+> >accordingly?
+> 
+> Do you mean keeping it and adding the comment? Or removing it and
+> adding the comment?
 
-> From: Afzal Mohammed <afzal@ti.com>
->
-> This patch updates the common machine specific source files for
-> support for AM33XX/AM335x with cpu type, macros for identification of
-> AM33XX/AM335X device.
->
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Maybe just update the comment accordingly for DT?
+ 
+> >That's because Copyrights in general just don't "disappear".
+> 
+> OK, maybe, but I thought it is weird to keep an old copyright just
+> because we re-use an already existing file since the content is
+> different.
 
-[...]
+Yeah.. But it's still a good idea not to mess with the copyrights
+as as you would need permissions from the copyright holders.
 
-> @@ -3576,7 +3579,8 @@ int __init omap3xxx_clk_init(void)
->  	 * Lock DPLL5 -- here only until other device init code can
->  	 * handle this
->  	 */
-> -	if (!cpu_is_ti816x() && (omap_rev() >= OMAP3430_REV_ES2_0))
-> +	if (!cpu_is_ti816x() && !cpu_is_am33xx() &&
-> +			(omap_rev() >= OMAP3430_REV_ES2_0))
->  		omap3_clk_lock_dpll5();
+Regards,
 
-This is getting ugly.  
-
-Instead of continuing to expand this if-list, I think it's time for a
-new feature-flag for whether or not an SoC has DPLL5 instead.
-
-Kevin
-
+Tony
