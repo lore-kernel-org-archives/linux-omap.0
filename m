@@ -1,62 +1,41 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
- from omap_vout_isr
-Date: Mon, 26 Sep 2011 11:04:36 +0530
-Message-ID: <4E800EEC.8080905@ti.com>
-References: <1316167233-1437-1-git-send-email-archit@ti.com> <1316167233-1437-3-git-send-email-archit@ti.com> <19F8576C6E063C45BE387C64729E739404EC941E8B@dbde02.ent.ti.com> <4E79C053.903@ti.com>
+From: "COCA COLA PLC" <win@com.ch>
+Subject: KINDLY PROVIDE DETAILS
+Date: Sun, 25 Sep 2011 23:14:10 -0700
+Message-ID: <20110926061412.FTKX1538.viefep15-int.chello.at@edge04.upcmail.net>
+Reply-To: <claimsgroup111@qatar.io>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain;
+	charset="Windows-1251"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39966 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751099Ab1IZFe2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 01:34:28 -0400
-In-Reply-To: <4E79C053.903@ti.com>
+Received: from fep27.mx.upcmail.net ([62.179.121.47]:62030 "EHLO
+	fep27.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751238Ab1IZG2s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 02:28:48 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-Hi,
+You have been selected in the on-going COCA COLA award held this August
+2011.We the Promo Board are pleased to inform you that you alongside four(4)
+otherlucky winners have been approved for a payment of 1,000 000GBP (One
+Million Pounds Sterling).
+If you did receive this email, it means you are one of the five(5)lucky
+winners.
 
-On Wednesday 21 September 2011 04:15 PM, Taneja, Archit wrote:
-> Hi,
->
-> On Wednesday 21 September 2011 03:35 PM, Hiremath, Vaibhav wrote:
->>
->>> -----Original Message-----
->>> From: Taneja, Archit
->>> Sent: Friday, September 16, 2011 3:31 PM
->>> To: Hiremath, Vaibhav
->>> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
->>> media@vger.kernel.org; Taneja, Archit
->>> Subject: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
->>> from omap_vout_isr
->>>
->>> Currently, there is a lot of redundant code is between DPI and VENC panels,
->>> this
->>> can be made common by moving out field/interlace specific code to a
->>> separate
->>> function called omapvid_handle_interlace_display(). There is no functional
->>> change made.
->>>
->>> Signed-off-by: Archit Taneja<archit@ti.com>
->>> ---
->>>    drivers/media/video/omap/omap_vout.c |  172 ++++++++++++++++-------------
->>> -----
+*CLAIMS PROCESSING OFFICER:
+*Name:Mr TOMMY ROGER
+E-mail: claimsgroup111@qatar.io
 
+You are also advised to provide him with the under listed information
+as soon as possible:
 
->> [Hiremath, Vaibhav]
->> Have you tested TV out functionality?
->
-> I haven't checked it yet to be totally honest. Its hard to find a VENC
-> TV! I wanted to anyway get some kind of Ack from you before starting to
-> test this. Since you also feel that this clean up is needed, I'll start
-> testing this out :)
+*NAME IN FULL:
+*DELIVERY ADDRESS:
+*SEX:
+*AGE:
+*COUNTRY:
+*NATIONALITY:
+*OCCUPATION:
+*PHONE:
 
-I tested the TV out functionality. It works fine. I have left the extra 
-fid == 0 check so that the code is more clear. Will post out the new 
-patch soon.
-
-Archit
+We are glad to have you as one of our luckly winners.
