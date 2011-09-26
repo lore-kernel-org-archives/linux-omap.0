@@ -1,73 +1,110 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 03/11] arm/dts: Add support for OMAP4 PandaBoard
-Date: Mon, 26 Sep 2011 14:38:10 +0200
-Message-ID: <4E807232.3060702@ti.com>
-References: <1316809399-19579-1-git-send-email-b-cousson@ti.com> <1316809399-19579-4-git-send-email-b-cousson@ti.com> <20110923232142.GG24631@ponder.secretlab.ca>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
+ for omap3
+Date: Mon, 26 Sep 2011 19:49:23 +0530
+Message-ID: <CAP05o4Lwk2uUz5ou84GQsrsBdjW-FEYP-55pBzH+a74hP4g1Dw@mail.gmail.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
+	<1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>
+	<1316691479-1849-3-git-send-email-keshava_mgowda@ti.com>
+	<alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com>
+	<CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com>
+	<alpine.DEB.2.00.1109240020510.22872@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54380 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753205Ab1IZMiV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Sep 2011 08:38:21 -0400
-In-Reply-To: <20110923232142.GG24631@ponder.secretlab.ca>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1109240020510.22872@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, b-cousson@ti.com, balbi@ti.com, parthab@india.ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, sameo@linux.intel.com, tony@atomide.com, khilman@ti.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "G, Manjunath Kondaiah" <manjugk@ti.com>
 
-On 9/24/2011 1:21 AM, Grant Likely wrote:
-> On Fri, Sep 23, 2011 at 10:23:11PM +0200, Benoit Cousson wrote:
->> Based on the original omap4-panda.dts file from Manju.
->> http://www.spinics.net/lists/linux-omap/msg55836.html
->>
->> Add memory information and a default bootargs to allow
->> a boot from RAMDISK.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Grant Likely<grant.likely@secretlab.ca>
->> Cc: G, Manjunath Kondaiah<manjugk@ti.com>
->> ---
->>   arch/arm/boot/dts/omap4-panda.dts |   29 +++++++++++++++++++++++++++++
->>   1 files changed, 29 insertions(+), 0 deletions(-)
->>   create mode 100644 arch/arm/boot/dts/omap4-panda.dts
->>
->> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
->> new file mode 100644
->> index 0000000..c702657
->> --- /dev/null
->> +++ b/arch/arm/boot/dts/omap4-panda.dts
->> @@ -0,0 +1,29 @@
->> +/*
->> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +/dts-v1/;
->> +
->> +/include/ "omap4.dtsi"
->> +
->> +/ {
->> +	model = "TI OMAP4 PandaBoard";
->> +	compatible = "ti,omap4-panda", "ti,omap4430", "ti,omap4";
->> +
->> +	/*
->> +	 * Since the initial device tree board file does not create any
->> +	 * devices (MMC, network...), the only way to boot is to provide a
->> +	 * ramdisk.
->> +	 */
->> +	chosen {
->> +		bootargs = "root=/dev/ram0 rw console=ttyO2,115200n8 initrd=0x81600000,20M ramdisk_size=20480 no_console_suspend debug";
+On Sat, Sep 24, 2011 at 12:00 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Fri, 23 Sep 2011, Munegowda, Keshava wrote:
 >
-> Generally, we don't want bootargs in the .dts files; we want them
-> added to the .dtb by the boot firmware.  However, we are bootstrapping
-> here, so I'm okay with it in the short term until firmware matures a
-> bit more.
+>> On Thu, Sep 22, 2011 at 11:31 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>>
+>> But the question arises here , why do we need these ehci and ohci as two
+>> different hwmods containing only irq and base address? It is required
+>> for future - to implement remote wakeup feature for ehci and ohci ports
+>> depending on irq-chain handler patches by Tero. Separate hwmods for ehci
+>> and ohci are needed to enable prcm chain-handler to uniquely identify
+>> the wakeup source as ehci or ohci and call only the corresponding
+>> interrupt handler. We will be using omap_hwmod_mux_init for ehci and
+>> ohci hwmods to enable I/O wakeup capability for respective IO-pads.
+>> Depending on the particular wakeup source(ehci/ohci), the corresponding
+>> ehci or ohci irq handler will be called.
+>>
+>> If ehci and ohci are combined with usbhs hwmod as a single hwmod , then
+>> for every wakeup (either ehci or ohci port wakeup) only the first
+>> interrupt handler will be called (please look at the function
+>> omap_hwmod_mux_handle_irq of
+>>
+>> /arch/arm/mach-omap2/mux.c file ; in tero's latest patch:
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53139.html)
+>> , so in this
+>> case, if ehci interrupt is the first interrupt , then even for ohci wakeup
+>> , only ehci interrupt will get called; which will break the functionality.
+>
+> Any reason why this couldn't be handled either by:
+>
+> 1. adding an IRQ number field to struct omap_hwmod_mux_info, and changing
+> _omap_hwmod_mux_handle_irq() to raise that IRQ number?
 
-Yeah, I had to to that because an old uboot with appended dtb seems to 
-ignore the original bootargs.
 
-Benoit
+yes, it is possible by changing the existing irq-chain handler by tero Kristo
+
+I am looping tero too.
+
+So here are new requirements for the irq-chain handler
+
+1. The hwmod should have have option to have multiple mux structures
+
+This is something like:
+
+The existing mux structure definition in omap_hwmod [file:
+/arch/arm/plat-omap/include/plat/omap_hwmod.h ] structure
+
+	struct omap_hwmod_mux_info	*mux;
+
+it should changed to
+
+	struct omap_hwmod_mux_info	**pmux;
+         U32                                            mux_cnt;
+
+
+pmux - pointers to mux ; array of mux structures.
+mux_cnt - number of mux per hwmod.
+
+
+2. The mux  omap_hwmod_mux_info  structure should have new member
+called irq, like as follows:
+
+struct omap_hwmod_mux_info {
+	int				nr_pads;
+	...
+        ....
+        u32                           irq;
+
+};
+
+Upon wakeup of the I/O pad of the mux , the irq-chain handler should
+invoke the irq handler of the irq numbered <map_hwmod_mux_info.irq>
+
+3.  There should be "SOME WAY" to supply the irqs  from hwmod
+structure (omap_hwmod) to mux structure (omap_hwmod_mux_info)
+
+
+if you , tero and other opensource people are aligned on the proposed
+changes on the irq-handler ;
+then it is possible to have two hwmods ( usbhs and tll) for usbhost driver.
+please let me know you comments on the above approach.
+
+
+>
+> or
+>
+> 2. using shared interrupts?
+>
+>
+> - Paul
+>
