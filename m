@@ -1,229 +1,173 @@
 From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: [PATCH resend 09/13] omap: mcbsp: Cleanup sidetone control initialization and make it generic
-Date: Mon, 26 Sep 2011 10:45:45 +0300
-Message-ID: <1317023150-6730-10-git-send-email-jarkko.nikula@bitmer.com>
+Subject: [PATCH resend 13/13] omap: mcbsp: Start generalize signal muxing functions
+Date: Mon, 26 Sep 2011 10:45:49 +0300
+Message-ID: <1317023150-6730-14-git-send-email-jarkko.nikula@bitmer.com>
 References: <1317023150-6730-1-git-send-email-jarkko.nikula@bitmer.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:49024 "EHLO bitmer.com"
+Received: from bitmer.com ([213.157.87.50]:58511 "EHLO bitmer.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751375Ab1IZHqr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Sep 2011 03:46:47 -0400
+	id S1750833Ab1IZILq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Sep 2011 04:11:46 -0400
 In-Reply-To: <1317023150-6730-1-git-send-email-jarkko.nikula@bitmer.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Sidetone resource is already registered for a device so there is no need
-for cpu_is_omap34xx() and McBSP port number tests in the driver. We can
-cleanup and make the code generic by dropping remaining CONFIG_ARCH_OMAP3
-conditional compilations and then using sidetone resource and st_data
-variable for runtime tests.
+This generalizes the omap2_mcbsp1_mux_clkr_src and omap2_mcbsp1_mux_fsr_src
+implementation between generic McBSP and OMAP2 specific McBSP code. These
+functions are used to select source for CLKR and FSR signals on OMAP2+.
+
+Start generalizing the code by implementing an optional mux_signal function
+pointer in platform data that will implement the actual muxing and which is
+called now from omap2_mcbsp1_mux_clkr_src and omap2_mcbsp1_mux_fsr_src.
+These functions are to be removed later and cleanup the API so that
+mux_signal gets its arguments directly from client code.
 
 Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 ---
- arch/arm/plat-omap/include/plat/mcbsp.h |   12 ------
- arch/arm/plat-omap/mcbsp.c              |   67 ++++++++++---------------------
- 2 files changed, 22 insertions(+), 57 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c             |   43 +++++++++++++++++-------------
+ arch/arm/plat-omap/include/plat/mcbsp.h |    1 +
+ arch/arm/plat-omap/mcbsp.c              |   36 ++++++++++++++++++++------
+ 3 files changed, 53 insertions(+), 27 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index e451a6e..9802055 100644
---- a/arch/arm/plat-omap/include/plat/mcbsp.h
-+++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -353,9 +353,7 @@ struct omap_mcbsp {
- 	spinlock_t lock;
- 	struct omap_mcbsp_platform_data *pdata;
- 	struct clk *fclk;
--#ifdef CONFIG_ARCH_OMAP3
- 	struct omap_mcbsp_st_data *st_data;
--#endif
- 	int dma_op_mode;
- 	u16 max_tx_thres;
- 	u16 max_rx_thres;
-@@ -402,21 +400,11 @@ void omap2_mcbsp1_mux_fsr_src(u8 mux);
- int omap_mcbsp_dma_ch_params(unsigned int id, unsigned int stream);
- int omap_mcbsp_dma_reg_params(unsigned int id, unsigned int stream);
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 3dd4c47..5063f25 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -34,33 +34,36 @@
+ #include "cm2xxx_3xxx.h"
+ #include "cm-regbits-34xx.h"
  
--#ifdef CONFIG_ARCH_OMAP3
- /* Sidetone specific API */
- int omap_st_set_chgain(unsigned int id, int channel, s16 chgain);
- int omap_st_get_chgain(unsigned int id, int channel, s16 *chgain);
- int omap_st_enable(unsigned int id);
- int omap_st_disable(unsigned int id);
- int omap_st_is_enabled(unsigned int id);
--#else
--static inline int omap_st_set_chgain(unsigned int id, int channel,
--				     s16 chgain) { return 0; }
--static inline int omap_st_get_chgain(unsigned int id, int channel,
--				     s16 *chgain) { return 0; }
--static inline int omap_st_enable(unsigned int id) { return 0; }
--static inline int omap_st_disable(unsigned int id) { return 0; }
--static inline int omap_st_is_enabled(unsigned int id) {  return 0; }
--#endif
- 
- #endif
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index e96d747..f92227f 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -55,7 +55,6 @@ static int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg, bool from_cache)
- 	}
- }
- 
--#ifdef CONFIG_ARCH_OMAP3
- static void omap_mcbsp_st_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
- {
- 	__raw_writel(val, mcbsp->st_data->io_base_st + reg);
-@@ -65,7 +64,6 @@ static int omap_mcbsp_st_read(struct omap_mcbsp *mcbsp, u16 reg)
- {
- 	return __raw_readl(mcbsp->st_data->io_base_st + reg);
- }
--#endif
- 
- #define MCBSP_READ(mcbsp, reg) \
- 		omap_mcbsp_read(mcbsp, OMAP_MCBSP_REG_##reg, 0)
-@@ -248,7 +246,6 @@ int omap_mcbsp_dma_reg_params(unsigned int id, unsigned int stream)
- }
- EXPORT_SYMBOL(omap_mcbsp_dma_reg_params);
- 
--#ifdef CONFIG_ARCH_OMAP3
- static void omap_st_on(struct omap_mcbsp *mcbsp)
- {
- 	unsigned int w;
-@@ -482,11 +479,6 @@ int omap_st_is_enabled(unsigned int id)
- }
- EXPORT_SYMBOL(omap_st_is_enabled);
- 
--#else
--static inline void omap_st_start(struct omap_mcbsp *mcbsp) {}
--static inline void omap_st_stop(struct omap_mcbsp *mcbsp) {}
--#endif
+-/* McBSP internal signal muxing functions */
 -
- /*
-  * omap_mcbsp_set_rx_threshold configures the transmit threshold in words.
-  * The threshold parameter is 1 based, and it is converted (threshold - 1)
-@@ -802,7 +794,7 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
- 	}
- 	mcbsp = id_to_mcbsp_ptr(id);
- 
--	if (cpu_is_omap34xx())
-+	if (mcbsp->st_data)
- 		omap_st_start(mcbsp);
- 
- 	/* Only enable SRG, if McBSP is master */
-@@ -897,7 +889,7 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
- 		MCBSP_WRITE(mcbsp, SPCR2, w & ~(1 << 6));
- 	}
- 
--	if (cpu_is_omap34xx())
-+	if (mcbsp->st_data)
- 		omap_st_stop(mcbsp);
- }
- EXPORT_SYMBOL(omap_mcbsp_stop);
-@@ -1030,7 +1022,6 @@ static const struct attribute_group additional_attr_group = {
- 	.attrs = (struct attribute **)additional_attrs,
- };
- 
--#ifdef CONFIG_ARCH_OMAP3
- static ssize_t st_taps_show(struct device *dev,
- 			    struct device_attribute *attr, char *buf)
+-void omap2_mcbsp1_mux_clkr_src(u8 mux)
++/* McBSP internal signal muxing function */
++static int omap2_mcbsp1_mux_rx_clk(struct device *dev, const char *signal,
++				   const char *src)
  {
-@@ -1098,10 +1089,9 @@ static const struct attribute_group sidetone_attr_group = {
- 	.attrs = (struct attribute **)sidetone_attrs,
- };
+ 	u32 v;
  
--static int __devinit omap_st_add(struct omap_mcbsp *mcbsp)
-+static int __devinit omap_st_add(struct omap_mcbsp *mcbsp,
-+				 struct resource *res)
- {
--	struct platform_device *pdev;
--	struct resource *res;
- 	struct omap_mcbsp_st_data *st_data;
- 	int err;
- 
-@@ -1111,9 +1101,6 @@ static int __devinit omap_st_add(struct omap_mcbsp *mcbsp)
- 		goto err1;
- 	}
- 
--	pdev = container_of(mcbsp->dev, struct platform_device, dev);
--
--	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "sidetone");
- 	st_data->io_base_st = ioremap(res->start, resource_size(res));
- 	if (!st_data->io_base_st) {
- 		err = -ENOMEM;
-@@ -1140,32 +1127,10 @@ static void __devexit omap_st_remove(struct omap_mcbsp *mcbsp)
- {
- 	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
- 
--	if (st_data) {
--		sysfs_remove_group(&mcbsp->dev->kobj, &sidetone_attr_group);
--		iounmap(st_data->io_base_st);
--		kfree(st_data);
--	}
+ 	v = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
+-	if (mux == CLKR_SRC_CLKR)
+-		v &= ~OMAP2_MCBSP1_CLKR_MASK;
+-	else if (mux == CLKR_SRC_CLKX)
+-		v |= OMAP2_MCBSP1_CLKR_MASK;
+-	omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
 -}
--
--static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
--{
--	if (cpu_is_omap34xx())
--		if (mcbsp->id == 2 || mcbsp->id == 3)
--			if (omap_st_add(mcbsp))
--				dev_warn(mcbsp->dev,
--				 "Unable to create sidetone controls\n");
--}
--
--static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp)
--{
--	if (cpu_is_omap34xx())
--		if (mcbsp->id == 2 || mcbsp->id == 3)
--			omap_st_remove(mcbsp);
-+	sysfs_remove_group(&mcbsp->dev->kobj, &sidetone_attr_group);
-+	iounmap(st_data->io_base_st);
-+	kfree(st_data);
- }
--#else
--static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp) {}
--static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp) {}
--#endif /* CONFIG_ARCH_OMAP3 */
+-EXPORT_SYMBOL(omap2_mcbsp1_mux_clkr_src);
  
- /*
-  * McBSP1 and McBSP3 are directly mapped on 1610 and 1510.
-@@ -1291,11 +1256,22 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 		mcbsp->max_rx_thres = -EINVAL;
- 	}
- 
--	/* Initialize mcbsp properties for OMAP34XX if needed / applicable */
--	omap34xx_device_init(mcbsp);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "sidetone");
-+	if (res) {
-+		ret = omap_st_add(mcbsp, res);
-+		if (ret) {
-+			dev_err(mcbsp->dev,
-+				"Unable to create sidetone controls\n");
-+			goto err_st;
-+		}
+-void omap2_mcbsp1_mux_fsr_src(u8 mux)
+-{
+-	u32 v;
++	if (!strcmp(signal, "clkr")) {
++		if (!strcmp(src, "clkr"))
++			v &= ~OMAP2_MCBSP1_CLKR_MASK;
++		else if (!strcmp(src, "clkx"))
++			v |= OMAP2_MCBSP1_CLKR_MASK;
++		else
++			return -EINVAL;
++	} else if (!strcmp(signal, "fsr")) {
++		if (!strcmp(src, "fsr"))
++			v &= ~OMAP2_MCBSP1_FSR_MASK;
++		else if (!strcmp(src, "fsx"))
++			v |= OMAP2_MCBSP1_FSR_MASK;
++		else
++			return -EINVAL;
++	} else {
++		return -EINVAL;
 +	}
  
+-	v = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
+-	if (mux == FSR_SRC_FSR)
+-		v &= ~OMAP2_MCBSP1_FSR_MASK;
+-	else if (mux == FSR_SRC_FSX)
+-		v |= OMAP2_MCBSP1_FSR_MASK;
+ 	omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
++
++	return 0;
+ }
+-EXPORT_SYMBOL(omap2_mcbsp1_mux_fsr_src);
+ 
+ /* McBSP CLKS source switching function */
+ static int omap2_mcbsp_set_clk_src(struct device *dev, struct clk *clk,
+@@ -181,6 +184,8 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 		return PTR_ERR(pdev);
+ 	}
+ 	pdata->set_clk_src = omap2_mcbsp_set_clk_src;
++	if (id == 1)
++		pdata->mux_signal = omap2_mcbsp1_mux_rx_clk;
+ 	omap_mcbsp_count++;
  	return 0;
+ }
+diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
+index c8ebfc9..8fa74e2 100644
+--- a/arch/arm/plat-omap/include/plat/mcbsp.h
++++ b/arch/arm/plat-omap/include/plat/mcbsp.h
+@@ -309,6 +309,7 @@ struct omap_mcbsp_platform_data {
+ 	bool has_ccr; /* Transceiver has configuration control registers */
+ 	int (*enable_st_clock)(unsigned int, bool);
+ 	int (*set_clk_src)(struct device *dev, struct clk *clk, const char *src);
++	int (*mux_signal)(struct device *dev, const char *signal, const char *src);
+ };
  
-+err_st:
-+	if (mcbsp->pdata->buffer_size)
-+		sysfs_remove_group(&mcbsp->dev->kobj,
-+				   &additional_attr_group);
- err_thres:
- 	clk_put(mcbsp->fclk);
- err_res:
-@@ -1321,7 +1297,8 @@ static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
- 			sysfs_remove_group(&mcbsp->dev->kobj,
- 					   &additional_attr_group);
+ struct omap_mcbsp_st_data {
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 38b67d9..4b15cd7 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -922,21 +922,41 @@ int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
+ }
+ EXPORT_SYMBOL(omap2_mcbsp_set_clks_src);
  
--		omap34xx_device_exit(mcbsp);
-+		if (mcbsp->st_data)
-+			omap_st_remove(mcbsp);
+-#ifndef CONFIG_ARCH_OMAP2PLUS
+ void omap2_mcbsp1_mux_clkr_src(u8 mux)
+ {
+-	WARN(1, "%s: should never be called on an OMAP1-only kernel\n",
+-	     __func__);
+-	return;
++	struct omap_mcbsp *mcbsp;
++	const char *src;
++
++	if (mux == CLKR_SRC_CLKR)
++		src = "clkr";
++	else if (mux == CLKR_SRC_CLKX)
++		src = "clkx";
++	else
++		return;
++
++	mcbsp = id_to_mcbsp_ptr(0);
++	if (mcbsp->pdata->mux_signal)
++		mcbsp->pdata->mux_signal(mcbsp->dev, "clkr", src);
+ }
++EXPORT_SYMBOL(omap2_mcbsp1_mux_clkr_src);
  
- 		clk_put(mcbsp->fclk);
+ void omap2_mcbsp1_mux_fsr_src(u8 mux)
+ {
+-	WARN(1, "%s: should never be called on an OMAP1-only kernel\n",
+-	     __func__);
+-	return;
++	struct omap_mcbsp *mcbsp;
++	const char *src;
++
++	if (mux == FSR_SRC_FSR)
++		src = "fsr";
++	else if (mux == FSR_SRC_FSX)
++		src = "fsx";
++	else
++		return;
++
++	mcbsp = id_to_mcbsp_ptr(0);
++	if (mcbsp->pdata->mux_signal)
++		mcbsp->pdata->mux_signal(mcbsp->dev, "fsr", src);
+ }
+-#endif
++EXPORT_SYMBOL(omap2_mcbsp1_mux_fsr_src);
  
+ #define max_thres(m)			(mcbsp->pdata->buffer_size)
+ #define valid_threshold(m, val)		((val) <= max_thres(m))
 -- 
 1.7.6.3
 
