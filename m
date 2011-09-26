@@ -1,249 +1,97 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 07/11] OMAP2+: board-generic: Add DT support to generic
-	board
-Date: Mon, 26 Sep 2011 11:00:39 +0200
-Message-ID: <4E803F37.6050602@ti.com>
-References: <1316809399-19579-1-git-send-email-b-cousson@ti.com>
-	<1316809399-19579-8-git-send-email-b-cousson@ti.com>
-	<4E801C62.5020700@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V3 0/4] Introducing TI's New SoC/board AM335XEVM
+Date: Mon, 26 Sep 2011 14:51:43 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC9429FC@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1316529142-27564-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <4E801C62.5020700-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: "Hilman, Kevin" <khilman-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48819 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751835Ab1IZJVz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 05:21:55 -0400
+In-Reply-To: <1316529142-27564-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 9/26/2011 8:32 AM, Nayak, Rajendra wrote:
-> Hi Benoit,
->
-> On Saturday 24 September 2011 01:53 AM, Benoit Cousson wrote:
->> Re-cycle the original board-generic file to support Device Tree
->> for every OMAP2+ variants.
->> Note: Since it is a completely new content in the existing file
->> I removed the original copyright.
->>
->> The current approach is an intermediate step before having only
->> one machine descriptor that will use some generic DT aware
->> functions.
->
-> What config does this work with currently? If I use omap2plus_defconfig
-> should I explicitly disable everything other than say CONFIG_ARCH_OMAP4
-> if I want it working on OMAP4?
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Tuesday, September 20, 2011 8:02 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Hilman, Kevin; paul@pwsan.com; tony@atomide.com; linux-arm-
+> kernel@lists.infradead.org; Hiremath, Vaibhav
+> Subject: [PATCH-V3 0/4] Introducing TI's New SoC/board AM335XEVM
+> 
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> This patch set adds support for AM335x device having
+> Cortex-A8 MPU.
+> 
+> AM335X is treated as another OMAP3 variant, where,
+> along with existing cpu class OMAP34XX, new cpu class AM33XX is created
+> and the respective type is AM335X, which is newly added device in the
+> family.
+> This means, cpu_is_omap34xx(), cpu_is_am33xx() and
+> cpu_is_am335x() checks return success for AM335X.
+> 
+> Also, I have validated OMAP3 boot test with this patch-series on OMAP3EVM.
+> 
+> Changes from V1(RFC):
+> 	- Created separate cpu/SoC class for AM33XX family of devices,
+>           due to all known facts. This is been mentioned in main-chain
+>             https://patchwork.kernel.org/patch/1056312/
+> 	- BUG Fix in debug-macro.S, which was leading to build failure.
+> 	    https://patchwork.kernel.org/patch/1056302/
+> 
+> Changes from V2(RFC):
+> 	- Rebased against Paul's OMAP_CHIP* cleanup patches
+> 	  git://git.pwsan.com/linux-2.6 omap_chip_remove_cleanup_3.2
+> 	- Removed dependancy on Hemant's submitted patches for TI814X
+> 	  support, in order to get it upstream.
+> 
+> Afzal Mohammed (4):
+>   arm:omap:am33xx: Update common omap platform files
+>   arm:omap:am33xx: Update common OMAP machine specific sources
+>   arm:omap:am33xx: Create board support and enable build for AM335XEVM
+>   arm:omap:am33xx: Add low level debugging support
+> 
+>  arch/arm/mach-omap2/Kconfig                    |   10 ++++
+>  arch/arm/mach-omap2/Makefile                   |    2 +
+>  arch/arm/mach-omap2/board-am335xevm.c          |   57
+> ++++++++++++++++++++++++
+>  arch/arm/mach-omap2/clock.c                    |    2 +-
+>  arch/arm/mach-omap2/clock.h                    |    2 +-
+>  arch/arm/mach-omap2/clock3xxx_data.c           |    6 ++-
+>  arch/arm/mach-omap2/common.c                   |   16 +++++++
+>  arch/arm/mach-omap2/id.c                       |   10 +++-
+>  arch/arm/mach-omap2/include/mach/debug-macro.S |   22 +++++++++
+>  arch/arm/mach-omap2/io.c                       |   25 ++++++++++
+>  arch/arm/mach-omap2/opp2xxx.h                  |    2 +-
+>  arch/arm/mach-omap2/serial.c                   |    6 +-
+>  arch/arm/plat-omap/include/plat/am33xx.h       |   25 ++++++++++
+>  arch/arm/plat-omap/include/plat/clkdev_omap.h  |    1 +
+>  arch/arm/plat-omap/include/plat/clock.h        |    3 +-
+>  arch/arm/plat-omap/include/plat/common.h       |    1 +
+>  arch/arm/plat-omap/include/plat/cpu.h          |   25 ++++++++++
+>  arch/arm/plat-omap/include/plat/hardware.h     |    1 +
+>  arch/arm/plat-omap/include/plat/io.h           |   20 ++++++++
+>  arch/arm/plat-omap/include/plat/omap34xx.h     |    2 +
+>  arch/arm/plat-omap/include/plat/serial.h       |    4 ++
+>  arch/arm/plat-omap/include/plat/uncompress.h   |    6 +++
+>  arch/arm/plat-omap/io.c                        |    5 ++
+>  23 files changed, 243 insertions(+), 10 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-am335xevm.c
+>  create mode 100644 arch/arm/plat-omap/include/plat/am33xx.h
 
-Nope, in theory, omap2plus_defconfig should work as usual:-)
-If uboot does not provide and dtb, then the legacy board file will be 
-used. If a dtb is present then only the board-generic can match with the 
-DT mechanism.
+Tony,
 
-Regards,
-Benoit
+Any update or comment on this patch-set? 
 
 
->
-> regards,
-> Rajendra
->
->>
->> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
->> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> ---
->>    arch/arm/mach-omap2/Kconfig         |    8 ++-
->>    arch/arm/mach-omap2/board-generic.c |  129 ++++++++++++++++++++++------------
->>    2 files changed, 89 insertions(+), 48 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
->> index 7edf802..5934a27 100644
->> --- a/arch/arm/mach-omap2/Kconfig
->> +++ b/arch/arm/mach-omap2/Kconfig
->> @@ -106,9 +106,13 @@ comment "OMAP Board Type"
->>    	depends on ARCH_OMAP2PLUS
->>
->>    config MACH_OMAP_GENERIC
->> -	bool "Generic OMAP board"
->> -	depends on ARCH_OMAP2
->> +	bool "Generic OMAP2+ board"
->> +	depends on ARCH_OMAP2PLUS
->> +	select USE_OF
->>    	default y
->> +	help
->> +	  Support for generic TI OMAP2+ boards using Flattened Device Tree.
->> +	  More information at Documentation/devicetree
->>
->>    config MACH_OMAP2_TUSB6010
->>    	bool
->> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
->> index e8d45d3..dcbd64c 100644
->> --- a/arch/arm/mach-omap2/board-generic.c
->> +++ b/arch/arm/mach-omap2/board-generic.c
->> @@ -1,76 +1,113 @@
->>    /*
->> - * linux/arch/arm/mach-omap2/board-generic.c
->> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
->>     *
->> - * Copyright (C) 2005 Nokia Corporation
->> - * Author: Paul Mundt<paul.mundt-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
->> - *
->> - * Modified from mach-omap/omap1/board-generic.c
->> - *
->> - * Code for generic OMAP2 board. Should work on many OMAP2 systems where
->> - * the bootloader passes the board-specific data to the kernel.
->> - * Do not put any board specific code to this file; create a new machine
->> - * type if you need custom low-level initializations.
->> + * Support for generic OMAP2+ device tree boards.
->>     *
->>     * This program is free software; you can redistribute it and/or modify
->>     * it under the terms of the GNU General Public License version 2 as
->>     * published by the Free Software Foundation.
->>     */
->>
->> -#include<linux/kernel.h>
->> -#include<linux/init.h>
->> -#include<linux/device.h>
->> +#include<linux/io.h>
->> +#include<linux/of_platform.h>
->> +#include<linux/irqdomain.h>
->>
->>    #include<mach/hardware.h>
->> -#include<asm/mach-types.h>
->>    #include<asm/mach/arch.h>
->> -#include<asm/mach/map.h>
->>
->> -#include<mach/gpio.h>
->> -#include<plat/usb.h>
->>    #include<plat/board.h>
->>    #include<plat/common.h>
->> +#include<mach/omap4-common.h>
->>
->> -static struct omap_board_config_kernel generic_config[] = {
->> +
->> +static struct of_device_id omap_dt_match_table[] __initdata = {
->> +	{ .compatible = "simple-bus", },
->> +	{ .compatible = "ti,omap-infra", },
->> +	{ }
->>    };
->>
->> -static void __init omap_generic_init_early(void)
->> -{
->> -	omap2_init_common_infrastructure();
->> -}
->> +static struct of_device_id intc_match[] __initdata = {
->> +	{ .compatible = "ti,omap3-intc", },
->> +	{ .compatible = "arm,cortex-a9-gic", },
->> +	{ }
->> +};
->>
->>    static void __init omap_generic_init(void)
->>    {
->> +	struct device_node *node = of_find_matching_node(NULL, intc_match);
->> +	if (node)
->> +		irq_domain_add_simple(node, 0);
->> +
->>    	omap_serial_init();
->>    	omap_sdrc_init(NULL, NULL);
->> -	omap_board_config = generic_config;
->> -	omap_board_config_size = ARRAY_SIZE(generic_config);
->> -}
->>
->> -static void __init omap_generic_map_io(void)
->> -{
->> -	if (cpu_is_omap242x()) {
->> -		omap2_set_globals_242x();
->> -		omap242x_map_common_io();
->> -	} else if (cpu_is_omap243x()) {
->> -		omap2_set_globals_243x();
->> -		omap243x_map_common_io();
->> -	} else if (cpu_is_omap34xx()) {
->> -		omap2_set_globals_3xxx();
->> -		omap34xx_map_common_io();
->> -	} else if (cpu_is_omap44xx()) {
->> -		omap2_set_globals_443x();
->> -		omap44xx_map_common_io();
->> -	}
->> +	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
->>    }
->>
->> -/* XXX This machine entry name should be updated */
->> -MACHINE_START(OMAP_GENERIC, "Generic OMAP24xx")
->> -	/* Maintainer: Paul Mundt<paul.mundt-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>   */
->> -	.atag_offset	= 0x100,
->> +#if defined(CONFIG_SOC_OMAP2420)
->> +static const char *omap242x_boards_compat[] __initdata = {
->> +	"ti,omap2420",
->> +	NULL,
->> +};
->> +
->> +DT_MACHINE_START(OMAP242X_DT, "Generic OMAP2420 (Flattened Device Tree)")
->>    	.reserve	= omap_reserve,
->> -	.map_io		= omap_generic_map_io,
->> -	.init_early	= omap_generic_init_early,
->> +	.map_io		= omap242x_map_io,
->> +	.init_early	= omap2420_init_early,
->>    	.init_irq	= omap2_init_irq,
->>    	.init_machine	= omap_generic_init,
->>    	.timer		=&omap2_timer,
->> +	.dt_compat	= omap242x_boards_compat,
->> +MACHINE_END
->> +#endif
->> +
->> +#if defined(CONFIG_SOC_OMAP2430)
->> +static const char *omap243x_boards_compat[] __initdata = {
->> +	"ti,omap2430",
->> +	NULL,
->> +};
->> +
->> +DT_MACHINE_START(OMAP243X_DT, "Generic OMAP2430 (Flattened Device Tree)")
->> +	.reserve	= omap_reserve,
->> +	.map_io		= omap243x_map_io,
->> +	.init_early	= omap2430_init_early,
->> +	.init_irq	= omap2_init_irq,
->> +	.init_machine	= omap_generic_init,
->> +	.timer		=&omap2_timer,
->> +	.dt_compat	= omap243x_boards_compat,
->> +MACHINE_END
->> +#endif
->> +
->> +#if defined(CONFIG_ARCH_OMAP3)
->> +static const char *omap3_boards_compat[] __initdata = {
->> +	"ti,omap3",
->> +	NULL,
->> +};
->> +
->> +DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
->> +	.reserve	= omap_reserve,
->> +	.map_io		= omap3_map_io,
->> +	.init_early	= omap3430_init_early,
->> +	.init_irq	= omap3_init_irq,
->> +	.init_machine	= omap_generic_init,
->> +	.timer		=&omap3_timer,
->> +	.dt_compat	= omap3_boards_compat,
->> +MACHINE_END
->> +#endif
->> +
->> +#if defined(CONFIG_ARCH_OMAP4)
->> +static const char *omap4_boards_compat[] __initdata = {
->> +	"ti,omap4",
->> +	NULL,
->> +};
->> +
->> +DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
->> +	.reserve	= omap_reserve,
->> +	.map_io		= omap4_map_io,
->> +	.init_early	= omap4430_init_early,
->> +	.init_irq	= gic_init_irq,
->> +	.init_machine	= omap_generic_init,
->> +	.timer		=&omap4_timer,
->> +	.dt_compat	= omap4_boards_compat,
->>    MACHINE_END
->> +#endif
->
+Thanks,
+Vaibhav
