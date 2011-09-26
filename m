@@ -1,46 +1,48 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/6 v3] omap: musb: Adding hwmod data for ti81xx
-Date: Mon, 26 Sep 2011 15:21:07 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404ECA545E3@dbde02.ent.ti.com>
-References: <1315576070-7618-1-git-send-email-ajay.gupta@ti.com>
- <1315576070-7618-2-git-send-email-ajay.gupta@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH v3 3/3] OMAP3: Remove auto-selection of PMICs
+Date: Mon, 26 Sep 2011 11:58:48 +0200
+Message-ID: <20110926095848.GF32263@sortiz-mobl>
+References: <1316698155-954-1-git-send-email-abhilash.kv@ti.com>
+ <1316698155-954-2-git-send-email-abhilash.kv@ti.com>
+ <1316698155-954-3-git-send-email-abhilash.kv@ti.com>
+ <1316698155-954-4-git-send-email-abhilash.kv@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1315576070-7618-2-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1316698155-954-4-git-send-email-abhilash.kv@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Abhilash K V <abhilash.kv@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, santosh.shilimkar@ti.com, premi@ti.com, david.woodhouse@intel.com, christian.gmeiner@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-> To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Balbi, Felipe; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; B, Ravi;
-> Cousson, Benoit; Gupta, Ajay Kumar 
-> Subject: [PATCH 1/6 v3] omap: musb: Adding hwmod data for ti81xx
+Hi Abhilash,
 
-Felipe,
-I am planning to send patch 1/6 along with next revision of ti81xx
-hwmod baseport patch from Hemant so that all hwmod data gets reviewed
-at one place.
-
-So now only rest 5 (2/6 to 6/6) patches needs to be queued for usb.
-
-I hope this will be fine with you. Let me know if you want me to post
-Same 5 patches separately.
-
-Ajay
-
+On Thu, Sep 22, 2011 at 06:59:15PM +0530, Abhilash K V wrote:
+> The current implementation almost assumes that only
+> TWL4030/TWL5030/TWl6030 are (or can be) used with the
+> OMAP processors. This is, however, not true.
 > 
-> From: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
-[...]
+> This patch removes the automatic selection of the PMIC
+> from Kconfig.
+> All currently used PMICs are now added to omap2plus_defconfig;
+> any new PMIC that gets supported in future could now be
+> enabled here rather than by changing Kconfig for
+> ARCH_OMAP2PLUS_TYPICAL
 > 
-> --
-> 1.6.2.4
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+> ---
+>  arch/arm/configs/omap2plus_defconfig |    3 +++
+>  arch/arm/mach-omap2/Kconfig          |    3 ---
+>  drivers/mfd/Kconfig                  |    2 +-
+Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+for the MFD part.
+
+Cheers,
+Samuel.
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
