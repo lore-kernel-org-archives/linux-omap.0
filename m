@@ -1,48 +1,58 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH v3 3/3] OMAP3: Remove auto-selection of PMICs
-Date: Mon, 26 Sep 2011 11:58:48 +0200
-Message-ID: <20110926095848.GF32263@sortiz-mobl>
-References: <1316698155-954-1-git-send-email-abhilash.kv@ti.com>
- <1316698155-954-2-git-send-email-abhilash.kv@ti.com>
- <1316698155-954-3-git-send-email-abhilash.kv@ti.com>
- <1316698155-954-4-git-send-email-abhilash.kv@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 2/3] arm: omap: am335x: enable phy controls
+Date: Mon, 26 Sep 2011 15:33:12 +0530
+Message-ID: <1317031393-9333-2-git-send-email-ajay.gupta@ti.com>
+References: <1317031393-9333-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1316698155-954-4-git-send-email-abhilash.kv@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Abhilash K V <abhilash.kv@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com, santosh.shilimkar@ti.com, premi@ti.com, david.woodhouse@intel.com, christian.gmeiner@gmail.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57700 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752927Ab1IZKDT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Sep 2011 06:03:19 -0400
+In-Reply-To: <1317031393-9333-1-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, balbi@ti.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Hi Abhilash,
+Switch on the phy for am335x.
 
-On Thu, Sep 22, 2011 at 06:59:15PM +0530, Abhilash K V wrote:
-> The current implementation almost assumes that only
-> TWL4030/TWL5030/TWl6030 are (or can be) used with the
-> OMAP processors. This is, however, not true.
-> 
-> This patch removes the automatic selection of the PMIC
-> from Kconfig.
-> All currently used PMICs are now added to omap2plus_defconfig;
-> any new PMIC that gets supported in future could now be
-> enabled here rather than by changing Kconfig for
-> ARCH_OMAP2PLUS_TYPICAL
-> 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
-> ---
->  arch/arm/configs/omap2plus_defconfig |    3 +++
->  arch/arm/mach-omap2/Kconfig          |    3 ---
->  drivers/mfd/Kconfig                  |    2 +-
-Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ arch/arm/mach-omap2/omap_phy_internal.c |   15 +++++++++------
+ 1 files changed, 9 insertions(+), 6 deletions(-)
 
-for the MFD part.
-
-Cheers,
-Samuel.
-
+diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
+index d5e8497..ce616a1 100644
+--- a/arch/arm/mach-omap2/omap_phy_internal.c
++++ b/arch/arm/mach-omap2/omap_phy_internal.c
+@@ -269,16 +269,19 @@ void ti81xx_musb_phy_power(u8 on)
+ 		if (cpu_is_ti816x()) {
+ 			usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
+ 			usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
+-		} else if (cpu_is_ti814x()) {
+-			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN
+-				| USBPHY_DPINPUT | USBPHY_DMINPUT);
+-			usbphycfg |= (USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN
+-				| USBPHY_DPOPBUFCTL | USBPHY_DMOPBUFCTL);
++		} else if (cpu_is_ti814x() || cpu_is_am335x()) {
++			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN);
++			usbphycfg |= USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN;
++			if (cpu_is_ti814x()) {
++				usbphycfg &= ~(USBPHY_DPINPUT | USBPHY_DMINPUT);
++				usbphycfg |= USBPHY_DPOPBUFCTL
++					| USBPHY_DMOPBUFCTL;
++			}
+ 		}
+ 	} else {
+ 		if (cpu_is_ti816x())
+ 			usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
+-		else if (cpu_is_ti814x())
++		else if (cpu_is_ti814x() || cpu_is_am335x())
+ 			usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
+ 
+ 	}
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+1.6.2.4
+
