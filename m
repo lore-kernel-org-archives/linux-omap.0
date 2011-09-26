@@ -1,53 +1,50 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 5/5] OMAP_VOUT: Don't trigger updates in omap_vout_probe
-Date: Mon, 26 Sep 2011 12:12:10 +0530
-Message-ID: <1317019330-4090-6-git-send-email-archit@ti.com>
-References: <1317019330-4090-1-git-send-email-archit@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: [PATCH resend 00/13] McBSP cleanup and generalization
+Date: Mon, 26 Sep 2011 10:45:36 +0300
+Message-ID: <1317023150-6730-1-git-send-email-jarkko.nikula@bitmer.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47173 "EHLO comal.ext.ti.com"
+Received: from bitmer.com ([213.157.87.50]:48995 "EHLO bitmer.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751189Ab1IZGm0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Sep 2011 02:42:26 -0400
-In-Reply-To: <1317019330-4090-1-git-send-email-archit@ti.com>
+	id S1751149Ab1IZHqK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Sep 2011 03:46:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, sumit.semwal@ti.com, linux-media@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Remove the code in omap_vout_probe() which calls display->driver->update() for
-all the displays. This isn't correct because:
+This is just resend of patches 2-14/14 I posted earlier:
 
-- An update in probe doesn't make sense, because we don't have any valid content
-  to show at this time.
-- Calling update for a panel which isn't enabled is not supported by DSS2. This
-  leads to a crash at probe.
+http://marc.info/?l=linux-omap&m=131480421332374&w=2
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/video/omap/omap_vout.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
+Patch 1/14 is already in linux-omap, Acked-by from Peter added and I
+took freedom to thank Janusz by adding Tested-by line as he tested the
+set on OMAP1.
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index df0713c..5473601 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -2221,14 +2221,6 @@ static int __init omap_vout_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto probe_err2;
- 
--	for (i = 0; i < vid_dev->num_displays; i++) {
--		struct omap_dss_device *display = vid_dev->displays[i];
--
--		if (display->driver->update)
--			display->driver->update(display, 0, 0,
--					display->panel.timings.x_res,
--					display->panel.timings.y_res);
--	}
- 	return 0;
- 
- probe_err2:
+Jarkko Nikula (13):
+  omap: mcbsp: Remove unused variables from platform data
+  omap: mcbsp: Move out omap_mcbsp_register_board_cfg from
+    plat-omap/devices.c
+  omap: mcbsp: Implement generic register access
+  omap: mcbsp: Make wakeup control generic
+  omap: mcbsp: Make tranceiver configuration control register access
+    generic
+  omap: mcbsp: Make threshold based transfer code generic
+  omap: mcbsp: Use per instance register cache size
+  omap: mcbsp: Move sidetone clock management to mach-omap2/mcbsp.c
+  omap: mcbsp: Cleanup sidetone control initialization and make it
+    generic
+  omap: mcbsp: Update mcbsp.h include dependencies
+  omap: mcbsp: Move address definitions to arch/arm/mach-omap1/mcbsp.c
+  omap: mcbsp: Start generalize omap2_mcbsp_set_clks_src
+  omap: mcbsp: Start generalize signal muxing functions
+
+ arch/arm/mach-omap1/mcbsp.c             |   45 ++++
+ arch/arm/mach-omap2/mcbsp.c             |  103 ++++++---
+ arch/arm/plat-omap/devices.c            |   46 ----
+ arch/arm/plat-omap/include/plat/mcbsp.h |  208 ++++++------------
+ arch/arm/plat-omap/mcbsp.c              |  358 ++++++++++++++-----------------
+ 5 files changed, 342 insertions(+), 418 deletions(-)
+
 -- 
-1.7.1
+1.7.6.3
 
