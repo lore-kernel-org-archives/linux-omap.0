@@ -1,55 +1,73 @@
 From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/3] usb: musb: enable support for am335x
-Date: Mon, 26 Sep 2011 15:33:13 +0530
-Message-ID: <1317031393-9333-3-git-send-email-ajay.gupta@ti.com>
-References: <1317031393-9333-1-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH 1/3] am335xevm: Add support for musb interface
+Date: Mon, 26 Sep 2011 15:33:11 +0530
+Message-ID: <1317031393-9333-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1317031393-9333-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Enabled the flag so that musb_dsps glue file can be used for am335x
+Adding musb support in am335x EVM board file.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/musb/Kconfig |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+These three patches are dependent on my patch set on musb support
+for ti81xx recently at [1] and am33xx base port patches from
+Vaibhav Hiremath at [2].
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index d6abdec..4e21aee 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -8,7 +8,7 @@ config USB_MUSB_HDRC
- 	depends on USB && USB_GADGET
- 	depends on (ARM || (BF54x && !BF544) || (BF52x && !BF522 && !BF523))
- 	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM || BLACKFIN)
--	select NOP_USB_XCEIV if SOC_OMAPTI81XX
-+	select NOP_USB_XCEIV if (SOC_OMAPTI81XX || SOC_OMAPAM33XX)
- 	select TWL4030_USB if MACH_OMAP_3430SDP
- 	select TWL6030_USB if MACH_OMAP_4430SDP || MACH_OMAP4_PANDA
- 	select USB_OTG_UTILS
-@@ -57,7 +57,7 @@ config USB_MUSB_AM35X
+[1] http://marc.info/?l=linux-omap&m=131557610318645&w=2
+[2] http://marc.info/?l=linux-omap&m=131652916305543&w=2
+
+musb interface on am33xx is exactly same as ti81xx platform and so uses
+same glue driver as is.
+
+ arch/arm/mach-omap2/board-am335xevm.c |    9 +++++++++
+ arch/arm/mach-omap2/usb-musb.c        |    2 +-
+ 2 files changed, 10 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
+index a4102ef..298dc51 100644
+--- a/arch/arm/mach-omap2/board-am335xevm.c
++++ b/arch/arm/mach-omap2/board-am335xevm.c
+@@ -24,6 +24,14 @@
+ #include <plat/irqs.h>
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/usb.h>
++
++static struct omap_musb_board_data musb_board_data = {
++	.set_phy_power	= ti81xx_musb_phy_power,
++	.interface_type	= MUSB_INTERFACE_ULPI,
++	.mode           = MUSB_OTG,
++	.power		= 500,
++};
  
- config USB_MUSB_DSPS
- 	tristate "TI DSPS platforms"
--	depends on SOC_OMAPTI81XX
-+	depends on (SOC_OMAPTI81XX || SOC_OMAPAM33XX)
+ #include "mux.h"
  
- config USB_MUSB_BLACKFIN
- 	tristate "Blackfin"
-@@ -73,7 +73,7 @@ config MUSB_PIO_ONLY
- 	bool 'Disable DMA (always use PIO)'
- 	depends on USB_MUSB_HDRC
- 	default USB_MUSB_TUSB6010 || USB_MUSB_DA8XX || USB_MUSB_AM35X
--	default SOC_OMAPTI81XX
-+	default SOC_OMAPTI81XX || SOC_OMAPAM33XX
- 	help
- 	  All data is copied between memory and FIFO by the CPU.
- 	  DMA controllers are ignored.
+@@ -73,6 +81,7 @@ static void __init am335x_evm_init(void)
+ 	omap_sdrc_init(NULL, NULL);
+ 	omap_board_config = am335x_evm_config;
+ 	omap_board_config_size = ARRAY_SIZE(am335x_evm_config);
++	usb_musb_init(&musb_board_data);
+ }
+ 
+ static void __init am335x_evm_map_io(void)
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 4ad8e0e..cfc1443 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -143,7 +143,7 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+ 	if (cpu_is_omap3517() || cpu_is_omap3505()) {
+ 		oh_name = "am35x_otg_hs";
+ 		name = "musb-am35x";
+-	} else if (cpu_is_ti81xx()) {
++	} else if (cpu_is_ti81xx() || cpu_is_am335x()) {
+ 		musb_config.multipoint = 0;
+ 		oh_name = "usb_otg_hs";
+ 		name = "musb-ti81xx";
 -- 
 1.6.2.4
 
