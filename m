@@ -1,36 +1,42 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v3 0/2] OMAP: omap_device: Add a method to build an omap_device from a DT node
-Date: Mon, 26 Sep 2011 15:38:58 -0700
-Message-ID: <8762kf9bel.fsf@ti.com>
-References: <1316724745-24896-1-git-send-email-b-cousson@ti.com>
+Subject: Re: [RFC 2/5] ARM: OMAP: omap_device: add a method to set iommu private archdata
+Date: Mon, 26 Sep 2011 15:53:22 -0700
+Message-ID: <87sjni9aql.fsf@ti.com>
+References: <1316948337-7924-1-git-send-email-ohad@wizery.com>
+	<1316948337-7924-3-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:58689 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752274Ab1IZWjF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Sep 2011 18:39:05 -0400
-Received: by mail-gy0-f182.google.com with SMTP id 2so7286685gyf.27
-        for <linux-omap@vger.kernel.org>; Mon, 26 Sep 2011 15:39:02 -0700 (PDT)
-In-Reply-To: <1316724745-24896-1-git-send-email-b-cousson@ti.com> (Benoit
-	Cousson's message of "Thu, 22 Sep 2011 22:52:23 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1316948337-7924-3-git-send-email-ohad@wizery.com> (Ohad
+	Ben-Cohen's message of "Sun, 25 Sep 2011 13:58:54 +0300")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Cousson Benoit <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Benoit,
+Hi Ohad,
 
-Benoit Cousson <b-cousson@ti.com> writes:
+Ohad Ben-Cohen <ohad@wizery.com> writes:
 
-> This is the updated version of the initial series that introduced a
-> notifier in order to create an omap_device from a platform_device bound
-> to DT node as suggested by Grant.
+> Make it possible to set an iommu private archdata before a newly-created
+> omap device is registered.
+>
+> Binding iommu client devices with their respective iommu data this way
+> is needed so the generic IOMMU API can later be used without employing
+> any omap-specific IOMMU plumbing.
+>
+> This patch just crudely adds an omap_device_build_ss_ext() method which
+> accepts an iommu private data, but we may actually want to do something
+> more generic here: e.g., split the omap_device_build API to alloc+add
+> methods, so users can just manipulate the device as needed before it is
+> registered (very much like we can do with plain devices).
 
-This series looks good to me.
+Yes indeed.  
 
-Barring any final comments (Grant?), I'll be queueing this for 3.2 in my
-omap_device queue on top of your previous cleanup series.
+Benoit did just this in preparation for DT. 
+
+       http://marc.info/?l=linux-omap&m=131672480111927&w=2
+
+Will that meet your needs?
 
 Kevin
