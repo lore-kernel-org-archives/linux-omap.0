@@ -1,87 +1,234 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v7 04/26] gpio/omap: fix pwrdm_post_transition call sequence
-Date: Mon, 26 Sep 2011 16:15:52 -0700
-Message-ID: <87ty7y7v4n.fsf@ti.com>
-References: <1315918979-26173-1-git-send-email-tarun.kanti@ti.com>
-	<1315918979-26173-5-git-send-email-tarun.kanti@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: OMAP2+: Use SoC specifc map_io
+Date: Mon, 26 Sep 2011 16:16:46 -0700
+Message-ID: <20110926231646.GJ6324@atomide.com>
+References: <1316809399-19579-1-git-send-email-b-cousson@ti.com>
+ <1316809399-19579-2-git-send-email-b-cousson@ti.com>
+ <20110923230049.GC6324@atomide.com>
+ <20110926231516.GI6324@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:55587 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752701Ab1IZXP6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Sep 2011 19:15:58 -0400
-Received: by mail-yi0-f50.google.com with SMTP id 25so4815817yib.9
-        for <linux-omap@vger.kernel.org>; Mon, 26 Sep 2011 16:15:57 -0700 (PDT)
-In-Reply-To: <1315918979-26173-5-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Tue, 13 Sep 2011 18:32:37 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11821 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752627Ab1IZXQv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 19:16:51 -0400
+Content-Disposition: inline
+In-Reply-To: <20110926231516.GI6324@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: grant.likely@secretlab.ca, paul@pwsan.com, khilman@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+There's no longer any need for the board specific
+map_io.
 
-> From: Charulatha V <charu@ti.com>
->
-> The context lost count is modified in omap_sram_idle() path when
-> pwrdm_post_transition() is called. But pwrdm_post_transition() is called
-> only after omap_gpio_resume_after_idle() is called. Correct this so that
-> context lost count is modified before calling omap_gpio_resume_after_idle().
->
-> This would be useful when OMAP GPIO save/restore context is called by
-> the OMAP GPIO driver itself.
->
-> Signed-off-by: Charulatha V <charu@ti.com>
-> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-This one isn't directly related to the GPIO cleanup, so I'll pull it out
-and add it to my PM cleanup queue for v3.2, adding Tony's ack.
-
-I'll also change the subject prefix to: ARM: OMAP3: PM: ...
-
-Kevin
-
-> ---
->  arch/arm/mach-omap2/pm34xx.c |    7 ++++---
->  1 files changed, 4 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 7255d9b..1915050 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -363,7 +363,6 @@ void omap_sram_idle(void)
->  		printk(KERN_ERR "Invalid mpu state in sram_idle\n");
->  		return;
->  	}
-> -	pwrdm_pre_transition();
->  
->  	/* NEON control */
->  	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
-> @@ -386,6 +385,8 @@ void omap_sram_idle(void)
->  			if (!console_trylock())
->  				goto console_still_active;
->  
-> +	pwrdm_pre_transition();
-> +
->  	/* PER */
->  	if (per_next_state < PWRDM_POWER_ON) {
->  		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
-> @@ -455,6 +456,8 @@ void omap_sram_idle(void)
->  	}
->  	omap3_intc_resume_idle();
->  
-> +	pwrdm_post_transition();
-> +
->  	/* PER */
->  	if (per_next_state < PWRDM_POWER_ON) {
->  		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
-> @@ -478,8 +481,6 @@ console_still_active:
->  		omap3_disable_io_chain();
->  	}
->  
-> -	pwrdm_post_transition();
-> -
->  	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
->  }
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 618216c..45dafe2 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -243,17 +243,11 @@ static void __init omap_2430sdp_init(void)
+ 			 "Secondary LCD backlight");
+ }
+ 
+-static void __init omap_2430sdp_map_io(void)
+-{
+-	omap2_set_globals_243x();
+-	omap243x_map_common_io();
+-}
+-
+ MACHINE_START(OMAP_2430SDP, "OMAP2430 sdp2430 board")
+ 	/* Maintainer: Syed Khasim - Texas Instruments Inc */
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+-	.map_io		= omap_2430sdp_map_io,
++	.map_io		= omap243x_map_io,
+ 	.init_early	= omap2430_init_early,
+ 	.init_irq	= omap2_init_irq,
+ 	.init_machine	= omap_2430sdp_init,
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index ab19d30..44a3e2c 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -825,17 +825,11 @@ static void __init omap_4430sdp_init(void)
+ 	omap_4430sdp_display_init();
+ }
+ 
+-static void __init omap_4430sdp_map_io(void)
+-{
+-	omap2_set_globals_443x();
+-	omap44xx_map_common_io();
+-}
+-
+ MACHINE_START(OMAP_4430SDP, "OMAP4430 4430SDP board")
+ 	/* Maintainer: Santosh Shilimkar - Texas Instruments Inc */
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+-	.map_io		= omap_4430sdp_map_io,
++	.map_io		= omap4_map_io,
+ 	.init_early	= omap4430_init_early,
+ 	.init_irq	= gic_init_irq,
+ 	.init_machine	= omap_4430sdp_init,
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index cf546f8..8528436 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -337,17 +337,11 @@ static void __init omap_apollon_init(void)
+ 	omap_sdrc_init(NULL, NULL);
+ }
+ 
+-static void __init omap_apollon_map_io(void)
+-{
+-	omap2_set_globals_242x();
+-	omap242x_map_common_io();
+-}
+-
+ MACHINE_START(OMAP_APOLLON, "OMAP24xx Apollon")
+ 	/* Maintainer: Kyungmin Park <kyungmin.park@samsung.com> */
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+-	.map_io		= omap_apollon_map_io,
++	.map_io		= omap242x_map_io,
+ 	.init_early	= omap2420_init_early,
+ 	.init_irq	= omap2_init_irq,
+ 	.init_machine	= omap_apollon_init,
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 948fde0..fcc5107 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -369,17 +369,11 @@ static void __init omap_h4_init(void)
+ 	h4_init_flash();
+ }
+ 
+-static void __init omap_h4_map_io(void)
+-{
+-	omap2_set_globals_242x();
+-	omap242x_map_common_io();
+-}
+-
+ MACHINE_START(OMAP_H4, "OMAP2420 H4 board")
+ 	/* Maintainer: Paul Mundt <paul.mundt@nokia.com> */
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+-	.map_io		= omap_h4_map_io,
++	.map_io		= omap242x_map_io,
+ 	.init_early	= omap2420_init_early,
+ 	.init_irq	= omap_h4_init_irq,
+ 	.init_machine	= omap_h4_init,
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index 77a4e19..d1f4a02 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -616,12 +616,6 @@ static struct i2c_board_info n810_i2c_board_info_2[] __initdata = {
+ 	},
+ };
+ 
+-static void __init n8x0_map_io(void)
+-{
+-	omap2_set_globals_242x();
+-	omap242x_map_common_io();
+-}
+-
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	/* I2S codec port pins for McBSP block */
+@@ -692,7 +686,7 @@ static void __init n8x0_init_machine(void)
+ MACHINE_START(NOKIA_N800, "Nokia N800")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+-	.map_io		= n8x0_map_io,
++	.map_io		= omap242x_map_io,
+ 	.init_early	= omap2420_init_early,
+ 	.init_irq	= omap2_init_irq,
+ 	.init_machine	= n8x0_init_machine,
+@@ -702,7 +696,7 @@ MACHINE_END
+ MACHINE_START(NOKIA_N810, "Nokia N810")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+-	.map_io		= n8x0_map_io,
++	.map_io		= omap242x_map_io,
+ 	.init_early	= omap2420_init_early,
+ 	.init_irq	= omap2_init_irq,
+ 	.init_machine	= n8x0_init_machine,
+@@ -712,7 +706,7 @@ MACHINE_END
+ MACHINE_START(NOKIA_N810_WIMAX, "Nokia N810 WiMAX")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+-	.map_io		= n8x0_map_io,
++	.map_io		= omap242x_map_io,
+ 	.init_early	= omap2420_init_early,
+ 	.init_irq	= omap2_init_irq,
+ 	.init_machine	= n8x0_init_machine,
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 1bce765..e269290 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -570,17 +570,11 @@ static void __init omap4_panda_init(void)
+ 	omap4_panda_display_init();
+ }
+ 
+-static void __init omap4_panda_map_io(void)
+-{
+-	omap2_set_globals_443x();
+-	omap44xx_map_common_io();
+-}
+-
+ MACHINE_START(OMAP4_PANDA, "OMAP4 Panda board")
+ 	/* Maintainer: David Anders - Texas Instruments Inc */
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+-	.map_io		= omap4_panda_map_io,
++	.map_io		= omap4_map_io,
+ 	.init_early	= omap4430_init_early,
+ 	.init_irq	= gic_init_irq,
+ 	.init_machine	= omap4_panda_init,
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index a3182e8..a98db61 100644
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ b/arch/arm/mach-omap2/board-rm680.c
+@@ -143,16 +143,10 @@ static void __init rm680_init(void)
+ 	rm680_peripherals_init();
+ }
+ 
+-static void __init rm680_map_io(void)
+-{
+-	omap2_set_globals_3xxx();
+-	omap34xx_map_common_io();
+-}
+-
+ MACHINE_START(NOKIA_RM680, "Nokia RM-680 board")
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= omap_reserve,
+-	.map_io		= rm680_map_io,
++	.map_io		= omap3_map_io,
+ 	.init_early	= omap3630_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= rm680_init,
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 32a79e2..8677a06 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -139,12 +139,6 @@ static void __init rx51_init(void)
+ 	platform_device_register(&leds_gpio);
+ }
+ 
+-static void __init rx51_map_io(void)
+-{
+-	omap2_set_globals_3xxx();
+-	omap34xx_map_common_io();
+-}
+-
+ static void __init rx51_reserve(void)
+ {
+ 	rx51_video_mem_init();
+@@ -155,7 +149,7 @@ MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
+ 	/* Maintainer: Lauri Leukkunen <lauri.leukkunen@nokia.com> */
+ 	.boot_params	= 0x80000100,
+ 	.reserve	= rx51_reserve,
+-	.map_io		= rx51_map_io,
++	.map_io		= omap3_map_io,
+ 	.init_early	= omap3430_init_early,
+ 	.init_irq	= omap3_init_irq,
+ 	.init_machine	= rx51_init,
