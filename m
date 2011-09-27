@@ -1,36 +1,72 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v3 0/6] OMAP: omap_device cleanup before device-tree integration
-Date: Tue, 27 Sep 2011 14:32:32 -0700
-Message-ID: <87pqily8lr.fsf@ti.com>
-References: <1317143886-13285-1-git-send-email-b-cousson@ti.com>
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+Date: Tue, 27 Sep 2011 19:31:32 -0300
+Message-ID: <4E824EC4.20305@infradead.org>
+References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com> <201109081921.28051.laurent.pinchart@ideasonboard.com> <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com> <201109161506.16505.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404EC8113E2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:47111 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753683Ab1I0Vcg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Sep 2011 17:32:36 -0400
-Received: by mail-yi0-f53.google.com with SMTP id 21so8203709yie.40
-        for <linux-omap@vger.kernel.org>; Tue, 27 Sep 2011 14:32:36 -0700 (PDT)
-In-Reply-To: <1317143886-13285-1-git-send-email-b-cousson@ti.com> (Benoit
-	Cousson's message of "Tue, 27 Sep 2011 19:18:00 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC8113E2@dbde02.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Ravi, Deepthy" <deepthy.ravi@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Benoit Cousson <b-cousson@ti.com> writes:
+Em 19-09-2011 12:31, Hiremath, Vaibhav escreveu:
+> 
+>> -----Original Message-----
+>> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+>> Sent: Friday, September 16, 2011 6:36 PM
+>> To: Ravi, Deepthy
+>> Cc: linux-media@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk;
+>> linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+>> kernel@vger.kernel.org; mchehab@infradead.org; g.liakhovetski@gmx.de;
+>> Hiremath, Vaibhav
+>> Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+>>
+>> Hi Deepthy,
+>>
+>> On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
+>>> On Thursday, September 08, 2011 10:51 PM Laurent Pinchart wrote:
+>>>> On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
+>>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>>>>>
+>>>>> In order to support TVP5146 (for that matter any video decoder),
+>>>>> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
+>>>>> device node.
+>>>>
+>>>> Why so ? Shouldn't it be queried on the subdev output pad directly ?
+>>>
+>>> Because standard v4l2 application for analog devices will call these std
+>>> ioctls on the streaming device node. So it's done on /dev/video to make
+>> the
+>>> existing apllication work.
+>>
+>> Existing applications can't work with the OMAP3 ISP (and similar complex
+>> embedded devices) without userspace support anyway, either in the form of
+>> a
+>> GStreamer element or a libv4l plugin. I still believe that analog video
+>> standard operations should be added to the subdev pad operations and
+>> exposed
+>> through subdev device nodes, exactly as done with formats.
+>>
+> [Hiremath, Vaibhav] Laurent,
+> 
+> I completely agree with your point that, existing application will not work without setting links properly.
+> But I believe the assumption here is, media-controller should set the links (along with pad formants) and 
+> all existing application should work as is. Isn't it?
 
-> Hi Kevin,
->
-> Here are a couple of cleanups on top of your for_3.2/omap_device branch.
->
-> patches are available here:
-> git://gitorious.org/omap-pm/linux.git for_3.2/1_omap_device_cleanup
+Yes.
 
-Thanks, this series looks good now.  Queuing for v3.2 here:
+> The way it is being done currently is, set the format at the pad level which is same as analog standard resolution and use existing application for streaming...
 
-   git://github.com/khilman/linux-omap-pm.git for_3.2/omap_device-2
+Yes.
 
-Kevin
+> I am ok, if we add s/g/enum_std api support at sub-dev level but this should also be supported on streaming device node.
+
+Agreed. Standards selection should be done at device node, just like any other
+device.
+
+Regards,
+Mauro
