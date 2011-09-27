@@ -1,43 +1,105 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 9/9] regulator: map consumer regulator based on device
- tree
-Date: Tue, 27 Sep 2011 13:23:57 +0100
-Message-ID: <20110927122357.GF4289@opensource.wolfsonmicro.com>
-References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
- <1317118372-17052-10-git-send-email-rnayak@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 1/6] iommu/core: split mapping to page sizes as
+ supported by the hardware
+Date: Tue, 27 Sep 2011 15:26:29 +0300
+Message-ID: <CAK=WgbahwY+7Ux-RjW2Tw9WBSwZnYuTMZ2NQASWyOXQ3zF6qFg@mail.gmail.com>
+References: <1316195506-9777-1-git-send-email-ohad@wizery.com>
+ <1316195506-9777-2-git-send-email-ohad@wizery.com> <20110927100505.GH2138@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:55813 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753812Ab1I0MX7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Sep 2011 08:23:59 -0400
-Content-Disposition: inline
-In-Reply-To: <1317118372-17052-10-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <20110927100505.GH2138@amd.com>
+Sender: kvm-owner@vger.kernel.org
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stepan Moskovchenko <stepanm@codeaurora.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org
 
-On Tue, Sep 27, 2011 at 03:42:52PM +0530, Rajendra Nayak wrote:
-> Look up the regulator for a given consumer from device tree, during
-> a regulator_get(). If not found fallback and lookup through
-> the regulator_map_list instead.
+On Tue, Sep 27, 2011 at 1:05 PM, Roedel, Joerg <Joerg.Roedel@amd.com> w=
+rote:
+> On Fri, Sep 16, 2011 at 01:51:41PM -0400, Ohad Ben-Cohen wrote:
+>> =A0int iommu_map(struct iommu_domain *domain, unsigned long iova,
+>> - =A0 =A0 =A0 =A0 =A0 =A0 phys_addr_t paddr, int gfp_order, int prot=
+)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 phys_addr_t paddr, size_t size, int prot)
+>> =A0{
+>> - =A0 =A0 =A0 size_t size;
+>> + =A0 =A0 =A0 int ret =3D 0;
+>> +
+>> + =A0 =A0 =A0 /*
+>> + =A0 =A0 =A0 =A0* both the virtual address and the physical one, as=
+ well as
+>> + =A0 =A0 =A0 =A0* the size of the mapping, must be aligned (at leas=
+t) to the
+>> + =A0 =A0 =A0 =A0* size of the smallest page supported by the hardwa=
+re
+>> + =A0 =A0 =A0 =A0*/
+>> + =A0 =A0 =A0 if (!IS_ALIGNED(iova | paddr | size, iommu_min_pagesz)=
+) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("unaligned: iova 0x%lx pa 0x%lx=
+ size 0x%lx min_pagesz "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "0x%x\n", iova, (unsig=
+ned long)paddr,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (unsigned long)size, i=
+ommu_min_pagesz);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 pr_debug("map: iova 0x%lx pa 0x%lx size 0x%lx\n", iova=
+,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (unsig=
+ned long)paddr, (unsigned long)size);
+>> +
+>> + =A0 =A0 =A0 while (size) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsigned long pgsize =3D iommu_min_pag=
+esz;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsigned long idx =3D iommu_min_page_i=
+dx;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsigned long addr_merge =3D iova | pa=
+ddr;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 int order;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* find the max page size with which i=
+ova, paddr are aligned */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 for (;;) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsigned long try_pgsi=
+ze;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 idx =3D find_next_bit(=
+iommu_pgsize_bitmap,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 iommu_nr_page_bits, idx + 1);
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* no more pages to ch=
+eck ? */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (idx >=3D iommu_nr_=
+page_bits)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 try_pgsize =3D 1 << id=
+x;
+>>
+>> - =A0 =A0 =A0 size =A0 =A0 =A0 =A0 =3D 0x1000UL << gfp_order;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* page too big ? addr=
+esses not aligned ? */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (size < try_pgsize =
+||
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 !IS_ALIGNED(addr_merge, try_pgsize))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>>
+>> - =A0 =A0 =A0 BUG_ON(!IS_ALIGNED(iova | paddr, size));
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pgsize =3D try_pgsize;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>
+> With an unsigned long you can use plain and fast bit_ops instead of t=
+he
+> full bitmap functions.
 
-As with the fixed voltage regulator patch just use the code along with
-adding it, no need to split it just makes it harder to review.
+Not sure I follow; the only bit operation I'm using while mapping is
+find_next_bit() (which is a bitops.h method).
 
-> +	if (dev->of_node) {
-> +		node = of_get_regulator(dev, id);
-> +		if (!node)
-> +			goto retry; /* fallback and chk regulator_map_list */
-> +		list_for_each_entry(rdev, &regulator_list, list)
-> +			if (node == rdev->node)
-> +				goto found;
-> +	}
-> +retry:
+What other faster variant are you referring to ?
 
-retry is a confusing name for the target, we don't ever actually retry
-using it.  Given the simplicity of the code I'd be inclined to just
-intert the if (!node) check.
+Thanks,
+Ohad.
