@@ -1,66 +1,229 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
-Date: Tue, 27 Sep 2011 20:06:29 +0200
-Message-ID: <201109272006.30130.laurent.pinchart@ideasonboard.com>
-References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com> <201109161506.16505.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404EC8113E2@dbde02.ent.ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 2/5] ARM: OMAP: omap_device: add a method to set iommu
+ private archdata
+Date: Tue, 27 Sep 2011 21:09:57 +0300
+Message-ID: <CAK=WgbZhz8LcAYZEY3qqRkX4E_wtspWp09Eq9G=5VdpoMMF1FQ@mail.gmail.com>
+References: <1316948337-7924-1-git-send-email-ohad@wizery.com>
+ <1316948337-7924-3-git-send-email-ohad@wizery.com> <87sjni9aql.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC8113E2@dbde02.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Ravi, Deepthy" <deepthy.ravi@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@infradead.org" <mchehab@infradead.org>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:65278 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751883Ab1I0SKS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Sep 2011 14:10:18 -0400
+In-Reply-To: <87sjni9aql.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Cousson Benoit <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 
-Hi Vaibhav,
+Hi Kevin,
 
-On Monday 19 September 2011 17:31:02 Hiremath, Vaibhav wrote:
-> On Friday, September 16, 2011 6:36 PM Laurent Pinchart wrote:
-> > On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
-> > > On Thursday, September 08, 2011 10:51 PM Laurent Pinchart wrote:
-> > > > On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
-> > > >> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > >> 
-> > > >> In order to support TVP5146 (for that matter any video decoder),
-> > > >> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
-> > > >> device node.
-> > > > 
-> > > > Why so ? Shouldn't it be queried on the subdev output pad directly ?
-> > > 
-> > > Because standard v4l2 application for analog devices will call these
-> > > std ioctls on the streaming device node. So it's done on /dev/video to
-> > > make the existing apllication work.
-> > 
-> > Existing applications can't work with the OMAP3 ISP (and similar complex
-> > embedded devices) without userspace support anyway, either in the form of
-> > a GStreamer element or a libv4l plugin. I still believe that analog video
-> > standard operations should be added to the subdev pad operations and
-> > exposed through subdev device nodes, exactly as done with formats.
-> 
-> I completely agree with your point that, existing application will not work
-> without setting links properly. But I believe the assumption here is,
-> media-controller should set the links (along with pad formants) and all
-> existing application should work as is. Isn't it?
+On Tue, Sep 27, 2011 at 1:53 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Benoit did just this in preparation for DT.
+>
+> =A0 =A0 =A0 http://marc.info/?l=3Dlinux-omap&m=3D131672480111927&w=3D=
+2
+>
+> Will that meet your needs?
 
-The media controller is an API used (among other things) to set the links. You 
-still need to call it from userspace. That won't happen magically. The 
-userspace component that sets up the links and configures the formats, be it a 
-GStreamer element, a libv4l plugin, or something else, can as well setup the 
-standard on the TVP5146 subdev.
+It's almost there, but not entirely.
 
-> The way it is being done currently is, set the format at the pad level
-> which is same as analog standard resolution and use existing application
-> for streaming...
+Benoit's alloc/delete functions focus on the omap_device part, leaving
+the handling of the platform device (allocation and pdata setting) to
+omap_device_build_ss(), which at the same time registers the pdev.
 
-At then end of the OMAP3 ISP pipeline video data has long lost its analog 
-roots. I don't think standards make sense there.
+I'd need to split omap_device_build_ss() into two: an alloc() part
+which does everything but registering the pdev, and a register() part.
+Users will first call alloc(), manually set archdata members, and then
+call the register() part.
 
-> I am ok, if we add s/g/enum_std api support at sub-dev level but this
-> should also be supported on streaming device node.
+Something like this (compile-tested only, based on Benoit's
+for_3.2/4_omap4_dt_early_devices branch):
 
--- 
-Regards,
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap=
+_device.c
+index 0ae9e7f..9b8008c 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -671,7 +671,7 @@ struct platform_device *omap_device_build(const
+char *pdev_name, int pdev_id,
+ }
 
-Laurent Pinchart
+ /**
+- * omap_device_build_ss - build and register an omap_device with
+multiple hwmods
++ * omap_device_alloc_ss - build an omap_device with multiple hwmods
+  * @pdev_name: name of the platform_device driver to use
+  * @pdev_id: this platform_device's connection ID
+  * @oh: ptr to the single omap_hwmod that backs this omap_device
+@@ -679,19 +679,19 @@ struct platform_device *omap_device_build(const
+char *pdev_name, int pdev_id,
+  * @pdata_len: amount of memory pointed to by @pdata
+  * @pm_lats: pointer to a omap_device_pm_latency array for this device
+  * @pm_lats_cnt: ARRAY_SIZE() of @pm_lats
+- * @is_early_device: should the device be registered as an early devic=
+e or not
+  *
+- * Convenience function for building and registering an omap_device
++ * Convenience function for building (only) an omap_device
+  * subsystem record.  Subsystem records consist of multiple
+- * omap_hwmods.  This function in turn builds and registers a
+- * platform_device record.  Returns an ERR_PTR() on error, or passes
+- * along the return value of omap_device_register().
++ * omap_hwmods.  This function in turn builds (but doesn't register) a
++ * platform_device record, so callers can manipulate it (typically by
++ * setting one or more archdata members) before it's registered.
++ * Returns an ERR_PTR() on error, or the allocated pdev on success.
+  */
+-struct platform_device *omap_device_build_ss(const char *pdev_name,
+int pdev_id,
++struct platform_device *omap_device_alloc_ss(const char *pdev_name,
+int pdev_id,
+ 					 struct omap_hwmod **ohs, int oh_cnt,
+ 					 void *pdata, int pdata_len,
+ 					 struct omap_device_pm_latency *pm_lats,
+-					 int pm_lats_cnt, int is_early_device)
++					 int pm_lats_cnt)
+ {
+ 	int ret =3D -ENOMEM;
+ 	struct platform_device *pdev;
+@@ -723,13 +723,6 @@ struct platform_device
+*omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 	if (ret)
+ 		goto odbs_exit2;
+
+-	if (is_early_device)
+-		ret =3D omap_early_device_register(pdev);
+-	else
+-		ret =3D omap_device_register(pdev);
+-	if (ret)
+-		goto odbs_exit2;
+-
+ 	return pdev;
+
+ odbs_exit2:
+@@ -744,6 +737,93 @@ odbs_exit:
+ }
+
+ /**
++ * omap_device_delete_ss - free an omap_device-based platform device
++ * @pdev: platform_device that represents this omap_device
++ *
++ * Convenience function for freeing a platform_device record, which
++ * is based on an omap_device subsystem record.
++ *
++ * Use this function only if @pdev was created using omap_device_alloc=
+_ss(),
++ * most commonly because a subsequent call to omap_device_register_ss(=
+) failed.
++ */
++void omap_device_delete_ss(struct platform_device *pdev)
++{
++	struct omap_device *od =3D to_omap_device(pdev);
++
++	omap_device_delete(od);
++	platform_device_put(pdev);
++}
++
++/**
++ * omap_device_register_ss - register an omap_device-based platform de=
+vice
++ * @pdev: platform_device that represents this omap_device
++ * @is_early_device: should the device be registered as an early devic=
+e or not
++ *
++ * Convenience function for registering a platform_device record, whic=
+h
++ * is based on an omap_device subsystem record, which was created usin=
+g
++ * omap_device_alloc_ss().
++ *
++ * Returns 0 on success, or an appropriate error value otherwise (esse=
+ntially
++ * by returning the value of platform_device_register())
++ */
++int omap_device_register_ss(struct platform_device *pdev, int is_early=
+_device)
++{
++	int ret;
++
++	if (is_early_device)
++		ret =3D omap_early_device_register(pdev);
++	else
++		ret =3D omap_device_register(pdev);
++
++	return ret;
++}
++
++/**
++ * omap_device_build_ss - build and register an omap_device with
+multiple hwmods
++ * @pdev_name: name of the platform_device driver to use
++ * @pdev_id: this platform_device's connection ID
++ * @oh: ptr to the single omap_hwmod that backs this omap_device
++ * @pdata: platform_data ptr to associate with the platform_device
++ * @pdata_len: amount of memory pointed to by @pdata
++ * @pm_lats: pointer to a omap_device_pm_latency array for this device
++ * @pm_lats_cnt: ARRAY_SIZE() of @pm_lats
++ * @is_early_device: should the device be registered as an early devic=
+e or not
++ *
++ * Convenience function for building and registering an omap_device
++ * subsystem record.  Subsystem records consist of multiple
++ * omap_hwmods.  This function in turn builds and registers a
++ * platform_device record.  Returns an ERR_PTR() on error, or passes
++ * along the built pdev on success.
++ */
++struct platform_device *omap_device_build_ss(const char *pdev_name,
+int pdev_id,
++					 struct omap_hwmod **ohs, int oh_cnt,
++					 void *pdata, int pdata_len,
++					 struct omap_device_pm_latency *pm_lats,
++					 int pm_lats_cnt, int is_early_device)
++{
++	struct platform_device *pdev;
++	int ret;
++
++	pdev =3D omap_device_alloc_ss(pdev_name, pdev_id, ohs, oh_cnt, pdata,
++			pdata_len, pm_lats, pm_lats_cnt);
++
++	if (IS_ERR(pdev))
++		goto out;
++
++	ret =3D omap_device_register_ss(pdev, is_early_device);
++	if (ret) {
++		pdev =3D ERR_PTR(ret);
++		goto delete_od;
++	}
++
++	return pdev;
++delete_od:
++	omap_device_delete_ss(pdev);
++out:
++	return pdev;
++}
++
++/**
+  * omap_early_device_register - register an omap_device as an early pl=
+atform
+  * device.
+  * @od: struct omap_device * to register
+
+
+That's the idea; please tell me how you'd like to see this go forward
+(there are at least several personal-taste issues here, e.g., naming:
+now we have two sets of alloc/delete functions which have different
+semantics) and which branch would you like me to base this work off of
+(not sure if Benoit's patches already went into your
+for_3.2/omap_device branch) and I'll respin this patch properly.
+
+Thanks a lot!
+Ohad.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
