@@ -1,80 +1,58 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v7 REPOST 13/24] gpio/omap: use pinctrl offset instead of macro
-Date: Tue, 27 Sep 2011 05:44:09 +0530
-Message-ID: <1317082460-31706-14-git-send-email-tarun.kanti@ti.com>
-References: <1317082460-31706-1-git-send-email-tarun.kanti@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC 1/5] ARM: dev_archdata: add private iommu extension
+Date: Mon, 26 Sep 2011 19:30:01 -0600
+Message-ID: <20110927013001.GA20588@ponder.secretlab.ca>
+References: <1316948337-7924-1-git-send-email-ohad@wizery.com>
+ <1316948337-7924-2-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44138 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753241Ab1I0AOp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 20:14:45 -0400
-In-Reply-To: <1317082460-31706-1-git-send-email-tarun.kanti@ti.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:48088 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149Ab1I0BaF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Sep 2011 21:30:05 -0400
+Content-Disposition: inline
+In-Reply-To: <1316948337-7924-2-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Cousson Benoit <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-From: Charulatha V <charu@ti.com>
+On Sun, Sep 25, 2011 at 01:58:53PM +0300, Ohad Ben-Cohen wrote:
+> Add a private iommu pointer to the ARM-specific arch data in the
+> device struct, which will be used to attach iommu-specific data
+> to devices which require iommu support.
+> 
+> Different iommu implementations (on different platforms) will attach
+> different types of data to this pointer, so 'void *' is currently used
+> (the downside is reduced typesafety).
+> 
+> Note: ia64, x86 and sparc have this exact iommu extension as well, and
+> if others are likely to adopt it too, we might want to consider
+> adding this to the device struct itself directly.
+> 
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> ---
+>  arch/arm/include/asm/device.h |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/include/asm/device.h b/arch/arm/include/asm/device.h
+> index 9f390ce..6615f03 100644
+> --- a/arch/arm/include/asm/device.h
+> +++ b/arch/arm/include/asm/device.h
+> @@ -10,6 +10,9 @@ struct dev_archdata {
+>  #ifdef CONFIG_DMABOUNCE
+>  	struct dmabounce_device_info *dmabounce;
+>  #endif
+> +#ifdef CONFIG_IOMMU_API
+> +	void *iommu; /* private IOMMU data */
+> +#endif
 
-Use regs->pinctrl field instead of using the macro OMAP1510_GPIO_PIN_CONTROL
+Blech.  Oh well.  Not much point in doing something different if x86
+uses a void*.
 
-Signed-off-by: Charulatha V <charu@ti.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap1/gpio15xx.c         |    1 +
- arch/arm/plat-omap/include/plat/gpio.h |    1 +
- drivers/gpio/gpio-omap.c               |    8 +++-----
- 3 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
-index 2adfece..950e467 100644
---- a/arch/arm/mach-omap1/gpio15xx.c
-+++ b/arch/arm/mach-omap1/gpio15xx.c
-@@ -85,6 +85,7 @@ static struct omap_gpio_reg_offs omap15xx_gpio_regs = {
- 	.irqenable	= OMAP1510_GPIO_INT_MASK,
- 	.irqenable_inv	= true,
- 	.irqctrl	= OMAP1510_GPIO_INT_CONTROL,
-+	.pinctrl	= OMAP1510_GPIO_PIN_CONTROL,
- };
- 
- static struct __initdata omap_gpio_platform_data omap15xx_gpio_config = {
-diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
-index 92a6262..a4e5ef3 100644
---- a/arch/arm/plat-omap/include/plat/gpio.h
-+++ b/arch/arm/plat-omap/include/plat/gpio.h
-@@ -198,6 +198,7 @@ struct omap_gpio_reg_offs {
- 	u16 irqctrl;
- 	u16 edgectrl1;
- 	u16 edgectrl2;
-+	u16 pinctrl;
- 
- 	bool irqenable_inv;
- };
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 2a57d0b..876e387 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -485,15 +485,13 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
- 	 */
- 	_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
- 
--#ifdef CONFIG_ARCH_OMAP15XX
--	if (bank->method == METHOD_GPIO_1510) {
--		void __iomem *reg;
-+	if (bank->regs->pinctrl) {
-+		void __iomem *reg = bank->base + bank->regs->pinctrl;
- 
- 		/* Claim the pin for MPU */
--		reg = bank->base + OMAP1510_GPIO_PIN_CONTROL;
- 		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
- 	}
--#endif
-+
- 	if (bank->regs->ctrl && !bank->mod_usage) {
- 		void __iomem *reg = bank->base + bank->regs->ctrl;
- 		u32 ctrl;
--- 
-1.7.0.4
+g.
 
