@@ -1,58 +1,42 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 8/9] regulator: helper to extract regulator node based on
- supply name
-Date: Tue, 27 Sep 2011 19:59:13 +0100
-Message-ID: <20110927185913.GU4289@opensource.wolfsonmicro.com>
-References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
- <1317118372-17052-9-git-send-email-rnayak@ti.com>
- <20110927122155.GE4289@opensource.wolfsonmicro.com>
- <4E81E281.505@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv5 1/4] regulator: omap smps regulator driver
+Date: Tue, 27 Sep 2011 13:06:35 -0700
+Message-ID: <87bou5zr5g.fsf@ti.com>
+References: <1314803478-15634-1-git-send-email-t-kristo@ti.com>
+	<1314803478-15634-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:42951 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752472Ab1I0S7P (ORCPT
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:47404 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751429Ab1I0UGl (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Sep 2011 14:59:15 -0400
-Content-Disposition: inline
-In-Reply-To: <4E81E281.505@ti.com>
+	Tue, 27 Sep 2011 16:06:41 -0400
+Received: by mail-yx0-f179.google.com with SMTP id 8so5971695yxk.10
+        for <linux-omap@vger.kernel.org>; Tue, 27 Sep 2011 13:06:40 -0700 (PDT)
+In-Reply-To: <1314803478-15634-2-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Wed, 31 Aug 2011 18:11:15 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Todd Poynor <toddpoynor@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Graeme Gregory <gg@slimlogic.co.uk>
 
-On Tue, Sep 27, 2011 at 08:19:37PM +0530, Rajendra Nayak wrote:
-> On Tuesday 27 September 2011 05:51 PM, Mark Brown wrote:
-> >On Tue, Sep 27, 2011 at 03:42:51PM +0530, Rajendra Nayak wrote:
+Tero Kristo <t-kristo@ti.com> writes:
 
-> >>+	if (!dev)
-> >>+		return NULL;
+> OMAP SMPS regulator driver provides access to OMAP voltage processor
+> controlled regulators. These include VDD_MPU and VDD_CORE for OMAP3 and
+> additionally VDD_IVA for OMAP4. SMPS regulators use the OMAP voltage
+> layer for the actual voltage regulation operations.
+>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Todd Poynor <toddpoynor@google.com>
+> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Cc: Liam Girdwood <lrg@ti.com>
+> Cc: Graeme Gregory <gg@slimlogic.co.uk>
 
-> >So how do we handle CPUs?  cpufreq is one of the most active users of
-> >regulators...
+I believe this was already ack'd by Mark.  Have there been any
+significan changes since then?
 
-> Hmm, never thought of it :(
-> Maybe I should associate a supply name with all
-> regulators and then lookup from the global registered
-> list.
-
-I'm not sure how this should work in a device tree world, I'd *hope*
-we'd get a device tree node for the CPU and could then just make this a
-regular consumer thing but then the cpufreq drivers would need to be
-updated to make use of it.  The only reason we allow null devices right
-now is the fact that cpufreq doesn't have a struct device it can use.
-
-> >>+	snprintf(prop_name, 32, "%s-supply", supply);
-> >>+
-> >>+	prop = of_get_property(dev->of_node, prop_name,&sz);
-> >>+	if (!prop || sz<  4)
-> >>+		return NULL;
-
-> >sz<  4?  Magic!  :)
-
-> Its the valid phandle size.
-> I guess I need a sz != 4
-
-I think we need an of_get_phandle(), it'd be clearer what the check is,
-more type safe and would avoid needing to replicate the check.
+Kevin
