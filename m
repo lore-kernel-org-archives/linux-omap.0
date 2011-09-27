@@ -1,276 +1,247 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 2/9] regulator: helper routine to extract regulator_init_data
-Date: Tue, 27 Sep 2011 15:42:45 +0530
-Message-ID: <1317118372-17052-3-git-send-email-rnayak@ti.com>
+Subject: [PATCH 4/9] regulator: twl: Make twl-regulator driver extract data from DT
+Date: Tue, 27 Sep 2011 15:42:47 +0530
+Message-ID: <1317118372-17052-5-git-send-email-rnayak@ti.com>
 References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34764 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42525 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753348Ab1I0KNp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Sep 2011 06:13:45 -0400
+	id S1753352Ab1I0KNq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Sep 2011 06:13:46 -0400
 In-Reply-To: <1317118372-17052-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca
 Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, Rajendra Nayak <rnayak@ti.com>
 
-The helper routine is meant to be used by regulator drivers
-to extract the regulator_init_data structure from the data
-that is passed from device tree.
-'consumer_supplies' which is part of regulator_init_data is not extracted
-as the regulator consumer mappings are passed through DT differently,
-implemented in subsequent patches.
-
-Also add documentation for regulator bindings to be used to pass
-regulator_init_data struct information from device tree.
+Modify the twl regulator driver to extract the regulator_init_data from
+device tree when passed, instead of getting it through platform_data
+structures (on non-DT builds)
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- .../devicetree/bindings/regulator/regulator.txt    |   42 +++++++++
- drivers/regulator/Kconfig                          |    7 ++
- drivers/regulator/Makefile                         |    1 +
- drivers/regulator/of_regulator.c                   |   88 ++++++++++++++++++++
- include/linux/regulator/machine.h                  |   12 ++--
- include/linux/regulator/of_regulator.h             |   21 +++++
- 6 files changed, 165 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/regulator/regulator.txt
- create mode 100644 drivers/regulator/of_regulator.c
- create mode 100644 include/linux/regulator/of_regulator.h
+ drivers/regulator/twl-regulator.c |  117 ++++++++++++++++++++++++-------------
+ 1 files changed, 76 insertions(+), 41 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
-new file mode 100644
-index 0000000..91b8d8f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/regulator/regulator.txt
-@@ -0,0 +1,42 @@
-+Voltage/Current Regulators
-+
-+Optional properties:
-+- regulator-supplies: Names of the regulator supplies
-+- regulator-min-uV: smallest voltage consumers may set
-+- regulator-max-uV: largest voltage consumers may set
-+- regulator-uV-offset: Offset applied to voltages to compensate for voltage drops
-+- regulator-min-uA: smallest current consumers may set
-+- regulator-max-uA: largest current consumers may set
-+- regulator-change-voltage: boolean, Output voltage can be changed by software
-+- regulator-change-current: boolean, Output current can be chnaged by software
-+- regulator-change-mode: boolean, Operating mode can be changed by software
-+- regulator-change-status: boolean, Enable/Disable control for regulator exists
-+- regulator-change-drms: boolean, Dynamic regulator mode switching is enabled
-+- regulator-mode-fast: boolean, allow/set fast mode for the regulator
-+- regulator-mode-normal: boolean, allow/set normal mode for the regulator
-+- regulator-mode-idle: boolean, allow/set idle mode for the regulator
-+- regulator-mode-standby: boolean, allow/set standby mode for the regulator
-+- regulator-input-uV: Input voltage for regulator when supplied by another regulator
-+- regulator-always-on: boolean, regulator should never be disabled
-+- regulator-boot-on: bootloader/firmware enabled regulator
-+
-+Example:
-+
-+	xyzreg: regulator@0 {
-+		regulator-min-uV = <1000000>;
-+		regulator-max-uV = <2500000>;
-+		regulator-mode-fast;
-+		regulator-change-voltage;
-+		regulator-always-on;
-+	};
-+
-+Example of a device node referencing a regulator node:
-+
-+	devicenode: node@0x0 {
-+		...
-+		...
-+		<name>-supply = <&xyzreg>;
-+	};
-+
-+	where <name> is the supply name or regulator id passed
-+	as part of regulator_get(dev, <name>);
-diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index c7fd2c0..2b684aa 100644
---- a/drivers/regulator/Kconfig
-+++ b/drivers/regulator/Kconfig
-@@ -64,6 +64,13 @@ config REGULATOR_USERSPACE_CONSUMER
- 
-           If unsure, say no.
- 
-+config OF_REGULATOR
-+	tristate "OF regulator helpers"
-+	depends on OF
-+	help
-+	  OpenFirmware regulator framework helper routines that can
-+	  used by regulator drivers to extract data from device tree.
-+
- config REGULATOR_BQ24022
- 	tristate "TI bq24022 Dual Input 1-Cell Li-Ion Charger IC"
- 	help
-diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-index 040d5aa..e6bc009 100644
---- a/drivers/regulator/Makefile
-+++ b/drivers/regulator/Makefile
-@@ -7,6 +7,7 @@ obj-$(CONFIG_REGULATOR) += core.o dummy.o
- obj-$(CONFIG_REGULATOR_FIXED_VOLTAGE) += fixed.o
- obj-$(CONFIG_REGULATOR_VIRTUAL_CONSUMER) += virtual.o
- obj-$(CONFIG_REGULATOR_USERSPACE_CONSUMER) += userspace-consumer.o
-+obj-$(CONFIG_OF_REGULATOR) += of_regulator.o
- 
- obj-$(CONFIG_REGULATOR_AD5398) += ad5398.o
- obj-$(CONFIG_REGULATOR_BQ24022) += bq24022.o
-diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
-new file mode 100644
-index 0000000..7fa63ff
---- /dev/null
-+++ b/drivers/regulator/of_regulator.c
-@@ -0,0 +1,88 @@
-+/*
-+ * OF helpers for regulator framework
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Rajendra Nayak <rnayak@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/slab.h>
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index f696287..ddb5ad1 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -14,8 +14,10 @@
+ #include <linux/err.h>
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
 +#include <linux/of.h>
-+#include <linux/regulator/machine.h>
-+
-+static void of_get_regulation_constraints(struct device_node *np,
-+					struct regulator_init_data **init_data)
-+{
-+	unsigned int valid_modes_mask = 0, valid_ops_mask = 0;
-+
-+	of_property_read_u32(np, "regulator-min-uV",
-+				&(*init_data)->constraints.min_uV);
-+	of_property_read_u32(np, "regulator-max-uV",
-+				&(*init_data)->constraints.max_uV);
-+	of_property_read_u32(np, "regulator-uV-offset",
-+				&(*init_data)->constraints.uV_offset);
-+	of_property_read_u32(np, "regulator-min-uA",
-+				&(*init_data)->constraints.min_uA);
-+	of_property_read_u32(np, "regulator-max-uA",
-+				&(*init_data)->constraints.max_uA);
-+	of_property_read_u32(np, "regulator-input-uV",
-+				&(*init_data)->constraints.input_uV);
-+
-+	/* valid modes mask */
-+	if (of_find_property(np, "regulator-mode-fast", NULL))
-+				valid_modes_mask |= REGULATOR_MODE_FAST;
-+	if (of_find_property(np, "regulator-mode-normal", NULL))
-+				valid_modes_mask |= REGULATOR_MODE_NORMAL;
-+	if (of_find_property(np, "regulator-mode-idle", NULL))
-+				valid_modes_mask |= REGULATOR_MODE_IDLE;
-+	if (of_find_property(np, "regulator-mode-standby", NULL))
-+				valid_modes_mask |= REGULATOR_MODE_STANDBY;
-+
-+	/* valid ops mask */
-+	if (of_find_property(np, "regulator-change-voltage", NULL))
-+				valid_ops_mask |= REGULATOR_CHANGE_VOLTAGE;
-+	if (of_find_property(np, "regulator-change-current", NULL))
-+				valid_ops_mask |= REGULATOR_CHANGE_CURRENT;
-+	if (of_find_property(np, "regulator-change-mode", NULL))
-+				valid_ops_mask |= REGULATOR_CHANGE_MODE;
-+	if (of_find_property(np, "regulator-change-status", NULL))
-+				valid_ops_mask |= REGULATOR_CHANGE_STATUS;
-+
-+	(*init_data)->constraints.valid_modes_mask = valid_modes_mask;
-+	(*init_data)->constraints.valid_ops_mask = valid_ops_mask;
-+
-+	if (of_find_property(np, "regulator-always-on", NULL))
-+				(*init_data)->constraints.always_on = true;
-+	if (of_find_property(np, "regulator-boot-on", NULL))
-+				(*init_data)->constraints.boot_on = true;
-+}
-+
-+/**
-+ * of_get_regulator_init_data - extract regulator_init_data structure info
-+ * @dev: device requesting for regulator_init_data
-+ *
-+ * Populates regulator_init_data structure by extracting data from device
-+ * tree node, returns a pointer to the populated struture or NULL if memory
-+ * alloc fails.
-+ */
-+struct regulator_init_data *of_get_regulator_init_data(struct device *dev)
-+{
-+	struct regulator_init_data *init_data;
-+
-+	if (!dev->of_node)
-+		return NULL;
-+
-+	init_data = devm_kzalloc(dev, sizeof(struct regulator_init_data),
-+						 GFP_KERNEL);
-+	if (!init_data)
-+		return NULL; /* Out of memory? */
-+
-+	init_data->supply_regulator = (char *)of_get_property(dev->of_node,
-+						"regulator-supplies", NULL);
-+	of_get_regulation_constraints(dev->of_node, &init_data);
-+	return init_data;
-+}
-diff --git a/include/linux/regulator/machine.h b/include/linux/regulator/machine.h
-index ce3127a..d2d921b 100644
---- a/include/linux/regulator/machine.h
-+++ b/include/linux/regulator/machine.h
-@@ -98,14 +98,14 @@ struct regulation_constraints {
- 	char *name;
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
++#include <linux/regulator/of_regulator.h>
+ #include <linux/i2c/twl.h>
  
- 	/* voltage output range (inclusive) - for voltage control */
--	int min_uV;
--	int max_uV;
-+	u32 min_uV;
-+	u32 max_uV;
  
--	int uV_offset;
-+	u32 uV_offset;
+@@ -58,6 +60,9 @@ struct twlreg_info {
  
- 	/* current output range (inclusive) - for current control */
--	int min_uA;
--	int max_uA;
-+	u32 min_uA;
-+	u32 max_uA;
+ 	/* chip specific features */
+ 	unsigned long 		features;
++#ifdef CONFIG_OF
++	char			compatible[128];
++#endif
+ };
  
- 	/* valid regulator operating modes for this machine */
- 	unsigned int valid_modes_mask;
-@@ -114,7 +114,7 @@ struct regulation_constraints {
- 	unsigned int valid_ops_mask;
  
- 	/* regulator input voltage - only if supply is another regulator */
--	int input_uV;
-+	u32 input_uV;
+@@ -839,13 +844,14 @@ static struct regulator_ops twlsmps_ops = {
+ 		TWL_FIXED_LDO(label, offset, mVolts, 0x0, turnon_delay, \
+ 			0x0, TWL6030, twl6030fixed_ops)
  
- 	/* regulator suspend states for global PMIC STANDBY/HIBERNATE */
- 	struct regulator_state state_disk;
-diff --git a/include/linux/regulator/of_regulator.h b/include/linux/regulator/of_regulator.h
-new file mode 100644
-index 0000000..3f63be9
---- /dev/null
-+++ b/include/linux/regulator/of_regulator.h
-@@ -0,0 +1,21 @@
-+/*
-+ * OpenFirmware regulator support routines
-+ *
-+ */
-+
-+#ifndef __LINUX_OF_REG_H
-+#define __LINUX_OF_REG_H
-+
-+#if defined(CONFIG_OF_REGULATOR)
-+extern struct regulator_init_data
-+	*of_get_regulator_init_data(struct device *dev);
+-#define TWL4030_ADJUSTABLE_LDO(label, offset, num, turnon_delay, remap_conf) { \
++#define TWL4030_ADJUSTABLE_LDO(label, offset, num, turnon_delay, remap_conf, comp) { \
+ 	.base = offset, \
+ 	.id = num, \
+ 	.table_len = ARRAY_SIZE(label##_VSEL_table), \
+ 	.table = label##_VSEL_table, \
+ 	.delay = turnon_delay, \
+ 	.remap = remap_conf, \
++	.compatible = comp, \
+ 	.desc = { \
+ 		.name = #label, \
+ 		.id = TWL4030_REG_##label, \
+@@ -856,10 +862,11 @@ static struct regulator_ops twlsmps_ops = {
+ 		}, \
+ 	}
+ 
+-#define TWL6030_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts) { \
++#define TWL6030_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts, comp) { \
+ 	.base = offset, \
+ 	.min_mV = min_mVolts, \
+ 	.max_mV = max_mVolts, \
++	.compatible = comp, \
+ 	.desc = { \
+ 		.name = #label, \
+ 		.id = TWL6030_REG_##label, \
+@@ -870,10 +877,11 @@ static struct regulator_ops twlsmps_ops = {
+ 		}, \
+ 	}
+ 
+-#define TWL6025_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts) { \
++#define TWL6025_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts, comp) { \
+ 	.base = offset, \
+ 	.min_mV = min_mVolts, \
+ 	.max_mV = max_mVolts, \
++	.compatible = comp, \
+ 	.desc = { \
+ 		.name = #label, \
+ 		.id = TWL6025_REG_##label, \
+@@ -932,23 +940,23 @@ static struct regulator_ops twlsmps_ops = {
+  * software control over them after boot.
+  */
+ static struct twlreg_info twl_regs[] = {
+-	TWL4030_ADJUSTABLE_LDO(VAUX1, 0x17, 1, 100, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VAUX2_4030, 0x1b, 2, 100, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VAUX2, 0x1b, 2, 100, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VAUX3, 0x1f, 3, 100, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VAUX4, 0x23, 4, 100, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VMMC1, 0x27, 5, 100, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VMMC2, 0x2b, 6, 100, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VPLL1, 0x2f, 7, 100, 0x00),
+-	TWL4030_ADJUSTABLE_LDO(VPLL2, 0x33, 8, 100, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VSIM, 0x37, 9, 100, 0x00),
+-	TWL4030_ADJUSTABLE_LDO(VDAC, 0x3b, 10, 100, 0x08),
++	TWL4030_ADJUSTABLE_LDO(VAUX1, 0x17, 1, 100, 0x08, "ti,twl4030-vaux1"),
++	TWL4030_ADJUSTABLE_LDO(VAUX2_4030, 0x1b, 2, 100, 0x08, "ti,twl4030-vaux2"),
++	TWL4030_ADJUSTABLE_LDO(VAUX2, 0x1b, 2, 100, 0x08, "ti,twl5030-vaux2"),
++	TWL4030_ADJUSTABLE_LDO(VAUX3, 0x1f, 3, 100, 0x08, "ti,twl4030-vaux3"),
++	TWL4030_ADJUSTABLE_LDO(VAUX4, 0x23, 4, 100, 0x08, "ti,twl4030-vaux4"),
++	TWL4030_ADJUSTABLE_LDO(VMMC1, 0x27, 5, 100, 0x08, "ti,twl4030-vmmc1"),
++	TWL4030_ADJUSTABLE_LDO(VMMC2, 0x2b, 6, 100, 0x08, "ti,twl4030-vmmc2"),
++	TWL4030_ADJUSTABLE_LDO(VPLL1, 0x2f, 7, 100, 0x00, "ti,twl4030-vpll1"),
++	TWL4030_ADJUSTABLE_LDO(VPLL2, 0x33, 8, 100, 0x08, "ti,twl4030-vpll2"),
++	TWL4030_ADJUSTABLE_LDO(VSIM, 0x37, 9, 100, 0x00, "ti,twl4030-vsim"),
++	TWL4030_ADJUSTABLE_LDO(VDAC, 0x3b, 10, 100, 0x08, "ti,twl4030-vdac"),
+ 	TWL4030_FIXED_LDO(VINTANA1, 0x3f, 1500, 11, 100, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VINTANA2, 0x43, 12, 100, 0x08),
++	TWL4030_ADJUSTABLE_LDO(VINTANA2, 0x43, 12, 100, 0x08, "ti,twl4030-vintana2"),
+ 	TWL4030_FIXED_LDO(VINTDIG, 0x47, 1500, 13, 100, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VIO, 0x4b, 14, 1000, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VDD1, 0x55, 15, 1000, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VDD2, 0x63, 16, 1000, 0x08),
++	TWL4030_ADJUSTABLE_LDO(VIO, 0x4b, 14, 1000, 0x08, "ti,twl4030-vio"),
++	TWL4030_ADJUSTABLE_LDO(VDD1, 0x55, 15, 1000, 0x08, "ti,twl4030-vdd1"),
++	TWL4030_ADJUSTABLE_LDO(VDD2, 0x63, 16, 1000, 0x08, "ti,twl4030-vdd2"),
+ 	TWL4030_FIXED_LDO(VUSB1V5, 0x71, 1500, 17, 100, 0x08),
+ 	TWL4030_FIXED_LDO(VUSB1V8, 0x74, 1800, 18, 100, 0x08),
+ 	TWL4030_FIXED_LDO(VUSB3V1, 0x77, 3100, 19, 150, 0x08),
+@@ -957,12 +965,12 @@ static struct twlreg_info twl_regs[] = {
+ 	/* 6030 REG with base as PMC Slave Misc : 0x0030 */
+ 	/* Turnon-delay and remap configuration values for 6030 are not
+ 	   verified since the specification is not public */
+-	TWL6030_ADJUSTABLE_LDO(VAUX1_6030, 0x54, 1000, 3300),
+-	TWL6030_ADJUSTABLE_LDO(VAUX2_6030, 0x58, 1000, 3300),
+-	TWL6030_ADJUSTABLE_LDO(VAUX3_6030, 0x5c, 1000, 3300),
+-	TWL6030_ADJUSTABLE_LDO(VMMC, 0x68, 1000, 3300),
+-	TWL6030_ADJUSTABLE_LDO(VPP, 0x6c, 1000, 3300),
+-	TWL6030_ADJUSTABLE_LDO(VUSIM, 0x74, 1000, 3300),
++	TWL6030_ADJUSTABLE_LDO(VAUX1_6030, 0x54, 1000, 3300, "ti,twl6030-vaux1"),
++	TWL6030_ADJUSTABLE_LDO(VAUX2_6030, 0x58, 1000, 3300, "ti,twl6030-vaux2"),
++	TWL6030_ADJUSTABLE_LDO(VAUX3_6030, 0x5c, 1000, 3300, "ti,twl6030-vaux3"),
++	TWL6030_ADJUSTABLE_LDO(VMMC, 0x68, 1000, 3300, "ti,twl6030-vmmc"),
++	TWL6030_ADJUSTABLE_LDO(VPP, 0x6c, 1000, 3300, "ti,twl6030-vpp"),
++	TWL6030_ADJUSTABLE_LDO(VUSIM, 0x74, 1000, 3300, "ti,twl6030-vusim"),
+ 	TWL6030_FIXED_LDO(VANA, 0x50, 2100, 0),
+ 	TWL6030_FIXED_LDO(VCXIO, 0x60, 1800, 0),
+ 	TWL6030_FIXED_LDO(VDAC, 0x64, 1800, 0),
+@@ -970,15 +978,15 @@ static struct twlreg_info twl_regs[] = {
+ 	TWL6030_FIXED_RESOURCE(CLK32KG, 0x8C, 0),
+ 
+ 	/* 6025 are renamed compared to 6030 versions */
+-	TWL6025_ADJUSTABLE_LDO(LDO2, 0x54, 1000, 3300),
+-	TWL6025_ADJUSTABLE_LDO(LDO4, 0x58, 1000, 3300),
+-	TWL6025_ADJUSTABLE_LDO(LDO3, 0x5c, 1000, 3300),
+-	TWL6025_ADJUSTABLE_LDO(LDO5, 0x68, 1000, 3300),
+-	TWL6025_ADJUSTABLE_LDO(LDO1, 0x6c, 1000, 3300),
+-	TWL6025_ADJUSTABLE_LDO(LDO7, 0x74, 1000, 3300),
+-	TWL6025_ADJUSTABLE_LDO(LDO6, 0x60, 1000, 3300),
+-	TWL6025_ADJUSTABLE_LDO(LDOLN, 0x64, 1000, 3300),
+-	TWL6025_ADJUSTABLE_LDO(LDOUSB, 0x70, 1000, 3300),
++	TWL6025_ADJUSTABLE_LDO(LDO2, 0x54, 1000, 3300, "ti,twl6025-ldo2"),
++	TWL6025_ADJUSTABLE_LDO(LDO4, 0x58, 1000, 3300, "ti,twl6025-ldo4"),
++	TWL6025_ADJUSTABLE_LDO(LDO3, 0x5c, 1000, 3300, "ti,twl6025-ldo3"),
++	TWL6025_ADJUSTABLE_LDO(LDO5, 0x68, 1000, 3300, "ti,twl6025-ldo5"),
++	TWL6025_ADJUSTABLE_LDO(LDO1, 0x6c, 1000, 3300, "ti,twl6025-ldo1"),
++	TWL6025_ADJUSTABLE_LDO(LDO7, 0x74, 1000, 3300, "ti,twl6025-ldo7"),
++	TWL6025_ADJUSTABLE_LDO(LDO6, 0x60, 1000, 3300, "ti,twl6025-ldo6"),
++	TWL6025_ADJUSTABLE_LDO(LDOLN, 0x64, 1000, 3300, "ti,twl6025-ldoln"),
++	TWL6025_ADJUSTABLE_LDO(LDOUSB, 0x70, 1000, 3300, "ti,twl6025-ldousb"),
+ 
+ 	TWL6025_ADJUSTABLE_SMPS(SMPS3, 0x34),
+ 	TWL6025_ADJUSTABLE_SMPS(SMPS4, 0x10),
+@@ -1011,16 +1019,27 @@ static int __devinit twlreg_probe(struct platform_device *pdev)
+ 	struct regulation_constraints	*c;
+ 	struct regulator_dev		*rdev;
+ 
+-	for (i = 0, info = NULL; i < ARRAY_SIZE(twl_regs); i++) {
+-		if (twl_regs[i].desc.id != pdev->id)
+-			continue;
+-		info = twl_regs + i;
+-		break;
++	if (pdev->dev.of_node) { /* dt based lookup */
++		for (i = 0, info = NULL; i < ARRAY_SIZE(twl_regs); i++) {
++			if (!of_device_is_compatible(pdev->dev.of_node,
++						 twl_regs[i].compatible))
++				continue;
++			info = twl_regs + i;
++			break;
++		}
++		initdata = of_get_regulator_init_data(&pdev->dev);
++	} else { /* pdev->id based lookup */
++		for (i = 0, info = NULL; i < ARRAY_SIZE(twl_regs); i++) {
++			if (twl_regs[i].desc.id != pdev->id)
++				continue;
++			info = twl_regs + i;
++			break;
++		}
++		initdata = pdev->dev.platform_data;
+ 	}
+ 	if (!info)
+ 		return -ENODEV;
+ 
+-	initdata = pdev->dev.platform_data;
+ 	if (!initdata)
+ 		return -EINVAL;
+ 
+@@ -1093,14 +1112,30 @@ static int __devexit twlreg_remove(struct platform_device *pdev)
+ 
+ MODULE_ALIAS("platform:twl_reg");
+ 
++#if defined(CONFIG_OF)
++static const struct of_device_id twl_of_match[] __devinitconst = {
++	{ .compatible = "ti,twl6030" },
++	{ .compatible = "ti,twl6025" },
++	{ .compatible = "ti,twl5030" },
++	{ .compatible = "ti,twl4030" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, twl_of_match);
 +#else
-+static inline struct regulator_init_data
-+	*of_get_regulator_init_data(struct device_node *np)
-+{
-+	return NULL;
-+}
-+#endif /* CONFIG_OF_REGULATOR */
++#define twl_of_match NULL
++#endif
 +
-+#endif /* __LINUX_OF_REG_H */
-+
+ static struct platform_driver twlreg_driver = {
+ 	.probe		= twlreg_probe,
+ 	.remove		= __devexit_p(twlreg_remove),
+ 	/* NOTE: short name, to work around driver model truncation of
+ 	 * "twl_regulator.12" (and friends) to "twl_regulator.1".
+ 	 */
+-	.driver.name	= "twl_reg",
+-	.driver.owner	= THIS_MODULE,
++	.driver  = {
++		.name  = "twl_reg",
++		.owner = THIS_MODULE,
++		.of_match_table = twl_of_match,
++	},
+ };
+ 
+ static int __init twlreg_init(void)
 -- 
 1.7.1
 
