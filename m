@@ -1,69 +1,75 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 0/9] Device tree support for regulators
-Date: Tue, 27 Sep 2011 15:42:43 +0530
-Message-ID: <1317118372-17052-1-git-send-email-rnayak@ti.com>
+Subject: [PATCH 6/9] regulator: make fixed regulator driver extract data from dt
+Date: Tue, 27 Sep 2011 15:42:49 +0530
+Message-ID: <1317118372-17052-7-git-send-email-rnayak@ti.com>
+References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34742 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34751 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752452Ab1I0KNd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Sep 2011 06:13:33 -0400
+	id S1753141Ab1I0KNg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Sep 2011 06:13:36 -0400
+In-Reply-To: <1317118372-17052-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca
 Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi Mark, Grant,
+Modify the fixed regulator driver to extract fixed_voltage_config from
+device tree when passed, instead of getting it through platform_data
+structures (on non-DT builds)
 
-This is a respin of my RFC series I posted sometime back
-and is now based on top of the latest omap i2c-twl support
-series posted by Benoit
-git://gitorious.org/omap-pm/linux.git for_3.2/4_omap_dt_i2c_twl
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ drivers/regulator/fixed.c |   18 +++++++++++++++++-
+ 1 files changed, 17 insertions(+), 1 deletions(-)
 
-some changes done since the RFC:
-1. twl driver fixed to remove hardcoded board params
-2. regulator helpers moved from drivers/of to drivers/regulator
-3. Better compatible definitions for specific device type
-4. twl regulator driver doing internal table lookup based on
-compatible rather then pdev->id
-5. Seperate fixed voltage regulator bindings defined
-6. Changed the way devices associate with regulators
-i.e using <name>-supply = <&regulator-phandle>;
-
-regards,
-Rajendra
-
-Rajendra Nayak (9):
-  regulator: twl: Remove hardcoded board constraints from driver
-  regulator: helper routine to extract regulator_init_data
-  omap4: sdp: Pass regulator data from dt
-  regulator: twl: Make twl-regulator driver extract data from DT
-  regulator: helper routine to extract fixed_voltage_config
-  regulator: make fixed regulator driver extract data from dt
-  omap4: panda: Pass regulator data from DT
-  regulator: helper to extract regulator node based on supply name
-  regulator: map consumer regulator based on device tree
-
- .../bindings/regulator/fixed-regulator.txt         |   24 ++++
- .../devicetree/bindings/regulator/regulator.txt    |   42 +++++++
- .../bindings/regulator/twl-regulator.txt           |   60 +++++++++
- arch/arm/boot/dts/omap4-panda.dts                  |   54 ++++++++
- arch/arm/boot/dts/omap4-sdp.dts                    |   64 ++++++++++
- drivers/regulator/Kconfig                          |    7 +
- drivers/regulator/Makefile                         |    1 +
- drivers/regulator/core.c                           |   14 ++
- drivers/regulator/fixed.c                          |   54 ++++++++-
- drivers/regulator/of_regulator.c                   |  127 ++++++++++++++++++++
- drivers/regulator/twl-regulator.c                  |  125 ++++++++++++--------
- include/linux/regulator/driver.h                   |    3 +
- include/linux/regulator/fixed.h                    |    6 +-
- include/linux/regulator/machine.h                  |   12 +-
- include/linux/regulator/of_regulator.h             |   28 +++++
- 15 files changed, 562 insertions(+), 59 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/regulator/fixed-regulator.txt
- create mode 100644 Documentation/devicetree/bindings/regulator/regulator.txt
- create mode 100644 Documentation/devicetree/bindings/regulator/twl-regulator.txt
- create mode 100644 drivers/regulator/of_regulator.c
- create mode 100644 include/linux/regulator/of_regulator.h
+diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
+index c09f791..0a9a10d 100644
+--- a/drivers/regulator/fixed.c
++++ b/drivers/regulator/fixed.c
+@@ -140,10 +140,15 @@ static struct regulator_ops fixed_voltage_ops = {
+ 
+ static int __devinit reg_fixed_voltage_probe(struct platform_device *pdev)
+ {
+-	struct fixed_voltage_config *config = pdev->dev.platform_data;
++	struct fixed_voltage_config *config;
+ 	struct fixed_voltage_data *drvdata;
+ 	int ret;
+ 
++	if (pdev->dev.of_node)
++		config = of_get_fixed_voltage_config(&pdev->dev);
++	else
++		config = pdev->dev.platform_data;
++
+ 	drvdata = kzalloc(sizeof(struct fixed_voltage_data), GFP_KERNEL);
+ 	if (drvdata == NULL) {
+ 		dev_err(&pdev->dev, "Failed to allocate device data\n");
+@@ -252,12 +257,23 @@ static int __devexit reg_fixed_voltage_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(CONFIG_OF)
++static const struct of_device_id fixed_of_match[] __devinitconst = {
++	{ .compatible = "regulator-fixed", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, fixed_of_match);
++#else
++#define fixed_of_match NULL
++#endif
++
+ static struct platform_driver regulator_fixed_voltage_driver = {
+ 	.probe		= reg_fixed_voltage_probe,
+ 	.remove		= __devexit_p(reg_fixed_voltage_remove),
+ 	.driver		= {
+ 		.name		= "reg-fixed-voltage",
+ 		.owner		= THIS_MODULE,
++		.of_match_table = fixed_of_match,
+ 	},
+ };
+ 
+-- 
+1.7.1
 
