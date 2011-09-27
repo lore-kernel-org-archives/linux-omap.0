@@ -1,79 +1,44 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
- for omap3
-Date: Tue, 27 Sep 2011 16:24:56 +0300
-Message-ID: <20110927132453.GF19603@legolas.emea.dhcp.ti.com>
-References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
- <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>
- <1316691479-1849-3-git-send-email-keshava_mgowda@ti.com>
- <alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com>
- <CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com>
- <alpine.DEB.2.00.1109240020510.22872@utopia.booyaka.com>
- <CAP05o4Lwk2uUz5ou84GQsrsBdjW-FEYP-55pBzH+a74hP4g1Dw@mail.gmail.com>
- <cbad72cea703d117067f7c628f7db806@mail.gmail.com>
- <1317127327.3820.31.camel@sokoban>
- <CAP05o4J75jGLTH8prOGD79Mte4DOg9ukgwe3V-KHFnB1Q-fi4w@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 1/6] iommu/core: split mapping to page sizes as
+ supported by the hardware
+Date: Tue, 27 Sep 2011 16:28:37 +0300
+Message-ID: <CAK=WgbYG2tpMJ2SikZhm=R9j5kQ6Hm8CGg=q1bko3idzF53Q3Q@mail.gmail.com>
+References: <1316195506-9777-1-git-send-email-ohad@wizery.com>
+ <1316195506-9777-2-git-send-email-ohad@wizery.com> <20110927100505.GH2138@amd.com>
+ <CAK=WgbahwY+7Ux-RjW2Tw9WBSwZnYuTMZ2NQASWyOXQ3zF6qFg@mail.gmail.com> <20110927131222.GL2138@amd.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1Ow488MNN9B9o/ov"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:32872 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751609Ab1I0NZD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Sep 2011 09:25:03 -0400
-Content-Disposition: inline
-In-Reply-To: <CAP05o4J75jGLTH8prOGD79Mte4DOg9ukgwe3V-KHFnB1Q-fi4w@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110927131222.GL2138@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stepan Moskovchenko <stepanm@codeaurora.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: t-kristo@ti.com, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Balbi, Felipe" <balbi@ti.com>, parthab@india.ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Gadiyar, Anand" <gadiyar@ti.com>, sameo@linux.intel.com, tony@atomide.com, "Hilman, Kevin" <khilman@ti.com>, johnstul@us.ibm.com, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
+On Tue, Sep 27, 2011 at 4:12 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> You pass a pointer to an unsigned long for the page-size bitmap. This
+> allows to use an array of unsigned long. But a single unsigned long is
+> sufficient
 
---1Ow488MNN9B9o/ov
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This is fine; I can change that if you like it better (though without
+doing the change below this is probably moot).
 
-Hi,
+> and you can use functions like ffs() and fls() together with
+> shifting. These functions often translate to a single intruction in the
+> binary. The find_next_bit function has much more overhead because it
+> needs to handle the array-of-ulong case.
 
-On Tue, Sep 27, 2011 at 06:48:35PM +0530, Munegowda, Keshava wrote:
-> > So, you would need a mechanism to do something like this:
-> >
-> > pad a or b wakeup detected -> irq0
-> > pad c or d wakeup detected -> irq1?
->=20
-> yes, if get something like this , its perfect.
+So you're suggesting to re-implement find_next_bit() using ffs()/fls()
+and shifting ?
 
-can't you have different IRQs for each pad ? I mean, allocate one
-irq_desc for each pad and let drivers request a pad/pin as an IRQ
-source. Then, when you detect a pad wakeup, you can:
+What's the point ?
 
-unsigned	pad_irq =3D pad_number - pad->irq_base;
+Sure, if we'll have a proven performance issue while using
+find_next_bit() we can think of doing this, but at this stage, this
+sounds to me like a premature optimization which isn't too elegant.
 
-handle_nested_thread(pad_irq);
+At this point I strongly prefer readable, maintainable and easier to
+debug code over optimization which isn't proven to be necessary.
 
-this will make use of threaded IRQ handlers even. Could it be something
-like that ?
-
---=20
-balbi
-
---1Ow488MNN9B9o/ov
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOgc6lAAoJEAv8Txj19kN1hPcIAKj/kqa/tVrOv82HiZXJUZcd
-l91W7iMH9Bhm7IhyOxlCsd6qP2EW8XAqvP6FE1ajEdNM1qWwzbJfI7tGQnil3Cu6
-KZUi1q83Ao7P9L7hV+caiMuNi/O/ukbSfO4S8joeAkrqxeED8T6An/vxlfwM410c
-pqasOEC4kB2Ehh+896VEGI/3WDIOz3Yk70QU4/5PdngxCvktTJ36K4dRyOv+stbx
-4PKswoxHZCvTN930v7Pblz0q5lm54E2GazN0lRUz/yQRFSVUKO3+CVyQBFzXoKbn
-RPnFQqv0F+Ozf+bUukUNiuFjDiq5vxYJhVrv447yGd6PVdtHh8cNk8zyCBra/HI=
-=9gGW
------END PGP SIGNATURE-----
-
---1Ow488MNN9B9o/ov--
+Thanks,
+Ohad.
