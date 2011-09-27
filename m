@@ -1,51 +1,108 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3 4/4] OMAP_VOUT: Don't trigger updates in
- omap_vout_probe
-Date: Tue, 27 Sep 2011 10:07:41 +0300
-Message-ID: <1317107261.1991.18.camel@deskari>
-References: <1317038365-30650-1-git-send-email-archit@ti.com>
-	 <1317038365-30650-5-git-send-email-archit@ti.com>
-	 <1317103833.1991.6.camel@deskari>  <4E81750F.7060200@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
+ omap_vout_isr
+Date: Tue, 27 Sep 2011 12:39:24 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404ECA548EE@dbde02.ent.ti.com>
+References: <1316167233-1437-1-git-send-email-archit@ti.com>
+	 <1316167233-1437-4-git-send-email-archit@ti.com>
+	 <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>
+	 <4E7AD29C.4070804@ti.com>
+	 <19F8576C6E063C45BE387C64729E739404ECA54614@dbde02.ent.ti.com>
+	 <CAB2ybb8ab9jSFB1J_CQfObB11QcdtQ=6Kf9zdbg0v5Jckf09sw@mail.gmail.com>
+	 <CAB2ybb-rZgDvS9Bo6AJF=KVd0irXHa0S0LrPJ=SWr0daJ6gX1w@mail.gmail.com>
+	 <CAB2ybb8UGC=HK7jpYaDym8Y8iy=omwWiXrV7cdRw3k20e0NiZw@mail.gmail.com>
+	 <19F8576C6E063C45BE387C64729E739404ECA548CF@dbde02.ent.ti.com>
+ <1317106147.1991.10.camel@deskari>
+ <19F8576C6E063C45BE387C64729E739404ECA548E1@dbde02.ent.ti.com>
+ <4E8174D8.6060001@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40781 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750973Ab1I0HHt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Sep 2011 03:07:49 -0400
-In-Reply-To: <4E81750F.7060200@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34111 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751554Ab1I0HJd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Sep 2011 03:09:33 -0400
+In-Reply-To: <4E8174D8.6060001@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-On Tue, 2011-09-27 at 12:32 +0530, Archit Taneja wrote:
-> On Tuesday 27 September 2011 11:40 AM, Valkeinen, Tomi wrote:
-> > On Mon, 2011-09-26 at 17:29 +0530, Archit Taneja wrote:
-> >> Remove the code in omap_vout_probe() which calls display->driver->update() for
-> >> all the displays. This isn't correct because:
-> >>
-> >> - An update in probe doesn't make sense, because we don't have any valid content
-> >>    to show at this time.
-> >> - Calling update for a panel which isn't enabled is not supported by DSS2. This
-> >>    leads to a crash at probe.
-> >
-> > Calling update() on a disabled panel should not crash... Where is the
-> > crash coming from?
+
+> -----Original Message-----
+> From: Taneja, Archit
+> Sent: Tuesday, September 27, 2011 12:32 PM
+> To: Hiremath, Vaibhav
+> Cc: Valkeinen, Tomi; Semwal, Sumit; linux-omap@vger.kernel.org; linux-
+> media@vger.kernel.org
+> Subject: Re: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
+> omap_vout_isr
 > 
-> you are right, the crash isn't coming from the updates. I see the crash 
-> when we have 4 dss devices in our board file. The last display pointer 
-> is corrupted in that case. I'm trying to figure out why.
+> On Tuesday 27 September 2011 12:24 PM, Hiremath, Vaibhav wrote:
+> >> -----Original Message-----
+> >> From: Valkeinen, Tomi
+> >> Sent: Tuesday, September 27, 2011 12:19 PM
+> >> To: Hiremath, Vaibhav
+> >> Cc: Semwal, Sumit; Taneja, Archit; linux-omap@vger.kernel.org; linux-
+> >> media@vger.kernel.org
+> >> Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
+> >> omap_vout_isr
+> >>
+> >> On Tue, 2011-09-27 at 12:09 +0530, Hiremath, Vaibhav wrote:
+> >>> Please look at the patch carefully, it does exactly same thing. I
+> >>> understand the use-case what Archit explained in the last email but in
+> >>> this patch context, the use-case change anything here in this patch.
+> >>
+> >> With the current code, the ISR code will be ran for a panel connected
+> to
+> >> LCD1 output when VSYNC for LCD2 happens.
+> >>
+> >> After Archit's patch, this no longer happens.
+> >>
+> >> I don't know what the ISR code does, so it may not cause any problems,
+> >> but it sure doesn't sound right running the code when a wrong interrupt
+> >> happens.
+> >>
+> >
+> > If you look at the patch, the patch barely checks for the condition and
+> > makes sure that the interrupt is either of VSYNC or VSYNC2, else return.
+> Rest everything is same.
+> 
+> It doesn't only make sure that the interrupt it one of them, it uses it
+> later too in the check:
+> 
+> if (!(irqstatus & irq))
+> 	goto vout_isr_err;
+> ...
+> ...
+> 
+> >
+> > The right fix is in streamon api, where you mask the interrupt before
+> > registering it.
+> 
+> If this is the right fix, we should have a purely selective method of
+> selecting the interrupts. Even for OMAP3, we register interrupts for LCD
+> and TV, and then check the interrupt in the handler using panel type.
+> Now, since have 2 different interrupts for the same panel type, we have
+> to further distinguish using the manager id.
+> 
+I have to agree here with you that we do not have this available now.
 
-Could be totally unrelated, but does the V4L2 driver make sure that the
-used dss devices have a driver loaded?
+Also I had reviewed the patch again, and I think I now understand what usecase you are referring here. My bad, I concluded early on this....
 
-OMAPFB previously refused to start if all the devices do not have a
-driver, but nowadays it starts fine by skipping the devices without a
-driver.
+Thanks,
+Vaibhav
 
- Tomi
-
+> Archit
+> 
+> >
+> > Thanks,
+> > Vaibhav
+> >
+> >>   Tomi
+> >>
+> >
+> >
 
