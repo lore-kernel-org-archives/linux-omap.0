@@ -1,277 +1,134 @@
-From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 02/13] gpio/omap: Adapt GPIO driver to DT
-Date: Tue, 27 Sep 2011 11:10:23 +0530
-Message-ID: <4E8161C7.7020404@ti.com>
-References: <1317055821-20652-1-git-send-email-b-cousson@ti.com>
-	<1317055821-20652-3-git-send-email-b-cousson@ti.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in omap_vout_isr
+Date: Tue, 27 Sep 2011 11:11:54 +0530
+Message-ID: <CAB2ybb8UGC=HK7jpYaDym8Y8iy=omwWiXrV7cdRw3k20e0NiZw@mail.gmail.com>
+References: <1316167233-1437-1-git-send-email-archit@ti.com>
+ <1316167233-1437-4-git-send-email-archit@ti.com> <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>
+ <4E7AD29C.4070804@ti.com> <19F8576C6E063C45BE387C64729E739404ECA54614@dbde02.ent.ti.com>
+ <CAB2ybb8ab9jSFB1J_CQfObB11QcdtQ=6Kf9zdbg0v5Jckf09sw@mail.gmail.com> <CAB2ybb-rZgDvS9Bo6AJF=KVd0irXHa0S0LrPJ=SWr0daJ6gX1w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1317055821-20652-3-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: khilman-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tarun Kanti DebBarma <tarun.kanti-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Charulatha V <charu-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:41663 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752813Ab1I0FmP convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Sep 2011 01:42:15 -0400
+In-Reply-To: <CAB2ybb-rZgDvS9Bo6AJF=KVd0irXHa0S0LrPJ=SWr0daJ6gX1w@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Taneja, Archit" <archit@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-On Monday 26 September 2011 10:20 PM, Benoit Cousson wrote:
-> Adapt the GPIO driver to retrieve information from a DT file.
-> Note that since the driver is currently under cleanup, some hacks
-> will have to be removed after.
+Hi Vaibhav,
+>>
+>> On Mon, Sep 26, 2011 at 3:49 PM, Hiremath, Vaibhav <hvaibhav@ti.com>=
+ wrote:
+>>>
+>>> > -----Original Message-----
+>>> > From: Taneja, Archit
+>>> > Sent: Thursday, September 22, 2011 11:46 AM
+>>> > To: Hiremath, Vaibhav
+>>> > Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; l=
+inux-
+>>> > media@vger.kernel.org
+>>> > Subject: Re: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handli=
+ng in
+>>> > omap_vout_isr
+>>> >
+>>> > Hi,
 >
-> Add documentation for GPIO properties specific to OMAP.
+> =A0=A0<snip>
+>>>
+>>> > >> - =A0 =A0 =A0 =A0 =A0if (!(irqstatus& =A0(DISPC_IRQ_VSYNC | DI=
+SPC_IRQ_VSYNC2)))
+>>> > >> + =A0 =A0 =A0 =A0 =A0if (mgr_id =3D=3D OMAP_DSS_CHANNEL_LCD)
+>>> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0irq =3D DISPC_IRQ_VSYNC;
+>>> > >> + =A0 =A0 =A0 =A0 =A0else if (mgr_id =3D=3D OMAP_DSS_CHANNEL_L=
+CD2)
+>>> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0irq =3D DISPC_IRQ_VSYNC2;
+>>> > >> + =A0 =A0 =A0 =A0 =A0else
+>>> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto vout_isr_err;
+>>> > >> +
+>>> > >> + =A0 =A0 =A0 =A0 =A0if (!(irqstatus& =A0irq))
+>>> > >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto vout_isr_err;
+>>> > >> =A0 =A0 =A0 =A0 =A0 =A0break;
+>>> > > I understand what this patch meant for, but I am more curious t=
+o know
+>>> > > What is value addition of this patch?
+>>> > >
+>>> > > if (!(irqstatus& =A0(DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+>>> > >
+>>> > > Vs
+>>> > >
+>>> > > if (mgr_id =3D=3D OMAP_DSS_CHANNEL_LCD)
+>>> > > =A0 =A0 irq =3D DISPC_IRQ_VSYNC;
+>>> > > else if (mgr_id =3D=3D OMAP_DSS_CHANNEL_LCD2)
+>>> > > =A0 =A0 irq =3D DISPC_IRQ_VSYNC2;
+>>> > >
+>>> > > Isn't this same, because we are not doing anything separate and=
+ special
+>>> > > for VSYNC and VSYNC2?
+>>> >
+>>> > Consider a use case where the primary LCD panel(connected to LCD
+>>> > manager) is configured at a 60 Hz refresh rate, and the secondary
+>>> > panel(connected to LCD2) refreshes at 30 Hz. Let the overlay
+>>> > configuration be something like this:
+>>> >
+>>> > /dev/video1----->overlay1----->LCD manager----->Primary panel(60 =
+Hz)
+>>> >
+>>> >
+>>> > /dev/video2----->overlay2----->LCD2 manager----->Secondary Panel(=
+30 Hz)
+>>> >
+>>> >
+>>> > Now if we are doing streaming on both video1 and video2, since we=
+ deque
+>>> > on either VSYNC or VSYNC2, video2 buffers will deque faster than =
+the
+>>> > panels refresh, which is incorrect. So for video2, we should only=
+ deque
+>>> > when we get a VSYNC2 interrupt. Thats why there is a need to corr=
+elate
+>>> > the interrupt and the overlay manager.
+>>> >
+>>>
+>>> Archit,
+>>>
+>>> I think I am still not understood or convinced with your descriptio=
+n above,
+>>>
+>>> The code snippet which we are referring here, does check whether th=
+e
+>>> interrupt is either VSYNC or VSYNC2, else fall back to "vout_isr_er=
+r".
 >
-> Remove an un-needed whitespace.
 >
-> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
-> Cc: Grant Likely<grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-> Cc: Charulatha V<charu-l0cyMroinI0@public.gmane.org>
-> Cc: Tarun Kanti DebBarma<tarun.kanti-l0cyMroinI0@public.gmane.org>
-> ---
->   .../devicetree/bindings/gpio/gpio-omap.txt         |   33 ++++++
->   drivers/gpio/gpio-omap.c                           |  108 ++++++++++++++++++--
->   2 files changed, 132 insertions(+), 9 deletions(-)
->   create mode 100644 Documentation/devicetree/bindings/gpio/gpio-omap.txt
+I am not quite sure I understand what is the confusing part here -
+below is my understanding; please correct me if you think otherwise.
+As I understand, this patch creates a (missing) correlation between a
+manager and the corresponding ISR. The earlier code would accept a
+VSYNC2 for LCD1 manager, which is not the correct thing to do.
+That is why the check of 'if ((mgr=3D=3DLCD) && (IRQ=3D=3DVSYNC))' kind=
+ of
+thing is needed;=A0Which part of this do you think the above patch
+doesn't do? Or, do you think it is not needed / done correctly?
+>>>
+>>> For me both are doing same thing, the original code is optimized wa=
+y of implementation. Can you please review it again?
+>>>
+>>> Thanks,
+>>> Vaibhav
 >
-> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> new file mode 100644
-> index 0000000..bdd63de
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-> @@ -0,0 +1,33 @@
-> +OMAP GPIO controller
-> +
-> +Required properties:
-> +- compatible:
-> +  - "ti,omap2-gpio" for OMAP2 and OMAP3 controllers
-
-Would it be more readable to have
-"ti,omap2-gpio" for OMAP2 controllers and
-"ti,omap3-gpio" for OMAP3 controllers?
-
-> +  - "ti,omap4-gpio" for OMAP4 controller
-> +- #gpio-cells : Should be two.
-> +  - first cell is the pin number
-> +  - second cell is used to specify optional parameters (unused)
-> +- gpio-controller : Marks the device node as a GPIO controller.
-> +
-> +OMAP specific properties:
-> +- ti,hwmods: Name of the hwmod associated to the GPIO
-> +- id: 32 bits to identify the id (1 based index)
-> +- bank-width: number of pin supported by the controller (16 or 32)
-> +- debounce: set if the controller support the debouce funtionnality
-> +- bank-count: number of controller support by the SoC. This is a temporary
-> +  hack until the bank_count is removed from the driver.
-
-Is there a general rule to be followed as to when to use
-"ti,<prop-name>" and when to use just "<prop-name>".
-Since all these are OMAP specific properties, shouldn't all
-of them be "ti,<prop-name>"?
-
-> +
-> +
-> +Example:
-> +
-> +gpio4: gpio4 {
-> +    compatible = "ti,omap4-gpio", "ti,omap-gpio";
-> +    ti,hwmods = "gpio4";
-> +    id =<4>;
-> +    bank-width =<32>;
-> +    debounce;
-> +    no_idle_on_suspend;
-> +    #gpio-cells =<2>;
-> +    gpio-controller;
-> +};
-> +
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 0599854..f878fa4 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -21,6 +21,8 @@
->   #include<linux/io.h>
->   #include<linux/slab.h>
->   #include<linux/pm_runtime.h>
-> +#include<linux/of.h>
-> +#include<linux/of_device.h>
 >
->   #include<mach/hardware.h>
->   #include<asm/irq.h>
-> @@ -521,7 +523,7 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
->   	unsigned long flags;
->
->   	if (bank->non_wakeup_gpios&  gpio_bit) {
-> -		dev_err(bank->dev,
-> +		dev_err(bank->dev,
-
-Stray change?
-
->   			"Unable to modify wakeup on non-wakeup GPIO%d\n", gpio);
->   		return -EINVAL;
->   	}
-> @@ -1150,6 +1152,8 @@ static void __devinit omap_gpio_chip_init(struct gpio_bank *bank)
->   	irq_set_handler_data(bank->irq, bank);
->   }
->
-> +static const struct of_device_id omap_gpio_match[];
-> +
->   static int __devinit omap_gpio_probe(struct platform_device *pdev)
->   {
->   	static int gpio_init_done;
-> @@ -1157,11 +1161,31 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
->   	struct resource *res;
->   	int id;
->   	struct gpio_bank *bank;
-> +	struct device_node *node = pdev->dev.of_node;
-> +	const struct of_device_id *match;
-> +
-> +	match = of_match_device(omap_gpio_match,&pdev->dev);
-> +	if (match) {
-> +		pdata = match->data;
-> +		/* XXX: big hack until the bank_count is removed */
-> +		of_property_read_u32(node, "bank-count",&gpio_bank_count);
-> +		if (of_property_read_u32(node, "id",&id))
-
-id should be u32.
-
-> +			return -EINVAL;
-> +		/*
-> +		 * In an ideal world, the id should not be needed, but since
-> +		 * the OMAP TRM consider the multiple GPIO controllers as
-> +		 * multiple banks, the GPIO number is based on the whole set
-> +		 * of banks. Hence the need to provide an id in order to
-> +		 * respect the order and the correct GPIO number.
-> +		 */
-> +		id -= 1;
-> +	} else {
-> +		if (!pdev->dev.platform_data)
-> +			return -EINVAL;
->
-> -	if (!pdev->dev.platform_data)
-> -		return -EINVAL;
-> -
-> -	pdata = pdev->dev.platform_data;
-> +		pdata = pdev->dev.platform_data;
-> +		id = pdev->id;
-> +	}
->
->   	if (!gpio_init_done) {
->   		int ret;
-> @@ -1171,7 +1195,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
->   			return ret;
->   	}
->
-> -	id = pdev->id;
->   	bank =&gpio_bank[id];
->
->   	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-> @@ -1181,12 +1204,19 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
->   	}
->
->   	bank->irq = res->start;
-> -	bank->virtual_irq_start = pdata->virtual_irq_start;
->   	bank->method = pdata->bank_type;
->   	bank->dev =&pdev->dev;
-> -	bank->dbck_flag = pdata->dbck_flag;
->   	bank->stride = pdata->bank_stride;
-> -	bank->width = pdata->bank_width;
-> +	if (match) {
-> +		of_property_read_u32(node, "bank-width",&bank->width);
-
-Bank width should be u32.
-
-> +		if (of_get_property(node, "debounce", NULL))
-
-of_find_property() should suffice.
-
-regards,
-Rajendra
-
-> +			bank->dbck_flag = true;
-> +		bank->virtual_irq_start = IH_GPIO_BASE + 32 * id;
-> +	} else {
-> +		bank->width = pdata->bank_width;
-> +		bank->dbck_flag = pdata->dbck_flag;
-> +		bank->virtual_irq_start = pdata->virtual_irq_start;
-> +	}
->
->   	bank->regs = pdata->regs;
->
-> @@ -1559,10 +1589,70 @@ void omap_gpio_restore_context(void)
->   }
->   #endif
->
-> +#if defined(CONFIG_OF)
-> +static struct omap_gpio_reg_offs omap2_gpio_regs = {
-> +	.revision =		OMAP24XX_GPIO_REVISION,
-> +	.direction =		OMAP24XX_GPIO_OE,
-> +	.datain =		OMAP24XX_GPIO_DATAIN,
-> +	.dataout =		OMAP24XX_GPIO_DATAOUT,
-> +	.set_dataout =		OMAP24XX_GPIO_SETDATAOUT,
-> +	.clr_dataout =		OMAP24XX_GPIO_CLEARDATAOUT,
-> +	.irqstatus =		OMAP24XX_GPIO_IRQSTATUS1,
-> +	.irqstatus2 =		OMAP24XX_GPIO_IRQSTATUS2,
-> +	.irqenable =		OMAP24XX_GPIO_IRQENABLE1,
-> +	.set_irqenable =	OMAP24XX_GPIO_SETIRQENABLE1,
-> +	.clr_irqenable =	OMAP24XX_GPIO_CLEARIRQENABLE1,
-> +	.debounce =		OMAP24XX_GPIO_DEBOUNCE_VAL,
-> +	.debounce_en =		OMAP24XX_GPIO_DEBOUNCE_EN,
-> +};
-> +
-> +static struct omap_gpio_platform_data omap2_pdata = {
-> +	.bank_type = METHOD_GPIO_24XX,
-> +	.regs =&omap2_gpio_regs,
-> +};
-> +
-> +static struct omap_gpio_reg_offs omap4_gpio_regs = {
-> +	.revision =		OMAP4_GPIO_REVISION,
-> +	.direction =		OMAP4_GPIO_OE,
-> +	.datain =		OMAP4_GPIO_DATAIN,
-> +	.dataout =		OMAP4_GPIO_DATAOUT,
-> +	.set_dataout =		OMAP4_GPIO_SETDATAOUT,
-> +	.clr_dataout =		OMAP4_GPIO_CLEARDATAOUT,
-> +	.irqstatus =		OMAP4_GPIO_IRQSTATUS1,
-> +	.irqstatus2 =		OMAP4_GPIO_IRQSTATUS2,
-> +	.irqenable =		OMAP4_GPIO_IRQENABLE1,
-> +	.set_irqenable =	OMAP4_GPIO_SETIRQENABLE1,
-> +	.clr_irqenable =	OMAP4_GPIO_CLEARIRQENABLE1,
-> +	.debounce =		OMAP4_GPIO_DEBOUNCINGTIME,
-> +	.debounce_en =		OMAP4_GPIO_DEBOUNCENABLE,
-> +};
-> +
-> +static struct omap_gpio_platform_data omap4_pdata = {
-> +	.bank_type = METHOD_GPIO_44XX,
-> +	.regs =&omap4_gpio_regs,
-> +};
-> +
-> +static const struct of_device_id omap_gpio_match[] = {
-> +	{
-> +		.compatible = "ti,omap4-gpio",
-> +		.data =&omap4_pdata,
-> +	},
-> +	{
-> +		.compatible = "ti,omap2-gpio",
-> +		.data =&omap2_pdata,
-> +	},
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(of, omap_gpio_match);
-> +#else
-> +#define omap_gpio_match NULL
-> +#endif
-> +
->   static struct platform_driver omap_gpio_driver = {
->   	.probe		= omap_gpio_probe,
->   	.driver		= {
->   		.name	= "omap_gpio",
-> +		.of_match_table = omap_gpio_match,
->   	},
->   };
->
+Thanks and best regards,
+~Sumit.
+>>>
+>>> <snip>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
