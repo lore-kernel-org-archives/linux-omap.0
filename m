@@ -1,122 +1,240 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v3 1/4] OMAP_VOUT: Fix check in reqbuf for buf_size allocation
-Date: Tue, 27 Sep 2011 12:53:20 +0530
-Message-ID: <4E8179E8.3050807@ti.com>
-References: <1317038365-30650-1-git-send-email-archit@ti.com> <1317038365-30650-2-git-send-email-archit@ti.com> <19F8576C6E063C45BE387C64729E739404ECA548F8@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34542 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751578Ab1I0HXA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Sep 2011 03:23:00 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404ECA548F8@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: [PATCH] leds-class: change back LEDS_CLASS to tristate instead of bool
+Date: Tue, 27 Sep 2011 16:50:32 +0800
+Message-ID: <1317113432-7299-1-git-send-email-bryan.wu@canonical.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: tony@atomide.com, linux@arm.linux.org.uk, rpurdie@rpsys.net, manuel.lauss@gmail.com, cjb@laptop.org, cbou@mail.ru, dwmw2@infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@li
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-Hi,
+LEDS_CLASS is required by leds and trigger drivers, but we can build it as
+module.  So change this option back as tristate and treak the help message
+as well.
 
-On Tuesday 27 September 2011 12:49 PM, Hiremath, Vaibhav wrote:
->
->> -----Original Message-----
->> From: Taneja, Archit
->> Sent: Monday, September 26, 2011 5:29 PM
->> To: Hiremath, Vaibhav
->> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
->> media@vger.kernel.org; Taneja, Archit
->> Subject: [PATCH v3 1/4] OMAP_VOUT: Fix check in reqbuf for buf_size
->> allocation
->>
->> The commit 383e4f69879d11c86ebdd38b3356f6d0690fb4cc makes reqbuf prevent
->> requesting a larger size buffer than what is allocated at kernel boot
->> during
->> omap_vout_probe.
->>
->> The requested size is compared with vout->buffer_size, this isn't correct
->> as
->> vout->buffer_size is later set to the size requested in reqbuf. When the
->> video
->> device is opened the next time, this check will prevent us to allocate a
->> buffer
->> which is larger than what we requested the last time.
->>
->> Don't use vout->buffer_size, always check with the parameters
->> video1_bufsize
->> or video2_bufsize.
->>
->> Signed-off-by: Archit Taneja<archit@ti.com>
->> ---
->>   drivers/media/video/omap/omap_vout.c |   10 ++++++++--
->>   1 files changed, 8 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/video/omap/omap_vout.c
->> b/drivers/media/video/omap/omap_vout.c
->> index d9e64f3..16ebff6 100644
->> --- a/drivers/media/video/omap/omap_vout.c
->> +++ b/drivers/media/video/omap/omap_vout.c
->> @@ -664,10 +664,14 @@ static int omap_vout_buffer_setup(struct
->> videobuf_queue *q, unsigned int *count,
->>   	u32 phy_addr = 0, virt_addr = 0;
->>   	struct omap_vout_device *vout = q->priv_data;
->>   	struct omapvideo_info *ovid =&vout->vid_info;
->> +	int vid_max_buf_size;
->>
->>   	if (!vout)
->>   		return -EINVAL;
->>
->> +	vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
->> +		video2_bufsize;
->> +
->>   	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
->>   		return -EINVAL;
->>
->> @@ -690,7 +694,7 @@ static int omap_vout_buffer_setup(struct
->> videobuf_queue *q, unsigned int *count,
->>   		video1_numbuffers : video2_numbuffers;
->>
->>   	/* Check the size of the buffer */
->> -	if (*size>  vout->buffer_size) {
->> +	if (*size>  vid_max_buf_size) {
->>   		v4l2_err(&vout->vid_dev->v4l2_dev,
->>   				"buffer allocation mismatch [%u] [%u]\n",
->>   				*size, vout->buffer_size);
->> @@ -865,6 +869,8 @@ static int omap_vout_mmap(struct file *file, struct
->> vm_area_struct *vma)
->>   	unsigned long size = (vma->vm_end - vma->vm_start);
->>   	struct omap_vout_device *vout = file->private_data;
->>   	struct videobuf_queue *q =&vout->vbq;
->> +	int vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
->> +		video2_bufsize;
->>
->>   	v4l2_dbg(1, debug,&vout->vid_dev->v4l2_dev,
->>   			" %s pgoff=0x%lx, start=0x%lx, end=0x%lx\n", __func__,
->> @@ -887,7 +893,7 @@ static int omap_vout_mmap(struct file *file, struct
->> vm_area_struct *vma)
->>   		return -EINVAL;
->>   	}
->>   	/* Check the size of the buffer */
->> -	if (size>  vout->buffer_size) {
->> +	if (size>  vid_max_buf_size) {
->
-> I think we agreed in your last version patch patch-series that, the check in mmap should be against vout->buffer_size. Am I missing something here?
+LEDS_TRIGGERS depends on LEDS_CLASSS, which should be tristate.  So set it
+as tristate too and update header files as well.
 
-I totally missed this out for some reason. I'll correct this in the next 
-set. Sorry about this.
+Change those ifdefs to take care of module configuration.
 
-Archit
+Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+---
+ arch/arm/mach-omap1/board-ams-delta.c |    4 ++--
+ drivers/leds/Kconfig                  |    9 ++++++---
+ drivers/leds/led-class.c              |    8 ++++----
+ drivers/leds/leds.h                   |    2 +-
+ drivers/mmc/host/au1xmmc.c            |    6 +++---
+ drivers/power/power_supply.h          |    2 +-
+ include/linux/leds.h                  |    7 ++++---
+ include/linux/mmc/host.h              |    2 +-
+ include/linux/power_supply.h          |    2 +-
+ 9 files changed, 23 insertions(+), 19 deletions(-)
 
->
-> Thanks,
-> Vaibhav
->
->>   		v4l2_err(&vout->vid_dev->v4l2_dev,
->>   				"insufficient memory [%lu] [%u]\n",
->>   				size, vout->buffer_size);
->> --
->> 1.7.1
->
->
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index b2572f7..fd28696 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -241,7 +241,7 @@ static struct i2c_board_info ams_delta_camera_board_info[] = {
+ 	},
+ };
+ 
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ DEFINE_LED_TRIGGER(ams_delta_camera_led_trigger);
+ 
+ static int ams_delta_camera_power(struct device *dev, int power)
+@@ -320,7 +320,7 @@ static void __init ams_delta_init(void)
+ 
+ 	omap1_usb_init(&ams_delta_usb_config);
+ 	omap1_set_camera_info(&ams_delta_camera_platform_data);
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 	led_trigger_register_simple("ams_delta_camera",
+ 			&ams_delta_camera_led_trigger);
+ #endif
+diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
+index ff203a4..c30233e 100644
+--- a/drivers/leds/Kconfig
++++ b/drivers/leds/Kconfig
+@@ -17,10 +17,13 @@ menuconfig NEW_LEDS
+ if NEW_LEDS
+ 
+ config LEDS_CLASS
+-	bool "LED Class Support"
++	tristate "LED Class Support"
+ 	help
+ 	  This option enables the led sysfs class in /sys/class/leds.  You'll
+-	  need this to do anything useful with LEDs.  If unsure, say N.
++	  need this to do anything useful with LEDs.  If unsure, say M.
++
++	  Note: don't disable it as N, because plenty of led and trigger drivers
++	  are using this option.
+ 
+ comment "LED drivers"
+ 
+@@ -388,7 +391,7 @@ config LEDS_RENESAS_TPU
+ 	  Brightness control is supported but hardware blinking is not.
+ 
+ config LEDS_TRIGGERS
+-	bool "LED Trigger support"
++	tristate "LED Trigger support"
+ 	depends on LEDS_CLASS
+ 	help
+ 	  This option enables trigger support for the leds class.
+diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
+index dc3d3d8..1f54cb0 100644
+--- a/drivers/leds/led-class.c
++++ b/drivers/leds/led-class.c
+@@ -75,7 +75,7 @@ static ssize_t led_max_brightness_show(struct device *dev,
+ static struct device_attribute led_class_attrs[] = {
+ 	__ATTR(brightness, 0644, led_brightness_show, led_brightness_store),
+ 	__ATTR(max_brightness, 0444, led_max_brightness_show, NULL),
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 	__ATTR(trigger, 0644, led_trigger_show, led_trigger_store),
+ #endif
+ 	__ATTR_NULL,
+@@ -209,7 +209,7 @@ int led_classdev_register(struct device *parent, struct led_classdev *led_cdev)
+ 	if (IS_ERR(led_cdev->dev))
+ 		return PTR_ERR(led_cdev->dev);
+ 
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 	init_rwsem(&led_cdev->trigger_lock);
+ #endif
+ 	/* add to the list of leds */
+@@ -226,7 +226,7 @@ int led_classdev_register(struct device *parent, struct led_classdev *led_cdev)
+ 	led_cdev->blink_timer.function = led_timer_function;
+ 	led_cdev->blink_timer.data = (unsigned long)led_cdev;
+ 
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 	led_trigger_set_default(led_cdev);
+ #endif
+ 
+@@ -245,7 +245,7 @@ EXPORT_SYMBOL_GPL(led_classdev_register);
+  */
+ void led_classdev_unregister(struct led_classdev *led_cdev)
+ {
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 	down_write(&led_cdev->trigger_lock);
+ 	if (led_cdev->trigger)
+ 		led_trigger_set(led_cdev, NULL);
+diff --git a/drivers/leds/leds.h b/drivers/leds/leds.h
+index e77c7f8..53b59b7 100644
+--- a/drivers/leds/leds.h
++++ b/drivers/leds/leds.h
+@@ -35,7 +35,7 @@ static inline int led_get_brightness(struct led_classdev *led_cdev)
+ extern struct rw_semaphore leds_list_lock;
+ extern struct list_head leds_list;
+ 
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ void led_trigger_set_default(struct led_classdev *led_cdev);
+ void led_trigger_set(struct led_classdev *led_cdev,
+ 			struct led_trigger *trigger);
+diff --git a/drivers/mmc/host/au1xmmc.c b/drivers/mmc/host/au1xmmc.c
+index 56e7834..83f4913 100644
+--- a/drivers/mmc/host/au1xmmc.c
++++ b/drivers/mmc/host/au1xmmc.c
+@@ -1043,7 +1043,7 @@ static int __devinit au1xmmc_probe(struct platform_device *pdev)
+ 						     "using PIO\n");
+ 	}
+ 
+-#ifdef CONFIG_LEDS_CLASS
++#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
+ 	if (host->platdata && host->platdata->led) {
+ 		struct led_classdev *led = host->platdata->led;
+ 		led->name = mmc_hostname(mmc);
+@@ -1072,7 +1072,7 @@ static int __devinit au1xmmc_probe(struct platform_device *pdev)
+ 	return 0;	/* all ok */
+ 
+ out6:
+-#ifdef CONFIG_LEDS_CLASS
++#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
+ 	if (host->platdata && host->platdata->led)
+ 		led_classdev_unregister(host->platdata->led);
+ out5:
+@@ -1111,7 +1111,7 @@ static int __devexit au1xmmc_remove(struct platform_device *pdev)
+ 	if (host) {
+ 		mmc_remove_host(host->mmc);
+ 
+-#ifdef CONFIG_LEDS_CLASS
++#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
+ 		if (host->platdata && host->platdata->led)
+ 			led_classdev_unregister(host->platdata->led);
+ #endif
+diff --git a/drivers/power/power_supply.h b/drivers/power/power_supply.h
+index 018de2b..efa9544 100644
+--- a/drivers/power/power_supply.h
++++ b/drivers/power/power_supply.h
+@@ -22,7 +22,7 @@ static inline void power_supply_init_attrs(struct device_type *dev_type) {}
+ 
+ #endif /* CONFIG_SYSFS */
+ 
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 
+ extern void power_supply_update_leds(struct power_supply *psy);
+ extern int power_supply_create_triggers(struct power_supply *psy);
+diff --git a/include/linux/leds.h b/include/linux/leds.h
+index 5884def..051bc7e 100644
+--- a/include/linux/leds.h
++++ b/include/linux/leds.h
+@@ -66,7 +66,7 @@ struct led_classdev {
+ 	struct timer_list	 blink_timer;
+ 	int			 blink_brightness;
+ 
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 	/* Protects the trigger data below */
+ 	struct rw_semaphore	 trigger_lock;
+ 
+@@ -115,7 +115,7 @@ extern void led_brightness_set(struct led_classdev *led_cdev,
+ /*
+  * LED Triggers
+  */
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 
+ #define TRIG_NAME_MAX 50
+ 
+@@ -161,7 +161,8 @@ extern void led_trigger_blink(struct led_trigger *trigger,
+ #endif
+ 
+ /* Trigger specific functions */
+-#ifdef CONFIG_LEDS_TRIGGER_IDE_DISK
++#if defined(CONFIG_LEDS_TRIGGER_IDE_DISK) || \
++	defined(CONFIG_LEDS_TRIGGER_IDE_DISK_MODULE)
+ extern void ledtrig_ide_activity(void);
+ #else
+ #define ledtrig_ide_activity() do {} while(0)
+diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
+index aed5bc7..adac344 100644
+--- a/include/linux/mmc/host.h
++++ b/include/linux/mmc/host.h
+@@ -300,7 +300,7 @@ struct mmc_host {
+ 
+ 	mmc_pm_flag_t		pm_flags;	/* requested pm features */
+ 
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 	struct led_trigger	*led;		/* activity led */
+ #endif
+ 
+diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
+index 204c18d..cb09fa0 100644
+--- a/include/linux/power_supply.h
++++ b/include/linux/power_supply.h
+@@ -164,7 +164,7 @@ struct power_supply {
+ 	struct device *dev;
+ 	struct work_struct changed_work;
+ 
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 	struct led_trigger *charging_full_trig;
+ 	char *charging_full_trig_name;
+ 	struct led_trigger *charging_trig;
+-- 
+1.7.5
 
