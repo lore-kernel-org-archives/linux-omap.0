@@ -1,14 +1,14 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v3 4/6] OMAP2+: pm: Remove static devices variable for mpu, dsp, iva and l3 PM
-Date: Tue, 27 Sep 2011 19:18:04 +0200
-Message-ID: <1317143886-13285-5-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v3 5/6] OMAP: omap_device: Create a default omap_device_pm_latency
+Date: Tue, 27 Sep 2011 19:18:05 +0200
+Message-ID: <1317143886-13285-6-git-send-email-b-cousson@ti.com>
 References: <1317143886-13285-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38963 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38964 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750997Ab1I0RTD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751363Ab1I0RTD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 27 Sep 2011 13:19:03 -0400
 In-Reply-To: <1317143886-13285-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,92 +16,58 @@ List-Id: linux-omap@vger.kernel.org
 To: khilman@ti.com
 Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Since the device pointer is now retrieved using the hwmod name, remove
-the static variables used to store the device pointers for DSP, MPU, IVA
-and L3 devices for PM/DVFS usage.
+Most devices are using the same default omap_device_pm_latency structure
+during device built. In order to avoid the duplication of the same
+structure everywhere, add a default structure that will be used if
+the device does not have an explicit one.
+
+Next patches will clean the duplicated structures.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/pm.c |   47 ++++++---------------------------------------
- 1 files changed, 7 insertions(+), 40 deletions(-)
+ arch/arm/plat-omap/omap_device.c |   19 ++++++++++++++++++-
+ 1 files changed, 18 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index f852e4f..d2ef1c2 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -26,38 +26,7 @@
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index f832f92..cd8d977 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -97,6 +97,14 @@
+ static int omap_device_register(struct platform_device *pdev);
+ static int omap_early_device_register(struct platform_device *pdev);
  
- static struct omap_device_pm_latency *pm_lats;
++static struct omap_device_pm_latency omap_default_latency[] = {
++	{
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func   = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	}
++};
++
+ /* Private functions */
  
--static struct device *mpu_dev;
--static struct device *iva_dev;
--static struct device *l3_dev;
--static struct device *dsp_dev;
--
--struct device *omap2_get_mpuss_device(void)
--{
--	WARN_ON_ONCE(!mpu_dev);
--	return mpu_dev;
--}
--
--struct device *omap2_get_iva_device(void)
--{
--	WARN_ON_ONCE(!iva_dev);
--	return iva_dev;
--}
--
--struct device *omap2_get_l3_device(void)
--{
--	WARN_ON_ONCE(!l3_dev);
--	return l3_dev;
--}
--
--struct device *omap4_get_dsp_device(void)
--{
--	WARN_ON_ONCE(!dsp_dev);
--	return dsp_dev;
--}
--EXPORT_SYMBOL(omap4_get_dsp_device);
--
--/* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
--static int _init_omap_device(char *name, struct device **new_dev)
-+static int _init_omap_device(char *name)
- {
- 	struct omap_hwmod *oh;
- 	struct platform_device *pdev;
-@@ -72,8 +41,6 @@ static int _init_omap_device(char *name, struct device **new_dev)
- 		 __func__, name))
- 		return -ENODEV;
+ /**
+@@ -510,8 +518,17 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 	if (ret)
+ 		goto odbs_exit3;
  
--	*new_dev = &pdev->dev;
--
- 	return 0;
- }
+-	od->pm_lats = pm_lats;
++	if (!pm_lats) {
++		pm_lats = omap_default_latency;
++		pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
++	}
++
+ 	od->pm_lats_cnt = pm_lats_cnt;
++	od->pm_lats = kmemdup(pm_lats,
++			sizeof(struct omap_device_pm_latency) * pm_lats_cnt,
++			GFP_KERNEL);
++	if (!od->pm_lats)
++		goto odbs_exit3;
  
-@@ -82,16 +49,16 @@ static int _init_omap_device(char *name, struct device **new_dev)
-  */
- static void omap2_init_processor_devices(void)
- {
--	_init_omap_device("mpu", &mpu_dev);
-+	_init_omap_device("mpu");
- 	if (omap3_has_iva())
--		_init_omap_device("iva", &iva_dev);
-+		_init_omap_device("iva");
- 
- 	if (cpu_is_omap44xx()) {
--		_init_omap_device("l3_main_1", &l3_dev);
--		_init_omap_device("dsp", &dsp_dev);
--		_init_omap_device("iva", &iva_dev);
-+		_init_omap_device("l3_main_1");
-+		_init_omap_device("dsp");
-+		_init_omap_device("iva");
- 	} else {
--		_init_omap_device("l3_main", &l3_dev);
-+		_init_omap_device("l3_main");
- 	}
- }
- 
+ 	for (i = 0; i < oh_cnt; i++) {
+ 		hwmods[i]->od = od;
 -- 
 1.7.0.4
 
