@@ -1,85 +1,163 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 08/13] arm/dts: OMAP4: Add i2c controller nodes
-Date: Tue, 27 Sep 2011 11:12:49 +0530
-Message-ID: <4E816259.4050606@ti.com>
-References: <1317055821-20652-1-git-send-email-b-cousson@ti.com> <1317055821-20652-9-git-send-email-b-cousson@ti.com>
+From: Partha Basak <p-basak2@ti.com>
+Subject: RE: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
+ for omap3
+Date: Tue, 27 Sep 2011 11:34:00 +0530
+Message-ID: <cbad72cea703d117067f7c628f7db806@mail.gmail.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
+	<1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>	<1316691479-1849-3-git-send-email-keshava_mgowda@ti.com>
+	<alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com>	<CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com>
+	<alpine.DEB.2.00.1109240020510.22872@utopia.booyaka.com> <CAP05o4Lwk2uUz5ou84GQsrsBdjW-FEYP-55pBzH+a74hP4g1Dw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:55758 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752781Ab1I0Fm4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Sep 2011 01:42:56 -0400
-Received: by mail-yw0-f53.google.com with SMTP id 2so6833723ywt.26
-        for <linux-omap@vger.kernel.org>; Mon, 26 Sep 2011 22:42:55 -0700 (PDT)
-In-Reply-To: <1317055821-20652-9-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAP05o4Lwk2uUz5ou84GQsrsBdjW-FEYP-55pBzH+a74hP4g1Dw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keshava Munegowda <keshava_mgowda@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, parthab@india.ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: tony@atomide.com, grant.likely@secretlab.ca, paul@pwsan.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, "G, Manjunath Kondaiah" <manjugk@ti.com>
 
-On Monday 26 September 2011 10:20 PM, Benoit Cousson wrote:
-> Add i2c controllers nodes into the main ocp bus.
+>-----Original Message-----
+>From: Munegowda, Keshava [mailto:keshava_mgowda@ti.com]
+>Sent: Monday, September 26, 2011 7:49 PM
+>To: Paul Walmsley; Tero Kristo; b-cousson@ti.com; balbi@ti.com;
+>parthab@india.ti.com
+>Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org; linux-
+>kernel@vger.kernel.org; gadiyar@ti.com; sameo@linux.intel.com;
+>tony@atomide.com; khilman@ti.com; johnstul@us.ibm.com;
+>vishwanath.bs@ti.com
+>Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod
+>structures for omap3
 >
-> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
-> Cc: G, Manjunath Kondaiah<manjugk@ti.com>
-> ---
->   arch/arm/boot/dts/omap4.dtsi |   32 ++++++++++++++++++++++++++++++++
->   1 files changed, 32 insertions(+), 0 deletions(-)
+>On Sat, Sep 24, 2011 at 12:00 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>> On Fri, 23 Sep 2011, Munegowda, Keshava wrote:
+>>
+>>> On Thu, Sep 22, 2011 at 11:31 PM, Paul Walmsley <paul@pwsan.com>
+>wrote:
+>>>
+>>> But the question arises here , why do we need these ehci and ohci as
+>two
+>>> different hwmods containing only irq and base address? It is required
+>>> for future - to implement remote wakeup feature for ehci and ohci
+>ports
+>>> depending on irq-chain handler patches by Tero. Separate hwmods for
+>ehci
+>>> and ohci are needed to enable prcm chain-handler to uniquely identify
+>>> the wakeup source as ehci or ohci and call only the corresponding
+>>> interrupt handler. We will be using omap_hwmod_mux_init for ehci and
+>>> ohci hwmods to enable I/O wakeup capability for respective IO-pads.
+>>> Depending on the particular wakeup source(ehci/ohci), the
+>corresponding
+>>> ehci or ohci irq handler will be called.
+>>>
+>>> If ehci and ohci are combined with usbhs hwmod as a single hwmod ,
+>then
+>>> for every wakeup (either ehci or ohci port wakeup) only the first
+>>> interrupt handler will be called (please look at the function
+>>> omap_hwmod_mux_handle_irq of
+>>>
+>>> /arch/arm/mach-omap2/mux.c file ; in tero's latest patch:
+>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53139.html)
+>>> , so in this
+>>> case, if ehci interrupt is the first interrupt , then even for ohci
+>wakeup
+>>> , only ehci interrupt will get called; which will break the
+>functionality.
+>>
+>> Any reason why this couldn't be handled either by:
+>>
+>> 1. adding an IRQ number field to struct omap_hwmod_mux_info, and
+>changing
+>> _omap_hwmod_mux_handle_irq() to raise that IRQ number?
 >
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index bb19bca..447f482 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -21,6 +21,10 @@
->   	interrupt-parent =<&gic>;
 >
->   	aliases {
-> +		i2c1 =&i2c1;
-> +		i2c2 =&i2c2;
-> +		i2c3 =&i2c3;
-> +		i2c4 =&i2c4;
->   	};
+>yes, it is possible by changing the existing irq-chain handler by tero
+>Kristo
 >
->   	cpus {
-> @@ -173,5 +177,33 @@
->   			#gpio-cells =<2>;
->   			gpio-controller;
->   		};
-> +
-> +		i2c1: i2c@1 {
-> +			compatible = "ti,omap3-i2c";
+>I am looping tero too.
+>
+>So here are new requirements for the irq-chain handler
+>
+>1. The hwmod should have have option to have multiple mux structures
+>
+>This is something like:
+>
+>The existing mux structure definition in omap_hwmod [file:
+>/arch/arm/plat-omap/include/plat/omap_hwmod.h ] structure
+>
+>	struct omap_hwmod_mux_info	*mux;
+>
+>it should changed to
+>
+>	struct omap_hwmod_mux_info	**pmux;
+>         U32                                            mux_cnt;
+>
+>
+>pmux - pointers to mux ; array of mux structures.
+>mux_cnt - number of mux per hwmod.
+>
+>
+>2. The mux  omap_hwmod_mux_info  structure should have new member
+>called irq, like as follows:
+>
+>struct omap_hwmod_mux_info {
+>	int				nr_pads;
+>	...
+>        ....
+>        u32                           irq;
+>
+>};
+>
+>Upon wakeup of the I/O pad of the mux , the irq-chain handler should
+>invoke the irq handler of the irq numbered <map_hwmod_mux_info.irq>
+>
+>3.  There should be "SOME WAY" to supply the irqs  from hwmod
+>structure (omap_hwmod) to mux structure (omap_hwmod_mux_info)
+>
+>
+>if you , tero and other opensource people are aligned on the proposed
+>changes on the irq-handler ;
+>then it is possible to have two hwmods ( usbhs and tll) for usbhost
+>driver.
+>please let me know you comments on the above approach.
+>
 
-This is a little confusing as omap4.dtsi has
-compatible "ti,omap3-i2c" nodes in it.
+Hello Tero,
 
-> +			#address-cells =<1>;
-> +			#size-cells =<0>;
-> +			ti,hwmods = "i2c1";
-> +		};
-> +
-> +		i2c2: i2c@2 {
-> +			compatible = "ti,omap3-i2c";
-> +			#address-cells =<1>;
-> +			#size-cells =<0>;
-> +			ti,hwmods = "i2c2";
-> +		};
-> +
-> +		i2c3: i2c@3 {
-> +			compatible = "ti,omap3-i2c";
-> +			#address-cells =<1>;
-> +			#size-cells =<0>;
-> +			ti,hwmods = "i2c3";
-> +		};
-> +
-> +		i2c4: i2c@4 {
-> +			compatible = "ti,omap3-i2c";
-> +			#address-cells =<1>;
-> +			#size-cells =<0>;
-> +			ti,hwmods = "i2c4";
-> +		};
->   	};
->   };
+I would like to draw your attention to the following thread:
 
+We need to support the following:
+1. Ability to associate multiple mux info to a hwmod.
+2. Able to associate a particular irq handler to a mux info.
+3. PRCM Chain handler should loop through all mux-info arrays
+   for a particular hwmod to identify the possible wakeup source(s)
+   and call the appropriate irq handler for that mux-info.
+   (It is possible that both mux-info are woken up in which case both
+handlers should be called).
+
+To give you a little more perspective, EHCI & OHCI are co-controllers
+under UHH/TLL.
+They do not get presented separately to the OCP bus, hence do not qualify
+as separate hwmods
+(Paul had objected to the design approach representing EHCI & OHCI as
+different hwmods).
+
+However, we need a mechanism to efficiently identify/distinguish
+remote-wakeup, connect/disconnect
+On to an EHCI port vs an OHCI port & call only the correct interrupt
+handler(EHCI or OHCI).
+
+ To incorporate this, chain handler implementation would need some
+enhancements.
+ We can look into the details in the next merge window cycle in
+conjunction with aggressive clock management support for EHCI/OHCI.
+ But fundamentally, if you are aligned to the approach, we can go ahead
+collapsing the EHCI & OHCI hwmods into one.
+>
+>>
+>> or
+>>
+>> 2. using shared interrupts?
+>>
+>>
+>> - Paul
+>>
