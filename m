@@ -1,122 +1,54 @@
-From: "Saxena, Parth" <parth.saxena@ti.com>
-Subject: RE: [PATCH] ti816x: add support for nand on ti8168 evm
-Date: Tue, 27 Sep 2011 14:21:02 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC3121D6@dbde02.ent.ti.com>
-References: <1316438648-25760-1-git-send-email-parth.saxena@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 0/6] iommu: split mapping to page sizes as supported by
+ the hardware
+Date: Tue, 27 Sep 2011 11:56:13 +0300
+Message-ID: <CAK=WgbYkG7s+aLW2icm0iHbiX1YRSZ1JSr=jPDv=3Dd+Fg1wgg@mail.gmail.com>
+References: <1316195506-9777-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59078 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752394Ab1I0IvM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Sep 2011 04:51:12 -0400
-In-Reply-To: <1316438648-25760-1-git-send-email-parth.saxena@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1316195506-9777-1-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: iommu@lists.linux-foundation.org, Joerg Roedel <Joerg.Roedel@amd.com>
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Saxena, Parth" <parth.saxena@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>
 
-If there are no review comments on this patch, can this be merged?
+ping
 
-Thanks and Regards,
-Parth
-
-> -----Original Message-----
-> From: Saxena, Parth
-> Sent: Monday, September 19, 2011 6:54 PM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-mtd@lists.infradead.org; tony@atomide.com; Saxena, Parth;
-> Basheer, Mansoor Ahamed
-> Subject: [PATCH] ti816x: add support for nand on ti8168 evm
-> 
-> Add partition table for NAND device on TI8168 EVM
-> and initialise the NAND module.
-> 
-> Signed-off-by: Saxena, Parth <parth.saxena@ti.com>
-> Signed-off-by: Basheer, Mansoor Ahamed <mansoor.ahamed@ti.com>
-> ---
-> 
-> This patch is tested on top of linux-omap/master and
-> Hemant's patches submitted recently.
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53457.html
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg54296.html
-> 
->  arch/arm/mach-omap2/board-ti8168evm.c |   39
-> +++++++++++++++++++++++++++++++++
->  1 files changed, 39 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-
-> omap2/board-ti8168evm.c
-> index e516a04..87953bb 100644
-> --- a/arch/arm/mach-omap2/board-ti8168evm.c
-> +++ b/arch/arm/mach-omap2/board-ti8168evm.c
-> @@ -14,6 +14,7 @@
->   */
->  #include <linux/kernel.h>
->  #include <linux/init.h>
-> +#include <linux/mtd/nand.h>
-> 
->  #include <mach/hardware.h>
->  #include <asm/mach-types.h>
-> @@ -23,6 +24,42 @@
->  #include <plat/irqs.h>
->  #include <plat/board.h>
->  #include <plat/common.h>
-> +#include <plat/gpmc.h>
-> +#include <plat/nand.h>
-> +
-> +#include "board-flash.h"
-> +
-> +#define NAND_BLOCK_SIZE		SZ_128K
-> +
-> +static struct mtd_partition ti816x_nand_partitions[] = {
-> +/* All the partition sizes are listed in terms of NAND block size */
-> +	{
-> +		.name		= "U-Boot",
-> +		.offset		= 0,			/* Offset = 0x0 */
-> +		.size		= 18 * NAND_BLOCK_SIZE,
-> +		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-> +	},
-> +	{
-> +		.name		= "U-Boot Env",
-> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x240000
-> */
-> +		.size		= 2 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name		= "Kernel",
-> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000
-> */
-> +		.size		= 34 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name		= "File System",
-> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x6C0000
-> */
-> +		.size		= 1601 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name		= "Reserved",
-> +		.offset		= MTDPART_OFS_APPEND,	/* Offset =
-> 0xCEE0000 */
-> +		.size		= MTDPART_SIZ_FULL,
-> +	},
-> +};
-> 
->  static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
->  };
-> @@ -35,6 +72,8 @@ static void __init ti8168_init_early(void)
-> 
->  static void __init ti8168_evm_init(void)
->  {
-> +	board_nand_init(ti816x_nand_partitions,
-> +		ARRAY_SIZE(ti816x_nand_partitions), 0, NAND_BUSWIDTH_16);
->  	omap_serial_init();
->  	omap_board_config = ti8168_evm_config;
->  	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
+On Fri, Sep 16, 2011 at 8:51 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
+:
+> v2->v3:
+>
+> - s/KB/KiB/ (David W)
+>
+> v1->v2:
+>
+> - split to patches (by keeping the old code around until all drivers =
+are converted) (Joerg)
+>
+>
+> Ohad Ben-Cohen (6):
+> =A0iommu/core: split mapping to page sizes as supported by the hardwa=
+re
+> =A0iommu/omap: announce supported page sizes
+> =A0iommu/msm: announce supported page sizes
+> =A0iommu/amd: announce supported page sizes
+> =A0iommu/intel: announce supported page sizes
+> =A0iommu/core: remove the temporary register_iommu_pgsize API
+>
+> =A0drivers/iommu/amd_iommu.c =A0 | =A0 20 ++++++-
+> =A0drivers/iommu/intel-iommu.c | =A0 20 ++++++-
+> =A0drivers/iommu/iommu.c =A0 =A0 =A0 | =A0130 +++++++++++++++++++++++=
+++++++++++++++++----
+> =A0drivers/iommu/msm_iommu.c =A0 | =A0 =A08 ++-
+> =A0drivers/iommu/omap-iommu.c =A0| =A0 =A06 ++-
+> =A0drivers/iommu/omap-iovmm.c =A0| =A0 12 +---
+> =A0include/linux/iommu.h =A0 =A0 =A0 | =A0 =A07 +-
+> =A0virt/kvm/iommu.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A04 +-
+> =A08 files changed, 177 insertions(+), 30 deletions(-)
+>
 > --
-> 1.6.2.4
-
+> 1.7.4.1
+>
+>
