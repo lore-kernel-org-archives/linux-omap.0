@@ -1,90 +1,107 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v3 3/6] OMAP2+: pm: Use hwmod name instead of dev pointer
-Date: Tue, 27 Sep 2011 19:18:03 +0200
-Message-ID: <1317143886-13285-4-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v3 4/6] OMAP2+: pm: Remove static devices variable for mpu, dsp, iva and l3 PM
+Date: Tue, 27 Sep 2011 19:18:04 +0200
+Message-ID: <1317143886-13285-5-git-send-email-b-cousson@ti.com>
 References: <1317143886-13285-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58360 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38963 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750997Ab1I0RS7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Sep 2011 13:18:59 -0400
+	id S1750997Ab1I0RTD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Sep 2011 13:19:03 -0400
 In-Reply-To: <1317143886-13285-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@ti.com
 Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Replace the struct device parameter of omap2_set_init_voltage
-by the hwmod name. It will avoid having to store explicitely
-the device pointer into a static variable.
-Moreover, it will be a little bit more scalable if we introduce
-new DVFS devices.
+Since the device pointer is now retrieved using the hwmod name, remove
+the static variables used to store the device pointers for DSP, MPU, IVA
+and L3 devices for PM/DVFS usage.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/pm.c |   22 +++++++++++++++-------
- 1 files changed, 15 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/pm.c |   47 ++++++---------------------------------------
+ 1 files changed, 7 insertions(+), 40 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index e7cd794..f852e4f 100644
+index f852e4f..d2ef1c2 100644
 --- a/arch/arm/mach-omap2/pm.c
 +++ b/arch/arm/mach-omap2/pm.c
-@@ -169,18 +169,26 @@ err:
-  * in the opp entry
-  */
- static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
--						struct device *dev)
-+					 const char *oh_name)
+@@ -26,38 +26,7 @@
+ 
+ static struct omap_device_pm_latency *pm_lats;
+ 
+-static struct device *mpu_dev;
+-static struct device *iva_dev;
+-static struct device *l3_dev;
+-static struct device *dsp_dev;
+-
+-struct device *omap2_get_mpuss_device(void)
+-{
+-	WARN_ON_ONCE(!mpu_dev);
+-	return mpu_dev;
+-}
+-
+-struct device *omap2_get_iva_device(void)
+-{
+-	WARN_ON_ONCE(!iva_dev);
+-	return iva_dev;
+-}
+-
+-struct device *omap2_get_l3_device(void)
+-{
+-	WARN_ON_ONCE(!l3_dev);
+-	return l3_dev;
+-}
+-
+-struct device *omap4_get_dsp_device(void)
+-{
+-	WARN_ON_ONCE(!dsp_dev);
+-	return dsp_dev;
+-}
+-EXPORT_SYMBOL(omap4_get_dsp_device);
+-
+-/* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
+-static int _init_omap_device(char *name, struct device **new_dev)
++static int _init_omap_device(char *name)
  {
- 	struct voltagedomain *voltdm;
- 	struct clk *clk;
- 	struct opp *opp;
- 	unsigned long freq, bootup_volt;
-+	struct device *dev;
+ 	struct omap_hwmod *oh;
+ 	struct platform_device *pdev;
+@@ -72,8 +41,6 @@ static int _init_omap_device(char *name, struct device **new_dev)
+ 		 __func__, name))
+ 		return -ENODEV;
  
--	if (!vdd_name || !clk_name || !dev) {
-+	if (!vdd_name || !clk_name || !oh_name) {
- 		printk(KERN_ERR "%s: Invalid parameters!\n", __func__);
- 		goto exit;
+-	*new_dev = &pdev->dev;
+-
+ 	return 0;
+ }
+ 
+@@ -82,16 +49,16 @@ static int _init_omap_device(char *name, struct device **new_dev)
+  */
+ static void omap2_init_processor_devices(void)
+ {
+-	_init_omap_device("mpu", &mpu_dev);
++	_init_omap_device("mpu");
+ 	if (omap3_has_iva())
+-		_init_omap_device("iva", &iva_dev);
++		_init_omap_device("iva");
+ 
+ 	if (cpu_is_omap44xx()) {
+-		_init_omap_device("l3_main_1", &l3_dev);
+-		_init_omap_device("dsp", &dsp_dev);
+-		_init_omap_device("iva", &iva_dev);
++		_init_omap_device("l3_main_1");
++		_init_omap_device("dsp");
++		_init_omap_device("iva");
+ 	} else {
+-		_init_omap_device("l3_main", &l3_dev);
++		_init_omap_device("l3_main");
  	}
- 
-+	dev = omap_device_get_by_hwmod_name(oh_name);
-+	if (IS_ERR(dev)) {
-+		pr_err("%s: Unable to get dev pointer for hwmod %s\n",
-+			__func__, oh_name);
-+		goto exit;
-+	}
-+
- 	voltdm = omap_voltage_domain_lookup(vdd_name);
- 	if (IS_ERR(voltdm)) {
- 		printk(KERN_ERR "%s: Unable to get vdd pointer for vdd_%s\n",
-@@ -226,8 +234,8 @@ static void __init omap3_init_voltages(void)
- 	if (!cpu_is_omap34xx())
- 		return;
- 
--	omap2_set_init_voltage("mpu", "dpll1_ck", mpu_dev);
--	omap2_set_init_voltage("core", "l3_ick", l3_dev);
-+	omap2_set_init_voltage("mpu", "dpll1_ck", "mpu");
-+	omap2_set_init_voltage("core", "l3_ick", "l3_main");
  }
  
- static void __init omap4_init_voltages(void)
-@@ -235,9 +243,9 @@ static void __init omap4_init_voltages(void)
- 	if (!cpu_is_omap44xx())
- 		return;
- 
--	omap2_set_init_voltage("mpu", "dpll_mpu_ck", mpu_dev);
--	omap2_set_init_voltage("core", "l3_div_ck", l3_dev);
--	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", iva_dev);
-+	omap2_set_init_voltage("mpu", "dpll_mpu_ck", "mpu");
-+	omap2_set_init_voltage("core", "l3_div_ck", "l3_main_1");
-+	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", "iva");
- }
- 
- static int __init omap2_common_pm_init(void)
 -- 
 1.7.0.4
 
