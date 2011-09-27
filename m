@@ -1,229 +1,78 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 2/5] ARM: OMAP: omap_device: add a method to set iommu
- private archdata
-Date: Tue, 27 Sep 2011 21:09:57 +0300
-Message-ID: <CAK=WgbZhz8LcAYZEY3qqRkX4E_wtspWp09Eq9G=5VdpoMMF1FQ@mail.gmail.com>
-References: <1316948337-7924-1-git-send-email-ohad@wizery.com>
- <1316948337-7924-3-git-send-email-ohad@wizery.com> <87sjni9aql.fsf@ti.com>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH v3 1/6] iommu/core: split mapping to page sizes as
+ supported by the hardware
+Date: Tue, 27 Sep 2011 20:14:38 +0200
+Message-ID: <20110927181438.GM2138@amd.com>
+References: <1316195506-9777-1-git-send-email-ohad@wizery.com>
+ <1316195506-9777-2-git-send-email-ohad@wizery.com>
+ <20110927100505.GH2138@amd.com>
+ <CAK=WgbahwY+7Ux-RjW2Tw9WBSwZnYuTMZ2NQASWyOXQ3zF6qFg@mail.gmail.com>
+ <20110927131222.GL2138@amd.com>
+ <CAK=WgbYG2tpMJ2SikZhm=R9j5kQ6Hm8CGg=q1bko3idzF53Q3Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:65278 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883Ab1I0SKS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Sep 2011 14:10:18 -0400
-In-Reply-To: <87sjni9aql.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAK=WgbYG2tpMJ2SikZhm=R9j5kQ6Hm8CGg=q1bko3idzF53Q3Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stepan Moskovchenko <stepanm@codeaurora.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Cousson Benoit <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 
-Hi Kevin,
+On Tue, Sep 27, 2011 at 09:28:37AM -0400, Ohad Ben-Cohen wrote:
+> So you're suggesting to re-implement find_next_bit() using ffs()/fls()
+> and shifting ?
 
-On Tue, Sep 27, 2011 at 1:53 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Benoit did just this in preparation for DT.
->
-> =A0 =A0 =A0 http://marc.info/?l=3Dlinux-omap&m=3D131672480111927&w=3D=
-2
->
-> Will that meet your needs?
+No. I suggest a simpler and shorter algorithm using the bit helpers.
+Something like that:
 
-It's almost there, but not entirely.
+        min_idx = __ffs(iommu_page_sizes);
 
-Benoit's alloc/delete functions focus on the omap_device part, leaving
-the handling of the platform device (allocation and pdata setting) to
-omap_device_build_ss(), which at the same time registers the pdev.
+        while (size) {
+                /* Max alignment allowed by current physical address */
+                phys_idx = __ffs(phys);
 
-I'd need to split omap_device_build_ss() into two: an alloc() part
-which does everything but registering the pdev, and a register() part.
-Users will first call alloc(), manually set archdata members, and then
-call the register() part.
+                /* Max alignment allowed by current size */
+                size_idx = __fls(size);
 
-Something like this (compile-tested only, based on Benoit's
-for_3.2/4_omap4_dt_early_devices branch):
+                /* special case: iova == 0 */
+                if (likely(phys))
+                        idx = min(phys_idx, size_idx);
+                else
+                        idx = size_idx;
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap=
-_device.c
-index 0ae9e7f..9b8008c 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -671,7 +671,7 @@ struct platform_device *omap_device_build(const
-char *pdev_name, int pdev_id,
- }
+                BUG_ON(idx < min_idx);
 
- /**
-- * omap_device_build_ss - build and register an omap_device with
-multiple hwmods
-+ * omap_device_alloc_ss - build an omap_device with multiple hwmods
-  * @pdev_name: name of the platform_device driver to use
-  * @pdev_id: this platform_device's connection ID
-  * @oh: ptr to the single omap_hwmod that backs this omap_device
-@@ -679,19 +679,19 @@ struct platform_device *omap_device_build(const
-char *pdev_name, int pdev_id,
-  * @pdata_len: amount of memory pointed to by @pdata
-  * @pm_lats: pointer to a omap_device_pm_latency array for this device
-  * @pm_lats_cnt: ARRAY_SIZE() of @pm_lats
-- * @is_early_device: should the device be registered as an early devic=
-e or not
-  *
-- * Convenience function for building and registering an omap_device
-+ * Convenience function for building (only) an omap_device
-  * subsystem record.  Subsystem records consist of multiple
-- * omap_hwmods.  This function in turn builds and registers a
-- * platform_device record.  Returns an ERR_PTR() on error, or passes
-- * along the return value of omap_device_register().
-+ * omap_hwmods.  This function in turn builds (but doesn't register) a
-+ * platform_device record, so callers can manipulate it (typically by
-+ * setting one or more archdata members) before it's registered.
-+ * Returns an ERR_PTR() on error, or the allocated pdev on success.
-  */
--struct platform_device *omap_device_build_ss(const char *pdev_name,
-int pdev_id,
-+struct platform_device *omap_device_alloc_ss(const char *pdev_name,
-int pdev_id,
- 					 struct omap_hwmod **ohs, int oh_cnt,
- 					 void *pdata, int pdata_len,
- 					 struct omap_device_pm_latency *pm_lats,
--					 int pm_lats_cnt, int is_early_device)
-+					 int pm_lats_cnt)
- {
- 	int ret =3D -ENOMEM;
- 	struct platform_device *pdev;
-@@ -723,13 +723,6 @@ struct platform_device
-*omap_device_build_ss(const char *pdev_name, int pdev_id,
- 	if (ret)
- 		goto odbs_exit2;
+                psize = 1UL << idx;
 
--	if (is_early_device)
--		ret =3D omap_early_device_register(pdev);
--	else
--		ret =3D omap_device_register(pdev);
--	if (ret)
--		goto odbs_exit2;
--
- 	return pdev;
+                /* search next smaller page-size supported */
+                while (psize && !(iommu_page_sizes & psize))
+                        psize >>= 1;
 
- odbs_exit2:
-@@ -744,6 +737,93 @@ odbs_exit:
- }
+                BUG_ON(psize == 0);
 
- /**
-+ * omap_device_delete_ss - free an omap_device-based platform device
-+ * @pdev: platform_device that represents this omap_device
-+ *
-+ * Convenience function for freeing a platform_device record, which
-+ * is based on an omap_device subsystem record.
-+ *
-+ * Use this function only if @pdev was created using omap_device_alloc=
-_ss(),
-+ * most commonly because a subsequent call to omap_device_register_ss(=
-) failed.
-+ */
-+void omap_device_delete_ss(struct platform_device *pdev)
-+{
-+	struct omap_device *od =3D to_omap_device(pdev);
-+
-+	omap_device_delete(od);
-+	platform_device_put(pdev);
-+}
-+
-+/**
-+ * omap_device_register_ss - register an omap_device-based platform de=
-vice
-+ * @pdev: platform_device that represents this omap_device
-+ * @is_early_device: should the device be registered as an early devic=
-e or not
-+ *
-+ * Convenience function for registering a platform_device record, whic=
-h
-+ * is based on an omap_device subsystem record, which was created usin=
-g
-+ * omap_device_alloc_ss().
-+ *
-+ * Returns 0 on success, or an appropriate error value otherwise (esse=
-ntially
-+ * by returning the value of platform_device_register())
-+ */
-+int omap_device_register_ss(struct platform_device *pdev, int is_early=
-_device)
-+{
-+	int ret;
-+
-+	if (is_early_device)
-+		ret =3D omap_early_device_register(pdev);
-+	else
-+		ret =3D omap_device_register(pdev);
-+
-+	return ret;
-+}
-+
-+/**
-+ * omap_device_build_ss - build and register an omap_device with
-multiple hwmods
-+ * @pdev_name: name of the platform_device driver to use
-+ * @pdev_id: this platform_device's connection ID
-+ * @oh: ptr to the single omap_hwmod that backs this omap_device
-+ * @pdata: platform_data ptr to associate with the platform_device
-+ * @pdata_len: amount of memory pointed to by @pdata
-+ * @pm_lats: pointer to a omap_device_pm_latency array for this device
-+ * @pm_lats_cnt: ARRAY_SIZE() of @pm_lats
-+ * @is_early_device: should the device be registered as an early devic=
-e or not
-+ *
-+ * Convenience function for building and registering an omap_device
-+ * subsystem record.  Subsystem records consist of multiple
-+ * omap_hwmods.  This function in turn builds and registers a
-+ * platform_device record.  Returns an ERR_PTR() on error, or passes
-+ * along the built pdev on success.
-+ */
-+struct platform_device *omap_device_build_ss(const char *pdev_name,
-int pdev_id,
-+					 struct omap_hwmod **ohs, int oh_cnt,
-+					 void *pdata, int pdata_len,
-+					 struct omap_device_pm_latency *pm_lats,
-+					 int pm_lats_cnt, int is_early_device)
-+{
-+	struct platform_device *pdev;
-+	int ret;
-+
-+	pdev =3D omap_device_alloc_ss(pdev_name, pdev_id, ohs, oh_cnt, pdata,
-+			pdata_len, pm_lats, pm_lats_cnt);
-+
-+	if (IS_ERR(pdev))
-+		goto out;
-+
-+	ret =3D omap_device_register_ss(pdev, is_early_device);
-+	if (ret) {
-+		pdev =3D ERR_PTR(ret);
-+		goto delete_od;
-+	}
-+
-+	return pdev;
-+delete_od:
-+	omap_device_delete_ss(pdev);
-+out:
-+	return pdev;
-+}
-+
-+/**
-  * omap_early_device_register - register an omap_device as an early pl=
-atform
-  * device.
-  * @od: struct omap_device * to register
+		iommu_ops->map(domain, iova, phys, get_order(psize), prot);
 
+                iova += psize;
+		phys += psize;
+                size -= psize;
+        }
 
-That's the idea; please tell me how you'd like to see this go forward
-(there are at least several personal-taste issues here, e.g., naming:
-now we have two sets of alloc/delete functions which have different
-semantics) and which branch would you like me to base this work off of
-(not sure if Benoit's patches already went into your
-for_3.2/omap_device branch) and I'll respin this patch properly.
+It is only C-style pseudo-code, of course. These __ffs and __fls lines
+all translate to a single instruction later. The find_next_bit()
+function has a lot more overhead because it needs to take account of
+real bitmaps (arrays of ulong). But this complexity is not required
+here.
 
-Thanks a lot!
-Ohad.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+And yes, overhead is important when we implement the generic dma-ops
+on-top of the iommu-api because this will make the iommu_map function a
+fast-path. So we really care about overhead here.
+
+	Joerg
+
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
