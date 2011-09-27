@@ -1,44 +1,56 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v3 1/6] iommu/core: split mapping to page sizes as
- supported by the hardware
-Date: Tue, 27 Sep 2011 16:28:37 +0300
-Message-ID: <CAK=WgbYG2tpMJ2SikZhm=R9j5kQ6Hm8CGg=q1bko3idzF53Q3Q@mail.gmail.com>
-References: <1316195506-9777-1-git-send-email-ohad@wizery.com>
- <1316195506-9777-2-git-send-email-ohad@wizery.com> <20110927100505.GH2138@amd.com>
- <CAK=WgbahwY+7Ux-RjW2Tw9WBSwZnYuTMZ2NQASWyOXQ3zF6qFg@mail.gmail.com> <20110927131222.GL2138@amd.com>
+From: Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH v2 0/5] OMAP3EVM: Add support for MT9T111 sensor
+Date: Tue, 27 Sep 2011 19:10:43 +0530
+Message-ID: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110927131222.GL2138@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Cc: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stepan Moskovchenko <stepanm@codeaurora.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53048 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752133Ab1I0Nlk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Sep 2011 09:41:40 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: laurent.pinchart@ideasonboard.com, mchehab@infradead.org, tony@atomide.com, hvaibhav@ti.com, linux-media@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.i
+Cc: linux-omap@vger.kernel.org, Deepthy Ravi <deepthy.ravi@ti.com>
 
-On Tue, Sep 27, 2011 at 4:12 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
-> You pass a pointer to an unsigned long for the page-size bitmap. This
-> allows to use an array of unsigned long. But a single unsigned long is
-> sufficient
+This patchset
+	-adds support for MT9T111 sensor on omap3evm.
+	Currently the sensor driver supports only
+	VGA resolution.
+	-enables MT9T111 sensor in omap2plus_defconfig.
 
-This is fine; I can change that if you like it better (though without
-doing the change below this is probably moot).
+This is dependent on the following patchset
+http://www.spinics.net/lists/linux-media/msg37270.html 
+which adds YUYV input support for OMAP3ISP. And is 
+applied on top of rc1-for-3.2 of gliakhovetski/v4l-dvb.git
+---
+Changes in v2:
+	As per the discussion here,
+	https://lkml.org/lkml/2011/9/20/280
+	the existing mt9t112 driver is reused for
+	adding support for mt9t111 sensor.
+Deepthy Ravi (3):
+  [media] v4l: Add support for mt9t111 sensor driver
+  ispccdc: Configure CCDC_SYN_MODE register
+  omap2plus_defconfig: Enable omap3isp and MT9T111 sensor drivers
 
-> and you can use functions like ffs() and fls() together with
-> shifting. These functions often translate to a single intruction in the
-> binary. The find_next_bit function has much more overhead because it
-> needs to handle the array-of-ulong case.
+Vaibhav Hiremath (2):
+  omap3evm: Enable regulators for camera interface
+  omap3evm: Add Camera board init/hookup file
 
-So you're suggesting to re-implement find_next_bit() using ffs()/fls()
-and shifting ?
+ arch/arm/configs/omap2plus_defconfig        |    9 +
+ arch/arm/mach-omap2/Makefile                |    5 +
+ arch/arm/mach-omap2/board-omap3evm-camera.c |  185 ++++
+ arch/arm/mach-omap2/board-omap3evm.c        |   26 +
+ drivers/media/video/Kconfig                 |    7 +
+ drivers/media/video/Makefile                |    1 +
+ drivers/media/video/mt9t111_reg.h           | 1367 +++++++++++++++++++++++++++
+ drivers/media/video/mt9t112.c               |  320 ++++++-
+ drivers/media/video/omap3isp/ispccdc.c      |   11 +-
+ include/media/mt9t111.h                     |   45 +
+ 10 files changed, 1937 insertions(+), 39 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+ create mode 100644 drivers/media/video/mt9t111_reg.h
+ create mode 100644 include/media/mt9t111.h
 
-What's the point ?
-
-Sure, if we'll have a proven performance issue while using
-find_next_bit() we can think of doing this, but at this stage, this
-sounds to me like a premature optimization which isn't too elegant.
-
-At this point I strongly prefer readable, maintainable and easier to
-debug code over optimization which isn't proven to be necessary.
-
-Thanks,
-Ohad.
