@@ -1,54 +1,123 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v3 0/6] iommu: split mapping to page sizes as supported by
- the hardware
-Date: Tue, 27 Sep 2011 11:56:13 +0300
-Message-ID: <CAK=WgbYkG7s+aLW2icm0iHbiX1YRSZ1JSr=jPDv=3Dd+Fg1wgg@mail.gmail.com>
-References: <1316195506-9777-1-git-send-email-ohad@wizery.com>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: [PATCH V7 0/4] cpuidle: Global registration of idle states with
+ per-cpu statistics
+Date: Tue, 27 Sep 2011 15:32:38 +0530
+Message-ID: <20110927100202.16043.58669.stgit@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1316195506-9777-1-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: iommu@lists.linux-foundation.org, Joerg Roedel <Joerg.Roedel@amd.com>
-Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
+To: khilman@ti.com, venki@google.com, ak@linux.intel.com, len.brown@intel.com, peterz@infradead.org, santosh.shilimkar@ti.com, arjan@linux.intel.com, lenb@kernel.org
+Cc: linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-ping
+Version 6 of this patch series dated 22nd Sept 2011 was 
+Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Acked-by: Kevin Hilman <khilman@ti.com> for OMAP specific parts.
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
 
-On Fri, Sep 16, 2011 at 8:51 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> v2->v3:
->
-> - s/KB/KiB/ (David W)
->
-> v1->v2:
->
-> - split to patches (by keeping the old code around until all drivers =
-are converted) (Joerg)
->
->
-> Ohad Ben-Cohen (6):
-> =A0iommu/core: split mapping to page sizes as supported by the hardwa=
-re
-> =A0iommu/omap: announce supported page sizes
-> =A0iommu/msm: announce supported page sizes
-> =A0iommu/amd: announce supported page sizes
-> =A0iommu/intel: announce supported page sizes
-> =A0iommu/core: remove the temporary register_iommu_pgsize API
->
-> =A0drivers/iommu/amd_iommu.c =A0 | =A0 20 ++++++-
-> =A0drivers/iommu/intel-iommu.c | =A0 20 ++++++-
-> =A0drivers/iommu/iommu.c =A0 =A0 =A0 | =A0130 +++++++++++++++++++++++=
-++++++++++++++++----
-> =A0drivers/iommu/msm_iommu.c =A0 | =A0 =A08 ++-
-> =A0drivers/iommu/omap-iommu.c =A0| =A0 =A06 ++-
-> =A0drivers/iommu/omap-iovmm.c =A0| =A0 12 +---
-> =A0include/linux/iommu.h =A0 =A0 =A0 | =A0 =A07 +-
-> =A0virt/kvm/iommu.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A04 +-
-> =A08 files changed, 177 insertions(+), 30 deletions(-)
->
-> --
-> 1.7.4.1
->
->
+Hi Len, 
+Can you please queue this series for the next mainline merge window by merging
+it into your development tree and also linux-next for further testing.
+
+I also tested it, by applying these patches on your ACPI tree hosted @github.
+
+Thanks
+-Deepthi
+
+
+The following patch series implements global registration of cpuidle
+states, and also has the necessary data structure changes to
+accommodate the per-cpu writable members of the cpuidle_states
+structure.
+
+This patch series had been in discussion earlier and
+following are the links to the previous discussions.
+
+v1 --> https://lkml.org/lkml/2011/3/22/161
+v2 --> https://lkml.org/lkml/2011/1/13/98
+v3 --> https://lkml.org/lkml/2011/2/8/73
+v4 --> https://lkml.org/lkml/2011/4/28/312
+v5 --> https://lkml.org/lkml/2011/6/6/259
+v6 --> https://lkml.org/lkml/2011/9/22/58
+
+Changes from previous version (V6):
+
+   Removed the RFC tag.
+    
+Tests done:
+
+    1. Compile tested for ARM using the following configs: da8xx_omapl_defconfig,
+    exynos4_defconfig, kirkwood_defconfig, omap2plus_defconfig, 
+    at91rm9200_defconfig
+      
+    2. Boot tested on x86 nehalem with multiple C-states for both intel_idle
+    and acpi_idle drivers.
+
+    3. Boot tested on T60p thinkpad that has T2600 cpu with multiple C-states. 
+    Also tested the case when there is dynamic changes in C-states 
+    AC <-> Battery Power switch.
+
+Brief description of the patches:
+
+Core change in this series is to split the cpuidle_device structure 
+into two parts, i.e  global and per-cpu basis. 
+
+The per-cpu pieces are mostly generic statistics that can be independent 
+of current running driver. As a result of these changes, there is single 
+copy of cpuidle_states structure and single registration done by one 
+cpu. The low level driver is free to set per-cpu driver data on
+each cpu if needed using the cpuidle_set_statedata() as the case
+today. Only in very rare cases asymmetric C-states exist which can be 
+handled within the cpuidle driver. Most architectures do not have 
+asymmetric C-states.
+
+First two patches in the series facilitate splitting of cpuidle_states
+and cpuidle_device structure and next two patches do the actual split,
+change the API's and make existing code follow the changed API.
+
+[1/4] - Move the idle residency accounting part from cpuidle.c to
+the respective low level drivers, so that the accounting can
+be accurately maintained if the driver decides to demote the
+chosen (suggested) by the governor.
+
+[2/4] - removes the cpuidle_device()->prepare API since is is not
+widely used and the only use case was to allow software
+demotion using CPUIDLE_FLAG_IGNORE flag.  Both these
+functions can be absorbed within the cpuidle back-end
+driver ad hence deprecating the prepare routine and the
+CPUIDLE_FLAG_IGNORE flag.
+
+    - Ref: https://lkml.org/lkml/2011/3/25/52
+
+[3/4] - Splits the usage statistics (read/write) part out of
+cpuidle_state structure, so that the states can become read
+only and hence made global.
+
+[4/4] - Most APIs will now need to pass pointer to both global
+cpuidle_driver and per-cpu cpuidle_device structure.
+
+ arch/arm/mach-at91/cpuidle.c          |   41 +++--
+ arch/arm/mach-davinci/cpuidle.c       |   51 ++++---
+ arch/arm/mach-exynos4/cpuidle.c       |   30 ++--
+ arch/arm/mach-kirkwood/cpuidle.c      |   42 +++---
+ arch/arm/mach-omap2/cpuidle34xx.c     |  133 +++++++++++------
+ arch/sh/kernel/cpu/shmobile/cpuidle.c |   28 ++--
+ drivers/acpi/processor_driver.c       |   20 ---
+ drivers/acpi/processor_idle.c         |  251 +++++++++++++++++++++++++++------
+ drivers/cpuidle/cpuidle.c             |   86 ++++-------
+ drivers/cpuidle/driver.c              |   25 +++
+ drivers/cpuidle/governors/ladder.c    |   41 ++++-
+ drivers/cpuidle/governors/menu.c      |   29 ++--
+ drivers/cpuidle/sysfs.c               |   22 ++-
+ drivers/idle/intel_idle.c             |  130 +++++++++++++----
+ include/acpi/processor.h              |    1 
+ include/linux/cpuidle.h               |   52 ++++---
+ 16 files changed, 650 insertions(+), 332 deletions(-)
+
+
+-- 
+
+-Deepthi
