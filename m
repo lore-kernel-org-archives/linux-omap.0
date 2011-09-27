@@ -1,80 +1,78 @@
-From: Partha Basak <p-basak2@ti.com>
-Subject: RE: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
- for omap3
-Date: Tue, 27 Sep 2011 19:27:03 +0530
-Message-ID: <0b1de2fa258335ba9f7dde3baa41cee9@mail.gmail.com>
-References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
- <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-3-git-send-email-keshava_mgowda@ti.com>
- <alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com> <CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com>
- <alpine.DEB.2.00.1109240020510.22872@utopia.booyaka.com> <CAP05o4Lwk2uUz5ou84GQsrsBdjW-FEYP-55pBzH+a74hP4g1Dw@mail.gmail.com>
- <cbad72cea703d117067f7c628f7db806@mail.gmail.com> <1317127327.3820.31.camel@sokoban>
- <CAP05o4J75jGLTH8prOGD79Mte4DOg9ukgwe3V-KHFnB1Q-fi4w@mail.gmail.com> <20110927132453.GF19603@legolas.emea.dhcp.ti.com>
+From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Subject: RE: [PATCH 2/5] [media] v4l: Add mt9t111 sensor driver
+Date: Tue, 27 Sep 2011 19:37:35 +0530
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09085F@dbde03.ent.ti.com>
+References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
+ <1316530612-23075-3-git-send-email-deepthy.ravi@ti.com>,<Pine.LNX.4.64.1109201704190.11274@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:54131 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752871Ab1I0N5I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Sep 2011 09:57:08 -0400
-In-Reply-To: <20110927132453.GF19603@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.1109201704190.11274@axis700.grange>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: "laurent.pinchart@ideasonboard.com" <laurent.pinchart@ideasonboard.com>, "mchehab@infradead.org" <mchehab@infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>, "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david.woodhouse@intel.com" <david.woodhouse@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vge>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, parthab@india.ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, sameo@linux.intel.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, johnstul@us.ibm.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
->-----Original Message-----
->From: Felipe Balbi [mailto:balbi@ti.com]
->Sent: Tuesday, September 27, 2011 6:55 PM
->To: Munegowda, Keshava
->Cc: t-kristo@ti.com; Paul Walmsley; Cousson, Benoit; Basak, Partha;
->Balbi, Felipe; parthab@india.ti.com; linux-usb@vger.kernel.org; linux-
->omap@vger.kernel.org; linux-kernel@vger.kernel.org; Gadiyar, Anand;
->sameo@linux.intel.com; tony@atomide.com; Hilman, Kevin;
->johnstul@us.ibm.com; Sripathy, Vishwanath
->Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod
->structures for omap3
+Hi,
+> ________________________________________
+> From: Gary Thomas [gary@mlbassoc.com]
+> Sent: Tuesday, September 27, 2011 7:21 PM
+> To: Ravi, Deepthy
+> Cc: laurent.pinchart@ideasonboard.com; mchehab@infradead.org; tony@atomide.com; Hiremath, Vaibhav; linux-media@vger.kernel.org; linux@arm.linux.org.uk; linux-arm-kernel@lists.infradead.org; kyungmin.park@samsung.com; hverkuil@xs4all.nl; m.szyprowski@samsung.com; g.liakhovetski@gmx.de; Shilimkar, Santosh; khilman@deeprootsystems.com; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v2 0/5] OMAP3EVM: Add support for MT9T111 sensor
 >
->Hi,
->
->On Tue, Sep 27, 2011 at 06:48:35PM +0530, Munegowda, Keshava wrote:
->> > So, you would need a mechanism to do something like this:
->> >
->> > pad a or b wakeup detected -> irq0
->> > pad c or d wakeup detected -> irq1?
+> On 2011-09-27 07:40, Deepthy Ravi wrote:
+>> This patchset
+>>       -adds support for MT9T111 sensor on omap3evm.
+>>       Currently the sensor driver supports only
+>>       VGA resolution.
+>>       -enables MT9T111 sensor in omap2plus_defconfig.
 >>
->> yes, if get something like this , its perfect.
+>> This is dependent on the following patchset
+>> http://www.spinics.net/lists/linux-media/msg37270.html
+>> which adds YUYV input support for OMAP3ISP. And is
+>> applied on top of rc1-for-3.2 of gliakhovetski/v4l-dvb.git
 >
->can't you have different IRQs for each pad ? I mean, allocate one
->irq_desc for each pad and let drivers request a pad/pin as an IRQ
->source. Then, when you detect a pad wakeup, you can:
+> Why not use the same base as Lennart?
+>   The set is based on
+>   http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-omap3isp-next
 >
->unsigned	pad_irq = pad_number - pad->irq_base;
+[Deepthy Ravi] Because the patches for making mt9t112 driver usable outside the soc-camera subsystem are present in that base only . Its not there in Laurent's.
+>> ---
+>> Changes in v2:
+>>       As per the discussion here,
+>>       https://lkml.org/lkml/2011/9/20/280
+>>       the existing mt9t112 driver is reused for
+>>       adding support for mt9t111 sensor.
+>> Deepthy Ravi (3):
+>>    [media] v4l: Add support for mt9t111 sensor driver
+>>    ispccdc: Configure CCDC_SYN_MODE register
+>>    omap2plus_defconfig: Enable omap3isp and MT9T111 sensor drivers
+>>
+>> Vaibhav Hiremath (2):
+>>    omap3evm: Enable regulators for camera interface
+>>    omap3evm: Add Camera board init/hookup file
+>>
+>>   arch/arm/configs/omap2plus_defconfig        |    9 +
+>>   arch/arm/mach-omap2/Makefile                |    5 +
+>>   arch/arm/mach-omap2/board-omap3evm-camera.c |  185 ++++
+>>   arch/arm/mach-omap2/board-omap3evm.c        |   26 +
+>>   drivers/media/video/Kconfig                 |    7 +
+>>   drivers/media/video/Makefile                |    1 +
+>>   drivers/media/video/mt9t111_reg.h           | 1367 +++++++++++++++++++++++++++
+>>   drivers/media/video/mt9t112.c               |  320 ++++++-
+>>   drivers/media/video/omap3isp/ispccdc.c      |   11 +-
+>>   include/media/mt9t111.h                     |   45 +
+>>   10 files changed, 1937 insertions(+), 39 deletions(-)
+>>   create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+>>   create mode 100644 drivers/media/video/mt9t111_reg.h
+>>   create mode 100644 include/media/mt9t111.h
 >
->handle_nested_thread(pad_irq);
+> --
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
 >
->this will make use of threaded IRQ handlers even. Could it be something
->like that ?
-
-Felipe, your suggestion would mean more design change from the existing
-implementation of Tero.
-
-I would propose something like what Tero said initially:
-For each mux-info have an associated irq handler.
-So, say pads a..d form mux info1. This gets associated to irq_handler1.
-Similarly, say pads e..h form mux info2. This gets associated to
-irq_handler2.
-Both get associated to the same uhh_hwmod. Now, when chain handler scans
-for wakeup sources,
-it scans both mux-info1 & mux-info2.
-If at-least one pad in mux-info1 is woken up, irqhandler1 is called & same
-for irqhandler2.
-This mechanism would need multiple mux-infos to be attached to the same
-hwmod.
-
-So, fundamentally, if we are in alignment, can we go ahead now to collapse
-the ehci & ohci hwmods into one?
-
->
->--
->balbi
