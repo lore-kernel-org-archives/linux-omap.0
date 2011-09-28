@@ -1,214 +1,106 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 06/13] mfd: twl-core: Add initial DT support for
-	twl4030/twl6030
-Date: Wed, 28 Sep 2011 10:52:29 +0200
-Message-ID: <4E82E04D.2000300@ti.com>
-References: <1317055821-20652-1-git-send-email-b-cousson@ti.com>
-	<1317055821-20652-7-git-send-email-b-cousson@ti.com>
-	<4E816232.5020502@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+Date: Wed, 28 Sep 2011 12:28:15 +0300
+Message-ID: <4E82E8AF.8080609@iki.fi>
+References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com> <201109161506.16505.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404EC8113E2@dbde02.ent.ti.com> <201109272006.30130.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404ECA54C58@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4E816232.5020502@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, Graeme Gregory <gg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Samuel Ortiz <sameo@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404ECA54C58@dbde02.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Ravi, Deepthy" <deepthy.ravi@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@infradead.org" <mchehab@infradead.org>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
 List-Id: linux-omap@vger.kernel.org
 
-On 9/27/2011 7:42 AM, Nayak, Rajendra wrote:
-> On Monday 26 September 2011 10:20 PM, Benoit Cousson wrote:
->> Add initial device-tree support for twl familly chips.
->
-> s/familly/family
+Hi Hiremath,
 
-Oops.
+Hiremath, Vaibhav wrote:
+>> -----Original Message----- From: Laurent Pinchart
+>> [mailto:laurent.pinchart@ideasonboard.com] Sent: Tuesday, September
+>> 27, 2011 11:36 PM To: Hiremath, Vaibhav Cc: Ravi, Deepthy;
+>> linux-media@vger.kernel.org; tony@atomide.com; 
+>> linux@arm.linux.org.uk; linux-omap@vger.kernel.org; linux-arm- 
+>> kernel@lists.infradead.org; linux-kernel@vger.kernel.org; 
+>> mchehab@infradead.org; g.liakhovetski@gmx.de Subject: Re: [PATCH
+>> 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+>> 
+>> Hi Vaibhav,
+>> 
+>> On Monday 19 September 2011 17:31:02 Hiremath, Vaibhav wrote:
+>>> On Friday, September 16, 2011 6:36 PM Laurent Pinchart wrote:
+>>>> On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
+>>>>> On Thursday, September 08, 2011 10:51 PM Laurent Pinchart
+>>>>> wrote:
+>>>>>> On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
+>>>>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>>>>>>> 
+>>>>>>> In order to support TVP5146 (for that matter any video
+>>>>>>> decoder), it is important to support G/S/ENUM_STD ioctl
+>>>>>>> on /dev/videoX device node.
+>>>>>> 
+>>>>>> Why so ? Shouldn't it be queried on the subdev output pad
+>> directly ?
+>>>>> 
+>>>>> Because standard v4l2 application for analog devices will
+>>>>> call these std ioctls on the streaming device node. So it's
+>>>>> done on /dev/video
+>> to
+>>>>> make the existing apllication work.
+>>>> 
+>>>> Existing applications can't work with the OMAP3 ISP (and
+>>>> similar
+>> complex
+>>>> embedded devices) without userspace support anyway, either in
+>>>> the form
+>> of
+>>>> a GStreamer element or a libv4l plugin. I still believe that
+>>>> analog
+>> video
+>>>> standard operations should be added to the subdev pad
+>>>> operations and exposed through subdev device nodes, exactly as
+>>>> done with formats.
+>>> 
+>>> I completely agree with your point that, existing application
+>>> will not
+>> work
+>>> without setting links properly. But I believe the assumption here
+>>> is, media-controller should set the links (along with pad
+>>> formants) and all existing application should work as is. Isn't
+>>> it?
+>> 
+>> The media controller is an API used (among other things) to set the
+>> links. You still need to call it from userspace. That won't happen
+>> magically. The userspace component that sets up the links and
+>> configures the formats, be it a GStreamer element, a libv4l plugin,
+>> or something else, can as well setup the standard on the TVP5146
+>> subdev.
+>> 
+> Please look at from analog device point of view which is interfaced
+> to ISP.
+> 
+> OMAP3 ISP => TVP5146 (video decoder)
+> 
+> As a user I would want to expect the standard to be supported on
+> streaming device node, since all standard streaming applications (for
+> analog devices/interfaces) does this.
+> 
+> Setting up the links and format is still something got added with MC
+> framework, and I would consider it as a separate plug-in along with
+> existing applications.
+> 
+> Why do I need to write/use two different streaming application one
+> for MC compatible device and another for non-MC?
 
->> The current version is missing the regulator entries due
->> to the lack of DT regulator bindings for the moment.
->> Only the simple sub-modules that do not depend on
->> platform_data information can be initialized properly.
->>
->> Add documentation for the Texas Instruments TWL Integrated Chip.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Balaji T K<balajitk@ti.com>
->> Cc: Graeme Gregory<gg@slimlogic.co.uk>
->> Cc: Samuel Ortiz<sameo@linux.intel.com>
->> ---
->>    .../devicetree/bindings/mfd/twl-familly.txt        |   47 +++++++++++++++++
->>    drivers/mfd/twl-core.c                             |   53 ++++++++++++++++++--
->>    2 files changed, 96 insertions(+), 4 deletions(-)
->>    create mode 100644 Documentation/devicetree/bindings/mfd/twl-familly.txt
->
-> s/familly.txt/family.txt
+You musn't need to.
 
-At least I am consistent in my typos ;-)
+This is something that will have to be handled by the libv4l plugin, as
+the rest of controlling the device. Controls related ioctls will be
+passed from the source to downstream once they apply, and I don't see
+why the same shouldn't be done to the {G,S,ENUM}_STD.
 
->> diff --git a/Documentation/devicetree/bindings/mfd/twl-familly.txt b/Documentation/devicetree/bindings/mfd/twl-familly.txt
->> new file mode 100644
->> index 0000000..ff4cacd
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/mfd/twl-familly.txt
->> @@ -0,0 +1,47 @@
->> +Texas Instruments TWL family
->> +
->> +The TWLs are Integrated Power Management Chips.
->> +Some version might contain much more analog function like
->> +USB transceiver or Audio amplifier.
->> +These chips are connected to an i2c bus.
->> +
->> +
->> +Required properties:
->> +- compatible : Must be "ti,twl4030";
->> +  For Integrated power-management/audio CODEC device used in OMAP3
->> +  based boards
->> +- compatible : Must be "ti,twl6030";
->> +  For Integrated power-management used in OMAP4 based boards
->> +- interrupts : This i2c device has an IRQ line connected to the main SoC
->> +- interrupt-controller : Since the twl support several interrupts internally,
->> +  it is considered as an interrupt controller cascaded to the SoC one.
->> +- #interrupt-cells =<1>;
->> +- interrupt-parent : The parent interrupt controller.
->> +
->> +Optional node:
->> +- Child nodes contain in the twl. The twl family is made of severals variants
->> +  that support a different number of features.
->> +  The children nodes will thus depend of the capabilty of the variant.
->> +
->> +
->> +Example:
->> +/*
->> + * Integrated Power Management Chip
->> + * http://www.ti.com/lit/ds/symlink/twl6030.pdf
->> + */
->> +twl@48 {
->> +    compatible = "ti,twl6030";
->> +    reg =<0x48>;
->
-> What does the 'reg' property signify here for twl?
+Regards,
 
-The i2c slave address.
-
->> +    interrupts =<39>; /* IRQ_SYS_1N cascaded to gic */
->> +    interrupt-controller;
->> +    #interrupt-cells =<1>;
->> +    interrupt-parent =<&gic>;
->> +    #address-cells =<1>;
->> +    #size-cells =<0>;
->> +
->> +    twl_rtc {
->> +        compatible = "ti,twl_rtc";
->> +        interrupts =<11>;
->> +        reg =<0>;
->
-> Does the 'reg' property need to be faked for
-> every twl child node, even if it does not have
-> any?
-
-No, it was even removed from the DTS. But I forgot to update the 
-documentation:-(
-
->> +    };
->> +};
->> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
->> index 01ecfee..3ef0b43 100644
->> --- a/drivers/mfd/twl-core.c
->> +++ b/drivers/mfd/twl-core.c
->> @@ -33,6 +33,10 @@
->>    #include<linux/platform_device.h>
->>    #include<linux/clk.h>
->>    #include<linux/err.h>
->> +#include<linux/slab.h>
->> +#include<linux/of_irq.h>
->> +#include<linux/of_platform.h>
->> +#include<linux/irqdomain.h>
->>
->>    #include<linux/regulator/machine.h>
->>
->> @@ -1182,22 +1186,53 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
->>    	int				status;
->>    	unsigned			i;
->>    	struct twl4030_platform_data	*pdata = client->dev.platform_data;
->> +	struct device_node		*node = client->dev.of_node;
->>    	u8 temp;
->>    	int ret = 0;
->>
->> +	if (node&&   !pdata) {
->> +		/*
->> +		 * XXX: Temporary fake pdata until the information
->> +		 * is correctly retrieved by every TWL modules from DT.
->> +		 */
->> +		pdata = kzalloc(sizeof(struct twl4030_platform_data),
->> +				GFP_KERNEL);
->
-> devm_kzalloc instead?
-
-Good point.
-
->> +		if (!pdata) {
->> +			status = -ENOMEM;
->> +			goto exit;
->> +		}
->> +
->> +		/*
->> +		 * XXX: For the moment the IRQs for TWL seems to be encoded in
->> +		 * the global OMAP space. That should be cleaned to allow
->> +		 * dynamically adding a new IRQ controller.
->> +		 */
->> +		if ((id->driver_data)&   TWL6030_CLASS) {
->> +			pdata->irq_base = TWL6030_IRQ_BASE;
->> +			pdata->irq_end = pdata->irq_base + TWL6030_BASE_NR_IRQS;
->> +		} else {
->> +			pdata->irq_base = TWL4030_IRQ_BASE;
->> +			pdata->irq_end = pdata->irq_base + TWL4030_BASE_NR_IRQS;
->> +		}
->> +		irq_domain_add_simple(node, pdata->irq_base);
->> +	}
->> +
->>    	if (!pdata) {
->>    		dev_dbg(&client->dev, "no platform data?\n");
->> -		return -EINVAL;
->> +		status = -EINVAL;
->> +		goto fail_free;
->>    	}
->>
->>    	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
->>    		dev_dbg(&client->dev, "can't talk I2C?\n");
->> -		return -EIO;
->> +		status = -EIO;
->> +		goto fail_free;
->>    	}
->>
->>    	if (inuse) {
->>    		dev_dbg(&client->dev, "driver is already in use\n");
->> -		return -EBUSY;
->> +		status = -EBUSY;
->> +		goto fail_free;
->>    	}
->>
->>    	for (i = 0; i<   TWL_NUM_SLAVES; i++) {
->> @@ -1269,10 +1304,20 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
->>    		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
->>    	}
->>
->> -	status = add_children(pdata, id->driver_data);
->> +#ifdef CONFIG_OF_DEVICE
->
-> is the #ifdef really needed?
-
-Yes, because the of_platform_populate does not have a stub in case of 
-none DT build... But I agree, it is ugly and the of_platform.h should 
-maybe be fixed instead.
-I was too lazy to fix it :-)
-
-Thanks,
-Benoit
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
