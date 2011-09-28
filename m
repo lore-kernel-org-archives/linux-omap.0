@@ -1,45 +1,78 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 8/9] regulator: helper to extract regulator node based on
- supply name
-Date: Wed, 28 Sep 2011 13:26:28 +0100
-Message-ID: <20110928122628.GF3279@opensource.wolfsonmicro.com>
-References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
- <1317118372-17052-9-git-send-email-rnayak@ti.com>
- <20110927122155.GE4289@opensource.wolfsonmicro.com>
- <4E81E281.505@ti.com>
- <20110927185913.GU4289@opensource.wolfsonmicro.com>
- <4E82D63A.7030207@ti.com>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCH] OMAP4: MMC: fix power and audio issue, decouple USBC1
+ from MMC1
+Date: Wed, 28 Sep 2011 18:04:42 +0530
+Message-ID: <CANrkHUZo+P2TOMUH9udX-oQ5o64vEpOQVefrEUs1VkPxZxbBQA@mail.gmail.com>
+References: <1311276543-9374-1-git-send-email-bryan.buckley@ti.com>
+	<CAF=Qhp0YO2zYnwo63ddhKZv-o+eXs2bQETrqF5wYU2EtKQ=Yqw@mail.gmail.com>
+	<CAG_NtY8uCAQNOpGFYLSMTbQ-=WEmRmjFSau7a_41XEwhE0280Q@mail.gmail.com>
+	<CANrkHUZP5+wqmA5yjmbF5LatJH9Z7eJ1T-KEHogpP2MFxWRz=w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:35138 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751869Ab1I1M0a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Sep 2011 08:26:30 -0400
-Content-Disposition: inline
-In-Reply-To: <4E82D63A.7030207@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:39318 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752921Ab1I1Meo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Sep 2011 08:34:44 -0400
+In-Reply-To: <CANrkHUZP5+wqmA5yjmbF5LatJH9Z7eJ1T-KEHogpP2MFxWRz=w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Girdwood, Liam" <lrg@ti.com>, "patches@linaro.org" <patches@linaro.org>
+To: "Buckley, Bryan" <bryan.buckley@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Kishore Kadiyala <kishorek.kadiyala@gmail.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, Moiz Sonasath <m-sonasath@ti.com>, Viswanath Puttagunta <vishp@ti.com>
 
-On Wed, Sep 28, 2011 at 10:09:30AM +0200, Cousson, Benoit wrote:
-> On 9/27/2011 8:59 PM, Mark Brown wrote:
+Hi Tony,
 
-> >I'm not sure how this should work in a device tree world, I'd *hope*
-> >we'd get a device tree node for the CPU and could then just make this a
-> >regular consumer thing but then the cpufreq drivers would need to be
-> >updated to make use of it.  The only reason we allow null devices right
-> >now is the fact that cpufreq doesn't have a struct device it can use.
+Can you queue this patch ?
 
-> That's why we do have a MPU node in OMAP dts, in order to build an
-> omap_device that will be mainly used for the DVFS on the MPU.
-
-> And even before DT migration, we used to build statically some
-> omap_device to represent the various processors in the system (MPU,
-> DSP, CortexM3...).
-
-Yeah, but that's very OMAP specific - we don't have that in general (in
-fact it's the only Linux platform I'm aware of that has a device for the
-CPU).
+On Fri, Sep 9, 2011 at 7:34 PM, T Krishnamoorthy, Balaji
+<balajitk@ti.com> wrote:
+> On Fri, Aug 12, 2011 at 8:43 PM, Buckley, Bryan <bryan.buckley@ti.com=
+> wrote:
+>> On Fri, Jul 22, 2011 at 7:30 AM, Kishore Kadiyala
+>> <kishorek.kadiyala@gmail.com> wrote:
+>>>
+>>> On Fri, Jul 22, 2011 at 12:59 AM, Bryan Buckley <bryan.buckley@ti.c=
+om> wrote:
+>>> > Remove OMAP4_USBC1_ICUSB_PWRDNZ_MASK during enable/disable PWRDNZ=
+ mode for
+>>> > MMC1_PBIAS and associated extended-drain MMC1 I/O cell. This is i=
+n accordance
+>>> > with the control module programming guide. This fixes a bug where=
+ if trying to
+>>> > use gpio_98 or gpio_99 and MMC1 at the same time the GPIO signal =
+will be
+>>> > affected by a changing SDMMC1_VDDS.
+>>> >
+>>> > Software must keep MMC1_PBIAS cell and MMC1_IO cell PWRDNZ signal=
+s low whenever
+>>> > SDMMC1_VDDS ramps up/down or changes for cell protection purposes=
+=2E
+>>> >
+>>> > MMC1 is based on SDMMC1_VDDS whereas USBC1 is based on SIM_VDDS t=
+herefore
+>>> > they can operate independently.
+>>> >
+>>> > Signed-off-by: Bryan Buckley <bryan.buckley@ti.com>
+>>>
+>>> Good catch,
+>>>
+>>> Acked-by: =A0Kishore Kadiyala <kishore.kadiyala@ti.com>
+>>>
+>>
+>> Any other comments from anyone else? =A0Noticed that this commit isn=
+'t
+>> in any upstream branches. This patch will fix issues with people who
+>> want to use GPIO 98/99 AND MMC1 at the same time. =A0Would be good t=
+o
+>> have this fix upstream.
+>>
+> FWIW: Tested on OMAP4 Blaze
+> Tested-by: Balaji T K <balajitk@ti.com>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
