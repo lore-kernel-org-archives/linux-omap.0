@@ -1,47 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 2/4] OMAP4: Keyboard: Fix section mismatch in the
- board file
-Date: Wed, 28 Sep 2011 11:26:33 -0700
-Message-ID: <20110928182633.GA6324@atomide.com>
-References: <CAFULf_zAqFGcUfgfOMyrm8DLJhg1qXG+48W5u+pjBUwa=PmrRg@mail.gmail.com>
- <CAFULf_x_7GXMRY_rNDFk377R-ZWSOvM5KBqOe0a4cYbzGARnYA@mail.gmail.com>
- <20110816065332.GC2305@legolas.emea.dhcp.ti.com>
- <CAFULf_yWUwSf8kgtJmMeNx04axG1FoRBAy2b=ApYjGfcEvvAhg@mail.gmail.com>
+Subject: Re: [PATCH] OMAP: Fix linking error in twl-common.c for OMAP2/3/4
+ only builds
+Date: Wed, 28 Sep 2011 11:28:48 -0700
+Message-ID: <20110928182848.GB6324@atomide.com>
+References: <20110808110056.GA15134@n2100.arm.linux.org.uk>
+ <1312893410-3968-1-git-send-email-peter.ujfalusi@ti.com>
+ <20110810091519.GB1939@atomide.com>
+ <4E43F029.6060208@matrix-vision.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51512 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753615Ab1I1S0f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Sep 2011 14:26:35 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41062 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754725Ab1I1S2y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Sep 2011 14:28:54 -0400
 Content-Disposition: inline
-In-Reply-To: <CAFULf_yWUwSf8kgtJmMeNx04axG1FoRBAy2b=ApYjGfcEvvAhg@mail.gmail.com>
+In-Reply-To: <4E43F029.6060208@matrix-vision.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bjarne Steinsbo <bsteinsbo@gmail.com>
-Cc: linux-omap@vger.kernel.org, balbi@ti.com
+To: Michael Jones <michael.jones@matrix-vision.de>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Bjarne Steinsbo <bsteinsbo@gmail.com> [110913 23:39]:
-> I can't see this one queued up anywhere.  Did it just slip through the
-> cracks, or are there any problems with it?
+Hi,
 
-Just slipped through the cracks.. Adding into fixes thanks.
+Sorry for the delay in replying..
+
+* Michael Jones <michael.jones@matrix-vision.de> [110811 07:34]:
+> 
+> I still stumbled upon these linker errors when building for my OMAP3
+> board, using the current linux-omap master branch. I inadvertently had
+> CONFIG_ARCH_OMAP4=y (leftover from my starting point,
+> omap2plus_defconfig), but didn't have any of the boards with
+> omap_phy_internal.o selected (OMAP_4430SDP, OMAP4_PANDA, PCM049, PCM049,
+> OMAP3517EVM). Maybe this isn't a concern anyway, since anybody building
+> with CONFIG_ARCH_OMAP4 will presumably also be building one of those
+> boards? I don't know if it is our goal to build successfully with every
+> wacky CONFIG_ combination, but I thought I would report it here just in
+> case.
+
+Probably the best way is to get omap specific randconfigs going based
+on something what Arnd posted few days ago. Even with the old defconfig
+files we'll still be missing many corner cases.
+
+Regards,
 
 Tony
- 
-> BR,
-> 
-> Bjarne Steinsbo
-> 
-> On Tue, Aug 16, 2011 at 8:53 AM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Fri, Aug 12, 2011 at 05:27:52PM +0200, Bjarne Steinsbo wrote:
-> >> `keypad_pads' is referred to by `keypad_data' which is
-> >> not __initdata, so `keypad_pads' should not be __initdata either.
-> >>
-> >> Signed-off-by: Bjarne Steinsbo <bsteinsbo@gmail.com>
-> >
-> > Reviewed-by: Felipe Balbi <balbi@ti.com>
-> >
-> > --
-> > balbi
-> >
