@@ -1,65 +1,70 @@
 From: "Turquette, Mike" <mturquette@ti.com>
-Subject: Re: [PATCH v2 2/6] OMAP4: Clock: round_rate and recalc functions for
-	DPLL_ABE
-Date: Wed, 28 Sep 2011 15:19:00 -0700
-Message-ID: <CAJOA=zPDQ4sqoT7EV7HSa43g_i-q5CT6Q8UBvggG2BBvMrQ_bw@mail.gmail.com>
-References: <1316195263-14951-1-git-send-email-jon-hunter@ti.com>
-	<alpine.DEB.2.00.1109280056570.4399@utopia.booyaka.com>
+Subject: Re: [PATCH v3 3/6] OMAP3+: use DPLL's round_rate when setting rate
+Date: Wed, 28 Sep 2011 15:39:26 -0700
+Message-ID: <CAJOA=zPq__48SbsKeFHaQ_+J0YQYLLXBP67g2JGXknhWj7PNOA@mail.gmail.com>
+References: <1316195281-14988-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1109280059380.4399@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.1109280056570.4399@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:39967 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932116Ab1I1Wju convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Sep 2011 18:39:50 -0400
+Received: by mail-wy0-f181.google.com with SMTP id 19so602286wyf.12
+        for <linux-omap@vger.kernel.org>; Wed, 28 Sep 2011 15:39:47 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1109280059380.4399@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Sep 27, 2011 at 11:59 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi Jon and Mike,
+On Wed, Sep 28, 2011 at 12:02 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hi,
 >
 > On Fri, 16 Sep 2011, Jon Hunter wrote:
 >
 >> From: Mike Turquette <mturquette@ti.com>
 >>
->> OMAP4 DPLL_ABE can enable a 4X multipler on top of the normal MN multipl=
-er
->> and divider. This is achieved by setting CM_CLKMODE_DPLL_ABE.DPLL_REGM4X=
-EN
->> bit in CKGEN module of CM1. From the OMAP4 TRM:
+>> omap3_noncore_dpll_set_rate uses omap2_dpll_round_rate explicitly. =A0=
+Instead
+>> use the struct clk pointer's round_rate function to allow for DPLL's=
+ with
+>> special needs.
 >>
->> Fdpll =3D Fref x 2 x (4 x M/(N+1)) in case REGM4XEN bit field is set (on=
-ly
->> applicable to DPLL_ABE).
+>> Also the rounded rate can differ from target rate, so to better refl=
+ect
+>> reality set clk->rate equal to the rounded rate when setting DPLL fr=
+equency.
+>> This avoids issues where the DPLL frequency is slightly different th=
+an what
+>> debugfs clock tree reports using the old target rate.
 >>
->> Add new round_rate() and recalc() functions for OMAP4, that check the
->> setting of REGM4XEN bit and handle this appropriately. The new functions
->> are a simple wrapper on top of the existing omap2_dpll_round_rate() and
->> omap2_dpll_get_rate() functions to handle the REGM4XEN bit.
->>
->> The REGM4XEN bit is only implemented for the ABE DPLL on OMAP4 and so
->> only dpll_abe_ck uses omap4_dpll_regm4xen_round_rate() and
->> omap4_dpll_regm4xen_recalc() functions.
+>> An example of both of these needs is DPLL_ABE on OMAP4 which can hav=
+e a 4x
+>> multiplier on top of the usual MN dividers depending on register set=
+tings.
+>> This requires a special round_rate function that might yield a rate
+>> different from the initial target.
 >>
 >> Signed-off-by: Mike Turquette <mturquette@ti.com>
->> Tested-by: Jon Hunter <jon-hunter@ti.com>
+>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 >
-> Some changes have been made to this patch here, to fix a few minor bugs in
-> error paths and to add documentation and Jon's Signed-off-by: (since he's
-> in the submittal chain).
->
-> Care to review and send any comments? =A0Otherwise, I plan to queue this
-> revised version for 3.2.
+> The two separate changes in this patch have been separated out into t=
+wo
+> patches - both included below. =A0Please let me know if you have any
+> comments; otherwise, I'll queue for 3.2.
 
-Your changes to the patch look good.
+The split patches look good to me.  I have another patch which does a
+similar thing (converts omap2_get_dpll_rate use to clk->recalc) which
+fixes yet more bugs that plague DPLL_ABE.  Will send across shortly;
+hopefully can make it into 3.2?
 
 Regards,
 Mike
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
