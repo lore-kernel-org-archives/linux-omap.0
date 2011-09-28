@@ -1,15 +1,16 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 02/13] gpio/omap: Adapt GPIO driver to DT
-Date: Wed, 28 Sep 2011 10:20:51 +0200
-Message-ID: <4E82D8E3.8080405@ti.com>
+Subject: Re: [PATCH 06/13] mfd: twl-core: Add initial DT support for
+	twl4030/twl6030
+Date: Wed, 28 Sep 2011 10:52:29 +0200
+Message-ID: <4E82E04D.2000300@ti.com>
 References: <1317055821-20652-1-git-send-email-b-cousson@ti.com>
-	<1317055821-20652-3-git-send-email-b-cousson@ti.com>
-	<4E8161C7.7020404@ti.com>
+	<1317055821-20652-7-git-send-email-b-cousson@ti.com>
+	<4E816232.5020502@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4E8161C7.7020404@ti.com>
+In-Reply-To: <4E816232.5020502@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,32 +21,194 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Varadarajan,
-	Charulatha" <charu@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, Graeme Gregory <gg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-I missed one comment...
-
-On 9/27/2011 7:40 AM, Nayak, Rajendra wrote:
+On 9/27/2011 7:42 AM, Nayak, Rajendra wrote:
 > On Monday 26 September 2011 10:20 PM, Benoit Cousson wrote:
-
-[...]
-
->> +Required properties:
->> +- compatible:
->> +  - "ti,omap2-gpio" for OMAP2 and OMAP3 controllers
+>> Add initial device-tree support for twl familly chips.
 >
-> Would it be more readable to have
-> "ti,omap2-gpio" for OMAP2 controllers and
-> "ti,omap3-gpio" for OMAP3 controllers?
+> s/familly/family
 
-The point here is to identify the IP version used in various OMAPs. 
-Since OMAP3 and OMAP2 are using the same IP version, there is no point 
-to differentiate the OMAP3 version.
-What is doable is to put both "ti,omap3-gpio", "ti,omap2-gpio" to avoid 
-modifying the driver for no reason and still being able to identify the 
-OMAP3 version.
-But I'm not sure we should do that if there is not real difference.
+Oops.
 
-regards,
+>> The current version is missing the regulator entries due
+>> to the lack of DT regulator bindings for the moment.
+>> Only the simple sub-modules that do not depend on
+>> platform_data information can be initialized properly.
+>>
+>> Add documentation for the Texas Instruments TWL Integrated Chip.
+>>
+>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>> Cc: Balaji T K<balajitk@ti.com>
+>> Cc: Graeme Gregory<gg@slimlogic.co.uk>
+>> Cc: Samuel Ortiz<sameo@linux.intel.com>
+>> ---
+>>    .../devicetree/bindings/mfd/twl-familly.txt        |   47 +++++++++++++++++
+>>    drivers/mfd/twl-core.c                             |   53 ++++++++++++++++++--
+>>    2 files changed, 96 insertions(+), 4 deletions(-)
+>>    create mode 100644 Documentation/devicetree/bindings/mfd/twl-familly.txt
+>
+> s/familly.txt/family.txt
+
+At least I am consistent in my typos ;-)
+
+>> diff --git a/Documentation/devicetree/bindings/mfd/twl-familly.txt b/Documentation/devicetree/bindings/mfd/twl-familly.txt
+>> new file mode 100644
+>> index 0000000..ff4cacd
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/mfd/twl-familly.txt
+>> @@ -0,0 +1,47 @@
+>> +Texas Instruments TWL family
+>> +
+>> +The TWLs are Integrated Power Management Chips.
+>> +Some version might contain much more analog function like
+>> +USB transceiver or Audio amplifier.
+>> +These chips are connected to an i2c bus.
+>> +
+>> +
+>> +Required properties:
+>> +- compatible : Must be "ti,twl4030";
+>> +  For Integrated power-management/audio CODEC device used in OMAP3
+>> +  based boards
+>> +- compatible : Must be "ti,twl6030";
+>> +  For Integrated power-management used in OMAP4 based boards
+>> +- interrupts : This i2c device has an IRQ line connected to the main SoC
+>> +- interrupt-controller : Since the twl support several interrupts internally,
+>> +  it is considered as an interrupt controller cascaded to the SoC one.
+>> +- #interrupt-cells =<1>;
+>> +- interrupt-parent : The parent interrupt controller.
+>> +
+>> +Optional node:
+>> +- Child nodes contain in the twl. The twl family is made of severals variants
+>> +  that support a different number of features.
+>> +  The children nodes will thus depend of the capabilty of the variant.
+>> +
+>> +
+>> +Example:
+>> +/*
+>> + * Integrated Power Management Chip
+>> + * http://www.ti.com/lit/ds/symlink/twl6030.pdf
+>> + */
+>> +twl@48 {
+>> +    compatible = "ti,twl6030";
+>> +    reg =<0x48>;
+>
+> What does the 'reg' property signify here for twl?
+
+The i2c slave address.
+
+>> +    interrupts =<39>; /* IRQ_SYS_1N cascaded to gic */
+>> +    interrupt-controller;
+>> +    #interrupt-cells =<1>;
+>> +    interrupt-parent =<&gic>;
+>> +    #address-cells =<1>;
+>> +    #size-cells =<0>;
+>> +
+>> +    twl_rtc {
+>> +        compatible = "ti,twl_rtc";
+>> +        interrupts =<11>;
+>> +        reg =<0>;
+>
+> Does the 'reg' property need to be faked for
+> every twl child node, even if it does not have
+> any?
+
+No, it was even removed from the DTS. But I forgot to update the 
+documentation:-(
+
+>> +    };
+>> +};
+>> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+>> index 01ecfee..3ef0b43 100644
+>> --- a/drivers/mfd/twl-core.c
+>> +++ b/drivers/mfd/twl-core.c
+>> @@ -33,6 +33,10 @@
+>>    #include<linux/platform_device.h>
+>>    #include<linux/clk.h>
+>>    #include<linux/err.h>
+>> +#include<linux/slab.h>
+>> +#include<linux/of_irq.h>
+>> +#include<linux/of_platform.h>
+>> +#include<linux/irqdomain.h>
+>>
+>>    #include<linux/regulator/machine.h>
+>>
+>> @@ -1182,22 +1186,53 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>>    	int				status;
+>>    	unsigned			i;
+>>    	struct twl4030_platform_data	*pdata = client->dev.platform_data;
+>> +	struct device_node		*node = client->dev.of_node;
+>>    	u8 temp;
+>>    	int ret = 0;
+>>
+>> +	if (node&&   !pdata) {
+>> +		/*
+>> +		 * XXX: Temporary fake pdata until the information
+>> +		 * is correctly retrieved by every TWL modules from DT.
+>> +		 */
+>> +		pdata = kzalloc(sizeof(struct twl4030_platform_data),
+>> +				GFP_KERNEL);
+>
+> devm_kzalloc instead?
+
+Good point.
+
+>> +		if (!pdata) {
+>> +			status = -ENOMEM;
+>> +			goto exit;
+>> +		}
+>> +
+>> +		/*
+>> +		 * XXX: For the moment the IRQs for TWL seems to be encoded in
+>> +		 * the global OMAP space. That should be cleaned to allow
+>> +		 * dynamically adding a new IRQ controller.
+>> +		 */
+>> +		if ((id->driver_data)&   TWL6030_CLASS) {
+>> +			pdata->irq_base = TWL6030_IRQ_BASE;
+>> +			pdata->irq_end = pdata->irq_base + TWL6030_BASE_NR_IRQS;
+>> +		} else {
+>> +			pdata->irq_base = TWL4030_IRQ_BASE;
+>> +			pdata->irq_end = pdata->irq_base + TWL4030_BASE_NR_IRQS;
+>> +		}
+>> +		irq_domain_add_simple(node, pdata->irq_base);
+>> +	}
+>> +
+>>    	if (!pdata) {
+>>    		dev_dbg(&client->dev, "no platform data?\n");
+>> -		return -EINVAL;
+>> +		status = -EINVAL;
+>> +		goto fail_free;
+>>    	}
+>>
+>>    	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
+>>    		dev_dbg(&client->dev, "can't talk I2C?\n");
+>> -		return -EIO;
+>> +		status = -EIO;
+>> +		goto fail_free;
+>>    	}
+>>
+>>    	if (inuse) {
+>>    		dev_dbg(&client->dev, "driver is already in use\n");
+>> -		return -EBUSY;
+>> +		status = -EBUSY;
+>> +		goto fail_free;
+>>    	}
+>>
+>>    	for (i = 0; i<   TWL_NUM_SLAVES; i++) {
+>> @@ -1269,10 +1304,20 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>>    		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
+>>    	}
+>>
+>> -	status = add_children(pdata, id->driver_data);
+>> +#ifdef CONFIG_OF_DEVICE
+>
+> is the #ifdef really needed?
+
+Yes, because the of_platform_populate does not have a stub in case of 
+none DT build... But I agree, it is ugly and the of_platform.h should 
+maybe be fixed instead.
+I was too lazy to fix it :-)
+
+Thanks,
 Benoit
