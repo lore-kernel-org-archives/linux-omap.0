@@ -1,43 +1,41 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 4/5] OMAP_VOUT: Add support for DSI panels
-Date: Wed, 28 Sep 2011 20:19:27 +0530
-Message-ID: <1317221368-3301-5-git-send-email-archit@ti.com>
+Subject: [PATCH v4 5/5] OMAP_VOUT: Increase MAX_DISPLAYS to a larger value
+Date: Wed, 28 Sep 2011 20:19:28 +0530
+Message-ID: <1317221368-3301-6-git-send-email-archit@ti.com>
 References: <1317221368-3301-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55819 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754631Ab1I1OtR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Sep 2011 10:49:17 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1317221368-3301-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: hvaibhav@ti.com
 Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, sumit.semwal@ti.com, linux-media@vger.kernel.org, Archit Taneja <archit@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Add support for DSI panels. DSI video mode panels will work directly. For
-command mode panels, we will need to trigger updates regularly. This isn't done
-by the omap_vout driver currently. It can still be supported if we connect a
-framebuffer device to the panel and configure it in auto update mode.
+There is no limit to the number of displays that can registered with DSS2. The
+current value of MAX_DISPLAYS is 3, set this to 10 so that the 'displays'
+member of omap2video_device struct can store more omap_dss_device pointers.
+
+This fixes a crash seen in omap_vout_probe when DSS2 registers for more than 3
+displays.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/video/omap/omap_vout.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/media/video/omap/omap_voutdef.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 6bc2620..65374b5 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -590,6 +590,7 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
- 	do_gettimeofday(&timevalue);
+diff --git a/drivers/media/video/omap/omap_voutdef.h b/drivers/media/video/omap/omap_voutdef.h
+index d793501..27a95d2 100644
+--- a/drivers/media/video/omap/omap_voutdef.h
++++ b/drivers/media/video/omap/omap_voutdef.h
+@@ -25,7 +25,7 @@
+ #define MAC_VRFB_CTXS	4
+ #define MAX_VOUT_DEV	2
+ #define MAX_OVLS	3
+-#define MAX_DISPLAYS	3
++#define MAX_DISPLAYS	10
+ #define MAX_MANAGERS	3
  
- 	switch (cur_display->type) {
-+	case OMAP_DISPLAY_TYPE_DSI:
- 	case OMAP_DISPLAY_TYPE_DPI:
- 		if (mgr_id == OMAP_DSS_CHANNEL_LCD)
- 			irq = DISPC_IRQ_VSYNC;
+ #define QQVGA_WIDTH		160
 -- 
 1.7.1
-
