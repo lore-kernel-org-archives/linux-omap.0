@@ -1,62 +1,101 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 8/9] regulator: helper to extract regulator node based
- on supply name
-Date: Wed, 28 Sep 2011 16:26:46 +0530
-Message-ID: <4E82FD6E.6030606@ti.com>
-References: <1317118372-17052-1-git-send-email-rnayak@ti.com> <1317118372-17052-9-git-send-email-rnayak@ti.com> <20110927122155.GE4289@opensource.wolfsonmicro.com> <4E81E281.505@ti.com> <20110927185913.GU4289@opensource.wolfsonmicro.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
+ for omap3
+Date: Wed, 28 Sep 2011 17:38:47 +0530
+Message-ID: <CAP05o4KbVkXgnPc7JonrvURmCpQRgjMK2K_dmjQSKzQufQhjkA@mail.gmail.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
+	<1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>
+	<1316691479-1849-3-git-send-email-keshava_mgowda@ti.com>
+	<alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com>
+	<CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com>
+	<alpine.DEB.2.00.1109240101120.22872@utopia.booyaka.com>
+	<CAP05o4+uwuFL8XNFG-wmUW8voYQ4kywyU9Qn-Mng7kv=TzZm9w@mail.gmail.com>
+	<alpine.DEB.2.00.1109260844360.13188@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:59729 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751499Ab1I1K4y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Sep 2011 06:56:54 -0400
-Received: by gyd12 with SMTP id 12so7580851gyd.31
-        for <linux-omap@vger.kernel.org>; Wed, 28 Sep 2011 03:56:53 -0700 (PDT)
-In-Reply-To: <20110927185913.GU4289@opensource.wolfsonmicro.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1109260844360.13188@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: parthab@india.ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, tony@atomide.com, khilman@ti.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org
 
-On Wednesday 28 September 2011 12:29 AM, Mark Brown wrote:
-> On Tue, Sep 27, 2011 at 08:19:37PM +0530, Rajendra Nayak wrote:
->> On Tuesday 27 September 2011 05:51 PM, Mark Brown wrote:
->>> On Tue, Sep 27, 2011 at 03:42:51PM +0530, Rajendra Nayak wrote:
+On Mon, Sep 26, 2011 at 8:15 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Mon, 26 Sep 2011, Munegowda, Keshava wrote:
 >
->>>> +	if (!dev)
->>>> +		return NULL;
+>> On Sat, Sep 24, 2011 at 12:45 PM, Paul Walmsley <paul@pwsan.com> wro=
+te:
+>> > On Fri, 23 Sep 2011, Munegowda, Keshava wrote:
+>> >
+>> >> On Thu, Sep 22, 2011 at 11:31 PM, Paul Walmsley <paul@pwsan.com> =
+wrote:
+>> >> >
+>> >> > On Thu, 22 Sep 2011, Keshava Munegowda wrote:
+>> >> >> 4. usb_tll_hs hwmod of usbhs with the TLL base address and irq=
+=2E
+>> >> >>
+>> >> >> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>> >> >> Reviewed-by: Partha Basak <parthab@india.ti.com>
+>> >> >> ---
+>> >> >> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0271 +++++++=
++++++++++++++++++++++
+>> >> >> =A01 files changed, 271 insertions(+), 0 deletions(-)
+>> >> >>
+>> >> >> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch=
+/arm/mach-omap2/omap_hwmod_3xxx_data.c
+>> >> >> index 59fdb9f..d79f728 100644
+>> >> >> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+>> >> >> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+>> >
+>> >> >> +static struct omap_hwmod_ocp_if omap34xx_f128m_cfg__usb_host_=
+hs =3D {
+>> >> >> + =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbhost_120m_fck",
+>> >> >
+>> >> > This doesn't look right. =A0This is an interface structure reco=
+rd, so it
+>> >> > should be associated with an interface clock. =A0Is the hardwar=
+e really
+>> >> > using the functional clock as the interface clock? =A0Or, as se=
+ems more
+>> >> > likely...
+>> >>
+>> >>
+>> >> Agreed, how about:
+>> >>
+>> >> main clock: usbhost_120m_fck
+>> >> optional f clock: usbhost_48m_fck
+>> >
+>> > Assuming the interface clock is enabled, which one of these clocks=
+ is
+>> > needed for UHH register accesses to complete successfully?
+>>
+>> it is usbhost_48m_fck ;
+>> so,
+>> main clock: usbhost_48m_fck
+>> optional clock : usbhost_120m_fck
+>>
+>> do you agree?
 >
->>> So how do we handle CPUs?  cpufreq is one of the most active users of
->>> regulators...
->
->> Hmm, never thought of it :(
->> Maybe I should associate a supply name with all
->> regulators and then lookup from the global registered
->> list.
->
-> I'm not sure how this should work in a device tree world, I'd *hope*
-> we'd get a device tree node for the CPU and could then just make this a
-> regular consumer thing but then the cpufreq drivers would need to be
-> updated to make use of it.  The only reason we allow null devices right
-> now is the fact that cpufreq doesn't have a struct device it can use.
->
->>>> +	snprintf(prop_name, 32, "%s-supply", supply);
->>>> +
->>>> +	prop = of_get_property(dev->of_node, prop_name,&sz);
->>>> +	if (!prop || sz<   4)
->>>> +		return NULL;
->
->>> sz<   4?  Magic!  :)
->
->> Its the valid phandle size.
->> I guess I need a sz != 4
->
-> I think we need an of_get_phandle(), it'd be clearer what the check is,
-> more type safe and would avoid needing to replicate the check.
+> Yes.
 
-Yes, there already seems to be one, of_parse_phandle() which I should
-have used. thanks.
+Thanks paul,
 
+But In USB Host case, there is a challenge!
+
+I need both usbhost_48m_fck and usbhost_120m_fck to be turned on when
+I invoke pm_runtime_get_sync ; so there are couple of options to do thi=
+s
+
+1. use clk_get with hard coded  usbhost_120m_fck name in  usbhs driver
+       enable this clock after invoking pm_runtime_get_sync
+
+2. add an additional flag in hwmod ; so that pm_runtime_get_sync will e=
+nable
+           main clock as well as optional clocks
+
+please comment on these two approaches..
+
+
+regards
+keshava
