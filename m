@@ -1,85 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP4: MMC: fix power and audio issue, decouple USBC1
- from MMC1
-Date: Wed, 28 Sep 2011 11:06:52 -0700
-Message-ID: <20110928180652.GY6324@atomide.com>
-References: <1311276543-9374-1-git-send-email-bryan.buckley@ti.com>
- <CAF=Qhp0YO2zYnwo63ddhKZv-o+eXs2bQETrqF5wYU2EtKQ=Yqw@mail.gmail.com>
- <CAG_NtY8uCAQNOpGFYLSMTbQ-=WEmRmjFSau7a_41XEwhE0280Q@mail.gmail.com>
- <CANrkHUZP5+wqmA5yjmbF5LatJH9Z7eJ1T-KEHogpP2MFxWRz=w@mail.gmail.com>
- <CANrkHUZo+P2TOMUH9udX-oQ5o64vEpOQVefrEUs1VkPxZxbBQA@mail.gmail.com>
+Subject: Re: [PATCH] OMAP: irq: loop counter fix in omap_init_irq()
+Date: Wed, 28 Sep 2011 11:20:36 -0700
+Message-ID: <20110928182035.GZ6324@atomide.com>
+References: <20110722115810.34f963ad@myhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34683 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754669Ab1I1SG4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Sep 2011 14:06:56 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26168 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751785Ab1I1SUi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Sep 2011 14:20:38 -0400
 Content-Disposition: inline
-In-Reply-To: <CANrkHUZo+P2TOMUH9udX-oQ5o64vEpOQVefrEUs1VkPxZxbBQA@mail.gmail.com>
+In-Reply-To: <20110722115810.34f963ad@myhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: "Buckley, Bryan" <bryan.buckley@ti.com>, Kishore Kadiyala <kishorek.kadiyala@gmail.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, Moiz Sonasath <m-sonasath@ti.com>, Viswanath Puttagunta <vishp@ti.com>
+To: Tapani Utriainen <tapani@technexion.com>
+Cc: linux-omap@vger.kernel.org
 
-* T Krishnamoorthy, Balaji <balajitk@ti.com> [110928 05:00]:
-> Hi Tony,
->=20
-> Can you queue this patch ?
+* Tapani Utriainen <tapani@technexion.com> [110721 20:58]:
+> From: Tapani Utriainen <tapani@technexion.com>
+> 
+> Fixes bug where variable i was redundantly used for counting two nested loops.
 
-Thanks, adding into fixes.
+Thanks & sorry for the delay. Adding this into fixes.
 
 Tony
-=20
-> On Fri, Sep 9, 2011 at 7:34 PM, T Krishnamoorthy, Balaji
-> <balajitk@ti.com> wrote:
-> > On Fri, Aug 12, 2011 at 8:43 PM, Buckley, Bryan <bryan.buckley@ti.c=
-om> wrote:
-> >> On Fri, Jul 22, 2011 at 7:30 AM, Kishore Kadiyala
-> >> <kishorek.kadiyala@gmail.com> wrote:
-> >>>
-> >>> On Fri, Jul 22, 2011 at 12:59 AM, Bryan Buckley <bryan.buckley@ti=
-=2Ecom> wrote:
-> >>> > Remove OMAP4_USBC1_ICUSB_PWRDNZ_MASK during enable/disable PWRD=
-NZ mode for
-> >>> > MMC1_PBIAS and associated extended-drain MMC1 I/O cell. This is=
- in accordance
-> >>> > with the control module programming guide. This fixes a bug whe=
-re if trying to
-> >>> > use gpio_98 or gpio_99 and MMC1 at the same time the GPIO signa=
-l will be
-> >>> > affected by a changing SDMMC1_VDDS.
-> >>> >
-> >>> > Software must keep MMC1_PBIAS cell and MMC1_IO cell PWRDNZ sign=
-als low whenever
-> >>> > SDMMC1_VDDS ramps up/down or changes for cell protection purpos=
-es.
-> >>> >
-> >>> > MMC1 is based on SDMMC1_VDDS whereas USBC1 is based on SIM_VDDS=
- therefore
-> >>> > they can operate independently.
-> >>> >
-> >>> > Signed-off-by: Bryan Buckley <bryan.buckley@ti.com>
-> >>>
-> >>> Good catch,
-> >>>
-> >>> Acked-by: =C2=A0Kishore Kadiyala <kishore.kadiyala@ti.com>
-> >>>
-> >>
-> >> Any other comments from anyone else? =C2=A0Noticed that this commi=
-t isn't
-> >> in any upstream branches. This patch will fix issues with people w=
-ho
-> >> want to use GPIO 98/99 AND MMC1 at the same time. =C2=A0Would be g=
-ood to
-> >> have this fix upstream.
-> >>
-> > FWIW: Tested on OMAP4 Blaze
-> > Tested-by: Balaji T K <balajitk@ti.com>
-> >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 
+> Signed-off-by: Tapani Utriainen <tapani@technexion.com>
+> --- 
+>  irq.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> --- a/arch/arm/mach-omap2/irq.c
+> +++ b/arch/arm/mach-omap2/irq.c
+> @@ -165,8 +165,8 @@ static void __init omap_init_irq(u32 base, int nr_irqs)
+>  
+>  		omap_irq_bank_init_one(bank);
+>  
+> -		for (i = 0, j = 0; i < bank->nr_irqs; i += 32, j += 0x20)
+> -			omap_alloc_gc(bank->base_reg + j, i, 32);
+> +		for (j = 0; j < bank->nr_irqs; j += 32)
+> +			omap_alloc_gc(bank->base_reg + j, j, 32);
+>  
+>  		nr_of_irqs += bank->nr_irqs;
+>  		nr_banks++;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
