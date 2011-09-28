@@ -1,60 +1,55 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v2 2/6] OMAP4: Clock: round_rate and recalc functions
- for DPLL_ABE
-Date: Wed, 28 Sep 2011 10:37:39 -0500
-Message-ID: <4E833F43.9000406@ti.com>
-References: <1316195263-14951-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1109280056570.4399@utopia.booyaka.com>
+Subject: Re: [PATCH v3 3/6] OMAP3+: use DPLL's round_rate when setting rate
+Date: Wed, 28 Sep 2011 10:50:44 -0500
+Message-ID: <4E834254.9040802@ti.com>
+References: <1316195281-14988-1-git-send-email-jon-hunter@ti.com>
+	<alpine.DEB.2.00.1109280059380.4399@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59084 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752413Ab1I1Php (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Sep 2011 11:37:45 -0400
-In-Reply-To: <alpine.DEB.2.00.1109280056570.4399@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1109280059380.4399@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Mike Turquette <mturquette@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Mike Turquette <mturquette@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
 Hi Paul,
 
-On 9/28/2011 1:59, Paul Walmsley wrote:
-> Hi Jon and Mike,
+On 9/28/2011 2:02, Paul Walmsley wrote:
+> Hi,
 >
 > On Fri, 16 Sep 2011, Jon Hunter wrote:
 >
 >> From: Mike Turquette<mturquette@ti.com>
 >>
->> OMAP4 DPLL_ABE can enable a 4X multipler on top of the normal MN multipler
->> and divider. This is achieved by setting CM_CLKMODE_DPLL_ABE.DPLL_REGM4XEN
->> bit in CKGEN module of CM1. From the OMAP4 TRM:
+>> omap3_noncore_dpll_set_rate uses omap2_dpll_round_rate explicitly.  Instead
+>> use the struct clk pointer's round_rate function to allow for DPLL's with
+>> special needs.
 >>
->> Fdpll = Fref x 2 x (4 x M/(N+1)) in case REGM4XEN bit field is set (only
->> applicable to DPLL_ABE).
+>> Also the rounded rate can differ from target rate, so to better reflect
+>> reality set clk->rate equal to the rounded rate when setting DPLL frequency.
+>> This avoids issues where the DPLL frequency is slightly different than what
+>> debugfs clock tree reports using the old target rate.
 >>
->> Add new round_rate() and recalc() functions for OMAP4, that check the
->> setting of REGM4XEN bit and handle this appropriately. The new functions
->> are a simple wrapper on top of the existing omap2_dpll_round_rate() and
->> omap2_dpll_get_rate() functions to handle the REGM4XEN bit.
->>
->> The REGM4XEN bit is only implemented for the ABE DPLL on OMAP4 and so
->> only dpll_abe_ck uses omap4_dpll_regm4xen_round_rate() and
->> omap4_dpll_regm4xen_recalc() functions.
+>> An example of both of these needs is DPLL_ABE on OMAP4 which can have a 4x
+>> multiplier on top of the usual MN dividers depending on register settings.
+>> This requires a special round_rate function that might yield a rate
+>> different from the initial target.
 >>
 >> Signed-off-by: Mike Turquette<mturquette@ti.com>
->> Tested-by: Jon Hunter<jon-hunter@ti.com>
+>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
 >
-> Some changes have been made to this patch here, to fix a few minor bugs in
-> error paths and to add documentation and Jon's Signed-off-by: (since he's
-> in the submittal chain).
->
-> Care to review and send any comments?  Otherwise, I plan to queue this
-> revised version for 3.2.
+> The two separate changes in this patch have been separated out into two
+> patches - both included below.  Please let me know if you have any
+> comments; otherwise, I'll queue for 3.2.
 
-Looks good to me. Thanks for fixes and documentation.
-
-Cheers
-Jon
-
+Yes, looks good to me. Thanks. Jon
