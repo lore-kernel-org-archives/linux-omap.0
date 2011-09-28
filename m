@@ -1,41 +1,67 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 0/5] OMAP_VOUT: Misc fixes and cleanup patches for 3.2
-Date: Wed, 28 Sep 2011 20:19:23 +0530
-Message-ID: <1317221368-3301-1-git-send-email-archit@ti.com>
+Subject: [PATCH v4 1/5] OMAP_VOUT: Fix check in reqbuf for buf_size allocation
+Date: Wed, 28 Sep 2011 20:19:24 +0530
+Message-ID: <1317221368-3301-2-git-send-email-archit@ti.com>
+References: <1317221368-3301-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33534 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47204 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751003Ab1I1Os5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Sep 2011 10:48:57 -0400
+	id S1754437Ab1I1OtD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Sep 2011 10:49:03 -0400
+In-Reply-To: <1317221368-3301-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: hvaibhav@ti.com
 Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, sumit.semwal@ti.com, linux-media@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-This set includes patches which do the following:
-- Fix crash if number of displays registered by DSS2 is more than 4.
-- Fix the issue of not being able to request for a buffer which is larger than
-  what we did the last time.
-- Fix a small bug in omap_vout_isr()
-- Remove some redundant code in omap_vout_isr()
-- Add basic support for DSI panels
+The commit 383e4f69879d11c86ebdd38b3356f6d0690fb4cc makes reqbuf prevent
+requesting a larger size buffer than what is allocated at kernel boot during
+omap_vout_probe.
 
-Changes in v4:
-- Fix issue in "OMAP_VOUT: Fix check in reqbuf for buf_size allocation", improve
-  commit message
-- Remove patch "OMAP_VOUT: Don't trigger updates in omap_vout_probe", replace
-  with "OMAP_VOUT: Increase MAX_DISPLAYS to a larger value"
+In omap_vout_buffer_setup callback API, the requested size is compared with
+vout->buffer_size, this isn't correct as vout->buffer_size is later set to the
+size requested in reqbuf. When the video device is opened the next time, this
+check will prevent us to allocate a buffer which is larger than what we requested
+the last time.
 
-Archit Taneja (5):
-  OMAP_VOUT: Fix check in reqbuf for buf_size allocation
-  OMAP_VOUT: CLEANUP: Remove redundant code from omap_vout_isr
-  OMAP_VOUT: Fix VSYNC IRQ handling in omap_vout_isr
-  OMAP_VOUT: Add support for DSI panels
-  OMAP_VOUT: Increase MAX_DISPLAYS to a larger value
+Don't use vout->buffer_size, always check with the parameters video1_bufsize
+or video2_bufsize.
 
- drivers/media/video/omap/omap_vout.c    |  187 ++++++++++++++++---------------
- drivers/media/video/omap/omap_voutdef.h |    2 +-
- 2 files changed, 97 insertions(+), 92 deletions(-)
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index d9e64f3..e64a83c 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -664,10 +664,14 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
+ 	u32 phy_addr = 0, virt_addr = 0;
+ 	struct omap_vout_device *vout = q->priv_data;
+ 	struct omapvideo_info *ovid = &vout->vid_info;
++	int vid_max_buf_size;
+ 
+ 	if (!vout)
+ 		return -EINVAL;
+ 
++	vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
++		video2_bufsize;
++
+ 	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
+ 		return -EINVAL;
+ 
+@@ -690,7 +694,7 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
+ 		video1_numbuffers : video2_numbuffers;
+ 
+ 	/* Check the size of the buffer */
+-	if (*size > vout->buffer_size) {
++	if (*size > vid_max_buf_size) {
+ 		v4l2_err(&vout->vid_dev->v4l2_dev,
+ 				"buffer allocation mismatch [%u] [%u]\n",
+ 				*size, vout->buffer_size);
+-- 
+1.7.1
 
