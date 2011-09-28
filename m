@@ -1,58 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] OMAP: Few sparse/bug fixes and clean-up for 3.2
-Date: Wed, 28 Sep 2011 15:12:51 -0700
-Message-ID: <20110928221251.GF6324@atomide.com>
-References: <1316852520-10377-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Turquette, Mike" <mturquette@ti.com>
+Subject: Re: [PATCH v2 2/6] OMAP4: Clock: round_rate and recalc functions for
+	DPLL_ABE
+Date: Wed, 28 Sep 2011 15:19:00 -0700
+Message-ID: <CAJOA=zPDQ4sqoT7EV7HSa43g_i-q5CT6Q8UBvggG2BBvMrQ_bw@mail.gmail.com>
+References: <1316195263-14951-1-git-send-email-jon-hunter@ti.com>
+	<alpine.DEB.2.00.1109280056570.4399@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61685 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751485Ab1I1WMz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Sep 2011 18:12:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1316852520-10377-1-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1109280056570.4399@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [110924 00:48]:
-> Tony,
-> 
-> Please pull few OMAP sparse/bug fixes and clean-up for 3.2 
+On Tue, Sep 27, 2011 at 11:59 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hi Jon and Mike,
+>
+> On Fri, 16 Sep 2011, Jon Hunter wrote:
+>
+>> From: Mike Turquette <mturquette@ti.com>
+>>
+>> OMAP4 DPLL_ABE can enable a 4X multipler on top of the normal MN multipl=
+er
+>> and divider. This is achieved by setting CM_CLKMODE_DPLL_ABE.DPLL_REGM4X=
+EN
+>> bit in CKGEN module of CM1. From the OMAP4 TRM:
+>>
+>> Fdpll =3D Fref x 2 x (4 x M/(N+1)) in case REGM4XEN bit field is set (on=
+ly
+>> applicable to DPLL_ABE).
+>>
+>> Add new round_rate() and recalc() functions for OMAP4, that check the
+>> setting of REGM4XEN bit and handle this appropriately. The new functions
+>> are a simple wrapper on top of the existing omap2_dpll_round_rate() and
+>> omap2_dpll_get_rate() functions to handle the REGM4XEN bit.
+>>
+>> The REGM4XEN bit is only implemented for the ABE DPLL on OMAP4 and so
+>> only dpll_abe_ck uses omap4_dpll_regm4xen_round_rate() and
+>> omap4_dpll_regm4xen_recalc() functions.
+>>
+>> Signed-off-by: Mike Turquette <mturquette@ti.com>
+>> Tested-by: Jon Hunter <jon-hunter@ti.com>
+>
+> Some changes have been made to this patch here, to fix a few minor bugs in
+> error paths and to add documentation and Jon's Signed-off-by: (since he's
+> in the submittal chain).
+>
+> Care to review and send any comments? =A0Otherwise, I plan to queue this
+> revised version for 3.2.
 
-Thanks I'll pull these into l3 branch for v3.2 merge window and
-merge them into l-o master.
+Your changes to the patch look good.
 
-Tony
-
- 
-> Thnaks,
-> Santosh
-> 
-> The following changes since commit b6fd41e29dea9c6753b1843a77e50433e6123bcb:
-> 
->   Linux 3.1-rc6 (2011-09-12 14:02:02 -0700)
-> 
-> are available in the git repository at:
->   git://gitorious.org/omap-sw-develoment/linux-omap-dev.git for_3_2/omap_misc
-> 
-> Santosh Shilimkar (1):
->       OMAP4: Fix the emif and dmm virtual mapping
-> 
-> Todd Poynor (2):
->       OMAP: Improve register access in L3 Error handler.
->       OMAP: Fix a BUG in l3 error handler.
-> 
-> sricharan (3):
->       OMAP: Fix indentation issues in l3 error handler.
->       OMAP: Fix sparse warnings in l3 error handler.
->       OMAP: Print Initiator name for l3 custom error.
-> 
->  arch/arm/mach-omap2/omap_l3_noc.c    |  130 ++++++++++----------
->  arch/arm/mach-omap2/omap_l3_noc.h    |  224 +++++++++++++++++++---------------
->  arch/arm/mach-omap2/omap_l3_smx.c    |   91 +++++++-------
->  arch/arm/mach-omap2/omap_l3_smx.h    |  164 ++++++++++++------------
->  arch/arm/plat-omap/include/plat/io.h |    4 +-
->  5 files changed, 322 insertions(+), 291 deletions(-)
+Regards,
+Mike
