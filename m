@@ -1,125 +1,69 @@
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
-Date: Wed, 28 Sep 2011 06:58:05 -0300
-Message-ID: <4E82EFAD.5060108@infradead.org>
-References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
-	<201109081921.28051.laurent.pinchart@ideasonboard.com>
-	<ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com>
-	<201109161506.16505.laurent.pinchart@ideasonboard.com>
-	<19F8576C6E063C45BE387C64729E739404EC8113E2@dbde02.ent.ti.com>
-	<4E824EC4.20305@infradead.org> <4E8252F1.9@mlbassoc.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH 1/5 v11] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Wed, 28 Sep 2011 18:10:31 +0800
+Message-ID: <CACVXFVOVv_AeQv_834ca9FM2BK8Hd4jgggLDAGdhbeVyhiaycw@mail.gmail.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
+	<1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>
+	<alpine.DEB.2.00.1109221213500.10719@utopia.booyaka.com>
+	<4E7B8C68.7020407@ti.com>
+	<alpine.DEB.2.00.1109221524560.10719@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4E8252F1.9@mlbassoc.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: "Ravi, Deepthy" <deepthy.ravi@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1109221524560.10719@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Munegowda, Keshava" <keshava_mgowda@ti.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Em 27-09-2011 19:49, Gary Thomas escreveu:
-> On 2011-09-27 16:31, Mauro Carvalho Chehab wrote:
->> Em 19-09-2011 12:31, Hiremath, Vaibhav escreveu:
->>>
->>>> -----Original Message-----
->>>> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
->>>> Sent: Friday, September 16, 2011 6:36 PM
->>>> To: Ravi, Deepthy
->>>> Cc: linux-media@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk;
->>>> linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
->>>> kernel@vger.kernel.org; mchehab@infradead.org; g.liakhovetski@gmx.de;
->>>> Hiremath, Vaibhav
->>>> Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
->>>>
->>>> Hi Deepthy,
->>>>
->>>> On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
->>>>> On Thursday, September 08, 2011 10:51 PM Laurent Pinchart wrote:
->>>>>> On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
->>>>>>> From: Vaibhav Hiremath<hvaibhav@ti.com>
->>>>>>>
->>>>>>> In order to support TVP5146 (for that matter any video decoder),
->>>>>>> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
->>>>>>> device node.
->>>>>>
->>>>>> Why so ? Shouldn't it be queried on the subdev output pad directly ?
->>>>>
->>>>> Because standard v4l2 application for analog devices will call these std
->>>>> ioctls on the streaming device node. So it's done on /dev/video to make
->>>> the
->>>>> existing apllication work.
->>>>
->>>> Existing applications can't work with the OMAP3 ISP (and similar complex
->>>> embedded devices) without userspace support anyway, either in the form of
->>>> a
->>>> GStreamer element or a libv4l plugin. I still believe that analog video
->>>> standard operations should be added to the subdev pad operations and
->>>> exposed
->>>> through subdev device nodes, exactly as done with formats.
->>>>
->>> [Hiremath, Vaibhav] Laurent,
->>>
->>> I completely agree with your point that, existing application will not work without setting links properly.
->>> But I believe the assumption here is, media-controller should set the links (along with pad formants) and
->>> all existing application should work as is. Isn't it?
->>
->> Yes.
->>
->>> The way it is being done currently is, set the format at the pad level which is same as analog standard resolution and use existing application for streaming...
->>
->> Yes.
->>
->>> I am ok, if we add s/g/enum_std api support at sub-dev level but this should also be supported on streaming device node.
->>
->> Agreed. Standards selection should be done at device node, just like any other
->> device.
-> 
-> So how do you handle a part like the TVP5150 that is standard agnostic?
-> That device can sense the standard from the input signal and sets the
-> result appropriately.
-> 
-See the em28xx driver. It uses tvp5150 at the device node, and works properly.
+Hi Paul,
 
-It should be noticed, however, that the implementation at tvp5150 doesn't
-implement standards detection properly, due to hardware limitation.
+On Fri, Sep 23, 2011 at 7:31 AM, Paul Walmsley <paul@pwsan.com> wrote:
 
-A proper implementation of standards detection is to get the standards mask from
-userspace and let the driver detect between the standards that the userspace is
-expecting.
+> The idea of the main_clk was not intended to be PRCM or OCP or even
+> OMAP-specific. =A0It's just intended to represent a clock that is use=
+d to
+> drive the register logic inside the IP block. =A0Therefore it must be
+> enabled before any register access may occur. =A0Even if clock gating=
+ is
+> handled by some higher-level interface (e.g., at the IP block level),=
+ the
+> main_clk has a rate, so it also implies an upper limit on how quickly
+> register operations can occur. =A0I suppose that all of the IP block'=
+s
+> clocks could be "optional clocks," but we know that every IP block wi=
+th
+> registers requires at least one clock to work, and that should be the
+> main_clk.
 
-So, userspace could, for example, do things like:
+I am a bit confused about you comment on "main_clk".
 
-	v4l2_std_id std = V4L2_STD_PAL_M | V4L2_STD_NTSC_M | V4L2_STD_PAL_DK;
+=46rom hwmod related source code, main_clk is the function clock
+of one module(hwmod), such as: on omap4, for uart3, main_clk is
+uart3_fck.
 
-	ioctl (fd, VIDIOC_S_STD, &std);
-	msleep (100);
-	ioctl (fd, VIDIOC_G_STD, &std);
-	if (std & V4L2_STD_625_50)
-		height = 576;
-	else
-		height = 480;
+But from[1] and [2] of omap4 PRM, we can find that interface clock
+is required to provide register access instead of function clock.
 
-The above code won't work with the current tvp5150 driver, due to two reasons:
+This is a bit conflictive with what you description, so could you
+give a further comments about main_clk, function clock and interface
+clock?
 
-1) The tvp5150 register 0x28 doesn't allow an arbitrary standards mask like the above.
-The driver does support standards detection, if V4L2_STD_ALL is passed into it.
 
-2) even if V4L2_STD_ALL is used, the driver currently doesn't implement a
-vidioc_g_std callback. So, the driver cannot return back to userspace and to
-the bridge driver what standard were detected. Without this information, userspace
-might use the wrong number of lines when allocating the buffer, and this won't
-work.
+[1], 23.3.4.2 Clock Configuration
+	Each UART uses a 48-MHz functional clock for its logic
+	and to generate external interface signals. Each UART
+	uses an interface clock for register accesses.
 
-Of course, patches for fixing this are welcome.
+[2], 3.1.1.1.1 Module Interface and Functional Clocks
+	The interface clocks have the following characteristics:
+	=95 They ensure proper communication between any module/subsystem
+	and the interconnect.
+	=95 In most cases, they supply the system interconnect interface
+	and registers of the module.
 
-Thanks,
-Mauro
+thanks,
+--=20
+Ming Lei
