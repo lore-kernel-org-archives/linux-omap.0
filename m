@@ -1,39 +1,111 @@
-From: "Aidas Zigmas" <pp3705@post.ru>
-Subject: ragauk radonuosius ikrus =?UTF-8?B?xI1pYQ==?= ir dabar
-Date: Thu, 29 Sep 2011 08:40:34 +0200
-Message-ID: <auto-000036677189@fe1-mc.corbina.ru>
-Reply-To: "Aidas Zigmas" <pp3705@post.ru>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: musb: OMAP4430: Remove a redundant
+	omap4430_phy_init call in usb_musb_init
+Date: Thu, 29 Sep 2011 10:08:53 +0300
+Message-ID: <20110929070849.GA27987@legolas.emea.dhcp.ti.com>
+References: <1316508629.14514.2.camel@phoenix>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from contrabass.post.ru ([85.21.78.5]:20810 "EHLO
-	contrabass.corbina.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450Ab1I2Gu3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Sep 2011 02:50:29 -0400
-Received: from corbina.ru (violin.corbina.net [195.14.50.30])
-	by contrabass.corbina.net (Postfix) with ESMTP id B8A91CA514
-	for <linux-omap@vger.kernel.org>; Thu, 29 Sep 2011 10:40:36 +0400 (MSD)
-Received: from [93.139.131.39] (account pp3705@post.ru HELO barcelonista-PC)
-  by fe1-mc.corbina.ru (CommuniGate Pro SMTP 5.4.0)
-  with ESMTPA id 36677189 for linux-omap@vger.kernel.org; Thu, 29 Sep 2011 10:40:36 +0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1293210361=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1316508629.14514.2.camel@phoenix>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Axel Lin <axel.lin@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-kada prie=C5=A1 tai valg=C4=97i juoduosius ikrus? =20
-Na =E2=80=93 kas ta=C4=8Diau gali tai atsiminti ..  Nes  brangiai kainu=
-oja , taip? =20
-Bet pasiturintys valgo =C5=A1=C4=AF skan=C5=B3 vaIg=C4=AF kiekvien=C4=85=
- miel=C4=85 dienel=C4=99 -  nes tai yra 100% sveikas maistas..=20
-J=C5=ABs toli gra=C5=BEu nesate pasiturintis? =20
-Nieko baisaus, st=C4=97b=C4=97k ir mokykis, kaip gali tapti praturt=C4=97=
-liu: =20
-http://www.bma.org.bd/milijonas =20
-=2E. =20
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--===============1293210361==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
+Content-Disposition: inline
+
+
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Sep 20, 2011 at 04:50:29PM +0800, Axel Lin wrote:
+> Current code calls omap4430_phy_init() twice in usb_musb_init().
+> Calling omap4430_phy_init() once is enough.
+> This patch removes the first omap4430_phy_init() call, which using an
+> uninitialized pointer as parameter.
+>=20
+> This patch elimates below build warning:
+> arch/arm/mach-omap2/usb-musb.c: In function 'usb_musb_init':
+> arch/arm/mach-omap2/usb-musb.c:141: warning: 'dev' may be used uninitiali=
+zed in this function
+>=20
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+> ---
+>  arch/arm/mach-omap2/usb-musb.c |    3 ---
+>  1 files changed, 0 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-mus=
+b.c
+> index a65145b..19e4dac 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -137,9 +137,6 @@ void __init usb_musb_init(struct omap_musb_board_data=
+ *musb_board_data)
+>  	musb_plat.mode =3D board_data->mode;
+>  	musb_plat.extvbus =3D board_data->extvbus;
+> =20
+> -	if (cpu_is_omap44xx())
+> -		omap4430_phy_init(dev);
+> -
+>  	if (cpu_is_omap3517() || cpu_is_omap3505()) {
+>  		oh_name =3D "am35x_otg_hs";
+>  		name =3D "musb-am35x";
+> --=20
+> 1.7.4.1
+>=20
+>=20
+>=20
+
+--=20
+balbi
+
+--oyUTqETQ0mS9luUI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOhBmBAAoJEAv8Txj19kN1iO4H/jWNVErbCJPLOlooNGIW9xkV
+dZvxmOryPNCn49maS6j1QFnC/bEqQi+FEDTT2Y1a+6uztUAbh+YGwB63R+Y1fLrr
+wQnMIQnkoV0g0DqfuBo9BRV9A2je0BuwtdajMdKD091qxyy9W1yTyLOeyU3BCBSX
+vxUP/eQz38Tk2NSdU8i3voODFpmEeT7Tqu+svvfn9nVi60nmEuiZwsHPazR2iHc4
+19cICsf1Wmoc81p5afZ9nhUdd0aYytHvbnPp2BjTqol5rOLg1Uvd/vWKfu7byanf
+i50DPUhZh24V/flKMQHVCIWf3fiAgg4lhOOoytPeBlwH/ex4r+yfHlbDr/90Va4=
+=cYnb
+-----END PGP SIGNATURE-----
+
+--oyUTqETQ0mS9luUI--
+
+
+--===============1293210361==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============1293210361==--
