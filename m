@@ -1,129 +1,309 @@
-From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH v3 3/3] ARM: OMAP: TI814X: Create board support and enable build for TI8148 EVM
-Date: Thu, 29 Sep 2011 06:39:30 +0530
-Message-ID: <1317258570-30494-1-git-send-email-hemantp@ti.com>
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: Re: [PATCH] leds-class: change back LEDS_CLASS to tristate instead of
+	bool
+Date: Thu, 29 Sep 2011 10:00:58 +0800
+Message-ID: <CAK5ve-KoanwFGFJcxGQGmAW0yR+MYR1uVGM5q+=8u_ofHrhwOQ@mail.gmail.com>
+References: <1317113432-7299-1-git-send-email-bryan.wu@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52544 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752689Ab1I2BJk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Sep 2011 21:09:40 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1317113432-7299-1-git-send-email-bryan.wu@canonical.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, linux@arm.linux.org.uk, rpurdie@rpsys.net, manuel.lauss@gmail.com, cjb@laptop.org, cbou@mail.ru, dwmw2@infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@l
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Hemant Pedanekar <hemantp@ti.com>
 
-This patch adds minimal support and build configuration for TI8148 EVM. Also
-adds support for low level debugging on UART1 console on the EVM.
+Hiya,
 
-Note that existing TI8168 EVM file (board-ti8168evm.c) is updated with machine
-info for TI8148 EVM and renamed as board-ti81xxevm.c.
+Any comments and need I do anything to improve this patch?
 
-Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
----
- arch/arm/mach-omap2/Kconfig                        |    5 ++++
- arch/arm/mach-omap2/Makefile                       |    3 +-
- .../{board-ti8168evm.c => board-ti81xxevm.c}       |   22 ++++++++++++++-----
- arch/arm/plat-omap/include/plat/uncompress.h       |    3 ++
- 4 files changed, 26 insertions(+), 7 deletions(-)
- rename arch/arm/mach-omap2/{board-ti8168evm.c => board-ti81xxevm.c} (66%)
+Thanks,
+-Bryan
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index a3b9227..cc4f213 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -316,6 +316,11 @@ config MACH_TI8168EVM
- 	depends on SOC_OMAPTI81XX
- 	default y
- 
-+config MACH_TI8148EVM
-+	bool "TI8148 Evaluation Module"
-+	depends on SOC_OMAPTI81XX
-+	default y
-+
- config MACH_OMAP_4430SDP
- 	bool "OMAP 4430 SDP board"
- 	default y
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 5ee4cd6..1dc2c6b 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -239,7 +239,8 @@ obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o \
- obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
- 
- obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o
--obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
-+obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti81xxevm.o
-+obj-$(CONFIG_MACH_TI8148EVM)		+= board-ti81xxevm.o
- 
- # Platform specific device init code
- 
-diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti81xxevm.c
-similarity index 66%
-rename from arch/arm/mach-omap2/board-ti8168evm.c
-rename to arch/arm/mach-omap2/board-ti81xxevm.c
-index 7935fc9..b858921 100644
---- a/arch/arm/mach-omap2/board-ti8168evm.c
-+++ b/arch/arm/mach-omap2/board-ti81xxevm.c
-@@ -1,5 +1,5 @@
- /*
-- * Code for TI8168 EVM.
-+ * Code for TI8168/TI8148 EVM.
-  *
-  * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
-  *
-@@ -24,15 +24,15 @@
- #include <plat/board.h>
- #include <plat/common.h>
- 
--static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
-+static struct omap_board_config_kernel ti81xx_evm_config[] __initdata = {
- };
- 
--static void __init ti8168_evm_init(void)
-+static void __init ti81xx_evm_init(void)
- {
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
--	omap_board_config = ti8168_evm_config;
--	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
-+	omap_board_config = ti81xx_evm_config;
-+	omap_board_config_size = ARRAY_SIZE(ti81xx_evm_config);
- }
- 
- MACHINE_START(TI8168EVM, "ti8168evm")
-@@ -42,5 +42,15 @@ MACHINE_START(TI8168EVM, "ti8168evm")
- 	.init_early	= ti81xx_init_early,
- 	.init_irq	= ti81xx_init_irq,
- 	.timer		= &omap3_timer,
--	.init_machine	= ti8168_evm_init,
-+	.init_machine	= ti81xx_evm_init,
-+MACHINE_END
-+
-+MACHINE_START(TI8148EVM, "ti8148evm")
-+	/* Maintainer: Texas Instruments */
-+	.atag_offset	= 0x100,
-+	.map_io		= ti81xx_map_io,
-+	.init_early	= ti81xx_init_early,
-+	.init_irq	= ti81xx_init_irq,
-+	.timer		= &omap3_timer,
-+	.init_machine	= ti81xx_evm_init,
- MACHINE_END
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index 40336ad..8d052e7 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -175,6 +175,9 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		/* TI8168 base boards using UART3 */
- 		DEBUG_LL_TI81XX(3, ti8168evm);
- 
-+		/* TI8148 base boards using UART1 */
-+		DEBUG_LL_TI81XX(1, ti8148evm);
-+
- 	} while (0);
- }
- 
--- 
-1.7.3.5
+On Tue, Sep 27, 2011 at 4:50 PM, Bryan Wu <bryan.wu@canonical.com> wrote:
+> LEDS_CLASS is required by leds and trigger drivers, but we can build it as
+> module. =A0So change this option back as tristate and treak the help mess=
+age
+> as well.
+>
+> LEDS_TRIGGERS depends on LEDS_CLASSS, which should be tristate. =A0So set=
+ it
+> as tristate too and update header files as well.
+>
+> Change those ifdefs to take care of module configuration.
+>
+> Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+> ---
+> =A0arch/arm/mach-omap1/board-ams-delta.c | =A0 =A04 ++--
+> =A0drivers/leds/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A09 +++=
++++---
+> =A0drivers/leds/led-class.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A08 ++++----
+> =A0drivers/leds/leds.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A02 +-
+> =A0drivers/mmc/host/au1xmmc.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A06 +++---
+> =A0drivers/power/power_supply.h =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
+> =A0include/linux/leds.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A07 +++=
++---
+> =A0include/linux/mmc/host.h =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
+> =A0include/linux/power_supply.h =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
+> =A09 files changed, 23 insertions(+), 19 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/=
+board-ams-delta.c
+> index b2572f7..fd28696 100644
+> --- a/arch/arm/mach-omap1/board-ams-delta.c
+> +++ b/arch/arm/mach-omap1/board-ams-delta.c
+> @@ -241,7 +241,7 @@ static struct i2c_board_info ams_delta_camera_board_i=
+nfo[] =3D {
+> =A0 =A0 =A0 =A0},
+> =A0};
+>
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+> =A0DEFINE_LED_TRIGGER(ams_delta_camera_led_trigger);
+>
+> =A0static int ams_delta_camera_power(struct device *dev, int power)
+> @@ -320,7 +320,7 @@ static void __init ams_delta_init(void)
+>
+> =A0 =A0 =A0 =A0omap1_usb_init(&ams_delta_usb_config);
+> =A0 =A0 =A0 =A0omap1_set_camera_info(&ams_delta_camera_platform_data);
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+> =A0 =A0 =A0 =A0led_trigger_register_simple("ams_delta_camera",
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0&ams_delta_camera_led_trig=
+ger);
+> =A0#endif
+> diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
+> index ff203a4..c30233e 100644
+> --- a/drivers/leds/Kconfig
+> +++ b/drivers/leds/Kconfig
+> @@ -17,10 +17,13 @@ menuconfig NEW_LEDS
+> =A0if NEW_LEDS
+>
+> =A0config LEDS_CLASS
+> - =A0 =A0 =A0 bool "LED Class Support"
+> + =A0 =A0 =A0 tristate "LED Class Support"
+> =A0 =A0 =A0 =A0help
+> =A0 =A0 =A0 =A0 =A0This option enables the led sysfs class in /sys/class/=
+leds. =A0You'll
+> - =A0 =A0 =A0 =A0 need this to do anything useful with LEDs. =A0If unsure=
+, say N.
+> + =A0 =A0 =A0 =A0 need this to do anything useful with LEDs. =A0If unsure=
+, say M.
+> +
+> + =A0 =A0 =A0 =A0 Note: don't disable it as N, because plenty of led and =
+trigger drivers
+> + =A0 =A0 =A0 =A0 are using this option.
+>
+> =A0comment "LED drivers"
+>
+> @@ -388,7 +391,7 @@ config LEDS_RENESAS_TPU
+> =A0 =A0 =A0 =A0 =A0Brightness control is supported but hardware blinking =
+is not.
+>
+> =A0config LEDS_TRIGGERS
+> - =A0 =A0 =A0 bool "LED Trigger support"
+> + =A0 =A0 =A0 tristate "LED Trigger support"
+> =A0 =A0 =A0 =A0depends on LEDS_CLASS
+> =A0 =A0 =A0 =A0help
+> =A0 =A0 =A0 =A0 =A0This option enables trigger support for the leds class.
+> diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
+> index dc3d3d8..1f54cb0 100644
+> --- a/drivers/leds/led-class.c
+> +++ b/drivers/leds/led-class.c
+> @@ -75,7 +75,7 @@ static ssize_t led_max_brightness_show(struct device *d=
+ev,
+> =A0static struct device_attribute led_class_attrs[] =3D {
+> =A0 =A0 =A0 =A0__ATTR(brightness, 0644, led_brightness_show, led_brightne=
+ss_store),
+> =A0 =A0 =A0 =A0__ATTR(max_brightness, 0444, led_max_brightness_show, NULL=
+),
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+> =A0 =A0 =A0 =A0__ATTR(trigger, 0644, led_trigger_show, led_trigger_store),
+> =A0#endif
+> =A0 =A0 =A0 =A0__ATTR_NULL,
+> @@ -209,7 +209,7 @@ int led_classdev_register(struct device *parent, stru=
+ct led_classdev *led_cdev)
+> =A0 =A0 =A0 =A0if (IS_ERR(led_cdev->dev))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return PTR_ERR(led_cdev->dev);
+>
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+> =A0 =A0 =A0 =A0init_rwsem(&led_cdev->trigger_lock);
+> =A0#endif
+> =A0 =A0 =A0 =A0/* add to the list of leds */
+> @@ -226,7 +226,7 @@ int led_classdev_register(struct device *parent, stru=
+ct led_classdev *led_cdev)
+> =A0 =A0 =A0 =A0led_cdev->blink_timer.function =3D led_timer_function;
+> =A0 =A0 =A0 =A0led_cdev->blink_timer.data =3D (unsigned long)led_cdev;
+>
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+> =A0 =A0 =A0 =A0led_trigger_set_default(led_cdev);
+> =A0#endif
+>
+> @@ -245,7 +245,7 @@ EXPORT_SYMBOL_GPL(led_classdev_register);
+> =A0*/
+> =A0void led_classdev_unregister(struct led_classdev *led_cdev)
+> =A0{
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+> =A0 =A0 =A0 =A0down_write(&led_cdev->trigger_lock);
+> =A0 =A0 =A0 =A0if (led_cdev->trigger)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0led_trigger_set(led_cdev, NULL);
+> diff --git a/drivers/leds/leds.h b/drivers/leds/leds.h
+> index e77c7f8..53b59b7 100644
+> --- a/drivers/leds/leds.h
+> +++ b/drivers/leds/leds.h
+> @@ -35,7 +35,7 @@ static inline int led_get_brightness(struct led_classde=
+v *led_cdev)
+> =A0extern struct rw_semaphore leds_list_lock;
+> =A0extern struct list_head leds_list;
+>
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+> =A0void led_trigger_set_default(struct led_classdev *led_cdev);
+> =A0void led_trigger_set(struct led_classdev *led_cdev,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct led_trigger *trigge=
+r);
+> diff --git a/drivers/mmc/host/au1xmmc.c b/drivers/mmc/host/au1xmmc.c
+> index 56e7834..83f4913 100644
+> --- a/drivers/mmc/host/au1xmmc.c
+> +++ b/drivers/mmc/host/au1xmmc.c
+> @@ -1043,7 +1043,7 @@ static int __devinit au1xmmc_probe(struct platform_=
+device *pdev)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "using PIO\n");
+> =A0 =A0 =A0 =A0}
+>
+> -#ifdef CONFIG_LEDS_CLASS
+> +#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
+> =A0 =A0 =A0 =A0if (host->platdata && host->platdata->led) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct led_classdev *led =3D host->platdat=
+a->led;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0led->name =3D mmc_hostname(mmc);
+> @@ -1072,7 +1072,7 @@ static int __devinit au1xmmc_probe(struct platform_=
+device *pdev)
+> =A0 =A0 =A0 =A0return 0; =A0 =A0 =A0 /* all ok */
+>
+> =A0out6:
+> -#ifdef CONFIG_LEDS_CLASS
+> +#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
+> =A0 =A0 =A0 =A0if (host->platdata && host->platdata->led)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0led_classdev_unregister(host->platdata->le=
+d);
+> =A0out5:
+> @@ -1111,7 +1111,7 @@ static int __devexit au1xmmc_remove(struct platform=
+_device *pdev)
+> =A0 =A0 =A0 =A0if (host) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc_remove_host(host->mmc);
+>
+> -#ifdef CONFIG_LEDS_CLASS
+> +#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (host->platdata && host->platdata->led)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0led_classdev_unregister(ho=
+st->platdata->led);
+> =A0#endif
+> diff --git a/drivers/power/power_supply.h b/drivers/power/power_supply.h
+> index 018de2b..efa9544 100644
+> --- a/drivers/power/power_supply.h
+> +++ b/drivers/power/power_supply.h
+> @@ -22,7 +22,7 @@ static inline void power_supply_init_attrs(struct devic=
+e_type *dev_type) {}
+>
+> =A0#endif /* CONFIG_SYSFS */
+>
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+>
+> =A0extern void power_supply_update_leds(struct power_supply *psy);
+> =A0extern int power_supply_create_triggers(struct power_supply *psy);
+> diff --git a/include/linux/leds.h b/include/linux/leds.h
+> index 5884def..051bc7e 100644
+> --- a/include/linux/leds.h
+> +++ b/include/linux/leds.h
+> @@ -66,7 +66,7 @@ struct led_classdev {
+> =A0 =A0 =A0 =A0struct timer_list =A0 =A0 =A0 =A0blink_timer;
+> =A0 =A0 =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0blink_brigh=
+tness;
+>
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+> =A0 =A0 =A0 =A0/* Protects the trigger data below */
+> =A0 =A0 =A0 =A0struct rw_semaphore =A0 =A0 =A0trigger_lock;
+>
+> @@ -115,7 +115,7 @@ extern void led_brightness_set(struct led_classdev *l=
+ed_cdev,
+> =A0/*
+> =A0* LED Triggers
+> =A0*/
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+>
+> =A0#define TRIG_NAME_MAX 50
+>
+> @@ -161,7 +161,8 @@ extern void led_trigger_blink(struct led_trigger *tri=
+gger,
+> =A0#endif
+>
+> =A0/* Trigger specific functions */
+> -#ifdef CONFIG_LEDS_TRIGGER_IDE_DISK
+> +#if defined(CONFIG_LEDS_TRIGGER_IDE_DISK) || \
+> + =A0 =A0 =A0 defined(CONFIG_LEDS_TRIGGER_IDE_DISK_MODULE)
+> =A0extern void ledtrig_ide_activity(void);
+> =A0#else
+> =A0#define ledtrig_ide_activity() do {} while(0)
+> diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
+> index aed5bc7..adac344 100644
+> --- a/include/linux/mmc/host.h
+> +++ b/include/linux/mmc/host.h
+> @@ -300,7 +300,7 @@ struct mmc_host {
+>
+> =A0 =A0 =A0 =A0mmc_pm_flag_t =A0 =A0 =A0 =A0 =A0 pm_flags; =A0 =A0 =A0 /*=
+ requested pm features */
+>
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+> =A0 =A0 =A0 =A0struct led_trigger =A0 =A0 =A0*led; =A0 =A0 =A0 =A0 =A0 /*=
+ activity led */
+> =A0#endif
+>
+> diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
+> index 204c18d..cb09fa0 100644
+> --- a/include/linux/power_supply.h
+> +++ b/include/linux/power_supply.h
+> @@ -164,7 +164,7 @@ struct power_supply {
+> =A0 =A0 =A0 =A0struct device *dev;
+> =A0 =A0 =A0 =A0struct work_struct changed_work;
+>
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> +#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+> =A0 =A0 =A0 =A0struct led_trigger *charging_full_trig;
+> =A0 =A0 =A0 =A0char *charging_full_trig_name;
+> =A0 =A0 =A0 =A0struct led_trigger *charging_trig;
+> --
+> 1.7.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
+
+
+-- =
+
+Bryan Wu <bryan.wu@canonical.com>
+Kernel Developer =A0 =A0+86.138-1617-6545 Mobile
+Ubuntu Kernel Team
+Canonical Ltd. =A0 =A0 =A0www.canonical.com
+Ubuntu - Linux for human beings | www.ubuntu.com
