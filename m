@@ -1,94 +1,100 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 3/5] omap3evm: Add Camera board init/hookup file
-Date: Thu, 29 Sep 2011 09:37:40 -0700
-Message-ID: <20110929163740.GH6324@atomide.com>
-References: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
- <1317130848-21136-4-git-send-email-deepthy.ravi@ti.com>
+Subject: Re: [PATCH 00/10] OMAP DSS related board changes
+Date: Thu, 29 Sep 2011 10:52:32 -0700
+Message-ID: <20110929175232.GI6324@atomide.com>
+References: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
+ <1317019053.1956.10.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41383 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751851Ab1I2Rwe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Sep 2011 13:52:34 -0400
 Content-Disposition: inline
-In-Reply-To: <1317130848-21136-4-git-send-email-deepthy.ravi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Deepthy Ravi <deepthy.ravi@ti.com>
-Cc: laurent.pinchart@ideasonboard.com, mchehab@infradead.org, hvaibhav@ti.com, linux-media@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, kyungmin.park@samsung.com, hverkuil@xs4all.nl, m.szyprowski@samsung.com, g.liakhovetski@gmx.de, santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1317019053.1956.10.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [110925 23:04]:
+> On Tue, 2011-09-20 at 11:18 +0300, Tomi Valkeinen wrote:
+> > Hi Tony,
+> > 
+> > Here is a bunch of board file patches related to DSS. They have all been sent
+> > for review earlier, and are currently in my tree. Some of them depend on DSS
+> > driver changes, so I'd like to keep them there to avoid compilation errors
+> > (these won't compile if you apply them without patches from DSS tree).
+> > 
+> > Can you give your ack for these? Alternatively we can see which of these could
+> > go through your tree and I can make a new set.
+> 
+> Tony, ping. I'd like to get these in for 3.2, as many DSS driver patches
+> depend on some of these.
 
-Few comments below.
+Sorry for the delay. Looks like these will conflict with your
+earlier patches I have in the board branch and other cleanup.
 
-* Deepthy Ravi <deepthy.ravi@ti.com> [110927 06:07]:
-> +
-> +#include <linux/io.h>
-> +#include <linux/i2c.h>
-> +#include <linux/delay.h>
-> +#include <linux/gpio.h>
-> +#include <linux/err.h>
-> +#include <linux/platform_device.h>
-> +#include <mach/gpio.h>
+I'll drop the earlier patches from my board branch so you can
+queue all of them:
 
-You can leave out mach/gpio.h as you already have linux/gpio.h
-included.
+OMAP: Apollon: Port the display driver to new DSS2
+OMAP: H4: Port the display driver to new DSS2
+OMAP: LDP: Port the display driver to new DSS2
+OMAP: 2420SDP: Port the display driver to new DSS2
+OMAP: omap3touchbook: Remove unused lcd stuff
+OMAP: RX51: Remove unused old omapfb stuff
 
-> +static int __init omap3evm_cam_init(void)
-> +{
-> +	int ret;
-> +
-> +	ret = gpio_request_array(omap3evm_gpios,
-> +			ARRAY_SIZE(omap3evm_gpios));
-> +	if (ret < 0) {
-> +		printk(KERN_ERR "Unable to get GPIO pins\n");
-> +		return ret;
-> +	}
-> +
-> +	omap3_init_camera(&omap3evm_isp_platform_data);
-> +
-> +	printk(KERN_INFO "omap3evm camera init done successfully...\n");
-> +	return 0;
-> +}
-> +
-> +static void __exit omap3evm_cam_exit(void)
-> +{
-> +	gpio_free_array(omap3evm_gpios,
-> +			ARRAY_SIZE(omap3evm_gpios));
-> +}
-> +
-> +module_init(omap3evm_cam_init);
-> +module_exit(omap3evm_cam_exit);
+Your new patches all look OK to me, just please check what we
+have in omap cleanup branch as we don't have all that queud up
+yet in next.
 
-Looks like most of this file should be under drivers/media.
+It's likely these will need to be rebased on those, so maybe wait
+a bit with these or adjust them accordingly if possible.
 
-For initializing the module you should pass some platform_data
-(until we have DT doing it) so you know that the camera is
-available on the booted board or not. Now the init tries to
-wrongly initialize things on other boards too.
+Also, you might want to start looking into passing the configuration
+from DT instead to avoid the platform init code. Probably the
+panel configuration would be the place to start with that?
 
+So for all of them:
 
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -573,6 +573,8 @@ static struct omap_board_mux omap35x_board_mux[] __initdata = {
->  				OMAP_PIN_OFF_NONE),
->  	OMAP3_MUX(GPMC_WAIT2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
->  				OMAP_PIN_OFF_NONE),
-> +	OMAP3_MUX(MCBSP1_FSR, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-> +				OMAP_PIN_OFF_NONE),
->  #ifdef CONFIG_WL12XX_PLATFORM_DATA
->  	/* WLAN IRQ - GPIO 149 */
->  	OMAP3_MUX(UART1_RTS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
-> @@ -598,6 +600,8 @@ static struct omap_board_mux omap36x_board_mux[] __initdata = {
->  	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
->  				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
->  				OMAP_PIN_OFF_WAKEUPENABLE),
-> +	OMAP3_MUX(MCBSP1_FSR, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-> +				OMAP_PIN_OFF_NONE),
->  	/* AM/DM37x EVM: DSS data bus muxed with sys_boot */
->  	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
->  	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Is this safe to do on all boards, or only if you have the camera
-board attached?
-
-Regards,
-
-Tony
+ 
+> > Thomas Weber (1):
+> >   OMAP: Devkit8000: Change lcd driver to AT070TN83
+> > 
+> > Tomi Valkeinen (9):
+> >   OMAP: DSS2: Change DSI device naming
+> >   OMAP4: TWL: Add common omapdss supplies
+> >   OMAP: DSS2: HDMI: use default dividers
+> >   OMAP: use dvi panel driver instead of generic-dpi
+> >   OMAP: stalker: Remove LCD device from board file
+> >   OMAP: Add DDC i2c_bus_num to board files
+> >   OMAP: 4430SDP: Remove unneeded lcd config
+> >   OMAP4: 4430SDP: Add panel support to board file
+> >   OMAP4: 4430SDP: Add picodlp support to board file
+> > 
+> >  arch/arm/mach-omap2/board-3430sdp.c      |    7 +-
+> >  arch/arm/mach-omap2/board-4430sdp.c      |  208 ++++++++++++++++++++++++++----
+> >  arch/arm/mach-omap2/board-am3517evm.c    |    6 +-
+> >  arch/arm/mach-omap2/board-cm-t35.c       |    6 +-
+> >  arch/arm/mach-omap2/board-devkit8000.c   |   10 +-
+> >  arch/arm/mach-omap2/board-igep0020.c     |    8 +-
+> >  arch/arm/mach-omap2/board-omap3beagle.c  |    8 +-
+> >  arch/arm/mach-omap2/board-omap3evm.c     |    7 +-
+> >  arch/arm/mach-omap2/board-omap3pandora.c |    2 +-
+> >  arch/arm/mach-omap2/board-omap3stalker.c |   40 +------
+> >  arch/arm/mach-omap2/board-omap4panda.c   |    8 +-
+> >  arch/arm/mach-omap2/board-overo.c        |    7 +-
+> >  arch/arm/mach-omap2/display.c            |    6 +-
+> >  arch/arm/mach-omap2/twl-common.c         |   11 ++-
+> >  14 files changed, 230 insertions(+), 104 deletions(-)
+> > 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
