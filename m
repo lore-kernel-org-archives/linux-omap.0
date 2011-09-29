@@ -1,76 +1,94 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] arm: omap4: hsmmc: Fix Pbias configuration on
- regulator OFF
-Date: Thu, 29 Sep 2011 09:20:06 -0700
-Message-ID: <20110929162006.GG6324@atomide.com>
-References: <1317307500-5514-1-git-send-email-balajitk@ti.com>
- <1317307500-5514-2-git-send-email-balajitk@ti.com>
+Subject: Re: [PATCH v2 3/5] omap3evm: Add Camera board init/hookup file
+Date: Thu, 29 Sep 2011 09:37:40 -0700
+Message-ID: <20110929163740.GH6324@atomide.com>
+References: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
+ <1317130848-21136-4-git-send-email-deepthy.ravi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1317307500-5514-2-git-send-email-balajitk@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, kishore.kadiyala@ti.com, vishp@ti.com
+In-Reply-To: <1317130848-21136-4-git-send-email-deepthy.ravi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Deepthy Ravi <deepthy.ravi@ti.com>
+Cc: laurent.pinchart@ideasonboard.com, mchehab@infradead.org, hvaibhav@ti.com, linux-media@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, kyungmin.park@samsung.com, hverkuil@xs4all.nl, m.szyprowski@samsung.com, g.liakhovetski@gmx.de, santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Balaji T K <balajitk@ti.com> [110929 07:11]:
-> MMC1 data line IO's are powered down in before set regulator function.
-> IO's should not be powered ON when regulator is OFF.
-> Keep the IO's in power pown mode after regulator OFF.
-> Delete incorrect comments which are not applicable for OMAP4.
+Hi,
 
-Care to check how this is different from what I added into fixes
-branch as commit 3fe8df93b0992199e3a0026fc51e90b705f94e40?
+Few comments below.
 
-Is this a separate issue?
+* Deepthy Ravi <deepthy.ravi@ti.com> [110927 06:07]:
+> +
+> +#include <linux/io.h>
+> +#include <linux/i2c.h>
+> +#include <linux/delay.h>
+> +#include <linux/gpio.h>
+> +#include <linux/err.h>
+> +#include <linux/platform_device.h>
+> +#include <mach/gpio.h>
+
+You can leave out mach/gpio.h as you already have linux/gpio.h
+included.
+
+> +static int __init omap3evm_cam_init(void)
+> +{
+> +	int ret;
+> +
+> +	ret = gpio_request_array(omap3evm_gpios,
+> +			ARRAY_SIZE(omap3evm_gpios));
+> +	if (ret < 0) {
+> +		printk(KERN_ERR "Unable to get GPIO pins\n");
+> +		return ret;
+> +	}
+> +
+> +	omap3_init_camera(&omap3evm_isp_platform_data);
+> +
+> +	printk(KERN_INFO "omap3evm camera init done successfully...\n");
+> +	return 0;
+> +}
+> +
+> +static void __exit omap3evm_cam_exit(void)
+> +{
+> +	gpio_free_array(omap3evm_gpios,
+> +			ARRAY_SIZE(omap3evm_gpios));
+> +}
+> +
+> +module_init(omap3evm_cam_init);
+> +module_exit(omap3evm_cam_exit);
+
+Looks like most of this file should be under drivers/media.
+
+For initializing the module you should pass some platform_data
+(until we have DT doing it) so you know that the camera is
+available on the booted board or not. Now the init tries to
+wrongly initialize things on other boards too.
+
+
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -573,6 +573,8 @@ static struct omap_board_mux omap35x_board_mux[] __initdata = {
+>  				OMAP_PIN_OFF_NONE),
+>  	OMAP3_MUX(GPMC_WAIT2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+>  				OMAP_PIN_OFF_NONE),
+> +	OMAP3_MUX(MCBSP1_FSR, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+> +				OMAP_PIN_OFF_NONE),
+>  #ifdef CONFIG_WL12XX_PLATFORM_DATA
+>  	/* WLAN IRQ - GPIO 149 */
+>  	OMAP3_MUX(UART1_RTS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
+> @@ -598,6 +600,8 @@ static struct omap_board_mux omap36x_board_mux[] __initdata = {
+>  	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+>  				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
+>  				OMAP_PIN_OFF_WAKEUPENABLE),
+> +	OMAP3_MUX(MCBSP1_FSR, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+> +				OMAP_PIN_OFF_NONE),
+>  	/* AM/DM37x EVM: DSS data bus muxed with sys_boot */
+>  	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+>  	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+
+Is this safe to do on all boards, or only if you have the camera
+board attached?
+
+Regards,
 
 Tony
-
- 
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> Reported-by: Viswanath Puttagunta <vishp@ti.com>
-> ---
->  arch/arm/mach-omap2/hsmmc.c |   14 ++------------
->  1 files changed, 2 insertions(+), 12 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-> index 097a42d..9cc2eb7 100644
-> --- a/arch/arm/mach-omap2/hsmmc.c
-> +++ b/arch/arm/mach-omap2/hsmmc.c
-> @@ -129,15 +129,11 @@ static void omap4_hsmmc1_before_set_reg(struct device *dev, int slot,
->  	 * Assume we power both OMAP VMMC1 (for CMD, CLK, DAT0..3) and the
->  	 * card with Vcc regulator (from twl4030 or whatever).  OMAP has both
->  	 * 1.8V and 3.0V modes, controlled by the PBIAS register.
-> -	 *
-> -	 * In 8-bit modes, OMAP VMMC1A (for DAT4..7) needs a supply, which
-> -	 * is most naturally TWL VSIM; those pins also use PBIAS.
-> -	 *
-> -	 * FIXME handle VMMC1A as needed ...
->  	 */
->  	reg = omap4_ctrl_pad_readl(control_pbias_offset);
->  	reg &= ~(OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
-> -		OMAP4_MMC1_PWRDNZ_MASK);
-> +		OMAP4_MMC1_PWRDNZ_MASK |
-> +		OMAP4_MMC1_PBIASLITE_VMODE_MASK);
->  	omap4_ctrl_pad_writel(reg, control_pbias_offset);
->  }
->  
-> @@ -172,12 +168,6 @@ static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
->  			reg &= ~(OMAP4_MMC1_PWRDNZ_MASK);
->  			omap4_ctrl_pad_writel(reg, control_pbias_offset);
->  		}
-> -	} else {
-> -		reg = omap4_ctrl_pad_readl(control_pbias_offset);
-> -		reg |= (OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
-> -			OMAP4_MMC1_PWRDNZ_MASK |
-> -			OMAP4_MMC1_PBIASLITE_VMODE_MASK);
-> -		omap4_ctrl_pad_writel(reg, control_pbias_offset);
->  	}
->  }
->  
-> -- 
-> 1.7.0.4
-> 
