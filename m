@@ -1,68 +1,90 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v4 5/5] OMAP_VOUT: Increase MAX_DISPLAYS to a larger
- value
-Date: Thu, 29 Sep 2011 16:59:49 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404ECA5512F@dbde02.ent.ti.com>
-References: <1317221368-3301-1-git-send-email-archit@ti.com>
- <1317221368-3301-6-git-send-email-archit@ti.com>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCH V2 11/16] mmc: omap_hsmmc: ensure pbias configuration is
+ always done
+Date: Thu, 29 Sep 2011 19:10:30 +0530
+Message-ID: <CANrkHUYp-6a+qBZLk7SL9zHoy0wKuoYYYVEo0yb5=qzzicGepQ@mail.gmail.com>
+References: <1304673255-31634-1-git-send-email-adrian.hunter@nokia.com>
+	<1304673255-31634-12-git-send-email-adrian.hunter@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51205 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755079Ab1I2L35 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Sep 2011 07:29:57 -0400
-In-Reply-To: <1317221368-3301-6-git-send-email-archit@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1304673255-31634-12-git-send-email-adrian.hunter@nokia.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Wednesday, September 28, 2011 8:19 PM
-> To: Hiremath, Vaibhav
-> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
-> media@vger.kernel.org; Taneja, Archit
-> Subject: [PATCH v4 5/5] OMAP_VOUT: Increase MAX_DISPLAYS to a larger value
-> 
-> There is no limit to the number of displays that can registered with DSS2.
-> The
-> current value of MAX_DISPLAYS is 3, set this to 10 so that the 'displays'
-> member of omap2video_device struct can store more omap_dss_device pointers.
-> 
-> This fixes a crash seen in omap_vout_probe when DSS2 registers for more
-> than 3
-> displays.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+On Fri, May 6, 2011 at 2:44 PM, Adrian Hunter <adrian.hunter@nokia.com>=
+ wrote:
+> Go through the driver's set_power() functions rather than
+> calling regulator_enable/disable() directly because otherwise
+> pbias configuration for MMC1 is not done.
+Hi Chris,
+
+Are you OK to queue this patch as bug fix. Rest of the patches of this
+series is either
+merged or not needed. Should I rebase and repost this alone ?
+
+=46WIW:
+Acked-by: Balaji T K <balajitk@ti.com>
+
+>
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 > ---
->  drivers/media/video/omap/omap_voutdef.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_voutdef.h
-> b/drivers/media/video/omap/omap_voutdef.h
-> index d793501..27a95d2 100644
-> --- a/drivers/media/video/omap/omap_voutdef.h
-> +++ b/drivers/media/video/omap/omap_voutdef.h
-> @@ -25,7 +25,7 @@
->  #define MAC_VRFB_CTXS	4
->  #define MAX_VOUT_DEV	2
->  #define MAX_OVLS	3
-> -#define MAX_DISPLAYS	3
-> +#define MAX_DISPLAYS	10
->  #define MAX_MANAGERS	3
-> 
->  #define QQVGA_WIDTH		160
-
-Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
-
-Thanks,
-Vaibhav
-
-
+> =A0drivers/mmc/host/omap_hsmmc.c | =A0 17 ++++++++---------
+> =A01 files changed, 8 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
+mmc.c
+> index 4f6e552..8aa9440 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -445,15 +445,14 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc=
+_host *host)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* framework is fixed, we need a workar=
+ound like this
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* (which is safe for MMC, but not in g=
+eneral).
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (regulator_is_enabled(host->vcc) > 0=
+) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 regulator_enable(host->=
+vcc);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 regulator_disable(host-=
+>vcc);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (host->vcc_aux) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (regulator_is_enable=
+d(reg) > 0) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 regulat=
+or_enable(reg);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 regulat=
+or_disable(reg);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (regulator_is_enabled(host->vcc) > 0=
+ ||
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (host->vcc_aux && regulator_is_=
+enabled(host->vcc_aux))) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int vdd =3D ffs(mmc_slo=
+t(host).ocr_mask) - 1;
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc_slot(host).set_powe=
+r(host->dev, host->slot_id,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A01, vdd);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc_slot(host).set_powe=
+r(host->dev, host->slot_id,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A00, 0);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0}
+>
 > --
-> 1.7.1
-
+> 1.7.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
