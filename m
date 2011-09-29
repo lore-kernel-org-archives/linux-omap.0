@@ -1,52 +1,91 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 1/6] OMAP4: Add missing clock divider for
- OCP_ABE_ICLK
-Date: Wed, 28 Sep 2011 20:44:22 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109282042220.19233@utopia.booyaka.com>
-References: <1316195249-14914-1-git-send-email-jon-hunter@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH v4 1/5] OMAP_VOUT: Fix check in reqbuf for buf_size
+ allocation
+Date: Thu, 29 Sep 2011 10:58:28 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404ECA54F99@dbde02.ent.ti.com>
+References: <1317221368-3301-1-git-send-email-archit@ti.com>
+ <1317221368-3301-2-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43560 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754238Ab1I2CoX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Sep 2011 22:44:23 -0400
-In-Reply-To: <1316195249-14914-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1317221368-3301-2-git-send-email-archit@ti.com>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, b-cousson@ti.com
 
-On Fri, 16 Sep 2011, Jon Hunter wrote:
+> -----Original Message-----
+> From: Taneja, Archit
+> Sent: Wednesday, September 28, 2011 8:19 PM
+> To: Hiremath, Vaibhav
+> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
+> media@vger.kernel.org; Taneja, Archit
+> Subject: [PATCH v4 1/5] OMAP_VOUT: Fix check in reqbuf for buf_size
+> allocation
+> 
+> The commit 383e4f69879d11c86ebdd38b3356f6d0690fb4cc makes reqbuf prevent
+> requesting a larger size buffer than what is allocated at kernel boot
+> during
+> omap_vout_probe.
+> 
+> In omap_vout_buffer_setup callback API, the requested size is compared
+> with
+> vout->buffer_size, this isn't correct as vout->buffer_size is later set to
+> the
+> size requested in reqbuf. When the video device is opened the next time,
+> this
+> check will prevent us to allocate a buffer which is larger than what we
+> requested
+> the last time.
+> 
+> Don't use vout->buffer_size, always check with the parameters
+> video1_bufsize
+> or video2_bufsize.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/media/video/omap/omap_vout.c |    6 +++++-
+>  1 files changed, 5 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c
+> index d9e64f3..e64a83c 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -664,10 +664,14 @@ static int omap_vout_buffer_setup(struct
+> videobuf_queue *q, unsigned int *count,
+>  	u32 phy_addr = 0, virt_addr = 0;
+>  	struct omap_vout_device *vout = q->priv_data;
+>  	struct omapvideo_info *ovid = &vout->vid_info;
+> +	int vid_max_buf_size;
+> 
+>  	if (!vout)
+>  		return -EINVAL;
+> 
+> +	vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
+> +		video2_bufsize;
+> +
+>  	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
+>  		return -EINVAL;
+> 
+> @@ -690,7 +694,7 @@ static int omap_vout_buffer_setup(struct
+> videobuf_queue *q, unsigned int *count,
+>  		video1_numbuffers : video2_numbuffers;
+> 
+>  	/* Check the size of the buffer */
+> -	if (*size > vout->buffer_size) {
+> +	if (*size > vid_max_buf_size) {
+>  		v4l2_err(&vout->vid_dev->v4l2_dev,
+>  				"buffer allocation mismatch [%u] [%u]\n",
+>  				*size, vout->buffer_size);
 
-> From: Jon Hunter <jon-hunter@ti.com>
-> 
-> The parent clock of the OCP_ABE_ICLK is the AESS_FCLK and the
-> parent clock of the AESS_FCLK is the ABE_FCLK...
-> 
-> ABE_FCLK --> AESS_FCLK --> OCP_ABE_ICLK
-> 
-> The AESS_FCLK and OCP_ABE_ICLK clocks both have dividers which
-> determine their operational frequency. However, the dividers for
-> the AESS_FCLK and OCP_ABE_ICLK are controlled via a single bit,
-> which is the CM1_ABE_AESS_CLKCTRL[24] bit. When this bit is set to
-> 0, the AESS_FCLK divider is 1 and the OCP_ABE_ICLK divider is 2.
-> Similarly, when this bit is set to 1, the AESS_FCLK divider is 2
-> and the OCP_ABE_ICLK is 1.
-> 
-> The above relationship between the AESS_FCLK and OCP_ABE_ICLK
-> dividers ensure that the OCP_ABE_ICLK clock is always half the
-> frequency of the ABE_CLK...
-> 
-> OCP_ABE_ICLK = ABE_FCLK/2
-> 
-> The divider for the OCP_ABE_ICLK is currently missing so add a
-> divider that will ensure the OCP_ABE_ICLK frequency is always half
-> the ABE_FCLK frequency.
-> 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Thanks, queued for 3.2.
+Thanks,
+Vaibhav
 
 
-- Paul
+> --
+> 1.7.1
