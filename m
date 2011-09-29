@@ -1,28 +1,60 @@
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Subject: Re: [PATCH v4 2/5] OMAP_VOUT: CLEANUP: Remove redundant code from omap_vout_isr
-Date: Thu, 29 Sep 2011 11:40:21 +0530
-Message-ID: <CAB2ybb-XPK-v4DqhjrNirqK+2osRSHSr5DRPAi_djsNG3XBYwg@mail.gmail.com>
-References: <1317221368-3301-1-git-send-email-archit@ti.com> <1317221368-3301-3-git-send-email-archit@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH] ARM: OMAP2+: dmtimer: Fix warning
+Date: Thu, 29 Sep 2011 12:14:17 +0530
+Message-ID: <1317278657-12414-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:35173 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754636Ab1I2GKm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Sep 2011 02:10:42 -0400
-In-Reply-To: <1317221368-3301-3-git-send-email-archit@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:48030 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753267Ab1I2Goa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Sep 2011 02:44:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: hvaibhav@ti.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
-On Wed, Sep 28, 2011 at 8:19 PM, Archit Taneja <archit@ti.com> wrote:
-> Currently, there is a lot of redundant code is between DPI and VENC panels, this
-> can be made common by moving out field/interlace specific code to a separate
-> function called omapvid_handle_interlace_display(). There is no functional
-> change made.
->
-> Signed-off-by: Archit Taneja <archit@ti.com>
-Reviewed-by: Sumit Semwal <sumit.semwal@ti.com>
-<snip>
+Fix,
+
+arch/arm/mach-omap2/timer.c: In function 'omap_timer_init':
+arch/arm/mach-omap2/timer.c:482: warning: assignment from incompatible pointer type
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+
+Fix on tony/master
+
+ arch/arm/mach-omap2/timer.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 1140e98..e49fc7b 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -434,7 +434,7 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
+ 	int ret = 0;
+ 	char *name = "omap_timer";
+ 	struct dmtimer_platform_data *pdata;
+-	struct omap_device *od;
++	struct platform_device *pdev;
+ 	struct omap_timer_capability_dev_attr *timer_dev_attr;
+ 	struct powerdomain *pwrdm;
+ 
+@@ -476,12 +476,12 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
+ #ifdef CONFIG_PM
+ 	pdata->get_context_loss_count = omap_pm_get_dev_context_loss_count;
+ #endif
+-	od = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
++	pdev = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
+ 			omap2_dmtimer_latency,
+ 			ARRAY_SIZE(omap2_dmtimer_latency),
+ 			0);
+ 
+-	if (IS_ERR(od)) {
++	if (IS_ERR(pdev)) {
+ 		pr_err("%s: Can't build omap_device for %s: %s.\n",
+ 			__func__, name, oh->name);
+ 		ret = -EINVAL;
+-- 
+1.6.2.4
+
