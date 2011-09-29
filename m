@@ -1,100 +1,100 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/10] OMAP DSS related board changes
-Date: Thu, 29 Sep 2011 10:52:32 -0700
-Message-ID: <20110929175232.GI6324@atomide.com>
-References: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
- <1317019053.1956.10.camel@deskari>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 7/8] OMAP4: clock: Add CPU local timer clock node.
+Date: Thu, 29 Sep 2011 13:12:59 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109291308060.26728@utopia.booyaka.com>
+References: <1315459327-3285-1-git-send-email-santosh.shilimkar@ti.com> <1315459327-3285-8-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41383 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851Ab1I2Rwe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Sep 2011 13:52:34 -0400
-Content-Disposition: inline
-In-Reply-To: <1317019053.1956.10.camel@deskari>
+Received: from utopia.booyaka.com ([72.9.107.138]:39907 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754116Ab1I2TNA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Sep 2011 15:13:00 -0400
+In-Reply-To: <1315459327-3285-8-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [110925 23:04]:
-> On Tue, 2011-09-20 at 11:18 +0300, Tomi Valkeinen wrote:
-> > Hi Tony,
-> > 
-> > Here is a bunch of board file patches related to DSS. They have all been sent
-> > for review earlier, and are currently in my tree. Some of them depend on DSS
-> > driver changes, so I'd like to keep them there to avoid compilation errors
-> > (these won't compile if you apply them without patches from DSS tree).
-> > 
-> > Can you give your ack for these? Alternatively we can see which of these could
-> > go through your tree and I can make a new set.
+Hi Santosh,
+
+On Thu, 8 Sep 2011, Santosh Shilimkar wrote:
+
+> Local timer clock is sourced from the CPU clock and hence changes
+> along with CPU clock. These per CPU local timers are used as
+> clock-events, so they need to be reconfigured on CPU frequency
+> change as part of CPUfreq governor.
 > 
-> Tony, ping. I'd like to get these in for 3.2, as many DSS driver patches
-> depend on some of these.
+> Newly introduced clockevents_reconfigure() needs to know the
+> twd clock-rate. Provide a clock-node to make clk_get_rate() work
+> for TWD.
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
 
-Sorry for the delay. Looks like these will conflict with your
-earlier patches I have in the board branch and other cleanup.
+This clock looks like the ARM Cortex-A9 MPCore PERIPHCLK, correct?  From 
+ARM Cortex-A9 MPCore Technical Reference Manual (DDI 0407G) Section 5.1 
+"Clocks"?
 
-I'll drop the earlier patches from my board branch so you can
-queue all of them:
+Assuming that is so, I've modified this patch appropriately, and added 
+support to the autogeneration script to generate this clock node.
+Care to take a quick look at it to make sure it's okay?
 
-OMAP: Apollon: Port the display driver to new DSS2
-OMAP: H4: Port the display driver to new DSS2
-OMAP: LDP: Port the display driver to new DSS2
-OMAP: 2420SDP: Port the display driver to new DSS2
-OMAP: omap3touchbook: Remove unused lcd stuff
-OMAP: RX51: Remove unused old omapfb stuff
 
-Your new patches all look OK to me, just please check what we
-have in omap cleanup branch as we don't have all that queud up
-yet in next.
+- Paul
 
-It's likely these will need to be rebased on those, so maybe wait
-a bit with these or adjust them accordingly if possible.
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Thu, 8 Sep 2011 10:52:06 +0530
+Subject: [PATCH] ARM: OMAP4: clock: Add CPU local timer clock node.
 
-Also, you might want to start looking into passing the configuration
-from DT instead to avoid the platform init code. Probably the
-panel configuration would be the place to start with that?
+Local timer clock is sourced from the CPU clock and hence changes
+along with CPU clock. These per CPU local timers are used as
+clock-events, so they need to be reconfigured on CPU frequency
+change as part of CPUfreq governor.
 
-So for all of them:
+Newly introduced clockevents_reconfigure() needs to know the
+twd clock-rate. Provide a clock-node to make clk_get_rate() work
+for TWD.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+[paul@pwsan.com: renamed clock node to 'mpu_periphclk' to indicate that this
+ is the Cortex-A9 MPCore subsystem clock PERIPHCLK (DDI 0407G); moved
+ clock and clkdev entries to match the autogenerated script output]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clock44xx_data.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 4873c00..9684233 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -1195,6 +1195,14 @@ static struct clk l4_wkup_clk_mux_ck = {
+ 	.recalc		= &omap2_clksel_recalc,
+ };
  
-> > Thomas Weber (1):
-> >   OMAP: Devkit8000: Change lcd driver to AT070TN83
-> > 
-> > Tomi Valkeinen (9):
-> >   OMAP: DSS2: Change DSI device naming
-> >   OMAP4: TWL: Add common omapdss supplies
-> >   OMAP: DSS2: HDMI: use default dividers
-> >   OMAP: use dvi panel driver instead of generic-dpi
-> >   OMAP: stalker: Remove LCD device from board file
-> >   OMAP: Add DDC i2c_bus_num to board files
-> >   OMAP: 4430SDP: Remove unneeded lcd config
-> >   OMAP4: 4430SDP: Add panel support to board file
-> >   OMAP4: 4430SDP: Add picodlp support to board file
-> > 
-> >  arch/arm/mach-omap2/board-3430sdp.c      |    7 +-
-> >  arch/arm/mach-omap2/board-4430sdp.c      |  208 ++++++++++++++++++++++++++----
-> >  arch/arm/mach-omap2/board-am3517evm.c    |    6 +-
-> >  arch/arm/mach-omap2/board-cm-t35.c       |    6 +-
-> >  arch/arm/mach-omap2/board-devkit8000.c   |   10 +-
-> >  arch/arm/mach-omap2/board-igep0020.c     |    8 +-
-> >  arch/arm/mach-omap2/board-omap3beagle.c  |    8 +-
-> >  arch/arm/mach-omap2/board-omap3evm.c     |    7 +-
-> >  arch/arm/mach-omap2/board-omap3pandora.c |    2 +-
-> >  arch/arm/mach-omap2/board-omap3stalker.c |   40 +------
-> >  arch/arm/mach-omap2/board-omap4panda.c   |    8 +-
-> >  arch/arm/mach-omap2/board-overo.c        |    7 +-
-> >  arch/arm/mach-omap2/display.c            |    6 +-
-> >  arch/arm/mach-omap2/twl-common.c         |   11 ++-
-> >  14 files changed, 230 insertions(+), 104 deletions(-)
-> > 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
++static struct clk mpu_periphclk = {
++	.name		= "mpu_periphclk",
++	.parent		= &dpll_mpu_ck,
++	.ops		= &clkops_null,
++	.fixed_div	= 2,
++	.recalc		= &omap_fixed_divisor_recalc,
++};
++
+ static const struct clksel_rate div2_2to1_rates[] = {
+ 	{ .div = 1, .val = 1, .flags = RATE_IN_4430 },
+ 	{ .div = 2, .val = 0, .flags = RATE_IN_4430 },
+@@ -3189,6 +3197,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"l4_div_ck",			&l4_div_ck,	CK_443X),
+ 	CLK(NULL,	"lp_clk_div_ck",		&lp_clk_div_ck,	CK_443X),
+ 	CLK(NULL,	"l4_wkup_clk_mux_ck",		&l4_wkup_clk_mux_ck,	CK_443X),
++	CLK(NULL,	"smp_twd",			&mpu_periphclk,	CK_443X),
+ 	CLK(NULL,	"ocp_abe_iclk",			&ocp_abe_iclk,	CK_443X),
+ 	CLK(NULL,	"per_abe_24m_fclk",		&per_abe_24m_fclk,	CK_443X),
+ 	CLK(NULL,	"per_abe_nc_fclk",		&per_abe_nc_fclk,	CK_443X),
+-- 
+1.7.6.3
+
