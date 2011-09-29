@@ -1,111 +1,30 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: musb: OMAP4430: Remove a redundant
-	omap4430_phy_init call in usb_musb_init
-Date: Thu, 29 Sep 2011 10:08:53 +0300
-Message-ID: <20110929070849.GA27987@legolas.emea.dhcp.ti.com>
-References: <1316508629.14514.2.camel@phoenix>
-Reply-To: balbi@ti.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] leds-class: change back LEDS_CLASS to tristate instead
+	of bool
+Date: Thu, 29 Sep 2011 08:58:35 +0100
+Message-ID: <20110929075835.GA26328@n2100.arm.linux.org.uk>
+References: <1317113432-7299-1-git-send-email-bryan.wu@canonical.com> <CAK5ve-KoanwFGFJcxGQGmAW0yR+MYR1uVGM5q+=8u_ofHrhwOQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1293210361=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1316508629.14514.2.camel@phoenix>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Axel Lin <axel.lin@gmail.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
-
-
---===============1293210361==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
-Content-Disposition: inline
-
-
---oyUTqETQ0mS9luUI
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47535 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754713Ab1I2H7G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Sep 2011 03:59:06 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <CAK5ve-KoanwFGFJcxGQGmAW0yR+MYR1uVGM5q+=8u_ofHrhwOQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Bryan Wu <bryan.wu@canonical.com>
+Cc: tony@atomide.com, rpurdie@rpsys.net, manuel.lauss@gmail.com, cjb@laptop.org, cbou@mail.ru, dwmw2@infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linus.walleij@linaro.org, akpm@google.com
 
-On Tue, Sep 20, 2011 at 04:50:29PM +0800, Axel Lin wrote:
-> Current code calls omap4430_phy_init() twice in usb_musb_init().
-> Calling omap4430_phy_init() once is enough.
-> This patch removes the first omap4430_phy_init() call, which using an
-> uninitialized pointer as parameter.
->=20
-> This patch elimates below build warning:
-> arch/arm/mach-omap2/usb-musb.c: In function 'usb_musb_init':
-> arch/arm/mach-omap2/usb-musb.c:141: warning: 'dev' may be used uninitiali=
-zed in this function
->=20
-> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+On Thu, Sep 29, 2011 at 10:00:58AM +0800, Bryan Wu wrote:
+> Hiya,
+> 
+> Any comments and need I do anything to improve this patch?
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+No idea, I don't remember the original errors which this stuff spat out
+and how they were caused.
 
-> ---
->  arch/arm/mach-omap2/usb-musb.c |    3 ---
->  1 files changed, 0 insertions(+), 3 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-mus=
-b.c
-> index a65145b..19e4dac 100644
-> --- a/arch/arm/mach-omap2/usb-musb.c
-> +++ b/arch/arm/mach-omap2/usb-musb.c
-> @@ -137,9 +137,6 @@ void __init usb_musb_init(struct omap_musb_board_data=
- *musb_board_data)
->  	musb_plat.mode =3D board_data->mode;
->  	musb_plat.extvbus =3D board_data->extvbus;
-> =20
-> -	if (cpu_is_omap44xx())
-> -		omap4430_phy_init(dev);
-> -
->  	if (cpu_is_omap3517() || cpu_is_omap3505()) {
->  		oh_name =3D "am35x_otg_hs";
->  		name =3D "musb-am35x";
-> --=20
-> 1.7.4.1
->=20
->=20
->=20
-
---=20
-balbi
-
---oyUTqETQ0mS9luUI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOhBmBAAoJEAv8Txj19kN1iO4H/jWNVErbCJPLOlooNGIW9xkV
-dZvxmOryPNCn49maS6j1QFnC/bEqQi+FEDTT2Y1a+6uztUAbh+YGwB63R+Y1fLrr
-wQnMIQnkoV0g0DqfuBo9BRV9A2je0BuwtdajMdKD091qxyy9W1yTyLOeyU3BCBSX
-vxUP/eQz38Tk2NSdU8i3voODFpmEeT7Tqu+svvfn9nVi60nmEuiZwsHPazR2iHc4
-19cICsf1Wmoc81p5afZ9nhUdd0aYytHvbnPp2BjTqol5rOLg1Uvd/vWKfu7byanf
-i50DPUhZh24V/flKMQHVCIWf3fiAgg4lhOOoytPeBlwH/ex4r+yfHlbDr/90Va4=
-=cYnb
------END PGP SIGNATURE-----
-
---oyUTqETQ0mS9luUI--
-
-
---===============1293210361==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1293210361==--
+The only thing I care about is that the conversion of the existing ARM
+LEDs support to the NEW_LEDS stuff doesn't cause any breakage.
