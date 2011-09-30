@@ -1,45 +1,129 @@
-From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Subject: Re: [PATCH 2/9] regulator: helper routine to extract
-	regulator_init_data
-Date: Thu, 29 Sep 2011 19:24:08 -0600
-Message-ID: <20110930012408.GE12606@ponder.secretlab.ca>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 8/9] regulator: helper to extract regulator node based on
+ supply name
+Date: Thu, 29 Sep 2011 19:36:49 -0600
+Message-ID: <20110930013649.GH12606@ponder.secretlab.ca>
 References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
-	<1317118372-17052-3-git-send-email-rnayak@ti.com>
-	<20110927121003.GB4289@opensource.wolfsonmicro.com>
+ <1317118372-17052-9-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:62780 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754914Ab1I3FFF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Sep 2011 01:05:05 -0400
+Received: by mail-yi0-f46.google.com with SMTP id 18so1197380yib.19
+        for <linux-omap@vger.kernel.org>; Thu, 29 Sep 2011 22:05:05 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20110927121003.GB4289-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
-	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <1317118372-17052-9-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: broonie@opensource.wolfsonmicro.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org
 
-On Tue, Sep 27, 2011 at 01:10:04PM +0100, Mark Brown wrote:
-> On Tue, Sep 27, 2011 at 03:42:45PM +0530, Rajendra Nayak wrote:
+On Tue, Sep 27, 2011 at 03:42:51PM +0530, Rajendra Nayak wrote:
+> Device nodes in DT can associate themselves with one or more
+> regulators by providing a list of phandles (to regulator nodes)
+> and corresponding supply names.
 > 
-> > +	init_data = devm_kzalloc(dev, sizeof(struct regulator_init_data),
-> > +						 GFP_KERNEL);
-> > +	if (!init_data)
-> > +		return NULL; /* Out of memory? */
+> For Example:
+> 	devicenode: node@0x0 {
+> 		...
+> 		...
+> 		vmmc-supply = <&regulator1>;
+> 		vpll-supply = <&regulator1>;
+> 	};
 > 
-> This means that the init data will be kept around for the entire
-> lifetime of the device rather than being discarded.
+> The driver would then do a regulator_get(dev, "vmmc"); to get
+> regulator1 and do a regulator_get(dev, "vpll"); to get
+> regulator2.
 > 
-> > +	init_data->supply_regulator = (char *)of_get_property(dev->of_node,
-> > +						"regulator-supplies", NULL);
+> of_get_regulator() extracts the regulator node for a given
+> device, based on the supply name.
 > 
-> I'd expect that in the device tree world the supply regulator would
-> reference the node for that regulator.
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  drivers/regulator/of_regulator.c       |   39 ++++++++++++++++++++++++++++++++
+>  include/linux/regulator/of_regulator.h |    7 +++++
+>  2 files changed, 46 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
+> index 7fa63ff..49dd105 100644
+> --- a/drivers/regulator/of_regulator.c
+> +++ b/drivers/regulator/of_regulator.c
+> @@ -14,6 +14,45 @@
+>  #include <linux/of.h>
+>  #include <linux/regulator/machine.h>
+>  
+> +
+> +/**
+> + * of_get_regulator - get a regulator device node based on supply name
+> + * @dev: Device pointer for the consumer (of regulator) device
+> + * @supply: regulator supply name
+> + *
+> + * Extract the regulator device node corresponding to the supply name.
+> + * retruns the device node corresponding to the regulator if found, else
+> + * returns NULL.
+> + */
+> +struct device_node *of_get_regulator(struct device *dev, const char *supply)
+> +{
+> +	struct device_node *regnode = NULL;
+> +	u32 reghandle;
+> +	char prop_name[32]; /* 32 is max size of property name */
+> +	const void *prop;
+> +	int sz;
+> +
+> +	if (!dev)
+> +		return NULL;
+> +
+> +	dev_dbg(dev, "Looking up %s-supply from device tree\n", supply);
+> +
+> +	snprintf(prop_name, 32, "%s-supply", supply);
+> +
+> +	prop = of_get_property(dev->of_node, prop_name, &sz);
+> +	if (!prop || sz < 4)
+> +		return NULL;
+> +
+> +	reghandle = be32_to_cpup(prop);
+> +	regnode = of_find_node_by_phandle(reghandle);
 
-Yes, I would expect the same.
+of_parse_phandle()
+
+> +	if (!regnode) {
+> +		pr_warn("%s: %s property in node %s references invalid phandle",
+> +			__func__, prop_name, dev->of_node->full_name);
+> +		return NULL;
+> +	}
+> +	return regnode;
+> +}
+> +
+>  static void of_get_regulation_constraints(struct device_node *np,
+>  					struct regulator_init_data **init_data)
+>  {
+> diff --git a/include/linux/regulator/of_regulator.h b/include/linux/regulator/of_regulator.h
+> index 3f63be9..edaba1a 100644
+> --- a/include/linux/regulator/of_regulator.h
+> +++ b/include/linux/regulator/of_regulator.h
+> @@ -9,12 +9,19 @@
+>  #if defined(CONFIG_OF_REGULATOR)
+>  extern struct regulator_init_data
+>  	*of_get_regulator_init_data(struct device *dev);
+> +extern struct device_node *of_get_regulator(struct device *dev,
+> +	const char *supply);
+>  #else
+>  static inline struct regulator_init_data
+>  	*of_get_regulator_init_data(struct device_node *np)
+>  {
+>  	return NULL;
+>  }
+> +static inline struct device_node *of_get_regulator(struct device *dev,
+> +	const char *id)
+> +{
+> +	return NULL;
+> +}
+>  #endif /* CONFIG_OF_REGULATOR */
+>  
+>  #endif /* __LINUX_OF_REG_H */
+> -- 
+> 1.7.1
+> 
