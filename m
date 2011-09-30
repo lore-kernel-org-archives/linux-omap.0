@@ -1,143 +1,52 @@
-From: "Turquette, Mike" <mturquette@ti.com>
-Subject: Re: [PATCH] OMAP2+: clock: use clock's recalc in DPLL handling
-Date: Thu, 29 Sep 2011 18:33:06 -0700
-Message-ID: <CAJOA=zOwcV5EoXWFVbqiF1jUVQaEVqZy7OEzeRFC5hCF396GiQ@mail.gmail.com>
-References: <CAJOA=zPq__48SbsKeFHaQ_+J0YQYLLXBP67g2JGXknhWj7PNOA@mail.gmail.com>
- <1317343888-30892-1-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1109291925120.26728@utopia.booyaka.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 2/9] regulator: helper routine to extract regulator_init_data
+Date: Fri, 30 Sep 2011 09:57:30 +0530
+Message-ID: <4E854532.6080605@ti.com>
+References: <1317118372-17052-1-git-send-email-rnayak@ti.com> <1317118372-17052-3-git-send-email-rnayak@ti.com> <20110927121003.GB4289@opensource.wolfsonmicro.com> <4E81E224.2070408@ti.com> <20110927150511.GM4289@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:40877 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751000Ab1I3Bd1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Sep 2011 21:33:27 -0400
-Received: by mail-wy0-f177.google.com with SMTP id 11so797287wyi.36
-        for <linux-omap@vger.kernel.org>; Thu, 29 Sep 2011 18:33:26 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1109291925120.26728@utopia.booyaka.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:51329 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750745Ab1I3E1j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Sep 2011 00:27:39 -0400
+Received: by mail-yx0-f174.google.com with SMTP id 31so1638452yxl.33
+        for <linux-omap@vger.kernel.org>; Thu, 29 Sep 2011 21:27:37 -0700 (PDT)
+In-Reply-To: <20110927150511.GM4289@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org
 
-On Thu, Sep 29, 2011 at 6:26 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi
+[]...
 >
-> On Thu, 29 Sep 2011, Mike Turquette wrote:
+>>>> +	init_data->supply_regulator = (char *)of_get_property(dev->of_node,
+>>>> +						"regulator-supplies", NULL);
 >
->> Not all DPLLs are identical; some require special consideration such=
- as
->> OMAP4's ABE DPLL, which can have an additional 4x multiplier added t=
-o
->> it's clock rate based on programming the REGM4XEN bit in it's CLKMOD=
-E
->> register.
->>
->> Unfortunately the clock framework makes a few assumptions that all D=
-PLLs
->> can have their rates calculated the same way which has led to incorr=
-ect
->> rates for OMAP4's DPLL_ABE in some cases. =A0This patch fixes the sa=
-me by
->> replacing explicit calls to omap2_dpll_get_rate with clk->recalc if
->> .recalc is populated for a clock. =A0If .recalc is NULL then fall ba=
-ck to
->> omap2_dpll_get_rate.
->>
->> Reported-by: Misael Lopez Cruz <misael.lopez@ti.com>
->> Signed-off-by: Mike Turquette <mturquette@ti.com>
+>>> I'd expect that in the device tree world the supply regulator would
+>>> reference the node for that regulator.
 >
-> The conditional in the second hunk of this patch has been simplified =
-for
-> readability. =A0Updated patch below. =A0Please let me know if I screw=
-ed
-> something up. =A0Otherwise, queued for 3.2 fixes.
+>> You mean using phandles? Thats what Grant proposed too but
+>> I thought you instead had an inclination towards names? Or maybe
+>> I misunderstood.
+>
+> They need both.  We need to reference the device that provides the
+> supply and use a name to say which of the potentially multiple supplies
+> on the consumer device is which.
 
-Looks good to me.
+Mark, I still seem to be a little confused with this one as to why
+we would need a phandle *and* a supply-name to reference a parent
+regulator/supply.
+The phandle would point to a regulator dt node and that node internally
+would have just one name associated with it.
 
-Regards,
-Mike
+>
+>>> Hrm, I think loosing the signs here is bad karma - negative voltages do
+>>> exist after all.
+>
+>> Oops.. they do? didn't know about that.
+>
+> Yup, ground is just a reference point.
 
-> thanks
->
->
-> - Paul
->
-> From: Mike Turquette <mturquette@ti.com>
-> Date: Thu, 29 Sep 2011 17:51:28 -0700
-> Subject: [PATCH] ARM: OMAP2+: clock: use clock's recalc in DPLL handl=
-ing
->
-> Not all DPLLs are identical; some require special consideration such =
-as
-> OMAP4's ABE DPLL, which can have an additional 4x multiplier added to
-> it's clock rate based on programming the REGM4XEN bit in it's CLKMODE
-> register.
->
-> Unfortunately the clock framework makes a few assumptions that all DP=
-LLs
-> can have their rates calculated the same way which has led to incorre=
-ct
-> rates for OMAP4's DPLL_ABE in some cases. =A0This patch fixes the sam=
-e by
-> replacing explicit calls to omap2_dpll_get_rate with clk->recalc if
-> .recalc is populated for a clock. =A0If .recalc is NULL then fall bac=
-k to
-> omap2_dpll_get_rate.
->
-> Reported-by: Misael Lopez Cruz <misael.lopez@ti.com>
-> Signed-off-by: Mike Turquette <mturquette@ti.com>
-> [paul@pwsan.com: simplified conditional]
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
-> =A0arch/arm/mach-omap2/dpll3xxx.c | =A0 =A07 +++++--
-> =A01 files changed, 5 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpl=
-l3xxx.c
-> index f77022b..fe4533f 100644
-> --- a/arch/arm/mach-omap2/dpll3xxx.c
-> +++ b/arch/arm/mach-omap2/dpll3xxx.c
-> @@ -390,7 +390,8 @@ int omap3_noncore_dpll_enable(struct clk *clk)
-> =A0 =A0 =A0 =A0 * propagating?
-> =A0 =A0 =A0 =A0 */
-> =A0 =A0 =A0 =A0if (!r)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk->rate =3D omap2_get_dpll_rate(clk);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk->rate =3D (clk->recalc) ? clk->reca=
-lc(clk) :
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap2_get_dpll_rate(clk=
-);
->
-> =A0 =A0 =A0 =A0return r;
-> =A0}
-> @@ -425,6 +426,7 @@ int omap3_noncore_dpll_set_rate(struct clk *clk, =
-unsigned long rate)
-> =A0{
-> =A0 =A0 =A0 =A0struct clk *new_parent =3D NULL;
-> =A0 =A0 =A0 =A0u16 freqsel =3D 0;
-> + =A0 =A0 =A0 unsigned long hw_rate;
-> =A0 =A0 =A0 =A0struct dpll_data *dd;
-> =A0 =A0 =A0 =A0int ret;
->
-> @@ -435,7 +437,8 @@ int omap3_noncore_dpll_set_rate(struct clk *clk, =
-unsigned long rate)
-> =A0 =A0 =A0 =A0if (!dd)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
->
-> - =A0 =A0 =A0 if (rate =3D=3D omap2_get_dpll_rate(clk))
-> + =A0 =A0 =A0 hw_rate =3D (clk->recalc) ? clk->recalc(clk) : omap2_ge=
-t_dpll_rate(clk);
-> + =A0 =A0 =A0 if (rate =3D=3D hw_rate)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
->
-> =A0 =A0 =A0 =A0/*
-> --
-> 1.7.6.3
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
