@@ -1,63 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] usb: musb: OMAP4430: Remove a redundant
- omap4430_phy_init call in usb_musb_init
-Date: Fri, 30 Sep 2011 11:01:22 -0700
-Message-ID: <20110930180121.GK6324@atomide.com>
-References: <1316508629.14514.2.camel@phoenix>
- <20110929070849.GA27987@legolas.emea.dhcp.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
+ for omap3
+Date: Fri, 30 Sep 2011 12:16:17 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109301215430.12185@utopia.booyaka.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-3-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com>
+ <CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com> <alpine.DEB.2.00.1109240101120.22872@utopia.booyaka.com> <CAP05o4+uwuFL8XNFG-wmUW8voYQ4kywyU9Qn-Mng7kv=TzZm9w@mail.gmail.com> <alpine.DEB.2.00.1109260844360.13188@utopia.booyaka.com>
+ <CAP05o4KbVkXgnPc7JonrvURmCpQRgjMK2K_dmjQSKzQufQhjkA@mail.gmail.com> <alpine.DEB.2.00.1109300227530.12185@utopia.booyaka.com> <CAP05o4JA_pBJUq4qQ6ase41nvznbfLRuvwh02fOhHKWNqie_NA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-953785820-1317406577=:12185"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110929070849.GA27987@legolas.emea.dhcp.ti.com>
+In-Reply-To: <CAP05o4JA_pBJUq4qQ6ase41nvznbfLRuvwh02fOhHKWNqie_NA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Axel Lin <axel.lin@gmail.com>, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, parthab@india.ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, tony@atomide.com, khilman@ti.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [110928 23:35]:
-> On Tue, Sep 20, 2011 at 04:50:29PM +0800, Axel Lin wrote:
-> > Current code calls omap4430_phy_init() twice in usb_musb_init().
-> > Calling omap4430_phy_init() once is enough.
-> > This patch removes the first omap4430_phy_init() call, which using an
-> > uninitialized pointer as parameter.
-> > 
-> > This patch elimates below build warning:
-> > arch/arm/mach-omap2/usb-musb.c: In function 'usb_musb_init':
-> > arch/arm/mach-omap2/usb-musb.c:141: warning: 'dev' may be used uninitialized in this function
-> > 
-> > Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> 
-> Acked-by: Felipe Balbi <balbi@ti.com>
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Thanks, applying into fixes.
+--155748971-953785820-1317406577=:12185
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Tony
+On Fri, 30 Sep 2011, Munegowda, Keshava wrote:
 
-> 
-> > ---
-> >  arch/arm/mach-omap2/usb-musb.c |    3 ---
-> >  1 files changed, 0 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-> > index a65145b..19e4dac 100644
-> > --- a/arch/arm/mach-omap2/usb-musb.c
-> > +++ b/arch/arm/mach-omap2/usb-musb.c
-> > @@ -137,9 +137,6 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
-> >  	musb_plat.mode = board_data->mode;
-> >  	musb_plat.extvbus = board_data->extvbus;
-> >  
-> > -	if (cpu_is_omap44xx())
-> > -		omap4430_phy_init(dev);
-> > -
-> >  	if (cpu_is_omap3517() || cpu_is_omap3505()) {
-> >  		oh_name = "am35x_otg_hs";
-> >  		name = "musb-am35x";
-> > -- 
-> > 1.7.4.1
-> > 
-> > 
-> > 
-> 
-> -- 
-> balbi
+> On Fri, Sep 30, 2011 at 2:02 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Wed, 28 Sep 2011, Munegowda, Keshava wrote:
+> >
+> >> Thanks paul,
+> >>
+> >> But In USB Host case, there is a challenge!
+> >>
+> >> I need both usbhost_48m_fck and usbhost_120m_fck to be turned on when
+> >> I invoke pm_runtime_get_sync ; so there are couple of options to do th=
+is
+> >>
+> >> 1. use clk_get with hard coded =A0usbhost_120m_fck name in =A0usbhs dr=
+iver
+> >> =A0 =A0 =A0 =A0enable this clock after invoking pm_runtime_get_sync
+> >>
+> >> 2. add an additional flag in hwmod ; so that pm_runtime_get_sync will =
+enable
+> >> =A0 =A0 =A0 =A0 =A0 =A0main clock as well as optional clocks
+> >>
+> >> please comment on these two approaches..
+> >
+> > Looks like you picked approach #1 which is fine with me.
+> >
+> > Here's what I don't understand about how this clock is used, though.
+> > According to the 34xx TRM vZR Section 24.2.3.1.2 "High-Speed USB Host
+> > Subsystem Clocks", this is only used to "clock EHCI controller internal
+> > logic". =A0So if EHCI is not being used, it would seem to me that this =
+clock
+> > shouldn't be enabled? =A0But patch #5 seems to enable and disable it
+> > unconditionally. =A0Am I missing something here?
+>=20
+> OK. are you suggesting that this clock should be enabled/disabled; only
+> if atleast one port is selected for ehci?
+
+Seems to make sense to me?  If the clock really isn't needed for OHCI,=20
+then it shouldn't be enabled when only OHCI is in use?
+
+
+- Paul
+--155748971-953785820-1317406577=:12185--
