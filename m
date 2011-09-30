@@ -1,36 +1,29 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] ARM: OMAP2+: clock: cleanup CPUfreq leftovers
-Date: Fri, 30 Sep 2011 12:58:03 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109301257100.12185@utopia.booyaka.com>
-References: <1316793611-9949-1-git-send-email-khilman@ti.com>
+Subject: Re: [PATCH 0/5 v12] mfd: omap: usb: Runtime PM support for EHCI and
+ OHCI drivers
+Date: Fri, 30 Sep 2011 13:01:51 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109301259570.12185@utopia.booyaka.com>
+References: <1317306247-1103-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1316793611-9949-1-git-send-email-khilman@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1317306247-1103-1-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 23 Sep 2011, Kevin Hilman wrote:
 
-> Now that we have OPP layer, and OMAP CPUfreq driver is using it, we no
-> longer need/use the clock framework code for filling up CPUfreq
-> tables.  Remove it.
-> 
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+Hi Keshava,
 
-Queued for 3.3 cleanups (to avoid potential dependency issues with which 
-of our branches is merged first) - thanks Kevin.
+by the way, when you repost these, can you split this into two series -- 
+one for the arch/arm/*omap* changes, and the other for changes that should 
+go in through the MFD tree?  Then just note in the second series that it 
+has a dependency on the first.  That will make it easier to merge these 
+patches, and should cut down on the number of cc's that are necessary for 
+most of these patches.
 
+
+thanks
 
 - Paul
