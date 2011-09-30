@@ -1,46 +1,60 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 8/9] regulator: helper to extract regulator node based
- on supply name
-Date: Fri, 30 Sep 2011 15:04:45 +0530
-Message-ID: <4E858D35.50903@ti.com>
-References: <1317118372-17052-1-git-send-email-rnayak@ti.com> <1317118372-17052-9-git-send-email-rnayak@ti.com> <20110927122155.GE4289@opensource.wolfsonmicro.com> <4E81E281.505@ti.com> <20110927185913.GU4289@opensource.wolfsonmicro.com> <4E82D63A.7030207@ti.com> <20110928122628.GF3279@opensource.wolfsonmicro.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
+ for omap3
+Date: Fri, 30 Sep 2011 15:06:31 +0530
+Message-ID: <CAP05o4JA_pBJUq4qQ6ase41nvznbfLRuvwh02fOhHKWNqie_NA@mail.gmail.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
+	<1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>
+	<1316691479-1849-3-git-send-email-keshava_mgowda@ti.com>
+	<alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com>
+	<CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com>
+	<alpine.DEB.2.00.1109240101120.22872@utopia.booyaka.com>
+	<CAP05o4+uwuFL8XNFG-wmUW8voYQ4kywyU9Qn-Mng7kv=TzZm9w@mail.gmail.com>
+	<alpine.DEB.2.00.1109260844360.13188@utopia.booyaka.com>
+	<CAP05o4KbVkXgnPc7JonrvURmCpQRgjMK2K_dmjQSKzQufQhjkA@mail.gmail.com>
+	<alpine.DEB.2.00.1109300227530.12185@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:40526 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754590Ab1I3Jey (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Sep 2011 05:34:54 -0400
-Received: by mail-yw0-f46.google.com with SMTP id 5so1328130ywb.19
-        for <linux-omap@vger.kernel.org>; Fri, 30 Sep 2011 02:34:53 -0700 (PDT)
-In-Reply-To: <20110928122628.GF3279@opensource.wolfsonmicro.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1109300227530.12185@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, parthab@india.ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, tony@atomide.com, khilman@ti.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Girdwood, Liam" <lrg@ti.com>, "patches@linaro.org" <patches@linaro.org>
 
-On Wednesday 28 September 2011 05:56 PM, Mark Brown wrote:
-> On Wed, Sep 28, 2011 at 10:09:30AM +0200, Cousson, Benoit wrote:
->> On 9/27/2011 8:59 PM, Mark Brown wrote:
+On Fri, Sep 30, 2011 at 2:02 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Wed, 28 Sep 2011, Munegowda, Keshava wrote:
 >
->>> I'm not sure how this should work in a device tree world, I'd *hope*
->>> we'd get a device tree node for the CPU and could then just make this a
->>> regular consumer thing but then the cpufreq drivers would need to be
->>> updated to make use of it.  The only reason we allow null devices right
->>> now is the fact that cpufreq doesn't have a struct device it can use.
+>> Thanks paul,
+>>
+>> But In USB Host case, there is a challenge!
+>>
+>> I need both usbhost_48m_fck and usbhost_120m_fck to be turned on whe=
+n
+>> I invoke pm_runtime_get_sync ; so there are couple of options to do =
+this
+>>
+>> 1. use clk_get with hard coded =A0usbhost_120m_fck name in =A0usbhs =
+driver
+>> =A0 =A0 =A0 =A0enable this clock after invoking pm_runtime_get_sync
+>>
+>> 2. add an additional flag in hwmod ; so that pm_runtime_get_sync wil=
+l enable
+>> =A0 =A0 =A0 =A0 =A0 =A0main clock as well as optional clocks
+>>
+>> please comment on these two approaches..
 >
->> That's why we do have a MPU node in OMAP dts, in order to build an
->> omap_device that will be mainly used for the DVFS on the MPU.
+> Looks like you picked approach #1 which is fine with me.
 >
->> And even before DT migration, we used to build statically some
->> omap_device to represent the various processors in the system (MPU,
->> DSP, CortexM3...).
->
-> Yeah, but that's very OMAP specific - we don't have that in general (in
-> fact it's the only Linux platform I'm aware of that has a device for the
-> CPU).
+> Here's what I don't understand about how this clock is used, though.
+> According to the 34xx TRM vZR Section 24.2.3.1.2 "High-Speed USB Host
+> Subsystem Clocks", this is only used to "clock EHCI controller intern=
+al
+> logic". =A0So if EHCI is not being used, it would seem to me that thi=
+s clock
+> shouldn't be enabled? =A0But patch #5 seems to enable and disable it
+> unconditionally. =A0Am I missing something here?
 
-But isn't this the right thing to do for everyone else too?
-
+OK. are you suggesting that this clock should be enabled/disabled; only
+if atleast one port is selected for ehci?
