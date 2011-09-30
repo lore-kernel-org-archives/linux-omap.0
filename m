@@ -1,49 +1,49 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/5 v12] arm: omap: usb: ehci and ohci hwmod structures for omap3
-Date: Fri, 30 Sep 2011 10:17:22 -0700
-Message-ID: <877h4qj6fx.fsf@ti.com>
-References: <1317361216-28248-1-git-send-email-keshava_mgowda@ti.com>
-	<alpine.DEB.2.00.1109300107150.32653@utopia.booyaka.com>
-	<CAP05o4LJ2P8DCri1Vf-opezP8eNX+Wghm9FBSYwy8Vrct8_YDw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] arm: omap4: hsmmc: Fix Pbias configuration on
+ regulator OFF
+Date: Fri, 30 Sep 2011 10:41:48 -0700
+Message-ID: <20110930174147.GJ6324@atomide.com>
+References: <1317307500-5514-1-git-send-email-balajitk@ti.com>
+ <1317307500-5514-2-git-send-email-balajitk@ti.com>
+ <20110929162006.GG6324@atomide.com>
+ <CANrkHUaJr3L+y33j=za-j6Kcsv1dy-rt0URc_9GgzpfOjqPTZA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAP05o4LJ2P8DCri1Vf-opezP8eNX+Wghm9FBSYwy8Vrct8_YDw@mail.gmail.com>
-	(Keshava Munegowda's message of "Fri, 30 Sep 2011 16:02:06 +0530")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56021 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751753Ab1I3Rlv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Sep 2011 13:41:51 -0400
+Content-Disposition: inline
+In-Reply-To: <CANrkHUaJr3L+y33j=za-j6Kcsv1dy-rt0URc_9GgzpfOjqPTZA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, kishore.kadiyala@ti.com, vishp@ti.com
 
-"Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
+* T Krishnamoorthy, Balaji <balajitk@ti.com> [110930 07:43]:
+> On Thu, Sep 29, 2011 at 9:50 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Balaji T K <balajitk@ti.com> [110929 07:11]:
+> >> MMC1 data line IO's are powered down in before set regulator function.
+> >> IO's should not be powered ON when regulator is OFF.
+> >> Keep the IO's in power pown mode after regulator OFF.
+> >> Delete incorrect comments which are not applicable for OMAP4.
+> >
+> > Care to check how this is different from what I added into fixes
+> > branch as commit 3fe8df93b0992199e3a0026fc51e90b705f94e40?
+> >
+> > Is this a separate issue?
+> 
+> Yes.
+> commit 3fe8df93b fixes USBC1 configuration.
+> USBC1 IO was configured unnecessarily for MMC IO.
+> 
+> This patch keeps the MMC IO's in power down after regulator OFF
+> otherwise it generates VMODE_ERROR due to mismatch in input (regulator)
+> voltage and MMC IO drive voltage.
 
-[...]
-
->>> +
->>> +static struct omap_hwmod_ocp_if omap34xx_f_cfg__usb_tll_hs =3D {
->>> + =C2=A0 =C2=A0 .clk =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D "=
-usbtll_ick",
->>> + =C2=A0 =C2=A0 .user =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D OCP_US=
-ER_MPU,
->>> + =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D OCPIF_=
-SWSUP_IDLE,
->>> +};
->>
->> Does this really need OCPIF_SWSUP_IDLE? =C2=A0If so, then there is a=
- hardware
->> bug, and some explanation is needed.
->
->
-> it was not allowing enter usbhs pw domain to enter to low power idle =
-mode; so
-> I add a comment here.
->
-
-When you add this comment, please be sure it describes *why* the power
-domain was not hitting the target power state, and reference any
-relevant eerrata.
+OK, can you please refresh it against the current fixes branch?
 
 Thanks,
 
-Kevin
+Tony
