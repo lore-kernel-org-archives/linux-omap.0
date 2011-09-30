@@ -1,76 +1,45 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v5 3/3] OMAP2+: voltage: add check for missing PMIC info
-	in vp init
-Date: Fri, 30 Sep 2011 15:14:49 -0700
-Message-ID: <87ty7tfzja.fsf@ti.com>
-References: <1317363153-10259-1-git-send-email-abhilash.kv@ti.com>
-	<1317363153-10259-2-git-send-email-abhilash.kv@ti.com>
-	<1317363153-10259-3-git-send-email-abhilash.kv@ti.com>
-	<1317363153-10259-4-git-send-email-abhilash.kv@ti.com>
-	<alpine.DEB.2.00.1109301240070.12185@utopia.booyaka.com>
+Subject: Re: ARM SoC tree: OMAP PM dependency on tip irq/core
+Date: Fri, 30 Sep 2011 15:29:07 -0700
+Message-ID: <87k48pfyvg.fsf@ti.com>
+References: <87aa9mm8ts.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.1109301240070.12185@utopia.booyaka.com> (Paul
-	Walmsley's message of "Fri, 30 Sep 2011 12:41:44 -0600 (MDT)")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, christian.gmeiner@gmail.com, aneesh@ti.com, santosh.shilimkar@ti.com, Abhilash K V <abhilash.kv@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:40693 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753926Ab1I3W3L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Sep 2011 18:29:11 -0400
+Received: by yxi19 with SMTP id 19so2395265yxi.0
+        for <linux-omap@vger.kernel.org>; Fri, 30 Sep 2011 15:29:09 -0700 (PDT)
+In-Reply-To: <87aa9mm8ts.fsf@ti.com> (Kevin Hilman's message of "Fri, 30 Sep
+	2011 06:57:35 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 
-Hi Paul,
+Hi Arnd,
 
-Paul Walmsley <paul@pwsan.com> writes:
+Kevin Hilman <khilman@ti.com> writes:
 
-> On Fri, 30 Sep 2011, Abhilash K V wrote:
+> The upcoming OMAP4 PM series from Santosh[1] that we're planning to
+> queue for v3.2 has a dependency[2] on a patch currently queued for v3.2
+> in the irq/core branch of Thomas' tip tree[3].
 >
->> From: Abhilash K V <abhilash.kv@ti.com>
->> 
->> If PMIC info is not available in omap_vp_init(), abort.
->> 
->> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
->> ---
->>  arch/arm/mach-omap2/vp.c |    7 +++++++
->>  1 files changed, 7 insertions(+), 0 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
->> index 66bd700..0ed3d13 100644
->> --- a/arch/arm/mach-omap2/vp.c
->> +++ b/arch/arm/mach-omap2/vp.c
->> @@ -41,6 +41,13 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
->>  	u32 val, sys_clk_rate, timeout, waittime;
->>  	u32 vddmin, vddmax, vstepmin, vstepmax;
->>  
->> +	if (!voltdm->pmic || !voltdm->pmic->uv_to_vsel) {
->> +		pr_err("%s: PMIC info requried to configure VP for "
->> +			"vdd_%s not populated.Hence cannot initialize VP\n",
->> +			__func__, voltdm->name);
->> +		return;
->> +	}
->> +
+> In the past, I noticed you merged external trees like this to solve
+> dependencies.
 >
-> Just wondering about the intent of this patch.  Is the goal here to not 
-> call omap_vp_init() for chips that don't have a VP IP block?  If so, then 
-> implementing code that does that directly seems like a better approach 
-> than using the PMIC data?  Because it seems likely that even SoCs without 
-> VP IP blocks will have PMICs on the board, right?
+> Could you pull the irq/core branch into your tree to meet this
+> dependency?
 
-You're right, this isn't really relevant for this series since AM35x
-doesn't have VP, and hence shouldn't even be calling omap_vp_init().
+On second thought, since Santosh's branch is the only one with this
+dependency (and we also have a dependency on Russell's devel-stable)
+I'll just build up a branch for Santosh's series that includes
+rmk/devel-stable and tglx/irq-core.
 
-However, this does fix a bug on devices that do have VP where the VP is
-initialized before PMIC info has been registered.
-
-So, I'll queue this patch as a fix for the voltage layer, but it should
-not have been included in the AM35x series.
+You (or Tony) can then pull this one instead of manually managing the
+dependencies.
 
 Kevin
