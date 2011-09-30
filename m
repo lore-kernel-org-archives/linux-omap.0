@@ -1,71 +1,89 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v6 10/16] OMAP2+: UART: Modify omap_uart_can_sleep function
-Date: Fri, 30 Sep 2011 16:32:35 +0530
-Message-ID: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v6 14/16] OMAP2+: UART: Take console_lock in suspend path if not taken
+Date: Fri, 30 Sep 2011 16:32:39 +0530
+Message-ID: <1317380561-661-5-git-send-email-govindraj.raja@ti.com>
+References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46253 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755518Ab1I3LCx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Sep 2011 07:02:53 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Modify the omap_uart_can_sleep function to check uart is active
-or not to be used by pm code to enter low power states.
+In suspend path the console_lock is taken by uart_port_suspend
+however when no_console_suspend is used console_lock is not taken.
 
-Removing this check can cause console response little sluggish.
-However no characters will be lost until uart clocks are gated
-and woken up using rx-pad. UART interface clocks can be auto gated
-this can make response on uart slower. This behaviour was observed
-only on some of OMAP3 boards(beagleboard xm rev c).
+During system wide suspend omap_pwr_domain hooks cut all
+clocks that are left enabled. So its unsafe to proceed printing after
+clocks are cut by pwr_domain hooks. Also pm_runtime will be disabled after
+dpm_suspend devices happens. So buffer all prints in suspend path by taking
+console_lock and print them back safely after power domain hooks re-enable
+clocks back.
 
-Reported-by: Tero Kristo <t-kristo@ti.com>
+Use CONFIG_SERIAL_OMAP_CONSOLE macro check to take console_lock since
+console ops are available only if omap console is defined.
+omap-serial can be built as module without console support.
+
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |   21 +++++++++------------
- 1 files changed, 9 insertions(+), 12 deletions(-)
+ arch/arm/plat-omap/include/plat/omap-serial.h |    1 +
+ drivers/tty/serial/omap-serial.c              |   20 ++++++++++++++++++--
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 6725caf..ccf3550 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -156,23 +156,20 @@ static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
+diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+index 28abc6b..de8de87 100644
+--- a/arch/arm/plat-omap/include/plat/omap-serial.h
++++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+@@ -126,6 +126,7 @@ struct uart_omap_port {
+ 	u32			context_loss_cnt;
+ 	u8			wakeups_enabled;
+ 	u32			errata;
++	u8			console_locked;
  
- int omap_uart_can_sleep(void)
+ };
+ 
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 64e4ab5..92a1f10 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1133,8 +1133,15 @@ static int serial_omap_suspend(struct device *dev)
  {
--	struct omap_uart_state *uart;
--	int can_sleep = 1;
--
--	list_for_each_entry(uart, &uart_list, node) {
--		if (!uart->clocked)
--			continue;
-+	struct omap_hwmod *oh;
-+	u8 i, ret = true;
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
  
--		if (!uart->can_sleep) {
--			can_sleep = 0;
-+	for (i = 0; i < num_uarts; i++) {
-+		oh = omap_uart_hwmod_lookup(i);
-+		if (!oh)
- 			continue;
--		}
- 
--		/* This UART can now safely sleep. */
--		omap_uart_allow_sleep(uart);
-+		if (oh->od && oh->od->pdev &&
-+				!pm_runtime_suspended(&oh->od->pdev->dev))
-+			return false;
- 	}
- 
--	return can_sleep;
-+	return ret;
+-	if (up)
++	if (up) {
+ 		uart_suspend_port(&serial_omap_reg, &up->port);
++#ifdef CONFIG_SERIAL_OMAP_CONSOLE
++		if (up->port.line == up->port.cons->index &&
++				!is_console_locked())
++			up->console_locked = console_trylock();
++#endif
++	}
++
+ 	return 0;
  }
  
- #ifdef CONFIG_OMAP_MUX
+@@ -1142,8 +1149,17 @@ static int serial_omap_resume(struct device *dev)
+ {
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
+ 
+-	if (up)
++	if (up) {
+ 		uart_resume_port(&serial_omap_reg, &up->port);
++#ifdef CONFIG_SERIAL_OMAP_CONSOLE
++		if (up->port.line == up->port.cons->index &&
++					up->console_locked) {
++			console_unlock();
++			up->console_locked = 0;
++		}
++#endif
++	}
++
+ 	return 0;
+ }
+ 
 -- 
 1.7.4.1
 
