@@ -1,84 +1,248 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 00/10] OMAP DSS related board changes
-Date: Fri, 30 Sep 2011 08:20:43 +0300
-Message-ID: <1317360043.1867.15.camel@deskari>
-References: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1317019053.1956.10.camel@deskari>  <20110929175232.GI6324@atomide.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH 2/5 v12] arm: omap: usb: ehci and ohci hwmod structures for omap3
+Date: Fri, 30 Sep 2011 11:10:16 +0530
+Message-ID: <1317361216-28248-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:48470 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752279Ab1I3FUu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Sep 2011 01:20:50 -0400
-Received: by bkat2 with SMTP id t2so1902682bka.22
-        for <linux-omap@vger.kernel.org>; Thu, 29 Sep 2011 22:20:47 -0700 (PDT)
-In-Reply-To: <20110929175232.GI6324@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
 
-On Thu, 2011-09-29 at 10:52 -0700, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [110925 23:04]:
-> > On Tue, 2011-09-20 at 11:18 +0300, Tomi Valkeinen wrote:
-> > > Hi Tony,
-> > > 
-> > > Here is a bunch of board file patches related to DSS. They have all been sent
-> > > for review earlier, and are currently in my tree. Some of them depend on DSS
-> > > driver changes, so I'd like to keep them there to avoid compilation errors
-> > > (these won't compile if you apply them without patches from DSS tree).
-> > > 
-> > > Can you give your ack for these? Alternatively we can see which of these could
-> > > go through your tree and I can make a new set.
-> > 
-> > Tony, ping. I'd like to get these in for 3.2, as many DSS driver patches
-> > depend on some of these.
-> 
-> Sorry for the delay. Looks like these will conflict with your
-> earlier patches I have in the board branch and other cleanup.
-> 
-> I'll drop the earlier patches from my board branch so you can
-> queue all of them:
+Following 2 hwmod structures are added
+    1. usb_host_hs
+         The hwmod of usbhs with uhh, ehci and ohci base addresses
+         functional clock and ehci, ohci irqs
 
-Ok, I'll add them to dss branch.
+    2. usb_tll_hs
+          hwmod of usbhs with the TLL base address and irq.
 
-> OMAP: Apollon: Port the display driver to new DSS2
-> OMAP: H4: Port the display driver to new DSS2
-> OMAP: LDP: Port the display driver to new DSS2
-> OMAP: 2420SDP: Port the display driver to new DSS2
-> OMAP: omap3touchbook: Remove unused lcd stuff
-> OMAP: RX51: Remove unused old omapfb stuff
-> 
-> Your new patches all look OK to me, just please check what we
-> have in omap cleanup branch as we don't have all that queud up
-> yet in next.
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Reviewed-by: Partha Basak <parthab@india.ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  195 ++++++++++++++++++++++++++++
+ 1 files changed, 195 insertions(+), 0 deletions(-)
 
-Sure, will do.
-
-> It's likely these will need to be rebased on those, so maybe wait
-> a bit with these or adjust them accordingly if possible.
-> 
-> Also, you might want to start looking into passing the configuration
-> from DT instead to avoid the platform init code. Probably the
-> panel configuration would be the place to start with that?
-
-I haven't actually looked at DT yet, but one reason I've been writing
-and pushing these old omapfb cleanups is to get all omap2+ boards use
-the new dss driver, and thus hopefully making DT adaptation easier as I
-can (for now) ignore the old omapfb and omap1 boards regarding DT.
-
-But yes, I definitely need to look at DT. Is there a driver to be used
-as a sample when looking at DT?
-
-> So for all of them:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-
-Thanks.
-
- Tomi
-
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 59fdb9f..bc17493 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -84,6 +84,8 @@ static struct omap_hwmod omap3xxx_mcbsp4_hwmod;
+ static struct omap_hwmod omap3xxx_mcbsp5_hwmod;
+ static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwmod;
+ static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwmod;
++static struct omap_hwmod omap34xx_usb_host_hs_hwmod;
++static struct omap_hwmod omap34xx_usb_tll_hs_hwmod;
+ 
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
+@@ -3196,6 +3198,194 @@ static struct omap_hwmod omap3xxx_mmc3_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+ 
++/*
++ * 'usb_host_hs' class
++ * high-speed multi-port usb host controller
++ */
++static struct omap_hwmod_ocp_if omap34xx_usb_host_hs__l3_main_2 = {
++	.master		= &omap34xx_usb_host_hs_hwmod,
++	.slave		= &omap3xxx_l3_main_hwmod,
++	.clk		= "core_l3_ick",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_class_sysconfig omap34xx_usb_host_hs_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap34xx_usb_host_hs_hwmod_class = {
++	.name = "usb_host_hs",
++	.sysc = &omap34xx_usb_host_hs_sysc,
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usb_host_hs_masters[] = {
++	&omap34xx_usb_host_hs__l3_main_2,
++};
++
++static struct omap_hwmod_addr_space omap34xx_usb_host_hs_addrs[] = {
++	{
++		.name		= "uhh",
++		.pa_start	= 0x48064000,
++		.pa_end		= 0x480643ff,
++		.flags		= ADDR_TYPE_RT
++	},
++	{
++		.name		= "ohci",
++		.pa_start	= 0x48064400,
++		.pa_end		= 0x480647ff,
++	},
++	{
++		.name		= "ehci",
++		.pa_start	= 0x48064800,
++		.pa_end		= 0x48064cff,
++	},
++	{}
++};
++
++static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_host_hs = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_usb_host_hs_hwmod,
++	.clk		= "l4_ick",
++	.addr		= omap34xx_usb_host_hs_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if omap34xx_usb_host_hs__ick = {
++	.clk		= "usbhost_ick",
++	.user		= OCP_USER_MPU,
++	.flags		= OCPIF_SWSUP_IDLE,
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usb_host_hs_slaves[] = {
++	&omap34xx_l4_cfg__usb_host_hs,
++	&omap34xx_usb_host_hs__ick,
++};
++
++static struct omap_hwmod_opt_clk omap34xx_usb_host_hs_opt_clks[] = {
++	  { .role = "usbhost_fck2", .clk = "usbhost_120m_fck", },
++};
++
++static struct omap_hwmod_irq_info omap34xx_usb_host_hs_irqs[] = {
++	{ .name = "ohci-irq", .irq = 76 },
++	{ .name = "ehci-irq", .irq = 77 },
++	{ .irq = -1 }
++};
++
++static struct omap_hwmod omap34xx_usb_host_hs_hwmod = {
++	.name		= "usb_host_hs",
++	.class		= &omap34xx_usb_host_hs_hwmod_class,
++	.clkdm_name	= "l3_init_clkdm",
++	.mpu_irqs	= omap34xx_usb_host_hs_irqs,
++	.main_clk	= "usbhost_48m_fck",
++	.prcm = {
++		.omap2 = {
++			.module_offs = OMAP3430ES2_USBHOST_MOD,
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430ES2_EN_USBHOST1_SHIFT,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430ES2_ST_USBHOST_IDLE_SHIFT,
++			.idlest_stdby_bit = OMAP3430ES2_ST_USBHOST_STDBY_SHIFT,
++		},
++	},
++	.opt_clks	= omap34xx_usb_host_hs_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(omap34xx_usb_host_hs_opt_clks),
++	.slaves		= omap34xx_usb_host_hs_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_usb_host_hs_slaves),
++	.masters	= omap34xx_usb_host_hs_masters,
++	.masters_cnt	= ARRAY_SIZE(omap34xx_usb_host_hs_masters),
++/*
++ * The usbhs controller prevents the enter omap to low power mode
++ * if other than FORCE IDLE and FORCE STANDBY are used.
++ */
++	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/*
++ * 'usb_tll_hs' class
++ * usb_tll_hs module is the adapter on the usb_host_hs ports
++ */
++static struct omap_hwmod_class_sysconfig omap34xx_usb_tll_hs_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
++			   SYSC_HAS_SOFTRESET | SYSC_HAS_ENAWAKEUP |
++			   SYSC_HAS_CLOCKACTIVITY),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap34xx_usb_tll_hs_hwmod_class = {
++	.name = "usb_tll_hs",
++	.sysc = &omap34xx_usb_tll_hs_sysc,
++};
++
++static struct omap_hwmod_irq_info omap34xx_usb_tll_hs_irqs[] = {
++	{ .name = "tll-irq", .irq = 78 },
++	{ .irq = -1 }
++};
++
++static struct omap_hwmod_addr_space omap34xx_usb_tll_hs_addrs[] = {
++	{
++		.name		= "tll",
++		.pa_start	= 0x48062000,
++		.pa_end		= 0x48062fff,
++		.flags		= ADDR_TYPE_RT
++	},
++	{}
++};
++
++static struct omap_hwmod_ocp_if omap34xx_f_cfg__usb_tll_hs = {
++	.clk		= "usbtll_ick",
++	.user		= OCP_USER_MPU,
++	.flags		= OCPIF_SWSUP_IDLE,
++};
++
++static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_tll_hs = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_usb_tll_hs_hwmod,
++	.clk		= "l4_ick",
++	.addr		= omap34xx_usb_tll_hs_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usb_tll_hs_slaves[] = {
++	&omap34xx_l4_cfg__usb_tll_hs,
++	&omap34xx_f_cfg__usb_tll_hs,
++};
++
++static struct omap_hwmod omap34xx_usb_tll_hs_hwmod = {
++	.name		= "usb_tll_hs",
++	.class		= &omap34xx_usb_tll_hs_hwmod_class,
++	.clkdm_name	= "l3_init_clkdm",
++	.mpu_irqs	= omap34xx_usb_tll_hs_irqs,
++	.main_clk	= "usbtll_fck",
++	.prcm = {
++		.omap2 = {
++			.module_offs = CORE_MOD,
++			.prcm_reg_id = 3,
++			.module_bit = OMAP3430ES2_EN_USBTLL_SHIFT,
++			.idlest_reg_id = 3,
++			.idlest_idle_bit = OMAP3430ES2_ST_USBTLL_SHIFT,
++		},
++	},
++	.slaves		= omap34xx_usb_tll_hs_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_usb_tll_hs_slaves),
++/*
++ * The usbhs controller prevents the enter omap to low power mode
++ * if other than FORCE IDLE for TLL mode too.
++ */
++	.flags		= HWMOD_SWSUP_SIDLE,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_main_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+@@ -3225,6 +3415,11 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_uart2_hwmod,
+ 	&omap3xxx_uart3_hwmod,
+ 	&omap3xxx_uart4_hwmod,
++
++	/* usb host class */
++	&omap34xx_usb_host_hs_hwmod,
++	&omap34xx_usb_tll_hs_hwmod,
++
+ 	/* dss class */
+ 	&omap3430es1_dss_core_hwmod,
+ 	&omap3xxx_dss_core_hwmod,
+-- 
+1.6.0.4
