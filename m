@@ -1,7 +1,7 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v6 04/16] OMAP2+: UART: cleanup 8250 console driver support
-Date: Fri, 30 Sep 2011 16:31:30 +0530
-Message-ID: <1317380495-584-4-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v6 03/16] OMAP2+: UART: cleanup + remove uart pm specific API
+Date: Fri, 30 Sep 2011 16:31:29 +0530
+Message-ID: <1317380495-584-3-git-send-email-govindraj.raja@ti.com>
 References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,213 +12,263 @@ To: linux-omap@vger.kernel.org
 Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We had been using traditional 8250 driver as uart console driver
-prior to omap-serial driver. Since we have omap-serial driver
-in mainline kernel for some time now it has been used as default
-uart console driver on omap2+ platforms. Remove 8250 support for
-omap-uarts.
+In preparation to UART runtime conversion remove uart specific calls
+from pm24xx/34xx files and their definition from serial.c
+These func calls will no more be used with upcoming uart runtime design.
 
-Serial_in and serial_out override for 8250 serial driver is also
-removed. Empty fifo read fix is already taken care with omap-serial
-driver with data ready bit check from LSR reg before reading RX fifo.
-Also waiting for THRE(transmit hold reg empty) is done with wait_for_xmitr
-in omap-serial driver.
-
-Remove headers that were necessary to support 8250 support
-and remove all config bindings done to keep 8250 backward compatibility
-while adding omap-serial driver. Remove omap_uart_reset needed for
-8250 autoconf.
+1.) omap_uart_prepare_suspend :- can be taken care with driver suspend hooks.
+2.) omap_uart_enable_irqs :- Used to enable/disable uart irq's in suspend
+    path from PM code, this is removed as same is handled by
+    uart_suspend_port/uart_resume_port in omap-serial driver which will
+    do an port_shutdown on suspend freeing irq and port_startup on resume
+    enabling back irq.
+3.) Remove prepare_idle/resume_idle calls used to gate uart clocks.
+    UART clocks can be gated within driver using runtime funcs
+    and be woken up using irq_chaining from omap_prm driver.
+4.) Remove console_locking from idle path as clock gating is done withing
+    driver itself with runtime API.
 
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |  111 ------------------------------------------
- 1 files changed, 0 insertions(+), 111 deletions(-)
+ arch/arm/mach-omap2/pm24xx.c             |   18 --------
+ arch/arm/mach-omap2/pm34xx.c             |   23 ----------
+ arch/arm/mach-omap2/serial.c             |   65 ------------------------------
+ arch/arm/plat-omap/include/plat/serial.h |    4 --
+ 4 files changed, 0 insertions(+), 110 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 62d15ad..4ab90bf 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -19,23 +19,17 @@
-  */
- #include <linux/kernel.h>
- #include <linux/init.h>
--#include <linux/serial_reg.h>
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/delay.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
--#include <linux/serial_8250.h>
- #include <linux/pm_runtime.h>
- #include <linux/console.h>
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index bf089e7..a75f764 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -30,7 +30,6 @@
+ #include <linux/irq.h>
+ #include <linux/time.h>
+ #include <linux/gpio.h>
+-#include <linux/console.h>
  
--#ifdef CONFIG_SERIAL_OMAP
- #include <plat/omap-serial.h>
--#endif
+ #include <asm/mach/time.h>
+ #include <asm/mach/irq.h>
+@@ -133,27 +132,11 @@ static void omap2_enter_full_retention(void)
+ 	if (omap_irq_pending())
+ 		goto no_sleep;
+ 
+-	/* Block console output in case it is on one of the OMAP UARTs */
+-	if (!is_suspending())
+-		if (!console_trylock())
+-			goto no_sleep;
 -
- #include <plat/common.h>
- #include <plat/board.h>
--#include <plat/clock.h>
- #include <plat/dma.h>
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
-@@ -47,10 +41,8 @@
- #include "control.h"
- #include "mux.h"
+-	omap_uart_prepare_idle(0);
+-	omap_uart_prepare_idle(1);
+-	omap_uart_prepare_idle(2);
+-
+ 	/* Jump to SRAM suspend code */
+ 	omap2_sram_suspend(sdrc_read_reg(SDRC_DLLA_CTRL),
+ 			   OMAP_SDRC_REGADDR(SDRC_DLLA_CTRL),
+ 			   OMAP_SDRC_REGADDR(SDRC_POWER));
  
--#define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV	0x52
- #define UART_OMAP_WER		0x17	/* Wake-up enable register */
+-	omap_uart_resume_idle(2);
+-	omap_uart_resume_idle(1);
+-	omap_uart_resume_idle(0);
+-
+-	if (!is_suspending())
+-		console_unlock();
+-
+ no_sleep:
+ 	if (omap2_pm_debug) {
+ 		unsigned long long tmp;
+@@ -317,7 +300,6 @@ static int omap2_pm_suspend(void)
+ 	mir1 = omap_readl(0x480fe0a4);
+ 	omap_writel(1 << 5, 0x480fe0ac);
  
--#define UART_ERRATA_FIFO_FULL_ABORT	(0x1 << 0)
- #define UART_ERRATA_i202_MDR1_ACCESS	(0x1 << 1)
+-	omap_uart_prepare_suspend();
+ 	omap2_enter_full_retention();
  
- /*
-@@ -157,19 +149,6 @@ static inline void serial_write_reg(struct omap_uart_state *uart, int offset,
- 	__raw_writeb(value, uart->membase + offset);
+ 	omap_writel(mir1, 0x480fe0a4);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 7255d9b..344d412 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -28,7 +28,6 @@
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+-#include <linux/console.h>
+ #include <trace/events/power.h>
+ 
+ #include <asm/suspend.h>
+@@ -379,18 +378,9 @@ void omap_sram_idle(void)
+ 		omap3_enable_io_chain();
+ 	}
+ 
+-	/* Block console output in case it is on one of the OMAP UARTs */
+-	if (!is_suspending())
+-		if (per_next_state < PWRDM_POWER_ON ||
+-		    core_next_state < PWRDM_POWER_ON)
+-			if (!console_trylock())
+-				goto console_still_active;
+-
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
+-		omap_uart_prepare_idle(2);
+-		omap_uart_prepare_idle(3);
+ 		omap2_gpio_prepare_for_idle(per_going_off);
+ 		if (per_next_state == PWRDM_POWER_OFF)
+ 				omap3_per_save_context();
+@@ -398,8 +388,6 @@ void omap_sram_idle(void)
+ 
+ 	/* CORE */
+ 	if (core_next_state < PWRDM_POWER_ON) {
+-		omap_uart_prepare_idle(0);
+-		omap_uart_prepare_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF) {
+ 			omap3_core_save_context();
+ 			omap3_cm_save_context();
+@@ -446,8 +434,6 @@ void omap_sram_idle(void)
+ 			omap3_sram_restore_context();
+ 			omap2_sms_restore_context();
+ 		}
+-		omap_uart_resume_idle(0);
+-		omap_uart_resume_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF)
+ 			omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
+ 					       OMAP3430_GR_MOD,
+@@ -461,14 +447,8 @@ void omap_sram_idle(void)
+ 		omap2_gpio_resume_after_idle();
+ 		if (per_prev_state == PWRDM_POWER_OFF)
+ 			omap3_per_restore_context();
+-		omap_uart_resume_idle(2);
+-		omap_uart_resume_idle(3);
+ 	}
+ 
+-	if (!is_suspending())
+-		console_unlock();
+-
+-console_still_active:
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
+ 	if (omap3_has_io_wakeup() &&
+ 	    (per_next_state < PWRDM_POWER_ON ||
+@@ -531,7 +511,6 @@ static int omap3_pm_suspend(void)
+ 			goto restore;
+ 	}
+ 
+-	omap_uart_prepare_suspend();
+ 	omap3_intc_suspend();
+ 
+ 	omap_sram_idle();
+@@ -578,14 +557,12 @@ static int omap3_pm_begin(suspend_state_t state)
+ {
+ 	disable_hlt();
+ 	suspend_state = state;
+-	omap_uart_enable_irqs(0);
+ 	return 0;
  }
  
--/*
-- * Internal UARTs need to be initialized for the 8250 autoconfig to work
-- * properly. Note that the TX watermark initialization may not be needed
-- * once the 8250.c watermark handling code is merged.
-- */
--
--static inline void __init omap_uart_reset(struct omap_uart_state *uart)
--{
--	serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
--	serial_write_reg(uart, UART_OMAP_SCR, 0x08);
--	serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
--}
--
- #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
- 
- /*
-@@ -555,41 +534,6 @@ static void omap_uart_block_sleep(struct omap_uart_state *uart)
- #define DEV_CREATE_FILE(dev, attr)
- #endif /* CONFIG_PM */
- 
--#ifndef CONFIG_SERIAL_OMAP
--/*
-- * Override the default 8250 read handler: mem_serial_in()
-- * Empty RX fifo read causes an abort on omap3630 and omap4
-- * This function makes sure that an empty rx fifo is not read on these silicons
-- * (OMAP1/2/3430 are not affected)
-- */
--static unsigned int serial_in_override(struct uart_port *up, int offset)
--{
--	if (UART_RX == offset) {
--		unsigned int lsr;
--		lsr = __serial_read_reg(up, UART_LSR);
--		if (!(lsr & UART_LSR_DR))
--			return -EPERM;
--	}
--
--	return __serial_read_reg(up, offset);
--}
--
--static void serial_out_override(struct uart_port *up, int offset, int value)
--{
--	unsigned int status, tmout = 10000;
--
--	status = __serial_read_reg(up, UART_LSR);
--	while (!(status & UART_LSR_THRE)) {
--		/* Wait up to 10ms for the character(s) to be sent. */
--		if (--tmout == 0)
--			break;
--		udelay(1);
--		status = __serial_read_reg(up, UART_LSR);
--	}
--	__serial_write_reg(up, offset, value);
--}
--#endif
--
- static int __init omap_serial_early_init(void)
+ static void omap3_pm_end(void)
  {
- 	int i = 0;
-@@ -650,15 +594,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
- 	void *pdata = NULL;
- 	u32 pdata_size = 0;
- 	char *name;
--#ifndef CONFIG_SERIAL_OMAP
--	struct plat_serial8250_port ports[2] = {
--		{},
--		{.flags = 0},
--	};
--	struct plat_serial8250_port *p = &ports[0];
--#else
- 	struct omap_uart_port_info omap_up;
--#endif
+ 	suspend_state = PM_SUSPEND_ON;
+-	omap_uart_enable_irqs(1);
+ 	enable_hlt();
+ 	return;
+ }
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 3d1c1d3..62d15ad 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -389,51 +389,6 @@ static void omap_uart_idle_timer(unsigned long data)
+ 	omap_uart_allow_sleep(uart);
+ }
  
- 	if (WARN_ON(!bdata))
- 		return;
-@@ -673,51 +609,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
- 
- 	oh = uart->oh;
- 	uart->dma_enabled = 0;
--#ifndef CONFIG_SERIAL_OMAP
--	name = "serial8250";
+-void omap_uart_prepare_idle(int num)
+-{
+-	struct omap_uart_state *uart;
 -
--	/*
--	 * !! 8250 driver does not use standard IORESOURCE* It
--	 * has it's own custom pdata that can be taken from
--	 * the hwmod resource data.  But, this needs to be
--	 * done after the build.
--	 *
--	 * ?? does it have to be done before the register ??
--	 * YES, because platform_device_data_add() copies
--	 * pdata, it does not use a pointer.
--	 */
--	p->flags = UPF_BOOT_AUTOCONF;
--	p->iotype = UPIO_MEM;
--	p->regshift = 2;
--	p->uartclk = OMAP24XX_BASE_BAUD * 16;
--	p->irq = oh->mpu_irqs[0].irq;
--	p->mapbase = oh->slaves[0]->addr->pa_start;
--	p->membase = omap_hwmod_get_mpu_rt_va(oh);
--	p->irqflags = IRQF_SHARED;
--	p->private_data = uart;
--
--	/*
--	 * omap44xx, ti816x: Never read empty UART fifo
--	 * omap3xxx: Never read empty UART fifo on UARTs
--	 * with IP rev >=0x52
--	 */
--	uart->regshift = p->regshift;
--	uart->membase = p->membase;
--	if (cpu_is_omap44xx() || cpu_is_ti816x())
--		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
--	else if ((serial_read_reg(uart, UART_OMAP_MVER) & 0xFF)
--			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
--		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
--
--	if (uart->errata & UART_ERRATA_FIFO_FULL_ABORT) {
--		p->serial_in = serial_in_override;
--		p->serial_out = serial_out_override;
+-	list_for_each_entry(uart, &uart_list, node) {
+-		if (num == uart->num && uart->can_sleep) {
+-			omap_uart_disable_clocks(uart);
+-			return;
+-		}
 -	}
+-}
 -
--	pdata = &ports[0];
--	pdata_size = 2 * sizeof(struct plat_serial8250_port);
--#else
+-void omap_uart_resume_idle(int num)
+-{
+-	struct omap_uart_state *uart;
 -
- 	name = DRIVER_NAME;
+-	list_for_each_entry(uart, &uart_list, node) {
+-		if (num == uart->num && uart->can_sleep) {
+-			omap_uart_enable_clocks(uart);
+-
+-			/* Check for IO pad wakeup */
+-			if (cpu_is_omap34xx() && uart->padconf) {
+-				u16 p = omap_ctrl_readw(uart->padconf);
+-
+-				if (p & OMAP3_PADCONF_WAKEUPEVENT0)
+-					omap_uart_block_sleep(uart);
+-			}
+-
+-			/* Check for normal UART wakeup */
+-			if (__raw_readl(uart->wk_st) & uart->wk_mask)
+-				omap_uart_block_sleep(uart);
+-			return;
+-		}
+-	}
+-}
+-
+-void omap_uart_prepare_suspend(void)
+-{
+-	struct omap_uart_state *uart;
+-
+-	list_for_each_entry(uart, &uart_list, node) {
+-		omap_uart_allow_sleep(uart);
+-	}
+-}
+-
+ int omap_uart_can_sleep(void)
+ {
+ 	struct omap_uart_state *uart;
+@@ -552,26 +507,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	WARN_ON(ret);
+ }
  
- 	omap_up.dma_enabled = uart->dma_enabled;
-@@ -729,7 +620,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+-void omap_uart_enable_irqs(int enable)
+-{
+-	int ret;
+-	struct omap_uart_state *uart;
+-
+-	list_for_each_entry(uart, &uart_list, node) {
+-		if (enable) {
+-			pm_runtime_put_sync(&uart->pdev->dev);
+-			ret = request_threaded_irq(uart->irq, NULL,
+-						   omap_uart_interrupt,
+-						   IRQF_SHARED,
+-						   "serial idle",
+-						   (void *)uart);
+-		} else {
+-			pm_runtime_get_noresume(&uart->pdev->dev);
+-			free_irq(uart->irq, (void *)uart);
+-		}
+-	}
+-}
+-
+ static ssize_t sleep_timeout_show(struct device *dev,
+ 				  struct device_attribute *attr,
+ 				  char *buf)
+diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
+index de3b10c..fc8b60c 100644
+--- a/arch/arm/plat-omap/include/plat/serial.h
++++ b/arch/arm/plat-omap/include/plat/serial.h
+@@ -111,10 +111,6 @@ extern void omap_serial_init(void);
+ extern void omap_serial_init_port(struct omap_board_data *bdata);
+ extern int omap_uart_can_sleep(void);
+ extern void omap_uart_check_wakeup(void);
+-extern void omap_uart_prepare_suspend(void);
+-extern void omap_uart_prepare_idle(int num);
+-extern void omap_uart_resume_idle(int num);
+-extern void omap_uart_enable_irqs(int enable);
+ #endif
  
- 	pdata = &omap_up;
- 	pdata_size = sizeof(struct omap_uart_port_info);
--#endif
- 
- 	if (WARN_ON(!oh))
- 		return;
-@@ -762,7 +652,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
- 
- 	omap_device_enable(uart->pdev);
- 	omap_uart_idle_init(uart);
--	omap_uart_reset(uart);
- 	omap_hwmod_enable_wakeup(uart->oh);
- 	omap_device_idle(uart->pdev);
- 
+ #endif
 -- 
 1.7.4.1
 
