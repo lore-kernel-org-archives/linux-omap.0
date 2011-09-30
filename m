@@ -1,46 +1,38 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/9] regulator: helper routine to extract
-	regulator_init_data
-Date: Fri, 30 Sep 2011 13:18:44 +0100
-Message-ID: <20110930121844.GI5366@opensource.wolfsonmicro.com>
-References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
-	<1317118372-17052-3-git-send-email-rnayak@ti.com>
-	<20110927121003.GB4289@opensource.wolfsonmicro.com>
-	<4E81E224.2070408@ti.com>
-	<20110927150511.GM4289@opensource.wolfsonmicro.com>
-	<4E854532.6080605@ti.com>
-	<20110930102849.GA4195@opensource.wolfsonmicro.com>
-	<20110930104820.GE2085@sirena.org.uk> <4E85A34E.9070203@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: ARM SoC tree: OMAP PM dependency on tip irq/core
+Date: Fri, 30 Sep 2011 06:57:35 -0700
+Message-ID: <87aa9mm8ts.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <4E85A34E.9070203@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:43932 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751351Ab1I3N5m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Sep 2011 09:57:42 -0400
+Received: by mail-yw0-f43.google.com with SMTP id 21so1916710ywm.2
+        for <linux-omap@vger.kernel.org>; Fri, 30 Sep 2011 06:57:39 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 
-On Fri, Sep 30, 2011 at 04:39:02PM +0530, Rajendra Nayak wrote:
+Arnd,
 
-> The "regulator-supplies" is used to specific the regulator *parent*.
-> Same as what was earlier passed by using the
-> "supply_regulator" field of regulator_init_data structure.
-> Grant wanted the bindings to support specifying multiple parents
-> and hence I was thinking of either a list of names *or*
-> a list of phandles to specify multiple parents to a regulator.
+The upcoming OMAP4 PM series from Santosh[1] that we're planning to
+queue for v3.2 has a dependency[2] on a patch currently queued for v3.2
+in the irq/core branch of Thomas' tip tree[3].
 
-So, as I'm fairly sure I said last time these are just standard
-supplies.  It just happens to be that the consumer is a regulator.  The
-fact that Linux chooses to have core framework handling for this is an
-implementation detail of Linux (and indeed many devices ignore this for
-their on board regulators).
+In the past, I noticed you merged external trees like this to solve
+dependencies.
+
+Could you pull the irq/core branch into your tree to meet this
+dependency?
+
+Thanks,
+
+Kevin
+
+[1] http://marc.info/?l=linux-omap&m=131684489920440&w=2
+[2] http://marc.info/?l=linux-omap&m=131581416908252&w=2
+[3] currently here: git://tesla.tglx.de/git/linux-2.6-tip
