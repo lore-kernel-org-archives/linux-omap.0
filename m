@@ -1,129 +1,84 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 8/9] regulator: helper to extract regulator node based on
- supply name
-Date: Thu, 29 Sep 2011 19:36:49 -0600
-Message-ID: <20110930013649.GH12606@ponder.secretlab.ca>
-References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
- <1317118372-17052-9-git-send-email-rnayak@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 00/10] OMAP DSS related board changes
+Date: Fri, 30 Sep 2011 08:20:43 +0300
+Message-ID: <1317360043.1867.15.camel@deskari>
+References: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1317019053.1956.10.camel@deskari>  <20110929175232.GI6324@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:62780 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754914Ab1I3FFF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Sep 2011 01:05:05 -0400
-Received: by mail-yi0-f46.google.com with SMTP id 18so1197380yib.19
-        for <linux-omap@vger.kernel.org>; Thu, 29 Sep 2011 22:05:05 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1317118372-17052-9-git-send-email-rnayak@ti.com>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:48470 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752279Ab1I3FUu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Sep 2011 01:20:50 -0400
+Received: by bkat2 with SMTP id t2so1902682bka.22
+        for <linux-omap@vger.kernel.org>; Thu, 29 Sep 2011 22:20:47 -0700 (PDT)
+In-Reply-To: <20110929175232.GI6324@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: broonie@opensource.wolfsonmicro.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Sep 27, 2011 at 03:42:51PM +0530, Rajendra Nayak wrote:
-> Device nodes in DT can associate themselves with one or more
-> regulators by providing a list of phandles (to regulator nodes)
-> and corresponding supply names.
+On Thu, 2011-09-29 at 10:52 -0700, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [110925 23:04]:
+> > On Tue, 2011-09-20 at 11:18 +0300, Tomi Valkeinen wrote:
+> > > Hi Tony,
+> > > 
+> > > Here is a bunch of board file patches related to DSS. They have all been sent
+> > > for review earlier, and are currently in my tree. Some of them depend on DSS
+> > > driver changes, so I'd like to keep them there to avoid compilation errors
+> > > (these won't compile if you apply them without patches from DSS tree).
+> > > 
+> > > Can you give your ack for these? Alternatively we can see which of these could
+> > > go through your tree and I can make a new set.
+> > 
+> > Tony, ping. I'd like to get these in for 3.2, as many DSS driver patches
+> > depend on some of these.
 > 
-> For Example:
-> 	devicenode: node@0x0 {
-> 		...
-> 		...
-> 		vmmc-supply = <&regulator1>;
-> 		vpll-supply = <&regulator1>;
-> 	};
+> Sorry for the delay. Looks like these will conflict with your
+> earlier patches I have in the board branch and other cleanup.
 > 
-> The driver would then do a regulator_get(dev, "vmmc"); to get
-> regulator1 and do a regulator_get(dev, "vpll"); to get
-> regulator2.
-> 
-> of_get_regulator() extracts the regulator node for a given
-> device, based on the supply name.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  drivers/regulator/of_regulator.c       |   39 ++++++++++++++++++++++++++++++++
->  include/linux/regulator/of_regulator.h |    7 +++++
->  2 files changed, 46 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
-> index 7fa63ff..49dd105 100644
-> --- a/drivers/regulator/of_regulator.c
-> +++ b/drivers/regulator/of_regulator.c
-> @@ -14,6 +14,45 @@
->  #include <linux/of.h>
->  #include <linux/regulator/machine.h>
->  
-> +
-> +/**
-> + * of_get_regulator - get a regulator device node based on supply name
-> + * @dev: Device pointer for the consumer (of regulator) device
-> + * @supply: regulator supply name
-> + *
-> + * Extract the regulator device node corresponding to the supply name.
-> + * retruns the device node corresponding to the regulator if found, else
-> + * returns NULL.
-> + */
-> +struct device_node *of_get_regulator(struct device *dev, const char *supply)
-> +{
-> +	struct device_node *regnode = NULL;
-> +	u32 reghandle;
-> +	char prop_name[32]; /* 32 is max size of property name */
-> +	const void *prop;
-> +	int sz;
-> +
-> +	if (!dev)
-> +		return NULL;
-> +
-> +	dev_dbg(dev, "Looking up %s-supply from device tree\n", supply);
-> +
-> +	snprintf(prop_name, 32, "%s-supply", supply);
-> +
-> +	prop = of_get_property(dev->of_node, prop_name, &sz);
-> +	if (!prop || sz < 4)
-> +		return NULL;
-> +
-> +	reghandle = be32_to_cpup(prop);
-> +	regnode = of_find_node_by_phandle(reghandle);
+> I'll drop the earlier patches from my board branch so you can
+> queue all of them:
 
-of_parse_phandle()
+Ok, I'll add them to dss branch.
 
-> +	if (!regnode) {
-> +		pr_warn("%s: %s property in node %s references invalid phandle",
-> +			__func__, prop_name, dev->of_node->full_name);
-> +		return NULL;
-> +	}
-> +	return regnode;
-> +}
-> +
->  static void of_get_regulation_constraints(struct device_node *np,
->  					struct regulator_init_data **init_data)
->  {
-> diff --git a/include/linux/regulator/of_regulator.h b/include/linux/regulator/of_regulator.h
-> index 3f63be9..edaba1a 100644
-> --- a/include/linux/regulator/of_regulator.h
-> +++ b/include/linux/regulator/of_regulator.h
-> @@ -9,12 +9,19 @@
->  #if defined(CONFIG_OF_REGULATOR)
->  extern struct regulator_init_data
->  	*of_get_regulator_init_data(struct device *dev);
-> +extern struct device_node *of_get_regulator(struct device *dev,
-> +	const char *supply);
->  #else
->  static inline struct regulator_init_data
->  	*of_get_regulator_init_data(struct device_node *np)
->  {
->  	return NULL;
->  }
-> +static inline struct device_node *of_get_regulator(struct device *dev,
-> +	const char *id)
-> +{
-> +	return NULL;
-> +}
->  #endif /* CONFIG_OF_REGULATOR */
->  
->  #endif /* __LINUX_OF_REG_H */
-> -- 
-> 1.7.1
+> OMAP: Apollon: Port the display driver to new DSS2
+> OMAP: H4: Port the display driver to new DSS2
+> OMAP: LDP: Port the display driver to new DSS2
+> OMAP: 2420SDP: Port the display driver to new DSS2
+> OMAP: omap3touchbook: Remove unused lcd stuff
+> OMAP: RX51: Remove unused old omapfb stuff
 > 
+> Your new patches all look OK to me, just please check what we
+> have in omap cleanup branch as we don't have all that queud up
+> yet in next.
+
+Sure, will do.
+
+> It's likely these will need to be rebased on those, so maybe wait
+> a bit with these or adjust them accordingly if possible.
+> 
+> Also, you might want to start looking into passing the configuration
+> from DT instead to avoid the platform init code. Probably the
+> panel configuration would be the place to start with that?
+
+I haven't actually looked at DT yet, but one reason I've been writing
+and pushing these old omapfb cleanups is to get all omap2+ boards use
+the new dss driver, and thus hopefully making DT adaptation easier as I
+can (for now) ignore the old omapfb and omap1 boards regarding DT.
+
+But yes, I definitely need to look at DT. Is there a driver to be used
+as a sample when looking at DT?
+
+> So for all of them:
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
+
+Thanks.
+
+ Tomi
+
+
