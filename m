@@ -1,66 +1,64 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
- for omap3
-Date: Fri, 30 Sep 2011 12:16:17 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1109301215430.12185@utopia.booyaka.com>
-References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-3-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com>
- <CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com> <alpine.DEB.2.00.1109240101120.22872@utopia.booyaka.com> <CAP05o4+uwuFL8XNFG-wmUW8voYQ4kywyU9Qn-Mng7kv=TzZm9w@mail.gmail.com> <alpine.DEB.2.00.1109260844360.13188@utopia.booyaka.com>
- <CAP05o4KbVkXgnPc7JonrvURmCpQRgjMK2K_dmjQSKzQufQhjkA@mail.gmail.com> <alpine.DEB.2.00.1109300227530.12185@utopia.booyaka.com> <CAP05o4JA_pBJUq4qQ6ase41nvznbfLRuvwh02fOhHKWNqie_NA@mail.gmail.com>
+Subject: Re: [PATCH v5 3/3] OMAP2+: voltage: add check for missing PMIC info
+	in vp init
+Date: Fri, 30 Sep 2011 12:41:44 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109301240070.12185@utopia.booyaka.com>
+References: <1317363153-10259-1-git-send-email-abhilash.kv@ti.com>
+	<1317363153-10259-2-git-send-email-abhilash.kv@ti.com>
+	<1317363153-10259-3-git-send-email-abhilash.kv@ti.com>
+	<1317363153-10259-4-git-send-email-abhilash.kv@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-953785820-1317406577=:12185"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAP05o4JA_pBJUq4qQ6ase41nvznbfLRuvwh02fOhHKWNqie_NA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, parthab@india.ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, tony@atomide.com, khilman@ti.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1317363153-10259-4-git-send-email-abhilash.kv@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Abhilash K V <abhilash.kv@ti.com>
+Cc: khilman@ti.com, linux@arm.linux.org.uk, b-cousson@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, christian.gmeiner@gmail.com, aneesh@ti.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi
 
---155748971-953785820-1317406577=:12185
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On Fri, 30 Sep 2011, Abhilash K V wrote:
 
-On Fri, 30 Sep 2011, Munegowda, Keshava wrote:
+> From: Abhilash K V <abhilash.kv@ti.com>
+> 
+> If PMIC info is not available in omap_vp_init(), abort.
+> 
+> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+> ---
+>  arch/arm/mach-omap2/vp.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+> index 66bd700..0ed3d13 100644
+> --- a/arch/arm/mach-omap2/vp.c
+> +++ b/arch/arm/mach-omap2/vp.c
+> @@ -41,6 +41,13 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+>  	u32 val, sys_clk_rate, timeout, waittime;
+>  	u32 vddmin, vddmax, vstepmin, vstepmax;
+>  
+> +	if (!voltdm->pmic || !voltdm->pmic->uv_to_vsel) {
+> +		pr_err("%s: PMIC info requried to configure VP for "
+> +			"vdd_%s not populated.Hence cannot initialize VP\n",
+> +			__func__, voltdm->name);
+> +		return;
+> +	}
+> +
 
-> On Fri, Sep 30, 2011 at 2:02 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> > On Wed, 28 Sep 2011, Munegowda, Keshava wrote:
-> >
-> >> Thanks paul,
-> >>
-> >> But In USB Host case, there is a challenge!
-> >>
-> >> I need both usbhost_48m_fck and usbhost_120m_fck to be turned on when
-> >> I invoke pm_runtime_get_sync ; so there are couple of options to do th=
-is
-> >>
-> >> 1. use clk_get with hard coded =A0usbhost_120m_fck name in =A0usbhs dr=
-iver
-> >> =A0 =A0 =A0 =A0enable this clock after invoking pm_runtime_get_sync
-> >>
-> >> 2. add an additional flag in hwmod ; so that pm_runtime_get_sync will =
-enable
-> >> =A0 =A0 =A0 =A0 =A0 =A0main clock as well as optional clocks
-> >>
-> >> please comment on these two approaches..
-> >
-> > Looks like you picked approach #1 which is fine with me.
-> >
-> > Here's what I don't understand about how this clock is used, though.
-> > According to the 34xx TRM vZR Section 24.2.3.1.2 "High-Speed USB Host
-> > Subsystem Clocks", this is only used to "clock EHCI controller internal
-> > logic". =A0So if EHCI is not being used, it would seem to me that this =
-clock
-> > shouldn't be enabled? =A0But patch #5 seems to enable and disable it
-> > unconditionally. =A0Am I missing something here?
->=20
-> OK. are you suggesting that this clock should be enabled/disabled; only
-> if atleast one port is selected for ehci?
-
-Seems to make sense to me?  If the clock really isn't needed for OHCI,=20
-then it shouldn't be enabled when only OHCI is in use?
+Just wondering about the intent of this patch.  Is the goal here to not 
+call omap_vp_init() for chips that don't have a VP IP block?  If so, then 
+implementing code that does that directly seems like a better approach 
+than using the PMIC data?  Because it seems likely that even SoCs without 
+VP IP blocks will have PMICs on the board, right?
 
 
 - Paul
---155748971-953785820-1317406577=:12185--
