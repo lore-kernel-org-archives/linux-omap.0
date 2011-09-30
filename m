@@ -1,47 +1,54 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 8/9] regulator: helper to extract regulator node based on
- supply name
-Date: Fri, 30 Sep 2011 11:35:50 +0100
-Message-ID: <20110930103516.GB4195@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 2/9] regulator: helper routine to extract
+ regulator_init_data
+Date: Fri, 30 Sep 2011 11:48:20 +0100
+Message-ID: <20110930104820.GE2085@sirena.org.uk>
 References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
- <1317118372-17052-9-git-send-email-rnayak@ti.com>
- <20110927122155.GE4289@opensource.wolfsonmicro.com>
- <4E81E281.505@ti.com>
- <20110927185913.GU4289@opensource.wolfsonmicro.com>
- <4E82D63A.7030207@ti.com>
- <20110928122628.GF3279@opensource.wolfsonmicro.com>
- <4E858D35.50903@ti.com>
+ <1317118372-17052-3-git-send-email-rnayak@ti.com>
+ <20110927121003.GB4289@opensource.wolfsonmicro.com>
+ <4E81E224.2070408@ti.com>
+ <20110927150511.GM4289@opensource.wolfsonmicro.com>
+ <4E854532.6080605@ti.com>
+ <20110930102849.GA4195@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:42541 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754105Ab1I3Kfv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Sep 2011 06:35:51 -0400
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:35830 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755493Ab1I3KsZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Sep 2011 06:48:25 -0400
 Content-Disposition: inline
-In-Reply-To: <4E858D35.50903@ti.com>
+In-Reply-To: <20110930102849.GA4195@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rajendra Nayak <rnayak@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Girdwood, Liam" <lrg@ti.com>, "patches@linaro.org" <patches@linaro.org>
+Cc: b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Fri, Sep 30, 2011 at 03:04:45PM +0530, Rajendra Nayak wrote:
-> On Wednesday 28 September 2011 05:56 PM, Mark Brown wrote:
-> >On Wed, Sep 28, 2011 at 10:09:30AM +0200, Cousson, Benoit wrote:
+On Fri, Sep 30, 2011 at 11:28:49AM +0100, Mark Brown wrote:
+> On Fri, Sep 30, 2011 at 09:57:30AM +0530, Rajendra Nayak wrote:
 
-> >>And even before DT migration, we used to build statically some
-> >>omap_device to represent the various processors in the system (MPU,
-> >>DSP, CortexM3...).
+>>>> +  init_data->supply_regulator = (char *)of_get_property(dev->of_node,
+>>>> +                                          "regulator-supplies", NULL);
 
-> >Yeah, but that's very OMAP specific - we don't have that in general (in
-> >fact it's the only Linux platform I'm aware of that has a device for the
-> >CPU).
+> > Mark, I still seem to be a little confused with this one as to why
+> > we would need a phandle *and* a supply-name to reference a parent
+> > regulator/supply.
+> > The phandle would point to a regulator dt node and that node internally
+> > would have just one name associated with it.
 
-> But isn't this the right thing to do for everyone else too?
+> To repeat: the supply name is for the consumer.  It is needed so that
+> the consumer can tell which supply is provided by which regulator.
+> Almost all devices have more than one supply and if the device does
+> anything more complicated than just turning on all the supplies when the
+> device is active it's going to need to figure out which supply is which.
 
-That doesn't really matter so long as nobody else is actually doing it;
-you can't make a decision like this in an OMAP-specific fashion, you
-need to make sure everyone else is on board with the decision and make
-sure we've got at least at a high level way of representing the CPUs and
-SoCs in the device tree that people can buy into.
+Hang on, I now have no idea what this is supposed to be doing.  Later on
+in the series you had examples in your commit logs with perfectly
+sensible bindings for supplies:
+
+                vmmc-supply = <&regulator1>;
+                vpll-supply = <&regulator1>;
+
+which have both a unique name and a direct reference to the supplying
+regulator.  What are these "regulator-supplies" properties supposed to
+be?
