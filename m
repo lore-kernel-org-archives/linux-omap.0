@@ -1,59 +1,74 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/9] regulator: helper routine to extract
-	regulator_init_data
-Date: Fri, 30 Sep 2011 09:58:04 +0200
-Message-ID: <4E85768C.6050601@ti.com>
-References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
-	<1317118372-17052-3-git-send-email-rnayak@ti.com>
-	<20110927121003.GB4289@opensource.wolfsonmicro.com>
-	<4E81E224.2070408@ti.com>
-	<20110927150511.GM4289@opensource.wolfsonmicro.com>
-	<4E854532.6080605@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/5 v12] arm: omap: usb: ehci and ohci hwmod structures
+ for omap3
+Date: Fri, 30 Sep 2011 02:02:09 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1109300156140.12185@utopia.booyaka.com>
+References: <1317361216-28248-1-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1109300107150.32653@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4E854532.6080605@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Nayak, Rajendra" <rnayak@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "patches@linaro.org" <patches@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1109300107150.32653@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 9/30/2011 6:27 AM, Nayak, Rajendra wrote:
+Hi
 
-[...]
+a few more comments
 
->> They need both.  We need to reference the device that provides the
->> supply and use a name to say which of the potentially multiple supplies
->> on the consumer device is which.
->
-> Mark, I still seem to be a little confused with this one as to why
-> we would need a phandle *and* a supply-name to reference a parent
-> regulator/supply.
-> The phandle would point to a regulator dt node and that node internally
-> would have just one name associated with it.
+On Fri, 30 Sep 2011, Paul Walmsley wrote:
 
-I think as well that we should avoid considering a regulator with 
-several outputs. I saw the same pattern used for the clock binding in DT 
-as well.
+> On Fri, 30 Sep 2011, Keshava Munegowda wrote:
+> 
+> > +static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_host_hs = {
+> > +	.master		= &omap3xxx_l4_core_hwmod,
+> > +	.slave		= &omap34xx_usb_host_hs_hwmod,
+> > +	.clk		= "l4_ick",
+> > +	.addr		= omap34xx_usb_host_hs_addrs,
+> > +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> > +};
+> > +
+> > +static struct omap_hwmod_ocp_if omap34xx_usb_host_hs__ick = {
 
-A clock node like a regulator node should output only one signal.
-These nodes should provide atomic functionality. And if extra 
-functionality are needed we might consider adding some intermediate nodes.
-Except for a regulator that will output several lines at the same 
-voltage to spread the current load, assuming it does exist, I'm not sure 
-to understand the need.
+This is missing master, slave, and addr fields.  But see the comment 
+below.
 
-Mark,
-What usage do you have in mind for such supply node with several outputs?
+> > +	.clk		= "usbhost_ick",
+> > +	.user		= OCP_USER_MPU,
+> > +	.flags		= OCPIF_SWSUP_IDLE,
+> 
+> Does this really need OCPIF_SWSUP_IDLE?  If so, then there is a hardware 
+> bug, and some explanation is needed.
 
-Regards,
-Benoit
+Could you describe why there are two struct omap_hwmod_ocp_if records 
+here?  It seems to me that these should just be combined into one struct 
+omap_hwmod_ocp_if record?  Looking at the clock3xxx_data.c file, the 
+usbhost_ick struct clk has l4_ick as its parent, so l4_ick shouldn't need 
+to be mentioned explicitly?
+
+...
+
+> > +static struct omap_hwmod_ocp_if omap34xx_f_cfg__usb_tll_hs = {
+> > +	.clk		= "usbtll_ick",
+> > +	.user		= OCP_USER_MPU,
+> > +	.flags		= OCPIF_SWSUP_IDLE,
+> > +};
+> 
+> Does this really need OCPIF_SWSUP_IDLE?  If so, then there is a hardware 
+> bug, and some explanation is needed.
+> 
+> > +
+> > +static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_tll_hs = {
+> > +	.master		= &omap3xxx_l4_core_hwmod,
+> > +	.slave		= &omap34xx_usb_tll_hs_hwmod,
+> > +	.clk		= "l4_ick",
+> > +	.addr		= omap34xx_usb_tll_hs_addrs,
+> > +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> > +};
+
+Same problem here.  Seems like omap34xx_l4_cfg__usb_tll_hs and 
+omap34xx_f_cfg__usb_tll_hs should be combined into one record.
+
+
+- Paul
