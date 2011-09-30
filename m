@@ -1,137 +1,124 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v6 00/16] OMAP2+: UART: Runtime adaptation + cleanup
-Date: Fri, 30 Sep 2011 16:30:36 +0530
-Message-ID: <1317380436-548-1-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v6 02/16] OMAP2+: hwmod: Add API to check IO PAD wakeup status
+Date: Fri, 30 Sep 2011 16:31:28 +0530
+Message-ID: <1317380495-584-2-git-send-email-govindraj.raja@ti.com>
+References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38410 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754164Ab1I3LBZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Sep 2011 07:01:25 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tero Kristo <t-kristo@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>, Partha Basak <p-basak2@ti.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Converting uart driver to adapt to pm runtime API's.
-Code re-org + cleanup.
-Moving some functionality from serial.c to omap-serial.c
+Add API to determine IO-PAD wakeup event status for a given
+hwmod dynamic_mux pad.
 
-Changes involves:
-================
-1.) Cleaning up certain uart calls from sram_idle func.
-2.) Removed all types of uart clock handling code from serial.c
-3.) Using hwmod_mux API enable wakeup capability for uart pad during
-   hwmod_idle state i.e., when uart clocks are disabled we can enable
-   io-pad wakeup capability for uart if mux_data is available for
-   given uart. Also during during resume from idle call to uart we need
-   to enable clocks back conditionally and this can be done only when io-pad
-   wakeup event bit is set for uart_rx pad. So we need a hwmod API
-   which can probe the uart pad and let us know whether a uart wakeup
-   happened. So omap_hmwod_pad_wakeup_status API is added to meet this
-   requirement.
-3.) Adapted omap-serial driver to use runtime API's.
-4.) Modify serial_init calls to accept uart parameters from board file.
-    Like dma_usage, rx_timeout, dma_rx_pollrate, auto_suspend_timeout etc.
-5.) Use the omap_prm driver with irq_chaining to wake up uart after clocks are
-    cut.
-	
-Patch series is based on 3.1.0-rc4 + omap_device fixes.
->From Kevin's tree.
-git://gitorious.org/khilman/linux-omap-pm.git for_3.2/omap_device
+Wake up event set will be cleared on pad mux_read.
 
-Also the patch series depends on Tero's v9 Irq_chaining patches.
-Dependent irq_chaining patches are as below.
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+ arch/arm/mach-omap2/mux.c                    |   30 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/mux.h                    |   13 +++++++++++
+ arch/arm/mach-omap2/omap_hwmod.c             |    7 ++++++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 4 files changed, 51 insertions(+), 0 deletions(-)
 
-e9e7ae1 omap3+: add omap prm driver initialization
-e52486f OMAP3: pm: do not enable PRCM MPU interrupts manually
-ae5f2af omap3: pm: use prcm chain handler
-61ad50f OMAP2+: mux: add support for PAD wakeup interrupts
-cab47bf mfd: omap-prm: added suspend prepare and complete callbacks
-8ed5bcd mfd: omap-prm: added chain interrupt handler
-024f0e3 mfd: omap-prm: add driver skeleton
-d285827 TEMP: OMAP4xxx: hwmod data: add PRM hwmod
-da6f48f TEMP: OMAP3xxx: hwmod data: add PRM hwmod
-
-Same combination is hosted at:
-git://gitorious.org/runtime_3-0/runtime_3-0.git v6_uart_runtime
-
-Ensure CONFIG_OMAP_PRM is set while testing irq_chaining with uart.
-
-Changes from v5:
----------------
-* Incorporating omap_uart_can_sleep function to avoid
-  console sluglishness as reported by tero.
-* fixing below comments adding omap4 for autosuspend and wakeup.
-  http://www.mail-archive.com/linux-omap@vger.kernel.org/msg56221.html
-
-  In addition cleaning up pads from omap4430sdp/panda board file
-  to use default pads from serial.c
-
-Changes from v4:
----------------
-
-1.) Fixing v4 comments from Kevin.
-    Spilt into smaller logical patches.
-2.) Using Irq_chaining OMAP_PRM driver for waking up uart.
-
-Testing updates:
-----------------
-OMAP2420/2430SDP: Boot tested.
-
-OMAP3430SDP:
-retention, off_mode, system_wide suspend is tested.
-(earlyprintk & no_console_suspend checked)
-
-OMAP3630 - Zoom3:
-pm-retention checked with quart/omap-uart3
-[Also tested with uart3 as console uart and pm-ret checked]
-
-BeagleBoard XM Rev C(3630):
-retention, off_mode, system_wide suspend is tested.
-
-OMAP4430-SDP/PANDA-4430/PANDA-4460: Boot tested.
-
-Deepak K (1):
-  OMAP2+: UART: Allow UART parameters to be configured from board file.
-
-Govindraj.R (14):
-  OMAP2+: hwmod: Add API to enable IO ring wakeup.
-  OMAP2+: hwmod: Add API to check IO PAD wakeup status
-  OMAP2+: UART: cleanup + remove uart pm specific API
-  OMAP2+: UART: cleanup 8250 console driver support
-  OMAP2+: UART: Cleanup part of clock gating mechanism for uart
-  OMAP2+: UART: Remove certain feilds from omap_uart_state struct
-  OMAP2+: UART: Add default mux for all uarts.
-  OMAP2+: UART: Store certain reg values to port structure
-  OMAP2+: UART: Add runtime pm support for omap-serial driver
-  OMAP2+: UART: Modify omap_uart_can_sleep function
-  OMAP2+: UART: Move errata handling from serial.c to omap-serial
-  OMAP2+: UART: Take console_lock in suspend path if not taken
-  OMAP2+: UART: Enable back uart clocks with runtime API for early
-    console
-  OMAP2+: UART: Do not gate uart clocks if used for debug_prints
-
-Jon Hunter (1):
-  OMAP2+: UART: Make the RX_TIMEOUT for DMA configurable for each UART
-
- arch/arm/mach-omap2/board-3430sdp.c           |  100 +---
- arch/arm/mach-omap2/board-4430sdp.c           |   68 +--
- arch/arm/mach-omap2/board-n8x0.c              |    6 +-
- arch/arm/mach-omap2/board-omap4panda.c        |   68 +--
- arch/arm/mach-omap2/mux.c                     |   30 +
- arch/arm/mach-omap2/mux.h                     |   13 +
- arch/arm/mach-omap2/omap_hwmod.c              |   66 ++
- arch/arm/mach-omap2/pm24xx.c                  |   18 -
- arch/arm/mach-omap2/pm34xx.c                  |   23 -
- arch/arm/mach-omap2/serial.c                  |  937 +++++++------------------
- arch/arm/plat-omap/include/plat/omap-serial.h |   30 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
- arch/arm/plat-omap/include/plat/serial.h      |   10 +-
- drivers/tty/serial/omap-serial.c              |  305 +++++++--
- 14 files changed, 660 insertions(+), 1015 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 655e948..fb75aae 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -351,6 +351,36 @@ err1:
+ 	return NULL;
+ }
+ 
++/**
++ * omap_hwmod_mux_get_wake_status - omap hwmod check pad wakeup
++ * @hmux:		Pads for a hwmod
++ *
++ * Gets the wakeup status of given pad from omap-hwmod.
++ * Returns true if wakeup capability is set and wakeup event occurred.
++ * Returns false if wakeup event has not occurred or pads are not available.
++ */
++bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
++{
++	int i;
++	unsigned int val;
++	u8 ret = false;
++
++	for (i = 0; i < hmux->nr_pads; i++) {
++		struct omap_device_pad *pad = &hmux->pads[i];
++
++		if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
++			val = omap_mux_read(pad->partition,
++					pad->mux->reg_offset);
++			if (val & OMAP_WAKEUP_EVENT) {
++				ret = true;
++				break;
++			}
++		}
++	}
++
++	return ret;
++}
++
+ /* Assumes the calling function takes care of locking */
+ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+ {
+diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+index 2132308..8b2150a 100644
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -225,8 +225,21 @@ omap_hwmod_mux_init(struct omap_device_pad *bpads, int nr_pads);
+  */
+ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state);
+ 
++/**
++ * omap_hwmod_mux_get_wake_status - omap hwmod check pad wakeup
++ * @hmux:		Pads for a hwmod
++ *
++ * Called only from omap_hwmod.c, do not use.
++ */
++bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux);
+ #else
+ 
++static inline bool
++omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
++{
++	return 0;
++}
++
+ static inline int omap_mux_init_gpio(int gpio, int val)
+ {
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index e751dd9..a8b24d7 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2724,3 +2724,10 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh)
+ 
+ 	return 0;
+ }
++
++int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh)
++{
++	if (oh && oh->mux)
++		return omap_hwmod_mux_get_wake_status(oh->mux);
++	return -EINVAL;
++}
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 0e329ca..9a6195c 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -607,6 +607,7 @@ u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+ 
+ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
+ 
++int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh);
+ /*
+  * Chip variant-specific hwmod init routines - XXX should be converted
+  * to use initcalls once the initial boot ordering is straightened out
 -- 
 1.7.4.1
 
