@@ -1,15 +1,17 @@
 From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Subject: Re: [PATCH 9/9] regulator: map consumer regulator based on device tree
-Date: Thu, 29 Sep 2011 19:38:19 -0600
-Message-ID: <20110930013819.GI12606@ponder.secretlab.ca>
+Subject: Re: [PATCH 2/9] regulator: helper routine to extract
+	regulator_init_data
+Date: Thu, 29 Sep 2011 19:24:08 -0600
+Message-ID: <20110930012408.GE12606@ponder.secretlab.ca>
 References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
-	<1317118372-17052-10-git-send-email-rnayak@ti.com>
+	<1317118372-17052-3-git-send-email-rnayak@ti.com>
+	<20110927121003.GB4289@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1317118372-17052-10-git-send-email-rnayak-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20110927121003.GB4289-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
 	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
@@ -19,98 +21,25 @@ List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
 	<mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
 Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 27, 2011 at 03:42:52PM +0530, Rajendra Nayak wrote:
-> Look up the regulator for a given consumer from device tree, during
-> a regulator_get(). If not found fallback and lookup through
-> the regulator_map_list instead.
+On Tue, Sep 27, 2011 at 01:10:04PM +0100, Mark Brown wrote:
+> On Tue, Sep 27, 2011 at 03:42:45PM +0530, Rajendra Nayak wrote:
 > 
-> Devices can associate with one or more regulators by providing a
-> list of phandles and supply names.
+> > +	init_data = devm_kzalloc(dev, sizeof(struct regulator_init_data),
+> > +						 GFP_KERNEL);
+> > +	if (!init_data)
+> > +		return NULL; /* Out of memory? */
 > 
-> For Example:
->         devicenode: node@0x0 {
->                 ...
->                 ...
->                 vmmc-supply = <&regulator1>;
->                 vpll-supply = <&regulator2>;
->         };
+> This means that the init data will be kept around for the entire
+> lifetime of the device rather than being discarded.
 > 
-> When a device driver calls a regulator_get, specifying the
-> supply name, the phandle and eventually the regulator node
-> is extracted from the device node.
+> > +	init_data->supply_regulator = (char *)of_get_property(dev->of_node,
+> > +						"regulator-supplies", NULL);
 > 
-> Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/regulator/core.c         |   14 ++++++++++++++
->  include/linux/regulator/driver.h |    3 +++
->  2 files changed, 17 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-> index d8e6a42..47b851c 100644
-> --- a/drivers/regulator/core.c
-> +++ b/drivers/regulator/core.c
-> @@ -25,9 +25,11 @@
->  #include <linux/mutex.h>
->  #include <linux/suspend.h>
->  #include <linux/delay.h>
-> +#include <linux/of.h>
->  #include <linux/regulator/consumer.h>
->  #include <linux/regulator/driver.h>
->  #include <linux/regulator/machine.h>
-> +#include <linux/regulator/of_regulator.h>
->  
->  #define CREATE_TRACE_POINTS
->  #include <trace/events/regulator.h>
-> @@ -1155,6 +1157,7 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
->  	struct regulator_map *map;
->  	struct regulator *regulator = ERR_PTR(-ENODEV);
->  	const char *devname = NULL;
-> +	struct device_node *node;
->  	int ret;
->  
->  	if (id == NULL) {
-> @@ -1167,6 +1170,15 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
->  
->  	mutex_lock(&regulator_list_mutex);
->  
-> +	if (dev->of_node) {
-> +		node = of_get_regulator(dev, id);
-> +		if (!node)
-> +			goto retry; /* fallback and chk regulator_map_list */
-> +		list_for_each_entry(rdev, &regulator_list, list)
-> +			if (node == rdev->node)
-> +				goto found;
-> +	}
-> +retry:
->  	list_for_each_entry(map, &regulator_map_list, list) {
->  		/* If the mapping has a device set up it must match */
->  		if (map->dev_name &&
-> @@ -2619,6 +2631,8 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
->  	rdev->reg_data = driver_data;
->  	rdev->owner = regulator_desc->owner;
->  	rdev->desc = regulator_desc;
-> +	if (dev && dev->of_node)
-> +		rdev->node = dev->of_node;
->  	INIT_LIST_HEAD(&rdev->consumer_list);
->  	INIT_LIST_HEAD(&rdev->list);
->  	BLOCKING_INIT_NOTIFIER_HEAD(&rdev->notifier);
-> diff --git a/include/linux/regulator/driver.h b/include/linux/regulator/driver.h
-> index 1a80bc7..4aebbf5 100644
-> --- a/include/linux/regulator/driver.h
-> +++ b/include/linux/regulator/driver.h
-> @@ -196,6 +196,9 @@ struct regulator_dev {
->  	struct mutex mutex; /* consumer lock */
->  	struct module *owner;
->  	struct device dev;
-> +#ifdef CONFIG_OF
-> +	struct device_node *node;
-> +#endif
+> I'd expect that in the device tree world the supply regulator would
+> reference the node for that regulator.
 
-There is already an of_node pointer in regulator_dev->dev.of_node.
-Why does another need to be added here?
-
-g.
+Yes, I would expect the same.
