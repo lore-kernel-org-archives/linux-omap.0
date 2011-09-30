@@ -1,7 +1,7 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v6 16/16] OMAP2+: UART: Do not gate uart clocks if used for debug_prints
-Date: Fri, 30 Sep 2011 16:32:41 +0530
-Message-ID: <1317380561-661-7-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v6 13/16] OMAP2+: UART: Make the RX_TIMEOUT for DMA configurable for each UART
+Date: Fri, 30 Sep 2011 16:32:38 +0530
+Message-ID: <1317380561-661-4-git-send-email-govindraj.raja@ti.com>
 References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,81 +9,170 @@ Return-path: <linux-serial-owner@vger.kernel.org>
 In-Reply-To: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-serial-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>, Jon Hunter <jon-hunter@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-If OMAP UART is used as console uart and debug is enabled,
-avoid gating of uart clocks to print all debug prints.
+From: Jon Hunter <jon-hunter@ti.com>
 
-If uart clocks are gated then the debug prints from omap_device
-framework or hwmod framework can cause uart to enter recursive pm_runtime calls,
-which can cause a deadlock over power lock usage.
+When using DMA there are two timeouts defined. The first timeout,
+rx_timeout, is really a polling rate in which software polls the
+DMA status to see if the DMA has finished. This is necessary for
+the RX side because we do not know how much data we will receive.
+The secound timeout, RX_TIMEOUT, is a timeout after which the
+DMA will be stopped if no more data is received. To make this
+clearer, rename rx_timeout as rx_poll_rate and rename the
+function serial_omap_rx_timeout() to serial_omap_rxdma_poll().
 
-For example: Say, uart clocks are cut and we get a print from omap_device_disable
-stating disabling uart clocks. This print calls omap_uart driver console_write
-which will call runtime API get_sync which means we enter from runtime API put
-context to runtime API get context.
+The OMAP-Serial driver defines an RX_TIMEOUT of 3 seconds that is
+used to indicate when the DMA for UART can be stopped if no more
+data is received. The value is a global definition that is applied
+to all instances of the UART.
 
---> runtime put (take power lock)
-    --> print disabling uart clocks
-        --> call uart console write
-            --> call get_sync (try to take power lock)
+Each UART may be used for a different purpose and so the timeout
+required may differ. Make this value configurable for each UART so
+that this value can be optimised for power savings.
 
-Also any clock enable API call from uart driver should not call any uart
-operation until clocks are enabled back. Like get_sync having debug print
-calling uart console write even before clocks are enabled.
-
-So to avoid these scenarios, identify from bootargs  if OMAP_UART(ttyO) is used
-in debug mode. If so, do not set device_may_wakeup. This will prevent
-pm_runtime_enable in uart driver probe and will avoid uart clock gating.
-
+Acked-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
-More details on this topic and experiments done listed here:
-http://www.spinics.net/lists/linux-serial/msg04128.html
+This patch is derived from a custom 2.6.35 kernel
+Available here:
+http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;
+h=b47839fb84e68333ea29a327cf5aa694b71be7d6;
+hp=f62f570e8580507be48ad004defc2ec714b6e05d
 
- arch/arm/mach-omap2/serial.c |   19 ++++++++++++++++++-
- 1 files changed, 18 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/serial.c                  |    5 ++++-
+ arch/arm/plat-omap/include/plat/omap-serial.h |    3 ++-
+ drivers/tty/serial/omap-serial.c              |   15 ++++++++-------
+ 3 files changed, 14 insertions(+), 9 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 15d6c51..777f81c 100644
+index 78f7051..24b5809 100644
 --- a/arch/arm/mach-omap2/serial.c
 +++ b/arch/arm/mach-omap2/serial.c
-@@ -285,8 +285,24 @@ static void omap_uart_set_forceidle(struct platform_device *pdev) {}
- static void omap_uart_hwmod_idle(struct platform_device *pdev) {}
- #endif /* CONFIG_PM */
+@@ -54,13 +54,15 @@
  
-+static int uart_debug;
-+
-+char *cmdline_find_option(char *str)
-+{
-+	extern char *saved_command_line;
-+
-+	return strstr(saved_command_line, str);
-+}
-+
- static int __init omap_serial_early_init(void)
+ static u8 num_uarts;
+ 
+-#define DEFAULT_RXDMA_TIMEOUT		1	/* RX DMA polling rate (us) */
++#define DEFAULT_RXDMA_POLLRATE		1	/* RX DMA polling rate (us) */
+ #define DEFAULT_RXDMA_BUFSIZE		4096	/* RX DMA buffer size */
++#define DEFAULT_RXDMA_TIMEOUT		(3 * HZ)/* RX DMA timeout (jiffies) */
+ 
+ static struct omap_uart_port_info omap_serial_default_info[] = {
+ 	{
+ 		.dma_enabled	= 0,
+ 		.dma_rx_buf_size = DEFAULT_RXDMA_BUFSIZE,
++		.dma_rx_poll_rate = DEFAULT_RXDMA_POLLRATE,
+ 		.dma_rx_timeout = DEFAULT_RXDMA_TIMEOUT,
+ 		.autosuspend_timeout = DEFAULT_AUTOSUSPEND_DELAY,
+ 	},
+@@ -357,6 +359,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+ 	pdata->set_force_idle = omap_uart_set_forceidle;
+ 	pdata->dma_enabled = info->dma_enabled;
+ 	pdata->dma_rx_buf_size = info->dma_rx_buf_size;
++	pdata->dma_rx_poll_rate = info->dma_rx_poll_rate;
+ 	pdata->dma_rx_timeout = info->dma_rx_timeout;
+ 	pdata->autosuspend_timeout = info->autosuspend_timeout;
+ 
+diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+index a40a41a..28abc6b 100644
+--- a/arch/arm/plat-omap/include/plat/omap-serial.h
++++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+@@ -51,7 +51,6 @@
+ 
+ #define OMAP_UART_DMA_CH_FREE	-1
+ 
+-#define RX_TIMEOUT		(3 * HZ)
+ #define OMAP_MAX_HSUART_PORTS	4
+ 
+ #define MSR_SAVE_FLAGS		UART_MSR_ANY_DELTA
+@@ -67,6 +66,7 @@ struct omap_uart_port_info {
+ 	unsigned int		dma_rx_buf_size;
+ 	unsigned int		dma_rx_timeout;
+ 	unsigned int		autosuspend_timeout;
++	unsigned int		dma_rx_poll_rate;
+ 
+ 	void (*enable_wakeup)(struct platform_device *, bool);
+ 	u32 (*get_context_loss_count)(struct device *);
+@@ -95,6 +95,7 @@ struct uart_omap_dma {
+ 	/* timer to poll activity on rx dma */
+ 	struct timer_list	rx_timer;
+ 	unsigned int		rx_buf_size;
++	unsigned int		rx_poll_rate;
+ 	unsigned int		rx_timeout;
+ };
+ 
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 15e0655..64e4ab5 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -47,7 +47,7 @@ static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
+ 
+ /* Forward declaration of functions */
+ static void uart_tx_dma_callback(int lch, u16 ch_status, void *data);
+-static void serial_omap_rx_timeout(unsigned long uart_no);
++static void serial_omap_rxdma_poll(unsigned long uart_no);
+ static int serial_omap_start_rxdma(struct uart_omap_port *up);
+ static void serial_omap_mdr1_errataset(struct uart_omap_port *up, u8 mdr1);
+ 
+@@ -542,7 +542,7 @@ static int serial_omap_startup(struct uart_port *port)
+ 			(dma_addr_t *)&(up->uart_dma.tx_buf_dma_phys),
+ 			0);
+ 		init_timer(&(up->uart_dma.rx_timer));
+-		up->uart_dma.rx_timer.function = serial_omap_rx_timeout;
++		up->uart_dma.rx_timer.function = serial_omap_rxdma_poll;
+ 		up->uart_dma.rx_timer.data = up->pdev->id;
+ 		/* Currently the buffer size is 4KB. Can increase it */
+ 		up->uart_dma.rx_buf = dma_alloc_coherent(NULL,
+@@ -1147,7 +1147,7 @@ static int serial_omap_resume(struct device *dev)
+ 	return 0;
+ }
+ 
+-static void serial_omap_rx_timeout(unsigned long uart_no)
++static void serial_omap_rxdma_poll(unsigned long uart_no)
  {
-+	if (cmdline_find_option("debug") &&
-+			cmdline_find_option(OMAP_SERIAL_NAME)) {
-+		uart_debug = true;
-+		pr_info("OMAP UART used as console in debug mode"
-+			" uart clocks will not be gated");
-+	}
-+
- 	do {
- 		struct omap_hwmod *oh;
- 
-@@ -380,7 +396,8 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
- 
- 	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
- 
--	if ((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
-+	if (((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
-+			&& !uart_debug)
- 		device_init_wakeup(&pdev->dev, true);
- 
- 	kfree(pdata);
+ 	struct uart_omap_port *up = ui[uart_no];
+ 	unsigned int curr_dma_pos, curr_transmitted_size;
+@@ -1157,9 +1157,9 @@ static void serial_omap_rx_timeout(unsigned long uart_no)
+ 	if ((curr_dma_pos == up->uart_dma.prev_rx_dma_pos) ||
+ 			     (curr_dma_pos == 0)) {
+ 		if (jiffies_to_msecs(jiffies - up->port_activity) <
+-							RX_TIMEOUT) {
++						up->uart_dma.rx_timeout) {
+ 			mod_timer(&up->uart_dma.rx_timer, jiffies +
+-				usecs_to_jiffies(up->uart_dma.rx_timeout));
++				usecs_to_jiffies(up->uart_dma.rx_poll_rate));
+ 		} else {
+ 			serial_omap_stop_rxdma(up);
+ 			up->ier |= (UART_IER_RDI | UART_IER_RLSI);
+@@ -1188,7 +1188,7 @@ static void serial_omap_rx_timeout(unsigned long uart_no)
+ 		}
+ 	} else  {
+ 		mod_timer(&up->uart_dma.rx_timer, jiffies +
+-			usecs_to_jiffies(up->uart_dma.rx_timeout));
++			usecs_to_jiffies(up->uart_dma.rx_poll_rate));
+ 	}
+ 	up->port_activity = jiffies;
+ }
+@@ -1227,7 +1227,7 @@ static int serial_omap_start_rxdma(struct uart_omap_port *up)
+ 	/* FIXME: Cache maintenance needed here? */
+ 	omap_start_dma(up->uart_dma.rx_dma_channel);
+ 	mod_timer(&up->uart_dma.rx_timer, jiffies +
+-				usecs_to_jiffies(up->uart_dma.rx_timeout));
++				usecs_to_jiffies(up->uart_dma.rx_poll_rate));
+ 	up->uart_dma.rx_dma_used = true;
+ 	return ret;
+ }
+@@ -1364,6 +1364,7 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 		up->use_dma = 1;
+ 		up->uart_dma.rx_buf_size = omap_up_info->dma_rx_buf_size;
+ 		up->uart_dma.rx_timeout = omap_up_info->dma_rx_timeout;
++		up->uart_dma.rx_poll_rate = omap_up_info->dma_rx_poll_rate;
+ 		spin_lock_init(&(up->uart_dma.tx_lock));
+ 		spin_lock_init(&(up->uart_dma.rx_lock));
+ 		up->uart_dma.tx_dma_channel = OMAP_UART_DMA_CH_FREE;
 -- 
 1.7.4.1
 
