@@ -1,110 +1,121 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 3/5 v12] arm: omap: usb: register hwmods of usbhs
-Date: Fri, 30 Sep 2011 14:56:40 +0530
-Message-ID: <CAP05o4+Ww=R-hOVMbW5St2ZvwrK5cmPtM5_5Gj2pV8W1tdiQ-Q@mail.gmail.com>
-References: <1317361318-28295-1-git-send-email-keshava_mgowda@ti.com>
-	<alpine.DEB.2.00.1109300113200.32653@utopia.booyaka.com>
-	<20110930073449.GA13825@legolas.emea.dhcp.ti.com>
-	<CAP05o4L1iR++BhYmYYEc-uV6pGfjBeSPPcFqhRizdBeV7Ko26g@mail.gmail.com>
-	<20110930091957.GC3458@legolas.emea.dhcp.ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 9/9] regulator: map consumer regulator based on device
+ tree
+Date: Fri, 30 Sep 2011 14:59:51 +0530
+Message-ID: <4E858C0F.5070405@ti.com>
+References: <1317118372-17052-1-git-send-email-rnayak@ti.com> <1317118372-17052-10-git-send-email-rnayak@ti.com> <20110930013819.GI12606@ponder.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110930091957.GC3458@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Paul Walmsley <paul@pwsan.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:39483 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755666Ab1I3JaA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Sep 2011 05:30:00 -0400
+Received: by yxi11 with SMTP id 11so1678798yxi.36
+        for <linux-omap@vger.kernel.org>; Fri, 30 Sep 2011 02:29:58 -0700 (PDT)
+In-Reply-To: <20110930013819.GI12606@ponder.secretlab.ca>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: broonie@opensource.wolfsonmicro.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org
 
-On Fri, Sep 30, 2011 at 2:49 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Fri, Sep 30, 2011 at 02:45:32PM +0530, Munegowda, Keshava wrote:
->> On Fri, Sep 30, 2011 at 1:04 PM, Felipe Balbi <balbi@ti.com> wrote:
->> > Hi,
->> >
->> > On Fri, Sep 30, 2011 at 01:15:55AM -0600, Paul Walmsley wrote:
->> >> > The hwmod structure of usb_host_hs =A0and usb_tll are
->> >> > retrieved and registered with omap device
->> >> >
->> >> > Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->> >> > Reviewed-by: Partha Basak <parthab@india.ti.com>
->> >> > ---
->> >> > =A0arch/arm/mach-omap2/usb-host.c | =A0100 ++++++++++++++------=
---------------------
->> >> > =A01 files changed, 34 insertions(+), 66 deletions(-)
->> >> >
->> >> > diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-oma=
-p2/usb-host.c
->> >> > index 89ae298..771dc78 100644
->> >> > --- a/arch/arm/mach-omap2/usb-host.c
->> >> > +++ b/arch/arm/mach-omap2/usb-host.c
->> >> > @@ -28,51 +28,28 @@
->> >>
->> >> > + =A0 oh[0] =3D omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
->> >> > + =A0 if (!oh[0]) {
->> >> > + =A0 =A0 =A0 =A0 =A0 pr_err("Could not look up %s\n", USBHS_UH=
-H_HWMODNAME);
->> >> > + =A0 =A0 =A0 =A0 =A0 return;
->> >> > =A0 =A0 }
->> >> >
->> >> > - =A0 if (platform_device_register(&usbhs_device) < 0)
->> >> > - =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "USBHS platform_device_re=
-gister failed\n");
->> >> > + =A0 oh[1] =3D omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
->> >> > + =A0 if (!oh[1]) {
->> >> > + =A0 =A0 =A0 =A0 =A0 pr_err("Could not look up %s\n", USBHS_TL=
-L_HWMODNAME);
->> >> > + =A0 =A0 =A0 =A0 =A0 return;
->> >> > + =A0 }
->> >> >
->> >> > -init_end:
->> >> > - =A0 return;
->> >> > + =A0 od =3D omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh=
-, 2,
->> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (void *)&=
-usbhs_data, sizeof(usbhs_data),
->> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uhht=
-ll_latency,
->> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ARRAY_SIZ=
-E(omap_uhhtll_latency), false);
->> >>
->> >> Usually there's something wrong with omap_devices that contain
->> >> multiple hwmods. =A0Is there some reason why there isn't a separa=
-te driver
->> >> for the TLL? =A0Judging by a brief look at drivers/mfd/omap_usb_h=
-ost.c, the
->> >> TLL handling looks logically distinct?
->> >
->> > Yes, I have the same feeling. To my understanding, USB Host Subsys=
-tem on
->> > OMAP is composed of the Transceiver-less link (TLL) and USB Host (=
-UHH).
->> > Aparently, they could be handled by separate drivers.
->> >
->> > --
->> > balbi
+On Friday 30 September 2011 07:08 AM, Grant Likely wrote:
+> On Tue, Sep 27, 2011 at 03:42:52PM +0530, Rajendra Nayak wrote:
+>> Look up the regulator for a given consumer from device tree, during
+>> a regulator_get(). If not found fallback and lookup through
+>> the regulator_map_list instead.
 >>
->> yes, it can be as two separate drivers for uhh and tll; =A0But i don=
-'t
->> think driver can be used effectively.
->> Now ehci and ohci gets the clocks , config reg and port settings
->> through usb host which is sufficient.
->> If you make them as two different drivers; then ehci and ohci has to
->> interact with both the drivers separately.
->> which will be an unnecessary complications. I feel not divided this
->> driver into two
+>> Devices can associate with one or more regulators by providing a
+>> list of phandles and supply names.
+>>
+>> For Example:
+>>          devicenode: node@0x0 {
+>>                  ...
+>>                  ...
+>>                  vmmc-supply =<&regulator1>;
+>>                  vpll-supply =<&regulator2>;
+>>          };
+>>
+>> When a device driver calls a regulator_get, specifying the
+>> supply name, the phandle and eventually the regulator node
+>> is extracted from the device node.
+>>
+>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>> ---
+>>   drivers/regulator/core.c         |   14 ++++++++++++++
+>>   include/linux/regulator/driver.h |    3 +++
+>>   2 files changed, 17 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+>> index d8e6a42..47b851c 100644
+>> --- a/drivers/regulator/core.c
+>> +++ b/drivers/regulator/core.c
+>> @@ -25,9 +25,11 @@
+>>   #include<linux/mutex.h>
+>>   #include<linux/suspend.h>
+>>   #include<linux/delay.h>
+>> +#include<linux/of.h>
+>>   #include<linux/regulator/consumer.h>
+>>   #include<linux/regulator/driver.h>
+>>   #include<linux/regulator/machine.h>
+>> +#include<linux/regulator/of_regulator.h>
+>>
+>>   #define CREATE_TRACE_POINTS
+>>   #include<trace/events/regulator.h>
+>> @@ -1155,6 +1157,7 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
+>>   	struct regulator_map *map;
+>>   	struct regulator *regulator = ERR_PTR(-ENODEV);
+>>   	const char *devname = NULL;
+>> +	struct device_node *node;
+>>   	int ret;
+>>
+>>   	if (id == NULL) {
+>> @@ -1167,6 +1170,15 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
+>>
+>>   	mutex_lock(&regulator_list_mutex);
+>>
+>> +	if (dev->of_node) {
+>> +		node = of_get_regulator(dev, id);
+>> +		if (!node)
+>> +			goto retry; /* fallback and chk regulator_map_list */
+>> +		list_for_each_entry(rdev,&regulator_list, list)
+>> +			if (node == rdev->node)
+>> +				goto found;
+>> +	}
+>> +retry:
+>>   	list_for_each_entry(map,&regulator_map_list, list) {
+>>   		/* If the mapping has a device set up it must match */
+>>   		if (map->dev_name&&
+>> @@ -2619,6 +2631,8 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
+>>   	rdev->reg_data = driver_data;
+>>   	rdev->owner = regulator_desc->owner;
+>>   	rdev->desc = regulator_desc;
+>> +	if (dev&&  dev->of_node)
+>> +		rdev->node = dev->of_node;
+>>   	INIT_LIST_HEAD(&rdev->consumer_list);
+>>   	INIT_LIST_HEAD(&rdev->list);
+>>   	BLOCKING_INIT_NOTIFIER_HEAD(&rdev->notifier);
+>> diff --git a/include/linux/regulator/driver.h b/include/linux/regulator/driver.h
+>> index 1a80bc7..4aebbf5 100644
+>> --- a/include/linux/regulator/driver.h
+>> +++ b/include/linux/regulator/driver.h
+>> @@ -196,6 +196,9 @@ struct regulator_dev {
+>>   	struct mutex mutex; /* consumer lock */
+>>   	struct module *owner;
+>>   	struct device dev;
+>> +#ifdef CONFIG_OF
+>> +	struct device_node *node;
+>> +#endif
 >
-> Come again, EHCI/OHCI need clocks from UHH and TLL ?? If that's the
-> case, then there's really no easy way to handle this as a device can
-> have only one parent.
+> There is already an of_node pointer in regulator_dev->dev.of_node.
+> Why does another need to be added here?
 
-yes,  if you are using ehci phy mode ( port modes of UHH_HOSTCONFIG reg=
-ister)
-then uhh functional ( omap3: interface clocks too) is sufficient;
-if you are using ehci in tll mode , then you need tll functional clock =
-too.
+Yes, I guess it doesn't. Will remove it.
+Thanks.
 
-regards
-keshava
+>
+> g.
+>
+
