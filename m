@@ -1,89 +1,47 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 2/5 v12] arm: omap: usb: ehci and ohci hwmod structures
- for omap3
-Date: Fri, 30 Sep 2011 16:03:23 +0530
-Message-ID: <CAP05o4+VPcMXn8hB6f2buyET1tR+KZu1tMm=xh5DKrrjsuomnw@mail.gmail.com>
-References: <1317361216-28248-1-git-send-email-keshava_mgowda@ti.com>
-	<alpine.DEB.2.00.1109300107150.32653@utopia.booyaka.com>
-	<alpine.DEB.2.00.1109300156140.12185@utopia.booyaka.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 8/9] regulator: helper to extract regulator node based on
+ supply name
+Date: Fri, 30 Sep 2011 11:35:50 +0100
+Message-ID: <20110930103516.GB4195@opensource.wolfsonmicro.com>
+References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
+ <1317118372-17052-9-git-send-email-rnayak@ti.com>
+ <20110927122155.GE4289@opensource.wolfsonmicro.com>
+ <4E81E281.505@ti.com>
+ <20110927185913.GU4289@opensource.wolfsonmicro.com>
+ <4E82D63A.7030207@ti.com>
+ <20110928122628.GF3279@opensource.wolfsonmicro.com>
+ <4E858D35.50903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1109300156140.12185@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:42541 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754105Ab1I3Kfv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Sep 2011 06:35:51 -0400
+Content-Disposition: inline
+In-Reply-To: <4E858D35.50903@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Girdwood, Liam" <lrg@ti.com>, "patches@linaro.org" <patches@linaro.org>
 
-On Fri, Sep 30, 2011 at 1:32 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi
->
-> a few more comments
->
-> On Fri, 30 Sep 2011, Paul Walmsley wrote:
->
->> On Fri, 30 Sep 2011, Keshava Munegowda wrote:
->>
->> > +static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_host_hs =3D =
-{
->> > + =A0 .master =A0 =A0 =A0 =A0 =3D &omap3xxx_l4_core_hwmod,
->> > + =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usb_host_hs_hwmod,
->> > + =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "l4_ick",
->> > + =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap34xx_usb_host_hs_addrs,
->> > + =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_SDMA,
->> > +};
->> > +
->> > +static struct omap_hwmod_ocp_if omap34xx_usb_host_hs__ick =3D {
->
-> This is missing master, slave, and addr fields. =A0But see the commen=
-t
-> below.
->
->> > + =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbhost_ick",
->> > + =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
->> > + =A0 .flags =A0 =A0 =A0 =A0 =A0=3D OCPIF_SWSUP_IDLE,
->>
->> Does this really need OCPIF_SWSUP_IDLE? =A0If so, then there is a ha=
-rdware
->> bug, and some explanation is needed.
->
-> Could you describe why there are two struct omap_hwmod_ocp_if records
-> here? =A0It seems to me that these should just be combined into one s=
-truct
-> omap_hwmod_ocp_if record? =A0Looking at the clock3xxx_data.c file, th=
-e
-> usbhost_ick struct clk has l4_ick as its parent, so l4_ick shouldn't =
-need
-> to be mentioned explicitly?
+On Fri, Sep 30, 2011 at 03:04:45PM +0530, Rajendra Nayak wrote:
+> On Wednesday 28 September 2011 05:56 PM, Mark Brown wrote:
+> >On Wed, Sep 28, 2011 at 10:09:30AM +0200, Cousson, Benoit wrote:
 
+> >>And even before DT migration, we used to build statically some
+> >>omap_device to represent the various processors in the system (MPU,
+> >>DSP, CortexM3...).
 
-Thanks ! I will do this.
+> >Yeah, but that's very OMAP specific - we don't have that in general (in
+> >fact it's the only Linux platform I'm aware of that has a device for the
+> >CPU).
 
+> But isn't this the right thing to do for everyone else too?
 
-
-=2E.
->
->> > +static struct omap_hwmod_ocp_if omap34xx_f_cfg__usb_tll_hs =3D {
->> > + =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbtll_ick",
->> > + =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
->> > + =A0 .flags =A0 =A0 =A0 =A0 =A0=3D OCPIF_SWSUP_IDLE,
->> > +};
->>
->> Does this really need OCPIF_SWSUP_IDLE? =A0If so, then there is a ha=
-rdware
->> bug, and some explanation is needed.
->>
->> > +
->> > +static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_tll_hs =3D {
->> > + =A0 .master =A0 =A0 =A0 =A0 =3D &omap3xxx_l4_core_hwmod,
->> > + =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usb_tll_hs_hwmod,
->> > + =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "l4_ick",
->> > + =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap34xx_usb_tll_hs_addrs,
->> > + =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_SDMA,
->> > +};
->
-> Same problem here. =A0Seems like omap34xx_l4_cfg__usb_tll_hs and
-> omap34xx_f_cfg__usb_tll_hs should be combined into one record.
-
-Thanks ! I will do this.
+That doesn't really matter so long as nobody else is actually doing it;
+you can't make a decision like this in an OMAP-specific fashion, you
+need to make sure everyone else is on board with the decision and make
+sure we've got at least at a high level way of representing the CPUs and
+SoCs in the device tree that people can buy into.
