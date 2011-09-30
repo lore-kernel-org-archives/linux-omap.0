@@ -1,113 +1,102 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCH 1/2] arm: omap4: hsmmc: Fix Pbias configuration on
- regulator OFF
-Date: Fri, 30 Sep 2011 20:46:51 +0530
-Message-ID: <CANrkHUaJr3L+y33j=za-j6Kcsv1dy-rt0URc_9GgzpfOjqPTZA@mail.gmail.com>
-References: <1317307500-5514-1-git-send-email-balajitk@ti.com>
-	<1317307500-5514-2-git-send-email-balajitk@ti.com>
-	<20110929162006.GG6324@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH-V3 2/4] arm:omap:am33xx: Update common OMAP machine
+	specific sources
+Date: Fri, 30 Sep 2011 10:09:03 -0700
+Message-ID: <87ehyyj6ts.fsf@ti.com>
+References: <hvaibhav@ti.com>
+	<1316529142-27564-3-git-send-email-hvaibhav@ti.com>
+	<87fwjjcfbt.fsf@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB5930257840691@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:35881 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751978Ab1I3PQx convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Sep 2011 11:16:53 -0400
-In-Reply-To: <20110929162006.GG6324@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930257840691@dbde02.ent.ti.com>
+	(Sanjeev Premi's message of "Fri, 30 Sep 2011 17:39:27 +0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "Mohammed, Afzal" <afzal@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, kishore.kadiyala@ti.com, vishp@ti.com
 
-On Thu, Sep 29, 2011 at 9:50 PM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * Balaji T K <balajitk@ti.com> [110929 07:11]:
->> MMC1 data line IO's are powered down in before set regulator functio=
-n.
->> IO's should not be powered ON when regulator is OFF.
->> Keep the IO's in power pown mode after regulator OFF.
->> Delete incorrect comments which are not applicable for OMAP4.
->
-> Care to check how this is different from what I added into fixes
-> branch as commit 3fe8df93b0992199e3a0026fc51e90b705f94e40?
->
-> Is this a separate issue?
+"Premi, Sanjeev" <premi@ti.com> writes:
 
-Yes.
-commit 3fe8df93b fixes USBC1 configuration.
-USBC1 IO was configured unnecessarily for MMC IO.
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hilman, Kevin
+>> Sent: Tuesday, September 27, 2011 12:16 AM
+>> To: Hiremath, Vaibhav
+>> Cc: linux-omap@vger.kernel.org; paul@pwsan.com; 
+>> tony@atomide.com; linux-arm-kernel@lists.infradead.org; 
+>> Mohammed, Afzal
+>> Subject: Re: [PATCH-V3 2/4] arm:omap:am33xx: Update common 
+>> OMAP machine specific sources
+>> 
+>> <hvaibhav@ti.com> writes:
+>> 
+>> > From: Afzal Mohammed <afzal@ti.com>
+>> >
+>> > This patch updates the common machine specific source files for
+>> > support for AM33XX/AM335x with cpu type, macros for 
+>> identification of
+>> > AM33XX/AM335X device.
+>> >
+>> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
+>> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> 
+>> [...]
+>> 
+>> > @@ -3576,7 +3579,8 @@ int __init omap3xxx_clk_init(void)
+>> >  	 * Lock DPLL5 -- here only until other device init code can
+>> >  	 * handle this
+>> >  	 */
+>> > -	if (!cpu_is_ti816x() && (omap_rev() >= OMAP3430_REV_ES2_0))
+>> > +	if (!cpu_is_ti816x() && !cpu_is_am33xx() &&
+>> > +			(omap_rev() >= OMAP3430_REV_ES2_0))
+>> >  		omap3_clk_lock_dpll5();
+>> 
+>> This is getting ugly.  
+>> 
+>> Instead of continuing to expand this if-list, I think it's time for a
+>> new feature-flag for whether or not an SoC has DPLL5 instead.
+>
+> I agree that the code is really getting ugly here. But, isn't
+> feature-flag going to be over-used with this and similar features?
+>
+> Just thinking ahead, for these possible cases:
+> 1) An soc adds DPLL6.
+> 2) An soc uses DPLL5, but mechanism to lock is different.
 
-This patch keeps the MMC IO's in power down after regulator OFF
-otherwise it generates VMODE_ERROR due to mismatch in input (regulator)
-voltage and MMC IO drive voltage.
+You're right.
 
->
-> Tony
->
->
->> Signed-off-by: Balaji T K <balajitk@ti.com>
->> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
->> Reported-by: Viswanath Puttagunta <vishp@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/hsmmc.c | =A0 14 ++------------
->> =A01 files changed, 2 insertions(+), 12 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc=
-=2Ec
->> index 097a42d..9cc2eb7 100644
->> --- a/arch/arm/mach-omap2/hsmmc.c
->> +++ b/arch/arm/mach-omap2/hsmmc.c
->> @@ -129,15 +129,11 @@ static void omap4_hsmmc1_before_set_reg(struct=
- device *dev, int slot,
->> =A0 =A0 =A0 =A0* Assume we power both OMAP VMMC1 (for CMD, CLK, DAT0=
-=2E.3) and the
->> =A0 =A0 =A0 =A0* card with Vcc regulator (from twl4030 or whatever).=
- =A0OMAP has both
->> =A0 =A0 =A0 =A0* 1.8V and 3.0V modes, controlled by the PBIAS regist=
-er.
->> - =A0 =A0 =A0*
->> - =A0 =A0 =A0* In 8-bit modes, OMAP VMMC1A (for DAT4..7) needs a sup=
-ply, which
->> - =A0 =A0 =A0* is most naturally TWL VSIM; those pins also use PBIAS=
-=2E
->> - =A0 =A0 =A0*
->> - =A0 =A0 =A0* FIXME handle VMMC1A as needed ...
->> =A0 =A0 =A0 =A0*/
->> =A0 =A0 =A0 reg =3D omap4_ctrl_pad_readl(control_pbias_offset);
->> =A0 =A0 =A0 reg &=3D ~(OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
->> - =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PWRDNZ_MASK);
->> + =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PWRDNZ_MASK |
->> + =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PBIASLITE_VMODE_MASK);
->> =A0 =A0 =A0 omap4_ctrl_pad_writel(reg, control_pbias_offset);
->> =A0}
->>
->> @@ -172,12 +168,6 @@ static void omap4_hsmmc1_after_set_reg(struct d=
-evice *dev, int slot,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg &=3D ~(OMAP4_MMC1_PW=
-RDNZ_MASK);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap4_ctrl_pad_writel(re=
-g, control_pbias_offset);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> - =A0 =A0 } else {
->> - =A0 =A0 =A0 =A0 =A0 =A0 reg =3D omap4_ctrl_pad_readl(control_pbias=
-_offset);
->> - =A0 =A0 =A0 =A0 =A0 =A0 reg |=3D (OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK=
- |
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PWRDNZ_MASK |
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PBIASLITE_VMODE=
-_MASK);
->> - =A0 =A0 =A0 =A0 =A0 =A0 omap4_ctrl_pad_writel(reg, control_pbias_o=
-ffset);
->> =A0 =A0 =A0 }
->> =A0}
->>
->> --
->> 1.7.0.4
->>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Wouldn't it be better to have a scheme like this:
+> 1) Define a simple structure for DPLLs.
+> 2) Initialize the unused DPLLs to be null/ -1 early
+>    in arch/soc specific init.
+> 3) The DPLL functions check for corresponding flag on
+>    entry.
+
+Actually, looking at this closer, I think the infrastructure is already
+there to handle this cleanly.
+
+Basically, dpll5 should not even be registered for SoCs where it doesn't
+exist.  Then, any attempts to use DPLL5 would know it doesn't exist
+because the call to clk_get() in omap3_clk_lock_dpll5() would fail.
+
+I think the clock3xxx_data.c needs a bit more cleanup so that only
+clocks that exist for a given SoC are registered.
+
+Paul already did a similar cleanup for the powerdomain data files by
+creating separate lists for common ones and unique ones.  Looks like we
+need the same for the clock data.
+
+Patches welcome.
+
+Kevin
