@@ -1,72 +1,36 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] dmtimer changes for v3.2 merge window
-Date: Sat, 01 Oct 2011 18:45:04 +0200
-Message-ID: <2793025.zWgRvMbLEl@wuerfel>
-References: <20110928220237.GE6324@atomide.com> <201109302213.42435.arnd@arndb.de>
+From: Peter Barada <peter.barada@gmail.com>
+Subject: cpufreq-info doesn't work in linux-3.0 on DM3730
+Date: Sat, 01 Oct 2011 13:32:19 -0400
+Message-ID: <4E874EA3.6060903@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:62736 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752337Ab1JAQpz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Oct 2011 12:45:55 -0400
-In-Reply-To: <201109302213.42435.arnd@arndb.de>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:58532 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750782Ab1JARbL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Oct 2011 13:31:11 -0400
+Received: by gyg10 with SMTP id 10so2355457gyg.19
+        for <linux-omap@vger.kernel.org>; Sat, 01 Oct 2011 10:31:10 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Friday 30 September 2011 22:13:42 Arnd Bergmann wrote:
-> On Thursday 29 September 2011, Tony Lindgren wrote:
-> > Please pull omap dmtimer changes from:
-> > 
-> > git://github.com/tmlind/linux.git dmtimer
-> > 
-> > This series completes the system timer separation from the
-> > driver like features. It also adds support for v2 ip that is
-> > available for some timers starting with omap4.
-> > 
-> > After this series arch/arm/plat-omap/dmtimer.c could be
-> > moved to live under drivers somewhere, but there is still
-> > discussion going on which features should be supported in
-> > a generic way.
-> > 
-> > This series depends on the cleanup you pulled earlier.
-> > As this series adds some new features like runtime PM suppport,
-> > I've kept it separate from cleanup.
-> 
-> Looks really nice. I've put it into another top-level branch
-> named next/dmtimer for now. I'm open for suggestions on whether
-> I should generally push branches like this separately Linuswards
-> or better aggregate multiple standalone features into a single
-> branch. 
+I'm trying to get frequency scaling working in linux-3.0, and it after 
+digging into why cpufreq-info works in 2.6.32 and doesn't in 3.0, I've 
+found that omap_cpu_init() returs -ENOENT due to clk_get(NULL, 
+"virt_prcm_set") failing.
 
-I'm adding the patch below to fix a trivial randconfig build regression
-in this series.
+In the older 2.6.32 kernel it used "arm_fck" for MPU_CLK instead of 
+"virt_prcm_set", but that option isn't in the linux-3.0 source (or the 
+current source in tony's tree on github.com).  I tried reverting to 
+"arm_fck", but on a DM3730 cpupfreq-info only shows 600Mhz as a 
+possibility, and none of the other operating points.
 
-	Arnd
+Does anyone have CPU frequency scaling working in linux-3.0 and have any 
+suggestions on what I'm doing wrong?
 
-8<---
+-- 
+Peter Barada
+peter.barada@gmail.com
 
-Subject: [PATCH] ARM: omap: use __devexit_p in dmtimer driver
-
-The omap_dm_timer_remove function gets discarded when
-CONFIG_HOTPLUG is not set, so we must not reference it
-unconditionally.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index de7896f..2def4e1 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -723,7 +723,7 @@ static int __devexit omap_dm_timer_remove(struct platform_device *pdev)
- 
- static struct platform_driver omap_dm_timer_driver = {
- 	.probe  = omap_dm_timer_probe,
--	.remove = omap_dm_timer_remove,
-+	.remove = __devexit_p(omap_dm_timer_remove),
- 	.driver = {
- 		.name   = "omap_timer",
- 	},
