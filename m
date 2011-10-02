@@ -1,64 +1,145 @@
-From: =?utf-8?B?5LuFMTDlhYPmr4/lpKk=?= <admin@com.dealwithapro.com>
-Subject: =?utf-8?B?576k5Y+R6L2v5Lu2K+S5sOWutuaQnOe0ouacuisxMDnlsYrlub/kuqTkvJrkubDlrrY=?=
-	=?utf-8?B?44CB5rW35YWz5pWw5o2uLEIyQuivouebmOS5sOWutjUwMOS4h+OAgg==?=
-Date: Sun, 2 Oct 2011 07:14:48 +0000 (UTC)
-Message-ID: <5B9984F0B2396BFCB50EA2F797918040@xrtvtrrtl>
-Reply-To: <911585605@qq.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH v3 3/3] ARM: OMAP: TI814X: Create board support and enable
+ build for TI8148 EVM
+Date: Sun, 02 Oct 2011 14:08:11 +0200
+Message-ID: <4E88542B.4010206@compulab.co.il>
+References: <1317258570-30494-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from dealwithapro.com ([173.165.92.17]:44062 "HELO
-	dealwithapro.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with SMTP id S1751488Ab1JBHOn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 03:14:43 -0400
-Date: Thu, 27 Sep 2012 18:56:12 +0800
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:59818
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752196Ab1JBMIY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 08:08:24 -0400
+In-Reply-To: <1317258570-30494-1-git-send-email-hemantp@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: links4networkltd@hotmail.com, linpengusa@aol.com, lins_12@hotmail.com, linsky_hz@163.com, linuxaz@azerimail.net, linux-omap@vger.kernel.org, linzybenz@hotmail.com, lion
+To: Hemant Pedanekar <hemantp@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-576k5Y+R6L2v5Lu2KzEwOeWxiuW5v+S6pOS8muS5sOWutuOAgea1t+WFs+aVsOaNruOAgeaQnOe0
-ouW8leaTjuS5sOWutixCMkLor6Lnm5jkubDlrrblhbE1MDDkuIcs5LuFMTDlhYPmr4/lpKnjgIIg
-DQrnvqTlj5Hova/ku7YrMTA55bGK5bm/5Lqk5Lya5Lmw5a6244CB5rW35YWz5pWw5o2u44CB5pCc
-57Si5byV5pOO5Lmw5a62LEIyQuivouebmOS5sOWutuWFsTUwMOS4hyzku4UxMOWFg+avj+WkqeOA
-giANCuS/neivgeavj+WkqemDveacieS5sOWutuWbnuWkjeOAgg0K5L+d6K+B5q+P5aSp6YO95pyJ
-5Lmw5a625Zue5aSN44CCDQrkv53or4Hmr4/lpKnpg73mnInkubDlrrblm57lpI3jgIINCg0KMeOA
-gee+pOWPkei9r+S7tu+8miDmk43kvZznroDljZXvvIzlip/og73lvLrlpKfvvIzmqKHku7/kurrl
-t6Xmk43kvZzmqKHlvI/vvIzliLDovr7njofpq5jvvIzml6Xlj5HpgIE15LiH5bCB5Lul5LiK44CC
-IA0KMuOAgTUwMOS4h+S5sOWutui1hOa6kO+8miDotaDpgIHnmoQ1MDDkuIfkubDlrrbotYTmupDl
-upPvvIzmm7TmlrAgKOWPr+S7peaMieeFp+aCqOeahOS6p+WTgeaPkOWPluWHuuadpe+8jOabtOey
-vuWHhuW8gOWPkSnjgIIgDQoz44CB6LaF57qn5rW35aSW5Lmw5a62RW1haWzmkJzntKLmnLrvvJog
-5YaF572u5LqGNjAw5LiH6KGM5Lia5YWz6ZSu6K+N77yM5qC55o2u6ZW/5bC+6K+N5pCc57Si77yM
-57uT5p6c5pu057K+56Gu5Yy56YWN77yb5q+P5aSp6IO95pCc57SiMS0y5LiH5Lul5LiK5Lmw5a62
-55yf5a6eRU1BSUzvvIzmiJDljZXnjofpq5jjgIIgDQogDQoNCuimgeeahOaKk+e0p+iBlOezu1FR
-OiA5MTE1ODU2MDUgICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDkxMTU4NTYwNUBxcS5jb20N
-CuimgeeahOaKk+e0p+iBlOezu1FROiA5MTE1ODU2MDUgICDmiJbogIXnq4vljbPlm57lpI3pgq7n
-rrE6IDkxMTU4NTYwNUBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiA5MTE1ODU2MDUgICDm
-iJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDkxMTU4NTYwNUBxcS5jb20NCiANCuWFjei0uei1oOmA
-gToNCuS4gOWFsTjkuKrljIUo5pWw5o2u5piv5YWo6KGM5Lia55qE77yM5oyJ54Wn6KGM5Lia5YiG
-5aW957G777yM5bm25LiU5Y+v5Lul5oyJ54Wn5YWz6ZSu6K+N5p+l6K+i55qEKe+8miANCjHvvIwy
-MDEx5pil5a2jMTA55bGK5bm/5Lqk5Lya5Lmw5a62546w5Zy66K+i55uY5pWw5o2u5bqT5paw6bKc
-5Ye654KJ77yM6LaF57qn5paw6bKc5Lmw5a6277yM5paw6bKc5pWw5o2u77yM5a655piT5oiQ5Y2V
-77yBIA0KMu+8jOi0reS5sOWQjuWPr+S7peWFjei0ueabtOaWsDIwMTHnp4vlraPlub/kuqTkvJor
-MjAxMuaYpeWto+W5v+S6pOS8muS5sOWutuaVsOaNruOAguWkqui2heWAvOS6huOAgg0KM++8jOac
-gOaWsOWFqOeQg+S5sOWutuW6kyzlhbE0NTE2NjDmnaHmlbDmja7jgIIgKOacgOaWsOabtOaWsOaX
-peacnyAyMDExLTA1LTE25pelKQ0KNO+8jDIwMDjlubQsMjAwOeW5tCwyMDEw5bm0IOaYpeWtoyvn
-p4vlraPlub/kuqTkvJrkubDlrrblkI3lvZXvvIwxMDMgMTA0IDEwNSAxMDYgMTA3IDEwOCDlhbHl
-ha3lsYog5YWxMTIwLjbkuIfmlbDmja7jgIINCjXvvIwyMDEw5bm05Zu96ZmF5L+D6ZSA5Y2P5Lya
-77yIUFBBSe+8ieaIkOWRmOWQjeWNlSBQUEFJIE1lbWJlcnMgRGlyZWN0b3J577yM6Z2e5bi46YeN
-6KaB55qE5aSn5Lmw5a6244CCDQo277yMMjAxMOW5tOWIsOmmmea4r+mHh+i0reeahOWbveWkluWu
-ouS6uuWQjeW9lSjpppnmuK/otLjlj5HlsYDmj5Dkvpsp77yM5YWxNy4y5LiH5pWw5o2u77yM6LaF
-57qn6YeN6KaB55qE5Lmw5a6244CCDQo377yMNDguNjjkuIfmnaHmnIDmlrDkubDlrrbor6Lnm5jv
-vIzotK3kubDlkI7mr4/mnIjmm7TmlrAgMS0y5LiH5p2h77yM5YyF5ousMumDqOWIhu+8jDHvvIzm
-nIDmlrDnmoTor6Lnm5ggMu+8jOacgOaWsOeahOWxleS8muS5sOWutuOAguWFjei0ueabtOaWsDM2
-5Liq5pyI44CCDQo477yMMjAwOeW5tOa1t+WFs+aPkOWNleaVsOaNrnBpZXJz54mI5pWw5o2uIDHl
-jYPkuIfjgIINCg0KDQror5rkv6HkuLrmnKzvvIzmlK/mjIHmlK/ku5jlrp3mi4Xkv53kuqTmmJMg
-KOWFiOWPkei0p+W5tuWuieijheiuvue9rue+pOWPkei9r+S7tu+8jOeEtuWQjuS7mOasvikg5b27
-5bqV5omT5raI5oKo55qEIOmhvuiZkeOAgg0KDQogDQoNCg0KIA0KDQrnsr7lh4bmlbDmja4t5oiQ
-5Y2V546H5p6B6auYDQrnsr7lh4bmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrnsr7lh4bmlbDmja4t
-5oiQ5Y2V546H5p6B6auYDQrnsr7lh4bmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrnsr7lh4bmlbDm
-ja4t5oiQ5Y2V546H5p6B6auYDQo=
+Hi Hemant,
 
+On 09/29/11 04:09, Hemant Pedanekar wrote:
+> This patch adds minimal support and build configuration for TI8148 EVM. Also
+> adds support for low level debugging on UART1 console on the EVM.
+> 
+> Note that existing TI8168 EVM file (board-ti8168evm.c) is updated with machine
+> info for TI8148 EVM and renamed as board-ti81xxevm.c.
 
+Should we really rename the existing file?
+Shouldn't we just stick to the name of the file submitted first?
+(e.g. board-ti8168evm.c) and just add the support for the new
+TI8148 EVM in to the existing file?
+Because, I don't see any real necessity in renaming that file.
+Also, it will spare the changes in Makefile.
 
+> 
+> Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig                        |    5 ++++
+>  arch/arm/mach-omap2/Makefile                       |    3 +-
+>  .../{board-ti8168evm.c => board-ti81xxevm.c}       |   22 ++++++++++++++-----
+>  arch/arm/plat-omap/include/plat/uncompress.h       |    3 ++
+>  4 files changed, 26 insertions(+), 7 deletions(-)
+>  rename arch/arm/mach-omap2/{board-ti8168evm.c => board-ti81xxevm.c} (66%)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index a3b9227..cc4f213 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -316,6 +316,11 @@ config MACH_TI8168EVM
+>  	depends on SOC_OMAPTI81XX
+>  	default y
+>  
+> +config MACH_TI8148EVM
+> +	bool "TI8148 Evaluation Module"
+> +	depends on SOC_OMAPTI81XX
+> +	default y
+> +
+>  config MACH_OMAP_4430SDP
+>  	bool "OMAP 4430 SDP board"
+>  	default y
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 5ee4cd6..1dc2c6b 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -239,7 +239,8 @@ obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o \
+>  obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
+>  
+>  obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o
+> -obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
+> +obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti81xxevm.o
+> +obj-$(CONFIG_MACH_TI8148EVM)		+= board-ti81xxevm.o
+>  
+>  # Platform specific device init code
+>  
+> diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti81xxevm.c
+> similarity index 66%
+> rename from arch/arm/mach-omap2/board-ti8168evm.c
+> rename to arch/arm/mach-omap2/board-ti81xxevm.c
+> index 7935fc9..b858921 100644
+> --- a/arch/arm/mach-omap2/board-ti8168evm.c
+> +++ b/arch/arm/mach-omap2/board-ti81xxevm.c
+> @@ -1,5 +1,5 @@
+>  /*
+> - * Code for TI8168 EVM.
+> + * Code for TI8168/TI8148 EVM.
+>   *
+>   * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
+>   *
+> @@ -24,15 +24,15 @@
+>  #include <plat/board.h>
+>  #include <plat/common.h>
+>  
+> -static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
+> +static struct omap_board_config_kernel ti81xx_evm_config[] __initdata = {
+>  };
+>  
+> -static void __init ti8168_evm_init(void)
+> +static void __init ti81xx_evm_init(void)
+>  {
+>  	omap_serial_init();
+>  	omap_sdrc_init(NULL, NULL);
+> -	omap_board_config = ti8168_evm_config;
+> -	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
+> +	omap_board_config = ti81xx_evm_config;
+> +	omap_board_config_size = ARRAY_SIZE(ti81xx_evm_config);
+>  }
+>  
+>  MACHINE_START(TI8168EVM, "ti8168evm")
+> @@ -42,5 +42,15 @@ MACHINE_START(TI8168EVM, "ti8168evm")
+>  	.init_early	= ti81xx_init_early,
+>  	.init_irq	= ti81xx_init_irq,
+>  	.timer		= &omap3_timer,
+> -	.init_machine	= ti8168_evm_init,
+> +	.init_machine	= ti81xx_evm_init,
+> +MACHINE_END
+> +
+> +MACHINE_START(TI8148EVM, "ti8148evm")
+> +	/* Maintainer: Texas Instruments */
+> +	.atag_offset	= 0x100,
+> +	.map_io		= ti81xx_map_io,
+> +	.init_early	= ti81xx_init_early,
+> +	.init_irq	= ti81xx_init_irq,
+> +	.timer		= &omap3_timer,
+> +	.init_machine	= ti81xx_evm_init,
+>  MACHINE_END
+> diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+> index 40336ad..8d052e7 100644
+> --- a/arch/arm/plat-omap/include/plat/uncompress.h
+> +++ b/arch/arm/plat-omap/include/plat/uncompress.h
+> @@ -175,6 +175,9 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
+>  		/* TI8168 base boards using UART3 */
+>  		DEBUG_LL_TI81XX(3, ti8168evm);
+>  
+> +		/* TI8148 base boards using UART1 */
+> +		DEBUG_LL_TI81XX(1, ti8148evm);
+> +
+>  	} while (0);
+>  }
+>  
+
+-- 
+Regards,
+Igor.
