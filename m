@@ -1,40 +1,74 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 07/30] ARM: omap: fix visibility of omap2_mbox_iva_priv
-Date: Sun,  2 Oct 2011 16:45:37 +0200
-Message-ID: <1317566760-25681-8-git-send-email-arnd@arndb.de>
+Subject: [PATCH 03/30] video/omap: fix build dependencies
+Date: Sun,  2 Oct 2011 16:45:33 +0200
+Message-ID: <1317566760-25681-4-git-send-email-arnd@arndb.de>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:58770 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752707Ab1JBOqy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 10:46:54 -0400
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-map2_mbox_iva_priv is used on multiple omap2 socs but is hidden
-in an outdated #ifdef that is specific to a single soc.
+Four of the LCD panel drivers depend on the backlight class,
+so add the dependency in Kconfig.
+Selecting the BACKLIGHT_CLASS_DEVICE symbol does not generally
+work since it has other dependencies.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/mailbox.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/video/omap2/displays/Kconfig |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 86d564a..5a2a0e4 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -257,7 +257,7 @@ struct omap_mbox mbox_dsp_info = {
- struct omap_mbox *omap3_mboxes[] = { &mbox_dsp_info, NULL };
- #endif
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+index 609a280..8e4278c 100644
+--- a/drivers/video/omap2/displays/Kconfig
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -19,13 +19,15 @@ config PANEL_LGPHILIPS_LB035Q02
+ config PANEL_SHARP_LS037V7DW01
+         tristate "Sharp LS037V7DW01 LCD Panel"
+         depends on OMAP2_DSS_DPI
+-        select BACKLIGHT_CLASS_DEVICE
++        depends on BACKLIGHT_CLASS_DEVICE
+         help
+           LCD Panel used in TI's SDP3430 and EVM boards
  
--#if defined(CONFIG_SOC_OMAP2420)
-+#if defined(CONFIG_ARCH_OMAP2)
- /* IVA */
- static struct omap_mbox2_priv omap2_mbox_iva_priv = {
- 	.tx_fifo = {
+ config PANEL_NEC_NL8048HL11_01B
+ 	tristate "NEC NL8048HL11-01B Panel"
+ 	depends on OMAP2_DSS_DPI
++	depends on SPI
++	depends on BACKLIGHT_CLASS_DEVICE
+ 	help
+ 		This NEC NL8048HL11-01B panel is TFT LCD
+ 		used in the Zoom2/3/3630 sdp boards.
+@@ -33,6 +35,7 @@ config PANEL_NEC_NL8048HL11_01B
+ config PANEL_TAAL
+         tristate "Taal DSI Panel"
+         depends on OMAP2_DSS_DSI
++        depends on BACKLIGHT_CLASS_DEVICE
+         help
+           Taal DSI command mode panel from TPO.
+ 
+@@ -45,7 +48,7 @@ config PANEL_TPO_TD043MTEA1
+ config PANEL_ACX565AKM
+ 	tristate "ACX565AKM Panel"
+ 	depends on OMAP2_DSS_SDI && SPI
+-	select BACKLIGHT_CLASS_DEVICE
++	depends on BACKLIGHT_CLASS_DEVICE
+ 	help
+ 	  This is the LCD panel used on Nokia N900
+ endmenu
 -- 
 1.7.5.4
-
