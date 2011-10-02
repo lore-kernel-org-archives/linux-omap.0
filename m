@@ -1,42 +1,49 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 19/30] tty/serial/omap: console can only be built-in
-Date: Sun,  2 Oct 2011 16:45:49 +0200
-Message-ID: <1317566760-25681-20-git-send-email-arnd@arndb.de>
+Subject: [PATCH 11/30] ARM: omap2/n8x0: work around modular omap mmc
+Date: Sun,  2 Oct 2011 16:45:41 +0200
+Message-ID: <1317566760-25681-12-git-send-email-arnd@arndb.de>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:58505 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.9]:51213 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752752Ab1JBOq7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 10:46:59 -0400
+	with ESMTP id S1752756Ab1JBOrB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 10:47:01 -0400
 In-Reply-To: <1317566760-25681-1-git-send-email-arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 
-When the omap serial driver is built as a module, we must
-not allow the console driver to be selected, because consoles
-can not be loadable modules.
+When the omap driver is built as a module for n8x0,
+n8x0_mmc_set_power_menelaus cannot call into the driver:
+
+arch/arm/mach-omap2/board-n8x0.c:374: undefined reference to `omap_mmc_notify_cover_event'
+
+As a workaround, do not provide that device in this case. This needs
+to be fixed properly, e.g. by converting n8x0 to be probed through the
+device tree and moving that code into the driver.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Govindraj.R <govindraj.raja@ti.com>
 ---
- drivers/tty/serial/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-n8x0.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/tty/serial/Kconfig b/drivers/tty/serial/Kconfig
-index 4dcb37bb..eb04b2f 100644
---- a/drivers/tty/serial/Kconfig
-+++ b/drivers/tty/serial/Kconfig
-@@ -1346,7 +1346,7 @@ config SERIAL_OMAP
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index e11f0c5..403325d 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -193,8 +193,9 @@ static struct omap_onenand_platform_data board_onenand_data[] = {
+ };
+ #endif
  
- config SERIAL_OMAP_CONSOLE
- 	bool "Console on OMAP serial port"
--	depends on SERIAL_OMAP
-+	depends on SERIAL_OMAP=y
- 	select SERIAL_CORE_CONSOLE
- 	help
- 	  Select this option if you would like to use omap serial port as
+-#if defined(CONFIG_MENELAUS) &&						\
+-	(defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE))
++#if defined(CONFIG_MENELAUS) && defined(CONFIG_MMC_OMAP)
++/* || defined(CONFIG_MMC_OMAP_MODULE)) */
++/* FIXME: cannot call omap_mmc_notify_cover_event for ONFIG_MMC_OMAP_MODULE */
+ 
+ /*
+  * On both N800 and N810, only the first of the two MMC controllers is in use.
 -- 
 1.7.5.4
 
