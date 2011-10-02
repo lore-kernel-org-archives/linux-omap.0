@@ -1,51 +1,94 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 06/30] ARM: omap: fix build with CONFIG_I2C_OMAP disabled
-Date: Sun,  2 Oct 2011 16:45:36 +0200
-Message-ID: <1317566760-25681-7-git-send-email-arnd@arndb.de>
+Subject: [PATCH 17/30] usb/musb: allow building USB_MUSB_TUSB6010 as a module
+Date: Sun,  2 Oct 2011 16:45:47 +0200
+Message-ID: <1317566760-25681-18-git-send-email-arnd@arndb.de>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:54434 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752750Ab1JBOq7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 10:46:59 -0400
 In-Reply-To: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>
 
-We must not reference omap_i2c_reset if the file defining it
-does not get built.
+Commit 1376d92f9 "usb: musb: allow musb and glue layers to be modules"
+made the USB_MUSB_TUSB6010 option modular, but actually building
+the driver as a module does not work, so various randconfig builds
+actually fail. This changes all code that depends on the
+option to also check for modular builds, and exports the necessary
+symbols.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/plat-omap/include/plat/i2c.h |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/board-n8x0.c |    2 +-
+ drivers/usb/musb/musb_core.c     |    3 ++-
+ drivers/usb/musb/musb_io.h       |    2 +-
+ drivers/usb/musb/tusb6010.c      |    1 +
+ 4 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/i2c.h b/arch/arm/plat-omap/include/plat/i2c.h
-index 7c22b9e..ae72013 100644
---- a/arch/arm/plat-omap/include/plat/i2c.h
-+++ b/arch/arm/plat-omap/include/plat/i2c.h
-@@ -28,6 +28,8 @@
- extern int omap_register_i2c_bus(int bus_id, u32 clkrate,
- 				 struct i2c_board_info const *info,
- 				 unsigned len);
-+struct omap_hwmod;
-+int omap_i2c_reset(struct omap_hwmod *oh);
- #else
- static inline int omap_register_i2c_bus(int bus_id, u32 clkrate,
- 				 struct i2c_board_info const *info,
-@@ -35,6 +37,7 @@ static inline int omap_register_i2c_bus(int bus_id, u32 clkrate,
- {
- 	return 0;
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index 403325d..c096dc2 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -46,7 +46,7 @@ static struct device *mmc_device;
+ #define TUSB6010_GPIO_ENABLE	0
+ #define TUSB6010_DMACHAN	0x3f
+ 
+-#ifdef CONFIG_USB_MUSB_TUSB6010
++#if defined(CONFIG_USB_MUSB_TUSB6010) || defined(CONFIG_USB_MUSB_TUSB6010_MODULE)
+ /*
+  * Enable or disable power to TUSB6010. When enabling, turn on 3.3 V and
+  * 1.5 V voltage regulators of PM companion chip. Companion chip will then
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 20a2873..9fa2596 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1432,7 +1432,7 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+ 		struct musb_hw_ep	*hw_ep = musb->endpoints + i;
+ 
+ 		hw_ep->fifo = MUSB_FIFO_OFFSET(i) + mbase;
+-#ifdef CONFIG_USB_MUSB_TUSB6010
++#if defined(CONFIG_USB_MUSB_TUSB6010) || defined (CONFIG_USB_MUSB_TUSB6010_MODULE)
+ 		hw_ep->fifo_async = musb->async + 0x400 + MUSB_FIFO_OFFSET(i);
+ 		hw_ep->fifo_sync = musb->sync + 0x400 + MUSB_FIFO_OFFSET(i);
+ 		hw_ep->fifo_sync_va =
+@@ -1632,6 +1632,7 @@ void musb_dma_completion(struct musb *musb, u8 epnum, u8 transmit)
+ 		}
+ 	}
  }
-+#define omap_i2c_reset NULL
- #endif
++EXPORT_SYMBOL_GPL(musb_dma_completion);
  
- /**
-@@ -53,7 +56,4 @@ struct omap_i2c_dev_attr {
- void __init omap1_i2c_mux_pins(int bus_id);
- void __init omap2_i2c_mux_pins(int bus_id);
+ #else
+ #define use_dma			0
+diff --git a/drivers/usb/musb/musb_io.h b/drivers/usb/musb/musb_io.h
+index 03c6ccd..e61aa95 100644
+--- a/drivers/usb/musb/musb_io.h
++++ b/drivers/usb/musb/musb_io.h
+@@ -74,7 +74,7 @@ static inline void musb_writel(void __iomem *addr, unsigned offset, u32 data)
+ 	{ __raw_writel(data, addr + offset); }
  
--struct omap_hwmod;
--int omap_i2c_reset(struct omap_hwmod *oh);
--
- #endif /* __ASM__ARCH_OMAP_I2C_H */
+ 
+-#ifdef CONFIG_USB_MUSB_TUSB6010
++#if defined(CONFIG_USB_MUSB_TUSB6010) || defined (CONFIG_USB_MUSB_TUSB6010_MODULE)
+ 
+ /*
+  * TUSB6010 doesn't allow 8-bit access; 16-bit access is the minimum.
+diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+index ec14801..1f40561 100644
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -56,6 +56,7 @@ u8 tusb_get_revision(struct musb *musb)
+ 
+ 	return rev;
+ }
++EXPORT_SYMBOL_GPL(tusb_get_revision);
+ 
+ static int tusb_print_revision(struct musb *musb)
+ {
 -- 
 1.7.5.4
+
