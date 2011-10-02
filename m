@@ -1,107 +1,88 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 15/30] usb/musb: use a Kconfig choice to pick the right
- DMA method
-Date: Sun, 2 Oct 2011 21:56:09 +0300
-Message-ID: <20111002185608.GA25690@legolas.emea.dhcp.ti.com>
+Subject: Re: [PATCH 16/30] usb/musb: HDRC depends on TWL4030_CORE for OMAP3/4
+Date: Sun, 2 Oct 2011 21:59:54 +0300
+Message-ID: <20111002185953.GB25690@legolas.emea.dhcp.ti.com>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
- <1317566760-25681-16-git-send-email-arnd@arndb.de>
- <20111002161447.GC12323@n2100.arm.linux.org.uk>
- <1757336.Qk72n3s00p@wuerfel>
+	<1317566760-25681-17-git-send-email-arnd@arndb.de>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AqsLC8rIMeq19msA"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:57926 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751716Ab1JBS4Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 14:56:16 -0400
-Content-Disposition: inline
-In-Reply-To: <1757336.Qk72n3s00p@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1965775576=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1317566760-25681-17-git-send-email-arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
 
---AqsLC8rIMeq19msA
+--===============1965775576==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VrqPEDrXMn8OVzN4"
+Content-Disposition: inline
+
+
+--VrqPEDrXMn8OVzN4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sun, Oct 02, 2011 at 08:00:31PM +0200, Arnd Bergmann wrote:
-> On Sunday 02 October 2011 17:14:47 Russell King - ARM Linux wrote:
-> > On Sun, Oct 02, 2011 at 04:45:45PM +0200, Arnd Bergmann wrote:
-> > > The logic to allow only one DMA driver in MUSB is currently
-> > > flawed, because it also allows picking no DMA driver at all
-> > > and also not selecting PIO mode.
-> > >=20
-> > > Using a choice statement makes this foolproof for now and
-> > > also simplifies the Makefile.
-> > >=20
-> > > Unfortunately, we will have to revisit this when we start
-> > > supporting multiple ARM platforms in a single kernel binary,
-> > > because at that point we will actually need to select
-> > > multiple DMA drivers and pick the right one at run-time.
-> >=20
-> > I thought there was some work going on to convert this to use the
-> > dmaengine stuff?
->=20
-> That would certainly be the best solution here, I wasn't aware
-> that it has already been discussed.
->=20
-> Unfortunately, even with the dma parts out of the way there is
-> a lot that needs to be done to make musb, ehci or ohci
-> really cross-platform. Right now, you can only have one
-> platform driver glue for each of those drivers, and they
+On Sun, Oct 02, 2011 at 04:45:46PM +0200, Arnd Bergmann wrote:
+> The musb_hdrc driver tries to select TWL4030_USB or TWL6030_USB
+> on some platforms, but those symbols in turn depend on TWL4030_CORE.
 
-that's not true for musb. I can already compile am35x and omap2430
-together. TUSB is a different story though. With a small effort, we
-could also allow DaVinci and the like to compile cleanly and work.
+the very fact that MUSB tries to select those is wrong. That's also some
+buggy legacy crap which is still floating around...
 
-> should eventually be converted to a large library module for
-> the core, with independent platform driver front-end, similar
+MUSB does not depend on TWL4030. MUSB depends on a PHY being available,
+no matter which one.
 
-that's how MUSB works now and that's what I have been discussing with
-Alan Stern for the past month or so, wrt to *HCI. There are even patches
-floating on linux-usb right now trying to hash out the problems.
+IMHO, this would be better moved to board definition, ideally with an
+option for selecting some symbol as module (as I have suggested before).
 
-Maybe you should have consulted the maintainers of those drivers before
-making such statements.
-
-MUSB is not the best example because of its history. I understand the
-DMA part is still really messy, but we have been working very hard to
-hash the problems and still allow new glue layers to be merged.
-
-How about taking a sneak pick at what the code does right now ? As of
-today, I can even even have *all* UDC controller drivers into one kernel
-and I generally compile x86 with all controllers available. There's some
-very small work that has to be done on each of the UDC drivers to remove
-any references to <arch/..> <asm/..> and <plat/..> headers but that work
-in in progress.
-
-Also, when sending USB patches, be sure to Cc linux-usb@vger where most
-of the discussion is happening.
+Ideally, all those broken dependencies on MUSB would be cut down to
+depends on USB && USB_GADGET.
 
 --=20
 balbi
 
---AqsLC8rIMeq19msA
+--VrqPEDrXMn8OVzN4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOiLPIAAoJEAv8Txj19kN191wH/3b4CBnKS2hwhKbrh1fHxkhL
-bbtL6AG/HzwG9nrRjBalCOuw2WlOGMPbFZoFdTZQ8DMIlaaK6pyaC3P8iNnVeNgC
-8Q6NUCT2Aj9M01vhs0zo5IJ8X1QlXktQld2W5UR5oSHe5yfMNACfnZ88ljhPJxL3
-os6fFBxZVNbEUIvgzsh+NpGaSqYTLLInPtsvTKDHPSTx4vmHFEfwaXmoCffg7afq
-ZV3OBQ6QPjg9J2jxy5VqytmCSGdtMjWKIZ7xVUR+gpArT3hDA+NwqAC6YvvM/Irw
-1gT21fs5Bw8i2jFoZaLSui8BXUqIt31OAAiRwML3tIIOfJYsQp6zzTMcTQEPwlo=
-=+RyM
+iQEcBAEBAgAGBQJOiLSpAAoJEAv8Txj19kN18DcH+wSGtsmnq2ROFyLlYU8FYK+4
+1+yjEznbrqsifO0SfhiO1fI3QO9uNcMtxjuvbmvcpQErTUfx3omubM1Gwv/ea3YT
+y5WbxScvwyqhWtXqNhSwPz9XeF1xRkxqyPHRD+IkQhbA8PMFW0Iyfev2jHJuRcua
+T/xdPGw/9z6igxjj6AYQvWP1mUJJDI0POavpm8nqhM5IS3nKqd1i2C/ydyz5PBqV
+aatvMsSFyzjuyMq5qW4zeQB+p8FTvX3voerwhCrvJqm0XL3wQeiPppkVKVoekNsm
+vlSKemqAyRnjbsqENLcv50yYQTIj1Tn7yVkZJuj9ur68UuBUelDB6xGJFSTSpCs=
+=Pw7r
 -----END PGP SIGNATURE-----
 
---AqsLC8rIMeq19msA--
+--VrqPEDrXMn8OVzN4--
+
+
+--===============1965775576==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============1965775576==--
