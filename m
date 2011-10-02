@@ -1,101 +1,42 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 00/30] ARM/omap: omap specific randconfig fixes
-Date: Sun,  2 Oct 2011 16:45:30 +0200
-Message-ID: <1317566760-25681-1-git-send-email-arnd@arndb.de>
+Subject: [PATCH 16/30] usb/musb: HDRC depends on TWL4030_CORE for OMAP3/4
+Date: Sun,  2 Oct 2011 16:45:46 +0200
+Message-ID: <1317566760-25681-17-git-send-email-arnd@arndb.de>
+References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:51979 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.10]:60055 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725Ab1JBOqz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 10:46:55 -0400
+	with ESMTP id S1752742Ab1JBOq6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 10:46:58 -0400
+In-Reply-To: <1317566760-25681-1-git-send-email-arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>
 
-Hi Tony,
+The musb_hdrc driver tries to select TWL4030_USB or TWL6030_USB
+on some platforms, but those symbols in turn depend on TWL4030_CORE.
+Trying not to spread the 'select' further, this makes the driver
+depend on the TWL4030_CORE for the platforms that do other selects.
 
-I've mentioned these patches before, and now I've managed to
-go through them again and clean them enough for submission.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Felipe Balbi <balbi@ti.com>
+---
+ drivers/usb/musb/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-If nobody has any objections, I would like to send them to
-Linus in the coming merge window, otherwise it would be nice
-if you could pick the ones that look good to you and send
-me a pull request. If any of these look like they should be
-backported to stable kernels, please tell me and I'll add
-a cc:stable@k.o tag.
-
-The entire set is also available from
- git pull git://git.linaro.org/people/arnd/arm-soc.git randconfig/omap
-
-but I have not yet pulled them into the for-next branch.
-
-	Arnd
-
-Arnd Bergmann (30):
-  sound/omap: omap_mcpdm_remove cannot be __devexit
-  video/omap: fix dependencies
-  video/omap: fix build dependencies
-  ARM: omap: add missing __devexit_p() annotations
-  ARM: omap: enable building omap2 without omap2420/2430
-  ARM: omap: fix build with CONFIG_I2C_OMAP disabled
-  ARM: omap: fix visibility of omap2_mbox_iva_priv
-  ARM: omap2+: fix building without i2c
-  ARM: omap2: export functions used by nand driver
-  ARM: omap/iommu: always provide iommu debug code
-  ARM: omap2/n8x0: work around modular omap mmc
-  ARM: omap4: always build omap_phy_internal
-  ARM: omap2+: fix omap_hdq_init compilation
-  ARM: omap2: irq.c is always needed
-  usb/musb: use a Kconfig choice to pick the right DMA method
-  usb/musb: HDRC depends on TWL4030_CORE for OMAP3/4
-  usb/musb: allow building USB_MUSB_TUSB6010 as a module
-  omap-usb: automatically select MFD_OMAP_USB_HOST
-  tty/serial/omap: console can only be built-in
-  media/omap_vout: disable driver for now
-  sound/soc/omap: limit to omap2plus
-  mfd: build twl6030 only on omap2
-  ARM: omap2: select twl4030 support on boards that need it
-  ARM: omap2+: ensure that one of omap2/3/4 is selected
-  ARM: OMAP depends on MMU
-  ARM: omap: add board autoselection
-  ARM: omap: select L2X0 cache on omap4
-  ARM: omap: select CPU_FREQ_TABLE where needed
-  ARM: omap: select USB_ARCH_HAS_EHCI only when USB is enabled
-  ARM: omap2: select ARM_AMBA for OMAP3_EMU
-
- arch/arm/Kconfig                           |    1 +
- arch/arm/mach-omap2/Kconfig                |   61 +++++++++++++++++++++++++-
- arch/arm/mach-omap2/Makefile               |   12 ++---
- arch/arm/mach-omap2/board-n8x0.c           |    7 ++-
- arch/arm/mach-omap2/devices.c              |   10 +++--
- arch/arm/mach-omap2/gpmc.c                 |    2 +
- arch/arm/mach-omap2/mailbox.c              |    2 +-
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    2 +-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
- arch/arm/mach-omap2/smartreflex.c          |    2 +-
- arch/arm/plat-omap/Kconfig                 |    5 ++
- arch/arm/plat-omap/dma.c                   |    2 +-
- arch/arm/plat-omap/include/plat/i2c.h      |    6 +-
- arch/arm/plat-omap/include/plat/multi.h    |    5 ++
- arch/arm/plat-omap/iommu.c                 |    2 +-
- drivers/media/video/omap/Kconfig           |    1 +
- drivers/mfd/Kconfig                        |    6 +-
- drivers/tty/serial/Kconfig                 |    2 +-
- drivers/usb/musb/Kconfig                   |   58 +++++++++++++++----------
- drivers/usb/musb/Makefile                  |   26 ++----------
- drivers/usb/musb/musb_core.c               |    3 +-
- drivers/usb/musb/musb_io.h                 |    2 +-
- drivers/usb/musb/tusb6010.c                |    1 +
- drivers/video/omap/Kconfig                 |   41 ++++++++++++++++--
- drivers/video/omap/Makefile                |   64 +++++++++++++---------------
- drivers/video/omap2/displays/Kconfig       |    7 ++-
- sound/soc/omap/Kconfig                     |    2 +-
- sound/soc/omap/mcpdm.c                     |    2 +-
- sound/soc/omap/mcpdm.h                     |    2 +-
- 31 files changed, 221 insertions(+), 121 deletions(-)
-
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index d596fb2..b6732ee 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -7,6 +7,7 @@
+ config USB_MUSB_HDRC
+ 	depends on USB && USB_GADGET
+ 	depends on (ARM || (BF54x && !BF544) || (BF52x && !BF522 && !BF523))
++	depends on TWL4030_CORE || !(MACH_OMAP_3430SDP || MACH_OMAP_4430SDP || MACH_OMAP4_PANDA)
+ 	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM || BLACKFIN)
+ 	select TWL4030_USB if MACH_OMAP_3430SDP
+ 	select TWL6030_USB if MACH_OMAP_4430SDP || MACH_OMAP4_PANDA
 -- 
 1.7.5.4
 
