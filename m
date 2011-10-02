@@ -1,36 +1,42 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 21/30] sound/soc/omap: limit to omap2plus
-Date: Sun,  2 Oct 2011 16:45:51 +0200
-Message-ID: <1317566760-25681-22-git-send-email-arnd@arndb.de>
+Subject: [PATCH 22/30] mfd: build twl6030 only on omap2
+Date: Sun,  2 Oct 2011 16:45:52 +0200
+Message-ID: <1317566760-25681-23-git-send-email-arnd@arndb.de>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1317566760-25681-1-git-send-email-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Samuel Ortiz <sameo@linux.intel.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Balaji T K <balajitk@ti.com>, Hemanth V <hemanthv@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-These drivers do not build correctly on omap1, so only allow
-selecting them on omap2 or higher.
+We can only have one pwm driver built into the kernel, so make sure
+that this one is only available on omap2 to avoid conflicts with
+pwm drivers of other platforms.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Liam Girdwood <lrg@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Balaji T K <balajitk@ti.com>
+Cc: Hemanth V <hemanthv@ti.com>
 ---
- sound/soc/omap/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/mfd/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index fe83d0d..493733e 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -1,6 +1,6 @@
- config SND_OMAP_SOC
- 	tristate "SoC Audio for the Texas Instruments OMAP chips"
--	depends on ARCH_OMAP
-+	depends on ARCH_OMAP2PLUS
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 48cce35..26bebe8 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -256,8 +256,8 @@ config MFD_TWL4030_AUDIO
+ 	default n
  
- config SND_OMAP_SOC_MCBSP
- 	tristate
+ config TWL6030_PWM
+-	tristate "TWL6030 PWM (Pulse Width Modulator) Support"
+-	depends on TWL4030_CORE
++	bool "TWL6030 PWM (Pulse Width Modulator) Support"
++	depends on TWL4030_CORE && ARCH_OMAP2
+ 	select HAVE_PWM
+ 	default n
+ 	help
 -- 
 1.7.5.4
