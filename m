@@ -1,94 +1,42 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 17/30] usb/musb: allow building USB_MUSB_TUSB6010 as a module
-Date: Sun,  2 Oct 2011 16:45:47 +0200
-Message-ID: <1317566760-25681-18-git-send-email-arnd@arndb.de>
+Subject: [PATCH 19/30] tty/serial/omap: console can only be built-in
+Date: Sun,  2 Oct 2011 16:45:49 +0200
+Message-ID: <1317566760-25681-20-git-send-email-arnd@arndb.de>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:54434 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.187]:58505 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752750Ab1JBOq7 (ORCPT
+	with ESMTP id S1752752Ab1JBOq7 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 10:46:59 -0400
 In-Reply-To: <1317566760-25681-1-git-send-email-arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, "Govindraj.R" <govindraj.raja@ti.com>
 
-Commit 1376d92f9 "usb: musb: allow musb and glue layers to be modules"
-made the USB_MUSB_TUSB6010 option modular, but actually building
-the driver as a module does not work, so various randconfig builds
-actually fail. This changes all code that depends on the
-option to also check for modular builds, and exports the necessary
-symbols.
+When the omap serial driver is built as a module, we must
+not allow the console driver to be selected, because consoles
+can not be loadable modules.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Felipe Balbi <balbi@ti.com>
+Cc: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/board-n8x0.c |    2 +-
- drivers/usb/musb/musb_core.c     |    3 ++-
- drivers/usb/musb/musb_io.h       |    2 +-
- drivers/usb/musb/tusb6010.c      |    1 +
- 4 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/tty/serial/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 403325d..c096dc2 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -46,7 +46,7 @@ static struct device *mmc_device;
- #define TUSB6010_GPIO_ENABLE	0
- #define TUSB6010_DMACHAN	0x3f
+diff --git a/drivers/tty/serial/Kconfig b/drivers/tty/serial/Kconfig
+index 4dcb37bb..eb04b2f 100644
+--- a/drivers/tty/serial/Kconfig
++++ b/drivers/tty/serial/Kconfig
+@@ -1346,7 +1346,7 @@ config SERIAL_OMAP
  
--#ifdef CONFIG_USB_MUSB_TUSB6010
-+#if defined(CONFIG_USB_MUSB_TUSB6010) || defined(CONFIG_USB_MUSB_TUSB6010_MODULE)
- /*
-  * Enable or disable power to TUSB6010. When enabling, turn on 3.3 V and
-  * 1.5 V voltage regulators of PM companion chip. Companion chip will then
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 20a2873..9fa2596 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1432,7 +1432,7 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
- 		struct musb_hw_ep	*hw_ep = musb->endpoints + i;
- 
- 		hw_ep->fifo = MUSB_FIFO_OFFSET(i) + mbase;
--#ifdef CONFIG_USB_MUSB_TUSB6010
-+#if defined(CONFIG_USB_MUSB_TUSB6010) || defined (CONFIG_USB_MUSB_TUSB6010_MODULE)
- 		hw_ep->fifo_async = musb->async + 0x400 + MUSB_FIFO_OFFSET(i);
- 		hw_ep->fifo_sync = musb->sync + 0x400 + MUSB_FIFO_OFFSET(i);
- 		hw_ep->fifo_sync_va =
-@@ -1632,6 +1632,7 @@ void musb_dma_completion(struct musb *musb, u8 epnum, u8 transmit)
- 		}
- 	}
- }
-+EXPORT_SYMBOL_GPL(musb_dma_completion);
- 
- #else
- #define use_dma			0
-diff --git a/drivers/usb/musb/musb_io.h b/drivers/usb/musb/musb_io.h
-index 03c6ccd..e61aa95 100644
---- a/drivers/usb/musb/musb_io.h
-+++ b/drivers/usb/musb/musb_io.h
-@@ -74,7 +74,7 @@ static inline void musb_writel(void __iomem *addr, unsigned offset, u32 data)
- 	{ __raw_writel(data, addr + offset); }
- 
- 
--#ifdef CONFIG_USB_MUSB_TUSB6010
-+#if defined(CONFIG_USB_MUSB_TUSB6010) || defined (CONFIG_USB_MUSB_TUSB6010_MODULE)
- 
- /*
-  * TUSB6010 doesn't allow 8-bit access; 16-bit access is the minimum.
-diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
-index ec14801..1f40561 100644
---- a/drivers/usb/musb/tusb6010.c
-+++ b/drivers/usb/musb/tusb6010.c
-@@ -56,6 +56,7 @@ u8 tusb_get_revision(struct musb *musb)
- 
- 	return rev;
- }
-+EXPORT_SYMBOL_GPL(tusb_get_revision);
- 
- static int tusb_print_revision(struct musb *musb)
- {
+ config SERIAL_OMAP_CONSOLE
+ 	bool "Console on OMAP serial port"
+-	depends on SERIAL_OMAP
++	depends on SERIAL_OMAP=y
+ 	select SERIAL_CORE_CONSOLE
+ 	help
+ 	  Select this option if you would like to use omap serial port as
 -- 
 1.7.5.4
 
