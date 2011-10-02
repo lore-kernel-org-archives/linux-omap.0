@@ -1,42 +1,38 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 25/30] ARM: OMAP depends on MMU
-Date: Sun,  2 Oct 2011 16:45:55 +0200
-Message-ID: <1317566760-25681-26-git-send-email-arnd@arndb.de>
+Subject: [PATCH 10/30] ARM: omap/iommu: always provide iommu debug code
+Date: Sun,  2 Oct 2011 16:45:40 +0200
+Message-ID: <1317566760-25681-11-git-send-email-arnd@arndb.de>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:55222 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752768Ab1JBOrD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 10:47:03 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+List-Id: linux-omap@vger.kernel.org
 
-There is no way to build OMAP kernels without an MMU
-at this point because of dependencies on MMU-only functions.
-
-As long as nobody is interested in fixing this, let's just disable
-this platforms for nommu kernels.
+The iommu module on omap contains a few functions that are
+only used by the debug module. These are however only there
+when the debug code is built as a module. Since it is possible
+to build the debug code into the kernel, the functions should
+also be provided for the built-in case.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arm/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/iommu.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 5ebc5d9..e688ca4 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -875,6 +875,7 @@ config ARCH_DAVINCI
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index 34fc31e..9d43ce1 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -391,7 +391,7 @@ void iommu_set_twl(struct iommu *obj, bool on)
+ }
+ EXPORT_SYMBOL_GPL(iommu_set_twl);
  
- config ARCH_OMAP
- 	bool "TI OMAP"
-+	depends on MMU
- 	select HAVE_CLK
- 	select ARCH_REQUIRE_GPIOLIB
- 	select ARCH_HAS_CPUFREQ
+-#if defined(CONFIG_OMAP_IOMMU_DEBUG_MODULE)
++#if defined(CONFIG_OMAP_IOMMU_DEBUG) || defined(CONFIG_OMAP_IOMMU_DEBUG_MODULE)
+ 
+ ssize_t iommu_dump_ctx(struct iommu *obj, char *buf, ssize_t bytes)
+ {
 -- 
 1.7.5.4
-
