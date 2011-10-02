@@ -1,74 +1,101 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 03/30] video/omap: fix build dependencies
-Date: Sun,  2 Oct 2011 16:45:33 +0200
-Message-ID: <1317566760-25681-4-git-send-email-arnd@arndb.de>
-References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 00/30] ARM/omap: omap specific randconfig fixes
+Date: Sun,  2 Oct 2011 16:45:30 +0200
+Message-ID: <1317566760-25681-1-git-send-email-arnd@arndb.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.186]:51979 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752725Ab1JBOqz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Oct 2011 10:46:55 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 
-Four of the LCD panel drivers depend on the backlight class,
-so add the dependency in Kconfig.
-Selecting the BACKLIGHT_CLASS_DEVICE symbol does not generally
-work since it has other dependencies.
+Hi Tony,
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/displays/Kconfig |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+I've mentioned these patches before, and now I've managed to
+go through them again and clean them enough for submission.
 
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index 609a280..8e4278c 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -19,13 +19,15 @@ config PANEL_LGPHILIPS_LB035Q02
- config PANEL_SHARP_LS037V7DW01
-         tristate "Sharp LS037V7DW01 LCD Panel"
-         depends on OMAP2_DSS_DPI
--        select BACKLIGHT_CLASS_DEVICE
-+        depends on BACKLIGHT_CLASS_DEVICE
-         help
-           LCD Panel used in TI's SDP3430 and EVM boards
- 
- config PANEL_NEC_NL8048HL11_01B
- 	tristate "NEC NL8048HL11-01B Panel"
- 	depends on OMAP2_DSS_DPI
-+	depends on SPI
-+	depends on BACKLIGHT_CLASS_DEVICE
- 	help
- 		This NEC NL8048HL11-01B panel is TFT LCD
- 		used in the Zoom2/3/3630 sdp boards.
-@@ -33,6 +35,7 @@ config PANEL_NEC_NL8048HL11_01B
- config PANEL_TAAL
-         tristate "Taal DSI Panel"
-         depends on OMAP2_DSS_DSI
-+        depends on BACKLIGHT_CLASS_DEVICE
-         help
-           Taal DSI command mode panel from TPO.
- 
-@@ -45,7 +48,7 @@ config PANEL_TPO_TD043MTEA1
- config PANEL_ACX565AKM
- 	tristate "ACX565AKM Panel"
- 	depends on OMAP2_DSS_SDI && SPI
--	select BACKLIGHT_CLASS_DEVICE
-+	depends on BACKLIGHT_CLASS_DEVICE
- 	help
- 	  This is the LCD panel used on Nokia N900
- endmenu
+If nobody has any objections, I would like to send them to
+Linus in the coming merge window, otherwise it would be nice
+if you could pick the ones that look good to you and send
+me a pull request. If any of these look like they should be
+backported to stable kernels, please tell me and I'll add
+a cc:stable@k.o tag.
+
+The entire set is also available from
+ git pull git://git.linaro.org/people/arnd/arm-soc.git randconfig/omap
+
+but I have not yet pulled them into the for-next branch.
+
+	Arnd
+
+Arnd Bergmann (30):
+  sound/omap: omap_mcpdm_remove cannot be __devexit
+  video/omap: fix dependencies
+  video/omap: fix build dependencies
+  ARM: omap: add missing __devexit_p() annotations
+  ARM: omap: enable building omap2 without omap2420/2430
+  ARM: omap: fix build with CONFIG_I2C_OMAP disabled
+  ARM: omap: fix visibility of omap2_mbox_iva_priv
+  ARM: omap2+: fix building without i2c
+  ARM: omap2: export functions used by nand driver
+  ARM: omap/iommu: always provide iommu debug code
+  ARM: omap2/n8x0: work around modular omap mmc
+  ARM: omap4: always build omap_phy_internal
+  ARM: omap2+: fix omap_hdq_init compilation
+  ARM: omap2: irq.c is always needed
+  usb/musb: use a Kconfig choice to pick the right DMA method
+  usb/musb: HDRC depends on TWL4030_CORE for OMAP3/4
+  usb/musb: allow building USB_MUSB_TUSB6010 as a module
+  omap-usb: automatically select MFD_OMAP_USB_HOST
+  tty/serial/omap: console can only be built-in
+  media/omap_vout: disable driver for now
+  sound/soc/omap: limit to omap2plus
+  mfd: build twl6030 only on omap2
+  ARM: omap2: select twl4030 support on boards that need it
+  ARM: omap2+: ensure that one of omap2/3/4 is selected
+  ARM: OMAP depends on MMU
+  ARM: omap: add board autoselection
+  ARM: omap: select L2X0 cache on omap4
+  ARM: omap: select CPU_FREQ_TABLE where needed
+  ARM: omap: select USB_ARCH_HAS_EHCI only when USB is enabled
+  ARM: omap2: select ARM_AMBA for OMAP3_EMU
+
+ arch/arm/Kconfig                           |    1 +
+ arch/arm/mach-omap2/Kconfig                |   61 +++++++++++++++++++++++++-
+ arch/arm/mach-omap2/Makefile               |   12 ++---
+ arch/arm/mach-omap2/board-n8x0.c           |    7 ++-
+ arch/arm/mach-omap2/devices.c              |   10 +++--
+ arch/arm/mach-omap2/gpmc.c                 |    2 +
+ arch/arm/mach-omap2/mailbox.c              |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+ arch/arm/mach-omap2/smartreflex.c          |    2 +-
+ arch/arm/plat-omap/Kconfig                 |    5 ++
+ arch/arm/plat-omap/dma.c                   |    2 +-
+ arch/arm/plat-omap/include/plat/i2c.h      |    6 +-
+ arch/arm/plat-omap/include/plat/multi.h    |    5 ++
+ arch/arm/plat-omap/iommu.c                 |    2 +-
+ drivers/media/video/omap/Kconfig           |    1 +
+ drivers/mfd/Kconfig                        |    6 +-
+ drivers/tty/serial/Kconfig                 |    2 +-
+ drivers/usb/musb/Kconfig                   |   58 +++++++++++++++----------
+ drivers/usb/musb/Makefile                  |   26 ++----------
+ drivers/usb/musb/musb_core.c               |    3 +-
+ drivers/usb/musb/musb_io.h                 |    2 +-
+ drivers/usb/musb/tusb6010.c                |    1 +
+ drivers/video/omap/Kconfig                 |   41 ++++++++++++++++--
+ drivers/video/omap/Makefile                |   64 +++++++++++++---------------
+ drivers/video/omap2/displays/Kconfig       |    7 ++-
+ sound/soc/omap/Kconfig                     |    2 +-
+ sound/soc/omap/mcpdm.c                     |    2 +-
+ sound/soc/omap/mcpdm.h                     |    2 +-
+ 31 files changed, 221 insertions(+), 121 deletions(-)
+
 -- 
 1.7.5.4
+
