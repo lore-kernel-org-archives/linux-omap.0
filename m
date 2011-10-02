@@ -1,15 +1,15 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 1/5] ARM: dev_archdata: add private iommu extension
-Date: Sun, 2 Oct 2011 20:48:41 +0200
-Message-ID: <CAK=WgbY+YN6aj4+RUdPz068+H+vtnEx0_SbKuKc++S4AHRS_hw@mail.gmail.com>
-References: <1316948337-7924-1-git-send-email-ohad@wizery.com>
-	<1316948337-7924-2-git-send-email-ohad@wizery.com>
-	<20110927013001.GA20588@ponder.secretlab.ca>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 11/30] ARM: omap2/n8x0: work around modular omap mmc
+Date: Sun, 02 Oct 2011 20:54:58 +0200
+Message-ID: <1412062.DNcqS3fczZ@wuerfel>
+References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
+	<1317566760-25681-12-git-send-email-arnd@arndb.de>
+	<20111002155331.GA12323@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110927013001.GA20588@ponder.secretlab.ca>
+In-Reply-To: <20111002155331.GA12323@n2100.arm.linux.org.uk>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,27 +19,30 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Kevin Hilman <khilman@ti.com>, Russell King <linux@arm.linux.org.uk>, Cousson Benoit <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Joerg Roedel <Joerg.Roedel@amd.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 27, 2011 at 4:30 AM, Grant Likely <grant.likely@secretlab.ca> w=
-rote:
-> Blech. =A0Oh well. =A0Not much point in doing something different if x86
-> uses a void*.
+On Sunday 02 October 2011 16:53:31 Russell King - ARM Linux wrote:
+> On Sun, Oct 02, 2011 at 04:45:41PM +0200, Arnd Bergmann wrote:
+> > -#if defined(CONFIG_MENELAUS) &&                                              \
+> > -     (defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE))
+> > +#if defined(CONFIG_MENELAUS) && defined(CONFIG_MMC_OMAP)
+> > +/* || defined(CONFIG_MMC_OMAP_MODULE)) */
+> > +/* FIXME: cannot call omap_mmc_notify_cover_event for ONFIG_MMC_OMAP_MODULE */
+> 
+> #ifdef CONFIG_MMC_OMAP_MODULE
+> #warning FIXME: cannot call omap_mmc_notify_cover_event for CONFIG_MMC_OMAP_MODULE
+> #endif
+> #if defined(CONFIG_MENELAUS) && defined(CONFIG_MMC_OMAP)
+> 
+> So that it can be seen at build time?
+> 
+> Also note the 'ONFIG' typo...
 
-x86 probably does this because two different implementations needs to
-plug their private data there: intel-iommu plugs there a 'struct
-device_domain_info *' and amd_iommu uses it with a 'struct
-iommu_dev_data *'.
+Ok, good idea. I've updated the patch in the git tree accordingly.
 
-On ARM we'd eventually end up with even a bigger variety, and I guess
-that even if we'd use a type-safe member here, it would itself end up
-having 'void *'.
+Depending on what Tony wants, I might send out the entire series
+again once there are no more new comments.
 
-If it looks reasonable to you, can I please have your Ack ?
-
-Russell, can you please take a look too and ack/nack ?
-
-Thanks,
-Ohad.
+	Arnd
