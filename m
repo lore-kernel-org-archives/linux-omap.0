@@ -1,45 +1,56 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH 21/30] sound/soc/omap: limit to omap2plus
-Date: Sun, 2 Oct 2011 20:40:35 +0300
-Message-ID: <20111002204035.2e5b98943ed5137fd689b9be@bitmer.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 15/30] usb/musb: use a Kconfig choice to pick the right
+	DMA method
+Date: Sun, 02 Oct 2011 20:00:31 +0200
+Message-ID: <1757336.Qk72n3s00p@wuerfel>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-	<1317566760-25681-22-git-send-email-arnd@arndb.de>
+	<1317566760-25681-16-git-send-email-arnd@arndb.de>
+	<20111002161447.GC12323@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:33762 "EHLO bitmer.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753700Ab1JBRkt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 2 Oct 2011 13:40:49 -0400
-In-Reply-To: <1317566760-25681-22-git-send-email-arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20111002161447.GC12323@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@ti.com>
 
-On Sun,  2 Oct 2011 16:45:51 +0200
-Arnd Bergmann <arnd@arndb.de> wrote:
-
-> These drivers do not build correctly on omap1, so only allow
-> selecting them on omap2 or higher.
+On Sunday 02 October 2011 17:14:47 Russell King - ARM Linux wrote:
+> On Sun, Oct 02, 2011 at 04:45:45PM +0200, Arnd Bergmann wrote:
+> > The logic to allow only one DMA driver in MUSB is currently
+> > flawed, because it also allows picking no DMA driver at all
+> > and also not selecting PIO mode.
+> > 
+> > Using a choice statement makes this foolproof for now and
+> > also simplifies the Makefile.
+> > 
+> > Unfortunately, we will have to revisit this when we start
+> > supporting multiple ARM platforms in a single kernel binary,
+> > because at that point we will actually need to select
+> > multiple DMA drivers and pick the right one at run-time.
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-> Cc: Liam Girdwood <lrg@ti.com>
-> ---
-Strange. I'm able to build them fine with omap1_defconfig and with two
-supported OMAP1 ASoC machine drivers we have:
+> I thought there was some work going on to convert this to use the
+> dmaengine stuff?
 
-CONFIG_SND_OMAP_SOC_AMS_DELTA=y
-CONFIG_SND_OMAP_SOC_OSK5912=y
+That would certainly be the best solution here, I wasn't aware
+that it has already been discussed.
 
-What's the error you are seeing? I guess there might be some missing
-dependency that doesn't get visible with omap1_defconfig.
+Unfortunately, even with the dma parts out of the way there is
+a lot that needs to be done to make musb, ehci or ohci
+really cross-platform. Right now, you can only have one
+platform driver glue for each of those drivers, and they
+should eventually be converted to a large library module for
+the core, with independent platform driver front-end, similar
+to the recent conversion of the sdhci driver by Shawn Guo,
+and the way that a lot of the other common drivers work.
 
-I would like to get that fixed instead of disabling OMAP1 ASoC support
-as the ams-delta in kernel is alive device thanks to active developer
-Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>.
-
--- 
-Jarkko
+	Arnd
