@@ -1,42 +1,42 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 22/30] mfd: build twl6030 only on omap2
-Date: Sun,  2 Oct 2011 16:45:52 +0200
-Message-ID: <1317566760-25681-23-git-send-email-arnd@arndb.de>
+Subject: [PATCH 18/30] omap-usb: automatically select MFD_OMAP_USB_HOST
+Date: Sun,  2 Oct 2011 16:45:48 +0200
+Message-ID: <1317566760-25681-19-git-send-email-arnd@arndb.de>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1317566760-25681-1-git-send-email-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Samuel Ortiz <sameo@linux.intel.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Balaji T K <balajitk@ti.com>, Hemanth V <hemanthv@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Keshava Munegowda <keshava_mgowda@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-We can only have one pwm driver built into the kernel, so make sure
-that this one is only available on omap2 to avoid conflicts with
-pwm drivers of other platforms.
+The ehci-omap and ohci-omap3 drivers both depend on the
+omap-usb-host MFD support driver. By default, this is
+automatically turned on, but it is possible to disable
+the driver, which results in a link error.
+
+This patch makes the option invisible so we always do
+the right thing.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Balaji T K <balajitk@ti.com>
-Cc: Hemanth V <hemanthv@ti.com>
 ---
- drivers/mfd/Kconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 48cce35..26bebe8 100644
+index 21574bd..48cce35 100644
 --- a/drivers/mfd/Kconfig
 +++ b/drivers/mfd/Kconfig
-@@ -256,8 +256,8 @@ config MFD_TWL4030_AUDIO
- 	default n
+@@ -721,7 +721,7 @@ config MFD_WL1273_CORE
+ 	  audio codec.
  
- config TWL6030_PWM
--	tristate "TWL6030 PWM (Pulse Width Modulator) Support"
--	depends on TWL4030_CORE
-+	bool "TWL6030 PWM (Pulse Width Modulator) Support"
-+	depends on TWL4030_CORE && ARCH_OMAP2
- 	select HAVE_PWM
- 	default n
+ config MFD_OMAP_USB_HOST
+-	bool "Support OMAP USBHS core driver"
++	bool
+ 	depends on USB_EHCI_HCD_OMAP || USB_OHCI_HCD_OMAP3
+ 	default y
  	help
 -- 
 1.7.5.4
