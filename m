@@ -1,65 +1,58 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] OMAP2PLUS: DSS: Ensure DSS works correctly if display
-	is enabled in bootloader
-Date: Mon, 3 Oct 2011 11:34:34 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110031126090.4611@utopia.booyaka.com>
-References: <1315811306-11001-1-git-send-email-archit@ti.com>
-	<alpine.DEB.2.00.1110022237171.4611@utopia.booyaka.com>
-	<1317630070.2026.27.camel@deskari> <4E898468.2060508@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 04/30] ARM: omap: add missing __devexit_p() annotations
+Date: Mon, 3 Oct 2011 10:46:11 -0700
+Message-ID: <20111003174610.GP6324@atomide.com>
+References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
+ <1317566760-25681-5-git-send-email-arnd@arndb.de>
+ <CAFULf_wevZxWW1RW+r-18R_8=ry2kD6_i5L9NfPd9t8afm5Cog@mail.gmail.com>
+ <20111002160926.GB12323@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4E898468.2060508@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, "R,
-	Sricharan" <r.sricharan@ti.com>, "Valkeinen,
-	Tomi" <tomi.valkeinen@ti.com>, "Shilimkar,
-	Santosh" <santosh.shilimkar@ti.com>, "Taneja, Archit" <archit@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:21572 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756159Ab1JCRqP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 13:46:15 -0400
+Content-Disposition: inline
+In-Reply-To: <20111002160926.GB12323@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Bjarne Steinsbo <bsteinsbo@gmail.com>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-+ devicetree-discuss, lkml
-
-On Mon, 3 Oct 2011, Cousson, Benoit wrote:
-
-> But at that time, device tree was not there...
-> Now, the whole dev_attr stuff will be replaced because device tree is able to
-> provide the driver any kind of custom information that can be retrieved
-> directly from the driver without having to use a pdata in between. So I'm not
-> sure it worth spending too much time on that feature stuff.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [111002 08:35]:
+> On Sun, Oct 02, 2011 at 05:56:07PM +0200, Bjarne Steinsbo wrote:
+> > Arnd,
+> > 
+> > Ref http://www.spinics.net/lists/linux-omap/msg57274.html
+> > 
+> > Don't get me wrong.  This is not about you "stealing" my patch, or
+> > anything like that.  But look also at thread starting at
+> > http://www.spinics.net/lists/linux-omap/msg57667.html Also a patch
+> > that I have posted previously.  Something is not right with the
+> > workflow when bugs are identified, patches are submitted, then
+> > ignored, only for someone else to fix the same bug.  Enough said.
 > 
-> As an example here is the ongoing GPIO DT migration:
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg56505.html
+> That is where re-sending is important.  Don't throw patches over the wall
+> and then forget them - that's precisely how this happens.
+
+Bjarne, sorry for accidentally dropping patches, that's not intentional.
+
+Like Russell said, please follow through with your own patches and
+repost and complain until the patches do get merged.
+
+> Consider who has the higher workload, and who ends up dealing with many
+> many many emails, and realise that the options for those of us who receive
+> patches are either to drop patches, or have an endlessly growing backlog
+> of patches when things get busy.
 > 
-> 3.2 will have the basic DT support using hwmod as a backend, but the idea is
-> that for 3.3, we start removing some information from hwmod to rely on device
-> tree only.
+> Unless we drop patches, things can get pretty rediculous - consider the
+> effect of a backlog of one month worth of patches would cause...
 
-One comment here though -- and I will make this comment on the original 
-series too -- is that we should avoid adding direct DT dependencies into 
-the driver.
+Tools like patchwork.kernel.org help a bit, and especially the email
+subject line containing magic the keyword "fix" might help avoiding
+the duplicate work.
 
-Specifically, these of_get_property() and of_property*() calls in the 
-driver aren't right.
+Regards,
 
-We need some way of doing this that is completely independent from the 
-device data format.  Some way that does not care whether the input data is 
-coming from DT, platform_data, ACPI, or whatever the new flavor of the 
-year will be next year.  Or we need to declare that these of_*() calls are 
-not DT-specific, and define them as hooks that the device data format code 
-can handle as it pleases.
-
-Otherwise we'll need shim layers for each new data format in the driver 
-code and that will be a huge and unnecessary mess.
-
-
-- Paul
+Tony
