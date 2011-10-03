@@ -1,113 +1,58 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v16 00/12] OMAP: dmtimer: adaptation to platform_driver
-Date: Mon, 3 Oct 2011 16:33:49 +0200
-Message-ID: <4E89C7CD.8040505@ti.com>
-References: <1316518227-28116-1-git-send-email-tarun.kanti@ti.com>
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [PATCH v6 01/16] OMAP2+: hwmod: Add API to enable IO ring wakeup.
+Date: Mon, 3 Oct 2011 20:40:44 +0530
+Message-ID: <36fe5ae626b83bb4856f3a58a23bf503@mail.gmail.com>
+References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com> <4E871883.4010207@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60994 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752400Ab1JCOd7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Oct 2011 10:33:59 -0400
-In-Reply-To: <1316518227-28116-1-git-send-email-tarun.kanti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <4E871883.4010207@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>, Govindraj Raja <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, arnd Bergmann <arnd@arndb.de>
 
-+ Arnd
+---snip--
+> > +{
+> > +	struct omap_device_pad *pad;
+> > +	int ret = -EINVAL, j;
+> > +
+> > +	if (oh->mux&&  oh->mux->enabled) {
+> > +		for (j = 0; j<  oh->mux->nr_pads_dynamic; j++) {
+> > +			pad = oh->mux->pads_dynamic[j];
+> > +			if (pad->flags&  OMAP_DEVICE_PAD_WAKEUP) {
+> > +				if (set_wake)
+> > +					pad->idle |= OMAP_WAKEUP_EN;
+> > +				else
+> > +					pad->idle&= ~OMAP_WAKEUP_EN;
+>
+> I think apart from enabling/disabling the IO wakeup's at the pad
+> level, there is also a need to trigger the IO daisy chain control
+> (Wu clock) by programming the PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN
+> bit and waiting on the PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN) bit,
+> which is done by the omap3_enable/disable_io_chain function.
+> This is still done in the cpuidle path, but it makes sense to
+> move that over here, since it should be done every time a pad
+> level wakeup is enabled or disabled.
+>
+> See section 3.5.7.2.2 I/O Wake-Up Mechanism of 36xx TRM revA.
+>
+> "The I/O wake-up scheme is enabled by triggering the I/O daisy chain
+> control (Wu clock) by
+> programming a dedicated register (PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN)
+> in
+> the PRCM module.Software must wait for the I/O daisy chain to
+> complete
+> before it transitions the PER domain to a
+> nonfunctional state. This is done by polling a dedicated status bit
+> in
+> the PRCM module
+> (PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN). This status bit must be cleared
+> by
+> software when the bit is
+> read to 1."
+I am working on adding Daisy chain support via hwmod mux framework.
+I will post the patches soon.
 
-Hi Tony,
-
-After rebasing by DT series on top of your dt-base, I noticed two minor 
-issues from this timer series.
-
-First some new warnings:
-
-[    0.260009]  omap_timer.1: alias fck already exists
-[    0.260345]  omap_timer.2: alias fck already exists
-[    0.260650]  omap_timer.3: alias fck already exists
-[    0.260955]  omap_timer.4: alias fck already exists
-[    0.261260]  omap_timer.5: alias fck already exists
-[    0.261566]  omap_timer.6: alias fck already exists
-[    0.261871]  omap_timer.7: alias fck already exists
-[    0.262207]  omap_timer.8: alias fck already exists
-[    0.262512]  omap_timer.9: alias fck already exists
-[    0.262847]  omap_timer.10: alias fck already exists
-[    0.263153]  omap_timer.11: alias fck already exists
-
-These warnings are due to the commit 
-318c3e15cd55c73a26ae22a65a8183655b3003f9  ARM: OMAP2+: dmtimer: add 
-device names to flck nodes
-
-Since 3.1, the fck clock nodes are added automatically based on hwmod 
-main_clk attribute.
-
-+       CLK("omap_timer.1",     "fck",         &timer1_fck,    CK_443X),
-+       CLK("omap_timer.2",     "fck",         &timer2_fck,    CK_443X),
-+       CLK("omap_timer.3",     "fck",         &timer3_fck,    CK_443X),
-+       CLK("omap_timer.4",     "fck",         &timer4_fck,    CK_443X),
-+       CLK("omap_timer.5",     "fck",         &timer5_fck,    CK_443X),
-+       CLK("omap_timer.6",     "fck",         &timer6_fck,    CK_443X),
-+       CLK("omap_timer.7",     "fck",         &timer7_fck,    CK_443X),
-+       CLK("omap_timer.8",     "fck",         &timer8_fck,    CK_443X),
-+       CLK("omap_timer.9",     "fck",         &timer9_fck,    CK_443X),
-+       CLK("omap_timer.10",    "fck",         &timer10_fck,   CK_443X),
-+       CLK("omap_timer.11",    "fck",         &timer11_fck,   CK_443X),
-
-So they should not exist in this patch.
-
-Moreover, all the legacy clockdev should be removed at the same time.
-
-CLK(NULL,	"gpt1_fck",		&timer1_fck,	CK_443X),
-CLK(NULL,	"gpt10_fck",		&timer10_fck,	CK_443X),
-CLK(NULL,	"gpt11_fck",		&timer11_fck,	CK_443X),
-CLK(NULL,	"gpt2_fck",		&timer2_fck,	CK_443X),
-CLK(NULL,	"gpt3_fck",		&timer3_fck,	CK_443X),
-CLK(NULL,	"gpt4_fck",		&timer4_fck,	CK_443X),
-CLK(NULL,	"gpt5_fck",		&timer5_fck,	CK_443X),
-CLK(NULL,	"gpt6_fck",		&timer6_fck,	CK_443X),
-CLK(NULL,	"gpt7_fck",		&timer7_fck,	CK_443X),
-CLK(NULL,	"gpt8_fck",		&timer8_fck,	CK_443X),
-CLK(NULL,	"gpt9_fck",		&timer9_fck,	CK_443X),
-CLK(NULL,	"gpt1_ick",		&dummy_ck,	CK_443X),
-CLK(NULL,	"gpt2_ick",		&dummy_ck,	CK_443X),
-CLK(NULL,	"gpt3_ick",		&dummy_ck,	CK_443X),
-CLK(NULL,	"gpt4_ick",		&dummy_ck,	CK_443X),
-CLK(NULL,	"gpt5_ick",		&dummy_ck,	CK_443X),
-CLK(NULL,	"gpt6_ick",		&dummy_ck,	CK_443X),
-CLK(NULL,	"gpt7_ick",		&dummy_ck,	CK_443X),
-CLK(NULL,	"gpt8_ick",		&dummy_ck,	CK_443X),
-CLK(NULL,	"gpt9_ick",		&dummy_ck,	CK_443X),
-CLK(NULL,	"gpt10_ick",		&dummy_ck,	CK_443X),
-CLK(NULL,	"gpt11_ick",		&dummy_ck,	CK_443X),
-
-That will reduce a little bit the size of these static data files.
-
-
-
-Secondly, in commit c345c8b09d7a131f3571af55341038054a79efbd ARM: 
-OMAP2+: dmtimer: convert to platform devices
-
-+struct omap_device_pm_latency omap2_dmtimer_latency[] = {
-+       {
-+               .deactivate_func = omap_device_idle_hwmods,
-+               .activate_func   = omap_device_enable_hwmods,
-+               .flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+       },
-+};
-+
-
-That structure should be removed, since I added a default one in the 
-omap_device cleanup series for 3.2. Assuming that the cleanup is pulled 
-before the new feature, the timer series could avoid adding that.
-
-How do you want to handle that, using some cleanup patch on top of your 
-current branch or by resubmitting the series?
-The point is that this branch was already pulled by Arnd in 
-arm-soc/next/dmtimer feature branch.
-
-Regards,
-Benoit
+Regards
+Vishwa
