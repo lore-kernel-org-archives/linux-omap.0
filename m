@@ -1,39 +1,53 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 15/30] usb/musb: use a Kconfig choice to pick the right
-	DMA method
-Date: Mon, 03 Oct 2011 11:40:26 +0200
-Message-ID: <3529819.LQllWhb43D@wuerfel>
-References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-	<1546914.88vcgxkfJf@wuerfel>
-	<20111002221050.GA25790@legolas.emea.dhcp.ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 00/30] ARM/omap: omap specific randconfig fixes
+Date: Mon, 03 Oct 2011 15:12:32 +0530
+Message-ID: <4E898388.40601@ti.com>
+References: <1317566760-25681-1-git-send-email-arnd@arndb.de> <4E894295.5000608@ti.com> <7246478.IyGHQ24uSq@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20111002221050.GA25790@legolas.emea.dhcp.ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:47182 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753093Ab1JCJmk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 05:42:40 -0400
+In-Reply-To: <7246478.IyGHQ24uSq@wuerfel>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday 03 October 2011 01:10:51 Felipe Balbi wrote:
-> Anyway, I'll take your patches in, but their too late for this merge
-> window  I already sent my last pull to Greg.
+On Monday 03 October 2011 02:52 PM, Arnd Bergmann wrote:
+> On Monday 03 October 2011 10:35:25 Santosh Shilimkar wrote:
+> 
+>>> The entire set is also available from
+>>>  git pull git://git.linaro.org/people/arnd/arm-soc.git randconfig/omap
+>>>
+>>> but I have not yet pulled them into the for-next branch.
+>>>
+>> Do you have any scripts to create these randconfigs ?
+>> These are useful to run on newer set of patches also to get all
+>> builds right first place.
+> 
+> Yes, see the for-next+randconfig branch of
+> git://git.linaro.org/people/arnd/arm-soc.git. It has all my patches
+> and a randconfig.sh script.
+> 
+> Right now, I'm trying to get a baseline upstream, since I have around 150
+> patches that are needed to always build ten platforms successfully.
+>
+Ok. Will have a look at it.
 
-No problem. I need the full set of arm-randconfig patches upstream in order
-to make randconfig work in general, and that's not happening for 3.2
-anyway. Right now, I'm just trying to as many patches as possible into
-maintainer trees.
+> The main problem is that you basically need all the patches I did in order
+> to find regressions, and some of the device driver patches are not currently
+> in a state where I could submit them. I hope that by the time of the 3.3
+> merge window, I have enough patches upstream that you no longer need to
+> pull in an extra tree.
+> 
+Sounds like a plan and having these scripts working on mainline kernel
+would be really great to test new set dependencies.
 
-Is your tree part of linux-next, or will it only show up after the merge
-window once Greg has pulled your first set for 3.3?
+Thanks a lot for the patches.
 
-	Arnd
+Segards
+Santosh
