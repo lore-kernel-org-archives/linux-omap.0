@@ -1,88 +1,57 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 20/30] media/omap_vout: disable driver for now
-Date: Mon, 3 Oct 2011 11:39:59 +0530
-Message-ID: <4E8951B7.7010106@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 02/30] video/omap: fix dependencies
+Date: Mon, 03 Oct 2011 09:53:50 +0300
+Message-ID: <1317624830.2026.6.camel@deskari>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-	<1317566760-25681-21-git-send-email-arnd@arndb.de>
+	 <1317566760-25681-3-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1317566760-25681-21-git-send-email-arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, "JAIN,
-	AMBER" <amber@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:45001 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750894Ab1JCGxz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 02:53:55 -0400
+In-Reply-To: <1317566760-25681-3-git-send-email-arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
 Hi Arnd,
 
-On Sunday 02 October 2011 08:15 PM, Arnd Bergmann wrote:
-> This driver was broken by 8cff88c5d "OMAP: DSS2: remove update_mode
-> from omapdss":
->
-> /home/arnd/linux-arm/drivers/media/video/omap/omap_vout.c: In function 'omap_vout_probe':
-> /home/arnd/linux-arm/drivers/media/video/omap/omap_vout.c:2202:15: error: 'struct omap_dss_driver' has no member
-> named 'set_update_mode'
-> /home/arnd/linux-arm/drivers/media/video/omap/omap_vout.c:2203:12: error: 'struct omap_dss_driver' has no member
-> named 'set_update_mode'
-> /home/arnd/linux-arm/drivers/media/video/omap/omap_vout.c:2204:8: error: 'OMAP_DSS_UPDATE_MANUAL' undeclared (first
-> use in this function)
-> /home/arnd/linux-arm/drivers/media/video/omap/omap_vout.c:2204:8: note: each undeclared identifier is reported only
-> once for each function it appears in
-> /home/arnd/linux-arm/drivers/media/video/omap/omap_vout.c:2206:15: error: 'struct omap_dss_driver' has no member
-> named 'set_update_mode'
-> /home/arnd/linux-arm/drivers/media/video/omap/omap_vout.c:2207:12: error: 'struct omap_dss_driver' has no member
-> named 'set_update_mode'
-> /home/arnd/linux-arm/drivers/media/video/omap/omap_vout.c:2208:8: error: 'OMAP_DSS_UPDATE_AUTO' undeclared (first use
-> in this function)
-> make[3]: *** [drivers/media/video/omap/omap_vout.o] Error 1
-> make[2]: *** [drivers/media/video/omap] Error 2
-> make[1]: *** [drivers/media/video/] Error 2
-> make: *** [sub-make] Error 2
-
-A fix for this is already in the master branch of Mauro's tree:
-
-git://linuxtv.org/media_tree.git
-
-with the commit id:
-
-5ebbf72dc51bd3b481aa91fea37a7157da5fc548
-
-I am guessing this would during the 3.2 merge window.
-
-Regards,
-Archit
-
->
-> Let's disable it for now.
->
-> Signed-off-by: Arnd Bergmann<arnd@arndb.de>
-> Cc: Mauro Carvalho Chehab<mchehab@infradead.org>
-> Cc: Archit Taneja<archit@ti.com>
-> Cc: Amber Jain<amber@ti.com>
-> Cc: Vaibhav Hiremath<hvaibhav@ti.com>
+On Sun, 2011-10-02 at 16:45 +0200, Arnd Bergmann wrote:
+> The lcd_2430sdp and lcd_ldp drivers depend on TWL4030, which is not
+> well expressed in the Kconfig. Create new configuration options for
+> these in order to describe the dependencies correctly.
+> 
+> In some cases, the driver cannot be a loadable module, so better
+> force it to be built-in.
+> 
+> While we're at it, simplify the Makefile syntax.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 > ---
->   drivers/media/video/omap/Kconfig |    1 +
->   1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/media/video/omap/Kconfig b/drivers/media/video/omap/Kconfig
-> index 390ab09..ee21f36 100644
-> --- a/drivers/media/video/omap/Kconfig
-> +++ b/drivers/media/video/omap/Kconfig
-> @@ -4,6 +4,7 @@ config VIDEO_OMAP2_VOUT_VRFB
->   config VIDEO_OMAP2_VOUT
->   	tristate "OMAP2/OMAP3 V4L2-Display driver"
->   	depends on ARCH_OMAP2 || ARCH_OMAP3
-> +	depends on BROKEN # broken by 8cff88c5da "OMAP: DSS2: remove update_mode from omapdss"
->   	select VIDEOBUF_GEN
->   	select VIDEOBUF_DMA_CONTIG
->   	select OMAP2_DSS
+>  drivers/video/omap/Kconfig  |   41 +++++++++++++++++++++++++---
+>  drivers/video/omap/Makefile |   64 ++++++++++++++++++++-----------------------
+>  2 files changed, 67 insertions(+), 38 deletions(-)
+
+I have ported lcd_2430sdp and lcd_ldp drivers (and also other OMAP2/3
+panel drivers, except N800) to the newer omapdss driver
+(drivers/video/omap2), and the code is in my for-next branch
+(git://gitorious.org/linux-omap-dss2/linux.git for-next).
+
+I have also worked on removing OMAP2/3 support from the old omapfb
+driver, thus making it OMAP1 fb driver. This code is not yet ready, and
+won't make it in the next merge window.
+
+Your patch will conflict with both of those changes. Is it ok for you to
+drop this patch, and I'll make a new one on top of my changes to clean
+up the Makefile in a similar way than you did? The new patch wouldn't
+make it in the next merge window, though, but I don't think this patch
+is fixing any bigger bug, so perhaps it's not so urgent.
+
+ Tomi
+
+
