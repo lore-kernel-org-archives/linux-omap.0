@@ -1,58 +1,52 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH v6 01/16] OMAP2+: hwmod: Add API to enable IO ring wakeup.
-Date: Mon, 3 Oct 2011 20:40:44 +0530
-Message-ID: <36fe5ae626b83bb4856f3a58a23bf503@mail.gmail.com>
-References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com> <4E871883.4010207@ti.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH v3 3/3] ARM: OMAP: TI814X: Create board support and
+ enable build for TI8148 EVM
+Date: Mon, 3 Oct 2011 22:15:07 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4EC5D52@dbde02.ent.ti.com>
+References: <1317258570-30494-1-git-send-email-hemantp@ti.com>
+ <4E88542B.4010206@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <4E871883.4010207@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>, Govindraj Raja <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:52099 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751640Ab1JCQpW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 12:45:22 -0400
+In-Reply-To: <4E88542B.4010206@compulab.co.il>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
----snip--
-> > +{
-> > +	struct omap_device_pad *pad;
-> > +	int ret = -EINVAL, j;
-> > +
-> > +	if (oh->mux&&  oh->mux->enabled) {
-> > +		for (j = 0; j<  oh->mux->nr_pads_dynamic; j++) {
-> > +			pad = oh->mux->pads_dynamic[j];
-> > +			if (pad->flags&  OMAP_DEVICE_PAD_WAKEUP) {
-> > +				if (set_wake)
-> > +					pad->idle |= OMAP_WAKEUP_EN;
-> > +				else
-> > +					pad->idle&= ~OMAP_WAKEUP_EN;
->
-> I think apart from enabling/disabling the IO wakeup's at the pad
-> level, there is also a need to trigger the IO daisy chain control
-> (Wu clock) by programming the PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN
-> bit and waiting on the PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN) bit,
-> which is done by the omap3_enable/disable_io_chain function.
-> This is still done in the cpuidle path, but it makes sense to
-> move that over here, since it should be done every time a pad
-> level wakeup is enabled or disabled.
->
-> See section 3.5.7.2.2 I/O Wake-Up Mechanism of 36xx TRM revA.
->
-> "The I/O wake-up scheme is enabled by triggering the I/O daisy chain
-> control (Wu clock) by
-> programming a dedicated register (PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN)
-> in
-> the PRCM module.Software must wait for the I/O daisy chain to
-> complete
-> before it transitions the PER domain to a
-> nonfunctional state. This is done by polling a dedicated status bit
-> in
-> the PRCM module
-> (PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN). This status bit must be cleared
-> by
-> software when the bit is
-> read to 1."
-I am working on adding Daisy chain support via hwmod mux framework.
-I will post the patches soon.
+Hi Igor,
 
-Regards
-Vishwa
+Igor Grinberg wrote on Sunday, October 02, 2011 5:38 PM:
+
+> Hi Hemant,
+> 
+> On 09/29/11 04:09, Hemant Pedanekar wrote:
+>> This patch adds minimal support and build configuration for TI8148 EVM.
+>> Also adds support for low level debugging on UART1 console on the EVM.
+>> 
+>> Note that existing TI8168 EVM file (board-ti8168evm.c) is updated with
+>> machine info for TI8148 EVM and renamed as board-ti81xxevm.c.
+> 
+> Should we really rename the existing file?
+> Shouldn't we just stick to the name of the file submitted first?
+> (e.g. board-ti8168evm.c) and just add the support for the new
+> TI8148 EVM in to the existing file?
+
+But won't this be misleading?
+
+Thanks.
+
+   Hemant
+
+> Because, I don't see any real necessity in renaming that file.
+> Also, it will spare the changes in Makefile.
+>
+
+[...]
+
