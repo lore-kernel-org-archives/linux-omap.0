@@ -1,59 +1,39 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 28/30] ARM: omap: select CPU_FREQ_TABLE where needed
-Date: Mon, 03 Oct 2011 15:03:30 +0530
-Message-ID: <4E89816A.5050704@ti.com>
-References: <1317566760-25681-1-git-send-email-arnd@arndb.de> <1317566760-25681-29-git-send-email-arnd@arndb.de> <4E894A95.5030107@ti.com> <5173921.eT2vCfT35d@wuerfel>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 15/30] usb/musb: use a Kconfig choice to pick the right
+	DMA method
+Date: Mon, 03 Oct 2011 11:40:26 +0200
+Message-ID: <3529819.LQllWhb43D@wuerfel>
+References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
+	<1546914.88vcgxkfJf@wuerfel>
+	<20111002221050.GA25790@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:42460 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753788Ab1JCJdg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 05:33:36 -0400
-In-Reply-To: <5173921.eT2vCfT35d@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20111002221050.GA25790@legolas.emea.dhcp.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Monday 03 October 2011 02:45 PM, Arnd Bergmann wrote:
-> On Monday 03 October 2011 11:09:33 Santosh Shilimkar wrote:
->>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
->>> index bb8f4a6..f7ef9f4 100644
->>> --- a/arch/arm/plat-omap/Kconfig
->>> +++ b/arch/arm/plat-omap/Kconfig
->>> @@ -217,6 +217,11 @@ config OMAP_PM_NOOP
->>>  
->>>  endchoice
->>>  
->>> +config OMAP_CPU_FREQ
->>> +     def_bool "y"
->>> +     depends on CPU_FREQ
->>> +     select CPU_FREQ_TABLE
->>> +
->>>  endmenu
->> With CPUFREQ series from Kevin [1], I don't think we need this any-more.
-> 
-> I guess if it's needed, it should at least be moved to the new cpufreq
-> location.
-> 
-Probably you are right. CPU_FREQ_TABLE is selected today if
-CPU_FREQ_STAT or CPU_FREQ_GOV_ONDEMAND is selected. Without these two
-enabled, in won't be selected.
+On Monday 03 October 2011 01:10:51 Felipe Balbi wrote:
+> Anyway, I'll take your patches in, but their too late for this merge
+> window  I already sent my last pull to Greg.
 
->> More so, I didn't find OMAP_CPU_FREQ is being used anywhere on mainline.
-> 
-> Yes, OMAP_CPU_FREQ is a symbol that is intentionally unused, with the
-> only purpose of selecting CPU_FREQ_TABLE if any omap platform together
-> with CPU_FREQ is enabled.
->
-I see. This wasn't clear to me.
+No problem. I need the full set of arm-randconfig patches upstream in order
+to make randconfig work in general, and that's not happening for 3.2
+anyway. Right now, I'm just trying to as many patches as possible into
+maintainer trees.
 
-> Let's drop this patch for now, if it is still needed as I think, I can
-> do a patch during the 3.2 cycle for the right location.
-> 
-Ok.
+Is your tree part of linux-next, or will it only show up after the merge
+window once Greg has pulled your first set for 3.3?
 
-Regards
-Santosh
+	Arnd
