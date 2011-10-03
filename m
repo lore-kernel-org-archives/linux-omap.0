@@ -1,52 +1,169 @@
-From: "Pedanekar, Hemant" <hemantp@ti.com>
-Subject: RE: [PATCH v3 3/3] ARM: OMAP: TI814X: Create board support and
- enable build for TI8148 EVM
-Date: Mon, 3 Oct 2011 22:15:07 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4EC5D52@dbde02.ent.ti.com>
-References: <1317258570-30494-1-git-send-email-hemantp@ti.com>
- <4E88542B.4010206@compulab.co.il>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/9] OMAP2xxx: HWMOD: Fix DSS reset
+Date: Mon, 3 Oct 2011 10:53:17 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110031050470.4611@utopia.booyaka.com>
+References: <1314102499-30407-1-git-send-email-tomi.valkeinen@ti.com> <1314102499-30407-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52099 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751640Ab1JCQpW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 12:45:22 -0400
-In-Reply-To: <4E88542B.4010206@compulab.co.il>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:53339 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756944Ab1JCQxS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 12:53:18 -0400
+In-Reply-To: <1314102499-30407-2-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Igor,
+Hi
 
-Igor Grinberg wrote on Sunday, October 02, 2011 5:38 PM:
+On Tue, 23 Aug 2011, Tomi Valkeinen wrote:
 
-> Hi Hemant,
+> DSS needs all DSS clocks to be enabled to be able to finish reset
+> properly. Before v3.1-rc1 the omapdss driver was managing clocks and
+> resets correctly. However, when omapdss started using runtime PM at
+> v3.1-rc1, the responsibility for the reset moved to HWMOD framework.
 > 
-> On 09/29/11 04:09, Hemant Pedanekar wrote:
->> This patch adds minimal support and build configuration for TI8148 EVM.
->> Also adds support for low level debugging on UART1 console on the EVM.
->> 
->> Note that existing TI8168 EVM file (board-ti8168evm.c) is updated with
->> machine info for TI8148 EVM and renamed as board-ti81xxevm.c.
+> HWMOD framework does not currently enable all the DSS clocks when
+> resetting the DSS hardware. This hasn't caused any problems so far, but
+> we may just have been lucky.
 > 
-> Should we really rename the existing file?
-> Shouldn't we just stick to the name of the file submitted first?
-> (e.g. board-ti8168evm.c) and just add the support for the new
-> TI8148 EVM in to the existing file?
+> This patch sets HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core in OMAP2xxx
+> HWMOD data, fixing the issue.
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |    5 +++++
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |    5 +++++
+>  2 files changed, 10 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> index a015c69..8fe373d 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> @@ -874,12 +874,17 @@ static struct omap_hwmod_ocp_if *omap2420_dss_slaves[] = {
+>  };
+>  
+>  static struct omap_hwmod_opt_clk dss_opt_clks[] = {
+> +	/*
+> +	 * The DSS HW needs all DSS clocks enabled during reset. The dss_core
+> +	 * driver does not use these clocks.
+> +	 */
+>  	{ .role = "tv_clk", .clk = "dss_54m_fck" },
+>  	{ .role = "sys_clk", .clk = "dss2_fck" },
+>  };
+>  
+>  static struct omap_hwmod omap2420_dss_core_hwmod = {
+>  	.name		= "dss_core",
+> +	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+>  	.class		= &omap2_dss_hwmod_class,
+>  	.main_clk	= "dss1_fck", /* instead of dss_fck */
+>  	.sdma_reqs	= omap2xxx_dss_sdma_chs,
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> index 16743c7..7a5e7f5 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> @@ -940,12 +940,17 @@ static struct omap_hwmod_ocp_if *omap2430_dss_slaves[] = {
+>  };
+>  
+>  static struct omap_hwmod_opt_clk dss_opt_clks[] = {
+> +	/*
+> +	 * The DSS HW needs all DSS clocks enabled during reset. The dss_core
+> +	 * driver does not use these clocks.
+> +	 */
+>  	{ .role = "tv_clk", .clk = "dss_54m_fck" },
+>  	{ .role = "sys_clk", .clk = "dss2_fck" },
+>  };
+>  
+>  static struct omap_hwmod omap2430_dss_core_hwmod = {
+>  	.name		= "dss_core",
+> +	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+>  	.class		= &omap2_dss_hwmod_class,
+>  	.main_clk	= "dss1_fck", /* instead of dss_fck */
+>  	.sdma_reqs	= omap2xxx_dss_sdma_chs,
+> -- 
+> 1.7.4.1
 
-But won't this be misleading?
+This patch adds an extra 'flags' field, causing conflicts with the 
+existing ones for these hwmods, and causing sparse warnings.  Updated 
+patch below.
 
-Thanks.
 
-   Hemant
+- Paul
 
-> Because, I don't see any real necessity in renaming that file.
-> Also, it will spare the changes in Makefile.
->
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Tue, 23 Aug 2011 15:28:11 +0300
+Subject: [PATCH] OMAP2xxx: HWMOD: Fix DSS reset
 
-[...]
+DSS needs all DSS clocks to be enabled to be able to finish reset
+properly. Before v3.1-rc1 the omapdss driver was managing clocks and
+resets correctly. However, when omapdss started using runtime PM at
+v3.1-rc1, the responsibility for the reset moved to HWMOD framework.
+
+HWMOD framework does not currently enable all the DSS clocks when
+resetting the DSS hardware. This hasn't caused any problems so far, but
+we may just have been lucky.
+
+This patch sets HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core in OMAP2xxx
+HWMOD data, fixing the issue.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+[paul@pwsan.com: merged duplicate .flags fields]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++++-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 +++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index a015c69..e8a9b73 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -874,6 +874,10 @@ static struct omap_hwmod_ocp_if *omap2420_dss_slaves[] = {
+ };
+ 
+ static struct omap_hwmod_opt_clk dss_opt_clks[] = {
++	/*
++	 * The DSS HW needs all DSS clocks enabled during reset. The dss_core
++	 * driver does not use these clocks.
++	 */
+ 	{ .role = "tv_clk", .clk = "dss_54m_fck" },
+ 	{ .role = "sys_clk", .clk = "dss2_fck" },
+ };
+@@ -899,7 +903,7 @@ static struct omap_hwmod omap2420_dss_core_hwmod = {
+ 	.masters	= omap2420_dss_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap2420_dss_masters),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+-	.flags		= HWMOD_NO_IDLEST,
++	.flags		= HWMOD_NO_IDLEST | HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ };
+ 
+ /* l4_core -> dss_dispc */
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 16743c7..b7486f4 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -940,6 +940,10 @@ static struct omap_hwmod_ocp_if *omap2430_dss_slaves[] = {
+ };
+ 
+ static struct omap_hwmod_opt_clk dss_opt_clks[] = {
++	/*
++	 * The DSS HW needs all DSS clocks enabled during reset. The dss_core
++	 * driver does not use these clocks.
++	 */
+ 	{ .role = "tv_clk", .clk = "dss_54m_fck" },
+ 	{ .role = "sys_clk", .clk = "dss2_fck" },
+ };
+@@ -965,7 +969,7 @@ static struct omap_hwmod omap2430_dss_core_hwmod = {
+ 	.masters	= omap2430_dss_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap2430_dss_masters),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+-	.flags		= HWMOD_NO_IDLEST,
++	.flags		= HWMOD_NO_IDLEST | HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ };
+ 
+ /* l4_core -> dss_dispc */
+-- 
+1.7.6.3
 
