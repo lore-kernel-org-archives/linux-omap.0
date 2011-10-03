@@ -1,85 +1,82 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2] OMAP2PLUS: DSS: Ensure DSS works correctly if
- display is enabled in bootloader
-Date: Mon, 03 Oct 2011 11:21:10 +0300
-Message-ID: <1317630070.2026.27.camel@deskari>
-References: <1315811306-11001-1-git-send-email-archit@ti.com>
-	 <alpine.DEB.2.00.1110022237171.4611@utopia.booyaka.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 26/30] ARM: omap: add board autoselection
+Date: Mon, 03 Oct 2011 11:11:52 +0200
+Message-ID: <3656685.pM1zNST8gQ@wuerfel>
+References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
+	<1317566760-25681-27-git-send-email-arnd@arndb.de>
+	<4E8947F7.2070108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:48775 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751620Ab1JCIVQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 04:21:16 -0400
-Received: by bkbzt4 with SMTP id zt4so6338605bkb.33
-        for <linux-omap@vger.kernel.org>; Mon, 03 Oct 2011 01:21:14 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1110022237171.4611@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4E8947F7.2070108@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Archit Taneja <archit@ti.com>, santosh.shilimkar@ti.com, r.sricharan@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+On Monday 03 October 2011 10:58:23 Santosh Shilimkar wrote:
+> > +config MACH_OMAP_AUTO_BOARD
+> > +     def_bool y
+> > +     depends on !MACH_OMAP2_TUSB6010
+> > +     depends on !MACH_OMAP_H4
+> > +     depends on !MACH_OMAP_APOLLON
+> > +     depends on !MACH_OMAP_APOLLON
+> > +     depends on !MACH_OMAP_2430SDP
+> > +     depends on !MACH_OMAP3_BEAGLE
+> > +     depends on !MACH_DEVKIT8000
+> > +     depends on !MACH_OMAP_LDP
+> > +     depends on !MACH_OMAP3530_LV_SOM
+> > +     depends on !MACH_OMAP3_TORPEDO
+> > +     depends on !MACH_OVERO
+> > +     depends on !MACH_OMAP3EVM
+> > +     depends on !MACH_OMAP3517EVM
+> > +     depends on !MACH_CRANEBOARD
+> > +     depends on !MACH_OMAP3_PANDORA
+> > +     depends on !MACH_OMAP3_TOUCHBOOK
+> > +     depends on !MACH_NOKIA_N8X0
+> > +     depends on !MACH_NOKIA_RM680
+> > +     depends on !MACH_NOKIA_RX51
+> > +     depends on !MACH_OMAP_ZOOM2
+> > +     depends on !MACH_OMAP_ZOOM3
+> > +     depends on !MACH_CM_T35
+> > +     depends on !MACH_CM_T3517
+> > +     depends on !MACH_IGEP0020
+> > +     depends on !MACH_IGEP0030
+> > +     depends on !MACH_SBC3530
+> > +     depends on !MACH_OMAP_3630SDP
+> > +     depends on !MACH_TI8168EVM
+> > +     depends on !MACH_OMAP4_PANDA
+> Do we need all above 'depends on *' ?
+> Even if they get selected for one of the below
+> ARCH along with default machine, build should be happy.
+> Right ?
 
-On Sun, 2011-10-02 at 22:45 -0600, Paul Walmsley wrote:
-> Hi
-> 
-> some comments:
-> 
-> On Mon, 12 Sep 2011, Archit Taneja wrote:
-> 
-> > Resetting DISPC when a DISPC output is enabled causes the DSS to go into an
-> > inconsistent state. Thus if the bootloader has enabled a display, the hwmod code
-> > cannot reset the DISPC module just like that, but the outputs need to be
-> > disabled first.
-> > 
-> > Add function dispc_disable_outputs() which disables all active overlay manager
-> > and ensure all frame transfers are completed.
-> > 
-> > Modify omap_dss_reset() to call this function and clear DSS_CONTROL,
-> > DSS_SDI_CONTROL and DSS_PLL_CONTROL so that DSS is in a clean state when the
-> > DSS2 driver starts.
-> > 
-> > This resolves the hang issue(caused by a L3 error during boot) seen on the
-> > beagle board C3, which has a factory bootloader that enables display. The issue
-> > is resolved with this patch.
+I'm not too happy with having to maintain a list for each subarchitecture,
+when each one has the same problem. In general, I would really like to have
+the flexibility to disable all but any one board, which requires either
+maintaining a list like the above, or expressing the same like
 
-<snip>
+config MACH_OMAP_AUTO_BOARD
+	 def_bool y
+       depends on !MACH_OMAP_BOARD_SELECTED
+       select MACH_OMAP_GENERIC if ARCH_OMAP2
+       select MACH_OMAP_3430SDP if ARCH_OMAP3 && !ARCH_OMAP2
+       select MACH_OMAP_4430SDP if ARCH_OMAP4 && !ARCH_OMAP3 && !ARCH_OMAP2
 
-> +struct omap_dss_dispc_dev_attr {
-> +	u8	manager_count;
-> +	bool	has_framedonetv_irq;
-> +};
-> +
-> +#endif
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> index 09d9395..8e32cb3 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> @@ -945,6 +945,7 @@ static struct omap_hwmod omap2420_dss_dispc_hwmod = {
->  	.slaves_cnt	= ARRAY_SIZE(omap2420_dss_dispc_slaves),
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
->  	.flags		= HWMOD_NO_IDLEST,
-> +	.dev_attr	= &omap2_3_dss_dispc_dev_attr
->  };
+and adding a 'select MACH_OMAP_BOARD_SELECTED' for each one. Slightly more
+to write but perhaps a little less error-prone.
 
-I didn't know you can add arbitrary data like that to hwmods. What kind
-of data is it meant for? Can the data be used by the driver, or is it
-meant just for arch stuff?
+In the long run, I'd hope we can just get rid of these for subarchitectures
+that support device tree probing and make the device tree based machine
+description unconditional.
 
-I'm wondering this as we have a complex mechanism in the dss driver to
-find out about the differences of DSS hardware
-(drivers/video/omap2/dss/dss_features.[ch]). The dss_features system is
-currently part of the driver, but should be moved under arch/arm/*omap*
-at some point, and this hwmod dev_attr sounds like it could possibly be
-a right place to handle these.
-
-I looked at how the dev_attrs are used, and all of them seemed to be
-very small, a few fields at max. The DSS features set is, on the other
-hand, quite big amount of data, and meant for the driver.
-
- Tomi
-
-
+	Arnd
