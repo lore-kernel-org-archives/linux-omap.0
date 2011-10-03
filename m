@@ -1,43 +1,31 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 26/30] ARM: omap: add board autoselection
-Date: Mon, 3 Oct 2011 11:26:49 -0700
-Message-ID: <20111003182649.GC6324@atomide.com>
+Subject: Re: [PATCH 27/30] ARM: omap: select L2X0 cache on omap4
+Date: Mon, 3 Oct 2011 11:27:06 -0700
+Message-ID: <20111003182705.GD6324@atomide.com>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
- <3656685.pM1zNST8gQ@wuerfel>
- <4E898010.80208@ti.com>
- <5055144.Y0IUdMEWXQ@wuerfel>
+ <1317566760-25681-28-git-send-email-arnd@arndb.de>
+ <4E89481C.4070405@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:57025 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932429Ab1JCS0y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 14:26:54 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32098 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932429Ab1JCS1K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 14:27:10 -0400
 Content-Disposition: inline
-In-Reply-To: <5055144.Y0IUdMEWXQ@wuerfel>
+In-Reply-To: <4E89481C.4070405@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [111003 02:20]:
-> On Monday 03 October 2011 11:27:44 Cousson, Benoit wrote:
-> > >
-> > > In the long run, I'd hope we can just get rid of these for subarchitectures
-> > > that support device tree probing and make the device tree based machine
-> > > description unconditional.
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [111002 21:55]:
+> On Sunday 02 October 2011 08:15 PM, Arnd Bergmann wrote:
+> > The cache controller needs to be enabled for the
+> > cortex-a9 specific errata that are also selected
+> > to work.
 > > 
-> > This is really our goal, we will have soon the board-generic.c for that, 
-> > someone will just have to migrate these ~30 board files to device tree 
-> > DTS files 
-> 
-> For the purpose of build-time validation using randconfig, there is no
-> problem in keeping some board files forever, as long as the generic board
-> file is always built-in.
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>	
 
-Yes please leave out the list so we don't need to constantly update it.
-Let's just always build in MACH_OMAP_GENERIC.
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
