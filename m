@@ -1,32 +1,164 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 25/30] ARM: OMAP depends on MMU
-Date: Mon, 3 Oct 2011 11:22:05 -0700
-Message-ID: <20111003182204.GB6324@atomide.com>
-References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
- <1317566760-25681-26-git-send-email-arnd@arndb.de>
- <4E894664.5090609@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4E894664.5090609@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+From: jean.pihet@newoldbits.com
+Subject: [PATCH] PM QoS: update Documentation for the pm_qos and dev_pm_qos frameworks
+Date: Mon,  3 Oct 2011 20:24:50 +0200
+Message-ID: <1317666290-11639-1-git-send-email-j-pihet@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:34481 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932263Ab1JCSZO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 14:25:14 -0400
+Received: by wyg34 with SMTP id 34so3388316wyg.19
+        for <linux-omap@vger.kernel.org>; Mon, 03 Oct 2011 11:25:13 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.ke
+Cc: Jean Pihet <j-pihet@ti.com>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [111002 21:47]:
-> On Sunday 02 October 2011 08:15 PM, Arnd Bergmann wrote:
-> > There is no way to build OMAP kernels without an MMU
-> > at this point because of dependencies on MMU-only functions.
-> > 
-> > As long as nobody is interested in fixing this, let's just disable
-> > this platforms for nommu kernels.
-> > 
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > ---
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+From: Jean Pihet <j-pihet@ti.com>
 
-This should be fine for now:
+Update the documentation for the recently updated pm_qos API, kernel
+and user space.
+Add the documentation for the per-device PM QoS (dev_pm_qos) framework
+API.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ Documentation/power/pm_qos_interface.txt |   92 ++++++++++++++++++++++++++++--
+ 1 files changed, 87 insertions(+), 5 deletions(-)
+
+diff --git a/Documentation/power/pm_qos_interface.txt b/Documentation/power/pm_qos_interface.txt
+index bfed898..17e130a 100644
+--- a/Documentation/power/pm_qos_interface.txt
++++ b/Documentation/power/pm_qos_interface.txt
+@@ -4,14 +4,19 @@ This interface provides a kernel and user mode interface for registering
+ performance expectations by drivers, subsystems and user space applications on
+ one of the parameters.
+ 
+-Currently we have {cpu_dma_latency, network_latency, network_throughput} as the
+-initial set of pm_qos parameters.
++Two different PM QoS frameworks are available:
++1. PM QoS classes for cpu_dma_latency, network_latency, network_throughput.
++2. the per-device PM QoS framework provides the API to manage the per-device latency
++constraints.
+ 
+ Each parameters have defined units:
+  * latency: usec
+  * timeout: usec
+  * throughput: kbs (kilo bit / sec)
+ 
++
++1. PM QoS framework
++
+ The infrastructure exposes multiple misc device nodes one per implemented
+ parameter.  The set of parameters implement is defined by pm_qos_power_init()
+ and pm_qos_params.h.  This is done because having the available parameters
+@@ -23,14 +28,18 @@ an aggregated target value.  The aggregated target value is updated with
+ changes to the request list or elements of the list.  Typically the
+ aggregated target value is simply the max or min of the request values held
+ in the parameter list elements.
++Note: the aggregated target value is implemented as an atomic variable so that
++reading the aggregated value does not require any locking mechanism.
++
+ 
+ From kernel mode the use of this interface is simple:
+ 
+-handle = pm_qos_add_request(param_class, target_value):
+-Will insert an element into the list for that identified PM_QOS class with the
++void pm_qos_add_request(handle, param_class, target_value):
++Will insert an element into the list for that identified PM QoS class with the
+ target value.  Upon change to this list the new target is recomputed and any
+ registered notifiers are called only if the target value is now different.
+-Clients of pm_qos need to save the returned handle.
++Clients of pm_qos need to save the returned handle for future use in other
++pm_qos API functions.
+ 
+ void pm_qos_update_request(handle, new_target_value):
+ Will update the list element pointed to by the handle with the new target value
+@@ -42,6 +51,20 @@ Will remove the element.  After removal it will update the aggregate target and
+ call the notification tree if the target was changed as a result of removing
+ the request.
+ 
++int pm_qos_request(param_class):
++Returns the aggregated value for a given PM QoS class.
++
++int pm_qos_request_active(handle):
++Returns if the request is still active, i.e. it has not been removed from a
++PM QoS class constraints list.
++
++int pm_qos_add_notifier(param_class, notifier):
++Adds a notification callback function to the PM QoS class. The callback is
++called when the aggregated value for the PM QoS class is changed.
++
++int pm_qos_remove_notifier(int param_class, notifier):
++Removes the notification callback function for the PM QoS class.
++
+ 
+ From user mode:
+ Only processes can register a pm_qos request.  To provide for automatic
+@@ -63,4 +86,63 @@ To remove the user mode request for a target value simply close the device
+ node.
+ 
+ 
++2. PM QoS per-device latency framework
++
++For each device a list of performance requests is maintained along with
++an aggregated target value.  The aggregated target value is updated with
++changes to the request list or elements of the list.  Typically the
++aggregated target value is simply the max or min of the request values held
++in the parameter list elements.
++Note: the aggregated target value is implemented as an atomic variable so that
++reading the aggregated value does not require any locking mechanism.
++
++
++From kernel mode the use of this interface is the following:
++
++int dev_pm_qos_add_request(device, handle, value):
++Will insert an element into the list for that identified device with the
++target value.  Upon change to this list the new target is recomputed and any
++registered notifiers are called only if the target value is now different.
++Clients of dev_pm_qos need to save the handle for future use in other
++dev_pm_qos API functions.
++
++int dev_pm_qos_update_request(handle, new_value):
++Will update the list element pointed to by the handle with the new target value
++and recompute the new aggregated target, calling the notification trees if the
++target is changed.
++
++int dev_pm_qos_remove_request(handle):
++Will remove the element.  After removal it will update the aggregate target and
++call the notification trees if the target was changed as a result of removing
++the request.
++
++s32 dev_pm_qos_read_value(device):
++Returns the aggregated value for a given device's constraints list.
++
++
++Notification mechanisms:
++The per-device PM QoS framework has 2 different and distinct notification trees:
++a per-device notification tree and a global notification tree.
++
++int dev_pm_qos_add_notifier(device, notifier):
++Adds a notification callback function for the device.
++The callback is called when the aggregated value of the device constraints list
++is changed.
++
++int dev_pm_qos_remove_notifier(device, notifier):
++Removes the notification callback function for the device.
++
++int dev_pm_qos_add_global_notifier(notifier):
++Adds a notification callback function in the global notification tree of the
++framework.
++The callback is called when the aggregated value for any device is changed.
++
++int dev_pm_qos_remove_global_notifier(notifier):
++Removes the notification callback function from the global notification tree
++of the framework.
++
++
++From user mode:
++No API for user space access to the per-device latency constraints is provided
++yet - still under discussion.
+ 
+-- 
+1.7.4.1
+
