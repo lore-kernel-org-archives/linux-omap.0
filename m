@@ -1,17 +1,14 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 15/30] usb/musb: use a Kconfig choice to pick the right
-	DMA method
-Date: Mon, 3 Oct 2011 01:10:51 +0300
-Message-ID: <20111002221050.GA25790@legolas.emea.dhcp.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 08/30] ARM: omap2+: fix building without i2c
+Date: Sun, 2 Oct 2011 19:31:25 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110021928170.4611@utopia.booyaka.com>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-	<1757336.Qk72n3s00p@wuerfel>
-	<20111002185608.GA25690@legolas.emea.dhcp.ti.com>
-	<1546914.88vcgxkfJf@wuerfel>
-Reply-To: balbi@ti.com
+	<1317566760-25681-9-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1120660074=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1546914.88vcgxkfJf@wuerfel>
+In-Reply-To: <1317566760-25681-9-git-send-email-arnd@arndb.de>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,103 +19,75 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "Avinash.H.M" <avinashhm@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hello Arnd,
 
---===============1120660074==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZGiS0Q5IWpPtfppv"
-Content-Disposition: inline
+On Sun, 2 Oct 2011, Arnd Bergmann wrote:
 
+> A trivial typo causes build breakage when I2C is disabled
+> and omap_i2c_reset is set to NULL on OMAP:
+> 
+> omap_hwmod_44xx_data.c:2287:11: error: lvalue required as unary '&' operand
+> 
+> Removing the '&' character solves this.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Cc: Avinash.H.M <avinashhm@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
 
---ZGiS0Q5IWpPtfppv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Nice catch.  I think the bug is different, though.  omap_i2c_reset should 
+never be NULL: that code is intended to execute even when 
+CONFIG_I2C_OMAP=n.  The idea is to prevent the IP block from interfering 
+with the rest of the kernel even if the driver is not compiled in, no 
+matter how the bootloader or previous OS programmed the IP block.
 
-Hi,
-
-On Sun, Oct 02, 2011 at 09:44:26PM +0200, Arnd Bergmann wrote:
-> > that's how MUSB works now and that's what I have been discussing with
-> > Alan Stern for the past month or so, wrt to *HCI. There are even patches
-> > floating on linux-usb right now trying to hash out the problems.
->=20
-> Ah, glad to see that is happening. I can probably get rid of a bunch
-> of randconfig patches I have for those then.
-
-glad to hear you're sorting out randconfig :-)
-
-> > Maybe you should have consulted the maintainers of those drivers before
-> > making such statements.
-> >
-> > MUSB is not the best example because of its history. I understand the
-> > DMA part is still really messy, but we have been working very hard to
-> > hash the problems and still allow new glue layers to be merged.
->=20
-> Sorry if I have made my statement sound like an accusation, it wasn't
-> meant as one, merely as a sigh at having identified yet another area
-> that needs to be changed in order to have cross-platform ARM kernels
-> working in every case.
-
-no big deal ;-)
-
-> > How about taking a sneak pick at what the code does right now ? As of
-> > today, I can even even have all UDC controller drivers into one kernel
-> > and I generally compile x86 with all controllers available. There's some
-> > very small work that has to be done on each of the UDC drivers to remove
-> > any references to <arch/..> <asm/..> and <plat/..> headers but that work
-> > in in progress.
->=20
-> I didn't really see any problems with UDC at all. What I saw were a lot
-> of build problems with the musb host side, and I rewrote this patch half
-> a dozen times before I ended up with a version that consistently built
-> without making the code look worse.
-
-I understand.
-
-> I also agree that the musb implementation is less of a problem than
-> ohci/ehci in its current form, as it already is layered in the right
-> way. I did not attempt to turn the Kconfig 'choice' statement there
-> into a flat list though, so I wouldn't know what problems to expect.
-
-Actually, MUSB still has lots of goofage from the original mentor
-release but that's another story.
-
-Anyway, I'll take your patches in, but their too late for this merge
-window :-( I already sent my last pull to Greg.
-
---=20
-balbi
-
---ZGiS0Q5IWpPtfppv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOiOFqAAoJEAv8Txj19kN1tdEH/jW3GhCFAA1rHdmT4BjMZbJq
-tM6bYwQs3EywLQeEglPEkChi0cLnB5obwPzlP2q8zbA9CS66t9uoJOHkHrXuQwqV
-b9hg64Nzsm5yQHP2mrY3jpe/Xi0r/NBdDPBFQhyhNq5YsazeMf3W3quhPj2O6yzq
-6LpenYkAAwQq1bZ/hlPbHKBJ/2UZmNDL7U85lVimXDsdfdj47hj7TTe7pN5pNrlm
-oKtuvVqAA6PIL7N9q7pY4jmsdp2ISOg21omrpgORlGtK72X0VAb+PQHQqttWqdSv
-MDNKNLpc4kebX4qrjslsi8t9Y89b5W86a3BYQTz6tI6ovmuJW+HXoUHy8aQuoDc=
-=Mdj7
------END PGP SIGNATURE-----
-
---ZGiS0Q5IWpPtfppv--
+I'd suggest something like the following patch instead.
 
 
---===============1120660074==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+- Paul
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 2 Oct 2011 19:15:10 -0600
+Subject: [PATCH] ARM: omap2+: fix build breakage when CONFIG_I2C_OMAP=n
 
---===============1120660074==--
+arch/arm/mach-omap2/Makefile incorrectly skips compilation of the I2C
+IP block reset code when CONFIG_I2C_OMAP=n.  Fix by unconditionally
+compiling arch/arm/mach-omap2/i2c.o, which is needed on all OMAP2+ platforms.
+
+Problem noted by Arnd Bergmann <arnd@arndb.de>.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Avinash.H.M <avinashhm@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/Makefile |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index f343365..0951986 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -4,7 +4,7 @@
+ 
+ # Common support
+ obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer.o pm.o \
+-	 common.o gpio.o dma.o wd_timer.o
++	 common.o gpio.o dma.o wd_timer.o i2c.o
+ 
+ omap-2-3-common				= irq.o sdrc.o
+ hwmod-common				= omap_hwmod.o \
+@@ -175,9 +175,6 @@ obj-$(CONFIG_OMAP_IOMMU)		+= iommu2.o
+ iommu-$(CONFIG_OMAP_IOMMU)		:= omap-iommu.o
+ obj-y					+= $(iommu-m) $(iommu-y)
+ 
+-i2c-omap-$(CONFIG_I2C_OMAP)		:= i2c.o
+-obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
+-
+ ifneq ($(CONFIG_TIDSPBRIDGE),)
+ obj-y					+= dsp.o
+ endif
+-- 
+1.7.6.3
