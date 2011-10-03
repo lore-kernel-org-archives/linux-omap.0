@@ -1,21 +1,41 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] OMAP2PLUS: DSS: Ensure DSS works correctly if display
- is enabled in bootloader
-Date: Mon, 3 Oct 2011 13:30:06 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110031251200.4611@utopia.booyaka.com>
-References: <1315811306-11001-1-git-send-email-archit@ti.com> <alpine.DEB.2.00.1110022237171.4611@utopia.booyaka.com> <4E89467B.4080103@ti.com>
+Subject: DSS testing help?
+Date: Mon, 3 Oct 2011 14:48:10 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110031446580.4611@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48979 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47512 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756250Ab1JCTaI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 15:30:08 -0400
-In-Reply-To: <4E89467B.4080103@ti.com>
+	with ESMTP id S1755033Ab1JCUsL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 16:48:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: sricharan <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+
+
+Hello Sricharan,
+
+It looks like Archit is out of the office.  Would it be possible for you 
+to test the updated DSS reset patch, below?
+
+thanks
+
+- Paul
+
+---------- Forwarded message ----------
+Date: Mon, 3 Oct 2011 13:30:06 -0600 (MDT)
+From: Paul Walmsley <paul@pwsan.com>
 To: Archit Taneja <archit@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "R, Sricharan" <r.sricharan@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+    "Shilimkar, Santosh" <santosh.shilimkar@ti.com>,
+    "R, Sricharan" <r.sricharan@ti.com>, "tony@atomide.com" <tony@atomide.com>,
+    "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+    "linux-arm-kernel@lists.infradead.org"
+    <linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH v2] OMAP2PLUS: DSS: Ensure DSS works correctly if display is
+     enabled in bootloader
 
 Hi Archit,
 
