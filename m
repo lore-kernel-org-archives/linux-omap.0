@@ -1,18 +1,18 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 02/30] video/omap: fix dependencies
-Date: Mon, 03 Oct 2011 09:53:50 +0300
-Message-ID: <1317624830.2026.6.camel@deskari>
+Subject: Re: [PATCH 03/30] video/omap: fix build dependencies
+Date: Mon, 03 Oct 2011 09:59:35 +0300
+Message-ID: <1317625175.2026.8.camel@deskari>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-	 <1317566760-25681-3-git-send-email-arnd@arndb.de>
+	 <1317566760-25681-4-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:45001 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750894Ab1JCGxz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 02:53:55 -0400
-In-Reply-To: <1317566760-25681-3-git-send-email-arnd@arndb.de>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:60992 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750846Ab1JCG7m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 02:59:42 -0400
+In-Reply-To: <1317566760-25681-4-git-send-email-arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
@@ -21,36 +21,16 @@ Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kern
 Hi Arnd,
 
 On Sun, 2011-10-02 at 16:45 +0200, Arnd Bergmann wrote:
-> The lcd_2430sdp and lcd_ldp drivers depend on TWL4030, which is not
-> well expressed in the Kconfig. Create new configuration options for
-> these in order to describe the dependencies correctly.
-> 
-> In some cases, the driver cannot be a loadable module, so better
-> force it to be built-in.
-> 
-> While we're at it, simplify the Makefile syntax.
+> Four of the LCD panel drivers depend on the backlight class,
+> so add the dependency in Kconfig.
+> Selecting the BACKLIGHT_CLASS_DEVICE symbol does not generally
+> work since it has other dependencies.
 > 
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  drivers/video/omap/Kconfig  |   41 +++++++++++++++++++++++++---
->  drivers/video/omap/Makefile |   64 ++++++++++++++++++++-----------------------
->  2 files changed, 67 insertions(+), 38 deletions(-)
 
-I have ported lcd_2430sdp and lcd_ldp drivers (and also other OMAP2/3
-panel drivers, except N800) to the newer omapdss driver
-(drivers/video/omap2), and the code is in my for-next branch
-(git://gitorious.org/linux-omap-dss2/linux.git for-next).
-
-I have also worked on removing OMAP2/3 support from the old omapfb
-driver, thus making it OMAP1 fb driver. This code is not yet ready, and
-won't make it in the next merge window.
-
-Your patch will conflict with both of those changes. Is it ok for you to
-drop this patch, and I'll make a new one on top of my changes to clean
-up the Makefile in a similar way than you did? The new patch wouldn't
-make it in the next merge window, though, but I don't think this patch
-is fixing any bigger bug, so perhaps it's not so urgent.
+This looks ok to me. If it's fine to you, I'll queue this patch in my
+DSS tree to prevent possible conflicts.
 
  Tomi
 
