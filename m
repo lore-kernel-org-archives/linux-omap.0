@@ -1,41 +1,58 @@
-From: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Subject: Re: [GIT PULL] I2C: OMAP: misc. cleanup for v3.2
-Date: Tue, 4 Oct 2011 22:08:32 +0100
-Message-ID: <20111004210832.GC13323@freya.fluff.org>
-References: <871uwbhdoj.fsf@ti.com>
- <4E669F36.2070008@ti.com>
- <4E80FD1A.5040006@deeprootsystems.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: Please help with the OMAP static mapping mess
+Date: Tue, 04 Oct 2011 17:10:36 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1110041528050.9106@xanadu.home>
+References: <alpine.LFD.2.02.1110031312480.9106@xanadu.home>
+ <20111003205658.GJ6324@atomide.com>
+ <alpine.LFD.2.02.1110031744100.9106@xanadu.home>
+ <20111003224411.GA19897@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4E80FD1A.5040006-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relais.videotron.ca ([24.201.245.36]:10527 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933618Ab1JDVKh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 17:10:37 -0400
+Received: from xanadu.home ([66.130.28.92]) by VL-VM-MR003.ip.videotron.ca
+ (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
+ 2011)) with ESMTP id <0LSK00E9E8418X50@VL-VM-MR003.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Tue, 04 Oct 2011 17:09:37 -0400 (EDT)
+In-reply-to: <20111003224411.GA19897@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Sep 26, 2011 at 03:30:50PM -0700, Kevin Hilman wrote:
-> ping
+On Mon, 3 Oct 2011, Russell King - ARM Linux wrote:
+
+> On Mon, Oct 03, 2011 at 06:09:57PM -0400, Nicolas Pitre wrote:
+> > On Mon, 3 Oct 2011, Tony Lindgren wrote:
+> > > Having the SRAM base address move around with different sizes also
+> > > requires the SoC detection.. Otherwise we can end up mapping wrong
+> > > size and end up trying to access secure SRAM that will hang the system.
+> > > 
+> > > The way to fix it is to move SRAM init happen much later so we don't
+> > > have to map it early. I guess now we could use ioremap for SRAM,
+> > > although we may not want device attributes for the executable code?
+> > > Got any suggestions here on how we should map SRAM later on?
+> > 
+> > You can use a variant of ioremap() such as __arm_ioremap() which let you 
+> > specify the memory attribute.
 > 
-> On 09/06/2011 03:31 PM, Kevin Hilman wrote:
-> >Hi Ben,
-> >
-> >On 08/23/2011 05:10 PM, Kevin Hilman wrote:
-> >>Ben,
-> >>
-> >>Here's one more I2C cleanup series for v3.2.
-> >>
-> >>It applies on top of my for_3.2/i2c-fixes branch just submitted.
-> >>
-> >>Please pull into your tree for linux-next.
-> >
-> >I see you pulled the other two, can you pull this one as well?
+> Just be aware that __arm_ioremap() always ends up with stuff in the
+> kernel domain, but that's not what you end up with using create_mapping().
+> So I'd prefer it if you didn't suggest that __arm_ioremap() should be used
+> with types not listed in asm/io.h.
 
-I've tried, but it seems to note that everything is up to date.
+Well, here we're talking about MT_MEMORY and MT_MEMORY_NONCACHED, and 
+they are using DOMAIN_KERNEL already.  So no difference there.
 
-Is this a suitable branch to pull onto latest so I can reset
-my next tree?
+Which makes me think... with all those architectures intercepting 
+ioremap calls in order to provide an equivalent static mapping address, 
+they already get an unexpected domain given that static mappings are 
+mostly DOMAIN_IO and not DOMAIN_KERNEL as would result from an non 
+intercepted ioremap call.
 
--- 
-Ben
+
+Nicolas
