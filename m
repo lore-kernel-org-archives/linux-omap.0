@@ -1,63 +1,33 @@
 From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 22/30] mfd: build twl6030 only on omap2
-Date: Tue, 4 Oct 2011 12:47:13 +0200
-Message-ID: <20111004104713.GY4118@sortiz-mobl>
+Subject: Re: [PATCH 18/30] omap-usb: automatically select MFD_OMAP_USB_HOST
+Date: Tue, 4 Oct 2011 13:00:26 +0200
+Message-ID: <20111004110026.GZ4118@sortiz-mobl>
 References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
- <1317566760-25681-23-git-send-email-arnd@arndb.de>
+ <1317566760-25681-19-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1317566760-25681-23-git-send-email-arnd@arndb.de>
+In-Reply-To: <1317566760-25681-19-git-send-email-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Balaji T K <balajitk@ti.com>, Hemanth V <hemanthv@ti.com>, Bill Gatliff <bgat@billgatliff.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 Hi Arnd,
 
-On Sun, Oct 02, 2011 at 04:45:52PM +0200, Arnd Bergmann wrote:
-> We can only have one pwm driver built into the kernel,
-I seem to remember that Bill Gatliff was working on a PWM subsystem that would
-get rid of the current pwm.h ugliness. Do we have any updates on this one ?
-
-The patch below looks like a hack to me, trying to work around the current
-lack of such subsystem.
+On Sun, Oct 02, 2011 at 04:45:48PM +0200, Arnd Bergmann wrote:
+> The ehci-omap and ohci-omap3 drivers both depend on the
+> omap-usb-host MFD support driver. By default, this is
+> automatically turned on, but it is possible to disable
+> the driver, which results in a link error.
+I don't see the Kconfig entry for e.g. the ohci-omap3 driver, but shouldn't
+the dependency be handled there ?
+If ohci-omap3 depends on omap-usb-host, then we should not be able to disable
+the latter while the former is selected.
 
 Cheers,
 Samuel.
-
-> so make sure
-> that this one is only available on omap2 to avoid conflicts with
-> pwm drivers of other platforms.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: Balaji T K <balajitk@ti.com>
-> Cc: Hemanth V <hemanthv@ti.com>
-> ---
->  drivers/mfd/Kconfig |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> index 48cce35..26bebe8 100644
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -256,8 +256,8 @@ config MFD_TWL4030_AUDIO
->  	default n
->  
->  config TWL6030_PWM
-> -	tristate "TWL6030 PWM (Pulse Width Modulator) Support"
-> -	depends on TWL4030_CORE
-> +	bool "TWL6030 PWM (Pulse Width Modulator) Support"
-> +	depends on TWL4030_CORE && ARCH_OMAP2
->  	select HAVE_PWM
->  	default n
->  	help
-> -- 
-> 1.7.5.4
-> 
 
 -- 
 Intel Open Source Technology Centre
