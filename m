@@ -1,48 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/10] OMAP DSS related board changes
-Date: Mon, 3 Oct 2011 17:32:02 -0700
-Message-ID: <20111004003202.GO6324@atomide.com>
-References: <1316506706-18941-1-git-send-email-tomi.valkeinen@ti.com>
- <1317019053.1956.10.camel@deskari>
- <20110929175232.GI6324@atomide.com>
- <1317360043.1867.15.camel@deskari>
+Subject: Re: [PATCH 4/4] usb: musb: OMAP: Delete unused function
+Date: Mon, 3 Oct 2011 17:33:33 -0700
+Message-ID: <20111004003332.GP6324@atomide.com>
+References: <CAFULf_y-Pzef7zC5TN01ikr3hhe7Jfui77=O+8zCHP2ZOHOkgQ@mail.gmail.com>
+ <20110812094851.GR19467@legolas.emea.dhcp.ti.com>
+ <CAFULf_x_Fgj7dzBBxCA=6_f_=_JbewSwM3UHN3hfpgQGLv7Fog@mail.gmail.com>
+ <20110816065425.GE2305@legolas.emea.dhcp.ti.com>
+ <CAFULf_w32h7hFYEkemoRZdjtiSA-fRgqosd40b711PuvP2N3Sg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47435 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47867 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752154Ab1JDAcF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 20:32:05 -0400
+	with ESMTP id S1751853Ab1JDAde (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 20:33:34 -0400
 Content-Disposition: inline
-In-Reply-To: <1317360043.1867.15.camel@deskari>
+In-Reply-To: <CAFULf_w32h7hFYEkemoRZdjtiSA-fRgqosd40b711PuvP2N3Sg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Bjarne Steinsbo <bsteinsbo@gmail.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [110929 21:47]:
-> On Thu, 2011-09-29 at 10:52 -0700, Tony Lindgren wrote:
-> > 
-> > Also, you might want to start looking into passing the configuration
-> > from DT instead to avoid the platform init code. Probably the
-> > panel configuration would be the place to start with that?
-> 
-> I haven't actually looked at DT yet, but one reason I've been writing
-> and pushing these old omapfb cleanups is to get all omap2+ boards use
-> the new dss driver, and thus hopefully making DT adaptation easier as I
-> can (for now) ignore the old omapfb and omap1 boards regarding DT.
+* Bjarne Steinsbo <bsteinsbo@gmail.com> [110913 23:38]:
+> I can't see this one queued up anywhere.  Did it just slip through the
+> cracks, or are there any problems with it?
 
-Right, makes sense.
- 
-> But yes, I definitely need to look at DT. Is there a driver to be used
-> as a sample when looking at DT?
-
-At this point maybe just see what's in mainline in arch/arm/boot/dts
-and work your way back from there. The DT data should be pretty much
-just registers and stay operating system independent. So some of these
-things still need to be glued together by the bus/hwmod/driver probe
-code.
+Looks like I should queue it into fixes or cleanup after we
+get the pending pull requests merged by Arnd.
 
 Regards,
 
 Tony
+
+ 
+> BR,
+> 
+> Bjarne Steinsbo
+> 
+> On Tue, Aug 16, 2011 at 8:54 AM, Felipe Balbi <balbi@ti.com> wrote:
+> > On Fri, Aug 12, 2011 at 05:28:26PM +0200, Bjarne Steinsbo wrote:
+> >> Not in use anymore.
+> >>
+> >> Signed-off-by: Bjarne Steinsbo <bsteinsbo@gmail.com>
+> >
+> > This one too:
+> >
+> > Acked-by: Felipe Balbi <balbi@ti.com>
+> >
+> > --
+> > balbi
+> >
