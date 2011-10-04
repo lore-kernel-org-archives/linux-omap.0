@@ -1,93 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Please help with the OMAP static mapping mess
-Date: Tue, 4 Oct 2011 10:50:57 -0700
-Message-ID: <20111004175057.GU6324@atomide.com>
-References: <alpine.LFD.2.02.1110031312480.9106@xanadu.home>
- <20111003205658.GJ6324@atomide.com>
- <alpine.LFD.2.02.1110031744100.9106@xanadu.home>
- <alpine.LFD.2.02.1110031827440.9106@xanadu.home>
- <20111003225908.GL6324@atomide.com>
- <CAMQu2gxgRZzb6hh5pOVBgaPUZEizEqBr_e358MBuD_xHJOvX3Q@mail.gmail.com>
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCH 1/4] ARM: OMAP3 PM: Fix IO Daisychain sequence
+Date: Tue, 4 Oct 2011 23:22:01 +0530
+Message-ID: <1317750724-32553-2-git-send-email-vishwanath.bs@ti.com>
+References: <1317750724-32553-1-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33794 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932845Ab1JDRvC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 13:51:02 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gxgRZzb6hh5pOVBgaPUZEizEqBr_e358MBuD_xHJOvX3Q@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50694 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933156Ab1JDR7K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 13:59:10 -0400
+In-Reply-To: <1317750724-32553-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [111003 22:45]:
-> On Tue, Oct 4, 2011 at 4:29 AM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> > * Nicolas Pitre <nico@fluxnic.net> [111003 15:05]:
-> >> On Mon, 3 Oct 2011, Nicolas Pitre wrote:
-> >>
-> >> > On Mon, 3 Oct 2011, Tony Lindgren wrote:
-> >> >
-> >> > > * Nicolas Pitre <nico@fluxnic.net> [111003 11:26]:
-> >> > > >
-> >> > > > Furthermore... there is also a static mapping for physical a=
-ddress
-> >> > > > 0x4e000000 using virtual address 0xff100000 which is already=
- reserved
-> >> > > > for other purposes i.e. the consistent DMA area. =C2=A0It is=
- not immediately
-> >> > > > obvious where this comes from without being intimate with th=
-e OMAP code.
-> >> > > > Can this be fixed as well i.e. moved elsewhere please?
-> >> > >
-> >> > > This sounds like a bug somewhere. Which omap are you seeing th=
-is on?
-> >> >
-> >> > OMAP4430 on a Panda board.
-> >> >
-> >> > Here are the static mappings I'm seeing:
-> >> >
-> >> > phys =3D 0x44000000 virt =3D 0xf8000000 size =3D 0x100000
-> >> > phys =3D 0x4a000000 virt =3D 0xfc000000 size =3D 0x400000
-> >> > phys =3D 0x50000000 virt =3D 0xf9000000 size =3D 0x100000
-> >> > phys =3D 0x4c000000 virt =3D 0xfd100000 size =3D 0x100000
-> >> > phys =3D 0x4d000000 virt =3D 0xfe100000 size =3D 0x100000
-> >> > phys =3D 0x4e000000 virt =3D 0xff100000 size =3D 0x100000 <---
-> >> > phys =3D 0x48000000 virt =3D 0xfa000000 size =3D 0x400000
-> >> > phys =3D 0x54000000 virt =3D 0xfe800000 size =3D 0x800000
-> >>
-> >> It looks like this comes from OMAP44XX_DMM_VIRT.
-> >>
-> >> #define OMAP44XX_DMM_PHYS =C2=A0 =C2=A0 =C2=A0 OMAP44XX_DMM_BASE
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* 0x4e000000 --> 0xfd300000 */
-> >> #define OMAP44XX_DMM_VIRT =C2=A0 =C2=A0 =C2=A0 (OMAP44XX_DMM_PHYS =
-+ OMAP4_L3_PER_IO_OFFSET)
-> >> #define OMAP44XX_DMM_SIZE =C2=A0 =C2=A0 =C2=A0 SZ_1M
-> >>
-> >> The comment suggesting a mapping correspondance is obviously wrong=
-=2E We have:
-> >>
-> >> #define OMAP44XX_DMM_BASE =C2=A0 =C2=A0 =C2=A0 0x4e000000
-> >> #define OMAP4_L3_PER_IO_OFFSET =C2=A00xb1100000
-> >>
-> >> Hence 0x4e000000 + 0xb1100000 =3D 0xff100000.
-> >
-> > Seem like it might cause some random patterns in tiler :)
-> > Santosh, can youp please check it?
-> >
-> This is already fixed Tony. You have pulled that patch.
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg55258.html
+As per OMAP3630 TRM Section 3.5.7.2.2, the right sequence for enabling IO Daisy
+chain is "The I/O wake-up scheme is enabled by triggering the I/O daisy chain
+control (Wu clock) by programming a dedicated register
+(PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN) in the PRCM module.Software must wait for
+the I/O daisy chain to complete before it transitions the PER domain to a
+nonfunctional state. This is done by polling a dedicated status bit in the PRCM
+module (PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN). This status bit must be cleared by
+software when the bit is read to  1".
 
-OK thanks. Yup, looks like it's queued up in l3 branch.
+The original code was polling on a wrong register which is fixed in this patch.
+Also omap3_enable_io_chain is made non static as it's going to be used in
+subsequent patches.
+ 
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+---
+ arch/arm/mach-omap2/pm.h     |    1 +
+ arch/arm/mach-omap2/pm34xx.c |    6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 4e166ad..9a36a7c 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -21,6 +21,7 @@ extern void omap_sram_idle(void);
+ extern int omap3_can_sleep(void);
+ extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap3_idle_init(void);
++extern void omap3_enable_io_chain(void);
+ 
+ #if defined(CONFIG_PM_OPP)
+ extern int omap3_opp_init(void);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 7255d9b..61f1a5b 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -95,7 +95,7 @@ static inline void omap3_per_restore_context(void)
+ 	omap_gpio_restore_context();
+ }
+ 
+-static void omap3_enable_io_chain(void)
++void omap3_enable_io_chain(void)
+ {
+ 	int timeout = 0;
+ 
+@@ -105,7 +105,7 @@ static void omap3_enable_io_chain(void)
+ 		/* Do a readback to assure write has been done */
+ 		omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
+ 
+-		while (!(omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN) &
++		while (!(omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST) &
+ 			 OMAP3430_ST_IO_CHAIN_MASK)) {
+ 			timeout++;
+ 			if (timeout > 1000) {
+@@ -114,7 +114,7 @@ static void omap3_enable_io_chain(void)
+ 				return;
+ 			}
+ 			omap2_prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK,
+-					     WKUP_MOD, PM_WKEN);
++					     WKUP_MOD, PM_WKST);
+ 		}
+ 	}
+ }
+-- 
+1.7.0.4
+
