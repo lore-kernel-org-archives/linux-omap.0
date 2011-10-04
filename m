@@ -1,52 +1,101 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP3 PM: Fix IO Daisychain sequence
-Date: Tue, 04 Oct 2011 13:47:48 -0700
-Message-ID: <87r52s8owb.fsf@ti.com>
-References: <1317750724-32553-1-git-send-email-vishwanath.bs@ti.com>
-	<1317750724-32553-2-git-send-email-vishwanath.bs@ti.com>
+Subject: Re: [PATCH v6 01/16] OMAP2+: hwmod: Add API to enable IO ring wakeup.
+Date: Tue, 04 Oct 2011 14:03:29 -0700
+Message-ID: <8762k48o66.fsf@ti.com>
+References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
+	<4E871883.4010207@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:35523 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933353Ab1JDUrw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 16:47:52 -0400
-Received: by mail-qy0-f170.google.com with SMTP id 16so5674964qyl.1
-        for <linux-omap@vger.kernel.org>; Tue, 04 Oct 2011 13:47:51 -0700 (PDT)
-In-Reply-To: <1317750724-32553-2-git-send-email-vishwanath.bs@ti.com>
-	(Vishwanath BS's message of "Tue, 4 Oct 2011 23:22:01 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <4E871883.4010207@ti.com> (Rajendra Nayak's message of "Sat, 01
+	Oct 2011 19:11:23 +0530")
+Sender: linux-serial-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mohanv@ti.com
 
-Hi Vishwa,
+Hi Rajendra,
 
-Vishwanath BS <vishwanath.bs@ti.com> writes:
+Rajendra Nayak <rnayak@ti.com> writes:
 
-> As per OMAP3630 TRM Section 3.5.7.2.2, the right sequence for enabling IO Daisy
-> chain is "The I/O wake-up scheme is enabled by triggering the I/O daisy chain
-> control (Wu clock) by programming a dedicated register
-> (PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN) in the PRCM module.Software must wait for
-> the I/O daisy chain to complete before it transitions the PER domain to a
-> nonfunctional state. This is done by polling a dedicated status bit in the PRCM
-> module (PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN). This status bit must be cleared by
-> software when the bit is read to  1".
+> On Friday 30 September 2011 04:31 PM, Govindraj.R wrote:
+>> Add API to enable IO pad wakeup capability based on mux dynamic pad and
+>> wake_up enable flag available from hwmod_mux initialization.
+>>
+>> Use the wakeup_enable flag and enable wakeup capability
+>> for the given pads. Wakeup capability will be enabled/disabled
+>> during hwmod idle transition based on whether wakeup_flag is
+>> set or cleared.
+>>
+>> Call the omap_hwmod_set_ioring_wakeup from hwmod_wakeup_enable/disable.
+>>
+>> Signed-off-by: Govindraj.R<govindraj.raja@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/omap_hwmod.c |   59 ++++++++++++++++++++++++++++++++++++++
+>>   1 files changed, 59 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>> index 84cc0bd..e751dd9 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>> @@ -2062,6 +2062,34 @@ static int __init omap_hwmod_setup_all(void)
+>>   core_initcall(omap_hwmod_setup_all);
+>>
+>>   /**
+>> + * omap_hwmod_set_ioring_wakeup - enable io pad wakeup flag.
+>> + * @oh: struct omap_hwmod *
+>> + * @set: bool value indicating to set or clear wakeup status.
+>> + *
+>> + * Set or Clear wakeup flag for the io_pad.
+>> + */
+>> +static int omap_hwmod_set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
+>> +{
+>> +	struct omap_device_pad *pad;
+>> +	int ret = -EINVAL, j;
+>> +
+>> +	if (oh->mux&&  oh->mux->enabled) {
+>> +		for (j = 0; j<  oh->mux->nr_pads_dynamic; j++) {
+>> +			pad = oh->mux->pads_dynamic[j];
+>> +			if (pad->flags&  OMAP_DEVICE_PAD_WAKEUP) {
+>> +				if (set_wake)
+>> +					pad->idle |= OMAP_WAKEUP_EN;
+>> +				else
+>> +					pad->idle&= ~OMAP_WAKEUP_EN;
 >
-> The original code was polling on a wrong register which is fixed in this patch.
-> Also omap3_enable_io_chain is made non static as it's going to be used in
-> subsequent patches.
->  
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> I think apart from enabling/disabling the IO wakeup's at the pad
+> level, there is also a need to trigger the IO daisy chain control
+> (Wu clock) by programming the PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN
+> bit and waiting on the PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN) bit,
+> which is done by the omap3_enable/disable_io_chain function.
+> This is still done in the cpuidle path, but it makes sense to
+> move that over here, since it should be done every time a pad
+> level wakeup is enabled or disabled.
 
-A fix for this was posted[1] by Mohan V (added to Cc) back in June.  It
-recieved a few minor comments but an updated version was never posted.
+So should it be done just here or also in the idle path?  In general,
+I'm certainly for moving things out of the idle path into the places
+where they belong.
 
-Maybe you can ping Mohan or update that version fixing the comments
-mentioned in that thread.
+However, I don't get from the TRM description below that it should be
+done every time a pad-level wake is enabled or disabled.  Can you
+clarify what part of the TRM description you mean?
 
-Thanks,
+All I understand is that it has to be done before PER domain
+transisions.
+
+Also, if this were to happen, are there side-effects of having the IO
+daisy chain armed outside the idle path?
 
 Kevin
 
-[1] http://marc.info/?l=linux-omap&w=2&r=1&s=%27Mohan+V%27&q=b
+> See section 3.5.7.2.2 I/O Wake-Up Mechanism of 36xx TRM revA.
+>
+> "The I/O wake-up scheme is enabled by triggering the I/O daisy chain
+> control (Wu clock) by
+> programming a dedicated register (PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN)
+> in the PRCM module.Software must wait for the I/O daisy chain to
+> complete before it transitions the PER domain to a
+> nonfunctional state. This is done by polling a dedicated status bit in
+> the PRCM module
+> (PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN). This status bit must be cleared
+> by software when the bit is
+> read to 1."
