@@ -1,101 +1,41 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v6 01/16] OMAP2+: hwmod: Add API to enable IO ring wakeup.
-Date: Tue, 04 Oct 2011 14:03:29 -0700
-Message-ID: <8762k48o66.fsf@ti.com>
-References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
-	<4E871883.4010207@ti.com>
+From: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Subject: Re: [GIT PULL] I2C: OMAP: misc. cleanup for v3.2
+Date: Tue, 4 Oct 2011 22:08:32 +0100
+Message-ID: <20111004210832.GC13323@freya.fluff.org>
+References: <871uwbhdoj.fsf@ti.com>
+ <4E669F36.2070008@ti.com>
+ <4E80FD1A.5040006@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <4E871883.4010207@ti.com> (Rajendra Nayak's message of "Sat, 01
-	Oct 2011 19:11:23 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4E80FD1A.5040006-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rajendra,
+On Mon, Sep 26, 2011 at 03:30:50PM -0700, Kevin Hilman wrote:
+> ping
+> 
+> On 09/06/2011 03:31 PM, Kevin Hilman wrote:
+> >Hi Ben,
+> >
+> >On 08/23/2011 05:10 PM, Kevin Hilman wrote:
+> >>Ben,
+> >>
+> >>Here's one more I2C cleanup series for v3.2.
+> >>
+> >>It applies on top of my for_3.2/i2c-fixes branch just submitted.
+> >>
+> >>Please pull into your tree for linux-next.
+> >
+> >I see you pulled the other two, can you pull this one as well?
 
-Rajendra Nayak <rnayak@ti.com> writes:
+I've tried, but it seems to note that everything is up to date.
 
-> On Friday 30 September 2011 04:31 PM, Govindraj.R wrote:
->> Add API to enable IO pad wakeup capability based on mux dynamic pad and
->> wake_up enable flag available from hwmod_mux initialization.
->>
->> Use the wakeup_enable flag and enable wakeup capability
->> for the given pads. Wakeup capability will be enabled/disabled
->> during hwmod idle transition based on whether wakeup_flag is
->> set or cleared.
->>
->> Call the omap_hwmod_set_ioring_wakeup from hwmod_wakeup_enable/disable.
->>
->> Signed-off-by: Govindraj.R<govindraj.raja@ti.com>
->> ---
->>   arch/arm/mach-omap2/omap_hwmod.c |   59 ++++++++++++++++++++++++++++++++++++++
->>   1 files changed, 59 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->> index 84cc0bd..e751dd9 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -2062,6 +2062,34 @@ static int __init omap_hwmod_setup_all(void)
->>   core_initcall(omap_hwmod_setup_all);
->>
->>   /**
->> + * omap_hwmod_set_ioring_wakeup - enable io pad wakeup flag.
->> + * @oh: struct omap_hwmod *
->> + * @set: bool value indicating to set or clear wakeup status.
->> + *
->> + * Set or Clear wakeup flag for the io_pad.
->> + */
->> +static int omap_hwmod_set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
->> +{
->> +	struct omap_device_pad *pad;
->> +	int ret = -EINVAL, j;
->> +
->> +	if (oh->mux&&  oh->mux->enabled) {
->> +		for (j = 0; j<  oh->mux->nr_pads_dynamic; j++) {
->> +			pad = oh->mux->pads_dynamic[j];
->> +			if (pad->flags&  OMAP_DEVICE_PAD_WAKEUP) {
->> +				if (set_wake)
->> +					pad->idle |= OMAP_WAKEUP_EN;
->> +				else
->> +					pad->idle&= ~OMAP_WAKEUP_EN;
->
-> I think apart from enabling/disabling the IO wakeup's at the pad
-> level, there is also a need to trigger the IO daisy chain control
-> (Wu clock) by programming the PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN
-> bit and waiting on the PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN) bit,
-> which is done by the omap3_enable/disable_io_chain function.
-> This is still done in the cpuidle path, but it makes sense to
-> move that over here, since it should be done every time a pad
-> level wakeup is enabled or disabled.
+Is this a suitable branch to pull onto latest so I can reset
+my next tree?
 
-So should it be done just here or also in the idle path?  In general,
-I'm certainly for moving things out of the idle path into the places
-where they belong.
-
-However, I don't get from the TRM description below that it should be
-done every time a pad-level wake is enabled or disabled.  Can you
-clarify what part of the TRM description you mean?
-
-All I understand is that it has to be done before PER domain
-transisions.
-
-Also, if this were to happen, are there side-effects of having the IO
-daisy chain armed outside the idle path?
-
-Kevin
-
-> See section 3.5.7.2.2 I/O Wake-Up Mechanism of 36xx TRM revA.
->
-> "The I/O wake-up scheme is enabled by triggering the I/O daisy chain
-> control (Wu clock) by
-> programming a dedicated register (PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN)
-> in the PRCM module.Software must wait for the I/O daisy chain to
-> complete before it transitions the PER domain to a
-> nonfunctional state. This is done by polling a dedicated status bit in
-> the PRCM module
-> (PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN). This status bit must be cleared
-> by software when the bit is
-> read to 1."
+-- 
+Ben
