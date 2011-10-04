@@ -1,73 +1,64 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC 2/5] ARM: OMAP: omap_device: add a method to set iommu private archdata
-Date: Tue, 04 Oct 2011 11:15:59 -0700
-Message-ID: <87botwk4gw.fsf@ti.com>
-References: <1316948337-7924-1-git-send-email-ohad@wizery.com>
-	<1316948337-7924-3-git-send-email-ohad@wizery.com>
-	<87sjni9aql.fsf@ti.com>
-	<CAK=WgbZhz8LcAYZEY3qqRkX4E_wtspWp09Eq9G=5VdpoMMF1FQ@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2] OMAP2PLUS: DSS: Ensure DSS works correctly if display
+ is enabled in bootloader
+Date: Tue, 4 Oct 2011 12:27:11 -0600
+Message-ID: <20111004182711.GE2870@ponder.secretlab.ca>
+References: <1315811306-11001-1-git-send-email-archit@ti.com>
+ <alpine.DEB.2.00.1110022237171.4611@utopia.booyaka.com>
+ <1317630070.2026.27.camel@deskari>
+ <4E898468.2060508@ti.com>
+ <alpine.DEB.2.00.1110031126090.4611@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbZhz8LcAYZEY3qqRkX4E_wtspWp09Eq9G=5VdpoMMF1FQ@mail.gmail.com>
-	(Ohad Ben-Cohen's message of "Tue, 27 Sep 2011 21:09:57 +0300")
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1110031126090.4611@utopia.booyaka.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Cousson Benoit <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Taneja, Archit" <archit@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "R, Sricharan" <r.sricharan@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Ohad Ben-Cohen <ohad@wizery.com> writes:
+On Mon, Oct 03, 2011 at 11:34:34AM -0600, Paul Walmsley wrote:
+> + devicetree-discuss, lkml
+> 
+> On Mon, 3 Oct 2011, Cousson, Benoit wrote:
+> 
+> > But at that time, device tree was not there...
+> > Now, the whole dev_attr stuff will be replaced because device tree is able to
+> > provide the driver any kind of custom information that can be retrieved
+> > directly from the driver without having to use a pdata in between. So I'm not
+> > sure it worth spending too much time on that feature stuff.
+> > 
+> > As an example here is the ongoing GPIO DT migration:
+> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg56505.html
+> > 
+> > 3.2 will have the basic DT support using hwmod as a backend, but the idea is
+> > that for 3.3, we start removing some information from hwmod to rely on device
+> > tree only.
+> 
+> One comment here though -- and I will make this comment on the original 
+> series too -- is that we should avoid adding direct DT dependencies into 
+> the driver.
+> 
+> Specifically, these of_get_property() and of_property*() calls in the 
+> driver aren't right.
+> 
+> We need some way of doing this that is completely independent from the 
+> device data format.  Some way that does not care whether the input data is 
+> coming from DT, platform_data, ACPI, or whatever the new flavor of the 
+> year will be next year.  Or we need to declare that these of_*() calls are 
+> not DT-specific, and define them as hooks that the device data format code 
+> can handle as it pleases.
 
-> Hi Kevin,
->
-> On Tue, Sep 27, 2011 at 1:53 AM, Kevin Hilman <khilman@ti.com> wrote:
->> Benoit did just this in preparation for DT.
->>
->> =C2=A0 =C2=A0 =C2=A0 http://marc.info/?l=3Dlinux-omap&m=3D1316724801=
-11927&w=3D2
->>
->> Will that meet your needs?
->
-> It's almost there, but not entirely.
->
-> Benoit's alloc/delete functions focus on the omap_device part, leavin=
-g
-> the handling of the platform device (allocation and pdata setting) to
-> omap_device_build_ss(), which at the same time registers the pdev.
->
-> I'd need to split omap_device_build_ss() into two: an alloc() part
-> which does everything but registering the pdev, and a register() part=
-=2E
-> Users will first call alloc(), manually set archdata members, and the=
-n
-> call the register() part.
->
-> Something like this (compile-tested only, based on Benoit's
-> for_3.2/4_omap4_dt_early_devices branch):
+Generally, I agree.  For example, I've been thinking of either
+modifying or creating bus_type-agnostic variants of the
+platform_get_*() hooks so that the driver can get the data it needs
+without knowing what the data source is.  (Actually, it already works
+that way for platform_devices and DT, but that is only because the DT
+code populates the resource table when the device is created).
 
-[...]
+This works best for well understood things like GPIOs, IRQs, memory
+ranges, and the like.  It doesn't really work very well for data
+specific to the device.
 
-> That's the idea; please tell me how you'd like to see this go forward
-> (there are at least several personal-taste issues here, e.g., naming:
-> now we have two sets of alloc/delete functions which have different
-> semantics)=20
-
-The approach is OK with me, but I'm a bit torn about whether or not to
-merge this since the need for this should go away when converting to DT=
-=2E
-Is anyone working on IOMMU DT description?
-
-I guess if I do merge this, we can also clean this up significantly
-after all devices are converted to DT.
-
-> and which branch would you like me to base this work off of
-> (not sure if Benoit's patches already went into your
-> for_3.2/omap_device branch) and I'll respin this patch properly.
-
-Unless it has other dependencies on Benoit's further DT patches, you ca=
-n
-base this on my for_3.2/omap_device-2 branch which includes Benoit's
-alloc changes.
-
-Kevin
+g.
