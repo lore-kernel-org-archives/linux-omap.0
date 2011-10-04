@@ -1,52 +1,54 @@
-From: Orjan Friberg <of@flatfrog.com>
-Subject: USB gadget unreliable on software reboot (BeagleBoard xM)
-Date: Tue, 4 Oct 2011 09:39:15 +0200
-Message-ID: <4E8AB823.3030705@flatfrog.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: DSS testing help?
+Date: Tue, 04 Oct 2011 11:06:58 +0300
+Message-ID: <1317715618.1893.4.camel@deskari>
+References: <alpine.DEB.2.00.1110031446580.4611@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hd5b91d02.k46641.sta.perspektivbredband.net ([213.185.29.2]:15787
-	"EHLO fg-dc1.flatfrog.local" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754972Ab1JDHoq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 03:44:46 -0400
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:37332 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753139Ab1JDIHD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 04:07:03 -0400
+Received: by mail-bw0-f48.google.com with SMTP id zu5so348481bkb.7
+        for <linux-omap@vger.kernel.org>; Tue, 04 Oct 2011 01:07:01 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1110031446580.4611@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: sricharan <r.sricharan@ti.com>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi,
+Hi Paul,
 
-On my BeagleBoard xM, configuring the MUSB controller in Linux to 
-peripheral mode (i.e. not OTG mode) and using a built-in gadget driver, 
-the gadget device sometimes does not appear after a software reboot.
+On Mon, 2011-10-03 at 14:48 -0600, Paul Walmsley wrote:
+> Hello Sricharan,
+> 
+> It looks like Archit is out of the office.  Would it be possible for you 
+> to test the updated DSS reset patch, below?
+> 
+> thanks
+> 
+> - Paul
+> 
+> ---------- Forwarded message ----------
+> Date: Mon, 3 Oct 2011 13:30:06 -0600 (MDT)
+> From: Paul Walmsley <paul@pwsan.com>
+> To: Archit Taneja <archit@ti.com>
+> Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+>     "Shilimkar, Santosh" <santosh.shilimkar@ti.com>,
+>     "R, Sricharan" <r.sricharan@ti.com>, "tony@atomide.com" <tony@atomide.com>,
+>     "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+>     "linux-arm-kernel@lists.infradead.org"
+>     <linux-arm-kernel@lists.infradead.org>
+> Subject: Re: [PATCH v2] OMAP2PLUS: DSS: Ensure DSS works correctly if display is
+>      enabled in bootloader
 
-I've seen this with both 2.6.32 and 2.6.39 (Angstrom 2008.1 and 2010.x 
-distros, respectively).
+For what it's worth, I took your dss hwmod patches from
+hwmod_dss_fixes_3.2 branch, and tested them with my latest dss tree.
+Works fine on Blaze. However, I don't have a bootloader which would
+enable the DSS, so that part I cannot test.
 
-Our own board exhibits the same behaviour.  However: configuring the 
-MUSB controller in u-boot as a device and only booting as far as u-boot 
-before a software reset, the device always appears.  To me this suggests 
-a MUSB driver issue in Linux (as opposed to, say, PHY initialization).
-
-
-I checked with a USB analyzer what happens on the bus: when it doesn't 
-show up there is a reset on the bus when we reboot, but it doesn't 
-re-enter full speed mode.  No SOFs are sent either.
-
-I did a rudimentary check of the OTG registers in the TPS chip (over 
-i2c) but saw nothing out of the ordinary.
-
-I set musb_debug = 5 in musb_core.c, but no errors are reported.
-
-I haven't looked at the MUSB controller registers yet; that's next.
+ Tomi
 
 
-Any ideas?
-
-
-Thanks,
-Orjan
-
--- 
-Orjan Friberg
-FlatFrog Laboratories AB
