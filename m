@@ -1,40 +1,59 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/9] regulator: helper routine to extract
- regulator_init_data
-Date: Tue, 4 Oct 2011 11:18:47 +0100
-Message-ID: <20111004101846.GD3250@opensource.wolfsonmicro.com>
-References: <1317118372-17052-3-git-send-email-rnayak@ti.com>
- <20110927121003.GB4289@opensource.wolfsonmicro.com>
- <4E81E224.2070408@ti.com>
- <20110927150511.GM4289@opensource.wolfsonmicro.com>
- <4E854532.6080605@ti.com>
- <20110930102849.GA4195@opensource.wolfsonmicro.com>
- <20110930104820.GE2085@sirena.org.uk>
- <4E85A34E.9070203@ti.com>
- <20110930121844.GI5366@opensource.wolfsonmicro.com>
- <4E8A9988.3080907@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH v2 0/4] Fixes to twl4030-madc and add BeagleBoard support
+Date: Tue, 4 Oct 2011 12:28:11 +0200
+Message-ID: <20111004102811.GW4118@sortiz-mobl>
+References: <CANOLnOPB=wFMPwqGbu9ufh__iM7TquUx3-o95R=gyJcae+gENg@mail.gmail.com>
+	<1313119995-15382-1-git-send-email-kyle@kylemanna.com>
+	<20110822135530.GR4607@sortiz-mobl>
+	<20110928183230.GD6324@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:42664 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755670Ab1JDKSw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 06:18:52 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <4E8A9988.3080907@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20110928183230.GD6324@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Kyle Manna <kyle@kylemanna.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, Oct 04, 2011 at 10:58:40AM +0530, Rajendra Nayak wrote:
+Hi Tony,
 
-> The problem is I don't know if the property in the regulator dt
-> node is called "vin-supply" or "vxyz-supply" and hence I
-> can parse the property based on a substring alone, which is
-> "-supply" because all I know is the property name is expected
-> to end with a "-supply".
+On Wed, Sep 28, 2011 at 11:32:31AM -0700, Tony Lindgren wrote:
+> * Samuel Ortiz <sameo@linux.intel.com> [110822 06:20]:
+> > Hi Kyle,
+> > 
+> > On Thu, Aug 11, 2011 at 10:33:11PM -0500, Kyle Manna wrote:
+> > > These patches add basic functionality to the twl4030-madc driver to make
+> > > it work on the BeagleBoard xM.
+> > > 
+> > > Version 2 adds fixes per Grazvydas Ignotas and the check for NULL pointer patch.
+> > > 
+> > > Kyle Manna (4):
+> > >   mfd: twl4030-madc: copy the device pointer
+> > >   mfd: twl4030-madc: turn on the MADC clock
+> > >   mfd: twl4030-madc: check for NULL pointer
+> > >   arm: BeagleBoard: add support for the twl4030-madc
+> > Tony, are you ok with the BeagleBoard changes ?
+> > The MFD ones look fine to me, I'd like to apply them.
+> 
+> Yes sorry for the delay in replying. I acked it, maybe
+> you can just copy the subject to have a proper description
+> for the patch.
+I actually pushed the 3 MFD patches already.
+I think you can safely take the beagle one through your tree.
 
-This seems fairly straightforward though it will require some changes
-within Linux, all we have to do is have the regulators name their
-supplies.
+Cheers,
+Samuel.
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
