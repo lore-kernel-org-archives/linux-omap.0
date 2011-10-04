@@ -1,18 +1,18 @@
 From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 1/2] mfd: twl6030: fix lockdep recursion warning on
- setting wake IRQs
-Date: Tue, 4 Oct 2011 11:56:53 +0200
-Message-ID: <20111004095653.GT4118@sortiz-mobl>
+Subject: Re: [PATCH 2/2] mfd: twl6030: Disable IRQ during suspend
+Date: Tue, 4 Oct 2011 11:57:31 +0200
+Message-ID: <20111004095731.GU4118@sortiz-mobl>
 References: <1317080664-28096-1-git-send-email-toddpoynor@google.com>
+ <1317080664-28096-2-git-send-email-toddpoynor@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14828 "EHLO mga01.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:35950 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755486Ab1JDJxw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Oct 2011 05:53:52 -0400
+	id S1755486Ab1JDJyb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Oct 2011 05:54:31 -0400
 Content-Disposition: inline
-In-Reply-To: <1317080664-28096-1-git-send-email-toddpoynor@google.com>
+In-Reply-To: <1317080664-28096-2-git-send-email-toddpoynor@google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Todd Poynor <toddpoynor@google.com>
@@ -20,18 +20,15 @@ Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
 Hi Todd,
 
-On Mon, Sep 26, 2011 at 04:44:23PM -0700, Todd Poynor wrote:
-> LOCKDEP explicitly sets all irq_desc locks as a single lock-class,
-> causing "possible recursive locking detected" when the TWL RTC
-> driver calls through enable_irq_wake to twl6030_irq_set_wake,
-> which recursively calls irq_set_irq_wake.  Although the
-> irq_desc and lock are different, LOCKDEP treats these as
-> equivalent, presumably due to problems that can be incurred
-> when locking more than one irq_desc, so best to avoid this.
+On Mon, Sep 26, 2011 at 04:44:24PM -0700, Todd Poynor wrote:
+> Module IRQs may still be disabled by DPM at the time the TWL6030
+> ISR runs, causing handle_simple_irq() to silently do nothing.
+> This may result in missing TWL RTC alarm wakeups, for example,
+> since the RTC child module ISR is not called to ack the IRQ.
 > 
-> Suspend/resume actions implemented as PM notifiers to avoid
-> touch the TWL core for this.
-Thanks for that, I applied this patch.
+> Disable the TWL6030 IRQ during suspend, enable it at DPM resume
+> time, at which time the child module IRQs will be re-enabled.
+Applied as well, thanks.
 
 Cheers,
 Samuel.
