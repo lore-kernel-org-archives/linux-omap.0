@@ -1,37 +1,44 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Please help with the OMAP static mapping mess
-Date: Tue, 4 Oct 2011 23:54:24 +0100
-Message-ID: <20111004225424.GA32102@n2100.arm.linux.org.uk>
-References: <alpine.LFD.2.02.1110031312480.9106@xanadu.home> <20111003205658.GJ6324@atomide.com> <alpine.LFD.2.02.1110031744100.9106@xanadu.home> <20111003224411.GA19897@n2100.arm.linux.org.uk> <alpine.LFD.2.02.1110041528050.9106@xanadu.home>
+Subject: Re: [PATCH 2/9] regulator: helper routine to extract
+	regulator_init_data
+Date: Wed, 5 Oct 2011 00:01:27 +0100
+Message-ID: <20111004230127.GB32102@n2100.arm.linux.org.uk>
+References: <1317118372-17052-1-git-send-email-rnayak@ti.com> <1317118372-17052-3-git-send-email-rnayak@ti.com> <20110927121003.GB4289@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37506 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34457 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933158Ab1JDWyd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 18:54:33 -0400
+	with ESMTP id S933137Ab1JDXB7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 19:01:59 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.02.1110041528050.9106@xanadu.home>
+In-Reply-To: <20110927121003.GB4289@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, Oct 04, 2011 at 05:10:36PM -0400, Nicolas Pitre wrote:
-> Which makes me think... with all those architectures intercepting 
-> ioremap calls in order to provide an equivalent static mapping address, 
-> they already get an unexpected domain given that static mappings are 
-> mostly DOMAIN_IO and not DOMAIN_KERNEL as would result from an non 
-> intercepted ioremap call.
+On Tue, Sep 27, 2011 at 01:10:04PM +0100, Mark Brown wrote:
+> On Tue, Sep 27, 2011 at 03:42:45PM +0530, Rajendra Nayak wrote:
+> 
+> > +	init_data = devm_kzalloc(dev, sizeof(struct regulator_init_data),
+> > +						 GFP_KERNEL);
+> > +	if (!init_data)
+> > +		return NULL; /* Out of memory? */
+> 
+> This means that the init data will be kept around for the entire
+> lifetime of the device rather than being discarded.
 
-That's a necessary evil - otherwise we have to separate out the
-ioremap from vmalloc.
+May I remind you that devm_* lifetime expires whenever the associated
+driver is unbound, which can be much shorter than the lifetime of the
+struct device.
 
-Incidentally, how are you dealing with the problem of a static mapping
-setting up a L1 page table entry for DOMAIN_IO, and then a vmalloc
-request coming in, overlapping that L1 page table?
+It expires when any of the following occurs:
+1. userspace asks the associated driver to be unbound
+2. the driver is removed
+3. any driver probe for this struct device fails
+4. the struct device is unregistered.
 
-If this memory then gets accessed with get_user() with set_fs(get_ds()),
-the kernel will oops as we don't switch DOMAIN_IO memory on set_fs().
-(I don't know if this happens in practice, but there's nothing to say
-that it's illegal to do this.)
+So: don't use devm_* for anything other than stuff inside a driver being
+associated with the struct device itself.  Other uses are a bug waiting
+to happen.
