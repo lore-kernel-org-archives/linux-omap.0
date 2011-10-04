@@ -1,83 +1,68 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: Please help with the OMAP static mapping mess
-Date: Tue, 4 Oct 2011 11:48:40 +0530
-Message-ID: <CAMQu2gxgRZzb6hh5pOVBgaPUZEizEqBr_e358MBuD_xHJOvX3Q@mail.gmail.com>
-References: <alpine.LFD.2.02.1110031312480.9106@xanadu.home>
- <20111003205658.GJ6324@atomide.com> <alpine.LFD.2.02.1110031744100.9106@xanadu.home>
- <alpine.LFD.2.02.1110031827440.9106@xanadu.home> <20111003225908.GL6324@atomide.com>
+Subject: Re: [PATCH 6/6] OMAP4460: Clock: Adding support for 4460 specific clocks
+Date: Tue, 4 Oct 2011 11:54:28 +0530
+Message-ID: <CAMQu2gyXUER6CQBvp7ccTMSWdWpTuoGoOkAhTgX96Tdeuj0cLw@mail.gmail.com>
+References: <1316705361-12175-1-git-send-email-j-keerthy@ti.com>
+ <1316705361-12175-7-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1109291911390.26728@utopia.booyaka.com>
+ <20111004004331.GR6324@atomide.com> <alpine.DEB.2.00.1110032145400.4611@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:44612 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751563Ab1JDGTD convert rfc822-to-8bit
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:45526 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753227Ab1JDGYt convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Oct 2011 02:19:03 -0400
-Received: by ywa8 with SMTP id 8so168925ywa.29
-        for <linux-omap@vger.kernel.org>; Mon, 03 Oct 2011 23:19:01 -0700 (PDT)
-In-Reply-To: <20111003225908.GL6324@atomide.com>
+	Tue, 4 Oct 2011 02:24:49 -0400
+Received: by ywb5 with SMTP id 5so193754ywb.5
+        for <linux-omap@vger.kernel.org>; Mon, 03 Oct 2011 23:24:48 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1110032145400.4611@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, rnayak@ti.com, b-cousson@ti.com, Vishwanath BS <vishwanath.bs@ti.com>
 
-On Tue, Oct 4, 2011 at 4:29 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Nicolas Pitre <nico@fluxnic.net> [111003 15:05]:
->> On Mon, 3 Oct 2011, Nicolas Pitre wrote:
->>
->> > On Mon, 3 Oct 2011, Tony Lindgren wrote:
+On Tue, Oct 4, 2011 at 9:21 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> + Rajendra, Santosh, Beno=EEt
+>
+> Hi
+>
+> On Mon, 3 Oct 2011, Tony Lindgren wrote:
+>
+>> * Paul Walmsley <paul@pwsan.com> [110929 17:40]:
+>> > On Thu, 22 Sep 2011, Keerthy wrote:
 >> >
->> > > * Nicolas Pitre <nico@fluxnic.net> [111003 11:26]:
->> > > >
->> > > > Furthermore... there is also a static mapping for physical add=
-ress
->> > > > 0x4e000000 using virtual address 0xff100000 which is already r=
-eserved
->> > > > for other purposes i.e. the consistent DMA area. =A0It is not =
-immediately
->> > > > obvious where this comes from without being intimate with the =
-OMAP code.
->> > > > Can this be fixed as well i.e. moved elsewhere please?
+>> > > From: Vishwanath BS <vishwanath.bs@ti.com>
 >> > >
->> > > This sounds like a bug somewhere. Which omap are you seeing this=
- on?
+>> > > OMAP4460 specific clocks are not getting added as the
+>> > > cpu_is_omap44xx is choosing only OMAP4430 specific clock nodes.
+>> > > Changing it to add to OMAP4460 specific clocks also.
+>> > > This is clocks are required of temperature sensor.
+>> > >
+>> > > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+>> > > Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> > > Cc: paul@pwsan.com
 >> >
->> > OMAP4430 on a Panda board.
->> >
->> > Here are the static mappings I'm seeing:
->> >
->> > phys =3D 0x44000000 virt =3D 0xf8000000 size =3D 0x100000
->> > phys =3D 0x4a000000 virt =3D 0xfc000000 size =3D 0x400000
->> > phys =3D 0x50000000 virt =3D 0xf9000000 size =3D 0x100000
->> > phys =3D 0x4c000000 virt =3D 0xfd100000 size =3D 0x100000
->> > phys =3D 0x4d000000 virt =3D 0xfe100000 size =3D 0x100000
->> > phys =3D 0x4e000000 virt =3D 0xff100000 size =3D 0x100000 <---
->> > phys =3D 0x48000000 virt =3D 0xfa000000 size =3D 0x400000
->> > phys =3D 0x54000000 virt =3D 0xfe800000 size =3D 0x800000
+>> > Thanks, this patch has been queued for 3.2.
 >>
->> It looks like this comes from OMAP44XX_DMM_VIRT.
->>
->> #define OMAP44XX_DMM_PHYS =A0 =A0 =A0 OMAP44XX_DMM_BASE
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 /* 0x4e000000 --> 0xfd300000 */
->> #define OMAP44XX_DMM_VIRT =A0 =A0 =A0 (OMAP44XX_DMM_PHYS + OMAP4_L3_=
-PER_IO_OFFSET)
->> #define OMAP44XX_DMM_SIZE =A0 =A0 =A0 SZ_1M
->>
->> The comment suggesting a mapping correspondance is obviously wrong. =
-We have:
->>
->> #define OMAP44XX_DMM_BASE =A0 =A0 =A0 0x4e000000
->> #define OMAP4_L3_PER_IO_OFFSET =A00xb1100000
->>
->> Hence 0x4e000000 + 0xb1100000 =3D 0xff100000.
+>> Should this be a fix for the -rc cycle instead?
 >
-> Seem like it might cause some random patterns in tiler :)
-> Santosh, can youp please check it?
+> I don't think it's needed for the -rc series, since we don't have any
+> in-tree users of the 4460 temperature sensor. =A0The only impact I ca=
+n see
+> is if the bootloader enables the 4460 temperature sensor clock, and
+> doesn't disable it. =A0I assume that would probably prevent the L4 WK=
+UP
+> clockdomain from entering clock stop, which would consume a little mo=
+re
+> power.
 >
-This is already fixed Tony. You have pulled that patch.
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg55258.html
+You are correct Paul. It would have also gated the low power states
+but at this point of time on mainline, we aren't supporting CORE/PER
+low power states for OMAP44XX.
+
+IIRC, boot-loader isn't enabling the temperature
+sensor clock so this patch can wait for next merge window.
 
 Regards
 Santosh
