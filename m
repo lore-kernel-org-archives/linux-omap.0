@@ -1,56 +1,34 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC PATCH v3] drivercore: Add driver probe deferral mechanism
-Date: Tue, 4 Oct 2011 09:58:10 -0600
-Message-ID: <CACxGe6tXEx1A+ZuBTUdi8jjfx_hOCaX6eSpUOOhNH9us+Mnczg@mail.gmail.com>
-References: <20110922184614.25419.84606.stgit@ponder> <20111004145148.GA8021@manju-desktop>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 00/24 V2] OMAP4: PM: suspend, CPU-hotplug and CPUilde support
+Date: Tue, 04 Oct 2011 10:05:58 -0700
+Message-ID: <87zkhgk7pl.fsf@ti.com>
+References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:62676 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932751Ab1JDP6b convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 11:58:31 -0400
-In-Reply-To: <20111004145148.GA8021@manju-desktop>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40994 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932983Ab1JDRGE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 13:06:04 -0400
+Received: by mail-qw0-f47.google.com with SMTP id c1so592659qad.20
+        for <linux-omap@vger.kernel.org>; Tue, 04 Oct 2011 10:06:02 -0700 (PDT)
+In-Reply-To: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Sat, 24 Sep 2011 11:44:20 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <greg@kroah.com>, Dilan Lee <dilee@nvidia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Manjunath GKondaiah <manjunath.gkondaiah@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Oct 4, 2011 at 8:51 AM, G, Manjunath Kondaiah <manjugk@ti.com> =
-wrote:
-> On Thu, Sep 22, 2011 at 12:51:23PM -0600, Grant Likely wrote:
->> Hi Manjunath,
->>
->> Here's the current state of the patch. =A0The major think that needs=
- to
->> be done is to convert it to use a separate workqueue as described in
->> the TODO above. =A0It also needs some users adapted to it. =A0One of=
- the
->> gpio drivers would work; preferably one of the newer drivers that
->> doesn't have a lot of drivers depending on the early_initcall()
->> behaviour yet.
->
-> I have tested this patch on omap3 beagle board by making:
-> 1. omap-gpio driver init as late_initcall instead of postcore_initcal=
-l
-> 2. mmc driver probe will request gpio through gpio_request and gpio d=
-river
-> returns -EDEFER_PROBE which in turn makes mmc driver to request defer=
-ral probe.
-> 3. When deferral probe gets activated, it scans driver entries and it=
- will not
-> find any match for mmc driver probe.
+Hi Santosh,
 
-Looks like drivers/mmc/host/omap.c is using platform_driver_probe()
-instead of platform_driver_register().  Add the probe hook to the
-platform_driver structure and change it to call
-platform_driver_register() and it should work.  Don't forget to change
-mmc_omap_probe from __init to __devinit.
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-g.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The series adds OMAP4 MPUSS (MPU SubSystem) power management support for
+> suspend (S2R), CPU hotplug and CPUidle.
+
+No need to repost, but can you update the versions in your branch to
+have an ARM: prefix in the subject per Arnd's recent request?
+
+Thanks,
+
+Kevin
