@@ -1,40 +1,62 @@
-From: "R, Sricharan" <r.sricharan@ti.com>
-Subject: Re: DSS testing help?
-Date: Tue, 4 Oct 2011 09:12:29 +0530
-Message-ID: <CAJ7qFSc9xuMog0rv0XgZre22hmjz3+O0nP8SkHKqtpifWD5iXA@mail.gmail.com>
-References: <alpine.DEB.2.00.1110031446580.4611@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 6/6] OMAP4460: Clock: Adding support for 4460 specific
+ clocks
+Date: Mon, 3 Oct 2011 21:51:16 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110032145400.4611@utopia.booyaka.com>
+References: <1316705361-12175-1-git-send-email-j-keerthy@ti.com> <1316705361-12175-7-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.00.1109291911390.26728@utopia.booyaka.com> <20111004004331.GR6324@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-302427832-1317700276=:4611"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:43887 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753733Ab1JDDma convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Oct 2011 23:42:30 -0400
-Received: by mail-ww0-f43.google.com with SMTP id 27so87344wwf.0
-        for <linux-omap@vger.kernel.org>; Mon, 03 Oct 2011 20:42:29 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1110031446580.4611@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:38631 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753710Ab1JDDvR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 23:51:17 -0400
+In-Reply-To: <20111004004331.GR6324@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, rnayak@ti.com, santosh.shilimkar@ti.com, b-cousson@ti.com, Vishwanath BS <vishwanath.bs@ti.com>
 
-Paul,
-On Tue, Oct 4, 2011 at 2:18 AM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> Hello Sricharan,
->
-> It looks like Archit is out of the office. =A0Would it be possible fo=
-r you
-> to test the updated DSS reset patch, below?
->
-  Ok. I will test this.
-< snip ..>
-Thanks,
- Sricharan
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--155748971-302427832-1317700276=:4611
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
++ Rajendra, Santosh, Beno=EEt
+
+Hi
+
+On Mon, 3 Oct 2011, Tony Lindgren wrote:
+
+> * Paul Walmsley <paul@pwsan.com> [110929 17:40]:
+> > On Thu, 22 Sep 2011, Keerthy wrote:
+> >=20
+> > > From: Vishwanath BS <vishwanath.bs@ti.com>
+> > >=20
+> > > OMAP4460 specific clocks are not getting added as the
+> > > cpu_is_omap44xx is choosing only OMAP4430 specific clock nodes.
+> > > Changing it to add to OMAP4460 specific clocks also.
+> > > This is clocks are required of temperature sensor.
+> > >=20
+> > > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> > > Signed-off-by: Keerthy <j-keerthy@ti.com>
+> > > Cc: paul@pwsan.com=20
+> >=20
+> > Thanks, this patch has been queued for 3.2.
+>=20
+> Should this be a fix for the -rc cycle instead?
+
+I don't think it's needed for the -rc series, since we don't have any=20
+in-tree users of the 4460 temperature sensor.  The only impact I can see=20
+is if the bootloader enables the 4460 temperature sensor clock, and=20
+doesn't disable it.  I assume that would probably prevent the L4 WKUP=20
+clockdomain from entering clock stop, which would consume a little more=20
+power.
+
+But maybe Beno=EEt, Rajendra, or Santosh can correct me if this=20
+off-the-cuff analysis is incorrect.
+
+- Paul
+--155748971-302427832-1317700276=:4611--
