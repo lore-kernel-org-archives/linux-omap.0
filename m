@@ -1,170 +1,81 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [RFC PATCH 3/5] ARM: OMAP: TI81xx: add powerdomain data
-Date: Tue, 04 Oct 2011 03:31:31 -0600
-Message-ID: <20111004093126.9657.70654.stgit@dusk>
-References: <20111004092947.9657.16166.stgit@dusk>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH v3 3/3] ARM: OMAP: TI814X: Create board support and
+ enable build for TI8148 EVM
+Date: Tue, 4 Oct 2011 15:11:16 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4EC6066@dbde02.ent.ti.com>
+References: <1317258570-30494-1-git-send-email-hemantp@ti.com>
+ <4E88542B.4010206@compulab.co.il>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B03B4EC5D52@dbde02.ent.ti.com>
+ <4E8ACB3C.6020401@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52221 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755591Ab1JDJcm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 05:32:42 -0400
-In-Reply-To: <20111004092947.9657.16166.stgit@dusk>
+Received: from bear.ext.ti.com ([192.94.94.41]:46128 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755436Ab1JDJlc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 05:41:32 -0400
+In-Reply-To: <4E8ACB3C.6020401@compulab.co.il>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Hemant Pedanekar <hemantp@ti.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-From: Hemant Pedanekar <hemantp@ti.com>
+Igor Grinberg wrote on Tuesday, October 04, 2011 2:31 PM:
 
-Add powerdomain data for the TI81xx family of SoCs.
+> On 10/03/11 18:45, Pedanekar, Hemant wrote:
+>> Hi Igor,
+>> 
+>> Igor Grinberg wrote on Sunday, October 02, 2011 5:38 PM:
+>> 
+>>> Hi Hemant,
+>>> 
+>>> On 09/29/11 04:09, Hemant Pedanekar wrote:
+>>>> This patch adds minimal support and build configuration for TI8148 EVM.
+>>>> Also adds support for low level debugging on UART1 console on the EVM.
+>>>> 
+>>>> Note that existing TI8168 EVM file (board-ti8168evm.c) is updated with
+>>>> machine info for TI8148 EVM and renamed as board-ti81xxevm.c.
+>>> 
+>>> Should we really rename the existing file?
+>>> Shouldn't we just stick to the name of the file submitted first?
+>>> (e.g. board-ti8168evm.c) and just add the support for the new
+>>> TI8148 EVM in to the existing file?
+>> 
+>> But won't this be misleading?
+> 
+> Misleading? For whom?
+> Actually, I don't really care how you call that file.
+> What I care (and I think not just me) is uniformity, so
+> if we decide to rename all those files that have multiple
+> boards supported in them, I'm fine with it.
+> 
+> So pros for my proposed approach would be:
+> 1) Currently, there are already board files with multiple boards
+>    supported in them that follow the approach and renaming them is   
+> really unnecessary. 2) git log will not break.
+> 3) boards that cannot be named after the convention like 81xx
+>    but can be added to the same file will not require further renaming
+>    (like 82x8 - I don't really know if that will exist, just wondering).
+> 4) This renaming is really what Linus likes ;)
+> 
+> cons:
+> 1) Misleading?
+> 
+> Currently, I don't think this renaming is good for anything,
+> especially that majority of the board stuff should be transformed
+> to the DT descriptors.
 
-This patch is a collaboration between Hemant Pedanekar <hemantp@ti.com>
-and Paul Walmsley <paul@pwsan.com>.
----
- arch/arm/mach-omap2/Makefile               |    3 +
- arch/arm/mach-omap2/io.c                   |    1 
- arch/arm/mach-omap2/powerdomain.h          |    1 
- arch/arm/mach-omap2/powerdomain81xx_data.c |   91 ++++++++++++++++++++++++++++
- 4 files changed, 95 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/powerdomain81xx_data.c
+Igor,
+I agree on the DT part and also understand the "pros" you mentioned.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 292941d..4f728a1 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -113,7 +113,8 @@ obj-$(CONFIG_ARCH_OMAP4)		+= $(powerdomain-common) \
- 					   powerdomain44xx.o \
- 					   powerdomains44xx_data.o
- obj-$(CONFIG_SOC_OMAPTI81XX)		+= $(powerdomain-common) \
--					   powerdomain81xx.o
-+					   powerdomain81xx.o \
-+					   powerdomain81xx_data.o \
- 
- # PRCM clockdomain control
- obj-$(CONFIG_ARCH_OMAP2)		+= clockdomain.o \
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index d59feec..bad2edb 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -350,6 +350,7 @@ void __init omap2_init_common_infrastructure(void)
- 		omap2430_hwmod_init();
- 	} else if (cpu_is_omap34xx()) {
- 		omap3xxx_powerdomains_init();
-+		ti81xx_powerdomains_init();
- 		omap3xxx_clockdomains_init();
- 		omap3xxx_hwmod_init();
- 	} else if (cpu_is_omap44xx()) {
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index b3d51f2..b9e7ab2 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -214,6 +214,7 @@ extern void omap242x_powerdomains_init(void);
- extern void omap243x_powerdomains_init(void);
- extern void omap3xxx_powerdomains_init(void);
- extern void omap44xx_powerdomains_init(void);
-+extern void ti81xx_powerdomains_init(void);
- 
- extern struct pwrdm_ops omap2_pwrdm_operations;
- extern struct pwrdm_ops omap3_pwrdm_operations;
-diff --git a/arch/arm/mach-omap2/powerdomain81xx_data.c b/arch/arm/mach-omap2/powerdomain81xx_data.c
-new file mode 100644
-index 0000000..1b363ec
---- /dev/null
-+++ b/arch/arm/mach-omap2/powerdomain81xx_data.c
-@@ -0,0 +1,91 @@
-+/*
-+ * TI81XX Power Domain data.
-+ *
-+ * Copyright (C) 2010-2011 Texas Instruments, Inc. - http://www.ti.com/
-+ * Hemant Pedanekar
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+
-+#include "powerdomain.h"
-+#include "prcm81xx.h"
-+#include "prcm814x.h"
-+#include "prcm816x.h"
-+
-+static struct powerdomain alwon_814x_pwrdm = {
-+	.name		= "alwon_pwrdm",
-+	.prcm_offs	= TI814X_PRM_ALWON_INST,
-+};
-+
-+static struct powerdomain active_81xx_pwrdm = {
-+	.name		= "active_pwrdm",
-+	.prcm_offs	= TI81XX_PRM_ACTIVE_INST,
-+	.pwrsts		= PWRSTS_OFF_ON,
-+};
-+
-+static struct powerdomain default_81xx_pwrdm = {
-+	.name		= "default_pwrdm",
-+	.prcm_offs	= TI81XX_PRM_DEFAULT_INST,
-+	.pwrsts		= PWRSTS_OFF_ON,
-+};
-+
-+static struct powerdomain hdvicp_814x_pwrdm = {
-+	.name		= "hdvicp_pwrdm",
-+	.prcm_offs	= TI814X_PRM_HDVICP_INST,
-+	.pwrsts		= PWRSTS_OFF_ON,
-+};
-+
-+static struct powerdomain isp_814x_pwrdm = {
-+	.name		= "isp_pwrdm",
-+	.prcm_offs	= TI814X_PRM_ISP_INST,
-+	.pwrsts		= PWRSTS_OFF_ON,
-+};
-+
-+static struct powerdomain dss_814x_pwrdm = {
-+	.name		= "dss_pwrdm",
-+	.prcm_offs	= TI814X_PRM_DSS_INST,
-+	.pwrsts		= PWRSTS_OFF_ON,
-+};
-+
-+static struct powerdomain sgx_81xx_pwrdm = {
-+	.name		= "sgx_pwrdm",
-+	.prcm_offs	= TI81XX_PRM_SGX_INST,
-+	.pwrsts		= PWRSTS_OFF_ON,
-+};
-+
-+static struct powerdomain *powerdomains_ti81xx[] __initdata = {
-+	&active_81xx_pwrdm,
-+	&default_81xx_pwrdm,
-+	&sgx_81xx_pwrdm,
-+	NULL
-+};
-+
-+static struct powerdomain *powerdomains_ti814x[] __initdata = {
-+	&alwon_814x_pwrdm,
-+	&hdvicp_814x_pwrdm,
-+	&isp_814x_pwrdm,
-+	&dss_814x_pwrdm,
-+	NULL
-+};
-+
-+void __init ti81xx_powerdomains_init(void)
-+{
-+	if (!cpu_is_ti81xx())
-+		return;
-+
-+	pwrdm_register_platform_funcs(&ti81xx_pwrdm_operations);
-+	pwrdm_register_pwrdms(powerdomains_ti81xx);
-+	if (cpu_is_ti814x())
-+		pwrdm_register_pwrdms(powerdomains_ti814x);
-+	pwrdm_complete_init();
-+}
+I can submit the v4 of patches with TI8148 EVM support added in exisitng
+board-ti8168evm.c.
 
+Tony, 
+Are you OK with the above approach?
 
+Thanks.
+
+   Hemant
