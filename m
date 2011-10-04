@@ -1,83 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] dmtimer changes for v3.2 merge window
-Date: Mon, 3 Oct 2011 17:07:43 -0700
-Message-ID: <20111004000743.GM6324@atomide.com>
-References: <20110928220237.GE6324@atomide.com>
- <201109302213.42435.arnd@arndb.de>
- <2793025.zWgRvMbLEl@wuerfel>
+Subject: [GIT PULL] l3 cleanup for v3.2 merge window
+Date: Mon, 3 Oct 2011 17:12:51 -0700
+Message-ID: <20111004001251.GN6324@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37847 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46065 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417Ab1JDAHr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 20:07:47 -0400
+	with ESMTP id S1751417Ab1JDAMz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2011 20:12:55 -0400
 Content-Disposition: inline
-In-Reply-To: <2793025.zWgRvMbLEl@wuerfel>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [111001 09:12]:
-> On Friday 30 September 2011 22:13:42 Arnd Bergmann wrote:
-> > On Thursday 29 September 2011, Tony Lindgren wrote:
-> > > Please pull omap dmtimer changes from:
-> > > 
-> > > git://github.com/tmlind/linux.git dmtimer
-> > > 
-> > > This series completes the system timer separation from the
-> > > driver like features. It also adds support for v2 ip that is
-> > > available for some timers starting with omap4.
-> > > 
-> > > After this series arch/arm/plat-omap/dmtimer.c could be
-> > > moved to live under drivers somewhere, but there is still
-> > > discussion going on which features should be supported in
-> > > a generic way.
-> > > 
-> > > This series depends on the cleanup you pulled earlier.
-> > > As this series adds some new features like runtime PM suppport,
-> > > I've kept it separate from cleanup.
-> > 
-> > Looks really nice. I've put it into another top-level branch
-> > named next/dmtimer for now. I'm open for suggestions on whether
-> > I should generally push branches like this separately Linuswards
-> > or better aggregate multiple standalone features into a single
-> > branch. 
-> 
-> I'm adding the patch below to fix a trivial randconfig build regression
-> in this series.
-> 
-> 	Arnd
-> 
-> 8<---
-> 
-> Subject: [PATCH] ARM: omap: use __devexit_p in dmtimer driver
-> 
-> The omap_dm_timer_remove function gets discarded when
-> CONFIG_HOTPLUG is not set, so we must not reference it
-> unconditionally.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Hi Arnd,
 
-Great, thanks!
+Please pull L3 interconnect error handling driver cleanup from:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> index de7896f..2def4e1 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -723,7 +723,7 @@ static int __devexit omap_dm_timer_remove(struct platform_device *pdev)
->  
->  static struct platform_driver omap_dm_timer_driver = {
->  	.probe  = omap_dm_timer_probe,
-> -	.remove = omap_dm_timer_remove,
-> +	.remove = __devexit_p(omap_dm_timer_remove),
->  	.driver = {
->  		.name   = "omap_timer",
->  	},
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+git://github.com/tmlind/linux.git l3
+
+As with dmtimer, this too eventually should go somewhere under
+drivers.
+
+Regards,
+
+Tony
+
+
+The following changes since commit a102a9ece5489e1718cd7543aa079082450ac3a2:
+  Linus Torvalds (1):
+        Linux 3.1-rc8
+
+are available in the git repository at:
+
+  git://github.com/tmlind/linux.git l3
+
+Santosh Shilimkar (1):
+      OMAP4: Fix the emif and dmm virtual mapping
+
+Todd Poynor (2):
+      OMAP: Improve register access in L3 Error handler.
+      OMAP: Fix a BUG in l3 error handler.
+
+Tony Lindgren (1):
+      Merge branch 'for_3_2/omap_misc' of git://gitorious.org/omap-sw-develoment/linux-omap-dev into l3
+
+sricharan (3):
+      OMAP: Fix indentation issues in l3 error handler.
+      OMAP: Fix sparse warnings in l3 error handler.
+      OMAP: Print Initiator name for l3 custom error.
+
+ arch/arm/mach-omap2/omap_l3_noc.c    |  130 ++++++++++----------
+ arch/arm/mach-omap2/omap_l3_noc.h    |  224 +++++++++++++++++++---------------
+ arch/arm/mach-omap2/omap_l3_smx.c    |   91 +++++++-------
+ arch/arm/mach-omap2/omap_l3_smx.h    |  164 ++++++++++++------------
+ arch/arm/plat-omap/include/plat/io.h |    4 +-
+ 5 files changed, 322 insertions(+), 291 deletions(-)
