@@ -1,61 +1,115 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: Please help with the OMAP static mapping mess
-Date: Tue, 04 Oct 2011 19:20:57 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1110041900590.9106@xanadu.home>
-References: <alpine.LFD.2.02.1110031312480.9106@xanadu.home>
- <20111003205658.GJ6324@atomide.com>
- <alpine.LFD.2.02.1110031744100.9106@xanadu.home>
- <20111003224411.GA19897@n2100.arm.linux.org.uk>
- <alpine.LFD.2.02.1110041528050.9106@xanadu.home>
- <20111004225424.GA32102@n2100.arm.linux.org.uk>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC PATCH v3] drivercore: Add driver probe deferral mechanism
+Date: Tue, 4 Oct 2011 17:35:04 -0600
+Message-ID: <20111004233504.GD3009@ponder.secretlab.ca>
+References: <20110922184614.25419.84606.stgit@ponder>
+ <20111004145148.GA8021@manju-desktop>
+ <CACxGe6tXEx1A+ZuBTUdi8jjfx_hOCaX6eSpUOOhNH9us+Mnczg@mail.gmail.com>
+ <20111004183516.GB8021@manju-desktop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:55226 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933299Ab1JDXU6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 19:20:58 -0400
-Received: from xanadu.home ([66.130.28.92]) by VL-VM-MR004.ip.videotron.ca
- (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
- 2011)) with ESMTP id <0LSK00GFSE1RG0E0@VL-VM-MR004.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Tue, 04 Oct 2011 19:17:51 -0400 (EDT)
-In-reply-to: <20111004225424.GA32102@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111004183516.GB8021@manju-desktop>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <greg@kroah.com>, Dilan Lee <dilee@nvidia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Manjunath GKondaiah <manjunath.gkondaiah@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, 4 Oct 2011, Russell King - ARM Linux wrote:
+On Wed, Oct 05, 2011 at 12:05:16AM +0530, G, Manjunath Kondaiah wrote:
+> On Tue, Oct 04, 2011 at 09:58:10AM -0600, Grant Likely wrote:
+> > On Tue, Oct 4, 2011 at 8:51 AM, G, Manjunath Kondaiah <manjugk@ti.c=
+om> wrote:
+> > > On Thu, Sep 22, 2011 at 12:51:23PM -0600, Grant Likely wrote:
+> > >> Hi Manjunath,
+> > >>
+> > >> Here's the current state of the patch. =A0The major think that n=
+eeds to
+> > >> be done is to convert it to use a separate workqueue as describe=
+d in
+> > >> the TODO above. =A0It also needs some users adapted to it. =A0On=
+e of the
+> > >> gpio drivers would work; preferably one of the newer drivers tha=
+t
+> > >> doesn't have a lot of drivers depending on the early_initcall()
+> > >> behaviour yet.
+> > >
+> > > I have tested this patch on omap3 beagle board by making:
+> > > 1. omap-gpio driver init as late_initcall instead of postcore_ini=
+tcall
+> > > 2. mmc driver probe will request gpio through gpio_request and gp=
+io driver
+> > > returns -EDEFER_PROBE which in turn makes mmc driver to request d=
+eferral probe.
+> > > 3. When deferral probe gets activated, it scans driver entries an=
+d it will not
+> > > find any match for mmc driver probe.
+> >=20
+> > Looks like drivers/mmc/host/omap.c is using platform_driver_probe()
+> > instead of platform_driver_register().  Add the probe hook to the
+> > platform_driver structure and change it to call
+> > platform_driver_register() and it should work.  Don't forget to cha=
+nge
+> > mmc_omap_probe from __init to __devinit.
+>=20
+> Yes. After changing it into platform_driver_register, I can see mmc p=
+robe is
+> getting completed from deferred probe list. But, MMC upper layer will=
+ check=20
+> probe and it waits for ever since probe_count is not getting incremen=
+ted.
+>=20
+> Log:
+>=20
+> [    1.807830] platform omap_hsmmc.0: Driver omap_hsmmc requests prob=
+e deferral
+>=20
+> ...
+>=20
+> [    1.948760] omap_device: omap_gpio.0: new worst case activate late=
+ncy 0:30517
+> [    1.959259] OMAP GPIO hardware version 2.5
+>=20
+> ...
+>=20
+> [    2.000488] platform omap_hsmmc.0: Retrying from deferred list
+> [    2.008026] omap_device: omap_hsmmc.0: new worst case activate lat=
+ency 0:244140
+> [    2.020080] input: gpio-keys as /devices/platform/gpio-keys/input/=
+input1
+> [    2.035827] omap_hsmmc omap_hsmmc.0: Probe success...
+> [    2.042083] twl_rtc twl_rtc: setting system clock to 2000-01-01 01=
+:06:35 UTC
+> (946688795)
+> [    2.056030] Waiting for root device /dev/mmcblk0p2...
+> [    2.061492] driver_probe_done: probe_count =3D 0
+> [    2.168518] driver_probe_done: probe_count =3D 0
+> [    2.277832] driver_probe_done: probe_count =3D 0
+> [    2.387207] driver_probe_done: probe_count =3D 0
+> [    2.496582] driver_probe_done: probe_count =3D 0
+>=20
+> Waits for ever in init/do_mount.c:
+> 	if ((ROOT_DEV =3D=3D 0) && root_wait) {
+> 		printk(KERN_INFO "Waiting for root device %s...\n",
+> 			saved_root_name);
+> 		while (driver_probe_done() !=3D 0 ||
+> 			(ROOT_DEV =3D name_to_dev_t(saved_root_name)) =3D=3D 0)
+> 			msleep(100);
+> 		async_synchronize_full();
+> 	}
 
-> On Tue, Oct 04, 2011 at 05:10:36PM -0400, Nicolas Pitre wrote:
-> > Which makes me think... with all those architectures intercepting 
-> > ioremap calls in order to provide an equivalent static mapping address, 
-> > they already get an unexpected domain given that static mappings are 
-> > mostly DOMAIN_IO and not DOMAIN_KERNEL as would result from an non 
-> > intercepted ioremap call.
-> 
-> That's a necessary evil - otherwise we have to separate out the
-> ioremap from vmalloc.
-> 
-> Incidentally, how are you dealing with the problem of a static mapping
-> setting up a L1 page table entry for DOMAIN_IO, and then a vmalloc
-> request coming in, overlapping that L1 page table?
-> 
-> If this memory then gets accessed with get_user() with set_fs(get_ds()),
-> the kernel will oops as we don't switch DOMAIN_IO memory on set_fs().
-> (I don't know if this happens in practice, but there's nothing to say
-> that it's illegal to do this.)
+Okay, it looks like the driver deferral workqueue needs to get kicked
+off before the kernel starts waiting for the root filesystem.  Check
+the initcall level that is being used by do_mount, and make sure the
+deferred probe starts before that...
 
-I suppose that didn't happen so far.  Granted, moving the ioremap 
-optimization into core code for all machines will increase the 
-possibility for this to happen, even if still small.
+Hmmm.... wait, that doesn't make sense because the probe is still
+successful.  What triggers the exit conditions in that while loop?
+How would it be different from when the driver can probe successfully
+without deferral?
 
-With CPU_USE_DOMAINS not set, set_fs() is a no-op anyway, besides 
-addr_limit that is.
+g.
 
-Is there a strong benefit in having static mappings being DOMAIN_IO 
-instead of DOMAIN_KERNEL?
-
-
-Nicolas
+>=20
+> -Manjunath
