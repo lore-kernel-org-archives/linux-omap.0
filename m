@@ -1,49 +1,52 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 26/30] ARM: omap: add board autoselection
-Date: Tue, 4 Oct 2011 09:44:13 +0200
-Message-ID: <201110040944.13205.arnd@arndb.de>
-References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
-	<5055144.Y0IUdMEWXQ@wuerfel> <20111003182649.GC6324@atomide.com>
+From: Orjan Friberg <of@flatfrog.com>
+Subject: USB gadget unreliable on software reboot (BeagleBoard xM)
+Date: Tue, 4 Oct 2011 09:39:15 +0200
+Message-ID: <4E8AB823.3030705@flatfrog.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20111003182649.GC6324@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar,
-	Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from hd5b91d02.k46641.sta.perspektivbredband.net ([213.185.29.2]:15787
+	"EHLO fg-dc1.flatfrog.local" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754972Ab1JDHoq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 03:44:46 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 
-On Monday 03 October 2011, Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [111003 02:20]:
-> > On Monday 03 October 2011 11:27:44 Cousson, Benoit wrote:
-> > > >
-> > > > In the long run, I'd hope we can just get rid of these for subarchitectures
-> > > > that support device tree probing and make the device tree based machine
-> > > > description unconditional.
-> > > 
-> > > This is really our goal, we will have soon the board-generic.c for that, 
-> > > someone will just have to migrate these ~30 board files to device tree 
-> > > DTS files 
-> > 
-> > For the purpose of build-time validation using randconfig, there is no
-> > problem in keeping some board files forever, as long as the generic board
-> > file is always built-in.
-> 
-> Yes please leave out the list so we don't need to constantly update it.
-> Let's just always build in MACH_OMAP_GENERIC.
+Hi,
 
-That's what I had initially, but now that board file has become
-omap2-specific and no longer works on omap3-only or omap4-only
-configurations.
+On my BeagleBoard xM, configuring the MUSB controller in Linux to 
+peripheral mode (i.e. not OTG mode) and using a built-in gadget driver, 
+the gadget device sometimes does not appear after a software reboot.
 
-	Arnd
+I've seen this with both 2.6.32 and 2.6.39 (Angstrom 2008.1 and 2010.x 
+distros, respectively).
+
+Our own board exhibits the same behaviour.  However: configuring the 
+MUSB controller in u-boot as a device and only booting as far as u-boot 
+before a software reset, the device always appears.  To me this suggests 
+a MUSB driver issue in Linux (as opposed to, say, PHY initialization).
+
+
+I checked with a USB analyzer what happens on the bus: when it doesn't 
+show up there is a reset on the bus when we reboot, but it doesn't 
+re-enter full speed mode.  No SOFs are sent either.
+
+I did a rudimentary check of the OTG registers in the TPS chip (over 
+i2c) but saw nothing out of the ordinary.
+
+I set musb_debug = 5 in musb_core.c, but no errors are reported.
+
+I haven't looked at the MUSB controller registers yet; that's next.
+
+
+Any ideas?
+
+
+Thanks,
+Orjan
+
+-- 
+Orjan Friberg
+FlatFrog Laboratories AB
