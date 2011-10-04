@@ -1,41 +1,61 @@
-From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH 0/4] ARM: OMAP3PLUS PM: Add IO Daisychain support via hwmod mux
-Date: Tue, 4 Oct 2011 23:22:00 +0530
-Message-ID: <1317750724-32553-1-git-send-email-vishwanath.bs@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 8/9] regulator: helper to extract regulator node based on
+ supply name
+Date: Tue, 4 Oct 2011 11:00:42 -0600
+Message-ID: <20111004170042.GA12036@ponder.secretlab.ca>
+References: <1317118372-17052-1-git-send-email-rnayak@ti.com>
+ <1317118372-17052-9-git-send-email-rnayak@ti.com>
+ <20110927122155.GE4289@opensource.wolfsonmicro.com>
+ <4E81E281.505@ti.com>
+ <20110927185913.GU4289@opensource.wolfsonmicro.com>
+ <4E82D63A.7030207@ti.com>
+ <20110928122628.GF3279@opensource.wolfsonmicro.com>
+ <4E858D35.50903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50695 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933284Ab1JDR7K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 13:59:10 -0400
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:63803 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932832Ab1JDR7m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 13:59:42 -0400
+Received: by ywb5 with SMTP id 5so750776ywb.19
+        for <linux-omap@vger.kernel.org>; Tue, 04 Oct 2011 10:59:42 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4E858D35.50903@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Girdwood, Liam" <lrg@ti.com>, "patches@linaro.org" <patches@linaro.org>
 
-The folowing patch series provides IO Daisychain feature via omap hwmod mux
-framework.
+On Fri, Sep 30, 2011 at 03:04:45PM +0530, Rajendra Nayak wrote:
+> On Wednesday 28 September 2011 05:56 PM, Mark Brown wrote:
+> >On Wed, Sep 28, 2011 at 10:09:30AM +0200, Cousson, Benoit wrote:
+> >>On 9/27/2011 8:59 PM, Mark Brown wrote:
+> >
+> >>>I'm not sure how this should work in a device tree world, I'd *hope*
+> >>>we'd get a device tree node for the CPU and could then just make this a
+> >>>regular consumer thing but then the cpufreq drivers would need to be
+> >>>updated to make use of it.  The only reason we allow null devices right
+> >>>now is the fact that cpufreq doesn't have a struct device it can use.
+> >
+> >>That's why we do have a MPU node in OMAP dts, in order to build an
+> >>omap_device that will be mainly used for the DVFS on the MPU.
+> >
+> >>And even before DT migration, we used to build statically some
+> >>omap_device to represent the various processors in the system (MPU,
+> >>DSP, CortexM3...).
+> >
+> >Yeah, but that's very OMAP specific - we don't have that in general (in
+> >fact it's the only Linux platform I'm aware of that has a device for the
+> >CPU).
+> 
+> But isn't this the right thing to do for everyone else too?
+> 
 
-The patch series has been generated against 3.1 rc4 and tested on OMAP3 Platform
-(ZOOM3) for Retention and OFF mode in suspend/cpuidle path.
+It is normal to have nodes for each CPU.  The /cpus/ node normally
+contains cpu@* nodes for each logical cpu core, and I would expect
+nodes for each additional DSP and MPU core.  Whether or not they
+belong in the /cpus/ node is a matter of design (we don't have any
+patterns for that yet).
 
-Also tested against latest UART Runtime with Chain Handler patches [1].
-
-[1]: git://gitorious.org/runtime_3-0/runtime_3-0.git v6_uart_runtime
-
-Rajendra Nayak (1):
-  OMAP4 PM: Add IO Daisychain support
-
-Vishwanath BS (3):
-  OMAP3 PM: Fix IO Daisychain sequence
-  OMAP3 PM: Enable IO Wake up
-  OMAP3PLUS PM: Add IO Daisychain support via hwmod mux
-
- arch/arm/mach-omap2/omap_hwmod.c |    9 +++++++--
- arch/arm/mach-omap2/pm.c         |    9 +++++++++
- arch/arm/mach-omap2/pm.h         |    3 +++
- arch/arm/mach-omap2/pm34xx.c     |   33 +++++++--------------------------
- arch/arm/mach-omap2/pm44xx.c     |   36 ++++++++++++++++++++++++++++++++++++
- 5 files changed, 62 insertions(+), 28 deletions(-)
-
+g.
