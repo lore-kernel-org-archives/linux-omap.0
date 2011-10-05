@@ -1,61 +1,88 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/4] initialize omap SRAM later on with __arm_ioremap_exec()
-Date: Wed, 05 Oct 2011 12:33:01 +0530
-Message-ID: <4E8C0125.1060300@ti.com>
-References: <20111005004339.26980.31149.stgit@kaulin.local>
+From: Dave Hylands <dhylands@gmail.com>
+Subject: Regressions for older OMAP3503 silicon
+Date: Wed, 5 Oct 2011 00:14:57 -0700
+Message-ID: <CABi1daE-7OdgL5BqaLrB+X64-cf+kQMyXv9eSZOE79bRt+fMPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:54410 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754243Ab1JEHDH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 03:03:07 -0400
-Received: by mail-yw0-f45.google.com with SMTP id 39so1500812ywm.32
-        for <linux-omap@vger.kernel.org>; Wed, 05 Oct 2011 00:03:06 -0700 (PDT)
-In-Reply-To: <20111005004339.26980.31149.stgit@kaulin.local>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:48983 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752624Ab1JEHO6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 03:14:58 -0400
+Received: by wwf22 with SMTP id 22so2052911wwf.1
+        for <linux-omap@vger.kernel.org>; Wed, 05 Oct 2011 00:14:57 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Tony,
+Hi,
 
-On Wednesday 05 October 2011 06:15 AM, Tony Lindgren wrote:
-> Hi all,
-> 
-> Related to the omap static mapping, here's a first take on moving the
-> SRAM init to happen later so we can do generic map_io.
-> 
-> Still working on a similar patch for omap1, will send it a bit later.
-> 
-> Regards,
-> 
-> Tony
-> 
-> ---
-> 
-> Tony Lindgren (4):
->       ARM: Add __arm_ioremap_exec for mapping external memory as MT_MEMORY
->       ARM: OMAP: Avoid cpu_is_omapxxxx usage until map_io is done
->       ARM: OMAP: Remove calls to SRAM allocations for framebuffer
->       ARM: OMAP: Map SRAM later on with ioremap_exec()
-> 
->
-Nice work.
+I have an older overo board, which has an OMAP3503
 
-With quick scan, looks like the series will work since
-you have already taken care of SRAM is being ready before
-SDRC has been initialised which was the only corner case
-I was worried.
+U-booot reports:
+OMAP3503-GP ES2.1, CPU-OPP2, L3-165MHz, Max CPU Clock 600 mHz
 
-Will look at this series in next couple of days and do some testing.
-Looks like you wanted to inlcude below patch also part of this
-series though [PATCH 5/4] numbering is bit confusing.
-[PATCH 5/4] ARM: OMAP: Move set_globals initialization to happen in
-init_early
+In order to get the 2.6.39 kernel to boot, I had to make 2 modifications:
 
-Regards
-Santosh
+In arch/arm/mach-omap2/pm34xx.c, in the omap_sram_idle routine I had
+to put an #if 0 around:
+
+#if 0
+       if (omap3_has_io_wakeup() &&
+           (per_next_state < PWRDM_POWER_ON ||
+            core_next_state < PWRDM_POWER_ON)) {
+               omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK,
+WKUP_MOD, PM_WKEN);
+               omap3_enable_io_chain();
+       }
+#endif
+
+or I would get continuous
+
+Wake up daisy chain activation failed.
+
+messages on the console.
+
+I then also had to modify drivers/mmc/card/block.c and initializing
+disable_multi to 1 in the mmc_blk_issue_rw_rq function to get rid of
+the following messages for every I/O request.
+
+mmcblk0: retrying using single block read
+mmcblk0: retrying using single block read
+mmcblk0: retrying using single block read
+mmcblk0: retrying using single block read
+
+(since this revision of the silicon doesn't support multi-block MMC reads).
+
+Looking at the code in LXR, it appears that the same problems would
+also appear in 3.0.4.
+
+I threw in some printks in the id.c omap3_check_features function:
+
+        printk( KERN_INFO "%s: cpu_is_omap3503() = %d\n", __func__,
+cpu_is_omap3503() );
+        printk( KERN_INFO "%s: cpu_is_omap3505() = %d\n", __func__,
+cpu_is_omap3505() );
+        printk( KERN_INFO "%s: cpu_is_omap3517() = %d\n", __func__,
+cpu_is_omap3517() );
+        printk( KERN_INFO "%s: omap3_features = 0x%08x\n", __func__, status );
+        printk( KERN_INFO "%s: HAS_IO_WAKEUP = %d\n", __func__,
+(omap3_features & OMAP3_HAS_IO_WAKEUP) != 0 );
+
+and it reports:
+
+omap3_check_features: cpu_is_omap3503() = 1
+omap3_check_features: cpu_is_omap3505() = 0
+omap3_check_features: cpu_is_omap3517() = 0
+omap3_check_features: omap3_features = 0x00005c00
+omap3_check_features: HAS_IO_WAKEUP = 1
+
+and the print from the end of omap3_cpuinfo reports:
+
+OMAP3503 ES2.1 (l2cache neon isp )
 
 
+-- 
+Dave Hylands
+Shuswap, BC, Canada
+http://www.davehylands.com
