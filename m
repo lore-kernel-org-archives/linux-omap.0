@@ -1,47 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/4] initialize omap SRAM later on with __arm_ioremap_exec()
-Date: Tue, 04 Oct 2011 17:45:36 -0700
-Message-ID: <20111005004339.26980.31149.stgit@kaulin.local>
+Subject: [PATCH 1/4] ARM: Add __arm_ioremap_exec for mapping external memory
+	as MT_MEMORY
+Date: Tue, 04 Oct 2011 17:45:39 -0700
+Message-ID: <20111005004539.26980.52409.stgit@kaulin.local>
+References: <20111005004339.26980.31149.stgit@kaulin.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49796 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753436Ab1JEApi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 20:45:38 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19064 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753436Ab1JEApl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 20:45:41 -0400
+In-Reply-To: <20111005004339.26980.31149.stgit@kaulin.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-Hi all,
+This allows mapping external memory such as SRAM for use.
 
-Related to the omap static mapping, here's a first take on moving the
-SRAM init to happen later so we can do generic map_io.
+This is needed for some small chunks of code, such as reprogramming
+SDRAM memory source clocks that can't be executed in SDRAM. Other
+use cases include some PM related code.
 
-Still working on a similar patch for omap1, will send it a bit later.
-
-Regards,
-
-Tony
-
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/include/asm/io.h |    1 +
+ arch/arm/mm/ioremap.c     |   22 ++++++++++++++++++++++
+ 2 files changed, 23 insertions(+), 0 deletions(-)
 
-Tony Lindgren (4):
-      ARM: Add __arm_ioremap_exec for mapping external memory as MT_MEMORY
-      ARM: OMAP: Avoid cpu_is_omapxxxx usage until map_io is done
-      ARM: OMAP: Remove calls to SRAM allocations for framebuffer
-      ARM: OMAP: Map SRAM later on with ioremap_exec()
+diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
+index d66605d..4ff152e 100644
+--- a/arch/arm/include/asm/io.h
++++ b/arch/arm/include/asm/io.h
+@@ -80,6 +80,7 @@ extern void __iomem *__arm_ioremap_caller(unsigned long, size_t, unsigned int,
+ 
+ extern void __iomem *__arm_ioremap_pfn(unsigned long, unsigned long, size_t, unsigned int);
+ extern void __iomem *__arm_ioremap(unsigned long, size_t, unsigned int);
++extern void __iomem *__arm_ioremap_exec(unsigned long, size_t, int cached);
+ extern void __iounmap(volatile void __iomem *addr);
+ 
+ /*
+diff --git a/arch/arm/mm/ioremap.c b/arch/arm/mm/ioremap.c
+index ab50627..a813658 100644
+--- a/arch/arm/mm/ioremap.c
++++ b/arch/arm/mm/ioremap.c
+@@ -289,6 +289,28 @@ __arm_ioremap(unsigned long phys_addr, size_t size, unsigned int mtype)
+ }
+ EXPORT_SYMBOL(__arm_ioremap);
+ 
++/*
++ * Remap an arbitrary physical address space into the kernel virtual
++ * address space as memory. Needed when the kernel wants to execute
++ * code in external memory. This is needed for reprogramming source
++ * clocks that would affect normal memory for example. Please see
++ * CONFIG_GENERIC_ALLOCATOR for allocating external memory.
++ */
++void __iomem *
++__arm_ioremap_exec(unsigned long phys_addr, size_t size, int cached)
++{
++	unsigned int mtype;
++
++	if (cached)
++		mtype = MT_MEMORY;
++	else
++		mtype = MT_MEMORY_NONCACHED;
++
++	return __arm_ioremap_caller(phys_addr, size, mtype,
++			__builtin_return_address(0));
++}
++EXPORT_SYMBOL(__arm_ioremap_exec);
++
+ void __iounmap(volatile void __iomem *io_addr)
+ {
+ 	void *addr = (void *)(PAGE_MASK & (unsigned long)io_addr);
 
-
- arch/arm/include/asm/io.h                |    1 
- arch/arm/mach-omap2/board-omap3beagle.c  |    7 --
- arch/arm/mach-omap2/io.c                 |  108 ++++++++++++++----------------
- arch/arm/mm/ioremap.c                    |   22 ++++++
- arch/arm/plat-omap/include/plat/common.h |    1 
- arch/arm/plat-omap/sram.c                |   85 ++++++------------------
- 6 files changed, 94 insertions(+), 130 deletions(-)
-
--- 
-Signature
