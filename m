@@ -1,216 +1,289 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] initial omap DT support for v3.2 merge window (Re:
- [PATCH 26/30] ARM: omap: add board autoselection)
-Date: Tue, 4 Oct 2011 18:05:50 -0700
-Message-ID: <20111005010550.GX6324@atomide.com>
-References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
- <201110040944.13205.arnd@arndb.de>
- <20111004155752.GT6324@atomide.com>
- <2340307.S2RzXdHlIz@wuerfel>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH 4/4] ARM: OMAP: Map SRAM later on with ioremap_exec()
+Date: Tue, 04 Oct 2011 21:07:57 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1110042107230.9106@xanadu.home>
+References: <20111005004339.26980.31149.stgit@kaulin.local>
+ <20111005004546.26980.31836.stgit@kaulin.local>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="3V7upXqbjpZ4EhLz"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2340307.S2RzXdHlIz@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relais.videotron.ca ([24.201.245.36]:41668 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756202Ab1JEBH6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 21:07:58 -0400
+Received: from xanadu.home ([66.130.28.92]) by VL-VM-MR001.ip.videotron.ca
+ (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
+ 2011)) with ESMTP id <0LSK002NJJ3HP740@VL-VM-MR001.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Tue, 04 Oct 2011 21:06:53 -0400 (EDT)
+In-reply-to: <20111005004546.26980.31836.stgit@kaulin.local>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
+On Tue, 4 Oct 2011, Tony Lindgren wrote:
 
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Arnd Bergmann <arnd@arndb.de> [111004 11:55]:
-> On Tuesday 04 October 2011 08:57:52 Tony Lindgren wrote:
-> > * Arnd Bergmann <arnd@arndb.de> [111004 00:10]:
-> > > On Monday 03 October 2011, Tony Lindgren wrote:
-> > >
-> > > > Yes please leave out the list so we don't need to constantly update it.
-> > > > Let's just always build in MACH_OMAP_GENERIC.
-> > > 
-> > > That's what I had initially, but now that board file has become
-> > > omap2-specific and no longer works on omap3-only or omap4-only
-> > > configurations.
-> > 
-> > Will send a pull request for basic DT bootstrap support from Benoit
-> > that fixes that. So maybe let's sort that out first, then always
-> > select it?
+> This allows us to remove omap hacks for map_io.
 > 
-> Yes, sounds good. That is certainly the better solution in the long run.
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Here you are. We had to rebase it earlier today because of the
-SOB update in fixes branch for the musb related fix that's needed
-here to avoid a merge conflict.
+Nice cleanup.
 
-This series pretty much depends and conflicts with all the ealier
-branches, so I created a new dt-base branch to deal with the merge
-conflicts. If you prefer some other base, please let me know.
-
-If you prefer to build some other merge base yourself, see the
-attached patch that's needed to avoid two build warnings after
-merging the various base branches together.
-
-The dt-base I did is a merge of cleanup-part3, voltage, dmtimer
-and l3 into fixes. You may not yet have l3 and fixes pulled in,
-I sent pull requests for those yesterday. The others you have
-already pulled I believe.
-
-Despite using the merge base this will cause a minor merge conflict
-in board-generic.c with Nicolas Pitre's earlier patch titled
-"ARM: mach-omap2: convert boot_params to atag_offset". The 
-atag_offset can be just left out, as the default will work.
-
-Regards,
-
-Tony
+Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
 
 
-The following changes since commit c541c15fb5ab48c47bc9b90121538fd30d152f23:
-  Tony Lindgren (1):
-        Merge branches 'cleanup-part3', 'voltage', 'dmtimer' and 'l3' into dt-base
-
-are available in the git repository at:
-
-  git://github.com/tmlind/linux.git dt
-
-Benoit Cousson (18):
-      ARM: OMAP3: beagle-board: Use the omap_hwmod_name_get_dev API
-      ARM: OMAP2+: pm: Use hwmod name instead of dev pointer
-      ARM: OMAP2+: pm: Remove static devices variable for mpu, dsp, iva and l3 PM
-      ARM: OMAP: omap_device: Create a default omap_device_pm_latency
-      ARM: OMAP2+: devices: Remove all omap_device_pm_latency structures
-      of: Add helpers to get one string in multiple strings property
-      ARM: OMAP: omap_device: Add omap_device_[alloc|delete] for DT integration
-      ARM: OMAP: omap_device: Add a method to build an omap_device from a DT node
-      arm/dts: Add initial device tree support for OMAP4 SoC
-      arm/dts: Add support for OMAP4 PandaBoard
-      arm/dts: Add support for OMAP4 SDP board
-      arm/dts: Add initial device tree support for OMAP3 SoC
-      arm/dts: Add support for OMAP3 Beagle board
-      ARM: OMAP2+: board-generic: Add DT support to generic board
-      ARM: OMAP2+: board-generic: Add i2c static init
-      ARM: OMAP2+: l3-noc: Add support for device-tree
-      arm/dts: OMAP4: Add a main ocp entry bound to l3-noc driver
-      arm/dts: OMAP3+: Add mpu, dsp and iva nodes
-
-Nishanth Menon (1):
-      ARM: OMAP: omap_device: Add omap_device_get_by_hwmod_name
-
-Tony Lindgren (1):
-      Merge branch 'for_3.2/3_omap_devicetree' of git://gitorious.org/omap-pm/linux into dt
-
- Documentation/devicetree/bindings/arm/omap/dsp.txt |   14 +
- Documentation/devicetree/bindings/arm/omap/iva.txt |   19 ++
- .../devicetree/bindings/arm/omap/l3-noc.txt        |   19 ++
- Documentation/devicetree/bindings/arm/omap/mpu.txt |   27 ++
- .../devicetree/bindings/arm/omap/omap.txt          |   43 +++
- arch/arm/boot/dts/omap3-beagle.dts                 |   29 ++
- arch/arm/boot/dts/omap3.dtsi                       |   63 ++++
- arch/arm/boot/dts/omap4-panda.dts                  |   29 ++
- arch/arm/boot/dts/omap4-sdp.dts                    |   29 ++
- arch/arm/boot/dts/omap4.dtsi                       |  103 +++++++
- arch/arm/mach-omap2/Kconfig                        |    8 +-
- arch/arm/mach-omap2/board-generic.c                |  156 ++++++++---
- arch/arm/mach-omap2/board-omap3beagle.c            |    4 +-
- arch/arm/mach-omap2/devices.c                      |   51 +---
- arch/arm/mach-omap2/display.c                      |   11 +-
- arch/arm/mach-omap2/dma.c                          |   11 +-
- arch/arm/mach-omap2/gpio.c                         |   12 +-
- arch/arm/mach-omap2/hsmmc.c                        |   18 +-
- arch/arm/mach-omap2/hwspinlock.c                   |   12 +-
- arch/arm/mach-omap2/mcbsp.c                        |   11 +-
- arch/arm/mach-omap2/omap_l3_noc.c                  |   25 ++-
- arch/arm/mach-omap2/pm.c                           |   72 ++---
- arch/arm/mach-omap2/serial.c                       |   25 +--
- arch/arm/mach-omap2/sr_device.c                    |   11 +-
- arch/arm/mach-omap2/usb-musb.c                     |   11 +-
- arch/arm/plat-omap/i2c.c                           |   10 +-
- arch/arm/plat-omap/include/plat/omap_device.h      |    1 +
- arch/arm/plat-omap/omap_device.c                   |  313 +++++++++++++++++---
- drivers/of/base.c                                  |   84 ++++++
- include/linux/of.h                                 |   18 ++
- 30 files changed, 929 insertions(+), 310 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/dsp.txt
- create mode 100644 Documentation/devicetree/bindings/arm/omap/iva.txt
- create mode 100644 Documentation/devicetree/bindings/arm/omap/l3-noc.txt
- create mode 100644 Documentation/devicetree/bindings/arm/omap/mpu.txt
- create mode 100644 Documentation/devicetree/bindings/arm/omap/omap.txt
- create mode 100644 arch/arm/boot/dts/omap3-beagle.dts
- create mode 100644 arch/arm/boot/dts/omap3.dtsi
- create mode 100644 arch/arm/boot/dts/omap4-panda.dts
- create mode 100644 arch/arm/boot/dts/omap4-sdp.dts
- create mode 100644 arch/arm/boot/dts/omap4.dtsi
-
---3V7upXqbjpZ4EhLz
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="merge.patch"
-
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -434,7 +434,7 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
- 	int ret = 0;
- 	char *name = "omap_timer";
- 	struct dmtimer_platform_data *pdata;
--	struct omap_device *od;
-+	struct platform_device *pdev;
- 	struct omap_timer_capability_dev_attr *timer_dev_attr;
- 	struct powerdomain *pwrdm;
- 
-@@ -476,12 +476,12 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
- #ifdef CONFIG_PM
- 	pdata->get_context_loss_count = omap_pm_get_dev_context_loss_count;
- #endif
--	od = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
-+	pdev = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
- 			omap2_dmtimer_latency,
- 			ARRAY_SIZE(omap2_dmtimer_latency),
- 			0);
- 
--	if (IS_ERR(od)) {
-+	if (IS_ERR(pdev)) {
- 		pr_err("%s: Can't build omap_device for %s: %s.\n",
- 			__func__, name, oh->name);
- 		ret = -EINVAL;
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -115,7 +115,6 @@ static struct omap_musb_board_data musb_default_board_data = {
- void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
- {
- 	struct omap_hwmod		*oh;
--	struct omap_device		*od;
- 	struct platform_device		*pdev;
- 	struct device			*dev;
- 	int				bus_id = -1;
-@@ -145,22 +144,20 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
- 		name = "musb-omap2430";
- 	}
- 
--	oh = omap_hwmod_lookup(oh_name);
--	if (!oh) {
--		pr_err("Could not look up %s\n", oh_name);
--		return;
--	}
-+        oh = omap_hwmod_lookup(oh_name);
-+        if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
-+                 __func__, oh_name))
-+                return;
- 
--	od = omap_device_build(name, bus_id, oh, &musb_plat,
-+	pdev = omap_device_build(name, bus_id, oh, &musb_plat,
- 			       sizeof(musb_plat), omap_musb_latency,
- 			       ARRAY_SIZE(omap_musb_latency), false);
--	if (IS_ERR(od)) {
-+	if (IS_ERR(pdev)) {
- 		pr_err("Could not build omap_device for %s %s\n",
- 						name, oh_name);
- 		return;
- 	}
- 
--	pdev = &od->pdev;
- 	dev = &pdev->dev;
- 	get_device(dev);
- 	dev->dma_mask = &musb_dmamask;
-
---3V7upXqbjpZ4EhLz--
+> ---
+>  arch/arm/mach-omap2/io.c  |   19 +-----------
+>  arch/arm/plat-omap/sram.c |   69 +++++++++++++--------------------------------
+>  2 files changed, 22 insertions(+), 66 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 82230e1..8069ca8 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -239,22 +239,11 @@ static struct map_desc omap44xx_io_desc[] __initdata = {
+>  };
+>  #endif
+>  
+> -static void __init _omap2_map_common_io(void)
+> -{
+> -	/* Normally devicemaps_init() would flush caches and tlb after
+> -	 * mdesc->map_io(), but we must also do it here because of the CPU
+> -	 * revision check below.
+> -	 */
+> -	local_flush_tlb_all();
+> -	flush_cache_all();
+> -}
+> -
+>  #ifdef CONFIG_SOC_OMAP2420
+>  void __init omap242x_map_common_io(void)
+>  {
+>  	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
+>  	iotable_init(omap242x_io_desc, ARRAY_SIZE(omap242x_io_desc));
+> -	_omap2_map_common_io();
+>  }
+>  #endif
+>  
+> @@ -263,7 +252,6 @@ void __init omap243x_map_common_io(void)
+>  {
+>  	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
+>  	iotable_init(omap243x_io_desc, ARRAY_SIZE(omap243x_io_desc));
+> -	_omap2_map_common_io();
+>  }
+>  #endif
+>  
+> @@ -271,7 +259,6 @@ void __init omap243x_map_common_io(void)
+>  void __init omap34xx_map_common_io(void)
+>  {
+>  	iotable_init(omap34xx_io_desc, ARRAY_SIZE(omap34xx_io_desc));
+> -	_omap2_map_common_io();
+>  }
+>  #endif
+>  
+> @@ -279,7 +266,6 @@ void __init omap34xx_map_common_io(void)
+>  void __init omapti816x_map_common_io(void)
+>  {
+>  	iotable_init(omapti816x_io_desc, ARRAY_SIZE(omapti816x_io_desc));
+> -	_omap2_map_common_io();
+>  }
+>  #endif
+>  
+> @@ -287,7 +273,6 @@ void __init omapti816x_map_common_io(void)
+>  void __init omap44xx_map_common_io(void)
+>  {
+>  	iotable_init(omap44xx_io_desc, ARRAY_SIZE(omap44xx_io_desc));
+> -	_omap2_map_common_io();
+>  }
+>  #endif
+>  
+> @@ -336,7 +321,6 @@ void __iomem *omap_irq_base;
+>  static void __init omap_common_init_early(void)
+>  {
+>  	omap2_check_revision();
+> -	omap_sram_init();
+>  }
+>  
+>  static void __init omap_hwmod_init_postsetup(void)
+> @@ -448,11 +432,12 @@ void __init omap4430_init_early(void)
+>  void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+>  				      struct omap_sdrc_params *sdrc_cs1)
+>  {
+> +	omap_sram_init();
+> +
+>  	if (cpu_is_omap24xx() || omap3_has_sdrc()) {
+>  		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+>  		_omap2_init_reprogram_sdrc();
+>  	}
+> -
+>  }
+>  
+>  /*
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index 3c8aa44..8b28664 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -38,16 +38,9 @@
+>  #endif
+>  
+>  #define OMAP1_SRAM_PA		0x20000000
+> -#define OMAP1_SRAM_VA		VMALLOC_END
+>  #define OMAP2_SRAM_PUB_PA	(OMAP2_SRAM_PA + 0xf800)
+> -#define OMAP2_SRAM_VA		0xfe400000
+> -#define OMAP2_SRAM_PUB_VA	(OMAP2_SRAM_VA + 0x800)
+> -#define OMAP3_SRAM_VA           0xfe400000
+>  #define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0x8000)
+> -#define OMAP3_SRAM_PUB_VA       (OMAP3_SRAM_VA + 0x8000)
+> -#define OMAP4_SRAM_VA		0xfe400000
+>  #define OMAP4_SRAM_PUB_PA	(OMAP4_SRAM_PA + 0x4000)
+> -#define OMAP4_SRAM_PUB_VA	(OMAP4_SRAM_VA + 0x4000)
+>  
+>  #if defined(CONFIG_ARCH_OMAP2PLUS)
+>  #define SRAM_BOOTLOADER_SZ	0x00
+> @@ -70,9 +63,9 @@
+>  #define ROUND_DOWN(value,boundary)	((value) & (~((boundary)-1)))
+>  
+>  static unsigned long omap_sram_start;
+> -static unsigned long omap_sram_base;
+> +static void __iomem *omap_sram_base;
+>  static unsigned long omap_sram_size;
+> -static unsigned long omap_sram_ceil;
+> +static void __iomem *omap_sram_ceil;
+>  
+>  /*
+>   * Depending on the target RAMFS firewall setup, the public usable amount of
+> @@ -112,7 +105,6 @@ static void __init omap_detect_sram(void)
+>  	if (cpu_class_is_omap2()) {
+>  		if (is_sram_locked()) {
+>  			if (cpu_is_omap34xx()) {
+> -				omap_sram_base = OMAP3_SRAM_PUB_VA;
+>  				omap_sram_start = OMAP3_SRAM_PUB_PA;
+>  				if ((omap_type() == OMAP2_DEVICE_TYPE_EMU) ||
+>  				    (omap_type() == OMAP2_DEVICE_TYPE_SEC)) {
+> @@ -121,25 +113,20 @@ static void __init omap_detect_sram(void)
+>  					omap_sram_size = 0x8000; /* 32K */
+>  				}
+>  			} else if (cpu_is_omap44xx()) {
+> -				omap_sram_base = OMAP4_SRAM_PUB_VA;
+>  				omap_sram_start = OMAP4_SRAM_PUB_PA;
+>  				omap_sram_size = 0xa000; /* 40K */
+>  			} else {
+> -				omap_sram_base = OMAP2_SRAM_PUB_VA;
+>  				omap_sram_start = OMAP2_SRAM_PUB_PA;
+>  				omap_sram_size = 0x800; /* 2K */
+>  			}
+>  		} else {
+>  			if (cpu_is_omap34xx()) {
+> -				omap_sram_base = OMAP3_SRAM_VA;
+>  				omap_sram_start = OMAP3_SRAM_PA;
+>  				omap_sram_size = 0x10000; /* 64K */
+>  			} else if (cpu_is_omap44xx()) {
+> -				omap_sram_base = OMAP4_SRAM_VA;
+>  				omap_sram_start = OMAP4_SRAM_PA;
+>  				omap_sram_size = 0xe000; /* 56K */
+>  			} else {
+> -				omap_sram_base = OMAP2_SRAM_VA;
+>  				omap_sram_start = OMAP2_SRAM_PA;
+>  				if (cpu_is_omap242x())
+>  					omap_sram_size = 0xa0000; /* 640K */
+> @@ -148,7 +135,6 @@ static void __init omap_detect_sram(void)
+>  			}
+>  		}
+>  	} else {
+> -		omap_sram_base = OMAP1_SRAM_VA;
+>  		omap_sram_start = OMAP1_SRAM_PA;
+>  
+>  		if (cpu_is_omap7xx())
+> @@ -165,24 +151,14 @@ static void __init omap_detect_sram(void)
+>  			omap_sram_size = 0x4000;
+>  		}
+>  	}
+> -
+> -	omap_sram_ceil = omap_sram_base + omap_sram_size;
+>  }
+>  
+> -static struct map_desc omap_sram_io_desc[] __initdata = {
+> -	{	/* .length gets filled in at runtime */
+> -		.virtual	= OMAP1_SRAM_VA,
+> -		.pfn		= __phys_to_pfn(OMAP1_SRAM_PA),
+> -		.type		= MT_MEMORY
+> -	}
+> -};
+> -
+>  /*
+>   * Note that we cannot use ioremap for SRAM, as clock init needs SRAM early.
+>   */
+>  static void __init omap_map_sram(void)
+>  {
+> -	unsigned long base;
+> +	int cached = 1;
+>  
+>  	if (omap_sram_size == 0)
+>  		return;
+> @@ -195,28 +171,18 @@ static void __init omap_map_sram(void)
+>  		 * the ARM may attempt to write cache lines back to SDRAM
+>  		 * which will cause the system to hang.
+>  		 */
+> -		omap_sram_io_desc[0].type = MT_MEMORY_NONCACHED;
+> +		cached = 0;
+>  	}
+>  
+> -	omap_sram_io_desc[0].virtual = omap_sram_base;
+> -	base = omap_sram_start;
+> -	base = ROUND_DOWN(base, PAGE_SIZE);
+> -	omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
+> -	omap_sram_io_desc[0].length = ROUND_DOWN(omap_sram_size, PAGE_SIZE);
+> -	iotable_init(omap_sram_io_desc, ARRAY_SIZE(omap_sram_io_desc));
+> -
+> -	pr_info("SRAM: Mapped pa 0x%08llx to va 0x%08lx size: 0x%lx\n",
+> -		(long long) __pfn_to_phys(omap_sram_io_desc[0].pfn),
+> -		omap_sram_io_desc[0].virtual,
+> -		omap_sram_io_desc[0].length);
+> +	omap_sram_start = ROUND_DOWN(omap_sram_start, PAGE_SIZE);
+> +	omap_sram_base = __arm_ioremap_exec(omap_sram_start, omap_sram_size,
+> +						cached);
+> +	if (!omap_sram_base) {
+> +		pr_err("SRAM: Could not map\n");
+> +		return;
+> +	}
+>  
+> -	/*
+> -	 * Normally devicemaps_init() would flush caches and tlb after
+> -	 * mdesc->map_io(), but since we're called from map_io(), we
+> -	 * must do it here.
+> -	 */
+> -	local_flush_tlb_all();
+> -	flush_cache_all();
+> +	omap_sram_ceil = omap_sram_base + omap_sram_size;
+>  
+>  	/*
+>  	 * Looks like we need to preserve some bootloader code at the
+> @@ -235,13 +201,18 @@ static void __init omap_map_sram(void)
+>   */
+>  void *omap_sram_push_address(unsigned long size)
+>  {
+> -	if (size > (omap_sram_ceil - (omap_sram_base + SRAM_BOOTLOADER_SZ))) {
+> +	unsigned long available, new_ceil = (unsigned long)omap_sram_ceil;
+> +
+> +	available = omap_sram_ceil - (omap_sram_base + SRAM_BOOTLOADER_SZ);
+> +
+> +	if (size > available) {
+>  		pr_err("Not enough space in SRAM\n");
+>  		return NULL;
+>  	}
+>  
+> -	omap_sram_ceil -= size;
+> -	omap_sram_ceil = ROUND_DOWN(omap_sram_ceil, FNCPY_ALIGN);
+> +	new_ceil -= size;
+> +	new_ceil = ROUND_DOWN(new_ceil, FNCPY_ALIGN);
+> +	omap_sram_ceil = IOMEM(new_ceil);
+>  
+>  	return (void *)omap_sram_ceil;
+>  }
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
