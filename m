@@ -1,62 +1,135 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Please help with the OMAP static mapping mess
-Date: Tue, 4 Oct 2011 18:35:46 -0700
-Message-ID: <20111005013546.GY6324@atomide.com>
-References: <alpine.LFD.2.02.1110031312480.9106@xanadu.home>
- <20111003205658.GJ6324@atomide.com>
- <alpine.LFD.2.02.1110031744100.9106@xanadu.home>
- <20111003224411.GA19897@n2100.arm.linux.org.uk>
- <alpine.LFD.2.02.1110041528050.9106@xanadu.home>
- <20111004225424.GA32102@n2100.arm.linux.org.uk>
- <alpine.LFD.2.02.1110041900590.9106@xanadu.home>
- <20111005004208.GW6324@atomide.com>
- <alpine.LFD.2.02.1110042048320.9106@xanadu.home>
+Subject: [PATCH 5/4] ARM: OMAP: Move set_globals initialization to happen
+	in init_early
+Date: Tue, 4 Oct 2011 18:40:45 -0700
+Message-ID: <20111005014044.GZ6324@atomide.com>
+References: <20111005004339.26980.31149.stgit@kaulin.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30061 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757445Ab1JEBfu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 21:35:50 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.02.1110042048320.9106@xanadu.home>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20111005004339.26980.31149.stgit@kaulin.local>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Nicolas Pitre <nico@fluxnic.net> [111004 17:23]:
-> On Tue, 4 Oct 2011, Tony Lindgren wrote:
-> 
-> > In any case, I suggest we add the following __arm_ioremap_exec patch
-> > and then sort out issues with it as they show up.
-> > 
-> > This allows further work on the common SRAM genalloc patches and generic
-> > map_io patches.
-> > 
-> > Nico, I already have a series converting omap2+ to use the the patch
-> > below, and it seems to be working just fine for SRAM. I'll post that
-> > series separately shortly. Maybe take a look and see if that allows
-> > you to do the generic map_io changes?
-> 
-> Yes, that looks fine.  Maybe you could avoid exporting the symbol until 
-> it is actually needed though.
+Otherwise we can't do generic map_io as we currently rely on
+static mappings that work only because of arch_ioremap.
 
-OK good, will drop the export.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
+index e26c79c..e6ee884 100644
+--- a/arch/arm/mach-omap2/board-ti8168evm.c
++++ b/arch/arm/mach-omap2/board-ti8168evm.c
+@@ -37,7 +37,6 @@ static void __init ti8168_evm_init(void)
  
-> The other thing I need is for the code using ioremap() such as in 
-> omap2_set_globals_control() to be called only after the corresponding 
-> static mappings are already installed.  Then everything should go 
-> smoothly.
-
-Ah, set_globals inits can now move to init_early as well. That happens
-after map_io so sounds like that should do for what you need.
-
-Will reply with a patch for that to the series. BTW, these patches
-depends on the various cleanup related branches that we have queued,
-I think there may be few more patches missing from Arnd's tree still.
-I also need to do a bit more testing on it tomorrow.
-
-Regards,
-
-Tony
+ static void __init ti8168_evm_map_io(void)
+ {
+-	omap2_set_globals_ti816x();
+ 	omapti816x_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
+index de61f15..f19a332 100644
+--- a/arch/arm/mach-omap2/common.c
++++ b/arch/arm/mach-omap2/common.c
+@@ -59,7 +59,6 @@ void __init omap2_set_globals_242x(void)
+ 
+ void __init omap242x_map_io(void)
+ {
+-	omap2_set_globals_242x();
+ 	omap242x_map_common_io();
+ }
+ #endif
+@@ -83,7 +82,6 @@ void __init omap2_set_globals_243x(void)
+ 
+ void __init omap243x_map_io(void)
+ {
+-	omap2_set_globals_243x();
+ 	omap243x_map_common_io();
+ }
+ #endif
+@@ -107,7 +105,6 @@ void __init omap2_set_globals_3xxx(void)
+ 
+ void __init omap3_map_io(void)
+ {
+-	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+@@ -153,7 +150,6 @@ void __init omap2_set_globals_443x(void)
+ 
+ void __init omap4_map_io(void)
+ {
+-	omap2_set_globals_443x();
+ 	omap44xx_map_common_io();
+ }
+ #endif
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 4957554..527abdd 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -44,6 +44,7 @@
+ #include "clockdomain.h"
+ #include <plat/omap_hwmod.h>
+ #include <plat/multi.h>
++#include <plat/common.h>
+ 
+ /*
+  * The machine specific code may provide the extra mapping besides the
+@@ -363,6 +364,7 @@ static void __init omap_hwmod_init_postsetup(void)
+ 
+ void __init omap2420_init_early(void)
+ {
++	omap2_set_globals_242x();
+ 	omap_common_init_early();
+ 	omap2xxx_voltagedomains_init();
+ 	omap242x_powerdomains_init();
+@@ -374,6 +376,7 @@ void __init omap2420_init_early(void)
+ 
+ void __init omap2430_init_early(void)
+ {
++	omap2_set_globals_243x();
+ 	omap_common_init_early();
+ 	omap2xxx_voltagedomains_init();
+ 	omap243x_powerdomains_init();
+@@ -389,6 +392,7 @@ void __init omap2430_init_early(void)
+  */
+ void __init omap3_init_early(void)
+ {
++	omap2_set_globals_3xxx();
+ 	omap_common_init_early();
+ 	omap3xxx_voltagedomains_init();
+ 	omap3xxx_powerdomains_init();
+@@ -420,11 +424,19 @@ void __init am35xx_init_early(void)
+ 
+ void __init ti816x_init_early(void)
+ {
+-	omap3_init_early();
++	omap2_set_globals_ti816x();
++	omap_common_init_early();
++	omap3xxx_voltagedomains_init();
++	omap3xxx_powerdomains_init();
++	omap3xxx_clockdomains_init();
++	omap3xxx_hwmod_init();
++	omap_hwmod_init_postsetup();
++	omap3xxx_clk_init();
+ }
+ 
+ void __init omap4430_init_early(void)
+ {
++	omap2_set_globals_443x();
+ 	omap_common_init_early();
+ 	omap44xx_voltagedomains_init();
+ 	omap44xx_powerdomains_init();
