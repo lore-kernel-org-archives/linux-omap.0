@@ -1,68 +1,54 @@
-From: Kevin Hilman <khilman@ti.com>
+From: Steve Sakoman <sakoman@gmail.com>
 Subject: Re: Regressions for older OMAP3503 silicon
-Date: Wed, 05 Oct 2011 11:10:31 -0700
-Message-ID: <877h4j5my0.fsf@ti.com>
+Date: Wed, 5 Oct 2011 11:19:58 -0700
+Message-ID: <CAGDS+nkHCmt0+Z82fSX3+bRLy4RR-_4vegb0tGUwD5u_ttnMSw@mail.gmail.com>
 References: <CABi1daE-7OdgL5BqaLrB+X64-cf+kQMyXv9eSZOE79bRt+fMPw@mail.gmail.com>
+	<20111005162618.GA6324@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:55863 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932812Ab1JESKp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 14:10:45 -0400
-Received: by vcbfo1 with SMTP id fo1so2343345vcb.22
-        for <linux-omap@vger.kernel.org>; Wed, 05 Oct 2011 11:10:43 -0700 (PDT)
-In-Reply-To: <CABi1daE-7OdgL5BqaLrB+X64-cf+kQMyXv9eSZOE79bRt+fMPw@mail.gmail.com>
-	(Dave Hylands's message of "Wed, 5 Oct 2011 00:14:57 -0700")
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:50362 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932812Ab1JEST7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 14:19:59 -0400
+Received: by vws1 with SMTP id 1so1567947vws.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Oct 2011 11:19:59 -0700 (PDT)
+In-Reply-To: <20111005162618.GA6324@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Hylands <dhylands@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Dave Hylands <dhylands@gmail.com>, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>
 
-Dave Hylands <dhylands@gmail.com> writes:
+On Wed, Oct 5, 2011 at 9:26 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Dave Hylands <dhylands@gmail.com> [111004 23:41]:
 
-> Hi,
+>> I then also had to modify drivers/mmc/card/block.c and initializing
+>> disable_multi to 1 in the mmc_blk_issue_rw_rq function to get rid of
+>> the following messages for every I/O request.
+>>
+>> mmcblk0: retrying using single block read
+>> mmcblk0: retrying using single block read
+>> mmcblk0: retrying using single block read
+>> mmcblk0: retrying using single block read
+>>
+>> (since this revision of the silicon doesn't support multi-block MMC reads).
 >
-> I have an older overo board, which has an OMAP3503
+> ..but this one is usually a problem muxing the MMC data lines.
 >
-> U-booot reports:
-> OMAP3503-GP ES2.1, CPU-OPP2, L3-165MHz, Max CPU Clock 600 mHz
->
-> In order to get the 2.6.39 kernel to boot, I had to make 2 modifications:
->
-> In arch/arm/mach-omap2/pm34xx.c, in the omap_sram_idle routine I had
-> to put an #if 0 around:
->
-> #if 0
->        if (omap3_has_io_wakeup() &&
->            (per_next_state < PWRDM_POWER_ON ||
->             core_next_state < PWRDM_POWER_ON)) {
->                omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK,
-> WKUP_MOD, PM_WKEN);
->                omap3_enable_io_chain();
->        }
-> #endif
->
-> or I would get continuous
->
-> Wake up daisy chain activation failed.
->
-> messages on the console.
+> Are you sure this revision only supports one data line?
 
-The need to comment this out suggests that omap3_has_io_wakeup() is
-returning true for this SoC but should not.
+No, I think you misunderstood the issue!
 
-Looking at mach-omap2/io.c, that feature flag is not set on the 3505 and
-3517, but is set on the 3503:
+The issue is that multi-block mmc reads are broken and the code falls
+back to single block reads but prints a warning each time.
 
-	if (!cpu_is_omap3505() && !cpu_is_omap3517())
-		omap_features |= OMAP3_HAS_IO_WAKEUP;
+Looking for a definitive source for this errata with Google I find:
 
-Adding a case for the 3503 here should fix this problem.
+"According to the TI docs, multiple block read transfer
+does not work correctly in CPU revisions 2.1 and earlier (TI advisory
+2.1.1.128)."
 
-Maybe check other checks for cpu_is_omap3505() and see if those should
-also be checking for the 3503.
+So the correct fix is probably to use multi-block reads only on
+revisions post 2.1.
 
-Kevin
-
-
+Steve
