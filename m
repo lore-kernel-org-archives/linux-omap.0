@@ -1,59 +1,45 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: Please help with the OMAP static mapping mess
-Date: Wed, 05 Oct 2011 11:46:24 +0530
-Message-ID: <4E8BF638.1000507@ti.com>
-References: <alpine.LFD.2.02.1110031312480.9106@xanadu.home> <20111003205658.GJ6324@atomide.com> <alpine.LFD.2.02.1110031744100.9106@xanadu.home> <20111003223824.GK6324@atomide.com> <4E8AAFF9.3090600@ti.com> <alpine.LFD.2.02.1110041458500.9106@xanadu.home> <4E8BBC6B.7000500@gmail.com> <alpine.LFD.2.02.1110042232380.9106@xanadu.home>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/4] ARM: OMAP: Remove calls to SRAM allocations for
+ framebuffer
+Date: Wed, 05 Oct 2011 09:45:28 +0300
+Message-ID: <1317797128.2631.2.camel@deskari>
+References: <20111005004339.26980.31149.stgit@kaulin.local>
+	 <20111005004544.26980.35612.stgit@kaulin.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:53018 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752658Ab1JEGQb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 02:16:31 -0400
-Received: by mail-gy0-f179.google.com with SMTP id 4so1227046gyg.10
-        for <linux-omap@vger.kernel.org>; Tue, 04 Oct 2011 23:16:30 -0700 (PDT)
-In-Reply-To: <alpine.LFD.2.02.1110042232380.9106@xanadu.home>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:37191 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933776Ab1JEGpd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 02:45:33 -0400
+Received: by mail-bw0-f43.google.com with SMTP id s6so1993396bka.2
+        for <linux-omap@vger.kernel.org>; Tue, 04 Oct 2011 23:45:32 -0700 (PDT)
+In-Reply-To: <20111005004544.26980.35612.stgit@kaulin.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Rob Herring <robherring2@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wednesday 05 October 2011 08:09 AM, Nicolas Pitre wrote:
-> On Tue, 4 Oct 2011, Rob Herring wrote:
+On Tue, 2011-10-04 at 17:45 -0700, Tony Lindgren wrote:
+> This assumes fixed mappings which will not work once we move
+> to use ioremap_exec(). It seems that these are currently
+> not in use, or in use for some out of tree corner cases.
 > 
->> On 10/04/2011 04:21 PM, Nicolas Pitre wrote:
->>> On Tue, 4 Oct 2011, Santosh Shilimkar wrote:
->>>
->>>> On Tuesday 04 October 2011 04:08 AM, Tony Lindgren wrote:
->>>>> * Nicolas Pitre <nico@fluxnic.net> [111003 14:36]:
->>>>>> On Mon, 3 Oct 2011, Tony Lindgren wrote:
->>>>>>
->>>>>>> Having the SRAM base address move around with different sizes also
->>>>>>> requires the SoC detection.. Otherwise we can end up mapping wrong
->>>>>>> size and end up trying to access secure SRAM that will hang the system.
->>>>>>>
->>>>>>> The way to fix it is to move SRAM init happen much later so we don't
->>>>>>> have to map it early. I guess now we could use ioremap for SRAM,
->>>>>>> although we may not want device attributes for the executable code?
->>>>>>> Got any suggestions here on how we should map SRAM later on?
->>>>>>
->>>>>> You can use a variant of ioremap() such as __arm_ioremap() which let you 
->>>>>> specify the memory attribute.
->>>>>
->>>>> OK, I'll take a look at that.
->>>>>
->>>> I have tried __arm_ioremap_pfn() for some DDR mapping and it didn't
->>>> work as expected. The mapping was not getting created.
->>>
->>> Did you investigate why it wasn't created?  Must have been a trivial 
->>> issue surely?  But you have to wait until memory management is fully 
->>> initialized to call the real ioremap() though, which happens later 
->>> during the boot.
->>>
-I didn't investigate further on it but may be it was because of the
-ordering as you pointed out. The new __arm_ioremap_exe() seems to me
-a good idea and should solve the problem.
+> If SRAM support for framebuffer is wanted, it should be done
+> with ioremap in the driver.
+> 
+> Note that further removal of the code can now be done,
+> but that can be done seprately by the driver maintainers.
+> 
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Regards
-Santosh
+Looks good to me. I have similar changes in my working branch for omapfb
+cleanup.
+
+Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+ Tomi
+
+
