@@ -1,178 +1,56 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v8 03/24] gpio/omap: make gpio_context part of gpio_bank structure
-Date: Wed, 5 Oct 2011 14:02:52 +0530
-Message-ID: <1317803593-12259-4-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v8 23/24] gpio/omap: restore OE only after setting the output level
+Date: Wed, 5 Oct 2011 14:03:12 +0530
+Message-ID: <1317803593-12259-24-git-send-email-tarun.kanti@ti.com>
 References: <1317803593-12259-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60704 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42263 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755276Ab1JEIdj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Oct 2011 04:33:39 -0400
+	id S1757856Ab1JEIdm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Oct 2011 04:33:42 -0400
 In-Reply-To: <1317803593-12259-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Charulatha V <charu@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-From: Charulatha V <charu@ti.com>
+From: Nishanth Menon <nm@ti.com>
 
-Currently gpio_context array used to save gpio bank's context, is used only for
-OMAP3 architecture. Move gpio_context as part of gpio_bank structure so that it
-can be specific to each gpio bank and can be used for any OMAP architecture
+Setup the dataout register before restoring OE. This is to make
+sure that we have valid data in dataout register which would be
+made available in output pins as soon as OE is enabled. Else,
+there is risk of unknown data getting out into gpio pins.
 
-Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/gpio/gpio-omap.c |   76 ++++++++++++++++++++-------------------------
- 1 files changed, 34 insertions(+), 42 deletions(-)
+ drivers/gpio/gpio-omap.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 65fed50..62d2213 100644
+index bb1ff16..4009446 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -30,6 +30,19 @@
- 
- static LIST_HEAD(omap_gpio_list);
- 
-+struct gpio_regs {
-+	u32 irqenable1;
-+	u32 irqenable2;
-+	u32 wake_en;
-+	u32 ctrl;
-+	u32 oe;
-+	u32 leveldetect0;
-+	u32 leveldetect1;
-+	u32 risingdetect;
-+	u32 fallingdetect;
-+	u32 dataout;
-+};
+@@ -1343,7 +1343,6 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
+ 	__raw_writel(bank->context.wake_en,
+ 				bank->base + bank->regs->wkup_en);
+ 	__raw_writel(bank->context.ctrl, bank->base + bank->regs->ctrl);
+-	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
+ 	__raw_writel(bank->context.leveldetect0,
+ 				bank->base + bank->regs->leveldetect0);
+ 	__raw_writel(bank->context.leveldetect1,
+@@ -1353,6 +1352,8 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
+ 	__raw_writel(bank->context.fallingdetect,
+ 				bank->base + bank->regs->fallingdetect);
+ 	__raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
++	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
 +
- struct gpio_bank {
- 	struct list_head node;
- 	unsigned long pbase;
-@@ -43,7 +56,7 @@ struct gpio_bank {
- #endif
- 	u32 non_wakeup_gpios;
- 	u32 enabled_non_wakeup_gpios;
--
-+	struct gpio_regs context;
- 	u32 saved_datain;
- 	u32 saved_fallingdetect;
- 	u32 saved_risingdetect;
-@@ -66,23 +79,6 @@ struct gpio_bank {
- 	struct omap_gpio_reg_offs *regs;
- };
- 
--#ifdef CONFIG_ARCH_OMAP3
--struct omap3_gpio_regs {
--	u32 irqenable1;
--	u32 irqenable2;
--	u32 wake_en;
--	u32 ctrl;
--	u32 oe;
--	u32 leveldetect0;
--	u32 leveldetect1;
--	u32 risingdetect;
--	u32 fallingdetect;
--	u32 dataout;
--};
--
--static struct omap3_gpio_regs gpio_context[OMAP34XX_NR_GPIOS];
--#endif
--
- #define GPIO_INDEX(bank, gpio) (gpio % bank->width)
- #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
- 
-@@ -1499,33 +1495,31 @@ void omap2_gpio_resume_after_idle(void)
- void omap_gpio_save_context(void)
- {
- 	struct gpio_bank *bank;
--	int i = 0;
- 
- 	list_for_each_entry(bank, &omap_gpio_list, node) {
--		i++;
- 
- 		if (!bank->loses_context)
- 			continue;
- 
--		gpio_context[i].irqenable1 =
-+		bank->context.irqenable1 =
- 			__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE1);
--		gpio_context[i].irqenable2 =
-+		bank->context.irqenable2 =
- 			__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE2);
--		gpio_context[i].wake_en =
-+		bank->context.wake_en =
- 			__raw_readl(bank->base + OMAP24XX_GPIO_WAKE_EN);
--		gpio_context[i].ctrl =
-+		bank->context.ctrl =
- 			__raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
--		gpio_context[i].oe =
-+		bank->context.oe =
- 			__raw_readl(bank->base + OMAP24XX_GPIO_OE);
--		gpio_context[i].leveldetect0 =
-+		bank->context.leveldetect0 =
- 			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0);
--		gpio_context[i].leveldetect1 =
-+		bank->context.leveldetect1 =
- 			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
--		gpio_context[i].risingdetect =
-+		bank->context.risingdetect =
- 			__raw_readl(bank->base + OMAP24XX_GPIO_RISINGDETECT);
--		gpio_context[i].fallingdetect =
-+		bank->context.fallingdetect =
- 			__raw_readl(bank->base + OMAP24XX_GPIO_FALLINGDETECT);
--		gpio_context[i].dataout =
-+		bank->context.dataout =
- 			__raw_readl(bank->base + OMAP24XX_GPIO_DATAOUT);
- 	}
- }
-@@ -1533,33 +1527,31 @@ void omap_gpio_save_context(void)
- void omap_gpio_restore_context(void)
- {
- 	struct gpio_bank *bank;
--	int i = 0;
- 
- 	list_for_each_entry(bank, &omap_gpio_list, node) {
--		i++;
- 
- 		if (!bank->loses_context)
- 			continue;
- 
--		__raw_writel(gpio_context[i].irqenable1,
-+		__raw_writel(bank->context.irqenable1,
- 				bank->base + OMAP24XX_GPIO_IRQENABLE1);
--		__raw_writel(gpio_context[i].irqenable2,
-+		__raw_writel(bank->context.irqenable2,
- 				bank->base + OMAP24XX_GPIO_IRQENABLE2);
--		__raw_writel(gpio_context[i].wake_en,
-+		__raw_writel(bank->context.wake_en,
- 				bank->base + OMAP24XX_GPIO_WAKE_EN);
--		__raw_writel(gpio_context[i].ctrl,
-+		__raw_writel(bank->context.ctrl,
- 				bank->base + OMAP24XX_GPIO_CTRL);
--		__raw_writel(gpio_context[i].oe,
-+		__raw_writel(bank->context.oe,
- 				bank->base + OMAP24XX_GPIO_OE);
--		__raw_writel(gpio_context[i].leveldetect0,
-+		__raw_writel(bank->context.leveldetect0,
- 				bank->base + OMAP24XX_GPIO_LEVELDETECT0);
--		__raw_writel(gpio_context[i].leveldetect1,
-+		__raw_writel(bank->context.leveldetect1,
- 				bank->base + OMAP24XX_GPIO_LEVELDETECT1);
--		__raw_writel(gpio_context[i].risingdetect,
-+		__raw_writel(bank->context.risingdetect,
- 				bank->base + OMAP24XX_GPIO_RISINGDETECT);
--		__raw_writel(gpio_context[i].fallingdetect,
-+		__raw_writel(bank->context.fallingdetect,
- 				bank->base + OMAP24XX_GPIO_FALLINGDETECT);
--		__raw_writel(gpio_context[i].dataout,
-+		__raw_writel(bank->context.dataout,
- 				bank->base + OMAP24XX_GPIO_DATAOUT);
- 	}
- }
+ 	if (bank->dbck_enable_mask) {
+ 		__raw_writel(bank->context.debounce, bank->base +
+ 					bank->regs->debounce);
 -- 
 1.7.0.4
 
