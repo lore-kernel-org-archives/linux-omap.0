@@ -1,145 +1,83 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 01/11] OMAP3+: PM: VP: use uV for max and min voltage limits
-Date: Wed, 5 Oct 2011 20:17:01 +0300
-Message-ID: <1317835031-8201-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 02/11] omap: voltage: add definitions for omap_vp_param and omap_vc_param
+Date: Wed, 5 Oct 2011 20:17:02 +0300
+Message-ID: <1317835031-8201-3-git-send-email-t-kristo@ti.com>
 References: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35064 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33968 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934481Ab1JERRd convert rfc822-to-8bit (ORCPT
+	id S935085Ab1JERRd convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 13:17:33 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p95HHWsK017458
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p95HHW9J019513
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
 	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:32 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p95HHWpn027561
+	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id p95HHWEt003288
+	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:32 -0500 (CDT)
+Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p95HHVKT001674
 	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:32 -0500 (CDT)
 Content-Class: urn:content-classes:message
 In-Reply-To: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
-From: Nishanth Menon <nm@ti.com>
+These are used to contain omap specific minimum and maximum voltages
+for domains, and also operating voltages for different power modes.
 
-Every PMIC has it's own eccentricities, For example, one of the
-PMIC has MSB set to 1 for a specific function - voltage enable!
-using an hardcoded value specific for TWL when copied over to
-such an implementation causes the system to crash as the MSB bit
-was 0 and the voltage got disabled!.
-
-Instead we use actual values and depend on the convertion routines
-to abstract out the eccentricities of each PMIC.
-
-With this, we can now move the voltages to a common location in
-voltage.h as they are no longer dependent on PMICs and expect the
-PMIC's conversion routines to set a cap if the voltage is out of
-reach for the PMIC.
-
-Reported-by: Jon Hunter <jon-hunter@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_twl.c |   17 -----------------
- arch/arm/mach-omap2/voltage.h  |   22 ++++++++++++++++++++--
- arch/arm/mach-omap2/vp.c       |    4 ++--
- 3 files changed, 22 insertions(+), 21 deletions(-)
+ arch/arm/mach-omap2/voltage.h |   18 ++++++++++++++----
+ 1 files changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index f515a1a..df4e7c3 100644
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -30,16 +30,6 @@
- #define OMAP3_VP_VSTEPMAX_VSTEPMAX	0x04
- #define OMAP3_VP_VLIMITTO_TIMEOUT_US	200
- 
--#define OMAP3430_VP1_VLIMITTO_VDDMIN	0x14
--#define OMAP3430_VP1_VLIMITTO_VDDMAX	0x42
--#define OMAP3430_VP2_VLIMITTO_VDDMIN	0x18
--#define OMAP3430_VP2_VLIMITTO_VDDMAX	0x2c
--
--#define OMAP3630_VP1_VLIMITTO_VDDMIN	0x18
--#define OMAP3630_VP1_VLIMITTO_VDDMAX	0x3c
--#define OMAP3630_VP2_VLIMITTO_VDDMIN	0x18
--#define OMAP3630_VP2_VLIMITTO_VDDMAX	0x30
--
- #define OMAP4_SRI2C_SLAVE_ADDR		0x12
- #define OMAP4_VDD_MPU_SR_VOLT_REG	0x55
- #define OMAP4_VDD_MPU_SR_CMD_REG	0x56
-@@ -53,13 +43,6 @@
- #define OMAP4_VP_VSTEPMAX_VSTEPMAX	0x04
- #define OMAP4_VP_VLIMITTO_TIMEOUT_US	200
- 
--#define OMAP4_VP_MPU_VLIMITTO_VDDMIN	0xA
--#define OMAP4_VP_MPU_VLIMITTO_VDDMAX	0x39
--#define OMAP4_VP_IVA_VLIMITTO_VDDMIN	0xA
--#define OMAP4_VP_IVA_VLIMITTO_VDDMAX	0x2D
--#define OMAP4_VP_CORE_VLIMITTO_VDDMIN	0xA
--#define OMAP4_VP_CORE_VLIMITTO_VDDMAX	0x28
--
- static bool is_offset_valid;
- static u8 smps_offset;
- /*
 diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index b4c6259..1577c2f 100644
+index 1577c2f..92cbc67 100644
 --- a/arch/arm/mach-omap2/voltage.h
 +++ b/arch/arm/mach-omap2/voltage.h
-@@ -107,6 +107,24 @@ struct omap_volt_data {
- 	u8	vp_errgain;
+@@ -70,6 +70,8 @@ struct voltagedomain {
+ 	const struct omap_vfsm_instance *vfsm;
+ 	struct omap_vp_instance *vp;
+ 	struct omap_voltdm_pmic *pmic;
++	struct omap_vp_param *vp_param;
++	struct omap_vc_param *vc_param;
+ 
+ 	/* VC/VP register access functions: SoC specific */
+ 	u32 (*read) (u8 offset);
+@@ -137,10 +139,6 @@ struct omap_volt_data {
+ struct omap_voltdm_pmic {
+ 	int slew_rate;
+ 	int step_size;
+-	u32 on_volt;
+-	u32 onlp_volt;
+-	u32 ret_volt;
+-	u32 off_volt;
+ 	u16 volt_setup_time;
+ 	u16 i2c_slave_addr;
+ 	u16 volt_reg_addr;
+@@ -157,6 +155,18 @@ struct omap_voltdm_pmic {
+ 	u8 (*uv_to_vsel) (unsigned long uV);
  };
  
-+/* Min and max voltages from OMAP perspective */
-+#define OMAP3430_VP1_VLIMITTO_VDDMIN	850000
-+#define OMAP3430_VP1_VLIMITTO_VDDMAX	1425000
-+#define OMAP3430_VP2_VLIMITTO_VDDMIN	900000
-+#define OMAP3430_VP2_VLIMITTO_VDDMAX	1150000
++struct omap_vp_param {
++	u32 vddmax;
++	u32 vddmin;
++};
 +
-+#define OMAP3630_VP1_VLIMITTO_VDDMIN	900000
-+#define OMAP3630_VP1_VLIMITTO_VDDMAX	1350000
-+#define OMAP3630_VP2_VLIMITTO_VDDMIN	900000
-+#define OMAP3630_VP2_VLIMITTO_VDDMAX	1200000
++struct omap_vc_param {
++	u32 on;
++	u32 onlp;
++	u32 ret;
++	u32 off;
++};
 +
-+#define OMAP4_VP_MPU_VLIMITTO_VDDMIN	830000
-+#define OMAP4_VP_MPU_VLIMITTO_VDDMAX	1410000
-+#define OMAP4_VP_IVA_VLIMITTO_VDDMIN	830000
-+#define OMAP4_VP_IVA_VLIMITTO_VDDMAX	1260000
-+#define OMAP4_VP_CORE_VLIMITTO_VDDMIN	830000
-+#define OMAP4_VP_CORE_VLIMITTO_VDDMAX	1200000
-+
- /**
-  * struct omap_voltdm_pmic - PMIC specific data required by voltage driver.
-  * @slew_rate:	PMIC slew rate (in uv/us)
-@@ -130,8 +148,8 @@ struct omap_voltdm_pmic {
- 	u8 vp_erroroffset;
- 	u8 vp_vstepmin;
- 	u8 vp_vstepmax;
--	u8 vp_vddmin;
--	u8 vp_vddmax;
-+	u32 vp_vddmin;
-+	u32 vp_vddmax;
- 	u8 vp_timeout_us;
- 	bool i2c_high_speed;
- 	u8 i2c_mcode;
-diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-index 66bd700..16cb6d4 100644
---- a/arch/arm/mach-omap2/vp.c
-+++ b/arch/arm/mach-omap2/vp.c
-@@ -53,8 +53,8 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
- 	sys_clk_rate = voltdm->sys_clk.rate / 1000;
- 
- 	timeout = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
--	vddmin = voltdm->pmic->vp_vddmin;
--	vddmax = voltdm->pmic->vp_vddmax;
-+	vddmin = voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vddmin);
-+	vddmax = voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vddmax);
- 
- 	waittime = ((voltdm->pmic->step_size / voltdm->pmic->slew_rate) *
- 		    sys_clk_rate) / 1000;
+ void omap_voltage_get_volttable(struct voltagedomain *voltdm,
+ 		struct omap_volt_data **volt_data);
+ struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
 -- 
 1.7.4.1
 
