@@ -1,45 +1,106 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/4] ARM: OMAP: Remove calls to SRAM allocations for
- framebuffer
-Date: Wed, 05 Oct 2011 09:45:28 +0300
-Message-ID: <1317797128.2631.2.camel@deskari>
-References: <20111005004339.26980.31149.stgit@kaulin.local>
-	 <20111005004544.26980.35612.stgit@kaulin.local>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v6 04/16] OMAP2+: UART: cleanup 8250 console driver support
+Date: Wed, 5 Oct 2011 12:24:11 +0530
+Message-ID: <CAAL8m4yhbPQdz5od-cv4HirzTUT4qxUJv_c3Lpj9+efjqxm6hg@mail.gmail.com>
+References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
+ <1317380495-584-4-git-send-email-govindraj.raja@ti.com> <87lit077ry.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:37191 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933776Ab1JEGpd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 02:45:33 -0400
-Received: by mail-bw0-f43.google.com with SMTP id s6so1993396bka.2
-        for <linux-omap@vger.kernel.org>; Tue, 04 Oct 2011 23:45:32 -0700 (PDT)
-In-Reply-To: <20111005004544.26980.35612.stgit@kaulin.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87lit077ry.fsf@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, 2011-10-04 at 17:45 -0700, Tony Lindgren wrote:
-> This assumes fixed mappings which will not work once we move
-> to use ioremap_exec(). It seems that these are currently
-> not in use, or in use for some out of tree corner cases.
-> 
-> If SRAM support for framebuffer is wanted, it should be done
-> with ioremap in the driver.
-> 
-> Note that further removal of the code can now be done,
-> but that can be done seprately by the driver maintainers.
-> 
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Hi Kevin,
 
-Looks good to me. I have similar changes in my working branch for omapfb
-cleanup.
-
-Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-
- Tomi
+Thanks for the review,
 
 
+On Wed, Oct 5, 2011 at 3:12 AM, Kevin Hilman <khilman@ti.com> wrote:
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>
+>> We had been using traditional 8250 driver as uart console driver
+>> prior to omap-serial driver. Since we have omap-serial driver
+>> in mainline kernel for some time now it has been used as default
+>> uart console driver on omap2+ platforms. Remove 8250 support for
+>> omap-uarts.
+>
+> Nice to see the this disappearing.
+>
+>> Serial_in and serial_out override for 8250 serial driver is also
+>> removed.
+
+>> Empty fifo read fix is already taken care with omap-serial
+>> driver with data ready bit check from LSR reg before reading RX fifo=
+=2E
+>
+> As stated in the previous review. =A0Patches that move code/features
+> should have the removal and the add-back in the same patch. =A0Doing =
+so
+> makes it easy for reviewers to see whether it was simply moved, or if=
+ it
+> was modified when it was moved, etc.
+>
+
+Empty fifo read is already taken care in omap-serial.c and is part of
+mainline code.
+Nothing to add to omap-serial.c
+
+>> Also waiting for THRE(transmit hold reg empty) is done with wait_for=
+_xmitr
+>> in omap-serial driver.
+>
+> Again, remove it here in the patch that adds that support (the errata
+> patch I guess.)
+>
+
+The errata patch ( [PATCH v6 11/16] ) moves only mdr_errata and force_i=
+dle
+from serial.c to omap-serial.c.
+
+Already handled stuffs and things that already exists with omap-serial.=
+c
+are removed here.
+
+>> Remove headers that were necessary to support 8250 support
+>> and remove all config bindings done to keep 8250 backward compatibil=
+ity
+>> while adding omap-serial driver. Remove omap_uart_reset needed for
+>> 8250 autoconf.
+>>
+>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>
+> So basically, this patch should only remove the legacy 8250 support (=
+as
+> the subject says) and everything else should be done in the other
+> relevant patches.
+>
+
+Yes removes only the 8250 code. serial_in/serial_out were read/write ov=
+errides
+part of 8250 code.
+
+serial_in/serial_out had these checks for empty fifo read and wait for =
+tx
+which is already handled with omap-serial.c.
+
+--
+Thanks,
+Govindraj.R
+
+
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-seria=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
