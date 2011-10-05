@@ -1,174 +1,216 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 03/11] omap3: add vp and vc parameter data
-Date: Wed, 5 Oct 2011 20:17:03 +0300
-Message-ID: <1317835031-8201-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 05/11] OMAP2+: PM: provide mechanism to describe overall behavior of osc and PMIC.
+Date: Wed, 5 Oct 2011 20:17:05 +0300
+Message-ID: <1317835031-8201-6-git-send-email-t-kristo@ti.com>
 References: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42959 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35066 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934481Ab1JERRe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 13:17:34 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p95HHXCP021827
+	id S935137Ab1JERRg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 13:17:36 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p95HHZwh017464
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:33 -0500
+	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:35 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p95HHXQX027572
-	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:33 -0500 (CDT)
-Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p95HHXOV001693
-	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:33 -0500 (CDT)
+	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id p95HHZ3u003306
+	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:35 -0500 (CDT)
 Content-Class: urn:content-classes:message
 In-Reply-To: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+From: Nishanth Menon <nm@ti.com>
+
+We currently have mechanisms in place to describe the PMIC per
+rail, however we also need to configure the system for situations
+such as OFF mode, where, oscillator switch off and on time, and
+similar durations for PMIC also tends to play a major factor.
+Introduce a few apis to OMAP2's pm framework to use these. OMAP1
+does'nt seem to need this at the moment, hence not a OMAP generic
+framework. The set functions are meant to be used by initialization
+code.
+
+The OMAP specific implementation would need to use this ofcourse.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/omap_opp_data.h           |    9 ++++
- arch/arm/mach-omap2/opp3xxx_data.c            |   52 +++++++++++++++++++++++++
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |    8 ++++
- 3 files changed, 69 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm.c |  122 ++++++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h |   18 +++++++
+ 2 files changed, 140 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
-index c784c12..b940a09 100644
---- a/arch/arm/mach-omap2/omap_opp_data.h
-+++ b/arch/arm/mach-omap2/omap_opp_data.h
-@@ -86,8 +86,17 @@ extern int __init omap_init_opp_table(struct omap_opp_def *opp_def,
- 
- extern struct omap_volt_data omap34xx_vddmpu_volt_data[];
- extern struct omap_volt_data omap34xx_vddcore_volt_data[];
-+extern struct omap_vp_param omap34xx_mpu_vp_data;
-+extern struct omap_vp_param omap34xx_core_vp_data;
-+extern struct omap_vc_param omap34xx_mpu_vc_data;
-+extern struct omap_vc_param omap34xx_core_vc_data;
-+
- extern struct omap_volt_data omap36xx_vddmpu_volt_data[];
- extern struct omap_volt_data omap36xx_vddcore_volt_data[];
-+extern struct omap_vp_param omap36xx_mpu_vp_data;
-+extern struct omap_vp_param omap36xx_core_vp_data;
-+extern struct omap_vc_param omap36xx_mpu_vc_data;
-+extern struct omap_vc_param omap36xx_core_vc_data;
- 
- extern struct omap_volt_data omap44xx_vdd_mpu_volt_data[];
- extern struct omap_volt_data omap44xx_vdd_iva_volt_data[];
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index d95f3f9..1d44df5 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -26,6 +26,10 @@
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 659e400..e130d92 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -24,6 +24,52 @@
+ #include "clockdomain.h"
  #include "pm.h"
  
- /* 34xx */
-+#define OMAP3_ON_VOLTAGE_UV		1200000
-+#define OMAP3_ONLP_VOLTAGE_UV		1000000
-+#define OMAP3_RET_VOLTAGE_UV		975000
-+#define OMAP3_OFF_VOLTAGE_UV		600000
- 
- /* VDD1 */
- 
-@@ -44,6 +48,18 @@ struct omap_volt_data omap34xx_vddmpu_volt_data[] = {
- 	VOLT_DATA_DEFINE(0, 0, 0, 0),
- };
- 
-+struct omap_vp_param omap34xx_mpu_vp_data = {
-+	.vddmin			= OMAP3430_VP1_VLIMITTO_VDDMIN,
-+	.vddmax			= OMAP3430_VP1_VLIMITTO_VDDMAX,
++/**
++ * struct omap2_pm_lp_description - Describe low power behavior of the system
++ * @oscillator_startup_time:	Time rounded up to uSec for the oscillator to
++ *				provide a stable clock from power on.
++ * @oscillator_shutdown_time:	Time rounded up to uSec for oscillator to safely
++ *				switch off.
++ * @pmic_startup_time:		Time rounded up to uSec for the PMIC to
++ *				provide be ready for operation from low power
++ *				state. Note: this is not the same as voltage
++ *				rampup time, instead, consider the PMIC to be
++ *				in lowest power state(say OFF), this is the time
++ *				required for it to become ready for it's DCDCs
++ *				or LDOs to start operation.
++ * @pmic_shutdown_time:		Time rounded up to uSec for the PMIC to
++ *				go to low power after the LDOs are pulled to
++ *				appropriate state. Note: this is not the same as
++ *				voltage rampdown time, instead, consider the
++ *				PMIC to have switched it's LDOs down, this is
++ *				time taken to reach it's lowest power state(say
++ *				sleep/OFF).
++ *
++ * With complex systems like OMAP, we need a generic description of system
++ * behavior beyond the normal description of device/peripheral operation
++ * which in conjunction with other parameters describe and control the low
++ * power operation of the device. This information tends to be specific
++ * to every board.
++ */
++struct omap2_pm_lp_description {
++	u32 oscillator_startup_time;
++	u32 oscillator_shutdown_time;
++	u32 pmic_startup_time;
++	u32 pmic_shutdown_time;
 +};
 +
-+struct omap_vc_param omap34xx_mpu_vc_data = {
-+	.on		= OMAP3_ON_VOLTAGE_UV,
-+	.onlp		= OMAP3_ONLP_VOLTAGE_UV,
-+	.ret		= OMAP3_RET_VOLTAGE_UV,
-+	.off		= OMAP3_OFF_VOLTAGE_UV,
++/*
++ * Setup time to be the max... we want to err towards the worst
++ * as default. rest of the system can populate these with more
++ * optimal values
++ */
++static struct omap2_pm_lp_description _pm_lp_desc = {
++	.oscillator_startup_time = ULONG_MAX,
++	.oscillator_shutdown_time = ULONG_MAX,
++	.pmic_startup_time = ULONG_MAX,
++	.pmic_shutdown_time = ULONG_MAX,
 +};
 +
- /* VDD2 */
+ static struct omap_device_pm_latency *pm_lats;
  
- #define OMAP3430_VDD_CORE_OPP1_UV		975000
-@@ -57,6 +73,18 @@ struct omap_volt_data omap34xx_vddcore_volt_data[] = {
- 	VOLT_DATA_DEFINE(0, 0, 0, 0),
- };
+ static struct device *mpu_dev;
+@@ -56,6 +102,82 @@ struct device *omap4_get_dsp_device(void)
+ }
+ EXPORT_SYMBOL(omap4_get_dsp_device);
  
-+struct omap_vp_param omap34xx_core_vp_data = {
-+	.vddmin			= OMAP3430_VP2_VLIMITTO_VDDMIN,
-+	.vddmax			= OMAP3430_VP2_VLIMITTO_VDDMAX,
-+};
++/**
++ * omap_pm_get_pmic_lp_time() - retrieve the oscillator time
++ * @tstart:	pointer to startup time in uSec
++ * @tshut:	pointer to shutdown time in uSec
++ *
++ * if the pointers are invalid, returns error, else
++ * populates the tstart and tshut values with the currently
++ * stored values.
++ */
++int omap_pm_get_osc_lp_time(u32 *tstart, u32 *tshut)
++{
++	if (!tstart || !tshut)
++		return -EINVAL;
 +
-+struct omap_vc_param omap34xx_core_vc_data = {
-+	.on		= OMAP3_ON_VOLTAGE_UV,
-+	.onlp		= OMAP3_ONLP_VOLTAGE_UV,
-+	.ret		= OMAP3_RET_VOLTAGE_UV,
-+	.off		= OMAP3_OFF_VOLTAGE_UV,
-+};
++	*tstart = _pm_lp_desc.oscillator_startup_time;
++	*tshut = _pm_lp_desc.oscillator_shutdown_time;
 +
- /* 36xx */
- 
- /* VDD1 */
-@@ -74,6 +102,18 @@ struct omap_volt_data omap36xx_vddmpu_volt_data[] = {
- 	VOLT_DATA_DEFINE(0, 0, 0, 0),
- };
- 
-+struct omap_vp_param omap36xx_mpu_vp_data = {
-+	.vddmin			= OMAP3630_VP1_VLIMITTO_VDDMIN,
-+	.vddmax			= OMAP3630_VP1_VLIMITTO_VDDMAX,
-+};
++	return 0;
++}
 +
-+struct omap_vc_param omap36xx_mpu_vc_data = {
-+	.on		= OMAP3_ON_VOLTAGE_UV,
-+	.onlp		= OMAP3_ONLP_VOLTAGE_UV,
-+	.ret		= OMAP3_RET_VOLTAGE_UV,
-+	.off		= OMAP3_OFF_VOLTAGE_UV,
-+};
++/**
++ * omap_pm_get_pmic_lp_time() - retrieve the PMIC time
++ * @tstart:	pointer to startup time in uSec
++ * @tshut:	pointer to shutdown time in uSec
++ *
++ * if the pointers are invalid, returns error, else
++ * populates the tstart and tshut values with the currently
++ * stored values.
++ */
++int omap_pm_get_pmic_lp_time(u32 *tstart, u32 *tshut)
++{
++	if (!tstart || !tshut)
++		return -EINVAL;
 +
- /* VDD2 */
- 
- #define OMAP3630_VDD_CORE_OPP50_UV		1000000
-@@ -85,6 +125,18 @@ struct omap_volt_data omap36xx_vddcore_volt_data[] = {
- 	VOLT_DATA_DEFINE(0, 0, 0, 0),
- };
- 
-+struct omap_vp_param omap36xx_core_vp_data = {
-+	.vddmin			= OMAP3630_VP2_VLIMITTO_VDDMIN,
-+	.vddmax			= OMAP3630_VP2_VLIMITTO_VDDMAX,
-+};
++	*tstart = _pm_lp_desc.pmic_startup_time;
++	*tshut = _pm_lp_desc.pmic_shutdown_time;
 +
-+struct omap_vc_param omap36xx_core_vc_data = {
-+	.on		= OMAP3_ON_VOLTAGE_UV,
-+	.onlp		= OMAP3_ONLP_VOLTAGE_UV,
-+	.ret		= OMAP3_RET_VOLTAGE_UV,
-+	.off		= OMAP3_OFF_VOLTAGE_UV,
-+};
++	return 0;
++}
 +
- /* OPP data */
++/**
++ * omap_pm_set_osc_lp_time() - setup the system oscillator time
++ * @tstart:	startup time rounded up to uSec
++ * @tshut:	shutdown time rounded up to uSec
++ *
++ * All boards do need an oscillator for the device to function.
++ * The startup and stop time of these oscillators vary. Populate
++ * from the board file to optimize the timing.
++ * This function is meant to be used at boot-time configuration.
++ *
++ * NOTE: This API is intended to be invoked from board file
++ */
++void __init omap_pm_set_osc_lp_time(u32 tstart, u32 tshut)
++{
++	_pm_lp_desc.oscillator_startup_time = tstart;
++	_pm_lp_desc.oscillator_shutdown_time = tshut;
++}
++
++/**
++ * omap_pm_set_pmic_lp_time() - setup the pmic low power time
++ * @tstart:	startup time rounded up to uSec
++ * @tshut:	shutdown time rounded up to uSec
++ *
++ * Store the time for PMIC to enter to lowest state supported.
++ * in the case of multiple PMIC on a platform, choose the one
++ * that ends the sequence for LP state such as OFF and starts
++ * the sequence such as wakeup from OFF - e.g. a PMIC that
++ * controls core-domain.
++ * This function is meant to be used at boot-time configuration.
++ */
++void __init omap_pm_set_pmic_lp_time(u32 tstart, u32 tshut)
++{
++	_pm_lp_desc.pmic_startup_time = tstart;
++	_pm_lp_desc.pmic_shutdown_time = tshut;
++}
++
+ /* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
+ static int _init_omap_device(char *name, struct device **new_dev)
+ {
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index babac19..dcceb90 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -124,4 +124,22 @@ static inline int omap4_twl_init(void)
+ }
+ #endif
  
- static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index b0d0ae1..9c907af 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -90,9 +90,17 @@ void __init omap3xxx_voltagedomains_init(void)
- 	if (cpu_is_omap3630()) {
- 		omap3_voltdm_mpu.volt_data = omap36xx_vddmpu_volt_data;
- 		omap3_voltdm_core.volt_data = omap36xx_vddcore_volt_data;
-+		omap3_voltdm_mpu.vp_param = &omap36xx_mpu_vp_data;
-+		omap3_voltdm_core.vp_param = &omap36xx_core_vp_data;
-+		omap3_voltdm_mpu.vc_param = &omap36xx_mpu_vc_data;
-+		omap3_voltdm_core.vc_param = &omap36xx_core_vc_data;
- 	} else {
- 		omap3_voltdm_mpu.volt_data = omap34xx_vddmpu_volt_data;
- 		omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
-+		omap3_voltdm_mpu.vp_param = &omap34xx_mpu_vp_data;
-+		omap3_voltdm_core.vp_param = &omap34xx_core_vp_data;
-+		omap3_voltdm_mpu.vc_param = &omap34xx_mpu_vc_data;
-+		omap3_voltdm_core.vc_param = &omap34xx_core_vc_data;
- 	}
- 
- 	for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++)
++#ifdef CONFIG_PM
++extern int omap_pm_get_osc_lp_time(u32 *tstart, u32 *tshut);
++extern int omap_pm_get_pmic_lp_time(u32 *tstart, u32 *tshut);
++extern void omap_pm_set_osc_lp_time(u32 tstart, u32 tshut);
++extern void omap_pm_set_pmic_lp_time(u32 tstart, u32 tshut);
++#else
++static inline int omap_pm_get_osc_lp_time(u32 *tstart, u32 *tshut)
++{
++	return -EINVAL;
++}
++static inline int omap_pm_get_pmic_lp_time(u32 *tstart, u32 *tshut)
++{
++	return -EINVAL;
++}
++static inline void omap_pm_set_osc_lp_time(u32 tstart, u32 tshut) { }
++static inline void omap_pm_set_pmic_lp_time(u32 tstart, u32 tshut) { }
++#endif
++
+ #endif
 -- 
 1.7.4.1
 
