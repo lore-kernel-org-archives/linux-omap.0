@@ -1,147 +1,86 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH 5/4] ARM: OMAP: Move set_globals initialization to happen
- in init_early
-Date: Tue, 04 Oct 2011 21:51:07 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1110042150190.9106@xanadu.home>
-References: <20111005004339.26980.31149.stgit@kaulin.local>
- <20111005014044.GZ6324@atomide.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [RFC PATCH v2 0/6] TI81XX: Add clock and hwmod data
+Date: Wed, 5 Oct 2011 07:28:25 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4FB3EA2@dbde02.ent.ti.com>
+References: <1314119594-22647-1-git-send-email-hemantp@ti.com>
+ <alpine.DEB.2.00.1110040318260.4611@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:62150 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757658Ab1JEBvI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 21:51:08 -0400
-Received: from xanadu.home ([66.130.28.92]) by VL-VM-MR002.ip.videotron.ca
- (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
- 2011)) with ESMTP id <0LSK001ETKVCVD40@VL-VM-MR002.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Tue, 04 Oct 2011 21:45:12 -0400 (EDT)
-In-reply-to: <20111005014044.GZ6324@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42895 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933050Ab1JEB6i convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Oct 2011 21:58:38 -0400
+In-Reply-To: <alpine.DEB.2.00.1110040318260.4611@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>
 
-On Tue, 4 Oct 2011, Tony Lindgren wrote:
+Hi Paul,
 
-> Otherwise we can't do generic map_io as we currently rely on
-> static mappings that work only because of arch_ioremap.
+Paul Walmsley wrote on Tuesday, October 04, 2011 2:54 PM:
+
+> Hi,
 > 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-That's great.
-
-Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
-
-> diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
-> index e26c79c..e6ee884 100644
-> --- a/arch/arm/mach-omap2/board-ti8168evm.c
-> +++ b/arch/arm/mach-omap2/board-ti8168evm.c
-> @@ -37,7 +37,6 @@ static void __init ti8168_evm_init(void)
->  
->  static void __init ti8168_evm_map_io(void)
->  {
-> -	omap2_set_globals_ti816x();
->  	omapti816x_map_common_io();
->  }
->  
-> diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-> index de61f15..f19a332 100644
-> --- a/arch/arm/mach-omap2/common.c
-> +++ b/arch/arm/mach-omap2/common.c
-> @@ -59,7 +59,6 @@ void __init omap2_set_globals_242x(void)
->  
->  void __init omap242x_map_io(void)
->  {
-> -	omap2_set_globals_242x();
->  	omap242x_map_common_io();
->  }
->  #endif
-> @@ -83,7 +82,6 @@ void __init omap2_set_globals_243x(void)
->  
->  void __init omap243x_map_io(void)
->  {
-> -	omap2_set_globals_243x();
->  	omap243x_map_common_io();
->  }
->  #endif
-> @@ -107,7 +105,6 @@ void __init omap2_set_globals_3xxx(void)
->  
->  void __init omap3_map_io(void)
->  {
-> -	omap2_set_globals_3xxx();
->  	omap34xx_map_common_io();
->  }
->  
-> @@ -153,7 +150,6 @@ void __init omap2_set_globals_443x(void)
->  
->  void __init omap4_map_io(void)
->  {
-> -	omap2_set_globals_443x();
->  	omap44xx_map_common_io();
->  }
->  #endif
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 4957554..527abdd 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -44,6 +44,7 @@
->  #include "clockdomain.h"
->  #include <plat/omap_hwmod.h>
->  #include <plat/multi.h>
-> +#include <plat/common.h>
->  
->  /*
->   * The machine specific code may provide the extra mapping besides the
-> @@ -363,6 +364,7 @@ static void __init omap_hwmod_init_postsetup(void)
->  
->  void __init omap2420_init_early(void)
->  {
-> +	omap2_set_globals_242x();
->  	omap_common_init_early();
->  	omap2xxx_voltagedomains_init();
->  	omap242x_powerdomains_init();
-> @@ -374,6 +376,7 @@ void __init omap2420_init_early(void)
->  
->  void __init omap2430_init_early(void)
->  {
-> +	omap2_set_globals_243x();
->  	omap_common_init_early();
->  	omap2xxx_voltagedomains_init();
->  	omap243x_powerdomains_init();
-> @@ -389,6 +392,7 @@ void __init omap2430_init_early(void)
->   */
->  void __init omap3_init_early(void)
->  {
-> +	omap2_set_globals_3xxx();
->  	omap_common_init_early();
->  	omap3xxx_voltagedomains_init();
->  	omap3xxx_powerdomains_init();
-> @@ -420,11 +424,19 @@ void __init am35xx_init_early(void)
->  
->  void __init ti816x_init_early(void)
->  {
-> -	omap3_init_early();
-> +	omap2_set_globals_ti816x();
-> +	omap_common_init_early();
-> +	omap3xxx_voltagedomains_init();
-> +	omap3xxx_powerdomains_init();
-> +	omap3xxx_clockdomains_init();
-> +	omap3xxx_hwmod_init();
-> +	omap_hwmod_init_postsetup();
-> +	omap3xxx_clk_init();
->  }
->  
->  void __init omap4430_init_early(void)
->  {
-> +	omap2_set_globals_443x();
->  	omap_common_init_early();
->  	omap44xx_voltagedomains_init();
->  	omap44xx_powerdomains_init();
+> On Tue, 23 Aug 2011, Hemant Pedanekar wrote:
 > 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>> This patch set is the v2 of TI816X clock and hwmods patches sent earlier.
+>> 
+>> The clock data is currently added only for TI816X, while minimal hwmod data
+>> common for TI816X and TI814X is added.
+>> 
+>> This patch set depends on following patches:
+>> 	TI81XX: Prepare for addition of TI814X support
+>> 	TI814X: Add cpu type macros and detection support
+>> 	TI814X: Create board support and enable build for TI8148 EVM
+>> 
+>> Please note that CHIP_IS_TI816X/CHIP_IS_TI814X are still being used and I
+>> will send update once SoC list usage is available.
 > 
+> I've been spending some time with these patches.  A few aspects don't make
+> much sense to me.  For example, looking at the TRMs, the 816x doesn't seem
+> to have powerdomains for HDVICP0, 1, or 2, although they are listed in the
+> patch.
+
+Can you please check 18.2.1 in TRM from [1].
+
+Above powerdomains are listed there as HDVICP2-0, 1, 2.
+
+>  Also, the clockdomain layout is quite different between 814x and
+> 816x, according to the TRMs.  Are the patches more accurate than the TRMs,
+> or vice versa?
+>
+You are correct, 814x has differences in clock, clockdomain and powerdomain
+data.
+
+I would say the extent of differences level between 816x and 814x is 
+something like (please also see reference links from Arago devl tree):
+
+Clock data: ~90% data is different (main contributors: different
+PLLs - FAPLL in 816x vs ADPLL 814x, different parent hierarchy)
+[2] & [3]
+
+Clockdomains data: ~60% [4]
+
+Powerdomains data: ~90%  [5]
+> Will send over the current reworked patches for TI81XX PRCM accessors,
+> powerdomain code & data, and clockdomain code & data.  They are intended
+> to apply over the TI814x patches that you sent recently.  I'd like to get
+> your opinion(s) on these reworked patches.  Please note, so far they have
+> only been compile-tested.
+> 
+> 
+> - Paul
+
+Thanks, I will try those and respond.
+
+   Hemant
+
+[1] http://focus.ti.com/general/docs/litabsmultiplefilelist.tsp?literatureNumber=sprugx8
+[2] http://arago-project.org/git/projects/?p=linux-omap3.git;a=blob;f=arch/arm/mach-omap2/clock816x_data.c;h=32ea958afef915f93e0560f87d1bb2115e24ee2c;hb=HEAD
+[3] http://arago-project.org/git/projects/?p=linux-omap3.git;a=blob;f=arch/arm/mach-omap2/clock814x_data.c;h=282ffa93398db678843a35766219970655563b46;hb=HEAD
+[4] http://arago-project.org/git/projects/?p=linux-omap3.git;a=blob;f=arch/arm/mach-omap2/clockdomains81xx.h;h=217c9b4f85c59cc92e0f36ddd73044136c8e9fff;hb=HEAD
+[5] http://arago-project.org/git/projects/?p=linux-omap3.git;a=blob;f=arch/arm/mach-omap2/powerdomains81xx.h;h=ef1299e00c216aea4d12bca2281540efb7eb77f0;hb=HEAD
