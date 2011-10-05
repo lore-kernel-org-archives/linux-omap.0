@@ -1,49 +1,147 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 00/11] voltage domain cleanup
-Date: Wed, 5 Oct 2011 20:17:00 +0300
-Message-ID: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 01/11] OMAP3+: PM: VP: use uV for max and min voltage limits
+Date: Wed, 5 Oct 2011 20:17:01 +0300
+Message-ID: <1317835031-8201-2-git-send-email-t-kristo@ti.com>
+References: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40243 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934481Ab1JERRb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 13:17:31 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p95HHV3i003785
+Received: from comal.ext.ti.com ([198.47.26.152]:35064 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934481Ab1JERRd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 13:17:33 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p95HHWsK017458
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:31 -0500
+	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:32 -0500
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id p95HHU99003282
-	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:30 -0500 (CDT)
-Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p95HHU8c001660
-	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:30 -0500 (CDT)
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p95HHWpn027561
+	for <linux-omap@vger.kernel.org>; Wed, 5 Oct 2011 12:17:32 -0500 (CDT)
 Content-Class: urn:content-classes:message
+In-Reply-To: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
-This set contains following changes compared to v2:
+From: Nishanth Menon <nm@ti.com>
 
-- split into several patches for easier handling
-- added a couple of patches from Nishanth Menon (01, 05)
-- vddmin / vddmax are now defined for both pmic and omap, max of vddmin and
-  min of vddmax is used
-- clock setup / pmic setup times calculated from lp params (patch 10, 11)
+Every PMIC has it's own eccentricities, For example, one of the
+PMIC has MSB set to 1 for a specific function - voltage enable!
+using an hardcoded value specific for TWL when copied over to
+such an implementation causes the system to crash as the MSB bit
+was 0 and the voltage got disabled!.
 
-Todo:
-- figure out a way to configure ramp times based on sleep mode (callbacks
-  from pm34xx / pm44xx files?)
-- add oscillator and pmic ramp times for omap3
-- add oscillator ramp times for omap4
+Instead we use actual values and depend on the convertion routines
+to abstract out the eccentricities of each PMIC.
 
-Misc notes:
-- Applies on top of Kevin's old pm-wip/voltdm branch
-- Tested on OMAP3 beagle
+With this, we can now move the voltages to a common location in
+voltage.h as they are no longer dependent on PMICs and expect the
+PMIC's conversion routines to set a cap if the voltage is out of
+reach for the PMIC.
 
--Tero
+Reported-by: Jon Hunter <jon-hunter@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+---
+ arch/arm/mach-omap2/omap_twl.c |   17 -----------------
+ arch/arm/mach-omap2/voltage.h  |   22 ++++++++++++++++++++--
+ arch/arm/mach-omap2/vp.c       |    4 ++--
+ 3 files changed, 22 insertions(+), 21 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index f515a1a..df4e7c3 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -30,16 +30,6 @@
+ #define OMAP3_VP_VSTEPMAX_VSTEPMAX	0x04
+ #define OMAP3_VP_VLIMITTO_TIMEOUT_US	200
+ 
+-#define OMAP3430_VP1_VLIMITTO_VDDMIN	0x14
+-#define OMAP3430_VP1_VLIMITTO_VDDMAX	0x42
+-#define OMAP3430_VP2_VLIMITTO_VDDMIN	0x18
+-#define OMAP3430_VP2_VLIMITTO_VDDMAX	0x2c
+-
+-#define OMAP3630_VP1_VLIMITTO_VDDMIN	0x18
+-#define OMAP3630_VP1_VLIMITTO_VDDMAX	0x3c
+-#define OMAP3630_VP2_VLIMITTO_VDDMIN	0x18
+-#define OMAP3630_VP2_VLIMITTO_VDDMAX	0x30
+-
+ #define OMAP4_SRI2C_SLAVE_ADDR		0x12
+ #define OMAP4_VDD_MPU_SR_VOLT_REG	0x55
+ #define OMAP4_VDD_MPU_SR_CMD_REG	0x56
+@@ -53,13 +43,6 @@
+ #define OMAP4_VP_VSTEPMAX_VSTEPMAX	0x04
+ #define OMAP4_VP_VLIMITTO_TIMEOUT_US	200
+ 
+-#define OMAP4_VP_MPU_VLIMITTO_VDDMIN	0xA
+-#define OMAP4_VP_MPU_VLIMITTO_VDDMAX	0x39
+-#define OMAP4_VP_IVA_VLIMITTO_VDDMIN	0xA
+-#define OMAP4_VP_IVA_VLIMITTO_VDDMAX	0x2D
+-#define OMAP4_VP_CORE_VLIMITTO_VDDMIN	0xA
+-#define OMAP4_VP_CORE_VLIMITTO_VDDMAX	0x28
+-
+ static bool is_offset_valid;
+ static u8 smps_offset;
+ /*
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index b4c6259..1577c2f 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -107,6 +107,24 @@ struct omap_volt_data {
+ 	u8	vp_errgain;
+ };
+ 
++/* Min and max voltages from OMAP perspective */
++#define OMAP3430_VP1_VLIMITTO_VDDMIN	850000
++#define OMAP3430_VP1_VLIMITTO_VDDMAX	1425000
++#define OMAP3430_VP2_VLIMITTO_VDDMIN	900000
++#define OMAP3430_VP2_VLIMITTO_VDDMAX	1150000
++
++#define OMAP3630_VP1_VLIMITTO_VDDMIN	900000
++#define OMAP3630_VP1_VLIMITTO_VDDMAX	1350000
++#define OMAP3630_VP2_VLIMITTO_VDDMIN	900000
++#define OMAP3630_VP2_VLIMITTO_VDDMAX	1200000
++
++#define OMAP4_VP_MPU_VLIMITTO_VDDMIN	830000
++#define OMAP4_VP_MPU_VLIMITTO_VDDMAX	1410000
++#define OMAP4_VP_IVA_VLIMITTO_VDDMIN	830000
++#define OMAP4_VP_IVA_VLIMITTO_VDDMAX	1260000
++#define OMAP4_VP_CORE_VLIMITTO_VDDMIN	830000
++#define OMAP4_VP_CORE_VLIMITTO_VDDMAX	1200000
++
+ /**
+  * struct omap_voltdm_pmic - PMIC specific data required by voltage driver.
+  * @slew_rate:	PMIC slew rate (in uv/us)
+@@ -130,8 +148,8 @@ struct omap_voltdm_pmic {
+ 	u8 vp_erroroffset;
+ 	u8 vp_vstepmin;
+ 	u8 vp_vstepmax;
+-	u8 vp_vddmin;
+-	u8 vp_vddmax;
++	u32 vp_vddmin;
++	u32 vp_vddmax;
+ 	u8 vp_timeout_us;
+ 	bool i2c_high_speed;
+ 	u8 i2c_mcode;
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index 66bd700..16cb6d4 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -53,8 +53,8 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ 	sys_clk_rate = voltdm->sys_clk.rate / 1000;
+ 
+ 	timeout = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
+-	vddmin = voltdm->pmic->vp_vddmin;
+-	vddmax = voltdm->pmic->vp_vddmax;
++	vddmin = voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vddmin);
++	vddmax = voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vddmax);
+ 
+ 	waittime = ((voltdm->pmic->step_size / voltdm->pmic->slew_rate) *
+ 		    sys_clk_rate) / 1000;
+-- 
+1.7.4.1
 
 
 Texas Instruments Oy, Porkkalankatu 22, 00180 Helsinki, Finland. Business ID: 0115040-6. Domicile: Helsinki
