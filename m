@@ -1,80 +1,45 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 1/5] ARM: dev_archdata: add private iommu extension
-Date: Wed, 5 Oct 2011 11:26:32 +0200
-Message-ID: <CAK=Wgba6xxD2DBJhM--AcTPBoNRiOZ_6f8+j3bfaCqZMO8A4+w@mail.gmail.com>
-References: <1316948337-7924-1-git-send-email-ohad@wizery.com> <1316948337-7924-2-git-send-email-ohad@wizery.com>
+From: "R, Sricharan" <r.sricharan@ti.com>
+Subject: Re: DSS testing help?
+Date: Wed, 5 Oct 2011 17:25:56 +0530
+Message-ID: <CAJ7qFScu8a_M8b851sHxC26cV+G_PiCFq+mjKUiHkYG+kRq0Gg@mail.gmail.com>
+References: <alpine.DEB.2.00.1110031446580.4611@utopia.booyaka.com>
+	<CAJ7qFSc9xuMog0rv0XgZre22hmjz3+O0nP8SkHKqtpifWD5iXA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1316948337-7924-2-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Cousson Benoit <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:52393 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934221Ab1JELz6 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Oct 2011 07:55:58 -0400
+Received: by mail-wy0-f176.google.com with SMTP id 10so1693388wyg.7
+        for <linux-omap@vger.kernel.org>; Wed, 05 Oct 2011 04:55:57 -0700 (PDT)
+In-Reply-To: <CAJ7qFSc9xuMog0rv0XgZre22hmjz3+O0nP8SkHKqtpifWD5iXA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 
-Hi Russell,
+Hi Paul,
+>> Hello Sricharan,
+>>
+>> It looks like Archit is out of the office. =A0Would it be possible f=
+or you
+>> to test the updated DSS reset patch, below?
+>>
+> =A0Ok. I will test this.
+I have tested the patch from,
+                        git://gitorious.org/linux-omap-dss2/linux.git
+MASTER branch.
 
-On Sun, Sep 25, 2011 at 1:58 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> Add a private iommu pointer to the ARM-specific arch data in the
-> device struct, which will be used to attach iommu-specific data
-> to devices which require iommu support.
+I tested for about 100 iterations on beagle board C3 version.
+It was working fine.
 
-Can you please take a look and ack/nack ?
-
-With this change in hand, generic code will now be able to control
-OMAP's iommu devices too, without having to use any OMAP-specific API
-(this is demonstrated in this patch set).
-
-This will allow us to further clean the existing mainline OMAP iommu
-users, and focus on generic IOMMU code for future users
-(rpmsg/remoteproc and Marek's upcoming generic DMA API).
-
-The change is only effective when an iommu driver, which supports the
-generic IOMMU API, is built (all of them must select
-CONFIG_IOMMU_API), and otherwise is a nop.
-
-Obviously the change itself is not OMAP-specific, and it will be
-useful for other platforms too.
-
-Thanks!
-Ohad.
-
-> Different iommu implementations (on different platforms) will attach
-> different types of data to this pointer, so 'void *' is currently use=
-d
-> (the downside is reduced typesafety).
->
-> Note: ia64, x86 and sparc have this exact iommu extension as well, an=
-d
-> if others are likely to adopt it too, we might want to consider
-> adding this to the device struct itself directly.
->
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> ---
-> =A0arch/arm/include/asm/device.h | =A0 =A03 +++
-> =A01 files changed, 3 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/include/asm/device.h b/arch/arm/include/asm/dev=
-ice.h
-> index 9f390ce..6615f03 100644
-> --- a/arch/arm/include/asm/device.h
-> +++ b/arch/arm/include/asm/device.h
-> @@ -10,6 +10,9 @@ struct dev_archdata {
-> =A0#ifdef CONFIG_DMABOUNCE
-> =A0 =A0 =A0 =A0struct dmabounce_device_info *dmabounce;
-> =A0#endif
-> +#ifdef CONFIG_IOMMU_API
-> + =A0 =A0 =A0 void *iommu; /* private IOMMU data */
-> +#endif
-> =A0};
->
-> =A0struct pdev_archdata {
-> --
-> 1.7.4.1
->
->
+Thanks,
+ Sricharan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
