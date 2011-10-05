@@ -1,52 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] ARM: OMAP: Remove calls to SRAM allocations for
- framebuffer
-Date: Wed, 5 Oct 2011 15:41:41 -0700
-Message-ID: <20111005224141.GF6324@atomide.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH 4/4] ARM: OMAP: Map SRAM later on with ioremap_exec()
+Date: Wed, 05 Oct 2011 19:01:10 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1110051900230.9106@xanadu.home>
 References: <20111005004339.26980.31149.stgit@kaulin.local>
- <20111005004544.26980.35612.stgit@kaulin.local>
- <1317797128.2631.2.camel@deskari>
+ <20111005004546.26980.31836.stgit@kaulin.local>
+ <alpine.LFD.2.02.1110042107230.9106@xanadu.home>
+ <20111005221320.GE6324@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46794 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935461Ab1JEWlq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 18:41:46 -0400
-Content-Disposition: inline
-In-Reply-To: <1317797128.2631.2.camel@deskari>
+Received: from relais.videotron.ca ([24.201.245.36]:46418 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935484Ab1JEXBL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 19:01:11 -0400
+Received: from xanadu.home ([66.130.28.92]) by VL-VM-MR006.ip.videotron.ca
+ (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
+ 2011)) with ESMTP id <0LSM00IIB7XZ3K00@VL-VM-MR006.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Wed, 05 Oct 2011 19:01:11 -0400 (EDT)
+In-reply-to: <20111005221320.GE6324@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [111004 23:11]:
-> On Tue, 2011-10-04 at 17:45 -0700, Tony Lindgren wrote:
-> > This assumes fixed mappings which will not work once we move
-> > to use ioremap_exec(). It seems that these are currently
-> > not in use, or in use for some out of tree corner cases.
+On Wed, 5 Oct 2011, Tony Lindgren wrote:
+
+> * Nicolas Pitre <nico@fluxnic.net> [111004 17:34]:
+> > On Tue, 4 Oct 2011, Tony Lindgren wrote:
 > > 
-> > If SRAM support for framebuffer is wanted, it should be done
-> > with ioremap in the driver.
+> > > This allows us to remove omap hacks for map_io.
+> > > 
+> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > > 
-> > Note that further removal of the code can now be done,
-> > but that can be done seprately by the driver maintainers.
+> > Nice cleanup.
 > > 
-> > Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
 > 
-> Looks good to me. I have similar changes in my working branch for omapfb
-> cleanup.
-> 
-> Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> This one needed minor changes for the omap1 omap_sram_init
+> call. Updated patch below, still assuming I have your ack
+> for this one too.
 
-Thanks. FYI, looks like there's a warning in display.c:
+Sure.
 
-arch/arm/mach-omap2/display.c: In function 'omap_display_init':
-arch/arm/mach-omap2/display.c:93: warning: assignment from incompatible pointer type
 
-Do you have a patch for that already?
-
-Regards,
-
-Tony
+Nicolas
