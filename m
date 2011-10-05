@@ -1,905 +1,366 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1.5/4] ARM: OMAP1: Use generic map_io, init_early and
- init_irq
-Date: Wed, 5 Oct 2011 15:08:55 -0700
-Message-ID: <20111005220855.GD6324@atomide.com>
+Subject: Re: [PATCH 4/4] ARM: OMAP: Map SRAM later on with ioremap_exec()
+Date: Wed, 5 Oct 2011 15:13:20 -0700
+Message-ID: <20111005221320.GE6324@atomide.com>
 References: <20111005004339.26980.31149.stgit@kaulin.local>
- <20111005004539.26980.52409.stgit@kaulin.local>
- <alpine.LFD.2.02.1110042059110.9106@xanadu.home>
- <20111005220619.GC6324@atomide.com>
+ <20111005004546.26980.31836.stgit@kaulin.local>
+ <alpine.LFD.2.02.1110042107230.9106@xanadu.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11439 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16013 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755530Ab1JEWJA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 18:09:00 -0400
+	with ESMTP id S1754674Ab1JEWNW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2011 18:13:22 -0400
 Content-Disposition: inline
-In-Reply-To: <20111005220619.GC6324@atomide.com>
+In-Reply-To: <alpine.LFD.2.02.1110042107230.9106@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nicolas Pitre <nico@fluxnic.net>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-This allows removing omap hacks for map_io allowing generic
-map_io.
+* Nicolas Pitre <nico@fluxnic.net> [111004 17:34]:
+> On Tue, 4 Oct 2011, Tony Lindgren wrote:
+> 
+> > This allows us to remove omap hacks for map_io.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> Nice cleanup.
+> 
+> Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
 
-Note that in the future we can't do cpu_is_omapxxxx detection
-until in init_early. This means that board-innovator.c now
-assumes 15xx only, and board-generic.c assumes 16xx only.
-This is best fixed later on by passing the SoC type from
-device tree.
+This one needed minor changes for the omap1 omap_sram_init
+call. Updated patch below, still assuming I have your ack
+for this one too.
 
+Tony
+
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 4 Oct 2011 13:52:57 -0700
+Subject: [PATCH] ARM: OMAP: Map SRAM later on with ioremap_exec()
+
+This allows us to remove omap hacks for map_io.
+
+Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index eb36b25..8987b3f 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -135,12 +135,6 @@ void ams_delta_latch2_write(u16 mask, u16 value)
- 	*(volatile __u16 *) AMS_DELTA_LATCH2_VIRT = ams_delta_latch2_reg;
- }
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index 36f26c3..38e1142 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -21,6 +21,7 @@
+ #include <mach/hardware.h>
+ #include <asm/mach/map.h>
  
--static void __init ams_delta_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
- static struct map_desc ams_delta_io_desc[] __initdata = {
- 	/* AMS_DELTA_LATCH1 */
- 	{
-@@ -379,17 +373,13 @@ static int __init ams_delta_modem_init(void)
- }
- arch_initcall(ams_delta_modem_init);
- 
--static void __init ams_delta_map_io(void)
--{
--	omap1_map_common_io();
--}
--
- MACHINE_START(AMS_DELTA, "Amstrad E3 (Delta)")
- 	/* Maintainer: Jonathan McDowell <noodles@earth.li> */
- 	.atag_offset	= 0x100,
--	.map_io		= ams_delta_map_io,
-+	.map_io		= omap15xx_map_io,
-+	.init_early	= omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= ams_delta_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= ams_delta_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
-index 999789c..c92fd16 100644
---- a/arch/arm/mach-omap1/board-fsample.c
-+++ b/arch/arm/mach-omap1/board-fsample.c
-@@ -297,6 +297,39 @@ static struct omap_board_config_kernel fsample_config[] __initdata = {
- 
- static void __init omap_fsample_init(void)
- {
-+	/* Early, board-dependent init */
-+
-+	/*
-+	 * Hold GSM Reset until needed
-+	 */
-+	omap_writew(omap_readw(OMAP7XX_DSP_M_CTL) & ~1, OMAP7XX_DSP_M_CTL);
-+
-+	/*
-+	 * UARTs -> done automagically by 8250 driver
-+	 */
-+
-+	/*
-+	 * CSx timings, GPIO Mux ... setup
-+	 */
-+
-+	/* Flash: CS0 timings setup */
-+	omap_writel(0x0000fff3, OMAP7XX_FLASH_CFG_0);
-+	omap_writel(0x00000088, OMAP7XX_FLASH_ACFG_0);
-+
-+	/*
-+	 * Ethernet support through the debug board
-+	 * CS1 timings setup
-+	 */
-+	omap_writel(0x0000fff3, OMAP7XX_FLASH_CFG_1);
-+	omap_writel(0x00000000, OMAP7XX_FLASH_ACFG_1);
-+
-+	/*
-+	 * Configure MPU_EXT_NIRQ IO in IO_CONF9 register,
-+	 * It is used as the Ethernet controller interrupt
-+	 */
-+	omap_writel(omap_readl(OMAP7XX_IO_CONF_9) & 0x1FFFFFFF,
-+			OMAP7XX_IO_CONF_9);
-+
- 	fsample_init_smc91x();
- 
- 	if (gpio_request(FSAMPLE_NAND_RB_GPIO_PIN, "NAND ready") < 0)
-@@ -326,12 +359,6 @@ static void __init omap_fsample_init(void)
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- }
- 
--static void __init omap_fsample_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
- /* Only FPGA needs to be mapped here. All others are done with ioremap */
- static struct map_desc omap_fsample_io_desc[] __initdata = {
- 	{
-@@ -350,49 +377,18 @@ static struct map_desc omap_fsample_io_desc[] __initdata = {
- 
- static void __init omap_fsample_map_io(void)
- {
--	omap1_map_common_io();
-+	omap15xx_map_io();
- 	iotable_init(omap_fsample_io_desc,
- 		     ARRAY_SIZE(omap_fsample_io_desc));
--
--	/* Early, board-dependent init */
--
--	/*
--	 * Hold GSM Reset until needed
--	 */
--	omap_writew(omap_readw(OMAP7XX_DSP_M_CTL) & ~1, OMAP7XX_DSP_M_CTL);
--
--	/*
--	 * UARTs -> done automagically by 8250 driver
--	 */
--
--	/*
--	 * CSx timings, GPIO Mux ... setup
--	 */
--
--	/* Flash: CS0 timings setup */
--	omap_writel(0x0000fff3, OMAP7XX_FLASH_CFG_0);
--	omap_writel(0x00000088, OMAP7XX_FLASH_ACFG_0);
--
--	/*
--	 * Ethernet support through the debug board
--	 * CS1 timings setup
--	 */
--	omap_writel(0x0000fff3, OMAP7XX_FLASH_CFG_1);
--	omap_writel(0x00000000, OMAP7XX_FLASH_ACFG_1);
--
--	/*
--	 * Configure MPU_EXT_NIRQ IO in IO_CONF9 register,
--	 * It is used as the Ethernet controller interrupt
--	 */
--	omap_writel(omap_readl(OMAP7XX_IO_CONF_9) & 0x1FFFFFFF, OMAP7XX_IO_CONF_9);
- }
- 
- MACHINE_START(OMAP_FSAMPLE, "OMAP730 F-Sample")
- /* Maintainer: Brian Swetland <swetland@google.com> */
- 	.atag_offset	= 0x100,
- 	.map_io		= omap_fsample_map_io,
-+	.init_early	= omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= omap_fsample_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= omap_fsample_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-generic.c b/arch/arm/mach-omap1/board-generic.c
-index 23cc9e4..5a9a54d 100644
---- a/arch/arm/mach-omap1/board-generic.c
-+++ b/arch/arm/mach-omap1/board-generic.c
-@@ -28,12 +28,6 @@
++#include <plat/common.h>
+ #include <plat/tc.h>
  #include <plat/board.h>
- #include <plat/common.h>
+ #include <plat/mux.h>
+@@ -291,6 +292,8 @@ static int __init omap1_init_devices(void)
+ 	if (!cpu_class_is_omap1())
+ 		return -ENODEV;
  
--static void __init omap_generic_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
- /* assume no Mini-AB port */
- 
- #ifdef CONFIG_ARCH_OMAP15XX
-@@ -87,17 +81,13 @@ static void __init omap_generic_init(void)
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- }
- 
--static void __init omap_generic_map_io(void)
--{
--	omap1_map_common_io();
--}
--
- MACHINE_START(OMAP_GENERIC, "Generic OMAP1510/1610/1710")
- 	/* Maintainer: Tony Lindgren <tony@atomide.com> */
- 	.atag_offset	= 0x100,
--	.map_io		= omap_generic_map_io,
-+	.map_io		= omap16xx_map_io,
-+	.init_early	= omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= omap_generic_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= omap_generic_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index 6c70c28..c8e1d4f 100644
---- a/arch/arm/mach-omap1/board-h2.c
-+++ b/arch/arm/mach-omap1/board-h2.c
-@@ -373,12 +373,6 @@ static struct i2c_board_info __initdata h2_i2c_board_info[] = {
- 	},
- };
- 
--static void __init h2_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
- static struct omap_usb_config h2_usb_config __initdata = {
- 	/* usb1 has a Mini-AB port and external isp1301 transceiver */
- 	.otg		= 2,
-@@ -454,17 +448,13 @@ static void __init h2_init(void)
- 	h2_mmc_init();
- }
- 
--static void __init h2_map_io(void)
--{
--	omap1_map_common_io();
--}
--
- MACHINE_START(OMAP_H2, "TI-H2")
- 	/* Maintainer: Imre Deak <imre.deak@nokia.com> */
- 	.atag_offset	= 0x100,
--	.map_io		= h2_map_io,
-+	.map_io		= omap16xx_map_io,
-+	.init_early     = omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= h2_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= h2_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index 8e2b64a..c88e131 100644
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -436,23 +436,13 @@ static void __init h3_init(void)
- 	h3_mmc_init();
- }
- 
--static void __init h3_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
--static void __init h3_map_io(void)
--{
--	omap1_map_common_io();
--}
--
- MACHINE_START(OMAP_H3, "TI OMAP1710 H3 board")
- 	/* Maintainer: Texas Instruments, Inc. */
- 	.atag_offset	= 0x100,
--	.map_io		= h3_map_io,
-+	.map_io		= omap16xx_map_io,
-+	.init_early     = omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= h3_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= h3_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
-index e81ead1..e8eedd7 100644
---- a/arch/arm/mach-omap1/board-htcherald.c
-+++ b/arch/arm/mach-omap1/board-htcherald.c
-@@ -500,7 +500,7 @@ static void __init htcherald_lcd_init(void)
- 
- static void __init htcherald_map_io(void)
- {
--	omap1_map_common_io();
-+	omap7xx_map_io();
- 
- 	/*
- 	 * The LCD panel must be disabled and DMA turned off here, as doing
-@@ -601,20 +601,14 @@ static void __init htcherald_init(void)
- #endif
- }
- 
--static void __init htcherald_init_irq(void)
--{
--	printk(KERN_INFO "htcherald_init_irq.\n");
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
- MACHINE_START(HERALD, "HTC Herald")
- 	/* Maintainer: Cory Maccarrone <darkstar6262@gmail.com> */
- 	/* Maintainer: wing-linux.sourceforge.net */
- 	.atag_offset    = 0x100,
- 	.map_io         = htcherald_map_io,
-+	.init_early     = omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq       = htcherald_init_irq,
-+	.init_irq       = omap1_init_irq,
- 	.init_machine   = htcherald_init,
- 	.timer          = &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index 8b03459..88cf8ba 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -289,12 +289,6 @@ static void __init innovator_init_smc91x(void)
- 	}
- }
- 
--static void __init innovator_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
- #ifdef CONFIG_ARCH_OMAP15XX
- static struct omap_usb_config innovator1510_usb_config __initdata = {
- 	/* for bundled non-standard host and peripheral cables */
-@@ -439,30 +433,32 @@ static void __init innovator_init(void)
- 	innovator_mmc_init();
- }
- 
-+/*
-+ * REVISIT: Assume 15xx for now, we don't want to do revision check
-+ * until later on. The right way to fix this is to set up a different
-+ * machine_id for 16xx Innovator, or use device tree.
-+ */
- static void __init innovator_map_io(void)
- {
--	omap1_map_common_io();
-+	omap15xx_map_io();
- 
--#ifdef CONFIG_ARCH_OMAP15XX
--	if (cpu_is_omap1510()) {
--		iotable_init(innovator1510_io_desc, ARRAY_SIZE(innovator1510_io_desc));
--		udelay(10);	/* Delay needed for FPGA */
--
--		/* Dump the Innovator FPGA rev early - useful info for support. */
--		printk("Innovator FPGA Rev %d.%d Board Rev %d\n",
--		       fpga_read(OMAP1510_FPGA_REV_HIGH),
--		       fpga_read(OMAP1510_FPGA_REV_LOW),
--		       fpga_read(OMAP1510_FPGA_BOARD_REV));
--	}
--#endif
-+	iotable_init(innovator1510_io_desc, ARRAY_SIZE(innovator1510_io_desc));
-+	udelay(10);	/* Delay needed for FPGA */
++	omap_sram_init();
 +
-+	/* Dump the Innovator FPGA rev early - useful info for support. */
-+	pr_debug("Innovator FPGA Rev %d.%d Board Rev %d\n",
-+			fpga_read(OMAP1510_FPGA_REV_HIGH),
-+			fpga_read(OMAP1510_FPGA_REV_LOW),
-+			fpga_read(OMAP1510_FPGA_BOARD_REV));
- }
- 
- MACHINE_START(OMAP_INNOVATOR, "TI-Innovator")
- 	/* Maintainer: MontaVista Software, Inc. */
- 	.atag_offset	= 0x100,
- 	.map_io		= innovator_map_io,
-+	.init_early     = omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= innovator_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= innovator_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index 8b22be7..6969f2f 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -41,21 +41,6 @@
- 
- #define ADS7846_PENDOWN_GPIO	15
- 
--static void __init omap_nokia770_init_irq(void)
--{
--	/* On Nokia 770, the SleepX signal is masked with an
--	 * MPUIO line by default.  It has to be unmasked for it
--	 * to become functional */
--
--	/* SleepX mask direction */
--	omap_writew((omap_readw(0xfffb5008) & ~2), 0xfffb5008);
--	/* Unmask SleepX signal */
--	omap_writew((omap_readw(0xfffb5004) & ~2), 0xfffb5004);
--
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
- static const unsigned int nokia770_keymap[] = {
- 	KEY(1, 0, GROUP_0 | KEY_UP),
- 	KEY(2, 0, GROUP_1 | KEY_F5),
-@@ -164,6 +149,15 @@ static void __init nokia770_cbus_init(void)
- {
- 	int		ret;
- 
-+	/* On Nokia 770, the SleepX signal is masked with an
-+	 * MPUIO line by default.  It has to be unmasked for it
-+	 * to become functional */
-+
-+	/* SleepX mask direction */
-+	omap_writew((omap_readw(0xfffb5008) & ~2), 0xfffb5008);
-+	/* Unmask SleepX signal */
-+	omap_writew((omap_readw(0xfffb5004) & ~2), 0xfffb5004);
-+
- 	platform_device_register(&nokia770_cbus_device);
- 
- 	ret = gpio_request(62, "RETU irq");
-@@ -370,16 +364,12 @@ static void __init omap_nokia770_init(void)
- 	nokia770_mmc_init();
- }
- 
--static void __init omap_nokia770_map_io(void)
--{
--	omap1_map_common_io();
--}
--
- MACHINE_START(NOKIA770, "Nokia 770")
- 	.atag_offset	= 0x100,
--	.map_io		= omap_nokia770_map_io,
-+	.map_io		= omap16xx_map_io,
-+	.init_early     = omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= omap_nokia770_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= omap_nokia770_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index 44b8e93..3e12a69 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -279,12 +279,6 @@ static void __init osk_init_cf(void)
- 	irq_set_irq_type(gpio_to_irq(62), IRQ_TYPE_EDGE_FALLING);
- }
- 
--static void __init osk_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
- static struct omap_usb_config osk_usb_config __initdata = {
- 	/* has usb host connector (A) ... for development it can also
- 	 * be used, with a NONSTANDARD gender-bending cable/dongle, as
-@@ -576,17 +570,13 @@ static void __init osk_init(void)
- 	osk_mistral_init();
- }
- 
--static void __init osk_map_io(void)
--{
--	omap1_map_common_io();
--}
--
- MACHINE_START(OMAP_OSK, "TI-OSK")
- 	/* Maintainer: Dirk Behme <dirk.behme@de.bosch.com> */
- 	.atag_offset	= 0x100,
--	.map_io		= osk_map_io,
-+	.map_io		= omap16xx_map_io,
-+	.init_early	= omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= osk_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= osk_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
-index 3d8cd90..4aa2d0e 100644
---- a/arch/arm/mach-omap1/board-palmte.c
-+++ b/arch/arm/mach-omap1/board-palmte.c
-@@ -59,12 +59,6 @@
- #define PALMTE_MMC2_GPIO	OMAP_MPUIO(7)
- #define PALMTE_MMC3_GPIO	OMAP_MPUIO(11)
- 
--static void __init omap_palmte_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
- static const unsigned int palmte_keymap[] = {
- 	KEY(0, 0, KEY_F1),		/* Calendar */
- 	KEY(1, 0, KEY_F2),		/* Contacts */
-@@ -269,16 +263,12 @@ static void __init omap_palmte_init(void)
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- }
- 
--static void __init omap_palmte_map_io(void)
--{
--	omap1_map_common_io();
--}
--
- MACHINE_START(OMAP_PALMTE, "OMAP310 based Palm Tungsten E")
- 	.atag_offset	= 0x100,
--	.map_io		= omap_palmte_map_io,
-+	.map_io		= omap15xx_map_io,
-+	.init_early     = omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= omap_palmte_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= omap_palmte_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-palmtt.c b/arch/arm/mach-omap1/board-palmtt.c
-index d0eefe8..32254bd 100644
---- a/arch/arm/mach-omap1/board-palmtt.c
-+++ b/arch/arm/mach-omap1/board-palmtt.c
-@@ -263,12 +263,6 @@ static struct spi_board_info __initdata palmtt_boardinfo[] = {
- 	}
- };
- 
--static void __init omap_palmtt_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
- static struct omap_usb_config palmtt_usb_config __initdata = {
- 	.register_dev	= 1,
- 	.hmc_mode	= 0,
-@@ -315,16 +309,12 @@ static void __init omap_palmtt_init(void)
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- }
- 
--static void __init omap_palmtt_map_io(void)
--{
--	omap1_map_common_io();
--}
--
- MACHINE_START(OMAP_PALMTT, "OMAP1510 based Palm Tungsten|T")
- 	.atag_offset	= 0x100,
--	.map_io		= omap_palmtt_map_io,
-+	.map_io		= omap15xx_map_io,
-+	.init_early     = omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= omap_palmtt_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= omap_palmtt_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
-index 98e79bc..d41478d 100644
---- a/arch/arm/mach-omap1/board-palmz71.c
-+++ b/arch/arm/mach-omap1/board-palmz71.c
-@@ -57,13 +57,6 @@
- #define PALMZ71_SLIDER_GPIO	OMAP_MPUIO(3)
- #define PALMZ71_MMC_IN_GPIO	OMAP_MPUIO(4)
- 
--static void __init
--omap_palmz71_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
- static const unsigned int palmz71_keymap[] = {
- 	KEY(0, 0, KEY_F1),
- 	KEY(1, 0, KEY_F2),
-@@ -334,17 +327,12 @@ omap_palmz71_init(void)
- 	palmz71_gpio_setup(0);
- }
- 
--static void __init
--omap_palmz71_map_io(void)
--{
--	omap1_map_common_io();
--}
--
- MACHINE_START(OMAP_PALMZ71, "OMAP310 based Palm Zire71")
- 	.atag_offset	= 0x100,
--	.map_io		= omap_palmz71_map_io,
-+	.map_io		= omap15xx_map_io,
-+	.init_early     = omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= omap_palmz71_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= omap_palmz71_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
-index ad3a156..7506f34 100644
---- a/arch/arm/mach-omap1/board-perseus2.c
-+++ b/arch/arm/mach-omap1/board-perseus2.c
-@@ -265,6 +265,39 @@ static void __init perseus2_init_smc91x(void)
- 
- static void __init omap_perseus2_init(void)
- {
-+	/* Early, board-dependent init */
-+
-+	/*
-+	 * Hold GSM Reset until needed
-+	 */
-+	omap_writew(omap_readw(OMAP7XX_DSP_M_CTL) & ~1, OMAP7XX_DSP_M_CTL);
-+
-+	/*
-+	 * UARTs -> done automagically by 8250 driver
-+	 */
-+
-+	/*
-+	 * CSx timings, GPIO Mux ... setup
-+	 */
-+
-+	/* Flash: CS0 timings setup */
-+	omap_writel(0x0000fff3, OMAP7XX_FLASH_CFG_0);
-+	omap_writel(0x00000088, OMAP7XX_FLASH_ACFG_0);
-+
-+	/*
-+	 * Ethernet support through the debug board
-+	 * CS1 timings setup
-+	 */
-+	omap_writel(0x0000fff3, OMAP7XX_FLASH_CFG_1);
-+	omap_writel(0x00000000, OMAP7XX_FLASH_ACFG_1);
-+
-+	/*
-+	 * Configure MPU_EXT_NIRQ IO in IO_CONF9 register,
-+	 * It is used as the Ethernet controller interrupt
-+	 */
-+	omap_writel(omap_readl(OMAP7XX_IO_CONF_9) & 0x1FFFFFFF,
-+				OMAP7XX_IO_CONF_9);
-+
- 	perseus2_init_smc91x();
- 
- 	if (gpio_request(P2_NAND_RB_GPIO_PIN, "NAND ready") < 0)
-@@ -294,11 +327,6 @@ static void __init omap_perseus2_init(void)
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- }
- 
--static void __init omap_perseus2_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
- /* Only FPGA needs to be mapped here. All others are done with ioremap */
- static struct map_desc omap_perseus2_io_desc[] __initdata = {
- 	{
-@@ -311,49 +339,18 @@ static struct map_desc omap_perseus2_io_desc[] __initdata = {
- 
- static void __init omap_perseus2_map_io(void)
- {
--	omap1_map_common_io();
-+	omap7xx_map_io();
- 	iotable_init(omap_perseus2_io_desc,
- 		     ARRAY_SIZE(omap_perseus2_io_desc));
--
--	/* Early, board-dependent init */
--
--	/*
--	 * Hold GSM Reset until needed
--	 */
--	omap_writew(omap_readw(OMAP7XX_DSP_M_CTL) & ~1, OMAP7XX_DSP_M_CTL);
--
--	/*
--	 * UARTs -> done automagically by 8250 driver
--	 */
--
--	/*
--	 * CSx timings, GPIO Mux ... setup
--	 */
--
--	/* Flash: CS0 timings setup */
--	omap_writel(0x0000fff3, OMAP7XX_FLASH_CFG_0);
--	omap_writel(0x00000088, OMAP7XX_FLASH_ACFG_0);
--
--	/*
--	 * Ethernet support through the debug board
--	 * CS1 timings setup
--	 */
--	omap_writel(0x0000fff3, OMAP7XX_FLASH_CFG_1);
--	omap_writel(0x00000000, OMAP7XX_FLASH_ACFG_1);
--
--	/*
--	 * Configure MPU_EXT_NIRQ IO in IO_CONF9 register,
--	 * It is used as the Ethernet controller interrupt
--	 */
--	omap_writel(omap_readl(OMAP7XX_IO_CONF_9) & 0x1FFFFFFF, OMAP7XX_IO_CONF_9);
- }
- 
- MACHINE_START(OMAP_PERSEUS2, "OMAP730 Perseus2")
- 	/* Maintainer: Kevin Hilman <kjh@hilman.org> */
- 	.atag_offset	= 0x100,
- 	.map_io		= omap_perseus2_map_io,
-+	.init_early     = omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= omap_perseus2_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= omap_perseus2_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
-index 602b55c..bdf3b85 100644
---- a/arch/arm/mach-omap1/board-sx1.c
-+++ b/arch/arm/mach-omap1/board-sx1.c
-@@ -407,24 +407,13 @@ static void __init omap_sx1_init(void)
- 	gpio_direction_output(11, 0);	/*A_SWITCH = 0 */
- 	gpio_direction_output(15, 0);	/*A_USB_ON = 0 */
- }
--/*----------------------------------------*/
--static void __init omap_sx1_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--/*----------------------------------------*/
--
--static void __init omap_sx1_map_io(void)
--{
--	omap1_map_common_io();
--}
- 
- MACHINE_START(SX1, "OMAP310 based Siemens SX1")
- 	.atag_offset	= 0x100,
--	.map_io		= omap_sx1_map_io,
-+	.map_io		= omap15xx_map_io,
-+	.init_early     = omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= omap_sx1_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= omap_sx1_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
-diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index 8016515..42e5151 100644
---- a/arch/arm/mach-omap1/board-voiceblue.c
-+++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -159,17 +159,6 @@ static struct omap_usb_config voiceblue_usb_config __initdata = {
- static struct omap_board_config_kernel voiceblue_config[] = {
- };
- 
--static void __init voiceblue_init_irq(void)
--{
--	omap1_init_common_hw();
--	omap1_init_irq();
--}
--
--static void __init voiceblue_map_io(void)
--{
--	omap1_map_common_io();
--}
--
- #define MACHINE_PANICED		1
- #define MACHINE_REBOOTING	2
- #define MACHINE_REBOOT		4
-@@ -302,9 +291,10 @@ static void __init voiceblue_init(void)
- MACHINE_START(VOICEBLUE, "VoiceBlue OMAP5910")
- 	/* Maintainer: Ladislav Michl <michl@2n.cz> */
- 	.atag_offset	= 0x100,
--	.map_io		= voiceblue_map_io,
-+	.map_io		= omap15xx_map_io,
-+	.init_early     = omap1_init_early,
- 	.reserve	= omap_reserve,
--	.init_irq	= voiceblue_init_irq,
-+	.init_irq	= omap1_init_irq,
- 	.init_machine	= voiceblue_init,
- 	.timer		= &omap1_timer,
- MACHINE_END
+ 	/* please keep these calls, and their implementations above,
+ 	 * in alphabetical order so they're easier to sort through.
+ 	 */
 diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
-index 870886a..a16aab7 100644
+index a16aab7..8140a4e 100644
 --- a/arch/arm/mach-omap1/io.c
 +++ b/arch/arm/mach-omap1/io.c
-@@ -85,50 +85,44 @@ static struct map_desc omap16xx_io_desc[] __initdata = {
- #endif
+@@ -21,7 +21,6 @@
+ #include "clock.h"
+ 
+ extern void omap_check_revision(void);
+-extern void omap_sram_init(void);
  
  /*
-- * Maps common IO regions for omap1. This should only get called from
-- * board specific init.
-+ * Maps common IO regions for omap1
-  */
--void __init omap1_map_common_io(void)
-+static void __init omap1_map_common_io(void)
- {
- 	iotable_init(omap_io_desc, ARRAY_SIZE(omap_io_desc));
--
+  * The machine specific code may provide the extra mapping besides the
+@@ -133,7 +132,6 @@ void omap1_init_early(void)
+ 	 */
+ 	omap1_clk_init();
+ 	omap1_mux_init();
+-	omap_sram_init();
+ }
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 31c5f4d..fec50d8 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -35,8 +35,8 @@
+ #include "clock2xxx.h"
+ #include "clock3xxx.h"
+ #include "clock44xx.h"
+-#include "io.h"
+ 
++#include <plat/common.h>
+ #include <plat/omap-pm.h>
+ #include "voltage.h"
+ #include "powerdomain.h"
+@@ -240,22 +240,11 @@ static struct map_desc omap44xx_io_desc[] __initdata = {
+ };
+ #endif
+ 
+-static void __init _omap2_map_common_io(void)
+-{
 -	/* Normally devicemaps_init() would flush caches and tlb after
 -	 * mdesc->map_io(), but we must also do it here because of the CPU
 -	 * revision check below.
 -	 */
 -	local_flush_tlb_all();
 -	flush_cache_all();
+-}
 -
--	/* We want to check CPU revision early for cpu_is_omapxxxx() macros.
--	 * IO space mapping must be initialized before we can do that.
--	 */
--	omap_check_revision();
-+}
- 
- #if defined (CONFIG_ARCH_OMAP730) || defined (CONFIG_ARCH_OMAP850)
--	if (cpu_is_omap7xx()) {
--		iotable_init(omap7xx_io_desc, ARRAY_SIZE(omap7xx_io_desc));
--	}
-+void __init omap7xx_map_io(void)
-+{
-+	omap1_map_common_io();
-+	iotable_init(omap7xx_io_desc, ARRAY_SIZE(omap7xx_io_desc));
-+}
- #endif
-+
- #ifdef CONFIG_ARCH_OMAP15XX
--	if (cpu_is_omap15xx()) {
--		iotable_init(omap1510_io_desc, ARRAY_SIZE(omap1510_io_desc));
--	}
--#endif
--#if defined(CONFIG_ARCH_OMAP16XX)
--	if (cpu_is_omap16xx()) {
--		iotable_init(omap16xx_io_desc, ARRAY_SIZE(omap16xx_io_desc));
--	}
-+void __init omap15xx_map_io(void)
-+{
-+	omap1_map_common_io();
-+	iotable_init(omap1510_io_desc, ARRAY_SIZE(omap1510_io_desc));
-+}
- #endif
- 
--	omap_sram_init();
-+#if defined(CONFIG_ARCH_OMAP16XX)
-+void __init omap16xx_map_io(void)
-+{
-+	omap1_map_common_io();
-+	iotable_init(omap16xx_io_desc, ARRAY_SIZE(omap16xx_io_desc));
- }
-+#endif
- 
- /*
-- * Common low-level hardware init for omap1. This should only get called from
-- * board specific init.
-+ * Common low-level hardware init for omap1.
-  */
--void __init omap1_init_common_hw(void)
-+void omap1_init_early(void)
- {
-+	omap_check_revision();
-+
- 	/* REVISIT: Refer to OMAP5910 Errata, Advisory SYS_1: "Timeout Abort
- 	 * on a Posted Write in the TIPB Bridge".
- 	 */
-@@ -138,8 +132,8 @@ void __init omap1_init_common_hw(void)
- 	/* Must init clocks early to assure that timer interrupt works
- 	 */
- 	omap1_clk_init();
--
- 	omap1_mux_init();
-+	omap_sram_init();
- }
- 
- /*
-diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
-index 6591875..c0c7850 100644
---- a/arch/arm/plat-omap/include/plat/io.h
-+++ b/arch/arm/plat-omap/include/plat/io.h
-@@ -256,8 +256,31 @@ extern void omap_writel(u32 v, u32 pa);
- 
- struct omap_sdrc_params;
- 
--extern void omap1_map_common_io(void);
--extern void omap1_init_common_hw(void);
-+#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-+void omap7xx_map_io(void);
-+#else
-+static inline void omap_map_io(void)
-+{
-+}
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP15XX
-+void omap15xx_map_io(void);
-+#else
-+static inline void omap15xx_map_io(void)
-+{
-+}
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP16XX
-+void omap16xx_map_io(void);
-+#else
-+static inline void omap16xx_map_io(void)
-+{
-+}
-+#endif
-+
-+void omap1_init_early(void);
- 
  #ifdef CONFIG_SOC_OMAP2420
- extern void omap242x_map_common_io(void);
+ void __init omap242x_map_common_io(void)
+ {
+ 	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
+ 	iotable_init(omap242x_io_desc, ARRAY_SIZE(omap242x_io_desc));
+-	_omap2_map_common_io();
+ }
+ #endif
+ 
+@@ -264,7 +253,6 @@ void __init omap243x_map_common_io(void)
+ {
+ 	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
+ 	iotable_init(omap243x_io_desc, ARRAY_SIZE(omap243x_io_desc));
+-	_omap2_map_common_io();
+ }
+ #endif
+ 
+@@ -272,7 +260,6 @@ void __init omap243x_map_common_io(void)
+ void __init omap34xx_map_common_io(void)
+ {
+ 	iotable_init(omap34xx_io_desc, ARRAY_SIZE(omap34xx_io_desc));
+-	_omap2_map_common_io();
+ }
+ #endif
+ 
+@@ -280,7 +267,6 @@ void __init omap34xx_map_common_io(void)
+ void __init omapti816x_map_common_io(void)
+ {
+ 	iotable_init(omapti816x_io_desc, ARRAY_SIZE(omapti816x_io_desc));
+-	_omap2_map_common_io();
+ }
+ #endif
+ 
+@@ -288,7 +274,6 @@ void __init omapti816x_map_common_io(void)
+ void __init omap44xx_map_common_io(void)
+ {
+ 	iotable_init(omap44xx_io_desc, ARRAY_SIZE(omap44xx_io_desc));
+-	_omap2_map_common_io();
+ }
+ #endif
+ 
+@@ -337,7 +322,6 @@ void __iomem *omap_irq_base;
+ static void __init omap_common_init_early(void)
+ {
+ 	omap2_check_revision();
+-	omap_sram_init();
+ 		omap2xxx_voltagedomains_init();
+ 		omap2xxx_voltagedomains_init();
+ 		omap3xxx_voltagedomains_init();
+@@ -453,11 +437,12 @@ void __init omap4430_init_early(void)
+ void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 				      struct omap_sdrc_params *sdrc_cs1)
+ {
++	omap_sram_init();
++
+ 	if (cpu_is_omap24xx() || omap3_has_sdrc()) {
+ 		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+ 		_omap2_init_reprogram_sdrc();
+ 	}
+-
+ }
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/io.h b/arch/arm/mach-omap2/io.h
+index fd230c6..e69de29 100644
+--- a/arch/arm/mach-omap2/io.h
++++ b/arch/arm/mach-omap2/io.h
+@@ -1,7 +0,0 @@
+-
+-#ifndef __MACH_OMAP2_IO_H__
+-#define __MACH_OMAP2_IO_H__
+-
+-extern int __init omap_sram_init(void);
+-
+-#endif /*  __MACH_OMAP2_IO_H__ */
+diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+index 5eac355..ed85720 100644
+--- a/arch/arm/plat-omap/include/plat/common.h
++++ b/arch/arm/plat-omap/include/plat/common.h
+@@ -55,6 +55,8 @@ void am35xx_init_early(void);
+ void ti816x_init_early(void);
+ void omap4430_init_early(void);
+ 
++void omap_sram_init(void);
++
+ /*
+  * IO bases for various OMAP processors
+  * Except the tap base, rest all the io bases
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 3c8aa44..8b28664 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -38,16 +38,9 @@
+ #endif
+ 
+ #define OMAP1_SRAM_PA		0x20000000
+-#define OMAP1_SRAM_VA		VMALLOC_END
+ #define OMAP2_SRAM_PUB_PA	(OMAP2_SRAM_PA + 0xf800)
+-#define OMAP2_SRAM_VA		0xfe400000
+-#define OMAP2_SRAM_PUB_VA	(OMAP2_SRAM_VA + 0x800)
+-#define OMAP3_SRAM_VA           0xfe400000
+ #define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0x8000)
+-#define OMAP3_SRAM_PUB_VA       (OMAP3_SRAM_VA + 0x8000)
+-#define OMAP4_SRAM_VA		0xfe400000
+ #define OMAP4_SRAM_PUB_PA	(OMAP4_SRAM_PA + 0x4000)
+-#define OMAP4_SRAM_PUB_VA	(OMAP4_SRAM_VA + 0x4000)
+ 
+ #if defined(CONFIG_ARCH_OMAP2PLUS)
+ #define SRAM_BOOTLOADER_SZ	0x00
+@@ -70,9 +63,9 @@
+ #define ROUND_DOWN(value,boundary)	((value) & (~((boundary)-1)))
+ 
+ static unsigned long omap_sram_start;
+-static unsigned long omap_sram_base;
++static void __iomem *omap_sram_base;
+ static unsigned long omap_sram_size;
+-static unsigned long omap_sram_ceil;
++static void __iomem *omap_sram_ceil;
+ 
+ /*
+  * Depending on the target RAMFS firewall setup, the public usable amount of
+@@ -112,7 +105,6 @@ static void __init omap_detect_sram(void)
+ 	if (cpu_class_is_omap2()) {
+ 		if (is_sram_locked()) {
+ 			if (cpu_is_omap34xx()) {
+-				omap_sram_base = OMAP3_SRAM_PUB_VA;
+ 				omap_sram_start = OMAP3_SRAM_PUB_PA;
+ 				if ((omap_type() == OMAP2_DEVICE_TYPE_EMU) ||
+ 				    (omap_type() == OMAP2_DEVICE_TYPE_SEC)) {
+@@ -121,25 +113,20 @@ static void __init omap_detect_sram(void)
+ 					omap_sram_size = 0x8000; /* 32K */
+ 				}
+ 			} else if (cpu_is_omap44xx()) {
+-				omap_sram_base = OMAP4_SRAM_PUB_VA;
+ 				omap_sram_start = OMAP4_SRAM_PUB_PA;
+ 				omap_sram_size = 0xa000; /* 40K */
+ 			} else {
+-				omap_sram_base = OMAP2_SRAM_PUB_VA;
+ 				omap_sram_start = OMAP2_SRAM_PUB_PA;
+ 				omap_sram_size = 0x800; /* 2K */
+ 			}
+ 		} else {
+ 			if (cpu_is_omap34xx()) {
+-				omap_sram_base = OMAP3_SRAM_VA;
+ 				omap_sram_start = OMAP3_SRAM_PA;
+ 				omap_sram_size = 0x10000; /* 64K */
+ 			} else if (cpu_is_omap44xx()) {
+-				omap_sram_base = OMAP4_SRAM_VA;
+ 				omap_sram_start = OMAP4_SRAM_PA;
+ 				omap_sram_size = 0xe000; /* 56K */
+ 			} else {
+-				omap_sram_base = OMAP2_SRAM_VA;
+ 				omap_sram_start = OMAP2_SRAM_PA;
+ 				if (cpu_is_omap242x())
+ 					omap_sram_size = 0xa0000; /* 640K */
+@@ -148,7 +135,6 @@ static void __init omap_detect_sram(void)
+ 			}
+ 		}
+ 	} else {
+-		omap_sram_base = OMAP1_SRAM_VA;
+ 		omap_sram_start = OMAP1_SRAM_PA;
+ 
+ 		if (cpu_is_omap7xx())
+@@ -165,24 +151,14 @@ static void __init omap_detect_sram(void)
+ 			omap_sram_size = 0x4000;
+ 		}
+ 	}
+-
+-	omap_sram_ceil = omap_sram_base + omap_sram_size;
+ }
+ 
+-static struct map_desc omap_sram_io_desc[] __initdata = {
+-	{	/* .length gets filled in at runtime */
+-		.virtual	= OMAP1_SRAM_VA,
+-		.pfn		= __phys_to_pfn(OMAP1_SRAM_PA),
+-		.type		= MT_MEMORY
+-	}
+-};
+-
+ /*
+  * Note that we cannot use ioremap for SRAM, as clock init needs SRAM early.
+  */
+ static void __init omap_map_sram(void)
+ {
+-	unsigned long base;
++	int cached = 1;
+ 
+ 	if (omap_sram_size == 0)
+ 		return;
+@@ -195,28 +171,18 @@ static void __init omap_map_sram(void)
+ 		 * the ARM may attempt to write cache lines back to SDRAM
+ 		 * which will cause the system to hang.
+ 		 */
+-		omap_sram_io_desc[0].type = MT_MEMORY_NONCACHED;
++		cached = 0;
+ 	}
+ 
+-	omap_sram_io_desc[0].virtual = omap_sram_base;
+-	base = omap_sram_start;
+-	base = ROUND_DOWN(base, PAGE_SIZE);
+-	omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
+-	omap_sram_io_desc[0].length = ROUND_DOWN(omap_sram_size, PAGE_SIZE);
+-	iotable_init(omap_sram_io_desc, ARRAY_SIZE(omap_sram_io_desc));
+-
+-	pr_info("SRAM: Mapped pa 0x%08llx to va 0x%08lx size: 0x%lx\n",
+-		(long long) __pfn_to_phys(omap_sram_io_desc[0].pfn),
+-		omap_sram_io_desc[0].virtual,
+-		omap_sram_io_desc[0].length);
++	omap_sram_start = ROUND_DOWN(omap_sram_start, PAGE_SIZE);
++	omap_sram_base = __arm_ioremap_exec(omap_sram_start, omap_sram_size,
++						cached);
++	if (!omap_sram_base) {
++		pr_err("SRAM: Could not map\n");
++		return;
++	}
+ 
+-	/*
+-	 * Normally devicemaps_init() would flush caches and tlb after
+-	 * mdesc->map_io(), but since we're called from map_io(), we
+-	 * must do it here.
+-	 */
+-	local_flush_tlb_all();
+-	flush_cache_all();
++	omap_sram_ceil = omap_sram_base + omap_sram_size;
+ 
+ 	/*
+ 	 * Looks like we need to preserve some bootloader code at the
+@@ -235,13 +201,18 @@ static void __init omap_map_sram(void)
+  */
+ void *omap_sram_push_address(unsigned long size)
+ {
+-	if (size > (omap_sram_ceil - (omap_sram_base + SRAM_BOOTLOADER_SZ))) {
++	unsigned long available, new_ceil = (unsigned long)omap_sram_ceil;
++
++	available = omap_sram_ceil - (omap_sram_base + SRAM_BOOTLOADER_SZ);
++
++	if (size > available) {
+ 		pr_err("Not enough space in SRAM\n");
+ 		return NULL;
+ 	}
+ 
+-	omap_sram_ceil -= size;
+-	omap_sram_ceil = ROUND_DOWN(omap_sram_ceil, FNCPY_ALIGN);
++	new_ceil -= size;
++	new_ceil = ROUND_DOWN(new_ceil, FNCPY_ALIGN);
++	omap_sram_ceil = IOMEM(new_ceil);
+ 
+ 	return (void *)omap_sram_ceil;
+ }
