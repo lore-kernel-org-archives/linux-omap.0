@@ -1,117 +1,70 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v8 18/24] gpio/omap: optimize suspend and resume functions
-Date: Wed, 5 Oct 2011 14:03:07 +0530
-Message-ID: <1317803593-12259-19-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v8 21/24] gpio/omap: save and restore debounce registers
+Date: Wed, 5 Oct 2011 14:03:10 +0530
+Message-ID: <1317803593-12259-22-git-send-email-tarun.kanti@ti.com>
 References: <1317803593-12259-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60712 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33677 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933201Ab1JEIdo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Oct 2011 04:33:44 -0400
+	id S933685Ab1JEIdu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Oct 2011 04:33:50 -0400
 In-Reply-To: <1317803593-12259-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-There is no need to operate on all the banks every time the function is called.
-Just operate on the current bank passed by the framework.
+From: Nishanth Menon <nm@ti.com>
 
+GPIO debounce registers need to be saved and restored for proper functioning
+of driver. To save the registers, we cannot cut the clock before the save,
+hence move the clk disable after the save.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/gpio/gpio-omap.c |   54 ++++++++++++++++++++++++---------------------
- 1 files changed, 29 insertions(+), 25 deletions(-)
+ drivers/gpio/gpio-omap.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 1ec35a1..d101438 100644
+index 7fc57a4..1cf7f38 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1068,6 +1068,8 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 		goto err_free;
+@@ -42,6 +42,8 @@ struct gpio_regs {
+ 	u32 risingdetect;
+ 	u32 fallingdetect;
+ 	u32 dataout;
++	u32 debounce;
++	u32 debounce_en;
+ };
+ 
+ struct gpio_bank {
+@@ -223,6 +225,9 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
+ 		clk_disable(bank->dbck);
+ 		bank->dbck_enabled = false;
  	}
- 
-+	platform_set_drvdata(pdev, bank);
 +
- 	pm_runtime_enable(bank->dev);
- 	pm_runtime_irq_safe(bank->dev);
- 	pm_runtime_get_sync(bank->dev);
-@@ -1095,46 +1097,48 @@ err_exit:
- 
- static int omap_gpio_suspend(struct device *dev)
- {
--	struct gpio_bank *bank;
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct gpio_bank *bank = platform_get_drvdata(pdev);
-+	void __iomem *base = bank->base;
-+	void __iomem *wakeup_enable;
-+	unsigned long flags;
- 
--	list_for_each_entry(bank, &omap_gpio_list, node) {
--		void __iomem *base = bank->base;
--		void __iomem *wake_status;
--		unsigned long flags;
-+	if (!bank->mod_usage || !bank->loses_context)
-+		return 0;
- 
--		if (!bank->regs->wkup_en)
--			return 0;
-+	if (!bank->regs->wkup_en || !bank->suspend_wakeup)
-+		return 0;
- 
--		wake_status = bank->base + bank->regs->wkup_en;
-+	wakeup_enable = bank->base + bank->regs->wkup_en;
- 
--		spin_lock_irqsave(&bank->lock, flags);
--		bank->saved_wakeup = __raw_readl(wake_status);
--		_gpio_rmw(base, bank->regs->wkup_en, bank->suspend_wakeup, 1);
--		spin_unlock_irqrestore(&bank->lock, flags);
-+	spin_lock_irqsave(&bank->lock, flags);
-+	bank->saved_wakeup = __raw_readl(wakeup_enable);
-+	_gpio_rmw(base, bank->regs->wkup_en, bank->suspend_wakeup, 1);
-+	spin_unlock_irqrestore(&bank->lock, flags);
- 
--		_gpio_dbck_disable(bank);
--	}
-+	_gpio_dbck_disable(bank);
- 
- 	return 0;
++	bank->context.debounce = debounce;
++	bank->context.debounce_en = val;
  }
  
- static int omap_gpio_resume(struct device *dev)
- {
--	struct gpio_bank *bank;
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct gpio_bank *bank = platform_get_drvdata(pdev);
-+	void __iomem *base = bank->base;
-+	unsigned long flags;
- 
--	list_for_each_entry(bank, &omap_gpio_list, node) {
--		void __iomem *base = bank->base;
--		unsigned long flags;
-+	if (!bank->mod_usage || !bank->loses_context)
-+		return 0;
- 
--		if (!bank->regs->wkup_en)
--			return 0;
-+	if (!bank->regs->wkup_en || !bank->saved_wakeup)
-+		return 0;
- 
--		_gpio_dbck_enable(bank);
-+	_gpio_dbck_enable(bank);
- 
--		spin_lock_irqsave(&bank->lock, flags);
--		_gpio_rmw(base, bank->regs->wkup_en, bank->saved_wakeup, 1);
--		spin_unlock_irqrestore(&bank->lock, flags);
--	}
-+	spin_lock_irqsave(&bank->lock, flags);
-+	_gpio_rmw(base, bank->regs->wkup_en, bank->saved_wakeup, 1);
-+	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	return 0;
+ static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
+@@ -1352,6 +1357,12 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
+ 	__raw_writel(bank->context.fallingdetect,
+ 				bank->base + bank->regs->fallingdetect);
+ 	__raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
++	if (bank->dbck_enable_mask) {
++		__raw_writel(bank->context.debounce, bank->base +
++					bank->regs->debounce);
++		__raw_writel(bank->context.debounce_en,
++					bank->base + bank->regs->debounce_en);
++	}
  }
+ #else
+ #define omap_gpio_suspend NULL
 -- 
 1.7.0.4
 
