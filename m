@@ -1,45 +1,69 @@
-From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
-	<vjaquez@igalia.com>
-Subject: [PATCH] omap: dmtimer: convert printk to pr_*
-Date: Thu,  6 Oct 2011 12:48:23 +0200
-Message-ID: <1317898106-1891-1-git-send-email-vjaquez@igalia.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH 0/5 v13] omap: usb: host: Runtime PM preparation for EHCI and OHCI drivers
+Date: Thu, 6 Oct 2011 17:07:25 +0530
+Message-ID: <1317901045-2492-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Timo Teras <timo.teras@solidboot.com>, Harvey Harrison <harvey.harrison@gmail.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, Keshava Munegowda <Keshava_mgowda@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Q29udmVydCBhbGwgdGhlIHByaW50ayg8bGV2ZWw+KSBtZXNzYWdlcyBpbiB0aGUgZHJpdmVyIHRv
-IHByXzxsZXZlbD4oKS4KClNpZ25lZC1vZmYtYnk6IFbDrWN0b3IgTWFudWVsIErDoXF1ZXogTGVh
-bCA8dmphcXVlekBpZ2FsaWEuY29tPgotLS0KIGFyY2gvYXJtL3BsYXQtb21hcC9kbXRpbWVyLmMg
-fCAgICA1ICsrLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlv
-bnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvZG10aW1lci5jIGIvYXJjaC9h
-cm0vcGxhdC1vbWFwL2RtdGltZXIuYwppbmRleCBlZTlmNmViLi4zNDM4NGIwIDEwMDY0NAotLS0g
-YS9hcmNoL2FybS9wbGF0LW9tYXAvZG10aW1lci5jCisrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9k
-bXRpbWVyLmMKQEAgLTMyMiw3ICszMjIsNyBAQCBzdGF0aWMgdm9pZCBvbWFwX2RtX3RpbWVyX3dh
-aXRfZm9yX3Jlc2V0KHN0cnVjdCBvbWFwX2RtX3RpbWVyICp0aW1lcikKIAl3aGlsZSAoIShvbWFw
-X2RtX3RpbWVyX3JlYWRfcmVnKHRpbWVyLCBPTUFQX1RJTUVSX1NZU19TVEFUX1JFRykgJiAxKSkg
-ewogCQljKys7CiAJCWlmIChjID4gMTAwMDAwKSB7Ci0JCQlwcmludGsoS0VSTl9FUlIgIlRpbWVy
-IGZhaWxlZCB0byByZXNldFxuIik7CisJCQlwcl9lcnIoIlRpbWVyIGZhaWxlZCB0byByZXNldFxu
-Iik7CiAJCQlyZXR1cm47CiAJCX0KIAl9CkBAIC0zOTcsOCArMzk3LDcgQEAgc3RydWN0IG9tYXBf
-ZG1fdGltZXIgKm9tYXBfZG1fdGltZXJfcmVxdWVzdF9zcGVjaWZpYyhpbnQgaWQpCiAJc3Bpbl9s
-b2NrX2lycXNhdmUoJmRtX3RpbWVyX2xvY2ssIGZsYWdzKTsKIAlpZiAoaWQgPD0gMCB8fCBpZCA+
-IGRtX3RpbWVyX2NvdW50IHx8IGRtX3RpbWVyc1tpZC0xXS5yZXNlcnZlZCkgewogCQlzcGluX3Vu
-bG9ja19pcnFyZXN0b3JlKCZkbV90aW1lcl9sb2NrLCBmbGFncyk7Ci0JCXByaW50aygiQlVHOiB3
-YXJuaW5nIGF0ICVzOiVkLyVzKCk6IHVuYWJsZSB0byBnZXQgdGltZXIgJWRcbiIsCi0JCSAgICAg
-ICBfX0ZJTEVfXywgX19MSU5FX18sIF9fZnVuY19fLCBpZCk7CisJCXByX3dhcm5pbmcoInVuYWJs
-ZSB0byBnZXQgdGltZXIgJWRcbiIsIGlkKTsKIAkJZHVtcF9zdGFjaygpOwogCQlyZXR1cm4gTlVM
-TDsKIAl9Ci0tIAoxLjcuNi4zCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5l
-bEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4v
-bGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+From: Keshava Munegowda <Keshava_mgowda@ti.com>
+
+The Hwmod structures for ehci and ohci drivers are implemented for
+EHCI and OHCI drivers of OMAP3 and OMAP4.
+The ehci and ohci drivers does not use the APIs of the usbhs
+core driver; the runtime pm APIs are used for clock
+enable/disable. 
+
+TODO:
+  - Adding mux-information to Hwmods.
+  - Aggressive Clock Management around USB bus suspend/resume.
+  - Remote Wakeup support implementation using IO-ring Wakeup
+    on EHCI/OHCI pads via PRCM IRQ chain handler.
+
+In version 13:
+	- for omap3, the ehci 120mhz clock is conditional enabled
+	  if ehci is selected for atleast one port in the omap platform.
+	- the hardware erratas information is added.
+	- the patches are split in to two series
+		i) The hwmod and preparation for run time pm of ehci and
+			ohci drivers ( this series)
+		ii) The Runtime pm support for ehci and ohci drivers.
+	  Since the patches are split , both the series are SHOULD be 
+	  applied to make the ehci and ohci drivers are functional with
+	  runtime pm support.
+	
+In version 12:
+  - The ehci, ohci and usb_host_hs hwmods combined as a single hwmod
+    usb_host_hs.
+  - for omap3
+	the usbhost_ick and and usbtll_ick clocks are changed as interface
+        clocks. The usbtll_fck, usbhost_48m_fck clocks are changed as main
+        clocks and the 120mhz functional clock is changed to optional clock 
+  - the usbhs mfd driver enable/disable this optional clock in 
+    runtime_resume and runtime_suspend callbacks of pm_runtime_get_sync
+    and pm_runtime_put_sync APIs.
+
+
+Benoit Cousson (1):
+  arm: omap: usb: ehci and ohci hwmod structures for omap4
+
+Keshava Munegowda (4):
+  arm: omap: usb: ehci and ohci hwmod structures for omap3
+  arm: omap: usb: register hwmods of usbhs
+  arm: omap: usb: device name change for the clk names of usbhs
+  omap: usb: host: Replace usbhs core driver APIs by Runtime pm APIs
+
+ arch/arm/mach-omap2/clock3xxx_data.c       |   26 ++--
+ arch/arm/mach-omap2/clock44xx_data.c       |   10 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  227 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  206 +++++++++++++++++++++++++-
+ arch/arm/mach-omap2/usb-host.c             |  100 ++++--------
+ arch/arm/plat-omap/include/plat/usb.h      |    3 -
+ drivers/mfd/omap-usb-host.c                |    2 +-
+ drivers/usb/host/ehci-omap.c               |   17 +--
+ drivers/usb/host/ohci-omap3.c              |   18 +--
+ 9 files changed, 498 insertions(+), 111 deletions(-)
