@@ -1,49 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V3 2/4] arm:omap:am33xx: Update common OMAP machine
- specific sources
-Date: Thu, 6 Oct 2011 16:03:08 -0700
-Message-ID: <20111006230308.GX6324@atomide.com>
+Subject: Re: [PATCH-V3 1/4] arm:omap:am33xx: Update common omap platform files
+Date: Thu, 6 Oct 2011 16:03:34 -0700
+Message-ID: <20111006230334.GY6324@atomide.com>
 References: <hvaibhav@ti.com>
- <1316529142-27564-3-git-send-email-hvaibhav@ti.com>
- <87fwjjcfbt.fsf@ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB5930257840691@dbde02.ent.ti.com>
- <87ehyyj6ts.fsf@ti.com>
+	<1316529142-27564-2-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26843 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759360Ab1JFXDO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 19:03:14 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <87ehyyj6ts.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1316529142-27564-2-git-send-email-hvaibhav@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: hvaibhav@ti.com
+Cc: khilman@ti.com, paul@pwsan.com, Hemant Pedanekar <hemantp@ti.com>, Afzal Mohammed <afzal@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
 
-* Kevin Hilman <khilman@ti.com> [110930 09:35]:
-> "Premi, Sanjeev" <premi@ti.com> writes:
+* hvaibhav@ti.com <hvaibhav@ti.com> [110920 06:59]:
+> From: Afzal Mohammed <afzal@ti.com>
 > 
-> Actually, looking at this closer, I think the infrastructure is already
-> there to handle this cleanly.
+> This patch updates the common platform files with AM335X device
+> support (AM33XX family).
 > 
-> Basically, dpll5 should not even be registered for SoCs where it doesn't
-> exist.  Then, any attempts to use DPLL5 would know it doesn't exist
-> because the call to clk_get() in omap3_clk_lock_dpll5() would fail.
+> The approach taken in this patch is,
+> AM33XX device will be considered as OMAP3 variant, and a separate
+> SoC class created for AM33XX family of devices with a subclass type
+> for AM335X device, which is newly added device in the family.
+> 
+> This means, cpu_is_omap34xx(), cpu_is_am33xx() and cpu_is_am335x()
+> checks will return success on AM335X device.
+> A kernel config option CONFIG_SOC_OMAPAM33XX is added under OMAP3
+> to include support for AM33XX build.
+> 
+> Also, cpu_mask and RATE_IN_XXX flags have crossed 8 bit hence
+> struct clksel_rate.flags, struct prcm_config.flags and cpu_mask
+> are changed to u16 from u8.
+> 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Cc: Hemant Pedanekar <hemantp@ti.com>
 
-Yes please use the SoC specific lists, see what we have now queued
-up in sram-map-io branch. So using SoC specific map_io + init_early +
-set_globals should do the trick.
- 
-> I think the clock3xxx_data.c needs a bit more cleanup so that only
-> clocks that exist for a given SoC are registered.
-> 
-> Paul already did a similar cleanup for the powerdomain data files by
-> creating separate lists for common ones and unique ones.  Looks like we
-> need the same for the clock data.
-
-Right.
+I'll add this one into soc branch.
 
 Regards,
 
