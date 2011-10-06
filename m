@@ -1,60 +1,55 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/4] ARM: OMAP: Remove calls to SRAM allocations for
- framebuffer
-Date: Thu, 06 Oct 2011 11:38:04 +0300
-Message-ID: <1317890284.1945.38.camel@deskari>
-References: <20111005004339.26980.31149.stgit@kaulin.local>
-	 <20111005004544.26980.35612.stgit@kaulin.local>
-	 <1317797128.2631.2.camel@deskari>  <20111005224141.GF6324@atomide.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] mfd: omap: cleanup: use macros to check for TLL mode
+Date: Thu, 6 Oct 2011 12:30:44 +0300
+Message-ID: <20111006093041.GE1714@legolas.emea.dhcp.ti.com>
+References: <1316010433-6024-1-git-send-email-kishon@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:37648 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932384Ab1JFIiK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 04:38:10 -0400
-Received: by bkbzt19 with SMTP id zt19so3617194bkb.23
-        for <linux-omap@vger.kernel.org>; Thu, 06 Oct 2011 01:38:08 -0700 (PDT)
-In-Reply-To: <20111005224141.GF6324@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BZaMRJmqxGScZ8Mx"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1316010433-6024-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-
-On Wed, 2011-10-05 at 15:41 -0700, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [111004 23:11]:
-> > On Tue, 2011-10-04 at 17:45 -0700, Tony Lindgren wrote:
-> > > This assumes fixed mappings which will not work once we move
-> > > to use ioremap_exec(). It seems that these are currently
-> > > not in use, or in use for some out of tree corner cases.
-> > > 
-> > > If SRAM support for framebuffer is wanted, it should be done
-> > > with ioremap in the driver.
-> > > 
-> > > Note that further removal of the code can now be done,
-> > > but that can be done seprately by the driver maintainers.
-> > > 
-> > > Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > Looks good to me. I have similar changes in my working branch for omapfb
-> > cleanup.
-> > 
-> > Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> 
-> Thanks. FYI, looks like there's a warning in display.c:
-> 
-> arch/arm/mach-omap2/display.c: In function 'omap_display_init':
-> arch/arm/mach-omap2/display.c:93: warning: assignment from incompatible pointer type
-> 
-> Do you have a patch for that already?
-
-Paul should have a patch for that in queue ("OMAP: change
-get_context_loss_count ret value to int"). DSS is already using the new
-style function pointer, which uses int for return value (versus the
-current function which returns u32).
-
- Tomi
 
 
+--BZaMRJmqxGScZ8Mx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Sep 14, 2011 at 07:57:13PM +0530, Kishon Vijay Abraham I wrote:
+> In one particular place the old form of checking for TLL mode is used.
+> This patch fixes the same by using macros to check for TLL mode.
+>=20
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+
+looks good to me, but this should go via Samuel Ortiz's MFD tree.
+
+--=20
+balbi
+
+--BZaMRJmqxGScZ8Mx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOjXVBAAoJEAv8Txj19kN1Qo8IAKPJNGkiEJm2F7Dy0PykJE1m
+hVEBzUnuUxmEDAb9MH8beyfKVYrj+GUyD+Fac4Pj/x8lyMWXfs7lw/tbFULconnI
+5y5uYj+isZzzG/5FO+KOOEN4suIdXuVKq1FKH4d1E1Enups9pFgstVyEXEhdlO8e
+P0X7dmLbrerJMU4jXhj1RDNmiXnxqcunhH66eFdLQS3h0s1h61JlgypDuoZzVHIw
+JuulCKgKE9SKZyF+w7TjH5kFbp51k4Vg9UBtIz8rllp8Y+EAfP0tmoOzVl9Q2zci
+SERLuT3i8PIFb+sPp7T5WSv1Bif81TDjpeA+mEqwdhVjLOvDlm4MwcovGahbwdA=
+=m68N
+-----END PGP SIGNATURE-----
+
+--BZaMRJmqxGScZ8Mx--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
