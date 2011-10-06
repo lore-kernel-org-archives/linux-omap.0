@@ -1,66 +1,119 @@
-From: Dave Hylands <dhylands@gmail.com>
-Subject: Re: Regressions for older OMAP3503 silicon
-Date: Wed, 5 Oct 2011 23:29:58 -0700
-Message-ID: <CABi1daE0ko+ZOYjifrwd1cnTeoD67SaHrBVhEmL6OP-m5UCB5g@mail.gmail.com>
-References: <CABi1daE-7OdgL5BqaLrB+X64-cf+kQMyXv9eSZOE79bRt+fMPw@mail.gmail.com>
-	<20111005162618.GA6324@atomide.com>
-	<CAGDS+nkHCmt0+Z82fSX3+bRLy4RR-_4vegb0tGUwD5u_ttnMSw@mail.gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v6 04/16] OMAP2+: UART: cleanup 8250 console driver support
+Date: Thu, 6 Oct 2011 13:46:26 +0530
+Message-ID: <CAAL8m4ytTGnc5zoARwFi8jBx6oiwQ1_dv+LqT8bPmnSbs+pe5A@mail.gmail.com>
+References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
+ <1317380495-584-4-git-send-email-govindraj.raja@ti.com> <87lit077ry.fsf@ti.com>
+ <CAAL8m4yhbPQdz5od-cv4HirzTUT4qxUJv_c3Lpj9+efjqxm6hg@mail.gmail.com> <87sjn78elt.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:33963 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935243Ab1JFG37 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 02:29:59 -0400
-Received: by wyg34 with SMTP id 34so2450636wyg.19
-        for <linux-omap@vger.kernel.org>; Wed, 05 Oct 2011 23:29:58 -0700 (PDT)
-In-Reply-To: <CAGDS+nkHCmt0+Z82fSX3+bRLy4RR-_4vegb0tGUwD5u_ttnMSw@mail.gmail.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:40182 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932245Ab1JFIQs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 04:16:48 -0400
+In-Reply-To: <87sjn78elt.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi guys,
-
-On Wed, Oct 5, 2011 at 11:19 AM, Steve Sakoman <sakoman@gmail.com> wrote:
-> On Wed, Oct 5, 2011 at 9:26 AM, Tony Lindgren <tony@atomide.com> wrote:
->> * Dave Hylands <dhylands@gmail.com> [111004 23:41]:
+On Thu, Oct 6, 2011 at 12:12 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Govindraj <govindraj.ti@gmail.com> writes:
 >
->>> I then also had to modify drivers/mmc/card/block.c and initializing
->>> disable_multi to 1 in the mmc_blk_issue_rw_rq function to get rid of
->>> the following messages for every I/O request.
->>>
->>> mmcblk0: retrying using single block read
->>> mmcblk0: retrying using single block read
->>> mmcblk0: retrying using single block read
->>> mmcblk0: retrying using single block read
->>>
->>> (since this revision of the silicon doesn't support multi-block MMC reads).
+>> Hi Kevin,
 >>
->> ..but this one is usually a problem muxing the MMC data lines.
+>> Thanks for the review,
 >>
->> Are you sure this revision only supports one data line?
+>>
+>> On Wed, Oct 5, 2011 at 3:12 AM, Kevin Hilman <khilman@ti.com> wrote:
+>>> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>>>
+>>>> We had been using traditional 8250 driver as uart console driver
+>>>> prior to omap-serial driver. Since we have omap-serial driver
+>>>> in mainline kernel for some time now it has been used as default
+>>>> uart console driver on omap2+ platforms. Remove 8250 support for
+>>>> omap-uarts.
+>>>
+>>> Nice to see the this disappearing.
+>>>
+>>>> Serial_in and serial_out override for 8250 serial driver is also
+>>>> removed.
+>>
+>>>> Empty fifo read fix is already taken care with omap-serial
+>>>> driver with data ready bit check from LSR reg before reading RX fi=
+fo.
+>>>
+>>> As stated in the previous review. =A0Patches that move code/feature=
+s
+>>> should have the removal and the add-back in the same patch. =A0Doin=
+g so
+>>> makes it easy for reviewers to see whether it was simply moved, or =
+if it
+>>> was modified when it was moved, etc.
+>>>
+>>
+>> Empty fifo read is already taken care in omap-serial.c and is part o=
+f
+>> mainline code. =A0Nothing to add to omap-serial.c
 >
-> No, I think you misunderstood the issue!
+> OK, good. =A0I guess I missed the 'already' part in your changelog.
 >
-> The issue is that multi-block mmc reads are broken and the code falls
-> back to single block reads but prints a warning each time.
+>>>> Also waiting for THRE(transmit hold reg empty) is done with wait_f=
+or_xmitr
+>>>> in omap-serial driver.
+>>>
+>>> Again, remove it here in the patch that adds that support (the erra=
+ta
+>>> patch I guess.)
+>>>
+>>
+>> The errata patch ( [PATCH v6 11/16] ) moves only mdr_errata and forc=
+e_idle
+>> from serial.c to omap-serial.c.
+>>
+>> Already handled stuffs and things that already exists with omap-seri=
+al.c
+>> are removed here.
 >
-> Looking for a definitive source for this errata with Google I find:
+> OK.
 >
-> "According to the TI docs, multiple block read transfer
-> does not work correctly in CPU revisions 2.1 and earlier (TI advisory
-> 2.1.1.128)."
+>>>> Remove headers that were necessary to support 8250 support
+>>>> and remove all config bindings done to keep 8250 backward compatib=
+ility
+>>>> while adding omap-serial driver. Remove omap_uart_reset needed for
+>>>> 8250 autoconf.
+>>>>
+>>>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>>>
+>>> So basically, this patch should only remove the legacy 8250 support=
+ (as
+>>> the subject says) and everything else should be done in the other
+>>> relevant patches.
+>>>
+>>
+>> Yes removes only the 8250 code. serial_in/serial_out were read/write=
+ overrides
+>> part of 8250 code.
+>>
+>> serial_in/serial_out had these checks for empty fifo read and wait f=
+or tx
+>> which is already handled with omap-serial.c.
 >
-> So the correct fix is probably to use multi-block reads only on
-> revisions post 2.1.
+> OK, thanks for the clarification.
+>
+> The changelog could've been a bit more specific for readers not
+> intimately familiar with the driver.
+>
 
-And uboot does a very specific check for the silicon revision and only
-does single block reads.
-http://git.denx.de/?p=u-boot.git;a=blob;f=drivers/mmc/omap_hsmmc.c;h=5d4cf51104a7936377dc27a2f18e8240ada9a24a;hb=HEAD#l497
-(look at line 497)
+Okay fine, I will re-visit this.
 
--- 
-Dave Hylands
-Shuswap, BC, Canada
-http://www.davehylands.com
+--
+Thanks,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
