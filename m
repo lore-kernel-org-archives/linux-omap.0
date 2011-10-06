@@ -1,54 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V3 1/4] arm:omap:am33xx: Update common omap platform files
-Date: Thu, 6 Oct 2011 16:03:34 -0700
-Message-ID: <20111006230334.GY6324@atomide.com>
-References: <hvaibhav@ti.com>
-	<1316529142-27564-2-git-send-email-hvaibhav@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2] ARM: OMAP3: PM: fix I/O wakeup and I/O chain clock
+ control detection
+Date: Thu, 6 Oct 2011 17:07:35 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110061659070.4611@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1110061310390.4611@utopia.booyaka.com> <CAGDS+nno3=sDDwdF6Ew6qG-8mN9bCeawCpho+AJo=jE9QVk0ag@mail.gmail.com> <alpine.DEB.2.00.1110061346570.4611@utopia.booyaka.com> <20111006222912.GA27281@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1316529142-27564-2-git-send-email-hvaibhav@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: hvaibhav@ti.com
-Cc: khilman@ti.com, paul@pwsan.com, Hemant Pedanekar <hemantp@ti.com>, Afzal Mohammed <afzal@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:37808 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759270Ab1JFXHg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 19:07:36 -0400
+In-Reply-To: <20111006222912.GA27281@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Steve Sakoman <sakoman@gmail.com>, khilman@ti.com, dhylands@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* hvaibhav@ti.com <hvaibhav@ti.com> [110920 06:59]:
-> From: Afzal Mohammed <afzal@ti.com>
-> 
-> This patch updates the common platform files with AM335X device
-> support (AM33XX family).
-> 
-> The approach taken in this patch is,
-> AM33XX device will be considered as OMAP3 variant, and a separate
-> SoC class created for AM33XX family of devices with a subclass type
-> for AM335X device, which is newly added device in the family.
-> 
-> This means, cpu_is_omap34xx(), cpu_is_am33xx() and cpu_is_am335x()
-> checks will return success on AM335X device.
-> A kernel config option CONFIG_SOC_OMAPAM33XX is added under OMAP3
-> to include support for AM33XX build.
-> 
-> Also, cpu_mask and RATE_IN_XXX flags have crossed 8 bit hence
-> struct clksel_rate.flags, struct prcm_config.flags and cpu_mask
-> are changed to u16 from u8.
-> 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Cc: Hemant Pedanekar <hemantp@ti.com>
+On Thu, 6 Oct 2011, Russell King - ARM Linux wrote:
 
-I'll add this one into soc branch.
+> On Thu, Oct 06, 2011 at 01:47:22PM -0600, Paul Walmsley wrote:
+> > +	if ((omap_rev() == OMAP3430_REV_ES3_1 ||
+> > +	     omap_rev() == OMAP3430_REV_ES3_1_2) ||
+> > +	    cpu_is_omap3630())
+> > +		omap_features |= OMAP3_HAS_IO_CHAIN_CTRL;
+> 
+> 	(a || b) || c === a || b || c
+> 
+> IOW, no need for the additional parens.
 
-Regards,
+Thanks; patch updated.
 
-Tony
+> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> > index 7255d9b..a6156bd 100644
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -99,31 +99,28 @@ static void omap3_enable_io_chain(void)
+> >  {
+> >  	int timeout = 0;
+> >  
+> > -	if (omap_rev() >= OMAP3430_REV_ES3_1) {
+> > -		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
+> > -				     PM_WKEN);
+> > -		/* Do a readback to assure write has been done */
+> > -		omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
+> > -
+> > -		while (!(omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN) &
+> > -			 OMAP3430_ST_IO_CHAIN_MASK)) {
+> > -			timeout++;
+> > -			if (timeout > 1000) {
+> > -				printk(KERN_ERR "Wake up daisy chain "
+> > -				       "activation failed.\n");
+> > -				return;
+> > -			}
+> > -			omap2_prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK,
+> > -					     WKUP_MOD, PM_WKEN);
+> > +	omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
+> > +				   PM_WKEN);
+> > +	/* Do a readback to assure write has been done */
+> > +	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
+> > +
+> > +	while (!(omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN) &
+> > +		 OMAP3430_ST_IO_CHAIN_MASK)) {
+> > +		timeout++;
+> > +		if (timeout > 1000) {
+> > +			printk(KERN_ERR "Wake up daisy chain "
+> > +			       "activation failed.\n");
+> > +			return;
+> >  		}
+> > +		omap2_prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK,
+> > +					   WKUP_MOD, PM_WKEN);
+> >  	}
+> 
+> This should've been caught before.  Two things:
+> 
+> 1. Do you know how long it takes this to time out?
+
+No, I don't; and I doubt the original author did either.
+
+Really there should be at least a udelay(1) in that code; since as it 
+stands right now, there's at least a partial CPU/interconnect/high 
+frequency oscillator speed dependency in that loop.
+
+But this patch was intended to be a minimal fix, avoiding code changes 
+that are unrelated to the I/O chain feature detection change.  Those lines 
+just showed up due to the indentation level change...
+ 
+> 2. Don't wrap error printks, it prevents them being grepped for.
+
+Thanks; patch updated.
+
+
+- Paul
