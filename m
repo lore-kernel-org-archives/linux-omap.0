@@ -1,83 +1,49 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/5 v13] arm: omap: usb: ehci and ohci hwmod structures
- for omap3
-Date: Thu, 6 Oct 2011 10:35:02 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110061030490.4611@utopia.booyaka.com>
-References: <1317901123-2546-1-git-send-email-keshava_mgowda@ti.com>
+From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
+	<vjaquez@igalia.com>
+Subject: [PATCH v2] omap: dmtimer: convert printk to pr_err / WARN
+Date: Thu,  6 Oct 2011 19:30:02 +0200
+Message-ID: <1317922204-12512-1-git-send-email-vjaquez@igalia.com>
+References: <1317898106-1891-1-git-send-email-vjaquez@igalia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1317901123-2546-1-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1317898106-1891-1-git-send-email-vjaquez@igalia.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Joe Perches <joe@perches.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Timo Teras <timo.teras@solidboot.com>, Harvey Harrison <harvey.harrison@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Keshava,
-
-On Thu, 6 Oct 2011, Keshava Munegowda wrote:
-
-> Following 2 hwmod structures are added
->     1. usb_host_hs
->          The hwmod of usbhs with uhh, ehci and ohci base addresses
->          functional clock and ehci, ohci irqs
-> 
->     2. usb_tll_hs
->           hwmod of usbhs with the TLL base address and irq.
-> 
-> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-> Reviewed-by: Partha Basak <parthab@india.ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  227 ++++++++++++++++++++++++++++
->  1 files changed, 227 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 59fdb9f..b8ca690 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -84,6 +84,8 @@ static struct omap_hwmod omap3xxx_mcbsp4_hwmod;
-
-...
-
-> +static struct omap_hwmod_ocp_if omap34xx_usb_host_hs__ick = {
-> +	.master         = &omap3xxx_l4_core_hwmod,
-> +	.slave          = &omap34xx_usb_host_hs_hwmod,
-> +	.clk		= "usbhost_ick",
-> +	.addr		= omap34xx_usb_host_hs_addrs,
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +/*
-> + * This clock should be on/off only with main clock; If auto idle is set,
-> + * the usbhs controller prevents the omap to enter in to low power mode,
-> + * hence don't use auto idle here.
-> + */
-> +	.flags		= OCPIF_SWSUP_IDLE,
-
-This is still unclear to me.  Doesn't this interface clock support 
-interface clock auto-idle?  If so, then when the UHH's target port is 
-forced idle and its initiator port is forced to standby, then shouldn't 
-the PRCM automatically idle this interface clock?
-
-Or is there some hardware problem where the PRCM won't auto-idle this 
-clock when the UHH is in idle + standby?
-
-> +};
-> +
-
-...
-
-> +static struct omap_hwmod_ocp_if omap34xx_ick_cfg__usb_tll_hs = {
-> +	.clk		= "usbtll_ick",
-> +	.addr		= omap34xx_usb_tll_hs_addrs,
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +/*
-> + * This clock should be on/off only with main clock; If auto idle is set,
-> + * the usbhs controller prevents the omap to enter in to low power mode,
-> + * hence don't use auto idle here.
-> + */
-> +	.flags		= OCPIF_SWSUP_IDLE,
-
-Same comment here, with the exception of the part about standby since the 
-TLL doesn't have an initiator port.
-
-
-- Paul
+Q29udmVydCBhIHByaW50ayhLRVJOX0VSUikgbWVzc2FnZSBpbiB0aGUgZHJpdmVyIHRvIHByX2Vy
+cigpLCBhbmQKdXNlIFdBUk4oKSBpbnN0ZWFkIG9mIGEgY3VzdG9tIGxvZyBtZXNzYWdlIHdpdGgg
+YSBzdGFjayBkdW1wLgoKU2lnbmVkLW9mZi1ieTogVsOtY3RvciBNYW51ZWwgSsOhcXVleiBMZWFs
+IDx2amFxdWV6QGlnYWxpYS5jb20+Ci0tLQogYXJjaC9hcm0vcGxhdC1vbWFwL2RtdGltZXIuYyB8
+ICAgIDYgKystLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlv
+bnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvZG10aW1lci5jIGIvYXJjaC9h
+cm0vcGxhdC1vbWFwL2RtdGltZXIuYwppbmRleCBlZTlmNmViLi5kZWFkMGYzIDEwMDY0NAotLS0g
+YS9hcmNoL2FybS9wbGF0LW9tYXAvZG10aW1lci5jCisrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9k
+bXRpbWVyLmMKQEAgLTMyMiw3ICszMjIsNyBAQCBzdGF0aWMgdm9pZCBvbWFwX2RtX3RpbWVyX3dh
+aXRfZm9yX3Jlc2V0KHN0cnVjdCBvbWFwX2RtX3RpbWVyICp0aW1lcikKIAl3aGlsZSAoIShvbWFw
+X2RtX3RpbWVyX3JlYWRfcmVnKHRpbWVyLCBPTUFQX1RJTUVSX1NZU19TVEFUX1JFRykgJiAxKSkg
+ewogCQljKys7CiAJCWlmIChjID4gMTAwMDAwKSB7Ci0JCQlwcmludGsoS0VSTl9FUlIgIlRpbWVy
+IGZhaWxlZCB0byByZXNldFxuIik7CisJCQlwcl9lcnIoIlRpbWVyIGZhaWxlZCB0byByZXNldFxu
+Iik7CiAJCQlyZXR1cm47CiAJCX0KIAl9CkBAIC0zOTcsOSArMzk3LDcgQEAgc3RydWN0IG9tYXBf
+ZG1fdGltZXIgKm9tYXBfZG1fdGltZXJfcmVxdWVzdF9zcGVjaWZpYyhpbnQgaWQpCiAJc3Bpbl9s
+b2NrX2lycXNhdmUoJmRtX3RpbWVyX2xvY2ssIGZsYWdzKTsKIAlpZiAoaWQgPD0gMCB8fCBpZCA+
+IGRtX3RpbWVyX2NvdW50IHx8IGRtX3RpbWVyc1tpZC0xXS5yZXNlcnZlZCkgewogCQlzcGluX3Vu
+bG9ja19pcnFyZXN0b3JlKCZkbV90aW1lcl9sb2NrLCBmbGFncyk7Ci0JCXByaW50aygiQlVHOiB3
+YXJuaW5nIGF0ICVzOiVkLyVzKCk6IHVuYWJsZSB0byBnZXQgdGltZXIgJWRcbiIsCi0JCSAgICAg
+ICBfX0ZJTEVfXywgX19MSU5FX18sIF9fZnVuY19fLCBpZCk7Ci0JCWR1bXBfc3RhY2soKTsKKwkJ
+V0FSTigxLCAidW5hYmxlIHRvIGdldCB0aW1lciAlZFxuIiwgaWQpOwogCQlyZXR1cm4gTlVMTDsK
+IAl9CiAKLS0gCjEuNy42LjMKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVs
+QGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
