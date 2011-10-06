@@ -1,61 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] ARM: OMAP: Remove calls to SRAM allocations for
- framebuffer
-Date: Thu, 6 Oct 2011 09:22:40 -0700
-Message-ID: <20111006162239.GI6324@atomide.com>
-References: <20111005004339.26980.31149.stgit@kaulin.local>
- <20111005004544.26980.35612.stgit@kaulin.local>
- <1317797128.2631.2.camel@deskari>
- <20111005224141.GF6324@atomide.com>
- <1317890284.1945.38.camel@deskari>
+From: =?iso-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>
+Subject: Re: [PATCH] omap: dmtimer: convert printk to pr_*
+Date: Thu, 6 Oct 2011 18:26:14 +0200
+Message-ID: <20111006162614.GH30222@lit.local.igalia.com>
+References: <1317898106-1891-1-git-send-email-vjaquez@igalia.com>
+ <1317914379.10495.5.camel@Joe-Laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27619 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934637Ab1JFQWp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 12:22:45 -0400
+Received: from smtp4.mundo-r.com ([212.51.32.151]:34009 "EHLO
+	smtp4.mundo-r.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935856Ab1JFQ0R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 12:26:17 -0400
 Content-Disposition: inline
-In-Reply-To: <1317890284.1945.38.camel@deskari>
+In-Reply-To: <1317914379.10495.5.camel@Joe-Laptop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Timo Teras <timo.teras@solidboot.com>, Harvey Harrison <harvey.harrison@gmail.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [111006 01:04]:
-> On Wed, 2011-10-05 at 15:41 -0700, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [111004 23:11]:
-> > > On Tue, 2011-10-04 at 17:45 -0700, Tony Lindgren wrote:
-> > > > This assumes fixed mappings which will not work once we move
-> > > > to use ioremap_exec(). It seems that these are currently
-> > > > not in use, or in use for some out of tree corner cases.
-> > > > 
-> > > > If SRAM support for framebuffer is wanted, it should be done
-> > > > with ioremap in the driver.
-> > > > 
-> > > > Note that further removal of the code can now be done,
-> > > > but that can be done seprately by the driver maintainers.
-> > > > 
-> > > > Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > 
-> > > Looks good to me. I have similar changes in my working branch for omapfb
-> > > cleanup.
-> > > 
-> > > Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > 
-> > Thanks. FYI, looks like there's a warning in display.c:
-> > 
-> > arch/arm/mach-omap2/display.c: In function 'omap_display_init':
-> > arch/arm/mach-omap2/display.c:93: warning: assignment from incompatible pointer type
-> > 
-> > Do you have a patch for that already?
-> 
-> Paul should have a patch for that in queue ("OMAP: change
-> get_context_loss_count ret value to int"). DSS is already using the new
-> style function pointer, which uses int for return value (versus the
-> current function which returns u32).
+On Thu, Oct 06, 2011 at 08:19:39AM -0700, Joe Perches wrote:
+> On Thu, 2011-10-06 at 12:48 +0200, V=EDctor Manuel J=E1quez Leal wrot=
+e:
+> > Convert all the printk(<level>) messages in the driver to pr_<level=
+>().
+> []
+> > diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmti=
+mer.c
+> []
+> > @@ -397,8 +397,7 @@ struct omap_dm_timer *omap_dm_timer_request_spe=
+cific(int id)
+> >  	spin_lock_irqsave(&dm_timer_lock, flags);
+> >  	if (id <=3D 0 || id > dm_timer_count || dm_timers[id-1].reserved)=
+ {
+> >  		spin_unlock_irqrestore(&dm_timer_lock, flags);
+> > -		printk("BUG: warning at %s:%d/%s(): unable to get timer %d\n",
+> > -		       __FILE__, __LINE__, __func__, id);
+> > +		pr_warning("unable to get timer %d\n", id);
+>=20
+> For new conversions, please use pr_warn not pr_warning.
+> It's shorter and similar to other dev_warn/netdev_warn
+> uses.
+>=20
+> >  		dump_stack();
+>=20
+> To emit a message then dump stack, please use
+> 	WARN(1, fmt, ...)
+>=20
 
-OK thanks.
+Thanks a lot!
 
-Tony
+I'll do that and then resend.
+
+vmjl
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
