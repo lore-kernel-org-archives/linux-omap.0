@@ -1,32 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2: Devkit8000: Remove double omap_mux_init_gpio
-Date: Thu, 6 Oct 2011 12:51:34 -0700
-Message-ID: <20111006195134.GN6324@atomide.com>
-References: <1315321909-5593-1-git-send-email-weber@corscience.de>
+Subject: Re: [PATCH] ARM: OMAP2+: dmtimer: Fix warning
+Date: Thu, 6 Oct 2011 12:53:35 -0700
+Message-ID: <20111006195335.GO6324@atomide.com>
+References: <1317278657-12414-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41245 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S935270Ab1JFTxh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 15:53:37 -0400
 Content-Disposition: inline
-In-Reply-To: <1315321909-5593-1-git-send-email-weber@corscience.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Thomas Weber <weber@corscience.de>
-Cc: linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, open list <linux-kernel@vger.kernel.org>, "open list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <1317278657-12414-1-git-send-email-afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Thomas Weber <weber@corscience.de> [110906 07:38]:
-> Remove the init of card detect pin because
-> omap_mux_init_gpio() is called during hsmmc initialization
-> for the write protect and card detect pin.
+* Afzal Mohammed <afzal@ti.com> [110928 23:10]:
+> Fix,
+> 
+> arch/arm/mach-omap2/timer.c: In function 'omap_timer_init':
+> arch/arm/mach-omap2/timer.c:482: warning: assignment from incompatible pointer type
 
-Thanks, adding this into fixes-part2 branch.
+This should already be fixed when I merged together the
+dt-base branch.
+
+Regards,
 
 Tony
+ 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+> 
+> Fix on tony/master
+> 
+>  arch/arm/mach-omap2/timer.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 1140e98..e49fc7b 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -434,7 +434,7 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
+>  	int ret = 0;
+>  	char *name = "omap_timer";
+>  	struct dmtimer_platform_data *pdata;
+> -	struct omap_device *od;
+> +	struct platform_device *pdev;
+>  	struct omap_timer_capability_dev_attr *timer_dev_attr;
+>  	struct powerdomain *pwrdm;
+>  
+> @@ -476,12 +476,12 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
+>  #ifdef CONFIG_PM
+>  	pdata->get_context_loss_count = omap_pm_get_dev_context_loss_count;
+>  #endif
+> -	od = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
+> +	pdev = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
+>  			omap2_dmtimer_latency,
+>  			ARRAY_SIZE(omap2_dmtimer_latency),
+>  			0);
+>  
+> -	if (IS_ERR(od)) {
+> +	if (IS_ERR(pdev)) {
+>  		pr_err("%s: Can't build omap_device for %s: %s.\n",
+>  			__func__, name, oh->name);
+>  		ret = -EINVAL;
+> -- 
+> 1.6.2.4
+> 
