@@ -1,55 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] omap: dmtimer: convert printk to pr_err / WARN
-Date: Thu, 6 Oct 2011 13:18:27 -0700
-Message-ID: <20111006201827.GT6324@atomide.com>
-References: <1317898106-1891-1-git-send-email-vjaquez@igalia.com>
-	<1317922204-12512-1-git-send-email-vjaquez@igalia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] ARM: OMAP3: hwmod: fix variant registration and remove
+ SmartReflex from common list
+Date: Thu, 6 Oct 2011 14:39:28 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110061433540.4611@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1317922204-12512-1-git-send-email-vjaquez@igalia.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?utf-8?Q?V=C3=ADctor_Manuel_J=C3=A1quez?= Leal <vjaquez@igalia.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joe Perches <joe@perches.com>, linux-omap@vger.kernel.org, Timo Teras <timo.teras@solidboot.com>, Harvey Harrison <harvey.harrison@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:43843 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754056Ab1JFUj3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 16:39:29 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: tony@atomide.com, Chase Maupin <chase.maupin@ti.com>, Abhilash K V <abhilash.kv@ti.com>
 
-KiBWw61jdG9yIE1hbnVlbCBKw6FxdWV6IExlYWwgPHZqYXF1ZXpAaWdhbGlhLmNvbT4gWzExMTAw
-NiAwOTo1Nl06Cj4gQ29udmVydCBhIHByaW50ayhLRVJOX0VSUikgbWVzc2FnZSBpbiB0aGUgZHJp
-dmVyIHRvIHByX2VycigpLCBhbmQKPiB1c2UgV0FSTigpIGluc3RlYWQgb2YgYSBjdXN0b20gbG9n
-IG1lc3NhZ2Ugd2l0aCBhIHN0YWNrIGR1bXAuCj4gCj4gU2lnbmVkLW9mZi1ieTogVsOtY3RvciBN
-YW51ZWwgSsOhcXVleiBMZWFsIDx2amFxdWV6QGlnYWxpYS5jb20+CgpMb29rcyBsaWtlIHRoaXMg
-d29uJ3QgYXBwbHkgd2l0aCB0aGUgY2hhbmdlcyB3ZSBoYXZlIHF1ZXVlZCB1cCwKY2FyZSB0byBy
-ZWZyZXNoIHRoaXMgYWdhaW5zdCBsaW51eC1vbWFwIG1hc3RlciBicmFuY2ggKG9yIGRtdGltZXIK
-YnJhbmNoKT8KClJlZ2FyZHMsCgpUb255Cgo+IC0tLQo+ICBhcmNoL2FybS9wbGF0LW9tYXAvZG10
-aW1lci5jIHwgICAgNiArKy0tLS0KPiAgMSBmaWxlcyBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyks
-IDQgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9kbXRp
-bWVyLmMgYi9hcmNoL2FybS9wbGF0LW9tYXAvZG10aW1lci5jCj4gaW5kZXggZWU5ZjZlYi4uZGVh
-ZDBmMyAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9wbGF0LW9tYXAvZG10aW1lci5jCj4gKysrIGIv
-YXJjaC9hcm0vcGxhdC1vbWFwL2RtdGltZXIuYwo+IEBAIC0zMjIsNyArMzIyLDcgQEAgc3RhdGlj
-IHZvaWQgb21hcF9kbV90aW1lcl93YWl0X2Zvcl9yZXNldChzdHJ1Y3Qgb21hcF9kbV90aW1lciAq
-dGltZXIpCj4gIAl3aGlsZSAoIShvbWFwX2RtX3RpbWVyX3JlYWRfcmVnKHRpbWVyLCBPTUFQX1RJ
-TUVSX1NZU19TVEFUX1JFRykgJiAxKSkgewo+ICAJCWMrKzsKPiAgCQlpZiAoYyA+IDEwMDAwMCkg
-ewo+IC0JCQlwcmludGsoS0VSTl9FUlIgIlRpbWVyIGZhaWxlZCB0byByZXNldFxuIik7Cj4gKwkJ
-CXByX2VycigiVGltZXIgZmFpbGVkIHRvIHJlc2V0XG4iKTsKPiAgCQkJcmV0dXJuOwo+ICAJCX0K
-PiAgCX0KPiBAQCAtMzk3LDkgKzM5Nyw3IEBAIHN0cnVjdCBvbWFwX2RtX3RpbWVyICpvbWFwX2Rt
-X3RpbWVyX3JlcXVlc3Rfc3BlY2lmaWMoaW50IGlkKQo+ICAJc3Bpbl9sb2NrX2lycXNhdmUoJmRt
-X3RpbWVyX2xvY2ssIGZsYWdzKTsKPiAgCWlmIChpZCA8PSAwIHx8IGlkID4gZG1fdGltZXJfY291
-bnQgfHwgZG1fdGltZXJzW2lkLTFdLnJlc2VydmVkKSB7Cj4gIAkJc3Bpbl91bmxvY2tfaXJxcmVz
-dG9yZSgmZG1fdGltZXJfbG9jaywgZmxhZ3MpOwo+IC0JCXByaW50aygiQlVHOiB3YXJuaW5nIGF0
-ICVzOiVkLyVzKCk6IHVuYWJsZSB0byBnZXQgdGltZXIgJWRcbiIsCj4gLQkJICAgICAgIF9fRklM
-RV9fLCBfX0xJTkVfXywgX19mdW5jX18sIGlkKTsKPiAtCQlkdW1wX3N0YWNrKCk7Cj4gKwkJV0FS
-TigxLCAidW5hYmxlIHRvIGdldCB0aW1lciAlZFxuIiwgaWQpOwo+ICAJCXJldHVybiBOVUxMOwo+
-ICAJfQo+ICAKPiAtLSAKPiAxLjcuNi4zCj4gCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1h
-cm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcv
-bWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+
+Commit d6504acd2125984c61dce24727dd3842d0144015 ("OMAP2+: hwmod:
+remove OMAP_CHIP*") tests the inverse condition of what it should be
+testing for the return value from omap_hwmod_register().  This causes
+several IP blocks to not be registered on several OMAP3 family devices.
+
+Fixing that bug also unmasked another bug, originally reported by
+Chase Maupin <chase.maupin@ti.com> and then subsequently by Abhilash K
+V <abhilash.kv@ti.com>, which caused SmartReflex IP blocks to be
+registered on SoCs that don't support them.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Chase Maupin <chase.maupin@ti.com>
+Cc: Abhilash K V <abhilash.kv@ti.com>
+---
+
+This fixes a pretty embarrassing "brown paper bag" bug of mine in one of 
+the cleanup patches.  Tony, it would be good if you could send this to 
+Arnd ASAP and merge into your cleanup branch.  Tested on 3430SDP, 37XX 
+EVM, and OMAP3503.
+
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index ab35acb..53b6706 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -13,6 +13,8 @@
+  *
+  * XXX these should be marked initdata for multi-OMAP kernels
+  */
++#include <linux/err.h>
++
+ #include <plat/omap_hwmod.h>
+ #include <mach/irqs.h>
+ #include <plat/cpu.h>
+@@ -3161,8 +3163,6 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_i2c1_hwmod,
+ 	&omap3xxx_i2c2_hwmod,
+ 	&omap3xxx_i2c3_hwmod,
+-	&omap34xx_sr1_hwmod,
+-	&omap34xx_sr2_hwmod,
+ 
+ 	/* gpio class */
+ 	&omap3xxx_gpio1_hwmod,
+@@ -3240,7 +3240,7 @@ int __init omap3xxx_hwmod_init(void)
+ 
+ 	/* Register hwmods common to all OMAP3 */
+ 	r = omap_hwmod_register(omap3xxx_hwmods);
+-	if (!r)
++	if (IS_ERR_VALUE(r))
+ 		return r;
+ 
+ 	rev = omap_rev();
+@@ -3265,7 +3265,7 @@ int __init omap3xxx_hwmod_init(void)
+ 	};
+ 
+ 	r = omap_hwmod_register(h);
+-	if (!r)
++	if (IS_ERR_VALUE(r))
+ 		return r;
+ 
+ 	/*
+-- 
+1.7.6.3
+
