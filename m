@@ -1,21 +1,39 @@
 From: Paul Walmsley <paul@pwsan.com>
 Subject: [PATCH v2] ARM: OMAP3: PM: fix I/O wakeup and I/O chain clock control
- detection
-Date: Thu, 6 Oct 2011 13:47:22 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110061346570.4611@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1110061310390.4611@utopia.booyaka.com> <CAGDS+nno3=sDDwdF6Ew6qG-8mN9bCeawCpho+AJo=jE9QVk0ag@mail.gmail.com>
+ detection (fwd)
+Date: Thu, 6 Oct 2011 13:49:30 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110061348220.4611@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50591 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:50606 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759131Ab1JFTrX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 15:47:23 -0400
-In-Reply-To: <CAGDS+nno3=sDDwdF6Ew6qG-8mN9bCeawCpho+AJo=jE9QVk0ag@mail.gmail.com>
+	with ESMTP id S1756812Ab1JFTtb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 15:49:31 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@ti.com
+Cc: linux-omap@vger.kernel.org
+
+
+Hi Kevin,
+
+I'm assuming you'll want to handle merging this one ... when you do, it 
+would be good to add a cc line to stable@kernel.org so it can be 
+integrated into previous kernel releases.
+
+regards
+
+- Paul
+
+---------- Forwarded message ----------
+Date: Thu, 6 Oct 2011 13:47:22 -0600 (MDT)
+From: Paul Walmsley <paul@pwsan.com>
 To: Steve Sakoman <sakoman@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, dhylands@gmail.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+    khilman@ti.com, dhylands@gmail.com
+Subject: [PATCH v2] ARM: OMAP3: PM: fix I/O wakeup and I/O chain clock control
+    detection
 
 
 The way that we detect which OMAP3 chips support I/O wakeup and
@@ -202,3 +220,7 @@ index 67b3d75..3a280aa 100644
 -- 
 1.7.6.3
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
