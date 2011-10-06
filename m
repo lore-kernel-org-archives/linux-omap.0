@@ -1,85 +1,66 @@
 From: Dave Hylands <dhylands@gmail.com>
 Subject: Re: Regressions for older OMAP3503 silicon
-Date: Wed, 5 Oct 2011 23:24:26 -0700
-Message-ID: <CABi1daF7+Rzq-CWOOW3PVY3cgstBdvqZ0p_HMeLBNJiy1tVVbw@mail.gmail.com>
+Date: Wed, 5 Oct 2011 23:29:58 -0700
+Message-ID: <CABi1daE0ko+ZOYjifrwd1cnTeoD67SaHrBVhEmL6OP-m5UCB5g@mail.gmail.com>
 References: <CABi1daE-7OdgL5BqaLrB+X64-cf+kQMyXv9eSZOE79bRt+fMPw@mail.gmail.com>
-	<alpine.DEB.2.00.1110051206090.4611@utopia.booyaka.com>
+	<20111005162618.GA6324@atomide.com>
+	<CAGDS+nkHCmt0+Z82fSX3+bRLy4RR-_4vegb0tGUwD5u_ttnMSw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:42993 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935243Ab1JFGY1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 02:24:27 -0400
-Received: by wwf22 with SMTP id 22so3717902wwf.1
-        for <linux-omap@vger.kernel.org>; Wed, 05 Oct 2011 23:24:26 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1110051206090.4611@utopia.booyaka.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33963 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935243Ab1JFG37 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 02:29:59 -0400
+Received: by wyg34 with SMTP id 34so2450636wyg.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Oct 2011 23:29:58 -0700 (PDT)
+In-Reply-To: <CAGDS+nkHCmt0+Z82fSX3+bRLy4RR-_4vegb0tGUwD5u_ttnMSw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, sakoman@gmail.com
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Hi Paul,
+Hi guys,
 
-On Wed, Oct 5, 2011 at 11:09 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi Dave,
+On Wed, Oct 5, 2011 at 11:19 AM, Steve Sakoman <sakoman@gmail.com> wrote:
+> On Wed, Oct 5, 2011 at 9:26 AM, Tony Lindgren <tony@atomide.com> wrote:
+>> * Dave Hylands <dhylands@gmail.com> [111004 23:41]:
 >
-> On Wed, 5 Oct 2011, Dave Hylands wrote:
+>>> I then also had to modify drivers/mmc/card/block.c and initializing
+>>> disable_multi to 1 in the mmc_blk_issue_rw_rq function to get rid of
+>>> the following messages for every I/O request.
+>>>
+>>> mmcblk0: retrying using single block read
+>>> mmcblk0: retrying using single block read
+>>> mmcblk0: retrying using single block read
+>>> mmcblk0: retrying using single block read
+>>>
+>>> (since this revision of the silicon doesn't support multi-block MMC reads).
+>>
+>> ..but this one is usually a problem muxing the MMC data lines.
+>>
+>> Are you sure this revision only supports one data line?
 >
->> I have an older overo board, which has an OMAP3503
->>
->> U-booot reports:
->> OMAP3503-GP ES2.1, CPU-OPP2, L3-165MHz, Max CPU Clock 600 mHz
->>
->> In order to get the 2.6.39 kernel to boot, I had to make 2 modificat=
-ions:
->>
->> In arch/arm/mach-omap2/pm34xx.c, in the omap_sram_idle routine I had
->> to put an #if 0 around:
->>
->> #if 0
->> =A0 =A0 =A0 =A0if (omap3_has_io_wakeup() &&
->> =A0 =A0 =A0 =A0 =A0 =A0(per_next_state < PWRDM_POWER_ON ||
->> =A0 =A0 =A0 =A0 =A0 =A0 core_next_state < PWRDM_POWER_ON)) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap2_prm_set_mod_reg_bits(OMAP3430_E=
-N_IO_MASK,
->> WKUP_MOD, PM_WKEN);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap3_enable_io_chain();
->> =A0 =A0 =A0 =A0}
->> #endif
->>
->> or I would get continuous
->>
->> Wake up daisy chain activation failed.
->>
->> messages on the console.
+> No, I think you misunderstood the issue!
 >
-> Looking at the 2.6.39 kernel sources, those messages are coming from
-> mach-omap2/pm34xx.c:omap3_enable_io_chain(). =A0That means that somet=
-hing is
-> seriously wrong since that code should only be executing on ES3.1 chi=
-ps
-> and higher.
+> The issue is that multi-block mmc reads are broken and the code falls
+> back to single block reads but prints a warning each time.
 >
-> Could you put something similar to a
+> Looking for a definitive source for this errata with Google I find:
 >
-> pr_err("** omap_rev is %08x\n", omap_rev());
+> "According to the TI docs, multiple block read transfer
+> does not work correctly in CPU revisions 2.1 and earlier (TI advisory
+> 2.1.1.128)."
 >
-> in your pm34xx.c right above the #if 0 that you added and let us know=
- what
-> it says?
+> So the correct fix is probably to use multi-block reads only on
+> revisions post 2.1.
 
-It reports
+And uboot does a very specific check for the silicon revision and only
+does single block reads.
+http://git.denx.de/?p=u-boot.git;a=blob;f=drivers/mmc/omap_hsmmc.c;h=5d4cf51104a7936377dc27a2f18e8240ada9a24a;hb=HEAD#l497
+(look at line 497)
 
-** omap_rev is 35030234
-
---=20
+-- 
 Dave Hylands
 Shuswap, BC, Canada
 http://www.davehylands.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
