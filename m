@@ -1,201 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP2: Fix H4 matrix keyboard warning
-Date: Thu, 6 Oct 2011 15:46:06 -0700
-Message-ID: <20111006224605.GW6324@atomide.com>
-References: <20111006224435.GV6324@atomide.com>
+Subject: Re: [PATCH-V3 2/4] arm:omap:am33xx: Update common OMAP machine
+ specific sources
+Date: Thu, 6 Oct 2011 16:03:08 -0700
+Message-ID: <20111006230308.GX6324@atomide.com>
+References: <hvaibhav@ti.com>
+ <1316529142-27564-3-git-send-email-hvaibhav@ti.com>
+ <87fwjjcfbt.fsf@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB5930257840691@dbde02.ent.ti.com>
+ <87ehyyj6ts.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:36583 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752671Ab1JFWqI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 18:46:08 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26843 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759360Ab1JFXDO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 19:03:14 -0400
 Content-Disposition: inline
-In-Reply-To: <20111006224435.GV6324@atomide.com>
+In-Reply-To: <87ehyyj6ts.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
 
-Convert to use matrix keyboard to remove the warning
-"Please update the board to use matrix-keypad driver".
+* Kevin Hilman <khilman@ti.com> [110930 09:35]:
+> "Premi, Sanjeev" <premi@ti.com> writes:
+> 
+> Actually, looking at this closer, I think the infrastructure is already
+> there to handle this cleanly.
+> 
+> Basically, dpll5 should not even be registered for SoCs where it doesn't
+> exist.  Then, any attempts to use DPLL5 would know it doesn't exist
+> because the call to clk_get() in omap3_clk_lock_dpll5() would fail.
 
-Based on similar setup in palmtc.c. Note that this
-patch is compile tested only because of lack of working
-hardware.
+Yes please use the SoC specific lists, see what we have now queued
+up in sram-map-io branch. So using SoC specific map_io + init_early +
+set_globals should do the trick.
+ 
+> I think the clock3xxx_data.c needs a bit more cleanup so that only
+> clocks that exist for a given SoC are registered.
+> 
+> Paul already did a similar cleanup for the powerdomain data files by
+> creating separate lists for common ones and unique ones.  Looks like we
+> need the same for the clock data.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Right.
 
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -25,6 +25,7 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/input/matrix_keypad.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -35,7 +36,6 @@
- #include <plat/usb.h>
- #include <plat/board.h>
- #include <plat/common.h>
--#include <plat/keypad.h>
- #include <plat/menelaus.h>
- #include <plat/dma.h>
- #include <plat/gpmc.h>
-@@ -48,10 +48,8 @@
- 
- #define H4_ETHR_GPIO_IRQ		92
- 
--static unsigned int row_gpios[6] = { 88, 89, 124, 11, 6, 96 };
--static unsigned int col_gpios[7] = { 90, 91, 100, 36, 12, 97, 98 };
--
--static const unsigned int h4_keymap[] = {
-+#if defined(CONFIG_KEYBOARD_MATRIX) || defined(CONFIG_KEYBOARD_MATRIX_MODULE)
-+static const uint32_t board_matrix_keys[] = {
- 	KEY(0, 0, KEY_LEFT),
- 	KEY(1, 0, KEY_RIGHT),
- 	KEY(2, 0, KEY_A),
-@@ -84,6 +82,71 @@ static const unsigned int h4_keymap[] = {
- 	KEY(4, 5, KEY_ENTER),
- };
- 
-+static const struct matrix_keymap_data board_keymap_data = {
-+	.keymap			= board_matrix_keys,
-+	.keymap_size		= ARRAY_SIZE(board_matrix_keys),
-+};
-+
-+static unsigned int board_keypad_row_gpios[] = {
-+	88, 89, 124, 11, 6, 96
-+};
-+
-+static unsigned int board_keypad_col_gpios[] = {
-+	90, 91, 100, 36, 12, 97, 98
-+};
-+
-+static struct matrix_keypad_platform_data board_keypad_platform_data = {
-+	.keymap_data	= &board_keymap_data,
-+	.row_gpios	= board_keypad_row_gpios,
-+	.num_row_gpios	= ARRAY_SIZE(board_keypad_row_gpios),
-+	.col_gpios	= board_keypad_col_gpios,
-+	.num_col_gpios	= ARRAY_SIZE(board_keypad_col_gpios),
-+	.active_low	= 1,
-+
-+	.debounce_ms		= 20,
-+	.col_scan_delay_us	= 5,
-+};
-+
-+static struct platform_device board_keyboard = {
-+	.name	= "matrix-keypad",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data = &board_keypad_platform_data,
-+	},
-+};
-+static void __init board_mkp_init(void)
-+{
-+	omap_mux_init_gpio(88, OMAP_PULL_ENA | OMAP_PULL_UP);
-+	omap_mux_init_gpio(89, OMAP_PULL_ENA | OMAP_PULL_UP);
-+	omap_mux_init_gpio(124, OMAP_PULL_ENA | OMAP_PULL_UP);
-+	omap_mux_init_signal("mcbsp2_dr.gpio_11", OMAP_PULL_ENA | OMAP_PULL_UP);
-+	if (omap_has_menelaus()) {
-+		omap_mux_init_signal("sdrc_a14.gpio0",
-+			OMAP_PULL_ENA | OMAP_PULL_UP);
-+		omap_mux_init_signal("vlynq_rx0.gpio_15", 0);
-+		omap_mux_init_signal("gpio_98", 0);
-+		board_keypad_row_gpios[5] = 0;
-+		board_keypad_col_gpios[2] = 15;
-+		board_keypad_col_gpios[6] = 18;
-+	} else {
-+		omap_mux_init_signal("gpio_96", OMAP_PULL_ENA | OMAP_PULL_UP);
-+		omap_mux_init_signal("gpio_100", 0);
-+		omap_mux_init_signal("gpio_98", 0);
-+	}
-+	omap_mux_init_signal("gpio_90", 0);
-+	omap_mux_init_signal("gpio_91", 0);
-+	omap_mux_init_signal("gpio_36", 0);
-+	omap_mux_init_signal("mcbsp2_clkx.gpio_12", 0);
-+	omap_mux_init_signal("gpio_97", 0);
-+
-+	platform_device_register(&board_keyboard);
-+}
-+#else
-+static inline void board_mkp_init(void)
-+{
-+}
-+#endif
-+
- static struct mtd_partition h4_partitions[] = {
- 	/* bootloader (U-Boot, etc) in first sector */
- 	{
-@@ -135,28 +198,6 @@ static struct platform_device h4_flash_device = {
- 	.resource	= &h4_flash_resource,
- };
- 
--static const struct matrix_keymap_data h4_keymap_data = {
--	.keymap		= h4_keymap,
--	.keymap_size	= ARRAY_SIZE(h4_keymap),
--};
--
--static struct omap_kp_platform_data h4_kp_data = {
--	.rows		= 6,
--	.cols		= 7,
--	.keymap_data	= &h4_keymap_data,
--	.rep		= true,
--	.row_gpios 	= row_gpios,
--	.col_gpios 	= col_gpios,
--};
--
--static struct platform_device h4_kp_device = {
--	.name		= "omap-keypad",
--	.id		= -1,
--	.dev		= {
--		.platform_data = &h4_kp_data,
--	},
--};
--
- static struct platform_device h4_lcd_device = {
- 	.name		= "lcd_h4",
- 	.id		= -1,
-@@ -164,7 +205,6 @@ static struct platform_device h4_lcd_device = {
- 
- static struct platform_device *h4_devices[] __initdata = {
- 	&h4_flash_device,
--	&h4_kp_device,
- 	&h4_lcd_device,
- };
- 
-@@ -329,31 +369,7 @@ static void __init omap_h4_init(void)
- 	 * if not needed.
- 	 */
- 
--#if defined(CONFIG_KEYBOARD_OMAP) || defined(CONFIG_KEYBOARD_OMAP_MODULE)
--	omap_mux_init_gpio(88, OMAP_PULL_ENA | OMAP_PULL_UP);
--	omap_mux_init_gpio(89, OMAP_PULL_ENA | OMAP_PULL_UP);
--	omap_mux_init_gpio(124, OMAP_PULL_ENA | OMAP_PULL_UP);
--	omap_mux_init_signal("mcbsp2_dr.gpio_11", OMAP_PULL_ENA | OMAP_PULL_UP);
--	if (omap_has_menelaus()) {
--		omap_mux_init_signal("sdrc_a14.gpio0",
--			OMAP_PULL_ENA | OMAP_PULL_UP);
--		omap_mux_init_signal("vlynq_rx0.gpio_15", 0);
--		omap_mux_init_signal("gpio_98", 0);
--		row_gpios[5] = 0;
--		col_gpios[2] = 15;
--		col_gpios[6] = 18;
--	} else {
--		omap_mux_init_signal("gpio_96", OMAP_PULL_ENA | OMAP_PULL_UP);
--		omap_mux_init_signal("gpio_100", 0);
--		omap_mux_init_signal("gpio_98", 0);
--	}
--	omap_mux_init_signal("gpio_90", 0);
--	omap_mux_init_signal("gpio_91", 0);
--	omap_mux_init_signal("gpio_36", 0);
--	omap_mux_init_signal("mcbsp2_clkx.gpio_12", 0);
--	omap_mux_init_signal("gpio_97", 0);
--#endif
--
-+	board_mkp_init();
- 	i2c_register_board_info(1, h4_i2c_board_info,
- 			ARRAY_SIZE(h4_i2c_board_info));
- 
+Regards,
+
+Tony
