@@ -1,16 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] OMAP: Update nr_irqs field in machine descriptors
-Date: Thu, 6 Oct 2011 12:50:16 -0700
-Message-ID: <20111006195016.GM6324@atomide.com>
-References: <1314215215-18683-1-git-send-email-svenkatr@ti.com>
-	<4E5636CD.4080302@ti.com>
-	<CANfBPZ-AAZx9TxO88EgxCtOUsWrsYzbK+M2d6cVSS7Kf-LwS3w@mail.gmail.com>
+Subject: Re: [PATCH] OMAP2: Devkit8000: Remove double omap_mux_init_gpio
+Date: Thu, 6 Oct 2011 12:51:34 -0700
+Message-ID: <20111006195134.GN6324@atomide.com>
+References: <1315321909-5593-1-git-send-email-weber@corscience.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CANfBPZ-AAZx9TxO88EgxCtOUsWrsYzbK+M2d6cVSS7Kf-LwS3w@mail.gmail.com>
+In-Reply-To: <1315321909-5593-1-git-send-email-weber@corscience.de>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,39 +18,15 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson,
-	Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Thomas Weber <weber@corscience.de>
+Cc: linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, open list <linux-kernel@vger.kernel.org>, "open list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-KiBTLCBWZW5rYXRyYW1hbiA8c3ZlbmthdHJAdGkuY29tPiBbMTEwODI1IDA3OjIzXToKPiBPbiBU
-aHUsIEF1ZyAyNSwgMjAxMSBhdCA1OjE5IFBNLCBDb3Vzc29uLCBCZW5vaXQgPGItY291c3NvbkB0
-aS5jb20+IHdyb3RlOgo+ID4gSGkgVmVua2F0LAo+ID4KPiA+IE9uIDgvMjQvMjAxMSA5OjQ2IFBN
-LCBTLCBWZW5rYXRyYW1hbiB3cm90ZToKPiA+Pgo+ID4+IEFzIHBhcnQgb2YgYW4gZWZmb3J0IHRv
-IGdldCBzaW5nbGUgQVJNIGtlcm5lbCBiaW5hcnkgWzFdLAo+ID4+IG11bHRpcGxlIMKgZGVmaW5p
-dGlvbnMgb2YgTlJfSVJRUyB1bmRlciB2YXJpb3VzIHBsYXRmb3Jtcwo+ID4+IGhhdmUgdG8gYmUg
-cmVjb25jaWxlZCBhbmQgYWJzdHJhY3RlZCBhd2F5IGZyb20gY29tbW9uIGNvZGUuCj4gPj4KPiA+
-PiBUaGlzIHBhdGNoIHNlcmllcyB0YWtlcyB0aGUgc21hbGwgc3RlcCBvZiBwb3B1bGF0aW5nIHRo
-ZQo+ID4+IG1hY2hpbmUgZGVzY3JpcHRvcnMgd2l0aCB0aGUgcHJlLWV4aXN0aW5nIG5yX2lycXMg
-ZmllbGQuCj4gPj4gRXZlbnR1YWxseSwgdGhlIGNvbW1vbiBpcnEgaGFuZGxlciBjb2RlIHdpbGwg
-b25seSBsb29rIGF0IHRoaXMKPiA+PiBmaWVsZCBhbmQgbm90IHRoZSBjb21waWxlIHRpbWUgY29u
-c3RhbnQuCj4gPgo+ID4gTm90IHJlbGF0ZWQgdG8gdGhpcyBwYXRjaCwgYnV0IHN0aWxsIG9uIHRo
-YXQgdG9waWMuIFRoZSBjdXJyZW50IE5SX0lSUVMKPiA+IGRlcGVuZHMgYXMgd2VsbCBvbiBib2Fy
-ZCBzdHVmZiwgbGlrZSBmb3IgZXhhbXBsZSA6IHRoZSBQaG9lbml4Cj4gPiBJUlFzOlRXTDYwMzBf
-SVJRX0JBU0UsIFRXTDYwNDBfQ09ERUNfSVJRX0JBU0UuCj4gPiBJcyB0aGVyZSBhIHBsYW4gdG8g
-Z2V0IHJpZCBvZiB0aGlzIHN0YXRpYyBkZWZpbmVzPwo+ID4KPiAKPiBDdXJyZW50bHksIHRoZSBn
-b2FsIGlzIHRvIGdldCByaWQgb2YgdGhlIHNpbmdsZXRvbiBuYXR1cmUKPiBvZiBOUl9JUlFTLiBU
-aGVuIGl0IGp1c3QgYmVjb21lcyBhIHByb3BlcnR5IG9mIHRoZQo+IHBsYXRmb3JtLCBhbmQgdGhl
-IGFybSBjb21tb24gY29kZSBzaG91bGQgbm90IHNlZSB0aGlzIGRlZmluZS4KPiBUaGlzIGNsZWFu
-dXAgaGFzIHRvIGJlIGRvbmUgYWNyb3NzIG11bHRpcGxlIFNvQ3MsIG5vdCBqdXN0IE9NQVAuCj4g
-Cj4gQWZ0ZXIgSSBnZXQgdG8gY29tcGxldGUgc29tZSBtZWFuaW5nZnVsIGNsZWFudXAgb2YgTlJf
-SVJRUywKPiBJIGNhbiBsb29rIGludG8gdGhlIHN0YXRpYyBkZWZpbmVzIHRoYXQgeW91IG1lbnRp
-b24uCgpJIHN1Z2dlc3Qgd2Ugd2FpdCBvbiB0aGlzIHBhdGNoIGFzIHRoZSBOUl9JUlFTIHNob3Vs
-ZCBiZSB0aGUKYm9hcmQgc3BlY2lmaWMgdHJ1ZSBudW1iZXIgb2YgaW50ZXJydXB0cyBpbmNsdWRp
-bmcgY2hhaW5lZAppbnRlcnJ1cHRzIGZyb20gZXh0ZXJuYWwgZGV2aWNlcyBsaWtlIHR3bC4gU28g
-anVzdCBzZXR0aW5nCml0IHRvIE5SX0lSUVMgZG9lcyBub3QgaGVscCBtdWNoLiBBbHNvLCB0aGUg
-Ym9hcmQtKi5jIGZpbGVzCndpbGwgYmUgZ29pbmcgYXdheXMgd2l0aCBkZXZpY2UgdHJlZSBhdCBz
-b21lIHBvaW50LgoKUmVnYXJkcywKClRvbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFy
-bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+* Thomas Weber <weber@corscience.de> [110906 07:38]:
+> Remove the init of card detect pin because
+> omap_mux_init_gpio() is called during hsmmc initialization
+> for the write protect and card detect pin.
+
+Thanks, adding this into fixes-part2 branch.
+
+Tony
