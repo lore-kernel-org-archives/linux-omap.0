@@ -1,23 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: [PATCH] ARM: OMAP2: Fix H4 matrix keyboard warning
-Date: Thu, 6 Oct 2011 15:44:35 -0700
-Message-ID: <20111006224435.GV6324@atomide.com>
+Date: Thu, 6 Oct 2011 15:46:06 -0700
+Message-ID: <20111006224605.GW6324@atomide.com>
+References: <20111006224435.GV6324@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35844 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:36583 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751998Ab1JFWoi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 18:44:38 -0400
-Received: from c-98-234-237-12.hsd1.ca.comcast.net ([98.234.237.12] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.72)
-	(envelope-from <tony@atomide.com>)
-	id 1RBwg9-000E2t-9p
-	for linux-omap@vger.kernel.org; Thu, 06 Oct 2011 22:44:37 +0000
+	with ESMTP id S1752671Ab1JFWqI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 18:46:08 -0400
 Content-Disposition: inline
+In-Reply-To: <20111006224435.GV6324@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
 Convert to use matrix keyboard to remove the warning
 "Please update the board to use matrix-keypad driver".
