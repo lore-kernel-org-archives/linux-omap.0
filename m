@@ -1,99 +1,129 @@
-From: "Pedanekar, Hemant" <hemantp@ti.com>
-Subject: RE: [PATCH v3 3/3] ARM: OMAP: TI814X: Create board support and
-	enable build for TI8148 EVM
-Date: Fri, 7 Oct 2011 08:34:49 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4FB448C@dbde02.ent.ti.com>
-References: <1317258570-30494-1-git-send-email-hemantp@ti.com>
-	<4E88542B.4010206@compulab.co.il>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B03B4EC5D52@dbde02.ent.ti.com>
-	<4E8ACB3C.6020401@compulab.co.il>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B03B4EC6066@dbde02.ent.ti.com>
-	<20111006191727.GK6324@atomide.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [RFC PATCH v3] drivercore: Add driver probe deferral mechanism
+Date: Fri, 7 Oct 2011 09:01:38 +0530
+Message-ID: <20111007033138.GB28361@manju-desktop>
+References: <20110922184614.25419.84606.stgit@ponder>
+ <20111004145148.GA8021@manju-desktop>
+ <CACxGe6tXEx1A+ZuBTUdi8jjfx_hOCaX6eSpUOOhNH9us+Mnczg@mail.gmail.com>
+ <20111004183516.GB8021@manju-desktop>
+ <20111004233504.GD3009@ponder.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20111006191727.GK6324@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Igor Grinberg <grinberg@compulab.co.il>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111004233504.GD3009@ponder.secretlab.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <greg@kroah.com>, Dilan Lee <dilee@nvidia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Manjunath GKondaiah <manjunath.gkondaiah@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren wrote on Friday, October 07, 2011 12:47 AM:
+On Tue, Oct 04, 2011 at 05:35:04PM -0600, Grant Likely wrote:
+> On Wed, Oct 05, 2011 at 12:05:16AM +0530, G, Manjunath Kondaiah wrote=
+:
+> > On Tue, Oct 04, 2011 at 09:58:10AM -0600, Grant Likely wrote:
+> > > On Tue, Oct 4, 2011 at 8:51 AM, G, Manjunath Kondaiah <manjugk@ti=
+=2Ecom> wrote:
+> > > > On Thu, Sep 22, 2011 at 12:51:23PM -0600, Grant Likely wrote:
+> > > >> Hi Manjunath,
+> > > >>
+> > > >> Here's the current state of the patch. =A0The major think that=
+ needs to
+> > > >> be done is to convert it to use a separate workqueue as descri=
+bed in
+> > > >> the TODO above. =A0It also needs some users adapted to it. =A0=
+One of the
+> > > >> gpio drivers would work; preferably one of the newer drivers t=
+hat
+> > > >> doesn't have a lot of drivers depending on the early_initcall(=
+)
+> > > >> behaviour yet.
+> > > >
+> > > > I have tested this patch on omap3 beagle board by making:
+> > > > 1. omap-gpio driver init as late_initcall instead of postcore_i=
+nitcall
+> > > > 2. mmc driver probe will request gpio through gpio_request and =
+gpio driver
+> > > > returns -EDEFER_PROBE which in turn makes mmc driver to request=
+ deferral probe.
+> > > > 3. When deferral probe gets activated, it scans driver entries =
+and it will not
+> > > > find any match for mmc driver probe.
+> > >=20
+> > > Looks like drivers/mmc/host/omap.c is using platform_driver_probe=
+()
+> > > instead of platform_driver_register().  Add the probe hook to the
+> > > platform_driver structure and change it to call
+> > > platform_driver_register() and it should work.  Don't forget to c=
+hange
+> > > mmc_omap_probe from __init to __devinit.
+> >=20
+> > Yes. After changing it into platform_driver_register, I can see mmc=
+ probe is
+> > getting completed from deferred probe list. But, MMC upper layer wi=
+ll check=20
+> > probe and it waits for ever since probe_count is not getting increm=
+ented.
+> >=20
+> > Log:
+> >=20
+> > [    1.807830] platform omap_hsmmc.0: Driver omap_hsmmc requests pr=
+obe deferral
+> >=20
+> > ...
+> >=20
+> > [    1.948760] omap_device: omap_gpio.0: new worst case activate la=
+tency 0:30517
+> > [    1.959259] OMAP GPIO hardware version 2.5
+> >=20
+> > ...
+> >=20
+> > [    2.000488] platform omap_hsmmc.0: Retrying from deferred list
+> > [    2.008026] omap_device: omap_hsmmc.0: new worst case activate l=
+atency 0:244140
+> > [    2.020080] input: gpio-keys as /devices/platform/gpio-keys/inpu=
+t/input1
+> > [    2.035827] omap_hsmmc omap_hsmmc.0: Probe success...
+> > [    2.042083] twl_rtc twl_rtc: setting system clock to 2000-01-01 =
+01:06:35 UTC
+> > (946688795)
+> > [    2.056030] Waiting for root device /dev/mmcblk0p2...
+> > [    2.061492] driver_probe_done: probe_count =3D 0
+> > [    2.168518] driver_probe_done: probe_count =3D 0
+> > [    2.277832] driver_probe_done: probe_count =3D 0
+> > [    2.387207] driver_probe_done: probe_count =3D 0
+> > [    2.496582] driver_probe_done: probe_count =3D 0
+> >=20
+> > Waits for ever in init/do_mount.c:
+> > 	if ((ROOT_DEV =3D=3D 0) && root_wait) {
+> > 		printk(KERN_INFO "Waiting for root device %s...\n",
+> > 			saved_root_name);
+> > 		while (driver_probe_done() !=3D 0 ||
+> > 			(ROOT_DEV =3D name_to_dev_t(saved_root_name)) =3D=3D 0)
+> > 			msleep(100);
+> > 		async_synchronize_full();
+> > 	}
+>=20
+> Okay, it looks like the driver deferral workqueue needs to get kicked
+> off before the kernel starts waiting for the root filesystem.  Check
+> the initcall level that is being used by do_mount, and make sure the
+> deferred probe starts before that...
+>=20
+> Hmmm.... wait, that doesn't make sense because the probe is still
+> successful.  What triggers the exit conditions in that while loop?
+> How would it be different from when the driver can probe successfully
+> without deferral?
 
-> * Pedanekar, Hemant <hemantp@ti.com> [111004 02:07]:
->> Igor Grinberg wrote on Tuesday, October 04, 2011 2:31 PM:
->> 
->>> On 10/03/11 18:45, Pedanekar, Hemant wrote:
->>>> Hi Igor,
->>>> 
->>>> Igor Grinberg wrote on Sunday, October 02, 2011 5:38 PM:
->>>> 
->>>>> Hi Hemant,
->>>>> 
->>>>> On 09/29/11 04:09, Hemant Pedanekar wrote:
->>>>>> This patch adds minimal support and build configuration for TI8148 EVM.
->>>>>> Also adds support for low level debugging on UART1 console on the EVM.
->>>>>> 
->>>>>> Note that existing TI8168 EVM file (board-ti8168evm.c) is updated with
->>>>>> machine info for TI8148 EVM and renamed as board-ti81xxevm.c.
->>>>> 
->>>>> Should we really rename the existing file?
->>>>> Shouldn't we just stick to the name of the file submitted first?
->>>>> (e.g. board-ti8168evm.c) and just add the support for the new
->>>>> TI8148 EVM in to the existing file?
->>>> 
->>>> But won't this be misleading?
->>> 
->>> Misleading? For whom?
->>> Actually, I don't really care how you call that file.
->>> What I care (and I think not just me) is uniformity, so
->>> if we decide to rename all those files that have multiple
->>> boards supported in them, I'm fine with it.
->>> 
->>> So pros for my proposed approach would be:
->>> 1) Currently, there are already board files with multiple boards
->>>    supported in them that follow the approach and renaming them is
->>> really unnecessary. 2) git log will not break.
->>> 3) boards that cannot be named after the convention like 81xx
->>>    but can be added to the same file will not require further renaming
->>>    (like 82x8 - I don't really know if that will exist, just wondering).
->>> 4) This renaming is really what Linus likes ;)
->>> 
->>> cons:
->>> 1) Misleading?
->>> 
->>> Currently, I don't think this renaming is good for anything,
->>> especially that majority of the board stuff should be transformed
->>> to the DT descriptors.
->> 
->> Igor,
->> I agree on the DT part and also understand the "pros" you mentioned.
->> 
->> I can submit the v4 of patches with TI8148 EVM support added in exisitng
->> board-ti8168evm.c. 
->> 
->> Tony,
->> Are you OK with the above approach?
-> 
-> Yes, let's not do renaming unless it's really needed. We'll be getting
-> rid of the board-*.c files anyways with device tree. So let's consider
-> the board-*.c files to be in minimal maintenance mode until they will
-> eventually get removed. 
-> 
-> Regards,
-> 
-> Tony
+Looks like OMAP MMC uses TWL GPIO for card detect. I manually changed t=
+his=20
+twl gpio to omap gpio for testing purpose which is causing this problem=
+=2E=20
+I have not tried to root cause further, I reverted back to twl gpio and=
+ requested
+omap gpio in mmc driver probe. With omap gpio request and making gpio d=
+river
+init as lateinit, deferral probe works fine for MMC driver.
 
-Ok, thanks Igor and Tony, I will send v4 with above change.
+I will post updated patch series.
 
-   Hemant
+-Manjunath
