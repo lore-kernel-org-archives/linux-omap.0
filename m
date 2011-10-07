@@ -1,37 +1,39 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: PM: build sleep/suspend code for idle path also
-	(not only suspend)
-Date: Sat, 8 Oct 2011 00:00:12 +0100
-Message-ID: <20111007230012.GD26805@n2100.arm.linux.org.uk>
-References: <1318026686-20191-1-git-send-email-khilman@ti.com>
-	<20111007223922.GC26805@n2100.arm.linux.org.uk>
-	<8739f4ju2m.fsf@ti.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH 0/2] MMC: disable multiblock reads on controllers that
+ don't support them
+Date: Fri, 7 Oct 2011 16:22:54 -0700
+Message-ID: <CAGDS+nmszKMRUvt83PFRk_tGsYrixw-XL2Bd424fZaJqfHK0ag@mail.gmail.com>
+References: <20111006205002.7083.94088.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <8739f4ju2m.fsf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20111006205002.7083.94088.stgit@dusk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dhylands@gmail.com, cjb@laptop.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 07, 2011 at 03:49:37PM -0700, Kevin Hilman wrote:
-> I see this in Arnd's randconfig/arm branch but not yet in
-> arm-soc/for-next.   Is this being queued for v3.2?
+On Thu, Oct 6, 2011 at 1:50 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hello,
+>
+> Some MMC controller instances integrated on older OMAP34xx/35xx chips
+> don't work correctly with multiple-block reads, due to a hardware bug.
+> This series fixes the problem by adding an MMC capability flag for this
+> case and making the appropriate changes to the MMC core code and OMAP HSMMC
+> driver to support this.
+>
+> Once this series is merged, a subsequent patch will be needed by us OMAP
+> folks to pass the appropriate device data via hwmod - this will be posted
+> separately.
 
-Yes.
+I tested these patches with my own version of the above mentioned
+hwmod patch on:
 
-> This will also conflict with your devel-stable where the suspend.c is
-> added.
+3503 - ES2.1 and ES3.1
+3530 - ES3.1
+3703 - ES1.2
+3730 - ES1.0
 
-Already sorted.
+All worked successfully.
+
+Tested-by: Steve Sakoman <steve@sakoman.com>
