@@ -1,77 +1,38 @@
 From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH 0/2] OMAP: Update nr_irqs field in machine descriptors
-Date: Fri, 07 Oct 2011 16:15:54 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1110071612380.6390@xanadu.home>
-References: <1314215215-18683-1-git-send-email-svenkatr@ti.com>
- <4E5636CD.4080302@ti.com>
- <CANfBPZ-AAZx9TxO88EgxCtOUsWrsYzbK+M2d6cVSS7Kf-LwS3w@mail.gmail.com>
- <20111006195016.GM6324@atomide.com>
+Subject: Re: [PATCH 0/4] initialize omap SRAM later on with __arm_ioremap_exec()
+Date: Fri, 07 Oct 2011 16:23:45 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1110071622090.6390@xanadu.home>
+References: <20111005004339.26980.31149.stgit@kaulin.local>
+ <4E8C0125.1060300@ti.com> <20111006014219.GH6324@atomide.com>
+ <4E8EA35E.6050100@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_tvwg1WGnUY2zF0FToPV30Q)"
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:45138 "EHLO
+Received: from relais.videotron.ca ([24.201.245.36]:31451 "EHLO
 	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754212Ab1JGUP4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 16:15:56 -0400
+	with ESMTP id S1754506Ab1JGUXq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 16:23:46 -0400
 Received: from xanadu.home ([66.130.28.92]) by VL-VM-MR005.ip.videotron.ca
  (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
- 2011)) with ESMTP id <0LSP00AGSPMHVU10@VL-VM-MR005.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Fri, 07 Oct 2011 16:15:53 -0400 (EDT)
-In-reply-to: <20111006195016.GM6324@atomide.com>
+ 2011)) with ESMTP id <0LSP005N1PZJ4J70@VL-VM-MR005.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Fri, 07 Oct 2011 16:23:44 -0400 (EDT)
+In-reply-to: <4E8EA35E.6050100@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "S, Venkatraman" <svenkatr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Fri, 7 Oct 2011, Santosh Shilimkar wrote:
 
---Boundary_(ID_tvwg1WGnUY2zF0FToPV30Q)
-Content-type: TEXT/PLAIN; charset=utf-8
-Content-transfer-encoding: 8BIT
+> I have reviewed and tested this series. No problems seen.
+> As asked on other thread, if you are targeting this one for
+> 3.2, then sram changes would have a small conflict with
+> OMAP4 errata patch. If it is for 3.3, we should be able to
+> sort out that conflict easily.
 
-On Thu, 6 Oct 2011, Tony Lindgren wrote:
-
-> * S, Venkatraman <svenkatr@ti.com> [110825 07:23]:
-> > On Thu, Aug 25, 2011 at 5:19 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
-> > > Hi Venkat,
-> > >
-> > > On 8/24/2011 9:46 PM, S, Venkatraman wrote:
-> > >>
-> > >> As part of an effort to get single ARM kernel binary [1],
-> > >> multiple  definitions of NR_IRQS under various platforms
-> > >> have to be reconciled and abstracted away from common code.
-> > >>
-> > >> This patch series takes the small step of populating the
-> > >> machine descriptors with the pre-existing nr_irqs field.
-> > >> Eventually, the common irq handler code will only look at this
-> > >> field and not the compile time constant.
-> > >
-> > > Not related to this patch, but still on that topic. The current NR_IRQS
-> > > depends as well on board stuff, like for example : the Phoenix
-> > > IRQs:TWL6030_IRQ_BASE, TWL6040_CODEC_IRQ_BASE.
-> > > Is there a plan to get rid of this static defines?
-> > >
-> > 
-> > Currently, the goal is to get rid of the singleton nature
-> > of NR_IRQS. Then it just becomes a property of the
-> > platform, and the arm common code should not see this define.
-> > This cleanup has to be done across multiple SoCs, not just OMAP.
-> > 
-> > After I get to complete some meaningful cleanup of NR_IRQS,
-> > I can look into the static defines that you mention.
-> 
-> I suggest we wait on this patch as the NR_IRQS should be the
-> board specific true number of interrupts including chained
-> interrupts from external devices like twl. So just setting
-> it to NR_IRQS does not help much. Also, the board-*.c files
-> will be going aways with device tree at some point.
-
-This is prerequisite to some other cleanup orthogonal to DT being worked 
-in parallel.  I would prefer if DT wasn't a serialization point for 
-this.
+3.2 please.  I've postponed one of my series to 3.3 because it breaks 
+OMAP unless those changes are applied first.
 
 
 Nicolas
-
---Boundary_(ID_tvwg1WGnUY2zF0FToPV30Q)--
