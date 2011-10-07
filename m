@@ -1,105 +1,64 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v2 6/6] OMAP4: Clock: Correct the name of SLIMBUS interface
- clocks
-Date: Fri, 7 Oct 2011 17:46:33 -0500
-Message-ID: <4E8F8149.6090100@ti.com>
-References: <1316195330-15099-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1110061941100.4611@utopia.booyaka.com> <4E8EB6ED.9020605@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] ARM: PM: build sleep/suspend code for idle path also (not only suspend)
+Date: Fri, 07 Oct 2011 15:49:37 -0700
+Message-ID: <8739f4ju2m.fsf@ti.com>
+References: <1318026686-20191-1-git-send-email-khilman@ti.com>
+	<20111007223922.GC26805@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59223 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759017Ab1JGWqn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Oct 2011 18:46:43 -0400
-In-Reply-To: <4E8EB6ED.9020605@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:53601 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754755Ab1JGWtk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 18:49:40 -0400
+Received: by mail-qy0-f178.google.com with SMTP id 14so4206214qyg.9
+        for <linux-omap@vger.kernel.org>; Fri, 07 Oct 2011 15:49:39 -0700 (PDT)
+In-Reply-To: <20111007223922.GC26805@n2100.arm.linux.org.uk> (Russell King's
+	message of "Fri, 7 Oct 2011 23:39:22 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Benoit,
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-On 10/7/2011 3:23, Cousson, Benoit wrote:
-> Hi Paul & Jon,
+> On Fri, Oct 07, 2011 at 03:31:26PM -0700, Kevin Hilman wrote:
+>> Some platforms (e.g. OMAP) use the same common cpu_suspend/cpu_resume
+>> helpers during idle as well as suspend.
+>> 
+>> Currently, if suspend is disabled (CONFIG_PM_SLEEP=n) and the platform
+>> idle code is using the common cpu_suspend/cpu_resume functions, the
+>> kernel will not link.
+>> 
+>> Since platform code commonly uses CONFIG_PM=y to build it's idle code,
+>> build the common sleep/suspend code based on CONFIG_PM instead of
+>> CONFIG_PM_SLEEP.
+>> 
+>> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> ---
+>> Applies on Russell's devel-stable branch, where the new common
+>> suspend/resume code is queued.
 >
-> On 10/7/2011 3:42 AM, Paul Walmsley wrote:
->> + Beno=EEt
->>
->> On Fri, 16 Sep 2011, Jon Hunter wrote:
->>
->>> From: Jon Hunter<jon-hunter@ti.com>
->>>
->>> Currently the interface clocks for the two SLIMBUS peripherals are
->>> named slimbus1_fck and slimbus2_fck. Rename these clocks to be
->>> slimbus1_ick and slimbus2_ick so it is clear that these are
->>> interface clocks and not functional clocks.
->>>
->>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
->>
->> This one, I don't quite understand. We should probably be removing t=
-hese
->> MODULEMODE-only clocks from the OMAP4 tree, and using their parent c=
-lock
->> as the main_clk. That would be a good cleanup for 3.3...
+> See:
 >
-> Yes, but in order to remove that from the clock data we must ensure t=
-hat
-> the hwmod entry is there.
-> I kept a lot of legacy MODULEMODE clocks just because of missing hwmo=
-d /
-> runtime_pm adaptation on some drivers.
+> commit 15e0d9e37c7fe9711b60f47221c394d45553ad8c
+> Author: Arnd Bergmann <arnd@arndb.de>
+> Date:   Sat Oct 1 21:09:39 2011 +0200
 >
-> In the case of slimbus, there is no main_clk but a bunch of optional
-> clocks. It looks similar to the DSS case. So we should not use the
-> parent clock as a main_clk.
+>     ARM: pm: let platforms select cpu_suspend support
 >
-> We should probably promote one of the opt_clk as the main_clk. The
-> slimbus_clk seems to be the good candidate for both instances.
+>     Support for the cpu_suspend functions is only built-in
+>     when CONFIG_PM_SLEEP is enabled, but omap3/4, exynos4
+>     and pxa always call cpu_suspend when CONFIG_PM is enabled.
 >
-> static struct omap_hwmod_opt_clk slimbus1_opt_clks[] =3D {
-> { .role =3D "fclk_1", .clk =3D "slimbus1_fclk_1" },
-> { .role =3D "fclk_0", .clk =3D "slimbus1_fclk_0" },
-> { .role =3D "fclk_2", .clk =3D "slimbus1_fclk_2" },
-> { .role =3D "slimbus_clk", .clk =3D "slimbus1_slimbus_clk" },
-> };
->
-> static struct omap_hwmod_opt_clk slimbus2_opt_clks[] =3D {
-> { .role =3D "fclk_1", .clk =3D "slimbus2_fclk_1" },
-> { .role =3D "fclk_0", .clk =3D "slimbus2_fclk_0" },
-> { .role =3D "slimbus_clk", .clk =3D "slimbus2_slimbus_clk" },
-> };
->
-> Jon,
-> Do you know if that one is indeed mandatory to use the slimbus IP?
+>     Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Sorry, are you asking about the clocks I was re-naming or the=20
-slimbus_clk you are referring to above?
+Nice.  That will work too.
 
-Looking at the clock tree tool, the slimbus_clk is the actual external=20
-slimbus clock that can be generated by OMAP or by an external device.
+I see this in Arnd's randconfig/arm branch but not yet in
+arm-soc/for-next.   Is this being queued for v3.2?
 
-The TRM states ...
+This will also conflict with your devel-stable where the suspend.c is
+added.
 
-"Most of the SLIMbus module runs off two main clocks: the L4 interface=20
-clock for the data input and output registers, and the control and=20
-status control registers; and the SLIMbus clock, taken from the serial=20
-interface (CLK line) for the SLIMbus-side logic.
-
-The SLIMbus controller operates as clock source component (active=20
-framer), which drives the SLIMbus clock line CLK, or as clock receiver=20
-component, which gets its clock from the same CLK line."
-
-So, if you are operating as the clock source component on the bus then=20
-one of the optional clocks to drive the peripheral logic and if you are=
-=20
-the clock receiver then you use slimbus_clk.
-
-Cheers
-Jon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
