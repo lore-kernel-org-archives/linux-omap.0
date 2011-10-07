@@ -1,79 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] OMAP: Update nr_irqs field in machine descriptors
-Date: Fri, 7 Oct 2011 13:51:45 -0700
-Message-ID: <20111007205145.GA2293@atomide.com>
-References: <1314215215-18683-1-git-send-email-svenkatr@ti.com>
- <4E5636CD.4080302@ti.com>
- <CANfBPZ-AAZx9TxO88EgxCtOUsWrsYzbK+M2d6cVSS7Kf-LwS3w@mail.gmail.com>
- <20111006195016.GM6324@atomide.com>
- <alpine.LFD.2.02.1110071612380.6390@xanadu.home>
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
+Date: Fri, 7 Oct 2011 13:57:15 -0700
+Message-ID: <20111007205715.GC5275@leaf>
+References: <1317963790-29426-1-git-send-email-manjugk@ti.com>
+ <1317963790-29426-3-git-send-email-manjugk@ti.com>
+ <20111007064928.GE27508@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54814 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754265Ab1JGUvt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 16:51:49 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.02.1110071612380.6390@xanadu.home>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20111007064928.GE27508@kroah.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Dilan Lee <dilee@nvidia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Manjunath@jasper.es
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: "S, Venkatraman" <svenkatr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Nicolas Pitre <nico@fluxnic.net> [111007 12:41]:
-> On Thu, 6 Oct 2011, Tony Lindgren wrote:
->=20
-> > * S, Venkatraman <svenkatr@ti.com> [110825 07:23]:
-> > > On Thu, Aug 25, 2011 at 5:19 PM, Cousson, Benoit <b-cousson@ti.co=
-m> wrote:
-> > > > Hi Venkat,
-> > > >
-> > > > On 8/24/2011 9:46 PM, S, Venkatraman wrote:
-> > > >>
-> > > >> As part of an effort to get single ARM kernel binary [1],
-> > > >> multiple =C2=A0definitions of NR_IRQS under various platforms
-> > > >> have to be reconciled and abstracted away from common code.
-> > > >>
-> > > >> This patch series takes the small step of populating the
-> > > >> machine descriptors with the pre-existing nr_irqs field.
-> > > >> Eventually, the common irq handler code will only look at this
-> > > >> field and not the compile time constant.
-> > > >
-> > > > Not related to this patch, but still on that topic. The current=
- NR_IRQS
-> > > > depends as well on board stuff, like for example : the Phoenix
-> > > > IRQs:TWL6030_IRQ_BASE, TWL6040_CODEC_IRQ_BASE.
-> > > > Is there a plan to get rid of this static defines?
-> > > >
-> > >=20
-> > > Currently, the goal is to get rid of the singleton nature
-> > > of NR_IRQS. Then it just becomes a property of the
-> > > platform, and the arm common code should not see this define.
-> > > This cleanup has to be done across multiple SoCs, not just OMAP.
-> > >=20
-> > > After I get to complete some meaningful cleanup of NR_IRQS,
-> > > I can look into the static defines that you mention.
-> >=20
-> > I suggest we wait on this patch as the NR_IRQS should be the
-> > board specific true number of interrupts including chained
-> > interrupts from external devices like twl. So just setting
-> > it to NR_IRQS does not help much. Also, the board-*.c files
-> > will be going aways with device tree at some point.
->=20
-> This is prerequisite to some other cleanup orthogonal to DT being wor=
-ked=20
-> in parallel.  I would prefer if DT wasn't a serialization point for=20
-> this.
+On Thu, Oct 06, 2011 at 11:49:28PM -0700, Greg KH wrote:
+> On Fri, Oct 07, 2011 at 10:33:07AM +0500, G, Manjunath Kondaiah wrote:
+> > +config PROBE_DEFER
+> > +	bool "Deferred Driver Probe"
+> > +	default y
+> > +	help
+> > +	  This option provides deferring driver probe if it has dependency on
+> > +	  other driver. Without this feature, initcall ordering should be done
+> > +	  manually to resolve driver dependencies. This feature completely side
+> > +	  steps the issues by allowing driver registration to occur in any
+> > +	  order, and any driver can request to be retried after a few more other
+> > +	  drivers get probed.
+> 
+> Why is this even an option?  Why would you ever want it disabled?  Why
+> does it need to be selected?
+> 
+> If you are going to default something to 'y' then just make it so it
+> can't be turned off any other way by just not making it an option at
+> all.
 
-I see. How about let's populate the real number of interrupts for the
-known boards then while at it.
+Given that the drivers which use this mechanism will not necessarily get
+built into the kernel, I'd suggest that it should remain optional and
+default to n.  Those drivers can then add a dependency on PROBE_DEFER.
+Let's try to avoid adding more infrastructure to the kernel that takes
+up space even when unused; certainly embedded will appreciate not having
+this feature unless a driver needs it.
 
-Tony
+(That said, it still feels to me like an explicit dependency mechanism
+would make more sense than this "try again later" mechanism, but
+nonetheless "try again later" seems like an improvement over what we
+have now.)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It also cleans up this diff a lot, as you really don't want #ifdef in .c
+> files.
+
+Ideally the entire .c file could become conditional on PROBE_DEFER via
+kbuild, with the usual compatibility inlines in a .h file for the
+!PROBE_DEFER case.
+
+- Josh Triplett
