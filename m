@@ -1,140 +1,34 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH 1/4] ARM: OMAP3 PM: Fix IO Daisychain sequence
-Date: Fri, 7 Oct 2011 15:34:30 +0530
-Message-ID: <92167b61cef7e974a80460056e4fdede@mail.gmail.com>
-References: <1317750724-32553-1-git-send-email-vishwanath.bs@ti.com>
- <1317750724-32553-2-git-send-email-vishwanath.bs@ti.com> <alpine.DEB.2.00.1110070217000.4611@utopia.booyaka.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH 4/5] gpiolib: handle deferral probe error
+Date: Fri, 7 Oct 2011 11:06:15 +0100
+Message-ID: <20111007110615.7638e905@lxorguk.ukuu.org.uk>
+References: <1317963790-29426-1-git-send-email-manjugk@ti.com>
+	<1317963790-29426-5-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:39509 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752157Ab1JGKEd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 06:04:33 -0400
-Received: by mail-wy0-f174.google.com with SMTP id 34so5259860wyg.33
-        for <linux-omap@vger.kernel.org>; Fri, 07 Oct 2011 03:04:32 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1110070217000.4611@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1317963790-29426-5-git-send-email-manjugk@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Dilan Lee <dilee@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <greg@kroah.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Manjunath GKondaiah <manjunath.gkondaiah@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Friday, October 07, 2011 1:50 PM
-> To: Vishwanath BS
-> Cc: linux-omap@vger.kernel.org; khilman@ti.com; linux-arm-
-> kernel@lists.infradead.org
-> Subject: Re: [PATCH 1/4] ARM: OMAP3 PM: Fix IO Daisychain sequence
->
-> Hi
->
-> a few comments:
->
-> On Tue, 4 Oct 2011, Vishwanath BS wrote:
->
-> > As per OMAP3630 TRM Section 3.5.7.2.2, the right sequence for
-> enabling IO Daisy
-> > chain is "The I/O wake-up scheme is enabled by triggering the I/O
-> daisy chain
-> > control (Wu clock) by programming a dedicated register
-> > (PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN) in the PRCM module.Software
-> must wait for
-> > the I/O daisy chain to complete before it transitions the PER
-> domain to a
-> > nonfunctional state. This is done by polling a dedicated status
-> bit in the PRCM
-> > module (PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN). This status bit must
-> be cleared by
-> > software when the bit is read to  1".
-> >
-> > The original code was polling on a wrong register which is fixed
-> in this patch.
-> > Also omap3_enable_io_chain is made non static as it's going to be
-> used in
-> > subsequent patches.
->
-> This patch should be split into a fix (for the WKEN/WKST bug) and
-> then a
-> new patch that drops the 'static'.  The new patch should also move
-> this
-> function to prm2xxx_3xxx.c for the same reason that the OMAP4
-> version of
-> this function should be in prminst44xx.c.
-OK, Understood.
->
-> In the medium-term, a bunch of the functions from prm2xxx_3xxx.c,
-> prminst44xx.c, etc. that are only used by the mach-omap2/pm*.c code
-> should
-> be moved into the PRM driver that Tero is working on that will live
-> in
-> drivers/.
-OK.
-Vishwa
->
-> >
-> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/pm.h     |    1 +
-> >  arch/arm/mach-omap2/pm34xx.c |    6 +++---
-> >  2 files changed, 4 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> > index 4e166ad..9a36a7c 100644
-> > --- a/arch/arm/mach-omap2/pm.h
-> > +++ b/arch/arm/mach-omap2/pm.h
-> > @@ -21,6 +21,7 @@ extern void omap_sram_idle(void);
-> >  extern int omap3_can_sleep(void);
-> >  extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32
-> state);
-> >  extern int omap3_idle_init(void);
-> > +extern void omap3_enable_io_chain(void);
-> >
-> >  #if defined(CONFIG_PM_OPP)
-> >  extern int omap3_opp_init(void);
-> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
-> omap2/pm34xx.c
-> > index 7255d9b..61f1a5b 100644
-> > --- a/arch/arm/mach-omap2/pm34xx.c
-> > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > @@ -95,7 +95,7 @@ static inline void
-> omap3_per_restore_context(void)
-> >  	omap_gpio_restore_context();
-> >  }
-> >
-> > -static void omap3_enable_io_chain(void)
-> > +void omap3_enable_io_chain(void)
-> >  {
-> >  	int timeout = 0;
-> >
-> > @@ -105,7 +105,7 @@ static void omap3_enable_io_chain(void)
-> >  		/* Do a readback to assure write has been done */
-> >  		omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
-> >
-> > -		while (!(omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN) &
-> > +		while (!(omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST) &
-> >  			 OMAP3430_ST_IO_CHAIN_MASK)) {
-> >  			timeout++;
-> >  			if (timeout > 1000) {
-> > @@ -114,7 +114,7 @@ static void omap3_enable_io_chain(void)
-> >  				return;
-> >  			}
-> >
-> 	omap2_prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK,
-> > -					     WKUP_MOD, PM_WKEN);
-> > +					     WKUP_MOD, PM_WKST);
-> >  		}
-> >  	}
-> >  }
-> > --
-> > 1.7.0.4
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
->
->
-> - Paul
+On Fri, 07 Oct 2011 10:33:09 +0500
+"G, Manjunath Kondaiah" <manjugk@ti.com> wrote:
+
+> 
+> The gpio library should return -EPROBE_DEFER in gpio_request
+> if gpio driver is not ready.
+
+Why not use the perfectly good existing error codes we have for this ?
+
+We have EAGAIN and EUNATCH both of which look sensible.
