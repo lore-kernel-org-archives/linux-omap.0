@@ -1,46 +1,70 @@
-From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
-	<vjaquez@igalia.com>
-Subject: [PATCH v3] omap: dmtimer: convert printk to pr_err
-Date: Fri,  7 Oct 2011 10:50:16 +0200
-Message-ID: <1317977417-17874-1-git-send-email-vjaquez@igalia.com>
-References: <20111006201827.GT6324@atomide.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/6 v3] omap: musb: Adding hwmod data for ti81xx
+Date: Fri, 7 Oct 2011 11:56:15 +0300
+Message-ID: <20111007085614.GD10910@legolas.emea.dhcp.ti.com>
+References: <1315576070-7618-1-git-send-email-ajay.gupta@ti.com>
+ <1315576070-7618-2-git-send-email-ajay.gupta@ti.com>
+ <19F8576C6E063C45BE387C64729E739404ECA545E3@dbde02.ent.ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111006201827.GT6324@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Joe Perches <joe@perches.com>, Timo Teras <timo.teras@solidboot.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="GpGaEY17fSl8rd50"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404ECA545E3-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Convert a printk(KERN_ERR) message in the driver to pr_err().
 
-v2:
-* Replaced dump_stack() with WARN()
+--GpGaEY17fSl8rd50
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-v3:
-* Rebased against omap/master
+Hi,
 
-Signed-off-by: V=C3=ADctor Manuel J=C3=A1quez Leal <vjaquez@igalia.com>
----
- arch/arm/plat-omap/dmtimer.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Mon, Sep 26, 2011 at 03:21:07PM +0530, Gupta, Ajay Kumar wrote:
+> > To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Balbi, Felipe; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; B, Ravi;
+> > Cousson, Benoit; Gupta, Ajay Kumar=20
+> > Subject: [PATCH 1/6 v3] omap: musb: Adding hwmod data for ti81xx
+>=20
+> Felipe,
+> I am planning to send patch 1/6 along with next revision of ti81xx
+> hwmod baseport patch from Hemant so that all hwmod data gets reviewed
+> at one place.
+>=20
+> So now only rest 5 (2/6 to 6/6) patches needs to be queued for usb.
+>=20
+> I hope this will be fine with you. Let me know if you want me to post
+> Same 5 patches separately.
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.=
-c
-index de7896f..5492ae1 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -111,7 +111,7 @@ static void omap_dm_timer_wait_for_reset(struct oma=
-p_dm_timer *timer)
- 	while (!(__raw_readl(timer->sys_stat) & 1)) {
- 		c++;
- 		if (c > 100000) {
--			printk(KERN_ERR "Timer failed to reset\n");
-+			pr_err("Timer failed to reset\n");
- 			return;
- 		}
- 	}
+I guess it's better to queue them separately. I will only take whatever
+lies in drivers/usb/musb
+
 --=20
-1.7.6.3
+balbi
+
+--GpGaEY17fSl8rd50
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOjr6uAAoJEAv8Txj19kN1mFEIAKVFUG4gLPREMrRDLavHWrxU
+BUU+rSNsHbxWCPg317ojFZdUWnv39o3T7TWzIK6SJOEHcpl0OzW5V9VpD9YU7Uvh
+SsWAaPMop0e2sUyPGTU8eOvMFuVotXqZZVAYW/Z9lsfUfOJJrTUVszps9dnTMrDg
+h2hBtlUoB01VrTp8Tdk0Ro6Tx8PxRVxsAlrWWZlsk6GpQ3TmObsUFgjNNuuZFIMy
+hsK8vxb3cZh6ANHjKmvhKMW0woYSpVJj1AywRvXiNR2+6i+LAp9TcNpg+8J5X44K
+GRdHGzsKVhgJGaeRtRFMsGavVdUSIXR561C65YpSknlPxUlOZI2PfE21lwVDwlo=
+=mhef
+-----END PGP SIGNATURE-----
+
+--GpGaEY17fSl8rd50--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
