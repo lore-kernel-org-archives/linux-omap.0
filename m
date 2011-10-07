@@ -1,44 +1,47 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 5/6] OMAP3+: Update DPLL Fint range for OMAP36xx and
- OMAP4xxx devices
-Date: Thu, 6 Oct 2011 19:40:58 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110061938210.4611@utopia.booyaka.com>
-References: <1316195322-15062-1-git-send-email-jon-hunter@ti.com>
+Subject: Re: [PATCH v2 6/6] OMAP4: Clock: Correct the name of SLIMBUS interface
+ clocks
+Date: Thu, 6 Oct 2011 19:42:46 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110061941100.4611@utopia.booyaka.com>
+References: <1316195330-15099-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-2106079947-1317951766=:4611"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:32938 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:32949 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752908Ab1JGBk7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 21:40:59 -0400
-In-Reply-To: <1316195322-15062-1-git-send-email-jon-hunter@ti.com>
+	with ESMTP id S1758321Ab1JGBmr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 21:42:47 -0400
+In-Reply-To: <1316195330-15099-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, mturquette@ti.com
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, b-cousson@ti.com
+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--155748971-2106079947-1317951766=:4611
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
++ Beno=EEt
 
 On Fri, 16 Sep 2011, Jon Hunter wrote:
 
 > From: Jon Hunter <jon-hunter@ti.com>
-> 
-> The OMAP36xx and OMAP4xxx DPLLs have a different internal reference
-> clock frequency (fint) operating range than OMAP3430. Update the
-> dpll_test_fint() function to check for the correct frequency ranges
-> for OMAP36xx and OMAP4xxx.
-> 
-> For OMAP36xx and OMAP4xxx devices, DPLLs fint range is 0.5MHz to
-> 2.5MHz for j-type DPLLs and otherwise it is 32KHz to 52MHz for all
-> other DPLLs.
-> 
+>=20
+> Currently the interface clocks for the two SLIMBUS peripherals are
+> named slimbus1_fck and slimbus2_fck. Rename these clocks to be
+> slimbus1_ick and slimbus2_ick so it is clear that these are
+> interface clocks and not functional clocks.
+>=20
 > Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 
-This looks okay to me for now - queued for 3.2.  Ideally we would move the 
-Fint DPLL data to the struct dpll_data, but this would be a fairly 
-significant undertaking, since we don't have a clean way to use different 
-dpll_data for different OMAP3 variants.  Something good to keep in mind 
-for the common clock conversion.
+This one, I don't quite understand.  We should probably be removing these=
+=20
+MODULEMODE-only clocks from the OMAP4 tree, and using their parent clock=20
+as the main_clk.  That would be a good cleanup for 3.3...
 
-
-thanks, 
 
 - Paul
+--155748971-2106079947-1317951766=:4611--
