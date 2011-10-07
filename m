@@ -1,68 +1,58 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
- for omap4
-Date: Fri, 7 Oct 2011 19:57:18 +0530
-Message-ID: <CAP05o4+KMrFc6QHVdzuw6qR6BzkHxsSDssA=B0A_TS8fWp-mbg@mail.gmail.com>
-References: <1317901099-2519-1-git-send-email-keshava_mgowda@ti.com>
-	<alpine.DEB.2.00.1110070305040.4611@utopia.booyaka.com>
-	<CAP05o4J39MotDTOv-O2ahvWfxL-7jC-L3FGsNXbmDy8HNg=W3g@mail.gmail.com>
-	<alpine.DEB.2.00.1110070330220.4611@utopia.booyaka.com>
-	<CAP05o4LMjfwGMtYH02XTv9UqO7nEPSu2fijnOPceVjK-dyUgwg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] ARM: Add __arm_ioremap_exec for mapping external
+ memory as MT_MEMORY
+Date: Fri, 7 Oct 2011 07:43:49 -0700
+Message-ID: <20111007144349.GE6324@atomide.com>
+References: <20111005004339.26980.31149.stgit@kaulin.local>
+ <20111005004539.26980.52409.stgit@kaulin.local>
+ <alpine.LFD.2.02.1110042059110.9106@xanadu.home>
+ <20111005220619.GC6324@atomide.com>
+ <4E8E9EE8.8010106@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAP05o4LMjfwGMtYH02XTv9UqO7nEPSu2fijnOPceVjK-dyUgwg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, sameo@linux.intel.com, balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34163 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752672Ab1JGOn4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 10:43:56 -0400
+Content-Disposition: inline
+In-Reply-To: <4E8E9EE8.8010106@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, Oct 7, 2011 at 4:13 PM, Munegowda, Keshava
-<keshava_mgowda@ti.com> wrote:
-> On Fri, Oct 7, 2011 at 3:05 PM, Paul Walmsley <paul@pwsan.com> wrote:
->> On Fri, 7 Oct 2011, Munegowda, Keshava wrote:
->>
->>> Thanks Paul;
->>> yes, I can your changes in the patches.
->>> so, you don't need v14 from me right? please confirm.
->>> I am preparing/validating next version patches with =A0OCPIF_SWSUP_=
-IDLE removed.
->>> Thanks for guiding me and helping on the finalizing the hwmod confi=
-gurations.
->>
->> The first two patches of the series -- the OMAP3/4 hwmod data patche=
-s --
->> have been queued for 3.2 in the 'hwmod_devel_3.2' branch of
->> git://git.pwsan.com/linux-2.6
->
-> Ok, then I will host a tree for remaining three patches and another
-> last patch for MFD tree.
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [111006 23:06]:
+> On Thursday 06 October 2011 03:36 AM, Tony Lindgren wrote:
+> > * Nicolas Pitre <nico@fluxnic.net> [111004 17:26]:
+> >> On Tue, 4 Oct 2011, Tony Lindgren wrote:
+> > +void __iomem *
+> > +__arm_ioremap_exec(unsigned long phys_addr, size_t size, int cached)
+> > +{
+> > +	unsigned int mtype;
+> > +
+> > +	if (cached)
+> > +		mtype = MT_MEMORY;
+> > +	else
+> > +		mtype = MT_MEMORY_NONCACHED;
+> > +
+> Why don't we allow user to pass the mtype here ?
 
-Hi Felipe and Sameo
+Well we want to keep the MT_MEMORY types out of asm/io.h.
 
-The patches are available in the branch kmg-usbhs-pm of
-git repository: git@gitorious.org:~kmg/mirrors/kmg-usbhs-pm.git
+> We do have a need also to map a page of DDR and SRAM as
+> strongly ordered for errata fix and this interface can be
+> used for that.
 
-if you have review comment on v13 of these series; please let me know.
-so I that I will make the changes in time.
+Yeah..
 
- regards
- keshava
+> Ofcourse, SO memory type is not executable memories, so the
+> API name might be miss-leading.
 
+..so I think we should just have a separate static mapping for
+the omap4 errata fix SO page, and just limit the memory available
+for SRAM code to ioremap.
 
->
->> So we don't need new versions of those two.
->>
->> But we need to figure out what to do about the remaining three
->> patches. =A0I still think that the TLL and UHH hwmods should have
->> separate drivers. =A0Looks like Felipe has a question pending about =
-that
->> but it's unlikely that I'll have time to dig into it for at least a
->> few days. =A0So I'd encourage you to try splitting those UHH and TLL
->> drivers in the meantime.
->>
->>
->> - Paul
->>
->
+How does that sounds to you?
+
+Tony
