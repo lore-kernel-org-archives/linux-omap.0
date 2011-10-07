@@ -1,70 +1,62 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/6 v3] omap: musb: Adding hwmod data for ti81xx
-Date: Fri, 7 Oct 2011 11:56:15 +0300
-Message-ID: <20111007085614.GD10910@legolas.emea.dhcp.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/6 v3] omap: musb: Adding support for ti81xx
+Date: Fri, 7 Oct 2011 11:56:50 +0300
+Message-ID: <20111007085648.GE10910@legolas.emea.dhcp.ti.com>
 References: <1315576070-7618-1-git-send-email-ajay.gupta@ti.com>
- <1315576070-7618-2-git-send-email-ajay.gupta@ti.com>
- <19F8576C6E063C45BE387C64729E739404ECA545E3@dbde02.ent.ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+ <1315576070-7618-3-git-send-email-ajay.gupta@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GpGaEY17fSl8rd50"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="VUDLurXRWRKrGuMn"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:41670 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964896Ab1JGI44 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 04:56:56 -0400
 Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404ECA545E3-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1315576070-7618-3-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, tony@atomide.com, Ravi Babu <ravibabu@ti.com>
 
 
---GpGaEY17fSl8rd50
+--VUDLurXRWRKrGuMn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Fri, Sep 09, 2011 at 07:17:46PM +0530, Ajay Kumar Gupta wrote:
+> From: Ravi Babu <ravibabu@ti.com>
+>=20
+> Added musb support for ti81xx platform which has two instances of musb
+> interface and uses CPPI4.1 DMA. The current patch set adds support for
+> single instance and in PIO mode only.
+>=20
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> Signed-off-by: Ravi Babu <ravibabu@ti.com>
 
-On Mon, Sep 26, 2011 at 03:21:07PM +0530, Gupta, Ajay Kumar wrote:
-> > To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Balbi, Felipe; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; B, Ravi;
-> > Cousson, Benoit; Gupta, Ajay Kumar=20
-> > Subject: [PATCH 1/6 v3] omap: musb: Adding hwmod data for ti81xx
->=20
-> Felipe,
-> I am planning to send patch 1/6 along with next revision of ti81xx
-> hwmod baseport patch from Hemant so that all hwmod data gets reviewed
-> at one place.
->=20
-> So now only rest 5 (2/6 to 6/6) patches needs to be queued for usb.
->=20
-> I hope this will be fine with you. Let me know if you want me to post
-> Same 5 patches separately.
+Should go through OMAP tree:
 
-I guess it's better to queue them separately. I will only take whatever
-lies in drivers/usb/musb
+Acked-by: Felipe Balbi <balbi@ti.com>
 
 --=20
 balbi
 
---GpGaEY17fSl8rd50
+--VUDLurXRWRKrGuMn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOjr6uAAoJEAv8Txj19kN1mFEIAKVFUG4gLPREMrRDLavHWrxU
-BUU+rSNsHbxWCPg317ojFZdUWnv39o3T7TWzIK6SJOEHcpl0OzW5V9VpD9YU7Uvh
-SsWAaPMop0e2sUyPGTU8eOvMFuVotXqZZVAYW/Z9lsfUfOJJrTUVszps9dnTMrDg
-h2hBtlUoB01VrTp8Tdk0Ro6Tx8PxRVxsAlrWWZlsk6GpQ3TmObsUFgjNNuuZFIMy
-hsK8vxb3cZh6ANHjKmvhKMW0woYSpVJj1AywRvXiNR2+6i+LAp9TcNpg+8J5X44K
-GRdHGzsKVhgJGaeRtRFMsGavVdUSIXR561C65YpSknlPxUlOZI2PfE21lwVDwlo=
-=mhef
+iQEcBAEBAgAGBQJOjr7QAAoJEAv8Txj19kN1hDQH/jhdiPIuQaqUlD4Eqnw6Pc0G
+6TORRDYWuh1BQOcaTQdpF3unmnKQF+SsNKVZKXA7E/PWbq3GttkaZ3dCn6u4jB2R
+scSbP1A9i53fPHwAyosuINO3bRjXj4Vkajxm0WHKJAR5gLJ+mViMk8m0pSrBp5g1
+aE8246IfdK4OPerqoZpmt+Ut61APzBcuLS1NplyW0sDVOmxJoFY2KDvPe9mzZ/f8
+0gSpOO2wPL3lB74dPjZglTKJdEcuk75RTU2hc3N0DxP5q6XPdnHcmdziVOVuP3rL
+AFyBmVMq8irCfZulWQ0nhN750VA4tMPor2ZXXrNCWykLqbXD1ayCjBIaggHSyNw=
+=4HYC
 -----END PGP SIGNATURE-----
 
---GpGaEY17fSl8rd50--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--VUDLurXRWRKrGuMn--
