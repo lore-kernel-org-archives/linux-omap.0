@@ -1,46 +1,95 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v3] omap: dmtimer: convert printk to pr_err
-Date: Fri, 7 Oct 2011 20:57:14 +0100
-Message-ID: <20111007195714.GB26805@n2100.arm.linux.org.uk>
-References: <20111006201827.GT6324@atomide.com> <1317977417-17874-1-git-send-email-vjaquez@igalia.com> <20111007092243.GC27281@n2100.arm.linux.org.uk> <1318009239.1644.38.camel@Joe-Laptop> <20111007191822.GA26805@n2100.arm.linux.org.uk> <1318016901.11045.9.camel@Joe-Laptop>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/7] ARM: Add __arm_ioremap_exec for mapping external
+ memory as MT_MEMORY
+Date: Fri, 7 Oct 2011 12:59:03 -0700
+Message-ID: <20111007195903.GO6324@atomide.com>
+References: <20111007194242.18205.64009.stgit@kaulin.local>
+ <20111007194543.18205.36115.stgit@kaulin.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45065 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754012Ab1JGT7G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 15:59:06 -0400
 Content-Disposition: inline
-In-Reply-To: <1318016901.11045.9.camel@Joe-Laptop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: =?iso-8859-1?Q?V=EDctor_Manuel_J=E1quez?= Leal <vjaquez@igalia.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Timo Teras <timo.teras@solidboot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20111007194543.18205.36115.stgit@kaulin.local>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org
 
-On Fri, Oct 07, 2011 at 12:48:21PM -0700, Joe Perches wrote:
-> On Fri, 2011-10-07 at 20:18 +0100, Russell King - ARM Linux wrote:
-> > On Fri, Oct 07, 2011 at 10:40:39AM -0700, Joe Perches wrote:
-> > > At some point in the next couple of years, I want
-> > > to convert all of, or as many as possible of, the
-> > > remaining printk uses to pr_<level>.
-> > If the idea is also to get rid of printk() too (which IMHO would be a
-> > good thing as it kills off the constant need to continually patch for
-> > missing KERN_ prefixes) then that's a good reason (provided Linus
-> > accepts the idea.)
+* Tony Lindgren <tony@atomide.com> [111007 12:11]:
+> This allows mapping external memory such as SRAM for use.
 > 
-> I don't accept that idea yet.
+> This is needed for some small chunks of code, such as reprogramming
+> SDRAM memory source clocks that can't be executed in SDRAM. Other
+> use cases include some PM related code.
 > 
-> There are about 50K printks vs 20K pr_<level>s
-> in kernel source.
-> 
-> I think 50K lines is _way_ too many to convert
-> in a couple of years.
-> 
-> I think it needs to be done subsystem by subsystem,
-> arch by arch, as maintainers accept.
+> Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Agreed - but doing one instance here, maybe another instance somewhere
-else, and come the merge window having several of these patches
-scattered around with no real coherent "this is what we're doing, and
-its all done for this bit of the tree" kind of story is not the way to
-do it.
+FYI this I've sent to Russell's patch system:
 
-It would be good to get core code done, or a sub-arch, and then say
-"we're not accepting any patch which re-introduces the problem"...
-It's a little late in the cycle for that now though.
+http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=7126/1
+
+Regards,
+
+Tony
+
+ 
+
+> ---
+>  arch/arm/include/asm/io.h |    1 +
+>  arch/arm/mm/ioremap.c     |   21 +++++++++++++++++++++
+>  2 files changed, 22 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
+> index d66605d..4ff152e 100644
+> --- a/arch/arm/include/asm/io.h
+> +++ b/arch/arm/include/asm/io.h
+> @@ -80,6 +80,7 @@ extern void __iomem *__arm_ioremap_caller(unsigned long, size_t, unsigned int,
+>  
+>  extern void __iomem *__arm_ioremap_pfn(unsigned long, unsigned long, size_t, unsigned int);
+>  extern void __iomem *__arm_ioremap(unsigned long, size_t, unsigned int);
+> +extern void __iomem *__arm_ioremap_exec(unsigned long, size_t, int cached);
+>  extern void __iounmap(volatile void __iomem *addr);
+>  
+>  /*
+> diff --git a/arch/arm/mm/ioremap.c b/arch/arm/mm/ioremap.c
+> index ab50627..a2d94ac 100644
+> --- a/arch/arm/mm/ioremap.c
+> +++ b/arch/arm/mm/ioremap.c
+> @@ -289,6 +289,27 @@ __arm_ioremap(unsigned long phys_addr, size_t size, unsigned int mtype)
+>  }
+>  EXPORT_SYMBOL(__arm_ioremap);
+>  
+> +/*
+> + * Remap an arbitrary physical address space into the kernel virtual
+> + * address space as memory. Needed when the kernel wants to execute
+> + * code in external memory. This is needed for reprogramming source
+> + * clocks that would affect normal memory for example. Please see
+> + * CONFIG_GENERIC_ALLOCATOR for allocating external memory.
+> + */
+> +void __iomem *
+> +__arm_ioremap_exec(unsigned long phys_addr, size_t size, int cached)
+> +{
+> +	unsigned int mtype;
+> +
+> +	if (cached)
+> +		mtype = MT_MEMORY;
+> +	else
+> +		mtype = MT_MEMORY_NONCACHED;
+> +
+> +	return __arm_ioremap_caller(phys_addr, size, mtype,
+> +			__builtin_return_address(0));
+> +}
+> +
+>  void __iounmap(volatile void __iomem *io_addr)
+>  {
+>  	void *addr = (void *)(PAGE_MASK & (unsigned long)io_addr);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
