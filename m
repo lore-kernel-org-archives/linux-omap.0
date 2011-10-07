@@ -1,65 +1,56 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 1/5] drivercore: add new error value for deferred probe
-Date: Fri, 7 Oct 2011 16:12:45 -0600
-Message-ID: <CACxGe6uOmrLwJSPw4JHuOmt5B2wsukdDgVUr01pryq5Z9BFadw@mail.gmail.com>
-References: <1317963790-29426-1-git-send-email-manjugk@ti.com>
- <1317963790-29426-2-git-send-email-manjugk@ti.com> <20111007064349.GD27508@kroah.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v2 5/6] OMAP3+: Update DPLL Fint range for OMAP36xx and
+ OMAP4xxx devices
+Date: Fri, 7 Oct 2011 17:16:22 -0500
+Message-ID: <4E8F7A36.3030408@ti.com>
+References: <1316195322-15062-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1110061938210.4611@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20111007064349.GD27508@kroah.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Dilan Lee <dilee@nvidia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Manjunath GKondaiah <manjunath.gkondaiah@linaro.org>, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33368 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758624Ab1JGWQ1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Oct 2011 18:16:27 -0400
+In-Reply-To: <alpine.DEB.2.00.1110061938210.4611@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, mturquette@ti.com
 
-On Fri, Oct 7, 2011 at 12:43 AM, Greg KH <greg@kroah.com> wrote:
-> On Fri, Oct 07, 2011 at 10:33:06AM +0500, G, Manjunath Kondaiah wrote=
-:
->>
->> Add new error value so that drivers can request deferred probe
->> from drivercore.
->>
->> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
->> Reported-by: Grant Likely <grant.likely@secretlab.ca>
->> ---
->> Cc: linux-omap@vger.kernel.org
->> Cc: linux-mmc@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: Grant Likely <grant.likely@secretlab.ca>
->> Cc: Greg Kroah-Hartman <greg@kroah.com>
->> Cc: Dilan Lee <dilee@nvidia.com>
->> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
->> Cc: Manjunath GKondaiah <manjunath.gkondaiah@linaro.org>
->> Cc: Arnd Bergmann <arnd@arndb.de>
->>
->> =A0include/linux/errno.h | =A0 =A01 +
->> =A01 files changed, 1 insertions(+), 0 deletions(-)
->>
->> diff --git a/include/linux/errno.h b/include/linux/errno.h
->> index 4668583..83d8fcf 100644
->> --- a/include/linux/errno.h
->> +++ b/include/linux/errno.h
->> @@ -16,6 +16,7 @@
->> =A0#define ERESTARTNOHAND =A0 =A0 =A0 514 =A0 =A0 /* restart if no h=
-andler.. */
->> =A0#define ENOIOCTLCMD =A0515 =A0 =A0 /* No ioctl command */
->> =A0#define ERESTART_RESTARTBLOCK 516 /* restart by calling sys_resta=
-rt_syscall */
->> +#define EPROBE_DEFER 517 =A0 =A0 /* restart probe again after some =
-time */
+Hi Paul,
+
+On 10/6/2011 20:40, Paul Walmsley wrote:
+> On Fri, 16 Sep 2011, Jon Hunter wrote:
 >
-> Can we really do this?
-
-According to Arnd, yes this is okay.
-
-> =A0Isn't this some user/kernel api here?
+>> From: Jon Hunter<jon-hunter@ti.com>
+>>
+>> The OMAP36xx and OMAP4xxx DPLLs have a different internal reference
+>> clock frequency (fint) operating range than OMAP3430. Update the
+>> dpll_test_fint() function to check for the correct frequency ranges
+>> for OMAP36xx and OMAP4xxx.
+>>
+>> For OMAP36xx and OMAP4xxx devices, DPLLs fint range is 0.5MHz to
+>> 2.5MHz for j-type DPLLs and otherwise it is 32KHz to 52MHz for all
+>> other DPLLs.
+>>
+>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
 >
-> What's wrong with just "overloading" on top of an existing error code=
-?
-> Surely one of the other 516 types could be used here, right?
+> This looks okay to me for now - queued for 3.2.  Ideally we would move the
+> Fint DPLL data to the struct dpll_data, but this would be a fairly
+> significant undertaking, since we don't have a clean way to use different
+> dpll_data for different OMAP3 variants.  Something good to keep in mind
+> for the common clock conversion.
 
-overloading makes it really hard to find the users at a later date.
+You know at first I was thinking about adding this to the dpll_data 
+struct, but then I thought these ranges only change for a couple dplls 
+and so adding a few more members to each dpll struct was bloating the 
+struct and making this a massive change. So I went the other path and 
+just added a couple defines to minimise the changes. However, we could 
+definitely do that if it is preferred and if with next-gen devices (such 
+as omap5) more dplls have different ranges then this would make more 
+sense too.
 
-g.
+Cheers
+Jon
+
