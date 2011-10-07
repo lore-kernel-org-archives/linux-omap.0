@@ -1,43 +1,51 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [GIT PULL] OMAP: few more PM cleanup/fixes for v3.2
-Date: Fri, 07 Oct 2011 14:03:14 -0700
-Message-ID: <87sjn4jyzx.fsf@ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
+Date: Fri, 7 Oct 2011 14:23:26 -0700
+Message-ID: <20111007212326.GA29003@kroah.com>
+References: <1317963790-29426-1-git-send-email-manjugk@ti.com>
+ <1317963790-29426-3-git-send-email-manjugk@ti.com>
+ <20111007064928.GE27508@kroah.com>
+ <20111007205715.GC5275@leaf>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:54821 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754510Ab1JGVDR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 17:03:17 -0400
-Received: by mail-yw0-f48.google.com with SMTP id 3so4792917ywb.7
-        for <linux-omap@vger.kernel.org>; Fri, 07 Oct 2011 14:03:16 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111007205715.GC5275@leaf>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Josh Triplett <josh@joshtriplett.org>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Dilan Lee <dilee@nvidia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Manjunath@jasper.es
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Tony,
+On Fri, Oct 07, 2011 at 01:57:15PM -0700, Josh Triplett wrote:
+> On Thu, Oct 06, 2011 at 11:49:28PM -0700, Greg KH wrote:
+> > On Fri, Oct 07, 2011 at 10:33:07AM +0500, G, Manjunath Kondaiah wrote:
+> > > +config PROBE_DEFER
+> > > +	bool "Deferred Driver Probe"
+> > > +	default y
+> > > +	help
+> > > +	  This option provides deferring driver probe if it has dependency on
+> > > +	  other driver. Without this feature, initcall ordering should be done
+> > > +	  manually to resolve driver dependencies. This feature completely side
+> > > +	  steps the issues by allowing driver registration to occur in any
+> > > +	  order, and any driver can request to be retried after a few more other
+> > > +	  drivers get probed.
+> > 
+> > Why is this even an option?  Why would you ever want it disabled?  Why
+> > does it need to be selected?
+> > 
+> > If you are going to default something to 'y' then just make it so it
+> > can't be turned off any other way by just not making it an option at
+> > all.
+> 
+> Given that the drivers which use this mechanism will not necessarily get
+> built into the kernel, I'd suggest that it should remain optional and
+> default to n.  Those drivers can then add a dependency on PROBE_DEFER.
+> Let's try to avoid adding more infrastructure to the kernel that takes
+> up space even when unused; certainly embedded will appreciate not having
+> this feature unless a driver needs it.
 
-Please pull the (hopefully) last few PM fixes/cleanups for v3.2.
+How much extra space is this "feature" really?  I don't see it being
+anything larger than the amount of memory increase that just happened as
+I typed this email as part of the ongoing memory density changes.
 
-Kevin
-
-
-The following changes since commit 976d167615b64e14bc1491ca51d424e2ba9a5e84:
-
-  Linux 3.1-rc9 (2011-10-04 18:11:50 -0700)
-
-are available in the git repository at:
-  git://github.com/khilman/linux-omap-pm.git for_3.2/pm-cleanup-2
-
-Charulatha V (1):
-      ARM: OMAP3: PM: fix pwrdm_post_transition call sequence
-
-Paul Walmsley (2):
-      ARM: OMAP3: PM: fix I/O wakeup and I/O chain clock control detection
-      ARM: OMAP3: PM: restrict erratum i443 handling to OMAP3430 only
-
- arch/arm/mach-omap2/id.c              |    5 ++-
- arch/arm/mach-omap2/pm34xx.c          |   70 +++++++++++++++++---------------
- arch/arm/plat-omap/include/plat/cpu.h |   17 ++++++--
- 3 files changed, 53 insertions(+), 39 deletions(-)
+greg k-h
