@@ -1,59 +1,51 @@
-From: =?iso-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>
-Subject: Re: [PATCH v3] omap: dmtimer: convert printk to pr_err
-Date: Fri, 7 Oct 2011 12:46:56 +0200
-Message-ID: <20111007104656.GB20440@lit.local.igalia.com>
-References: <20111006201827.GT6324@atomide.com>
-	<1317977417-17874-1-git-send-email-vjaquez@igalia.com>
-	<20111007092243.GC27281@n2100.arm.linux.org.uk>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 3.1-rc3] gpio/omap: fix build error with certain OMAP1 configs
+Date: Fri, 7 Oct 2011 14:30:14 +0200
+Message-ID: <201110071430.14420.jkrzyszt@tis.icnet.pl>
+References: <201108231342.25101.jkrzyszt@tis.icnet.pl> <87sjoshx2k.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20111007092243.GC27281@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Timo Teras <timo.teras@solidboot.com>, Joe Perches <joe@perches.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87sjoshx2k.fsf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 07, 2011 at 10:22:43AM +0100, Russell King - ARM Linux wrote:
-> On Fri, Oct 07, 2011 at 10:50:16AM +0200, V=EDctor Manuel J=E1quez Leal w=
-rote:
-> > Convert a printk(KERN_ERR) message in the driver to pr_err().
-> ...
-> > @@ -111,7 +111,7 @@ static void omap_dm_timer_wait_for_reset(struct oma=
-p_dm_timer *timer)
-> >  	while (!(__raw_readl(timer->sys_stat) & 1)) {
-> >  		c++;
-> >  		if (c > 100000) {
-> > -			printk(KERN_ERR "Timer failed to reset\n");
-> > +			pr_err("Timer failed to reset\n");
-> =
+Dnia wtorek, 23 sierpnia 2011 o 19:11:47 Kevin Hilman napisa=C5=82(a):
+> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> writes:
+>=20
+> > With commit f64ad1a0e21a, "gpio/omap: cleanup _set_gpio_wakeup(), r=
+emove=20
+> > ifdefs", access to build time conditionally omitted 'suspend_wakeup=
+'=20
+> > member of the 'gpio_bank' structure has been placed unconditionally=
+ in=20
+> > function _set_gpio_wakeup(), which is always built. This resulted i=
+n the=20
+> > driver compilation broken for certain OMAP1, i.e., non-OMAP16xx,=20
+> > configurations.
+> >
+> > Really required or not in previously excluded cases, define this=20
+> > structure member unconditionally as a fix.
+> >
+> > Tested with a custom OMAP1510 only configuration.
+> >
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>=20
+> Verified that this fixes a build problem when building for OMAP1
+> (730/850 only)
+>=20
+> Acked-by: Kevin Hilman <khilman@ti.com>
+>=20
+> Grant, can you queue this as a fix for 3.1-rc?
 
-> What is the reason behind this change?  It looks like it's to use the
-> latest and greatest function.
-> =
+Hi,
+Sorry for being so late with checking this, but it looks like this patc=
+h=20
+never got into 3.1-rc, as it should, leaving the issue not fixed.
+Any chance for it still being pushed into 3.1?
 
-> If so, please don't make these changes - we have on many occasions been
-> blamed for size of diffstat, churn, needless change, and this patch is
-> exactly that.
-> =
-
-> By all means fix printk's without KERN_ constants, possibly converting
-> them to pr_*, but don't go around replacing printk(KERN_* with pr_*(
-> without ensuring that there's a real benefit to the change.
-> =
-
-
-Thanks a lot Russell, and sorry for the noise. I'm still learning how to
-collaborate in the kernel.
-
-vmjl
+Thanks,
+Janusz
