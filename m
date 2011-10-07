@@ -1,94 +1,68 @@
-From: "Pedanekar, Hemant" <hemantp@ti.com>
-Subject: RE: [PATCH v3 2/3] ARM: OMAP: TI814X: Add cpu type macros and
-	detection support
-Date: Fri, 7 Oct 2011 18:45:29 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4FB4820@dbde02.ent.ti.com>
-References: <1317258560-30408-1-git-send-email-hemantp@ti.com>
-	<alpine.DEB.2.00.1109291443160.26728@utopia.booyaka.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B03B4EC56A8@dbde02.ent.ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Fri, 7 Oct 2011 19:57:18 +0530
+Message-ID: <CAP05o4+KMrFc6QHVdzuw6qR6BzkHxsSDssA=B0A_TS8fWp-mbg@mail.gmail.com>
+References: <1317901099-2519-1-git-send-email-keshava_mgowda@ti.com>
+	<alpine.DEB.2.00.1110070305040.4611@utopia.booyaka.com>
+	<CAP05o4J39MotDTOv-O2ahvWfxL-7jC-L3FGsNXbmDy8HNg=W3g@mail.gmail.com>
+	<alpine.DEB.2.00.1110070330220.4611@utopia.booyaka.com>
+	<CAP05o4LMjfwGMtYH02XTv9UqO7nEPSu2fijnOPceVjK-dyUgwg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55896 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750889Ab1JGNPr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 09:15:47 -0400
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B03B4EC56A8@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAP05o4LMjfwGMtYH02XTv9UqO7nEPSu2fijnOPceVjK-dyUgwg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, sameo@linux.intel.com, balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Paul,
-
-linux-arm-kernel-bounces@lists.infradead.org wrote on :
-
-> macros and detection support
-> 
-> Hi Paul,
-> 
-> Paul Walmsley wrote on Friday, September 30, 2011 2:17 AM:
-> 
->> Hello Hemant,
->> 
->> a few comments:
->> 
->> On Thu, 29 Sep 2011, Hemant Pedanekar wrote:
->> 
-[...]
->>> Note that following update to common OMAP data structures is made:
->>> 
->>> cpu_mask and RATE_IN_XXX flags have crossed 8 bit hence struct
->>> clksel_rate.flags, struct prcm_config.flags and cpu_mask are changed to
->>> u16 from u8. 
->>> 
->>> Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
->> 
->> Also, the opp2xxx.h change looks spurious, is that really needed?
+On Fri, Oct 7, 2011 at 4:13 PM, Munegowda, Keshava
+<keshava_mgowda@ti.com> wrote:
+> On Fri, Oct 7, 2011 at 3:05 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>> On Fri, 7 Oct 2011, Munegowda, Keshava wrote:
 >>
+>>> Thanks Paul;
+>>> yes, I can your changes in the patches.
+>>> so, you don't need v14 from me right? please confirm.
+>>> I am preparing/validating next version patches with =A0OCPIF_SWSUP_=
+IDLE removed.
+>>> Thanks for guiding me and helping on the finalizing the hwmod confi=
+gurations.
+>>
+>> The first two patches of the series -- the OMAP3/4 hwmod data patche=
+s --
+>> have been queued for 3.2 in the 'hwmod_devel_3.2' branch of
+>> git://git.pwsan.com/linux-2.6
+>
+> Ok, then I will host a tree for remaining three patches and another
+> last patch for MFD tree.
 
-I will be removing the above mentioned code changes from v4 since the same
-were added in "arm:omap:am33xx: Update common omap platform files" patch and
-as per Tony's reply today ([1]) the am33xx patch will be added to SoC branch.  
+Hi Felipe and Sameo
 
-Thanks.
-   Hemant
+The patches are available in the branch kmg-usbhs-pm of
+git repository: git@gitorious.org:~kmg/mirrors/kmg-usbhs-pm.git
 
-[1] http://www.spinics.net/lists/linux-omap/msg58853.html
- 
-> I changed prcm_config.flags to accommodate cpu_mask change,
-> as cpu_mask
-> is used with prcm_config.flags (mostly) in clkt2xxx_virt_prcm_set.c as
-> below: 
-> 
-> prcm->flags & cpu_mask
-> 
-> And flags is assigned in opp2420_data.c (e.g., RATE_IN_242X)
-> 
-> But yes, these are already defined RATE_INs and do not cross 8-bits,
-> so no warnings even if flags is 8-bit and cpu_mask changed to 16-bit.
-> 
-> What is your suggestion?
-> 
-> I see you mentioned "Also" in the above comment, but didn't see any comment
-> preceeding. 
-> 
->> Could you please split the clock-related changes into a
->> separate patch?
->> Then this patch would just be the id.c and cpu.h changes.
->> 
->> Other than that, the patch looks okay to me.
->> 
->> 
+if you have review comment on v13 of these series; please let me know.
+so I that I will make the changes in time.
+
+ regards
+ keshava
+
+
+>
+>> So we don't need new versions of those two.
+>>
+>> But we need to figure out what to do about the remaining three
+>> patches. =A0I still think that the TLL and UHH hwmods should have
+>> separate drivers. =A0Looks like Felipe has a question pending about =
+that
+>> but it's unlikely that I'll have time to dig into it for at least a
+>> few days. =A0So I'd encourage you to try splitting those UHH and TLL
+>> drivers in the meantime.
+>>
+>>
 >> - Paul
-> 
-> Will do that.
-> 
-> Thanks.
->    Hemant
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>>
+>
