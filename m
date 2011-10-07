@@ -1,56 +1,59 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
- for omap4
-Date: Fri, 7 Oct 2011 16:13:42 +0530
-Message-ID: <CAP05o4LMjfwGMtYH02XTv9UqO7nEPSu2fijnOPceVjK-dyUgwg@mail.gmail.com>
-References: <1317901099-2519-1-git-send-email-keshava_mgowda@ti.com>
-	<alpine.DEB.2.00.1110070305040.4611@utopia.booyaka.com>
-	<CAP05o4J39MotDTOv-O2ahvWfxL-7jC-L3FGsNXbmDy8HNg=W3g@mail.gmail.com>
-	<alpine.DEB.2.00.1110070330220.4611@utopia.booyaka.com>
+From: =?iso-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>
+Subject: Re: [PATCH v3] omap: dmtimer: convert printk to pr_err
+Date: Fri, 7 Oct 2011 12:46:56 +0200
+Message-ID: <20111007104656.GB20440@lit.local.igalia.com>
+References: <20111006201827.GT6324@atomide.com>
+	<1317977417-17874-1-git-send-email-vjaquez@igalia.com>
+	<20111007092243.GC27281@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1110070330220.4611@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20111007092243.GC27281@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Timo Teras <timo.teras@solidboot.com>, Joe Perches <joe@perches.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 7, 2011 at 3:05 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Fri, 7 Oct 2011, Munegowda, Keshava wrote:
->
->> Thanks Paul;
->> yes, I can your changes in the patches.
->> so, you don't need v14 from me right? please confirm.
->> I am preparing/validating next version patches with =A0OCPIF_SWSUP_I=
-DLE removed.
->> Thanks for guiding me and helping on the finalizing the hwmod config=
-urations.
->
-> The first two patches of the series -- the OMAP3/4 hwmod data patches=
- --
-> have been queued for 3.2 in the 'hwmod_devel_3.2' branch of
-> git://git.pwsan.com/linux-2.6
+On Fri, Oct 07, 2011 at 10:22:43AM +0100, Russell King - ARM Linux wrote:
+> On Fri, Oct 07, 2011 at 10:50:16AM +0200, V=EDctor Manuel J=E1quez Leal w=
+rote:
+> > Convert a printk(KERN_ERR) message in the driver to pr_err().
+> ...
+> > @@ -111,7 +111,7 @@ static void omap_dm_timer_wait_for_reset(struct oma=
+p_dm_timer *timer)
+> >  	while (!(__raw_readl(timer->sys_stat) & 1)) {
+> >  		c++;
+> >  		if (c > 100000) {
+> > -			printk(KERN_ERR "Timer failed to reset\n");
+> > +			pr_err("Timer failed to reset\n");
+> =
 
-Ok, then I will host a tree for remaining three patches and another
-last patch for MFD tree.
+> What is the reason behind this change?  It looks like it's to use the
+> latest and greatest function.
+> =
 
-regards
-keshava
+> If so, please don't make these changes - we have on many occasions been
+> blamed for size of diffstat, churn, needless change, and this patch is
+> exactly that.
+> =
+
+> By all means fix printk's without KERN_ constants, possibly converting
+> them to pr_*, but don't go around replacing printk(KERN_* with pr_*(
+> without ensuring that there's a real benefit to the change.
+> =
 
 
+Thanks a lot Russell, and sorry for the noise. I'm still learning how to
+collaborate in the kernel.
 
-> So we don't need new versions of those two.
->
-> But we need to figure out what to do about the remaining three
-> patches. =A0I still think that the TLL and UHH hwmods should have
-> separate drivers. =A0Looks like Felipe has a question pending about t=
-hat
-> but it's unlikely that I'll have time to dig into it for at least a
-> few days. =A0So I'd encourage you to try splitting those UHH and TLL
-> drivers in the meantime.
->
->
-> - Paul
->
+vmjl
