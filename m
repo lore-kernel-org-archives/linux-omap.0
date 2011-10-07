@@ -1,85 +1,220 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] ARM: Add __arm_ioremap_exec for mapping external
- memory as MT_MEMORY
-Date: Fri, 7 Oct 2011 08:11:17 -0700
-Message-ID: <20111007151116.GI6324@atomide.com>
-References: <20111005004339.26980.31149.stgit@kaulin.local>
- <20111005004539.26980.52409.stgit@kaulin.local>
- <alpine.LFD.2.02.1110042059110.9106@xanadu.home>
- <20111005220619.GC6324@atomide.com>
- <4E8E9EE8.8010106@ti.com>
- <20111007144349.GE6324@atomide.com>
- <4E8F14A6.5050402@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 8/8] OMAP3: powerdomain data: add wake-up latency
+ figures
+Date: Fri, 7 Oct 2011 09:26:02 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110070923320.4611@utopia.booyaka.com>
+References: <1316621649-3622-1-git-send-email-j-pihet@ti.com> <1316622258-3892-1-git-send-email-j-pihet@ti.com> <1316622258-3892-9-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25768 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752699Ab1JGPLW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 11:11:22 -0400
-Content-Disposition: inline
-In-Reply-To: <4E8F14A6.5050402@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:37526 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752750Ab1JGP0E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 11:26:04 -0400
+In-Reply-To: <1316622258-3892-9-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Nicolas Pitre <nico@fluxnic.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: jean.pihet@newoldbits.com
+Cc: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [111007 07:29]:
-> On Friday 07 October 2011 08:13 PM, Tony Lindgren wrote:
-> > 
-> > ..so I think we should just have a separate static mapping for
-> > the omap4 errata fix SO page, and just limit the memory available
-> > for SRAM code to ioremap.
-> > 
-> > How does that sounds to you?
-> > 
-> That's more or less what the patch is already doing.
-> Instead of static mapping, I was dynamically stealing one
-> page ( SZ_4K) and mapping it as MT_MEMORY_SO and rest
-> of the memory as MT_MEMORY for OMAP4.
+Hi Jean
 
-Yeah cool.
- 
-> It should be doable with your updates as well,
-> I guess with or without static mapping since the only
-> requisite is to keep one page of SRAM free on OMAP4 and
-> them map them using  iotable_init() with MT_MEMORY_SO.
+On Wed, 21 Sep 2011, jean.pihet@newoldbits.com wrote:
 
-How about something like the following, this won't compile
-without at least moving the defines around a bit, but shows
-what I had in mind:
+> Figures are added to the power domains structs for RET and OFF modes.
+> 
+> Note: the latency figures for MPU, PER, CORE, NEON have been obtained
+> from actual measurements.
+> The latency figures for the other power domains are preliminary and
+> shall be added.
+> 
+> Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
+> for a detailed explanation on where are the numbers magically coming from.
+> 
+> Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
+> on MPU, CORE and PER.
 
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -238,6 +238,14 @@ static struct map_desc omap44xx_io_desc[] __initdata = {
- 		.length		= L4_EMU_44XX_SIZE,
- 		.type		= MT_DEVICE,
- 	},
-+#ifdef CONFIG_OMAP4_ERRATA_I688
-+	{
-+		.virtual	= OMAP4_SRAM_VA,
-+		.pfn		= __phys_to_pfn(OMAP4_SRAM_PA),
-+		.length		= PAGE_SIZE,
-+		.type		= MT_MEMORY_SO,
-+	},
-+#endif
- };
- #endif
- 
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -125,6 +125,9 @@ static void __init omap_detect_sram(void)
- 				omap_sram_size = 0x10000; /* 64K */
- 			} else if (cpu_is_omap44xx()) {
- 				omap_sram_start = OMAP4_SRAM_PA;
-+#ifdef CONFIG_OMAP4_ERRATA_I688
-+				omap_sram_start += PAGE_SIZE;
-+#endif
- 				omap_sram_size = 0xe000; /* 56K */
- 			} else {
- 				omap_sram_start = OMAP2_SRAM_PA;
+A few more question about these numbers.
 
-Eventually the SRAM code will be a generic driver, so let's try
-to keep the errata fix out of the SRAM code.
+- Are these numbers the ones right off the hardware, or rounded, or 
+worst-case plus a certain percentage?
 
-Tony
+- What frequency/voltage were these measured at?
+
+- Also, you mention OMAP3 Beagleboard.  Is that 34xx or 36xx Beagleboard?
+
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> ---
+>  arch/arm/mach-omap2/powerdomains3xxx_data.c |   78 +++++++++++++++++++++++++++
+>  1 files changed, 78 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> index 469a920..32922bb 100644
+> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> @@ -31,6 +31,14 @@
+>  
+>  /*
+>   * Powerdomains
+> + *
+> + * The wakeup_lat values are derived from measurements on
+> + * the actual target.
+> + *
+> + * Note: the latency figures for MPU, PER, CORE, NEON have been obtained
+> + * from actual measurements.
+> + * The latency figures for the other power domains are preliminary and
+> + * shall be added.
+>   */
+>  
+>  static struct powerdomain iva2_pwrdm = {
+> @@ -52,6 +60,13 @@ static struct powerdomain iva2_pwrdm = {
+>  		[2] = PWRSTS_OFF_ON,
+>  		[3] = PWRSTS_ON,
+>  	},
+> +	.wakeup_lat = {
+> +		[PWRDM_FUNC_PWRST_OFF] = 1100,
+> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_CSWR] = 350,
+> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_ON] = 0,
+> +	},
+>  };
+>  
+>  static struct powerdomain mpu_3xxx_pwrdm = {
+> @@ -68,6 +83,13 @@ static struct powerdomain mpu_3xxx_pwrdm = {
+>  	.pwrsts_mem_on	  = {
+>  		[0] = PWRSTS_OFF_ON,
+>  	},
+> +	.wakeup_lat = {
+> +		[PWRDM_FUNC_PWRST_OFF] = 1830,
+> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_CSWR] = 121,
+> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_ON] = 0,
+> +	},
+>  };
+>  
+>  /*
+> @@ -98,6 +120,13 @@ static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
+>  		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
+>  		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
+>  	},
+> +	.wakeup_lat = {
+> +		[PWRDM_FUNC_PWRST_OFF] = 3082,
+> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_CSWR] = 153,
+> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_ON] = 0,
+> +	},
+>  };
+>  
+>  static struct powerdomain core_3xxx_es3_1_pwrdm = {
+> @@ -121,6 +150,13 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
+>  		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
+>  		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
+>  	},
+> +	.wakeup_lat = {
+> +		[PWRDM_FUNC_PWRST_OFF] = 3082,
+> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_CSWR] = 153,
+> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_ON] = 0,
+> +	},
+>  };
+>  
+>  static struct powerdomain dss_pwrdm = {
+> @@ -136,6 +172,13 @@ static struct powerdomain dss_pwrdm = {
+>  	.pwrsts_mem_on	  = {
+>  		[0] = PWRSTS_ON,  /* MEMONSTATE */
+>  	},
+> +	.wakeup_lat = {
+> +		[PWRDM_FUNC_PWRST_OFF] = 70,
+> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_CSWR] = 20,
+> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_ON] = 0,
+> +	},
+>  };
+>  
+>  /*
+> @@ -157,6 +200,13 @@ static struct powerdomain sgx_pwrdm = {
+>  	.pwrsts_mem_on	  = {
+>  		[0] = PWRSTS_ON,  /* MEMONSTATE */
+>  	},
+> +	.wakeup_lat = {
+> +		[PWRDM_FUNC_PWRST_OFF] = 1000,
+> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_CSWR] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_ON] = 0,
+> +	},
+>  };
+>  
+>  static struct powerdomain cam_pwrdm = {
+> @@ -172,6 +222,13 @@ static struct powerdomain cam_pwrdm = {
+>  	.pwrsts_mem_on	  = {
+>  		[0] = PWRSTS_ON,  /* MEMONSTATE */
+>  	},
+> +	.wakeup_lat = {
+> +		[PWRDM_FUNC_PWRST_OFF] = 850,
+> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_CSWR] = 35,
+> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_ON] = 0,
+> +	},
+>  };
+>  
+>  static struct powerdomain per_pwrdm = {
+> @@ -187,6 +244,13 @@ static struct powerdomain per_pwrdm = {
+>  	.pwrsts_mem_on	  = {
+>  		[0] = PWRSTS_ON,  /* MEMONSTATE */
+>  	},
+> +	.wakeup_lat = {
+> +		[PWRDM_FUNC_PWRST_OFF] = 671,
+> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_CSWR] = 31,
+> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_ON] = 0,
+> +	},
+>  };
+>  
+>  static struct powerdomain emu_pwrdm = {
+> @@ -201,6 +265,13 @@ static struct powerdomain neon_pwrdm = {
+>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+>  	.pwrsts		  = PWRSTS_OFF_RET_ON,
+>  	.pwrsts_logic_ret = PWRSTS_RET,
+> +	.wakeup_lat = {
+> +		[PWRDM_FUNC_PWRST_OFF] = 0,
+> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_CSWR] = 0,
+> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_ON] = 0,
+> +	},
+>  };
+>  
+>  static struct powerdomain usbhost_pwrdm = {
+> @@ -223,6 +294,13 @@ static struct powerdomain usbhost_pwrdm = {
+>  	.pwrsts_mem_on	  = {
+>  		[0] = PWRSTS_ON,  /* MEMONSTATE */
+>  	},
+> +	.wakeup_lat = {
+> +		[PWRDM_FUNC_PWRST_OFF] = 800,
+> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_CSWR] = 150,
+> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
+> +		[PWRDM_FUNC_PWRST_ON] = 0,
+> +	},
+>  };
+>  
+>  static struct powerdomain dpll1_pwrdm = {
+> -- 
+> 1.7.4.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
