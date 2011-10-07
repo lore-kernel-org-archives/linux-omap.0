@@ -1,8 +1,8 @@
 From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
 Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
  for omap4
-Date: Fri, 7 Oct 2011 16:03:39 +0530
-Message-ID: <CAP05o4KLAnNHcvNbNWqJFN710JMNAy2emYzCt2xHF+m-Kvwveg@mail.gmail.com>
+Date: Fri, 7 Oct 2011 16:13:42 +0530
+Message-ID: <CAP05o4LMjfwGMtYH02XTv9UqO7nEPSu2fijnOPceVjK-dyUgwg@mail.gmail.com>
 References: <1317901099-2519-1-git-send-email-keshava_mgowda@ti.com>
 	<alpine.DEB.2.00.1110070305040.4611@utopia.booyaka.com>
 	<CAP05o4J39MotDTOv-O2ahvWfxL-7jC-L3FGsNXbmDy8HNg=W3g@mail.gmail.com>
@@ -32,7 +32,15 @@ urations.
  --
 > have been queued for 3.2 in the 'hwmod_devel_3.2' branch of
 > git://git.pwsan.com/linux-2.6
->
+
+Ok, then I will host a tree for remaining three patches and another
+last patch for MFD tree.
+
+regards
+keshava
+
+
+
 > So we don't need new versions of those two.
 >
 > But we need to figure out what to do about the remaining three
@@ -42,12 +50,7 @@ hat
 > but it's unlikely that I'll have time to dig into it for at least a
 > few days. =A0So I'd encourage you to try splitting those UHH and TLL
 > drivers in the meantime.
-
-some time last week; I had a discussion with Felipe and he is ok to
-have current design as it is
-for now; But, he wants to redesign this driver with UHH and TLL as two
-platform drivers.
-I will have discussion with Felipe and Partha to redesign it soon.
-
-regards
-keshava
+>
+>
+> - Paul
+>
