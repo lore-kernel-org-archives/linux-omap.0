@@ -1,15 +1,19 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH 7/7] ARM: OMAP: Warn if omap_ioremap is called before SoC
-	detection
-Date: Fri, 07 Oct 2011 16:36:19 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1110071635370.6390@xanadu.home>
-References: <20111007194242.18205.64009.stgit@kaulin.local>
-	<20111007194557.18205.37252.stgit@kaulin.local>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v3] ARM: OMAP3: PM: fix I/O wakeup and I/O chain clock
+	control detection
+Date: Fri, 07 Oct 2011 13:40:26 -0700
+Message-ID: <87y5wwk01x.fsf@ti.com>
+References: <alpine.DEB.2.00.1110061310390.4611@utopia.booyaka.com>
+	<CAGDS+nno3=sDDwdF6Ew6qG-8mN9bCeawCpho+AJo=jE9QVk0ag@mail.gmail.com>
+	<alpine.DEB.2.00.1110061346570.4611@utopia.booyaka.com>
+	<20111006222912.GA27281@n2100.arm.linux.org.uk>
+	<alpine.DEB.2.00.1110061716150.4611@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-reply-to: <20111007194557.18205.37252.stgit@kaulin.local>
+In-Reply-To: <alpine.DEB.2.00.1110061716150.4611@utopia.booyaka.com> (Paul
+	Walmsley's message of "Thu, 6 Oct 2011 17:18:45 -0600 (MDT)")
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,101 +23,52 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Steve Sakoman <sakoman@gmail.com>, dhylands@gmail.com, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 7 Oct 2011, Tony Lindgren wrote:
+Paul Walmsley <paul@pwsan.com> writes:
 
-> We don't have cpu_is_omapxxxx SoC detection initialized until
-> SoC detection is initialized from init_early.
-> 
-> Note that with the common map_io we should no longer need
-> cpu_is_omapxxxx for ioremap.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
-
-
+> The way that we detect which OMAP3 chips support I/O wakeup and
+> software I/O chain clock control is broken.
+>
+> Currently, I/O wakeup is marked as present for all OMAP3 SoCs other
+> than the AM3505/3517.  The TI81xx family of SoCs are at present
+> considered to be OMAP3 SoCs, but don't support I/O wakeup.  To resolve
+> this, convert the existing blacklist approach to an explicit,
+> whitelist support, in which only SoCs which are known to support I/O
+> wakeup are listed.  (At present, this only includes OMAP34xx,
+> OMAP3503, OMAP3515, OMAP3525, OMAP3530, and OMAP36xx.)
+>
+> Also, the current code incorrectly detects the presence of a
+> software-controllable I/O chain clock on several chips that don't
+> support it.  This results in writes to reserved bitfields, unnecessary
+> delays, and console messages on kernels running on those chips:
+>
+>     http://www.spinics.net/lists/linux-omap/msg58735.html
+>
+> Convert this test to a feature test with a chip-by-chip whitelist.
+>
+> Thanks to Dave Hylands <dhylands@gmail.com> for reporting this problem
+> and doing some testing to help isolate the cause.  Thanks to Steve
+> Sakoman <sakoman@gmail.com> for catching a bug in the first version of
+> this patch.  Thanks to Russell King <linux@arm.linux.org.uk> for
+> comments.
+>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Dave Hylands <dhylands@gmail.com>
+> Cc: Steve Sakoman <sakoman@gmail.com>
+> Tested-by: Steve Sakoman <sakoman@gmail.com>
+> Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
 > ---
->  arch/arm/mach-omap1/io.c             |    1 +
->  arch/arm/mach-omap2/io.c             |    1 +
->  arch/arm/plat-omap/include/plat/io.h |    2 ++
->  arch/arm/plat-omap/io.c              |   10 ++++++++++
->  4 files changed, 14 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
-> index 8140a4e..fd9eb09 100644
-> --- a/arch/arm/mach-omap1/io.c
-> +++ b/arch/arm/mach-omap1/io.c
-> @@ -121,6 +121,7 @@ void __init omap16xx_map_io(void)
->  void omap1_init_early(void)
->  {
->  	omap_check_revision();
-> +	omap_ioremap_init();
->  
->  	/* REVISIT: Refer to OMAP5910 Errata, Advisory SYS_1: "Timeout Abort
->  	 * on a Posted Write in the TIPB Bridge".
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index d5caac3..aa96538 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -323,6 +323,7 @@ void __iomem *omap_irq_base;
->  static void __init omap_common_init_early(void)
->  {
->  	omap2_check_revision();
-> +	omap_ioremap_init();
->  }
->  
->  static void __init omap_hwmod_init_postsetup(void)
-> diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
-> index c0c7850..5ffbea6 100644
-> --- a/arch/arm/plat-omap/include/plat/io.h
-> +++ b/arch/arm/plat-omap/include/plat/io.h
-> @@ -247,6 +247,8 @@
->   * NOTE: Please use ioremap + __raw_read/write where possible instead of these
->   */
->  
-> +void omap_ioremap_init(void);
-> +
->  extern u8 omap_readb(u32 pa);
->  extern u16 omap_readw(u32 pa);
->  extern u32 omap_readl(u32 pa);
-> diff --git a/arch/arm/plat-omap/io.c b/arch/arm/plat-omap/io.c
-> index f1ecfa9..1bbcbde 100644
-> --- a/arch/arm/plat-omap/io.c
-> +++ b/arch/arm/plat-omap/io.c
-> @@ -23,11 +23,16 @@
->  #define BETWEEN(p,st,sz)	((p) >= (st) && (p) < ((st) + (sz)))
->  #define XLATE(p,pst,vst)	((void __iomem *)((p) - (pst) + (vst)))
->  
-> +static int initialized;
-> +
->  /*
->   * Intercept ioremap() requests for addresses in our fixed mapping regions.
->   */
->  void __iomem *omap_ioremap(unsigned long p, size_t size, unsigned int type)
->  {
-> +
-> +	WARN(!initialized, "Do not use ioremap before init_early\n");
-> +
->  #ifdef CONFIG_ARCH_OMAP1
->  	if (cpu_class_is_omap1()) {
->  		if (BETWEEN(p, OMAP1_IO_PHYS, OMAP1_IO_SIZE))
-> @@ -139,3 +144,8 @@ void omap_iounmap(volatile void __iomem *addr)
->  		__iounmap(addr);
->  }
->  EXPORT_SYMBOL(omap_iounmap);
-> +
-> +void __init omap_ioremap_init(void)
-> +{
-> +	initialized++;
-> +}
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+>
+> This version incorporates some comments from RMK - an unnecessary 
+> set of parentheses are removed and a two-part error message string is 
+> joined.  Also, the printk(KERN_ERR has been converted into a pr_err(. 
+
+OK, looks like we made some parallel changes.
+
+Dropping my version and will queue this one (branch: for_3.2/pm-cleanup-2)
+
+Kevin
